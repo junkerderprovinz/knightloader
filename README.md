@@ -1,0 +1,31 @@
+# KnightLoader
+
+> **Working title (KL).** A modern, self-hosted, cross-platform download manager — a clean-UI alternative to JDownloader that grabs files from everywhere and hauls them into one keep. Final name TBD before release.
+
+**Status: early WIP — M0 (feasibility spike) is green.** Not yet a usable product.
+
+## What it is
+
+A single Go backend with an embedded download engine and a small **resolver** seam, driven by a modern web UI (IBM Carbon, dark) and shipped as both a Docker image and native desktop apps. Full hoster coverage comes from swappable resolvers — an invisible headless-JDownloader (arm's-length, via its local API), yt-dlp for media, and an optional debrid service — with native resolvers to follow. The user's own accounts stay the user's; nothing is bundled that shouldn't be.
+
+## Stack
+
+- **Backend:** Go, embedding [Gopeed](https://github.com/GopeedLab/gopeed)'s `pkg/download` engine (in-process; no aria2, no subprocess).
+- **UI:** React + [IBM Carbon](https://carbondesignsystem.com/) (dark), REST + WebSocket live.
+- **Desktop:** [Wails](https://github.com/wailsapp/wails) (Win/macOS/Linux). **Container:** Docker (multi-arch).
+- **Resolvers (planned):** headless [JDownloader](https://jdownloader.org/) via its local API · [yt-dlp](https://github.com/yt-dlp/yt-dlp) · debrid ([TorBox](https://torbox.app/)) · native.
+
+## M0 — feasibility spikes (green)
+
+The two riskiest integrations, both proven end-to-end:
+
+| Spike | Proves | Run |
+|---|---|---|
+| `cmd/spike-download` | Gopeed embeds in a Go binary; **custom per-request headers are sent** (token round-trips through an echo server); live progress/speed streams. | `go run ./cmd/spike-download` |
+| `cmd/spike-jd` | A Go client drives **headless JDownloader via its local "Deprecated API"** (plain HTTP JSON, no cloud): `addLinks` + `queryLinks` with live name/size/status. | `KL_JD=http://<jd-host>:3128 go run ./cmd/spike-jd` |
+
+To exercise `spike-jd` against a JDownloader instance, enable its Deprecated API (Advanced Settings → RemoteAPI → *Deprecated API* on, *Localhost only* off; listens on `:3128`) and point `KL_JD` at it.
+
+## Licence
+
+[AGPL-3.0](LICENSE). Own code; name and branding reserved.

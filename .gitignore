@@ -1,0 +1,10 @@
+# binaries
+/bin/
+*.exe
+*.exe~
+/dist/
+# go
+/vendor/
+# local/tmp
+/tmp/
+.DS_Store
