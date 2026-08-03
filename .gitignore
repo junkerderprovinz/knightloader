@@ -8,3 +8,7 @@
 # local/tmp
 /tmp/
 .DS_Store
+
+# node
+node_modules/
+web/node_modules/
