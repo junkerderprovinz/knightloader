@@ -20,6 +20,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/hub"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/store"
 )
 
@@ -38,7 +39,8 @@ type App struct {
 	Hub      *hub.Hub
 	Registry *resolver.Registry
 
-	jd backend // headless-JD backend, nil unless KL_JD is set and reachable
+	jd    backend // headless-JD backend, nil unless KL_JD is set and reachable
+	ytdlp backend // yt-dlp media backend, nil unless the yt-dlp binary is present
 
 	mu    sync.Mutex
 	tasks map[string]*core.Task
@@ -63,6 +65,18 @@ func New(dataDir string) (*App, error) {
 		return nil, err
 	}
 	a.Engine = eng
+
+	// Optional yt-dlp media backend: when the yt-dlp binary is present, media
+	// pages (non-file links) route through it.
+	ytbin := os.Getenv("KL_YTDLP")
+	if ytbin == "" {
+		ytbin = "yt-dlp"
+	}
+	if yb := ytdlp.NewBackend(ytbin, filepath.Join(dataDir, "downloads"), a.onUpdate); yb.Available() {
+		a.ytdlp = yb
+		a.Registry.Register(ytdlp.Resolver{})
+		log.Printf("yt-dlp backend enabled: %s", ytbin)
+	}
 
 	// Optional headless-JD backend: when KL_JD points at a reachable JD
 	// Deprecated API, links route through JD's crawler and hoster plugins.
@@ -161,10 +175,14 @@ func (a *App) Remove(id string) {
 }
 
 func (a *App) backendFor(resolverID string) backend {
-	if resolverID == "jd" && a.jd != nil {
+	switch {
+	case resolverID == "jd" && a.jd != nil:
 		return a.jd
+	case resolverID == "ytdlp" && a.ytdlp != nil:
+		return a.ytdlp
+	default:
+		return a.Engine
 	}
-	return a.Engine
 }
 
 func (a *App) resolverOf(id string) string {
