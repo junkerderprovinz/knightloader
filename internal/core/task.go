@@ -14,6 +14,17 @@ const (
 	StatusError   Status = "error"
 )
 
+// Update is a change to a task reported by a download backend (the Gopeed
+// engine or the JD backend). Empty fields are left untouched by the app.
+type Update struct {
+	Status Status
+	Name   string
+	Size   int64
+	Loaded int64
+	Speed  int64
+	Err    string
+}
+
 // Task is one download in the queue. It is what the UI renders and the store persists.
 type Task struct {
 	ID        string    `json:"id"`

@@ -11,16 +11,6 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
-// Update is a change to a task the engine reports back to the app.
-type Update struct {
-	Status core.Status
-	Name   string
-	Size   int64
-	Loaded int64
-	Speed  int64
-	Err    string
-}
-
 type Engine struct {
 	d   *download.Downloader
 	dir string
@@ -29,12 +19,12 @@ type Engine struct {
 	toKL     map[string]string // gopeed task id -> KL task id
 	toGopeed map[string]string // KL task id -> gopeed task id
 
-	onUpdate func(taskID string, u Update)
+	onUpdate func(taskID string, u core.Update)
 }
 
 // New boots an embedded Gopeed downloader that saves into dir and reports
 // per-task changes through onUpdate.
-func New(dir string, onUpdate func(taskID string, u Update)) (*Engine, error) {
+func New(dir string, onUpdate func(taskID string, u core.Update)) (*Engine, error) {
 	cfg := (&download.DownloaderConfig{
 		RefreshInterval: 500, // ms between progress events
 		DownloaderStoreConfig: &base.DownloaderStoreConfig{
@@ -67,14 +57,14 @@ func (e *Engine) Download(taskID, url string, headers map[string]string, conns i
 		opts := &base.Options{Path: e.dir, Extra: &fhttp.OptsExtra{Connections: conns}}
 		rr, err := e.d.Resolve(req, opts)
 		if err != nil {
-			e.emit(taskID, Update{Status: core.StatusError, Err: err.Error()})
+			e.emit(taskID, core.Update{Status: core.StatusError, Err: err.Error()})
 			return
 		}
 		name, size := metaOf(rr.Res)
-		e.emit(taskID, Update{Status: core.StatusRunning, Name: name, Size: size})
+		e.emit(taskID, core.Update{Status: core.StatusRunning, Name: name, Size: size})
 		gid, err := e.d.Create(rr.ID)
 		if err != nil {
-			e.emit(taskID, Update{Status: core.StatusError, Err: err.Error()})
+			e.emit(taskID, core.Update{Status: core.StatusError, Err: err.Error()})
 			return
 		}
 		e.mu.Lock()
@@ -120,12 +110,12 @@ func (e *Engine) onEvent(ev *download.Event) {
 	switch ev.Key {
 	case download.EventKeyProgress:
 		if pr := ev.Task.Progress; pr != nil {
-			e.emit(taskID, Update{Status: core.StatusRunning, Loaded: pr.Downloaded, Speed: pr.Speed})
+			e.emit(taskID, core.Update{Status: core.StatusRunning, Loaded: pr.Downloaded, Speed: pr.Speed})
 		}
 	case download.EventKeyPause:
-		e.emit(taskID, Update{Status: core.StatusPaused})
+		e.emit(taskID, core.Update{Status: core.StatusPaused})
 	case download.EventKeyDone:
-		u := Update{Status: core.StatusDone}
+		u := core.Update{Status: core.StatusDone}
 		if pr := ev.Task.Progress; pr != nil {
 			u.Loaded = pr.Downloaded
 		}
@@ -135,11 +125,11 @@ func (e *Engine) onEvent(ev *download.Event) {
 		if ev.Err != nil {
 			msg = ev.Err.Error()
 		}
-		e.emit(taskID, Update{Status: core.StatusError, Err: msg})
+		e.emit(taskID, core.Update{Status: core.StatusError, Err: msg})
 	}
 }
 
-func (e *Engine) emit(taskID string, u Update) {
+func (e *Engine) emit(taskID string, u core.Update) {
 	if e.onUpdate != nil {
 		e.onUpdate(taskID, u)
 	}
