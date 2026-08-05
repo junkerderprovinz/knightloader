@@ -7,10 +7,13 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
+	"net/url"
 	"strings"
+	"time"
 
 	"github.com/coder/websocket"
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
@@ -73,6 +76,53 @@ func Handler(a *app.App) http.Handler {
 		a.RestartTasks(body.Ids)
 		w.WriteHeader(http.StatusNoContent)
 	})
+	mux.HandleFunc("POST /api/tasks/recheck", func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Ids []string `json:"ids"`
+		}
+		_ = json.NewDecoder(r.Body).Decode(&body) // empty/absent = recheck all collected
+		go a.RecheckTasks(body.Ids)               // probing hosts can take a while
+		w.WriteHeader(http.StatusAccepted)
+	})
+	mux.HandleFunc("POST /api/tasks/priority", func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Ids      []string `json:"ids"`
+			Priority int      `json:"priority"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil || len(body.Ids) == 0 {
+			http.Error(w, "bad json", http.StatusBadRequest)
+			return
+		}
+		a.SetPriority(body.Ids, body.Priority)
+		w.WriteHeader(http.StatusNoContent)
+	})
+	mux.HandleFunc("POST /api/tasks/move", func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Ids   []string `json:"ids"`
+			Where string   `json:"where"` // "top" or "bottom"
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil || len(body.Ids) == 0 {
+			http.Error(w, "bad json", http.StatusBadRequest)
+			return
+		}
+		a.MoveTasks(body.Ids, body.Where)
+		w.WriteHeader(http.StatusNoContent)
+	})
+	mux.HandleFunc("POST /api/tasks/options", func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Ids []string `json:"ids"`
+			app.TaskOptions
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil || len(body.Ids) == 0 {
+			http.Error(w, "bad json", http.StatusBadRequest)
+			return
+		}
+		if err := a.SetTaskOptions(body.Ids, body.TaskOptions); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	})
 	mux.HandleFunc("POST /api/tasks/{id}/pause", func(w http.ResponseWriter, r *http.Request) {
 		a.Pause(r.PathValue("id"))
 		w.WriteHeader(http.StatusNoContent)
@@ -96,6 +146,12 @@ func Handler(a *app.App) http.Handler {
 			http.Error(w, "bad json", http.StatusBadRequest)
 			return
 		}
+		// Refuse a folder we cannot write to instead of accepting it and
+		// downloading somewhere else.
+		if err := settings.Validate(s.DownloadDir); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 		applied, err := a.ApplySettings(s)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -103,8 +159,13 @@ func Handler(a *app.App) http.Handler {
 		}
 		writeJSON(w, applied)
 	})
+	// The account list is state, never secrets: which slots are filled, where the
+	// value comes from, and what a test said.
 	mux.HandleFunc("GET /api/accounts", func(w http.ResponseWriter, r *http.Request) {
-		writeJSON(w, a.Accounts.Services())
+		writeJSON(w, a.AccountStates())
+	})
+	mux.HandleFunc("POST /api/accounts/{service}/test", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, a.TestAccount(r.PathValue("service")))
 	})
 	mux.HandleFunc("POST /api/accounts", func(w http.ResponseWriter, r *http.Request) {
 		var body struct {
@@ -169,12 +230,144 @@ func Handler(a *app.App) http.Handler {
 		serveWS(a, w, r)
 	})
 
+	// Password lock. These routes stay reachable while locked out — they are how
+	// you get back in.
+	mux.HandleFunc("GET /api/auth", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, map[string]bool{
+			"enabled":       a.Auth.Enabled(),
+			"authenticated": authenticated(a, r),
+		})
+	})
+	mux.HandleFunc("POST /api/auth/login", func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Password string `json:"password"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			http.Error(w, "bad json", http.StatusBadRequest)
+			return
+		}
+		if !a.Auth.Check(body.Password) {
+			http.Error(w, "wrong password", http.StatusUnauthorized)
+			return
+		}
+		setSession(w, r, a.Auth.Issue())
+		writeJSON(w, map[string]bool{"enabled": true, "authenticated": true})
+	})
+	mux.HandleFunc("POST /api/auth/logout", func(w http.ResponseWriter, r *http.Request) {
+		clearSession(w, r)
+		w.WriteHeader(http.StatusNoContent)
+	})
+	mux.HandleFunc("PUT /api/auth/password", func(w http.ResponseWriter, r *http.Request) {
+		// Setting the first password is open (the instance is unprotected
+		// anyway); changing or removing one requires the current password and an
+		// existing session, which the guard below enforces.
+		var body struct {
+			Current string `json:"current"`
+			New     string `json:"new"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			http.Error(w, "bad json", http.StatusBadRequest)
+			return
+		}
+		if err := a.Auth.SetPassword(body.Current, body.New); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		if body.New != "" {
+			setSession(w, r, a.Auth.Issue()) // don't lock out the person who just set it
+		} else {
+			clearSession(w, r)
+		}
+		writeJSON(w, map[string]bool{"enabled": a.Auth.Enabled(), "authenticated": true})
+	})
+
 	mux.Handle("/", spaHandler())
-	return cors(mux)
+	return sameOrigin(guard(a, mux))
+}
+
+// authenticated reports whether the request carries a valid session, or whether
+// no password is set at all.
+func authenticated(a *app.App, r *http.Request) bool {
+	if !a.Auth.Enabled() {
+		return true
+	}
+	c, err := r.Cookie(auth.CookieName)
+	return err == nil && a.Auth.Valid(c.Value)
+}
+
+func setSession(w http.ResponseWriter, r *http.Request, token string) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     auth.CookieName,
+		Value:    token,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   r.TLS != nil,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   int(auth.SessionTTL / time.Second),
+	})
+}
+
+func clearSession(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name: auth.CookieName, Value: "", Path: "/", HttpOnly: true,
+		Secure: r.TLS != nil, SameSite: http.SameSiteLaxMode, MaxAge: -1,
+	})
+}
+
+// openRoutes are reachable without a session: the login flow itself, the health
+// probe a container orchestrator needs, and the UI assets that render the login
+// screen.
+func openRoutes(path string) bool {
+	switch path {
+	case "/api/health", "/api/auth", "/api/auth/login", "/api/auth/logout":
+		return true
+	}
+	return !strings.HasPrefix(path, "/api/")
+}
+
+// guard refuses API calls without a session once a password is set.
+func guard(a *app.App, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if openRoutes(r.URL.Path) || authenticated(a, r) {
+			next.ServeHTTP(w, r)
+			return
+		}
+		// Setting the FIRST password needs no session; there is nothing to
+		// protect yet and no way to get one.
+		if r.URL.Path == "/api/auth/password" && !a.Auth.Enabled() {
+			next.ServeHTTP(w, r)
+			return
+		}
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+	})
+}
+
+// sameOrigin keeps other websites from driving this instance through the
+// visitor's browser. The UI is served from the same origin as the API, so no
+// cross-origin access is ever needed.
+func sameOrigin(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if origin := r.Header.Get("Origin"); origin != "" && !originMatchesHost(origin, r.Host) {
+			http.Error(w, "cross-origin requests are not allowed", http.StatusForbidden)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+// originMatchesHost compares an Origin header against the host being addressed.
+func originMatchesHost(origin, host string) bool {
+	u, err := url.Parse(origin)
+	if err != nil {
+		return false
+	}
+	return strings.EqualFold(u.Host, host)
 }
 
 func serveWS(a *app.App, w http.ResponseWriter, r *http.Request) {
-	c, err := websocket.Accept(w, r, &websocket.AcceptOptions{InsecureSkipVerify: true})
+	// No InsecureSkipVerify: the library then requires Origin to match Host,
+	// which is what stops another site from opening this socket.
+	c, err := websocket.Accept(w, r, nil)
 	if err != nil {
 		return
 	}
@@ -215,17 +408,4 @@ func spaHandler() http.Handler {
 func writeJSON(w http.ResponseWriter, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(v)
-}
-
-func cors(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET,POST,DELETE,OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusNoContent)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
 }

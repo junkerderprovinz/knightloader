@@ -3,6 +3,8 @@
 package engine
 
 import (
+	"fmt"
+	"net"
 	"sync"
 
 	"github.com/GopeedLab/gopeed/pkg/base"
@@ -54,14 +56,47 @@ func New(dir string, onUpdate func(taskID string, u core.Update)) (*Engine, erro
 	return e, nil
 }
 
+// UseProxy routes every engine download through a proxy. KnightLoader points
+// this at its own loopback proxy, which is where the speed limit is applied —
+// the download library itself offers no rate-limit hook.
+func (e *Engine) UseProxy(hostPort string) error {
+	cfg, err := e.d.GetConfig()
+	if err != nil {
+		return err
+	}
+	if hostPort == "" {
+		cfg.Proxy = &base.DownloaderProxyConfig{}
+	} else {
+		host, _, splitErr := net.SplitHostPort(hostPort)
+		if splitErr != nil || host == "" {
+			return fmt.Errorf("engine: bad proxy address %q", hostPort)
+		}
+		cfg.Proxy = &base.DownloaderProxyConfig{
+			Enable: true,
+			Scheme: "http",
+			Host:   hostPort,
+		}
+	}
+	return e.d.PutConfig(cfg)
+}
+
 func (e *Engine) Close() error { return e.d.Close() }
 
 // Download resolves the direct URL (to learn name+size), then starts a task.
 // It runs async so the caller (an HTTP handler) never blocks on the network.
 func (e *Engine) Download(taskID, url string, headers map[string]string, conns int) {
+	e.DownloadTo(taskID, url, headers, conns, "")
+}
+
+// DownloadTo is Download with an explicit destination; an empty dir falls back
+// to the engine's default.
+func (e *Engine) DownloadTo(taskID, url string, headers map[string]string, conns int, dir string) {
+	if dir == "" {
+		dir = e.dir
+	}
 	go func() {
 		req := &base.Request{URL: url, Extra: &fhttp.ReqExtra{Method: "GET", Header: headers}}
-		opts := &base.Options{Path: e.dir, Extra: &fhttp.OptsExtra{Connections: conns}}
+		opts := &base.Options{Path: dir, Extra: &fhttp.OptsExtra{Connections: conns}}
 		rr, err := e.d.Resolve(req, opts)
 		if err != nil {
 			e.emit(taskID, core.Update{Status: core.StatusError, Err: err.Error()})

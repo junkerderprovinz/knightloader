@@ -4,8 +4,11 @@ package settings
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 )
 
@@ -14,10 +17,20 @@ import (
 type Settings struct {
 	MaxConcurrent int   `json:"maxConcurrent"` // global simultaneous downloads
 	MaxPerHost    int   `json:"maxPerHost"`    // simultaneous downloads per host
-	SpeedLimit    int64 `json:"speedLimit"`    // bytes/s for the embedded engine, 0 = unlimited
+	SpeedLimit    int64 `json:"speedLimit"`    // bytes/s, 0 = unlimited
 	Extract       bool  `json:"extract"`       // extract archives after download
 	DeleteArchive bool  `json:"deleteArchive"` // remove the archive after successful extraction
 	AutoStart     bool  `json:"autoStart"`     // start collected links immediately instead of staging
+
+	// DownloadDir is where finished files land. Empty means the built-in
+	// default inside the data directory.
+	DownloadDir string `json:"downloadDir"`
+	// SubfolderByPackage puts each package in its own folder below DownloadDir.
+	SubfolderByPackage bool `json:"subfolderByPackage"`
+	// ArchivePasswords are tried in order when extracting an encrypted archive.
+	ArchivePasswords []string `json:"archivePasswords"`
+	// MaxRetries is how often a failed download is retried automatically.
+	MaxRetries int `json:"maxRetries"`
 }
 
 // Defaults returns the settings a fresh install starts with.
@@ -28,6 +41,7 @@ func Defaults() Settings {
 		SpeedLimit:    0,
 		Extract:       true,
 		DeleteArchive: false,
+		MaxRetries:    3,
 	}
 }
 
@@ -90,5 +104,43 @@ func sanitize(n Settings) Settings {
 	if n.SpeedLimit < 0 {
 		n.SpeedLimit = 0
 	}
+	if n.MaxRetries < 0 {
+		n.MaxRetries = 0
+	}
+	if n.MaxRetries > 20 {
+		n.MaxRetries = 20
+	}
+	n.DownloadDir = strings.TrimSpace(n.DownloadDir)
+	// A relative path would be resolved against whatever the process's working
+	// directory happens to be, which is not something a user can reason about.
+	if n.DownloadDir != "" && !filepath.IsAbs(n.DownloadDir) {
+		n.DownloadDir = ""
+	}
+	var pw []string
+	for _, p := range n.ArchivePasswords {
+		if p = strings.TrimSpace(p); p != "" {
+			pw = append(pw, p)
+		}
+	}
+	n.ArchivePasswords = pw
 	return n
+}
+
+// Validate reports why a download directory cannot be used, so the API can
+// refuse a bad path instead of silently downloading somewhere else.
+func Validate(dir string) error {
+	if dir == "" {
+		return nil // the built-in default is always usable
+	}
+	if !filepath.IsAbs(dir) {
+		return errors.New("the download folder must be an absolute path")
+	}
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return fmt.Errorf("cannot create %s: %w", dir, err)
+	}
+	probe := filepath.Join(dir, ".knightloader-write-test")
+	if err := os.WriteFile(probe, []byte("ok"), 0o644); err != nil {
+		return fmt.Errorf("cannot write to %s: %w", dir, err)
+	}
+	return os.Remove(probe)
 }

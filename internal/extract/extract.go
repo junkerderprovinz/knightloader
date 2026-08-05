@@ -38,6 +38,38 @@ func Supported(name string) bool {
 	return firstVolume.MatchString(l)
 }
 
+// volumeFamilies maps a trailing volume marker to the archive family it belongs
+// to. Two files in one folder with the same base name and the same family are
+// parts of one archive, which is what lets the caller wait for a complete set.
+// Order matters: the more specific marker has to be tried first (.part01.rar
+// before .rar, .7z.001 before .7z).
+var volumeFamilies = []struct {
+	re     *regexp.Regexp
+	family string
+}{
+	{regexp.MustCompile(`(?i)\.part\d+\.rar$`), "rar"},
+	{regexp.MustCompile(`(?i)\.r\d\d$`), "rar"},
+	{regexp.MustCompile(`(?i)\.rar$`), "rar"},
+	{regexp.MustCompile(`(?i)\.7z\.\d{3}$`), "7z"},
+	{regexp.MustCompile(`(?i)\.7z$`), "7z"},
+	{regexp.MustCompile(`(?i)\.z\d\d$`), "zip"},
+	{regexp.MustCompile(`(?i)\.zip$`), "zip"},
+}
+
+// SetKey identifies the volume set a file belongs to: every part of one
+// multi-volume archive returns the same key. ok is false for names that cannot
+// be part of a set (a .tar.gz, a plain file). A single-file archive is simply a
+// set of one.
+func SetKey(name string) (key string, ok bool) {
+	base := filepath.Base(name)
+	for _, f := range volumeFamilies {
+		if loc := f.re.FindStringIndex(base); loc != nil {
+			return strings.ToLower(base[:loc[0]]) + "|" + f.family, true
+		}
+	}
+	return "", false
+}
+
 // Result describes a finished extraction.
 type Result struct {
 	Dir     string   // directory the archive was extracted into

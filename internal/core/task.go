@@ -16,8 +16,19 @@ const (
 	StatusError      Status = "error"
 )
 
+// Availability is what we know about the link itself, independent of whether a
+// download has been attempted. A link can be staged and known-dead, which is
+// exactly what the collector wants to show.
+type Availability string
+
+const (
+	AvailUnknown Availability = ""        // not checked (or the resolver can't check)
+	AvailOnline  Availability = "online"  // the host answered and the file is there
+	AvailOffline Availability = "offline" // the host answered and the file is gone
+)
+
 // Update is a change to a task reported by a download backend (the Gopeed
-// engine or the JD backend). Empty fields are left untouched by the app.
+// engine or a delegated backend). Empty fields are left untouched by the app.
 type Update struct {
 	Status Status
 	Name   string
@@ -25,6 +36,9 @@ type Update struct {
 	Loaded int64
 	Speed  int64
 	Err    string
+	// Retry, when set on an error, asks for another attempt after the delay
+	// instead of settling the task (a hoster cool-down, a transient 5xx).
+	Retry time.Duration
 }
 
 // Task is one download in the queue. It is what the UI renders and the store persists.
@@ -40,4 +54,20 @@ type Task struct {
 	Status    Status    `json:"status"`
 	Error     string    `json:"error,omitempty"`
 	CreatedAt time.Time `json:"createdAt"`
+
+	// Dir overrides the download destination for this task; empty means the
+	// folder derived from settings and package.
+	Dir string `json:"dir,omitempty"`
+	// Password is tried first when extracting this task's archive.
+	Password string `json:"password,omitempty"`
+	// Online is what a check said about the link.
+	Online Availability `json:"online,omitempty"`
+	// Retries counts attempts already made after a failure.
+	Retries int `json:"retries,omitempty"`
+	// NextTry is when an automatic retry is due (zero = none pending).
+	NextTry time.Time `json:"nextTry,omitempty"`
+	// Priority lifts a task in the wait queue; higher runs first.
+	Priority int `json:"priority"`
+	// Position orders tasks of equal priority.
+	Position int `json:"position"`
 }
