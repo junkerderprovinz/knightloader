@@ -44,6 +44,14 @@ func Handler(a *app.App) http.Handler {
 		a.StartTasks(body.Ids)
 		w.WriteHeader(http.StatusNoContent)
 	})
+	mux.HandleFunc("POST /api/tasks/restart", func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Ids []string `json:"ids"`
+		}
+		_ = json.NewDecoder(r.Body).Decode(&body) // empty/absent = restart all errored
+		a.RestartTasks(body.Ids)
+		w.WriteHeader(http.StatusNoContent)
+	})
 	mux.HandleFunc("POST /api/tasks/{id}/pause", func(w http.ResponseWriter, r *http.Request) {
 		a.Pause(r.PathValue("id"))
 		w.WriteHeader(http.StatusNoContent)

@@ -1,10 +1,10 @@
 import { type Task } from '../lib/api';
-import { pause, resume, remove, startTasks } from '../lib/api';
+import { pause, resume, remove, startTasks, restartTasks } from '../lib/api';
 import { fmtBytes, fmtSpeed, fmtEta, pct } from '../lib/format';
 import { Card, Button } from './ui';
 import { ProgressBar } from './ProgressBar';
 import { StatusPill, ResolverBadge } from './StatusPill';
-import { IconPause, IconPlay, IconTrash, IconCheck } from '../lib/icons';
+import { IconPause, IconPlay, IconTrash, IconCheck, IconRetry } from '../lib/icons';
 
 export interface Selection {
   ids: Set<string>;
@@ -66,6 +66,9 @@ function TaskRow({ t, base, selection }: { t: Task; base: string; selection?: Se
         )}
         {t.status === 'paused' && (
           <Button kind="ghost" icon={<IconPlay />} title="Resume" onClick={() => resume(t.id, base)} />
+        )}
+        {(t.status === 'error' || t.status === 'done') && (
+          <Button kind="ghost" icon={<IconRetry />} title="Restart" onClick={() => restartTasks([t.id], base)} />
         )}
         <Button kind="danger" icon={<IconTrash />} title="Remove" onClick={() => remove(t.id, base)} />
       </div>

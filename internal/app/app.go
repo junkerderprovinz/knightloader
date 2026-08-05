@@ -265,6 +265,57 @@ func (a *App) StartTasks(ids []string) {
 	}
 }
 
+// RestartTasks re-runs finished or errored tasks from scratch: their backend
+// state is cleared and they re-enter the download queue. Empty ids = every
+// errored task.
+func (a *App) RestartTasks(ids []string) {
+	want := map[string]bool{}
+	for _, id := range ids {
+		want[id] = true
+	}
+	all := len(ids) == 0
+	a.mu.Lock()
+	type reset struct {
+		id string
+		be backend
+	}
+	var targets []reset
+	for id, t := range a.tasks {
+		restartable := t.Status == core.StatusError || (t.Status == core.StatusDone && !all)
+		if restartable && (all || want[id]) {
+			targets = append(targets, reset{id, a.backendFor(t.Resolver)})
+			t.Status = core.StatusQueued
+			t.Error = ""
+			t.Loaded = 0
+			t.Speed = 0
+			delete(a.active, id)
+			delete(a.started, id) // dispatch will hand it to the backend fresh
+		}
+	}
+	a.mu.Unlock()
+
+	// Clear any leftover backend state before re-queuing.
+	for _, r := range targets {
+		r.be.Remove(r.id)
+	}
+
+	a.mu.Lock()
+	var copies []core.Task
+	for _, r := range targets {
+		if t := a.tasks[r.id]; t != nil {
+			a.queue = append(a.queue, r.id)
+			copies = append(copies, *t)
+		}
+	}
+	a.dispatchLocked()
+	a.mu.Unlock()
+	for i := range copies {
+		c := copies[i]
+		_ = a.Store.Save(&c)
+		a.Hub.Broadcast("task", &c)
+	}
+}
+
 // analyze probes a plain file link with a HEAD request to fill in its size and
 // flag it offline, updating the collected task in place.
 func (a *App) analyze(id, rawurl string) {
