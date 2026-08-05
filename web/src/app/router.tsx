@@ -7,9 +7,11 @@ import { Instances } from '../pages/Instances';
 import { Accounts } from '../pages/Accounts';
 import { SettingsPage } from '../pages/Settings';
 import { ToastProvider } from '../lib/toast';
+import { I18nProvider } from '../lib/i18n';
 
 export function AppRouter() {
   return (
+    <I18nProvider>
     <ToastProvider>
       <BrowserRouter>
         <Routes>
@@ -25,5 +27,6 @@ export function AppRouter() {
         </Routes>
       </BrowserRouter>
     </ToastProvider>
+    </I18nProvider>
   );
 }

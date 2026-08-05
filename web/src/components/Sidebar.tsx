@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { getTheme, toggleTheme } from '../lib/theme';
+import { useT, LANGUAGES } from '../lib/i18n';
 import { fetchHealth } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import {
@@ -12,6 +13,7 @@ import {
   IconSettings,
   IconMoon,
   IconSun,
+  IconGlobe,
 } from '../lib/icons';
 
 const navBase =
@@ -47,6 +49,7 @@ function Item({
 }
 
 export function Sidebar() {
+  const { t, lang, setLang } = useT();
   const [theme, setThemeState] = useState(getTheme);
   const [version, setVersion] = useState('');
   const tasks = useTasks('');
@@ -67,6 +70,8 @@ export function Sidebar() {
     return { collected, active };
   }, [tasks]);
 
+  const nextLang = LANGUAGES[(LANGUAGES.findIndex((l) => l.code === lang) + 1) % LANGUAGES.length];
+
   return (
     <aside className="flex flex-col w-56 shrink-0 h-full bg-carbon-sidebar">
       <NavLink to="/" end className="flex items-center gap-2.5 px-4 py-5 hover:opacity-90 transition-opacity">
@@ -76,29 +81,37 @@ export function Sidebar() {
         <span className="flex flex-col leading-none">
           <span className="text-carbon-text font-bold text-xl tracking-tight">KnightLoader</span>
           <span className="text-carbon-textMuted text-[11px]">
-            {version && version !== 'dev' ? version : 'working title'}
+            {version && version !== 'dev' ? version : t('nav.workingTitle')}
           </span>
         </span>
       </NavLink>
 
       <nav className="flex flex-col gap-1 p-3 flex-1">
-        <Item to="/" end label="Overview" icon={<IconDashboard />} />
-        <Item to="/collector" label="Collector" icon={<IconCollector />} badge={collected} />
-        <Item to="/downloads" label="Downloads" icon={<IconDownloads />} badge={active} />
-        <Item to="/instances" label="Instances" icon={<IconInstances />} />
-        <Item to="/accounts" label="Accounts" icon={<IconAccounts />} />
+        <Item to="/" end label={t('nav.overview')} icon={<IconDashboard />} />
+        <Item to="/collector" label={t('nav.collector')} icon={<IconCollector />} badge={collected} />
+        <Item to="/downloads" label={t('nav.downloads')} icon={<IconDownloads />} badge={active} />
+        <Item to="/instances" label={t('nav.instances')} icon={<IconInstances />} />
+        <Item to="/accounts" label={t('nav.accounts')} icon={<IconAccounts />} />
       </nav>
 
       <div className="flex flex-col gap-1 p-3">
         <button
+          onClick={() => setLang(nextLang.code)}
+          className={`${navBase} ${navInactive} w-full`}
+          title={t('lang.label')}
+        >
+          <IconGlobe />
+          <span>{LANGUAGES.find((l) => l.code === lang)?.label}</span>
+        </button>
+        <button
           onClick={() => setThemeState(toggleTheme())}
           className={`${navBase} ${navInactive} w-full`}
-          title="Toggle theme"
+          title={t('theme.toggle')}
         >
           {theme === 'dark' ? <IconMoon /> : <IconSun />}
-          <span>{theme === 'dark' ? 'Dark' : 'Light'}</span>
+          <span>{theme === 'dark' ? t('theme.dark') : t('theme.light')}</span>
         </button>
-        <Item to="/settings" label="Settings" icon={<IconSettings />} />
+        <Item to="/settings" label={t('nav.settings')} icon={<IconSettings />} />
       </div>
     </aside>
   );

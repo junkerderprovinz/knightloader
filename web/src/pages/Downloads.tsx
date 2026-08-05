@@ -3,17 +3,18 @@ import { useSearchParams } from 'react-router-dom';
 import { type Instance, type Task, apiBase, pause, resume, remove, restartTasks, fetchInstances } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import { fmtSpeed } from '../lib/format';
+import { useT, type TranslationKey } from '../lib/i18n';
 import { PageHeader, Button } from '../components/ui';
 import { SpeedGraph } from '../components/SpeedGraph';
 import { PackageGroup, groupByPackage } from '../components/TaskList';
 import { IconSearch } from '../lib/icons';
 
 type Filter = 'all' | 'active' | 'done' | 'error';
-const FILTERS: { key: Filter; label: string }[] = [
-  { key: 'all', label: 'All' },
-  { key: 'active', label: 'Active' },
-  { key: 'done', label: 'Done' },
-  { key: 'error', label: 'Errors' },
+const FILTERS: { key: Filter; label: TranslationKey }[] = [
+  { key: 'all', label: 'downloads.filterAll' },
+  { key: 'active', label: 'downloads.filterActive' },
+  { key: 'done', label: 'downloads.filterDone' },
+  { key: 'error', label: 'downloads.filterErrors' },
 ];
 
 function matchesFilter(t: Task, f: Filter): boolean {
@@ -24,6 +25,7 @@ function matchesFilter(t: Task, f: Filter): boolean {
 }
 
 export function Downloads() {
+  const { t } = useT();
   const [params] = useSearchParams();
   const [instances, setInstances] = useState<Instance[]>([]);
   const [instance, setInstance] = useState(params.get('instance') ?? '');
@@ -76,17 +78,17 @@ export function Downloads() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Downloads"
-        subtitle="Active and finished transfers."
+        title={t('downloads.title')}
+        subtitle={t('downloads.subtitle')}
         right={
           instances.length > 0 && (
             <select
               value={instance}
               onChange={(e) => setInstance(e.target.value)}
               className="rounded-lg bg-carbon-surface2 px-3 py-2 text-sm text-carbon-text outline-none"
-              aria-label="Instance"
+              aria-label={t('nav.instances')}
             >
-              <option value="">This instance</option>
+              <option value="">{t('downloads.thisInstance')}</option>
               {instances.map((i) => (
                 <option key={i.name} value={i.name}>
                   {i.name}
@@ -100,30 +102,30 @@ export function Downloads() {
       <div className="kl-card overflow-hidden">
         <div className="flex items-end justify-between px-5 pt-4">
           <div>
-            <div className="text-carbon-textMuted text-xs">Total speed</div>
+            <div className="text-carbon-textMuted text-xs">{t('downloads.totalSpeed')}</div>
             <div className="text-2xl font-bold tabular-nums text-carbon-text">{fmtSpeed(speed) || '—'}</div>
           </div>
           <div className="flex items-center gap-1 pb-1">
             <Button kind="ghost" onClick={pauseAll} disabled={stats.running === 0}>
-              Pause all
+              {t('downloads.pauseAll')}
             </Button>
             <Button kind="ghost" onClick={resumeAll} disabled={stats.queued + stats.running === 0}>
-              Resume all
+              {t('downloads.resumeAll')}
             </Button>
             <Button kind="ghost" onClick={retryFailed} disabled={stats.error === 0}>
-              Retry failed
+              {t('downloads.retryFailed')}
             </Button>
             <Button kind="ghost" onClick={clearDone} disabled={stats.done + stats.error === 0}>
-              Clear finished
+              {t('downloads.clearFinished')}
             </Button>
           </div>
         </div>
         <SpeedGraph value={speed} />
         <div className="flex flex-wrap gap-x-6 gap-y-1 px-5 pb-4 text-sm">
-          <Counter label="Active" value={stats.running} tone="text-statusInfo" />
-          <Counter label="Queued" value={stats.queued} tone="text-statusNeutral" />
-          <Counter label="Done" value={stats.done} tone="text-statusOk" />
-          {stats.error > 0 && <Counter label="Errors" value={stats.error} tone="text-statusFail" />}
+          <Counter label={t('overview.active')} value={stats.running} tone="text-statusInfo" />
+          <Counter label={t('overview.queued')} value={stats.queued} tone="text-statusNeutral" />
+          <Counter label={t('overview.done')} value={stats.done} tone="text-statusOk" />
+          {stats.error > 0 && <Counter label={t('overview.errors')} value={stats.error} tone="text-statusFail" />}
         </div>
       </div>
 
@@ -134,7 +136,7 @@ export function Downloads() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Filter by name…"
+              placeholder={t('downloads.filterPlaceholder')}
               className="w-full rounded-lg bg-carbon-surface2 pl-8 pr-3 py-2 text-sm text-carbon-text placeholder:text-carbon-textMuted outline-none focus:ring-2 focus:ring-[var(--status-info-solid)]"
             />
           </div>
@@ -147,7 +149,7 @@ export function Downloads() {
                   filter === f.key ? 'bg-accent text-accentContrast' : 'text-carbon-textSub hover:text-carbon-text'
                 }`}
               >
-                {f.label}
+                {t(f.label)}
               </button>
             ))}
           </div>
@@ -157,7 +159,7 @@ export function Downloads() {
       {list.length === 0 ? (
         <Empty />
       ) : filtered.length === 0 ? (
-        <div className="kl-card p-8 text-center text-carbon-textMuted">Nothing matches this filter.</div>
+        <div className="kl-card p-8 text-center text-carbon-textMuted">{t('downloads.noMatch')}</div>
       ) : (
         groups.map(([name, items]) => <PackageGroup key={name || '__none'} name={name} items={items} base={base} />)
       )}
@@ -175,9 +177,11 @@ function Counter({ label, value, tone }: { label: string; value: number; tone: s
 }
 
 function Empty() {
+  const { t } = useT();
   return (
     <div className="kl-card p-10 text-center text-carbon-textMuted">
-      Nothing downloading yet. Add links in the <span className="text-carbon-textSub">Collector</span> and start them.
+      {t('downloads.emptyLead')} <span className="text-carbon-textSub">{t('nav.collector')}</span>{' '}
+      {t('downloads.emptyTail')}
     </div>
   );
 }

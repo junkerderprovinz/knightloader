@@ -2,11 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { addLinks, remove, startTasks } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import { useToast } from '../lib/toast';
+import { useT } from '../lib/i18n';
 import { PageHeader, Button, TextInput, Card } from '../components/ui';
 import { PackageGroup, groupByPackage, type Selection } from '../components/TaskList';
 import { IconPlus, IconPlay, IconTrash } from '../lib/icons';
 
 export function Collector() {
+  const { t } = useT();
   const tasks = useTasks('');
   const { toast } = useToast();
   const [links, setLinks] = useState('');
@@ -44,9 +46,25 @@ export function Collector() {
 
   async function onAdd() {
     if (!links.trim()) return;
+    const submitted = new Set(
+      links
+        .split(/[\r\n]+/)
+        .map((l) => l.trim())
+        .filter((l) => /^https?:\/\//i.test(l)),
+    ).size;
     const created = await addLinks(links, pkg);
     setLinks('');
-    toast(created.length ? `Staged ${created.length} link${created.length === 1 ? '' : 's'}` : 'No valid links found', created.length ? 'ok' : 'fail');
+    if (!created.length) {
+      toast(t('collector.toastNone'), 'fail');
+      return;
+    }
+    const skipped = Math.max(0, submitted - created.length);
+    toast(
+      skipped
+        ? t('collector.toastSkipped', { n: created.length, skipped })
+        : t('collector.toastStaged', { n: created.length }),
+      'ok',
+    );
   }
 
   function onDrop(e: React.DragEvent) {
@@ -59,17 +77,17 @@ export function Collector() {
   const startSelected = () => {
     if (!selected.size) return;
     startTasks([...selected]);
-    toast(`Started ${selected.size} download${selected.size === 1 ? '' : 's'}`, 'info');
+    toast(t('collector.toastStarted', { n: selected.size }), 'info');
   };
   const startAll = () => {
     startTasks([]);
-    toast(`Started ${collected.length} download${collected.length === 1 ? '' : 's'}`, 'info');
+    toast(t('collector.toastStarted', { n: collected.length }), 'info');
   };
   const removeSelected = () => selected.forEach((id) => remove(id));
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Collector" subtitle="Paste or drop links — they are analysed and staged, then you start them." />
+      <PageHeader title={t('collector.title')} subtitle={t('collector.subtitle')} />
 
       <Card className="flex flex-col gap-3">
         <div
@@ -82,7 +100,7 @@ export function Collector() {
           className={`rounded-lg transition-colors ${dragOver ? 'ring-2 ring-accent' : ''}`}
         >
           <textarea
-            placeholder="Paste links — one URL per line — or drop them here…  (Ctrl+Enter to add)"
+            placeholder={t('collector.placeholder')}
             rows={4}
             value={links}
             onChange={(e) => setLinks(e.target.value)}
@@ -93,33 +111,38 @@ export function Collector() {
           />
         </div>
         <div className="flex items-center gap-3">
-          <TextInput placeholder="Package (optional)" value={pkg} onChange={(e) => setPkg(e.target.value)} className="max-w-xs" />
+          <TextInput
+            placeholder={t('collector.package')}
+            value={pkg}
+            onChange={(e) => setPkg(e.target.value)}
+            className="max-w-xs"
+          />
           <span className="flex-1" />
           <Button icon={<IconPlus />} onClick={onAdd} disabled={!links.trim()}>
-            Add to collector
+            {t('collector.add')}
           </Button>
         </div>
       </Card>
 
       {collected.length === 0 ? (
-        <div className="kl-card p-10 text-center text-carbon-textMuted">
-          The collector is empty. Paste some links above to stage them.
-        </div>
+        <div className="kl-card p-10 text-center text-carbon-textMuted">{t('collector.empty')}</div>
       ) : (
         <>
           <div className="flex items-center gap-2 rounded-card kl-card px-5 py-3 text-sm">
             <span className="text-carbon-textSub">
-              {selected.size > 0 ? `${selected.size} selected` : `${collected.length} staged`}
+              {selected.size > 0
+                ? `${selected.size} ${t('collector.selected')}`
+                : `${collected.length} ${t('collector.staged')}`}
             </span>
             <span className="flex-1" />
             <Button kind="primary" icon={<IconPlay />} onClick={startSelected} disabled={selected.size === 0}>
-              Start selected
+              {t('collector.startSelected')}
             </Button>
             <Button kind="secondary" onClick={startAll}>
-              Start all
+              {t('collector.startAll')}
             </Button>
             <Button kind="danger" icon={<IconTrash />} onClick={removeSelected} disabled={selected.size === 0}>
-              Remove
+              {t('collector.remove')}
             </Button>
           </div>
           {groups.map(([name, items]) => (

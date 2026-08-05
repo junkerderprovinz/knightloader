@@ -1,6 +1,7 @@
 import { type Task } from '../lib/api';
 import { pause, resume, remove, startTasks, restartTasks } from '../lib/api';
 import { fmtBytes, fmtSpeed, fmtEta, pct } from '../lib/format';
+import { useT } from '../lib/i18n';
 import { Card, Button } from './ui';
 import { ProgressBar } from './ProgressBar';
 import { StatusPill, ResolverBadge } from './StatusPill';
@@ -27,50 +28,49 @@ function Checkbox({ checked, onChange }: { checked: boolean; onChange: () => voi
   );
 }
 
-function TaskRow({ t, base, selection }: { t: Task; base: string; selection?: Selection }) {
-  const p = pct(t.loaded, t.size, t.status === 'done');
-  const eta = fmtEta(t.loaded, t.size, t.speed);
-  const collected = t.status === 'collected';
+function TaskRow({ t: task, base, selection }: { t: Task; base: string; selection?: Selection }) {
+  const { t } = useT();
+  const p = pct(task.loaded, task.size, task.status === 'done');
+  const eta = fmtEta(task.loaded, task.size, task.speed);
+  const collected = task.status === 'collected';
   return (
     <div className="flex items-center gap-4 px-5 py-3 transition-colors hover:bg-carbon-hover/40 border-t border-carbon-border/50 first:border-t-0">
-      {selection && <Checkbox checked={selection.ids.has(t.id)} onChange={() => selection.toggle(t.id)} />}
+      {selection && <Checkbox checked={selection.ids.has(task.id)} onChange={() => selection.toggle(task.id)} />}
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="truncate text-carbon-text">{t.name || t.url}</span>
-          <ResolverBadge resolver={t.resolver} />
+          <span className="truncate text-carbon-text">{task.name || task.url}</span>
+          <ResolverBadge resolver={task.resolver} />
         </div>
-        {t.error && <div className="text-statusFail text-xs mt-0.5 truncate">{t.error}</div>}
+        {task.error && <div className="text-statusFail text-xs mt-0.5 truncate">{task.error}</div>}
         {!collected && (
           <div className="mt-1.5 flex items-center gap-3">
             <div className="flex-1 max-w-md">
-              <ProgressBar percent={p} active={t.status !== 'error'} indeterminate={t.status === 'queued'} />
+              <ProgressBar percent={p} active={task.status !== 'error'} indeterminate={task.status === 'queued'} />
             </div>
             <span className="text-carbon-textMuted text-[11px] tabular-nums whitespace-nowrap">
-              {p}%{fmtSpeed(t.speed) && ` · ${fmtSpeed(t.speed)}`}
-              {eta && ` · ${eta} left`}
+              {p}%{fmtSpeed(task.speed) && ` · ${fmtSpeed(task.speed)}`}
+              {eta && ` · ${eta} ${t('task.left')}`}
             </span>
           </div>
         )}
-        {collected && !t.error && (
-          <div className="text-carbon-textMuted text-[11px] mt-0.5">Ready to download</div>
-        )}
+        {collected && !task.error && <div className="text-carbon-textMuted text-[11px] mt-0.5">{t('task.ready')}</div>}
       </div>
-      <span className="w-20 text-right text-carbon-textSub text-sm tabular-nums">{fmtBytes(t.size)}</span>
-      <StatusPill status={t.status} />
+      <span className="w-20 text-right text-carbon-textSub text-sm tabular-nums">{fmtBytes(task.size)}</span>
+      <StatusPill status={task.status} />
       <div className="flex items-center gap-0.5">
         {collected && (
-          <Button kind="ghost" icon={<IconPlay />} title="Start" onClick={() => startTasks([t.id], base)} />
+          <Button kind="ghost" icon={<IconPlay />} title={t('task.start')} onClick={() => startTasks([task.id], base)} />
         )}
-        {t.status === 'running' && (
-          <Button kind="ghost" icon={<IconPause />} title="Pause" onClick={() => pause(t.id, base)} />
+        {task.status === 'running' && (
+          <Button kind="ghost" icon={<IconPause />} title={t('task.pause')} onClick={() => pause(task.id, base)} />
         )}
-        {t.status === 'paused' && (
-          <Button kind="ghost" icon={<IconPlay />} title="Resume" onClick={() => resume(t.id, base)} />
+        {task.status === 'paused' && (
+          <Button kind="ghost" icon={<IconPlay />} title={t('task.resume')} onClick={() => resume(task.id, base)} />
         )}
-        {(t.status === 'error' || t.status === 'done') && (
-          <Button kind="ghost" icon={<IconRetry />} title="Restart" onClick={() => restartTasks([t.id], base)} />
+        {(task.status === 'error' || task.status === 'done') && (
+          <Button kind="ghost" icon={<IconRetry />} title={t('task.restart')} onClick={() => restartTasks([task.id], base)} />
         )}
-        <Button kind="danger" icon={<IconTrash />} title="Remove" onClick={() => remove(t.id, base)} />
+        <Button kind="danger" icon={<IconTrash />} title={t('task.remove')} onClick={() => remove(task.id, base)} />
       </div>
     </div>
   );
@@ -88,9 +88,10 @@ export function PackageGroup({
   base: string;
   selection?: Selection;
 }) {
-  const total = items.reduce((s, t) => s + t.size, 0);
-  const loaded = items.reduce((s, t) => s + t.loaded, 0);
-  const allSelected = selection && items.every((t) => selection.ids.has(t.id));
+  const { t } = useT();
+  const total = items.reduce((s, x) => s + x.size, 0);
+  const loaded = items.reduce((s, x) => s + x.loaded, 0);
+  const allSelected = selection && items.every((x) => selection.ids.has(x.id));
   return (
     <Card className="flex flex-col gap-0 p-0 overflow-hidden">
       <div className="flex items-center gap-3 px-5 py-3 bg-carbon-surface2/60">
@@ -99,21 +100,21 @@ export function PackageGroup({
             checked={!!allSelected}
             onChange={() => {
               const target = !allSelected;
-              items.forEach((t) => {
-                if (selection.ids.has(t.id) !== target) selection.toggle(t.id);
+              items.forEach((x) => {
+                if (selection.ids.has(x.id) !== target) selection.toggle(x.id);
               });
             }}
           />
         )}
-        <span className="font-semibold text-carbon-text">{name || 'Ungrouped'}</span>
+        <span className="font-semibold text-carbon-text">{name || t('task.ungrouped')}</span>
         <span className="text-carbon-textMuted text-xs">
-          {items.length} {items.length === 1 ? 'file' : 'files'}
+          {items.length} {items.length === 1 ? t('task.file') : t('task.files')}
           {total > 0 && ` · ${fmtBytes(loaded)} / ${fmtBytes(total)}`}
         </span>
       </div>
       <div className="flex flex-col">
-        {items.map((t) => (
-          <TaskRow key={t.id} t={t} base={base} selection={selection} />
+        {items.map((x) => (
+          <TaskRow key={x.id} t={x} base={base} selection={selection} />
         ))}
       </div>
     </Card>
