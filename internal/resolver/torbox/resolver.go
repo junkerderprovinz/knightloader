@@ -1,4 +1,4 @@
-package ytdlp
+package torbox
 
 import (
 	"context"
@@ -8,26 +8,23 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 )
 
-// Resolver routes media/streaming pages to yt-dlp. It matches any http(s) URL
-// except hosts handled by a debrid/JD hoster backend (ExcludeHosts), so file
-// hosters fall through to those instead of being mis-sent to yt-dlp.
+// Resolver matches links whose host is a TorBox-supported file host; the
+// backend unlocks them into a direct CDN URL for the engine.
 type Resolver struct {
-	ExcludeHosts map[string]bool
+	Hosts map[string]bool // set of supported hoster domains
 }
 
-func (Resolver) Info() resolver.Info { return resolver.Info{ID: "ytdlp", Prio: 30} }
+func (Resolver) Info() resolver.Info { return resolver.Info{ID: "torbox", Prio: 35} }
 
 func (r Resolver) Match(raw string) bool {
 	u, err := url.Parse(raw)
 	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Hostname() == "" {
 		return false
 	}
-	return !hostInSet(u.Hostname(), r.ExcludeHosts)
+	return hostInSet(u.Hostname(), r.Hosts)
 }
 
 func (Resolver) Resolve(_ context.Context, req resolver.Request) (resolver.Result, error) {
-	// yt-dlp extracts and downloads; the real title/size arrive from its
-	// progress stream (mirrored by the backend).
 	return resolver.Result{DirectURL: req.URL, Name: req.URL}, nil
 }
 

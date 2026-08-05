@@ -45,6 +45,24 @@ func Handler(a *app.App) http.Handler {
 		a.Remove(r.PathValue("id"))
 		w.WriteHeader(http.StatusNoContent)
 	})
+	mux.HandleFunc("GET /api/accounts", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, a.Accounts.Services())
+	})
+	mux.HandleFunc("POST /api/accounts", func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Service string `json:"service"`
+			Secret  string `json:"secret"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Service == "" {
+			http.Error(w, "bad json", http.StatusBadRequest)
+			return
+		}
+		if err := a.SetAccount(body.Service, body.Secret); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	})
 	mux.HandleFunc("GET /api/ws", func(w http.ResponseWriter, r *http.Request) {
 		serveWS(a, w, r)
 	})

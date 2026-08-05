@@ -7,12 +7,12 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 )
 
-// Resolver routes links to the JD backend. It is a catch-all for http(s) that
-// outranks the Direct resolver, so when a JD instance is configured every link
-// goes through JD's crawler and hoster plugins.
+// Resolver routes links to the JD backend. It is the lowest-priority catch-all:
+// a final backup for hoster links that direct/torbox/yt-dlp don't claim, routed
+// through JD's crawler and hoster plugins.
 type Resolver struct{}
 
-func (Resolver) Info() resolver.Info { return resolver.Info{ID: "jd", Prio: 100} }
+func (Resolver) Info() resolver.Info { return resolver.Info{ID: "jd", Prio: 10} }
 
 func (Resolver) Match(raw string) bool {
 	u, err := url.Parse(raw)
