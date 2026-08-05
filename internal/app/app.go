@@ -7,10 +7,12 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -20,12 +22,15 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
+	"github.com/junkerderprovinz/knightloader/internal/checksum"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/crawler"
 	"github.com/junkerderprovinz/knightloader/internal/engine"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/hub"
 	"github.com/junkerderprovinz/knightloader/internal/netproxy"
+	"github.com/junkerderprovinz/knightloader/internal/pathvars"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
@@ -34,6 +39,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/knightloader/internal/store"
 	"github.com/junkerderprovinz/knightloader/internal/throttle"
+	"github.com/junkerderprovinz/knightloader/internal/watch"
 )
 
 // backend is a download backend: the embedded Gopeed engine or headless JD.
@@ -57,6 +63,8 @@ type App struct {
 	// Throttle is the shared bandwidth allowance for everything downloading
 	// through the loopback proxy.
 	Throttle *throttle.Limiter
+	// Crawler turns a pasted page into the files it links to.
+	Crawler crawler.Crawler
 
 	jd     backend            // headless-JD backend, nil unless KL_JD is set and reachable
 	ytdlp  backend            // yt-dlp media backend, nil unless the yt-dlp binary is present
@@ -65,6 +73,10 @@ type App struct {
 
 	dlDir string           // where engine + yt-dlp downloads land (extraction source)
 	proxy *netproxy.Server // loopback proxy the engine downloads through
+
+	// wmu guards watcher, which is replaced whenever the watched folder changes.
+	wmu     sync.Mutex
+	watcher *watch.Watcher
 
 	// bmu guards the backend fields above. It is deliberately separate from mu:
 	// re-wiring does network calls, and task state must not wait for those.
@@ -100,6 +112,7 @@ func New(dataDir string) (*App, error) {
 		Federation: fed,
 		dlDir:      filepath.Join(dataDir, "downloads"),
 		Throttle:   throttle.New(),
+		Crawler:    crawler.HTML{},
 		tasks:      map[string]*core.Task{},
 		active:     map[string]bool{},
 		started:    map[string]bool{},
@@ -143,6 +156,7 @@ func New(dataDir string) (*App, error) {
 	a.Auth = guard
 
 	a.rewireBackends()
+	a.applyWatcher(cfg.Get().WatchDir)
 
 	// Reload persisted tasks; anything mid-flight shows as paused on boot, and
 	// an interrupted extraction counts as done (the download itself finished).
@@ -285,6 +299,12 @@ func (a *App) taskDir(taskID string) string {
 }
 
 func (a *App) Close() error {
+	a.wmu.Lock()
+	if a.watcher != nil {
+		_ = a.watcher.Close()
+		a.watcher = nil
+	}
+	a.wmu.Unlock()
 	if a.proxy != nil {
 		_ = a.proxy.Close()
 	}
@@ -331,11 +351,25 @@ func (a *App) AddLinks(urls []string, pkg string) []*core.Task {
 			continue
 		}
 		seen[u] = true
+		// A page that points at files becomes those files, not one task for the
+		// page. Without this a gallery or an index listing can only ever be a
+		// single unusable download.
+		if crawled := a.crawl(u); len(crawled) > 0 {
+			for _, c := range crawled {
+				if c.URL == "" || seen[c.URL] || known[c.URL] {
+					continue
+				}
+				seen[c.URL] = true
+				if t := a.stage(c.URL, c.Name, pkg); t != nil {
+					created = append(created, t)
+				}
+			}
+			continue
+		}
 		// A link is never dropped on the floor. If nothing can handle it, or
 		// resolving fails, it is still staged — with the reason on it — so the
 		// user can see what happened instead of watching links vanish.
 		t := &core.Task{
-			ID:        newID(),
 			URL:       u,
 			Name:      u,
 			Package:   pkg,
@@ -370,6 +404,20 @@ func (a *App) AddLinks(urls []string, pkg string) []*core.Task {
 		}
 		created = append(created, t)
 	}
+	// A batch pasted without a package name gets one derived from the links
+	// themselves. Without this everything lands in "ungrouped", which is where
+	// a collector stops being useful the moment there is more than one batch in
+	// it.
+	if strings.TrimSpace(pkg) == "" {
+		if derived := derivePackage(created); derived != "" {
+			ids := make([]string, 0, len(created))
+			for _, t := range created {
+				ids = append(ids, t.ID)
+			}
+			a.SetPackage(ids, derived)
+		}
+	}
+
 	// Auto-start hands everything straight to the queue for users who don't
 	// want the staging step.
 	if len(created) > 0 && a.Settings.Get().AutoStart {
@@ -380,6 +428,157 @@ func (a *App) AddLinks(urls []string, pkg string) []*core.Task {
 		a.StartTasks(ids)
 	}
 	return created
+}
+
+// derivePackage guesses a name for a batch that arrived without one: the shared
+// stem of the file names if the links look like parts of one thing, else the
+// host they came from. It returns "" when neither is worth using, because a bad
+// guess is worse than no group at all.
+func derivePackage(tasks []*core.Task) string {
+	if len(tasks) == 0 {
+		return ""
+	}
+	names := make([]string, 0, len(tasks))
+	hosts := map[string]bool{}
+	for _, t := range tasks {
+		hosts[hostOf(t.URL)] = true
+		if n := fileStem(t); n != "" {
+			names = append(names, n)
+		}
+	}
+	if stem := commonStem(names); len(stem) >= 3 {
+		return sanitizeSegment(stem)
+	}
+	// One host and nothing else in common: the source is the only honest label.
+	if len(hosts) == 1 {
+		for h := range hosts {
+			if h != "" && !strings.HasPrefix(h, "http") {
+				return sanitizeSegment(h)
+			}
+		}
+	}
+	return ""
+}
+
+// fileStem is the part of a task's file name that identifies the thing rather
+// than the part: "film.part03.rar" and "film.r02" both reduce to "film".
+func fileStem(t *core.Task) string {
+	name := t.Name
+	if name == "" || strings.Contains(name, "://") {
+		// Nothing resolved yet, so the URL's last segment is the best we have.
+		if u, err := url.Parse(t.URL); err == nil {
+			name = path.Base(u.Path)
+		}
+	}
+	if name == "" || name == "." || name == "/" {
+		return ""
+	}
+	if key, ok := extract.SetKey(name); ok {
+		// SetKey lower-cases its base because it is a grouping key. A package
+		// name is read by a person, so take only the LENGTH from it and slice
+		// the original, which keeps the capitalisation the release came with.
+		if base, _, cut := strings.Cut(key, "|"); cut && len(base) <= len(name) {
+			return name[:len(base)]
+		}
+	}
+	return strings.TrimSuffix(name, path.Ext(name))
+}
+
+// commonStem is the longest prefix every name shares. When that prefix cuts a
+// name short it is trimmed back to a separator, because half a word
+// ("Movie.S01E0") is a worse label than the shorter whole one. When every name
+// is identical nothing was cut, so nothing is trimmed either.
+func commonStem(names []string) string {
+	if len(names) == 0 {
+		return ""
+	}
+	stem := names[0]
+	truncated := false
+	for _, n := range names[1:] {
+		i := 0
+		for i < len(stem) && i < len(n) && stem[i] == n[i] {
+			i++
+		}
+		if i < len(stem) || i < len(n) {
+			truncated = true
+		}
+		stem = stem[:i]
+		if stem == "" {
+			return ""
+		}
+	}
+	if truncated {
+		if i := strings.LastIndexAny(stem, ".-_ "); i > 0 {
+			stem = stem[:i]
+		}
+	}
+	return strings.Trim(stem, ".-_ ")
+}
+
+// crawl asks the page crawler what a link points at. It returns nothing when
+// crawling is off, when the link is already a file, or when the page yielded
+// nothing — in every one of those cases the link is staged as itself.
+func (a *App) crawl(u string) []crawler.Result {
+	if !a.Settings.Get().Crawl {
+		return nil
+	}
+	// A link a resolver already claims is a download, not a page to open. Only
+	// the last-resort HTTP fallback means "nobody recognised this", which is
+	// exactly when looking inside is worth the request.
+	if res := a.Registry.For(u); res != nil && res.Info().ID != "http" {
+		return nil
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	found, err := a.Crawler.Crawl(ctx, u)
+	if err != nil {
+		log.Printf("crawl %s: %v", u, err)
+		return nil
+	}
+	// One result that is the page itself is not a crawl, it is the same link
+	// back; staging it through the normal path keeps the resolver choice honest.
+	if len(found) == 1 && found[0].URL == u {
+		return nil
+	}
+	return found
+}
+
+// stage creates one collected task for a URL, resolving it the same way a
+// pasted link is resolved. It returns nil only when the URL is unusable.
+func (a *App) stage(u, name, pkg string) *core.Task {
+	t := &core.Task{
+		URL:       u,
+		Name:      u,
+		Package:   pkg,
+		Status:    core.StatusCollected,
+		CreatedAt: time.Now(),
+	}
+	if strings.TrimSpace(name) != "" {
+		t.Name = name
+	}
+	res := a.Registry.For(u)
+	if res == nil {
+		t.Error = "no backend handles this link"
+		t.Online = core.AvailOffline
+		a.put(t)
+		return t
+	}
+	t.Resolver = res.Info().ID
+	result, err := res.Resolve(context.Background(), resolver.Request{URL: u})
+	if err != nil {
+		t.Error = err.Error()
+		a.put(t)
+		return t
+	}
+	if result.Name != "" {
+		t.Name = result.Name
+	}
+	t.Size = result.Size
+	a.put(t)
+	if res.Info().ID == "direct" {
+		go a.analyze(t.ID, result.DirectURL)
+	}
+	return t
 }
 
 // dirFor is the single answer to "where does this task's file go": the task's
@@ -393,8 +592,23 @@ func (a *App) dirFor(t *core.Task) string {
 	if t.Dir != "" {
 		return t.Dir
 	}
+	cfg := a.Settings.Get()
+	// A configured folder may be a template. Expanding it here means the
+	// variables see the task they are being expanded for, which is the only
+	// point at which the package and hoster are known.
+	if pathvars.HasVars(cfg.DownloadDir) {
+		expanded := pathvars.Expand(cfg.DownloadDir, pathvars.Vars{
+			Package: t.Package,
+			Host:    hostOf(t.URL),
+			Name:    t.Name,
+			Date:    t.CreatedAt,
+		})
+		if filepath.IsAbs(expanded) {
+			return expanded
+		}
+	}
 	dir := a.defaultDir()
-	if cfg := a.Settings.Get(); cfg.SubfolderByPackage && strings.TrimSpace(t.Package) != "" {
+	if cfg.SubfolderByPackage && strings.TrimSpace(t.Package) != "" {
 		dir = filepath.Join(dir, sanitizeSegment(t.Package))
 	}
 	return dir
@@ -1068,8 +1282,55 @@ func (a *App) TestAccount(service string) AccountState {
 	return st
 }
 
-// AddLinksCnL satisfies the Click'n'Load listener's Adder interface.
-func (a *App) AddLinksCnL(urls []string, pkg string) { a.AddLinks(urls, pkg) }
+// AddLinksCnL satisfies the Click'n'Load listener's Adder interface. A CnL
+// submission can carry the archive passwords for what it is sending, which is
+// exactly the moment we can learn them without asking the user.
+func (a *App) AddLinksCnL(urls []string, pkg string, passwords []string) {
+	created := a.AddLinks(urls, pkg)
+	var first string
+	for _, pw := range passwords {
+		if pw = strings.TrimSpace(pw); pw != "" {
+			first = pw
+			break
+		}
+	}
+	if first == "" || len(created) == 0 {
+		return
+	}
+	ids := make([]string, 0, len(created))
+	for _, t := range created {
+		ids = append(ids, t.ID)
+	}
+	// The remaining passwords still reach the extractor through the global
+	// list, so only the first needs to ride on the task itself.
+	_ = a.SetTaskOptions(ids, TaskOptions{Password: &first})
+	if len(passwords) > 1 {
+		a.rememberPasswords(passwords)
+	}
+}
+
+// rememberPasswords folds passwords a submission brought along into the global
+// list, so a later archive from the same source can still be opened.
+func (a *App) rememberPasswords(passwords []string) {
+	cfg := a.Settings.Get()
+	known := map[string]bool{}
+	for _, p := range cfg.ArchivePasswords {
+		known[p] = true
+	}
+	added := false
+	for _, p := range passwords {
+		if p = strings.TrimSpace(p); p != "" && !known[p] {
+			cfg.ArchivePasswords = append(cfg.ArchivePasswords, p)
+			known[p] = true
+			added = true
+		}
+	}
+	if added {
+		if _, err := a.Settings.Set(cfg); err != nil {
+			log.Printf("could not store the passwords a submission brought along: %v", err)
+		}
+	}
+}
 
 // speedLimiter is implemented by backends that can apply a live rate limit.
 type speedLimiter interface {
@@ -1088,6 +1349,7 @@ func (a *App) ApplySettings(s settings.Settings) (settings.Settings, error) {
 	// The limiter meters every byte that comes through the loopback proxy, so a
 	// changed limit takes effect on running downloads, not just on the next one.
 	a.Throttle.Set(applied.SpeedLimit)
+	a.applyWatcher(applied.WatchDir)
 	a.bmu.RLock()
 	jdBackend := a.jd
 	a.bmu.RUnlock()
@@ -1130,6 +1392,9 @@ func fetchTorboxHosters(key string) map[string]bool {
 
 func (a *App) put(t *core.Task) {
 	a.mu.Lock()
+	if t.ID == "" {
+		t.ID = a.freshIDLocked()
+	}
 	a.tasks[t.ID] = t
 	c := *t
 	a.mu.Unlock()
@@ -1169,6 +1434,9 @@ func (a *App) onUpdate(id string, u core.Update) {
 		t.Online = core.AvailOnline
 		t.Retries = 0
 		t.NextTry = time.Time{}
+		if a.Settings.Get().VerifyChecksums {
+			go a.verifyTask(id, filepath.Join(a.dirFor(t), t.Name))
+		}
 	}
 	// A backend that says the link is not its business hands the task to the
 	// next one in the chain instead of failing it. This is deliberately not a
@@ -1183,6 +1451,7 @@ func (a *App) onUpdate(id string, u core.Update) {
 			t.Resolver = next
 			t.Status = core.StatusQueued
 			t.Error = ""
+			t.Loaded = 0
 			t.Speed = 0
 			delete(a.started, id)
 			a.queue = append(a.queue, id)
@@ -1297,6 +1566,140 @@ func (a *App) extractCandidateLocked(done *core.Task) (*core.Task, string) {
 	return first, filepath.Join(dir, first.Name)
 }
 
+// verifyTask checks a finished file against a checksum, when one is available:
+// a hash in the file name, or a sums file that was downloaded alongside it. A
+// download nobody can verify is left unmarked rather than shown as passing,
+// because a green tick that means "not checked" is worse than no tick.
+func (a *App) verifyTask(id, path string) {
+	name := filepath.Base(path)
+	dir := filepath.Dir(path)
+
+	var sum checksum.Sum
+	if s, ok := checksum.FromName(name); ok {
+		sum = s
+	} else if s, ok := a.sumFromSiblingFile(dir, name); ok {
+		sum = s
+	} else {
+		return
+	}
+
+	ok, err := checksum.Verify(path, sum)
+	verdict := "ok"
+	if err != nil {
+		log.Printf("checksum %s: %v", name, err)
+		return
+	}
+	if !ok {
+		verdict = "failed"
+		log.Printf("checksum mismatch for %s", name)
+	}
+
+	a.mu.Lock()
+	t := a.tasks[id]
+	if t == nil {
+		a.mu.Unlock()
+		return
+	}
+	t.Checksum = verdict
+	c := *t
+	a.mu.Unlock()
+	_ = a.Store.Save(&c)
+	a.Hub.Broadcast("task", &c)
+}
+
+// sumFromSiblingFile looks for a checksum listing that arrived with the batch
+// and pulls this file's entry out of it.
+func (a *App) sumFromSiblingFile(dir, name string) (checksum.Sum, bool) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return checksum.Sum{}, false
+	}
+	for _, e := range entries {
+		if e.IsDir() {
+			continue
+		}
+		var parse func(io.Reader) ([]checksum.Sum, error)
+		switch strings.ToLower(filepath.Ext(e.Name())) {
+		case ".sfv":
+			parse = checksum.ParseSFV
+		case ".md5", ".sha1", ".sha256", ".sha256sum", ".md5sum":
+			parse = checksum.ParseHashFile
+		default:
+			continue
+		}
+		f, err := os.Open(filepath.Join(dir, e.Name()))
+		if err != nil {
+			continue
+		}
+		sums, err := parse(f)
+		f.Close()
+		if err != nil {
+			continue
+		}
+		for _, s := range sums {
+			if strings.EqualFold(filepath.Base(s.Name), name) {
+				return s, true
+			}
+		}
+	}
+	return checksum.Sum{}, false
+}
+
+// applyWatcher starts, restarts or stops the intake watcher to match the
+// configured folder. It runs on every settings change, so turning the folder on
+// does not need a restart.
+func (a *App) applyWatcher(dir string) {
+	a.wmu.Lock()
+	defer a.wmu.Unlock()
+	if a.watcher != nil {
+		_ = a.watcher.Close()
+		a.watcher = nil
+	}
+	if dir == "" {
+		return
+	}
+	w, err := watch.New(watch.Options{Dir: dir, OnJob: a.onWatchJob})
+	if err != nil {
+		log.Printf("watch folder %s unusable (%v); intake is off", dir, err)
+		return
+	}
+	w.Start()
+	a.watcher = w
+	log.Printf("watching %s for dropped links", dir)
+}
+
+// onWatchJob stages what a dropped file asked for. It runs on the watcher's
+// goroutine, so it hands the slow part off and returns quickly.
+func (a *App) onWatchJob(j watch.Job) {
+	go func() {
+		created := a.AddLinks(j.URLs, j.Package)
+		if len(created) == 0 {
+			return
+		}
+		ids := make([]string, 0, len(created))
+		for _, t := range created {
+			ids = append(ids, t.ID)
+		}
+		if j.Dir != "" || j.Password != "" {
+			opts := TaskOptions{}
+			if j.Dir != "" {
+				opts.Dir = &j.Dir
+			}
+			if j.Password != "" {
+				opts.Password = &j.Password
+			}
+			if err := a.SetTaskOptions(ids, opts); err != nil {
+				log.Printf("dropped job: %v", err)
+			}
+		}
+		// AutoStart on the job wins over the global setting, which has already
+		// started them if it was on.
+		if j.AutoStart && !a.Settings.Get().AutoStart {
+			a.StartTasks(ids)
+		}
+	}()
+}
+
 // extractTask unpacks a finished archive download and settles the task back to
 // done — extraction failures are recorded on the task but don't undo the
 // completed download.
@@ -1337,4 +1740,17 @@ func newID() string {
 	b := make([]byte, 8)
 	_, _ = rand.Read(b)
 	return hex.EncodeToString(b)
+}
+
+// freshID returns an ID no live task holds. A collision is astronomically
+// unlikely, but its consequence is not a glitch: the new task would silently
+// replace an existing one in the map, and the old download would be orphaned
+// with no way to reach it. Caller holds a.mu.
+func (a *App) freshIDLocked() string {
+	for {
+		id := newID()
+		if _, taken := a.tasks[id]; !taken {
+			return id
+		}
+	}
 }

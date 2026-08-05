@@ -18,9 +18,11 @@ import (
 	"time"
 )
 
-// Adder is what the app exposes to CnL (AddLinks).
+// Adder is what the app exposes to CnL (AddLinks). passwords carries the
+// archive passwords a CnL button ships alongside its links; it is nil when the
+// site sent none, which is the common case.
 type Adder interface {
-	AddLinksCnL(urls []string, pkg string)
+	AddLinksCnL(urls []string, pkg string, passwords []string)
 }
 
 // Server is the CnL listener.
@@ -32,44 +34,116 @@ type Server struct {
 // New builds the listener; Start binds 127.0.0.1:port (9666 is the standard).
 func New(adder Adder) *Server { return &Server{adder: adder} }
 
-// Start begins serving; it returns an error if the port is taken (e.g. a real
-// JDownloader is running) so the caller can log and continue without CnL.
-func (s *Server) Start(port int) error {
+// handler builds the routing table. It is separate from Start so tests can
+// drive the protocol without binding the well-known port, which may be held by
+// a real JDownloader.
+func (s *Server) handler() http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/jdcheck.js", func(w http.ResponseWriter, r *http.Request) {
+
+	// Several sites probe for a running downloader before they render their
+	// CnL button, and they do not agree on where: some ask /flash, some
+	// /flash/, some the bare root. All three answer the same greeting JD does.
+	greet := func(w http.ResponseWriter, r *http.Request) {
+		_, _ = fmt.Fprint(w, "JDownloader\r\n")
+	}
+	mux.HandleFunc("GET /{$}", greet)
+	mux.HandleFunc("GET /flash", greet)
+	mux.HandleFunc("GET /flash/{$}", greet)
+
+	mux.HandleFunc("GET /jdcheck.js", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/javascript")
 		_, _ = fmt.Fprint(w, "jdownloader=true;\nvar version='90000';\n")
 	})
-	mux.HandleFunc("/flash", func(w http.ResponseWriter, r *http.Request) {
-		_, _ = fmt.Fprint(w, "JDownloader\r\n")
-	})
-	mux.HandleFunc("POST /flash/add", func(w http.ResponseWriter, r *http.Request) {
+
+	// The add endpoints answer GET as well as POST. A handful of sites pass the
+	// payload as query parameters instead of a form body, and r.FormValue reads
+	// from either source once ParseForm has run, so this costs one extra route
+	// and nothing else.
+	add := func(w http.ResponseWriter, r *http.Request) {
 		_ = r.ParseForm()
 		urls := splitLinks(r.FormValue("urls"))
 		if len(urls) == 0 {
 			http.Error(w, "no urls", http.StatusBadRequest)
 			return
 		}
-		s.adder.AddLinksCnL(urls, packageOf(r))
+		s.adder.AddLinksCnL(urls, packageOf(r), passwordsOf(r))
 		_, _ = fmt.Fprint(w, "success\r\n")
-	})
-	mux.HandleFunc("POST /flash/addcrypted2", func(w http.ResponseWriter, r *http.Request) {
+	}
+	mux.HandleFunc("POST /flash/add", add)
+	mux.HandleFunc("GET /flash/add", add)
+
+	addCrypted2 := func(w http.ResponseWriter, r *http.Request) {
 		_ = r.ParseForm()
 		urls, err := DecryptCnL(r.FormValue("jk"), r.FormValue("crypted"))
 		if err != nil || len(urls) == 0 {
 			http.Error(w, "decrypt failed", http.StatusBadRequest)
 			return
 		}
-		s.adder.AddLinksCnL(urls, packageOf(r))
+		s.adder.AddLinksCnL(urls, packageOf(r), passwordsOf(r))
 		_, _ = fmt.Fprint(w, "success\r\n")
+	}
+	mux.HandleFunc("POST /flash/addcrypted2", addCrypted2)
+	mux.HandleFunc("GET /flash/addcrypted2", addCrypted2)
+
+	// addcrypted (v1) encrypts its payload against JDownloader's own RSA public
+	// key, so nobody but JDownloader can open it. Answering 501 instead of
+	// letting the route 404 keeps the failure legible: the site reports "not
+	// supported" rather than "no downloader running", which is the difference
+	// between a bug report we can act on and a week of guessing.
+	mux.HandleFunc("/flash/addcrypted", func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "addcrypted (v1) is RSA-encrypted for JDownloader and cannot be decrypted; the site must use addcrypted2", http.StatusNotImplemented)
 	})
+
+	return withCORS(mux)
+}
+
+// Start begins serving; it returns an error if the port is taken (e.g. a real
+// JDownloader is running) so the caller can log and continue without CnL.
+func (s *Server) Start(port int) error {
 	ln, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", port))
 	if err != nil {
 		return err
 	}
-	s.srv = &http.Server{Handler: mux, ReadHeaderTimeout: 5 * time.Second}
+	s.srv = &http.Server{Handler: s.handler(), ReadHeaderTimeout: 5 * time.Second}
 	go func() { _ = s.srv.Serve(ln) }()
 	return nil
+}
+
+// withCORS stamps the Click'n'Load CORS policy onto every response and answers
+// preflights itself, for every path rather than per route, so that a site
+// probing an endpoint we do not serve still gets a clean CORS answer instead of
+// a 404 the browser reports to the page as a CORS failure.
+//
+// The wildcard origin is deliberate and is correct HERE AND ONLY HERE. CnL
+// exists precisely so that an arbitrary third-party page may hand links to a
+// downloader running on the same machine, and this listener binds 127.0.0.1
+// only, so "any origin" still means "a page open in the browser of the person
+// sitting at this keyboard". Restricting it to an origin allowlist would break
+// every CnL button on every site, which is the entire point of the package. The
+// main API in internal/api deliberately does the opposite: it sends no CORS
+// headers at all and relies on same-origin plus session auth, because it can
+// start, delete and reconfigure downloads. Do not "harmonise" the two.
+func withCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h := w.Header()
+		h.Set("Access-Control-Allow-Origin", "*")
+		h.Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+		h.Set("Access-Control-Allow-Headers", "Content-Type")
+		if r.Method == http.MethodOptions {
+			// Chrome's Private Network Access check refuses to let a public
+			// page (https://filehoster.example) reach a private address
+			// (127.0.0.1) unless the preflight explicitly opts in with this
+			// header. Without it, fetch/XHR based CnL buttons fail with an
+			// opaque network error while old-style form POSTs, which are never
+			// preflighted, keep working: exactly the kind of half-broken that
+			// costs days to diagnose.
+			h.Set("Access-Control-Allow-Private-Network", "true")
+			h.Set("Access-Control-Max-Age", "86400")
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 // Close stops the listener.
@@ -87,6 +161,24 @@ func packageOf(r *http.Request) string {
 		}
 	}
 	return "Click'n'Load"
+}
+
+// passwordsOf pulls the archive passwords a CnL button ships with its links.
+// They arrive newline-separated in a single field; "password" is the older
+// singular spelling that some sites still send. Unlike link lists these must
+// not be split on spaces, because a password may legitimately contain one.
+func passwordsOf(r *http.Request) []string {
+	raw := r.FormValue("passwords")
+	if strings.TrimSpace(raw) == "" {
+		raw = r.FormValue("password")
+	}
+	var out []string
+	for _, p := range strings.FieldsFunc(raw, func(c rune) bool { return c == '\n' || c == '\r' }) {
+		if p = strings.TrimSpace(p); p != "" {
+			out = append(out, p)
+		}
+	}
+	return out
 }
 
 func splitLinks(s string) []string {

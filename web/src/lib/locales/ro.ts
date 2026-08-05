@@ -185,4 +185,18 @@ export const ro: Dict = {
   'select.none': 'Șterge selecția',
   'select.count': 'selectate',
   'settings.removePassword': 'Elimină parola',
+
+  'common.cancel': 'Anulează',
+  'pkg.moveTitle': 'Mută într-un pachet',
+  'pkg.name': 'Numele pachetului',
+  'pkg.merge': 'Unește într-un pachet',
+  'pkg.splitByHost': 'Împarte după gazdă',
+  'settings.pathVars': 'Variabile: <jd:packagename>, <jd:hoster>, <jd:filename>, <jd:date>',
+  'settings.watchDir': 'Dosar supravegheat',
+  'settings.watchDirHint': 'Linkurile lăsate aici ca .txt sau .crawljob sunt preluate automat.',
+  'settings.crawl': 'Urmărește paginile și adună fișierele către care duc',
+  'collector.crawling': 'Se scanează pagina…',
+  'task.checksumOk': 'Suma de control corespunde',
+  'task.checksumFail': 'Suma de control nu corespunde',
+  'settings.verifyChecksums': 'Verifică descărcarea terminată cu suma de control primită',
 };

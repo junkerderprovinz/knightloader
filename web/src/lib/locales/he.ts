@@ -187,4 +187,18 @@ export const he: Dict = {
   'select.none': 'נקה בחירה',
   'select.count': 'נבחרו',
   'settings.removePassword': 'הסר סיסמה',
+
+  'common.cancel': 'ביטול',
+  'pkg.moveTitle': 'העברה לחבילה',
+  'pkg.name': 'שם החבילה',
+  'pkg.merge': 'מיזוג לחבילה אחת',
+  'pkg.splitByHost': 'פיצול לפי מארח',
+  'settings.pathVars': 'משתנים: <jd:packagename>, <jd:hoster>, <jd:filename>, <jd:date>',
+  'settings.watchDir': 'תיקייה במעקב',
+  'settings.watchDirHint': 'קישורים שמונחים כאן כקבצי ‎.txt או ‎.crawljob נאספים אוטומטית.',
+  'settings.crawl': 'מעקב אחר דפים ואיסוף הקבצים שהם מקשרים אליהם',
+  'collector.crawling': 'סורק את הדף…',
+  'task.checksumOk': 'סכום הביקורת אומת',
+  'task.checksumFail': 'סכום הביקורת אינו תואם',
+  'settings.verifyChecksums': 'אימות הורדה שהסתיימה מול סכום הביקורת שהגיע איתה',
 };

@@ -18,6 +18,7 @@ import { useT, type TranslationKey } from '../lib/i18n';
 import { PageHeader, Button, EmptyState } from '../components/ui';
 import { Counters } from '../components/Counters';
 import { TaskListCard, groupByPackage, type Selection } from '../components/TaskList';
+import { PackageActions } from '../components/PackageActions';
 import { IconSearch, IconDownloads, IconArrowUp, IconArrowDown, IconTop, IconBottom } from '../lib/icons';
 
 type Filter = 'all' | 'active' | 'done' | 'error';
@@ -212,6 +213,7 @@ export function Downloads() {
           <Button kind="ghost" className="px-2.5 text-xs" onClick={() => setSelected(new Set())}>
             {t('select.none')}
           </Button>
+          <PackageActions tasks={list} selected={selected} base={base} />
           <span className="flex-1" />
           <Button
             kind="ghost"

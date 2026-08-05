@@ -1,11 +1,15 @@
 // Package extract unpacks downloaded archives (zip, rar incl. multi-volume,
-// 7z incl. .001 volumes, tar.gz/tgz) into a folder next to the archive.
+// 7z incl. .001 volumes, tar, and the gzip/bzip2/xz/zstd single-stream formats
+// whether or not they wrap a tar) into a folder next to the archive.
 // Pure Go, no external binaries.
 package extract
 
 import (
 	"archive/tar"
 	"archive/zip"
+	"bufio"
+	"bytes"
+	"compress/bzip2"
 	"compress/gzip"
 	"errors"
 	"fmt"
@@ -16,7 +20,9 @@ import (
 	"strings"
 
 	"github.com/bodgit/sevenzip"
+	"github.com/klauspost/compress/zstd"
 	"github.com/nwaples/rardecode/v2"
+	"github.com/ulikunitz/xz"
 )
 
 // nonFirstVolume matches volumes of a multi-part set that must NOT start an
@@ -24,7 +30,14 @@ import (
 var nonFirstVolume = regexp.MustCompile(`(?i)(\.part(0*[2-9]|0*[1-9]\d+)\.rar|\.r\d\d|\.[7z]\S*\.\d*[2-9]\d*$|\.z\d\d)$`)
 
 // firstVolume matches names that start an archive set (or are a whole archive).
-var firstVolume = regexp.MustCompile(`(?i)(\.zip|\.part0*1\.rar|\.rar|\.7z|\.7z\.0*1|\.tar\.gz|\.tgz)$`)
+// The single-stream compressions are listed in both their ".tar.X" and their
+// bare spelling, because whether the stream holds a tar is decided by the
+// content later on and must not gate whether we offer to unpack it at all.
+var firstVolume = regexp.MustCompile(`(?i)(` +
+	`\.zip|\.part0*1\.rar|\.rar|\.7z|\.7z\.0*1|` +
+	`\.tar|\.tar\.gz|\.tgz|\.tar\.bz2|\.tbz2?|\.tar\.xz|\.txz|\.tar\.zst|\.tzst|` +
+	`\.gz|\.bz2|\.xz|\.zst` +
+	`)$`)
 
 // Supported reports whether name looks like an archive this package can start
 // extracting (first volume of a set, or a single archive).
@@ -121,8 +134,15 @@ func extractOnce(path, dest, password string) (*Result, error) {
 		return extractRar(path, dest, password)
 	case strings.HasSuffix(l, ".7z") || sevenZipVolume.MatchString(l):
 		return extract7z(path, dest, password)
-	case strings.HasSuffix(l, ".tar.gz") || strings.HasSuffix(l, ".tgz"):
-		return extractTarGz(path, dest)
+	case strings.HasSuffix(l, ".tar"):
+		return extractTar(path, dest)
+	}
+	// Every single-stream compression shares one code path; the suffix only
+	// picks the codec, never what the decompressed bytes turn out to be.
+	for _, c := range compressions {
+		if strings.HasSuffix(l, c.suffix) {
+			return extractCompressed(path, dest, c.suffix, c.open)
+		}
 	}
 	return nil, fmt.Errorf("extract: unsupported archive %q", filepath.Base(path))
 }
@@ -130,13 +150,29 @@ func extractOnce(path, dest, password string) (*Result, error) {
 // sevenZipVolume matches the first part of a split 7z archive.
 var sevenZipVolume = regexp.MustCompile(`(?i)\.7z\.0*1$`)
 
+// archiveSuffixes are stripped from an archive name to get its extraction
+// directory. Longest first, because the list is scanned until something
+// matches: ".gz" ahead of ".tar.gz" would drop "data.tar.gz" into "data.tar".
+var archiveSuffixes = []string{
+	".tar.gz", ".tar.bz2", ".tar.xz", ".tar.zst",
+	".tgz", ".tbz2", ".tbz", ".txz", ".tzst",
+	".tar", ".gz", ".bz2", ".xz", ".zst",
+	".zip", ".rar", ".7z",
+}
+
 // destDir returns the extraction directory for an archive path: the archive
 // name without its (possibly multi-part) extension, next to the archive.
 func destDir(path string) string {
 	base := filepath.Base(path)
-	for _, suf := range []string{".tar.gz", ".tgz", ".zip", ".rar", ".7z"} {
-		if i := strings.LastIndex(strings.ToLower(base), suf); i > 0 {
-			base = base[:i]
+	// A split 7z volume carries its part number behind the extension
+	// ("set.7z.001"), so fold it back to a plain ".7z" before matching.
+	if loc := sevenZipVolume.FindStringIndex(strings.ToLower(base)); loc != nil {
+		base = base[:loc[0]] + ".7z"
+	}
+	l := strings.ToLower(base)
+	for _, suf := range archiveSuffixes {
+		if len(base) > len(suf) && strings.HasSuffix(l, suf) {
+			base = base[:len(base)-len(suf)]
 			break
 		}
 	}
@@ -305,38 +341,161 @@ func isEncrypted(err error) bool {
 		strings.Contains(m, "checksum") || strings.Contains(m, "encrypt")
 }
 
-func extractTarGz(path, dest string) (*Result, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-	gz, err := gzip.NewReader(f)
-	if err != nil {
-		return nil, err
-	}
-	defer gz.Close()
-	tr := tar.NewReader(gz)
-	res := &Result{Dir: dest, Volumes: []string{path}}
+// unpackTar writes every regular entry of a tar stream under dest and counts
+// them in res. Directories and the various special entries are skipped: the
+// directories are recreated implicitly by writeFile, and devices, links and
+// fifos have no business being restored from a download.
+func unpackTar(tr *tar.Reader, dest string, res *Result) error {
 	for {
 		h, err := tr.Next()
 		if err == io.EOF {
-			break
+			return nil
 		}
 		if err != nil {
-			return nil, err
+			return err
 		}
 		if h.Typeflag != tar.TypeReg {
 			continue
 		}
 		dst, err := safePath(dest, h.Name)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		if err := writeFile(dst, os.FileMode(h.Mode), tr); err != nil {
-			return nil, err
+			return err
 		}
 		res.Files++
 	}
+}
+
+func extractTar(path, dest string) (*Result, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	res := &Result{Dir: dest, Volumes: []string{path}}
+	if err := unpackTar(tar.NewReader(f), dest, res); err != nil {
+		return nil, err
+	}
 	return res, nil
+}
+
+// compressions lists every single-stream compression this package can open,
+// mapped to the decompressor that opens it. Longest suffix first, so that
+// ".tar.gz" is reported as the suffix rather than ".gz" when both match; the
+// suffix is what a non-tar payload gets named after.
+var compressions = []struct {
+	suffix string
+	open   func(io.Reader) (io.ReadCloser, error)
+}{
+	{".tar.gz", openGzip},
+	{".tar.bz2", openBzip2},
+	{".tar.xz", openXz},
+	{".tar.zst", openZstd},
+	{".tgz", openGzip},
+	{".tbz2", openBzip2},
+	{".tbz", openBzip2},
+	{".txz", openXz},
+	{".tzst", openZstd},
+	{".gz", openGzip},
+	{".bz2", openBzip2},
+	{".xz", openXz},
+	{".zst", openZstd},
+}
+
+func openGzip(r io.Reader) (io.ReadCloser, error) { return gzip.NewReader(r) }
+
+// openBzip2 wraps the stdlib decompressor, which holds nothing that needs
+// releasing, in a no-op closer so all four codecs share one signature.
+func openBzip2(r io.Reader) (io.ReadCloser, error) {
+	return io.NopCloser(bzip2.NewReader(r)), nil
+}
+
+func openXz(r io.Reader) (io.ReadCloser, error) {
+	xr, err := xz.NewReader(r)
+	if err != nil {
+		return nil, err
+	}
+	return io.NopCloser(xr), nil
+}
+
+func openZstd(r io.Reader) (io.ReadCloser, error) {
+	zr, err := zstd.NewReader(r)
+	if err != nil {
+		return nil, err
+	}
+	// The decoder runs goroutines, so hand back its own closer rather than a
+	// no-op one; dropping it would leak them for the life of the process.
+	return zr.IOReadCloser(), nil
+}
+
+// tarProbeSize is how much of the decompressed stream the tar probe gets to
+// look at. A header block is 512 bytes, but PAX and GNU long-name archives put
+// extra records in front of the first real header, so give it plenty of room.
+const tarProbeSize = 64 << 10
+
+// looksLikeTar reports whether head begins with a header archive/tar accepts.
+//
+// The file name deliberately does not get a vote. Double extensions in the wild
+// are unreliable in both directions: ".tgz" and ".tar.gz" are handed out for
+// single gzipped files that hold no tar at all, and plain ".gz" downloads
+// routinely do hold one. A tar header carries a checksum over its own bytes, so
+// reading one is a far stronger signal than anything the name claims.
+func looksLikeTar(head []byte) bool {
+	if len(head) < 512 {
+		return false
+	}
+	_, err := tar.NewReader(bytes.NewReader(head)).Next()
+	return err == nil
+}
+
+// extractCompressed handles every single-stream compressed archive: it opens
+// the codec, decides from the content whether the stream is a tar, and either
+// unpacks it or writes the payload out as one file.
+func extractCompressed(path, dest, suffix string, open func(io.Reader) (io.ReadCloser, error)) (*Result, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	dec, err := open(f)
+	if err != nil {
+		return nil, err
+	}
+	defer dec.Close()
+
+	// Peek rather than read: when the probe says "not a tar", those same bytes
+	// are still the beginning of the file we have to write out.
+	br := bufio.NewReaderSize(dec, tarProbeSize)
+	head, _ := br.Peek(tarProbeSize)
+
+	res := &Result{Dir: dest, Volumes: []string{path}}
+	if looksLikeTar(head) {
+		if err := unpackTar(tar.NewReader(br), dest, res); err != nil {
+			return nil, err
+		}
+		return res, nil
+	}
+	dst, err := safePath(dest, payloadName(filepath.Base(path), suffix))
+	if err != nil {
+		return nil, err
+	}
+	if err := writeFile(dst, 0, br); err != nil {
+		return nil, err
+	}
+	res.Files++
+	return res, nil
+}
+
+// payloadName is the name a non-tar payload is written under: the archive name
+// minus its compression suffix, so "notes.txt.gz" yields "notes.txt". A ".tgz"
+// that turned out not to hold a tar loses the whole suffix instead of gaining a
+// ".tar", because calling it a tar would be exactly the lie the probe caught.
+func payloadName(base, suffix string) string {
+	name := base[:len(base)-len(suffix)]
+	if name == "" {
+		name = "content"
+	}
+	return name
 }

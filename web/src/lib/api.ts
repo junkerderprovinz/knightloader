@@ -30,6 +30,7 @@ export interface Task {
   nextTry?: string;
   priority: number;
   position: number;
+  checksum?: 'ok' | 'failed';
 }
 
 export interface Settings {
@@ -43,6 +44,9 @@ export interface Settings {
   subfolderByPackage: boolean;
   archivePasswords: string[];
   maxRetries: number;
+  crawl: boolean;
+  watchDir: string;
+  verifyChecksums: boolean;
 }
 
 export interface Account {

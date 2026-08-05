@@ -75,4 +75,7 @@ type Task struct {
 	Priority int `json:"priority"`
 	// Position orders tasks of equal priority.
 	Position int `json:"position"`
+	// Checksum is what verification said about the finished file: empty when
+	// nothing was checked, "ok" or "failed".
+	Checksum string `json:"checksum,omitempty"`
 }

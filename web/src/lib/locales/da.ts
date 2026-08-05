@@ -185,4 +185,18 @@ export const da: Dict = {
   'select.none': 'Ryd markering',
   'select.count': 'valgt',
   'settings.removePassword': 'Fjern adgangskode',
+
+  'common.cancel': 'Annullér',
+  'pkg.moveTitle': 'Flyt til en pakke',
+  'pkg.name': 'Pakkenavn',
+  'pkg.merge': 'Slå sammen til én pakke',
+  'pkg.splitByHost': 'Opdel efter filvært',
+  'settings.pathVars': 'Variabler: <jd:packagename>, <jd:hoster>, <jd:filename>, <jd:date>',
+  'settings.watchDir': 'Overvåget mappe',
+  'settings.watchDirHint': 'Links, der lægges her som .txt eller .crawljob, hentes automatisk.',
+  'settings.crawl': 'Følg sider og saml de filer, de linker til',
+  'collector.crawling': 'Gennemsøger siden…',
+  'task.checksumOk': 'Kontrolsummen stemmer',
+  'task.checksumFail': 'Kontrolsummen stemmer ikke',
+  'settings.verifyChecksums': 'Kontrollér en færdig download mod den medfølgende kontrolsum',
 };

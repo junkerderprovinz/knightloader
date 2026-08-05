@@ -185,4 +185,18 @@ export const tr: Dict = {
   'select.none': 'Seçimi temizle',
   'select.count': 'seçili',
   'settings.removePassword': 'Parolayı kaldır',
+
+  'common.cancel': 'Vazgeç',
+  'pkg.moveTitle': 'Bir pakete taşı',
+  'pkg.name': 'Paket adı',
+  'pkg.merge': 'Tek pakette birleştir',
+  'pkg.splitByHost': 'Sunucuya göre ayır',
+  'settings.pathVars': 'Değişkenler: <jd:packagename>, <jd:hoster>, <jd:filename>, <jd:date>',
+  'settings.watchDir': 'İzlenen klasör',
+  'settings.watchDirHint': 'Buraya .txt veya .crawljob olarak bırakılan bağlantılar kendiliğinden alınır.',
+  'settings.crawl': 'Sayfaları izle ve bağlantı verdikleri dosyaları topla',
+  'collector.crawling': 'Sayfa taranıyor…',
+  'task.checksumOk': 'Sağlama toplamı doğrulandı',
+  'task.checksumFail': 'Sağlama toplamı uyuşmuyor',
+  'settings.verifyChecksums': 'Biten indirmeyi, birlikte gelen sağlama toplamıyla doğrula',
 };

@@ -177,4 +177,18 @@ export const nl: Dict = {
   'select.none': 'Selectie wissen',
   'select.count': 'geselecteerd',
   'settings.removePassword': 'Wachtwoord verwijderen',
+
+  'common.cancel': 'Annuleren',
+  'pkg.moveTitle': 'Naar een pakket verplaatsen',
+  'pkg.name': 'Pakketnaam',
+  'pkg.merge': 'Samenvoegen tot één pakket',
+  'pkg.splitByHost': 'Splitsen per hoster',
+  'settings.pathVars': 'Variabelen: <jd:packagename>, <jd:hoster>, <jd:filename>, <jd:date>',
+  'settings.watchDir': 'Bewaakte map',
+  'settings.watchDirHint': 'Links die hier als .txt of .crawljob landen, worden automatisch opgepikt.',
+  'settings.crawl': 'Paginas volgen en de bestanden verzamelen waarnaar ze linken',
+  'collector.crawling': 'Pagina wordt doorzocht…',
+  'task.checksumOk': 'Controlesom klopt',
+  'task.checksumFail': 'Controlesom klopt niet',
+  'settings.verifyChecksums': 'Voltooide download controleren met de meegeleverde controlesom',
 };

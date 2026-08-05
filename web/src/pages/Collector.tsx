@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { addLinks, remove, startTasks, setPackage, recheckTasks } from '../lib/api';
+import { addLinks, remove, startTasks, recheckTasks } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import { useToast } from '../lib/toast';
 import { useT } from '../lib/i18n';
 import { PageHeader, Button, TextInput } from '../components/ui';
 import { TaskListCard, groupByPackage, type Selection } from '../components/TaskList';
+import { PackageActions } from '../components/PackageActions';
 import { IconPlus, IconPlay, IconTrash, IconCollector } from '../lib/icons';
 
 export function Collector() {
@@ -90,14 +91,6 @@ export function Collector() {
   const offline = useMemo(() => collected.filter((x) => !!x.error), [collected]);
   const removeOffline = () => offline.forEach((x) => remove(x.id));
 
-  function moveSelected() {
-    if (!selected.size) return;
-    const target = window.prompt(t('collector.movePrompt'), pkg);
-    if (target === null) return;
-    setPackage([...selected], target);
-    toast(t('collector.toastMoved', { n: selected.size, pkg: target.trim() || t('task.ungrouped') }), 'ok');
-  }
-
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title={t('collector.title')} subtitle={t('collector.subtitle')} />
@@ -181,14 +174,12 @@ export function Collector() {
                 {t('collector.removeOffline')} ({offline.length})
               </Button>
             )}
-            <Button
-              kind="ghost"
-              className="px-2.5 text-xs"
-              onClick={moveSelected}
-              disabled={selected.size === 0}
-            >
-              {t('collector.move')}
-            </Button>
+            <PackageActions
+              tasks={collected}
+              selected={selected}
+              base="/api"
+              onDone={() => toast(t('task.applied'), 'ok')}
+            />
             <span className="flex-1" />
             <Button kind="ghost" icon={<IconTrash />} onClick={removeSelected} disabled={selected.size === 0}>
               {t('collector.remove')}

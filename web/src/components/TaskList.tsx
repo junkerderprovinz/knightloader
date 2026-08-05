@@ -124,7 +124,21 @@ function TaskRow({
       </div>
 
       <span className="keep-num text-right text-[13px] text-carbon-textSub">{fmtBytes(task.size)}</span>
-      <StatusPill status={task.status} />
+      <div className="flex items-center gap-2">
+        <StatusPill status={task.status} />
+        {/* Only a real verdict is shown. An unverified download stays unmarked,
+            because a tick that also means "not checked" is worse than none. */}
+        {task.checksum === 'ok' && (
+          <span title={t('task.checksumOk')} className="text-statusOk">
+            <IconCheck width={13} height={13} />
+          </span>
+        )}
+        {task.checksum === 'failed' && (
+          <span title={t('task.checksumFail')} className="text-statusFail text-[11px] font-semibold">
+            !
+          </span>
+        )}
+      </div>
 
       {/* The primary action stays visible; the rest appears on hover or focus,
           so a long list reads as content instead of a wall of buttons. */}

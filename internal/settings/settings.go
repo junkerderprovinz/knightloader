@@ -31,17 +31,28 @@ type Settings struct {
 	ArchivePasswords []string `json:"archivePasswords"`
 	// MaxRetries is how often a failed download is retried automatically.
 	MaxRetries int `json:"maxRetries"`
+	// Crawl lets a pasted page URL be opened and the files it links to be
+	// staged, instead of the page itself becoming one task.
+	Crawl bool `json:"crawl"`
+	// WatchDir is a folder whose dropped .txt/.crawljob files are picked up.
+	// Empty disables the watcher.
+	WatchDir string `json:"watchDir"`
+	// VerifyChecksums checks a finished download against a checksum file that
+	// came with it, when one did.
+	VerifyChecksums bool `json:"verifyChecksums"`
 }
 
 // Defaults returns the settings a fresh install starts with.
 func Defaults() Settings {
 	return Settings{
-		MaxConcurrent: 4,
-		MaxPerHost:    2,
-		SpeedLimit:    0,
-		Extract:       true,
-		DeleteArchive: false,
-		MaxRetries:    3,
+		MaxConcurrent:   4,
+		MaxPerHost:      2,
+		SpeedLimit:      0,
+		Extract:         true,
+		DeleteArchive:   false,
+		MaxRetries:      3,
+		Crawl:           true,
+		VerifyChecksums: true,
 	}
 }
 
@@ -111,6 +122,12 @@ func sanitize(n Settings) Settings {
 		n.MaxRetries = 20
 	}
 	n.DownloadDir = strings.TrimSpace(n.DownloadDir)
+	n.WatchDir = strings.TrimSpace(n.WatchDir)
+	// A relative watch folder has the same problem as a relative download
+	// folder: nobody can say where it actually is.
+	if n.WatchDir != "" && !filepath.IsAbs(n.WatchDir) {
+		n.WatchDir = ""
+	}
 	// A relative path would be resolved against whatever the process's working
 	// directory happens to be, which is not something a user can reason about.
 	if n.DownloadDir != "" && !filepath.IsAbs(n.DownloadDir) {

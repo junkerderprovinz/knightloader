@@ -187,4 +187,18 @@ export const ar: Dict = {
   'select.none': 'إلغاء التحديد',
   'select.count': 'محدد',
   'settings.removePassword': 'إزالة كلمة المرور',
+
+  'common.cancel': 'إلغاء',
+  'pkg.moveTitle': 'النقل إلى حزمة',
+  'pkg.name': 'اسم الحزمة',
+  'pkg.merge': 'الدمج في حزمة واحدة',
+  'pkg.splitByHost': 'التقسيم حسب المضيف',
+  'settings.pathVars': 'المتغيرات: <jd:packagename>، <jd:hoster>، <jd:filename>، <jd:date>',
+  'settings.watchDir': 'مجلد مُراقَب',
+  'settings.watchDirHint': 'الروابط التي تُترك هنا كملفات ‎.txt أو ‎.crawljob تُلتقط تلقائيًا.',
+  'settings.crawl': 'تتبّع الصفحات وجمع الملفات التي تشير إليها',
+  'collector.crawling': 'جارٍ فحص الصفحة…',
+  'task.checksumOk': 'تم التحقق من المجموع الاختباري',
+  'task.checksumFail': 'المجموع الاختباري غير مطابق',
+  'settings.verifyChecksums': 'التحقق من التنزيل المكتمل بالمجموع الاختباري المرافق له',
 };

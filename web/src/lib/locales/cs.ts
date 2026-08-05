@@ -185,4 +185,18 @@ export const cs: Dict = {
   'select.none': 'Zrušit výběr',
   'select.count': 'vybráno',
   'settings.removePassword': 'Odstranit heslo',
+
+  'common.cancel': 'Zrušit',
+  'pkg.moveTitle': 'Přesunout do balíčku',
+  'pkg.name': 'Název balíčku',
+  'pkg.merge': 'Sloučit do jednoho balíčku',
+  'pkg.splitByHost': 'Rozdělit podle hosteru',
+  'settings.pathVars': 'Proměnné: <jd:packagename>, <jd:hoster>, <jd:filename>, <jd:date>',
+  'settings.watchDir': 'Sledovaná složka',
+  'settings.watchDirHint': 'Odkazy zanechané zde jako .txt nebo .crawljob se převezmou automaticky.',
+  'settings.crawl': 'Následovat stránky a sbírat soubory, na které odkazují',
+  'collector.crawling': 'Prohledávání stránky…',
+  'task.checksumOk': 'Kontrolní součet souhlasí',
+  'task.checksumFail': 'Kontrolní součet nesouhlasí',
+  'settings.verifyChecksums': 'Ověřit dokončené stahování oproti přiloženému kontrolnímu součtu',
 };

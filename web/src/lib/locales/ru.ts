@@ -177,4 +177,18 @@ export const ru: Dict = {
   'select.none': 'Снять выделение',
   'select.count': 'выбрано',
   'settings.removePassword': 'Удалить пароль',
+
+  'common.cancel': 'Отмена',
+  'pkg.moveTitle': 'Переместить в пакет',
+  'pkg.name': 'Имя пакета',
+  'pkg.merge': 'Объединить в один пакет',
+  'pkg.splitByHost': 'Разделить по хостерам',
+  'settings.pathVars': 'Переменные: <jd:packagename>, <jd:hoster>, <jd:filename>, <jd:date>',
+  'settings.watchDir': 'Наблюдаемая папка',
+  'settings.watchDirHint': 'Ссылки, оставленные здесь в .txt или .crawljob, подхватываются автоматически.',
+  'settings.crawl': 'Открывать страницы и собирать файлы, на которые они ссылаются',
+  'collector.crawling': 'Страница просматривается…',
+  'task.checksumOk': 'Контрольная сумма совпала',
+  'task.checksumFail': 'Контрольная сумма не совпала',
+  'settings.verifyChecksums': 'Проверять завершённую загрузку по приложенной контрольной сумме',
 };

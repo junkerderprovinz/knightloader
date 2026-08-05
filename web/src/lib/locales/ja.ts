@@ -185,4 +185,18 @@ export const ja: Dict = {
   'select.none': '選択を解除',
   'select.count': '件を選択中',
   'settings.removePassword': 'パスワードを解除',
+
+  'common.cancel': 'キャンセル',
+  'pkg.moveTitle': 'パッケージへ移動',
+  'pkg.name': 'パッケージ名',
+  'pkg.merge': 'ひとつのパッケージに統合',
+  'pkg.splitByHost': 'ホスターごとに分割',
+  'settings.pathVars': '変数: <jd:packagename>, <jd:hoster>, <jd:filename>, <jd:date>',
+  'settings.watchDir': '監視フォルダー',
+  'settings.watchDirHint': 'ここに .txt または .crawljob として置かれたリンクは自動で取り込まれます。',
+  'settings.crawl': 'ページをたどってリンク先のファイルを集める',
+  'collector.crawling': 'ページを調べています…',
+  'task.checksumOk': 'チェックサムが一致',
+  'task.checksumFail': 'チェックサムが一致しません',
+  'settings.verifyChecksums': '付属のチェックサムで完了したダウンロードを検証する',
 };
