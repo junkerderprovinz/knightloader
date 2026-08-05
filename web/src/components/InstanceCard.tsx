@@ -50,7 +50,7 @@ export function InstanceCard({
 
   const online = stats?.online ?? false;
   return (
-    <Card className="flex flex-col gap-3">
+    <Card hover className="flex flex-col gap-3">
       <div className="flex items-center gap-2.5">
         <span
           className={`h-2.5 w-2.5 rounded-full ${online ? 'bg-statusOkSolid' : 'bg-statusFailSolid'}`}
