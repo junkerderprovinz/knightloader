@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -22,6 +23,10 @@ type Backend struct {
 	dir string
 
 	onUpdate func(taskID string, u core.Update)
+
+	// RateLimit, when set, returns the current download limit in bytes/s
+	// (0 = unlimited); applied per spawn via --limit-rate.
+	RateLimit func() int64
 
 	mu     sync.Mutex
 	cancel map[string]context.CancelFunc
@@ -59,11 +64,18 @@ func (b *Backend) run(taskID, url string) {
 		b.mu.Unlock()
 	}()
 
-	cmd := exec.CommandContext(ctx, b.bin,
+	args := []string{
 		"--newline", "--no-warnings", "--no-color", "--no-playlist",
 		"--progress-template", "KLP:%(progress)j",
 		"-o", filepath.Join(b.dir, "%(title)s.%(ext)s"),
-		url)
+	}
+	if b.RateLimit != nil {
+		if lim := b.RateLimit(); lim > 0 {
+			// --limit-rate is per fragment connection; fragments default to 1.
+			args = append(args, "--limit-rate", fmt.Sprint(lim))
+		}
+	}
+	cmd := exec.CommandContext(ctx, b.bin, append(args, url)...)
 	cmd.Env = append(os.Environ(), "PYTHONIOENCODING=utf-8")
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -109,12 +121,20 @@ func (b *Backend) run(taskID, url string) {
 			b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Name: filepath.Base(name)})
 		}
 	}
+	scanErr := sc.Err()
 	err = cmd.Wait()
 	if ctx.Err() != nil {
 		return // cancelled by Pause/Remove
 	}
+	if err == nil && scanErr != nil {
+		err = scanErr
+	}
 	if err != nil {
-		b.onUpdate(taskID, core.Update{Status: core.StatusError, Err: "yt-dlp: " + tail(stderr.String())})
+		msg := tail(stderr.String())
+		if msg == "" {
+			msg = err.Error()
+		}
+		b.onUpdate(taskID, core.Update{Status: core.StatusError, Err: "yt-dlp: " + msg})
 		return
 	}
 	b.onUpdate(taskID, core.Update{Status: core.StatusDone, Speed: 0})

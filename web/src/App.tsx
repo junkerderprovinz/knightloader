@@ -12,8 +12,25 @@ import {
   TableHeader,
   TableBody,
   TableCell,
+  Modal,
+  NumberInput,
+  Toggle,
 } from '@carbon/react';
-import { Task, fetchTasks, addLinks, pause, resume, remove, connectWS } from './api';
+import { Settings as SettingsIcon } from '@carbon/icons-react';
+import {
+  Task,
+  Settings,
+  fetchTasks,
+  addLinks,
+  pause,
+  resume,
+  remove,
+  connectWS,
+  fetchSettings,
+  saveSettings,
+  fetchAccounts,
+  saveAccount,
+} from './api';
 
 function fmtBytes(n: number): string {
   if (!n) return '—';
@@ -32,14 +49,112 @@ const statusTag: Record<Task['status'], { type: any; label: string }> = {
   queued: { type: 'cool-gray', label: 'Queued' },
   running: { type: 'blue', label: 'Running' },
   paused: { type: 'gray', label: 'Paused' },
+  extracting: { type: 'teal', label: 'Extracting' },
   done: { type: 'green', label: 'Done' },
   error: { type: 'red', label: 'Error' },
 };
+
+function SettingsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [cfg, setCfg] = useState<Settings | null>(null);
+  const [torboxKey, setTorboxKey] = useState('');
+  const [hasTorbox, setHasTorbox] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    fetchSettings().then(setCfg);
+    fetchAccounts().then((s) => setHasTorbox(s.includes('torbox')));
+    setTorboxKey('');
+  }, [open]);
+
+  async function onSave() {
+    if (cfg) await saveSettings(cfg);
+    if (torboxKey.trim()) await saveAccount('torbox', torboxKey.trim());
+    onClose();
+  }
+
+  return (
+    <Modal
+      open={open}
+      modalHeading="Settings"
+      primaryButtonText="Save"
+      secondaryButtonText="Cancel"
+      onRequestClose={onClose}
+      onRequestSubmit={onSave}
+      size="sm"
+    >
+      {cfg && (
+        <div className="kl-settings">
+          <NumberInput
+            id="maxConcurrent"
+            label="Max simultaneous downloads"
+            min={1}
+            max={64}
+            value={cfg.maxConcurrent}
+            onChange={(_, { value }) =>
+              setCfg({ ...cfg, maxConcurrent: Number(value) || 1 })
+            }
+          />
+          <NumberInput
+            id="maxPerHost"
+            label="Max downloads per host"
+            min={1}
+            max={64}
+            value={cfg.maxPerHost}
+            onChange={(_, { value }) =>
+              setCfg({ ...cfg, maxPerHost: Number(value) || 1 })
+            }
+          />
+          <NumberInput
+            id="speedLimit"
+            label="Speed limit (KiB/s, 0 = unlimited)"
+            helperText="Applies to media (yt-dlp) and JDownloader downloads."
+            min={0}
+            step={256}
+            value={Math.round(cfg.speedLimit / 1024)}
+            onChange={(_, { value }) =>
+              setCfg({ ...cfg, speedLimit: Math.max(0, Number(value) || 0) * 1024 })
+            }
+          />
+          <Toggle
+            id="extract"
+            labelText="Extract archives after download"
+            labelA="Off"
+            labelB="On"
+            toggled={cfg.extract}
+            onToggle={(v) => setCfg({ ...cfg, extract: v })}
+          />
+          <Toggle
+            id="deleteArchive"
+            labelText="Delete archive after extraction"
+            labelA="Keep"
+            labelB="Delete"
+            toggled={cfg.deleteArchive}
+            onToggle={(v) => setCfg({ ...cfg, deleteArchive: v })}
+          />
+          <TextInput
+            id="torboxKey"
+            type="password"
+            labelText="TorBox API key"
+            helperText={
+              hasTorbox
+                ? 'A key is stored (encrypted). Enter a new one to replace it; applied on restart.'
+                : 'Stored encrypted on this instance; applied on restart.'
+            }
+            placeholder={hasTorbox ? '••••••••' : 'Paste your key…'}
+            value={torboxKey}
+            onChange={(e) => setTorboxKey(e.target.value)}
+          />
+        </div>
+      )}
+    </Modal>
+  );
+}
 
 export default function App() {
   const [tasks, setTasks] = useState<Record<string, Task>>({});
   const [links, setLinks] = useState('');
   const [pkg, setPkg] = useState('');
+  const [showSettings, setShowSettings] = useState(false);
   const closer = useRef<(() => void) | null>(null);
 
   useEffect(() => {
@@ -77,7 +192,17 @@ export default function App() {
           <span aria-hidden>⚔️</span>
           <span className="kl-title">KnightLoader</span>
           <span className="kl-muted">working title</span>
+          <span className="kl-spacer" />
+          <Button
+            kind="ghost"
+            size="sm"
+            hasIconOnly
+            iconDescription="Settings"
+            renderIcon={SettingsIcon}
+            onClick={() => setShowSettings(true)}
+          />
         </header>
+        <SettingsModal open={showSettings} onClose={() => setShowSettings(false)} />
 
         <main className="kl-content">
           <div className="kl-add">

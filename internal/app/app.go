@@ -8,6 +8,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"log"
+	"net/url"
 	"os"
 	"path/filepath"
 	"sort"
@@ -18,11 +19,13 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/engine"
+	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/hub"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
+	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/knightloader/internal/store"
 )
 
@@ -41,13 +44,19 @@ type App struct {
 	Hub      *hub.Hub
 	Registry *resolver.Registry
 	Accounts *accounts.Store
+	Settings *settings.Store
 
 	jd     backend // headless-JD backend, nil unless KL_JD is set and reachable
 	ytdlp  backend // yt-dlp media backend, nil unless the yt-dlp binary is present
 	torbox backend // TorBox debrid backend, nil unless a TorBox key is present
 
-	mu    sync.Mutex
-	tasks map[string]*core.Task
+	dlDir string // where engine + yt-dlp downloads land (extraction source)
+
+	mu      sync.Mutex
+	tasks   map[string]*core.Task
+	queue   []string        // task IDs waiting for a slot, FIFO with per-host skip-ahead
+	active  map[string]bool // dispatched and not yet terminal/paused
+	started map[string]bool // ever handed to a backend (Resume vs fresh Download)
 }
 
 func New(dataDir string) (*App, error) {
@@ -55,11 +64,20 @@ func New(dataDir string) (*App, error) {
 	if err != nil {
 		return nil, err
 	}
+	cfg, err := settings.Load(dataDir)
+	if err != nil {
+		st.Close()
+		return nil, err
+	}
 	a := &App{
 		Store:    st,
 		Hub:      hub.New(),
 		Registry: resolver.NewRegistry(),
+		Settings: cfg,
+		dlDir:    filepath.Join(dataDir, "downloads"),
 		tasks:    map[string]*core.Task{},
+		active:   map[string]bool{},
+		started:  map[string]bool{},
 	}
 	a.Registry.Register(resolver.Direct{})
 
@@ -97,7 +115,8 @@ func New(dataDir string) (*App, error) {
 	if ytbin == "" {
 		ytbin = "yt-dlp"
 	}
-	if yb := ytdlp.NewBackend(ytbin, filepath.Join(dataDir, "downloads"), a.onUpdate); yb.Available() {
+	if yb := ytdlp.NewBackend(ytbin, a.dlDir, a.onUpdate); yb.Available() {
+		yb.RateLimit = func() int64 { return a.Settings.Get().SpeedLimit }
 		a.ytdlp = yb
 		a.Registry.Register(ytdlp.Resolver{ExcludeHosts: hosterSet})
 		log.Printf("yt-dlp backend enabled: %s", ytbin)
@@ -124,7 +143,8 @@ func New(dataDir string) (*App, error) {
 		}
 	}
 
-	// Reload persisted tasks; anything mid-flight shows as paused on boot.
+	// Reload persisted tasks; anything mid-flight shows as paused on boot, and
+	// an interrupted extraction counts as done (the download itself finished).
 	existing, err := st.All()
 	if err != nil {
 		return nil, err
@@ -132,6 +152,10 @@ func New(dataDir string) (*App, error) {
 	for _, t := range existing {
 		if t.Status == core.StatusRunning || t.Status == core.StatusQueued {
 			t.Status = core.StatusPaused
+			t.Speed = 0
+		}
+		if t.Status == core.StatusExtracting {
+			t.Status = core.StatusDone
 			t.Speed = 0
 		}
 		a.tasks[t.ID] = t
@@ -159,7 +183,8 @@ func (a *App) Tasks() []*core.Task {
 	return out
 }
 
-// AddLinks resolves each URL and enqueues a download on the matching backend.
+// AddLinks resolves each URL, creates a queued task and lets the dispatcher
+// start it when a global/per-host slot is free.
 func (a *App) AddLinks(urls []string, pkg string) []*core.Task {
 	var created []*core.Task
 	for _, raw := range urls {
@@ -185,26 +210,147 @@ func (a *App) AddLinks(urls []string, pkg string) []*core.Task {
 			CreatedAt: time.Now(),
 		}
 		a.put(t)
-		conns := result.Connections
-		if conns <= 0 {
-			conns = 4
-		}
-		a.backendFor(res.Info().ID).Download(t.ID, result.DirectURL, result.Headers, conns)
+		a.mu.Lock()
+		a.queue = append(a.queue, t.ID)
+		a.dispatchLocked()
+		a.mu.Unlock()
 		created = append(created, t)
 	}
 	return created
 }
 
-func (a *App) Pause(id string)  { a.backendFor(a.resolverOf(id)).Pause(id) }
-func (a *App) Resume(id string) { a.backendFor(a.resolverOf(id)).Resume(id) }
+// dispatchLocked starts queued tasks while slots are free. FIFO with per-host
+// skip-ahead: a host at its limit doesn't block other hosts behind it.
+// Caller holds a.mu.
+func (a *App) dispatchLocked() {
+	cfg := a.Settings.Get()
+	perHost := map[string]int{}
+	for id := range a.active {
+		if t := a.tasks[id]; t != nil {
+			perHost[hostOf(t.URL)]++
+		}
+	}
+	var rest []string
+	for _, id := range a.queue {
+		t := a.tasks[id]
+		if t == nil {
+			continue // removed while queued
+		}
+		if len(a.active) >= cfg.MaxConcurrent {
+			rest = append(rest, id)
+			continue
+		}
+		h := hostOf(t.URL)
+		if perHost[h] >= cfg.MaxPerHost {
+			rest = append(rest, id)
+			continue
+		}
+		if a.started[id] {
+			a.active[id] = true
+			perHost[h]++
+			go a.backendFor(t.Resolver).Resume(id)
+			continue
+		}
+		res := a.Registry.For(t.URL)
+		if res == nil {
+			t.Status = core.StatusError
+			t.Error = "no resolver matches"
+			continue
+		}
+		result, err := res.Resolve(context.Background(), resolver.Request{URL: t.URL})
+		if err != nil {
+			t.Status = core.StatusError
+			t.Error = err.Error()
+			continue
+		}
+		a.active[id] = true
+		a.started[id] = true
+		perHost[h]++
+		conns := result.Connections
+		if conns <= 0 {
+			conns = 4
+		}
+		go a.backendFor(t.Resolver).Download(id, result.DirectURL, result.Headers, conns)
+	}
+	a.queue = rest
+}
+
+// hostOf returns the scheduling host bucket for a URL.
+func hostOf(raw string) string {
+	u, err := url.Parse(raw)
+	if err != nil || u.Hostname() == "" {
+		return raw
+	}
+	return strings.TrimPrefix(strings.ToLower(u.Hostname()), "www.")
+}
+
+func (a *App) Pause(id string) {
+	a.mu.Lock()
+	t := a.tasks[id]
+	if t == nil {
+		a.mu.Unlock()
+		return
+	}
+	wasActive := a.active[id]
+	delete(a.active, id)
+	a.dequeueLocked(id)
+	if !wasActive {
+		// Still waiting in the queue: just mark it paused.
+		t.Status = core.StatusPaused
+		t.Speed = 0
+		c := *t
+		a.mu.Unlock()
+		_ = a.Store.Save(&c)
+		a.Hub.Broadcast("task", &c)
+		return
+	}
+	a.dispatchLocked()
+	a.mu.Unlock()
+	a.backendFor(t.Resolver).Pause(id)
+}
+
+func (a *App) Resume(id string) {
+	a.mu.Lock()
+	t := a.tasks[id]
+	if t == nil || a.active[id] {
+		a.mu.Unlock()
+		return
+	}
+	t.Status = core.StatusQueued
+	t.Speed = 0
+	c := *t
+	a.dequeueLocked(id)
+	a.queue = append(a.queue, id)
+	a.dispatchLocked()
+	a.mu.Unlock()
+	_ = a.Store.Save(&c)
+	a.Hub.Broadcast("task", &c)
+}
 
 func (a *App) Remove(id string) {
-	a.backendFor(a.resolverOf(id)).Remove(id)
 	a.mu.Lock()
+	t := a.tasks[id]
 	delete(a.tasks, id)
+	delete(a.active, id)
+	delete(a.started, id)
+	a.dequeueLocked(id)
+	a.dispatchLocked()
 	a.mu.Unlock()
+	if t != nil {
+		a.backendFor(t.Resolver).Remove(id)
+	}
 	_ = a.Store.Delete(id)
 	a.Hub.Broadcast("removed", map[string]string{"id": id})
+}
+
+// dequeueLocked removes id from the wait queue. Caller holds a.mu.
+func (a *App) dequeueLocked(id string) {
+	for i, q := range a.queue {
+		if q == id {
+			a.queue = append(a.queue[:i], a.queue[i+1:]...)
+			return
+		}
+	}
 }
 
 func (a *App) backendFor(resolverID string) backend {
@@ -224,6 +370,31 @@ func (a *App) backendFor(resolverID string) backend {
 // service such as "torbox". Applied on the next start.
 func (a *App) SetAccount(service, secret string) error {
 	return a.Accounts.Set(service, secret)
+}
+
+// speedLimiter is implemented by backends that can apply a live rate limit.
+type speedLimiter interface {
+	SetSpeedLimit(bytesPerSec int64) error
+}
+
+// ApplySettings persists new settings and applies what can change at runtime:
+// raised limits dispatch waiting tasks immediately, the JD limit is pushed
+// live, and yt-dlp picks the limit up on its next spawn. The embedded engine
+// has no rate-limit API yet (Gopeed v1.9.x) — engine tasks run unthrottled.
+func (a *App) ApplySettings(s settings.Settings) (settings.Settings, error) {
+	applied, err := a.Settings.Set(s)
+	if err != nil {
+		return applied, err
+	}
+	if sl, ok := a.jd.(speedLimiter); ok {
+		if err := sl.SetSpeedLimit(applied.SpeedLimit); err != nil {
+			log.Printf("JD speed limit not applied: %v", err)
+		}
+	}
+	a.mu.Lock()
+	a.dispatchLocked()
+	a.mu.Unlock()
+	return applied, nil
 }
 
 // fetchTorboxHosters returns the set of TorBox-supported hoster domains, or nil
@@ -250,15 +421,6 @@ func fetchTorboxHosters(key string) map[string]bool {
 		}
 	}
 	return set
-}
-
-func (a *App) resolverOf(id string) string {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	if t := a.tasks[id]; t != nil {
-		return t.Resolver
-	}
-	return ""
 }
 
 func (a *App) put(t *core.Task) {
@@ -292,6 +454,44 @@ func (a *App) onUpdate(id string, u core.Update) {
 	t.Speed = u.Speed
 	if u.Err != "" {
 		t.Error = u.Err
+	}
+	// Terminal states free the scheduling slot for the next queued task.
+	if u.Status == core.StatusDone || u.Status == core.StatusError {
+		delete(a.active, id)
+		a.dispatchLocked()
+	}
+	// A finished download that is an archive continues as an extraction (local
+	// backends only; JD downloads live on the JD box).
+	if u.Status == core.StatusDone && t.Resolver != "jd" &&
+		a.Settings.Get().Extract && extract.Supported(t.Name) {
+		t.Status = core.StatusExtracting
+		go a.extractTask(id, filepath.Join(a.dlDir, t.Name))
+	}
+	c := *t
+	a.mu.Unlock()
+	_ = a.Store.Save(&c)
+	a.Hub.Broadcast("task", &c)
+}
+
+// extractTask unpacks a finished archive download and settles the task back to
+// done — extraction failures are recorded on the task but don't undo the
+// completed download.
+func (a *App) extractTask(id, path string) {
+	res, err := extract.Extract(path)
+	if err == nil && a.Settings.Get().DeleteArchive {
+		for _, v := range res.Volumes {
+			_ = os.Remove(v)
+		}
+	}
+	a.mu.Lock()
+	t := a.tasks[id]
+	if t == nil {
+		a.mu.Unlock()
+		return
+	}
+	t.Status = core.StatusDone
+	if err != nil {
+		t.Error = "extract: " + err.Error()
 	}
 	c := *t
 	a.mu.Unlock()

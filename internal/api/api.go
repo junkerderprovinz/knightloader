@@ -11,6 +11,7 @@ import (
 	"github.com/coder/websocket"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/hub"
+	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/knightloader/web"
 )
 
@@ -44,6 +45,22 @@ func Handler(a *app.App) http.Handler {
 	mux.HandleFunc("DELETE /api/tasks/{id}", func(w http.ResponseWriter, r *http.Request) {
 		a.Remove(r.PathValue("id"))
 		w.WriteHeader(http.StatusNoContent)
+	})
+	mux.HandleFunc("GET /api/settings", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, a.Settings.Get())
+	})
+	mux.HandleFunc("PUT /api/settings", func(w http.ResponseWriter, r *http.Request) {
+		var s settings.Settings
+		if err := json.NewDecoder(r.Body).Decode(&s); err != nil {
+			http.Error(w, "bad json", http.StatusBadRequest)
+			return
+		}
+		applied, err := a.ApplySettings(s)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		writeJSON(w, applied)
 	})
 	mux.HandleFunc("GET /api/accounts", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, a.Accounts.Services())

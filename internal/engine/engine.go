@@ -36,6 +36,13 @@ func New(dir string, onUpdate func(taskID string, u core.Update)) (*Engine, erro
 	if err := d.Setup(); err != nil {
 		return nil, err
 	}
+	// Setup reloads the stored config, overriding the values above. Raise
+	// Gopeed's internal concurrency cap afterwards so the app-level scheduler
+	// (global + per-host slots) is the only authority on what runs.
+	if sc, err := d.GetConfig(); err == nil && sc.MaxRunning < 64 {
+		sc.MaxRunning = 64
+		_ = d.PutConfig(sc)
+	}
 	e := &Engine{
 		d:        d,
 		dir:      dir,
