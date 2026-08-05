@@ -72,10 +72,13 @@ export function Collector() {
           className={`rounded-lg transition-colors ${dragOver ? 'ring-2 ring-accent' : ''}`}
         >
           <textarea
-            placeholder="Paste links — one URL per line — or drop them here…"
+            placeholder="Paste links — one URL per line — or drop them here…  (Ctrl+Enter to add)"
             rows={4}
             value={links}
             onChange={(e) => setLinks(e.target.value)}
+            onKeyDown={(e) => {
+              if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') onAdd();
+            }}
             className="w-full rounded-lg bg-carbon-surface2 px-3 py-2 text-sm text-carbon-text placeholder:text-carbon-textMuted outline-none focus:ring-2 focus:ring-[var(--status-info-solid)] resize-y"
           />
         </div>

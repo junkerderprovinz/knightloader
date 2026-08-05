@@ -11,6 +11,7 @@ import (
 
 	"github.com/coder/websocket"
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/hub"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -21,6 +22,9 @@ import (
 func Handler(a *app.App) http.Handler {
 	mux := http.NewServeMux()
 
+	mux.HandleFunc("GET /api/health", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, map[string]string{"status": "ok", "version": buildinfo.Version})
+	})
 	mux.HandleFunc("GET /api/tasks", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, a.Tasks())
 	})

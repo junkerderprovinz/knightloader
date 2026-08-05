@@ -102,6 +102,10 @@ export const saveAccount = (service: string, secret: string) =>
     body: JSON.stringify({ service, secret }),
   });
 
+export async function fetchHealth(): Promise<{ status: string; version: string }> {
+  return json(await fetch('/api/health'));
+}
+
 export async function fetchInstances(): Promise<Instance[]> {
   return (await json<Instance[]>(await fetch('/api/instances'))) ?? [];
 }

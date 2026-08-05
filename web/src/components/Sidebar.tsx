@@ -1,6 +1,8 @@
 import { NavLink } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { getTheme, toggleTheme } from '../lib/theme';
+import { fetchHealth } from '../lib/api';
+import { useTasks } from '../lib/useTasks';
 import {
   IconDashboard,
   IconCollector,
@@ -18,17 +20,53 @@ const navActive = 'bg-accent text-accentContrast';
 const navInactive =
   'text-[var(--sidebar-text)] hover:bg-carbon-hover hover:text-carbon-text motion-safe:hover:translate-x-0.5';
 
-function Item({ to, label, icon, end }: { to: string; label: string; icon: React.ReactNode; end?: boolean }) {
+function Item({
+  to,
+  label,
+  icon,
+  end,
+  badge,
+}: {
+  to: string;
+  label: string;
+  icon: React.ReactNode;
+  end?: boolean;
+  badge?: number;
+}) {
   return (
     <NavLink to={to} end={end} className={({ isActive }) => `${navBase} ${isActive ? navActive : navInactive}`}>
       {icon}
-      <span>{label}</span>
+      <span className="flex-1">{label}</span>
+      {badge ? (
+        <span className="rounded-full bg-carbon-surface3/70 px-1.5 py-0.5 text-[11px] font-semibold tabular-nums leading-none text-carbon-text">
+          {badge}
+        </span>
+      ) : null}
     </NavLink>
   );
 }
 
 export function Sidebar() {
   const [theme, setThemeState] = useState(getTheme);
+  const [version, setVersion] = useState('');
+  const tasks = useTasks('');
+
+  useEffect(() => {
+    fetchHealth()
+      .then((h) => setVersion(h.version))
+      .catch(() => {});
+  }, []);
+
+  const { collected, active } = useMemo(() => {
+    let collected = 0,
+      active = 0;
+    for (const t of Object.values(tasks)) {
+      if (t.status === 'collected') collected++;
+      else if (t.status === 'running' || t.status === 'queued' || t.status === 'extracting') active++;
+    }
+    return { collected, active };
+  }, [tasks]);
+
   return (
     <aside className="flex flex-col w-56 shrink-0 h-full bg-carbon-sidebar">
       <NavLink to="/" end className="flex items-center gap-2.5 px-4 py-5 hover:opacity-90 transition-opacity">
@@ -37,14 +75,16 @@ export function Sidebar() {
         </span>
         <span className="flex flex-col leading-none">
           <span className="text-carbon-text font-bold text-xl tracking-tight">KnightLoader</span>
-          <span className="text-carbon-textMuted text-[11px]">working title</span>
+          <span className="text-carbon-textMuted text-[11px]">
+            {version && version !== 'dev' ? version : 'working title'}
+          </span>
         </span>
       </NavLink>
 
       <nav className="flex flex-col gap-1 p-3 flex-1">
         <Item to="/" end label="Overview" icon={<IconDashboard />} />
-        <Item to="/collector" label="Collector" icon={<IconCollector />} />
-        <Item to="/downloads" label="Downloads" icon={<IconDownloads />} />
+        <Item to="/collector" label="Collector" icon={<IconCollector />} badge={collected} />
+        <Item to="/downloads" label="Downloads" icon={<IconDownloads />} badge={active} />
         <Item to="/instances" label="Instances" icon={<IconInstances />} />
         <Item to="/accounts" label="Accounts" icon={<IconAccounts />} />
       </nav>

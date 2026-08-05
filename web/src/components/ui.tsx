@@ -119,8 +119,23 @@ export function Toggle({
 }
 
 // Card is the standard surface panel: soft elevation + hairline (.kl-card).
-export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`kl-card p-5 ${className}`}>{children}</div>;
+// `hover` adds a subtle lift for interactive cards.
+export function Card({
+  children,
+  className = '',
+  hover = false,
+}: {
+  children: ReactNode;
+  className?: string;
+  hover?: boolean;
+}) {
+  return (
+    <div
+      className={`kl-card p-5 ${hover ? 'transition-transform duration-150 motion-safe:hover:-translate-y-0.5' : ''} ${className}`}
+    >
+      {children}
+    </div>
+  );
 }
 
 // PageHeader is the consistent title block at the top of every page.
