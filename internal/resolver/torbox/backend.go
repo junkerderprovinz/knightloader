@@ -14,7 +14,7 @@ type Downloader interface {
 	Download(taskID, url string, headers map[string]string, conns int)
 	Pause(taskID string)
 	Resume(taskID string)
-	Remove(taskID string)
+	Remove(taskID string, deleteFiles bool)
 }
 
 // Backend unlocks a hoster link via TorBox, then delegates the actual download
@@ -155,7 +155,7 @@ func (b *Backend) Resume(taskID string) {
 	}
 }
 
-func (b *Backend) Remove(taskID string) {
+func (b *Backend) Remove(taskID string, deleteFiles bool) {
 	b.mu.Lock()
 	if c, ok := b.cancel[taskID]; ok {
 		c()
@@ -167,7 +167,7 @@ func (b *Backend) Remove(taskID string) {
 	delete(b.jobID, taskID)
 	b.mu.Unlock()
 	if handed {
-		b.eng.Remove(taskID)
+		b.eng.Remove(taskID, deleteFiles)
 	}
 	if job != 0 {
 		// Best-effort: also drop the job from the TorBox account.

@@ -84,14 +84,16 @@ func (e *Engine) Download(taskID, url string, headers map[string]string, conns i
 func (e *Engine) Pause(taskID string)  { e.filterOp(taskID, e.d.Pause) }
 func (e *Engine) Resume(taskID string) { e.filterOp(taskID, e.d.Continue) }
 
-func (e *Engine) Remove(taskID string) {
+// Remove drops the task. deleteFiles also erases what was already written —
+// used for a restart (the partial must go), never for tidying the list.
+func (e *Engine) Remove(taskID string, deleteFiles bool) {
 	e.mu.Lock()
 	gid := e.toGopeed[taskID]
 	delete(e.toGopeed, taskID)
 	delete(e.toKL, gid)
 	e.mu.Unlock()
 	if gid != "" {
-		_ = e.d.Delete(&download.TaskFilter{IDs: []string{gid}}, true)
+		_ = e.d.Delete(&download.TaskFilter{IDs: []string{gid}}, deleteFiles)
 	}
 }
 

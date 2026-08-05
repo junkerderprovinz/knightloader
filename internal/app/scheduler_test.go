@@ -15,7 +15,7 @@ type stubBackend struct{ got chan string }
 func (s *stubBackend) Download(taskID, _ string, _ map[string]string, _ int) { s.got <- taskID }
 func (s *stubBackend) Pause(string)                                          {}
 func (s *stubBackend) Resume(taskID string)                                  { s.got <- taskID }
-func (s *stubBackend) Remove(string)                                         {}
+func (s *stubBackend) Remove(string, bool)                                   {}
 
 func collect(t *testing.T, ch chan string, n int) map[string]bool {
 	t.Helper()

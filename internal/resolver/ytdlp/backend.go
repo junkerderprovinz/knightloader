@@ -159,7 +159,7 @@ func (b *Backend) Resume(taskID string) {
 	}
 }
 
-func (b *Backend) Remove(taskID string) {
+func (b *Backend) Remove(taskID string, _ bool) {
 	b.mu.Lock()
 	if c, ok := b.cancel[taskID]; ok {
 		c()

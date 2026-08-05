@@ -81,8 +81,10 @@ func Handler(a *app.App) http.Handler {
 		a.Resume(r.PathValue("id"))
 		w.WriteHeader(http.StatusNoContent)
 	})
+	// Removing a task takes it off the list. ?files=1 additionally deletes what
+	// was downloaded — an explicit, opt-in act.
 	mux.HandleFunc("DELETE /api/tasks/{id}", func(w http.ResponseWriter, r *http.Request) {
-		a.Remove(r.PathValue("id"))
+		a.Remove(r.PathValue("id"), r.URL.Query().Get("files") == "1")
 		w.WriteHeader(http.StatusNoContent)
 	})
 	mux.HandleFunc("GET /api/settings", func(w http.ResponseWriter, r *http.Request) {

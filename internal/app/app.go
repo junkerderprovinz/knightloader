@@ -39,7 +39,7 @@ type backend interface {
 	Download(taskID, url string, headers map[string]string, conns int)
 	Pause(taskID string)
 	Resume(taskID string)
-	Remove(taskID string)
+	Remove(taskID string, deleteFiles bool)
 }
 
 type App struct {
@@ -364,7 +364,7 @@ func (a *App) RestartTasks(ids []string) {
 
 	// Clear any leftover backend state before re-queuing.
 	for _, r := range targets {
-		r.be.Remove(r.id)
+		r.be.Remove(r.id, true)
 	}
 
 	a.mu.Lock()
@@ -515,7 +515,10 @@ func (a *App) Resume(id string) {
 	a.Hub.Broadcast("task", &c)
 }
 
-func (a *App) Remove(id string) {
+// Remove drops a task from the list. deleteFiles additionally erases what was
+// downloaded — never the default: tidying the list must not destroy finished
+// files, which is also how JDownloader behaves.
+func (a *App) Remove(id string, deleteFiles bool) {
 	a.mu.Lock()
 	t := a.tasks[id]
 	delete(a.tasks, id)
@@ -525,7 +528,7 @@ func (a *App) Remove(id string) {
 	a.dispatchLocked()
 	a.mu.Unlock()
 	if t != nil {
-		a.backendFor(t.Resolver).Remove(id)
+		a.backendFor(t.Resolver).Remove(id, deleteFiles)
 	}
 	_ = a.Store.Delete(id)
 	a.Hub.Broadcast("removed", map[string]string{"id": id})
