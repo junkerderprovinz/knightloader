@@ -1,25 +1,23 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { type Instance, fetchInstances } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
+import { useResource } from '../lib/useResource';
 import { fmtBytes, fmtSpeed, pct } from '../lib/format';
 import { useT } from '../lib/i18n';
-import { PageHeader, SectionTitle } from '../components/ui';
+import { PageHeader, SectionTitle, EmptyState } from '../components/ui';
 import { SpeedGraph } from '../components/SpeedGraph';
 import { Counters } from '../components/Counters';
 import { ProgressBar } from '../components/ProgressBar';
 import { StatusPill } from '../components/StatusPill';
-import { InstanceCard } from '../components/InstanceCard';
+import { InstanceRow } from '../components/InstanceCard';
+import { IconDownloads } from '../lib/icons';
 
 export function Dashboard() {
   const { t } = useT();
   const tasks = useTasks('');
-  const [instances, setInstances] = useState<Instance[]>([]);
+  const { data: instances } = useResource<Instance[]>(fetchInstances);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    fetchInstances().then(setInstances);
-  }, []);
 
   const list = useMemo(() => Object.values(tasks), [tasks]);
   const counts = useMemo(() => {
@@ -53,7 +51,8 @@ export function Dashboard() {
     <div className="flex flex-col gap-6">
       <PageHeader title={t('overview.title')} subtitle={t('overview.subtitle')} />
 
-      {/* The single hero of this page. */}
+      {/* The one hero of the whole app: this page owns the big figure and the
+          curve; every other page opens quietly. */}
       <div className="kl-card grid grid-cols-1 items-center gap-4 overflow-hidden p-5 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-8">
         <div>
           <div className="kl-eyebrow">{t('overview.totalSpeed')}</div>
@@ -71,7 +70,7 @@ export function Dashboard() {
         <div className="flex flex-col gap-3">
           <SectionTitle>{t('overview.recent')}</SectionTitle>
           {recent.length === 0 ? (
-            <div className="kl-card p-8 text-center text-sm text-carbon-textMuted">{t('overview.noDownloads')}</div>
+            <EmptyState icon={<IconDownloads width={26} height={26} />} title={t('overview.noDownloads')} />
           ) : (
             <div className="kl-card divide-y divide-carbon-border/60 p-0">
               {recent.map((x) => (
@@ -95,18 +94,21 @@ export function Dashboard() {
           )}
         </div>
 
+        {/* Instances here are a quiet summary, not a stack of raised cards —
+            the full dashboard lives on the Instances page. */}
         <div className="flex flex-col gap-3">
           <SectionTitle>{t('overview.instances')}</SectionTitle>
-          <InstanceCard name={t('instances.thisInstance')} url={location.host} base="/api" />
-          {instances.map((i) => (
-            <InstanceCard
-              key={i.name}
-              name={i.name}
-              url={i.url}
-              base={`/api/instances/${encodeURIComponent(i.name)}`}
-              onOpen={() => navigate(`/downloads?instance=${encodeURIComponent(i.name)}`)}
-            />
-          ))}
+          <div className="kl-card divide-y divide-carbon-border/60 p-0">
+            <InstanceRow name={t('instances.thisInstance')} base="/api" />
+            {(instances ?? []).map((i) => (
+              <InstanceRow
+                key={i.name}
+                name={i.name}
+                base={`/api/instances/${encodeURIComponent(i.name)}`}
+                onOpen={() => navigate(`/downloads?instance=${encodeURIComponent(i.name)}`)}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>

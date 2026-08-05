@@ -33,7 +33,17 @@ function Checkbox({ checked, onChange }: { checked: boolean; onChange: () => voi
   );
 }
 
-function TaskRow({ t: task, base, selection }: { t: Task; base: string; selection?: Selection }) {
+function TaskRow({
+  t: task,
+  base,
+  selection,
+  showResolver = true,
+}: {
+  t: Task;
+  base: string;
+  selection?: Selection;
+  showResolver?: boolean;
+}) {
   const { t } = useT();
   const p = pct(task.loaded, task.size, task.status === 'done');
   const eta = fmtEta(task.loaded, task.size, task.speed);
@@ -54,9 +64,16 @@ function TaskRow({ t: task, base, selection }: { t: Task; base: string; selectio
           <div className="mt-0.5 truncate text-[11px] text-statusFail">{task.error}</div>
         ) : collected ? (
           <div className="mt-0.5 text-[11px] text-carbon-textMuted">
-            <ResolverBadge resolver={task.resolver} /> · {t('task.ready')}
+            {showResolver && (
+              <>
+                <ResolverBadge resolver={task.resolver} /> ·{' '}
+              </>
+            )}
+            {t('task.ready')}
           </div>
         ) : (
+          // The bar already carries the percentage; the line beside it adds
+          // only what the bar can't say.
           <div className="mt-1.5 flex items-center gap-3">
             <div className="w-full max-w-xs">
               <ProgressBar
@@ -67,10 +84,10 @@ function TaskRow({ t: task, base, selection }: { t: Task; base: string; selectio
               />
             </div>
             <span className="kl-num whitespace-nowrap text-[11px] text-carbon-textMuted">
-              {p}%{fmtSpeed(task.speed) && ` · ${fmtSpeed(task.speed)}`}
-              {eta && ` · ${eta} ${t('task.left')}`}
+              {fmtSpeed(task.speed)}
+              {eta && `${fmtSpeed(task.speed) ? ' · ' : ''}${eta} ${t('task.left')}`}
             </span>
-            <ResolverBadge resolver={task.resolver} />
+            {showResolver && <ResolverBadge resolver={task.resolver} />}
           </div>
         )}
       </div>
@@ -124,6 +141,10 @@ export function PackageGroup({
   const done = items.filter((x) => x.status === 'done').length;
   const allSelected = selection && items.every((x) => selection.ids.has(x.id));
   const groupPct = total > 0 ? Math.min(100, Math.round((loaded / total) * 100)) : 0;
+  // When a package runs entirely through one backend, name it once here instead
+  // of repeating it on every row.
+  const resolvers = new Set(items.map((x) => x.resolver));
+  const uniformResolver = resolvers.size === 1 ? items[0].resolver : null;
 
   return (
     <section>
@@ -147,14 +168,20 @@ export function PackageGroup({
             {items.length} {items.length === 1 ? t('task.file') : t('task.files')}
             {done > 0 && ` · ${done} ${t('overview.done').toLowerCase()}`}
           </span>
+          {uniformResolver && <ResolverBadge resolver={uniformResolver} />}
         </div>
-        <span className="kl-num text-right text-[11px] text-carbon-textMuted">{fmtBytes(total)}</span>
-        <span className="kl-num text-[11px] text-carbon-textMuted">{total > 0 ? `${groupPct}%` : ''}</span>
+        {/* Size and its share sit together in the size column, so the status
+            column below never has a number floating above it. */}
+        <span className="kl-num text-right text-[11px] text-carbon-textMuted">
+          {fmtBytes(total)}
+          {total > 0 && ` · ${groupPct}%`}
+        </span>
+        <span />
         <span />
       </div>
       <div className="flex flex-col">
         {items.map((x) => (
-          <TaskRow key={x.id} t={x} base={base} selection={selection} />
+          <TaskRow key={x.id} t={x} base={base} selection={selection} showResolver={!uniformResolver} />
         ))}
       </div>
     </section>

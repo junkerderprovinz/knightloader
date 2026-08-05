@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { type Instance, fetchInstances, addInstance, removeInstance } from '../lib/api';
 import { useT } from '../lib/i18n';
-import { PageHeader, Card, Button, Field, TextInput } from '../components/ui';
+import { PageHeader, Card, Button, Field, TextInput, SectionTitle } from '../components/ui';
 import { InstanceCard } from '../components/InstanceCard';
 
 export function Instances() {
@@ -55,7 +55,7 @@ export function Instances() {
       </div>
 
       <Card className="flex flex-col gap-4 max-w-2xl">
-        <h2 className="text-base font-semibold text-carbon-text">{t('instances.add')}</h2>
+        <SectionTitle>{t('instances.add')}</SectionTitle>
         <div className="grid grid-cols-1 sm:grid-cols-[1fr_2fr_auto] gap-3 items-end">
           <Field label={t('instances.name')}>
             <TextInput placeholder="cellar" value={name} onChange={(e) => setName(e.target.value)} />

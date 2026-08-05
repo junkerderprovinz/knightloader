@@ -89,11 +89,11 @@ function ServiceCard({
   return (
     <Card className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
-        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-carbon-surface2 font-bold text-accent">
+        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-[var(--radius-control)] bg-carbon-surface2 text-sm font-bold text-carbon-textSub">
           {service.mark}
         </div>
         <div className="min-w-0">
-          <h2 className="text-base font-semibold text-carbon-text">{service.label}</h2>
+          <h2 className="text-sm font-semibold text-carbon-text">{service.label}</h2>
           <p className="text-carbon-textMuted text-xs">{t(service.blurb)}</p>
         </div>
         <span className="flex-1" />
@@ -119,8 +119,10 @@ function ServiceCard({
         />
       </Field>
 
+      {/* Secondary on purpose: three cards means three equal choices, so no
+          single one may claim the page's one accent button. */}
       <div className="flex items-center gap-3">
-        <Button onClick={onSave} disabled={!key.trim()}>
+        <Button kind="secondary" onClick={onSave} disabled={!key.trim()}>
           {connected ? t('accounts.replace') : t('accounts.connect')}
         </Button>
         {connected && (
