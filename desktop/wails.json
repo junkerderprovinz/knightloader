@@ -1,0 +1,13 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "KnightLoader",
+  "outputfilename": "KnightLoader",
+  "info": {
+    "productName": "KnightLoader",
+    "comments": "Self-hosted, cross-platform download manager"
+  },
+  "frontend:dir": "../web",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:serverUrl": "auto"
+}

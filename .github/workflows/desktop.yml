@@ -1,0 +1,56 @@
+name: desktop
+
+# Builds the native desktop bundles (Windows/macOS/Linux) with Wails. Manual /
+# tag-triggered because desktop packaging is a release step, separate from the
+# always-on server build.
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: windows/amd64
+          - os: macos-latest
+            platform: darwin/universal
+          - os: ubuntu-latest
+            platform: linux/amd64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Linux WebKit deps
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev
+
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Build
+        working-directory: desktop
+        run: |
+          go mod tidy
+          wails build -platform ${{ matrix.platform }} -clean
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: knightloader-${{ matrix.platform }}
+          path: desktop/build/bin/*
