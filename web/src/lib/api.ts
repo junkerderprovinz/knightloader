@@ -63,6 +63,14 @@ export const startTasks = (ids: string[], base = '/api') =>
     body: JSON.stringify({ ids }),
   });
 
+// restartTasks re-runs finished/errored tasks (empty = all errored).
+export const restartTasks = (ids: string[], base = '/api') =>
+  fetch(`${base}/tasks/restart`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ids }),
+  });
+
 export const pause = (id: string, base = '/api') =>
   fetch(`${base}/tasks/${id}/pause`, { method: 'POST' });
 export const resume = (id: string, base = '/api') =>

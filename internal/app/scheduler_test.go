@@ -74,6 +74,34 @@ func TestCollectorStaging(t *testing.T) {
 	expectNone(t, stub.got) // the other stays collected until started
 }
 
+// TestRestartFailed pins retry: an errored task re-enters the pipeline when
+// restarted.
+func TestRestartFailed(t *testing.T) {
+	a, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Close()
+	stub := &stubBackend{got: make(chan string, 8)}
+	a.jd = stub
+	a.Registry.Register(jd.Resolver{})
+	if _, err := a.ApplySettings(settings.Settings{MaxConcurrent: 4, MaxPerHost: 4, Extract: false}); err != nil {
+		t.Fatal(err)
+	}
+
+	created := a.AddLinks([]string{"https://h.example/x"}, "p")
+	id := created[0].ID
+	a.StartTasks(nil)
+	collect(t, stub.got, 1) // dispatched once
+
+	a.onUpdate(id, core.Update{Status: core.StatusError, Err: "boom"})
+	a.RestartTasks(nil)
+	again := collect(t, stub.got, 1)
+	if !again[id] {
+		t.Fatalf("restart set = %v, want the errored id re-dispatched", again)
+	}
+}
+
 // TestScheduler pins the M4 dispatch rules: global and per-host slots, FIFO
 // with per-host skip-ahead, slot release on completion, queue-aware pause.
 func TestScheduler(t *testing.T) {

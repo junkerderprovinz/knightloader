@@ -98,6 +98,20 @@ export const IconAccounts = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+export const IconRetry = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M15.5 8.5A5.75 5.75 0 1 0 16 11" />
+    <path d="M16 3.5v4h-4" />
+  </svg>
+);
+
+export const IconSearch = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.6} strokeLinecap="round">
+    <circle cx="9" cy="9" r="5.5" />
+    <path d="M13.5 13.5l3 3" />
+  </svg>
+);
+
 export const IconCheck = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)} stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
     <path d="M4 10.5l4 4 8-9" />
