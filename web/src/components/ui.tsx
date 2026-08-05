@@ -1,14 +1,15 @@
-// Small form/control primitives styled with the Carbon tokens, so the app needs
-// no component framework. All are theme-aware via the carbon-* / accent tokens.
+// Primitives of the KEEP design language. Everything is expressed through the
+// shared tokens in index.css, so a sibling app inherits the look by adopting
+// that file — see the comment block there.
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from 'react';
 
 type ButtonKind = 'primary' | 'secondary' | 'ghost' | 'danger';
 
 const kindClass: Record<ButtonKind, string> = {
-  primary: 'bg-accent text-accentContrast hover:brightness-95',
+  primary: 'bg-accent text-accentContrast hover:brightness-110',
   secondary: 'bg-carbon-surface2 text-carbon-text hover:bg-carbon-surface3',
-  ghost: 'bg-transparent text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text',
-  danger: 'bg-transparent text-statusFail hover:bg-statusFailBg',
+  ghost: 'text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text',
+  danger: 'text-statusFail hover:bg-statusFailBg',
 };
 
 export function Button({
@@ -24,9 +25,9 @@ export function Button({
   const iconOnly = icon && !children;
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-lg font-medium text-sm transition
-        duration-150 select-none disabled:opacity-40 disabled:pointer-events-none
-        motion-safe:active:scale-[.97] ${iconOnly ? 'p-2' : 'px-3.5 py-2'} ${kindClass[kind]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] text-sm font-medium
+        transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
+        motion-safe:active:scale-[.98] ${iconOnly ? 'p-2' : 'px-3.5 py-2'} ${kindClass[kind]} ${className}`}
       {...rest}
     >
       {icon}
@@ -40,14 +41,15 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
     <label className="flex flex-col gap-1.5">
       <span className="text-xs text-carbon-textSub">{label}</span>
       {children}
-      {hint && <span className="text-[11px] text-carbon-textMuted">{hint}</span>}
+      {hint && <span className="text-[11px] leading-snug text-carbon-textMuted">{hint}</span>}
     </label>
   );
 }
 
 const inputClass =
-  'w-full rounded-lg bg-carbon-surface2 px-3 py-2 text-sm text-carbon-text placeholder:text-carbon-textMuted ' +
-  'outline-none focus:ring-2 focus:ring-[var(--status-info-solid)]';
+  'w-full rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-sm text-carbon-text ' +
+  'placeholder:text-carbon-textMuted outline-none transition-shadow ' +
+  'focus:shadow-[0_0_0_2px_var(--focus-ring)]';
 
 export function TextInput(props: InputHTMLAttributes<HTMLInputElement>) {
   return <input className={inputClass} {...props} />;
@@ -74,7 +76,7 @@ export function NumberInput({
   return (
     <input
       type="number"
-      className={inputClass}
+      className={`${inputClass} kl-num`}
       value={value}
       min={min}
       max={max}
@@ -108,7 +110,7 @@ export function Toggle({
         }`}
       >
         <span
-          className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${
+          className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
             checked ? 'translate-x-4' : 'translate-x-0.5'
           }`}
         />
@@ -118,8 +120,7 @@ export function Toggle({
   );
 }
 
-// Card is the standard surface panel: soft elevation + hairline (.kl-card).
-// `hover` adds a subtle lift for interactive cards.
+// Card is the one raised surface. Never nest it inside another Card.
 export function Card({
   children,
   className = '',
@@ -131,14 +132,16 @@ export function Card({
 }) {
   return (
     <div
-      className={`kl-card p-5 ${hover ? 'transition-transform duration-150 motion-safe:hover:-translate-y-0.5' : ''} ${className}`}
+      className={`kl-card p-5 ${
+        hover ? 'transition-transform duration-150 motion-safe:hover:-translate-y-0.5' : ''
+      } ${className}`}
     >
       {children}
     </div>
   );
 }
 
-// PageHeader is the consistent title block at the top of every page.
+// PageHeader is the single title block every page opens with.
 export function PageHeader({
   title,
   subtitle,
@@ -151,11 +154,22 @@ export function PageHeader({
   return (
     <header className="flex items-end gap-4">
       <div className="min-w-0">
-        <h1 className="text-[26px] font-bold leading-tight text-carbon-text">{title}</h1>
+        <h1 className="text-[28px] font-semibold leading-tight tracking-tight text-carbon-text">{title}</h1>
         {subtitle && <p className="text-carbon-textMuted text-sm mt-1">{subtitle}</p>}
       </div>
       <span className="flex-1" />
       {right}
     </header>
+  );
+}
+
+// SectionTitle labels a group of content without adding another surface.
+export function SectionTitle({ children, right }: { children: ReactNode; right?: ReactNode }) {
+  return (
+    <div className="flex items-baseline gap-3">
+      <h2 className="text-sm font-semibold text-carbon-textSub">{children}</h2>
+      <span className="flex-1" />
+      {right}
+    </div>
   );
 }

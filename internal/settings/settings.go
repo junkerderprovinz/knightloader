@@ -17,6 +17,7 @@ type Settings struct {
 	SpeedLimit    int64 `json:"speedLimit"`    // bytes/s for the embedded engine, 0 = unlimited
 	Extract       bool  `json:"extract"`       // extract archives after download
 	DeleteArchive bool  `json:"deleteArchive"` // remove the archive after successful extraction
+	AutoStart     bool  `json:"autoStart"`     // start collected links immediately instead of staging
 }
 
 // Defaults returns the settings a fresh install starts with.

@@ -27,6 +27,7 @@ export interface Settings {
   speedLimit: number; // bytes/s, 0 = unlimited
   extract: boolean;
   deleteArchive: boolean;
+  autoStart: boolean;
 }
 
 export interface Instance {
@@ -61,6 +62,14 @@ export const startTasks = (ids: string[], base = '/api') =>
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ ids }),
+  });
+
+// setPackage moves tasks into a package (empty name = ungrouped).
+export const setPackage = (ids: string[], pkg: string, base = '/api') =>
+  fetch(`${base}/tasks/package`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ids, package: pkg }),
   });
 
 // restartTasks re-runs finished/errored tasks (empty = all errored).

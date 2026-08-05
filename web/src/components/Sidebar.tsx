@@ -16,11 +16,14 @@ import {
   IconGlobe,
 } from '../lib/icons';
 
+// The active item is marked by a gold rail and gold icon on a raised surface —
+// not by a solid gold slab, which would shout louder than the page content.
 const navBase =
-  'flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[15px] font-medium transition duration-150 select-none motion-safe:active:scale-[.98]';
-const navActive = 'bg-accent text-accentContrast';
-const navInactive =
-  'text-[var(--sidebar-text)] hover:bg-carbon-hover hover:text-carbon-text motion-safe:hover:translate-x-0.5';
+  'relative flex items-center gap-3 rounded-[var(--radius-control)] pl-4 pr-3 py-2.5 text-[14px] font-medium transition duration-150 select-none';
+const navActive =
+  'bg-carbon-surface text-carbon-text before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 ' +
+  'before:h-5 before:w-[3px] before:rounded-full before:bg-accent [&_svg]:text-accent';
+const navInactive = 'text-[var(--sidebar-text)] hover:bg-carbon-hover hover:text-carbon-text';
 
 function Item({
   to,
@@ -40,7 +43,7 @@ function Item({
       {icon}
       <span className="flex-1">{label}</span>
       {badge ? (
-        <span className="rounded-full bg-carbon-surface3/70 px-1.5 py-0.5 text-[11px] font-semibold tabular-nums leading-none text-carbon-text">
+        <span className="kl-num rounded-full bg-carbon-surface3/60 px-1.5 py-0.5 text-[11px] font-semibold leading-none text-carbon-textSub">
           {badge}
         </span>
       ) : null}

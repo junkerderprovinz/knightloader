@@ -268,7 +268,35 @@ func (a *App) AddLinks(urls []string, pkg string) []*core.Task {
 		}
 		created = append(created, t)
 	}
+	// Auto-start hands everything straight to the queue for users who don't
+	// want the staging step.
+	if len(created) > 0 && a.Settings.Get().AutoStart {
+		ids := make([]string, 0, len(created))
+		for _, t := range created {
+			ids = append(ids, t.ID)
+		}
+		a.StartTasks(ids)
+	}
 	return created
+}
+
+// SetPackage moves tasks into a package (an empty name ungroups them).
+func (a *App) SetPackage(ids []string, pkg string) {
+	pkg = strings.TrimSpace(pkg)
+	a.mu.Lock()
+	var copies []core.Task
+	for _, id := range ids {
+		if t := a.tasks[id]; t != nil {
+			t.Package = pkg
+			copies = append(copies, *t)
+		}
+	}
+	a.mu.Unlock()
+	for i := range copies {
+		c := copies[i]
+		_ = a.Store.Save(&c)
+		a.Hub.Broadcast("task", &c)
+	}
 }
 
 // StartTasks moves collected tasks into the download queue and dispatches them.

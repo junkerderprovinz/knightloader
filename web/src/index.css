@@ -2,6 +2,24 @@
 
 @custom-variant dark (&:is([data-theme="dark"] *));
 
+/* ===========================================================================
+   KEEP — the shared design language
+   ---------------------------------------------------------------------------
+   A warm, layered, low-noise system: warm near-black ground, one raised surface
+   level, generous radii, soft elevation, and heraldic gold used sparingly.
+
+   The token NAMES are deliberately the same contract BombVault already uses
+   (--carbon-*, --accent, --status-*), so a sibling app adopts this look by
+   swapping this file's values — no component rewrite required.
+
+   Clean-by-rule (what keeps it calm):
+     · one raised surface level; never a card inside a card
+     · one hero per page — everything else is quiet
+     · gold marks activity only: active nav, primary action, progress, brand
+     · four state hues total (gold / green / red / neutral), never more
+     · hierarchy comes from type size and colour step, not from borders
+   =========================================================================== */
+
 @theme {
   --color-carbon-background: var(--carbon-bg);
   --color-carbon-sidebar: var(--carbon-sidebar);
@@ -16,153 +34,174 @@
 
   --color-accent: var(--accent);
   --color-accentContrast: var(--accent-contrast);
+  --color-accentSoft: var(--accent-soft);
 
   --color-statusOk: var(--status-ok-text);
   --color-statusOkBg: var(--status-ok-bg);
-  --color-statusOkBorder: var(--status-ok-border);
   --color-statusOkSolid: var(--status-ok-solid);
 
   --color-statusFail: var(--status-fail-text);
   --color-statusFailBg: var(--status-fail-bg);
-  --color-statusFailBorder: var(--status-fail-border);
   --color-statusFailSolid: var(--status-fail-solid);
 
   --color-statusWarn: var(--status-warn-text);
   --color-statusWarnBg: var(--status-warn-bg);
-  --color-statusWarnBorder: var(--status-warn-border);
   --color-statusWarnSolid: var(--status-warn-solid);
 
   --color-statusInfo: var(--status-info-text);
   --color-statusInfoBg: var(--status-info-bg);
-  --color-statusInfoBorder: var(--status-info-border);
   --color-statusInfoSolid: var(--status-info-solid);
 
   --color-statusNeutral: var(--status-neutral-text);
   --color-statusNeutralBg: var(--status-neutral-bg);
-  --color-statusNeutralBorder: var(--status-neutral-border);
   --color-statusNeutralSolid: var(--status-neutral-solid);
 
-  --radius-card: 0.875rem;
+  --radius-card: 1rem;
+  --radius-control: 0.625rem;
 }
-
-/* Carbon palette as CSS custom properties. Dark is default; [data-theme="light"]
-   swaps to an IBM Carbon light theme. Modelled on BombVault so the two apps read
-   as one family; KnightLoader carries its own heraldic-gold accent. */
 
 :root,
 [data-theme="dark"] {
   color-scheme: dark;
 
-  --carbon-bg:        #161616;
-  --carbon-surface:   #262626;
-  --carbon-surface2:  #393939;
-  --carbon-surface3:  #525252;
-  --carbon-text:      #f4f4f4;
-  --carbon-text-sub:  #c6c6c6;
-  --carbon-text-muted:#8d8d8d;
-  --carbon-border:    #393939;
-  --carbon-hover:     #353535;
-  --carbon-sidebar:   #262626;
-  --sidebar-text:     #e0e0e0;
+  /* Ground and surfaces — exactly two levels above the canvas. */
+  --carbon-bg:         #131110;
+  --carbon-sidebar:    #100E0D;
+  --carbon-surface:    #1C1917;
+  --carbon-surface2:   #262220;
+  --carbon-surface3:   #332E29;
+  --carbon-hover:      #241F1C;
+  --carbon-border:     #2A2521;
 
-  --accent:           #e8b046;
-  --accent-contrast:  #161616;
+  /* Text ramp — four steps, the last still legible at 11px. */
+  --carbon-text:       #F7F2E9;
+  --carbon-text-sub:   #C9C0B2;
+  --carbon-text-muted: #948A7B;
+  --sidebar-text:      #D8D0C4;
 
-  --status-ok-text:      #6fdc8c;
-  --status-ok-bg:        #1c3a2a;
-  --status-ok-border:    #2a5540;
-  --status-ok-solid:     #6fdc8c;
+  /* Heraldic gold: activity, and nothing else. */
+  --accent:            #E9A83C;
+  --accent-contrast:   #17130E;
+  --accent-soft:       rgba(233, 168, 60, 0.14);
 
-  --status-fail-text:    #ff8389;
-  --status-fail-bg:      #3a1c1c;
-  --status-fail-border:  #5a2a2a;
-  --status-fail-solid:   #ff8389;
+  /* Four state hues. Gold = running, green = settled, red = fault,
+     neutral = waiting. Paused reuses neutral on purpose. */
+  --status-info-text:    #E9A83C;
+  --status-info-bg:      rgba(233, 168, 60, 0.13);
+  --status-info-solid:   #E9A83C;
 
-  --status-warn-text:    #f1c21b;
-  --status-warn-bg:      #2a2a1c;
-  --status-warn-border:  #4a4a2a;
-  --status-warn-solid:   #f1c21b;
+  --status-ok-text:      #4FCBA4;
+  --status-ok-bg:        rgba(79, 203, 164, 0.13);
+  --status-ok-solid:     #4FCBA4;
 
-  --status-info-text:    #78a9ff;
-  --status-info-bg:      #1c2a3a;
-  --status-info-border:  #2a3a5a;
-  --status-info-solid:   #78a9ff;
+  --status-fail-text:    #FF8A72;
+  --status-fail-bg:      rgba(255, 124, 99, 0.14);
+  --status-fail-solid:   #FF7C63;
 
-  --status-neutral-text: #a8a8b0;
-  --status-neutral-bg:   #2a2a2e;
-  --status-neutral-border:#3a3a40;
-  --status-neutral-solid:#8a8a92;
+  --status-warn-text:    #C9C0B2;
+  --status-warn-bg:      rgba(255, 255, 255, 0.06);
+  --status-warn-solid:   #A79E90;
 
-  --elevation: 0 1px 2px rgba(0, 0, 0, .45), 0 10px 30px rgba(0, 0, 0, .22);
-  --hairline: inset 0 0 0 1px rgba(255, 255, 255, .04);
+  --status-neutral-text: #A79E90;
+  --status-neutral-bg:   rgba(255, 255, 255, 0.05);
+  --status-neutral-solid: #8F8677;
+
+  /* One elevation, one hairline. */
+  --elevation: 0 1px 2px rgba(0, 0, 0, .40), 0 18px 40px -24px rgba(0, 0, 0, .85);
+  --hairline: inset 0 1px 0 rgba(255, 255, 255, .045);
+  --focus-ring: rgba(233, 168, 60, .55);
 }
 
 [data-theme="light"] {
   color-scheme: light;
 
-  --carbon-bg:        #ffffff;
-  --carbon-surface:   #f4f4f4;
-  --carbon-surface2:  #e0e0e0;
-  --carbon-surface3:  #c6c6c6;
-  --carbon-text:      #161616;
-  --carbon-text-sub:  #393939;
-  --carbon-text-muted:#6f6f6f;
-  --carbon-border:    #e0e0e0;
-  --carbon-hover:     #e8e8e8;
-  --carbon-sidebar:   #f4f4f4;
-  --sidebar-text:     #21272a;
-  --accent-contrast:  #161616;
+  --carbon-bg:         #FBF9F5;
+  --carbon-sidebar:    #F4F0E9;
+  --carbon-surface:    #FFFFFF;
+  --carbon-surface2:   #F2EEE7;
+  --carbon-surface3:   #E3DCD1;
+  --carbon-hover:      #F0EBE2;
+  --carbon-border:     #E7E0D5;
 
-  --status-ok-text:      #198038;
-  --status-ok-bg:        #defbe6;
-  --status-ok-border:    #a7f0ba;
-  --status-ok-solid:     #24a148;
+  --carbon-text:       #1A1614;
+  --carbon-text-sub:   #4C453D;
+  --carbon-text-muted: #7B7264;
+  --sidebar-text:      #3A342D;
 
-  --status-fail-text:    #da1e28;
-  --status-fail-bg:      #fff1f1;
-  --status-fail-border:  #ffd7d9;
-  --status-fail-solid:   #da1e28;
+  --accent:            #A8701A;
+  --accent-contrast:   #FFFFFF;
+  --accent-soft:       rgba(168, 112, 26, 0.12);
 
-  --status-warn-text:    #8e6a00;
-  --status-warn-bg:      #fcf4d6;
-  --status-warn-border:  #fddc69;
-  --status-warn-solid:   #b28600;
+  --status-info-text:    #8A5A0F;
+  --status-info-bg:      rgba(168, 112, 26, 0.12);
+  --status-info-solid:   #B87A16;
 
-  --status-info-text:    #0043ce;
-  --status-info-bg:      #edf5ff;
-  --status-info-border:  #d0e2ff;
-  --status-info-solid:   #0f62fe;
+  --status-ok-text:      #0F7355;
+  --status-ok-bg:        rgba(15, 115, 85, 0.11);
+  --status-ok-solid:     #128663;
 
-  --status-neutral-text: #525252;
-  --status-neutral-bg:   #e8e8e8;
-  --status-neutral-border:#c6c6c6;
-  --status-neutral-solid:#8d8d8d;
+  --status-fail-text:    #B33A26;
+  --status-fail-bg:      rgba(179, 58, 38, 0.10);
+  --status-fail-solid:   #C0432E;
 
-  --elevation: 0 1px 2px rgba(0, 0, 0, .06), 0 10px 30px rgba(0, 0, 0, .07);
-  --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
+  --status-warn-text:    #4C453D;
+  --status-warn-bg:      rgba(0, 0, 0, 0.05);
+  --status-warn-solid:   #7B7264;
+
+  --status-neutral-text: #6B6255;
+  --status-neutral-bg:   rgba(0, 0, 0, 0.045);
+  --status-neutral-solid: #8B8274;
+
+  --elevation: 0 1px 2px rgba(60, 45, 25, .06), 0 16px 36px -26px rgba(60, 45, 25, .35);
+  --hairline: inset 0 0 0 1px rgba(60, 45, 25, .05);
+  --focus-ring: rgba(168, 112, 26, .5);
 }
 
 body {
   margin: 0;
   background-color: var(--carbon-bg);
   color: var(--carbon-text);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
-  letter-spacing: -0.006em;
+  letter-spacing: -0.008em;
 }
 
 * {
   box-sizing: border-box;
 }
 
-/* Premium surface: soft elevation + a hairline, used by cards. */
+/* The one raised surface. Never nest it. */
 .kl-card {
   background-color: var(--carbon-surface);
   border-radius: var(--radius-card);
   box-shadow: var(--elevation), var(--hairline);
 }
 
-/* Slim, unobtrusive scrollbars. */
+/* An inset well for tracks, drop zones and quiet groupings. */
+.kl-well {
+  background-color: var(--carbon-surface2);
+  border-radius: var(--radius-control);
+}
+
+/* Eyebrow label: small, uppercase, quiet — used above hero figures. */
+.kl-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--carbon-text-muted);
+}
+
+/* Digits that stack in columns line up and never jitter while counting. */
+.kl-num {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--carbon-surface3) transparent;
@@ -178,32 +217,33 @@ body {
   background-clip: content-box;
 }
 
-/* Indeterminate progress segment (used before a size is known). */
 @keyframes kl-indeterminate {
   0%   { left: -35%; }
   100% { left: 100%; }
 }
-
-/* Route/page enter. */
 @keyframes kl-page-in {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: none; }
 }
 @keyframes kl-fade-in {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
-
 @keyframes kl-toast-in {
   from { opacity: 0; transform: translateX(12px); }
   to   { opacity: 1; transform: none; }
 }
+@keyframes kl-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: .45; }
+}
 
 @media (prefers-reduced-motion: no-preference) {
-  .kl-page-enter { animation: kl-page-in 300ms cubic-bezier(.2, .6, .2, 1) both; }
+  .kl-page-enter { animation: kl-page-in 280ms cubic-bezier(.2, .6, .2, 1) both; }
   .kl-toast { animation: kl-toast-in 220ms cubic-bezier(.2, .6, .2, 1) both; }
+  .kl-live { animation: kl-pulse 2s ease-in-out infinite; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .kl-page-enter { animation: kl-fade-in 200ms ease both; }
+  .kl-page-enter { animation: kl-fade-in 180ms ease both; }
   .kl-toast { animation: kl-fade-in 160ms ease both; }
 }

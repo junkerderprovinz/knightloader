@@ -1,12 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { type Instance, type Task, apiBase, pause, resume, remove, restartTasks, fetchInstances } from '../lib/api';
+import {
+  type Instance,
+  type Task,
+  apiBase,
+  pause,
+  resume,
+  remove,
+  restartTasks,
+  fetchInstances,
+} from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import { fmtSpeed } from '../lib/format';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { PageHeader, Button } from '../components/ui';
 import { SpeedGraph } from '../components/SpeedGraph';
-import { PackageGroup, groupByPackage } from '../components/TaskList';
+import { Counters } from '../components/Counters';
+import { TaskListCard, groupByPackage } from '../components/TaskList';
 import { IconSearch } from '../lib/icons';
 
 type Filter = 'all' | 'active' | 'done' | 'error';
@@ -19,7 +29,8 @@ const FILTERS: { key: Filter; label: TranslationKey }[] = [
 
 function matchesFilter(t: Task, f: Filter): boolean {
   if (f === 'all') return true;
-  if (f === 'active') return t.status === 'running' || t.status === 'queued' || t.status === 'extracting' || t.status === 'paused';
+  if (f === 'active')
+    return t.status === 'running' || t.status === 'queued' || t.status === 'extracting' || t.status === 'paused';
   if (f === 'done') return t.status === 'done';
   return t.status === 'error';
 }
@@ -41,38 +52,37 @@ export function Downloads() {
   const list = useMemo(
     () =>
       Object.values(tasks)
-        .filter((t) => t.status !== 'collected')
+        .filter((x) => x.status !== 'collected')
         .sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1)),
     [tasks],
   );
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return list.filter((t) => matchesFilter(t, filter) && (!q || (t.name || t.url).toLowerCase().includes(q)));
+    return list.filter((x) => matchesFilter(x, filter) && (!q || (x.name || x.url).toLowerCase().includes(q)));
   }, [list, filter, query]);
   const groups = useMemo(() => groupByPackage(filtered), [filtered]);
 
-  const stats = useMemo(() => {
+  const counts = useMemo(() => {
     let running = 0,
       queued = 0,
       done = 0,
       error = 0,
       speed = 0;
-    for (const t of list) {
-      if (t.status === 'running' || t.status === 'extracting') running++;
-      else if (t.status === 'queued') queued++;
-      else if (t.status === 'done') done++;
-      else if (t.status === 'error') error++;
-      if (t.status === 'running') speed += t.speed;
+    for (const x of list) {
+      if (x.status === 'running' || x.status === 'extracting') running++;
+      else if (x.status === 'queued') queued++;
+      else if (x.status === 'done') done++;
+      else if (x.status === 'error') error++;
+      if (x.status === 'running') speed += x.speed;
     }
-    return { running, queued, done, error };
+    return { running, queued, done, error, speed };
   }, [list]);
-  const speed = useMemo(() => list.reduce((s, t) => s + (t.status === 'running' ? t.speed : 0), 0), [list]);
 
-  const pauseAll = () => list.filter((t) => t.status === 'running').forEach((t) => pause(t.id, base));
-  const resumeAll = () => list.filter((t) => t.status === 'paused').forEach((t) => resume(t.id, base));
+  const pauseAll = () => list.filter((x) => x.status === 'running').forEach((x) => pause(x.id, base));
+  const resumeAll = () => list.filter((x) => x.status === 'paused').forEach((x) => resume(x.id, base));
   const clearDone = () =>
-    list.filter((t) => t.status === 'done' || t.status === 'error').forEach((t) => remove(t.id, base));
+    list.filter((x) => x.status === 'done' || x.status === 'error').forEach((x) => remove(x.id, base));
   const retryFailed = () => restartTasks([], base);
 
   return (
@@ -85,7 +95,7 @@ export function Downloads() {
             <select
               value={instance}
               onChange={(e) => setInstance(e.target.value)}
-              className="rounded-lg bg-carbon-surface2 px-3 py-2 text-sm text-carbon-text outline-none"
+              className="rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-sm text-carbon-text outline-none"
               aria-label={t('nav.instances')}
             >
               <option value="">{t('downloads.thisInstance')}</option>
@@ -99,59 +109,75 @@ export function Downloads() {
         }
       />
 
-      <div className="kl-card overflow-hidden">
-        <div className="flex items-end justify-between px-5 pt-4">
-          <div>
-            <div className="text-carbon-textMuted text-xs">{t('downloads.totalSpeed')}</div>
-            <div className="text-2xl font-bold tabular-nums text-carbon-text">{fmtSpeed(speed) || '—'}</div>
+      {/* The hero: the figure and its counters on the left, the curve filling
+          the right — balanced whether idle or saturated. */}
+      <div className="kl-card grid grid-cols-1 items-center gap-4 overflow-hidden p-5 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-8">
+        <div>
+          <div className="kl-eyebrow">{t('downloads.totalSpeed')}</div>
+          <div className="kl-num mt-1 text-[34px] font-semibold leading-none tracking-tight text-carbon-text">
+            {fmtSpeed(counts.speed) || '0 B/s'}
           </div>
-          <div className="flex items-center gap-1 pb-1">
-            <Button kind="ghost" onClick={pauseAll} disabled={stats.running === 0}>
-              {t('downloads.pauseAll')}
-            </Button>
-            <Button kind="ghost" onClick={resumeAll} disabled={stats.queued + stats.running === 0}>
-              {t('downloads.resumeAll')}
-            </Button>
-            <Button kind="ghost" onClick={retryFailed} disabled={stats.error === 0}>
-              {t('downloads.retryFailed')}
-            </Button>
-            <Button kind="ghost" onClick={clearDone} disabled={stats.done + stats.error === 0}>
-              {t('downloads.clearFinished')}
-            </Button>
+          <div className="mt-4">
+            <Counters counts={counts} />
           </div>
         </div>
-        <SpeedGraph value={speed} />
-        <div className="flex flex-wrap gap-x-6 gap-y-1 px-5 pb-4 text-sm">
-          <Counter label={t('overview.active')} value={stats.running} tone="text-statusInfo" />
-          <Counter label={t('overview.queued')} value={stats.queued} tone="text-statusNeutral" />
-          <Counter label={t('overview.done')} value={stats.done} tone="text-statusOk" />
-          {stats.error > 0 && <Counter label={t('overview.errors')} value={stats.error} tone="text-statusFail" />}
-        </div>
+        <SpeedGraph value={counts.speed} height={84} />
       </div>
 
       {list.length > 0 && (
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative flex-1 min-w-[12rem] max-w-xs">
-            <IconSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-carbon-textMuted" width={16} height={16} />
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative min-w-[12rem] flex-1 max-w-xs">
+            <IconSearch
+              className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-carbon-textMuted"
+              width={15}
+              height={15}
+            />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t('downloads.filterPlaceholder')}
-              className="w-full rounded-lg bg-carbon-surface2 pl-8 pr-3 py-2 text-sm text-carbon-text placeholder:text-carbon-textMuted outline-none focus:ring-2 focus:ring-[var(--status-info-solid)]"
+              className="w-full rounded-[var(--radius-control)] bg-carbon-surface2 py-2 pl-8 pr-3 text-sm text-carbon-text placeholder:text-carbon-textMuted outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)]"
             />
           </div>
-          <div className="flex items-center gap-1 rounded-lg bg-carbon-surface2 p-1">
+          <div className="kl-well flex items-center gap-0.5 p-1">
             {FILTERS.map((f) => (
               <button
                 key={f.key}
                 onClick={() => setFilter(f.key)}
-                className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                  filter === f.key ? 'bg-accent text-accentContrast' : 'text-carbon-textSub hover:text-carbon-text'
+                className={`rounded-[7px] px-2.5 py-1 text-xs font-medium transition-colors ${
+                  filter === f.key
+                    ? 'bg-carbon-surface text-carbon-text'
+                    : 'text-carbon-textMuted hover:text-carbon-text'
                 }`}
               >
                 {t(f.label)}
               </button>
             ))}
+          </div>
+          <span className="flex-1" />
+          <div className="flex items-center gap-0.5">
+            <Button kind="ghost" className="px-2.5 text-xs" onClick={pauseAll} disabled={counts.running === 0}>
+              {t('downloads.pauseAll')}
+            </Button>
+            <Button
+              kind="ghost"
+              className="px-2.5 text-xs"
+              onClick={resumeAll}
+              disabled={counts.queued + counts.running === 0}
+            >
+              {t('downloads.resumeAll')}
+            </Button>
+            <Button kind="ghost" className="px-2.5 text-xs" onClick={retryFailed} disabled={counts.error === 0}>
+              {t('downloads.retryFailed')}
+            </Button>
+            <Button
+              kind="ghost"
+              className="px-2.5 text-xs"
+              onClick={clearDone}
+              disabled={counts.done + counts.error === 0}
+            >
+              {t('downloads.clearFinished')}
+            </Button>
           </div>
         </div>
       )}
@@ -159,19 +185,10 @@ export function Downloads() {
       {list.length === 0 ? (
         <Empty />
       ) : filtered.length === 0 ? (
-        <div className="kl-card p-8 text-center text-carbon-textMuted">{t('downloads.noMatch')}</div>
+        <div className="kl-card p-8 text-center text-sm text-carbon-textMuted">{t('downloads.noMatch')}</div>
       ) : (
-        groups.map(([name, items]) => <PackageGroup key={name || '__none'} name={name} items={items} base={base} />)
+        <TaskListCard groups={groups} base={base} />
       )}
-    </div>
-  );
-}
-
-function Counter({ label, value, tone }: { label: string; value: number; tone: string }) {
-  return (
-    <div className="flex items-baseline gap-1.5">
-      <span className={`font-semibold tabular-nums ${tone}`}>{value}</span>
-      <span className="text-carbon-textMuted text-xs">{label}</span>
     </div>
   );
 }
@@ -179,7 +196,7 @@ function Counter({ label, value, tone }: { label: string; value: number; tone: s
 function Empty() {
   const { t } = useT();
   return (
-    <div className="kl-card p-10 text-center text-carbon-textMuted">
+    <div className="kl-card p-12 text-center text-sm text-carbon-textMuted">
       {t('downloads.emptyLead')} <span className="text-carbon-textSub">{t('nav.collector')}</span>{' '}
       {t('downloads.emptyTail')}
     </div>
