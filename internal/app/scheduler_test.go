@@ -100,6 +100,13 @@ func TestDedupOnAdd(t *testing.T) {
 	if got := len(a.Tasks()); got != 3 {
 		t.Fatalf("total tasks = %d, want 3", got)
 	}
+
+	// A settled task must not block a deliberate second attempt at the same URL.
+	a.onUpdate(first[0].ID, core.Update{Status: core.StatusError, Err: "boom"})
+	again := a.AddLinks([]string{"https://h.example/a"}, "p")
+	if len(again) != 1 {
+		t.Fatalf("re-adding a failed URL staged %d, want 1", len(again))
+	}
 }
 
 // TestRestartFailed pins retry: an errored task re-enters the pipeline when
