@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { fetchAccounts, saveAccount } from '../lib/api';
+import { type Account, fetchAccounts, saveAccount, testAccount } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { PageHeader, Card, Button, Field, TextInput } from '../components/ui';
 
@@ -31,9 +31,9 @@ const SERVICES: {
 
 export function Accounts() {
   const { t } = useT();
-  const [connected, setConnected] = useState<string[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
 
-  const load = () => fetchAccounts().then(setConnected);
+  const load = () => fetchAccounts().then(setAccounts);
   useEffect(() => {
     load();
   }, []);
@@ -47,7 +47,7 @@ export function Accounts() {
           <ServiceCard
             key={s.id}
             service={s}
-            connected={connected.includes(s.id)}
+            state={accounts.find((a) => a.id === s.id)}
             onChanged={load}
           />
         ))}
@@ -60,22 +60,26 @@ export function Accounts() {
 
 function ServiceCard({
   service,
-  connected,
+  state,
   onChanged,
 }: {
   service: (typeof SERVICES)[number];
-  connected: boolean;
+  state?: Account;
   onChanged: () => void;
 }) {
   // blurb is a translation key so the catalogue stays language-agnostic.
   const { t } = useT();
   const [key, setKey] = useState('');
   const [saved, setSaved] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [result, setResult] = useState<Account | null>(null);
+  const connected = state?.configured ?? false;
 
   async function onSave() {
     if (!key.trim()) return;
     await saveAccount(service.id, key.trim());
     setKey('');
+    setResult(null);
     onChanged();
     setSaved(true);
     setTimeout(() => setSaved(false), 1800);
@@ -83,7 +87,19 @@ function ServiceCard({
 
   async function onRemove() {
     await saveAccount(service.id, '');
+    setResult(null);
     onChanged();
+  }
+
+  // Testing asks the service itself, so a typo in a key shows up here instead of
+  // on the first download.
+  async function onTest() {
+    setTesting(true);
+    try {
+      setResult(await testAccount(service.id));
+    } finally {
+      setTesting(false);
+    }
   }
 
   return (
@@ -121,17 +137,32 @@ function ServiceCard({
 
       {/* Secondary on purpose: three cards means three equal choices, so no
           single one may claim the page's one accent button. */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <Button kind="secondary" onClick={onSave} disabled={!key.trim()}>
           {connected ? t('accounts.replace') : t('accounts.connect')}
         </Button>
         {connected && (
+          <Button kind="secondary" onClick={onTest} disabled={testing}>
+            {testing ? t('accounts.testing') : t('accounts.test')}
+          </Button>
+        )}
+        {connected && !state?.fromEnv && (
           <Button kind="ghost" onClick={onRemove}>
             {t('accounts.disconnect')}
           </Button>
         )}
         {saved && <span className="text-statusOk text-sm">{t('accounts.saved')}</span>}
       </div>
+
+      {state?.fromEnv && <p className="text-carbon-textMuted text-xs">{t('accounts.fromEnv')}</p>}
+
+      {result && (
+        <p className={`text-xs ${result.ok ? 'text-statusOk' : 'text-statusFail'}`}>
+          {result.ok
+            ? `${t('accounts.ok')} · ${result.hosts} ${t('accounts.hosts')}`
+            : `${t('accounts.failed')} · ${result.detail}`}
+        </p>
+      )}
     </Card>
   );
 }

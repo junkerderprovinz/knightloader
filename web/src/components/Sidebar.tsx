@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { getTheme, toggleTheme } from '../lib/theme';
 import { useT } from '../lib/i18n';
 import { LanguagePicker } from './LanguagePicker';
-import { fetchHealth } from '../lib/api';
+import { fetchAuth, fetchHealth, logout } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import {
   IconDashboard,
@@ -14,6 +14,7 @@ import {
   IconSettings,
   IconMoon,
   IconSun,
+  IconSignOut,
 } from '../lib/icons';
 
 // The active item is marked by a gold rail and gold icon on a raised surface —
@@ -57,9 +58,15 @@ export function Sidebar() {
   const [version, setVersion] = useState('');
   const tasks = useTasks('');
 
+  const [locked, setLocked] = useState(false);
+
   useEffect(() => {
     fetchHealth()
       .then((h) => setVersion(h.version))
+      .catch(() => {});
+    // Signing out only makes sense on an instance that can be signed in to.
+    fetchAuth()
+      .then((a) => setLocked(a.enabled))
       .catch(() => {});
   }, []);
 
@@ -106,6 +113,18 @@ export function Sidebar() {
           <span>{theme === 'dark' ? t('theme.dark') : t('theme.light')}</span>
         </button>
         <Item to="/settings" label={t('nav.settings')} icon={<IconSettings />} />
+        {locked && (
+          <button
+            onClick={async () => {
+              await logout();
+              location.reload();
+            }}
+            className={`${navBase} ${navInactive} w-full`}
+          >
+            <IconSignOut />
+            <span>{t('auth.signOut')}</span>
+          </button>
+        )}
       </div>
     </aside>
   );

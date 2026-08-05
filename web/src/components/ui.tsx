@@ -1,7 +1,9 @@
 // Primitives of the KEEP design language. Everything is expressed through the
 // shared tokens in index.css, so a sibling app inherits the look by adopting
 // that file — see the comment block there.
+import { useEffect } from 'react';
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from 'react';
+import { IconClose } from '../lib/icons';
 
 type ButtonKind = 'primary' | 'secondary' | 'ghost' | 'danger';
 
@@ -215,6 +217,47 @@ export function SectionTitle({ children, right }: { children: ReactNode; right?:
       <h2 className="text-sm font-semibold text-carbon-textSub">{children}</h2>
       <span className="flex-1" />
       {right}
+    </div>
+  );
+}
+
+// Modal is the one overlay treatment: a dimmed page and a single raised panel.
+// Escape and a click on the backdrop both close it, so it never traps anyone.
+export function Modal({
+  title,
+  onClose,
+  children,
+  footer,
+}: {
+  title: string;
+  onClose: () => void;
+  children: ReactNode;
+  footer?: ReactNode;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-6"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="keep-card w-full max-w-md p-5 flex flex-col gap-5" role="dialog" aria-modal="true">
+        <div className="flex items-center gap-3">
+          <h2 className="text-sm font-semibold text-carbon-text">{title}</h2>
+          <span className="flex-1" />
+          <Button kind="ghost" icon={<IconClose width={16} height={16} />} onClick={onClose} aria-label={title} />
+        </div>
+        {children}
+        {footer && <div className="flex items-center gap-3">{footer}</div>}
+      </div>
     </div>
   );
 }

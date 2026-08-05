@@ -1,11 +1,28 @@
+import { useState } from 'react';
 import { type Task } from '../lib/api';
-import { pause, resume, remove, startTasks, restartTasks } from '../lib/api';
+import {
+  pause,
+  resume,
+  remove,
+  startTasks,
+  restartTasks,
+  recheckTasks,
+  setTaskOptions,
+} from '../lib/api';
 import { fmtBytes, fmtSpeed, fmtEta, pct } from '../lib/format';
 import { useT } from '../lib/i18n';
-import { Button } from './ui';
+import { Button, Field, Modal, TextInput } from './ui';
 import { ProgressBar } from './ProgressBar';
 import { StatusPill, ResolverBadge } from './StatusPill';
-import { IconPause, IconPlay, IconTrash, IconCheck, IconRetry } from '../lib/icons';
+import {
+  IconPause,
+  IconPlay,
+  IconTrash,
+  IconCheck,
+  IconRetry,
+  IconFolder,
+  IconSearch,
+} from '../lib/icons';
 
 export interface Selection {
   ids: Set<string>;
@@ -45,10 +62,14 @@ function TaskRow({
   showResolver?: boolean;
 }) {
   const { t } = useT();
+  const [options, setOptions] = useState(false);
   const p = pct(task.loaded, task.size, task.status === 'done');
   const eta = fmtEta(task.loaded, task.size, task.speed);
   const collected = task.status === 'collected';
   const settled = task.status === 'done' || task.status === 'error';
+  // A pending automatic retry is not the same as a dead task, and saying so
+  // stops people from restarting something that is already about to restart.
+  const retrying = task.status === 'error' && !!task.nextTry;
 
   return (
     <div className={`${ROW} group px-5 py-3 transition-colors hover:bg-carbon-hover/50`}>
@@ -61,15 +82,25 @@ function TaskRow({
       <div className="min-w-0">
         <div className="truncate text-[13.5px] text-carbon-text">{task.name || task.url}</div>
         {task.error ? (
-          <div className="mt-0.5 truncate text-[11px] text-statusFail">{task.error}</div>
+          <div className="mt-0.5 flex items-center gap-2 text-[11px]">
+            <span className="truncate text-statusFail">{task.error}</span>
+            {retrying && <span className="shrink-0 text-carbon-textMuted">· {t('task.retryPending')}</span>}
+          </div>
         ) : collected ? (
-          <div className="mt-0.5 text-[11px] text-carbon-textMuted">
+          <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-carbon-textMuted">
             {showResolver && (
               <>
                 <ResolverBadge resolver={task.resolver} /> ·{' '}
               </>
             )}
-            {t('task.ready')}
+            {task.online === 'online' ? (
+              <span className="text-statusOk">{t('task.online')}</span>
+            ) : task.online === 'offline' ? (
+              <span className="text-statusFail">{t('task.offline')}</span>
+            ) : (
+              t('task.ready')
+            )}
+            {task.dir && <span className="truncate">· {task.dir}</span>}
           </div>
         ) : (
           // The bar already carries the percentage; the line beside it adds
@@ -108,6 +139,15 @@ function TaskRow({
           <Button kind="ghost" icon={<IconPlay />} title={t('task.resume')} onClick={() => resume(task.id, base)} />
         )}
         <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+          {collected && (
+            <Button
+              kind="ghost"
+              icon={<IconSearch />}
+              title={t('task.recheck')}
+              onClick={() => recheckTasks([task.id], base)}
+            />
+          )}
+          <Button kind="ghost" icon={<IconFolder />} title={t('task.folder')} onClick={() => setOptions(true)} />
           {settled && (
             <Button
               kind="ghost"
@@ -119,7 +159,47 @@ function TaskRow({
           <Button kind="danger" icon={<IconTrash />} title={t('task.remove')} onClick={() => remove(task.id, base)} />
         </div>
       </div>
+
+      {options && <TaskOptionsDialog task={task} base={base} onClose={() => setOptions(false)} />}
     </div>
+  );
+}
+
+// TaskOptionsDialog edits the per-task overrides: where this file goes and the
+// password its archive needs. Both are left alone unless actually changed.
+function TaskOptionsDialog({ task, base, onClose }: { task: Task; base: string; onClose: () => void }) {
+  const { t } = useT();
+  const [dir, setDir] = useState(task.dir ?? '');
+  const [password, setPassword] = useState(task.password ?? '');
+  const [error, setError] = useState('');
+
+  async function apply() {
+    const r = await setTaskOptions([task.id], { dir, password }, base);
+    if (!r.ok) {
+      setError(await r.text());
+      return;
+    }
+    onClose();
+  }
+
+  return (
+    <Modal
+      title={task.name || task.url}
+      onClose={onClose}
+      footer={
+        <>
+          <Button onClick={apply}>{t('settings.save')}</Button>
+          {error && <span className="text-statusFail text-sm">{error}</span>}
+        </>
+      }
+    >
+      <Field label={t('task.folder')} hint={t('settings.downloadDirHint')}>
+        <TextInput value={dir} spellCheck={false} onChange={(e) => setDir(e.target.value)} />
+      </Field>
+      <Field label={t('task.password')}>
+        <TextInput value={password} onChange={(e) => setPassword(e.target.value)} />
+      </Field>
+    </Modal>
   );
 }
 

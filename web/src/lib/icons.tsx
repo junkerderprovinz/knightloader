@@ -133,3 +133,46 @@ export const IconSwords = (p: SVGProps<SVGSVGElement>) => (
     <path d="m5 13-2 2M5 19l-2-2M3 21l2-2" />
   </svg>
 );
+
+export const IconFolder = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2.5 6.5A1.5 1.5 0 0 1 4 5h3.2l1.4 1.8H16a1.5 1.5 0 0 1 1.5 1.5v6.2A1.5 1.5 0 0 1 16 16H4a1.5 1.5 0 0 1-1.5-1.5z" />
+  </svg>
+);
+
+export const IconArrowUp = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M10 16V4.5M5.5 9 10 4.5 14.5 9" />
+  </svg>
+);
+
+export const IconArrowDown = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M10 4v11.5M5.5 11l4.5 4.5L14.5 11" />
+  </svg>
+);
+
+export const IconTop = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 3.5h12M10 16.5V7M6 11l4-4 4 4" />
+  </svg>
+);
+
+export const IconBottom = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 16.5h12M10 3.5V13M6 9l4 4 4-4" />
+  </svg>
+);
+
+export const IconClose = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.7} strokeLinecap="round">
+    <path d="M5.5 5.5l9 9M14.5 5.5l-9 9" />
+  </svg>
+);
+
+export const IconSignOut = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12.5 6.5V4.5a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2" />
+    <path d="M8.5 10h8M14 7.5l2.5 2.5L14 12.5" />
+  </svg>
+);
