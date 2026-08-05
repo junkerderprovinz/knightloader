@@ -39,6 +39,11 @@ type Update struct {
 	// Retry, when set on an error, asks for another attempt after the delay
 	// instead of settling the task (a hoster cool-down, a transient 5xx).
 	Retry time.Duration
+	// Unsupported says the backend recognised the link as none of its business
+	// rather than failing to fetch it. It is the difference between "I cannot
+	// do this" and "this did not work", and only the former should hand the
+	// task to the next backend in the chain.
+	Unsupported bool
 }
 
 // Task is one download in the queue. It is what the UI renders and the store persists.

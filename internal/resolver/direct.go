@@ -53,3 +53,22 @@ func (Direct) Resolve(_ context.Context, req Request) (Result, error) {
 		Connections: 4,
 	}, nil
 }
+
+// HTTPFallback is the last resort: it takes any http(s) link that nothing else
+// managed to fetch and simply asks the engine to download it. This is what
+// catches a plain file whose URL carries no extension — a shape the strict
+// Direct rule cannot recognise, and which a media extractor cannot handle
+// either. It sits at the bottom of the priority list, so it only ever runs
+// after every real backend has had its turn.
+type HTTPFallback struct{}
+
+func (HTTPFallback) Info() Info { return Info{ID: "http", Prio: -100} }
+
+func (HTTPFallback) Match(raw string) bool {
+	u, err := url.Parse(raw)
+	return err == nil && (u.Scheme == "http" || u.Scheme == "https") && u.Hostname() != ""
+}
+
+func (HTTPFallback) Resolve(_ context.Context, req Request) (Result, error) {
+	return Result{DirectURL: req.URL, Connections: 4}, nil
+}
