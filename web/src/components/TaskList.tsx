@@ -83,7 +83,7 @@ function TaskRow({
                 tone={task.status === 'done' ? 'ok' : 'accent'}
               />
             </div>
-            <span className="kl-num whitespace-nowrap text-[11px] text-carbon-textMuted">
+            <span className="keep-num whitespace-nowrap text-[11px] text-carbon-textMuted">
               {fmtSpeed(task.speed)}
               {eta && `${fmtSpeed(task.speed) ? ' · ' : ''}${eta} ${t('task.left')}`}
             </span>
@@ -92,7 +92,7 @@ function TaskRow({
         )}
       </div>
 
-      <span className="kl-num text-right text-[13px] text-carbon-textSub">{fmtBytes(task.size)}</span>
+      <span className="keep-num text-right text-[13px] text-carbon-textSub">{fmtBytes(task.size)}</span>
       <StatusPill status={task.status} />
 
       {/* The primary action stays visible; the rest appears on hover or focus,
@@ -164,7 +164,7 @@ export function PackageGroup({
         )}
         <div className="flex items-baseline gap-2 min-w-0">
           <span className="truncate text-[13px] font-semibold text-carbon-text">{name || t('task.ungrouped')}</span>
-          <span className="kl-num shrink-0 text-[11px] text-carbon-textMuted">
+          <span className="keep-num shrink-0 text-[11px] text-carbon-textMuted">
             {items.length} {items.length === 1 ? t('task.file') : t('task.files')}
             {done > 0 && ` · ${done} ${t('overview.done').toLowerCase()}`}
           </span>
@@ -172,7 +172,7 @@ export function PackageGroup({
         </div>
         {/* Size and its share sit together in the size column, so the status
             column below never has a number floating above it. */}
-        <span className="kl-num text-right text-[11px] text-carbon-textMuted">
+        <span className="keep-num text-right text-[11px] text-carbon-textMuted">
           {fmtBytes(total)}
           {total > 0 && ` · ${groupPct}%`}
         </span>
@@ -199,7 +199,7 @@ export function TaskListCard({
   selection?: Selection;
 }) {
   return (
-    <div className="kl-card divide-y divide-carbon-border/60 py-1">
+    <div className="keep-card divide-y divide-carbon-border/60 py-1">
       {groups.map(([name, items]) => (
         <PackageGroup key={name || '__none'} name={name} items={items} base={base} selection={selection} />
       ))}

@@ -171,20 +171,20 @@ body {
 }
 
 /* The one raised surface. Never nest it. */
-.kl-card {
+.keep-card {
   background-color: var(--carbon-surface);
   border-radius: var(--radius-card);
   box-shadow: var(--elevation), var(--hairline);
 }
 
 /* An inset well for tracks, drop zones and quiet groupings. */
-.kl-well {
+.keep-well {
   background-color: var(--carbon-surface2);
   border-radius: var(--radius-control);
 }
 
 /* Eyebrow label: small, uppercase, quiet — used above hero figures. */
-.kl-eyebrow {
+.keep-eyebrow {
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -192,7 +192,7 @@ body {
 }
 
 /* Digits that stack in columns line up and never jitter while counting. */
-.kl-num {
+.keep-num {
   font-variant-numeric: tabular-nums lining-nums;
   font-feature-settings: "tnum" 1, "zero" 1;
 }
@@ -217,33 +217,33 @@ body {
   background-clip: content-box;
 }
 
-@keyframes kl-indeterminate {
+@keyframes keep-indeterminate {
   0%   { left: -35%; }
   100% { left: 100%; }
 }
-@keyframes kl-page-in {
+@keyframes keep-page-in {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: none; }
 }
-@keyframes kl-fade-in {
+@keyframes keep-fade-in {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
-@keyframes kl-toast-in {
+@keyframes keep-toast-in {
   from { opacity: 0; transform: translateX(12px); }
   to   { opacity: 1; transform: none; }
 }
-@keyframes kl-pulse {
+@keyframes keep-pulse {
   0%, 100% { opacity: 1; }
   50%      { opacity: .45; }
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .kl-page-enter { animation: kl-page-in 280ms cubic-bezier(.2, .6, .2, 1) both; }
-  .kl-toast { animation: kl-toast-in 220ms cubic-bezier(.2, .6, .2, 1) both; }
-  .kl-live { animation: kl-pulse 2s ease-in-out infinite; }
+  .keep-page-enter { animation: keep-page-in 280ms cubic-bezier(.2, .6, .2, 1) both; }
+  .keep-toast { animation: keep-toast-in 220ms cubic-bezier(.2, .6, .2, 1) both; }
+  .keep-live { animation: keep-pulse 2s ease-in-out infinite; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .kl-page-enter { animation: kl-fade-in 180ms ease both; }
-  .kl-toast { animation: kl-fade-in 160ms ease both; }
+  .keep-page-enter { animation: keep-fade-in 180ms ease both; }
+  .keep-toast { animation: keep-fade-in 160ms ease both; }
 }

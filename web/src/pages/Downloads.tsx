@@ -113,7 +113,7 @@ export function Downloads() {
           ride as one quiet uncarded line so Overview keeps the big figure. */}
       {list.length > 0 && (
         <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
-          <span className="kl-num text-[20px] font-semibold leading-none text-carbon-text">
+          <span className="keep-num text-[20px] font-semibold leading-none text-carbon-text">
             {fmtSpeed(counts.speed) || '0 B/s'}
           </span>
           <Counters counts={counts} />
@@ -135,7 +135,7 @@ export function Downloads() {
               className="w-full rounded-[var(--radius-control)] bg-carbon-surface2 py-2 pl-8 pr-3 text-sm text-carbon-text placeholder:text-carbon-textMuted outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)]"
             />
           </div>
-          <div className="kl-well flex items-center gap-0.5 p-1">
+          <div className="keep-well flex items-center gap-0.5 p-1">
             {FILTERS.map((f) => (
               <button
                 key={f.key}

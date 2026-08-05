@@ -37,7 +37,7 @@ export function Layout() {
     <div className="flex h-screen overflow-hidden bg-carbon-background">
       <Sidebar />
       <main className="flex-1 overflow-y-auto min-w-0">
-        <div key={location.pathname} className="kl-page-enter mx-auto w-full max-w-5xl p-6 md:p-8">
+        <div key={location.pathname} className="keep-page-enter mx-auto w-full max-w-5xl p-6 md:p-8">
           <Outlet />
         </div>
       </main>
