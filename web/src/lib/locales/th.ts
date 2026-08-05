@@ -185,4 +185,18 @@ export const th: Dict = {
   'select.none': 'ล้างการเลือก',
   'select.count': 'ที่เลือก',
   'settings.removePassword': 'ลบรหัสผ่าน',
+
+  'common.cancel': 'ยกเลิก',
+  'pkg.moveTitle': 'ย้ายไปยังแพ็กเกจ',
+  'pkg.name': 'ชื่อแพ็กเกจ',
+  'pkg.merge': 'รวมเป็นแพ็กเกจเดียว',
+  'pkg.splitByHost': 'แยกตามโฮสต์',
+  'settings.pathVars': 'ตัวแปร: <jd:packagename>, <jd:hoster>, <jd:filename>, <jd:date>',
+  'settings.watchDir': 'โฟลเดอร์ที่เฝ้าดู',
+  'settings.watchDirHint': 'ลิงก์ที่วางไว้ที่นี่เป็นไฟล์ .txt หรือ .crawljob จะถูกรับเข้ามาโดยอัตโนมัติ',
+  'settings.crawl': 'ตามหน้าเว็บและเก็บไฟล์ที่ลิงก์ไว้',
+  'collector.crawling': 'กำลังสำรวจหน้าเว็บ…',
+  'task.checksumOk': 'ตรวจสอบค่าตรวจสอบแล้ว',
+  'task.checksumFail': 'ค่าตรวจสอบไม่ตรงกัน',
+  'settings.verifyChecksums': 'ตรวจสอบดาวน์โหลดที่เสร็จแล้วด้วยค่าตรวจสอบที่มาด้วย',
 };

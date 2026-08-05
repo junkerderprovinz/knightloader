@@ -185,4 +185,18 @@ export const uk: Dict = {
   'select.none': 'Зняти вибір',
   'select.count': 'вибрано',
   'settings.removePassword': 'Видалити пароль',
+
+  'common.cancel': 'Скасувати',
+  'pkg.moveTitle': 'Перемістити до пакета',
+  'pkg.name': 'Назва пакета',
+  'pkg.merge': 'Обʼєднати в один пакет',
+  'pkg.splitByHost': 'Розділити за хостерами',
+  'settings.pathVars': 'Змінні: <jd:packagename>, <jd:hoster>, <jd:filename>, <jd:date>',
+  'settings.watchDir': 'Тека під наглядом',
+  'settings.watchDirHint': 'Посилання, залишені тут як .txt або .crawljob, підхоплюються автоматично.',
+  'settings.crawl': 'Відкривати сторінки та збирати файли, на які вони посилаються',
+  'collector.crawling': 'Сторінка переглядається…',
+  'task.checksumOk': 'Контрольна сума збіглася',
+  'task.checksumFail': 'Контрольна сума не збіглася',
+  'settings.verifyChecksums': 'Перевіряти завершене завантаження за доданою контрольною сумою',
 };

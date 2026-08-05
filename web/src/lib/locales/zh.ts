@@ -185,4 +185,18 @@ export const zh: Dict = {
   'select.none': '取消选择',
   'select.count': '个已选中',
   'settings.removePassword': '取消密码',
+
+  'common.cancel': '取消',
+  'pkg.moveTitle': '移到包',
+  'pkg.name': '包名称',
+  'pkg.merge': '合并为一个包',
+  'pkg.splitByHost': '按网盘拆分',
+  'settings.pathVars': '变量：<jd:packagename>、<jd:hoster>、<jd:filename>、<jd:date>',
+  'settings.watchDir': '监视文件夹',
+  'settings.watchDirHint': '放到这里的 .txt 或 .crawljob 文件中的链接会被自动接收。',
+  'settings.crawl': '跟进页面并收集其中链接的文件',
+  'collector.crawling': '正在扫描页面…',
+  'task.checksumOk': '校验和一致',
+  'task.checksumFail': '校验和不一致',
+  'settings.verifyChecksums': '用随附的校验和验证已完成的下载',
 };

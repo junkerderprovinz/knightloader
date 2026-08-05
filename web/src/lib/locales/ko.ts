@@ -185,4 +185,18 @@ export const ko: Dict = {
   'select.none': '선택 해제',
   'select.count': '개 선택됨',
   'settings.removePassword': '암호 해제',
+
+  'common.cancel': '취소',
+  'pkg.moveTitle': '패키지로 이동',
+  'pkg.name': '패키지 이름',
+  'pkg.merge': '하나의 패키지로 합치기',
+  'pkg.splitByHost': '호스터별로 나누기',
+  'settings.pathVars': '변수: <jd:packagename>, <jd:hoster>, <jd:filename>, <jd:date>',
+  'settings.watchDir': '감시 폴더',
+  'settings.watchDirHint': '여기에 .txt 또는 .crawljob으로 놓인 링크는 자동으로 가져옵니다.',
+  'settings.crawl': '페이지를 따라가 링크된 파일을 모으기',
+  'collector.crawling': '페이지를 살펴보는 중…',
+  'task.checksumOk': '체크섬 확인됨',
+  'task.checksumFail': '체크섬이 맞지 않음',
+  'settings.verifyChecksums': '함께 받은 체크섬으로 완료된 다운로드 검증',
 };

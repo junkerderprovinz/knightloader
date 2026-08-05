@@ -9,30 +9,86 @@ on:
 permissions:
   contents: read
 
+# Nothing in this workflow deploys, so a newer push to the same ref makes the
+# older run pointless. Cancelling it keeps the queue short on a repo where
+# several branches move at once.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   server:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+
+      # The toolchain is read from go.mod's go directive, not pinned here, so
+      # CI, the Dockerfile's golang:1.26-alpine stage and a developer's local
+      # build are always the same compiler. A second hard-coded copy of the
+      # version is how CI stays green while the release image fails to build.
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.24"
+          go-version-file: go.mod
+
+      # Vet walks every package in the module, including new ones that have no
+      # test yet, so nothing can land without at least being type-checked.
       - name: Vet
         run: go vet ./...
+
+      # The shipped binary is pure Go (modernc SQLite, CGO_ENABLED=0), so the
+      # normal test pass runs in exactly that configuration. A dependency that
+      # only compiles with cgo would pass a default `go test` and then break
+      # the container build.
       - name: Test
+        env:
+          CGO_ENABLED: "0"
         run: go test ./... -count=1
+
+      # The race detector needs cgo and therefore cannot share the pure-Go pass
+      # above. It gets its own run because the engine, the throttle and the
+      # federation hub are all goroutine-heavy: a data race there surfaces as a
+      # silently corrupted download rather than as a crash, which no functional
+      # test would catch.
+      - name: Test (race)
+        run: go test -race ./... -count=1
+
+      # Same flags as the Dockerfile, so a build that only fails when cgo is off
+      # is caught here instead of during the release image build.
       - name: Build
+        env:
+          CGO_ENABLED: "0"
         run: go build -o /tmp/knightloader ./cmd/knightloader
 
   web:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: web
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      # `npm ci` installs exactly the committed lockfile. `npm install` would
+      # quietly resolve the caret ranges to newer versions on every run, so the
+      # thing CI builds would stop being the thing anyone else builds.
+      - name: Install
+        run: npm ci
+
+      # This is the key-parity gate for the 26 locale catalogues: every locale
+      # is declared `: Dict`, and Dict is Record<TranslationKey, string> derived
+      # from English, so a missing or misspelled key is a compile error. Vite
+      # builds with esbuild, which strips types without checking them, so the
+      # build below would happily ship a half-translated locale. Hence a
+      # separate, non-skippable step.
+      - name: Type check
+        run: npx tsc --noEmit
+
       - name: Build UI
-        working-directory: web
-        run: |
-          npm install
-          npm run build
+        run: npm run build

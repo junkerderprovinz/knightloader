@@ -185,6 +185,20 @@ export const en = {
   'select.none': 'Clear selection',
   'select.count': 'selected',
   'settings.removePassword': 'Remove password',
+
+  'common.cancel': 'Cancel',
+  'pkg.moveTitle': 'Move to a package',
+  'pkg.name': 'Package name',
+  'pkg.merge': 'Merge into one package',
+  'pkg.splitByHost': 'Split by hoster',
+  'settings.pathVars': 'Variables: <jd:packagename>, <jd:hoster>, <jd:filename>, <jd:date>',
+  'settings.watchDir': 'Watch folder',
+  'settings.watchDirHint': 'Links dropped here as .txt or .crawljob files are picked up automatically.',
+  'settings.crawl': 'Follow pages and collect the files they link to',
+  'collector.crawling': 'Scanning the page…',
+  'task.checksumOk': 'Checksum verified',
+  'task.checksumFail': 'Checksum does not match',
+  'settings.verifyChecksums': 'Verify a finished download against a checksum, when one came with it',
 } as const;
 
 export type TranslationKey = keyof typeof en;

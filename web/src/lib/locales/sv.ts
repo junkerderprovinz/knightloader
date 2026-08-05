@@ -185,4 +185,18 @@ export const sv: Dict = {
   'select.none': 'Avmarkera',
   'select.count': 'valda',
   'settings.removePassword': 'Ta bort lösenord',
+
+  'common.cancel': 'Avbryt',
+  'pkg.moveTitle': 'Flytta till ett paket',
+  'pkg.name': 'Paketnamn',
+  'pkg.merge': 'Slå ihop till ett paket',
+  'pkg.splitByHost': 'Dela per filvärd',
+  'settings.pathVars': 'Variabler: <jd:packagename>, <jd:hoster>, <jd:filename>, <jd:date>',
+  'settings.watchDir': 'Bevakad mapp',
+  'settings.watchDirHint': 'Länkar som läggs här som .txt eller .crawljob plockas upp automatiskt.',
+  'settings.crawl': 'Följ sidor och samla in filerna de länkar till',
+  'collector.crawling': 'Söker igenom sidan…',
+  'task.checksumOk': 'Kontrollsumman stämmer',
+  'task.checksumFail': 'Kontrollsumman stämmer inte',
+  'settings.verifyChecksums': 'Kontrollera en färdig nedladdning mot medföljande kontrollsumma',
 };

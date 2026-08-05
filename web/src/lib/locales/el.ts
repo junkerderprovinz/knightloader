@@ -185,4 +185,18 @@ export const el: Dict = {
   'select.none': 'Καθαρισμός επιλογής',
   'select.count': 'επιλεγμένα',
   'settings.removePassword': 'Αφαίρεση κωδικού',
+
+  'common.cancel': 'Άκυρο',
+  'pkg.moveTitle': 'Μετακίνηση σε πακέτο',
+  'pkg.name': 'Όνομα πακέτου',
+  'pkg.merge': 'Συγχώνευση σε ένα πακέτο',
+  'pkg.splitByHost': 'Διαχωρισμός ανά πάροχο',
+  'settings.pathVars': 'Μεταβλητές: <jd:packagename>, <jd:hoster>, <jd:filename>, <jd:date>',
+  'settings.watchDir': 'Παρακολουθούμενος φάκελος',
+  'settings.watchDirHint': 'Σύνδεσμοι που αφήνονται εδώ ως .txt ή .crawljob λαμβάνονται αυτόματα.',
+  'settings.crawl': 'Άνοιγμα σελίδων και συλλογή των αρχείων στα οποία παραπέμπουν',
+  'collector.crawling': 'Σάρωση της σελίδας…',
+  'task.checksumOk': 'Το άθροισμα ελέγχου επαληθεύτηκε',
+  'task.checksumFail': 'Το άθροισμα ελέγχου δεν ταιριάζει',
+  'settings.verifyChecksums': 'Έλεγχος ολοκληρωμένης λήψης με το άθροισμα ελέγχου που τη συνόδευε',
 };

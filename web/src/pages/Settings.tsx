@@ -53,7 +53,10 @@ export function SettingsPage() {
         <>
           <SectionTitle>{t('settings.sectionDownloads')}</SectionTitle>
           <Card className="flex flex-col gap-5">
-            <Field label={t('settings.downloadDir')} hint={t('settings.downloadDirHint')}>
+            <Field
+              label={t('settings.downloadDir')}
+              hint={`${t('settings.downloadDirHint')} ${t('settings.pathVars')}`}
+            >
               <TextInput
                 dir="ltr"
                 value={cfg.downloadDir}
@@ -102,7 +105,26 @@ export function SettingsPage() {
                 onChange={(v) => setCfg({ ...cfg, autoStart: v })}
                 label={t('settings.autoStart')}
               />
+              <Toggle
+                checked={cfg.crawl}
+                onChange={(v) => setCfg({ ...cfg, crawl: v })}
+                label={t('settings.crawl')}
+              />
+              <Toggle
+                checked={cfg.verifyChecksums}
+                onChange={(v) => setCfg({ ...cfg, verifyChecksums: v })}
+                label={t('settings.verifyChecksums')}
+              />
             </div>
+            <Field label={t('settings.watchDir')} hint={t('settings.watchDirHint')}>
+              <TextInput
+                dir="ltr"
+                value={cfg.watchDir}
+                placeholder="/watch"
+                spellCheck={false}
+                onChange={(e) => setCfg({ ...cfg, watchDir: e.target.value })}
+              />
+            </Field>
           </Card>
 
           <SectionTitle>{t('settings.sectionArchives')}</SectionTitle>

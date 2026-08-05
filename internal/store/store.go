@@ -39,6 +39,8 @@ var migrations = []string{
 	`ALTER TABLE tasks ADD COLUMN next_try INTEGER NOT NULL DEFAULT 0`,
 	`ALTER TABLE tasks ADD COLUMN priority INTEGER NOT NULL DEFAULT 0`,
 	`ALTER TABLE tasks ADD COLUMN position INTEGER NOT NULL DEFAULT 0`,
+	// 3 — the verdict of a checksum verification.
+	`ALTER TABLE tasks ADD COLUMN checksum TEXT NOT NULL DEFAULT ''`,
 }
 
 func Open(path string) (*Store, error) {
@@ -73,7 +75,7 @@ func migrate(db *sql.DB) error {
 func (s *Store) Close() error { return s.db.Close() }
 
 const columns = `id,url,name,package,resolver,size,loaded,speed,status,error,created_at,
-	dir,password,online,retries,next_try,priority,position`
+	dir,password,online,retries,next_try,priority,position,checksum`
 
 func (s *Store) Save(t *core.Task) error {
 	var nextTry int64
@@ -82,10 +84,11 @@ func (s *Store) Save(t *core.Task) error {
 	}
 	_, err := s.db.Exec(
 		`INSERT OR REPLACE INTO tasks (`+columns+`)
-		 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+		 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
 		t.ID, t.URL, t.Name, t.Package, t.Resolver, t.Size, t.Loaded, t.Speed,
 		string(t.Status), t.Error, t.CreatedAt.UnixMilli(),
-		t.Dir, t.Password, string(t.Online), t.Retries, nextTry, t.Priority, t.Position)
+		t.Dir, t.Password, string(t.Online), t.Retries, nextTry, t.Priority, t.Position,
+		t.Checksum)
 	return err
 }
 
@@ -107,7 +110,8 @@ func (s *Store) All() ([]*core.Task, error) {
 		var created, nextTry int64
 		if err := rows.Scan(&t.ID, &t.URL, &t.Name, &t.Package, &t.Resolver,
 			&t.Size, &t.Loaded, &t.Speed, &status, &t.Error, &created,
-			&t.Dir, &t.Password, &online, &t.Retries, &nextTry, &t.Priority, &t.Position); err != nil {
+			&t.Dir, &t.Password, &online, &t.Retries, &nextTry, &t.Priority, &t.Position,
+			&t.Checksum); err != nil {
 			return nil, err
 		}
 		t.Status = core.Status(status)

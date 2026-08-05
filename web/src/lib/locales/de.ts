@@ -185,4 +185,18 @@ export const de: Dict = {
   'select.none': 'Auswahl aufheben',
   'select.count': 'ausgewählt',
   'settings.removePassword': 'Passwort entfernen',
+
+  'common.cancel': 'Abbrechen',
+  'pkg.moveTitle': 'In ein Paket verschieben',
+  'pkg.name': 'Paketname',
+  'pkg.merge': 'Zu einem Paket zusammenführen',
+  'pkg.splitByHost': 'Nach Hoster aufteilen',
+  'settings.pathVars': 'Variablen: <jd:packagename>, <jd:hoster>, <jd:filename>, <jd:date>',
+  'settings.watchDir': 'Überwachter Ordner',
+  'settings.watchDirHint': 'Links, die hier als .txt- oder .crawljob-Datei landen, werden automatisch übernommen.',
+  'settings.crawl': 'Seiten folgen und die verlinkten Dateien einsammeln',
+  'collector.crawling': 'Seite wird durchsucht…',
+  'task.checksumOk': 'Prüfsumme stimmt',
+  'task.checksumFail': 'Prüfsumme stimmt nicht',
+  'settings.verifyChecksums': 'Fertigen Download gegen eine mitgelieferte Prüfsumme prüfen',
 };

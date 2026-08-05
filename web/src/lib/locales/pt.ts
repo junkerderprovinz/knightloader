@@ -177,4 +177,18 @@ export const pt: Dict = {
   'select.none': 'Limpar seleção',
   'select.count': 'selecionados',
   'settings.removePassword': 'Remover palavra-passe',
+
+  'common.cancel': 'Cancelar',
+  'pkg.moveTitle': 'Mover para um pacote',
+  'pkg.name': 'Nome do pacote',
+  'pkg.merge': 'Juntar num só pacote',
+  'pkg.splitByHost': 'Separar por alojamento',
+  'settings.pathVars': 'Variáveis: <jd:packagename>, <jd:hoster>, <jd:filename>, <jd:date>',
+  'settings.watchDir': 'Pasta vigiada',
+  'settings.watchDirHint': 'As ligações deixadas aqui como .txt ou .crawljob são recolhidas automaticamente.',
+  'settings.crawl': 'Seguir as páginas e recolher os ficheiros que ligam',
+  'collector.crawling': 'A analisar a página…',
+  'task.checksumOk': 'Soma de verificação confirmada',
+  'task.checksumFail': 'A soma de verificação não bate',
+  'settings.verifyChecksums': 'Verificar a transferência concluída com a soma de verificação fornecida',
 };

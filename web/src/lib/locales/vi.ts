@@ -185,4 +185,18 @@ export const vi: Dict = {
   'select.none': 'Bỏ chọn',
   'select.count': 'đã chọn',
   'settings.removePassword': 'Gỡ mật khẩu',
+
+  'common.cancel': 'Hủy',
+  'pkg.moveTitle': 'Chuyển sang gói',
+  'pkg.name': 'Tên gói',
+  'pkg.merge': 'Gộp thành một gói',
+  'pkg.splitByHost': 'Tách theo dịch vụ lưu trữ',
+  'settings.pathVars': 'Biến: <jd:packagename>, <jd:hoster>, <jd:filename>, <jd:date>',
+  'settings.watchDir': 'Thư mục theo dõi',
+  'settings.watchDirHint': 'Các liên kết đặt ở đây dưới dạng .txt hoặc .crawljob sẽ được nhận tự động.',
+  'settings.crawl': 'Đi theo trang và thu thập các tệp mà trang liên kết tới',
+  'collector.crawling': 'Đang quét trang…',
+  'task.checksumOk': 'Đã xác minh mã kiểm tra',
+  'task.checksumFail': 'Mã kiểm tra không khớp',
+  'settings.verifyChecksums': 'Kiểm tra tệp tải xong bằng mã kiểm tra đi kèm',
 };

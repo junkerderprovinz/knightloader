@@ -185,4 +185,18 @@ export const hu: Dict = {
   'select.none': 'Kijelölés törlése',
   'select.count': 'kijelölve',
   'settings.removePassword': 'Jelszó eltávolítása',
+
+  'common.cancel': 'Mégse',
+  'pkg.moveTitle': 'Áthelyezés csomagba',
+  'pkg.name': 'Csomag neve',
+  'pkg.merge': 'Egy csomagba vonás',
+  'pkg.splitByHost': 'Szétosztás tárhely szerint',
+  'settings.pathVars': 'Változók: <jd:packagename>, <jd:hoster>, <jd:filename>, <jd:date>',
+  'settings.watchDir': 'Figyelt mappa',
+  'settings.watchDirHint': 'Az ide tett .txt vagy .crawljob fájlok hivatkozásait a program magától felveszi.',
+  'settings.crawl': 'Oldalak követése és a hivatkozott fájlok összegyűjtése',
+  'collector.crawling': 'Az oldal átvizsgálása…',
+  'task.checksumOk': 'Az ellenőrző összeg egyezik',
+  'task.checksumFail': 'Az ellenőrző összeg nem egyezik',
+  'settings.verifyChecksums': 'A kész letöltés ellenőrzése a vele érkezett ellenőrző összeggel',
 };

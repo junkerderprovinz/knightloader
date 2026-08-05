@@ -185,4 +185,18 @@ export const fi: Dict = {
   'select.none': 'Tyhjennä valinta',
   'select.count': 'valittu',
   'settings.removePassword': 'Poista salasana',
+
+  'common.cancel': 'Peruuta',
+  'pkg.moveTitle': 'Siirrä pakettiin',
+  'pkg.name': 'Paketin nimi',
+  'pkg.merge': 'Yhdistä yhdeksi paketiksi',
+  'pkg.splitByHost': 'Jaa tiedostopalvelun mukaan',
+  'settings.pathVars': 'Muuttujat: <jd:packagename>, <jd:hoster>, <jd:filename>, <jd:date>',
+  'settings.watchDir': 'Valvottu kansio',
+  'settings.watchDirHint': 'Tänne jätetyt .txt- tai .crawljob-linkit poimitaan automaattisesti.',
+  'settings.crawl': 'Seuraa sivuja ja kerää tiedostot, joihin ne viittaavat',
+  'collector.crawling': 'Sivua käydään läpi…',
+  'task.checksumOk': 'Tarkistussumma täsmää',
+  'task.checksumFail': 'Tarkistussumma ei täsmää',
+  'settings.verifyChecksums': 'Tarkista valmis lataus mukana tulleella tarkistussummalla',
 };
