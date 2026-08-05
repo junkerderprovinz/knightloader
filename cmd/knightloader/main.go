@@ -1,5 +1,6 @@
 // Command knightloader runs the KnightLoader server: the download engine, the
-// REST + WebSocket API, and the embedded web UI, all in one process.
+// REST + WebSocket API, the embedded web UI, and the Click'n'Load listener, all
+// in one process.
 package main
 
 import (
@@ -7,9 +8,11 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/junkerderprovinz/knightloader/internal/api"
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/cnl"
 )
 
 func main() {
@@ -24,6 +27,19 @@ func main() {
 	}
 	defer a.Close()
 
+	// Click'n'Load listener on the standard port 9666 (KL_CNL=0 disables, any
+	// other value overrides the port). A taken port (e.g. a running JD) is not
+	// fatal — CnL is simply unavailable then.
+	if port := envInt("KL_CNL", 9666); port > 0 {
+		c := cnl.New(a)
+		if err := c.Start(port); err != nil {
+			log.Printf("Click'n'Load not available on :%d (%v)", port, err)
+		} else {
+			defer c.Close()
+			log.Printf("Click'n'Load listening on 127.0.0.1:%d", port)
+		}
+	}
+
 	addr := env("KL_ADDR", ":8749")
 	log.Printf("KnightLoader listening on %s (data: %s)", addr, dataDir)
 	log.Fatal(http.ListenAndServe(addr, api.Handler(a)))
@@ -32,6 +48,15 @@ func main() {
 func env(k, def string) string {
 	if v := os.Getenv(k); v != "" {
 		return v
+	}
+	return def
+}
+
+func envInt(k string, def int) int {
+	if v := os.Getenv(k); v != "" {
+		if n, err := strconv.Atoi(v); err == nil {
+			return n
+		}
 	}
 	return def
 }

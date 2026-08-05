@@ -19,6 +19,7 @@ A single Go backend with an embedded download engine and a small **resolver** se
 - **Extraction:** finished archive downloads (zip, rar incl. multi-volume, 7z incl. `.001` volumes, tar.gz) unpack automatically into a sibling folder — pure Go, zip-slip-safe, optional delete-after-extract.
 - **Speed limit:** applies to yt-dlp (`--limit-rate`) and JDownloader (live via its API). The embedded engine has no rate-limit API yet (Gopeed v1.9.x) — engine tasks run unthrottled for now.
 - **Multi-instance:** register other KnightLoader instances (Settings → Instances) and switch between them in the header — one dashboard views and controls every box (self-hosted federation, no relay; only task/link routes are proxied, a peer's settings stay its own).
+- **Click'n'Load:** a listener on `127.0.0.1:9666` speaks the standard CnL protocol (`jdcheck.js`, `/flash/add`, `/flash/addcrypted2`), so existing browser extensions and site buttons hand links straight to KnightLoader. Disable or move it with `KL_CNL` (`0` = off).
 
 ## Running
 
@@ -35,6 +36,7 @@ Configuration (all optional, via env):
 | `KL_YTDLP` | `yt-dlp` (PATH) | path to the yt-dlp binary; media links route through it when present |
 | `KL_TORBOX` | — | TorBox API key (or store it via `/api/accounts`); supported hoster links are unlocked through TorBox's debrid |
 | `KL_JD` | — | a headless JDownloader Deprecated-API URL (e.g. `http://jd:3128`); when reachable, it is the catch-all backup for hoster links nothing else claims |
+| `KL_CNL` | `9666` | Click'n'Load listener port on `127.0.0.1`; `0` disables it |
 
 ## M0 — feasibility spikes (green)
 
