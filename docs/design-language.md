@@ -1,12 +1,13 @@
 # KEEP — the shared design language
 
-A warm, layered, low-noise interface system. It is used by KnightLoader and is
-written so a sibling app (BombVault) can adopt it without rewriting components:
+A warm, layered, low-noise interface system. It is used by KnightLoader and by
+BombVault (branch `feat/keep-design`), and is written so a sibling app adopts it
+without rewriting components:
 the token **names** are the contract, the values are the look.
 
 ## The rules that keep it calm
 
-1. **One raised surface.** `.kl-card` is the only elevation. Never nest a card
+1. **One raised surface.** `.keep-card` is the only elevation. Never nest a card
    inside a card — group content with spacing and a section title instead.
 2. **One hero per page.** Exactly one element carries weight (the speed figure
    and its curve). Everything else is supporting detail at small type.
@@ -20,7 +21,7 @@ the token **names** are the contract, the values are the look.
    hairlines at low opacity; boxes are a last resort.
 6. **Secondary actions appear on hover.** A long list reads as content, not as
    a wall of buttons. The primary action for a row stays visible.
-7. **Digits use `.kl-num`** (tabular + lining numerals) wherever they change or
+7. **Digits use `.keep-num`** (tabular + lining numerals) wherever they change or
    stack, so nothing jitters while counting.
 
 ## Tokens (the contract)
@@ -45,9 +46,9 @@ mapped to Tailwind utilities in the `@theme` block.
 | `--focus-ring` | focus outline colour |
 | `--radius-card`, `--radius-control` | 16px / 10px |
 
-Utility classes: `.kl-card` (the surface), `.kl-well` (inset grouping),
-`.kl-eyebrow` (small uppercase label), `.kl-num` (tabular digits),
-`.kl-page-enter`, `.kl-toast`, `.kl-live` (pulsing dot).
+Utility classes: `.keep-card` (the surface), `.keep-well` (inset grouping),
+`.keep-eyebrow` (small uppercase label), `.keep-num` (tabular digits),
+`.keep-page-enter`, `.keep-toast`, `.keep-live` (pulsing dot).
 
 ## Adopting it in another app
 
@@ -56,12 +57,12 @@ BombVault already reads the same `--carbon-*` names through its own
 
 1. Copy the `:root` / `[data-theme="light"]` blocks from
    `knightloader/web/src/index.css` into the sibling app's stylesheet.
-2. Copy the `.kl-card` / `.kl-well` / `.kl-eyebrow` / `.kl-num` helpers and the
+2. Copy the `.keep-card` / `.keep-well` / `.keep-eyebrow` / `.keep-num` helpers and the
    scrollbar + focus rules.
 3. Add the missing tokens the sibling doesn't have yet: `--accent-soft`,
    `--elevation`, `--hairline`, `--focus-ring`, `--radius-card`,
    `--radius-control`.
-4. Replace hard-coded `rounded-lg` / `shadow-*` on panels with `.kl-card`, and
+4. Replace hard-coded `rounded-lg` / `shadow-*` on panels with `.keep-card`, and
    solid accent nav fills with the rail treatment (a 3px accent bar plus a
    raised surface) so the two apps read as one family.
 
