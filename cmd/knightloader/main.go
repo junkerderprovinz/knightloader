@@ -4,21 +4,40 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/api"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/cnl"
+	"github.com/junkerderprovinz/knightloader/internal/provision"
 )
 
 func main() {
 	dataDir := env("KL_DATA", defaultDataDir())
 	if err := os.MkdirAll(dataDir, 0o755); err != nil {
 		log.Fatalf("data dir: %v", err)
+	}
+
+	// Desktop first-run: provision a private headless JDownloader so the user
+	// gets full hoster coverage out of the box (KL_PROVISION_JD=1). Blocking on
+	// purpose — the jd backend is wired at app start from KL_JD.
+	if envInt("KL_PROVISION_JD", 0) == 1 && os.Getenv("KL_JD") == "" {
+		pv := provision.New(filepath.Join(dataDir, "jd"))
+		log.Printf("provisioning headless JDownloader (first run may take a few minutes)…")
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+		if _, url, err := pv.Ensure(ctx); err != nil {
+			log.Printf("JD provisioning failed (%v); continuing without JD", err)
+		} else {
+			_ = os.Setenv("KL_JD", url)
+			log.Printf("headless JDownloader provisioned at %s", url)
+		}
+		cancel()
 	}
 
 	a, err := app.New(dataDir)

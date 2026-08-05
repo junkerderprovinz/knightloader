@@ -12,3 +12,7 @@
 # node
 node_modules/
 web/node_modules/
+
+# Wails desktop build output
+desktop/build/
+desktop/go.sum
