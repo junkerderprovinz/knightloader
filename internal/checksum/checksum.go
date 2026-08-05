@@ -142,6 +142,21 @@ var crcTag = regexp.MustCompile(`(?i)[\[({]\s*(?:crc[-_ ]?(?:32)?[-_ ]?)?([0-9a-
 // FromName pulls a hash out of a file name, the way release names carry it
 // (e.g. "movie.part1.rar" next to "[ABCD1234]" or "{CRC-ABCD1234}").
 // Returns ok=false when there is nothing to find.
+// looksLikeCRC keeps a bracketed run of eight digits from being read as a
+// checksum. "[20260803]" and "(19991231)" are dates, and treating one as a
+// CRC32 stamps a perfectly intact download as corrupt. A real CRC32 tag
+// essentially always contains at least one of a-f; requiring that costs almost
+// no true positives and removes the entire class of false ones.
+func looksLikeCRC(hex string) bool {
+	for i := 0; i < len(hex); i++ {
+		c := hex[i] | 0x20
+		if c >= 'a' && c <= 'f' {
+			return true
+		}
+	}
+	return false
+}
+
 func FromName(name string) (Sum, bool) {
 	m := crcTag.FindAllStringSubmatch(name, -1)
 	if len(m) == 0 {
@@ -149,9 +164,13 @@ func FromName(name string) (Sum, bool) {
 	}
 	// A release name usually carries several bracketed tags (group, resolution,
 	// source). The CRC is by convention the last one, sitting right before the
-	// extension, so the final match is the one to trust.
-	last := m[len(m)-1]
-	return Sum{Name: name, Kind: CRC32, Hex: strings.ToLower(last[1])}, true
+	// extension, so the last plausible match is the one to trust.
+	for i := len(m) - 1; i >= 0; i-- {
+		if looksLikeCRC(m[i][1]) {
+			return Sum{Name: name, Kind: CRC32, Hex: strings.ToLower(m[i][1])}, true
+		}
+	}
+	return Sum{}, false
 }
 
 // Verify hashes the file at path and reports whether it matches.

@@ -95,6 +95,10 @@ type HTML struct {
 }
 
 // Info reports the generic crawler's ID and its deliberately low priority.
+// HTML has to satisfy Crawler; asserting it here fails the build rather than a
+// test if the interface and the implementation ever drift apart.
+var _ Crawler = HTML{}
+
 func (HTML) Info() Info { return Info{ID: "html", Prio: -100} }
 
 // Match accepts any http(s) URL with a host. Everything else — mailto, magnet,
@@ -109,7 +113,7 @@ func (HTML) Match(raw string) bool {
 // order and deduplicated. A response that is not HTML is not a page at all, so
 // it comes back as the single result it is.
 func (h HTML) Crawl(ctx context.Context, raw string) ([]Result, error) {
-	if !(HTML{}).Match(raw) {
+	if !h.Match(raw) {
 		return nil, fmt.Errorf("crawler: not an http(s) url: %q", raw)
 	}
 
@@ -250,11 +254,16 @@ func link(base *url.URL, n *html.Node) (Result, bool) {
 		}
 		return Result{URL: u.String(), Name: name}, true
 
-	case "video", "audio", "source", "img":
+	case "video", "audio", "source":
 		// Media sources are taken at face value rather than run through the
 		// file-extension rule: a <video src> is the file whether or not its URL
 		// happens to end in .mp4, and streaming hosts routinely serve these
 		// from extensionless, query-driven paths.
+		//
+		// <img> is deliberately NOT in this list. Every page has images, and
+		// none of them is what anyone pasted a link for: collecting them turns
+		// an ordinary hoster page into a pile of logos, sprites and tracking
+		// pixels while the real link is pushed out of the way.
 		u, ok := absolute(base, attr(n, "src"))
 		if !ok {
 			return Result{}, false

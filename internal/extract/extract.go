@@ -105,10 +105,12 @@ func Extract(path string) (*Result, error) {
 // out to be encrypted. The unencrypted attempt always comes first, so a normal
 // archive never pays for the list.
 func ExtractWith(path string, passwords []string) (*Result, error) {
+	// The destination is NOT created here. A single gzipped file unpacks beside
+	// the archive rather than into a folder named after it, and creating that
+	// folder up front would both leave an empty directory behind and fail
+	// outright when a file of that name already sits there — which for
+	// "dump.sql.gz" next to an existing "dump.sql" is the normal case.
 	dest := destDir(path)
-	if err := os.MkdirAll(dest, 0o755); err != nil {
-		return nil, err
-	}
 	res, err := extractOnce(path, dest, "")
 	if err == nil || !errors.Is(err, ErrPasswordRequired) {
 		return res, err
@@ -127,14 +129,29 @@ func ExtractWith(path string, passwords []string) (*Result, error) {
 
 func extractOnce(path, dest, password string) (*Result, error) {
 	l := strings.ToLower(path)
+	// Everything that can hold more than one file unpacks into its own folder;
+	// only the single-stream path below decides for itself.
+	container := func() error { return os.MkdirAll(dest, 0o755) }
 	switch {
 	case strings.HasSuffix(l, ".zip"):
+		if err := container(); err != nil {
+			return nil, err
+		}
 		return extractZip(path, dest)
 	case strings.HasSuffix(l, ".rar"):
+		if err := container(); err != nil {
+			return nil, err
+		}
 		return extractRar(path, dest, password)
 	case strings.HasSuffix(l, ".7z") || sevenZipVolume.MatchString(l):
+		if err := container(); err != nil {
+			return nil, err
+		}
 		return extract7z(path, dest, password)
 	case strings.HasSuffix(l, ".tar"):
+		if err := container(); err != nil {
+			return nil, err
+		}
 		return extractTar(path, dest)
 	}
 	// Every single-stream compression shares one code path; the suffix only
@@ -472,12 +489,20 @@ func extractCompressed(path, dest, suffix string, open func(io.Reader) (io.ReadC
 
 	res := &Result{Dir: dest, Volumes: []string{path}}
 	if looksLikeTar(head) {
+		if err := os.MkdirAll(dest, 0o755); err != nil {
+			return nil, err
+		}
 		if err := unpackTar(tar.NewReader(br), dest, res); err != nil {
 			return nil, err
 		}
 		return res, nil
 	}
-	dst, err := safePath(dest, payloadName(filepath.Base(path), suffix))
+	// One file in, one file out: it belongs beside the archive, the way gunzip
+	// leaves it. Wrapping it in a folder named after the file it produces reads
+	// as a mistake, and collides with a sibling of that name.
+	beside := filepath.Dir(path)
+	res.Dir = beside
+	dst, err := safePath(beside, payloadName(filepath.Base(path), suffix))
 	if err != nil {
 		return nil, err
 	}

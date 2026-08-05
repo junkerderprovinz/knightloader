@@ -305,15 +305,30 @@ func stopResult(err error) error {
 
 // WaitReachable polls the Deprecated API until it answers or the context ends.
 // JD self-updates on first run, so allow a generous deadline.
+// looksLikeJD checks that the thing answering on the API port really is
+// JDownloader. Its ping answers with a small JSON object, so anything that is
+// not JSON is something else entirely.
+func looksLikeJD(body []byte) bool {
+	t := bytes.TrimSpace(body)
+	return len(t) > 0 && (t[0] == '{' || t[0] == '[')
+}
+
 func (p *Provisioner) WaitReachable(ctx context.Context) error {
 	ping := p.URL() + "/device/ping"
 	ticker := time.NewTicker(2 * time.Second)
 	defer ticker.Stop()
+	// 3128 is also Squid's default port. Accepting any HTTP answer would let a
+	// proxy that happens to be listening there pass as JDownloader, and every
+	// call afterwards would fail for a reason nobody could trace back to here.
+	client := &http.Client{Timeout: 10 * time.Second}
 	for {
 		req, _ := http.NewRequestWithContext(ctx, http.MethodGet, ping, nil)
-		if resp, err := http.DefaultClient.Do(req); err == nil {
+		if resp, err := client.Do(req); err == nil {
+			body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
 			resp.Body.Close()
-			return nil
+			if resp.StatusCode >= 200 && resp.StatusCode <= 299 && looksLikeJD(body) {
+				return nil
+			}
 		}
 		select {
 		case <-ctx.Done():

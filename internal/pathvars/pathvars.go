@@ -6,6 +6,7 @@
 package pathvars
 
 import (
+	"fmt"
 	"strings"
 	"time"
 )
@@ -160,6 +161,8 @@ func sanitizeSegment(s string) string {
 }
 
 // javaLayouts maps SimpleDateFormat letter runs to Go reference-time layouts.
+// SSS is deliberately absent: Go only treats "000" as fractional seconds when a
+// separator precedes it, so formatDate handles milliseconds itself.
 // Only the runs a folder template realistically uses are listed; anything else
 // is copied through verbatim, for the same reason an unknown placeholder is.
 // Go has no unpadded 24-hour hour, so H behaves like HH.
@@ -184,7 +187,6 @@ var javaLayouts = map[string]string{
 	"m":    "4",
 	"ss":   "05",
 	"s":    "5",
-	"SSS":  "000",
 	"a":    "PM",
 	"zzz":  "MST",
 	"z":    "MST",
@@ -222,10 +224,19 @@ func formatDate(t time.Time, pattern string) string {
 				j++
 			}
 			run := pattern[i:j]
-			if layout, ok := javaLayouts[run]; ok {
-				b.WriteString(t.Format(layout))
-			} else {
-				b.WriteString(run)
+			switch {
+			case run == "SSS":
+				// Go only reads "000" as fractional seconds when it follows a
+				// "." or ",". Standing alone it is emitted literally, so a
+				// template using SSS for uniqueness would produce the same
+				// folder every time. Format the milliseconds directly.
+				fmt.Fprintf(&b, "%03d", t.Nanosecond()/int(time.Millisecond))
+			default:
+				if layout, ok := javaLayouts[run]; ok {
+					b.WriteString(t.Format(layout))
+				} else {
+					b.WriteString(run)
+				}
 			}
 			i = j
 		default:

@@ -7,6 +7,7 @@ package watch
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -110,21 +111,36 @@ func parseCrawljob(r io.Reader) (Job, error) {
 func parseText(r io.Reader) (Job, error) {
 	var job Job
 	err := eachLine(r, func(line string) {
-		if looksLikeURL(line) {
-			job.URLs = append(job.URLs, line)
-		}
+		// Split on whitespace rather than taking the whole line: a list pasted
+		// onto one line is the normal shape of a copied link block, and the
+		// crawljob parser already treats its value that way. Two parsers in one
+		// package disagreeing about what a list looks like is how a drop file
+		// ends up permanently "unusable" with nothing to explain it.
+		job.URLs = append(job.URLs, splitLinks(line)...)
 	})
 	return job, err
 }
 
 // eachLine feeds non-empty, non-comment lines to fn.
+// bom is what Windows editors put at the front of a UTF-8 file. Left in place
+// it becomes part of the first line, so the first link silently fails to parse
+// while the rest succeed — and the file is then retired as consumed, so nothing
+// ever reports the loss.
+const bom = "\ufeff"
+
 func eachLine(r io.Reader, fn func(string)) error {
+	first := true
 	sc := bufio.NewScanner(io.LimitReader(r, maxIntakeSize))
 	// A single crawljob text= value can hold hundreds of links on one line,
 	// which blows straight past Scanner's 64 KiB default.
 	sc.Buffer(make([]byte, 0, 64*1024), maxIntakeSize)
 	for sc.Scan() {
-		line := strings.TrimSpace(sc.Text())
+		line := sc.Text()
+		if first {
+			line = strings.TrimPrefix(line, bom)
+			first = false
+		}
+		line = strings.TrimSpace(line)
 		if line == "" || strings.HasPrefix(line, "#") || strings.HasPrefix(line, "//") {
 			continue
 		}
@@ -225,12 +241,12 @@ type Watcher struct {
 // yet so a fresh install has somewhere to drop files.
 func New(o Options) (*Watcher, error) {
 	if strings.TrimSpace(o.Dir) == "" {
-		return nil, fmt.Errorf("watch: no directory configured")
+		return nil, errors.New("watch: no directory configured")
 	}
 	if o.OnJob == nil {
 		// A watcher without a sink would consume files and drop the links on
 		// the floor, which looks exactly like data loss from the outside.
-		return nil, fmt.Errorf("watch: OnJob is required")
+		return nil, errors.New("watch: OnJob is required")
 	}
 	if err := os.MkdirAll(o.Dir, 0o755); err != nil {
 		return nil, fmt.Errorf("watch: %s: %w", o.Dir, err)

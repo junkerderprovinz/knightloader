@@ -12,7 +12,6 @@ import (
 	"strings"
 	"sync"
 	"testing"
-	"time"
 )
 
 type recorder struct {
@@ -99,7 +98,6 @@ func TestServerFlashEndpoints(t *testing.T) {
 		t.Fatalf("start: %v", err)
 	}
 	defer s.Close()
-	time.Sleep(50 * time.Millisecond)
 	baseURL := "http://127.0.0.1:19666"
 
 	// jdcheck.js must announce a JD so extensions light up their CnL button.
@@ -325,88 +323,53 @@ func TestAddCryptedV1AnswersNotImplemented(t *testing.T) {
 	}
 }
 
-// TestAddAcceptsQueryParameters pins GET support: some sites hand the payload
-// over in the URL instead of a form body, and those buttons 405'd before.
-func TestAddAcceptsQueryParameters(t *testing.T) {
-	crypted := encryptCnL(t, testKeyHex, "https://enc.example/secret\r\n")
-	jk := "function f(){ return '" + testKeyHex + "';}"
-
-	cases := []struct {
-		name  string
-		path  string
-		query url.Values
-		want  string
-	}{
-		{
-			name:  "plain add",
-			path:  "/flash/add",
-			query: url.Values{"urls": {"https://x.example/q1"}, "package": {"QuerySite"}, "passwords": {"qpw"}},
-			want:  "https://x.example/q1",
-		},
-		{
-			name:  "addcrypted2",
-			path:  "/flash/addcrypted2",
-			query: url.Values{"jk": {jk}, "crypted": {crypted}, "passwords": {"qpw"}},
-			want:  "https://enc.example/secret",
-		},
-	}
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
+// TestSubmissionRefusesGET is a security test, not a compatibility one. A GET
+// route on these endpoints would be a browser "simple request": no preflight,
+// no user gesture, no navigation. Any page — an ad iframe, an <img src>, an
+// email preview — could then queue downloads and archive passwords into this
+// instance without the user ever knowing.
+func TestSubmissionRefusesGET(t *testing.T) {
+	for _, path := range []string{"/flash/add", "/flash/addcrypted2"} {
+		t.Run(path, func(t *testing.T) {
 			ts, rec := newTestServer(t)
-			resp, err := ts.Client().Get(ts.URL + tc.path + "?" + tc.query.Encode())
+			q := url.Values{"urls": {"https://evil.example/payload.exe"}, "passwords": {"pwned"}}
+			resp, err := ts.Client().Get(ts.URL + path + "?" + q.Encode())
 			if err != nil {
 				t.Fatal(err)
 			}
-			body, _ := io.ReadAll(resp.Body)
 			resp.Body.Close()
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("status = %d body = %q, want 200", resp.StatusCode, body)
+			if resp.StatusCode == http.StatusOK {
+				t.Fatalf("GET %s answered 200; a drive-by request must not be able to submit", path)
 			}
-			if !strings.Contains(string(body), "success") {
-				t.Errorf("body = %q, want success", body)
-			}
-			urls, _ := rec.snapshot()
-			if len(urls) != 1 || urls[0] != tc.want {
-				t.Fatalf("urls = %v, want [%s]", urls, tc.want)
-			}
-			if pw := rec.snapshotPasswords(); len(pw) != 1 || pw[0] != "qpw" {
-				t.Errorf("passwords = %q, want [qpw]", pw)
+			if urls, _ := rec.snapshot(); len(urls) != 0 {
+				t.Fatalf("a GET reached the adder with %v", urls)
 			}
 		})
 	}
 }
 
-// TestProbeRoutesGreet covers the three places a site may look to decide
-// whether a downloader is listening. A miss on any of them means the site never
-// renders its CnL button at all.
-func TestProbeRoutesGreet(t *testing.T) {
-	ts, _ := newTestServer(t)
-
-	for _, p := range []string{"/", "/flash", "/flash/"} {
-		t.Run(p, func(t *testing.T) {
-			resp, err := ts.Client().Get(ts.URL + p)
-			if err != nil {
-				t.Fatal(err)
-			}
-			body, _ := io.ReadAll(resp.Body)
-			resp.Body.Close()
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("status = %d, want 200", resp.StatusCode)
-			}
-			if string(body) != "JDownloader\r\n" {
-				t.Fatalf("body = %q, want %q", body, "JDownloader\r\n")
-			}
-		})
-	}
-
-	// The root greeting must not swallow unknown paths into a 200, or a site
-	// probing a route we do not implement concludes we support it.
-	resp, err := ts.Client().Get(ts.URL + "/not/a/route")
+// TestPostReadsQueryParameters keeps the compatibility half: a site may put the
+// payload in the query string as long as it still posts.
+func TestPostReadsQueryParameters(t *testing.T) {
+	ts, rec := newTestServer(t)
+	q := url.Values{"urls": {"https://x.example/q1"}, "package": {"QuerySite"}, "passwords": {"qpw"}}
+	resp, err := ts.Client().Post(ts.URL+"/flash/add?"+q.Encode(), "application/x-www-form-urlencoded", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
+	body, _ := io.ReadAll(resp.Body)
 	resp.Body.Close()
-	if resp.StatusCode != http.StatusNotFound {
-		t.Fatalf("unknown path status = %d, want 404", resp.StatusCode)
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d body = %q, want 200", resp.StatusCode, body)
+	}
+	urls, pkg := rec.snapshot()
+	if len(urls) != 1 || urls[0] != "https://x.example/q1" {
+		t.Fatalf("urls = %v", urls)
+	}
+	if pkg != "QuerySite" {
+		t.Errorf("package = %q, want QuerySite", pkg)
+	}
+	if pw := rec.snapshotPasswords(); len(pw) != 1 || pw[0] != "qpw" {
+		t.Errorf("passwords = %q, want [qpw]", pw)
 	}
 }

@@ -23,8 +23,9 @@ const remotePassword = "correct horse battery"
 const sessionCookie = "kl_session"
 
 type linksBody struct {
-	Links   string `json:"links"`
-	Package string `json:"package"`
+	Links     string   `json:"links"`
+	Package   string   `json:"package"`
+	Passwords []string `json:"passwords"`
 }
 
 type optionsBody struct {
@@ -342,21 +343,20 @@ func TestWrongPasswordIsReportedNotRetried(t *testing.T) {
 	}
 }
 
-// TestPasswordsForwardedToTaskOptions pins archive-password handling: the ids
-// come from the links response, and only the first password is sent, because
-// the options endpoint takes one. If it failed, extraction on the remote would
-// stall waiting for a password the user already supplied.
-func TestPasswordsForwardedToTaskOptions(t *testing.T) {
+// TestPasswordsRideWithTheLinks pins that every password a submission carried
+// reaches the remote. They used to be posted separately to an endpoint that
+// takes exactly one, so anything past the first was lost between the website
+// and the NAS with nothing to show for it.
+func TestPasswordsRideWithTheLinks(t *testing.T) {
 	cases := []struct {
-		name         string
-		passwords    []string
-		wantCalls    int
-		wantPassword string
+		name      string
+		passwords []string
+		want      []string
 	}{
-		{name: "no passwords", passwords: nil, wantCalls: 0},
-		{name: "empty list", passwords: []string{}, wantCalls: 0},
-		{name: "one password", passwords: []string{"secret"}, wantCalls: 1, wantPassword: "secret"},
-		{name: "first of several wins", passwords: []string{"secret", "other"}, wantCalls: 1, wantPassword: "secret"},
+		{name: "no passwords", passwords: nil, want: nil},
+		{name: "empty list", passwords: []string{}, want: nil},
+		{name: "one password", passwords: []string{"secret"}, want: []string{"secret"}},
+		{name: "all of them survive", passwords: []string{"secret", "other"}, want: []string{"secret", "other"}},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -365,38 +365,17 @@ func TestPasswordsForwardedToTaskOptions(t *testing.T) {
 
 			b.AddLinksCnL([]string{"https://a.example/1", "https://a.example/2"}, "CnL", tc.passwords)
 
-			_, _, _, options := f.snapshot()
-			if len(options) != tc.wantCalls {
-				t.Fatalf("POST /api/tasks/options happened %d times, want %d", len(options), tc.wantCalls)
+			_, _, links, options := f.snapshot()
+			if len(options) != 0 {
+				t.Fatalf("posted to /api/tasks/options %d times; passwords travel with the links now", len(options))
 			}
-			if tc.wantCalls == 0 {
-				return
+			if len(links) != 1 {
+				t.Fatalf("POST /api/links happened %d times, want once", len(links))
 			}
-			if options[0].Password != tc.wantPassword {
-				t.Fatalf("password = %q, want %q", options[0].Password, tc.wantPassword)
-			}
-			if want := []string{"id-1", "id-2"}; !slices.Equal(options[0].Ids, want) {
-				t.Fatalf("ids = %v, want the ids from the links response %v", options[0].Ids, want)
+			if !slices.Equal(links[0].Passwords, tc.want) {
+				t.Fatalf("passwords = %v, want %v", links[0].Passwords, tc.want)
 			}
 		})
-	}
-}
-
-// TestPasswordSurvivesRemoteReturningNoTasks pins that a links response with an
-// empty task array does not produce an options call with no ids, which the
-// remote answers 400 for.
-func TestPasswordSurvivesRemoteReturningNoTasks(t *testing.T) {
-	f := newFakeRemote(t, false) // no ids: the remote staged nothing
-	b := newBridge(t, f, "")
-	buf := captureLog(t)
-
-	b.AddLinksCnL([]string{"https://a.example/1"}, "CnL", []string{"secret"})
-
-	if _, _, _, options := f.snapshot(); len(options) != 0 {
-		t.Fatalf("POST /api/tasks/options happened %d times with no ids to target, want 0", len(options))
-	}
-	if !strings.Contains(buf.String(), "staged no tasks") {
-		t.Fatalf("log = %q, want the unapplied password to be reported", buf.String())
 	}
 }
 

@@ -18,7 +18,7 @@ import (
 	"time"
 )
 
-// Adder is what the app exposes to CnL (AddLinks). passwords carries the
+// Adder is what the app exposes to CnL (AddLinksCnL). passwords carries the
 // archive passwords a CnL button ships alongside its links; it is nil when the
 // site sent none, which is the common case.
 type Adder interface {
@@ -55,10 +55,13 @@ func (s *Server) handler() http.Handler {
 		_, _ = fmt.Fprint(w, "jdownloader=true;\nvar version='90000';\n")
 	})
 
-	// The add endpoints answer GET as well as POST. A handful of sites pass the
-	// payload as query parameters instead of a form body, and r.FormValue reads
-	// from either source once ParseForm has run, so this costs one extra route
-	// and nothing else.
+	// Submission is POST only, deliberately. A GET route here would be a
+	// "simple request" in the browser's sense: no preflight, no user gesture,
+	// no navigation. Any page in the world — an ad iframe, an <img src>, an
+	// email preview — could then queue arbitrary downloads, and arbitrary
+	// archive passwords, into this instance. Sites that pass parameters in the
+	// query string still work, because ParseForm merges the query into
+	// FormValue for a POST as well.
 	add := func(w http.ResponseWriter, r *http.Request) {
 		_ = r.ParseForm()
 		urls := splitLinks(r.FormValue("urls"))
@@ -70,7 +73,6 @@ func (s *Server) handler() http.Handler {
 		_, _ = fmt.Fprint(w, "success\r\n")
 	}
 	mux.HandleFunc("POST /flash/add", add)
-	mux.HandleFunc("GET /flash/add", add)
 
 	addCrypted2 := func(w http.ResponseWriter, r *http.Request) {
 		_ = r.ParseForm()
@@ -83,7 +85,6 @@ func (s *Server) handler() http.Handler {
 		_, _ = fmt.Fprint(w, "success\r\n")
 	}
 	mux.HandleFunc("POST /flash/addcrypted2", addCrypted2)
-	mux.HandleFunc("GET /flash/addcrypted2", addCrypted2)
 
 	// addcrypted (v1) encrypts its payload against JDownloader's own RSA public
 	// key, so nobody but JDownloader can open it. Answering 501 instead of
