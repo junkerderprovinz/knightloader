@@ -66,6 +66,44 @@ export const IconPlus = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+export const IconDashboard = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} fill="currentColor">
+    <rect x="2.5" y="2.5" width="6.5" height="6.5" rx="1.5" />
+    <rect x="11" y="2.5" width="6.5" height="6.5" rx="1.5" opacity=".6" />
+    <rect x="2.5" y="11" width="6.5" height="6.5" rx="1.5" opacity=".6" />
+    <rect x="11" y="11" width="6.5" height="6.5" rx="1.5" opacity=".4" />
+  </svg>
+);
+
+export const IconCollector = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M8 3H4.5A1.5 1.5 0 0 0 3 4.5v11A1.5 1.5 0 0 0 4.5 17h11a1.5 1.5 0 0 0 1.5-1.5V12" />
+    <path d="M13 3h4v4M17 3l-7 7" />
+  </svg>
+);
+
+export const IconInstances = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.5} strokeLinejoin="round">
+    <rect x="2.5" y="3" width="15" height="5" rx="1.5" />
+    <rect x="2.5" y="12" width="15" height="5" rx="1.5" />
+    <circle cx="5.5" cy="5.5" r=".8" fill="currentColor" stroke="none" />
+    <circle cx="5.5" cy="14.5" r=".8" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+export const IconAccounts = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="10" cy="6.5" r="3" />
+    <path d="M4 16.5a6 6 0 0 1 12 0" />
+  </svg>
+);
+
+export const IconCheck = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 10.5l4 4 8-9" />
+  </svg>
+);
+
 export const IconSwords = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base({ viewBox: '0 0 24 24', ...p })} stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
     <path d="M14.5 17.5 3 6V3h3l11.5 11.5" />

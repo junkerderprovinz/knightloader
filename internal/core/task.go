@@ -7,6 +7,7 @@ import "time"
 type Status string
 
 const (
+	StatusCollected  Status = "collected" // staged in the link collector, not started
 	StatusQueued     Status = "queued"
 	StatusRunning    Status = "running"
 	StatusPaused     Status = "paused"

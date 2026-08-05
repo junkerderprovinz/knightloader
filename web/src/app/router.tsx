@@ -1,6 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from './Layout';
+import { Dashboard } from '../pages/Dashboard';
+import { Collector } from '../pages/Collector';
 import { Downloads } from '../pages/Downloads';
+import { Instances } from '../pages/Instances';
+import { Accounts } from '../pages/Accounts';
 import { SettingsPage } from '../pages/Settings';
 
 export function AppRouter() {
@@ -8,7 +12,11 @@ export function AppRouter() {
     <BrowserRouter>
       <Routes>
         <Route element={<Layout />}>
-          <Route index element={<Downloads />} />
+          <Route index element={<Dashboard />} />
+          <Route path="/collector" element={<Collector />} />
+          <Route path="/downloads" element={<Downloads />} />
+          <Route path="/instances" element={<Instances />} />
+          <Route path="/accounts" element={<Accounts />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

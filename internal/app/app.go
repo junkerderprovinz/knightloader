@@ -8,10 +8,12 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"log"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -191,8 +193,9 @@ func (a *App) Tasks() []*core.Task {
 	return out
 }
 
-// AddLinks resolves each URL, creates a queued task and lets the dispatcher
-// start it when a global/per-host slot is free.
+// AddLinks resolves each URL and stages it in the link collector (JD-style):
+// tasks are created "collected" (analysed but not started). StartTasks moves
+// them into the download queue.
 func (a *App) AddLinks(urls []string, pkg string) []*core.Task {
 	var created []*core.Task
 	for _, raw := range urls {
@@ -214,17 +217,75 @@ func (a *App) AddLinks(urls []string, pkg string) []*core.Task {
 			Name:      result.Name,
 			Package:   pkg,
 			Resolver:  res.Info().ID,
-			Status:    core.StatusQueued,
+			Size:      result.Size,
+			Status:    core.StatusCollected,
 			CreatedAt: time.Now(),
 		}
 		a.put(t)
-		a.mu.Lock()
-		a.queue = append(a.queue, t.ID)
-		a.dispatchLocked()
-		a.mu.Unlock()
+		// Lightweight analysis for plain file links: a HEAD gives size + an
+		// online check while the task waits in the collector.
+		if res.Info().ID == "direct" {
+			go a.analyze(t.ID, result.DirectURL)
+		}
 		created = append(created, t)
 	}
 	return created
+}
+
+// StartTasks moves collected tasks into the download queue and dispatches them.
+// An empty id list starts every collected task.
+func (a *App) StartTasks(ids []string) {
+	want := map[string]bool{}
+	for _, id := range ids {
+		want[id] = true
+	}
+	all := len(ids) == 0
+	a.mu.Lock()
+	var toStart []*core.Task
+	for id, t := range a.tasks {
+		if t.Status == core.StatusCollected && (all || want[id]) {
+			toStart = append(toStart, t)
+		}
+	}
+	sort.Slice(toStart, func(i, j int) bool { return toStart[i].CreatedAt.Before(toStart[j].CreatedAt) })
+	copies := make([]core.Task, 0, len(toStart))
+	for _, t := range toStart {
+		t.Status = core.StatusQueued
+		t.Error = ""
+		t.Speed = 0
+		a.queue = append(a.queue, t.ID)
+		copies = append(copies, *t)
+	}
+	a.dispatchLocked()
+	a.mu.Unlock()
+	for i := range copies {
+		c := copies[i]
+		_ = a.Store.Save(&c)
+		a.Hub.Broadcast("task", &c)
+	}
+}
+
+// analyze probes a plain file link with a HEAD request to fill in its size and
+// flag it offline, updating the collected task in place.
+func (a *App) analyze(id, rawurl string) {
+	req, err := http.NewRequest(http.MethodHead, rawurl, nil)
+	if err != nil {
+		return
+	}
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		a.onUpdate(id, core.Update{Err: "offline: " + err.Error()})
+		return
+	}
+	resp.Body.Close()
+	if resp.StatusCode >= 400 {
+		a.onUpdate(id, core.Update{Err: "offline (HTTP " + strconv.Itoa(resp.StatusCode) + ")"})
+		return
+	}
+	if resp.ContentLength > 0 {
+		a.onUpdate(id, core.Update{Size: resp.ContentLength})
+	}
 }
 
 // dispatchLocked starts queued tasks while slots are free. FIFO with per-host

@@ -36,6 +36,14 @@ func Handler(a *app.App) http.Handler {
 		urls := strings.FieldsFunc(body.Links, func(r rune) bool { return r == '\n' || r == '\r' })
 		writeJSON(w, a.AddLinks(urls, body.Package))
 	})
+	mux.HandleFunc("POST /api/tasks/start", func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Ids []string `json:"ids"`
+		}
+		_ = json.NewDecoder(r.Body).Decode(&body) // empty/absent = start all collected
+		a.StartTasks(body.Ids)
+		w.WriteHeader(http.StatusNoContent)
+	})
 	mux.HandleFunc("POST /api/tasks/{id}/pause", func(w http.ResponseWriter, r *http.Request) {
 		a.Pause(r.PathValue("id"))
 		w.WriteHeader(http.StatusNoContent)
