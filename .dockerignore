@@ -1,0 +1,11 @@
+.git
+.github
+bin
+desktop
+docs
+web/node_modules
+web/src
+web/*.json
+web/*.ts
+web/*.js
+**/*_test.go

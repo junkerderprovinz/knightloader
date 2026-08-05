@@ -8,14 +8,21 @@ import (
 	"strings"
 )
 
-// fileExt matches URL paths that end in a downloadable file extension, so the
-// Direct resolver claims plain file links and leaves media pages to yt-dlp.
-var fileExt = regexp.MustCompile(`\.(zip|rar|r\d\d|7z|tar|gz|tgz|bz2|xz|iso|img|bin|dat|exe|msi|dmg|pkg|deb|rpm|apk|` +
-	`mp4|mkv|avi|mov|webm|flv|wmv|m4v|mp3|m4a|flac|wav|ogg|opus|aac|` +
-	`pdf|epub|mobi|cbz|cbr|jpg|jpeg|png|gif|webp|txt|srt|nfo)$`)
+// fileLike matches a URL path that ends in a plausible file extension. The rule
+// is deliberately open — anything that looks like a file is a file — because an
+// allowlist of known extensions silently sends unlisted ones (.md, .bin, .xyz)
+// to the media extractor, which then reports "Unsupported URL".
+var fileLike = regexp.MustCompile(`\.[a-z0-9]{1,8}$`)
 
-// Direct handles plain http(s) links whose path is a downloadable file; the URL
-// is already the download target and is fetched by the embedded engine.
+// pageExt lists the suffixes that mean "web page", not "file". These stay with
+// the media extractor, which is what actually handles a watch page.
+var pageExt = map[string]bool{
+	".html": true, ".htm": true, ".php": true, ".asp": true, ".aspx": true,
+	".jsp": true, ".cgi": true, ".xhtml": true, ".shtml": true,
+}
+
+// Direct handles plain http(s) links whose path names a file; the URL is already
+// the download target and is fetched by the embedded engine.
 type Direct struct{}
 
 func (Direct) Info() Info { return Info{ID: "direct", Prio: 40} }
@@ -25,7 +32,12 @@ func (Direct) Match(raw string) bool {
 	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
 		return false
 	}
-	return fileExt.MatchString(strings.ToLower(u.Path))
+	base := strings.ToLower(path.Base(u.Path))
+	if base == "" || base == "/" || base == "." {
+		return false
+	}
+	ext := fileLike.FindString(base)
+	return ext != "" && !pageExt[ext]
 }
 
 func (Direct) Resolve(_ context.Context, req Request) (Result, error) {

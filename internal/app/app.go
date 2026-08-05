@@ -223,12 +223,13 @@ func (a *App) Tasks() []*core.Task {
 // tasks are created "collected" (analysed but not started). StartTasks moves
 // them into the download queue.
 func (a *App) AddLinks(urls []string, pkg string) []*core.Task {
-	// Known URLs are skipped so pasting the same list twice doesn't queue a
-	// second copy; finished tasks don't block a deliberate re-download.
+	// Skip URLs that are already in flight, so pasting the same list twice
+	// doesn't queue a second copy. Tasks that have settled — finished or failed
+	// — never block: re-adding one of those is a deliberate second attempt.
 	a.mu.Lock()
 	known := make(map[string]bool, len(a.tasks))
 	for _, t := range a.tasks {
-		if t.Status != core.StatusDone {
+		if t.Status != core.StatusDone && t.Status != core.StatusError {
 			known[t.URL] = true
 		}
 	}
