@@ -14,11 +14,14 @@ A single Go backend with an embedded download engine and a small **resolver** se
 - **UI:** React + Tailwind (IBM Carbon palette, dark/light), a sidebar app with Overview, Collector, Downloads, Instances, Accounts and Settings; live speed graph, package-grouped lists, REST + WebSocket.
 - **Desktop:** [Wails](https://github.com/wailsapp/wails) (Win/macOS/Linux). **Container:** Docker (multi-arch).
 - **Resolvers** (priority order): `direct` (file links, fetched by the embedded engine) · [TorBox](https://torbox.app/) debrid (supported file hosters, unlocked to a direct CDN URL the engine downloads) · [yt-dlp](https://github.com/yt-dlp/yt-dlp) (media/streaming, when the binary is present) · headless [JDownloader](https://jdownloader.org/) (catch-all backup via its local API). Native resolvers come later.
+- **Crawling:** a pasted page becomes the files it links to instead of one unusable task. Only a link no real backend recognised is opened, so a plain download never pays for the extra request, and a page that yields nothing is staged as itself.
+- **Intake:** besides pasting, links arrive through [Click'n'Load](docs/clicknload.md) from a site's own button, and through a watched folder — drop a `.txt` or a JDownloader `.crawljob` onto a share and the box picks it up, with its package name, destination and archive password.
 - **Collector (LinkGrabber):** pasted or dropped links are staged and analysed first (name, size via a HEAD probe, resolver, online check) and grouped into packages; you select and start them, then they move to Downloads. `POST /api/links` stages, `POST /api/tasks/start {ids}` starts (empty = all).
 - **Accounts:** credentials (e.g. the TorBox API key) are stored encrypted at rest (AES-256-GCM under a per-install keyring) via the Accounts page or `POST /api/accounts {"service":"torbox","secret":"…"}`.
 - **Scheduler:** a global and a per-host concurrency limit gate every backend (FIFO with per-host skip-ahead); both are live-tunable in Settings.
 - **Extraction:** finished archive downloads (zip, rar incl. multi-volume, 7z incl. `.001` volumes, tar.gz) unpack automatically into a sibling folder — pure Go, zip-slip-safe, optional delete-after-extract. A multi-part set waits for every part before it opens. Encrypted rar and 7z accept passwords: the task's own first, then a configured list. Encrypted zip is refused, because Go cannot decrypt it.
-- **Download folders:** a global folder, an optional per-package subfolder, and a per-task override. The folder is checked when you save it, so an unwritable path is refused rather than silently ignored.
+- **Download folders:** a global folder, an optional per-package subfolder, and a per-task override. The folder may be a template — `/downloads/<jd:date>/<jd:hoster>/<jd:packagename>` — and is checked when you save it, so an unwritable path is refused rather than silently ignored.
+- **Integrity:** a finished download is verified against an `.sfv`/`.md5`/`.sha*` that arrived with the batch, or against a CRC in its own file name. Nothing is marked as passing that was not actually checked.
 - **Speed limit:** a total for everything, applied while downloads run rather than only to the next one. The embedded engine has no rate-limit hook (Gopeed v1.9.x), so its traffic goes through a loopback proxy where the bytes are metered; yt-dlp uses `--limit-rate` and JDownloader its own API.
 - **Nothing is dropped:** a pasted link that no backend handles, or that fails to resolve, is still staged with the reason attached. Links carry an online state and can be rechecked without re-pasting.
 - **Fallback chain:** when a backend says a link is not its business, the next one gets a turn. Only an explicit signal advances the chain, so a hoster link that genuinely failed is never re-fetched as a plain web page.
@@ -46,6 +49,13 @@ Configuration (all optional, via env):
 | `KL_JD` | — | a headless JDownloader Deprecated-API URL (e.g. `http://jd:3128`); when reachable, it is the catch-all backup for hoster links nothing else claims |
 | `KL_CNL` | `9666` | Click'n'Load listener port on `127.0.0.1`; `0` disables it |
 | `KL_PROVISION_JD` | `0` | `1` = provision a private headless JDownloader on first run (downloads JD, enables its local API, launches it) and use it as the hoster backup |
+
+Two flags turn the same binary into a Click'n'Load bridge for an instance that
+runs somewhere else — see [docs/clicknload.md](docs/clicknload.md):
+
+```sh
+knightloader -bridge http://nas:8749 [-bridge-password '…']
+```
 
 ## Feasibility spikes
 

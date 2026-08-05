@@ -337,3 +337,54 @@ func TestNewRejectsUnusableOptions(t *testing.T) {
 		t.Fatalf("interval = %v, want the default %v", w.interval, defaultInterval)
 	}
 }
+
+// TestUnwritableFolderIsRefusedAtStartup is the failure this cost a live test
+// to find: the share belonged to another user, so consuming a file — which
+// means renaming it — could never succeed. The watcher started, logged that it
+// was watching, and then ignored everything dropped into it forever.
+func TestUnwritableFolderIsRefusedAtStartup(t *testing.T) {
+	if os.Geteuid() == 0 {
+		t.Skip("root can write anywhere, so the permission cannot be simulated")
+	}
+	dir := t.TempDir()
+	locked := filepath.Join(dir, "locked")
+	if err := os.Mkdir(locked, 0o500); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chmod(locked, 0o700) })
+
+	if _, err := New(Options{Dir: locked, OnJob: func(Job) {}}); err == nil {
+		t.Skip("this filesystem does not enforce directory write permission")
+	}
+}
+
+// TestRefusedFileIsReportedOnce keeps a file that cannot be retired from being
+// re-read on every single poll while still leaving it in place for the user.
+func TestRefusedFileIsReportedOnce(t *testing.T) {
+	dir := t.TempDir()
+	var jobs int
+	w, err := New(Options{Dir: dir, Interval: 10 * time.Millisecond, OnJob: func(Job) { jobs++ }})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer w.Close()
+
+	// A file that parses to nothing is the portable stand-in for "cannot be
+	// consumed": it must be left alone rather than retired or retried forever.
+	bad := filepath.Join(dir, "junk.txt")
+	if err := os.WriteFile(bad, []byte("no links in here at all\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	w.Start()
+	time.Sleep(120 * time.Millisecond)
+
+	if jobs != 0 {
+		t.Errorf("OnJob fired %d times for a file with no links", jobs)
+	}
+	if _, err := os.Stat(bad); err != nil {
+		t.Errorf("the unusable file was removed instead of being left for the user: %v", err)
+	}
+	if _, err := os.Stat(bad + ".done"); err == nil {
+		t.Error("the unusable file was retired as if it had been consumed")
+	}
+}

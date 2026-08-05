@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -239,6 +240,20 @@ type Watcher struct {
 
 // New builds a Watcher for o.Dir, creating the directory if it does not exist
 // yet so a fresh install has somewhere to drop files.
+// writable reports whether the process can retire a consumed file. It is
+// checked once at startup because the failure is a permission problem that will
+// never resolve on its own, and the alternative is a folder that silently
+// accepts nothing forever.
+func writable(dir string) error {
+	probe := filepath.Join(dir, ".knightloader-watch-test")
+	f, err := os.OpenFile(probe, os.O_CREATE|os.O_WRONLY, 0o644)
+	if err != nil {
+		return err
+	}
+	f.Close()
+	return os.Remove(probe)
+}
+
 func New(o Options) (*Watcher, error) {
 	if strings.TrimSpace(o.Dir) == "" {
 		return nil, errors.New("watch: no directory configured")
@@ -250,6 +265,12 @@ func New(o Options) (*Watcher, error) {
 	}
 	if err := os.MkdirAll(o.Dir, 0o755); err != nil {
 		return nil, fmt.Errorf("watch: %s: %w", o.Dir, err)
+	}
+	// A folder the process cannot write is useless: consuming a file means
+	// retiring it, and a file that cannot be retired is never taken at all.
+	// Saying so at startup beats a watcher that appears to run and does nothing.
+	if err := writable(o.Dir); err != nil {
+		return nil, fmt.Errorf("watch: %s is not writable: %w", o.Dir, err)
 	}
 	interval := o.Interval
 	if interval <= 0 {
@@ -357,6 +378,11 @@ func (w *Watcher) poll() {
 			continue
 		}
 		if err := w.consume(filepath.Join(w.dir, name)); err != nil {
+			// Said once per file, not once per poll: a folder the process
+			// cannot write is a permanent misconfiguration, and a drop file
+			// that is quietly ignored forever is indistinguishable from a
+			// watcher that is not running at all.
+			log.Printf("intake file %s was not taken: %v", name, err)
 			cur.bad = true
 			seen[name] = cur
 			continue
