@@ -21,6 +21,26 @@ type Client struct {
 	hc   *http.Client
 }
 
+// generalSettings is JD's global settings interface for config/set.
+const generalSettings = "org.jdownloader.settings.GeneralSettings"
+
+// SetSpeedLimit on the backend forwards the app's global limit to JD.
+func (b *Backend) SetSpeedLimit(bytesPerSec int64) error { return b.c.SetSpeedLimit(bytesPerSec) }
+
+// SetSpeedLimit applies a global JD download limit in bytes/s; 0 disables the
+// limit (the stored value is kept, only the enable flag is cleared).
+func (c *Client) SetSpeedLimit(bytesPerSec int64) error {
+	if bytesPerSec > 0 {
+		if _, err := c.call("/config/set", generalSettings, nil, "DownloadSpeedLimit", bytesPerSec); err != nil {
+			return err
+		}
+		_, err := c.call("/config/set", generalSettings, nil, "DownloadSpeedLimitEnabled", true)
+		return err
+	}
+	_, err := c.call("/config/set", generalSettings, nil, "DownloadSpeedLimitEnabled", false)
+	return err
+}
+
 func NewClient(base string) *Client {
 	return &Client{base: strings.TrimRight(base, "/"), hc: &http.Client{Timeout: 15 * time.Second}}
 }

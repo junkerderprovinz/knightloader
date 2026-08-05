@@ -7,11 +7,12 @@ import "time"
 type Status string
 
 const (
-	StatusQueued  Status = "queued"
-	StatusRunning Status = "running"
-	StatusPaused  Status = "paused"
-	StatusDone    Status = "done"
-	StatusError   Status = "error"
+	StatusQueued     Status = "queued"
+	StatusRunning    Status = "running"
+	StatusPaused     Status = "paused"
+	StatusExtracting Status = "extracting" // download finished, archive unpacking
+	StatusDone       Status = "done"
+	StatusError      Status = "error"
 )
 
 // Update is a change to a task reported by a download backend (the Gopeed
