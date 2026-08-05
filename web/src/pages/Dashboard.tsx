@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { type Instance, fetchInstances } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import { fmtBytes, fmtSpeed, pct } from '../lib/format';
+import { useT } from '../lib/i18n';
 import { PageHeader, Card } from '../components/ui';
 import { StatCard } from '../components/StatCard';
 import { SpeedGraph } from '../components/SpeedGraph';
@@ -11,6 +12,7 @@ import { StatusPill, ResolverBadge } from '../components/StatusPill';
 import { InstanceCard } from '../components/InstanceCard';
 
 export function Dashboard() {
+  const { t } = useT();
   const tasks = useTasks('');
   const [instances, setInstances] = useState<Instance[]>([]);
   const navigate = useNavigate();
@@ -49,29 +51,29 @@ export function Dashboard() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Overview" subtitle="Everything at a glance." />
+      <PageHeader title={t('overview.title')} subtitle={t('overview.subtitle')} />
 
       <Card className="p-0 overflow-hidden">
         <div className="px-5 pt-4">
-          <div className="text-carbon-textMuted text-xs">Total download speed</div>
+          <div className="text-carbon-textMuted text-xs">{t('overview.totalSpeed')}</div>
           <div className="text-3xl font-bold tabular-nums text-carbon-text">{fmtSpeed(s.speed) || '0 B/s'}</div>
         </div>
         <SpeedGraph value={s.speed} height={72} />
       </Card>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-        <StatCard label="Active" value={s.running} tone="text-statusInfo" />
-        <StatCard label="Queued" value={s.queued} tone="text-statusNeutral" />
-        <StatCard label="In collector" value={s.collected} tone="text-carbon-text" />
-        <StatCard label="Done" value={s.done} tone="text-statusOk" />
-        <StatCard label="Errors" value={s.error} tone={s.error ? 'text-statusFail' : 'text-carbon-text'} />
+        <StatCard label={t('overview.active')} value={s.running} tone="text-statusInfo" />
+        <StatCard label={t('overview.queued')} value={s.queued} tone="text-statusNeutral" />
+        <StatCard label={t('overview.inCollector')} value={s.collected} tone="text-carbon-text" />
+        <StatCard label={t('overview.done')} value={s.done} tone="text-statusOk" />
+        <StatCard label={t('overview.errors')} value={s.error} tone={s.error ? 'text-statusFail' : 'text-carbon-text'} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 flex flex-col gap-3">
-          <h2 className="text-base font-semibold text-carbon-text">Recent</h2>
+          <h2 className="text-base font-semibold text-carbon-text">{t('overview.recent')}</h2>
           {recent.length === 0 ? (
-            <Card className="text-carbon-textMuted text-sm">No downloads yet.</Card>
+            <Card className="text-carbon-textMuted text-sm">{t('overview.noDownloads')}</Card>
           ) : (
             <Card className="flex flex-col p-0 overflow-hidden">
               {recent.map((t) => (
@@ -101,8 +103,8 @@ export function Dashboard() {
         </div>
 
         <div className="flex flex-col gap-3">
-          <h2 className="text-base font-semibold text-carbon-text">Instances</h2>
-          <InstanceCard name="This instance" url={location.host} base="/api" />
+          <h2 className="text-base font-semibold text-carbon-text">{t('overview.instances')}</h2>
+          <InstanceCard name={t('instances.thisInstance')} url={location.host} base="/api" />
           {instances.map((i) => (
             <InstanceCard
               key={i.name}

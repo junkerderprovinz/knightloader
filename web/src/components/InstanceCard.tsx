@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchTasks, type Task } from '../lib/api';
 import { fmtSpeed } from '../lib/format';
+import { useT } from '../lib/i18n';
 import { Card, Button } from './ui';
 import { IconTrash } from '../lib/icons';
 
@@ -26,6 +27,7 @@ export function InstanceCard({
   onOpen?: () => void;
   onRemove?: () => void;
 }) {
+  const { t } = useT();
   const [stats, setStats] = useState<Stats | null>(null);
   useEffect(() => {
     let active = true;
@@ -54,23 +56,28 @@ export function InstanceCard({
       <div className="flex items-center gap-2.5">
         <span
           className={`h-2.5 w-2.5 rounded-full ${online ? 'bg-statusOkSolid' : 'bg-statusFailSolid'}`}
-          title={online ? 'Online' : 'Offline'}
+          title={online ? t('instances.online') : t('instances.offline')}
         />
         <span className="font-semibold text-carbon-text truncate">{name}</span>
         <span className="flex-1" />
         {onRemove && (
-          <Button kind="danger" icon={<IconTrash />} title={`Remove ${name}`} onClick={onRemove} />
+          <Button
+            kind="danger"
+            icon={<IconTrash />}
+            title={t('instances.removeTitle', { name })}
+            onClick={onRemove}
+          />
         )}
       </div>
       <div className="text-carbon-textMuted text-xs truncate">{url}</div>
       <div className="grid grid-cols-3 gap-2 text-center">
-        <Metric value={stats?.active ?? '—'} label="Active" />
-        <Metric value={stats?.total ?? '—'} label="Tasks" />
-        <Metric value={stats ? fmtSpeed(stats.speed) || '0' : '—'} label="Speed" />
+        <Metric value={stats?.active ?? '—'} label={t('instances.metricActive')} />
+        <Metric value={stats?.total ?? '—'} label={t('instances.metricTasks')} />
+        <Metric value={stats ? fmtSpeed(stats.speed) || '0' : '—'} label={t('instances.metricSpeed')} />
       </div>
       {onOpen && (
         <Button kind="secondary" onClick={onOpen} className="w-full justify-center">
-          Open
+          {t('instances.open')}
         </Button>
       )}
     </Card>

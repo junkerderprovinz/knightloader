@@ -12,6 +12,7 @@ import (
 	"github.com/coder/websocket"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
+	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/hub"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -38,7 +39,11 @@ func Handler(a *app.App) http.Handler {
 			return
 		}
 		urls := strings.FieldsFunc(body.Links, func(r rune) bool { return r == '\n' || r == '\r' })
-		writeJSON(w, a.AddLinks(urls, body.Package))
+		created := a.AddLinks(urls, body.Package)
+		if created == nil {
+			created = []*core.Task{} // an empty result is [] for clients, never null
+		}
+		writeJSON(w, created)
 	})
 	mux.HandleFunc("POST /api/tasks/start", func(w http.ResponseWriter, r *http.Request) {
 		var body struct {

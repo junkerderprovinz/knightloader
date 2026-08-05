@@ -3,11 +3,13 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
 import { connectWS, type Task } from '../lib/api';
 import { useToast } from '../lib/toast';
+import { useT } from '../lib/i18n';
 
 // Global completion toasts: watch the local task stream and notify when a
 // download finishes or fails (transition only, so the initial snapshot is quiet).
 function useCompletionToasts() {
   const { toast } = useToast();
+  const { t } = useT();
   const prev = useRef<Record<string, string>>({});
   useEffect(() => {
     return connectWS((type, data) => {
@@ -17,14 +19,15 @@ function useCompletionToasts() {
         const before = prev.current[data.id];
         prev.current[data.id] = data.status;
         if (before && before !== data.status) {
-          if (data.status === 'done') toast(`${data.name || 'Download'} finished`, 'ok');
-          else if (data.status === 'error') toast(`${data.name || 'Download'} failed`, 'fail');
+          const name = data.name || t('nav.downloads');
+          if (data.status === 'done') toast(t('downloads.finished', { name }), 'ok');
+          else if (data.status === 'error') toast(t('downloads.failed', { name }), 'fail');
         }
       } else if (type === 'removed') {
         delete prev.current[data.id];
       }
     });
-  }, [toast]);
+  }, [toast, t]);
 }
 
 export function Layout() {

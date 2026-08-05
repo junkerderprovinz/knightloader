@@ -25,6 +25,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/hub"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
@@ -50,9 +51,10 @@ type App struct {
 	Settings   *settings.Store
 	Federation *federation.Manager
 
-	jd     backend // headless-JD backend, nil unless KL_JD is set and reachable
-	ytdlp  backend // yt-dlp media backend, nil unless the yt-dlp binary is present
-	torbox backend // TorBox debrid backend, nil unless a TorBox key is present
+	jd     backend            // headless-JD backend, nil unless KL_JD is set and reachable
+	ytdlp  backend            // yt-dlp media backend, nil unless the yt-dlp binary is present
+	torbox backend            // TorBox debrid backend, nil unless a TorBox key is present
+	debrid map[string]backend // one-shot debrid backends by resolver id (alldebrid, realdebrid)
 
 	dlDir string // where engine + yt-dlp downloads land (extraction source)
 
@@ -88,6 +90,7 @@ func New(dataDir string) (*App, error) {
 		tasks:      map[string]*core.Task{},
 		active:     map[string]bool{},
 		started:    map[string]bool{},
+		debrid:     map[string]backend{},
 	}
 	a.Registry.Register(resolver.Direct{})
 
@@ -105,18 +108,41 @@ func New(dataDir string) (*App, error) {
 	}
 	a.Accounts = acc
 
-	// Resolve which hoster backends are configured, then fetch TorBox's
-	// supported-host list once so routing can tell file hosters (→ TorBox/JD)
+	// Resolve which hoster backends are configured. Each debrid service brings
+	// its own supported-host list; their union tells file hosters (→ debrid/JD)
 	// from media pages (→ yt-dlp).
-	torboxKey := os.Getenv("KL_TORBOX")
-	if torboxKey == "" {
-		torboxKey, _ = acc.Get("torbox")
-	}
+	torboxKey := credential(acc, "torbox", "KL_TORBOX")
 	jdBase := os.Getenv("KL_JD")
 
 	var hosterSet map[string]bool
 	if torboxKey != "" || jdBase != "" {
 		hosterSet = fetchTorboxHosters(torboxKey)
+	}
+
+	// One-shot debrid services (AllDebrid, Real-Debrid): a single unlock call
+	// yields a direct URL the engine downloads.
+	type debridSetup struct {
+		svc  debrid.Service
+		prio int
+	}
+	var debrids []debridSetup
+	if k := credential(acc, "alldebrid", "KL_ALLDEBRID"); k != "" {
+		debrids = append(debrids, debridSetup{debrid.NewAllDebrid(k), 34})
+	}
+	if k := credential(acc, "realdebrid", "KL_REALDEBRID"); k != "" {
+		debrids = append(debrids, debridSetup{debrid.NewRealDebrid(k), 33})
+	}
+	for _, d := range debrids {
+		hosts := fetchDebridHosts(d.svc)
+		a.debrid[d.svc.ID()] = debrid.NewBackend(d.svc, eng, a.onUpdate)
+		a.Registry.Register(debrid.Resolver{ServiceID: d.svc.ID(), Prio: d.prio, Hosts: hosts})
+		for h := range hosts {
+			if hosterSet == nil {
+				hosterSet = map[string]bool{}
+			}
+			hosterSet[h] = true
+		}
+		log.Printf("%s debrid backend enabled (%d supported hosts)", d.svc.Label(), len(hosts))
 	}
 
 	// Optional yt-dlp media backend: when the yt-dlp binary is present, media
@@ -197,12 +223,25 @@ func (a *App) Tasks() []*core.Task {
 // tasks are created "collected" (analysed but not started). StartTasks moves
 // them into the download queue.
 func (a *App) AddLinks(urls []string, pkg string) []*core.Task {
+	// Known URLs are skipped so pasting the same list twice doesn't queue a
+	// second copy; finished tasks don't block a deliberate re-download.
+	a.mu.Lock()
+	known := make(map[string]bool, len(a.tasks))
+	for _, t := range a.tasks {
+		if t.Status != core.StatusDone {
+			known[t.URL] = true
+		}
+	}
+	a.mu.Unlock()
+
 	var created []*core.Task
+	seen := map[string]bool{}
 	for _, raw := range urls {
 		u := strings.TrimSpace(raw)
-		if u == "" {
+		if u == "" || known[u] || seen[u] {
 			continue
 		}
+		seen[u] = true
 		res := a.Registry.For(u)
 		if res == nil {
 			continue
@@ -474,6 +513,9 @@ func (a *App) dequeueLocked(id string) {
 }
 
 func (a *App) backendFor(resolverID string) backend {
+	if b, ok := a.debrid[resolverID]; ok && b != nil {
+		return b
+	}
 	switch {
 	case resolverID == "jd" && a.jd != nil:
 		return a.jd
@@ -484,6 +526,29 @@ func (a *App) backendFor(resolverID string) backend {
 	default:
 		return a.Engine
 	}
+}
+
+// credential reads a service secret from the encrypted store, with the env var
+// taking precedence (handy for containers and tests).
+func credential(acc *accounts.Store, service, envVar string) string {
+	if v := os.Getenv(envVar); v != "" {
+		return v
+	}
+	v, _ := acc.Get(service)
+	return v
+}
+
+// fetchDebridHosts returns a service's supported-host set, or nil when the
+// list can't be fetched (routing then degrades to the other backends).
+func fetchDebridHosts(svc debrid.Service) map[string]bool {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	hosts, err := svc.Hosts(ctx)
+	if err != nil {
+		log.Printf("%s host list unavailable (%v); its routing is disabled", svc.Label(), err)
+		return nil
+	}
+	return hosts
 }
 
 // SetAccount stores (or, with an empty secret, clears) a credential for a

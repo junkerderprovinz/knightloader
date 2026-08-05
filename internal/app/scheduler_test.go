@@ -74,6 +74,34 @@ func TestCollectorStaging(t *testing.T) {
 	expectNone(t, stub.got) // the other stays collected until started
 }
 
+// TestDedupOnAdd pins the collector's duplicate guard: the same URL is only
+// staged once, whether repeated within one paste or across two.
+func TestDedupOnAdd(t *testing.T) {
+	a, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Close()
+	a.Registry.Register(jd.Resolver{})
+
+	first := a.AddLinks([]string{
+		"https://h.example/a",
+		"https://h.example/a", // duplicate inside the same paste
+		"https://h.example/b",
+	}, "p")
+	if len(first) != 2 {
+		t.Fatalf("staged %d, want 2 (in-paste duplicate skipped)", len(first))
+	}
+
+	second := a.AddLinks([]string{"https://h.example/a", "https://h.example/c"}, "p")
+	if len(second) != 1 || second[0].URL != "https://h.example/c" {
+		t.Fatalf("second add = %d task(s) %v, want only the new URL", len(second), second)
+	}
+	if got := len(a.Tasks()); got != 3 {
+		t.Fatalf("total tasks = %d, want 3", got)
+	}
+}
+
 // TestRestartFailed pins retry: an errored task re-enters the pipeline when
 // restarted.
 func TestRestartFailed(t *testing.T) {

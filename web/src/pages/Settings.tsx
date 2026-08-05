@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { type Settings, fetchSettings, saveSettings } from '../lib/api';
+import { useT } from '../lib/i18n';
 import { PageHeader, Card, Button, Field, NumberInput, Toggle } from '../components/ui';
 
 export function SettingsPage() {
+  const { t } = useT();
   const [cfg, setCfg] = useState<Settings | null>(null);
   const [saved, setSaved] = useState(false);
 
@@ -20,18 +22,23 @@ export function SettingsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Settings" subtitle="Concurrency, speed and post-processing." />
+      <PageHeader title={t('settings.title')} subtitle={t('settings.subtitle')} />
 
       {cfg && (
         <Card className="flex flex-col gap-5 max-w-2xl">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Field label="Max simultaneous">
-              <NumberInput value={cfg.maxConcurrent} min={1} max={64} onValue={(v) => setCfg({ ...cfg, maxConcurrent: v })} />
+            <Field label={t('settings.maxConcurrent')}>
+              <NumberInput
+                value={cfg.maxConcurrent}
+                min={1}
+                max={64}
+                onValue={(v) => setCfg({ ...cfg, maxConcurrent: v })}
+              />
             </Field>
-            <Field label="Max per host">
+            <Field label={t('settings.maxPerHost')}>
               <NumberInput value={cfg.maxPerHost} min={1} max={64} onValue={(v) => setCfg({ ...cfg, maxPerHost: v })} />
             </Field>
-            <Field label="Speed limit (KiB/s, 0 = ∞)" hint="Applies to yt-dlp and JDownloader.">
+            <Field label={t('settings.speedLimit')} hint={t('settings.speedHint')}>
               <NumberInput
                 value={Math.round(cfg.speedLimit / 1024)}
                 min={0}
@@ -41,12 +48,20 @@ export function SettingsPage() {
             </Field>
           </div>
           <div className="flex flex-col gap-3">
-            <Toggle checked={cfg.extract} onChange={(v) => setCfg({ ...cfg, extract: v })} label="Extract archives after download" />
-            <Toggle checked={cfg.deleteArchive} onChange={(v) => setCfg({ ...cfg, deleteArchive: v })} label="Delete archive after extraction" />
+            <Toggle
+              checked={cfg.extract}
+              onChange={(v) => setCfg({ ...cfg, extract: v })}
+              label={t('settings.extract')}
+            />
+            <Toggle
+              checked={cfg.deleteArchive}
+              onChange={(v) => setCfg({ ...cfg, deleteArchive: v })}
+              label={t('settings.deleteArchive')}
+            />
           </div>
           <div className="flex items-center gap-3">
-            <Button onClick={onSave}>Save</Button>
-            {saved && <span className="text-statusOk text-sm">Saved.</span>}
+            <Button onClick={onSave}>{t('settings.save')}</Button>
+            {saved && <span className="text-statusOk text-sm">{t('settings.saved')}</span>}
           </div>
         </Card>
       )}
