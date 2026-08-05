@@ -193,3 +193,20 @@ func TestHasVars(t *testing.T) {
 		}
 	}
 }
+
+// TestSimpleDateMilliseconds pins SSS. Go only reads "000" as fractional
+// seconds when a separator precedes it, so a naive layout table emits the
+// literal "000" and a template that uses SSS to keep folders apart collides on
+// every single task.
+func TestSimpleDateMilliseconds(t *testing.T) {
+	when := time.Date(2026, 8, 6, 9, 5, 4, 123_000_000, time.UTC)
+	got := Expand("<jd:simpledate:HHmmss-SSS>", Vars{Date: when})
+	if got != "090504-123" {
+		t.Errorf("Expand(SSS) = %q, want %q", got, "090504-123")
+	}
+	// Two tasks a millisecond apart must not land in the same folder.
+	later := Expand("<jd:simpledate:SSS>", Vars{Date: when.Add(time.Millisecond)})
+	if later == Expand("<jd:simpledate:SSS>", Vars{Date: when}) {
+		t.Error("SSS produced the same value for two different instants")
+	}
+}

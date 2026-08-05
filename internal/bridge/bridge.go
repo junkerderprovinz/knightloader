@@ -51,8 +51,13 @@ type Bridge struct {
 	// back 401 reports the epoch it rode on, so concurrent submissions that all
 	// trip over the same expired session cost one login between them instead of
 	// one each.
-	mu    sync.Mutex
-	epoch uint64
+	mu sync.Mutex
+	// loginWait is non-nil while a login is in flight. A second caller waits on
+	// it instead of starting its own, and instead of returning early — a
+	// caller that gave up waiting would retry with the session that just
+	// expired and fail for the same reason all over again.
+	loginWait chan struct{}
+	epoch     uint64
 }
 
 // New builds a Bridge aimed at the instance named in o. The address is the one
@@ -126,48 +131,27 @@ func (b *Bridge) AddLinksCnL(urls []string, pkg string, passwords []string) {
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
 
+	// Passwords travel with the links in one request. Sending them separately
+	// meant the endpoint could only take one, and every password past the first
+	// was quietly lost on the way to the remote.
 	body, err := json.Marshal(struct {
-		Links   string `json:"links"`
-		Package string `json:"package"`
-	}{Links: strings.Join(urls, "\n"), Package: pkg})
+		Links     string   `json:"links"`
+		Package   string   `json:"package"`
+		Passwords []string `json:"passwords,omitempty"`
+	}{Links: strings.Join(urls, "\n"), Package: pkg, Passwords: passwords})
 	if err != nil {
-		log.Printf("bridge: could not encode %d links for %s: %v", len(urls), b.remote, err)
+		log.Printf("could not encode %d links for %s: %v", len(urls), b.remote, err)
 		return
 	}
 
-	raw, err := b.call(ctx, http.MethodPost, "/api/links", body)
-	if err != nil {
+	if _, err := b.call(ctx, http.MethodPost, "/api/links", body); err != nil {
 		// These links are gone: the website will not offer them a second time.
 		// Say loudly what was lost, because a bridge that drops links in silence
 		// looks exactly like one that works.
-		log.Printf("bridge: %d links dropped, none reached the remote: %v", len(urls), err)
+		log.Printf("%d links dropped, none reached the remote: %v", len(urls), err)
 		return
 	}
-	log.Printf("bridge: forwarded %d links to %s (package %q)", len(urls), b.remote, pkg)
-
-	if len(passwords) == 0 {
-		return
-	}
-	ids := taskIDs(raw)
-	if len(ids) == 0 {
-		log.Printf("bridge: %s staged no tasks for those links, the archive password was not applied", b.remote)
-		return
-	}
-	// The options endpoint takes one password per call, and the first is the one
-	// the website meant; the rest of a CnL password list is guesswork anyway.
-	optBody, err := json.Marshal(struct {
-		Ids      []string `json:"ids"`
-		Password string   `json:"password"`
-	}{Ids: ids, Password: passwords[0]})
-	if err != nil {
-		log.Printf("bridge: could not encode the archive password for %s: %v", b.remote, err)
-		return
-	}
-	if _, err := b.call(ctx, http.MethodPost, "/api/tasks/options", optBody); err != nil {
-		// The links themselves did land, so this is a partial success worth
-		// distinguishing: extraction will simply stop and ask for the password.
-		log.Printf("bridge: archive password not applied to %d tasks on %s: %v", len(ids), b.remote, err)
-	}
+	log.Printf("forwarded %d links to %s (package %q)", len(urls), b.remote, pkg)
 }
 
 // call performs one API request and, if the remote answers 401, logs in and
@@ -207,11 +191,34 @@ func (b *Bridge) login(ctx context.Context, seen uint64) error {
 	if b.password == "" {
 		return fmt.Errorf("bridge: %s is password locked but no password is configured", b.remote)
 	}
+	// Only the decision to log in is serialised, never the request itself.
+	// Holding the mutex across the round trip would make one hung remote block
+	// every other submission before it even reached the network, and the CnL
+	// handler is synchronous, so every browser tab would hang with it.
 	b.mu.Lock()
-	defer b.mu.Unlock()
 	if b.epoch != seen {
+		b.mu.Unlock()
 		return nil
 	}
+	if wait := b.loginWait; wait != nil {
+		b.mu.Unlock()
+		select {
+		case <-wait:
+			return nil
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+	done := make(chan struct{})
+	b.loginWait = done
+	b.mu.Unlock()
+	defer func() {
+		b.mu.Lock()
+		b.loginWait = nil
+		b.mu.Unlock()
+		close(done)
+	}()
+
 	body, err := json.Marshal(struct {
 		Password string `json:"password"`
 	}{Password: b.password})
@@ -229,7 +236,9 @@ func (b *Bridge) login(ctx context.Context, seen uint64) error {
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
 		return fmt.Errorf("bridge: login at %s answered HTTP %d: %s", b.remote, resp.StatusCode, snippet(out))
 	}
+	b.mu.Lock()
 	b.epoch++
+	b.mu.Unlock()
 	return nil
 }
 
@@ -265,7 +274,7 @@ func taskIDs(raw []byte) []string {
 		ID string `json:"id"`
 	}
 	if err := json.Unmarshal(raw, &tasks); err != nil {
-		log.Printf("bridge: could not read the task list returned by /api/links: %v", err)
+		log.Printf("could not read the task list returned by /api/links: %v", err)
 		return nil
 	}
 	out := make([]string, 0, len(tasks))
@@ -290,7 +299,16 @@ func drain(resp *http.Response) []byte {
 func snippet(b []byte) string {
 	s := strings.TrimSpace(string(b))
 	if len(s) > 200 {
-		s = s[:200] + "…"
+		// Cut on a rune boundary: a remote error page is often UTF-8, and slicing
+		// bytes puts half a character into the log.
+		cut := 0
+		for i := range s {
+			if i > 200 {
+				break
+			}
+			cut = i
+		}
+		s = s[:cut] + "…"
 	}
 	return s
 }

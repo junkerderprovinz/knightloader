@@ -21,8 +21,9 @@ import (
 // memory a single bad connection can pin.
 const queueDepth = 64
 
-// writeTimeout bounds one frame write. It now only ever delays the connection it
-// belongs to, because each connection is written by its own goroutine.
+// writeTimeout bounds one frame write. It can only ever delay the connection it
+// belongs to, because each connection is written by its own goroutine, so it
+// never reaches the broadcast path.
 const writeTimeout = 5 * time.Second
 
 // Conn is the part of *websocket.Conn the hub actually uses. It is an interface

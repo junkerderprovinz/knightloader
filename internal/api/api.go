@@ -17,7 +17,6 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
-	"github.com/junkerderprovinz/knightloader/internal/hub"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/knightloader/web"
 )
@@ -376,7 +375,11 @@ func serveWS(a *app.App, w http.ResponseWriter, r *http.Request) {
 		a.Hub.Remove(c)
 		c.CloseNow()
 	}()
-	_ = hub.Send(r.Context(), c, "snapshot", a.Tasks())
+	// Queued through the hub, not written straight to the socket: the writer
+	// goroutine started with Add above, so a task event that arrives in between
+	// could otherwise reach the client first and be overwritten by the older
+	// snapshot.
+	a.Hub.SendTo(c, "snapshot", a.Tasks())
 	for {
 		if _, _, err := c.Read(r.Context()); err != nil {
 			return

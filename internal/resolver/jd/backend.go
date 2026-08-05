@@ -1,6 +1,7 @@
 package jd
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -57,16 +58,37 @@ func (b *Backend) poll(taskID string) {
 	pkg := b.pkgName(taskID)
 	ticker := time.NewTicker(750 * time.Millisecond)
 	defer ticker.Stop()
-	deadline := time.After(30 * time.Minute)
+
+	// Two separate patiences, because they answer two different questions.
+	// appearBy asks whether JD ever accepted the link at all — crawling and
+	// captchas take minutes, not hours. stall asks whether a download that did
+	// start has stopped moving. A single wall-clock deadline conflated the two
+	// and killed healthy multi-hour downloads at the thirty-minute mark.
+	appearBy := time.Now().Add(appearLimit)
+	var seen bool
+	var lastBytes int64
+	lastMoved := time.Now()
 
 	for {
 		select {
 		case <-stop:
 			return
-		case <-deadline:
-			b.onUpdate(taskID, core.Update{Status: core.StatusError, Err: "jd: timeout"})
-			return
 		case <-ticker.C:
+			if !seen && time.Now().After(appearBy) {
+				b.onUpdate(taskID, core.Update{
+					Status: core.StatusError,
+					Err:    "jd: the link never reached JDownloader's download list",
+				})
+				return
+			}
+			if seen && time.Since(lastMoved) > stallLimit {
+				b.onUpdate(taskID, core.Update{
+					Status: core.StatusError,
+					Err:    "jd: no progress for " + stallLimit.String(),
+				})
+				return
+			}
+
 			puuid, err := b.c.PackageUUID(pkg)
 			if err != nil || puuid == 0 {
 				continue // still crawling / not in the download list yet
@@ -75,23 +97,55 @@ func (b *Backend) poll(taskID string) {
 			if err != nil || len(links) == 0 {
 				continue
 			}
-			link := &links[0]
-			u := core.Update{
-				Name:   link.Name,
-				Size:   link.BytesTotal,
-				Loaded: link.BytesLoaded,
-				Speed:  link.Speed,
-				Status: core.StatusRunning,
-			}
-			if link.Finished || link.Status == "Finished" {
-				u.Status = core.StatusDone
-				u.Speed = 0
-				b.onUpdate(taskID, u)
-				return
+			seen = true
+
+			// JD may have crawled one link into several files. Reporting only
+			// the first would show a fraction of the real size and call the
+			// task done while the rest is still downloading, so the whole
+			// package is summed instead.
+			u := aggregate(links)
+			if u.Loaded != lastBytes {
+				lastBytes = u.Loaded
+				lastMoved = time.Now()
 			}
 			b.onUpdate(taskID, u)
+			if u.Status == core.StatusDone {
+				return
+			}
 		}
 	}
+}
+
+// appearLimit is how long JD gets to turn a submitted link into a download.
+// Crawling, container decryption and a captcha all happen in here.
+const appearLimit = 15 * time.Minute
+
+// stallLimit is how long a started download may make no progress before it is
+// given up on. Generous on purpose: a hoster cool-down is minutes, and JD
+// handles its own waiting.
+const stallLimit = 45 * time.Minute
+
+// aggregate folds every file JD produced for one link into a single update, so
+// the size and progress shown are the package's, not the first file's.
+func aggregate(links []DownloadLink) core.Update {
+	u := core.Update{Status: core.StatusRunning, Name: links[0].Name}
+	done := 0
+	for i := range links {
+		u.Size += links[i].BytesTotal
+		u.Loaded += links[i].BytesLoaded
+		u.Speed += links[i].Speed
+		if links[i].Finished || links[i].Status == "Finished" {
+			done++
+		}
+	}
+	if len(links) > 1 {
+		u.Name = fmt.Sprintf("%s (+%d)", links[0].Name, len(links)-1)
+	}
+	if done == len(links) {
+		u.Status = core.StatusDone
+		u.Speed = 0
+	}
+	return u
 }
 
 func (b *Backend) Pause(taskID string)  { b.setEnabled(taskID, false) }

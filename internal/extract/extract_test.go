@@ -241,7 +241,10 @@ func TestExtractCompressedSingleFile(t *testing.T) {
 			if len(res.Volumes) != 1 || res.Volumes[0] != arc {
 				t.Fatalf("Volumes = %v, want [%s]", res.Volumes, arc)
 			}
-			b, err := os.ReadFile(filepath.Join(dir, "notes.txt", "notes.txt"))
+			// Beside the archive, not inside a folder named after the file it
+			// produces: that folder would read as a mistake and would collide
+			// with a sibling of the same name.
+			b, err := os.ReadFile(filepath.Join(dir, "notes.txt"))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -268,7 +271,7 @@ func TestExtractTgzWithoutTarFallsBackToSingleFile(t *testing.T) {
 	if res.Files != 1 {
 		t.Fatalf("Files = %d, want 1", res.Files)
 	}
-	b, err := os.ReadFile(filepath.Join(dir, "blob", "blob"))
+	b, err := os.ReadFile(filepath.Join(dir, "blob"))
 	if err != nil || string(b) != "not a tar at all" {
 		t.Fatalf("extracted content = %q, %v", b, err)
 	}
@@ -363,5 +366,35 @@ func TestDestDirStripsArchiveSuffix(t *testing.T) {
 		if got := filepath.Base(destDir(filepath.Join("dl", c.in))); got != c.want {
 			t.Errorf("destDir(%q) = %q, want %q", c.in, got, c.want)
 		}
+	}
+}
+
+// TestSingleStreamDoesNotCollideWithASibling covers the shape that made the old
+// destination wrong: a "dump.sql.gz" downloaded next to an existing "dump.sql".
+// Creating a directory of that name failed outright, so a routine download was
+// reported as a broken archive.
+func TestSingleStreamDoesNotCollideWithASibling(t *testing.T) {
+	dir := t.TempDir()
+	sibling := filepath.Join(dir, "dump.sql")
+	if err := os.WriteFile(sibling, []byte("older dump"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	arc := filepath.Join(dir, "dump.sql.gz")
+	writeCompressed(t, arc, gzipWriter, []byte("newer dump"))
+
+	res, err := Extract(arc)
+	if err != nil {
+		t.Fatalf("extracting beside an existing file of the target name failed: %v", err)
+	}
+	if res.Files != 1 {
+		t.Fatalf("Files = %d, want 1", res.Files)
+	}
+	b, err := os.ReadFile(sibling)
+	if err != nil || string(b) != "newer dump" {
+		t.Fatalf("sibling holds %q, %v", b, err)
+	}
+	// No stray folder may be left behind.
+	if fi, err := os.Stat(sibling); err == nil && fi.IsDir() {
+		t.Error("the target became a directory")
 	}
 }

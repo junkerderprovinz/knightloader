@@ -1286,6 +1286,14 @@ func (a *App) TestAccount(service string) AccountState {
 // submission can carry the archive passwords for what it is sending, which is
 // exactly the moment we can learn them without asking the user.
 func (a *App) AddLinksCnL(urls []string, pkg string, passwords []string) {
+	a.AddLinksWithPasswords(urls, pkg, passwords)
+}
+
+// AddLinksWithPasswords stages links that arrived together with the archive
+// passwords for them. The first password rides on the tasks themselves, because
+// it was supplied for exactly these files; the rest join the global list, where
+// a later archive from the same source can still reach them.
+func (a *App) AddLinksWithPasswords(urls []string, pkg string, passwords []string) []*core.Task {
 	created := a.AddLinks(urls, pkg)
 	var first string
 	for _, pw := range passwords {
@@ -1295,18 +1303,19 @@ func (a *App) AddLinksCnL(urls []string, pkg string, passwords []string) {
 		}
 	}
 	if first == "" || len(created) == 0 {
-		return
+		return created
 	}
 	ids := make([]string, 0, len(created))
 	for _, t := range created {
 		ids = append(ids, t.ID)
 	}
-	// The remaining passwords still reach the extractor through the global
-	// list, so only the first needs to ride on the task itself.
-	_ = a.SetTaskOptions(ids, TaskOptions{Password: &first})
+	if err := a.SetTaskOptions(ids, TaskOptions{Password: &first}); err != nil {
+		log.Printf("could not apply the supplied archive password: %v", err)
+	}
 	if len(passwords) > 1 {
 		a.rememberPasswords(passwords)
 	}
+	return created
 }
 
 // rememberPasswords folds passwords a submission brought along into the global
@@ -1634,6 +1643,10 @@ func (a *App) sumFromSiblingFile(dir, name string) (checksum.Sum, bool) {
 		sums, err := parse(f)
 		f.Close()
 		if err != nil {
+			// Both parsers are strict: one malformed line yields nothing. Left
+			// silent, that is indistinguishable from "no checksum file here",
+			// and every download in the batch would quietly show as unverified.
+			log.Printf("checksum file %s is unusable: %v", e.Name(), err)
 			continue
 		}
 		for _, s := range sums {

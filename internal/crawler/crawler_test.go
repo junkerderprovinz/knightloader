@@ -73,7 +73,8 @@ func TestCrawlCollectsFileLinksInDocumentOrder(t *testing.T) {
 		{URL: srv.URL + "/gallery/two.mkv", Name: "Two"},
 		{URL: "https://cdn.example.net/three.iso", Name: "Three"},
 		{URL: srv.URL + "/media/clip.mp4", Name: "clip.mp4"},
-		{URL: srv.URL + "/img/pic.jpg", Name: "pic.jpg"},
+		// No entry for the page's <img>: an ordinary page is full of logos and
+		// tracking pixels, and none of them is what a link was pasted for.
 	})
 }
 
@@ -318,5 +319,31 @@ func TestHTMLSatisfiesCrawler(t *testing.T) {
 	var c Crawler = HTML{}
 	if c.Info().ID != "html" {
 		t.Errorf("Info().ID = %q, want \"html\"", c.Info().ID)
+	}
+}
+
+// TestOrdinaryPageYieldsNothing is the case that made <img> collection a bug
+// rather than a feature: a hoster page is ordinary HTML full of furniture. If
+// the crawler returns anything here, the app treats the page as "crawled" and
+// the link the user actually pasted is dropped in favour of logos and pixels.
+func TestOrdinaryPageYieldsNothing(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		_, _ = io.WriteString(w, `<html><body>
+			<img src="/assets/logo.png">
+			<img src="https://ads.example/px.gif?id=9">
+			<img src="/assets/sprite.svg">
+			<a href="/terms.html">Terms</a>
+			<a href="/login.php">Sign in</a>
+		</body></html>`)
+	}))
+	defer srv.Close()
+
+	got, err := (HTML{}).Crawl(context.Background(), srv.URL+"/f/abc123")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != 0 {
+		t.Fatalf("collected %v from a page with no downloads", got)
 	}
 }

@@ -160,7 +160,7 @@ func TestFromNameExtractsCrc32Tag(t *testing.T) {
 		{"movie.part1 {crc32_deadBEEF}.rar", "deadbeef", true},
 		{"episode (0f1e2d3c).avi", "0f1e2d3c", true},
 		// Several tags: the CRC is conventionally the last one.
-		{"[Group] Show - 01 [1080p] [12345678].mkv", "12345678", true},
+		{"[Group] Show - 01 [1080p] [1a2b3c4d].mkv", "1a2b3c4d", true},
 		{"plain.movie.mkv", "", false},
 		{"Show (2026) 1080p.mkv", "", false},
 		{"toolong [123456789].mkv", "", false},

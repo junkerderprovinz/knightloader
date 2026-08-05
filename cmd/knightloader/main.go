@@ -46,6 +46,10 @@ func main() {
 	// purpose — the jd backend is wired at app start from KL_JD.
 	if envInt("KL_PROVISION_JD", 0) == 1 && os.Getenv("KL_JD") == "" {
 		pv := provision.New(filepath.Join(dataDir, "jd"))
+		// Held for the life of the process: dropping it would leave the JVM we
+		// started running after we exit, and the next start would then find
+		// port 3128 taken by an orphan it did not configure.
+		defer func() { _ = pv.Stop() }()
 		log.Printf("provisioning headless JDownloader (first run may take a few minutes)…")
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 		if _, url, err := pv.Ensure(ctx); err != nil {
