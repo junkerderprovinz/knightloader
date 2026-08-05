@@ -380,6 +380,9 @@ func (a *App) SetAccount(service, secret string) error {
 	return a.Accounts.Set(service, secret)
 }
 
+// AddLinksCnL satisfies the Click'n'Load listener's Adder interface.
+func (a *App) AddLinksCnL(urls []string, pkg string) { a.AddLinks(urls, pkg) }
+
 // speedLimiter is implemented by backends that can apply a live rate limit.
 type speedLimiter interface {
 	SetSpeedLimit(bytesPerSec int64) error
