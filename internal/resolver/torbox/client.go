@@ -166,3 +166,28 @@ func (c *Client) RequestDL(ctx context.Context, webID, fileID int64) (string, er
 	}
 	return link, nil
 }
+
+// Delete removes a web download from the TorBox account.
+func (c *Client) Delete(ctx context.Context, id int64) error {
+	body, _ := json.Marshal(map[string]any{"webdl_id": id, "operation": "delete"})
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.base+"/api/webdl/controlwebdownload", strings.NewReader(string(body)))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Authorization", "Bearer "+c.key)
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := c.hc.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	raw, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
+	var env envelope
+	if err := json.Unmarshal(raw, &env); err != nil {
+		return fmt.Errorf("torbox delete: %s: %w", resp.Status, err)
+	}
+	if !env.Success {
+		return fmt.Errorf("torbox delete: %v %s", env.Error, env.Detail)
+	}
+	return nil
+}

@@ -30,6 +30,7 @@ type Backend struct {
 	cancel map[string]context.CancelFunc
 	link   map[string]string // original hoster link, for resume
 	handed map[string]bool   // true once the engine owns the transfer
+	jobID  map[string]int64  // TorBox web-download id, for cleanup on Remove
 }
 
 func NewBackend(c *Client, eng Downloader, onUpdate func(taskID string, u core.Update)) *Backend {
@@ -38,6 +39,7 @@ func NewBackend(c *Client, eng Downloader, onUpdate func(taskID string, u core.U
 		cancel: map[string]context.CancelFunc{},
 		link:   map[string]string{},
 		handed: map[string]bool{},
+		jobID:  map[string]int64{},
 	}
 }
 
@@ -70,6 +72,9 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 		b.fail(taskID, err)
 		return
 	}
+	b.mu.Lock()
+	b.jobID[taskID] = id
+	b.mu.Unlock()
 
 	// Poll until TorBox has the file on its CDN, mirroring its own fetch phase.
 	ticker := time.NewTicker(2 * time.Second)
@@ -156,10 +161,20 @@ func (b *Backend) Remove(taskID string) {
 		c()
 	}
 	handed := b.handed[taskID]
+	job := b.jobID[taskID]
 	delete(b.link, taskID)
 	delete(b.handed, taskID)
+	delete(b.jobID, taskID)
 	b.mu.Unlock()
 	if handed {
 		b.eng.Remove(taskID)
+	}
+	if job != 0 {
+		// Best-effort: also drop the job from the TorBox account.
+		go func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+			defer cancel()
+			_ = b.c.Delete(ctx, job)
+		}()
 	}
 }
