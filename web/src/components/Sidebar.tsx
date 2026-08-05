@@ -1,7 +1,8 @@
 import { NavLink } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { getTheme, toggleTheme } from '../lib/theme';
-import { useT, LANGUAGES } from '../lib/i18n';
+import { useT } from '../lib/i18n';
+import { LanguagePicker } from './LanguagePicker';
 import { fetchHealth } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import {
@@ -13,7 +14,6 @@ import {
   IconSettings,
   IconMoon,
   IconSun,
-  IconGlobe,
 } from '../lib/icons';
 
 // The active item is marked by a gold rail and gold icon on a raised surface —
@@ -52,7 +52,7 @@ function Item({
 }
 
 export function Sidebar() {
-  const { t, lang, setLang } = useT();
+  const { t } = useT();
   const [theme, setThemeState] = useState(getTheme);
   const [version, setVersion] = useState('');
   const tasks = useTasks('');
@@ -72,8 +72,6 @@ export function Sidebar() {
     }
     return { collected, active };
   }, [tasks]);
-
-  const nextLang = LANGUAGES[(LANGUAGES.findIndex((l) => l.code === lang) + 1) % LANGUAGES.length];
 
   return (
     <aside className="flex flex-col w-56 shrink-0 h-full bg-carbon-sidebar">
@@ -98,14 +96,7 @@ export function Sidebar() {
       </nav>
 
       <div className="flex flex-col gap-1 p-3">
-        <button
-          onClick={() => setLang(nextLang.code)}
-          className={`${navBase} ${navInactive} w-full`}
-          title={t('lang.label')}
-        >
-          <IconGlobe />
-          <span>{LANGUAGES.find((l) => l.code === lang)?.label}</span>
-        </button>
+        <LanguagePicker className={`${navBase} ${navInactive} w-full`} />
         <button
           onClick={() => setThemeState(toggleTheme())}
           className={`${navBase} ${navInactive} w-full`}
