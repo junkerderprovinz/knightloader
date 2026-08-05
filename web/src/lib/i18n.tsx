@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { en, type Dict, type TranslationKey } from './locales/en';
-import { DICTS } from './locales';
+import { AVAILABLE, load, loaded } from './locales';
 
 export type { TranslationKey, Dict };
 
@@ -44,7 +44,7 @@ const CATALOGUE: LanguageDef[] = [
   { code: 'vi', label: 'Tiếng Việt', flag: 'vn' },
 ];
 
-export const LANGUAGES: LanguageDef[] = CATALOGUE.filter((l) => l.code in DICTS);
+export const LANGUAGES: LanguageDef[] = CATALOGUE.filter((l) => AVAILABLE.includes(l.code));
 
 export type Lang = string;
 
@@ -52,7 +52,7 @@ const STORAGE_KEY = 'kl-lang';
 
 function detect(): Lang {
   const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored && stored in DICTS) return stored;
+  if (stored && AVAILABLE.includes(stored)) return stored;
   const nav = navigator.language?.toLowerCase() ?? 'en';
   const exact = LANGUAGES.find((l) => nav === l.code || nav.startsWith(l.code + '-'));
   return exact?.code ?? 'en';
@@ -87,8 +87,20 @@ export const useT = () => useContext(Ctx);
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(detect);
+  // The chosen language arrives asynchronously (its chunk has to be fetched);
+  // until it does, English stands in rather than the UI showing raw keys.
+  const [dict, setDict] = useState<Dict>(() => loaded(detect()) ?? en);
 
-  useEffect(() => applyDocumentLanguage(lang), [lang]);
+  useEffect(() => {
+    applyDocumentLanguage(lang);
+    let current = true;
+    load(lang).then((d) => {
+      if (current) setDict(d);
+    });
+    return () => {
+      current = false;
+    };
+  }, [lang]);
 
   const setLang = useCallback((l: Lang) => {
     localStorage.setItem(STORAGE_KEY, l);
@@ -97,11 +109,11 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const t = useCallback(
     (key: TranslationKey, vars?: Record<string, string | number>) => {
-      let s: string = DICTS[lang]?.[key] ?? en[key];
+      let s: string = dict[key] ?? en[key];
       if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
       return s;
     },
-    [lang],
+    [dict],
   );
 
   return <Ctx.Provider value={{ t, lang, setLang, languages: LANGUAGES }}>{children}</Ctx.Provider>;
