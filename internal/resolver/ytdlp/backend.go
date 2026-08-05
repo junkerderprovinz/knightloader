@@ -148,10 +148,25 @@ func (b *Backend) run(taskID, url string) {
 		if msg == "" {
 			msg = err.Error()
 		}
-		b.onUpdate(taskID, core.Update{Status: core.StatusError, Err: "yt-dlp: " + msg})
+		b.onUpdate(taskID, core.Update{
+			Status: core.StatusError,
+			Err:    "yt-dlp: " + msg,
+			// yt-dlp saying it has no extractor for this link is not a download
+			// failure — it means the link belongs to someone else. Saying so
+			// lets a plain file whose URL carries no extension still be fetched.
+			Unsupported: notMine(msg),
+		})
 		return
 	}
 	b.onUpdate(taskID, core.Update{Status: core.StatusDone, Speed: 0})
+}
+
+// notMine recognises yt-dlp's way of saying a link is not something it handles.
+func notMine(msg string) bool {
+	m := strings.ToLower(msg)
+	return strings.Contains(m, "unsupported url") ||
+		strings.Contains(m, "no suitable extractor") ||
+		strings.Contains(m, "is not a valid url")
 }
 
 func (b *Backend) Pause(taskID string) {

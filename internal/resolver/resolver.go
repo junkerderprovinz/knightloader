@@ -90,6 +90,21 @@ func (r *Registry) IDs() []string {
 	return out
 }
 
+// All returns every resolver that matches the URL, highest priority first. It
+// is what makes a fallback chain possible: when the first backend cannot
+// actually fetch the link, the next one gets a turn.
+func (r *Registry) All(url string) []Resolver {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	var out []Resolver
+	for _, res := range r.list {
+		if res.Match(url) {
+			out = append(out, res)
+		}
+	}
+	return out
+}
+
 // For returns the highest-priority resolver that matches the URL, or nil.
 func (r *Registry) For(url string) Resolver {
 	r.mu.RLock()

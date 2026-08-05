@@ -51,6 +51,7 @@ const resolverLabel: Record<string, string> = {
   realdebrid: 'Real-Debrid',
   ytdlp: 'yt-dlp',
   jd: 'JDownloader',
+  http: 'HTTP',
 };
 
 // Which backend carries a task — quiet by design, it is metadata, not status.

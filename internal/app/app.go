@@ -106,6 +106,7 @@ func New(dataDir string) (*App, error) {
 		debrid:     map[string]backend{},
 	}
 	a.Registry.Register(resolver.Direct{})
+	a.Registry.Register(resolver.HTTPFallback{})
 
 	eng, err := engine.New(filepath.Join(dataDir, "downloads"), a.onUpdate)
 	if err != nil {
@@ -536,6 +537,43 @@ func (a *App) RestartTasks(ids []string) {
 	}
 }
 
+// resolverForTaskLocked picks the resolver a task should be dispatched through:
+// the one recorded on it if that still exists, else the best current match.
+// Caller holds a.mu.
+func (a *App) resolverForTaskLocked(t *core.Task) resolver.Resolver {
+	if t.Resolver != "" {
+		for _, res := range a.Registry.All(t.URL) {
+			if res.Info().ID == t.Resolver {
+				return res
+			}
+		}
+	}
+	return a.Registry.For(t.URL)
+}
+
+// nextResolverLocked returns the resolver that should try after the one the
+// task just used, or "" when the chain is exhausted. Caller holds a.mu.
+func (a *App) nextResolverLocked(t *core.Task) string {
+	chain := a.Registry.All(t.URL)
+	for i, res := range chain {
+		if res.Info().ID == t.Resolver {
+			if i+1 < len(chain) {
+				return chain[i+1].Info().ID
+			}
+			return "" // the chain is exhausted
+		}
+	}
+	// The recorded backend is not registered any more — a credential was
+	// removed, or a binary went missing. Restart the chain from the top rather
+	// than leaving the task stranded on a backend that no longer exists.
+	for _, res := range chain {
+		if res.Info().ID != t.Resolver {
+			return res.Info().ID
+		}
+	}
+	return ""
+}
+
 // setAvailability records what a check learned about a link. It is separate
 // from Update because availability is a property of the link, not of a download
 // attempt: a staged link can be known-dead before anything is started.
@@ -660,12 +698,15 @@ func (a *App) dispatchLocked() {
 			go a.backendFor(t.Resolver).Resume(id)
 			continue
 		}
-		res := a.Registry.For(t.URL)
+		// Honour the resolver already recorded on the task: after a fallback it
+		// is deliberately not the highest-priority match any more.
+		res := a.resolverForTaskLocked(t)
 		if res == nil {
 			t.Status = core.StatusError
 			t.Error = "no resolver matches"
 			continue
 		}
+		t.Resolver = res.Info().ID
 		result, err := res.Resolve(context.Background(), resolver.Request{URL: t.URL})
 		if err != nil {
 			t.Status = core.StatusError
@@ -1129,11 +1170,31 @@ func (a *App) onUpdate(id string, u core.Update) {
 		t.Retries = 0
 		t.NextTry = time.Time{}
 	}
+	// A backend that says the link is not its business hands the task to the
+	// next one in the chain instead of failing it. This is deliberately not a
+	// guess about the error text: only an explicit signal advances the chain,
+	// so a hoster link that genuinely failed is never re-downloaded as a plain
+	// web page. The chain only moves downwards, so it terminates.
+	var fallbackTo backend
+	if u.Status == core.StatusError && u.Unsupported {
+		if next := a.nextResolverLocked(t); next != "" {
+			fallbackTo = a.backendFor(t.Resolver)
+			log.Printf("task %s: %s could not fetch the link, trying %s", id, t.Resolver, next)
+			t.Resolver = next
+			t.Status = core.StatusQueued
+			t.Error = ""
+			t.Speed = 0
+			delete(a.started, id)
+			a.queue = append(a.queue, id)
+			a.dispatchLocked()
+		}
+	}
+
 	// A failure is not automatically the end: hosters throttle, connections
 	// drop. Retry a bounded number of times with a growing delay before the
 	// task is left for the user to deal with.
 	var retryIn time.Duration
-	if u.Status == core.StatusError {
+	if u.Status == core.StatusError && fallbackTo == nil {
 		if cfg := a.Settings.Get(); t.Retries < cfg.MaxRetries {
 			t.Retries++
 			retryIn = u.Retry
@@ -1161,6 +1222,11 @@ func (a *App) onUpdate(id string, u core.Update) {
 	}
 	c := *t
 	a.mu.Unlock()
+	if fallbackTo != nil {
+		// Clear the old backend's state so a later restart does not resume a
+		// download that belongs to a backend the task no longer uses.
+		fallbackTo.Remove(id, true)
+	}
 	_ = a.Store.Save(&c)
 	a.Hub.Broadcast("task", &c)
 	if extractCopy != nil {
