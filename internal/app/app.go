@@ -20,6 +20,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/engine"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
+	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/hub"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
@@ -39,12 +40,13 @@ type backend interface {
 }
 
 type App struct {
-	Store    *store.Store
-	Engine   *engine.Engine
-	Hub      *hub.Hub
-	Registry *resolver.Registry
-	Accounts *accounts.Store
-	Settings *settings.Store
+	Store      *store.Store
+	Engine     *engine.Engine
+	Hub        *hub.Hub
+	Registry   *resolver.Registry
+	Accounts   *accounts.Store
+	Settings   *settings.Store
+	Federation *federation.Manager
 
 	jd     backend // headless-JD backend, nil unless KL_JD is set and reachable
 	ytdlp  backend // yt-dlp media backend, nil unless the yt-dlp binary is present
@@ -69,15 +71,21 @@ func New(dataDir string) (*App, error) {
 		st.Close()
 		return nil, err
 	}
+	fed, err := federation.Load(dataDir)
+	if err != nil {
+		st.Close()
+		return nil, err
+	}
 	a := &App{
-		Store:    st,
-		Hub:      hub.New(),
-		Registry: resolver.NewRegistry(),
-		Settings: cfg,
-		dlDir:    filepath.Join(dataDir, "downloads"),
-		tasks:    map[string]*core.Task{},
-		active:   map[string]bool{},
-		started:  map[string]bool{},
+		Store:      st,
+		Hub:        hub.New(),
+		Registry:   resolver.NewRegistry(),
+		Settings:   cfg,
+		Federation: fed,
+		dlDir:      filepath.Join(dataDir, "downloads"),
+		tasks:      map[string]*core.Task{},
+		active:     map[string]bool{},
+		started:    map[string]bool{},
 	}
 	a.Registry.Register(resolver.Direct{})
 

@@ -24,12 +24,12 @@ async function json<T>(r: Response): Promise<T> {
   return (await r.json()) as T;
 }
 
-export async function fetchTasks(): Promise<Task[]> {
-  return (await json<Task[]>(await fetch('/api/tasks'))) ?? [];
+export async function fetchTasks(base = '/api'): Promise<Task[]> {
+  return (await json<Task[]>(await fetch(`${base}/tasks`))) ?? [];
 }
 
-export async function addLinks(links: string, pkg: string): Promise<Task[]> {
-  const r = await fetch('/api/links', {
+export async function addLinks(links: string, pkg: string, base = '/api'): Promise<Task[]> {
+  const r = await fetch(`${base}/links`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ links, package: pkg }),
@@ -37,9 +37,38 @@ export async function addLinks(links: string, pkg: string): Promise<Task[]> {
   return (await json<Task[]>(r)) ?? [];
 }
 
-export const pause = (id: string) => fetch(`/api/tasks/${id}/pause`, { method: 'POST' });
-export const resume = (id: string) => fetch(`/api/tasks/${id}/resume`, { method: 'POST' });
-export const remove = (id: string) => fetch(`/api/tasks/${id}`, { method: 'DELETE' });
+export const pause = (id: string, base = '/api') =>
+  fetch(`${base}/tasks/${id}/pause`, { method: 'POST' });
+export const resume = (id: string, base = '/api') =>
+  fetch(`${base}/tasks/${id}/resume`, { method: 'POST' });
+export const remove = (id: string, base = '/api') =>
+  fetch(`${base}/tasks/${id}`, { method: 'DELETE' });
+
+export interface Instance {
+  name: string;
+  url: string;
+}
+
+// apiBase returns the API prefix for an instance ('' = this instance).
+export const apiBase = (instance: string) =>
+  instance ? `/api/instances/${encodeURIComponent(instance)}` : '/api';
+
+export async function fetchInstances(): Promise<Instance[]> {
+  return (await json<Instance[]>(await fetch('/api/instances'))) ?? [];
+}
+
+export async function addInstance(name: string, url: string): Promise<{ online: boolean }> {
+  const r = await fetch('/api/instances', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, url }),
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return json(r);
+}
+
+export const removeInstance = (name: string) =>
+  fetch(`/api/instances/${encodeURIComponent(name)}`, { method: 'DELETE' });
 
 export async function fetchSettings(): Promise<Settings> {
   return json<Settings>(await fetch('/api/settings'));

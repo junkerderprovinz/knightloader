@@ -15,11 +15,14 @@ import {
   Modal,
   NumberInput,
   Toggle,
+  Dropdown,
 } from '@carbon/react';
-import { Settings as SettingsIcon } from '@carbon/icons-react';
+import { Settings as SettingsIcon, TrashCan } from '@carbon/icons-react';
 import {
   Task,
   Settings,
+  Instance,
+  apiBase,
   fetchTasks,
   addLinks,
   pause,
@@ -30,6 +33,9 @@ import {
   saveSettings,
   fetchAccounts,
   saveAccount,
+  fetchInstances,
+  addInstance,
+  removeInstance,
 } from './api';
 
 function fmtBytes(n: number): string {
@@ -58,18 +64,42 @@ function SettingsModal({ open, onClose }: { open: boolean; onClose: () => void }
   const [cfg, setCfg] = useState<Settings | null>(null);
   const [torboxKey, setTorboxKey] = useState('');
   const [hasTorbox, setHasTorbox] = useState(false);
+  const [peers, setPeers] = useState<Instance[]>([]);
+  const [peerName, setPeerName] = useState('');
+  const [peerURL, setPeerURL] = useState('');
+  const [peerErr, setPeerErr] = useState('');
 
   useEffect(() => {
     if (!open) return;
     fetchSettings().then(setCfg);
     fetchAccounts().then((s) => setHasTorbox(s.includes('torbox')));
+    fetchInstances().then(setPeers);
     setTorboxKey('');
+    setPeerErr('');
   }, [open]);
 
   async function onSave() {
     if (cfg) await saveSettings(cfg);
     if (torboxKey.trim()) await saveAccount('torbox', torboxKey.trim());
     onClose();
+  }
+
+  async function onAddPeer() {
+    setPeerErr('');
+    try {
+      const r = await addInstance(peerName.trim(), peerURL.trim());
+      if (!r.online) setPeerErr('Added, but the instance did not answer (offline?).');
+      setPeerName('');
+      setPeerURL('');
+      setPeers(await fetchInstances());
+    } catch (e: any) {
+      setPeerErr(String(e?.message ?? e));
+    }
+  }
+
+  async function onRemovePeer(name: string) {
+    await removeInstance(name);
+    setPeers(await fetchInstances());
   }
 
   return (
@@ -144,6 +174,52 @@ function SettingsModal({ open, onClose }: { open: boolean; onClose: () => void }
             value={torboxKey}
             onChange={(e) => setTorboxKey(e.target.value)}
           />
+
+          <div className="kl-peers">
+            <div className="kl-section-label">Instances</div>
+            {peers.length === 0 && (
+              <div className="kl-muted">No other instances yet.</div>
+            )}
+            {peers.map((p) => (
+              <div key={p.name} className="kl-peer-row">
+                <span>{p.name}</span>
+                <span className="kl-muted">{p.url}</span>
+                <Button
+                  kind="ghost"
+                  size="sm"
+                  hasIconOnly
+                  iconDescription={`Remove ${p.name}`}
+                  renderIcon={TrashCan}
+                  onClick={() => onRemovePeer(p.name)}
+                />
+              </div>
+            ))}
+            <div className="kl-peer-add">
+              <TextInput
+                id="peerName"
+                labelText="Name"
+                placeholder="e.g. cellar"
+                value={peerName}
+                onChange={(e) => setPeerName(e.target.value)}
+              />
+              <TextInput
+                id="peerURL"
+                labelText="URL"
+                placeholder="http://host:8749"
+                value={peerURL}
+                onChange={(e) => setPeerURL(e.target.value)}
+              />
+              <Button
+                kind="tertiary"
+                size="md"
+                disabled={!peerName.trim() || !peerURL.trim()}
+                onClick={onAddPeer}
+              >
+                Add instance
+              </Button>
+            </div>
+            {peerErr && <div className="kl-err">{peerErr}</div>}
+          </div>
         </div>
       )}
     </Modal>
@@ -155,12 +231,32 @@ export default function App() {
   const [links, setLinks] = useState('');
   const [pkg, setPkg] = useState('');
   const [showSettings, setShowSettings] = useState(false);
+  const [instances, setInstances] = useState<Instance[]>([]);
+  const [instance, setInstance] = useState(''); // '' = this instance
   const closer = useRef<(() => void) | null>(null);
+  const base = apiBase(instance);
 
   useEffect(() => {
-    fetchTasks().then((list) =>
+    fetchInstances().then(setInstances);
+  }, [showSettings]); // refresh after the settings modal closes
+
+  // Local view streams over the WebSocket; a remote instance is polled.
+  useEffect(() => {
+    setTasks({});
+    fetchTasks(base).then((list) =>
       setTasks(Object.fromEntries((list ?? []).map((t) => [t.id, t]))),
     );
+    if (instance) {
+      const iv = setInterval(async () => {
+        try {
+          const list = await fetchTasks(base);
+          setTasks(Object.fromEntries((list ?? []).map((t) => [t.id, t])));
+        } catch {
+          /* peer offline; keep last state */
+        }
+      }, 2000);
+      return () => clearInterval(iv);
+    }
     closer.current = connectWS((type, data) => {
       if (type === 'snapshot')
         setTasks(Object.fromEntries((data ?? []).map((t: Task) => [t.id, t])));
@@ -173,7 +269,7 @@ export default function App() {
         });
     });
     return () => closer.current?.();
-  }, []);
+  }, [instance]);
 
   const list = Object.values(tasks).sort((a, b) =>
     a.createdAt < b.createdAt ? -1 : 1,
@@ -181,9 +277,17 @@ export default function App() {
 
   async function onAdd() {
     if (!links.trim()) return;
-    await addLinks(links, pkg);
+    await addLinks(links, pkg, base);
     setLinks('');
+    if (instance) fetchTasks(base).then((l) =>
+      setTasks(Object.fromEntries((l ?? []).map((t) => [t.id, t]))),
+    );
   }
+
+  const instanceItems = [
+    { id: '', label: 'This instance' },
+    ...instances.map((i) => ({ id: i.name, label: i.name })),
+  ];
 
   return (
     <Theme theme="g100">
@@ -193,6 +297,22 @@ export default function App() {
           <span className="kl-title">KnightLoader</span>
           <span className="kl-muted">working title</span>
           <span className="kl-spacer" />
+          {instances.length > 0 && (
+            <div className="kl-instance-picker">
+              <Dropdown
+                id="instance"
+                size="sm"
+                label="Instance"
+                titleText=""
+                items={instanceItems}
+                selectedItem={
+                  instanceItems.find((i) => i.id === instance) ?? instanceItems[0]
+                }
+                itemToString={(i) => i?.label ?? ''}
+                onChange={({ selectedItem }) => setInstance(selectedItem?.id ?? '')}
+              />
+            </div>
+          )}
           <Button
             kind="ghost"
             size="sm"
@@ -289,16 +409,16 @@ export default function App() {
                     <TableCell>
                       <div className="kl-actions">
                         {t.status === 'running' && (
-                          <Button kind="ghost" size="sm" onClick={() => pause(t.id)}>
+                          <Button kind="ghost" size="sm" onClick={() => pause(t.id, base)}>
                             Pause
                           </Button>
                         )}
                         {t.status === 'paused' && (
-                          <Button kind="ghost" size="sm" onClick={() => resume(t.id)}>
+                          <Button kind="ghost" size="sm" onClick={() => resume(t.id, base)}>
                             Resume
                           </Button>
                         )}
-                        <Button kind="ghost" size="sm" onClick={() => remove(t.id)}>
+                        <Button kind="ghost" size="sm" onClick={() => remove(t.id, base)}>
                           Remove
                         </Button>
                       </div>
