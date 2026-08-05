@@ -3,6 +3,8 @@
 package api
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"io"
 	"io/fs"
@@ -389,23 +391,63 @@ func serveWS(a *app.App, w http.ResponseWriter, r *http.Request) {
 
 // spaHandler serves the embedded build, falling back to index.html for
 // client-side routes.
+//
+// The bundle file names deliberately carry no content hash, so that the dist
+// committed to the repository does not churn on every build. That leaves the
+// cache with nothing to go on: embedded files have no modification time, so
+// net/http sends no Last-Modified either, and a browser is then free to keep a
+// stale app.js for as long as it likes — which after a redeploy means an old
+// UI talking to a new API, or a blank page.
+//
+// The fix is an ETag over the file's own bytes plus no-cache, which does not
+// mean "do not cache" but "revalidate before use". A reload then costs one
+// conditional request that almost always answers 304.
 func spaHandler() http.Handler {
 	sub, _ := fs.Sub(web.Dist, "dist")
+	etags := buildETags(sub)
 	fileServer := http.FileServer(http.FS(sub))
+
+	serve := func(w http.ResponseWriter, r *http.Request, name string) {
+		if tag, ok := etags[name]; ok {
+			w.Header().Set("ETag", tag)
+		}
+		w.Header().Set("Cache-Control", "no-cache")
+		fileServer.ServeHTTP(w, r)
+	}
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		p := strings.TrimPrefix(r.URL.Path, "/")
 		if p == "" {
-			fileServer.ServeHTTP(w, r)
+			serve(w, r, "index.html")
 			return
 		}
 		if _, err := fs.Stat(sub, p); err == nil {
-			fileServer.ServeHTTP(w, r)
+			serve(w, r, p)
 			return
 		}
 		r2 := r.Clone(r.Context())
 		r2.URL.Path = "/"
-		fileServer.ServeHTTP(w, r2)
+		serve(w, r2, "index.html")
 	})
+}
+
+// buildETags hashes every embedded file once at startup. The build is immutable
+// for the life of the process, so this is computed once rather than per request.
+func buildETags(sub fs.FS) map[string]string {
+	tags := map[string]string{}
+	_ = fs.WalkDir(sub, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return nil
+		}
+		b, err := fs.ReadFile(sub, path)
+		if err != nil {
+			return nil
+		}
+		sum := sha256.Sum256(b)
+		tags[path] = `"` + hex.EncodeToString(sum[:16]) + `"`
+		return nil
+	})
+	return tags
 }
 
 func writeJSON(w http.ResponseWriter, v any) {

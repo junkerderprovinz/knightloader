@@ -203,3 +203,45 @@ func newJar(t *testing.T) http.CookieJar {
 	}
 	return jar
 }
+
+// TestAssetsRevalidate is the reason a redeploy can leave a browser on an old
+// UI. The bundle names carry no content hash and the embedded files have no
+// modification time, so without an ETag the browser has no way to tell that
+// app.js changed and is free to keep serving the old one from cache.
+func TestAssetsRevalidate(t *testing.T) {
+	srv, _ := testServer(t)
+	defer srv.Close()
+
+	for _, path := range []string{"/", "/assets/app.js"} {
+		t.Run(path, func(t *testing.T) {
+			resp, err := http.Get(srv.URL + path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			resp.Body.Close()
+			if resp.StatusCode != http.StatusOK {
+				t.Fatalf("status = %d", resp.StatusCode)
+			}
+			tag := resp.Header.Get("ETag")
+			if tag == "" {
+				t.Fatal("no ETag, so a stale bundle can survive a redeploy unnoticed")
+			}
+			if cc := resp.Header.Get("Cache-Control"); cc != "no-cache" {
+				t.Errorf("Cache-Control = %q, want no-cache so the browser revalidates", cc)
+			}
+
+			// The same bytes must answer 304, or revalidation costs a full
+			// download every time and the fix trades one problem for another.
+			req, _ := http.NewRequest(http.MethodGet, srv.URL+path, nil)
+			req.Header.Set("If-None-Match", tag)
+			resp2, err := http.DefaultClient.Do(req)
+			if err != nil {
+				t.Fatal(err)
+			}
+			resp2.Body.Close()
+			if resp2.StatusCode != http.StatusNotModified {
+				t.Errorf("revalidating with the same ETag = %d, want 304", resp2.StatusCode)
+			}
+		})
+	}
+}
