@@ -58,6 +58,11 @@ export function SettingsPage() {
               onChange={(v) => setCfg({ ...cfg, deleteArchive: v })}
               label={t('settings.deleteArchive')}
             />
+            <Toggle
+              checked={cfg.autoStart}
+              onChange={(v) => setCfg({ ...cfg, autoStart: v })}
+              label={t('settings.autoStart')}
+            />
           </div>
           <div className="flex items-center gap-3">
             <Button onClick={onSave}>{t('settings.save')}</Button>

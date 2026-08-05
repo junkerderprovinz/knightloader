@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { addLinks, remove, startTasks } from '../lib/api';
+import { addLinks, remove, startTasks, setPackage } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import { useToast } from '../lib/toast';
 import { useT } from '../lib/i18n';
-import { PageHeader, Button, TextInput, Card } from '../components/ui';
-import { PackageGroup, groupByPackage, type Selection } from '../components/TaskList';
-import { IconPlus, IconPlay, IconTrash } from '../lib/icons';
+import { PageHeader, Button, TextInput } from '../components/ui';
+import { TaskListCard, groupByPackage, type Selection } from '../components/TaskList';
+import { IconPlus, IconPlay, IconTrash, IconCollector } from '../lib/icons';
 
 export function Collector() {
   const { t } = useT();
@@ -19,7 +19,7 @@ export function Collector() {
   const collected = useMemo(
     () =>
       Object.values(tasks)
-        .filter((t) => t.status === 'collected')
+        .filter((x) => x.status === 'collected')
         .sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1)),
     [tasks],
   );
@@ -28,7 +28,7 @@ export function Collector() {
   // Drop selections that have left the collector.
   useEffect(() => {
     setSelected((prev) => {
-      const live = new Set(collected.map((t) => t.id));
+      const live = new Set(collected.map((x) => x.id));
       const next = new Set([...prev].filter((id) => live.has(id)));
       return next.size === prev.size ? prev : next;
     });
@@ -39,7 +39,8 @@ export function Collector() {
     toggle: (id) =>
       setSelected((s) => {
         const n = new Set(s);
-        n.has(id) ? n.delete(id) : n.add(id);
+        if (n.has(id)) n.delete(id);
+        else n.add(id);
         return n;
       }),
   };
@@ -84,12 +85,25 @@ export function Collector() {
     toast(t('collector.toastStarted', { n: collected.length }), 'info');
   };
   const removeSelected = () => selected.forEach((id) => remove(id));
+  const selectAll = () => setSelected(new Set(collected.map((x) => x.id)));
+  const clearSelection = () => setSelected(new Set());
+  const offline = useMemo(() => collected.filter((x) => !!x.error), [collected]);
+  const removeOffline = () => offline.forEach((x) => remove(x.id));
+
+  function moveSelected() {
+    if (!selected.size) return;
+    const target = window.prompt(t('collector.movePrompt'), pkg);
+    if (target === null) return;
+    setPackage([...selected], target);
+    toast(t('collector.toastMoved', { n: selected.size, pkg: target.trim() || t('task.ungrouped') }), 'ok');
+  }
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title={t('collector.title')} subtitle={t('collector.subtitle')} />
 
-      <Card className="flex flex-col gap-3">
+      {/* The hero: one drop zone that is also the paste field. */}
+      <div className="kl-card p-0 overflow-hidden">
         <div
           onDragOver={(e) => {
             e.preventDefault();
@@ -97,7 +111,9 @@ export function Collector() {
           }}
           onDragLeave={() => setDragOver(false)}
           onDrop={onDrop}
-          className={`rounded-lg transition-colors ${dragOver ? 'ring-2 ring-accent' : ''}`}
+          className={`relative m-3 rounded-[var(--radius-control)] transition-colors ${
+            dragOver ? 'bg-accentSoft shadow-[0_0_0_2px_var(--focus-ring)]' : 'bg-carbon-surface2'
+          }`}
         >
           <textarea
             placeholder={t('collector.placeholder')}
@@ -107,10 +123,18 @@ export function Collector() {
             onKeyDown={(e) => {
               if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') onAdd();
             }}
-            className="w-full rounded-lg bg-carbon-surface2 px-3 py-2 text-sm text-carbon-text placeholder:text-carbon-textMuted outline-none focus:ring-2 focus:ring-[var(--status-info-solid)] resize-y"
+            className="w-full resize-y rounded-[var(--radius-control)] bg-transparent px-4 py-3 text-sm text-carbon-text placeholder:text-carbon-textMuted outline-none"
           />
+          {dragOver && (
+            <div className="pointer-events-none absolute inset-0 grid place-items-center rounded-[var(--radius-control)]">
+              <span className="flex items-center gap-2 text-sm font-medium text-accent">
+                <IconCollector width={18} height={18} />
+                {t('collector.add')}
+              </span>
+            </div>
+          )}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 px-4 pb-4">
           <TextInput
             placeholder={t('collector.package')}
             value={pkg}
@@ -122,32 +146,50 @@ export function Collector() {
             {t('collector.add')}
           </Button>
         </div>
-      </Card>
+      </div>
 
       {collected.length === 0 ? (
-        <div className="kl-card p-10 text-center text-carbon-textMuted">{t('collector.empty')}</div>
+        <div className="kl-card p-12 text-center text-sm text-carbon-textMuted">{t('collector.empty')}</div>
       ) : (
         <>
-          <div className="flex items-center gap-2 rounded-card kl-card px-5 py-3 text-sm">
-            <span className="text-carbon-textSub">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="kl-num text-sm text-carbon-textSub">
               {selected.size > 0
                 ? `${selected.size} ${t('collector.selected')}`
                 : `${collected.length} ${t('collector.staged')}`}
             </span>
+            <Button
+              kind="ghost"
+              className="px-2.5 text-xs"
+              onClick={selected.size ? clearSelection : selectAll}
+            >
+              {selected.size ? t('collector.selectNone') : t('collector.selectAll')}
+            </Button>
+            {offline.length > 0 && (
+              <Button kind="ghost" className="px-2.5 text-xs" onClick={removeOffline}>
+                {t('collector.removeOffline')} ({offline.length})
+              </Button>
+            )}
+            <Button
+              kind="ghost"
+              className="px-2.5 text-xs"
+              onClick={moveSelected}
+              disabled={selected.size === 0}
+            >
+              {t('collector.move')}
+            </Button>
             <span className="flex-1" />
-            <Button kind="primary" icon={<IconPlay />} onClick={startSelected} disabled={selected.size === 0}>
-              {t('collector.startSelected')}
+            <Button kind="ghost" icon={<IconTrash />} onClick={removeSelected} disabled={selected.size === 0}>
+              {t('collector.remove')}
             </Button>
             <Button kind="secondary" onClick={startAll}>
               {t('collector.startAll')}
             </Button>
-            <Button kind="danger" icon={<IconTrash />} onClick={removeSelected} disabled={selected.size === 0}>
-              {t('collector.remove')}
+            <Button kind="primary" icon={<IconPlay />} onClick={startSelected} disabled={selected.size === 0}>
+              {t('collector.startSelected')}
             </Button>
           </div>
-          {groups.map(([name, items]) => (
-            <PackageGroup key={name || '__none'} name={name} items={items} base="/api" selection={selection} />
-          ))}
+          <TaskListCard groups={groups} base="/api" selection={selection} />
         </>
       )}
     </div>

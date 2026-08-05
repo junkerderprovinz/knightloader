@@ -1,21 +1,23 @@
-// A thin accent progress bar. Determinate tracks percent; indeterminate loops a
-// small segment (before a size is known). Modelled on BombVault's ProgressBar.
+// A slim progress track. Determinate fills with the accent; indeterminate loops
+// a short segment (used while a task is queued and has no size yet).
 export function ProgressBar({
   percent,
   active,
   indeterminate,
+  tone = 'accent',
 }: {
   percent: number;
   active: boolean;
   indeterminate?: boolean;
+  tone?: 'accent' | 'ok';
 }) {
   if (!active) return null;
   const isIndet = indeterminate ?? percent <= 0;
   const clamped = Math.max(0, Math.min(100, percent));
+  const fill = tone === 'ok' ? 'var(--status-ok-solid)' : 'var(--accent)';
   return (
     <div
-      className="relative h-1 w-full overflow-hidden rounded-full"
-      style={{ background: 'var(--carbon-border)' }}
+      className="relative h-1.5 w-full overflow-hidden rounded-full bg-carbon-surface3/70"
       role="progressbar"
       aria-valuemin={0}
       aria-valuemax={100}
@@ -23,13 +25,13 @@ export function ProgressBar({
     >
       {isIndet ? (
         <div
-          className="absolute inset-y-0 w-1/3 rounded-full"
-          style={{ background: 'var(--accent)', animation: 'kl-indeterminate 1.2s ease-in-out infinite' }}
+          className="absolute inset-y-0 w-1/3 rounded-full opacity-70"
+          style={{ background: fill, animation: 'kl-indeterminate 1.4s ease-in-out infinite' }}
         />
       ) : (
         <div
-          className="h-full transition-[width] duration-300 ease-out"
-          style={{ width: `${clamped}%`, background: 'var(--accent)' }}
+          className="h-full rounded-full transition-[width] duration-500 ease-out"
+          style={{ width: `${clamped}%`, background: fill }}
         />
       )}
     </div>

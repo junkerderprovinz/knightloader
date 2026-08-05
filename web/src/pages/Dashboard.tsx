@@ -4,11 +4,11 @@ import { type Instance, fetchInstances } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import { fmtBytes, fmtSpeed, pct } from '../lib/format';
 import { useT } from '../lib/i18n';
-import { PageHeader, Card } from '../components/ui';
-import { StatCard } from '../components/StatCard';
+import { PageHeader, SectionTitle } from '../components/ui';
 import { SpeedGraph } from '../components/SpeedGraph';
+import { Counters } from '../components/Counters';
 import { ProgressBar } from '../components/ProgressBar';
-import { StatusPill, ResolverBadge } from '../components/StatusPill';
+import { StatusPill } from '../components/StatusPill';
 import { InstanceCard } from '../components/InstanceCard';
 
 export function Dashboard() {
@@ -22,20 +22,20 @@ export function Dashboard() {
   }, []);
 
   const list = useMemo(() => Object.values(tasks), [tasks]);
-  const s = useMemo(() => {
+  const counts = useMemo(() => {
     let running = 0,
       queued = 0,
       done = 0,
       error = 0,
       collected = 0,
       speed = 0;
-    for (const t of list) {
-      if (t.status === 'running' || t.status === 'extracting') running++;
-      else if (t.status === 'queued') queued++;
-      else if (t.status === 'done') done++;
-      else if (t.status === 'error') error++;
-      else if (t.status === 'collected') collected++;
-      if (t.status === 'running') speed += t.speed;
+    for (const x of list) {
+      if (x.status === 'running' || x.status === 'extracting') running++;
+      else if (x.status === 'queued') queued++;
+      else if (x.status === 'done') done++;
+      else if (x.status === 'error') error++;
+      else if (x.status === 'collected') collected++;
+      if (x.status === 'running') speed += x.speed;
     }
     return { running, queued, done, error, collected, speed };
   }, [list]);
@@ -43,7 +43,7 @@ export function Dashboard() {
   const recent = useMemo(
     () =>
       list
-        .filter((t) => t.status !== 'collected')
+        .filter((x) => x.status !== 'collected')
         .sort((a, b) => (a.createdAt > b.createdAt ? -1 : 1))
         .slice(0, 6),
     [list],
@@ -53,57 +53,50 @@ export function Dashboard() {
     <div className="flex flex-col gap-6">
       <PageHeader title={t('overview.title')} subtitle={t('overview.subtitle')} />
 
-      <Card className="p-0 overflow-hidden">
-        <div className="px-5 pt-4">
-          <div className="text-carbon-textMuted text-xs">{t('overview.totalSpeed')}</div>
-          <div className="text-3xl font-bold tabular-nums text-carbon-text">{fmtSpeed(s.speed) || '0 B/s'}</div>
+      {/* The single hero of this page. */}
+      <div className="kl-card grid grid-cols-1 items-center gap-4 overflow-hidden p-5 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-8">
+        <div>
+          <div className="kl-eyebrow">{t('overview.totalSpeed')}</div>
+          <div className="kl-num mt-1 text-[38px] font-semibold leading-none tracking-tight text-carbon-text">
+            {fmtSpeed(counts.speed) || '0 B/s'}
+          </div>
+          <div className="mt-4">
+            <Counters counts={counts} />
+          </div>
         </div>
-        <SpeedGraph value={s.speed} height={72} />
-      </Card>
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-        <StatCard label={t('overview.active')} value={s.running} tone="text-statusInfo" />
-        <StatCard label={t('overview.queued')} value={s.queued} tone="text-statusNeutral" />
-        <StatCard label={t('overview.inCollector')} value={s.collected} tone="text-carbon-text" />
-        <StatCard label={t('overview.done')} value={s.done} tone="text-statusOk" />
-        <StatCard label={t('overview.errors')} value={s.error} tone={s.error ? 'text-statusFail' : 'text-carbon-text'} />
+        <SpeedGraph value={counts.speed} height={96} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 flex flex-col gap-3">
-          <h2 className="text-base font-semibold text-carbon-text">{t('overview.recent')}</h2>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <div className="flex flex-col gap-3">
+          <SectionTitle>{t('overview.recent')}</SectionTitle>
           {recent.length === 0 ? (
-            <Card className="text-carbon-textMuted text-sm">{t('overview.noDownloads')}</Card>
+            <div className="kl-card p-8 text-center text-sm text-carbon-textMuted">{t('overview.noDownloads')}</div>
           ) : (
-            <Card className="flex flex-col p-0 overflow-hidden">
-              {recent.map((t) => (
-                <div
-                  key={t.id}
-                  className="flex items-center gap-3 px-5 py-2.5 border-t border-carbon-border/50 first:border-t-0"
-                >
+            <div className="kl-card divide-y divide-carbon-border/60 p-0">
+              {recent.map((x) => (
+                <div key={x.id} className="flex items-center gap-4 px-5 py-3">
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="truncate text-carbon-text text-sm">{t.name || t.url}</span>
-                      <ResolverBadge resolver={t.resolver} />
-                    </div>
-                    <div className="mt-1 max-w-sm">
+                    <div className="truncate text-[13.5px] text-carbon-text">{x.name || x.url}</div>
+                    <div className="mt-1.5 max-w-xs">
                       <ProgressBar
-                        percent={pct(t.loaded, t.size, t.status === 'done')}
-                        active={t.status !== 'error'}
-                        indeterminate={t.status === 'queued'}
+                        percent={pct(x.loaded, x.size, x.status === 'done')}
+                        active={x.status !== 'error'}
+                        indeterminate={x.status === 'queued'}
+                        tone={x.status === 'done' ? 'ok' : 'accent'}
                       />
                     </div>
                   </div>
-                  <span className="text-carbon-textSub text-xs tabular-nums">{fmtBytes(t.size)}</span>
-                  <StatusPill status={t.status} />
+                  <span className="kl-num text-xs text-carbon-textSub">{fmtBytes(x.size)}</span>
+                  <StatusPill status={x.status} />
                 </div>
               ))}
-            </Card>
+            </div>
           )}
         </div>
 
         <div className="flex flex-col gap-3">
-          <h2 className="text-base font-semibold text-carbon-text">{t('overview.instances')}</h2>
+          <SectionTitle>{t('overview.instances')}</SectionTitle>
           <InstanceCard name={t('instances.thisInstance')} url={location.host} base="/api" />
           {instances.map((i) => (
             <InstanceCard

@@ -53,6 +53,18 @@ func Handler(a *app.App) http.Handler {
 		a.StartTasks(body.Ids)
 		w.WriteHeader(http.StatusNoContent)
 	})
+	mux.HandleFunc("POST /api/tasks/package", func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Ids     []string `json:"ids"`
+			Package string   `json:"package"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil || len(body.Ids) == 0 {
+			http.Error(w, "bad json", http.StatusBadRequest)
+			return
+		}
+		a.SetPackage(body.Ids, body.Package)
+		w.WriteHeader(http.StatusNoContent)
+	})
 	mux.HandleFunc("POST /api/tasks/restart", func(w http.ResponseWriter, r *http.Request) {
 		var body struct {
 			Ids []string `json:"ids"`
