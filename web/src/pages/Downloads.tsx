@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   type Instance,
   type Task,
@@ -13,11 +13,10 @@ import {
 import { useTasks } from '../lib/useTasks';
 import { fmtSpeed } from '../lib/format';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { PageHeader, Button } from '../components/ui';
-import { SpeedGraph } from '../components/SpeedGraph';
+import { PageHeader, Button, EmptyState } from '../components/ui';
 import { Counters } from '../components/Counters';
 import { TaskListCard, groupByPackage } from '../components/TaskList';
-import { IconSearch } from '../lib/icons';
+import { IconSearch, IconDownloads } from '../lib/icons';
 
 type Filter = 'all' | 'active' | 'done' | 'error';
 const FILTERS: { key: Filter; label: TranslationKey }[] = [
@@ -37,6 +36,7 @@ function matchesFilter(t: Task, f: Filter): boolean {
 
 export function Downloads() {
   const { t } = useT();
+  const navigate = useNavigate();
   const [params] = useSearchParams();
   const [instances, setInstances] = useState<Instance[]>([]);
   const [instance, setInstance] = useState(params.get('instance') ?? '');
@@ -109,20 +109,16 @@ export function Downloads() {
         }
       />
 
-      {/* The hero: the figure and its counters on the left, the curve filling
-          the right — balanced whether idle or saturated. */}
-      <div className="kl-card grid grid-cols-1 items-center gap-4 overflow-hidden p-5 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-8">
-        <div>
-          <div className="kl-eyebrow">{t('downloads.totalSpeed')}</div>
-          <div className="kl-num mt-1 text-[34px] font-semibold leading-none tracking-tight text-carbon-text">
+      {/* No hero here — the list is this page's weight. The speed and counters
+          ride as one quiet uncarded line so Overview keeps the big figure. */}
+      {list.length > 0 && (
+        <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
+          <span className="kl-num text-[20px] font-semibold leading-none text-carbon-text">
             {fmtSpeed(counts.speed) || '0 B/s'}
-          </div>
-          <div className="mt-4">
-            <Counters counts={counts} />
-          </div>
+          </span>
+          <Counters counts={counts} />
         </div>
-        <SpeedGraph value={counts.speed} height={84} />
-      </div>
+      )}
 
       {list.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
@@ -155,50 +151,49 @@ export function Downloads() {
             ))}
           </div>
           <span className="flex-1" />
+          {/* Bulk actions appear only when they can do something, so the strip
+              stays short instead of showing four greyed-out verbs. */}
           <div className="flex items-center gap-0.5">
-            <Button kind="ghost" className="px-2.5 text-xs" onClick={pauseAll} disabled={counts.running === 0}>
-              {t('downloads.pauseAll')}
-            </Button>
-            <Button
-              kind="ghost"
-              className="px-2.5 text-xs"
-              onClick={resumeAll}
-              disabled={counts.queued + counts.running === 0}
-            >
-              {t('downloads.resumeAll')}
-            </Button>
-            <Button kind="ghost" className="px-2.5 text-xs" onClick={retryFailed} disabled={counts.error === 0}>
-              {t('downloads.retryFailed')}
-            </Button>
-            <Button
-              kind="ghost"
-              className="px-2.5 text-xs"
-              onClick={clearDone}
-              disabled={counts.done + counts.error === 0}
-            >
-              {t('downloads.clearFinished')}
-            </Button>
+            {counts.running > 0 && (
+              <Button kind="ghost" className="px-2.5 text-xs" onClick={pauseAll}>
+                {t('downloads.pauseAll')}
+              </Button>
+            )}
+            {list.some((x) => x.status === 'paused') && (
+              <Button kind="ghost" className="px-2.5 text-xs" onClick={resumeAll}>
+                {t('downloads.resumeAll')}
+              </Button>
+            )}
+            {counts.error > 0 && (
+              <Button kind="ghost" className="px-2.5 text-xs" onClick={retryFailed}>
+                {t('downloads.retryFailed')}
+              </Button>
+            )}
+            {counts.done + counts.error > 0 && (
+              <Button kind="ghost" className="px-2.5 text-xs" onClick={clearDone}>
+                {t('downloads.clearFinished')}
+              </Button>
+            )}
           </div>
         </div>
       )}
 
       {list.length === 0 ? (
-        <Empty />
+        <EmptyState
+          icon={<IconDownloads width={28} height={28} />}
+          title={t('empty.downloadsTitle')}
+          hint={t('empty.downloadsHint')}
+          action={
+            <Button kind="secondary" onClick={() => navigate('/collector')}>
+              {t('empty.goCollector')}
+            </Button>
+          }
+        />
       ) : filtered.length === 0 ? (
-        <div className="kl-card p-8 text-center text-sm text-carbon-textMuted">{t('downloads.noMatch')}</div>
+        <EmptyState icon={<IconSearch width={26} height={26} />} title={t('downloads.noMatch')} />
       ) : (
         <TaskListCard groups={groups} base={base} />
       )}
-    </div>
-  );
-}
-
-function Empty() {
-  const { t } = useT();
-  return (
-    <div className="kl-card p-12 text-center text-sm text-carbon-textMuted">
-      {t('downloads.emptyLead')} <span className="text-carbon-textSub">{t('nav.collector')}</span>{' '}
-      {t('downloads.emptyTail')}
     </div>
   );
 }

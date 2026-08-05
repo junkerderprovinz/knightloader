@@ -12,6 +12,62 @@ interface Stats {
   speed: number;
 }
 
+// usePeerStats polls one instance for its live figures.
+function usePeerStats(base: string): Stats | null {
+  const [stats, setStats] = useState<Stats | null>(null);
+  useEffect(() => {
+    let alive = true;
+    const load = async () => {
+      try {
+        const list: Task[] = await fetchTasks(base);
+        if (!alive) return;
+        const running = list.filter((x) => x.status === 'running' || x.status === 'extracting').length;
+        const speed = list.reduce((s, x) => s + (x.status === 'running' ? x.speed : 0), 0);
+        setStats({ online: true, active: running, total: list.length, speed });
+      } catch {
+        if (alive) setStats({ online: false, active: 0, total: 0, speed: 0 });
+      }
+    };
+    load();
+    const iv = setInterval(load, 3000);
+    return () => {
+      alive = false;
+      clearInterval(iv);
+    };
+  }, [base]);
+  return stats;
+}
+
+// InstanceRow is the quiet form used where instances are a summary rather than
+// the subject of the page: a dot, the name, and the current speed.
+export function InstanceRow({ name, base, onOpen }: { name: string; base: string; onOpen?: () => void }) {
+  const { t } = useT();
+  const stats = usePeerStats(base);
+  const online = stats?.online ?? false;
+  const body = (
+    <>
+      <span
+        className={`h-2 w-2 shrink-0 rounded-full ${online ? 'bg-statusOkSolid' : 'bg-statusFailSolid'}`}
+        title={online ? t('instances.online') : t('instances.offline')}
+      />
+      <span className="min-w-0 flex-1 truncate text-[13.5px] text-carbon-text">{name}</span>
+      <span className="kl-num text-xs text-carbon-textSub">
+        {stats ? fmtSpeed(stats.speed) || '—' : '—'}
+      </span>
+    </>
+  );
+  return onOpen ? (
+    <button
+      onClick={onOpen}
+      className="flex w-full items-center gap-3 px-5 py-3 text-left transition-colors hover:bg-carbon-hover/50"
+    >
+      {body}
+    </button>
+  ) : (
+    <div className="flex items-center gap-3 px-5 py-3">{body}</div>
+  );
+}
+
 // One instance at a glance: a status dot, the host, and three quiet figures.
 export function InstanceCard({
   name,
@@ -27,33 +83,11 @@ export function InstanceCard({
   onRemove?: () => void;
 }) {
   const { t } = useT();
-  const [stats, setStats] = useState<Stats | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    const load = async () => {
-      try {
-        const list: Task[] = await fetchTasks(base);
-        if (!active) return;
-        const running = list.filter((x) => x.status === 'running' || x.status === 'extracting').length;
-        const speed = list.reduce((s, x) => s + (x.status === 'running' ? x.speed : 0), 0);
-        setStats({ online: true, active: running, total: list.length, speed });
-      } catch {
-        if (active) setStats({ online: false, active: 0, total: 0, speed: 0 });
-      }
-    };
-    load();
-    const iv = setInterval(load, 3000);
-    return () => {
-      active = false;
-      clearInterval(iv);
-    };
-  }, [base]);
-
+  const stats = usePeerStats(base);
   const online = stats?.online ?? false;
 
   return (
-    <Card hover={!!onOpen} className="group flex flex-col gap-3">
+    <Card hover={!!onOpen} className="group flex h-full flex-col gap-3">
       <div className="flex items-center gap-2.5">
         <span
           className={`h-2 w-2 shrink-0 rounded-full ${online ? 'bg-statusOkSolid' : 'bg-statusFailSolid'}`}
@@ -82,7 +116,7 @@ export function InstanceCard({
       </div>
 
       {onOpen && (
-        <Button kind="secondary" onClick={onOpen} className="w-full justify-center">
+        <Button kind="secondary" onClick={onOpen} className="mt-auto w-full justify-center">
           {t('instances.open')}
         </Button>
       )}

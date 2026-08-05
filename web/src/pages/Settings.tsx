@@ -1,16 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { type Settings, fetchSettings, saveSettings } from '../lib/api';
+import { useResource } from '../lib/useResource';
 import { useT } from '../lib/i18n';
-import { PageHeader, Card, Button, Field, NumberInput, Toggle } from '../components/ui';
+import {
+  PageHeader,
+  Card,
+  Button,
+  Field,
+  NumberInput,
+  Toggle,
+  LoadingCard,
+  ErrorCard,
+} from '../components/ui';
 
 export function SettingsPage() {
   const { t } = useT();
-  const [cfg, setCfg] = useState<Settings | null>(null);
+  const { data: cfg, setData: setCfg, loading, failed, reload } = useResource<Settings>(fetchSettings);
   const [saved, setSaved] = useState(false);
-
-  useEffect(() => {
-    fetchSettings().then(setCfg);
-  }, []);
 
   async function onSave() {
     if (!cfg) return;
@@ -23,6 +29,9 @@ export function SettingsPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title={t('settings.title')} subtitle={t('settings.subtitle')} />
+
+      {loading && <LoadingCard label={t('common.loading')} />}
+      {failed && <ErrorCard message={t('common.loadFailed')} retry={reload} retryLabel={t('common.retry')} />}
 
       {cfg && (
         <Card className="flex flex-col gap-5 max-w-2xl">

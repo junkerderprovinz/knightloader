@@ -109,8 +109,9 @@ export function Toggle({
           checked ? 'bg-accent' : 'bg-carbon-surface3'
         }`}
       >
+        {/* Tailwind v4 animates the `translate` property, not `transform`. */}
         <span
-          className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${
+          className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-[translate] duration-150 ${
             checked ? 'translate-x-4' : 'translate-x-0.5'
           }`}
         />
@@ -160,6 +161,50 @@ export function PageHeader({
       <span className="flex-1" />
       {right}
     </header>
+  );
+}
+
+// One treatment for "there is nothing here", used everywhere so an empty app
+// never looks broken — and, where it makes sense, offers the way out.
+export function EmptyState({
+  icon,
+  title,
+  hint,
+  action,
+}: {
+  icon?: ReactNode;
+  title: string;
+  hint?: string;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="kl-card flex flex-col items-center gap-2 p-10 text-center">
+      {icon && <div className="text-carbon-textMuted/60">{icon}</div>}
+      <div className="text-sm text-carbon-textSub">{title}</div>
+      {hint && <div className="text-[11px] text-carbon-textMuted">{hint}</div>}
+      {action && <div className="mt-2">{action}</div>}
+    </div>
+  );
+}
+
+// A quiet placeholder while a page's data is still on the wire.
+export function LoadingCard({ label }: { label: string }) {
+  return (
+    <div className="kl-card p-10 text-center text-sm text-carbon-textMuted">{label}</div>
+  );
+}
+
+// A fault state that says what went wrong and offers a way to recover.
+export function ErrorCard({ message, retry, retryLabel }: { message: string; retry?: () => void; retryLabel?: string }) {
+  return (
+    <div className="kl-card flex flex-col items-center gap-3 p-10 text-center">
+      <div className="text-sm text-statusFail">{message}</div>
+      {retry && (
+        <Button kind="secondary" onClick={retry}>
+          {retryLabel}
+        </Button>
+      )}
+    </div>
   );
 }
 

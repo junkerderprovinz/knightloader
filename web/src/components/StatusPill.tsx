@@ -30,13 +30,15 @@ const toneDot: Record<Tone, string> = {
 };
 
 // A dot plus a word: state reads at a glance and never relies on colour alone.
+// The dot never pulses here: one pulsing element per screen is plenty, and a
+// list of blinking rows is the loudest thing an idle-heavy page can do. Rows
+// convey liveness through the moving progress fill instead.
 export function StatusPill({ status }: { status: TaskStatus }) {
   const { t } = useT();
   const s = statusTone[status] ?? statusTone.queued;
-  const live = status === 'running' || status === 'extracting';
   return (
     <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium ${toneText[s.tone]}`}>
-      <span className={`h-1.5 w-1.5 rounded-full ${toneDot[s.tone]} ${live ? 'kl-live' : ''}`} />
+      <span className={`h-1.5 w-1.5 rounded-full ${toneDot[s.tone]}`} />
       {t(s.key)}
     </span>
   );
