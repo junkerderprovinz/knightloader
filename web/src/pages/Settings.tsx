@@ -55,6 +55,7 @@ export function SettingsPage() {
           <Card className="flex flex-col gap-5">
             <Field label={t('settings.downloadDir')} hint={t('settings.downloadDirHint')}>
               <TextInput
+                dir="ltr"
                 value={cfg.downloadDir}
                 placeholder="/downloads"
                 spellCheck={false}

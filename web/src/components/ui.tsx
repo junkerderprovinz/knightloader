@@ -104,16 +104,19 @@ export function Toggle({
       role="switch"
       aria-checked={checked}
       onClick={() => onChange(!checked)}
-      className="flex items-center gap-3 text-sm text-carbon-text select-none"
+      className="flex items-center gap-3 text-left text-sm text-carbon-text select-none"
     >
       <span
-        className={`relative h-5 w-9 rounded-full transition-colors ${
+        className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
           checked ? 'bg-accent' : 'bg-carbon-surface3'
         }`}
       >
-        {/* Tailwind v4 animates the `translate` property, not `transform`. */}
+        {/* left-0 is load-bearing: without it the knob starts from its static
+            position, which a button's inherited text-align centres — the knob
+            then slides out past the pill. Tailwind v4 also animates the
+            `translate` property here, not `transform`. */}
         <span
-          className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-[translate] duration-150 ${
+          className={`absolute left-0 top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-[translate] duration-150 ${
             checked ? 'translate-x-4' : 'translate-x-0.5'
           }`}
         />
