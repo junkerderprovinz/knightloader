@@ -116,6 +116,7 @@ export function Collector() {
           }`}
         >
           <textarea
+            dir="ltr"
             placeholder={t('collector.placeholder')}
             rows={4}
             value={links}

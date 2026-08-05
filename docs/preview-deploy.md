@@ -56,7 +56,32 @@ Everything from the README applies. Two notes specific to the container:
   the extension at the server).
 - `KL_TORBOX` / `KL_ALLDEBRID` / `KL_REALDEBRID` are optional: keys entered on
   the Accounts page are stored encrypted in the data volume and survive
-  restarts, so the environment does not need them.
+  restarts, so the environment does not need them. A key saved there takes
+  effect immediately — the backends are re-wired in place, without a restart.
+
+## Data that outlives a redeploy
+
+The container is rebuilt from scratch on every deploy, so everything worth
+keeping lives on the volumes:
+
+| File | Holds |
+|---|---|
+| `knightloader.db` | tasks; migrated in place on start, tracked by `PRAGMA user_version` |
+| `settings.json` | download folder, limits, extraction, archive passwords |
+| `.keyring` + account store | the encrypted credentials |
+| `auth.json` | the password hash and the key that signs session cookies |
+
+Because the session key is persisted, a redeploy does not sign anyone out of a
+password-locked instance.
+
+## Checking a deploy
+
+```sh
+curl -s http://<host>:8749/api/health          # {"status":"ok","version":"preview"}
+curl -s http://<host>:8749/api/auth            # whether a password is set
+curl -s -o /dev/null -w '%{http_code}
+'   -H 'Origin: https://elsewhere.example'   http://<host>:8749/api/tasks                 # 403 — foreign origins are refused
+```
 
 ## Health
 

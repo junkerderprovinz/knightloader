@@ -2,7 +2,7 @@
 
 > **Working title (KL).** A modern, self-hosted, cross-platform download manager — a clean-UI alternative to JDownloader that grabs files from everywhere and hauls them into one keep. Final name TBD before release.
 
-**Status: early WIP — M0 (feasibility spike) is green.** Not yet a usable product.
+**Status: WIP.** It downloads, and it runs on a box all day — the feature list below is real, not planned. What is not settled is the name, and there is no release yet.
 
 ## What it is
 
@@ -17,8 +17,14 @@ A single Go backend with an embedded download engine and a small **resolver** se
 - **Collector (LinkGrabber):** pasted or dropped links are staged and analysed first (name, size via a HEAD probe, resolver, online check) and grouped into packages; you select and start them, then they move to Downloads. `POST /api/links` stages, `POST /api/tasks/start {ids}` starts (empty = all).
 - **Accounts:** credentials (e.g. the TorBox API key) are stored encrypted at rest (AES-256-GCM under a per-install keyring) via the Accounts page or `POST /api/accounts {"service":"torbox","secret":"…"}`.
 - **Scheduler:** a global and a per-host concurrency limit gate every backend (FIFO with per-host skip-ahead); both are live-tunable in Settings.
-- **Extraction:** finished archive downloads (zip, rar incl. multi-volume, 7z incl. `.001` volumes, tar.gz) unpack automatically into a sibling folder — pure Go, zip-slip-safe, optional delete-after-extract.
-- **Speed limit:** applies to yt-dlp (`--limit-rate`) and JDownloader (live via its API). The embedded engine has no rate-limit API yet (Gopeed v1.9.x) — engine tasks run unthrottled for now.
+- **Extraction:** finished archive downloads (zip, rar incl. multi-volume, 7z incl. `.001` volumes, tar.gz) unpack automatically into a sibling folder — pure Go, zip-slip-safe, optional delete-after-extract. A multi-part set waits for every part before it opens. Encrypted rar and 7z accept passwords: the task's own first, then a configured list. Encrypted zip is refused, because Go cannot decrypt it.
+- **Download folders:** a global folder, an optional per-package subfolder, and a per-task override. The folder is checked when you save it, so an unwritable path is refused rather than silently ignored.
+- **Speed limit:** a total for everything, applied while downloads run rather than only to the next one. The embedded engine has no rate-limit hook (Gopeed v1.9.x), so its traffic goes through a loopback proxy where the bytes are metered; yt-dlp uses `--limit-rate` and JDownloader its own API.
+- **Nothing is dropped:** a pasted link that no backend handles, or that fails to resolve, is still staged with the reason attached. Links carry an online state and can be rechecked without re-pasting.
+- **Fallback chain:** when a backend says a link is not its business, the next one gets a turn. Only an explicit signal advances the chain, so a hoster link that genuinely failed is never re-fetched as a plain web page.
+- **Retries:** a failed download is retried automatically with a growing delay, bounded by a setting.
+- **Access:** an optional password lock, off by default. Sessions are signed cookies, so a restart does not sign anyone out. The API is same-origin only and the WebSocket rejects foreign origins.
+- **Languages:** 26, each fetched only when chosen, with right-to-left layout for Arabic and Hebrew.
 - **Multi-instance:** register other KnightLoader instances (Settings → Instances) and switch between them in the header — one dashboard views and controls every box (self-hosted federation, no relay; only task/link routes are proxied, a peer's settings stay its own).
 - **Click'n'Load:** a listener on `127.0.0.1:9666` speaks the standard CnL protocol (`jdcheck.js`, `/flash/add`, `/flash/addcrypted2`), so existing browser extensions and site buttons hand links straight to KnightLoader. Disable or move it with `KL_CNL` (`0` = off).
 - **Desktop app:** a native Windows/macOS/Linux build (Wails) lives in [`desktop/`](desktop/) — the same server in a native window, which provisions a private headless JDownloader on first run (`KL_PROVISION_JD=1` on the server build) for full hoster coverage out of the box.
@@ -41,9 +47,9 @@ Configuration (all optional, via env):
 | `KL_CNL` | `9666` | Click'n'Load listener port on `127.0.0.1`; `0` disables it |
 | `KL_PROVISION_JD` | `0` | `1` = provision a private headless JDownloader on first run (downloads JD, enables its local API, launches it) and use it as the hoster backup |
 
-## M0 — feasibility spikes (green)
+## Feasibility spikes
 
-The two riskiest integrations, both proven end-to-end:
+The two riskiest integrations, both proven end-to-end before the rest was built:
 
 | Spike | Proves | Run |
 |---|---|---|

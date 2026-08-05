@@ -80,7 +80,7 @@ function TaskRow({
       )}
 
       <div className="min-w-0">
-        <div className="truncate text-[13.5px] text-carbon-text">{task.name || task.url}</div>
+        <div dir="ltr" className="truncate text-start text-[13.5px] text-carbon-text">{task.name || task.url}</div>
         {task.error ? (
           <div className="mt-0.5 flex items-center gap-2 text-[11px]">
             <span className="truncate text-statusFail">{task.error}</span>
@@ -194,7 +194,7 @@ function TaskOptionsDialog({ task, base, onClose }: { task: Task; base: string; 
       }
     >
       <Field label={t('task.folder')} hint={t('settings.downloadDirHint')}>
-        <TextInput value={dir} spellCheck={false} onChange={(e) => setDir(e.target.value)} />
+        <TextInput dir="ltr" value={dir} spellCheck={false} onChange={(e) => setDir(e.target.value)} />
       </Field>
       <Field label={t('task.password')}>
         <TextInput value={password} onChange={(e) => setPassword(e.target.value)} />
