@@ -1,3 +1,11 @@
+export type TaskStatus =
+  | 'queued'
+  | 'running'
+  | 'paused'
+  | 'extracting'
+  | 'done'
+  | 'error';
+
 export interface Task {
   id: string;
   url: string;
@@ -7,7 +15,7 @@ export interface Task {
   size: number;
   loaded: number;
   speed: number;
-  status: 'queued' | 'running' | 'paused' | 'extracting' | 'done' | 'error';
+  status: TaskStatus;
   error?: string;
   createdAt: string;
 }
@@ -20,9 +28,18 @@ export interface Settings {
   deleteArchive: boolean;
 }
 
+export interface Instance {
+  name: string;
+  url: string;
+}
+
 async function json<T>(r: Response): Promise<T> {
   return (await r.json()) as T;
 }
+
+// apiBase returns the API prefix for an instance ('' = this instance).
+export const apiBase = (instance: string): string =>
+  instance ? `/api/instances/${encodeURIComponent(instance)}` : '/api';
 
 export async function fetchTasks(base = '/api'): Promise<Task[]> {
   return (await json<Task[]>(await fetch(`${base}/tasks`))) ?? [];
@@ -43,32 +60,6 @@ export const resume = (id: string, base = '/api') =>
   fetch(`${base}/tasks/${id}/resume`, { method: 'POST' });
 export const remove = (id: string, base = '/api') =>
   fetch(`${base}/tasks/${id}`, { method: 'DELETE' });
-
-export interface Instance {
-  name: string;
-  url: string;
-}
-
-// apiBase returns the API prefix for an instance ('' = this instance).
-export const apiBase = (instance: string) =>
-  instance ? `/api/instances/${encodeURIComponent(instance)}` : '/api';
-
-export async function fetchInstances(): Promise<Instance[]> {
-  return (await json<Instance[]>(await fetch('/api/instances'))) ?? [];
-}
-
-export async function addInstance(name: string, url: string): Promise<{ online: boolean }> {
-  const r = await fetch('/api/instances', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, url }),
-  });
-  if (!r.ok) throw new Error(await r.text());
-  return json(r);
-}
-
-export const removeInstance = (name: string) =>
-  fetch(`/api/instances/${encodeURIComponent(name)}`, { method: 'DELETE' });
 
 export async function fetchSettings(): Promise<Settings> {
   return json<Settings>(await fetch('/api/settings'));
@@ -94,7 +85,24 @@ export const saveAccount = (service: string, secret: string) =>
     body: JSON.stringify({ service, secret }),
   });
 
-// connectWS opens the live stream and auto-reconnects. Returns a closer.
+export async function fetchInstances(): Promise<Instance[]> {
+  return (await json<Instance[]>(await fetch('/api/instances'))) ?? [];
+}
+
+export async function addInstance(name: string, url: string): Promise<{ online: boolean }> {
+  const r = await fetch('/api/instances', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, url }),
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return json(r);
+}
+
+export const removeInstance = (name: string) =>
+  fetch(`/api/instances/${encodeURIComponent(name)}`, { method: 'DELETE' });
+
+// connectWS opens the live task stream and auto-reconnects. Returns a closer.
 export function connectWS(onMessage: (type: string, data: any) => void): () => void {
   let ws: WebSocket | null = null;
   let closed = false;
