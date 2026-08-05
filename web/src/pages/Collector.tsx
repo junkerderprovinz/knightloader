@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { addLinks, remove, startTasks } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
+import { useToast } from '../lib/toast';
 import { PageHeader, Button, TextInput, Card } from '../components/ui';
 import { PackageGroup, groupByPackage, type Selection } from '../components/TaskList';
 import { IconPlus, IconPlay, IconTrash } from '../lib/icons';
 
 export function Collector() {
   const tasks = useTasks('');
+  const { toast } = useToast();
   const [links, setLinks] = useState('');
   const [pkg, setPkg] = useState('');
   const [dragOver, setDragOver] = useState(false);
@@ -42,8 +44,9 @@ export function Collector() {
 
   async function onAdd() {
     if (!links.trim()) return;
-    await addLinks(links, pkg);
+    const created = await addLinks(links, pkg);
     setLinks('');
+    toast(created.length ? `Staged ${created.length} link${created.length === 1 ? '' : 's'}` : 'No valid links found', created.length ? 'ok' : 'fail');
   }
 
   function onDrop(e: React.DragEvent) {
@@ -53,8 +56,15 @@ export function Collector() {
     if (text) setLinks((l) => (l ? `${l}\n${text}` : text));
   }
 
-  const startSelected = () => selected.size && startTasks([...selected]);
-  const startAll = () => startTasks([]);
+  const startSelected = () => {
+    if (!selected.size) return;
+    startTasks([...selected]);
+    toast(`Started ${selected.size} download${selected.size === 1 ? '' : 's'}`, 'info');
+  };
+  const startAll = () => {
+    startTasks([]);
+    toast(`Started ${collected.length} download${collected.length === 1 ? '' : 's'}`, 'info');
+  };
   const removeSelected = () => selected.forEach((id) => remove(id));
 
   return (
