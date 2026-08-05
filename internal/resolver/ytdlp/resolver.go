@@ -3,24 +3,49 @@ package ytdlp
 import (
 	"context"
 	"net/url"
+	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 )
 
-// Resolver routes non-file links to the yt-dlp backend. It matches any http(s)
-// URL but sits below the Direct resolver (which claims plain file links), so it
-// effectively picks up media/streaming pages.
-type Resolver struct{}
+// Resolver routes media/streaming pages to yt-dlp. It matches any http(s) URL
+// except hosts handled by a debrid/JD hoster backend (ExcludeHosts), so file
+// hosters fall through to those instead of being mis-sent to yt-dlp.
+type Resolver struct {
+	ExcludeHosts map[string]bool
+}
 
-func (Resolver) Info() resolver.Info { return resolver.Info{ID: "ytdlp", Prio: 10} }
+func (Resolver) Info() resolver.Info { return resolver.Info{ID: "ytdlp", Prio: 30} }
 
-func (Resolver) Match(raw string) bool {
+func (r Resolver) Match(raw string) bool {
 	u, err := url.Parse(raw)
-	return err == nil && (u.Scheme == "http" || u.Scheme == "https") && u.Host != ""
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Hostname() == "" {
+		return false
+	}
+	return !hostInSet(u.Hostname(), r.ExcludeHosts)
 }
 
 func (Resolver) Resolve(_ context.Context, req resolver.Request) (resolver.Result, error) {
 	// yt-dlp extracts and downloads; the real title/size arrive from its
 	// progress stream (mirrored by the backend).
 	return resolver.Result{DirectURL: req.URL, Name: req.URL}, nil
+}
+
+// hostInSet reports whether host or any parent domain is in set.
+func hostInSet(host string, set map[string]bool) bool {
+	if len(set) == 0 {
+		return false
+	}
+	host = strings.ToLower(strings.TrimPrefix(host, "www."))
+	for host != "" {
+		if set[host] {
+			return true
+		}
+		i := strings.IndexByte(host, '.')
+		if i < 0 {
+			break
+		}
+		host = host[i+1:]
+	}
+	return false
 }

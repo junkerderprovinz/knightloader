@@ -15,11 +15,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/engine"
 	"github.com/junkerderprovinz/knightloader/internal/hub"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/store"
 )
@@ -38,9 +40,11 @@ type App struct {
 	Engine   *engine.Engine
 	Hub      *hub.Hub
 	Registry *resolver.Registry
+	Accounts *accounts.Store
 
-	jd    backend // headless-JD backend, nil unless KL_JD is set and reachable
-	ytdlp backend // yt-dlp media backend, nil unless the yt-dlp binary is present
+	jd     backend // headless-JD backend, nil unless KL_JD is set and reachable
+	ytdlp  backend // yt-dlp media backend, nil unless the yt-dlp binary is present
+	torbox backend // TorBox debrid backend, nil unless a TorBox key is present
 
 	mu    sync.Mutex
 	tasks map[string]*core.Task
@@ -66,28 +70,57 @@ func New(dataDir string) (*App, error) {
 	}
 	a.Engine = eng
 
+	acc, err := accounts.Open(dataDir)
+	if err != nil {
+		st.Close()
+		return nil, err
+	}
+	a.Accounts = acc
+
+	// Resolve which hoster backends are configured, then fetch TorBox's
+	// supported-host list once so routing can tell file hosters (→ TorBox/JD)
+	// from media pages (→ yt-dlp).
+	torboxKey := os.Getenv("KL_TORBOX")
+	if torboxKey == "" {
+		torboxKey, _ = acc.Get("torbox")
+	}
+	jdBase := os.Getenv("KL_JD")
+
+	var hosterSet map[string]bool
+	if torboxKey != "" || jdBase != "" {
+		hosterSet = fetchTorboxHosters(torboxKey)
+	}
+
 	// Optional yt-dlp media backend: when the yt-dlp binary is present, media
-	// pages (non-file links) route through it.
+	// pages (non-hoster, non-file links) route through it.
 	ytbin := os.Getenv("KL_YTDLP")
 	if ytbin == "" {
 		ytbin = "yt-dlp"
 	}
 	if yb := ytdlp.NewBackend(ytbin, filepath.Join(dataDir, "downloads"), a.onUpdate); yb.Available() {
 		a.ytdlp = yb
-		a.Registry.Register(ytdlp.Resolver{})
+		a.Registry.Register(ytdlp.Resolver{ExcludeHosts: hosterSet})
 		log.Printf("yt-dlp backend enabled: %s", ytbin)
 	}
 
-	// Optional headless-JD backend: when KL_JD points at a reachable JD
-	// Deprecated API, links route through JD's crawler and hoster plugins.
-	if base := os.Getenv("KL_JD"); base != "" {
-		jb := jd.NewBackend(base, a.onUpdate)
+	// Optional TorBox debrid backend: when a key is present, supported hoster
+	// links are unlocked into a direct CDN URL the engine then downloads.
+	if torboxKey != "" {
+		a.torbox = torbox.NewBackend(torbox.NewClient(torboxKey), eng, a.onUpdate)
+		a.Registry.Register(torbox.Resolver{Hosts: hosterSet})
+		log.Printf("TorBox debrid backend enabled (%d supported hosts)", len(hosterSet))
+	}
+
+	// Optional headless-JD backend: the lowest-priority catch-all for hoster
+	// links nothing else claims, via JD's crawler and hoster plugins.
+	if jdBase != "" {
+		jb := jd.NewBackend(jdBase, a.onUpdate)
 		if err := jb.Reachable(); err != nil {
-			log.Printf("KL_JD set but JD unreachable (%v); using direct downloads only", err)
+			log.Printf("KL_JD set but JD unreachable (%v); skipping JD backend", err)
 		} else {
 			a.jd = jb
 			a.Registry.Register(jd.Resolver{})
-			log.Printf("headless JD backend enabled: %s", base)
+			log.Printf("headless JD backend enabled: %s", jdBase)
 		}
 	}
 
@@ -178,11 +211,45 @@ func (a *App) backendFor(resolverID string) backend {
 	switch {
 	case resolverID == "jd" && a.jd != nil:
 		return a.jd
+	case resolverID == "torbox" && a.torbox != nil:
+		return a.torbox
 	case resolverID == "ytdlp" && a.ytdlp != nil:
 		return a.ytdlp
 	default:
 		return a.Engine
 	}
+}
+
+// SetAccount stores (or, with an empty secret, clears) a credential for a
+// service such as "torbox". Applied on the next start.
+func (a *App) SetAccount(service, secret string) error {
+	return a.Accounts.Set(service, secret)
+}
+
+// fetchTorboxHosters returns the set of TorBox-supported hoster domains, or nil
+// if the list can't be fetched (routing then degrades gracefully).
+func fetchTorboxHosters(key string) map[string]bool {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	hs, err := torbox.NewClient(key).Hosters(ctx)
+	if err != nil {
+		log.Printf("TorBox hoster list unavailable (%v); hoster routing degraded", err)
+		return nil
+	}
+	set := map[string]bool{}
+	add := func(d string) {
+		d = strings.ToLower(strings.TrimSpace(strings.TrimPrefix(d, "www.")))
+		if d != "" {
+			set[d] = true
+		}
+	}
+	for _, h := range hs {
+		add(h.Domain)
+		for _, d := range h.Domains {
+			add(d)
+		}
+	}
+	return set
 }
 
 func (a *App) resolverOf(id string) string {

@@ -18,7 +18,7 @@ var fileExt = regexp.MustCompile(`\.(zip|rar|r\d\d|7z|tar|gz|tgz|bz2|xz|iso|img|
 // is already the download target and is fetched by the embedded engine.
 type Direct struct{}
 
-func (Direct) Info() Info { return Info{ID: "direct", Prio: 20} }
+func (Direct) Info() Info { return Info{ID: "direct", Prio: 40} }
 
 func (Direct) Match(raw string) bool {
 	u, err := url.Parse(raw)
