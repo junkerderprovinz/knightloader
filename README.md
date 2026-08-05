@@ -18,6 +18,7 @@ A single Go backend with an embedded download engine and a small **resolver** se
 - **Scheduler:** a global and a per-host concurrency limit gate every backend (FIFO with per-host skip-ahead); both are live-tunable in Settings.
 - **Extraction:** finished archive downloads (zip, rar incl. multi-volume, 7z incl. `.001` volumes, tar.gz) unpack automatically into a sibling folder — pure Go, zip-slip-safe, optional delete-after-extract.
 - **Speed limit:** applies to yt-dlp (`--limit-rate`) and JDownloader (live via its API). The embedded engine has no rate-limit API yet (Gopeed v1.9.x) — engine tasks run unthrottled for now.
+- **Multi-instance:** register other KnightLoader instances (Settings → Instances) and switch between them in the header — one dashboard views and controls every box (self-hosted federation, no relay; only task/link routes are proxied, a peer's settings stay its own).
 
 ## Running
 

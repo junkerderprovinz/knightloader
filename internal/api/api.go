@@ -4,12 +4,14 @@ package api
 
 import (
 	"encoding/json"
+	"io"
 	"io/fs"
 	"net/http"
 	"strings"
 
 	"github.com/coder/websocket"
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/hub"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/knightloader/web"
@@ -79,6 +81,50 @@ func Handler(a *app.App) http.Handler {
 			return
 		}
 		w.WriteHeader(http.StatusNoContent)
+	})
+	mux.HandleFunc("GET /api/instances", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, a.Federation.List())
+	})
+	mux.HandleFunc("POST /api/instances", func(w http.ResponseWriter, r *http.Request) {
+		var in federation.Instance
+		if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+			http.Error(w, "bad json", http.StatusBadRequest)
+			return
+		}
+		if err := a.Federation.Add(in); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		online := a.Federation.Ping(r.Context(), in.Name) == nil
+		writeJSON(w, map[string]any{"name": in.Name, "url": in.URL, "online": online})
+	})
+	mux.HandleFunc("DELETE /api/instances/{name}", func(w http.ResponseWriter, r *http.Request) {
+		if err := a.Federation.Remove(r.PathValue("name")); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+	})
+	// Proxy task operations to a peer instance: only the task/link routes are
+	// forwarded, so a peer's settings/accounts stay local to that peer.
+	mux.HandleFunc("/api/instances/{name}/{rest...}", func(w http.ResponseWriter, r *http.Request) {
+		rest := r.PathValue("rest")
+		if rest != "links" && rest != "tasks" && !strings.HasPrefix(rest, "tasks/") {
+			http.Error(w, "route not proxied", http.StatusForbidden)
+			return
+		}
+		var body []byte
+		if r.Body != nil {
+			body, _ = io.ReadAll(http.MaxBytesReader(w, r.Body, 1<<20))
+		}
+		resp, code, err := a.Federation.Proxy(r.Context(), r.PathValue("name"), r.Method, "/api/"+rest, body)
+		if err != nil {
+			http.Error(w, err.Error(), code)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(code)
+		_, _ = w.Write(resp)
 	})
 	mux.HandleFunc("GET /api/ws", func(w http.ResponseWriter, r *http.Request) {
 		serveWS(a, w, r)
