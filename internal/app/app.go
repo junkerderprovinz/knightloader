@@ -522,11 +522,21 @@ func (a *App) crawl(u string) []crawler.Result {
 	if !a.Settings.Get().Crawl {
 		return nil
 	}
-	// A link a resolver already claims is a download, not a page to open. Only
-	// the last-resort HTTP fallback means "nobody recognised this", which is
-	// exactly when looking inside is worth the request.
-	if res := a.Registry.For(u); res != nil && res.Info().ID != "http" {
-		return nil
+	// Which backends mean "this might be a page". The HTTP fallback means
+	// nobody recognised the link at all. yt-dlp is in the set because it claims
+	// by exclusion rather than by knowledge — it takes every http link that is
+	// not a known hoster — so gating on the fallback alone meant the crawler
+	// never ran at all on any install that has yt-dlp, which is all of them.
+	//
+	// Everything else stays out: a direct file link is already a download, and
+	// a debrid or JD link belongs to a hoster whose page holds nothing we could
+	// fetch ourselves.
+	if res := a.Registry.For(u); res != nil {
+		switch res.Info().ID {
+		case "http", "ytdlp":
+		default:
+			return nil
+		}
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()

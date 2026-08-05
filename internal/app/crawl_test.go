@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/crawler"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
@@ -151,4 +152,72 @@ func newCrawlApp(t *testing.T, crawl bool) *App {
 		t.Fatal(err)
 	}
 	return a
+}
+
+// TestCrawlRunsForYtdlpRoutedLinks is the bug a live test found. yt-dlp claims
+// every http link that is not a known hoster, so it is the resolver for any
+// page URL. Gating the crawler on the last-resort backend alone meant it never
+// ran on any install that has yt-dlp, which is every container.
+func TestCrawlRunsForYtdlpRoutedLinks(t *testing.T) {
+	a := newCrawlApp(t, true)
+	fc := &fakeCrawler{yield: []crawler.Result{{URL: "https://host.example/found.bin"}}}
+	a.Crawler = fc
+
+	// An extensionless page URL: whichever of yt-dlp or the HTTP fallback is
+	// registered here, the crawler has to get a look at it.
+	const page = "https://host.example/gallery/2026"
+	created := a.AddLinks([]string{page}, "")
+	if len(fc.seen) != 1 {
+		t.Fatalf("the crawler saw %v; a page URL must reach it", fc.seen)
+	}
+	if len(created) != 1 || created[0].URL != "https://host.example/found.bin" {
+		t.Fatalf("staged %d tasks; want the file the page pointed at", len(created))
+	}
+}
+
+// TestCrawlLeavesHosterLinksAlone keeps the widened gate from opening a debrid
+// or JD page: those belong to a hoster, and fetching the page ourselves would
+// only collect its furniture.
+func TestCrawlLeavesHosterLinksAlone(t *testing.T) {
+	a := newCrawlApp(t, true)
+	fc := &fakeCrawler{yield: []crawler.Result{{URL: "https://host.example/junk.bin"}}}
+	a.Crawler = fc
+
+	// A file link is claimed by the direct resolver, which is not in the set.
+	a.AddLinks([]string{"https://host.example/archive.rar"}, "")
+	if len(fc.seen) != 0 {
+		t.Errorf("crawled %v; a link a real backend claims is already a download", fc.seen)
+	}
+}
+
+// TestRemovedTaskIsNotResurrected covers the race a live cleanup made me look
+// at: the availability probe for a staged link runs on its own goroutine and
+// finishes after the user may already have removed the task. If it wrote the
+// row back, the task would reappear on the next restart with no way to explain
+// where it came from.
+func TestRemovedTaskIsNotResurrected(t *testing.T) {
+	a := newCrawlApp(t, false)
+
+	created := a.AddLinks([]string{"https://host.example/file.bin"}, "Race")
+	if len(created) != 1 {
+		t.Fatalf("staged %d tasks", len(created))
+	}
+	id := created[0].ID
+
+	a.Remove(id, false)
+	// Whatever the probe learns now arrives for a task that is gone.
+	a.setAvailability(id, core.AvailOnline, "")
+
+	if len(a.Tasks()) != 0 {
+		t.Fatal("the removed task came back in memory")
+	}
+	stored, err := a.Store.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, s := range stored {
+		if s.ID == id {
+			t.Fatal("the removed task was written back to the database")
+		}
+	}
 }
