@@ -77,26 +77,58 @@ type Result struct {
 	Volumes []string // all volume files consumed (for delete-after-extract)
 }
 
+// ErrPasswordRequired says the archive is encrypted and none of the supplied
+// passwords opened it. It is a distinct error so the app can tell "I need a
+// password" from "this archive is broken".
+var ErrPasswordRequired = errors.New("extract: the archive is encrypted and no password fits")
+
 // Extract unpacks the archive at path into a sibling directory named after the
 // archive. It refuses to write outside that directory (zip-slip safe).
 func Extract(path string) (*Result, error) {
+	return ExtractWith(path, nil)
+}
+
+// ExtractWith is Extract with passwords to try, in order, if the archive turns
+// out to be encrypted. The unencrypted attempt always comes first, so a normal
+// archive never pays for the list.
+func ExtractWith(path string, passwords []string) (*Result, error) {
 	dest := destDir(path)
 	if err := os.MkdirAll(dest, 0o755); err != nil {
 		return nil, err
 	}
+	res, err := extractOnce(path, dest, "")
+	if err == nil || !errors.Is(err, ErrPasswordRequired) {
+		return res, err
+	}
+	for _, pw := range passwords {
+		if pw == "" {
+			continue
+		}
+		res, err = extractOnce(path, dest, pw)
+		if err == nil || !errors.Is(err, ErrPasswordRequired) {
+			return res, err
+		}
+	}
+	return nil, ErrPasswordRequired
+}
+
+func extractOnce(path, dest, password string) (*Result, error) {
 	l := strings.ToLower(path)
 	switch {
 	case strings.HasSuffix(l, ".zip"):
 		return extractZip(path, dest)
 	case strings.HasSuffix(l, ".rar"):
-		return extractRar(path, dest)
-	case strings.HasSuffix(l, ".7z") || regexp.MustCompile(`(?i)\.7z\.0*1$`).MatchString(l):
-		return extract7z(path, dest)
+		return extractRar(path, dest, password)
+	case strings.HasSuffix(l, ".7z") || sevenZipVolume.MatchString(l):
+		return extract7z(path, dest, password)
 	case strings.HasSuffix(l, ".tar.gz") || strings.HasSuffix(l, ".tgz"):
 		return extractTarGz(path, dest)
 	}
 	return nil, fmt.Errorf("extract: unsupported archive %q", filepath.Base(path))
 }
+
+// sevenZipVolume matches the first part of a split 7z archive.
+var sevenZipVolume = regexp.MustCompile(`(?i)\.7z\.0*1$`)
 
 // destDir returns the extraction directory for an archive path: the archive
 // name without its (possibly multi-part) extension, next to the archive.
@@ -150,7 +182,9 @@ func extractZip(path, dest string) (*Result, error) {
 	res := &Result{Dir: dest, Volumes: []string{path}}
 	for _, f := range zr.File {
 		if f.Flags&0x1 != 0 {
-			return nil, errors.New("extract: password-protected zip is not supported yet")
+			// Go's archive/zip cannot decrypt, and there is no honest way to
+			// pretend otherwise.
+			return nil, errors.New("extract: encrypted zip archives are not supported")
 		}
 		if f.FileInfo().IsDir() {
 			continue
@@ -173,11 +207,15 @@ func extractZip(path, dest string) (*Result, error) {
 	return res, nil
 }
 
-func extractRar(path, dest string) (*Result, error) {
-	rc, err := rardecode.OpenReader(path)
+func extractRar(path, dest, password string) (*Result, error) {
+	var opts []rardecode.Option
+	if password != "" {
+		opts = append(opts, rardecode.Password(password))
+	}
+	rc, err := rardecode.OpenReader(path, opts...)
 	if err != nil {
 		if errors.Is(err, rardecode.ErrArchiveEncrypted) || errors.Is(err, rardecode.ErrArchivedFileEncrypted) {
-			return nil, errors.New("extract: password-protected rar is not supported yet")
+			return nil, ErrPasswordRequired
 		}
 		return nil, err
 	}
@@ -190,8 +228,8 @@ func extractRar(path, dest string) (*Result, error) {
 			break
 		}
 		if err != nil {
-			if errors.Is(err, rardecode.ErrArchivedFileEncrypted) {
-				return nil, errors.New("extract: password-protected rar is not supported yet")
+			if errors.Is(err, rardecode.ErrArchivedFileEncrypted) || errors.Is(err, rardecode.ErrArchiveEncrypted) {
+				return nil, ErrPasswordRequired
 			}
 			return nil, err
 		}
@@ -211,9 +249,18 @@ func extractRar(path, dest string) (*Result, error) {
 	return res, nil
 }
 
-func extract7z(path, dest string) (*Result, error) {
-	zr, err := sevenzip.OpenReader(path)
+func extract7z(path, dest, password string) (*Result, error) {
+	var zr *sevenzip.ReadCloser
+	var err error
+	if password == "" {
+		zr, err = sevenzip.OpenReader(path)
+	} else {
+		zr, err = sevenzip.OpenReaderWithPassword(path, password)
+	}
 	if err != nil {
+		if isEncrypted(err) {
+			return nil, ErrPasswordRequired
+		}
 		return nil, err
 	}
 	defer zr.Close()
@@ -229,16 +276,33 @@ func extract7z(path, dest string) (*Result, error) {
 		}
 		rc, err := f.Open()
 		if err != nil {
+			if isEncrypted(err) {
+				return nil, ErrPasswordRequired
+			}
 			return nil, err
 		}
 		err = writeFile(dst, f.Mode(), rc)
 		rc.Close()
 		if err != nil {
+			if isEncrypted(err) {
+				return nil, ErrPasswordRequired
+			}
 			return nil, err
 		}
 		res.Files++
 	}
 	return res, nil
+}
+
+// isEncrypted recognises the 7z library's password failures, which it reports
+// as plain errors rather than typed ones.
+func isEncrypted(err error) bool {
+	if err == nil {
+		return false
+	}
+	m := strings.ToLower(err.Error())
+	return strings.Contains(m, "password") || strings.Contains(m, "decrypt") ||
+		strings.Contains(m, "checksum") || strings.Contains(m, "encrypt")
 }
 
 func extractTarGz(path, dest string) (*Result, error) {

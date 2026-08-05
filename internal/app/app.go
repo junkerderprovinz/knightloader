@@ -1152,7 +1152,7 @@ func (a *App) onUpdate(id string, u core.Update) {
 	if u.Status == core.StatusDone && t.Resolver != "jd" && a.Settings.Get().Extract {
 		if target, path := a.extractCandidateLocked(t); target != nil {
 			target.Status = core.StatusExtracting
-			go a.extractTask(target.ID, path)
+			go a.extractTask(target.ID, path, a.passwordsFor(target))
 			if target != t {
 				c := *target
 				extractCopy = &c
@@ -1234,8 +1234,18 @@ func (a *App) extractCandidateLocked(done *core.Task) (*core.Task, string) {
 // extractTask unpacks a finished archive download and settles the task back to
 // done — extraction failures are recorded on the task but don't undo the
 // completed download.
-func (a *App) extractTask(id, path string) {
-	res, err := extract.Extract(path)
+// passwordsFor is the order archive passwords are tried in: the task's own
+// first, because it was set for exactly this file, then the global list.
+func (a *App) passwordsFor(t *core.Task) []string {
+	var out []string
+	if t != nil && t.Password != "" {
+		out = append(out, t.Password)
+	}
+	return append(out, a.Settings.Get().ArchivePasswords...)
+}
+
+func (a *App) extractTask(id, path string, passwords []string) {
+	res, err := extract.ExtractWith(path, passwords)
 	if err == nil && a.Settings.Get().DeleteArchive {
 		for _, v := range res.Volumes {
 			_ = os.Remove(v)

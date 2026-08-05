@@ -9,14 +9,16 @@ import {
   remove,
   restartTasks,
   fetchInstances,
+  setPriority,
+  moveTasks,
 } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import { fmtSpeed } from '../lib/format';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { PageHeader, Button, EmptyState } from '../components/ui';
 import { Counters } from '../components/Counters';
-import { TaskListCard, groupByPackage } from '../components/TaskList';
-import { IconSearch, IconDownloads } from '../lib/icons';
+import { TaskListCard, groupByPackage, type Selection } from '../components/TaskList';
+import { IconSearch, IconDownloads, IconArrowUp, IconArrowDown, IconTop, IconBottom } from '../lib/icons';
 
 type Filter = 'all' | 'active' | 'done' | 'error';
 const FILTERS: { key: Filter; label: TranslationKey }[] = [
@@ -42,6 +44,7 @@ export function Downloads() {
   const [instance, setInstance] = useState(params.get('instance') ?? '');
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const base = apiBase(instance);
   const tasks = useTasks(instance);
 
@@ -62,6 +65,27 @@ export function Downloads() {
     return list.filter((x) => matchesFilter(x, filter) && (!q || (x.name || x.url).toLowerCase().includes(q)));
   }, [list, filter, query]);
   const groups = useMemo(() => groupByPackage(filtered), [filtered]);
+
+  // Selections follow the list: anything that leaves it stops being selected.
+  useEffect(() => {
+    setSelected((prev) => {
+      const live = new Set(list.map((x) => x.id));
+      const next = new Set([...prev].filter((id) => live.has(id)));
+      return next.size === prev.size ? prev : next;
+    });
+  }, [list]);
+
+  const selection: Selection = {
+    ids: selected,
+    toggle: (id) =>
+      setSelected((s) => {
+        const n = new Set(s);
+        if (n.has(id)) n.delete(id);
+        else n.add(id);
+        return n;
+      }),
+  };
+  const ids = () => [...selected];
 
   const counts = useMemo(() => {
     let running = 0,
@@ -178,6 +202,57 @@ export function Downloads() {
         </div>
       )}
 
+      {/* Queue order only means something while something is waiting, so these
+          controls appear with a selection rather than sitting there greyed out. */}
+      {selected.size > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="keep-num text-sm text-carbon-textSub">
+            {selected.size} {t('select.count')}
+          </span>
+          <Button kind="ghost" className="px-2.5 text-xs" onClick={() => setSelected(new Set())}>
+            {t('select.none')}
+          </Button>
+          <span className="flex-1" />
+          <Button
+            kind="ghost"
+            icon={<IconArrowUp width={16} height={16} />}
+            title={t('task.priorityUp')}
+            onClick={() => setPriority(ids(), 1, base)}
+          />
+          <Button
+            kind="ghost"
+            icon={<IconArrowDown width={16} height={16} />}
+            title={t('task.priorityDown')}
+            onClick={() => setPriority(ids(), -1, base)}
+          />
+          <Button
+            kind="ghost"
+            icon={<IconTop width={16} height={16} />}
+            title={t('task.moveTop')}
+            onClick={() => moveTasks(ids(), 'top', base)}
+          />
+          <Button
+            kind="ghost"
+            icon={<IconBottom width={16} height={16} />}
+            title={t('task.moveBottom')}
+            onClick={() => moveTasks(ids(), 'bottom', base)}
+          />
+          <Button kind="secondary" className="px-2.5 text-xs" onClick={() => restartTasks(ids(), base)}>
+            {t('downloads.retryFailed')}
+          </Button>
+          <Button
+            kind="danger"
+            className="px-2.5 text-xs"
+            onClick={() => {
+              ids().forEach((id) => remove(id, base));
+              setSelected(new Set());
+            }}
+          >
+            {t('collector.remove')}
+          </Button>
+        </div>
+      )}
+
       {list.length === 0 ? (
         <EmptyState
           icon={<IconDownloads width={28} height={28} />}
@@ -192,7 +267,7 @@ export function Downloads() {
       ) : filtered.length === 0 ? (
         <EmptyState icon={<IconSearch width={26} height={26} />} title={t('downloads.noMatch')} />
       ) : (
-        <TaskListCard groups={groups} base={base} />
+        <TaskListCard groups={groups} base={base} selection={selection} />
       )}
     </div>
   );

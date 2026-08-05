@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { addLinks, remove, startTasks, setPackage } from '../lib/api';
+import { addLinks, remove, startTasks, setPackage, recheckTasks } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import { useToast } from '../lib/toast';
 import { useT } from '../lib/i18n';
@@ -164,6 +164,16 @@ export function Collector() {
               onClick={selected.size ? clearSelection : selectAll}
             >
               {selected.size ? t('collector.selectNone') : t('collector.selectAll')}
+            </Button>
+            <Button
+              kind="ghost"
+              className="px-2.5 text-xs"
+              onClick={() => {
+                recheckTasks(selected.size ? [...selected] : []);
+                toast(t('task.recheck'), 'info');
+              }}
+            >
+              {t('task.recheck')}
             </Button>
             {offline.length > 0 && (
               <Button kind="ghost" className="px-2.5 text-xs" onClick={removeOffline}>
