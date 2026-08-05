@@ -43,7 +43,7 @@ function Item({
       {icon}
       <span className="flex-1">{label}</span>
       {badge ? (
-        <span className="kl-num rounded-full bg-carbon-surface3/60 px-1.5 py-0.5 text-[11px] font-semibold leading-none text-carbon-textSub">
+        <span className="keep-num rounded-full bg-carbon-surface3/60 px-1.5 py-0.5 text-[11px] font-semibold leading-none text-carbon-textSub">
           {badge}
         </span>
       ) : null}

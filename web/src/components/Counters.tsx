@@ -31,7 +31,7 @@ export function Counters({ counts }: { counts: CountsInput }) {
     <div className="flex flex-wrap items-baseline gap-x-7 gap-y-2">
       {items.map((i) => (
         <div key={i.label} className="flex items-baseline gap-1.5">
-          <span className={`kl-num text-[15px] font-semibold ${i.tone}`}>{i.value}</span>
+          <span className={`keep-num text-[15px] font-semibold ${i.tone}`}>{i.value}</span>
           <span className="text-[11px] text-carbon-textMuted">{i.label}</span>
         </div>
       ))}
