@@ -13,7 +13,8 @@ A single Go backend with an embedded download engine and a small **resolver** se
 - **Backend:** Go, embedding [Gopeed](https://github.com/GopeedLab/gopeed)'s `pkg/download` engine (in-process; no aria2, no subprocess).
 - **UI:** React + [IBM Carbon](https://carbondesignsystem.com/) (dark), REST + WebSocket live.
 - **Desktop:** [Wails](https://github.com/wailsapp/wails) (Win/macOS/Linux). **Container:** Docker (multi-arch).
-- **Resolvers:** `direct` (file links, fetched by the embedded engine) and `yt-dlp` (media/streaming, when the [yt-dlp](https://github.com/yt-dlp/yt-dlp) binary is present) ship now; headless [JDownloader](https://jdownloader.org/) (full hoster coverage via its local API) is wired; debrid ([TorBox](https://torbox.app/)) + native resolvers next.
+- **Resolvers** (priority order): `direct` (file links, fetched by the embedded engine) · [TorBox](https://torbox.app/) debrid (supported file hosters, unlocked to a direct CDN URL the engine downloads) · [yt-dlp](https://github.com/yt-dlp/yt-dlp) (media/streaming, when the binary is present) · headless [JDownloader](https://jdownloader.org/) (catch-all backup via its local API). Native resolvers come later.
+- **Accounts:** credentials (e.g. the TorBox API key) are stored encrypted at rest (AES-256-GCM under a per-install keyring) via `POST /api/accounts {"service":"torbox","secret":"…"}`.
 
 ## Running
 
@@ -28,7 +29,8 @@ Configuration (all optional, via env):
 | `KL_ADDR` | `:8749` | listen address |
 | `KL_DATA` | user config dir | data directory (SQLite DB + downloads) |
 | `KL_YTDLP` | `yt-dlp` (PATH) | path to the yt-dlp binary; media links route through it when present |
-| `KL_JD` | — | a headless JDownloader Deprecated-API URL (e.g. `http://jd:3128`); when reachable, all links route through JD's hoster plugins |
+| `KL_TORBOX` | — | TorBox API key (or store it via `/api/accounts`); supported hoster links are unlocked through TorBox's debrid |
+| `KL_JD` | — | a headless JDownloader Deprecated-API URL (e.g. `http://jd:3128`); when reachable, it is the catch-all backup for hoster links nothing else claims |
 
 ## M0 — feasibility spikes (green)
 
