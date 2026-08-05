@@ -6,7 +6,7 @@ import react from '@vitejs/plugin-react';
 // the Go backend on :8749.
 export default defineConfig({
   plugins: [react()],
-  base: './',
+  base: '/',
   build: {
     outDir: 'dist',
     emptyOutDir: true,

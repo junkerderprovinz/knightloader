@@ -1,0 +1,172 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:is([data-theme="dark"] *));
+
+@theme {
+  --color-carbon-background: var(--carbon-bg);
+  --color-carbon-sidebar: var(--carbon-sidebar);
+  --color-carbon-surface: var(--carbon-surface);
+  --color-carbon-surface2: var(--carbon-surface2);
+  --color-carbon-surface3: var(--carbon-surface3);
+  --color-carbon-text: var(--carbon-text);
+  --color-carbon-textSub: var(--carbon-text-sub);
+  --color-carbon-textMuted: var(--carbon-text-muted);
+  --color-carbon-border: var(--carbon-border);
+  --color-carbon-hover: var(--carbon-hover);
+
+  --color-accent: var(--accent);
+  --color-accentContrast: var(--accent-contrast);
+
+  --color-statusOk: var(--status-ok-text);
+  --color-statusOkBg: var(--status-ok-bg);
+  --color-statusOkBorder: var(--status-ok-border);
+  --color-statusOkSolid: var(--status-ok-solid);
+
+  --color-statusFail: var(--status-fail-text);
+  --color-statusFailBg: var(--status-fail-bg);
+  --color-statusFailBorder: var(--status-fail-border);
+  --color-statusFailSolid: var(--status-fail-solid);
+
+  --color-statusWarn: var(--status-warn-text);
+  --color-statusWarnBg: var(--status-warn-bg);
+  --color-statusWarnBorder: var(--status-warn-border);
+  --color-statusWarnSolid: var(--status-warn-solid);
+
+  --color-statusInfo: var(--status-info-text);
+  --color-statusInfoBg: var(--status-info-bg);
+  --color-statusInfoBorder: var(--status-info-border);
+  --color-statusInfoSolid: var(--status-info-solid);
+
+  --color-statusNeutral: var(--status-neutral-text);
+  --color-statusNeutralBg: var(--status-neutral-bg);
+  --color-statusNeutralBorder: var(--status-neutral-border);
+  --color-statusNeutralSolid: var(--status-neutral-solid);
+
+  --radius-card: 0.75rem;
+}
+
+/* Carbon palette as CSS custom properties. Dark is default; [data-theme="light"]
+   swaps to an IBM Carbon light theme. Modelled on BombVault so the two apps read
+   as one family; KnightLoader carries its own heraldic-gold accent. */
+
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --carbon-bg:        #161616;
+  --carbon-surface:   #262626;
+  --carbon-surface2:  #393939;
+  --carbon-surface3:  #525252;
+  --carbon-text:      #f4f4f4;
+  --carbon-text-sub:  #c6c6c6;
+  --carbon-text-muted:#8d8d8d;
+  --carbon-border:    #393939;
+  --carbon-hover:     #353535;
+  --carbon-sidebar:   #262626;
+  --sidebar-text:     #e0e0e0;
+
+  --accent:           #e8b046;
+  --accent-contrast:  #161616;
+
+  --status-ok-text:      #6fdc8c;
+  --status-ok-bg:        #1c3a2a;
+  --status-ok-border:    #2a5540;
+  --status-ok-solid:     #6fdc8c;
+
+  --status-fail-text:    #ff8389;
+  --status-fail-bg:      #3a1c1c;
+  --status-fail-border:  #5a2a2a;
+  --status-fail-solid:   #ff8389;
+
+  --status-warn-text:    #f1c21b;
+  --status-warn-bg:      #2a2a1c;
+  --status-warn-border:  #4a4a2a;
+  --status-warn-solid:   #f1c21b;
+
+  --status-info-text:    #78a9ff;
+  --status-info-bg:      #1c2a3a;
+  --status-info-border:  #2a3a5a;
+  --status-info-solid:   #78a9ff;
+
+  --status-neutral-text: #a8a8b0;
+  --status-neutral-bg:   #2a2a2e;
+  --status-neutral-border:#3a3a40;
+  --status-neutral-solid:#8a8a92;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+
+  --carbon-bg:        #ffffff;
+  --carbon-surface:   #f4f4f4;
+  --carbon-surface2:  #e0e0e0;
+  --carbon-surface3:  #c6c6c6;
+  --carbon-text:      #161616;
+  --carbon-text-sub:  #393939;
+  --carbon-text-muted:#6f6f6f;
+  --carbon-border:    #e0e0e0;
+  --carbon-hover:     #e8e8e8;
+  --carbon-sidebar:   #f4f4f4;
+  --sidebar-text:     #21272a;
+  --accent-contrast:  #161616;
+
+  --status-ok-text:      #198038;
+  --status-ok-bg:        #defbe6;
+  --status-ok-border:    #a7f0ba;
+  --status-ok-solid:     #24a148;
+
+  --status-fail-text:    #da1e28;
+  --status-fail-bg:      #fff1f1;
+  --status-fail-border:  #ffd7d9;
+  --status-fail-solid:   #da1e28;
+
+  --status-warn-text:    #8e6a00;
+  --status-warn-bg:      #fcf4d6;
+  --status-warn-border:  #fddc69;
+  --status-warn-solid:   #b28600;
+
+  --status-info-text:    #0043ce;
+  --status-info-bg:      #edf5ff;
+  --status-info-border:  #d0e2ff;
+  --status-info-solid:   #0f62fe;
+
+  --status-neutral-text: #525252;
+  --status-neutral-bg:   #e8e8e8;
+  --status-neutral-border:#c6c6c6;
+  --status-neutral-solid:#8d8d8d;
+}
+
+body {
+  margin: 0;
+  background-color: var(--carbon-bg);
+  color: var(--carbon-text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Indeterminate progress segment (used before a size is known). */
+@keyframes kl-indeterminate {
+  0%   { left: -35%; }
+  100% { left: 100%; }
+}
+
+/* Route/page enter. */
+@keyframes kl-page-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes kl-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .kl-page-enter { animation: kl-page-in 300ms cubic-bezier(.2, .6, .2, 1) both; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kl-page-enter { animation: kl-fade-in 200ms ease both; }
+}

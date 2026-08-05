@@ -11,7 +11,7 @@ A single Go backend with an embedded download engine and a small **resolver** se
 ## Stack
 
 - **Backend:** Go, embedding [Gopeed](https://github.com/GopeedLab/gopeed)'s `pkg/download` engine (in-process; no aria2, no subprocess).
-- **UI:** React + [IBM Carbon](https://carbondesignsystem.com/) (dark), REST + WebSocket live.
+- **UI:** React + Tailwind (IBM Carbon palette, dark/light), a sidebar shell with a package-grouped download view; REST + WebSocket live.
 - **Desktop:** [Wails](https://github.com/wailsapp/wails) (Win/macOS/Linux). **Container:** Docker (multi-arch).
 - **Resolvers** (priority order): `direct` (file links, fetched by the embedded engine) · [TorBox](https://torbox.app/) debrid (supported file hosters, unlocked to a direct CDN URL the engine downloads) · [yt-dlp](https://github.com/yt-dlp/yt-dlp) (media/streaming, when the binary is present) · headless [JDownloader](https://jdownloader.org/) (catch-all backup via its local API). Native resolvers come later.
 - **Accounts:** credentials (e.g. the TorBox API key) are stored encrypted at rest (AES-256-GCM under a per-install keyring) via the Settings dialog or `POST /api/accounts {"service":"torbox","secret":"…"}`.
