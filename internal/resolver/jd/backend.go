@@ -104,7 +104,7 @@ func (b *Backend) setEnabled(taskID string, enabled bool) {
 	}
 }
 
-func (b *Backend) Remove(taskID string) {
+func (b *Backend) Remove(taskID string, _ bool) {
 	b.mu.Lock()
 	if s, ok := b.stop[taskID]; ok {
 		close(s)

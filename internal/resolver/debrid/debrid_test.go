@@ -16,7 +16,7 @@ type fakeEngine struct{ got chan string }
 func (f *fakeEngine) Download(_, url string, _ map[string]string, _ int) { f.got <- url }
 func (f *fakeEngine) Pause(string)                                       {}
 func (f *fakeEngine) Resume(string)                                      {}
-func (f *fakeEngine) Remove(string)                                      {}
+func (f *fakeEngine) Remove(string, bool)                                {}
 
 // TestAllDebrid drives the AllDebrid client against payloads shaped like the
 // live API (verified against api.alldebrid.com/v4).
