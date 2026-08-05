@@ -118,9 +118,29 @@ export function Toggle({
   );
 }
 
-// Card is the standard surface panel (rounded, one step above the background).
+// Card is the standard surface panel: soft elevation + hairline (.kl-card).
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
+  return <div className={`kl-card p-5 ${className}`}>{children}</div>;
+}
+
+// PageHeader is the consistent title block at the top of every page.
+export function PageHeader({
+  title,
+  subtitle,
+  right,
+}: {
+  title: string;
+  subtitle?: string;
+  right?: ReactNode;
+}) {
   return (
-    <div className={`rounded-card bg-carbon-surface p-4 ${className}`}>{children}</div>
+    <header className="flex items-end gap-4">
+      <div className="min-w-0">
+        <h1 className="text-[26px] font-bold leading-tight text-carbon-text">{title}</h1>
+        {subtitle && <p className="text-carbon-textMuted text-sm mt-1">{subtitle}</p>}
+      </div>
+      <span className="flex-1" />
+      {right}
+    </header>
   );
 }

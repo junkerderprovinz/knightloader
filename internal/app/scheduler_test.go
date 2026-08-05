@@ -40,6 +40,40 @@ func expectNone(t *testing.T, ch chan string) {
 	}
 }
 
+// TestCollectorStaging pins the JD-style flow: AddLinks stages tasks (collected,
+// not dispatched); only StartTasks moves them into the download pipeline.
+func TestCollectorStaging(t *testing.T) {
+	a, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Close()
+	stub := &stubBackend{got: make(chan string, 8)}
+	a.jd = stub
+	a.Registry.Register(jd.Resolver{})
+	if _, err := a.ApplySettings(settings.Settings{MaxConcurrent: 4, MaxPerHost: 4, Extract: false}); err != nil {
+		t.Fatal(err)
+	}
+
+	created := a.AddLinks([]string{"https://h.example/a", "https://h.example/b"}, "grab")
+	if len(created) != 2 {
+		t.Fatalf("created %d, want 2", len(created))
+	}
+	for _, c := range a.Tasks() {
+		if c.Status != core.StatusCollected {
+			t.Fatalf("task %s status = %s, want collected", c.ID, c.Status)
+		}
+	}
+	expectNone(t, stub.got) // nothing dispatched while merely collected
+
+	a.StartTasks([]string{created[0].ID})
+	first := collect(t, stub.got, 1)
+	if !first[created[0].ID] {
+		t.Fatalf("started set = %v, want the one requested id", first)
+	}
+	expectNone(t, stub.got) // the other stays collected until started
+}
+
 // TestScheduler pins the M4 dispatch rules: global and per-host slots, FIFO
 // with per-host skip-ahead, slot release on completion, queue-aware pause.
 func TestScheduler(t *testing.T) {
@@ -70,6 +104,8 @@ func TestScheduler(t *testing.T) {
 	for _, c := range created {
 		byURL[c.URL] = c.ID
 	}
+	// Links stage in the collector; start them to enter the scheduler.
+	a.StartTasks(nil)
 
 	// Per-host=1 forces skip-ahead: one task per host starts, not two of hosta.
 	first := collect(t, stub.got, 2)

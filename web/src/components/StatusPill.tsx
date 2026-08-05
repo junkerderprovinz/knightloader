@@ -3,6 +3,7 @@ import type { TaskStatus } from '../lib/api';
 type Tone = 'ok' | 'fail' | 'warn' | 'info' | 'neutral';
 
 const statusTone: Record<TaskStatus, { tone: Tone; label: string }> = {
+  collected: { tone: 'neutral', label: 'Collected' },
   queued: { tone: 'neutral', label: 'Queued' },
   running: { tone: 'info', label: 'Running' },
   paused: { tone: 'warn', label: 'Paused' },

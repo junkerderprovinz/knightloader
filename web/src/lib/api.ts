@@ -1,4 +1,5 @@
 export type TaskStatus =
+  | 'collected'
   | 'queued'
   | 'running'
   | 'paused'
@@ -53,6 +54,14 @@ export async function addLinks(links: string, pkg: string, base = '/api'): Promi
   });
   return (await json<Task[]>(r)) ?? [];
 }
+
+// startTasks moves collected tasks into the download queue (empty = start all).
+export const startTasks = (ids: string[], base = '/api') =>
+  fetch(`${base}/tasks/start`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ids }),
+  });
 
 export const pause = (id: string, base = '/api') =>
   fetch(`${base}/tasks/${id}/pause`, { method: 'POST' });
