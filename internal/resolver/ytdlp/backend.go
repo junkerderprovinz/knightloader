@@ -28,6 +28,10 @@ type Backend struct {
 	// (0 = unlimited); applied per spawn via --limit-rate.
 	RateLimit func() int64
 
+	// Dir returns the destination for a task; nil or an empty result falls back
+	// to the backend's default directory.
+	Dir func(taskID string) string
+
 	mu     sync.Mutex
 	cancel map[string]context.CancelFunc
 	url    map[string]string // for resume
@@ -64,10 +68,20 @@ func (b *Backend) run(taskID, url string) {
 		b.mu.Unlock()
 	}()
 
+	dir := b.dir
+	if b.Dir != nil {
+		if d := b.Dir(taskID); d != "" {
+			dir = d
+		}
+	}
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		b.onUpdate(taskID, core.Update{Status: core.StatusError, Err: "yt-dlp: " + err.Error()})
+		return
+	}
 	args := []string{
 		"--newline", "--no-warnings", "--no-color", "--no-playlist",
 		"--progress-template", "KLP:%(progress)j",
-		"-o", filepath.Join(b.dir, "%(title)s.%(ext)s"),
+		"-o", filepath.Join(dir, "%(title)s.%(ext)s"),
 	}
 	if b.RateLimit != nil {
 		if lim := b.RateLimit(); lim > 0 {
