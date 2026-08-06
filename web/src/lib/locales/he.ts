@@ -216,4 +216,10 @@ export const he: Dict = {
   'queue.stopMark': 'לעצור אחרי זה',
   'queue.stopMarkOn': 'ייעצר אחרי זה',
   'queue.limit': 'מגבלה',
+  'settings.rainbow': 'קשת',
+  'settings.rainbowHint': 'במקום צבע הדגשה אחד, לוח של שמונה צבעים לפי מיקום, כך שרשימה ארוכה נקראת כשורות נפרדות.',
+  'settings.rainbowOn': 'להשתמש בלוח',
+  'settings.rainbowReactive': 'שקט עד שנוגעים: צבע במעבר עכבר ועל מה שרץ',
+  'settings.rainbowRotate': 'ערבוב נקודת ההתחלה של הלוח',
+  'settings.rainbowPalette': 'צבע בלוח',
 };

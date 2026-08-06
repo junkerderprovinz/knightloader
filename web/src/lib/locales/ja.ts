@@ -214,4 +214,10 @@ export const ja: Dict = {
   'queue.stopMark': 'これが終わったら停止',
   'queue.stopMarkOn': 'これが終わり次第停止します',
   'queue.limit': '上限',
+  'settings.rainbow': 'レインボー',
+  'settings.rainbowHint': 'アクセント1色ではなく、位置ごとに割り当てる8色のパレット。長い一覧が行ごとに読み分けられます。',
+  'settings.rainbowOn': 'パレットを使う',
+  'settings.rainbowReactive': '触れるまでは静か。ポインタを重ねたときと実行中のものだけ色がつきます',
+  'settings.rainbowRotate': 'パレットの開始位置をシャッフルする',
+  'settings.rainbowPalette': 'パレットの色',
 };

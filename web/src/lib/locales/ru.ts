@@ -206,4 +206,10 @@ export const ru: Dict = {
   'queue.stopMark': 'Остановиться после этого',
   'queue.stopMarkOn': 'Остановится после этого',
   'queue.limit': 'Лимит',
+  'settings.rainbow': 'Радуга',
+  'settings.rainbowHint': 'Вместо одного акцента палитра из восьми цветов по позиции, чтобы длинный список читался как отдельные строки.',
+  'settings.rainbowOn': 'Использовать палитру',
+  'settings.rainbowReactive': 'Тихо, пока не тронешь: цвет при наведении и у того, что работает',
+  'settings.rainbowRotate': 'Перемешать, с какого цвета начинается палитра',
+  'settings.rainbowPalette': 'Цвет палитры',
 };

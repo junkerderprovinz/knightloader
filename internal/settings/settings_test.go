@@ -82,3 +82,37 @@ func TestSanitizeKeepsLimitsUsable(t *testing.T) {
 		t.Errorf("a relative watch folder survived as %q", w)
 	}
 }
+
+// TestSanitizeRainbowPalette pins the rule that keeps saved colours out of the
+// stylesheet as anything but colours. Every entry lands in a CSS custom
+// property, so one that is not a plain hex triple is not a cosmetic problem.
+func TestSanitizeRainbowPalette(t *testing.T) {
+	full := []string{"#111111", "#222222", "#333333", "#444444",
+		"#555555", "#666666", "#777777", "#888888"}
+
+	if got := sanitize(Settings{RainbowPalette: full}).RainbowPalette; len(got) != RainbowSize {
+		t.Fatalf("a complete palette was dropped: %v", got)
+	}
+
+	// All-or-nothing: seven good colours and one injection is not a palette
+	// that is 87% safe, it is a palette that must not be stored.
+	bad := append([]string(nil), full...)
+	bad[3] = "red; background: url(http://evil/)"
+	if got := sanitize(Settings{RainbowPalette: bad}).RainbowPalette; got != nil {
+		t.Errorf("a palette carrying %q was kept as %v", bad[3], got)
+	}
+
+	// A short palette would leave positions undefined, which shows up as
+	// colourless rows rather than as an error anybody can act on.
+	if got := sanitize(Settings{RainbowPalette: full[:5]}).RainbowPalette; got != nil {
+		t.Errorf("a five-colour palette survived as %v", got)
+	}
+
+	// The seed is read modulo the palette length, so it is folded on the way in
+	// rather than every time it is used.
+	for _, in := range []int{-3, 9, 800} {
+		if s := sanitize(Settings{RainbowSeed: in}).RainbowSeed; s < 0 || s >= RainbowSize {
+			t.Errorf("seed %d became %d, outside 0..%d", in, s, RainbowSize-1)
+		}
+	}
+}

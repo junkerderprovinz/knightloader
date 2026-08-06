@@ -206,4 +206,10 @@ export const fr: Dict = {
   'queue.stopMark': 'S’arrêter après celui-ci',
   'queue.stopMarkOn': 'S’arrêtera après celui-ci',
   'queue.limit': 'Limite',
+  'settings.rainbow': 'Arc-en-ciel',
+  'settings.rainbowHint': 'Au lieu d’une seule couleur, une palette de huit attribuée par position : une longue liste se lit en lignes distinctes.',
+  'settings.rainbowOn': 'Utiliser la palette',
+  'settings.rainbowReactive': 'Discret jusqu’au survol : la couleur apparaît au passage et sur ce qui tourne',
+  'settings.rainbowRotate': 'Mélanger le point de départ de la palette',
+  'settings.rainbowPalette': 'Couleur de la palette',
 };

@@ -3,7 +3,7 @@
 @custom-variant dark (&:is([data-theme="dark"] *));
 
 /* ===========================================================================
-   KEEP — the shared design language
+   GlimStone — the shared design language
    ---------------------------------------------------------------------------
    A warm, layered, low-noise system: warm near-black ground, one raised surface
    level, generous radii, soft elevation, and heraldic gold used sparingly.
@@ -188,20 +188,20 @@ body {
 }
 
 /* The one raised surface. Never nest it. */
-.keep-card {
+.glim-card {
   background-color: var(--carbon-surface);
   border-radius: var(--radius-card);
   box-shadow: var(--elevation), var(--hairline);
 }
 
 /* An inset well for tracks, drop zones and quiet groupings. */
-.keep-well {
+.glim-well {
   background-color: var(--carbon-surface2);
   border-radius: var(--radius-control);
 }
 
 /* Eyebrow label: small, uppercase, quiet — used above hero figures. */
-.keep-eyebrow {
+.glim-eyebrow {
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -209,9 +209,47 @@ body {
 }
 
 /* Digits that stack in columns line up and never jitter while counting. */
-.keep-num {
+.glim-num {
   font-variant-numeric: tabular-nums lining-nums;
   font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+/* ---------------------------------------------------------------------------
+   Rainbow — the accent in its plural form.
+
+   An element that owns a palette position sets --item-hue on itself (see
+   hueVars in lib/appearance.ts) and carries .glim-hue. These rules then
+   redefine --accent for that subtree, which is all it takes: every component
+   already paints activity with var(--accent), so nothing below has to know the
+   mode exists. When rainbow is off, [data-rainbow] is absent, no rule matches,
+   and the single accent applies exactly as before.
+   --------------------------------------------------------------------------- */
+[data-rainbow] .glim-hue {
+  --accent: var(--item-hue);
+  --accent-contrast: var(--item-hue-ink);
+  --accent-soft: var(--item-hue-soft);
+}
+
+/* Opt-in: the element's glyph takes the hue too. Scoped to a second class
+   because a download row owns a colour but its action icons must stay quiet. */
+[data-rainbow] .glim-hue-icon svg {
+  color: var(--accent);
+}
+
+/* Reactive: the palette rests. Everything is quiet until it is hovered or is
+   the active item, which is the reading that still obeys "colour marks
+   activity" when a whole list would otherwise light up at once. */
+[data-rainbow='reactive'] .glim-hue {
+  --accent: var(--carbon-text-muted);
+  --accent-contrast: var(--carbon-bg);
+  --accent-soft: transparent;
+}
+[data-rainbow='reactive'] .glim-hue:hover,
+[data-rainbow='reactive'] .glim-hue:focus-within,
+[data-rainbow='reactive'] .glim-hue.glim-active {
+  --accent: var(--item-hue);
+  --accent-contrast: var(--item-hue-ink);
+  --accent-soft: var(--item-hue-soft);
 }
 
 :focus-visible {
@@ -234,33 +272,33 @@ body {
   background-clip: content-box;
 }
 
-@keyframes keep-indeterminate {
+@keyframes glim-indeterminate {
   0%   { left: -35%; }
   100% { left: 100%; }
 }
-@keyframes keep-page-in {
+@keyframes glim-page-in {
   from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: none; }
 }
-@keyframes keep-fade-in {
+@keyframes glim-fade-in {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
-@keyframes keep-toast-in {
+@keyframes glim-toast-in {
   from { opacity: 0; transform: translateX(12px); }
   to   { opacity: 1; transform: none; }
 }
-@keyframes keep-pulse {
+@keyframes glim-pulse {
   0%, 100% { opacity: 1; }
   50%      { opacity: .45; }
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .keep-page-enter { animation: keep-page-in 280ms cubic-bezier(.2, .6, .2, 1) both; }
-  .keep-toast { animation: keep-toast-in 220ms cubic-bezier(.2, .6, .2, 1) both; }
-  .keep-live { animation: keep-pulse 2s ease-in-out infinite; }
+  .glim-page-enter { animation: glim-page-in 280ms cubic-bezier(.2, .6, .2, 1) both; }
+  .glim-toast { animation: glim-toast-in 220ms cubic-bezier(.2, .6, .2, 1) both; }
+  .glim-live { animation: glim-pulse 2s ease-in-out infinite; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .keep-page-enter { animation: keep-fade-in 180ms ease both; }
-  .keep-toast { animation: keep-fade-in 160ms ease both; }
+  .glim-page-enter { animation: glim-fade-in 180ms ease both; }
+  .glim-toast { animation: glim-fade-in 160ms ease both; }
 }

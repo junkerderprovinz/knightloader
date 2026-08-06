@@ -214,4 +214,10 @@ export const vi: Dict = {
   'queue.stopMark': 'Dừng sau mục này',
   'queue.stopMarkOn': 'Sẽ dừng sau mục này',
   'queue.limit': 'Giới hạn',
+  'settings.rainbow': 'Cầu vồng',
+  'settings.rainbowHint': 'Thay vì một màu nhấn, một bảng tám màu chia theo vị trí, để danh sách dài đọc ra từng dòng riêng.',
+  'settings.rainbowOn': 'Dùng bảng màu',
+  'settings.rainbowReactive': 'Yên cho tới khi chạm: có màu khi rê chuột và ở mục đang chạy',
+  'settings.rainbowRotate': 'Xáo vị trí bắt đầu của bảng màu',
+  'settings.rainbowPalette': 'Màu trong bảng',
 };

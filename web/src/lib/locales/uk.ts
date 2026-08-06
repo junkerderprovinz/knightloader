@@ -214,4 +214,10 @@ export const uk: Dict = {
   'queue.stopMark': 'Зупинитися після цього',
   'queue.stopMarkOn': 'Зупиниться після цього',
   'queue.limit': 'Ліміт',
+  'settings.rainbow': 'Райдуга',
+  'settings.rainbowHint': 'Замість одного акценту палітра з восьми кольорів за позицією, щоб довгий список читався як окремі рядки.',
+  'settings.rainbowOn': 'Використовувати палітру',
+  'settings.rainbowReactive': 'Тихо, доки не торкнешся: колір при наведенні та в того, що працює',
+  'settings.rainbowRotate': 'Перемішати, з якого кольору починається палітра',
+  'settings.rainbowPalette': 'Колір палітри',
 };

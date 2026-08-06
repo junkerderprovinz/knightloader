@@ -26,7 +26,7 @@ export function ProgressBar({
       {isIndet ? (
         <div
           className="absolute inset-y-0 w-1/3 rounded-full opacity-70"
-          style={{ background: fill, animation: 'keep-indeterminate 1.4s ease-in-out infinite' }}
+          style={{ background: fill, animation: 'glim-indeterminate 1.4s ease-in-out infinite' }}
         />
       ) : (
         <div

@@ -214,4 +214,10 @@ export const hu: Dict = {
   'queue.stopMark': 'Ez után leállás',
   'queue.stopMarkOn': 'Ez után leáll',
   'queue.limit': 'Korlát',
+  'settings.rainbow': 'Szivárvány',
+  'settings.rainbowHint': 'Egy kiemelőszín helyett nyolcból álló paletta pozíció szerint, így a hosszú lista külön sorokként olvasható.',
+  'settings.rainbowOn': 'Paletta használata',
+  'settings.rainbowReactive': 'Csendes, amíg hozzá nem érsz: szín rámutatáskor és azon, ami fut',
+  'settings.rainbowRotate': 'A paletta kezdőszínének keverése',
+  'settings.rainbowPalette': 'Palettaszín',
 };

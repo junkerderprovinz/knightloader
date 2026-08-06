@@ -48,6 +48,23 @@ type Settings struct {
 	// Accent is the one colour the interface uses for activity, as #rrggbb.
 	// Empty means the built-in heraldic gold.
 	Accent string `json:"accent"`
+
+	// Rainbow replaces the single accent with a palette handed out by position,
+	// so a long list of downloads reads as distinct rows instead of one gold
+	// wall. It colours activity only, exactly like the accent it stands in for.
+	Rainbow bool `json:"rainbow"`
+	// RainbowReactive rests everything neutral and colours only what is hovered
+	// or active: the restrained reading of the mode.
+	RainbowReactive bool `json:"rainbowReactive"`
+	// RainbowRotate offsets the palette by RainbowSeed, so a run does not always
+	// begin on the same hue.
+	RainbowRotate bool `json:"rainbowRotate"`
+	// RainbowSeed is that offset. It is stored with the instance rather than in
+	// the browser because two clients of one server showing different colours
+	// for the same download is a bug, not a preference.
+	RainbowSeed int `json:"rainbowSeed"`
+	// RainbowPalette overrides the eight built-in hues. Empty means the default.
+	RainbowPalette []string `json:"rainbowPalette"`
 }
 
 // Defaults returns the settings a fresh install starts with.
@@ -120,6 +137,30 @@ const (
 // put attacker-chosen text straight into a CSS custom property.
 var accentPattern = regexp.MustCompile(`^#[0-9a-fA-F]{6}$`)
 
+// RainbowSize is how many hues the palette has. It is fixed: the colours are
+// handed out by position, so a palette that can change length would silently
+// re-colour every existing row whenever the user added one.
+const RainbowSize = 8
+
+// sanitizePalette accepts a custom palette only in full. A palette with one
+// unusable entry is not a palette with seven good colours, it is a palette that
+// turns one row invisible, so the whole override is dropped back to the
+// built-in hues.
+func sanitizePalette(p []string) []string {
+	if len(p) != RainbowSize {
+		return nil
+	}
+	out := make([]string, 0, RainbowSize)
+	for _, c := range p {
+		c = strings.TrimSpace(c)
+		if !accentPattern.MatchString(c) {
+			return nil
+		}
+		out = append(out, c)
+	}
+	return out
+}
+
 func sanitize(n Settings) Settings {
 	switch n.Shape {
 	case ShapeRound, ShapeSoft, ShapeSquare:
@@ -130,6 +171,13 @@ func sanitize(n Settings) Settings {
 	if n.Accent != "" && !accentPattern.MatchString(n.Accent) {
 		n.Accent = ""
 	}
+	n.RainbowPalette = sanitizePalette(n.RainbowPalette)
+	// The seed is only ever read modulo the palette length, so it is folded here
+	// and stored small enough to read at a glance in settings.json.
+	if n.RainbowSeed < 0 {
+		n.RainbowSeed = -n.RainbowSeed
+	}
+	n.RainbowSeed %= RainbowSize
 	if n.MaxConcurrent < 1 {
 		n.MaxConcurrent = 1
 	}

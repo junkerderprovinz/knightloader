@@ -214,4 +214,10 @@ export const zh: Dict = {
   'queue.stopMark': '完成这个后停止',
   'queue.stopMarkOn': '完成这个后将停止',
   'queue.limit': '限速',
+  'settings.rainbow': '彩虹',
+  'settings.rainbowHint': '不用单一强调色，而是按位置分配的八色调色板，长列表因此能逐行区分。',
+  'settings.rainbowOn': '使用调色板',
+  'settings.rainbowReactive': '未触碰时安静：悬停时和正在运行的项目才上色',
+  'settings.rainbowRotate': '打乱调色板的起始颜色',
+  'settings.rainbowPalette': '调色板颜色',
 };

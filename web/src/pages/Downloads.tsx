@@ -141,7 +141,7 @@ export function Downloads() {
           ride as one quiet uncarded line so Overview keeps the big figure. */}
       {list.length > 0 && (
         <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
-          <span className="keep-num text-[20px] font-semibold leading-none text-carbon-text">
+          <span className="glim-num text-[20px] font-semibold leading-none text-carbon-text">
             {fmtSpeed(counts.speed) || '0 B/s'}
           </span>
           <Counters counts={counts} />
@@ -163,7 +163,7 @@ export function Downloads() {
               className="w-full rounded-[var(--radius-control)] bg-carbon-surface2 py-2 pl-8 pr-3 text-sm text-carbon-text placeholder:text-carbon-textMuted outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)]"
             />
           </div>
-          <div className="keep-well flex items-center gap-0.5 p-1">
+          <div className="glim-well flex items-center gap-0.5 p-1">
             {FILTERS.map((f) => (
               <button
                 key={f.key}
@@ -210,7 +210,7 @@ export function Downloads() {
           controls appear with a selection rather than sitting there greyed out. */}
       {selected.size > 0 && (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="keep-num text-sm text-carbon-textSub">
+          <span className="glim-num text-sm text-carbon-textSub">
             {selected.size} {t('select.count')}
           </span>
           <Button kind="ghost" className="px-2.5 text-xs" onClick={() => setSelected(new Set())}>

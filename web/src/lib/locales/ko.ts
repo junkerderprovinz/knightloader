@@ -214,4 +214,10 @@ export const ko: Dict = {
   'queue.stopMark': '이것만 끝내고 정지',
   'queue.stopMarkOn': '이것이 끝나면 정지합니다',
   'queue.limit': '제한',
+  'settings.rainbow': '무지개',
+  'settings.rainbowHint': '강조색 하나 대신 위치별로 배정되는 여덟 색 팔레트. 긴 목록이 행 단위로 구분되어 읽힙니다.',
+  'settings.rainbowOn': '팔레트 사용',
+  'settings.rainbowReactive': '건드리기 전까지는 조용히. 가리킬 때와 실행 중인 것에만 색이 붙습니다',
+  'settings.rainbowRotate': '팔레트가 시작하는 위치를 섞기',
+  'settings.rainbowPalette': '팔레트 색',
 };

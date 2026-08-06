@@ -206,4 +206,10 @@ export const it: Dict = {
   'queue.stopMark': 'Fermati dopo questo',
   'queue.stopMarkOn': 'Si fermerà dopo questo',
   'queue.limit': 'Limite',
+  'settings.rainbow': 'Arcobaleno',
+  'settings.rainbowHint': 'Invece di un solo accento, una tavolozza di otto assegnata per posizione: un elenco lungo si legge come righe distinte.',
+  'settings.rainbowOn': 'Usa la tavolozza',
+  'settings.rainbowReactive': 'Silenzioso finché non lo tocchi: colore al passaggio e su ciò che è in corso',
+  'settings.rainbowRotate': 'Mescola da dove parte la tavolozza',
+  'settings.rainbowPalette': 'Colore della tavolozza',
 };

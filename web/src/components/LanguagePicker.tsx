@@ -44,7 +44,7 @@ export function LanguagePicker({ className }: { className?: string }) {
         <div
           role="listbox"
           aria-label={t('lang.label')}
-          className="keep-card absolute bottom-full left-0 z-50 mb-2 max-h-72 w-52 overflow-y-auto p-1"
+          className="glim-card absolute bottom-full left-0 z-50 mb-2 max-h-72 w-52 overflow-y-auto p-1"
         >
           {languages.map((l) => (
             <button
