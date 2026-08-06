@@ -208,4 +208,10 @@ export const ja: Dict = {
   'settings.accent': 'アクセントカラー',
   'settings.accentHint': '動きを示す唯一の色です。上に載る文字は読みやすさで自動的に決まります。',
   'settings.accentReset': '既定',
+  'queue.stop': 'キューを停止',
+  'queue.start': 'キューを開始',
+  'queue.halted': 'キューを停止しました。実行中の分は完了し、新しいものは始まりません。',
+  'queue.stopMark': 'これが終わったら停止',
+  'queue.stopMarkOn': 'これが終わり次第停止します',
+  'queue.limit': '上限',
 };

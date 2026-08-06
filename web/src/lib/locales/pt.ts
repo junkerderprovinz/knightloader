@@ -200,4 +200,10 @@ export const pt: Dict = {
   'settings.accent': 'Cor de destaque',
   'settings.accentHint': 'A única cor da atividade. O texto por cima é escolhido por contraste.',
   'settings.accentReset': 'Predefinição',
+  'queue.stop': 'Parar a fila',
+  'queue.start': 'Iniciar a fila',
+  'queue.halted': 'Fila parada. As transferências em curso terminam; nada de novo começa.',
+  'queue.stopMark': 'Parar depois deste',
+  'queue.stopMarkOn': 'Para depois deste',
+  'queue.limit': 'Limite',
 };

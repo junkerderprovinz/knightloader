@@ -82,11 +82,19 @@ type App struct {
 	// re-wiring does network calls, and task state must not wait for those.
 	bmu sync.RWMutex
 
-	mu      sync.Mutex
-	tasks   map[string]*core.Task
-	queue   []string        // task IDs waiting for a slot, FIFO with per-host skip-ahead
-	active  map[string]bool // dispatched and not yet terminal/paused
-	started map[string]bool // ever handed to a backend (Resume vs fresh Download)
+	mu sync.Mutex
+	// halted stops the dispatcher from handing anything new to a backend.
+	// Running downloads keep running: this is a queue switch, not a kill
+	// switch, and a stop that abandons half-written bytes is a different
+	// button with a different warning.
+	halted bool
+	// stopMark is the task whose completion halts the queue. It is how you say
+	// "finish this, then stop" without sitting and watching for it.
+	stopMark string
+	tasks    map[string]*core.Task
+	queue    []string        // task IDs waiting for a slot, FIFO with per-host skip-ahead
+	active   map[string]bool // dispatched and not yet terminal/paused
+	started  map[string]bool // ever handed to a backend (Resume vs fresh Download)
 }
 
 func New(dataDir string) (*App, error) {
@@ -893,6 +901,9 @@ func (a *App) analyze(id, rawurl string) {
 // skip-ahead: a host at its limit doesn't block other hosts behind it.
 // Caller holds a.mu.
 func (a *App) dispatchLocked() {
+	if a.halted {
+		return
+	}
 	cfg := a.Settings.Get()
 	a.sortQueueLocked()
 	perHost := map[string]int{}
@@ -1068,6 +1079,50 @@ func (a *App) saveAndBroadcast(copies []core.Task) {
 		_ = a.Store.Save(&c)
 		a.Hub.Broadcast("task", &c)
 	}
+}
+
+// QueueState is the master switch and the stop mark, as the UI sees them.
+type QueueState struct {
+	Halted   bool   `json:"halted"`
+	StopMark string `json:"stopMark,omitempty"`
+	// Running is how many downloads are actually in flight, which is what makes
+	// "halted" legible: halted with three running means three still finishing.
+	Running int `json:"running"`
+}
+
+// Queue reports the master switch.
+func (a *App) Queue() QueueState {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return QueueState{Halted: a.halted, StopMark: a.stopMark, Running: len(a.active)}
+}
+
+// SetHalted stops or resumes handing queued tasks to a backend. Halting leaves
+// what is already downloading alone, because killing a transfer mid-file throws
+// away work the user did not ask to lose.
+func (a *App) SetHalted(halted bool) {
+	a.mu.Lock()
+	a.halted = halted
+	if !halted {
+		// Resuming clears the stop mark: it has served its purpose, and leaving
+		// it armed would halt the queue again at the next finished download for
+		// a reason nobody would connect to a click made minutes ago.
+		a.stopMark = ""
+		a.dispatchLocked()
+	}
+	a.mu.Unlock()
+	a.Hub.Broadcast("queue", a.Queue())
+}
+
+// SetStopMark arms the queue to halt once this task finishes. An empty id
+// disarms it.
+func (a *App) SetStopMark(id string) {
+	a.mu.Lock()
+	if id == "" || a.tasks[id] != nil {
+		a.stopMark = id
+	}
+	a.mu.Unlock()
+	a.Hub.Broadcast("queue", a.Queue())
 }
 
 // hostOf returns the scheduling host bucket for a URL.
@@ -1449,10 +1504,16 @@ func (a *App) onUpdate(id string, u core.Update) {
 		delete(a.active, id)
 		a.dispatchLocked()
 	}
+	var hitStopMark bool
 	if u.Status == core.StatusDone {
 		t.Online = core.AvailOnline
 		t.Retries = 0
 		t.NextTry = time.Time{}
+		if a.stopMark == id {
+			a.halted = true
+			a.stopMark = ""
+			hitStopMark = true
+		}
 		if a.Settings.Get().VerifyChecksums {
 			go a.verifyTask(id, filepath.Join(a.dirFor(t), t.Name))
 		}
@@ -1523,6 +1584,10 @@ func (a *App) onUpdate(id string, u core.Update) {
 	}
 	if retryIn > 0 {
 		a.retryAfter(id, retryIn)
+	}
+	if hitStopMark {
+		log.Printf("stop mark reached at %s; the queue is halted", c.Name)
+		a.Hub.Broadcast("queue", a.Queue())
 	}
 }
 

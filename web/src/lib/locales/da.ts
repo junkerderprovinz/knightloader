@@ -208,4 +208,10 @@ export const da: Dict = {
   'settings.accent': 'Accentfarve',
   'settings.accentHint': 'Den ene farve for aktivitet. Teksten ovenpå vælges efter kontrast.',
   'settings.accentReset': 'Standard',
+  'queue.stop': 'Stop køen',
+  'queue.start': 'Start køen',
+  'queue.halted': 'Køen er stoppet. Igangværende downloads gøres færdige, intet nyt starter.',
+  'queue.stopMark': 'Stop efter denne',
+  'queue.stopMarkOn': 'Stopper efter denne',
+  'queue.limit': 'Grænse',
 };

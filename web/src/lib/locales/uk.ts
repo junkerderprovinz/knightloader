@@ -208,4 +208,10 @@ export const uk: Dict = {
   'settings.accent': 'Акцентний колір',
   'settings.accentHint': 'Єдиний колір активності. Текст на ньому добирається за контрастом.',
   'settings.accentReset': 'За замовчуванням',
+  'queue.stop': 'Зупинити чергу',
+  'queue.start': 'Запустити чергу',
+  'queue.halted': 'Чергу зупинено. Поточні завантаження завершаться, нові не почнуться.',
+  'queue.stopMark': 'Зупинитися після цього',
+  'queue.stopMarkOn': 'Зупиниться після цього',
+  'queue.limit': 'Ліміт',
 };

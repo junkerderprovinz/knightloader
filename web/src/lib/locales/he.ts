@@ -210,4 +210,10 @@ export const he: Dict = {
   'settings.accent': 'צבע הדגשה',
   'settings.accentHint': 'הצבע היחיד לפעילות. הטקסט מעליו נבחר לפי ניגודיות.',
   'settings.accentReset': 'ברירת מחדל',
+  'queue.stop': 'עצירת התור',
+  'queue.start': 'הפעלת התור',
+  'queue.halted': 'התור נעצר. הורדות שרצות יסתיימו, ולא יתחיל דבר חדש.',
+  'queue.stopMark': 'לעצור אחרי זה',
+  'queue.stopMarkOn': 'ייעצר אחרי זה',
+  'queue.limit': 'מגבלה',
 };

@@ -208,4 +208,10 @@ export const ro: Dict = {
   'settings.accent': 'Culoare de accent',
   'settings.accentHint': 'Singura culoare pentru activitate. Textul de pe ea e ales după contrast.',
   'settings.accentReset': 'Implicit',
+  'queue.stop': 'Oprește coada',
+  'queue.start': 'Pornește coada',
+  'queue.halted': 'Coada e oprită. Descărcările în curs se termină, nimic nou nu pornește.',
+  'queue.stopMark': 'Oprește după acesta',
+  'queue.stopMarkOn': 'Se oprește după acesta',
+  'queue.limit': 'Limită',
 };

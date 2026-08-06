@@ -208,4 +208,10 @@ export const cs: Dict = {
   'settings.accent': 'Barva zvýraznění',
   'settings.accentHint': 'Jediná barva pro aktivitu. Text na ní se volí podle kontrastu.',
   'settings.accentReset': 'Výchozí',
+  'queue.stop': 'Zastavit frontu',
+  'queue.start': 'Spustit frontu',
+  'queue.halted': 'Fronta zastavena. Probíhající stahování doběhnou, nic nového nezačne.',
+  'queue.stopMark': 'Po tomto zastavit',
+  'queue.stopMarkOn': 'Zastaví se po tomto',
+  'queue.limit': 'Limit',
 };

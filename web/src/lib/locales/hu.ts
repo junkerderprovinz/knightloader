@@ -208,4 +208,10 @@ export const hu: Dict = {
   'settings.accent': 'Kiemelőszín',
   'settings.accentHint': 'Az egyetlen szín a tevékenységhez. A rajta lévő szöveget a kontraszt dönti el.',
   'settings.accentReset': 'Alapérték',
+  'queue.stop': 'Sor leállítása',
+  'queue.start': 'Sor indítása',
+  'queue.halted': 'A sor leállt. A futó letöltések befejeződnek, új nem indul.',
+  'queue.stopMark': 'Ez után leállás',
+  'queue.stopMarkOn': 'Ez után leáll',
+  'queue.limit': 'Korlát',
 };

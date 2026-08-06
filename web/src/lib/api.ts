@@ -61,6 +61,12 @@ export interface Account {
   hosts: number;
 }
 
+export interface QueueState {
+  halted: boolean;
+  stopMark?: string;
+  running: number;
+}
+
 export interface AuthState {
   enabled: boolean;
   authenticated: boolean;
@@ -152,6 +158,18 @@ export const setTaskOptions = (
   opts: { dir?: string; password?: string },
   base = '/api',
 ) => post(`${base}/tasks/options`, { ids, ...opts });
+
+export async function fetchQueue(base = '/api'): Promise<QueueState> {
+  return json<QueueState>(await fetch(`${base}/queue`));
+}
+
+/** setQueue toggles the master switch and/or arms the stop mark. */
+export async function setQueue(
+  patch: { halted?: boolean; stopMark?: string },
+  base = '/api',
+): Promise<QueueState> {
+  return json<QueueState>(await post(`${base}/queue`, patch));
+}
 
 export async function fetchSettings(): Promise<Settings> {
   return json<Settings>(await fetch('/api/settings'));

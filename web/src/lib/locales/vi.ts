@@ -208,4 +208,10 @@ export const vi: Dict = {
   'settings.accent': 'Màu nhấn',
   'settings.accentHint': 'Màu duy nhất cho hoạt động. Chữ trên nền đó được chọn theo độ tương phản.',
   'settings.accentReset': 'Mặc định',
+  'queue.stop': 'Dừng hàng đợi',
+  'queue.start': 'Chạy hàng đợi',
+  'queue.halted': 'Đã dừng hàng đợi. Các mục đang chạy sẽ xong, không có mục mới bắt đầu.',
+  'queue.stopMark': 'Dừng sau mục này',
+  'queue.stopMarkOn': 'Sẽ dừng sau mục này',
+  'queue.limit': 'Giới hạn',
 };

@@ -208,4 +208,10 @@ export const th: Dict = {
   'settings.accent': 'สีเน้น',
   'settings.accentHint': 'สีเดียวที่ใช้แสดงการทำงาน ตัวอักษรบนสีนี้เลือกตามความต่างของสี',
   'settings.accentReset': 'ค่าเริ่มต้น',
+  'queue.stop': 'หยุดคิว',
+  'queue.start': 'เริ่มคิว',
+  'queue.halted': 'หยุดคิวแล้ว รายการที่กำลังทำงานจะทำจนจบ และจะไม่เริ่มรายการใหม่',
+  'queue.stopMark': 'หยุดหลังรายการนี้',
+  'queue.stopMarkOn': 'จะหยุดหลังรายการนี้',
+  'queue.limit': 'ขีดจำกัด',
 };

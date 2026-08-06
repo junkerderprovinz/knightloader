@@ -19,6 +19,7 @@ import { PageHeader, Button, EmptyState } from '../components/ui';
 import { Counters } from '../components/Counters';
 import { TaskListCard, groupByPackage, type Selection } from '../components/TaskList';
 import { PackageActions } from '../components/PackageActions';
+import { QueueBar } from '../components/QueueBar';
 import { IconSearch, IconDownloads, IconArrowUp, IconArrowDown, IconTop, IconBottom } from '../lib/icons';
 
 type Filter = 'all' | 'active' | 'done' | 'error';
@@ -133,6 +134,8 @@ export function Downloads() {
           )
         }
       />
+
+      <QueueBar base={base} />
 
       {/* No hero here — the list is this page's weight. The speed and counters
           ride as one quiet uncarded line so Overview keeps the big figure. */}
