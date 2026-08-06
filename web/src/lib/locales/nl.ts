@@ -200,4 +200,10 @@ export const nl: Dict = {
   'settings.accent': 'Accentkleur',
   'settings.accentHint': 'De ene kleur voor activiteit. De tekst erop wordt op contrast gekozen.',
   'settings.accentReset': 'Standaard',
+  'queue.stop': 'Wachtrij stoppen',
+  'queue.start': 'Wachtrij starten',
+  'queue.halted': 'Wachtrij gestopt. Lopende downloads maken af; er start niets nieuws.',
+  'queue.stopMark': 'Hierna stoppen',
+  'queue.stopMarkOn': 'Stopt hierna',
+  'queue.limit': 'Limiet',
 };

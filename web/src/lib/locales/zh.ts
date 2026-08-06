@@ -208,4 +208,10 @@ export const zh: Dict = {
   'settings.accent': '强调色',
   'settings.accentHint': '表示活动的唯一颜色。其上的文字按对比度自动选取。',
   'settings.accentReset': '默认',
+  'queue.stop': '停止队列',
+  'queue.start': '启动队列',
+  'queue.halted': '队列已停止。进行中的下载会完成，不再开始新的。',
+  'queue.stopMark': '完成这个后停止',
+  'queue.stopMarkOn': '完成这个后将停止',
+  'queue.limit': '限速',
 };

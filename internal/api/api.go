@@ -77,6 +77,28 @@ func Handler(a *app.App) http.Handler {
 		a.RestartTasks(body.Ids)
 		w.WriteHeader(http.StatusNoContent)
 	})
+	// The queue master switch. Separate from pausing a task: this decides
+	// whether anything new starts at all.
+	mux.HandleFunc("GET /api/queue", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, a.Queue())
+	})
+	mux.HandleFunc("POST /api/queue", func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Halted   *bool   `json:"halted,omitempty"`
+			StopMark *string `json:"stopMark,omitempty"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			http.Error(w, "bad json", http.StatusBadRequest)
+			return
+		}
+		if body.Halted != nil {
+			a.SetHalted(*body.Halted)
+		}
+		if body.StopMark != nil {
+			a.SetStopMark(*body.StopMark)
+		}
+		writeJSON(w, a.Queue())
+	})
 	mux.HandleFunc("POST /api/tasks/recheck", func(w http.ResponseWriter, r *http.Request) {
 		var body struct {
 			Ids []string `json:"ids"`

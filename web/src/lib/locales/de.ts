@@ -208,4 +208,10 @@ export const de: Dict = {
   'settings.accent': 'Akzentfarbe',
   'settings.accentHint': 'Die eine Farbe für Aktivität. Die Schrift darauf wird nach Kontrast gewählt.',
   'settings.accentReset': 'Standard',
+  'queue.stop': 'Warteschlange stoppen',
+  'queue.start': 'Warteschlange starten',
+  'queue.halted': 'Warteschlange gestoppt. Laufende Downloads werden fertig, es startet nichts Neues.',
+  'queue.stopMark': 'Danach stoppen',
+  'queue.stopMarkOn': 'Stoppt danach',
+  'queue.limit': 'Limit',
 };

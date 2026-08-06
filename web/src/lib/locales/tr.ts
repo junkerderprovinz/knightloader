@@ -208,4 +208,10 @@ export const tr: Dict = {
   'settings.accent': 'Vurgu rengi',
   'settings.accentHint': 'Etkinlik için tek renk. Üzerindeki yazı karşıtlığa göre seçilir.',
   'settings.accentReset': 'Varsayılan',
+  'queue.stop': 'Kuyruğu durdur',
+  'queue.start': 'Kuyruğu başlat',
+  'queue.halted': 'Kuyruk durduruldu. Süren indirmeler biter, yenisi başlamaz.',
+  'queue.stopMark': 'Bundan sonra dur',
+  'queue.stopMarkOn': 'Bundan sonra duracak',
+  'queue.limit': 'Sınır',
 };

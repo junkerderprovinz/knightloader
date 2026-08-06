@@ -208,6 +208,12 @@ export const en = {
   'settings.accent': 'Accent colour',
   'settings.accentHint': 'The one colour used for activity. Text on it is picked for contrast.',
   'settings.accentReset': 'Default',
+  'queue.stop': 'Stop queue',
+  'queue.start': 'Start queue',
+  'queue.halted': 'Queue stopped. Running downloads finish; nothing new starts.',
+  'queue.stopMark': 'Stop after this one',
+  'queue.stopMarkOn': 'Stopping after this one',
+  'queue.limit': 'Limit',
 } as const;
 
 export type TranslationKey = keyof typeof en;

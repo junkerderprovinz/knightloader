@@ -210,4 +210,10 @@ export const no: Dict = {
   'settings.accent': 'Aksentfarge',
   'settings.accentHint': 'Den ene fargen for aktivitet. Teksten oppå velges etter kontrast.',
   'settings.accentReset': 'Standard',
+  'queue.stop': 'Stopp køen',
+  'queue.start': 'Start køen',
+  'queue.halted': 'Køen er stoppet. Pågående nedlastinger blir ferdige, ingenting nytt starter.',
+  'queue.stopMark': 'Stopp etter denne',
+  'queue.stopMarkOn': 'Stopper etter denne',
+  'queue.limit': 'Grense',
 };

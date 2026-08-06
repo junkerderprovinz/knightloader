@@ -208,4 +208,10 @@ export const fi: Dict = {
   'settings.accent': 'Korostusväri',
   'settings.accentHint': 'Ainoa väri toiminnalle. Sen päällä oleva teksti valitaan kontrastin mukaan.',
   'settings.accentReset': 'Oletus',
+  'queue.stop': 'Pysäytä jono',
+  'queue.start': 'Käynnistä jono',
+  'queue.halted': 'Jono pysäytetty. Käynnissä olevat lataukset päättyvät, uusia ei aloiteta.',
+  'queue.stopMark': 'Pysäytä tämän jälkeen',
+  'queue.stopMarkOn': 'Pysähtyy tämän jälkeen',
+  'queue.limit': 'Raja',
 };

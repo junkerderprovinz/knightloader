@@ -208,4 +208,10 @@ export const ko: Dict = {
   'settings.accent': '강조 색',
   'settings.accentHint': '활동을 나타내는 단 하나의 색입니다. 위에 올라가는 글자는 대비에 맞춰 정해집니다.',
   'settings.accentReset': '기본값',
+  'queue.stop': '대기열 정지',
+  'queue.start': '대기열 시작',
+  'queue.halted': '대기열을 멈췄습니다. 진행 중인 다운로드는 끝나고, 새로 시작하지 않습니다.',
+  'queue.stopMark': '이것만 끝내고 정지',
+  'queue.stopMarkOn': '이것이 끝나면 정지합니다',
+  'queue.limit': '제한',
 };

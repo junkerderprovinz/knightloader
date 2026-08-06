@@ -210,4 +210,10 @@ export const ar: Dict = {
   'settings.accent': 'لون التمييز',
   'settings.accentHint': 'اللون الوحيد للنشاط. يُختار لون النص فوقه حسب التباين.',
   'settings.accentReset': 'الافتراضي',
+  'queue.stop': 'إيقاف الطابور',
+  'queue.start': 'بدء الطابور',
+  'queue.halted': 'توقف الطابور. تكتمل التنزيلات الجارية ولا يبدأ شيء جديد.',
+  'queue.stopMark': 'التوقف بعد هذا',
+  'queue.stopMarkOn': 'سيتوقف بعد هذا',
+  'queue.limit': 'الحد',
 };

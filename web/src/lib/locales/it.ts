@@ -200,4 +200,10 @@ export const it: Dict = {
   'settings.accent': 'Colore d’accento',
   'settings.accentHint': 'Il solo colore per l’attività. Il testo sopra è scelto per contrasto.',
   'settings.accentReset': 'Predefinito',
+  'queue.stop': 'Ferma la coda',
+  'queue.start': 'Avvia la coda',
+  'queue.halted': 'Coda ferma. I download in corso finiscono, non ne parte nessuno nuovo.',
+  'queue.stopMark': 'Fermati dopo questo',
+  'queue.stopMarkOn': 'Si fermerà dopo questo',
+  'queue.limit': 'Limite',
 };
