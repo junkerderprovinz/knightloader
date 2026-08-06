@@ -19,13 +19,13 @@ import {
   IconSignOut,
 } from '../lib/icons';
 
-// The active item is marked by a gold rail and gold icon on a raised surface —
-// not by a solid gold slab, which would shout louder than the page content.
+// The active item is FILLED with the accent. It used to be marked by a 3px rail
+// on a raised surface; jdp wants no vertical lines anywhere, and the fill is
+// also the only treatment that survives the square corner setting, where a rail
+// reads as a stray border rather than as a mark.
 const navBase =
-  'relative flex items-center gap-3 rounded-[var(--radius-control)] pl-4 pr-3 py-2.5 text-[14px] font-medium transition duration-150 select-none';
-const navActive =
-  'glim-active bg-carbon-surface text-carbon-text before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 ' +
-  'before:h-5 before:w-[3px] before:rounded-[var(--radius-pill)] before:bg-accent [&_svg]:text-accent';
+  'relative flex items-center gap-3 rounded-[var(--radius-control)] px-3 py-2.5 text-[14px] font-medium transition duration-150 select-none';
+const navActive = 'glim-active bg-accent text-accentContrast';
 const navInactive = 'text-[var(--sidebar-text)] hover:bg-carbon-hover hover:text-carbon-text';
 
 // In rainbow mode the icon carries the item's own hue, so the rail and the
@@ -57,8 +57,10 @@ function Item({
     >
       {icon}
       <span className="flex-1">{label}</span>
+      {/* On the filled active item the badge sits on the accent, so it borrows
+          the ink colour instead of the surface tint it uses when idle. */}
       {badge ? (
-        <span className="glim-num rounded-[var(--radius-pill)] bg-carbon-surface3/60 px-1.5 py-0.5 text-[11px] font-semibold leading-none text-carbon-textSub">
+        <span className="glim-num rounded-[var(--radius-pill)] bg-carbon-surface3/60 px-1.5 py-0.5 text-[11px] font-semibold leading-none text-carbon-textSub [.glim-active_&]:bg-black/15 [.glim-active_&]:text-current">
           {badge}
         </span>
       ) : null}

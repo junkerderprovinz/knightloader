@@ -212,4 +212,5 @@ export const nl: Dict = {
   'settings.rainbowReactive': 'Rustig tot je erover gaat: kleur bij hover en bij wat er loopt',
   'settings.rainbowRotate': 'Startpunt van het palet schudden',
   'settings.rainbowPalette': 'Paletkleur',
+  'queue.limitUnit': 'Eenheid',
 };

@@ -222,4 +222,5 @@ export const no: Dict = {
   'settings.rainbowReactive': 'Rolig til du tar på det: farge ved peking og på det som kjører',
   'settings.rainbowRotate': 'Stokk hvor paletten starter',
   'settings.rainbowPalette': 'Palettfarge',
+  'queue.limitUnit': 'Enhet',
 };

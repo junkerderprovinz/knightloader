@@ -15,7 +15,7 @@ import {
 import { useTasks } from '../lib/useTasks';
 import { fmtSpeed } from '../lib/format';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { PageHeader, Button, EmptyState } from '../components/ui';
+import { PageHeader, Button, EmptyState, segBase, segOn, segOff } from '../components/ui';
 import { Counters } from '../components/Counters';
 import { TaskListCard, groupByPackage, type Selection } from '../components/TaskList';
 import { PackageActions } from '../components/PackageActions';
@@ -168,11 +168,7 @@ export function Downloads() {
               <button
                 key={f.key}
                 onClick={() => setFilter(f.key)}
-                className={`rounded-[var(--radius-control)] px-2.5 py-1 text-xs font-medium transition-colors ${
-                  filter === f.key
-                    ? 'bg-carbon-surface text-carbon-text'
-                    : 'text-carbon-textMuted hover:text-carbon-text'
-                }`}
+                className={`${segBase} px-2.5 py-1 text-xs ${filter === f.key ? segOn : segOff}`}
               >
                 {t(f.label)}
               </button>

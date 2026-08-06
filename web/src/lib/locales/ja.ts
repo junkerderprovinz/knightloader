@@ -220,4 +220,5 @@ export const ja: Dict = {
   'settings.rainbowReactive': '触れるまでは静か。ポインタを重ねたときと実行中のものだけ色がつきます',
   'settings.rainbowRotate': 'パレットの開始位置をシャッフルする',
   'settings.rainbowPalette': 'パレットの色',
+  'queue.limitUnit': '単位',
 };

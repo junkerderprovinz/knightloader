@@ -220,4 +220,5 @@ export const el: Dict = {
   'settings.rainbowReactive': 'Ήσυχο μέχρι να το αγγίξεις: χρώμα στο πέρασμα και σε ό,τι τρέχει',
   'settings.rainbowRotate': 'Ανακάτεμα του σημείου εκκίνησης της παλέτας',
   'settings.rainbowPalette': 'Χρώμα παλέτας',
+  'queue.limitUnit': 'Μονάδα',
 };

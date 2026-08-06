@@ -220,4 +220,5 @@ export const da: Dict = {
   'settings.rainbowReactive': 'Roligt indtil du rører det: farve ved hover og på det, der kører',
   'settings.rainbowRotate': 'Bland hvor paletten starter',
   'settings.rainbowPalette': 'Paletfarve',
+  'queue.limitUnit': 'Enhed',
 };

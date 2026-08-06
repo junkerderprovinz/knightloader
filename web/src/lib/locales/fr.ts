@@ -212,4 +212,5 @@ export const fr: Dict = {
   'settings.rainbowReactive': 'Discret jusqu’au survol : la couleur apparaît au passage et sur ce qui tourne',
   'settings.rainbowRotate': 'Mélanger le point de départ de la palette',
   'settings.rainbowPalette': 'Couleur de la palette',
+  'queue.limitUnit': 'Unité',
 };

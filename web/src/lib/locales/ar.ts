@@ -222,4 +222,5 @@ export const ar: Dict = {
   'settings.rainbowReactive': 'هادئ حتى تلمسه: يظهر اللون عند التحويم وعلى ما يعمل',
   'settings.rainbowRotate': 'خلط نقطة بداية اللوحة',
   'settings.rainbowPalette': 'لون اللوحة',
+  'queue.limitUnit': 'الوحدة',
 };

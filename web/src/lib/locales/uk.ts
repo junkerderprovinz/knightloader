@@ -220,4 +220,5 @@ export const uk: Dict = {
   'settings.rainbowReactive': 'Тихо, доки не торкнешся: колір при наведенні та в того, що працює',
   'settings.rainbowRotate': 'Перемішати, з якого кольору починається палітра',
   'settings.rainbowPalette': 'Колір палітри',
+  'queue.limitUnit': 'Одиниця',
 };

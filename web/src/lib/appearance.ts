@@ -172,6 +172,10 @@ export function hueVars(hex: string | undefined): Record<string, string> {
     '--item-hue': hex,
     '--item-hue-ink': contrastOn(hex),
     '--item-hue-soft': `rgba(${r}, ${g}, ${b}, 0.14)`,
+    // The wash covers a whole row, so it sits far below the soft tint: at 14%
+    // eight rows of eight hues stop being a download list and start being a
+    // colour chart.
+    '--item-hue-wash': `rgba(${r}, ${g}, ${b}, 0.07)`,
   };
 }
 

@@ -212,4 +212,5 @@ export const it: Dict = {
   'settings.rainbowReactive': 'Silenzioso finché non lo tocchi: colore al passaggio e su ciò che è in corso',
   'settings.rainbowRotate': 'Mescola da dove parte la tavolozza',
   'settings.rainbowPalette': 'Colore della tavolozza',
+  'queue.limitUnit': 'Unità',
 };

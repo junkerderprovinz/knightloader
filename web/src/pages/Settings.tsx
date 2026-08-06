@@ -33,6 +33,9 @@ import {
   SectionTitle,
   LoadingCard,
   ErrorCard,
+  segBase,
+  segOn,
+  segOff,
 } from '../components/ui';
 
 export function SettingsPage() {
@@ -210,17 +213,15 @@ export function SettingsPage() {
                     key={s}
                     type="button"
                     onClick={() => setCfg({ ...cfg, shape: s })}
-                    className={`rounded-[var(--radius-control)] px-3 py-1.5 text-xs font-medium transition-colors ${
-                      cfg.shape === s
-                        ? 'bg-carbon-surface text-carbon-text'
-                        : 'text-carbon-textMuted hover:text-carbon-text'
-                    }`}
+                    className={`${segBase} px-3 py-1.5 text-xs ${cfg.shape === s ? segOn : segOff}`}
                   >
                     <span className="flex items-center gap-2">
                       {/* The swatch is the setting: it carries the radius it
-                          selects, so the choice is visible before it is made. */}
+                          selects, so the choice is visible before it is made.
+                          On the filled segment it borrows the ink colour, since
+                          an accent swatch on an accent fill is a blank space. */}
                       <span
-                        className="h-3.5 w-3.5 bg-accent"
+                        className={`h-3.5 w-3.5 ${cfg.shape === s ? 'bg-current' : 'bg-accent'}`}
                         style={{ borderRadius: s === 'round' ? '6px' : s === 'soft' ? '2px' : '0' }}
                       />
                       {t(`settings.shape.${s}` as never)}

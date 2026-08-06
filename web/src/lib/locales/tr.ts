@@ -220,4 +220,5 @@ export const tr: Dict = {
   'settings.rainbowReactive': 'Dokunulana kadar sakin: üzerine gelince ve çalışanda renk',
   'settings.rainbowRotate': 'Paletin nereden başladığını karıştır',
   'settings.rainbowPalette': 'Palet rengi',
+  'queue.limitUnit': 'Birim',
 };

@@ -222,4 +222,5 @@ export const he: Dict = {
   'settings.rainbowReactive': 'שקט עד שנוגעים: צבע במעבר עכבר ועל מה שרץ',
   'settings.rainbowRotate': 'ערבוב נקודת ההתחלה של הלוח',
   'settings.rainbowPalette': 'צבע בלוח',
+  'queue.limitUnit': 'יחידה',
 };

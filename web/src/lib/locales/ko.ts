@@ -220,4 +220,5 @@ export const ko: Dict = {
   'settings.rainbowReactive': '건드리기 전까지는 조용히. 가리킬 때와 실행 중인 것에만 색이 붙습니다',
   'settings.rainbowRotate': '팔레트가 시작하는 위치를 섞기',
   'settings.rainbowPalette': '팔레트 색',
+  'queue.limitUnit': '단위',
 };

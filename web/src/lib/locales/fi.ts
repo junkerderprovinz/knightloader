@@ -220,4 +220,5 @@ export const fi: Dict = {
   'settings.rainbowReactive': 'Rauhallinen kunnes kosketat: väri osoittaessa ja käynnissä olevassa',
   'settings.rainbowRotate': 'Sekoita, mistä paletti alkaa',
   'settings.rainbowPalette': 'Paletin väri',
+  'queue.limitUnit': 'Yksikkö',
 };

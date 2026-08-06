@@ -212,4 +212,5 @@ export const ru: Dict = {
   'settings.rainbowReactive': 'Тихо, пока не тронешь: цвет при наведении и у того, что работает',
   'settings.rainbowRotate': 'Перемешать, с какого цвета начинается палитра',
   'settings.rainbowPalette': 'Цвет палитры',
+  'queue.limitUnit': 'Единица',
 };

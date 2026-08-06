@@ -30,7 +30,11 @@ look. BombVault already reads the same `--carbon-*` names through its own
    neutral = waiting. Paused shares the neutral tone; its label and its resume
    control carry the difference. Never introduce a fifth hue.
 5. **Hierarchy from type and colour step, not from borders.** Separators are
-   hairlines at low opacity; boxes are a last resort.
+   hairlines at low opacity; boxes are a last resort. **No vertical marks at
+   all** — no rails, no leading-edge bars, no 3px accent stripes. What is
+   selected is *filled* with the accent; what owns a rainbow position is
+   *washed* with it. A rail also breaks under the square corner setting, where
+   it stops reading as a mark and starts reading as a stray border.
 6. **Secondary actions appear on hover.** A long list reads as content, not as
    a wall of buttons. The primary action for a row stays visible.
 7. **Digits use `.glim-num`** (tabular + lining numerals) wherever they change or
@@ -119,9 +123,11 @@ An element that owns a position sets `--item-hue` (via `hueVars`) and carries
 `.glim-hue`; the stylesheet then redefines `--accent` for that subtree, so every
 component that already paints activity picks the colour up and none of them has
 to learn that the mode exists. `.glim-hue-icon` extends the hue to the element's
-glyph, `.glim-rail` marks the row's leading edge — a list row needs the rail,
-because its progress fill turns green when it finishes and would otherwise show
-no colour at all on the very list the palette exists for.
+glyph, `.glim-tint` washes the whole row with it at 7% — a list row needs the
+wash, because its progress fill turns green when it finishes and would otherwise
+show no colour at all on the very list the palette exists for. The wash is an
+inset shadow rather than a background, so the row's own hover tint still reads
+through it.
 
 Positions come from the row's place in the list, not from a hash of its id. A
 hash keeps a row's colour when the rows above it finish, which sounds better
@@ -137,8 +143,9 @@ until three rows land in the same bucket and two neighbours match.
    `--elevation`, `--hairline`, `--focus-ring`, `--radius-card`,
    `--radius-control`, `--radius-pill`.
 4. Replace hard-coded `rounded-lg` / `shadow-*` on panels with `.glim-card`, and
-   solid accent nav fills with the rail treatment (a 3px accent bar plus a
-   raised surface) so the two apps read as one family.
+   mark the selected nav item, tab or segment by filling it with the accent
+   (`segBase` / `segOn` / `segOff` in `components/ui.tsx`) so the two apps read
+   as one family.
 5. For rainbow, copy `web/src/lib/appearance.ts` — it is dependency-free and
    talks only to `document.documentElement` and its own settings object.
 
