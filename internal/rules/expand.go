@@ -1,0 +1,172 @@
+package rules
+
+import (
+	"net/url"
+	"path"
+	"regexp"
+	"strconv"
+	"strings"
+
+	"github.com/junkerderprovinz/knightloader/internal/pathvars"
+)
+
+const openTag = "<jd:"
+
+// packagizerVar matches the placeholders internal/pathvars does not know about.
+// Scanning with a pattern rather than a hand-written parser is deliberate: the
+// only tags handled here are the ones listed, and everything else stays exactly
+// as pathvars left it. The tag is matched case-insensitively for the same
+// reason pathvars matches it that way — a template may have been hand-edited or
+// carried over from a JDownloader config with different capitalisation.
+//
+// The longer alternative is listed before the shorter one it starts with, so
+// the pattern reads the way it behaves.
+var packagizerVar = regexp.MustCompile(`(?i)<jd:(orgfilenamewithoutext|orgfilename|orgfiletype|append|source:[0-9]{1,3})>`)
+
+// appendMark holds the place of <jd:append> until the rest of the value is
+// known: whether a counter is needed depends on the finished string, so the
+// suffix cannot be decided while it is still being built. A NUL is used because
+// it cannot survive sanitizeSegment, so no expanded value can ever contain one.
+const appendMark = "\x00"
+
+// expand resolves one template. target names the field being written and is
+// only used to key the <jd:append> counter, so a package and a file name that
+// happen to produce the same text do not count as a collision with each other.
+func (m *Matcher) expand(template, target string, c Candidate) string {
+	if !strings.Contains(template, "<") {
+		return template
+	}
+	// A NUL arriving in the template itself would look like a second append
+	// slot and take a counter that belongs to nothing.
+	template = strings.ReplaceAll(template, appendMark, "")
+
+	// pathvars runs first. It leaves the placeholders it does not know
+	// untouched, which is exactly the handover this needs — and doing it in
+	// this order means a value pathvars substitutes can never be re-read as a
+	// placeholder by the pass below.
+	out := pathvars.Expand(template, pathvars.Vars{
+		Package: c.Package,
+		Host:    c.Hoster,
+		Name:    c.Filename,
+		Date:    c.Added,
+	})
+	out = packagizerVar.ReplaceAllStringFunc(out, func(raw string) string {
+		return packagizerValue(raw, c)
+	})
+	if !strings.Contains(out, appendMark) {
+		return out
+	}
+	plain := strings.ReplaceAll(out, appendMark, "")
+	return strings.ReplaceAll(out, appendMark, m.nextAppend(target+"\x00"+plain))
+}
+
+// packagizerValue resolves one matched placeholder. raw is the whole tag, so an
+// out-of-range or unusable one can be returned unchanged and stay visible.
+func packagizerValue(raw string, c Candidate) string {
+	key := strings.ToLower(raw[len(openTag) : len(raw)-1])
+	switch key {
+	case "append":
+		return appendMark
+	case "orgfilename":
+		return segment(c.Filename, "file")
+	case "orgfilenamewithoutext":
+		return segment(strings.TrimSuffix(c.Filename, path.Ext(c.Filename)), "file")
+	case "orgfiletype":
+		// The only placeholder with no fallback word. A file without an
+		// extension is perfectly normal, and a template like
+		// "<jd:orgfilenamewithoutext>.<jd:orgfiletype>" turning into
+		// "movie.type" would be a lie about what the file is.
+		return sanitizeSegment(c.Filetype)
+	}
+	if n, ok := strings.CutPrefix(key, "source:"); ok {
+		if seg, ok := sourceSegment(c.Source, n); ok {
+			return segment(seg, "source")
+		}
+	}
+	return raw
+}
+
+// sourceSegment returns the index'th path segment of the source URL, counting
+// from 1 and skipping empty segments, so "https://site.org/tv/s01/list.html"
+// has segments "tv", "s01" and "list.html". The second result is false when
+// there is no such segment, which leaves the placeholder in the text.
+func sourceSegment(source, index string) (string, bool) {
+	n, err := strconv.Atoi(index)
+	if err != nil || n < 1 {
+		return "", false
+	}
+	// Only a parse that found a host tells us where the path starts. Splitting
+	// an unparsed URL on "/" would hand back "https:" as the first segment.
+	p := source
+	if u, err := url.Parse(source); err == nil && u.Host != "" {
+		p = u.Path
+	}
+	var segs []string
+	for _, s := range strings.Split(p, "/") {
+		if s != "" {
+			segs = append(segs, s)
+		}
+	}
+	if n > len(segs) {
+		return "", false
+	}
+	return segs[n-1], true
+}
+
+// nextAppend is the suffix <jd:append> resolves to for one key: empty the first
+// time that value is produced, then "_2", "_3" and so on.
+func (m *Matcher) nextAppend(key string) string {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if m.seen == nil {
+		m.seen = make(map[string]int)
+	}
+	n, known := m.seen[key]
+	if !known && len(m.seen) >= maxAppendKeys {
+		return ""
+	}
+	m.seen[key] = n + 1
+	if n == 0 {
+		return ""
+	}
+	return "_" + strconv.Itoa(n+1)
+}
+
+// maxSegment mirrors the cap in internal/pathvars, as does sanitizeSegment
+// below. Both are duplicated rather than shared because pathvars keeps them
+// unexported, and they have to agree: the values below end up in the same
+// download paths as the ones pathvars expands, so a name has to be cut at the
+// same byte either way or one template produces two folders for one package.
+//
+// The sanitising is not cosmetic. A file name of "../../etc/passwd" fed into a
+// folder template would otherwise add path levels the template never spelled
+// out, and the whole point of a one-segment guarantee is that a template can
+// only ever create the folders it names itself.
+const maxSegment = 120
+
+// segment is sanitizeSegment with a fallback word, so a placeholder whose value
+// sanitises away still contributes a named segment instead of an empty one.
+func segment(value, fallback string) string {
+	if out := sanitizeSegment(value); out != "" {
+		return out
+	}
+	return fallback
+}
+
+func sanitizeSegment(s string) string {
+	const bad = `/\:*?"<>|`
+	out := strings.Map(func(r rune) rune {
+		if r < 32 {
+			return ' '
+		}
+		if strings.ContainsRune(bad, r) {
+			return '-'
+		}
+		return r
+	}, s)
+	out = strings.Trim(strings.TrimSpace(out), ". ")
+	if len(out) > maxSegment {
+		out = out[:maxSegment]
+	}
+	return out
+}
