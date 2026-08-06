@@ -55,6 +55,10 @@ What follows is what exists and runs.
   row keeps its colour when the rows above it finish. It has a reactive mode
   that rests neutral and colours only what is hovered or running, an optional
   rotation of the starting hue, and all eight colours are editable.
+- **Info bubbles.** An explanation now sits behind a neutral `(i)` beside its
+  label instead of as grey prose under the control. It opens on hover and on
+  focus, closes on Escape, and is rendered at document level so no card or
+  scroll container can clip it.
 
 ### Security
 
