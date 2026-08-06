@@ -51,7 +51,7 @@ export function InstanceRow({ name, base, onOpen }: { name: string; base: string
         title={online ? t('instances.online') : t('instances.offline')}
       />
       <span className="min-w-0 flex-1 truncate text-[13.5px] text-carbon-text">{name}</span>
-      <span className="keep-num text-xs text-carbon-textSub">
+      <span className="glim-num text-xs text-carbon-textSub">
         {stats ? fmtSpeed(stats.speed) || '—' : '—'}
       </span>
     </>
@@ -127,8 +127,8 @@ export function InstanceCard({
 function Metric({ value, label }: { value: React.ReactNode; label: string }) {
   return (
     <div className="min-w-0">
-      <div className="keep-num text-sm font-semibold text-carbon-text">{value}</div>
-      <div className="keep-eyebrow">{label}</div>
+      <div className="glim-num text-sm font-semibold text-carbon-text">{value}</div>
+      <div className="glim-eyebrow">{label}</div>
     </div>
   );
 }

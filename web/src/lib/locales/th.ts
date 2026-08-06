@@ -214,4 +214,10 @@ export const th: Dict = {
   'queue.stopMark': 'หยุดหลังรายการนี้',
   'queue.stopMarkOn': 'จะหยุดหลังรายการนี้',
   'queue.limit': 'ขีดจำกัด',
+  'settings.rainbow': 'สายรุ้ง',
+  'settings.rainbowHint': 'แทนที่จะใช้สีเน้นเดียว ใช้จานแปดสีแจกตามตำแหน่ง รายการยาวจึงอ่านแยกเป็นแถวได้',
+  'settings.rainbowOn': 'ใช้จานสี',
+  'settings.rainbowReactive': 'เงียบจนกว่าจะแตะ: มีสีเมื่อชี้และในรายการที่กำลังทำงาน',
+  'settings.rainbowRotate': 'สลับตำแหน่งเริ่มต้นของจานสี',
+  'settings.rainbowPalette': 'สีในจานสี',
 };

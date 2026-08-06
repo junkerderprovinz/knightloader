@@ -214,4 +214,10 @@ export const cs: Dict = {
   'queue.stopMark': 'Po tomto zastavit',
   'queue.stopMarkOn': 'Zastaví se po tomto',
   'queue.limit': 'Limit',
+  'settings.rainbow': 'Duha',
+  'settings.rainbowHint': 'Místo jednoho akcentu paleta osmi barev podle pozice, aby se dlouhý seznam četl jako jednotlivé řádky.',
+  'settings.rainbowOn': 'Použít paletu',
+  'settings.rainbowReactive': 'Klid, dokud se toho nedotkneš: barva při najetí a u toho, co běží',
+  'settings.rainbowRotate': 'Zamíchat, kde paleta začíná',
+  'settings.rainbowPalette': 'Barva palety',
 };

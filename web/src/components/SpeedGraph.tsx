@@ -71,12 +71,12 @@ export function SpeedGraph({
         ) : (
           <>
             <defs>
-              <linearGradient id="keep-speed-fill" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="glim-speed-fill" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.26" />
                 <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
               </linearGradient>
             </defs>
-            <path d={`${d} L${W},${H} L0,${H} Z`} fill="url(#keep-speed-fill)" />
+            <path d={`${d} L${W},${H} L0,${H} Z`} fill="url(#glim-speed-fill)" />
             <path
               d={d}
               fill="none"
@@ -85,11 +85,11 @@ export function SpeedGraph({
               strokeLinecap="round"
               vectorEffect="non-scaling-stroke"
             />
-            <circle cx={last[0]} cy={last[1]} r="3" fill="var(--accent)" className="keep-live" />
+            <circle cx={last[0]} cy={last[1]} r="3" fill="var(--accent)" className="glim-live" />
           </>
         )}
       </svg>
-      <span className="keep-eyebrow keep-num absolute right-0 top-0">
+      <span className="glim-eyebrow glim-num absolute right-0 top-0">
         {idle ? t('overview.idle') : `${t('overview.peak')} ${fmtSpeed(peak)}`}
       </span>
     </div>

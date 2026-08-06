@@ -214,4 +214,10 @@ export const ro: Dict = {
   'queue.stopMark': 'Oprește după acesta',
   'queue.stopMarkOn': 'Se oprește după acesta',
   'queue.limit': 'Limită',
+  'settings.rainbow': 'Curcubeu',
+  'settings.rainbowHint': 'În loc de un singur accent, o paletă de opt culori după poziție, ca o listă lungă să se citească pe rânduri distincte.',
+  'settings.rainbowOn': 'Folosește paleta',
+  'settings.rainbowReactive': 'Liniștit până îl atingi: culoare la trecerea cu mouse-ul și pe ce rulează',
+  'settings.rainbowRotate': 'Amestecă de unde începe paleta',
+  'settings.rainbowPalette': 'Culoare din paletă',
 };

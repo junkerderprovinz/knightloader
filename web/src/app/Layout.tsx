@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
 import { connectWS, fetchSettings, type Task } from '../lib/api';
-import { applyAccent, applyShape, cacheAppearance } from '../lib/appearance';
+import { applyAccent, applyRainbow, applyShape, cacheAppearance, rainbowFromSettings } from '../lib/appearance';
 import { useToast } from '../lib/toast';
 import { useT } from '../lib/i18n';
 
@@ -42,11 +42,13 @@ function useAppearance() {
     fetchSettings()
       .then((s) => {
         if (!live) return;
+        const rainbow = rainbowFromSettings(s);
         applyShape(s.shape);
         applyAccent(s.accent);
+        applyRainbow(rainbow);
         // Cached so the next load paints the chosen look immediately instead of
         // flashing the default while this request is in flight.
-        cacheAppearance(s.shape, s.accent);
+        cacheAppearance(s.shape, s.accent, rainbow);
       })
       .catch(() => {
         // An unreachable API is not a reason to restyle the app; the cached
@@ -66,7 +68,7 @@ export function Layout() {
     <div className="flex h-screen overflow-hidden bg-carbon-background">
       <Sidebar />
       <main className="flex-1 overflow-y-auto min-w-0">
-        <div key={location.pathname} className="keep-page-enter w-full p-6 md:p-8">
+        <div key={location.pathname} className="glim-page-enter w-full p-6 md:p-8">
           <Outlet />
         </div>
       </main>

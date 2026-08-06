@@ -206,4 +206,10 @@ export const pl: Dict = {
   'queue.stopMark': 'Zatrzymaj po tym',
   'queue.stopMarkOn': 'Zatrzyma się po tym',
   'queue.limit': 'Limit',
+  'settings.rainbow': 'Tęcza',
+  'settings.rainbowHint': 'Zamiast jednego akcentu paleta ośmiu barw przydzielanych według pozycji, więc długa lista czyta się jako osobne wiersze.',
+  'settings.rainbowOn': 'Użyj palety',
+  'settings.rainbowReactive': 'Spokojnie, dopóki nie dotkniesz: kolor po najechaniu i na tym, co działa',
+  'settings.rainbowRotate': 'Przetasuj początek palety',
+  'settings.rainbowPalette': 'Kolor palety',
 };

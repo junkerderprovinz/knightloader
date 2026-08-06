@@ -8,7 +8,18 @@ import {
   setPassword,
 } from '../lib/api';
 import { useResource } from '../lib/useResource';
-import { ACCENTS, DEFAULT_ACCENT, SHAPES, applyAccent, applyShape, cacheAppearance, type Shape } from '../lib/appearance';
+import {
+  ACCENTS,
+  DEFAULT_ACCENT,
+  RAINBOW,
+  SHAPES,
+  applyAccent,
+  applyRainbow,
+  applyShape,
+  cacheAppearance,
+  rainbowFromSettings,
+  type Shape,
+} from '../lib/appearance';
 import { useT } from '../lib/i18n';
 import {
   PageHeader,
@@ -30,14 +41,35 @@ export function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
 
+  // What the swatch row edits: the saved palette when it is complete, the
+  // built-in hues otherwise. Either way the row shows eight editable colours,
+  // so "reset" and "never customised" look the same and behave the same.
+  const palette =
+    cfg?.rainbowPalette && cfg.rainbowPalette.length === RAINBOW.length ? cfg.rainbowPalette : RAINBOW;
+
   // The look follows the settings as soon as they arrive, and again on every
-  // pick below, so what is on screen is always what is selected.
+  // pick below, so what is on screen is always what is selected. It is applied
+  // here for the preview and at the app root for everything else — see
+  // Layout.tsx; a look that only existed while this page was mounted would be
+  // no look at all.
   useEffect(() => {
     if (!cfg) return;
+    const rainbow = rainbowFromSettings(cfg);
     applyShape(cfg.shape);
     applyAccent(cfg.accent);
-    cacheAppearance(cfg.shape, cfg.accent);
-  }, [cfg?.shape, cfg?.accent]);
+    applyRainbow(rainbow);
+    cacheAppearance(cfg.shape, cfg.accent, rainbow);
+  }, [
+    cfg?.shape,
+    cfg?.accent,
+    cfg?.rainbow,
+    cfg?.rainbowReactive,
+    cfg?.rainbowRotate,
+    cfg?.rainbowSeed,
+    // The palette is an array, so the effect has to depend on its contents;
+    // the identity changes on every keystroke of the colour picker anyway.
+    cfg?.rainbowPalette?.join(),
+  ]);
 
   async function onSave() {
     if (!cfg) return;
@@ -172,7 +204,7 @@ export function SettingsPage() {
           <SectionTitle>{t('settings.sectionLook')}</SectionTitle>
           <Card className="flex flex-col gap-5">
             <Field label={t('settings.shape')} hint={t('settings.shapeHint')}>
-              <div className="keep-well flex w-fit items-center gap-0.5 p-1">
+              <div className="glim-well flex w-fit items-center gap-0.5 p-1">
                 {SHAPES.map((s) => (
                   <button
                     key={s}
@@ -229,6 +261,69 @@ export function SettingsPage() {
                 <Button kind="ghost" className="px-2.5 text-xs" onClick={() => setCfg({ ...cfg, accent: '' })}>
                   {t('settings.accentReset')}
                 </Button>
+              </div>
+            </Field>
+
+            <Field label={t('settings.rainbow')} hint={t('settings.rainbowHint')}>
+              <div className="flex flex-col gap-3">
+                <Toggle
+                  checked={cfg.rainbow}
+                  onChange={(v) => setCfg({ ...cfg, rainbow: v })}
+                  label={t('settings.rainbowOn')}
+                />
+
+                {/* The sub-switches belong to the mode, so they are indented
+                    under it and disabled rather than hidden: a control that
+                    vanishes teaches nobody what the mode can do. */}
+                <div
+                  className={`flex flex-col gap-3 ps-6 transition-opacity ${
+                    cfg.rainbow ? '' : 'pointer-events-none opacity-40'
+                  }`}
+                >
+                  <Toggle
+                    checked={cfg.rainbowReactive}
+                    onChange={(v) => setCfg({ ...cfg, rainbowReactive: v })}
+                    label={t('settings.rainbowReactive')}
+                  />
+                  <Toggle
+                    checked={cfg.rainbowRotate}
+                    onChange={(v) =>
+                      // Turning rotation on draws a fresh offset, so the switch
+                      // does something visible instead of re-applying the
+                      // rotation the palette already had.
+                      setCfg({
+                        ...cfg,
+                        rainbowRotate: v,
+                        rainbowSeed: v ? 1 + Math.floor(Math.random() * (RAINBOW.length - 1)) : 0,
+                      })
+                    }
+                    label={t('settings.rainbowRotate')}
+                  />
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    {palette.map((hex, i) => (
+                      <input
+                        key={i}
+                        type="color"
+                        aria-label={`${t('settings.rainbowPalette')} ${i + 1}`}
+                        value={hex}
+                        onChange={(e) => {
+                          const next = palette.slice();
+                          next[i] = e.target.value;
+                          setCfg({ ...cfg, rainbowPalette: next });
+                        }}
+                        className="h-7 w-9 cursor-pointer rounded-[var(--radius-control)] bg-carbon-surface2 p-1"
+                      />
+                    ))}
+                    <Button
+                      kind="ghost"
+                      className="px-2.5 text-xs"
+                      onClick={() => setCfg({ ...cfg, rainbowPalette: null })}
+                    >
+                      {t('settings.accentReset')}
+                    </Button>
+                  </div>
+                </div>
               </div>
             </Field>
           </Card>

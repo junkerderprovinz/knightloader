@@ -206,4 +206,10 @@ export const nl: Dict = {
   'queue.stopMark': 'Hierna stoppen',
   'queue.stopMarkOn': 'Stopt hierna',
   'queue.limit': 'Limiet',
+  'settings.rainbow': 'Regenboog',
+  'settings.rainbowHint': 'In plaats van één accent een palet van acht, verdeeld op positie, zodat een lange lijst als losse rijen leest.',
+  'settings.rainbowOn': 'Palet gebruiken',
+  'settings.rainbowReactive': 'Rustig tot je erover gaat: kleur bij hover en bij wat er loopt',
+  'settings.rainbowRotate': 'Startpunt van het palet schudden',
+  'settings.rainbowPalette': 'Paletkleur',
 };

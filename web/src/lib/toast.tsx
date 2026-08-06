@@ -44,7 +44,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           <div
             key={t.id}
             role="status"
-            className="keep-toast flex items-center gap-2.5 rounded-[var(--radius-control)] bg-carbon-surface px-4 py-2.5 text-sm text-carbon-text shadow-[var(--elevation)]"
+            className="glim-toast flex items-center gap-2.5 rounded-[var(--radius-control)] bg-carbon-surface px-4 py-2.5 text-sm text-carbon-text shadow-[var(--elevation)]"
           >
             <span className={`h-2 w-2 shrink-0 rounded-full ${dot[t.tone]}`} />
             <span className={toneClass[t.tone]}>{t.message}</span>

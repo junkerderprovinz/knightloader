@@ -44,6 +44,17 @@ What follows is what exists and runs.
 - **Access control**: an optional password lock with signed session cookies,
   off by default.
 - **26 languages**, each fetched only when chosen, right-to-left included.
+- **GlimStone**, the design language the interface is built on, documented in
+  `docs/design-language.md`. Its CSS prefix is `glim-`.
+- **Adjustable corners** — round, soft or square — driven by one token, so the
+  whole interface changes together instead of arriving half converted.
+- **Adjustable accent** with eight presets and a free colour. The text placed on
+  the accent is derived from its luminance rather than configured separately.
+- **Rainbow accent**: a palette of eight hues handed out by position, so a long
+  download list reads as separate rows. Colours are keyed to the task id, so a
+  row keeps its colour when the rows above it finish. It has a reactive mode
+  that rests neutral and colours only what is hovered or running, an optional
+  rotation of the starting hue, and all eight colours are editable.
 
 ### Security
 

@@ -53,10 +53,10 @@ export function Dashboard() {
 
       {/* The one hero of the whole app: this page owns the big figure and the
           curve; every other page opens quietly. */}
-      <div className="keep-card grid grid-cols-1 items-center gap-4 overflow-hidden p-5 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-8">
+      <div className="glim-card grid grid-cols-1 items-center gap-4 overflow-hidden p-5 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-8">
         <div>
-          <div className="keep-eyebrow">{t('overview.totalSpeed')}</div>
-          <div className="keep-num mt-1 text-[38px] font-semibold leading-none tracking-tight text-carbon-text">
+          <div className="glim-eyebrow">{t('overview.totalSpeed')}</div>
+          <div className="glim-num mt-1 text-[38px] font-semibold leading-none tracking-tight text-carbon-text">
             {fmtSpeed(counts.speed) || '0 B/s'}
           </div>
           <div className="mt-4">
@@ -72,7 +72,7 @@ export function Dashboard() {
           {recent.length === 0 ? (
             <EmptyState icon={<IconDownloads width={26} height={26} />} title={t('overview.noDownloads')} />
           ) : (
-            <div className="keep-card divide-y divide-carbon-border/60 p-0">
+            <div className="glim-card divide-y divide-carbon-border/60 p-0">
               {recent.map((x) => (
                 <div key={x.id} className="flex items-center gap-4 px-5 py-3">
                   <div className="min-w-0 flex-1">
@@ -86,7 +86,7 @@ export function Dashboard() {
                       />
                     </div>
                   </div>
-                  <span className="keep-num text-xs text-carbon-textSub">{fmtBytes(x.size)}</span>
+                  <span className="glim-num text-xs text-carbon-textSub">{fmtBytes(x.size)}</span>
                   <StatusPill status={x.status} />
                 </div>
               ))}
@@ -98,7 +98,7 @@ export function Dashboard() {
             the full dashboard lives on the Instances page. */}
         <div className="flex flex-col gap-3">
           <SectionTitle>{t('overview.instances')}</SectionTitle>
-          <div className="keep-card divide-y divide-carbon-border/60 p-0">
+          <div className="glim-card divide-y divide-carbon-border/60 p-0">
             <InstanceRow name={t('instances.thisInstance')} base="/api" />
             {(instances ?? []).map((i) => (
               <InstanceRow

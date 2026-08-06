@@ -49,6 +49,11 @@ export interface Settings {
   verifyChecksums: boolean;
   shape: 'round' | 'soft' | 'square';
   accent: string;
+  rainbow: boolean;
+  rainbowReactive: boolean;
+  rainbowRotate: boolean;
+  rainbowSeed: number;
+  rainbowPalette: string[] | null;
 }
 
 export interface Account {

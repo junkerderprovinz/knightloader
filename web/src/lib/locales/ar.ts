@@ -216,4 +216,10 @@ export const ar: Dict = {
   'queue.stopMark': 'التوقف بعد هذا',
   'queue.stopMarkOn': 'سيتوقف بعد هذا',
   'queue.limit': 'الحد',
+  'settings.rainbow': 'قوس قزح',
+  'settings.rainbowHint': 'بدل لون تمييز واحد، لوحة من ثمانية ألوان تُوزَّع حسب الموضع، فتُقرأ القائمة الطويلة صفوفًا منفصلة.',
+  'settings.rainbowOn': 'استخدام اللوحة',
+  'settings.rainbowReactive': 'هادئ حتى تلمسه: يظهر اللون عند التحويم وعلى ما يعمل',
+  'settings.rainbowRotate': 'خلط نقطة بداية اللوحة',
+  'settings.rainbowPalette': 'لون اللوحة',
 };

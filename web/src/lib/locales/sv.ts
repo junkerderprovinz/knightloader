@@ -214,4 +214,10 @@ export const sv: Dict = {
   'queue.stopMark': 'Stoppa efter denna',
   'queue.stopMarkOn': 'Stoppar efter denna',
   'queue.limit': 'Gräns',
+  'settings.rainbow': 'Regnbåge',
+  'settings.rainbowHint': 'I stället för en accent en palett med åtta färger efter position, så att en lång lista läses som skilda rader.',
+  'settings.rainbowOn': 'Använd paletten',
+  'settings.rainbowReactive': 'Stilla tills du rör vid det: färg vid hovring och på det som körs',
+  'settings.rainbowRotate': 'Blanda var paletten börjar',
+  'settings.rainbowPalette': 'Palettfärg',
 };

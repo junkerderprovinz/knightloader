@@ -214,4 +214,10 @@ export const tr: Dict = {
   'queue.stopMark': 'Bundan sonra dur',
   'queue.stopMarkOn': 'Bundan sonra duracak',
   'queue.limit': 'Sınır',
+  'settings.rainbow': 'Gökkuşağı',
+  'settings.rainbowHint': 'Tek vurgu yerine konuma göre dağıtılan sekiz renklik bir palet; uzun bir liste ayrı satırlar olarak okunur.',
+  'settings.rainbowOn': 'Paleti kullan',
+  'settings.rainbowReactive': 'Dokunulana kadar sakin: üzerine gelince ve çalışanda renk',
+  'settings.rainbowRotate': 'Paletin nereden başladığını karıştır',
+  'settings.rainbowPalette': 'Palet rengi',
 };

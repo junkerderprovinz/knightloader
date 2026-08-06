@@ -1,4 +1,4 @@
-// Primitives of the KEEP design language. Everything is expressed through the
+// Primitives of the GlimStone design language. Everything is expressed through the
 // shared tokens in index.css, so a sibling app inherits the look by adopting
 // that file — see the comment block there.
 import { useEffect } from 'react';
@@ -78,7 +78,7 @@ export function NumberInput({
   return (
     <input
       type="number"
-      className={`${inputClass} keep-num`}
+      className={`${inputClass} glim-num`}
       value={value}
       min={min}
       max={max}
@@ -138,7 +138,7 @@ export function Card({
 }) {
   return (
     <div
-      className={`keep-card p-5 ${
+      className={`glim-card p-5 ${
         hover ? 'transition-transform duration-150 motion-safe:hover:-translate-y-0.5' : ''
       } ${className}`}
     >
@@ -190,7 +190,7 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="keep-card flex flex-col items-center gap-2 p-10 text-center">
+    <div className="glim-card flex flex-col items-center gap-2 p-10 text-center">
       {icon && <div className="text-carbon-textMuted/60">{icon}</div>}
       <div className="text-sm text-carbon-textSub">{title}</div>
       {hint && <div className="text-[11px] text-carbon-textMuted">{hint}</div>}
@@ -202,14 +202,14 @@ export function EmptyState({
 // A quiet placeholder while a page's data is still on the wire.
 export function LoadingCard({ label }: { label: string }) {
   return (
-    <div className="keep-card p-10 text-center text-sm text-carbon-textMuted">{label}</div>
+    <div className="glim-card p-10 text-center text-sm text-carbon-textMuted">{label}</div>
   );
 }
 
 // A fault state that says what went wrong and offers a way to recover.
 export function ErrorCard({ message, retry, retryLabel }: { message: string; retry?: () => void; retryLabel?: string }) {
   return (
-    <div className="keep-card flex flex-col items-center gap-3 p-10 text-center">
+    <div className="glim-card flex flex-col items-center gap-3 p-10 text-center">
       <div className="text-sm text-statusFail">{message}</div>
       {retry && (
         <Button kind="secondary" onClick={retry}>
@@ -259,7 +259,7 @@ export function Modal({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="keep-card w-full max-w-md p-5 flex flex-col gap-5" role="dialog" aria-modal="true">
+      <div className="glim-card w-full max-w-md p-5 flex flex-col gap-5" role="dialog" aria-modal="true">
         <div className="flex items-center gap-3">
           <h2 className="text-sm font-semibold text-carbon-text">{title}</h2>
           <span className="flex-1" />

@@ -96,7 +96,7 @@ export function Collector() {
       <PageHeader title={t('collector.title')} subtitle={t('collector.subtitle')} />
 
       {/* The hero: one drop zone that is also the paste field. */}
-      <div className="keep-card p-0 overflow-hidden">
+      <div className="glim-card p-0 overflow-hidden">
         <div
           onDragOver={(e) => {
             e.preventDefault();
@@ -143,11 +143,11 @@ export function Collector() {
       </div>
 
       {collected.length === 0 ? (
-        <div className="keep-card p-12 text-center text-sm text-carbon-textMuted">{t('collector.empty')}</div>
+        <div className="glim-card p-12 text-center text-sm text-carbon-textMuted">{t('collector.empty')}</div>
       ) : (
         <>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="keep-num text-sm text-carbon-textSub">
+            <span className="glim-num text-sm text-carbon-textSub">
               {selected.size > 0
                 ? `${selected.size} ${t('collector.selected')}`
                 : `${collected.length} ${t('collector.staged')}`}

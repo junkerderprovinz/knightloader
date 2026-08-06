@@ -80,7 +80,7 @@ export function QueueBar({ base = '/api' }: { base?: string }) {
           onKeyDown={(e) => {
             if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
           }}
-          className="keep-num w-20 rounded-[var(--radius-control)] bg-carbon-surface2 px-2 py-1 text-right text-xs
+          className="glim-num w-20 rounded-[var(--radius-control)] bg-carbon-surface2 px-2 py-1 text-right text-xs
             text-carbon-text outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)]"
         />
         KiB/s

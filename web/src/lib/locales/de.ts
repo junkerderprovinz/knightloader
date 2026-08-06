@@ -214,4 +214,10 @@ export const de: Dict = {
   'queue.stopMark': 'Danach stoppen',
   'queue.stopMarkOn': 'Stoppt danach',
   'queue.limit': 'Limit',
+  'settings.rainbow': 'Regenbogen',
+  'settings.rainbowHint': 'Statt einer Akzentfarbe acht, nach Position vergeben — eine lange Liste liest sich dann als einzelne Zeilen.',
+  'settings.rainbowOn': 'Palette verwenden',
+  'settings.rainbowReactive': 'Ruhig bis berührt: Farbe beim Überfahren und bei dem, was läuft',
+  'settings.rainbowRotate': 'Startfarbe der Palette durchmischen',
+  'settings.rainbowPalette': 'Palettenfarbe',
 };

@@ -112,7 +112,7 @@ function PackageDialog({
             {t('common.cancel')}
           </Button>
           <span className="flex-1" />
-          <span className="keep-num text-xs text-carbon-textMuted">
+          <span className="glim-num text-xs text-carbon-textMuted">
             {count} {t('select.count')}
           </span>
         </>

@@ -214,6 +214,12 @@ export const en = {
   'queue.stopMark': 'Stop after this one',
   'queue.stopMarkOn': 'Stopping after this one',
   'queue.limit': 'Limit',
+  'settings.rainbow': 'Rainbow',
+  'settings.rainbowHint': 'Instead of one accent, a palette of eight handed out by position, so a long list reads as separate rows.',
+  'settings.rainbowOn': 'Use the palette',
+  'settings.rainbowReactive': 'Quiet until touched: colour on hover and on what is running',
+  'settings.rainbowRotate': 'Shuffle where the palette starts',
+  'settings.rainbowPalette': 'Palette colour',
 } as const;
 
 export type TranslationKey = keyof typeof en;

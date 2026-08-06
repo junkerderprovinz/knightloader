@@ -214,4 +214,10 @@ export const el: Dict = {
   'queue.stopMark': 'Διακοπή μετά από αυτό',
   'queue.stopMarkOn': 'Θα σταματήσει μετά από αυτό',
   'queue.limit': 'Όριο',
+  'settings.rainbow': 'Ουράνιο τόξο',
+  'settings.rainbowHint': 'Αντί για ένα χρώμα τονισμού, μια παλέτα οκτώ χρωμάτων ανά θέση, ώστε μια μεγάλη λίστα να διαβάζεται ως ξεχωριστές γραμμές.',
+  'settings.rainbowOn': 'Χρήση παλέτας',
+  'settings.rainbowReactive': 'Ήσυχο μέχρι να το αγγίξεις: χρώμα στο πέρασμα και σε ό,τι τρέχει',
+  'settings.rainbowRotate': 'Ανακάτεμα του σημείου εκκίνησης της παλέτας',
+  'settings.rainbowPalette': 'Χρώμα παλέτας',
 };

@@ -214,4 +214,10 @@ export const fi: Dict = {
   'queue.stopMark': 'Pysäytä tämän jälkeen',
   'queue.stopMarkOn': 'Pysähtyy tämän jälkeen',
   'queue.limit': 'Raja',
+  'settings.rainbow': 'Sateenkaari',
+  'settings.rainbowHint': 'Yhden korostuksen sijaan kahdeksan värin paletti sijainnin mukaan, jolloin pitkä lista lukeutuu erillisinä riveinä.',
+  'settings.rainbowOn': 'Käytä palettia',
+  'settings.rainbowReactive': 'Rauhallinen kunnes kosketat: väri osoittaessa ja käynnissä olevassa',
+  'settings.rainbowRotate': 'Sekoita, mistä paletti alkaa',
+  'settings.rainbowPalette': 'Paletin väri',
 };
