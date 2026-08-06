@@ -78,4 +78,21 @@ type Task struct {
 	// Checksum is what verification said about the finished file: empty when
 	// nothing was checked, "ok" or "failed".
 	Checksum string `json:"checksum,omitempty"`
+
+	// Comment is what a Packagizer rule attached to this task. Nothing in the app
+	// reads it; it exists so a rule can leave a note for the person reading the
+	// list weeks later.
+	Comment string `json:"comment,omitempty"`
+	// Chunks overrides how many connections this download opens. Zero means the
+	// resolver's answer, or the built-in default when it has none.
+	Chunks int `json:"chunks,omitempty"`
+	// AutoExtract overrides the global extraction switch for this one task. Nil
+	// is "no rule had an opinion", which is not the same as false: a rule that
+	// deliberately switches unpacking off has to survive a global that is on, and
+	// with a plain bool the two are the same value.
+	AutoExtract *bool `json:"autoExtract,omitempty"`
+	// MatchedRules names the Packagizer rules that shaped this task, in the order
+	// they fired. It answers "why did this land here" without re-running a rule
+	// list that may since have been edited.
+	MatchedRules []string `json:"matchedRules,omitempty"`
 }

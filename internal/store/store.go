@@ -3,6 +3,7 @@ package store
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -41,6 +42,16 @@ var migrations = []string{
 	`ALTER TABLE tasks ADD COLUMN position INTEGER NOT NULL DEFAULT 0`,
 	// 3 — the verdict of a checksum verification.
 	`ALTER TABLE tasks ADD COLUMN checksum TEXT NOT NULL DEFAULT ''`,
+	// 4 — what a Packagizer rule decided about this task. Without these the rule
+	//     applies once, at paste time, and is gone at the next restart: the
+	//     archive a rule told the app not to unpack is unpacked, and a connection
+	//     count set for one hoster falls back to the default. auto_extract is the
+	//     one nullable column in the table, because "no rule had an opinion" is
+	//     not the same answer as "a rule said no".
+	`ALTER TABLE tasks ADD COLUMN comment TEXT NOT NULL DEFAULT ''`,
+	`ALTER TABLE tasks ADD COLUMN chunks INTEGER NOT NULL DEFAULT 0`,
+	`ALTER TABLE tasks ADD COLUMN auto_extract INTEGER`,
+	`ALTER TABLE tasks ADD COLUMN matched_rules TEXT NOT NULL DEFAULT ''`,
 }
 
 func Open(path string) (*Store, error) {
@@ -48,6 +59,14 @@ func Open(path string) (*Store, error) {
 	if err != nil {
 		return nil, err
 	}
+	// One connection, because a second one is what this database cannot survive.
+	// SQLite takes a file-wide lock to write, a second connection writing at the
+	// same moment is refused with SQLITE_BUSY at once, and every caller in the app
+	// discards the error from Save — so of two updates that land together one is
+	// simply lost, and the task comes back after a restart in a state that was
+	// true for a fraction of a second. With a single connection the pool queues
+	// the writers instead of letting them collide.
+	db.SetMaxOpenConns(1)
 	if err := migrate(db); err != nil {
 		db.Close()
 		return nil, err
@@ -75,20 +94,36 @@ func migrate(db *sql.DB) error {
 func (s *Store) Close() error { return s.db.Close() }
 
 const columns = `id,url,name,package,resolver,size,loaded,speed,status,error,created_at,
-	dir,password,online,retries,next_try,priority,position,checksum`
+	dir,password,online,retries,next_try,priority,position,checksum,
+	comment,chunks,auto_extract,matched_rules`
 
 func (s *Store) Save(t *core.Task) error {
 	var nextTry int64
 	if !t.NextTry.IsZero() {
 		nextTry = t.NextTry.UnixMilli()
 	}
+	// nil rather than 0 or 1, because the column has to be able to say that no
+	// rule had an opinion at all: read back as false, a task nothing was decided
+	// about would stop obeying the global unpacking switch.
+	var autoExtract any
+	if t.AutoExtract != nil {
+		autoExtract = *t.AutoExtract
+	}
+	matched := ""
+	if len(t.MatchedRules) > 0 {
+		b, err := json.Marshal(t.MatchedRules)
+		if err != nil {
+			return err
+		}
+		matched = string(b)
+	}
 	_, err := s.db.Exec(
 		`INSERT OR REPLACE INTO tasks (`+columns+`)
-		 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+		 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
 		t.ID, t.URL, t.Name, t.Package, t.Resolver, t.Size, t.Loaded, t.Speed,
 		string(t.Status), t.Error, t.CreatedAt.UnixMilli(),
 		t.Dir, t.Password, string(t.Online), t.Retries, nextTry, t.Priority, t.Position,
-		t.Checksum)
+		t.Checksum, t.Comment, t.Chunks, autoExtract, matched)
 	return err
 }
 
@@ -106,12 +141,13 @@ func (s *Store) All() ([]*core.Task, error) {
 	var out []*core.Task
 	for rows.Next() {
 		t := &core.Task{}
-		var status, online string
+		var status, online, matched string
 		var created, nextTry int64
+		var autoExtract sql.NullBool
 		if err := rows.Scan(&t.ID, &t.URL, &t.Name, &t.Package, &t.Resolver,
 			&t.Size, &t.Loaded, &t.Speed, &status, &t.Error, &created,
 			&t.Dir, &t.Password, &online, &t.Retries, &nextTry, &t.Priority, &t.Position,
-			&t.Checksum); err != nil {
+			&t.Checksum, &t.Comment, &t.Chunks, &autoExtract, &matched); err != nil {
 			return nil, err
 		}
 		t.Status = core.Status(status)
@@ -119,6 +155,16 @@ func (s *Store) All() ([]*core.Task, error) {
 		t.CreatedAt = time.UnixMilli(created)
 		if nextTry > 0 {
 			t.NextTry = time.UnixMilli(nextTry)
+		}
+		if autoExtract.Valid {
+			v := autoExtract.Bool
+			t.AutoExtract = &v
+		}
+		if matched != "" {
+			// A row written by a build that stored something else here is not worth
+			// failing the whole reload over: the task itself is intact, and the list
+			// of rule names is only there to explain where it landed.
+			_ = json.Unmarshal([]byte(matched), &t.MatchedRules)
 		}
 		out = append(out, t)
 	}

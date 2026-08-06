@@ -11,6 +11,13 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+
+	"github.com/junkerderprovinz/knightloader/internal/collide"
+	"github.com/junkerderprovinz/knightloader/internal/dedupe"
+	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
+	"github.com/junkerderprovinz/knightloader/internal/reconnect"
+	"github.com/junkerderprovinz/knightloader/internal/rules"
+	"github.com/junkerderprovinz/knightloader/internal/schedule"
 )
 
 // Settings is the user-visible configuration. Zero values mean "unlimited/off"
@@ -65,6 +72,64 @@ type Settings struct {
 	RainbowSeed int `json:"rainbowSeed"`
 	// RainbowPalette overrides the eight built-in hues. Empty means the default.
 	RainbowPalette []string `json:"rainbowPalette"`
+
+	// Packagizer names packages, picks folders and sets download options as
+	// links are staged. It is stored exactly as the user wrote it: rules.Compile
+	// is the validator, and a rule with a broken regular expression has to
+	// round-trip to disk so the user can find and fix it in the form instead of
+	// watching it disappear on save.
+	Packagizer rules.Set `json:"packagizer"`
+	// LinkFilter decides which links are taken into the collector at all.
+	// StopAfterMatch usually wants to be on here, so a narrow accept placed above
+	// a broad reject actually protects the link; it is the user's flag and
+	// nothing here forces it.
+	LinkFilter rules.Set `json:"linkFilter"`
+
+	// MirrorPolicy is when two different URLs count as the same file.
+	MirrorPolicy string `json:"mirrorPolicy"`
+
+	// CollisionPolicy is what happens when the destination file already exists.
+	CollisionPolicy string `json:"collisionPolicy"`
+	// CollisionMaxAttempts caps how many counted names a rename tries. Zero means
+	// the package's own cap.
+	CollisionMaxAttempts int `json:"collisionMaxAttempts,omitempty"`
+
+	// Connections is the user-ordered list of outbound connections downloads are
+	// spread across. Empty means everything goes out over the machine's own
+	// connection, which is what an install that never opened the page has.
+	Connections []proxycfg.Entry `json:"connections,omitempty"`
+
+	// Reconnect gets the box a new public address when a hoster's free-user limit
+	// is keyed to the one it has. Off by default: it runs a program or talks to
+	// the router, and neither should ever happen because a default said so.
+	Reconnect reconnect.Config `json:"reconnect"`
+
+	// Schedule is the timetable that pauses or throttles the queue by the clock.
+	// An empty timetable changes nothing, which is what a fresh install wants.
+	Schedule []schedule.Entry `json:"schedule,omitempty"`
+}
+
+// Redacted returns a copy safe to hand to a browser. Two secrets live in here
+// now — the router password and every proxy password — and the endpoint that
+// serves the settings must use nothing but this: the moment a client is shown
+// them, the merge machinery in Set is protecting a value it already holds.
+//
+// The two packages disagree about how to hide a password, deliberately.
+// reconnect masks it with a placeholder that WithSecretsFrom reads back, so an
+// empty string can keep meaning "clear it"; proxycfg drops it and lets Merge put
+// it back when the row still describes the same connection. Neither is wrapped
+// or normalised here, because each is one half of a round trip its own package
+// owns.
+func (s Settings) Redacted() Settings {
+	s.Reconnect = s.Reconnect.Redacted()
+	if len(s.Connections) > 0 {
+		out := make([]proxycfg.Entry, len(s.Connections))
+		for i, e := range s.Connections {
+			out[i] = e.Redacted()
+		}
+		s.Connections = out
+	}
+	return s
 }
 
 // Defaults returns the settings a fresh install starts with.
@@ -79,6 +144,12 @@ func Defaults() Settings {
 		Crawl:           true,
 		VerifyChecksums: true,
 		Shape:           ShapeRound,
+		// Only three of the new fields have a default worth writing down. The rest
+		// are usable at their zero value: no rules, no connections and no timetable
+		// all mean "behave exactly as before", which is what a fresh install wants.
+		MirrorPolicy:    string(dedupe.DefaultPolicy),
+		CollisionPolicy: string(collide.DefaultPolicy),
+		Reconnect:       reconnect.Defaults(),
 	}
 }
 
@@ -111,9 +182,17 @@ func (s *Store) Get() Settings {
 
 // Set validates, persists and applies new settings.
 func (s *Store) Set(n Settings) (Settings, error) {
-	n = sanitize(n)
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	// The secrets the client was never shown are put back first, and against the
+	// value under this very lock. Reading the previous settings through Get would
+	// deadlock — mu is a plain Mutex and Get takes it — and taking a snapshot
+	// before the lock would let two concurrent saves merge against the same stale
+	// value, so the second one writes back a router password the first had
+	// already changed.
+	n.Reconnect = n.Reconnect.WithSecretsFrom(s.cur.Reconnect)
+	n.Connections = proxycfg.Merge(n.Connections, s.cur.Connections)
+	n = sanitize(n)
 	b, err := json.MarshalIndent(n, "", "  ")
 	if err != nil {
 		return s.cur, err
@@ -218,6 +297,31 @@ func sanitize(n Settings) Settings {
 		}
 	}
 	n.ArchivePasswords = pw
+	// Both policies fold an unknown value onto their package's default instead of
+	// failing, so a settings file written by another build — or hand-edited with a
+	// typo — can never stop links from being added.
+	n.MirrorPolicy = string(dedupe.ParsePolicy(n.MirrorPolicy))
+	n.CollisionPolicy = string(collide.ParsePolicy(n.CollisionPolicy))
+	// Zero stays zero: that is "use the package's own cap". A number above it is
+	// not a bigger allowance, it is the runaway guard switched off, which is how a
+	// watch folder re-reading one list fills a directory nobody can open.
+	if n.CollisionMaxAttempts < 0 {
+		n.CollisionMaxAttempts = 0
+	}
+	if n.CollisionMaxAttempts > collide.DefaultMaxAttempts {
+		n.CollisionMaxAttempts = collide.DefaultMaxAttempts
+	}
+	// Sanitize assigns stable IDs, compacts the order and drops rows that could
+	// never be used. A half-configured proxy row kept and enabled would either
+	// fail every download routed through it or be read as no proxy at all, and
+	// send the traffic the user was hiding out over their own connection.
+	n.Connections = proxycfg.Sanitize(n.Connections)
+	n.Reconnect = reconnect.Sanitize(n.Reconnect)
+	// Packagizer, LinkFilter and Schedule are deliberately left untouched.
+	// Sanitising a rule list or a timetable at load means deleting the row the
+	// user got wrong instead of showing it to them, and a filter rule that
+	// vanishes on save is a filter the user goes on believing in. Compile reports
+	// what it cannot use and the API hands that back; nothing edits the list.
 	return n
 }
 

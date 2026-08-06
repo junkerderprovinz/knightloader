@@ -7,6 +7,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -23,19 +24,24 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/checksum"
+	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/crawler"
+	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/engine"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/hub"
 	"github.com/junkerderprovinz/knightloader/internal/netproxy"
 	"github.com/junkerderprovinz/knightloader/internal/pathvars"
+	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
+	"github.com/junkerderprovinz/knightloader/internal/rules"
+	"github.com/junkerderprovinz/knightloader/internal/schedule"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/knightloader/internal/store"
 	"github.com/junkerderprovinz/knightloader/internal/throttle"
@@ -65,6 +71,21 @@ type App struct {
 	Throttle *throttle.Limiter
 	// Crawler turns a pasted page into the files it links to.
 	Crawler crawler.Crawler
+	// Reconnector asks the router for a new public address, which is the only
+	// thing that lifts a hoster limit keyed to the one this box has.
+	Reconnector *reconnect.Reconnector
+
+	// ctx is cancelled by Close. It bounds work that outlives the call that
+	// started it: a reconnect can hold the line for the whole configured timeout,
+	// and a shutdown must not wait two minutes for a router to answer — nor fire
+	// a reboot command on its way out and drop every download still running.
+	ctx    context.Context
+	cancel context.CancelFunc
+
+	// sched applies the user's timetable to the queue. It owns one goroutine and
+	// is the only writer of the speed limit, so a saved settings page cannot lift
+	// a nightly cap that is still in force.
+	sched *schedule.Runner
 
 	jd     backend            // headless-JD backend, nil unless KL_JD is set and reachable
 	ytdlp  backend            // yt-dlp media backend, nil unless the yt-dlp binary is present
@@ -82,12 +103,32 @@ type App struct {
 	// re-wiring does network calls, and task state must not wait for those.
 	bmu sync.RWMutex
 
+	// rmu guards the compiled rule sets, which are replaced wholesale whenever
+	// the settings are saved and never edited in place. It is separate from mu
+	// because the filter is consulted while a link is being staged, and that must
+	// not queue behind whatever the task list is doing.
+	rmu       sync.RWMutex
+	pkgRules  *rules.Matcher
+	pkgProb   []rules.Problem
+	filtRules *rules.Matcher
+	filtProb  []rules.Problem
+
 	mu sync.Mutex
 	// halted stops the dispatcher from handing anything new to a backend.
 	// Running downloads keep running: this is a queue switch, not a kill
 	// switch, and a stop that abandons half-written bytes is a different
 	// button with a different warning.
 	halted bool
+	// manualHalt is the halt the user set by hand, kept apart from halted because
+	// a schedule window writes that one too. It is the base the timetable is
+	// evaluated against, so a stop made at 03:00 is still in force when a window
+	// ends at 06:00 instead of being lifted by it.
+	manualHalt bool
+	// dupes answers "is this link already in the list". It is not safe for
+	// concurrent use, so every call to it happens under mu.
+	dupes *dedupe.Set
+	// skipped is the trace of links that never became tasks, newest last.
+	skipped []SkippedLink
 	// stopMark is the task whose completion halts the queue. It is how you say
 	// "finish this, then stop" without sitting and watching for it.
 	stopMark string
@@ -126,6 +167,7 @@ func New(dataDir string) (*App, error) {
 		started:    map[string]bool{},
 		debrid:     map[string]backend{},
 	}
+	a.ctx, a.cancel = context.WithCancel(context.Background())
 	a.Registry.Register(resolver.Direct{})
 	a.Registry.Register(resolver.HTTPFallback{})
 
@@ -135,7 +177,35 @@ func New(dataDir string) (*App, error) {
 		return nil, err
 	}
 	a.Engine = eng
+	// The limiter is seeded here and owned by the schedule from Start onwards.
+	// Between the two the timetable has not been consulted yet, and running
+	// unthrottled in that window would be a speed limit that does not apply until
+	// the first boundary.
 	a.Throttle.Set(cfg.Get().SpeedLimit)
+
+	s := cfg.Get()
+	a.applyRuleSets(s)
+	a.dupes = dedupe.New(dedupe.ParsePolicy(s.MirrorPolicy))
+	// The configuration is read through a closure rather than captured, so a
+	// reconnect fired after the user edited the router password uses the password
+	// they just saved and not the one this process booted with.
+	rc, err := reconnect.New(reconnect.Options{
+		Config: func() reconnect.Config { return a.Settings.Get().Reconnect },
+	})
+	if err != nil {
+		st.Close()
+		return nil, err
+	}
+	a.Reconnector = rc
+	a.sched, err = schedule.NewRunner(schedule.Options{
+		Entries: s.Schedule,
+		Base:    a.scheduleBase,
+		Apply:   a.applySchedule,
+	})
+	if err != nil {
+		st.Close()
+		return nil, err
+	}
 
 	// All engine traffic goes through a loopback proxy: it is the only place the
 	// embedded download library lets us meter bytes. If it cannot start,
@@ -182,8 +252,64 @@ func New(dataDir string) (*App, error) {
 			t.Speed = 0
 		}
 		a.tasks[t.ID] = t
+		// Only live tasks are filed. A finished or failed download must not block
+		// its own re-add: pasting one of those again is a deliberate second
+		// attempt, which is the rule the raw URL comparison here used to enforce.
+		if t.Status != core.StatusDone && t.Status != core.StatusError {
+			a.dupes.Add(linkEntry(t))
+		}
 	}
+	// Started only now that the task list is whole. The runner's first pass halts
+	// or throttles the queue immediately, and doing that to a queue still being
+	// reconstructed would stop downloads nobody paused.
+	a.sched.Start()
 	return a, nil
+}
+
+// applyRuleSets compiles both rule lists and keeps what Compile could not use.
+// Compile never fails and never returns nil, so a rule the user got wrong costs
+// them that rule and nothing else. The problems are kept rather than logged
+// because the settings form is the only place they can be acted on.
+func (a *App) applyRuleSets(s settings.Settings) {
+	pkg, pkgProb := rules.Compile(s.Packagizer)
+	filt, filtProb := rules.Compile(s.LinkFilter)
+	a.rmu.Lock()
+	a.pkgRules, a.pkgProb = pkg, pkgProb
+	a.filtRules, a.filtProb = filt, filtProb
+	a.rmu.Unlock()
+}
+
+// matchers hands out the two compiled rule sets as they stand right now. They
+// are replaced wholesale, so a caller that reads them once and uses them for a
+// whole link is using one consistent rule list even if the user saves mid-paste.
+func (a *App) matchers() (packagizer, filter *rules.Matcher) {
+	a.rmu.RLock()
+	defer a.rmu.RUnlock()
+	return a.pkgRules, a.filtRules
+}
+
+// RuleProblems is what Compile had to leave out of each rule list.
+type RuleProblems struct {
+	Packagizer []rules.Problem `json:"packagizer"`
+	LinkFilter []rules.Problem `json:"linkFilter"`
+}
+
+// RuleProblems reports the rules that could not be compiled. It belongs in the
+// settings response: a rule dropped for a broken regular expression that nothing
+// tells the user about is a rule they go on believing in, and for a filter that
+// means links they think are being blocked and are not.
+func (a *App) RuleProblems() RuleProblems {
+	a.rmu.RLock()
+	defer a.rmu.RUnlock()
+	return RuleProblems{Packagizer: problemList(a.pkgProb), LinkFilter: problemList(a.filtProb)}
+}
+
+// problemList is never nil, so a client reads an empty list rather than null.
+func problemList(in []rules.Problem) []rules.Problem {
+	if in == nil {
+		return []rules.Problem{}
+	}
+	return in
 }
 
 // rewireBackends rebuilds the resolver routing table and the download backends
@@ -241,7 +367,11 @@ func (a *App) rewireBackends() {
 		ytbin = "yt-dlp"
 	}
 	if yb := ytdlp.NewBackend(ytbin, a.dlDir, a.onUpdate); yb.Available() {
-		yb.RateLimit = func() int64 { return a.Settings.Get().SpeedLimit }
+		// The limit in force rather than the one in the settings file. yt-dlp meters
+		// itself because its bytes never pass through our loopback proxy, and the
+		// limiter is what the timetable writes: reading the setting directly would
+		// leave yt-dlp running at the daytime speed right through a nightly window.
+		yb.RateLimit = a.Throttle.Limit
 		yb.Dir = a.taskDir
 		newYtdlp = yb
 		a.Registry.Register(ytdlp.Resolver{ExcludeHosts: hosterSet})
@@ -307,12 +437,21 @@ func (a *App) taskDir(taskID string) string {
 }
 
 func (a *App) Close() error {
+	if a.cancel != nil {
+		a.cancel()
+	}
 	a.wmu.Lock()
 	if a.watcher != nil {
 		_ = a.watcher.Close()
 		a.watcher = nil
 	}
 	a.wmu.Unlock()
+	// Closed before the engine, because Close waits for an in-flight Apply to
+	// return: that is exactly the promise that lets everything Apply talks to be
+	// torn down next.
+	if a.sched != nil {
+		_ = a.sched.Close()
+	}
 	if a.proxy != nil {
 		_ = a.proxy.Close()
 	}
@@ -339,90 +478,72 @@ func (a *App) Tasks() []*core.Task {
 // tasks are created "collected" (analysed but not started). StartTasks moves
 // them into the download queue.
 func (a *App) AddLinks(urls []string, pkg string) []*core.Task {
-	// Skip URLs that are already in flight, so pasting the same list twice
-	// doesn't queue a second copy. Tasks that have settled — finished or failed
-	// — never block: re-adding one of those is a deliberate second attempt.
-	a.mu.Lock()
-	known := make(map[string]bool, len(a.tasks))
-	for _, t := range a.tasks {
-		if t.Status != core.StatusDone && t.Status != core.StatusError {
-			known[t.URL] = true
-		}
-	}
-	a.mu.Unlock()
-
 	var created []*core.Task
+	// seen is about the pasted text and nothing else: it stops one page being
+	// fetched twice when it appears twice in the same box. Whether a *link* is
+	// already in the list is the mirror set's answer alone. Two ideas of "we
+	// already have this" that normalise URLs differently disagree sooner or later,
+	// and then a link a raw string comparison let through comes back reported as a
+	// duplicate of itself.
 	seen := map[string]bool{}
 	for _, raw := range urls {
 		u := strings.TrimSpace(raw)
-		if u == "" || known[u] || seen[u] {
+		if u == "" || seen[u] {
 			continue
 		}
 		seen[u] = true
+		// Asked here as well as inside stage, because the crawl below fetches the
+		// page. A rule naming a host is an instruction not to talk to it, and a
+		// filter that only refuses the links a page yielded has already sent a
+		// request to the address the user filtered out. stage keeps its own pass:
+		// it is the only way a link enters the list, and the links a crawl produces
+		// never come past this point.
+		cand := rules.Candidate{URL: u, Package: pkg, Added: time.Now()}
+		if v := a.filter(cand); v.Rejected {
+			if t := a.stageRejected(cand, v, cand.Added); t != nil {
+				created = append(created, t)
+			}
+			continue
+		}
 		// A page that points at files becomes those files, not one task for the
 		// page. Without this a gallery or an index listing can only ever be a
 		// single unusable download.
 		if crawled := a.crawl(u); len(crawled) > 0 {
 			for _, c := range crawled {
-				if c.URL == "" || seen[c.URL] || known[c.URL] {
+				if c.URL == "" {
 					continue
 				}
-				seen[c.URL] = true
-				if t := a.stage(c.URL, c.Name, pkg); t != nil {
+				// The page is passed as the source, which is the only place a rule
+				// keyed on "where did this link come from" can get it.
+				if t := a.stage(c.URL, c.Name, pkg, u); t != nil {
 					created = append(created, t)
 				}
 			}
 			continue
 		}
-		// A link is never dropped on the floor. If nothing can handle it, or
-		// resolving fails, it is still staged — with the reason on it — so the
-		// user can see what happened instead of watching links vanish.
-		t := &core.Task{
-			URL:       u,
-			Name:      u,
-			Package:   pkg,
-			Status:    core.StatusCollected,
-			CreatedAt: time.Now(),
-		}
-		res := a.Registry.For(u)
-		if res == nil {
-			t.Error = "no backend handles this link"
-			t.Online = core.AvailOffline
-			a.put(t)
+		if t := a.stage(u, "", pkg, ""); t != nil {
 			created = append(created, t)
-			continue
 		}
-		t.Resolver = res.Info().ID
-		result, err := res.Resolve(context.Background(), resolver.Request{URL: u})
-		if err != nil {
-			t.Error = err.Error()
-			a.put(t)
-			created = append(created, t)
-			continue
-		}
-		if result.Name != "" {
-			t.Name = result.Name
-		}
-		t.Size = result.Size
-		a.put(t)
-		// Lightweight analysis for plain file links: a HEAD gives size + an
-		// online check while the task waits in the collector.
-		if res.Info().ID == "direct" {
-			go a.analyze(t.ID, result.DirectURL)
-		}
-		created = append(created, t)
 	}
 	// A batch pasted without a package name gets one derived from the links
 	// themselves. Without this everything lands in "ungrouped", which is where
 	// a collector stops being useful the moment there is more than one batch in
 	// it.
+	//
+	// A task a Packagizer rule already named is left out. The rule is the more
+	// specific answer and it ran first, so overwriting it here would make a rule
+	// that works look like one that does nothing.
 	if strings.TrimSpace(pkg) == "" {
 		if derived := derivePackage(created); derived != "" {
 			ids := make([]string, 0, len(created))
 			for _, t := range created {
-				ids = append(ids, t.ID)
+				if strings.TrimSpace(t.Package) == "" {
+					ids = append(ids, t.ID)
+				}
 			}
-			a.SetPackage(ids, derived)
+			if len(ids) > 0 {
+				a.SetPackage(ids, derived)
+			}
 		}
 	}
 
@@ -561,42 +682,301 @@ func (a *App) crawl(u string) []crawler.Result {
 	return found
 }
 
-// stage creates one collected task for a URL, resolving it the same way a
-// pasted link is resolved. It returns nil only when the URL is unusable.
-func (a *App) stage(u, name, pkg string) *core.Task {
+// stage creates one collected task for a URL and is the only way a link enters
+// the list — the pasted path and the crawled path both come through here, so a
+// filter one of them honours cannot be the one the other walks past.
+//
+// Everything that decides whether a link may exist at all happens before put.
+// A filter that ran afterwards would already have leaked the link into the task
+// map, into the store and onto every connected screen, and taking it away again
+// is a flicker and a store round trip, not a filter.
+//
+// source is the page a crawl found the link on, and is empty for a pasted link.
+// It returns nil when the link never became a task.
+func (a *App) stage(u, name, pkg, source string) *core.Task {
+	// One clock reading for the whole link, in local time: it is what CreatedAt
+	// gets and what pathvars formats for <jd:date>, and a UTC reading here would
+	// flip a dated folder name a day early for everyone east of Greenwich.
+	now := time.Now()
+	cand := rules.Candidate{URL: u, Source: source, Package: pkg, Added: now}
+	if n := strings.TrimSpace(name); n != "" {
+		cand.Filename = n
+	}
+	// First pass, before anything is fetched. The byte count and the file type
+	// are still unknown, so a rule keyed on those cannot fire yet — but a reject
+	// on the URL, the hoster or the source page saves the whole network round
+	// trip, which on a paste of several thousand links is the entire cost.
+	if v := a.filter(cand); v.Rejected {
+		return a.stageRejected(cand, v, now)
+	}
+	// An advisory look before the expensive part, so an obvious duplicate costs
+	// nothing. The binding check is in put, under the lock that inserts the task.
+	if m := a.mirror(dedupe.Entry{URL: u, Name: cand.Filename}); m.Seen() {
+		a.recordSkipped(u, m)
+		return nil
+	}
+
 	t := &core.Task{
 		URL:       u,
 		Name:      u,
 		Package:   pkg,
 		Status:    core.StatusCollected,
-		CreatedAt: time.Now(),
+		CreatedAt: now,
 	}
-	if strings.TrimSpace(name) != "" {
-		t.Name = name
+	if cand.Filename != "" {
+		t.Name = cand.Filename
 	}
 	res := a.Registry.For(u)
 	if res == nil {
+		// A link is never dropped on the floor. If nothing can handle it, or
+		// resolving fails, it is still staged — with the reason on it — so the
+		// user can see what happened instead of watching links vanish.
 		t.Error = "no backend handles this link"
 		t.Online = core.AvailOffline
-		a.put(t)
-		return t
+		return a.finishStaging(t, cand)
 	}
 	t.Resolver = res.Info().ID
 	result, err := res.Resolve(context.Background(), resolver.Request{URL: u})
 	if err != nil {
 		t.Error = err.Error()
-		a.put(t)
-		return t
+		return a.finishStaging(t, cand)
 	}
 	if result.Name != "" {
 		t.Name = result.Name
 	}
 	t.Size = result.Size
-	a.put(t)
-	if res.Info().ID == "direct" {
+
+	// Second pass, now that the name and the byte count exist. This is the one
+	// that can act on a size or a file-type condition, and it still runs before
+	// the task is staged.
+	cand.Filename, cand.Filesize = filename(t), t.Size
+	if v := a.filter(cand); v.Rejected {
+		return a.stageRejected(cand, v, now)
+	}
+	staged := a.finishStaging(t, cand)
+	// Lightweight analysis for plain file links: a HEAD gives size + an online
+	// check while the task waits in the collector.
+	if staged != nil && res.Info().ID == "direct" {
 		go a.analyze(t.ID, result.DirectURL)
 	}
+	return staged
+}
+
+// finishStaging applies the Packagizer and stages the task, or reports the link
+// as one the list already covers.
+//
+// The Packagizer runs here, before put and therefore before anything has asked
+// dirFor where the file goes. Run it afterwards and its folder action names a
+// folder nothing writes to, and the user watches a link land in one package and
+// jump to another a moment later.
+func (a *App) finishStaging(t *core.Task, cand rules.Candidate) *core.Task {
+	cand.Filename, cand.Filesize, cand.Package = filename(t), t.Size, t.Package
+	a.packagize(t, cand)
+	if m, ok := a.put(t); !ok {
+		a.recordSkipped(t.URL, m)
+		return nil
+	}
 	return t
+}
+
+// filename is a task's file name, or empty while nothing has resolved one. A
+// task that has not been looked at yet carries its own URL as a name, and
+// handing that to a rule as a file name makes "filename contains" answer about
+// the URL instead.
+func filename(t *core.Task) string {
+	if t.Name == t.URL {
+		return ""
+	}
+	return t.Name
+}
+
+// candidateOf describes an existing task to the rule engine. The source page is
+// absent on purpose: a crawl's source is not kept on the task, so a rule keyed on
+// it decides at staging time only.
+func candidateOf(t *core.Task) rules.Candidate {
+	return rules.Candidate{
+		URL:      t.URL,
+		Filename: filename(t),
+		Filesize: t.Size,
+		Package:  t.Package,
+		Added:    t.CreatedAt,
+	}
+}
+
+// filter asks the link filter about a candidate. A set with no usable rule is
+// never consulted, so an install that has never opened the page does no work per
+// link at all.
+func (a *App) filter(cand rules.Candidate) rules.Verdict {
+	_, f := a.matchers()
+	if f == nil || f.Empty() {
+		return rules.Verdict{}
+	}
+	return f.Check(cand)
+}
+
+// packagize applies the Packagizer's answer to a task that has not been staged
+// yet. Only what a rule actually set is applied: an empty field means "no rule
+// had an opinion", never "clear it".
+//
+// The rename action is deliberately not applied. Nothing here can tell a backend
+// which file name to write — the engine is handed a directory and names the file
+// itself — so putting a rule's name on the task would leave the list showing one
+// name while the disk holds another, and extraction and checksum verification
+// both build their path by joining the folder with that name.
+func (a *App) packagize(t *core.Task, cand rules.Candidate) {
+	pkg, _ := a.matchers()
+	if pkg == nil || pkg.Empty() {
+		return
+	}
+	e := pkg.Apply(cand)
+	if e.Package != "" {
+		t.Package = e.Package
+	}
+	if e.Dir != "" {
+		// Already expanded by the rules package, and dirFor takes a task's own
+		// folder verbatim. Expanding it a second time would resolve placeholders
+		// the first pass deliberately left standing so the user could see them.
+		t.Dir = e.Dir
+	}
+	if e.Comment != "" {
+		t.Comment = e.Comment
+	}
+	if e.Priority != nil {
+		// Already clamped to the same range SetPriority uses, so a rule cannot
+		// hand a task a priority the interface has no way to undo.
+		t.Priority = *e.Priority
+	}
+	if e.Chunks != nil {
+		t.Chunks = *e.Chunks
+	}
+	if e.AutoExtract != nil {
+		v := *e.AutoExtract
+		t.AutoExtract = &v
+	}
+	t.MatchedRules = e.Matched
+}
+
+// stageRejected records a link the filter refused.
+//
+// It is staged rather than dropped, through the same mechanism a link no backend
+// handles goes through: the reason on the task and an offline availability.
+// Eating links in silence is JDownloader's single most complained-about
+// behaviour, and a link that disappears without a trace is indistinguishable
+// from a bug in the paste box.
+//
+// It stays collected rather than being settled as an error, so it reads as what
+// it is — a link in the collector that will not be taken — and so a user who
+// fixes the rule can simply start it. dispatchLocked asks the filter again
+// before any bytes move, which is what stops "start everything" from undoing the
+// filter in the meantime.
+func (a *App) stageRejected(cand rules.Candidate, v rules.Verdict, now time.Time) *core.Task {
+	t := &core.Task{
+		URL:       cand.URL,
+		Name:      cand.URL,
+		Package:   cand.Package,
+		Status:    core.StatusCollected,
+		Online:    core.AvailOffline,
+		Error:     rejection(v),
+		CreatedAt: now,
+	}
+	if cand.Filename != "" {
+		t.Name = cand.Filename
+	}
+	if m, ok := a.put(t); !ok {
+		a.recordSkipped(t.URL, m)
+		return nil
+	}
+	return t
+}
+
+// rejection is what the user reads on a refused link. The rule package writes a
+// reason that already names the rule when the user gave none of their own, so
+// the name is added only where it would otherwise be missing. The test is on the
+// quoted name because a reason written in the user's own words routinely
+// contains the same word the rule is named after.
+func rejection(v rules.Verdict) string {
+	if v.Rule == "" || strings.Contains(v.Reason, strconv.Quote(v.Rule)) {
+		return v.Reason
+	}
+	return fmt.Sprintf("%s (link filter rule %q)", v.Reason, v.Rule)
+}
+
+// SkippedLink is a link that never became a task. It is kept so the interface
+// can say what happened to it: a link folded away with nothing to show for it
+// looks exactly like a bug in the paste box, and gets reported as one.
+type SkippedLink struct {
+	URL string `json:"url"`
+	// Kind is what the mirror set decided: "duplicate" or "mirror".
+	Kind   string    `json:"kind"`
+	Reason string    `json:"reason"`
+	OfID   string    `json:"ofId,omitempty"`
+	Signal string    `json:"signal,omitempty"`
+	At     time.Time `json:"at"`
+}
+
+// maxSkipped caps the trace. A watch folder re-reading one list is exactly the
+// shape that would otherwise grow it for the life of the process.
+const maxSkipped = 500
+
+// mirror asks the set whether a link is already covered. It is a separate
+// critical section from the one put uses because the caller has a network round
+// trip to make in between, and holding mu across a resolver call would serialise
+// every paste behind one HTTP request — which on a large paste looks like the
+// app hanging.
+func (a *App) mirror(e dedupe.Entry) dedupe.Match {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return a.dupes.Check(e)
+}
+
+// recordSkipped keeps and broadcasts a link that was folded into one already in
+// the list.
+func (a *App) recordSkipped(u string, m dedupe.Match) {
+	s := SkippedLink{
+		URL:    u,
+		Kind:   m.Verdict.String(),
+		Reason: skipReason(m),
+		OfID:   m.Of.ID,
+		Signal: string(m.Signal),
+		At:     time.Now(),
+	}
+	a.mu.Lock()
+	a.skipped = append(a.skipped, s)
+	if len(a.skipped) > maxSkipped {
+		a.skipped = append(a.skipped[:0], a.skipped[len(a.skipped)-maxSkipped:]...)
+	}
+	a.mu.Unlock()
+	a.Hub.Broadcast("skipped", s)
+}
+
+// skipReason is the sentence shown next to a folded link. It names what the
+// match rests on, because "already have it" is not something a user can check
+// and "the same file name and byte count" is.
+func skipReason(m dedupe.Match) string {
+	if m.Verdict == dedupe.Duplicate {
+		return "the same link is already in the list"
+	}
+	name := m.Of.Name
+	if name == "" {
+		name = m.Of.URL
+	}
+	return fmt.Sprintf("already in the list as %q, matched on %s", name, m.Signal)
+}
+
+// SkippedLinks reports the links that never became tasks, oldest first.
+func (a *App) SkippedLinks() []SkippedLink {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	out := make([]SkippedLink, len(a.skipped))
+	copy(out, a.skipped)
+	return out
+}
+
+// ClearSkipped empties the trace.
+func (a *App) ClearSkipped() {
+	a.mu.Lock()
+	a.skipped = nil
+	a.mu.Unlock()
 }
 
 // dirFor is the single answer to "where does this task's file go": the task's
@@ -701,15 +1081,21 @@ func (a *App) StartTasks(ids []string) {
 		}
 	}
 	sort.Slice(toStart, func(i, j int) bool { return toStart[i].CreatedAt.Before(toStart[j].CreatedAt) })
-	copies := make([]core.Task, 0, len(toStart))
 	for _, t := range toStart {
 		t.Status = core.StatusQueued
 		t.Error = ""
 		t.Speed = 0
 		a.queue = append(a.queue, t.ID)
-		copies = append(copies, *t)
 	}
 	a.dispatchLocked()
+	// Snapshotted after dispatching, never before. Dispatch settles the tasks it
+	// refuses — a filtered link, a taken destination — and a copy taken above
+	// would carry "queued" with the error cleared, which is exactly what would
+	// then be written over the refusal in the store and on screen.
+	copies := make([]core.Task, 0, len(toStart))
+	for _, t := range toStart {
+		copies = append(copies, *t)
+	}
 	a.mu.Unlock()
 	for i := range copies {
 		c := copies[i]
@@ -753,14 +1139,23 @@ func (a *App) RestartTasks(ids []string) {
 	}
 
 	a.mu.Lock()
-	var copies []core.Task
+	var live []*core.Task
 	for _, r := range targets {
 		if t := a.tasks[r.id]; t != nil {
 			a.queue = append(a.queue, r.id)
-			copies = append(copies, *t)
+			// Filed again: settling took it out of the mirror set, and a task that
+			// is live once more has to block a second copy of its own link.
+			a.dupes.Add(linkEntry(t))
+			live = append(live, t)
 		}
 	}
 	a.dispatchLocked()
+	// After dispatching, for the same reason as in StartTasks: a copy taken
+	// before it would write "queued, no error" over a task dispatch just refused.
+	copies := make([]core.Task, 0, len(live))
+	for _, t := range live {
+		copies = append(copies, *t)
+	}
 	a.mu.Unlock()
 	for i := range copies {
 		c := copies[i]
@@ -817,7 +1212,15 @@ func (a *App) setAvailability(id string, avail core.Availability, msg string) {
 		return
 	}
 	t.Online = avail
-	t.Error = msg
+	// The probe answers a question about the link; the error field on a settled
+	// task answers a different one, about what happened to it. A HEAD started
+	// while the link sat in the collector routinely lands after the dispatcher has
+	// already refused the task — for a filter rule, or a destination that was
+	// taken — and letting it write here replaces that reason with "offline: ...",
+	// or, on a link that turned out to be fine, with nothing at all.
+	if t.Status != core.StatusError {
+		t.Error = msg
+	}
 	c := *t
 	a.mu.Unlock()
 	_ = a.Store.Save(&c)
@@ -906,6 +1309,14 @@ func (a *App) dispatchLocked() {
 	}
 	cfg := a.Settings.Get()
 	a.sortQueueLocked()
+	// settled collects what the dispatcher turns down. A task refused in here is
+	// refused under the lock, long after every caller took its copy, so the reason
+	// has to leave with a copy of its own: without it the store and every open
+	// browser keep the task the caller saved — "queued", no error — and the user
+	// is left with a download that never starts and says nothing about why. That
+	// is the silent disappearance the staging record exists to prevent, moved one
+	// button along.
+	var settled []core.Task
 	perHost := map[string]int{}
 	for id := range a.active {
 		if t := a.tasks[id]; t != nil {
@@ -933,20 +1344,54 @@ func (a *App) dispatchLocked() {
 			go a.backendFor(t.Resolver).Resume(id)
 			continue
 		}
+		// The filter is asked again here because this is the last moment before
+		// bytes move, and a link it refused at staging time is still sitting in
+		// the collector where "start everything" can reach it. Asking once, at
+		// paste time, would make the filter something a single button undoes.
+		if v := a.filter(candidateOf(t)); v.Rejected {
+			t.Status = core.StatusError
+			t.Online = core.AvailOffline
+			t.Error = rejection(v)
+			settled = append(settled, *t)
+			continue
+		}
 		// Honour the resolver already recorded on the task: after a fallback it
 		// is deliberately not the highest-priority match any more.
 		res := a.resolverForTaskLocked(t)
 		if res == nil {
 			t.Status = core.StatusError
 			t.Error = "no resolver matches"
+			settled = append(settled, *t)
 			continue
 		}
 		t.Resolver = res.Info().ID
-		result, err := res.Resolve(context.Background(), resolver.Request{URL: t.URL})
+		// The shutdown context, because this call is made with mu held: a resolver
+		// that hangs would otherwise keep the lock — and with it the whole app —
+		// until its own timeout, and Close would wait behind a hoster.
+		result, err := res.Resolve(a.ctx, resolver.Request{URL: t.URL})
 		if err != nil {
 			t.Status = core.StatusError
 			t.Error = err.Error()
+			settled = append(settled, *t)
 			continue
+		}
+		dir := a.dirFor(t)
+		// A destination that is already taken is settled here instead of being
+		// downloaded over. Only "skip" can be honoured today: every other policy
+		// has to name the file it writes, and no backend accepts a destination
+		// file name — the engine is handed a directory and names the file itself.
+		// The check is skipped entirely while the name is still unknown, because a
+		// collision decided on a URL-shaped name is a decision about nothing.
+		if collide.ParsePolicy(cfg.CollisionPolicy) == collide.Skip && filename(t) != "" {
+			target := filepath.Join(dir, t.Name)
+			if taken, err := collide.Check(target); err == nil && taken {
+				// The availability is left alone: nothing was learned about the
+				// link here, only about the folder it was going to land in.
+				t.Status = core.StatusError
+				t.Error = "not downloaded: " + target + " already exists"
+				settled = append(settled, *t)
+				continue
+			}
 		}
 		a.active[id] = true
 		a.started[id] = true
@@ -955,7 +1400,12 @@ func (a *App) dispatchLocked() {
 		if conns <= 0 {
 			conns = 4
 		}
-		dir := a.dirFor(t)
+		// A Packagizer rule that set a connection count outranks both. It was
+		// written for this hoster, and a per-rule setting that changes nothing is
+		// a setting the user keeps re-saving and never sees work.
+		if t.Chunks > 0 {
+			conns = t.Chunks
+		}
 		if be := a.backendFor(t.Resolver); be == a.Engine {
 			go a.Engine.DownloadTo(id, result.DirectURL, result.Headers, conns, dir)
 		} else {
@@ -963,6 +1413,23 @@ func (a *App) dispatchLocked() {
 		}
 	}
 	a.queue = rest
+	if len(settled) > 0 {
+		// Off this goroutine, because the caller still holds mu and the store write
+		// must not happen under it. A caller that snapshots after dispatching
+		// publishes the same state again, which is harmless: both copies say what
+		// the task ended up as, so whichever lands last says the same thing.
+		go a.publishTasks(settled)
+	}
+}
+
+// publishTasks writes tasks that are already settled to the store and out to
+// every connected browser. It is what a caller holding mu cannot do itself.
+func (a *App) publishTasks(tasks []core.Task) {
+	for i := range tasks {
+		c := tasks[i]
+		_ = a.Store.Save(&c)
+		a.Hub.Broadcast("task", &c)
+	}
 }
 
 // sortQueueLocked puts the wait queue in the order the user asked for: higher
@@ -1102,6 +1569,12 @@ func (a *App) Queue() QueueState {
 // away work the user did not ask to lose.
 func (a *App) SetHalted(halted bool) {
 	a.mu.Lock()
+	// Recorded as the manual switch as well as the effective one. The schedule
+	// evaluates against the manual flag, so a stop made by hand survives the end
+	// of a window instead of being lifted by it — and the runner is deliberately
+	// not woken, so a manual release inside a pause window holds until the next
+	// boundary rather than being reversed a millisecond later.
+	a.manualHalt = halted
 	a.halted = halted
 	if !halted {
 		// Resuming clears the stop mark: it has served its purpose, and leaving
@@ -1183,6 +1656,9 @@ func (a *App) Resume(id string) {
 func (a *App) Remove(id string, deleteFiles bool) {
 	a.mu.Lock()
 	t := a.tasks[id]
+	// Unfiled before the task goes, or a deleted download keeps blocking its own
+	// re-add for the life of the process.
+	a.forgetLinkLocked(t)
 	delete(a.tasks, id)
 	delete(a.active, id)
 	delete(a.started, id)
@@ -1420,22 +1896,40 @@ func (a *App) ApplySettings(s settings.Settings) (settings.Settings, error) {
 	if err != nil {
 		return applied, err
 	}
-	// The limiter meters every byte that comes through the loopback proxy, so a
-	// changed limit takes effect on running downloads, not just on the next one.
-	a.Throttle.Set(applied.SpeedLimit)
+	a.applyRuleSets(applied)
+	// The speed limit goes through the timetable and never straight to the
+	// limiter. Writing it here as well would let a saved settings page lift a
+	// nightly cap that is still in force, until whichever boundary came next.
+	// Set recompiles and re-evaluates at once against the new base, so the runner
+	// is the one that hands the limiter its answer.
+	a.sched.Set(applied.Schedule)
 	a.applyWatcher(applied.WatchDir)
-	a.bmu.RLock()
-	jdBackend := a.jd
-	a.bmu.RUnlock()
-	if sl, ok := jdBackend.(speedLimiter); ok {
-		if err := sl.SetSpeedLimit(applied.SpeedLimit); err != nil {
-			log.Printf("JD speed limit not applied: %v", err)
+	a.mu.Lock()
+	if p := dedupe.ParsePolicy(applied.MirrorPolicy); p != a.dupes.Policy() {
+		// The policy is baked in at New, so a change needs a new set — re-seeded
+		// from the list it is meant to describe, or the first paste after the
+		// change would be checked against nothing.
+		a.dupes = dedupe.New(p)
+		for _, t := range a.tasks {
+			if t.Status != core.StatusDone && t.Status != core.StatusError {
+				a.dupes.Add(linkEntry(t))
+			}
 		}
 	}
-	a.mu.Lock()
 	a.dispatchLocked()
 	a.mu.Unlock()
 	return applied, nil
+}
+
+// extractWanted is the task's own unpacking switch when a Packagizer rule set
+// one, and the global setting otherwise. A rule that says "do not unpack this"
+// has to survive a global that says otherwise, or the rule is a setting that
+// does nothing.
+func extractWanted(t *core.Task, cfg settings.Settings) bool {
+	if t.AutoExtract != nil {
+		return *t.AutoExtract
+	}
+	return cfg.Extract
 }
 
 // fetchTorboxHosters returns the set of TorBox-supported hoster domains, or nil
@@ -1464,16 +1958,167 @@ func fetchTorboxHosters(key string) map[string]bool {
 	return set
 }
 
-func (a *App) put(t *core.Task) {
+// put stages a task: the one moment a link becomes real, entering the task map,
+// the store and every connected browser at once.
+//
+// The mirror check happens here rather than at the call site because the
+// decision and the insert have to be one critical section. Two pastes of the
+// same file that both finished resolving would otherwise both be told the link
+// is new, which is the one case a check before the lock cannot catch.
+//
+// It reports the entry that refused the link, so the caller can say which
+// download it was folded into instead of dropping it in silence.
+func (a *App) put(t *core.Task) (dedupe.Match, bool) {
 	a.mu.Lock()
+	if m := a.dupes.Check(linkEntry(t)); m.Seen() {
+		a.mu.Unlock()
+		return m, false
+	}
 	if t.ID == "" {
 		t.ID = a.freshIDLocked()
 	}
 	a.tasks[t.ID] = t
+	a.dupes.Add(linkEntry(t))
 	c := *t
 	a.mu.Unlock()
 	_ = a.Store.Save(&c)
 	a.Hub.Broadcast("task", &c)
+	return dedupe.Match{}, true
+}
+
+// linkEntry is how a task is described to the mirror set. The name is passed as
+// it stands: an unresolved task's name is still its URL, and the set recognises
+// that as "not known yet" rather than comparing two links on it.
+func linkEntry(t *core.Task) dedupe.Entry {
+	return dedupe.Entry{ID: t.ID, URL: t.URL, Name: t.Name, Size: t.Size}
+}
+
+// forgetLinkLocked takes a task's link back out of the mirror set, but only
+// while the set still points at that task. A settled download the user re-added
+// has been replaced in the set by its successor, and removing it by URL alone
+// would unblock a third copy of a link that is live right now. Caller holds mu.
+func (a *App) forgetLinkLocked(t *core.Task) {
+	if t == nil || a.dupes == nil {
+		return
+	}
+	if m := a.dupes.Check(dedupe.Entry{URL: t.URL}); m.Verdict == dedupe.Duplicate && m.Of.ID == t.ID {
+		a.dupes.Remove(t.URL)
+	}
+}
+
+// scheduleBase is what the queue does when no window applies: the halt the user
+// set by hand and the speed limit they configured. It is read fresh on every
+// pass of the runner, so a stop made during a pause window is still in force
+// when that window ends rather than being lifted along with it.
+func (a *App) scheduleBase() schedule.State {
+	a.mu.Lock()
+	paused := a.manualHalt
+	a.mu.Unlock()
+	return schedule.State{Paused: paused, Limit: a.Settings.Get().SpeedLimit}
+}
+
+// applySchedule puts the state the timetable arrived at into effect. It runs on
+// the runner's own goroutine and only when the answer changed, so it does the
+// cheap work and hands the slow work off.
+//
+// It writes the halt flag and never the stop mark. The mark is the user's own
+// "finish this, then stop", and clearing it at the end of a nightly window would
+// throw away an instruction nobody could connect to anything they did.
+func (a *App) applySchedule(st schedule.State) {
+	a.mu.Lock()
+	a.halted = st.Paused
+	if !st.Paused {
+		a.dispatchLocked()
+	}
+	a.mu.Unlock()
+	a.Throttle.Set(st.Limit)
+	// JD lives on its own box and is told over the network, so it is pushed off
+	// this goroutine: a slow or unreachable JD must not delay the next boundary.
+	go a.pushJDSpeedLimit(st.Limit)
+	a.Hub.Broadcast("queue", a.Queue())
+}
+
+// pushJDSpeedLimit hands the limit in force to the JD backend, which meters its
+// own downloads because they never touch our loopback proxy.
+func (a *App) pushJDSpeedLimit(limit int64) {
+	a.bmu.RLock()
+	jdBackend := a.jd
+	a.bmu.RUnlock()
+	if sl, ok := jdBackend.(speedLimiter); ok {
+		if err := sl.SetSpeedLimit(limit); err != nil {
+			log.Printf("JD speed limit not applied: %v", err)
+		}
+	}
+}
+
+// ScheduleState is the timetable, what it says right now, and when that changes.
+type ScheduleState struct {
+	Entries []schedule.Entry `json:"entries"`
+	State   schedule.State   `json:"state"`
+	// Next is nil when the answer never changes again, which is what an empty
+	// timetable has. A UI can then say "throttled until 06:00" instead of showing
+	// a table the user has to read themselves.
+	Next *time.Time `json:"next"`
+}
+
+// ScheduleState reports the timetable and the state it currently implies. The
+// schedule is recompiled for the read rather than borrowed from the runner: it
+// is a handful of rows, and a getter on the runner would be state two goroutines
+// could disagree about.
+func (a *App) ScheduleState() ScheduleState {
+	entries := a.Settings.Get().Schedule
+	s := schedule.Compile(entries)
+	base := a.scheduleBase()
+	now := time.Now()
+	out := ScheduleState{Entries: entries, State: s.At(now, base)}
+	if n, ok := s.Next(now, base); ok {
+		out.Next = &n
+	}
+	if out.Entries == nil {
+		out.Entries = []schedule.Entry{}
+	}
+	return out
+}
+
+// ReconnectState is what the interface shows beside the reconnect button.
+type ReconnectState struct {
+	Busy bool `json:"busy"`
+	// Configured is whether a reconnect could run at all, which is a different
+	// question from whether it would succeed.
+	Configured bool `json:"configured"`
+}
+
+// ReconnectState reports whether a reconnect is configured and whether one is
+// running, so the interface can show it without starting one to find out.
+func (a *App) ReconnectState() ReconnectState {
+	return ReconnectState{Busy: a.Reconnector.Busy(), Configured: a.reconnectConfigured()}
+}
+
+// reconnectConfigured reports whether the user has finished setting reconnect
+// up. It is asked before every automatic attempt, because an unconfigured
+// reconnect fired on every retry is a goroutine and a log line per failure that
+// tell nobody anything.
+func (a *App) reconnectConfigured() bool {
+	return a.Settings.Get().Reconnect.Validate() == nil
+}
+
+// Reconnect runs one reconnect now, on the caller's behalf.
+func (a *App) Reconnect(ctx context.Context) (reconnect.Result, error) {
+	return a.Reconnector.Do(ctx)
+}
+
+// reconnectThenRetry asks the router for a new address and, if the address
+// really moved, brings the waiting retry forward.
+//
+// Every error leaves the ordinary backoff to run, ErrUnchanged included: that
+// one means the address did not move, and retrying then is exactly the hammering
+// the reconnect exists to stop.
+func (a *App) reconnectThenRetry(id string) {
+	if _, err := a.Reconnector.Do(a.ctx); err != nil {
+		log.Printf("reconnect after task %s hit a limit: %v", id, err)
+		return
+	}
+	a.retryAfter(id, 0)
 }
 
 func (a *App) onUpdate(id string, u core.Update) {
@@ -1510,6 +2155,13 @@ func (a *App) onUpdate(id string, u core.Update) {
 		t.Retries = 0
 		t.NextTry = time.Time{}
 		if a.stopMark == id {
+			// Recorded as the manual halt too, because that is what it is: the user
+			// said "finish this, then stop", and the mark is only the delay on it.
+			// Left out of the manual flag it would be invisible to scheduleBase, and
+			// the first boundary that changed anything at all — a nightly limit
+			// ending — would hand the runner a state saying "not paused" and start
+			// the queue again for a reason nothing on screen could explain.
+			a.manualHalt = true
 			a.halted = true
 			a.stopMark = ""
 			hitStopMark = true
@@ -1539,6 +2191,23 @@ func (a *App) onUpdate(id string, u core.Update) {
 		}
 	}
 
+	// The mirror set follows the task, and it is read from the task's own status
+	// rather than from the update: a link handed on to the next backend a moment
+	// ago is queued again, not settled, and unfiling it there would let a second
+	// copy of it be staged while the first is still running.
+	switch {
+	case t.Status == core.StatusDone || t.Status == core.StatusError:
+		// A settled download stops blocking its own re-add: pasting a finished or
+		// failed link again is a deliberate second attempt, not a duplicate.
+		a.forgetLinkLocked(t)
+	case u.Name != "" || u.Size > 0:
+		// The name and the byte count usually arrive from the backend, long after
+		// the link was filed with neither. Re-filing it is what lets a mirror
+		// pasted from a second hoster be recognised at all under a policy that
+		// compares those; Add replaces the record rather than filing it twice.
+		a.dupes.Add(linkEntry(t))
+	}
+
 	// A failure is not automatically the end: hosters throttle, connections
 	// drop. Retry a bounded number of times with a growing delay before the
 	// task is left for the user to deal with.
@@ -1555,11 +2224,20 @@ func (a *App) onUpdate(id string, u core.Update) {
 			t.NextTry = time.Time{}
 		}
 	}
+	// A hoster limit keyed to this box's address is the one failure a new address
+	// actually fixes, and a backend asking for another attempt after a delay
+	// (u.Retry) is how it says it hit one. Skipped while the queue is halted: a
+	// reconnect reboots the router to help downloads that are not running, and
+	// drops the ones that are.
+	reconnectFor := ""
+	if retryIn > 0 && u.Retry > 0 && !a.halted && a.reconnectConfigured() {
+		reconnectFor = id
+	}
 	// A finished download that completes an archive continues as an extraction
 	// (local backends only; JD downloads live on the JD box). For a multi-volume
 	// set this only fires once the last part has arrived.
 	var extractCopy *core.Task
-	if u.Status == core.StatusDone && t.Resolver != "jd" && a.Settings.Get().Extract {
+	if u.Status == core.StatusDone && t.Resolver != "jd" && extractWanted(t, a.Settings.Get()) {
 		if target, path := a.extractCandidateLocked(t); target != nil {
 			target.Status = core.StatusExtracting
 			go a.extractTask(target.ID, path, a.passwordsFor(target))
@@ -1584,6 +2262,13 @@ func (a *App) onUpdate(id string, u core.Update) {
 	}
 	if retryIn > 0 {
 		a.retryAfter(id, retryIn)
+	}
+	if reconnectFor != "" {
+		// Off the lock and off this goroutine: Do blocks for up to the whole
+		// configured timeout, and holding mu for two minutes would stop the app.
+		// The ordinary backoff above is already armed, and re-entering a task that
+		// has since been restarted is a no-op, so the two cannot fight.
+		go a.reconnectThenRetry(reconnectFor)
 	}
 	if hitStopMark {
 		log.Printf("stop mark reached at %s; the queue is halted", c.Name)
