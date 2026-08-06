@@ -212,4 +212,5 @@ export const pl: Dict = {
   'settings.rainbowReactive': 'Spokojnie, dopóki nie dotkniesz: kolor po najechaniu i na tym, co działa',
   'settings.rainbowRotate': 'Przetasuj początek palety',
   'settings.rainbowPalette': 'Kolor palety',
+  'queue.limitUnit': 'Jednostka',
 };

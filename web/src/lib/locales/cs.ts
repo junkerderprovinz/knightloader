@@ -220,4 +220,5 @@ export const cs: Dict = {
   'settings.rainbowReactive': 'Klid, dokud se toho nedotkneš: barva při najetí a u toho, co běží',
   'settings.rainbowRotate': 'Zamíchat, kde paleta začíná',
   'settings.rainbowPalette': 'Barva palety',
+  'queue.limitUnit': 'Jednotka',
 };

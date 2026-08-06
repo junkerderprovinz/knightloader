@@ -212,4 +212,5 @@ export const es: Dict = {
   'settings.rainbowReactive': 'En calma hasta tocarlo: color al pasar por encima y en lo que está en marcha',
   'settings.rainbowRotate': 'Mezclar por dónde empieza la paleta',
   'settings.rainbowPalette': 'Color de la paleta',
+  'queue.limitUnit': 'Unidad',
 };

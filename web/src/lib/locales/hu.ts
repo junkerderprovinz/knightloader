@@ -220,4 +220,5 @@ export const hu: Dict = {
   'settings.rainbowReactive': 'Csendes, amíg hozzá nem érsz: szín rámutatáskor és azon, ami fut',
   'settings.rainbowRotate': 'A paletta kezdőszínének keverése',
   'settings.rainbowPalette': 'Palettaszín',
+  'queue.limitUnit': 'Mértékegység',
 };

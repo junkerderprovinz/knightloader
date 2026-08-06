@@ -220,4 +220,5 @@ export const ro: Dict = {
   'settings.rainbowReactive': 'Liniștit până îl atingi: culoare la trecerea cu mouse-ul și pe ce rulează',
   'settings.rainbowRotate': 'Amestecă de unde începe paleta',
   'settings.rainbowPalette': 'Culoare din paletă',
+  'queue.limitUnit': 'Unitate',
 };

@@ -134,6 +134,16 @@ export function InfoBubble({ tip, className = '' }: { tip: string; className?: s
   );
 }
 
+/**
+ * A segmented control picks exactly one of a few (the download filter, the
+ * corner picker). The chosen segment is FILLED with the accent — the same
+ * treatment as the active nav item, so "this is the one that is on" reads
+ * identically everywhere instead of being a surface tint here and a rail there.
+ */
+export const segBase = 'rounded-[var(--radius-control)] font-medium transition-colors';
+export const segOn = 'bg-accent text-accentContrast';
+export const segOff = 'text-carbon-textMuted hover:text-carbon-text';
+
 const inputClass =
   'w-full rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-sm text-carbon-text ' +
   'placeholder:text-carbon-textMuted outline-none transition-shadow ' +

@@ -220,4 +220,5 @@ export const sv: Dict = {
   'settings.rainbowReactive': 'Stilla tills du rör vid det: färg vid hovring och på det som körs',
   'settings.rainbowRotate': 'Blanda var paletten börjar',
   'settings.rainbowPalette': 'Palettfärg',
+  'queue.limitUnit': 'Enhet',
 };

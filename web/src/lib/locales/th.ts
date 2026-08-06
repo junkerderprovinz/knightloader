@@ -220,4 +220,5 @@ export const th: Dict = {
   'settings.rainbowReactive': 'เงียบจนกว่าจะแตะ: มีสีเมื่อชี้และในรายการที่กำลังทำงาน',
   'settings.rainbowRotate': 'สลับตำแหน่งเริ่มต้นของจานสี',
   'settings.rainbowPalette': 'สีในจานสี',
+  'queue.limitUnit': 'หน่วย',
 };

@@ -220,4 +220,5 @@ export const de: Dict = {
   'settings.rainbowReactive': 'Ruhig bis berührt: Farbe beim Überfahren und bei dem, was läuft',
   'settings.rainbowRotate': 'Startfarbe der Palette durchmischen',
   'settings.rainbowPalette': 'Palettenfarbe',
+  'queue.limitUnit': 'Einheit',
 };

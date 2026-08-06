@@ -255,26 +255,28 @@ body {
 }
 
 /* Opt-in: the element's glyph takes the hue too. Scoped to a second class
-   because a download row owns a colour but its action icons must stay quiet. */
-[data-rainbow] .glim-hue-icon svg {
+   because a download row owns a colour but its action icons must stay quiet.
+   The active item is excluded: it is FILLED with the hue, so an icon painted
+   the same colour would vanish into its own background. */
+[data-rainbow] .glim-hue-icon:not(.glim-active) svg {
   color: var(--accent);
 }
 
-/* Opt-in: a rail at the row's leading edge, the same device the active nav item
-   uses. A list row would otherwise only show its colour through the progress
-   fill, which means a finished row (green, by the state rule) shows none at
-   all — the palette would be invisible on exactly the list it exists for.
-   Appears only in rainbow mode; the rail is a mark, not a border. */
-[data-rainbow] .glim-rail::before {
-  content: '';
-  position: absolute;
-  inset-inline-start: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  height: 56%;
-  width: 3px;
-  border-radius: var(--radius-pill);
-  background-color: var(--accent);
+/* Opt-in: the row is WASHED with its hue rather than ruled with a line at its
+   edge. A list row would otherwise only show its colour through the progress
+   fill, which turns green the moment it finishes (the state rule) — so on a
+   list of completed downloads the palette would be invisible. The wash is an
+   inset shadow, not a background, so the row's own hover tint still reads
+   through it at 7% alpha. */
+[data-rainbow] .glim-tint {
+  box-shadow: inset 0 0 0 999px var(--item-hue-wash);
+}
+[data-rainbow='reactive'] .glim-tint {
+  box-shadow: none;
+}
+[data-rainbow='reactive'] .glim-tint:hover,
+[data-rainbow='reactive'] .glim-tint.glim-active {
+  box-shadow: inset 0 0 0 999px var(--item-hue-wash);
 }
 
 /* Reactive: the palette rests. Everything is quiet until it is hovered or is

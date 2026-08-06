@@ -220,6 +220,7 @@ export const en = {
   'settings.rainbowReactive': 'Quiet until touched: colour on hover and on what is running',
   'settings.rainbowRotate': 'Shuffle where the palette starts',
   'settings.rainbowPalette': 'Palette colour',
+  'queue.limitUnit': 'Unit',
 } as const;
 
 export type TranslationKey = keyof typeof en;

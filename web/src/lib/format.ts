@@ -24,6 +24,49 @@ export function fmtEta(loaded: number, size: number, speed: number): string {
   return `${h}h ${m}m`;
 }
 
+/** The units a speed limit may be entered in, smallest first. */
+export const RATE_UNITS = [
+  { label: 'KiB/s', factor: 1024 },
+  { label: 'MiB/s', factor: 1024 * 1024 },
+  { label: 'GiB/s', factor: 1024 * 1024 * 1024 },
+] as const;
+
+export type RateUnit = (typeof RATE_UNITS)[number]['label'];
+
+/**
+ * splitRate turns a stored bytes-per-second limit into the number and unit a
+ * person would have typed. The unit is chosen so the number stays readable —
+ * "1.5 MiB/s" rather than "1536 KiB/s" — but it never climbs so far that the
+ * number turns into a fraction: 900 KiB/s stays in KiB/s instead of becoming
+ * 0.88 MiB/s, which reads as a rounding error rather than as a setting.
+ */
+export function splitRate(bytesPerSecond: number): { value: number; unit: RateUnit } {
+  const n = Math.max(0, Math.round(bytesPerSecond));
+  if (n === 0) return { value: 0, unit: 'KiB/s' };
+  let chosen: (typeof RATE_UNITS)[number] = RATE_UNITS[0];
+  for (const u of RATE_UNITS) {
+    if (n >= u.factor) chosen = u;
+  }
+  return { value: n / chosen.factor, unit: chosen.label };
+}
+
+/** joinRate is the inverse: what to store for a number the user typed. */
+export function joinRate(value: number, unit: RateUnit): number {
+  const u = RATE_UNITS.find((x) => x.label === unit) ?? RATE_UNITS[0];
+  return Math.max(0, Math.round(value * u.factor));
+}
+
+/**
+ * fmtRateValue prints the number beside the unit. Trailing zeros are dropped
+ * so an exact limit shows as "2" and not "2.00", and the value is capped at two
+ * decimals because a third would be under a kilobyte and nobody is steering
+ * their line that finely.
+ */
+export function fmtRateValue(value: number): string {
+  if (!Number.isFinite(value) || value <= 0) return '';
+  return String(Math.round(value * 100) / 100);
+}
+
 export function pct(loaded: number, size: number, done: boolean): number {
   if (size > 0) return Math.min(100, Math.round((loaded / size) * 100));
   return done ? 100 : 0;

@@ -212,4 +212,5 @@ export const pt: Dict = {
   'settings.rainbowReactive': 'Discreto até ser tocado: cor ao passar o rato e no que está a correr',
   'settings.rainbowRotate': 'Baralhar onde a paleta começa',
   'settings.rainbowPalette': 'Cor da paleta',
+  'queue.limitUnit': 'Unidade',
 };

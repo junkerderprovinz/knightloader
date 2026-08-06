@@ -220,4 +220,5 @@ export const vi: Dict = {
   'settings.rainbowReactive': 'Yên cho tới khi chạm: có màu khi rê chuột và ở mục đang chạy',
   'settings.rainbowRotate': 'Xáo vị trí bắt đầu của bảng màu',
   'settings.rainbowPalette': 'Màu trong bảng',
+  'queue.limitUnit': 'Đơn vị',
 };

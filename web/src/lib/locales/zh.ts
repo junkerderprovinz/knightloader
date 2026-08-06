@@ -220,4 +220,5 @@ export const zh: Dict = {
   'settings.rainbowReactive': '未触碰时安静：悬停时和正在运行的项目才上色',
   'settings.rainbowRotate': '打乱调色板的起始颜色',
   'settings.rainbowPalette': '调色板颜色',
+  'queue.limitUnit': '单位',
 };

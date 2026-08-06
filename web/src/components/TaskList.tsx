@@ -90,7 +90,7 @@ function TaskRow({
   return (
     <div
       style={hueVars(rainbowAt(index)) as CSSProperties}
-      className={`glim-hue glim-rail ${task.status === 'running' ? 'glim-active' : ''} ${ROW} relative group px-5 py-3 transition-colors hover:bg-carbon-hover/50`}
+      className={`glim-hue glim-tint ${task.status === 'running' ? 'glim-active' : ''} ${ROW} relative group px-5 py-3 transition-colors hover:bg-carbon-hover/50`}
     >
       {selection ? (
         <Checkbox checked={selection.ids.has(task.id)} onChange={() => selection.toggle(task.id)} />
