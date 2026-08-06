@@ -199,4 +199,13 @@ export const hu: Dict = {
   'task.checksumOk': 'Az ellenőrző összeg egyezik',
   'task.checksumFail': 'Az ellenőrző összeg nem egyezik',
   'settings.verifyChecksums': 'A kész letöltés ellenőrzése a vele érkezett ellenőrző összeggel',
+  'settings.sectionLook': 'Megjelenés',
+  'settings.shape': 'Sarkok',
+  'settings.shapeHint': 'Egyszerre vonatkozik a kártyákra, gombokra, fülekre, mezőkre és jelvényekre.',
+  'settings.shape.round': 'Kerek',
+  'settings.shape.soft': 'Enyhe',
+  'settings.shape.square': 'Szögletes',
+  'settings.accent': 'Kiemelőszín',
+  'settings.accentHint': 'Az egyetlen szín a tevékenységhez. A rajta lévő szöveget a kontraszt dönti el.',
+  'settings.accentReset': 'Alapérték',
 };

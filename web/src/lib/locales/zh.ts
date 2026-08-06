@@ -199,4 +199,13 @@ export const zh: Dict = {
   'task.checksumOk': '校验和一致',
   'task.checksumFail': '校验和不一致',
   'settings.verifyChecksums': '用随附的校验和验证已完成的下载',
+  'settings.sectionLook': '外观',
+  'settings.shape': '圆角',
+  'settings.shapeHint': '一次应用于卡片、按钮、标签页、输入框和徽章。',
+  'settings.shape.round': '圆润',
+  'settings.shape.soft': '微圆',
+  'settings.shape.square': '直角',
+  'settings.accent': '强调色',
+  'settings.accentHint': '表示活动的唯一颜色。其上的文字按对比度自动选取。',
+  'settings.accentReset': '默认',
 };

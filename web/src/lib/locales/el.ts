@@ -199,4 +199,13 @@ export const el: Dict = {
   'task.checksumOk': 'Το άθροισμα ελέγχου επαληθεύτηκε',
   'task.checksumFail': 'Το άθροισμα ελέγχου δεν ταιριάζει',
   'settings.verifyChecksums': 'Έλεγχος ολοκληρωμένης λήψης με το άθροισμα ελέγχου που τη συνόδευε',
+  'settings.sectionLook': 'Εμφάνιση',
+  'settings.shape': 'Γωνίες',
+  'settings.shapeHint': 'Ισχύει ταυτόχρονα για κάρτες, κουμπιά, καρτέλες, πεδία και σήματα.',
+  'settings.shape.round': 'Στρογγυλές',
+  'settings.shape.soft': 'Ελαφριές',
+  'settings.shape.square': 'Ορθές',
+  'settings.accent': 'Χρώμα τονισμού',
+  'settings.accentHint': 'Το μοναδικό χρώμα δραστηριότητας. Το κείμενο πάνω επιλέγεται με βάση την αντίθεση.',
+  'settings.accentReset': 'Προεπιλογή',
 };

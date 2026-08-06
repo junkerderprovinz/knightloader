@@ -58,6 +58,23 @@
 
   --radius-card: 1rem;
   --radius-control: 0.625rem;
+  --radius-pill: 9999px;
+}
+
+/* Shape is one knob for the whole app. Every rounded corner in the UI reads one
+   of these three tokens and nothing hard-codes a radius, so switching the shape
+   changes cards, buttons, tabs, inputs, pills, badges and toggles together.
+   A single exception would be the thing that looks broken. */
+:root[data-shape="soft"] {
+  --radius-card: 0.5rem;
+  --radius-control: 0.3125rem;
+  --radius-pill: 0.3125rem;
+}
+
+:root[data-shape="square"] {
+  --radius-card: 0;
+  --radius-control: 0;
+  --radius-pill: 0;
 }
 
 :root,
@@ -212,7 +229,7 @@ body {
 }
 *::-webkit-scrollbar-thumb {
   background: var(--carbon-surface3);
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   border: 3px solid transparent;
   background-clip: content-box;
 }

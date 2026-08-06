@@ -199,4 +199,13 @@ export const ja: Dict = {
   'task.checksumOk': 'チェックサムが一致',
   'task.checksumFail': 'チェックサムが一致しません',
   'settings.verifyChecksums': '付属のチェックサムで完了したダウンロードを検証する',
+  'settings.sectionLook': '見た目',
+  'settings.shape': '角',
+  'settings.shapeHint': 'カード、ボタン、タブ、入力欄、バッジにまとめて適用されます。',
+  'settings.shape.round': '丸',
+  'settings.shape.soft': 'ゆるやか',
+  'settings.shape.square': '角',
+  'settings.accent': 'アクセントカラー',
+  'settings.accentHint': '動きを示す唯一の色です。上に載る文字は読みやすさで自動的に決まります。',
+  'settings.accentReset': '既定',
 };

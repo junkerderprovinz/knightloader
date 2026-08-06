@@ -191,4 +191,13 @@ export const es: Dict = {
   'task.checksumOk': 'Suma de verificación correcta',
   'task.checksumFail': 'La suma de verificación no coincide',
   'settings.verifyChecksums': 'Comprobar la descarga terminada con la suma de verificación que la acompañe',
+  'settings.sectionLook': 'Aspecto',
+  'settings.shape': 'Esquinas',
+  'settings.shapeHint': 'Se aplica a la vez a tarjetas, botones, pestañas, campos e insignias.',
+  'settings.shape.round': 'Redondas',
+  'settings.shape.soft': 'Suaves',
+  'settings.shape.square': 'Rectas',
+  'settings.accent': 'Color de acento',
+  'settings.accentHint': 'El único color para la actividad. El texto encima se elige por contraste.',
+  'settings.accentReset': 'Predeterminado',
 };

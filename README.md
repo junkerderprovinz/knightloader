@@ -1,73 +1,254 @@
-# KnightLoader
+<h1 align="center">KnightLoader</h1>
 
-> **Working title (KL).** A modern, self-hosted, cross-platform download manager — a clean-UI alternative to JDownloader that grabs files from everywhere and hauls them into one keep. Final name TBD before release.
+<p align="center">
+  <a href="https://github.com/junkerderprovinz/knightloader/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/junkerderprovinz/knightloader/ci.yml?branch=main&label=Build&style=for-the-badge&logo=githubactions&logoColor=white" alt="Build" height="36"></a>&nbsp;
+  <a href="https://go.dev"><img src="https://img.shields.io/badge/Go-1.26-00ADD8?style=for-the-badge&logo=go&logoColor=white" alt="Go" height="36"></a>&nbsp;
+  <a href="https://react.dev"><img src="https://img.shields.io/badge/React%20%2B%20Tailwind-UI-393939?style=for-the-badge&logo=react&logoColor=white" alt="Web stack" height="36"></a>&nbsp;
+  <img src="https://img.shields.io/badge/Languages-26-393939?style=for-the-badge&logo=googletranslate&logoColor=white" alt="Languages" height="36">&nbsp;
+  <img src="https://img.shields.io/badge/Arch-amd64%20%7C%20arm64-success?style=for-the-badge&logo=linux&logoColor=white" alt="Arch" height="36">&nbsp;
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-yellow?style=for-the-badge&logo=gnu&logoColor=white" alt="License" height="36"></a>
+</p>
 
-**Status: WIP.** It downloads, and it runs on a box all day — the feature list below is real, not planned. What is not settled is the name, and there is no release yet.
+<br>
 
-## What it is
+<p align="center">
+A self-hosted, cross-platform download manager: a clean-UI alternative to JDownloader that grabs files from everywhere and hauls them into one keep. One Go binary with the download engine, the API and the web UI inside it, shipped as a container and as native desktop apps.
+</p>
 
-A single Go backend with an embedded download engine and a small **resolver** seam, driven by a modern web UI (IBM Carbon, dark) and shipped as both a Docker image and native desktop apps. Full hoster coverage comes from swappable resolvers — an invisible headless-JDownloader (arm's-length, via its local API), yt-dlp for media, and an optional debrid service — with native resolvers to follow. The user's own accounts stay the user's; nothing is bundled that shouldn't be.
+<br>
 
-## Stack
+<p align="center">
+  <a href="https://buymeacoffee.com/junkerderprovinz">
+    <img src=".github/assets/button-buy-me-a-coffee.svg" alt="Buy me a coffee" width="220">
+  </a>
+</p>
 
-- **Backend:** Go, embedding [Gopeed](https://github.com/GopeedLab/gopeed)'s `pkg/download` engine (in-process; no aria2, no subprocess).
-- **UI:** React + Tailwind (IBM Carbon palette, dark/light), a sidebar app with Overview, Collector, Downloads, Instances, Accounts and Settings; live speed graph, package-grouped lists, REST + WebSocket.
-- **Desktop:** [Wails](https://github.com/wailsapp/wails) (Win/macOS/Linux). **Container:** Docker (multi-arch).
-- **Resolvers** (priority order): `direct` (file links, fetched by the embedded engine) · [TorBox](https://torbox.app/) debrid (supported file hosters, unlocked to a direct CDN URL the engine downloads) · [yt-dlp](https://github.com/yt-dlp/yt-dlp) (media/streaming, when the binary is present) · headless [JDownloader](https://jdownloader.org/) (catch-all backup via its local API). Native resolvers come later.
-- **Crawling:** a pasted page becomes the files it links to instead of one unusable task. Only a link no real backend recognised is opened, so a plain download never pays for the extra request, and a page that yields nothing is staged as itself.
-- **Intake:** besides pasting, links arrive through [Click'n'Load](docs/clicknload.md) from a site's own button, and through a watched folder — drop a `.txt` or a JDownloader `.crawljob` onto a share and the box picks it up, with its package name, destination and archive password.
-- **Collector (LinkGrabber):** pasted or dropped links are staged and analysed first (name, size via a HEAD probe, resolver, online check) and grouped into packages; you select and start them, then they move to Downloads. `POST /api/links` stages, `POST /api/tasks/start {ids}` starts (empty = all).
-- **Accounts:** credentials (e.g. the TorBox API key) are stored encrypted at rest (AES-256-GCM under a per-install keyring) via the Accounts page or `POST /api/accounts {"service":"torbox","secret":"…"}`.
-- **Scheduler:** a global and a per-host concurrency limit gate every backend (FIFO with per-host skip-ahead); both are live-tunable in Settings.
-- **Extraction:** finished archive downloads (zip, rar incl. multi-volume, 7z incl. `.001` volumes, tar.gz) unpack automatically into a sibling folder — pure Go, zip-slip-safe, optional delete-after-extract. A multi-part set waits for every part before it opens. Encrypted rar and 7z accept passwords: the task's own first, then a configured list. Encrypted zip is refused, because Go cannot decrypt it.
-- **Download folders:** a global folder, an optional per-package subfolder, and a per-task override. The folder may be a template — `/downloads/<jd:date>/<jd:hoster>/<jd:packagename>` — and is checked when you save it, so an unwritable path is refused rather than silently ignored.
-- **Integrity:** a finished download is verified against an `.sfv`/`.md5`/`.sha*` that arrived with the batch, or against a CRC in its own file name. Nothing is marked as passing that was not actually checked.
-- **Speed limit:** a total for everything, applied while downloads run rather than only to the next one. The embedded engine has no rate-limit hook (Gopeed v1.9.x), so its traffic goes through a loopback proxy where the bytes are metered; yt-dlp uses `--limit-rate` and JDownloader its own API.
-- **Nothing is dropped:** a pasted link that no backend handles, or that fails to resolve, is still staged with the reason attached. Links carry an online state and can be rechecked without re-pasting.
-- **Fallback chain:** when a backend says a link is not its business, the next one gets a turn. Only an explicit signal advances the chain, so a hoster link that genuinely failed is never re-fetched as a plain web page.
-- **Retries:** a failed download is retried automatically with a growing delay, bounded by a setting.
-- **Access:** an optional password lock, off by default. Sessions are signed cookies, so a restart does not sign anyone out. The API is same-origin only and the WebSocket rejects foreign origins.
-- **Languages:** 26, each fetched only when chosen, with right-to-left layout for Arabic and Hebrew.
-- **Multi-instance:** register other KnightLoader instances (Settings → Instances) and switch between them in the header — one dashboard views and controls every box (self-hosted federation, no relay; only task/link routes are proxied, a peer's settings stay its own).
-- **Click'n'Load:** a listener on `127.0.0.1:9666` speaks the standard CnL protocol (`jdcheck.js`, `/flash/add`, `/flash/addcrypted2`), so existing browser extensions and site buttons hand links straight to KnightLoader. Disable or move it with `KL_CNL` (`0` = off).
-- **Desktop app:** a native Windows/macOS/Linux build (Wails) lives in [`desktop/`](desktop/) — the same server in a native window, which provisions a private headless JDownloader on first run (`KL_PROVISION_JD=1` on the server build) for full hoster coverage out of the box.
+<br>
 
-## Running
+> **Working title.** The name, the logo and the first release are not settled
+> yet. Everything below is built and runs; the branding is what is missing.
+
+<br>
+
+## Table of Contents
+
+1. [Overview](#1-overview)
+2. [Screenshots](#2-screenshots)
+3. [Quick Start](#3-quick-start)
+4. [Configuration](#4-configuration)
+5. [Getting links in](#5-getting-links-in)
+6. [Where files land](#6-where-files-land)
+7. [Architecture](#7-architecture)
+8. [Development](#8-development)
+9. [Contributing and license](#9-contributing-and-license)
+10. [Support this project](#10-support-this-project)
+
+<br>
+
+## 1. Overview
+
+KnightLoader is one Go process. The download engine, the REST and WebSocket API,
+the web UI and the Click'n'Load listener all live in the same binary, so there is
+no aria2 to supervise, no separate front end to keep in step, and nothing to
+install beside it.
+
+Hoster coverage comes from swappable **resolvers** rather than from a plugin
+ecosystem nobody can maintain: plain file links go straight to the embedded
+engine, supported hosters are unlocked through a debrid service you already pay
+for, media pages go to yt-dlp, and anything left over is delegated to a headless
+JDownloader kept at arm's length. Your accounts stay yours, stored encrypted on
+your own box.
+
+**What's included**
+
+| | |
+|---|---|
+| **Collector** | Links are analysed and staged before anything downloads: name, size, availability, which backend will take them. Nothing is ever dropped in silence, and a link that no backend handles is still shown, with the reason on it. |
+| **Crawling** | Paste a page and it becomes the files it links to, not one unusable task. |
+| **Scheduler** | Global and per-host concurrency, priorities, manual queue order, automatic retries with a growing delay. |
+| **Speed limit** | A total for everything, applied while downloads run rather than only to the next one. |
+| **Extraction** | zip, rar (incl. multi-volume), 7z, tar, gz, bz2, xz, zst. A multi-part set waits for every part. Encrypted rar and 7z take passwords. |
+| **Integrity** | A finished file is checked against an `.sfv`/`.md5`/`.sha*` that came with it, or a CRC in its own name. Nothing is marked as passing that was not checked. |
+| **Intake** | Paste, drop, [Click'n'Load](docs/clicknload.md) from a site's own button, or a watched folder for `.txt` and `.crawljob` files. |
+| **Multi-instance** | Register other KnightLoaders and drive them all from one dashboard. Self-hosted federation, no relay. |
+| **Access** | An optional password lock, off by default. Same-origin API, origin-checked WebSocket. |
+| **Languages** | 26, each fetched only when chosen, right-to-left included. |
+
+<br>
+
+## 2. Screenshots
+
+<p align="center">
+  <img src=".github/assets/screenshots/knightloader-1-overview.png" alt="Overview with live speed and counters" width="90%">
+  <br><em>Overview: one number that matters, and what is happening under it.</em>
+</p>
+
+<br>
+
+<p align="center">
+  <img src=".github/assets/screenshots/knightloader-2-downloads.png" alt="Downloads grouped by package" width="90%">
+  <br><em>Downloads, grouped by package, with selection and queue order.</em>
+</p>
+
+<br>
+
+<p align="center">
+  <img src=".github/assets/screenshots/knightloader-3-collector.png" alt="The link collector" width="90%">
+  <br><em>The collector: paste or drop, see what you got, then start it.</em>
+</p>
+
+<br>
+
+<p align="center">
+  <img src=".github/assets/screenshots/knightloader-4-settings.png" alt="Settings" width="90%">
+  <br><em>Settings, split into the three decisions they actually are.</em>
+</p>
+
+<br>
+
+## 3. Quick Start
 
 ```sh
 go run ./cmd/knightloader      # then open http://localhost:8749
 ```
 
-Configuration (all optional, via env):
+<details>
+<summary><b>Docker</b></summary>
+
+The repository is private, so the image is built where it runs rather than
+pulled from a registry:
+
+```sh
+docker build --build-arg VERSION=preview -t knightloader:preview .
+
+docker run -d --name knightloader \
+  --restart unless-stopped \
+  -p 8749:8749 \
+  -v /path/to/appdata:/data \
+  -v /path/to/downloads:/data/downloads \
+  -v /path/to/watch:/watch \
+  -e TZ=Europe/Berlin \
+  knightloader:preview
+```
+
+On Unraid add `--user 99:100` so finished files land as `nobody:users`, and see
+[docs/preview-deploy.md](docs/preview-deploy.md) for the rest.
+</details>
+
+<br>
+
+## 4. Configuration
+
+Everything is optional and has a working default.
 
 | Var | Default | Meaning |
 |---|---|---|
 | `KL_ADDR` | `:8749` | listen address |
-| `KL_DATA` | user config dir | data directory (SQLite DB + downloads) |
+| `KL_DATA` | user config dir | data directory (database, settings, accounts, session key) |
 | `KL_YTDLP` | `yt-dlp` (PATH) | path to the yt-dlp binary; media links route through it when present |
-| `KL_TORBOX` | — | TorBox API key (or store it via `/api/accounts`); supported hoster links are unlocked through TorBox's debrid |
-| `KL_JD` | — | a headless JDownloader Deprecated-API URL (e.g. `http://jd:3128`); when reachable, it is the catch-all backup for hoster links nothing else claims |
+| `KL_TORBOX` | | TorBox API key. The Accounts page is the better place: it stores the key encrypted and applies it without a restart |
+| `KL_ALLDEBRID` | | AllDebrid API key, as above |
+| `KL_REALDEBRID` | | Real-Debrid API token, as above |
+| `KL_JD` | | headless JDownloader API URL, e.g. `http://jd:3128`; the catch-all for hoster links nothing else claims |
 | `KL_CNL` | `9666` | Click'n'Load listener port on `127.0.0.1`; `0` disables it |
-| `KL_PROVISION_JD` | `0` | `1` = provision a private headless JDownloader on first run (downloads JD, enables its local API, launches it) and use it as the hoster backup |
+| `KL_PROVISION_JD` | `0` | `1` provisions a private headless JDownloader on first run and uses it as the hoster backup |
 
-Two flags turn the same binary into a Click'n'Load bridge for an instance that
-runs somewhere else — see [docs/clicknload.md](docs/clicknload.md):
+<br>
 
-```sh
-knightloader -bridge http://nas:8749 [-bridge-password '…']
+## 5. Getting links in
+
+Pasting works, and so does dropping text onto the collector. Beyond that:
+
+- **[Click'n'Load](docs/clicknload.md)** — a site's own CnL button hands its links
+  straight over. When KnightLoader runs on a NAS the same binary doubles as a
+  bridge on your desktop, because every site addresses `127.0.0.1` and a
+  container's loopback is not the browser's:
+  `knightloader -bridge http://nas:8749`
+- **Watched folder** — drop a `.txt` or a JDownloader `.crawljob` onto a share and
+  the box picks it up, with its package name, destination and archive password.
+  Point Settings at the folder to switch it on.
+- **A page** — paste one, and the files it links to are staged instead.
+
+<br>
+
+## 6. Where files land
+
+The download folder may be a plain path or a template:
+
+```
+/downloads/<jd:date>/<jd:hoster>/<jd:packagename>
 ```
 
-## Feasibility spikes
+Available: `<jd:packagename>`, `<jd:hoster>`, `<jd:filename>`, `<jd:date>`,
+`<jd:year>`, `<jd:month>`, `<jd:day>` and `<jd:simpledate:FORMAT>` with the
+usual `yyyy MM dd HH mm ss SSS` pattern letters. A task can also carry its own
+folder, which always wins.
 
-The two riskiest integrations, both proven end-to-end before the rest was built:
+<br>
 
-| Spike | Proves | Run |
-|---|---|---|
-| `cmd/spike-download` | Gopeed embeds in a Go binary; **custom per-request headers are sent** (token round-trips through an echo server); live progress/speed streams. | `go run ./cmd/spike-download` |
-| `cmd/spike-jd` | A Go client drives **headless JDownloader via its local "Deprecated API"** (plain HTTP JSON, no cloud): `addLinks` + `queryLinks` with live name/size/status. | `KL_JD=http://<jd-host>:3128 go run ./cmd/spike-jd` |
+## 7. Architecture
 
-To exercise `spike-jd` against a JDownloader instance, enable its Deprecated API (Advanced Settings → RemoteAPI → *Deprecated API* on, *Localhost only* off; listens on `:3128`) and point `KL_JD` at it.
+```
+                    +------------------------------------------+
+  browser --------> |  api      REST + WebSocket + embedded UI  |
+  CnL button -----> |  cnl      127.0.0.1:9666                  |
+  dropped file ---> |  watch    .txt / .crawljob                |
+                    +--------------------+---------------------+
+                                         |
+                              +----------v----------+
+                              |  app                |  tasks, scheduler,
+                              |                     |  packages, retries
+                              +----------+----------+
+                                         |
+              +--------------+-----------+-----------+--------------+
+              |              |           |           |              |
+        +-----v-----+  +-----v-----+ +---v----+ +----v-----+  +-----v-----+
+        | crawler   |  | resolver  | | engine | | extract  |  | checksum  |
+        | page ->   |  | direct    | | Gopeed | | zip rar  |  | sfv md5   |
+        | files     |  | debrid    | | + rate | | 7z tar   |  | sha crc   |
+        |           |  | yt-dlp    | |  limit | | gz xz    |  |           |
+        |           |  | headless  | |  proxy | | bz2 zst  |  |           |
+        |           |  | JD        | |        | |          |  |           |
+        +-----------+  +-----------+ +--------+ +----------+  +-----------+
+```
 
-## Licence
+The rate limit lives in a loopback proxy because the embedded engine offers no
+hook for one. Everything else is a plain Go package with its own tests.
 
-[AGPL-3.0](LICENSE). Own code; name and branding reserved.
+<br>
+
+## 8. Development
+
+```sh
+go test ./... -count=1        # server
+cd web && npm ci && npx tsc --noEmit && npm run build
+```
+
+The UI is built into `web/dist`, which is committed and embedded into the
+binary, so a plain `go build` produces a working server. English is the source
+locale and every other one is typed against it, which makes `tsc` the gate that
+catches a missing or stray translation key.
+
+<br>
+
+## 9. Contributing and license
+
+[AGPL-3.0](LICENSE). Own code; the name and branding are reserved.
+
+Built on [Gopeed](https://github.com/GopeedLab/gopeed) (download engine),
+[yt-dlp](https://github.com/yt-dlp/yt-dlp) (media),
+[JDownloader](https://jdownloader.org/) (hoster catch-all, via its local API),
+[Wails](https://github.com/wailsapp/wails) (desktop) and
+[React](https://react.dev) with [Tailwind](https://tailwindcss.com).
+
+<br>
+
+## 10. Support this project
+
+If this saves you time or a debug night, consider buying me a coffee:
+
+<p align="center">
+  <a href="https://buymeacoffee.com/junkerderprovinz">
+    <img src=".github/assets/button-buy-me-a-coffee.svg" alt="Buy me a coffee" width="220">
+  </a>
+</p>

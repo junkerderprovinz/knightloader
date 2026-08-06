@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 )
@@ -40,6 +41,13 @@ type Settings struct {
 	// VerifyChecksums checks a finished download against a checksum file that
 	// came with it, when one did.
 	VerifyChecksums bool `json:"verifyChecksums"`
+
+	// Shape is how rounded the whole interface is: "round", "soft" or "square".
+	// One knob drives every corner, so the app never looks half-converted.
+	Shape string `json:"shape"`
+	// Accent is the one colour the interface uses for activity, as #rrggbb.
+	// Empty means the built-in heraldic gold.
+	Accent string `json:"accent"`
 }
 
 // Defaults returns the settings a fresh install starts with.
@@ -53,6 +61,7 @@ func Defaults() Settings {
 		MaxRetries:      3,
 		Crawl:           true,
 		VerifyChecksums: true,
+		Shape:           ShapeRound,
 	}
 }
 
@@ -99,7 +108,28 @@ func (s *Store) Set(n Settings) (Settings, error) {
 	return n, nil
 }
 
+// The three shapes the interface offers. Anything else falls back to round
+// rather than producing an interface with no radius rule at all.
+const (
+	ShapeRound  = "round"
+	ShapeSoft   = "soft"
+	ShapeSquare = "square"
+)
+
+// accentPattern is a plain six-digit hex colour. Accepting anything else would
+// put attacker-chosen text straight into a CSS custom property.
+var accentPattern = regexp.MustCompile(`^#[0-9a-fA-F]{6}$`)
+
 func sanitize(n Settings) Settings {
+	switch n.Shape {
+	case ShapeRound, ShapeSoft, ShapeSquare:
+	default:
+		n.Shape = ShapeRound
+	}
+	n.Accent = strings.TrimSpace(n.Accent)
+	if n.Accent != "" && !accentPattern.MatchString(n.Accent) {
+		n.Accent = ""
+	}
 	if n.MaxConcurrent < 1 {
 		n.MaxConcurrent = 1
 	}

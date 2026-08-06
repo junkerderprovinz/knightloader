@@ -199,4 +199,13 @@ export const ko: Dict = {
   'task.checksumOk': '체크섬 확인됨',
   'task.checksumFail': '체크섬이 맞지 않음',
   'settings.verifyChecksums': '함께 받은 체크섬으로 완료된 다운로드 검증',
+  'settings.sectionLook': '모양',
+  'settings.shape': '모서리',
+  'settings.shapeHint': '카드, 버튼, 탭, 입력란, 배지에 한 번에 적용됩니다.',
+  'settings.shape.round': '둥글게',
+  'settings.shape.soft': '살짝',
+  'settings.shape.square': '각지게',
+  'settings.accent': '강조 색',
+  'settings.accentHint': '활동을 나타내는 단 하나의 색입니다. 위에 올라가는 글자는 대비에 맞춰 정해집니다.',
+  'settings.accentReset': '기본값',
 };

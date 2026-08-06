@@ -107,7 +107,7 @@ export function Toggle({
       className="flex items-center gap-3 text-left text-sm text-carbon-text select-none"
     >
       <span
-        className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
+        className={`relative h-5 w-9 shrink-0 rounded-[var(--radius-pill)] transition-colors ${
           checked ? 'bg-accent' : 'bg-carbon-surface3'
         }`}
       >
@@ -116,7 +116,7 @@ export function Toggle({
             then slides out past the pill. Tailwind v4 also animates the
             `translate` property here, not `transform`. */}
         <span
-          className={`absolute left-0 top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-[translate] duration-150 ${
+          className={`absolute left-0 top-0.5 h-4 w-4 rounded-[var(--radius-pill)] bg-white shadow-sm transition-[translate] duration-150 ${
             checked ? 'translate-x-4' : 'translate-x-0.5'
           }`}
         />
@@ -147,7 +147,14 @@ export function Card({
   );
 }
 
-// PageHeader is the single title block every page opens with.
+/**
+ * PageHeader opens a page with the one line the navigation cannot carry.
+ *
+ * The title is deliberately NOT rendered: the sidebar entry for this page is
+ * already highlighted and already says the same word, and repeating it costs a
+ * whole heading of vertical space to tell the reader something they just
+ * clicked. It stays in the props because it is the page's accessible name.
+ */
 export function PageHeader({
   title,
   subtitle,
@@ -158,10 +165,10 @@ export function PageHeader({
   right?: ReactNode;
 }) {
   return (
-    <header className="flex items-end gap-4">
+    <header className="flex items-center gap-4">
       <div className="min-w-0">
-        <h1 className="text-[28px] font-semibold leading-tight tracking-tight text-carbon-text">{title}</h1>
-        {subtitle && <p className="text-carbon-textMuted text-sm mt-1">{subtitle}</p>}
+        <h1 className="sr-only">{title}</h1>
+        {subtitle && <p className="text-carbon-textSub text-sm">{subtitle}</p>}
       </div>
       <span className="flex-1" />
       {right}

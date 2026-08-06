@@ -199,4 +199,13 @@ export const de: Dict = {
   'task.checksumOk': 'Prüfsumme stimmt',
   'task.checksumFail': 'Prüfsumme stimmt nicht',
   'settings.verifyChecksums': 'Fertigen Download gegen eine mitgelieferte Prüfsumme prüfen',
+  'settings.sectionLook': 'Aussehen',
+  'settings.shape': 'Ecken',
+  'settings.shapeHint': 'Gilt für Karten, Knöpfe, Reiter, Eingabefelder und Abzeichen zugleich.',
+  'settings.shape.round': 'Rund',
+  'settings.shape.soft': 'Leicht',
+  'settings.shape.square': 'Eckig',
+  'settings.accent': 'Akzentfarbe',
+  'settings.accentHint': 'Die eine Farbe für Aktivität. Die Schrift darauf wird nach Kontrast gewählt.',
+  'settings.accentReset': 'Standard',
 };

@@ -54,7 +54,7 @@ export function Instances() {
         ))}
       </div>
 
-      <Card className="flex flex-col gap-4 max-w-2xl">
+      <Card className="flex flex-col gap-4">
         <SectionTitle>{t('instances.add')}</SectionTitle>
         <div className="grid grid-cols-1 sm:grid-cols-[1fr_2fr_auto] gap-3 items-end">
           <Field label={t('instances.name')}>

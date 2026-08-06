@@ -199,4 +199,13 @@ export const th: Dict = {
   'task.checksumOk': 'ตรวจสอบค่าตรวจสอบแล้ว',
   'task.checksumFail': 'ค่าตรวจสอบไม่ตรงกัน',
   'settings.verifyChecksums': 'ตรวจสอบดาวน์โหลดที่เสร็จแล้วด้วยค่าตรวจสอบที่มาด้วย',
+  'settings.sectionLook': 'รูปลักษณ์',
+  'settings.shape': 'มุม',
+  'settings.shapeHint': 'ใช้กับการ์ด ปุ่ม แท็บ ช่องกรอก และป้ายพร้อมกัน',
+  'settings.shape.round': 'โค้ง',
+  'settings.shape.soft': 'มนเล็กน้อย',
+  'settings.shape.square': 'เหลี่ยม',
+  'settings.accent': 'สีเน้น',
+  'settings.accentHint': 'สีเดียวที่ใช้แสดงการทำงาน ตัวอักษรบนสีนี้เลือกตามความต่างของสี',
+  'settings.accentReset': 'ค่าเริ่มต้น',
 };

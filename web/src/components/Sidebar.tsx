@@ -23,7 +23,7 @@ const navBase =
   'relative flex items-center gap-3 rounded-[var(--radius-control)] pl-4 pr-3 py-2.5 text-[14px] font-medium transition duration-150 select-none';
 const navActive =
   'bg-carbon-surface text-carbon-text before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 ' +
-  'before:h-5 before:w-[3px] before:rounded-full before:bg-accent [&_svg]:text-accent';
+  'before:h-5 before:w-[3px] before:rounded-[var(--radius-pill)] before:bg-accent [&_svg]:text-accent';
 const navInactive = 'text-[var(--sidebar-text)] hover:bg-carbon-hover hover:text-carbon-text';
 
 function Item({
@@ -44,7 +44,7 @@ function Item({
       {icon}
       <span className="flex-1">{label}</span>
       {badge ? (
-        <span className="keep-num rounded-full bg-carbon-surface3/60 px-1.5 py-0.5 text-[11px] font-semibold leading-none text-carbon-textSub">
+        <span className="keep-num rounded-[var(--radius-pill)] bg-carbon-surface3/60 px-1.5 py-0.5 text-[11px] font-semibold leading-none text-carbon-textSub">
           {badge}
         </span>
       ) : null}

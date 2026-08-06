@@ -201,4 +201,13 @@ export const no: Dict = {
   'task.checksumOk': 'Kontrollsummen stemmer',
   'task.checksumFail': 'Kontrollsummen stemmer ikke',
   'settings.verifyChecksums': 'Kontroller en ferdig nedlasting mot medfølgende kontrollsum',
+  'settings.sectionLook': 'Utseende',
+  'settings.shape': 'Hjørner',
+  'settings.shapeHint': 'Gjelder kort, knapper, faner, felt og merker på én gang.',
+  'settings.shape.round': 'Runde',
+  'settings.shape.soft': 'Myke',
+  'settings.shape.square': 'Skarpe',
+  'settings.accent': 'Aksentfarge',
+  'settings.accentHint': 'Den ene fargen for aktivitet. Teksten oppå velges etter kontrast.',
+  'settings.accentReset': 'Standard',
 };

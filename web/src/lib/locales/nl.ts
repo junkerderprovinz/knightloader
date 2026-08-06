@@ -191,4 +191,13 @@ export const nl: Dict = {
   'task.checksumOk': 'Controlesom klopt',
   'task.checksumFail': 'Controlesom klopt niet',
   'settings.verifyChecksums': 'Voltooide download controleren met de meegeleverde controlesom',
+  'settings.sectionLook': 'Uiterlijk',
+  'settings.shape': 'Hoeken',
+  'settings.shapeHint': 'Geldt in één keer voor kaarten, knoppen, tabbladen, velden en badges.',
+  'settings.shape.round': 'Rond',
+  'settings.shape.soft': 'Licht',
+  'settings.shape.square': 'Recht',
+  'settings.accent': 'Accentkleur',
+  'settings.accentHint': 'De ene kleur voor activiteit. De tekst erop wordt op contrast gekozen.',
+  'settings.accentReset': 'Standaard',
 };
