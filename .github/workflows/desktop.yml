@@ -19,10 +19,13 @@ jobs:
         include:
           - os: windows-latest
             platform: windows/amd64
+            slug: windows-amd64
           - os: macos-latest
             platform: darwin/universal
+            slug: macos-universal
           - os: ubuntu-latest
             platform: linux/amd64
+            slug: linux-amd64
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     steps:
@@ -62,7 +65,62 @@ jobs:
           go mod tidy
           wails build -platform ${{ matrix.platform }} -clean
 
+      # Named by the slug, not the platform string: "windows/amd64" contains a
+      # slash, which artifact names and release assets both take badly.
       - uses: actions/upload-artifact@v4
         with:
-          name: knightloader-${{ matrix.platform }}
+          name: knightloader-${{ matrix.slug }}
           path: desktop/build/bin/*
+          if-no-files-found: error
+
+  # Without this job the bundles are built on every tag and then thrown away
+  # when the artifact expires: green CI, and nobody outside Actions can download
+  # the desktop app at all. This attaches them to the release the tag creates.
+  attach:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: bundles
+
+      # One archive per platform, named for the tag, so a download sitting in
+      # somebody's folder still says which version it is.
+      - name: Package
+        run: |
+          set -eu
+          mkdir -p dist
+          for d in bundles/knightloader-*; do
+            [ -d "$d" ] || continue
+            slug="${d#bundles/knightloader-}"
+            (cd "$d" && zip -qr "../../dist/knightloader-${GITHUB_REF_NAME}-${slug}.zip" .)
+          done
+          ls -lh dist
+
+      # The release is created by release.yml on the same tag, and these builds
+      # take twenty minutes longer than it does — but a runner queue can invert
+      # that, and uploading to a release that does not exist yet fails outright.
+      # So wait for it rather than racing it.
+      - name: Wait for the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          for i in $(seq 1 30); do
+            if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+              echo "release $GITHUB_REF_NAME is there"
+              exit 0
+            fi
+            echo "waiting for release $GITHUB_REF_NAME ($i/30)"
+            sleep 20
+          done
+          echo "release $GITHUB_REF_NAME never appeared; is release.yml failing?" >&2
+          exit 1
+
+      - name: Attach the bundles
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$GITHUB_REF_NAME" dist/*.zip --clobber --repo "$GITHUB_REPOSITORY"
