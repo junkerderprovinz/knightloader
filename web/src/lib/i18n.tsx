@@ -42,6 +42,24 @@ const CATALOGUE: LanguageDef[] = [
   { code: 'he', label: 'עברית', flag: 'il', rtl: true },
   { code: 'th', label: 'ไทย', flag: 'th' },
   { code: 'vi', label: 'Tiếng Việt', flag: 'vn' },
+  { code: 'bg', label: 'Български', flag: 'bg' },
+  { code: 'sk', label: 'Slovenčina', flag: 'sk' },
+  { code: 'sl', label: 'Slovenščina', flag: 'si' },
+  { code: 'hr', label: 'Hrvatski', flag: 'hr' },
+  { code: 'sr', label: 'Српски', flag: 'rs' },
+  { code: 'lt', label: 'Lietuvių', flag: 'lt' },
+  { code: 'lv', label: 'Latviešu', flag: 'lv' },
+  { code: 'et', label: 'Eesti', flag: 'ee' },
+  { code: 'is', label: 'Íslenska', flag: 'is' },
+  // The three languages of Spain get their own regional flags rather than three
+  // identical Spanish ones, which would make the menu unreadable at a glance.
+  { code: 'ca', label: 'Català', flag: 'es-ct' },
+  { code: 'gl', label: 'Galego', flag: 'es-ga' },
+  { code: 'eu', label: 'Euskara', flag: 'es-pv' },
+  { code: 'id', label: 'Bahasa Indonesia', flag: 'id' },
+  { code: 'ms', label: 'Bahasa Melayu', flag: 'my' },
+  { code: 'hi', label: 'हिन्दी', flag: 'in' },
+  { code: 'fa', label: 'فارسی', flag: 'ir', rtl: true },
 ];
 
 export const LANGUAGES: LanguageDef[] = CATALOGUE.filter((l) => AVAILABLE.includes(l.code));
