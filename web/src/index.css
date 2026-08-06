@@ -214,6 +214,30 @@ body {
   font-feature-settings: "tnum" 1, "zero" 1;
 }
 
+/* The info bubble. Rendered at body level (see InfoBubble in components/ui.tsx)
+   so no scroll container, card or table can clip it. It is translated back by
+   half its own width, which centres it under the icon without anyone having to
+   measure the text first. */
+.glim-bubble {
+  position: fixed;
+  z-index: 60;
+  transform: translateX(-50%);
+  max-width: 280px;
+  pointer-events: none;
+  background-color: var(--carbon-surface);
+  color: var(--carbon-text);
+  border-radius: var(--radius-control);
+  box-shadow: var(--elevation), var(--hairline);
+  padding: 7px 10px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  letter-spacing: normal;
+  text-transform: none;
+  font-weight: 400;
+  text-align: start;
+  white-space: normal;
+}
+
 /* ---------------------------------------------------------------------------
    Rainbow — the accent in its plural form.
 
@@ -234,6 +258,23 @@ body {
    because a download row owns a colour but its action icons must stay quiet. */
 [data-rainbow] .glim-hue-icon svg {
   color: var(--accent);
+}
+
+/* Opt-in: a rail at the row's leading edge, the same device the active nav item
+   uses. A list row would otherwise only show its colour through the progress
+   fill, which means a finished row (green, by the state rule) shows none at
+   all — the palette would be invisible on exactly the list it exists for.
+   Appears only in rainbow mode; the rail is a mark, not a border. */
+[data-rainbow] .glim-rail::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 56%;
+  width: 3px;
+  border-radius: var(--radius-pill);
+  background-color: var(--accent);
 }
 
 /* Reactive: the palette rests. Everything is quiet until it is hovered or is
@@ -297,6 +338,9 @@ body {
   .glim-page-enter { animation: glim-page-in 280ms cubic-bezier(.2, .6, .2, 1) both; }
   .glim-toast { animation: glim-toast-in 220ms cubic-bezier(.2, .6, .2, 1) both; }
   .glim-live { animation: glim-pulse 2s ease-in-out infinite; }
+  /* Short on purpose: a bubble that fades in slowly reads as lag, because the
+     pointer is already there waiting for it. */
+  .glim-fade { animation: glim-fade-in 110ms ease both; }
 }
 @media (prefers-reduced-motion: reduce) {
   .glim-page-enter { animation: glim-fade-in 180ms ease both; }

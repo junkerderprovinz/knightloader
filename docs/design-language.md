@@ -35,6 +35,33 @@ look. BombVault already reads the same `--carbon-*` names through its own
    a wall of buttons. The primary action for a row stays visible.
 7. **Digits use `.glim-num`** (tabular + lining numerals) wherever they change or
    stack, so nothing jitters while counting.
+8. **Explanations live in a bubble, not on the page.** A control that needs
+   explaining carries a neutral `(i)` beside its label; the text appears on
+   hover or focus. Prose printed under every control is read once and then
+   costs vertical space forever, and a page of grey paragraphs hides the
+   controls it was meant to clarify. If something cannot be explained in a
+   bubble, the control is wrong, not the label.
+
+## The info bubble
+
+`<InfoBubble tip="…" />` in `components/ui.tsx`, and automatic for any `Field`
+given a `hint` — so a field is written the same way as before and the
+explanation moves itself out of the layout.
+
+Three rules it follows:
+
+- **Neutral, never the accent.** The icon is furniture; the accent means
+  activity. An accent-coloured `(i)` on every row would read as six things
+  happening at once.
+- **Rendered into `<body>`, positioned from the icon.** Anchored locally it is
+  at the mercy of every card, table and scroll container above it: one
+  `overflow: hidden` and the explanation is a sliver. Position is measured each
+  time it opens, and the bubble closes on scroll rather than drifting away from
+  what it explains.
+- **Hover *and* focus, Escape closes.** It is reachable by keyboard, the text is
+  the icon's `aria-label` so a screen reader gets it without opening anything,
+  and the bubble itself is `pointer-events: none` so it can never swallow a
+  click meant for what is underneath.
 
 ## Tokens (the contract)
 
@@ -60,7 +87,8 @@ mapped to Tailwind utilities in the `@theme` block.
 
 Utility classes: `.glim-card` (the surface), `.glim-well` (inset grouping),
 `.glim-eyebrow` (small uppercase label), `.glim-num` (tabular digits),
-`.glim-page-enter`, `.glim-toast`, `.glim-live` (pulsing dot).
+`.glim-bubble` (the info bubble), `.glim-hue` (owns a rainbow position),
+`.glim-page-enter`, `.glim-toast`, `.glim-fade`, `.glim-live` (pulsing dot).
 
 ## The two user-owned axes
 
@@ -86,6 +114,18 @@ It has three sub-switches:
   the active item. This is the restrained reading of the mode.
 - **palette** — all eight hues are editable, and reset to the default in one
   click.
+
+An element that owns a position sets `--item-hue` (via `hueVars`) and carries
+`.glim-hue`; the stylesheet then redefines `--accent` for that subtree, so every
+component that already paints activity picks the colour up and none of them has
+to learn that the mode exists. `.glim-hue-icon` extends the hue to the element's
+glyph, `.glim-rail` marks the row's leading edge — a list row needs the rail,
+because its progress fill turns green when it finishes and would otherwise show
+no colour at all on the very list the palette exists for.
+
+Positions come from the row's place in the list, not from a hash of its id. A
+hash keeps a row's colour when the rows above it finish, which sounds better
+until three rows land in the same bucket and two neighbours match.
 
 ## Adopting it in another app
 

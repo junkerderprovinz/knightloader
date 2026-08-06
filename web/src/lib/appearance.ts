@@ -176,18 +176,6 @@ export function hueVars(hex: string | undefined): Record<string, string> {
 }
 
 /**
- * hueIndex turns a stable identifier into a palette position. A download list
- * is indexed by position on screen, and rows above it finish and disappear all
- * day: keying on the id instead means a row keeps the colour the user has been
- * watching, rather than inheriting the colour of the row that just left.
- */
-export function hueIndex(key: string): number {
-  let h = 0;
-  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
-  return h % RAINBOW.length;
-}
-
-/**
  * rainbowFromSettings maps the server's flat fields onto the state this module
  * keeps. The parameter is structural rather than the imported Settings type so
  * this file can be lifted into a sibling app unchanged.
