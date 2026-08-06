@@ -1,6 +1,6 @@
 import { useState, type CSSProperties } from 'react';
 import { type Task } from '../lib/api';
-import { hueIndex, hueVars, rainbowAt } from '../lib/appearance';
+import { hueVars, rainbowAt } from '../lib/appearance';
 import { useRainbow } from '../lib/useRainbow';
 import {
   pause,
@@ -57,11 +57,14 @@ function TaskRow({
   base,
   selection,
   showResolver = true,
+  index = 0,
 }: {
   t: Task;
   base: string;
   selection?: Selection;
   showResolver?: boolean;
+  /** Position in the rendered list — the rainbow palette position. */
+  index?: number;
 }) {
   const { t } = useT();
   const [options, setOptions] = useState(false);
@@ -78,10 +81,16 @@ function TaskRow({
   // activity — the progress fill above all — reads it through --accent without
   // knowing the mode exists. A running row counts as active, so the reactive
   // reading still shows colour where work is actually happening.
+  //
+  // The colour comes from the row's position, not from a hash of its id. A hash
+  // is stable when rows above finish, which sounds better until three rows land
+  // in the same bucket and two neighbours share a colour — which is the one
+  // thing the mode exists to prevent. By position, eight adjacent rows always
+  // differ.
   return (
     <div
-      style={hueVars(rainbowAt(hueIndex(task.id))) as CSSProperties}
-      className={`glim-hue ${task.status === 'running' ? 'glim-active' : ''} ${ROW} group px-5 py-3 transition-colors hover:bg-carbon-hover/50`}
+      style={hueVars(rainbowAt(index)) as CSSProperties}
+      className={`glim-hue glim-rail ${task.status === 'running' ? 'glim-active' : ''} ${ROW} relative group px-5 py-3 transition-colors hover:bg-carbon-hover/50`}
     >
       {selection ? (
         <Checkbox checked={selection.ids.has(task.id)} onChange={() => selection.toggle(task.id)} />
@@ -284,8 +293,8 @@ export function PackageGroup({
         <span />
       </div>
       <div className="flex flex-col">
-        {items.map((x) => (
-          <TaskRow key={x.id} t={x} base={base} selection={selection} showResolver={!uniformResolver} />
+        {items.map((x, i) => (
+          <TaskRow key={x.id} t={x} index={i} base={base} selection={selection} showResolver={!uniformResolver} />
         ))}
       </div>
     </section>

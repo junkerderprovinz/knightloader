@@ -1,7 +1,8 @@
 // Primitives of the GlimStone design language. Everything is expressed through the
 // shared tokens in index.css, so a sibling app inherits the look by adopting
 // that file — see the comment block there.
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from 'react';
 import { IconClose } from '../lib/icons';
 
@@ -38,13 +39,98 @@ export function Button({
   );
 }
 
+/**
+ * Field pairs a label with a control. The explanation, when there is one, is
+ * not printed under the control: it lives behind the (i) beside the label.
+ *
+ * A settings page whose every row carries two lines of grey prose is a page
+ * nobody reads twice — the explanation is needed once and then costs vertical
+ * space forever. Behind the bubble it is still one hover away, and still
+ * reachable by keyboard and by screen reader.
+ */
 export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-xs text-carbon-textSub">{label}</span>
+      <span className="flex items-center text-xs text-carbon-textSub">
+        {label}
+        {hint && <InfoBubble tip={hint} />}
+      </span>
       {children}
-      {hint && <span className="text-[11px] leading-snug text-carbon-textMuted">{hint}</span>}
     </label>
+  );
+}
+
+/**
+ * InfoBubble is the one way GlimStone explains something in place: a neutral
+ * (i) that opens a bubble on hover or focus.
+ *
+ * The bubble is rendered into <body> rather than next to the icon. Anchored
+ * locally it is at the mercy of every scroll container, card and table it sits
+ * inside — one `overflow: hidden` anywhere above and the explanation is a
+ * sliver. At body level it is clipped by nothing, and the position is measured
+ * from the icon each time it opens.
+ *
+ * The icon is deliberately never the accent colour: it is furniture, and the
+ * accent means activity.
+ */
+export function InfoBubble({ tip, className = '' }: { tip: string; className?: string }) {
+  const [at, setAt] = useState<{ top: number; left: number } | null>(null);
+  const ref = useRef<HTMLSpanElement>(null);
+
+  function open() {
+    const r = ref.current?.getBoundingClientRect();
+    if (!r) return;
+    setAt({ top: r.bottom + 8, left: r.left + r.width / 2 });
+  }
+
+  // Escape closes it, because a bubble opened by keyboard has to be closable by
+  // keyboard without moving focus somewhere else first.
+  useEffect(() => {
+    if (!at) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setAt(null);
+    const onScroll = () => setAt(null); // a measured position goes stale the moment the page moves
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('scroll', onScroll, true);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('scroll', onScroll, true);
+    };
+  }, [at]);
+
+  return (
+    <>
+      <span
+        ref={ref}
+        role="note"
+        tabIndex={0}
+        aria-label={tip}
+        onMouseEnter={open}
+        onMouseLeave={() => setAt(null)}
+        onFocus={open}
+        onBlur={() => setAt(null)}
+        className={`glim-info ms-1.5 inline-flex h-[15px] w-[15px] shrink-0 cursor-help items-center
+          justify-center rounded-full align-middle text-carbon-textMuted transition-opacity
+          hover:text-carbon-textSub focus-visible:text-carbon-textSub ${className}`}
+      >
+        <svg viewBox="0 0 16 16" width={15} height={15} aria-hidden focusable="false">
+          <circle cx="8" cy="8" r="7.1" fill="none" stroke="currentColor" strokeWidth="1.2" />
+          <circle cx="8" cy="4.7" r="1.05" fill="currentColor" />
+          <rect x="7.05" y="6.8" width="1.9" height="5" rx=".95" fill="currentColor" />
+        </svg>
+      </span>
+      {at &&
+        createPortal(
+          <span
+            role="tooltip"
+            dir="auto"
+            className="glim-bubble glim-fade"
+            style={{ top: at.top, left: at.left }}
+          >
+            {tip}
+          </span>,
+          document.body,
+        )}
+    </>
   );
 }
 
