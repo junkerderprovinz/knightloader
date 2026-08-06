@@ -1,0 +1,36 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The notes are written by hand and live in the repo. Publishing them from
+      # a file rather than generating them keeps the release readable: a list of
+      # commit subjects says what was touched, not what changed for the user.
+      - name: Locate the notes for this tag
+        id: notes
+        run: |
+          file=".github/release-notes/${GITHUB_REF_NAME}.md"
+          if [ -s "$file" ]; then
+            echo "path=$file" >> "$GITHUB_OUTPUT"
+          else
+            echo "No notes at $file; falling back to generated ones." >&2
+            echo "path=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          # The title is the version alone: the repository name is already above it.
+          name: ${{ github.ref_name }}
+          body_path: ${{ steps.notes.outputs.path }}
+          generate_release_notes: ${{ steps.notes.outputs.path == '' }}

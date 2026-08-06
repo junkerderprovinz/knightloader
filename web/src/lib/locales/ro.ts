@@ -199,4 +199,13 @@ export const ro: Dict = {
   'task.checksumOk': 'Suma de control corespunde',
   'task.checksumFail': 'Suma de control nu corespunde',
   'settings.verifyChecksums': 'Verifică descărcarea terminată cu suma de control primită',
+  'settings.sectionLook': 'Aspect',
+  'settings.shape': 'Colțuri',
+  'settings.shapeHint': 'Se aplică deodată cardurilor, butoanelor, filelor, câmpurilor și insignelor.',
+  'settings.shape.round': 'Rotunjite',
+  'settings.shape.soft': 'Ușoare',
+  'settings.shape.square': 'Drepte',
+  'settings.accent': 'Culoare de accent',
+  'settings.accentHint': 'Singura culoare pentru activitate. Textul de pe ea e ales după contrast.',
+  'settings.accentReset': 'Implicit',
 };

@@ -47,6 +47,8 @@ export interface Settings {
   crawl: boolean;
   watchDir: string;
   verifyChecksums: boolean;
+  shape: 'round' | 'soft' | 'square';
+  accent: string;
 }
 
 export interface Account {

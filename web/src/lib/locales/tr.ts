@@ -199,4 +199,13 @@ export const tr: Dict = {
   'task.checksumOk': 'Sağlama toplamı doğrulandı',
   'task.checksumFail': 'Sağlama toplamı uyuşmuyor',
   'settings.verifyChecksums': 'Biten indirmeyi, birlikte gelen sağlama toplamıyla doğrula',
+  'settings.sectionLook': 'Görünüm',
+  'settings.shape': 'Köşeler',
+  'settings.shapeHint': 'Kartlara, düğmelere, sekmelere, alanlara ve rozetlere aynı anda uygulanır.',
+  'settings.shape.round': 'Yuvarlak',
+  'settings.shape.soft': 'Hafif',
+  'settings.shape.square': 'Köşeli',
+  'settings.accent': 'Vurgu rengi',
+  'settings.accentHint': 'Etkinlik için tek renk. Üzerindeki yazı karşıtlığa göre seçilir.',
+  'settings.accentReset': 'Varsayılan',
 };

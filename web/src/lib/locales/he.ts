@@ -201,4 +201,13 @@ export const he: Dict = {
   'task.checksumOk': 'סכום הביקורת אומת',
   'task.checksumFail': 'סכום הביקורת אינו תואם',
   'settings.verifyChecksums': 'אימות הורדה שהסתיימה מול סכום הביקורת שהגיע איתה',
+  'settings.sectionLook': 'מראה',
+  'settings.shape': 'פינות',
+  'settings.shapeHint': 'חל בבת אחת על כרטיסים, כפתורים, לשוניות, שדות ותגים.',
+  'settings.shape.round': 'עגול',
+  'settings.shape.soft': 'מעט',
+  'settings.shape.square': 'מרובע',
+  'settings.accent': 'צבע הדגשה',
+  'settings.accentHint': 'הצבע היחיד לפעילות. הטקסט מעליו נבחר לפי ניגודיות.',
+  'settings.accentReset': 'ברירת מחדל',
 };

@@ -191,4 +191,13 @@ export const pl: Dict = {
   'task.checksumOk': 'Suma kontrolna zgodna',
   'task.checksumFail': 'Suma kontrolna się nie zgadza',
   'settings.verifyChecksums': 'Sprawdzaj ukończone pobranie z dołączoną sumą kontrolną',
+  'settings.sectionLook': 'Wygląd',
+  'settings.shape': 'Narożniki',
+  'settings.shapeHint': 'Dotyczy naraz kart, przycisków, zakładek, pól i odznak.',
+  'settings.shape.round': 'Zaokrąglone',
+  'settings.shape.soft': 'Lekkie',
+  'settings.shape.square': 'Ostre',
+  'settings.accent': 'Kolor akcentu',
+  'settings.accentHint': 'Jedyny kolor aktywności. Tekst na nim dobierany jest pod kontrast.',
+  'settings.accentReset': 'Domyślny',
 };

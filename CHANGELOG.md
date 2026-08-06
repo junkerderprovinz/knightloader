@@ -1,0 +1,73 @@
+# Changelog
+
+All notable changes to KnightLoader. The format follows
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
+[Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+Nothing is released yet: the name, the logo and the first tag are still open.
+What follows is what exists and runs.
+
+### Added
+
+- **Collector** that stages links before anything downloads, with name, size,
+  availability and the backend that will take each one. A link no backend
+  handles is still shown, with the reason attached, and can be rechecked
+  without re-pasting.
+- **Crawling**: a pasted page becomes the files it links to. Only a link no real
+  backend recognised is opened, so a plain download costs no extra request.
+- **Resolvers** for direct links, TorBox, AllDebrid and Real-Debrid, yt-dlp, and
+  a headless JDownloader as the catch-all. When a backend says a link is not its
+  business, the next one gets a turn.
+- **Scheduler** with global and per-host concurrency, priorities, manual queue
+  order, and automatic retries with a growing delay.
+- **Speed limit** that applies to everything and takes effect on downloads
+  already running. The embedded engine has no rate-limit hook, so its traffic
+  goes through a loopback proxy where the bytes are metered.
+- **Download folders**: a global folder, an optional per-package subfolder, a
+  per-task override, and path templates such as
+  `/downloads/<jd:date>/<jd:hoster>/<jd:packagename>`.
+- **Extraction** of zip, rar including multi-volume, 7z including split volumes,
+  tar, gz, bz2, xz and zst. A multi-part set waits for every part before it
+  opens. Encrypted rar and 7z take passwords, tried per task first and then from
+  a configured list.
+- **Checksum verification** against an `.sfv`, `.md5` or `.sha*` that arrived
+  with the batch, or a CRC in the file name.
+- **Click'n'Load** from a site's own button, including the preflight modern
+  browsers require before a page may reach a loopback address. The same binary
+  runs as a bridge for instances that are not on the browser's own machine.
+- **Watched folder** for `.txt` and JDownloader `.crawljob` drop files, carrying
+  package name, destination and archive password.
+- **Multi-instance federation**: register other KnightLoaders and drive them all
+  from one dashboard, with no relay in between.
+- **Access control**: an optional password lock with signed session cookies,
+  off by default.
+- **26 languages**, each fetched only when chosen, right-to-left included.
+
+### Security
+
+- The API no longer sends a wildcard CORS header and the WebSocket no longer
+  accepts any origin, which together stopped another website from driving an
+  instance through the visitor's browser.
+- The Click'n'Load endpoints accept POST only. Answering GET made them a browser
+  simple request, which any page could have used to queue downloads and archive
+  passwords without the user knowing.
+- The JDownloader provisioner fetches over HTTPS and checks the downloaded bytes
+  really are an archive before executing them.
+
+### Fixed
+
+- Removing a task no longer deletes what was downloaded. That was data loss on
+  the ordinary "clear finished" path.
+- Task IDs are checked for collisions before entering the map, where a duplicate
+  would have silently orphaned a running download.
+- A single compressed file unpacks beside its archive instead of into a folder
+  named after the file it produces.
+- A bracketed run of eight digits is no longer read as a CRC32, which had been
+  stamping intact downloads as corrupt.
+- A byte-order mark no longer eats the first link of a dropped text file.
+- One slow WebSocket viewer no longer delays progress updates for everybody
+  else.
+- The embedded UI carries an ETag and revalidates, so a redeploy cannot leave a
+  browser on a stale bundle.

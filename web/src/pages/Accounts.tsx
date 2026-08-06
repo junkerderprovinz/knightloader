@@ -42,7 +42,7 @@ export function Accounts() {
     <div className="flex flex-col gap-6">
       <PageHeader title={t('accounts.title')} subtitle={t('accounts.subtitle')} />
 
-      <div className="flex flex-col gap-4 max-w-2xl">
+      <div className="flex flex-col gap-4">
         {SERVICES.map((s) => (
           <ServiceCard
             key={s.id}
@@ -114,7 +114,7 @@ function ServiceCard({
         </div>
         <span className="flex-1" />
         <span
-          className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${
+          className={`inline-flex items-center gap-1.5 rounded-[var(--radius-pill)] px-2.5 py-0.5 text-[11px] font-medium ${
             connected ? 'text-statusOk bg-statusOkBg' : 'text-statusNeutral bg-statusNeutralBg'
           }`}
         >

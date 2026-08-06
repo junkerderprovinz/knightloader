@@ -199,4 +199,13 @@ export const uk: Dict = {
   'task.checksumOk': 'Контрольна сума збіглася',
   'task.checksumFail': 'Контрольна сума не збіглася',
   'settings.verifyChecksums': 'Перевіряти завершене завантаження за доданою контрольною сумою',
+  'settings.sectionLook': 'Вигляд',
+  'settings.shape': 'Кути',
+  'settings.shapeHint': 'Діє одразу на картки, кнопки, вкладки, поля та значки.',
+  'settings.shape.round': 'Круглі',
+  'settings.shape.soft': 'Злегка',
+  'settings.shape.square': 'Прямі',
+  'settings.accent': 'Акцентний колір',
+  'settings.accentHint': 'Єдиний колір активності. Текст на ньому добирається за контрастом.',
+  'settings.accentReset': 'За замовчуванням',
 };

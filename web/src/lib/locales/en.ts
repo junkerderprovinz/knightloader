@@ -199,6 +199,15 @@ export const en = {
   'task.checksumOk': 'Checksum verified',
   'task.checksumFail': 'Checksum does not match',
   'settings.verifyChecksums': 'Verify a finished download against a checksum, when one came with it',
+  'settings.sectionLook': 'Look',
+  'settings.shape': 'Corners',
+  'settings.shapeHint': 'Applies to cards, buttons, tabs, inputs and badges at once.',
+  'settings.shape.round': 'Round',
+  'settings.shape.soft': 'Soft',
+  'settings.shape.square': 'Square',
+  'settings.accent': 'Accent colour',
+  'settings.accentHint': 'The one colour used for activity. Text on it is picked for contrast.',
+  'settings.accentReset': 'Default',
 } as const;
 
 export type TranslationKey = keyof typeof en;

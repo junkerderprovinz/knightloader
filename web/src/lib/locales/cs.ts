@@ -199,4 +199,13 @@ export const cs: Dict = {
   'task.checksumOk': 'Kontrolní součet souhlasí',
   'task.checksumFail': 'Kontrolní součet nesouhlasí',
   'settings.verifyChecksums': 'Ověřit dokončené stahování oproti přiloženému kontrolnímu součtu',
+  'settings.sectionLook': 'Vzhled',
+  'settings.shape': 'Rohy',
+  'settings.shapeHint': 'Platí naráz pro karty, tlačítka, panely, pole i odznaky.',
+  'settings.shape.round': 'Kulaté',
+  'settings.shape.soft': 'Mírné',
+  'settings.shape.square': 'Ostré',
+  'settings.accent': 'Barva zvýraznění',
+  'settings.accentHint': 'Jediná barva pro aktivitu. Text na ní se volí podle kontrastu.',
+  'settings.accentReset': 'Výchozí',
 };

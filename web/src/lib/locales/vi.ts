@@ -199,4 +199,13 @@ export const vi: Dict = {
   'task.checksumOk': 'Đã xác minh mã kiểm tra',
   'task.checksumFail': 'Mã kiểm tra không khớp',
   'settings.verifyChecksums': 'Kiểm tra tệp tải xong bằng mã kiểm tra đi kèm',
+  'settings.sectionLook': 'Giao diện',
+  'settings.shape': 'Góc',
+  'settings.shapeHint': 'Áp dụng cùng lúc cho thẻ, nút, tab, ô nhập và huy hiệu.',
+  'settings.shape.round': 'Bo tròn',
+  'settings.shape.soft': 'Hơi bo',
+  'settings.shape.square': 'Vuông',
+  'settings.accent': 'Màu nhấn',
+  'settings.accentHint': 'Màu duy nhất cho hoạt động. Chữ trên nền đó được chọn theo độ tương phản.',
+  'settings.accentReset': 'Mặc định',
 };

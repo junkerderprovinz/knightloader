@@ -199,4 +199,13 @@ export const fi: Dict = {
   'task.checksumOk': 'Tarkistussumma täsmää',
   'task.checksumFail': 'Tarkistussumma ei täsmää',
   'settings.verifyChecksums': 'Tarkista valmis lataus mukana tulleella tarkistussummalla',
+  'settings.sectionLook': 'Ulkoasu',
+  'settings.shape': 'Kulmat',
+  'settings.shapeHint': 'Koskee kerralla kortteja, painikkeita, välilehtiä, kenttiä ja merkkejä.',
+  'settings.shape.round': 'Pyöreät',
+  'settings.shape.soft': 'Pehmeät',
+  'settings.shape.square': 'Terävät',
+  'settings.accent': 'Korostusväri',
+  'settings.accentHint': 'Ainoa väri toiminnalle. Sen päällä oleva teksti valitaan kontrastin mukaan.',
+  'settings.accentReset': 'Oletus',
 };

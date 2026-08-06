@@ -191,4 +191,13 @@ export const ru: Dict = {
   'task.checksumOk': 'Контрольная сумма совпала',
   'task.checksumFail': 'Контрольная сумма не совпала',
   'settings.verifyChecksums': 'Проверять завершённую загрузку по приложенной контрольной сумме',
+  'settings.sectionLook': 'Внешний вид',
+  'settings.shape': 'Углы',
+  'settings.shapeHint': 'Действует сразу на карточки, кнопки, вкладки, поля и значки.',
+  'settings.shape.round': 'Круглые',
+  'settings.shape.soft': 'Слегка',
+  'settings.shape.square': 'Прямые',
+  'settings.accent': 'Акцентный цвет',
+  'settings.accentHint': 'Единственный цвет активности. Текст поверх подбирается по контрасту.',
+  'settings.accentReset': 'По умолчанию',
 };

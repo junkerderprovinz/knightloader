@@ -191,4 +191,13 @@ export const fr: Dict = {
   'task.checksumOk': 'Somme de contrôle vérifiée',
   'task.checksumFail': 'La somme de contrôle ne correspond pas',
   'settings.verifyChecksums': 'Vérifier un téléchargement terminé avec la somme de contrôle fournie',
+  'settings.sectionLook': 'Apparence',
+  'settings.shape': 'Angles',
+  'settings.shapeHint': 'S’applique d’un coup aux cartes, boutons, onglets, champs et badges.',
+  'settings.shape.round': 'Arrondis',
+  'settings.shape.soft': 'Légers',
+  'settings.shape.square': 'Droits',
+  'settings.accent': 'Couleur d’accent',
+  'settings.accentHint': 'La seule couleur de l’activité. Le texte dessus est choisi par contraste.',
+  'settings.accentReset': 'Par défaut',
 };

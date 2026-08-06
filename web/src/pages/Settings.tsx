@@ -8,6 +8,7 @@ import {
   setPassword,
 } from '../lib/api';
 import { useResource } from '../lib/useResource';
+import { ACCENTS, DEFAULT_ACCENT, SHAPES, applyAccent, applyShape, cacheAppearance, type Shape } from '../lib/appearance';
 import { useT } from '../lib/i18n';
 import {
   PageHeader,
@@ -29,6 +30,15 @@ export function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
 
+  // The look follows the settings as soon as they arrive, and again on every
+  // pick below, so what is on screen is always what is selected.
+  useEffect(() => {
+    if (!cfg) return;
+    applyShape(cfg.shape);
+    applyAccent(cfg.accent);
+    cacheAppearance(cfg.shape, cfg.accent);
+  }, [cfg?.shape, cfg?.accent]);
+
   async function onSave() {
     if (!cfg) return;
     setError('');
@@ -43,7 +53,7 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-2xl">
+    <div className="flex flex-col gap-6">
       <PageHeader title={t('settings.title')} subtitle={t('settings.subtitle')} />
 
       {loading && <LoadingCard label={t('common.loading')} />}
@@ -158,6 +168,70 @@ export function SettingsPage() {
             {saved && <span className="text-statusOk text-sm">{t('settings.saved')}</span>}
             {error && <span className="text-statusFail text-sm">{error}</span>}
           </div>
+
+          <SectionTitle>{t('settings.sectionLook')}</SectionTitle>
+          <Card className="flex flex-col gap-5">
+            <Field label={t('settings.shape')} hint={t('settings.shapeHint')}>
+              <div className="keep-well flex w-fit items-center gap-0.5 p-1">
+                {SHAPES.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setCfg({ ...cfg, shape: s })}
+                    className={`rounded-[var(--radius-control)] px-3 py-1.5 text-xs font-medium transition-colors ${
+                      cfg.shape === s
+                        ? 'bg-carbon-surface text-carbon-text'
+                        : 'text-carbon-textMuted hover:text-carbon-text'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      {/* The swatch is the setting: it carries the radius it
+                          selects, so the choice is visible before it is made. */}
+                      <span
+                        className="h-3.5 w-3.5 bg-accent"
+                        style={{ borderRadius: s === 'round' ? '6px' : s === 'soft' ? '2px' : '0' }}
+                      />
+                      {t(`settings.shape.${s}` as never)}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </Field>
+
+            <Field label={t('settings.accent')} hint={t('settings.accentHint')}>
+              <div className="flex flex-wrap items-center gap-2">
+                {ACCENTS.map((a) => {
+                  const active = (cfg.accent || DEFAULT_ACCENT).toLowerCase() === a.hex.toLowerCase();
+                  return (
+                    <button
+                      key={a.hex}
+                      type="button"
+                      title={a.name}
+                      aria-label={a.name}
+                      aria-pressed={active}
+                      onClick={() => setCfg({ ...cfg, accent: a.hex })}
+                      className={`h-7 w-7 rounded-[var(--radius-control)] transition-transform motion-safe:hover:scale-110 ${
+                        active ? 'shadow-[0_0_0_2px_var(--carbon-bg),0_0_0_4px_currentColor]' : ''
+                      }`}
+                      style={{ backgroundColor: a.hex, color: a.hex }}
+                    />
+                  );
+                })}
+                {/* A free colour beside the presets: the list is a shortcut,
+                    not a fence. */}
+                <input
+                  type="color"
+                  aria-label={t('settings.accent')}
+                  value={cfg.accent || DEFAULT_ACCENT}
+                  onChange={(e) => setCfg({ ...cfg, accent: e.target.value })}
+                  className="h-7 w-9 cursor-pointer rounded-[var(--radius-control)] bg-carbon-surface2 p-1"
+                />
+                <Button kind="ghost" className="px-2.5 text-xs" onClick={() => setCfg({ ...cfg, accent: '' })}>
+                  {t('settings.accentReset')}
+                </Button>
+              </div>
+            </Field>
+          </Card>
 
           <SectionTitle>{t('settings.sectionSecurity')}</SectionTitle>
           <PasswordCard />

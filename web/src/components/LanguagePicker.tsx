@@ -55,7 +55,7 @@ export function LanguagePicker({ className }: { className?: string }) {
                 setLang(l.code);
                 setOpen(false);
               }}
-              className={`flex w-full items-center gap-2.5 rounded-[8px] px-2.5 py-1.5 text-left text-sm transition-colors ${
+              className={`flex w-full items-center gap-2.5 rounded-[var(--radius-control)] px-2.5 py-1.5 text-left text-sm transition-colors ${
                 l.code === lang
                   ? 'bg-carbon-surface2 text-carbon-text'
                   : 'text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text'

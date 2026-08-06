@@ -40,7 +40,7 @@ function Checkbox({ checked, onChange }: { checked: boolean; onChange: () => voi
       role="checkbox"
       aria-checked={checked}
       onClick={onChange}
-      className={`grid h-4.5 w-4.5 shrink-0 place-items-center rounded-[5px] transition-colors ${
+      className={`grid h-4.5 w-4.5 shrink-0 place-items-center rounded-[var(--radius-control)] transition-colors ${
         checked ? 'bg-accent text-accentContrast' : 'bg-carbon-surface3/60 text-transparent hover:bg-carbon-surface3'
       }`}
       style={{ height: '1.125rem', width: '1.125rem' }}

@@ -165,7 +165,7 @@ export function Downloads() {
               <button
                 key={f.key}
                 onClick={() => setFilter(f.key)}
-                className={`rounded-[7px] px-2.5 py-1 text-xs font-medium transition-colors ${
+                className={`rounded-[var(--radius-control)] px-2.5 py-1 text-xs font-medium transition-colors ${
                   filter === f.key
                     ? 'bg-carbon-surface text-carbon-text'
                     : 'text-carbon-textMuted hover:text-carbon-text'

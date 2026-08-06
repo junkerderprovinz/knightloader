@@ -191,4 +191,13 @@ export const it: Dict = {
   'task.checksumOk': 'Checksum verificato',
   'task.checksumFail': 'Il checksum non corrisponde',
   'settings.verifyChecksums': 'Verifica il download completato con il checksum fornito',
+  'settings.sectionLook': 'Aspetto',
+  'settings.shape': 'Angoli',
+  'settings.shapeHint': 'Vale insieme per schede, pulsanti, linguette, campi e badge.',
+  'settings.shape.round': 'Arrotondati',
+  'settings.shape.soft': 'Leggeri',
+  'settings.shape.square': 'Squadrati',
+  'settings.accent': 'Colore d’accento',
+  'settings.accentHint': 'Il solo colore per l’attività. Il testo sopra è scelto per contrasto.',
+  'settings.accentReset': 'Predefinito',
 };
