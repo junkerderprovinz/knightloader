@@ -1,7 +1,7 @@
 import { en, type Dict } from './en';
 
-// Loaders, not dictionaries: 26 languages eagerly bundled would make every
-// visitor download 25 they will never read. Each import() becomes its own chunk
+// Loaders, not dictionaries: 42 languages eagerly bundled would make every
+// visitor download 41 they will never read. Each import() becomes its own chunk
 // and is fetched when that language is actually chosen.
 //
 // English is the exception — it is bundled, because it is both the most likely
@@ -33,6 +33,22 @@ const LOADERS: Record<string, () => Promise<Dict>> = {
   he: async () => (await import('./he')).he,
   th: async () => (await import('./th')).th,
   vi: async () => (await import('./vi')).vi,
+  bg: async () => (await import('./bg')).bg,
+  sk: async () => (await import('./sk')).sk,
+  sl: async () => (await import('./sl')).sl,
+  hr: async () => (await import('./hr')).hr,
+  sr: async () => (await import('./sr')).sr,
+  lt: async () => (await import('./lt')).lt,
+  lv: async () => (await import('./lv')).lv,
+  et: async () => (await import('./et')).et,
+  is: async () => (await import('./is')).is,
+  ca: async () => (await import('./ca')).ca,
+  gl: async () => (await import('./gl')).gl,
+  eu: async () => (await import('./eu')).eu,
+  id: async () => (await import('./id')).id,
+  ms: async () => (await import('./ms')).ms,
+  hi: async () => (await import('./hi')).hi,
+  fa: async () => (await import('./fa')).fa,
 };
 
 /** The codes that actually have a translation, in catalogue order. */

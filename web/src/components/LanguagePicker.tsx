@@ -10,6 +10,14 @@ export function LanguagePicker({ className }: { className?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const current = languages.find((l) => l.code === lang) ?? languages[0];
 
+  // The flag sheet is fetched here rather than imported at the app root, so
+  // half a megabyte of coats of arms is not in the way of the first paint. It
+  // lands a moment later and the flags appear; until then the labels carry the
+  // menu on their own, which is why the label is never just a flag.
+  useEffect(() => {
+    void import('../flags.css');
+  }, []);
+
   useEffect(() => {
     if (!open) return;
     const onClick = (e: MouseEvent) => {
