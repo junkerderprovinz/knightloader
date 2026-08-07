@@ -139,6 +139,12 @@ export function EnabledSwitch({
     }
   }
 
+  // The switch is deliberately NOT the accent when it is on. Every row is
+  // enabled by default, so an accent-filled pill per row spends the one colour
+  // that means "something is happening here" on the most ordinary fact on the
+  // page — a column of gold next to a single gold progress bar, and the bar
+  // stops reading as the thing that matters. On is the quiet state; off is the
+  // exception, and the exception is what earns the ink.
   return (
     <button
       type="button"
@@ -149,15 +155,15 @@ export function EnabledSwitch({
       disabled={busy}
       onClick={flip}
       className={`relative h-3.5 w-7 shrink-0 rounded-[var(--radius-pill)] transition-colors disabled:opacity-40 ${
-        on ? 'bg-accent' : 'bg-carbon-surface3'
+        on ? 'bg-carbon-surface3' : 'bg-statusFailBg'
       }`}
     >
       {/* left-0 is load-bearing: without it the knob starts from its static
           position, which the button's inherited text-align centres, and the knob
           then slides out past the track. */}
       <span
-        className={`absolute left-0 top-0.5 h-2.5 w-2.5 rounded-[var(--radius-pill)] bg-white shadow-sm transition-[translate] duration-150 ${
-          on ? 'translate-x-4' : 'translate-x-0.5'
+        className={`absolute left-0 top-0.5 h-2.5 w-2.5 rounded-[var(--radius-pill)] shadow-sm transition-[translate] duration-150 ${
+          on ? 'translate-x-4 bg-carbon-textSub' : 'translate-x-0.5 bg-statusFail'
         }`}
       />
     </button>
@@ -472,13 +478,27 @@ export const COLUMN_BY_ID = new Map<ColumnId, ColumnDef>(COLUMNS.map((c) => [c.i
 export const DEFAULT_ORDER: ColumnId[] = COLUMNS.map((c) => c.id);
 
 /**
+ * The one column that stretches. Its stored width becomes a flex ratio rather
+ * than a pixel count, so dragging it still works and still persists — it just
+ * competes for the leftover room instead of demanding an exact slice of it.
+ */
+const FLEX_COLUMN: ColumnId = 'name';
+
+/**
  * What each list starts with switched off. The collector holds links nobody has
  * started, so a speed and a finished-at column there are three empty cells per
  * row pretending to be information.
+ *
+ * The downloads set is also cut to what FITS. Measured on the live instance at a
+ * 1400px window: every column on by default came to 1812px against 1112px of
+ * room, so the table opened 700px scrolled off its own right edge and the last
+ * two columns were only reachable by dragging sideways. A default that does not
+ * fit reads as a broken layout, not as a rich one — the rest are one click away
+ * in the header menu, which is the point of having the menu.
  */
 export const DEFAULT_HIDDEN: Record<ListProfile, ColumnId[]> = {
-  downloads: ['comment', 'source'],
-  collector: ['progress', 'speed', 'eta', 'finished', 'comment'],
+  downloads: ['comment', 'source', 'added', 'finished', 'resolver'],
+  collector: ['progress', 'speed', 'eta', 'finished', 'comment', 'added'],
 };
 
 // --- The stored layout, and surviving an update ----------------------------
@@ -606,8 +626,30 @@ export const GUTTER_ACTIONS = '9.5rem';
  * separately, so a column drag repaints the table by touching a single element
  * instead of re-rendering several hundred rows per pointer move.
  */
+/**
+ * The track list. Every column is its stored pixel width except the FLEX one,
+ * which takes whatever is left over.
+ *
+ * That column is the name, and making it flexible rather than fixed is what
+ * stops the table opening scrolled off its own right edge: with all widths
+ * fixed, a trailing spacer soaked up any surplus but nothing absorbed a
+ * shortfall, so a window narrower than the sum simply cut the last columns off.
+ * Measured at 1400px: 276px over, with a 340px name column sitting next to a
+ * spacer doing nothing. The name is the right one to give: it is the column
+ * people widen the window FOR, it truncates gracefully, and its own minimum
+ * keeps it readable when the flex runs out and the table does start scrolling.
+ */
 export function gridTemplate(visible: ColumnDef[], widthOf: (id: ColumnId) => number): string {
-  return [GUTTER_SELECT, ...visible.map((c) => `${widthOf(c.id)}px`), 'minmax(1rem, 1fr)', GUTTER_ACTIONS].join(' ');
+  // Exactly one track per rendered cell, and no spare. The rows are a grid with
+  // no explicit row count, so one track too few silently wraps the last cell
+  // onto a second grid line — which does not look like a layout bug, it looks
+  // like the rows are simply tall, and every row grew from 38px to 74px before
+  // anybody counted the tracks. The flexible column is never hideable, so there
+  // is no case where a spacer is needed to soak up the surplus.
+  const tracks = visible.map((c) =>
+    c.id === FLEX_COLUMN ? `minmax(${c.minWidth}px, ${widthOf(c.id)}fr)` : `${widthOf(c.id)}px`,
+  );
+  return [GUTTER_SELECT, ...tracks, GUTTER_ACTIONS].join(' ');
 }
 
 // --- Sorting, which is a view and nothing more -----------------------------
