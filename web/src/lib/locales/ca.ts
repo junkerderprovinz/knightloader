@@ -318,6 +318,7 @@ export const ca: Dict = {
   'remove.keys': "Supr treu les files seleccionades de la llista. Maj+Supr n'esborra també els fitxers.",
 
   'menu.label': 'Accions per a les baixades seleccionades',
+  'menu.packageLabel': 'Accions per a aquest paquet',
   'menu.more': 'Més',
   'menu.enable': 'Activa',
   'menu.disable': 'Desactiva',
@@ -325,6 +326,9 @@ export const ca: Dict = {
   'menu.release': 'Allibera',
   'menu.force': 'Força al davant',
   'menu.unforce': 'Deixa de forçar',
+  'menu.setFolder': 'Estableix la carpeta de baixades…',
+  'menu.collapseAll': 'Plega tots els paquets',
+  'menu.expandAll': 'Desplega tots els paquets',
   'collector.checkAll': 'Comprova-ho tot',
 
   'skipped.summary': "No s'han afegit {n} enllaços",

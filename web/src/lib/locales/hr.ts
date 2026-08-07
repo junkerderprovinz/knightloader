@@ -318,6 +318,7 @@ export const hr: Dict = {
   'remove.keys': 'Del skida odabrane retke s popisa. Shift+Del briše i njihove datoteke.',
 
   'menu.label': 'Radnje za odabrana preuzimanja',
+  'menu.packageLabel': 'Radnje za ovaj paket',
   'menu.more': 'Više',
   'menu.enable': 'Uključi',
   'menu.disable': 'Isključi',
@@ -325,6 +326,9 @@ export const hr: Dict = {
   'menu.release': 'Pusti',
   'menu.force': 'Proguraj naprijed',
   'menu.unforce': 'Prestani gurati',
+  'menu.setFolder': 'Postavi mapu za preuzimanja…',
+  'menu.collapseAll': 'Sažmi sve pakete',
+  'menu.expandAll': 'Proširi sve pakete',
   'collector.checkAll': 'Provjeri sve',
 
   'skipped.summary': '{n} poveznica nije dodano',

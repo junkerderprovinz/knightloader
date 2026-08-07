@@ -169,6 +169,10 @@ export function rainbowColor(i: number): string | undefined {
  * position sets on itself. The matching `.glim-hue` rules in index.css decide
  * whether the hue is shown at rest or held back until hover, so a component
  * only has to say which colour it owns, never which mode is active.
+ *
+ * The class and these properties always travel together: `.glim-hue` with no
+ * `--item-hue` under it would resolve the accent to nothing. Components get
+ * both from one call — `hueStyle()` in components/ui.tsx.
  */
 export function hueVars(hex: string | undefined): Record<string, string> {
   if (!valid(hex)) return {};
@@ -181,6 +185,11 @@ export function hueVars(hex: string | undefined): Record<string, string> {
     // eight rows of eight hues stop being a download list and start being a
     // colour chart.
     '--item-hue-wash': `rgba(${r}, ${g}, ${b}, 0.07)`,
+    // The focus ring follows the position too. A gold ring around a teal tab is
+    // the one place the single accent leaks back into the plural mode, and it
+    // is the most visible one, because it only ever appears on the element the
+    // keyboard is standing on.
+    '--item-hue-ring': `rgba(${r}, ${g}, ${b}, 0.55)`,
   };
 }
 

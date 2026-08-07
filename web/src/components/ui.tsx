@@ -3,7 +3,8 @@
 // that file — see the comment block there.
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from 'react';
+import type { ButtonHTMLAttributes, CSSProperties, InputHTMLAttributes, ReactNode } from 'react';
+import { hueVars, rainbowAt } from '../lib/appearance';
 import { IconClose } from '../lib/icons';
 
 type ButtonKind = 'primary' | 'secondary' | 'ghost' | 'danger';
@@ -39,24 +40,66 @@ export function Button({
   );
 }
 
+// One caption, so a Field and a FieldGroup cannot drift apart: they are the same
+// row of words with the same (i) beside it, and the only difference between them
+// is which element wraps the control underneath.
+const FIELD_SHELL = 'flex flex-col gap-1.5';
+
+function Caption({ label, hint }: { label: string; hint?: string }) {
+  return (
+    <span className="flex items-center text-xs text-carbon-textSub">
+      {label}
+      {hint && <InfoBubble tip={hint} />}
+    </span>
+  );
+}
+
 /**
- * Field pairs a label with a control. The explanation, when there is one, is
+ * Field pairs a label with ONE control. The explanation, when there is one, is
  * not printed under the control: it lives behind the (i) beside the label.
  *
  * A settings page whose every row carries two lines of grey prose is a page
  * nobody reads twice — the explanation is needed once and then costs vertical
  * space forever. Behind the bubble it is still one hover away, and still
  * reachable by keyboard and by screen reader.
+ *
+ * ONE control, and the word is load-bearing. This is a `<label>`, and a
+ * `<label>` hands its clicks and its name to the first labelable thing inside
+ * it — which is what makes clicking the word "Password" focus the password box,
+ * and which is a trap the moment the control is a *set* of controls. Measured on
+ * the live instance: the corner picker sat in a Field, so clicking the caption
+ * "Corners" set the whole app back to round corners, and the first tab
+ * announced itself as "Corners Applies to cards, buttons, tabs…" instead of
+ * "Round". Nothing was broken about the tabs; they were simply inside the wrong
+ * element, which no test can see. Use FieldGroup for a row of swatches, a tab
+ * strip, a pair of buttons — anything where "the first control" is not the
+ * answer.
  */
 export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
-    <label className="flex flex-col gap-1.5">
-      <span className="flex items-center text-xs text-carbon-textSub">
-        {label}
-        {hint && <InfoBubble tip={hint} />}
-      </span>
+    <label className={FIELD_SHELL}>
+      <Caption label={label} hint={hint} />
       {children}
     </label>
+  );
+}
+
+/**
+ * FieldGroup is Field's caption over a SET of controls — identical to look at,
+ * and deliberately not a `<label>`.
+ *
+ * It adds no `role` and no `aria-labelledby` of its own, because the things that
+ * go in it already name themselves: `Tabs` puts its `label` on the tablist and
+ * `SwatchRow` is a `role="group"` with the same. A second group around them
+ * would announce the caption twice and give two names to one idea — the same
+ * mistake in the accessibility tree that a nested card is in the layout.
+ */
+export function FieldGroup({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+  return (
+    <div className={FIELD_SHELL}>
+      <Caption label={label} hint={hint} />
+      {children}
+    </div>
   );
 }
 
@@ -139,10 +182,125 @@ export function InfoBubble({ tip, className = '' }: { tip: string; className?: s
  * corner picker). The chosen segment is FILLED with the accent — the same
  * treatment as the active nav item, so "this is the one that is on" reads
  * identically everywhere instead of being a surface tint here and a rail there.
+ *
+ * `Tabs` in components/Tabs.tsx is built from these three strings rather than
+ * from lookalikes of them, so a tab, a filter chip and a segment cannot drift
+ * apart: there is one treatment, and it is defined here.
  */
 export const segBase = 'rounded-[var(--radius-control)] font-medium transition-colors';
 export const segOn = 'bg-accent text-accentContrast';
 export const segOff = 'text-carbon-textMuted hover:text-carbon-text';
+
+/**
+ * hueStyle is how anything that is one member of a set claims a palette
+ * position: the element carries `glim-hue` and gets these inline properties.
+ *
+ * It exists so the class and the properties are never separated — `.glim-hue`
+ * on an element with no `--item-hue` under it resolves the accent to nothing at
+ * all. Pass the item's index in its list; positions come from position, never
+ * from a hash of an id (see the design language). When rainbow is off the
+ * properties are inert, so a component may set them unconditionally.
+ *
+ * It reads the live palette during render, which means the component calling it
+ * must also subscribe with `useRainbow()` — otherwise it keeps whatever colours
+ * were current when it last rendered for some other reason, and editing a
+ * swatch appears to do nothing until the page is touched. `Tabs` does this for
+ * its callers; a component hueing its own rows does it itself.
+ */
+export function hueStyle(index: number | undefined): CSSProperties {
+  if (index === undefined) return {};
+  return hueVars(rainbowAt(index)) as CSSProperties;
+}
+
+/**
+ * Swatch is a colour in a row of colours — one control for both jobs the Look
+ * page has.
+ *
+ * They used to be two: the accent presets were coloured squares with a ring on
+ * the chosen one, the palette was a row of raw `<input type="color">` boxes
+ * with the browser's own chrome around them. Two controls, one job, sitting in
+ * the same card four rows apart. Here the square IS the control in both cases;
+ * when it is editable the native picker sits invisibly on top of it, so the
+ * click lands where the colour is and the keyboard still reaches it.
+ *
+ * `onPick` alone makes a preset (choose this colour). `onColor` makes an
+ * editable position (open a picker for it). Passing both is a preset that can
+ * also be edited, which is what the free colour beside the presets is.
+ */
+export function Swatch({
+  color,
+  label,
+  selected = false,
+  onPick,
+  onColor,
+}: {
+  color: string;
+  /** Accessible name — a colour with no name is a square nobody can describe. */
+  label: string;
+  selected?: boolean;
+  onPick?: () => void;
+  onColor?: (hex: string) => void;
+}) {
+  // The ring is drawn in the swatch's own colour with the page ground between,
+  // so it reads as a halo rather than as a border — rule 5, no lines.
+  const shell = `relative h-7 w-7 shrink-0 overflow-hidden rounded-[var(--radius-control)]
+    transition-transform motion-safe:hover:scale-110 ${
+      selected ? 'shadow-[0_0_0_2px_var(--carbon-bg),0_0_0_4px_currentColor]' : ''
+    }`;
+  const style: CSSProperties = { backgroundColor: color, color };
+
+  if (onColor) {
+    return (
+      <span className={shell} style={style} title={label}>
+        <input
+          type="color"
+          aria-label={label}
+          value={color}
+          onChange={(e) => onColor(e.target.value)}
+          onClick={onPick ? () => onPick() : undefined}
+          // Invisible, but full-size and focusable: the swatch under it is what
+          // is seen, the input is what is operated. `opacity-0` rather than
+          // `hidden`, or it stops being reachable by keyboard.
+          className="absolute inset-0 h-full w-full cursor-pointer appearance-none border-0 bg-transparent p-0 opacity-0"
+        />
+      </span>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      title={label}
+      aria-label={label}
+      aria-pressed={selected}
+      onClick={onPick}
+      className={shell}
+      style={style}
+    />
+  );
+}
+
+/**
+ * SwatchRow lays swatches out and keeps whatever ends the row — the reset, in
+ * both places that use it. It wraps rather than scrolls: eight squares and a
+ * word must never be the reason a settings page scrolls sideways.
+ */
+export function SwatchRow({
+  label,
+  children,
+  after,
+}: {
+  label: string;
+  children: ReactNode;
+  after?: ReactNode;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-2" role="group" aria-label={label}>
+      {children}
+      {after}
+    </div>
+  );
+}
 
 const inputClass =
   'w-full rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-sm text-carbon-text ' +

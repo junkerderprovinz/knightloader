@@ -318,6 +318,7 @@ export const gl: Dict = {
   'remove.keys': 'Supr quita as filas seleccionadas da lista. Maiús+Supr borra tamén os seus ficheiros.',
 
   'menu.label': 'Accións para as descargas seleccionadas',
+  'menu.packageLabel': 'Accións para este paquete',
   'menu.more': 'Máis',
   'menu.enable': 'Activar',
   'menu.disable': 'Desactivar',
@@ -325,6 +326,9 @@ export const gl: Dict = {
   'menu.release': 'Soltar',
   'menu.force': 'Forzar diante',
   'menu.unforce': 'Deixar de forzar',
+  'menu.setFolder': 'Definir o cartafol de descargas…',
+  'menu.collapseAll': 'Pregar todos os paquetes',
+  'menu.expandAll': 'Despregar todos os paquetes',
   'collector.checkAll': 'Comprobar todo',
 
   'skipped.summary': 'Non se engadiron {n} ligazóns',

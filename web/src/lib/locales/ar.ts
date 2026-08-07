@@ -320,6 +320,7 @@ export const ar: Dict = {
   'remove.keys': 'زر Del يرفع الصفوف المحدّدة من القائمة. وShift+Del يحذف ملفاتها كذلك.',
 
   'menu.label': 'إجراءات على التنزيلات المحدّدة',
+  'menu.packageLabel': 'إجراءات على هذه الحزمة',
   'menu.more': 'المزيد',
   'menu.enable': 'تشغيل',
   'menu.disable': 'إيقاف',
@@ -327,6 +328,9 @@ export const ar: Dict = {
   'menu.release': 'إطلاق',
   'menu.force': 'الدفع إلى المقدمة',
   'menu.unforce': 'إيقاف الدفع',
+  'menu.setFolder': 'تعيين مجلد التنزيل…',
+  'menu.collapseAll': 'طي كل الحزم',
+  'menu.expandAll': 'توسيع كل الحزم',
   'collector.checkAll': 'فحص الكل',
 
   'skipped.summary': 'لم يُضف {n} رابط',

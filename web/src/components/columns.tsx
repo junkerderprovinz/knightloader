@@ -16,7 +16,7 @@ import { fmtBytes, fmtDate, fmtEta, fmtSpeed, pct } from '../lib/format';
 import type { TranslationKey } from '../lib/i18n';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
-import { IconCheck } from '../lib/icons';
+import { IconCheck, IconRetry } from '../lib/icons';
 import { ProgressBar } from './ProgressBar';
 import { ResolverBadge, StatusPill } from './StatusPill';
 
@@ -44,6 +44,49 @@ export type ColumnId =
 export type ListProfile = 'downloads' | 'collector';
 
 export type Translate = (key: TranslationKey, vars?: Record<string, string | number>) => string;
+
+// --- The tree column -------------------------------------------------------
+//
+// The name column is the tree column, and these four numbers are the package
+// row's leading furniture. They live here, beside the column that has to leave
+// room for them, because the indent and the column's own minimum width are one
+// decision: a floor that does not include the indent is a floor for a name that
+// is no longer there.
+
+/** The name cell's own leading padding. */
+const CELL_PAD = 8;
+/** The tree control's hit target (`h-6 w-6` on the package row). */
+const TWISTY_BOX = 24;
+/** `gap-1.5` between twisty, folder and name. */
+const TREE_GAP = 6;
+/** The package glyph. Exported so the row that draws it uses this very number. */
+export const FOLDER_GLYPH = 16;
+
+/**
+ * How far a link's name is indented inside its package, in pixels.
+ *
+ * Not a taste number: it is exactly the width of the furniture in front of a
+ * package's NAME, so a link's name starts where its package's name starts and
+ * the twisty and the folder hang to the left of both — the shape of every tree
+ * anyone arriving from JDownloader has used.
+ *
+ * It was 36px, and 36 is less than 60: measured on the live instance, a link's
+ * name began 24px BEFORE its own package's name. That reads as the link being
+ * the outer level and the package the inner one — the tree upside down — and no
+ * test can see it, because nothing about it is wrong except where it is.
+ */
+export const TREE_INDENT = CELL_PAD + TWISTY_BOX + TREE_GAP + FOLDER_GLYPH + TREE_GAP;
+
+/**
+ * What is left for the name itself once the indent is paid.
+ *
+ * The name column's minimum is this PLUS the indent, so widening the indent
+ * cannot quietly narrow the text: the tree got 24px deeper and the floor moved
+ * 24px with it, which is why a name reads exactly as well after that change as
+ * before it. 120px is about sixteen characters — the point at which a file name
+ * still tells you which file it is.
+ */
+const NAME_TEXT_FLOOR = 120;
 
 export interface CellContext {
   t: Translate;
@@ -176,13 +219,46 @@ function NameCell({ task, t }: { task: Task; t: Translate }) {
   const retrying = task.status === 'error' && !!task.nextTry;
   return (
     <div className="min-w-0">
-      <div dir="ltr" className="truncate text-start text-[13.5px] text-carbon-text">
+      {/* Its own title, because the list's generic one cannot reach it: the row
+          gives a cell its text as a tooltip only when the cell renders a plain
+          string, and this one renders a component. Without it the name column
+          at its narrowest is truncated text with no way at all to read the rest
+          — and this is the column that truncates first, because it is the one
+          that gives up its width to the others. */}
+      <div dir="ltr" title={task.name || task.url} className="truncate text-start text-[13.5px] text-carbon-text">
         {task.name || task.url}
       </div>
       {task.error && (
-        <div className="mt-0.5 flex items-center gap-2 text-[11px]">
-          <span className="truncate text-statusFail">{task.error}</span>
-          {retrying && <span className="shrink-0 text-carbon-textMuted">· {t('task.retryPending')}</span>}
+        <div className="mt-0.5 flex items-center gap-1.5 text-[11px]">
+          {/* The reason wins the room, and `flex-1 min-w-0` is what gives it to
+              it. The pending-retry note used to sit here as `shrink-0` prose,
+              and prose that cannot shrink beside text that can is a race the
+              text always loses: measured on the live instance at 1440, the
+              German note wanted 142px of a 116px line, so the error span was
+              squeezed to ZERO and the note itself was still cut off mid-word by
+              the cell's own overflow. The row then said nothing about why it
+              had failed — on the one row on the page somebody has to act on. */}
+          {/* `min-w-0` and no `flex-1`: it sizes to its text and is the only
+              thing on the line that may shrink, so it takes the whole shortfall
+              and the glyph stays beside the sentence it belongs to instead of
+              being pushed to the far edge of a wide column. */}
+          <span title={task.error} className="min-w-0 truncate text-statusFail">
+            {task.error}
+          </span>
+          {/* So the note is a glyph now: fixed width, never competing, and it
+              still carries the whole sentence for the pointer and the screen
+              reader. It is deliberately not the accent — a retry that has not
+              happened yet is waiting, not activity. */}
+          {retrying && (
+            <span
+              role="img"
+              aria-label={t('task.retryPending')}
+              title={t('task.retryPending')}
+              className="shrink-0 text-carbon-textMuted"
+            >
+              <IconRetry width={11} height={11} />
+            </span>
+          )}
         </div>
       )}
     </div>
@@ -277,6 +353,23 @@ const STATUS_RANK: Record<Task['status'], number> = {
   error: 6,
 };
 
+/**
+ * packageStatus is the one word a package header can honestly show.
+ *
+ * A failure anywhere wins, whatever else the package is doing: nine finished
+ * files and one dead link is not a finished package, and a header that says
+ * "Done" hides the one row somebody has to act on. Otherwise it is the least
+ * settled state in the package, so a package with one running link reads as
+ * running rather than as the queue its other nine links are still sitting in.
+ */
+export function packageStatus(items: Task[]): Task['status'] {
+  if (items.length === 0) return 'queued';
+  if (items.some((x) => x.status === 'error')) return 'error';
+  let best = items[0].status;
+  for (const x of items) if (STATUS_RANK[x.status] < STATUS_RANK[best]) best = x.status;
+  return best;
+}
+
 // Unknown sorts last ascending rather than first: a row that cannot say how long
 // it has left is not "about to finish".
 const ETA_UNKNOWN = Number.MAX_SAFE_INTEGER;
@@ -312,7 +405,7 @@ export const COLUMNS: ColumnDef[] = [
     id: 'name',
     labelKey: 'columns.name',
     width: 340,
-    minWidth: 160,
+    minWidth: TREE_INDENT + NAME_TEXT_FLOOR,
     align: 'start',
     hideable: false,
     compare: (a, b) => cmpText(label(a), label(b)),
@@ -399,6 +492,9 @@ export const COLUMNS: ColumnDef[] = [
     hideable: true,
     compare: (a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status],
     render: (task, ctx) => <StatusCell task={task} t={ctx.t} />,
+    // A package that shows nothing in the status column is a package that looks
+    // like a spacer. It gets the same pill as a link, over the whole package.
+    aggregate: (items) => <StatusPill status={packageStatus(items)} />,
   },
   {
     id: 'host',
@@ -410,6 +506,12 @@ export const COLUMNS: ColumnDef[] = [
     hideable: true,
     compare: (a, b) => cmpText(hostOf(a), hostOf(b)),
     render: (task) => hostOf(task),
+    // Only when the whole package came from one host. "3 hosts" in a column of
+    // host names is a different kind of value in the same column.
+    aggregate: (items) => {
+      const one = new Set(items.map(hostOf));
+      return one.size === 1 ? hostOf(items[0]) : null;
+    },
   },
   {
     id: 'added',
@@ -489,16 +591,36 @@ const FLEX_COLUMN: ColumnId = 'name';
  * started, so a speed and a finished-at column there are three empty cells per
  * row pretending to be information.
  *
- * The downloads set is also cut to what FITS. Measured on the live instance at a
- * 1400px window: every column on by default came to 1812px against 1112px of
- * room, so the table opened 700px scrolled off its own right edge and the last
- * two columns were only reachable by dragging sideways. A default that does not
- * fit reads as a broken layout, not as a rich one — the rest are one click away
- * in the header menu, which is the point of having the menu.
+ * BOTH sets are also cut towards what FITS, and that is the test each one has to
+ * pass on its own. Measured on the live instance at a 1400px window: every
+ * column on by default came to 1812px against 1112px of room, so the downloads
+ * table opened 700px scrolled off its own right edge and the last two columns
+ * were only reachable by dragging sideways. A default that does not fit reads as
+ * a broken layout, not as a rich one — the rest are one click away in the header
+ * menu, which is the point of having the menu.
+ *
+ * Downloads is cut as far as it can honestly go and still does NOT fit: measured
+ * again at 1440, its eight columns want 1188px against 1152px of room, so the
+ * name column sits at its 180px floor and the table scrolls 36px inside its own
+ * card (196px at 1280). Every column left on it carries a value on every row —
+ * size, progress, speed, eta, status, host are the download table JDownloader
+ * shows and the muscle memory expects — so the remaining shortfall is a widths
+ * decision, not a which-columns one, and it is deliberately not being made here
+ * by whoever last touched this file. The page itself never scrolls sideways;
+ * only the table does, which is what the overflow container is for.
+ *
+ * The collector was cut by relevance only and never measured, and it failed the
+ * same test the moment anybody looked: at 1280 its default set came to 1234px
+ * against 982px of room. The whole 252px shortfall was `source`, 260px wide and
+ * empty on every row of a list whose links were pasted — while the name column,
+ * the one thing on the row that says WHICH file this is, sat pinned at its
+ * 180px floor with fifteen characters of a file name showing. Hiding source
+ * gives that 260px back to the name and the table fits, which is also what the
+ * downloads set already decided about the same column.
  */
 export const DEFAULT_HIDDEN: Record<ListProfile, ColumnId[]> = {
   downloads: ['comment', 'source', 'added', 'finished', 'resolver'],
-  collector: ['progress', 'speed', 'eta', 'finished', 'comment', 'added'],
+  collector: ['progress', 'speed', 'eta', 'finished', 'comment', 'added', 'source'],
 };
 
 // --- The stored layout, and surviving an update ----------------------------

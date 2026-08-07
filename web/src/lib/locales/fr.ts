@@ -310,6 +310,7 @@ export const fr: Dict = {
   'remove.keys': 'Suppr retire les lignes sélectionnées de la liste. Maj+Suppr supprime aussi leurs fichiers.',
 
   'menu.label': 'Actions pour les téléchargements sélectionnés',
+  'menu.packageLabel': 'Actions pour ce paquet',
   'menu.more': 'Plus',
   'menu.enable': 'Activer',
   'menu.disable': 'Désactiver',
@@ -317,6 +318,9 @@ export const fr: Dict = {
   'menu.release': 'Relâcher',
   'menu.force': 'Forcer en tête',
   'menu.unforce': 'Ne plus forcer',
+  'menu.setFolder': 'Définir le dossier de téléchargement…',
+  'menu.collapseAll': 'Replier tous les paquets',
+  'menu.expandAll': 'Déplier tous les paquets',
   'collector.checkAll': 'Tout vérifier',
 
   'skipped.summary': '{n} lien(s) n’ont pas été ajoutés',

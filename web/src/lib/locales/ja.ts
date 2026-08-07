@@ -318,6 +318,7 @@ export const ja: Dict = {
   'remove.keys': 'Del は選択した行をリストから外します。Shift+Del はファイルも削除します。',
 
   'menu.label': '選択したダウンロードへの操作',
+  'menu.packageLabel': 'このパッケージへの操作',
   'menu.more': 'その他',
   'menu.enable': 'オンにする',
   'menu.disable': 'オフにする',
@@ -325,6 +326,9 @@ export const ja: Dict = {
   'menu.release': '保留を解除',
   'menu.force': '先頭へ割り込ませる',
   'menu.unforce': '割り込みをやめる',
+  'menu.setFolder': '保存先フォルダーを設定…',
+  'menu.collapseAll': 'すべてのパッケージを折りたたむ',
+  'menu.expandAll': 'すべてのパッケージを展開',
   'collector.checkAll': 'すべて確認',
 
   'skipped.summary': '{n} 件のリンクは追加されませんでした',

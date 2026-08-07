@@ -318,6 +318,7 @@ export const lv: Dict = {
   'remove.keys': 'Delete noņem atzīmētās rindas no saraksta. Shift+Delete dzēš arī to failus.',
 
   'menu.label': 'Darbības atzīmētajām lejupielādēm',
+  'menu.packageLabel': 'Darbības ar šo pakotni',
   'menu.more': 'Vairāk',
   'menu.enable': 'Ieslēgt',
   'menu.disable': 'Izslēgt',
@@ -325,6 +326,9 @@ export const lv: Dict = {
   'menu.release': 'Atlaist',
   'menu.force': 'Pastumt uz priekšu',
   'menu.unforce': 'Vairs nestumt',
+  'menu.setFolder': 'Iestatīt lejupielāžu mapi…',
+  'menu.collapseAll': 'Sakļaut visas pakotnes',
+  'menu.expandAll': 'Izvērst visas pakotnes',
   'collector.checkAll': 'Pārbaudīt visu',
 
   'skipped.summary': '{n} saites netika pievienotas',

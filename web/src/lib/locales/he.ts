@@ -320,6 +320,7 @@ export const he: Dict = {
   'remove.keys': 'Del מוריד את השורות המסומנות מהרשימה. Shift+Del מוחק גם את הקבצים שלהן.',
 
   'menu.label': 'פעולות על ההורדות המסומנות',
+  'menu.packageLabel': 'פעולות על החבילה הזו',
   'menu.more': 'עוד',
   'menu.enable': 'הדלק',
   'menu.disable': 'כבה',
@@ -327,6 +328,9 @@ export const he: Dict = {
   'menu.release': 'שחרר',
   'menu.force': 'דחוף לראש התור',
   'menu.unforce': 'הפסק לדחוף',
+  'menu.setFolder': 'הגדרת תיקיית הורדות…',
+  'menu.collapseAll': 'כיווץ כל החבילות',
+  'menu.expandAll': 'פריסת כל החבילות',
   'collector.checkAll': 'בדוק הכול',
 
   'skipped.summary': '{n} קישורים לא נוספו',

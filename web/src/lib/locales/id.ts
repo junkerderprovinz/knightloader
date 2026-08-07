@@ -318,6 +318,7 @@ export const id: Dict = {
   'remove.keys': 'Del mengangkat baris terpilih dari daftar. Shift+Del menghapus berkasnya juga.',
 
   'menu.label': 'Tindakan untuk unduhan terpilih',
+  'menu.packageLabel': 'Tindakan untuk paket ini',
   'menu.more': 'Lainnya',
   'menu.enable': 'Nyalakan',
   'menu.disable': 'Matikan',
@@ -325,6 +326,9 @@ export const id: Dict = {
   'menu.release': 'Lepaskan',
   'menu.force': 'Paksa ke depan',
   'menu.unforce': 'Berhenti memaksa',
+  'menu.setFolder': 'Atur folder unduhan…',
+  'menu.collapseAll': 'Ciutkan semua paket',
+  'menu.expandAll': 'Bentangkan semua paket',
   'collector.checkAll': 'Cek semua',
 
   'skipped.summary': '{n} tautan tidak ditambahkan',

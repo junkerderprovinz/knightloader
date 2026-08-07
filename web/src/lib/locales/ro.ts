@@ -318,6 +318,7 @@ export const ro: Dict = {
   'remove.keys': 'Del scoate rândurile selectate din listă. Shift+Del le șterge și fișierele.',
 
   'menu.label': 'Acțiuni pentru descărcările selectate',
+  'menu.packageLabel': 'Acțiuni pentru acest pachet',
   'menu.more': 'Mai multe',
   'menu.enable': 'Pornește',
   'menu.disable': 'Oprește',
@@ -325,6 +326,9 @@ export const ro: Dict = {
   'menu.release': 'Eliberează',
   'menu.force': 'Forțează în față',
   'menu.unforce': 'Nu mai forța',
+  'menu.setFolder': 'Setează dosarul de descărcare…',
+  'menu.collapseAll': 'Restrânge toate pachetele',
+  'menu.expandAll': 'Extinde toate pachetele',
   'collector.checkAll': 'Verifică tot',
 
   'skipped.summary': '{n} linkuri nu au fost adăugate',

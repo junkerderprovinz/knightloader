@@ -318,6 +318,7 @@ export const sr: Dict = {
   'remove.keys': 'Del скида изабране редове са списка. Shift+Del брише и њихове датотеке.',
 
   'menu.label': 'Радње за изабрана преузимања',
+  'menu.packageLabel': 'Радње за овај пакет',
   'menu.more': 'Још',
   'menu.enable': 'Укључи',
   'menu.disable': 'Искључи',
@@ -325,6 +326,9 @@ export const sr: Dict = {
   'menu.release': 'Пусти',
   'menu.force': 'Прогурај напред',
   'menu.unforce': 'Престани да гураш',
+  'menu.setFolder': 'Постави фасциклу за преузимања…',
+  'menu.collapseAll': 'Скупи све пакете',
+  'menu.expandAll': 'Прошири све пакете',
   'collector.checkAll': 'Провери све',
 
   'skipped.summary': '{n} веза није додато',

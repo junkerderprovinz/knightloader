@@ -318,6 +318,7 @@ export const sv: Dict = {
   'remove.keys': 'Del tar bort de markerade raderna från listan. Skift+Del raderar även deras filer.',
 
   'menu.label': 'Åtgärder för de markerade nedladdningarna',
+  'menu.packageLabel': 'Åtgärder för det här paketet',
   'menu.more': 'Mer',
   'menu.enable': 'Slå på',
   'menu.disable': 'Slå av',
@@ -325,6 +326,9 @@ export const sv: Dict = {
   'menu.release': 'Släpp',
   'menu.force': 'Tvinga främst',
   'menu.unforce': 'Sluta tvinga',
+  'menu.setFolder': 'Ange nedladdningsmapp…',
+  'menu.collapseAll': 'Fäll ihop alla paket',
+  'menu.expandAll': 'Fäll ut alla paket',
   'collector.checkAll': 'Kontrollera alla',
 
   'skipped.summary': '{n} länk(ar) lades inte till',

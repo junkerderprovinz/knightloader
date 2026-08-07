@@ -318,6 +318,7 @@ export const fa: Dict = {
   'remove.keys': 'کلید Del سطرهای برگزیده را از فهرست برمی‌دارد. Shift+Del پرونده‌هایشان را هم پاک می‌کند.',
 
   'menu.label': 'کنش‌ها برای دانلودهای برگزیده',
+  'menu.packageLabel': 'کنش‌ها برای این بسته',
   'menu.more': 'بیشتر',
   'menu.enable': 'روشن',
   'menu.disable': 'خاموش',
@@ -325,6 +326,9 @@ export const fa: Dict = {
   'menu.release': 'رها کردن',
   'menu.force': 'راندن به جلو',
   'menu.unforce': 'پایان راندن',
+  'menu.setFolder': 'تنظیم پوشه دانلود…',
+  'menu.collapseAll': 'جمع کردن همه بسته‌ها',
+  'menu.expandAll': 'گسترش همه بسته‌ها',
   'collector.checkAll': 'بررسی همه',
 
   'skipped.summary': '{n} پیوند افزوده نشد',

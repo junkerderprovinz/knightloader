@@ -318,6 +318,7 @@ export const hu: Dict = {
   'remove.keys': 'A Del leveszi a kijelölt sorokat a listáról. A Shift+Del a fájljaikat is törli.',
 
   'menu.label': 'Műveletek a kijelölt letöltésekre',
+  'menu.packageLabel': 'Műveletek ezen a csomagon',
   'menu.more': 'Több',
   'menu.enable': 'Bekapcsolás',
   'menu.disable': 'Kikapcsolás',
@@ -325,6 +326,9 @@ export const hu: Dict = {
   'menu.release': 'Elengedés',
   'menu.force': 'Előrevétel',
   'menu.unforce': 'Előrevétel vége',
+  'menu.setFolder': 'Letöltési mappa beállítása…',
+  'menu.collapseAll': 'Összes csomag összecsukása',
+  'menu.expandAll': 'Összes csomag kibontása',
   'collector.checkAll': 'Mind ellenőrzése',
 
   'skipped.summary': '{n} link nem lett hozzáadva',

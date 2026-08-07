@@ -318,6 +318,7 @@ export const is: Dict = {
   'remove.keys': 'Delete tekur valdar raðir af listanum. Shift+Delete eyðir líka skránum þeirra.',
 
   'menu.label': 'Aðgerðir fyrir valin niðurhöl',
+  'menu.packageLabel': 'Aðgerðir fyrir þennan pakka',
   'menu.more': 'Meira',
   'menu.enable': 'Kveikja',
   'menu.disable': 'Slökkva',
@@ -325,6 +326,9 @@ export const is: Dict = {
   'menu.release': 'Sleppa',
   'menu.force': 'Þrýsta fremst',
   'menu.unforce': 'Hætta að þrýsta',
+  'menu.setFolder': 'Stilla niðurhalsmöppu…',
+  'menu.collapseAll': 'Fella saman alla pakka',
+  'menu.expandAll': 'Fletta út öllum pökkum',
   'collector.checkAll': 'Athuga allt',
 
   'skipped.summary': '{n} hlekkjum var ekki bætt við',

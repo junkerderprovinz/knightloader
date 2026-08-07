@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { NavLink, Navigate, Route, Routes, useParams } from 'react-router-dom';
+import { Navigate, Route, Routes, useMatch, useNavigate, useParams } from 'react-router-dom';
 import { type Settings, fetchSettings, saveSettings } from '../lib/api';
 import { useResource } from '../lib/useResource';
 import { readUIState, useUIState } from '../lib/uistate';
 import { useT } from '../lib/i18n';
 import { Button, ErrorCard, LoadingCard, PageHeader } from '../components/ui';
+import { Tabs } from '../components/Tabs';
 import { SettingsProvider, type FeatureAccess, type SettingsDraft } from './settings/context';
 import { fetchFeatures, setFeature, type FeaturePage, type FeatureState } from './settings/features';
-import { FALLBACK_PAGE, hasContent, renderSettingsPage } from './settings/registry';
+import { FALLBACK_PAGE, hasContent, pageIcon, renderSettingsPage } from './settings/registry';
 import { label, useTx } from './settings/tx';
 
 /**
@@ -130,8 +131,14 @@ export function SettingsPage() {
       {/* The title is rendered for screen readers only — the rail entry beside
           it already says the same word. See PageHeader. */}
       <PageHeader title={t('settings.title')} />
-      <div className="mt-4 flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
-        <Rail pages={features.pages} />
+      {/* The sections run across the top, not down the side. BombVault puts
+          them there, JDownloader puts them there, and GlimStone is supposed to
+          be the same everywhere — a side rail here and a tab strip in the
+          sibling app is two answers to one question. It also gives the page its
+          full width back, which is what the wide tables on Advanced and Rules
+          were always short of. */}
+      <div className="mt-4 flex flex-col gap-6">
+        <SectionTabs pages={features.pages} />
 
         <div className="flex min-w-0 flex-1 flex-col gap-6">
           <Routes>
@@ -161,41 +168,45 @@ export function SettingsPage() {
 }
 
 /**
- * The rail. The active entry is FILLED with the accent, the same treatment as
- * the sidebar — no rules, no leading-edge bars: a vertical mark reads as a stray
- * border under the square corner setting, and the fill is the one marking that
- * survives all three.
+ * The section tabs, across the top.
+ *
+ * This was a left rail of hand-rolled NavLinks. It is now the app's one
+ * horizontal chooser — the same component as the download list's quick filters
+ * and the corner picker on Look — so the active section is FILLED exactly the
+ * way an active filter and an active segment are, and in rainbow mode each tab
+ * takes its own palette position. Nothing here restates how a tab looks; that
+ * lives in Tabs.tsx once.
+ *
+ * Every tab is also a real link. Ctrl-clicking Advanced to read it beside
+ * Downloads is a thing people do with something that looks like navigation, and
+ * a strip of buttons quietly swallows the gesture.
  */
-function Rail({ pages }: { pages: FeaturePage[] }) {
+function SectionTabs({ pages }: { pages: FeaturePage[] }) {
   const { tx } = useTx();
-  const base =
-    'rounded-[var(--radius-control)] px-3 py-2 text-left text-[13px] font-medium transition duration-150 select-none whitespace-nowrap';
-  const active = 'glim-active bg-accent text-accentContrast';
-  const inactive = 'text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text';
+  const navigate = useNavigate();
+  const here = useMatch('/settings/:page');
+
   return (
-    // A row that scrolls on a phone and a column beside the content above it.
-    // The rail scrolls inside itself rather than widening the page, so a long
-    // page name never puts the body into a horizontal scroll.
-    <nav
-      aria-label={tx('settings.railLabel')}
-      className="-mx-1 flex shrink-0 gap-1 overflow-x-auto px-1 pb-1 lg:mx-0 lg:w-44 lg:flex-col lg:overflow-visible lg:px-0 lg:pb-0"
-    >
-      {pages.map((p) => (
-        <NavLink
-          key={p.id}
-          to={pagePath(p.id)}
-          // A page with no controls yet is dimmed, not hidden or disabled: the
-          // address works, the page explains itself, and saying so before the
-          // click is cheaper than after it. Only the inactive state is dimmed —
-          // a selected entry has to stay legible on the accent.
-          className={({ isActive }) =>
-            `${base} ${isActive ? active : `${inactive} ${hasContent(p.id) ? '' : 'opacity-60'}`}`
-          }
-        >
-          {label(tx, 'settings.nav.', p.id)}
-        </NavLink>
-      ))}
-    </nav>
+    <Tabs
+      label={tx('settings.railLabel')}
+      active={here?.params.page ?? null}
+      onSelect={(id) => navigate(pagePath(id))}
+      // Arrow keys move focus without selecting. Selecting as they move is what
+      // a JTabbedPane does and what Tabs defaults to, but every selection here
+      // pushes a history entry — holding Right to reach Advanced would leave
+      // twelve of them behind and turn the Back button into a chore.
+      activateOnFocus={false}
+      items={pages.map((p) => ({
+        id: p.id,
+        label: label(tx, 'settings.nav.', p.id),
+        icon: pageIcon(p.id),
+        href: pagePath(p.id),
+        // A page with no controls yet is dimmed, not hidden or disabled: the
+        // address works, the page explains itself, and saying so before the
+        // click is cheaper than after it.
+        dim: !hasContent(p.id),
+      }))}
+    />
   );
 }
 

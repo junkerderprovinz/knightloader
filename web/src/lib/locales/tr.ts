@@ -318,6 +318,7 @@ export const tr: Dict = {
   'remove.keys': 'Del seçili satırları listeden alır. Shift+Del dosyalarını da siler.',
 
   'menu.label': 'Seçili indirmeler için işlemler',
+  'menu.packageLabel': 'Bu paket için işlemler',
   'menu.more': 'Daha fazla',
   'menu.enable': 'Aç',
   'menu.disable': 'Kapat',
@@ -325,6 +326,9 @@ export const tr: Dict = {
   'menu.release': 'Bırak',
   'menu.force': 'Öne zorla',
   'menu.unforce': 'Zorlamayı bırak',
+  'menu.setFolder': 'İndirme klasörünü ayarla…',
+  'menu.collapseAll': 'Tüm paketleri daralt',
+  'menu.expandAll': 'Tüm paketleri genişlet',
   'collector.checkAll': 'Hepsini denetle',
 
   'skipped.summary': '{n} bağlantı eklenmedi',

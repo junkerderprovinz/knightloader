@@ -318,6 +318,7 @@ export const sk: Dict = {
   'remove.keys': 'Delete odoberie vybrané riadky zo zoznamu. Shift+Delete zmaže aj ich súbory.',
 
   'menu.label': 'Akcie pre vybrané sťahovania',
+  'menu.packageLabel': 'Akcie pre tento balík',
   'menu.more': 'Viac',
   'menu.enable': 'Zapnúť',
   'menu.disable': 'Vypnúť',
@@ -325,6 +326,9 @@ export const sk: Dict = {
   'menu.release': 'Uvoľniť',
   'menu.force': 'Pretlačiť dopredu',
   'menu.unforce': 'Prestať pretláčať',
+  'menu.setFolder': 'Nastaviť priečinok na sťahovanie…',
+  'menu.collapseAll': 'Zbaliť všetky balíky',
+  'menu.expandAll': 'Rozbaliť všetky balíky',
   'collector.checkAll': 'Overiť všetko',
 
   'skipped.summary': '{n} odkazov nebolo pridaných',

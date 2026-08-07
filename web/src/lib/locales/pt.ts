@@ -310,6 +310,7 @@ export const pt: Dict = {
   'remove.keys': 'Del retira as linhas selecionadas da lista. Shift+Del apaga também os ficheiros delas.',
 
   'menu.label': 'Ações para os downloads selecionados',
+  'menu.packageLabel': 'Ações para este pacote',
   'menu.more': 'Mais',
   'menu.enable': 'Ligar',
   'menu.disable': 'Desligar',
@@ -317,6 +318,9 @@ export const pt: Dict = {
   'menu.release': 'Libertar',
   'menu.force': 'Forçar para a frente',
   'menu.unforce': 'Deixar de forçar',
+  'menu.setFolder': 'Definir a pasta de transferências…',
+  'menu.collapseAll': 'Recolher todos os pacotes',
+  'menu.expandAll': 'Expandir todos os pacotes',
   'collector.checkAll': 'Verificar tudo',
 
   'skipped.summary': '{n} link(s) não foram adicionados',

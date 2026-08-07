@@ -318,6 +318,7 @@ export const vi: Dict = {
   'remove.keys': 'Del bỏ các dòng đã chọn khỏi danh sách. Shift+Del xóa cả tệp của chúng.',
 
   'menu.label': 'Hành động cho các tải xuống đã chọn',
+  'menu.packageLabel': 'Hành động cho gói này',
   'menu.more': 'Thêm',
   'menu.enable': 'Bật',
   'menu.disable': 'Tắt',
@@ -325,6 +326,9 @@ export const vi: Dict = {
   'menu.release': 'Thả ra',
   'menu.force': 'Đẩy lên đầu',
   'menu.unforce': 'Thôi đẩy lên',
+  'menu.setFolder': 'Đặt thư mục tải về…',
+  'menu.collapseAll': 'Thu gọn mọi gói',
+  'menu.expandAll': 'Mở rộng mọi gói',
   'collector.checkAll': 'Kiểm tra tất cả',
 
   'skipped.summary': '{n} liên kết không được thêm',

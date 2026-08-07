@@ -318,6 +318,7 @@ export const bg: Dict = {
   'remove.keys': 'Del маха избраните редове от списъка. Shift+Del трие и файловете им.',
 
   'menu.label': 'Действия за избраните изтегляния',
+  'menu.packageLabel': 'Действия за този пакет',
   'menu.more': 'Още',
   'menu.enable': 'Включи',
   'menu.disable': 'Изключи',
@@ -325,6 +326,9 @@ export const bg: Dict = {
   'menu.release': 'Пусни',
   'menu.force': 'Избутай напред',
   'menu.unforce': 'Спри избутването',
+  'menu.setFolder': 'Задай папка за изтегляния…',
+  'menu.collapseAll': 'Сгъни всички пакети',
+  'menu.expandAll': 'Разгъни всички пакети',
   'collector.checkAll': 'Провери всичко',
 
   'skipped.summary': '{n} връзки не бяха добавени',

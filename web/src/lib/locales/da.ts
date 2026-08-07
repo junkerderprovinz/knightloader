@@ -318,6 +318,7 @@ export const da: Dict = {
   'remove.keys': 'Delete tager de valgte rækker af listen. Skift+Delete sletter også deres filer.',
 
   'menu.label': 'Handlinger for de valgte downloads',
+  'menu.packageLabel': 'Handlinger for denne pakke',
   'menu.more': 'Mere',
   'menu.enable': 'Slå til',
   'menu.disable': 'Slå fra',
@@ -325,6 +326,9 @@ export const da: Dict = {
   'menu.release': 'Slip',
   'menu.force': 'Tving forrest',
   'menu.unforce': 'Stop med at tvinge',
+  'menu.setFolder': 'Angiv downloadmappe…',
+  'menu.collapseAll': 'Fold alle pakker sammen',
+  'menu.expandAll': 'Fold alle pakker ud',
   'collector.checkAll': 'Tjek alle',
 
   'skipped.summary': '{n} link(s) blev ikke tilføjet',

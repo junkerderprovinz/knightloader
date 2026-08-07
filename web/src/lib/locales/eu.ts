@@ -318,6 +318,7 @@ export const eu: Dict = {
   'remove.keys': 'Ezab teklak hautatutako errenkadak zerrendatik kentzen ditu. Maius+Ezab haien fitxategiak ere ezabatzen ditu.',
 
   'menu.label': 'Hautatutako deskargen ekintzak',
+  'menu.packageLabel': 'Pakete honen ekintzak',
   'menu.more': 'Gehiago',
   'menu.enable': 'Piztu',
   'menu.disable': 'Itzali',
@@ -325,6 +326,9 @@ export const eu: Dict = {
   'menu.release': 'Askatu',
   'menu.force': 'Bultzatu aurrera',
   'menu.unforce': 'Utzi bultzatzeari',
+  'menu.setFolder': 'Ezarri deskargen karpeta…',
+  'menu.collapseAll': 'Tolestu pakete guztiak',
+  'menu.expandAll': 'Zabaldu pakete guztiak',
   'collector.checkAll': 'Egiaztatu dena',
 
   'skipped.summary': '{n} esteka ez dira gehitu',

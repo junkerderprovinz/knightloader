@@ -176,3 +176,81 @@ export const IconSignOut = (p: SVGProps<SVGSVGElement>) => (
     <path d="M8.5 10h8M14 7.5l2.5 2.5L14 12.5" />
   </svg>
 );
+
+/* ---------------------------------------------------------------------------
+   The settings tab bar.
+
+   Eight glyphs for the eight settings sections that had no icon in the app yet.
+   The other five reuse what is already here, on purpose: Downloads, Accounts
+   and Connections are the same idea as the sidebar entry and the connection row
+   that already carry those glyphs, Reconnect is the retry arrow the task list
+   uses for "do it again", and General is the gear — one idea, one drawing.
+
+   Every one of these is drawn to survive 16px, which is the only size the tab
+   bar ever asks for: no glyph here needs more than four strokes, and none of
+   them is a picture of a thing nobody could name out loud.
+   --------------------------------------------------------------------------- */
+
+/** Modules: a switch, because the page is a column of them. */
+export const IconModules = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.5}>
+    <rect x="2.5" y="5.75" width="15" height="8.5" rx="4.25" />
+    <circle cx="13.25" cy="10" r="2.25" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+/** Archives: a lidded box. */
+export const IconArchive = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2.5" y="3.5" width="15" height="4" rx="1" />
+    <path d="M4 7.5v8A1.5 1.5 0 0 0 5.5 17h9a1.5 1.5 0 0 0 1.5-1.5v-8" />
+    <path d="M8.25 11h3.5" />
+  </svg>
+);
+
+/** Rules: a funnel — what the packagizer and the link filter do to a list. */
+export const IconFilter = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 4.5h14l-5.4 6.2v5.1l-3.2 1.7v-6.8L3 4.5Z" />
+  </svg>
+);
+
+/** Captcha: the ticked box everyone has clicked to prove they are a person. */
+export const IconCaptcha = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="14" height="14" rx="2.5" />
+    <path d="M6.75 10.1l2.4 2.4 4.1-4.6" />
+  </svg>
+);
+
+/** Schedule: a clock. */
+export const IconClock = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="10" cy="10" r="7.25" />
+    <path d="M10 5.9V10l2.9 1.7" />
+  </svg>
+);
+
+/** Look: a drop of colour. */
+export const IconLook = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.5} strokeLinejoin="round">
+    <path d="M10 2.75c2.9 3.1 5 5.8 5 8.05a5 5 0 0 1-10 0c0-2.25 2.1-4.95 5-8.05Z" />
+  </svg>
+);
+
+/** Access: a padlock. */
+export const IconLock = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.5} strokeLinejoin="round">
+    <rect x="3.75" y="8.5" width="12.5" height="8.25" rx="1.75" />
+    <path d="M6.9 8.5V6.6a3.1 3.1 0 0 1 6.2 0v1.9" strokeLinecap="round" />
+  </svg>
+);
+
+/** Advanced: faders, for the page where every value can be set by hand. */
+export const IconSliders = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round">
+    <path d="M3 6.75h4.25M11.25 6.75H17M3 13.25h5.75M12.75 13.25H17" />
+    <circle cx="9.25" cy="6.75" r="2" />
+    <circle cx="10.75" cy="13.25" r="2" />
+  </svg>
+);

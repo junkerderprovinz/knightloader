@@ -4,7 +4,12 @@ import { useTasks } from '../lib/useTasks';
 import { useToast } from '../lib/toast';
 import { useT } from '../lib/i18n';
 import { PageHeader, Button, TextInput } from '../components/ui';
-import { TaskListCard, groupByPackage, type Selection } from '../components/TaskList';
+import {
+  TaskListCard,
+  groupByPackage,
+  useCollapsedPackages,
+  type Selection,
+} from '../components/TaskList';
 import { PackageActions } from '../components/PackageActions';
 import { ContainerDrop } from '../components/ContainerDrop';
 import { FilteredLinks, useFx } from '../components/FilteredLinks';
@@ -16,8 +21,11 @@ import {
   ListToolbar,
   SelectionStrip,
   matchesQuickFilters,
+  targetPackage,
   targetTaskId,
   useRemoval,
+  type ListContext,
+  type MenuTarget,
   type QuickFilterId,
 } from '../components/ListToolbar';
 import { EMPTY_SEARCH, matchesSearch, type SearchQuery } from '../components/SearchField';
@@ -36,6 +44,8 @@ export function Collector() {
   const [filters, setFilters] = useState<Set<QuickFilterId>>(() => new Set());
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const menu = useContextMenu();
+  const [target, setTarget] = useState<MenuTarget>({ kind: 'selection' });
+  const folds = useCollapsedPackages('collector');
 
   // Everything this instance holds, not only what is staged: a removal weighs
   // the bytes already on disk, and those belong to rows this page never shows.
@@ -137,9 +147,8 @@ export function Collector() {
     toast(t('collector.toastStarted', { n: collected.length }), 'info');
   };
 
-  // The same rule as the download list: the row under the pointer becomes the
-  // selection when it was not one already, and with nothing to act on the
-  // browser's own menu is left alone rather than replaced by an empty one.
+  // The same three readings as the download list: a link, a package header, or
+  // the empty space around them.
   function onContextMenu(e: React.MouseEvent): void {
     // The column header opens its own menu on right-click; when it has, this one
     // stays out of the way instead of stacking a second menu on top. The native
@@ -147,11 +156,31 @@ export function Collector() {
     // handler ran.
     if (e.nativeEvent.defaultPrevented) return;
     const id = targetTaskId(e);
-    if (!id && selected.size === 0) return;
-    if (id && !selected.has(id)) setSelected(new Set([id]));
+    const pkg = id === null ? targetPackage(e) : null;
+    if (id) {
+      if (!selected.has(id)) setSelected(new Set([id]));
+      setTarget({ kind: 'selection' });
+    } else if (pkg !== null) {
+      const ids = filtered.filter((x) => (x.package || '') === pkg).map((x) => x.id);
+      if (!(ids.length > 0 && ids.every((x) => selected.has(x)))) setSelected(new Set(ids));
+      setTarget({ kind: 'package', name: pkg });
+    } else {
+      setTarget({ kind: 'list' });
+    }
     e.preventDefault();
     menu.openAt(anchorFromEvent(e));
   }
+
+  const listContext: ListContext = {
+    packages: groups.map(([name]) => name),
+    collapsed: folds.collapsed,
+    onCollapse: folds.collapse,
+    onExpand: folds.expand,
+    onSelectAll: () => setSelected(new Set(filtered.map((x) => x.id))),
+    onSelectNone: clearSelection,
+    // The collector is always this instance's own.
+    local: true,
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -232,7 +261,10 @@ export function Collector() {
         selected={selected}
         onSelected={setSelected}
         removal={removal}
-        onMore={menu.openAt}
+        onMore={(at) => {
+          setTarget({ kind: 'selection' });
+          menu.openAt(at);
+        }}
       >
         <PackageActions
           tasks={collected}
@@ -285,10 +317,12 @@ export function Collector() {
       <ListMenu
         anchor={menu.anchor}
         onClose={menu.close}
-        all={collected}
+        all={all}
         selected={selected}
         base="/api"
         removal={removal}
+        target={target}
+        list={listContext}
       />
       {removal.dialog}
     </div>

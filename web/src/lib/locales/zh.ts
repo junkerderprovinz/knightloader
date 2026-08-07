@@ -318,6 +318,7 @@ export const zh: Dict = {
   'remove.keys': 'Del 把选中的行从列表移除。Shift+Del 连它们的文件一起删除。',
 
   'menu.label': '对所选下载的操作',
+  'menu.packageLabel': '对此包的操作',
   'menu.more': '更多',
   'menu.enable': '打开',
   'menu.disable': '关闭',
@@ -325,6 +326,9 @@ export const zh: Dict = {
   'menu.release': '放行',
   'menu.force': '强制排到最前',
   'menu.unforce': '取消强制',
+  'menu.setFolder': '设置下载文件夹…',
+  'menu.collapseAll': '折叠所有包',
+  'menu.expandAll': '展开所有包',
   'collector.checkAll': '全部检查',
 
   'skipped.summary': '有 {n} 个链接没有添加',

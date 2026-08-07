@@ -318,6 +318,7 @@ export const hi: Dict = {
   'remove.keys': 'Del चुनी हुई पंक्तियाँ सूची से हटाता है। Shift+Del उनकी फ़ाइलें भी मिटा देता है।',
 
   'menu.label': 'चुने हुए डाउनलोड के लिए क्रियाएँ',
+  'menu.packageLabel': 'इस पैकेज के लिए क्रियाएँ',
   'menu.more': 'और',
   'menu.enable': 'चालू करें',
   'menu.disable': 'बंद करें',
@@ -325,6 +326,9 @@ export const hi: Dict = {
   'menu.release': 'छोड़ें',
   'menu.force': 'सबसे आगे धकेलें',
   'menu.unforce': 'धकेलना बंद करें',
+  'menu.setFolder': 'डाउनलोड फ़ोल्डर सेट करें…',
+  'menu.collapseAll': 'सभी पैकेज समेटें',
+  'menu.expandAll': 'सभी पैकेज खोलें',
   'collector.checkAll': 'सब जाँचें',
 
   'skipped.summary': '{n} लिंक जोड़े नहीं गए',

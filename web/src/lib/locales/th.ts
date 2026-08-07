@@ -318,6 +318,7 @@ export const th: Dict = {
   'remove.keys': 'Del เอาแถวที่เลือกออกจากรายการ Shift+Del ลบไฟล์ของแถวนั้นด้วย',
 
   'menu.label': 'การกระทำกับรายการที่เลือก',
+  'menu.packageLabel': 'การกระทำกับแพ็กเกจนี้',
   'menu.more': 'เพิ่มเติม',
   'menu.enable': 'เปิด',
   'menu.disable': 'ปิด',
@@ -325,6 +326,9 @@ export const th: Dict = {
   'menu.release': 'ปล่อย',
   'menu.force': 'ดันขึ้นหน้าสุด',
   'menu.unforce': 'เลิกดัน',
+  'menu.setFolder': 'ตั้งโฟลเดอร์ดาวน์โหลด…',
+  'menu.collapseAll': 'ยุบทุกแพ็กเกจ',
+  'menu.expandAll': 'กางทุกแพ็กเกจ',
   'collector.checkAll': 'ตรวจทั้งหมด',
 
   'skipped.summary': 'มี {n} ลิงก์ที่ไม่ได้ถูกเพิ่ม',

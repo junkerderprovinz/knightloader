@@ -318,6 +318,7 @@ export const uk: Dict = {
   'remove.keys': 'Del знімає вибрані рядки зі списку. Shift+Del видаляє й їхні файли.',
 
   'menu.label': 'Дії для вибраних завантажень',
+  'menu.packageLabel': 'Дії для цього пакета',
   'menu.more': 'Ще',
   'menu.enable': 'Увімкнути',
   'menu.disable': 'Вимкнути',
@@ -325,6 +326,9 @@ export const uk: Dict = {
   'menu.release': 'Відпустити',
   'menu.force': 'Проштовхнути вперед',
   'menu.unforce': 'Не проштовхувати',
+  'menu.setFolder': 'Задати теку завантажень…',
+  'menu.collapseAll': 'Згорнути всі пакети',
+  'menu.expandAll': 'Розгорнути всі пакети',
   'collector.checkAll': 'Перевірити все',
 
   'skipped.summary': '{n} посилань не додано',

@@ -318,6 +318,7 @@ export const cs: Dict = {
   'remove.keys': 'Delete odebere vybrané řádky ze seznamu. Shift+Delete smaže i jejich soubory.',
 
   'menu.label': 'Akce pro vybraná stahování',
+  'menu.packageLabel': 'Akce pro tento balíček',
   'menu.more': 'Více',
   'menu.enable': 'Zapnout',
   'menu.disable': 'Vypnout',
@@ -325,6 +326,9 @@ export const cs: Dict = {
   'menu.release': 'Uvolnit',
   'menu.force': 'Protlačit dopředu',
   'menu.unforce': 'Přestat protlačovat',
+  'menu.setFolder': 'Nastavit složku pro stahování…',
+  'menu.collapseAll': 'Sbalit všechny balíčky',
+  'menu.expandAll': 'Rozbalit všechny balíčky',
   'collector.checkAll': 'Ověřit vše',
 
   'skipped.summary': '{n} odkazů nebylo přidáno',

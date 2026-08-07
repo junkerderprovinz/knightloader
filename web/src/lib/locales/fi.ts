@@ -318,6 +318,7 @@ export const fi: Dict = {
   'remove.keys': 'Delete ottaa valitut rivit pois listalta. Vaihto+Delete poistaa myös niiden tiedostot.',
 
   'menu.label': 'Toiminnot valituille latauksille',
+  'menu.packageLabel': 'Toiminnot tälle paketille',
   'menu.more': 'Lisää',
   'menu.enable': 'Kytke päälle',
   'menu.disable': 'Kytke pois',
@@ -325,6 +326,9 @@ export const fi: Dict = {
   'menu.release': 'Vapauta',
   'menu.force': 'Pakota eteen',
   'menu.unforce': 'Lopeta pakottaminen',
+  'menu.setFolder': 'Aseta latauskansio…',
+  'menu.collapseAll': 'Supista kaikki paketit',
+  'menu.expandAll': 'Laajenna kaikki paketit',
   'collector.checkAll': 'Tarkista kaikki',
 
   'skipped.summary': '{n} linkkiä ei lisätty',

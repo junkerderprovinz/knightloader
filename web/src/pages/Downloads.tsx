@@ -15,7 +15,12 @@ import { fmtSpeed } from '../lib/format';
 import { useT } from '../lib/i18n';
 import { PageHeader, Button, EmptyState } from '../components/ui';
 import { Counters } from '../components/Counters';
-import { TaskListCard, groupByPackage, type Selection } from '../components/TaskList';
+import {
+  TaskListCard,
+  groupByPackage,
+  useCollapsedPackages,
+  type Selection,
+} from '../components/TaskList';
 import { PackageActions } from '../components/PackageActions';
 import { QueueBar } from '../components/QueueBar';
 import {
@@ -25,8 +30,11 @@ import {
   ListToolbar,
   SelectionStrip,
   matchesQuickFilters,
+  targetPackage,
   targetTaskId,
   useRemoval,
+  type ListContext,
+  type MenuTarget,
   type QuickFilterId,
 } from '../components/ListToolbar';
 import { EMPTY_SEARCH, matchesSearch, type SearchQuery } from '../components/SearchField';
@@ -43,6 +51,12 @@ export function Downloads() {
   const [filters, setFilters] = useState<Set<QuickFilterId>>(() => new Set());
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const menu = useContextMenu();
+  // What the pointer landed on. A link, a package header and the empty space
+  // below the rows each offer a different menu.
+  const [target, setTarget] = useState<MenuTarget>({ kind: 'selection' });
+  // The same folded set the list card reads, because folding is also a menu
+  // entry and the menu belongs to the page.
+  const folds = useCollapsedPackages('downloads');
   const base = apiBase(instance);
   const tasks = useTasks(instance);
 
@@ -113,12 +127,14 @@ export function Downloads() {
   const retryFailed = () => restartTasks([], base);
 
   /**
-   * Right-click opens the menu for the row it landed on, and selects that row
-   * first when it was not already selected — acting on something the user cannot
-   * see highlighted is how the wrong download gets deleted.
+   * Right-click opens the menu for what it landed on, and takes the selection
+   * with it — acting on something the user cannot see highlighted is how the
+   * wrong download gets deleted.
    *
-   * With no row under the pointer and nothing selected there is nothing to offer,
-   * so the browser's own menu is left alone rather than replaced by an empty one.
+   * A link becomes the selection when it was not one already. A package header
+   * takes the whole package, unless the package is already inside a bigger
+   * selection, in which case that selection is what the user can see and what
+   * the menu keeps acting on. Empty space acts on the list itself.
    */
   function onContextMenu(e: React.MouseEvent): void {
     // Something closer to the pointer has already claimed this right-click — the
@@ -128,11 +144,31 @@ export function Downloads() {
     // have called preventDefault.
     if (e.nativeEvent.defaultPrevented) return;
     const id = targetTaskId(e);
-    if (!id && selected.size === 0) return;
-    if (id && !selected.has(id)) setSelected(new Set([id]));
+    const pkg = id === null ? targetPackage(e) : null;
+    if (id) {
+      if (!selected.has(id)) setSelected(new Set([id]));
+      setTarget({ kind: 'selection' });
+    } else if (pkg !== null) {
+      const ids = filtered.filter((x) => (x.package || '') === pkg).map((x) => x.id);
+      if (!(ids.length > 0 && ids.every((x) => selected.has(x)))) setSelected(new Set(ids));
+      setTarget({ kind: 'package', name: pkg });
+    } else {
+      setTarget({ kind: 'list' });
+    }
     e.preventDefault();
     menu.openAt(anchorFromEvent(e));
   }
+
+  const listContext: ListContext = {
+    packages: groups.map(([name]) => name),
+    collapsed: folds.collapsed,
+    onCollapse: folds.collapse,
+    onExpand: folds.expand,
+    onSelectAll: () => setSelected(new Set(filtered.map((x) => x.id))),
+    onSelectNone: clearSelection,
+    // Clean-up always runs here, never on the peer whose list is being shown.
+    local: instance === '',
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -209,7 +245,10 @@ export function Downloads() {
         selected={selected}
         onSelected={setSelected}
         removal={removal}
-        onMore={menu.openAt}
+        onMore={(at) => {
+          setTarget({ kind: 'selection' });
+          menu.openAt(at);
+        }}
       >
         <PackageActions tasks={list} selected={selected} base={base} />
         {/* Queue order only means something while something is waiting, so these
@@ -277,13 +316,17 @@ export function Downloads() {
         </Button>
       </ListActionBar>
 
+      {/* `all`, not `list`: a removal has to weigh bytes that belong to rows this
+          page never shows, and a clean-up class picks its own. */}
       <ListMenu
         anchor={menu.anchor}
         onClose={menu.close}
-        all={list}
+        all={all}
         selected={selected}
         base={base}
         removal={removal}
+        target={target}
+        list={listContext}
       />
       {removal.dialog}
     </div>
