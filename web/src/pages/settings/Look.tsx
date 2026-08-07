@@ -61,28 +61,22 @@ export function Look() {
         <Tabs
           label={t('settings.shape')}
           size="sm"
-          // Bare, not in a well. Everywhere else the strip sits on the page
-          // ground and the well is what groups it; here it sits inside a card,
-          // where a second fill reads as an inset panel bolted onto the page —
-          // and one raised surface is rule 1. The segments carry themselves:
-          // the chosen one is filled, the rest are quiet text.
-          //
-          // Tabs has no `bare` variant to ask for, so the well is overridden
-          // from here — see the report.
-          className="w-fit bg-transparent! p-0!"
+          className="w-fit"
           active={cfg.shape}
           onSelect={(id) => patch({ shape: id as Shape })}
           items={SHAPES.map((s) => ({
             id: s,
             label: t(`settings.shape.${s}` as never),
             // The glyph is the setting: it carries the radius it selects, so
-            // the choice is visible before it is made. On the filled tab it
-            // borrows the ink colour, since an accent swatch on an accent fill
-            // is a blank space.
+            // the choice is visible before it is made. It is an OUTLINE, not a
+            // filled square — a coloured dot beside each of three labels is
+            // three dots of decoration, and the accent is supposed to mean
+            // activity. Drawn in the label's own colour, it says what it has to
+            // say with the shape alone.
             icon: (
               <span
                 aria-hidden
-                className={`h-3.5 w-3.5 shrink-0 ${cfg.shape === s ? 'bg-current' : 'bg-accent'}`}
+                className="h-3.5 w-3.5 shrink-0 border-[1.5px] border-current"
                 style={{ borderRadius: s === 'round' ? '6px' : s === 'soft' ? '2px' : '0' }}
               />
             ),
@@ -122,26 +116,33 @@ export function Look() {
         </SwatchRow>
       </FieldGroup>
 
-      {/* Not a Field: a Field stacks its label above its control, which is right
-          for a picker that cannot name itself and wrong for a switch that
-          already carries its own words. Stacked, this row read as two lines and
-          two labels for one decision — the section's name, and then a switch
-          under it saying something else. Beside each other they read as one
-          sentence: Rainbow — use the palette. */}
+      {/* Three switches in one column, all starting at the same edge.
+          The master used to carry a second label ("use the palette") beside the
+          section's own name, which said the same thing twice, and the two
+          sub-switches were indented under it. The indent was meant to show they
+          belong to the mode — but they are already dimmed when it is off, which
+          says that better, and the step left three switch tracks starting at two
+          different x positions. Flush, the column reads down in one line. */}
       <div className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <span className="flex items-center text-xs text-carbon-textSub">
-            {t('settings.rainbow')}
-            <InfoBubble tip={t('settings.rainbowHint')} />
-          </span>
-          <Toggle checked={cfg.rainbow} onChange={(v) => patch({ rainbow: v })} label={t('settings.rainbowOn')} />
-        </div>
+        <span className="flex items-center text-xs text-carbon-textSub">
+          {t('settings.rainbow')}
+          <InfoBubble tip={t('settings.rainbowHint')} />
+        </span>
 
-        {/* The sub-switches belong to the mode, so they are indented under it
-            and disabled rather than hidden: a control that vanishes teaches
-            nobody what the mode can do. */}
+        {/* No visible words: the heading directly above already says Rainbow,
+            and a switch captioned "use the palette" under it said the same
+            decision twice. The label survives as the accessible name. */}
+        <Toggle
+          checked={cfg.rainbow}
+          onChange={(v) => patch({ rainbow: v })}
+          label={t('settings.rainbowOn')}
+          hideLabel
+        />
+
+        {/* Disabled rather than hidden: a control that vanishes teaches nobody
+            what the mode can do. */}
         <div
-          className={`flex flex-col gap-3 ps-6 transition-opacity ${
+          className={`flex flex-col gap-3 transition-opacity ${
             cfg.rainbow ? '' : 'pointer-events-none opacity-40'
           }`}
         >

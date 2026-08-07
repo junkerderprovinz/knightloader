@@ -163,11 +163,17 @@ export function Tabs(props: TabsProps) {
       aria-label={label}
       aria-orientation="horizontal"
       onKeyDown={onKeyDown}
+      // No well behind the tabs, and no padding: the tabs are the furniture.
+      // Wrapped in a surface they read as a toolbar sitting on the page, which
+      // is one more box than the page needs — the filled tab already says which
+      // one is chosen, and a container around it says nothing at all. The gap
+      // grows to carry the separation the box used to.
+      //
       // Wraps, never scrolls. A strip that scrolls hides its own contents
       // behind a gesture nobody makes on a desktop, and a strip that grows
       // wider than its column puts the whole page into a horizontal scroll —
       // which is the one thing a tab bar across the top must never do.
-      className={`glim-well flex flex-wrap items-center gap-0.5 p-1 ${className}`}
+      className={`flex flex-wrap items-center gap-1 ${className}`}
     >
       {items.map((item, i) => {
         const on = isOn(item.id);

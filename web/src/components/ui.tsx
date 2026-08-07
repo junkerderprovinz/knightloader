@@ -343,20 +343,32 @@ export function NumberInput({
   );
 }
 
+/**
+ * A switch with its words beside it.
+ *
+ * `label` is normally rendered. Set `hideLabel` where the heading above the
+ * switch already says the same thing — the words then survive only as the
+ * accessible name, so a screen reader still announces something other than
+ * "switch", while the eye is not told twice. Never drop the label itself: a
+ * bare switch with no name at all is a control nobody can describe.
+ */
 export function Toggle({
   checked,
   onChange,
   label,
+  hideLabel = false,
 }: {
   checked: boolean;
   onChange: (v: boolean) => void;
   label: string;
+  hideLabel?: boolean;
 }) {
   return (
     <button
       type="button"
       role="switch"
       aria-checked={checked}
+      aria-label={hideLabel ? label : undefined}
       onClick={() => onChange(!checked)}
       className="flex items-center gap-3 text-left text-sm text-carbon-text select-none"
     >
@@ -375,7 +387,7 @@ export function Toggle({
           }`}
         />
       </span>
-      <span>{label}</span>
+      {!hideLabel && <span>{label}</span>}
     </button>
   );
 }
