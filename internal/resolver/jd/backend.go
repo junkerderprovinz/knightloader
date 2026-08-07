@@ -33,6 +33,111 @@ func (b *Backend) Reachable() error { return b.c.Ping() }
 
 func (b *Backend) pkgName(taskID string) string { return "KL-" + taskID }
 
+// AddContainer hands JD an encrypted link container to open — a DLC, CCF or
+// RSDF, which need a key issued to registered clients and which JD holds one
+// for.
+//
+// It takes a URL and not a path because that is what JD accepts: the API's
+// addLinks takes links, and a filesystem path would have to name a file on JD's
+// own machine, which in the normal deployment is a different container
+// altogether. The caller serves the uploaded bytes over HTTP and passes that
+// address.
+//
+// autostart is false. The decrypted links land in JD's LinkGrabber, where they
+// can be looked at, rather than starting a download of an unknown number of
+// files on a machine whose queue the user is not looking at.
+// AddContainer opens an encrypted link container and returns the links inside
+// it. JD holds the key; we hold the download list.
+//
+// The crawl is waited out rather than fired and forgotten, which is what the
+// first version did: JD decrypted the container perfectly into its own grabber
+// and nothing ever read it back, so the upload reported success and the user's
+// list stayed empty. Waiting is also why the links are handed back as plain URLs
+// instead of being started in JD — coming back through the ordinary staging path
+// means the link filter, the packagizer and the duplicate check all still apply
+// to them, which they would not if JD simply started downloading.
+func (b *Backend) AddContainer(url, packageName string, timeout time.Duration) ([]string, error) {
+	// A name of our own, not the caller's: the caller's package name is where
+	// the links should land in OUR list, while this one exists only to find them
+	// again in JD's. Using the caller's would collide the moment two containers
+	// were opened into the same package.
+	marker := fmt.Sprintf("KL-%d", time.Now().UnixNano())
+	if _, err := b.c.AddContainerLinks(url, marker); err != nil {
+		return nil, err
+	}
+
+	deadline := time.Now().Add(timeout)
+	tick := time.NewTicker(time.Second)
+	defer tick.Stop()
+
+	var pkg int64
+	var links []CrawledLink
+	// A crawler that yields incrementally reports "not collecting" in the gaps
+	// between its own sub-crawls, so one quiet reading means nothing. Measured
+	// on a real DLC: at one second the package held 1 of its 11 links and the
+	// crawler was momentarily idle, and harvesting there took that single link
+	// and threw the other ten away. The count has to hold still instead.
+	settled := 0
+	const settledEnough = 3
+	for {
+		<-tick.C
+
+		// The package appears only once the crawl has produced something, which
+		// is also why "is it still collecting?" cannot be asked first: right
+		// after the container is handed over JD has not started yet, so it
+		// answers no, and a harvest there reads an empty grabber and concludes
+		// the container was empty. The package existing is the real starting
+		// gun.
+		if pkg == 0 {
+			var err error
+			if pkg, err = b.c.CrawledPackageUUID(marker); err != nil {
+				return nil, err
+			}
+		}
+		if pkg != 0 {
+			busy, err := b.c.Collecting()
+			if err != nil {
+				return nil, err
+			}
+			found, err := b.c.CrawledLinks(pkg)
+			if err != nil {
+				return nil, err
+			}
+			switch {
+			case busy || len(found) == 0 || len(found) != len(links):
+				// Still moving: either the crawler says so, or the count just
+				// changed under us. Either way the container is not all here.
+				settled = 0
+			default:
+				settled++
+			}
+			links = found
+			if settled >= settledEnough {
+				break
+			}
+		}
+
+		if time.Now().After(deadline) {
+			_ = b.c.RemoveCrawledPackage(pkg)
+			if pkg == 0 {
+				return nil, fmt.Errorf("jd did not open the container within %s", timeout)
+			}
+			return nil, fmt.Errorf("jd opened the container but produced no links within %s", timeout)
+		}
+	}
+
+	urls := make([]string, 0, len(links))
+	for _, l := range links {
+		if l.URL != "" {
+			urls = append(urls, l.URL)
+		}
+	}
+	// Best effort: we have the links, and failing to tidy JD's grabber is not a
+	// reason to tell the user their container did not open.
+	_ = b.c.RemoveCrawledPackage(pkg)
+	return urls, nil
+}
+
 // Download hands the link to JD (auto-crawl + start) and polls its progress.
 func (b *Backend) Download(taskID, url string, _ map[string]string, _ int) {
 	go func() {

@@ -1,15 +1,20 @@
 // Package settings persists user-tunable behaviour (concurrency, speed limit,
 // extraction) as JSON in the data dir and hands out consistent snapshots.
+//
+// This file holds the shape and the store: the Settings struct, the defaults, and
+// Load/Get/Set. What each group of fields is allowed to contain lives with that
+// group, in settings_queue.go, settings_paths.go, settings_appearance.go,
+// settings_intake.go and settings_network.go, each with its own sanitize hook
+// that sanitize below calls in turn. The struct is one declaration because Go
+// gives it no choice and because embedding sub-structs would flatten differently
+// in JSON and break every composite literal in the tree; the rules about it are
+// what is split, and those were the four hundred lines nobody could edit at once.
 package settings
 
 import (
 	"encoding/json"
-	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
-	"strings"
 	"sync"
 
 	"github.com/junkerderprovinz/knightloader/internal/collide"
@@ -109,29 +114,6 @@ type Settings struct {
 	Schedule []schedule.Entry `json:"schedule,omitempty"`
 }
 
-// Redacted returns a copy safe to hand to a browser. Two secrets live in here
-// now — the router password and every proxy password — and the endpoint that
-// serves the settings must use nothing but this: the moment a client is shown
-// them, the merge machinery in Set is protecting a value it already holds.
-//
-// The two packages disagree about how to hide a password, deliberately.
-// reconnect masks it with a placeholder that WithSecretsFrom reads back, so an
-// empty string can keep meaning "clear it"; proxycfg drops it and lets Merge put
-// it back when the row still describes the same connection. Neither is wrapped
-// or normalised here, because each is one half of a round trip its own package
-// owns.
-func (s Settings) Redacted() Settings {
-	s.Reconnect = s.Reconnect.Redacted()
-	if len(s.Connections) > 0 {
-		out := make([]proxycfg.Entry, len(s.Connections))
-		for i, e := range s.Connections {
-			out[i] = e.Redacted()
-		}
-		s.Connections = out
-	}
-	return s
-}
-
 // Defaults returns the settings a fresh install starts with.
 func Defaults() Settings {
 	return Settings{
@@ -204,171 +186,20 @@ func (s *Store) Set(n Settings) (Settings, error) {
 	return n, nil
 }
 
-// The three shapes the interface offers. Anything else falls back to round
-// rather than producing an interface with no radius rule at all.
-const (
-	ShapeRound  = "round"
-	ShapeSoft   = "soft"
-	ShapeSquare = "square"
-)
-
-// accentPattern is a plain six-digit hex colour. Accepting anything else would
-// put attacker-chosen text straight into a CSS custom property.
-var accentPattern = regexp.MustCompile(`^#[0-9a-fA-F]{6}$`)
-
-// RainbowSize is how many hues the palette has. It is fixed: the colours are
-// handed out by position, so a palette that can change length would silently
-// re-colour every existing row whenever the user added one.
-const RainbowSize = 8
-
-// sanitizePalette accepts a custom palette only in full. A palette with one
-// unusable entry is not a palette with seven good colours, it is a palette that
-// turns one row invisible, so the whole override is dropped back to the
-// built-in hues.
-func sanitizePalette(p []string) []string {
-	if len(p) != RainbowSize {
-		return nil
-	}
-	out := make([]string, 0, RainbowSize)
-	for _, c := range p {
-		c = strings.TrimSpace(c)
-		if !accentPattern.MatchString(c) {
-			return nil
-		}
-		out = append(out, c)
-	}
-	return out
-}
-
+// sanitize is the one path everything written to disk goes down, and it does
+// nothing itself: each group of fields is cleaned by the file that owns it. A
+// new setting therefore lands in one domain file and one line of this list,
+// which is what lets several people add settings in the same wave without
+// meeting in the middle of a four-hundred-line function.
+//
+// The hooks are independent — no hook reads a field another one rewrites — so
+// the order below is for reading, not for correctness.
 func sanitize(n Settings) Settings {
-	switch n.Shape {
-	case ShapeRound, ShapeSoft, ShapeSquare:
-	default:
-		n.Shape = ShapeRound
-	}
-	n.Accent = strings.TrimSpace(n.Accent)
-	if n.Accent != "" && !accentPattern.MatchString(n.Accent) {
-		n.Accent = ""
-	}
-	n.RainbowPalette = sanitizePalette(n.RainbowPalette)
-	// The seed is only ever read modulo the palette length, so it is folded here
-	// and stored small enough to read at a glance in settings.json.
-	if n.RainbowSeed < 0 {
-		n.RainbowSeed = -n.RainbowSeed
-	}
-	n.RainbowSeed %= RainbowSize
-	if n.MaxConcurrent < 1 {
-		n.MaxConcurrent = 1
-	}
-	if n.MaxConcurrent > 64 {
-		n.MaxConcurrent = 64
-	}
-	if n.MaxPerHost < 1 {
-		n.MaxPerHost = 1
-	}
-	if n.MaxPerHost > n.MaxConcurrent {
-		n.MaxPerHost = n.MaxConcurrent
-	}
-	if n.SpeedLimit < 0 {
-		n.SpeedLimit = 0
-	}
-	if n.MaxRetries < 0 {
-		n.MaxRetries = 0
-	}
-	if n.MaxRetries > 20 {
-		n.MaxRetries = 20
-	}
-	n.DownloadDir = strings.TrimSpace(n.DownloadDir)
-	n.WatchDir = strings.TrimSpace(n.WatchDir)
-	// A relative watch folder has the same problem as a relative download
-	// folder: nobody can say where it actually is.
-	if n.WatchDir != "" && !filepath.IsAbs(n.WatchDir) {
-		n.WatchDir = ""
-	}
-	// A relative path would be resolved against whatever the process's working
-	// directory happens to be, which is not something a user can reason about.
-	if n.DownloadDir != "" && !filepath.IsAbs(n.DownloadDir) {
-		n.DownloadDir = ""
-	}
-	var pw []string
-	for _, p := range n.ArchivePasswords {
-		if p = strings.TrimSpace(p); p != "" {
-			pw = append(pw, p)
-		}
-	}
-	n.ArchivePasswords = pw
-	// Both policies fold an unknown value onto their package's default instead of
-	// failing, so a settings file written by another build — or hand-edited with a
-	// typo — can never stop links from being added.
-	n.MirrorPolicy = string(dedupe.ParsePolicy(n.MirrorPolicy))
-	n.CollisionPolicy = string(collide.ParsePolicy(n.CollisionPolicy))
-	// Zero stays zero: that is "use the package's own cap". A number above it is
-	// not a bigger allowance, it is the runaway guard switched off, which is how a
-	// watch folder re-reading one list fills a directory nobody can open.
-	if n.CollisionMaxAttempts < 0 {
-		n.CollisionMaxAttempts = 0
-	}
-	if n.CollisionMaxAttempts > collide.DefaultMaxAttempts {
-		n.CollisionMaxAttempts = collide.DefaultMaxAttempts
-	}
-	// Sanitize assigns stable IDs, compacts the order and drops rows that could
-	// never be used. A half-configured proxy row kept and enabled would either
-	// fail every download routed through it or be read as no proxy at all, and
-	// send the traffic the user was hiding out over their own connection.
-	n.Connections = proxycfg.Sanitize(n.Connections)
-	n.Reconnect = reconnect.Sanitize(n.Reconnect)
-	// Packagizer, LinkFilter and Schedule are deliberately left untouched.
-	// Sanitising a rule list or a timetable at load means deleting the row the
-	// user got wrong instead of showing it to them, and a filter rule that
-	// vanishes on save is a filter the user goes on believing in. Compile reports
-	// what it cannot use and the API hands that back; nothing edits the list.
+	n = sanitizeAppearance(n)
+	n = sanitizeQueue(n)
+	n = sanitizePaths(n)
+	n = sanitizeIntake(n)
+	n = sanitizeNetwork(n)
+	n = sanitizeRules(n)
 	return n
-}
-
-// fixedPrefix returns the leading path segments of a folder template that hold
-// no placeholder, which is the deepest directory that is the same for every
-// task.
-func fixedPrefix(dir string) string {
-	if !strings.Contains(dir, "<") {
-		return dir
-	}
-	sep := string(filepath.Separator)
-	normalised := strings.ReplaceAll(dir, "/", sep)
-	parts := strings.Split(normalised, sep)
-	keep := parts[:0:0]
-	for _, p := range parts {
-		if strings.Contains(p, "<") {
-			break
-		}
-		keep = append(keep, p)
-	}
-	if out := strings.Join(keep, sep); out != "" {
-		return out
-	}
-	// Everything after the root is a placeholder; the root is what is left.
-	return sep
-}
-
-// Validate reports why a download directory cannot be used, so the API can
-// refuse a bad path instead of silently downloading somewhere else.
-func Validate(dir string) error {
-	if dir == "" {
-		return nil // the built-in default is always usable
-	}
-	if !filepath.IsAbs(dir) {
-		return errors.New("the download folder must be an absolute path")
-	}
-	// A folder may be a template like /downloads/<jd:date>/<jd:packagename>.
-	// Only the part before the first placeholder is a real path: creating the
-	// rest would put folders literally named "<jd:date>" on disk, and checking
-	// it would test a path that never exists at download time.
-	dir = fixedPrefix(dir)
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		return fmt.Errorf("cannot create %s: %w", dir, err)
-	}
-	probe := filepath.Join(dir, ".knightloader-write-test")
-	if err := os.WriteFile(probe, []byte("ok"), 0o644); err != nil {
-		return fmt.Errorf("cannot write to %s: %w", dir, err)
-	}
-	return os.Remove(probe)
 }

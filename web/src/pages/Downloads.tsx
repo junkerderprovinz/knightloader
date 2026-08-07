@@ -1,12 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   type Instance,
-  type Task,
   apiBase,
   pause,
   resume,
-  remove,
   restartTasks,
   fetchInstances,
   setPriority,
@@ -14,29 +12,26 @@ import {
 } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import { fmtSpeed } from '../lib/format';
-import { useT, type TranslationKey } from '../lib/i18n';
-import { PageHeader, Button, EmptyState, segBase, segOn, segOff } from '../components/ui';
+import { useT } from '../lib/i18n';
+import { PageHeader, Button, EmptyState } from '../components/ui';
 import { Counters } from '../components/Counters';
 import { TaskListCard, groupByPackage, type Selection } from '../components/TaskList';
 import { PackageActions } from '../components/PackageActions';
 import { QueueBar } from '../components/QueueBar';
+import {
+  DOWNLOAD_FILTERS,
+  ListActionBar,
+  ListMenu,
+  ListToolbar,
+  SelectionStrip,
+  matchesQuickFilters,
+  targetTaskId,
+  useRemoval,
+  type QuickFilterId,
+} from '../components/ListToolbar';
+import { EMPTY_SEARCH, matchesSearch, type SearchQuery } from '../components/SearchField';
+import { anchorFromEvent, useContextMenu } from '../components/ContextMenu';
 import { IconSearch, IconDownloads, IconArrowUp, IconArrowDown, IconTop, IconBottom } from '../lib/icons';
-
-type Filter = 'all' | 'active' | 'done' | 'error';
-const FILTERS: { key: Filter; label: TranslationKey }[] = [
-  { key: 'all', label: 'downloads.filterAll' },
-  { key: 'active', label: 'downloads.filterActive' },
-  { key: 'done', label: 'downloads.filterDone' },
-  { key: 'error', label: 'downloads.filterErrors' },
-];
-
-function matchesFilter(t: Task, f: Filter): boolean {
-  if (f === 'all') return true;
-  if (f === 'active')
-    return t.status === 'running' || t.status === 'queued' || t.status === 'extracting' || t.status === 'paused';
-  if (f === 'done') return t.status === 'done';
-  return t.status === 'error';
-}
 
 export function Downloads() {
   const { t } = useT();
@@ -44,9 +39,10 @@ export function Downloads() {
   const [params] = useSearchParams();
   const [instances, setInstances] = useState<Instance[]>([]);
   const [instance, setInstance] = useState(params.get('instance') ?? '');
-  const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState<Filter>('all');
+  const [search, setSearch] = useState<SearchQuery>(EMPTY_SEARCH);
+  const [filters, setFilters] = useState<Set<QuickFilterId>>(() => new Set());
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const menu = useContextMenu();
   const base = apiBase(instance);
   const tasks = useTasks(instance);
 
@@ -54,18 +50,22 @@ export function Downloads() {
     fetchInstances().then(setInstances);
   }, []);
 
+  // Everything this instance holds, collector included: a removal has to be able
+  // to weigh bytes that the download list itself never shows.
+  const all = useMemo(() => Object.values(tasks), [tasks]);
+
   const list = useMemo(
     () =>
-      Object.values(tasks)
+      all
         .filter((x) => x.status !== 'collected')
         .sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1)),
-    [tasks],
+    [all],
   );
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return list.filter((x) => matchesFilter(x, filter) && (!q || (x.name || x.url).toLowerCase().includes(q)));
-  }, [list, filter, query]);
+  const filtered = useMemo(
+    () => list.filter((x) => matchesQuickFilters(x, filters) && matchesSearch(x, search)),
+    [list, filters, search],
+  );
   const groups = useMemo(() => groupByPackage(filtered), [filtered]);
 
   // Selections follow the list: anything that leaves it stops being selected.
@@ -76,6 +76,9 @@ export function Downloads() {
       return next.size === prev.size ? prev : next;
     });
   }, [list]);
+
+  const clearSelection = useCallback(() => setSelected(new Set()), []);
+  const removal = useRemoval({ all, selected, base, onDone: clearSelection });
 
   const selection: Selection = {
     ids: selected,
@@ -107,9 +110,29 @@ export function Downloads() {
 
   const pauseAll = () => list.filter((x) => x.status === 'running').forEach((x) => pause(x.id, base));
   const resumeAll = () => list.filter((x) => x.status === 'paused').forEach((x) => resume(x.id, base));
-  const clearDone = () =>
-    list.filter((x) => x.status === 'done' || x.status === 'error').forEach((x) => remove(x.id, base));
   const retryFailed = () => restartTasks([], base);
+
+  /**
+   * Right-click opens the menu for the row it landed on, and selects that row
+   * first when it was not already selected — acting on something the user cannot
+   * see highlighted is how the wrong download gets deleted.
+   *
+   * With no row under the pointer and nothing selected there is nothing to offer,
+   * so the browser's own menu is left alone rather than replaced by an empty one.
+   */
+  function onContextMenu(e: React.MouseEvent): void {
+    // Something closer to the pointer has already claimed this right-click — the
+    // column header opens its own menu on it. Read off the native event, not the
+    // synthetic one: React captures `defaultPrevented` when it builds the
+    // synthetic event, so it is still false here however many handlers below
+    // have called preventDefault.
+    if (e.nativeEvent.defaultPrevented) return;
+    const id = targetTaskId(e);
+    if (!id && selected.size === 0) return;
+    if (id && !selected.has(id)) setSelected(new Set([id]));
+    e.preventDefault();
+    menu.openAt(anchorFromEvent(e));
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -149,127 +172,120 @@ export function Downloads() {
       )}
 
       {list.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative min-w-[12rem] flex-1 max-w-xs">
-            <IconSearch
-              className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-carbon-textMuted"
-              width={15}
-              height={15}
-            />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={t('downloads.filterPlaceholder')}
-              className="w-full rounded-[var(--radius-control)] bg-carbon-surface2 py-2 pl-8 pr-3 text-sm text-carbon-text placeholder:text-carbon-textMuted outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)]"
-            />
-          </div>
-          <div className="glim-well flex items-center gap-0.5 p-1">
-            {FILTERS.map((f) => (
-              <button
-                key={f.key}
-                onClick={() => setFilter(f.key)}
-                className={`${segBase} px-2.5 py-1 text-xs ${filter === f.key ? segOn : segOff}`}
-              >
-                {t(f.label)}
-              </button>
-            ))}
-          </div>
-          <span className="flex-1" />
-          {/* Bulk actions appear only when they can do something, so the strip
-              stays short instead of showing four greyed-out verbs. */}
-          <div className="flex items-center gap-0.5">
-            {counts.running > 0 && (
-              <Button kind="ghost" className="px-2.5 text-xs" onClick={pauseAll}>
-                {t('downloads.pauseAll')}
-              </Button>
-            )}
-            {list.some((x) => x.status === 'paused') && (
-              <Button kind="ghost" className="px-2.5 text-xs" onClick={resumeAll}>
-                {t('downloads.resumeAll')}
-              </Button>
-            )}
-            {counts.error > 0 && (
-              <Button kind="ghost" className="px-2.5 text-xs" onClick={retryFailed}>
-                {t('downloads.retryFailed')}
-              </Button>
-            )}
-            {counts.done + counts.error > 0 && (
-              <Button kind="ghost" className="px-2.5 text-xs" onClick={clearDone}>
-                {t('downloads.clearFinished')}
-              </Button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Queue order only means something while something is waiting, so these
-          controls appear with a selection rather than sitting there greyed out. */}
-      {selected.size > 0 && (
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="glim-num text-sm text-carbon-textSub">
-            {selected.size} {t('select.count')}
-          </span>
-          <Button kind="ghost" className="px-2.5 text-xs" onClick={() => setSelected(new Set())}>
-            {t('select.none')}
-          </Button>
-          <PackageActions tasks={list} selected={selected} base={base} />
-          <span className="flex-1" />
-          <Button
-            kind="ghost"
-            icon={<IconArrowUp width={16} height={16} />}
-            title={t('task.priorityUp')}
-            onClick={() => setPriority(ids(), 1, base)}
-          />
-          <Button
-            kind="ghost"
-            icon={<IconArrowDown width={16} height={16} />}
-            title={t('task.priorityDown')}
-            onClick={() => setPriority(ids(), -1, base)}
-          />
-          <Button
-            kind="ghost"
-            icon={<IconTop width={16} height={16} />}
-            title={t('task.moveTop')}
-            onClick={() => moveTasks(ids(), 'top', base)}
-          />
-          <Button
-            kind="ghost"
-            icon={<IconBottom width={16} height={16} />}
-            title={t('task.moveBottom')}
-            onClick={() => moveTasks(ids(), 'bottom', base)}
-          />
-          <Button kind="secondary" className="px-2.5 text-xs" onClick={() => restartTasks(ids(), base)}>
-            {t('downloads.retryFailed')}
-          </Button>
-          <Button
-            kind="danger"
-            className="px-2.5 text-xs"
-            onClick={() => {
-              ids().forEach((id) => remove(id, base));
-              setSelected(new Set());
-            }}
-          >
-            {t('collector.remove')}
-          </Button>
-        </div>
-      )}
-
-      {list.length === 0 ? (
-        <EmptyState
-          icon={<IconDownloads width={28} height={28} />}
-          title={t('empty.downloadsTitle')}
-          hint={t('empty.downloadsHint')}
-          action={
-            <Button kind="secondary" onClick={() => navigate('/collector')}>
-              {t('empty.goCollector')}
-            </Button>
+        <ListToolbar
+          search={search}
+          onSearch={setSearch}
+          filters={DOWNLOAD_FILTERS}
+          active={filters}
+          onActive={setFilters}
+          tasks={list}
+          shown={filtered.length}
+          right={
+            /* Bulk actions appear only when they can do something, so the strip
+               stays short instead of showing three greyed-out verbs. */
+            <div className="flex items-center gap-0.5">
+              {counts.running > 0 && (
+                <Button kind="ghost" className="px-2.5 text-xs" onClick={pauseAll}>
+                  {t('downloads.pauseAll')}
+                </Button>
+              )}
+              {list.some((x) => x.status === 'paused') && (
+                <Button kind="ghost" className="px-2.5 text-xs" onClick={resumeAll}>
+                  {t('downloads.resumeAll')}
+                </Button>
+              )}
+              {counts.error > 0 && (
+                <Button kind="ghost" className="px-2.5 text-xs" onClick={retryFailed}>
+                  {t('downloads.retryFailed')}
+                </Button>
+              )}
+            </div>
           }
         />
-      ) : filtered.length === 0 ? (
-        <EmptyState icon={<IconSearch width={26} height={26} />} title={t('downloads.noMatch')} />
-      ) : (
-        <TaskListCard groups={groups} base={base} selection={selection} />
       )}
+
+      <SelectionStrip
+        all={list}
+        selected={selected}
+        onSelected={setSelected}
+        removal={removal}
+        onMore={menu.openAt}
+      >
+        <PackageActions tasks={list} selected={selected} base={base} />
+        {/* Queue order only means something while something is waiting, so these
+            sit with the selection rather than on the page all the time. */}
+        <Button
+          kind="ghost"
+          icon={<IconArrowUp width={16} height={16} />}
+          title={t('task.priorityUp')}
+          onClick={() => setPriority(ids(), 1, base)}
+        />
+        <Button
+          kind="ghost"
+          icon={<IconArrowDown width={16} height={16} />}
+          title={t('task.priorityDown')}
+          onClick={() => setPriority(ids(), -1, base)}
+        />
+        <Button
+          kind="ghost"
+          icon={<IconTop width={16} height={16} />}
+          title={t('task.moveTop')}
+          onClick={() => moveTasks(ids(), 'top', base)}
+        />
+        <Button
+          kind="ghost"
+          icon={<IconBottom width={16} height={16} />}
+          title={t('task.moveBottom')}
+          onClick={() => moveTasks(ids(), 'bottom', base)}
+        />
+        <Button kind="secondary" className="px-2.5 text-xs" onClick={() => restartTasks(ids(), base)}>
+          {t('task.restart')}
+        </Button>
+      </SelectionStrip>
+
+      <div onContextMenu={onContextMenu}>
+        {list.length === 0 ? (
+          <EmptyState
+            icon={<IconDownloads width={28} height={28} />}
+            title={t('empty.downloadsTitle')}
+            hint={t('empty.downloadsHint')}
+            action={
+              <Button kind="secondary" onClick={() => navigate('/collector')}>
+                {t('empty.goCollector')}
+              </Button>
+            }
+          />
+        ) : filtered.length === 0 ? (
+          <EmptyState icon={<IconSearch width={26} height={26} />} title={t('downloads.noMatch')} />
+        ) : (
+          <TaskListCard groups={groups} base={base} selection={selection} />
+        )}
+      </div>
+
+      {/* Under the list and always there, including when the list is empty —
+          which is the one moment somebody is looking for the way to add
+          something. */}
+      <ListActionBar
+        all={all}
+        selected={selected}
+        onSelected={setSelected}
+        visible={filtered}
+        local={instance === ''}
+      >
+        <Button kind="secondary" className="px-2.5 text-xs" onClick={() => navigate('/collector')}>
+          {t('empty.goCollector')}
+        </Button>
+      </ListActionBar>
+
+      <ListMenu
+        anchor={menu.anchor}
+        onClose={menu.close}
+        all={list}
+        selected={selected}
+        base={base}
+        removal={removal}
+      />
+      {removal.dialog}
     </div>
   );
 }

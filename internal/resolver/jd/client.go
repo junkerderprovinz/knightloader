@@ -174,6 +174,109 @@ func (c *Client) PackageUUID(name string) (int64, error) {
 	return 0, nil
 }
 
+// CrawledLink is one entry in JD's link grabber — the staging list a container
+// is decrypted into, which is a different list from the downloads.
+type CrawledLink struct {
+	UUID int64  `json:"uuid"`
+	URL  string `json:"url"`
+	Name string `json:"name"`
+	Host string `json:"host"`
+}
+
+// AddContainerLinks hands JD a container and pins the package it lands in.
+//
+// overwritePackagizerRules is the load-bearing part. Without it JD names the
+// package after what it found *inside* the container — a DLC of a film arrives
+// as the film's own release name — and there is then no way to tell our links
+// from the ones the user added through JD's own window. With it, the name we
+// pass wins, which is how the crawl is identified afterwards.
+//
+// Identifying it by the job id this returns does not work, however reasonable
+// it looks: queryLinks accepts a jobUUIDs filter and it never matches, staying
+// empty while the unfiltered query shows every link. Measured against a live JD,
+// not assumed.
+func (c *Client) AddContainerLinks(url, packageName string) (int64, error) {
+	data, err := c.call("/linkgrabberv2/addLinks", map[string]any{
+		"links":                    url,
+		"packageName":              packageName,
+		"autostart":                false,
+		"overwritePackagizerRules": true,
+	})
+	if err != nil {
+		return 0, err
+	}
+	var res struct {
+		ID int64 `json:"id"`
+	}
+	_ = json.Unmarshal(data, &res)
+	return res.ID, nil
+}
+
+// CrawledPackageUUID finds a link-grabber package by the name we gave it, or 0.
+func (c *Client) CrawledPackageUUID(name string) (int64, error) {
+	data, err := c.call("/linkgrabberv2/queryPackages", map[string]any{"name": true})
+	if err != nil {
+		return 0, err
+	}
+	var pkgs []downloadPackage
+	if err := json.Unmarshal(data, &pkgs); err != nil {
+		return 0, err
+	}
+	for _, p := range pkgs {
+		if p.Name == name {
+			return p.UUID, nil
+		}
+	}
+	return 0, nil
+}
+
+// Collecting reports whether the link grabber is still crawling. Asked before
+// reading the results: a container that has produced three of its eleven links
+// looks exactly like a finished one to a query, and harvesting there loses the
+// other eight without any error to notice.
+func (c *Client) Collecting() (bool, error) {
+	data, err := c.call("/linkgrabberv2/isCollecting")
+	if err != nil {
+		return false, err
+	}
+	var busy bool
+	if err := json.Unmarshal(data, &busy); err != nil {
+		return false, err
+	}
+	return busy, nil
+}
+
+// CrawledLinks returns the links in one link-grabber package. Scoped to the
+// package rather than reading the whole grabber, because anything the user put
+// there through JD's own window is theirs and must not be swept up with ours.
+func (c *Client) CrawledLinks(packageUUID int64) ([]CrawledLink, error) {
+	data, err := c.call("/linkgrabberv2/queryLinks", map[string]any{
+		"url":          true,
+		"name":         true,
+		"host":         true,
+		"packageUUIDs": []int64{packageUUID},
+	})
+	if err != nil {
+		return nil, err
+	}
+	var out []CrawledLink
+	if err := json.Unmarshal(data, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// RemoveCrawledPackage clears our package out of the link grabber. Called once
+// its links have been read: JD's staging list is not our storage, and leaving
+// every container we ever opened in it turns the user's own grabber into a bin.
+func (c *Client) RemoveCrawledPackage(packageUUID int64) error {
+	if packageUUID == 0 {
+		return nil
+	}
+	_, err := c.call("/linkgrabberv2/removeLinks", []int64{}, []int64{packageUUID})
+	return err
+}
+
 // RemoveLinks removes links (and/or whole packages) from the download list.
 func (c *Client) RemoveLinks(linkIDs, packageIDs []int64) error {
 	if linkIDs == nil {
