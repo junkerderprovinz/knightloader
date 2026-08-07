@@ -1,0 +1,466 @@
+package app
+
+// The handover to a download backend and everything that comes back from one:
+// which backend a task goes to, when it may go, and what happens to a task that
+// finishes, fails or asks to be retried.
+
+import (
+	"context"
+	"log"
+	"path/filepath"
+	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/collide"
+	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/reconnect"
+	"github.com/junkerderprovinz/knightloader/internal/resolver"
+)
+
+// resolverForTaskLocked picks the resolver a task should be dispatched through:
+// the one recorded on it if that still exists, else the best current match.
+// Caller holds a.mu.
+func (a *App) resolverForTaskLocked(t *core.Task) resolver.Resolver {
+	if t.Resolver != "" {
+		for _, res := range a.Registry.All(t.URL) {
+			if res.Info().ID == t.Resolver {
+				return res
+			}
+		}
+	}
+	return a.Registry.For(t.URL)
+}
+
+// nextResolverLocked returns the resolver that should try after the one the
+// task just used, or "" when the chain is exhausted. Caller holds a.mu.
+func (a *App) nextResolverLocked(t *core.Task) string {
+	chain := a.Registry.All(t.URL)
+	for i, res := range chain {
+		if res.Info().ID == t.Resolver {
+			if i+1 < len(chain) {
+				return chain[i+1].Info().ID
+			}
+			return "" // the chain is exhausted
+		}
+	}
+	// The recorded backend is not registered any more â€” a credential was
+	// removed, or a binary went missing. Restart the chain from the top rather
+	// than leaving the task stranded on a backend that no longer exists.
+	for _, res := range chain {
+		if res.Info().ID != t.Resolver {
+			return res.Info().ID
+		}
+	}
+	return ""
+}
+
+// dispatchLocked starts queued tasks while slots are free. FIFO with per-host
+// skip-ahead: a host at its limit doesn't block other hosts behind it.
+// Caller holds a.mu.
+func (a *App) dispatchLocked() {
+	if a.halted {
+		return
+	}
+	cfg := a.Settings.Get()
+	a.sortQueueLocked()
+	// settled collects what the dispatcher turns down. A task refused in here is
+	// refused under the lock, long after every caller took its copy, so the reason
+	// has to leave with a copy of its own: without it the store and every open
+	// browser keep the task the caller saved â€” "queued", no error â€” and the user
+	// is left with a download that never starts and says nothing about why. That
+	// is the silent disappearance the staging record exists to prevent, moved one
+	// button along.
+	var settled []core.Task
+	perHost := map[string]int{}
+	for id := range a.active {
+		if t := a.tasks[id]; t != nil {
+			perHost[hostOf(t.URL)]++
+		}
+	}
+	var rest []string
+	for _, id := range a.queue {
+		t := a.tasks[id]
+		if t == nil {
+			continue // removed while queued
+		}
+		// The two flags that mean "not this one", checked here because this is the
+		// only place bytes are ever set moving: StartTasks with no ids is "start
+		// everything", and without this a link the user switched off downloads
+		// anyway the moment anything touches the queue. Kept in the queue rather
+		// than dropped, so it holds its place and goes when it is switched back on.
+		if !t.Enabled || t.Hold {
+			rest = append(rest, id)
+			continue
+		}
+		if len(a.active) >= cfg.MaxConcurrent {
+			rest = append(rest, id)
+			continue
+		}
+		h := hostOf(t.URL)
+		if perHost[h] >= cfg.MaxPerHost {
+			rest = append(rest, id)
+			continue
+		}
+		if a.started[id] {
+			a.active[id] = true
+			perHost[h]++
+			go a.backendFor(t.Resolver).Resume(id)
+			continue
+		}
+		// The filter is asked again here because this is the last moment before
+		// bytes move, and a link it refused at staging time is still sitting in
+		// the collector where "start everything" can reach it. Asking once, at
+		// paste time, would make the filter something a single button undoes.
+		if v := a.filter(candidateOf(t)); v.Rejected {
+			t.Status = core.StatusError
+			t.Online = core.AvailOffline
+			t.Error = rejection(v)
+			settled = append(settled, *t)
+			continue
+		}
+		// Honour the resolver already recorded on the task: after a fallback it
+		// is deliberately not the highest-priority match any more.
+		res := a.resolverForTaskLocked(t)
+		if res == nil {
+			t.Status = core.StatusError
+			t.Error = "no resolver matches"
+			settled = append(settled, *t)
+			continue
+		}
+		t.Resolver = res.Info().ID
+		// The shutdown context, because this call is made with mu held: a resolver
+		// that hangs would otherwise keep the lock â€” and with it the whole app â€”
+		// until its own timeout, and Close would wait behind a hoster.
+		result, err := res.Resolve(a.ctx, resolver.Request{URL: t.URL})
+		if err != nil {
+			t.Status = core.StatusError
+			t.Error = err.Error()
+			settled = append(settled, *t)
+			continue
+		}
+		dir := a.dirFor(t)
+		// A destination that is already taken is settled here instead of being
+		// downloaded over. Only "skip" can be honoured today: every other policy
+		// has to name the file it writes, and no backend accepts a destination
+		// file name â€” the engine is handed a directory and names the file itself.
+		// The check is skipped entirely while the name is still unknown, because a
+		// collision decided on a URL-shaped name is a decision about nothing.
+		if collide.ParsePolicy(cfg.CollisionPolicy) == collide.Skip && filename(t) != "" {
+			target := filepath.Join(dir, t.Name)
+			if taken, err := collide.Check(target); err == nil && taken {
+				// The availability is left alone: nothing was learned about the
+				// link here, only about the folder it was going to land in.
+				t.Status = core.StatusError
+				t.Error = "not downloaded: " + target + " already exists"
+				settled = append(settled, *t)
+				continue
+			}
+		}
+		a.active[id] = true
+		a.started[id] = true
+		perHost[h]++
+		conns := result.Connections
+		if conns <= 0 {
+			conns = 4
+		}
+		// A Packagizer rule that set a connection count outranks both. It was
+		// written for this hoster, and a per-rule setting that changes nothing is
+		// a setting the user keeps re-saving and never sees work.
+		if t.Chunks > 0 {
+			conns = t.Chunks
+		}
+		if be := a.backendFor(t.Resolver); be == a.Engine {
+			go a.Engine.DownloadTo(id, result.DirectURL, result.Headers, conns, dir)
+		} else {
+			go be.Download(id, result.DirectURL, result.Headers, conns)
+		}
+	}
+	a.queue = rest
+	if len(settled) > 0 {
+		// Off this goroutine, because the caller still holds mu and the store write
+		// must not happen under it. A caller that snapshots after dispatching
+		// publishes the same state again, which is harmless: both copies say what
+		// the task ended up as, so whichever lands last says the same thing.
+		go a.publishTasks(settled)
+	}
+}
+
+func (a *App) Pause(id string) {
+	a.mu.Lock()
+	t := a.tasks[id]
+	if t == nil {
+		a.mu.Unlock()
+		return
+	}
+	wasActive := a.active[id]
+	delete(a.active, id)
+	a.dequeueLocked(id)
+	if !wasActive {
+		// Still waiting in the queue: just mark it paused.
+		t.Status = core.StatusPaused
+		t.Speed = 0
+		c := *t
+		a.mu.Unlock()
+		_ = a.Store.Save(&c)
+		a.Hub.Broadcast("task", &c)
+		return
+	}
+	a.dispatchLocked()
+	a.mu.Unlock()
+	a.backendFor(t.Resolver).Pause(id)
+}
+
+func (a *App) Resume(id string) {
+	a.mu.Lock()
+	t := a.tasks[id]
+	if t == nil || a.active[id] {
+		a.mu.Unlock()
+		return
+	}
+	t.Status = core.StatusQueued
+	t.Speed = 0
+	c := *t
+	a.dequeueLocked(id)
+	a.queue = append(a.queue, id)
+	a.dispatchLocked()
+	a.mu.Unlock()
+	_ = a.Store.Save(&c)
+	a.Hub.Broadcast("task", &c)
+}
+
+func (a *App) backendFor(resolverID string) backend {
+	a.bmu.RLock()
+	defer a.bmu.RUnlock()
+	if b, ok := a.debrid[resolverID]; ok && b != nil {
+		return b
+	}
+	switch {
+	case resolverID == "jd" && a.jd != nil:
+		return a.jd
+	case resolverID == "torbox" && a.torbox != nil:
+		return a.torbox
+	case resolverID == "ytdlp" && a.ytdlp != nil:
+		return a.ytdlp
+	default:
+		return a.Engine
+	}
+}
+
+// ReconnectState is what the interface shows beside the reconnect button.
+type ReconnectState struct {
+	Busy bool `json:"busy"`
+	// Configured is whether a reconnect could run at all, which is a different
+	// question from whether it would succeed.
+	Configured bool `json:"configured"`
+}
+
+// ReconnectState reports whether a reconnect is configured and whether one is
+// running, so the interface can show it without starting one to find out.
+func (a *App) ReconnectState() ReconnectState {
+	return ReconnectState{Busy: a.Reconnector.Busy(), Configured: a.reconnectConfigured()}
+}
+
+// reconnectConfigured reports whether the user has finished setting reconnect
+// up. It is asked before every automatic attempt, because an unconfigured
+// reconnect fired on every retry is a goroutine and a log line per failure that
+// tell nobody anything.
+func (a *App) reconnectConfigured() bool {
+	return a.Settings.Get().Reconnect.Validate() == nil
+}
+
+// Reconnect runs one reconnect now, on the caller's behalf.
+func (a *App) Reconnect(ctx context.Context) (reconnect.Result, error) {
+	return a.Reconnector.Do(ctx)
+}
+
+// reconnectThenRetry asks the router for a new address and, if the address
+// really moved, brings the waiting retry forward.
+//
+// Every error leaves the ordinary backoff to run, ErrUnchanged included: that
+// one means the address did not move, and retrying then is exactly the hammering
+// the reconnect exists to stop.
+func (a *App) reconnectThenRetry(id string) {
+	if _, err := a.Reconnector.Do(a.ctx); err != nil {
+		log.Printf("reconnect after task %s hit a limit: %v", id, err)
+		return
+	}
+	a.retryAfter(id, 0)
+}
+
+func (a *App) onUpdate(id string, u core.Update) {
+	a.mu.Lock()
+	t := a.tasks[id]
+	if t == nil {
+		a.mu.Unlock()
+		return
+	}
+	if u.Name != "" {
+		t.Name = u.Name
+	}
+	if u.Size > 0 {
+		t.Size = u.Size
+	}
+	if u.Status != "" {
+		t.Status = u.Status
+	}
+	if u.Loaded > 0 {
+		t.Loaded = u.Loaded
+	}
+	t.Speed = u.Speed
+	if u.Err != "" {
+		t.Error = u.Err
+	}
+	// Terminal states free the scheduling slot for the next queued task.
+	if u.Status == core.StatusDone || u.Status == core.StatusError {
+		delete(a.active, id)
+		a.dispatchLocked()
+	}
+	var hitStopMark bool
+	if u.Status == core.StatusDone {
+		t.Online = core.AvailOnline
+		t.Retries = 0
+		t.NextTry = time.Time{}
+		if a.stopMark == id {
+			// Recorded as the manual halt too, because that is what it is: the user
+			// said "finish this, then stop", and the mark is only the delay on it.
+			// Left out of the manual flag it would be invisible to scheduleBase, and
+			// the first boundary that changed anything at all â€” a nightly limit
+			// ending â€” would hand the runner a state saying "not paused" and start
+			// the queue again for a reason nothing on screen could explain.
+			a.manualHalt = true
+			a.halted = true
+			a.stopMark = ""
+			hitStopMark = true
+		}
+		if a.Settings.Get().VerifyChecksums {
+			go a.verifyTask(id, filepath.Join(a.dirFor(t), t.Name))
+		}
+	}
+	// A backend that says the link is not its business hands the task to the
+	// next one in the chain instead of failing it. This is deliberately not a
+	// guess about the error text: only an explicit signal advances the chain,
+	// so a hoster link that genuinely failed is never re-downloaded as a plain
+	// web page. The chain only moves downwards, so it terminates.
+	var fallbackTo backend
+	if u.Status == core.StatusError && u.Unsupported {
+		if next := a.nextResolverLocked(t); next != "" {
+			fallbackTo = a.backendFor(t.Resolver)
+			log.Printf("task %s: %s could not fetch the link, trying %s", id, t.Resolver, next)
+			t.Resolver = next
+			t.Status = core.StatusQueued
+			t.Error = ""
+			t.Loaded = 0
+			t.Speed = 0
+			delete(a.started, id)
+			a.queue = append(a.queue, id)
+			a.dispatchLocked()
+		}
+	}
+
+	// The mirror set follows the task, and it is read from the task's own status
+	// rather than from the update: a link handed on to the next backend a moment
+	// ago is queued again, not settled, and unfiling it there would let a second
+	// copy of it be staged while the first is still running.
+	switch {
+	case t.Status == core.StatusDone || t.Status == core.StatusError:
+		// A settled download stops blocking its own re-add: pasting a finished or
+		// failed link again is a deliberate second attempt, not a duplicate.
+		a.forgetLinkLocked(t)
+	case u.Name != "" || u.Size > 0:
+		// The name and the byte count usually arrive from the backend, long after
+		// the link was filed with neither. Re-filing it is what lets a mirror
+		// pasted from a second hoster be recognised at all under a policy that
+		// compares those; Add replaces the record rather than filing it twice.
+		a.dupes.Add(linkEntry(t))
+	}
+
+	// A failure is not automatically the end: hosters throttle, connections
+	// drop. Retry a bounded number of times with a growing delay before the
+	// task is left for the user to deal with.
+	var retryIn time.Duration
+	if u.Status == core.StatusError && fallbackTo == nil {
+		if cfg := a.Settings.Get(); t.Retries < cfg.MaxRetries {
+			t.Retries++
+			retryIn = u.Retry
+			if retryIn <= 0 {
+				retryIn = retryDelay(t.Retries)
+			}
+			t.NextTry = time.Now().Add(retryIn)
+		} else {
+			t.NextTry = time.Time{}
+		}
+	}
+	// A hoster limit keyed to this box's address is the one failure a new address
+	// actually fixes, and a backend asking for another attempt after a delay
+	// (u.Retry) is how it says it hit one. Skipped while the queue is halted: a
+	// reconnect reboots the router to help downloads that are not running, and
+	// drops the ones that are.
+	reconnectFor := ""
+	if retryIn > 0 && u.Retry > 0 && !a.halted && a.reconnectConfigured() {
+		reconnectFor = id
+	}
+	// A finished download that completes an archive continues as an extraction
+	// (local backends only; JD downloads live on the JD box). For a multi-volume
+	// set this only fires once the last part has arrived.
+	var extractCopy *core.Task
+	if u.Status == core.StatusDone && t.Resolver != "jd" && extractWanted(t, a.Settings.Get()) {
+		if target, path := a.extractCandidateLocked(t); target != nil {
+			target.Status = core.StatusExtracting
+			go a.extractTask(target.ID, path, a.passwordsFor(target))
+			if target != t {
+				c := *target
+				extractCopy = &c
+			}
+		}
+	}
+	c := *t
+	a.mu.Unlock()
+	if fallbackTo != nil {
+		// Clear the old backend's state so a later restart does not resume a
+		// download that belongs to a backend the task no longer uses.
+		fallbackTo.Remove(id, true)
+	}
+	_ = a.Store.Save(&c)
+	a.Hub.Broadcast("task", &c)
+	if extractCopy != nil {
+		_ = a.Store.Save(extractCopy)
+		a.Hub.Broadcast("task", extractCopy)
+	}
+	if retryIn > 0 {
+		a.retryAfter(id, retryIn)
+	}
+	if reconnectFor != "" {
+		// Off the lock and off this goroutine: Do blocks for up to the whole
+		// configured timeout, and holding mu for two minutes would stop the app.
+		// The ordinary backoff above is already armed, and re-entering a task that
+		// has since been restarted is a no-op, so the two cannot fight.
+		go a.reconnectThenRetry(reconnectFor)
+	}
+	if hitStopMark {
+		log.Printf("stop mark reached at %s; the queue is halted", c.Name)
+		a.Hub.Broadcast("queue", a.Queue())
+	}
+}
+
+// retryDelay grows with each attempt so a hoster cool-down has time to pass,
+// without making the last attempt feel abandoned.
+func retryDelay(attempt int) time.Duration {
+	d := time.Duration(1<<uint(attempt-1)) * 15 * time.Second
+	if d > 10*time.Minute {
+		d = 10 * time.Minute
+	}
+	return d
+}
+
+// retryAfter re-runs a failed task once the delay has passed, unless the user
+// touched it in the meantime.
+func (a *App) retryAfter(id string, d time.Duration) {
+	time.AfterFunc(d, func() {
+		a.mu.Lock()
+		t := a.tasks[id]
+		due := t != nil && t.Status == core.StatusError && !t.NextTry.IsZero()
+		a.mu.Unlock()
+		if due {
+			a.RestartTasks([]string{id})
+		}
+	})
+}

@@ -71,3 +71,49 @@ export function pct(loaded: number, size: number, done: boolean): number {
   if (size > 0) return Math.min(100, Math.round((loaded / size) * 100));
   return done ? 100 : 0;
 }
+
+// Go's encoding/json does not drop a zero time.Time — omitempty has no effect on
+// a struct — so an unfinished task arrives carrying year one rather than no
+// field at all. Comparing the year is enough and costs nothing; parsing the
+// literal string would break the moment the server changed its precision.
+const GO_ZERO_YEAR = 1;
+
+// One formatter per locale, kept. Intl.DateTimeFormat is expensive to construct
+// and a finished-at column builds one per row per repaint without this, which on
+// a few hundred rows is the difference between a list that scrolls and one that
+// stutters.
+const dateFormats = new Map<string, Intl.DateTimeFormat>();
+
+// The language picker stamps <html lang> at boot and on every change, so reading
+// it follows the user's choice without this module importing the i18n provider —
+// which would pull the whole dictionary loader into a file that formats numbers.
+// Empty falls through to undefined, which is the runtime's own default.
+function uiLocale(): string {
+  return document.documentElement.lang || '';
+}
+
+function dateFormat(locale: string): Intl.DateTimeFormat {
+  let f = dateFormats.get(locale);
+  if (!f) {
+    // Short date and short time together: two downloads that finished this
+    // afternoon are the common case, and a date alone cannot tell them apart.
+    f = new Intl.DateTimeFormat(locale || undefined, { dateStyle: 'short', timeStyle: 'short' });
+    dateFormats.set(locale, f);
+  }
+  return f;
+}
+
+/**
+ * fmtDate prints a timestamp in the reader's own locale, short form.
+ *
+ * Empty for anything that is not a moment in time — absent, unparseable, or Go's
+ * zero timestamp. A finished-at cell for a download that has not finished is
+ * blank; printing "1.1.1" or "Invalid Date" there would be a value, and a value
+ * is something people try to explain.
+ */
+export function fmtDate(iso: string | undefined, locale = uiLocale()): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime()) || d.getUTCFullYear() <= GO_ZERO_YEAR) return '';
+  return dateFormat(locale).format(d);
+}

@@ -1,12 +1,27 @@
-import { useEffect, useMemo, useState } from 'react';
-import { addLinks, remove, startTasks, recheckTasks } from '../lib/api';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { addLinks, recheckTasks, startTasks } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import { useToast } from '../lib/toast';
 import { useT } from '../lib/i18n';
 import { PageHeader, Button, TextInput } from '../components/ui';
 import { TaskListCard, groupByPackage, type Selection } from '../components/TaskList';
 import { PackageActions } from '../components/PackageActions';
-import { IconPlus, IconPlay, IconTrash, IconCollector } from '../lib/icons';
+import { ContainerDrop } from '../components/ContainerDrop';
+import { SkippedLinks } from '../components/SkippedLinks';
+import {
+  COLLECTOR_FILTERS,
+  ListActionBar,
+  ListMenu,
+  ListToolbar,
+  SelectionStrip,
+  matchesQuickFilters,
+  targetTaskId,
+  useRemoval,
+  type QuickFilterId,
+} from '../components/ListToolbar';
+import { EMPTY_SEARCH, matchesSearch, type SearchQuery } from '../components/SearchField';
+import { anchorFromEvent, useContextMenu } from '../components/ContextMenu';
+import { IconPlus, IconPlay, IconCollector } from '../lib/icons';
 
 export function Collector() {
   const { t } = useT();
@@ -15,16 +30,26 @@ export function Collector() {
   const [links, setLinks] = useState('');
   const [pkg, setPkg] = useState('');
   const [dragOver, setDragOver] = useState(false);
+  const [search, setSearch] = useState<SearchQuery>(EMPTY_SEARCH);
+  const [filters, setFilters] = useState<Set<QuickFilterId>>(() => new Set());
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const menu = useContextMenu();
 
+  // Everything this instance holds, not only what is staged: a removal weighs
+  // the bytes already on disk, and those belong to rows this page never shows.
+  const all = useMemo(() => Object.values(tasks), [tasks]);
   const collected = useMemo(
     () =>
-      Object.values(tasks)
+      all
         .filter((x) => x.status === 'collected')
         .sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1)),
-    [tasks],
+    [all],
   );
-  const groups = useMemo(() => groupByPackage(collected), [collected]);
+  const filtered = useMemo(
+    () => collected.filter((x) => matchesQuickFilters(x, filters) && matchesSearch(x, search)),
+    [collected, filters, search],
+  );
+  const groups = useMemo(() => groupByPackage(filtered), [filtered]);
 
   // Drop selections that have left the collector.
   useEffect(() => {
@@ -34,6 +59,9 @@ export function Collector() {
       return next.size === prev.size ? prev : next;
     });
   }, [collected]);
+
+  const clearSelection = useCallback(() => setSelected(new Set()), []);
+  const removal = useRemoval({ all, selected, base: '/api', onDone: clearSelection });
 
   const selection: Selection = {
     ids: selected,
@@ -85,11 +113,22 @@ export function Collector() {
     startTasks([]);
     toast(t('collector.toastStarted', { n: collected.length }), 'info');
   };
-  const removeSelected = () => selected.forEach((id) => remove(id));
-  const selectAll = () => setSelected(new Set(collected.map((x) => x.id)));
-  const clearSelection = () => setSelected(new Set());
-  const offline = useMemo(() => collected.filter((x) => !!x.error), [collected]);
-  const removeOffline = () => offline.forEach((x) => remove(x.id));
+
+  // The same rule as the download list: the row under the pointer becomes the
+  // selection when it was not one already, and with nothing to act on the
+  // browser's own menu is left alone rather than replaced by an empty one.
+  function onContextMenu(e: React.MouseEvent): void {
+    // The column header opens its own menu on right-click; when it has, this one
+    // stays out of the way instead of stacking a second menu on top. The native
+    // event is the live one — the synthetic event's flag was captured before any
+    // handler ran.
+    if (e.nativeEvent.defaultPrevented) return;
+    const id = targetTaskId(e);
+    if (!id && selected.size === 0) return;
+    if (id && !selected.has(id)) setSelected(new Set([id]));
+    e.preventDefault();
+    menu.openAt(anchorFromEvent(e));
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -142,58 +181,92 @@ export function Collector() {
         </div>
       </div>
 
-      {collected.length === 0 ? (
-        <div className="glim-card p-12 text-center text-sm text-carbon-textMuted">{t('collector.empty')}</div>
-      ) : (
-        <>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="glim-num text-sm text-carbon-textSub">
-              {selected.size > 0
-                ? `${selected.size} ${t('collector.selected')}`
-                : `${collected.length} ${t('collector.staged')}`}
-            </span>
-            <Button
-              kind="ghost"
-              className="px-2.5 text-xs"
-              onClick={selected.size ? clearSelection : selectAll}
-            >
-              {selected.size ? t('collector.selectNone') : t('collector.selectAll')}
-            </Button>
-            <Button
-              kind="ghost"
-              className="px-2.5 text-xs"
-              onClick={() => {
-                recheckTasks(selected.size ? [...selected] : []);
-                toast(t('task.recheck'), 'info');
-              }}
-            >
-              {t('task.recheck')}
-            </Button>
-            {offline.length > 0 && (
-              <Button kind="ghost" className="px-2.5 text-xs" onClick={removeOffline}>
-                {t('collector.removeOffline')} ({offline.length})
-              </Button>
-            )}
-            <PackageActions
-              tasks={collected}
-              selected={selected}
-              base="/api"
-              onDone={() => toast(t('task.applied'), 'ok')}
-            />
-            <span className="flex-1" />
-            <Button kind="ghost" icon={<IconTrash />} onClick={removeSelected} disabled={selected.size === 0}>
-              {t('collector.remove')}
-            </Button>
-            <Button kind="secondary" onClick={startAll}>
-              {t('collector.startAll')}
-            </Button>
-            <Button kind="primary" icon={<IconPlay />} onClick={startSelected} disabled={selected.size === 0}>
-              {t('collector.startSelected')}
-            </Button>
-          </div>
-          <TaskListCard groups={groups} base="/api" selection={selection} />
-        </>
+      {/* Intake that is not a paste, and the trace of what the paste dropped.
+          Both sit under the hero and above the list: the paste box is why people
+          open this page, and nothing may push it off the top. The skipped strip
+          in particular has to render when the list is empty — a paste of nothing
+          but duplicates stages nothing, and that is the moment it explains most. */}
+      <div className="flex flex-col gap-3">
+        <ContainerDrop pkg={pkg} />
+        <SkippedLinks />
+      </div>
+
+      {collected.length > 0 && (
+        <ListToolbar
+          search={search}
+          onSearch={setSearch}
+          filters={COLLECTOR_FILTERS}
+          active={filters}
+          onActive={setFilters}
+          tasks={collected}
+          shown={filtered.length}
+        />
       )}
+
+      <SelectionStrip
+        all={collected}
+        selected={selected}
+        onSelected={setSelected}
+        removal={removal}
+        onMore={menu.openAt}
+      >
+        <PackageActions
+          tasks={collected}
+          selected={selected}
+          base="/api"
+          onDone={() => toast(t('task.applied'), 'ok')}
+        />
+        {/* Secondary, not primary: the page's one accent button is "Add to
+            collector" in the hero, and a second would make neither read as the
+            thing to do next. */}
+        <Button
+          kind="secondary"
+          className="px-2.5 text-xs"
+          icon={<IconPlay width={15} height={15} />}
+          onClick={startSelected}
+        >
+          {t('collector.startSelected')}
+        </Button>
+      </SelectionStrip>
+
+      <div onContextMenu={onContextMenu}>
+        {collected.length === 0 ? (
+          <div className="glim-card p-12 text-center text-sm text-carbon-textMuted">{t('collector.empty')}</div>
+        ) : filtered.length === 0 ? (
+          <div className="glim-card p-12 text-center text-sm text-carbon-textMuted">{t('downloads.noMatch')}</div>
+        ) : (
+          <TaskListCard groups={groups} base="/api" selection={selection} profile="collector" />
+        )}
+      </div>
+
+      <ListActionBar all={all} selected={selected} onSelected={setSelected} visible={filtered} local>
+        <Button
+          kind="ghost"
+          className="px-2.5 text-xs"
+          onClick={() => {
+            // An empty id list means every staged link on this route —
+            // deliberately unlike the bulk routes, where empty is refused
+            // outright rather than read as "all".
+            recheckTasks([]);
+            toast(t('task.recheck'), 'info');
+          }}
+        >
+          {t('collector.checkAll')}
+        </Button>
+        <Button kind="secondary" className="px-2.5 text-xs" onClick={startAll} disabled={collected.length === 0}>
+          {t('collector.startAll')}
+        </Button>
+      </ListActionBar>
+
+      <ListMenu
+        anchor={menu.anchor}
+        onClose={menu.close}
+        all={collected}
+        selected={selected}
+        base="/api"
+        removal={removal}
+      />
+      {removal.dialog}
     </div>
   );
 }
