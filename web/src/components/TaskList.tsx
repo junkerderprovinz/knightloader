@@ -142,8 +142,6 @@ function TaskRow({
         );
       })}
 
-      <span />
-
       {/* The primary action stays visible; the rest appears on hover or focus,
           so a long list reads as content instead of a wall of buttons. */}
       <div className="flex items-center justify-end gap-0.5">
@@ -340,7 +338,8 @@ function PackageGroup({
           </div>
         ))}
 
-        <span />
+        {/* The actions gutter, empty in a header row. One cell per track: a
+            spare one wraps the grid onto a second line. */}
         <span />
       </div>
 
@@ -468,7 +467,6 @@ function Header({
         );
       })}
 
-      <span />
       <span />
     </div>
   );
@@ -600,8 +598,14 @@ export function TaskListCard({
         </div>
       )}
 
+      {/* min-w-min, not min-w-max: max-content pins the table at the sum of its
+          own columns, which overrides the flexible name track entirely and makes
+          the list open scrolled off its right edge in any window narrower than
+          that sum. With min-content the name column gives way down to its own
+          minimum first, and only then does the table start scrolling — which is
+          the point at which scrolling is actually the right answer. */}
       <div className="overflow-x-auto">
-        <div ref={tableRef} className="min-w-max" style={{ ['--kl-cols' as string]: template } as CSSProperties}>
+        <div ref={tableRef} className="min-w-min" style={{ ['--kl-cols' as string]: template } as CSSProperties}>
           <Header
             layout={layout}
             sort={sort}
