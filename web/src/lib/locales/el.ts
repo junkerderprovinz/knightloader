@@ -318,6 +318,7 @@ export const el: Dict = {
   'remove.keys': 'Το Del βγάζει τις επιλεγμένες γραμμές από τη λίστα. Το Shift+Del σβήνει και τα αρχεία τους.',
 
   'menu.label': 'Ενέργειες για τις επιλεγμένες λήψεις',
+  'menu.packageLabel': 'Ενέργειες για αυτό το πακέτο',
   'menu.more': 'Περισσότερα',
   'menu.enable': 'Ενεργοποίηση',
   'menu.disable': 'Απενεργοποίηση',
@@ -325,6 +326,9 @@ export const el: Dict = {
   'menu.release': 'Αποδέσμευση',
   'menu.force': 'Προώθηση μπροστά',
   'menu.unforce': 'Τέλος προώθησης',
+  'menu.setFolder': 'Ορισμός φακέλου λήψεων…',
+  'menu.collapseAll': 'Σύμπτυξη όλων των πακέτων',
+  'menu.expandAll': 'Ανάπτυξη όλων των πακέτων',
   'collector.checkAll': 'Έλεγχος όλων',
 
   'skipped.summary': '{n} σύνδεσμοι δεν προστέθηκαν',

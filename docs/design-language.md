@@ -75,6 +75,26 @@ Three rules it follows:
   and the bubble itself is `pointer-events: none` so it can never swallow a
   click meant for what is underneath.
 
+## The reveal eye
+
+A field holding a secret — a token, a password — carries its show/hide control
+*inside* the field at the trailing edge: a bare eye that becomes a slashed eye
+once the value is shown. Three rules, and they rhyme with the info bubble's:
+
+- **A bare icon, never a badge or a second button.** The reveal is furniture, so
+  it is a glyph the field's own trailing padding reserves room for, not a chrome
+  button sitting beside the field. On a page that lives inside a host UI whose
+  global `button` styling would paint any `<button>` as a filled badge (Unraid is
+  the case that forced this), the control is a `<span role="button" tabindex="0">`
+  so nothing themes it — an app that owns all its own CSS may use a real button,
+  but the look is identical: an outlined eye, nothing around it.
+- **Neutral, never the accent.** Like the `(i)`, it means "look", not "activity".
+- **It does not resize the field.** The wrapper that positions the eye fills the
+  control column exactly as a plain field does; a shrink-to-content wrapper makes
+  the secret fields read as narrower than every field beside them — the first
+  thing the eye is meant *not* to draw attention to. Any check/verify action for
+  the field goes on its own line below, not crammed in beside it.
+
 ## Tokens (the contract)
 
 Defined in `web/src/index.css` under `:root` / `[data-theme="light"]`, and

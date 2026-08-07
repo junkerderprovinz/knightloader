@@ -310,6 +310,7 @@ export const it: Dict = {
   'remove.keys': "Canc toglie dall'elenco le righe selezionate. Maiusc+Canc ne cancella anche i file.",
 
   'menu.label': 'Azioni per i download selezionati',
+  'menu.packageLabel': 'Azioni per questo pacchetto',
   'menu.more': 'Altro',
   'menu.enable': 'Attiva',
   'menu.disable': 'Disattiva',
@@ -317,6 +318,9 @@ export const it: Dict = {
   'menu.release': 'Rilascia',
   'menu.force': 'Forza in testa',
   'menu.unforce': 'Non forzare più',
+  'menu.setFolder': 'Imposta la cartella di download…',
+  'menu.collapseAll': 'Comprimi tutti i pacchetti',
+  'menu.expandAll': 'Espandi tutti i pacchetti',
   'collector.checkAll': 'Verifica tutto',
 
   'skipped.summary': '{n} link non sono stati aggiunti',

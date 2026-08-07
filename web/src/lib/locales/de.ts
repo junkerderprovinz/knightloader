@@ -318,6 +318,7 @@ export const de: Dict = {
   'remove.keys': 'Entf nimmt die gewählten Zeilen von der Liste. Umschalt+Entf löscht auch ihre Dateien.',
 
   'menu.label': 'Aktionen für die gewählten Downloads',
+  'menu.packageLabel': 'Aktionen für dieses Paket',
   'menu.more': 'Mehr',
   'menu.enable': 'Einschalten',
   'menu.disable': 'Ausschalten',
@@ -325,6 +326,9 @@ export const de: Dict = {
   'menu.release': 'Freigeben',
   'menu.force': 'Nach vorn erzwingen',
   'menu.unforce': 'Nicht mehr erzwingen',
+  'menu.setFolder': 'Download-Ordner festlegen…',
+  'menu.collapseAll': 'Alle Pakete zuklappen',
+  'menu.expandAll': 'Alle Pakete aufklappen',
   'collector.checkAll': 'Alle prüfen',
 
   'skipped.summary': '{n} Link(s) wurden nicht hinzugefügt',

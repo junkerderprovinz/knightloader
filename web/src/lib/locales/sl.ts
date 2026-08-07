@@ -318,6 +318,7 @@ export const sl: Dict = {
   'remove.keys': 'Delete umakne izbrane vrstice s seznama. Shift+Delete izbriše tudi njihove datoteke.',
 
   'menu.label': 'Dejanja za izbrane prenose',
+  'menu.packageLabel': 'Dejanja za ta paket',
   'menu.more': 'Več',
   'menu.enable': 'Vklopi',
   'menu.disable': 'Izklopi',
@@ -325,6 +326,9 @@ export const sl: Dict = {
   'menu.release': 'Sprosti',
   'menu.force': 'Porini naprej',
   'menu.unforce': 'Nehaj poriniti',
+  'menu.setFolder': 'Nastavi mapo za prenose…',
+  'menu.collapseAll': 'Strni vse pakete',
+  'menu.expandAll': 'Razširi vse pakete',
   'collector.checkAll': 'Preveri vse',
 
   'skipped.summary': '{n} povezav ni bilo dodanih',

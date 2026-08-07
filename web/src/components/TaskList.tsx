@@ -1,25 +1,19 @@
-import { useMemo, useRef, useState, type CSSProperties, type DragEvent, type PointerEvent } from 'react';
+import { useCallback, useMemo, useRef, useState, type CSSProperties, type DragEvent, type PointerEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { type Task } from '../lib/api';
 import { hueVars, rainbowAt } from '../lib/appearance';
 import { useRainbow } from '../lib/useRainbow';
-import {
-  pause,
-  resume,
-  remove,
-  startTasks,
-  restartTasks,
-  recheckTasks,
-  setTaskOptions,
-} from '../lib/api';
+import { pause, resume, remove, startTasks, restartTasks, recheckTasks } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { useUIState } from '../lib/uistate';
-import { Button, Field, InfoBubble, Modal, TextInput } from './ui';
-import { ResolverBadge } from './StatusPill';
+import { Button, InfoBubble } from './ui';
+import { TaskOptionsDialog } from './ListToolbar';
 import { ColumnMenu } from './ColumnMenu';
 import {
   COLUMN_BY_ID,
   Checkbox,
+  FOLDER_GLYPH,
+  TREE_INDENT,
   applySort,
   gridTemplate,
   moveColumn,
@@ -60,17 +54,78 @@ const NO_COLLAPSED: string[] = [];
 // a single element instead of re-rendering several hundred rows per pointer move.
 const ROW_GRID: CSSProperties = { gridTemplateColumns: 'var(--kl-cols)' };
 
-function Chevron({ open }: { open: boolean }) {
+/**
+ * useCollapsedPackages is the folded set, and the only thing that knows where it
+ * is kept.
+ *
+ * The list card holds it and so does the page, because the right-click menu
+ * folds packages too and the menu belongs to the page. Both read the same field
+ * of the same store, which notifies every subscriber on write — so the twisty
+ * and the menu entry can never disagree about what is open.
+ *
+ * Folded packages are keyed by name, which is the only identity the wire model
+ * carries: core.Task has a package name and no package id. SetPackage rewrites
+ * the name, so a rename or a Packagizer re-package makes a folded package come
+ * back expanded. That is the mild failure of the two — the harmful one would be
+ * pruning names that are not on screen, which would unfold every package the
+ * search is currently hiding — but it needs a stable package id on the task to
+ * fix properly, and that is the model owner's lane, not this file's.
+ */
+export function useCollapsedPackages(profile: ListProfile = 'downloads') {
+  const [stored, setStored] = useUIState<string[]>(`list.collapsed.${profile}`, NO_COLLAPSED);
+  const collapsed = useMemo(() => new Set(stored), [stored]);
+
+  const collapse = useCallback(
+    (names: string[]) => {
+      const next = new Set(stored);
+      for (const n of names) next.add(n);
+      setStored([...next]);
+    },
+    [stored, setStored],
+  );
+
+  // Named, never "clear the lot": expanding what is on screen must not unfold
+  // the packages a search is currently hiding.
+  const expand = useCallback(
+    (names: string[]) => {
+      const next = new Set(stored);
+      for (const n of names) next.delete(n);
+      setStored([...next]);
+    },
+    [stored, setStored],
+  );
+
+  const toggle = useCallback(
+    (name: string) => {
+      if (collapsed.has(name)) expand([name]);
+      else collapse([name]);
+    },
+    [collapsed, collapse, expand],
+  );
+
+  return { collapsed, collapse, expand, toggle };
+}
+
+/**
+ * The tree control, as a filled triangle rather than a chevron.
+ *
+ * Swing's JTree draws exactly this, which is what a package row looks like in
+ * JDownloader, and it is the one mark on the row that says "there is something
+ * inside this". It points along the reading direction when shut and downward
+ * when open, so in an Arabic or Hebrew interface it points the way that
+ * interface reads.
+ */
+function Twisty({ open }: { open: boolean }) {
+  const rtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl';
   return (
-    <svg viewBox="0 0 16 16" width={13} height={13} aria-hidden focusable="false">
+    <svg viewBox="0 0 16 16" width={11} height={11} aria-hidden focusable="false">
       <path
-        d="M6 3l5 5-5 5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        style={{ transformOrigin: '8px 8px', transform: open ? 'rotate(90deg)' : 'none' }}
+        d="M5.5 2.8 11.6 8l-6.1 5.2z"
+        fill="currentColor"
+        style={{
+          transformOrigin: '8px 8px',
+          transform: open ? 'rotate(90deg)' : rtl ? 'rotate(180deg)' : 'none',
+        }}
       />
     </svg>
   );
@@ -109,6 +164,10 @@ function TaskRow({
   // differ.
   return (
     <div
+      // What a right-click landed on. Without it the menu can only ever act on
+      // whatever happened to be selected already, which is how the wrong
+      // download gets deleted.
+      data-task-id={task.id}
       style={{ ...hueVars(rainbowAt(index)), ...ROW_GRID } as CSSProperties}
       className={`glim-hue glim-tint ${task.status === 'running' ? 'glim-active' : ''} group relative grid
         items-center px-3 py-2 transition-colors hover:bg-carbon-hover/50`}
@@ -133,9 +192,23 @@ function TaskRow({
             // tooltip, so a name too long for its width is still readable
             // without widening the column first.
             title={typeof node === 'string' ? node : undefined}
-            className={`min-w-0 truncate px-2 text-[12.5px] text-carbon-textSub ${
-              col.align === 'end' ? 'text-end' : 'text-start'
-            } ${col.numeric ? 'glim-num' : ''}`}
+            // The name cell is the tree column, so a link inside a package is
+            // indented under it — the second half of what makes the header above
+            // read as a container rather than as another row in bold. Written as
+            // its own padding pair rather than as `px-2 ps-6`, because two
+            // utilities setting the same edge leave the result to stylesheet
+            // order.
+            //
+            // TREE_INDENT, not a guess: it is the exact width of the package
+            // row's leading furniture (see columns.tsx), so a link's name starts
+            // where its package's name starts. At `ps-9` it started 24px BEFORE
+            // it — measured on the live instance — which reads as the link being
+            // the outer level and the package the inner one, i.e. the tree
+            // upside down.
+            style={col.id === 'name' ? { paddingInlineStart: `${TREE_INDENT}px` } : undefined}
+            className={`min-w-0 truncate text-[12.5px] text-carbon-textSub ${
+              col.id === 'name' ? 'pe-2' : 'px-2'
+            } ${col.align === 'end' ? 'text-end' : 'text-start'} ${col.numeric ? 'glim-num' : ''}`}
           >
             {node}
           </div>
@@ -180,54 +253,17 @@ function TaskRow({
           a dialog that belongs to a row must not be laid out inside one. */}
       {options &&
         createPortal(
-          <TaskOptionsDialog task={task} base={base} onClose={() => setOptions(false)} />,
+          <TaskOptionsDialog tasks={[task]} base={base} onClose={() => setOptions(false)} />,
           document.body,
         )}
     </div>
   );
 }
 
-// TaskOptionsDialog edits the per-task overrides: where this file goes and the
-// password its archive needs. Both are left alone unless actually changed.
-function TaskOptionsDialog({ task, base, onClose }: { task: Task; base: string; onClose: () => void }) {
-  const { t } = useT();
-  const [dir, setDir] = useState(task.dir ?? '');
-  const [password, setPassword] = useState(task.password ?? '');
-  const [error, setError] = useState('');
-
-  async function apply() {
-    const r = await setTaskOptions([task.id], { dir, password }, base);
-    if (!r.ok) {
-      setError(await r.text());
-      return;
-    }
-    onClose();
-  }
-
-  return (
-    <Modal
-      title={task.name || task.url}
-      onClose={onClose}
-      footer={
-        <>
-          <Button onClick={apply}>{t('settings.save')}</Button>
-          {error && <span className="text-statusFail text-sm">{error}</span>}
-        </>
-      }
-    >
-      <Field label={t('task.folder')} hint={t('settings.downloadDirHint')}>
-        <TextInput dir="ltr" value={dir} spellCheck={false} onChange={(e) => setDir(e.target.value)} />
-      </Field>
-      <Field label={t('task.password')}>
-        <TextInput value={password} onChange={(e) => setPassword(e.target.value)} />
-      </Field>
-    </Modal>
-  );
-}
-
 /**
- * The package header's name cell — the tree control, and the one cell no column
- * renderer can produce because the folded set is list state.
+ * The package header's name cell — the folder, the tree control, the name and
+ * the file count, which together are what makes a package look like a package
+ * rather than like a row somebody made bold.
  *
  * The online figure is a ratio and never a pair of counts: "3 of 5 online" is
  * true while a check is still running, whereas "3 online, 2 offline" claims the
@@ -247,35 +283,67 @@ function PackageName({
   const { t } = useT();
   const done = items.filter((x) => x.status === 'done').length;
   const online = items.filter((x) => x.online === 'online').length;
-  const resolvers = new Set(items.map((x) => x.resolver));
-  const uniform = resolvers.size === 1 ? items[0].resolver : null;
+  const label = t(collapsed ? 'task.expand' : 'task.collapse');
+
+  const count = `${items.length} ${items.length === 1 ? t('task.file') : t('task.files')}${
+    done > 0 ? ` · ${done} ${t('overview.done').toLowerCase()}` : ''
+  }`;
 
   return (
-    <div className="flex min-w-0 items-center gap-2">
+    // @container, because what follows the name is whole or gone — never
+    // shredded. `truncate` is the right tool for a value that still means
+    // something cut short, and the wrong one for a two-word label: at a narrow
+    // name column "2 Dateien" rendered as "2 D…", which is not information, it
+    // is damage. Sized against this row rather than the viewport, since the name
+    // column is dragged and hidden independently of the window.
+    <div className="@container flex min-w-0 items-center gap-1.5">
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={!collapsed}
-        title={t(collapsed ? 'task.expand' : 'task.collapse')}
-        className="grid h-5 w-5 shrink-0 place-items-center rounded-[var(--radius-control)] text-carbon-textMuted
-          transition-colors hover:bg-carbon-hover hover:text-carbon-text"
+        aria-label={label}
+        title={label}
+        className="grid h-6 w-6 shrink-0 place-items-center rounded-[var(--radius-control)] text-carbon-textSub
+          transition-colors hover:bg-carbon-surface3 hover:text-carbon-text"
       >
-        <Chevron open={!collapsed} />
+        <Twisty open={!collapsed} />
       </button>
-      <span className="truncate text-[13px] font-semibold text-carbon-text">{name || t('task.ungrouped')}</span>
-      <span className="glim-num shrink-0 text-[11px] text-carbon-textMuted">
-        {items.length} {items.length === 1 ? t('task.file') : t('task.files')}
-        {done > 0 && ` · ${done} ${t('overview.done').toLowerCase()}`}
+      {/* Furniture, never the accent: every package has one, and a column of
+          gold folders would spend the one colour that means "something is
+          happening here" on the most ordinary fact on the page. */}
+      <IconFolder
+        width={FOLDER_GLYPH}
+        height={FOLDER_GLYPH}
+        className="shrink-0 text-carbon-textMuted"
+      />
+      {/* The name wins the room. Everything after it is shrinkable and the name
+          is not, below its own floor: with the counts pinned instead, a package
+          called "Season One" in a 200px column rendered as "S · 3 files", which
+          is the one word on the row nobody can do without. */}
+      <span
+        title={`${name || t('task.ungrouped')} — ${count}`}
+        className="min-w-[5rem] flex-1 truncate text-[13.5px] font-semibold text-carbon-text"
+      >
+        {name || t('task.ungrouped')}
+      </span>
+      {/* Both counts hang on the name's title as well, so a column too narrow to
+          show them has not hidden anything that cannot be got at. */}
+      <span className="glim-num hidden shrink-0 whitespace-nowrap text-[11px] text-carbon-textSub @[13rem]:inline">
+        {count}
       </span>
       {online > 0 && (
-        <span className="glim-num shrink-0 text-[11px] text-carbon-textMuted">
+        <span className="glim-num hidden shrink-0 whitespace-nowrap text-[11px] text-carbon-textMuted @[17rem]:inline">
           {t('task.onlineRatio', { online, total: items.length })}
         </span>
       )}
-      {uniform && <ResolverBadge resolver={uniform} />}
     </div>
   );
 }
+
+// Anything that is itself a control keeps its own click. Everything else on a
+// package header folds it, which is what people try first and what JDownloader
+// does.
+const CONTROL = 'button, a, input, select, textarea, [role="switch"], [role="checkbox"], .glim-info';
 
 // PackageGroup is a plain block inside the list card — not a nested card. Its
 // totals are over every link in the package, folded or not: a collapsed package
@@ -307,7 +375,22 @@ function PackageGroup({
 
   return (
     <section>
-      <div style={ROW_GRID} className="grid items-center px-3 py-2">
+      <div
+        // The name is the only identity a package has on the wire, and it is
+        // legitimately empty for the ungrouped one — so the attribute is present
+        // and empty rather than absent, and the page tells the two apart.
+        data-package-row={name}
+        style={ROW_GRID}
+        onClick={(e) => {
+          if (e.target instanceof Element && e.target.closest(CONTROL)) return;
+          onToggleCollapsed();
+        }}
+        // A colour step, not a rule: the header sits on the quiet surface and
+        // the links inside it sit on the card, which is the whole of the weight
+        // difference between a container and its contents.
+        className="grid cursor-pointer select-none items-center bg-carbon-surface2/80 px-3 py-2.5
+          transition-colors hover:bg-carbon-surface2"
+      >
         <div className="flex items-center justify-center">
           {selection && (
             <Checkbox
@@ -326,7 +409,7 @@ function PackageGroup({
         {columns.map((col) => (
           <div
             key={col.id}
-            className={`min-w-0 truncate px-2 text-[12px] text-carbon-textMuted ${
+            className={`min-w-0 truncate px-2 text-[12px] text-carbon-textSub ${
               col.align === 'end' ? 'text-end' : 'text-start'
             } ${col.numeric ? 'glim-num' : ''}`}
           >
@@ -496,14 +579,7 @@ export function TaskListCard({
 
   const [stored, setStored] = useUIState<ColumnLayout | null>(`list.columns.${profile}`, null);
   const [storedSort, setSort] = useUIState<SortState | null>(`list.sort.${profile}`, null);
-  // Folded packages are keyed by name, which is the only identity the wire model
-  // carries: core.Task has a package name and no package id. SetPackage rewrites
-  // the name, so a rename or a Packagizer re-package makes a folded package come
-  // back expanded. That is the mild failure of the two — the harmful one would be
-  // pruning names that are not on screen, which would unfold every package the
-  // search is currently hiding — but it needs a stable package id on the task to
-  // fix properly, and that is the model owner's lane, not this file's.
-  const [collapsed, setCollapsed] = useUIState<string[]>(`list.collapsed.${profile}`, NO_COLLAPSED);
+  const { collapsed, toggle } = useCollapsedPackages(profile);
   const [menuAt, setMenuAt] = useState<{ x: number; y: number } | null>(null);
 
   const tableRef = useRef<HTMLDivElement>(null);
@@ -511,7 +587,6 @@ export function TaskListCard({
 
   const layout = useMemo(() => resolveLayout(profile, stored), [profile, stored]);
   const ctx = useMemo<CellContext>(() => ({ t, base }), [t, base]);
-  const collapsedSet = useMemo(() => new Set(collapsed), [collapsed]);
 
   // A sort on a column that is currently hidden is ignored rather than cleared,
   // so showing the column again brings the order back with it. Applying it while
@@ -573,13 +648,6 @@ export function TaskListCard({
     persist({ widths });
   }
 
-  function toggleCollapsed(name: string): void {
-    const next = new Set(collapsedSet);
-    if (next.has(name)) next.delete(name);
-    else next.add(name);
-    setCollapsed([...next]);
-  }
-
   let index = 0;
 
   return (
@@ -620,7 +688,7 @@ export function TaskListCard({
 
           <div className="divide-y divide-carbon-border/60">
             {view.map(([name, items]) => {
-              const folded = collapsedSet.has(name);
+              const folded = collapsed.has(name);
               const offset = index;
               if (!folded) index += items.length;
               return (
@@ -633,12 +701,19 @@ export function TaskListCard({
                   columns={layout.visible}
                   selection={selection}
                   collapsed={folded}
-                  onToggleCollapsed={() => toggleCollapsed(name)}
+                  onToggleCollapsed={() => toggle(name)}
                   indexOffset={offset}
                 />
               );
             })}
           </div>
+
+          {/* The empty space under the rows, and it earns its keep twice: a
+              table that ends flush against the edge of its card reads as cut
+              off, and a right-click needs somewhere to land that is not a row.
+              That is where the list's own menu lives — select all, fold the lot,
+              clean up — the same place a desktop list keeps it. */}
+          <div className="h-10" />
         </div>
       </div>
 

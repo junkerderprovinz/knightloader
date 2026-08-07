@@ -318,6 +318,7 @@ export const lt: Dict = {
   'remove.keys': 'Delete nuima pažymėtas eilutes nuo sąrašo. Shift+Delete ištrina ir jų failus.',
 
   'menu.label': 'Veiksmai pažymėtiems atsiuntimams',
+  'menu.packageLabel': 'Veiksmai šiam paketui',
   'menu.more': 'Daugiau',
   'menu.enable': 'Įjungti',
   'menu.disable': 'Išjungti',
@@ -325,6 +326,9 @@ export const lt: Dict = {
   'menu.release': 'Paleisti',
   'menu.force': 'Prastumti į priekį',
   'menu.unforce': 'Nebestumti',
+  'menu.setFolder': 'Nustatyti atsisiuntimų aplanką…',
+  'menu.collapseAll': 'Suskleisti visus paketus',
+  'menu.expandAll': 'Išskleisti visus paketus',
   'collector.checkAll': 'Patikrinti viską',
 
   'skipped.summary': '{n} nuorodų nepridėta',

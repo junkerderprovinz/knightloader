@@ -318,6 +318,7 @@ export const ko: Dict = {
   'remove.keys': 'Del은 선택한 행을 목록에서 뺍니다. Shift+Del은 파일까지 지웁니다.',
 
   'menu.label': '선택한 다운로드에 대한 작업',
+  'menu.packageLabel': '이 패키지에 대한 작업',
   'menu.more': '더 보기',
   'menu.enable': '켜기',
   'menu.disable': '끄기',
@@ -325,6 +326,9 @@ export const ko: Dict = {
   'menu.release': '보류 해제',
   'menu.force': '맨 앞으로 밀기',
   'menu.unforce': '밀기 해제',
+  'menu.setFolder': '저장 폴더 설정…',
+  'menu.collapseAll': '모든 패키지 접기',
+  'menu.expandAll': '모든 패키지 펼치기',
   'collector.checkAll': '전부 확인',
 
   'skipped.summary': '링크 {n}개가 추가되지 않았습니다',

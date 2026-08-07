@@ -310,6 +310,7 @@ export const nl: Dict = {
   'remove.keys': 'Del haalt de geselecteerde rijen van de lijst. Shift+Del wist ook hun bestanden.',
 
   'menu.label': 'Acties voor de geselecteerde downloads',
+  'menu.packageLabel': 'Acties voor dit pakket',
   'menu.more': 'Meer',
   'menu.enable': 'Aanzetten',
   'menu.disable': 'Uitzetten',
@@ -317,6 +318,9 @@ export const nl: Dict = {
   'menu.release': 'Loslaten',
   'menu.force': 'Naar voren forceren',
   'menu.unforce': 'Niet meer forceren',
+  'menu.setFolder': 'Downloadmap instellen…',
+  'menu.collapseAll': 'Alle pakketten inklappen',
+  'menu.expandAll': 'Alle pakketten uitklappen',
   'collector.checkAll': 'Alles controleren',
 
   'skipped.summary': '{n} link(s) zijn niet toegevoegd',

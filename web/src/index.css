@@ -259,17 +259,55 @@ body {
    already paints activity with var(--accent), so nothing below has to know the
    mode exists. When rainbow is off, [data-rainbow] is absent, no rule matches,
    and the single accent applies exactly as before.
+
+   WHAT MAY OWN A POSITION. Anything that is one member of a SET whose members
+   are all equal: a nav item, a list row, a tab, a filter chip, a segment of a
+   segmented control, a badge that belongs to one of those. Anything that is
+   the only one of its kind on the page keeps the single accent — the primary
+   submit button is one action, not a set, and the speed curve is one figure.
+   The four state hues are never rainbowed either: green still means finished.
+
+   The class and the inline properties always travel together; `hueStyle(i)` in
+   components/ui.tsx hands out both, so no caller has to remember.
    --------------------------------------------------------------------------- */
 [data-rainbow] .glim-hue {
   --accent: var(--item-hue);
   --accent-contrast: var(--item-hue-ink);
   --accent-soft: var(--item-hue-soft);
+  /* The focus ring is part of the position, not part of the theme: it is drawn
+     directly around the element that owns the colour, so a gold ring on a teal
+     tab is the single accent leaking back in at the one moment it is most
+     visible. Reactive mode deliberately does not reset this — the ring is only
+     ever painted while the element has focus, and focus already brings the hue
+     back through the :focus-within rule below. */
+  --focus-ring: var(--item-hue-ring);
+  /* And the same three under the names Tailwind generated from @theme.
+     This is not belt and braces, it is the whole mechanism.
+     `--color-accent: var(--accent)` is DECLARED on :root, so the var() is
+     substituted there and what inherits downward is the literal gold — an
+     element redefining --accent for itself never reaches it. Every direct
+     var(--accent) did take the hue (the progress fill, the speed curve, the
+     nav glyphs), which is why the mode looked as though it worked, while
+     everything painted with the utilities — bg-accent on the active nav item,
+     on the chosen segment, on the selected tab — stayed stubbornly gold. The
+     one thing the palette exists to colour was the one thing it never
+     reached. Anything added to the @theme block that a position should own
+     has to be repeated here. */
+  --color-accent: var(--item-hue);
+  --color-accentContrast: var(--item-hue-ink);
+  --color-accentSoft: var(--item-hue-soft);
 }
 
 /* Opt-in: the element's glyph takes the hue too. Scoped to a second class
    because a download row owns a colour but its action icons must stay quiet.
    The active item is excluded: it is FILLED with the hue, so an icon painted
-   the same colour would vanish into its own background. */
+   the same colour would vanish into its own background.
+
+   This is what makes a nav or a tab bar read as a SET at rest rather than as
+   one coloured item and six grey ones: the icons carry the palette even while
+   only one of them is selected. A row of chips with no icons has nothing to
+   colour here on purpose — eight tinted labels beside eight tinted counts is a
+   colour chart, not a filter. */
 [data-rainbow] .glim-hue-icon:not(.glim-active) svg {
   color: var(--accent);
 }
@@ -298,6 +336,9 @@ body {
   --accent: var(--carbon-text-muted);
   --accent-contrast: var(--carbon-bg);
   --accent-soft: transparent;
+  --color-accent: var(--carbon-text-muted);
+  --color-accentContrast: var(--carbon-bg);
+  --color-accentSoft: transparent;
 }
 [data-rainbow='reactive'] .glim-hue:hover,
 [data-rainbow='reactive'] .glim-hue:focus-within,
@@ -305,6 +346,9 @@ body {
   --accent: var(--item-hue);
   --accent-contrast: var(--item-hue-ink);
   --accent-soft: var(--item-hue-soft);
+  --color-accent: var(--item-hue);
+  --color-accentContrast: var(--item-hue-ink);
+  --color-accentSoft: var(--item-hue-soft);
 }
 
 :focus-visible {

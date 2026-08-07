@@ -310,6 +310,7 @@ export const es: Dict = {
   'remove.keys': 'Supr quita las filas seleccionadas de la lista. Mayús+Supr borra además sus archivos.',
 
   'menu.label': 'Acciones para las descargas seleccionadas',
+  'menu.packageLabel': 'Acciones para este paquete',
   'menu.more': 'Más',
   'menu.enable': 'Activar',
   'menu.disable': 'Desactivar',
@@ -317,6 +318,9 @@ export const es: Dict = {
   'menu.release': 'Soltar',
   'menu.force': 'Forzar al principio',
   'menu.unforce': 'Dejar de forzar',
+  'menu.setFolder': 'Establecer la carpeta de descargas…',
+  'menu.collapseAll': 'Plegar todos los paquetes',
+  'menu.expandAll': 'Desplegar todos los paquetes',
   'collector.checkAll': 'Comprobar todo',
 
   'skipped.summary': 'No se añadieron {n} enlace(s)',

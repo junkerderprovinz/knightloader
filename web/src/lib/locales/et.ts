@@ -318,6 +318,7 @@ export const et: Dict = {
   'remove.keys': 'Delete võtab valitud read loendist maha. Shift+Delete kustutab ka nende failid.',
 
   'menu.label': 'Toimingud valitud allalaadimistega',
+  'menu.packageLabel': 'Toimingud selle pakiga',
   'menu.more': 'Veel',
   'menu.enable': 'Lülita sisse',
   'menu.disable': 'Lülita välja',
@@ -325,6 +326,9 @@ export const et: Dict = {
   'menu.release': 'Lase lahti',
   'menu.force': 'Suru ettepoole',
   'menu.unforce': 'Lõpeta surumine',
+  'menu.setFolder': 'Määra allalaadimiste kaust…',
+  'menu.collapseAll': 'Sulge kõik pakid',
+  'menu.expandAll': 'Ava kõik pakid',
   'collector.checkAll': 'Kontrolli kõiki',
 
   'skipped.summary': '{n} linki ei lisatud',

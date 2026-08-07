@@ -310,6 +310,7 @@ export const ru: Dict = {
   'remove.keys': 'Del убирает выбранные строки из списка. Shift+Del удаляет и их файлы.',
 
   'menu.label': 'Действия для выбранных загрузок',
+  'menu.packageLabel': 'Действия для этого пакета',
   'menu.more': 'Ещё',
   'menu.enable': 'Включить',
   'menu.disable': 'Выключить',
@@ -317,6 +318,9 @@ export const ru: Dict = {
   'menu.release': 'Отпустить',
   'menu.force': 'Протолкнуть вперёд',
   'menu.unforce': 'Не проталкивать',
+  'menu.setFolder': 'Задать папку загрузок…',
+  'menu.collapseAll': 'Свернуть все пакеты',
+  'menu.expandAll': 'Развернуть все пакеты',
   'collector.checkAll': 'Проверить всё',
 
   'skipped.summary': '{n} ссылок не добавлено',

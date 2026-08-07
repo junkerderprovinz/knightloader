@@ -318,6 +318,7 @@ export const ms: Dict = {
   'remove.keys': 'Del mengangkat baris terpilih dari senarai. Shift+Del memadam failnya sekali.',
 
   'menu.label': 'Tindakan untuk muat turun terpilih',
+  'menu.packageLabel': 'Tindakan untuk pakej ini',
   'menu.more': 'Lagi',
   'menu.enable': 'Hidupkan',
   'menu.disable': 'Matikan',
@@ -325,6 +326,9 @@ export const ms: Dict = {
   'menu.release': 'Lepaskan',
   'menu.force': 'Paksa ke depan',
   'menu.unforce': 'Berhenti memaksa',
+  'menu.setFolder': 'Tetapkan folder muat turun…',
+  'menu.collapseAll': 'Kuncupkan semua pakej',
+  'menu.expandAll': 'Kembangkan semua pakej',
   'collector.checkAll': 'Semak semua',
 
   'skipped.summary': '{n} pautan tidak ditambah',

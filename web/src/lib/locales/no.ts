@@ -320,6 +320,7 @@ export const no: Dict = {
   'remove.keys': 'Delete tar de valgte radene av listen. Skift+Delete sletter også filene deres.',
 
   'menu.label': 'Handlinger for de valgte nedlastingene',
+  'menu.packageLabel': 'Handlinger for denne pakken',
   'menu.more': 'Mer',
   'menu.enable': 'Slå på',
   'menu.disable': 'Slå av',
@@ -327,6 +328,9 @@ export const no: Dict = {
   'menu.release': 'Slipp',
   'menu.force': 'Tving fremst',
   'menu.unforce': 'Slutt å tvinge',
+  'menu.setFolder': 'Angi nedlastingsmappe…',
+  'menu.collapseAll': 'Fold sammen alle pakker',
+  'menu.expandAll': 'Fold ut alle pakker',
   'collector.checkAll': 'Sjekk alle',
 
   'skipped.summary': '{n} lenke(r) ble ikke lagt til',

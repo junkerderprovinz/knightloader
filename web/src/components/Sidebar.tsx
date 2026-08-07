@@ -119,9 +119,13 @@ export function Sidebar() {
       </NavLink>
 
       <nav className="flex flex-col gap-1 p-3 flex-1">
+        {/* Downloads above the collector: the download list is what this app is
+            open for, and the collector is the room links pass through on their
+            way into it. JDownloader puts its download tab first for the same
+            reason, and somebody arriving from it reaches for the first entry. */}
         <Item to="/" end hue={0} label={t('nav.overview')} icon={<IconDashboard />} />
-        <Item to="/collector" hue={1} label={t('nav.collector')} icon={<IconCollector />} badge={collected} />
-        <Item to="/downloads" hue={2} label={t('nav.downloads')} icon={<IconDownloads />} badge={active} />
+        <Item to="/downloads" hue={1} label={t('nav.downloads')} icon={<IconDownloads />} badge={active} />
+        <Item to="/collector" hue={2} label={t('nav.collector')} icon={<IconCollector />} badge={collected} />
         <Item to="/instances" hue={3} label={t('nav.instances')} icon={<IconInstances />} />
         <Item to="/accounts" hue={4} label={t('nav.accounts')} icon={<IconAccounts />} />
       </nav>

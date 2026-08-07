@@ -310,6 +310,7 @@ export const pl: Dict = {
   'remove.keys': 'Delete zdejmuje zaznaczone wiersze z listy. Shift+Delete kasuje też ich pliki.',
 
   'menu.label': 'Akcje dla zaznaczonych pobierań',
+  'menu.packageLabel': 'Akcje dla tego pakietu',
   'menu.more': 'Więcej',
   'menu.enable': 'Włącz',
   'menu.disable': 'Wyłącz',
@@ -317,6 +318,9 @@ export const pl: Dict = {
   'menu.release': 'Zwolnij',
   'menu.force': 'Wymuś na początek',
   'menu.unforce': 'Przestań wymuszać',
+  'menu.setFolder': 'Ustaw folder pobierania…',
+  'menu.collapseAll': 'Zwiń wszystkie pakiety',
+  'menu.expandAll': 'Rozwiń wszystkie pakiety',
   'collector.checkAll': 'Sprawdź wszystko',
 
   'skipped.summary': '{n} link(ów) nie zostało dodanych',

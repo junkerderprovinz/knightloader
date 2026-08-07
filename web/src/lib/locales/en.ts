@@ -318,6 +318,7 @@ export const en = {
   'remove.keys': 'Del takes the selected rows off the list. Shift+Del also deletes their files.',
 
   'menu.label': 'Actions for the selected downloads',
+  'menu.packageLabel': 'Actions for this package',
   'menu.more': 'More',
   'menu.enable': 'Switch on',
   'menu.disable': 'Switch off',
@@ -325,6 +326,9 @@ export const en = {
   'menu.release': 'Release',
   'menu.force': 'Force to the front',
   'menu.unforce': 'Stop forcing',
+  'menu.setFolder': 'Set download folder…',
+  'menu.collapseAll': 'Collapse all packages',
+  'menu.expandAll': 'Expand all packages',
   'collector.checkAll': 'Check all',
 
   'skipped.summary': '{n} link(s) were not added',

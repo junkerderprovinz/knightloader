@@ -15,27 +15,46 @@ import {
   cleanupPreview,
   deleteTasks,
   fetchOptions,
+  moveTasks,
+  pause,
   recheckTasks,
   restartTasks,
+  resume,
   runCleanup,
   setEnabled,
   setForced,
   setHold,
+  setPriority,
+  setTaskOptions,
   startTasks,
 } from '../lib/api';
 import { fmtBytes } from '../lib/format';
 import { useToast } from '../lib/toast';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { Button, InfoBubble, Modal, segBase, segOn, segOff } from './ui';
+import { Button, Field, InfoBubble, Modal, TextInput } from './ui';
+import { Tabs } from './Tabs';
 import {
   ContextMenu,
   anchorBelow,
   useContextMenu,
   type MenuAnchor,
   type MenuGroup,
+  type MenuItem,
 } from './ContextMenu';
 import { SearchField, type SearchQuery } from './SearchField';
-import { IconCheck, IconPlay, IconRetry, IconSearch, IconTrash } from '../lib/icons';
+import {
+  IconArrowDown,
+  IconArrowUp,
+  IconBottom,
+  IconCheck,
+  IconFolder,
+  IconPause,
+  IconPlay,
+  IconRetry,
+  IconSearch,
+  IconTop,
+  IconTrash,
+} from '../lib/icons';
 
 // A handful of glyphs the shared set does not carry yet. They live here rather
 // than in lib/icons.tsx because that file belongs to another lane this wave;
@@ -53,6 +72,12 @@ const glyph = (p: SVGProps<SVGSVGElement>) => ({
 const IconChevronDown = (p: SVGProps<SVGSVGElement>) => (
   <svg {...glyph(p)} stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
     <path d="M6 8l4 4 4-4" />
+  </svg>
+);
+
+const IconChevronUp = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...glyph(p)} stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 12l4-4 4 4" />
   </svg>
 );
 
@@ -91,6 +116,15 @@ const IconPin = (p: SVGProps<SVGSVGElement>) => (
 const IconBolt = (p: SVGProps<SVGSVGElement>) => (
   <svg {...glyph(p)} fill="currentColor">
     <path d="M11.3 2.4 4.8 11.2h3.6L7.6 17.6 15.2 8.8h-3.7z" />
+  </svg>
+);
+
+// The archive password, which is a key held against a lock — deliberately not
+// the same glyph as the folder beside it in the menu.
+const IconKey = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...glyph(p)} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="7" cy="7" r="3.2" />
+    <path d="M9.3 9.3 16 16M13.4 13.4l-1.6 1.6M15 11.8l-1.6 1.6" />
   </svg>
 );
 
@@ -257,6 +291,99 @@ function ConfirmRemove({
   );
 }
 
+// --- The per-task overrides -----------------------------------------------
+
+/**
+ * TaskOptionsDialog edits the two things a link can be told on its own: where
+ * its file goes, and the password its archive needs.
+ *
+ * It takes a selection rather than a task, because the row's own folder button
+ * and the context menu's two entries are the same dialog on one row and on
+ * forty. That also fixes the rule that matters here: a field is sent ONLY if it
+ * was changed. Sending both every time would let a selection whose members
+ * disagree open with two empty boxes and wipe every override in it on save.
+ */
+export function TaskOptionsDialog({
+  tasks,
+  base,
+  focus = 'dir',
+  onClose,
+}: {
+  tasks: Task[];
+  base: string;
+  /** Which box the caller came for. */
+  focus?: 'dir' | 'password';
+  onClose: () => void;
+}) {
+  const { t } = useT();
+  // One agreed value, or nothing. An empty box that is left alone changes
+  // nothing, so "they disagree" and "it is unset" behave identically here.
+  const agreed = (pick: (x: Task) => string) => {
+    const first = tasks.length > 0 ? pick(tasks[0]) : '';
+    return tasks.every((x) => pick(x) === first) ? first : '';
+  };
+  const [dir, setDir] = useState(() => agreed((x) => x.dir ?? ''));
+  const [password, setPassword] = useState(() => agreed((x) => x.password ?? ''));
+  const [initial] = useState(() => ({
+    dir: agreed((x) => x.dir ?? ''),
+    password: agreed((x) => x.password ?? ''),
+  }));
+  const [error, setError] = useState('');
+
+  async function apply() {
+    const opts: { dir?: string; password?: string } = {};
+    if (dir !== initial.dir) opts.dir = dir;
+    if (password !== initial.password) opts.password = password;
+    if (Object.keys(opts).length === 0) {
+      onClose();
+      return;
+    }
+    const r = await setTaskOptions(
+      tasks.map((x) => x.id),
+      opts,
+      base,
+    );
+    if (!r.ok) {
+      setError(await r.text());
+      return;
+    }
+    onClose();
+  }
+
+  const title =
+    tasks.length === 1 ? tasks[0].name || tasks[0].url : `${tasks.length} ${t('select.count')}`;
+
+  return (
+    <Modal
+      title={title}
+      onClose={onClose}
+      footer={
+        <>
+          <Button onClick={apply}>{t('settings.save')}</Button>
+          {error && <span className="text-statusFail text-sm">{error}</span>}
+        </>
+      }
+    >
+      <Field label={t('task.folder')} hint={t('settings.downloadDirHint')}>
+        <TextInput
+          dir="ltr"
+          autoFocus={focus === 'dir'}
+          value={dir}
+          spellCheck={false}
+          onChange={(e) => setDir(e.target.value)}
+        />
+      </Field>
+      <Field label={t('task.password')}>
+        <TextInput
+          autoFocus={focus === 'password'}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+      </Field>
+    </Modal>
+  );
+}
+
 // --- Removing a selection -------------------------------------------------
 
 /**
@@ -337,12 +464,179 @@ export function useRemoval({
 
 export type Removal = ReturnType<typeof useRemoval>;
 
-// --- The menu a list offers on a selection --------------------------------
+// --- The clean-up classes, shared by the bar and the menu ------------------
+
+// The clean-up entries come from the server, once per session. Building the menu
+// from the client's own list would offer whatever this build was compiled with,
+// and an entry the server does not implement is a button that answers 400 when
+// it is pressed.
+let optionsOnce: Promise<ApiOptions> | null = null;
+
+function cleanupClasses(): Promise<CleanupClass[]> {
+  if (!optionsOnce) optionsOnce = fetchOptions();
+  return optionsOnce.then(
+    (o) => o.cleanupClasses ?? [],
+    (e) => {
+      optionsOnce = null; // a failed load must not poison the next attempt
+      throw e;
+    },
+  );
+}
+
+const CLEANUP_LABEL: Partial<Record<string, TranslationKey>> = {
+  finished: 'cleanup.finished',
+  offline: 'cleanup.offline',
+  disabled: 'cleanup.disabled',
+  duplicates: 'cleanup.duplicates',
+  incompleteArchives: 'cleanup.incompleteArchives',
+};
+
+const CLEANUP_WHAT: Partial<Record<string, TranslationKey>> = {
+  finished: 'cleanup.what.finished',
+  offline: 'cleanup.what.offline',
+  disabled: 'cleanup.what.disabled',
+  duplicates: 'cleanup.what.duplicates',
+  incompleteArchives: 'cleanup.what.incompleteArchives',
+};
 
 /**
- * taskMenuGroups builds the standard groups for a selection. Later waves add
- * their own groups beside these rather than editing this list — the menu shell
- * takes any number of them.
+ * A finished download's files are the reason it was downloaded. The class that
+ * tidies them off the list is the one people run daily, and one absent-minded
+ * click on the wrong button would erase a finished library — so this entry does
+ * not offer the destructive exit at all, rather than offering it and asking
+ * nicely.
+ */
+const KEEPS_FILES = new Set<string>(['finished']);
+
+/**
+ * useCleanup is the clean-up flow, once: fetch the classes the server actually
+ * implements, preview what one would take, then confirm.
+ *
+ * Both the bar under the list and the right-click menu run it, and they run the
+ * same one — a second copy in the menu is how the menu ends up offering a class
+ * this server does not have, or removing without previewing first.
+ */
+function useCleanup(all: Task[]) {
+  const { t } = useT();
+  const { toast } = useToast();
+  const [classes, setClasses] = useState<CleanupClass[] | null>(null);
+  const [confirm, setConfirm] = useState<{ cls: CleanupClass; ids: string[] } | null>(null);
+
+  const load = useCallback(async (): Promise<CleanupClass[]> => {
+    const list = await cleanupClasses();
+    setClasses(list);
+    return list;
+  }, []);
+
+  // The preview and the confirmation are one gesture: the class picks the rows,
+  // so the count is the only thing that can tell the user what they are about to
+  // agree to. Nothing is removed by opening this.
+  const preview = useCallback(
+    async (cls: CleanupClass): Promise<void> => {
+      try {
+        const r = await cleanupPreview(cls);
+        if (r.count === 0) {
+          toast(t('cleanup.nothing', { what: classLabel(cls, t) }), 'info');
+          return;
+        }
+        setConfirm({ cls, ids: r.ids });
+      } catch (e) {
+        toast(t('cleanup.failed', { error: message(e) }), 'fail');
+      }
+    },
+    [t, toast],
+  );
+
+  const run = useCallback(
+    async (cls: CleanupClass, withFiles: boolean): Promise<void> => {
+      setConfirm(null);
+      try {
+        const r = await runCleanup(cls, withFiles);
+        toast(t('remove.done', { n: r.count }), 'ok');
+      } catch (e) {
+        toast(t('cleanup.failed', { error: message(e) }), 'fail');
+      }
+    },
+    [t, toast],
+  );
+
+  const dialog = confirm && (
+    <ConfirmRemove
+      title={classLabel(confirm.cls, t)}
+      what={CLEANUP_WHAT[confirm.cls] ? t(CLEANUP_WHAT[confirm.cls]!) : undefined}
+      weight={weigh(all, confirm.ids)}
+      allowFiles={!KEEPS_FILES.has(confirm.cls)}
+      note={KEEPS_FILES.has(confirm.cls) ? t('cleanup.finishedKeepsFiles') : undefined}
+      onCancel={() => setConfirm(null)}
+      onConfirm={(withFiles) => void run(confirm.cls, withFiles)}
+    />
+  );
+
+  return { classes, load, preview, dialog };
+}
+
+/** cleanupItems turns the classes the server offers into menu entries. */
+function cleanupItems(
+  classes: CleanupClass[],
+  t: (key: TranslationKey) => string,
+  preview: (cls: CleanupClass) => void,
+): MenuItem[] {
+  return classes.map((cls) => ({
+    id: cls,
+    label: classLabel(cls, t),
+    icon: <IconTrash width={14} height={14} />,
+    onSelect: () => preview(cls),
+  }));
+}
+
+// --- The menu a list offers -----------------------------------------------
+
+/**
+ * What a right-click landed on. The three readings a download list has:
+ *
+ *   selection  a link row, or the More button — act on what is selected
+ *   package    a package header — the same verbs, over the whole package, plus
+ *              the fold
+ *   list       empty space — nothing is selected and the entries are the ones
+ *              that belong to the list itself
+ */
+export type MenuTarget =
+  | { kind: 'selection' }
+  | { kind: 'package'; name: string }
+  | { kind: 'list' };
+
+/**
+ * The menu's accessible name, one per reading. A screen reader announces this
+ * before the entries, so it is the only chance to say what the menu is about to
+ * act on — and "the selected downloads" is a lie on a package header nobody
+ * selected.
+ */
+const MENU_LABEL: Record<MenuTarget['kind'], TranslationKey> = {
+  selection: 'menu.label',
+  package: 'menu.packageLabel',
+  list: 'list.actions',
+};
+
+/** What the page knows about its own list, for the entries that act on all of it. */
+export interface ListContext {
+  /** The package names on screen, in view order. */
+  packages: string[];
+  collapsed: ReadonlySet<string>;
+  onCollapse: (names: string[]) => void;
+  onExpand: (names: string[]) => void;
+  onSelectAll: () => void;
+  onSelectNone: () => void;
+  /**
+   * Whether clean-up would act on the instance being shown. It is never
+   * forwarded to a peer, so on somebody else's list the entries are left out
+   * rather than quietly acting on the wrong machine.
+   */
+  local: boolean;
+}
+
+/**
+ * taskMenuGroups builds the verbs for a selection — the same ones whether the
+ * selection is one link, a package, or forty rows picked by hand.
  *
  * An entry that cannot act on any of the selected rows is left out instead of
  * shown greyed: a menu of nine dead verbs is a menu nobody reads to the end of.
@@ -354,6 +648,7 @@ function taskMenuGroups({
   t,
   fail,
   removal,
+  onOptions,
 }: {
   chosen: Task[];
   ids: string[];
@@ -361,6 +656,7 @@ function taskMenuGroups({
   t: (key: TranslationKey, vars?: Record<string, string | number>) => string;
   fail: (e: unknown) => void;
   removal: Removal;
+  onOptions: (focus: 'dir' | 'password') => void;
 }): MenuGroup[] {
   const some = (p: (x: Task) => boolean) => chosen.some(p);
   const guard = (run: () => Promise<unknown>) => () => {
@@ -375,6 +671,27 @@ function taskMenuGroups({
       icon: <IconPlay width={14} height={14} />,
       onSelect: () => void startTasks(ids, base),
     });
+  // Stopping is per task on the wire — there is no bulk pause route — so this
+  // pauses exactly the ones that are running rather than asking the server to
+  // work out which those were.
+  if (some((x) => x.status === 'running' || x.status === 'extracting'))
+    transport.items.push({
+      id: 'pause',
+      label: t('task.pause'),
+      icon: <IconPause width={14} height={14} />,
+      onSelect: () => {
+        for (const x of chosen) if (x.status === 'running' || x.status === 'extracting') void pause(x.id, base);
+      },
+    });
+  if (some((x) => x.status === 'paused'))
+    transport.items.push({
+      id: 'resume',
+      label: t('task.resume'),
+      icon: <IconPlay width={14} height={14} />,
+      onSelect: () => {
+        for (const x of chosen) if (x.status === 'paused') void resume(x.id, base);
+      },
+    });
   if (some((x) => x.status === 'done' || x.status === 'error'))
     transport.items.push({
       id: 'restart',
@@ -388,6 +705,38 @@ function taskMenuGroups({
     icon: <IconSearch width={14} height={14} />,
     onSelect: () => void recheckTasks(ids, base),
   });
+
+  // Queue order only means something while something is still waiting to run.
+  // A package of finished downloads has no position to raise.
+  const queue: MenuGroup = { id: 'queue', items: [] };
+  if (some((x) => x.status === 'queued' || x.status === 'paused' || x.status === 'collected')) {
+    queue.items.push(
+      {
+        id: 'up',
+        label: t('task.priorityUp'),
+        icon: <IconArrowUp width={14} height={14} />,
+        onSelect: () => void setPriority(ids, 1, base),
+      },
+      {
+        id: 'down',
+        label: t('task.priorityDown'),
+        icon: <IconArrowDown width={14} height={14} />,
+        onSelect: () => void setPriority(ids, -1, base),
+      },
+      {
+        id: 'top',
+        label: t('task.moveTop'),
+        icon: <IconTop width={14} height={14} />,
+        onSelect: () => void moveTasks(ids, 'top', base),
+      },
+      {
+        id: 'bottom',
+        label: t('task.moveBottom'),
+        icon: <IconBottom width={14} height={14} />,
+        onSelect: () => void moveTasks(ids, 'bottom', base),
+      },
+    );
+  }
 
   const state: MenuGroup = { id: 'state', items: [] };
   if (some((x) => !x.enabled))
@@ -433,6 +782,27 @@ function taskMenuGroups({
       onSelect: guard(() => setForced(ids, false, base)),
     });
 
+  // Where the files go and what unlocks the archive: the two overrides a link
+  // carries of its own. Both open the one dialog, with the cursor in the box
+  // the entry names.
+  const options: MenuGroup = {
+    id: 'options',
+    items: [
+      {
+        id: 'dir',
+        label: t('menu.setFolder'),
+        icon: <IconFolder width={14} height={14} />,
+        onSelect: () => onOptions('dir'),
+      },
+      {
+        id: 'password',
+        label: t('task.password'),
+        icon: <IconKey />,
+        onSelect: () => onOptions('password'),
+      },
+    ],
+  };
+
   const gone: MenuGroup = {
     id: 'remove',
     items: [
@@ -455,15 +825,15 @@ function taskMenuGroups({
     ],
   };
 
-  return [transport, state, gone];
+  return [transport, queue, state, options, gone];
 }
 
 /**
  * targetTaskId finds the row a right-click landed on.
  *
- * It reads `data-task-id`, which the row component sets. While no row carries
- * one the menu falls back to the current selection, which is the useful answer
- * anyway: nothing here has to change when the attribute appears.
+ * It reads `data-task-id`, which the row component sets. Falling back to the
+ * current selection when nothing is under the pointer is deliberate: the More
+ * button raises the same menu.
  */
 export function targetTaskId(e: { target: EventTarget | null }): string | null {
   const el = e.target instanceof Element ? e.target.closest('[data-task-id]') : null;
@@ -471,8 +841,24 @@ export function targetTaskId(e: { target: EventTarget | null }): string | null {
 }
 
 /**
+ * targetPackage finds the package header a right-click landed on, and answers
+ * with its name — which is legitimately the empty string for the ungrouped
+ * package, so "not on a header at all" has to be null rather than falsy.
+ */
+export function targetPackage(e: { target: EventTarget | null }): string | null {
+  const el = e.target instanceof Element ? e.target.closest('[data-package-row]') : null;
+  if (!el) return null;
+  return el.getAttribute('data-package-row') ?? '';
+}
+
+/**
  * ListMenu is the page's one menu: the same groups whether it was opened by
- * right-click or by the selection strip's More button.
+ * right-click on a link, on a package header, on empty space, or from the
+ * selection strip's More button.
+ *
+ * It is mounted even while nothing is open, because the dialogs it raises must
+ * outlive the menu itself — the menu closes before an entry runs, which is what
+ * stops a dialog opening underneath it.
  */
 export function ListMenu({
   anchor,
@@ -481,6 +867,8 @@ export function ListMenu({
   selected,
   base,
   removal,
+  target = { kind: 'selection' },
+  list,
   extraGroups = [],
 }: {
   anchor: MenuAnchor | null;
@@ -489,21 +877,154 @@ export function ListMenu({
   selected: Set<string>;
   base: string;
   removal: Removal;
+  /** What the pointer landed on. Defaults to the selection, which is what More means. */
+  target?: MenuTarget;
+  list?: ListContext;
   /** Groups another wave contributes, appended after the standard ones. */
   extraGroups?: MenuGroup[];
 }) {
   const { t } = useT();
   const { toast } = useToast();
   const fail = useCallback((e: unknown) => toast(t('list.failed', { error: message(e) }), 'fail'), [t, toast]);
+  const cleanup = useCleanup(all);
+  const [options, setOptions] = useState<{ tasks: Task[]; focus: 'dir' | 'password' } | null>(null);
 
   const chosen = useMemo(() => all.filter((x) => selected.has(x.id)), [all, selected]);
-  if (!anchor || chosen.length === 0) return null;
 
-  const groups = [
-    ...taskMenuGroups({ chosen, ids: chosen.map((x) => x.id), base, t, fail, removal }),
-    ...extraGroups,
-  ];
-  return <ContextMenu anchor={anchor} groups={groups} label={t('menu.label')} onClose={onClose} />;
+  // Fetched once when the page mounts, not when the menu opens: a right-click
+  // that has to wait for a request before it can draw its entries is a menu
+  // whose bottom half appears after you have already read past it.
+  const { load } = cleanup;
+  useEffect(() => {
+    void load().catch(() => {
+      /* the bar under the list says so when it is pressed; a menu does not nag */
+    });
+  }, [load]);
+
+  const groups: MenuGroup[] = [];
+
+  if (list) {
+    const folded = list.packages.filter((n) => list.collapsed.has(n));
+    const open = list.packages.filter((n) => !list.collapsed.has(n));
+
+    // The package under the pointer folds from its own menu, which is the entry
+    // people look for after they have found the twisty once.
+    if (target.kind === 'package') {
+      const name = target.name;
+      const isFolded = list.collapsed.has(name);
+      groups.push({
+        id: 'fold',
+        items: [
+          {
+            id: 'fold',
+            label: t(isFolded ? 'task.expand' : 'task.collapse'),
+            icon: isFolded ? <IconChevronDown /> : <IconChevronUp />,
+            onSelect: () => (isFolded ? list.onExpand([name]) : list.onCollapse([name])),
+          },
+        ],
+      });
+    }
+
+    // Empty space is about the list itself: nothing is selected there, and the
+    // verbs that need a selection would all be missing anyway.
+    if (target.kind === 'list') {
+      const whole: MenuItem[] = [];
+      if (list.packages.length > 0)
+        whole.push({
+          id: 'selectAll',
+          label: t('select.all'),
+          icon: <IconCheck width={14} height={14} />,
+          onSelect: list.onSelectAll,
+        });
+      if (selected.size > 0)
+        whole.push({
+          id: 'selectNone',
+          label: t('select.none'),
+          detail: String(selected.size),
+          onSelect: list.onSelectNone,
+        });
+      groups.push({ id: 'select', items: whole });
+    }
+
+    // Whole-list folding belongs to the empty space, not beside a package's own
+    // fold: the two are one word apart in the reading, and a menu that has to be
+    // read twice to tell "this one" from "all of them" is a menu that needs its
+    // own explanation. The count stays in the detail column — the label says
+    // which set, the number says how big it is.
+    if (list.packages.length > 1 && target.kind === 'list') {
+      const fold: MenuItem[] = [];
+      if (open.length > 0)
+        fold.push({
+          id: 'collapseAll',
+          label: t('menu.collapseAll'),
+          detail: String(open.length),
+          icon: <IconChevronUp />,
+          onSelect: () => list.onCollapse(open),
+        });
+      if (folded.length > 0)
+        fold.push({
+          id: 'expandAll',
+          label: t('menu.expandAll'),
+          detail: String(folded.length),
+          icon: <IconChevronDown />,
+          onSelect: () => list.onExpand(folded),
+        });
+      groups.push({ id: 'foldAll', items: fold });
+    }
+  }
+
+  if (chosen.length > 0) {
+    groups.push(
+      ...taskMenuGroups({
+        chosen,
+        ids: chosen.map((x) => x.id),
+        base,
+        t,
+        fail,
+        removal,
+        onOptions: (focus) => setOptions({ tasks: chosen, focus }),
+      }),
+      ...extraGroups,
+    );
+  }
+
+  // Behind one word, the way JDownloader keeps it: five more entries in a menu
+  // that already has a dozen would bury the ones that act on the selection.
+  if (list?.local && cleanup.classes && cleanup.classes.length > 0) {
+    groups.push({
+      id: 'cleanup',
+      items: [
+        {
+          id: 'cleanup',
+          label: t('cleanup.menu'),
+          icon: <IconTrash width={14} height={14} />,
+          submenu: [{ id: 'classes', items: cleanupItems(cleanup.classes, t, (cls) => void cleanup.preview(cls)) }],
+        },
+      ],
+    });
+  }
+
+  return (
+    <>
+      {anchor && (
+        <ContextMenu
+          anchor={anchor}
+          groups={groups}
+          label={t(MENU_LABEL[target.kind])}
+          onClose={onClose}
+        />
+      )}
+      {options && (
+        <TaskOptionsDialog
+          tasks={options.tasks}
+          base={base}
+          focus={options.focus}
+          onClose={() => setOptions(null)}
+        />
+      )}
+      {cleanup.dialog}
+    </>
+  );
 }
 
 // --- The toolbar above the list -------------------------------------------
@@ -563,28 +1084,27 @@ export function ListToolbar({
     <div className="flex flex-wrap items-center gap-2" role="group" aria-label={t('list.controls')}>
       <SearchField value={search} onChange={onSearch} className="max-w-md flex-1" />
 
+      {/* The same strip as the settings tabs and the corner picker, in its
+          multi-select reading: two filters on means "show me both kinds". These
+          were hand-built buttons that happened to share three class names with
+          the settings rail, which is how the two drifted apart in the first
+          place — one keyboard-navigable, one not. */}
       {offered.length > 0 && (
-        <div className="glim-well flex flex-wrap items-center gap-0.5 p-1" role="group" aria-label={t('filter.label')}>
-          {offered.map(({ f, n }) => (
-            <button
-              key={f.id}
-              type="button"
-              aria-pressed={active.has(f.id)}
-              onClick={() => toggle(f.id)}
-              className={`${segBase} flex items-center gap-1.5 px-2.5 py-1 text-xs ${
-                active.has(f.id) ? segOn : segOff
-              }`}
-            >
-              {t(f.label)}
-              <span className="glim-num opacity-70">{n}</span>
-            </button>
-          ))}
-          {active.size > 0 && (
-            <Button kind="ghost" className="px-2 py-1 text-xs" onClick={() => onActive(new Set())}>
-              {t('filter.clear')}
-            </Button>
-          )}
-        </div>
+        <Tabs
+          select="many"
+          size="sm"
+          label={t('filter.label')}
+          active={active}
+          onSelect={(id) => toggle(id as QuickFilterId)}
+          items={offered.map(({ f, n }) => ({ id: f.id, label: t(f.label), badge: n }))}
+          after={
+            active.size > 0 && (
+              <Button kind="ghost" className="px-2 py-1 text-xs" onClick={() => onActive(new Set())}>
+                {t('filter.clear')}
+              </Button>
+            )
+          }
+        />
       )}
 
       {narrowed && (
@@ -677,48 +1197,6 @@ export function SelectionStrip({
 
 // --- The bar under the list -----------------------------------------------
 
-// The clean-up entries come from the server, once per session. Building the menu
-// from the client's own list would offer whatever this build was compiled with,
-// and an entry the server does not implement is a button that answers 400 when
-// it is pressed.
-let optionsOnce: Promise<ApiOptions> | null = null;
-
-function cleanupClasses(): Promise<CleanupClass[]> {
-  if (!optionsOnce) optionsOnce = fetchOptions();
-  return optionsOnce.then(
-    (o) => o.cleanupClasses ?? [],
-    (e) => {
-      optionsOnce = null; // a failed load must not poison the next attempt
-      throw e;
-    },
-  );
-}
-
-const CLEANUP_LABEL: Partial<Record<string, TranslationKey>> = {
-  finished: 'cleanup.finished',
-  offline: 'cleanup.offline',
-  disabled: 'cleanup.disabled',
-  duplicates: 'cleanup.duplicates',
-  incompleteArchives: 'cleanup.incompleteArchives',
-};
-
-const CLEANUP_WHAT: Partial<Record<string, TranslationKey>> = {
-  finished: 'cleanup.what.finished',
-  offline: 'cleanup.what.offline',
-  disabled: 'cleanup.what.disabled',
-  duplicates: 'cleanup.what.duplicates',
-  incompleteArchives: 'cleanup.what.incompleteArchives',
-};
-
-/**
- * A finished download's files are the reason it was downloaded. The class that
- * tidies them off the list is the one people run daily, and one absent-minded
- * click on the wrong button would erase a finished library — so this entry does
- * not offer the destructive exit at all, rather than offering it and asking
- * nicely.
- */
-const KEEPS_FILES = new Set<string>(['finished']);
-
 /**
  * ListActionBar sits under the list and is always there, including when the list
  * is empty — which is exactly the moment a new user is looking for the way to
@@ -748,44 +1226,16 @@ export function ListActionBar({
   const { t } = useT();
   const { toast } = useToast();
   const menu = useContextMenu();
-  const [classes, setClasses] = useState<CleanupClass[] | null>(null);
-  const [confirm, setConfirm] = useState<{ cls: CleanupClass; ids: string[] } | null>(null);
+  const cleanup = useCleanup(all);
 
   const allChosen = visible.length > 0 && visible.every((x) => selected.has(x.id));
 
   async function openCleanup(el: HTMLButtonElement | null): Promise<void> {
     try {
-      const list = classes ?? (await cleanupClasses());
-      setClasses(list);
+      await cleanup.load();
       menu.openAt(anchorBelow(el));
     } catch {
       toast(t('list.optionsFailed'), 'fail');
-    }
-  }
-
-  // The preview and the confirmation are one gesture: the class picks the rows,
-  // so the count is the only thing that can tell the user what they are about to
-  // agree to. Nothing is removed by opening this.
-  async function preview(cls: CleanupClass): Promise<void> {
-    try {
-      const r = await cleanupPreview(cls);
-      if (r.count === 0) {
-        toast(t('cleanup.nothing', { what: classLabel(cls, t) }), 'info');
-        return;
-      }
-      setConfirm({ cls, ids: r.ids });
-    } catch (e) {
-      toast(t('cleanup.failed', { error: message(e) }), 'fail');
-    }
-  }
-
-  async function run(cls: CleanupClass, withFiles: boolean): Promise<void> {
-    setConfirm(null);
-    try {
-      const r = await runCleanup(cls, withFiles);
-      toast(t('remove.done', { n: r.count }), 'ok');
-    } catch (e) {
-      toast(t('cleanup.failed', { error: message(e) }), 'fail');
     }
   }
 
@@ -815,36 +1265,16 @@ export function ListActionBar({
       <span className="flex-1" />
       {children}
 
-      {menu.anchor && classes && (
+      {menu.anchor && cleanup.classes && (
         <ContextMenu
           anchor={menu.anchor}
           label={t('cleanup.menuLabel')}
           onClose={menu.close}
-          groups={[
-            {
-              id: 'cleanup',
-              items: classes.map((cls) => ({
-                id: cls,
-                label: classLabel(cls, t),
-                icon: <IconTrash width={14} height={14} />,
-                onSelect: () => void preview(cls),
-              })),
-            },
-          ]}
+          groups={[{ id: 'cleanup', items: cleanupItems(cleanup.classes, t, (cls) => void cleanup.preview(cls)) }]}
         />
       )}
 
-      {confirm && (
-        <ConfirmRemove
-          title={classLabel(confirm.cls, t)}
-          what={CLEANUP_WHAT[confirm.cls] ? t(CLEANUP_WHAT[confirm.cls]!) : undefined}
-          weight={weigh(all, confirm.ids)}
-          allowFiles={!KEEPS_FILES.has(confirm.cls)}
-          note={KEEPS_FILES.has(confirm.cls) ? t('cleanup.finishedKeepsFiles') : undefined}
-          onCancel={() => setConfirm(null)}
-          onConfirm={(withFiles) => void run(confirm.cls, withFiles)}
-        />
-      )}
+      {cleanup.dialog}
     </div>
   );
 }
