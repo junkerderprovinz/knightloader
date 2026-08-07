@@ -129,22 +129,50 @@ func TestSessionGuardCoversWildcardRoutes(t *testing.T) {
 	}
 }
 
-// buildRegistry assembles the table the way Handler does, without a server.
+// buildRegistry assembles the table the way Handler does, through the same
+// registerAll — not a copy of its call list. A copy is how a subsystem ends up
+// tested but unserved.
 func buildRegistry(t *testing.T) *Registry {
 	t.Helper()
-	a := testApp(t)
 	reg := newRegistry()
-	registerSystem(reg, a)
-	registerTasks(reg, a)
-	registerBulk(reg, a)
-	registerQueue(reg, a)
-	registerLinks(reg, a)
-	registerContainers(reg, a)
-	registerSettings(reg, a)
-	registerAccounts(reg, a)
-	registerSchedule(reg, a)
-	registerReconnect(reg, a)
-	registerUIState(reg, a)
-	registerFederation(reg, a)
+	registerAll(reg, testApp(t))
 	return reg
+}
+
+// TestEverySubsystemIsRegistered is the guard for the failure that got past the
+// two-copies arrangement: a routes_*.go file whose register function nothing
+// calls. The subsystem's own test file registers it by hand and passes, the
+// server never attaches it, and the page that calls it receives the SPA's HTML
+// with a 200 — so the client fails on parsing, not on the status, and the error
+// never names the route.
+func TestEverySubsystemIsRegistered(t *testing.T) {
+	entries, err := os.ReadDir(".")
+	if err != nil {
+		t.Fatal(err)
+	}
+	src, err := os.ReadFile("routes.go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, e := range entries {
+		name := e.Name()
+		if !strings.HasPrefix(name, "routes_") || !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
+			continue
+		}
+		b, err := os.ReadFile(name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, line := range strings.Split(string(b), "\n") {
+			fn, ok := strings.CutPrefix(line, "func register")
+			if !ok {
+				continue
+			}
+			fn, _, _ = strings.Cut(fn, "(")
+			if !strings.Contains(string(src), "\tregister"+fn+"(reg, a)\n") {
+				t.Errorf("%s defines register%s but registerAll never calls it; "+
+					"the routes exist in its test and nowhere in the running server", name, fn)
+			}
+		}
+	}
 }

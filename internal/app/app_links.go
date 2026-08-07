@@ -34,6 +34,8 @@ func (a *App) AddLinks(urls []string, pkg string) []*core.Task {
 	// and then a link a raw string comparison let through comes back reported as a
 	// duplicate of itself.
 	seen := map[string]bool{}
+	// What the crawled page called itself, kept for the batch name below.
+	pageTitle := ""
 	for _, raw := range urls {
 		u := strings.TrimSpace(raw)
 		if u == "" || seen[u] {
@@ -66,6 +68,12 @@ func (a *App) AddLinks(urls []string, pkg string) []*core.Task {
 				if t := a.stage(c.URL, c.Name, pkg, u); t != nil {
 					created = append(created, t)
 				}
+				// The first page that named itself names the batch, if nothing
+				// better turns up below. One paste can hold several pages, and the
+				// later ones must not rewrite a name the batch already has.
+				if pageTitle == "" {
+					pageTitle = strings.TrimSpace(c.Title)
+				}
 			}
 			continue
 		}
@@ -82,7 +90,7 @@ func (a *App) AddLinks(urls []string, pkg string) []*core.Task {
 	// specific answer and it ran first, so overwriting it here would make a rule
 	// that works look like one that does nothing.
 	if strings.TrimSpace(pkg) == "" {
-		if derived := derivePackage(created); derived != "" {
+		if derived := derivePackage(created, pageTitle); derived != "" {
 			ids := make([]string, 0, len(created))
 			for _, t := range created {
 				if strings.TrimSpace(t.Package) == "" {
@@ -108,10 +116,16 @@ func (a *App) AddLinks(urls []string, pkg string) []*core.Task {
 }
 
 // derivePackage guesses a name for a batch that arrived without one: the shared
-// stem of the file names if the links look like parts of one thing, else the
-// host they came from. It returns "" when neither is worth using, because a bad
-// guess is worse than no group at all.
-func derivePackage(tasks []*core.Task) string {
+// stem of the file names if the links look like parts of one thing, then what
+// the page they were crawled off called itself, else the host they came from. It
+// returns "" when none of the three is worth using, because a bad guess is worse
+// than no group at all.
+//
+// title is empty for a pasted batch. It sits between the two because it is the
+// more specific answer of the pair — a listing page's own address is "pub/",
+// "index" or a bare number for a good half of the web, and a package named after
+// the host groups everything anybody ever fetched from that host together.
+func derivePackage(tasks []*core.Task, title string) string {
 	if len(tasks) == 0 {
 		return ""
 	}
@@ -125,6 +139,12 @@ func derivePackage(tasks []*core.Task) string {
 	}
 	if stem := commonStem(names); len(stem) >= 3 {
 		return sanitizeSegment(stem)
+	}
+	// Emptiness is tested before sanitizing, not after: sanitizeSegment answers
+	// "package" for an empty string, so sanitizing first would name every batch
+	// with no shared stem "package" and the host fallback below would be dead.
+	if title = strings.TrimSpace(title); title != "" {
+		return sanitizeSegment(title)
 	}
 	// One host and nothing else in common: the source is the only honest label.
 	if len(hosts) == 1 {

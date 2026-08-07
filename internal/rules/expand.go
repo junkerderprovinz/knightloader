@@ -21,7 +21,13 @@ const openTag = "<jd:"
 //
 // The longer alternative is listed before the shorter one it starts with, so
 // the pattern reads the way it behaves.
-var packagizerVar = regexp.MustCompile(`(?i)<jd:(orgfilenamewithoutext|orgfilename|orgfiletype|append|source:[0-9]{1,3})>`)
+var packagizerVar = regexp.MustCompile(`(?i)<jd:(orgfilenamewithoutext|orgfilename|orgfiletype|append|source:[0-9]{1,3}|match:[a-z]+:[0-9]{1,2})>`)
+
+// matchTag is the capture-group placeholder on its own, with the field and the
+// group number captured, so Compile can check a rule's action against its
+// conditions before the rule is ever run. It has to accept exactly what
+// packagizerVar accepts, or a tag would validate here and not resolve there.
+var matchTag = regexp.MustCompile(`(?i)<jd:match:([a-z]+):([0-9]{1,2})>`)
 
 // appendMark holds the place of <jd:append> until the rest of the value is
 // known: whether a counter is needed depends on the finished string, so the
@@ -32,7 +38,7 @@ const appendMark = "\x00"
 // expand resolves one template. target names the field being written and is
 // only used to key the <jd:append> counter, so a package and a file name that
 // happen to produce the same text do not count as a collision with each other.
-func (m *Matcher) expand(template, target string, c Candidate) string {
+func (m *Matcher) expand(template, target string, c Candidate, g groups) string {
 	if !strings.Contains(template, "<") {
 		return template
 	}
@@ -51,7 +57,7 @@ func (m *Matcher) expand(template, target string, c Candidate) string {
 		Date:    c.Added,
 	})
 	out = packagizerVar.ReplaceAllStringFunc(out, func(raw string) string {
-		return packagizerValue(raw, c)
+		return packagizerValue(raw, c, g)
 	})
 	if !strings.Contains(out, appendMark) {
 		return out
@@ -62,7 +68,7 @@ func (m *Matcher) expand(template, target string, c Candidate) string {
 
 // packagizerValue resolves one matched placeholder. raw is the whole tag, so an
 // out-of-range or unusable one can be returned unchanged and stay visible.
-func packagizerValue(raw string, c Candidate) string {
+func packagizerValue(raw string, c Candidate, g groups) string {
 	key := strings.ToLower(raw[len(openTag) : len(raw)-1])
 	switch key {
 	case "append":
@@ -83,7 +89,39 @@ func packagizerValue(raw string, c Candidate) string {
 			return segment(seg, "source")
 		}
 	}
+	if rest, ok := strings.CutPrefix(key, "match:"); ok {
+		if v, ok := matchGroup(g, rest); ok {
+			// sanitizeSegment and not segment: a capture group that matched an
+			// empty string is an ordinary thing for an optional group to do, and
+			// standing a fallback word in its place would put "match" into a folder
+			// name the pattern deliberately left blank.
+			return sanitizeSegment(v)
+		}
+	}
 	return raw
+}
+
+// matchGroup resolves the field and number out of "match:FIELD:N". The second
+// result is false when the rule produced no groups for that field or the number
+// is past the end, which leaves the tag visible in the text — the same treatment
+// every other unresolvable placeholder gets, and a case Compile has usually
+// refused the rule for already.
+func matchGroup(g groups, rest string) (string, bool) {
+	field, num, ok := strings.Cut(rest, ":")
+	if !ok {
+		return "", false
+	}
+	// Group 0 is the whole match, which is what the pattern as a whole found and
+	// is worth having: it saves wrapping an entire expression in brackets.
+	n, err := strconv.Atoi(num)
+	if err != nil || n < 0 {
+		return "", false
+	}
+	sub := g[Field(field)]
+	if n >= len(sub) {
+		return "", false
+	}
+	return sub[n], true
 }
 
 // sourceSegment returns the index'th path segment of the source URL, counting

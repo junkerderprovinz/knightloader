@@ -6,6 +6,8 @@ package app
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -20,6 +22,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -164,24 +167,88 @@ func (a *App) publishTasks(tasks []core.Task) {
 	}
 }
 
+// TriBool is a bool a request may also send as null. Inside an options struct a
+// *bool cannot express that: absent and null both decode to nil, and here the
+// two have to mean different things. Absent is "leave this alone", null is
+// "back to inheriting the global", true and false are the override itself.
+//
+// The three values exist because the alternative is a data loss nobody would
+// connect to the release that caused it. Auto-extract is nullable in the store,
+// so every task already in it inherits the global switch; a plain bool would
+// decode "no opinion" as false and quietly stop unpacking for the whole list.
+type TriBool struct {
+	// Set is whether the field was present in the request at all.
+	Set bool
+	// Value is the override, or nil for "inherit" when Set is true.
+	Value *bool
+}
+
+func (t *TriBool) UnmarshalJSON(b []byte) error {
+	t.Set = true
+	if string(b) == "null" {
+		t.Value = nil
+		return nil
+	}
+	var v bool
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+	t.Value = &v
+	return nil
+}
+
+// MarshalJSON keeps the round trip honest for anything that echoes an options
+// struct back: an override nobody set is null, never false.
+func (t TriBool) MarshalJSON() ([]byte, error) { return json.Marshal(t.Value) }
+
 // TaskOptions are the per-task overrides the UI can set. A nil field means
 // "leave as it is", which keeps a partial edit from wiping the other values.
 type TaskOptions struct {
 	Dir      *string `json:"dir,omitempty"`
 	Password *string `json:"password,omitempty"`
+	// Filename is the name the finished file is put under, and it is deliberately
+	// not Name: the backend downloads under the name it chose and the file is
+	// renamed once the bytes have stopped moving. The engine keys its .part file
+	// on its own name, so a file renamed mid-flight cannot be resumed after a
+	// restart. An empty string takes the override off again.
+	Filename *string `json:"filename,omitempty"`
+	// Chunks is how many connections this download opens. Zero hands the decision
+	// back to the resolver's answer and the built-in default.
+	Chunks *int `json:"chunks,omitempty"`
+	// AutoExtract is the per-task unpacking switch, read at extraction time
+	// rather than at download time — turning it on for something that finished an
+	// hour ago unpacks it now.
+	AutoExtract TriBool `json:"autoExtract"`
 }
 
-// SetTaskOptions applies per-task overrides (destination folder, archive
-// password). Changing the folder of a running task only affects a later
-// restart — the bytes already on disk stay where they are.
+// SetTaskOptions applies per-task overrides. Changing the folder of a running
+// task only affects a later restart — the bytes already on disk stay where they
+// are — but a rename and the unpacking switch are acted on immediately for
+// anything that has already finished, because a per-task setting that does
+// nothing to the task you are looking at is a setting the user re-saves and
+// never sees work.
 func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
+	// Everything is checked before a single task is touched. Refusing halfway
+	// through would leave a selection with the first eight rows edited, the rest
+	// as they were, and an error message that says nothing about which is which.
 	if o.Dir != nil && *o.Dir != "" {
 		if err := settings.Validate(*o.Dir); err != nil {
 			return err
 		}
 	}
+	var newName string
+	if o.Filename != nil {
+		newName = strings.TrimSpace(*o.Filename)
+		if newName != "" && !usableFilename(newName) {
+			return fmt.Errorf("%q is not a file name; it has to be a single path segment", newName)
+		}
+	}
+	if o.Chunks != nil && (*o.Chunks < 0 || *o.Chunks > rules.MaxChunks) {
+		return fmt.Errorf("chunk count %d is outside 0..%d", *o.Chunks, rules.MaxChunks)
+	}
+
 	a.mu.Lock()
-	var copies []core.Task
+	touched := map[string]*core.Task{}
 	for _, id := range ids {
 		t := a.tasks[id]
 		if t == nil {
@@ -193,11 +260,112 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 		if o.Password != nil {
 			t.Password = strings.TrimSpace(*o.Password)
 		}
+		if o.Chunks != nil {
+			t.Chunks = *o.Chunks
+		}
+		if o.Filename != nil {
+			t.Filename = newName
+			if t.Status == core.StatusDone {
+				a.renameFinishedLocked(t)
+			}
+		}
+		if o.AutoExtract.Set {
+			// Written across the whole volume set rather than onto this part alone.
+			// The first volume is the one that gets opened, so an override sitting
+			// only on part02 is an unpacking switch that silently does nothing.
+			for _, part := range a.volumeSetLocked(t) {
+				// A copy per task, never the request's own pointer: one pointer shared
+				// by five rows is five rows that change together the next time anything
+				// writes through it.
+				part.AutoExtract = copyBool(o.AutoExtract.Value)
+				touched[part.ID] = part
+			}
+		}
+		touched[t.ID] = t
+	}
+	// Extraction is decided only after every override in the request has landed,
+	// so switching a whole multi-volume selection on in one call reads the set as
+	// the user left it and not as it stood halfway through the loop.
+	if o.AutoExtract.Set {
+		cfg := a.Settings.Get()
+		for _, id := range ids {
+			if t := a.tasks[id]; t != nil {
+				if target := a.extractNowLocked(t, cfg); target != nil {
+					touched[target.ID] = target
+				}
+			}
+		}
+	}
+	copies := make([]core.Task, 0, len(touched))
+	for _, t := range touched {
 		copies = append(copies, *t)
 	}
 	a.mu.Unlock()
 	a.saveAndBroadcast(copies)
 	return nil
+}
+
+// copyBool detaches a caller's pointer, so a value written onto several tasks
+// is several values.
+func copyBool(v *bool) *bool {
+	if v == nil {
+		return nil
+	}
+	c := *v
+	return &c
+}
+
+// usableFilename reports whether a name is one path segment and nothing else. A
+// name carrying a separator is not a name, it is a way out of the folder the
+// download was meant to land in.
+func usableFilename(name string) bool {
+	return name != "" && name != "." && name != ".." && !strings.ContainsAny(name, `/\`)
+}
+
+// renameFinishedLocked puts a finished download under the name a Packagizer
+// rule or the user asked for, which is the only way a rename action reaches the
+// disk. It runs once the bytes have stopped moving and never before, because
+// the engine keys its .part file on the name it chose itself and a file renamed
+// mid-flight cannot be resumed after a restart.
+//
+// A rename that cannot be carried out leaves the file alone and says so on the
+// task. Keeping the old name in silence is the failure worth guarding against:
+// the list would show the name the rule promised while the disk holds another,
+// and extraction and checksum verification both build their path by joining the
+// folder with that name. Caller holds a.mu.
+func (a *App) renameFinishedLocked(t *core.Task) {
+	want := strings.TrimSpace(t.Filename)
+	// A task whose name is still its URL has not been resolved, so there is no
+	// file under the old name to move.
+	if want == "" || want == t.Name || t.Name == "" || t.Name == t.URL || !filesAreLocal(t) {
+		return
+	}
+	if !usableFilename(want) {
+		t.Error = "not renamed: " + strconv.Quote(want) + " is not a single file name"
+		return
+	}
+	if len(a.volumeSetLocked(t)) > 1 {
+		// Renaming one part out of a multi-volume set is how an archive becomes
+		// impossible to open: extract.SetKey groups the parts by their names, and a
+		// rule with a fixed name would hand every part the same one and overwrite
+		// the whole set down to a single file.
+		t.Error = "not renamed: " + t.Name + " is one part of a multi-volume archive"
+		return
+	}
+	dir := a.dirFor(t)
+	to := filepath.Join(dir, want)
+	// Checked rather than left to Rename, which on most platforms replaces the
+	// destination without a word. The file already sitting there belongs to
+	// somebody, and a rule is not a reason to destroy it.
+	if _, err := os.Stat(to); err == nil {
+		t.Error = "not renamed: " + to + " already exists"
+		return
+	}
+	if err := os.Rename(filepath.Join(dir, t.Name), to); err != nil {
+		t.Error = "not renamed: " + err.Error()
+		return
+	}
+	t.Name = want
 }
 
 // saveAndBroadcast persists task snapshots and pushes them to connected UIs.

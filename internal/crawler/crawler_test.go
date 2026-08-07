@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync/atomic"
 	"testing"
+	"unicode/utf8"
 )
 
 // serve starts a test server that answers every request with body and type.
@@ -92,9 +93,51 @@ func TestCrawlIndexOfListing(t *testing.T) {
 	srv := serve(t, "text/html", page)
 
 	got := crawl(t, srv.URL+"/pub/", HTML{})
+	// The title rides along on every result, which is what lets the batch be
+	// named after the page: a listing's own URL ends in "pub/" or a bare number,
+	// and neither is a package name anybody would recognise.
 	wantResults(t, got, []Result{
-		{URL: srv.URL + "/pub/debian-12.iso", Name: "debian-12.iso"},
-		{URL: srv.URL + "/pub/notes.txt", Name: "notes.txt"},
+		{URL: srv.URL + "/pub/debian-12.iso", Name: "debian-12.iso", Title: "Index of /pub/"},
+		{URL: srv.URL + "/pub/notes.txt", Name: "notes.txt", Title: "Index of /pub/"},
+	})
+}
+
+// TestCrawlTitleIgnoresSVGAndCapsLength pins the two ways the page title goes
+// wrong. An inline icon in a page's navigation carries its own <title>, and
+// taking it would name the whole crawl after whatever the designer wrote in
+// there; and the title is copied onto every result, so an uncapped one turns a
+// two-thousand-link crawl into megabytes of the same sentence.
+func TestCrawlTitleIgnoresSVGAndCapsLength(t *testing.T) {
+	t.Run("svg title is not the page title", func(t *testing.T) {
+		page := `<html><head><title>Real page</title></head><body>
+			<svg><title>Home icon</title></svg>
+			<a href="/f.zip">f</a>
+		</body></html>`
+		srv := serve(t, "text/html", page)
+		got := crawl(t, srv.URL+"/p", HTML{})
+		wantResults(t, got, []Result{{URL: srv.URL + "/f.zip", Name: "f", Title: "Real page"}})
+	})
+
+	t.Run("no head title stays empty rather than borrowing the body's", func(t *testing.T) {
+		page := `<html><body><svg><title>Home icon</title></svg><a href="/f.zip">f</a></body></html>`
+		srv := serve(t, "text/html", page)
+		got := crawl(t, srv.URL+"/p", HTML{})
+		wantResults(t, got, []Result{{URL: srv.URL + "/f.zip", Name: "f"}})
+	})
+
+	t.Run("an overlong title is cut to the cap", func(t *testing.T) {
+		// Multi-byte on purpose: cutting UTF-8 by byte would end the title in a
+		// broken glyph, and the count is in runes for exactly that reason.
+		long := strings.Repeat("ä", maxTitleRunes+50)
+		page := `<html><head><title>` + long + `</title></head><body><a href="/f.zip">f</a></body></html>`
+		srv := serve(t, "text/html", page)
+		got := crawl(t, srv.URL+"/p", HTML{})
+		if n := len([]rune(got[0].Title)); n != maxTitleRunes {
+			t.Errorf("title is %d runes, want it cut to %d", n, maxTitleRunes)
+		}
+		if !utf8.ValidString(got[0].Title) {
+			t.Error("the cut title is not valid UTF-8; it was cut by byte, not by rune")
+		}
 	})
 }
 

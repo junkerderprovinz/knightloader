@@ -64,11 +64,21 @@ export function Layout() {
   const location = useLocation();
   useCompletionToasts();
   useAppearance();
+  // Keyed on the SECTION, not the whole path.
+  //
+  // The key is what re-triggers the enter animation, and the way it does that is
+  // by remounting everything below it. That is right between top-level pages and
+  // wrong inside one: a section with a route per sub-page — settings has
+  // thirteen — keeps state above its own outlet, and remounting on every click
+  // in its rail throws that state away with nothing said. An edited settings
+  // page reverting because somebody looked at another tab of it is the exact
+  // failure the sub-page split exists to avoid.
+  const section = location.pathname.split('/')[1] ?? '';
   return (
     <div className="flex h-screen overflow-hidden bg-carbon-background">
       <Sidebar />
       <main className="flex-1 overflow-y-auto min-w-0">
-        <div key={location.pathname} className="glim-page-enter w-full p-6 md:p-8">
+        <div key={section} className="glim-page-enter w-full p-6 md:p-8">
           <Outlet />
         </div>
       </main>

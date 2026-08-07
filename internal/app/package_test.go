@@ -13,6 +13,8 @@ func TestDerivePackage(t *testing.T) {
 	cases := []struct {
 		name  string
 		tasks []*core.Task
+		// title is what the crawled page called itself, empty for a pasted batch.
+		title string
 		want  string
 	}{
 		{
@@ -71,10 +73,41 @@ func TestDerivePackage(t *testing.T) {
 			tasks: nil,
 			want:  "",
 		},
+		{
+			// The page name beats the host, which is the whole reason the crawler
+			// carries it: "files.example.com" groups everything ever fetched from
+			// that host into one package.
+			name: "a crawled page's own name beats the host it sits on",
+			tasks: []*core.Task{
+				{URL: "https://files.example.com/a", Name: "invoice.pdf"},
+				{URL: "https://files.example.com/b", Name: "holiday.jpg"},
+			},
+			title: "Index of /pub/",
+			want:  "Index of -pub-",
+		},
+		{
+			// A shared stem is the more specific answer and stays ahead of it.
+			name: "a shared stem still wins over the page name",
+			tasks: []*core.Task{
+				{URL: "https://host.example/a", Name: "Great.Film.2026.part01.rar"},
+				{URL: "https://host.example/b", Name: "Great.Film.2026.part02.rar"},
+			},
+			title: "Downloads - SomeSite",
+			want:  "Great.Film.2026",
+		},
+		{
+			name: "a page with no title of its own still falls through to the host",
+			tasks: []*core.Task{
+				{URL: "https://files.example.com/a", Name: "invoice.pdf"},
+				{URL: "https://files.example.com/b", Name: "holiday.jpg"},
+			},
+			title: "   ",
+			want:  "files.example.com",
+		},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			if got := derivePackage(c.tasks); got != c.want {
+			if got := derivePackage(c.tasks, c.title); got != c.want {
 				t.Errorf("derivePackage() = %q, want %q", got, c.want)
 			}
 		})

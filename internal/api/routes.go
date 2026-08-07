@@ -21,7 +21,35 @@ import (
 	"sort"
 	"strings"
 	"sync"
+
+	"github.com/junkerderprovinz/knightloader/internal/app"
 )
+
+// registerAll fills the table with every subsystem's routes. It is the single
+// list: Handler builds the server from it and the tests build their registry
+// from it, so there is no second copy to fall behind.
+//
+// There used to be two identical call lists, one here and one in the test. A
+// subsystem was added to only one of them, and the result was the worst shape a
+// bug can take: its own tests passed, because they registered it by hand, while
+// the running server never attached it at all and the page calling it got the
+// SPA's index.html back with a 200.
+func registerAll(reg *Registry, a *app.App) {
+	registerSystem(reg, a)
+	registerTasks(reg, a)
+	registerBulk(reg, a)
+	registerQueue(reg, a)
+	registerLinks(reg, a)
+	registerContainers(reg, a)
+	registerSettings(reg, a)
+	registerAccounts(reg, a)
+	registerSchedule(reg, a)
+	registerReconnect(reg, a)
+	registerUIState(reg, a)
+	registerFederation(reg, a)
+	registerFeatures(reg, a)
+	registerConnections(reg, a)
+}
 
 // AnyMethod is the method of a route that answers whatever it is sent, because
 // it forwards the request somewhere else and the method is part of what it

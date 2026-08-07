@@ -27,12 +27,32 @@
 //	<jd:orgfilenamewithoutext>  the same, with the extension cut off
 //	<jd:orgfiletype>            the extension without its dot, empty when there is none
 //	<jd:source:N>               the Nth path segment of the source page's URL, counting from 1
+//	<jd:match:FIELD:N>          capture group N of this rule's "matches" pattern on FIELD
 //	<jd:append>                 empty the first time a value is produced, "_2", "_3" ... after
 //
 // Unknown or out-of-range placeholders are left in the text rather than blanked,
 // which is what internal/pathvars does and for the same reason: a typo that is
 // visible in the folder name can be fixed, and one that quietly collapsed to
 // nothing cannot be found at all.
+//
+// # <jd:source:N> does not mean what JDownloader means by it
+//
+// In a JDownloader Packagizer template, <jd:source:1> is capture group 1 of the
+// regular expression the rule tests the source URL with. Here it is the first
+// path segment of that URL, and it has been that since the package was written.
+// The two agree often enough to be dangerous and disagree silently: a template
+// copied out of a JD config builds a different folder, with no error and nothing
+// to notice until the files are already somewhere else.
+//
+// The path-segment meaning is kept, because it is what is already stored in
+// people's rules and because it is the only one of the two that works in a rule
+// with no regular expression in it at all. JD's meaning is spelled
+// <jd:match:FIELD:N>, which says out loud which pattern it reads — JD's version
+// can only ever mean the source, and ours reads a capture group from any field
+// the rule matched with. Compile refuses a rule whose <jd:match:...> names a
+// field the rule has no "matches" condition on, so the JD habit of reaching for a
+// group that is not there fails loudly at the moment the rule is saved rather
+// than quietly in a folder name.
 //
 // Every variable resolves against the link as it arrived, so rules do not chain
 // onto each other's output: <jd:filename> in the fourth rule is still the name
@@ -152,6 +172,17 @@ type Rule struct {
 // Set is one ordered rule list, persisted as part of the settings.
 type Set struct {
 	Rules []Rule `json:"rules,omitempty"`
+	// Disabled is the master switch for the whole list, so somebody can find out
+	// whether a rule set is the reason for what they are seeing without deleting
+	// it or switching off nine rules one at a time.
+	//
+	// It is spelled Disabled and not Enabled for the same reason Rule.Disabled is:
+	// the zero value has to be a live set. An Enabled field arrives false in every
+	// stored settings file written before it existed, which would switch both the
+	// Packagizer and the link filter off on the first boot after the upgrade — and
+	// the symptom reads as a matching bug, not as a settings bug, so it is looked
+	// for in the wrong place.
+	Disabled bool `json:"disabled,omitempty"`
 	// StopAfterMatch ends evaluation at the first rule that matches. The
 	// Packagizer wants it off, so every matching rule contributes and a later
 	// rule wins per field; a filter usually wants it on, so an accept placed
@@ -271,10 +302,25 @@ type cond struct {
 
 // compiled is a Rule that survived validation.
 type compiled struct {
+	// index is the rule's position in the Set it came from. Compile drops rules,
+	// so a compiled rule's position in the Matcher is not its position in the list
+	// the user is looking at, and a dry run that pointed at the wrong row would be
+	// worse than one that pointed at nothing.
+	index int
 	name  string
 	conds []cond
 	act   Action
+	// wantsGroups is set when any of this rule's templates reads a capture group.
+	// Collecting submatches costs an allocation per regular-expression condition
+	// where MatchString costs none, and this runs once per condition per link on a
+	// paste of several thousand — so the rules that do not ask do not pay.
+	wantsGroups bool
 }
+
+// groups holds the submatches of a matching rule's regular-expression
+// conditions, keyed by the field each pattern ran against. It backs
+// <jd:match:FIELD:N> and nothing else.
+type groups map[Field][]string
 
 // Matcher is a compiled Set. It is safe for concurrent use, which matters
 // because links are staged from several goroutines and there is exactly one
@@ -306,37 +352,56 @@ const maxAppendKeys = 4096
 // rule missing one of its conditions is not a stricter rule, it is a rule that
 // does something the user never asked for, and for a filter that means links
 // disappearing on a typo.
+// A set switched off compiles to that same empty Matcher and reports nothing,
+// exactly as a switched-off rule does. Off means off: leaving the problems
+// standing would keep a page badge lit about rules that are not being applied,
+// and there would then be no way to silence a rule set short of deleting it. The
+// editor gets its problems from Preview, which validates the set as written
+// whether or not it is switched on, so a set can still be fixed while it is off.
 func Compile(s Set) (*Matcher, []Problem) {
 	m := &Matcher{stopAfterMatch: s.StopAfterMatch}
+	if s.Disabled {
+		return m, nil
+	}
 	var problems []Problem
 	for i, r := range s.Rules {
-		name := ruleName(r, i)
 		if r.Disabled {
 			continue
 		}
-		bad := false
-		report := func(format string, args ...any) {
-			problems = append(problems, Problem{Index: i, Rule: name, Message: fmt.Sprintf(format, args...)})
-			bad = true
-		}
-		c := compiled{name: name, act: snapshot(r.Action)}
-		for j, raw := range r.Conditions {
-			cc, err := compileCondition(raw)
-			if err != nil {
-				report("condition %d (%s): %v", j+1, raw.Field, err)
-				continue
-			}
-			c.conds = append(c.conds, cc)
-		}
-		for _, msg := range actionProblems(r.Action) {
-			report("%s", msg)
-		}
-		if bad {
+		c, probs := compileRule(r, i)
+		problems = append(problems, probs...)
+		if len(probs) > 0 {
 			continue
 		}
 		m.rules = append(m.rules, c)
 	}
 	return m, problems
+}
+
+// compileRule turns one rule into its compiled form and lists everything wrong
+// with it. A rule with any problem at all is dropped whole by the caller rather
+// than partly applied: a rule missing one of its conditions is not a stricter
+// rule, it is a rule that does something the user never asked for, and for a
+// filter that means links disappearing on a typo.
+func compileRule(r Rule, index int) (compiled, []Problem) {
+	name := ruleName(r, index)
+	var problems []Problem
+	report := func(format string, args ...any) {
+		problems = append(problems, Problem{Index: index, Rule: name, Message: fmt.Sprintf(format, args...)})
+	}
+	c := compiled{index: index, name: name, act: snapshot(r.Action), wantsGroups: readsGroups(r.Action)}
+	for j, raw := range r.Conditions {
+		cc, err := compileCondition(raw)
+		if err != nil {
+			report("condition %d (%s): %v", j+1, raw.Field, err)
+			continue
+		}
+		c.conds = append(c.conds, cc)
+	}
+	for _, msg := range actionProblems(r.Action, c.conds) {
+		report("%s", msg)
+	}
+	return c, problems
 }
 
 // snapshot copies the action's pointer values, so a compiled rule stops
@@ -389,27 +454,27 @@ func (m *Matcher) Empty() bool { return len(m.rules) == 0 }
 func (m *Matcher) Apply(c Candidate) Effect {
 	c = c.filled()
 	var e Effect
-	// The winning template per field, still unexpanded.
-	var pkg, dir, name, comment string
-	for _, r := range m.rules {
-		if !r.matches(c) {
-			continue
-		}
+	// The winning template per field, still unexpanded, together with the
+	// submatches of the rule that set it: <jd:match:...> in rule seven reads
+	// rule seven's own pattern, so the groups travel with the template rather
+	// than being collected globally.
+	var pkg, dir, name, comment tpl
+	m.walk(c, func(r compiled, g groups) bool {
 		e.Matched = append(e.Matched, r.name)
 		a := r.act
 		// An empty string is "this rule has no opinion", never "clear it", so a
 		// rule setting only the folder leaves an earlier package name standing.
 		if a.PackageName != "" {
-			pkg = a.PackageName
+			pkg = tpl{a.PackageName, g}
 		}
 		if a.DownloadDir != "" {
-			dir = a.DownloadDir
+			dir = tpl{a.DownloadDir, g}
 		}
 		if a.Filename != "" {
-			name = a.Filename
+			name = tpl{a.Filename, g}
 		}
 		if a.Comment != "" {
-			comment = a.Comment
+			comment = tpl{a.Comment, g}
 		}
 		// The values are copied rather than the pointers. Handing the rule's own
 		// pointer to the caller would let anything that writes through the Effect
@@ -427,31 +492,55 @@ func (m *Matcher) Apply(c Candidate) Effect {
 			v := *a.Chunks
 			e.Chunks = &v
 		}
-		if m.stopAfterMatch {
-			break
-		}
+		return true
+	})
+	if pkg.text != "" {
+		e.Package = m.expand(pkg.text, string(FieldPackage), c, pkg.groups)
 	}
-	if pkg != "" {
-		e.Package = m.expand(pkg, string(FieldPackage), c)
-	}
-	if dir != "" {
+	if dir.text != "" {
 		// The folder is not checked for being absolute or writable here. That
 		// check is filesystem work, and filepath.IsAbs answers differently on
 		// Windows and Linux, so a rule written on one would be rejected by the
 		// other. The caller validates the folder it is about to use.
-		e.Dir = m.expand(dir, "dir", c)
+		e.Dir = m.expand(dir.text, "dir", c, dir.groups)
 	}
-	if name != "" {
+	if name.text != "" {
 		// Cut to one segment after expanding, not before: the append counter
 		// holds its place with a byte sanitising would eat. A rule renaming a
 		// file to "../../x" is how a download lands outside the folder every
 		// other part of this package works to keep it in.
-		e.Filename = segment(m.expand(name, string(FieldFilename), c), "file")
+		e.Filename = segment(m.expand(name.text, string(FieldFilename), c, name.groups), "file")
 	}
-	if comment != "" {
-		e.Comment = m.expand(comment, "comment", c)
+	if comment.text != "" {
+		e.Comment = m.expand(comment.text, "comment", c, comment.groups)
 	}
 	return e
+}
+
+// tpl is a template that has won its field, carried together with the capture
+// groups of the rule it came from.
+type tpl struct {
+	text   string
+	groups groups
+}
+
+// walk visits every rule that matches, in the order they are written, and stops
+// when visit returns false or when the set stops at the first match.
+//
+// Apply, Check and Preview all evaluate through this one function. A dry run
+// that walked the list its own way could report an order that staging never
+// takes — and a test box that disagrees with the engine is worse than no test
+// box, because it is believed.
+func (m *Matcher) walk(c Candidate, visit func(r compiled, g groups) bool) {
+	for _, r := range m.rules {
+		ok, g := r.evaluate(c)
+		if !ok {
+			continue
+		}
+		if !visit(r, g) || m.stopAfterMatch {
+			return
+		}
+	}
 }
 
 // Check runs the filter flavour. The first matching rule decides: a reject ends
@@ -461,26 +550,26 @@ func (m *Matcher) Apply(c Candidate) Effect {
 // everything rather than nothing.
 func (m *Matcher) Check(c Candidate) Verdict {
 	c = c.filled()
-	for _, r := range m.rules {
-		if !r.matches(c) {
-			continue
-		}
+	var v Verdict
+	m.walk(c, func(r compiled, g groups) bool {
 		if r.act.Reject {
-			return Verdict{Rejected: true, Rule: r.name, Reason: m.reason(r, c)}
+			v = Verdict{Rejected: true, Rule: r.name, Reason: m.reason(r, c, g)}
+			return false
 		}
 		if m.stopAfterMatch {
-			return Verdict{Rule: r.name}
+			v = Verdict{Rule: r.name}
 		}
-	}
-	return Verdict{}
+		return true
+	})
+	return v
 }
 
 // reason is never empty. A rule that rejects without saying why still has a
 // name, and "some rule dropped it" is exactly the answer this package refuses
 // to give.
-func (m *Matcher) reason(r compiled, c Candidate) string {
+func (m *Matcher) reason(r compiled, c Candidate, g groups) string {
 	if r.act.Reason != "" {
-		if out := strings.TrimSpace(m.expand(r.act.Reason, "reason", c)); out != "" {
+		if out := strings.TrimSpace(m.expand(r.act.Reason, "reason", c, g)); out != "" {
 			return out
 		}
 	}
@@ -496,15 +585,34 @@ func (m *Matcher) ResetAppend() {
 	m.mu.Unlock()
 }
 
-// matches reports whether every condition holds. A rule with no conditions
-// matches, which is what makes a catch-all rule expressible.
-func (r compiled) matches(c Candidate) bool {
+// evaluate reports whether every condition holds, and hands back the capture
+// groups a rule that reads them needs. A rule with no conditions matches, which
+// is what makes a catch-all rule expressible.
+//
+// Where two "matches" conditions test the same field, the first one wins the
+// group table. The rule is read top to bottom on screen, so the first pattern is
+// the one somebody counting brackets is looking at.
+func (r compiled) evaluate(c Candidate) (bool, groups) {
+	var g groups
 	for _, cd := range r.conds {
-		if !cd.match(c) {
-			return false
+		if !r.wantsGroups || cd.op != OpMatches {
+			if !cd.match(c) {
+				return false, nil
+			}
+			continue
+		}
+		sub := cd.re.FindStringSubmatch(fieldValue(c, cd.field))
+		if sub == nil {
+			return false, nil
+		}
+		if _, taken := g[cd.field]; !taken {
+			if g == nil {
+				g = groups{}
+			}
+			g[cd.field] = sub
 		}
 	}
-	return true
+	return true, g
 }
 
 func (cd cond) match(c Candidate) bool {
@@ -648,9 +756,33 @@ func compileSize(c Condition, out cond) (cond, error) {
 	return cond{}, fmt.Errorf("%s cannot compare a file size; use is-between, equals or equals-not", c.Op)
 }
 
-// actionProblems lists everything wrong with an action.
-func actionProblems(a Action) []string {
-	var msgs []string
+// templates lists an action's template fields with the word each one is called
+// by in a message, so a problem can name the box the user has to go and fix.
+func (a Action) templates() []struct{ Label, Text string } {
+	return []struct{ Label, Text string }{
+		{"package name", a.PackageName},
+		{"download folder", a.DownloadDir},
+		{"file name", a.Filename},
+		{"comment", a.Comment},
+		{"reason", a.Reason},
+	}
+}
+
+// readsGroups reports whether any of an action's templates asks for a capture
+// group, which is what decides whether matching pays for submatches.
+func readsGroups(a Action) bool {
+	for _, f := range a.templates() {
+		if matchTag.MatchString(f.Text) {
+			return true
+		}
+	}
+	return false
+}
+
+// actionProblems lists everything wrong with an action, including the ways it
+// disagrees with the conditions of the rule it belongs to.
+func actionProblems(a Action, conds []cond) []string {
+	msgs := matchTagProblems(a, conds)
 	if a.Priority != nil && (*a.Priority < PriorityMin || *a.Priority > PriorityMax) {
 		msgs = append(msgs, fmt.Sprintf("priority %d is outside %d..%d", *a.Priority, PriorityMin, PriorityMax))
 	}
@@ -660,18 +792,58 @@ func actionProblems(a Action) []string {
 	if a.Chunks != nil && (*a.Chunks < 1 || *a.Chunks > MaxChunks) {
 		msgs = append(msgs, fmt.Sprintf("chunk count %d is outside 1..%d", *a.Chunks, MaxChunks))
 	}
-	for _, f := range []struct{ label, template string }{
-		{"package name", a.PackageName},
-		{"download folder", a.DownloadDir},
-		{"file name", a.Filename},
-		{"comment", a.Comment},
-		{"reason", a.Reason},
-	} {
-		if unterminated(f.template) {
-			msgs = append(msgs, fmt.Sprintf("the %s opens a <jd:...> it never closes", f.label))
+	for _, f := range a.templates() {
+		if unterminated(f.Text) {
+			msgs = append(msgs, fmt.Sprintf("the %s opens a <jd:...> it never closes", f.Label))
 		}
 	}
 	return msgs
+}
+
+// matchTagProblems refuses a <jd:match:FIELD:N> that can never resolve.
+//
+// This is the one placeholder whose failure is invisible: an out-of-range date
+// format or a misspelled variable stays in the text where somebody can see it,
+// but a capture group is reached for by people copying JDownloader templates,
+// where <jd:source:1> means a group and here it does not. Left to run, the tag
+// survives into the folder name and every download in the set lands under a
+// literal "<jd:match:source:1>". Refusing the rule at save time puts the message
+// next to the box that is wrong.
+func matchTagProblems(a Action, conds []cond) []string {
+	var msgs []string
+	for _, f := range a.templates() {
+		for _, m := range matchTag.FindAllStringSubmatch(f.Text, -1) {
+			field := Field(strings.ToLower(m[1]))
+			n, err := strconv.Atoi(m[2])
+			if err != nil {
+				continue // the pattern only matches digits; unreachable
+			}
+			re := patternFor(conds, field)
+			switch {
+			case re == nil:
+				msgs = append(msgs, fmt.Sprintf(
+					"the %s reads capture group %d of %s, but no condition in this rule matches %s against a pattern",
+					f.Label, n, field, field))
+			case n > re.NumSubexp():
+				msgs = append(msgs, fmt.Sprintf(
+					"the %s reads capture group %d of %s, but that pattern has %d",
+					f.Label, n, field, re.NumSubexp()))
+			}
+		}
+	}
+	return msgs
+}
+
+// patternFor is the regular expression a rule tests one field with, or nil when
+// it tests it some other way or not at all. The first one wins, exactly as
+// evaluate resolves it.
+func patternFor(conds []cond, f Field) *regexp.Regexp {
+	for _, cd := range conds {
+		if cd.field == f && cd.op == OpMatches {
+			return cd.re
+		}
+	}
+	return nil
 }
 
 // unterminated reports a template that opens a placeholder it never closes.
