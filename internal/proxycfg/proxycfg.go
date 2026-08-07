@@ -1,8 +1,12 @@
 // Package proxycfg models JDownloader's Connection Manager: a user-ordered list
 // of outbound connections that downloads are spread across. It owns the list,
 // the rules for what a usable entry looks like, and a picker that hands the next
-// connection to whoever is about to start a download. It never opens a socket
-// itself.
+// connection to whoever is about to start a download.
+//
+// Nothing here carries a download. The one function that opens a socket at all
+// is Probe in probe.go, which exists so the connection page can answer "does
+// this proxy work" with something better than a saved row and a shrug; it speaks
+// just enough of each protocol to find out and then hangs up.
 //
 // "none" and "direct" are not the same thing, and confusing them makes the whole
 // feature behave backwards:
@@ -77,6 +81,19 @@ type Entry struct {
 	// reflect - still show it, so those stay out of log lines.
 	Username string `json:"username,omitempty"`
 	Password string `json:"password,omitempty"`
+
+	// HasPassword says that a password is stored for this entry without saying
+	// what it is. It exists because a redacted entry and an entry with no
+	// password at all are otherwise the same bytes on the wire, and a form that
+	// cannot tell them apart shows an empty password box for a working proxy —
+	// so the user concludes the password was lost and types it again, which is
+	// exactly the retyping the redact-and-merge machinery exists to avoid.
+	//
+	// It is derived, never stored: clean clears it on the way in, Redacted sets
+	// it on the way out, and omitempty keeps it out of settings.json entirely. A
+	// client cannot set it, which matters because a true one arriving from a
+	// client would be a claim about the server's own state.
+	HasPassword bool `json:"hasPassword,omitempty"`
 
 	// Enabled is the user's on/off switch. It is deliberately separate from
 	// KindNone: switching a proxy off for an evening must not throw its host and
@@ -291,8 +308,10 @@ func (e Entry) String() string {
 // screenshot.
 //
 // The password is dropped, not masked, so a client that posts the list straight
-// back would clear it. Merge is what puts it back.
+// back would clear it. Merge is what puts it back, and HasPassword is how the
+// client knows there is something to put back.
 func (e Entry) Redacted() Entry {
+	e.HasPassword = e.Password != ""
 	e.Password = ""
 	return e
 }
@@ -430,6 +449,10 @@ func clean(e Entry) Entry {
 		e.Kind = k
 	}
 	e.ID = strings.TrimSpace(e.ID)
+	// Cleared unconditionally, because it is a statement about what the server
+	// holds and this is the path a client's own bytes come down. Redacted sets it
+	// again on the way out, from the password that is actually there.
+	e.HasPassword = false
 	e.Host = normalizeHost(e.Host)
 	e.Username = strings.TrimSpace(e.Username)
 	e.Filter = cleanFilter(e.Filter)

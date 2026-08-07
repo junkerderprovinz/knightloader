@@ -23,7 +23,10 @@ export function AppRouter() {
               <Route path="/downloads" element={<Downloads />} />
               <Route path="/instances" element={<Instances />} />
               <Route path="/accounts" element={<Accounts />} />
-              <Route path="/settings" element={<SettingsPage />} />
+              {/* The splat is load-bearing: settings is a tree of sub-pages with
+                  real addresses (/settings/downloads), and an exact match here
+                  would send every one of them to the catch-all below. */}
+              <Route path="/settings/*" element={<SettingsPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>

@@ -71,7 +71,7 @@ func TestExpandVariables(t *testing.T) {
 	}
 	m := &Matcher{}
 	for _, tc := range cases {
-		if got := m.expand(tc.template, "test", c); got != tc.want {
+		if got := m.expand(tc.template, "test", c, nil); got != tc.want {
 			t.Errorf("expand(%q) = %q, want %q", tc.template, got, tc.want)
 		}
 	}
@@ -83,7 +83,7 @@ func TestExpandSourceOutOfRange(t *testing.T) {
 	c := testCandidate().filled()
 	m := &Matcher{}
 	for _, template := range []string{"<jd:source:0>", "<jd:source:4>", "<jd:source:99>"} {
-		if got := m.expand(template, "test", c); got != template {
+		if got := m.expand(template, "test", c, nil); got != template {
 			t.Errorf("expand(%q) = %q, want the tag left in place", template, got)
 		}
 	}
@@ -91,7 +91,7 @@ func TestExpandSourceOutOfRange(t *testing.T) {
 	// it is out of range for the same reason.
 	noSource := testCandidate()
 	noSource.Source = ""
-	if got := m.expand("<jd:source:1>", "test", noSource.filled()); got != "<jd:source:1>" {
+	if got := m.expand("<jd:source:1>", "test", noSource.filled(), nil); got != "<jd:source:1>" {
 		t.Errorf("expand with no source = %q, want the tag left in place", got)
 	}
 }
@@ -139,7 +139,7 @@ func TestExpandCannotAddPathLevels(t *testing.T) {
 		// entirely and has to become a word rather than nothing.
 		"/dl/<jd:source:2>",
 	} {
-		got := m.expand(template, "test", c.filled())
+		got := m.expand(template, "test", c.filled(), nil)
 		if rest, _ := strings.CutPrefix(got, "/dl/"); strings.ContainsAny(rest, `/\`) {
 			t.Errorf("expand(%q) = %q, which adds a path level the template never named", template, got)
 		}
@@ -152,7 +152,7 @@ func TestExpandCannotAddPathLevels(t *testing.T) {
 func TestExpandValueIsNotRescanned(t *testing.T) {
 	c := Candidate{Package: "<jd:orgfilename>", Filename: "secret.mkv"}
 	m := &Matcher{}
-	got := m.expand("<jd:packagename>", "test", c.filled())
+	got := m.expand("<jd:packagename>", "test", c.filled(), nil)
 	if strings.Contains(got, "secret") {
 		t.Errorf("expand = %q, want the substituted value left alone", got)
 	}
@@ -163,7 +163,7 @@ func TestExpandValueIsNotRescanned(t *testing.T) {
 func TestOrgFileTypeHasNoFallbackWord(t *testing.T) {
 	c := Candidate{Filename: "README"}
 	m := &Matcher{}
-	if got := m.expand("<jd:orgfilenamewithoutext>.<jd:orgfiletype>", "test", c.filled()); got != "README." {
+	if got := m.expand("<jd:orgfilenamewithoutext>.<jd:orgfiletype>", "test", c.filled(), nil); got != "README." {
 		t.Errorf("expand = %q, want %q", got, "README.")
 	}
 }
@@ -173,7 +173,7 @@ func TestOrgFileTypeHasNoFallbackWord(t *testing.T) {
 // empty segment is how a template ends up producing "/downloads//".
 func TestOrgFileNameFallsBackToAWord(t *testing.T) {
 	m := &Matcher{}
-	got := m.expand("/dl/<jd:orgfilename>", "test", Candidate{}.filled())
+	got := m.expand("/dl/<jd:orgfilename>", "test", Candidate{}.filled(), nil)
 	if got != "/dl/file" {
 		t.Errorf("expand = %q, want %q", got, "/dl/file")
 	}
@@ -186,23 +186,23 @@ func TestAppendDeduplicates(t *testing.T) {
 	c := testCandidate().filled()
 	want := []string{"The Show", "The Show_2", "The Show_3"}
 	for i, w := range want {
-		if got := m.expand("<jd:packagename><jd:append>", "package", c); got != w {
+		if got := m.expand("<jd:packagename><jd:append>", "package", c, nil); got != w {
 			t.Errorf("call %d = %q, want %q", i+1, got, w)
 		}
 	}
 	// A different target field is a different namespace: a package and a file
 	// name that read the same are not a collision with each other.
-	if got := m.expand("<jd:packagename><jd:append>", "filename", c); got != "The Show" {
+	if got := m.expand("<jd:packagename><jd:append>", "filename", c, nil); got != "The Show" {
 		t.Errorf("first call on a second field = %q, want an unnumbered name", got)
 	}
 	// A different value in the same field starts its own count.
 	other := c
 	other.Package = "Other Show"
-	if got := m.expand("<jd:packagename><jd:append>", "package", other); got != "Other Show" {
+	if got := m.expand("<jd:packagename><jd:append>", "package", other, nil); got != "Other Show" {
 		t.Errorf("first call for a second value = %q, want an unnumbered name", got)
 	}
 	m.ResetAppend()
-	if got := m.expand("<jd:packagename><jd:append>", "package", c); got != "The Show" {
+	if got := m.expand("<jd:packagename><jd:append>", "package", c, nil); got != "The Show" {
 		t.Errorf("after ResetAppend = %q, want the count to start over", got)
 	}
 }
@@ -213,10 +213,10 @@ func TestAppendDeduplicates(t *testing.T) {
 func TestAppendIgnoresAPlantedMarker(t *testing.T) {
 	m := &Matcher{}
 	c := Candidate{}
-	if got := m.expand("a"+appendMark+"<jd:append>", "package", c); got != "a" {
+	if got := m.expand("a"+appendMark+"<jd:append>", "package", c, nil); got != "a" {
 		t.Errorf("first call = %q, want %q", got, "a")
 	}
-	if got := m.expand("a"+appendMark+"<jd:append>", "package", c); got != "a_2" {
+	if got := m.expand("a"+appendMark+"<jd:append>", "package", c, nil); got != "a_2" {
 		t.Errorf("second call = %q, want %q", got, "a_2")
 	}
 }
@@ -230,17 +230,17 @@ func TestAppendCounterStopsGrowing(t *testing.T) {
 	const template = "<jd:packagename><jd:append>"
 	for i := range maxAppendKeys {
 		name := "pkg" + strconv.Itoa(i)
-		if got := m.expand(template, "package", Candidate{Package: name}); got != name {
+		if got := m.expand(template, "package", Candidate{Package: name}, nil); got != name {
 			t.Fatalf("filling the counter: call %d = %q, want %q", i, got, name)
 		}
 	}
 	fresh := Candidate{Package: "brand new"}
 	for i := range 2 {
-		if got := m.expand(template, "package", fresh); got != "brand new" {
+		if got := m.expand(template, "package", fresh, nil); got != "brand new" {
 			t.Errorf("call %d past the cap = %q, want an unnumbered name", i+1, got)
 		}
 	}
-	if got := m.expand(template, "package", Candidate{Package: "pkg0"}); got != "pkg0_2" {
+	if got := m.expand(template, "package", Candidate{Package: "pkg0"}, nil); got != "pkg0_2" {
 		t.Errorf("a name already counted = %q, want pkg0_2", got)
 	}
 }
@@ -283,7 +283,7 @@ func TestApplyDoesNotExpandOverwrittenTemplates(t *testing.T) {
 	}
 	// The overwritten template never ran, so its name is still unused: a rule
 	// that starts producing it now gets the unnumbered form.
-	if got := m.expand("discarded<jd:append>", string(FieldPackage), Candidate{}); got != "discarded" {
+	if got := m.expand("discarded<jd:append>", string(FieldPackage), Candidate{}, nil); got != "discarded" {
 		t.Errorf("the discarded template consumed a counter: %q", got)
 	}
 }

@@ -26,18 +26,7 @@ import (
 // Handler builds the full HTTP handler.
 func Handler(a *app.App) http.Handler {
 	reg := newRegistry()
-	registerSystem(reg, a)
-	registerTasks(reg, a)
-	registerBulk(reg, a)
-	registerQueue(reg, a)
-	registerLinks(reg, a)
-	registerContainers(reg, a)
-	registerSettings(reg, a)
-	registerAccounts(reg, a)
-	registerSchedule(reg, a)
-	registerReconnect(reg, a)
-	registerUIState(reg, a)
-	registerFederation(reg, a)
+	registerAll(reg, a)
 
 	mux := http.NewServeMux()
 	reg.attach(mux, spaHandler())

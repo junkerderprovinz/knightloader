@@ -14,6 +14,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/rules"
 )
 
 // resolverForTaskLocked picks the resolver a task should be dispatched through:
@@ -158,16 +159,7 @@ func (a *App) dispatchLocked() {
 		a.active[id] = true
 		a.started[id] = true
 		perHost[h]++
-		conns := result.Connections
-		if conns <= 0 {
-			conns = 4
-		}
-		// A Packagizer rule that set a connection count outranks both. It was
-		// written for this hoster, and a per-rule setting that changes nothing is
-		// a setting the user keeps re-saving and never sees work.
-		if t.Chunks > 0 {
-			conns = t.Chunks
-		}
+		conns := connsFor(t, result.Connections)
 		if be := a.backendFor(t.Resolver); be == a.Engine {
 			go a.Engine.DownloadTo(id, result.DirectURL, result.Headers, conns, dir)
 		} else {
@@ -182,6 +174,33 @@ func (a *App) dispatchLocked() {
 		// the task ended up as, so whichever lands last says the same thing.
 		go a.publishTasks(settled)
 	}
+}
+
+// defaultConns is what one download opens when nothing else has an opinion.
+const defaultConns = 4
+
+// connsFor is how many connections one download opens, and it is the only
+// answer: the number reaches the backend from here for a fresh dispatch and for
+// a restart alike.
+//
+// A count set on the task — by a Packagizer rule written for this hoster, or by
+// hand on the row — outranks what the resolver suggested. A per-task setting
+// that changes nothing is one the user keeps re-saving and never sees work.
+// The ceiling is the rule engine's own, so a count that arrived past it (an
+// older build, or a value written straight into the store) cannot open sixty
+// connections on a host that bans two.
+func connsFor(t *core.Task, resolverSaid int) int {
+	conns := resolverSaid
+	if conns <= 0 {
+		conns = defaultConns
+	}
+	if t.Chunks > 0 {
+		conns = t.Chunks
+	}
+	if conns > rules.MaxChunks {
+		conns = rules.MaxChunks
+	}
+	return conns
 }
 
 func (a *App) Pause(id string) {
@@ -319,6 +338,11 @@ func (a *App) onUpdate(id string, u core.Update) {
 		t.Online = core.AvailOnline
 		t.Retries = 0
 		t.NextTry = time.Time{}
+		// Renamed here, ahead of everything below that turns t.Name into a path:
+		// the checksum sweep, the extraction candidate, the copy the store and
+		// every browser get. Done afterwards, each of those would be about a file
+		// that is no longer at that name.
+		a.renameFinishedLocked(t)
 		if a.stopMark == id {
 			// Recorded as the manual halt too, because that is what it is: the user
 			// said "finish this, then stop", and the mark is only the delay on it.
@@ -398,18 +422,15 @@ func (a *App) onUpdate(id string, u core.Update) {
 	if retryIn > 0 && u.Retry > 0 && !a.halted && a.reconnectConfigured() {
 		reconnectFor = id
 	}
-	// A finished download that completes an archive continues as an extraction
-	// (local backends only; JD downloads live on the JD box). For a multi-volume
-	// set this only fires once the last part has arrived.
+	// A finished download that completes an archive continues as an extraction.
+	// For a multi-volume set this only fires once the last part has arrived, and
+	// the unpacking switch is read off the volume that will be opened rather than
+	// off this one — see extractionDueLocked.
 	var extractCopy *core.Task
-	if u.Status == core.StatusDone && t.Resolver != "jd" && extractWanted(t, a.Settings.Get()) {
-		if target, path := a.extractCandidateLocked(t); target != nil {
-			target.Status = core.StatusExtracting
-			go a.extractTask(target.ID, path, a.passwordsFor(target))
-			if target != t {
-				c := *target
-				extractCopy = &c
-			}
+	if u.Status == core.StatusDone {
+		if target := a.extractNowLocked(t, a.Settings.Get()); target != nil && target != t {
+			c := *target
+			extractCopy = &c
 		}
 	}
 	c := *t

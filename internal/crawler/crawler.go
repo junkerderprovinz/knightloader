@@ -34,6 +34,16 @@ type Info struct {
 type Result struct {
 	URL  string
 	Name string // link text or the file name from the URL, may be empty
+	// Title is what the page called itself, repeated on every result from that
+	// page. It is a page-level fact riding on a per-link struct because Crawl
+	// answers with a flat slice and there is nowhere else for it to sit — and
+	// widening the Crawler interface to carry it would break every site-specific
+	// crawler and every stand-in a test has written.
+	//
+	// It exists so a batch of links crawled off one page can be named after the
+	// page. The alternative is a URL segment, which on listing pages is "index",
+	// "download" or a bare number for a good half of the web.
+	Title string
 }
 
 // Crawler turns a page into the links it points at.
@@ -67,6 +77,13 @@ const (
 	// maxRedirects bounds the hop chain. An unbounded chain is a trivial way to
 	// send a crawler in circles, and a legitimate page never needs this many.
 	maxRedirects = 5
+
+	// maxTitleRunes caps the page title. Nothing stops a page declaring a title
+	// the length of its body, and the title is copied onto every result — so an
+	// uncapped one turns a two-thousand-link crawl into megabytes of the same
+	// sentence. Counted in runes, because cutting UTF-8 by byte produces a title
+	// ending in a broken glyph.
+	maxTitleRunes = 200
 
 	// userAgent is sent because a fair number of hosts answer Go's default
 	// agent with a 403, which would look like a dead page rather than a refusal.
@@ -212,6 +229,7 @@ func (h HTML) collect(base *url.URL, body []byte) ([]Result, error) {
 	if limit <= 0 {
 		limit = defaultMaxLinks
 	}
+	title := pageTitle(doc)
 
 	// Non-nil even when nothing matches: "no links here" is an empty list, not
 	// a missing one, and callers range over it either way.
@@ -226,6 +244,7 @@ func (h HTML) collect(base *url.URL, body []byte) ([]Result, error) {
 		if n.Type == html.ElementNode {
 			if r, ok := link(base, n); ok && !seen[r.URL] {
 				seen[r.URL] = true
+				r.Title = title
 				out = append(out, r)
 			}
 		}
@@ -328,6 +347,41 @@ func text(n *html.Node) string {
 	}
 	walk(n)
 	return strings.Join(strings.Fields(sb.String()), " ")
+}
+
+// pageTitle is what the document calls itself, whitespace collapsed and capped.
+//
+// Only a <title> directly inside <head> counts. SVG has an element of the same
+// name, and an inline icon in a page's navigation would otherwise name the whole
+// crawl after whatever its designer wrote in there.
+func pageTitle(doc *html.Node) string {
+	var found string
+	var walk func(*html.Node) bool
+	walk = func(n *html.Node) bool {
+		if n.Type == html.ElementNode && n.Data == "title" &&
+			n.Parent != nil && n.Parent.Type == html.ElementNode && n.Parent.Data == "head" {
+			found = text(n)
+			return true
+		}
+		// The body is never entered: html.Parse always builds a head, so a title
+		// that exists has been passed before the first body node, and walking a
+		// whole listing page looking for one that is not there costs a second full
+		// traversal of the document on every crawl.
+		if n.Type == html.ElementNode && n.Data == "body" {
+			return false
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			if walk(c) {
+				return true
+			}
+		}
+		return false
+	}
+	walk(doc)
+	if r := []rune(found); len(r) > maxTitleRunes {
+		found = strings.TrimSpace(string(r[:maxTitleRunes]))
+	}
+	return found
 }
 
 // fileName is the last path segment of a URL, or "" when there is none.
