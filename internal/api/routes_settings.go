@@ -5,7 +5,6 @@ package api
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/collide"
@@ -57,49 +56,17 @@ func registerSettings(reg *Registry, a *app.App) {
 		func(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, options())
 		})
-	// A dry run of a rule list against sample links. Without it the only way to
-	// find out what a rule does is to paste real links and watch, which for a
-	// filter means finding out by losing something.
-	reg.Add(http.MethodPost, "/api/rules/test", "run a rule set against sample links without staging anything",
-		func(w http.ResponseWriter, r *http.Request) {
-			var body struct {
-				Set   rules.Set `json:"set"`
-				Which string    `json:"which"` // "packagizer" or "filter"
-				Links []struct {
-					Filename string `json:"filename"`
-					URL      string `json:"url"`
-					Source   string `json:"source"`
-					Filesize int64  `json:"filesize"`
-					Package  string `json:"package"`
-				} `json:"links"`
-			}
-			if !decodeJSON(w, r, &body) {
-				return
-			}
-			m, problems := rules.Compile(body.Set)
-			type result struct {
-				URL     string        `json:"url"`
-				Effect  rules.Effect  `json:"effect"`
-				Verdict rules.Verdict `json:"verdict"`
-			}
-			results := make([]result, 0, len(body.Links))
-			now := time.Now()
-			for _, l := range body.Links {
-				c := rules.Candidate{
-					Filename: l.Filename,
-					URL:      l.URL,
-					Source:   l.Source,
-					Filesize: l.Filesize,
-					Package:  l.Package,
-					Added:    now,
-				}
-				// Both halves are reported whatever "which" says. They are one engine,
-				// the answer to the other half costs nothing, and a set that rejects a
-				// link while also naming a package for it is worth seeing whole.
-				results = append(results, result{URL: l.URL, Effect: m.Apply(c), Verdict: m.Check(c)})
-			}
-			writeJSON(w, map[string]any{"problems": problemsOrEmpty(problems), "results": results})
-		})
+	// The dry run used to live here too, as POST /api/rules/test. It is gone:
+	// POST /api/rules/preview in routes_rules.go answers the same question from
+	// the same engine, and two doors to one room is how a client picks the worse
+	// one without ever finding out.
+	//
+	// Worse, specifically. That route called Compile directly, which honours the
+	// set's master switch — so a set that was switched off came back with no
+	// problems and every link accepted, including a set holding a pattern the
+	// engine cannot parse. A dry run that reports "nothing is wrong" about a rule
+	// list that does not compile is the exact failure this whole subsystem exists
+	// to prevent, and it had no bound on the sample count either.
 }
 
 // settingsResponse is the settings plus what the rule engine could not compile.
@@ -157,19 +124,13 @@ func options() map[string]any {
 			proxycfg.KindHTTP, proxycfg.KindHTTPS,
 			proxycfg.KindSOCKS4, proxycfg.KindSOCKS4A, proxycfg.KindSOCKS5,
 		},
-		"ruleFields": []rules.Field{
-			rules.FieldFilename, rules.FieldURL, rules.FieldHoster, rules.FieldSource,
-			rules.FieldFiletype, rules.FieldFilesize, rules.FieldPackage,
-		},
-		"ruleOps": []rules.Op{
-			rules.OpContains, rules.OpEquals, rules.OpContainsNot,
-			rules.OpEqualsNot, rules.OpMatches, rules.OpBetween,
-		},
-		// The Packagizer actions the app actually honours. "filename" is absent:
-		// no backend accepts a destination file name, so a rename would only
-		// desynchronise the list from the disk. Offering it would be a setting that
-		// silently does nothing.
-		"ruleActions":     []string{"packageName", "downloadDir", "comment", "priority", "autoExtract", "chunks"},
+		// The rule vocabulary is NOT here. It used to be: three hand-written lists
+		// of fields, operators and actions, next to the engine that defines all
+		// three. GET /api/rules/grammar builds them from the engine instead, and
+		// the copy had already drifted — it offered no filter action at all, and
+		// the interface's own type for this response had stopped declaring one of
+		// the three lists. A menu built from the stale copy offers an operator the
+		// engine refuses, which saves cleanly and then never fires.
 		"scheduleActions": []schedule.Action{schedule.ActionPause, schedule.ActionResume, schedule.ActionLimit},
 		// The cleanup menu is generated from the classes the app implements, for
 		// the same reason as everything else here: a menu entry the server does not

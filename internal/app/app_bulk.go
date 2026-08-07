@@ -367,7 +367,7 @@ func (a *App) HandContainerToJD(rawurl, name, pkg string) error {
 		// Back through the ordinary path, so the link filter, the packagizer and
 		// the duplicate check apply to a container's contents exactly as they do
 		// to a paste. A container is a delivery mechanism, not an exemption.
-		created := a.AddLinks(urls, pkg)
+		created := a.AddLinksFrom(urls, pkg, OriginContainer)
 		log.Printf("container %s: %d links, %d staged", name, len(urls), len(created))
 	}()
 	return nil

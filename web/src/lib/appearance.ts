@@ -12,22 +12,27 @@ export type Shape = 'round' | 'soft' | 'square';
 
 export const SHAPES: Shape[] = ['round', 'soft', 'square'];
 
-/** The built-in accent. Empty in settings means this. */
-export const DEFAULT_ACCENT = '#E9A83C';
+/**
+ * The built-in accent. Empty in settings means this.
+ *
+ * It is the sibling apps' own default rather than a colour of our own: these
+ * share a design language, and a family whose members open in different colours
+ * is a family only on paper.
+ */
+export const DEFAULT_ACCENT = '#FCC419';
 
 /**
- * ACCENTS are the presets offered in the picker. A free colour field sits
- * beside them, so this list is a shortcut rather than a restriction.
+ * ACCENTS are the presets offered in the picker — the same five the siblings
+ * offer, in the same order, so a person who set "Blue" in one app finds the
+ * same blue here. A free colour field sits beside them, so this list is a
+ * shortcut rather than a restriction.
  */
 export const ACCENTS: { name: string; hex: string }[] = [
-  { name: 'Gold', hex: '#E9A83C' },
-  { name: 'Ember', hex: '#E2703A' },
-  { name: 'Crimson', hex: '#D9534F' },
-  { name: 'Moss', hex: '#5CA271' },
-  { name: 'Steel', hex: '#5B8DBE' },
-  { name: 'Iris', hex: '#8C7AE6' },
-  { name: 'Rose', hex: '#D2688F' },
-  { name: 'Slate', hex: '#8A8F98' },
+  { name: 'Sunflower', hex: '#FCC419' },
+  { name: 'Blue', hex: '#1D99F3' },
+  { name: 'Green', hex: '#6FDC8C' },
+  { name: 'Red', hex: '#FF8389' },
+  { name: 'Purple', hex: '#BE95FF' },
 ];
 
 /**
@@ -38,14 +43,14 @@ export const ACCENTS: { name: string; hex: string }[] = [
  * could grow would re-colour every existing row the moment one was added.
  */
 export const RAINBOW: string[] = [
-  '#D9534F', // crimson
-  '#E2703A', // ember
-  '#E9A83C', // gold
-  '#5CA271', // moss
-  '#3FA9A6', // teal
-  '#5B8DBE', // steel
-  '#8C7AE6', // iris
-  '#D2688F', // rose
+  '#FF8389', // red 30
+  '#FF832B', // orange 40
+  '#FCC419', // sunflower — the default accent, so one row always matches it
+  '#6FDC8C', // green 30
+  '#3DDBD9', // teal 30
+  '#1D99F3', // blue
+  '#BE95FF', // purple 30
+  '#FF7EB6', // magenta 30
 ];
 
 export interface RainbowState {
@@ -210,7 +215,9 @@ function usablePalette(p: string[] | undefined): string[] {
 export function contrastOn(hex: string): string {
   if (!valid(hex)) return '#FFFFFF';
   const { r, g, b } = parse(hex);
-  return luminance(r, g, b) > 0.55 ? '#17130E' : '#FFFFFF';
+  // Carbon's own ink, not a warm near-black: on a yellow accent a brown-tinted
+  // black reads as a smudge, and it was the last hard-coded warm value left.
+  return luminance(r, g, b) > 0.55 ? '#161616' : '#FFFFFF';
 }
 
 function valid(hex: string | undefined): hex is string {

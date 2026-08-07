@@ -49,6 +49,7 @@ func registerAll(reg *Registry, a *app.App) {
 	registerFederation(reg, a)
 	registerFeatures(reg, a)
 	registerConnections(reg, a)
+	registerRules(reg, a)
 }
 
 // AnyMethod is the method of a route that answers whatever it is sent, because
@@ -145,6 +146,22 @@ func (reg *Registry) attach(mux *http.ServeMux, fallback http.Handler) {
 		}
 		mux.HandleFunc(pattern, r.handler)
 	}
+	// Anything under /api/ that the table does not claim is a 404, and says so in
+	// the language the caller asked in.
+	//
+	// Without this it falls through to the single-page app, which answers 200 with
+	// index.html: a client that calls a route which has been renamed, removed, or
+	// never registered gets HTML and a success code, fails while parsing it, and
+	// reports an error that names neither the route nor the status. That is the
+	// exact failure the registration table exists to make impossible, and it was
+	// still reachable through the one pattern the table does not cover.
+	//
+	// ServeMux prefers the more specific pattern, so this only ever sees paths no
+	// registered route matched. A path that is registered under another method
+	// still gets ServeMux's own 405 rather than this.
+	mux.HandleFunc("/api/", func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "no such endpoint: "+r.Method+" "+r.URL.Path, http.StatusNotFound)
+	})
 	mux.Handle("/", fallback)
 }
 

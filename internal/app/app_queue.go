@@ -22,7 +22,11 @@ func (a *App) StartTasks(ids []string) {
 	a.mu.Lock()
 	var toStart []*core.Task
 	for id, t := range a.tasks {
-		if t.Status == core.StatusCollected && (all || want[id]) {
+		// Skipped is the holding area, and it is why the flag is on the task
+		// rather than a note kept somewhere else: "start everything" reaches every
+		// collected link, and a filtered one has to be out of that reach without
+		// being out of the record. Restore is the only way it starts.
+		if t.Status == core.StatusCollected && !t.Skipped && (all || want[id]) {
 			toStart = append(toStart, t)
 		}
 	}

@@ -97,7 +97,11 @@ func (a *App) RecheckTasks(ids []string) {
 	a.mu.Lock()
 	var targets []core.Task
 	for id, t := range a.tasks {
-		if t.Status == core.StatusCollected && (all || want[id]) {
+		// A link the filter is holding is not probed. "Recheck the collector"
+		// reaches every collected task, and a rule written to keep this box away
+		// from a host would otherwise have it call that host once per recheck —
+		// the same leak the staging-time pass exists to close, one button along.
+		if t.Status == core.StatusCollected && !t.Skipped && (all || want[id]) {
 			targets = append(targets, *t)
 		}
 	}

@@ -32,7 +32,9 @@ export function Dashboard() {
       else if (x.status === 'queued') queued++;
       else if (x.status === 'done') done++;
       else if (x.status === 'error') error++;
-      else if (x.status === 'collected') collected++;
+      // Not what the link filter is holding: those are counted nowhere, because
+      // they are in no list and nothing is going to happen to them.
+      else if (x.status === 'collected' && !x.skipped) collected++;
       if (x.status === 'running') speed += x.speed;
     }
     return { running, queued, done, error, collected, speed };

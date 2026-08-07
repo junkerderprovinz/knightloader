@@ -25,6 +25,7 @@ const sessionCookie = "kl_session"
 type linksBody struct {
 	Links     string   `json:"links"`
 	Package   string   `json:"package"`
+	Origin    string   `json:"origin"`
 	Passwords []string `json:"passwords"`
 }
 
@@ -202,6 +203,13 @@ func TestAddLinksCnLPostsLinksAndPackage(t *testing.T) {
 	}
 	if links[0].Package != "MySite" {
 		t.Fatalf("package = %q, want MySite", links[0].Package)
+	}
+	// The entrance travels with them. Without it the remote can only file a
+	// relayed submission as a paste, which is wrong for every deployment a bridge
+	// exists to serve — and wrong in the one column somebody opens the holding
+	// area to read.
+	if links[0].Origin != "cnl" {
+		t.Fatalf("origin = %q, want cnl: these links reached this process by Click'n'Load", links[0].Origin)
 	}
 	// Without passwords the options endpoint must stay untouched, otherwise
 	// every plain submission would clear the task's password.

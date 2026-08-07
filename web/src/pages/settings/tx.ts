@@ -1,38 +1,24 @@
-import { useCallback } from 'react';
 import { useT, type TranslationKey } from '../../lib/i18n';
-import { PENDING, type PendingKey } from './strings';
+import { en } from '../../lib/locales/en';
 
 /**
- * useTx is `t` for a key that may not be in the catalogue yet.
+ * useTx is `t` under the name the settings tree already calls.
  *
- * The settings tree needs about ninety strings the locale files do not have,
- * and the locale files are one writer's lane per wave. Rather than shipping
- * English literals scattered through a dozen components — which is a hunt when
- * the translation wave arrives — every one of them goes through here against
- * the key it is destined for.
+ * It used to be `t` for keys the catalogue did not have yet, backed by an
+ * English fallback table in strings.ts. Those keys are now in en.ts and in all
+ * 41 other locales, so the table is gone and `tx` is plain `t` — and not one of
+ * the dozen call sites had to change, which is why the strings went through a
+ * destination key instead of being written as literals.
  *
- * The lookup asks the real catalogue first, so nothing in this directory has to
- * be touched when those keys land: the day `settings.nav.general` exists in
- * en.ts, this stops falling back and starts translating.
+ * The alias stays rather than the pages switching to `useT`: the two names cost
+ * nothing, and a sub-page that still says `tx` is not wrong about anything.
  */
 export function useTx(): {
-  t: (key: TranslationKey) => string;
-  tx: (key: PendingKey, vars?: Record<string, string | number>) => string;
+  t: (key: TranslationKey, vars?: Record<string, string | number>) => string;
+  tx: (key: TranslationKey, vars?: Record<string, string | number>) => string;
 } {
   const { t } = useT();
-  const tx = useCallback(
-    (key: PendingKey, vars?: Record<string, string | number>) => {
-      // The cast is the whole point: the key is not in the union yet. It is
-      // narrow — only keys that exist in PENDING can be passed — and it goes
-      // away with the fallback table.
-      const translated = t(key as unknown as TranslationKey) as string | undefined;
-      let s: string = translated ?? PENDING[key];
-      if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
-      return s;
-    },
-    [t],
-  );
-  return { t, tx };
+  return { t, tx: t };
 }
 
 /**
@@ -40,12 +26,17 @@ export function useTx(): {
  * An id with no string falls back to the id itself, because a module a later
  * wave adds must show up unlabelled rather than as a blank row that reads as a
  * rendering fault.
+ *
+ * The membership test is against `en`, not against the active dictionary: every
+ * locale is typed as Dict and therefore has exactly the same keys, and English
+ * is the one that is loaded synchronously — asking the fetched dictionary would
+ * turn a label into the raw id for as long as its chunk is in flight.
  */
 export function label(
-  tx: (key: PendingKey) => string,
+  tx: (key: TranslationKey) => string,
   prefix: 'settings.module.' | 'settings.nav.',
   id: string,
 ): string {
-  const key = (prefix + id) as PendingKey;
-  return key in PENDING ? tx(key) : id;
+  const key = (prefix + id) as TranslationKey;
+  return key in en ? tx(key) : id;
 }

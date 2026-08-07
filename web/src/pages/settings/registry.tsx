@@ -7,6 +7,7 @@ import { EmptyPage } from './Empty';
 import { General } from './General';
 import { Look } from './Look';
 import { Modules } from './Modules';
+import { Rules } from './Rules';
 
 /**
  * Which component renders which sub-page.
@@ -26,7 +27,8 @@ const PAGES: Record<string, () => ReactNode> = {
   look: () => <Look />,
   access: () => <Access />,
   advanced: () => <Advanced />,
-  // rules, connections, reconnect, accounts, captcha and schedule are
+  rules: () => <Rules />,
+  // connections, reconnect, accounts, captcha and schedule are
   // deliberately absent: they are registered on the server, they have working
   // addresses, and until their wave lands they render the registry's own reason.
 };

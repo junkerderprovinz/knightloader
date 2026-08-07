@@ -1,7 +1,8 @@
 package app
 
-// Everything between a pasted string and a staged task: the filter, the crawl,
-// the Packagizer, the mirror set, and the trace of links that never made it.
+// Everything between a pasted string and a staged task: the entrance it came
+// in by, the filter, the crawl, the Packagizer, the package it lands in, the
+// mirror set, and the links that never made it.
 
 import (
 	"context"
@@ -9,6 +10,7 @@ import (
 	"log"
 	"net/url"
 	"path"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -22,10 +24,84 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/watch"
 )
 
-// AddLinks resolves each URL and stages it in the link collector (JD-style):
+// The five entrances a link can arrive by.
+//
+// They are declared here rather than beside the type in core because core owns
+// the type and nothing else: every one of these names a funnel in this file, and
+// the only way the set stays honest is if adding an entrance means editing the
+// same file that has to set the value. A link with no origin at all is the state
+// this exists to end — "why is this here" is unanswerable weeks later, and a rule
+// keyed on where something came from has nothing to read.
+const (
+	// OriginPaste is the collector's paste box, which is also what a bare
+	// AddLinks means.
+	OriginPaste core.Origin = "paste"
+	// OriginCrawl is a link a page pointed at. The page itself is on Source.
+	OriginCrawl core.Origin = "crawl"
+	// OriginCnL is a Click'n'Load submission from a browser.
+	OriginCnL core.Origin = "cnl"
+	// OriginWatch is a job file dropped into the watched folder.
+	OriginWatch core.Origin = "watch"
+	// OriginContainer is a .dlc/.ccf/.rsdf/.txt container, whether it was read
+	// here or opened by the JD backend on our behalf.
+	OriginContainer core.Origin = "container"
+)
+
+// KnownOrigin turns an entrance a caller names into one of the five, and refuses
+// anything else.
+//
+// It exists for the relays. A Click'n'Load bridge decodes a submission on the
+// user's own desktop — because CnL is hard-wired to the browser's loopback and
+// cannot reach a NAS — and then forwards it over the ordinary link route. The
+// entrance is known to that bridge and to nobody downstream of it, so without a
+// way to say so those links are filed as pasted: wrong precisely for the
+// deployment the bridge exists to serve, and wrong in the one column somebody
+// opens the holding area to read.
+//
+// An unrecognised value is refused rather than stored, because a free-text
+// origin is a column that stops being answerable — which is the state the five
+// constants above exist to end.
+func KnownOrigin(s string) (core.Origin, bool) {
+	switch o := core.Origin(strings.ToLower(strings.TrimSpace(s))); o {
+	case OriginPaste, OriginCrawl, OriginCnL, OriginWatch, OriginContainer:
+		return o, true
+	}
+	return "", false
+}
+
+// intake is what an entrance knows about the links it is handing over. It is a
+// struct rather than four more parameters because stage is called from five
+// places and a bare string in the fourth position is how "source" ended up
+// carrying a package name once already.
+type intake struct {
+	pkg    string
+	origin core.Origin
+	// source is the page a crawl found the link on; empty for everything else.
+	source string
+	// waived is the reason the filter gave when it held this link, handed back in
+	// by RestoreFiltered. Non-empty means the user has read that reason and
+	// decided anyway, so the filter is not asked at staging time — and, because
+	// the reason is kept on the task, not asked again at the queue either. See
+	// filterWaived.
+	waived string
+}
+
+// AddLinks stages links pasted into the collector. Every other entrance calls
+// AddLinksFrom with an origin of its own; this is the paste box, and it keeps
+// the short name because it is also what an unadorned "add these links" means.
+func (a *App) AddLinks(urls []string, pkg string) []*core.Task {
+	return a.AddLinksFrom(urls, pkg, OriginPaste)
+}
+
+// AddLinksFrom resolves each URL and stages it in the link collector (JD-style):
 // tasks are created "collected" (analysed but not started). StartTasks moves
 // them into the download queue.
-func (a *App) AddLinks(urls []string, pkg string) []*core.Task {
+//
+// origin is written onto every task this creates. It is the difference between a
+// list of links and a list of links you can account for: it answers "why is this
+// here" without a memory of what happened last Tuesday, and it is what a rule
+// keyed on the entrance has to read.
+func (a *App) AddLinksFrom(urls []string, pkg string, origin core.Origin) []*core.Task {
 	var created []*core.Task
 	// seen is about the pasted text and nothing else: it stops one page being
 	// fetched twice when it appears twice in the same box. Whether a *link* is
@@ -34,8 +110,12 @@ func (a *App) AddLinks(urls []string, pkg string) []*core.Task {
 	// and then a link a raw string comparison let through comes back reported as a
 	// duplicate of itself.
 	seen := map[string]bool{}
-	// What the crawled page called itself, kept for the batch name below.
-	pageTitle := ""
+	// One bucket per crawled page, plus one for everything that was already a
+	// link. Naming used to run once across the whole call, so two pages pasted
+	// together were both named after whichever came first — and the second page's
+	// links sat under a title that was never about them.
+	var buckets []*bucket
+	loose := &bucket{}
 	for _, raw := range urls {
 		u := strings.TrimSpace(raw)
 		if u == "" || seen[u] {
@@ -50,7 +130,7 @@ func (a *App) AddLinks(urls []string, pkg string) []*core.Task {
 		// never come past this point.
 		cand := rules.Candidate{URL: u, Package: pkg, Added: time.Now()}
 		if v := a.filter(cand); v.Rejected {
-			if t := a.stageRejected(cand, v, cand.Added); t != nil {
+			if t := a.hold(cand, v, origin, cand.Added); t != nil {
 				created = append(created, t)
 			}
 			continue
@@ -59,52 +139,46 @@ func (a *App) AddLinks(urls []string, pkg string) []*core.Task {
 		// page. Without this a gallery or an index listing can only ever be a
 		// single unusable download.
 		if crawled := a.crawl(u); len(crawled) > 0 {
+			b := &bucket{title: crawlTitle(crawled)}
 			for _, c := range crawled {
 				if c.URL == "" {
 					continue
 				}
-				// The page is passed as the source, which is the only place a rule
-				// keyed on "where did this link come from" can get it.
-				if t := a.stage(c.URL, c.Name, pkg, u); t != nil {
+				// OriginCrawl rather than the caller's origin, whatever brought the
+				// page in: a link nobody typed did not arrive by the path the page
+				// did. Which page it was is on Source right beside it, which is also
+				// the only place a rule keyed on "where did this link come from" can
+				// get it.
+				if t := a.stage(c.URL, c.Name, intake{pkg: pkg, origin: OriginCrawl, source: u}); t != nil {
+					b.tasks = append(b.tasks, t)
 					created = append(created, t)
 				}
-				// The first page that named itself names the batch, if nothing
-				// better turns up below. One paste can hold several pages, and the
-				// later ones must not rewrite a name the batch already has.
-				if pageTitle == "" {
-					pageTitle = strings.TrimSpace(c.Title)
-				}
 			}
+			buckets = append(buckets, b)
 			continue
 		}
-		if t := a.stage(u, "", pkg, ""); t != nil {
+		if t := a.stage(u, "", intake{pkg: pkg, origin: origin}); t != nil {
+			loose.tasks = append(loose.tasks, t)
 			created = append(created, t)
 		}
 	}
-	// A batch pasted without a package name gets one derived from the links
-	// themselves. Without this everything lands in "ungrouped", which is where
-	// a collector stops being useful the moment there is more than one batch in
-	// it.
-	//
-	// A task a Packagizer rule already named is left out. The rule is the more
-	// specific answer and it ran first, so overwriting it here would make a rule
-	// that works look like one that does nothing.
+
+	buckets = append(buckets, loose)
+
+	// Naming, in two passes: each bucket gets the best name its own links agree
+	// on, and whatever is still nameless afterwards goes in the catch-all rather
+	// than into the blank that is not a package at all.
 	if strings.TrimSpace(pkg) == "" {
-		if derived := derivePackage(created, pageTitle); derived != "" {
-			ids := make([]string, 0, len(created))
-			for _, t := range created {
-				if strings.TrimSpace(t.Package) == "" {
-					ids = append(ids, t.ID)
-				}
-			}
-			if len(ids) > 0 {
-				a.SetPackage(ids, derived)
-			}
+		for _, b := range buckets {
+			a.nameBucket(b)
 		}
 	}
+	a.catchAll(created)
 
 	// Auto-start hands everything straight to the queue for users who don't
-	// want the staging step.
+	// want the staging step. What the filter is holding is not in that set:
+	// StartTasks leaves a held link alone, which is the whole reason the flag is
+	// on the task rather than a note somewhere else.
 	if len(created) > 0 && a.Settings.Get().AutoStart {
 		ids := make([]string, 0, len(created))
 		for _, t := range created {
@@ -115,11 +189,86 @@ func (a *App) AddLinks(urls []string, pkg string) []*core.Task {
 	return created
 }
 
+// bucket is one group of links that will be named together: the yield of a
+// single crawl, or everything in a paste that was already a link.
+type bucket struct {
+	// title is what the crawled page called itself, empty for the loose bucket.
+	title string
+	tasks []*core.Task
+}
+
+// crawlTitle is what the crawled page called itself. Every result from one page
+// carries the same title, but a site-specific crawler is free to fill it on some
+// results and not others, so the first non-empty one wins rather than the first.
+func crawlTitle(found []crawler.Result) string {
+	for _, c := range found {
+		if s := strings.TrimSpace(c.Title); s != "" {
+			return s
+		}
+	}
+	return ""
+}
+
+// nameBucket gives one batch a package derived from the links in it. It runs
+// only when the user named no package, because a name typed into the box is a
+// more specific answer than anything guessable from a file list.
+//
+// A task a Packagizer rule already named is left out. The rule is the more
+// specific answer and it ran first, so overwriting it here would make a rule that
+// works look like one that does nothing.
+func (a *App) nameBucket(b *bucket) {
+	if b == nil || len(b.tasks) == 0 {
+		return
+	}
+	derived := derivePackage(b.tasks, b.title)
+	if derived == "" {
+		return
+	}
+	ids := unpackagedIDs(b.tasks)
+	if len(ids) > 0 {
+		a.SetPackage(ids, derived)
+	}
+}
+
+// catchAllPackage is where a link with no name of its own ends up.
+//
+// It is a real package rather than the blank one because "ungrouped" is not a
+// group: a collector holding forty unrelated links and no packages is exactly the
+// list this app set out to replace, and a bucket with a name can be collapsed,
+// moved, started and emptied like any other.
+//
+// It is deliberately not translated. A package name is data, not interface text:
+// it is written to the store, it becomes a folder name when SubfolderByPackage is
+// on, and rules match on it — so a name that changed with the interface language
+// would rename folders on disk when somebody switched to German.
+const catchAllPackage = "Various"
+
+// catchAll files whatever is still nameless.
+func (a *App) catchAll(created []*core.Task) {
+	if ids := unpackagedIDs(created); len(ids) > 0 {
+		a.SetPackage(ids, catchAllPackage)
+	}
+}
+
+// unpackagedIDs is the tasks nothing has filed yet. ManualPackage is checked as
+// well as the name because a package the user chose by hand is the one answer
+// nothing derived here may overwrite — including the empty one, which from a
+// person is a deliberate "leave this ungrouped" rather than a gap.
+func unpackagedIDs(tasks []*core.Task) []string {
+	ids := make([]string, 0, len(tasks))
+	for _, t := range tasks {
+		if t != nil && !t.ManualPackage && strings.TrimSpace(t.Package) == "" {
+			ids = append(ids, t.ID)
+		}
+	}
+	return ids
+}
+
 // derivePackage guesses a name for a batch that arrived without one: the shared
 // stem of the file names if the links look like parts of one thing, then what
 // the page they were crawled off called itself, else the host they came from. It
 // returns "" when none of the three is worth using, because a bad guess is worse
-// than no group at all.
+// than no group at all — and what is left over lands in the catch-all instead.
 //
 // title is empty for a pasted batch. It sits between the two because it is the
 // more specific answer of the pair — a listing page's own address is "pub/",
@@ -259,14 +408,14 @@ func (a *App) crawl(u string) []crawler.Result {
 // map, into the store and onto every connected screen, and taking it away again
 // is a flicker and a store round trip, not a filter.
 //
-// source is the page a crawl found the link on, and is empty for a pasted link.
-// It returns nil when the link never became a task.
-func (a *App) stage(u, name, pkg, source string) *core.Task {
+// It returns nil when the link never became a task, and the held task when the
+// filter refused it.
+func (a *App) stage(u, name string, in intake) *core.Task {
 	// One clock reading for the whole link, in local time: it is what CreatedAt
 	// gets and what pathvars formats for <jd:date>, and a UTC reading here would
 	// flip a dated folder name a day early for everyone east of Greenwich.
 	now := time.Now()
-	cand := rules.Candidate{URL: u, Source: source, Package: pkg, Added: now}
+	cand := rules.Candidate{URL: u, Source: in.source, Package: in.pkg, Added: now}
 	if n := strings.TrimSpace(name); n != "" {
 		cand.Filename = n
 	}
@@ -274,8 +423,10 @@ func (a *App) stage(u, name, pkg, source string) *core.Task {
 	// are still unknown, so a rule keyed on those cannot fire yet — but a reject
 	// on the URL, the hoster or the source page saves the whole network round
 	// trip, which on a paste of several thousand links is the entire cost.
-	if v := a.filter(cand); v.Rejected {
-		return a.stageRejected(cand, v, now)
+	if in.waived == "" {
+		if v := a.filter(cand); v.Rejected {
+			return a.hold(cand, v, in.origin, now)
+		}
 	}
 	// An advisory look before the expensive part, so an obvious duplicate costs
 	// nothing. The binding check is in put, under the lock that inserts the task.
@@ -287,14 +438,19 @@ func (a *App) stage(u, name, pkg, source string) *core.Task {
 	t := &core.Task{
 		URL:     u,
 		Name:    u,
-		Package: pkg,
+		Package: in.pkg,
 		Status:  core.StatusCollected,
 		// Set here and not left to the zero value: a link nobody has switched off
 		// is on, and a Task built without this would be staged already disabled.
-		Enabled:   true,
-		Source:    source,
-		Host:      hostOf(u),
-		CreatedAt: now,
+		Enabled: true,
+		Source:  in.source,
+		Origin:  in.origin,
+		// The reason the user overruled, kept on a link they let through. It is
+		// what tells the queue apart from a link the filter has never seen — see
+		// filterWaived — and it is empty for everything that was never held.
+		SkipReason: in.waived,
+		Host:       hostOf(u),
+		CreatedAt:  now,
 	}
 	if cand.Filename != "" {
 		t.Name = cand.Filename
@@ -323,8 +479,10 @@ func (a *App) stage(u, name, pkg, source string) *core.Task {
 	// that can act on a size or a file-type condition, and it still runs before
 	// the task is staged.
 	cand.Filename, cand.Filesize = filename(t), t.Size
-	if v := a.filter(cand); v.Rejected {
-		return a.stageRejected(cand, v, now)
+	if in.waived == "" {
+		if v := a.filter(cand); v.Rejected {
+			return a.hold(cand, v, in.origin, now)
+		}
 	}
 	staged := a.finishStaging(t, cand)
 	// Lightweight analysis for plain file links: a HEAD gives size + an online
@@ -390,6 +548,16 @@ func (a *App) filter(cand rules.Candidate) rules.Verdict {
 	return f.Check(cand)
 }
 
+// filterWaived reports a link the user has already overruled the filter for.
+//
+// It is the pair (not held, but carrying the reason it was held for): Skipped
+// says the filter is holding it now, and a SkipReason that outlives the flag is
+// the record that somebody read that reason and restored the link anyway. The
+// queue asks the filter one last time before any bytes move, and without this
+// Restore would be a button that puts a link back so the same rule can refuse it
+// again with the same sentence.
+func filterWaived(t *core.Task) bool { return t != nil && !t.Skipped && t.SkipReason != "" }
+
 // packagize applies the Packagizer's answer to a task that has not been staged
 // yet. Only what a rule actually set is applied: an empty field means "no rule
 // had an opinion", never "clear it".
@@ -432,36 +600,58 @@ func (a *App) packagize(t *core.Task, cand rules.Candidate) {
 	t.MatchedRules = e.Matched
 }
 
-// stageRejected records a link the filter refused.
+// hold parks a link the filter refused, in the holding area rather than in the
+// collector.
 //
-// It is staged rather than dropped, through the same mechanism a link no backend
-// handles goes through: the reason on the task and an offline availability.
-// Eating links in silence is JDownloader's single most complained-about
-// behaviour, and a link that disappears without a trace is indistinguishable
-// from a bug in the paste box.
+// It is still a task, and it is still kept. Eating links in silence is
+// JDownloader's single most complained-about behaviour, and a link that
+// disappears without a trace is indistinguishable from a bug in the paste box.
+// But Skipped keeps it out of the list, out of the queue and out of the counters
+// — because a filter that is working would otherwise fill the collector with
+// exactly the junk it just caught, and a collector full of junk reads as a filter
+// that does nothing. That is the whole of the difference from staging it: same
+// record, different list.
 //
-// It stays collected rather than being settled as an error, so it reads as what
-// it is — a link in the collector that will not be taken — and so a user who
-// fixes the rule can simply start it. dispatchLocked asks the filter again
-// before any bytes move, which is what stops "start everything" from undoing the
-// filter in the meantime.
-func (a *App) stageRejected(cand rules.Candidate, v rules.Verdict, now time.Time) *core.Task {
+// A task rather than a note in memory, because the holding area has to survive a
+// restart. A list of links that quietly empties itself overnight is the silent
+// loss this feature exists to prevent, moved one reboot along.
+//
+// Nothing is resolved. A refused link must not cost a network round trip — on a
+// paste of several thousand links that saving is the entire cost — and a rule
+// written to keep this box away from a host must not make it talk to that host
+// on the way to saying so.
+func (a *App) hold(cand rules.Candidate, v rules.Verdict, origin core.Origin, now time.Time) *core.Task {
 	t := &core.Task{
 		URL:     cand.URL,
 		Name:    cand.URL,
 		Package: cand.Package,
 		Status:  core.StatusCollected,
-		Online:  core.AvailOffline,
-		Error:   rejection(v),
+		Skipped: true,
+		// The sentence the person reads. rejection() has already folded the rule's
+		// name into it where the rule's own words did not carry it.
+		SkipReason: rejection(v),
 		// A refused link is still an enabled one: what stopped it was the filter,
 		// and a user who fixes the rule expects to be able to start it.
 		Enabled:   true,
 		Source:    cand.Source,
+		Origin:    origin,
 		Host:      hostOf(cand.URL),
 		CreatedAt: now,
+		// Online is left unset on purpose. It used to be filed as offline so the
+		// collector would show the link was not going to be taken, which Skipped
+		// now says properly — and "offline" is a claim about the link that nobody
+		// checked. Filing a live link as dead is how a user learns to ignore the
+		// column.
 	}
 	if cand.Filename != "" {
 		t.Name = cand.Filename
+	}
+	if v.Rule != "" {
+		// Which rule caught it, as data and not only inside a sentence. The first
+		// question anyone asks of the holding area is which rule to go and edit,
+		// and a client that has to parse the name back out of prose that will
+		// eventually be translated will get it wrong.
+		t.MatchedRules = []string{v.Rule}
 	}
 	if m, ok := a.put(t); !ok {
 		a.recordSkipped(t.URL, m)
@@ -482,9 +672,125 @@ func rejection(v rules.Verdict) string {
 	return fmt.Sprintf("%s (link filter rule %q)", v.Reason, v.Rule)
 }
 
+// FilteredLinks is the holding area: the links the filter refused, oldest first.
+//
+// It is derived from the task list rather than kept beside it. The tasks are
+// already persisted, already broadcast and already sent to every client, so a
+// second list would be a second thing to keep in step with the first — and the
+// browser can answer this question from the stream it is holding anyway. This
+// exists for the clients that are not a browser.
+func (a *App) FilteredLinks() []*core.Task {
+	a.mu.Lock()
+	held := make([]core.Task, 0, 8)
+	for _, t := range a.tasks {
+		if t.Skipped {
+			held = append(held, *t)
+		}
+	}
+	a.mu.Unlock()
+	sort.Slice(held, func(i, j int) bool { return held[i].CreatedAt.Before(held[j].CreatedAt) })
+	out := make([]*core.Task, 0, len(held))
+	for i := range held {
+		out = append(out, &held[i])
+	}
+	return out
+}
+
+// RestoreFiltered puts links the filter is holding back into the collector, with
+// the filter waived for exactly those links. An empty id list restores the whole
+// holding area.
+//
+// Waived, and not merely un-held. The commonest reason to open this list at all
+// is that the rule turned out to be too broad, and the queue asks the filter one
+// final time before any bytes move — so a Restore that only cleared the flag
+// would be a button that hands the link straight back to the rule that caught it.
+// What was overruled stays recorded on the task (see filterWaived), so this is a
+// decision about these links and not a hole in the filter.
+func (a *App) RestoreFiltered(ids []string) []*core.Task {
+	want := map[string]bool{}
+	for _, id := range ids {
+		want[id] = true
+	}
+	all := len(ids) == 0
+
+	a.mu.Lock()
+	var freed []core.Task
+	for id, t := range a.tasks {
+		if !t.Skipped || !(all || want[id]) {
+			continue
+		}
+		t.Skipped = false
+		// Status and Error are untouched: a held link was never started, so there
+		// is nothing to reset, and SkipReason is deliberately kept.
+		freed = append(freed, *t)
+	}
+	a.mu.Unlock()
+
+	sort.Slice(freed, func(i, j int) bool { return freed[i].CreatedAt.Before(freed[j].CreatedAt) })
+	out := make([]*core.Task, 0, len(freed))
+	restored := make([]string, 0, len(freed))
+	for i := range freed {
+		c := freed[i]
+		_ = a.Store.Save(&c)
+		a.Hub.Broadcast("task", &c)
+		out = append(out, &c)
+		restored = append(restored, c.ID)
+	}
+	// Nothing was resolved while the link was held, so a restored link would
+	// otherwise sit in the collector as a bare URL with no name and no size. The
+	// recheck is the same one the interface offers by hand; off the caller's
+	// goroutine because it is one network round trip per link and the browser is
+	// waiting for this response.
+	if len(restored) > 0 {
+		go a.RecheckTasks(restored)
+	}
+	return out
+}
+
+// ClearFiltered deletes the links the filter is holding, and only those. An
+// empty id list empties the whole holding area. The downloaded files are never
+// touched, because a held link has never downloaded anything.
+func (a *App) ClearFiltered(ids []string) []string {
+	want := map[string]bool{}
+	for _, id := range ids {
+		want[id] = true
+	}
+	all := len(ids) == 0
+
+	a.mu.Lock()
+	doomed := make([]string, 0, 8)
+	for id, t := range a.tasks {
+		if t.Skipped && (all || want[id]) {
+			doomed = append(doomed, id)
+		}
+	}
+	a.mu.Unlock()
+	// Through RemoveTasks rather than by deleting from the map here: it is what
+	// takes the link back out of the mirror set and off every open screen, and a
+	// second removal path is a second place for those two to be forgotten.
+	return a.RemoveTasks(doomed, false)
+}
+
+// heldLink reports whether a task id belongs to a link the filter is holding.
+// Caller must not hold mu.
+func (a *App) heldLink(id string) bool {
+	if id == "" {
+		return false
+	}
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	t := a.tasks[id]
+	return t != nil && t.Skipped
+}
+
 // SkippedLink is a link that never became a task. It is kept so the interface
 // can say what happened to it: a link folded away with nothing to show for it
 // looks exactly like a bug in the paste box, and gets reported as one.
+//
+// This is not the holding area. A link the filter refused is a task with Skipped
+// on it, because it can be restored and therefore has to survive a restart; this
+// is the trace of links that were folded into a copy already in the list, where
+// there is nothing to restore and nothing was lost.
 type SkippedLink struct {
 	URL string `json:"url"`
 	// Kind is what the mirror set decided: "duplicate" or "mirror".
@@ -519,7 +825,7 @@ func (a *App) recordSkipped(u string, m dedupe.Match) {
 	a.pushSkipped(SkippedLink{
 		URL:    u,
 		Kind:   m.Verdict.String(),
-		Reason: skipReason(m),
+		Reason: a.skipReason(m),
 		OfID:   m.Of.ID,
 		Signal: string(m.Signal),
 		At:     time.Now(),
@@ -547,8 +853,15 @@ func (a *App) pushSkipped(s SkippedLink) {
 // skipReason is the sentence shown next to a folded link. It names what the
 // match rests on, because "already have it" is not something a user can check
 // and "the same file name and byte count" is.
-func skipReason(m dedupe.Match) string {
+func (a *App) skipReason(m dedupe.Match) string {
 	if m.Verdict == dedupe.Duplicate {
+		// "Already in the list" is a sentence the user will go and check, and when
+		// the copy is one the filter is holding they will not find it — the holding
+		// area is deliberately not the collector. Saying where it actually is turns
+		// a paste that looks ignored into one that points at the button to press.
+		if a.heldLink(m.Of.ID) {
+			return "the link filter is already holding this link"
+		}
 		return "the same link is already in the list"
 	}
 	name := m.Of.Name
@@ -578,15 +891,21 @@ func (a *App) ClearSkipped() {
 // submission can carry the archive passwords for what it is sending, which is
 // exactly the moment we can learn them without asking the user.
 func (a *App) AddLinksCnL(urls []string, pkg string, passwords []string) {
-	a.AddLinksWithPasswords(urls, pkg, passwords)
+	a.AddLinksWithPasswords(urls, pkg, passwords, OriginCnL)
 }
 
 // AddLinksWithPasswords stages links that arrived together with the archive
 // passwords for them. The first password rides on the tasks themselves, because
 // it was supplied for exactly these files; the rest join the global list, where
 // a later archive from the same source can still reach them.
-func (a *App) AddLinksWithPasswords(urls []string, pkg string, passwords []string) []*core.Task {
-	created := a.AddLinks(urls, pkg)
+//
+// The entrance is a parameter rather than OriginCnL fixed in place. Click'n'Load
+// is still the only thing that supplies passwords, but it does not always arrive
+// here directly: a bridge relays one over the REST API, and an older bridge
+// relays it without naming the entrance at all. Pinning the origin here would
+// file those links under an entrance the caller had already contradicted.
+func (a *App) AddLinksWithPasswords(urls []string, pkg string, passwords []string, origin core.Origin) []*core.Task {
+	created := a.AddLinksFrom(urls, pkg, origin)
 	var first string
 	for _, pw := range passwords {
 		if pw = strings.TrimSpace(pw); pw != "" {
@@ -637,7 +956,7 @@ func (a *App) rememberPasswords(passwords []string) {
 // goroutine, so it hands the slow part off and returns quickly.
 func (a *App) onWatchJob(j watch.Job) {
 	go func() {
-		created := a.AddLinks(j.URLs, j.Package)
+		created := a.AddLinksFrom(j.URLs, j.Package, OriginWatch)
 		if len(created) == 0 {
 			return
 		}

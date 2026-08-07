@@ -261,6 +261,15 @@ type Problem struct {
 	Index   int    `json:"index"` // position in Set.Rules, zero-based
 	Rule    string `json:"rule"`  // the rule's name, or its position when unnamed
 	Message string `json:"message"`
+	// Condition is which condition the problem is about, counting from 1, and 0
+	// when it is about the action or the rule as a whole.
+	//
+	// The number is already in Message, and the editor needs it as data: put a
+	// message under the rule and the user still has to find which of six rows has
+	// the unparsable pattern in it. The alternative is a client that parses
+	// "condition 3 (filename): ..." back out of a sentence, which breaks the first
+	// time the wording changes or the interface is translated.
+	Condition int `json:"condition,omitempty"`
 }
 
 func (p Problem) Error() string { return fmt.Sprintf("%s: %s", p.Rule, p.Message) }
@@ -386,11 +395,17 @@ func Compile(s Set) (*Matcher, []Problem) {
 func compileRule(r Rule, index int) (compiled, []Problem) {
 	name := ruleName(r, index)
 	var problems []Problem
+	// at is which condition the next report is about, counting from 1; 0 while
+	// the action is being checked, which is the state it is left in deliberately.
+	at := 0
 	report := func(format string, args ...any) {
-		problems = append(problems, Problem{Index: index, Rule: name, Message: fmt.Sprintf(format, args...)})
+		problems = append(problems, Problem{
+			Index: index, Rule: name, Condition: at, Message: fmt.Sprintf(format, args...),
+		})
 	}
 	c := compiled{index: index, name: name, act: snapshot(r.Action), wantsGroups: readsGroups(r.Action)}
 	for j, raw := range r.Conditions {
+		at = j + 1
 		cc, err := compileCondition(raw)
 		if err != nil {
 			report("condition %d (%s): %v", j+1, raw.Field, err)
@@ -398,6 +413,7 @@ func compileRule(r Rule, index int) (compiled, []Problem) {
 		}
 		c.conds = append(c.conds, cc)
 	}
+	at = 0
 	for _, msg := range actionProblems(r.Action, c.conds) {
 		report("%s", msg)
 	}

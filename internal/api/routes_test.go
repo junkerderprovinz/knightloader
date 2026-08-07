@@ -1,6 +1,8 @@
 package api
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -173,6 +175,42 @@ func TestEverySubsystemIsRegistered(t *testing.T) {
 				t.Errorf("%s defines register%s but registerAll never calls it; "+
 					"the routes exist in its test and nowhere in the running server", name, fn)
 			}
+		}
+	}
+}
+
+// TestAnUnknownApiPathIs404 closes the one hole the registration table did not
+// cover. Everything the table does not claim used to fall through to the
+// single-page app, which answers 200 with index.html — so a call to a route that
+// had been renamed, removed or never registered came back successful, failed
+// while the client parsed HTML as JSON, and produced an error naming neither the
+// route nor the status.
+func TestAnUnknownApiPathIs404(t *testing.T) {
+	reg := buildRegistry(t)
+	mux := http.NewServeMux()
+	// A fallback that answers 200, exactly as the real one does for the app.
+	reg.attach(mux, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		_, _ = w.Write([]byte("<!doctype html>"))
+	}))
+
+	cases := []struct {
+		method, path string
+		want         int
+		why          string
+	}{
+		{http.MethodPost, "/api/rules/test", http.StatusNotFound, "a removed route must not answer as the app"},
+		{http.MethodGet, "/api/nonsense", http.StatusNotFound, "a route that never existed"},
+		{http.MethodGet, "/api/", http.StatusNotFound, "the prefix itself is not an endpoint"},
+		{http.MethodGet, "/api/health", http.StatusOK, "a registered route still answers"},
+		{http.MethodGet, "/", http.StatusOK, "the interface is still served"},
+		{http.MethodGet, "/assets/app.js", http.StatusOK, "so are its assets"},
+	}
+	for _, c := range cases {
+		rec := httptest.NewRecorder()
+		mux.ServeHTTP(rec, httptest.NewRequest(c.method, c.path, nil))
+		if rec.Code != c.want {
+			t.Errorf("%s %s answered %d, want %d (%s)", c.method, c.path, rec.Code, c.want, c.why)
 		}
 	}
 }

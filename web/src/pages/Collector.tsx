@@ -7,6 +7,7 @@ import { PageHeader, Button, TextInput } from '../components/ui';
 import { TaskListCard, groupByPackage, type Selection } from '../components/TaskList';
 import { PackageActions } from '../components/PackageActions';
 import { ContainerDrop } from '../components/ContainerDrop';
+import { FilteredLinks, useFx } from '../components/FilteredLinks';
 import { SkippedLinks } from '../components/SkippedLinks';
 import {
   COLLECTOR_FILTERS,
@@ -25,6 +26,7 @@ import { IconPlus, IconPlay, IconCollector } from '../lib/icons';
 
 export function Collector() {
   const { t } = useT();
+  const fx = useFx();
   const tasks = useTasks('');
   const { toast } = useToast();
   const [links, setLinks] = useState('');
@@ -41,8 +43,15 @@ export function Collector() {
   const collected = useMemo(
     () =>
       all
-        .filter((x) => x.status === 'collected')
+        .filter((x) => x.status === 'collected' && !x.skipped)
         .sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1)),
+    [all],
+  );
+  // The holding area, kept out of the list above on purpose: a link the filter
+  // refused is still recorded and still restorable, but a filter that is working
+  // must not make this page look like a collector full of junk.
+  const held = useMemo(
+    () => all.filter((x) => x.skipped).sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1)),
     [all],
   );
   const filtered = useMemo(
@@ -88,11 +97,25 @@ export function Collector() {
       toast(t('collector.toastNone'), 'fail');
       return;
     }
+    // A link the filter held is a task, so it comes back in `created` — but it
+    // was not staged, and counting it as staged is the sentence that sends
+    // somebody looking for it in a list it is deliberately not in.
+    const heldNow = created.filter((x) => x.skipped).length;
+    const staged = created.length - heldNow;
     const skipped = Math.max(0, submitted - created.length);
+    if (heldNow) {
+      toast(
+        staged
+          ? fx('collector.filtered.toastHeld', { n: staged, held: heldNow })
+          : fx('collector.filtered.toastAllHeld', { held: heldNow }),
+        staged ? 'ok' : 'info',
+      );
+      return;
+    }
     toast(
       skipped
-        ? t('collector.toastSkipped', { n: created.length, skipped })
-        : t('collector.toastStaged', { n: created.length }),
+        ? t('collector.toastSkipped', { n: staged, skipped })
+        : t('collector.toastStaged', { n: staged }),
       'ok',
     );
   }
@@ -188,6 +211,7 @@ export function Collector() {
           but duplicates stages nothing, and that is the moment it explains most. */}
       <div className="flex flex-col gap-3">
         <ContainerDrop pkg={pkg} />
+        <FilteredLinks held={held} />
         <SkippedLinks />
       </div>
 

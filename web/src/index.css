@@ -81,97 +81,109 @@
 [data-theme="dark"] {
   color-scheme: dark;
 
-  /* Ground and surfaces — exactly two levels above the canvas. */
-  --carbon-bg:         #131110;
-  --carbon-sidebar:    #100E0D;
-  --carbon-surface:    #1C1917;
-  --carbon-surface2:   #262220;
-  --carbon-surface3:   #332E29;
-  --carbon-hover:      #241F1C;
-  --carbon-border:     #2A2521;
+  /* Ground and surfaces — IBM Carbon's neutral greys, the same values
+     BombVault, Krusader and the JDownloader themes already use. They were a warm
+     near-black here, which read as brown next to any of the siblings and made
+     GlimStone the odd one out of a family that had already agreed on a palette.
+     A design language shared across apps has to share its ground first. */
+  --carbon-bg:         #161616;
+  --carbon-sidebar:    #262626;
+  --carbon-surface:    #262626;
+  --carbon-surface2:   #393939;
+  --carbon-surface3:   #525252;
+  --carbon-hover:      #353535;
+  --carbon-border:     #393939;
 
   /* Text ramp — four steps, the last still legible at 11px. */
-  --carbon-text:       #F7F2E9;
-  --carbon-text-sub:   #C9C0B2;
-  --carbon-text-muted: #948A7B;
-  --sidebar-text:      #D8D0C4;
+  --carbon-text:       #f4f4f4;
+  --carbon-text-sub:   #c6c6c6;
+  --carbon-text-muted: #8d8d8d;
+  --sidebar-text:      #e0e0e0;
 
-  /* Heraldic gold: activity, and nothing else. */
-  --accent:            #E9A83C;
-  --accent-contrast:   #17130E;
-  --accent-soft:       rgba(233, 168, 60, 0.14);
+  /* Activity, and nothing else. The default is the sibling apps' own accent so
+     a fresh install of any of them looks like the same product; it is a setting,
+     and the picker is one page away. */
+  --accent:            #FCC419;
+  --accent-contrast:   #161616;
+  --accent-soft:       rgba(252, 196, 25, 0.14);
 
-  /* Four state hues. Gold = running, green = settled, red = fault,
-     neutral = waiting. Paused reuses neutral on purpose. */
-  --status-info-text:    #E9A83C;
-  --status-info-bg:      rgba(233, 168, 60, 0.13);
-  --status-info-solid:   #E9A83C;
+  /* Four state hues, Carbon's dark support tones — the same greens and reds the
+     siblings use, so "finished" is one colour across the whole family.
+     Paused reuses neutral on purpose. */
+  --status-info-text:    #FCC419;
+  --status-info-bg:      rgba(252, 196, 25, 0.13);
+  --status-info-solid:   #FCC419;
 
-  --status-ok-text:      #4FCBA4;
-  --status-ok-bg:        rgba(79, 203, 164, 0.13);
-  --status-ok-solid:     #4FCBA4;
+  --status-ok-text:      #6fdc8c;
+  --status-ok-bg:        rgba(111, 220, 140, 0.13);
+  --status-ok-solid:     #6fdc8c;
 
-  --status-fail-text:    #FF8A72;
-  --status-fail-bg:      rgba(255, 124, 99, 0.14);
-  --status-fail-solid:   #FF7C63;
+  --status-fail-text:    #ff8389;
+  --status-fail-bg:      rgba(255, 131, 137, 0.14);
+  --status-fail-solid:   #ff8389;
 
-  --status-warn-text:    #C9C0B2;
-  --status-warn-bg:      rgba(255, 255, 255, 0.06);
-  --status-warn-solid:   #A79E90;
+  --status-warn-text:    #f1c21b;
+  --status-warn-bg:      rgba(241, 194, 27, 0.12);
+  --status-warn-solid:   #f1c21b;
 
-  --status-neutral-text: #A79E90;
+  --status-neutral-text: #a8a8a8;
   --status-neutral-bg:   rgba(255, 255, 255, 0.05);
-  --status-neutral-solid: #8F8677;
+  --status-neutral-solid: #8d8d8d;
 
-  /* One elevation, one hairline. */
+  /* One elevation, one hairline. Neutral black now, not a warm one: a brown
+     shadow under a grey card is visible and reads as a colour cast. */
   --elevation: 0 1px 2px rgba(0, 0, 0, .40), 0 18px 40px -24px rgba(0, 0, 0, .85);
   --hairline: inset 0 1px 0 rgba(255, 255, 255, .045);
-  --focus-ring: rgba(233, 168, 60, .55);
+  --focus-ring: rgba(252, 196, 25, .55);
 }
 
 [data-theme="light"] {
   color-scheme: light;
 
-  --carbon-bg:         #FBF9F5;
-  --carbon-sidebar:    #F4F0E9;
-  --carbon-surface:    #FFFFFF;
-  --carbon-surface2:   #F2EEE7;
-  --carbon-surface3:   #E3DCD1;
-  --carbon-hover:      #F0EBE2;
-  --carbon-border:     #E7E0D5;
+  /* Carbon's light greys, mirroring the dark ramp step for step. */
+  --carbon-bg:         #f4f4f4;
+  --carbon-sidebar:    #ffffff;
+  --carbon-surface:    #ffffff;
+  --carbon-surface2:   #e8e8e8;
+  --carbon-surface3:   #d1d1d1;
+  --carbon-hover:      #e0e0e0;
+  --carbon-border:     #d1d1d1;
 
-  --carbon-text:       #1A1614;
-  --carbon-text-sub:   #4C453D;
-  --carbon-text-muted: #7B7264;
-  --sidebar-text:      #3A342D;
+  --carbon-text:       #161616;
+  --carbon-text-sub:   #525252;
+  --carbon-text-muted: #6f6f6f;
+  --sidebar-text:      #393939;
 
-  --accent:            #A8701A;
-  --accent-contrast:   #FFFFFF;
-  --accent-soft:       rgba(168, 112, 26, 0.12);
+  /* The dark accent is a yellow, and a yellow on white is unreadable at 11px.
+     Carbon's own answer is to darken the hue rather than pick another one, so
+     the accent stays recognisably the same colour across the two themes. */
+  --accent:            #8E6A00;
+  --accent-contrast:   #ffffff;
+  --accent-soft:       rgba(142, 106, 0, 0.12);
 
-  --status-info-text:    #8A5A0F;
-  --status-info-bg:      rgba(168, 112, 26, 0.12);
-  --status-info-solid:   #B87A16;
+  --status-info-text:    #8E6A00;
+  --status-info-bg:      rgba(142, 106, 0, 0.12);
+  --status-info-solid:   #A87D00;
 
-  --status-ok-text:      #0F7355;
-  --status-ok-bg:        rgba(15, 115, 85, 0.11);
-  --status-ok-solid:     #128663;
+  --status-ok-text:      #0e6027;
+  --status-ok-bg:        rgba(14, 96, 39, 0.11);
+  --status-ok-solid:     #198038;
 
-  --status-fail-text:    #B33A26;
-  --status-fail-bg:      rgba(179, 58, 38, 0.10);
-  --status-fail-solid:   #C0432E;
+  --status-fail-text:    #da1e28;
+  --status-fail-bg:      rgba(218, 30, 40, 0.10);
+  --status-fail-solid:   #da1e28;
 
-  --status-warn-text:    #4C453D;
-  --status-warn-bg:      rgba(0, 0, 0, 0.05);
-  --status-warn-solid:   #7B7264;
+  --status-warn-text:    #8E6A00;
+  --status-warn-bg:      rgba(142, 106, 0, 0.10);
+  --status-warn-solid:   #b28600;
 
-  --status-neutral-text: #6B6255;
+  --status-neutral-text: #6f6f6f;
   --status-neutral-bg:   rgba(0, 0, 0, 0.045);
-  --status-neutral-solid: #8B8274;
+  --status-neutral-solid: #8d8d8d;
 
-  --elevation: 0 1px 2px rgba(60, 45, 25, .06), 0 16px 36px -26px rgba(60, 45, 25, .35);
-  --hairline: inset 0 0 0 1px rgba(60, 45, 25, .05);
-  --focus-ring: rgba(168, 112, 26, .5);
+  --elevation: 0 1px 2px rgba(0, 0, 0, .06), 0 16px 36px -26px rgba(0, 0, 0, .35);
+  --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
+  --focus-ring: rgba(142, 106, 0, .5);
 }
 
 body {

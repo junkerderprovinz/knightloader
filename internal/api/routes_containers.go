@@ -149,7 +149,7 @@ func registerContainers(reg *Registry, a *app.App) {
 			links, err := container.Links(name, data)
 			switch {
 			case err == nil:
-				created := a.AddLinks(links, pkg)
+				created := a.AddLinksFrom(links, pkg, app.OriginContainer)
 				if created == nil {
 					created = []*core.Task{} // an empty result is [] for clients, never null
 				}
