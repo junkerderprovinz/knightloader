@@ -215,9 +215,9 @@ export interface ApiOptions {
   mirrorPolicies: string[];
   collisionPolicies: string[];
   proxyKinds: string[];
-  ruleFields: string[];
-  ruleOps: string[];
-  ruleActions: string[];
+  // No rule vocabulary here. The rule editor builds its form from
+  // GET /api/rules/grammar, which the engine generates, so that an operator this
+  // build refuses can never appear in a dropdown.
   scheduleActions: string[];
   cleanupClasses: CleanupClass[];
 }

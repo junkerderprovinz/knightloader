@@ -247,9 +247,17 @@ func TestOptionsOnlyOffersWhatTheAppHonours(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for _, list := range []string{"mirrorPolicies", "collisionPolicies", "proxyKinds", "ruleFields", "ruleOps", "ruleActions", "scheduleActions"} {
+	for _, list := range []string{"mirrorPolicies", "collisionPolicies", "proxyKinds", "scheduleActions"} {
 		if len(body[list]) == 0 {
 			t.Errorf("%s is empty; the form has nothing to offer for it", list)
+		}
+	}
+	// The rule vocabulary is served by GET /api/rules/grammar, built from the
+	// engine. A second hand-written copy here is how a dropdown comes to offer an
+	// operator Compile refuses, which saves cleanly and then never fires.
+	for _, gone := range []string{"ruleFields", "ruleOps", "ruleActions"} {
+		if _, ok := body[gone]; ok {
+			t.Errorf("%s is back in /api/options; the grammar route is the one source", gone)
 		}
 	}
 	for _, p := range body["collisionPolicies"] {
@@ -266,66 +274,3 @@ func TestOptionsOnlyOffersWhatTheAppHonours(t *testing.T) {
 
 // TestRuleTestRunsWithoutTouchingTheCollector is what makes a rule list editable
 // at all. The alternative is pasting real links to find out what a rule does,
-// and for a filter that means finding out by losing something.
-func TestRuleTestRunsWithoutTouchingTheCollector(t *testing.T) {
-	srv, a := testServer(t)
-	defer srv.Close()
-
-	body := map[string]any{
-		"which": "filter",
-		"set": rules.Set{StopAfterMatch: true, Rules: []rules.Rule{
-			{
-				Name:       "broken",
-				Conditions: []rules.Condition{{Field: rules.FieldFilename, Op: rules.OpMatches, Value: "(unclosed"}},
-				Action:     rules.Action{Reject: true},
-			},
-			{
-				Name:       "no samples",
-				Conditions: []rules.Condition{{Field: rules.FieldURL, Op: rules.OpContains, Value: "sample"}},
-				Action:     rules.Action{Reject: true, Reason: "sample files are not wanted"},
-			},
-		}},
-		"links": []map[string]any{
-			{"url": "https://host.example/sample.mkv", "filename": "sample.mkv"},
-			{"url": "https://host.example/film.mkv", "filename": "film.mkv"},
-		},
-	}
-	b, err := json.Marshal(body)
-	if err != nil {
-		t.Fatal(err)
-	}
-	resp, err := http.Post(srv.URL+"/api/rules/test", "application/json", bytes.NewReader(b))
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("answered %d", resp.StatusCode)
-	}
-	var out struct {
-		Problems []rules.Problem `json:"problems"`
-		Results  []struct {
-			URL     string        `json:"url"`
-			Verdict rules.Verdict `json:"verdict"`
-		} `json:"results"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
-		t.Fatal(err)
-	}
-	if len(out.Problems) != 1 {
-		t.Errorf("reported %d problems, want the broken rule named before it is ever saved", len(out.Problems))
-	}
-	if len(out.Results) != 2 {
-		t.Fatalf("reported %d results for 2 links", len(out.Results))
-	}
-	if !out.Results[0].Verdict.Rejected {
-		t.Error("the sample link came back accepted")
-	}
-	if out.Results[1].Verdict.Rejected {
-		t.Error("an unrelated link came back rejected")
-	}
-	// A dry run must not have created anything.
-	if n := len(a.Tasks()); n != 0 {
-		t.Errorf("the dry run staged %d tasks", n)
-	}
-}

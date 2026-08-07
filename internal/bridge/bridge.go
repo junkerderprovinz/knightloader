@@ -134,11 +134,19 @@ func (b *Bridge) AddLinksCnL(urls []string, pkg string, passwords []string) {
 	// Passwords travel with the links in one request. Sending them separately
 	// meant the endpoint could only take one, and every password past the first
 	// was quietly lost on the way to the remote.
+	// The entrance is named explicitly. These links reached this process through
+	// Click'n'Load and leave it as an ordinary REST call, so the remote has no
+	// way to tell them from a paste — and it would file them as one, which is
+	// wrong for every deployment a bridge exists to serve. An older remote that
+	// does not read the field ignores it and behaves exactly as before, which is
+	// why this is a field and not a route of its own: a bridge that 404s drops
+	// the submission, and the website will not offer those links again.
 	body, err := json.Marshal(struct {
 		Links     string   `json:"links"`
 		Package   string   `json:"package"`
+		Origin    string   `json:"origin"`
 		Passwords []string `json:"passwords,omitempty"`
-	}{Links: strings.Join(urls, "\n"), Package: pkg, Passwords: passwords})
+	}{Links: strings.Join(urls, "\n"), Package: pkg, Origin: "cnl", Passwords: passwords})
 	if err != nil {
 		log.Printf("could not encode %d links for %s: %v", len(urls), b.remote, err)
 		return

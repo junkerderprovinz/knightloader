@@ -22,7 +22,12 @@ type Grammar struct {
 	Operators []OpGrammar     `json:"operators"`
 	Actions   []ActionGrammar `json:"actions"`
 	Variables []Variable      `json:"variables"`
-	Limits    Limits          `json:"limits"`
+	// Categories are the file-type shorthands the editor offers on a filetype
+	// condition. They expand into ordinary conditions and are described here for
+	// the same reason everything else in this file is: the pattern a category
+	// stands for has to be the one the engine will actually run.
+	Categories []Category `json:"categories"`
+	Limits     Limits     `json:"limits"`
 }
 
 // FieldGrammar is one thing a condition can look at, and what it can be asked.
@@ -123,7 +128,8 @@ func Describe() Grammar {
 			{ID: "reject", Kind: "reject", Flavour: "filter"},
 			{ID: "reason", Kind: "template", Flavour: "filter"},
 		},
-		Variables: variables(),
+		Variables:  variables(),
+		Categories: Categories(),
 		Limits: Limits{
 			PriorityMin: PriorityMin,
 			PriorityMax: PriorityMax,

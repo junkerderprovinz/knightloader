@@ -54,8 +54,12 @@ func rejectRule(reason string) rules.Set {
 // TestFilteredLinkIsVisibleWithItsReason is the promise the filter is built on.
 // JDownloader eats filtered links in silence: something is gone, nothing says
 // what or why, and the user reports it as a bug in the paste box. A link this
-// filter turns down has to be in the list, carrying the rule that stopped it and
-// the reason that rule gave.
+// filter turns down has to be somewhere the user can find it, carrying the rule
+// that stopped it and the reason that rule gave.
+//
+// Somewhere, not in the collector. It is held: kept and persisted, but out of the
+// list, out of the queue and out of the counters — because a filter that is
+// working would otherwise fill the collector with the junk it just caught.
 func TestFilteredLinkIsVisibleWithItsReason(t *testing.T) {
 	cases := []struct {
 		name   string
@@ -84,29 +88,37 @@ func TestFilteredLinkIsVisibleWithItsReason(t *testing.T) {
 				t.Fatalf("staged %d tasks; a refused link is recorded, never dropped", len(created))
 			}
 			got := created[0]
-			if got.Online != core.AvailOffline {
-				t.Errorf("availability = %q, want offline so the list shows it will not be taken", got.Online)
+			if !got.Skipped {
+				t.Error("the link is not held; it would sit in the collector among the links that will download")
 			}
 			if got.Status != core.StatusCollected {
-				t.Errorf("status = %q, want it left in the collector", got.Status)
+				t.Errorf("status = %q, want it parked rather than failed", got.Status)
 			}
 			for _, want := range tc.wantIn {
-				if !strings.Contains(got.Error, want) {
-					t.Errorf("the error reads %q, want it to mention %q", got.Error, want)
+				if !strings.Contains(got.SkipReason, want) {
+					t.Errorf("the reason reads %q, want it to mention %q", got.SkipReason, want)
 				}
+			}
+			if len(got.MatchedRules) != 1 || got.MatchedRules[0] != "no samples" {
+				t.Errorf("matched rules = %v, want the one rule that caught it, as data and not only inside the sentence", got.MatchedRules)
 			}
 			if got.Resolver != "" {
 				t.Errorf("resolver = %q; a refused link must not be resolved at all", got.Resolver)
+			}
+			// The holding area is what the interface lists, so it has to be the
+			// same link and not merely a flag somewhere.
+			held := a.FilteredLinks()
+			if len(held) != 1 || held[0].ID != got.ID {
+				t.Errorf("the holding area holds %d links, want the one that was refused", len(held))
 			}
 		})
 	}
 }
 
-// TestFilterIsAskedAgainBeforeAnyBytesMove closes the hole the staging record
-// opens. The refused link is deliberately left sitting in the collector so the
-// user can see it, and "start everything" reaches every collected task — so a
-// filter asked only at paste time is a filter one button undoes.
-func TestFilterIsAskedAgainBeforeAnyBytesMove(t *testing.T) {
+// TestAHeldLinkCannotBeStarted is the other half of holding it. "Start
+// everything" reaches every collected task, so a link parked with a reason and
+// nothing else stopping it is a filter one button undoes.
+func TestAHeldLinkCannotBeStarted(t *testing.T) {
 	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) {
 		s.LinkFilter = rejectRule("sample files are not wanted here")
 	})
@@ -118,19 +130,90 @@ func TestFilterIsAskedAgainBeforeAnyBytesMove(t *testing.T) {
 	a.StartTasks(nil) // the "start everything" button
 
 	a.mu.Lock()
-	live := a.tasks[created[0].ID]
-	status, msg := live.Status, live.Error
+	live := *a.tasks[created[0].ID]
 	active := len(a.active)
+	queued := len(a.queue)
 	a.mu.Unlock()
 
-	if active != 0 {
-		t.Errorf("%d tasks were dispatched; the filter must hold at the queue as well", active)
+	if active != 0 || queued != 0 {
+		t.Errorf("%d dispatched and %d queued; a held link must not be reachable from start", active, queued)
 	}
-	if status != core.StatusError {
-		t.Errorf("status after start = %q, want it settled rather than queued", status)
+	if live.Status != core.StatusCollected || !live.Skipped {
+		t.Errorf("status = %q, held = %v; want it still parked and still explained", live.Status, live.Skipped)
 	}
-	if !strings.Contains(msg, "sample files are not wanted here") {
-		t.Errorf("the settled task reads %q, want the filter's reason", msg)
+	if !strings.Contains(live.SkipReason, "sample files are not wanted here") {
+		t.Errorf("the reason reads %q, want the filter's own words to survive the start", live.SkipReason)
+	}
+}
+
+// TestRestoreLetsALinkPastTheRuleThatCaughtIt is the point of the holding area.
+// The commonest reason to open it is that the rule turned out to be too broad,
+// and the queue asks the filter one final time before any bytes move — so a
+// Restore that only un-parked the link would hand it straight back to the rule
+// that caught it, with the same sentence, and read as a button that does nothing.
+func TestRestoreLetsALinkPastTheRuleThatCaughtIt(t *testing.T) {
+	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) {
+		s.LinkFilter = rejectRule("sample files are not wanted here")
+	})
+	created := a.AddLinks([]string{"https://host.example/sample.mkv"}, "")
+	if len(created) != 1 {
+		t.Fatalf("staged %d tasks", len(created))
+	}
+	id := created[0].ID
+
+	restored := a.RestoreFiltered(nil) // the "restore everything" button
+	if len(restored) != 1 || restored[0].ID != id {
+		t.Fatalf("restored %d links, want the one that was held", len(restored))
+	}
+	if restored[0].Skipped {
+		t.Error("the restored link is still held")
+	}
+	if restored[0].SkipReason == "" {
+		t.Error("the reason was dropped; it is the record that the user overruled the filter, and the queue reads it")
+	}
+	if len(a.FilteredLinks()) != 0 {
+		t.Error("the link is still in the holding area after being restored")
+	}
+
+	// dispatchLocked settles what it refuses inside StartTasks, so if the rule
+	// were still in the way the refusal would already be on the task here. No
+	// waiting, and therefore nothing for a slow host to make flaky.
+	a.StartTasks([]string{id})
+	a.mu.Lock()
+	live := *a.tasks[id]
+	a.mu.Unlock()
+	if live.Status == core.StatusError && strings.Contains(live.Error, "sample files are not wanted here") {
+		t.Fatal("the queue refused the restored link with the very reason the user had already overruled")
+	}
+}
+
+// TestClearFilteredEmptiesOnlyTheHoldingArea guards the button next to Restore.
+// Clear is offered on a list of links somebody has decided they do not want, and
+// a Clear that reached past that list into the collector would delete work the
+// user is in the middle of.
+func TestClearFilteredEmptiesOnlyTheHoldingArea(t *testing.T) {
+	a, _ := newRuleApp(t, func(s *settings.Settings, _ string) {
+		s.LinkFilter = rejectRule("sample files are not wanted here")
+	})
+	created := a.AddLinks([]string{
+		"https://host.example/sample.mkv",
+		"https://host.example/keep.bin",
+	}, "")
+	if len(created) != 2 {
+		t.Fatalf("staged %d tasks, want the refused one and the kept one", len(created))
+	}
+
+	if removed := a.ClearFiltered(nil); len(removed) != 1 {
+		t.Fatalf("cleared %d links, want only the one being held", len(removed))
+	}
+	if n := len(a.FilteredLinks()); n != 0 {
+		t.Errorf("%d links still held after clearing", n)
+	}
+	a.mu.Lock()
+	left := len(a.tasks)
+	a.mu.Unlock()
+	if left != 1 {
+		t.Errorf("%d tasks left, want the one link the filter never touched", left)
 	}
 }
 
@@ -155,8 +238,11 @@ func TestARefusedPageIsNeverFetched(t *testing.T) {
 	if len(created) != 1 {
 		t.Fatalf("staged %d tasks; the refusal is recorded, never dropped", len(created))
 	}
-	if !strings.Contains(created[0].Error, "nothing from there") {
-		t.Errorf("the refused page reads %q, want the rule's reason", created[0].Error)
+	if !created[0].Skipped {
+		t.Error("the refused page was staged rather than held")
+	}
+	if !strings.Contains(created[0].SkipReason, "nothing from there") {
+		t.Errorf("the refused page reads %q, want the rule's reason", created[0].SkipReason)
 	}
 }
 
@@ -173,12 +259,27 @@ func TestWhatTheQueueRefusesReachesTheUser(t *testing.T) {
 		name    string
 		mutate  func(s *settings.Settings, base string)
 		prepare func(t *testing.T, base string)
-		link    string
-		wantIn  string
+		// arm runs after the link is staged and before it is started. It is how
+		// the filter case reaches the queue at all: a rule that already existed
+		// would have held the link at the paste box, so the only way a filtered
+		// link is ever in the collector is that the rule was written after it.
+		arm    func(t *testing.T, a *App, base string)
+		link   string
+		wantIn string
 	}{
 		{
-			name:   "the link filter, asked again at the queue",
-			mutate: func(s *settings.Settings, _ string) { s.LinkFilter = rejectRule("sample files are not wanted here") },
+			name:   "a link filter rule written after the link was staged",
+			mutate: func(*settings.Settings, string) {},
+			arm: func(t *testing.T, a *App, base string) {
+				s := settings.Defaults()
+				s.MaxConcurrent, s.MaxPerHost = 2, 1
+				s.DownloadDir = base
+				s.Crawl = false
+				s.LinkFilter = rejectRule("sample files are not wanted here")
+				if _, err := a.ApplySettings(s); err != nil {
+					t.Fatal(err)
+				}
+			},
 			link:   "https://host.example/sample.mkv",
 			wantIn: "sample files are not wanted here",
 		},
@@ -205,6 +306,9 @@ func TestWhatTheQueueRefusesReachesTheUser(t *testing.T) {
 				t.Fatalf("staged %d tasks", len(created))
 			}
 			id := created[0].ID
+			if tc.arm != nil {
+				tc.arm(t, a, base)
+			}
 
 			a.StartTasks(nil) // the "start everything" button
 

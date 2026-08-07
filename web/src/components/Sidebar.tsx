@@ -93,7 +93,12 @@ export function Sidebar() {
     let collected = 0,
       active = 0;
     for (const t of Object.values(tasks)) {
-      if (t.status === 'collected') collected++;
+      // Held links are not in the collector's list, so they must not be in its
+      // badge either: a filter that is working would otherwise put a permanent
+      // number in the sidebar pointing at links that are not there.
+      if (t.status === 'collected') {
+        if (!t.skipped) collected++;
+      }
       else if (t.status === 'running' || t.status === 'queued' || t.status === 'extracting') active++;
     }
     return { collected, active };

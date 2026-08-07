@@ -108,10 +108,15 @@ func (a *App) dispatchLocked() {
 			continue
 		}
 		// The filter is asked again here because this is the last moment before
-		// bytes move, and a link it refused at staging time is still sitting in
-		// the collector where "start everything" can reach it. Asking once, at
+		// bytes move: a rule written after a link was staged has never seen it,
+		// and "start everything" reaches every collected task. Asking once, at
 		// paste time, would make the filter something a single button undoes.
-		if v := a.filter(candidateOf(t)); v.Rejected {
+		//
+		// Except for a link the user has already restored out of the holding
+		// area. They read this exact refusal and overruled it, and putting the
+		// same rule back in its way would make Restore a button that undoes
+		// itself.
+		if v := a.filter(candidateOf(t)); v.Rejected && !filterWaived(t) {
 			t.Status = core.StatusError
 			t.Online = core.AvailOffline
 			t.Error = rejection(v)

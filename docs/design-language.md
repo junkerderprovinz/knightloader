@@ -1,6 +1,14 @@
 # GlimStone — the shared design language
 
-A warm, layered, low-noise interface system: a small light in dark masonry.
+A layered, low-noise interface system: a small light in dark masonry.
+
+**The palette is not ours to invent.** The ground, the surfaces, the text ramp
+and the state hues are IBM Carbon's neutral greys and support tones — the same
+values BombVault, Krusader and the JDownloader themes already use. GlimStone
+briefly had a warm near-black of its own and it read as brown beside any
+sibling; a design language shared across apps has to share its ground first.
+What GlimStone contributes is the *system* — the rules below, the shape engine,
+the rainbow, the info bubble — not a second set of greys.
 
 **The name.** Middle English *glimme*, "shining brightness; radiance", attested
 around 1400 in *Pearl* — MS Cotton Nero A.x, the same manuscript that carries
@@ -23,10 +31,10 @@ look. BombVault already reads the same `--carbon-*` names through its own
    inside a card — group content with spacing and a section title instead.
 2. **One hero per page.** Exactly one element carries weight (the speed figure
    and its curve). Everything else is supporting detail at small type.
-3. **Gold marks activity, nothing else.** The accent is reserved for the active
+3. **The accent marks activity, nothing else.** It is reserved for the active
    nav item, the single primary action, progress fills, and the brand mark.
    A page has at most one solid accent button.
-4. **Four state hues.** gold = running · green = settled · red = fault ·
+4. **Four state hues.** accent = running · green = settled · red = fault ·
    neutral = waiting. Paused shares the neutral tone; its label and its resume
    control carry the difference. Never introduce a fifth hue.
 5. **Hierarchy from type and colour step, not from borders.** Separators are
