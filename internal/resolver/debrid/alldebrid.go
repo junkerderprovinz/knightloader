@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
 // AllDebrid speaks the AllDebrid v4 API. https://docs.alldebrid.com
@@ -18,7 +20,7 @@ type AllDebrid struct {
 }
 
 func NewAllDebrid(key string) *AllDebrid {
-	return &AllDebrid{key: key, base: "https://api.alldebrid.com/v4", hc: &http.Client{Timeout: 30 * time.Second}}
+	return &AllDebrid{key: key, base: "https://api.alldebrid.com/v4", hc: httpx.New(httpx.Options{Timeout: 30 * time.Second})}
 }
 
 func (*AllDebrid) ID() string    { return "alldebrid" }

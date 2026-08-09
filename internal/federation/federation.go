@@ -19,6 +19,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
 // Instance is a peer KnightLoader reachable over HTTP.
@@ -28,6 +30,12 @@ type Instance struct {
 }
 
 var nameRe = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9 _.-]{0,31}$`)
+
+// peerTimeout bounds one call to another instance. A peer that is switched off
+// answers instantly; one that is reachable but wedged is the case this exists
+// for, and the dashboard polls every peer, so a generous ceiling here is paid
+// once per peer per tick.
+const peerTimeout = 15 * time.Second
 
 // Manager persists the peer list and talks to peers.
 type Manager struct {
@@ -42,7 +50,7 @@ type Manager struct {
 func Load(dir string) (*Manager, error) {
 	m := &Manager{
 		path: filepath.Join(dir, "instances.json"),
-		hc:   &http.Client{Timeout: 15 * time.Second},
+		hc:   httpx.New(httpx.Options{Timeout: peerTimeout}),
 		list: map[string]Instance{},
 	}
 	if b, err := os.ReadFile(m.path); err == nil {

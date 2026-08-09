@@ -461,6 +461,7 @@ func (a *App) stage(u, name string, in intake) *core.Task {
 		// resolving fails, it is still staged — with the reason on it — so the
 		// user can see what happened instead of watching links vanish.
 		t.Error = "no backend handles this link"
+		t.Reason = core.ReasonUnsupported
 		t.Online = core.AvailOffline
 		return a.finishStaging(t, cand)
 	}
@@ -468,6 +469,7 @@ func (a *App) stage(u, name string, in intake) *core.Task {
 	result, err := res.Resolve(context.Background(), resolver.Request{URL: u})
 	if err != nil {
 		t.Error = err.Error()
+		t.Reason = classify(failure{err: err})
 		return a.finishStaging(t, cand)
 	}
 	if result.Name != "" {

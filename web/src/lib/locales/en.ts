@@ -32,6 +32,18 @@ export const en = {
   'task.files': 'files',
   'task.ungrouped': 'Ungrouped',
 
+  // Badge-sized names for a typed failure. They sit next to a task's own error
+  // text, so each one is the category and not the sentence.
+  'task.reason.gone': 'Gone',
+  'task.reason.auth': 'Sign-in required',
+  'task.reason.limit': 'Hoster limit',
+  'task.reason.unavailable': 'Host unavailable',
+  'task.reason.network': 'Network',
+  'task.reason.diskFull': 'Disk full',
+  'task.reason.unsupported': 'No backend',
+  'task.reason.captcha': 'Captcha',
+  'task.reason.cancelled': 'Cancelled',
+
   'overview.title': 'Overview',
   'overview.subtitle': 'Everything at a glance.',
   'overview.totalSpeed': 'Total download speed',
@@ -646,6 +658,124 @@ export const en = {
   'settings.rules.folderFromSettings': 'from the download settings',
   'settings.rules.folderFromSettingsHint': 'No rule named a folder, so the link lands in the configured download folder — possibly inside a per-package subfolder, if that setting is on. This page will not guess the full path at you: what it can say for certain is that no rule changed it.',
   'settings.rules.alsoSets': 'Also sets',
+
+  'settings.reconnect.method': 'Method',
+  'settings.reconnect.methodHint':
+    'How the router is told to drop the line and come back with a new address. Command runs a program, Requests replays a recorded HTTP conversation, UPnP asks the gateway over the network without any login at all, and Script hands a file to an interpreter. Only the fields the chosen method needs are shown; the others keep what you typed and come back when you switch to them.',
+  'settings.reconnect.method.none': 'Off',
+  'settings.reconnect.method.command': 'Command',
+  'settings.reconnect.method.http': 'Requests',
+  'settings.reconnect.method.upnp': 'UPnP',
+  'settings.reconnect.method.script': 'Script',
+  'settings.reconnect.offState':
+    'Reconnect is off. Nothing asks the router for a new address, and a hoster limit is left to the ordinary retry backoff.',
+
+  'settings.reconnect.command': 'Program',
+  'settings.reconnect.commandHint':
+    'The full path of the program to run. It is started directly rather than through a shell, so a pipe, a redirect or two commands in a row belong in the Script method instead. %%router%%, %%username%%, %%password%% and %%ip%% are filled in before it starts.',
+  'settings.reconnect.args': 'Arguments',
+  'settings.reconnect.argsHint':
+    'One per line, so an argument containing a space stays one argument. The same four variables are filled in here.',
+
+  'settings.reconnect.upnpState':
+    'Nothing else is needed. The gateway is found by asking the network, which is what makes this the method that works without knowing anything about the router.',
+  'settings.reconnect.upnpLocation': 'Gateway description URL',
+  'settings.reconnect.upnpLocationHint':
+    'Optional, and normally empty. Fill it in only where the multicast search is filtered but the gateway itself is perfectly reachable, which discovery on its own can never fix.',
+
+  'settings.reconnect.interpreter': 'Interpreter',
+  'settings.reconnect.interpreterHint':
+    'The program the script is handed to, with its full path: /bin/sh, /bin/bash, /usr/bin/python3.',
+  'settings.reconnect.interpreterArgs': 'Interpreter arguments',
+  'settings.reconnect.interpreterArgsHint': 'One per line, placed before the script file. Usually empty.',
+  'settings.reconnect.script': 'Script',
+  'settings.reconnect.scriptHint':
+    'Written to a private temporary file, and the interpreter is handed its path, so nothing here is ever quoted into a command line. The variables are filled in before the file is written, which means a password typed into this box reaches that file: %%password%% keeps it in the password field instead.',
+
+  'settings.reconnect.router': 'Router address',
+  'settings.reconnect.routerHint':
+    'The router on your own network, without a scheme: 192.168.1.1, not http://192.168.1.1/. It is what %%router%% expands to. It is not the public address, and the two must never be swapped: a login request pointed at the public one sends your router password out to the internet.',
+  'settings.reconnect.routerFind': 'Find my router',
+  'settings.reconnect.routerFinding': 'Looking…',
+  'settings.reconnect.routerFound': 'Found {address}.',
+  'settings.reconnect.routerFoundVia':
+    'Found {address} via {iface}. Worth a look: in a container this is often the bridge rather than the router.',
+  'settings.reconnect.routerFailed': 'No router address could be read here: {reason}',
+  'settings.reconnect.username': 'Router user name',
+  'settings.reconnect.usernameHint':
+    'The router login, not a hoster account. It is what %%username%% expands to.',
+  'settings.reconnect.password': 'Router password',
+  'settings.reconnect.passwordStored': 'stored, and never sent back here',
+  'settings.reconnect.passwordHint':
+    'A stored password is never sent back to this page, which is why the box is empty: leave it empty and the saved one is kept. Type a new one to replace it. To remove it altogether, type something and then clear the box again.',
+
+  'settings.reconnect.requests': 'Requests',
+  'settings.reconnect.requestsHint':
+    'Replayed in order, and the run stops at the first one the router does not answer. This is JDownloader’s LiveHeader method: usually a login, then the reboot or the disconnect. Every field takes the variables.',
+  'settings.reconnect.requestsEmpty': 'No requests yet. Add one, or paste a recorded script.',
+  'settings.reconnect.requestAdd': 'Add a request',
+  'settings.reconnect.requestStep': 'Step {n}',
+  'settings.reconnect.requestUp': 'Move this request up',
+  'settings.reconnect.requestDown': 'Move this request down',
+  'settings.reconnect.requestRemove': 'Remove this request',
+  'settings.reconnect.requestMethod': 'Method',
+  'settings.reconnect.requestUrl': 'URL',
+  'settings.reconnect.requestUrlHint':
+    'The whole URL, scheme included. http://%%router%%/login.cgi is the usual shape.',
+  'settings.reconnect.requestHeaders': 'Headers',
+  'settings.reconnect.requestHeadersHint':
+    'One per line, as Name: value. A Host header is honoured and reaches the wire, which is what router firmware that virtual-hosts its admin page needs.',
+  'settings.reconnect.requestBody': 'Body',
+  'settings.reconnect.requestBodyHint':
+    'Sent as it stands. A body with no content type of its own is sent as a form post, which is what a recorded router login is.',
+
+  'settings.reconnect.import': 'Import a script',
+  'settings.reconnect.importLabel': 'LiveHeader or curl script',
+  'settings.reconnect.importHint':
+    'Paste a JDownloader reconnect script, markers and all. Its variables are translated on the way in, and %%%routerip%%% becomes the router address rather than the public one, because here those are two different things.',
+  'settings.reconnect.importRead': 'Read script',
+  'settings.reconnect.importReading': 'Reading…',
+  'settings.reconnect.importClose': 'Close',
+  'settings.reconnect.importMapped': '{n} mapped',
+  'settings.reconnect.importRefusedCount': '{n} refused',
+  'settings.reconnect.importUse': 'Replace the list with {n}',
+  'settings.reconnect.importLine': 'Line {n}',
+  'settings.reconnect.importBlocked':
+    'Nothing is taken from a script with a refused line in it. Half a router script is a login with no reboot, and that shows up days later as an address that never changes.',
+  'settings.reconnect.importFailed': 'The script could not be read: {reason}',
+
+  'settings.reconnect.checkTitle': 'Checking the address',
+  'settings.reconnect.checkUrl': 'IP check URL',
+  'settings.reconnect.checkUrlHint':
+    'Fetched before the method runs and again afterwards; the run counts as done once the address it prints has changed. There is no default, deliberately: a self-hosted download manager should not start reporting your address to a service you never chose. What it prints has to be the address the internet sees, because a page echoing the address on your own network cannot tell a reconnect from a no-op.',
+  'settings.reconnect.checkPresets': 'Well-known services',
+  'settings.reconnect.checkPresetsHint':
+    'A shortcut for anyone with no preference, not a default: none of these is chosen for you, and any page that prints your public address does the job just as well.',
+  'settings.reconnect.interval': 'Seconds between checks (1 to 60)',
+  'settings.reconnect.intervalHint':
+    'How long to wait between two looks at the check URL once the method has run. There is a floor because a loop without one turns the check service into a target.',
+  'settings.reconnect.timeout': 'Seconds to keep checking (5 to 900)',
+  'settings.reconnect.timeoutHint':
+    'How long to keep looking before the run is called a failure. A reconnect still waiting a quarter of an hour later has failed whatever this says. A timeout below the interval is raised to it, or the run would be over before a single check happened.',
+  'settings.reconnect.clamped': 'Saved as {n}.',
+
+  'settings.reconnect.runTitle': 'Running one now',
+  'settings.reconnect.run': 'Run it now',
+  'settings.reconnect.running': 'Running…',
+  'settings.reconnect.runMoved': 'The address moved from {from} to {to}.',
+  'settings.reconnect.runDetail': '{n} checks, {secs} s',
+  'settings.reconnect.runBusy':
+    'A reconnect is already running, so this one was not started. The result belongs to whoever asked for the first one.',
+  'settings.reconnect.runFailed': 'The reconnect did not finish: {reason}',
+  'settings.reconnect.stateConfigured': 'Configured',
+  'settings.reconnect.stateNotConfigured': 'Not configured',
+  'settings.reconnect.stateIdle': 'Idle',
+  'settings.reconnect.stateBusy': 'Running now',
+  'settings.reconnect.stateUnreadable': 'The reconnect state could not be read. Is the server reachable?',
+  'settings.reconnect.notReady': 'Not ready: {reason}',
+  'settings.reconnect.policy': 'When this happens on its own',
+  'settings.reconnect.policyHint':
+    'Automatic reconnects are fired in one place, and this page is not it. One is started when a download backend itself asks for another attempt after a delay, which is how a hoster says the limit is tied to this address. It never runs while the queue is halted, because rebooting the router drops the downloads that are still going. It never runs while the reconnect is not fully configured. Only one runs at a time: a second request waits for the first one’s verdict instead of fighting it over the router. And if the address does not move, nothing is brought forward and the ordinary retry backoff is left to run.',
 } as const;
 
 export type TranslationKey = keyof typeof en;

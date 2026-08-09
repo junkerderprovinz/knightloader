@@ -212,7 +212,9 @@ body {
   border-radius: var(--radius-control);
 }
 
-/* Eyebrow label: small, uppercase, quiet — used above hero figures. */
+/* Eyebrow label: small, uppercase, quiet — above hero figures, and as the tag
+   that names a category beside something louder (the typed reason on a failed
+   row). It stays muted wherever it goes: it labels, it never announces. */
 .glim-eyebrow {
   font-size: 10px;
   letter-spacing: 0.14em;

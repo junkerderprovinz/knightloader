@@ -23,6 +23,7 @@ import { EmptyPage } from './Empty';
 import { General } from './General';
 import { Look } from './Look';
 import { Modules } from './Modules';
+import { Reconnect } from './Reconnect';
 import { Rules } from './Rules';
 
 /**
@@ -49,9 +50,10 @@ const PAGES: Record<string, () => ReactNode> = {
   // address the modules list was already pointing people at. That is exactly
   // the failure this map is one line long to prevent.
   connections: () => <Connections />,
-  // reconnect, accounts, captcha and schedule are deliberately absent: they are
-  // registered on the server, they have working addresses, and until their wave
-  // lands they render the registry's own reason.
+  reconnect: () => <Reconnect />,
+  // accounts, captcha and schedule are deliberately absent: they are registered
+  // on the server, they have working addresses, and until their wave lands they
+  // render the registry's own reason.
 };
 
 /**

@@ -34,6 +34,10 @@ func (a *App) StartTasks(ids []string) {
 	for _, t := range toStart {
 		t.Status = core.StatusQueued
 		t.Error = ""
+		// The typed reason goes with the sentence, everywhere and always. Left
+		// standing it outlives what produced it, and the interface would advise
+		// about a dead link while the task is running again.
+		t.Reason = core.ReasonUnknown
 		t.Speed = 0
 		a.queue = append(a.queue, t.ID)
 	}
@@ -75,6 +79,7 @@ func (a *App) RestartTasks(ids []string) {
 			targets = append(targets, reset{id, a.backendFor(t.Resolver)})
 			t.Status = core.StatusQueued
 			t.Error = ""
+			t.Reason = core.ReasonUnknown
 			t.Loaded = 0
 			t.Speed = 0
 			delete(a.active, id)

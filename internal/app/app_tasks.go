@@ -16,7 +16,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/checksum"
 	"github.com/junkerderprovinz/knightloader/internal/core"
@@ -61,7 +60,12 @@ func (a *App) SetPackage(ids []string, pkg string) {
 // setAvailability records what a check learned about a link. It is separate
 // from Update because availability is a property of the link, not of a download
 // attempt: a staged link can be known-dead before anything is started.
-func (a *App) setAvailability(id string, avail core.Availability, msg string) {
+//
+// The caller passes the typed reason rather than leaving it to be read back out
+// of msg. Every caller here already knows the answer as a value — a status code,
+// an error, or nothing at all — and re-deriving it from a sentence this code
+// formatted itself is the round trip the typed reason exists to remove.
+func (a *App) setAvailability(id string, avail core.Availability, msg string, reason core.Reason) {
 	a.mu.Lock()
 	t := a.tasks[id]
 	if t == nil {
@@ -77,6 +81,7 @@ func (a *App) setAvailability(id string, avail core.Availability, msg string) {
 	// or, on a link that turned out to be fine, with nothing at all.
 	if t.Status != core.StatusError {
 		t.Error = msg
+		t.Reason = reason
 	}
 	c := *t
 	a.mu.Unlock()
@@ -111,12 +116,12 @@ func (a *App) RecheckTasks(ids []string) {
 		t := targets[i]
 		res := a.Registry.For(t.URL)
 		if res == nil {
-			a.setAvailability(t.ID, core.AvailOffline, "no backend handles this link")
+			a.setAvailability(t.ID, core.AvailOffline, "no backend handles this link", core.ReasonUnsupported)
 			continue
 		}
 		result, err := res.Resolve(context.Background(), resolver.Request{URL: t.URL})
 		if err != nil {
-			a.setAvailability(t.ID, core.AvailOffline, err.Error())
+			a.setAvailability(t.ID, core.AvailOffline, err.Error(), classify(failure{err: err}))
 			continue
 		}
 		a.mu.Lock()
@@ -132,7 +137,7 @@ func (a *App) RecheckTasks(ids []string) {
 		} else {
 			// Other backends cannot probe without starting; clear a stale error
 			// and let the attempt decide.
-			a.setAvailability(t.ID, core.AvailUnknown, "")
+			a.setAvailability(t.ID, core.AvailUnknown, "", core.ReasonUnknown)
 		}
 	}
 }
@@ -144,18 +149,28 @@ func (a *App) analyze(id, rawurl string) {
 	if err != nil {
 		return
 	}
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
+	// a.Probe rather than a client built here: this is the one outbound call
+	// that fires on a link the user has only just pasted, so it wants the shared
+	// policy (proxy, user agent, and the redirect rule that stops a credential
+	// following a hop off the host it was meant for) and it wants to be
+	// replaceable, because every test that stages a link would otherwise be
+	// racing a real DNS lookup.
+	resp, err := a.Probe.Do(req)
 	if err != nil {
-		a.setAvailability(id, core.AvailOffline, "offline: "+err.Error())
+		a.setAvailability(id, core.AvailOffline, "offline: "+err.Error(), classify(failure{err: err}))
 		return
 	}
 	resp.Body.Close()
 	if resp.StatusCode >= 400 {
-		a.setAvailability(id, core.AvailOffline, "offline (HTTP "+strconv.Itoa(resp.StatusCode)+")")
+		// The status goes to the classifier as the number it is. This is the one
+		// probe that holds a real response, and handing over the sentence instead
+		// would mean parsing back out of "offline (HTTP 404)" what is sitting right
+		// here in a field.
+		a.setAvailability(id, core.AvailOffline,
+			"offline (HTTP "+strconv.Itoa(resp.StatusCode)+")", classify(failure{status: resp.StatusCode}))
 		return
 	}
-	a.setAvailability(id, core.AvailOnline, "")
+	a.setAvailability(id, core.AvailOnline, "", core.ReasonUnknown)
 	if resp.ContentLength > 0 {
 		a.onUpdate(id, core.Update{Size: resp.ContentLength})
 	}

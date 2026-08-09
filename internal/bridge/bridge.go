@@ -26,6 +26,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
 // DefaultTimeout bounds everything one Click'n'Load submission triggers. It is
@@ -86,7 +88,11 @@ func New(o Options) (*Bridge, error) {
 		remote:   remote,
 		password: o.Password,
 		timeout:  timeout,
-		hc:       &http.Client{Jar: jar, Timeout: timeout},
+		// The shared policy, not a bare client. The jar is the reason it matters
+		// here more than anywhere else: this client carries a session cookie for
+		// the remote instance, and httpx is what stops that cookie following a
+		// redirect onto a host it was never issued for.
+		hc: httpx.New(httpx.Options{Jar: jar, Timeout: timeout}),
 	}, nil
 }
 

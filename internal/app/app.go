@@ -17,10 +17,12 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"log"
+	"net/http"
 	"net/url"
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
@@ -29,6 +31,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/engine"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/hub"
 	"github.com/junkerderprovinz/knightloader/internal/netproxy"
 	"github.com/junkerderprovinz/knightloader/internal/pathvars"
@@ -51,6 +54,19 @@ type backend interface {
 	Remove(taskID string, deleteFiles bool)
 }
 
+// probeTimeout bounds one collector HEAD. It is short on purpose: the user is
+// waiting at the paste box, and a host that accepts the connection and then
+// stops talking must not decide how long staging takes.
+const probeTimeout = 10 * time.Second
+
+// doer is the part of an HTTP client this package's probe uses. It is declared
+// here rather than in internal/httpx because the consumer owns the interface:
+// httpx hands out a *http.Client, and a test hands out whatever answers without
+// leaving the machine.
+type doer interface {
+	Do(*http.Request) (*http.Response, error)
+}
+
 type App struct {
 	Store      *store.Store
 	Engine     *engine.Engine
@@ -68,6 +84,17 @@ type App struct {
 	// Reconnector asks the router for a new public address, which is the only
 	// thing that lifts a hoster limit keyed to the one this box has.
 	Reconnector *reconnect.Reconnector
+
+	// Probe is the client the collector's HEAD requests go out on, to learn a
+	// staged link's size and whether it is still there.
+	//
+	// It is a field rather than a client built inside analyze because a probe
+	// that nothing can replace is a probe no test can control: the collector
+	// fires it from AddLinks, so any test that stages a link races a real DNS
+	// lookup, and the test that proved a late answer cannot erase a refusal was
+	// failing on CI for exactly that reason - not on what it was testing, but on
+	// which of the two writers happened to finish first.
+	Probe doer
 
 	// ctx is cancelled by Close. It bounds work that outlives the call that
 	// started it: a reconnect can hold the line for the whole configured timeout,
@@ -155,12 +182,21 @@ func New(dataDir string) (*App, error) {
 		Federation: fed,
 		dlDir:      filepath.Join(dataDir, "downloads"),
 		Throttle:   throttle.New(),
-		Crawler:    crawler.HTML{},
 		tasks:      map[string]*core.Task{},
 		active:     map[string]bool{},
 		started:    map[string]bool{},
 		debrid:     map[string]backend{},
 	}
+	// Every outbound client is built from internal/httpx, so the proxy, the user
+	// agent, the redirect rule and the connection pool are one policy instead of
+	// one http.Client literal per subsystem. Each subsystem still gets its own
+	// client: a router that holds its connections open must not be able to
+	// occupy the pool a crawl needs.
+	a.Crawler = crawler.HTML{Client: httpx.New(httpx.Options{})}
+	// The collector's probe gets its own client and a short ceiling: it is a
+	// HEAD against a link somebody just pasted, so a host that accepts the
+	// connection and then says nothing must not hold a staging pass open.
+	a.Probe = httpx.New(httpx.Options{Timeout: probeTimeout})
 	a.ctx, a.cancel = context.WithCancel(context.Background())
 	a.Registry.Register(resolver.Direct{})
 	a.Registry.Register(resolver.HTTPFallback{})
@@ -185,6 +221,11 @@ func New(dataDir string) (*App, error) {
 	// they just saved and not the one this process booted with.
 	rc, err := reconnect.New(reconnect.Options{
 		Config: func() reconnect.Config { return a.Settings.Get().Reconnect },
+		// Injected rather than left to the package's own fallback client, so
+		// router traffic gets the shared policy too. The redirect rule is what
+		// earns it: a LiveHeader script whose last step redirects off the router
+		// must not carry the router password to wherever it points.
+		HTTP: httpx.New(httpx.Options{}),
 	})
 	if err != nil {
 		st.Close()

@@ -13,6 +13,8 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
+
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
 // Client is a minimal JD Deprecated-API client.
@@ -42,7 +44,7 @@ func (c *Client) SetSpeedLimit(bytesPerSec int64) error {
 }
 
 func NewClient(base string) *Client {
-	return &Client{base: strings.TrimRight(base, "/"), hc: &http.Client{Timeout: 15 * time.Second}}
+	return &Client{base: strings.TrimRight(base, "/"), hc: httpx.New(httpx.Options{Timeout: 15 * time.Second})}
 }
 
 // call invokes a method: GET /namespace/method?<enc(param0)>&<enc(param1)>...
