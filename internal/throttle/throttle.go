@@ -84,6 +84,20 @@ func (l *Limiter) Limit() int64 {
 
 // SetPaused holds every transfer still, or lets them run again. It is
 // idempotent, because the caller is a switch and a switch gets clicked twice.
+//
+// NOTHING CALLS THIS YET, and that is on purpose rather than an oversight - it
+// was checked. The app has two neighbouring controls and this is neither: the
+// queue halt deliberately leaves running downloads running (it is a queue
+// switch, see App.SetHalted), and the hard stop deliberately tears them down.
+// What this implements is the third one, JDownloader's pause mode: bytes stop,
+// connections stay, so the line is free without losing the transfers. That is a
+// feature with a button and a label, and it is still on the census as one.
+//
+// Left here because the hard part is done and correct - the paused reader
+// unblocks on a channel rather than by polling, and the tokens that accrued
+// during the pause are spent so resume cannot pay out an hour as one burst. If
+// you are reading this while wiring that button up, the caller you need is a
+// single SetPaused(true/false) beside whatever writes the mode.
 func (l *Limiter) SetPaused(paused bool) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
