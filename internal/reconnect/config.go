@@ -10,12 +10,14 @@ import (
 	"time"
 )
 
-// The three methods a reconnect can use. Anything else is normalised to
-// MethodNone by Sanitize.
+// The methods a reconnect can use. Anything else is normalised to MethodNone by
+// Sanitize.
 const (
 	MethodNone    = "none"    // explicitly switched off
 	MethodCommand = "command" // run an external program
 	MethodHTTP    = "http"    // replay a list of HTTP requests (JD calls this LiveHeader/Curl)
+	MethodUPnP    = "upnp"    // ask the gateway itself, over SSDP and SOAP
+	MethodScript  = "script"  // hand a user-written script to an interpreter
 )
 
 // The variables every string in a Config may contain. They are written the way
@@ -25,6 +27,13 @@ const (
 	VarIP       = "ip"
 	VarUsername = "username"
 	VarPassword = "password"
+
+	// VarRouter is the router's own address on the LAN, which is a different
+	// thing from VarIP and the two must never be conflated: VarIP is the public
+	// address the box had before the run, and pointing a login request at that
+	// instead of at the gateway sends the router password out to the internet.
+	// JDownloader spells this one %%%routerip%%%.
+	VarRouter = "router"
 )
 
 // RedactedPassword is what Redacted puts in place of the router password, and
@@ -64,12 +73,33 @@ type Config struct {
 	Username string `json:"username,omitempty"`
 	Password string `json:"password,omitempty"`
 
+	// Router is the router's address on the LAN, substituted wherever the
+	// %%router%% variable appears. It is stored without a scheme so a template
+	// can put it anywhere in a URL; Sanitize strips one if the user pasted the
+	// address straight out of the browser's address bar.
+	Router string `json:"router,omitempty"`
+
 	// Command and Args are the external program for MethodCommand.
 	Command string   `json:"command,omitempty"`
 	Args    []string `json:"args,omitempty"`
 
 	// Requests are replayed in order for MethodHTTP.
 	Requests []Request `json:"requests,omitempty"`
+
+	// Interpreter, InterpreterArgs and Script are MethodScript. The script is
+	// written to a private temporary file and the interpreter is handed its
+	// path, which is why there is no field here for a shell command line: a
+	// reconnect that builds one would have to quote the router password into it.
+	Interpreter     string   `json:"interpreter,omitempty"`
+	InterpreterArgs []string `json:"interpreterArgs,omitempty"`
+	Script          string   `json:"script,omitempty"`
+
+	// UPnPLocation pins the gateway's device description URL and skips SSDP
+	// discovery. It is optional and normally empty: the point of MethodUPnP is
+	// that it works without the user knowing anything about their router. It
+	// exists for the network where the multicast search is filtered but the
+	// gateway is perfectly reachable, which discovery alone can never fix.
+	UPnPLocation string `json:"upnpLocation,omitempty"`
 
 	// CheckURL is fetched to learn the current public address. It has no
 	// default: a self-hosted download manager should not start reporting its
@@ -127,6 +157,10 @@ func Sanitize(c Config) Config {
 		c.Method = MethodCommand
 	case MethodHTTP, "liveheader", "curl":
 		c.Method = MethodHTTP
+	case MethodUPnP, "upnpreconnect", "ssdp", "igd":
+		c.Method = MethodUPnP
+	case MethodScript, "interpreter":
+		c.Method = MethodScript
 	default:
 		// A method we cannot identify becomes "off" rather than falling through
 		// to whichever branch happens to be first: guessing would fire commands
@@ -140,6 +174,13 @@ func Sanitize(c Config) Config {
 	// the router that never mentions the reason.
 	c.Command = strings.TrimSpace(c.Command)
 	c.CheckURL = strings.TrimSpace(c.CheckURL)
+	c.Interpreter = strings.TrimSpace(c.Interpreter)
+	c.UPnPLocation = strings.TrimSpace(c.UPnPLocation)
+	c.Router = sanitizeRouter(c.Router)
+	// The script body is deliberately not trimmed of anything but surrounding
+	// blank space: an interpreter that cares about indentation would be handed a
+	// different program than the one the user wrote and saved.
+	c.Script = strings.TrimSpace(c.Script)
 
 	if len(c.Requests) > 0 {
 		reqs := make([]Request, 0, len(c.Requests))
@@ -175,6 +216,33 @@ func clamp(v, fallback, lo, hi int) int {
 		v = hi
 	}
 	return v
+}
+
+// sanitizeRouter reduces whatever the user pasted into the router field to a
+// bare host, optionally with a port.
+//
+// The failure it prevents is a doubled scheme. Templates write the variable as
+// "http://%%router%%/login.cgi", and somebody who copies the address out of the
+// browser's address bar pastes "http://192.168.1.1/" - which expands to
+// "http://http://192.168.1.1//login.cgi". That is not a URL, so the request
+// fails before it is sent, and the message names a parse error rather than the
+// field with the extra scheme in it.
+func sanitizeRouter(s string) string {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return ""
+	}
+	for _, scheme := range []string{"http://", "https://"} {
+		if len(s) >= len(scheme) && strings.EqualFold(s[:len(scheme)], scheme) {
+			s = s[len(scheme):]
+			break
+		}
+	}
+	// Only the path is cut, not a ":port" or an IPv6 literal's brackets.
+	if i := strings.IndexAny(s, "/?#"); i >= 0 {
+		s = s[:i]
+	}
+	return strings.TrimSpace(s)
 }
 
 // sanitizeHeaders drops entries whose name is blank. A nameless header cannot be
@@ -216,15 +284,26 @@ func (c Config) Validate() error {
 				return fmt.Errorf("%w: request %d has no URL", ErrNotConfigured, i+1)
 			}
 		}
+	case MethodUPnP:
+		// Nothing is required. That is the whole reason this method exists: the
+		// gateway is found by asking the network, so a user who knows none of
+		// their router's details can still reconnect.
+	case MethodScript:
+		if strings.TrimSpace(c.Interpreter) == "" {
+			return fmt.Errorf("%w: the script method has no interpreter to run it with", ErrNotConfigured)
+		}
+		if strings.TrimSpace(c.Script) == "" {
+			return fmt.Errorf("%w: the script method has no script", ErrNotConfigured)
+		}
 	case MethodNone, "":
 		return fmt.Errorf("%w: reconnect is switched off", ErrNotConfigured)
 	default:
 		// Sanitize folds a method it does not recognise into MethodNone, so a
 		// caller validating raw form input is the last place the word the user
 		// actually typed still exists. Answering "reconnect is switched off" to
-		// somebody who typed "upnp" sends them to the on/off toggle, which is
-		// already on, and the real problem - a misspelling three fields away -
-		// never gets looked at.
+		// somebody who typed "ssdp" sends them to the on/off toggle, which is
+		// already on, and the real problem - a word three fields away that
+		// nothing has normalised yet - never gets looked at.
 		return fmt.Errorf("%w: unknown reconnect method %q", ErrNotConfigured, c.Method)
 	}
 	if strings.TrimSpace(c.CheckURL) == "" {
@@ -232,7 +311,51 @@ func (c Config) Validate() error {
 		// this package refuses to report a success it cannot prove.
 		return fmt.Errorf("%w: no IP check URL", ErrNotConfigured)
 	}
+	if c.Router == "" && c.usesRouterVar() {
+		// An unset variable expands to nothing, so an imported script whose
+		// login URL is "http://%%router%%/login.cgi" would post the router
+		// password to "http:///login.cgi". Refusing here names the empty field;
+		// letting it run names a URL parse error three layers down.
+		return fmt.Errorf("%w: the script uses %%%%%s%%%% but no router address is set", ErrNotConfigured, VarRouter)
+	}
 	return nil
+}
+
+// usesRouterVar reports whether anything this method would run references the
+// router address.
+func (c Config) usesRouterVar() bool {
+	switch c.Method {
+	case MethodCommand:
+		if containsVar(c.Command, VarRouter) {
+			return true
+		}
+		for _, a := range c.Args {
+			if containsVar(a, VarRouter) {
+				return true
+			}
+		}
+	case MethodHTTP:
+		for _, q := range c.Requests {
+			if containsVar(q.URL, VarRouter) || containsVar(q.Body, VarRouter) {
+				return true
+			}
+			for k, v := range q.Headers {
+				if containsVar(k, VarRouter) || containsVar(v, VarRouter) {
+					return true
+				}
+			}
+		}
+	case MethodScript:
+		return containsVar(c.Script, VarRouter)
+	}
+	return false
+}
+
+// containsVar reports whether s references the named variable, matching the
+// same case-insensitively as expandVars does - a check that only found
+// "%%router%%" would let "%%Router%%" through and refuse nothing.
+func containsVar(s, name string) bool {
+	return strings.Contains(strings.ToLower(s), "%%"+name+"%%")
 }
 
 // Redacted returns a copy with the router password replaced by
@@ -266,6 +389,14 @@ func (c Config) String() string {
 		return fmt.Sprintf("reconnect{command %q with %d args, check %s}", c.Command, len(c.Args), c.CheckURL)
 	case MethodHTTP:
 		return fmt.Sprintf("reconnect{%d requests, check %s}", len(c.Requests), c.CheckURL)
+	case MethodUPnP:
+		return fmt.Sprintf("reconnect{upnp, check %s}", c.CheckURL)
+	case MethodScript:
+		// The script's length, never its text. A reconnect script is the one
+		// place a user is likely to hard-code a router password that this
+		// package's own redaction knows nothing about, because it never passed
+		// through the password field.
+		return fmt.Sprintf("reconnect{script %q, %d bytes, check %s}", c.Interpreter, len(c.Script), c.CheckURL)
 	default:
 		return "reconnect{off}"
 	}
@@ -283,6 +414,7 @@ func (c Config) vars(ip netip.Addr) map[string]string {
 		VarIP:       addr,
 		VarUsername: c.Username,
 		VarPassword: c.Password,
+		VarRouter:   c.Router,
 	}
 }
 

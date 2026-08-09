@@ -1,8 +1,15 @@
 // Package reconnect gets the box a new public IP address, which is the only
 // thing that lifts a hoster's free-user limit when the limit is keyed to the
 // address. It is KnightLoader's answer to JDownloader's Reconnect and speaks the
-// same three dialects: run an external program, replay a recorded list of HTTP
-// requests against the router's admin interface, or nothing at all.
+// same dialects: ask the gateway over UPnP, run an external program, hand a
+// script to an interpreter, replay a recorded list of HTTP requests against the
+// router's admin interface, or nothing at all.
+//
+// UPnP is the one to reach for first, because it is the only method that needs
+// nothing from the user: the gateway is found by asking the network. The other
+// three exist for the routers that have UPnP switched off, and ImportScript
+// reads JDownloader's LiveHeader and curl scripts into the HTTP method so a
+// router that already has a script written for it does not need a new one.
 //
 // The address is the ground truth. Every run reads the public address before the
 // method fires and polls for it afterwards, and a run that ends on the address
@@ -60,6 +67,14 @@ type Options struct {
 	Run   Runner // defaults to os/exec
 	Now   func() time.Time
 	Sleep func(ctx context.Context, d time.Duration) error
+
+	// Discover finds UPnP gateways. It defaults to an SSDP multicast search;
+	// tests replace it so that no test in this package sends a datagram.
+	Discover Discoverer
+
+	// TempDir is where the script method writes the script it is about to hand
+	// to an interpreter. Empty means the system temporary directory.
+	TempDir string
 }
 
 // Result describes what one reconnect achieved. It is filled in as far as the
@@ -75,11 +90,13 @@ type Result struct {
 // happens on the goroutine that called Do and stops when that caller's context
 // is cancelled.
 type Reconnector struct {
-	config func() Config
-	http   Doer
-	run    Runner
-	now    func() time.Time
-	sleep  func(ctx context.Context, d time.Duration) error
+	config   func() Config
+	http     Doer
+	run      Runner
+	now      func() time.Time
+	sleep    func(ctx context.Context, d time.Duration) error
+	discover Discoverer
+	tempDir  string
 
 	mu       sync.Mutex
 	inflight *call
@@ -137,11 +154,13 @@ func New(o Options) (*Reconnector, error) {
 		return nil, errors.New("reconnect: Config is required")
 	}
 	r := &Reconnector{
-		config: o.Config,
-		http:   o.HTTP,
-		run:    o.Run,
-		now:    o.Now,
-		sleep:  o.Sleep,
+		config:   o.Config,
+		http:     o.HTTP,
+		run:      o.Run,
+		now:      o.Now,
+		sleep:    o.Sleep,
+		discover: o.Discover,
+		tempDir:  o.TempDir,
 	}
 	if r.http == nil {
 		// A dedicated client rather than http.DefaultClient: the default has no
@@ -157,6 +176,9 @@ func New(o Options) (*Reconnector, error) {
 	}
 	if r.sleep == nil {
 		r.sleep = sleepCtx
+	}
+	if r.discover == nil {
+		r.discover = ssdpSearch
 	}
 	return r, nil
 }
@@ -312,6 +334,10 @@ func (r *Reconnector) invoke(ctx context.Context, cfg Config, ip netip.Addr) err
 			}
 		}
 		return nil
+	case MethodUPnP:
+		return r.upnp(ctx, cfg)
+	case MethodScript:
+		return r.script(ctx, cfg, vars)
 	}
 	return fmt.Errorf("%w: reconnect is switched off", ErrNotConfigured)
 }
