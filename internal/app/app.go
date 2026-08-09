@@ -8,7 +8,9 @@
 // link becomes a task, app_queue.go the wait queue, app_dispatch.go the handover
 // to a backend and everything a backend reports back, app_tasks.go per-task
 // edits and persistence, app_extract.go unpacking, app_bulk.go the operations
-// that act on a whole selection, and app_accounts.go the credentials and the
+// that act on a whole selection, app_boot.go what a restart leaves behind and
+// the housekeeping that keeps the list bounded, app_mirror.go the second copy of
+// a file the list already has, and app_accounts.go the credentials and the
 // backend routing they decide.
 package app
 
@@ -109,6 +111,16 @@ type App struct {
 	// a nightly cap that is still in force.
 	sched *schedule.Runner
 
+	// wg counts the goroutines this package starts and keeps for the life of the
+	// app - the housekeeping loop, and nothing else so far. Close waits on it,
+	// which is the only reason it exists: every one of them writes to the store,
+	// and the store is closed on the way out.
+	//
+	// It is deliberately not a counter for the goroutines that carry a download.
+	// Those are abandoned, Close says so, and boot is what puts the list right
+	// afterwards.
+	wg sync.WaitGroup
+
 	jd     backend            // headless-JD backend, nil unless KL_JD is set and reachable
 	ytdlp  backend            // yt-dlp media backend, nil unless the yt-dlp binary is present
 	torbox backend            // TorBox debrid backend, nil unless a TorBox key is present
@@ -168,6 +180,10 @@ type App struct {
 	queue    []string        // task IDs waiting for a slot, FIFO with per-host skip-ahead
 	active   map[string]bool // dispatched and not yet terminal/paused
 	started  map[string]bool // ever handed to a backend (Resume vs fresh Download)
+	// unpack is the extraction worker: the jobs, the order they run in, and the
+	// one goroutine that runs them. Built on first use rather than in New, so
+	// unpacking stays a subject of app_extract.go alone - see unpackLocked.
+	unpack *unpackState
 }
 
 func New(dataDir string) (*App, error) {
@@ -287,20 +303,34 @@ func New(dataDir string) (*App, error) {
 	a.rewireBackends()
 	a.applyWatcher(cfg.Get().WatchDir)
 
-	// Reload persisted tasks; anything mid-flight shows as paused on boot, and
-	// an interrupted extraction counts as done (the download itself finished).
+	// Reload persisted tasks. What each one comes back as is reviveOnBoot's
+	// decision, and it is not a formality: every row in the store belonged to a
+	// process that is gone, so a task the database calls "running" has nothing
+	// behind it at all.
 	existing, err := st.All()
 	if err != nil {
 		return nil, err
 	}
+	// Asked before a single row is rewritten, because the first task moved out of
+	// "running" destroys the evidence: this is how the app knows whether the last
+	// process was downloading or sitting idle, and the resume policy turns on it.
+	queueWasLive := false
 	for _, t := range existing {
-		if t.Status == core.StatusRunning || t.Status == core.StatusQueued {
-			t.Status = core.StatusPaused
-			t.Speed = 0
+		if t.Status == core.StatusRunning {
+			queueWasLive = true
+			break
 		}
-		if t.Status == core.StatusExtracting {
-			t.Status = core.StatusDone
-			t.Speed = 0
+	}
+	resume := settings.ParseResumeOnStart(s.ResumeOnStart)
+	var revived []core.Task
+	var requeue []string
+	for _, t := range existing {
+		changed, enqueue := a.reviveOnBoot(t, resume, queueWasLive)
+		if changed {
+			revived = append(revived, *t)
+		}
+		if enqueue {
+			requeue = append(requeue, t.ID)
 		}
 		a.tasks[t.ID] = t
 		// Only live tasks are filed. A finished or failed download must not block
@@ -310,10 +340,43 @@ func New(dataDir string) (*App, error) {
 			a.dupes.Add(linkEntry(t))
 		}
 	}
+	// Written back, not only fixed in memory. The store still says "running" for
+	// a task nobody is running, and an unpacking that was interrupted has just
+	// become a finished download - which has to reach the record and the
+	// retention sweep as one. Nothing is broadcast: no client can be connected to
+	// a server that has not been started yet.
+	for i := range revived {
+		c := revived[i]
+		if err := st.Save(&c); err != nil {
+			log.Printf("could not write back the boot state of %s: %v", c.ID, err)
+		}
+	}
+	// Housekeeping runs once here as well as on its own timer, which is what
+	// makes "the list is trimmed" true at the moment somebody opens it rather
+	// than a minute later. It runs BEFORE the queue is filled and before the
+	// scheduler has had its say: removing a task dispatches, and dispatching a
+	// half-built queue against a timetable nothing has read yet is how a nightly
+	// pause window gets ignored for the first minute of every boot.
+	a.sweep()
+	// Under the lock although nothing has been handed this App yet: the watcher
+	// started above is already running, and a dropped job file reaches the queue
+	// through it.
+	a.mu.Lock()
+	a.queue = append(a.queue, requeue...)
+	a.mu.Unlock()
 	// Started only now that the task list is whole. The runner's first pass halts
 	// or throttles the queue immediately, and doing that to a queue still being
 	// reconstructed would stop downloads nobody paused.
+	//
+	// It is also what starts whatever the resume policy just put back in the
+	// queue, and deliberately so: the first pass dispatches only when the
+	// timetable is not holding the queue, so downloads resumed by a restart
+	// cannot walk past a pause window by being early.
 	a.sched.Start()
+	// Last, so nothing can sweep a list that is still being assembled. Close
+	// waits for this goroutine, because everything it does writes to the store.
+	a.wg.Add(1)
+	go a.upkeep()
 	return a, nil
 }
 
@@ -376,10 +439,34 @@ func (a *App) taskDir(taskID string) string {
 	return a.dirFor(c)
 }
 
+// Close shuts the app down, and what that costs is worth stating plainly rather
+// than leaving somebody to find out during an incident.
+//
+// IT WAITS FOR three things, in this order and for one reason each: the
+// housekeeping loop, because it removes tasks and writes to the store; the
+// intake watcher, because a job file half read is a paste that half happened;
+// and the schedule runner, whose own Close blocks on an in-flight Apply - which
+// is the promise that makes it safe to tear down everything Apply talks to next.
+//
+// IT ABANDONS every transfer still running, and there is no drain, no grace
+// period and no attempt at one. A shutdown that waits for a 40 GB download is a
+// container that never restarts, and stopping does not destroy the bytes already
+// written - only starting again from the beginning does. What it does cost is
+// the last update from each of those transfers: a backend reporting in after the
+// store is closed has its write discarded, silently, because every caller in the
+// app discards Save's error. That is not tidy, and it is precisely why boot
+// reconciles the list instead of trusting the last state written to it.
+//
+// The order below is the contract. Cancel first so nothing new begins, then the
+// goroutines this package owns, then the subsystems, and the store last because
+// every one of them writes to it.
 func (a *App) Close() error {
 	if a.cancel != nil {
 		a.cancel()
 	}
+	// Before the engine and before the store, because a sweep in flight is
+	// removing tasks from both.
+	a.wg.Wait()
 	a.wmu.Lock()
 	if a.watcher != nil {
 		_ = a.watcher.Close()

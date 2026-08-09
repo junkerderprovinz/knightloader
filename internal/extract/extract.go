@@ -2,6 +2,10 @@
 // 7z incl. .001 volumes, tar, and the gzip/bzip2/xz/zstd single-stream formats
 // whether or not they wrap a tar) into a folder next to the archive.
 // Pure Go, no external binaries.
+//
+// Which reader opens a file is decided by its magic bytes and only then by its
+// name, and zip joins rar and 7z in taking a password: both WinZip AES and the
+// legacy ZipCrypto. That half lives in format.go.
 package extract
 
 import (
@@ -104,62 +108,53 @@ func Extract(path string) (*Result, error) {
 // ExtractWith is Extract with passwords to try, in order, if the archive turns
 // out to be encrypted. The unencrypted attempt always comes first, so a normal
 // archive never pays for the list.
+//
+// It is Options.Extract with every option left at its default: beside the
+// archive, overwrite what is there, keep the archive afterwards. The walk lives
+// with the options in options.go rather than being written out twice, because a
+// second copy of "try each password in turn" is a second place to forget that a
+// failed attempt has to leave the destination untouched.
 func ExtractWith(path string, passwords []string) (*Result, error) {
-	// The destination is NOT created here. A single gzipped file unpacks beside
-	// the archive rather than into a folder named after it, and creating that
-	// folder up front would both leave an empty directory behind and fail
-	// outright when a file of that name already sits there — which for
-	// "dump.sql.gz" next to an existing "dump.sql" is the normal case.
-	dest := destDir(path)
-	res, err := extractOnce(path, dest, "")
-	if err == nil || !errors.Is(err, ErrPasswordRequired) {
-		return res, err
-	}
-	for _, pw := range passwords {
-		if pw == "" {
-			continue
-		}
-		res, err = extractOnce(path, dest, pw)
-		if err == nil || !errors.Is(err, ErrPasswordRequired) {
-			return res, err
-		}
-	}
-	return nil, ErrPasswordRequired
+	return extractInto(path, destDir(path), passwords)
 }
 
 func extractOnce(path, dest, password string) (*Result, error) {
-	l := strings.ToLower(path)
 	// Everything that can hold more than one file unpacks into its own folder;
 	// only the single-stream path below decides for itself.
 	container := func() error { return os.MkdirAll(dest, 0o755) }
-	switch {
-	case strings.HasSuffix(l, ".zip"):
+	// The bytes pick the reader, the name only breaks the tie. See format.go:
+	// keying off the name alone hands a renamed .rar to the zip reader and
+	// reports a healthy file as broken.
+	format := formatOf(path)
+	switch format {
+	case formatZip:
 		if err := container(); err != nil {
 			return nil, err
 		}
-		return extractZip(path, dest)
-	case strings.HasSuffix(l, ".rar"):
+		return extractZip(path, dest, password)
+	case formatRar:
 		if err := container(); err != nil {
 			return nil, err
 		}
 		return extractRar(path, dest, password)
-	case strings.HasSuffix(l, ".7z") || sevenZipVolume.MatchString(l):
+	case formatSevenZip:
 		if err := container(); err != nil {
 			return nil, err
 		}
 		return extract7z(path, dest, password)
-	case strings.HasSuffix(l, ".tar"):
+	case formatTar:
 		if err := container(); err != nil {
 			return nil, err
 		}
 		return extractTar(path, dest)
+	case formatArj, formatLzh, formatAce:
+		return nil, retiredError(format)
 	}
-	// Every single-stream compression shares one code path; the suffix only
-	// picks the codec, never what the decompressed bytes turn out to be.
-	for _, c := range compressions {
-		if strings.HasSuffix(l, c.suffix) {
-			return extractCompressed(path, dest, c.suffix, c.open)
-		}
+	// Every single-stream compression shares one code path; the codec comes
+	// from the content, and the name supplies nothing but the spelling the
+	// payload gets named after.
+	if open := compressionFor(format); open != nil {
+		return extractCompressed(path, dest, namingSuffix(strings.ToLower(path), format), open)
 	}
 	return nil, fmt.Errorf("extract: unsupported archive %q", filepath.Base(path))
 }
@@ -195,7 +190,15 @@ func destDir(path string) string {
 	}
 	base = strings.TrimSuffix(base, ".part1")
 	base = strings.TrimSuffix(base, ".part01")
-	return filepath.Join(filepath.Dir(path), base)
+	out := filepath.Join(filepath.Dir(path), base)
+	if out == filepath.Clean(path) {
+		// Nothing came off the name, so "the folder next to the archive" is the
+		// archive, and MkdirAll would fail on the file itself. Only reachable
+		// since the magic probe started opening files whose name promises
+		// nothing at all.
+		out += "-extracted"
+	}
+	return out
 }
 
 // safePath joins name under dest and rejects traversal outside dest.
@@ -219,26 +222,28 @@ func writeFile(dst string, mode os.FileMode, r io.Reader) error {
 	if err != nil {
 		return err
 	}
-	_, err = io.Copy(f, r)
+	_, err = copyWatched(f, r)
 	if cerr := f.Close(); err == nil {
 		err = cerr
 	}
 	return err
 }
 
-func extractZip(path, dest string) (*Result, error) {
+func extractZip(path, dest, password string) (*Result, error) {
 	zr, err := zip.OpenReader(path)
 	if err != nil {
 		return nil, err
 	}
 	defer zr.Close()
+	// Nothing is written until the archive as a whole has been vetted: the
+	// password has to fit, and no entry may be of the shape that decodes to
+	// ciphertext. A failure here leaves the destination untouched, which is
+	// what makes ExtractWith's walk through the password list safe to repeat.
+	if err := verifyZipPassword(&zr.Reader, password); err != nil {
+		return nil, err
+	}
 	res := &Result{Dir: dest, Volumes: []string{path}}
 	for _, f := range zr.File {
-		if f.Flags&0x1 != 0 {
-			// Go's archive/zip cannot decrypt, and there is no honest way to
-			// pretend otherwise.
-			return nil, errors.New("extract: encrypted zip archives are not supported")
-		}
 		if f.FileInfo().IsDir() {
 			continue
 		}
@@ -246,7 +251,7 @@ func extractZip(path, dest string) (*Result, error) {
 		if err != nil {
 			return nil, err
 		}
-		rc, err := f.Open()
+		rc, err := openZipEntry(f, password)
 		if err != nil {
 			return nil, err
 		}
@@ -401,24 +406,27 @@ func extractTar(path, dest string) (*Result, error) {
 // compressions lists every single-stream compression this package can open,
 // mapped to the decompressor that opens it. Longest suffix first, so that
 // ".tar.gz" is reported as the suffix rather than ".gz" when both match; the
-// suffix is what a non-tar payload gets named after.
+// suffix is what a non-tar payload gets named after. The format column is what
+// lets the magic probe and the name be compared: same codec, different
+// spelling, or a name that turns out to be lying.
 var compressions = []struct {
 	suffix string
+	format archiveFormat
 	open   func(io.Reader) (io.ReadCloser, error)
 }{
-	{".tar.gz", openGzip},
-	{".tar.bz2", openBzip2},
-	{".tar.xz", openXz},
-	{".tar.zst", openZstd},
-	{".tgz", openGzip},
-	{".tbz2", openBzip2},
-	{".tbz", openBzip2},
-	{".txz", openXz},
-	{".tzst", openZstd},
-	{".gz", openGzip},
-	{".bz2", openBzip2},
-	{".xz", openXz},
-	{".zst", openZstd},
+	{".tar.gz", formatGzip, openGzip},
+	{".tar.bz2", formatBzip2, openBzip2},
+	{".tar.xz", formatXz, openXz},
+	{".tar.zst", formatZstd, openZstd},
+	{".tgz", formatGzip, openGzip},
+	{".tbz2", formatBzip2, openBzip2},
+	{".tbz", formatBzip2, openBzip2},
+	{".txz", formatXz, openXz},
+	{".tzst", formatZstd, openZstd},
+	{".gz", formatGzip, openGzip},
+	{".bz2", formatBzip2, openBzip2},
+	{".xz", formatXz, openXz},
+	{".zst", formatZstd, openZstd},
 }
 
 func openGzip(r io.Reader) (io.ReadCloser, error) { return gzip.NewReader(r) }
@@ -517,10 +525,18 @@ func extractCompressed(path, dest, suffix string, open func(io.Reader) (io.ReadC
 // minus its compression suffix, so "notes.txt.gz" yields "notes.txt". A ".tgz"
 // that turned out not to hold a tar loses the whole suffix instead of gaining a
 // ".tar", because calling it a tar would be exactly the lie the probe caught.
+//
+// suffix is empty when the magic probe overruled the name, a gzip stream called
+// ".zip" being the ordinary case. Something still has to come off the end:
+// writing the payload under the archive's own name would truncate the archive
+// while it is being read.
 func payloadName(base, suffix string) string {
-	name := base[:len(base)-len(suffix)]
-	if name == "" {
-		name = "content"
+	switch ext := filepath.Ext(base); {
+	case suffix != "" && len(base) > len(suffix) && strings.HasSuffix(strings.ToLower(base), suffix):
+		return base[:len(base)-len(suffix)]
+	case ext != "" && ext != base:
+		return strings.TrimSuffix(base, ext)
+	default:
+		return base + ".out"
 	}
-	return name
 }

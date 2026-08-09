@@ -38,6 +38,7 @@ import {
   type QuickFilterId,
 } from '../components/ListToolbar';
 import { EMPTY_SEARCH, matchesSearch, type SearchQuery } from '../components/SearchField';
+import { ArchiveJobs, useArchiveMenu, useExtractJobs } from '../components/Archives';
 import { anchorFromEvent, useContextMenu } from '../components/ContextMenu';
 import { IconSearch, IconDownloads, IconArrowUp, IconArrowDown, IconTop, IconBottom } from '../lib/icons';
 
@@ -60,6 +61,10 @@ export function Downloads() {
   // entry and the menu belongs to the page.
   const folds = useCollapsedPackages('downloads');
   const tasks = useTasks(instance);
+  // Unpacking is its own stream, not a field on the task: an archive has its own
+  // progress, its own failure and its own stop, and folding those onto the row
+  // that fetched it is what made an extraction invisible in the first place.
+  const jobs = useExtractJobs(instance);
 
   useEffect(() => {
     fetchInstances().then(setInstances);
@@ -100,6 +105,11 @@ export function Downloads() {
 
   const clearSelection = useCallback(() => setSelected(new Set()), []);
   const removal = useRemoval({ all, selected, base, onDone: clearSelection });
+  const archiveGroups = useArchiveMenu({
+    chosen: useMemo(() => all.filter((x) => selected.has(x.id)), [all, selected]),
+    base,
+    jobs,
+  });
 
   const selection: Selection = {
     ids: selected,
@@ -306,6 +316,10 @@ export function Downloads() {
         )}
       </div>
 
+      {/* Under the rows, because an extraction is what happens after one of them
+          finished, and only while there is one to look at. */}
+      <ArchiveJobs jobs={jobs} base={base} />
+
       {/* Under the list and always there, including when the list is empty —
           which is the one moment somebody is looking for the way to add
           something. */}
@@ -332,6 +346,7 @@ export function Downloads() {
         removal={removal}
         target={target}
         list={listContext}
+        extraGroups={archiveGroups}
       />
       {removal.dialog}
     </div>

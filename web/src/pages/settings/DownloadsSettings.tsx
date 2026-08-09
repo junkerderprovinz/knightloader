@@ -1,5 +1,8 @@
-import { Card, Field, NumberInput, TextInput, Toggle } from '../../components/ui';
-import { useT } from '../../lib/i18n';
+import { useEffect, useState } from 'react';
+import { Card, Field, FieldGroup, NumberInput, TextInput, Toggle } from '../../components/ui';
+import { Tabs } from '../../components/Tabs';
+import { fetchOptions } from '../../lib/api';
+import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft, useFeatures } from './context';
 import { useTx } from './tx';
 
@@ -11,6 +14,27 @@ export function DownloadsSettings() {
   const { tx } = useTx();
   const { cfg, patch } = useDraft();
   const { features } = useFeatures();
+
+  // The resume modes come from the server, like every other fixed choice on this
+  // page's siblings. They were not offered at all until now: resumeOnStart was
+  // read at boot and had no control anywhere, so the only way to set it was to
+  // edit settings.json by hand - which is the kind of gap that looks like a
+  // missing feature and is really a missing three lines.
+  const [modes, setModes] = useState<string[]>([]);
+  useEffect(() => {
+    let live = true;
+    void fetchOptions().then(
+      (o) => {
+        if (live) setModes(o.resumeModes ?? []);
+      },
+      () => {
+        /* the strip stays out rather than offering a guess at the modes */
+      },
+    );
+    return () => {
+      live = false;
+    };
+  }, []);
 
   // The registry, not the settings value, decides whether the folder field is
   // live. Switching the folder-watch module off clears the folder and parks it;
@@ -59,6 +83,38 @@ export function DownloadsSettings() {
             <NumberInput value={cfg.maxRetries} min={0} max={20} onValue={(v) => patch({ maxRetries: v })} />
           </Field>
         </div>
+        {modes.length > 0 && (
+          <FieldGroup label={t('settings.resumeOnStart')} hint={t('settings.resumeOnStartHint')}>
+            <Tabs
+              size="sm"
+              className="w-fit"
+              label={t('settings.resumeOnStart')}
+              active={cfg.resumeOnStart}
+              onSelect={(id) => patch({ resumeOnStart: id })}
+              items={modes.map((m) => ({ id: m, label: t(`settings.resume.${m}` as TranslationKey) }))}
+            />
+          </FieldGroup>
+        )}
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label={t('settings.keepFinishedDays')} hint={t('settings.keepFinishedDaysHint')}>
+            <NumberInput
+              value={cfg.keepFinishedDays}
+              min={0}
+              max={3650}
+              onValue={(v) => patch({ keepFinishedDays: Math.max(0, v) })}
+            />
+          </Field>
+          <Field label={t('settings.historyMax')} hint={t('settings.historyMaxHint')}>
+            <NumberInput
+              value={cfg.historyMax}
+              min={0}
+              max={1000000}
+              onValue={(v) => patch({ historyMax: Math.max(0, v) })}
+            />
+          </Field>
+        </div>
+
         <div className="flex flex-col gap-3">
           <Toggle checked={cfg.crawl} onChange={(v) => patch({ crawl: v })} label={t('settings.crawl')} />
           <Toggle

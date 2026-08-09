@@ -92,7 +92,12 @@ func TestWidenedFieldsSurviveARestart(t *testing.T) {
 	changed := time.Now().Round(time.Millisecond)
 	want := core.Task{
 		ID: "wide", URL: "https://host.example/part01.rar", Name: "part01.rar",
-		CreatedAt:        time.Now(),
+		CreatedAt: time.Now(),
+		// Done, because the finish time below is only allowed to exist on a task
+		// that is: the store settles that invariant on the way in (stampFinish),
+		// so a fixture claiming a finish time in any other state is asserting
+		// something no row is permitted to say.
+		Status:           core.StatusDone,
 		FinishedAt:       finished,
 		Enabled:          true,
 		Skipped:          true,

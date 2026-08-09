@@ -157,6 +157,15 @@ export const en = {
   'settings.downloadDirHint': 'Absolute path. Leave empty for the built-in folder.',
   'settings.subfolderByPackage': 'Put each package in its own subfolder',
   'settings.maxRetries': 'Automatic retries',
+  'settings.resumeOnStart': 'After a restart',
+  'settings.resumeOnStartHint': 'A restarted transfer begins again from the start, and the partial file already on disk meets the collision policy. That is why the cautious setting is the default.',
+  'settings.resume.never': 'Nothing',
+  'settings.resume.running': 'What was running',
+  'settings.resume.all': 'Everything unfinished',
+  'settings.keepFinishedDays': 'Keep finished for (days)',
+  'settings.keepFinishedDaysHint': '0 keeps them in the list forever. The file on disk is never touched, and the history keeps the record.',
+  'settings.historyMax': 'History entries',
+  'settings.historyMaxHint': '0 keeps every entry.',
   'settings.maxRetriesHint': 'A failed download is tried again with a growing delay.',
   'settings.archivePasswords': 'Archive passwords',
   'settings.archivePasswordsHint': 'One per line. Tried in order when an archive is encrypted.',
@@ -859,6 +868,72 @@ export const en = {
   'quick.noLimit': 'No speed limit',
   'quick.noLimitHint':
     'There is nothing to switch until a limit has been set. The field for it is in the bar beside the start button, and on the Downloads settings page.',
+
+  // The server-side folder chooser. It browses the machine the backend runs on,
+  // which in a container is the only one that knows what is mounted where, so
+  // the wording talks about folders that are there rather than files you have.
+  'folders.title': 'Choose a folder',
+  'folders.browse': 'Browse folders',
+  'folders.path': 'Path',
+  'folders.up': 'Up one level',
+  'folders.use': 'Use this folder',
+  'folders.empty': 'No sub-folders here.',
+  'folders.new': 'This folder does not exist yet. It is created when the first download lands in it.',
+  'folders.tail': 'Kept',
+  'folders.tailHint':
+    'Browsing replaces only the fixed part of the folder. The variables are put back on the end, so your naming scheme is not lost.',
+  'folders.roots': 'Roots',
+  'folders.truncated': 'Only the first {n} folders are shown. Type a path to go straight to one.',
+
+  // Unpacking as a job of its own, with progress and a stop button, rather than
+  // a word the download wears for a while. The states below name what the job
+  // is doing, so they read as verbs and not as a copy of the download statuses.
+  //
+  // Interpolation here is single-brace, like every other key in this file: t()
+  // replaces {name}, and a doubled brace would survive into the UI.
+  'archive.menu': 'Archive',
+  'archive.unpackNow': 'Unpack now',
+  'archive.stop': 'Stop unpacking',
+  'archive.title': 'Archives',
+  'archive.queued': 'Waiting to unpack',
+  'archive.running': 'Unpacking',
+  'archive.failed': 'Not unpacked',
+  'archive.progress': '{files} files · {bytes}',
+  'archive.volumes': '{volumes} volumes',
+  'archive.needsPassword': 'Needs a password',
+
+  // The archive settings page. The three policy strips are labelled by what the
+  // extractor does and not by the id the server sends, but an id with no string
+  // here still renders under its own name - see pages/settings/Archives.tsx.
+  'settings.archives.handles': 'Opens',
+  'settings.archives.destination': 'Unpack to',
+  'settings.archives.destinationHint':
+    'Where the unpacked files land. Leave it empty and they are put beside the archive.',
+  'settings.archives.besideArchive': 'Beside the archive',
+  'settings.archives.subfolder': 'A folder per package',
+  'settings.archives.subfolderHint':
+    'Puts every package in a folder of its own below the destination. It does nothing while the files land beside the archive, where the package folder is already where they are going.',
+  'settings.archives.collision': 'If a file is already there',
+  'settings.archives.collisionHint':
+    'What the extractor does when a file of that name is already in the folder. It decides on its own, and for the whole folder: there is nobody to ask halfway through unpacking.',
+  'settings.archives.collision.overwrite': 'Overwrite',
+  'settings.archives.collision.rename': 'Keep both',
+  'settings.archives.collision.skip': 'Skip',
+  'settings.archives.afterwards': 'Afterwards',
+  'settings.archives.disposal': 'The archive itself',
+  'settings.archives.disposalHint':
+    'What becomes of the archive once it has been unpacked. There is no recycle bin in a container, so the middle answer is a move into {folder} beside the files, swept later by age.',
+  'settings.archives.disposal.keep': 'Keep',
+  'settings.archives.disposal.trash': 'Move to trash',
+  'settings.archives.disposal.delete': 'Delete',
+  'settings.archives.retention': 'Empty the trash after (days)',
+  'settings.archives.retentionHint':
+    'How long an archive stays in {folder} before the sweep takes it. 0 sweeps nothing, so the folder is emptied by hand.',
+  'settings.archives.infoFiles': 'Take the notes beside it too',
+  'settings.archives.infoFilesHint':
+    'Files that came with the archive rather than out of it, such as .nfo, .sfv and .txt. Only the package’s own files are touched and never the whole folder: on the default layout one folder holds several releases, and a sweep that read the folder would take the neighbours’ notes.',
+  'settings.archives.optionsFailed':
+    'The extractor’s own lists could not be fetched, so the choices that come from it are not shown.',
 } as const;
 
 export type TranslationKey = keyof typeof en;

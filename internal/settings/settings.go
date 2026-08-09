@@ -15,10 +15,12 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
+	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
@@ -32,7 +34,6 @@ type Settings struct {
 	MaxPerHost    int   `json:"maxPerHost"`    // simultaneous downloads per host
 	SpeedLimit    int64 `json:"speedLimit"`    // bytes/s, 0 = unlimited
 	Extract       bool  `json:"extract"`       // extract archives after download
-	DeleteArchive bool  `json:"deleteArchive"` // remove the archive after successful extraction
 	AutoStart     bool  `json:"autoStart"`     // start collected links immediately instead of staging
 
 	// DownloadDir is where finished files land. Empty means the built-in
@@ -42,6 +43,33 @@ type Settings struct {
 	SubfolderByPackage bool `json:"subfolderByPackage"`
 	// ArchivePasswords are tried in order when extracting an encrypted archive.
 	ArchivePasswords []string `json:"archivePasswords"`
+
+	// ExtractTo collects extractions in one folder instead of leaving each one
+	// beside its archive. Empty keeps the old behaviour, which is what most
+	// people expect and what every install had before the setting existed. It
+	// may be a pathvars template, expanded per task like DownloadDir.
+	ExtractTo string `json:"extractTo"`
+	// ExtractSubfolder puts each package in its own folder below ExtractTo. It
+	// does nothing without ExtractTo - see extract.Options.
+	ExtractSubfolder bool `json:"extractSubfolder"`
+	// ExtractCollision is what an extraction does when its destination folder is
+	// already there: rename, skip or overwrite, decided per folder.
+	ExtractCollision string `json:"extractCollision"`
+	// ArchiveDisposal is what happens to an archive that unpacked cleanly:
+	// keep, trash or delete.
+	//
+	// This key replaced the boolean `deleteArchive`, and the two do not live
+	// side by side: a settings file written by an older build is mapped on the
+	// way in by migrate() below. A JSON field that changes type is the one
+	// change that breaks the round-trip for every existing install, so the old
+	// spelling is read exactly once, at load, and never written again.
+	ArchiveDisposal string `json:"archiveDisposal"`
+	// TrashRetentionDays is how long a trashed archive stays before the sweep
+	// takes it. Zero never sweeps.
+	TrashRetentionDays int `json:"trashRetentionDays"`
+	// DeleteInfoFiles sweeps the .nfo/.sfv/.diz/.url that came with the same
+	// package as the archive, using the same disposal.
+	DeleteInfoFiles bool `json:"deleteInfoFiles"`
 	// MaxRetries is how often a failed download is retried automatically.
 	MaxRetries int `json:"maxRetries"`
 	// Crawl lets a pasted page URL be opened and the files it links to be
@@ -92,6 +120,17 @@ type Settings struct {
 
 	// MirrorPolicy is when two different URLs count as the same file.
 	MirrorPolicy string `json:"mirrorPolicy"`
+	// KeepMirrors keeps the second copy instead of dropping it: the link is
+	// staged as a sibling of the download it mirrors, parked, and labelled with
+	// the task it is a copy of.
+	//
+	// Off by default, and the reason is that nothing fails over to a sibling on
+	// its own yet. What it buys today is that the alternative link survives - a
+	// dropped mirror lives on only in an in-memory trace that the next restart
+	// clears - and the price of it being on is a parked row per mirror in a list
+	// people already complain is long. On is a choice; off is what the list looks
+	// like now.
+	KeepMirrors bool `json:"keepMirrors"`
 
 	// CollisionPolicy is what happens when the destination file already exists.
 	CollisionPolicy string `json:"collisionPolicy"`
@@ -122,6 +161,23 @@ type Settings struct {
 	// Schedule is the timetable that pauses or throttles the queue by the clock.
 	// An empty timetable changes nothing, which is what a fresh install wants.
 	Schedule []schedule.Entry `json:"schedule,omitempty"`
+
+	// ResumeOnStart is what happens to the downloads that were in flight when
+	// the process last stopped: never, only what was running, or everything
+	// unfinished. See the constants for what each one costs.
+	ResumeOnStart string `json:"resumeOnStart"`
+	// KeepFinishedDays is how long a finished download stays in the LIST. Zero
+	// keeps it forever.
+	//
+	// It never touches the file. Removing a row and deleting what was downloaded
+	// are two different actions in this app and always have been - conflating
+	// them is the bug that cost somebody their downloads on the ordinary "clear
+	// finished" path, and this is the same path running on a timer. What was
+	// fetched is kept in the history table, which retention does not read.
+	KeepFinishedDays int `json:"keepFinishedDays"`
+	// HistoryMax caps the download history. Zero keeps every entry, which is a
+	// table that only grows on an instance that is never restarted.
+	HistoryMax int `json:"historyMax"`
 }
 
 // Defaults returns the settings a fresh install starts with.
@@ -131,17 +187,29 @@ func Defaults() Settings {
 		MaxPerHost:      2,
 		SpeedLimit:      0,
 		Extract:         true,
-		DeleteArchive:   false,
 		MaxRetries:      3,
 		Crawl:           true,
 		VerifyChecksums: true,
 		Shape:           ShapeRound,
+		// The three archive defaults all say "change nothing you did not ask
+		// for": keep the archive, unpack beside it, and write into the folder
+		// that is already there rather than starting a second one. The
+		// retention is only consulted once somebody switches disposal to trash.
+		ArchiveDisposal:    string(extract.DefaultDisposal),
+		ExtractCollision:   string(extract.DefaultCollision),
+		TrashRetentionDays: extract.DefaultTrashDays,
 		// Only three of the new fields have a default worth writing down. The rest
 		// are usable at their zero value: no rules, no connections and no timetable
 		// all mean "behave exactly as before", which is what a fresh install wants.
 		MirrorPolicy:    string(dedupe.DefaultPolicy),
 		CollisionPolicy: string(collide.DefaultPolicy),
 		Reconnect:       reconnect.Defaults(),
+		// The list is trimmed after a month and the history is not: the two
+		// together are the only combination in which "do not let the list grow
+		// forever" costs nobody the record of what they downloaded.
+		ResumeOnStart:    ResumeNever,
+		KeepFinishedDays: DefaultKeepFinishedDays,
+		HistoryMax:       DefaultHistoryMax,
 	}
 }
 
@@ -159,10 +227,55 @@ func Load(dir string) (*Store, error) {
 		// Unmarshal over defaults so new fields keep their default value.
 		if err := json.Unmarshal(b, &s.cur); err != nil {
 			s.cur = Defaults()
+		} else {
+			s.cur = migrate(b, s.cur)
 		}
 	}
 	s.cur = sanitize(s.cur)
 	return s, nil
+}
+
+// migrate maps keys an older build wrote onto the ones this build reads. It
+// runs on the raw bytes, once, at load.
+//
+// The raw bytes are the point. A key that changed TYPE cannot be migrated
+// through the struct: leaving the old field on it to read the old value means
+// carrying a field the interface then round-trips, so the first save from a
+// client that still knows the old name writes it straight back and the two
+// disagree forever. Reading it out of the file instead means the old spelling
+// is seen exactly once and the next save writes only the new one.
+//
+// Silence on a parse failure is deliberate: the document already unmarshalled
+// into Settings, so a shape this cannot read is a key that has been given some
+// third type by hand, and the defaults are a better answer than a guess.
+func migrate(raw []byte, n Settings) Settings {
+	var old struct {
+		// deleteArchive: the boolean that became ArchiveDisposal.
+		DeleteArchive *bool `json:"deleteArchive"`
+		// Read as well, because the new key present in the file is what says
+		// this install has already been migrated. Without it a client that
+		// keeps sending the old boolean would undo the user's choice on every
+		// load.
+		ArchiveDisposal *string `json:"archiveDisposal"`
+	}
+	if err := json.Unmarshal(raw, &old); err != nil {
+		return n
+	}
+	if old.DeleteArchive == nil {
+		return n
+	}
+	if old.ArchiveDisposal != nil && strings.TrimSpace(*old.ArchiveDisposal) != "" {
+		return n
+	}
+	// Only the true half maps onto a new value. False meant "keep", which is
+	// also the default, so mapping it is the same as leaving it alone - but it
+	// is written out rather than inferred, because an install that deliberately
+	// chose "do not delete" should read that way in the file.
+	n.ArchiveDisposal = string(extract.DisposalKeep)
+	if *old.DeleteArchive {
+		n.ArchiveDisposal = string(extract.DisposalDelete)
+	}
+	return n
 }
 
 // Get returns the current settings snapshot.
@@ -208,8 +321,10 @@ func sanitize(n Settings) Settings {
 	n = sanitizeAppearance(n)
 	n = sanitizeQueue(n)
 	n = sanitizePaths(n)
+	n = sanitizeArchives(n)
 	n = sanitizeIntake(n)
 	n = sanitizeNetwork(n)
 	n = sanitizeRules(n)
+	n = sanitizeLifecycle(n)
 	return n
 }

@@ -11,7 +11,7 @@
 // it cannot draw, which is the drift the registry exists to prevent.
 
 import { useState, type ReactNode } from 'react';
-import { setEnabled, type Task } from '../lib/api';
+import { setEnabled, type Availability, type Task } from '../lib/api';
 import { DIRECT_ID, endpointOf, useConnections } from '../lib/connections';
 import { fmtBytes, fmtDate, fmtEta, fmtSpeed, pct } from '../lib/format';
 import type { TranslationKey } from '../lib/i18n';
@@ -234,6 +234,23 @@ const reasonKey: Record<string, TranslationKey> = {
   cancelled: 'task.reason.cancelled',
 };
 
+// The availability chip, one entry per verdict the server can send.
+//
+// '' is deliberately absent, and that absence is the whole point of the fourth
+// state: a link nobody has checked says nothing at all, and 'uncheckable' is a
+// link that WAS checked and whose host would not answer. Drawing them the same
+// way is what left a Real-Debrid or JD link looking untouched forever.
+//
+// 'uncheckable' is the quiet shade, never the fail colour and never the accent.
+// It is not activity and it is not a dead link, and painting it red is the same
+// mistake in the interface that filing a transport error as offline is in the
+// probe: it is how somebody is talked into deleting a link that is fine.
+const availChip: Record<Exclude<Availability, ''>, { key: TranslationKey; tone: string }> = {
+  online: { key: 'task.online', tone: 'text-statusOk' },
+  offline: { key: 'task.offline', tone: 'text-statusFail' },
+  uncheckable: { key: 'task.uncheckable', tone: 'text-carbon-textMuted' },
+};
+
 function NameCell({ task, t }: { task: Task; t: Translate }) {
   // A pending automatic retry is not the same as a dead task, and saying so
   // stops people restarting something that is already about to restart.
@@ -317,19 +334,21 @@ function ProgressCell({ loaded, size, done, active }: { loaded: number; size: nu
 }
 
 function StatusCell({ task, t }: { task: Task; t: Translate }) {
+  // An availability verdict is worth showing only while nothing has been
+  // attempted yet; once a transfer is running, the status is the answer.
+  const chip = task.status === 'collected' && task.online ? availChip[task.online] : undefined;
+  // The typed cause carries the detail, as a tooltip rather than a second word
+  // on the line. "Host would not say" is the verdict and it is what the column
+  // is for; whether the host was rate-limiting us or simply down is the next
+  // question, and it belongs one hover away, not in the width of the cell.
+  const why = task.reason ? reasonKey[task.reason] : undefined;
   return (
     <span className="inline-flex min-w-0 items-center gap-2">
       <StatusPill status={task.status} />
-      {/* An availability verdict is worth showing only while nothing has been
-          attempted yet; once a transfer is running, the status is the answer. */}
-      {task.status === 'collected' && task.online === 'online' && (
-        <span className="truncate text-[11px] text-statusOk">{t('task.online')}</span>
-      )}
-      {task.status === 'collected' && task.online === 'offline' && (
-        <span className="truncate text-[11px] text-statusFail">{t('task.offline')}</span>
-      )}
-      {task.status === 'collected' && task.online === 'uncheckable' && (
-        <span className="truncate text-[11px] text-carbon-textMuted">{t('task.uncheckable')}</span>
+      {chip && (
+        <span title={why ? t(why) : undefined} className={`truncate text-[11px] ${chip.tone}`}>
+          {t(chip.key)}
+        </span>
       )}
       {/* Only a real verdict is shown. An unverified download stays unmarked,
           because a tick that also means "not checked" is worse than none. */}

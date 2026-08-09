@@ -7,6 +7,8 @@ package resolver
 import (
 	"context"
 	"sync"
+
+	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
 // Info identifies a resolver and sets its routing priority (higher wins).
@@ -35,6 +37,55 @@ type Resolver interface {
 	Info() Info
 	Match(url string) bool
 	Resolve(ctx context.Context, req Request) (Result, error)
+}
+
+// Checker is the optional other half of a resolver: a backend that can be asked
+// whether a link is still there without fetching it. Implementing it is what
+// moves a service's links off core.AvailUnknown, which says "nobody has looked"
+// and is a lie the moment somebody presses Check.
+//
+// The batch is the interface and not an optimisation inside it. Every service
+// that answers this question answers it for a list, and a caller holding fifty
+// links that asks fifty times is a caller whose key gets rate-limited - so the
+// one-link form is deliberately absent, because it is the shape that would get
+// written by accident.
+//
+// The contract is one verdict per URL, in the order they were given. A service
+// that cannot answer for a particular link returns core.AvailUncheckable for it
+// rather than dropping it, because a short slice silently re-aligns every
+// verdict after the gap onto the wrong link. Callers should still run the answer
+// through Answers, which is the only cheap defence against a service that
+// changes its mind about that.
+//
+// An error means the batch was not answered at all - a refused key, a service
+// that is down. It never means "these links are gone": the caller files the
+// whole batch as uncheckable and says so.
+type Checker interface {
+	Check(ctx context.Context, urls []string) ([]core.Availability, error)
+}
+
+// Answers squares what a Checker returned against the number of links it was
+// asked about, filling anything missing with core.AvailUncheckable and dropping
+// anything extra.
+//
+// It exists because the alternative is an index-out-of-range in the caller, and
+// the input is a remote service's JSON: the day a provider adds an entry for a
+// link it expanded, or omits one it did not recognise, is a day this app must
+// still be able to draw its list.
+func Answers(got []core.Availability, want int) []core.Availability {
+	out := make([]core.Availability, want)
+	for i := range out {
+		if i < len(got) && got[i] != "" {
+			out[i] = got[i]
+			continue
+		}
+		// AvailUncheckable and not AvailUnknown, including for an empty string the
+		// service did send: a link that went out in a check request has been looked
+		// at, whatever came back. Leaving it "" would put it back among the links
+		// nobody has touched and hide it from the person who just asked.
+		out[i] = core.AvailUncheckable
+	}
+	return out
 }
 
 // Registry keeps resolvers ordered by descending priority. It is safe for

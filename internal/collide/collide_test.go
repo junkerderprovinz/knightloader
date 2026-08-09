@@ -10,6 +10,8 @@ import (
 	"sync"
 	"testing"
 	"unicode/utf8"
+
+	gopeed "github.com/GopeedLab/gopeed/pkg/util"
 )
 
 func write(t *testing.T, path, content string) {
@@ -635,6 +637,242 @@ func TestParsePolicyFoldsUnknownInputOntoTheSafeDefault(t *testing.T) {
 	for _, p := range Policies() {
 		if ParsePolicy(string(p)) != p {
 			t.Fatalf("policy %q is offered but does not round-trip through ParsePolicy", p)
+		}
+	}
+}
+
+// gopeedName is the path as the download library would build it, with forward
+// slashes, because its duplicate check splits on "/" and nothing else. Handing
+// it a Windows path directly would make it read the whole path as the file name
+// and the test would pass for the wrong reason.
+func gopeedName(t *testing.T, p string) string {
+	t.Helper()
+	name, err := gopeed.CheckDuplicateAndRename(filepath.ToSlash(p))
+	if err != nil {
+		t.Fatalf("the library's own duplicate check failed on %s: %v", p, err)
+	}
+	return name
+}
+
+// THE HANDOVER TRAP. The library runs its own duplicate check on the name it is
+// given and there is no setting that turns that off, so a placeholder left in
+// place is a file it finds - and it renames around our rename. If this fails,
+// the user asked for "name (2).ext" and got "name (2) (2).ext", and the counter
+// climbs by one more on every retry.
+func TestHandoverLeavesNothingForTheWriterToRenameAround(t *testing.T) {
+	cases := []struct {
+		name     string
+		policy   Policy
+		existing bool
+		wantBase string
+		wantAct  Action
+	}{
+		{name: "rename counts up", policy: Rename, existing: true, wantBase: "movie (2).mkv", wantAct: Renamed},
+		{name: "rename on a free name", policy: Rename, wantBase: "movie.mkv", wantAct: Created},
+		// Overwrite has to give the name up too, and it is the one that looks safe
+		// to keep: Reserve already truncated that file to zero, so dropping the
+		// empty husk loses no bytes - keeping it would only make the library rename
+		// around it and write "movie (1).mkv" beside the file it was told to
+		// replace, leaving the old one exactly where overwrite promised it would
+		// not be.
+		{name: "overwrite frees the name", policy: Overwrite, existing: true, wantBase: "movie.mkv", wantAct: Overwritten},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			dir := t.TempDir()
+			target := filepath.Join(dir, "movie.mkv")
+			if c.existing {
+				write(t, target, "already here")
+			}
+			r, err := Handover(target, c.policy)
+			if err != nil {
+				t.Fatalf("handover: %v", err)
+			}
+			if r.Action != c.wantAct {
+				t.Fatalf("Action = %q, want %q", r.Action, c.wantAct)
+			}
+			if got := filepath.Base(r.Path); got != c.wantBase {
+				t.Fatalf("Path = %q, want base %q", r.Path, c.wantBase)
+			}
+			if r.File != nil {
+				t.Fatal("the handover kept the handle, so the name is still held open")
+			}
+			if exists(t, r.Path) {
+				t.Fatalf("%s still exists, so the writer will rename around it", r.Path)
+			}
+			// The assertion that matters, made with the library's own function
+			// instead of with a belief about it: the duplicate check has to be a
+			// no-op on the name being handed over.
+			if got := gopeedName(t, r.Path); got != c.wantBase {
+				t.Fatalf("the library would rename %q to %q; the handover did not clear the name", c.wantBase, got)
+			}
+		})
+	}
+}
+
+// If this fails, the name that is reserved and the name that is written are two
+// different files: the library rewrites what it is handed, so a reservation made
+// under a name it would rewrite holds nothing, and the download lands on top of
+// whatever is sitting at the rewritten name.
+func TestReserveClaimsTheNameThatWillActuallyBeWritten(t *testing.T) {
+	cases := []struct {
+		name string
+		base string
+	}{
+		{"a character the writer replaces", "sea:son.mkv"},
+		{"longer than the writer allows", strings.Repeat("n", 150) + ".mkv"},
+		{"both at once", strings.Repeat("n", 150) + ":x.mkv"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			dir := t.TempDir()
+			r, err := Reserve(filepath.Join(dir, c.base), Rename)
+			if err != nil {
+				t.Fatalf("reserve: %v", err)
+			}
+			defer r.File.Close()
+			got := filepath.Base(r.Path)
+			if SafeName(got) != got {
+				t.Fatalf("reserved %q, which the writer would rewrite to %q", got, SafeName(got))
+			}
+			if !exists(t, r.Path) {
+				t.Fatalf("%s was not created, so the reservation holds nothing", r.Path)
+			}
+			// The counter has to stay inside the same budget, or the second copy of
+			// a long name is reserved at one name and written at another.
+			second, err := Reserve(filepath.Join(dir, c.base), Rename)
+			if err != nil {
+				t.Fatalf("second reserve: %v", err)
+			}
+			defer second.File.Close()
+			next := filepath.Base(second.Path)
+			if SafeName(next) != next {
+				t.Fatalf("counted name %q would be rewritten to %q", next, SafeName(next))
+			}
+			if next == got {
+				t.Fatalf("both reservations got %q, so one download overwrites the other", got)
+			}
+		})
+	}
+}
+
+// A folder is counted whole. If this fails, a multi-file download called
+// "Show.S01.1080p" lands in "Show.S01 (2).1080p", because the rule written for
+// file extensions was applied to a name that has none.
+func TestHandoverFolderCountsWithoutSplittingTheName(t *testing.T) {
+	dir := t.TempDir()
+	target := filepath.Join(dir, "Show.S01.1080p")
+	if err := os.Mkdir(target, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	write(t, filepath.Join(target, "ep01.mkv"), "episode")
+
+	r, err := HandoverFolder(target, Rename)
+	if err != nil {
+		t.Fatalf("handover: %v", err)
+	}
+	if got := filepath.Base(r.Path); got != "Show.S01.1080p (2)" {
+		t.Fatalf("folder = %q, want %q", got, "Show.S01.1080p (2)")
+	}
+	if exists(t, r.Path) {
+		t.Fatal("the reserved folder is still there, so the writer may rename around it")
+	}
+	if !exists(t, filepath.Join(target, "ep01.mkv")) {
+		t.Fatal("the folder that was already there lost its contents")
+	}
+}
+
+// Overwrite means "truncate one file", and there is no honest reading of it for
+// a folder. If this fails, a setting somebody chose for files deletes a
+// directory tree.
+func TestHandoverFolderRefusesToOverwrite(t *testing.T) {
+	dir := t.TempDir()
+	target := filepath.Join(dir, "Season 1")
+	if err := os.Mkdir(target, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	write(t, filepath.Join(target, "ep01.mkv"), "episode")
+
+	if _, err := HandoverFolder(target, Overwrite); !errors.Is(err, ErrFolderOverwrite) {
+		t.Fatalf("error = %v, want ErrFolderOverwrite", err)
+	}
+	if !exists(t, filepath.Join(target, "ep01.mkv")) {
+		t.Fatal("the folder was emptied by a policy that is supposed to refuse")
+	}
+}
+
+// Skip and ask mean for a folder what they mean for a file, and neither may
+// leave a reservation behind: nothing was claimed, so there is nothing to clear.
+func TestHandoverFolderHonoursTheOtherPolicies(t *testing.T) {
+	for _, c := range []struct {
+		policy  Policy
+		wantAct Action
+		wantErr error
+	}{
+		{Skip, Skipped, nil},
+		{Ask, NeedsDecision, ErrNeedsDecision},
+	} {
+		t.Run(string(c.policy), func(t *testing.T) {
+			dir := t.TempDir()
+			target := filepath.Join(dir, "Season 1")
+			if err := os.Mkdir(target, 0o755); err != nil {
+				t.Fatal(err)
+			}
+			write(t, filepath.Join(target, "ep01.mkv"), "episode")
+
+			r, err := HandoverFolder(target, c.policy)
+			if !errors.Is(err, c.wantErr) {
+				t.Fatalf("error = %v, want %v", err, c.wantErr)
+			}
+			if r.Action != c.wantAct {
+				t.Fatalf("Action = %q, want %q", r.Action, c.wantAct)
+			}
+			if !exists(t, filepath.Join(target, "ep01.mkv")) {
+				t.Fatal("the folder that was already there lost its contents")
+			}
+		})
+	}
+}
+
+// A folder claim is a real claim: the second caller must not be handed the name
+// the first one just took, and an unused one has to be cleared again.
+func TestFolderReservationsAreExclusiveAndReleasable(t *testing.T) {
+	dir := t.TempDir()
+	target := filepath.Join(dir, "Season 1")
+
+	first, err := Options{}.reserve(target, Rename, true)
+	if err != nil {
+		t.Fatalf("first: %v", err)
+	}
+	second, err := Options{}.reserve(target, Rename, true)
+	if err != nil {
+		t.Fatalf("second: %v", err)
+	}
+	if first.Path == second.Path {
+		t.Fatalf("both callers were given %q", first.Path)
+	}
+	if !exists(t, first.Path) || !exists(t, second.Path) {
+		t.Fatal("a folder reservation created no directory, so it holds nothing")
+	}
+	if err := second.Release(); err != nil {
+		t.Fatalf("release: %v", err)
+	}
+	if exists(t, second.Path) {
+		t.Fatal("releasing an unused folder reservation left the directory behind")
+	}
+}
+
+// A path whose last element is not a name is a caller mistake, and sanitizing it
+// would invent one: on Windows the separator itself becomes an underscore, so
+// the download would land in a file called "_" beside the folder it was meant
+// for.
+func TestReserveRefusesAPathThatNamesNothing(t *testing.T) {
+	// Built by hand: filepath.Join cleans "." and ".." away, and the caller that
+	// gets this wrong joins a directory with a name it never checked.
+	base := t.TempDir() + string(filepath.Separator)
+	for _, target := range []string{base + ".", base + "..", string(filepath.Separator)} {
+		if _, err := Reserve(target, Rename); err == nil {
+			t.Fatalf("%q was accepted as a target", target)
 		}
 	}
 }
