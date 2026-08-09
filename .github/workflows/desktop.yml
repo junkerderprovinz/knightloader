@@ -20,12 +20,25 @@ jobs:
           - os: windows-latest
             platform: windows/amd64
             slug: windows-amd64
+            extra: ""
           - os: macos-latest
             platform: darwin/universal
             slug: macos-universal
+            extra: ""
+          # Wails binds webkit2gtk-4.0 unless told otherwise, and Ubuntu 24.04
+          # does not carry it any more: 4.1 is the only one packaged. The apt
+          # line below installs 4.1 correctly and the build still failed, with
+          # pkg-config asking for "webkit2gtk-4.0, required by virtual:world",
+          # which reads like a missing package rather than a version the distro
+          # dropped. The tag is Wails' own answer to that (v2.6 and later), and
+          # it is Linux-only because the other two platforms do not use webkit
+          # at all. Carried as a whole flag string so the expansion is empty on
+          # those two - the step runs under bash on Linux and pwsh on Windows,
+          # and no conditional-expansion syntax works in both.
           - os: ubuntu-latest
             platform: linux/amd64
             slug: linux-amd64
+            extra: "-tags webkit2_41"
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     steps:
@@ -63,7 +76,7 @@ jobs:
         working-directory: desktop
         run: |
           go mod tidy
-          wails build -platform ${{ matrix.platform }} -clean
+          wails build -platform ${{ matrix.platform }} -clean ${{ matrix.extra }}
 
       # Named by the slug, not the platform string: "windows/amd64" contains a
       # slash, which artifact names and release assets both take badly.

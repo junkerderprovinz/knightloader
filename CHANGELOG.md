@@ -63,6 +63,11 @@ What follows is what exists and runs.
   mapped alongside which did not. The automatic reconnect fires only when a
   backend itself asked for a later retry, never while the queue is halted, and
   never more than one at a time.
+- **Native desktop applications** for Windows, macOS and Linux alongside the
+  container. The window is a webview served by the very same HTTP handler the
+  container serves, so the engine, the resolvers, the API and the interface are
+  not a second implementation that can drift from the first. Every release tag
+  builds all three and attaches them to the release.
 - **42 languages**, each fetched only when chosen, right-to-left included.
 - **GlimStone**, the design language the interface is built on, documented in
   `docs/design-language.md`. Its CSS prefix is `glim-`. The palette is IBM
