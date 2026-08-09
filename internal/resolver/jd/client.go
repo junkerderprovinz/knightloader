@@ -99,6 +99,25 @@ func (c *Client) Ping() error {
 	return nil
 }
 
+// Version asks JD for its own build - the "jd" namespace's version() call,
+// which JDownloader itself defines as its revision number
+// (org.jdownloader.api.jd.JDAPIImpl in JD's own open source: version()
+// returns JDUtilities.getRevisionNumber()). It is a plain, monotonically
+// increasing integer, not a semantic version string - that is genuinely how
+// JD reports itself, in its own UI as well as here, so this is deliberately
+// int64 rather than a parsed "vX.Y.Z" this app would have to invent.
+func (c *Client) Version() (int64, error) {
+	data, err := c.call("/jd/version")
+	if err != nil {
+		return 0, err
+	}
+	var v int64
+	if err := json.Unmarshal(data, &v); err != nil {
+		return 0, fmt.Errorf("jd /jd/version: %w", err)
+	}
+	return v, nil
+}
+
 // AddLinks pushes links into JD. autostart=true makes JD crawl, move to the
 // download list and start automatically. Returns the collecting job id.
 func (c *Client) AddLinks(links, packageName string, autostart bool) (int64, error) {

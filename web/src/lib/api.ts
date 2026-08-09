@@ -202,14 +202,104 @@ export interface Settings {
   rainbowPalette: string[] | null;
 }
 
+/**
+ * One configured account row, mirroring app.AccountState (internal/app/app_accounts.go) -
+ * one per stored or container-supplied credential, never one per catalogue
+ * entry. The secret itself is never part of this shape: `configured` is all
+ * the page ever learns about whether one is set.
+ */
 export interface Account {
+  /** What every account/label/enabled call sends back - see app.metaKey. */
   id: string;
+  /** Catalogue id - accounts.Lookup(service) in CatalogueService[]. */
+  service: string;
+  /** "" for a service's default (only) account, a caller-chosen id otherwise. */
+  account: string;
   label: string;
+  enabled: boolean;
   configured: boolean;
+  /** fromEnv + envVar together are the reason a credential is read-only on the
+   *  page - see app.AccountState. */
   fromEnv: boolean;
+  envVar?: string;
   ok: boolean;
   detail: string;
   hosts: number;
+  /**
+   * When this service's ROUTING host list (the set links are actually
+   * matched against, refreshed on a timer and on demand - see
+   * app.fetchDebridHosts) was last actually obtained. RFC3339, or absent
+   * before the very first successful fetch - format with fmtDate. A
+   * different question from `hosts`: that is a count from the last live
+   * "Refresh" this row ran; this is when the number ROUTING is using was
+   * last confirmed current, which a failing service can leave older than
+   * that without ever going empty.
+   */
+  hostsFetchedAt?: string;
+  /**
+   * The account-health ticker's cached reading - never the result of a call
+   * made while answering this request (see app.AccountHealth). "unknown" is
+   * the default until the ticker's first successful read, and it must never
+   * be treated as "free": those are different facts, and conflating them is
+   * how a paying user ends up watching this column call their account Free.
+   */
+  tier: string;
+  /** {used, limit, unlimited, resetsAt} - see TrafficState. Check `unlimited`
+   *  before ever computing a percentage from `used`/`limit`: both are the zero
+   *  value while it is true, and a bar fed a zero maximum reads as "out of
+   *  traffic", the opposite of what unlimited means. */
+  traffic: TrafficState;
+  /** Filled in by the account-health refresher; empty means "not fetched yet",
+   *  rendered as a dash rather than treated as a real answer. RFC3339 when
+   *  present - format with fmtDate. */
+  expiry?: string;
+  trafficLeft?: string;
+}
+
+/** One account's traffic allowance - app.TrafficState (internal/app/app_accounts.go). */
+export interface TrafficState {
+  used: number;
+  limit: number;
+  unlimited: boolean;
+  /** RFC3339, or absent when the service does not say when this resets. */
+  resetsAt?: string;
+}
+
+/** Which shape of secret a service needs - accounts.Kind (internal/accounts/catalogue.go). */
+export type ServiceKind = 'apiKey' | 'usernamePassword';
+
+/** Which section of the accounts page a service belongs to - accounts.Group. */
+export type ServiceGroup = 'debrid' | 'hoster';
+
+/**
+ * One entry in the service catalogue GET /api/accounts/catalogue returns -
+ * mirrors accounts.Service (internal/accounts/catalogue.go). This is the
+ * single source the accounts page reads for what services exist, which
+ * section each belongs to and what form its credential takes; never a
+ * hardcoded list here.
+ */
+export interface CatalogueService {
+  id: string;
+  label: string;
+  kind: ServiceKind;
+  group: ServiceGroup;
+  /** Set when a container env var can supply this credential instead of the
+   *  encrypted store - absent for a service with no such override. */
+  env?: string;
+  whereUrl: string;
+}
+
+/** What a credential POST/verify body carries - accounts.Credential's wire shape. */
+export interface AccountCredential {
+  apiKey?: string;
+  username?: string;
+  password?: string;
+}
+
+export interface VerifyResult {
+  ok: boolean;
+  hosts: number;
+  detail: string;
 }
 
 export interface QueueState {
@@ -820,9 +910,132 @@ export async function fetchAccounts(): Promise<Account[]> {
   return (await json<Account[]>(await fetch('/api/accounts'))) ?? [];
 }
 
-// testAccount asks the service whether the stored credential actually works.
-export async function testAccount(service: string): Promise<Account> {
-  return json<Account>(await fetch(`/api/accounts/${encodeURIComponent(service)}/test`, { method: 'POST' }));
+// fetchAccountCatalogue is every service KnightLoader can store a credential
+// for, configured or not - what the "new account" picker searches.
+export async function fetchAccountCatalogue(): Promise<CatalogueService[]> {
+  return (await json<CatalogueService[]>(await fetch('/api/accounts/catalogue'))) ?? [];
+}
+
+// verifyAccountCredential checks a credential against its service without
+// storing it - called before Save, so a typo shows up before it is persisted.
+export async function verifyAccountCredential(
+  service: string,
+  account: string,
+  cred: AccountCredential,
+): Promise<VerifyResult> {
+  return json<VerifyResult>(await post('/api/accounts/verify', { service, account, ...cred }));
+}
+
+// saveAccountCredential stores one account's credential.
+export async function saveAccountCredential(service: string, account: string, cred: AccountCredential): Promise<void> {
+  await ok(await post('/api/accounts', { service, account, ...cred }));
+}
+
+// removeAccountCredential clears one account's credential - a zero credential
+// is what the server reads as "delete this entry" (accounts.Credential.IsZero).
+export async function removeAccountCredential(service: string, account: string): Promise<void> {
+  await ok(await post('/api/accounts', { service, account }));
+}
+
+export async function setAccountLabel(service: string, account: string, label: string): Promise<void> {
+  await ok(await post('/api/accounts/label', { service, account, label }));
+}
+
+// setAccountEnabled gates rewireBackends exactly as a missing credential does
+// - see app.SetAccountEnabled.
+export async function setAccountEnabled(service: string, account: string, enabled: boolean): Promise<void> {
+  await ok(await post('/api/accounts/enabled', { service, account, enabled }));
+}
+
+// testAccount re-checks an already-stored account - the per-row "Refresh".
+export async function testAccount(service: string, account: string): Promise<Account> {
+  return json<Account>(await post('/api/accounts/test', { service, account }));
+}
+
+// ---- resolver routing facts (internal/resolver, GET /api/resolvers/*) -----
+
+/** One resolver's identity and priority - resolver.Info (internal/resolver/resolver.go). */
+export interface ResolverInfo {
+  id: string;
+  prio: number;
+}
+
+/**
+ * fetchResolverPriority is the deterministic order configured services are
+ * tried in, highest priority first - resolver.Registry.AllInfo when host is
+ * omitted, resolver.Registry.PriorityFor (narrowed to what actually matches
+ * that host) when it is given.
+ */
+export async function fetchResolverPriority(host?: string): Promise<ResolverInfo[]> {
+  const q = host ? `?host=${encodeURIComponent(host)}` : '';
+  return (await json<ResolverInfo[]>(await fetch(`/api/resolvers/priority${q}`))) ?? [];
+}
+
+/** The headless-JD sidecar's own status - app.JDStatus (internal/app/app_accounts.go). */
+export interface JDStatus {
+  configured: boolean;
+  reachable: boolean;
+  /** JDownloader's own revision number - a plain integer, not vX.Y.Z; absent
+   *  while `reachable` is false. */
+  version?: number;
+  detail?: string;
+}
+
+export async function fetchJDStatus(): Promise<JDStatus> {
+  return json<JDStatus>(await fetch('/api/resolvers/jd'));
+}
+
+// ---- native hoster logins (internal/hosterauth) ----------------------------
+//
+// A per-host login rendered entirely in KL's own UI (see
+// components/HosterLoginSection.tsx), never JD's own web interface. Saving one
+// writes the credential into the headless-JD sidecar's OWN account config
+// through JD's Remote API; JD's existing plugin performs the actual login.
+// This is a different store from accounts.Catalogue's - one row per host from
+// a list that can run into the hundreds, not a short hand-maintained one - so
+// it gets its own small API surface instead of overloading /api/accounts.
+
+/** One host the "add a login" picker offers - hosterauth.Host. */
+export interface HosterHost {
+  id: string;
+  label: string;
+}
+
+/**
+ * The three-way sync status one stored login can be in against JD -
+ * hosterauth.LoginStatus. 'queued' and 'rejected' are deliberately distinct:
+ * a login JD has not validated yet reads as "still checking", not as "wrong
+ * password" - collapsing the two is how a user gives up on a login seconds
+ * from working.
+ */
+export type HosterLoginStatus = 'queued' | 'active' | 'rejected';
+
+/** One stored native hoster login and its status - hosterauth.LoginState. Never the password. */
+export interface HosterLogin {
+  host: string;
+  username: string;
+  status: HosterLoginStatus;
+  detail?: string;
+}
+
+/** fetchHosterHosts is the "add a login" picker's host list. */
+export async function fetchHosterHosts(): Promise<HosterHost[]> {
+  return (await json<HosterHost[]>(await fetch('/api/hosterauth/hosts'))) ?? [];
+}
+
+/** fetchHosterLogins is every stored native hoster login and its sync status. */
+export async function fetchHosterLogins(): Promise<HosterLogin[]> {
+  return (await json<HosterLogin[]>(await fetch('/api/hosterauth/logins'))) ?? [];
+}
+
+/** saveHosterLogin stores (or updates) one host's native login. */
+export async function saveHosterLogin(host: string, username: string, password: string): Promise<void> {
+  await ok(await post('/api/hosterauth/logins', { host, username, password }));
+}
+
+/** removeHosterLogin clears one host's stored native login. */
+export async function removeHosterLogin(host: string): Promise<void> {
+  await ok(await post('/api/hosterauth/logins/remove', { host }));
 }
 
 export async function fetchAuth(): Promise<AuthState> {
@@ -848,13 +1061,6 @@ export async function setPassword(current: string, next: string): Promise<AuthSt
   if (!r.ok) throw new Error(await r.text());
   return json<AuthState>(r);
 }
-
-export const saveAccount = (service: string, secret: string) =>
-  fetch('/api/accounts', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ service, secret }),
-  });
 
 export async function fetchHealth(): Promise<{ status: string; version: string }> {
   return json(await fetch('/api/health'));

@@ -12,9 +12,12 @@ import (
 )
 
 // Info identifies a resolver and sets its routing priority (higher wins).
+//
+// Tagged for JSON because PriorityFor exists to make that order visible to a
+// user, not only to act on internally - see Registry.PriorityFor.
 type Info struct {
-	ID   string
-	Prio int
+	ID   string `json:"id"`
+	Prio int    `json:"prio"`
 }
 
 // Request is what the resolver is asked to resolve.
@@ -62,6 +65,20 @@ type Resolver interface {
 // whole batch as uncheckable and says so.
 type Checker interface {
 	Check(ctx context.Context, urls []string) ([]core.Availability, error)
+}
+
+// HostCapper is the optional other half of a resolver that can state a
+// ceiling on how many chunks one download against a given host may safely
+// open - the per-host fact a multihoster account sometimes has an opinion
+// about (see internal/resolver/debrid.HostLimiter), read by
+// app.connsFor as one more ceiling in its chain.
+//
+// Kept off Resolver itself for the same reason Checker is: a resolver with
+// nothing to say about a host must not be forced to grow a method that
+// invents a number. 0 means "no opinion" - read by the caller exactly like
+// every other absent ceiling in connsFor, never as "zero connections".
+type HostCapper interface {
+	HostCap(host string) int
 }
 
 // Answers squares what a Checker returned against the number of links it was
@@ -166,4 +183,42 @@ func (r *Registry) For(url string) Resolver {
 		}
 	}
 	return nil
+}
+
+// AllInfo lists every registered resolver's identity, in the exact order
+// resolverForTaskLocked would try them for a URL every one of them matched -
+// highest priority first, ties broken by registration order (see Register).
+// It is host-independent: what a user configures determines who is even in
+// this list, priority alone determines the order within it.
+//
+// This is the "user-visible" half of routing priority. Before it, the only
+// way to answer "which of my two debrid accounts actually gets asked first"
+// was to read Info.Prio in the source of each resolver package - a deterministic
+// order nobody could see was, in every way that matters to the person who
+// configured it, the same as no order at all.
+func (r *Registry) AllInfo() []Info {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	out := make([]Info, 0, len(r.list))
+	for _, res := range r.list {
+		out = append(out, res.Info())
+	}
+	return out
+}
+
+// PriorityFor narrows AllInfo to the services that would actually be asked
+// for one host - the chain resolverForTaskLocked and nextResolverLocked walk
+// when a link on that host comes in, in the order they walk it.
+//
+// host is turned into a URL because Match is written against one: every
+// resolver in this tree only ever inspects the scheme and the hostname, so a
+// synthetic "https://<host>/" matches exactly what a real link on that host
+// would.
+func (r *Registry) PriorityFor(host string) []Info {
+	list := r.All("https://" + host + "/")
+	out := make([]Info, 0, len(list))
+	for _, res := range list {
+		out = append(out, res.Info())
+	}
+	return out
 }

@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
 import { QueueBar } from '../components/QueueBar';
 import { ShellStrip } from '../components/QuickSettings';
+import { AccountStrip } from '../components/AccountStrip';
 import { InfoBubble } from '../components/ui';
 import { connectWS, fetchSettings, type Task } from '../lib/api';
 import { applyAccent, applyRainbow, applyShape, cacheAppearance, rainbowFromSettings } from '../lib/appearance';
@@ -113,6 +114,10 @@ function ShellBar() {
           something they would have to delete first. Read the scope above with
           useInstanceScope(): nothing in this bar may assume '/api'. */}
       <ShellStrip />
+      {/* Wave 6 (6B): tier/traffic/expiry for every enabled debrid account,
+          reading a cached snapshot only - see AccountStrip's own doc comment
+          for why it never calls a live per-service check from here. */}
+      <AccountStrip />
     </div>
   );
 }

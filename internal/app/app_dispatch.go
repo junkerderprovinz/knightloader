@@ -8,6 +8,7 @@ import (
 	"context"
 	"log"
 	"path/filepath"
+	"sort"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/collide"
@@ -16,28 +17,104 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
-// resolverForTaskLocked picks the resolver a task should be dispatched through:
-// the one recorded on it if that still exists, else the best current match.
+// dynamicPrio is what res's priority actually is for this specific url -
+// ordinarily just Info().Prio, frozen at Registry.Register time and blind to
+// the URL entirely, except for JD. A confirmed-active native hoster login
+// (internal/hosterauth's reconciler, via jd.SetHostActive) earns that host's
+// links a priority above resolver.Direct's fixed 40, and a single
+// registration-time number cannot express "above Direct for this host,
+// unchanged for every other one" - see jd.PriorityFor's own doc comment,
+// which names this exact function as the wiring it was built for and did
+// not yet have.
+//
+// Special-cased on the resolver id rather than an interface because
+// jd.Resolver carries the answer as a package-level function, not a method -
+// internal/resolver/jd/resolver.go is agent 6D's file this wave, not this
+// one's to add a method to. Anything else answers the same number Info()
+// always has; if a second resolver ever needs the same per-URL treatment,
+// that is the point to grow this into an interface both can implement.
+func dynamicPrio(res resolver.Resolver, url string) int {
+	if res.Info().ID == "jd" {
+		return jd.PriorityFor(url)
+	}
+	return res.Info().Prio
+}
+
+// rankedChain is chain, stably re-ordered by dynamicPrio rather than trusted
+// in the registry's own frozen order. Stable, so that two matches dynamicPrio
+// does not distinguish keep exactly the order Registry.All (and so the
+// registry's own Prio-at-Register-time sort) already gave them - the re-rank
+// only ever moves JD, and only for a host it has just earned a boost for.
+func rankedChain(chain []resolver.Resolver, url string) []resolver.Resolver {
+	out := make([]resolver.Resolver, len(chain))
+	copy(out, chain)
+	sort.SliceStable(out, func(i, j int) bool {
+		return dynamicPrio(out[i], url) > dynamicPrio(out[j], url)
+	})
+	return out
+}
+
+// hostCapFor is the per-host connection ceiling the resolver about to carry
+// this task has an opinion about, or 0 for one that does not - see
+// resolver.HostCapper. It is read here, once, at the exact point connsFor's
+// own ceilings list is built, so a multihoster's per-host fact joins that
+// list precisely as documented on connsFor: one more ceiling, never a second
+// competing limit.
+func hostCapFor(res resolver.Resolver, host string) int {
+	hc, ok := res.(resolver.HostCapper)
+	if !ok {
+		return 0
+	}
+	return hc.HostCap(host)
+}
+
+// resolverForTaskLocked picks the resolver a task should be dispatched
+// through: the one recorded on it if that still exists AND its account is
+// currently usable, else the best current match by rankedChain whose account
+// is also usable - see accountRoutableLocked (app_health.go). A resolver
+// whose account has been benched is passed over here rather than at the
+// registry: it stays fully registered (docs/build-plan.md package 14, row 2),
+// so a task recorded on a now-benched resolver falls through to the next one
+// in the chain instead of being stranded on a backend this function refuses
+// to return.
+//
+// The fallback loop below is written out inline rather than delegated to a
+// helper in app_health.go: the one that used to make this identical decision
+// (against the registry's frozen order) had no seam to hand it rankedChain's
+// re-ranked order instead, and app_health.go is another agent's file this
+// wave. accountRoutableLocked itself is exported for exactly this: called
+// from here, never edited here.
+//
 // Caller holds a.mu.
 func (a *App) resolverForTaskLocked(t *core.Task) resolver.Resolver {
-	if t.Resolver != "" {
+	if t.Resolver != "" && a.accountRoutableLocked(t.Resolver) {
 		for _, res := range a.Registry.All(t.URL) {
 			if res.Info().ID == t.Resolver {
 				return res
 			}
 		}
 	}
-	return a.Registry.For(t.URL)
+	for _, res := range rankedChain(a.Registry.All(t.URL), t.URL) {
+		if a.accountRoutableLocked(res.Info().ID) {
+			return res
+		}
+	}
+	return nil
 }
 
 // nextResolverLocked returns the resolver that should try after the one the
-// task just used, or "" when the chain is exhausted. Caller holds a.mu.
+// task just used, or "" when the chain is exhausted. Walks rankedChain rather
+// than the registry's raw order for the same reason resolverForTaskLocked
+// does: a task that started on a dynamically-promoted JD must fall back to
+// whatever actually came next in THAT order, not the frozen one it never used.
+// Caller holds a.mu.
 func (a *App) nextResolverLocked(t *core.Task) string {
-	chain := a.Registry.All(t.URL)
+	chain := rankedChain(a.Registry.All(t.URL), t.URL)
 	for i, res := range chain {
 		if res.Info().ID == t.Resolver {
 			if i+1 < len(chain) {
@@ -234,6 +311,15 @@ func (a *App) dispatchLocked() {
 		// is deliberately not the highest-priority match any more.
 		res := a.resolverForTaskLocked(t)
 		if res == nil {
+			if a.hasUnroutableMatchLocked(t.URL) {
+				// Something DOES claim this link - it is just benched right
+				// now (app_health.go). Hold it exactly where it is instead
+				// of settling it as unsupported, which would be a lie about
+				// a link every one of these backends can normally fetch -
+				// see docs/build-plan.md package 14, row 2.
+				rest = append(rest, id)
+				continue
+			}
 			t.Status = core.StatusError
 			t.Error = "no resolver matches"
 			t.Reason = core.ReasonUnsupported
@@ -292,7 +378,7 @@ func (a *App) dispatchLocked() {
 		a.active[id] = true
 		a.started[id] = true
 		a.countStartLocked(t, h, perHost, &forcedActive, &normalActive)
-		conns := connsFor(t, cfg, result.Connections)
+		conns := connsFor(t, cfg, result.Connections, hostCapFor(res, h))
 		// Which outbound connection carries this one. Until this call existed,
 		// proxycfg.NewPicker had no caller anywhere in the tree: connections could
 		// be added, filtered, ordered and switched on, and every download still
@@ -536,6 +622,21 @@ func (a *App) onUpdate(id string, u core.Update) {
 		// which is handled below.
 		t.Reason = classify(failure{text: u.Err})
 	}
+	// Told to account health before anything below re-dispatches the slot this
+	// terminal status frees, so a queued task sharing this one's account sees
+	// the fresh verdict on the very next pass rather than the one after. A
+	// resolver with no tracked account (jd, ytdlp, the engine's own
+	// direct/http-fallback) answers ok=false and nothing happens here - see
+	// app_health.go's accountForResolverLocked.
+	var accountUnroutable bool
+	if svc, acct, ok := a.accountForResolverLocked(t.Resolver); ok {
+		switch u.Status {
+		case core.StatusError:
+			accountUnroutable = a.reportAccountFailure(svc, acct, t.Reason, u.Err)
+		case core.StatusDone:
+			a.reportAccountSuccess(svc, acct)
+		}
+	}
 	// Terminal states free the scheduling slot for the next queued task.
 	if u.Status == core.StatusDone || u.Status == core.StatusError {
 		delete(a.active, id)
@@ -596,6 +697,35 @@ func (a *App) onUpdate(id string, u core.Update) {
 			// turn and said the link is not its business.
 			t.Reason = core.ReasonUnsupported
 		}
+	} else if u.Status == core.StatusError && accountUnroutable {
+		// The account this task was using is unavailable - benched, invalid,
+		// expired or in error (accountForResolverLocked/reportAccountFailure,
+		// app_health.go) - not the link's own fault. Row 2 of account health:
+		// this must not turn into a hard error for the task, only into the
+		// same requeue-and-try-the-next-backend shape u.Unsupported already
+		// gets above, so it is held for the fallback chain exactly like the
+		// queued tasks resolverForTaskLocked already skips this account for.
+		fallbackTo = a.backendFor(t.Resolver)
+		next := a.nextResolverLocked(t)
+		if next != "" {
+			log.Printf("task %s: the account behind %s is unavailable, trying %s", id, t.Resolver, next)
+		} else {
+			// Nothing else claims this link either. Clearing the resolver
+			// sends the next dispatch pass back to resolverForTaskLocked's
+			// own search instead of pinning the task to a backend that just
+			// proved unusable; hasUnroutableMatchLocked is what holds it
+			// quietly there if that search also comes up empty.
+			log.Printf("task %s: the account behind %s is unavailable, holding for it to recover", id, t.Resolver)
+		}
+		t.Resolver = next
+		t.Status = core.StatusQueued
+		t.Error = ""
+		t.Reason = core.ReasonUnknown
+		t.Loaded = 0
+		t.Speed = 0
+		delete(a.started, id)
+		a.queue = append(a.queue, id)
+		a.dispatchLocked()
 	}
 
 	// The mirror set follows the task, and it is read from the task's own status
