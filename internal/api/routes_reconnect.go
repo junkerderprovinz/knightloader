@@ -3,6 +3,7 @@ package api
 // Asking the router for a new public address.
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
@@ -19,7 +20,20 @@ import (
 // and the user would be looking at two different answers about one page.
 type reconnectState struct {
 	app.ReconnectState
+	// Reason is the English sentence. It stays because it is what a log, a
+	// scripted client and `curl` all want, and because a code the interface has
+	// not learned yet must still say something.
 	Reason string `json:"reason,omitempty"`
+	// ReasonCode is the same fact as a value, for an interface that has words of
+	// its own in forty-two languages. The sentence cannot be translated on this
+	// side: the server would need the reader's language on a settings request,
+	// and the log would then be written in whoever asked last.
+	ReasonCode string `json:"reasonCode,omitempty"`
+	// The one detail each code needs: the offending request's position, the
+	// unrecognised method as typed, the variable with no value.
+	ReasonN      int    `json:"reasonN,omitempty"`
+	ReasonMethod string `json:"reasonMethod,omitempty"`
+	ReasonVar    string `json:"reasonVar,omitempty"`
 }
 
 func registerReconnect(reg *Registry, a *app.App) {
@@ -31,6 +45,14 @@ func registerReconnect(reg *Registry, a *app.App) {
 				// reaches the password. Every other error out of this package goes
 				// through Config.redact for exactly that reason.
 				st.Reason = err.Error()
+				// The typed half, when the error carries one. Anything else that
+				// ever comes back from Validate keeps the sentence and no code,
+				// which the page renders verbatim rather than showing a blank.
+				var p *reconnect.ConfigProblem
+				if errors.As(err, &p) {
+					st.ReasonCode, st.ReasonN = p.Code, p.N
+					st.ReasonMethod, st.ReasonVar = p.Method, p.Var
+				}
 			}
 			writeJSON(w, st)
 		})

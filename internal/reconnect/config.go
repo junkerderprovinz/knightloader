@@ -270,18 +270,18 @@ func (c Config) Validate() error {
 	switch c.Method {
 	case MethodCommand:
 		if strings.TrimSpace(c.Command) == "" {
-			return fmt.Errorf("%w: the command method has no program to run", ErrNotConfigured)
+			return &ConfigProblem{Code: ProblemNoCommand}
 		}
 	case MethodHTTP:
 		if len(c.Requests) == 0 {
-			return fmt.Errorf("%w: the request method has no requests", ErrNotConfigured)
+			return &ConfigProblem{Code: ProblemNoRequests}
 		}
 		for i, q := range c.Requests {
 			// An entry with no URL is refused rather than skipped. Skipping it
 			// would leave a script that logs in and never reboots, and that
 			// failure shows up as "the address never changes" days later.
 			if strings.TrimSpace(q.URL) == "" {
-				return fmt.Errorf("%w: request %d has no URL", ErrNotConfigured, i+1)
+				return &ConfigProblem{Code: ProblemRequestNoURL, N: i + 1}
 			}
 		}
 	case MethodUPnP:
@@ -290,13 +290,13 @@ func (c Config) Validate() error {
 		// their router's details can still reconnect.
 	case MethodScript:
 		if strings.TrimSpace(c.Interpreter) == "" {
-			return fmt.Errorf("%w: the script method has no interpreter to run it with", ErrNotConfigured)
+			return &ConfigProblem{Code: ProblemNoInterpreter}
 		}
 		if strings.TrimSpace(c.Script) == "" {
-			return fmt.Errorf("%w: the script method has no script", ErrNotConfigured)
+			return &ConfigProblem{Code: ProblemNoScript}
 		}
 	case MethodNone, "":
-		return fmt.Errorf("%w: reconnect is switched off", ErrNotConfigured)
+		return &ConfigProblem{Code: ProblemOff}
 	default:
 		// Sanitize folds a method it does not recognise into MethodNone, so a
 		// caller validating raw form input is the last place the word the user
@@ -304,22 +304,100 @@ func (c Config) Validate() error {
 		// somebody who typed "ssdp" sends them to the on/off toggle, which is
 		// already on, and the real problem - a word three fields away that
 		// nothing has normalised yet - never gets looked at.
-		return fmt.Errorf("%w: unknown reconnect method %q", ErrNotConfigured, c.Method)
+		return &ConfigProblem{Code: ProblemUnknownMethod, Method: c.Method}
 	}
 	if strings.TrimSpace(c.CheckURL) == "" {
 		// Without a check there is no way to tell a reconnect from a no-op, and
 		// this package refuses to report a success it cannot prove.
-		return fmt.Errorf("%w: no IP check URL", ErrNotConfigured)
+		return &ConfigProblem{Code: ProblemNoCheckURL}
 	}
 	if c.Router == "" && c.usesRouterVar() {
 		// An unset variable expands to nothing, so an imported script whose
 		// login URL is "http://%%router%%/login.cgi" would post the router
 		// password to "http:///login.cgi". Refusing here names the empty field;
 		// letting it run names a URL parse error three layers down.
-		return fmt.Errorf("%w: the script uses %%%%%s%%%% but no router address is set", ErrNotConfigured, VarRouter)
+		return &ConfigProblem{Code: ProblemNoRouter, Var: VarRouter}
 	}
 	return nil
 }
+
+// The reasons a configuration cannot run, as values.
+//
+// They exist because the sentence is not translatable and the interface is. A
+// German user reading "the command method has no program to run" is reading the
+// one English string left in the product, and the alternative - translating on
+// the server - would need the browser's language on a settings request and give
+// the log a sentence in whatever the last reader happened to prefer. So the code
+// crosses the wire and the interface picks the words, which is the same call
+// this package's neighbours made for task failures.
+const (
+	ProblemOff           = "off"
+	ProblemNoCommand     = "noCommand"
+	ProblemNoRequests    = "noRequests"
+	ProblemRequestNoURL  = "requestNoURL"
+	ProblemNoInterpreter = "noInterpreter"
+	ProblemNoScript      = "noScript"
+	ProblemNoCheckURL    = "noCheckURL"
+	ProblemUnknownMethod = "unknownMethod"
+	ProblemNoRouter      = "noRouter"
+)
+
+// ConfigProblem is why a configuration cannot run: a code, and the one detail
+// that code needs.
+//
+// It is an error as well as a value, and the sentence it produces is the same
+// one this package produced before - so logs, tests and any caller that only
+// ever printed it are unaffected, and errors.Is(err, ErrNotConfigured) still
+// answers true.
+type ConfigProblem struct {
+	Code string
+	// N is the 1-based position of the offending request, for ProblemRequestNoURL.
+	N int
+	// Method is the word the user actually typed, for ProblemUnknownMethod. It
+	// is the only field here that carries user input, and it reaches a log and a
+	// page - so it is quoted with %q rather than interpolated bare.
+	Method string
+	// Var is the variable name that has no value, for ProblemNoRouter.
+	Var string
+}
+
+func (p *ConfigProblem) Error() string {
+	return fmt.Sprintf("%s: %s", ErrNotConfigured, p.detail())
+}
+
+func (p *ConfigProblem) detail() string {
+	switch p.Code {
+	case ProblemNoCommand:
+		return "the command method has no program to run"
+	case ProblemNoRequests:
+		return "the request method has no requests"
+	case ProblemRequestNoURL:
+		return fmt.Sprintf("request %d has no URL", p.N)
+	case ProblemNoInterpreter:
+		return "the script method has no interpreter to run it with"
+	case ProblemNoScript:
+		return "the script method has no script"
+	case ProblemNoCheckURL:
+		return "no IP check URL"
+	case ProblemUnknownMethod:
+		return fmt.Sprintf("unknown reconnect method %q", p.Method)
+	case ProblemNoRouter:
+		return fmt.Sprintf("the script uses %%%%%s%%%% but no router address is set", p.Var)
+	default:
+		// ProblemOff and anything a later change forgets to describe. Falling
+		// back to the switched-off wording for an unknown code would be a lie
+		// with a plausible face, so an unrecognised code says so.
+		if p.Code == ProblemOff {
+			return "reconnect is switched off"
+		}
+		return "the configuration is incomplete"
+	}
+}
+
+// Unwrap keeps errors.Is(err, ErrNotConfigured) working, which is how every
+// caller outside this package tells "not finished setting up" from "the router
+// refused".
+func (p *ConfigProblem) Unwrap() error { return ErrNotConfigured }
 
 // usesRouterVar reports whether anything this method would run references the
 // router address.

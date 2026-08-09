@@ -250,7 +250,53 @@ export interface ContainerHandedOver {
 
 export type ContainerResult = ContainerStaged | ContainerHandedOver;
 
+/**
+ * ApiError is a refusal the server explained, carrying the typed half when it
+ * sent one.
+ *
+ * `code` is what makes the message translatable. Without it a caller can only
+ * show the server's sentence, which is English, and the alternative - having the
+ * server translate - would need the reader's language on every request and would
+ * write the log in whichever language asked last.
+ */
+export class ApiError extends Error {
+  code?: string;
+  params?: Record<string, string | number>;
+
+  constructor(message: string, code?: string, params?: Record<string, string | number>) {
+    super(message);
+    this.name = 'ApiError';
+    this.code = code;
+    this.params = params;
+  }
+}
+
+/**
+ * json decodes a response, and refuses to decode one the server said no to.
+ *
+ * The check belongs here rather than at each call site, and it was missing:
+ * `saveSettings` handed a 400 straight to `r.json()`, so refusing to save a
+ * half-filled reconnect showed the user `SyntaxError: Unexpected token 'r',
+ * "reconnect:"... is not valid JSON`. The server had written a perfectly clear
+ * sentence and the client turned it into a parser error - for every validated
+ * row on the settings page, not only that one.
+ */
 async function json<T>(r: Response): Promise<T> {
+  if (!r.ok) {
+    const body = (await r.text()).trim();
+    // Validation failures send a JSON envelope so the message can be
+    // translated; everything else sends the sentence as text. Both are
+    // understood here, because a route that has not been taught the envelope
+    // must still be able to explain itself.
+    try {
+      const p = JSON.parse(body) as { error?: string; code?: string; params?: Record<string, string | number> };
+      if (p && typeof p.error === 'string') throw new ApiError(p.error, p.code, p.params);
+    } catch (e) {
+      if (e instanceof ApiError) throw e;
+      // Not JSON at all, which is the ordinary case.
+    }
+    throw new ApiError(body || String(r.status));
+  }
   return (await r.json()) as T;
 }
 

@@ -87,7 +87,34 @@ interface ReconnectConfig {
 interface ReconnectState {
   busy: boolean;
   configured: boolean;
+  /** The server's English sentence. The fallback, not the first choice. */
   reason?: string;
+  /** The same fact as a value, which is the half this side can translate. */
+  reasonCode?: string;
+  reasonN?: number;
+  reasonMethod?: string;
+  reasonVar?: string;
+}
+
+/**
+ * What is missing, in the reader's language.
+ *
+ * The server sends both halves and this prefers the code, because the sentence
+ * is English and the interface is not. An unrecognised code falls back to the
+ * sentence rather than to nothing: a server that grows a tenth reason before
+ * this file learns the word for it should still say something true, in the
+ * wrong language, instead of leaving a blank where the explanation was.
+ */
+function useReasonText(state: ReconnectState | null): string {
+  const { t } = useT();
+  if (!state) return '';
+  const code = state.reasonCode;
+  if (!code) return state.reason ?? '';
+  const key = `settings.reconnect.reason.${code}` as never;
+  const text = t(key, { n: state.reasonN ?? 0, method: state.reasonMethod ?? '', var: state.reasonVar ?? '' });
+  // t() answers with the key itself when it has no entry, which on screen is a
+  // dotted identifier and not an explanation.
+  return text === key ? (state.reason ?? '') : text;
 }
 
 /** POST /api/reconnect. */
@@ -843,6 +870,7 @@ function RunPanel({ state, disabled }: { state: ReconnectState | null; disabled:
   // different things, and saying nothing about that is how somebody picks a
   // method, presses run, and watches the instance do what it was doing before.
   const { dirty } = useDraft();
+  const reasonText = useReasonText(state);
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<RunResult | null>(null);
   const [note, setNote] = useState<{ tone: Tone; text: string } | null>(null);
@@ -908,8 +936,8 @@ function RunPanel({ state, disabled }: { state: ReconnectState | null; disabled:
 
       {/* Validate's own words, pointing at the field rather than at the method
           strip - which is already set to something, and is not what is missing. */}
-      {!dirty && state && !state.configured && !disabled && state.reason && (
-        <StateLine tone="warn">{t('settings.reconnect.notReady', { reason: state.reason })}</StateLine>
+      {!dirty && state && !state.configured && !disabled && reasonText && (
+        <StateLine tone="warn">{t('settings.reconnect.notReady', { reason: reasonText })}</StateLine>
       )}
       {state === null && <StateLine tone="muted">{t('settings.reconnect.stateUnreadable')}</StateLine>}
 
