@@ -4,7 +4,7 @@
   <a href="https://github.com/junkerderprovinz/knightloader/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/junkerderprovinz/knightloader/ci.yml?branch=main&label=Build&style=for-the-badge&logo=githubactions&logoColor=white" alt="Build" height="36"></a>&nbsp;
   <a href="https://go.dev"><img src="https://img.shields.io/badge/Go-1.26-00ADD8?style=for-the-badge&logo=go&logoColor=white" alt="Go" height="36"></a>&nbsp;
   <a href="https://react.dev"><img src="https://img.shields.io/badge/React%20%2B%20Tailwind-UI-393939?style=for-the-badge&logo=react&logoColor=white" alt="Web stack" height="36"></a>&nbsp;
-  <img src="https://img.shields.io/badge/Languages-26-393939?style=for-the-badge&logo=googletranslate&logoColor=white" alt="Languages" height="36">&nbsp;
+  <img src="https://img.shields.io/badge/Languages-42-393939?style=for-the-badge&logo=googletranslate&logoColor=white" alt="Languages" height="36">&nbsp;
   <img src="https://img.shields.io/badge/Arch-amd64%20%7C%20arm64-success?style=for-the-badge&logo=linux&logoColor=white" alt="Arch" height="36">&nbsp;
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-yellow?style=for-the-badge&logo=gnu&logoColor=white" alt="License" height="36"></a>
 </p>
@@ -75,7 +75,7 @@ your own box.
 | **Integrity** | A finished file is checked against an `.sfv`/`.md5`/`.sha*` that came with it, or a CRC in its own name. Nothing is marked as passing that was not checked. |
 | **Collisions** | What happens when the file already exists is your choice — overwrite, skip or number it — and the name is reserved atomically, so two downloads finishing together cannot pick the same one. |
 | **Connections** | Several outbound routes with order, credentials and a per-host filter, handed out round-robin up to a cap each. Passwords are stored, never served back. |
-| **Reconnect** | Get a new address when a hoster's limit is keyed to the one you have, by running a command or replaying a recorded HTTP exchange — and an unchanged address counts as a failure, not a success. |
+| **Reconnect** | Get a new address when a hoster's limit is keyed to the one you have: run a command, replay a recorded HTTP exchange, ask the gateway over UPnP (which needs no router details at all), or run a script through a named interpreter. A recorded LiveHeader script imports as it is. An unchanged address counts as a failure, not a success. |
 | **Intake** | Paste, drop, [Click'n'Load](docs/clicknload.md) from a site's own button, a container file, or a watched folder for `.txt` and `.crawljob` files. |
 | **Multi-instance** | Register other KnightLoaders and drive them all from one dashboard. Self-hosted federation, no relay. |
 | **Access** | An optional password lock, off by default. Same-origin API, origin-checked WebSocket. |

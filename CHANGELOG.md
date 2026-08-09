@@ -43,18 +43,43 @@ What follows is what exists and runs.
   from one dashboard, with no relay in between.
 - **Access control**: an optional password lock with signed session cookies,
   off by default.
-- **26 languages**, each fetched only when chosen, right-to-left included.
+- **The download list is a real table**: sortable columns you choose, packages
+  drawn as rows of their own with a folder glyph and a triangle that collapses
+  them, and a right-click menu on packages and files. Which packages are folded
+  survives a reload.
+- **Settings** as thirteen sub-pages behind one shell, with the set and the order
+  coming from the server so the tab bar, the modules page and the index all read
+  one list. Among them a **module registry** whose switches really do switch a
+  subsystem off, a **connection manager**, and an **Advanced** page generated
+  from the Go configuration struct by reflection, so a new setting cannot be
+  added without becoming visible.
+- **Rules**: the Packagizer and the link filter in one editor, and a holding area
+  that keeps what a filter caught instead of discarding it, so a rule that was
+  too broad can be seen and undone.
+- **Reconnect** in four methods: run a program, replay recorded HTTP requests,
+  UPnP (which needs no router details at all, because it asks the network where
+  the gateway is), or run a script through a named interpreter. A recorded
+  LiveHeader `[[[HSRC]]]` script imports directly, reporting which of its blocks
+  mapped alongside which did not. The automatic reconnect fires only when a
+  backend itself asked for a later retry, never while the queue is halted, and
+  never more than one at a time.
+- **42 languages**, each fetched only when chosen, right-to-left included.
 - **GlimStone**, the design language the interface is built on, documented in
-  `docs/design-language.md`. Its CSS prefix is `glim-`.
+  `docs/design-language.md`. Its CSS prefix is `glim-`. The palette is IBM
+  Carbon, the same values the sibling apps already use: a shared design language
+  has to share the ground first, so GlimStone contributes the system rather than
+  a second set of greys.
 - **Adjustable corners** — round, soft or square — driven by one token, so the
   whole interface changes together instead of arriving half converted.
 - **Adjustable accent** with eight presets and a free colour. The text placed on
   the accent is derived from its luminance rather than configured separately.
 - **Rainbow accent**: a palette of eight hues handed out by position, so a long
-  download list reads as separate rows. Colours are keyed to the task id, so a
-  row keeps its colour when the rows above it finish. It has a reactive mode
-  that rests neutral and colours only what is hovered or running, an optional
-  rotation of the starting hue, and all eight colours are editable.
+  download list reads as separate rows. Position, not a hash of the task id: the
+  hash kept a row's colour when the rows above it finished, which sounds better
+  until three rows share eight buckets and two neighbours come out the same
+  colour, which is the one thing the mode exists to prevent. It has a reactive
+  mode that rests neutral and colours only what is hovered or running, an
+  optional rotation of the starting hue, and all eight colours are editable.
 - **Info bubbles.** An explanation now sits behind a neutral `(i)` beside its
   label instead of as grey prose under the control. It opens on hover and on
   focus, closes on Escape, and is rendered at document level so no card or
