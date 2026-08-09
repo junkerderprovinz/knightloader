@@ -142,6 +142,30 @@ On Unraid add `--user 99:100` so finished files land as `nobody:users`, and see
 [docs/preview-deploy.md](docs/preview-deploy.md) for the rest.
 </details>
 
+<details>
+<summary><b>Desktop (Windows, macOS, Linux)</b></summary>
+
+The desktop app is the same binary in a native window rather than a browser
+tab: the engine, the resolvers, the API and the UI are identical, because the
+window is served by the very same HTTP handler the container serves.
+
+Every release tag builds `windows/amd64`, `darwin/universal` and `linux/amd64`
+and attaches the three archives to that release. **There is no release yet** —
+the first tag is still to come, so for now the app is built from source:
+
+```sh
+go install github.com/wailsapp/wails/v2/cmd/wails@v2.10.2
+cd desktop && wails build
+```
+
+The bundle lands in `desktop/build/bin`. Windows and macOS need only their
+usual toolchains. Linux needs GTK and WebKit: `libgtk-3-dev` and
+`libwebkit2gtk-4.1-dev` to build, `libwebkit2gtk-4.1-0` to run. Build it with
+`wails build -tags webkit2_41` — without the tag Wails looks for webkit2gtk
+**4.0**, which Ubuntu 24.04 and its relatives no longer package, and the error
+names a missing package rather than a dropped version.
+</details>
+
 <br>
 
 ## 4. Configuration
