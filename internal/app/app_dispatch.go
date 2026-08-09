@@ -326,7 +326,7 @@ func (a *App) dispatchLocked() {
 		// must not happen under it. A caller that snapshots after dispatching
 		// publishes the same state again, which is harmless: both copies say what
 		// the task ended up as, so whichever lands last says the same thing.
-		go a.publishTasks(settled)
+		a.spawn(func() { a.publishTasks(settled) })
 	}
 }
 
@@ -564,7 +564,8 @@ func (a *App) onUpdate(id string, u core.Update) {
 			hitStopMark = true
 		}
 		if a.Settings.Get().VerifyChecksums {
-			go a.verifyTask(id, filepath.Join(a.dirFor(t), t.Name))
+			path := filepath.Join(a.dirFor(t), t.Name)
+			a.spawn(func() { a.verifyTask(id, path) })
 		}
 	}
 	// A backend that says the link is not its business hands the task to the
@@ -703,7 +704,7 @@ func (a *App) onUpdate(id string, u core.Update) {
 		// configured timeout, and holding mu for two minutes would stop the app.
 		// The ordinary backoff above is already armed, and re-entering a task that
 		// has since been restarted is a no-op, so the two cannot fight.
-		go a.reconnectThenRetry(reconnectFor)
+		a.spawn(func() { a.reconnectThenRetry(reconnectFor) })
 	}
 	if hitStopMark {
 		log.Printf("stop mark reached at %s; the queue is halted", c.Name)

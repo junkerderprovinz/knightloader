@@ -116,7 +116,7 @@ func (a *App) applyWatchFolders(s settings.Settings) {
 // waits for the collector to resolve twenty links is a poll that is not looking
 // at the folder, and the next file to land sits there until it returns.
 func (a *App) onWatchIntake(j watch.Job) {
-	go a.stageWatchJob(j)
+	a.spawn(func() { a.stageWatchJob(j) })
 }
 
 // stageWatchJob carries out one dropped job.

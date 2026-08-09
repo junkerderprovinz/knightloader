@@ -538,7 +538,7 @@ func (a *App) stage(u, name string, in intake) *core.Task {
 	// Lightweight analysis for plain file links: a HEAD gives size + an online
 	// check while the task waits in the collector.
 	if staged != nil && res.Info().ID == "direct" {
-		go a.analyze(t.ID, result.DirectURL)
+		a.spawn(func() { a.analyze(t.ID, result.DirectURL) })
 	}
 	return staged
 }
@@ -799,7 +799,7 @@ func (a *App) RestoreFiltered(ids []string) []*core.Task {
 	// goroutine because it is one network round trip per link and the browser is
 	// waiting for this response.
 	if len(restored) > 0 {
-		go a.RecheckTasks(restored)
+		a.spawn(func() { a.RecheckTasks(restored) })
 	}
 	return out
 }
