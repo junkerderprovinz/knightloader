@@ -129,8 +129,8 @@ func TestPickIgnoresAFilterThatDoesNotMatch(t *testing.T) {
 	if !ok {
 		t.Fatalf("Pick refused to answer for an unclaimed host")
 	}
-	if got.ID != "" || got.Kind != KindDirect {
-		t.Fatalf("Pick = %+v, want the direct fallback", got)
+	if got.ID != DirectID || got.Kind != KindDirect {
+		t.Fatalf("Pick = %+v, want the direct gateway", got)
 	}
 }
 
@@ -159,8 +159,8 @@ func TestPickFallsBackToDirectWhenNothingClaimsTheHost(t *testing.T) {
 			if !ok {
 				t.Fatalf("Pick = %v,%v, want a direct download rather than a stalled queue", got, ok)
 			}
-			if got.Kind != KindDirect || got.ID != "" {
-				t.Fatalf("Pick = %+v, want the unconfigured direct fallback", got)
+			if got.Kind != KindDirect || got.ID != DirectID {
+				t.Fatalf("Pick = %+v, want the direct gateway", got)
 			}
 			if u := got.URL(); u != nil {
 				t.Fatalf("the fallback produced a proxy URL %v", u)
@@ -405,5 +405,143 @@ func TestPickNeverReturnsAnEntryAtItsLimit(t *testing.T) {
 				t.Fatalf("Pick returned %q which is already at %d of %d", got.ID, n, p.Limit(got))
 			}
 		})
+	}
+}
+
+// TestPickSkipsABannedEntry. A refusal is the same answer to the caller as a
+// limit - not this connection, not now - so a banned entry is walked past and
+// the next one in the rotation takes the download.
+func TestPickSkipsABannedEntry(t *testing.T) {
+	bans := NewBans()
+	p := NewPicker([]Entry{catchAll("a", "a.lan"), catchAll("b", "b.lan")}, Options{Bans: bans})
+	bans.Ban("a", "example.org")
+	for i := 0; i < 3; i++ {
+		got, ok := p.Pick("example.org", nil)
+		if !ok || got.ID != "b" {
+			t.Fatalf("pick %d = %q,%v, want the connection the host has not refused", i, got.ID, ok)
+		}
+	}
+	// The ban is about one hoster and must not have cost the connection its place
+	// in the rotation everywhere else.
+	if got, ok := p.Pick("elsewhere.net", nil); !ok || got.ID != "a" {
+		t.Fatalf("Pick for another host = %q,%v, want the banned-elsewhere connection", got.ID, ok)
+	}
+}
+
+// TestPickWaitsRatherThanLeakWhenEveryClaimingEntryIsBanned is the ban list's
+// version of the leak this package exists to prevent. A host filtered onto one
+// proxy, and that proxy refused, must not fall through to a plain download: the
+// traffic the filter was written to route would go out over the very connection
+// the user was hiding.
+func TestPickWaitsRatherThanLeakWhenEveryClaimingEntryIsBanned(t *testing.T) {
+	bans := NewBans()
+	p := NewPicker([]Entry{
+		{ID: "claims", Kind: KindHTTP, Host: "proxy.lan", Port: 8080, Filter: []string{"example.org"}, Enabled: true},
+		catchAll("other", "other.lan"),
+	}, Options{Bans: bans})
+	bans.Ban("claims", "dl2.example.org")
+
+	got, ok := p.Pick("dl2.example.org", nil)
+	if ok {
+		t.Fatalf("Pick = %+v, want no answer rather than a download around the ban", got)
+	}
+	// Unrelated hosts are unaffected: the catch-all still serves them.
+	if got, ok := p.Pick("elsewhere.net", nil); !ok || got.ID != "other" {
+		t.Fatalf("Pick for an unclaimed host = %q,%v, want the catch-all", got.ID, ok)
+	}
+}
+
+// TestPickForHonoursTheNamedConnection is per-download routing seen from the
+// picker: a task that names a connection gets that connection, not its turn in
+// the rotation.
+func TestPickForHonoursTheNamedConnection(t *testing.T) {
+	p := NewPicker([]Entry{catchAll("a", "a.lan"), catchAll("b", "b.lan")}, Options{})
+	for i := 0; i < 3; i++ {
+		got, ok := p.PickFor("b", "example.org", nil)
+		if !ok || got.ID != "b" {
+			t.Fatalf("pick %d = %q,%v, want the named connection every time", i, got.ID, ok)
+		}
+	}
+	// And the rotation was not advanced by any of it, so an unrouted download
+	// still starts where the list starts.
+	if got, ok := p.PickFor("", "example.org", nil); !ok || got.ID != "a" {
+		t.Fatalf("the unrouted pick = %q,%v, want the head of the rotation", got.ID, ok)
+	}
+}
+
+// TestPickForTheDirectGateway. "No proxy" is a choice in the list, so naming it
+// is honoured outright: no filter, no limit and no ban stand between a download
+// and the machine's own connection.
+func TestPickForTheDirectGateway(t *testing.T) {
+	bans := NewBans()
+	p := NewPicker([]Entry{
+		{ID: "claims", Kind: KindHTTP, Host: "proxy.lan", Port: 8080, Filter: []string{"example.org"}, Enabled: true},
+	}, Options{Bans: bans})
+	bans.Ban(DirectID, "example.org")
+
+	got, ok := p.PickFor(DirectID, "example.org", map[string]int{DirectID: 99})
+	if !ok || got.ID != DirectID || got.Kind != KindDirect {
+		t.Fatalf("PickFor(direct) = %+v,%v, want the gateway", got, ok)
+	}
+	if n := p.Limit(got); n <= DefaultMaxDownloads {
+		t.Fatalf("Limit(gateway) = %d, want a ceiling the list does not impose", n)
+	}
+}
+
+// TestPickForWaitsWhenTheNamedConnectionCannotTakeIt. The user named this
+// connection; swapping in another one because this one is busy or refused is
+// routing the download around the choice that was made for it.
+func TestPickForWaitsWhenTheNamedConnectionCannotTakeIt(t *testing.T) {
+	bans := NewBans()
+	p := NewPicker([]Entry{catchAll("a", "a.lan"), catchAll("b", "b.lan")}, Options{
+		DefaultMaxDownloads: 1,
+		Bans:                bans,
+	})
+	if got, ok := p.PickFor("a", "example.org", map[string]int{"a": 1}); ok {
+		t.Fatalf("PickFor on a full connection = %+v, want no answer", got)
+	}
+	bans.Ban("a", "example.org")
+	if got, ok := p.PickFor("a", "example.org", nil); ok {
+		t.Fatalf("PickFor on a banned connection = %+v, want no answer", got)
+	}
+}
+
+// TestPickForFallsBackToTheRotationWhenTheChoiceIsGone. A preference is not a
+// lock: a task pointing at a row somebody deleted, or switched off for the
+// evening, must not be stranded for ever by it.
+func TestPickForFallsBackToTheRotationWhenTheChoiceIsGone(t *testing.T) {
+	off := catchAll("off", "off.lan")
+	off.Enabled = false
+	p := NewPicker([]Entry{catchAll("live", "live.lan"), off}, Options{})
+	for _, id := range []string{"deleted-months-ago", "off"} {
+		got, ok := p.PickFor(id, "example.org", nil)
+		if !ok || got.ID != "live" {
+			t.Fatalf("PickFor(%q) = %q,%v, want the rotation's own answer", id, got.ID, ok)
+		}
+	}
+	// The filters the rotation honours are still honoured, so the fallback is not
+	// a way past an exclusion the user wrote.
+	q := NewPicker([]Entry{
+		{ID: "nas", Kind: KindDirect, Filter: []string{"nas.local"}, Enabled: true},
+		catchAll("proxy", "proxy.lan"),
+	}, Options{})
+	if got, ok := q.PickFor("deleted", "nas.local", nil); !ok || got.ID != "nas" {
+		t.Fatalf("PickFor for the NAS = %q,%v, want the direct row that claims it", got.ID, ok)
+	}
+}
+
+// TestARowCannotClaimTheGatewaysID. A row holding "direct" would shadow the
+// gateway everywhere a connection is named by id, and a task pinned to direct
+// would start going out over whatever that row points at.
+func TestARowCannotClaimTheGatewaysID(t *testing.T) {
+	p := NewPicker([]Entry{
+		{ID: DirectID, Kind: KindHTTP, Host: "impostor.lan", Port: 8080, Enabled: true},
+	}, Options{})
+	if id := p.Entries()[0].ID; id == DirectID {
+		t.Fatal("a proxy row kept the direct gateway's id")
+	}
+	got, ok := p.PickFor(DirectID, "example.org", nil)
+	if !ok || got.Kind != KindDirect || got.Host != "" {
+		t.Fatalf("PickFor(direct) = %+v,%v, want the gateway and not the row that tried to be it", got, ok)
 	}
 }

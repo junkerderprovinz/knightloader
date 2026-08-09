@@ -140,8 +140,11 @@ type Task struct {
 	// reads it; it exists so a rule can leave a note for the person reading the
 	// list weeks later.
 	Comment string `json:"comment,omitempty"`
-	// Chunks overrides how many connections this download opens. Zero means the
-	// resolver's answer, or the built-in default when it has none.
+	// Chunks is this one download's connection count, set by a Packagizer rule as
+	// the link was staged or typed on the row afterwards. Zero means "no opinion":
+	// the global setting decides, and the built-in default behind that. It is not
+	// "no connections", and it is not "whatever the resolver says" - what a
+	// resolver reports is a ceiling on this number, never a replacement for it.
 	Chunks int `json:"chunks,omitempty"`
 	// AutoExtract overrides the global extraction switch for this one task. Nil
 	// is "no rule had an opinion", which is not the same as false: a rule that

@@ -78,7 +78,7 @@ func registerTasks(reg *Registry, a *app.App) {
 			a.MoveTasks(body.Ids, body.Where)
 			w.WriteHeader(http.StatusNoContent)
 		})
-	reg.Add(http.MethodPost, "/api/tasks/options", "per-task overrides: destination folder, archive password",
+	reg.Add(http.MethodPost, "/api/tasks/options", "per-task overrides: name, destination folder, archive password, comment, priority, unpacking. A field left out of the body is left as it is",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
 				Ids []string `json:"ids"`

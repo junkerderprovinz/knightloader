@@ -47,11 +47,13 @@ func (Direct) Resolve(_ context.Context, req Request) (Result, error) {
 			name = b
 		}
 	}
-	return Result{
-		Name:        name,
-		DirectURL:   req.URL,
-		Connections: 4,
-	}, nil
+	// No connection count, deliberately. Connections is a statement about what
+	// the host tolerates and this resolver knows nothing about the host: it
+	// recognised a file extension in a path. The dispatcher reads the field as a
+	// ceiling, so the 4 that used to stand here capped every ordinary link at 4
+	// no matter what the user had set - the global overruled by a resolver with
+	// no opinion to give. Saying nothing lets their number through.
+	return Result{Name: name, DirectURL: req.URL}, nil
 }
 
 // HTTPFallback is the last resort: it takes any http(s) link that nothing else
@@ -70,5 +72,7 @@ func (HTTPFallback) Match(raw string) bool {
 }
 
 func (HTTPFallback) Resolve(_ context.Context, req Request) (Result, error) {
-	return Result{DirectURL: req.URL, Connections: 4}, nil
+	// Silent about connections for the reason Direct is, only more so: this one
+	// claims a link precisely because nothing else recognised it.
+	return Result{DirectURL: req.URL}, nil
 }

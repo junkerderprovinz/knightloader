@@ -11,12 +11,20 @@ import {
   type ApiOptions,
   type BulkResult,
   type CleanupClass,
+  type PriorityChoice,
+  type QueueMove,
+  type QueueState,
   type Task,
+  type TaskOptionsPatch,
   cleanupPreview,
   deleteTasks,
   fetchOptions,
-  moveTasks,
+  priorityChoices,
+  fetchQueue,
   pause,
+  queueForce,
+  queueMove,
+  queuePriority,
   recheckTasks,
   restartTasks,
   resume,
@@ -24,14 +32,14 @@ import {
   setEnabled,
   setForced,
   setHold,
-  setPriority,
+  setQueue as armStopMark,
   setTaskOptions,
   startTasks,
 } from '../lib/api';
 import { fmtBytes } from '../lib/format';
 import { useToast } from '../lib/toast';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { Button, Field, InfoBubble, Modal, TextInput } from './ui';
+import { Button, Field, InfoBubble, Modal, NumberInput, TextInput } from './ui';
 import { Tabs } from './Tabs';
 import {
   ContextMenu,
@@ -127,6 +135,82 @@ const IconKey = (p: SVGProps<SVGSVGElement>) => (
     <path d="M9.3 9.3 16 16M13.4 13.4l-1.6 1.6M15 11.8l-1.6 1.6" />
   </svg>
 );
+
+// Three descending bars: the wait order seen side-on, which is all a priority
+// is. Deliberately not an arrow — the two one-step moves beside it in the menu
+// already own the arrows, and priority is not a step.
+const IconPriority = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...glyph(p)} stroke="currentColor" strokeWidth={1.8} strokeLinecap="round">
+    <path d="M4 5.5h12M4 10h8M4 14.5h4" />
+  </svg>
+);
+
+// A flag planted in the list: the queue runs up to here and stops.
+const IconStopMark = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...glyph(p)} stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 3v14" />
+    <path d="M6 4h8l-1.6 2.8L14 9.6H6z" />
+  </svg>
+);
+
+// --- The queue's own state ------------------------------------------------
+
+
+/**
+ * useQueueVerbs holds the two things the queue entries need that neither the
+ * list nor the menu already has: the priorities this server implements, and
+ * which of these downloads is marked "finish this one, then stop".
+ *
+ * Both are fetched when the page mounts, never when the menu opens. A
+ * right-click that waits for a request before it can draw its entries is a menu
+ * whose bottom half appears after you have read past it.
+ */
+function useQueueVerbs(base: string) {
+  const [choices, setChoices] = useState<PriorityChoice[]>([]);
+  const [queue, setQueue] = useState<QueueState | null>(null);
+
+  useEffect(() => {
+    let live = true;
+    void priorityChoices().then(
+      (p) => {
+        if (live) setChoices(p);
+      },
+      () => {
+        /* the priority entry stays out of the menu; nothing else is affected */
+      },
+    );
+    void fetchQueue(base).then(
+      (q) => {
+        if (live) setQueue(q);
+      },
+      () => {
+        /* an unreachable peer is already reported by the list itself */
+      },
+    );
+    return () => {
+      live = false;
+    };
+  }, [base]);
+
+  // The mark is one task, so arming a second one disarms the first — which is
+  // why this replaces rather than adds, and why the answer is kept: it is the
+  // only way the menu knows which row is currently marked.
+  const mark = useCallback(
+    async (id: string) => {
+      setQueue(await armStopMark({ stopMark: id }, base));
+    },
+    [base],
+  );
+
+  return {
+    choices,
+    halted: queue?.halted ?? false,
+    stopMark: queue?.stopMark ?? '',
+    mark,
+  };
+}
+
+type QueueVerbs = ReturnType<typeof useQueueVerbs>;
 
 // --- Quick filters --------------------------------------------------------
 
@@ -294,14 +378,17 @@ function ConfirmRemove({
 // --- The per-task overrides -----------------------------------------------
 
 /**
- * TaskOptionsDialog edits the two things a link can be told on its own: where
- * its file goes, and the password its archive needs.
+ * TaskOptionsDialog edits the three things a link can be told on its own: where
+ * its file goes, the password its archive needs, and how many connections it is
+ * pulled over.
  *
  * It takes a selection rather than a task, because the row's own folder button
  * and the context menu's two entries are the same dialog on one row and on
  * forty. That also fixes the rule that matters here: a field is sent ONLY if it
- * was changed. Sending both every time would let a selection whose members
- * disagree open with two empty boxes and wipe every override in it on save.
+ * was changed. Sending all three every time would let a selection whose members
+ * disagree open with empty boxes and wipe every override in it on save - and for
+ * the connection count that is not a blank field but a 0, which the server reads
+ * as a deliberate "hand it back to the rules".
  */
 export function TaskOptionsDialog({
   tasks,
@@ -322,18 +409,29 @@ export function TaskOptionsDialog({
     const first = tasks.length > 0 ? pick(tasks[0]) : '';
     return tasks.every((x) => pick(x) === first) ? first : '';
   };
+  // The same rule for the count, where "nothing" is 0. That is not a fallback
+  // standing in for a real value: 0 is what the field means anyway, so a
+  // selection that disagrees opens on "no override" and only changes the rows
+  // if somebody types a number.
+  const agreedNum = (pick: (x: Task) => number) => {
+    const first = tasks.length > 0 ? pick(tasks[0]) : 0;
+    return tasks.every((x) => pick(x) === first) ? first : 0;
+  };
   const [dir, setDir] = useState(() => agreed((x) => x.dir ?? ''));
   const [password, setPassword] = useState(() => agreed((x) => x.password ?? ''));
+  const [chunks, setChunks] = useState(() => agreedNum((x) => x.chunks ?? 0));
   const [initial] = useState(() => ({
     dir: agreed((x) => x.dir ?? ''),
     password: agreed((x) => x.password ?? ''),
+    chunks: agreedNum((x) => x.chunks ?? 0),
   }));
   const [error, setError] = useState('');
 
   async function apply() {
-    const opts: { dir?: string; password?: string } = {};
+    const opts: TaskOptionsPatch = {};
     if (dir !== initial.dir) opts.dir = dir;
     if (password !== initial.password) opts.password = password;
+    if (chunks !== initial.chunks) opts.chunks = chunks;
     if (Object.keys(opts).length === 0) {
       onClose();
       return;
@@ -379,6 +477,12 @@ export function TaskOptionsDialog({
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
+      </Field>
+      {/* max is the engine's bound, the same one the rule editor and the
+          settings page offer. Three spinners that stop at three different
+          numbers would be three different accounts of what the app can do. */}
+      <Field label={t('task.chunks')} hint={t('task.chunksHint')}>
+        <NumberInput value={chunks} min={0} max={16} onValue={setChunks} />
       </Field>
     </Modal>
   );
@@ -648,6 +752,7 @@ function taskMenuGroups({
   t,
   fail,
   removal,
+  queue,
   onOptions,
 }: {
   chosen: Task[];
@@ -656,6 +761,8 @@ function taskMenuGroups({
   t: (key: TranslationKey, vars?: Record<string, string | number>) => string;
   fail: (e: unknown) => void;
   removal: Removal;
+  /** The priorities this server offers and where the stop mark currently sits. */
+  queue: QueueVerbs;
   onOptions: (focus: 'dir' | 'password') => void;
 }): MenuGroup[] {
   const some = (p: (x: Task) => boolean) => chosen.some(p);
@@ -708,34 +815,62 @@ function taskMenuGroups({
 
   // Queue order only means something while something is still waiting to run.
   // A package of finished downloads has no position to raise.
-  const queue: MenuGroup = { id: 'queue', items: [] };
-  if (some((x) => x.status === 'queued' || x.status === 'paused' || x.status === 'collected')) {
-    queue.items.push(
-      {
-        id: 'up',
-        label: t('task.priorityUp'),
-        icon: <IconArrowUp width={14} height={14} />,
-        onSelect: () => void setPriority(ids, 1, base),
-      },
-      {
-        id: 'down',
-        label: t('task.priorityDown'),
-        icon: <IconArrowDown width={14} height={14} />,
-        onSelect: () => void setPriority(ids, -1, base),
-      },
-      {
-        id: 'top',
-        label: t('task.moveTop'),
-        icon: <IconTop width={14} height={14} />,
-        onSelect: () => void moveTasks(ids, 'top', base),
-      },
-      {
-        id: 'bottom',
-        label: t('task.moveBottom'),
-        icon: <IconBottom width={14} height={14} />,
-        onSelect: () => void moveTasks(ids, 'bottom', base),
-      },
+  const queueGroup: MenuGroup = { id: 'queue', items: [] };
+  const waiting = (x: Task) =>
+    x.status === 'queued' || x.status === 'paused' || x.status === 'collected';
+  if (some(waiting)) {
+    // Four steps, one route. The old pair of entries here called setPriority
+    // with a fixed 1 and -1, which is not a step at all: pressing "raise" twice
+    // left a task exactly where the first press put it, and pressing it on a
+    // task the Packagizer had already set to highest silently demoted it.
+    const step = (where: QueueMove) => guard(() => queueMove({ ids }, where, base));
+    queueGroup.items.push(
+      { id: 'top', label: t('task.moveTop'), icon: <IconTop width={14} height={14} />, onSelect: step('top') },
+      { id: 'up', label: t('task.moveUp'), icon: <IconArrowUp width={14} height={14} />, onSelect: step('up') },
+      { id: 'down', label: t('task.moveDown'), icon: <IconArrowDown width={14} height={14} />, onSelect: step('down') },
+      { id: 'bottom', label: t('task.moveBottom'), icon: <IconBottom width={14} height={14} />, onSelect: step('bottom') },
     );
+
+    // Behind one word, the way JDownloader keeps it: seven more entries in a
+    // menu that already has a dozen would bury everything under them. The tick
+    // marks the value the whole selection is already at — a selection that
+    // disagrees gets no tick rather than the first row's answer.
+    if (queue.choices.length > 0) {
+      const agreed = chosen.every((x) => x.priority === chosen[0].priority)
+        ? chosen[0].priority
+        : undefined;
+      queueGroup.items.push({
+        id: 'priority',
+        label: t('menu.priority'),
+        icon: <IconPriority />,
+        submenu: [
+          {
+            id: 'values',
+            items: queue.choices.map((p) => ({
+              id: p.id,
+              label: t(`priority.${p.id}` as TranslationKey),
+              icon: p.value === agreed ? <IconCheck width={14} height={14} /> : undefined,
+              onSelect: guard(() => queuePriority({ ids }, p.value, base)),
+            })),
+          },
+        ],
+      });
+    }
+  }
+
+  // The stop mark is one task, so it is offered on one row and never on forty:
+  // an entry that silently picked the first of a selection would arm a mark on
+  // a download nobody pointed at. There is exactly one mark in the app and this
+  // toggles it — arming a second would only move it.
+  if (chosen.length === 1 && (waiting(chosen[0]) || chosen[0].status === 'running')) {
+    const only = chosen[0];
+    const armed = queue.stopMark === only.id;
+    queueGroup.items.push({
+      id: 'stopMark',
+      label: t(armed ? 'queue.stopMarkOn' : 'queue.stopMark'),
+      icon: <IconStopMark />,
+      onSelect: () => void queue.mark(armed ? '' : only.id).catch(fail),
+    });
   }
 
   const state: MenuGroup = { id: 'state', items: [] };
@@ -767,12 +902,23 @@ function taskMenuGroups({
       icon: <IconPin />,
       onSelect: guard(() => setHold(ids, false, base)),
     });
-  if (some((x) => !x.forced && x.status !== 'done'))
+  // Forcing is a start, not a flag: it puts the links at the front of the wait
+  // order, switches them on and lets them go, all in one. It is offered even
+  // when they are already forced, because pressing it again is how you say
+  // "now" a second time.
+  //
+  // With the master switch off it is spelled out rather than left to fail
+  // quietly. A per-link button is not where a decision about the whole box gets
+  // undone, and "start now" that starts nothing and says nothing is the worst
+  // of the three available behaviours.
+  if (some((x) => x.status !== 'done'))
     state.items.push({
       id: 'force',
-      label: t('menu.force'),
+      label: t('menu.forceStart'),
       icon: <IconBolt />,
-      onSelect: guard(() => setForced(ids, true, base)),
+      detail: queue.halted ? t('menu.queueStopped') : undefined,
+      disabled: queue.halted,
+      onSelect: guard(() => queueForce({ ids }, base)),
     });
   if (some((x) => !!x.forced))
     state.items.push({
@@ -825,7 +971,7 @@ function taskMenuGroups({
     ],
   };
 
-  return [transport, queue, state, options, gone];
+  return [transport, queueGroup, state, options, gone];
 }
 
 /**
@@ -887,6 +1033,7 @@ export function ListMenu({
   const { toast } = useToast();
   const fail = useCallback((e: unknown) => toast(t('list.failed', { error: message(e) }), 'fail'), [t, toast]);
   const cleanup = useCleanup(all);
+  const queue = useQueueVerbs(base);
   const [options, setOptions] = useState<{ tasks: Task[]; focus: 'dir' | 'password' } | null>(null);
 
   const chosen = useMemo(() => all.filter((x) => selected.has(x.id)), [all, selected]);
@@ -982,6 +1129,7 @@ export function ListMenu({
         t,
         fail,
         removal,
+        queue,
         onOptions: (focus) => setOptions({ tasks: chosen, focus }),
       }),
       ...extraGroups,

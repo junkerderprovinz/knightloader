@@ -15,6 +15,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
+	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
 // resolverForTaskLocked picks the resolver a task should be dispatched through:
@@ -56,6 +57,31 @@ func (a *App) nextResolverLocked(t *core.Task) string {
 
 // dispatchLocked starts queued tasks while slots are free. FIFO with per-host
 // skip-ahead: a host at its limit doesn't block other hosts behind it.
+// maxForcedDownloads bounds the pool forced tasks run in, on top of the ordinary
+// concurrency limit rather than inside it.
+//
+// It exists because "start now" on a selection is one keystroke: without a bound,
+// forcing two hundred links opens two hundred transfers, every one of them slower
+// than the four that would have finished by now. JDownloader carries the same
+// idea as GeneralSettings.MaxForcedDownloads.
+const maxForcedDownloads = 3
+
+// countStartLocked books a task into the slot accounting it belongs to.
+//
+// One function rather than two lines at each of the two start sites, because the
+// two sites drifting apart is exactly how a forced task ends up counted as an
+// ordinary one and quietly evicts somebody else's slot.
+//
+// Caller holds a.mu.
+func (a *App) countStartLocked(t *core.Task, host string, perHost map[string]int, forced, normal *int) {
+	if t.Forced {
+		*forced++
+		return
+	}
+	*normal++
+	perHost[host]++
+}
+
 // Caller holds a.mu.
 func (a *App) dispatchLocked() {
 	if a.halted {
@@ -72,10 +98,22 @@ func (a *App) dispatchLocked() {
 	// button along.
 	var settled []core.Task
 	perHost := map[string]int{}
+	// Forced tasks are counted apart because they are about to be let past both
+	// limits, so counting them inside the ordinary total would have one forced
+	// download push an ordinary one out of a slot it already holds.
+	forcedActive := 0
+	normalActive := 0
 	for id := range a.active {
-		if t := a.tasks[id]; t != nil {
-			perHost[hostOf(t.URL)]++
+		t := a.tasks[id]
+		if t == nil {
+			continue
 		}
+		if t.Forced {
+			forcedActive++
+			continue
+		}
+		normalActive++
+		perHost[hostOf(t.URL)]++
 	}
 	var rest []string
 	for _, id := range a.queue {
@@ -92,18 +130,38 @@ func (a *App) dispatchLocked() {
 			rest = append(rest, id)
 			continue
 		}
-		if len(a.active) >= cfg.MaxConcurrent {
-			rest = append(rest, id)
-			continue
-		}
 		h := hostOf(t.URL)
-		if perHost[h] >= cfg.MaxPerHost {
-			rest = append(rest, id)
-			continue
+		// "Start now" is the whole point of the flag, and until this landed the
+		// dispatcher never read it: a forced task moved to the head of the queue
+		// and then waited for a slot exactly like every other task, so the menu
+		// entry did something almost invisible and the field's own comment
+		// ("past the concurrency and per-host limits") was a promise nothing kept.
+		//
+		// Past the limits, not past all of them. Forced downloads get a small pool
+		// of their own on top of the ordinary one, which is what JD does with
+		// MaxForcedDownloads: without a bound, "force" on a selection of two
+		// hundred links is the app opening two hundred transfers and the user
+		// wondering why everything stalled. A constant rather than a setting for
+		// now - it is a safety rail, and one more spinner on a settings page is
+		// not what makes this understandable.
+		if t.Forced {
+			if forcedActive >= maxForcedDownloads {
+				rest = append(rest, id)
+				continue
+			}
+		} else {
+			if normalActive >= cfg.MaxConcurrent {
+				rest = append(rest, id)
+				continue
+			}
+			if perHost[h] >= cfg.MaxPerHost {
+				rest = append(rest, id)
+				continue
+			}
 		}
 		if a.started[id] {
 			a.active[id] = true
-			perHost[h]++
+			a.countStartLocked(t, h, perHost, &forcedActive, &normalActive)
 			go a.backendFor(t.Resolver).Resume(id)
 			continue
 		}
@@ -178,8 +236,8 @@ func (a *App) dispatchLocked() {
 		}
 		a.active[id] = true
 		a.started[id] = true
-		perHost[h]++
-		conns := connsFor(t, result.Connections)
+		a.countStartLocked(t, h, perHost, &forcedActive, &normalActive)
+		conns := connsFor(t, cfg, result.Connections)
 		if be := a.backendFor(t.Resolver); be == a.Engine {
 			go a.Engine.DownloadTo(id, result.DirectURL, result.Headers, conns, dir)
 		} else {
@@ -196,26 +254,57 @@ func (a *App) dispatchLocked() {
 	}
 }
 
-// defaultConns is what one download opens when nothing else has an opinion.
+// defaultConns is what one download opens when nobody has an opinion: not the
+// task, not a rule, not the settings. It is written down here and nowhere else,
+// which is what the global setting's zero buys - a second copy of this number in
+// settings.Defaults would be a second one to forget when this one moves.
 const defaultConns = 4
 
-// connsFor is how many connections one download opens, and it is the only
-// answer: the number reaches the backend from here for a fresh dispatch and for
-// a restart alike.
+// connsFor is how many connections one download opens, and it is the only place
+// that number is decided. It reaches the backend from here for a fresh dispatch
+// and for a restart alike.
 //
-// A count set on the task — by a Packagizer rule written for this hoster, or by
-// hand on the row — outranks what the resolver suggested. A per-task setting
-// that changes nothing is one the user keeps re-saving and never sees work.
-// The ceiling is the rule engine's own, so a count that arrived past it (an
-// older build, or a value written straight into the store) cannot open sixty
-// connections on a host that bans two.
-func connsFor(t *core.Task, resolverSaid int) int {
-	conns := resolverSaid
-	if conns <= 0 {
-		conns = defaultConns
-	}
-	if t.Chunks > 0 {
+// ONE precedence, and this is it:
+//
+//	value = first of (per-task, matching rule, global setting, defaultConns)
+//	conns = min(value, every ceiling that applies, rules.MaxChunks)
+//
+// The first two terms both arrive on t.Chunks, and that is not the two being
+// conflated: the Packagizer writes it as the link is staged and a hand edit is
+// made afterwards, over the top of it. "By hand outranks the rule" is therefore
+// settled by the order the two happen in, and needs no second field that only
+// this function would ever read.
+//
+// ZERO MEANS "USE THE ONE BELOW IT", never "no connections" - on the task and in
+// the settings alike. A download opening no sockets would simply never start,
+// and an untouched spinner is exactly how somebody would ask for it.
+//
+// A CEILING CAN ONLY LOWER THE COUNT, which is the whole reframing. What a
+// resolver puts in Connections is a statement about what the HOST tolerates, not
+// about what the user wants, so it arrives here as a ceiling and can never raise
+// the number. That is what lets somebody set 1 chunk for a hoster that bans
+// multi-connection and actually get 1: read as an override, their 1 would be
+// quietly replaced by whatever the resolver last said. The per-host and
+// account-tier caps are the same kind of fact and arrive the same way, as one
+// more ceiling rather than one more branch. A ceiling of zero is a caller with
+// nothing to say about the host, not a host that permits nothing.
+//
+// The last ceiling is the engine's own: rules.MaxChunks is 16 because gopeed's
+// HTTP fetcher will not honour more, so a count that got past it - an older
+// build, a value written straight into the store - is cut here rather than
+// handed on as a promise nothing downstream keeps.
+func connsFor(t *core.Task, cfg settings.Settings, ceilings ...int) int {
+	conns := defaultConns
+	switch {
+	case t.Chunks > 0:
 		conns = t.Chunks
+	case cfg.Chunks > 0:
+		conns = cfg.Chunks
+	}
+	for _, c := range ceilings {
+		if c > 0 && c < conns {
+			conns = c
+		}
 	}
 	if conns > rules.MaxChunks {
 		conns = rules.MaxChunks

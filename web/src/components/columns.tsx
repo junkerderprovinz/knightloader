@@ -12,6 +12,7 @@
 
 import { useState, type ReactNode } from 'react';
 import { setEnabled, type Task } from '../lib/api';
+import { DIRECT_ID, endpointOf, useConnections } from '../lib/connections';
 import { fmtBytes, fmtDate, fmtEta, fmtSpeed, pct } from '../lib/format';
 import type { TranslationKey } from '../lib/i18n';
 import { useT } from '../lib/i18n';
@@ -29,6 +30,7 @@ export type ColumnId =
   | 'eta'
   | 'status'
   | 'host'
+  | 'connection'
   | 'added'
   | 'finished'
   | 'comment'
@@ -345,6 +347,54 @@ function StatusCell({ task, t }: { task: Task; t: Translate }) {
   );
 }
 
+/**
+ * Which connection is carrying this download.
+ *
+ * The column answers what a task IS ON, not what it was asked for. The server
+ * writes the id when it hands the download to a backend, so a task pointed at a
+ * proxy that was busy or switched off shows the connection that actually took
+ * it, which is the only version of this column worth having. One that echoed the
+ * request would agree with the settings page and disagree with the traffic.
+ *
+ * That is also why an unrouted task shows NOTHING rather than "Direct". An empty
+ * id is "nobody has decided yet"; the direct gateway is a decision, with an id of
+ * its own, and a collector full of rows announcing a decision that has not been
+ * made is worse than a column of blanks. The blanks fill in as tasks start.
+ *
+ * Quiet type, never the accent: which way the bytes came in is metadata about a
+ * finished fact, the same weight as the backend badge beside it. It is also the
+ * reason there is no icon here. A glyph per row in a column that is blank for
+ * most of them is decoration where the eye is scanning for names.
+ *
+ * The word for the gateway is the connection page's own key rather than a new
+ * one. There is exactly one right word for it, and a second key would be that
+ * word maintained twice across forty-two locales, drifting in some of them.
+ */
+function ConnectionCell({ task, t, base }: { task: Task; t: Translate; base: string }) {
+  const rows = useConnections(base);
+  const id = task.connection ?? '';
+  if (!id) return null;
+
+  const row = rows.get(id);
+  const direct = t('settings.connections.kind.direct');
+  // Three ways to have no endpoint to print, and they are not the same thing.
+  // The gateway and a direct ROW both mean "out over this machine", so both read
+  // as the word; an id with no row at all is a connection that was deleted, or a
+  // list that has not arrived yet, and it keeps the raw id because that can be
+  // matched against the settings page by hand where a blank cell cannot.
+  const endpoint = row ? endpointOf(row) : '';
+  const text = endpoint || (id === DIRECT_ID || row ? direct : id);
+  // A direct row is a rule the user wrote to keep certain hosts off every proxy,
+  // and two of them in one list read identically. The hosts it claims go in the
+  // tooltip, which is the only thing that tells them apart.
+  const hint = endpoint || row?.filter?.join(', ') || text;
+  return (
+    <span dir="ltr" title={hint} className="block truncate text-[11px] text-carbon-textMuted">
+      {text}
+    </span>
+  );
+}
+
 // --- Values a column needs that the task does not carry directly -----------
 
 const label = (t: Task): string => t.name || t.url;
@@ -551,6 +601,30 @@ export const COLUMNS: ColumnDef[] = [
     },
   },
   {
+    id: 'connection',
+    labelKey: 'columns.connection',
+    width: 160,
+    minWidth: 90,
+    align: 'start',
+    // The endpoint is a URL and reads left to right even in Arabic or Hebrew.
+    ltr: true,
+    hideable: true,
+    // By id, not by the label the cell draws. A comparator is not a component
+    // and has no instance to resolve an id against, and sorting this column is
+    // for putting the rows that share a connection together, which the id does
+    // exactly, whatever order it happens to put the groups in.
+    compare: (a, b) => cmpText(a.connection ?? '', b.connection ?? ''),
+    render: (task, ctx) => <ConnectionCell task={task} t={ctx.t} base={ctx.base} />,
+    // Only when the whole package went out the same way. A package split across
+    // two proxies has no single answer, and picking one of them would say
+    // something untrue about the other's links.
+    aggregate: (items, ctx) => {
+      const one = new Set(items.map((x) => x.connection ?? ''));
+      if (one.size !== 1 || !items[0].connection) return null;
+      return <ConnectionCell task={items[0]} t={ctx.t} base={ctx.base} />;
+    },
+  },
+  {
     id: 'added',
     labelKey: 'columns.added',
     width: 150,
@@ -654,10 +728,18 @@ const FLEX_COLUMN: ColumnId = 'name';
  * 180px floor with fifteen characters of a file name showing. Hiding source
  * gives that 260px back to the name and the table fits, which is also what the
  * downloads set already decided about the same column.
+ *
+ * `connection` ships hidden in both, and the arithmetic above is only half the
+ * reason. The other half is that it is empty for everybody: an instance with no
+ * connections configured, which is every instance until somebody adds one,
+ * routes nothing, so the column is 160px of blank on every row, and 160px is
+ * taken from the name column that is already pinned at its floor. It is one
+ * click away for the people who have a list of proxies and want to see which of
+ * them is carrying what, which is exactly who the column is for.
  */
 export const DEFAULT_HIDDEN: Record<ListProfile, ColumnId[]> = {
-  downloads: ['comment', 'source', 'added', 'finished', 'resolver'],
-  collector: ['progress', 'speed', 'eta', 'finished', 'comment', 'added', 'source'],
+  downloads: ['comment', 'source', 'added', 'finished', 'resolver', 'connection'],
+  collector: ['progress', 'speed', 'eta', 'finished', 'comment', 'added', 'source', 'connection'],
 };
 
 // --- The stored layout, and surviving an update ----------------------------

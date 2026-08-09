@@ -276,34 +276,10 @@ func TestExtractionOverrideReachesEveryPartOfTheSet(t *testing.T) {
 	}
 }
 
-// TestPerTaskChunkCountReachesTheBackend pins the number one download opens.
-// The resolver states what the host tolerates; a count on the task was written
-// for this hoster by hand or by a rule, and a per-task setting that changes
-// nothing is one the user keeps re-saving and never sees work.
-func TestPerTaskChunkCountReachesTheBackend(t *testing.T) {
-	cases := []struct {
-		name         string
-		resolverSaid int
-		chunks       int
-		want         int
-	}{
-		{"nobody has an opinion", 0, 0, defaultConns},
-		{"the resolver's answer, with no task override", 8, 0, 8},
-		{"the task outranks the resolver", 8, 2, 2},
-		{"the task outranks the built-in default", 0, 6, 6},
-		{"zero on the task is not zero connections", 3, 0, 3},
-		{"a stored count past the ceiling is clamped, not honoured", 2, 99, 16},
-		{"and so is a resolver that asks for too many", 99, 0, 16},
-	}
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			got := connsFor(&core.Task{Chunks: tc.chunks}, tc.resolverSaid)
-			if got != tc.want {
-				t.Errorf("connsFor = %d, want %d", got, tc.want)
-			}
-		})
-	}
-}
+// The chunk-count table used to live here, and it read the resolver's answer as
+// a value rather than as a ceiling. It is now in chunks_test.go, whole: two
+// tables for one formula is how the four readings got four answers in the first
+// place.
 
 // TestUnusableOptionsAreRefusedBeforeAnythingIsTouched keeps a bad value from
 // editing half a selection. Refused halfway through, the first rows would carry

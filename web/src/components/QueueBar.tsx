@@ -1,30 +1,73 @@
 import { useEffect, useState } from 'react';
 import { type QueueState, type Settings, fetchQueue, fetchSettings, saveSettings, setQueue } from '../lib/api';
 import { useT } from '../lib/i18n';
+import { useInstanceScope } from '../lib/instance';
 import { Button } from './ui';
 import { RATE_UNITS, type RateUnit, fmtRateValue, joinRate, splitRate } from '../lib/format';
 import { IconPause, IconPlay } from '../lib/icons';
 
+// Long enough not to hammer a server that is genuinely down, short enough that
+// the controls are back before anyone has decided the app is broken.
+const RETRY_MS = 5000;
+
 /**
  * QueueBar is the master switch plus the speed limit, sitting where the work is
- * rather than three clicks away in Settings.
+ * rather than three clicks away in Settings. It rides in the shell bar
+ * (app/Layout.tsx), so it is on every page and outlives navigation.
  *
  * The switch is deliberately not "pause everything": halting stops the
  * scheduler from handing out new work and leaves running downloads to finish,
  * because aborting a transfer mid-file throws away bytes nobody asked to lose.
  * The running count beside it is what makes that legible.
+ *
+ * It takes no `base`. A bar the shell can hand an address to is a bar the shell
+ * can hand the WRONG address to, and the wrong one here halts a different
+ * machine than the list on screen; the scope comes from lib/instance.tsx, which
+ * is the same value the page is reading.
  */
-export function QueueBar({ base = '/api' }: { base?: string }) {
+export function QueueBar() {
   const { t } = useT();
+  const { instance, base } = useInstanceScope();
   const [queue, setQ] = useState<QueueState | null>(null);
   const [cfg, setCfg] = useState<Settings | null>(null);
   // Held separately from cfg so typing a limit does not fight the field, and
   // held as text so a half-typed "1." survives the keystroke that follows it.
   const [limit, setLimit] = useState('');
   const [unit, setUnit] = useState<RateUnit>('KiB/s');
+  // Bumped by a failed load to ask again. This used to be mounted once per
+  // visit to the download page, so every visit was a fresh attempt; in the
+  // shell it mounts once for the session, and without a retry one dropped
+  // request at boot would leave the app with no transport control until
+  // somebody thought to reload.
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    fetchQueue(base).then(setQ).catch(() => setQ(null));
+    // Skipped for a peer only because the bar withholds the controls for one -
+    // see the early return below. /queue IS forwarded
+    // (internal/api/routes_federation.go), so this is the UI declining to ask,
+    // not the server refusing to answer. Do not "fix" the allowlist over it.
+    if (instance) return;
+    let live = true;
+    let retry = 0;
+    fetchQueue(base)
+      .then((q) => {
+        if (live) setQ(q);
+      })
+      .catch(() => {
+        // The last known state is kept rather than blanked. A bar that
+        // disappears on one dropped request is a bar people stop looking for.
+        if (live) retry = window.setTimeout(() => setAttempt((n) => n + 1), RETRY_MS);
+      });
+    return () => {
+      live = false;
+      clearTimeout(retry);
+    };
+  }, [base, instance, attempt]);
+
+  // Loaded once, and deliberately not per scope change: the speed limit is a
+  // setting of THIS instance whatever the page is showing, because /api/settings
+  // is not forwarded to a peer either.
+  useEffect(() => {
     fetchSettings()
       .then((s) => {
         setCfg(s);
@@ -36,7 +79,7 @@ export function QueueBar({ base = '/api' }: { base?: string }) {
         setUnit(unit);
       })
       .catch(() => setCfg(null));
-  }, [base]);
+  }, []);
 
   async function toggle() {
     if (!queue) return;
@@ -62,6 +105,21 @@ export function QueueBar({ base = '/api' }: { base?: string }) {
 
   if (!queue) return null;
 
+  // A peer is in view, and the two controls do NOT land in the same place. The
+  // switch follows the scope, because /api/queue is forwarded to a peer; the
+  // speed limit cannot, because it lives in /api/settings and settings stay on
+  // the machine that configures them.
+  //
+  // Both used to be withheld, with one sentence explaining why. That was the
+  // safe reading of a real trap - a button obeying the peer beside a field
+  // obeying this box, with nothing on screen saying so - but it withheld a
+  // control the server was perfectly willing to forward, so stopping a peer's
+  // queue was impossible from the very bar built to make stopping possible
+  // anywhere. The switch stays and the limit goes, with the limit's absence
+  // explained rather than silent. The shell's scope tag has already named the
+  // peer, so neither line repeats it.
+  const peer = Boolean(instance);
+
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Button
@@ -79,8 +137,16 @@ export function QueueBar({ base = '/api' }: { base?: string }) {
         </span>
       )}
 
-      <span className="flex-1" />
+      {/* No spacer between the switch and the limit any more. On the download
+          page this bar was the full width of the content and pushed the limit
+          to the far edge; in the shell it is one item in a row that also holds
+          the scope tag and the widget slot, so a flex-1 here would collapse to
+          nothing and the two controls read better as one transport cluster. */}
+      {peer && (
+        <span className="text-[11px] text-carbon-textMuted">{t('queue.peerLimitLocal')}</span>
+      )}
 
+      {!peer && (
       <label className="flex items-center gap-2 text-[11px] text-carbon-textMuted">
         {t('queue.limit')}
         <span className="flex items-center gap-1">
@@ -123,6 +189,7 @@ export function QueueBar({ base = '/api' }: { base?: string }) {
           </select>
         </span>
       </label>
+      )}
     </div>
   );
 }

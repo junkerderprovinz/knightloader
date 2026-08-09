@@ -28,6 +28,10 @@ export function DownloadsSettings() {
   return (
     <div className="flex flex-col gap-6">
       <Card className="flex flex-col gap-5">
+        {/* The three counts that decide how much is open at once, together
+            because they are read together: two downloads on one host, each
+            pulled over eight sockets, is sixteen connections to that host and
+            neither number says so on its own. */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Field label={t('settings.maxConcurrent')}>
             <NumberInput value={cfg.maxConcurrent} min={1} max={64} onValue={(v) => patch({ maxConcurrent: v })} />
@@ -35,6 +39,14 @@ export function DownloadsSettings() {
           <Field label={t('settings.maxPerHost')}>
             <NumberInput value={cfg.maxPerHost} min={1} max={64} onValue={(v) => patch({ maxPerHost: v })} />
           </Field>
+          {/* max is the engine's own bound, not a number picked here: a spinner
+              that goes to 32 while every download opens 16 is a control that
+              lies about what saving it did. */}
+          <Field label={t('settings.chunks')} hint={t('settings.chunksHint')}>
+            <NumberInput value={cfg.chunks} min={0} max={16} onValue={(v) => patch({ chunks: v })} />
+          </Field>
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('settings.speedLimit')} hint={t('settings.speedHint')}>
             <NumberInput
               value={Math.round(cfg.speedLimit / 1024)}
@@ -43,10 +55,10 @@ export function DownloadsSettings() {
               onValue={(v) => patch({ speedLimit: Math.max(0, v) * 1024 })}
             />
           </Field>
+          <Field label={t('settings.maxRetries')} hint={t('settings.maxRetriesHint')}>
+            <NumberInput value={cfg.maxRetries} min={0} max={20} onValue={(v) => patch({ maxRetries: v })} />
+          </Field>
         </div>
-        <Field label={t('settings.maxRetries')} hint={t('settings.maxRetriesHint')}>
-          <NumberInput value={cfg.maxRetries} min={0} max={20} onValue={(v) => patch({ maxRetries: v })} />
-        </Field>
         <div className="flex flex-col gap-3">
           <Toggle checked={cfg.crawl} onChange={(v) => patch({ crawl: v })} label={t('settings.crawl')} />
           <Toggle

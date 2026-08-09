@@ -11,6 +11,7 @@ import (
 	"github.com/GopeedLab/gopeed/pkg/download"
 	fhttp "github.com/GopeedLab/gopeed/pkg/protocol/http"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 )
 
 type Engine struct {
@@ -89,13 +90,39 @@ func (e *Engine) Download(taskID, url string, headers map[string]string, conns i
 }
 
 // DownloadTo is Download with an explicit destination; an empty dir falls back
-// to the engine's default.
+// to the engine's default. It routes nothing: the download goes out the way
+// every download went out before connections could be named, which is over the
+// loopback proxy UseProxy configured.
 func (e *Engine) DownloadTo(taskID, url string, headers map[string]string, conns int, dir string) {
+	e.DownloadVia(taskID, url, headers, conns, dir, proxycfg.Route{})
+}
+
+// DownloadVia is DownloadTo carried on one named outbound connection.
+//
+// This is the whole of per-download routing, and it is one field on the request
+// because that is all gopeed needs: setupFetcher resolves the request's own
+// proxy ahead of the global one ("task request proxy config has higher
+// priority"), so a per-download connection is stated where the download is
+// stated. No dialer, no second proxy, no chain - and the small version is the
+// right one to build, because the large one was sized against a belief about
+// this library that turned out to be wrong.
+//
+// It has a cost, and the cost is real rather than theoretical: a request that
+// names its own proxy no longer passes through the loopback proxy, and the
+// loopback proxy is the only place this build can meter bytes. A routed download
+// is therefore an unthrottled download until metering moves to a listener per
+// task, which is the arrangement the bandwidth budget is designed around. Until
+// then, routing wins over the speed limit for the downloads that are routed.
+func (e *Engine) DownloadVia(taskID, url string, headers map[string]string, conns int, dir string, route proxycfg.Route) {
 	if dir == "" {
 		dir = e.dir
 	}
 	go func() {
-		req := &base.Request{URL: url, Extra: &fhttp.ReqExtra{Method: "GET", Header: headers}}
+		req := &base.Request{
+			URL:   url,
+			Extra: &fhttp.ReqExtra{Method: "GET", Header: headers},
+			Proxy: requestProxy(route),
+		}
 		opts := &base.Options{Path: dir, Extra: &fhttp.OptsExtra{Connections: conns}}
 		rr, err := e.d.Resolve(req, opts)
 		if err != nil {
@@ -114,6 +141,36 @@ func (e *Engine) DownloadTo(taskID, url string, headers map[string]string, conns
 		e.toGopeed[taskID] = gid
 		e.mu.Unlock()
 	}()
+}
+
+// requestProxy is the route as gopeed reads it.
+//
+// A route with no proxy returns nil, and nil is the answer that matters here.
+// gopeed reads nil as "follow the global config", which is the loopback proxy -
+// so a download deliberately sent over the machine's own connection is still
+// metered and still unproxied, which is exactly what the direct gateway means.
+//
+// The mode that looks right for it is the one that must never be used.
+// RequestProxyModeNone does not mean "no upstream proxy", it means no proxy
+// handler at all: it would take the download off the loopback proxy as well, and
+// the speed limit would silently stop applying to every download somebody
+// explicitly marked direct. The bug reads as "the limit does nothing", weeks
+// later, on the one setting a user was deliberate about.
+//
+// Nothing here has to defend against socks4: proxycfg.Entry.Route refuses those
+// kinds before a Route can exist, because this ends in http.ProxyURL and that
+// has never spoken socks4.
+func requestProxy(r proxycfg.Route) *base.RequestProxy {
+	if !r.Proxied() {
+		return nil
+	}
+	return &base.RequestProxy{
+		Mode:   base.RequestProxyModeCustom,
+		Scheme: r.Scheme,
+		Host:   r.Host,
+		Usr:    r.Username,
+		Pwd:    r.Password,
+	}
 }
 
 func (e *Engine) Pause(taskID string)  { e.filterOp(taskID, e.d.Pause) }

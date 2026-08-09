@@ -274,14 +274,17 @@ type Problem struct {
 
 func (p Problem) Error() string { return fmt.Sprintf("%s: %s", p.Rule, p.Message) }
 
-// Bounds a rule may not exceed. Priority matches the clamp in app.SetPriority
-// so a rule cannot hand a task a priority the interface has no way to undo.
+// Bounds a rule may not exceed. Priority spans the seven values the interface
+// offers (app.Priorities, JDownloader's set) and is the one bound both sides
+// clamp to: narrower here, a rule could not reach the highest and lowest at all
+// while the menu still showed them; wider, a rule could hand a task a priority
+// no control in the interface is able to undo.
 // MaxChunks is a guard rail rather than tuning: connections beyond a handful
 // buy nothing on a hoster that rate-limits per file and are a reliable way to
 // get an account flagged.
 const (
-	PriorityMin = -2
-	PriorityMax = 2
+	PriorityMin = -3
+	PriorityMax = 3
 	MaxChunks   = 16
 )
 

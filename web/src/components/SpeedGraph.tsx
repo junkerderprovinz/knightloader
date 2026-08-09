@@ -2,6 +2,54 @@ import { useEffect, useRef, useState } from 'react';
 import { fmtSpeed } from '../lib/format';
 import { useT } from '../lib/i18n';
 
+/**
+ * useSpeedSamples is the rolling window both readings share: the live value
+ * (bytes/s) taken once a second, oldest first.
+ *
+ * The value is read through a ref rather than being a dependency of the
+ * interval. It changes on every websocket frame, and re-arming the timer each
+ * time would restart the second — so the window would sample whenever the
+ * traffic happened to arrive instead of at a steady tick, and the curve would
+ * bunch and stretch with the very thing it is measuring.
+ */
+function useSpeedSamples(value: number, points: number): number[] {
+  const [samples, setSamples] = useState<number[]>(() => Array(points).fill(0));
+  const valRef = useRef(value);
+  valRef.current = value;
+  useEffect(() => {
+    const iv = setInterval(() => setSamples((s) => [...s.slice(1), valRef.current]), 1000);
+    return () => clearInterval(iv);
+  }, []);
+  return samples;
+}
+
+/**
+ * ceilingFor is the vertical scale: up at once, down 8% a tick, never below a
+ * floor. Rising instantly keeps a spike inside the box; relaxing slowly stops a
+ * brief blip near idle from re-normalising the whole curve into a mountain, and
+ * the floor keeps a small transfer looking small instead of filling the frame.
+ */
+const FLOOR = 64 * 1024;
+
+function ceilingFor(previous: number, peak: number): number {
+  const target = Math.max(peak, FLOOR);
+  return target > previous ? target : Math.max(target, previous * 0.92);
+}
+
+/** smoothPath draws the samples as one curve, scaled into a box. */
+function smoothPath(samples: number[], w: number, h: number, pad: number, max: number) {
+  const y = (v: number) => h - pad - (v / max) * (h - pad * 2);
+  const pts = samples.map((v, i) => [i * (w / (samples.length - 1)), y(v)] as const);
+  let d = `M${pts[0][0]},${pts[0][1].toFixed(1)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [x0, y0] = pts[i];
+    const [x1, y1] = pts[i + 1];
+    const cx = (x0 + x1) / 2;
+    d += ` C${cx.toFixed(1)},${y0.toFixed(1)} ${cx.toFixed(1)},${y1.toFixed(1)} ${x1.toFixed(1)},${y1.toFixed(1)}`;
+  }
+  return { d, last: pts[pts.length - 1] };
+}
+
 // SpeedGraph samples a live value (bytes/s) once a second into a rolling window
 // and draws a smooth accent area. It is the hero of the Overview page.
 //
@@ -19,41 +67,17 @@ export function SpeedGraph({
   points?: number;
 }) {
   const { t } = useT();
-  const [samples, setSamples] = useState<number[]>(() => Array(points).fill(0));
-  const valRef = useRef(value);
-  valRef.current = value;
+  const samples = useSpeedSamples(value, points);
   const ceilingRef = useRef(0);
-
-  useEffect(() => {
-    const iv = setInterval(() => setSamples((s) => [...s.slice(1), valRef.current]), 1000);
-    return () => clearInterval(iv);
-  }, []);
 
   const W = 600;
   const H = height;
   const pad = 6;
   const peak = Math.max(...samples);
 
-  // Ceiling jumps up at once, eases down 8% per tick, and never drops below a
-  // floor so small transfers stay visually small.
-  const FLOOR = 64 * 1024;
-  const target = Math.max(peak, FLOOR);
-  ceilingRef.current =
-    target > ceilingRef.current ? target : Math.max(target, ceilingRef.current * 0.92);
-  const max = ceilingRef.current;
-
+  ceilingRef.current = ceilingFor(ceilingRef.current, peak);
   const idle = peak === 0;
-  const y = (v: number) => H - pad - (v / max) * (H - pad * 2);
-  const pts = samples.map((v, i) => [i * (W / (samples.length - 1)), y(v)] as const);
-
-  let d = `M${pts[0][0]},${pts[0][1].toFixed(1)}`;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const [x0, y0] = pts[i];
-    const [x1, y1] = pts[i + 1];
-    const cx = (x0 + x1) / 2;
-    d += ` C${cx.toFixed(1)},${y0.toFixed(1)} ${cx.toFixed(1)},${y1.toFixed(1)} ${x1.toFixed(1)},${y1.toFixed(1)}`;
-  }
-  const last = pts[pts.length - 1];
+  const { d, last } = smoothPath(samples, W, H, pad, ceilingRef.current);
 
   return (
     <div className="relative">
@@ -93,5 +117,101 @@ export function SpeedGraph({
         {idle ? t('overview.idle') : `${t('overview.peak')} ${fmtSpeed(peak)}`}
       </span>
     </div>
+  );
+}
+
+/**
+ * SpeedMeter is the same reading at shell-bar size: the figure, with the last
+ * half-minute of it drawn behind.
+ *
+ * `onOpen` makes the whole thing a button, and that is the point rather than a
+ * convenience. Somebody watching the speed is already looking at the thing they
+ * want to change, and making them find a gear two controls away is asking them
+ * to leave what they are reading. The gear stays as well, for anyone who never
+ * discovers that a number can be pressed.
+ *
+ * It keeps a window of its own instead of taking the graph's. Two components
+ * cannot share one rolling buffer without hoisting it above both, and the
+ * Overview page's hero is mounted and unmounted by navigation while this is not
+ * — so a shared window would empty itself whenever somebody left that page.
+ */
+export function SpeedMeter({
+  value,
+  onOpen,
+  label,
+  points = 30,
+}: {
+  value: number;
+  /** Absent when the panel would act on a different machine than the list. */
+  onOpen?: () => void;
+  /** What pressing it does, for a screen reader. */
+  label: string;
+  points?: number;
+}) {
+  const samples = useSpeedSamples(value, points);
+  const ceilingRef = useRef(0);
+
+  const W = 72;
+  const H = 18;
+  const peak = Math.max(...samples);
+  ceilingRef.current = ceilingFor(ceilingRef.current, peak);
+  const idle = peak === 0;
+  const { d } = smoothPath(samples, W, H, 2, ceilingRef.current);
+
+  const inner = (
+    <>
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        preserveAspectRatio="none"
+        width={W}
+        height={H}
+        className="shrink-0"
+        aria-hidden
+        focusable="false"
+      >
+        {idle ? (
+          <line
+            x1="0"
+            y1={H - 2}
+            x2={W}
+            y2={H - 2}
+            stroke="var(--carbon-border)"
+            strokeWidth="1"
+            vectorEffect="non-scaling-stroke"
+          />
+        ) : (
+          <path
+            d={d}
+            fill="none"
+            stroke="var(--accent)"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            vectorEffect="non-scaling-stroke"
+          />
+        )}
+      </svg>
+      {/* dir="ltr": the number and its unit are one token and must not be
+          reordered into "s/BiM 4.2" in an Arabic or Hebrew locale. */}
+      <span dir="ltr" className="glim-num text-[13px] font-semibold leading-none text-carbon-text">
+        {fmtSpeed(value) || '0 B/s'}
+      </span>
+    </>
+  );
+
+  const shell = 'flex items-center gap-2 rounded-[var(--radius-control)] px-1.5 py-1';
+
+  if (!onOpen) return <span className={shell}>{inner}</span>;
+
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      aria-label={label}
+      title={label}
+      className={`${shell} transition-colors hover:bg-carbon-hover
+        outline-none focus-visible:shadow-[0_0_0_2px_var(--focus-ring)]`}
+    >
+      {inner}
+    </button>
   );
 }

@@ -2,6 +2,7 @@ package rules
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 	"sync"
@@ -52,8 +53,11 @@ func TestCompileRejectsUnusableRules(t *testing.T) {
 		// whole paste. The string operators have always refused this shape.
 		{"range with no bounds", Rule{Conditions: []Condition{{Field: FieldFilesize, Op: OpBetween}}}, "no bounds"},
 		{"bounds swapped", Rule{Conditions: []Condition{{Field: FieldFilesize, Op: OpBetween, Min: 100, Max: 10}}}, "above the upper bound"},
-		{"priority too high", Rule{Action: Action{Priority: ptr(9)}}, "outside -2..2"},
-		{"priority too low", Rule{Action: Action{Priority: ptr(-9)}}, "outside -2..2"},
+		// Spelled from the constants, so widening the enum moves the message and
+		// the expectation together. Written out by hand, this pair went red the
+		// day the interface gained JDownloader's full seven priorities.
+		{"priority too high", Rule{Action: Action{Priority: ptr(PriorityMax + 7)}}, fmt.Sprintf("outside %d..%d", PriorityMin, PriorityMax)},
+		{"priority too low", Rule{Action: Action{Priority: ptr(PriorityMin - 7)}}, fmt.Sprintf("outside %d..%d", PriorityMin, PriorityMax)},
 		{"no chunks", Rule{Action: Action{Chunks: ptr(0)}}, "outside 1..16"},
 		{"too many chunks", Rule{Action: Action{Chunks: ptr(99)}}, "outside 1..16"},
 		{"unterminated folder", Rule{Action: Action{DownloadDir: "/dl/<jd:packagename"}}, "never closes"},

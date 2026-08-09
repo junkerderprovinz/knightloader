@@ -786,6 +786,79 @@ export const en = {
   'settings.reconnect.policy': 'When this happens on its own',
   'settings.reconnect.policyHint':
     'Automatic reconnects are fired in one place, and this page is not it. One is started when a download backend itself asks for another attempt after a delay, which is how a hoster says the limit is tied to this address. It never runs while the queue is halted, because rebooting the router drops the downloads that are still going. It never runs while the reconnect is not fully configured. Only one runs at a time: a second request waits for the first one’s verdict instead of fighting it over the router. And if the address does not move, nothing is brought forward and the ordinary retry backoff is left to run.',
+
+  'shell.bar': 'Queue and status bar',
+  'shell.scope': 'Controlling',
+  'shell.scopeHint':
+    'The page below is showing this peer, so the bar points at it too. A peer keeps its own queue and its own speed limit, so anything this instance cannot pass on is shown as unavailable instead of being applied to this machine.',
+  'queue.peerLimitLocal': 'The speed limit belongs to this machine; open the peer to change its own.',
+
+  'task.moveUp': 'Move up',
+  'task.moveDown': 'Move down',
+  'menu.priority': 'Priority',
+  'menu.forceStart': 'Start now',
+  'menu.queueStopped': 'Queue stopped',
+  'pkg.queueOrder': 'Move whole package',
+
+  // The seven the queue backend reports, which is not the five the properties
+  // panel offers below: one is JDownloader's ladder read off the server, the
+  // other is what a task record can hold. Folding them into one set would tie
+  // the panel to whichever backend answered first.
+  'priority.highest': 'Highest',
+  'priority.higher': 'Higher',
+  'priority.high': 'High',
+  'priority.default': 'Default',
+  'priority.low': 'Low',
+  'priority.lower': 'Lower',
+  'priority.lowest': 'Lowest',
+
+  'settings.chunks': 'Connections per download (0 = automatic)',
+  'settings.chunksHint':
+    'How many connections one download opens when nothing more specific applies. A rule, or a single download, can name its own number and outranks this. A hoster that tolerates fewer still gets fewer: a host limit can only lower the count, never raise it. 0 leaves the decision to the app. Connections beyond a handful buy nothing on a hoster that limits per file, and are a reliable way to get an account flagged.',
+  'task.chunks': 'Connections (0 = the global setting)',
+  'task.chunksHint':
+    'How many connections this one download opens. It outranks the global setting and any rule that set it, but never the hoster: a host that tolerates fewer still gets fewer. 0 takes the override off again and hands the count back.',
+  'columns.connection': 'Connection',
+
+  'props.title': 'Properties',
+  'props.mixed': 'Several values',
+  'props.mixedHint':
+    'These rows do not agree, so the box is empty. Left alone it changes nothing; type in it and every selected row gets what you typed.',
+  'props.name': 'Name',
+  'props.nameHint':
+    'One file name, never a path: anything spelling out folders is cut back to a single name. A download that has finished is renamed on disk too, so the list and the folder cannot disagree. One that is running keeps the file its backend has open and takes the new name when it finishes. One that has not started takes it straight away. A name belongs to one file, so this box is only offered for a single row.',
+  'props.comment': 'Comment',
+  'props.commentHint': 'A note for whoever reads this list next month. Nothing in the app acts on it.',
+  'props.priority': 'Priority',
+  'props.priorityHint':
+    'Higher runs first. It reorders what is still waiting; a download already running is not sent back to the queue.',
+  'props.autoExtract': 'Unpack archives',
+  'props.autoExtractHint':
+    'Read when unpacking would happen rather than when the download ran, so switching it on now unpacks something that finished an hour ago. Inherit hands the decision back to the global setting, which is not the same answer as off.',
+  'props.inherit': 'Inherit',
+  'props.on': 'On',
+  'props.off': 'Off',
+
+  'strip.label': 'Download totals',
+  'strip.of': 'of',
+  'strip.hint':
+    'Bytes fetched against bytes owed. Finished, failed and collected links stay out of the total, and so does anything whose size the host has not stated yet - a guess there would be a number nobody can act on.',
+  'strip.scope': 'What the figures cover',
+  'strip.total': 'Total',
+  'strip.visible': 'Visible',
+  'strip.selected': 'Selected',
+  'strip.includeDisabled': 'Include disabled',
+  'strip.includeDisabledHint':
+    'Count the bytes of links that are switched off. They stay out of the time remaining either way: nothing is going to fetch them, so no amount of waiting works them off.',
+
+  'quick.title': 'Quick settings',
+  'quick.chunksHint':
+    'Connections one download opens. It is not a count of connections that are open right now: a backend reports its speed and its bytes and never how many sockets it holds, so there is no such number to show. 0 hands the choice back to the app.',
+  'quick.limitHint':
+    'Switching this off lifts the limit and remembers it, so switching it back on puts the same number in force again. The number itself is typed in the bar.',
+  'quick.noLimit': 'No speed limit',
+  'quick.noLimitHint':
+    'There is nothing to switch until a limit has been set. The field for it is in the bar beside the start button, and on the Downloads settings page.',
 } as const;
 
 export type TranslationKey = keyof typeof en;

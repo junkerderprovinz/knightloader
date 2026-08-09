@@ -52,6 +52,7 @@ type Backend struct {
 	cancel map[string]context.CancelFunc
 	link   map[string]string
 	handed map[string]bool
+	conns  map[string]int
 }
 
 func NewBackend(svc Service, eng Downloader, onUpdate func(taskID string, u core.Update)) *Backend {
@@ -60,13 +61,20 @@ func NewBackend(svc Service, eng Downloader, onUpdate func(taskID string, u core
 		cancel: map[string]context.CancelFunc{},
 		link:   map[string]string{},
 		handed: map[string]bool{},
+		conns:  map[string]int{},
 	}
 }
 
-func (b *Backend) Download(taskID, link string, _ map[string]string, _ int) {
+func (b *Backend) Download(taskID, link string, _ map[string]string, conns int) {
 	b.mu.Lock()
 	b.link[taskID] = link
 	b.handed[taskID] = false
+	// Kept beside the link rather than used and dropped: the unlock happens
+	// first, and Resume re-enters start from the other side, so the count has to
+	// survive the round trip through the service. A flat number written at the
+	// handover instead - which is what stood here - meant a debrid download
+	// ignored the task, the rule and the setting alike, and did it silently.
+	b.conns[taskID] = conns
 	b.mu.Unlock()
 	b.start(taskID, link)
 }
@@ -75,6 +83,7 @@ func (b *Backend) start(taskID, link string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	b.mu.Lock()
 	b.cancel[taskID] = cancel
+	conns := b.conns[taskID]
 	b.mu.Unlock()
 	go func() {
 		defer cancel()
@@ -96,7 +105,7 @@ func (b *Backend) start(taskID, link string) {
 		b.mu.Lock()
 		b.handed[taskID] = true
 		b.mu.Unlock()
-		b.eng.Download(taskID, d.URL, nil, 8)
+		b.eng.Download(taskID, d.URL, nil, conns)
 	}()
 }
 
@@ -135,6 +144,7 @@ func (b *Backend) Remove(taskID string, deleteFiles bool) {
 	handed := b.handed[taskID]
 	delete(b.link, taskID)
 	delete(b.handed, taskID)
+	delete(b.conns, taskID)
 	b.mu.Unlock()
 	if handed {
 		b.eng.Remove(taskID, deleteFiles)

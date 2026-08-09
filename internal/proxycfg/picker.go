@@ -13,6 +13,11 @@ type Options struct {
 	// DefaultMaxDownloads applies to entries that set no limit of their own.
 	// Zero means DefaultMaxDownloads.
 	DefaultMaxDownloads int
+	// Bans is the refusals the picker must respect, and it is long-lived: it
+	// belongs to whoever owns the app, not to the picker, because a picker is
+	// thrown away and rebuilt on every save and bans that went with it would be
+	// forgotten by the act of renaming a row. Nil is a list with nothing in it.
+	Bans *Bans
 }
 
 // Picker hands out the next connection to use. It starts no goroutines.
@@ -34,6 +39,7 @@ type Options struct {
 type Picker struct {
 	entries []Entry // never mutated after New, so reads need no lock
 	def     int
+	bans    *Bans // shared and outlives this picker; see Options.Bans
 
 	mu     sync.Mutex
 	cursor int
@@ -42,6 +48,11 @@ type Picker struct {
 // NewPicker builds a picker over entries. The list goes through Sanitize on the
 // way in, so a caller that forgot cannot round-robin onto a half-configured
 // proxy; Sanitize is idempotent, so doing it twice costs nothing.
+//
+// Building a picker is also what settles the ban list against the new list of
+// rows - a row switched back on loses its refusals here. That is deliberate: the
+// only moment a picker is built is the moment the list was saved, so the two
+// cannot drift apart and no caller has to remember a second call.
 func NewPicker(entries []Entry, o Options) *Picker {
 	def := o.DefaultMaxDownloads
 	if def <= 0 {
@@ -50,8 +61,14 @@ func NewPicker(entries []Entry, o Options) *Picker {
 	if def > maxDownloadsCap {
 		def = maxDownloadsCap
 	}
-	return &Picker{entries: Sanitize(entries), def: def}
+	p := &Picker{entries: Sanitize(entries), def: def, bans: o.Bans}
+	p.bans.observe(p.entries)
+	return p
 }
+
+// Bans is the refusal list this picker consults, so a caller that has the picker
+// has the thing that clears them too.
+func (p *Picker) Bans() *Bans { return p.bans }
 
 // Entries returns the sanitized list in the order the picker walks it, which is
 // also the list the caller should persist and show. Every entry is a copy down
@@ -70,6 +87,14 @@ func (p *Picker) Entries() []Entry {
 // whatever entry the caller has to hand, and a limit above the cap is not a
 // limit at all.
 func (p *Picker) Limit(e Entry) int {
+	// The direct gateway is not a connection anybody is spreading load over: it
+	// is the absence of a proxy, and the only ceiling on it is the app's own
+	// concurrency. Left to fall through, it would take the list's default of two
+	// - so a user with no proxies at all, whose every download is direct, would
+	// find the queue capped at two by a list they never wrote a row in.
+	if e.isGateway() {
+		return maxDownloadsCap
+	}
 	if e.MaxDownloads > 0 {
 		return min(e.MaxDownloads, maxDownloadsCap)
 	}
@@ -89,10 +114,20 @@ func (p *Picker) Limit(e Entry) int {
 //	                  must never stop downloads: one mistyped filter freezing the
 //	                  entire queue is a far worse failure than a download going
 //	                  out unproxied.
-//	Entry{}, false  - an entry does claim this host, but every entry that claims
-//	                  it is at its limit. Wait and ask again. Going direct here
-//	                  would route around the proxy the user chose for exactly
-//	                  this host, which is the leak the feature exists to prevent.
+//	Entry{}, false  - an entry does claim this host, but no entry that claims it
+//	                  can take the download right now. Wait and ask again. Going
+//	                  direct here would route around the proxy the user chose for
+//	                  exactly this host, which is the leak the feature exists to
+//	                  prevent.
+//
+// "Cannot take it right now" is two things and they are answered as one: the
+// entry is at its limit, or the host has refused it and it is on the ban list.
+// Collapsing them is the decision. What the caller does is identical - keep the
+// download queued and ask again - and the only difference is what clears the
+// condition, which is the caller's business in neither case. A ban that answered
+// differently would have to answer "give up", and giving up means either
+// stranding the download or sending it out over a connection the user pointed
+// away from this host.
 //
 // Entries are walked in list order from wherever the previous pick left off, so
 // successive downloads spread across the list instead of piling onto the first
@@ -133,7 +168,15 @@ func (p *Picker) Pick(host string, inUse map[string]int) (Entry, bool) {
 		if claimed && !e.Matches(host) {
 			continue
 		}
+		// Counted as a candidate before either refusal is checked, because a
+		// candidate is what keeps the answer at "wait". An entry dropped from the
+		// count would let a host whose only proxy is banned fall through to the
+		// direct fallback below, and the download the ban is about would go out
+		// over the plain connection instead.
 		candidates++
+		if p.bans.Banned(e.ID, host) {
+			continue
+		}
 		if inUse[e.ID] >= p.Limit(e) {
 			continue
 		}
@@ -147,6 +190,64 @@ func (p *Picker) Pick(host string, inUse map[string]int) (Entry, bool) {
 	// than a busy one, so it is answered with a plain download.
 	if candidates == 0 {
 		return Direct(), true
+	}
+	return Entry{}, false
+}
+
+// PickFor is Pick for a download that has been given a connection by name - the
+// id on the task, which is what per-download routing amounts to.
+//
+// The answers are Pick's two, reached differently:
+//
+//	""          Nothing was chosen for this download, so the rotation decides.
+//	            This is Pick, unchanged.
+//	DirectID    The direct gateway was chosen. It is a real choice and it is
+//	            honoured: no filter, no limit and no ban applies, because there
+//	            is nothing between the download and the machine's own connection
+//	            for any of them to be about.
+//	a live row  That row, if it can take the download. If it cannot - at its
+//	            limit, or refused by this host - the answer is wait, exactly as
+//	            in Pick. It is never quietly swapped for another connection: the
+//	            user named this one.
+//	anything    The row is gone, switched off, or was never there. The rotation
+//	 else       decides, which is the answer this download would have had if it
+//	            had never named anything.
+//
+// That last case is the one worth arguing about, so: the alternative is to
+// strand the download for ever on a row somebody deleted months ago, or on one
+// they switched off for the evening. A per-task connection is a preference, not
+// a lock, and the rotation it falls back to still honours every host filter - so
+// a host the user deliberately pointed somewhere else is not reached by this
+// door either.
+//
+// The caller still owns the in-flight counts and must record the answer under
+// its own lock; see the type comment. Naming a connection changes nothing about
+// that.
+func (p *Picker) PickFor(id, host string, inUse map[string]int) (Entry, bool) {
+	switch id {
+	case "":
+		return p.Pick(host, inUse)
+	case DirectID:
+		return Direct(), true
+	}
+	e, found := p.find(id)
+	if !found {
+		return p.Pick(host, inUse)
+	}
+	if p.bans.Banned(e.ID, host) || inUse[e.ID] >= p.Limit(e) {
+		return Entry{}, false
+	}
+	return e, true
+}
+
+// find returns the usable entry with this id. The entries are fixed after New,
+// so this needs no lock and must not take one: PickFor calls Pick on the way
+// out, and Pick takes it.
+func (p *Picker) find(id string) (Entry, bool) {
+	for _, e := range p.entries {
+		if e.ID == id && e.usable() {
+			return e.clone(), true
+		}
 	}
 	return Entry{}, false
 }

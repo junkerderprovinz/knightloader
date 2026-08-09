@@ -43,7 +43,13 @@ func registerFederation(reg *Registry, a *app.App) {
 	reg.Add(AnyMethod, "/api/instances/{name}/{rest...}", "forward a task or link request to a peer; nothing else is forwarded",
 		func(w http.ResponseWriter, r *http.Request) {
 			rest := r.PathValue("rest")
-			if rest != "links" && rest != "tasks" && !strings.HasPrefix(rest, "tasks/") {
+			// The queue travels with the task list, because it is that list's own
+			// master switch: showing a peer's downloads and then ordering, forcing
+			// or stopping them on this box would act on the wrong machine. It is a
+			// different question from the settings and the accounts, which stay
+			// where they are configured.
+			if rest != "links" && rest != "tasks" && rest != "queue" &&
+				!strings.HasPrefix(rest, "tasks/") && !strings.HasPrefix(rest, "queue/") {
 				http.Error(w, "route not proxied", http.StatusForbidden)
 				return
 			}

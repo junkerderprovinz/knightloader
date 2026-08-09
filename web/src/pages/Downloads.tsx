@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   type Instance,
-  apiBase,
   pause,
   resume,
   restartTasks,
@@ -11,8 +10,10 @@ import {
   moveTasks,
 } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
+import { useReportListView } from '../lib/listview';
 import { fmtSpeed } from '../lib/format';
 import { useT } from '../lib/i18n';
+import { useInstanceScope } from '../lib/instance';
 import { PageHeader, Button, EmptyState } from '../components/ui';
 import { Counters } from '../components/Counters';
 import {
@@ -22,7 +23,6 @@ import {
   type Selection,
 } from '../components/TaskList';
 import { PackageActions } from '../components/PackageActions';
-import { QueueBar } from '../components/QueueBar';
 import {
   DOWNLOAD_FILTERS,
   ListActionBar,
@@ -44,9 +44,11 @@ import { IconSearch, IconDownloads, IconArrowUp, IconArrowDown, IconTop, IconBot
 export function Downloads() {
   const { t } = useT();
   const navigate = useNavigate();
-  const [params] = useSearchParams();
   const [instances, setInstances] = useState<Instance[]>([]);
-  const [instance, setInstance] = useState(params.get('instance') ?? '');
+  // Not page state: the shell bar's transport controls have to act on the same
+  // instance this list is showing, and they cannot read a useState from in here.
+  // See lib/instance.tsx.
+  const { instance, base, select } = useInstanceScope();
   const [search, setSearch] = useState<SearchQuery>(EMPTY_SEARCH);
   const [filters, setFilters] = useState<Set<QuickFilterId>>(() => new Set());
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -57,7 +59,6 @@ export function Downloads() {
   // The same folded set the list card reads, because folding is also a menu
   // entry and the menu belongs to the page.
   const folds = useCollapsedPackages('downloads');
-  const base = apiBase(instance);
   const tasks = useTasks(instance);
 
   useEffect(() => {
@@ -81,6 +82,12 @@ export function Downloads() {
     [list, filters, search],
   );
   const groups = useMemo(() => groupByPackage(filtered), [filtered]);
+
+  // The shell's overview strip offers Total / Visible / Selected, and "visible"
+  // is the one it cannot work out for itself: the search text and the quick
+  // filters are page state. Told which rows, it sums them from its own stream —
+  // see lib/listview.ts.
+  useReportListView(filtered, selected);
 
   // Selections follow the list: anything that leaves it stops being selected.
   useEffect(() => {
@@ -179,7 +186,7 @@ export function Downloads() {
           instances.length > 0 && (
             <select
               value={instance}
-              onChange={(e) => setInstance(e.target.value)}
+              onChange={(e) => select(e.target.value)}
               className="rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-sm text-carbon-text outline-none"
               aria-label={t('nav.instances')}
             >
@@ -193,8 +200,6 @@ export function Downloads() {
           )
         }
       />
-
-      <QueueBar base={base} />
 
       {/* No hero here — the list is this page's weight. The speed and counters
           ride as one quiet uncarded line so Overview keeps the big figure. */}

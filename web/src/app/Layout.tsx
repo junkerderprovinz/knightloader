@@ -1,8 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
+import { QueueBar } from '../components/QueueBar';
+import { ShellStrip } from '../components/QuickSettings';
+import { InfoBubble } from '../components/ui';
 import { connectWS, fetchSettings, type Task } from '../lib/api';
 import { applyAccent, applyRainbow, applyShape, cacheAppearance, rainbowFromSettings } from '../lib/appearance';
+import { InstanceProvider, useInstanceScope } from '../lib/instance';
 import { useToast } from '../lib/toast';
 import { useT } from '../lib/i18n';
 
@@ -60,6 +64,59 @@ function useAppearance() {
   }, []);
 }
 
+/**
+ * The strip that outlives navigation.
+ *
+ * It sits ABOVE the keyed page div, and that is the entire reason it exists as
+ * its own thing: the keyed div throws its subtree away on every navigation to
+ * replay the enter animation, so a transport control rendered inside a page
+ * remounts, refetches and forgets itself every time somebody touches the
+ * sidebar. Anything that has to keep running while the page changes goes here.
+ *
+ * It is chrome, not content: the sidebar's shade continues across the top, so
+ * the band reads as part of the frame and the page scrolls under it without a
+ * separator line.
+ */
+function ShellBar() {
+  const { t } = useT();
+  const { instance } = useInstanceScope();
+  return (
+    <div
+      role="region"
+      aria-label={t('shell.bar')}
+      className="sticky top-0 z-20 flex min-h-[52px] flex-wrap items-center gap-x-4 gap-y-2
+        bg-carbon-sidebar px-6 py-2.5 md:px-8"
+    >
+      {/* Named only when it is not this machine. A tag on every screen would be
+          furniture nobody reads, and then the one time it matters (the queue
+          controls pointing somewhere else) it would not be noticed either. */}
+      {instance && (
+        <span className="flex items-center gap-2">
+          <span className="glim-eyebrow">{t('shell.scope')}</span>
+          {/* dir="auto", not "ltr": the name is whatever the operator typed
+              when the peer was registered, and it can be written in a
+              right-to-left script as easily as in a Latin one. */}
+          <span className="text-xs font-medium text-carbon-text" dir="auto">
+            {instance}
+          </span>
+          <InfoBubble tip={t('shell.scopeHint')} />
+        </span>
+      )}
+
+      <QueueBar />
+
+      <span className="flex-1" />
+      {/* WIDGET SLOT. Whatever has to be visible on every page goes after this
+          spacer and lands at the trailing edge: the overview strip and the
+          speed meter (4C), and what waves 6 and 9 add. Left as a place to
+          render into rather than a stub, because a guess at their markup is
+          something they would have to delete first. Read the scope above with
+          useInstanceScope(): nothing in this bar may assume '/api'. */}
+      <ShellStrip />
+    </div>
+  );
+}
+
 export function Layout() {
   const location = useLocation();
   useCompletionToasts();
@@ -75,13 +132,18 @@ export function Layout() {
   // failure the sub-page split exists to avoid.
   const section = location.pathname.split('/')[1] ?? '';
   return (
-    <div className="flex h-screen overflow-hidden bg-carbon-background">
-      <Sidebar />
-      <main className="flex-1 overflow-y-auto min-w-0">
-        <div key={section} className="glim-page-enter w-full p-6 md:p-8">
-          <Outlet />
-        </div>
-      </main>
-    </div>
+    // The provider wraps the bar AND the outlet, because the whole point is that
+    // the two agree on which instance is being looked at.
+    <InstanceProvider>
+      <div className="flex h-screen overflow-hidden bg-carbon-background">
+        <Sidebar />
+        <main className="flex-1 overflow-y-auto min-w-0">
+          <ShellBar />
+          <div key={section} className="glim-page-enter w-full p-6 md:p-8">
+            <Outlet />
+          </div>
+        </main>
+      </div>
+    </InstanceProvider>
   );
 }
