@@ -186,7 +186,37 @@ func (a *App) AddLinksFrom(urls []string, pkg string, origin core.Origin) []*cor
 		}
 		a.StartTasks(ids)
 	}
-	return created
+	return a.detached(created)
+}
+
+// detached copies the tasks out of the live map before they leave this package.
+//
+// Staging returns pointers INTO a.tasks, and one of the last things stage does
+// is start the availability probe on a goroutine - so the caller was handed a
+// task that another goroutine is already writing to. The API encodes that slice
+// straight into the response, which the race detector caught exactly there:
+// json.Encoder reading Task.Name while setAvailability wrote Task.Error.
+//
+// The copy is at this boundary rather than in the handler because every caller
+// inherits the hazard, and the next one will not know to look. App.Tasks has
+// copied for the same reason since it was written.
+//
+// Under mu, which is the whole point: `c := *t` reads every field of the struct,
+// so copying without the lock is the same race one step further along. It must
+// therefore never be called by anything already holding mu; the three callers
+// are exported methods returning to their own caller, and none of them does.
+func (a *App) detached(in []*core.Task) []*core.Task {
+	if in == nil {
+		return nil
+	}
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	out := make([]*core.Task, len(in))
+	for i, t := range in {
+		c := *t
+		out[i] = &c
+	}
+	return out
 }
 
 // bucket is one group of links that will be named together: the yield of a
@@ -916,7 +946,7 @@ func (a *App) AddLinksWithPasswords(urls []string, pkg string, passwords []strin
 		}
 	}
 	if first == "" || len(created) == 0 {
-		return created
+		return a.detached(created)
 	}
 	ids := make([]string, 0, len(created))
 	for _, t := range created {
@@ -928,7 +958,7 @@ func (a *App) AddLinksWithPasswords(urls []string, pkg string, passwords []strin
 	if len(passwords) > 1 {
 		a.rememberPasswords(passwords)
 	}
-	return created
+	return a.detached(created)
 }
 
 // rememberPasswords folds passwords a submission brought along into the global
