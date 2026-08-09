@@ -773,6 +773,7 @@ export const en = {
   'settings.reconnect.stateBusy': 'Running now',
   'settings.reconnect.stateUnreadable': 'The reconnect state could not be read. Is the server reachable?',
   'settings.reconnect.notReady': 'Not ready: {reason}',
+  'settings.reconnect.runUsesSaved': 'Run uses the saved settings, not what is on screen. Save first.',
   'settings.reconnect.policy': 'When this happens on its own',
   'settings.reconnect.policyHint':
     'Automatic reconnects are fired in one place, and this page is not it. One is started when a download backend itself asks for another attempt after a delay, which is how a hoster says the limit is tied to this address. It never runs while the queue is halted, because rebooting the router drops the downloads that are still going. It never runs while the reconnect is not fully configured. Only one runs at a time: a second request waits for the first one’s verdict instead of fighting it over the router. And if the address does not move, nothing is brought forward and the ordinary retry backoff is left to run.',

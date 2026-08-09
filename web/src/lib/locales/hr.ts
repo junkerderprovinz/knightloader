@@ -747,6 +747,7 @@ export const hr: Dict = {
   'settings.reconnect.stateBusy': 'Trenutno radi',
   'settings.reconnect.stateUnreadable': 'Stanje ponovnog spajanja nije se moglo pročitati. Je li poslužitelj dostupan?',
   'settings.reconnect.notReady': 'Nije spremno: {reason}',
+  'settings.reconnect.runUsesSaved': 'Pokreće se spremljeno, a ne ono na zaslonu. Prvo spremite.',
   'settings.reconnect.policy': 'Kad se to dogodi samo',
   'settings.reconnect.policyHint': 'Automatska ponovna spajanja okidaju se na jednom mjestu, a ta stranica nije to mjesto. Jedno kreće kad sama pozadina preuzimanja nakon stanke zatraži još jedan pokušaj, jer tako hoster kaže da je ograničenje vezano uz ovu adresu. Nikad ne radi dok je red zaustavljen, jer ponovno pokretanje usmjerivača ruši preuzimanja koja još traju. Nikad ne radi dok ponovno spajanje nije posve postavljeno. Odjednom radi samo jedno: drugi zahtjev čeka presudu prvoga umjesto da se s njim otima oko usmjerivača. A ako se adresa ne pomakne, ništa se ne požuruje i uobičajena stanka između pokušaja odradi svoje.',
 };

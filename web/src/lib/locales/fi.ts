@@ -747,6 +747,7 @@ export const fi: Dict = {
   'settings.reconnect.stateBusy': 'Käynnissä nyt',
   'settings.reconnect.stateUnreadable': 'Uudelleenyhdistämisen tilaa ei saatu luettua. Onko palvelin tavoitettavissa?',
   'settings.reconnect.notReady': 'Ei valmis: {reason}',
+  'settings.reconnect.runUsesSaved': 'Suoritetaan tallennetut asetukset, ei näytöllä olevia. Tallenna ensin.',
   'settings.reconnect.policy': 'Milloin tämä tapahtuu itsestään',
   'settings.reconnect.policyHint': 'Automaattiset uudelleenyhdistämiset laukaistaan yhdestä paikasta, eikä se paikka ole tämä sivu. Sellainen käynnistyy, kun lataustaustaosa itse pyytää uutta yritystä odotuksen jälkeen, ja juuri niin hosteri kertoo rajan olevan kiinni tässä osoitteessa. Se ei koskaan käynnisty jonon ollessa pysäytettynä, koska reitittimen uudelleenkäynnistys katkaisee vielä käynnissä olevat lataukset. Se ei koskaan käynnisty, ellei uudelleenyhdistämistä ole määritetty kokonaan. Kerrallaan ajetaan vain yhtä: toinen pyyntö odottaa ensimmäisen tuomiota sen sijaan, että tappelisi sen kanssa reitittimestä. Ja jos osoite ei vaihdu, mitään ei aikaisteta ja tavallinen yritysten välinen odotus saa kulua loppuun.',
 };

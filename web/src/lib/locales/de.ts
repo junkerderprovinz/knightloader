@@ -747,6 +747,7 @@ export const de: Dict = {
   'settings.reconnect.stateBusy': 'Läuft gerade',
   'settings.reconnect.stateUnreadable': 'Der Reconnect-Status konnte nicht gelesen werden. Ist der Server erreichbar?',
   'settings.reconnect.notReady': 'Nicht bereit: {reason}',
+  'settings.reconnect.runUsesSaved': 'Ausgeführt wird das Gespeicherte, nicht das auf dem Bildschirm. Erst speichern.',
   'settings.reconnect.policy': 'Wann das von allein passiert',
   'settings.reconnect.policyHint': 'Automatische Reconnects werden an genau einer Stelle ausgelöst, und diese Seite ist es nicht. Einer startet, wenn ein Download-Backend selbst nach einer Wartezeit um einen weiteren Versuch bittet - so sagt ein Hoster, dass das Limit an dieser Adresse hängt. Er läuft nie, solange die Warteschlange angehalten ist, denn ein Router-Neustart reißt die noch laufenden Downloads ab. Er läuft nie, solange der Reconnect nicht vollständig eingerichtet ist. Es läuft immer nur einer: Eine zweite Anfrage wartet auf das Urteil der ersten, statt sich mit ihr um den Router zu streiten. Und wenn die Adresse sich nicht ändert, wird nichts vorgezogen und der normale Wiederholungs-Backoff läuft weiter.',
 };

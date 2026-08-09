@@ -739,6 +739,7 @@ export const it: Dict = {
   'settings.reconnect.stateBusy': 'In corso adesso',
   'settings.reconnect.stateUnreadable': 'Non è stato possibile leggere lo stato della riconnessione. Il server è raggiungibile?',
   'settings.reconnect.notReady': 'Non pronta: {reason}',
+  'settings.reconnect.runUsesSaved': 'Viene eseguito ciò che è salvato, non ciò che vedi. Salva prima.',
   'settings.reconnect.policy': 'Quando succede da sé',
   'settings.reconnect.policyHint': 'Le riconnessioni automatiche partono da un unico punto, e questa pagina non è quel punto. Una parte quando è il motore di download stesso a chiedere un altro tentativo dopo un’attesa, che è il modo in cui un hoster dice che il limite è legato a questo indirizzo. Non parte mai con la coda ferma, perché riavviare il router butta giù i download ancora in corso. Non parte mai finché la riconnessione non è configurata del tutto. Ne gira una sola alla volta: una seconda richiesta aspetta il verdetto della prima invece di litigarci il router. E se l’indirizzo non cambia, non viene anticipato nulla e la normale attesa fra un tentativo e l’altro fa il suo corso.',
 };

@@ -747,6 +747,7 @@ export const gl: Dict = {
   'settings.reconnect.stateBusy': 'Executándose agora',
   'settings.reconnect.stateUnreadable': 'Non se puido ler o estado da reconexión. Chégase ao servidor?',
   'settings.reconnect.notReady': 'Non está lista: {reason}',
+  'settings.reconnect.runUsesSaved': 'Execútase o gardado, non o que se ve na pantalla. Garda primeiro.',
   'settings.reconnect.policy': 'Cando pasa isto pola súa conta',
   'settings.reconnect.policyHint': 'As reconexións automáticas dispáranse desde un único sitio, e esta páxina non é ese sitio. Unha arranca cando un motor de descarga pide el mesmo outro intento tras unha espera, que é a forma que ten un aloxador de dicir que o límite vai atado a este enderezo. Nunca se executa coa cola detida, porque reiniciar o router corta as descargas que seguen en marcha. Nunca se executa mentres a reconexión non estea configurada de todo. Só hai unha á vez: unha segunda petición agarda o veredicto da primeira en vez de pelexar con ela polo router. E se o enderezo non cambia, non se adianta nada e déixase correr a espera de reintento habitual.',
 };

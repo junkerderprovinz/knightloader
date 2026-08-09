@@ -838,6 +838,11 @@ function Clamped({ value, band }: { value: number; band: { lo: number; hi: numbe
  */
 function RunPanel({ state, disabled }: { state: ReconnectState | null; disabled: boolean }) {
   const { t } = useT();
+  // Everything in this panel is about the SAVED configuration: the state comes
+  // from the server, and so does the run. While the form is dirty the two are
+  // different things, and saying nothing about that is how somebody picks a
+  // method, presses run, and watches the instance do what it was doing before.
+  const { dirty } = useDraft();
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<RunResult | null>(null);
   const [note, setNote] = useState<{ tone: Tone; text: string } | null>(null);
@@ -873,10 +878,18 @@ function RunPanel({ state, disabled }: { state: ReconnectState | null; disabled:
           label={state?.configured ? t('settings.reconnect.stateConfigured') : t('settings.reconnect.stateNotConfigured')}
           tone={state === null ? 'muted' : state.configured ? 'ok' : 'muted'}
         />
-        <Fact
-          label={busy ? t('settings.reconnect.stateBusy') : t('settings.reconnect.stateIdle')}
-          tone={busy ? 'live' : 'muted'}
-        />
+        {/* Only once something could actually run. Drawn unconditionally, the
+            two facts sit side by side in the same grey and read as one
+            sentence - "not configured, ready" - which is a contradiction the
+            reader has to resolve before noticing they are two separate
+            questions. Whether a reconnect is running is not a fact about an
+            instance that has none to run. */}
+        {state?.configured && (
+          <Fact
+            label={busy ? t('settings.reconnect.stateBusy') : t('settings.reconnect.stateIdle')}
+            tone={busy ? 'live' : 'muted'}
+          />
+        )}
         <span className="flex-1" />
         <Button
           onClick={run}
@@ -887,9 +900,15 @@ function RunPanel({ state, disabled }: { state: ReconnectState | null; disabled:
         </Button>
       </div>
 
+      {/* While the form is dirty this says the one thing that matters, and the
+          readiness line below is suppressed: it describes the saved
+          configuration, so against an edited form it contradicts what is on
+          screen - "switched off" under a method strip pointing at Requests. */}
+      {dirty && <StateLine tone="warn">{t('settings.reconnect.runUsesSaved')}</StateLine>}
+
       {/* Validate's own words, pointing at the field rather than at the method
           strip - which is already set to something, and is not what is missing. */}
-      {state && !state.configured && !disabled && state.reason && (
+      {!dirty && state && !state.configured && !disabled && state.reason && (
         <StateLine tone="warn">{t('settings.reconnect.notReady', { reason: state.reason })}</StateLine>
       )}
       {state === null && <StateLine tone="muted">{t('settings.reconnect.stateUnreadable')}</StateLine>}

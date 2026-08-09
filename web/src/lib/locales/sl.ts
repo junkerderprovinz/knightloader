@@ -747,6 +747,7 @@ export const sl: Dict = {
   'settings.reconnect.stateBusy': 'Zdaj poteka',
   'settings.reconnect.stateUnreadable': 'Stanja ponovnega povezovanja ni bilo mogoče prebrati. Je strežnik dosegljiv?',
   'settings.reconnect.notReady': 'Ni pripravljeno: {reason}',
+  'settings.reconnect.runUsesSaved': 'Zažene se shranjeno, ne to na zaslonu. Najprej shranite.',
   'settings.reconnect.policy': 'Kdaj se to zgodi samo od sebe',
   'settings.reconnect.policyHint': 'Samodejna ponovna povezovanja se sprožijo na enem samem mestu, in ta stran to ni. Eno se začne, ko zaledje prenosov samo po premoru zaprosi za nov poskus, kar je način, kako gostitelj pove, da je omejitev vezana na ta naslov. Nikoli ne teče, dokler je vrsta ustavljena, saj ponovni zagon usmerjevalnika podre prenose, ki še tečejo. Nikoli ne teče, dokler ponovno povezovanje ni nastavljeno do konca. Naenkrat teče samo eno: druga zahteva počaka na razsodbo prve, namesto da bi se z njo tepla za usmerjevalnik. In če se naslov ne premakne, se nič ne prestavi naprej, običajni premor med poskusi pa steče do konca.',
 };

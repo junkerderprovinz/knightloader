@@ -739,6 +739,7 @@ export const pl: Dict = {
   'settings.reconnect.stateBusy': 'Trwa teraz',
   'settings.reconnect.stateUnreadable': 'Nie udało się odczytać stanu ponownego łączenia. Czy serwer jest osiągalny?',
   'settings.reconnect.notReady': 'Niegotowe: {reason}',
+  'settings.reconnect.runUsesSaved': 'Uruchamiane jest to, co zapisane, a nie to, co na ekranie. Najpierw zapisz.',
   'settings.reconnect.policy': 'Kiedy dzieje się to samo z siebie',
   'settings.reconnect.policyHint': 'Automatyczne ponowne łączenia są wyzwalane w jednym miejscu, a ta strona nim nie jest. Jedno rusza, gdy silnik pobierania sam prosi o kolejną próbę po odczekaniu, bo tak hoster mówi, że limit jest przypisany do tego adresu. Nigdy nie działa przy zatrzymanej kolejce, bo restart routera zrywa pobierania, które wciąż trwają. Nigdy nie działa, dopóki ponowne łączenie nie jest w pełni skonfigurowane. Naraz działa tylko jedno: drugie żądanie czeka na werdykt pierwszego, zamiast bić się z nim o router. A jeśli adres się nie zmieni, nic nie jest przyspieszane i zwykłe odczekiwanie przed kolejną próbą biegnie dalej.',
 };

@@ -747,6 +747,7 @@ export const ko: Dict = {
   'settings.reconnect.stateBusy': '지금 실행 중',
   'settings.reconnect.stateUnreadable': '재연결 상태를 읽지 못했습니다. 서버에 닿고 있나요?',
   'settings.reconnect.notReady': '준비되지 않음: {reason}',
+  'settings.reconnect.runUsesSaved': '저장된 설정이 실행되며, 화면의 설정은 아닙니다. 먼저 저장하세요.',
   'settings.reconnect.policy': '저절로 일어나는 경우',
   'settings.reconnect.policyHint': '자동 재연결은 딱 한 곳에서만 시작되며, 그곳은 이 페이지가 아닙니다. 다운로드 백엔드가 스스로 얼마간 기다린 뒤 다시 시도하겠다고 할 때 하나가 시작되는데, 호스트가 제한이 이 주소에 걸려 있다고 말하는 방식이 바로 그것입니다. 대기열이 멈춰 있는 동안에는 절대 실행되지 않습니다. 공유기를 다시 켜면 아직 진행 중인 다운로드가 끊기기 때문입니다. 재연결이 완전히 설정되지 않은 동안에도 절대 실행되지 않습니다. 한 번에 하나만 돕니다. 두 번째 요청은 공유기를 두고 다투는 대신 첫 번째의 판정을 기다립니다. 그리고 주소가 바뀌지 않으면 아무것도 앞당기지 않고 평소의 재시도 대기를 그대로 흘려보냅니다.',
 };
