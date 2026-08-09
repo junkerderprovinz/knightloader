@@ -747,6 +747,7 @@ export const da: Dict = {
   'settings.reconnect.stateBusy': 'Kører nu',
   'settings.reconnect.stateUnreadable': 'Genforbindelsens tilstand kunne ikke læses. Kan serveren nås?',
   'settings.reconnect.notReady': 'Ikke klar: {reason}',
+  'settings.reconnect.runUsesSaved': 'Det gemte køres, ikke det du ser. Gem først.',
   'settings.reconnect.policy': 'Hvornår det sker af sig selv',
   'settings.reconnect.policyHint': 'Automatiske genforbindelser affyres ét sted, og denne side er ikke det sted. En starter, når en downloadbackend selv beder om et nyt forsøg efter en pause, hvilket er måden, en hoster siger, at grænsen hænger på denne adresse. Den kører aldrig, mens køen er standset, for en genstart af routeren river de downloads ned, der stadig er i gang. Den kører aldrig, så længe genforbindelsen ikke er fuldt konfigureret. Der kører kun én ad gangen: en anden anmodning venter på den førstes dom i stedet for at slås med den om routeren. Og hvis adressen ikke flytter sig, fremrykkes intet, og den sædvanlige ventetid mellem forsøgene får lov at løbe.',
 };

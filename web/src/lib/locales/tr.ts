@@ -747,6 +747,7 @@ export const tr: Dict = {
   'settings.reconnect.stateBusy': 'Şu anda çalışıyor',
   'settings.reconnect.stateUnreadable': 'Yeniden bağlanma durumu okunamadı. Sunucuya erişilebiliyor mu?',
   'settings.reconnect.notReady': 'Hazır değil: {reason}',
+  'settings.reconnect.runUsesSaved': 'Kaydedilen çalıştırılır, ekrandaki değil. Önce kaydedin.',
   'settings.reconnect.policy': 'Bu kendiliğinden ne zaman olur',
   'settings.reconnect.policyHint': 'Otomatik yeniden bağlanmalar tek bir yerden tetiklenir ve o yer bu sayfa değildir. Bir indirme arka ucu bir beklemenin ardından kendisi yeni bir deneme istediğinde biri başlar; bir hosterin sınırın bu adrese bağlı olduğunu söyleme biçimi budur. Kuyruk durdurulmuşken asla çalışmaz, çünkü yönlendiriciyi yeniden başlatmak hâlâ süren indirmeleri koparır. Yeniden bağlanma tam olarak yapılandırılmadıkça asla çalışmaz. Aynı anda yalnızca biri çalışır: ikinci bir istek, yönlendirici için ilkiyle kapışmak yerine onun kararını bekler. Adres değişmezse de hiçbir şey öne çekilmez ve her zamanki yeniden deneme beklemesi kendi akışında sürer.',
 };

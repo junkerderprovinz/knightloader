@@ -747,6 +747,7 @@ export const ca: Dict = {
   'settings.reconnect.stateBusy': 'Executant-se ara',
   'settings.reconnect.stateUnreadable': 'No s’ha pogut llegir l’estat de la reconnexió. S’arriba al servidor?',
   'settings.reconnect.notReady': 'No està a punt: {reason}',
+  'settings.reconnect.runUsesSaved': 'S’executa el desat, no el que es veu a la pantalla. Deseu primer.',
   'settings.reconnect.policy': 'Quan passa això tot sol',
   'settings.reconnect.policyHint': 'Les reconnexions automàtiques es disparen des d’un sol lloc, i aquesta pàgina no ho és. Una arrenca quan un motor de baixades demana ell mateix un altre intent al cap d’una estona, que és la manera com un allotjador diu que el límit va lligat a aquesta adreça. No s’executa mai amb la cua aturada, perquè reiniciar el router estripa les baixades que encara van. No s’executa mai mentre la reconnexió no estigui configurada del tot. Només n’hi ha una alhora: una segona petició espera el veredicte de la primera en lloc de barallar-s’hi pel router. I si l’adreça no es mou, no s’avança res i es deixa córrer l’espera de reintent habitual.',
 };

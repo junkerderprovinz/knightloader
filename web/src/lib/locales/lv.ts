@@ -747,6 +747,7 @@ export const lv: Dict = {
   'settings.reconnect.stateBusy': 'Notiek tagad',
   'settings.reconnect.stateUnreadable': 'Atkārtotas savienošanās stāvokli neizdevās nolasīt. Vai serveris ir sasniedzams?',
   'settings.reconnect.notReady': 'Nav gatava: {reason}',
+  'settings.reconnect.runUsesSaved': 'Tiek palaists saglabātais, nevis ekrānā redzamais. Vispirms saglabājiet.',
   'settings.reconnect.policy': 'Kad tas notiek pats no sevis',
   'settings.reconnect.policyHint': 'Automātiskas atkārtotas savienošanās tiek palaistas vienā vietā, un šī lapa nav tā vieta. Viena sākas, kad pats lejupielādes dzinējs pēc pauzes palūdz vēl vienu mēģinājumu, un tā hosteris pasaka, ka ierobežojums ir piesiets šai adresei. Tā nekad nedarbojas, kamēr rinda ir apturēta, jo maršrutētāja pārstartēšana norauj lejupielādes, kas vēl notiek. Tā nekad nedarbojas, kamēr atkārtota savienošanās nav pilnībā konfigurēta. Vienlaikus notiek tikai viena: otrs pieprasījums gaida pirmā spriedumu, nevis plēšas ar to par maršrutētāju. Un ja adrese nepakustas, nekas netiek pasteidzināts, un parastā gaidīšana starp mēģinājumiem notiek kā parasti.',
 };

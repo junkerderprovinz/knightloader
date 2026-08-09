@@ -739,6 +739,7 @@ export const nl: Dict = {
   'settings.reconnect.stateBusy': 'Loopt nu',
   'settings.reconnect.stateUnreadable': 'De staat van de reconnect kon niet gelezen worden. Is de server bereikbaar?',
   'settings.reconnect.notReady': 'Niet klaar: {reason}',
+  'settings.reconnect.runUsesSaved': 'Uitgevoerd wordt wat is opgeslagen, niet wat op het scherm staat. Sla eerst op.',
   'settings.reconnect.policy': 'Wanneer dit vanzelf gebeurt',
   'settings.reconnect.policyHint': 'Automatische reconnects worden op één plek afgevuurd, en deze pagina is dat niet. Er start er een wanneer een downloadbackend zelf na een wachttijd om nog een poging vraagt, en zo zegt een hoster dat de limiet aan dit adres vastzit. Hij draait nooit terwijl de wachtrij stilstaat, want de router herstarten breekt de downloads af die nog lopen. Hij draait nooit zolang de reconnect niet volledig is ingesteld. Er loopt er maar één tegelijk: een tweede verzoek wacht het oordeel van het eerste af in plaats van er om de router mee te vechten. En als het adres niet verandert wordt er niets naar voren gehaald en mag de gewone wachttijd tussen pogingen gewoon aflopen.',
 };

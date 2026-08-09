@@ -749,6 +749,7 @@ export const no: Dict = {
   'settings.reconnect.stateBusy': 'Kjører nå',
   'settings.reconnect.stateUnreadable': 'Tilstanden til gjenoppkoblingen lot seg ikke lese. Er serveren tilgjengelig?',
   'settings.reconnect.notReady': 'Ikke klar: {reason}',
+  'settings.reconnect.runUsesSaved': 'Det lagrede kjøres, ikke det du ser. Lagre først.',
   'settings.reconnect.policy': 'Når dette skjer av seg selv',
   'settings.reconnect.policyHint': 'Automatiske gjenoppkoblinger avfyres ett sted, og denne siden er ikke det stedet. En starter når en nedlastingsbackend selv ber om et nytt forsøk etter en pause, og det er slik en hoster sier at grensen henger på denne adressen. Den kjører aldri mens køen står stille, for å starte ruteren på nytt river ned nedlastingene som fortsatt går. Den kjører aldri så lenge gjenoppkoblingen ikke er fullt konfigurert. Bare én kjører om gangen: en ny forespørsel venter på dommen til den første i stedet for å slåss med den om ruteren. Og hvis adressen ikke flytter seg, fremskyndes ingenting, og den vanlige ventetiden mellom forsøkene får løpe.',
 };

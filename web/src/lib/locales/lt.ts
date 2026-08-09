@@ -747,6 +747,7 @@ export const lt: Dict = {
   'settings.reconnect.stateBusy': 'Vyksta dabar',
   'settings.reconnect.stateUnreadable': 'Persijungimo būsenos nepavyko nuskaityti. Ar serveris pasiekiamas?',
   'settings.reconnect.notReady': 'Neparengta: {reason}',
+  'settings.reconnect.runUsesSaved': 'Paleidžiama tai, kas išsaugota, o ne tai, kas ekrane. Pirma išsaugokite.',
   'settings.reconnect.policy': 'Kada tai įvyksta savaime',
   'settings.reconnect.policyHint': 'Automatiniai persijungimai paleidžiami vienoje vietoje, ir tas puslapis nėra ji. Vienas prasideda, kai pats atsisiuntimo variklis po pauzės paprašo dar vieno bandymo; taip hosteris pasako, kad riba pririšta prie šio adreso. Jis niekada nevyksta, kol eilė sustabdyta, nes maršrutizatoriaus perkrovimas nutraukia dar vykstančius atsisiuntimus. Jis niekada nevyksta, kol persijungimas nėra visiškai sukonfigūruotas. Vienu metu vyksta tik vienas: antra užklausa laukia pirmosios nuosprendžio, užuot su ja pešusis dėl maršrutizatoriaus. O jei adresas nepajuda, niekas nepaankstinama ir įprastas laukimas prieš kitą bandymą tęsiasi kaip visada.',
 };

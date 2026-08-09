@@ -747,6 +747,7 @@ export const ms: Dict = {
   'settings.reconnect.stateBusy': 'Sedang berjalan',
   'settings.reconnect.stateUnreadable': 'Keadaan sambung semula tidak dapat dibaca. Adakah pelayan boleh dicapai?',
   'settings.reconnect.notReady': 'Belum sedia: {reason}',
+  'settings.reconnect.runUsesSaved': 'Yang dijalankan ialah tetapan tersimpan, bukan yang di skrin. Simpan dahulu.',
   'settings.reconnect.policy': 'Bila ini berlaku dengan sendirinya',
   'settings.reconnect.policyHint': 'Sambung semula automatik dicetuskan di satu tempat sahaja, dan halaman ini bukan tempatnya. Satu bermula apabila backend muat turun itu sendiri meminta percubaan lain selepas satu jeda, dan begitulah cara hoster memberitahu bahawa hadnya terikat pada alamat ini. Ia tidak pernah berjalan sementara baris gilir dihentikan, kerana but semula penghala memutuskan muat turun yang masih berjalan. Ia juga tidak pernah berjalan selagi sambung semula belum dikonfigurasikan sepenuhnya. Hanya satu berjalan pada satu masa: permintaan kedua menunggu keputusan yang pertama dan bukannya berebut penghala dengannya. Dan jika alamat itu tidak berganjak, tiada apa-apa dipercepat dan jeda cuba semula yang biasa dibiarkan berjalan.',
 };

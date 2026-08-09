@@ -747,6 +747,7 @@ export const hu: Dict = {
   'settings.reconnect.stateBusy': 'Most fut',
   'settings.reconnect.stateUnreadable': 'Az újracsatlakozás állapotát nem sikerült kiolvasni. Elérhető a kiszolgáló?',
   'settings.reconnect.notReady': 'Nem áll készen: {reason}',
+  'settings.reconnect.runUsesSaved': 'A mentett beállítás fut, nem a képernyőn látható. Előbb mentsen.',
   'settings.reconnect.policy': 'Mikor történik ez magától',
   'settings.reconnect.policyHint': 'Az automatikus újracsatlakozásokat egyetlen helyen indítjuk, és az nem ez az oldal. Egy akkor indul, amikor egy letöltési backend maga kér újabb próbát egy várakozás után, mert így mondja meg egy hoster, hogy a korlát ehhez a címhez van kötve. Sosem fut, amíg a sor le van állítva, mert a router újraindítása elvágja a még futó letöltéseket. Sosem fut, amíg az újracsatlakozás nincs teljesen beállítva. Egyszerre csak egy fut: a második kérés megvárja az első ítéletét, ahelyett hogy a routerért veszekedne vele. És ha a cím nem mozdul, semmit nem hozunk előre, hanem hagyjuk lejárni a szokásos újrapróbálkozási várakozást.',
 };

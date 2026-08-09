@@ -747,6 +747,7 @@ export const sk: Dict = {
   'settings.reconnect.stateBusy': 'Práve beží',
   'settings.reconnect.stateUnreadable': 'Stav opätovného pripojenia sa nepodarilo prečítať. Je server dostupný?',
   'settings.reconnect.notReady': 'Nie je pripravené: {reason}',
+  'settings.reconnect.runUsesSaved': 'Spustí sa uložené nastavenie, nie to na obrazovke. Najprv uložte.',
   'settings.reconnect.policy': 'Kedy sa to stane samo',
   'settings.reconnect.policyHint': 'Automatické opätovné pripojenia sa spúšťajú na jedinom mieste, a touto stránkou to nie je. Jedno sa rozbehne, keď si sám sťahovací backend po odklade vypýta ďalší pokus, čo je spôsob, akým hoster oznamuje, že limit visí na tejto adrese. Nikdy nebeží, keď je fronta zastavená, lebo reštart routera zhodí sťahovania, ktoré ešte bežia. Nikdy nebeží, kým nie je opätovné pripojenie nastavené celé. Vždy beží len jedno: druhá požiadavka počká na verdikt tej prvej, namiesto toho, aby sa s ňou bila o router. A keď sa adresa nepohne, nič sa nepredsúva a obvyklý odklad medzi pokusmi si dobehne svoje.',
 };

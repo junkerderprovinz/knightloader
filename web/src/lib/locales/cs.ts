@@ -747,6 +747,7 @@ export const cs: Dict = {
   'settings.reconnect.stateBusy': 'Právě běží',
   'settings.reconnect.stateUnreadable': 'Stav znovupřipojení se nepodařilo přečíst. Je server dostupný?',
   'settings.reconnect.notReady': 'Není připraveno: {reason}',
+  'settings.reconnect.runUsesSaved': 'Spustí se uložené nastavení, ne to na obrazovce. Nejdřív uložte.',
   'settings.reconnect.policy': 'Kdy se to stane samo',
   'settings.reconnect.policyHint': 'Automatická znovupřipojení se spouštějí na jediném místě, a tou stránkou to není. Jedno se rozjede, když si sám stahovací backend po odkladu řekne o další pokus, což je způsob, jakým hoster oznamuje, že limit visí na této adrese. Nikdy neběží, když je fronta zastavená, protože restart routeru shodí stahování, která ještě běží. Nikdy neběží, dokud není znovupřipojení nastavené celé. Vždy běží jen jedno: druhý požadavek počká na verdikt toho prvního, místo aby se s ním o router pral. A když se adresa nepohne, nic se nepředsouvá a obvyklý odklad mezi pokusy si doběhne svoje.',
 };

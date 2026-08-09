@@ -739,6 +739,7 @@ export const fr: Dict = {
   'settings.reconnect.stateBusy': 'En cours',
   'settings.reconnect.stateUnreadable': 'L’état de la reconnexion n’a pas pu être lu. Le serveur est-il joignable ?',
   'settings.reconnect.notReady': 'Pas prête : {reason}',
+  'settings.reconnect.runUsesSaved': 'L’exécution utilise les réglages enregistrés, pas ceux affichés. Enregistrez d’abord.',
   'settings.reconnect.policy': 'Quand cela se produit tout seul',
   'settings.reconnect.policyHint': 'Les reconnexions automatiques sont déclenchées à un seul endroit, et ce n’est pas cette page. Une reconnexion démarre quand un moteur de téléchargement demande lui-même un nouvel essai après un délai, ce qui est la manière dont un hébergeur annonce que la limite est liée à cette adresse. Elle ne part jamais tant que la file est à l’arrêt, car redémarrer le routeur coupe les téléchargements encore en cours. Elle ne part jamais tant que la reconnexion n’est pas entièrement configurée. Une seule s’exécute à la fois : une deuxième demande attend le verdict de la première au lieu de se disputer le routeur avec elle. Et si l’adresse ne bouge pas, rien n’est avancé et le délai de reprise habituel suit son cours.',
 };

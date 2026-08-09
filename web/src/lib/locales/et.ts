@@ -747,6 +747,7 @@ export const et: Dict = {
   'settings.reconnect.stateBusy': 'Käib praegu',
   'settings.reconnect.stateUnreadable': 'Taasühenduse olekut ei õnnestunud lugeda. Kas server on kättesaadav?',
   'settings.reconnect.notReady': 'Ei ole valmis: {reason}',
+  'settings.reconnect.runUsesSaved': 'Käivitatakse salvestatu, mitte ekraanil olev. Salvesta esmalt.',
   'settings.reconnect.policy': 'Millal see iseenesest juhtub',
   'settings.reconnect.policyHint': 'Automaatsed taasühendused lastakse käima ühest ainsast kohast, ja see leht ei ole see koht. Üks algab siis, kui allalaadimismootor ise pärast ootamist uut katset palub, sest just nii ütleb hoster, et piirang on selle aadressi küljes. See ei käivitu kunagi, kui järjekord on peatatud, sest ruuteri taaskäivitus rebib katki need allalaadimised, mis veel käivad. See ei käivitu kunagi, kuni taasühendus pole täielikult seadistatud. Korraga käib ainult üks: teine soov ootab esimese otsust, selle asemel et sellega ruuteri pärast kakelda. Ja kui aadress paigast ei liigu, ei tõmmata midagi ettepoole ning tavaline korduskatse ootamine saab rahulikult otsa.',
 };

@@ -747,6 +747,7 @@ export const zh: Dict = {
   'settings.reconnect.stateBusy': '正在运行',
   'settings.reconnect.stateUnreadable': '读不到重连的状态。服务器还连得上吗？',
   'settings.reconnect.notReady': '尚未就绪：{reason}',
+  'settings.reconnect.runUsesSaved': '运行的是已保存的设置，而不是屏幕上的设置。请先保存。',
   'settings.reconnect.policy': '什么时候会自己发生',
   'settings.reconnect.policyHint': '自动重连只在一个地方触发，而这个页面不是那个地方。当下载后端自己在等待之后要求再试一次时，就会启动一次，主机正是用这种方式告诉你限制是绑在这个地址上的。队列停着的时候它绝不会运行，因为重启路由器会把还在跑的下载全都掐断。重连没有完全配置好之前它也绝不会运行。同一时间只跑一个：第二个请求会等第一个的结论，而不是跟它抢路由器。而如果地址没有变，什么都不会提前，照常让平常的重试等待走完。',
 };

@@ -747,6 +747,7 @@ export const is: Dict = {
   'settings.reconnect.stateBusy': 'Í gangi núna',
   'settings.reconnect.stateUnreadable': 'Ekki tókst að lesa stöðu endurtengingarinnar. Næst í netþjóninn?',
   'settings.reconnect.notReady': 'Ekki tilbúin: {reason}',
+  'settings.reconnect.runUsesSaved': 'Það vistaða keyrir, ekki það sem sést á skjánum. Vistaðu fyrst.',
   'settings.reconnect.policy': 'Hvenær þetta gerist af sjálfu sér',
   'settings.reconnect.policyHint': 'Sjálfvirkar endurtengingar eru ræstar á einum stað, og þessi síða er ekki sá staður. Ein fer af stað þegar niðurhalsbakendinn sjálfur biður um aðra tilraun eftir bið, því þannig segir hýsingaraðili að takmörkin hangi á þessu vistfangi. Hún keyrir aldrei meðan biðröðin er stöðvuð, því endurræsing beinisins slítur þau niðurhöl sem enn eru í gangi. Hún keyrir aldrei meðan endurtengingin er ekki fullstillt. Aðeins ein keyrir í einu: önnur beiðni bíður dóms þeirrar fyrri í stað þess að slást við hana um beininn. Og ef vistfangið hreyfist ekki er engu flýtt, heldur fær venjulega biðin milli tilrauna að renna sitt skeið.',
 };

@@ -747,6 +747,7 @@ export const id: Dict = {
   'settings.reconnect.stateBusy': 'Sedang berjalan',
   'settings.reconnect.stateUnreadable': 'Status sambung ulang tidak bisa dibaca. Apakah servernya terjangkau?',
   'settings.reconnect.notReady': 'Belum siap: {reason}',
+  'settings.reconnect.runUsesSaved': 'Yang dijalankan adalah yang tersimpan, bukan yang di layar. Simpan dulu.',
   'settings.reconnect.policy': 'Kapan ini terjadi dengan sendirinya',
   'settings.reconnect.policyHint': 'Sambung ulang otomatis dipicu di satu tempat saja, dan halaman ini bukan tempatnya. Satu dimulai ketika backend unduhan sendiri meminta percobaan lain setelah jeda, dan begitulah cara hoster mengatakan bahwa batasnya terikat pada alamat ini. Ia tidak pernah berjalan selama antrean dihentikan, karena me-reboot router memutus unduhan yang masih jalan. Ia juga tidak pernah berjalan selama sambung ulang belum dikonfigurasi sepenuhnya. Hanya satu yang berjalan pada satu waktu: permintaan kedua menunggu putusan yang pertama alih-alih berebut router dengannya. Dan bila alamatnya tidak berpindah, tidak ada yang dimajukan dan jeda coba lagi yang biasa dibiarkan berjalan.',
 };

@@ -739,6 +739,7 @@ export const pt: Dict = {
   'settings.reconnect.stateBusy': 'A decorrer agora',
   'settings.reconnect.stateUnreadable': 'Não foi possível ler o estado da reconexão. O servidor está acessível?',
   'settings.reconnect.notReady': 'Não está pronta: {reason}',
+  'settings.reconnect.runUsesSaved': 'É executado o que está guardado, não o que está no ecrã. Guarde primeiro.',
   'settings.reconnect.policy': 'Quando isto acontece sozinho',
   'settings.reconnect.policyHint': 'As reconexões automáticas são disparadas num único sítio, e esta página não é esse sítio. Uma arranca quando é o próprio motor de transferências a pedir nova tentativa após uma espera, que é a maneira de um hoster dizer que o limite está preso a este endereço. Nunca corre com a fila parada, porque reiniciar o router derruba as transferências que ainda vão a meio. Nunca corre enquanto a reconexão não estiver completamente configurada. Só corre uma de cada vez: um segundo pedido espera pelo veredicto do primeiro em vez de disputar com ele o router. E se o endereço não mudar, nada é antecipado e a espera de nova tentativa do costume segue o seu curso.',
 };

@@ -747,6 +747,7 @@ export const sv: Dict = {
   'settings.reconnect.stateBusy': 'Kör just nu',
   'settings.reconnect.stateUnreadable': 'Återanslutningens tillstånd gick inte att läsa. Går servern att nå?',
   'settings.reconnect.notReady': 'Inte redo: {reason}',
+  'settings.reconnect.runUsesSaved': 'Det sparade körs, inte det som visas. Spara först.',
   'settings.reconnect.policy': 'När det här sker av sig självt',
   'settings.reconnect.policyHint': 'Automatiska återanslutningar avfyras på ett enda ställe, och den här sidan är inte det. En startar när en nedladdningsbackend själv ber om ett nytt försök efter en väntan, vilket är hur en hoster säger att gränsen sitter på den här adressen. Den körs aldrig medan kön står stilla, för att starta om routern river de nedladdningar som fortfarande pågår. Den körs aldrig så länge återanslutningen inte är helt konfigurerad. Bara en åt gången: en andra begäran väntar in den förstas utslag i stället för att slåss med den om routern. Och om adressen inte rör sig tidigareläggs ingenting, utan den vanliga väntetiden mellan försöken får löpa ut.',
 };
