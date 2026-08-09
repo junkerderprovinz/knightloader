@@ -247,14 +247,34 @@ func (r *Reconnector) wanServices(ctx context.Context, g Gateway) ([]upnpService
 	if err := xml.Unmarshal(body, &desc); err != nil {
 		return nil, fmt.Errorf("its description is not readable XML: %v", err)
 	}
+	// The host that answered the search is the only one this gateway may send us
+	// to. Everything below this line comes out of a document written by a device
+	// on the LAN, and two fields in it name a host: URLBase here, and an absolute
+	// controlURL in collectWANServices. Without the pin, any box that answers a
+	// multicast search can hand back a description that points the SOAP call at
+	// an address it chose - so the reconnect becomes a request made on that
+	// device's behalf, from inside the network, against a host it could not
+	// reach itself. The LOCATION is already checked against the sender in
+	// parseSSDPResponse; this is the same guard carried through to the second
+	// and third places a host can appear, which is where it was missing.
+	//
+	// A different port or path is allowed on purpose, because that is the real
+	// case: firmware does serve its description on one port and its control
+	// endpoint on another. Only the host is fixed.
+	host := base.Hostname()
+
 	// URLBase, when present, wins over the location for resolving relative
 	// control URLs. Firmware that serves its description from one port and its
 	// control endpoint on another says so this way, and ignoring it produces a
 	// control URL that answers 404 on every action.
 	if desc.URLBase != "" {
-		if u, err := url.Parse(strings.TrimSpace(desc.URLBase)); err == nil && u.Host != "" {
+		if u, err := url.Parse(strings.TrimSpace(desc.URLBase)); err == nil && u.Host != "" && strings.EqualFold(u.Hostname(), host) {
 			base = u
 		}
+		// A URLBase naming another host is dropped rather than refused: the
+		// location still resolves every relative control URL, so a device whose
+		// firmware writes something odd here keeps working, and one that is
+		// trying to redirect us simply does not get to.
 	}
 
 	var out []upnpService
@@ -263,7 +283,7 @@ func (r *Reconnector) wanServices(ctx context.Context, g Gateway) ([]upnpService
 	// the vestigial one, and calling ForceTermination on a service with no
 	// connection behind it wastes the settle delay before the real one is tried.
 	for _, prefix := range []string{wanIPPrefix, wanPPPPrefix} {
-		collectWANServices(desc.Device, prefix, base, &out)
+		collectWANServices(desc.Device, prefix, base, host, &out)
 	}
 	return out, nil
 }
@@ -271,7 +291,10 @@ func (r *Reconnector) wanServices(ctx context.Context, g Gateway) ([]upnpService
 // collectWANServices walks the nested device tree. The WAN services live three
 // levels down (InternetGatewayDevice > WANDevice > WANConnectionDevice), and a
 // flat scan of the top-level service list finds nothing at all.
-func collectWANServices(d describedDevice, prefix string, base *url.URL, out *[]upnpService) {
+// The host is passed alongside the base because a controlURL is allowed to be
+// absolute, and an absolute one replaces the base's host entirely rather than
+// resolving against it. See the pin in wanServices for why that matters.
+func collectWANServices(d describedDevice, prefix string, base *url.URL, host string, out *[]upnpService) {
 	for _, s := range d.Services {
 		t := strings.TrimSpace(s.ServiceType)
 		if !strings.HasPrefix(t, prefix) {
@@ -285,10 +308,13 @@ func collectWANServices(d describedDevice, prefix string, base *url.URL, out *[]
 		if err != nil || u.Host == "" {
 			continue
 		}
+		if !strings.EqualFold(u.Hostname(), host) {
+			continue
+		}
 		*out = append(*out, upnpService{serviceType: t, controlURL: u.String()})
 	}
 	for _, child := range d.Devices {
-		collectWANServices(child, prefix, base, out)
+		collectWANServices(child, prefix, base, host, out)
 	}
 }
 
