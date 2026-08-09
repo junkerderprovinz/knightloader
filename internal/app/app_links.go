@@ -102,6 +102,18 @@ func (a *App) AddLinks(urls []string, pkg string) []*core.Task {
 // here" without a memory of what happened last Tuesday, and it is what a rule
 // keyed on the entrance has to read.
 func (a *App) AddLinksFrom(urls []string, pkg string, origin core.Origin) []*core.Task {
+	return a.detached(a.addLinksFrom(urls, pkg, origin))
+}
+
+// addLinksFrom is AddLinksFrom without the copy at the end.
+//
+// The copy has to happen once, at the outermost exported call, and not here: a
+// caller that still has work to do - AddLinksWithPasswords writes the archive
+// password onto these tasks straight afterwards - must be holding the real ones.
+// Detaching here instead cost exactly that, and the test that caught it said so
+// plainly: the response carried an empty password because the write had landed
+// on the live task while the caller was returning a copy taken before it.
+func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin) []*core.Task {
 	var created []*core.Task
 	// seen is about the pasted text and nothing else: it stops one page being
 	// fetched twice when it appears twice in the same box. Whether a *link* is
@@ -186,7 +198,7 @@ func (a *App) AddLinksFrom(urls []string, pkg string, origin core.Origin) []*cor
 		}
 		a.StartTasks(ids)
 	}
-	return a.detached(created)
+	return created
 }
 
 // detached copies the tasks out of the live map before they leave this package.
@@ -937,7 +949,7 @@ func (a *App) AddLinksCnL(urls []string, pkg string, passwords []string) {
 // relays it without naming the entrance at all. Pinning the origin here would
 // file those links under an entrance the caller had already contradicted.
 func (a *App) AddLinksWithPasswords(urls []string, pkg string, passwords []string, origin core.Origin) []*core.Task {
-	created := a.AddLinksFrom(urls, pkg, origin)
+	created := a.addLinksFrom(urls, pkg, origin)
 	var first string
 	for _, pw := range passwords {
 		if pw = strings.TrimSpace(pw); pw != "" {
