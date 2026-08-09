@@ -460,6 +460,32 @@ func (a *App) taskDir(taskID string) string {
 // The order below is the contract. Cancel first so nothing new begins, then the
 // goroutines this package owns, then the subsystems, and the store last because
 // every one of them writes to it.
+// spawn runs f on its own goroutine and makes Close wait for it.
+//
+// The long-lived upkeep loop was counted on a.wg from the start; the short-lived
+// ones were not, and several of them write to the store - the availability
+// probe, the checksum pass, a watch-folder job, the settled-task publish. So
+// Close could cancel, wait for upkeep, close the store, and then one of those
+// would land: in production a write to a closed database with its error
+// discarded, and on CI a test failing with "TempDir RemoveAll cleanup:
+// directory not empty", because SQLite recreated its write-ahead log inside the
+// directory the harness was in the middle of deleting.
+//
+// A goroutine started after the context is already done does not start at all.
+// There is no useful work left for it: everything it would write goes to a store
+// that is closing, and the alternative - letting it run and discarding the error
+// - is how a shutdown grows a tail nobody can measure.
+func (a *App) spawn(f func()) {
+	if a.ctx != nil && a.ctx.Err() != nil {
+		return
+	}
+	a.wg.Add(1)
+	go func() {
+		defer a.wg.Done()
+		f()
+	}()
+}
+
 func (a *App) Close() error {
 	if a.cancel != nil {
 		a.cancel()

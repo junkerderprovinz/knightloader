@@ -457,7 +457,7 @@ func (a *App) enqueueExtractLocked(target *core.Task, path string) *extractJob {
 	a.pruneJobsLocked(st)
 	if !st.busy {
 		st.busy = true
-		go a.runExtractions()
+		a.spawn(a.runExtractions)
 	}
 	return job
 }
