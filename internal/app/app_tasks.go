@@ -7,6 +7,7 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -225,6 +226,26 @@ func (t TriBool) MarshalJSON() ([]byte, error) { return json.Marshal(t.Value) }
 type TaskOptions struct {
 	Dir      *string `json:"dir,omitempty"`
 	Password *string `json:"password,omitempty"`
+	// Name is a rename asked for by a person - the properties panel's name box.
+	// It is cut to one path segment and then applied according to what the task
+	// is doing right now (see renameLocked), which is the whole of the difference
+	// from Filename below: that one is the raw override, written as given and
+	// acted on only once the bytes have stopped moving. A request carrying both
+	// is not refused; Name is applied second and wins.
+	//
+	// It is refused over a selection of more than one, because a name is an
+	// identity and not a property. Forty rows given one name is forty downloads
+	// pointed at one destination, of which renameFinishedLocked would carry out
+	// the first and refuse the other thirty-nine one at a time.
+	Name *string `json:"name,omitempty"`
+	// Comment is the note on the row. Nothing in the app acts on it, which is why
+	// it is editable here at all: it is the one field whose only reader is the
+	// person who comes back to this list next month.
+	Comment *string `json:"comment,omitempty"`
+	// Priority is the absolute value, not a step. The panel shows the five the
+	// queue accepts and writes the one that was chosen; the two arrows in the
+	// toolbar are the relative reading of the same field.
+	Priority *int `json:"priority,omitempty"`
 	// Filename is the name the finished file is put under, and it is deliberately
 	// not Name: the backend downloads under the name it chose and the file is
 	// renamed once the bytes have stopped moving. The engine keys its .part file
@@ -246,6 +267,12 @@ type TaskOptions struct {
 // anything that has already finished, because a per-task setting that does
 // nothing to the task you are looking at is a setting the user re-saves and
 // never sees work.
+//
+// A nil field is left alone, and that is the whole contract the properties panel
+// rests on: it edits a selection, so a box the user never touched must not carry
+// its own emptiness onto forty rows. The panel sends what was changed and
+// nothing else - see renameLocked for the one field whose answer depends on the
+// task rather than on the request.
 func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 	// Everything is checked before a single task is touched. Refusing halfway
 	// through would leave a selection with the first eight rows edited, the rest
@@ -262,11 +289,26 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 			return fmt.Errorf("%q is not a file name; it has to be a single path segment", newName)
 		}
 	}
+	var renameTo string
+	if o.Name != nil {
+		if len(ids) > 1 {
+			return fmt.Errorf("a name belongs to one file, and %d are selected", len(ids))
+		}
+		if strings.TrimSpace(*o.Name) == "" {
+			return errors.New("a download cannot be renamed to nothing")
+		}
+		// Cut rather than refused, and cut by the rule engine's own function: a
+		// name is one path segment here for exactly the reason it is one in a
+		// Packagizer rename, and a second cut written next to this one is a second
+		// answer to "is this a name" that will eventually differ from the first.
+		renameTo = rules.FileSegment(*o.Name)
+	}
 	if o.Chunks != nil && (*o.Chunks < 0 || *o.Chunks > rules.MaxChunks) {
 		return fmt.Errorf("chunk count %d is outside 0..%d", *o.Chunks, rules.MaxChunks)
 	}
 
 	a.mu.Lock()
+	var renameErr error
 	touched := map[string]*core.Task{}
 	for _, id := range ids {
 		t := a.tasks[id]
@@ -279,6 +321,9 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 		if o.Password != nil {
 			t.Password = strings.TrimSpace(*o.Password)
 		}
+		if o.Comment != nil {
+			t.Comment = strings.TrimSpace(*o.Comment)
+		}
 		if o.Chunks != nil {
 			t.Chunks = *o.Chunks
 		}
@@ -287,6 +332,12 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 			if t.Status == core.StatusDone {
 				a.renameFinishedLocked(t)
 			}
+		}
+		if o.Name != nil {
+			// Kept rather than returned on the spot: the reason belongs on the row as
+			// well as in the reply, and leaving the lock here would skip the save and
+			// the broadcast that put it there.
+			renameErr = a.renameLocked(t, renameTo)
 		}
 		if o.AutoExtract.Set {
 			// Written across the whole volume set rather than onto this part alone.
@@ -321,7 +372,63 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 	}
 	a.mu.Unlock()
 	a.saveAndBroadcast(copies)
-	return nil
+	// SetPriority rather than a second assignment here, and last because it takes
+	// the lock itself. The queue's range, its re-sort and the dispatch that acts on
+	// the new order all live in that one call; a properties panel that wrote
+	// t.Priority directly would be a second copy of all three, and the copy that
+	// forgets to dispatch is the one where a raised task sits still.
+	if o.Priority != nil {
+		a.SetPriority(ids, *o.Priority)
+	}
+	return renameErr
+}
+
+// renameLocked applies a rename a person asked for, and what it does depends
+// entirely on what the task is doing at that moment. The rule per status:
+//
+//	done                the file is closed, so it moves on disk and the row
+//	                    follows it. A row renamed on its own would promise a name
+//	                    the folder does not have, and extraction and checksum
+//	                    verification both build their path from that name.
+//	running, extracting the backend holds the file open under the name it chose
+//	                    itself. The new name is only recorded; the settle path
+//	                    carries it out. Writing to that handle now is how a
+//	                    transfer stops finding its own .part file after a restart.
+//	everything else     nothing final has been written yet, so the row takes the
+//	                    name at once. The backend reports the name it really used
+//	                    when the download starts, which puts the two apart again
+//	                    and leaves the override something to do at the end.
+//
+// Caller holds a.mu.
+func (a *App) renameLocked(t *core.Task, want string) error {
+	// The override is set in every case, because it is the only thing that reaches
+	// the file: no backend accepts a destination file name, so a rename is always
+	// something done to the finished download rather than asked of the transfer.
+	t.Filename = want
+	switch t.Status {
+	case core.StatusDone:
+		if !filesAreLocal(t) {
+			return fmt.Errorf("%s was downloaded on another machine, so it cannot be renamed from here", t.Name)
+		}
+		before := t.Error
+		a.renameFinishedLocked(t)
+		if t.Name == want {
+			return nil
+		}
+		// renameFinishedLocked records a refusal on the task rather than returning
+		// it, because its other caller is the settle path, where there is nobody
+		// left to answer. Here somebody is waiting on a reply, and a rename that
+		// quietly did not happen is the silence this panel exists to break.
+		if t.Error != before && t.Error != "" {
+			return errors.New(t.Error)
+		}
+		return fmt.Errorf("%s was not renamed", t.Name)
+	case core.StatusRunning, core.StatusExtracting:
+		return nil
+	default:
+		t.Name = want
+		return nil
+	}
 }
 
 // copyBool detaches a caller's pointer, so a value written onto several tasks

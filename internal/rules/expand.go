@@ -182,6 +182,17 @@ func (m *Matcher) nextAppend(key string) string {
 // only ever create the folders it names itself.
 const maxSegment = 120
 
+// FileSegment cuts a value down to the one path segment a file name is allowed
+// to be - the very cut Apply gives Action.Filename, exported so a rename typed
+// into the interface and a rename written by a rule cannot disagree about what
+// a name is.
+//
+// Two cuts drift, and the one that drifts is the one that lets "../../etc/x"
+// through. A value that sanitises away entirely comes back as "file" rather than
+// empty, for the same reason it does inside a template: a rename has to end in a
+// name, and the caller can see this one and correct it.
+func FileSegment(value string) string { return segment(value, "file") }
+
 // segment is sanitizeSegment with a fallback word, so a placeholder whose value
 // sanitises away still contributes a named segment instead of an empty one.
 func segment(value, fallback string) string {

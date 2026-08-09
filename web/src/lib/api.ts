@@ -57,7 +57,11 @@ export interface Task {
 
   /** What a Packagizer rule attached; nothing in the app acts on it. */
   comment?: string;
-  /** Connections this one download opens; 0 means "whatever the resolver says". */
+  /**
+   * Connections this one download opens. 0 is "no opinion" and hands the count
+   * to the global setting, not "no connections" and not "whatever the resolver
+   * says" - a resolver's number is a ceiling on this one, never a replacement.
+   */
   chunks?: number;
   /**
    * Per-task override of the global extraction switch.
@@ -128,6 +132,13 @@ export interface Task {
 export interface Settings {
   maxConcurrent: number;
   maxPerHost: number;
+  /**
+   * Connections ONE download opens, when neither the task nor a rule named a
+   * number. 0 is "no opinion" and not "none": the server holds the fallback, so
+   * a client that helpfully filled in a 4 here would be inventing a second copy
+   * of a number it does not own.
+   */
+  chunks: number;
   speedLimit: number; // bytes/s, 0 = unlimited
   extract: boolean;
   deleteArchive: boolean;
@@ -385,12 +396,38 @@ export const setPriority = (ids: string[], priority: number, base = '/api') =>
 export const moveTasks = (ids: string[], where: 'top' | 'bottom', base = '/api') =>
   post(`${base}/tasks/move`, { ids, where });
 
+/**
+ * The per-task overrides, as the properties panel sends them.
+ *
+ * Every field is optional and the omission is the point: the server leaves a
+ * field it was not sent exactly as it was, so a panel editing forty rows must
+ * send only what the user actually changed. A key present with an empty string
+ * is a deliberate clearing and is treated as one.
+ *
+ * `autoExtract` is the one field where `null` is a value rather than an absence:
+ * it means "inherit the global switch", which is a different answer from `false`.
+ * Spread into the body it survives JSON.stringify, whereas `undefined` does not -
+ * which is exactly how the two stay apart on the wire.
+ */
+export interface TaskOptionsPatch {
+  name?: string;
+  dir?: string;
+  password?: string;
+  comment?: string;
+  priority?: number;
+  /**
+   * Connections this one download opens. 0 is a real value and not an omission:
+   * it takes the override off again and hands the count back to the rule and the
+   * global setting. So it may only be sent when the user actually typed it - a 0
+   * filled in as a default would silently clear what a rule had set.
+   */
+  chunks?: number;
+  autoExtract?: boolean | null;
+}
+
 // setTaskOptions applies per-task overrides; omitted fields stay as they are.
-export const setTaskOptions = (
-  ids: string[],
-  opts: { dir?: string; password?: string },
-  base = '/api',
-) => post(`${base}/tasks/options`, { ids, ...opts });
+export const setTaskOptions = (ids: string[], opts: TaskOptionsPatch, base = '/api') =>
+  post(`${base}/tasks/options`, { ids, ...opts });
 
 // --- Operations on a whole selection -------------------------------------
 //
@@ -504,6 +541,133 @@ export async function setQueue(
 ): Promise<QueueState> {
   return json<QueueState>(await post(`${base}/queue`, patch));
 }
+
+// --- The queue's own vocabulary -------------------------------------------
+//
+// Everything here takes a QueueSelection rather than a single id, and everything
+// takes a base: the queue is the task list's own master switch, so it is
+// forwarded to a peer alongside the list it belongs to. Acting on the machine
+// you are looking at is the whole point.
+
+/**
+ * Who a queue action is about.
+ *
+ * `ids` is what a selection on screen produces. `package` reaches the rows a
+ * filter hid, which is why "send this package to the top" names the package and
+ * not the forty ids that happen to be visible — a package that arrives at the
+ * top in pieces is worse than one that did not move. `all` has to be asked for:
+ * the server refuses a request that names nothing rather than reading it as
+ * "the whole list".
+ */
+export interface QueueSelection {
+  ids?: string[];
+  package?: string;
+  all?: boolean;
+}
+
+/** The four steps the manual order understands. Anything finer is a drag. */
+export type QueueMove = 'top' | 'up' | 'down' | 'bottom';
+
+/**
+ * One of the seven priorities, as the server offers them.
+ *
+ * There is no label: the server does not know which of the shipped locales this
+ * browser is showing, and two clients of one instance routinely differ. The id
+ * is what `priority.<id>` translates.
+ */
+export interface PriorityChoice {
+  id: string;
+  value: number;
+}
+
+/**
+ * The priority ladder, fetched once per session and shared by everything that
+ * offers it.
+ *
+ * Memoised here rather than in one component because it was in one component,
+ * and the properties panel then grew a hardcoded ladder of its own: five steps
+ * against the server's seven, with its own key set, so the right-click menu and
+ * the panel disagreed about how many priorities the app has. That is the exact
+ * failure the "build the menu from the server" rule exists to prevent, and one
+ * private cache is how it happened - a second consumer could not reach the
+ * first one's copy, so it made another.
+ */
+let prioritiesOnce: Promise<PriorityChoice[]> | null = null;
+
+export function priorityChoices(): Promise<PriorityChoice[]> {
+  if (!prioritiesOnce) prioritiesOnce = fetchPriorities();
+  return prioritiesOnce.then(
+    (p) => p,
+    (e) => {
+      prioritiesOnce = null; // a failed load must not poison the next attempt
+      throw e;
+    },
+  );
+}
+
+/** What the figures under the list say. `eta` is seconds, null when nothing is moving. */
+export interface QueueCounters {
+  files: number;
+  disabled: number;
+  running: number;
+  remaining: number;
+  speed: number;
+  eta: number | null;
+}
+
+/**
+ * What stopping every transfer right now would throw away.
+ *
+ * `unknown` is deliberately apart from `losing`: nobody has asked those whether
+ * they resume, and "we do not know" is a different sentence from "you will lose
+ * 4.2 GB". Showing the second when the first is true is how people learn to
+ * click straight through the dialog.
+ */
+export interface StopCost {
+  running: number;
+  losing: string[];
+  bytes: number;
+  unknown: number;
+  unknownBytes: number;
+}
+
+/** What the hard stop answers with: what it stopped, and the switch it left behind. */
+export interface StopResult {
+  ids: string[];
+  count: number;
+  queue: QueueState;
+}
+
+/** queueMove changes where a selection or a whole package sits in the wait order. */
+export const queueMove = async (sel: QueueSelection, where: QueueMove, base = '/api') =>
+  json<BulkResult>(await ok(await post(`${base}/queue/move`, { ...sel, where })));
+
+/** queuePriority puts a selection at one of the seven. */
+export const queuePriority = async (sel: QueueSelection, priority: number, base = '/api') =>
+  json<BulkResult>(await ok(await post(`${base}/queue/priority`, { ...sel, priority })));
+
+/** queueForce starts a selection now: front of the queue, switched on, released. */
+export const queueForce = async (sel: QueueSelection, base = '/api') =>
+  json<BulkResult>(await ok(await post(`${base}/queue/force`, sel)));
+
+/** queueEnabled is the bulk switch: a selection, a package, or `all` disabled links. */
+export const queueEnabled = async (sel: QueueSelection, enabled: boolean, base = '/api') =>
+  json<BulkResult>(await ok(await post(`${base}/queue/enabled`, { ...sel, enabled })));
+
+/** fetchPriorities is the menu's source of truth, so it cannot offer a value the server clamps away. */
+export const fetchPriorities = async (base = '/api') =>
+  json<PriorityChoice[]>(await fetch(`${base}/queue/priorities`));
+
+export const fetchCounters = async (base = '/api') =>
+  json<QueueCounters>(await fetch(`${base}/queue/counters`));
+
+/** fetchStopCost weighs the hard stop and stops nothing. */
+export const fetchStopCost = async (base = '/api') =>
+  json<StopCost>(await fetch(`${base}/queue/stop`));
+
+/** stopAll stops every transfer in flight and halts the queue behind them. */
+export const stopAll = async (base = '/api') =>
+  json<StopResult>(await ok(await post(`${base}/queue/stop`, {})));
 
 export async function fetchSettings(): Promise<Settings> {
   return json<Settings>(await fetch('/api/settings'));

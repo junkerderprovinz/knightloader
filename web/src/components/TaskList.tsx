@@ -1,12 +1,14 @@
-import { useCallback, useMemo, useRef, useState, type CSSProperties, type DragEvent, type PointerEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type DragEvent, type PointerEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { type Task } from '../lib/api';
+import { priorityChoices, type PriorityChoice, type Task, type TaskOptionsPatch } from '../lib/api';
 import { hueVars, rainbowAt } from '../lib/appearance';
 import { useRainbow } from '../lib/useRainbow';
-import { pause, resume, remove, startTasks, restartTasks, recheckTasks } from '../lib/api';
-import { useT } from '../lib/i18n';
+import { pause, resume, remove, startTasks, restartTasks, recheckTasks, setTaskOptions } from '../lib/api';
+import { useT, type TranslationKey } from '../lib/i18n';
+import { useToast } from '../lib/toast';
 import { useUIState } from '../lib/uistate';
-import { Button, InfoBubble } from './ui';
+import { Button, Card, Field, FieldGroup, InfoBubble, SectionTitle, TextArea, TextInput } from './ui';
+import { Tabs } from './Tabs';
 import { TaskOptionsDialog } from './ListToolbar';
 import { ColumnMenu } from './ColumnMenu';
 import {
@@ -555,6 +557,245 @@ function Header({
   );
 }
 
+// --- The properties panel --------------------------------------------------
+
+/** Which box was edited. Nothing else is sent - see TaskProperties. */
+type PropField = 'name' | 'dir' | 'comment' | 'priority' | 'autoExtract';
+
+/**
+ * The priorities, from the server, low to high so the strip reads as a scale
+ * rather than as a list somebody happened to order that way.
+ *
+ * This used to be five hardcoded steps with a key set of their own, while the
+ * right-click menu offered the server's seven. One app, two answers to "how
+ * many priorities are there", and the panel's five could not even express the
+ * outer two the queue sorts by. The server's list is the list; priorityChoices()
+ * fetches it once per session and both callers read the same copy.
+ */
+function usePriorities(): { id: string; label: TranslationKey }[] {
+  const [choices, setChoices] = useState<PriorityChoice[]>([]);
+  useEffect(() => {
+    let live = true;
+    void priorityChoices().then(
+      (p) => {
+        if (live) setChoices(p);
+      },
+      () => {
+        /* the strip stays empty rather than offering a guess */
+      },
+    );
+    return () => {
+      live = false;
+    };
+  }, []);
+  // Reversed: the server sends highest first, because that is the order a menu
+  // reads best in, and a slider reads the other way.
+  return choices
+    .slice()
+    .reverse()
+    .map((p) => ({ id: String(p.value), label: `priority.${p.id}` as TranslationKey }));
+}
+
+/** The tri-state as a tab id. `undefined` is "inherit", never "off". */
+const extractId = (t: Task): string =>
+  t.autoExtract === undefined ? 'inherit' : t.autoExtract ? 'on' : 'off';
+
+/**
+ * agree reads one field off the whole selection and answers with the value they
+ * share - or null when they do not, which is a third answer and not an empty
+ * one.
+ */
+function agree<T>(tasks: Task[], pick: (t: Task) => T): T | null {
+  if (tasks.length === 0) return null;
+  const first = pick(tasks[0]);
+  return tasks.every((x) => pick(x) === first) ? first : null;
+}
+
+/**
+ * TaskProperties edits what is selected - one row or forty, the same panel and
+ * the same request.
+ *
+ * The rule everything here follows: a field is sent ONLY if it was edited. Not
+ * "if it differs from what was loaded", and above all not "if it is non-empty".
+ * A selection whose rows disagree opens with an empty box, and an empty box that
+ * gets sent writes nothing over forty comments, forty folders and forty
+ * passwords in one click - a loss nobody would connect to the field they never
+ * touched. So the boxes carry a placeholder rather than a value, and `touched`
+ * is set by the change handler rather than derived by comparison, which is what
+ * keeps "they disagree" and "I cleared this on purpose" apart. Both look like an
+ * empty string on the wire; only one of them is in the request at all.
+ *
+ * `ids` is the whole selection and `tasks` is the part of it this list can see.
+ * They are not the same thing - a quick filter can hide a selected row - and the
+ * split is deliberate: what is WRITTEN is the whole selection, what is SHOWN is
+ * read off the rows that are on screen. A hidden row can only ever make the
+ * panel show a value as agreed when it is not, and since nothing is written
+ * unless it was edited, that costs a placeholder and never a value.
+ */
+export function TaskProperties({ ids, tasks, base }: { ids: string[]; tasks: Task[]; base: string }) {
+  const { t } = useT();
+  const { toast } = useToast();
+  const priorities = usePriorities();
+
+  // Read once, at mount. The panel is remounted whenever the selection changes
+  // (see the key in TaskListCard), so this is the only moment these values are
+  // the ones the user is looking at - reading them again on every render would
+  // pull a half-typed box back to what the server last broadcast.
+  const [start] = useState(() => ({
+    name: tasks.length === 1 ? tasks[0].name : '',
+    dir: agree(tasks, (x) => x.dir ?? ''),
+    comment: agree(tasks, (x) => x.comment ?? ''),
+    priority: agree(tasks, (x) => String(x.priority ?? 0)),
+    autoExtract: agree(tasks, extractId),
+  }));
+
+  const [name, setName] = useState(start.name);
+  const [dir, setDir] = useState(start.dir ?? '');
+  const [comment, setComment] = useState(start.comment ?? '');
+  const [priority, setPriority] = useState(start.priority);
+  const [extract, setExtract] = useState(start.autoExtract);
+  const [touched, setTouched] = useState<Set<PropField>>(() => new Set());
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  function edit<T>(field: PropField, set: (v: T) => void): (v: T) => void {
+    return (v) => {
+      set(v);
+      setTouched((s) => (s.has(field) ? s : new Set(s).add(field)));
+    };
+  }
+
+  // The explanation and, where the rows disagree, the sentence that says why the
+  // box is empty. One helper, so no field can carry the placeholder without also
+  // carrying its reason.
+  const hint = (text: string, mixed: boolean) => (mixed ? `${text} ${t('props.mixedHint')}` : text);
+  const placeholder = (mixed: boolean) => (mixed ? t('props.mixed') : undefined);
+
+  async function apply(): Promise<void> {
+    const opts: TaskOptionsPatch = {};
+    if (touched.has('name')) opts.name = name;
+    if (touched.has('dir')) opts.dir = dir;
+    if (touched.has('comment')) opts.comment = comment;
+    if (touched.has('priority') && priority !== null) opts.priority = Number(priority);
+    // null, not undefined: "inherit the global switch" is a value the server has
+    // to be told, and undefined would be dropped by JSON.stringify along with
+    // every field the user left alone.
+    if (touched.has('autoExtract') && extract !== null) {
+      opts.autoExtract = extract === 'inherit' ? null : extract === 'on';
+    }
+
+    setBusy(true);
+    setError('');
+    const r = await setTaskOptions(ids, opts, base);
+    setBusy(false);
+    if (!r.ok) {
+      // These routes refuse with a sentence, and the sentence is the whole point
+      // of refusing: a rename that could not happen has a reason, and hiding it
+      // behind "save failed" leaves the row promising a name the folder does not
+      // have.
+      setError((await r.text()).trim() || t('list.optionsFailed'));
+      return;
+    }
+    setTouched(new Set());
+    toast(t('settings.saved'), 'ok');
+  }
+
+  return (
+    // The right-click belongs to the browser in here. The page above this puts a
+    // context menu on the whole list area and calls preventDefault on every
+    // reading of it, which inside a text box means no paste entry.
+    <section aria-label={t('props.title')} onContextMenu={(e) => e.stopPropagation()}>
+      <Card className="flex flex-col gap-4">
+        <SectionTitle
+          right={
+            <span className="glim-num text-xs text-carbon-textMuted">
+              {ids.length} {t('select.count')}
+            </span>
+          }
+        >
+          {t('props.title')}
+        </SectionTitle>
+
+        {/* Only over a single row, and left out rather than greyed out over
+            several: a name is an identity, not a property. Forty rows given one
+            name is forty downloads pointed at one destination, and the server
+            refuses it for the same reason. */}
+        {ids.length === 1 && (
+          <Field label={t('props.name')} hint={t('props.nameHint')}>
+            <TextInput
+              value={name}
+              spellCheck={false}
+              onChange={(e) => edit('name', setName)(e.target.value)}
+            />
+          </Field>
+        )}
+
+        <Field
+          label={t('task.folder')}
+          hint={hint(t('settings.downloadDirHint'), start.dir === null)}
+        >
+          <TextInput
+            dir="ltr"
+            value={dir}
+            spellCheck={false}
+            placeholder={placeholder(start.dir === null)}
+            onChange={(e) => edit('dir', setDir)(e.target.value)}
+          />
+        </Field>
+
+        <Field label={t('props.comment')} hint={hint(t('props.commentHint'), start.comment === null)}>
+          <TextArea
+            rows={2}
+            value={comment}
+            placeholder={placeholder(start.comment === null)}
+            onChange={(e) => edit('comment', setComment)(e.target.value)}
+          />
+        </Field>
+
+        {/* A set of controls, so FieldGroup and not Field: a <label> hands its
+            click to the first thing inside it, which here would pick a priority
+            every time somebody read the caption. */}
+        <FieldGroup
+          label={t('props.priority')}
+          hint={hint(t('props.priorityHint'), start.priority === null)}
+        >
+          <Tabs
+            size="sm"
+            label={t('props.priority')}
+            active={priority}
+            onSelect={edit('priority', setPriority)}
+            items={priorities.map((p) => ({ id: p.id, label: t(p.label) }))}
+          />
+        </FieldGroup>
+
+        <FieldGroup
+          label={t('props.autoExtract')}
+          hint={hint(t('props.autoExtractHint'), start.autoExtract === null)}
+        >
+          <Tabs
+            size="sm"
+            label={t('props.autoExtract')}
+            active={extract}
+            onSelect={edit('autoExtract', setExtract)}
+            items={[
+              { id: 'inherit', label: t('props.inherit') },
+              { id: 'on', label: t('props.on') },
+              { id: 'off', label: t('props.off') },
+            ]}
+          />
+        </FieldGroup>
+
+        <div className="flex items-center gap-3">
+          <Button disabled={touched.size === 0 || busy} onClick={() => void apply()}>
+            {t('settings.save')}
+          </Button>
+          {error && <span className="text-sm text-statusFail">{error}</span>}
+        </div>
+      </Card>
+    </section>
+  );
+}
+
 // TaskListCard holds every package group on one surface.
 export function TaskListCard({
   groups,
@@ -594,6 +835,16 @@ export function TaskListCard({
   // to explain it.
   const sort = storedSort && !layout.hidden.has(storedSort.id) ? storedSort : null;
   const view = useMemo(() => applySort(groups, sort), [groups, sort]);
+
+  // The rows the properties panel shows values from. The ids it WRITES come
+  // straight off the selection, which is a larger set whenever a quick filter is
+  // hiding one of them - see TaskProperties for why the two are allowed to
+  // differ.
+  const chosenIds = selection?.ids;
+  const chosen = useMemo(
+    () => (chosenIds ? view.flatMap(([, items]) => items).filter((x) => chosenIds.has(x.id)) : []),
+    [view, chosenIds],
+  );
 
   const template = gridTemplate(layout.visible, layout.widthOf);
 
@@ -651,84 +902,97 @@ export function TaskListCard({
   let index = 0;
 
   return (
-    <div className="glim-card overflow-hidden">
-      {/* Sorting is a view of the queue and not the queue. Saying so where the
-          order is visibly different is the whole of it — a list that quietly
-          shows one order while running another is read as a bug in the queue. */}
-      {sort && (
-        <div className="flex items-center gap-1 px-4 py-2 text-[11px] text-carbon-textMuted">
-          <span>{t('list.sortedView')}</span>
-          <InfoBubble tip={t('list.sortedViewTip')} />
-          <span className="flex-1" />
-          <Button kind="ghost" className="px-2 py-1 text-[11px]" onClick={() => setSort(null)}>
-            {t('list.queueOrder')}
-          </Button>
-        </div>
-      )}
-
-      {/* min-w-min, not min-w-max: max-content pins the table at the sum of its
-          own columns, which overrides the flexible name track entirely and makes
-          the list open scrolled off its right edge in any window narrower than
-          that sum. With min-content the name column gives way down to its own
-          minimum first, and only then does the table start scrolling — which is
-          the point at which scrolling is actually the right answer. */}
-      <div className="overflow-x-auto">
-        <div ref={tableRef} className="min-w-min" style={{ ['--kl-cols' as string]: template } as CSSProperties}>
-          <Header
-            layout={layout}
-            sort={sort}
-            onSort={(id) => setSort(nextSort(storedSort, id))}
-            onReorder={(id, target, after) =>
-              persist({ order: moveColumn(layout.order.map((c) => c.id), id, target, after) })
-            }
-            onResize={onResize}
-            onResizeReset={resetWidth}
-            onMenu={setMenuAt}
-          />
-
-          <div className="divide-y divide-carbon-border/60">
-            {view.map(([name, items]) => {
-              const folded = collapsed.has(name);
-              const offset = index;
-              if (!folded) index += items.length;
-              return (
-                <PackageGroup
-                  key={name || '__none'}
-                  name={name}
-                  items={items}
-                  base={base}
-                  ctx={ctx}
-                  columns={layout.visible}
-                  selection={selection}
-                  collapsed={folded}
-                  onToggleCollapsed={() => toggle(name)}
-                  indexOffset={offset}
-                />
-              );
-            })}
+    // Two surfaces side by side and never one inside the other: the panel is a
+    // card of its own under the list, because a card inside a card is the one
+    // elevation rule this language does not bend.
+    <div className="flex flex-col gap-4">
+      <div className="glim-card overflow-hidden">
+        {/* Sorting is a view of the queue and not the queue. Saying so where the
+            order is visibly different is the whole of it — a list that quietly
+            shows one order while running another is read as a bug in the queue. */}
+        {sort && (
+          <div className="flex items-center gap-1 px-4 py-2 text-[11px] text-carbon-textMuted">
+            <span>{t('list.sortedView')}</span>
+            <InfoBubble tip={t('list.sortedViewTip')} />
+            <span className="flex-1" />
+            <Button kind="ghost" className="px-2 py-1 text-[11px]" onClick={() => setSort(null)}>
+              {t('list.queueOrder')}
+            </Button>
           </div>
+        )}
 
-          {/* The empty space under the rows, and it earns its keep twice: a
-              table that ends flush against the edge of its card reads as cut
-              off, and a right-click needs somewhere to land that is not a row.
-              That is where the list's own menu lives — select all, fold the lot,
-              clean up — the same place a desktop list keeps it. */}
-          <div className="h-10" />
+        {/* min-w-min, not min-w-max: max-content pins the table at the sum of its
+            own columns, which overrides the flexible name track entirely and makes
+            the list open scrolled off its right edge in any window narrower than
+            that sum. With min-content the name column gives way down to its own
+            minimum first, and only then does the table start scrolling — which is
+            the point at which scrolling is actually the right answer. */}
+        <div className="overflow-x-auto">
+          <div ref={tableRef} className="min-w-min" style={{ ['--kl-cols' as string]: template } as CSSProperties}>
+            <Header
+              layout={layout}
+              sort={sort}
+              onSort={(id) => setSort(nextSort(storedSort, id))}
+              onReorder={(id, target, after) =>
+                persist({ order: moveColumn(layout.order.map((c) => c.id), id, target, after) })
+              }
+              onResize={onResize}
+              onResizeReset={resetWidth}
+              onMenu={setMenuAt}
+            />
+
+            <div className="divide-y divide-carbon-border/60">
+              {view.map(([name, items]) => {
+                const folded = collapsed.has(name);
+                const offset = index;
+                if (!folded) index += items.length;
+                return (
+                  <PackageGroup
+                    key={name || '__none'}
+                    name={name}
+                    items={items}
+                    base={base}
+                    ctx={ctx}
+                    columns={layout.visible}
+                    selection={selection}
+                    collapsed={folded}
+                    onToggleCollapsed={() => toggle(name)}
+                    indexOffset={offset}
+                  />
+                );
+              })}
+            </div>
+
+            {/* The empty space under the rows, and it earns its keep twice: a
+                table that ends flush against the edge of its card reads as cut
+                off, and a right-click needs somewhere to land that is not a row.
+                That is where the list's own menu lives — select all, fold the lot,
+                clean up — the same place a desktop list keeps it. */}
+            <div className="h-10" />
+          </div>
         </div>
+
+        {menuAt && (
+          <ColumnMenu
+            at={menuAt}
+            columns={layout.order}
+            hidden={layout.hidden}
+            onToggle={toggleColumn}
+            onReset={() => {
+              setStored(null);
+              setMenuAt(null);
+            }}
+            onClose={() => setMenuAt(null)}
+          />
+        )}
       </div>
 
-      {menuAt && (
-        <ColumnMenu
-          at={menuAt}
-          columns={layout.order}
-          hidden={layout.hidden}
-          onToggle={toggleColumn}
-          onReset={() => {
-            setStored(null);
-            setMenuAt(null);
-          }}
-          onClose={() => setMenuAt(null)}
-        />
+      {/* Keyed on the selection, so picking different rows re-reads the boxes
+          instead of carrying one selection's half-typed comment onto another.
+          Nothing to edit means no panel: an empty properties panel is a card of
+          disabled controls, which is a page that reads as broken. */}
+      {chosenIds && chosen.length > 0 && (
+        <TaskProperties key={[...chosenIds].join(',')} ids={[...chosenIds]} tasks={chosen} base={base} />
       )}
     </div>
   );

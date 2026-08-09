@@ -10,13 +10,21 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
-// fakeEngine captures the direct URL a backend hands off.
-type fakeEngine struct{ got chan string }
+// handoff is what the backend hands the engine once the link is unlocked.
+type handoff struct {
+	url   string
+	conns int
+}
 
-func (f *fakeEngine) Download(_, url string, _ map[string]string, _ int) { f.got <- url }
-func (f *fakeEngine) Pause(string)                                       {}
-func (f *fakeEngine) Resume(string)                                      {}
-func (f *fakeEngine) Remove(string, bool)                                {}
+// fakeEngine captures the handover.
+type fakeEngine struct{ got chan handoff }
+
+func (f *fakeEngine) Download(_, url string, _ map[string]string, conns int) {
+	f.got <- handoff{url: url, conns: conns}
+}
+func (f *fakeEngine) Pause(string)        {}
+func (f *fakeEngine) Resume(string)       {}
+func (f *fakeEngine) Remove(string, bool) {}
 
 // TestAllDebrid drives the AllDebrid client against payloads shaped like the
 // live API (verified against api.alldebrid.com/v4).
@@ -127,19 +135,28 @@ func TestBackendHandsOffToEngine(t *testing.T) {
 	rd := NewRealDebrid("T")
 	rd.base = srv.URL
 
-	fe := &fakeEngine{got: make(chan string, 1)}
+	fe := &fakeEngine{got: make(chan handoff, 1)}
 	names := make(chan string, 8)
 	b := NewBackend(rd, fe, func(_ string, u core.Update) {
 		if u.Name != "" {
 			names <- u.Name
 		}
 	})
-	b.Download("t1", "https://rapidgator.net/file/z", nil, 0)
+	// 5 rather than a round number: the count the dispatcher worked out has to
+	// come out the far side of the unlock, and a flat one written here would
+	// match anything the backend happened to invent.
+	b.Download("t1", "https://rapidgator.net/file/z", nil, 5)
 
 	select {
-	case url := <-fe.got:
-		if url != "https://cdn.example/f.bin" {
-			t.Fatalf("engine got %q", url)
+	case h := <-fe.got:
+		if h.url != "https://cdn.example/f.bin" {
+			t.Fatalf("engine got %q", h.url)
+		}
+		// The unlock is where the task's own count, its rule and the global
+		// setting all used to be dropped for a hardcoded 8, on the far side of a
+		// network call nobody watches.
+		if h.conns != 5 {
+			t.Errorf("engine opened %d connections, want the 5 the dispatcher decided on", h.conns)
 		}
 	case <-time.After(10 * time.Second):
 		t.Fatal("engine.Download never called")

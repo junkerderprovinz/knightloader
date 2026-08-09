@@ -39,6 +39,7 @@ func registerAll(reg *Registry, a *app.App) {
 	registerTasks(reg, a)
 	registerBulk(reg, a)
 	registerQueue(reg, a)
+	registerControls(reg, a)
 	registerLinks(reg, a)
 	registerContainers(reg, a)
 	registerSettings(reg, a)

@@ -1,12 +1,15 @@
 package settings
 
-// The two field groups that carry secrets — outbound connections and reconnect —
-// and the redaction that keeps those secrets off the wire. Anything added here
-// has to answer the same question first: does a browser ever need to see it?
+// The way out of this machine: which connections downloads are spread across,
+// how many sockets one download opens, and the reconnect that fetches a new
+// public address. Two of the three carry secrets, which is why the redaction
+// lives here as well - anything added to those two has to answer the same
+// question first: does a browser ever need to see it?
 
 import (
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
+	"github.com/junkerderprovinz/knightloader/internal/rules"
 )
 
 func sanitizeNetwork(n Settings) Settings {
@@ -16,6 +19,20 @@ func sanitizeNetwork(n Settings) Settings {
 	// send the traffic the user was hiding out over their own connection.
 	n.Connections = proxycfg.Sanitize(n.Connections)
 	n.Reconnect = reconnect.Sanitize(n.Reconnect)
+	// Cut to the rule engine's bound rather than to a number chosen here, because
+	// the dispatcher cuts it there too: a page reading 32 while every download
+	// opens 16 is a control that lies about what saving it did.
+	//
+	// Below zero is not "unlimited" the way the speed limit's zero is - it is
+	// nonsense, and it is filed as the same "no opinion" a fresh install has
+	// rather than refused, since nothing a user can type in a spinner should cost
+	// them the rest of the page.
+	if n.Chunks < 0 {
+		n.Chunks = 0
+	}
+	if n.Chunks > rules.MaxChunks {
+		n.Chunks = rules.MaxChunks
+	}
 	return n
 }
 

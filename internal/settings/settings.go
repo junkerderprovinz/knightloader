@@ -104,6 +104,16 @@ type Settings struct {
 	// connection, which is what an install that never opened the page has.
 	Connections []proxycfg.Entry `json:"connections,omitempty"`
 
+	// Chunks is how many connections ONE download opens, when neither the task
+	// nor a rule has named a number. It is not about the list above: Connections
+	// is which way out of the machine the bytes go, this is how many sockets one
+	// file is pulled over.
+	//
+	// Zero is "no opinion", exactly as on the task and for the same reason - the
+	// dispatcher owns the fallback, and a copy of that number here is a second
+	// one to forget when the first is changed.
+	Chunks int `json:"chunks"`
+
 	// Reconnect gets the box a new public address when a hoster's free-user limit
 	// is keyed to the one it has. Off by default: it runs a program or talks to
 	// the router, and neither should ever happen because a default said so.

@@ -31,6 +31,12 @@ type Backend struct {
 	link   map[string]string // original hoster link, for resume
 	handed map[string]bool   // true once the engine owns the transfer
 	jobID  map[string]int64  // TorBox web-download id, for cleanup on Remove
+	// conns is the connection count the dispatcher worked out for this task, kept
+	// because the prepare phase runs first and Resume re-enters start from the
+	// other side. A number invented at the handover instead - which is what stood
+	// below - is the task's own count, its rule and the global setting all
+	// discarded in one line, on the far side of an unlock nobody watches.
+	conns map[string]int
 }
 
 func NewBackend(c *Client, eng Downloader, onUpdate func(taskID string, u core.Update)) *Backend {
@@ -40,13 +46,15 @@ func NewBackend(c *Client, eng Downloader, onUpdate func(taskID string, u core.U
 		link:   map[string]string{},
 		handed: map[string]bool{},
 		jobID:  map[string]int64{},
+		conns:  map[string]int{},
 	}
 }
 
-func (b *Backend) Download(taskID, link string, _ map[string]string, _ int) {
+func (b *Backend) Download(taskID, link string, _ map[string]string, conns int) {
 	b.mu.Lock()
 	b.link[taskID] = link
 	b.handed[taskID] = false
+	b.conns[taskID] = conns
 	b.mu.Unlock()
 	b.start(taskID, link)
 }
@@ -118,8 +126,9 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 	// Hand the direct CDN URL to the engine; its progress now drives the task.
 	b.mu.Lock()
 	b.handed[taskID] = true
+	conns := b.conns[taskID]
 	b.mu.Unlock()
-	b.eng.Download(taskID, direct, nil, 8)
+	b.eng.Download(taskID, direct, nil, conns)
 }
 
 func (b *Backend) fail(taskID string, err error) {
@@ -165,6 +174,7 @@ func (b *Backend) Remove(taskID string, deleteFiles bool) {
 	delete(b.link, taskID)
 	delete(b.handed, taskID)
 	delete(b.jobID, taskID)
+	delete(b.conns, taskID)
 	b.mu.Unlock()
 	if handed {
 		b.eng.Remove(taskID, deleteFiles)

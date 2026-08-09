@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { addLinks, recheckTasks, startTasks } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
+import { useReportListView } from '../lib/listview';
 import { useToast } from '../lib/toast';
 import { useT } from '../lib/i18n';
 import { PageHeader, Button, TextInput } from '../components/ui';
@@ -69,6 +70,10 @@ export function Collector() {
     [collected, filters, search],
   );
   const groups = useMemo(() => groupByPackage(filtered), [filtered]);
+
+  // The shell's strip cannot see this page's search box or its quick filters, so
+  // it is told which rows survived them — see lib/listview.ts.
+  useReportListView(filtered, selected);
 
   // Drop selections that have left the collector.
   useEffect(() => {

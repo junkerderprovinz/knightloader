@@ -60,6 +60,22 @@ const (
 // a limit, it is a number that reads like one.
 const maxDownloadsCap = 64
 
+// DirectID is the identity of the direct gateway: the machine's own connection,
+// offered in the same list as the configured rows so that "no proxy" is a choice
+// somebody makes rather than the absence of one.
+//
+// It has to be an id and not an empty string, because a task names the
+// connection that carries it by id and a column shows it by id. With no
+// identity, "nothing was decided yet" and "decided: go out unproxied" are the
+// same value, and the list cannot tell a link nobody has routed from one
+// deliberately kept off every proxy.
+//
+// A word rather than a number, because identify hands rows the lowest free
+// DECIMAL id and therefore can never mint this one - and it seeds the reserved
+// set with it besides, so a client that posts a row claiming "direct" is
+// renumbered instead of shadowing the gateway.
+const DirectID = "direct"
+
 // Entry is one outbound connection in the user's list.
 type Entry struct {
 	// ID keys the in-flight counter Pick consults and is what an edited row is
@@ -110,12 +126,22 @@ type Entry struct {
 	MaxDownloads int `json:"maxDownloads,omitempty"`
 }
 
-// Direct is the connection to use when no configured entry claims a host: an
-// ordinary, unproxied download. Its ID is empty, which is how a caller tells it
-// apart from a row the user configured, and it carries no limit of its own.
+// Direct is the direct gateway: an ordinary, unproxied download. It is both the
+// answer when no configured entry claims a host and a connection a task may name
+// outright, which is why it carries DirectID rather than a blank one.
+//
+// It is deliberately not a member of the list the picker walks. A gateway seated
+// in the rotation would be an unfiltered catch-all in every configuration, so
+// every list would quietly send a share of its downloads out unproxied - which
+// is the one thing a list of proxies exists to stop.
 func Direct() Entry {
-	return Entry{Kind: KindDirect, Enabled: true}
+	return Entry{ID: DirectID, Kind: KindDirect, Enabled: true}
 }
+
+// isGateway separates the built-in direct gateway from a direct row the user
+// configured. Both have KindDirect and both bypass every proxy; only the row has
+// a filter, a place in the rotation and a limit of its own.
+func (e Entry) isGateway() bool { return e.ID == DirectID }
 
 // kindOf folds whatever is in the file into a known Kind. The empty string
 // becomes none, because a row the user added and never filled in is inert rather
@@ -511,7 +537,12 @@ func cleanFilter(in []string) []string {
 // whatever sequence the sort happened to leave them in, not the one the user is
 // looking at.
 func identify(out []Entry) {
-	taken := make(map[string]bool, len(out))
+	taken := make(map[string]bool, len(out)+1)
+	// The gateway's id is spoken for before any row can claim it. A row that
+	// arrives holding it is renumbered rather than refused: it would otherwise
+	// shadow the direct gateway everywhere a connection is named by id, and a task
+	// pinned to "direct" would start going out over whatever that row points at.
+	taken[DirectID] = true
 	keep := make([]bool, len(out))
 	for i := range out {
 		if id := out[i].ID; id != "" && !taken[id] {
