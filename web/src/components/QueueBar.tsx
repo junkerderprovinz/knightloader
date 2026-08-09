@@ -42,11 +42,15 @@ export function QueueBar() {
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    // Skipped for a peer only because the bar withholds the controls for one -
-    // see the early return below. /queue IS forwarded
-    // (internal/api/routes_federation.go), so this is the UI declining to ask,
-    // not the server refusing to answer. Do not "fix" the allowlist over it.
-    if (instance) return;
+    // Asked for a peer too. This used to skip, because the bar withheld the
+    // controls for a peer anyway - and when the switch was given back, the skip
+    // was what kept it invisible: `queue` stayed null and the render bailed out
+    // above the switch it was meant to draw. Two halves of one decision in two
+    // places, and removing only the visible half left a control that existed and
+    // never appeared.
+    //
+    // /api/queue IS forwarded (internal/api/routes_federation.go), so asking is
+    // answered. base already carries the scope.
     let live = true;
     let retry = 0;
     fetchQueue(base)
