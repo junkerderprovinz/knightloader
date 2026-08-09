@@ -12,6 +12,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
@@ -57,6 +58,47 @@ func (a *App) nextResolverLocked(t *core.Task) string {
 
 // dispatchLocked starts queued tasks while slots are free. FIFO with per-host
 // skip-ahead: a host at its limit doesn't block other hosts behind it.
+// routeForLocked picks the outbound connection this task should leave by, and
+// reports which one that was.
+//
+// The task's own choice wins when it made one; otherwise the picker walks the
+// configured list for this host, honouring filters, per-connection limits and
+// the ban list. A picker that has not been built yet, or a list with nothing
+// usable in it, both mean the same thing to the caller: leave by the machine's
+// own address, which is what the zero Route says.
+//
+// A connection whose Route cannot be built is treated as no connection rather
+// than as a failed download. Sanitize has already refused the malformed ones, so
+// reaching this is a bug rather than a user error, and taking the whole download
+// down for it would turn a bad proxy row into a queue that stops.
+//
+// Caller holds a.mu.
+func (a *App) routeForLocked(t *core.Task, host string) (proxycfg.Route, string) {
+	p := a.picker
+	if p == nil {
+		return proxycfg.Route{}, ""
+	}
+	// What each connection is already carrying, so a per-connection limit means
+	// something. Counted over the running set, which is the only set that has a
+	// connection assigned.
+	inUse := map[string]int{}
+	for id := range a.active {
+		if other := a.tasks[id]; other != nil && other.Connection != "" {
+			inUse[other.Connection]++
+		}
+	}
+	e, ok := p.PickFor(t.Connection, host, inUse)
+	if !ok {
+		return proxycfg.Route{}, ""
+	}
+	r, err := e.Route()
+	if err != nil {
+		log.Printf("connection %s is unusable, going out directly: %v", e.ID, err)
+		return proxycfg.Route{}, ""
+	}
+	return r, e.ID
+}
+
 // maxForcedDownloads bounds the pool forced tasks run in, on top of the ordinary
 // concurrency limit rather than inside it.
 //
@@ -238,9 +280,23 @@ func (a *App) dispatchLocked() {
 		a.started[id] = true
 		a.countStartLocked(t, h, perHost, &forcedActive, &normalActive)
 		conns := connsFor(t, cfg, result.Connections)
+		// Which outbound connection carries this one. Until this call existed,
+		// proxycfg.NewPicker had no caller anywhere in the tree: connections could
+		// be added, filtered, ordered and switched on, and every download still
+		// left by the machine's own address. The column meant to show which one
+		// carried it was blank for the same reason, because nothing ever wrote
+		// Task.Connection.
+		route, chosen := a.routeForLocked(t, h)
+		if chosen != t.Connection {
+			t.Connection = chosen
+		}
 		if be := a.backendFor(t.Resolver); be == a.Engine {
-			go a.Engine.DownloadTo(id, result.DirectURL, result.Headers, conns, dir)
+			go a.Engine.DownloadVia(id, result.DirectURL, result.Headers, conns, dir, route)
 		} else {
+			// Only the embedded engine takes a route today. A delegated backend
+			// runs in its own process or on another machine and reaches the
+			// internet its own way, so pretending otherwise would put a
+			// connection name on a task that never used it.
 			go be.Download(id, result.DirectURL, result.Headers, conns)
 		}
 	}
@@ -561,8 +617,22 @@ func (a *App) onUpdate(id string, u core.Update) {
 	// for a delayed retry on a failure a new address plainly cannot mend - a dead
 	// link, credentials that were refused - takes the whole house off the
 	// internet for nothing.
+	// u.Retry is one signal and the typed reason is the other, because on its own
+	// u.Retry was none: no backend in the tree ever sets it, so the whole
+	// automatic reconnect - the point of the feature - was unreachable, and only
+	// the button on the settings page could ever fire one. A classifier that has
+	// just decided this failure IS a limit is the signal that actually arrives.
+	//
+	// The honest caveat, written here because it will be tempting to narrow this
+	// later: ReasonLimit covers both an address-keyed limit and an account
+	// allowance being used up, and a new address only mends the first. Telling
+	// them apart needs a distinction the taxonomy does not carry yet. Firing on
+	// both is the cheaper mistake - the run ends in ErrUnchanged or in an address
+	// that changes nothing, the ordinary backoff is already armed either way, and
+	// at most one reconnect runs at a time.
+	limitHit := u.Retry > 0 || t.Reason == core.ReasonLimit
 	reconnectFor := ""
-	if retryIn > 0 && u.Retry > 0 && !a.halted && addressMayHelp(t.Reason) && a.reconnectConfigured() {
+	if retryIn > 0 && limitHit && !a.halted && addressMayHelp(t.Reason) && a.reconnectConfigured() {
 		reconnectFor = id
 	}
 	// A finished download that completes an archive continues as an extraction.

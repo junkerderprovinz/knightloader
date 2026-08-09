@@ -35,6 +35,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/hub"
 	"github.com/junkerderprovinz/knightloader/internal/netproxy"
 	"github.com/junkerderprovinz/knightloader/internal/pathvars"
+	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
@@ -148,6 +149,16 @@ type App struct {
 	// dupes answers "is this link already in the list". It is not safe for
 	// concurrent use, so every call to it happens under mu.
 	dupes *dedupe.Set
+	// picker chooses which configured connection carries a download, and owns the
+	// ban list. Rebuilt on every settings save, because building it is also what
+	// settles the bans against the new list of rows - see proxycfg.NewPicker.
+	//
+	// Nil until the first build, and nil means "leave by this machine's own
+	// address", which is also what an empty list means. Read under mu.
+	picker *proxycfg.Picker
+	// bans outlives every picker, so a connection refused by a host does not get
+	// a clean slate every time the user saves an unrelated setting.
+	bans *proxycfg.Bans
 	// skipped is the trace of links that never became tasks, newest last.
 	skipped []SkippedLink
 	// stopMark is the task whose completion halts the queue. It is how you say
@@ -215,6 +226,11 @@ func New(dataDir string) (*App, error) {
 
 	s := cfg.Get()
 	a.applyRuleSets(s)
+	// At boot as well as on every save. Built only on save, a restart would leave
+	// every configured connection unused until somebody happened to open the
+	// settings page and press a button - and the symptom, downloads quietly
+	// leaving by the machine's own address, looks nothing like its cause.
+	a.applyConnections(s.Connections)
 	a.dupes = dedupe.New(dedupe.ParsePolicy(s.MirrorPolicy))
 	// The configuration is read through a closure rather than captured, so a
 	// reconnect fired after the user edited the router password uses the password
@@ -483,6 +499,7 @@ func (a *App) ApplySettings(s settings.Settings) (settings.Settings, error) {
 	// is the one that hands the limiter its answer.
 	a.sched.Set(applied.Schedule)
 	a.applyWatcher(applied.WatchDir)
+	a.applyConnections(applied.Connections)
 	a.mu.Lock()
 	if p := dedupe.ParsePolicy(applied.MirrorPolicy); p != a.dupes.Policy() {
 		// The policy is baked in at New, so a change needs a new set — re-seeded
@@ -511,6 +528,30 @@ func (a *App) pushJDSpeedLimit(limit int64) {
 			log.Printf("JD speed limit not applied: %v", err)
 		}
 	}
+}
+
+// applyConnections rebuilds the connection picker from the saved rows.
+//
+// Rebuilt rather than mutated, because building a picker is also what settles
+// the ban list against the new list: a row switched back on loses its refusals
+// there, and there is no second call anyone has to remember. The Bans instance
+// is kept across rebuilds so the refusals themselves survive a save that had
+// nothing to do with them.
+//
+// An empty list leaves the picker nil, which every caller reads as "leave by
+// this machine's own address" - the same answer as a list with nothing usable in
+// it, and the right one for the ordinary install that has configured no proxy.
+func (a *App) applyConnections(rows []proxycfg.Entry) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if len(rows) == 0 {
+		a.picker = nil
+		return
+	}
+	if a.bans == nil {
+		a.bans = proxycfg.NewBans()
+	}
+	a.picker = proxycfg.NewPicker(rows, proxycfg.Options{Bans: a.bans})
 }
 
 // applyWatcher starts, restarts or stops the intake watcher to match the
