@@ -79,6 +79,76 @@ func (c *Client) do(ctx context.Context, method, path string, form url.Values, o
 	return nil
 }
 
+// AccountInfo is one account's plan, premium expiry and lifetime downloaded
+// bytes, as read by Account. Its own small type rather than debrid.AccountInfo
+// - this package does not otherwise depend on internal/resolver/debrid, and
+// borrowing that type for one struct literal is not worth the import.
+type AccountInfo struct {
+	Tier      string
+	Traffic   TrafficInfo
+	ExpiresAt time.Time
+}
+
+// TrafficInfo mirrors debrid.TrafficInfo field-for-field on purpose - the
+// caller (app.fetchAccountInfo) folds either into the same app.TrafficState -
+// but is its own type for the reason AccountInfo is.
+type TrafficInfo struct {
+	UsedBytes  int64
+	LimitBytes int64
+	Unlimited  bool
+}
+
+// planNames maps GetUserData's numeric plan to TorBox's own vocabulary -
+// verified against api-docs.torbox.app's UserService documentation ("0 is
+// Free plan, 1 is Essential plan ($3 plan), 2 is Pro plan ($10 plan), 3 is
+// Standard plan ($5 plan)"). An id this build does not recognise (a plan
+// added after this was written) reads "unknown" rather than a blank string -
+// still distinct from AccountInfo never having been read at all, which is
+// the caller's "unknown" (app.AccountHealth's zero value), not this one.
+var planNames = map[int]string{0: "free", 1: "essential", 2: "pro", 3: "standard"}
+
+// Account reads /api/user/me: plan, premium expiry and lifetime downloaded
+// bytes. Field names (plan, is_subscribed, premium_expires_at,
+// total_downloaded) verified against the official Go SDK's own struct
+// (github.com/TorBox-App/torbox-sdk-go, pkg/user/get_user_data_ok_response.go)
+// - api-docs.torbox.app itself is a client-rendered page with nothing in its
+// HTML to verify field names against.
+//
+// TorBox's API exposes no account-wide byte cap for any plan - that struct
+// has total_downloaded (a lifetime counter, carried here as Used) and nothing
+// resembling a limit, for Free through Standard alike. Unlimited is read from
+// IsSubscribed rather than from the plan number, so a lapsed subscription
+// still showing a paid plan value does not go on claiming unlimited traffic
+// once TorBox itself no longer calls the account subscribed - and a genuine
+// Free-tier account is left at the zero value (not Unlimited, not a
+// fabricated limit) rather than badged "Unlimited", which free real-world
+// restrictions this endpoint does not expose would make misleading.
+func (c *Client) Account(ctx context.Context) (AccountInfo, error) {
+	var data struct {
+		Plan             int     `json:"plan"`
+		IsSubscribed     bool    `json:"is_subscribed"`
+		PremiumExpiresAt string  `json:"premium_expires_at"`
+		TotalDownloaded  float64 `json:"total_downloaded"`
+	}
+	if err := c.do(ctx, http.MethodGet, "/api/user/me", nil, &data); err != nil {
+		return AccountInfo{}, err
+	}
+	tier, ok := planNames[data.Plan]
+	if !ok {
+		tier = "unknown"
+	}
+	info := AccountInfo{
+		Tier:    tier,
+		Traffic: TrafficInfo{UsedBytes: int64(data.TotalDownloaded), Unlimited: data.IsSubscribed},
+	}
+	if data.PremiumExpiresAt != "" {
+		if t, err := time.Parse(time.RFC3339Nano, data.PremiumExpiresAt); err == nil {
+			info.ExpiresAt = t
+		}
+	}
+	return info, nil
+}
+
 // Hoster describes one supported file host. TorBox returns either a single
 // `domain` or a `domains` list depending on the host.
 type Hoster struct {

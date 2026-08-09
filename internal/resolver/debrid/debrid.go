@@ -22,6 +22,34 @@ type Direct struct {
 	Size int64
 }
 
+// AccountInfo is one account's plan, expiry and traffic, as read by
+// AllDebrid.Account and RealDebrid.Account - the account-health ticker's
+// source (see internal/app/app_accounts.go, docs/build-plan.md 6B). It is
+// deliberately not part of the Service interface: not every provider this
+// package might grow needs to answer it, the same reasoning LinkChecker
+// below is kept separate for.
+type AccountInfo struct {
+	// Tier is the provider's own name for the plan - "premium", "free" or
+	// "trial" for both AllDebrid and Real-Debrid today. The caller decides
+	// how to default an account nothing has read yet; this type only ever
+	// carries a real answer.
+	Tier    string
+	Traffic TrafficInfo
+	// ExpiresAt is the zero time when there is nothing to expire (no premium
+	// on the account), never a sentinel value a caller has to know about.
+	ExpiresAt time.Time
+}
+
+// TrafficInfo is {used, limit, unlimited} for one account, folded by the
+// caller into app.TrafficState. Unlimited is its own field rather than a
+// sentinel in Limit - see that type's doc comment for why a caller must check
+// it before ever dividing by Limit.
+type TrafficInfo struct {
+	UsedBytes  int64
+	LimitBytes int64
+	Unlimited  bool
+}
+
 // Service is one debrid provider.
 type Service interface {
 	ID() string    // stable resolver id, e.g. "alldebrid"
@@ -43,6 +71,29 @@ type Service interface {
 // out of somebody's premium quota without being asked is not.
 type LinkChecker interface {
 	CheckLinks(ctx context.Context, links []string) ([]core.Availability, error)
+}
+
+// HostLimiter is the optional other half of a provider that can state a
+// ceiling on how many chunks one download against a given host may safely
+// open. Kept off Service for the same reason LinkChecker is: a provider with
+// nothing to say about a host must not be forced to grow a method that
+// invents a number.
+//
+// 0 means "no opinion", never "unlimited" and never "zero connections" - the
+// same contract every ceiling in app.connsFor's chain already carries, and
+// the one HostCap below exists to preserve on the way there.
+//
+// Real-Debrid is the only implementation today (see RealDebrid.HostLimit),
+// and deliberately so: /hosts, /hosts/status and /hosts/domains were checked
+// against the live API and none of them carry a per-host figure at all - the
+// only place Real-Debrid ever states one is the "chunks" field on a response
+// about a specific link it has just checked or unlocked, so that is where
+// this learns it, opportunistically, host by host. AllDebrid's /hosts and
+// /user/hosts were checked the same way and carry nothing comparable - so it
+// does not implement this interface, rather than inventing a number nobody
+// asked it for.
+type HostLimiter interface {
+	HostLimit(host string) int
 }
 
 // Downloader is the byte-transfer backend a resolved link is handed to.
@@ -207,6 +258,18 @@ func (r Resolver) Check(ctx context.Context, urls []string) ([]core.Availability
 		return nil, err
 	}
 	return resolver.Answers(got, len(urls)), nil
+}
+
+// HostCap satisfies resolver.HostCapper: 0 - "no opinion" - for a provider
+// that does not implement HostLimiter at all, exactly as for one that does
+// but has not learned anything about this host yet. The two cases are
+// indistinguishable on purpose, because connsFor treats them identically.
+func (r Resolver) HostCap(host string) int {
+	hl, ok := r.Svc.(HostLimiter)
+	if !ok {
+		return 0
+	}
+	return hl.HostLimit(host)
 }
 
 // HostInSet reports whether host or any parent domain is in set.

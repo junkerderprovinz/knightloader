@@ -122,6 +122,11 @@ func (a *App) sweep() {
 	a.reconcileFinishTimes()
 	a.applyRetention()
 	a.trimHistory()
+	// Cheap on every ordinary tick (one map read, see hostRefreshAttempted)
+	// and a real network round trip only once every hostRefreshInterval -
+	// see refreshHostListsIfDue (app_accounts.go) for why this rides upkeep's
+	// existing ticker instead of starting a second goroutine for it.
+	a.refreshHostListsIfDue()
 }
 
 // reconcileFinishTimes copies the store's answer for "when did this finish"

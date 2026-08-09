@@ -67,6 +67,14 @@ func main() {
 	}
 	defer a.Close()
 
+	// Native hoster logins (internal/hosterauth): reconciles what is stored
+	// in KL's own encrypted store into the headless-JD sidecar's account
+	// config, on a loop rather than once at boot, so a JD container recreated
+	// with an empty account list gets every login pushed back without a
+	// restart. An optional subsystem with its own start, the same as
+	// Click'n'Load below, not part of app.New's own lifecycle.
+	a.StartHosterAuth()
+
 	// Click'n'Load listener on the standard port 9666 (KL_CNL=0 disables, any
 	// other value overrides the port). A taken port (e.g. a running JD) is not
 	// fatal — CnL is simply unavailable then.

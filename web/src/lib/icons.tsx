@@ -170,6 +170,22 @@ export const IconClose = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+export const IconEdit = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12.8 3.7l3.5 3.5L7 16.5H3.5V13z" />
+  </svg>
+);
+
+// Renew/Buy Premium: a box the arrow leaves, for a link that goes to the
+// service's own site rather than doing anything in this app.
+export const IconExternalLink = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M8.5 4.5h7v7" />
+    <path d="M15.5 4.5L8 12" />
+    <path d="M12.5 9.5v5a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h5" />
+  </svg>
+);
+
 export const IconSignOut = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)} stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
     <path d="M12.5 6.5V4.5a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2" />

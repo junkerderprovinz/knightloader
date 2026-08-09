@@ -193,6 +193,45 @@ func (a *AllDebrid) Hosts(ctx context.Context) (map[string]bool, error) {
 	return set, nil
 }
 
+// Account reads /user: plan and premium expiry.
+// https://docs.alldebrid.com/#user - field names verified against that page
+// (isPremium, isTrial, premiumUntil).
+//
+// AllDebrid documents no overall byte cap for a premium account - its own
+// pitch is unlimited hosts, and the FAQ's caveat is entirely about individual
+// "limited hosts" sharing a quota among every AllDebrid user
+// (limitedHostersQuotas in this same response), not about this account's own
+// traffic. So a premium (or trial) account reads Unlimited here rather than a
+// made-up ceiling; the per-hoster figure is a different axis this one
+// account-wide reading does not attempt to collapse into a single number. A
+// free account (isPremium and isTrial both false) has no unlock capability at
+// all, so Traffic stays the zero value - not Unlimited, and not a fabricated
+// limit either.
+func (a *AllDebrid) Account(ctx context.Context) (AccountInfo, error) {
+	var data struct {
+		User struct {
+			IsPremium    bool  `json:"isPremium"`
+			IsTrial      bool  `json:"isTrial"`
+			PremiumUntil int64 `json:"premiumUntil"`
+		} `json:"user"`
+	}
+	if err := a.get(ctx, "/user", nil, &data); err != nil {
+		return AccountInfo{}, err
+	}
+	u := data.User
+	info := AccountInfo{Tier: "free", Traffic: TrafficInfo{Unlimited: u.IsPremium}}
+	if u.IsTrial {
+		info.Tier = "trial"
+	}
+	if u.IsPremium {
+		info.Tier = "premium"
+	}
+	if u.PremiumUntil > 0 {
+		info.ExpiresAt = time.Unix(u.PremiumUntil, 0).UTC()
+	}
+	return info, nil
+}
+
 func (a *AllDebrid) Unlock(ctx context.Context, link string) (Direct, error) {
 	var data struct {
 		Link     string `json:"link"`

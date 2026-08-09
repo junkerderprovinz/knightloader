@@ -21,6 +21,16 @@ type RealDebrid struct {
 	token string
 	base  string
 	hc    *http.Client
+
+	// chunkMu guards chunkCaps, which Unlock writes from whatever goroutine a
+	// download happens to run on (see debrid.Backend.start) and HostLimit
+	// reads from the dispatch path - two callers that were never one before
+	// this field existed.
+	chunkMu sync.Mutex
+	// chunkCaps remembers, per hoster host, the smallest "chunks" Real-Debrid
+	// has ever reported for a link on it - see HostLimit for what this
+	// answers and rememberChunkCap for why the smallest one wins.
+	chunkCaps map[string]int
 }
 
 func NewRealDebrid(token string) *RealDebrid {
@@ -186,11 +196,48 @@ func rdVerdict(code int) core.Availability {
 	return core.AvailUncheckable
 }
 
+// Account reads /user: account type and premium expiry. Field names and the
+// "2032-06-06T04:42:42.000Z" expiration shape are Real-Debrid's own
+// documented example response.
+//
+// Real-Debrid markets and behaves as unlimited bandwidth for a premium
+// account, and /user carries no overall byte-cap field to contradict that -
+// so a premium account reads Unlimited here. /traffic exists but answers a
+// different question: it is keyed per hoster, for the handful of restricted
+// hosts Real-Debrid itself rations, and deliberately not summarised into this
+// one account-wide reading, the same reasoning AllDebrid.Account gives for
+// leaving out limitedHostersQuotas.
+func (r *RealDebrid) Account(ctx context.Context) (AccountInfo, error) {
+	var data struct {
+		Type       string `json:"type"` // "premium" or "free"
+		Expiration string `json:"expiration"`
+	}
+	if err := r.do(ctx, http.MethodGet, "/user", nil, &data); err != nil {
+		return AccountInfo{}, err
+	}
+	info := AccountInfo{Tier: data.Type, Traffic: TrafficInfo{Unlimited: data.Type == "premium"}}
+	if data.Expiration != "" {
+		// RFC3339Nano, not RFC3339: Real-Debrid's own example carries
+		// milliseconds ("...042.000Z") that the plain RFC3339 layout has no
+		// verb for, and Go's parser only accepts a fractional-seconds
+		// component when the layout itself expresses one.
+		if t, err := time.Parse(time.RFC3339Nano, data.Expiration); err == nil {
+			info.ExpiresAt = t
+		}
+	}
+	return info, nil
+}
+
 func (r *RealDebrid) Unlock(ctx context.Context, link string) (Direct, error) {
 	var out struct {
 		Filename string `json:"filename"`
 		Filesize int64  `json:"filesize"`
 		Download string `json:"download"`
+		// Chunks is Real-Debrid's own "Max Chunks allowed" for this specific
+		// link (documented on /unrestrict/link, and identically on
+		// /unrestrict/check, /downloads and /torrents - verified against
+		// api.real-debrid.com). See rememberChunkCap for what happens to it.
+		Chunks int `json:"chunks"`
 	}
 	if err := r.do(ctx, http.MethodPost, "/unrestrict/link", url.Values{"link": {link}}, &out); err != nil {
 		return Direct{}, err
@@ -198,5 +245,52 @@ func (r *RealDebrid) Unlock(ctx context.Context, link string) (Direct, error) {
 	if out.Download == "" {
 		return Direct{}, fmt.Errorf("realdebrid: no direct link returned")
 	}
+	r.rememberChunkCap(link, out.Chunks)
 	return Direct{URL: out.Download, Name: out.Filename, Size: out.Filesize}, nil
+}
+
+// rememberChunkCap records the smallest "chunks" Real-Debrid has reported for
+// link's host.
+//
+// LEARNED OPPORTUNISTICALLY, NOT FETCHED UP FRONT, because there is nothing
+// to fetch up front: Real-Debrid publishes no per-host table of this anywhere
+// in its API (checked against /hosts, /hosts/status, /hosts/domains and
+// /hosts/regex - none of them carry it). The only place the number is ever
+// stated is on a response about a link Real-Debrid has just unlocked, so the
+// cache starts empty for every host and fills in as real downloads use it -
+// see HostLimit for the "0 means nothing learned yet" half of that contract.
+//
+// The smallest seen, not the latest: two different unlocks reporting 4 and
+// then 16 for the same host both came from the one API, and the smaller of
+// the two is the one no request against that host has ever been refused for.
+// A chunks of 0 or less is dropped rather than remembered - Real-Debrid
+// omitting the field entirely must not be read as "zero chunks allowed",
+// which connsFor would then apply as a hard stop on every future download to
+// that host.
+func (r *RealDebrid) rememberChunkCap(link string, chunks int) {
+	if chunks <= 0 {
+		return
+	}
+	u, err := url.Parse(link)
+	if err != nil || u.Hostname() == "" {
+		return
+	}
+	host := NormalizeHost(u.Hostname())
+	r.chunkMu.Lock()
+	defer r.chunkMu.Unlock()
+	if r.chunkCaps == nil {
+		r.chunkCaps = map[string]int{}
+	}
+	if cur, ok := r.chunkCaps[host]; !ok || chunks < cur {
+		r.chunkCaps[host] = chunks
+	}
+}
+
+// HostLimit satisfies debrid.HostLimiter: 0 until a real Unlock response has
+// said otherwise for this exact host, which is the same "no opinion" zero
+// every other absent ceiling in connsFor's chain already means.
+func (r *RealDebrid) HostLimit(host string) int {
+	r.chunkMu.Lock()
+	defer r.chunkMu.Unlock()
+	return r.chunkCaps[NormalizeHost(host)]
 }
