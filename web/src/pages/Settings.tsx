@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Navigate, Route, Routes, useMatch, useNavigate, useParams } from 'react-router-dom';
-import { type Settings, fetchSettings, saveSettings } from '../lib/api';
+import { ApiError, type Settings, fetchSettings, saveSettings } from '../lib/api';
 import { useResource } from '../lib/useResource';
 import { readUIState, useUIState } from '../lib/uistate';
 import { useT } from '../lib/i18n';
@@ -87,10 +87,28 @@ export function SettingsPage() {
       // watch folder cleared by hand is the folder-watch module going off.
       reloadFeatures();
     } catch (e) {
-      setSaveError(String(e).replace(/^Error:\s*/, ''));
+      setSaveError(saveErrorText(e));
     } finally {
       setSaving(false);
     }
+  }
+
+  /**
+   * What the refusal says, in the reader's language when the server said which
+   * refusal it was.
+   *
+   * A code that has no entry here falls through to the server's sentence rather
+   * than to the key: an untranslated explanation is worth more than a dotted
+   * identifier, and far more than the SyntaxError this used to show, back when
+   * the client handed a plain-text 400 straight to JSON.parse.
+   */
+  function saveErrorText(e: unknown): string {
+    if (e instanceof ApiError && e.code) {
+      const key = `settings.${e.code}`.replace('settings.reconnect.', 'settings.reconnect.reason.') as never;
+      const text = tx(key, (e.params ?? {}) as never);
+      if (text !== key) return text;
+    }
+    return String(e).replace(/^(Error|ApiError):\s*/, '');
   }
 
   const toggle = useCallback(

@@ -3,6 +3,8 @@ package api
 // Settings, the fixed choices the form offers, and the rule dry run.
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -39,7 +41,7 @@ func registerSettings(reg *Registry, a *app.App) {
 			// download folder that silently reverts, except the user blames the proxy
 			// for it weeks later.
 			if err := validateRows(s); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+				writeValidationError(w, err)
 				return
 			}
 			applied, err := a.ApplySettings(s)
@@ -84,6 +86,42 @@ type settingsResponse struct {
 // value the client already holds.
 func settingsBody(a *app.App, s settings.Settings) settingsResponse {
 	return settingsResponse{Settings: s.Redacted(), Problems: a.RuleProblems()}
+}
+
+// writeValidationError refuses a save with the reason, and with the typed
+// version of the reason when the failing validator has one.
+//
+// The envelope exists because the sentence is English and the interface is
+// translated into forty-two languages. Translating here is not the answer: the
+// server would need the reader's language on a settings request, and the same
+// message goes to the log, which would then be written in whatever the last
+// browser preferred. So the code travels and the interface picks the words.
+//
+// Only reconnect speaks in codes today. A validator without one still sends its
+// sentence, and the client shows that rather than nothing - being untranslated
+// is a smaller failure than being silent.
+func writeValidationError(w http.ResponseWriter, err error) {
+	out := map[string]any{"error": err.Error()}
+	var p *reconnect.ConfigProblem
+	if errors.As(err, &p) {
+		out["code"] = "reconnect." + p.Code
+		params := map[string]any{}
+		if p.N != 0 {
+			params["n"] = p.N
+		}
+		if p.Method != "" {
+			params["method"] = p.Method
+		}
+		if p.Var != "" {
+			params["var"] = p.Var
+		}
+		if len(params) > 0 {
+			out["params"] = params
+		}
+	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusBadRequest)
+	_ = json.NewEncoder(w).Encode(out)
 }
 
 // validateRows refuses the rows that carry their own validator, naming the one
