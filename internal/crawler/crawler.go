@@ -18,6 +18,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"golang.org/x/net/html"
 )
@@ -90,17 +91,19 @@ const (
 	userAgent = "Mozilla/5.0 (compatible; KnightLoader; +https://github.com/junkerderprovinz/knightloader)"
 )
 
-// defaultClient is shared so crawls reuse connections. Both bounds it carries
-// are guard rails rather than tuning: see defaultTimeout and maxRedirects.
-var defaultClient = &http.Client{
-	Timeout: defaultTimeout,
-	CheckRedirect: func(_ *http.Request, via []*http.Request) error {
-		if len(via) >= maxRedirects {
-			return fmt.Errorf("stopped after %d redirects", maxRedirects)
-		}
-		return nil
-	},
-}
+// defaultClient is shared so crawls reuse connections, and is only reached when
+// no client was injected. Both bounds it carries are guard rails rather than
+// tuning: see defaultTimeout and maxRedirects.
+//
+// It comes from httpx rather than being assembled here. The hop cap was the
+// only rule this file used to enforce, and a crawl follows redirects chosen by
+// a page somebody pasted - which is the exact shape that wants the rest of the
+// policy too, above all the one that stops a credential following a hop onto a
+// host it was never meant for.
+var defaultClient = httpx.New(httpx.Options{
+	Timeout:      defaultTimeout,
+	MaxRedirects: maxRedirects,
+})
 
 // HTML is the generic crawler: it fetches a page and collects the links that
 // look like files. It claims every http(s) URL, so it sits at the bottom of the

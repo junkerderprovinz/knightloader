@@ -1,6 +1,8 @@
 package app
 
 import (
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -24,6 +26,15 @@ func newRuleApp(t *testing.T, mutate func(s *settings.Settings, base string)) (*
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { a.Close() })
+	// The collector's HEAD, answered here instead of on the network. Turning
+	// crawling off below was supposed to mean "no test needs a network", and this
+	// was the hole in that promise: every staged link fired a real DNS lookup at
+	// a host.example address, and the failure landed whenever it landed. That is
+	// what made TestALateProbeDoesNotEraseTheReason fail on CI and pass here - a
+	// second writer nobody had ordered, racing the one the test was about.
+	a.Probe = probeFunc(func(req *http.Request) (*http.Response, error) {
+		return probeAnswer(req, http.StatusOK), nil
+	})
 	base := t.TempDir()
 	s := settings.Defaults()
 	s.MaxConcurrent, s.MaxPerHost = 2, 1
@@ -35,6 +46,24 @@ func newRuleApp(t *testing.T, mutate func(s *settings.Settings, base string)) (*
 		t.Fatal(err)
 	}
 	return a, base
+}
+
+// probeFunc turns a function into the collector's HEAD client.
+type probeFunc func(*http.Request) (*http.Response, error)
+
+func (f probeFunc) Do(r *http.Request) (*http.Response, error) { return f(r) }
+
+// probeAnswer is what a HEAD comes back as. ContentLength is -1 ("not stated")
+// rather than 0, because analyze reads a positive length as the file's size and
+// a zero-byte answer would stamp every staged link as empty.
+func probeAnswer(req *http.Request, status int) *http.Response {
+	return &http.Response{
+		StatusCode:    status,
+		Body:          io.NopCloser(strings.NewReader("")),
+		Header:        http.Header{},
+		Request:       req,
+		ContentLength: -1,
+	}
 }
 
 // rejectRule is a filter that turns down anything whose URL says "sample".
@@ -341,6 +370,18 @@ func TestALateProbeDoesNotEraseTheReason(t *testing.T) {
 	a, base := newRuleApp(t, func(s *settings.Settings, _ string) {
 		s.CollisionPolicy = string(collide.Skip)
 	})
+	// The probe is held until this test lets it answer, which is the whole
+	// scenario: the HEAD is in flight while the user presses start, and it comes
+	// back after the dispatcher has already refused the task. Held rather than
+	// simulated by calling setAvailability directly - the point is that the real
+	// path cannot erase the reason, and a test that stands in for that path
+	// proves nothing about it.
+	answer := make(chan struct{})
+	a.Probe = probeFunc(func(req *http.Request) (*http.Response, error) {
+		<-answer
+		return probeAnswer(req, http.StatusOK), nil
+	})
+
 	if err := os.WriteFile(filepath.Join(base, "already.mkv"), []byte("mine"), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -349,9 +390,21 @@ func TestALateProbeDoesNotEraseTheReason(t *testing.T) {
 		t.Fatalf("staged %d tasks", len(created))
 	}
 	a.StartTasks(nil)
+	waitFor(t, "the task to be refused", func() bool {
+		a.mu.Lock()
+		defer a.mu.Unlock()
+		t := a.tasks[created[0].ID]
+		return t != nil && t.Status == core.StatusError
+	})
 
-	// Exactly what the probe goroutine does when its HEAD finally answers.
-	a.setAvailability(created[0].ID, core.AvailOnline, "")
+	// Now the HEAD answers, last.
+	close(answer)
+	waitFor(t, "the probe's answer to land", func() bool {
+		a.mu.Lock()
+		defer a.mu.Unlock()
+		t := a.tasks[created[0].ID]
+		return t != nil && t.Online == core.AvailOnline
+	})
 
 	a.mu.Lock()
 	live := *a.tasks[created[0].ID]

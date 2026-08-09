@@ -1,6 +1,7 @@
 package reconnect
 
 import (
+	"errors"
 	"strings"
 	"testing"
 )
@@ -72,6 +73,118 @@ func TestFindIPSkipsOverlongRuns(t *testing.T) {
 	}
 	if _, ok := FindIP(blob + " 203.0.113.9"); !ok {
 		t.Error("a real address after an overlong run was missed")
+	}
+}
+
+// TestPublicIP is the range table. Every row here is an address a check
+// response really can carry - a router status page printing the LAN side, a box
+// behind carrier-grade NAT, a captive portal answering with its own gateway -
+// and every one of them would otherwise be compared against the next reading as
+// if it were the public address.
+func TestPublicIP(t *testing.T) {
+	tests := []struct {
+		name string
+		body string
+		want string // "" means the address must be refused
+		// names is a word the refusal has to contain, so a reason that says
+		// "not public" and nothing else fails here. The user has to be able to
+		// tell a LAN address apart from a carrier one from the message alone.
+		names string
+	}{
+		{name: "public v4", body: "203.0.113.9", want: "203.0.113.9"},
+		{name: "public v4 in json", body: `{"ip":"8.8.4.4"}`, want: "8.8.4.4"},
+		{name: "public v6", body: "2606:4700:4700::1111", want: "2606:4700:4700::1111"},
+		{name: "public v6 in prose", body: "Your address is 2001:db8::1234 today", want: "2001:db8::1234"},
+
+		{name: "loopback v4", body: "127.0.0.1", names: "loopback"},
+		{name: "loopback v6", body: "::1", names: "loopback"},
+		{name: "private 10/8", body: "10.0.0.5", names: "private"},
+		{name: "private 172.16/12", body: "172.16.0.1", names: "private"},
+		{name: "private 172.31 is still 172.16/12", body: "172.31.255.254", names: "private"},
+		{name: "private 192.168/16", body: "192.168.1.1", names: "private"},
+		{name: "link-local v4", body: "169.254.10.20", names: "link-local"},
+		{name: "link-local v6", body: "fe80::1", names: "link-local"},
+		{name: "unique-local fc00", body: "fc00::1", names: "unique-local"},
+		{name: "unique-local fd00", body: "fd12:3456:789a::1", names: "unique-local"},
+		{name: "cgnat bottom", body: "100.64.0.1", names: "carrier-grade"},
+		{name: "cgnat top", body: "100.127.255.255", names: "carrier-grade"},
+		{name: "unspecified v4", body: "0.0.0.0", names: "unspecified"},
+		{name: "unspecified v6", body: "::", names: "unspecified"},
+		// The SSDP group, which is the multicast address most likely to be sitting
+		// in a page this package fetches. 224.0.0.0/24 is deliberately not used
+		// here: it is link-local as well as multicast, and it is named for the
+		// half a user can do something about.
+		{name: "multicast", body: "239.255.255.250", names: "multicast"},
+
+		// The edges of the two ranges that are carved out of otherwise public
+		// space. Getting either boundary wrong refuses a perfectly good address
+		// and leaves the reconnect unusable on that line.
+		{name: "just below cgnat", body: "100.63.255.255", want: "100.63.255.255"},
+		{name: "just above cgnat", body: "100.128.0.0", want: "100.128.0.0"},
+		{name: "just below 172.16/12", body: "172.15.0.1", want: "172.15.0.1"},
+		{name: "just above 172.16/12", body: "172.32.0.1", want: "172.32.0.1"},
+
+		// A router web page that prints the LAN address first is the case this
+		// whole check exists for.
+		{name: "router page echoing the lan side", body: "<td>WAN IP</td><td>192.168.0.10</td>", names: "private"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := PublicIP(tc.body)
+			if tc.want == "" {
+				if err == nil {
+					t.Fatalf("PublicIP(%q) accepted %s", tc.body, got)
+				}
+				if !errors.Is(err, ErrNotPublic) {
+					t.Fatalf("PublicIP(%q) failed with %v, want ErrNotPublic", tc.body, err)
+				}
+				if !strings.Contains(err.Error(), tc.names) {
+					t.Errorf("PublicIP(%q) said %q, which never says %q", tc.body, err, tc.names)
+				}
+				// The address itself belongs in the message: "a private address"
+				// with no address in it is a sentence nobody can act on.
+				if addr, ok := FindIP(tc.body); ok && !strings.Contains(err.Error(), addr.String()) {
+					t.Errorf("PublicIP(%q) said %q, which never names %s", tc.body, err, addr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("PublicIP(%q) refused a public address: %v", tc.body, err)
+			}
+			if got.String() != tc.want {
+				t.Errorf("PublicIP(%q) = %s, want %s", tc.body, got, tc.want)
+			}
+		})
+	}
+}
+
+// TestPublicIPKeepsFindIPsVerdictOnNothing pins the other half of the contract:
+// a body with no address in it is still ErrNoAddress, not a range refusal. They
+// are two different repairs - a wrong URL against a URL that answers with the
+// wrong side of the router - and one error for both sends half the people who
+// hit it to the wrong field.
+func TestPublicIPKeepsFindIPsVerdictOnNothing(t *testing.T) {
+	for _, body := range []string{"", "Access denied. Please log in.", "build 1.2.3.4444"} {
+		_, err := PublicIP(body)
+		if !errors.Is(err, ErrNoAddress) {
+			t.Errorf("PublicIP(%q) failed with %v, want ErrNoAddress", body, err)
+		}
+	}
+}
+
+// TestPublicIPDoesNotScanPastARefusal fixes the tempting shortcut in place: when
+// the first address on the page is a LAN one, the answer is a refusal naming it,
+// never the next address further down. Reading on is guessing which of two
+// addresses the page meant, and a guess here is indistinguishable from a
+// successful reconnect for as long as it happens to be right.
+func TestPublicIPDoesNotScanPastARefusal(t *testing.T) {
+	const body = "LAN 192.168.1.1 · WAN 203.0.113.9"
+	got, err := PublicIP(body)
+	if err == nil {
+		t.Fatalf("PublicIP(%q) picked %s out of a page with a private address first", body, got)
+	}
+	if strings.Contains(err.Error(), "203.0.113.9") {
+		t.Errorf("PublicIP(%q) reported the second address: %v", body, err)
 	}
 }
 

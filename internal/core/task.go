@@ -43,6 +43,41 @@ type Reason string
 // ReasonUnknown is an error nothing has classified.
 const ReasonUnknown Reason = ""
 
+// The taxonomy. There is one value for each failure this app can genuinely tell
+// apart, and deliberately none for the ones it can only guess at: the interface
+// turns a reason into advice ("the file is gone, delete the link"), and advice
+// about the wrong problem is acted on, which a bare error sentence never is.
+const (
+	// ReasonGone is the host answering that the file is not there: a 404 or a 410.
+	ReasonGone Reason = "gone"
+	// ReasonAuth is the host wanting credentials it did not get or would not
+	// accept: a 401, a 403, or a 407 from a proxy in the way.
+	ReasonAuth Reason = "auth"
+	// ReasonLimit is an allowance being used up rather than anything being wrong:
+	// a 429, a 509, a hoster saying the daily traffic is spent. It is the one
+	// failure a new address can fix, which is why reconnect keys on it.
+	ReasonLimit Reason = "limit"
+	// ReasonUnavailable is the host being up and saying "not now": a 502, 503 or
+	// 504, or a hoster in maintenance. Waiting is the whole remedy.
+	ReasonUnavailable Reason = "unavailable"
+	// ReasonNetwork is the transport failing before an answer arrived: a name that
+	// does not resolve, a refused or reset connection, a timeout.
+	ReasonNetwork Reason = "network"
+	// ReasonDiskFull is the destination running out of space (ENOSPC, or Windows'
+	// own disk-full errors). It is the one reason where retrying is pointless AND
+	// the user can fix it, so it must never settle as a generic write failure.
+	ReasonDiskFull Reason = "diskFull"
+	// ReasonUnsupported is no backend claiming the link at all - nothing matched
+	// it, or every backend in the chain handed it on.
+	ReasonUnsupported Reason = "unsupported"
+	// ReasonCaptcha is a backend stopping to ask a human, which nothing in this
+	// build can answer for it.
+	ReasonCaptcha Reason = "captcha"
+	// ReasonCancelled is the run being called off from this side rather than
+	// failing: a shutdown, a task taken away underneath the attempt.
+	ReasonCancelled Reason = "cancelled"
+)
+
 // Origin is the intake path a link arrived by — the paste box, the watch folder,
 // Click'n'Load, a container upload. It exists so a rule can be written about it
 // and so the list can say where something came from; nothing about a download

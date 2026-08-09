@@ -213,10 +213,30 @@ export function EnabledSwitch({
   );
 }
 
+// What each typed failure is called on screen.
+//
+// Only the reasons this build knows are in here. The server's reason is an open
+// string on purpose — a newer backend can settle a task with a value this
+// interface has never heard of — and an unrecognised one gets no label rather
+// than the raw token: the whole worth of the label is that it is a word somebody
+// can act on, and "reason: hoster_soft_limit" is not one.
+const reasonKey: Record<string, TranslationKey> = {
+  gone: 'task.reason.gone',
+  auth: 'task.reason.auth',
+  limit: 'task.reason.limit',
+  unavailable: 'task.reason.unavailable',
+  network: 'task.reason.network',
+  diskFull: 'task.reason.diskFull',
+  unsupported: 'task.reason.unsupported',
+  captcha: 'task.reason.captcha',
+  cancelled: 'task.reason.cancelled',
+};
+
 function NameCell({ task, t }: { task: Task; t: Translate }) {
   // A pending automatic retry is not the same as a dead task, and saying so
   // stops people restarting something that is already about to restart.
   const retrying = task.status === 'error' && !!task.nextTry;
+  const reason = task.reason ? reasonKey[task.reason] : undefined;
   return (
     <div className="min-w-0">
       {/* Its own title, because the list's generic one cannot reach it: the row
@@ -230,8 +250,25 @@ function NameCell({ task, t }: { task: Task; t: Translate }) {
       </div>
       {task.error && (
         <div className="mt-0.5 flex items-center gap-1.5 text-[11px]">
-          {/* The reason wins the room, and `flex-1 min-w-0` is what gives it to
-              it. The pending-retry note used to sit here as `shrink-0` prose,
+          {/* The typed cause leads the line, as a tag rather than a second
+              sentence: a column reading DISK FULL four times is a fact about
+              this box, where four hoster sentences that each mean it are four
+              things to read. It is the quiet eyebrow type and never the accent —
+              a settled failure is not activity — and it carries no box of its
+              own, because the shade step is the separation.
+
+              It is capped rather than left to size itself. This line has already
+              lost one fight to an element that would not shrink (see below), and
+              a tag free to run the width of the cell would squeeze the sentence
+              to nothing in a narrow column. At 45% the sentence always keeps the
+              larger half, and the tag truncates with its own tooltip. */}
+          {reason && (
+            <span title={t(reason)} className="glim-eyebrow max-w-[45%] shrink-0 truncate">
+              {t(reason)}
+            </span>
+          )}
+          {/* The sentence wins the room, and `flex-1 min-w-0` is what gives it
+              to it. The pending-retry note used to sit here as `shrink-0` prose,
               and prose that cannot shrink beside text that can is a race the
               text always loses: measured on the live instance at 1440, the
               German note wanted 142px of a 116px line, so the error span was

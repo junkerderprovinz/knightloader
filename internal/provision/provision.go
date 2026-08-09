@@ -21,6 +21,8 @@ import (
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
 // defaultJarURL is JDownloader's official self-updating launcher jar. The
@@ -48,7 +50,7 @@ var stopGrace = 10 * time.Second
 
 // jarClient is our own client rather than http.DefaultClient: the default one
 // is process-global, anyone can reconfigure it, and it has no timeout at all.
-var jarClient = &http.Client{Timeout: downloadTimeout}
+var jarClient = httpx.New(httpx.Options{Timeout: downloadTimeout})
 
 // Provisioner owns a private JD home directory and the local API port.
 type Provisioner struct {
@@ -320,7 +322,7 @@ func (p *Provisioner) WaitReachable(ctx context.Context) error {
 	// 3128 is also Squid's default port. Accepting any HTTP answer would let a
 	// proxy that happens to be listening there pass as JDownloader, and every
 	// call afterwards would fail for a reason nobody could trace back to here.
-	client := &http.Client{Timeout: 10 * time.Second}
+	client := httpx.New(httpx.Options{Timeout: 10 * time.Second})
 	for {
 		req, _ := http.NewRequestWithContext(ctx, http.MethodGet, ping, nil)
 		if resp, err := client.Do(req); err == nil {

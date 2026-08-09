@@ -450,6 +450,16 @@ func TestBaselineFailuresAbortBeforeTheMethodRuns(t *testing.T) {
 		{"transport failure", step{err: errors.New("no such host")}, nil},
 		{"http error", step{code: http.StatusServiceUnavailable, body: "later"}, nil},
 		{"page holds no address", step{body: "<html>please enable javascript</html>"}, ErrNoAddress},
+		// A check URL pointed at something inside the network answers with an
+		// address from the wrong side of the router. Refusing it here is the
+		// whole point: taken as the baseline, a LAN address holds still, so
+		// every run afterwards reports that the address did not change and the
+		// reconnect is blamed for a router that did as it was told.
+		{"the router's own status page", step{body: "IP: 192.168.1.1"}, ErrNotPublic},
+		// Carrier-grade NAT is the cruel one. It parses, it is not RFC 1918, and
+		// it is the single line on which a reconnect can never change anything -
+		// the address that moves belongs to the carrier, not to this box.
+		{"a carrier-grade NAT address", step{body: "100.64.12.9"}, ErrNotPublic},
 		// The truncation guard: cutting "203.0.113.99" at the read limit leaves
 		// the valid, wrong address 203.0.113.9, and a baseline that is wrong
 		// makes every later check look like a change.

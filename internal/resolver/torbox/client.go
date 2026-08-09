@@ -12,9 +12,15 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
 const apiBase = "https://api.torbox.app/v1"
+
+// apiTimeout bounds one API call. Unlocking a link is the slow one: TorBox may
+// be fetching from the hoster while we wait.
+const apiTimeout = 30 * time.Second
 
 type Client struct {
 	key  string
@@ -23,7 +29,12 @@ type Client struct {
 }
 
 func NewClient(key string) *Client {
-	return &Client{key: key, base: apiBase, hc: &http.Client{Timeout: 30 * time.Second}}
+	// httpx, not a bare client: every call here carries the user's API key as a
+	// bearer token, and httpx is what drops it if a hop ever redirects off the
+	// API host. The host is well known and unlikely to do that, which is exactly
+	// the reasoning a policy exists to replace - the question is not whether this
+	// host would, it is whether the token can leave with a redirect at all.
+	return &Client{key: key, base: apiBase, hc: httpx.New(httpx.Options{Timeout: apiTimeout})}
 }
 
 // envelope is TorBox's uniform response wrapper.

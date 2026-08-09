@@ -120,6 +120,12 @@ func (a *App) dispatchLocked() {
 			t.Status = core.StatusError
 			t.Online = core.AvailOffline
 			t.Error = rejection(v)
+			// Written even though it is the empty value: this box refused the link
+			// on purpose and none of the transfer failures describes that, but the
+			// task may still carry the reason from the attempt that failed before
+			// it, and a rule rejection labelled "disk full" is exactly the confident
+			// wrong answer the taxonomy exists to prevent.
+			t.Reason = core.ReasonUnknown
 			settled = append(settled, *t)
 			continue
 		}
@@ -129,6 +135,7 @@ func (a *App) dispatchLocked() {
 		if res == nil {
 			t.Status = core.StatusError
 			t.Error = "no resolver matches"
+			t.Reason = core.ReasonUnsupported
 			settled = append(settled, *t)
 			continue
 		}
@@ -140,6 +147,10 @@ func (a *App) dispatchLocked() {
 		if err != nil {
 			t.Status = core.StatusError
 			t.Error = err.Error()
+			// The error value itself, not the sentence built from it: this is one of
+			// the few places the app still holds the real error, and a wrapped
+			// syscall or a cancelled shutdown context survives here and nowhere later.
+			t.Reason = classify(failure{err: err})
 			settled = append(settled, *t)
 			continue
 		}
@@ -154,9 +165,13 @@ func (a *App) dispatchLocked() {
 			target := filepath.Join(dir, t.Name)
 			if taken, err := collide.Check(target); err == nil && taken {
 				// The availability is left alone: nothing was learned about the
-				// link here, only about the folder it was going to land in.
+				// link here, only about the folder it was going to land in. The
+				// reason is cleared for the same purpose as at the filter above -
+				// a name that is already taken is not one of the transfer failures,
+				// and the previous attempt's label must not stand in for it.
 				t.Status = core.StatusError
 				t.Error = "not downloaded: " + target + " already exists"
+				t.Reason = core.ReasonUnknown
 				settled = append(settled, *t)
 				continue
 			}
@@ -332,6 +347,13 @@ func (a *App) onUpdate(id string, u core.Update) {
 	t.Speed = u.Speed
 	if u.Err != "" {
 		t.Error = u.Err
+		// Classified here rather than in each backend, because the update channel
+		// carries a sentence and not an error: the engine, JD, yt-dlp and every
+		// debrid service report through the same field, and one classifier they all
+		// pass through is the only way the same failure gets the same label whoever
+		// hit it. A backend that already knows better says so with u.Unsupported,
+		// which is handled below.
+		t.Reason = classify(failure{text: u.Err})
 	}
 	// Terminal states free the scheduling slot for the next queued task.
 	if u.Status == core.StatusDone || u.Status == core.StatusError {
@@ -377,11 +399,20 @@ func (a *App) onUpdate(id string, u core.Update) {
 			t.Resolver = next
 			t.Status = core.StatusQueued
 			t.Error = ""
+			// Always cleared with the sentence it belongs to. A task back in the
+			// queue carrying the last backend's reason has the interface advising
+			// about a failure that has since been taken back.
+			t.Reason = core.ReasonUnknown
 			t.Loaded = 0
 			t.Speed = 0
 			delete(a.started, id)
 			a.queue = append(a.queue, id)
 			a.dispatchLocked()
+		} else {
+			// The chain is exhausted, which is the strongest form of "no backend
+			// handles this": every backend that matched the link has now had its
+			// turn and said the link is not its business.
+			t.Reason = core.ReasonUnsupported
 		}
 	}
 
@@ -405,16 +436,29 @@ func (a *App) onUpdate(id string, u core.Update) {
 	// A failure is not automatically the end: hosters throttle, connections
 	// drop. Retry a bounded number of times with a growing delay before the
 	// task is left for the user to deal with.
+	//
+	// A full disk is the exception, and it is why the reason is worth having at
+	// all. Nothing about the next ten minutes frees a byte, so the retries only
+	// spend the queue's slots and, worse, bury the one failure the user could
+	// have fixed under five more attempts that end in the same sentence. It is
+	// left settled where the error is on screen and the disk can be emptied.
 	var retryIn time.Duration
 	if u.Status == core.StatusError && fallbackTo == nil {
-		if cfg := a.Settings.Get(); t.Retries < cfg.MaxRetries {
+		cfg := a.Settings.Get()
+		switch {
+		case t.Reason == core.ReasonDiskFull:
+			// Cleared as well as not armed: the list reads a pending retry off this
+			// field, and a task that will never be tried again must not show the
+			// "retrying automatically" mark that stops people acting on it.
+			t.NextTry = time.Time{}
+		case t.Retries < cfg.MaxRetries:
 			t.Retries++
 			retryIn = u.Retry
 			if retryIn <= 0 {
 				retryIn = retryDelay(t.Retries)
 			}
 			t.NextTry = time.Now().Add(retryIn)
-		} else {
+		default:
 			t.NextTry = time.Time{}
 		}
 	}
@@ -423,8 +467,13 @@ func (a *App) onUpdate(id string, u core.Update) {
 	// (u.Retry) is how it says it hit one. Skipped while the queue is halted: a
 	// reconnect reboots the router to help downloads that are not running, and
 	// drops the ones that are.
+	//
+	// The reason is the second opinion, and it can only veto: a backend that asks
+	// for a delayed retry on a failure a new address plainly cannot mend - a dead
+	// link, credentials that were refused - takes the whole house off the
+	// internet for nothing.
 	reconnectFor := ""
-	if retryIn > 0 && u.Retry > 0 && !a.halted && a.reconnectConfigured() {
+	if retryIn > 0 && u.Retry > 0 && !a.halted && addressMayHelp(t.Reason) && a.reconnectConfigured() {
 		reconnectFor = id
 	}
 	// A finished download that completes an archive continues as an extraction.

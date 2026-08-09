@@ -9,6 +9,8 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
 // RealDebrid speaks the Real-Debrid REST 1.0 API.
@@ -20,7 +22,7 @@ type RealDebrid struct {
 }
 
 func NewRealDebrid(token string) *RealDebrid {
-	return &RealDebrid{token: token, base: "https://api.real-debrid.com/rest/1.0", hc: &http.Client{Timeout: 30 * time.Second}}
+	return &RealDebrid{token: token, base: "https://api.real-debrid.com/rest/1.0", hc: httpx.New(httpx.Options{Timeout: 30 * time.Second})}
 }
 
 func (*RealDebrid) ID() string    { return "realdebrid" }

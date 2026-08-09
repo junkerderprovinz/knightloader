@@ -166,6 +166,13 @@ func New(o Options) (*Reconnector, error) {
 		// A dedicated client rather than http.DefaultClient: the default has no
 		// timeout at all, and a router that hangs mid-answer would then hold a
 		// reconnect open for as long as the process lives.
+		//
+		// This is the last hand-built client in the tree and it stays that way on
+		// purpose. Everything else now comes from internal/httpx, and the app does
+		// hand this package an httpx client - see app.New. Importing httpx here
+		// would couple a package whose whole shape is "one injectable Doer" to the
+		// policy it is meant to be given, and would leave the fallback path
+		// importing a package the injected path never uses.
 		r.http = &http.Client{Timeout: requestTimeout}
 	}
 	if r.run == nil {
@@ -433,9 +440,18 @@ func (r *Reconnector) currentIP(ctx context.Context, cfg Config) (netip.Addr, er
 	if len(raw) > maxCheckBody {
 		raw = dropPartialTail(raw[:maxCheckBody])
 	}
-	addr, ok := FindIP(string(raw))
-	if !ok {
-		return netip.Addr{}, fmt.Errorf("%w: %s", ErrNoAddress, cfg.CheckURL)
+	// PublicIP rather than FindIP: finding an address is not the same as finding
+	// this box's address on the internet. A router's own status page and a
+	// captive portal both answer with an address from the wrong side of the
+	// router, and taking one of those as the public address fails in the way
+	// that is hardest to diagnose - the LAN address holds still, so every run
+	// reports that the address did not change and the reconnect gets blamed for
+	// a router that did exactly as it was told. The error names the address and
+	// the range it falls in; the check URL is added here because only this layer
+	// knows which URL produced the answer.
+	addr, err := PublicIP(string(raw))
+	if err != nil {
+		return netip.Addr{}, fmt.Errorf("%w: %s", err, cfg.CheckURL)
 	}
 	return addr, nil
 }

@@ -165,6 +165,10 @@ func (e *Engine) onEvent(ev *download.Event) {
 		}
 		e.emit(taskID, u)
 	case download.EventKeyError:
+		// The failure leaves here as text and is given its typed reason in the
+		// app. An Update carries no reason field on purpose: one classifier that
+		// the engine, JD, yt-dlp and every debrid service pass through is what
+		// makes a full disk read as a full disk whichever of them hit it.
 		msg := "download error"
 		if ev.Err != nil {
 			msg = ev.Err.Error()

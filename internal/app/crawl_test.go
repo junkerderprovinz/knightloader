@@ -206,7 +206,7 @@ func TestRemovedTaskIsNotResurrected(t *testing.T) {
 
 	a.Remove(id, false)
 	// Whatever the probe learns now arrives for a task that is gone.
-	a.setAvailability(id, core.AvailOnline, "")
+	a.setAvailability(id, core.AvailOnline, "", core.ReasonUnknown)
 
 	if len(a.Tasks()) != 0 {
 		t.Fatal("the removed task came back in memory")

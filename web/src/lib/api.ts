@@ -18,10 +18,15 @@ export type TaskStatus =
 export type Availability = '' | 'online' | 'offline' | 'uncheckable';
 
 // Reason is the typed cause of a failure, as opposed to Task.error, which is the
-// sentence beside it. The taxonomy is filled in where failures are classified;
-// until then the only value the server sends is '' (nothing recognised it),
-// which is why this is an open string rather than a union that would have to be
-// widened in lockstep with the server to keep compiling.
+// sentence beside it. The server sends 'gone' | 'auth' | 'limit' | 'unavailable'
+// | 'network' | 'diskFull' | 'unsupported' | 'captcha' | 'cancelled', or '' when
+// nothing recognised the failure — a value it declines to guess at rather than
+// one it forgot to set.
+//
+// It stays an open string, not a union: the taxonomy grows on the server, and a
+// union here would make every new value a compile error in a build that is
+// otherwise perfectly able to show it. Anything reading it maps the values it
+// knows and shows nothing for the rest (see reasonKey in components/columns.tsx).
 export type Reason = string;
 
 // Origin is the intake path a link arrived by — the paste box, the watch folder,
