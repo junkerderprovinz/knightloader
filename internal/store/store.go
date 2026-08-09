@@ -97,6 +97,41 @@ var migrations = []string{
 	   value      TEXT NOT NULL,
 	   changed_at INTEGER NOT NULL DEFAULT 0
 	 )`,
+	// 7 â€” the download history: what this instance has fetched, kept where the
+	//     task list being trimmed cannot reach it. See history.go for why it is a
+	//     table of its own and why the destination folder is not in it.
+	`CREATE TABLE IF NOT EXISTS history (
+	   id          TEXT PRIMARY KEY,
+	   url         TEXT NOT NULL,
+	   name        TEXT NOT NULL,
+	   package     TEXT NOT NULL DEFAULT '',
+	   host        TEXT NOT NULL DEFAULT '',
+	   resolver    TEXT NOT NULL DEFAULT '',
+	   size        INTEGER NOT NULL DEFAULT 0,
+	   created_at  INTEGER NOT NULL DEFAULT 0,
+	   finished_at INTEGER NOT NULL DEFAULT 0
+	 )`,
+	// 8 â€” a finish time for the downloads that were already done when this
+	//     column got a writer. Nothing recorded when they finished, so the
+	//     upgrade is the only honest answer available, and it is the answer
+	//     retention needs: without it every task finished by an older build has a
+	//     zero stamp, is invisible to every cutoff, and stays in the list for
+	//     ever â€” which is the accumulation retention exists to end.
+	`UPDATE tasks SET finished_at = CAST(strftime('%s','now') AS INTEGER) * 1000
+	  WHERE status = 'done' AND finished_at = 0`,
+	// 9 â€” and those same downloads carried into the history in one pass, so the
+	//     record does not begin at whatever moment this version was installed.
+	//     After 8, because it reads the stamp that migration writes.
+	`INSERT OR IGNORE INTO history (id,url,name,package,host,resolver,size,created_at,finished_at)
+	   SELECT id,url,name,package,host,resolver,size,created_at,finished_at
+	   FROM tasks WHERE status = 'done'`,
+	// 10 â€” the order the history is always read in, and the one the trim cuts
+	//     along. Descending, because every read of this table is "newest first".
+	`CREATE INDEX IF NOT EXISTS history_finished_at ON history(finished_at DESC)`,
+	// 11 â€” what retention sweeps on. The sweep runs on a timer for the life of
+	//     the process, and without this it is a scan of every task in the list
+	//     each time, to find the handful that have aged out.
+	`CREATE INDEX IF NOT EXISTS tasks_finished_at ON tasks(finished_at)`,
 }
 
 func Open(path string) (*Store, error) {
@@ -156,6 +191,11 @@ func (s *Store) Save(t *core.Task) error {
 	if !t.NextTry.IsZero() {
 		nextTry = t.NextTry.UnixMilli()
 	}
+	// The finish time is settled before the row is written rather than taken as
+	// given, because this is the one place every task change passes through and
+	// therefore the only one that cannot be forgotten by a new settle path. It
+	// writes to t, which is a copy in every caller in this app - see stampFinish.
+	s.stampFinish(t)
 	// Zero rather than the epoch, so "never finished" and "finished at
 	// 1970-01-01" stay apart on the way back in.
 	var finishedAt, changedAt int64
@@ -197,9 +237,19 @@ func (s *Store) Save(t *core.Task) error {
 		t.DownloadPassword, t.ExpectedHash, t.Connection, t.Host, t.Source, t.MirrorOf,
 		resumable, t.Filename, t.Variant, t.ManualPackage,
 		string(t.Reason), string(t.Origin), changedAt, t.ArchivePart)
-	return err
+	if err != nil {
+		return err
+	}
+	// The history is written from the same save, so a finished download is in
+	// the record before anything is allowed to trim it out of the list. It is a
+	// no-op for a task in any other state.
+	return s.recordFinished(t)
 }
 
+// Delete takes a task out of the LIST. It does not touch the history: a row
+// there is the record that this instance fetched something, and clearing the
+// list is not a statement about what was downloaded. That is the whole reason
+// the history is not a view over this table.
 func (s *Store) Delete(id string) error {
 	_, err := s.db.Exec(`DELETE FROM tasks WHERE id=?`, id)
 	return err

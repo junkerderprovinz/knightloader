@@ -5,11 +5,13 @@ package engine
 import (
 	"fmt"
 	"net"
+	"path/filepath"
 	"sync"
 
 	"github.com/GopeedLab/gopeed/pkg/base"
 	"github.com/GopeedLab/gopeed/pkg/download"
 	fhttp "github.com/GopeedLab/gopeed/pkg/protocol/http"
+	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 )
@@ -85,6 +87,12 @@ func (e *Engine) Close() error { return e.d.Close() }
 
 // Download resolves the direct URL (to learn name+size), then starts a task.
 // It runs async so the caller (an HTTP handler) never blocks on the network.
+//
+// This is the shape every download backend shares, and it deliberately carries
+// no collision policy. Only this engine can be told the name it must write; a
+// task handed to headless JD or TorBox is fetched in another process that names
+// the file itself. Widening the shared shape would put a decision on every
+// backend that all but one of them would drop on the floor.
 func (e *Engine) Download(taskID, url string, headers map[string]string, conns int) {
 	e.DownloadTo(taskID, url, headers, conns, "")
 }
@@ -114,33 +122,135 @@ func (e *Engine) DownloadTo(taskID, url string, headers map[string]string, conns
 // task, which is the arrangement the bandwidth budget is designed around. Until
 // then, routing wins over the speed limit for the downloads that are routed.
 func (e *Engine) DownloadVia(taskID, url string, headers map[string]string, conns int, dir string, route proxycfg.Route) {
-	if dir == "" {
-		dir = e.dir
+	e.Start(Job{TaskID: taskID, URL: url, Headers: headers, Conns: conns, Dir: dir, Route: route})
+}
+
+// Job is one download as the engine takes it.
+//
+// A struct rather than a longer parameter list, because the list had reached six
+// and the two this wave adds are a policy and a cap - the kind that compile
+// perfectly well in the wrong order.
+type Job struct {
+	TaskID  string
+	URL     string
+	Headers map[string]string
+	Conns   int
+	// Dir is where the file lands; empty means the engine's own folder.
+	Dir   string
+	Route proxycfg.Route
+
+	// Collision is what to do when the resolved name is already taken. EMPTY
+	// MEANS NO POLICY AT ALL, which is not what the collide package reads it as:
+	// there an empty policy is its own default, Rename. The difference is
+	// deliberate and it is why this is not passed straight through - the older
+	// entry points above set no policy, and folding them onto a default would
+	// give every caller that never asked for one a silent rename.
+	Collision collide.Policy
+	// MaxCollisionAttempts caps how many counted names a rename tries. Zero means
+	// the collide package's own cap.
+	MaxCollisionAttempts int
+}
+
+// Start resolves the URL (to learn the name, the size and the shape of what is
+// on the other end), settles where the file lands, and then starts the task.
+func (e *Engine) Start(j Job) {
+	if j.Dir == "" {
+		j.Dir = e.dir
 	}
 	go func() {
 		req := &base.Request{
-			URL:   url,
-			Extra: &fhttp.ReqExtra{Method: "GET", Header: headers},
-			Proxy: requestProxy(route),
+			URL:   j.URL,
+			Extra: &fhttp.ReqExtra{Method: "GET", Header: j.Headers},
+			Proxy: requestProxy(j.Route),
 		}
-		opts := &base.Options{Path: dir, Extra: &fhttp.OptsExtra{Connections: conns}}
+		opts := &base.Options{Path: j.Dir, Extra: &fhttp.OptsExtra{Connections: j.Conns}}
 		rr, err := e.d.Resolve(req, opts)
 		if err != nil {
-			e.emit(taskID, core.Update{Status: core.StatusError, Err: err.Error()})
+			e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: err.Error()})
 			return
 		}
-		name, size := metaOf(rr.Res)
-		e.emit(taskID, core.Update{Status: core.StatusRunning, Name: name, Size: size})
+		_, size := metaOf(rr.Res)
+		// Settled before Create, because Create is what starts the transfer.
+		name, err := place(j, rr.Res, opts)
+		if err != nil {
+			// The name goes out with the failure. It costs one field and it stops
+			// the retry loop guessing: the app can only pre-empt a collision for a
+			// task whose name it knows, and until this resolve it did not.
+			e.emit(j.TaskID, core.Update{Status: core.StatusError, Name: name, Err: err.Error()})
+			return
+		}
+		e.emit(j.TaskID, core.Update{Status: core.StatusRunning, Name: name, Size: size})
 		gid, err := e.d.Create(rr.ID)
 		if err != nil {
-			e.emit(taskID, core.Update{Status: core.StatusError, Err: err.Error()})
+			e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: err.Error()})
 			return
 		}
 		e.mu.Lock()
-		e.toKL[gid] = taskID
-		e.toGopeed[taskID] = gid
+		e.toKL[gid] = j.TaskID
+		e.toGopeed[j.TaskID] = gid
 		e.mu.Unlock()
 	}()
+}
+
+// place applies the collision policy to what was just resolved, writes the name
+// the download must use into opts, and reports the name to show on the task.
+//
+// IT RUNS HERE AND NOT IN THE DISPATCHER because this is the first moment the
+// real name exists. Before the resolve there is only whatever the resolver made
+// of the URL, and a collision decided on a guessed name is a decision about a
+// different file.
+//
+// opts is the very struct the download runs with: Downloader.Resolve keeps the
+// pointer it was given and Create is called with no options of its own, so a
+// name written here is the name the fetcher reads. It has also had the library's
+// own path placeholders expanded into it by then, which is the other reason to
+// be here - reserving against the folder we asked for rather than the one that
+// came back would reserve in a folder nothing is written to.
+func place(j Job, res *base.Resource, opts *base.Options) (string, error) {
+	name, _ := metaOf(res)
+	if j.Collision == "" || res == nil {
+		return name, nil
+	}
+	if res.Name != "" {
+		// A resource that carries a name of its own is a FOLDER, and Options.Name
+		// then names that folder rather than a file in it. Handing it a file name
+		// would apply the policy to the wrong thing entirely, and quietly: the
+		// download would succeed, into a directory called "movie (2).mkv".
+		return name, placeFolder(j, res, opts)
+	}
+	if len(res.Files) == 0 || res.Files[0].Name == "" {
+		// Nothing was named, so there is nothing to reserve and no honest name to
+		// invent. Left to the library, which is where the name is coming from.
+		return name, nil
+	}
+	// Where the single file actually goes, which is not always opts.Path: the
+	// library joins the file's own relative path in between.
+	dir := filepath.Join(opts.Path, filepath.FromSlash(res.Files[0].Path))
+	r, err := collide.Options{MaxAttempts: j.MaxCollisionAttempts}.
+		Handover(filepath.Join(dir, res.Files[0].Name), j.Collision)
+	if err != nil {
+		return name, err
+	}
+	if r.Action == collide.Skipped {
+		return filepath.Base(r.Path), fmt.Errorf("not downloaded: %s already exists", r.Path)
+	}
+	opts.Name = filepath.Base(r.Path)
+	return opts.Name, nil
+}
+
+// placeFolder is place for a multi-file resource. The task's own name is left
+// alone: it is the first file's, and moving the folder does not move that.
+func placeFolder(j Job, res *base.Resource, opts *base.Options) error {
+	r, err := collide.Options{MaxAttempts: j.MaxCollisionAttempts}.
+		HandoverFolder(filepath.Join(opts.Path, res.Name), j.Collision)
+	if err != nil {
+		return err
+	}
+	if r.Action == collide.Skipped {
+		return fmt.Errorf("not downloaded: %s already exists", r.Path)
+	}
+	opts.Name = filepath.Base(r.Path)
+	return nil
 }
 
 // requestProxy is the route as gopeed reads it.

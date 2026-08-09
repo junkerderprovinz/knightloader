@@ -12,6 +12,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/engine"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
@@ -255,14 +256,26 @@ func (a *App) dispatchLocked() {
 			continue
 		}
 		dir := a.dirFor(t)
+		be := a.backendFor(t.Resolver)
+		policy := collide.ParsePolicy(cfg.CollisionPolicy)
 		// A destination that is already taken is settled here instead of being
-		// downloaded over. Only "skip" can be honoured today: every other policy
-		// has to name the file it writes, and no backend accepts a destination
-		// file name â€” the engine is handed a directory and names the file itself.
+		// downloaded over.
+		//
+		// SKIP IS THE ONLY POLICY THIS PLACE CAN DECIDE, and that is not a
+		// shortcoming of the check - it is what makes skip different from the other
+		// two. Skip is a refusal to start, which asks nothing of whoever would have
+		// fetched the bytes, so it holds for a delegated backend exactly as it does
+		// for the engine. Rename and overwrite have to name the file that gets
+		// written, and only the engine can be told a name, so those are applied on
+		// the way into it - where the resolved name is finally known.
+		//
 		// The check is skipped entirely while the name is still unknown, because a
-		// collision decided on a URL-shaped name is a decision about nothing.
-		if collide.ParsePolicy(cfg.CollisionPolicy) == collide.Skip && filename(t) != "" {
-			target := filepath.Join(dir, t.Name)
+		// collision decided on a URL-shaped name is a decision about nothing. The
+		// engine covers that case for its own tasks once it has resolved one.
+		if policy == collide.Skip && filename(t) != "" {
+			// Sanitized, or the sentence below names a file that never existed: what
+			// lands on disk is the name after the writer's own rewrite.
+			target := filepath.Join(dir, collide.SafeName(t.Name))
 			if taken, err := collide.Check(target); err == nil && taken {
 				// The availability is left alone: nothing was learned about the
 				// link here, only about the folder it was going to land in. The
@@ -290,8 +303,15 @@ func (a *App) dispatchLocked() {
 		if chosen != t.Connection {
 			t.Connection = chosen
 		}
-		if be := a.backendFor(t.Resolver); be == a.Engine {
-			go a.Engine.DownloadVia(id, result.DirectURL, result.Headers, conns, dir, route)
+		if be == a.Engine {
+			// The collision policy travels down this branch only, because this is
+			// the one backend that can be told the name it must write. See the skip
+			// check above and engine.Job.Collision for the other half of that.
+			go a.Engine.Start(engine.Job{
+				TaskID: id, URL: result.DirectURL, Headers: result.Headers,
+				Conns: conns, Dir: dir, Route: route,
+				Collision: policy, MaxCollisionAttempts: cfg.CollisionMaxAttempts,
+			})
 		} else {
 			// Only the embedded engine takes a route today. A delegated backend
 			// runs in its own process or on another machine and reaches the
@@ -409,6 +429,22 @@ func (a *App) Resume(id string) {
 	a.mu.Unlock()
 	_ = a.Store.Save(&c)
 	a.Hub.Broadcast("task", &c)
+}
+
+// HonoursCollisionPolicy reports whether the collision policy in settings
+// reaches the file a task on this resolver actually writes.
+//
+// It is false for every delegated backend, and that is not a gap waiting to be
+// filled: headless JD, TorBox and yt-dlp fetch in their own process and name the
+// file themselves, so nothing this app can say about the destination gets there.
+// Only skip still applies to them, because skip is decided before the handover.
+//
+// It is exported so the interface can ask. A rename control offered on a row
+// that will silently ignore it is worse than no control at all - the user sets
+// it, watches a file get overwritten anyway, and stops trusting the setting on
+// the rows where it does work.
+func (a *App) HonoursCollisionPolicy(resolverID string) bool {
+	return a.backendFor(resolverID) == a.Engine
 }
 
 func (a *App) backendFor(resolverID string) backend {

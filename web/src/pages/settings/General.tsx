@@ -1,4 +1,5 @@
-import { Card, Field, TextInput, Toggle, SectionTitle } from '../../components/ui';
+import { Card, Field, Toggle, SectionTitle } from '../../components/ui';
+import { PathInput } from '../../components/FolderPicker';
 import { useT } from '../../lib/i18n';
 import { useDraft } from './context';
 import { useTx } from './tx';
@@ -18,15 +19,14 @@ export function General() {
           label={t('settings.downloadDir')}
           hint={`${t('settings.downloadDirHint')} ${t('settings.pathVars')}`}
         >
-          {/* dir="ltr" on a path is not cosmetic: in an RTL locale a path with a
-              trailing slash renders with the slash on the wrong end, which is a
-              path the user cannot check by reading. */}
-          <TextInput
-            dir="ltr"
+          {/* Still a box you can type a path into; the button beside it browses
+              the server. Picking a folder replaces only the fixed part of the
+              value - the <jd:…> tail is kept - which is the one thing a chooser
+              on this field has to get right. See components/FolderPicker.tsx. */}
+          <PathInput
             value={cfg.downloadDir}
             placeholder="/downloads"
-            spellCheck={false}
-            onChange={(e) => patch({ downloadDir: e.target.value })}
+            onValue={(downloadDir) => patch({ downloadDir })}
           />
         </Field>
         <Toggle

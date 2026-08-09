@@ -32,6 +32,19 @@ type Service interface {
 	Unlock(ctx context.Context, link string) (Direct, error)
 }
 
+// LinkChecker is the part of a provider that can say whether a link is still
+// there without unlocking it. It is kept off Service on purpose: a provider that
+// cannot check must not be forced to grow a method that lies, and the whole
+// worth of the split is that "this one has no free check" is expressible.
+//
+// Free is the word that decides whether a provider implements this at all. The
+// endpoint behind it must cost the user nothing - no unlock, no traffic against
+// the account, no slot used up. Checking a link is a convenience; paying for it
+// out of somebody's premium quota without being asked is not.
+type LinkChecker interface {
+	CheckLinks(ctx context.Context, links []string) ([]core.Availability, error)
+}
+
 // Downloader is the byte-transfer backend a resolved link is handed to.
 type Downloader interface {
 	Download(taskID, url string, headers map[string]string, conns int)
@@ -156,6 +169,11 @@ type Resolver struct {
 	ServiceID string
 	Prio      int
 	Hosts     map[string]bool
+	// Svc is the provider the routing table was built from, kept here so a check
+	// can reach it. Nil is allowed and means the same as a provider with no free
+	// check: every link comes back uncheckable. It is nil in every test that only
+	// cares about which links this resolver claims.
+	Svc Service
 }
 
 func (r Resolver) Info() resolver.Info { return resolver.Info{ID: r.ServiceID, Prio: r.Prio} }
@@ -170,6 +188,25 @@ func (r Resolver) Match(raw string) bool {
 
 func (Resolver) Resolve(_ context.Context, req resolver.Request) (resolver.Result, error) {
 	return resolver.Result{DirectURL: req.URL, Name: req.URL}, nil
+}
+
+// Check asks the provider about a batch of links, or answers uncheckable for all
+// of them when this provider has no free way to ask.
+//
+// The method is present either way, which is the point: the caller reads "this
+// resolver was asked and could not say" off the verdicts, and does not have to
+// keep its own list of which services can check. Answering uncheckable is not a
+// failure - it is the fourth state doing exactly the job it was added for.
+func (r Resolver) Check(ctx context.Context, urls []string) ([]core.Availability, error) {
+	lc, ok := r.Svc.(LinkChecker)
+	if !ok {
+		return resolver.Answers(nil, len(urls)), nil
+	}
+	got, err := lc.CheckLinks(ctx, urls)
+	if err != nil {
+		return nil, err
+	}
+	return resolver.Answers(got, len(urls)), nil
 }
 
 // HostInSet reports whether host or any parent domain is in set.

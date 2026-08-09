@@ -17,6 +17,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/checksum"
 	"github.com/junkerderprovinz/knightloader/internal/core"
@@ -90,9 +91,21 @@ func (a *App) setAvailability(id string, avail core.Availability, msg string, re
 	a.Hub.Broadcast("task", &c)
 }
 
-// RecheckTasks re-runs resolution and the availability probe for collected
+// checkTimeout bounds one round of service checks. Generous compared with the
+// staging HEAD, because a debrid provider asked about a hundred links is doing a
+// hundred lookups of its own, and cutting that off mid-answer files links as
+// uncheckable that the service was about to answer for.
+const checkTimeout = 60 * time.Second
+
+// RecheckTasks re-runs resolution and the availability check for collected
 // tasks, so a link that was dead an hour ago can be tried again without
 // re-pasting it. An empty id list rechecks everything in the collector.
+//
+// Links go out grouped by the backend that claims them, and a backend is asked
+// once for its whole group. That is the reason resolver.Checker takes a slice:
+// every service that answers this question meters by the account or by the
+// address, and fifty separate questions about fifty links is how a key earns a
+// "slow down" for the household.
 func (a *App) RecheckTasks(ids []string) {
 	want := map[string]bool{}
 	for _, id := range ids {
@@ -113,6 +126,10 @@ func (a *App) RecheckTasks(ids []string) {
 	}
 	a.mu.Unlock()
 
+	// Grouped by resolver id rather than by the resolver value, because a
+	// resolver is a struct with a map in it and nothing says it is comparable.
+	batches := map[string]*checkBatch{}
+	var order []string
 	for i := range targets {
 		t := targets[i]
 		res := a.Registry.For(t.URL)
@@ -122,7 +139,10 @@ func (a *App) RecheckTasks(ids []string) {
 		}
 		result, err := res.Resolve(context.Background(), resolver.Request{URL: t.URL})
 		if err != nil {
-			a.setAvailability(t.ID, core.AvailOffline, err.Error(), classify(failure{err: err}))
+			// Uncheckable and not offline: resolving is this side of the wire, so a
+			// failure here means the link was never put to the host at all. Filing
+			// that as "the file is gone" is the same lie the HEAD probe used to tell.
+			a.setAvailability(t.ID, core.AvailUncheckable, err.Error(), classify(failure{err: err}))
 			continue
 		}
 		a.mu.Lock()
@@ -134,17 +154,89 @@ func (a *App) RecheckTasks(ids []string) {
 		}
 		a.mu.Unlock()
 		if res.Info().ID == "direct" {
+			// Our own HEAD, straight at the host: no account to spend, nothing to
+			// batch, and it brings back the size as well.
 			a.analyze(t.ID, result.DirectURL)
-		} else {
-			// Other backends cannot probe without starting; clear a stale error
-			// and let the attempt decide.
-			a.setAvailability(t.ID, core.AvailUnknown, "", core.ReasonUnknown)
+			continue
+		}
+		id := res.Info().ID
+		b := batches[id]
+		if b == nil {
+			b = &checkBatch{res: res}
+			batches[id], order = b, append(order, id)
+		}
+		b.ids = append(b.ids, t.ID)
+		// The resolved target, not the pasted URL: a resolver is entitled to have
+		// rewritten it, and the service must be asked about the link that would
+		// actually be fetched.
+		b.urls = append(b.urls, result.DirectURL)
+	}
+	for _, id := range order {
+		a.runCheck(batches[id])
+	}
+}
+
+// checkBatch is one backend's share of a recheck: the tasks and the links to ask
+// about, held in the same order so a verdict lands on the link it is about.
+type checkBatch struct {
+	res  resolver.Resolver
+	ids  []string
+	urls []string
+}
+
+// runCheck asks one backend about its whole group and writes the verdicts back.
+func (a *App) runCheck(b *checkBatch) {
+	ck, ok := b.res.(resolver.Checker)
+	if !ok {
+		// A backend with no way to ask is not a backend whose links are unknown.
+		// "Unknown" is what the list says about a link nobody has looked at, and
+		// leaving a JD or yt-dlp link there after the user pressed Check is the
+		// gap the fourth state was added to close.
+		a.settleCheck(b, nil)
+		return
+	}
+	ctx, cancel := context.WithTimeout(a.ctx, checkTimeout)
+	defer cancel()
+	got, err := ck.Check(ctx, b.urls)
+	if err != nil {
+		// The whole group is uncheckable and the log carries the why. A refused key
+		// must never read as "these fifty files are gone" - that is the one wrong
+		// answer here somebody acts on, by deleting them.
+		log.Printf("%s could not check %d links: %v", b.res.Info().ID, len(b.urls), err)
+		a.settleCheck(b, nil)
+		return
+	}
+	a.settleCheck(b, resolver.Answers(got, len(b.ids)))
+}
+
+// settleCheck records a batch's verdicts; a nil slice files every task in it as
+// uncheckable.
+func (a *App) settleCheck(b *checkBatch, got []core.Availability) {
+	for i, id := range b.ids {
+		avail := core.AvailUncheckable
+		if i < len(got) {
+			avail = got[i]
+		}
+		switch avail {
+		case core.AvailOffline:
+			// Named, the way the HEAD path names the status it saw. A hoster's own
+			// verdict and a HEAD off this box are different weights of evidence, and
+			// the person deciding whether to delete the link should be able to see
+			// which one this was without reading the code.
+			a.setAvailability(id, core.AvailOffline, "offline ("+b.res.Info().ID+")", core.ReasonGone)
+		case core.AvailOnline:
+			a.setAvailability(id, core.AvailOnline, "", core.ReasonUnknown)
+		default:
+			// No sentence. Uncheckable is not a failure, and a red line of prose
+			// under a link that is probably fine is how somebody is talked into
+			// removing it. The row says "host would not say" and stops there.
+			a.setAvailability(id, core.AvailUncheckable, "", core.ReasonUnknown)
 		}
 	}
 }
 
 // analyze probes a plain file link with a HEAD request to fill in its size and
-// flag it offline, updating the collected task in place.
+// record what the host said about it, updating the collected task in place.
 func (a *App) analyze(id, rawurl string) {
 	req, err := http.NewRequest(http.MethodHead, rawurl, nil)
 	if err != nil {
@@ -158,23 +250,53 @@ func (a *App) analyze(id, rawurl string) {
 	// racing a real DNS lookup.
 	resp, err := a.Probe.Do(req)
 	if err != nil {
-		a.setAvailability(id, core.AvailOffline, "offline: "+err.Error(), classify(failure{err: err}))
+		// A transport error is not a verdict about the file. The host was never
+		// reached, so nothing was said about the link - and this branch used to
+		// write "offline", which turns one flaky minute, one DNS hiccup, one
+		// captive portal into a list of dead links the user then deletes.
+		a.setAvailability(id, core.AvailUncheckable, "", classify(failure{err: err}))
 		return
 	}
 	resp.Body.Close()
-	if resp.StatusCode >= 400 {
-		// The status goes to the classifier as the number it is. This is the one
-		// probe that holds a real response, and handing over the sentence instead
-		// would mean parsing back out of "offline (HTTP 404)" what is sitting right
-		// here in a field.
+	// The status goes to the classifier as the number it is. This is the one probe
+	// that holds a real response, and handing over the sentence instead would mean
+	// parsing back out of "offline (HTTP 404)" what is sitting right here in a
+	// field.
+	switch availabilityFor(resp.StatusCode) {
+	case core.AvailOffline:
 		a.setAvailability(id, core.AvailOffline,
 			"offline (HTTP "+strconv.Itoa(resp.StatusCode)+")", classify(failure{status: resp.StatusCode}))
+		return
+	case core.AvailUncheckable:
+		// Silent, like the batch path: the typed reason is on the task for the
+		// availability cell to show, and prose in the error column would put a
+		// refusal to answer in the same red as a download that failed.
+		a.setAvailability(id, core.AvailUncheckable, "", classify(failure{status: resp.StatusCode}))
 		return
 	}
 	a.setAvailability(id, core.AvailOnline, "", core.ReasonUnknown)
 	if resp.ContentLength > 0 {
 		a.onUpdate(id, core.Update{Size: resp.ContentLength})
 	}
+}
+
+// availabilityFor reads a HEAD's status code as a statement about the link.
+//
+// Only 404 and 410 are the host saying the file is not there. Everything else
+// above 399 is the host declining to answer the question that was asked, and
+// every one of them used to be filed as offline: a 403 is usually a hoster that
+// will not be probed, a 405 is one that does not implement HEAD at all, a 429 is
+// one that has heard enough for now, a 503 is one having a bad afternoon. Four
+// perfectly live links, marked dead, on a list with a "remove offline" button on
+// it.
+func availabilityFor(status int) core.Availability {
+	switch {
+	case status == http.StatusNotFound || status == http.StatusGone:
+		return core.AvailOffline
+	case status >= 400:
+		return core.AvailUncheckable
+	}
+	return core.AvailOnline
 }
 
 // publishTasks writes tasks that are already settled to the store and out to

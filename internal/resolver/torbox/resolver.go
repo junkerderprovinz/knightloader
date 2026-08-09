@@ -28,6 +28,21 @@ func (Resolver) Resolve(_ context.Context, req resolver.Request) (resolver.Resul
 	return resolver.Result{DirectURL: req.URL, Name: req.URL}, nil
 }
 
+// No resolver.Checker here, and it is a decision rather than an omission.
+//
+// TorBox's only cheap read is /api/webdl/checkcached, which takes md5(link) and
+// answers whether TorBox already holds the file on its own servers. That is a
+// different question from the one an availability check asks, and answering it
+// in the wrong column is worse than saying nothing: every live link TorBox has
+// simply never fetched before comes back "not cached", which would be drawn as
+// offline and deleted.
+//
+// The call that does ask the hoster is /api/webdl/createwebdownload, and it asks
+// by starting a fetch job on the user's account. Spending somebody's plan to
+// find out whether a link they have not started yet is still there is exactly
+// the trade this seam refuses to make. If TorBox ever documents a read-only link
+// check, it belongs here.
+
 // hostInSet reports whether host or any parent domain is in set.
 func hostInSet(host string, set map[string]bool) bool {
 	if len(set) == 0 {

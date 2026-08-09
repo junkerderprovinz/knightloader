@@ -54,7 +54,10 @@ func (a *App) rewireBackends() {
 	for _, d := range configured {
 		hosts := fetchDebridHosts(d.svc)
 		newDebrid[d.svc.ID()] = debrid.NewBackend(d.svc, eng, a.onUpdate)
-		a.Registry.Register(debrid.Resolver{ServiceID: d.svc.ID(), Prio: d.prio, Hosts: hosts})
+		// Svc rides along so the routing entry can also answer "is this link still
+		// there". Without it the resolver knows which links it claims and nothing
+		// about them, and every debrid link stays at "not checked" for good.
+		a.Registry.Register(debrid.Resolver{ServiceID: d.svc.ID(), Prio: d.prio, Hosts: hosts, Svc: d.svc})
 		for h := range hosts {
 			if hosterSet == nil {
 				hosterSet = map[string]bool{}

@@ -31,6 +31,7 @@ import (
 	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/schedule"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -573,8 +574,15 @@ func extractionDetail(s settings.Settings) string {
 		// it off deserves to know that is expected.
 		return "off; an extraction already under way finishes"
 	}
-	if s.DeleteArchive {
+	switch extract.ParseDisposal(s.ArchiveDisposal) {
+	case extract.DisposalDelete:
 		return "archives are deleted after a successful extraction"
+	case extract.DisposalTrash:
+		// The folder is named rather than the word "trash" left to stand on its
+		// own: it is a hidden folder under the download directory and not a
+		// recycle bin, and this row is one of the two places anybody reads what
+		// the setting actually does.
+		return "archives are moved to " + extract.TrashName + " after a successful extraction"
 	}
 	return "archives are kept after extraction"
 }

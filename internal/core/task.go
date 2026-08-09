@@ -168,6 +168,12 @@ type Task struct {
 	// not. It is not derivable from CreatedAt or from the status, so retention
 	// ("remove finished after N days") and a finished-at column both need it
 	// recorded at the moment it happens.
+	//
+	// THE STORE WRITES IT, on the save that first carries a settled task, and
+	// clears it again for a task that leaves the done state - a row is never
+	// allowed to claim a finish time and still be running. Nothing else may set
+	// it: a second writer is how a restarted download keeps the time it finished
+	// the first time round. See store.stampFinish.
 	FinishedAt time.Time `json:"finishedAt,omitempty"`
 	// Enabled is the user's own switch for one link: a disabled link stays in the
 	// list, keeps its progress and is passed over by everything that starts
@@ -216,7 +222,11 @@ type Task struct {
 	// could only ever fire once and nothing could show where a link came from.
 	Source string `json:"source,omitempty"`
 	// MirrorOf names the task this one is a second copy of, when the mirror
-	// policy staged it instead of refusing it.
+	// policy staged it instead of refusing it. That happens only where the user
+	// asked for it (settings.KeepMirrors): the default is still to fold a mirror
+	// away, so an empty value is the ordinary case and not a gap. A task that
+	// carries one is parked - see app.stageSibling - and nothing switches to it
+	// on its own.
 	MirrorOf string `json:"mirrorOf,omitempty"`
 	// Resumable is whether an interrupted transfer can be picked up where it
 	// stopped. Nil is a genuine third answer — nobody has asked yet — because

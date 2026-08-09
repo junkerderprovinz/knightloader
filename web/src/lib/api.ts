@@ -141,12 +141,55 @@ export interface Settings {
   chunks: number;
   speedLimit: number; // bytes/s, 0 = unlimited
   extract: boolean;
-  deleteArchive: boolean;
   autoStart: boolean;
   downloadDir: string;
   subfolderByPackage: boolean;
   archivePasswords: string[];
+
+  /**
+   * Where extractions are collected. Empty means beside the archive, which is
+   * what every install did before the setting existed. May be a pathvars
+   * template, so the folder chooser has to keep the tail - see FolderPicker.
+   */
+  extractTo: string;
+  /** Each package in its own folder below extractTo. Does nothing without one. */
+  extractSubfolder: boolean;
+  /** What an extraction does when its destination folder is already there. */
+  extractCollision: string;
+  /**
+   * What becomes of an archive that unpacked cleanly: 'keep' | 'trash' |
+   * 'delete'.
+   *
+   * This key REPLACED the boolean `deleteArchive`, and nothing here may send
+   * the old spelling again. The server maps an old settings file once, at load,
+   * and a client that kept writing the boolean would undo that migration on
+   * every save - which is the whole failure a field that changes type causes.
+   * Typed as a plain string rather than a union because the menu comes from
+   * GET /api/options: a value the server adds must render, not fail to compile.
+   */
+  archiveDisposal: string;
+  /** How long a trashed archive stays before the sweep takes it. 0 never sweeps. */
+  trashRetentionDays: number;
+  /** Sweep the .nfo/.sfv/.diz/.url that came with the same package. */
+  deleteInfoFiles: boolean;
   maxRetries: number;
+
+  /**
+   * What a restart does with the downloads that were in flight: 'never' |
+   * 'running' | 'all'. A plain string, not a union - the menu comes from
+   * GET /api/options, so a mode the server adds must render rather than fail to
+   * compile.
+   *
+   * The default is 'never' and the reason belongs next to the control: no
+   * backend handle survives the process, so a resumed transfer starts from the
+   * beginning, and the partial already on disk meets the collision policy.
+   */
+  resumeOnStart: string;
+  /** Days a finished download stays in the LIST. 0 keeps it forever. */
+  keepFinishedDays: number;
+  /** How many entries the history keeps. 0 keeps every one. */
+  historyMax: number;
+
   crawl: boolean;
   watchDir: string;
   verifyChecksums: boolean;
@@ -230,6 +273,26 @@ export interface SkippedLink {
 export interface ApiOptions {
   mirrorPolicies: string[];
   collisionPolicies: string[];
+  /**
+   * The archive page's own three lists, and deliberately not the download ones
+   * above. An extraction honours a different set of collision policies from a
+   * download - it has nobody to ask, and it decides per folder rather than per
+   * file - and the formats are whatever readers this build was compiled with.
+   * A list typed into this file instead would go on promising a format the
+   * server stopped opening, with nothing anywhere to catch it.
+   */
+  archiveCollisions: string[];
+  archiveDisposals: string[];
+  archiveFormats: string[];
+  /**
+   * What a restart may do with what was in flight. Served rather than typed
+   * here for the same reason as the three above, and it was the one that went
+   * missing: resumeOnStart was honoured at boot with no control anywhere, so it
+   * could only be set by editing settings.json by hand.
+   */
+  resumeModes: string[];
+  /** The folder "trash" really means, so the help text can name it. */
+  archiveTrashFolder: string;
   proxyKinds: string[];
   // No rule vocabulary here. The rule editor builds its form from
   // GET /api/rules/grammar, which the engine generates, so that an operator this
@@ -387,6 +450,77 @@ export const remove = (id: string, base = '/api', withFiles = false) =>
 // (empty = every collected link).
 export const recheckTasks = (ids: string[], base = '/api') =>
   post(`${base}/tasks/recheck`, { ids });
+
+/**
+ * ExtractJob is one unpacking, as work in its own right rather than a status a
+ * download wears for a while.
+ *
+ * `status` stays an open string for the same reason `Reason` does: the server
+ * names the values, and a union here would make a new one a compile error in a
+ * build that could perfectly well show it. `taskId` is the volume the job was
+ * started on, which for a multi-volume set is the FIRST part and not whichever
+ * one finished last.
+ */
+export interface ExtractJob {
+  id: string;
+  taskId: string;
+  name: string;
+  dir: string;
+  package?: string;
+  status: string;
+  /** The file open right now, which at depth is one found inside the output. */
+  archive?: string;
+  depth?: number;
+  files: number;
+  bytes: number;
+  volumes: number;
+  nested?: number;
+  error?: string;
+  /** The failure was a missing password, which is the one with an obvious remedy. */
+  password?: boolean;
+  queuedAt: string;
+  startedAt?: string;
+  endedAt?: string;
+}
+
+export async function fetchExtractJobs(base = '/api'): Promise<ExtractJob[]> {
+  return (await json<ExtractJob[]>(await fetch(`${base}/extract`))) ?? [];
+}
+
+/**
+ * startExtraction unpacks finished downloads now, whatever the unpacking switch
+ * says - pressing it IS the answer to that question.
+ *
+ * A selection where some rows cannot be unpacked answers 207 with both halves:
+ * the jobs that did start, and a sentence naming what was refused. Throwing that
+ * sentence is deliberate, because the jobs are already running and the caller
+ * reads them off the stream like any other.
+ */
+export async function startExtraction(ids: string[], base = '/api'): Promise<ExtractJob[]> {
+  const r = await fetch(`${base}/extract/start`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ids }),
+  });
+  if (r.status === 207) {
+    const p = (await r.json()) as { refused?: string };
+    throw new ApiError(p.refused || String(r.status));
+  }
+  return (await json<ExtractJob[]>(r)) ?? [];
+}
+
+/**
+ * abortExtraction calls one unpacking off and removes its half-written output.
+ *
+ * The refusal is thrown rather than returned as a response nobody reads: the one
+ * way to get here wrongly is to press stop on a job that has just finished, and
+ * a button that silently does nothing about that is how somebody presses it four
+ * more times.
+ */
+export async function abortExtraction(id: string, base = '/api'): Promise<void> {
+  const r = await post(`${base}/extract/${id}/abort`, {});
+  if (!r.ok) throw new ApiError((await r.text()).trim() || String(r.status));
+}
 
 // setPriority lifts or drops tasks in the wait queue (-2..2, higher runs first).
 export const setPriority = (ids: string[], priority: number, base = '/api') =>

@@ -472,7 +472,13 @@ func (a *App) stage(u, name string, in intake) *core.Task {
 	}
 	// An advisory look before the expensive part, so an obvious duplicate costs
 	// nothing. The binding check is in put, under the lock that inserts the task.
-	if m := a.mirror(dedupe.Entry{URL: u, Name: cand.Filename}); m.Seen() {
+	//
+	// A mirror the user has asked to keep is deliberately NOT short-circuited
+	// here: a sibling staged at this point would be a bare URL with no name and
+	// no byte count, because nothing has resolved it yet. It goes the long way
+	// round and is caught by the binding check instead, which runs after the
+	// resolver has filled those in.
+	if m := a.mirror(dedupe.Entry{URL: u, Name: cand.Filename}); m.Seen() && !a.keepsAsSibling(m) {
 		a.recordSkipped(u, m)
 		return nil
 	}
@@ -548,6 +554,13 @@ func (a *App) finishStaging(t *core.Task, cand rules.Candidate) *core.Task {
 	cand.Filename, cand.Filesize, cand.Package = filename(t), t.Size, t.Package
 	a.packagize(t, cand)
 	if m, ok := a.put(t); !ok {
+		// The refusal is where a kept mirror is staged instead, and it has to be
+		// here rather than at the advisory check: this is the first point at which
+		// the sibling has a name and a size of its own, and a second copy nobody
+		// can tell apart from the first is not worth keeping.
+		if a.stageSibling(t, m) {
+			return t
+		}
 		a.recordSkipped(t.URL, m)
 		return nil
 	}

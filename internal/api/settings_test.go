@@ -242,12 +242,29 @@ func TestOptionsOnlyOffersWhatTheAppHonours(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer resp.Body.Close()
-	var body map[string][]string
-	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+	// Decoded loosely and narrowed per key, because not everything this route
+	// answers with is a menu: the archive help text needs the name of the trash
+	// folder, which is one string. Insisting on []string here would fail the
+	// whole test on the shape of a value it has no opinion about.
+	var raw map[string]json.RawMessage
+	if err := json.NewDecoder(resp.Body).Decode(&raw); err != nil {
 		t.Fatal(err)
 	}
+	body := map[string][]string{}
+	for key, msg := range raw {
+		var list []string
+		if err := json.Unmarshal(msg, &list); err == nil {
+			body[key] = list
+		}
+	}
 
-	for _, list := range []string{"mirrorPolicies", "collisionPolicies", "proxyKinds", "scheduleActions"} {
+	for _, list := range []string{
+		"mirrorPolicies", "collisionPolicies", "proxyKinds", "scheduleActions",
+		// The archive page draws no chooser at all when its list is empty, so an
+		// empty one here is a control that silently stops existing rather than a
+		// control that misbehaves - which is harder to notice, not easier.
+		"archiveCollisions", "archiveDisposals", "archiveFormats",
+	} {
 		if len(body[list]) == 0 {
 			t.Errorf("%s is empty; the form has nothing to offer for it", list)
 		}
@@ -256,13 +273,24 @@ func TestOptionsOnlyOffersWhatTheAppHonours(t *testing.T) {
 	// engine. A second hand-written copy here is how a dropdown comes to offer an
 	// operator Compile refuses, which saves cleanly and then never fires.
 	for _, gone := range []string{"ruleFields", "ruleOps", "ruleActions"} {
-		if _, ok := body[gone]; ok {
+		// Against the raw response, not the narrowed map: a key that came back
+		// as something other than a list would slip through the narrowing, and
+		// this assertion is about the key being there at all.
+		if _, ok := raw[gone]; ok {
 			t.Errorf("%s is back in /api/options; the grammar route is the one source", gone)
 		}
 	}
 	for _, p := range body["collisionPolicies"] {
 		if p == string(collide.Ask) {
 			t.Error("the collision dropdown offers a policy the app cannot honour")
+		}
+	}
+	// The same rule one layer along: an extraction has even less of a way to
+	// ask than a download does, and a job parked on a question nobody can see
+	// never finishes and never says why.
+	for _, p := range body["archiveCollisions"] {
+		if p == string(collide.Ask) {
+			t.Error("the archive collision chooser offers a policy an extraction cannot honour")
 		}
 	}
 	for _, act := range body["ruleActions"] {

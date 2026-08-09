@@ -31,6 +31,19 @@ func (Resolver) Resolve(_ context.Context, req resolver.Request) (resolver.Resul
 	return resolver.Result{DirectURL: req.URL, Name: req.URL}, nil
 }
 
+// No resolver.Checker here, and unusually the reason is not money.
+//
+// "yt-dlp --simulate" costs the user nothing, but it is not a check: it is the
+// whole extraction, one process per link, including whatever anti-bot gauntlet
+// the site puts in front of it. yt-dlp has no batched form of that, so a
+// fifty-link collector is fifty full extractions fired at a handful of sites -
+// which is the rate-limiting this seam was made batched to avoid, arriving by
+// the other door and getting the address blocked for the downloads that were
+// actually asked for.
+//
+// A check worth wiring would have to be cheaper than the download it is meant to
+// save. This one is the download, minus the bytes.
+
 // hostInSet reports whether host or any parent domain is in set.
 func hostInSet(host string, set map[string]bool) bool {
 	if len(set) == 0 {

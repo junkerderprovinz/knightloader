@@ -37,6 +37,7 @@ import (
 func registerAll(reg *Registry, a *app.App) {
 	registerSystem(reg, a)
 	registerTasks(reg, a)
+	registerExtract(reg, a)
 	registerBulk(reg, a)
 	registerQueue(reg, a)
 	registerControls(reg, a)
@@ -47,10 +48,12 @@ func registerAll(reg *Registry, a *app.App) {
 	registerSchedule(reg, a)
 	registerReconnect(reg, a)
 	registerUIState(reg, a)
+	registerHistory(reg, a)
 	registerFederation(reg, a)
 	registerFeatures(reg, a)
 	registerConnections(reg, a)
 	registerRules(reg, a)
+	registerFolders(reg, a)
 }
 
 // AnyMethod is the method of a route that answers whatever it is sent, because

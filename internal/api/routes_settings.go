@@ -11,6 +11,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
+	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
@@ -157,6 +158,30 @@ func options() map[string]any {
 		// human answers", and there is no status for that and no way to answer, so
 		// a task set to it would sit in the queue forever with nothing saying why.
 		"collisionPolicies": policiesExcept(collide.Policies(), collide.Ask),
+		// Archives get their own two lists rather than borrowing the one above.
+		// An extraction can honour a different set from a download - it has
+		// nobody to ask, and it decides per folder rather than per file - so the
+		// package that implements archive collisions is the one that says which
+		// words the archive page may offer.
+		"archiveCollisions": extract.Collisions(),
+		"archiveDisposals":  extract.Disposals(),
+		// Served for the same reason as its two siblings above: the menu is built
+		// from what this server implements, not from what the client was compiled
+		// with. It was missing, and the symptom was not a broken menu but no menu
+		// at all - resumeOnStart was honoured at boot with nothing anywhere to set
+		// it, which is a setting only somebody editing settings.json can reach.
+		"resumeModes": settings.ResumeModes(),
+		// The folder "trash" actually means, so the help text can name it
+		// instead of implying a recycle bin the container does not have. It
+		// travels with the menu rather than being spelled out in 42 locale
+		// files, where renaming it would mean 42 edits and 41 of them forgotten.
+		"archiveTrashFolder": extract.TrashName,
+		// The capability line on the archive page. Asked of the extractor rather
+		// than typed into the interface, because a list of formats written down
+		// on the far side of an HTTP boundary drifts the first time a reader is
+		// added or retired, and the drift is invisible: the page goes on
+		// promising a format the build no longer opens.
+		"archiveFormats": extract.Formats(),
 		"proxyKinds": []proxycfg.Kind{
 			proxycfg.KindNone, proxycfg.KindDirect,
 			proxycfg.KindHTTP, proxycfg.KindHTTPS,

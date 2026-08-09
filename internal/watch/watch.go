@@ -3,39 +3,83 @@
 // extension, no API client, no port to open. It is also the format
 // JDownloader's folder watch uses (*.crawljob), so the tooling people already
 // have keeps working when it is pointed at KnightLoader instead.
+//
+// The package is split by subject so that the file format and the polling can be
+// read apart: this file is what a dropped file says (Job, Parse), poller.go is
+// one directory being watched, and watcher.go is the set of directories the app
+// has configured, which is more than one.
 package watch
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"io"
-	"log"
-	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
-	"sync"
-	"time"
-)
 
-// defaultInterval is the poll period when Options.Interval is zero. A drop
-// folder is a human-speed input, and the target is usually a network share
-// where a listing is not free, so a few seconds of latency buys a lot of quiet.
-const defaultInterval = 5 * time.Second
+	"github.com/junkerderprovinz/knightloader/internal/rules"
+)
 
 // maxIntakeSize caps what we are willing to read into memory. An intake file is
 // a link list; anything larger is somebody's ISO that happened to be named
 // .txt, and reading it would be a self-inflicted denial of service.
 const maxIntakeSize = 8 << 20
 
-// Job is one intake file's contents.
+// Job is one entry of an intake file: the links, and everything else that entry
+// asked for which this app can carry out.
+//
+// A zero field means "the file said nothing about it" and the app's own setting
+// decides. Two fields are shaped against that rule on purpose and say why on
+// themselves: Disabled, because false has to mean "on", and Priority, because
+// zero is a priority somebody may have meant.
 type Job struct {
-	URLs      []string
-	Package   string
-	Dir       string // destination override, may be empty
-	Password  string // archive password, may be empty
-	AutoStart bool   // whether to start immediately rather than stage
+	URLs    []string
+	Package string
+	// Dir is the destination override (crawljob downloadFolder), empty for none.
+	Dir string
+	// Password is the first of Passwords, and it is a separate field because a
+	// task carries exactly one: this is the one written onto the tasks this job
+	// creates, and the rest are only worth keeping for a later archive.
+	Password string
+	// Passwords is every archive password the entry listed, in the order it
+	// listed them.
+	Passwords []string
+	// AutoStart starts the links instead of leaving them staged.
+	AutoStart bool
+	// Forced starts them ahead of the configured limits (crawljob forcedStart).
+	// A forced start is still a start, so it implies AutoStart rather than
+	// meaning something a caller has to combine by hand.
+	Forced bool
+	// Disabled parks the links: they are added, they keep their place, and
+	// everything that starts downloads passes over them.
+	//
+	// It is inverted from the crawljob key it comes from, which is `enabled`. A
+	// bool's zero value is false, so spelled the same way round, a Job built
+	// anywhere else in the tree - and every entry of a file that never mentions
+	// the key - would arrive parked. A queue that silently refuses to run is the
+	// bug nobody traces back to the file they dropped.
+	Disabled bool
+	// Priority is one of the seven values the queue orders by, and nil when the
+	// entry named none. A plain int cannot say that: zero is the default
+	// priority, so an entry that is silent about it would overwrite a priority a
+	// Packagizer rule had just set.
+	Priority *int
+	// Chunks is how many connections one of these downloads opens. Zero is "no
+	// opinion", which is not "no connections".
+	Chunks int
+	// Comment is the note carried onto the row. Nothing acts on it; it is for the
+	// person who comes back to the list next month.
+	Comment string
+	// Filename is the name the finished file is put under. It describes one file,
+	// so it is only usable on an entry that carries one link - see the caller.
+	Filename string
+	// Extract overrides the global unpacking switch for these links, nil when the
+	// entry said nothing. It is a pointer for the same reason the task field is:
+	// a rule that deliberately switches unpacking off has to survive a global
+	// that is on, and with a plain bool the two are the same value.
+	Extract *bool
 }
 
 // schemeURL matches anything carrying a scheme. The intake stays deliberately
@@ -43,75 +87,160 @@ type Job struct {
 // silently dropping a link the user explicitly handed us is the worse failure.
 var schemeURL = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9+.\-]*://\S+$`)
 
-// Parse reads one intake file. Two formats are accepted:
+// Parse reads one intake file into the jobs it holds. Two formats are accepted:
 //
-//	*.crawljob - JDownloader's key=value format (text=, packageName=,
-//	             downloadFolder=, autoStart=, extractPasswords=)
-//	*.txt      - one URL per line
+//	*.crawljob - JDownloader's key=value format, one entry per blank-line-
+//	             separated block
+//	*.txt      - one URL per line, always a single job
 //
 // The package name defaults to the file's base name, so dropping "Season 3.txt"
 // produces a package called "Season 3" without the user configuring anything.
-func Parse(name string, r io.Reader) (Job, error) {
+func Parse(name string, r io.Reader) ([]Job, error) {
 	base := filepath.Base(name)
 	var (
-		job Job
-		err error
+		jobs []Job
+		err  error
 	)
 	switch strings.ToLower(filepath.Ext(base)) {
 	case ".crawljob":
-		job, err = parseCrawljob(r)
+		jobs, err = parseCrawljob(r)
 	case ".txt":
-		job, err = parseText(r)
+		jobs, err = parseText(r)
 	default:
-		return Job{}, fmt.Errorf("watch: %s: not an intake file (want .crawljob or .txt)", base)
+		return nil, fmt.Errorf("watch: %s: not an intake file (want .crawljob or .txt)", base)
 	}
 	if err != nil {
-		return Job{}, fmt.Errorf("watch: %s: %w", base, err)
+		return nil, fmt.Errorf("watch: %s: %w", base, err)
 	}
-	if len(job.URLs) == 0 {
-		return Job{}, fmt.Errorf("watch: %s: no links found", base)
+	fallback := strings.TrimSuffix(base, filepath.Ext(base))
+	out := jobs[:0]
+	for _, j := range jobs {
+		// An entry that set a package or a folder but carries no link is dropped
+		// rather than failing the file: the other entries are still somebody's
+		// link list, and refusing all of them over one stray block would retire
+		// nothing and report nothing usable.
+		if len(j.URLs) == 0 {
+			continue
+		}
+		if j.Package == "" {
+			j.Package = fallback
+		}
+		out = append(out, j)
 	}
-	if job.Package == "" {
-		job.Package = strings.TrimSuffix(base, filepath.Ext(base))
+	if len(out) == 0 {
+		return nil, fmt.Errorf("watch: %s: no links found", base)
 	}
-	return job, nil
+	return out, nil
 }
 
-// parseCrawljob reads JD's key=value format. JD allows several entries in one
-// file separated by blank lines; we fold them into a single job, because the
-// only thing downstream cares about is the link list and the last entry's
-// settings are as good a choice as any for a hand-dropped file.
-func parseCrawljob(r io.Reader) (Job, error) {
-	var job Job
-	err := eachLine(r, func(line string) {
+// parseCrawljob reads JD's key=value format.
+//
+// A blank line ends an entry. JD's folder watch takes several jobs in one file
+// that way, and folding them into one is a real loss now that an entry carries
+// more than links: every link in the file would get the last block's package,
+// folder and password.
+//
+// WHAT IS READ AND WHAT IS NOT. Everything below the switch is a key JD writes
+// that this app has nothing to do with, listed rather than left to be
+// rediscovered by whoever next wonders why their file had no effect:
+//
+//	downloadPassword            the hoster's own password for the link, not the
+//	                            archive's. No resolver here takes a per-link
+//	                            secret, so there is nowhere to put it.
+//	deepAnalyseEnabled          crawling a page for the files it links to is one
+//	                            global switch (Settings.Crawl), not a per-job one.
+//	overwritePackagizerEnabled  which of the file and the Packagizer wins. Here
+//	setBeforePackagizerEnabled  the order is fixed and the file always wins: the
+//	                            Packagizer names the package as the link is
+//	                            staged and the file's values are written over it
+//	                            afterwards.
+//	autoConfirm                 JD moves links from the LinkGrabber into the
+//	autoConfirmDelay            download list. There is one list here, so a
+//	                            staged link is already confirmed and autoStart is
+//	                            the only distinction left.
+//	addOfflineLink              availability is decided by the checker after
+//	                            staging and nothing is dropped for being offline,
+//	                            so there is no decision to take at intake.
+//
+// Any other key is ignored in the same spirit as those: a file we cannot fully
+// understand is still a file whose links we can take.
+func parseCrawljob(r io.Reader) ([]Job, error) {
+	var (
+		jobs []Job
+		cur  Job
+		open bool
+	)
+	flush := func() {
+		if open {
+			jobs = append(jobs, cur)
+		}
+		cur, open = Job{}, false
+	}
+	err := scanLines(r, func(line string) {
+		if line == "" {
+			flush()
+			return
+		}
 		key, value, ok := strings.Cut(line, "=")
 		if !ok {
 			return
 		}
+		open = true
 		value = strings.TrimSpace(value)
 		switch strings.ToLower(strings.TrimSpace(key)) {
 		case "text":
-			job.URLs = append(job.URLs, splitLinks(value)...)
+			cur.URLs = append(cur.URLs, splitLinks(value)...)
 		case "packagename":
-			job.Package = value
+			cur.Package = value
 		case "downloadfolder":
-			job.Dir = value
+			cur.Dir = value
 		case "autostart":
-			job.AutoStart = truthy(value)
+			if v, ok := boolValue(value); ok {
+				cur.AutoStart = v
+			}
+		case "forcedstart":
+			if v, ok := boolValue(value); ok {
+				cur.Forced = v
+			}
+		case "enabled":
+			// Only an explicit no parks the links. UNSET, and any spelling we do
+			// not recognise, has to leave them runnable.
+			if v, ok := boolValue(value); ok && !v {
+				cur.Disabled = true
+			}
 		case "extractpasswords":
-			job.Password = firstPassword(value)
+			cur.Passwords = passwordList(value)
+			if len(cur.Passwords) > 0 {
+				cur.Password = cur.Passwords[0]
+			}
+		case "extractafterdownload":
+			if v, ok := boolValue(value); ok {
+				cur.Extract = &v
+			}
+		case "priority":
+			if v, ok := priorityValue(value); ok {
+				cur.Priority = &v
+			}
+		case "chunks":
+			if n, err := strconv.Atoi(value); err == nil && n > 0 {
+				cur.Chunks = n
+			}
+		case "comment":
+			cur.Comment = value
+		case "filename":
+			cur.Filename = value
 		}
-		// Unknown keys (chunks, priority, deepAnalyseEnabled, ...) are ignored
-		// rather than rejected: JD writes plenty of them and a file we cannot
-		// fully understand is still a file whose links we can take.
 	})
-	return job, err
+	flush()
+	return jobs, err
 }
 
-// parseText reads a plain list, one URL per line.
-func parseText(r io.Reader) (Job, error) {
+// parseText reads a plain list, one URL per line, as a single job. The format
+// carries nothing but links, so everything else on the Job stays at the value
+// that means "the app's own settings decide".
+func parseText(r io.Reader) ([]Job, error) {
 	var job Job
-	err := eachLine(r, func(line string) {
+	err := scanLines(r, func(line string) {
 		// Split on whitespace rather than taking the whole line: a list pasted
 		// onto one line is the normal shape of a copied link block, and the
 		// crawljob parser already treats its value that way. Two parsers in one
@@ -119,17 +248,24 @@ func parseText(r io.Reader) (Job, error) {
 		// ends up permanently "unusable" with nothing to explain it.
 		job.URLs = append(job.URLs, splitLinks(line)...)
 	})
-	return job, err
+	return []Job{job}, err
 }
 
-// eachLine feeds non-empty, non-comment lines to fn.
 // bom is what Windows editors put at the front of a UTF-8 file. Left in place
 // it becomes part of the first line, so the first link silently fails to parse
 // while the rest succeed — and the file is then retired as consumed, so nothing
-// ever reports the loss.
+// ever reports the loss. Written as the escape, because the literal character
+// is invisible in an editor and a source file that carries one is a source file
+// somebody deletes by accident.
 const bom = "\ufeff"
 
-func eachLine(r io.Reader, fn func(string)) error {
+// scanLines feeds every line to fn, trimmed, with the BOM taken off the first
+// one and comment lines dropped.
+//
+// A blank line is passed through rather than skipped, because for a crawljob it
+// is the boundary between two entries and only the caller knows whether that
+// matters. parseText throws them away, which is what "one URL per line" means.
+func scanLines(r io.Reader, fn func(string)) error {
 	first := true
 	sc := bufio.NewScanner(io.LimitReader(r, maxIntakeSize))
 	// A single crawljob text= value can hold hundreds of links on one line,
@@ -142,7 +278,7 @@ func eachLine(r io.Reader, fn func(string)) error {
 			first = false
 		}
 		line = strings.TrimSpace(line)
-		if line == "" || strings.HasPrefix(line, "#") || strings.HasPrefix(line, "//") {
+		if strings.HasPrefix(line, "#") || strings.HasPrefix(line, "//") {
 			continue
 		}
 		fn(line)
@@ -171,266 +307,82 @@ func looksLikeURL(s string) bool {
 	return schemeURL.MatchString(s) || strings.HasPrefix(strings.ToLower(s), "magnet:?")
 }
 
-// truthy reads JD's tri-state booleans, which are TRUE / FALSE / UNSET.
-func truthy(v string) bool {
+// boolValue reads JD's tri-state booleans, which are TRUE / FALSE / UNSET. The
+// second result is whether the value said anything at all: UNSET and a spelling
+// we do not know are both "no opinion", and a caller that cannot tell those from
+// an explicit FALSE turns every silent key into a switched-off one.
+func boolValue(v string) (bool, bool) {
 	switch strings.ToLower(strings.TrimSpace(v)) {
 	case "true", "1", "yes", "on":
-		return true
+		return true, true
+	case "false", "0", "no", "off":
+		return false, true
 	}
-	return false
+	return false, false
 }
 
-// firstPassword takes one password out of extractPasswords, which JD writes
-// either bare or as a JSON-ish list. We keep the first: the download model
-// carries a single password.
-func firstPassword(v string) string {
-	v = strings.TrimSpace(v)
-	if strings.HasPrefix(v, "[") {
-		v = strings.TrimSuffix(strings.TrimPrefix(v, "["), "]")
-		if i := strings.Index(v, ","); i >= 0 {
-			v = v[:i]
-		}
-	}
-	return strings.Trim(strings.TrimSpace(v), `"'`)
-}
-
-// Options configures a Watcher.
-type Options struct {
-	Dir      string
-	Interval time.Duration // zero means a sane default
-	// OnJob receives each parsed job. It runs on the polling goroutine, so it
-	// must not block for long or the next poll is delayed behind it.
-	OnJob func(Job)
-	// Delete removes a consumed file instead of the default, which is to rename
-	// it with a ".done" suffix so the same links are never added twice.
-	Delete bool
-}
-
-// fileState is what a poll remembers about a candidate file. Only size and mod
-// are compared for stability; bad is carried alongside so a file we already
-// failed to parse is not parsed again until its bytes actually change.
-type fileState struct {
-	size int64
-	mod  time.Time
-	bad  bool
-}
-
-func (s fileState) sameBytes(o fileState) bool {
-	return s.size == o.size && s.mod.Equal(o.mod)
-}
-
-// Watcher polls a directory and hands each new file to a sink.
-type Watcher struct {
-	dir      string
-	interval time.Duration
-	onJob    func(Job)
-	del      bool
-
-	// pending is touched only by the polling goroutine, so it needs no lock.
-	pending map[string]fileState
-
-	startOnce sync.Once
-	closeOnce sync.Once
-	stop      chan struct{}
-	done      chan struct{}
-
-	mu      sync.Mutex
-	started bool
-}
-
-// New builds a Watcher for o.Dir, creating the directory if it does not exist
-// yet so a fresh install has somewhere to drop files.
-// writable reports whether the process can retire a consumed file. It is
-// checked once at startup because the failure is a permission problem that will
-// never resolve on its own, and the alternative is a folder that silently
-// accepts nothing forever.
-func writable(dir string) error {
-	probe := filepath.Join(dir, ".knightloader-watch-test")
-	f, err := os.OpenFile(probe, os.O_CREATE|os.O_WRONLY, 0o644)
-	if err != nil {
-		return err
-	}
-	f.Close()
-	return os.Remove(probe)
-}
-
-func New(o Options) (*Watcher, error) {
-	if strings.TrimSpace(o.Dir) == "" {
-		return nil, errors.New("watch: no directory configured")
-	}
-	if o.OnJob == nil {
-		// A watcher without a sink would consume files and drop the links on
-		// the floor, which looks exactly like data loss from the outside.
-		return nil, errors.New("watch: OnJob is required")
-	}
-	if err := os.MkdirAll(o.Dir, 0o755); err != nil {
-		return nil, fmt.Errorf("watch: %s: %w", o.Dir, err)
-	}
-	// A folder the process cannot write is useless: consuming a file means
-	// retiring it, and a file that cannot be retired is never taken at all.
-	// Saying so at startup beats a watcher that appears to run and does nothing.
-	if err := writable(o.Dir); err != nil {
-		return nil, fmt.Errorf("watch: %s is not writable: %w", o.Dir, err)
-	}
-	interval := o.Interval
-	if interval <= 0 {
-		interval = defaultInterval
-	}
-	return &Watcher{
-		dir:      o.Dir,
-		interval: interval,
-		onJob:    o.OnJob,
-		del:      o.Delete,
-		pending:  make(map[string]fileState),
-		stop:     make(chan struct{}),
-		done:     make(chan struct{}),
-	}, nil
-}
-
-// Start begins polling in the background. Calling it twice is a no-op.
-func (w *Watcher) Start() {
-	w.startOnce.Do(func() {
-		w.mu.Lock()
-		w.started = true
-		w.mu.Unlock()
-		go w.loop()
-	})
-}
-
-// Close stops the polling loop and waits for the running poll to finish, so no
-// OnJob call is still in flight once it returns.
-func (w *Watcher) Close() error {
-	w.closeOnce.Do(func() { close(w.stop) })
-	w.mu.Lock()
-	started := w.started
-	w.mu.Unlock()
-	if started {
-		<-w.done
-	}
-	return nil
-}
-
-func (w *Watcher) loop() {
-	defer close(w.done)
-	// Poll straight away so files already sitting in the folder at start-up are
-	// not held back by a full interval.
-	select {
-	case <-w.stop:
-		return
-	default:
-		w.poll()
-	}
-	t := time.NewTicker(w.interval)
-	defer t.Stop()
-	for {
-		select {
-		case <-w.stop:
-			return
-		case <-t.C:
-			w.poll()
-		}
-	}
-}
-
-// poll lists the folder once and consumes every file that has settled.
+// priorityValue maps what a crawljob may put in priority= onto the seven values
+// the queue orders by. JD writes the names; a hand-written file may well carry
+// the number, and refusing that would be pedantry.
 //
-// This is deliberately polling rather than fsnotify. The drop folder normally
-// lives on a network share on an Unraid box, and inotify only reports changes
-// made by the local kernel: a file written over SMB or NFS from another host
-// never fires an event. Polling is the only thing that sees those writes.
-func (w *Watcher) poll() {
-	entries, err := os.ReadDir(w.dir)
+// The bounds come from the rules package rather than being spelled again here:
+// it is the same seven values a Packagizer rule may set, and a second copy of
+// the range is the copy that is forgotten when the enum grows.
+func priorityValue(v string) (int, bool) {
+	switch strings.ToUpper(strings.TrimSpace(v)) {
+	case "HIGHEST":
+		return rules.PriorityMax, true
+	case "HIGHER":
+		return 2, true
+	case "HIGH":
+		return 1, true
+	case "DEFAULT":
+		return 0, true
+	case "LOW":
+		return -1, true
+	case "LOWER":
+		return -2, true
+	case "LOWEST":
+		return rules.PriorityMin, true
+	}
+	n, err := strconv.Atoi(strings.TrimSpace(v))
 	if err != nil {
-		// The share can be briefly unreachable; the next tick tries again.
-		return
+		return 0, false
 	}
-	seen := make(map[string]fileState, len(entries))
-	for _, e := range entries {
-		if e.IsDir() {
-			continue
-		}
-		name := e.Name()
-		if !isIntakeName(name) {
-			continue
-		}
-		fi, err := e.Info()
-		if err != nil {
-			continue
-		}
-		cur := fileState{size: fi.Size(), mod: fi.ModTime()}
-		prev, known := w.pending[name]
-
-		// The bug this guards against: a file copied onto the share appears in
-		// the listing the moment it is created, long before the last byte
-		// lands, and consuming it then yields half a link list that is then
-		// renamed away and lost. So a file is only taken once its size and
-		// modification time are identical to what the previous poll saw.
-		if !known || !prev.sameBytes(cur) {
-			seen[name] = cur
-			continue
-		}
-		if prev.bad || cur.size > maxIntakeSize {
-			// Already known to be unusable at these exact bytes. Keep the
-			// verdict so we do not re-read it on every single poll, and leave
-			// the file alone so the user can see and fix it.
-			cur.bad = true
-			seen[name] = cur
-			continue
-		}
-		if err := w.consume(filepath.Join(w.dir, name)); err != nil {
-			// Said once per file, not once per poll: a folder the process
-			// cannot write is a permanent misconfiguration, and a drop file
-			// that is quietly ignored forever is indistinguishable from a
-			// watcher that is not running at all.
-			log.Printf("intake file %s was not taken: %v", name, err)
-			cur.bad = true
-			seen[name] = cur
-			continue
-		}
-		// Consumed: the file is gone under this name, so it drops out of the
-		// map entirely. A new file with the same name starts from scratch.
+	// Clamped rather than refused: a file asking for more urgency than the queue
+	// has is asking for the most it has, and dropping the key instead would leave
+	// the links at a priority the file plainly did not want.
+	if n < rules.PriorityMin {
+		n = rules.PriorityMin
 	}
-	// Rebuilding the map from the listing prunes files that have disappeared,
-	// which keeps a long-running watcher from accumulating dead entries.
-	w.pending = seen
+	if n > rules.PriorityMax {
+		n = rules.PriorityMax
+	}
+	return n, true
 }
 
-// isIntakeName reports whether a directory entry is a file we should read.
-func isIntakeName(name string) bool {
-	// Leading dots are how rsync, SMB clients and macOS name their in-progress
-	// copies, so those are never candidates no matter what they end in.
-	if strings.HasPrefix(name, ".") {
-		return false
+// passwordList reads extractPasswords, which JD writes either bare or as a
+// JSON-ish list. A bare value is taken whole, commas and all: only the bracketed
+// form is a list, and splitting the bare one would cut a perfectly good password
+// in half at the first comma.
+func passwordList(v string) []string {
+	v = strings.TrimSpace(v)
+	if v == "" {
+		return nil
 	}
-	switch strings.ToLower(filepath.Ext(name)) {
-	case ".crawljob", ".txt":
-		return true
+	if !strings.HasPrefix(v, "[") {
+		return []string{unquote(v)}
 	}
-	// Anything else, ".done" included, is not ours.
-	return false
+	v = strings.TrimSuffix(strings.TrimPrefix(v, "["), "]")
+	var out []string
+	for _, part := range strings.Split(v, ",") {
+		if p := unquote(strings.TrimSpace(part)); p != "" {
+			out = append(out, p)
+		}
+	}
+	return out
 }
 
-// consume parses one file and retires it. The file is retired before the job is
-// handed over on purpose: if the sink panics or the process dies during the
-// handoff we would rather lose a single job than re-add the same links on every
-// poll from here to eternity.
-func (w *Watcher) consume(path string) error {
-	f, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	job, err := Parse(filepath.Base(path), f)
-	f.Close()
-	if err != nil {
-		return err
-	}
-	if w.del {
-		if err := os.Remove(path); err != nil {
-			return err
-		}
-	} else if err := os.Rename(path, path+".done"); err != nil {
-		return err
-	}
-	w.onJob(job)
-	return nil
+func unquote(s string) string {
+	return strings.Trim(strings.TrimSpace(s), `"'`)
 }
