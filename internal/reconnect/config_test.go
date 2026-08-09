@@ -135,7 +135,12 @@ func TestValidate(t *testing.T) {
 			CheckURL: "http://check",
 		}, true},
 		{"no check url", Config{Method: MethodCommand, Command: "/bin/true"}, true},
-		{"unsanitised typo", Config{Method: "upnp", CheckURL: "http://check"}, true},
+		// "igd" is a word Sanitize understands and folds into MethodUPnP. Raw, it
+		// has not been through Sanitize yet, and Validate is not Sanitize: it
+		// refuses what it does not recognise rather than guessing. Picking a
+		// synonym rather than nonsense is deliberate, because the near-miss is
+		// what actually reaches here from unsanitised form input.
+		{"unsanitised synonym", Config{Method: "igd", CheckURL: "http://check"}, true},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
