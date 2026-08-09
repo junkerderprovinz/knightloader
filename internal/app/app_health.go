@@ -237,6 +237,21 @@ func refineState(service string, base accounts.HealthState, text string) account
 // failure this was.
 func (a *App) reportAccountFailure(service, account string, reason core.Reason, errText string) (unroutable bool) {
 	tr := a.acctHealthTracker()
+	if a.ctx != nil && a.ctx.Err() != nil {
+		// This call is reachable from dispatchLocked's bare `go be.Download(...)`
+		// reporting in after Close - the exact abandoned-in-flight-transfer tail
+		// app.go's own doc comment on Close accepts as a cost, the same way a
+		// finished transfer's store write lands on an already-closed handle with
+		// its error discarded. That is safe there because the store IS the thing
+		// that closed. tr.ReportFailure below is not a store write - it is
+		// flushLocked's own raw os.WriteFile straight into the data directory -
+		// so once shutdown has begun there is nothing to safely discard the
+		// write into, and it must not be attempted at all: a write that lands
+		// while a test's t.TempDir() cleanup is mid-RemoveAll fails as
+		// "directory not empty", and in production it would recreate a file
+		// under a directory the app has already given up owning.
+		return !tr.Usable(service, account)
+	}
 	base, applicable := accounts.ClassifyReason(reason)
 	if !applicable {
 		// This failure said nothing about the account - report nothing, but
@@ -260,8 +275,15 @@ func (a *App) reportAccountFailure(service, account string, reason core.Reason, 
 	return true
 }
 
-// reportAccountSuccess clears an account back to healthy.
+// reportAccountSuccess clears an account back to healthy. Same shutdown guard
+// as reportAccountFailure and for the same reason: this is reachable from the
+// identical late-reporting path, and ReportSuccess's own flushLocked call is
+// the same unprotected raw write once a transition actually happens (a
+// benched account's very next download succeeding, for instance).
 func (a *App) reportAccountSuccess(service, account string) {
+	if a.ctx != nil && a.ctx.Err() != nil {
+		return
+	}
 	a.acctHealthTracker().ReportSuccess(service, account)
 }
 
