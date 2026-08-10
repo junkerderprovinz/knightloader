@@ -49,7 +49,9 @@ func TestCollectorStaging(t *testing.T) {
 	}
 	defer a.Close()
 	stub := &stubBackend{got: make(chan string, 8)}
+	a.bmu.Lock()
 	a.jd = stub
+	a.bmu.Unlock()
 	a.Registry.Register(jd.Resolver{})
 	if _, err := a.ApplySettings(settings.Settings{MaxConcurrent: 4, MaxPerHost: 4, Extract: false}); err != nil {
 		t.Fatal(err)
@@ -118,7 +120,9 @@ func TestRestartFailed(t *testing.T) {
 	}
 	defer a.Close()
 	stub := &stubBackend{got: make(chan string, 8)}
+	a.bmu.Lock()
 	a.jd = stub
+	a.bmu.Unlock()
 	a.Registry.Register(jd.Resolver{})
 	if _, err := a.ApplySettings(settings.Settings{MaxConcurrent: 4, MaxPerHost: 4, Extract: false}); err != nil {
 		t.Fatal(err)
@@ -147,7 +151,9 @@ func TestScheduler(t *testing.T) {
 	defer a.Close()
 
 	stub := &stubBackend{got: make(chan string, 16)}
+	a.bmu.Lock()
 	a.jd = stub
+	a.bmu.Unlock()
 	a.Registry.Register(jd.Resolver{}) // catch-all -> routes to the stub
 
 	if _, err := a.ApplySettings(settings.Settings{MaxConcurrent: 2, MaxPerHost: 1, Extract: false}); err != nil {
