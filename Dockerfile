@@ -16,7 +16,7 @@ RUN CGO_ENABLED=0 go build \
       -ldflags="-s -w -X github.com/junkerderprovinz/knightloader/internal/buildinfo.Version=${VERSION}" \
       -o /out/knightloader ./cmd/knightloader
 
-FROM alpine:3.21
+FROM alpine:3.24@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b
 RUN apk add --no-cache ca-certificates yt-dlp ffmpeg tzdata \
     && adduser -D -u 1000 knight
 COPY --from=build /out/knightloader /usr/local/bin/knightloader
