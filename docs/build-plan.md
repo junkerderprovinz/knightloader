@@ -80,7 +80,12 @@ Hot-file lanes after Wave 1 — **one writer per lane per wave**:
 
 ---
 
-## 3. The twelve waves
+## 3. The waves
+
+Twelve from the original census-driven triage, plus one added later (Wave
+11.5, see below) after a 2026-08-11 grilling session scoped it — not part
+of the original census, inserted where it is so Wave 12's own
+already-planned final locale-parity sweep covers its strings too.
 
 ### Wave 1 — Seams, the model, and the table you actually look at (36 rows, 5 agents)
 *Payoff: the download list stops being a five-slot grid. Columns, collapse, search, right-click, bulk delete.*
@@ -141,8 +146,23 @@ Four separate readers each proposed owning the auto-reconnect trigger. **3C owns
 ### Wave 11 — Scripting, machine API, resolver options (16 rows, 7 agents)
 11A goja script host + trigger registry + sandbox API — 3 · 11B script editor page + user action buttons — 2 · 11C API tokens, `PATCH /api/settings`, `/api/help`, event-stream subscriptions — 3 · 11D bookmarklet + MV3 extension + PWA share target — 3 · 11E resolver options page + yt-dlp variants — 4 · 11F drag-and-drop reorder — 1 · 11G i18n
 
+### Wave 11.5 — Torrent / magnet-link support (NEW, added 2026-08-11, not from the census)
+
+Full design in `docs/torrent-support.md` — read it before building, it
+carries load-bearing verified facts (gopeed's embedded downloader already
+silently supports BitTorrent via its own default `FetchManagers`, unused
+today) and open items to confirm rather than guess at build time. Six
+grilled decisions: build into v1 (not deferred), full depth, seed-to-ratio
+default, seeding does not block Wave 10's end-of-queue idle detection,
+private torrents auto-disable DHT/PEX, multi-file torrents get a
+selection tree at add-time. Package shape (agent split, exact file
+ownership) decided when the wave's own workflow script is written — the
+spec deliberately leaves that to the build, the same way every other
+wave's own file-ownership table was decided at build time, not in the
+census.
+
 ### Wave 12 — Onboarding and locale breadth (6 rows, 4 agents)
-12A command registry + palette + rebindable shortcuts — 2 · 12B first-touch help dialogs + first-run wizard — 3 · 12C 13 new locales (26 → 39), one writer, tsc + key-parity gate — 1 · 12D final parity sweep across all ~330 keys added in waves 1–11
+12A command registry + palette + rebindable shortcuts — 2 · 12B first-touch help dialogs + first-run wizard — 3 · 12C 13 new locales (26 → 39), one writer, tsc + key-parity gate — 1 · 12D final parity sweep across all ~330 keys added in waves 1–11 (now also 11.5, added after this row was written — the sweep's own scope is "everything so far", not a fixed list)
 
 ---
 
