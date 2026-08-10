@@ -53,7 +53,9 @@ func TestAddContainerCnLWithoutBackendRefuses(t *testing.T) {
 // failure JD invents rather than the honest one this app already knows.
 func TestAddContainerCnLRefusesEmptyContent(t *testing.T) {
 	a := newCrawlApp(t, false)
+	a.bmu.Lock()
 	a.jd = &stubCryptedV1Backend{urls: []string{"https://host.example/x"}}
+	a.bmu.Unlock()
 	if err := a.AddContainerCnL(nil, "pkg"); err == nil {
 		t.Fatal("AddContainerCnL(nil, ...) returned no error")
 	}
@@ -68,7 +70,9 @@ func TestAddContainerCnLRefusesEmptyContent(t *testing.T) {
 func TestAddContainerCnLStagesHarvestedLinksAsCnLOrigin(t *testing.T) {
 	a := newCrawlApp(t, false)
 	stub := &stubCryptedV1Backend{urls: []string{"https://host.example/harvested.bin"}}
+	a.bmu.Lock()
 	a.jd = stub
+	a.bmu.Unlock()
 
 	if !a.CryptedV1BackendConfigured() {
 		t.Fatal("CryptedV1BackendConfigured() = false with a backend that implements it")
@@ -104,7 +108,9 @@ func TestAddContainerCnLStagesHarvestedLinksAsCnLOrigin(t *testing.T) {
 // nothing to explain it.
 func TestAddContainerCnLRecordsABackendFailure(t *testing.T) {
 	a := newCrawlApp(t, false)
+	a.bmu.Lock()
 	a.jd = &stubCryptedV1Backend{err: errors.New("jd opened the container but produced no links")}
+	a.bmu.Unlock()
 
 	if err := a.AddContainerCnL([]byte("payload"), "pkg"); err != nil {
 		t.Fatalf("AddContainerCnL returned a synchronous error for an async failure: %v", err)
