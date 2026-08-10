@@ -1014,6 +1014,60 @@ export const en = {
   'accounts.hoster.loginTitle': '{host} login',
   'accounts.hoster.custodyNotice':
     'The password is sent to and stored by the headless JDownloader sidecar, which performs the actual login - not by KnightLoader itself.',
+
+  // The prompt modal (components/CaptchaModal.tsx) - a hoster asking a human
+  // something before a download can continue.
+  'captcha.title': 'Captcha needed',
+  'captcha.titleMore': 'Captcha needed ({n} more waiting)',
+  'captcha.forHost': '{host} is asking for a captcha before this download can continue.',
+  'captcha.answerLabel': 'Answer',
+  'captcha.answerPlaceholder': 'Type what you see…',
+  'captcha.clickHint': 'Click every point the image asks for, then press Continue.',
+  'captcha.clickCount': '{n} point(s) marked',
+  'captcha.clickClear': 'Clear points',
+  'captcha.widgetHint': 'Solve the challenge below - it continues on its own once you do.',
+  'captcha.widgetUnavailable': 'This challenge could not be loaded.',
+  'captcha.unsupported': 'KnightLoader cannot show this kind of challenge (reported as {vendor}).',
+  'captcha.unsupportedHint': 'Use Cancel below, or block this hoster’s captchas for this session.',
+  'captcha.continue': 'Continue',
+  'captcha.cancel': 'Cancel',
+  'captcha.refresh': 'Refresh',
+  'captcha.moreOptions': 'More options',
+  'captcha.blockHoster': 'Also stop asking for {host} this session',
+  'captcha.blockEverywhere': 'Also stop asking for every host this session',
+  'captcha.tooLate': 'That answer arrived too late.',
+  'captcha.networkError': 'Could not reach the server. Try again.',
+  'captcha.timedOut': 'A captcha for {host} timed out.',
+  'captcha.resolvedElsewhere': 'A captcha for {host} was resolved elsewhere.',
+
+  // The captcha settings page (pages/settings/Captcha.tsx) - solver order and
+  // each solver's own API key. Landed here verbatim from that file's own
+  // PENDING table (see its doc comment) now that this wave's locale pass has
+  // reached it; PENDING itself is left in place, unread once every key here
+  // resolves through the real catalogue.
+  'settings.captcha.title': 'Captcha',
+  'settings.captcha.subtitle': 'Automatic solvers are tried in this order before a captcha is ever shown to you.',
+  'settings.captcha.orderTitle': 'Solver order',
+  'settings.captcha.orderHint':
+    'Every enabled solver below is tried in the order shown, top to bottom. If none are enabled, or every one of them fails or declines, you are asked directly.',
+  'settings.captcha.orderEmpty': 'No solver is enabled - every captcha comes straight to you.',
+  'settings.captcha.use': 'Try this solver',
+  'settings.captcha.enableSolver': 'Try {service} automatically',
+  'settings.captcha.moveUp': 'Move up',
+  'settings.captcha.moveDown': 'Move down',
+  'settings.captcha.set': 'Key set',
+  'settings.captcha.notSet': 'No key set',
+  'settings.captcha.setKey': 'Set key',
+  'settings.captcha.change': 'Change',
+  'settings.captcha.remove': 'Remove',
+  'settings.captcha.cancel': 'Cancel',
+  'settings.captcha.save': 'Save',
+  'settings.captcha.saving': 'Saving…',
+  'settings.captcha.placeholder': 'Paste the API key',
+  'settings.captcha.whereToFind': 'Get a key',
+  'settings.captcha.saved': 'API key saved.',
+  'settings.captcha.removed': 'API key removed.',
+  'settings.captcha.saveFailed': 'Could not save the key: {error}',
 } as const;
 
 export type TranslationKey = keyof typeof en;

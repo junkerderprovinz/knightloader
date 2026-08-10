@@ -204,6 +204,17 @@ func (a *App) countStartLocked(t *core.Task, host string, perHost map[string]int
 
 // Caller holds a.mu.
 func (a *App) dispatchLocked() {
+	// Started here, once (app_captcha.go's own sync.Once), rather than from
+	// cmd/knightloader/main.go the way StartHosterAuth is: main.go is not
+	// this wave's file to add a line to (build-plan.md section 3's Wave 7
+	// table), and dispatchLocked is the closest thing this file owns to
+	// "runs once at start-up and on nearly everything after" - the schedule
+	// runner's first Apply calls this directly, before a browser could have
+	// loaded the page. Ahead of the halted check on purpose: a captcha wait
+	// has nothing to do with whether the queue is paused, and a poller that
+	// only started once somebody resumed the queue would miss every
+	// challenge raised while it was halted.
+	a.ensureCaptchaPoller()
 	if a.halted {
 		return
 	}
@@ -241,12 +252,23 @@ func (a *App) dispatchLocked() {
 		if t == nil {
 			continue // removed while queued
 		}
-		// The two flags that mean "not this one", checked here because this is the
+		// The flags that mean "not this one", checked here because this is the
 		// only place bytes are ever set moving: StartTasks with no ids is "start
 		// everything", and without this a link the user switched off downloads
 		// anyway the moment anything touches the queue. Kept in the queue rather
 		// than dropped, so it holds its place and goes when it is switched back on.
-		if !t.Enabled || t.Hold {
+		//
+		// captchaWaitingLocked joins Enabled/Hold for the identical reason build-
+		// plan.md section 8's Wave 7 note asks for: a task blocked on a captcha
+		// must not be re-dispatched while the human has not answered yet. Ordinarily
+		// such a task is a.active, never in this loop at all - a captcha only ever
+		// blocks a link already handed to JD - so this mainly guards a narrower race
+		// (RestartTasks/Resume/boot requeue briefly putting a still-tracked id back
+		// in a.queue). Re-dispatching it would resolve it through a resolver a
+		// second time and hand JD the same link again while the first attempt is
+		// still mid-captcha, which is exactly the kind of duplicate submission
+		// Hold's own check exists to prevent for a link the user parked on purpose.
+		if !t.Enabled || t.Hold || a.captchaWaitingLocked(id) {
 			rest = append(rest, id)
 			continue
 		}

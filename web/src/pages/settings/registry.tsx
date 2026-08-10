@@ -17,6 +17,7 @@ import {
 import { Access } from './Access';
 import { Advanced } from './Advanced';
 import { Archives } from './Archives';
+import { Captcha } from './Captcha';
 import { Connections } from './Connections';
 import { DownloadsSettings } from './DownloadsSettings';
 import { EmptyPage } from './Empty';
@@ -51,7 +52,10 @@ const PAGES: Record<string, () => ReactNode> = {
   // the failure this map is one line long to prevent.
   connections: () => <Connections />,
   reconnect: () => <Reconnect />,
-  // accounts, captcha and schedule are deliberately absent: they are registered
+  // Wave 7 (7B) fills this line in - captcha settings: solver order and each
+  // solver's own API key. See Captcha.tsx's own doc comment.
+  captcha: () => <Captcha />,
+  // accounts and schedule are still deliberately absent: they are registered
   // on the server, they have working addresses, and until their wave lands they
   // render the registry's own reason.
 };
