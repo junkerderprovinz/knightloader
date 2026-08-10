@@ -1029,4 +1029,173 @@ export const tr: Dict = {
     'Başarı ve bilgi bildirimlerini gizler. Sizi bekleyen bir captcha, bir hata veya askıya alınmış bir hesap yine de gösterilir.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Son değiştirilme',
+
+  'file.open': 'Aç',
+  'file.openNatively': 'Varsayılan uygulamayla aç',
+  'file.revealInFolder': 'Klasörde göster',
+  'file.desktopOnly': 'Yalnızca masaüstü uygulamasında',
+
+  'settings.schedule.title': 'Zamanlama',
+  'settings.schedule.subtitle': 'İndirme hızını bir zaman çizelgesine göre duraklatın, sürdürün veya sınırlayın.',
+  'settings.schedule.listTitle': 'Zaman çizelgesi',
+  'settings.schedule.orderHint':
+    'Satırlar sırayla, yukarıdan aşağıya uygulanır, ve iki pencere çakıştığında alttaki kazanır - geniş bir “her gece duraklat” satırı daha dar bir istisnanın üzerinde istisnayı geçerli bırakır, aynı iki satır ters sırada ise bırakmaz.',
+  'settings.schedule.add': 'Pencere ekle',
+  'settings.schedule.empty': 'Kuyruk kendi zamanlamasını izler',
+  'settings.schedule.emptyHint':
+    'Hiçbir pencere ayarlanmadı, bu yüzden burada hiçbir şey kuyruğu saate göre duraklatmıyor veya sınırlamıyor. İndirmeleri geceleri bekletmek veya bağlantıyı siz kendiniz kullanırken hızı sınırlamak için bir tane ekleyin.',
+  'settings.schedule.use': 'Bu pencereyi kullan',
+  'settings.schedule.moveUp': 'Yukarı taşı',
+  'settings.schedule.moveDown': 'Aşağı taşı',
+  'settings.schedule.remove': 'Bu pencereyi kaldır',
+  'settings.schedule.edit': 'Bu pencereyi düzenle',
+  'settings.schedule.name': 'Ad',
+  'settings.schedule.namePlaceholder': 'örn. Gece molası',
+  'settings.schedule.days': 'Günler',
+  'settings.schedule.daysHint':
+    'Bu pencerenin haftanın hangi günlerinde açıldığı. Gece yarısını geçen bir pencere için, BAŞLADIĞI günü işaretleyin - “Cum 22:00-06:00” cumartesi sabahı biter, cumartesinin kendisi işaretlenmeden.',
+  'settings.schedule.preset.every': 'Her gün',
+  'settings.schedule.preset.weekdays': 'Hafta içi',
+  'settings.schedule.preset.weekends': 'Hafta sonları',
+  'settings.schedule.preset.custom': 'Özel',
+  'settings.schedule.start': 'Başlangıç',
+  'settings.schedule.end': 'Bitiş',
+  'settings.schedule.endHint':
+    'Başlangıç saatinden önce, bu pencere gece yarısını geçer ve ertesi sabah biter. Başlangıç saatiyle aynı olan bir bitiş saati reddedilir - bu, tüm bir günü veya hiç zaman olmadığını ifade edebilir, ve ne kastedildiğini tahmin etmek sormaktan daha kötüdür.',
+  'settings.schedule.action': 'Eylem',
+  'settings.schedule.action.pause': 'Duraklat',
+  'settings.schedule.action.resume': 'Sürdür',
+  'settings.schedule.action.limit': 'Hızı sınırla',
+  'settings.schedule.limit': 'Hız sınırı',
+  'settings.schedule.disabledOff': 'Bu pencere kenara park edildi ve asla tetiklenmez. Kuyruk, bu satır hiç yokmuş gibi davranır.',
+  'settings.schedule.activeNow': 'Şu anda etkin, {time} kadar',
+  'settings.schedule.next': 'Sonraki: {when}',
+  'settings.schedule.never': 'Yapılandırıldığı şekliyle asla tetiklenmez',
+  'settings.schedule.stateNow.paused': 'Kuyruk şu anda zamanlama tarafından duraklatıldı.',
+  'settings.schedule.stateNow.limited': 'Kuyruk şu anda zamanlama tarafından {rate} ile sınırlandı.',
+  'settings.schedule.stateNow.running': 'Şu anda hiçbir pencere geçerli değil.',
+  'settings.schedule.nextChange': 'Sonraki değişiklik: {when}',
+  'settings.schedule.noNextChange': 'Tablodaki hiçbir şey kuyruğu yapılandırıldığı şekliyle asla değiştirmeyecek.',
+  'settings.schedule.save': 'Zamanlamayı kaydet',
+  'settings.schedule.discard': 'Vazgeç',
+  'settings.schedule.unsaved': 'Zamanlamada kaydedilmemiş değişiklikler',
+  'settings.schedule.saveFailed': 'Zamanlama kaydedilemedi: {error}',
+  'settings.schedule.rowError': 'Satır {row}: {error}',
+
+  'idleAction.title': 'Kuyruk boşta',
+  'idleAction.action.pause': 'Duraklatılıyor',
+  'idleAction.actionFallback': '“{action}” sürüyor',
+  'idleAction.in': '{countdown} içinde',
+  'idleAction.cancel': 'İptal',
+  'idleAction.cancelling': 'İptal ediliyor…',
+  'idleAction.cancelFailed': 'İptal edilemedi: sunucu yanıt vermedi.',
+
+  'settings.idleAction.label': 'Kuyruk boşaldığında eylem',
+  'settings.idleAction.hint':
+    'Artık hiçbir şey çalışmadığında, kuyrukta beklemediğinde veya başlamaya hazır olmadığında ne olur. Kapattığınız bir bağlantı burada sayılmaz - bilgi balonuna bakın.',
+  'settings.idleAction.info':
+    'Kapattığınız bir bağlantı hiçbir zaman kalan iş olarak sayılmaz, bu yüzden bunu sonsuza kadar erteleyemez. Elle duraklatılmış veya beklemeye alınmış bir bağlantı yine de sayılır - ikisi de “biraz bekle” anlamına gelir, “asla” değil.',
+  'settings.idleAction.none': 'Hiçbir şey yapma',
+  'settings.idleAction.pause': 'Kuyruğu duraklat',
+  'settings.idleAction.delay': 'Geri sayım (saniye)',
+  'settings.idleAction.delayHint':
+    'Kuyruk gerçekten boşa çıktığında, eylem yürütülmeden önce iptal etmek için ne kadar zamanınız olduğu.',
+
+  'settings.nav.diagnostics': 'Tanılama',
+  'settings.diagnostics.subtitle':
+    'Bu build’in ne olduğu, ne üzerinde çalıştığı, ve kendi son günlük çıktısı - bir hata raporuna eklemek için.',
+  'settings.diagnostics.version': 'Sürüm',
+  'settings.diagnostics.deployment': 'Build',
+  'settings.diagnostics.deployment.container': 'Konteyner',
+  'settings.diagnostics.deployment.desktop': 'Masaüstü',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'Platform',
+  'settings.diagnostics.goroutines': 'Goroutine’ler',
+  'settings.diagnostics.download': 'Tanılama paketini indir',
+  'settings.diagnostics.downloading': 'Hazırlanıyor…',
+  'settings.diagnostics.downloadHint':
+    'Yukarıdaki alanları, her şifresi kaldırılmış ayarlarınızı, ve aşağıdaki günlük satırlarını içeren bir JSON dosyası.',
+  'settings.diagnostics.downloadFailed': 'Paket oluşturulamadı: {error}',
+  'settings.diagnostics.logTitle': 'Son günlük satırları',
+  'settings.diagnostics.logHint':
+    'Bu sürecin kaydettiği son {n} satır, en eskisi önce. Burada hiçbir şey diske yazılmaz.',
+  'settings.diagnostics.logEmpty': 'Henüz hiçbir şey kaydedilmedi.',
+  'settings.diagnostics.refresh': 'Yenile',
+  'settings.diagnostics.loadFailed': 'Tanılama yüklenemedi. Sunucuya erişilebiliyor mu?',
+
+  'settings.nav.help': 'Yardım',
+  'settings.help.intro':
+    'Bu build’in neler yapabildiği, ayarlar sayfasına göre değil, göreve göre düzenlendi. Her bölüm, nerede yapılandırıldığına bağlantı verir.',
+
+  'settings.help.intake.title': 'İndirme ekleme',
+  'settings.help.intake.body':
+    'Bağlantıları Toplayıcıya yapıştırın - satır başına bir tane, veya düzensiz metin: bir tarama, bağlantıları nerede olurlarsa olsunlar bulur, bir cümlenin ortasında, satır başına birden fazla, veya bir posta programı tarafından iki satıra bölünmüş.',
+  'settings.help.intake.b1': 'Bir bağlantı kapsayıcı dosyası (.dlc, .ccf, .rsdf) veya düz bir bağlantı listesi bırakın.',
+  'settings.help.intake.b2':
+    "Barındırıcı ve forum sayfalarındaki Click'n'Load düğmeleri değişmeden çalışır - KnightLoader, her indirme yöneticisinin kullandığı aynı port olan 127.0.0.1:9666 üzerinde yanıt verir.",
+  'settings.help.intake.b3':
+    'Bir dosya bağlantısı yerine bir sayfa URL’si yapıştırın ve sayfanın kendisini indirmek yerine bağlantı verdiği her dosyayı çıkarmak için Tarama’yı açın.',
+  'settings.help.intake.b4': 'İzlenen bir klasör, içine bırakılan .txt/.crawljob dosyalarını otomatik olarak alır.',
+  'settings.help.intake.link1': 'İndirmeler ayarlarını aç',
+  'settings.help.intake.link2': "Erişim ayarlarını aç (Click'n'Load)",
+
+  'settings.help.collector.title': 'Toplayıcı, herhangi bir şey indirilmeden önce',
+  'settings.help.collector.body':
+    'Yeni bağlantılar önce Toplayıcıya gelir, kuyruğa değil: herhangi bir şey başlamadan önce adları, boyutları ve yinelenen uyarılarını kontrol etmek için bir ara bölge. Otomatik onay bu adımı atlayabilir, isteğe bağlı bir gecikmeyle; onaylandıktan sonra, bir bağlantı ya hemen başlar ya da otomatik başlatmaya bağlı olarak kuyrukta bekler.',
+  'settings.help.collector.link': 'Genel ayarları aç',
+
+  'settings.help.rules.title': 'Kurallar: paketler, klasörler ve ne saklanır',
+  'settings.help.rules.body':
+    'Packagizer bir bağlantıyı yeniden adlandırır, klasörünü seçer ve varışında, sizin yazdığınız koşullara dayanarak indirme seçeneklerini ayarlar. Bağlantı Filtresi, bir bağlantının hiç saklanıp saklanmayacağına karar verir - ve bağlantıları sadece yok eden bir filtreden farklı olarak, bir ret her zaman buna neden olan kuralı ve nedenini belirtir.',
+  'settings.help.rules.link': 'Kuralları aç',
+
+  'settings.help.queue.title': 'Kuyruğu yönet',
+  'settings.help.queue.body':
+    'Herhangi bir bağlantıyı, tek başına veya bir paketin tamamı olarak duraklatın, sürdürün veya yeniden sıralayın. Kuyruğu durdurmak iki farklı eylemdir: durdurmak zaten çalışanı dokunulmadan bırakır, böylece kendi kendine biter, oysa tüm aktarımları hemen durdurmak önce neyin kaybolacağını gösterir ve ancak onayınızdan sonra devam eder - kaldığı yerden devam edemeyen bir aktarım için tam olarak bu uyarı vardır.',
+  'settings.help.queue.b1': 'Tek bir bağlantı, genel bağlantı sayısını veya indirme sonrası çıkarma anahtarını geçersiz kılabilir.',
+  'settings.help.queue.b2': 'Listede zaten bulunan bir bağlantının kopyası, Toplayıcıya hiç ulaşmadan önce her zaman reddedilir.',
+
+  'settings.help.limits.title': 'Barındırıcı sınırlarını aşma',
+  'settings.help.limits.body': 'Ücretsiz bir sınırın tavan olmasını önlemenin üç bağımsız yolu:',
+  'settings.help.limits.b1':
+    'Bağlantılar - indirmeleri her zaman bu makinenin kendi adresinden çıkmak yerine birden fazla giden yola yayın (ikinci bir hat, bir proxy, SOCKS).',
+  'settings.help.limits.b2':
+    'Yeniden bağlanma - yönlendiriciden yeni bir genel adres isteyin, adresin kendisine bağlı bir sınırı gerçekten kaldıran tek şey (UPnP, harici bir program, bir betik, veya yönlendiricinin yönetim sayfasına karşı HTTP isteklerini yeniden oynatma - mevcut JDownloader LiveHeader/curl betikleri değişmeden çalışır).',
+  'settings.help.limits.b3':
+    'Hesaplar - uygun bir bağlantının ücretsiz sınır yerine tam hızda alınması için premium veya debrid giriş bilgilerini kaydedin (Real-Debrid, AllDebrid, TorBox ve diğerleri).',
+  'settings.help.limits.link1': 'Bağlantıları aç',
+  'settings.help.limits.link2': 'Yeniden bağlanmayı aç',
+  'settings.help.limits.link3': 'Hesapları aç',
+
+  'settings.help.captcha.title': 'Captcha',
+  'settings.help.captcha.body':
+    'Bir barındırıcı captcha istediğinde, önce ayarladığınız sırayla ayarladığınız otomatik bir çözücü denenir. Çözemediği - veya hiçbiri ayarlanmamışsa - sessizce başarısız olmak yerine size sunulur.',
+  'settings.help.captcha.link': 'Captcha ayarlarını aç',
+
+  'settings.help.after.title': 'İndirmeden sonra',
+  'settings.help.after.body':
+    'Arşivler otomatik olarak çıkarılır: zip (şifreliler dahil, hem WinZip AES hem de eski ZipCrypto), çok ciltli setlerle rar, 7z, tar, ve bir tar’ı sarıp sarmadığına bakılmaksızın gzip/bzip2/xz/zstd - saf Go, harici unrar veya 7z programı olmadan. Şifreli bir arşiv için bir parola listesi sırayla denenir. Tamamlanmış bir dosya, onunla birlikte gelen herhangi bir sağlama toplamına karşı kontrol edilir: bir .sfv listesi, bir md5/sha1/sha256sum dosyası, veya sürüm adının kendisinin taşıdığı bir CRC32.',
+  'settings.help.after.link1': 'Arşivler ayarlarını aç',
+  'settings.help.after.link2': 'İndirmeler ayarlarını aç',
+
+  'settings.help.schedule.title': 'Gözetimsiz çalışma',
+  'settings.help.schedule.body':
+    'Haftalık bir zamanlama, kuyruğu saate göre duraklatır veya sınırlar - yaz saati değişiminde bile doğru olan gece penceresi - JDownloader’ın Scheduler’ı ile aynı fikir.',
+  'settings.help.schedule.link': 'Zamanlamayı aç',
+
+  'settings.help.instances.title': 'Birden fazla örnek çalıştırma',
+  'settings.help.instances.body':
+    'Başka bir KnightLoader’ı eş olarak ekleyin, ve kuyruğu da bu panoda görünür - kendi kendine barındırılan, hiçbir röle dahil olmadan: bu örnek, bir tarayıcının yapacağı gibi, diğer örneğin API’sini basitçe çağırır.',
+  'settings.help.instances.link': 'Örnekleri aç',
+
+  'settings.help.access.title': 'Erişim ve sorun giderme',
+  'settings.help.access.body':
+    'Bir parola, tüm arayüzü bir oturum çerezinin arkasına kilitler. Erişim sayfası ayrıca bu build’in giriş portlarını ve erişim yöntemlerini, ve nedenini listeler - böylece bilinmeyen açık bir portun bir tahmin yerine bir yanıtı olur. Tanılama sayfası bir hata raporuna eklemek için bir dosya oluşturur: sürüm ve build bilgisi, her şifresi kaldırılmış geçerli ayarlar, bu sürecin son günlük satırları, ve kaç goroutine’in çalıştığı.',
+  'settings.help.access.link1': 'Erişim ayarlarını aç',
+  'settings.help.access.link2': 'Tanılamayı aç',
+
+  'settings.help.advanced.title': 'Geri kalan her şey',
+  'settings.help.advanced.body':
+    'Bu build’in her ayarı, Gelişmiş sayfasında ham adıyla okunabilir ve değiştirilebilir, zaten indirilmiş bir dosyanın yansısının nasıl ele alındığı, bir indirmenin zaten kullanılan bir ada denk gelmesi durumunda ne olacağı gibi henüz başka bir yerde özel bir kontrolü olmayan birkaçı dahil.',
+  'settings.help.advanced.link': 'Gelişmiş ayarlarını aç',
 };

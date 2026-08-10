@@ -6,6 +6,7 @@ import { ShellStrip } from '../components/QuickSettings';
 import { AccountStrip } from '../components/AccountStrip';
 import { CaptchaModal } from '../components/CaptchaModal';
 import { GlobalIntake } from '../components/GlobalIntake';
+import { IdleActionBanner } from '../components/IdleActionBanner';
 import { StatusStrip } from '../components/StatusStrip';
 import { InfoBubble } from '../components/ui';
 import { connectWS, fetchSettings, type Task } from '../lib/api';
@@ -173,6 +174,12 @@ export function Layout() {
           rather than inside the keyed page div (build-plan.md section 3's
           Wave 9 table, 9A). */}
       <StatusStrip />
+      {/* Same reasoning once more: the end-of-queue countdown
+          (internal/idleaction, Wave 10's 10B) is server-side state that
+          survives navigation and reload on its own - this is only the
+          courtesy notice and the Cancel button, and both have nothing to do
+          with which page happens to be open when the queue goes idle. */}
+      <IdleActionBanner />
     </InstanceProvider>
   );
 }

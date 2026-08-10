@@ -1021,4 +1021,173 @@ export const it: Dict = {
     'Nasconde le notifiche di successo e informative. Un errore, un captcha che ti aspetta o un account in pausa restano comunque visibili.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Ultima modifica',
+
+  'file.open': 'Apri',
+  'file.openNatively': 'Apri con l’app predefinita',
+  'file.revealInFolder': 'Mostra nella cartella',
+  'file.desktopOnly': 'Solo app desktop',
+
+  'settings.schedule.title': 'Orari',
+  'settings.schedule.subtitle': 'Metti in pausa, riprendi o limita la velocità di download secondo un orario.',
+  'settings.schedule.listTitle': 'Tabella oraria',
+  'settings.schedule.orderHint':
+    'Le righe si applicano in ordine, dall’alto in basso, e quando due fasce si sovrappongono vince quella più in basso - una fascia ampia «pausa ogni notte» sopra un’eccezione più ristretta lascia l’eccezione in vigore, mentre le stesse due righe al contrario no.',
+  'settings.schedule.add': 'Aggiungi fascia',
+  'settings.schedule.empty': 'La coda segue il proprio orario',
+  'settings.schedule.emptyHint':
+    'Non è configurata nessuna fascia, quindi qui nulla mette in pausa o limita la coda in base all’ora. Aggiungine una per fermare i download di notte o limitare la velocità mentre usi tu stesso la connessione.',
+  'settings.schedule.use': 'Usa questa fascia',
+  'settings.schedule.moveUp': 'Sposta su',
+  'settings.schedule.moveDown': 'Sposta giù',
+  'settings.schedule.remove': 'Rimuovi questa fascia',
+  'settings.schedule.edit': 'Modifica questa fascia',
+  'settings.schedule.name': 'Nome',
+  'settings.schedule.namePlaceholder': 'es. Pausa notturna',
+  'settings.schedule.days': 'Giorni',
+  'settings.schedule.daysHint':
+    'In quali giorni della settimana si apre questa fascia. Per una fascia che supera la mezzanotte, spunta il giorno in cui INIZIA - «ven 22:00-06:00» finisce sabato mattina senza che il sabato stesso sia spuntato.',
+  'settings.schedule.preset.every': 'Ogni giorno',
+  'settings.schedule.preset.weekdays': 'Giorni feriali',
+  'settings.schedule.preset.weekends': 'Fine settimana',
+  'settings.schedule.preset.custom': 'Personalizzato',
+  'settings.schedule.start': 'Inizio',
+  'settings.schedule.end': 'Fine',
+  'settings.schedule.endHint':
+    'Prima dell’ora di inizio, questa fascia supera la mezzanotte e finisce la mattina successiva. Un’ora di fine uguale a quella di inizio viene rifiutata - potrebbe significare un giorno intero o nessun tempo, e indovinare cosa si intendeva è peggio che chiedere.',
+  'settings.schedule.action': 'Azione',
+  'settings.schedule.action.pause': 'Pausa',
+  'settings.schedule.action.resume': 'Riprendi',
+  'settings.schedule.action.limit': 'Limita velocità',
+  'settings.schedule.limit': 'Limite di velocità',
+  'settings.schedule.disabledOff': 'Questa fascia è parcheggiata e non scatta mai. La coda si comporta come se questa riga non esistesse.',
+  'settings.schedule.activeNow': 'Attiva ora, fino a {time}',
+  'settings.schedule.next': 'Prossima: {when}',
+  'settings.schedule.never': 'Non scatta mai così come configurata',
+  'settings.schedule.stateNow.paused': 'La coda è in pausa proprio ora per via dell’orario.',
+  'settings.schedule.stateNow.limited': 'La coda è limitata a {rate} proprio ora per via dell’orario.',
+  'settings.schedule.stateNow.running': 'Nessuna fascia è in vigore in questo momento.',
+  'settings.schedule.nextChange': 'Prossimo cambiamento: {when}',
+  'settings.schedule.noNextChange': 'Nulla nella tabella cambierà mai la coda così come configurata.',
+  'settings.schedule.save': 'Salva orario',
+  'settings.schedule.discard': 'Scarta',
+  'settings.schedule.unsaved': 'Modifiche non salvate all’orario',
+  'settings.schedule.saveFailed': 'Impossibile salvare l’orario: {error}',
+  'settings.schedule.rowError': 'Riga {row}: {error}',
+
+  'idleAction.title': 'La coda è inattiva',
+  'idleAction.action.pause': 'Messa in pausa',
+  'idleAction.actionFallback': '«{action}» in corso',
+  'idleAction.in': 'tra {countdown}',
+  'idleAction.cancel': 'Annulla',
+  'idleAction.cancelling': 'Annullamento…',
+  'idleAction.cancelFailed': 'Impossibile annullare: il server non ha risposto.',
+
+  'settings.idleAction.label': 'Azione a fine coda',
+  'settings.idleAction.hint':
+    'Cosa succede quando non resta più nulla in corso, in coda o pronto a partire. Un link che hai disattivato non conta - vedi il fumetto informativo.',
+  'settings.idleAction.info':
+    'Un link che hai disattivato non conta mai come lavoro rimasto da fare, quindi non può bloccare questo per sempre. Un link messo in pausa o trattenuto manualmente continua a contare - entrambi significano «aspetta un po’», non «mai».',
+  'settings.idleAction.none': 'Non fare nulla',
+  'settings.idleAction.pause': 'Metti in pausa la coda',
+  'settings.idleAction.delay': 'Conto alla rovescia (secondi)',
+  'settings.idleAction.delayHint':
+    'Quanto tempo hai per annullare prima che l’azione venga eseguita, quando la coda diventa davvero inattiva.',
+
+  'settings.nav.diagnostics': 'Diagnostica',
+  'settings.diagnostics.subtitle':
+    'Cos’è questo build, su cosa gira, e il proprio output di log recente - da allegare a una segnalazione di bug.',
+  'settings.diagnostics.version': 'Versione',
+  'settings.diagnostics.deployment': 'Build',
+  'settings.diagnostics.deployment.container': 'Container',
+  'settings.diagnostics.deployment.desktop': 'Desktop',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'Piattaforma',
+  'settings.diagnostics.goroutines': 'Goroutine',
+  'settings.diagnostics.download': 'Scarica pacchetto diagnostico',
+  'settings.diagnostics.downloading': 'Preparazione…',
+  'settings.diagnostics.downloadHint':
+    'Un file JSON con i campi sopra, le tue impostazioni con ogni password rimossa, e le righe di log sotto.',
+  'settings.diagnostics.downloadFailed': 'Impossibile creare il pacchetto: {error}',
+  'settings.diagnostics.logTitle': 'Righe di log recenti',
+  'settings.diagnostics.logHint':
+    'Le ultime {n} righe registrate da questo processo, le più vecchie per prime. Qui non viene scritto nulla su disco.',
+  'settings.diagnostics.logEmpty': 'Ancora nessun log registrato.',
+  'settings.diagnostics.refresh': 'Aggiorna',
+  'settings.diagnostics.loadFailed': 'Impossibile caricare la diagnostica. Il server è raggiungibile?',
+
+  'settings.nav.help': 'Guida',
+  'settings.help.intro':
+    'Cosa sa fare questo build, organizzato per attività invece che per pagina di impostazioni. Ogni sezione rimanda a dove si configura.',
+
+  'settings.help.intake.title': 'Aggiungere download',
+  'settings.help.intake.body':
+    'Incolla i link nel Collettore - uno per riga, o testo disordinato: una scansione trova i link ovunque si trovino, in mezzo a una frase, più per riga, o spezzati su due righe da un client di posta.',
+  'settings.help.intake.b1': 'Trascina un file contenitore di link (.dlc, .ccf, .rsdf) o un semplice elenco di link.',
+  'settings.help.intake.b2':
+    "I pulsanti Click'n'Load su pagine di hoster e forum funzionano invariati - KnightLoader risponde su 127.0.0.1:9666, la stessa porta usata da qualsiasi altro download manager.",
+  'settings.help.intake.b3':
+    'Incolla l’URL di una pagina invece di un link a un file e attiva Scansiona per estrarre ogni file a cui rimanda, invece di scaricare la pagina stessa.',
+  'settings.help.intake.b4': 'Una cartella monitorata raccoglie automaticamente i file .txt/.crawljob che vi vengono depositati.',
+  'settings.help.intake.link1': 'Apri le impostazioni Download',
+  'settings.help.intake.link2': "Apri le impostazioni Accesso (Click'n'Load)",
+
+  'settings.help.collector.title': 'Il collettore, prima che scarichi qualcosa',
+  'settings.help.collector.body':
+    'I nuovi link arrivano prima nel Collettore, non in coda: un’area di attesa per controllare nomi, dimensioni e avvisi di duplicati prima che inizi qualcosa. La conferma automatica può saltare questo passaggio, con un ritardo facoltativo; una volta confermato, un link parte subito oppure aspetta in coda, a seconda dell’avvio automatico.',
+  'settings.help.collector.link': 'Apri le impostazioni Generali',
+
+  'settings.help.rules.title': 'Regole: pacchetti, cartelle e cosa viene tenuto',
+  'settings.help.rules.body':
+    'Il Packagizer rinomina un link, ne sceglie la cartella e imposta le opzioni di download al suo arrivo, in base a condizioni che scrivi tu. Il Filtro link decide se un link viene tenuto o meno - e a differenza di un filtro che fa semplicemente sparire i link, un rifiuto indica sempre quale regola lo ha causato, e perché.',
+  'settings.help.rules.link': 'Apri Regole',
+
+  'settings.help.queue.title': 'Gestire la coda',
+  'settings.help.queue.body':
+    'Metti in pausa, riprendi o riordina qualsiasi link, singolarmente o come pacchetto intero. Fermare la coda sono due azioni diverse: l’arresto lascia intatto ciò che è già in corso così che finisca da solo, mentre fermare subito tutti i trasferimenti mostra prima cosa andrebbe perso e procede solo dopo la tua conferma - un avviso pensato esattamente per un trasferimento che non può riprendere da dove si era interrotto.',
+  'settings.help.queue.b1': 'Un singolo link può sovrascrivere il numero globale di connessioni o l’interruttore di estrazione dopo il download.',
+  'settings.help.queue.b2': 'Un duplicato di un link già presente nell’elenco viene sempre rifiutato, prima ancora di raggiungere il collettore.',
+
+  'settings.help.limits.title': 'Aggirare i limiti dell’hoster',
+  'settings.help.limits.body': 'Tre modi indipendenti per evitare che un limite gratuito sia il tetto massimo:',
+  'settings.help.limits.b1':
+    'Connessioni - distribuire i download su più di un percorso in uscita (una seconda linea, un proxy, SOCKS) invece di uscire sempre dal proprio indirizzo di questa macchina.',
+  'settings.help.limits.b2':
+    'Reconnect - chiedere al router un nuovo indirizzo pubblico, l’unica cosa che solleva davvero un limite legato all’indirizzo stesso (UPnP, un programma esterno, uno script, oppure la riproduzione di richieste HTTP contro la pagina di amministrazione del router - gli script LiveHeader/curl di JDownloader già esistenti funzionano invariati).',
+  'settings.help.limits.b3':
+    'Account - salva le credenziali premium o debrid (Real-Debrid, AllDebrid, TorBox e altri) così che un link idoneo venga scaricato a piena velocità invece che al limite gratuito.',
+  'settings.help.limits.link1': 'Apri Connessioni',
+  'settings.help.limits.link2': 'Apri Riconnessione',
+  'settings.help.limits.link3': 'Apri Account',
+
+  'settings.help.captcha.title': 'Captcha',
+  'settings.help.captcha.body':
+    'Quando un hoster richiede un captcha, viene provato per primo un risolutore automatico che hai configurato, nell’ordine da te impostato. Ciò che non riesce a risolvere - o se non ne è configurato nessuno - ti viene presentato invece di fallire in silenzio.',
+  'settings.help.captcha.link': 'Apri le impostazioni Captcha',
+
+  'settings.help.after.title': 'Dopo il download',
+  'settings.help.after.body':
+    'Gli archivi vengono estratti automaticamente: zip (anche cifrati, sia WinZip AES sia il vecchio ZipCrypto), rar con set multivolume, 7z, tar, e gzip/bzip2/xz/zstd che avvolgano o meno un tar - Go puro, senza binari esterni unrar o 7z. Per un archivio cifrato viene provato un elenco di password in ordine. Un file completato viene verificato con qualunque checksum fornito insieme a esso: un elenco .sfv, un file md5/sha1/sha256sum, o un CRC32 che porta il nome stesso della release.',
+  'settings.help.after.link1': 'Apri le impostazioni Archivi',
+  'settings.help.after.link2': 'Apri le impostazioni Download',
+
+  'settings.help.schedule.title': 'Funzionare senza supervisione',
+  'settings.help.schedule.body':
+    'Un orario settimanale mette in pausa o limita la coda in base all’ora - una fascia notturna, corretta anche con il cambio dell’ora legale - la stessa idea dello Scheduler di JDownloader.',
+  'settings.help.schedule.link': 'Apri Orari',
+
+  'settings.help.instances.title': 'Eseguire più di un’istanza',
+  'settings.help.instances.body':
+    'Aggiungi un altro KnightLoader come pari e la sua coda appare anche su questa bacheca - autogestito, senza alcun relay coinvolto: questa istanza chiama semplicemente l’API dell’altra istanza, proprio come farebbe un browser.',
+  'settings.help.instances.link': 'Apri Istanze',
+
+  'settings.help.access.title': 'Accesso e risoluzione dei problemi',
+  'settings.help.access.body':
+    'Una password blocca l’intera interfaccia dietro un cookie di sessione. La pagina Accesso elenca anche le porte di ingresso e i metodi di accesso di questo build, e perché - così una porta aperta sconosciuta ha una risposta invece di un’ipotesi. La pagina Diagnostica crea un file da allegare a una segnalazione di bug: versione e informazioni sul build, le impostazioni attuali con ogni password rimossa, le righe di log recenti di questo processo, e quante goroutine sono in esecuzione.',
+  'settings.help.access.link1': 'Apri le impostazioni Accesso',
+  'settings.help.access.link2': 'Apri Diagnostica',
+
+  'settings.help.advanced.title': 'Tutto il resto',
+  'settings.help.advanced.body':
+    'Ogni impostazione di questo build può essere letta e modificata tramite il suo nome grezzo nella pagina Avanzate, comprese alcune - come viene trattato un mirror di un file già scaricato, cosa succede quando un download finirebbe su un nome già usato - che non hanno ancora un controllo dedicato altrove.',
+  'settings.help.advanced.link': 'Apri le impostazioni Avanzate',
 };

@@ -1029,4 +1029,173 @@ export const hr: Dict = {
     'Skriva obavijesti o uspjehu i informativne obavijesti. Pogreška, captcha koja te čeka ili suspendirani račun i dalje se prikazuju.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Zadnja promjena',
+
+  'file.open': 'Otvori',
+  'file.openNatively': 'Otvori zadanom aplikacijom',
+  'file.revealInFolder': 'Prikaži u mapi',
+  'file.desktopOnly': 'Samo u desktop aplikaciji',
+
+  'settings.schedule.title': 'Raspored',
+  'settings.schedule.subtitle': 'Pauzirajte, nastavite ili ograničite brzinu preuzimanja prema rasporedu.',
+  'settings.schedule.listTitle': 'Vremenska tablica',
+  'settings.schedule.orderHint':
+    'Redovi se primjenjuju redoslijedom, odozgo prema dolje, a kad se dva prozora preklapaju, pobjeđuje donji - široko „pauza svake noći” iznad uže iznimke ostavlja iznimku na snazi, a isti ti redovi obrnutim redoslijedom ne.',
+  'settings.schedule.add': 'Dodaj prozor',
+  'settings.schedule.empty': 'Red čekanja slijedi svoj vlastiti raspored',
+  'settings.schedule.emptyHint':
+    'Nijedan prozor nije postavljen, pa ništa ovdje ne pauzira niti ograničava red čekanja prema satu. Dodajte jedan da zadržite preuzimanja preko noći ili ograničite brzinu dok sami koristite vezu.',
+  'settings.schedule.use': 'Koristi ovaj prozor',
+  'settings.schedule.moveUp': 'Pomakni gore',
+  'settings.schedule.moveDown': 'Pomakni dolje',
+  'settings.schedule.remove': 'Ukloni ovaj prozor',
+  'settings.schedule.edit': 'Uredi ovaj prozor',
+  'settings.schedule.name': 'Naziv',
+  'settings.schedule.namePlaceholder': 'npr. Noćna pauza',
+  'settings.schedule.days': 'Dani',
+  'settings.schedule.daysHint':
+    'Kojim danima u tjednu se ovaj prozor otvara. Za prozor koji traje preko ponoći, označite dan na koji ZAPOČINJE - „pet 22:00-06:00” završava subotu ujutro, bez da je označena sama subota.',
+  'settings.schedule.preset.every': 'Svaki dan',
+  'settings.schedule.preset.weekdays': 'Radni dani',
+  'settings.schedule.preset.weekends': 'Vikendi',
+  'settings.schedule.preset.custom': 'Prilagođeno',
+  'settings.schedule.start': 'Početak',
+  'settings.schedule.end': 'Kraj',
+  'settings.schedule.endHint':
+    'Prije početnog vremena, ovaj prozor traje preko ponoći i završava sljedeće jutro. Završno vrijeme jednako početnom se odbija - to bi moglo značiti cijeli dan ili nimalo vremena, a nagađanje što je mišljeno gore je od pitanja.',
+  'settings.schedule.action': 'Radnja',
+  'settings.schedule.action.pause': 'Pauza',
+  'settings.schedule.action.resume': 'Nastavak',
+  'settings.schedule.action.limit': 'Ograniči brzinu',
+  'settings.schedule.limit': 'Ograničenje brzine',
+  'settings.schedule.disabledOff': 'Ovaj prozor je parkiran i nikad se ne pokreće. Red čekanja ponaša se kao da ovog retka uopće nema.',
+  'settings.schedule.activeNow': 'Aktivno sada, do {time}',
+  'settings.schedule.next': 'Sljedeće: {when}',
+  'settings.schedule.never': 'Nikad se ne pokreće prema trenutnim postavkama',
+  'settings.schedule.stateNow.paused': 'Red čekanja je sada pauziran rasporedom.',
+  'settings.schedule.stateNow.limited': 'Red čekanja je sada ograničen na {rate} rasporedom.',
+  'settings.schedule.stateNow.running': 'Trenutno nijedan prozor nije na snazi.',
+  'settings.schedule.nextChange': 'Sljedeća promjena: {when}',
+  'settings.schedule.noNextChange': 'Ništa u tablici nikad neće promijeniti red čekanja prema trenutnim postavkama.',
+  'settings.schedule.save': 'Spremi raspored',
+  'settings.schedule.discard': 'Odbaci',
+  'settings.schedule.unsaved': 'Nespremljene promjene u rasporedu',
+  'settings.schedule.saveFailed': 'Raspored nije bilo moguće spremiti: {error}',
+  'settings.schedule.rowError': 'Redak {row}: {error}',
+
+  'idleAction.title': 'Red čekanja je neaktivan',
+  'idleAction.action.pause': 'Pauzira se',
+  'idleAction.actionFallback': '„{action}” u tijeku',
+  'idleAction.in': 'za {countdown}',
+  'idleAction.cancel': 'Odustani',
+  'idleAction.cancelling': 'Otkazivanje…',
+  'idleAction.cancelFailed': 'Otkazivanje nije uspjelo: poslužitelj nije odgovorio.',
+
+  'settings.idleAction.label': 'Radnja pri pražnjenju reda čekanja',
+  'settings.idleAction.hint':
+    'Što se događa čim ništa više nije u tijeku, ne čeka u redu niti je spremno za početak. Veza koju ste onemogućili pritom se ne broji - pogledajte info oblačić.',
+  'settings.idleAction.info':
+    'Veza koju ste onemogućili nikad se ne broji kao preostali posao, pa to ne može odgađati unedogled. Ručno pauzirana ili zadržana veza i dalje se broji - oboje znači „malo pričekati”, a ne „nikad”.',
+  'settings.idleAction.none': 'Ne radi ništa',
+  'settings.idleAction.pause': 'Pauziraj red čekanja',
+  'settings.idleAction.delay': 'Odbrojavanje (sekunde)',
+  'settings.idleAction.delayHint':
+    'Koliko vremena imate za otkazivanje prije nego što se radnja izvrši, čim red čekanja doista postane neaktivan.',
+
+  'settings.nav.diagnostics': 'Dijagnostika',
+  'settings.diagnostics.subtitle':
+    'Što je ovaj build, na čemu radi, i vlastiti nedavni ispis dnevnika - za prilaganje izvještaju o pogrešci.',
+  'settings.diagnostics.version': 'Verzija',
+  'settings.diagnostics.deployment': 'Build',
+  'settings.diagnostics.deployment.container': 'Spremnik',
+  'settings.diagnostics.deployment.desktop': 'Desktop',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'Platforma',
+  'settings.diagnostics.goroutines': 'Gorutine',
+  'settings.diagnostics.download': 'Preuzmi dijagnostički paket',
+  'settings.diagnostics.downloading': 'Priprema…',
+  'settings.diagnostics.downloadHint':
+    'JSON datoteka s gornjim poljima, vašim postavkama s uklonjenom svakom lozinkom, i redovima dnevnika ispod.',
+  'settings.diagnostics.downloadFailed': 'Paket nije bilo moguće izraditi: {error}',
+  'settings.diagnostics.logTitle': 'Nedavni redovi dnevnika',
+  'settings.diagnostics.logHint':
+    'Posljednjih {n} redova koje je ovaj proces zabilježio, najstariji prvi. Ovdje se ništa ne zapisuje na disk.',
+  'settings.diagnostics.logEmpty': 'Još ništa zabilježeno.',
+  'settings.diagnostics.refresh': 'Osvježi',
+  'settings.diagnostics.loadFailed': 'Dijagnostiku nije bilo moguće učitati. Radi li poslužitelj?',
+
+  'settings.nav.help': 'Pomoć',
+  'settings.help.intro':
+    'Što ovaj build zna raditi, organizirano prema zadatku, a ne prema stranici postavki. Svaki odjeljak vodi tamo gdje se to postavlja.',
+
+  'settings.help.intake.title': 'Dodavanje preuzimanja',
+  'settings.help.intake.body':
+    'Zalijepite veze u Kolektor - jednu po retku, ili neuredan tekst: pretraga pronalazi veze gdje god se nalaze, usred rečenice, više po retku, ili prelomljene u dva retka poštanskim klijentom.',
+  'settings.help.intake.b1': 'Ispustite datoteku spremnika veza (.dlc, .ccf, .rsdf) ili obični popis veza.',
+  'settings.help.intake.b2':
+    "Gumbi Click'n'Load na stranicama hostera i foruma rade nepromijenjeno - KnightLoader odgovara na 127.0.0.1:9666, istom portu koji koristi svaki drugi upravitelj preuzimanja.",
+  'settings.help.intake.b3':
+    'Zalijepite URL stranice umjesto veze na datoteku i uključite Pretraživanje kako biste izvukli svaku datoteku na koju upućuje, umjesto preuzimanja same stranice.',
+  'settings.help.intake.b4': 'Nadzirana mapa automatski preuzima datoteke .txt/.crawljob koje se u nju spuste.',
+  'settings.help.intake.link1': 'Otvori postavke Preuzimanja',
+  'settings.help.intake.link2': "Otvori postavke Pristupa (Click'n'Load)",
+
+  'settings.help.collector.title': 'Kolektor, prije nego što se išta preuzme',
+  'settings.help.collector.body':
+    'Nove veze najprije stižu u Kolektor, a ne u red čekanja: prijelazna zona za provjeru naziva, veličina i upozorenja o duplikatima prije nego što išta počne. Automatska potvrda može preskočiti ovaj korak, s neobaveznim odgodom; nakon potvrde, veza ili odmah počinje preuzimati ili čeka u redu, ovisno o automatskom pokretanju.',
+  'settings.help.collector.link': 'Otvori Opće postavke',
+
+  'settings.help.rules.title': 'Pravila: paketi, mape i što se zadržava',
+  'settings.help.rules.body':
+    'Packagizer preimenuje vezu, bira njezinu mapu i postavlja njezine opcije preuzimanja po dolasku, na temelju uvjeta koje pišete. Filtar veza odlučuje zadržava li se veza uopće - i za razliku od filtra koji jednostavno pusti veze da nestanu, odbijanje uvijek imenuje pravilo koje ga je uzrokovalo, i zašto.',
+  'settings.help.rules.link': 'Otvori Pravila',
+
+  'settings.help.queue.title': 'Upravljanje redom čekanja',
+  'settings.help.queue.body':
+    'Pauzirajte, nastavite ili preraspodijelite bilo koju vezu, pojedinačno ili kao cijeli paket. Zaustavljanje reda čekanja dvije su različite radnje: zaustavljanje ostavlja ono što već radi netaknuto, da samo završi, dok trenutno zaustavljanje svih prijenosa najprije pokazuje što bi se izgubilo, i nastavlja tek nakon vaše potvrde - točno za to služi to upozorenje kod prijenosa koji se ne može nastaviti odande gdje je stao.',
+  'settings.help.queue.b1': 'Jedna veza može nadjačati globalni broj veza ili prekidač raspakiravanja nakon preuzimanja.',
+  'settings.help.queue.b2': 'Duplikat veze koja je već na popisu uvijek se odbija, čak i prije nego što ikad stigne do Kolektora.',
+
+  'settings.help.limits.title': 'Zaobilaženje ograničenja hostera',
+  'settings.help.limits.body': 'Tri neovisna načina da besplatno ograničenje ne bude strop:',
+  'settings.help.limits.b1':
+    'Veze - rasporedite preuzimanja na više od jednog izlaznog puta (drugu liniju, proxy, SOCKS) umjesto da uvijek izlazite preko vlastite adrese ovog računala.',
+  'settings.help.limits.b2':
+    'Ponovno spajanje - zatražite od routera novu javnu adresu, jedino što uistinu ukida ograničenje vezano uz samu adresu (UPnP, vanjski program, skripta, ili ponovno reproduciranje HTTP zahtjeva prema administracijskoj stranici routera - postojeće JDownloader LiveHeader/curl skripte rade nepromijenjeno).',
+  'settings.help.limits.b3':
+    'Računi - spremite premium ili debrid podatke za prijavu (Real-Debrid, AllDebrid, TorBox i drugi) kako bi se prihvatljiva veza preuzimala punom brzinom umjesto besplatnim ograničenjem.',
+  'settings.help.limits.link1': 'Otvori Veze',
+  'settings.help.limits.link2': 'Otvori Ponovno spajanje',
+  'settings.help.limits.link3': 'Otvori Račune',
+
+  'settings.help.captcha.title': 'Captcha',
+  'settings.help.captcha.body':
+    'Kad hoster zatraži captchu, prvo se isprobava automatski rješavač koji ste postavili, redoslijedom koji ste odredili. Ono što ne može riješiti - ili ako nijedan nije postavljen - predstavlja se vama, umjesto da tiho ne uspije.',
+  'settings.help.captcha.link': 'Otvori postavke Captcha',
+
+  'settings.help.after.title': 'Nakon preuzimanja',
+  'settings.help.after.body':
+    'Arhive se automatski raspakiravaju: zip (uključujući šifrirane, i WinZip AES i stariji ZipCrypto), rar s višedijelnim setovima, 7z, tar, te gzip/bzip2/xz/zstd bez obzira omotavaju li tar - čisti Go, bez vanjskih unrar ili 7z programa. Za šifriranu arhivu redom se isprobava popis lozinki. Dovršena datoteka provjerava se prema bilo kojoj kontrolnoj sumi koja je uz nju došla: popisu .sfv, datoteci md5/sha1/sha256sum, ili CRC32 koji nosi sam naziv izdanja.',
+  'settings.help.after.link1': 'Otvori postavke Arhiva',
+  'settings.help.after.link2': 'Otvori postavke Preuzimanja',
+
+  'settings.help.schedule.title': 'Rad bez nadzora',
+  'settings.help.schedule.body':
+    'Tjedni raspored pauzira ili ograničava red čekanja prema satu - noćni prozor, ispravan i preko prijelaza na ljetno vrijeme - ista ideja kao Scheduler u JDownloaderu.',
+  'settings.help.schedule.link': 'Otvori Raspored',
+
+  'settings.help.instances.title': 'Pokretanje više od jedne instance',
+  'settings.help.instances.body':
+    'Dodajte drugi KnightLoader kao ravnopravnog partnera, i njegov red čekanja pojavljuje se i na ovoj nadzornoj ploči - samostalno hostano, bez ikakvog releja: ova instanca jednostavno poziva API druge instance, na isti način na koji bi to učinio preglednik.',
+  'settings.help.instances.link': 'Otvori Instance',
+
+  'settings.help.access.title': 'Pristup i rješavanje problema',
+  'settings.help.access.body':
+    'Lozinka zaključava cijelo sučelje iza kolačića sesije. Stranica Pristup također navodi ulazne portove i metode pristupa ovog builda, i zašto - kako bi nepoznati otvoreni port imao odgovor umjesto nagađanja. Stranica Dijagnostika izrađuje datoteku za prilaganje izvještaju o pogrešci: verziju i podatke o buildu, trenutne postavke s uklonjenom svakom lozinkom, nedavne redove dnevnika ovog procesa, i koliko gorutina radi.',
+  'settings.help.access.link1': 'Otvori postavke Pristupa',
+  'settings.help.access.link2': 'Otvori Dijagnostiku',
+
+  'settings.help.advanced.title': 'Sve ostalo',
+  'settings.help.advanced.body':
+    'Svaku postavku ovog builda moguće je pročitati i promijeniti prema njezinom sirovom nazivu na stranici Napredno, uključujući nekoliko - kako se postupa sa zrcalom već preuzete datoteke, što se događa kad bi preuzimanje završilo na već korištenom nazivu - koje još nemaju vlastitu kontrolu drugdje.',
+  'settings.help.advanced.link': 'Otvori postavke Napredno',
 };

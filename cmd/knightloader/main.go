@@ -5,6 +5,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"log"
 	"net/http"
@@ -17,10 +18,21 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/api"
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/backup"
 	"github.com/junkerderprovinz/knightloader/internal/bridge"
 	"github.com/junkerderprovinz/knightloader/internal/cnl"
 	"github.com/junkerderprovinz/knightloader/internal/provision"
 )
+
+// shutdownGrace bounds how long a graceful stop (Ctrl+C, SIGTERM, or the
+// quit/restart API routes) waits for in-flight HTTP requests to finish
+// before it stops waiting on them and moves on to a.Close's own drain -
+// which has no grace period at all and abandons a running transfer
+// outright; see a.Close's own doc comment for why that gap is deliberate.
+// Generous enough that a backup download in progress at the same moment
+// gets to finish rather than being cut off by the very shutdown it was
+// unrelated to.
+const shutdownGrace = 10 * time.Second
 
 func main() {
 	// Bridge mode is a different program sharing one binary: it downloads
@@ -43,6 +55,23 @@ func main() {
 	dataDir := env("KL_DATA", defaultDataDir())
 	if err := os.MkdirAll(dataDir, 0o755); err != nil {
 		log.Fatalf("data dir: %v", err)
+	}
+
+	// A restore validated and staged by a previous run (POST
+	// /api/system/restore) is applied here, before app.New or anything else
+	// below opens a single byte of the store or settings.json — see
+	// internal/backup's own doc comment for why that ordering is what makes
+	// this safe on every platform this ships for, Windows included, rather
+	// than a hot-swap of a file this process is about to hold open.
+	if applied, manifest, err := backup.ApplyPending(dataDir); err != nil {
+		// Not fatal: ApplyPending's own doc comment is what makes that safe
+		// here — by the time it can fail, either nothing live has been
+		// touched yet, or the restore already fully landed and only its own
+		// cleanup did not, which harms nothing this run needs.
+		log.Printf("a staged restore could not be fully applied (%v); starting with the data already on disk", err)
+	} else if applied {
+		log.Printf("restored from a backup made by %s (%s build) on %s",
+			manifest.Version, manifest.Deployment, manifest.CreatedAt.Format(time.RFC3339))
 	}
 
 	// Desktop first-run: provision a private headless JDownloader so the user
@@ -92,9 +121,84 @@ func main() {
 		}
 	}
 
+	// Wired before the server ever accepts a request, so a quit or restart
+	// asked for in the first second after boot works exactly like one asked
+	// for an hour in. See App.RequestExit's own doc comment for why this
+	// lives on the App rather than as a second argument threaded through
+	// api.Handler, which desktop/main.go also calls and does not set it.
+	//
+	// Buffered by one and sent to without blocking, the same shape
+	// schedule.Runner's own wake channel uses for the same reason: two
+	// requests arriving together (a double-click, or a stray retry) must
+	// not stall the second caller behind the first, and one pending
+	// shutdown is as good as two.
+	exit := make(chan bool, 1) // false = quit, true = restart
+	a.RequestExit = func(restart bool) bool {
+		select {
+		case exit <- restart:
+			return true
+		default:
+			return false // a shutdown is already pending
+		}
+	}
+
 	addr := env("KL_ADDR", ":8749")
-	log.Printf("KnightLoader listening on %s (data: %s)", addr, dataDir)
-	log.Fatal(http.ListenAndServe(addr, api.Handler(a)))
+	srv := &http.Server{Addr: addr, Handler: api.Handler(a)}
+
+	serveErr := make(chan error, 1)
+	go func() {
+		log.Printf("KnightLoader listening on %s (data: %s)", addr, dataDir)
+		err := srv.ListenAndServe()
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			serveErr <- err
+			return
+		}
+		serveErr <- nil
+	}()
+
+	// SIGINT and SIGTERM are the two a container orchestrator or a plain
+	// Ctrl+C ever sends — the CnL bridge path above (runBridge) already
+	// listens for exactly these two, and this is that same shape rather
+	// than a second one invented for the server path.
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+
+	select {
+	case sig := <-stop:
+		log.Printf("shutting down (%s)", sig)
+	case restart := <-exit:
+		if restart {
+			log.Printf("restarting (requested over the API)")
+		} else {
+			log.Printf("shutting down (requested over the API)")
+		}
+	case err := <-serveErr:
+		// The listener stopped on its own, without Shutdown ever having
+		// been called — a startup failure (the address is already in use)
+		// is the ordinary way this happens, and there is nothing running
+		// yet for the deferred CnL/App cleanup below to be worth waiting
+		// on differently than it already is.
+		if err != nil {
+			log.Fatalf("serve: %v", err)
+		}
+		return
+	}
+
+	// Stop accepting new connections and let whatever is in flight -
+	// including the very request that asked for this — finish, up to
+	// shutdownGrace. Quit and restart are not told apart past this point,
+	// deliberately: what runs next is the deferred chain above (the CnL
+	// listener, then a.Close, which is where the actual drain happens — see
+	// its own doc comment), identically either way. Under a supervised
+	// deployment (Docker/Unraid) the process exiting is what a restart IS;
+	// there is no separate "come back" step for this process to perform,
+	// and the two routes exist as two names over one action for exactly
+	// that reason — see App.RequestExit's own doc comment.
+	ctx, cancel := context.WithTimeout(context.Background(), shutdownGrace)
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Printf("shutdown: not every in-flight request finished within %s: %v", shutdownGrace, err)
+	}
+	cancel()
 }
 
 // runBridge serves Click'n'Load locally and forwards everything it receives to

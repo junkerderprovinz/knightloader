@@ -1029,4 +1029,173 @@ export const ca: Dict = {
     'Amaga les notificacions d’èxit i informatives. Un error, un captcha que t’espera o un compte en pausa es continuen mostrant.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Darrera modificació',
+
+  'file.open': 'Obre',
+  'file.openNatively': 'Obre amb l’aplicació predeterminada',
+  'file.revealInFolder': 'Mostra a la carpeta',
+  'file.desktopOnly': 'Només a l’aplicació d’escriptori',
+
+  'settings.schedule.title': 'Horari',
+  'settings.schedule.subtitle': 'Posa en pausa, reprèn o limita la velocitat de baixada segons un horari.',
+  'settings.schedule.listTitle': 'Taula horària',
+  'settings.schedule.orderHint':
+    'Les files s’apliquen en ordre, de dalt a baix, i quan dues franges se superposen guanya la de més avall - una franja àmplia «pausa cada nit» per sobre d’una excepció més estreta deixa l’excepció en vigor, i les mateixes dues files al revés no.',
+  'settings.schedule.add': 'Afegeix una franja',
+  'settings.schedule.empty': 'La cua segueix el seu propi horari',
+  'settings.schedule.emptyHint':
+    'No hi ha cap franja configurada, així que res aquí posa en pausa ni limita la cua segons l’hora. Afegeix-ne una per retenir les baixades durant la nit o limitar la velocitat mentre tu mateix uses la connexió.',
+  'settings.schedule.use': 'Usa aquesta franja',
+  'settings.schedule.moveUp': 'Mou amunt',
+  'settings.schedule.moveDown': 'Mou avall',
+  'settings.schedule.remove': 'Elimina aquesta franja',
+  'settings.schedule.edit': 'Edita aquesta franja',
+  'settings.schedule.name': 'Nom',
+  'settings.schedule.namePlaceholder': 'p. ex. Pausa nocturna',
+  'settings.schedule.days': 'Dies',
+  'settings.schedule.daysHint':
+    'En quins dies de la setmana s’obre aquesta franja. Per a una franja que passa de mitjanit, marca el dia en què COMENÇA - «div 22:00-06:00» acaba dissabte al matí sense que el dissabte mateix estigui marcat.',
+  'settings.schedule.preset.every': 'Cada dia',
+  'settings.schedule.preset.weekdays': 'Dies feiners',
+  'settings.schedule.preset.weekends': 'Caps de setmana',
+  'settings.schedule.preset.custom': 'Personalitzat',
+  'settings.schedule.start': 'Inici',
+  'settings.schedule.end': 'Fi',
+  'settings.schedule.endHint':
+    'Abans de l’hora d’inici, aquesta franja passa de mitjanit i acaba l’endemà al matí. Es rebutja una hora de fi igual a la d’inici - podria significar un dia sencer o cap moment, i endevinar què es volia dir és pitjor que preguntar.',
+  'settings.schedule.action': 'Acció',
+  'settings.schedule.action.pause': 'Pausa',
+  'settings.schedule.action.resume': 'Represa',
+  'settings.schedule.action.limit': 'Limita la velocitat',
+  'settings.schedule.limit': 'Límit de velocitat',
+  'settings.schedule.disabledOff': 'Aquesta franja està aparcada i no s’activa mai. La cua es comporta com si aquesta fila no hi fos.',
+  'settings.schedule.activeNow': 'Activa ara, fins a {time}',
+  'settings.schedule.next': 'Següent: {when}',
+  'settings.schedule.never': 'No s’activa mai tal com està configurada',
+  'settings.schedule.stateNow.paused': 'La cua està en pausa ara mateix per l’horari.',
+  'settings.schedule.stateNow.limited': 'La cua està limitada a {rate} ara mateix per l’horari.',
+  'settings.schedule.stateNow.running': 'Cap franja no és vigent ara mateix.',
+  'settings.schedule.nextChange': 'Pròxim canvi: {when}',
+  'settings.schedule.noNextChange': 'Res de la taula canviarà mai la cua tal com està configurada.',
+  'settings.schedule.save': 'Desa l’horari',
+  'settings.schedule.discard': 'Descarta',
+  'settings.schedule.unsaved': 'Canvis sense desar a l’horari',
+  'settings.schedule.saveFailed': 'No s’ha pogut desar l’horari: {error}',
+  'settings.schedule.rowError': 'Fila {row}: {error}',
+
+  'idleAction.title': 'La cua està inactiva',
+  'idleAction.action.pause': 'Es posa en pausa',
+  'idleAction.actionFallback': '«{action}» en curs',
+  'idleAction.in': 'd’aquí a {countdown}',
+  'idleAction.cancel': 'Cancel·la',
+  'idleAction.cancelling': 'Cancel·lant…',
+  'idleAction.cancelFailed': 'No s’ha pogut cancel·lar: el servidor no ha respost.',
+
+  'settings.idleAction.label': 'Acció en buidar-se la cua',
+  'settings.idleAction.hint':
+    'Què passa tan bon punt no queda res en curs, esperant a la cua o a punt de començar. Un enllaç que hagis desactivat no compta aquí - mira la bombolla d’informació.',
+  'settings.idleAction.info':
+    'Un enllaç que hagis desactivat mai no compta com a feina pendent, així que no pot ajornar-ho indefinidament. Un enllaç en pausa o retingut manualment continua comptant - tots dos volen dir «espera una mica», no «mai».',
+  'settings.idleAction.none': 'No facis res',
+  'settings.idleAction.pause': 'Posa la cua en pausa',
+  'settings.idleAction.delay': 'Compte enrere (segons)',
+  'settings.idleAction.delayHint':
+    'Quant de temps tens per cancel·lar abans que s’executi l’acció, tan bon punt la cua quedi realment inactiva.',
+
+  'settings.nav.diagnostics': 'Diagnòstic',
+  'settings.diagnostics.subtitle':
+    'Què és aquest build, en què s’executa, i la seva pròpia sortida recent de registre - per adjuntar a un informe d’error.',
+  'settings.diagnostics.version': 'Versió',
+  'settings.diagnostics.deployment': 'Build',
+  'settings.diagnostics.deployment.container': 'Contenidor',
+  'settings.diagnostics.deployment.desktop': 'Escriptori',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'Plataforma',
+  'settings.diagnostics.goroutines': 'Goroutines',
+  'settings.diagnostics.download': 'Baixa el paquet de diagnòstic',
+  'settings.diagnostics.downloading': 'Preparant…',
+  'settings.diagnostics.downloadHint':
+    'Un fitxer JSON amb els camps de dalt, la teva configuració amb cada contrasenya eliminada, i les línies de registre de sota.',
+  'settings.diagnostics.downloadFailed': 'No s’ha pogut crear el paquet: {error}',
+  'settings.diagnostics.logTitle': 'Línies de registre recents',
+  'settings.diagnostics.logHint':
+    'Les últimes {n} línies que aquest procés ha registrat, les més antigues primer. Res d’això s’escriu al disc.',
+  'settings.diagnostics.logEmpty': 'Encara no s’ha registrat res.',
+  'settings.diagnostics.refresh': 'Actualitza',
+  'settings.diagnostics.loadFailed': 'No s’ha pogut carregar el diagnòstic. El servidor és accessible?',
+
+  'settings.nav.help': 'Ajuda',
+  'settings.help.intro':
+    'Què pot fer aquest build, organitzat per tasca en lloc de per pàgina de configuració. Cada secció enllaça on es configura.',
+
+  'settings.help.intake.title': 'Afegir baixades',
+  'settings.help.intake.body':
+    'Enganxa enllaços al Col·lector - un per línia, o text desordenat: una cerca troba enllaços allà on siguin, al mig d’una frase, diversos per línia, o partits en dues línies per un client de correu.',
+  'settings.help.intake.b1': 'Deixa anar un fitxer contenidor d’enllaços (.dlc, .ccf, .rsdf) o una llista senzilla d’enllaços.',
+  'settings.help.intake.b2':
+    "Els botons Click'n'Load a pàgines d’allotjadors i fòrums funcionen sense canvis - KnightLoader respon a 127.0.0.1:9666, el mateix port que fa servir qualsevol altre gestor de baixades.",
+  'settings.help.intake.b3':
+    'Enganxa un URL de pàgina en lloc d’un enllaç de fitxer i activa Rastreig per extreure cada fitxer al qual enllaça, en lloc de baixar la pàgina mateixa.',
+  'settings.help.intake.b4': 'Una carpeta vigilada recull automàticament els fitxers .txt/.crawljob que s’hi deixin.',
+  'settings.help.intake.link1': 'Obre la configuració de Baixades',
+  'settings.help.intake.link2': "Obre la configuració d’Accés (Click'n'Load)",
+
+  'settings.help.collector.title': 'El col·lector, abans que res es baixi',
+  'settings.help.collector.body':
+    'Els enllaços nous arriben primer al Col·lector, no a la cua: una zona d’espera per comprovar noms, mides i avisos de duplicats abans que res comenci. La confirmació automàtica pot saltar-se aquest pas, amb un retard opcional; un cop confirmat, un enllaç comença immediatament o espera a la cua, segons l’inici automàtic.',
+  'settings.help.collector.link': 'Obre la configuració General',
+
+  'settings.help.rules.title': 'Regles: paquets, carpetes i què es conserva',
+  'settings.help.rules.body':
+    'El Packagizer canvia el nom d’un enllaç, en tria la carpeta i en configura les opcions de baixada en arribar, a partir de condicions que tu escrius. El Filtre d’enllaços decideix si un enllaç es conserva o no - i a diferència d’un filtre que simplement fa desaparèixer enllaços, un rebuig sempre indica quina regla n’ha estat responsable, i per què.',
+  'settings.help.rules.link': 'Obre Regles',
+
+  'settings.help.queue.title': 'Gestionar la cua',
+  'settings.help.queue.body':
+    'Posa en pausa, reprèn o reordena qualsevol enllaç, sol o com a paquet sencer. Aturar la cua són dues accions diferents: aturar deixa intacte el que ja s’executa perquè acabi tot sol, mentre que aturar tots els transferiments immediatament mostra primer què es perdria i només continua després de la teva confirmació - exactament per a això serveix l’avís en un transferiment que no pot reprendre on es va quedar.',
+  'settings.help.queue.b1': 'Un sol enllaç pot substituir el nombre global de connexions o l’interruptor d’extracció després de baixar.',
+  'settings.help.queue.b2': 'Un duplicat d’un enllaç ja present a la llista sempre es rebutja, abans que arribi mai al Col·lector.',
+
+  'settings.help.limits.title': 'Evitar els límits de l’allotjador',
+  'settings.help.limits.body': 'Tres maneres independents d’evitar que un límit gratuït sigui el sostre:',
+  'settings.help.limits.b1':
+    'Connexions - reparteix les baixades per més d’una via de sortida (una segona línia, un servidor intermediari, SOCKS) en lloc de sortir sempre per la pròpia adreça d’aquesta màquina.',
+  'settings.help.limits.b2':
+    'Reconnexió - demana al router una nova adreça pública, l’única cosa que realment aixeca un límit lligat a la mateixa adreça (UPnP, un programa extern, un script, o repetir peticions HTTP contra la pàgina d’administració del router - els scripts existents de JDownloader LiveHeader/curl funcionen sense canvis).',
+  'settings.help.limits.b3':
+    'Comptes - desa credencials premium o debrid (Real-Debrid, AllDebrid, TorBox i altres) perquè un enllaç elegible es baixi a màxima velocitat en lloc del límit gratuït.',
+  'settings.help.limits.link1': 'Obre Connexions',
+  'settings.help.limits.link2': 'Obre Reconnexió',
+  'settings.help.limits.link3': 'Obre Comptes',
+
+  'settings.help.captcha.title': 'Captcha',
+  'settings.help.captcha.body':
+    'Quan un allotjador demana un captcha, primer es prova un solucionador automàtic que hagis configurat, en l’ordre que hagis establert. El que no pugui resoldre - o si no n’hi ha cap de configurat - se’t presenta a tu en lloc de fallar en silenci.',
+  'settings.help.captcha.link': 'Obre la configuració de Captcha',
+
+  'settings.help.after.title': 'Després de la baixada',
+  'settings.help.after.body':
+    'Els arxius es descomprimeixen automàticament: zip (també xifrats, tant WinZip AES com l’antic ZipCrypto), rar amb conjunts multivolum, 7z, tar, i gzip/bzip2/xz/zstd tant si embolcallen un tar com si no - Go pur, sense binaris externs d’unrar o 7z. Per a un arxiu xifrat es prova una llista de contrasenyes en ordre. Un fitxer acabat es verifica contra qualsevol suma de verificació que l’acompanyi: una llista .sfv, un fitxer md5/sha1/sha256sum, o un CRC32 que porti el mateix nom de la versió.',
+  'settings.help.after.link1': 'Obre la configuració d’Arxius',
+  'settings.help.after.link2': 'Obre la configuració de Baixades',
+
+  'settings.help.schedule.title': 'Funcionar sense supervisió',
+  'settings.help.schedule.body':
+    'Un horari setmanal posa en pausa o limita la cua segons l’hora - una franja nocturna, correcta fins i tot amb el canvi a l’horari d’estiu - la mateixa idea que l’Scheduler de JDownloader.',
+  'settings.help.schedule.link': 'Obre Horari',
+
+  'settings.help.instances.title': 'Executar més d’una instància',
+  'settings.help.instances.body':
+    'Afegeix un altre KnightLoader com a parell i la seva cua també apareix en aquest tauler - allotjat per tu mateix, sense cap relé implicat: aquesta instància simplement crida l’API de l’altra instància, de la mateixa manera que ho faria un navegador.',
+  'settings.help.instances.link': 'Obre Instàncies',
+
+  'settings.help.access.title': 'Accés i resolució de problemes',
+  'settings.help.access.body':
+    'Una contrasenya bloqueja tota la interfície darrere d’una galeta de sessió. La pàgina Accés també llista els ports d’entrada i els mètodes d’accés d’aquest build, i per què - perquè un port obert desconegut tingui una resposta en lloc d’una suposició. La pàgina Diagnòstic crea un fitxer per adjuntar a un informe d’error: versió i informació del build, la configuració actual amb cada contrasenya eliminada, les línies de registre recents d’aquest procés, i quantes goroutines s’executen.',
+  'settings.help.access.link1': 'Obre la configuració d’Accés',
+  'settings.help.access.link2': 'Obre Diagnòstic',
+
+  'settings.help.advanced.title': 'Tota la resta',
+  'settings.help.advanced.body':
+    'Cada configuració d’aquest build es pot llegir i canviar pel seu nom en brut a la pàgina Avançat, incloses algunes - com es tracta un mirall d’un fitxer ja baixat, què passa quan una baixada acabaria en un nom ja utilitzat - que encara no tenen un control dedicat enlloc més.',
+  'settings.help.advanced.link': 'Obre la configuració d’Avançat',
 };

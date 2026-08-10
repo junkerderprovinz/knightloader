@@ -173,6 +173,28 @@ func migrate(db *sql.DB) error {
 
 func (s *Store) Close() error { return s.db.Close() }
 
+// BackupTo writes a consistent, standalone copy of the whole database to
+// path, using SQLite's own VACUUM INTO rather than a raw file copy.
+//
+// This package always opens with SetMaxOpenConns(1) (see Open's own
+// comment), so the query this issues queues behind — and is queued behind
+// by — every Save, Delete and All the rest of the app makes at the same
+// moment, through the one connection they all share. What lands at path is
+// therefore either fully before or fully after any one of them, never a
+// read of pages a concurrent write was in the middle of, which a raw
+// os.Open+io.Copy of the live file on disk could not promise.
+//
+// path must not already exist — VACUUM INTO refuses to overwrite one that
+// does, which is a feature here: the caller is expected to pass a fresh
+// temporary path per call, never the live database's own.
+func (s *Store) BackupTo(path string) error {
+	_, err := s.db.Exec(`VACUUM INTO ?`, path)
+	if err != nil {
+		return fmt.Errorf("store: backup: %w", err)
+	}
+	return nil
+}
+
 const columns = `id,url,name,package,resolver,size,loaded,speed,status,error,created_at,
 	dir,password,online,retries,next_try,priority,position,checksum,
 	comment,chunks,auto_extract,matched_rules,

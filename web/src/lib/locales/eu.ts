@@ -1029,4 +1029,173 @@ export const eu: Dict = {
     'Arrakasta- eta informazio-jakinarazpenak ezkutatzen ditu. Errore bat, zure zain dagoen captcha bat edo pausatutako kontu bat erakusten jarraitzen dute.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Azken aldaketa',
+
+  'file.open': 'Ireki',
+  'file.openNatively': 'Ireki aplikazio lehenetsiarekin',
+  'file.revealInFolder': 'Erakutsi karpetan',
+  'file.desktopOnly': 'Mahaigaineko aplikazioan bakarrik',
+
+  'settings.schedule.title': 'Ordutegia',
+  'settings.schedule.subtitle': 'Deskarga-abiadura pausatu, berrekin edo mugatu ordutegi baten arabera.',
+  'settings.schedule.listTitle': 'Ordu-taula',
+  'settings.schedule.orderHint':
+    'Errenkadak ordenan aplikatzen dira, goitik behera, eta bi leiho gainjartzen direnean, azpikoak irabazten du - «gau guztietan pausatu» bezalako tarte zabal batek tarte estuago baten gainean salbuespena indarrean uzten du, baina errenkada berak alderantziz ez.',
+  'settings.schedule.add': 'Gehitu leihoa',
+  'settings.schedule.empty': 'Ilarak bere ordutegia jarraitzen du',
+  'settings.schedule.emptyHint':
+    'Ez dago leihorik konfiguratuta, beraz hemen ezerk ez du ilara pausatzen edo mugatzen ordularia kontuan hartuta. Gehitu bat deskargak gauez atxikitzeko edo abiadura mugatzeko zuk zeuk konexioa erabiltzen duzun bitartean.',
+  'settings.schedule.use': 'Erabili leiho hau',
+  'settings.schedule.moveUp': 'Eraman gora',
+  'settings.schedule.moveDown': 'Eraman behera',
+  'settings.schedule.remove': 'Kendu leiho hau',
+  'settings.schedule.edit': 'Editatu leiho hau',
+  'settings.schedule.name': 'Izena',
+  'settings.schedule.namePlaceholder': 'adib. Gaueko pausaldia',
+  'settings.schedule.days': 'Egunak',
+  'settings.schedule.daysHint':
+    'Zein aste-egunetan irekitzen den leiho hau. Gauerdia igarotzen duen leiho baterako, markatu HASTEN den eguna - «or 22:00-06:00» larunbat goizean amaitzen da, larunbata bera markatu gabe.',
+  'settings.schedule.preset.every': 'Egunero',
+  'settings.schedule.preset.weekdays': 'Astegunak',
+  'settings.schedule.preset.weekends': 'Asteburuak',
+  'settings.schedule.preset.custom': 'Pertsonalizatua',
+  'settings.schedule.start': 'Hasiera',
+  'settings.schedule.end': 'Amaiera',
+  'settings.schedule.endHint':
+    'Hasiera-orduaren aurretik, leiho honek gauerdia igarotzen du eta hurrengo goizean amaitzen da. Hasiera-orduaren berdina den amaiera-ordu bat baztertu egiten da - egun oso bat edo bat ere denborarik ez esan nahi lezake, eta zer esan nahi zen asmatzea galdetzea baino okerragoa da.',
+  'settings.schedule.action': 'Ekintza',
+  'settings.schedule.action.pause': 'Pausatu',
+  'settings.schedule.action.resume': 'Berrekin',
+  'settings.schedule.action.limit': 'Mugatu abiadura',
+  'settings.schedule.limit': 'Abiadura-muga',
+  'settings.schedule.disabledOff': 'Leiho hau aparkatuta dago eta ez da inoiz abiarazten. Ilarak errenkada hori ez balego bezala jokatzen du.',
+  'settings.schedule.activeNow': 'Aktibo orain, {time} arte',
+  'settings.schedule.next': 'Hurrengoa: {when}',
+  'settings.schedule.never': 'Ez da inoiz abiarazten konfiguratuta dagoen bezala',
+  'settings.schedule.stateNow.paused': 'Ilara orain pausatuta dago ordutegiaren eraginez.',
+  'settings.schedule.stateNow.limited': 'Ilara orain {rate}-ra mugatuta dago ordutegiaren eraginez.',
+  'settings.schedule.stateNow.running': 'Ez dago leihorik indarrean orain.',
+  'settings.schedule.nextChange': 'Hurrengo aldaketa: {when}',
+  'settings.schedule.noNextChange': 'Taulako ezerk ez du inoiz ilara aldatuko konfiguratuta dagoen bezala.',
+  'settings.schedule.save': 'Gorde ordutegia',
+  'settings.schedule.discard': 'Baztertu',
+  'settings.schedule.unsaved': 'Ordutegian gorde gabeko aldaketak',
+  'settings.schedule.saveFailed': 'Ezin izan da ordutegia gorde: {error}',
+  'settings.schedule.rowError': '{row}. errenkada: {error}',
+
+  'idleAction.title': 'Ilara geldirik dago',
+  'idleAction.action.pause': 'Pausatzen',
+  'idleAction.actionFallback': '«{action}» abian',
+  'idleAction.in': '{countdown} barru',
+  'idleAction.cancel': 'Utzi',
+  'idleAction.cancelling': 'Uzten…',
+  'idleAction.cancelFailed': 'Ezin izan da utzi: zerbitzariak ez du erantzun.',
+
+  'settings.idleAction.label': 'Ilara hustean egingo den ekintza',
+  'settings.idleAction.hint':
+    'Zer gertatzen den ezer martxan ez dagoenean, ilaran itxaroten ez dagoenean edo hasteko prest ez dagoenean. Zuk desgaitutako esteka batek ez du hemen zenbatzen - ikusi informazio-burbuila.',
+  'settings.idleAction.info':
+    'Zuk desgaitutako esteka batek ez du inoiz gainerako lan gisa zenbatzen, beraz ezin du hori mugarik gabe atzeratu. Eskuz pausatutako edo atxikitako esteka batek zenbatzen jarraitzen du - biek «pixka bat itxaron» esan nahi dute, ez «inoiz ez».',
+  'settings.idleAction.none': 'Ez egin ezer',
+  'settings.idleAction.pause': 'Pausatu ilara',
+  'settings.idleAction.delay': 'Atzerako kontaketa (segundo)',
+  'settings.idleAction.delayHint':
+    'Uzteko zenbat denbora duzun, ekintza exekutatu aurretik, ilara benetan geldirik geratzen den bezain laster.',
+
+  'settings.nav.diagnostics': 'Diagnostikoa',
+  'settings.diagnostics.subtitle':
+    'Build hau zer den, zer gainean exekutatzen den, eta bere erregistro-irteera berria - errore-txosten bati eransteko.',
+  'settings.diagnostics.version': 'Bertsioa',
+  'settings.diagnostics.deployment': 'Build',
+  'settings.diagnostics.deployment.container': 'Edukiontzia',
+  'settings.diagnostics.deployment.desktop': 'Mahaigaina',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'Plataforma',
+  'settings.diagnostics.goroutines': 'Goroutine-ak',
+  'settings.diagnostics.download': 'Deskargatu diagnostiko-paketea',
+  'settings.diagnostics.downloading': 'Prestatzen…',
+  'settings.diagnostics.downloadHint':
+    'Goiko eremuak dituen JSON fitxategi bat, zure ezarpenak pasahitz guztiak kenduta, eta beheko erregistro-lerroak.',
+  'settings.diagnostics.downloadFailed': 'Ezin izan da paketea sortu: {error}',
+  'settings.diagnostics.logTitle': 'Azken erregistro-lerroak',
+  'settings.diagnostics.logHint':
+    'Prozesu honek erregistratutako azken {n} lerroak, zaharrenak lehenbizi. Hemen ezer ez da diskoan idazten.',
+  'settings.diagnostics.logEmpty': 'Oraindik ez da ezer erregistratu.',
+  'settings.diagnostics.refresh': 'Freskatu',
+  'settings.diagnostics.loadFailed': 'Ezin izan da diagnostikoa kargatu. Zerbitzaria eskuragarri dago?',
+
+  'settings.nav.help': 'Laguntza',
+  'settings.help.intro':
+    'Build honek zer egin dezakeen, ezarpen-orriaren arabera ez, zereginaren arabera antolatuta. Atal bakoitzak konfiguratzen den lekura eramaten du.',
+
+  'settings.help.intake.title': 'Deskargak gehitzea',
+  'settings.help.intake.body':
+    'Itsatsi estekak Bildumagailuan - bat lerroko, edo testu nahasia: bilaketa batek estekak aurkitzen ditu edonon dauden ere, esaldi baten erdian, hainbat lerroko, edo posta-programa batek bi lerrotan zatituta.',
+  'settings.help.intake.b1': 'Askatu esteka-edukiontzi fitxategi bat (.dlc, .ccf, .rsdf) edo esteka-zerrenda arrunt bat.',
+  'settings.help.intake.b2':
+    "Ostalari- eta foro-orrietako Click'n'Load botoiek aldatu gabe funtzionatzen dute - KnightLoaderrek 127.0.0.1:9666 helbidean erantzuten du, beste deskarga-kudeatzaile guztiek erabiltzen duten ataka berean.",
+  'settings.help.intake.b3':
+    'Itsatsi orriaren URLa fitxategi-esteka baten ordez eta piztu Arakatzea esteka horrek lotutako fitxategi guztiak ateratzeko, orria bera deskargatu beharrean.',
+  'settings.help.intake.b4': 'Zaindutako karpeta batek automatikoki hartzen ditu bertan uzten diren .txt/.crawljob fitxategiak.',
+  'settings.help.intake.link1': 'Ireki Deskargen ezarpenak',
+  'settings.help.intake.link2': "Ireki Sarbidearen ezarpenak (Click'n'Load)",
+
+  'settings.help.collector.title': 'Bildumagailua, ezer deskargatu aurretik',
+  'settings.help.collector.body':
+    'Esteka berriak lehenengo Bildumagailura iristen dira, ez ilarara: izenak, tamainak eta bikoiztuen abisuak begiratzeko tarteko eremu bat, ezer hasi aurretik. Berrespen automatikoak urrats hori saltatu dezake, aukerako atzerapenarekin; behin berretsita, esteka bat berehala hasten da edo ilaran itxaroten du, hasiera automatikoaren arabera.',
+  'settings.help.collector.link': 'Ireki Ezarpen orokorrak',
+
+  'settings.help.rules.title': 'Arauak: paketeak, karpetak eta zer gordetzen den',
+  'settings.help.rules.body':
+    'Packagizer-ek esteka bat berrizendatzen du, bere karpeta aukeratzen du eta iristean bere deskarga-aukerak ezartzen ditu, zuk idatzitako baldintzen arabera. Esteka-iragazkiak erabakitzen du esteka bat gordetzen den ala ez - eta estekak besterik gabe desagerrarazten dituen iragazki batekin alderatuta, ukapen batek beti aipatzen du zer arauk eragin duen, eta zergatik.',
+  'settings.help.rules.link': 'Ireki Arauak',
+
+  'settings.help.queue.title': 'Ilara kudeatzea',
+  'settings.help.queue.body':
+    'Pausatu, berrekin edo berrantolatu edozein esteka, bakarka edo pakete oso gisa. Ilara gelditzea bi ekintza desberdin dira: geldiarazteak jadanik martxan dagoena ukitu gabe uzten du bere kabuz amai dadin, eta transferentzia guztiak berehala geldiarazteak lehenengo zer galduko litzatekeen erakusten du, eta zure berrespenaren ondoren bakarrik jarraitzen du - hori da hain zuzen ere geratutako lekutik jarraitu ezin duen transferentzia baterako abisu horren zergatia.',
+  'settings.help.queue.b1': 'Esteka bakar batek konexio kopuru orokorra edo deskarga ondorengo deskonprimitze-etengailua gainidatzi dezake.',
+  'settings.help.queue.b2': 'Zerrendan jada dagoen esteka baten bikoizketa beti ukatzen da, inoiz Bildumagailura iritsi aurretik.',
+
+  'settings.help.limits.title': 'Ostalariaren mugak saihestea',
+  'settings.help.limits.body': 'Doako muga bat sabaia ez izateko hiru modu independente:',
+  'settings.help.limits.b1':
+    'Konexioak - banatu deskargak irteerako bide bat baino gehiagotan (bigarren linea bat, proxy bat, SOCKS) makina honen berezko helbidetik beti irten beharrean.',
+  'settings.help.limits.b2':
+    'Birkonexioa - eskatu router-ari helbide publiko berri bat, helbideari berari lotutako muga bat benetan altxatzen duen gauza bakarra (UPnP, kanpoko programa bat, script bat, edo router-aren administrazio-orriaren aurka HTTP eskaerak berriz erreproduzitzea - lehendik dauden JDownloader LiveHeader/curl scriptak aldatu gabe funtzionatzen dute).',
+  'settings.help.limits.b3':
+    'Kontuak - gorde premium edo debrid kredentzialak (Real-Debrid, AllDebrid, TorBox eta beste batzuk) esteka egoki bat abiadura osoan eskuratu dadin doako mugaren ordez.',
+  'settings.help.limits.link1': 'Ireki Konexioak',
+  'settings.help.limits.link2': 'Ireki Birkonexioa',
+  'settings.help.limits.link3': 'Ireki Kontuak',
+
+  'settings.help.captcha.title': 'Captcha',
+  'settings.help.captcha.body':
+    'Ostalari batek captcha bat eskatzen duenean, konfiguratutako ebazle automatiko bat probatzen da lehenengo, zuk ezarritako ordenan. Ezin duena konpondu - edo bat ere konfiguratu ez bada - zuri aurkezten zaizu, isilean huts egin beharrean.',
+  'settings.help.captcha.link': 'Ireki Captcha ezarpenak',
+
+  'settings.help.after.title': 'Deskargaren ondoren',
+  'settings.help.after.body':
+    'Artxiboak automatikoki deskonprimitzen dira: zip (zifratuak barne, bai WinZip AES bai ZipCrypto zaharra), rar bolumen anitzeko multzoekin, 7z, tar, eta gzip/bzip2/xz/zstd tar bat bilduta duten ala ez kontuan hartu gabe - Go hutsa, kanpoko unrar edo 7z programarik gabe. Artxibo zifratu baterako pasahitz-zerrenda bat probatzen da ordenan. Amaitutako fitxategi bat berarekin datorren edozein egiaztapen-batura kontuan hartuta egiaztatzen da: .sfv zerrenda bat, md5/sha1/sha256sum fitxategi bat, edo bertsioaren izenak berak daraman CRC32 bat.',
+  'settings.help.after.link1': 'Ireki Artxiboen ezarpenak',
+  'settings.help.after.link2': 'Ireki Deskargen ezarpenak',
+
+  'settings.help.schedule.title': 'Gainbegiratu gabe funtzionatzea',
+  'settings.help.schedule.body':
+    'Asteko ordutegi batek ilara pausatzen edo mugatzen du ordularia kontuan hartuta - gaueko leiho bat, uda-orduaren aldaketan zehar ere zuzena - JDownloaderren Scheduler-aren ideia bera.',
+  'settings.help.schedule.link': 'Ireki Ordutegia',
+
+  'settings.help.instances.title': 'Instantzia bat baino gehiago exekutatzea',
+  'settings.help.instances.body':
+    'Gehitu beste KnightLoader bat parekide gisa, eta bere ilara ere agertzen da panel honetan - norberak ostatatua, erreleirik gabe: instantzia honek bestearen APIa deitzen du besterik gabe, nabigatzaile batek egingo lukeen bezalaxe.',
+  'settings.help.instances.link': 'Ireki Instantziak',
+
+  'settings.help.access.title': 'Sarbidea eta arazoen konponketa',
+  'settings.help.access.body':
+    'Pasahitz batek interfaze osoa saio-cookie baten atzean blokeatzen du. Sarbidea orriak build honen sarrera-atakak eta sarbide-metodoak ere zerrendatzen ditu, eta zergatik - atak ezezagun ireki batek asmakizun baten ordez erantzun bat izan dezan. Diagnostikoa orriak errore-txosten bati eransteko fitxategi bat sortzen du: bertsioa eta build-informazioa, uneko ezarpenak pasahitz guztiak kenduta, prozesu honen azken erregistro-lerroak, eta zenbat goroutine exekutatzen ari diren.',
+  'settings.help.access.link1': 'Ireki Sarbidearen ezarpenak',
+  'settings.help.access.link2': 'Ireki Diagnostikoa',
+
+  'settings.help.advanced.title': 'Gainerako guztia',
+  'settings.help.advanced.body':
+    'Build honen ezarpen bakoitza bere izen gordinaren bidez irakur eta alda daiteke Aurreratua orrian, jada deskargatutako fitxategi baten ispilua nola tratatzen den, deskarga bat jada erabiltzen ari den izen batean amaituko balitz zer gertatuko litzatekeen bezalako batzuk barne, oraindik beste inon kontrol berezirik ez dutenak.',
+  'settings.help.advanced.link': 'Ireki Aurreratuaren ezarpenak',
 };

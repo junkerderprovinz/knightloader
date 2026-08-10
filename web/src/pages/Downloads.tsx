@@ -39,6 +39,7 @@ import {
 } from '../components/ListToolbar';
 import { EMPTY_SEARCH, matchesSearch, type SearchQuery } from '../components/SearchField';
 import { ArchiveJobs, useArchiveMenu, useExtractJobs } from '../components/Archives';
+import { useFileMenu } from '../components/FileActions';
 import { anchorFromEvent, useContextMenu } from '../components/ContextMenu';
 import { IconSearch, IconDownloads, IconArrowUp, IconArrowDown, IconTop, IconBottom } from '../lib/icons';
 
@@ -105,11 +106,11 @@ export function Downloads() {
 
   const clearSelection = useCallback(() => setSelected(new Set()), []);
   const removal = useRemoval({ all, selected, base, onDone: clearSelection });
-  const archiveGroups = useArchiveMenu({
-    chosen: useMemo(() => all.filter((x) => selected.has(x.id)), [all, selected]),
-    base,
-    jobs,
-  });
+  const chosen = useMemo(() => all.filter((x) => selected.has(x.id)), [all, selected]);
+  const archiveGroups = useArchiveMenu({ chosen, base, jobs });
+  // Reveal-in-folder and open-natively only ever mean this instance's own
+  // filesystem, never a federated peer's - see FileActions.tsx.
+  const fileGroups = useFileMenu({ chosen, base, local: instance === '' });
 
   const selection: Selection = {
     ids: selected,
@@ -346,7 +347,7 @@ export function Downloads() {
         removal={removal}
         target={target}
         list={listContext}
-        extraGroups={archiveGroups}
+        extraGroups={[...archiveGroups, ...fileGroups]}
       />
       {removal.dialog}
     </div>

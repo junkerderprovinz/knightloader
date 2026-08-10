@@ -1021,4 +1021,174 @@ export const fr: Dict = {
     'Masque les notifications de réussite et d’information. Un échec, un captcha qui vous attend ou un compte mis en pause reste affiché.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Dernière modification',
+
+  'file.open': 'Ouvrir',
+  'file.openNatively': 'Ouvrir avec l’application par défaut',
+  'file.revealInFolder': 'Afficher dans le dossier',
+  'file.desktopOnly': 'Application de bureau uniquement',
+
+  'settings.schedule.title': 'Horaires',
+  'settings.schedule.subtitle': 'Mettre en pause, reprendre ou limiter la vitesse de téléchargement selon un horaire.',
+  'settings.schedule.listTitle': 'Grille horaire',
+  'settings.schedule.orderHint':
+    'Les lignes s’appliquent dans l’ordre, de haut en bas, et en cas de chevauchement entre deux plages, c’est la plus basse qui l’emporte - une plage large « pause chaque nuit » au-dessus d’une exception plus étroite laisse l’exception en vigueur, alors que les deux mêmes lignes dans l’autre sens ne le font pas.',
+  'settings.schedule.add': 'Ajouter une plage',
+  'settings.schedule.empty': 'La file suit son propre horaire',
+  'settings.schedule.emptyHint':
+    'Aucune plage n’est configurée, donc rien ici ne met en pause ou ne limite la file selon l’heure. Ajoutez-en une pour suspendre les téléchargements la nuit ou limiter la vitesse pendant que vous utilisez vous-même la connexion.',
+  'settings.schedule.use': 'Utiliser cette plage',
+  'settings.schedule.moveUp': 'Monter',
+  'settings.schedule.moveDown': 'Descendre',
+  'settings.schedule.remove': 'Supprimer cette plage',
+  'settings.schedule.edit': 'Modifier cette plage',
+  'settings.schedule.name': 'Nom',
+  'settings.schedule.namePlaceholder': 'p. ex. Pause nocturne',
+  'settings.schedule.days': 'Jours',
+  'settings.schedule.daysHint':
+    'Les jours de la semaine où cette plage s’ouvre. Pour une plage qui dépasse minuit, cochez le jour où elle COMMENCE - « ven. 22:00-06:00 » se termine le samedi matin sans que le samedi lui-même soit coché.',
+  'settings.schedule.preset.every': 'Tous les jours',
+  'settings.schedule.preset.weekdays': 'Jours de semaine',
+  'settings.schedule.preset.weekends': 'Week-ends',
+  'settings.schedule.preset.custom': 'Personnalisé',
+  'settings.schedule.start': 'Début',
+  'settings.schedule.end': 'Fin',
+  'settings.schedule.endHint':
+    'Avant l’heure de début, cette plage dépasse minuit et se termine le lendemain matin. Une heure de fin égale à l’heure de début est refusée - cela pourrait signifier une journée entière ou aucun temps du tout, et deviner ce qui était voulu est pire que de demander.',
+  'settings.schedule.action': 'Action',
+  'settings.schedule.action.pause': 'Pause',
+  'settings.schedule.action.resume': 'Reprise',
+  'settings.schedule.action.limit': 'Limiter la vitesse',
+  'settings.schedule.limit': 'Limite de vitesse',
+  'settings.schedule.disabledOff':
+    'Cette plage est mise de côté et ne se déclenche jamais. La file se comporte comme si cette ligne n’existait pas.',
+  'settings.schedule.activeNow': 'Active maintenant, jusqu’à {time}',
+  'settings.schedule.next': 'Prochaine : {when}',
+  'settings.schedule.never': 'Ne se déclenche jamais telle que configurée',
+  'settings.schedule.stateNow.paused': 'La file est actuellement mise en pause par l’horaire.',
+  'settings.schedule.stateNow.limited': 'La file est actuellement limitée à {rate} par l’horaire.',
+  'settings.schedule.stateNow.running': 'Aucune plage n’est en vigueur actuellement.',
+  'settings.schedule.nextChange': 'Prochain changement : {when}',
+  'settings.schedule.noNextChange': 'Rien dans la grille ne changera jamais la file telle que configurée.',
+  'settings.schedule.save': 'Enregistrer l’horaire',
+  'settings.schedule.discard': 'Abandonner',
+  'settings.schedule.unsaved': 'Modifications non enregistrées de l’horaire',
+  'settings.schedule.saveFailed': 'Impossible d’enregistrer l’horaire : {error}',
+  'settings.schedule.rowError': 'Ligne {row} : {error}',
+
+  'idleAction.title': 'La file est inactive',
+  'idleAction.action.pause': 'Mise en pause',
+  'idleAction.actionFallback': '« {action} » en cours',
+  'idleAction.in': 'dans {countdown}',
+  'idleAction.cancel': 'Annuler',
+  'idleAction.cancelling': 'Annulation…',
+  'idleAction.cancelFailed': 'Impossible d’annuler : le serveur n’a pas répondu.',
+
+  'settings.idleAction.label': 'Action de fin de file',
+  'settings.idleAction.hint':
+    'Ce qui se passe une fois qu’il ne reste plus rien en cours, en attente ou prêt à démarrer. Un lien que vous avez désactivé ne compte pas - voir la bulle d’info.',
+  'settings.idleAction.info':
+    'Un lien que vous avez désactivé ne compte jamais comme du travail restant, il ne peut donc pas retarder ceci indéfiniment. Un lien mis en pause ou retenu manuellement compte toujours - les deux signifient « attendre un peu », pas « jamais ».',
+  'settings.idleAction.none': 'Ne rien faire',
+  'settings.idleAction.pause': 'Mettre la file en pause',
+  'settings.idleAction.delay': 'Compte à rebours (secondes)',
+  'settings.idleAction.delayHint':
+    'Le temps dont vous disposez pour annuler avant que l’action ne s’exécute, une fois que la file devient réellement inactive.',
+
+  'settings.nav.diagnostics': 'Diagnostic',
+  'settings.diagnostics.subtitle':
+    'Ce qu’est ce build, sur quoi il tourne, et sa propre sortie de journal récente - à joindre à un rapport de bug.',
+  'settings.diagnostics.version': 'Version',
+  'settings.diagnostics.deployment': 'Build',
+  'settings.diagnostics.deployment.container': 'Conteneur',
+  'settings.diagnostics.deployment.desktop': 'Bureau',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'Plateforme',
+  'settings.diagnostics.goroutines': 'Goroutines',
+  'settings.diagnostics.download': 'Télécharger le paquet de diagnostic',
+  'settings.diagnostics.downloading': 'Préparation…',
+  'settings.diagnostics.downloadHint':
+    'Un fichier JSON avec les champs ci-dessus, vos paramètres avec chaque mot de passe retiré, et les lignes de journal ci-dessous.',
+  'settings.diagnostics.downloadFailed': 'Impossible de créer le paquet : {error}',
+  'settings.diagnostics.logTitle': 'Lignes de journal récentes',
+  'settings.diagnostics.logHint':
+    'Les {n} dernières lignes journalisées par ce processus, les plus anciennes en premier. Rien ici n’est écrit sur le disque.',
+  'settings.diagnostics.logEmpty': 'Rien de journalisé pour l’instant.',
+  'settings.diagnostics.refresh': 'Actualiser',
+  'settings.diagnostics.loadFailed': 'Impossible de charger le diagnostic. Le serveur est-il joignable ?',
+
+  'settings.nav.help': 'Aide',
+  'settings.help.intro':
+    'Ce que ce build sait faire, organisé par tâche plutôt que par page de paramètres. Chaque section renvoie à l’endroit où c’est configuré.',
+
+  'settings.help.intake.title': 'Ajouter des téléchargements',
+  'settings.help.intake.body':
+    'Collez des liens dans le Collecteur - un par ligne, ou du texte en vrac : une analyse trouve les liens où qu’ils se trouvent, au milieu d’une phrase, plusieurs par ligne, ou coupés sur deux lignes par un client de messagerie.',
+  'settings.help.intake.b1': 'Déposez un fichier conteneur de liens (.dlc, .ccf, .rsdf) ou une simple liste de liens.',
+  'settings.help.intake.b2':
+    "Les boutons Click'n'Load des pages d’hébergeurs et de forums fonctionnent sans changement - KnightLoader répond sur 127.0.0.1:9666, le même port qu’utilise tout autre gestionnaire de téléchargement.",
+  'settings.help.intake.b3':
+    'Collez une URL de page au lieu d’un lien de fichier et activez Explorer pour extraire chaque fichier qu’elle référence, au lieu de télécharger la page elle-même.',
+  'settings.help.intake.b4': 'Un dossier surveillé récupère automatiquement les fichiers .txt/.crawljob qui y sont déposés.',
+  'settings.help.intake.link1': 'Ouvrir les paramètres Téléchargements',
+  'settings.help.intake.link2': "Ouvrir les paramètres Accès (Click'n'Load)",
+
+  'settings.help.collector.title': 'Le collecteur, avant tout téléchargement',
+  'settings.help.collector.body':
+    'Les nouveaux liens arrivent d’abord dans le Collecteur, pas dans la file : une zone d’attente pour vérifier les noms, les tailles et les avertissements de doublons avant que quoi que ce soit ne démarre. La confirmation automatique peut sauter cette étape, avec un délai optionnel ; une fois confirmé, un lien démarre immédiatement ou attend dans la file, selon le démarrage automatique.',
+  'settings.help.collector.link': 'Ouvrir les paramètres Général',
+
+  'settings.help.rules.title': 'Règles : paquets, dossiers et ce qui est conservé',
+  'settings.help.rules.body':
+    'Le Packagizer renomme un lien, choisit son dossier et définit ses options de téléchargement à son arrivée, à partir de conditions que vous écrivez. Le Filtre de liens décide si un lien est conservé ou non - et contrairement à un filtre qui fait simplement disparaître les liens, un rejet indique toujours la règle responsable, et pourquoi.',
+  'settings.help.rules.link': 'Ouvrir Règles',
+
+  'settings.help.queue.title': 'Gérer la file',
+  'settings.help.queue.body':
+    'Mettez en pause, reprenez ou réordonnez n’importe quel lien, seul ou en paquet entier. Arrêter la file, ce sont deux actions différentes : l’arrêt laisse ce qui tourne déjà intact pour qu’il se termine de lui-même, tandis qu’arrêter tous les transferts immédiatement montre d’abord ce qui serait perdu et n’avance qu’après votre confirmation - c’est exactement à cela que sert l’avertissement pour un transfert qui ne peut pas reprendre là où il s’est arrêté.',
+  'settings.help.queue.b1': 'Un seul lien peut remplacer le nombre de connexions global ou l’option d’extraction après téléchargement.',
+  'settings.help.queue.b2': 'Un doublon d’un lien déjà présent dans la liste est toujours refusé, avant même d’atteindre le collecteur.',
+
+  'settings.help.limits.title': 'Contourner les limites des hébergeurs',
+  'settings.help.limits.body': 'Trois façons indépendantes d’empêcher une limite gratuite de faire office de plafond :',
+  'settings.help.limits.b1':
+    'Connexions - répartir les téléchargements sur plusieurs chemins sortants (une seconde ligne, un proxy, SOCKS) au lieu de toujours sortir par la propre adresse de cette machine.',
+  'settings.help.limits.b2':
+    'Reconnexion - demander au routeur une nouvelle adresse publique, la seule chose qui lève réellement une limite liée à l’adresse elle-même (UPnP, un programme externe, un script, ou le rejeu de requêtes HTTP contre la page d’administration du routeur - les scripts JDownloader LiveHeader/curl existants fonctionnent sans changement).',
+  'settings.help.limits.b3':
+    'Comptes - enregistrez des identifiants premium ou debrid (Real-Debrid, AllDebrid, TorBox et d’autres) pour qu’un lien éligible soit récupéré à pleine vitesse au lieu de la limite gratuite.',
+  'settings.help.limits.link1': 'Ouvrir Connexions',
+  'settings.help.limits.link2': 'Ouvrir Reconnexion',
+  'settings.help.limits.link3': 'Ouvrir Comptes',
+
+  'settings.help.captcha.title': 'Captcha',
+  'settings.help.captcha.body':
+    'Quand un hébergeur demande un captcha, un solveur automatique que vous avez configuré est essayé en premier, dans l’ordre que vous avez défini. Ce qu’il ne peut pas résoudre - ou si aucun n’est configuré - vous est présenté au lieu d’échouer silencieusement.',
+  'settings.help.captcha.link': 'Ouvrir les paramètres Captcha',
+
+  'settings.help.after.title': 'Après le téléchargement',
+  'settings.help.after.body':
+    'Les archives sont extraites automatiquement : zip (y compris chiffré, aussi bien WinZip AES que l’ancien ZipCrypto), rar avec des ensembles multi-volumes, 7z, tar, ainsi que gzip/bzip2/xz/zstd qu’ils enveloppent ou non un tar - Go pur, sans binaire unrar ou 7z externe. Une liste de mots de passe est essayée dans l’ordre pour une archive chiffrée. Un fichier terminé est vérifié par rapport à toute somme de contrôle fournie avec lui : une liste .sfv, un fichier md5/sha1/sha256sum, ou un CRC32 que le nom de la version porte lui-même.',
+  'settings.help.after.link1': 'Ouvrir les paramètres Archives',
+  'settings.help.after.link2': 'Ouvrir les paramètres Téléchargements',
+
+  'settings.help.schedule.title': 'Fonctionner sans surveillance',
+  'settings.help.schedule.body':
+    'Un horaire hebdomadaire met en pause ou limite la file selon l’heure - une plage nocturne, correcte même lors du changement d’heure - la même idée que le Scheduler de JDownloader.',
+  'settings.help.schedule.link': 'Ouvrir Horaires',
+
+  'settings.help.instances.title': 'Faire tourner plusieurs instances',
+  'settings.help.instances.body':
+    'Ajoutez un autre KnightLoader comme pair et sa file apparaît aussi sur ce tableau de bord-ci - autohébergé, sans relais impliqué : cette instance appelle simplement l’API de l’autre instance, de la même façon qu’un navigateur le ferait.',
+  'settings.help.instances.link': 'Ouvrir Instances',
+
+  'settings.help.access.title': 'Accès et dépannage',
+  'settings.help.access.body':
+    'Un mot de passe verrouille toute l’interface derrière un cookie de session. La page Accès liste aussi les ports d’entrée et les méthodes d’accès de ce build, et pourquoi - pour qu’un port ouvert inconnu ait une réponse plutôt qu’une supposition. La page Diagnostic crée un fichier à joindre à un rapport de bug : version et infos de build, les paramètres actuels avec chaque mot de passe retiré, les lignes de journal récentes de ce processus, et le nombre de goroutines en cours d’exécution.',
+  'settings.help.access.link1': 'Ouvrir les paramètres Accès',
+  'settings.help.access.link2': 'Ouvrir Diagnostic',
+
+  'settings.help.advanced.title': 'Tout le reste',
+  'settings.help.advanced.body':
+    'Chaque paramètre de ce build peut être lu et modifié par son nom brut sur la page Avancé, y compris quelques-uns - comment un miroir d’un fichier déjà téléchargé est traité, ce qui se passe quand un téléchargement atterrirait sur un nom déjà pris - qui n’ont pas encore de contrôle dédié ailleurs.',
+  'settings.help.advanced.link': 'Ouvrir les paramètres Avancé',
 };

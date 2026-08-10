@@ -1021,4 +1021,173 @@ export const nl: Dict = {
     'Verbergt succes- en infomeldingen. Een fout, een captcha die op jou wacht of een gepauzeerd account blijven wel zichtbaar.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Laatst gewijzigd',
+
+  'file.open': 'Openen',
+  'file.openNatively': 'Openen met standaardprogramma',
+  'file.revealInFolder': 'Tonen in map',
+  'file.desktopOnly': 'Alleen desktop-app',
+
+  'settings.schedule.title': 'Tijdschema',
+  'settings.schedule.subtitle': 'De downloadsnelheid pauzeren, hervatten of beperken volgens een tijdschema.',
+  'settings.schedule.listTitle': 'Tijdtabel',
+  'settings.schedule.orderHint':
+    'Rijen worden na elkaar toegepast, van boven naar beneden, en als twee tijdvakken elkaar overlappen wint de onderste - een ruim “elke nacht pauzeren” boven een nauwere uitzondering laat de uitzondering gelden, en dezelfde twee rijen andersom niet.',
+  'settings.schedule.add': 'Tijdvak toevoegen',
+  'settings.schedule.empty': 'De wachtrij volgt zijn eigen tijdschema',
+  'settings.schedule.emptyHint':
+    'Er is geen tijdvak ingesteld, dus niets hier pauzeert of beperkt de wachtrij op basis van de klok. Voeg er een toe om downloads ’s nachts vast te houden of de snelheid te beperken terwijl je zelf de verbinding gebruikt.',
+  'settings.schedule.use': 'Dit tijdvak gebruiken',
+  'settings.schedule.moveUp': 'Omhoog verplaatsen',
+  'settings.schedule.moveDown': 'Omlaag verplaatsen',
+  'settings.schedule.remove': 'Dit tijdvak verwijderen',
+  'settings.schedule.edit': 'Dit tijdvak bewerken',
+  'settings.schedule.name': 'Naam',
+  'settings.schedule.namePlaceholder': 'bijv. Nachtpauze',
+  'settings.schedule.days': 'Dagen',
+  'settings.schedule.daysHint':
+    'Op welke weekdagen dit tijdvak opengaat. Vink bij een tijdvak dat na middernacht doorloopt de dag aan waarop het BEGINT - “vr 22:00-06:00” eindigt zaterdagochtend zonder dat zaterdag zelf is aangevinkt.',
+  'settings.schedule.preset.every': 'Elke dag',
+  'settings.schedule.preset.weekdays': 'Doordeweeks',
+  'settings.schedule.preset.weekends': 'Weekenden',
+  'settings.schedule.preset.custom': 'Aangepast',
+  'settings.schedule.start': 'Begin',
+  'settings.schedule.end': 'Einde',
+  'settings.schedule.endHint':
+    'Vóór de begintijd loopt dit tijdvak door na middernacht en eindigt de volgende ochtend. Een eindtijd gelijk aan de begintijd wordt geweigerd - dat zou een hele dag of helemaal geen tijd kunnen betekenen, en gokken wat bedoeld werd is erger dan vragen.',
+  'settings.schedule.action': 'Actie',
+  'settings.schedule.action.pause': 'Pauzeren',
+  'settings.schedule.action.resume': 'Hervatten',
+  'settings.schedule.action.limit': 'Snelheid beperken',
+  'settings.schedule.limit': 'Snelheidslimiet',
+  'settings.schedule.disabledOff': 'Dit tijdvak staat geparkeerd en gaat nooit af. De wachtrij gedraagt zich alsof deze rij er niet was.',
+  'settings.schedule.activeNow': 'Nu actief, tot {time}',
+  'settings.schedule.next': 'Volgende: {when}',
+  'settings.schedule.never': 'Gaat nooit af zoals ingesteld',
+  'settings.schedule.stateNow.paused': 'De wachtrij is nu gepauzeerd door het tijdschema.',
+  'settings.schedule.stateNow.limited': 'De wachtrij is nu beperkt tot {rate} door het tijdschema.',
+  'settings.schedule.stateNow.running': 'Er is nu geen tijdvak van kracht.',
+  'settings.schedule.nextChange': 'Volgende wijziging: {when}',
+  'settings.schedule.noNextChange': 'Niets in de tabel zal de wachtrij ooit veranderen zoals ingesteld.',
+  'settings.schedule.save': 'Tijdschema opslaan',
+  'settings.schedule.discard': 'Weggooien',
+  'settings.schedule.unsaved': 'Niet-opgeslagen wijzigingen aan het tijdschema',
+  'settings.schedule.saveFailed': 'Het tijdschema kon niet worden opgeslagen: {error}',
+  'settings.schedule.rowError': 'Rij {row}: {error}',
+
+  'idleAction.title': 'De wachtrij is inactief',
+  'idleAction.action.pause': 'Wordt gepauzeerd',
+  'idleAction.actionFallback': '“{action}” bezig',
+  'idleAction.in': 'over {countdown}',
+  'idleAction.cancel': 'Annuleren',
+  'idleAction.cancelling': 'Bezig met annuleren…',
+  'idleAction.cancelFailed': 'Kon niet annuleren: de server reageerde niet.',
+
+  'settings.idleAction.label': 'Actie aan het einde van de wachtrij',
+  'settings.idleAction.hint':
+    'Wat er gebeurt zodra er niets meer loopt, in de wachtrij staat of klaarstaat om te beginnen. Een link die je hebt uitgeschakeld telt daarbij niet mee - zie de infobubbel.',
+  'settings.idleAction.info':
+    'Een link die je hebt uitgeschakeld telt nooit als nog te doen werk, dus die kan dit niet voor altijd tegenhouden. Een handmatig gepauzeerde of vastgehouden link telt nog steeds mee - beide betekenen ‘even wachten’, niet ‘nooit’.',
+  'settings.idleAction.none': 'Niets doen',
+  'settings.idleAction.pause': 'Wachtrij pauzeren',
+  'settings.idleAction.delay': 'Aftellen (seconden)',
+  'settings.idleAction.delayHint':
+    'Hoeveel tijd je hebt om te annuleren voordat de actie wordt uitgevoerd, zodra de wachtrij echt inactief wordt.',
+
+  'settings.nav.diagnostics': 'Diagnostiek',
+  'settings.diagnostics.subtitle':
+    'Wat deze build is, waarop hij draait, en zijn eigen recente logoutput - om bij te voegen aan een bugmelding.',
+  'settings.diagnostics.version': 'Versie',
+  'settings.diagnostics.deployment': 'Build',
+  'settings.diagnostics.deployment.container': 'Container',
+  'settings.diagnostics.deployment.desktop': 'Desktop',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'Platform',
+  'settings.diagnostics.goroutines': 'Goroutines',
+  'settings.diagnostics.download': 'Diagnosepakket downloaden',
+  'settings.diagnostics.downloading': 'Wordt voorbereid…',
+  'settings.diagnostics.downloadHint':
+    'Een JSON-bestand met de velden hierboven, jouw instellingen met elk wachtwoord verwijderd, en de logregels hieronder.',
+  'settings.diagnostics.downloadFailed': 'Kon het pakket niet maken: {error}',
+  'settings.diagnostics.logTitle': 'Recente logregels',
+  'settings.diagnostics.logHint':
+    'De laatste {n} regels die dit proces heeft gelogd, oudste eerst. Hier wordt niets naar schijf geschreven.',
+  'settings.diagnostics.logEmpty': 'Nog niets gelogd.',
+  'settings.diagnostics.refresh': 'Vernieuwen',
+  'settings.diagnostics.loadFailed': 'Kon de diagnostiek niet laden. Is de server bereikbaar?',
+
+  'settings.nav.help': 'Hulp',
+  'settings.help.intro':
+    'Wat deze build kan, ingedeeld op taak in plaats van op instellingenpagina. Elke sectie linkt naar waar het wordt ingesteld.',
+
+  'settings.help.intake.title': 'Downloads toevoegen',
+  'settings.help.intake.body':
+    'Plak links in de Verzamelaar - één per regel, of rommelige tekst: een scan vindt links waar ze ook staan, midden in een zin, meerdere per regel, of over twee regels afgebroken door een mailprogramma.',
+  'settings.help.intake.b1': 'Zet een linkcontainerbestand (.dlc, .ccf, .rsdf) neer, of een gewone linklijst.',
+  'settings.help.intake.b2':
+    "Click'n'Load-knoppen op hoster- en forumpagina's werken ongewijzigd - KnightLoader antwoordt op 127.0.0.1:9666, dezelfde poort die elke andere downloadmanager gebruikt.",
+  'settings.help.intake.b3':
+    'Plak een pagina-URL in plaats van een bestandslink en zet Crawlen aan om elk bestand waarnaar wordt gelinkt eruit te halen, in plaats van de pagina zelf te downloaden.',
+  'settings.help.intake.b4': 'Een bewaakte map pikt automatisch .txt-/.crawljob-bestanden op die erin worden gezet.',
+  'settings.help.intake.link1': 'Downloads-instellingen openen',
+  'settings.help.intake.link2': "Toegang-instellingen openen (Click'n'Load)",
+
+  'settings.help.collector.title': 'De verzamelaar, voordat er iets download',
+  'settings.help.collector.body':
+    'Nieuwe links komen eerst in de Verzamelaar terecht, niet in de wachtrij: een tussengebied om namen, groottes en duplicaatwaarschuwingen te controleren voordat er iets begint. Automatisch bevestigen kan die stap overslaan, met een optionele vertraging; eenmaal bevestigd, begint een link meteen of wacht hij in de wachtrij, afhankelijk van Automatisch starten.',
+  'settings.help.collector.link': 'Algemene instellingen openen',
+
+  'settings.help.rules.title': 'Regels: pakketten, mappen en wat behouden blijft',
+  'settings.help.rules.body':
+    'De Packagizer hernoemt een link, kiest zijn map en stelt zijn downloadopties in bij aankomst, op basis van voorwaarden die jij schrijft. Het Linkfilter bepaalt of een link überhaupt behouden blijft - en anders dan een filter dat links gewoon laat verdwijnen, noemt een afwijzing altijd de regel die verantwoordelijk was, en waarom.',
+  'settings.help.rules.link': 'Regels openen',
+
+  'settings.help.queue.title': 'De wachtrij beheren',
+  'settings.help.queue.body':
+    'Pauzeer, hervat of herschik elke link, los of als heel pakket. De wachtrij stoppen is twee verschillende acties: stoppen laat wat al loopt onaangeroerd, zodat het vanzelf klaar raakt, terwijl alle overdrachten meteen stoppen eerst laat zien wat verloren zou gaan en pas doorgaat na jouw bevestiging - precies waar die waarschuwing voor dient bij een overdracht die niet kan hervatten waar hij gebleven was.',
+  'settings.help.queue.b1': 'Eén link kan het globale aantal verbindingen of de schakelaar voor uitpakken na download overschrijven.',
+  'settings.help.queue.b2': 'Een duplicaat van een link die al in de lijst staat wordt altijd geweigerd, voordat het ooit de verzamelaar bereikt.',
+
+  'settings.help.limits.title': 'Hosterlimieten omzeilen',
+  'settings.help.limits.body': 'Drie onafhankelijke manieren om te voorkomen dat een gratis limiet het plafond is:',
+  'settings.help.limits.b1':
+    'Verbindingen - downloads over meer dan één uitgaand pad verspreiden (een tweede lijn, een proxy, SOCKS) in plaats van altijd via het eigen adres van deze machine naar buiten te gaan.',
+  'settings.help.limits.b2':
+    'Opnieuw verbinden - de router om een nieuw publiek adres vragen, het enige dat een limiet die aan het adres zelf gekoppeld is echt opheft (UPnP, een extern programma, een script, of het herhalen van HTTP-verzoeken tegen de beheerpagina van de router - bestaande JDownloader LiveHeader/curl-scripts werken ongewijzigd).',
+  'settings.help.limits.b3':
+    'Accounts - premium- of debridlogins opslaan (Real-Debrid, AllDebrid, TorBox en andere) zodat een geschikte link met volle snelheid wordt opgehaald in plaats van tegen de gratis limiet.',
+  'settings.help.limits.link1': 'Verbindingen openen',
+  'settings.help.limits.link2': 'Opnieuw verbinden openen',
+  'settings.help.limits.link3': 'Accounts openen',
+
+  'settings.help.captcha.title': 'Captcha',
+  'settings.help.captcha.body':
+    'Wanneer een hoster om een captcha vraagt, wordt eerst een automatische oplosser geprobeerd die je hebt ingesteld, in de door jou bepaalde volgorde. Wat die niet kan oplossen - of als er geen is ingesteld - wordt aan jou voorgelegd in plaats van stilletjes te mislukken.',
+  'settings.help.captcha.link': 'Captcha-instellingen openen',
+
+  'settings.help.after.title': 'Na de download',
+  'settings.help.after.body':
+    'Archieven worden automatisch uitgepakt: zip (ook versleuteld, zowel WinZip AES als het oudere ZipCrypto), rar met meerdelige sets, 7z, tar, en gzip/bzip2/xz/zstd of ze nu een tar omhullen of niet - puur Go, zonder externe unrar- of 7z-programma’s. Bij een versleuteld archief wordt een lijst wachtwoorden na elkaar geprobeerd. Een voltooid bestand wordt gecontroleerd tegen elke meegeleverde controlesom: een .sfv-lijst, een md5-/sha1-/sha256sum-bestand, of een CRC32 die de releasenaam zelf draagt.',
+  'settings.help.after.link1': 'Archieven-instellingen openen',
+  'settings.help.after.link2': 'Downloads-instellingen openen',
+
+  'settings.help.schedule.title': 'Onbeheerd laten draaien',
+  'settings.help.schedule.body':
+    'Een wekelijks tijdschema pauzeert of drosselt de wachtrij op basis van de klok - een nachtelijk tijdvak, correct over de zomertijdovergang heen - hetzelfde idee als de Scheduler van JDownloader.',
+  'settings.help.schedule.link': 'Tijdschema openen',
+
+  'settings.help.instances.title': 'Meer dan één instantie draaien',
+  'settings.help.instances.body':
+    'Voeg een andere KnightLoader toe als peer en diens wachtrij verschijnt ook op dit dashboard - zelf gehost, geen relay bij betrokken: deze instantie roept gewoon de API van de andere instantie aan, op dezelfde manier als een browser zou doen.',
+  'settings.help.instances.link': 'Instanties openen',
+
+  'settings.help.access.title': 'Toegang en probleemoplossing',
+  'settings.help.access.body':
+    'Een wachtwoord vergrendelt de hele interface tot een sessiecookie. De pagina Toegang vermeldt ook de intake-poorten en toegangsmethoden van deze build, en waarom - zodat een onbekende open poort een antwoord heeft in plaats van een gok. De pagina Diagnostiek maakt een bestand om bij te voegen aan een bugmelding: versie- en buildinformatie, de huidige instellingen met elk wachtwoord verwijderd, de eigen recente logregels van dit proces, en hoeveel goroutines er lopen.',
+  'settings.help.access.link1': 'Toegang-instellingen openen',
+  'settings.help.access.link2': 'Diagnostiek openen',
+
+  'settings.help.advanced.title': 'Al de rest',
+  'settings.help.advanced.body':
+    'Elke instelling van deze build kan op de pagina Geavanceerd worden gelezen en gewijzigd via zijn ruwe naam, inclusief enkele - hoe een spiegel van een al gedownload bestand wordt behandeld, wat er gebeurt als een download op een al gebruikte naam zou uitkomen - die nog geen eigen bediening ergens anders hebben.',
+  'settings.help.advanced.link': 'Geavanceerd-instellingen openen',
 };

@@ -1153,6 +1153,203 @@ export const en = {
   // arrangement.
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Last changed',
+
+  // Reaching a task's own file (components/FileActions.tsx, Wave 10's 10G) -
+  // "Open" streams it through the browser; the other two are desktop-only and
+  // carry their reason in file.desktopOnly when they are shown disabled.
+  'file.open': 'Open',
+  'file.openNatively': 'Open with default app',
+  'file.revealInFolder': 'Show in folder',
+  'file.desktopOnly': 'Desktop app only',
+
+  // The timetable editor (pages/settings/Schedule.tsx, Wave 10's 10A) -
+  // landed here verbatim from that file's own PENDING table, same
+  // arrangement as Connections.tsx and Captcha.tsx before it.
+  'settings.schedule.title': 'Schedule',
+  'settings.schedule.subtitle': 'Pause, resume or cap the download speed on a timetable.',
+  'settings.schedule.listTitle': 'Timetable',
+  'settings.schedule.orderHint':
+    'Rows are applied in order, top to bottom, and a later row wins where two windows overlap - so a broad "pause every night" above a narrow exception leaves the exception in force, and the same two rows the other way round do not.',
+  'settings.schedule.add': 'Add window',
+  'settings.schedule.empty': 'The queue runs on its own schedule',
+  'settings.schedule.emptyHint':
+    'No windows are configured, so nothing here ever pauses or limits the queue by the clock. Add one to hold downloads overnight or cap the speed while you are on the connection yourself.',
+  'settings.schedule.use': 'Use this window',
+  'settings.schedule.moveUp': 'Move up',
+  'settings.schedule.moveDown': 'Move down',
+  'settings.schedule.remove': 'Remove this window',
+  'settings.schedule.edit': 'Edit this window',
+  'settings.schedule.name': 'Name',
+  'settings.schedule.namePlaceholder': 'e.g. Night pause',
+  'settings.schedule.days': 'Days',
+  'settings.schedule.daysHint':
+    'Which weekdays this window opens on. For a window that runs past midnight, tick the day it STARTS on - "Fri 22:00-06:00" ends Saturday morning without Saturday itself being ticked.',
+  'settings.schedule.preset.every': 'Every day',
+  'settings.schedule.preset.weekdays': 'Weekdays',
+  'settings.schedule.preset.weekends': 'Weekends',
+  'settings.schedule.preset.custom': 'Custom',
+  'settings.schedule.start': 'Start',
+  'settings.schedule.end': 'End',
+  'settings.schedule.endHint':
+    'Before the start time, this window runs past midnight and ends the following morning. Equal to the start time is refused - that could mean a whole day or no time at all, and guessing which one you meant is worse than asking.',
+  'settings.schedule.action': 'Action',
+  'settings.schedule.action.pause': 'Pause',
+  'settings.schedule.action.resume': 'Resume',
+  'settings.schedule.action.limit': 'Limit speed',
+  'settings.schedule.limit': 'Speed limit',
+  'settings.schedule.disabledOff': 'This window is parked and never fires. The queue behaves as if the row were not here at all.',
+  'settings.schedule.activeNow': 'Active now, until {time}',
+  'settings.schedule.next': 'Next: {when}',
+  'settings.schedule.never': 'Never fires as configured',
+  'settings.schedule.stateNow.paused': 'The queue is paused by the timetable right now.',
+  'settings.schedule.stateNow.limited': 'The queue is capped at {rate} by the timetable right now.',
+  'settings.schedule.stateNow.running': 'No window is in force right now.',
+  'settings.schedule.nextChange': 'Next change: {when}',
+  'settings.schedule.noNextChange': 'Nothing in the table will ever change the queue as configured.',
+  'settings.schedule.save': 'Save timetable',
+  'settings.schedule.discard': 'Discard',
+  'settings.schedule.unsaved': 'Unsaved changes to the timetable',
+  'settings.schedule.saveFailed': 'The timetable could not be saved: {error}',
+  'settings.schedule.rowError': 'Row {row}: {error}',
+
+  // The end-of-queue countdown banner (components/IdleActionBanner.tsx,
+  // Wave 10's 10B) - its STRINGS object and the one hardcoded toast string
+  // were left in plain English on purpose (see that file's own doc comment):
+  // landed here now that this wave's locale pass has reached them.
+  // IdleActionBanner.tsx itself still needs a follow-up pass to read these
+  // through useT() instead of its literals - components/* is 10B's own file,
+  // named here rather than taken (this wave's report). idleAction.cancelFailed
+  // is re-cased to match this catalogue's sentence style; the source literal
+  // itself was lowercase with no closing period.
+  'idleAction.title': 'The queue is idle',
+  'idleAction.action.pause': 'Pausing',
+  'idleAction.actionFallback': '"{action}" running',
+  'idleAction.in': 'in {countdown}',
+  'idleAction.cancel': 'Cancel',
+  'idleAction.cancelling': 'Cancelling…',
+  'idleAction.cancelFailed': 'Could not cancel: the server did not answer.',
+
+  // The end-of-queue action's own settings row (pages/settings/
+  // DownloadsSettings.tsx, Wave 10's 10B) - IDLE_ACTION_LABELS and the
+  // group's label/hint/InfoBubble were left hardcoded for the same reason as
+  // IdleActionBanner.tsx above (see that file's own doc comment); landed
+  // here verbatim. DownloadsSettings.tsx still needs the same follow-up pass
+  // to read these through useT().
+  'settings.idleAction.label': 'End-of-queue action',
+  'settings.idleAction.hint':
+    'What happens once nothing is left running, queued or waiting to start. A link you have switched off does not count - see the info bubble.',
+  'settings.idleAction.info':
+    "A link you have switched off is never counted as work left to do, so it cannot hold this off forever. A manually paused or held link still counts - both mean 'wait a bit', not 'never'.",
+  'settings.idleAction.none': 'Do nothing',
+  'settings.idleAction.pause': 'Pause the queue',
+  'settings.idleAction.delay': 'Countdown (seconds)',
+  'settings.idleAction.delayHint': 'How long you have to cancel before the action runs, once the queue actually goes idle.',
+
+  // The diagnostics page (pages/settings/Diagnostics.tsx, Wave 10's 10C) -
+  // landed here verbatim from that file's own PENDING table, same
+  // arrangement as Schedule.tsx above. settings.nav.diagnostics is this
+  // page's rail label (registry.tsx registers the id, tx.ts's label() looks
+  // up settings.nav.<id>).
+  'settings.nav.diagnostics': 'Diagnostics',
+  'settings.diagnostics.subtitle':
+    'What this build is, what it is running on, and its own recent log output - for attaching to a bug report.',
+  'settings.diagnostics.version': 'Version',
+  'settings.diagnostics.deployment': 'Build',
+  'settings.diagnostics.deployment.container': 'Container',
+  'settings.diagnostics.deployment.desktop': 'Desktop',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'Platform',
+  'settings.diagnostics.goroutines': 'Goroutines',
+  'settings.diagnostics.download': 'Download diagnostics bundle',
+  'settings.diagnostics.downloading': 'Preparing…',
+  'settings.diagnostics.downloadHint':
+    'A JSON file with the fields above, your settings with every password removed, and the log lines below.',
+  'settings.diagnostics.downloadFailed': 'Could not build the bundle: {error}',
+  'settings.diagnostics.logTitle': 'Recent log lines',
+  'settings.diagnostics.logHint': 'The last {n} lines this process has logged, oldest first. Nothing here is written to disk.',
+  'settings.diagnostics.logEmpty': 'Nothing logged yet.',
+  'settings.diagnostics.refresh': 'Refresh',
+  'settings.diagnostics.loadFailed': 'Could not load diagnostics. Is the server reachable?',
+
+  // The help page (pages/settings/Help.tsx, Wave 10's 10C) - landed here
+  // verbatim from that file's own PENDING table, same arrangement as
+  // Diagnostics.tsx above. settings.nav.help is this page's rail label, the
+  // same relationship settings.nav.diagnostics has to Diagnostics.tsx.
+  'settings.nav.help': 'Help',
+  'settings.help.intro':
+    'What this build can do, organised by task rather than by settings page. Every section links to where it is configured.',
+
+  'settings.help.intake.title': 'Adding downloads',
+  'settings.help.intake.body':
+    'Paste links into the Collector - one per line, or messy text: a scan finds links wherever they sit, inside a sentence, several to a line, or wrapped across two lines by a mail client.',
+  'settings.help.intake.b1': 'Drop a link-container file (.dlc, .ccf, .rsdf) or a plain link list.',
+  'settings.help.intake.b2':
+    "Click'n'Load buttons on hoster and forum pages work unchanged - KnightLoader answers on 127.0.0.1:9666, the same port every other downloader uses.",
+  'settings.help.intake.b3':
+    'Paste a page URL instead of a file link and switch Crawl on to pull out every file it links to, instead of downloading the page itself.',
+  'settings.help.intake.b4': 'A watch folder picks up .txt/.crawljob files dropped into it automatically.',
+  'settings.help.intake.link1': 'Open Downloads settings',
+  'settings.help.intake.link2': "Open Access settings (Click'n'Load)",
+
+  'settings.help.collector.title': 'The collector, before anything downloads',
+  'settings.help.collector.body':
+    'New links land in the Collector first, not the queue: a staging area to check names, sizes and duplicate warnings before anything starts. Auto-confirm can skip that step, with an optional delay; once confirmed, a link either starts immediately or waits in Queued, depending on Auto-start.',
+  'settings.help.collector.link': 'Open General settings',
+
+  'settings.help.rules.title': 'Rules: packages, folders and what gets kept',
+  'settings.help.rules.body':
+    'The Packagizer renames a link, chooses its folder and sets its download options as it arrives, from conditions you write. The Link Filter decides whether a link is kept at all - and unlike a filter that just makes links disappear, a rejection always names the rule that made it and why.',
+  'settings.help.rules.link': 'Open Rules',
+
+  'settings.help.queue.title': 'Managing the queue',
+  'settings.help.queue.body':
+    'Pause, resume or reorder any link, alone or as a whole package. Stopping the queue is two different actions: halting it leaves anything already running untouched, so it finishes on its own, while stopping every transfer right now shows what would be lost first and only goes ahead once you confirm - a transfer that cannot resume where it left off is exactly what that warning is for.',
+  'settings.help.queue.b1': 'A single link can override the global connection count or the extract-after-download switch.',
+  'settings.help.queue.b2': 'A duplicate of a link already in the list is always refused, before it ever reaches the collector.',
+
+  'settings.help.limits.title': 'Getting through hoster limits',
+  'settings.help.limits.body':
+    'Three independent ways to stop a free-user limit from being the ceiling:',
+  'settings.help.limits.b1': 'Connections - spread downloads over more than one outbound path (a second line, a proxy, SOCKS) instead of always leaving by this machine’s own address.',
+  'settings.help.limits.b2':
+    'Reconnect - ask the router for a new public address, the only thing that actually lifts a limit keyed to the address itself (UPnP, an external program, a script, or replaying HTTP requests against the router’s admin page - existing JDownloader LiveHeader/curl scripts work unchanged).',
+  'settings.help.limits.b3':
+    'Accounts - store premium or debrid logins (Real-Debrid, AllDebrid, TorBox and others) so an eligible link is fetched at full speed instead of the free-user limit.',
+  'settings.help.limits.link1': 'Open Connections',
+  'settings.help.limits.link2': 'Open Reconnect',
+  'settings.help.limits.link3': 'Open Accounts',
+
+  'settings.help.captcha.title': 'Captcha',
+  'settings.help.captcha.body':
+    'When a hoster asks for a captcha, an automatic solver you have configured is tried first, in the order you set. Anything it cannot solve - or if none is configured - is put in front of you instead of failing silently.',
+  'settings.help.captcha.link': 'Open Captcha settings',
+
+  'settings.help.after.title': 'After the download',
+  'settings.help.after.body':
+    'Archives are extracted automatically: zip (including encrypted, both WinZip AES and the legacy ZipCrypto), rar with multi-volume sets, 7z, tar, and gzip/bzip2/xz/zstd whether or not they wrap a tar - pure Go, no external unrar or 7z binary involved. A list of passwords is tried in order for an encrypted archive. A finished file is checked against whatever checksum shipped with it: an .sfv listing, an md5/sha1/sha256sum file, or a CRC32 the release name itself carries.',
+  'settings.help.after.link1': 'Open Archives settings',
+  'settings.help.after.link2': 'Open Downloads settings',
+
+  'settings.help.schedule.title': 'Running unattended',
+  'settings.help.schedule.body':
+    'A weekly timetable pauses or throttles the queue by the clock - a nightly window, correct across the daylight-saving change - the same idea as JDownloader’s Scheduler.',
+  'settings.help.schedule.link': 'Open Schedule',
+
+  'settings.help.instances.title': 'Running more than one instance',
+  'settings.help.instances.body':
+    'Add another KnightLoader as a peer and its queue shows up on this one’s dashboard too - self-hosted, no relay involved: this instance simply calls that instance’s own API, the same way a browser would.',
+  'settings.help.instances.link': 'Open Instances',
+
+  'settings.help.access.title': 'Access and troubleshooting',
+  'settings.help.access.body':
+    'A password locks the whole interface down to a session cookie. The Access page also lists the intake ports and access methods this build has, and why - so an unfamiliar open port has an answer instead of a guess. The Diagnostics page builds a file to attach to a bug report: version and build info, the current settings with every password removed, this process’s own recent log lines, and how many goroutines are running.',
+  'settings.help.access.link1': 'Open Access settings',
+  'settings.help.access.link2': 'Open Diagnostics',
+
+  'settings.help.advanced.title': 'Everything else',
+  'settings.help.advanced.body':
+    'Every setting this build has can be read and changed by its raw name on the Advanced page, including a few - how a mirror of an already-downloaded file is treated, what happens when a download would land on a name already taken - that do not have a dedicated control anywhere else yet.',
+  'settings.help.advanced.link': 'Open Advanced settings',
 } as const;
 
 export type TranslationKey = keyof typeof en;

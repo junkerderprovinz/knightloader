@@ -247,6 +247,16 @@ export interface Settings {
    * yet, behave as if this setting did not exist".
    */
   captchaSolverOrder: string[] | null;
+
+  /**
+   * What happens once the wait queue has nothing enabled left to run, start
+   * or finish, after a cancellable countdown - mirrors
+   * settings.Settings.IdleAction (internal/settings/settings.go). See
+   * IdleActionConfig below for the shape, and fetchIdleAction/cancelIdleAction
+   * for the live state this field alone cannot answer (whether the queue is
+   * idle right now, whether a countdown is actually running).
+   */
+  idleAction: IdleActionConfig;
 }
 
 /**
@@ -368,6 +378,34 @@ export interface AuthState {
 export interface Instance {
   name: string;
   url: string;
+}
+
+/**
+ * What GET /api/diagnostics answers: everything a bug report needs, and
+ * everything the downloadable bundle contains - the diagnostics page's live
+ * preview and its download button read this one shape, so there is nothing
+ * the page shows that the saved file does not also carry.
+ *
+ * `settings` is deliberately untyped further than "an object": it is the same
+ * redacted document GET /api/settings sends (see that route's own comment),
+ * carried along for whoever reads the saved file rather than rendered field
+ * by field here - Settings above is itself only a subset of what is really in
+ * it, for the same reason (see settings/context.tsx's SettingsDraft comment).
+ */
+export interface Diagnostics {
+  generatedAt: string;
+  version: string;
+  /** "container" or "desktop" (internal/buildinfo.Deployment) - which binary produced this bundle. */
+  deployment: string;
+  goVersion: string;
+  os: string;
+  arch: string;
+  goroutines: number;
+  settings: Record<string, unknown>;
+  /** How many archive passwords are configured - the values themselves are never in this bundle. */
+  archivePasswordCount: number;
+  logLines: string[];
+  logCapacity: number;
 }
 
 /**
@@ -545,6 +583,15 @@ export const apiBase = (instance: string): string =>
 export async function fetchTasks(base = '/api'): Promise<Task[]> {
   return (await json<Task[]>(await fetch(`${base}/tasks`))) ?? [];
 }
+
+/**
+ * taskFileURL is where a task's own file streams from - inline for an
+ * allowlisted type, a download prompt for everything else, decided entirely
+ * server-side (see internal/api/routes_files.go). Not fetched through this
+ * client: it is opened directly (a new tab, an <a href>), the same as any
+ * other link, so the browser's own download/viewer handling applies.
+ */
+export const taskFileURL = (id: string, base = '/api'): string => `${base}/tasks/${encodeURIComponent(id)}/file`;
 
 export async function addLinks(links: string, pkg: string, base = '/api'): Promise<Task[]> {
   const r = await fetch(`${base}/links`, {
@@ -1053,6 +1100,63 @@ export async function testAccount(service: string, account: string): Promise<Acc
   return json<Account>(await post('/api/accounts/test', { service, account }));
 }
 
+// --- The end-of-queue action -------------------------------------------
+//
+// What happens once the wait queue has nothing enabled left to run, start or
+// finish, after a cancellable countdown - internal/idleaction. The
+// configuration itself (which action, how long the countdown runs) is the
+// `idleAction` field on Settings above, saved the ordinary way through
+// saveSettings; what follows here is what that document alone cannot answer:
+// whether the queue is idle right now, whether a countdown is actually
+// running, and cancelling one.
+
+/** settings.Settings.IdleAction (internal/settings/settings.go) on the wire. */
+export interface IdleActionConfig {
+  /** 'none' | 'pause', and whatever a later build adds - see fetchIdleActions. */
+  action: string;
+  delaySeconds: number;
+}
+
+/**
+ * GET /api/idle-action, and what POST .../cancel answers with too, so a
+ * cancel button can repaint itself from the same response that confirms the
+ * cancel took effect rather than firing a second request to find out.
+ */
+export interface IdleActionState {
+  config: IdleActionConfig;
+  /** Whether the queue has nothing enabled left to do, read fresh on every
+   *  request - not merely "a countdown happens to be armed". */
+  idle: boolean;
+  armed: boolean;
+  /** Which action is armed. Absent when `armed` is false. */
+  action?: string;
+  /**
+   * The absolute instant the action fires, RFC3339, absent when `armed` is
+   * false. Absolute rather than a duration, so a reloaded page - or one that
+   * was simply asleep for a few seconds - draws the same deadline the server
+   * is counting down to instead of restarting its own clock from a number
+   * that was already stale on arrival; the same reason ScheduleState.Next
+   * and the captcha modal's own ExpiresAt are both instants, not durations.
+   */
+  fireAt?: string;
+}
+
+export async function fetchIdleAction(): Promise<IdleActionState> {
+  return json<IdleActionState>(await fetch('/api/idle-action'));
+}
+
+/** cancelIdleAction calls off a countdown in progress, without disarming the
+ *  feature for the next time the queue goes idle. */
+export async function cancelIdleAction(): Promise<IdleActionState> {
+  return json<IdleActionState>(await ok(await post('/api/idle-action/cancel', {})));
+}
+
+/** fetchIdleActions is the menu's source of truth, so it cannot offer an
+ *  action this build does not implement. */
+export async function fetchIdleActions(): Promise<string[]> {
+  return (await json<string[]>(await fetch('/api/idle-action/actions'))) ?? [];
+}
+
 // ---- resolver routing facts (internal/resolver, GET /api/resolvers/*) -----
 
 /** One resolver's identity and priority - resolver.Info (internal/resolver/resolver.go). */
@@ -1311,6 +1415,55 @@ export async function setPassword(current: string, next: string): Promise<AuthSt
 
 export async function fetchHealth(): Promise<{ status: string; version: string }> {
   return json(await fetch('/api/health'));
+}
+
+// fetchDiagnostics is called both to render the diagnostics page's live
+// preview and, again, right before a download - the bundle is meant to
+// reflect the moment it was pulled, not whatever the page happened to load
+// with (log lines and the goroutine count move constantly, and both are the
+// point of the bundle).
+export async function fetchDiagnostics(): Promise<Diagnostics> {
+  return json<Diagnostics>(await fetch('/api/diagnostics'));
+}
+
+/** What internal/api/routes_lifecycle.go's DeploymentInfo answers - which build this is and what quit/restart actually do here. */
+export interface DeploymentInfo {
+  deployment: string;
+  canQuit: boolean;
+  canRestart: boolean;
+  note: string;
+}
+
+export async function fetchDeploymentInfo(): Promise<DeploymentInfo> {
+  return json<DeploymentInfo>(await fetch('/api/system/deployment'));
+}
+
+export async function requestQuit(): Promise<{ status: string }> {
+  return json(await fetch('/api/system/quit', { method: 'POST' }));
+}
+
+export async function requestRestart(): Promise<{ status: string }> {
+  return json(await fetch('/api/system/restart', { method: 'POST' }));
+}
+
+/**
+ * Where a backup archive streams from - opened directly (an <a href> or
+ * window.location, same as taskFileURL above), never fetched through this
+ * client: the browser's own download handling is what a multi-hundred-MB
+ * database export needs.
+ */
+export const BACKUP_DOWNLOAD_URL = '/api/system/backup';
+
+export interface RestoreResult {
+  manifest: { version: string; deployment: string; createdAt: string };
+  restarting: boolean;
+  status: string;
+}
+
+export async function uploadRestore(file: File): Promise<RestoreResult> {
+  const body = new FormData();
+  body.append('file', file);
+  return json(await fetch('/api/system/restore', { method: 'POST', body }));
 }
 
 export async function fetchInstances(): Promise<Instance[]> {

@@ -59,6 +59,11 @@ func registerAll(reg *Registry, a *app.App) {
 	registerCaptcha(reg, a)
 	registerCaptchaSkip(reg, a)
 	registerCaptchaWidget(reg, a)
+	registerDiagnostics(reg, a)
+	registerFiles(reg, a)
+	registerLifecycle(reg, a)
+	registerBackup(reg, a)
+	registerIdleAction(reg, a)
 }
 
 // AnyMethod is the method of a route that answers whatever it is sent, because

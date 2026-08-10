@@ -1029,4 +1029,173 @@ export const sk: Dict = {
     'Skryje oznámenia o úspechu a informačné oznámenia. Chyba, captcha čakajúca na teba alebo pozastavený účet sa stále zobrazujú.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Naposledy zmenené',
+
+  'file.open': 'Otvoriť',
+  'file.openNatively': 'Otvoriť predvolenou aplikáciou',
+  'file.revealInFolder': 'Zobraziť v priečinku',
+  'file.desktopOnly': 'Len v desktopovej aplikácii',
+
+  'settings.schedule.title': 'Plán',
+  'settings.schedule.subtitle': 'Pozastaviť, obnoviť alebo obmedziť rýchlosť sťahovania podľa plánu.',
+  'settings.schedule.listTitle': 'Časový rozvrh',
+  'settings.schedule.orderHint':
+    'Riadky sa uplatňujú v poradí, zhora nadol, a keď sa dve okná prekrývajú, vyhráva to nižšie - široké „pauza každú noc” nad užšou výnimkou necháva výnimku platiť, zatiaľ čo tie isté dva riadky obrátene nie.',
+  'settings.schedule.add': 'Pridať okno',
+  'settings.schedule.empty': 'Front sa riadi vlastným plánom',
+  'settings.schedule.emptyHint':
+    'Nie je nastavené žiadne okno, takže tu nič nepozastavuje ani neobmedzuje front podľa hodín. Pridajte jedno, aby ste cez noc pozdržali sťahovania alebo obmedzili rýchlosť, keď sami používate pripojenie.',
+  'settings.schedule.use': 'Použiť toto okno',
+  'settings.schedule.moveUp': 'Posunúť nahor',
+  'settings.schedule.moveDown': 'Posunúť nadol',
+  'settings.schedule.remove': 'Odstrániť toto okno',
+  'settings.schedule.edit': 'Upraviť toto okno',
+  'settings.schedule.name': 'Názov',
+  'settings.schedule.namePlaceholder': 'napr. Nočná pauza',
+  'settings.schedule.days': 'Dni',
+  'settings.schedule.daysHint':
+    'V ktoré dni týždňa sa toto okno otvára. Pri okne, ktoré presahuje polnoc, zaškrtnite deň, kedy ZAČÍNA - „pi 22:00-06:00” končí v sobotu ráno bez toho, aby bola zaškrtnutá samotná sobota.',
+  'settings.schedule.preset.every': 'Každý deň',
+  'settings.schedule.preset.weekdays': 'Pracovné dni',
+  'settings.schedule.preset.weekends': 'Víkendy',
+  'settings.schedule.preset.custom': 'Vlastné',
+  'settings.schedule.start': 'Začiatok',
+  'settings.schedule.end': 'Koniec',
+  'settings.schedule.endHint':
+    'Pred časom začiatku toto okno presahuje polnoc a končí nasledujúce ráno. Čas konca zhodný s časom začiatku je odmietnutý - mohlo by to znamenať celý deň alebo žiadny čas, a hádanie, čo sa myslelo, je horšie ako opýtať sa.',
+  'settings.schedule.action': 'Akcia',
+  'settings.schedule.action.pause': 'Pauza',
+  'settings.schedule.action.resume': 'Obnovenie',
+  'settings.schedule.action.limit': 'Obmedziť rýchlosť',
+  'settings.schedule.limit': 'Obmedzenie rýchlosti',
+  'settings.schedule.disabledOff': 'Toto okno je zaparkované a nikdy sa nespustí. Front sa správa, akoby tento riadok vôbec neexistoval.',
+  'settings.schedule.activeNow': 'Teraz aktívne, do {time}',
+  'settings.schedule.next': 'Ďalšie: {when}',
+  'settings.schedule.never': 'Podľa aktuálneho nastavenia sa nikdy nespustí',
+  'settings.schedule.stateNow.paused': 'Front je práve teraz pozastavený plánom.',
+  'settings.schedule.stateNow.limited': 'Front je práve teraz obmedzený na {rate} plánom.',
+  'settings.schedule.stateNow.running': 'Práve teraz neplatí žiadne okno.',
+  'settings.schedule.nextChange': 'Ďalšia zmena: {when}',
+  'settings.schedule.noNextChange': 'Nič v tabuľke nikdy nezmení front podľa aktuálneho nastavenia.',
+  'settings.schedule.save': 'Uložiť plán',
+  'settings.schedule.discard': 'Zahodiť',
+  'settings.schedule.unsaved': 'Neuložené zmeny v pláne',
+  'settings.schedule.saveFailed': 'Plán sa nepodarilo uložiť: {error}',
+  'settings.schedule.rowError': 'Riadok {row}: {error}',
+
+  'idleAction.title': 'Front je nečinný',
+  'idleAction.action.pause': 'Pozastavuje sa',
+  'idleAction.actionFallback': '„{action}” prebieha',
+  'idleAction.in': 'o {countdown}',
+  'idleAction.cancel': 'Zrušiť',
+  'idleAction.cancelling': 'Ruší sa…',
+  'idleAction.cancelFailed': 'Zrušenie zlyhalo: server neodpovedal.',
+
+  'settings.idleAction.label': 'Akcia po vyprázdnení frontu',
+  'settings.idleAction.hint':
+    'Čo sa stane, hneď ako nič nebeží, nečaká vo fronte ani nie je pripravené začať. Odkaz, ktorý ste vypli, sa pritom nepočíta - pozrite bublinu s informáciou.',
+  'settings.idleAction.info':
+    'Odkaz, ktorý ste vypli, sa nikdy nepočíta ako zostávajúca práca, takže nemôže toto odkladať navždy. Ručne pozastavený alebo podržaný odkaz sa stále počíta - oboje znamená „chvíľu počkať”, nie „nikdy”.',
+  'settings.idleAction.none': 'Nič nerobiť',
+  'settings.idleAction.pause': 'Pozastaviť front',
+  'settings.idleAction.delay': 'Odpočítavanie (sekundy)',
+  'settings.idleAction.delayHint':
+    'Koľko času máte na zrušenie, kým sa akcia vykoná, hneď ako front skutočne zaháľa.',
+
+  'settings.nav.diagnostics': 'Diagnostika',
+  'settings.diagnostics.subtitle':
+    'Čo je tento build, na čom beží, a jeho vlastný nedávny výstup denníka - na priloženie k hláseniu chyby.',
+  'settings.diagnostics.version': 'Verzia',
+  'settings.diagnostics.deployment': 'Build',
+  'settings.diagnostics.deployment.container': 'Kontajner',
+  'settings.diagnostics.deployment.desktop': 'Desktop',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'Platforma',
+  'settings.diagnostics.goroutines': 'Goroutiny',
+  'settings.diagnostics.download': 'Stiahnuť diagnostický balík',
+  'settings.diagnostics.downloading': 'Pripravuje sa…',
+  'settings.diagnostics.downloadHint':
+    'Súbor JSON s poľami vyššie, vaším nastavením so všetkými heslami odstránenými, a riadkami denníka nižšie.',
+  'settings.diagnostics.downloadFailed': 'Balík sa nepodarilo vytvoriť: {error}',
+  'settings.diagnostics.logTitle': 'Nedávne riadky denníka',
+  'settings.diagnostics.logHint':
+    'Posledných {n} riadkov, ktoré tento proces zaznamenal, najstaršie prvé. Sem sa nič nezapisuje na disk.',
+  'settings.diagnostics.logEmpty': 'Zatiaľ nič nezaznamenané.',
+  'settings.diagnostics.refresh': 'Obnoviť',
+  'settings.diagnostics.loadFailed': 'Diagnostiku sa nepodarilo načítať. Beží server?',
+
+  'settings.nav.help': 'Pomocník',
+  'settings.help.intro':
+    'Čo tento build dokáže, usporiadané podľa úlohy, nie podľa stránky nastavení. Každá časť odkazuje tam, kde sa to nastavuje.',
+
+  'settings.help.intake.title': 'Pridávanie sťahovaní',
+  'settings.help.intake.body':
+    'Vložte odkazy do Kolektora - jeden na riadok, alebo neusporiadaný text: vyhľadávanie nájde odkazy nech sú kdekoľvek, uprostred vety, viac na riadok, alebo rozdelené poštovým klientom na dva riadky.',
+  'settings.help.intake.b1': 'Pretiahnite súbor kontajnera odkazov (.dlc, .ccf, .rsdf) alebo obyčajný zoznam odkazov.',
+  'settings.help.intake.b2':
+    "Tlačidlá Click'n'Load na stránkach hosterov a fór fungujú nezmenené - KnightLoader odpovedá na 127.0.0.1:9666, na rovnakom porte, aký používa každý iný správca sťahovania.",
+  'settings.help.intake.b3':
+    'Vložte URL stránky namiesto odkazu na súbor a zapnite Prehľadávanie, aby sa vytiahol každý súbor, na ktorý odkazuje, namiesto sťahovania samotnej stránky.',
+  'settings.help.intake.b4': 'Sledovaný priečinok automaticky prevezme súbory .txt/.crawljob, ktoré sa doň vložia.',
+  'settings.help.intake.link1': 'Otvoriť nastavenia Sťahovania',
+  'settings.help.intake.link2': "Otvoriť nastavenia Prístupu (Click'n'Load)",
+
+  'settings.help.collector.title': 'Kolektor, kým sa čokoľvek stiahne',
+  'settings.help.collector.body':
+    'Nové odkazy prídu najprv do Kolektora, nie do frontu: prechodná zóna na kontrolu názvov, veľkostí a upozornení na duplicity, kým čokoľvek začne. Automatické potvrdenie môže tento krok preskočiť, s voliteľným oneskorením; po potvrdení odkaz buď začne hneď, alebo čaká vo fronte, podľa automatického spustenia.',
+  'settings.help.collector.link': 'Otvoriť Všeobecné nastavenia',
+
+  'settings.help.rules.title': 'Pravidlá: balíky, priečinky a čo zostáva',
+  'settings.help.rules.body':
+    'Packagizer premenuje odkaz, vyberie jeho priečinok a nastaví jeho možnosti sťahovania pri príchode, na základe podmienok, ktoré napíšete. Filter odkazov rozhoduje, či odkaz vôbec zostane - a na rozdiel od filtra, ktorý odkazy jednoducho necháva zmiznúť, odmietnutie vždy uvedie pravidlo, ktoré ho spôsobilo, a prečo.',
+  'settings.help.rules.link': 'Otvoriť Pravidlá',
+
+  'settings.help.queue.title': 'Správa frontu',
+  'settings.help.queue.body':
+    'Pozastavte, obnovte alebo preusporiadajte ľubovoľný odkaz, samostatne alebo ako celý balík. Zastavenie frontu sú dve odlišné akcie: zastavenie necháva to, čo už beží, nedotknuté, aby to dobehlo samo, zatiaľ čo okamžité zastavenie všetkých prenosov najprv ukáže, čo by sa stratilo, a pokračuje až po vašom potvrdení - presne na to je toto upozornenie pri prenose, ktorý nemôže pokračovať tam, kde prestal.',
+  'settings.help.queue.b1': 'Jeden odkaz môže prepísať globálny počet pripojení alebo prepínač rozbalenia po stiahnutí.',
+  'settings.help.queue.b2': 'Duplicita odkazu už prítomného v zozname je vždy odmietnutá, ešte skôr, než sa vôbec dostane do Kolektora.',
+
+  'settings.help.limits.title': 'Obchádzanie limitov hostera',
+  'settings.help.limits.body': 'Tri nezávislé spôsoby, ako zabrániť tomu, aby bol voľný limit stropom:',
+  'settings.help.limits.b1':
+    'Pripojenia - rozložte sťahovania na viac ako jednu odchádzajúcu cestu (druhú linku, proxy, SOCKS), namiesto toho, aby ste stále vychádzali cez vlastnú adresu tohto počítača.',
+  'settings.help.limits.b2':
+    'Opätovné pripojenie - požiadajte router o novú verejnú adresu, jediné, čo naozaj zdvihne limit viazaný na samotnú adresu (UPnP, externý program, skript, alebo prehratie HTTP požiadaviek proti administračnej stránke routera - existujúce skripty JDownloader LiveHeader/curl fungujú nezmenené).',
+  'settings.help.limits.b3':
+    'Účty - uložte prihlasovacie údaje premium alebo debrid (Real-Debrid, AllDebrid, TorBox a ďalšie), aby sa oprávnený odkaz sťahoval plnou rýchlosťou namiesto voľného limitu.',
+  'settings.help.limits.link1': 'Otvoriť Pripojenia',
+  'settings.help.limits.link2': 'Otvoriť Opätovné pripojenie',
+  'settings.help.limits.link3': 'Otvoriť Účty',
+
+  'settings.help.captcha.title': 'Captcha',
+  'settings.help.captcha.body':
+    'Keď hoster vyžiada captchu, najprv sa vyskúša automatický riešiteľ, ktorý ste nastavili, v poradí, ktoré ste určili. To, čo nedokáže vyriešiť - alebo ak žiadny nie je nastavený - sa predloží vám, namiesto toho, aby to potichu zlyhalo.',
+  'settings.help.captcha.link': 'Otvoriť nastavenia Captcha',
+
+  'settings.help.after.title': 'Po stiahnutí',
+  'settings.help.after.body':
+    'Archívy sa automaticky rozbalia: zip (vrátane šifrovaného, ako WinZip AES, tak staršieho ZipCrypto), rar s viacdielnymi sadami, 7z, tar, a gzip/bzip2/xz/zstd bez ohľadu na to, či obaľujú tar - čisté Go, bez externých programov unrar alebo 7z. Pre šifrovaný archív sa postupne vyskúša zoznam hesiel. Dokončený súbor sa overí voči akémukoľvek kontrolnému súčtu, ktorý k nemu patrí: zoznamu .sfv, súboru md5/sha1/sha256sum, alebo CRC32, ktorý nesie samotný názov vydania.',
+  'settings.help.after.link1': 'Otvoriť nastavenia Archívov',
+  'settings.help.after.link2': 'Otvoriť nastavenia Sťahovania',
+
+  'settings.help.schedule.title': 'Beh bez dozoru',
+  'settings.help.schedule.body':
+    'Týždenný plán pozastavuje alebo obmedzuje front podľa hodín - nočné okno, správne aj cez zmenu letného času - rovnaká myšlienka ako Scheduler v JDownloaderi.',
+  'settings.help.schedule.link': 'Otvoriť Plán',
+
+  'settings.help.instances.title': 'Spustenie viac ako jednej inštancie',
+  'settings.help.instances.body':
+    'Pridajte ďalší KnightLoader ako partnera a jeho front sa zobrazí aj na tomto paneli - samostatne hosťované, bez akéhokoľvek relé: táto inštancia jednoducho volá API druhej inštancie, rovnako, ako by to urobil prehliadač.',
+  'settings.help.instances.link': 'Otvoriť Inštancie',
+
+  'settings.help.access.title': 'Prístup a riešenie problémov',
+  'settings.help.access.body':
+    'Heslo uzamkne celé rozhranie za reláciovým cookie. Stránka Prístup tiež uvádza vstupné porty a metódy prístupu tohto buildu, a prečo - aby mal neznámy otvorený port odpoveď namiesto dohadu. Stránka Diagnostika vytvorí súbor na priloženie k hláseniu chyby: verziu a informácie o builde, aktuálne nastavenia so všetkými heslami odstránenými, nedávne riadky denníka tohto procesu, a koľko goroutín beží.',
+  'settings.help.access.link1': 'Otvoriť nastavenia Prístupu',
+  'settings.help.access.link2': 'Otvoriť Diagnostiku',
+
+  'settings.help.advanced.title': 'Všetko ostatné',
+  'settings.help.advanced.body':
+    'Každé nastavenie tohto buildu je možné prečítať a zmeniť podľa jeho surového názvu na stránke Pokročilé, vrátane niekoľkých - ako sa zaobchádza so zrkadlom už stiahnutého súboru, čo sa stane, keď by sťahovanie skončilo na už použitom názve - ktoré ešte nemajú vlastný ovládací prvok inde.',
+  'settings.help.advanced.link': 'Otvoriť nastavenia Pokročilé',
 };

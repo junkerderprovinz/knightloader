@@ -1029,4 +1029,173 @@ export const cs: Dict = {
     'Skryje oznámení o úspěchu a informační oznámení. Chyba, captcha čekající na vás nebo pozastavený účet se stále zobrazují.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Naposledy změněno',
+
+  'file.open': 'Otevřít',
+  'file.openNatively': 'Otevřít výchozí aplikací',
+  'file.revealInFolder': 'Zobrazit ve složce',
+  'file.desktopOnly': 'Jen v desktopové aplikaci',
+
+  'settings.schedule.title': 'Plán',
+  'settings.schedule.subtitle': 'Pozastavit, obnovit nebo omezit rychlost stahování podle plánu.',
+  'settings.schedule.listTitle': 'Časový plán',
+  'settings.schedule.orderHint':
+    'Řádky se použijí popořadě, shora dolů, a když se dvě okna překrývají, vyhrává to níže - široké „pauza každou noc” nad užší výjimkou nechá výjimku platit, zatímco stejné dva řádky obráceně ne.',
+  'settings.schedule.add': 'Přidat okno',
+  'settings.schedule.empty': 'Fronta se řídí vlastním plánem',
+  'settings.schedule.emptyHint':
+    'Není nastaveno žádné okno, takže tady nic nepozastavuje ani neomezuje frontu podle hodin. Přidejte jedno, abyste přes noc pozdrželi stahování nebo omezili rychlost, když sami používáte připojení.',
+  'settings.schedule.use': 'Použít toto okno',
+  'settings.schedule.moveUp': 'Posunout nahoru',
+  'settings.schedule.moveDown': 'Posunout dolů',
+  'settings.schedule.remove': 'Odstranit toto okno',
+  'settings.schedule.edit': 'Upravit toto okno',
+  'settings.schedule.name': 'Název',
+  'settings.schedule.namePlaceholder': 'např. Noční pauza',
+  'settings.schedule.days': 'Dny',
+  'settings.schedule.daysHint':
+    'Ve které dny v týdnu se toto okno otevírá. U okna, které přesahuje přes půlnoc, zaškrtněte den, kdy ZAČÍNÁ - „pá 22:00-06:00” končí v sobotu ráno, aniž by byla zaškrtnutá sama sobota.',
+  'settings.schedule.preset.every': 'Každý den',
+  'settings.schedule.preset.weekdays': 'Pracovní dny',
+  'settings.schedule.preset.weekends': 'Víkendy',
+  'settings.schedule.preset.custom': 'Vlastní',
+  'settings.schedule.start': 'Začátek',
+  'settings.schedule.end': 'Konec',
+  'settings.schedule.endHint':
+    'Před časem začátku toto okno přesahuje přes půlnoc a končí následující ráno. Čas konce shodný s časem začátku je odmítnut - mohlo by to znamenat celý den, nebo žádný čas, a hádat, co bylo myšleno, je horší než se zeptat.',
+  'settings.schedule.action': 'Akce',
+  'settings.schedule.action.pause': 'Pauza',
+  'settings.schedule.action.resume': 'Obnovení',
+  'settings.schedule.action.limit': 'Omezit rychlost',
+  'settings.schedule.limit': 'Omezení rychlosti',
+  'settings.schedule.disabledOff': 'Toto okno je zaparkované a nikdy se nespustí. Fronta se chová, jako by tento řádek vůbec nebyl.',
+  'settings.schedule.activeNow': 'Nyní aktivní, do {time}',
+  'settings.schedule.next': 'Další: {when}',
+  'settings.schedule.never': 'Podle nastavení se nikdy nespustí',
+  'settings.schedule.stateNow.paused': 'Fronta je teď pozastavená plánem.',
+  'settings.schedule.stateNow.limited': 'Fronta je teď omezená na {rate} plánem.',
+  'settings.schedule.stateNow.running': 'Právě teď neplatí žádné okno.',
+  'settings.schedule.nextChange': 'Další změna: {when}',
+  'settings.schedule.noNextChange': 'Nic v tabulce nikdy nezmění frontu podle nastavení.',
+  'settings.schedule.save': 'Uložit plán',
+  'settings.schedule.discard': 'Zahodit',
+  'settings.schedule.unsaved': 'Neuložené změny v plánu',
+  'settings.schedule.saveFailed': 'Plán se nepodařilo uložit: {error}',
+  'settings.schedule.rowError': 'Řádek {row}: {error}',
+
+  'idleAction.title': 'Fronta je nečinná',
+  'idleAction.action.pause': 'Pozastavuje se',
+  'idleAction.actionFallback': '„{action}” probíhá',
+  'idleAction.in': 'za {countdown}',
+  'idleAction.cancel': 'Zrušit',
+  'idleAction.cancelling': 'Ruší se…',
+  'idleAction.cancelFailed': 'Zrušení se nezdařilo: server neodpověděl.',
+
+  'settings.idleAction.label': 'Akce na konci fronty',
+  'settings.idleAction.hint':
+    'Co se stane, jakmile nic neběží, nečeká ve frontě ani není připraveno začít. Odkaz, který jste vypnuli, se přitom nepočítá - viz bublina s informací.',
+  'settings.idleAction.info':
+    'Odkaz, který jste vypnuli, se nikdy nepočítá jako zbývající práce, takže nemůže tohle odkládat navždy. Ručně pozastavený nebo podržený odkaz se stále počítá - obojí znamená „chvíli počkat”, ne „nikdy”.',
+  'settings.idleAction.none': 'Nic nedělat',
+  'settings.idleAction.pause': 'Pozastavit frontu',
+  'settings.idleAction.delay': 'Odpočet (sekundy)',
+  'settings.idleAction.delayHint':
+    'Kolik času máte na zrušení, než se akce provede, jakmile fronta doopravdy zahálí.',
+
+  'settings.nav.diagnostics': 'Diagnostika',
+  'settings.diagnostics.subtitle':
+    'Co je tento build, na čem běží, a jeho vlastní nedávný výstup záznamu - k přiložení k hlášení chyby.',
+  'settings.diagnostics.version': 'Verze',
+  'settings.diagnostics.deployment': 'Build',
+  'settings.diagnostics.deployment.container': 'Kontejner',
+  'settings.diagnostics.deployment.desktop': 'Desktop',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'Platforma',
+  'settings.diagnostics.goroutines': 'Goroutiny',
+  'settings.diagnostics.download': 'Stáhnout diagnostický balíček',
+  'settings.diagnostics.downloading': 'Připravuje se…',
+  'settings.diagnostics.downloadHint':
+    'Soubor JSON s poli výše, vaším nastavením se všemi hesly odstraněnými, a řádky záznamu níže.',
+  'settings.diagnostics.downloadFailed': 'Balíček se nepodařilo vytvořit: {error}',
+  'settings.diagnostics.logTitle': 'Nedávné řádky záznamu',
+  'settings.diagnostics.logHint':
+    'Posledních {n} řádků, které tento proces zaznamenal, nejstarší první. Sem se nic nezapisuje na disk.',
+  'settings.diagnostics.logEmpty': 'Zatím nic nezaznamenáno.',
+  'settings.diagnostics.refresh': 'Obnovit',
+  'settings.diagnostics.loadFailed': 'Diagnostiku se nepodařilo načíst. Je server dostupný?',
+
+  'settings.nav.help': 'Nápověda',
+  'settings.help.intro':
+    'Co tento build umí, uspořádané podle úkolu, ne podle stránky nastavení. Každá část odkazuje tam, kde se to nastavuje.',
+
+  'settings.help.intake.title': 'Přidávání stahování',
+  'settings.help.intake.body':
+    'Vložte odkazy do Kolektoru - jeden na řádek, nebo neuspořádaný text: hledání najde odkazy, ať jsou kdekoli, uprostřed věty, více na řádek, nebo rozdělené na dva řádky poštovním klientem.',
+  'settings.help.intake.b1': 'Přetáhněte soubor kontejneru odkazů (.dlc, .ccf, .rsdf) nebo obyčejný seznam odkazů.',
+  'settings.help.intake.b2':
+    "Tlačítka Click'n'Load na stránkách hosterů a fór fungují beze změny - KnightLoader odpovídá na 127.0.0.1:9666, stejném portu, jaký používá každý jiný správce stahování.",
+  'settings.help.intake.b3':
+    'Vložte URL stránky místo odkazu na soubor a zapněte Procházení, aby se vytáhl každý soubor, na který odkazuje, místo stahování samotné stránky.',
+  'settings.help.intake.b4': 'Sledovaná složka automaticky vyzvedne soubory .txt/.crawljob, které se do ní vloží.',
+  'settings.help.intake.link1': 'Otevřít nastavení Stahování',
+  'settings.help.intake.link2': "Otevřít nastavení Přístupu (Click'n'Load)",
+
+  'settings.help.collector.title': 'Kolektor, než se cokoli stáhne',
+  'settings.help.collector.body':
+    'Nové odkazy přistanou nejdřív v Kolektoru, ne ve frontě: přechodná zóna pro kontrolu názvů, velikostí a upozornění na duplicity, než cokoli začne. Automatické potvrzení může tento krok přeskočit, s volitelným zpožděním; jakmile je potvrzeno, odkaz buď začne hned, nebo čeká ve frontě, podle automatického spuštění.',
+  'settings.help.collector.link': 'Otevřít Obecná nastavení',
+
+  'settings.help.rules.title': 'Pravidla: balíčky, složky a co zůstane',
+  'settings.help.rules.body':
+    'Packagizer přejmenuje odkaz, vybere jeho složku a nastaví jeho možnosti stahování při příchodu, na základě podmínek, které napíšete. Filtr odkazů rozhoduje, jestli odkaz vůbec zůstane - a na rozdíl od filtru, který odkazy prostě nechá zmizet, odmítnutí vždy uvede pravidlo, které ho způsobilo, a proč.',
+  'settings.help.rules.link': 'Otevřít Pravidla',
+
+  'settings.help.queue.title': 'Správa fronty',
+  'settings.help.queue.body':
+    'Pozastavte, obnovte nebo přeuspořádejte libovolný odkaz, samostatně nebo jako celý balíček. Zastavení fronty jsou dvě různé akce: zastavení nechá to, co už běží, netknuté, aby to samo doběhlo, zatímco okamžité zastavení všech přenosů nejdřív ukáže, co by se ztratilo, a pokračuje až po vašem potvrzení - přesně na to je to varování u přenosu, který nemůže pokračovat tam, kde přestal.',
+  'settings.help.queue.b1': 'Jeden odkaz může přepsat globální počet připojení nebo přepínač rozbalení po stažení.',
+  'settings.help.queue.b2': 'Duplicita odkazu už přítomného v seznamu je vždy odmítnuta, ještě než se vůbec dostane do kolektoru.',
+
+  'settings.help.limits.title': 'Obcházení limitů hostera',
+  'settings.help.limits.body': 'Tři nezávislé způsoby, jak zabránit tomu, aby byl volný limit stropem:',
+  'settings.help.limits.b1':
+    'Připojení - rozložte stahování na víc než jednu odchozí cestu (druhou linku, proxy, SOCKS), místo abyste pořád vycházeli přes vlastní adresu tohoto počítače.',
+  'settings.help.limits.b2':
+    'Znovupřipojení - požádejte router o novou veřejnou adresu, jediné, co opravdu zvedne limit vázaný na samotnou adresu (UPnP, externí program, skript, nebo přehrání HTTP požadavků proti administrační stránce routeru - stávající skripty JDownloader LiveHeader/curl fungují beze změny).',
+  'settings.help.limits.b3':
+    'Účty - uložte si přihlašovací údaje premium nebo debrid (Real-Debrid, AllDebrid, TorBox a další), aby se způsobilý odkaz stahoval plnou rychlostí místo volného limitu.',
+  'settings.help.limits.link1': 'Otevřít Připojení',
+  'settings.help.limits.link2': 'Otevřít Znovupřipojení',
+  'settings.help.limits.link3': 'Otevřít Účty',
+
+  'settings.help.captcha.title': 'Captcha',
+  'settings.help.captcha.body':
+    'Když hoster vyžádá captchu, nejdřív se zkusí automatický řešitel, který jste nastavili, v pořadí, které jste určili. Co nedokáže vyřešit - nebo pokud žádný není nastavený - se předloží vám, místo aby to potichu selhalo.',
+  'settings.help.captcha.link': 'Otevřít nastavení Captcha',
+
+  'settings.help.after.title': 'Po stažení',
+  'settings.help.after.body':
+    'Archivy se automaticky rozbalí: zip (včetně šifrovaného, jak WinZip AES, tak starší ZipCrypto), rar s vícedílnými sadami, 7z, tar, a gzip/bzip2/xz/zstd ať už obalují tar nebo ne - čisté Go, bez externího programu unrar nebo 7z. U šifrovaného archivu se popořadě zkusí seznam hesel. Dokončený soubor se ověří proti jakémukoli kontrolnímu součtu, který k němu patří: seznamu .sfv, souboru md5/sha1/sha256sum, nebo CRC32, který nese samotný název vydání.',
+  'settings.help.after.link1': 'Otevřít nastavení Archivů',
+  'settings.help.after.link2': 'Otevřít nastavení Stahování',
+
+  'settings.help.schedule.title': 'Běh bez dozoru',
+  'settings.help.schedule.body':
+    'Týdenní plán pozastavuje nebo omezuje frontu podle hodin - noční okno, správné i přes změnu letního času - stejná myšlenka jako Scheduler v JDownloaderu.',
+  'settings.help.schedule.link': 'Otevřít Plán',
+
+  'settings.help.instances.title': 'Provoz více než jedné instance',
+  'settings.help.instances.body':
+    'Přidejte další KnightLoader jako partnera a jeho fronta se objeví i na tomto panelu - vlastní hosting, žádné relé není zapojeno: tato instance prostě volá API té druhé instance, stejně jako by to udělal prohlížeč.',
+  'settings.help.instances.link': 'Otevřít Instance',
+
+  'settings.help.access.title': 'Přístup a řešení problémů',
+  'settings.help.access.body':
+    'Heslo uzamkne celé rozhraní za relační cookie. Stránka Přístup také vypisuje vstupní porty a metody přístupu tohoto buildu, a proč - aby měl neznámý otevřený port odpověď místo dohadu. Stránka Diagnostika vytvoří soubor k přiložení k hlášení chyby: verzi a informace o buildu, aktuální nastavení se všemi hesly odstraněnými, nedávné řádky záznamu tohoto procesu, a kolik goroutin běží.',
+  'settings.help.access.link1': 'Otevřít nastavení Přístupu',
+  'settings.help.access.link2': 'Otevřít Diagnostiku',
+
+  'settings.help.advanced.title': 'Všechno ostatní',
+  'settings.help.advanced.body':
+    'Každé nastavení tohoto buildu lze přečíst a změnit podle jeho syrového názvu na stránce Pokročilé, včetně několika - jak se zachází se zrcadlem už staženého souboru, co se stane, když by stahování skončilo na už použitém názvu - které zatím nemají vlastní ovládání nikde jinde.',
+  'settings.help.advanced.link': 'Otevřít nastavení Pokročilé',
 };

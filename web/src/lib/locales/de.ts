@@ -1029,4 +1029,174 @@ export const de: Dict = {
     'Blendet Erfolgs- und Info-Benachrichtigungen aus. Ein Fehler, ein Captcha, das auf dich wartet, oder ein pausiertes Konto werden weiterhin angezeigt.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Zuletzt geändert',
+
+  'file.open': 'Öffnen',
+  'file.openNatively': 'Mit Standardprogramm öffnen',
+  'file.revealInFolder': 'Im Ordner anzeigen',
+  'file.desktopOnly': 'Nur in der Desktop-App',
+
+  'settings.schedule.title': 'Zeitplan',
+  'settings.schedule.subtitle': 'Die Downloadgeschwindigkeit nach einem Zeitplan pausieren, fortsetzen oder begrenzen.',
+  'settings.schedule.listTitle': 'Zeittabelle',
+  'settings.schedule.orderHint':
+    'Zeilen werden der Reihe nach angewendet, von oben nach unten, und bei zwei überlappenden Zeitfenstern gewinnt die spätere - eine weit gefasste „jede Nacht pausieren“ über einer engeren Ausnahme lässt die Ausnahme in Kraft, dieselben zwei Zeilen andersherum nicht.',
+  'settings.schedule.add': 'Zeitfenster hinzufügen',
+  'settings.schedule.empty': 'Die Warteschlange folgt ihrem eigenen Zeitplan',
+  'settings.schedule.emptyHint':
+    'Es sind keine Zeitfenster eingerichtet, daher pausiert oder begrenzt hier nichts die Warteschlange nach der Uhrzeit. Füge eins hinzu, um Downloads über Nacht anzuhalten oder die Geschwindigkeit zu begrenzen, während du selbst die Verbindung nutzt.',
+  'settings.schedule.use': 'Dieses Zeitfenster verwenden',
+  'settings.schedule.moveUp': 'Nach oben verschieben',
+  'settings.schedule.moveDown': 'Nach unten verschieben',
+  'settings.schedule.remove': 'Dieses Zeitfenster entfernen',
+  'settings.schedule.edit': 'Dieses Zeitfenster bearbeiten',
+  'settings.schedule.name': 'Name',
+  'settings.schedule.namePlaceholder': 'z. B. Nachtpause',
+  'settings.schedule.days': 'Tage',
+  'settings.schedule.daysHint':
+    'An welchen Wochentagen dieses Zeitfenster öffnet. Bei einem Zeitfenster, das über Mitternacht hinausläuft, markiere den Tag, an dem es BEGINNT - „Fr 22:00-06:00“ endet Samstagfrüh, ohne dass der Samstag selbst markiert ist.',
+  'settings.schedule.preset.every': 'Jeden Tag',
+  'settings.schedule.preset.weekdays': 'Wochentage',
+  'settings.schedule.preset.weekends': 'Wochenenden',
+  'settings.schedule.preset.custom': 'Benutzerdefiniert',
+  'settings.schedule.start': 'Start',
+  'settings.schedule.end': 'Ende',
+  'settings.schedule.endHint':
+    'Vor der Startzeit läuft dieses Zeitfenster über Mitternacht hinaus und endet am folgenden Morgen. Ist die Endzeit gleich der Startzeit, wird das abgelehnt - das könnte einen ganzen Tag oder gar keine Zeit bedeuten, und zu raten, was gemeint war, ist schlimmer als nachzufragen.',
+  'settings.schedule.action': 'Aktion',
+  'settings.schedule.action.pause': 'Pausieren',
+  'settings.schedule.action.resume': 'Fortsetzen',
+  'settings.schedule.action.limit': 'Geschwindigkeit begrenzen',
+  'settings.schedule.limit': 'Geschwindigkeitslimit',
+  'settings.schedule.disabledOff':
+    'Dieses Zeitfenster ist geparkt und feuert nie. Die Warteschlange verhält sich, als wäre diese Zeile gar nicht vorhanden.',
+  'settings.schedule.activeNow': 'Gerade aktiv, bis {time}',
+  'settings.schedule.next': 'Nächstes Mal: {when}',
+  'settings.schedule.never': 'Feuert so wie eingestellt nie',
+  'settings.schedule.stateNow.paused': 'Die Warteschlange ist gerade durch den Zeitplan pausiert.',
+  'settings.schedule.stateNow.limited': 'Die Warteschlange ist gerade durch den Zeitplan auf {rate} begrenzt.',
+  'settings.schedule.stateNow.running': 'Gerade ist kein Zeitfenster aktiv.',
+  'settings.schedule.nextChange': 'Nächste Änderung: {when}',
+  'settings.schedule.noNextChange': 'Nichts in der Tabelle wird die Warteschlange so wie eingestellt jemals verändern.',
+  'settings.schedule.save': 'Zeitplan speichern',
+  'settings.schedule.discard': 'Verwerfen',
+  'settings.schedule.unsaved': 'Nicht gespeicherte Änderungen am Zeitplan',
+  'settings.schedule.saveFailed': 'Der Zeitplan konnte nicht gespeichert werden: {error}',
+  'settings.schedule.rowError': 'Zeile {row}: {error}',
+
+  'idleAction.title': 'Die Warteschlange ist im Leerlauf',
+  'idleAction.action.pause': 'Wird pausiert',
+  'idleAction.actionFallback': '„{action}“ läuft',
+  'idleAction.in': 'in {countdown}',
+  'idleAction.cancel': 'Abbrechen',
+  'idleAction.cancelling': 'Wird abgebrochen…',
+  'idleAction.cancelFailed': 'Abbrechen fehlgeschlagen: Der Server hat nicht geantwortet.',
+
+  'settings.idleAction.label': 'Aktion am Ende der Warteschlange',
+  'settings.idleAction.hint':
+    'Was passiert, sobald nichts mehr läuft, wartet oder startbereit ist. Ein von dir deaktivierter Link zählt dabei nicht mit - siehe die Infoblase.',
+  'settings.idleAction.info':
+    "Ein von dir deaktivierter Link zählt nie als noch zu erledigende Arbeit, kann das also nicht auf ewig aufhalten. Ein manuell pausierter oder gehaltener Link zählt weiterhin mit - beides heißt ‚kurz warten’, nicht ‚nie’.",
+  'settings.idleAction.none': 'Nichts tun',
+  'settings.idleAction.pause': 'Warteschlange pausieren',
+  'settings.idleAction.delay': 'Countdown (Sekunden)',
+  'settings.idleAction.delayHint':
+    'Wie viel Zeit du hast, um abzubrechen, bevor die Aktion ausgeführt wird, sobald die Warteschlange tatsächlich in den Leerlauf geht.',
+
+  'settings.nav.diagnostics': 'Diagnose',
+  'settings.diagnostics.subtitle':
+    'Was dieser Build ist, worauf er läuft, und seine eigene aktuelle Protokollausgabe - zum Anhängen an einen Fehlerbericht.',
+  'settings.diagnostics.version': 'Version',
+  'settings.diagnostics.deployment': 'Build',
+  'settings.diagnostics.deployment.container': 'Container',
+  'settings.diagnostics.deployment.desktop': 'Desktop',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'Plattform',
+  'settings.diagnostics.goroutines': 'Goroutinen',
+  'settings.diagnostics.download': 'Diagnosepaket herunterladen',
+  'settings.diagnostics.downloading': 'Wird vorbereitet…',
+  'settings.diagnostics.downloadHint':
+    'Eine JSON-Datei mit den obigen Feldern, deinen Einstellungen mit entfernten Passwörtern und den Protokollzeilen unten.',
+  'settings.diagnostics.downloadFailed': 'Paket konnte nicht erstellt werden: {error}',
+  'settings.diagnostics.logTitle': 'Aktuelle Protokollzeilen',
+  'settings.diagnostics.logHint':
+    'Die letzten {n} Zeilen, die dieser Prozess protokolliert hat, älteste zuerst. Hier wird nichts auf die Festplatte geschrieben.',
+  'settings.diagnostics.logEmpty': 'Noch nichts protokolliert.',
+  'settings.diagnostics.refresh': 'Aktualisieren',
+  'settings.diagnostics.loadFailed': 'Diagnose konnte nicht geladen werden. Läuft der Server?',
+
+  'settings.nav.help': 'Hilfe',
+  'settings.help.intro':
+    'Was dieser Build kann, gegliedert nach Aufgabe statt nach Einstellungsseite. Jeder Abschnitt verlinkt dorthin, wo es konfiguriert wird.',
+
+  'settings.help.intake.title': 'Downloads hinzufügen',
+  'settings.help.intake.body':
+    'Links in den Sammler einfügen - einen pro Zeile, oder auch unordentlichen Text: Eine Suche findet Links, wo immer sie stehen, mitten in einem Satz, mehrere pro Zeile, oder von einem Mailprogramm über zwei Zeilen umgebrochen.',
+  'settings.help.intake.b1': 'Eine Link-Container-Datei (.dlc, .ccf, .rsdf) oder eine einfache Linkliste ablegen.',
+  'settings.help.intake.b2':
+    "Click'n'Load-Buttons auf Hoster- und Forenseiten funktionieren unverändert - KnightLoader antwortet auf 127.0.0.1:9666, demselben Port, den jeder andere Downloadmanager verwendet.",
+  'settings.help.intake.b3':
+    'Statt eines Dateilinks eine Seiten-URL einfügen und Crawlen einschalten, um jede darauf verlinkte Datei herauszuziehen, statt die Seite selbst herunterzuladen.',
+  'settings.help.intake.b4': 'Ein Überwachungsordner nimmt automatisch .txt-/.crawljob-Dateien auf, die hineingelegt werden.',
+  'settings.help.intake.link1': 'Downloads-Einstellungen öffnen',
+  'settings.help.intake.link2': "Zugriff-Einstellungen öffnen (Click'n'Load)",
+
+  'settings.help.collector.title': 'Der Sammler, bevor irgendetwas lädt',
+  'settings.help.collector.body':
+    'Neue Links landen zuerst im Sammler, nicht in der Warteschlange: ein Zwischenbereich, um Namen, Größen und Duplikatwarnungen zu prüfen, bevor irgendetwas beginnt. Automatisch bestätigen kann diesen Schritt überspringen, mit optionaler Verzögerung; einmal bestätigt, startet ein Link entweder sofort oder wartet in der Warteschlange, je nach Automatisch starten.',
+  'settings.help.collector.link': 'Allgemeine Einstellungen öffnen',
+
+  'settings.help.rules.title': 'Regeln: Pakete, Ordner und was behalten wird',
+  'settings.help.rules.body':
+    'Der Packagizer benennt einen Link um, wählt seinen Ordner und setzt seine Downloadoptionen bei Ankunft, anhand von Bedingungen, die du schreibst. Der Linkfilter entscheidet, ob ein Link überhaupt behalten wird - und anders als ein Filter, der Links einfach verschwinden lässt, nennt eine Ablehnung immer die Regel, die dafür verantwortlich war, und warum.',
+  'settings.help.rules.link': 'Regeln öffnen',
+
+  'settings.help.queue.title': 'Die Warteschlange verwalten',
+  'settings.help.queue.body':
+    'Jeden Link pausieren, fortsetzen oder neu anordnen, einzeln oder als ganzes Paket. Die Warteschlange zu stoppen ist zweierlei: Anhalten lässt bereits Laufendes unangetastet, sodass es von selbst fertig wird, während das sofortige Stoppen aller Übertragungen erst zeigt, was verloren ginge, und nur nach deiner Bestätigung fortfährt - genau dafür ist die Warnung da, wenn eine Übertragung nicht dort fortsetzen kann, wo sie aufgehört hat.',
+  'settings.help.queue.b1': 'Ein einzelner Link kann die globale Verbindungsanzahl oder den Schalter für Entpacken nach dem Download überschreiben.',
+  'settings.help.queue.b2': 'Ein Duplikat eines bereits in der Liste vorhandenen Links wird immer abgelehnt, bevor es je den Sammler erreicht.',
+
+  'settings.help.limits.title': 'Hoster-Limits umgehen',
+  'settings.help.limits.body': 'Drei unabhängige Wege, damit ein Freemium-Limit nicht die Obergrenze ist:',
+  'settings.help.limits.b1':
+    'Verbindungen - Downloads über mehr als einen ausgehenden Weg verteilen (eine zweite Leitung, einen Proxy, SOCKS), statt immer über die eigene Adresse dieser Maschine hinauszugehen.',
+  'settings.help.limits.b2':
+    'Reconnect - den Router um eine neue öffentliche Adresse bitten, das Einzige, was ein an die Adresse selbst gebundenes Limit tatsächlich aufhebt (UPnP, ein externes Programm, ein Skript, oder das Nachspielen von HTTP-Anfragen gegen die Admin-Seite des Routers - bestehende JDownloader-LiveHeader-/curl-Skripte funktionieren unverändert).',
+  'settings.help.limits.b3':
+    'Konten - Premium- oder Debrid-Logins speichern (Real-Debrid, AllDebrid, TorBox und andere), damit ein berechtigter Link mit voller Geschwindigkeit statt mit dem Freemium-Limit geladen wird.',
+  'settings.help.limits.link1': 'Verbindungen öffnen',
+  'settings.help.limits.link2': 'Reconnect öffnen',
+  'settings.help.limits.link3': 'Konten öffnen',
+
+  'settings.help.captcha.title': 'Captcha',
+  'settings.help.captcha.body':
+    'Wenn ein Hoster ein Captcha verlangt, wird zuerst ein von dir eingerichteter automatischer Löser versucht, in der von dir festgelegten Reihenfolge. Was er nicht lösen kann - oder wenn keiner eingerichtet ist - wird dir vorgelegt, statt still zu scheitern.',
+  'settings.help.captcha.link': 'Captcha-Einstellungen öffnen',
+
+  'settings.help.after.title': 'Nach dem Download',
+  'settings.help.after.body':
+    'Archive werden automatisch entpackt: zip (auch verschlüsselt, sowohl WinZip-AES als auch das ältere ZipCrypto), rar mit mehrteiligen Sets, 7z, tar sowie gzip/bzip2/xz/zstd, egal ob sie ein tar umschließen - reines Go, ohne externe unrar- oder 7z-Programme. Bei einem verschlüsselten Archiv wird eine Liste von Passwörtern der Reihe nach ausprobiert. Eine fertige Datei wird gegen jede mitgelieferte Prüfsumme geprüft: eine .sfv-Liste, eine md5-/sha1-/sha256sum-Datei, oder eine CRC32, die der Releasename selbst trägt.',
+  'settings.help.after.link1': 'Archiv-Einstellungen öffnen',
+  'settings.help.after.link2': 'Downloads-Einstellungen öffnen',
+
+  'settings.help.schedule.title': 'Unbeaufsichtigt laufen lassen',
+  'settings.help.schedule.body':
+    'Ein wöchentlicher Zeitplan pausiert oder drosselt die Warteschlange nach der Uhrzeit - ein nächtliches Zeitfenster, korrekt über die Zeitumstellung hinweg - dieselbe Idee wie JDownloaders Scheduler.',
+  'settings.help.schedule.link': 'Zeitplan öffnen',
+
+  'settings.help.instances.title': 'Mehr als eine Instanz betreiben',
+  'settings.help.instances.body':
+    'Ein weiteres KnightLoader als Partner hinzufügen, und dessen Warteschlange erscheint auch auf diesem Dashboard hier - selbst gehostet, kein Relay beteiligt: Diese Instanz ruft einfach die API der anderen Instanz auf, genauso wie es ein Browser täte.',
+  'settings.help.instances.link': 'Instanzen öffnen',
+
+  'settings.help.access.title': 'Zugriff und Fehlersuche',
+  'settings.help.access.body':
+    'Ein Passwort sperrt die ganze Oberfläche bis auf ein Sitzungscookie ab. Die Zugriff-Seite listet außerdem die Aufnahmeports und Zugriffsmethoden dieses Builds auf, und warum - damit ein unbekannter offener Port eine Antwort statt einer Vermutung hat. Die Diagnose-Seite erstellt eine Datei zum Anhängen an einen Fehlerbericht: Version und Build-Infos, die aktuellen Einstellungen mit entfernten Passwörtern, die eigenen aktuellen Protokollzeilen dieses Prozesses, und wie viele Goroutinen laufen.',
+  'settings.help.access.link1': 'Zugriff-Einstellungen öffnen',
+  'settings.help.access.link2': 'Diagnose öffnen',
+
+  'settings.help.advanced.title': 'Alles andere',
+  'settings.help.advanced.body':
+    'Jede Einstellung dieses Builds lässt sich auf der Erweitert-Seite über ihren Rohnamen lesen und ändern, einschließlich einiger - wie ein Spiegel einer bereits geladenen Datei behandelt wird, was passiert, wenn ein Download auf einem bereits vergebenen Namen landen würde - die noch keine eigene Steuerung woanders haben.',
+  'settings.help.advanced.link': 'Erweitert-Einstellungen öffnen',
 };

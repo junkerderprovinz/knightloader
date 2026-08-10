@@ -1029,4 +1029,173 @@ export const hi: Dict = {
     'सफलता और जानकारी वाली सूचनाएँ छिपाता है। कोई त्रुटि, आपकी प्रतीक्षा में मौजूद कैप्चा, या रोकी गई खाता स्थिति फिर भी दिखती है।',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'अंतिम बदलाव',
+
+  'file.open': 'खोलें',
+  'file.openNatively': 'डिफ़ॉल्ट ऐप से खोलें',
+  'file.revealInFolder': 'फ़ोल्डर में दिखाएँ',
+  'file.desktopOnly': 'केवल डेस्कटॉप ऐप में',
+
+  'settings.schedule.title': 'समय-सारणी',
+  'settings.schedule.subtitle': 'समय-सारणी के अनुसार डाउनलोड की गति रोकें, फिर से शुरू करें, या सीमित करें।',
+  'settings.schedule.listTitle': 'समय तालिका',
+  'settings.schedule.orderHint':
+    'पंक्तियाँ क्रम से लागू होती हैं, ऊपर से नीचे, और जब दो विंडो आपस में मेल खाती हैं, तो नीचे वाली जीतती है - एक व्यापक “हर रात रोकें” एक संकरे अपवाद के ऊपर अपवाद को लागू रहने देता है, जबकि वही दो पंक्तियाँ उल्टे क्रम में नहीं।',
+  'settings.schedule.add': 'विंडो जोड़ें',
+  'settings.schedule.empty': 'कतार अपनी खुद की समय-सारणी का पालन करती है',
+  'settings.schedule.emptyHint':
+    'कोई विंडो कॉन्फ़िगर नहीं है, इसलिए यहाँ कुछ भी घड़ी के अनुसार कतार को रोकता या सीमित नहीं करता। रात में डाउनलोड रोकने या खुद कनेक्शन इस्तेमाल करते समय गति सीमित करने के लिए एक जोड़ें।',
+  'settings.schedule.use': 'यह विंडो इस्तेमाल करें',
+  'settings.schedule.moveUp': 'ऊपर ले जाएँ',
+  'settings.schedule.moveDown': 'नीचे ले जाएँ',
+  'settings.schedule.remove': 'यह विंडो हटाएँ',
+  'settings.schedule.edit': 'यह विंडो संपादित करें',
+  'settings.schedule.name': 'नाम',
+  'settings.schedule.namePlaceholder': 'जैसे रात का विराम',
+  'settings.schedule.days': 'दिन',
+  'settings.schedule.daysHint':
+    'यह विंडो सप्ताह के किन दिनों में खुलती है। आधी रात के बाद तक चलने वाली विंडो के लिए, वह दिन चिह्नित करें जिस दिन यह शुरू होती है - “शु 22:00-06:00” शनिवार सुबह खत्म होती है, बिना खुद शनिवार को चिह्नित किए।',
+  'settings.schedule.preset.every': 'हर दिन',
+  'settings.schedule.preset.weekdays': 'सप्ताह के दिन',
+  'settings.schedule.preset.weekends': 'सप्ताहांत',
+  'settings.schedule.preset.custom': 'कस्टम',
+  'settings.schedule.start': 'शुरुआत',
+  'settings.schedule.end': 'अंत',
+  'settings.schedule.endHint':
+    'शुरुआत के समय से पहले, यह विंडो आधी रात के बाद तक चलती है और अगली सुबह खत्म होती है। शुरुआत के समय के बराबर अंत का समय अस्वीकार कर दिया जाता है - इसका मतलब पूरा दिन या बिल्कुल भी समय न होना हो सकता है, और यह अंदाज़ा लगाना कि क्या मतलब था, पूछने से बदतर है।',
+  'settings.schedule.action': 'क्रिया',
+  'settings.schedule.action.pause': 'रोकें',
+  'settings.schedule.action.resume': 'फिर से शुरू करें',
+  'settings.schedule.action.limit': 'गति सीमित करें',
+  'settings.schedule.limit': 'गति सीमा',
+  'settings.schedule.disabledOff': 'यह विंडो अलग रखी गई है और कभी सक्रिय नहीं होती। कतार ऐसे व्यवहार करती है जैसे यह पंक्ति बिल्कुल भी न हो।',
+  'settings.schedule.activeNow': 'अभी सक्रिय, {time} तक',
+  'settings.schedule.next': 'अगली: {when}',
+  'settings.schedule.never': 'जैसा कॉन्फ़िगर किया गया है उसके अनुसार कभी सक्रिय नहीं होती',
+  'settings.schedule.stateNow.paused': 'कतार अभी समय-सारणी द्वारा रोकी गई है।',
+  'settings.schedule.stateNow.limited': 'कतार अभी समय-सारणी द्वारा {rate} तक सीमित है।',
+  'settings.schedule.stateNow.running': 'अभी कोई विंडो लागू नहीं है।',
+  'settings.schedule.nextChange': 'अगला बदलाव: {when}',
+  'settings.schedule.noNextChange': 'तालिका में कुछ भी कतार को जैसा कॉन्फ़िगर किया गया है उससे कभी नहीं बदलेगा।',
+  'settings.schedule.save': 'समय-सारणी सहेजें',
+  'settings.schedule.discard': 'छोड़ दें',
+  'settings.schedule.unsaved': 'समय-सारणी में बिना सहेजे बदलाव',
+  'settings.schedule.saveFailed': 'समय-सारणी सहेजी नहीं जा सकी: {error}',
+  'settings.schedule.rowError': 'पंक्ति {row}: {error}',
+
+  'idleAction.title': 'कतार निष्क्रिय है',
+  'idleAction.action.pause': 'रोकी जा रही है',
+  'idleAction.actionFallback': '“{action}” चल रहा है',
+  'idleAction.in': '{countdown} में',
+  'idleAction.cancel': 'रद्द करें',
+  'idleAction.cancelling': 'रद्द किया जा रहा है…',
+  'idleAction.cancelFailed': 'रद्द नहीं किया जा सका: सर्वर ने जवाब नहीं दिया।',
+
+  'settings.idleAction.label': 'कतार खाली होने पर क्रिया',
+  'settings.idleAction.hint':
+    'जैसे ही कुछ भी नहीं चल रहा हो, कतार में इंतज़ार नहीं कर रहा हो, या शुरू होने के लिए तैयार न हो, तब क्या होता है। आपके द्वारा निष्क्रिय किया गया लिंक यहाँ नहीं गिना जाता - जानकारी बबल देखें।',
+  'settings.idleAction.info':
+    'आपके द्वारा निष्क्रिय किया गया लिंक कभी भी बचे हुए काम के रूप में नहीं गिना जाता, इसलिए यह इसे हमेशा के लिए टाल नहीं सकता। मैन्युअल रूप से रोका गया या रोक कर रखा गया लिंक फिर भी गिना जाता है - दोनों का मतलब है “थोड़ा इंतज़ार करें”, “कभी नहीं” नहीं।',
+  'settings.idleAction.none': 'कुछ न करें',
+  'settings.idleAction.pause': 'कतार रोकें',
+  'settings.idleAction.delay': 'उलटी गिनती (सेकंड)',
+  'settings.idleAction.delayHint':
+    'क्रिया चलने से पहले रद्द करने के लिए आपके पास कितना समय है, जैसे ही कतार वाकई निष्क्रिय हो जाए।',
+
+  'settings.nav.diagnostics': 'निदान',
+  'settings.diagnostics.subtitle':
+    'यह बिल्ड क्या है, यह किस पर चल रहा है, और इसका अपना हाल का लॉग आउटपुट - बग रिपोर्ट में जोड़ने के लिए।',
+  'settings.diagnostics.version': 'संस्करण',
+  'settings.diagnostics.deployment': 'बिल्ड',
+  'settings.diagnostics.deployment.container': 'कंटेनर',
+  'settings.diagnostics.deployment.desktop': 'डेस्कटॉप',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'प्लेटफ़ॉर्म',
+  'settings.diagnostics.goroutines': 'गोरूटीन',
+  'settings.diagnostics.download': 'निदान पैकेज डाउनलोड करें',
+  'settings.diagnostics.downloading': 'तैयार हो रहा है…',
+  'settings.diagnostics.downloadHint':
+    'ऊपर दिए गए फ़ील्ड वाली एक JSON फ़ाइल, हर पासवर्ड हटाई गई आपकी सेटिंग्स, और नीचे दी गई लॉग लाइनें।',
+  'settings.diagnostics.downloadFailed': 'पैकेज नहीं बनाया जा सका: {error}',
+  'settings.diagnostics.logTitle': 'हाल की लॉग लाइनें',
+  'settings.diagnostics.logHint':
+    'इस प्रक्रिया द्वारा लॉग की गई आखिरी {n} लाइनें, सबसे पुरानी पहले। यहाँ कुछ भी डिस्क पर नहीं लिखा जाता।',
+  'settings.diagnostics.logEmpty': 'अभी तक कुछ भी लॉग नहीं हुआ।',
+  'settings.diagnostics.refresh': 'ताज़ा करें',
+  'settings.diagnostics.loadFailed': 'निदान लोड नहीं हो सका। क्या सर्वर उपलब्ध है?',
+
+  'settings.nav.help': 'सहायता',
+  'settings.help.intro':
+    'यह बिल्ड क्या कर सकता है, सेटिंग्स पेज के बजाय काम के हिसाब से व्यवस्थित। हर सेक्शन वहाँ लिंक करता है जहाँ वह कॉन्फ़िगर किया जाता है।',
+
+  'settings.help.intake.title': 'डाउनलोड जोड़ना',
+  'settings.help.intake.body':
+    'लिंक को कलेक्टर में पेस्ट करें - एक लाइन में एक, या अव्यवस्थित टेक्स्ट: एक स्कैन लिंक को कहीं भी ढूँढ़ लेता है, वाक्य के बीच में, एक लाइन में कई, या मेल क्लाइंट द्वारा दो लाइनों में तोड़े गए।',
+  'settings.help.intake.b1': 'एक लिंक कंटेनर फ़ाइल (.dlc, .ccf, .rsdf) या एक सादी लिंक सूची छोड़ें।',
+  'settings.help.intake.b2':
+    "होस्टर और फ़ोरम पेजों पर Click'n'Load बटन बिना बदलाव के काम करते हैं - KnightLoader 127.0.0.1:9666 पर जवाब देता है, वही पोर्ट जो हर दूसरा डाउनलोड मैनेजर इस्तेमाल करता है।",
+  'settings.help.intake.b3':
+    'फ़ाइल लिंक के बजाय एक पेज URL पेस्ट करें और हर उस फ़ाइल को निकालने के लिए क्रॉल चालू करें जिससे वह लिंक करता है, पेज को खुद डाउनलोड करने के बजाय।',
+  'settings.help.intake.b4': 'एक निगरानी वाला फ़ोल्डर उसमें छोड़ी गई .txt/.crawljob फ़ाइलों को अपने आप उठा लेता है।',
+  'settings.help.intake.link1': 'डाउनलोड सेटिंग्स खोलें',
+  'settings.help.intake.link2': "पहुँच सेटिंग्स खोलें (Click'n'Load)",
+
+  'settings.help.collector.title': 'कलेक्टर, कुछ भी डाउनलोड होने से पहले',
+  'settings.help.collector.body':
+    'नए लिंक पहले कलेक्टर में आते हैं, कतार में नहीं: कुछ भी शुरू होने से पहले नाम, आकार और डुप्लिकेट चेतावनियाँ जाँचने के लिए एक बीच का क्षेत्र। स्वचालित पुष्टि इस चरण को छोड़ सकती है, वैकल्पिक देरी के साथ; एक बार पुष्टि हो जाने पर, एक लिंक या तो तुरंत शुरू होता है या कतार में इंतज़ार करता है, स्वचालित शुरुआत के आधार पर।',
+  'settings.help.collector.link': 'सामान्य सेटिंग्स खोलें',
+
+  'settings.help.rules.title': 'नियम: पैकेज, फ़ोल्डर और क्या रखा जाता है',
+  'settings.help.rules.body':
+    'Packagizer एक लिंक का नाम बदलता है, उसका फ़ोल्डर चुनता है, और आने पर उसके डाउनलोड विकल्प सेट करता है, आपके लिखे नियमों के आधार पर। लिंक फ़िल्टर तय करता है कि कोई लिंक बिल्कुल रखा जाता है या नहीं - और उस फ़िल्टर के विपरीत जो सिर्फ़ लिंक को गायब कर देता है, एक अस्वीकृति हमेशा उस नियम का नाम बताती है जिसने इसे किया, और क्यों।',
+  'settings.help.rules.link': 'नियम खोलें',
+
+  'settings.help.queue.title': 'कतार प्रबंधित करें',
+  'settings.help.queue.body':
+    'किसी भी लिंक को रोकें, फिर से शुरू करें, या फिर से क्रमबद्ध करें, अकेले या पूरे पैकेज के रूप में। कतार को रोकना दो अलग-अलग क्रियाएँ हैं: रोकना पहले से चल रही चीज़ को बिना छुए छोड़ देता है ताकि वह खुद पूरी हो जाए, जबकि सभी ट्रांसफ़र को तुरंत रोकना पहले दिखाता है कि क्या खो जाएगा, और आपकी पुष्टि के बाद ही आगे बढ़ता है - यही वजह है कि यह चेतावनी उस ट्रांसफ़र के लिए है जो वहीं से जारी नहीं रह सकता जहाँ वह रुका था।',
+  'settings.help.queue.b1': 'एक अकेला लिंक वैश्विक कनेक्शन संख्या या डाउनलोड के बाद निकालने वाले स्विच को ओवरराइड कर सकता है।',
+  'settings.help.queue.b2': 'सूची में पहले से मौजूद लिंक का डुप्लिकेट हमेशा अस्वीकार कर दिया जाता है, कलेक्टर तक पहुँचने से भी पहले।',
+
+  'settings.help.limits.title': 'होस्टर की सीमाओं से बचना',
+  'settings.help.limits.body': 'मुफ़्त सीमा को छत बनने से रोकने के तीन स्वतंत्र तरीके:',
+  'settings.help.limits.b1':
+    'कनेक्शन - डाउनलोड को एक से ज़्यादा आउटगोइंग रास्तों पर फैलाएँ (दूसरी लाइन, एक प्रॉक्सी, SOCKS) हमेशा इस मशीन के अपने पते से निकलने के बजाय।',
+  'settings.help.limits.b2':
+    'फिर से जुड़ना - राउटर से एक नया सार्वजनिक पता माँगें, वह इकलौती चीज़ जो वाकई पते से ही जुड़ी सीमा को हटाती है (UPnP, एक बाहरी प्रोग्राम, एक स्क्रिप्ट, या राउटर के एडमिन पेज के खिलाफ़ HTTP अनुरोधों को फिर से चलाना - मौजूदा JDownloader LiveHeader/curl स्क्रिप्ट बिना बदलाव के काम करती हैं)।',
+  'settings.help.limits.b3':
+    'खाते - प्रीमियम या debrid लॉगिन सहेजें (Real-Debrid, AllDebrid, TorBox और अन्य) ताकि योग्य लिंक मुफ़्त सीमा के बजाय पूरी गति से लिया जाए।',
+  'settings.help.limits.link1': 'कनेक्शन खोलें',
+  'settings.help.limits.link2': 'फिर से जुड़ना खोलें',
+  'settings.help.limits.link3': 'खाते खोलें',
+
+  'settings.help.captcha.title': 'Captcha',
+  'settings.help.captcha.body':
+    'जब कोई होस्टर captcha माँगता है, तो पहले आपके कॉन्फ़िगर किए गए क्रम में एक स्वचालित सॉल्वर आज़माया जाता है। जो यह हल नहीं कर सकता - या अगर कोई कॉन्फ़िगर नहीं है - वह चुपचाप विफल होने के बजाय आपके सामने पेश किया जाता है।',
+  'settings.help.captcha.link': 'Captcha सेटिंग्स खोलें',
+
+  'settings.help.after.title': 'डाउनलोड के बाद',
+  'settings.help.after.body':
+    'आर्काइव अपने आप निकाले जाते हैं: zip (एन्क्रिप्टेड सहित, WinZip AES और पुराना ZipCrypto दोनों), मल्टी-वॉल्यूम सेट के साथ rar, 7z, tar, और gzip/bzip2/xz/zstd चाहे वे tar को लपेटें या नहीं - शुद्ध Go, बिना किसी बाहरी unrar या 7z प्रोग्राम के। एन्क्रिप्टेड आर्काइव के लिए पासवर्ड की सूची क्रम से आज़माई जाती है। एक पूरी हो चुकी फ़ाइल की जाँच उसके साथ आए किसी भी चेकसम से की जाती है: एक .sfv सूची, एक md5/sha1/sha256sum फ़ाइल, या एक CRC32 जिसे रिलीज़ का नाम खुद ढोता है।',
+  'settings.help.after.link1': 'आर्काइव सेटिंग्स खोलें',
+  'settings.help.after.link2': 'डाउनलोड सेटिंग्स खोलें',
+
+  'settings.help.schedule.title': 'बिना निगरानी के चलना',
+  'settings.help.schedule.body':
+    'एक साप्ताहिक समय-सारणी घड़ी के अनुसार कतार को रोकती या सीमित करती है - एक रात की विंडो, डेलाइट सेविंग बदलाव में भी सही - JDownloader के Scheduler जैसा ही विचार।',
+  'settings.help.schedule.link': 'समय-सारणी खोलें',
+
+  'settings.help.instances.title': 'एक से ज़्यादा इंस्टेंस चलाना',
+  'settings.help.instances.body':
+    'एक और KnightLoader को पीयर के रूप में जोड़ें, और उसकी कतार भी इस डैशबोर्ड पर दिखती है - खुद होस्ट किया गया, कोई रिले शामिल नहीं: यह इंस्टेंस बस दूसरे इंस्टेंस का API कॉल करता है, वैसे ही जैसे एक ब्राउज़र करता।',
+  'settings.help.instances.link': 'इंस्टेंस खोलें',
+
+  'settings.help.access.title': 'पहुँच और समस्या निवारण',
+  'settings.help.access.body':
+    'एक पासवर्ड पूरे इंटरफ़ेस को एक सेशन कुकी के पीछे लॉक कर देता है। पहुँच पेज इस बिल्ड के इनटेक पोर्ट और पहुँच के तरीके भी सूचीबद्ध करता है, और क्यों - ताकि किसी अनजान खुले पोर्ट के पास अंदाज़े की जगह एक जवाब हो। निदान पेज बग रिपोर्ट में जोड़ने के लिए एक फ़ाइल बनाता है: संस्करण और बिल्ड जानकारी, हर पासवर्ड हटाई गई मौजूदा सेटिंग्स, इस प्रक्रिया की हाल की लॉग लाइनें, और कितने गोरूटीन चल रहे हैं।',
+  'settings.help.access.link1': 'पहुँच सेटिंग्स खोलें',
+  'settings.help.access.link2': 'निदान खोलें',
+
+  'settings.help.advanced.title': 'बाकी सब कुछ',
+  'settings.help.advanced.body':
+    'इस बिल्ड की हर सेटिंग को उन्नत पेज पर उसके कच्चे नाम से पढ़ा और बदला जा सकता है, कुछ ऐसी सेटिंग्स सहित - जैसे पहले से डाउनलोड की गई फ़ाइल के मिरर के साथ कैसा व्यवहार किया जाता है, पहले से इस्तेमाल हो रहे नाम पर डाउनलोड आ जाने पर क्या होता है - जिनका अभी कहीं और कोई समर्पित नियंत्रण नहीं है।',
+  'settings.help.advanced.link': 'उन्नत सेटिंग्स खोलें',
 };

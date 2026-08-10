@@ -1029,4 +1029,173 @@ export const sv: Dict = {
     'Döljer lyckade och informativa aviseringar. Ett fel, en captcha som väntar på dig eller ett pausat konto visas ändå.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Senast ändrad',
+
+  'file.open': 'Öppna',
+  'file.openNatively': 'Öppna med standardprogram',
+  'file.revealInFolder': 'Visa i mapp',
+  'file.desktopOnly': 'Endast i skrivbordsappen',
+
+  'settings.schedule.title': 'Schema',
+  'settings.schedule.subtitle': 'Pausa, återuppta eller begränsa nedladdningshastigheten enligt ett schema.',
+  'settings.schedule.listTitle': 'Tidtabell',
+  'settings.schedule.orderHint':
+    'Raderna tillämpas i ordning, uppifrån och ned, och när två fönster överlappar vinner det nedre - ett brett ”pausa varje natt” ovanför ett smalare undantag lämnar undantaget gällande, medan samma två rader i motsatt ordning inte gör det.',
+  'settings.schedule.add': 'Lägg till fönster',
+  'settings.schedule.empty': 'Kön följer sitt eget schema',
+  'settings.schedule.emptyHint':
+    'Inget fönster är inställt, så inget här pausar eller begränsar kön efter klockan. Lägg till ett för att hålla tillbaka nedladdningar nattetid eller begränsa hastigheten medan du själv använder anslutningen.',
+  'settings.schedule.use': 'Använd detta fönster',
+  'settings.schedule.moveUp': 'Flytta upp',
+  'settings.schedule.moveDown': 'Flytta ned',
+  'settings.schedule.remove': 'Ta bort detta fönster',
+  'settings.schedule.edit': 'Redigera detta fönster',
+  'settings.schedule.name': 'Namn',
+  'settings.schedule.namePlaceholder': 't.ex. Nattpaus',
+  'settings.schedule.days': 'Dagar',
+  'settings.schedule.daysHint':
+    'Vilka veckodagar detta fönster öppnar. För ett fönster som går förbi midnatt, bocka för dagen det BÖRJAR - ”fre 22:00-06:00” slutar lördag morgon utan att lördagen själv är ibockad.',
+  'settings.schedule.preset.every': 'Varje dag',
+  'settings.schedule.preset.weekdays': 'Vardagar',
+  'settings.schedule.preset.weekends': 'Helger',
+  'settings.schedule.preset.custom': 'Anpassad',
+  'settings.schedule.start': 'Start',
+  'settings.schedule.end': 'Slut',
+  'settings.schedule.endHint':
+    'Före starttiden går detta fönster förbi midnatt och slutar följande morgon. En sluttid som är lika med starttiden avvisas - det skulle kunna betyda en hel dag eller ingen tid alls, och att gissa vad som menades är värre än att fråga.',
+  'settings.schedule.action': 'Åtgärd',
+  'settings.schedule.action.pause': 'Pausa',
+  'settings.schedule.action.resume': 'Återuppta',
+  'settings.schedule.action.limit': 'Begränsa hastighet',
+  'settings.schedule.limit': 'Hastighetsgräns',
+  'settings.schedule.disabledOff': 'Detta fönster är parkerat och utlöses aldrig. Kön beter sig som om denna rad inte fanns alls.',
+  'settings.schedule.activeNow': 'Aktivt nu, till {time}',
+  'settings.schedule.next': 'Nästa: {when}',
+  'settings.schedule.never': 'Utlöses aldrig enligt nuvarande inställning',
+  'settings.schedule.stateNow.paused': 'Kön är pausad just nu av schemat.',
+  'settings.schedule.stateNow.limited': 'Kön är begränsad till {rate} just nu av schemat.',
+  'settings.schedule.stateNow.running': 'Inget fönster gäller just nu.',
+  'settings.schedule.nextChange': 'Nästa ändring: {when}',
+  'settings.schedule.noNextChange': 'Inget i tabellen kommer någonsin ändra kön enligt nuvarande inställning.',
+  'settings.schedule.save': 'Spara schema',
+  'settings.schedule.discard': 'Släng',
+  'settings.schedule.unsaved': 'Osparade ändringar i schemat',
+  'settings.schedule.saveFailed': 'Schemat kunde inte sparas: {error}',
+  'settings.schedule.rowError': 'Rad {row}: {error}',
+
+  'idleAction.title': 'Kön är inaktiv',
+  'idleAction.action.pause': 'Pausas',
+  'idleAction.actionFallback': '”{action}” pågår',
+  'idleAction.in': 'om {countdown}',
+  'idleAction.cancel': 'Avbryt',
+  'idleAction.cancelling': 'Avbryter…',
+  'idleAction.cancelFailed': 'Det gick inte att avbryta: servern svarade inte.',
+
+  'settings.idleAction.label': 'Åtgärd när kön blir tom',
+  'settings.idleAction.hint':
+    'Vad som händer så snart inget längre körs, väntar i kön eller är redo att starta. En länk du har inaktiverat räknas inte med - se infobubblan.',
+  'settings.idleAction.info':
+    'En länk du har inaktiverat räknas aldrig som återstående arbete, så den kan inte skjuta upp det här för alltid. En manuellt pausad eller kvarhållen länk räknas ändå med - båda betyder ”vänta lite”, inte ”aldrig”.',
+  'settings.idleAction.none': 'Gör ingenting',
+  'settings.idleAction.pause': 'Pausa kön',
+  'settings.idleAction.delay': 'Nedräkning (sekunder)',
+  'settings.idleAction.delayHint':
+    'Hur lång tid du har på dig att avbryta innan åtgärden utförs, så snart kön verkligen blir inaktiv.',
+
+  'settings.nav.diagnostics': 'Diagnostik',
+  'settings.diagnostics.subtitle':
+    'Vad detta bygge är, vad det körs på, och dess egen senaste loggutdata - att bifoga till en felrapport.',
+  'settings.diagnostics.version': 'Version',
+  'settings.diagnostics.deployment': 'Bygge',
+  'settings.diagnostics.deployment.container': 'Container',
+  'settings.diagnostics.deployment.desktop': 'Skrivbord',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'Plattform',
+  'settings.diagnostics.goroutines': 'Goroutines',
+  'settings.diagnostics.download': 'Ladda ned diagnostikpaket',
+  'settings.diagnostics.downloading': 'Förbereder…',
+  'settings.diagnostics.downloadHint':
+    'En JSON-fil med fälten ovan, dina inställningar med varje lösenord borttaget, och loggraderna nedan.',
+  'settings.diagnostics.downloadFailed': 'Paketet kunde inte skapas: {error}',
+  'settings.diagnostics.logTitle': 'Senaste loggrader',
+  'settings.diagnostics.logHint':
+    'De senaste {n} raderna denna process har loggat, äldst först. Inget här skrivs till disk.',
+  'settings.diagnostics.logEmpty': 'Inget loggat än.',
+  'settings.diagnostics.refresh': 'Uppdatera',
+  'settings.diagnostics.loadFailed': 'Diagnostiken kunde inte hämtas. Går servern att nå?',
+
+  'settings.nav.help': 'Hjälp',
+  'settings.help.intro':
+    'Vad detta bygge kan göra, organiserat efter uppgift snarare än inställningssida. Varje avsnitt länkar till var det konfigureras.',
+
+  'settings.help.intake.title': 'Lägga till nedladdningar',
+  'settings.help.intake.body':
+    'Klistra in länkar i Samlaren - en per rad, eller rörig text: en genomsökning hittar länkar var de än finns, mitt i en mening, flera per rad, eller radbrutna av ett e-postprogram.',
+  'settings.help.intake.b1': 'Släpp en länkbehållarfil (.dlc, .ccf, .rsdf) eller en vanlig länklista.',
+  'settings.help.intake.b2':
+    "Click'n'Load-knappar på hoster- och forumsidor fungerar oförändrat - KnightLoader svarar på 127.0.0.1:9666, samma port som varje annan nedladdningshanterare använder.",
+  'settings.help.intake.b3':
+    'Klistra in en sid-URL i stället för en fillänk och slå på Genomsökning för att extrahera varje fil den länkar till, i stället för att ladda ned själva sidan.',
+  'settings.help.intake.b4': 'En bevakad mapp hämtar automatiskt .txt-/.crawljob-filer som läggs i den.',
+  'settings.help.intake.link1': 'Öppna inställningar för Nedladdningar',
+  'settings.help.intake.link2': "Öppna inställningar för Åtkomst (Click'n'Load)",
+
+  'settings.help.collector.title': 'Samlaren, innan något laddas ned',
+  'settings.help.collector.body':
+    'Nya länkar hamnar först i Samlaren, inte i kön: en mellanzon för att kontrollera namn, storlekar och dubblettvarningar innan något startar. Automatisk bekräftelse kan hoppa över det steget, med en valfri fördröjning; när den är bekräftad startar en länk antingen direkt eller väntar i kön, beroende på automatisk start.',
+  'settings.help.collector.link': 'Öppna Allmänna inställningar',
+
+  'settings.help.rules.title': 'Regler: paket, mappar och vad som behålls',
+  'settings.help.rules.body':
+    'Packagizer byter namn på en länk, väljer dess mapp och sätter dess nedladdningsalternativ när den anländer, utifrån villkor du skriver. Länkfiltret avgör om en länk behålls alls - och till skillnad från ett filter som bara låter länkar försvinna, anger ett avslag alltid vilken regel som orsakade det, och varför.',
+  'settings.help.rules.link': 'Öppna Regler',
+
+  'settings.help.queue.title': 'Hantera kön',
+  'settings.help.queue.body':
+    'Pausa, återuppta eller ordna om vilken länk som helst, ensam eller som ett helt paket. Att stoppa kön är två olika åtgärder: att stanna lämnar det som redan körs orört så att det blir klart av sig självt, medan att stoppa alla överföringar direkt först visar vad som skulle gå förlorat och bara fortsätter efter din bekräftelse - precis vad den varningen är till för vid en överföring som inte kan återupptas där den avbröts.',
+  'settings.help.queue.b1': 'En enskild länk kan åsidosätta det globala antalet anslutningar eller brytaren för uppackning efter nedladdning.',
+  'settings.help.queue.b2': 'En dubblett av en länk som redan finns i listan avvisas alltid, innan den någonsin når Samlaren.',
+
+  'settings.help.limits.title': 'Ta sig runt hosterns gränser',
+  'settings.help.limits.body': 'Tre oberoende sätt att hindra en gratisgräns från att vara taket:',
+  'settings.help.limits.b1':
+    'Anslutningar - sprid nedladdningar över mer än en utgående väg (en andra linje, en proxy, SOCKS) i stället för att alltid gå ut via den här maskinens egen adress.',
+  'settings.help.limits.b2':
+    'Återanslutning - be routern om en ny publik adress, det enda som verkligen häver en gräns knuten till själva adressen (UPnP, ett externt program, ett skript, eller att spela upp HTTP-anrop mot routerns adminsida igen - befintliga JDownloader LiveHeader/curl-skript fungerar oförändrat).',
+  'settings.help.limits.b3':
+    'Konton - spara premium- eller debrid-inloggningar (Real-Debrid, AllDebrid, TorBox och andra) så att en berättigad länk hämtas i full hastighet i stället för gratisgränsen.',
+  'settings.help.limits.link1': 'Öppna Anslutningar',
+  'settings.help.limits.link2': 'Öppna Återanslutning',
+  'settings.help.limits.link3': 'Öppna Konton',
+
+  'settings.help.captcha.title': 'Captcha',
+  'settings.help.captcha.body':
+    'När en hoster begär en captcha provas först en automatisk lösare du har ställt in, i den ordning du har angett. Det den inte kan lösa - eller om ingen är inställd - presenteras för dig i stället för att misslyckas tyst.',
+  'settings.help.captcha.link': 'Öppna inställningar för Captcha',
+
+  'settings.help.after.title': 'Efter nedladdning',
+  'settings.help.after.body':
+    'Arkiv packas upp automatiskt: zip (även krypterat, både WinZip AES och det äldre ZipCrypto), rar med flerdelade set, 7z, tar samt gzip/bzip2/xz/zstd oavsett om de omsluter en tar - rent Go, utan externa unrar- eller 7z-program. För ett krypterat arkiv provas en lista lösenord i ordning. En färdig fil kontrolleras mot vilken kontrollsumma som än följer med den: en .sfv-lista, en md5-/sha1-/sha256sum-fil, eller en CRC32 som själva utgåvans namn bär på.',
+  'settings.help.after.link1': 'Öppna inställningar för Arkiv',
+  'settings.help.after.link2': 'Öppna inställningar för Nedladdningar',
+
+  'settings.help.schedule.title': 'Köra obevakat',
+  'settings.help.schedule.body':
+    'Ett veckoschema pausar eller strypar kön efter klockan - ett nattligt fönster, korrekt även över sommartidsskiftet - samma idé som JDownloaders Scheduler.',
+  'settings.help.schedule.link': 'Öppna Schema',
+
+  'settings.help.instances.title': 'Köra mer än en instans',
+  'settings.help.instances.body':
+    'Lägg till ytterligare en KnightLoader som peer, så dyker dess kö också upp på denna instrumentpanel - självhostat, ingen relä inblandad: den här instansen anropar helt enkelt den andra instansens egna API, på samma sätt som en webbläsare skulle göra.',
+  'settings.help.instances.link': 'Öppna Instanser',
+
+  'settings.help.access.title': 'Åtkomst och felsökning',
+  'settings.help.access.body':
+    'Ett lösenord låser hela gränssnittet bakom en sessionscookie. Sidan Åtkomst listar också detta bygges inkommande portar och åtkomstmetoder, och varför - så att en okänd öppen port har ett svar i stället för en gissning. Sidan Diagnostik skapar en fil att bifoga till en felrapport: version och byggeinfo, de nuvarande inställningarna med varje lösenord borttaget, denna process senaste loggrader, och hur många goroutines som körs.',
+  'settings.help.access.link1': 'Öppna inställningar för Åtkomst',
+  'settings.help.access.link2': 'Öppna Diagnostik',
+
+  'settings.help.advanced.title': 'Allt annat',
+  'settings.help.advanced.body':
+    'Varje inställning i detta bygge kan läsas och ändras via sitt råa namn på sidan Avancerat, inklusive några få - hur en spegling av en redan nedladdad fil hanteras, vad som händer när en nedladdning skulle hamna på ett redan använt namn - som ännu inte har en egen kontroll någon annanstans.',
+  'settings.help.advanced.link': 'Öppna inställningar för Avancerat',
 };

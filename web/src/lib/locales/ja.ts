@@ -1029,4 +1029,173 @@ export const ja: Dict = {
     '成功と情報の通知を非表示にします。エラー、あなたの操作を待つキャプチャ、停止中のアカウントは引き続き表示されます。',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': '最終更新',
+
+  'file.open': '開く',
+  'file.openNatively': '既定のアプリで開く',
+  'file.revealInFolder': 'フォルダーに表示',
+  'file.desktopOnly': 'デスクトップアプリのみ',
+
+  'settings.schedule.title': 'スケジュール',
+  'settings.schedule.subtitle': 'スケジュールに従ってダウンロード速度を一時停止、再開、または制限します。',
+  'settings.schedule.listTitle': 'タイムテーブル',
+  'settings.schedule.orderHint':
+    '行は上から下へ順番に適用され、2つのウィンドウが重なる場合は下の行が優先されます。「毎晩一時停止」のような広い範囲の上に、より狭い例外を置くとその例外は有効なままですが、同じ2行を逆順にすると有効になりません。',
+  'settings.schedule.add': 'ウィンドウを追加',
+  'settings.schedule.empty': 'キューは独自のスケジュールに従います',
+  'settings.schedule.emptyHint':
+    'ウィンドウが設定されていないため、ここでは時刻によってキューを一時停止したり制限したりすることはありません。夜間にダウンロードを保留したり、自分自身で接続を使っている間だけ速度を制限したりするには、ウィンドウを追加してください。',
+  'settings.schedule.use': 'このウィンドウを使う',
+  'settings.schedule.moveUp': '上へ移動',
+  'settings.schedule.moveDown': '下へ移動',
+  'settings.schedule.remove': 'このウィンドウを削除',
+  'settings.schedule.edit': 'このウィンドウを編集',
+  'settings.schedule.name': '名前',
+  'settings.schedule.namePlaceholder': '例: 夜間の一時停止',
+  'settings.schedule.days': '曜日',
+  'settings.schedule.daysHint':
+    'このウィンドウがどの曜日に開くか。深夜0時をまたぐウィンドウの場合は、開始する曜日にチェックを入れてください。「金 22:00-06:00」は土曜の朝に終わりますが、土曜日自体にはチェックが要りません。',
+  'settings.schedule.preset.every': '毎日',
+  'settings.schedule.preset.weekdays': '平日',
+  'settings.schedule.preset.weekends': '週末',
+  'settings.schedule.preset.custom': 'カスタム',
+  'settings.schedule.start': '開始',
+  'settings.schedule.end': '終了',
+  'settings.schedule.endHint':
+    '開始時刻より前だと、このウィンドウは深夜0時をまたいで翌朝に終了します。終了時刻が開始時刻と同じ場合は拒否されます。丸1日を意味するのか、時間が全くないことを意味するのか判断がつかず、意図を推測するのは尋ねるより悪い結果になるためです。',
+  'settings.schedule.action': '動作',
+  'settings.schedule.action.pause': '一時停止',
+  'settings.schedule.action.resume': '再開',
+  'settings.schedule.action.limit': '速度を制限',
+  'settings.schedule.limit': '速度制限',
+  'settings.schedule.disabledOff': 'このウィンドウは無効にされており、動作することはありません。キューはこの行がまったく存在しないかのように振る舞います。',
+  'settings.schedule.activeNow': '現在有効、{time}まで',
+  'settings.schedule.next': '次回: {when}',
+  'settings.schedule.never': '設定どおりでは動作しません',
+  'settings.schedule.stateNow.paused': 'キューはスケジュールによって現在一時停止中です。',
+  'settings.schedule.stateNow.limited': 'キューはスケジュールによって現在{rate}に制限されています。',
+  'settings.schedule.stateNow.running': '現在有効なウィンドウはありません。',
+  'settings.schedule.nextChange': '次の変更: {when}',
+  'settings.schedule.noNextChange': 'このテーブルの内容が設定どおりでキューを変更することはありません。',
+  'settings.schedule.save': 'スケジュールを保存',
+  'settings.schedule.discard': '破棄',
+  'settings.schedule.unsaved': 'スケジュールに未保存の変更があります',
+  'settings.schedule.saveFailed': 'スケジュールを保存できませんでした: {error}',
+  'settings.schedule.rowError': '{row}行目: {error}',
+
+  'idleAction.title': 'キューはアイドル状態です',
+  'idleAction.action.pause': '一時停止中',
+  'idleAction.actionFallback': '「{action}」を実行中',
+  'idleAction.in': '{countdown}後',
+  'idleAction.cancel': 'キャンセル',
+  'idleAction.cancelling': 'キャンセル中…',
+  'idleAction.cancelFailed': 'キャンセルできませんでした: サーバーが応答しませんでした。',
+
+  'settings.idleAction.label': 'キューが空になったときの動作',
+  'settings.idleAction.hint':
+    '実行中のものがなく、キューでも待っておらず、開始準備もできていない状態になったときに何が起こるか。あなたが無効にしたリンクはここではカウントされません - 情報バブルをご覧ください。',
+  'settings.idleAction.info':
+    'あなたが無効にしたリンクは残っている作業として決してカウントされないため、これを無期限に先延ばしにすることはできません。手動で一時停止または保留されたリンクは引き続きカウントされます。どちらも「少し待つ」という意味であり、「二度と実行しない」という意味ではありません。',
+  'settings.idleAction.none': '何もしない',
+  'settings.idleAction.pause': 'キューを一時停止',
+  'settings.idleAction.delay': 'カウントダウン(秒)',
+  'settings.idleAction.delayHint':
+    'キューが実際にアイドル状態になってから、動作が実行されるまでにキャンセルできる時間。',
+
+  'settings.nav.diagnostics': '診断',
+  'settings.diagnostics.subtitle':
+    'このビルドが何であるか、何の上で動作しているか、そして自身の直近のログ出力 - バグ報告に添付するためのものです。',
+  'settings.diagnostics.version': 'バージョン',
+  'settings.diagnostics.deployment': 'ビルド',
+  'settings.diagnostics.deployment.container': 'コンテナ',
+  'settings.diagnostics.deployment.desktop': 'デスクトップ',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'プラットフォーム',
+  'settings.diagnostics.goroutines': 'ゴルーチン',
+  'settings.diagnostics.download': '診断パッケージをダウンロード',
+  'settings.diagnostics.downloading': '準備中…',
+  'settings.diagnostics.downloadHint':
+    '上記のフィールドを含むJSONファイル、すべてのパスワードを除去した設定、そして下記のログ行。',
+  'settings.diagnostics.downloadFailed': 'パッケージを作成できませんでした: {error}',
+  'settings.diagnostics.logTitle': '直近のログ行',
+  'settings.diagnostics.logHint':
+    'このプロセスが記録した直近の{n}行、古いものが先です。ここに書かれた内容がディスクに書き込まれることはありません。',
+  'settings.diagnostics.logEmpty': 'まだ何も記録されていません。',
+  'settings.diagnostics.refresh': '更新',
+  'settings.diagnostics.loadFailed': '診断を読み込めませんでした。サーバーに接続できますか。',
+
+  'settings.nav.help': 'ヘルプ',
+  'settings.help.intro':
+    'このビルドでできることを、設定ページ単位ではなくタスク単位でまとめたものです。各セクションは設定箇所へのリンクを含みます。',
+
+  'settings.help.intake.title': 'ダウンロードの追加',
+  'settings.help.intake.body':
+    'リンクをコレクターに貼り付けます。1行に1つ、または乱雑なテキストでも構いません。文の途中、1行に複数、メールクライアントによって2行に分割されている場合でも、スキャンによってリンクが見つかります。',
+  'settings.help.intake.b1': 'リンクコンテナファイル(.dlc、.ccf、.rsdf)または単純なリンクリストをドロップします。',
+  'settings.help.intake.b2':
+    "ホスターやフォーラムのページにあるClick'n'Loadボタンは変更なしで動作します。KnightLoaderは127.0.0.1:9666で応答し、これは他のどのダウンロードマネージャーも使うのと同じポートです。",
+  'settings.help.intake.b3':
+    'ファイルリンクの代わりにページのURLを貼り付け、クロールをオンにすると、そのページ自体をダウンロードする代わりに、そこからリンクされているすべてのファイルを抽出します。',
+  'settings.help.intake.b4': '監視フォルダーは、そこにドロップされた.txt/.crawljobファイルを自動的に取り込みます。',
+  'settings.help.intake.link1': 'ダウンロード設定を開く',
+  'settings.help.intake.link2': "アクセス設定を開く(Click'n'Load)",
+
+  'settings.help.collector.title': '何かがダウンロードされる前のコレクター',
+  'settings.help.collector.body':
+    '新しいリンクはまずコレクターに届き、キューには入りません。何かが始まる前に名前、サイズ、重複警告を確認するための中間領域です。自動確認はこのステップを省略できます(遅延はオプション)。確認後、リンクはすぐに開始するか、自動開始の設定に応じてキューで待機します。',
+  'settings.help.collector.link': '全般設定を開く',
+
+  'settings.help.rules.title': 'ルール: パッケージ、フォルダー、保持されるもの',
+  'settings.help.rules.body':
+    'Packagizerは、あなたが書いた条件に基づいて、到着時にリンクの名前を変更し、フォルダーを選び、ダウンロードオプションを設定します。リンクフィルターは、リンクをそもそも保持するかどうかを決定します。リンクを単に消してしまうフィルターとは異なり、拒否の際には原因となったルールとその理由が必ず示されます。',
+  'settings.help.rules.link': 'ルールを開く',
+
+  'settings.help.queue.title': 'キューの管理',
+  'settings.help.queue.body':
+    '任意のリンクを、単独でもパッケージ全体としても、一時停止、再開、並べ替えできます。キューの停止には2種類あります。停止はすでに実行中のものに触れずそのまま完了させますが、すべての転送を即座に停止する場合はまず何が失われるかを表示し、確認後にのみ進みます。この警告は、中断した地点から再開できない転送のためにあります。',
+  'settings.help.queue.b1': '個々のリンクは、グローバルな接続数やダウンロード後の展開の切り替えを上書きできます。',
+  'settings.help.queue.b2': 'リストにすでにあるリンクの重複は、コレクターに到達する前に必ず拒否されます。',
+
+  'settings.help.limits.title': 'ホスターの制限を回避する',
+  'settings.help.limits.body': '無料枠が上限にならないようにする3つの独立した方法:',
+  'settings.help.limits.b1':
+    '接続 - 常にこのマシン自身のアドレスから出るのではなく、複数の出力経路(2本目の回線、プロキシ、SOCKS)にダウンロードを分散させます。',
+  'settings.help.limits.b2':
+    '再接続 - ルーターに新しいパブリックアドレスを要求します。これはアドレス自体に紐づいた制限を実際に解除する唯一の方法です(UPnP、外部プログラム、スクリプト、またはルーターの管理ページに対するHTTPリクエストの再生。既存のJDownloader LiveHeader/curlスクリプトは変更なしで動作します)。',
+  'settings.help.limits.b3':
+    'アカウント - プレミアムまたはdebridのログイン情報を保存し(Real-Debrid、AllDebrid、TorBoxなど)、対象のリンクが無料枠ではなくフルスピードで取得されるようにします。',
+  'settings.help.limits.link1': '接続を開く',
+  'settings.help.limits.link2': '再接続を開く',
+  'settings.help.limits.link3': 'アカウントを開く',
+
+  'settings.help.captcha.title': 'キャプチャ',
+  'settings.help.captcha.body':
+    'ホスターがキャプチャを要求すると、まず設定済みの自動ソルバーが設定した順序で試されます。解決できないもの、またはソルバーが設定されていない場合は、黙って失敗する代わりにあなたに提示されます。',
+  'settings.help.captcha.link': 'キャプチャ設定を開く',
+
+  'settings.help.after.title': 'ダウンロード後',
+  'settings.help.after.body':
+    'アーカイブは自動的に展開されます: zip(WinZip AESと従来のZipCryptoの両方の暗号化を含む)、複数ボリュームセットのrar、7z、tar、そしてtarを包んでいるかどうかにかかわらずgzip/bzip2/xz/zstd - 純粋なGoで、外部のunrarや7zプログラムは不要です。暗号化されたアーカイブでは、パスワードのリストが順番に試されます。完了したファイルは、付属する任意のチェックサム(.sfvリスト、md5/sha1/sha256sumファイル、またはリリース名自体が持つCRC32)と照合されます。',
+  'settings.help.after.link1': 'アーカイブ設定を開く',
+  'settings.help.after.link2': 'ダウンロード設定を開く',
+
+  'settings.help.schedule.title': '無人での運用',
+  'settings.help.schedule.body':
+    '週次スケジュールが時刻によってキューを一時停止または制限します。夜間のウィンドウは、夏時間の切り替えをまたいでも正確です。JDownloaderのSchedulerと同じ考え方です。',
+  'settings.help.schedule.link': 'スケジュールを開く',
+
+  'settings.help.instances.title': '複数のインスタンスを実行する',
+  'settings.help.instances.body':
+    '別のKnightLoaderをピアとして追加すると、そのキューもこのダッシュボードに表示されます。自己ホスト型で、リレーは一切関与しません。このインスタンスは、ブラウザーが行うのと同じ方法で、もう一方のインスタンスのAPIを単に呼び出すだけです。',
+  'settings.help.instances.link': 'インスタンスを開く',
+
+  'settings.help.access.title': 'アクセスとトラブルシューティング',
+  'settings.help.access.body':
+    'パスワードは、インターフェース全体をセッションクッキーの後ろにロックします。アクセスページには、このビルドの受信ポートとアクセス方法、およびその理由も一覧表示されます。これにより、見慣れない開いているポートに推測ではなく答えが用意されます。診断ページは、バグ報告に添付するファイルを作成します。バージョンとビルド情報、すべてのパスワードを除去した現在の設定、このプロセスの直近のログ行、そして実行中のゴルーチンの数です。',
+  'settings.help.access.link1': 'アクセス設定を開く',
+  'settings.help.access.link2': '診断を開く',
+
+  'settings.help.advanced.title': 'その他すべて',
+  'settings.help.advanced.body':
+    'このビルドのすべての設定は、詳細ページでその生の名前によって読み書きできます。すでにダウンロードされたファイルのミラーがどう扱われるか、ダウンロードがすでに使われている名前に行き着いた場合どうなるかなど、まだ他に専用のコントロールがないものもいくつか含まれます。',
+  'settings.help.advanced.link': '詳細設定を開く',
 };

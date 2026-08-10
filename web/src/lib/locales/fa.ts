@@ -1029,4 +1029,173 @@ export const fa: Dict = {
     'اعلان‌های موفقیت و اطلاعاتی را پنهان می‌کند. خطا، کپچایی که منتظر شماست، یا حساب موقتاً غیرفعال همچنان نمایش داده می‌شوند.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'آخرین تغییر',
+
+  'file.open': 'باز کردن',
+  'file.openNatively': 'باز کردن با برنامهٔ پیش‌فرض',
+  'file.revealInFolder': 'نمایش در پوشه',
+  'file.desktopOnly': 'فقط در برنامهٔ دسکتاپ',
+
+  'settings.schedule.title': 'زمان‌بندی',
+  'settings.schedule.subtitle': 'توقف، ازسرگیری، یا محدودسازی سرعت دانلود بر اساس زمان‌بندی.',
+  'settings.schedule.listTitle': 'جدول زمانی',
+  'settings.schedule.orderHint':
+    'ردیف‌ها به ترتیب، از بالا به پایین، اعمال می‌شوند، و وقتی دو بازه هم‌پوشانی داشته باشند، بازهٔ پایین‌تر برنده است - یک بازهٔ گسترده مثل «هر شب توقف» بالای یک استثنای محدودتر، آن استثنا را فعال نگه می‌دارد، اما همان دو ردیف به‌صورت معکوس چنین نمی‌کنند.',
+  'settings.schedule.add': 'افزودن بازه',
+  'settings.schedule.empty': 'صف از زمان‌بندی خودش پیروی می‌کند',
+  'settings.schedule.emptyHint':
+    'هیچ بازه‌ای پیکربندی نشده، پس چیزی در اینجا صف را بر اساس ساعت متوقف یا محدود نمی‌کند. یکی اضافه کنید تا دانلودها را شبانه نگه دارید یا سرعت را وقتی خودتان از اتصال استفاده می‌کنید محدود کنید.',
+  'settings.schedule.use': 'استفاده از این بازه',
+  'settings.schedule.moveUp': 'انتقال به بالا',
+  'settings.schedule.moveDown': 'انتقال به پایین',
+  'settings.schedule.remove': 'حذف این بازه',
+  'settings.schedule.edit': 'ویرایش این بازه',
+  'settings.schedule.name': 'نام',
+  'settings.schedule.namePlaceholder': 'مثلاً توقف شبانه',
+  'settings.schedule.days': 'روزها',
+  'settings.schedule.daysHint':
+    'این بازه در کدام روزهای هفته باز می‌شود. برای بازه‌ای که تا بعد از نیمه‌شب ادامه دارد، روزی را که در آن شروع می‌شود علامت بزنید - «جمعه ۲۲:۰۰-۰۶:۰۰» صبح شنبه پایان می‌یابد بدون اینکه خود شنبه علامت‌گذاری شده باشد.',
+  'settings.schedule.preset.every': 'هر روز',
+  'settings.schedule.preset.weekdays': 'روزهای کاری',
+  'settings.schedule.preset.weekends': 'آخر هفته‌ها',
+  'settings.schedule.preset.custom': 'سفارشی',
+  'settings.schedule.start': 'شروع',
+  'settings.schedule.end': 'پایان',
+  'settings.schedule.endHint':
+    'قبل از زمان شروع، این بازه تا بعد از نیمه‌شب ادامه می‌یابد و صبح روز بعد پایان می‌یابد. زمان پایانی برابر با زمان شروع رد می‌شود - این می‌تواند به معنای یک روز کامل یا اصلاً هیچ زمانی باشد، و حدس زدن اینکه منظور چه بوده، بدتر از پرسیدن است.',
+  'settings.schedule.action': 'عملکرد',
+  'settings.schedule.action.pause': 'توقف',
+  'settings.schedule.action.resume': 'ازسرگیری',
+  'settings.schedule.action.limit': 'محدود کردن سرعت',
+  'settings.schedule.limit': 'محدودیت سرعت',
+  'settings.schedule.disabledOff': 'این بازه کنار گذاشته شده و هرگز فعال نمی‌شود. صف طوری رفتار می‌کند که انگار این ردیف اصلاً وجود ندارد.',
+  'settings.schedule.activeNow': 'اکنون فعال، تا {time}',
+  'settings.schedule.next': 'بعدی: {when}',
+  'settings.schedule.never': 'هرگز طبق پیکربندی فعلی فعال نمی‌شود',
+  'settings.schedule.stateNow.paused': 'صف اکنون توسط زمان‌بندی متوقف شده است.',
+  'settings.schedule.stateNow.limited': 'صف اکنون توسط زمان‌بندی به {rate} محدود شده است.',
+  'settings.schedule.stateNow.running': 'هیچ بازه‌ای اکنون معتبر نیست.',
+  'settings.schedule.nextChange': 'تغییر بعدی: {when}',
+  'settings.schedule.noNextChange': 'هیچ‌چیز در جدول هرگز صف را طبق پیکربندی فعلی تغییر نخواهد داد.',
+  'settings.schedule.save': 'ذخیرهٔ زمان‌بندی',
+  'settings.schedule.discard': 'دور انداختن',
+  'settings.schedule.unsaved': 'تغییرات ذخیره‌نشده در زمان‌بندی',
+  'settings.schedule.saveFailed': 'ذخیرهٔ زمان‌بندی ممکن نشد: {error}',
+  'settings.schedule.rowError': 'ردیف {row}: {error}',
+
+  'idleAction.title': 'صف بیکار است',
+  'idleAction.action.pause': 'در حال توقف',
+  'idleAction.actionFallback': '«{action}» در حال اجرا',
+  'idleAction.in': 'تا {countdown}',
+  'idleAction.cancel': 'لغو',
+  'idleAction.cancelling': 'در حال لغو…',
+  'idleAction.cancelFailed': 'لغو ممکن نشد: سرور پاسخ نداد.',
+
+  'settings.idleAction.label': 'عملکرد هنگام خالی شدن صف',
+  'settings.idleAction.hint':
+    'وقتی دیگر چیزی در حال اجرا نیست، در صف منتظر نیست، یا آمادهٔ شروع نیست، چه اتفاقی می‌افتد. پیوندی که غیرفعال کرده‌اید اینجا شمرده نمی‌شود - حباب اطلاعات را ببینید.',
+  'settings.idleAction.info':
+    'پیوندی که غیرفعال کرده‌اید هرگز به‌عنوان کار باقی‌مانده شمرده نمی‌شود، پس نمی‌تواند این را تا ابد به تعویق بیندازد. پیوندی که به‌صورت دستی متوقف یا نگه‌داشته شده باشد همچنان شمرده می‌شود - هر دو به معنای «کمی صبر کن» است، نه «هرگز».',
+  'settings.idleAction.none': 'کاری نکن',
+  'settings.idleAction.pause': 'توقف صف',
+  'settings.idleAction.delay': 'شمارش معکوس (ثانیه)',
+  'settings.idleAction.delayHint':
+    'چقدر زمان برای لغو دارید پیش از اجرای عملکرد، به‌محض اینکه صف واقعاً بیکار شود.',
+
+  'settings.nav.diagnostics': 'عیب‌یابی',
+  'settings.diagnostics.subtitle':
+    'این بیلد چیست، روی چه چیزی اجرا می‌شود، و خروجی گزارش اخیر خودش - برای پیوست به گزارش اشکال.',
+  'settings.diagnostics.version': 'نسخه',
+  'settings.diagnostics.deployment': 'بیلد',
+  'settings.diagnostics.deployment.container': 'کانتینر',
+  'settings.diagnostics.deployment.desktop': 'دسکتاپ',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'پلتفرم',
+  'settings.diagnostics.goroutines': 'گوروتین',
+  'settings.diagnostics.download': 'دانلود بستهٔ عیب‌یابی',
+  'settings.diagnostics.downloading': 'در حال آماده‌سازی…',
+  'settings.diagnostics.downloadHint':
+    'یک فایل JSON با فیلدهای بالا، تنظیمات شما با حذف هر رمز عبور، و خطوط گزارش زیر.',
+  'settings.diagnostics.downloadFailed': 'ایجاد بسته ممکن نشد: {error}',
+  'settings.diagnostics.logTitle': 'خطوط اخیر گزارش',
+  'settings.diagnostics.logHint':
+    '{n} خط آخری که این فرایند ثبت کرده، قدیمی‌ترین اول. هیچ‌چیز اینجا روی دیسک نوشته نمی‌شود.',
+  'settings.diagnostics.logEmpty': 'هنوز چیزی ثبت نشده.',
+  'settings.diagnostics.refresh': 'تازه‌سازی',
+  'settings.diagnostics.loadFailed': 'بارگذاری عیب‌یابی ممکن نشد. سرور در دسترس است؟',
+
+  'settings.nav.help': 'راهنما',
+  'settings.help.intro':
+    'این بیلد چه کاری می‌تواند انجام دهد، بر اساس وظیفه نه صفحهٔ تنظیمات سازمان‌دهی شده. هر بخش به جایی که در آن پیکربندی می‌شود پیوند می‌دهد.',
+
+  'settings.help.intake.title': 'افزودن دانلودها',
+  'settings.help.intake.body':
+    'پیوندها را در گردآورنده جای‌گذاری کنید - یکی در هر خط، یا متن نامرتب: یک جستجو پیوندها را هرجا که باشند پیدا می‌کند، وسط یک جمله، چندتا در یک خط، یا شکسته‌شده به دو خط توسط یک برنامهٔ ایمیل.',
+  'settings.help.intake.b1': 'یک فایل کانتینر پیوند (.dlc، .ccf، .rsdf) یا یک فهرست پیوند ساده رها کنید.',
+  'settings.help.intake.b2':
+    "دکمه‌های Click'n'Load در صفحات هاستر و انجمن‌ها بدون تغییر کار می‌کنند - KnightLoader روی 127.0.0.1:9666 پاسخ می‌دهد، همان پورتی که هر مدیر دانلود دیگری استفاده می‌کند.",
+  'settings.help.intake.b3':
+    'یک URL صفحه را به‌جای پیوند فایل جای‌گذاری کنید و خزیدن را روشن کنید تا هر فایلی که به آن پیوند دارد استخراج شود، به‌جای دانلود خود صفحه.',
+  'settings.help.intake.b4': 'یک پوشهٔ زیرنظرگرفته‌شده به‌طور خودکار فایل‌های .txt/.crawljob را که در آن رها می‌شوند برمی‌دارد.',
+  'settings.help.intake.link1': 'باز کردن تنظیمات دانلودها',
+  'settings.help.intake.link2': "باز کردن تنظیمات دسترسی (Click'n'Load)",
+
+  'settings.help.collector.title': 'گردآورنده، پیش از دانلود هر چیزی',
+  'settings.help.collector.body':
+    'پیوندهای جدید ابتدا به گردآورنده می‌رسند، نه به صف: یک منطقهٔ گذار برای بررسی نام‌ها، اندازه‌ها، و هشدارهای تکراری پیش از شروع هر چیزی. تأیید خودکار می‌تواند این مرحله را رد کند، با تأخیری اختیاری؛ پس از تأیید، یک پیوند یا بلافاصله شروع می‌شود یا در صف منتظر می‌ماند، بسته به شروع خودکار.',
+  'settings.help.collector.link': 'باز کردن تنظیمات عمومی',
+
+  'settings.help.rules.title': 'قوانین: بسته‌ها، پوشه‌ها، و آنچه نگه داشته می‌شود',
+  'settings.help.rules.body':
+    'Packagizer نام یک پیوند را تغییر می‌دهد، پوشهٔ آن را انتخاب می‌کند، و گزینه‌های دانلود آن را هنگام ورود، بر اساس شرایطی که شما می‌نویسید تنظیم می‌کند. فیلتر پیوند تصمیم می‌گیرد که آیا یک پیوند اصلاً نگه داشته شود یا نه - و برخلاف فیلتری که فقط پیوندها را ناپدید می‌کند، یک رد همیشه قانونی را که باعث آن شده، و دلیلش را، نام می‌برد.',
+  'settings.help.rules.link': 'باز کردن قوانین',
+
+  'settings.help.queue.title': 'مدیریت صف',
+  'settings.help.queue.body':
+    'هر پیوندی را، به‌تنهایی یا به‌عنوان یک بستهٔ کامل، متوقف، ازسرگیری، یا مرتب‌سازی مجدد کنید. متوقف کردن صف دو عملکرد متفاوت است: توقف چیزی را که در حال اجراست دست‌نخورده رها می‌کند تا خودش تمام شود، درحالی‌که توقف فوری همهٔ انتقال‌ها ابتدا نشان می‌دهد چه چیزی از دست می‌رود، و فقط پس از تأیید شما ادامه می‌یابد - این دقیقاً همان چیزی است که آن هشدار برای انتقالی که نمی‌تواند از جایی که متوقف شده ادامه یابد وجود دارد.',
+  'settings.help.queue.b1': 'یک پیوند تنها می‌تواند تعداد اتصالات سراسری یا کلید استخراج پس از دانلود را نادیده بگیرد.',
+  'settings.help.queue.b2': 'تکرار پیوندی که از قبل در فهرست است همیشه رد می‌شود، حتی پیش از رسیدن به گردآورنده.',
+
+  'settings.help.limits.title': 'دور زدن محدودیت‌های هاستر',
+  'settings.help.limits.body': 'سه راه مستقل برای جلوگیری از تبدیل شدن یک محدودیت رایگان به سقف:',
+  'settings.help.limits.b1':
+    'اتصالات - دانلودها را روی بیش از یک مسیر خروجی پخش کنید (یک خط دوم، یک پروکسی، SOCKS) به‌جای اینکه همیشه از آدرس خود این دستگاه خارج شوید.',
+  'settings.help.limits.b2':
+    'اتصال دوباره - از روتر یک آدرس عمومی جدید بخواهید، تنها چیزی که واقعاً محدودیتی وابسته به خود آدرس را برمی‌دارد (UPnP، یک برنامهٔ خارجی، یک اسکریپت، یا پخش دوبارهٔ درخواست‌های HTTP در برابر صفحهٔ مدیریت روتر - اسکریپت‌های موجود JDownloader LiveHeader/curl بدون تغییر کار می‌کنند).',
+  'settings.help.limits.b3':
+    'حساب‌ها - اطلاعات ورود پرمیوم یا debrid را ذخیره کنید (Real-Debrid، AllDebrid، TorBox و دیگران) تا پیوندی واجد شرایط با سرعت کامل به‌جای محدودیت رایگان دریافت شود.',
+  'settings.help.limits.link1': 'باز کردن اتصالات',
+  'settings.help.limits.link2': 'باز کردن اتصال دوباره',
+  'settings.help.limits.link3': 'باز کردن حساب‌ها',
+
+  'settings.help.captcha.title': 'کپچا',
+  'settings.help.captcha.body':
+    'وقتی هاستری کپچا درخواست می‌کند، ابتدا یک حل‌کنندهٔ خودکار که پیکربندی کرده‌اید، به ترتیبی که تعیین کرده‌اید، امتحان می‌شود. آنچه نمی‌تواند حل کند - یا اگر هیچ‌کدام پیکربندی نشده باشد - به شما ارائه می‌شود به‌جای اینکه بی‌صدا شکست بخورد.',
+  'settings.help.captcha.link': 'باز کردن تنظیمات کپچا',
+
+  'settings.help.after.title': 'پس از دانلود',
+  'settings.help.after.body':
+    'آرشیوها به‌طور خودکار استخراج می‌شوند: zip (شامل رمزگذاری‌شده، هم WinZip AES و هم ZipCrypto قدیمی)، rar با مجموعه‌های چندجلدی، 7z، tar، و gzip/bzip2/xz/zstd چه یک tar را در بر بگیرند چه نه - Go خالص، بدون برنامهٔ unrar یا 7z خارجی. برای آرشیو رمزگذاری‌شده، فهرستی از رمزهای عبور به ترتیب امتحان می‌شود. یک فایل تکمیل‌شده در برابر هر مجموع کنترلی که همراهش رسیده بررسی می‌شود: یک فهرست .sfv، یک فایل md5/sha1/sha256sum، یا یک CRC32 که خود نام نسخه حمل می‌کند.',
+  'settings.help.after.link1': 'باز کردن تنظیمات آرشیوها',
+  'settings.help.after.link2': 'باز کردن تنظیمات دانلودها',
+
+  'settings.help.schedule.title': 'اجرا بدون نظارت',
+  'settings.help.schedule.body':
+    'یک زمان‌بندی هفتگی صف را بر اساس ساعت متوقف یا محدود می‌کند - یک بازهٔ شبانه، درست حتی در تغییر ساعت تابستانی - همان ایدهٔ Scheduler در JDownloader.',
+  'settings.help.schedule.link': 'باز کردن زمان‌بندی',
+
+  'settings.help.instances.title': 'اجرای بیش از یک نمونه',
+  'settings.help.instances.body':
+    'یک KnightLoader دیگر را به‌عنوان همتا اضافه کنید، و صف آن نیز در این داشبورد ظاهر می‌شود - خودمیزبانی‌شده، بدون هیچ رله‌ای: این نمونه به‌سادگی API نمونهٔ دیگر را فرا می‌خواند، به همان شیوه‌ای که یک مرورگر انجام می‌دهد.',
+  'settings.help.instances.link': 'باز کردن نمونه‌ها',
+
+  'settings.help.access.title': 'دسترسی و عیب‌یابی',
+  'settings.help.access.body':
+    'یک رمز عبور کل رابط را پشت یک کوکی نشست قفل می‌کند. صفحهٔ دسترسی همچنین پورت‌های دریافت و روش‌های دسترسی این بیلد، و دلیل آن‌ها را فهرست می‌کند - تا یک پورت باز ناشناخته پاسخی داشته باشد به‌جای حدس. صفحهٔ عیب‌یابی فایلی برای پیوست به گزارش اشکال می‌سازد: نسخه و اطلاعات بیلد، تنظیمات فعلی با حذف هر رمز عبور، خطوط اخیر گزارش این فرایند، و تعداد گوروتین‌های در حال اجرا.',
+  'settings.help.access.link1': 'باز کردن تنظیمات دسترسی',
+  'settings.help.access.link2': 'باز کردن عیب‌یابی',
+
+  'settings.help.advanced.title': 'همهٔ چیزهای دیگر',
+  'settings.help.advanced.body':
+    'هر تنظیمی از این بیلد را می‌توان از طریق نام خام آن در صفحهٔ پیشرفته خواند و تغییر داد، از جمله چند مورد - مانند اینکه چگونه با یک آینه از فایلی که قبلاً دانلود شده رفتار می‌شود، چه اتفاقی می‌افتد وقتی دانلودی روی نامی که قبلاً استفاده شده فرود بیاید - که هنوز کنترل اختصاصی جای دیگری ندارند.',
+  'settings.help.advanced.link': 'باز کردن تنظیمات پیشرفته',
 };

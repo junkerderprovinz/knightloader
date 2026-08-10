@@ -35,6 +35,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/hub"
+	"github.com/junkerderprovinz/knightloader/internal/idleaction"
 	"github.com/junkerderprovinz/knightloader/internal/netproxy"
 	"github.com/junkerderprovinz/knightloader/internal/pathvars"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
@@ -99,6 +100,34 @@ type App struct {
 	// which of the two writers happened to finish first.
 	Probe doer
 
+	// DataDir is the directory New was given. Kept verbatim rather than only
+	// as the derived paths (dlDir, Store's own path, Settings' own path)
+	// because backup and restore need the directory itself, not one file in
+	// it — see internal/backup, which stages a validated restore beside
+	// whatever New already opened rather than inside it.
+	DataDir string
+
+	// RequestExit, when set by whatever embeds this App, is how the API
+	// layer's quit/restart/restore routes ask the process to actually stop.
+	// App owns no *http.Server and no signal loop of its own to act on a
+	// request like that — only the state Close already knows how to drain —
+	// so it cannot honour this itself.
+	//
+	// Nil in every test and in any embedding that never sets it, which the
+	// routes read as "not supported here" rather than doing nothing
+	// silently: today that is the desktop build, whose window chrome and
+	// tray already have their own graceful path to a.Close() and have no
+	// need of this one.
+	//
+	// restart distinguishes only the caller's own log line and the sentence
+	// the API hands back — the shutdown sequence a true return triggers is
+	// identical either way, deliberately: see cmd/knightloader/main.go's own
+	// comment on why quit and restart cannot be told apart from outside a
+	// supervised deployment, and therefore are not told apart in here either.
+	// The return value reports whether the request was accepted; false means
+	// a shutdown is already under way and this one changes nothing.
+	RequestExit func(restart bool) bool
+
 	// ctx is cancelled by Close. It bounds work that outlives the call that
 	// started it: a reconnect can hold the line for the whole configured timeout,
 	// and a shutdown must not wait two minutes for a router to answer — nor fire
@@ -110,6 +139,12 @@ type App struct {
 	// is the only writer of the speed limit, so a saved settings page cannot lift
 	// a nightly cap that is still in force.
 	sched *schedule.Runner
+
+	// idleAction watches the wait queue and carries out the configured
+	// end-of-queue action after its cancellable countdown - see app_idle.go
+	// and internal/idleaction. Owns one goroutine, started and stopped the
+	// same way sched just above is; the two are independent of each other.
+	idleAction *idleaction.Controller
 
 	// wg counts the goroutines this package starts and keeps for the life of the
 	// app - the housekeeping loop, and nothing else so far. Close waits on it,
@@ -207,6 +242,7 @@ func New(dataDir string) (*App, error) {
 		Registry:   resolver.NewRegistry(),
 		Settings:   cfg,
 		Federation: fed,
+		DataDir:    dataDir,
 		dlDir:      filepath.Join(dataDir, "downloads"),
 		Throttle:   throttle.New(),
 		tasks:      map[string]*core.Task{},
@@ -268,6 +304,16 @@ func New(dataDir string) (*App, error) {
 		Entries: s.Schedule,
 		Base:    a.scheduleBase,
 		Apply:   a.applySchedule,
+	})
+	if err != nil {
+		st.Close()
+		return nil, err
+	}
+	a.idleAction, err = idleaction.NewController(idleaction.Options{
+		Config:   func() idleaction.Config { return a.Settings.Get().IdleAction },
+		Idle:     a.queueIdleForAction,
+		Fire:     a.fireIdleAction,
+		OnChange: func() { a.Hub.Broadcast("idleAction", a.IdleActionState()) },
 	})
 	if err != nil {
 		st.Close()
@@ -373,6 +419,11 @@ func New(dataDir string) (*App, error) {
 	// timetable is not holding the queue, so downloads resumed by a restart
 	// cannot walk past a pause window by being early.
 	a.sched.Start()
+	// Same reason: idleAction reads the task list through Counters, and
+	// starting it before requeue above is applied would let it see an empty
+	// queue and arm a countdown for a "nothing to do" that is only true
+	// because the boot has not finished putting the list back together yet.
+	a.idleAction.Start()
 	// Last, so nothing can sweep a list that is still being assembled. Close
 	// waits for this goroutine, because everything it does writes to the store.
 	a.wg.Add(1)
@@ -505,6 +556,12 @@ func (a *App) Close() error {
 	if a.sched != nil {
 		_ = a.sched.Close()
 	}
+	// Same promise as sched just above: Close blocks on an in-flight tick, so
+	// a Fire (SetHalted) already under way finishes before anything it might
+	// touch is torn down further down this function.
+	if a.idleAction != nil {
+		_ = a.idleAction.Close()
+	}
 	if a.proxy != nil {
 		_ = a.proxy.Close()
 	}
@@ -611,6 +668,10 @@ func (a *App) ApplySettings(s settings.Settings) (settings.Settings, error) {
 	// Set recompiles and re-evaluates at once against the new base, so the runner
 	// is the one that hands the limiter its answer.
 	a.sched.Set(applied.Schedule)
+	// Re-evaluated now rather than at idleAction's own next poll, so turning
+	// the action on (or off) while the queue happens to already be idle takes
+	// effect immediately instead of up to a couple of seconds later.
+	a.idleAction.Refresh()
 	a.applyWatchFolders(applied)
 	a.applyConnections(applied.Connections)
 	a.mu.Lock()
