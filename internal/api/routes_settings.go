@@ -10,6 +10,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/collide"
+	"github.com/junkerderprovinz/knightloader/internal/confirm"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
@@ -158,6 +159,14 @@ func options() map[string]any {
 		// human answers", and there is no status for that and no way to answer, so
 		// a task set to it would sit in the queue forever with nothing saying why.
 		"collisionPolicies": policiesExcept(collide.Policies(), collide.Ask),
+		// confirm.UseGlobal is withheld for the same reason collide.Ask is just
+		// above, from the other direction: it means "defer to the instance's own
+		// default", and offered as a choice for the instance's own default it
+		// would defer to itself. Ask stays in the menu here - unlike collide.Ask,
+		// it is a real, answerable state for THIS field when the confirm is
+		// interactive (internal/confirm.Trigger.Interactive), and it only
+		// degrades to a fixed fallback for the triggers that are not.
+		"confirmPolicies": confirmPoliciesForAGlobalDefault(),
 		// Archives get their own two lists rather than borrowing the one above.
 		// An extraction can honour a different set from a download - it has
 		// nobody to ask, and it decides per folder rather than per file - so the
@@ -208,6 +217,22 @@ func policiesExcept(in []collide.Policy, drop collide.Policy) []collide.Policy {
 	out := make([]collide.Policy, 0, len(in))
 	for _, p := range in {
 		if p != drop {
+			out = append(out, p)
+		}
+	}
+	return out
+}
+
+// confirmPoliciesForAGlobalDefault is confirm.Policies() with UseGlobal
+// dropped - a separate small filter rather than a second call to
+// policiesExcept, which is typed for collide.Policy specifically and would
+// need generifying (a signature change to a function this file already
+// exports) to serve a second package's enum too.
+func confirmPoliciesForAGlobalDefault() []confirm.Policy {
+	all := confirm.Policies()
+	out := make([]confirm.Policy, 0, len(all))
+	for _, p := range all {
+		if p != confirm.UseGlobal {
 			out = append(out, p)
 		}
 	}

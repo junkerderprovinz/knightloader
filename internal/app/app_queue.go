@@ -20,6 +20,10 @@ func (a *App) StartTasks(ids []string) {
 		want[id] = true
 	}
 	all := len(ids) == 0
+	// Settings has its own lock, independent of a.mu either way - read
+	// before taking a.mu purely so the critical section below stays about
+	// a.tasks and nothing else.
+	addAtTop := a.Settings.Get().AddAtTop
 	a.mu.Lock()
 	var toStart []*core.Task
 	for id, t := range a.tasks {
@@ -42,14 +46,40 @@ func (a *App) StartTasks(ids []string) {
 		t.Speed = 0
 		a.queue = append(a.queue, t.ID)
 	}
+	// AddAtTop: a batch leaving the collector plays next rather than joining
+	// the back of its band. renumberLocked is the same mechanism MoveIn and
+	// SetPriorityIn already use for exactly this move, so a newly confirmed
+	// batch and a manual "move to top" land in the identical order - and,
+	// like SetPriorityIn's own "arrived" set, the ids below are exactly the
+	// ones that just changed status, never the caller's raw id list, so a
+	// stale or unknown id in ids can never renumber a band it never joined.
+	var moved []core.Task
+	if addAtTop && len(toStart) > 0 {
+		atTop := make(map[string]bool, len(toStart))
+		for _, t := range toStart {
+			atTop[t.ID] = true
+		}
+		moved = a.renumberLocked(atTop, MoveTop)
+	}
 	a.dispatchLocked()
 	// Snapshotted after dispatching, never before. Dispatch settles the tasks it
 	// refuses — a filtered link, a taken destination — and a copy taken above
 	// would carry "queued" with the error cleared, which is exactly what would
 	// then be written over the refusal in the store and on screen.
-	copies := make([]core.Task, 0, len(toStart))
+	named := make(map[string]bool, len(toStart))
+	copies := make([]core.Task, 0, len(toStart)+len(moved))
 	for _, t := range toStart {
+		named[t.ID] = true
 		copies = append(copies, *t)
+	}
+	// The incumbents AddAtTop pushed down: their position changed too, and a
+	// browser that never hears about it draws the old order until something
+	// else happens to redraw the row - the same reason SetPriorityIn folds
+	// its own "moved" set in below its own dispatch call.
+	for _, c := range moved {
+		if !named[c.ID] {
+			copies = append(copies, c)
+		}
 	}
 	a.mu.Unlock()
 	for i := range copies {

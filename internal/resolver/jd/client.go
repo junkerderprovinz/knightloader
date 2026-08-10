@@ -5,6 +5,7 @@
 package jd
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -231,6 +232,43 @@ func (c *Client) AddContainerLinks(url, packageName string) (int64, error) {
 	}
 	_ = json.Unmarshal(data, &res)
 	return res.ID, nil
+}
+
+// AddContainerData hands JD an encrypted container as inline content instead
+// of a URL to fetch, and pins the package it lands in exactly as
+// AddContainerLinks does (same two reasons: overwritePackagizerRules so our
+// name wins over whatever the container decrypts to, and a fresh marker
+// because the returned job id does not filter queryLinks — see
+// AddContainerLinks's own doc).
+//
+// This is Click'n'Load's addcrypted (v1): unlike a .dlc/.ccf/.rsdf a user
+// saved and later uploaded, that payload was never a file anywhere — it
+// exists only as one POST form field — so there is no URL to hand JD for it.
+// dataURLs is the Deprecated API's answer to exactly that gap (verified
+// against JDownloader's own LinkCollectorAPIImplV2#addLinks: a dataURLs entry
+// is base64-decoded to a temp file named by the declared extension and fed
+// into the identical crawl entrance a fetched URL would use). ext is that
+// declared extension, "dlc" for addcrypted v1 because that is genuinely what
+// JD's own listener does with the same field
+// (org.jdownloader.api.cnl2.ExternInterfaceImpl#addcrypted writes it to a
+// temp .dlc and hands that in) — reusing it here is the identical treatment,
+// not a second, KnightLoader-specific decryption path.
+func (c *Client) AddContainerData(ext string, data []byte, packageName string) (int64, error) {
+	dataURL := "data:application/" + ext + ";base64," + base64.StdEncoding.EncodeToString(data)
+	res, err := c.call("/linkgrabberv2/addLinks", map[string]any{
+		"dataURLs":                 []string{dataURL},
+		"packageName":              packageName,
+		"autostart":                false,
+		"overwritePackagizerRules": true,
+	})
+	if err != nil {
+		return 0, err
+	}
+	var out struct {
+		ID int64 `json:"id"`
+	}
+	_ = json.Unmarshal(res, &out)
+	return out.ID, nil
 }
 
 // CrawledPackageUUID finds a link-grabber package by the name we gave it, or 0.

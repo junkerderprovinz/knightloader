@@ -67,7 +67,7 @@ func TestEveryEntranceRecordsWhereALinkCameFrom(t *testing.T) {
 
 	t.Run("the watched folder", func(t *testing.T) {
 		a := newCrawlApp(t, false)
-		a.onWatchJob(watch.Job{URLs: []string{"https://host.example/one.bin"}})
+		a.stageWatchJob(watch.Job{URLs: []string{"https://host.example/one.bin"}})
 		waitFor(t, "the dropped job reaching the list", func() bool {
 			a.mu.Lock()
 			defer a.mu.Unlock()

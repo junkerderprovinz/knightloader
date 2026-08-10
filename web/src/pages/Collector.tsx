@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { addLinks, recheckTasks, startTasks } from '../lib/api';
+import { recheckTasks, startTasks, type Task } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import { useReportListView } from '../lib/listview';
 import { useToast } from '../lib/toast';
 import { useT } from '../lib/i18n';
-import { PageHeader, Button, TextInput } from '../components/ui';
+import { PageHeader, Button } from '../components/ui';
 import {
   TaskListCard,
   groupByPackage,
@@ -12,6 +12,7 @@ import {
   type Selection,
 } from '../components/TaskList';
 import { PackageActions } from '../components/PackageActions';
+import { AddLinksForm } from '../components/AddLinksForm';
 import { ContainerDrop } from '../components/ContainerDrop';
 import { FilteredLinks, useFx } from '../components/FilteredLinks';
 import { SkippedLinks } from '../components/SkippedLinks';
@@ -31,18 +32,32 @@ import {
 } from '../components/ListToolbar';
 import { EMPTY_SEARCH, matchesSearch, type SearchQuery } from '../components/SearchField';
 import { anchorFromEvent, useContextMenu } from '../components/ContextMenu';
-import { IconPlus, IconPlay, IconCollector } from '../lib/icons';
+import {
+  CollectorFacetSidebar,
+  CollectorFacetsToggle,
+  EMPTY_FACETS,
+  facetActiveCount,
+  matchesFacets,
+  type FacetSelection,
+} from '../components/CollectorFacets';
+import { CollectorStats } from '../components/CollectorStats';
+import { IconPlay } from '../lib/icons';
 
 export function Collector() {
   const { t } = useT();
   const fx = useFx();
   const tasks = useTasks('');
   const { toast } = useToast();
-  const [links, setLinks] = useState('');
+  // pkg stays lifted here rather than moving into AddLinksForm: the
+  // container-drop zone below wants the same package name a link pasted at
+  // the same time would get, and it is not part of the form's own lane.
   const [pkg, setPkg] = useState('');
-  const [dragOver, setDragOver] = useState(false);
   const [search, setSearch] = useState<SearchQuery>(EMPTY_SEARCH);
   const [filters, setFilters] = useState<Set<QuickFilterId>>(() => new Set());
+  // The facet groups the collector's own sidebar exposes (host, file type,
+  // package) — see components/CollectorFacets.tsx for why availability is not a
+  // fourth one: it is already the quick filters above.
+  const [facets, setFacets] = useState<FacetSelection>(EMPTY_FACETS);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const menu = useContextMenu();
   const [target, setTarget] = useState<MenuTarget>({ kind: 'selection' });
@@ -66,8 +81,8 @@ export function Collector() {
     [all],
   );
   const filtered = useMemo(
-    () => collected.filter((x) => matchesQuickFilters(x, filters) && matchesSearch(x, search)),
-    [collected, filters, search],
+    () => collected.filter((x) => matchesQuickFilters(x, filters) && matchesSearch(x, search) && matchesFacets(x, facets)),
+    [collected, filters, search, facets],
   );
   const groups = useMemo(() => groupByPackage(filtered), [filtered]);
 
@@ -86,6 +101,10 @@ export function Collector() {
 
   const clearSelection = useCallback(() => setSelected(new Set()), []);
   const removal = useRemoval({ all, selected, base: '/api', onDone: clearSelection });
+  // Resolved once here rather than inside CollectorStats: `collected`, not
+  // `all`, because the stats strip is about what is staged, the same scope
+  // every other figure on this page already uses.
+  const selectedTasks = useMemo(() => collected.filter((x) => selected.has(x.id)), [collected, selected]);
 
   const selection: Selection = {
     ids: selected,
@@ -98,16 +117,11 @@ export function Collector() {
       }),
   };
 
-  async function onAdd() {
-    if (!links.trim()) return;
-    const submitted = new Set(
-      links
-        .split(/[\r\n]+/)
-        .map((l) => l.trim())
-        .filter((l) => /^https?:\/\//i.test(l)),
-    ).size;
-    const created = await addLinks(links, pkg);
-    setLinks('');
+  // Handed to AddLinksForm as onStaged: the form owns the request and its own
+  // fields, this page keeps owning what the result is worth telling the user.
+  // submittedCount is how many URL-shaped lines the box held, which the form
+  // is in the only position to count since the text itself lives there now.
+  function handleStaged(created: Task[], submittedCount: number) {
     if (!created.length) {
       toast(t('collector.toastNone'), 'fail');
       return;
@@ -117,7 +131,7 @@ export function Collector() {
     // somebody looking for it in a list it is deliberately not in.
     const heldNow = created.filter((x) => x.skipped).length;
     const staged = created.length - heldNow;
-    const skipped = Math.max(0, submitted - created.length);
+    const skipped = Math.max(0, submittedCount - created.length);
     if (heldNow) {
       toast(
         staged
@@ -133,13 +147,6 @@ export function Collector() {
         : t('collector.toastStaged', { n: staged }),
       'ok',
     );
-  }
-
-  function onDrop(e: React.DragEvent) {
-    e.preventDefault();
-    setDragOver(false);
-    const text = e.dataTransfer.getData('text');
-    if (text) setLinks((l) => (l ? `${l}\n${text}` : text));
   }
 
   const startSelected = () => {
@@ -191,52 +198,11 @@ export function Collector() {
     <div className="flex flex-col gap-6">
       <PageHeader title={t('collector.title')} subtitle={t('collector.subtitle')} />
 
-      {/* The hero: one drop zone that is also the paste field. */}
-      <div className="glim-card p-0 overflow-hidden">
-        <div
-          onDragOver={(e) => {
-            e.preventDefault();
-            setDragOver(true);
-          }}
-          onDragLeave={() => setDragOver(false)}
-          onDrop={onDrop}
-          className={`relative m-3 rounded-[var(--radius-control)] transition-colors ${
-            dragOver ? 'bg-accentSoft shadow-[0_0_0_2px_var(--focus-ring)]' : 'bg-carbon-surface2'
-          }`}
-        >
-          <textarea
-            dir="ltr"
-            placeholder={t('collector.placeholder')}
-            rows={4}
-            value={links}
-            onChange={(e) => setLinks(e.target.value)}
-            onKeyDown={(e) => {
-              if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') onAdd();
-            }}
-            className="w-full resize-y rounded-[var(--radius-control)] bg-transparent px-4 py-3 text-sm text-carbon-text placeholder:text-carbon-textMuted outline-none"
-          />
-          {dragOver && (
-            <div className="pointer-events-none absolute inset-0 grid place-items-center rounded-[var(--radius-control)]">
-              <span className="flex items-center gap-2 text-sm font-medium text-accent">
-                <IconCollector width={18} height={18} />
-                {t('collector.add')}
-              </span>
-            </div>
-          )}
-        </div>
-        <div className="flex items-center gap-3 px-4 pb-4">
-          <TextInput
-            placeholder={t('collector.package')}
-            value={pkg}
-            onChange={(e) => setPkg(e.target.value)}
-            className="max-w-xs"
-          />
-          <span className="flex-1" />
-          <Button icon={<IconPlus />} onClick={onAdd} disabled={!links.trim()}>
-            {t('collector.add')}
-          </Button>
-        </div>
-      </div>
+      {/* The hero: one drop zone that is also the paste field, plus the
+          per-batch destination/priority/unpacking/comment/password options
+          and the recently-used-destination history — see
+          components/AddLinksForm.tsx. */}
+      <AddLinksForm pkg={pkg} onPkgChange={setPkg} onStaged={handleStaged} />
 
       {/* Intake that is not a paste, and the trace of what the paste dropped.
           Both sit under the hero and above the list: the paste box is why people
@@ -249,75 +215,87 @@ export function Collector() {
         <SkippedLinks />
       </div>
 
-      {collected.length > 0 && (
-        <ListToolbar
-          search={search}
-          onSearch={setSearch}
-          filters={COLLECTOR_FILTERS}
-          active={filters}
-          onActive={setFilters}
-          tasks={collected}
-          shown={filtered.length}
-        />
-      )}
+      {/* The strip and the facet sidebar are both keyed off `collected`, not
+          `filtered`: a facet that has narrowed the list to nothing must not
+          also make the controls that would widen it disappear. */}
+      {collected.length > 0 && <CollectorStats all={collected} visible={filtered} selected={selectedTasks} />}
 
-      <SelectionStrip
-        all={collected}
-        selected={selected}
-        onSelected={setSelected}
-        removal={removal}
-        onMore={(at) => {
-          setTarget({ kind: 'selection' });
-          menu.openAt(at);
-        }}
-      >
-        <PackageActions
-          tasks={collected}
-          selected={selected}
-          base="/api"
-          onDone={() => toast(t('task.applied'), 'ok')}
-        />
-        {/* Secondary, not primary: the page's one accent button is "Add to
-            collector" in the hero, and a second would make neither read as the
-            thing to do next. */}
-        <Button
-          kind="secondary"
-          className="px-2.5 text-xs"
-          icon={<IconPlay width={15} height={15} />}
-          onClick={startSelected}
-        >
-          {t('collector.startSelected')}
-        </Button>
-      </SelectionStrip>
+      <div className="flex min-w-0 flex-col items-start gap-6 lg:flex-row">
+        {collected.length > 0 && <CollectorFacetSidebar tasks={collected} selection={facets} onChange={setFacets} />}
 
-      <div onContextMenu={onContextMenu}>
-        {collected.length === 0 ? (
-          <div className="glim-card p-12 text-center text-sm text-carbon-textMuted">{t('collector.empty')}</div>
-        ) : filtered.length === 0 ? (
-          <div className="glim-card p-12 text-center text-sm text-carbon-textMuted">{t('downloads.noMatch')}</div>
-        ) : (
-          <TaskListCard groups={groups} base="/api" selection={selection} profile="collector" />
-        )}
+        <div className="flex min-w-0 flex-1 flex-col gap-4">
+          {collected.length > 0 && (
+            <ListToolbar
+              search={search}
+              onSearch={setSearch}
+              filters={COLLECTOR_FILTERS}
+              active={filters}
+              onActive={setFilters}
+              tasks={collected}
+              shown={filtered.length}
+              right={<CollectorFacetsToggle activeCount={facetActiveCount(facets)} />}
+            />
+          )}
+
+          <SelectionStrip
+            all={collected}
+            selected={selected}
+            onSelected={setSelected}
+            removal={removal}
+            onMore={(at) => {
+              setTarget({ kind: 'selection' });
+              menu.openAt(at);
+            }}
+          >
+            <PackageActions
+              tasks={collected}
+              selected={selected}
+              base="/api"
+              onDone={() => toast(t('task.applied'), 'ok')}
+            />
+            {/* Secondary, not primary: the page's one accent button is "Add to
+                collector" in the hero, and a second would make neither read as the
+                thing to do next. */}
+            <Button
+              kind="secondary"
+              className="px-2.5 text-xs"
+              icon={<IconPlay width={15} height={15} />}
+              onClick={startSelected}
+            >
+              {t('collector.startSelected')}
+            </Button>
+          </SelectionStrip>
+
+          <div onContextMenu={onContextMenu}>
+            {collected.length === 0 ? (
+              <div className="glim-card p-12 text-center text-sm text-carbon-textMuted">{t('collector.empty')}</div>
+            ) : filtered.length === 0 ? (
+              <div className="glim-card p-12 text-center text-sm text-carbon-textMuted">{t('downloads.noMatch')}</div>
+            ) : (
+              <TaskListCard groups={groups} base="/api" selection={selection} profile="collector" />
+            )}
+          </div>
+
+          <ListActionBar all={all} selected={selected} onSelected={setSelected} visible={filtered} local>
+            <Button
+              kind="ghost"
+              className="px-2.5 text-xs"
+              onClick={() => {
+                // An empty id list means every staged link on this route —
+                // deliberately unlike the bulk routes, where empty is refused
+                // outright rather than read as "all".
+                recheckTasks([]);
+                toast(t('task.recheck'), 'info');
+              }}
+            >
+              {t('collector.checkAll')}
+            </Button>
+            <Button kind="secondary" className="px-2.5 text-xs" onClick={startAll} disabled={collected.length === 0}>
+              {t('collector.startAll')}
+            </Button>
+          </ListActionBar>
+        </div>
       </div>
-
-      <ListActionBar all={all} selected={selected} onSelected={setSelected} visible={filtered} local>
-        <Button
-          kind="ghost"
-          className="px-2.5 text-xs"
-          onClick={() => {
-            // An empty id list means every staged link on this route —
-            // deliberately unlike the bulk routes, where empty is refused
-            // outright rather than read as "all".
-            recheckTasks([]);
-            toast(t('task.recheck'), 'info');
-          }}
-        >
-          {t('collector.checkAll')}
-        </Button>
-        <Button kind="secondary" className="px-2.5 text-xs" onClick={startAll} disabled={collected.length === 0}>
-          {t('collector.startAll')}
-        </Button>
-      </ListActionBar>
 
       <ListMenu
         anchor={menu.anchor}

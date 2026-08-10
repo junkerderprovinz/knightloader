@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Card, Field, FieldGroup, NumberInput, TextInput, Toggle } from '../../components/ui';
+import { Card, Field, FieldGroup, InfoBubble, NumberInput, TextInput, Toggle } from '../../components/ui';
 import { Tabs } from '../../components/Tabs';
 import { fetchOptions } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
@@ -122,6 +122,14 @@ export function DownloadsSettings() {
             onChange={(v) => patch({ verifyChecksums: v })}
             label={t('settings.verifyChecksums')}
           />
+          <div className="flex items-center gap-1.5">
+            <Toggle
+              checked={cfg.preParserEnabled}
+              onChange={(v) => patch({ preParserEnabled: v })}
+              label={t('settings.preParser')}
+            />
+            <InfoBubble tip={t('settings.preParserHint')} />
+          </div>
         </div>
       </Card>
 

@@ -301,7 +301,7 @@ func New(dataDir string) (*App, error) {
 	a.Auth = guard
 
 	a.rewireBackends()
-	a.applyWatcher(cfg.Get().WatchDir)
+	a.applyWatchFolders(cfg.Get())
 
 	// Reload persisted tasks. What each one comes back as is reviveOnBoot's
 	// decision, and it is not a formality: every row in the store belonged to a
@@ -611,7 +611,7 @@ func (a *App) ApplySettings(s settings.Settings) (settings.Settings, error) {
 	// Set recompiles and re-evaluates at once against the new base, so the runner
 	// is the one that hands the limiter its answer.
 	a.sched.Set(applied.Schedule)
-	a.applyWatcher(applied.WatchDir)
+	a.applyWatchFolders(applied)
 	a.applyConnections(applied.Connections)
 	a.mu.Lock()
 	if p := dedupe.ParsePolicy(applied.MirrorPolicy); p != a.dupes.Policy() {
@@ -665,29 +665,6 @@ func (a *App) applyConnections(rows []proxycfg.Entry) {
 		a.bans = proxycfg.NewBans()
 	}
 	a.picker = proxycfg.NewPicker(rows, proxycfg.Options{Bans: a.bans})
-}
-
-// applyWatcher starts, restarts or stops the intake watcher to match the
-// configured folder. It runs on every settings change, so turning the folder on
-// does not need a restart.
-func (a *App) applyWatcher(dir string) {
-	a.wmu.Lock()
-	defer a.wmu.Unlock()
-	if a.watcher != nil {
-		_ = a.watcher.Close()
-		a.watcher = nil
-	}
-	if dir == "" {
-		return
-	}
-	w, err := watch.New(watch.Options{Dir: dir, OnJob: a.onWatchJob})
-	if err != nil {
-		log.Printf("watch folder %s unusable (%v); intake is off", dir, err)
-		return
-	}
-	w.Start()
-	a.watcher = w
-	log.Printf("watching %s for dropped links", dir)
 }
 
 func newID() string {

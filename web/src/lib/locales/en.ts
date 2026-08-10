@@ -220,6 +220,9 @@ export const en = {
   'task.checksumOk': 'Checksum verified',
   'task.checksumFail': 'Checksum does not match',
   'settings.verifyChecksums': 'Verify a finished download against a checksum, when one came with it',
+  'settings.preParser': 'Scan pasted or dropped text for links',
+  'settings.preParserHint':
+    'Finds links anywhere in what you paste or drop, not only one clean URL per line: it rejoins one a mail client wrapped across a line break, and reads a bare host and path with no http:// in front as a link too. Off takes each line exactly as typed, the way this always worked before.',
   'settings.sectionLook': 'Look',
   'settings.shape': 'Corners',
   'settings.shapeHint': 'Applies to cards, buttons, tabs, inputs and badges at once.',
@@ -368,6 +371,15 @@ export const en = {
   'container.allKnown': 'All {n} link(s) in {file} were already in the list.',
   'container.handed': '{file} is encrypted. It was handed to the JDownloader backend; its links appear here once it has fetched it (within {n}s).',
   'container.failed': '{file} was not taken: {reason}',
+
+  // The one-shot clipboard button: hidden by itself wherever
+  // navigator.clipboard is undefined (an ordinary http:// LAN address is not
+  // a secure context), so its own label is all it ever needs — there is no
+  // paired "why is this missing" bubble to write, because where it cannot
+  // work it is not there to ask about. Its own outcome reuses
+  // collector.toastStaged/toastNone and list.failed rather than adding a
+  // third phrasing of the same three states.
+  'intake.pasteButton': 'Paste from clipboard',
 
   'settings.nav.general': 'General',
   'settings.nav.modules': 'Modules',
@@ -1068,6 +1080,49 @@ export const en = {
   'settings.captcha.saved': 'API key saved.',
   'settings.captcha.removed': 'API key removed.',
   'settings.captcha.saveFailed': 'Could not save the key: {error}',
+
+  // AddLinksForm.tsx's own per-batch options (build-plan.md section 8A) - the
+  // destination, its recent-use history, and the archive/link password pair,
+  // landed here now that this wave's locale pass has reached the form.
+  'collector.options': 'Options',
+  'collector.destination': 'Destination',
+  'collector.destinationRecent': 'Recently used',
+  'collector.archivePasswordHint':
+    'Tried before the list saved in Settings, when an archive in this batch is encrypted.',
+  'collector.linkPassword': 'Link password',
+  'collector.linkPasswordHint':
+    'What the hoster’s own page asks for before it hands over the file, not the archive password above. Two different secrets, asked by two different parties.',
+  'collector.overrule': 'Overrule a matching Packagizer rule',
+  'collector.overruleHint':
+    'Off, a matching Packagizer rule wins over priority, unpacking and the comment above. On, these values win instead. The destination is never part of this: it always applies as typed.',
+
+  // The collector's facet sidebar (components/CollectorFacets.tsx) - landed
+  // here verbatim from that file's own PENDING table (see its doc comment)
+  // now that this wave's locale pass has reached it; PENDING itself is left
+  // in place, unread once every key here resolves through the real catalogue.
+  'collector.facets.title': 'Filters',
+  'collector.facets.hint':
+    'Narrow the staged list by where a link points, what kind of file it is, or which package it landed in. Hiding this panel does not clear what is checked here.',
+  'collector.facets.fileType': 'File type',
+  'collector.facets.clearAll': 'Clear',
+  'collector.facets.hide': 'Hide filters',
+  'collector.facets.show': 'Filters',
+  'collector.facets.unknownHost': 'Unknown host',
+  'collector.facets.type.archive': 'Archives',
+  'collector.facets.type.video': 'Video',
+  'collector.facets.type.audio': 'Audio',
+  'collector.facets.type.image': 'Images',
+  'collector.facets.type.document': 'Documents',
+  'collector.facets.type.other': 'Other',
+
+  // The collector's own totals strip (components/CollectorStats.tsx) - same
+  // PENDING-table arrangement as CollectorFacets.tsx above, landed the same
+  // way.
+  'collector.stats.label': 'Collector totals',
+  'collector.stats.packages': 'Packages',
+  'collector.stats.links': 'Links',
+  'collector.stats.totalSize': 'Total size',
+  'collector.stats.hosts': 'Hosts',
 } as const;
 
 export type TranslationKey = keyof typeof en;

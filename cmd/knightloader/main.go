@@ -30,9 +30,13 @@ func main() {
 	// reached any other way.
 	remote := flag.String("bridge", "", "run as a Click'n'Load bridge to a remote KnightLoader (e.g. http://nas:8749)")
 	remotePw := flag.String("bridge-password", "", "the remote instance's UI password, when it has one")
+	// Off by default, bridge-only, and a build-time opt-in on top of that: see
+	// internal/bridge/clipboard.go's package comment for why this flag alone
+	// does not put clipboard-reading code in the ordinary server binary.
+	watchClipboard := flag.Bool("bridge-clipboard", false, "watch the OS clipboard for hoster links while bridging (build with -tags bridgeclipboard)")
 	flag.Parse()
 	if *remote != "" {
-		runBridge(*remote, *remotePw)
+		runBridge(*remote, *remotePw, *watchClipboard)
 		return
 	}
 
@@ -95,7 +99,7 @@ func main() {
 
 // runBridge serves Click'n'Load locally and forwards everything it receives to
 // a remote instance. It blocks until interrupted.
-func runBridge(remote, password string) {
+func runBridge(remote, password string, watchClipboard bool) {
 	b, err := bridge.New(bridge.Options{Remote: remote, Password: password})
 	if err != nil {
 		log.Fatalf("bridge: %v", err)
@@ -123,6 +127,17 @@ func runBridge(remote, password string) {
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+
+	// Cancelled alongside the stop signal below, so a cancelled watcher is the
+	// worst this leaves running past this function returning — there is no
+	// store here for it to write into after the fact, unlike the App-owned
+	// goroutines a.spawn tracks.
+	watchCtx, cancelWatch := context.WithCancel(context.Background())
+	defer cancelWatch()
+	if watchClipboard {
+		go b.WatchClipboard(watchCtx)
+	}
+
 	<-stop
 	log.Printf("bridge stopped")
 }

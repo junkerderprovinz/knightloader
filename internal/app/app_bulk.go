@@ -7,6 +7,7 @@ package app
 // the world to find out.
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"sort"
@@ -354,7 +355,13 @@ func (a *App) HandContainerToJD(rawurl, name, pkg string) error {
 	if !ok {
 		return ErrNoContainerBackend
 	}
-	go func() {
+	// a.spawn, not a bare goroutine: this writes to the store (AddLinksFrom,
+	// recordSkippedReason) well after the call that started it has returned, and
+	// Close must wait for it or a container handed over right before shutdown
+	// writes into a store that has already closed. See app.go's spawn doc and
+	// Wave 6's commit 813cf29 for the shape of bug an untracked goroutine here
+	// produces.
+	a.spawn(func() {
 		urls, err := adder.AddContainer(rawurl, pkg, containerCrawlLimit)
 		if err != nil {
 			log.Printf("container %s: %v", name, err)
@@ -369,7 +376,67 @@ func (a *App) HandContainerToJD(rawurl, name, pkg string) error {
 		// to a paste. A container is a delivery mechanism, not an exemption.
 		created := a.AddLinksFrom(urls, pkg, OriginContainer)
 		log.Printf("container %s: %d links, %d staged", name, len(urls), len(created))
-	}()
+	})
+	return nil
+}
+
+// cryptedV1Adder is a backend that can accept a Click'n'Load v1 ("addcrypted")
+// submission directly, without anywhere to fetch it back from. Unlike
+// containerAdder's URL-fetchable formats, this payload was never a file
+// anywhere — it exists only as one CnL form field — so a URL cannot stand in
+// for it; only the shipped JD's Deprecated API answers this shape (inline
+// content, see internal/resolver/jd's AddContainerData/AddCryptedV1).
+type cryptedV1Adder interface {
+	AddCryptedV1(data []byte, packageName string, timeout time.Duration) ([]string, error)
+}
+
+// CryptedV1BackendConfigured mirrors ContainerBackendConfigured for
+// Click'n'Load's addcrypted (v1): asked before the CnL listener claims to
+// support it, so a probe or a site can be told plainly rather than have the
+// submission silently go nowhere.
+func (a *App) CryptedV1BackendConfigured() bool {
+	a.bmu.RLock()
+	be := a.jd
+	a.bmu.RUnlock()
+	_, ok := be.(cryptedV1Adder)
+	return ok
+}
+
+// AddContainerCnL satisfies the Click'n'Load listener's optional
+// ContainerAdder: an addcrypted (v1) submission's "crypted" field is
+// RSA-encrypted against JDownloader's own key, exactly like a .dlc's trailing
+// key block, and only the shipped JD backend can open it — see
+// HandContainerToJD's doc for why that is the deliberate line KnightLoader
+// draws rather than borrowing a third party's application key.
+//
+// Real JDownloader answers this exact route by writing the field to a temp
+// .dlc file and feeding it to its own crawler
+// (org.jdownloader.api.cnl2.ExternInterfaceImpl#addcrypted, verified against
+// JDownloader's own open source). This is that, minus the temp file: the
+// Deprecated API's dataURLs takes the bytes inline, because a CnL submission
+// was never a file anywhere for KnightLoader to serve back to JD by URL the
+// way an uploaded .dlc is.
+func (a *App) AddContainerCnL(data []byte, pkg string) error {
+	if len(data) == 0 {
+		return errors.New("no crypted content")
+	}
+	a.bmu.RLock()
+	be := a.jd
+	a.bmu.RUnlock()
+	adder, ok := be.(cryptedV1Adder)
+	if !ok {
+		return ErrNoContainerBackend
+	}
+	a.spawn(func() {
+		urls, err := adder.AddCryptedV1(data, pkg, containerCrawlLimit)
+		if err != nil {
+			log.Printf("addcrypted (v1): %v", err)
+			a.recordSkippedReason("Click'n'Load (addcrypted v1)", "container", err.Error())
+			return
+		}
+		created := a.AddLinksFrom(urls, pkg, OriginCnL)
+		log.Printf("addcrypted (v1): %d links, %d staged", len(urls), len(created))
+	})
 	return nil
 }
 

@@ -19,6 +19,7 @@ import (
 	"sync"
 
 	"github.com/junkerderprovinz/knightloader/internal/collide"
+	"github.com/junkerderprovinz/knightloader/internal/confirm"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
@@ -34,7 +35,43 @@ type Settings struct {
 	MaxPerHost    int   `json:"maxPerHost"`    // simultaneous downloads per host
 	SpeedLimit    int64 `json:"speedLimit"`    // bytes/s, 0 = unlimited
 	Extract       bool  `json:"extract"`       // extract archives after download
-	AutoStart     bool  `json:"autoStart"`     // start collected links immediately instead of staging
+
+	// AutoConfirm, AutoConfirmDelay and AutoStart are the three fields a
+	// single AutoStart boolean used to be, and MUST be read together - see
+	// migrateAutoStart in settings_confirm.go for the migration this split
+	// demands from every existing install.
+	//
+	// AutoConfirm moves a batch out of the collector on its own, without a
+	// click - what the old flag actually gated, under the name that
+	// conflated it with AutoStart below.
+	AutoConfirm bool `json:"autoConfirm"`
+	// AutoConfirmDelay is how long AutoConfirm waits before it fires, in
+	// seconds. Zero fires the instant a batch is staged, which is what
+	// every install had before this field existed - there was no delay to
+	// preserve, only the one it would be wrong to invent on their behalf.
+	AutoConfirmDelay int `json:"autoConfirmDelay"`
+	// AutoStart is what a confirmed batch does next: start immediately
+	// (true, the default) or sit in the queue until something explicitly
+	// releases it (false). Before this split there was no way to ask for
+	// the second half on its own - confirming a link, however it happened,
+	// always started it - so AutoStart defaults to true precisely to keep
+	// that the case for every install that never touches this setting.
+	// "Confirm without start" (AutoConfirm=true, AutoStart=false) is the
+	// state this split makes possible for the first time.
+	AutoStart bool `json:"autoStart"`
+
+	// OnDupes and OnOffline are the confirm-time policies for a link that
+	// duplicates one already in the list, or one a check has already found
+	// gone - internal/confirm.Policy, stored as its string form the same
+	// way MirrorPolicy and CollisionPolicy are. These are the INSTANCE's
+	// own defaults; a batch may carry its own override of either (see
+	// internal/app.ConfirmTasks), read against these two when it does not.
+	OnDupes   string `json:"onDupes"`
+	OnOffline string `json:"onOffline"`
+	// AddAtTop puts a batch leaving the collector at the front of the wait
+	// order instead of the back, so it plays next rather than after
+	// whatever was already queued.
+	AddAtTop bool `json:"addAtTop"`
 
 	// DownloadDir is where finished files land. Empty means the built-in
 	// default inside the data directory.
@@ -81,6 +118,15 @@ type Settings struct {
 	// VerifyChecksums checks a finished download against a checksum file that
 	// came with it, when one did.
 	VerifyChecksums bool `json:"verifyChecksums"`
+	// PreParserEnabled turns on internal/linkscan for POST /api/links: the
+	// pasted or dropped blob is scanned for links wherever they sit in it,
+	// instead of one line being taken as one link verbatim. Off falls back
+	// to that older, literal behaviour. Named and defaulted after
+	// JDownloader's own AddLinksPreParserEnabled (verified against
+	// JDownloader's own source, CFG_LINKGRABBER and LinkgrabberSettings.java:
+	// same key, same true default, same "works on the pasted text as-is"
+	// meaning for off), not a spelling picked from the plan's prose.
+	PreParserEnabled bool `json:"preParserEnabled"`
 
 	// Shape is how rounded the whole interface is: "round", "soft" or "square".
 	// One knob drives every corner, so the app never looks half-converted.
@@ -208,14 +254,26 @@ type Settings struct {
 // Defaults returns the settings a fresh install starts with.
 func Defaults() Settings {
 	return Settings{
-		MaxConcurrent:   4,
-		MaxPerHost:      2,
-		SpeedLimit:      0,
-		Extract:         true,
-		MaxRetries:      3,
-		Crawl:           true,
-		VerifyChecksums: true,
-		Shape:           ShapeRound,
+		MaxConcurrent:    4,
+		MaxPerHost:       2,
+		SpeedLimit:       0,
+		Extract:          true,
+		MaxRetries:       3,
+		Crawl:            true,
+		VerifyChecksums:  true,
+		PreParserEnabled: true,
+		// AutoConfirm and AddAtTop are usable at their zero value (false):
+		// nothing is auto-confirmed and nothing is reordered, which is what
+		// every install had before either existed. AutoStart is the one of
+		// the three that is NOT its zero value - see its own doc comment on
+		// the struct for why "confirmed implies started" has to stay the
+		// default rather than silently becoming a fourth thing every
+		// existing install's links now do differently.
+		AutoStart: true,
+		// Never ExcludeAndRemove - see confirm.DefaultPolicy's own comment.
+		OnDupes:   string(confirm.DefaultPolicy),
+		OnOffline: string(confirm.DefaultPolicy),
+		Shape:     ShapeRound,
 		// The three archive defaults all say "change nothing you did not ask
 		// for": keep the archive, unpack beside it, and write into the folder
 		// that is already there rather than starting a second one. The
@@ -260,8 +318,24 @@ func Load(dir string) (*Store, error) {
 	return s, nil
 }
 
-// migrate maps keys an older build wrote onto the ones this build reads. It
-// runs on the raw bytes, once, at load.
+// migrate maps keys an older build wrote onto the ones this build reads,
+// running each independent sub-migration against the same raw bytes in
+// turn - the same "each hook owns its own fields, and none of them has to
+// know about the others" shape sanitize below uses, and for the same
+// reason: a change that widens one key must not risk the early return
+// inside a DIFFERENT key's migration, which is exactly the bug the first
+// draft of this split had (migrateAutoStart called only from inside the
+// tail of the archive-disposal branch, so it silently never ran for any
+// document that had already dropped the ancient deleteArchive key - which
+// is to say, for every real install by now).
+func migrate(raw []byte, n Settings) Settings {
+	n = migrateArchiveDisposal(raw, n)
+	n = migrateAutoStart(raw, n)
+	return n
+}
+
+// migrateArchiveDisposal maps the boolean deleteArchive onto the
+// ArchiveDisposal it became. It runs on the raw bytes, once, at load.
 //
 // The raw bytes are the point. A key that changed TYPE cannot be migrated
 // through the struct: leaving the old field on it to read the old value means
@@ -273,7 +347,7 @@ func Load(dir string) (*Store, error) {
 // Silence on a parse failure is deliberate: the document already unmarshalled
 // into Settings, so a shape this cannot read is a key that has been given some
 // third type by hand, and the defaults are a better answer than a guess.
-func migrate(raw []byte, n Settings) Settings {
+func migrateArchiveDisposal(raw []byte, n Settings) Settings {
 	var old struct {
 		// deleteArchive: the boolean that became ArchiveDisposal.
 		DeleteArchive *bool `json:"deleteArchive"`
@@ -352,5 +426,6 @@ func sanitize(n Settings) Settings {
 	n = sanitizeRules(n)
 	n = sanitizeLifecycle(n)
 	n = sanitizeCaptcha(n)
+	n = sanitizeConfirm(n)
 	return n
 }

@@ -4,6 +4,7 @@ go 1.26.4
 
 require (
 	github.com/GopeedLab/gopeed v1.9.3
+	github.com/atotto/clipboard v0.1.4
 	github.com/bodgit/sevenzip v1.6.5
 	github.com/coder/websocket v1.8.15
 	github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707

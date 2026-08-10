@@ -38,7 +38,14 @@ export function General() {
 
       <SectionTitle>{tx('settings.sectionIntake')}</SectionTitle>
       <Card className="flex flex-col gap-5">
-        <Toggle checked={cfg.autoStart} onChange={(v) => patch({ autoStart: v })} label={t('settings.autoStart')} />
+        {/* This toggle has always meant "skip the collector", which is
+            autoConfirm's job since Wave 8 split the old single autoStart flag
+            in three (settings.go's own doc comment). Binding it to the new,
+            narrower autoStart field instead - an easy mistake once the old
+            name and the new name coexist - would leave the one visible
+            control on this page changing a field the label no longer
+            describes, silently. */}
+        <Toggle checked={cfg.autoConfirm} onChange={(v) => patch({ autoConfirm: v })} label={t('settings.autoStart')} />
       </Card>
     </div>
   );
