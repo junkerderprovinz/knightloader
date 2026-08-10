@@ -1016,4 +1016,17 @@ export const vi: Dict = {
   'settings.preParser': 'Quét văn bản đã dán hoặc thả để tìm liên kết',
   'settings.preParserHint': 'Tìm liên kết ở bất kỳ đâu trong thứ bạn dán hoặc thả, không chỉ một URL sạch trên mỗi dòng: nối lại dòng mà một trình email đã ngắt xuống dòng, và cũng đọc một máy chủ và đường dẫn trần không có http:// phía trước như một liên kết. Tắt thì lấy từng dòng đúng như đã gõ, như cách nó luôn hoạt động trước đây.',
   'intake.pasteButton': 'Dán từ khay nhớ tạm',
+
+  'activity.crawl': 'Đang quét trang',
+  'activity.linkcheck': 'Đang kiểm tra liên kết',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Tự động xác nhận',
+  'activity.pending': '{n} đang chờ',
+  'activity.ofTotal': '{n} trên {total}',
+  'activity.tooltipHint': '{active} đang hoạt động trên {total} trong lượt này',
+  'notifications.quiet': 'Chế độ im lặng',
+  'notifications.quietHint':
+    'Ẩn thông báo thành công và thông tin. Lỗi, captcha đang chờ bạn, hoặc tài khoản bị tạm ngưng vẫn hiển thị.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Thay đổi lần cuối',
 };

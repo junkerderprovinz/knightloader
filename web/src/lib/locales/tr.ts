@@ -1016,4 +1016,17 @@ export const tr: Dict = {
   'settings.preParser': 'Yapıştırılan veya bırakılan metinde bağlantı ara',
   'settings.preParserHint': 'Yapıştırdığınız veya bıraktığınız metnin herhangi bir yerindeki bağlantıları bulur, satır başına yalnızca bir temiz URL değil: bir e-posta programının satır sonunda böldüğü bağlantıyı yeniden birleştirir ve önünde http:// olmayan çıplak bir sunucu ile yolu da bağlantı olarak okur. Kapalıyken her satırı tam yazıldığı gibi alır, daha önce hep böyle çalıştığı gibi.',
   'intake.pasteButton': 'Panodan yapıştır',
+
+  'activity.crawl': 'Sayfalar taranıyor',
+  'activity.linkcheck': 'Bağlantılar denetleniyor',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Otomatik onay',
+  'activity.pending': '{n} bekliyor',
+  'activity.ofTotal': '{total} içinden {n}',
+  'activity.tooltipHint': 'Bu turda {total} içinden {active} etkin',
+  'notifications.quiet': 'Sessiz mod',
+  'notifications.quietHint':
+    'Başarı ve bilgi bildirimlerini gizler. Sizi bekleyen bir captcha, bir hata veya askıya alınmış bir hesap yine de gösterilir.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Son değiştirilme',
 };

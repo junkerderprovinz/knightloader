@@ -1008,4 +1008,17 @@ export const fr: Dict = {
   'settings.preParser': 'Analyser le texte collé ou déposé à la recherche de liens',
   'settings.preParserHint': 'Trouve des liens n’importe où dans ce que vous collez ou déposez, pas seulement une URL propre par ligne : une ligne coupée par un client de messagerie est recollée, et un simple hôte suivi d’un chemin sans http:// devant est aussi lu comme un lien. Désactivé, chaque ligne est prise telle quelle, comme cela a toujours fonctionné.',
   'intake.pasteButton': 'Coller depuis le presse-papiers',
+
+  'activity.crawl': 'Analyse des pages',
+  'activity.linkcheck': 'Vérification des liens',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Confirmation automatique',
+  'activity.pending': '{n} en attente',
+  'activity.ofTotal': '{n} sur {total}',
+  'activity.tooltipHint': '{active} en cours sur {total} pour cette session',
+  'notifications.quiet': 'Mode silencieux',
+  'notifications.quietHint':
+    'Masque les notifications de réussite et d’information. Un échec, un captcha qui vous attend ou un compte mis en pause reste affiché.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Dernière modification',
 };

@@ -10,7 +10,7 @@
 // renderers into the list component would leave the registry describing columns
 // it cannot draw, which is the drift the registry exists to prevent.
 
-import { useState, type ReactNode } from 'react';
+import { useCallback, useState, type ReactNode } from 'react';
 import { setEnabled, type Availability, type Task } from '../lib/api';
 import { DIRECT_ID, endpointOf, useConnections } from '../lib/connections';
 import { fmtBytes, fmtDate, fmtEta, fmtSpeed, pct } from '../lib/format';
@@ -20,6 +20,7 @@ import { useToast } from '../lib/toast';
 import { IconCheck, IconRetry } from '../lib/icons';
 import { ProgressBar } from './ProgressBar';
 import { ResolverBadge, StatusPill } from './StatusPill';
+import { useTooltip } from './ui';
 
 export type ColumnId =
   | 'enabled'
@@ -251,22 +252,220 @@ const availChip: Record<Exclude<Availability, ''>, { key: TranslationKey; tone: 
   uncheckable: { key: 'task.uncheckable', tone: 'text-carbon-textMuted' },
 };
 
-function NameCell({ task, t }: { task: Task; t: Translate }) {
+// --- The row tooltip --------------------------------------------------------
+//
+// New UI text for this wave, kept out of en.ts on purpose: the locale files
+// are 9E's own lane and it runs after 9A-9D land (build-plan.md section 8's
+// Wave 9 note). Same arrangement as components/CollectorFacets.tsx and
+// pages/settings/Captcha.tsx - cx() asks t() first, so the day these two
+// keys land for real in en.ts (and in every other locale) this table stops
+// being consulted and can be deleted without touching anything else here.
+const PENDING = {
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Last changed',
+} as const;
+
+type PendingKey = keyof typeof PENDING;
+
+function useCx() {
+  const { t } = useT();
+  return useCallback(
+    (key: PendingKey, vars?: Record<string, string | number>) => {
+      // The cast is the whole point: these keys are not in the union yet. It
+      // is narrow - only keys in PENDING can be passed - and it goes with
+      // the table.
+      const translated = t(key as unknown as TranslationKey) as string | undefined;
+      let s: string = translated ?? PENDING[key];
+      if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
+      return s;
+    },
+    [t],
+  );
+}
+
+/**
+ * The row tooltip's own date formatting, spelled out in full rather than
+ * fmtDate's short column form (lib/format.ts): the column is short because
+ * it has to fit a cell, the tooltip has the room a cell never does, and
+ * repeating the column's own short form in its tooltip would tell a reader
+ * nothing the column had not already said. No formatter cache like fmtDate
+ * keeps, deliberately: that cache exists because a finished-at COLUMN builds
+ * one per row on every repaint of a few hundred rows, where this runs once,
+ * when a hover actually opens a tooltip - which is not that.
+ */
+function fmtDateFull(iso: string | undefined): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime()) || d.getUTCFullYear() <= 1) return '';
+  return new Intl.DateTimeFormat(document.documentElement.lang || undefined, {
+    dateStyle: 'full',
+    timeStyle: 'medium',
+  }).format(d);
+}
+
+/**
+ * Which connection is carrying this download.
+ *
+ * The column answers what a task IS ON, not what it was asked for. The server
+ * writes the id when it hands the download to a backend, so a task pointed at a
+ * proxy that was busy or switched off shows the connection that actually took
+ * it, which is the only version of this column worth having. One that echoed the
+ * request would agree with the settings page and disagree with the traffic.
+ *
+ * That is also why an unrouted task shows NOTHING rather than "Direct". An empty
+ * id is "nobody has decided yet"; the direct gateway is a decision, with an id of
+ * its own, and a collector full of rows announcing a decision that has not been
+ * made is worse than a column of blanks. The blanks fill in as tasks start.
+ *
+ * Quiet type, never the accent: which way the bytes came in is metadata about a
+ * finished fact, the same weight as the backend badge beside it. It is also the
+ * reason there is no icon here. A glyph per row in a column that is blank for
+ * most of them is decoration where the eye is scanning for names.
+ *
+ * The word for the gateway is the connection page's own key rather than a new
+ * one. There is exactly one right word for it, and a second key would be that
+ * word maintained twice across forty-two locales, drifting in some of them.
+ *
+ * Shared by the column cell and the row tooltip below, so a task's connection
+ * resolves to the same words in both rather than two computations that could
+ * drift apart. Null for an unrouted task - "nobody has decided yet" has no
+ * text to show wherever it is asked from.
+ */
+function useConnectionLabel(task: Task, t: Translate, base: string): { text: string; hint: string } | null {
+  const rows = useConnections(base);
+  const id = task.connection ?? '';
+  if (!id) return null;
+
+  const row = rows.get(id);
+  const direct = t('settings.connections.kind.direct');
+  // Three ways to have no endpoint to print, and they are not the same thing.
+  // The gateway and a direct ROW both mean "out over this machine", so both read
+  // as the word; an id with no row at all is a connection that was deleted, or a
+  // list that has not arrived yet, and it keeps the raw id because that can be
+  // matched against the settings page by hand where a blank cell cannot.
+  const endpoint = row ? endpointOf(row) : '';
+  const text = endpoint || (id === DIRECT_ID || row ? direct : id);
+  // A direct row is a rule the user wrote to keep certain hosts off every proxy,
+  // and two of them in one list read identically. The hosts it claims go in the
+  // hint, which is the only thing that tells them apart.
+  const hint = endpoint || row?.filter?.join(', ') || text;
+  return { text, hint };
+}
+
+/** One labelled fact in the row tooltip - a category on its own line, the value on the next so a long one wraps instead of forcing a ragged right edge beside a short label. */
+function TooltipField({ label, children, ltr }: { label: string; children: ReactNode; ltr?: boolean }) {
+  return (
+    <div className="min-w-0">
+      <div className="glim-eyebrow">{label}</div>
+      <div dir={ltr ? 'ltr' : undefined} className="break-words text-carbon-text">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * RowTooltipContent is "everything about this row" in one hover rather than
+ * several separate cell tooltips, because six of this table's columns ship
+ * hidden by default (see DEFAULT_HIDDEN below) purely for width - the table
+ * does not fit with all of them on, not because host, backend, connection,
+ * added, finished and comment stop mattering on the rows where a column is
+ * off. This is the one place to read them without opening the column menu
+ * and giving up width elsewhere for a column that stays blank on most rows
+ * anyway. Nothing here is fetched: every field already arrived on the task
+ * with the row - see useTooltip in components/ui.tsx for the hover mechanics.
+ */
+function RowTooltipContent({ task, t, base }: { task: Task; t: Translate; base: string }) {
+  const cx = useCx();
+  const connection = useConnectionLabel(task, t, base);
+  const name = task.name || task.url;
+  // Only worth its own line when it says something the name above did not -
+  // a task with no name already shows the URL as its name.
+  const showUrl = !!task.name && task.name !== task.url;
+  const host = hostOf(task);
+  const added = fmtDateFull(task.createdAt);
+  const finished = fmtDateFull(task.finishedAt);
+  const changed = fmtDateFull(task.changedAt);
+  // Only shown while a retry is actually pending - a settled error carries no
+  // nextTry, and the icon it sits beside already says "retrying automatically";
+  // the exact moment is the one part of that sentence the row has no room for.
+  const retryAt = task.status === 'error' ? fmtDateFull(task.nextTry) : '';
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div dir="ltr" className="break-words text-[12.5px] font-semibold text-carbon-text">
+        {name}
+      </div>
+      <div className="flex flex-col gap-1.5 border-t border-carbon-border/60 pt-2">
+        {showUrl && (
+          <TooltipField label={cx('task.tooltip.url')} ltr>
+            {task.url}
+          </TooltipField>
+        )}
+        {host && (
+          <TooltipField label={t('columns.host')} ltr>
+            {host}
+          </TooltipField>
+        )}
+        <TooltipField label={t('columns.resolver')}>
+          <ResolverBadge resolver={task.resolver} />
+        </TooltipField>
+        {connection && (
+          <TooltipField label={t('columns.connection')} ltr>
+            {connection.text}
+          </TooltipField>
+        )}
+        {added && (
+          <TooltipField label={t('columns.added')} ltr>
+            {added}
+          </TooltipField>
+        )}
+        {finished && (
+          <TooltipField label={t('columns.finished')} ltr>
+            {finished}
+          </TooltipField>
+        )}
+        {retryAt && (
+          <TooltipField label={t('task.retryPending')} ltr>
+            {retryAt}
+          </TooltipField>
+        )}
+        {changed && (
+          <TooltipField label={cx('task.tooltip.changed')} ltr>
+            {changed}
+          </TooltipField>
+        )}
+        {task.comment && <TooltipField label={t('columns.comment')}>{task.comment}</TooltipField>}
+        {task.source && (
+          <TooltipField label={t('columns.source')} ltr>
+            {task.source}
+          </TooltipField>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function NameCell({ task, t, base }: { task: Task; t: Translate; base: string }) {
   // A pending automatic retry is not the same as a dead task, and saying so
   // stops people restarting something that is already about to restart.
   const retrying = task.status === 'error' && !!task.nextTry;
   const reason = task.reason ? reasonKey[task.reason] : undefined;
+  // The row's own rich tooltip lives on this cell rather than a plain
+  // `title`: it is the one cell that truncates first (see TREE_INDENT
+  // above), and the one hover that can afford to say more than the string
+  // already on screen - host, backend, connection, added/finished down to
+  // the second, whichever of DEFAULT_HIDDEN's six columns happen to be off
+  // right now. A native `title` is deliberately NOT also set on this element
+  // - the two would be hovering the exact same box, and the browser's own
+  // delayed tooltip would eventually stack on top of this one.
+  const tip = useTooltip<HTMLDivElement>(<RowTooltipContent task={task} t={t} base={base} />);
   return (
     <div className="min-w-0">
-      {/* Its own title, because the list's generic one cannot reach it: the row
-          gives a cell its text as a tooltip only when the cell renders a plain
-          string, and this one renders a component. Without it the name column
-          at its narrowest is truncated text with no way at all to read the rest
-          — and this is the column that truncates first, because it is the one
-          that gives up its width to the others. */}
-      <div dir="ltr" title={task.name || task.url} className="truncate text-start text-[13.5px] text-carbon-text">
+      <div dir="ltr" {...tip.triggerProps} className="truncate text-start text-[13.5px] text-carbon-text">
         {task.name || task.url}
       </div>
+      {tip.node}
       {task.error && (
         <div className="mt-0.5 flex items-center gap-1.5 text-[11px]">
           {/* The typed cause leads the line, as a tag rather than a second
@@ -366,50 +565,15 @@ function StatusCell({ task, t }: { task: Task; t: Translate }) {
   );
 }
 
-/**
- * Which connection is carrying this download.
- *
- * The column answers what a task IS ON, not what it was asked for. The server
- * writes the id when it hands the download to a backend, so a task pointed at a
- * proxy that was busy or switched off shows the connection that actually took
- * it, which is the only version of this column worth having. One that echoed the
- * request would agree with the settings page and disagree with the traffic.
- *
- * That is also why an unrouted task shows NOTHING rather than "Direct". An empty
- * id is "nobody has decided yet"; the direct gateway is a decision, with an id of
- * its own, and a collector full of rows announcing a decision that has not been
- * made is worse than a column of blanks. The blanks fill in as tasks start.
- *
- * Quiet type, never the accent: which way the bytes came in is metadata about a
- * finished fact, the same weight as the backend badge beside it. It is also the
- * reason there is no icon here. A glyph per row in a column that is blank for
- * most of them is decoration where the eye is scanning for names.
- *
- * The word for the gateway is the connection page's own key rather than a new
- * one. There is exactly one right word for it, and a second key would be that
- * word maintained twice across forty-two locales, drifting in some of them.
- */
+// The column's own read of useConnectionLabel above - text truncated to the
+// cell, hint carried as a native title since this box, unlike the name
+// column, is not already sitting under the row's own rich tooltip.
 function ConnectionCell({ task, t, base }: { task: Task; t: Translate; base: string }) {
-  const rows = useConnections(base);
-  const id = task.connection ?? '';
-  if (!id) return null;
-
-  const row = rows.get(id);
-  const direct = t('settings.connections.kind.direct');
-  // Three ways to have no endpoint to print, and they are not the same thing.
-  // The gateway and a direct ROW both mean "out over this machine", so both read
-  // as the word; an id with no row at all is a connection that was deleted, or a
-  // list that has not arrived yet, and it keeps the raw id because that can be
-  // matched against the settings page by hand where a blank cell cannot.
-  const endpoint = row ? endpointOf(row) : '';
-  const text = endpoint || (id === DIRECT_ID || row ? direct : id);
-  // A direct row is a rule the user wrote to keep certain hosts off every proxy,
-  // and two of them in one list read identically. The hosts it claims go in the
-  // tooltip, which is the only thing that tells them apart.
-  const hint = endpoint || row?.filter?.join(', ') || text;
+  const label = useConnectionLabel(task, t, base);
+  if (!label) return null;
   return (
-    <span dir="ltr" title={hint} className="block truncate text-[11px] text-carbon-textMuted">
-      {text}
+    <span dir="ltr" title={label.hint} className="block truncate text-[11px] text-carbon-textMuted">
+      {label.text}
     </span>
   );
 }
@@ -515,7 +679,7 @@ export const COLUMNS: ColumnDef[] = [
     align: 'start',
     hideable: false,
     compare: (a, b) => cmpText(label(a), label(b)),
-    render: (task, ctx) => <NameCell task={task} t={ctx.t} />,
+    render: (task, ctx) => <NameCell task={task} t={ctx.t} base={ctx.base} />,
     // No aggregate: in a package row this cell is the tree control, which is
     // list state the registry has no access to.
   },

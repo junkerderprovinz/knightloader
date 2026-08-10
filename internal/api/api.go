@@ -121,6 +121,11 @@ func serveWS(a *app.App, w http.ResponseWriter, r *http.Request) {
 	// could otherwise reach the client first and be overwritten by the older
 	// snapshot.
 	a.Hub.SendTo(c, "snapshot", a.Tasks())
+	// Same reasoning for activity: without this, a client that reconnects
+	// mid-burst has no way to learn the true current counters and can only
+	// ever repeat whatever its last "activity" broadcast said - permanently,
+	// if that burst has since ended and nothing new of that kind starts.
+	a.Hub.SendTo(c, "activitySnapshot", a.ActivitySnapshot())
 	for {
 		if _, _, err := c.Read(r.Context()); err != nil {
 			return

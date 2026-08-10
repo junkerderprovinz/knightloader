@@ -1016,4 +1016,17 @@ export const cs: Dict = {
   'settings.preParser': 'Prohledávat vložený nebo přetažený text na odkazy',
   'settings.preParserHint': 'Najde odkazy kdekoli v tom, co vložíte nebo přetáhnete, ne jen jednu čistou URL na řádek: znovu spojí řádek zalomený e-mailovým klientem a jako odkaz přečte i holý hostitel s cestou bez http:// před ním. Vypnuto bere každý řádek přesně tak, jak byl napsán, jako to fungovalo vždy předtím.',
   'intake.pasteButton': 'Vložit ze schránky',
+
+  'activity.crawl': 'Prohledávání stránek',
+  'activity.linkcheck': 'Kontrola odkazů',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Automatické potvrzování',
+  'activity.pending': '{n} čekajících',
+  'activity.ofTotal': '{n} z {total}',
+  'activity.tooltipHint': '{active} aktivních z {total} v tomto běhu',
+  'notifications.quiet': 'Tichý režim',
+  'notifications.quietHint':
+    'Skryje oznámení o úspěchu a informační oznámení. Chyba, captcha čekající na vás nebo pozastavený účet se stále zobrazují.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Naposledy změněno',
 };

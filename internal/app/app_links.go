@@ -462,6 +462,12 @@ func (a *App) crawl(u string) []crawler.Result {
 			return nil
 		}
 	}
+	// Begun here, after the settings/registry gates above rather than at the
+	// top of the function: those two return instantly with no network call
+	// made, and counting them as "ambient activity" would flash the status
+	// strip on for zero-cost, zero-duration work.
+	a.beginActivity(ActivityCrawl, 1)
+	defer a.endActivity(ActivityCrawl, 1)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	found, err := a.Crawler.Crawl(ctx, u)

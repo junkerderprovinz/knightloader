@@ -1016,4 +1016,17 @@ export const lt: Dict = {
   'settings.preParser': 'Ieškoti nuorodų įklijuotame ar nutemptame tekste',
   'settings.preParserHint': 'Randa nuorodas bet kur įklijuotame ar nutemptame tekste, o ne tik po vieną švarų URL eilutėje: vėl sujungia eilutę, kurią perkėlė pašto programa, ir kaip nuorodą perskaito taip pat plikas serverio adresas su keliu be http:// priekyje. Išjungus kiekviena eilutė imama tiksliai taip, kaip įvesta, kaip visada veikė anksčiau.',
   'intake.pasteButton': 'Įklijuoti iš iškarpinės',
+
+  'activity.crawl': 'Puslapių nagrinėjimas',
+  'activity.linkcheck': 'Nuorodų tikrinimas',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Automatinis patvirtinimas',
+  'activity.pending': '{n} laukia',
+  'activity.ofTotal': '{n} iš {total}',
+  'activity.tooltipHint': '{active} aktyvių iš {total} šiame etape',
+  'notifications.quiet': 'Tylusis režimas',
+  'notifications.quietHint':
+    'Slepia sėkmės ir informacinius pranešimus. Klaida, tavęs laukianti captcha arba pristabdyta paskyra vis tiek rodomos.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Paskutinis pakeitimas',
 };

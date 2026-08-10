@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Button, Card, FieldGroup, InfoBubble, Swatch, SwatchRow, Toggle } from '../../components/ui';
 import { Tabs } from '../../components/Tabs';
+import { QuietModeToggle } from '../../lib/toast';
 import { useT } from '../../lib/i18n';
 import {
   ACCENTS,
@@ -192,6 +193,19 @@ export function Look() {
           </SwatchRow>
         </div>
       </div>
+
+      {/* Not appearance, but there is no better-fitting page registered yet
+          (settings/registry.tsx's PAGES/ICONS only draw a tab the server's
+          own GET /api/features already lists - adding a dedicated
+          Notifications page is a real feature, not a fix). This used to be
+          a small panel pinned over the bottom-right corner of every route,
+          permanently, in English, regardless of which page was open; an
+          ordinary row here is reachable exactly once, on purpose, like
+          every other switch on this page. No extra heading above it - the
+          toggle's own label already says "Quiet mode", and the Rainbow
+          section above already established that a heading repeating what
+          the switch beneath it says is the same decision said twice. */}
+      <QuietModeToggle />
     </Card>
   );
 }

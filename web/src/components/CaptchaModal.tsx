@@ -146,8 +146,14 @@ export function CaptchaModal() {
         // file has no other way to learn about: nobody in this tab did
         // anything, and a modal that just silently vanishes reads as "did I
         // lose the download?" rather than as the captcha having lapsed.
-        if (r.reason === 'timedOut' || r.reason === 'resolved') {
-          toast(t(r.reason === 'timedOut' ? 'captcha.timedOut' : 'captcha.resolvedElsewhere', { host: r.host }), 'info');
+        if (r.reason === 'timedOut') {
+          // Styled as 'info', not 'fail' - nothing broke - but still a
+          // critical kind: the download it was blocking is now stuck with
+          // nobody having answered for it, which is exactly the outcome
+          // quiet mode's CRITICAL table exists to never swallow.
+          toast(t('captcha.timedOut', { host: r.host }), 'info', 'captcha-failed');
+        } else if (r.reason === 'resolved') {
+          toast(t('captcha.resolvedElsewhere', { host: r.host }), 'info', 'captcha-resolved');
         }
       }
     });
@@ -199,9 +205,9 @@ export function CaptchaModal() {
       else if (d.kind === 'solved' && d.detail) {
         answerCaptcha(id, d.detail).then(
           ({ stillValid }) => {
-            if (!stillValid) toast(t('captcha.tooLate'), 'fail');
+            if (!stillValid) toast(t('captcha.tooLate'), 'fail', 'captcha-failed');
           },
-          () => toast(t('captcha.networkError'), 'fail'),
+          () => toast(t('captcha.networkError'), 'fail', 'captcha-failed'),
         );
       }
     }
@@ -236,14 +242,14 @@ export function CaptchaModal() {
     setBusy(true);
     try {
       const { stillValid } = await answerCaptcha(current!.id, submitText());
-      if (!stillValid) toast(t('captcha.tooLate'), 'fail');
+      if (!stillValid) toast(t('captcha.tooLate'), 'fail', 'captcha-failed');
       // The resolved challenge leaves `challenges` through the
       // "captchaResolved" broadcast this call also triggers server-side
       // (app_captcha.go's settleCaptcha), not by this handler patching state
       // itself - the same "wait for the hub, never patch locally" rule
       // every other mutation in this app already follows (lib/useTasks.ts).
     } catch {
-      toast(t('captcha.networkError'), 'fail');
+      toast(t('captcha.networkError'), 'fail', 'captcha-failed');
     } finally {
       setBusy(false);
     }
@@ -255,7 +261,7 @@ export function CaptchaModal() {
     try {
       await skipCaptcha(current!.id, scope);
     } catch {
-      toast(t('captcha.networkError'), 'fail');
+      toast(t('captcha.networkError'), 'fail', 'captcha-failed');
     } finally {
       setBusy(false);
     }
@@ -268,7 +274,7 @@ export function CaptchaModal() {
       setChallenges(Object.fromEntries(list.map((c) => [c.id, c])));
       setWidgetKey((k) => k + 1);
     } catch {
-      toast(t('captcha.networkError'), 'fail');
+      toast(t('captcha.networkError'), 'fail', 'captcha-failed');
     } finally {
       setBusy(false);
     }

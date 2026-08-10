@@ -125,6 +125,16 @@ func (a *App) RecheckTasks(ids []string) {
 		}
 	}
 	a.mu.Unlock()
+	if len(targets) == 0 {
+		return
+	}
+	// One "linkcheck" burst for the whole call, retired one target at a time
+	// as each settles below - see the three endActivity calls in this loop
+	// and the one inside settleCheck, which between them cover every path a
+	// target can leave by exactly once. Two overlapping calls (two browsers
+	// both pressing "recheck all") add into the same shared counters rather
+	// than each owning their own - see beginActivity's own doc comment.
+	a.beginActivity(ActivityLinkCheck, len(targets))
 
 	// Grouped by resolver id rather than by the resolver value, because a
 	// resolver is a struct with a map in it and nothing says it is comparable.
@@ -135,6 +145,7 @@ func (a *App) RecheckTasks(ids []string) {
 		res := a.Registry.For(t.URL)
 		if res == nil {
 			a.setAvailability(t.ID, core.AvailOffline, "no backend handles this link", core.ReasonUnsupported)
+			a.endActivity(ActivityLinkCheck, 1)
 			continue
 		}
 		result, err := res.Resolve(context.Background(), resolver.Request{URL: t.URL})
@@ -143,6 +154,7 @@ func (a *App) RecheckTasks(ids []string) {
 			// failure here means the link was never put to the host at all. Filing
 			// that as "the file is gone" is the same lie the HEAD probe used to tell.
 			a.setAvailability(t.ID, core.AvailUncheckable, err.Error(), classify(failure{err: err}))
+			a.endActivity(ActivityLinkCheck, 1)
 			continue
 		}
 		a.mu.Lock()
@@ -157,6 +169,7 @@ func (a *App) RecheckTasks(ids []string) {
 			// Our own HEAD, straight at the host: no account to spend, nothing to
 			// batch, and it brings back the size as well.
 			a.analyze(t.ID, result.DirectURL)
+			a.endActivity(ActivityLinkCheck, 1)
 			continue
 		}
 		id := res.Info().ID
@@ -171,6 +184,9 @@ func (a *App) RecheckTasks(ids []string) {
 		// actually be fetched.
 		b.urls = append(b.urls, result.DirectURL)
 	}
+	// The batched path retires the rest, one endActivity per link, inside
+	// settleCheck - runCheck has exactly one caller, this loop, so that is
+	// always precisely the targets that reached the batching branch above.
 	for _, id := range order {
 		a.runCheck(batches[id])
 	}
@@ -232,6 +248,7 @@ func (a *App) settleCheck(b *checkBatch, got []core.Availability) {
 			// removing it. The row says "host would not say" and stops there.
 			a.setAvailability(id, core.AvailUncheckable, "", core.ReasonUnknown)
 		}
+		a.endActivity(ActivityLinkCheck, 1)
 	}
 }
 

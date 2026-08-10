@@ -1016,4 +1016,17 @@ export const sr: Dict = {
   'settings.preParser': 'Претражи налепљени или отпуштени текст за везама',
   'settings.preParserHint': 'Проналази везе било где у ономе што налепите или отпустите, не само један чист URL по реду: поново спаја ред који је преломио имејл клијент, а као везу чита и го хостер са путањом без http:// испред. Искључено узима сваки ред тачно онако како је унет, како је одувек радило.',
   'intake.pasteButton': 'Налепи из привремене меморије',
+
+  'activity.crawl': 'Претрага страница',
+  'activity.linkcheck': 'Провера линкова',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Аутоматска потврда',
+  'activity.pending': '{n} на чекању',
+  'activity.ofTotal': '{n} од {total}',
+  'activity.tooltipHint': '{active} активних од {total} у овом кругу',
+  'notifications.quiet': 'Тихи режим',
+  'notifications.quietHint':
+    'Сакрива обавештења о успеху и информативна обавештења. Грешка, captcha која те чека или суспендован налог и даље се приказују.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Последња измена',
 };

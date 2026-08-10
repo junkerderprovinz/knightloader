@@ -1,9 +1,9 @@
 // Primitives of the GlimStone design language. Everything is expressed through the
 // shared tokens in index.css, so a sibling app inherits the look by adopting
 // that file — see the comment block there.
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import type { ButtonHTMLAttributes, CSSProperties, InputHTMLAttributes, ReactNode } from 'react';
+import type { ButtonHTMLAttributes, CSSProperties, InputHTMLAttributes, ReactNode, RefObject } from 'react';
 import { hueVars, rainbowAt } from '../lib/appearance';
 import { IconClose } from '../lib/icons';
 
@@ -175,6 +175,158 @@ export function InfoBubble({ tip, className = '' }: { tip: string; className?: s
         )}
     </>
   );
+}
+
+/**
+ * .glim-bubble's own 280px, widened for the one caller that needs it:
+ * InfoBubble's tip is one sentence, a row tooltip (below) is several
+ * labelled fields stacked, and the extra 40px keeps a host name or a short
+ * path off a second line without asking every bubble in the app to widen
+ * with it - it is passed as an inline style, which wins over the class.
+ */
+const TOOLTIP_MAX_WIDTH = 320;
+
+/**
+ * Tall enough for the biggest tooltip this build opens. It only decides
+ * which side of the trigger the bubble opens on (see useTooltip below), so
+ * guessing high costs nothing and guessing low clips the bottom of one
+ * opened near the edge of the screen - the one direction worth being
+ * generous in.
+ */
+const TOOLTIP_EST_HEIGHT = 320;
+
+/** How long a hover has to hold still before the bubble opens. */
+const TOOLTIP_DELAY_MS = 400;
+
+export interface TooltipHandle<T extends HTMLElement> {
+  /** Spread onto the element the tooltip is ABOUT. */
+  triggerProps: {
+    ref: RefObject<T>;
+    tabIndex: number;
+    role: string;
+    onMouseEnter: () => void;
+    onMouseLeave: () => void;
+    onFocus: () => void;
+    onBlur: () => void;
+    'aria-describedby': string | undefined;
+  };
+  /** Render once, anywhere in the tree - it portals to <body> on its own, and is null while closed. */
+  node: ReactNode;
+}
+
+/**
+ * useTooltip is InfoBubble's sibling for the other half of "explain this
+ * further". InfoBubble is a dedicated (i) glyph built to be hovered, so a
+ * settings form can afford to open it the instant the pointer arrives and
+ * say one sentence. What this hook attaches to is content that is already on
+ * screen for its own reason - a file name in a table row - and a pointer
+ * crosses dozens of rows a second while scrolling or just reading down the
+ * list, so opening on every one of them for the eye-blink before it moves on
+ * is noise, not help. It therefore opens after a short hold rather than on
+ * arrival, takes a whole panel of content rather than one string, and picks
+ * which side of the trigger to open on rather than always landing below - a
+ * row can be anywhere in a tall scrolling list, where an info bubble is
+ * reliably near the top of a short settings page. That set of differences is
+ * the reason this is a second primitive and not InfoBubble reused: none of
+ * them can be expressed by passing InfoBubble a different prop.
+ *
+ * What it keeps from InfoBubble on purpose, because the same failure would
+ * only repeat itself otherwise: rendered through a portal into <body>, so a
+ * table's own `overflow-x-auto` cannot clip it the way it would clip
+ * anything positioned inside the scrolling table itself; Escape and a
+ * scroll both close it, because a position measured off the trigger goes
+ * stale the moment the page moves under it.
+ */
+export function useTooltip<T extends HTMLElement = HTMLElement>(content: ReactNode): TooltipHandle<T> {
+  const id = useId();
+  const ref = useRef<T>(null);
+  const [at, setAt] = useState<{ left: number; top?: number; bottom?: number } | null>(null);
+  const openTimer = useRef<number | undefined>(undefined);
+
+  const place = useCallback(() => {
+    const r = ref.current?.getBoundingClientRect();
+    if (!r) return;
+    const margin = 12;
+    const half = TOOLTIP_MAX_WIDTH / 2;
+    // Clamped by the worst-case (max) width rather than a measured one.
+    // ColumnMenu clamps a real measured size, in a second pass after its own
+    // first render — worth doing for a dense clickable menu, more machinery
+    // than a small read-only panel needs to just not run off the screen. So
+    // the trigger's own centre is used unless that would carry the WIDEST
+    // possible bubble off either edge, which only ever makes this err
+    // towards more margin than strictly necessary, never towards clipping.
+    const left = Math.min(Math.max(r.left + r.width / 2, margin + half), window.innerWidth - margin - half);
+    if (r.bottom + TOOLTIP_EST_HEIGHT <= window.innerHeight) setAt({ left, top: r.bottom + 8 });
+    // Flipped by the viewport's BOTTOM edge rather than by a measured
+    // height: the content has not rendered yet at the moment this runs, so
+    // there is nothing to measure, and pinning the bubble's own bottom edge
+    // needs none.
+    else setAt({ left, bottom: window.innerHeight - r.top + 8 });
+  }, []);
+
+  const open = useCallback(() => {
+    window.clearTimeout(openTimer.current);
+    openTimer.current = window.setTimeout(place, TOOLTIP_DELAY_MS);
+  }, [place]);
+
+  const close = useCallback(() => {
+    window.clearTimeout(openTimer.current);
+    setAt(null);
+  }, []);
+
+  // Unmounting mid-hold must not fire the timer into a row that is gone - the
+  // table repaints on every websocket tick, so a row under the pointer
+  // disappearing before its own open timer fires is routine, not an edge case.
+  useEffect(() => () => window.clearTimeout(openTimer.current), []);
+
+  useEffect(() => {
+    if (!at) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && close();
+    const onScroll = () => close(); // a measured position goes stale the moment the page moves
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('scroll', onScroll, true);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('scroll', onScroll, true);
+    };
+  }, [at, close]);
+
+  return {
+    triggerProps: {
+      ref,
+      tabIndex: 0,
+      // Matches InfoBubble's own role - a plain tabbable <div> with neither
+      // has no accessible role at all, and reads to a screen reader as a
+      // mystery stop. Unlike InfoBubble's bare glyph this trigger already
+      // wraps its own visible text (a row's name/URL), which is what
+      // supplies the accessible name here - InfoBubble has none of its own
+      // and needs an explicit aria-label instead.
+      role: 'note',
+      onMouseEnter: open,
+      onMouseLeave: close,
+      // Focus opens at once rather than after the hold: a keyboard user has
+      // already arrived on purpose, and the delay exists only to filter a
+      // POINTER passing through on its way somewhere else.
+      onFocus: place,
+      onBlur: close,
+      'aria-describedby': at ? id : undefined,
+    },
+    node:
+      at && content
+        ? createPortal(
+            <span
+              id={id}
+              role="tooltip"
+              dir="auto"
+              className="glim-bubble glim-fade"
+              style={{ left: at.left, top: at.top, bottom: at.bottom, maxWidth: TOOLTIP_MAX_WIDTH }}
+            >
+              {content}
+            </span>,
+            document.body,
+          )
+        : null,
+  };
 }
 
 /**

@@ -1016,4 +1016,17 @@ export const id: Dict = {
   'settings.preParser': 'Pindai teks yang ditempel atau dijatuhkan untuk mencari tautan',
   'settings.preParserHint': 'Menemukan tautan di mana saja dalam teks yang kamu tempel atau jatuhkan, bukan cuma satu URL bersih per baris: menyambung kembali baris yang dipatahkan program email, dan membaca host dan jalur telanjang tanpa http:// di depan sebagai tautan juga. Mati mengambil setiap baris persis seperti yang diketik, seperti cara kerjanya selama ini.',
   'intake.pasteButton': 'Tempel dari papan klip',
+
+  'activity.crawl': 'Memindai halaman',
+  'activity.linkcheck': 'Memeriksa tautan',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Konfirmasi otomatis',
+  'activity.pending': '{n} menunggu',
+  'activity.ofTotal': '{n} dari {total}',
+  'activity.tooltipHint': '{active} aktif dari {total} pada sesi ini',
+  'notifications.quiet': 'Mode senyap',
+  'notifications.quietHint':
+    'Menyembunyikan notifikasi keberhasilan dan info. Kegagalan, captcha yang menunggu Anda, atau akun yang ditangguhkan tetap ditampilkan.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Terakhir diubah',
 };

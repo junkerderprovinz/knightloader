@@ -1016,4 +1016,17 @@ export const gl: Dict = {
   'settings.preParser': 'Buscar ligazóns no texto pegado ou soltado',
   'settings.preParserHint': 'Atopa ligazóns en calquera parte do que pegas ou soltas, non só unha URL limpa por liña: volve unir unha liña que un cliente de correo cortou ao pasar de liña, e le tamén como ligazón un servidor núa con camiño sen http:// diante. Desactivado toma cada liña exactamente tal como se escribiu, tal como funcionou sempre antes.',
   'intake.pasteButton': 'Pegar desde o portapapeis',
+
+  'activity.crawl': 'Análise de páxinas',
+  'activity.linkcheck': 'Comprobación de ligazóns',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Confirmación automática',
+  'activity.pending': '{n} agardando',
+  'activity.ofTotal': '{n} de {total}',
+  'activity.tooltipHint': '{active} activas de {total} nesta quenda',
+  'notifications.quiet': 'Modo silencioso',
+  'notifications.quietHint':
+    'Oculta as notificacións de éxito e informativas. Un fallo, un captcha que agarda por ti ou unha conta en pausa séguense mostrando.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Última modificación',
 };

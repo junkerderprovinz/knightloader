@@ -1016,4 +1016,17 @@ export const hu: Dict = {
   'settings.preParser': 'Beillesztett vagy ráejtett szöveg átvizsgálása hivatkozásokért',
   'settings.preParserHint': 'Hivatkozásokat talál bárhol abban, amit beillesztesz vagy ráejtesz, nemcsak egyetlen tiszta URL-t soronként: újra összefűzi a sort, amit egy levelezőprogram tört meg, és hivatkozásként olvassa a http:// nélküli, csupasz tárhelyet és útvonalat is. Kikapcsolva minden sort pontosan úgy vesz, ahogy be lett gépelve, ahogy ez mindig is működött.',
   'intake.pasteButton': 'Beillesztés a vágólapról',
+
+  'activity.crawl': 'Oldalak átvizsgálása',
+  'activity.linkcheck': 'Hivatkozások ellenőrzése',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Automatikus megerősítés',
+  'activity.pending': '{n} vár',
+  'activity.ofTotal': '{total} közül {n}',
+  'activity.tooltipHint': 'Ebben a menetben {total} közül {active} aktív',
+  'notifications.quiet': 'Csendes mód',
+  'notifications.quietHint':
+    'Elrejti a sikeres és tájékoztató értesítéseket. Egy hiba, egy Önre váró captcha vagy egy felfüggesztett fiók továbbra is megjelenik.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Utoljára módosítva',
 };

@@ -1016,4 +1016,17 @@ export const bg: Dict = {
   'settings.preParser': 'Претърсване на поставения или пуснатия текст за връзки',
   'settings.preParserHint': 'Намира връзки навсякъде в това, което поставите или пуснете, не само един чист URL на ред: съединява отново ред, пренесен от пощенски клиент, и чете като връзка и гол хост с път без http:// отпред. Изключено взема всеки ред точно както е въведен, както винаги е работило досега.',
   'intake.pasteButton': 'Поставяне от клипборда',
+
+  'activity.crawl': 'Претърсване на страници',
+  'activity.linkcheck': 'Проверка на връзки',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Автоматично потвърждение',
+  'activity.pending': '{n} чакащи',
+  'activity.ofTotal': '{n} от {total}',
+  'activity.tooltipHint': '{active} активни от {total} в тази серия',
+  'notifications.quiet': 'Тих режим',
+  'notifications.quietHint':
+    'Скрива известията за успех и информационните известия. Грешка, captcha, която те чака, или временно спряна регистрация пак се показват.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Последна промяна',
 };

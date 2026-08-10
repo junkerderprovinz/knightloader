@@ -1016,4 +1016,17 @@ export const fa: Dict = {
   'settings.preParser': 'جست‌وجوی پیوند در متن چسبانده‌شده یا رهاشده',
   'settings.preParserHint': 'پیوندها را در هر جای متنی که می‌چسبانید یا رها می‌کنید می‌یابد، نه فقط یک URL تمیز در هر خط: خطی را که یک برنامهٔ ایمیل شکسته دوباره می‌چسباند، و میزبان و مسیر برهنه بدون http:// در ابتدا را هم به‌عنوان پیوند می‌خواند. خاموش هر خط را دقیقاً همان‌طور که تایپ شده می‌گیرد، همان‌طور که همیشه پیش از این کار می‌کرد.',
   'intake.pasteButton': 'چسباندن از کلیپ‌بورد',
+
+  'activity.crawl': 'بررسی صفحات',
+  'activity.linkcheck': 'بررسی لینک‌ها',
+  'activity.captcha': 'کپچا',
+  'activity.autoconfirm': 'تأیید خودکار',
+  'activity.pending': '{n} در انتظار',
+  'activity.ofTotal': '{n} از {total}',
+  'activity.tooltipHint': '{active} فعال از {total} در این دور',
+  'notifications.quiet': 'حالت بی‌صدا',
+  'notifications.quietHint':
+    'اعلان‌های موفقیت و اطلاعاتی را پنهان می‌کند. خطا، کپچایی که منتظر شماست، یا حساب موقتاً غیرفعال همچنان نمایش داده می‌شوند.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'آخرین تغییر',
 };

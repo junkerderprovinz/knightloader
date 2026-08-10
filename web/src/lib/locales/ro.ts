@@ -1016,4 +1016,17 @@ export const ro: Dict = {
   'settings.preParser': 'Caută linkuri în textul lipit sau plasat',
   'settings.preParserHint': 'Găsește linkuri oriunde în ce lipești sau plasezi, nu doar un URL curat pe linie: reunește o linie pe care un client de mail a rupt-o la trecerea pe rândul următor, și citește ca link și o gazdă goală cu cale fără http:// în față. Dezactivat ia fiecare linie exact așa cum a fost scrisă, așa cum a funcționat mereu până acum.',
   'intake.pasteButton': 'Lipește din clipboard',
+
+  'activity.crawl': 'Scanare pagini',
+  'activity.linkcheck': 'Verificare linkuri',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Confirmare automată',
+  'activity.pending': '{n} în așteptare',
+  'activity.ofTotal': '{n} din {total}',
+  'activity.tooltipHint': '{active} active din {total} în această rundă',
+  'notifications.quiet': 'Mod silențios',
+  'notifications.quietHint':
+    'Ascunde notificările de succes și informative. O eroare, un captcha care te așteaptă sau un cont suspendat temporar tot se afișează.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Ultima modificare',
 };

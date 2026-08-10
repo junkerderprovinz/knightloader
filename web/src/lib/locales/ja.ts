@@ -1016,4 +1016,17 @@ export const ja: Dict = {
   'settings.preParser': '貼り付けまたはドロップしたテキストからリンクを探す',
   'settings.preParserHint': '貼り付けたりドロップしたりしたものの中から、どこにあってもリンクを見つけます。1行に1つのきれいなURLだけではありません。メールソフトが折り返した行はつなぎ直し、先頭にhttp://が付いていない裸のホストとパスもリンクとして読み取ります。オフにすると、これまでどおり各行を入力されたとおりにそのまま扱います。',
   'intake.pasteButton': 'クリップボードから貼り付け',
+
+  'activity.crawl': 'ページを調査中',
+  'activity.linkcheck': 'リンクを確認中',
+  'activity.captcha': 'キャプチャ',
+  'activity.autoconfirm': '自動承認',
+  'activity.pending': '{n} 件待機中',
+  'activity.ofTotal': '{total} 件中 {n} 件',
+  'activity.tooltipHint': '今回 {total} 件中 {active} 件が処理中',
+  'notifications.quiet': '静音モード',
+  'notifications.quietHint':
+    '成功と情報の通知を非表示にします。エラー、あなたの操作を待つキャプチャ、停止中のアカウントは引き続き表示されます。',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': '最終更新',
 };

@@ -1016,4 +1016,17 @@ export const et: Dict = {
   'settings.preParser': 'Otsi lingid kleebitud või lohistatud tekstist',
   'settings.preParserHint': 'Leiab linke kõikjalt, mida sa kleebid või lohistad, mitte ainult ühte puhast URL-i rea kohta: liidab uuesti kokku rea, mille meiliklient reamurdega katkestas, ja loeb lingina ka ilma http:// eesliiteta hosti ja tee. Väljas võtab iga rea täpselt nii, nagu kirjutatud, nii nagu see alati varem töötas.',
   'intake.pasteButton': 'Kleebi lõikelaualt',
+
+  'activity.crawl': 'Lehtede läbivaatus',
+  'activity.linkcheck': 'Linkide kontroll',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Automaatne kinnitamine',
+  'activity.pending': '{n} ootab',
+  'activity.ofTotal': '{n}/{total}',
+  'activity.tooltipHint': '{active} aktiivset {total}-st selles ringis',
+  'notifications.quiet': 'Vaikne režiim',
+  'notifications.quietHint':
+    'Peidab õnnestumis- ja infoteated. Tõrge, sind ootav captcha või peatatud konto kuvatakse siiski.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Viimati muudetud',
 };

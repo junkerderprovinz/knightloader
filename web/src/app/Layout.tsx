@@ -6,6 +6,7 @@ import { ShellStrip } from '../components/QuickSettings';
 import { AccountStrip } from '../components/AccountStrip';
 import { CaptchaModal } from '../components/CaptchaModal';
 import { GlobalIntake } from '../components/GlobalIntake';
+import { StatusStrip } from '../components/StatusStrip';
 import { InfoBubble } from '../components/ui';
 import { connectWS, fetchSettings, type Task } from '../lib/api';
 import { applyAccent, applyRainbow, applyShape, cacheAppearance, rainbowFromSettings } from '../lib/appearance';
@@ -28,8 +29,8 @@ function useCompletionToasts() {
         prev.current[data.id] = data.status;
         if (before && before !== data.status) {
           const name = data.name || t('nav.downloads');
-          if (data.status === 'done') toast(t('downloads.finished', { name }), 'ok');
-          else if (data.status === 'error') toast(t('downloads.failed', { name }), 'fail');
+          if (data.status === 'done') toast(t('downloads.finished', { name }), 'ok', 'download-done');
+          else if (data.status === 'error') toast(t('downloads.failed', { name }), 'fail', 'download-failed');
         }
       } else if (type === 'removed') {
         delete prev.current[data.id];
@@ -167,6 +168,11 @@ export function Layout() {
           detach them on every navigation (build-plan.md section 8's Wave 8
           note, 8B). */}
       <GlobalIntake />
+      {/* Same reasoning again: ambient background activity has nothing to
+          do with which page is open, so it is mounted exactly once here
+          rather than inside the keyed page div (build-plan.md section 3's
+          Wave 9 table, 9A). */}
+      <StatusStrip />
     </InstanceProvider>
   );
 }

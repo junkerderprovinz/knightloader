@@ -1008,4 +1008,17 @@ export const es: Dict = {
   'settings.preParser': 'Buscar enlaces en el texto pegado o soltado',
   'settings.preParserHint': 'Encuentra enlaces en cualquier parte de lo que pegas o sueltas, no solo una URL limpia por línea: vuelve a unir una que un cliente de correo cortó al ajustar la línea, y también lee como enlace un host y ruta sin http:// delante. Desactivado, toma cada línea tal cual se escribió, como funcionaba siempre antes.',
   'intake.pasteButton': 'Pegar desde el portapapeles',
+
+  'activity.crawl': 'Analizando páginas',
+  'activity.linkcheck': 'Comprobando enlaces',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Confirmación automática',
+  'activity.pending': '{n} en espera',
+  'activity.ofTotal': '{n} de {total}',
+  'activity.tooltipHint': '{active} activas de {total} en esta tanda',
+  'notifications.quiet': 'Modo silencioso',
+  'notifications.quietHint':
+    'Oculta las notificaciones de éxito e información. Un fallo, un captcha esperándote o una cuenta en pausa se siguen mostrando.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Última modificación',
 };

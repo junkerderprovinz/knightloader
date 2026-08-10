@@ -9,12 +9,17 @@ import { Accounts } from '../pages/Accounts';
 import { SettingsPage } from '../pages/Settings';
 import { ToastProvider } from '../lib/toast';
 import { I18nProvider } from '../lib/i18n';
+import { TabIndicator } from '../components/TabIndicator';
 
 export function AppRouter() {
   return (
     <I18nProvider>
     <ToastProvider>
       <AuthGate>
+        {/* Sibling to the router, not inside it: the tab title/favicon have no
+            route or instance scope to read, so nothing here needs the routing
+            tree - see TabIndicator's own doc comment. */}
+        <TabIndicator />
         <BrowserRouter>
           <Routes>
             <Route element={<Layout />}>

@@ -1016,4 +1016,17 @@ export const hi: Dict = {
   'settings.preParser': 'चिपकाए या छोड़े गए टेक्स्ट में लिंक खोजें',
   'settings.preParserHint': 'आप जो कुछ भी चिपकाते या छोड़ते हैं उसमें कहीं भी लिंक ढूँढ़ लेता है, केवल हर पंक्ति में एक साफ़ URL नहीं: मेल प्रोग्राम द्वारा तोड़ी गई पंक्ति को फिर से जोड़ता है, और आगे http:// के बिना नंगे होस्ट और पथ को भी लिंक मानकर पढ़ता है। बंद होने पर हर पंक्ति को ठीक वैसे ही लेता है जैसे टाइप की गई थी, जैसे यह हमेशा पहले काम करता था।',
   'intake.pasteButton': 'क्लिपबोर्ड से चिपकाएँ',
+
+  'activity.crawl': 'पेज जाँचे जा रहे हैं',
+  'activity.linkcheck': 'लिंक जाँचे जा रहे हैं',
+  'activity.captcha': 'कैप्चा',
+  'activity.autoconfirm': 'स्वतः पुष्टि',
+  'activity.pending': '{n} प्रतीक्षा में',
+  'activity.ofTotal': '{total} में से {n}',
+  'activity.tooltipHint': 'इस दौर में {total} में से {active} सक्रिय',
+  'notifications.quiet': 'शांत मोड',
+  'notifications.quietHint':
+    'सफलता और जानकारी वाली सूचनाएँ छिपाता है। कोई त्रुटि, आपकी प्रतीक्षा में मौजूद कैप्चा, या रोकी गई खाता स्थिति फिर भी दिखती है।',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'अंतिम बदलाव',
 };

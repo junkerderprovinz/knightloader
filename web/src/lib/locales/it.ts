@@ -1008,4 +1008,17 @@ export const it: Dict = {
   'settings.preParser': 'Cerca link nel testo incollato o trascinato',
   'settings.preParserHint': 'Trova link ovunque in ciò che incolli o trascini, non solo un URL pulito per riga: ricongiunge una riga che un client di posta ha spezzato andando a capo, e legge come link anche un host e percorso senza http:// davanti. Disattivato prende ogni riga esattamente come scritta, come ha sempre funzionato finora.',
   'intake.pasteButton': 'Incolla dagli appunti',
+
+  'activity.crawl': 'Analisi delle pagine',
+  'activity.linkcheck': 'Controllo dei link',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Conferma automatica',
+  'activity.pending': '{n} in attesa',
+  'activity.ofTotal': '{n} di {total}',
+  'activity.tooltipHint': '{active} attivi su {total} in questa sessione',
+  'notifications.quiet': 'Modalità silenziosa',
+  'notifications.quietHint':
+    'Nasconde le notifiche di successo e informative. Un errore, un captcha che ti aspetta o un account in pausa restano comunque visibili.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Ultima modifica',
 };
