@@ -6,7 +6,7 @@ go 1.24
 
 require (
 	github.com/junkerderprovinz/knightloader v0.0.0
-	github.com/wailsapp/wails/v2 v2.10.2
+	github.com/wailsapp/wails/v2 v2.13.0
 )
 
 // Use the server sources from the parent checkout.
