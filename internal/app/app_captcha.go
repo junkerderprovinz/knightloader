@@ -205,7 +205,17 @@ func (a *App) pollCaptchasOnce(st *captchaState) []captcha.Challenge {
 		}
 		a.settleCaptcha(c, reason)
 	}
-	return st.store.List()
+	current := st.store.List()
+	// The status strip's aggregate signal (build-plan.md section 9 package 1
+	// / section 8's Wave 9 note, 9A), alongside the per-challenge
+	// "captcha"/"captchaResolved" broadcasts above rather than instead of
+	// them - see app_activity.go's own package comment. Only on this success
+	// path, matching the two broadcasts above: a transient List() failure
+	// leaves the store exactly as it was (see the error branch), and
+	// re-publishing the same count on every failed 2s tick would tell every
+	// connected browser something changed when nothing did.
+	a.setActivityGauge(ActivityCaptcha, len(current))
+	return current
 }
 
 // markCaptchaTasks stamps core.ReasonCaptcha onto every task a brand-new

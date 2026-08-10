@@ -1016,4 +1016,17 @@ export const de: Dict = {
   'settings.preParser': 'Eingefügten oder abgelegten Text nach Links durchsuchen',
   'settings.preParserHint': 'Findet Links überall im eingefügten oder abgelegten Text, nicht nur eine saubere URL pro Zeile: Eine Zeile, die ein Mailprogramm umgebrochen hat, wird wieder zusammengefügt, und auch ein nackter Host mit Pfad ohne vorangestelltes http:// wird als Link erkannt. Aus liest jede Zeile genau wie eingegeben, so wie es bisher immer war.',
   'intake.pasteButton': 'Aus Zwischenablage einfügen',
+
+  'activity.crawl': 'Seiten durchsuchen',
+  'activity.linkcheck': 'Links prüfen',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Automatisch bestätigen',
+  'activity.pending': '{n} warten',
+  'activity.ofTotal': '{n} von {total}',
+  'activity.tooltipHint': '{active} aktiv von {total} in diesem Lauf',
+  'notifications.quiet': 'Stiller Modus',
+  'notifications.quietHint':
+    'Blendet Erfolgs- und Info-Benachrichtigungen aus. Ein Fehler, ein Captcha, das auf dich wartet, oder ein pausiertes Konto werden weiterhin angezeigt.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Zuletzt geändert',
 };

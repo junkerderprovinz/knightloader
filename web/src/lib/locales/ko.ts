@@ -1016,4 +1016,17 @@ export const ko: Dict = {
   'settings.preParser': '붙여넣거나 끌어놓은 텍스트에서 링크 찾기',
   'settings.preParserHint': '붙여넣거나 끌어놓은 내용 어디에서든 링크를 찾아냅니다. 한 줄에 깨끗한 URL 하나뿐 아니라, 메일 프로그램이 줄바꿈으로 끊어놓은 줄도 다시 이어붙이고, 앞에 http://가 없는 맨 호스트와 경로도 링크로 읽습니다. 꺼짐은 각 줄을 입력한 그대로 받아들이며, 이는 이전까지 항상 동작하던 방식입니다.',
   'intake.pasteButton': '클립보드에서 붙여넣기',
+
+  'activity.crawl': '페이지 확인 중',
+  'activity.linkcheck': '링크 확인 중',
+  'activity.captcha': '캡차',
+  'activity.autoconfirm': '자동 확인',
+  'activity.pending': '{n}개 대기 중',
+  'activity.ofTotal': '{total}개 중 {n}개',
+  'activity.tooltipHint': '이번 실행에서 {total}개 중 {active}개 활성',
+  'notifications.quiet': '무음 모드',
+  'notifications.quietHint':
+    '성공 및 정보 알림을 숨깁니다. 오류, 사용자를 기다리는 캡차, 일시 정지된 계정은 계속 표시됩니다.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': '마지막 변경',
 };

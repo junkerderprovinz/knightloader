@@ -1123,6 +1123,36 @@ export const en = {
   'collector.stats.links': 'Links',
   'collector.stats.totalSize': 'Total size',
   'collector.stats.hosts': 'Hosts',
+
+  // The ambient-activity status strip (components/StatusStrip.tsx, Wave 9's
+  // 9A) - its LABEL record and formatCount()/tooltip strings were left
+  // hardcoded in English on purpose (see that file's own doc comment):
+  // landed here now that this wave's locale pass has reached them.
+  // StatusStrip.tsx itself still needs a follow-up pass to read these
+  // through useT() instead of its literals - components/* is 9A's own file,
+  // named here rather than taken (this wave's report).
+  'activity.crawl': 'Crawling pages',
+  'activity.linkcheck': 'Checking links',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Auto-confirming',
+  'activity.pending': '{n} pending',
+  'activity.ofTotal': '{n} of {total}',
+  'activity.tooltipHint': '{active} active of {total} this run',
+
+  // The notification centre's quiet-mode row (lib/toast.tsx, Wave 9's 9B) -
+  // landed here verbatim from that file's own PENDING table (see its doc
+  // comment), same arrangement as CollectorFacets/CollectorStats above;
+  // PENDING itself is left in place, unread once these resolve through the
+  // real catalogue.
+  'notifications.quiet': 'Quiet mode',
+  'notifications.quietHint':
+    'Hides success and info notifications. A failure, a captcha waiting on you, or a benched account still shows.',
+
+  // The task list's row tooltip (components/columns.tsx, Wave 9's 9D) -
+  // landed here verbatim from that file's own PENDING table, same
+  // arrangement.
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Last changed',
 } as const;
 
 export type TranslationKey = keyof typeof en;

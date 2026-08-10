@@ -1016,4 +1016,17 @@ export const sl: Dict = {
   'settings.preParser': 'Preišči prilepljeno ali spuščeno besedilo za povezave',
   'settings.preParserHint': 'Najde povezave kjer koli v tem, kar prilepite ali spustite, ne le eno čisto povezavo na vrstico: znova združi vrstico, ki jo je prelomil poštni odjemalec, in kot povezavo prebere tudi gol gostitelj s potjo brez http:// spredaj. Izklopljeno vzame vsako vrstico natanko tako, kot je vtipkana, kot je vedno delovalo prej.',
   'intake.pasteButton': 'Prilepi iz odložišča',
+
+  'activity.crawl': 'Preiskovanje strani',
+  'activity.linkcheck': 'Preverjanje povezav',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Samodejna potrditev',
+  'activity.pending': '{n} čakajočih',
+  'activity.ofTotal': '{n} od {total}',
+  'activity.tooltipHint': '{active} aktivnih od {total} v tem teku',
+  'notifications.quiet': 'Tihi način',
+  'notifications.quietHint':
+    'Skrije obvestila o uspehu in informativna obvestila. Napaka, captcha, ki čaka nate, ali začasno ustavljen račun se še vedno prikažejo.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Nazadnje spremenjeno',
 };

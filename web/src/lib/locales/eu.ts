@@ -1016,4 +1016,17 @@ export const eu: Dict = {
   'settings.preParser': 'Itsatsitako edo askatutako testuan estekak bilatu',
   'settings.preParserHint': 'Itsasten edo askatzen duzun edonon aurkitzen ditu estekak, ez bakarrik lerroko URL garbi bat: posta bezero batek lerro-jauzian hautsitako lerro bat berriz elkartzen du, eta aurrean http:// gabeko ostalari eta bide hutsa ere esteka gisa irakurtzen du. Itzalita, lerro bakoitza idatzi bezala hartzen du, orain arte beti funtzionatu duen bezala.',
   'intake.pasteButton': 'Arbeletik itsatsi',
+
+  'activity.crawl': 'Orriak arakatzen',
+  'activity.linkcheck': 'Estekak egiaztatzen',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Berrespen automatikoa',
+  'activity.pending': '{n} itxaroten',
+  'activity.ofTotal': '{total}(e)tik {n}',
+  'activity.tooltipHint': '{total}(e)tik {active} aktibo saio honetan',
+  'notifications.quiet': 'Modu isila',
+  'notifications.quietHint':
+    'Arrakasta- eta informazio-jakinarazpenak ezkutatzen ditu. Errore bat, zure zain dagoen captcha bat edo pausatutako kontu bat erakusten jarraitzen dute.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Azken aldaketa',
 };

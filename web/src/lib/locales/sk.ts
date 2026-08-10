@@ -1016,4 +1016,17 @@ export const sk: Dict = {
   'settings.preParser': 'Prehľadávať vložený alebo pretiahnutý text na odkazy',
   'settings.preParserHint': 'Nájde odkazy kdekoľvek v tom, čo vložíte alebo pretiahnete, nielen jednu čistú URL na riadok: opäť spojí riadok zalomený e-mailovým klientom a ako odkaz prečíta aj holý hostiteľ s cestou bez http:// pred ním. Vypnuté berie každý riadok presne tak, ako bol napísaný, tak ako to fungovalo vždy predtým.',
   'intake.pasteButton': 'Vložiť zo schránky',
+
+  'activity.crawl': 'Prehľadávanie stránok',
+  'activity.linkcheck': 'Kontrola odkazov',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Automatické potvrdzovanie',
+  'activity.pending': '{n} čakajúcich',
+  'activity.ofTotal': '{n} z {total}',
+  'activity.tooltipHint': '{active} aktívnych z {total} v tomto behu',
+  'notifications.quiet': 'Tichý režim',
+  'notifications.quietHint':
+    'Skryje oznámenia o úspechu a informačné oznámenia. Chyba, captcha čakajúca na teba alebo pozastavený účet sa stále zobrazujú.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Naposledy zmenené',
 };

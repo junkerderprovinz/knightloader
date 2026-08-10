@@ -1018,4 +1018,17 @@ export const he: Dict = {
   'settings.preParser': 'סריקת טקסט שהודבק או נגרר לאיתור קישורים',
   'settings.preParserHint': 'מוצא קישורים בכל מקום במה שאתם מדביקים או גוררים, לא רק כתובת URL נקייה אחת בכל שורה: מחבר מחדש שורה שתוכנת דוא"ל שברה, וקורא גם מארח חשוף עם נתיב בלי http:// בהתחלה כקישור. כבוי לוקח כל שורה בדיוק כפי שהוקלדה, כפי שזה תמיד עבד קודם.',
   'intake.pasteButton': 'הדבקה מהלוח',
+
+  'activity.crawl': 'סריקת דפים',
+  'activity.linkcheck': 'בדיקת קישורים',
+  'activity.captcha': 'קאפצ׳ה',
+  'activity.autoconfirm': 'אישור אוטומטי',
+  'activity.pending': '{n} ממתינות',
+  'activity.ofTotal': '{n} מתוך {total}',
+  'activity.tooltipHint': '{active} פעילות מתוך {total} בסבב הזה',
+  'notifications.quiet': 'מצב שקט',
+  'notifications.quietHint':
+    'מסתיר התראות הצלחה ומידע. שגיאה, קאפצ׳ה שמחכה לך או חשבון מושהה עדיין מוצגים.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'שינוי אחרון',
 };

@@ -1008,4 +1008,17 @@ export const nl: Dict = {
   'settings.preParser': 'Geplakte of gesleepte tekst doorzoeken op links',
   'settings.preParserHint': 'Vindt links overal in wat je plakt of sleept, niet alleen één schone URL per regel: voegt een regel die een mailprogramma heeft afgebroken weer samen, en leest ook een kale host met pad zonder http:// ervoor als link. Uit neemt elke regel precies zoals getypt, zoals het altijd werkte.',
   'intake.pasteButton': 'Plakken vanuit klembord',
+
+  'activity.crawl': 'Pagina’s doorzoeken',
+  'activity.linkcheck': 'Links controleren',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Automatisch bevestigen',
+  'activity.pending': '{n} wachten',
+  'activity.ofTotal': '{n} van {total}',
+  'activity.tooltipHint': '{active} actief van {total} in deze sessie',
+  'notifications.quiet': 'Stille modus',
+  'notifications.quietHint':
+    'Verbergt succes- en infomeldingen. Een fout, een captcha die op jou wacht of een gepauzeerd account blijven wel zichtbaar.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Laatst gewijzigd',
 };

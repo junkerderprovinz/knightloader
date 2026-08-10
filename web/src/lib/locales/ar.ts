@@ -1018,4 +1018,17 @@ export const ar: Dict = {
   'settings.preParser': 'فحص النص الملصَق أو المُفلَت بحثًا عن روابط',
   'settings.preParserHint': 'يجد روابط في أي مكان مما تلصقه أو تُفلته، لا رابطًا واحدًا نظيفًا في كل سطر فقط: يعيد وصل سطر قطعه برنامج بريد عند التفاف السطر، ويقرأ أيضًا مضيفًا ومسارًا عاريين بلا http:// في المقدمة كرابط. عند الإيقاف يأخذ كل سطر كما كُتب تمامًا، كما كان يعمل دائمًا من قبل.',
   'intake.pasteButton': 'لصق من الحافظة',
+
+  'activity.crawl': 'فحص الصفحات',
+  'activity.linkcheck': 'التحقق من الروابط',
+  'activity.captcha': 'كابتشا',
+  'activity.autoconfirm': 'التأكيد التلقائي',
+  'activity.pending': '{n} في الانتظار',
+  'activity.ofTotal': '{n} من {total}',
+  'activity.tooltipHint': '{active} نشطة من {total} في هذه الجولة',
+  'notifications.quiet': 'الوضع الصامت',
+  'notifications.quietHint':
+    'يخفي إشعارات النجاح والمعلومات. الخطأ، أو كابتشا تنتظرك، أو حساب موقوف مؤقتًا، كلها تظل تظهر رغم ذلك.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'آخر تعديل',
 };

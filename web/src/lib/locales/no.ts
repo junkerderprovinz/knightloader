@@ -1018,4 +1018,17 @@ export const no: Dict = {
   'settings.preParser': 'Søk etter lenker i limt inn eller sluppet tekst',
   'settings.preParserHint': 'Finner lenker hvor som helst i det du limer inn eller slipper, ikke bare én ren URL per linje: setter sammen igjen en linje et e-postprogram har brutt, og leser også en bar vert og sti uten http:// foran som en lenke. Av tar hver linje nøyaktig som skrevet, akkurat som det alltid har fungert før.',
   'intake.pasteButton': 'Lim inn fra utklippstavlen',
+
+  'activity.crawl': 'Gjennomsøking av sider',
+  'activity.linkcheck': 'Sjekk av lenker',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Automatisk bekreftelse',
+  'activity.pending': '{n} venter',
+  'activity.ofTotal': '{n} av {total}',
+  'activity.tooltipHint': '{active} aktive av {total} denne runden',
+  'notifications.quiet': 'Stille modus',
+  'notifications.quietHint':
+    'Skjuler varsler om suksess og info. En feil, en captcha som venter på deg, eller en pauset konto vises fortsatt.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Sist endret',
 };

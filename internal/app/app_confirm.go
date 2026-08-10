@@ -103,6 +103,25 @@ func (a *App) ConfirmTasks(ids []string, batch confirm.Config, trigger confirm.T
 	items := a.confirmItemsLocked(candidates)
 	a.mu.Unlock()
 
+	// Ambient activity only for the three triggers nobody is watching - see
+	// confirm.Trigger.Interactive's own doc comment (internal/confirm/policy.go).
+	// No production caller passes TriggerManual today (both real callers,
+	// app_links.go's AddLinksFrom and app_watch.go's stageWatchJob, use
+	// TriggerAutoConfirm/TriggerWatch) - the collector's own manual
+	// Confirm/Start button calls StartTasks directly rather than through
+	// here, since a person who is already looking at the staged batch has
+	// made their own dupe/offline judgement and gains nothing from this
+	// policy pass. TriggerManual and this guard exist for whichever future
+	// caller needs ConfirmTasks run with a person actually watching -
+	// confirm.Evaluate below is a pure, synchronous pass over already-known
+	// facts - no network call, no goroutine - so this is a start/end pair
+	// around one function call rather than per-item progress, the same way
+	// a batch this fast has no meaningful "halfway" to report.
+	if !trigger.Interactive() && len(items) > 0 {
+		a.beginActivity(ActivityAutoConfirm, len(items))
+		defer a.endActivity(ActivityAutoConfirm, len(items))
+	}
+
 	result := confirm.Evaluate(items, cfg)
 	// Guarded rather than handed through unconditionally: StartTasks reads
 	// an empty id list as "start everything collected", which is exactly

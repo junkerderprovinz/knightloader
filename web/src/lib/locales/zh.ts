@@ -1016,4 +1016,16 @@ export const zh: Dict = {
   'settings.preParser': '扫描粘贴或拖放的文本以查找链接',
   'settings.preParserHint': '会在你粘贴或拖放的内容中的任意位置查找链接，不只是每行一个干净的 URL：它会重新拼接被邮件客户端在换行处截断的一行，也会把前面没有 http:// 的裸主机和路径识别为链接。关闭时，每一行都按输入的原样处理，就像以前一直的做法一样。',
   'intake.pasteButton': '从剪贴板粘贴',
+
+  'activity.crawl': '正在扫描页面',
+  'activity.linkcheck': '正在检查链接',
+  'activity.captcha': '验证码',
+  'activity.autoconfirm': '自动确认',
+  'activity.pending': '{n} 个等待中',
+  'activity.ofTotal': '{total} 中的 {n} 个',
+  'activity.tooltipHint': '本次共 {total} 个，{active} 个进行中',
+  'notifications.quiet': '静音模式',
+  'notifications.quietHint': '隐藏成功和信息类通知。失败、等待你处理的验证码或被暂停的账号仍会显示。',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': '最后更改',
 };

@@ -1008,4 +1008,17 @@ export const pl: Dict = {
   'settings.preParser': 'Przeszukuj wklejony lub upuszczony tekst w poszukiwaniu linków',
   'settings.preParserHint': 'Znajduje linki w dowolnym miejscu wklejonego lub upuszczonego tekstu, nie tylko jeden czysty URL na wiersz: łączy z powrotem wiersz przełamany przez klienta poczty i odczytuje jako link także goły host ze ścieżką bez http:// z przodu. Wyłączone traktuje każdy wiersz dokładnie tak, jak wpisano, tak jak działało to zawsze wcześniej.',
   'intake.pasteButton': 'Wklej ze schowka',
+
+  'activity.crawl': 'Przeszukiwanie stron',
+  'activity.linkcheck': 'Sprawdzanie linków',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Automatyczne zatwierdzanie',
+  'activity.pending': '{n} oczekujących',
+  'activity.ofTotal': '{n} z {total}',
+  'activity.tooltipHint': '{active} aktywnych z {total} w tej turze',
+  'notifications.quiet': 'Tryb cichy',
+  'notifications.quietHint':
+    'Ukrywa powiadomienia o sukcesie i informacyjne. Błąd, captcha czekająca na Ciebie lub konto na zawieszeniu nadal się pokazują.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Ostatnia zmiana',
 };

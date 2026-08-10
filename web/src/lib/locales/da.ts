@@ -1016,4 +1016,17 @@ export const da: Dict = {
   'settings.preParser': 'Gennemsøg indsat eller sluppet tekst for links',
   'settings.preParserHint': 'Finder links overalt i det, du indsætter eller slipper, ikke kun én ren URL pr. linje: samler en linje, som et mailprogram har ombrudt, og læser også en bar vært og sti uden http:// foran som et link. Fra tager hver linje præcis som skrevet, ligesom det altid har virket før.',
   'intake.pasteButton': 'Indsæt fra udklipsholder',
+
+  'activity.crawl': 'Gennemsøgning af sider',
+  'activity.linkcheck': 'Tjek af links',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Automatisk bekræftelse',
+  'activity.pending': '{n} venter',
+  'activity.ofTotal': '{n} af {total}',
+  'activity.tooltipHint': '{active} aktive af {total} i denne omgang',
+  'notifications.quiet': 'Stille tilstand',
+  'notifications.quietHint':
+    'Skjuler meddelelser om succes og info. En fejl, en captcha der venter på dig, eller en pauset konto vises stadig.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Sidst ændret',
 };

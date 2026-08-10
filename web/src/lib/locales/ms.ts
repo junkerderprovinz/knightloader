@@ -1016,4 +1016,17 @@ export const ms: Dict = {
   'settings.preParser': 'Imbas teks yang ditampal atau dijatuhkan untuk pautan',
   'settings.preParserHint': 'Mencari pautan di mana-mana sahaja dalam teks yang anda tampal atau jatuhkan, bukan hanya satu URL bersih setiap baris: menyambung semula baris yang dipatahkan oleh program e-mel, dan turut membaca hos dan laluan tanpa http:// di hadapan sebagai pautan. Mati mengambil setiap baris betul-betul seperti yang ditaip, sepertimana ia sentiasa berfungsi sebelum ini.',
   'intake.pasteButton': 'Tampal dari papan keratan',
+
+  'activity.crawl': 'Mengimbas halaman',
+  'activity.linkcheck': 'Menyemak pautan',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Pengesahan automatik',
+  'activity.pending': '{n} menunggu',
+  'activity.ofTotal': '{n} daripada {total}',
+  'activity.tooltipHint': '{active} aktif daripada {total} pada pusingan ini',
+  'notifications.quiet': 'Mod senyap',
+  'notifications.quietHint':
+    'Menyembunyikan pemberitahuan kejayaan dan maklumat. Ralat, captcha yang menunggu anda, atau akaun yang digantung sementara tetap dipaparkan.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Terakhir diubah',
 };

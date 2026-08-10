@@ -1016,4 +1016,17 @@ export const hr: Dict = {
   'settings.preParser': 'Pretraži zalijepljeni ili ispušteni tekst za poveznicama',
   'settings.preParserHint': 'Pronalazi poveznice bilo gdje u onome što zalijepite ili ispustite, ne samo jedan čisti URL po retku: ponovno spaja redak koji je prelomio klijent e-pošte, a kao poveznicu čita i goli poslužitelj s putanjom bez http:// ispred. Isključeno uzima svaki redak točno onako kako je upisan, kako je oduvijek radilo.',
   'intake.pasteButton': 'Zalijepi iz međuspremnika',
+
+  'activity.crawl': 'Pretraživanje stranica',
+  'activity.linkcheck': 'Provjera poveznica',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Automatska potvrda',
+  'activity.pending': '{n} na čekanju',
+  'activity.ofTotal': '{n} od {total}',
+  'activity.tooltipHint': '{active} aktivnih od {total} u ovom krugu',
+  'notifications.quiet': 'Tihi način',
+  'notifications.quietHint':
+    'Skriva obavijesti o uspjehu i informativne obavijesti. Pogreška, captcha koja te čeka ili suspendirani račun i dalje se prikazuju.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Zadnja promjena',
 };

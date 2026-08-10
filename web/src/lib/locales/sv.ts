@@ -1016,4 +1016,17 @@ export const sv: Dict = {
   'settings.preParser': 'Sök efter länkar i inklistrad eller släppt text',
   'settings.preParserHint': 'Hittar länkar var som helst i det du klistrar in eller släpper, inte bara en ren URL per rad: fogar ihop en rad som ett e-postprogram har radbrutit, och läser även en bar värd och sökväg utan http:// framför som en länk. Av tar varje rad exakt som den skrevs, precis som det alltid fungerat förut.',
   'intake.pasteButton': 'Klistra in från urklipp',
+
+  'activity.crawl': 'Genomsökning av sidor',
+  'activity.linkcheck': 'Kontroll av länkar',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Automatisk bekräftelse',
+  'activity.pending': '{n} väntar',
+  'activity.ofTotal': '{n} av {total}',
+  'activity.tooltipHint': '{active} aktiva av {total} den här omgången',
+  'notifications.quiet': 'Tyst läge',
+  'notifications.quietHint':
+    'Döljer lyckade och informativa aviseringar. Ett fel, en captcha som väntar på dig eller ett pausat konto visas ändå.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Senast ändrad',
 };

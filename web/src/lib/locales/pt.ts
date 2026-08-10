@@ -1008,4 +1008,17 @@ export const pt: Dict = {
   'settings.preParser': 'Procurar ligações no texto colado ou largado',
   'settings.preParserHint': 'Encontra ligações em qualquer parte do que colas ou largas, não apenas um URL limpo por linha: volta a juntar uma linha que um cliente de correio partiu ao mudar de linha, e também lê como ligação um host nu com caminho sem http:// à frente. Desligado, cada linha é lida exatamente como foi escrita, tal como sempre funcionou antes.',
   'intake.pasteButton': 'Colar da área de transferência',
+
+  'activity.crawl': 'A analisar páginas',
+  'activity.linkcheck': 'A verificar ligações',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Confirmação automática',
+  'activity.pending': '{n} em espera',
+  'activity.ofTotal': '{n} de {total}',
+  'activity.tooltipHint': '{active} ativas de {total} nesta sessão',
+  'notifications.quiet': 'Modo silencioso',
+  'notifications.quietHint':
+    'Oculta as notificações de sucesso e informação. Uma falha, um captcha à sua espera ou uma conta em pausa continuam a aparecer.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Última alteração',
 };

@@ -102,7 +102,7 @@ export function useArchiveMenu({
         void startExtraction(
           finished.map((x) => x.id),
           base,
-        ).catch((e: unknown) => toast(String(e instanceof Error ? e.message : e), 'fail'));
+        ).catch((e: unknown) => toast(String(e instanceof Error ? e.message : e), 'fail', 'extraction-failed'));
       },
     });
   }
@@ -114,7 +114,7 @@ export function useArchiveMenu({
       onSelect: () => {
         for (const j of running) {
           void abortExtraction(j.id, base).catch((e: unknown) =>
-            toast(String(e instanceof Error ? e.message : e), 'fail'),
+            toast(String(e instanceof Error ? e.message : e), 'fail', 'extraction-failed'),
           );
         }
       },
@@ -154,7 +154,7 @@ export function ArchiveJobs({ jobs, base }: { jobs: ExtractJob[]; base: string }
   const stop = useCallback(
     (id: string) => {
       void abortExtraction(id, base).catch((e: unknown) =>
-        toast(String(e instanceof Error ? e.message : e), 'fail'),
+        toast(String(e instanceof Error ? e.message : e), 'fail', 'extraction-failed'),
       );
     },
     [base, toast],

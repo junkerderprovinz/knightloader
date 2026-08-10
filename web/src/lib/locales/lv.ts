@@ -1016,4 +1016,17 @@ export const lv: Dict = {
   'settings.preParser': 'Meklēt saites ielīmētajā vai nomestajā tekstā',
   'settings.preParserHint': 'Atrod saites jebkur tajā, ko ielīmējat vai nometat, ne tikai vienu tīru URL rindā: no jauna savieno rindu, ko pārrāvis e-pasta klients, un kā saiti nolasa arī plikatu resursdatoru ar ceļu bez http:// priekšā. Izslēgts katru rindu ņem tieši tā, kā ievadīta, kā tas vienmēr darbojies iepriekš.',
   'intake.pasteButton': 'Ielīmēt no starpliktuves',
+
+  'activity.crawl': 'Lapu skenēšana',
+  'activity.linkcheck': 'Saišu pārbaude',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Automātisks apstiprinājums',
+  'activity.pending': '{n} gaida',
+  'activity.ofTotal': '{n} no {total}',
+  'activity.tooltipHint': '{active} aktīvi no {total} šajā reizē',
+  'notifications.quiet': 'Klusais režīms',
+  'notifications.quietHint':
+    'Slēpj veiksmes un informatīvos paziņojumus. Kļūda, tevi gaidoša captcha vai apturēts konts joprojām tiek rādīti.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Pēdējās izmaiņas',
 };

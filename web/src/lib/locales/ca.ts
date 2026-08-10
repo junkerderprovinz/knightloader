@@ -1016,4 +1016,17 @@ export const ca: Dict = {
   'settings.preParser': 'Cerca enllaços en el text enganxat o deixat anar',
   'settings.preParserHint': 'Troba enllaços en qualsevol part del que enganxes o deixes anar, no només un URL net per línia: torna a unir una línia que un client de correu ha partit en fer salt de línia, i llegeix com a enllaç també un amfitrió nu amb el camí sense http:// al davant. Desactivat pren cada línia exactament tal com es va escriure, tal com ha funcionat sempre fins ara.',
   'intake.pasteButton': 'Enganxa des del porta-retalls',
+
+  'activity.crawl': 'Anàlisi de pàgines',
+  'activity.linkcheck': 'Comprovació d’enllaços',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Confirmació automàtica',
+  'activity.pending': '{n} esperant',
+  'activity.ofTotal': '{n} de {total}',
+  'activity.tooltipHint': '{active} actius de {total} en aquesta tanda',
+  'notifications.quiet': 'Mode silenciós',
+  'notifications.quietHint':
+    'Amaga les notificacions d’èxit i informatives. Un error, un captcha que t’espera o un compte en pausa es continuen mostrant.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Darrera modificació',
 };

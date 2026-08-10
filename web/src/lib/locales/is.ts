@@ -1016,4 +1016,17 @@ export const is: Dict = {
   'settings.preParser': 'Leita að tenglum í límdum eða slepptum texta',
   'settings.preParserHint': 'Finnur tengla hvar sem er í því sem þú límir eða sleppir, ekki bara eina hreina slóð á línu: tengir aftur saman línu sem tölvupóstforrit hefur brotið, og les einnig beran hýsil og slóð án http:// framan við sem tengil. Slökkt tekur hverja línu nákvæmlega eins og hún var skrifuð, eins og þetta hefur alltaf virkað áður.',
   'intake.pasteButton': 'Líma úr klippiborði',
+
+  'activity.crawl': 'Skannar síður',
+  'activity.linkcheck': 'Athugar tengla',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Sjálfvirk staðfesting',
+  'activity.pending': '{n} bíða',
+  'activity.ofTotal': '{n} af {total}',
+  'activity.tooltipHint': '{active} virk af {total} í þessari lotu',
+  'notifications.quiet': 'Hljóðlát stilling',
+  'notifications.quietHint':
+    'Felur tilkynningar um árangur og upplýsingar. Villa, captcha sem bíður eftir þér eða frystur reikningur birtast samt.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Síðast breytt',
 };

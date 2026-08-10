@@ -1016,4 +1016,17 @@ export const fi: Dict = {
   'settings.preParser': 'Etsi linkkejä liitetystä tai pudotetusta tekstistä',
   'settings.preParserHint': 'Löytää linkkejä mistä tahansa liittämästäsi tai pudottamastasi tekstistä, ei vain yhtä siistiä URL-osoitetta riviltä: liittää yhteen rivin, jonka sähköpostiohjelma katkaisi rivinvaihtoon, ja lukee linkiksi myös paljaan isännän ja polun ilman edeltävää http://. Pois päältä ottaa jokaisen rivin täsmälleen sellaisena kuin se kirjoitettiin, niin kuin tämä on aina toiminut.',
   'intake.pasteButton': 'Liitä leikepöydältä',
+
+  'activity.crawl': 'Sivujen läpikäynti',
+  'activity.linkcheck': 'Linkkien tarkistus',
+  'activity.captcha': 'Captcha',
+  'activity.autoconfirm': 'Automaattinen vahvistus',
+  'activity.pending': '{n} odottaa',
+  'activity.ofTotal': '{n}/{total}',
+  'activity.tooltipHint': '{active}/{total} aktiivista tällä kierroksella',
+  'notifications.quiet': 'Hiljainen tila',
+  'notifications.quietHint':
+    'Piilottaa onnistumis- ja infoilmoitukset. Virhe, sinua odottava captcha tai jäähyllä oleva tili näkyvät silti.',
+  'task.tooltip.url': 'URL',
+  'task.tooltip.changed': 'Viimeksi muutettu',
 };
