@@ -353,10 +353,12 @@ func featureList(a *app.App) []Feature {
 			Detail: jdDetail(a),
 		},
 		{
-			ID: "captcha", Verdict: VerdictNotBuilt, Page: "captcha",
-			Switch: SwitchNone,
-			Reason: "nothing in this build produces a captcha challenge, so there is nothing to show or answer; " +
-				"a link that needs one fails with the hoster's own error",
+			ID: "captcha", Verdict: VerdictShipped, Page: "captcha",
+			Switch: SwitchNone, Enabled: a.ContainerBackendConfigured(),
+			Reason: "the only source this build relays is the headless JDownloader sidecar (internal/captcha.JDSource); " +
+				"unswitchable for the same reason the jd row above is - a challenge already sitting on JD's side " +
+				"does not stop existing because the switch here says otherwise",
+			Detail: captchaDetail(a),
 		},
 		{
 			ID: "scripting", Verdict: VerdictNotBuilt, Page: "advanced",
@@ -609,6 +611,19 @@ func jdDetail(a *app.App) string {
 		return "reachable; encrypted containers can be opened"
 	}
 	return "no backend configured (KL_JD); encrypted containers are refused with that reason"
+}
+
+// captchaDetail mirrors jdDetail's own two-branch shape rather than a
+// separate live check: internal/captcha.JDSource answers ErrJDNotConfigured
+// for the identical reason ContainerBackendConfigured is false, so asking
+// twice would only risk the two disagreeing. CaptchaChallenges is a cache
+// read (its own doc comment), never a live JD call, so this costs nothing
+// worth avoiding on every module-registry request.
+func captchaDetail(a *app.App) string {
+	if !a.ContainerBackendConfigured() {
+		return "no backend configured (KL_JD); a link needing one fails with the hoster's own error instead"
+	}
+	return countDetail(len(a.CaptchaChallenges()), "challenge waiting right now", "challenges waiting right now")
 }
 
 // cnlPort mirrors what cmd/knightloader/main.go does with KL_CNL. It is read

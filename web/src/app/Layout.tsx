@@ -4,6 +4,7 @@ import { Sidebar } from '../components/Sidebar';
 import { QueueBar } from '../components/QueueBar';
 import { ShellStrip } from '../components/QuickSettings';
 import { AccountStrip } from '../components/AccountStrip';
+import { CaptchaModal } from '../components/CaptchaModal';
 import { InfoBubble } from '../components/ui';
 import { connectWS, fetchSettings, type Task } from '../lib/api';
 import { applyAccent, applyRainbow, applyShape, cacheAppearance, rainbowFromSettings } from '../lib/appearance';
@@ -149,6 +150,15 @@ export function Layout() {
           </div>
         </main>
       </div>
+      {/* Sibling to the scrollable shell rather than nested inside it, the
+          same reason ToastProvider's own overlay (lib/toast.tsx) sits beside
+          its children instead of inside them: a fixed-position overlay reads
+          from the viewport, and nesting it under an animated, keyed page div
+          would remount it - and drop whatever it was showing - on every
+          navigation. Captcha state has nothing to do with which page is
+          open, so it is mounted exactly once here, reachable from every
+          route (build-plan.md section 8's Wave 7 note). */}
+      <CaptchaModal />
     </InstanceProvider>
   );
 }

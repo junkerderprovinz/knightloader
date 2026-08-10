@@ -200,6 +200,20 @@ export interface Settings {
   rainbowRotate: boolean;
   rainbowSeed: number;
   rainbowPalette: string[] | null;
+
+  /**
+   * Which automatic captcha solvers to try, and in what order, before a
+   * captcha ever reaches a human - catalogue ids ('2captcha' | 'anticaptcha',
+   * see CatalogueService, group 'captchaSolver') present in this list in try
+   * order; an id absent from it is never tried. Mirrors
+   * settings.Settings.CaptchaSolverOrder (internal/settings/settings.go) -
+   * membership and order are the one fact, so there is no separate `enabled`
+   * flag to disagree with where an id sits in the list. `null` (never an
+   * empty array on the wire - see sanitizeCaptcha) is what a fresh install
+   * has, the same pairing `rainbowPalette` already uses for "nothing chosen
+   * yet, behave as if this setting did not exist".
+   */
+  captchaSolverOrder: string[] | null;
 }
 
 /**
@@ -268,8 +282,13 @@ export interface TrafficState {
 /** Which shape of secret a service needs - accounts.Kind (internal/accounts/catalogue.go). */
 export type ServiceKind = 'apiKey' | 'usernamePassword';
 
-/** Which section of the accounts page a service belongs to - accounts.Group. */
-export type ServiceGroup = 'debrid' | 'hoster';
+/**
+ * Which section of the accounts page a service belongs to - accounts.Group.
+ * 'captchaSolver' (accounts.GroupCaptchaSolver) is deliberately not rendered
+ * by Accounts.tsx at all - see that group's own Go doc comment - a solver's
+ * credential is configured on settings/Captcha.tsx instead.
+ */
+export type ServiceGroup = 'debrid' | 'hoster' | 'captchaSolver';
 
 /**
  * One entry in the service catalogue GET /api/accounts/catalogue returns -
@@ -1036,6 +1055,152 @@ export async function saveHosterLogin(host: string, username: string, password: 
 /** removeHosterLogin clears one host's stored native login. */
 export async function removeHosterLogin(host: string): Promise<void> {
   await ok(await post('/api/hosterauth/logins/remove', { host }));
+}
+
+// ---- captcha (internal/captcha) --------------------------------------------
+//
+// A hoster (or an account's own login gate) asking a human something before a
+// download can continue. Challenge mirrors captcha.Challenge
+// (internal/captcha/challenge.go) verbatim; CaptchaResolution mirrors
+// app.CaptchaResolution (internal/app/app_captcha.go). Rendering a 'widget'
+// challenge and giving up on one (skip/blacklist) are their own routes -
+// internal/api/routes_captcha_widget.go and routes_captcha_skip.go, built by
+// other agents this wave - see components/CaptchaModal.tsx for how these
+// types reach both without this file importing anything from them.
+
+export type CaptchaKind = 'image' | 'click' | 'widget' | 'unsupported';
+
+/** Challenge.Payload for 'image' and 'click' - captcha.ImagePayload /
+ *  ClickPayload are the identical Go type, and so is this: Kind alone is
+ *  what tells a renderer to offer a click surface instead of a text box. */
+export interface CaptchaImagePayload {
+  /** Always a complete "data:image/...;base64,..." string, ready for <img src>. */
+  dataUrl: string;
+}
+
+/**
+ * Challenge.Payload for 'widget' - captcha.WidgetPayload. The sitekey data a
+ * hosted reCAPTCHA v2 or hCaptcha widget needs to render and solve itself,
+ * never a screenshot. Passed straight through as query parameters to
+ * routes_captcha_widget.go's own contract - see captchaWidgetUrl.
+ */
+export interface CaptchaWidgetPayload {
+  siteKey: string;
+  siteUrl: string;
+  contextUrl: string;
+  type?: string;
+  enterprise?: boolean;
+  v3Action?: string;
+  secureToken?: string;
+}
+
+/** Challenge.Payload for 'unsupported' - captcha.UnsupportedPayload. */
+export interface CaptchaUnsupportedPayload {
+  /** JD's own challenge class name - the real origin, never a guess. */
+  vendor: string;
+}
+
+/**
+ * One captcha instance blocking a download until a human answers it,
+ * dismisses it, or it expires on its own - captcha.Challenge
+ * (internal/captcha/challenge.go) verbatim.
+ */
+export interface CaptchaChallenge {
+  /** Opaque: pass back to answerCaptcha/skipCaptcha unchanged, never parsed. */
+  id: string;
+  source: string;
+  host: string;
+  /** The KnightLoader task this challenge blocks, when the server could work
+   *  that out. Empty is a real, expected answer, not a bug. */
+  taskId?: string;
+  kind: CaptchaKind;
+  /** Instructions a human reads, in whatever language the hoster wrote them. */
+  prompt?: string;
+  payload?: CaptchaImagePayload | CaptchaWidgetPayload | CaptchaUnsupportedPayload;
+  /**
+   * When this challenge stops being answerable. Always present in the JSON -
+   * Go's omitempty does not drop a zero time.Time, the same caveat
+   * finishedAt/changedAt carry on Task - so "0001-01-01T00:00:00Z" means the
+   * source could not say, never "already expired". See CaptchaModal.tsx's own
+   * zero-year check before treating this as a real deadline.
+   */
+  expiresAt: string;
+}
+
+/**
+ * How far a skipped challenge's effect reaches - captcha.AbortScope
+ * (internal/captcha/challenge.go), the exact three names
+ * routes_captcha_skip.go's own {"scope": ...} body expects.
+ */
+export type CaptchaAbortScope = 'skip-once' | 'blacklist-hoster' | 'blacklist-everywhere';
+
+/** One challenge's end, as broadcast over the hub - app.CaptchaResolution
+ *  (internal/app/app_captcha.go). */
+export interface CaptchaResolution {
+  id: string;
+  taskId?: string;
+  host: string;
+  reason: 'solved' | 'expired' | 'aborted' | 'timedOut' | 'resolved';
+}
+
+/**
+ * fetchCaptchas is every challenge this instance currently knows about - a
+ * cache read, never a live JD call (see app.CaptchaChallenges' own doc
+ * comment); the WebSocket "captcha"/"captchaResolved" events are what keep it
+ * live afterwards without polling this again.
+ */
+export async function fetchCaptchas(): Promise<CaptchaChallenge[]> {
+  return (await json<CaptchaChallenge[]>(await fetch('/api/captcha'))) ?? [];
+}
+
+/** refreshCaptchas polls the source right now instead of waiting for the next
+ *  automatic check, and returns what it found. */
+export async function refreshCaptchas(): Promise<CaptchaChallenge[]> {
+  return (await json<CaptchaChallenge[]>(await post('/api/captcha/refresh', {}))) ?? [];
+}
+
+/**
+ * answerCaptcha submits text as id's solution. stillValid is the direct,
+ * authoritative answer to "did this arrive too late" from the server, which
+ * itself has it from JD - trust this over any local countdown, and never
+ * re-derive it from one.
+ */
+export async function answerCaptcha(id: string, text: string): Promise<{ stillValid: boolean }> {
+  return json<{ stillValid: boolean }>(await post(`/api/captcha/${encodeURIComponent(id)}/answer`, { text }));
+}
+
+/**
+ * skipCaptcha gives up on one challenge through routes_captcha_skip.go's own
+ * route, not this file's /answer. scope decides how far the effect reaches;
+ * JD keeps its own blacklist for blacklist-hoster/blacklist-everywhere, so
+ * nothing here has to remember it or re-send it per link.
+ */
+export async function skipCaptcha(id: string, scope: CaptchaAbortScope): Promise<void> {
+  await ok(await post(`/api/captcha/${encodeURIComponent(id)}/skip`, { scope }));
+}
+
+/**
+ * captchaWidgetUrl is routes_captcha_widget.go's own query-string contract
+ * (internal/api/routes_captcha_widget.go's captchaWidgetRequest): every
+ * rendering parameter passed as a query parameter rather than looked up by id
+ * server-side, because the caller already holds the only copy of that data
+ * that exists (from fetchCaptchas or the WS stream) - a server-side lookup
+ * would only be a second, redundant captcha/get?format=rawtoken call for data
+ * already on screen. Parameter names match that file's own
+ * parseCaptchaWidgetRequest exactly: siteKey/type/enterprise/v3Action/
+ * secureToken/host/prompt.
+ */
+export function captchaWidgetUrl(ch: CaptchaChallenge): string {
+  const p = (ch.payload ?? {}) as CaptchaWidgetPayload;
+  const q = new URLSearchParams();
+  if (p.siteKey) q.set('siteKey', p.siteKey);
+  if (p.type) q.set('type', p.type);
+  if (p.enterprise) q.set('enterprise', '1');
+  if (p.v3Action) q.set('v3Action', p.v3Action);
+  if (p.secureToken) q.set('secureToken', p.secureToken);
+  if (ch.host) q.set('host', ch.host);
+  if (ch.prompt) q.set('prompt', ch.prompt);
+  return `/api/captcha/${encodeURIComponent(ch.id)}/widget?${q.toString()}`;
 }
 
 export async function fetchAuth(): Promise<AuthState> {

@@ -178,6 +178,31 @@ type Settings struct {
 	// HistoryMax caps the download history. Zero keeps every entry, which is a
 	// table that only grows on an instance that is never restarted.
 	HistoryMax int `json:"historyMax"`
+
+	// CaptchaSolverOrder is which automatic captcha-solving services
+	// (internal/accounts.Catalogue ids "2captcha"/"anticaptcha") to try, and
+	// in what order, before a captcha is ever shown to a human. Membership
+	// AND order live in the one list - an id absent from it is not tried at
+	// all, exactly the same "presence in an ordered list is the switch" rule
+	// the accounts page's own resolver-priority order already uses - rather
+	// than a separate bool per service that could disagree with where the
+	// service sits in the order. Empty means what a fresh install has:
+	// nothing configured, straight to the prompt modal, whether or not a key
+	// happens to be stored - an id here with no matching credential is
+	// simply skipped when tried (see sanitizeCaptcha for why an id here
+	// never implies a stored key, and never the reverse). This is the
+	// NON-secret half; the API key itself is a credential
+	// (internal/accounts), never a settings field - see
+	// internal/accounts/catalogue.go's GroupCaptchaSolver.
+	//
+	// No omitempty, deliberately, matching RainbowPalette just above rather
+	// than ArchivePasswords further up: a nil slice with omitempty is
+	// DROPPED from the JSON entirely, and web/src/lib/api.ts's Settings
+	// type has no way to type a field that is sometimes simply absent. A
+	// nil slice with no omitempty encodes as JSON null instead, so the
+	// field is always present and the frontend types it `string[] | null`,
+	// the same pairing RainbowPalette already uses.
+	CaptchaSolverOrder []string `json:"captchaSolverOrder"`
 }
 
 // Defaults returns the settings a fresh install starts with.
@@ -326,5 +351,6 @@ func sanitize(n Settings) Settings {
 	n = sanitizeNetwork(n)
 	n = sanitizeRules(n)
 	n = sanitizeLifecycle(n)
+	n = sanitizeCaptcha(n)
 	return n
 }
