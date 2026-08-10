@@ -881,7 +881,16 @@ func (a *App) applySchedule(st schedule.State) {
 	a.Throttle.Set(st.Limit)
 	// JD lives on its own box and is told over the network, so it is pushed off
 	// this goroutine: a slow or unreachable JD must not delay the next boundary.
-	go a.pushJDSpeedLimit(st.Limit)
+	// a.spawn, not a bare go - this reads a.jd under a.bmu.RLock
+	// (pushJDSpeedLimit's own comment), and an untracked goroutine that outlives
+	// its test is exactly what raced a later test's direct `a.jd = stub` against
+	// it in CI (internal/app/addcrypted_cnl_test.go, Wave 8's own gate - the
+	// same shape of bug Wave 6's commit 813cf29 already fixed once, here in a
+	// call site that predates that fix and was never revisited). a.spawn keeps
+	// applySchedule itself non-blocking either way; the only change is that
+	// Close() now genuinely waits for this call before a test's next
+	// t.Cleanup-driven teardown can start the next one.
+	a.spawn(func() { a.pushJDSpeedLimit(st.Limit) })
 	a.Hub.Broadcast("queue", a.Queue())
 }
 
