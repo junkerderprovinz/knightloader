@@ -1029,4 +1029,173 @@ export const fi: Dict = {
     'Piilottaa onnistumis- ja infoilmoitukset. Virhe, sinua odottava captcha tai jäähyllä oleva tili näkyvät silti.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Viimeksi muutettu',
+
+  'file.open': 'Avaa',
+  'file.openNatively': 'Avaa oletussovelluksella',
+  'file.revealInFolder': 'Näytä kansiossa',
+  'file.desktopOnly': 'Vain työpöytäsovelluksessa',
+
+  'settings.schedule.title': 'Aikataulu',
+  'settings.schedule.subtitle': 'Keskeytä, jatka tai rajoita latausnopeutta aikataulun mukaan.',
+  'settings.schedule.listTitle': 'Aikataulukko',
+  'settings.schedule.orderHint':
+    'Rivit toteutuvat järjestyksessä, ylhäältä alas, ja kun kaksi ikkunaa menevät päällekkäin, alempi voittaa - laaja ”tauko joka yö” kapeamman poikkeuksen yläpuolella jättää poikkeuksen voimaan, mutta samat kaksi riviä toisin päin eivät.',
+  'settings.schedule.add': 'Lisää ikkuna',
+  'settings.schedule.empty': 'Jono noudattaa omaa aikatauluaan',
+  'settings.schedule.emptyHint':
+    'Yhtään ikkunaa ei ole asetettu, joten mikään täällä ei keskeytä tai rajoita jonoa kellonajan mukaan. Lisää yksi pitääksesi lataukset tauolla yöllä tai rajoittaaksesi nopeutta, kun käytät itse yhteyttä.',
+  'settings.schedule.use': 'Käytä tätä ikkunaa',
+  'settings.schedule.moveUp': 'Siirrä ylös',
+  'settings.schedule.moveDown': 'Siirrä alas',
+  'settings.schedule.remove': 'Poista tämä ikkuna',
+  'settings.schedule.edit': 'Muokkaa tätä ikkunaa',
+  'settings.schedule.name': 'Nimi',
+  'settings.schedule.namePlaceholder': 'esim. Yötauko',
+  'settings.schedule.days': 'Päivät',
+  'settings.schedule.daysHint':
+    'Millä viikonpäivillä tämä ikkuna avautuu. Yli puolenyön kestävässä ikkunassa merkitse päivä, jona se ALKAA - ”pe 22:00-06:00” päättyy lauantaiaamuna ilman että itse lauantai on merkitty.',
+  'settings.schedule.preset.every': 'Joka päivä',
+  'settings.schedule.preset.weekdays': 'Arkipäivät',
+  'settings.schedule.preset.weekends': 'Viikonloput',
+  'settings.schedule.preset.custom': 'Mukautettu',
+  'settings.schedule.start': 'Alku',
+  'settings.schedule.end': 'Loppu',
+  'settings.schedule.endHint':
+    'Ennen alkuaikaa tämä ikkuna kestää yli puolenyön ja päättyy seuraavana aamuna. Alkuaikaa vastaava loppuaika hylätään - se voisi tarkoittaa koko päivää tai ei aikaa lainkaan, ja arvaaminen mitä tarkoitettiin on pahempi kuin kysyminen.',
+  'settings.schedule.action': 'Toiminto',
+  'settings.schedule.action.pause': 'Tauko',
+  'settings.schedule.action.resume': 'Jatkaminen',
+  'settings.schedule.action.limit': 'Rajoita nopeutta',
+  'settings.schedule.limit': 'Nopeusrajoitus',
+  'settings.schedule.disabledOff': 'Tämä ikkuna on pysäköity eikä laukea koskaan. Jono käyttäytyy, kuin tätä riviä ei olisi lainkaan.',
+  'settings.schedule.activeNow': 'Aktiivinen nyt, kunnes {time}',
+  'settings.schedule.next': 'Seuraava: {when}',
+  'settings.schedule.never': 'Ei laukea koskaan nykyisillä asetuksilla',
+  'settings.schedule.stateNow.paused': 'Jono on juuri nyt keskeytetty aikataulun toimesta.',
+  'settings.schedule.stateNow.limited': 'Jono on juuri nyt rajoitettu tasolle {rate} aikataulun toimesta.',
+  'settings.schedule.stateNow.running': 'Yksikään ikkuna ei ole voimassa juuri nyt.',
+  'settings.schedule.nextChange': 'Seuraava muutos: {when}',
+  'settings.schedule.noNextChange': 'Mikään taulukossa ei koskaan muuta jonoa nykyisillä asetuksilla.',
+  'settings.schedule.save': 'Tallenna aikataulu',
+  'settings.schedule.discard': 'Hylkää',
+  'settings.schedule.unsaved': 'Tallentamattomia muutoksia aikataulussa',
+  'settings.schedule.saveFailed': 'Aikataulua ei voitu tallentaa: {error}',
+  'settings.schedule.rowError': 'Rivi {row}: {error}',
+
+  'idleAction.title': 'Jono on toimeton',
+  'idleAction.action.pause': 'Keskeytetään',
+  'idleAction.actionFallback': '”{action}” käynnissä',
+  'idleAction.in': '{countdown} kuluttua',
+  'idleAction.cancel': 'Peruuta',
+  'idleAction.cancelling': 'Perutaan…',
+  'idleAction.cancelFailed': 'Peruuttaminen epäonnistui: palvelin ei vastannut.',
+
+  'settings.idleAction.label': 'Toiminto jonon tyhjennyttyä',
+  'settings.idleAction.hint':
+    'Mitä tapahtuu heti, kun mikään ei enää käy, odota jonossa tai ole valmis alkamaan. Poistamasi käytöstä oleva linkki ei lasketa mukaan - katso infokupla.',
+  'settings.idleAction.info':
+    'Poistamasi käytöstä oleva linkki ei koskaan lasketa jäljellä olevaksi työksi, joten se ei voi viivyttää tätä ikuisesti. Manuaalisesti keskeytetty tai pidätetty linkki lasketaan silti mukaan - molemmat tarkoittavat ”odota hetki”, eivät ”ei koskaan”.',
+  'settings.idleAction.none': 'Älä tee mitään',
+  'settings.idleAction.pause': 'Keskeytä jono',
+  'settings.idleAction.delay': 'Lähtölaskenta (sekuntia)',
+  'settings.idleAction.delayHint':
+    'Kuinka paljon aikaa sinulla on peruuttaa ennen kuin toiminto suoritetaan, heti kun jono todella muuttuu toimettomaksi.',
+
+  'settings.nav.diagnostics': 'Diagnostiikka',
+  'settings.diagnostics.subtitle':
+    'Mikä tämä build on, millä se toimii, ja sen oma tuore lokituloste - liitettäväksi vikailmoitukseen.',
+  'settings.diagnostics.version': 'Versio',
+  'settings.diagnostics.deployment': 'Build',
+  'settings.diagnostics.deployment.container': 'Kontti',
+  'settings.diagnostics.deployment.desktop': 'Työpöytä',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'Alusta',
+  'settings.diagnostics.goroutines': 'Goroutinet',
+  'settings.diagnostics.download': 'Lataa diagnostiikkapaketti',
+  'settings.diagnostics.downloading': 'Valmistellaan…',
+  'settings.diagnostics.downloadHint':
+    'JSON-tiedosto yllä olevilla kentillä, asetuksillasi jokainen salasana poistettuna, ja alla olevilla lokiriveillä.',
+  'settings.diagnostics.downloadFailed': 'Pakettia ei voitu luoda: {error}',
+  'settings.diagnostics.logTitle': 'Viimeisimmät lokirivit',
+  'settings.diagnostics.logHint':
+    'Tämän prosessin kirjaamat viimeisimmät {n} riviä, vanhimmat ensin. Mikään täällä ei kirjoiteta levylle.',
+  'settings.diagnostics.logEmpty': 'Ei vielä mitään kirjattuna.',
+  'settings.diagnostics.refresh': 'Päivitä',
+  'settings.diagnostics.loadFailed': 'Diagnostiikkaa ei voitu ladata. Vastaako palvelin?',
+
+  'settings.nav.help': 'Ohje',
+  'settings.help.intro':
+    'Mitä tämä build osaa, järjestetty tehtävän eikä asetussivun mukaan. Jokainen osio linkittää sinne, missä se asetetaan.',
+
+  'settings.help.intake.title': 'Latausten lisääminen',
+  'settings.help.intake.body':
+    'Liitä linkkejä Kerääjään - yksi rivillä, tai sekavaa tekstiä: haku löytää linkit, missä ikinä ne ovatkin, keskellä lausetta, useita rivillä, tai sähköpostiohjelman kahdelle riville katkaisemina.',
+  'settings.help.intake.b1': 'Pudota linkkikontainer-tiedosto (.dlc, .ccf, .rsdf) tai tavallinen linkkilista.',
+  'settings.help.intake.b2':
+    "Click'n'Load-painikkeet hoster- ja foorumisivuilla toimivat muuttumattomina - KnightLoader vastaa osoitteessa 127.0.0.1:9666, samassa portissa, jota jokainen muukin latausohjelma käyttää.",
+  'settings.help.intake.b3':
+    'Liitä sivun URL tiedostolinkin sijaan ja kytke Ryömintä päälle poimiaksesi jokaisen tiedoston, johon se linkittää, sen sijaan että lataisit itse sivun.',
+  'settings.help.intake.b4': 'Tarkkailtu kansio poimii automaattisesti .txt-/.crawljob-tiedostot, jotka siihen pudotetaan.',
+  'settings.help.intake.link1': 'Avaa Lataukset-asetukset',
+  'settings.help.intake.link2': "Avaa Pääsy-asetukset (Click'n'Load)",
+
+  'settings.help.collector.title': 'Kerääjä, ennen kuin mitään latautuu',
+  'settings.help.collector.body':
+    'Uudet linkit saapuvat ensin Kerääjään, ei jonoon: väliaikainen alue nimien, kokojen ja kaksoiskappalevaroitusten tarkistamiseen ennen kuin mikään alkaa. Automaattinen vahvistus voi ohittaa tämän vaiheen, valinnaisella viiveellä; kun vahvistettu, linkki joko alkaa heti tai odottaa jonossa, riippuen automaattisesta käynnistyksestä.',
+  'settings.help.collector.link': 'Avaa Yleiset-asetukset',
+
+  'settings.help.rules.title': 'Säännöt: paketit, kansiot ja mikä säilyy',
+  'settings.help.rules.body':
+    'Packagizer nimeää linkin uudelleen, valitsee sen kansion ja asettaa sen latausasetukset saapuessa, kirjoittamiesi ehtojen perusteella. Linkkisuodatin päättää, säilyykö linkki ollenkaan - ja toisin kuin suodatin, joka vain saa linkit katoamaan, hylkäys nimeää aina siihen syyllisen säännön, ja miksi.',
+  'settings.help.rules.link': 'Avaa Säännöt',
+
+  'settings.help.queue.title': 'Jonon hallinta',
+  'settings.help.queue.body':
+    'Keskeytä, jatka tai järjestä uudelleen mikä tahansa linkki, yksin tai kokonaisena pakettina. Jonon pysäyttäminen on kaksi eri toimintoa: pysäytys jättää jo käynnissä olevan koskemattomaksi, jotta se valmistuu itsestään, kun taas kaikkien siirtojen pysäyttäminen heti näyttää ensin, mitä menetettäisiin, ja jatkaa vasta vahvistuksesi jälkeen - juuri siihen tuo varoitus on siirrolle, joka ei voi jatkaa siitä, mihin se jäi.',
+  'settings.help.queue.b1': 'Yksittäinen linkki voi ohittaa globaalin yhteysmäärän tai lataamisen jälkeisen purkamisen kytkimen.',
+  'settings.help.queue.b2': 'Listalla jo olevan linkin kaksoiskappale hylätään aina, ennen kuin se koskaan saavuttaa Kerääjän.',
+
+  'settings.help.limits.title': 'Hosterin rajoitusten kiertäminen',
+  'settings.help.limits.body': 'Kolme riippumatonta tapaa estää ilmaisrajaa olemasta katto:',
+  'settings.help.limits.b1':
+    'Yhteydet - jaa lataukset useamman lähtevän reitin yli (toinen linja, välityspalvelin, SOCKS) sen sijaan, että lähtisit aina tämän koneen omasta osoitteesta.',
+  'settings.help.limits.b2':
+    'Uudelleenyhteys - pyydä reitittimeltä uutta julkista osoitetta, ainoa asia, joka todella poistaa itse osoitteeseen sidotun rajan (UPnP, ulkoinen ohjelma, skripti, tai HTTP-pyyntöjen toistaminen reitittimen hallintasivua vastaan - olemassa olevat JDownloader LiveHeader-/curl-skriptit toimivat muuttumattomina).',
+  'settings.help.limits.b3':
+    'Tilit - tallenna premium- tai debrid-kirjautumistiedot (Real-Debrid, AllDebrid, TorBox ja muut), jotta kelpoisa linkki haetaan täydellä nopeudella ilmaisrajan sijaan.',
+  'settings.help.limits.link1': 'Avaa Yhteydet',
+  'settings.help.limits.link2': 'Avaa Uudelleenyhteys',
+  'settings.help.limits.link3': 'Avaa Tilit',
+
+  'settings.help.captcha.title': 'Captcha',
+  'settings.help.captcha.body':
+    'Kun hoster pyytää captchaa, ensin kokeillaan asettamaasi automaattista ratkaisijaa, asettamassasi järjestyksessä. Se, mitä se ei osaa ratkaista - tai jos yhtään ei ole asetettu - esitetään sinulle sen sijaan, että se epäonnistuisi hiljaa.',
+  'settings.help.captcha.link': 'Avaa Captcha-asetukset',
+
+  'settings.help.after.title': 'Latauksen jälkeen',
+  'settings.help.after.body':
+    'Arkistot puretaan automaattisesti: zip (myös salattu, sekä WinZip AES että vanhempi ZipCrypto), rar monivolyymisarjoilla, 7z, tar, sekä gzip/bzip2/xz/zstd riippumatta siitä, kääriikö se tar:n - puhdasta Go:ta, ilman ulkoista unrar- tai 7z-ohjelmaa. Salatulle arkistolle kokeillaan salasanalistaa järjestyksessä. Valmis tiedosto tarkistetaan mitä tahansa sen mukana tullutta tarkistussummaa vasten: .sfv-listaa, md5-/sha1-/sha256sum-tiedostoa, tai CRC32:ta, jonka itse julkaisun nimi kantaa.',
+  'settings.help.after.link1': 'Avaa Arkistot-asetukset',
+  'settings.help.after.link2': 'Avaa Lataukset-asetukset',
+
+  'settings.help.schedule.title': 'Toiminta ilman valvontaa',
+  'settings.help.schedule.body':
+    'Viikoittainen aikataulu keskeyttää tai kuristaa jonoa kellonajan mukaan - yöllinen ikkuna, oikein myös kesäaikaan siirryttäessä - sama idea kuin JDownloaderin Schedulerissa.',
+  'settings.help.schedule.link': 'Avaa Aikataulu',
+
+  'settings.help.instances.title': 'Useamman kuin yhden instanssin ajaminen',
+  'settings.help.instances.body':
+    'Lisää toinen KnightLoader vertaisena, ja sen jono ilmestyy myös tähän kojelautaan - itse isännöity, ei välitystä mukana: tämä instanssi vain kutsuu toisen instanssin API:a, samalla tavalla kuin selain tekisi.',
+  'settings.help.instances.link': 'Avaa Instanssit',
+
+  'settings.help.access.title': 'Pääsy ja vianmääritys',
+  'settings.help.access.body':
+    'Salasana lukitsee koko käyttöliittymän istuntoevästeen taakse. Pääsy-sivu listaa myös tämän buildin sisääntuloportit ja pääsymenetelmät, ja miksi - jotta tuntemattomalla avoimella portilla on vastaus arvauksen sijaan. Diagnostiikka-sivu luo tiedoston liitettäväksi vikailmoitukseen: version ja build-tiedot, nykyiset asetukset jokainen salasana poistettuna, tämän prosessin viimeisimmät lokirivit, ja kuinka monta goroutinea on käynnissä.',
+  'settings.help.access.link1': 'Avaa Pääsy-asetukset',
+  'settings.help.access.link2': 'Avaa Diagnostiikka',
+
+  'settings.help.advanced.title': 'Kaikki muu',
+  'settings.help.advanced.body':
+    'Jokainen tämän buildin asetus voidaan lukea ja muuttaa raa’alla nimellään Lisäasetukset-sivulla, mukaan lukien muutama - miten jo ladatun tiedoston peili käsitellään, mitä tapahtuu, kun lataus päätyisi jo käytössä olevaan nimeen - joilla ei vielä ole omaa hallintaa muualla.',
+  'settings.help.advanced.link': 'Avaa Lisäasetukset',
 };

@@ -1029,4 +1029,173 @@ export const sl: Dict = {
     'Skrije obvestila o uspehu in informativna obvestila. Napaka, captcha, ki čaka nate, ali začasno ustavljen račun se še vedno prikažejo.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Nazadnje spremenjeno',
+
+  'file.open': 'Odpri',
+  'file.openNatively': 'Odpri s privzeto aplikacijo',
+  'file.revealInFolder': 'Prikaži v mapi',
+  'file.desktopOnly': 'Samo v namizni aplikaciji',
+
+  'settings.schedule.title': 'Urnik',
+  'settings.schedule.subtitle': 'Premor, nadaljevanje ali omejitev hitrosti prenosa po urniku.',
+  'settings.schedule.listTitle': 'Časovna razpredelnica',
+  'settings.schedule.orderHint':
+    'Vrstice veljajo po vrstnem redu, od zgoraj navzdol, in če se dve okni prekrivata, zmaga spodnja - široko »premor vsako noč« nad ožjo izjemo pusti izjemo veljati, enaki dve vrstici v obratnem vrstnem redu pa ne.',
+  'settings.schedule.add': 'Dodaj okno',
+  'settings.schedule.empty': 'Vrsta sledi svojemu lastnemu urniku',
+  'settings.schedule.emptyHint':
+    'Nobeno okno ni nastavljeno, zato tukaj nič ne premakne vrste v premor ali je ne omeji glede na uro. Dodajte ga, da prenose ponoči zadržite ali omejite hitrost, medtem ko povezavo uporabljate sami.',
+  'settings.schedule.use': 'Uporabi to okno',
+  'settings.schedule.moveUp': 'Premakni navzgor',
+  'settings.schedule.moveDown': 'Premakni navzdol',
+  'settings.schedule.remove': 'Odstrani to okno',
+  'settings.schedule.edit': 'Uredi to okno',
+  'settings.schedule.name': 'Ime',
+  'settings.schedule.namePlaceholder': 'npr. Nočni premor',
+  'settings.schedule.days': 'Dnevi',
+  'settings.schedule.daysHint':
+    'Na katere dneve v tednu se to okno odpre. Pri oknu, ki traja čez polnoč, označite dan, na katerega se ZAČNE - »pet 22:00-06:00« se konča v soboto zjutraj, ne da bi bila označena sobota sama.',
+  'settings.schedule.preset.every': 'Vsak dan',
+  'settings.schedule.preset.weekdays': 'Delovni dnevi',
+  'settings.schedule.preset.weekends': 'Vikendi',
+  'settings.schedule.preset.custom': 'Po meri',
+  'settings.schedule.start': 'Začetek',
+  'settings.schedule.end': 'Konec',
+  'settings.schedule.endHint':
+    'Pred začetnim časom to okno traja čez polnoč in se konča naslednje jutro. Končni čas, enak začetnemu, je zavrnjen - to bi lahko pomenilo cel dan ali sploh nič časa, ugibanje, kaj je bilo mišljeno, pa je slabše od vprašanja.',
+  'settings.schedule.action': 'Dejanje',
+  'settings.schedule.action.pause': 'Premor',
+  'settings.schedule.action.resume': 'Nadaljevanje',
+  'settings.schedule.action.limit': 'Omeji hitrost',
+  'settings.schedule.limit': 'Omejitev hitrosti',
+  'settings.schedule.disabledOff': 'To okno je parkirano in se nikoli ne sproži. Vrsta se obnaša, kot da te vrstice sploh ne bi bilo.',
+  'settings.schedule.activeNow': 'Zdaj aktivno, do {time}',
+  'settings.schedule.next': 'Naslednje: {when}',
+  'settings.schedule.never': 'Se nikoli ne sproži, kot je nastavljeno',
+  'settings.schedule.stateNow.paused': 'Vrsta je zdaj v premoru zaradi urnika.',
+  'settings.schedule.stateNow.limited': 'Vrsta je zdaj omejena na {rate} zaradi urnika.',
+  'settings.schedule.stateNow.running': 'Trenutno ne velja nobeno okno.',
+  'settings.schedule.nextChange': 'Naslednja sprememba: {when}',
+  'settings.schedule.noNextChange': 'Nič v razpredelnici nikoli ne bo spremenilo vrste, kot je nastavljena.',
+  'settings.schedule.save': 'Shrani urnik',
+  'settings.schedule.discard': 'Zavrzi',
+  'settings.schedule.unsaved': 'Neshranjene spremembe urnika',
+  'settings.schedule.saveFailed': 'Urnika ni bilo mogoče shraniti: {error}',
+  'settings.schedule.rowError': 'Vrstica {row}: {error}',
+
+  'idleAction.title': 'Vrsta je v mirovanju',
+  'idleAction.action.pause': 'Premor se izvaja',
+  'idleAction.actionFallback': '»{action}« poteka',
+  'idleAction.in': 'čez {countdown}',
+  'idleAction.cancel': 'Prekliči',
+  'idleAction.cancelling': 'Preklic…',
+  'idleAction.cancelFailed': 'Preklic ni uspel: strežnik se ni odzval.',
+
+  'settings.idleAction.label': 'Dejanje ob izpraznitvi vrste',
+  'settings.idleAction.hint':
+    'Kaj se zgodi, ko nič več ne teče, ne čaka v vrsti in ni pripravljeno na začetek. Povezava, ki ste jo onemogočili, se pri tem ne šteje - glejte informacijski oblaček.',
+  'settings.idleAction.info':
+    'Povezava, ki ste jo onemogočili, se nikoli ne šteje kot preostalo delo, zato tega ne more odlašati v nedogled. Ročno premaknjena v premor ali zadržana povezava se še vedno šteje - oboje pomeni »malo počakaj«, ne »nikoli«.',
+  'settings.idleAction.none': 'Ne naredi nič',
+  'settings.idleAction.pause': 'Premakni vrsto v premor',
+  'settings.idleAction.delay': 'Odštevanje (sekunde)',
+  'settings.idleAction.delayHint':
+    'Koliko časa imate za preklic, preden se dejanje izvede, takoj ko vrsta res preide v mirovanje.',
+
+  'settings.nav.diagnostics': 'Diagnostika',
+  'settings.diagnostics.subtitle':
+    'Kaj je ta build, na čem teče, in njegov lastni nedavni izpis dnevnika - za prilogo k poročilu o napaki.',
+  'settings.diagnostics.version': 'Različica',
+  'settings.diagnostics.deployment': 'Build',
+  'settings.diagnostics.deployment.container': 'Vsebnik',
+  'settings.diagnostics.deployment.desktop': 'Namizje',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'Platforma',
+  'settings.diagnostics.goroutines': 'Gorutine',
+  'settings.diagnostics.download': 'Prenesi diagnostični paket',
+  'settings.diagnostics.downloading': 'Pripravlja se…',
+  'settings.diagnostics.downloadHint':
+    'Datoteka JSON z zgornjimi polji, vašimi nastavitvami z vsemi odstranjenimi gesli, in spodnjimi vrsticami dnevnika.',
+  'settings.diagnostics.downloadFailed': 'Paketa ni bilo mogoče ustvariti: {error}',
+  'settings.diagnostics.logTitle': 'Nedavne vrstice dnevnika',
+  'settings.diagnostics.logHint':
+    'Zadnjih {n} vrstic, ki jih je ta proces zabeležil, najstarejše najprej. Tukaj se nič ne zapisuje na disk.',
+  'settings.diagnostics.logEmpty': 'Še nič ni zabeleženo.',
+  'settings.diagnostics.refresh': 'Osveži',
+  'settings.diagnostics.loadFailed': 'Diagnostike ni bilo mogoče naložiti. Ali strežnik teče?',
+
+  'settings.nav.help': 'Pomoč',
+  'settings.help.intro':
+    'Kaj ta build zna, urejeno po opravilu, ne po strani z nastavitvami. Vsak razdelek vodi tja, kjer se to nastavi.',
+
+  'settings.help.intake.title': 'Dodajanje prenosov',
+  'settings.help.intake.body':
+    'Prilepite povezave v Zbiralnik - eno na vrstico, ali neurejeno besedilo: iskanje najde povezave, kjer koli so, sredi stavka, več na vrstico, ali prelomljene čez dve vrstici s strani poštnega odjemalca.',
+  'settings.help.intake.b1': 'Spustite datoteko vsebnika povezav (.dlc, .ccf, .rsdf) ali navaden seznam povezav.',
+  'settings.help.intake.b2':
+    "Gumbi Click'n'Load na straneh gostiteljev in forumov delujejo nespremenjeno - KnightLoader odgovarja na 127.0.0.1:9666, istih vratih, ki jih uporablja vsak drug upravitelj prenosov.",
+  'settings.help.intake.b3':
+    'Namesto povezave do datoteke prilepite URL strani in vklopite Preiskovanje, da izvlečete vsako datoteko, na katero se sklicuje, namesto da prenesete stran samo.',
+  'settings.help.intake.b4': 'Nadzorovana mapa samodejno prevzame datoteke .txt/.crawljob, ki jih spustite vanjo.',
+  'settings.help.intake.link1': 'Odpri nastavitve Prenosov',
+  'settings.help.intake.link2': "Odpri nastavitve Dostopa (Click'n'Load)",
+
+  'settings.help.collector.title': 'Zbiralnik, preden se karkoli prenese',
+  'settings.help.collector.body':
+    'Nove povezave najprej pridejo v Zbiralnik, ne v vrsto: vmesno območje za preverjanje imen, velikosti in opozoril o podvojitvah, preden se karkoli začne. Samodejna potrditev lahko ta korak preskoči, z izbirno zakasnitvijo; ko je potrjena, se povezava bodisi takoj začne prenašati bodisi čaka v vrsti, odvisno od samodejnega zagona.',
+  'settings.help.collector.link': 'Odpri Splošne nastavitve',
+
+  'settings.help.rules.title': 'Pravila: paketi, mape in kaj se ohrani',
+  'settings.help.rules.body':
+    'Packagizer preimenuje povezavo, izbere njeno mapo in ob prihodu nastavi njene možnosti prenosa, na podlagi pogojev, ki jih napišete. Filter povezav odloči, ali se povezava sploh ohrani - in za razliko od filtra, ki povezave preprosto pusti izginiti, zavrnitev vedno navede pravilo, ki jo je povzročilo, in zakaj.',
+  'settings.help.rules.link': 'Odpri Pravila',
+
+  'settings.help.queue.title': 'Upravljanje vrste',
+  'settings.help.queue.body':
+    'Premaknite v premor, nadaljujte ali prerazporedite katero koli povezavo, posamezno ali kot cel paket. Ustavitev vrste sta dve različni dejanji: ustavitev pusti tisto, kar že teče, nedotaknjeno, da se konča samo od sebe, medtem ko takojšnja ustavitev vseh prenosov najprej pokaže, kaj bi se izgubilo, in nadaljuje šele po vaši potrditvi - točno za to je namenjeno to opozorilo pri prenosu, ki se ne more nadaljevati tam, kjer se je ustavil.',
+  'settings.help.queue.b1': 'Ena sama povezava lahko preglasi globalno število povezav ali stikalo za razpakiranje po prenosu.',
+  'settings.help.queue.b2': 'Podvojitev povezave, ki je že na seznamu, je vedno zavrnjena, še preden kdaj doseže Zbiralnik.',
+
+  'settings.help.limits.title': 'Izogibanje omejitvam gostitelja',
+  'settings.help.limits.body': 'Trije neodvisni načini, da brezplačna omejitev ne postane strop:',
+  'settings.help.limits.b1':
+    'Povezave - porazdelite prenose na več kot eno odhodno pot (drugo linijo, posrednika, SOCKS), namesto da vedno izhajate prek lastnega naslova tega računalnika.',
+  'settings.help.limits.b2':
+    'Ponovna povezava - prosite usmerjevalnik za nov javni naslov, edino, kar dejansko odpravi omejitev, vezano na sam naslov (UPnP, zunanji program, skript, ali ponovno predvajanje zahtev HTTP proti skrbniški strani usmerjevalnika - obstoječi skripti JDownloader LiveHeader/curl delujejo nespremenjeno).',
+  'settings.help.limits.b3':
+    'Računi - shranite podatke za prijavo premium ali debrid (Real-Debrid, AllDebrid, TorBox in drugi), da se ustrezna povezava prenese s polno hitrostjo namesto z brezplačno omejitvijo.',
+  'settings.help.limits.link1': 'Odpri Povezave',
+  'settings.help.limits.link2': 'Odpri Ponovno povezavo',
+  'settings.help.limits.link3': 'Odpri Račune',
+
+  'settings.help.captcha.title': 'Captcha',
+  'settings.help.captcha.body':
+    'Ko gostitelj zahteva captcho, se najprej preizkusi samodejni reševalec, ki ste ga nastavili, v vrstnem redu, ki ste ga določili. Kar ne more rešiti - ali če noben ni nastavljen - se predloži vam, namesto da bi tiho spodletelo.',
+  'settings.help.captcha.link': 'Odpri nastavitve Captcha',
+
+  'settings.help.after.title': 'Po prenosu',
+  'settings.help.after.body':
+    'Arhivi se samodejno razpakirajo: zip (tudi šifrirani, tako WinZip AES kot starejši ZipCrypto), rar z večdelnimi kompleti, 7z, tar, ter gzip/bzip2/xz/zstd ne glede na to, ali ovijajo tar - čisti Go, brez zunanjih programov unrar ali 7z. Za šifriran arhiv se po vrstnem redu preizkusi seznam gesel. Dokončana datoteka se preveri glede na katero koli priloženo kontrolno vsoto: seznam .sfv, datoteko md5/sha1/sha256sum, ali CRC32, ki ga nosi samo ime izdaje.',
+  'settings.help.after.link1': 'Odpri nastavitve Arhivov',
+  'settings.help.after.link2': 'Odpri nastavitve Prenosov',
+
+  'settings.help.schedule.title': 'Delovanje brez nadzora',
+  'settings.help.schedule.body':
+    'Tedenski urnik premakne vrsto v premor ali jo omeji glede na uro - nočno okno, pravilno tudi ob prehodu na poletni čas - ista zamisel kot Scheduler v JDownloaderju.',
+  'settings.help.schedule.link': 'Odpri Urnik',
+
+  'settings.help.instances.title': 'Poganjanje več kot ene instance',
+  'settings.help.instances.body':
+    'Dodajte drug KnightLoader kot soležnika, in njegova vrsta se prikaže tudi na tej nadzorni plošči - samostojno gostovano, brez posrednika: ta instanca preprosto pokliče API druge instance, na enak način, kot bi to storil brskalnik.',
+  'settings.help.instances.link': 'Odpri Instance',
+
+  'settings.help.access.title': 'Dostop in odpravljanje težav',
+  'settings.help.access.body':
+    'Geslo zaklene celoten vmesnik za sejnim piškotkom. Stran Dostop navaja tudi sprejemna vrata in metode dostopa tega builda, in zakaj - da ima neznana odprta vrata odgovor namesto uganjevanja. Stran Diagnostika ustvari datoteko za prilogo k poročilu o napaki: različico in podatke o buildu, trenutne nastavitve z vsemi odstranjenimi gesli, nedavne vrstice dnevnika tega procesa, in koliko gorutin teče.',
+  'settings.help.access.link1': 'Odpri nastavitve Dostopa',
+  'settings.help.access.link2': 'Odpri Diagnostiko',
+
+  'settings.help.advanced.title': 'Vse drugo',
+  'settings.help.advanced.body':
+    'Vsako nastavitev tega builda je mogoče prebrati in spremeniti prek njenega surovega imena na strani Napredno, vključno z nekaterimi - kako se obravnava zrcalo že prenesene datoteke, kaj se zgodi, ko bi prenos pristal na že uporabljenem imenu - ki še nimajo lastnega nadzora drugje.',
+  'settings.help.advanced.link': 'Odpri nastavitve Napredno',
 };

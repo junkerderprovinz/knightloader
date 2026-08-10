@@ -1029,4 +1029,173 @@ export const lv: Dict = {
     'Slēpj veiksmes un informatīvos paziņojumus. Kļūda, tevi gaidoša captcha vai apturēts konts joprojām tiek rādīti.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Pēdējās izmaiņas',
+
+  'file.open': 'Atvērt',
+  'file.openNatively': 'Atvērt ar noklusējuma lietotni',
+  'file.revealInFolder': 'Rādīt mapē',
+  'file.desktopOnly': 'Tikai galddatora lietotnē',
+
+  'settings.schedule.title': 'Grafiks',
+  'settings.schedule.subtitle': 'Pauzēt, atsākt vai ierobežot lejupielādes ātrumu pēc grafika.',
+  'settings.schedule.listTitle': 'Laika tabula',
+  'settings.schedule.orderHint':
+    'Rindas tiek piemērotas secībā, no augšas uz leju, un, ja divi logi pārklājas, uzvar zemākais - plašs „pauze katru nakti” virs šaurāka izņēmuma atstāj izņēmumu spēkā, bet tās pašas divas rindas pretējā secībā - nē.',
+  'settings.schedule.add': 'Pievienot logu',
+  'settings.schedule.empty': 'Rinda ievēro savu grafiku',
+  'settings.schedule.emptyHint':
+    'Nav iestatīts neviens logs, tāpēc nekas šeit nepauzē un neierobežo rindu pēc pulksteņa. Pievienojiet vienu, lai aizturētu lejupielādes naktī vai ierobežotu ātrumu, kamēr jūs paši izmantojat savienojumu.',
+  'settings.schedule.use': 'Izmantot šo logu',
+  'settings.schedule.moveUp': 'Pārvietot augšup',
+  'settings.schedule.moveDown': 'Pārvietot lejup',
+  'settings.schedule.remove': 'Noņemt šo logu',
+  'settings.schedule.edit': 'Rediģēt šo logu',
+  'settings.schedule.name': 'Nosaukums',
+  'settings.schedule.namePlaceholder': 'piem., Nakts pauze',
+  'settings.schedule.days': 'Dienas',
+  'settings.schedule.daysHint':
+    'Kurās nedēļas dienās šis logs atveras. Logam, kas turpinās pēc pusnakts, atzīmējiet dienu, kurā tas SĀKAS - „pk 22:00-06:00” beidzas sestdienas rītā, neatzīmējot pašu sestdienu.',
+  'settings.schedule.preset.every': 'Katru dienu',
+  'settings.schedule.preset.weekdays': 'Darba dienas',
+  'settings.schedule.preset.weekends': 'Nedēļas nogales',
+  'settings.schedule.preset.custom': 'Pielāgots',
+  'settings.schedule.start': 'Sākums',
+  'settings.schedule.end': 'Beigas',
+  'settings.schedule.endHint':
+    'Pirms sākuma laika šis logs turpinās pēc pusnakts un beidzas nākamajā rītā. Beigu laiks, kas vienāds ar sākuma laiku, tiek noraidīts - tas varētu nozīmēt veselu dienu vai nemaz laika, un minēt, kas bija domāts, ir sliktāk nekā pajautāt.',
+  'settings.schedule.action': 'Darbība',
+  'settings.schedule.action.pause': 'Pauze',
+  'settings.schedule.action.resume': 'Atsākšana',
+  'settings.schedule.action.limit': 'Ierobežot ātrumu',
+  'settings.schedule.limit': 'Ātruma ierobežojums',
+  'settings.schedule.disabledOff': 'Šis logs ir novietots malā un nekad nesuveic. Rinda uzvedas tā, it kā šīs rindiņas vispār nebūtu.',
+  'settings.schedule.activeNow': 'Aktīvs tagad, līdz {time}',
+  'settings.schedule.next': 'Nākamais: {when}',
+  'settings.schedule.never': 'Nekad nesuveic pēc pašreizējiem iestatījumiem',
+  'settings.schedule.stateNow.paused': 'Rinda šobrīd ir pauzēta pēc grafika.',
+  'settings.schedule.stateNow.limited': 'Rinda šobrīd ir ierobežota līdz {rate} pēc grafika.',
+  'settings.schedule.stateNow.running': 'Šobrīd nav spēkā neviens logs.',
+  'settings.schedule.nextChange': 'Nākamās izmaiņas: {when}',
+  'settings.schedule.noNextChange': 'Nekas tabulā nekad nemainīs rindu pēc pašreizējiem iestatījumiem.',
+  'settings.schedule.save': 'Saglabāt grafiku',
+  'settings.schedule.discard': 'Atmest',
+  'settings.schedule.unsaved': 'Nesaglabātas izmaiņas grafikā',
+  'settings.schedule.saveFailed': 'Neizdevās saglabāt grafiku: {error}',
+  'settings.schedule.rowError': 'Rindiņa {row}: {error}',
+
+  'idleAction.title': 'Rinda ir dīkstāvē',
+  'idleAction.action.pause': 'Tiek pauzēta',
+  'idleAction.actionFallback': '„{action}” tiek izpildīta',
+  'idleAction.in': 'pēc {countdown}',
+  'idleAction.cancel': 'Atcelt',
+  'idleAction.cancelling': 'Atceļ…',
+  'idleAction.cancelFailed': 'Neizdevās atcelt: serveris neatbildēja.',
+
+  'settings.idleAction.label': 'Darbība, kad rinda iztukšojas',
+  'settings.idleAction.hint':
+    'Kas notiek, tiklīdz vairs nekas nedarbojas, negaida rindā vai nav gatavs sākt. Jūsu izslēgta saite šeit netiek ieskaitīta - skatiet informācijas burbuli.',
+  'settings.idleAction.info':
+    'Jūsu izslēgta saite nekad netiek uzskatīta par atlikušo darbu, tāpēc tā nevar to atlikt bezgalīgi. Manuāli pauzēta vai aizturēta saite joprojām tiek ieskaitīta - abi nozīmē „īsi pagaidīt”, nevis „nekad”.',
+  'settings.idleAction.none': 'Nedarīt neko',
+  'settings.idleAction.pause': 'Pauzēt rindu',
+  'settings.idleAction.delay': 'Atskaite (sekundes)',
+  'settings.idleAction.delayHint':
+    'Cik daudz laika jums ir, lai atceltu, pirms darbība tiek izpildīta, tiklīdz rinda patiešām kļūst dīkstāvē.',
+
+  'settings.nav.diagnostics': 'Diagnostika',
+  'settings.diagnostics.subtitle':
+    'Kas ir šī versija, uz kā tā darbojas, un tās pašas nesenā žurnāla izvade - pievienošanai kļūdas ziņojumam.',
+  'settings.diagnostics.version': 'Versija',
+  'settings.diagnostics.deployment': 'Konfigurācija',
+  'settings.diagnostics.deployment.container': 'Konteiners',
+  'settings.diagnostics.deployment.desktop': 'Galddators',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'Platforma',
+  'settings.diagnostics.goroutines': 'Gorutīnas',
+  'settings.diagnostics.download': 'Lejupielādēt diagnostikas pakotni',
+  'settings.diagnostics.downloading': 'Sagatavo…',
+  'settings.diagnostics.downloadHint':
+    'JSON fails ar iepriekš minētajiem laukiem, jūsu iestatījumiem ar noņemtām visām parolēm, un žurnāla rindiņām zemāk.',
+  'settings.diagnostics.downloadFailed': 'Neizdevās izveidot pakotni: {error}',
+  'settings.diagnostics.logTitle': 'Nesenās žurnāla rindiņas',
+  'settings.diagnostics.logHint':
+    'Pēdējās {n} rindiņas, ko šis process ir reģistrējis, vecākās pirmās. Šeit nekas netiek rakstīts diskā.',
+  'settings.diagnostics.logEmpty': 'Vēl nekas nav reģistrēts.',
+  'settings.diagnostics.refresh': 'Atsvaidzināt',
+  'settings.diagnostics.loadFailed': 'Neizdevās ielādēt diagnostiku. Vai serveris ir sasniedzams?',
+
+  'settings.nav.help': 'Palīdzība',
+  'settings.help.intro':
+    'Ko šī versija spēj, sakārtots pēc uzdevuma, nevis pēc iestatījumu lapas. Katra sadaļa ved uz vietu, kur tas tiek konfigurēts.',
+
+  'settings.help.intake.title': 'Lejupielāžu pievienošana',
+  'settings.help.intake.body':
+    'Ielīmējiet saites Kolektorā - pa vienai rindiņā, vai nesakārtotu tekstu: meklēšana atrod saites, lai kur tās būtu, teikuma vidū, vairākas rindiņā, vai e-pasta programmas pārrautas divās rindiņās.',
+  'settings.help.intake.b1': 'Nometiet saišu konteinera failu (.dlc, .ccf, .rsdf) vai vienkāršu saišu sarakstu.',
+  'settings.help.intake.b2':
+    "Click'n'Load pogas hostinga un foruma lapās darbojas nemainītas - KnightLoader atbild uz 127.0.0.1:9666, to pašu portu, ko izmanto jebkura cita lejupielāžu programma.",
+  'settings.help.intake.b3':
+    'Ielīmējiet lapas URL failu saites vietā un ieslēdziet Rāpošanu, lai izgūtu katru failu, uz ko tā norāda, tā vietā, lai lejupielādētu pašu lapu.',
+  'settings.help.intake.b4': 'Pārraudzīta mape automātiski paņem .txt/.crawljob failus, kas tajā tiek ievietoti.',
+  'settings.help.intake.link1': 'Atvērt Lejupielāžu iestatījumus',
+  'settings.help.intake.link2': "Atvērt Piekļuves iestatījumus (Click'n'Load)",
+
+  'settings.help.collector.title': 'Kolektors, pirms kaut kas tiek lejupielādēts',
+  'settings.help.collector.body':
+    'Jaunas saites vispirms nonāk Kolektorā, nevis rindā: starpposma zona, lai pirms kaut kā sākuma pārbaudītu nosaukumus, izmērus un dublikātu brīdinājumus. Automātiskā apstiprināšana var izlaist šo soli, ar neobligātu aizkavi; kad apstiprināts, saite vai nu sāk lejupielādēties uzreiz, vai gaida rindā, atkarībā no automātiskās sākšanas.',
+  'settings.help.collector.link': 'Atvērt Vispārīgos iestatījumus',
+
+  'settings.help.rules.title': 'Noteikumi: pakotnes, mapes un kas tiek saglabāts',
+  'settings.help.rules.body':
+    'Packagizer pārdēvē saiti, izvēlas tās mapi un iestata tās lejupielādes opcijas ierašanās brīdī, pamatojoties uz jūsu rakstītajiem nosacījumiem. Saišu filtrs izlemj, vai saite vispār tiek saglabāta - un atšķirībā no filtra, kas vienkārši ļauj saitēm pazust, noraidījums vienmēr nosauc noteikumu, kas to izraisīja, un kāpēc.',
+  'settings.help.rules.link': 'Atvērt Noteikumus',
+
+  'settings.help.queue.title': 'Rindas pārvaldība',
+  'settings.help.queue.body':
+    'Pauzējiet, atsāciet vai pārkārtojiet jebkuru saiti, atsevišķi vai kā veselu pakotni. Rindas apturēšana ir divas atšķirīgas darbības: apturēšana atstāj jau notiekošo neskartu, lai tas pabeigtos pats, savukārt visu pārsūtījumu tūlītēja apturēšana vispirms parāda, kas tiktu zaudēts, un turpinās tikai pēc jūsu apstiprinājuma - tieši tam šis brīdinājums ir domāts pārsūtījumam, kas nevar turpināties no vietas, kur tas apstājās.',
+  'settings.help.queue.b1': 'Viena saite var ignorēt globālo savienojumu skaitu vai izsaiņošanas pēc lejupielādes slēdzi.',
+  'settings.help.queue.b2': 'Sarakstā jau esošas saites dublikāts vienmēr tiek noraidīts, pirms tas jebkad sasniedz Kolektoru.',
+
+  'settings.help.limits.title': 'Hostinga ierobežojumu apiešana',
+  'settings.help.limits.body': 'Trīs neatkarīgi veidi, kā neļaut bezmaksas ierobežojumam būt griestiem:',
+  'settings.help.limits.b1':
+    'Savienojumi - sadaliet lejupielādes pa vairāk nekā vienu izejošo ceļu (otru līniju, starpniekserveri, SOCKS) tā vietā, lai vienmēr izietu caur šīs iekārtas pašas adresi.',
+  'settings.help.limits.b2':
+    'Atkalsavienošanās - pieprasiet maršrutētājam jaunu publisko adresi - vienīgo lietu, kas patiešām atceļ ierobežojumu, kas saistīts ar pašu adresi (UPnP, ārēja programma, skripts, vai HTTP pieprasījumu atkārtota atskaņošana pret maršrutētāja administrēšanas lapu - esošie JDownloader LiveHeader/curl skripti darbojas nemainīti).',
+  'settings.help.limits.b3':
+    'Konti - saglabājiet premium vai debrid pierakstīšanās datus (Real-Debrid, AllDebrid, TorBox un citus), lai atbilstoša saite tiktu iegūta ar pilnu ātrumu bezmaksas ierobežojuma vietā.',
+  'settings.help.limits.link1': 'Atvērt Savienojumus',
+  'settings.help.limits.link2': 'Atvērt Atkalsavienošanos',
+  'settings.help.limits.link3': 'Atvērt Kontus',
+
+  'settings.help.captcha.title': 'Captcha',
+  'settings.help.captcha.body':
+    'Kad hostings pieprasa captcha, vispirms tiek izmēģināts jūsu iestatīts automātiskais risinātājs, jūsu noteiktajā secībā. Tas, ko tas nespēj atrisināt - vai, ja neviens nav iestatīts - tiek uzrādīts jums, nevis klusi neizdodas.',
+  'settings.help.captcha.link': 'Atvērt Captcha iestatījumus',
+
+  'settings.help.after.title': 'Pēc lejupielādes',
+  'settings.help.after.body':
+    'Arhīvi tiek automātiski izsaiņoti: zip (arī šifrēti, gan WinZip AES, gan vecākais ZipCrypto), rar ar vairāku sējumu kopām, 7z, tar, un gzip/bzip2/xz/zstd neatkarīgi no tā, vai tie ietver tar - tīrs Go, bez ārējām unrar vai 7z programmām. Šifrētam arhīvam secīgi tiek izmēģināts paroļu saraksts. Pabeigts fails tiek pārbaudīts pret jebkuru tam pievienoto kontrolsummu: .sfv sarakstu, md5/sha1/sha256sum failu, vai CRC32, ko nes pats izlaiduma nosaukums.',
+  'settings.help.after.link1': 'Atvērt Arhīvu iestatījumus',
+  'settings.help.after.link2': 'Atvērt Lejupielāžu iestatījumus',
+
+  'settings.help.schedule.title': 'Darbība bez uzraudzības',
+  'settings.help.schedule.body':
+    'Iknedēļas grafiks pauzē vai ierobežo rindu pēc pulksteņa - nakts logs, pareizs pat pārejot uz vasaras laiku - tā pati ideja kā JDownloader Scheduler.',
+  'settings.help.schedule.link': 'Atvērt Grafiku',
+
+  'settings.help.instances.title': 'Vairāk nekā vienas instances darbināšana',
+  'settings.help.instances.body':
+    'Pievienojiet citu KnightLoader kā vienaudzi, un tā rinda parādīsies arī šajā panelī - pašmitināts, bez retranslatora iesaistes: šī instance vienkārši izsauc otras instances API, tāpat kā to darītu pārlūkprogramma.',
+  'settings.help.instances.link': 'Atvērt Instances',
+
+  'settings.help.access.title': 'Piekļuve un problēmu novēršana',
+  'settings.help.access.body':
+    'Parole aizslēdz visu saskarni aiz sesijas sīkdatnes. Piekļuves lapā ir uzskaitīti arī šīs versijas ieejas porti un piekļuves metodes, un kāpēc - lai nezināmam atvērtam portam būtu atbilde, nevis minējums. Diagnostikas lapa izveido failu pievienošanai kļūdas ziņojumam: versiju un konfigurācijas informāciju, pašreizējos iestatījumus ar noņemtām visām parolēm, šī procesa nesenās žurnāla rindiņas, un cik gorutīnas darbojas.',
+  'settings.help.access.link1': 'Atvērt Piekļuves iestatījumus',
+  'settings.help.access.link2': 'Atvērt Diagnostiku',
+
+  'settings.help.advanced.title': 'Viss pārējais',
+  'settings.help.advanced.body':
+    'Katru šīs versijas iestatījumu var nolasīt un mainīt pēc tā neapstrādātā nosaukuma lapā Papildu, ieskaitot dažus - kā tiek apstrādāts jau lejupielādēta faila spogulis, kas notiek, kad lejupielāde nonāktu uz jau izmantota nosaukuma - kuriem vēl nav savas atsevišķas vadīklas citur.',
+  'settings.help.advanced.link': 'Atvērt Papildu iestatījumus',
 };

@@ -1029,4 +1029,173 @@ export const lt: Dict = {
     'Slepia sėkmės ir informacinius pranešimus. Klaida, tavęs laukianti captcha arba pristabdyta paskyra vis tiek rodomos.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Paskutinis pakeitimas',
+
+  'file.open': 'Atverti',
+  'file.openNatively': 'Atverti numatytąja programa',
+  'file.revealInFolder': 'Rodyti aplanke',
+  'file.desktopOnly': 'Tik darbalaukio programoje',
+
+  'settings.schedule.title': 'Tvarkaraštis',
+  'settings.schedule.subtitle': 'Pristabdykite, tęskite arba ribokite atsisiuntimo greitį pagal tvarkaraštį.',
+  'settings.schedule.listTitle': 'Laiko lentelė',
+  'settings.schedule.orderHint':
+    'Eilutės taikomos iš eilės, iš viršaus žemyn, o kai du langai sutampa, laimi žemesnysis - platus „pauzė kas naktį“ virš siauresnės išimties palieka išimtį galioti, o tos pačios dvi eilutės atvirkščiai - ne.',
+  'settings.schedule.add': 'Pridėti langą',
+  'settings.schedule.empty': 'Eilė laikosi savo tvarkaraščio',
+  'settings.schedule.emptyHint':
+    'Nenustatytas nė vienas langas, todėl čia niekas nepristabdo ir neriboja eilės pagal laikrodį. Pridėkite vieną, kad sulaikytumėte atsisiuntimus naktį arba apribotumėte greitį, kol patys naudojatės ryšiu.',
+  'settings.schedule.use': 'Naudoti šį langą',
+  'settings.schedule.moveUp': 'Perkelti aukštyn',
+  'settings.schedule.moveDown': 'Perkelti žemyn',
+  'settings.schedule.remove': 'Pašalinti šį langą',
+  'settings.schedule.edit': 'Redaguoti šį langą',
+  'settings.schedule.name': 'Pavadinimas',
+  'settings.schedule.namePlaceholder': 'pvz., Nakties pauzė',
+  'settings.schedule.days': 'Dienos',
+  'settings.schedule.daysHint':
+    'Kuriomis savaitės dienomis šis langas atsiveria. Jei langas tęsiasi po vidurnakčio, pažymėkite dieną, kurią jis PRASIDEDA - „pn 22:00-06:00“ baigiasi šeštadienio rytą, nepažymėjus paties šeštadienio.',
+  'settings.schedule.preset.every': 'Kiekvieną dieną',
+  'settings.schedule.preset.weekdays': 'Darbo dienomis',
+  'settings.schedule.preset.weekends': 'Savaitgaliais',
+  'settings.schedule.preset.custom': 'Pasirinktinai',
+  'settings.schedule.start': 'Pradžia',
+  'settings.schedule.end': 'Pabaiga',
+  'settings.schedule.endHint':
+    'Prieš pradžios laiką šis langas tęsiasi po vidurnakčio ir baigiasi kitą rytą. Pabaigos laikas, lygus pradžios laikui, atmetamas - tai galėtų reikšti visą parą arba visai jokio laiko, o spėlioti, kas buvo turėta omenyje, yra blogiau nei paklausti.',
+  'settings.schedule.action': 'Veiksmas',
+  'settings.schedule.action.pause': 'Pauzė',
+  'settings.schedule.action.resume': 'Tęsimas',
+  'settings.schedule.action.limit': 'Riboti greitį',
+  'settings.schedule.limit': 'Greičio riba',
+  'settings.schedule.disabledOff': 'Šis langas pastatytas į šalį ir niekada nesuveikia. Eilė elgiasi taip, tarsi šios eilutės iš viso nebūtų.',
+  'settings.schedule.activeNow': 'Aktyvus dabar, iki {time}',
+  'settings.schedule.next': 'Kitas: {when}',
+  'settings.schedule.never': 'Niekada nesuveikia pagal dabartinius nustatymus',
+  'settings.schedule.stateNow.paused': 'Eilė šiuo metu pristabdyta pagal tvarkaraštį.',
+  'settings.schedule.stateNow.limited': 'Eilė šiuo metu apribota iki {rate} pagal tvarkaraštį.',
+  'settings.schedule.stateNow.running': 'Šiuo metu negalioja nė vienas langas.',
+  'settings.schedule.nextChange': 'Kitas pakeitimas: {when}',
+  'settings.schedule.noNextChange': 'Niekas lentelėje niekada nepakeis eilės pagal dabartinius nustatymus.',
+  'settings.schedule.save': 'Įrašyti tvarkaraštį',
+  'settings.schedule.discard': 'Atmesti',
+  'settings.schedule.unsaved': 'Neįrašyti tvarkaraščio pakeitimai',
+  'settings.schedule.saveFailed': 'Nepavyko įrašyti tvarkaraščio: {error}',
+  'settings.schedule.rowError': 'Eilutė {row}: {error}',
+
+  'idleAction.title': 'Eilė tuščiąja eiga',
+  'idleAction.action.pause': 'Stabdoma',
+  'idleAction.actionFallback': '„{action}“ vykdoma',
+  'idleAction.in': 'po {countdown}',
+  'idleAction.cancel': 'Atšaukti',
+  'idleAction.cancelling': 'Atšaukiama…',
+  'idleAction.cancelFailed': 'Nepavyko atšaukti: serveris neatsakė.',
+
+  'settings.idleAction.label': 'Veiksmas eilei ištuštėjus',
+  'settings.idleAction.hint':
+    'Kas nutinka, kai nebelieka nieko vykdomo, laukiančio eilėje ar pasiruošusio pradėti. Jūsų išjungta nuoroda čia neįskaičiuojama - žr. informacinį burbulą.',
+  'settings.idleAction.info':
+    'Jūsų išjungta nuoroda niekada nelaikoma likusiu darbu, todėl ji negali to atidėlioti amžinai. Rankiniu būdu pristabdyta arba sulaikyta nuoroda vis tiek įskaičiuojama - abu reiškia „truputį palaukti“, o ne „niekada“.',
+  'settings.idleAction.none': 'Nieko nedaryti',
+  'settings.idleAction.pause': 'Pristabdyti eilę',
+  'settings.idleAction.delay': 'Atgalinis skaičiavimas (sekundės)',
+  'settings.idleAction.delayHint':
+    'Kiek laiko turite atšaukti, prieš įvykdant veiksmą, kai eilė iš tikrųjų taps tuščiąja eiga.',
+
+  'settings.nav.diagnostics': 'Diagnostika',
+  'settings.diagnostics.subtitle':
+    'Kas yra ši versija, kuo ji veikia, ir jos pačios nesenos žurnalo išvestis - pridėti prie klaidos pranešimo.',
+  'settings.diagnostics.version': 'Versija',
+  'settings.diagnostics.deployment': 'Konfigūracija',
+  'settings.diagnostics.deployment.container': 'Konteineris',
+  'settings.diagnostics.deployment.desktop': 'Darbalaukis',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'Platforma',
+  'settings.diagnostics.goroutines': 'Gorutinos',
+  'settings.diagnostics.download': 'Atsisiųsti diagnostikos paketą',
+  'settings.diagnostics.downloading': 'Ruošiama…',
+  'settings.diagnostics.downloadHint':
+    'JSON failas su aukščiau esančiais laukais, jūsų nustatymais su pašalintais visais slaptažodžiais, ir žurnalo eilutėmis žemiau.',
+  'settings.diagnostics.downloadFailed': 'Nepavyko sukurti paketo: {error}',
+  'settings.diagnostics.logTitle': 'Naujausios žurnalo eilutės',
+  'settings.diagnostics.logHint':
+    'Paskutinės {n} eilutės, kurias užregistravo šis procesas, seniausios pirmiausia. Čia niekas neįrašoma į diską.',
+  'settings.diagnostics.logEmpty': 'Kol kas nieko neužregistruota.',
+  'settings.diagnostics.refresh': 'Atnaujinti',
+  'settings.diagnostics.loadFailed': 'Nepavyko įkelti diagnostikos. Ar serveris pasiekiamas?',
+
+  'settings.nav.help': 'Pagalba',
+  'settings.help.intro':
+    'Ką gali ši versija, sutvarkyta pagal užduotį, o ne pagal nustatymų puslapį. Kiekvienas skyrius nukreipia ten, kur tai konfigūruojama.',
+
+  'settings.help.intake.title': 'Atsisiuntimų pridėjimas',
+  'settings.help.intake.body':
+    'Įklijuokite nuorodas į Rinktuvą - po vieną eilutėje, arba netvarkingą tekstą: paieška randa nuorodas, kad ir kur jos būtų, sakinio viduryje, kelias eilutėje, arba pašto programos perskeltas per dvi eilutes.',
+  'settings.help.intake.b1': 'Nutempkite nuorodų konteinerio failą (.dlc, .ccf, .rsdf) arba paprastą nuorodų sąrašą.',
+  'settings.help.intake.b2':
+    "Click'n'Load mygtukai hosterio ir forumo puslapiuose veikia nepakitę - KnightLoader atsako adresu 127.0.0.1:9666, tuo pačiu prievadu, kurį naudoja bet kuri kita atsisiuntimų programa.",
+  'settings.help.intake.b3':
+    'Įklijuokite puslapio URL vietoj failo nuorodos ir įjunkite Naršymą, kad ištrauktumėte kiekvieną failą, į kurį jis nukreipia, vietoj paties puslapio atsisiuntimo.',
+  'settings.help.intake.b4': 'Stebimas aplankas automatiškai paima .txt/.crawljob failus, įdėtus į jį.',
+  'settings.help.intake.link1': 'Atverti Atsisiuntimų nustatymus',
+  'settings.help.intake.link2': "Atverti Prieigos nustatymus (Click'n'Load)",
+
+  'settings.help.collector.title': 'Rinktuvas, prieš kažkam pradedant siųstis',
+  'settings.help.collector.body':
+    'Naujos nuorodos pirmiausia patenka į Rinktuvą, o ne į eilę: tarpinė zona patikrinti pavadinimus, dydžius ir įspėjimus apie dublikatus, prieš kažkam prasidedant. Automatinis patvirtinimas gali praleisti šį žingsnį, su neprivalomu vėlavimu; patvirtinus, nuoroda arba pradeda siųstis iš karto, arba laukia eilėje, priklausomai nuo automatinio paleidimo.',
+  'settings.help.collector.link': 'Atverti Bendruosius nustatymus',
+
+  'settings.help.rules.title': 'Taisyklės: paketai, aplankai ir kas išsaugoma',
+  'settings.help.rules.body':
+    'Packagizer pervadina nuorodą, parenka jos aplanką ir nustato jos atsisiuntimo parinktis atvykus, pagal jūsų parašytas sąlygas. Nuorodų filtras nusprendžia, ar nuoroda apskritai išsaugoma - ir skirtingai nei filtras, kuris tiesiog priverčia nuorodas išnykti, atmetimas visada nurodo, kuri taisyklė tai sukėlė, ir kodėl.',
+  'settings.help.rules.link': 'Atverti Taisykles',
+
+  'settings.help.queue.title': 'Eilės valdymas',
+  'settings.help.queue.body':
+    'Pristabdykite, tęskite arba pertvarkykite bet kurią nuorodą, atskirai arba kaip visą paketą. Eilės stabdymas yra du skirtingi veiksmai: sustabdymas palieka jau vykstantį nepaliestą, kad jis baigtųsi pats, o visų perdavimų sustabdymas iškart pirmiausia parodo, kas būtų prarasta, ir tęsiasi tik po jūsų patvirtinimo - būtent tam ir skirtas šis įspėjimas perdavimui, kuris negali tęstis nuo tos vietos, kur buvo nutrauktas.',
+  'settings.help.queue.b1': 'Viena nuoroda gali nepaisyti bendro ryšių skaičiaus arba išpakavimo po atsisiuntimo jungiklio.',
+  'settings.help.queue.b2': 'Sąraše jau esančios nuorodos dublikatas visada atmetamas, dar prieš jam pasiekiant Rinktuvą.',
+
+  'settings.help.limits.title': 'Hosterio ribojimų apėjimas',
+  'settings.help.limits.body': 'Trys nepriklausomi būdai, kad nemokamas apribojimas netaptų lubomis:',
+  'settings.help.limits.b1':
+    'Ryšiai - paskirstykite atsisiuntimus daugiau nei vienu išeinančiu keliu (antra linija, tarpinis serveris, SOCKS), o ne visada išeikite per nuosavą šios mašinos adresą.',
+  'settings.help.limits.b2':
+    'Persijungimas - paprašykite maršrutizatoriaus naujo viešo adreso - vienintelio dalyko, kuris iš tikrųjų panaikina prie paties adreso pririštą apribojimą (UPnP, išorinė programa, scenarijus, arba HTTP užklausų kartojimas maršrutizatoriaus administravimo puslapiui - esami JDownloader LiveHeader/curl scenarijai veikia nepakitę).',
+  'settings.help.limits.b3':
+    'Paskyros - išsaugokite premium arba debrid prisijungimo duomenis (Real-Debrid, AllDebrid, TorBox ir kitus), kad tinkama nuoroda būtų atsisiunčiama pilnu greičiu vietoj nemokamo apribojimo.',
+  'settings.help.limits.link1': 'Atverti Ryšius',
+  'settings.help.limits.link2': 'Atverti Persijungimą',
+  'settings.help.limits.link3': 'Atverti Paskyras',
+
+  'settings.help.captcha.title': 'Captcha',
+  'settings.help.captcha.body':
+    'Kai hosteris paprašo captcha, pirmiausia bandomas jūsų sukonfigūruotas automatinis sprendiklis, jūsų nustatyta tvarka. Ko jis negali išspręsti - arba jei nė vienas nesukonfigūruotas - pateikiama jums, o ne tyliai nepavyksta.',
+  'settings.help.captcha.link': 'Atverti Captcha nustatymus',
+
+  'settings.help.after.title': 'Po atsisiuntimo',
+  'settings.help.after.body':
+    'Archyvai automatiškai išpakuojami: zip (įskaitant šifruotus, tiek WinZip AES, tiek senesnį ZipCrypto), rar su daugiatomiais rinkiniais, 7z, tar, ir gzip/bzip2/xz/zstd, nesvarbu, ar jie apgaubia tar - grynas Go, be išorinių unrar ar 7z programų. Šifruotam archyvui iš eilės bandomas slaptažodžių sąrašas. Baigtas failas patikrinamas pagal bet kokią su juo pateiktą kontrolinę sumą: .sfv sąrašą, md5/sha1/sha256sum failą, arba CRC32, kurį neša pats leidimo pavadinimas.',
+  'settings.help.after.link1': 'Atverti Archyvų nustatymus',
+  'settings.help.after.link2': 'Atverti Atsisiuntimų nustatymus',
+
+  'settings.help.schedule.title': 'Veikimas be priežiūros',
+  'settings.help.schedule.body':
+    'Savaitinis tvarkaraštis pristabdo arba riboja eilę pagal laikrodį - naktinis langas, teisingas net pereinant į vasaros laiką - ta pati idėja kaip JDownloader Scheduler.',
+  'settings.help.schedule.link': 'Atverti Tvarkaraštį',
+
+  'settings.help.instances.title': 'Daugiau nei vieno egzemplioriaus paleidimas',
+  'settings.help.instances.body':
+    'Pridėkite kitą KnightLoader kaip partnerį, ir jo eilė taip pat pasirodys šiame skydelyje - savarankiškai talpinama, be jokio retransliatoriaus: šis egzempliorius tiesiog iškviečia kito egzemplioriaus API, taip pat, kaip tai darytų naršyklė.',
+  'settings.help.instances.link': 'Atverti Egzempliorius',
+
+  'settings.help.access.title': 'Prieiga ir trikčių šalinimas',
+  'settings.help.access.body':
+    'Slaptažodis užrakina visą sąsają už sesijos slapuko. Prieigos puslapyje taip pat išvardyti šios versijos priėmimo prievadai ir prieigos metodai, ir kodėl - kad nepažįstamas atviras prievadas turėtų atsakymą, o ne spėjimą. Diagnostikos puslapis sukuria failą, pridedamą prie klaidos pranešimo: versijos ir konfigūracijos informaciją, dabartinius nustatymus su pašalintais visais slaptažodžiais, naujausias šio proceso žurnalo eilutes, ir kiek gorutinų vykdoma.',
+  'settings.help.access.link1': 'Atverti Prieigos nustatymus',
+  'settings.help.access.link2': 'Atverti Diagnostiką',
+
+  'settings.help.advanced.title': 'Viskas kita',
+  'settings.help.advanced.body':
+    'Kiekvieną šios versijos nustatymą galima perskaityti ir pakeisti pagal jo neapdorotą pavadinimą Išplėstinių nustatymų puslapyje, įskaitant kai kuriuos - kaip tvarkomas jau atsisiųsto failo veidrodis, kas nutinka, kai atsisiuntimas atsidurtų ant jau naudojamo pavadinimo - kurie dar neturi specialaus valdiklio kitur.',
+  'settings.help.advanced.link': 'Atverti Išplėstinius nustatymus',
 };

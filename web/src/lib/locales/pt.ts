@@ -1021,4 +1021,173 @@ export const pt: Dict = {
     'Oculta as notificações de sucesso e informação. Uma falha, um captcha à sua espera ou uma conta em pausa continuam a aparecer.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Última alteração',
+
+  'file.open': 'Abrir',
+  'file.openNatively': 'Abrir com a aplicação predefinida',
+  'file.revealInFolder': 'Mostrar na pasta',
+  'file.desktopOnly': 'Só na aplicação de desktop',
+
+  'settings.schedule.title': 'Horário',
+  'settings.schedule.subtitle': 'Pausar, retomar ou limitar a velocidade de transferência segundo um horário.',
+  'settings.schedule.listTitle': 'Tabela de horários',
+  'settings.schedule.orderHint':
+    'As linhas aplicam-se por ordem, de cima para baixo, e quando duas janelas se sobrepõem, ganha a mais abaixo - uma janela ampla «pausar todas as noites» acima de uma exceção mais restrita deixa a exceção em vigor, e as mesmas duas linhas ao contrário não.',
+  'settings.schedule.add': 'Adicionar janela',
+  'settings.schedule.empty': 'A fila segue o seu próprio horário',
+  'settings.schedule.emptyHint':
+    'Não há nenhuma janela configurada, por isso nada aqui pausa ou limita a fila segundo a hora. Adiciona uma para reter as transferências durante a noite ou limitar a velocidade enquanto usas tu próprio a ligação.',
+  'settings.schedule.use': 'Usar esta janela',
+  'settings.schedule.moveUp': 'Mover para cima',
+  'settings.schedule.moveDown': 'Mover para baixo',
+  'settings.schedule.remove': 'Remover esta janela',
+  'settings.schedule.edit': 'Editar esta janela',
+  'settings.schedule.name': 'Nome',
+  'settings.schedule.namePlaceholder': 'p. ex. Pausa noturna',
+  'settings.schedule.days': 'Dias',
+  'settings.schedule.daysHint':
+    'Em que dias da semana esta janela abre. Para uma janela que passa da meia-noite, marca o dia em que COMEÇA - «sex. 22:00-06:00» termina no sábado de manhã sem que o sábado em si esteja marcado.',
+  'settings.schedule.preset.every': 'Todos os dias',
+  'settings.schedule.preset.weekdays': 'Dias de semana',
+  'settings.schedule.preset.weekends': 'Fins de semana',
+  'settings.schedule.preset.custom': 'Personalizado',
+  'settings.schedule.start': 'Início',
+  'settings.schedule.end': 'Fim',
+  'settings.schedule.endHint':
+    'Antes da hora de início, esta janela passa da meia-noite e termina na manhã seguinte. Uma hora de fim igual à de início é recusada - podia significar um dia inteiro ou tempo nenhum, e adivinhar o que se queria dizer é pior do que perguntar.',
+  'settings.schedule.action': 'Ação',
+  'settings.schedule.action.pause': 'Pausar',
+  'settings.schedule.action.resume': 'Retomar',
+  'settings.schedule.action.limit': 'Limitar velocidade',
+  'settings.schedule.limit': 'Limite de velocidade',
+  'settings.schedule.disabledOff': 'Esta janela está estacionada e nunca dispara. A fila comporta-se como se esta linha não existisse.',
+  'settings.schedule.activeNow': 'Ativa agora, até {time}',
+  'settings.schedule.next': 'Próxima: {when}',
+  'settings.schedule.never': 'Nunca dispara tal como está configurada',
+  'settings.schedule.stateNow.paused': 'A fila está pausada neste momento pelo horário.',
+  'settings.schedule.stateNow.limited': 'A fila está limitada a {rate} neste momento pelo horário.',
+  'settings.schedule.stateNow.running': 'Nenhuma janela está em vigor neste momento.',
+  'settings.schedule.nextChange': 'Próxima alteração: {when}',
+  'settings.schedule.noNextChange': 'Nada na tabela vai alguma vez alterar a fila tal como está configurada.',
+  'settings.schedule.save': 'Guardar horário',
+  'settings.schedule.discard': 'Descartar',
+  'settings.schedule.unsaved': 'Alterações por guardar no horário',
+  'settings.schedule.saveFailed': 'Não foi possível guardar o horário: {error}',
+  'settings.schedule.rowError': 'Linha {row}: {error}',
+
+  'idleAction.title': 'A fila está inativa',
+  'idleAction.action.pause': 'A pausar',
+  'idleAction.actionFallback': '«{action}» em curso',
+  'idleAction.in': 'em {countdown}',
+  'idleAction.cancel': 'Cancelar',
+  'idleAction.cancelling': 'A cancelar…',
+  'idleAction.cancelFailed': 'Não foi possível cancelar: o servidor não respondeu.',
+
+  'settings.idleAction.label': 'Ação de fim de fila',
+  'settings.idleAction.hint':
+    'O que acontece assim que não resta nada em curso, em fila ou prestes a começar. Um link que tenhas desativado não conta - vê a bolha de informação.',
+  'settings.idleAction.info':
+    'Um link que tenhas desativado nunca conta como trabalho por fazer, por isso não consegue adiar isto para sempre. Um link pausado ou retido manualmente continua a contar - ambos significam «esperar um pouco», não «nunca».',
+  'settings.idleAction.none': 'Não fazer nada',
+  'settings.idleAction.pause': 'Pausar a fila',
+  'settings.idleAction.delay': 'Contagem decrescente (segundos)',
+  'settings.idleAction.delayHint':
+    'Quanto tempo tens para cancelar antes de a ação ser executada, assim que a fila ficar mesmo inativa.',
+
+  'settings.nav.diagnostics': 'Diagnóstico',
+  'settings.diagnostics.subtitle':
+    'O que é este build, sobre o que está a correr, e a sua própria saída de registo recente - para anexar a um relatório de erro.',
+  'settings.diagnostics.version': 'Versão',
+  'settings.diagnostics.deployment': 'Build',
+  'settings.diagnostics.deployment.container': 'Contentor',
+  'settings.diagnostics.deployment.desktop': 'Desktop',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'Plataforma',
+  'settings.diagnostics.goroutines': 'Goroutines',
+  'settings.diagnostics.download': 'Transferir pacote de diagnóstico',
+  'settings.diagnostics.downloading': 'A preparar…',
+  'settings.diagnostics.downloadHint':
+    'Um ficheiro JSON com os campos acima, as tuas definições com cada palavra-passe removida, e as linhas de registo abaixo.',
+  'settings.diagnostics.downloadFailed': 'Não foi possível criar o pacote: {error}',
+  'settings.diagnostics.logTitle': 'Linhas de registo recentes',
+  'settings.diagnostics.logHint':
+    'As últimas {n} linhas que este processo registou, as mais antigas primeiro. Nada aqui é escrito no disco.',
+  'settings.diagnostics.logEmpty': 'Ainda nada registado.',
+  'settings.diagnostics.refresh': 'Atualizar',
+  'settings.diagnostics.loadFailed': 'Não foi possível carregar o diagnóstico. O servidor está acessível?',
+
+  'settings.nav.help': 'Ajuda',
+  'settings.help.intro':
+    'O que este build sabe fazer, organizado por tarefa em vez de por página de definições. Cada secção remete para onde é configurado.',
+
+  'settings.help.intake.title': 'Adicionar transferências',
+  'settings.help.intake.body':
+    'Cola links no Coletor - um por linha, ou texto desarrumado: uma análise encontra links onde quer que estejam, no meio de uma frase, vários por linha, ou partidos em duas linhas por um cliente de email.',
+  'settings.help.intake.b1': 'Larga um ficheiro contentor de links (.dlc, .ccf, .rsdf) ou uma simples lista de links.',
+  'settings.help.intake.b2':
+    "Os botões Click'n'Load em páginas de hosters e fóruns funcionam sem alterações - o KnightLoader responde em 127.0.0.1:9666, a mesma porta que qualquer outro gestor de transferências usa.",
+  'settings.help.intake.b3':
+    'Cola o URL de uma página em vez de um link de ficheiro e ativa Explorar para extrair cada ficheiro a que ela dá acesso, em vez de transferir a página em si.',
+  'settings.help.intake.b4': 'Uma pasta vigiada recolhe automaticamente os ficheiros .txt/.crawljob que lá sejam largados.',
+  'settings.help.intake.link1': 'Abrir definições de Transferências',
+  'settings.help.intake.link2': "Abrir definições de Acesso (Click'n'Load)",
+
+  'settings.help.collector.title': 'O coletor, antes de algo ser transferido',
+  'settings.help.collector.body':
+    'Os links novos chegam primeiro ao Coletor, não à fila: uma zona de espera para verificar nomes, tamanhos e avisos de duplicados antes de algo começar. A confirmação automática pode saltar esse passo, com um atraso opcional; depois de confirmado, um link começa de imediato ou espera na fila, consoante o início automático.',
+  'settings.help.collector.link': 'Abrir definições Gerais',
+
+  'settings.help.rules.title': 'Regras: pacotes, pastas e o que fica',
+  'settings.help.rules.body':
+    'O Packagizer muda o nome a um link, escolhe a sua pasta e define as suas opções de transferência à chegada, a partir de condições que tu escreves. O Filtro de links decide se um link fica ou não - e ao contrário de um filtro que simplesmente faz os links desaparecer, uma rejeição indica sempre qual a regra responsável, e porquê.',
+  'settings.help.rules.link': 'Abrir Regras',
+
+  'settings.help.queue.title': 'Gerir a fila',
+  'settings.help.queue.body':
+    'Pausa, retoma ou reordena qualquer link, sozinho ou como pacote inteiro. Parar a fila são duas ações diferentes: parar deixa intacto o que já está em curso para que termine sozinho, enquanto parar já todas as transferências mostra primeiro o que se perderia e só avança depois da tua confirmação - um aviso pensado exatamente para uma transferência que não consegue retomar de onde ficou.',
+  'settings.help.queue.b1': 'Um único link pode substituir o número global de ligações ou o interruptor de extrair depois de transferir.',
+  'settings.help.queue.b2': 'Um duplicado de um link já presente na lista é sempre recusado, antes sequer de chegar ao coletor.',
+
+  'settings.help.limits.title': 'Contornar limites do hoster',
+  'settings.help.limits.body': 'Três formas independentes de impedir que um limite gratuito seja o teto:',
+  'settings.help.limits.b1':
+    'Ligações - distribuir as transferências por mais do que um caminho de saída (uma segunda linha, um proxy, SOCKS) em vez de sair sempre pelo próprio endereço desta máquina.',
+  'settings.help.limits.b2':
+    'Religação - pedir ao router um novo endereço público, a única coisa que realmente levanta um limite associado ao próprio endereço (UPnP, um programa externo, um script, ou repetir pedidos HTTP contra a página de administração do router - os scripts LiveHeader/curl do JDownloader já existentes funcionam sem alterações).',
+  'settings.help.limits.b3':
+    'Contas - guarda credenciais premium ou debrid (Real-Debrid, AllDebrid, TorBox e outros) para que um link elegível seja obtido à velocidade máxima em vez do limite gratuito.',
+  'settings.help.limits.link1': 'Abrir Ligações',
+  'settings.help.limits.link2': 'Abrir Religação',
+  'settings.help.limits.link3': 'Abrir Contas',
+
+  'settings.help.captcha.title': 'Captcha',
+  'settings.help.captcha.body':
+    'Quando um hoster pede um captcha, é tentado primeiro um resolvedor automático que tenhas configurado, pela ordem que definiste. O que ele não conseguir resolver - ou se não estiver nenhum configurado - é-te apresentado a ti em vez de falhar em silêncio.',
+  'settings.help.captcha.link': 'Abrir definições de Captcha',
+
+  'settings.help.after.title': 'Depois da transferência',
+  'settings.help.after.body':
+    'Os arquivos são extraídos automaticamente: zip (incluindo cifrado, tanto WinZip AES como o antigo ZipCrypto), rar com conjuntos multivolume, 7z, tar, e gzip/bzip2/xz/zstd envolvam ou não um tar - Go puro, sem binário externo unrar ou 7z. Para um arquivo cifrado é tentada uma lista de palavras-passe por ordem. Um ficheiro terminado é verificado com qualquer checksum incluído: uma lista .sfv, um ficheiro md5/sha1/sha256sum, ou um CRC32 que o próprio nome da versão carrega.',
+  'settings.help.after.link1': 'Abrir definições de Arquivos',
+  'settings.help.after.link2': 'Abrir definições de Transferências',
+
+  'settings.help.schedule.title': 'Funcionar sem supervisão',
+  'settings.help.schedule.body':
+    'Um horário semanal pausa ou limita a fila segundo a hora - uma janela noturna, correta mesmo com a mudança da hora de verão - a mesma ideia do Scheduler do JDownloader.',
+  'settings.help.schedule.link': 'Abrir Horário',
+
+  'settings.help.instances.title': 'Executar mais do que uma instância',
+  'settings.help.instances.body':
+    'Adiciona outro KnightLoader como par e a fila dele também aparece neste painel - autoalojado, sem qualquer relay envolvido: esta instância chama simplesmente a API da outra instância, tal como um browser faria.',
+  'settings.help.instances.link': 'Abrir Instâncias',
+
+  'settings.help.access.title': 'Acesso e resolução de problemas',
+  'settings.help.access.body':
+    'Uma palavra-passe bloqueia toda a interface atrás de um cookie de sessão. A página Acesso também lista as portas de entrada e os métodos de acesso deste build, e porquê - para que uma porta aberta desconhecida tenha uma resposta em vez de um palpite. A página Diagnóstico cria um ficheiro para anexar a um relatório de erro: versão e informação de build, as definições atuais com cada palavra-passe removida, as linhas de registo recentes deste processo, e quantas goroutines estão em execução.',
+  'settings.help.access.link1': 'Abrir definições de Acesso',
+  'settings.help.access.link2': 'Abrir Diagnóstico',
+
+  'settings.help.advanced.title': 'Tudo o resto',
+  'settings.help.advanced.body':
+    'Cada definição deste build pode ser lida e alterada pelo seu nome em bruto na página Avançado, incluindo algumas - como um mirror de um ficheiro já transferido é tratado, o que acontece quando uma transferência ia parar a um nome já usado - que ainda não têm um controlo dedicado em mais lado nenhum.',
+  'settings.help.advanced.link': 'Abrir definições de Avançado',
 };

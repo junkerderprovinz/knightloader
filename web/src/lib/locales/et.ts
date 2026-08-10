@@ -1029,4 +1029,173 @@ export const et: Dict = {
     'Peidab õnnestumis- ja infoteated. Tõrge, sind ootav captcha või peatatud konto kuvatakse siiski.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Viimati muudetud',
+
+  'file.open': 'Ava',
+  'file.openNatively': 'Ava vaikerakendusega',
+  'file.revealInFolder': 'Näita kaustas',
+  'file.desktopOnly': 'Ainult töölauarakenduses',
+
+  'settings.schedule.title': 'Ajakava',
+  'settings.schedule.subtitle': 'Peata, jätka või piira allalaadimiskiirust ajakava järgi.',
+  'settings.schedule.listTitle': 'Ajatabel',
+  'settings.schedule.orderHint':
+    'Read rakenduvad järjekorras, ülevalt alla, ja kui kaks akent kattuvad, võidab alumine - lai „paus iga öö” kitsama erandi kohal jätab erandi kehtima, samad kaks rida vastupidises järjekorras aga mitte.',
+  'settings.schedule.add': 'Lisa aken',
+  'settings.schedule.empty': 'Järjekord järgib oma ajakava',
+  'settings.schedule.emptyHint':
+    'Ühtegi akent pole seadistatud, seega ei peata ega piira miski siin järjekorda kellaaja järgi. Lisa üks, et hoida allalaadimised öösel tagasi või piirata kiirust, kuni sa ise ühendust kasutad.',
+  'settings.schedule.use': 'Kasuta seda akent',
+  'settings.schedule.moveUp': 'Liiguta üles',
+  'settings.schedule.moveDown': 'Liiguta alla',
+  'settings.schedule.remove': 'Eemalda see aken',
+  'settings.schedule.edit': 'Muuda seda akent',
+  'settings.schedule.name': 'Nimi',
+  'settings.schedule.namePlaceholder': 'nt Öine paus',
+  'settings.schedule.days': 'Päevad',
+  'settings.schedule.daysHint':
+    'Millistel nädalapäevadel see aken avaneb. Üle südaöö kestva akna puhul märgi päev, mil see ALGAB - „R 22:00-06:00” lõpeb laupäeva hommikul, ilma et laupäev ise oleks märgitud.',
+  'settings.schedule.preset.every': 'Iga päev',
+  'settings.schedule.preset.weekdays': 'Tööpäevad',
+  'settings.schedule.preset.weekends': 'Nädalavahetused',
+  'settings.schedule.preset.custom': 'Kohandatud',
+  'settings.schedule.start': 'Algus',
+  'settings.schedule.end': 'Lõpp',
+  'settings.schedule.endHint':
+    'Enne algusaega kestab see aken üle südaöö ja lõpeb järgmisel hommikul. Algusajaga võrdne lõpuaeg lükatakse tagasi - see võiks tähendada tervet päeva või üldse mitte mingit aega, ja arvamine, mida mõeldi, on hullem kui küsimine.',
+  'settings.schedule.action': 'Toiming',
+  'settings.schedule.action.pause': 'Paus',
+  'settings.schedule.action.resume': 'Jätkamine',
+  'settings.schedule.action.limit': 'Piira kiirust',
+  'settings.schedule.limit': 'Kiiruspiirang',
+  'settings.schedule.disabledOff': 'See aken on kõrvale pargitud ega käivitu kunagi. Järjekord käitub nii, nagu seda rida üldse ei olekski.',
+  'settings.schedule.activeNow': 'Aktiivne praegu, kuni {time}',
+  'settings.schedule.next': 'Järgmine: {when}',
+  'settings.schedule.never': 'Ei käivitu kunagi praeguste seadetega',
+  'settings.schedule.stateNow.paused': 'Järjekord on praegu ajakava tõttu peatatud.',
+  'settings.schedule.stateNow.limited': 'Järjekord on praegu ajakava tõttu piiratud tasemele {rate}.',
+  'settings.schedule.stateNow.running': 'Ükski aken pole praegu jõus.',
+  'settings.schedule.nextChange': 'Järgmine muutus: {when}',
+  'settings.schedule.noNextChange': 'Miski tabelis ei muuda järjekorda kunagi praeguste seadetega.',
+  'settings.schedule.save': 'Salvesta ajakava',
+  'settings.schedule.discard': 'Loobu',
+  'settings.schedule.unsaved': 'Salvestamata muudatused ajakavas',
+  'settings.schedule.saveFailed': 'Ajakava salvestamine ebaõnnestus: {error}',
+  'settings.schedule.rowError': 'Rida {row}: {error}',
+
+  'idleAction.title': 'Järjekord on jõude',
+  'idleAction.action.pause': 'Peatatakse',
+  'idleAction.actionFallback': '„{action}” käib',
+  'idleAction.in': '{countdown} pärast',
+  'idleAction.cancel': 'Loobu',
+  'idleAction.cancelling': 'Loobutakse…',
+  'idleAction.cancelFailed': 'Loobumine ebaõnnestus: server ei vastanud.',
+
+  'settings.idleAction.label': 'Toiming järjekorra tühjenemisel',
+  'settings.idleAction.hint':
+    'Mis juhtub niipea, kui midagi enam ei tööta, järjekorras ei oota ega ole alustamiseks valmis. Sinu välja lülitatud link ei lähe siin arvesse - vaata infomulli.',
+  'settings.idleAction.info':
+    'Sinu välja lülitatud link ei lähe kunagi arvesse jäänud tööna, seega ei saa see seda lõputult edasi lükata. Käsitsi peatatud või kinni hoitud link läheb siiski arvesse - mõlemad tähendavad „oota veidi”, mitte „mitte kunagi”.',
+  'settings.idleAction.none': 'Ära tee midagi',
+  'settings.idleAction.pause': 'Peata järjekord',
+  'settings.idleAction.delay': 'Loendus (sekundid)',
+  'settings.idleAction.delayHint':
+    'Kui palju aega on sul tühistamiseks enne toimingu käivitumist, niipea kui järjekord tõesti jõude jääb.',
+
+  'settings.nav.diagnostics': 'Diagnostika',
+  'settings.diagnostics.subtitle':
+    'Mis see build on, millel see töötab, ja selle enda hiljutine logiväljund - vearaportile lisamiseks.',
+  'settings.diagnostics.version': 'Versioon',
+  'settings.diagnostics.deployment': 'Build',
+  'settings.diagnostics.deployment.container': 'Konteiner',
+  'settings.diagnostics.deployment.desktop': 'Töölaud',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'Platvorm',
+  'settings.diagnostics.goroutines': 'Gorutiinid',
+  'settings.diagnostics.download': 'Laadi alla diagnostikapakett',
+  'settings.diagnostics.downloading': 'Valmistan ette…',
+  'settings.diagnostics.downloadHint':
+    'JSON-fail ülalolevate väljadega, sinu seadetega, kust iga parool on eemaldatud, ja allolevate logiridadega.',
+  'settings.diagnostics.downloadFailed': 'Paketi loomine ebaõnnestus: {error}',
+  'settings.diagnostics.logTitle': 'Hiljutised logiread',
+  'settings.diagnostics.logHint':
+    'Selle protsessi logitud viimased {n} rida, vanimad enne. Siin ei kirjutata midagi kettale.',
+  'settings.diagnostics.logEmpty': 'Veel pole midagi logitud.',
+  'settings.diagnostics.refresh': 'Värskenda',
+  'settings.diagnostics.loadFailed': 'Diagnostika laadimine ebaõnnestus. Kas server on kättesaadav?',
+
+  'settings.nav.help': 'Abi',
+  'settings.help.intro':
+    'Mida see build oskab, korraldatud ülesande, mitte seadete lehe järgi. Iga jaotis viib sinna, kus seda seadistatakse.',
+
+  'settings.help.intake.title': 'Allalaadimiste lisamine',
+  'settings.help.intake.body':
+    'Kleebi lingid Kogujasse - üks reale, või korrastamata teksti: otsing leiab lingid, kus iganes need on, lause keskel, mitu reale, või meiliprogrammi poolt kahele reale murtuna.',
+  'settings.help.intake.b1': 'Lohista lingikonteineri fail (.dlc, .ccf, .rsdf) või tavaline lingiloend.',
+  'settings.help.intake.b2':
+    "Click'n'Load nupud hostingu- ja foorumilehtedel töötavad muutumatult - KnightLoader vastab aadressil 127.0.0.1:9666, samal pordil, mida kasutab iga teine allalaadimishaldur.",
+  'settings.help.intake.b3':
+    'Kleebi faililingi asemel lehe URL ja lülita sisse Roomamine, et tõmmata välja iga fail, millele see viitab, selle asemel et laadida alla lehte ennast.',
+  'settings.help.intake.b4': 'Jälgitav kaust võtab automaatselt vastu sinna pandud .txt/.crawljob-failid.',
+  'settings.help.intake.link1': 'Ava allalaadimiste seaded',
+  'settings.help.intake.link2': "Ava ligipääsu seaded (Click'n'Load)",
+
+  'settings.help.collector.title': 'Koguja, enne kui midagi alla laadib',
+  'settings.help.collector.body':
+    'Uued lingid jõuavad esmalt Kogujasse, mitte järjekorda: vaheala nimede, suuruste ja duplikaadihoiatuste kontrollimiseks enne, kui midagi algab. Automaatne kinnitamine võib selle sammu vahele jätta, valikulise viivitusega; kord kinnitatuna, link kas käivitub kohe või ootab järjekorras, sõltuvalt automaatsest käivitamisest.',
+  'settings.help.collector.link': 'Ava üldised seaded',
+
+  'settings.help.rules.title': 'Reeglid: paketid, kaustad ja mis jääb alles',
+  'settings.help.rules.body':
+    'Packagizer nimetab lingi ümber, valib selle kausta ja määrab selle allalaadimisvalikud saabumisel, sinu kirjutatud tingimuste põhjal. Lingifilter otsustab, kas link üldse alles jääb - ja erinevalt filtrist, mis lihtsalt laseb linkidel kaduda, nimetab tagasilükkamine alati selle põhjustanud reegli ja miks.',
+  'settings.help.rules.link': 'Ava reeglid',
+
+  'settings.help.queue.title': 'Järjekorra haldamine',
+  'settings.help.queue.body':
+    'Peata, jätka või järjesta ümber ükskõik milline link, üksinda või terve paketina. Järjekorra peatamine on kaks erinevat toimingut: peatamine jätab juba töötava puutumata, et see lõpeks iseenesest, samas kui kõigi ülekannete kohene peatamine näitab enne, mis läheks kaotsi, ja jätkub alles pärast sinu kinnitust - just selleks on see hoiatus ülekande jaoks, mis ei saa jätkata sealt, kus see pooleli jäi.',
+  'settings.help.queue.b1': 'Üksik link võib tühistada globaalse ühenduste arvu või pärast allalaadimist lahtipakkimise lüliti.',
+  'settings.help.queue.b2': 'Nimekirjas juba oleva lingi duplikaat lükatakse alati tagasi, enne kui see kunagi Kogujani jõuab.',
+
+  'settings.help.limits.title': 'Hostingu piirangutest möödahiilimine',
+  'settings.help.limits.body': 'Kolm sõltumatut viisi takistamaks tasuta piirangul lae olemast:',
+  'settings.help.limits.b1':
+    'Ühendused - jaota allalaadimised rohkem kui ühe väljuva tee peale (teine liin, puhverserver, SOCKS) selle asemel, et alati väljuda selle masina enda aadressilt.',
+  'settings.help.limits.b2':
+    'Taasühendus - küsi ruuterilt uut avalikku aadressi, ainus asi, mis tõesti tühistab aadressi endaga seotud piirangu (UPnP, väline programm, skript, või HTTP-päringute uuesti mängimine ruuteri halduslehe vastu - olemasolevad JDownloaderi LiveHeader/curl skriptid töötavad muutumatult).',
+  'settings.help.limits.b3':
+    'Kontod - salvesta premium- või debrid-sisselogimisandmed (Real-Debrid, AllDebrid, TorBox ja teised), et sobiv link laaditaks täiskiirusel tasuta piirangu asemel.',
+  'settings.help.limits.link1': 'Ava ühendused',
+  'settings.help.limits.link2': 'Ava taasühendus',
+  'settings.help.limits.link3': 'Ava kontod',
+
+  'settings.help.captcha.title': 'Captcha',
+  'settings.help.captcha.body':
+    'Kui hosting küsib captchat, proovitakse esmalt sinu seadistatud automaatset lahendajat, sinu määratud järjekorras. Mida see lahendada ei suuda - või kui ühtegi pole seadistatud - esitatakse sulle, selle asemel et see vaikselt ebaõnnestuks.',
+  'settings.help.captcha.link': 'Ava captcha seaded',
+
+  'settings.help.after.title': 'Pärast allalaadimist',
+  'settings.help.after.body':
+    'Arhiivid pakitakse automaatselt lahti: zip (ka krüpteeritud, nii WinZip AES kui vanem ZipCrypto), rar mitmeosaliste komplektidega, 7z, tar, ning gzip/bzip2/xz/zstd, olenemata sellest, kas need mähivad tar-i - puhas Go, ilma välise unrar- või 7z-programmita. Krüpteeritud arhiivi jaoks proovitakse paroolide loendit järjekorras. Valminud faili kontrollitakse mis tahes sellega kaasas oleva kontrollsumma vastu: .sfv-loendi, md5/sha1/sha256sum-faili, või CRC32 vastu, mida kannab väljalaske nimi ise.',
+  'settings.help.after.link1': 'Ava arhiivide seaded',
+  'settings.help.after.link2': 'Ava allalaadimiste seaded',
+
+  'settings.help.schedule.title': 'Töötamine järelevalveta',
+  'settings.help.schedule.body':
+    'Iganädalane ajakava peatab või piirab järjekorda kellaaja järgi - öine aken, korrektne isegi suveajale ülemineku ajal - sama idee mis JDownloaderi Scheduleril.',
+  'settings.help.schedule.link': 'Ava ajakava',
+
+  'settings.help.instances.title': 'Rohkem kui ühe instantsi käitamine',
+  'settings.help.instances.body':
+    'Lisa teine KnightLoader partnerina ja selle järjekord ilmub ka sellele armatuurlauale - ise majutatud, ilma releeta: see instants lihtsalt kutsub teise instantsi API-t, samamoodi nagu brauser seda teeks.',
+  'settings.help.instances.link': 'Ava instantsid',
+
+  'settings.help.access.title': 'Ligipääs ja tõrkeotsing',
+  'settings.help.access.body':
+    'Parool lukustab kogu liidese seansiküpsise taha. Ligipääsu leht loetleb ka selle buildi vastuvõtupordid ja ligipääsuviisid ning miks - et tundmatul avatud pordil oleks vastus, mitte oletus. Diagnostika leht loob faili vearaportile lisamiseks: versiooni ja buildi info, praegused seaded, kust iga parool on eemaldatud, selle protsessi hiljutised logiread, ja kui palju gorutiine töötab.',
+  'settings.help.access.link1': 'Ava ligipääsu seaded',
+  'settings.help.access.link2': 'Ava diagnostika',
+
+  'settings.help.advanced.title': 'Kõik muu',
+  'settings.help.advanced.body':
+    'Iga selle buildi seadet saab lugeda ja muuta selle toornime kaudu lehel Täpsem, sealhulgas mõnda - kuidas juba allalaaditud faili peeglit käsitletakse, mis juhtub, kui allalaadimine satuks juba kasutuses olevale nimele - millel pole veel oma eraldi juhtelementi kusagil mujal.',
+  'settings.help.advanced.link': 'Ava täpsemad seaded',
 };

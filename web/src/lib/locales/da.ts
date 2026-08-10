@@ -1029,4 +1029,173 @@ export const da: Dict = {
     'Skjuler meddelelser om succes og info. En fejl, en captcha der venter på dig, eller en pauset konto vises stadig.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Sidst ændret',
+
+  'file.open': 'Åbn',
+  'file.openNatively': 'Åbn med standardprogram',
+  'file.revealInFolder': 'Vis i mappe',
+  'file.desktopOnly': 'Kun i skrivebordsappen',
+
+  'settings.schedule.title': 'Tidsplan',
+  'settings.schedule.subtitle': 'Sæt downloadhastigheden på pause, genoptag eller begræns den efter en tidsplan.',
+  'settings.schedule.listTitle': 'Tidsskema',
+  'settings.schedule.orderHint':
+    'Rækker anvendes i rækkefølge, oppefra og ned, og hvis to vinduer overlapper, vinder det nederste - et bredt „pause hver nat” over en snævrere undtagelse lader undtagelsen gælde, mens de samme to rækker omvendt ikke gør.',
+  'settings.schedule.add': 'Tilføj vindue',
+  'settings.schedule.empty': 'Køen følger sin egen tidsplan',
+  'settings.schedule.emptyHint':
+    'Der er ikke sat noget vindue op, så intet her sætter køen på pause eller begrænser den efter uret. Tilføj et for at holde downloads tilbage om natten eller begrænse hastigheden, mens du selv bruger forbindelsen.',
+  'settings.schedule.use': 'Brug dette vindue',
+  'settings.schedule.moveUp': 'Flyt op',
+  'settings.schedule.moveDown': 'Flyt ned',
+  'settings.schedule.remove': 'Fjern dette vindue',
+  'settings.schedule.edit': 'Rediger dette vindue',
+  'settings.schedule.name': 'Navn',
+  'settings.schedule.namePlaceholder': 'f.eks. Natpause',
+  'settings.schedule.days': 'Dage',
+  'settings.schedule.daysHint':
+    'Hvilke ugedage dette vindue åbner på. For et vindue, der løber over midnat, skal du markere den dag, det BEGYNDER på - „fre 22:00-06:00” slutter lørdag morgen, uden at lørdag selv er markeret.',
+  'settings.schedule.preset.every': 'Hver dag',
+  'settings.schedule.preset.weekdays': 'Hverdage',
+  'settings.schedule.preset.weekends': 'Weekender',
+  'settings.schedule.preset.custom': 'Brugerdefineret',
+  'settings.schedule.start': 'Start',
+  'settings.schedule.end': 'Slut',
+  'settings.schedule.endHint':
+    'Før starttidspunktet løber dette vindue over midnat og slutter næste morgen. Et sluttidspunkt, der er lig med starttidspunktet, afvises - det kunne betyde en hel dag eller slet ingen tid, og at gætte, hvad der var meningen, er værre end at spørge.',
+  'settings.schedule.action': 'Handling',
+  'settings.schedule.action.pause': 'Pause',
+  'settings.schedule.action.resume': 'Genoptag',
+  'settings.schedule.action.limit': 'Begræns hastighed',
+  'settings.schedule.limit': 'Hastighedsgrænse',
+  'settings.schedule.disabledOff': 'Dette vindue er parkeret og udløses aldrig. Køen opfører sig, som om denne række slet ikke var der.',
+  'settings.schedule.activeNow': 'Aktiv nu, indtil {time}',
+  'settings.schedule.next': 'Næste: {when}',
+  'settings.schedule.never': 'Udløses aldrig som konfigureret',
+  'settings.schedule.stateNow.paused': 'Køen er sat på pause lige nu af tidsplanen.',
+  'settings.schedule.stateNow.limited': 'Køen er begrænset til {rate} lige nu af tidsplanen.',
+  'settings.schedule.stateNow.running': 'Intet vindue gælder lige nu.',
+  'settings.schedule.nextChange': 'Næste ændring: {when}',
+  'settings.schedule.noNextChange': 'Intet i skemaet vil nogensinde ændre køen som konfigureret.',
+  'settings.schedule.save': 'Gem tidsplan',
+  'settings.schedule.discard': 'Kassér',
+  'settings.schedule.unsaved': 'Ugemte ændringer i tidsplanen',
+  'settings.schedule.saveFailed': 'Tidsplanen kunne ikke gemmes: {error}',
+  'settings.schedule.rowError': 'Række {row}: {error}',
+
+  'idleAction.title': 'Køen er inaktiv',
+  'idleAction.action.pause': 'Sættes på pause',
+  'idleAction.actionFallback': '„{action}” i gang',
+  'idleAction.in': 'om {countdown}',
+  'idleAction.cancel': 'Annuller',
+  'idleAction.cancelling': 'Annullerer…',
+  'idleAction.cancelFailed': 'Kunne ikke annullere: serveren svarede ikke.',
+
+  'settings.idleAction.label': 'Handling ved tom kø',
+  'settings.idleAction.hint':
+    'Hvad der sker, når der ikke længere er noget, der kører, venter i køen eller er klar til at starte. Et link, du har slået fra, tæller ikke med - se infoboblen.',
+  'settings.idleAction.info':
+    'Et link, du har slået fra, tæller aldrig som resterende arbejde, så det kan ikke udsætte dette for evigt. Et manuelt pauset eller tilbageholdt link tæller stadig med - begge betyder „vent lidt”, ikke „aldrig”.',
+  'settings.idleAction.none': 'Gør ingenting',
+  'settings.idleAction.pause': 'Sæt køen på pause',
+  'settings.idleAction.delay': 'Nedtælling (sekunder)',
+  'settings.idleAction.delayHint':
+    'Hvor lang tid du har til at annullere, før handlingen udføres, når køen faktisk bliver inaktiv.',
+
+  'settings.nav.diagnostics': 'Diagnostik',
+  'settings.diagnostics.subtitle':
+    'Hvad dette build er, hvad det kører på, og dets egen seneste logoutput - til at vedhæfte til en fejlrapport.',
+  'settings.diagnostics.version': 'Version',
+  'settings.diagnostics.deployment': 'Build',
+  'settings.diagnostics.deployment.container': 'Container',
+  'settings.diagnostics.deployment.desktop': 'Skrivebord',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'Platform',
+  'settings.diagnostics.goroutines': 'Goroutines',
+  'settings.diagnostics.download': 'Download diagnostikpakke',
+  'settings.diagnostics.downloading': 'Forbereder…',
+  'settings.diagnostics.downloadHint':
+    'En JSON-fil med felterne ovenfor, dine indstillinger med hver adgangskode fjernet, og loglinjerne nedenfor.',
+  'settings.diagnostics.downloadFailed': 'Kunne ikke oprette pakken: {error}',
+  'settings.diagnostics.logTitle': 'Seneste loglinjer',
+  'settings.diagnostics.logHint':
+    'De sidste {n} linjer, denne proces har logget, ældste først. Intet her skrives til disk.',
+  'settings.diagnostics.logEmpty': 'Intet logget endnu.',
+  'settings.diagnostics.refresh': 'Opdater',
+  'settings.diagnostics.loadFailed': 'Kunne ikke indlæse diagnostikken. Kan serveren nås?',
+
+  'settings.nav.help': 'Hjælp',
+  'settings.help.intro':
+    'Hvad dette build kan, organiseret efter opgave i stedet for indstillingsside. Hvert afsnit linker til, hvor det konfigureres.',
+
+  'settings.help.intake.title': 'Tilføj downloads',
+  'settings.help.intake.body':
+    'Indsæt links i Samleren - et pr. linje, eller rodet tekst: en scanning finder links, uanset hvor de er, midt i en sætning, flere pr. linje, eller ombrudt over to linjer af et mailprogram.',
+  'settings.help.intake.b1': 'Slip en linkcontainerfil (.dlc, .ccf, .rsdf) eller en almindelig linkliste.',
+  'settings.help.intake.b2':
+    "Click'n'Load-knapper på hoster- og forumsider fungerer uændret - KnightLoader svarer på 127.0.0.1:9666, samme port som enhver anden downloadmanager bruger.",
+  'settings.help.intake.b3':
+    'Indsæt en side-URL i stedet for et fil-link, og slå Gennemsøgning til for at trække hver fil ud, den linker til, i stedet for at downloade selve siden.',
+  'settings.help.intake.b4': 'En overvåget mappe henter automatisk .txt-/.crawljob-filer, der lægges i den.',
+  'settings.help.intake.link1': 'Åbn indstillinger for Downloads',
+  'settings.help.intake.link2': "Åbn indstillinger for Adgang (Click'n'Load)",
+
+  'settings.help.collector.title': 'Samleren, før noget som helst downloades',
+  'settings.help.collector.body':
+    'Nye links havner først i Samleren, ikke i køen: et mellemområde til at tjekke navne, størrelser og duplikatadvarsler, før noget starter. Automatisk bekræftelse kan springe dette trin over, med en valgfri forsinkelse; når det er bekræftet, starter et link enten med det samme eller venter i køen, afhængigt af automatisk start.',
+  'settings.help.collector.link': 'Åbn Generelle indstillinger',
+
+  'settings.help.rules.title': 'Regler: pakker, mapper og hvad der beholdes',
+  'settings.help.rules.body':
+    'Packagizer omdøber et link, vælger dets mappe og indstiller dets downloadindstillinger, når det ankommer, ud fra betingelser, du skriver. Linkfilteret afgør, om et link overhovedet beholdes - og i modsætning til et filter, der bare får links til at forsvinde, angiver et afslag altid den regel, der forårsagede det, og hvorfor.',
+  'settings.help.rules.link': 'Åbn Regler',
+
+  'settings.help.queue.title': 'Administrer køen',
+  'settings.help.queue.body':
+    'Sæt på pause, genoptag eller omorganiser et hvilket som helst link, alene eller som en hel pakke. At stoppe køen er to forskellige handlinger: at standse lader det, der allerede kører, være urørt, så det bliver færdigt af sig selv, mens øjeblikkelig standsning af alle overførsler først viser, hvad der ville gå tabt, og først fortsætter efter din bekræftelse - det er præcis, hvad den advarsel er til for en overførsel, der ikke kan genoptages, hvor den slap.',
+  'settings.help.queue.b1': 'Et enkelt link kan tilsidesætte det globale antal forbindelser eller kontakten for udpakning efter download.',
+  'settings.help.queue.b2': 'Et duplikat af et link, der allerede er på listen, afvises altid, før det nogensinde når Samleren.',
+
+  'settings.help.limits.title': 'Kom uden om hosterens grænser',
+  'settings.help.limits.body': 'Tre uafhængige måder at forhindre en gratis grænse i at være loftet:',
+  'settings.help.limits.b1':
+    'Forbindelser - fordel downloads over mere end én udgående vej (en anden linje, en proxy, SOCKS) i stedet for altid at gå ud via denne maskines egen adresse.',
+  'settings.help.limits.b2':
+    'Genopkobling - bed routeren om en ny offentlig adresse, det eneste, der reelt hæver en grænse bundet til selve adressen (UPnP, et eksternt program, et script, eller genafspilning af HTTP-anmodninger mod routerens administrationsside - eksisterende JDownloader LiveHeader/curl-scripts fungerer uændret).',
+  'settings.help.limits.b3':
+    'Konti - gem premium- eller debrid-logins (Real-Debrid, AllDebrid, TorBox og andre), så et berettiget link hentes med fuld hastighed i stedet for den gratis grænse.',
+  'settings.help.limits.link1': 'Åbn Forbindelser',
+  'settings.help.limits.link2': 'Åbn Genopkobling',
+  'settings.help.limits.link3': 'Åbn Konti',
+
+  'settings.help.captcha.title': 'Captcha',
+  'settings.help.captcha.body':
+    'Når en hoster beder om en captcha, prøves først en automatisk løser, du har sat op, i den rækkefølge, du har angivet. Det, den ikke kan løse - eller hvis ingen er sat op - præsenteres for dig i stedet for at fejle i stilhed.',
+  'settings.help.captcha.link': 'Åbn indstillinger for Captcha',
+
+  'settings.help.after.title': 'Efter download',
+  'settings.help.after.body':
+    'Arkiver udpakkes automatisk: zip (også krypteret, både WinZip AES og det ældre ZipCrypto), rar med flerdelte sæt, 7z, tar samt gzip/bzip2/xz/zstd, uanset om de pakker en tar ind eller ej - rent Go, uden eksterne unrar- eller 7z-programmer. For et krypteret arkiv prøves en liste af adgangskoder i rækkefølge. En færdig fil kontrolleres mod enhver kontrolsum, der følger med den: en .sfv-liste, en md5-/sha1-/sha256sum-fil, eller en CRC32, som selve udgivelsesnavnet bærer.',
+  'settings.help.after.link1': 'Åbn indstillinger for Arkiver',
+  'settings.help.after.link2': 'Åbn indstillinger for Downloads',
+
+  'settings.help.schedule.title': 'Køre uden opsyn',
+  'settings.help.schedule.body':
+    'En ugentlig tidsplan sætter køen på pause eller begrænser den efter uret - et natligt vindue, korrekt selv hen over skiftet til sommertid - samme idé som JDownloaders Scheduler.',
+  'settings.help.schedule.link': 'Åbn Tidsplan',
+
+  'settings.help.instances.title': 'Køre mere end én instans',
+  'settings.help.instances.body':
+    'Tilføj en anden KnightLoader som peer, og dens kø dukker også op på dette dashboard - selv-hostet, ingen relæ involveret: denne instans kalder blot den anden instans’ egen API, på samme måde som en browser ville gøre.',
+  'settings.help.instances.link': 'Åbn Instanser',
+
+  'settings.help.access.title': 'Adgang og fejlfinding',
+  'settings.help.access.body':
+    'En adgangskode låser hele grænsefladen bag en sessionscookie. Siden Adgang viser også dette builds indgangsporte og adgangsmetoder, og hvorfor - så en ukendt åben port har et svar i stedet for et gæt. Siden Diagnostik opretter en fil til at vedhæfte til en fejlrapport: version og build-info, de nuværende indstillinger med hver adgangskode fjernet, denne proces’ seneste loglinjer, og hvor mange goroutines der kører.',
+  'settings.help.access.link1': 'Åbn indstillinger for Adgang',
+  'settings.help.access.link2': 'Åbn Diagnostik',
+
+  'settings.help.advanced.title': 'Alt det andet',
+  'settings.help.advanced.body':
+    'Enhver indstilling i dette build kan læses og ændres via dens rå navn på siden Avanceret, herunder nogle få - hvordan et spejl af en allerede downloadet fil behandles, hvad der sker, når en download ville havne på et allerede brugt navn - der endnu ikke har en dedikeret kontrol andetsteds.',
+  'settings.help.advanced.link': 'Åbn indstillinger for Avanceret',
 };

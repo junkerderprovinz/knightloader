@@ -1028,4 +1028,173 @@ export const zh: Dict = {
   'notifications.quietHint': '隐藏成功和信息类通知。失败、等待你处理的验证码或被暂停的账号仍会显示。',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': '最后更改',
+
+  'file.open': '打开',
+  'file.openNatively': '用默认应用打开',
+  'file.revealInFolder': '在文件夹中显示',
+  'file.desktopOnly': '仅桌面应用支持',
+
+  'settings.schedule.title': '计划',
+  'settings.schedule.subtitle': '按计划暂停、恢复或限制下载速度。',
+  'settings.schedule.listTitle': '时间表',
+  'settings.schedule.orderHint':
+    '各行按顺序应用，从上到下，两个时间段重叠时，靠下的行胜出 - 宽泛的“每晚暂停”排在更窄的例外之上时，例外仍然有效，但把同样两行顺序颠倒就不是这样了。',
+  'settings.schedule.add': '添加时间段',
+  'settings.schedule.empty': '队列遵循自己的计划',
+  'settings.schedule.emptyHint':
+    '没有配置任何时间段，因此这里不会按时钟暂停或限制队列。添加一个，可以在夜间保留下载，或者在你自己使用连接时限制速度。',
+  'settings.schedule.use': '使用此时间段',
+  'settings.schedule.moveUp': '上移',
+  'settings.schedule.moveDown': '下移',
+  'settings.schedule.remove': '删除此时间段',
+  'settings.schedule.edit': '编辑此时间段',
+  'settings.schedule.name': '名称',
+  'settings.schedule.namePlaceholder': '例如：夜间暂停',
+  'settings.schedule.days': '天数',
+  'settings.schedule.daysHint':
+    '此时间段在一周的哪些天开启。对于跨越午夜的时间段，勾选它开始的那一天 - “周五 22:00-06:00”在周六早上结束，无需勾选周六本身。',
+  'settings.schedule.preset.every': '每天',
+  'settings.schedule.preset.weekdays': '工作日',
+  'settings.schedule.preset.weekends': '周末',
+  'settings.schedule.preset.custom': '自定义',
+  'settings.schedule.start': '开始',
+  'settings.schedule.end': '结束',
+  'settings.schedule.endHint':
+    '在开始时间之前，此时间段会跨越午夜，并在次日早上结束。结束时间与开始时间相同会被拒绝 - 这可能意味着整整一天，也可能意味着完全没有时间，猜测意图比直接询问更糟。',
+  'settings.schedule.action': '操作',
+  'settings.schedule.action.pause': '暂停',
+  'settings.schedule.action.resume': '恢复',
+  'settings.schedule.action.limit': '限制速度',
+  'settings.schedule.limit': '速度限制',
+  'settings.schedule.disabledOff': '此时间段已搁置，永远不会触发。队列表现得就像这一行根本不存在一样。',
+  'settings.schedule.activeNow': '当前生效，至 {time}',
+  'settings.schedule.next': '下一次：{when}',
+  'settings.schedule.never': '按当前配置永远不会触发',
+  'settings.schedule.stateNow.paused': '队列当前被计划暂停。',
+  'settings.schedule.stateNow.limited': '队列当前被计划限制在 {rate}。',
+  'settings.schedule.stateNow.running': '当前没有任何时间段生效。',
+  'settings.schedule.nextChange': '下一次变化：{when}',
+  'settings.schedule.noNextChange': '表中的任何内容都不会按当前配置改变队列。',
+  'settings.schedule.save': '保存计划',
+  'settings.schedule.discard': '放弃',
+  'settings.schedule.unsaved': '计划中有未保存的更改',
+  'settings.schedule.saveFailed': '无法保存计划：{error}',
+  'settings.schedule.rowError': '第 {row} 行：{error}',
+
+  'idleAction.title': '队列已空闲',
+  'idleAction.action.pause': '正在暂停',
+  'idleAction.actionFallback': '“{action}”正在进行',
+  'idleAction.in': '{countdown}后',
+  'idleAction.cancel': '取消',
+  'idleAction.cancelling': '正在取消…',
+  'idleAction.cancelFailed': '无法取消：服务器没有响应。',
+
+  'settings.idleAction.label': '队列清空时的操作',
+  'settings.idleAction.hint':
+    '一旦没有任何任务在运行、在队列中等待或准备开始时会发生什么。你禁用的链接在这里不计入 - 参见信息气泡。',
+  'settings.idleAction.info':
+    '你禁用的链接永远不计为剩余工作，因此它不能无限期地拖延这个操作。手动暂停或保留的链接仍会计入 - 两者都意味着“稍等一下”，而不是“永远不”。',
+  'settings.idleAction.none': '不做任何事',
+  'settings.idleAction.pause': '暂停队列',
+  'settings.idleAction.delay': '倒计时（秒）',
+  'settings.idleAction.delayHint':
+    '队列真正变为空闲后，在操作执行前你有多长时间可以取消。',
+
+  'settings.nav.diagnostics': '诊断',
+  'settings.diagnostics.subtitle':
+    '这个构建版本是什么、运行在什么上面，以及它自己最近的日志输出 - 用于附加到错误报告。',
+  'settings.diagnostics.version': '版本',
+  'settings.diagnostics.deployment': '构建版本',
+  'settings.diagnostics.deployment.container': '容器',
+  'settings.diagnostics.deployment.desktop': '桌面版',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': '平台',
+  'settings.diagnostics.goroutines': 'Goroutine',
+  'settings.diagnostics.download': '下载诊断包',
+  'settings.diagnostics.downloading': '正在准备…',
+  'settings.diagnostics.downloadHint':
+    '一个包含上述字段的 JSON 文件、去除了所有密码的设置，以及下面的日志行。',
+  'settings.diagnostics.downloadFailed': '无法创建包：{error}',
+  'settings.diagnostics.logTitle': '最近的日志行',
+  'settings.diagnostics.logHint':
+    '此进程记录的最后 {n} 行，最旧的在前。这里的任何内容都不会写入磁盘。',
+  'settings.diagnostics.logEmpty': '尚未记录任何内容。',
+  'settings.diagnostics.refresh': '刷新',
+  'settings.diagnostics.loadFailed': '无法加载诊断信息。服务器可以访问吗？',
+
+  'settings.nav.help': '帮助',
+  'settings.help.intro':
+    '这个构建版本能做什么，按任务而非设置页面组织。每个部分都链接到配置它的位置。',
+
+  'settings.help.intake.title': '添加下载',
+  'settings.help.intake.body':
+    '将链接粘贴到收集器中 - 每行一个，或者一段杂乱的文本：扫描会找出链接，无论它们出现在哪里，句子中间、一行多个，或者被邮件客户端拆成两行。',
+  'settings.help.intake.b1': '拖放一个链接容器文件（.dlc、.ccf、.rsdf）或一份简单的链接列表。',
+  'settings.help.intake.b2':
+    "托管商和论坛页面上的 Click'n'Load 按钮无需改动即可使用 - KnightLoader 在 127.0.0.1:9666 上响应，与其他所有下载管理器使用的端口相同。",
+  'settings.help.intake.b3':
+    '粘贴页面 URL 而非文件链接，并打开爬取，以提取它链接到的每个文件，而不是下载页面本身。',
+  'settings.help.intake.b4': '受监视的文件夹会自动接收放入其中的 .txt/.crawljob 文件。',
+  'settings.help.intake.link1': '打开下载设置',
+  'settings.help.intake.link2': "打开访问设置（Click'n'Load）",
+
+  'settings.help.collector.title': '收集器，在任何内容下载之前',
+  'settings.help.collector.body':
+    '新链接首先到达收集器，而不是队列：这是一个过渡区域，用于在任何内容开始之前检查名称、大小和重复警告。自动确认可以跳过此步骤，并可选延迟；一旦确认，链接要么立即开始，要么在队列中等待，取决于自动开始设置。',
+  'settings.help.collector.link': '打开常规设置',
+
+  'settings.help.rules.title': '规则：包、文件夹以及保留的内容',
+  'settings.help.rules.body':
+    'Packagizer 会在链接到达时，根据你编写的条件重命名链接、选择其文件夹并设置其下载选项。链接过滤器决定一个链接是否被保留 - 与只是让链接消失的过滤器不同，拒绝时总会说明是哪条规则导致的，以及原因。',
+  'settings.help.rules.link': '打开规则',
+
+  'settings.help.queue.title': '管理队列',
+  'settings.help.queue.body':
+    '暂停、恢复或重新排序任何链接，无论是单个还是整个包。停止队列是两种不同的操作：停止会让已经在运行的内容保持不变，让它自行完成，而立即停止所有传输会先显示将会丢失什么，只有在你确认后才会继续 - 这正是该警告存在的意义，针对那些无法从中断处恢复的传输。',
+  'settings.help.queue.b1': '单个链接可以覆盖全局连接数或下载后解压开关。',
+  'settings.help.queue.b2': '列表中已存在的链接的重复项总是会被拒绝，甚至在它到达收集器之前。',
+
+  'settings.help.limits.title': '绕过托管商限制',
+  'settings.help.limits.body': '三种独立的方法可以防止免费限制成为上限：',
+  'settings.help.limits.b1':
+    '连接 - 将下载分散到多条出站路径（第二条线路、代理、SOCKS），而不是总是通过这台机器自己的地址出站。',
+  'settings.help.limits.b2':
+    '重新拨号 - 向路由器请求一个新的公网地址，这是唯一真正能解除与地址本身绑定的限制的方法（UPnP、外部程序、脚本，或对路由器管理页面重放 HTTP 请求 - 现有的 JDownloader LiveHeader/curl 脚本无需改动即可使用）。',
+  'settings.help.limits.b3':
+    '账户 - 保存高级会员或 debrid 登录信息（Real-Debrid、AllDebrid、TorBox 等），以便符合条件的链接以全速获取，而不是受限于免费限制。',
+  'settings.help.limits.link1': '打开连接',
+  'settings.help.limits.link2': '打开重新拨号',
+  'settings.help.limits.link3': '打开账户',
+
+  'settings.help.captcha.title': '验证码',
+  'settings.help.captcha.body':
+    '当托管商要求验证码时，会先尝试你配置的自动求解器，按你设定的顺序。它无法解决的 - 或者没有配置任何求解器时 - 会呈现给你，而不是悄无声息地失败。',
+  'settings.help.captcha.link': '打开验证码设置',
+
+  'settings.help.after.title': '下载完成后',
+  'settings.help.after.body':
+    '压缩包会自动解压：zip（包括加密的，WinZip AES 和旧版 ZipCrypto 均可），带多卷集的 rar、7z、tar，以及无论是否包装了 tar 的 gzip/bzip2/xz/zstd - 纯 Go 实现，无需外部 unrar 或 7z 程序。对于加密压缩包，会按顺序尝试密码列表。已完成的文件会与随附的任何校验和进行核对：.sfv 列表、md5/sha1/sha256sum 文件，或版本名称本身携带的 CRC32。',
+  'settings.help.after.link1': '打开压缩包设置',
+  'settings.help.after.link2': '打开下载设置',
+
+  'settings.help.schedule.title': '无人值守运行',
+  'settings.help.schedule.body':
+    '每周计划按时钟暂停或限制队列 - 一个夜间时间段，即使跨越夏令时切换也保持准确 - 与 JDownloader 的 Scheduler 是同一个理念。',
+  'settings.help.schedule.link': '打开计划',
+
+  'settings.help.instances.title': '运行多个实例',
+  'settings.help.instances.body':
+    '添加另一个 KnightLoader 作为对等节点，它的队列也会出现在这个仪表盘上 - 自托管，不涉及任何中继：此实例只是像浏览器那样调用另一个实例的 API。',
+  'settings.help.instances.link': '打开实例',
+
+  'settings.help.access.title': '访问与故障排除',
+  'settings.help.access.body':
+    '密码会将整个界面锁定在会话 cookie 之后。访问页面还列出了此构建版本的接入端口和访问方式，以及原因 - 这样一个陌生的开放端口就有了答案，而不是猜测。诊断页面会创建一个文件用于附加到错误报告：版本和构建信息、去除了所有密码的当前设置、此进程最近的日志行，以及正在运行的 goroutine 数量。',
+  'settings.help.access.link1': '打开访问设置',
+  'settings.help.access.link2': '打开诊断',
+
+  'settings.help.advanced.title': '其他所有内容',
+  'settings.help.advanced.body':
+    '此构建版本的每个设置都可以在高级页面通过其原始名称读取和更改，包括一些设置 - 比如已下载文件的镜像如何处理、下载最终落在已使用的名称上会发生什么 - 这些目前还没有专门的控件。',
+  'settings.help.advanced.link': '打开高级设置',
 };

@@ -59,6 +59,19 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
 
+      # No libayatana-appindicator3-dev here: the obvious next line for the
+      # tray icon (package 21), but github.com/cardinalby/go-systray - a
+      # Wails-compatible fork of fyne.io/systray, chosen specifically
+      # because plain fyne.io/systray's macOS AppDelegate class collides
+      # with Wails' own - implements the Linux tray over the
+      # StatusNotifierItem D-Bus interface directly (godbus, pure Go), not
+      # through libappindicator/GTK. Verified by reading
+      # systray_unix.go/systray_menu_unix.go: no cgo directives, no
+      # pkg-config, no gtk import anywhere in the unix-tagged sources - only
+      # systray_darwin.go/.m link against Cocoa, which Xcode on the macOS
+      # runner already provides. If the tray library is ever swapped for one
+      # that draws the Linux icon through libappindicator/GTK instead,
+      # revisit this step.
       - name: Linux WebKit deps
         if: runner.os == 'Linux'
         run: |
@@ -68,9 +81,10 @@ jobs:
       # Pinned to the same Wails version desktop/go.mod requires. With @latest a
       # new major of the CLI would silently start driving a v2 module and break
       # tag builds at the worst possible moment. Bump this together with the
-      # require line in desktop/go.mod.
+      # require line in desktop/go.mod - this one had already drifted (go.mod
+      # was on v2.13.0, this step still installing v2.10.2) before this change.
       - name: Install Wails
-        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.10.2
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.13.0
 
       - name: Build
         working-directory: desktop

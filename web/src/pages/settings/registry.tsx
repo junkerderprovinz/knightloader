@@ -4,9 +4,11 @@ import {
   IconArchive,
   IconCaptcha,
   IconClock,
+  IconDiagnostics,
   IconDownloads,
   IconFilter,
   IconGlobe,
+  IconHelp,
   IconLock,
   IconLook,
   IconModules,
@@ -19,13 +21,17 @@ import { Advanced } from './Advanced';
 import { Archives } from './Archives';
 import { Captcha } from './Captcha';
 import { Connections } from './Connections';
+import { Diagnostics } from './Diagnostics';
 import { DownloadsSettings } from './DownloadsSettings';
 import { EmptyPage } from './Empty';
 import { General } from './General';
+import { Help } from './Help';
 import { Look } from './Look';
 import { Modules } from './Modules';
 import { Reconnect } from './Reconnect';
 import { Rules } from './Rules';
+import { Schedule } from './Schedule';
+import { System } from './System';
 
 /**
  * Which component renders which sub-page.
@@ -55,9 +61,21 @@ const PAGES: Record<string, () => ReactNode> = {
   // Wave 7 (7B) fills this line in - captcha settings: solver order and each
   // solver's own API key. See Captcha.tsx's own doc comment.
   captcha: () => <Captcha />,
-  // accounts and schedule are still deliberately absent: they are registered
-  // on the server, they have working addresses, and until their wave lands they
-  // render the registry's own reason.
+  // Timetable editor - see Schedule.tsx's own doc comment for why it reads
+  // and writes PUT /api/schedule directly rather than joining the shared
+  // settings draft every other page here uses.
+  schedule: () => <Schedule />,
+  // accounts is still deliberately absent: it is registered on the server,
+  // it has a working address, and until its wave lands it renders the
+  // registry's own reason.
+  diagnostics: () => <Diagnostics />,
+  // Quit/restart/backup/restore - build-plan.md's Wave 10 (10D) shipped the
+  // whole backend with no page pointing at it at all; see System.tsx's own
+  // doc comment. No icon registered below on purpose - pageIcon's own
+  // fallback (a text-only tab label) is a supported, unbroken state, not a
+  // gap, and this page does not yet warrant inventing a new glyph for it.
+  system: () => <System />,
+  help: () => <Help />,
 };
 
 /**
@@ -88,6 +106,8 @@ const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   look: IconLook,
   access: IconLock,
   advanced: IconSliders,
+  diagnostics: IconDiagnostics,
+  help: IconHelp,
 };
 
 export function renderSettingsPage(id: string): ReactNode {

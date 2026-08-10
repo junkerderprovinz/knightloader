@@ -1031,4 +1031,173 @@ export const he: Dict = {
     'מסתיר התראות הצלחה ומידע. שגיאה, קאפצ׳ה שמחכה לך או חשבון מושהה עדיין מוצגים.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'שינוי אחרון',
+
+  'file.open': 'פתח',
+  'file.openNatively': 'פתח באפליקציית ברירת המחדל',
+  'file.revealInFolder': 'הצג בתיקייה',
+  'file.desktopOnly': 'רק באפליקציית שולחן העבודה',
+
+  'settings.schedule.title': 'לוח זמנים',
+  'settings.schedule.subtitle': 'השהה, המשך או הגבל את מהירות ההורדה לפי לוח זמנים.',
+  'settings.schedule.listTitle': 'טבלת זמנים',
+  'settings.schedule.orderHint':
+    'השורות חלות לפי הסדר, מלמעלה למטה, וכשחלונות זמן חופפים, הזוכה הוא זה שלמטה - חלון רחב כמו „השהה כל לילה” מעל חריג צר יותר משאיר את החריג בתוקף, אבל אותן שתי שורות בכיוון ההפוך לא.',
+  'settings.schedule.add': 'הוסף חלון זמן',
+  'settings.schedule.empty': 'התור פועל לפי לוח הזמנים שלו',
+  'settings.schedule.emptyHint':
+    'לא הוגדר אף חלון זמן, אז שום דבר כאן לא משהה או מגביל את התור לפי השעון. הוסף אחד כדי לעצור הורדות בלילה או להגביל את המהירות בזמן שאתה עצמך משתמש בחיבור.',
+  'settings.schedule.use': 'השתמש בחלון הזה',
+  'settings.schedule.moveUp': 'הזז למעלה',
+  'settings.schedule.moveDown': 'הזז למטה',
+  'settings.schedule.remove': 'הסר את החלון הזה',
+  'settings.schedule.edit': 'ערוך את החלון הזה',
+  'settings.schedule.name': 'שם',
+  'settings.schedule.namePlaceholder': 'לדוגמה, הפסקת לילה',
+  'settings.schedule.days': 'ימים',
+  'settings.schedule.daysHint':
+    'באילו ימים בשבוע חלון הזמן הזה נפתח. עבור חלון שנמשך אחרי חצות, סמן את היום שבו הוא מתחיל - „שישי 22:00-06:00” מסתיים בבוקר שבת בלי שיום שבת עצמו מסומן.',
+  'settings.schedule.preset.every': 'כל יום',
+  'settings.schedule.preset.weekdays': 'ימי חול',
+  'settings.schedule.preset.weekends': 'סופי שבוע',
+  'settings.schedule.preset.custom': 'מותאם אישית',
+  'settings.schedule.start': 'התחלה',
+  'settings.schedule.end': 'סיום',
+  'settings.schedule.endHint':
+    'לפני שעת ההתחלה, חלון הזמן הזה נמשך אחרי חצות ומסתיים בבוקר שלמחרת. שעת סיום שווה לשעת ההתחלה נדחית - זה יכול לציין יום שלם או שום זמן בכלל, וניחוש מה התכוונת גרוע יותר משאלה.',
+  'settings.schedule.action': 'פעולה',
+  'settings.schedule.action.pause': 'השהה',
+  'settings.schedule.action.resume': 'המשך',
+  'settings.schedule.action.limit': 'הגבל מהירות',
+  'settings.schedule.limit': 'הגבלת מהירות',
+  'settings.schedule.disabledOff': 'חלון הזמן הזה חונה בצד ולעולם לא מופעל. התור מתנהג כאילו השורה הזו לא קיימת בכלל.',
+  'settings.schedule.activeNow': 'פעיל עכשיו, עד {time}',
+  'settings.schedule.next': 'הבא: {when}',
+  'settings.schedule.never': 'לעולם לא יופעל כפי שהוגדר',
+  'settings.schedule.stateNow.paused': 'התור מושהה כרגע בגלל לוח הזמנים.',
+  'settings.schedule.stateNow.limited': 'התור מוגבל כרגע ל-{rate} בגלל לוח הזמנים.',
+  'settings.schedule.stateNow.running': 'שום חלון זמן לא בתוקף כרגע.',
+  'settings.schedule.nextChange': 'השינוי הבא: {when}',
+  'settings.schedule.noNextChange': 'שום דבר בטבלה לא ישנה לעולם את התור כפי שהוגדר.',
+  'settings.schedule.save': 'שמור לוח זמנים',
+  'settings.schedule.discard': 'בטל שינויים',
+  'settings.schedule.unsaved': 'שינויים שלא נשמרו בלוח הזמנים',
+  'settings.schedule.saveFailed': 'לא ניתן היה לשמור את לוח הזמנים: {error}',
+  'settings.schedule.rowError': 'שורה {row}: {error}',
+
+  'idleAction.title': 'התור לא פעיל',
+  'idleAction.action.pause': 'מושהה',
+  'idleAction.actionFallback': '„{action}” פועלת',
+  'idleAction.in': 'בעוד {countdown}',
+  'idleAction.cancel': 'בטל',
+  'idleAction.cancelling': 'מבטל…',
+  'idleAction.cancelFailed': 'לא ניתן היה לבטל: השרת לא הגיב.',
+
+  'settings.idleAction.label': 'פעולה כשהתור מתרוקן',
+  'settings.idleAction.hint':
+    'מה קורה ברגע שכלום כבר לא פועל, ממתין בתור או מוכן להתחיל. קישור שכיבית לא נספר כאן - ראה את בועת המידע.',
+  'settings.idleAction.info':
+    'קישור שכיבית לעולם לא נספר כעבודה שנותרה, אז הוא לא יכול לעכב את זה לנצח. קישור מושהה או מוחזק ידנית עדיין נספר - שניהם אומרים „לחכות קצת”, לא „אף פעם”.',
+  'settings.idleAction.none': 'אל תעשה כלום',
+  'settings.idleAction.pause': 'השהה את התור',
+  'settings.idleAction.delay': 'ספירה לאחור (שניות)',
+  'settings.idleAction.delayHint':
+    'כמה זמן יש לך לבטל לפני שהפעולה תרוץ, ברגע שהתור באמת יהפוך ללא פעיל.',
+
+  'settings.nav.diagnostics': 'אבחון',
+  'settings.diagnostics.subtitle':
+    'מה הבילד הזה, על מה הוא רץ, ופלט היומן האחרון שלו - לצירוף לדוח באג.',
+  'settings.diagnostics.version': 'גרסה',
+  'settings.diagnostics.deployment': 'בילד',
+  'settings.diagnostics.deployment.container': 'קונטיינר',
+  'settings.diagnostics.deployment.desktop': 'שולחן עבודה',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'פלטפורמה',
+  'settings.diagnostics.goroutines': 'גורוטינות',
+  'settings.diagnostics.download': 'הורד חבילת אבחון',
+  'settings.diagnostics.downloading': 'מכין…',
+  'settings.diagnostics.downloadHint':
+    'קובץ JSON עם השדות שלמעלה, ההגדרות שלך עם כל סיסמה מוסרת, ושורות היומן שלמטה.',
+  'settings.diagnostics.downloadFailed': 'לא ניתן היה ליצור את החבילה: {error}',
+  'settings.diagnostics.logTitle': 'שורות יומן אחרונות',
+  'settings.diagnostics.logHint':
+    '{n} השורות האחרונות שהתהליך הזה תיעד, הישנות ביותר קודם. שום דבר כאן לא נכתב לדיסק.',
+  'settings.diagnostics.logEmpty': 'עדיין לא תועד כלום.',
+  'settings.diagnostics.refresh': 'רענן',
+  'settings.diagnostics.loadFailed': 'לא ניתן היה לטעון את האבחון. האם השרת זמין?',
+
+  'settings.nav.help': 'עזרה',
+  'settings.help.intro':
+    'מה הבילד הזה יודע לעשות, מאורגן לפי משימה ולא לפי עמוד הגדרות. כל קטע מקשר לאן זה מוגדר.',
+
+  'settings.help.intake.title': 'הוספת הורדות',
+  'settings.help.intake.body':
+    'הדבק קישורים לתוך האספן - אחד בכל שורה, או טקסט מבולגן: סריקה מוצאת קישורים בכל מקום שהם נמצאים, באמצע משפט, כמה בשורה, או שבורים לשתי שורות על ידי תוכנת אימייל.',
+  'settings.help.intake.b1': 'שחרר קובץ מכל קישורים (.dlc, .ccf, .rsdf) או רשימת קישורים פשוטה.',
+  'settings.help.intake.b2':
+    "כפתורי Click'n'Load בדפי אחסון ופורומים עובדים ללא שינוי - KnightLoader עונה בכתובת 127.0.0.1:9666, אותה פורט שכל מנהל הורדות אחר משתמש בו.",
+  'settings.help.intake.b3':
+    'הדבק כתובת URL של דף במקום קישור לקובץ והפעל סריקה כדי לחלץ כל קובץ שהוא מקשר אליו, במקום להוריד את הדף עצמו.',
+  'settings.help.intake.b4': 'תיקייה מפוקחת אוספת אוטומטית קבצי .txt/.crawljob שמושלכים לתוכה.',
+  'settings.help.intake.link1': 'פתח הגדרות הורדות',
+  'settings.help.intake.link2': "פתח הגדרות גישה (Click'n'Load)",
+
+  'settings.help.collector.title': 'האספן, לפני שמשהו יורד',
+  'settings.help.collector.body':
+    'קישורים חדשים מגיעים קודם לאספן, לא לתור: אזור מעבר לבדיקת שמות, גדלים ואזהרות כפילויות לפני שמשהו מתחיל. אישור אוטומטי יכול לדלג על השלב הזה, עם עיכוב אופציונלי; ברגע שאושר, קישור מתחיל מיד או ממתין בתור, בהתאם להתחלה האוטומטית.',
+  'settings.help.collector.link': 'פתח הגדרות כלליות',
+
+  'settings.help.rules.title': 'חוקים: חבילות, תיקיות ומה נשמר',
+  'settings.help.rules.body':
+    'ה-Packagizer משנה את שם הקישור, בוחר את התיקייה שלו ומגדיר את אפשרויות ההורדה שלו עם ההגעה, בהתבסס על תנאים שאתה כותב. מסנן הקישורים מחליט אם קישור נשמר בכלל - ובניגוד למסנן שפשוט גורם לקישורים להיעלם, דחייה תמיד נוקבת בשם החוק שגרם לה, ומדוע.',
+  'settings.help.rules.link': 'פתח חוקים',
+
+  'settings.help.queue.title': 'ניהול התור',
+  'settings.help.queue.body':
+    'השהה, המשך או סדר מחדש כל קישור, לבד או כחבילה שלמה. עצירת התור היא שתי פעולות שונות: עצירה משאירה את מה שכבר רץ ללא נגיעה כדי שיסתיים בעצמו, בעוד עצירת כל ההעברות מיד מראה קודם מה יאבד, וממשיכה רק אחרי האישור שלך - בדיוק לשם כך האזהרה הזו קיימת עבור העברה שלא יכולה להמשיך מהמקום שבו נעצרה.',
+  'settings.help.queue.b1': 'קישור בודד יכול לעקוף את מספר החיבורים הגלובלי או את מתג החילוץ לאחר ההורדה.',
+  'settings.help.queue.b2': 'כפילות של קישור שכבר קיים ברשימה תמיד נדחית, עוד לפני שהיא מגיעה לאספן.',
+
+  'settings.help.limits.title': 'עקיפת מגבלות של ספק האחסון',
+  'settings.help.limits.body': 'שלוש דרכים עצמאיות למנוע ממגבלה חינמית להיות התקרה:',
+  'settings.help.limits.b1':
+    'חיבורים - פזר הורדות על פני יותר מנתיב יציאה אחד (קו שני, פרוקסי, SOCKS) במקום לצאת תמיד דרך הכתובת של המחשב הזה עצמו.',
+  'settings.help.limits.b2':
+    'התחברות מחדש - בקש מהנתב כתובת ציבורית חדשה, הדבר היחיד שבאמת מסיר מגבלה הקשורה לכתובת עצמה (UPnP, תוכנית חיצונית, סקריפט, או השמעה חוזרת של בקשות HTTP מול עמוד הניהול של הנתב - סקריפטי JDownloader LiveHeader/curl קיימים עובדים ללא שינוי).',
+  'settings.help.limits.b3':
+    'חשבונות - שמור פרטי כניסה של פרימיום או debrid (Real-Debrid, AllDebrid, TorBox ואחרים) כדי שקישור זכאי יילקח במהירות מלאה במקום המגבלה החינמית.',
+  'settings.help.limits.link1': 'פתח חיבורים',
+  'settings.help.limits.link2': 'פתח התחברות מחדש',
+  'settings.help.limits.link3': 'פתח חשבונות',
+
+  'settings.help.captcha.title': 'קאפצ׳ה',
+  'settings.help.captcha.body':
+    'כשספק אחסון מבקש קאפצ׳ה, פותר אוטומטי שהגדרת מנוסה קודם, לפי הסדר שקבעת. את מה שהוא לא מצליח לפתור - או אם לא הוגדר אף פותר - מציגים לך במקום להיכשל בשקט.',
+  'settings.help.captcha.link': 'פתח הגדרות קאפצ׳ה',
+
+  'settings.help.after.title': 'אחרי ההורדה',
+  'settings.help.after.body':
+    'ארכיונים מחולצים אוטומטית: zip (כולל מוצפנים, גם WinZip AES וגם ZipCrypto הישן), rar עם ערכות מרובות כרכים, 7z, tar, וגם gzip/bzip2/xz/zstd בין אם הם עוטפים tar ובין אם לא - Go טהור, בלי תוכנת unrar או 7z חיצונית. עבור ארכיון מוצפן, רשימת סיסמאות מנוסה לפי הסדר. קובץ שהושלם נבדק מול כל checksum שהגיע איתו: רשימת .sfv, קובץ md5/sha1/sha256sum, או CRC32 שהשם של הגרסה עצמו נושא.',
+  'settings.help.after.link1': 'פתח הגדרות ארכיונים',
+  'settings.help.after.link2': 'פתח הגדרות הורדות',
+
+  'settings.help.schedule.title': 'פעולה ללא השגחה',
+  'settings.help.schedule.body':
+    'לוח זמנים שבועי משהה או מגביל את התור לפי השעון - חלון זמן לילי, נכון גם דרך שינוי השעון לקיץ - אותו רעיון כמו ה-Scheduler של JDownloader.',
+  'settings.help.schedule.link': 'פתח לוח זמנים',
+
+  'settings.help.instances.title': 'הרצת יותר ממופע אחד',
+  'settings.help.instances.body':
+    'הוסף KnightLoader נוסף כעמית, והתור שלו יופיע גם בלוח הבקרה הזה - מתארח עצמאית, ללא שום ממסר מעורב: המופע הזה פשוט קורא ל-API של המופע האחר, באותו אופן שדפדפן היה עושה.',
+  'settings.help.instances.link': 'פתח מופעים',
+
+  'settings.help.access.title': 'גישה ופתרון תקלות',
+  'settings.help.access.body':
+    'סיסמה נועלת את כל הממשק מאחורי עוגיית הפעלה. עמוד הגישה גם מפרט את יציאות הקליטה ושיטות הגישה של הבילד הזה, ומדוע - כדי שליציאה פתוחה לא מוכרת יהיה מענה במקום ניחוש. עמוד האבחון יוצר קובץ לצירוף לדוח באג: גרסה ומידע בילד, ההגדרות הנוכחיות עם כל סיסמה מוסרת, שורות היומן האחרונות של התהליך הזה, וכמה גורוטינות רצות.',
+  'settings.help.access.link1': 'פתח הגדרות גישה',
+  'settings.help.access.link2': 'פתח אבחון',
+
+  'settings.help.advanced.title': 'כל השאר',
+  'settings.help.advanced.body':
+    'כל הגדרה בבילד הזה אפשר לקרוא ולשנות לפי השם הגולמי שלה בעמוד המתקדם, כולל כמה - איך מטפלים במראה של קובץ שכבר הורד, מה קורה כשהורדה הייתה נוחתת על שם שכבר בשימוש - שעדיין אין להן פקד ייעודי במקום אחר.',
+  'settings.help.advanced.link': 'פתח הגדרות מתקדמות',
 };

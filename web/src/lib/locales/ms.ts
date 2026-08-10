@@ -1029,4 +1029,173 @@ export const ms: Dict = {
     'Menyembunyikan pemberitahuan kejayaan dan maklumat. Ralat, captcha yang menunggu anda, atau akaun yang digantung sementara tetap dipaparkan.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Terakhir diubah',
+
+  'file.open': 'Buka',
+  'file.openNatively': 'Buka dengan aplikasi lalai',
+  'file.revealInFolder': 'Tunjukkan dalam folder',
+  'file.desktopOnly': 'Hanya dalam aplikasi desktop',
+
+  'settings.schedule.title': 'Jadual',
+  'settings.schedule.subtitle': 'Jeda, sambung semula, atau hadkan kelajuan muat turun mengikut jadual.',
+  'settings.schedule.listTitle': 'Jadual masa',
+  'settings.schedule.orderHint':
+    'Baris digunakan mengikut urutan, dari atas ke bawah, dan apabila dua tetingkap bertindih, yang di bawah menang - “jeda setiap malam” yang luas di atas pengecualian yang lebih sempit membiarkan pengecualian itu berkuat kuasa, sedangkan dua baris yang sama secara terbalik tidak.',
+  'settings.schedule.add': 'Tambah tetingkap',
+  'settings.schedule.empty': 'Baris gilir mengikut jadualnya sendiri',
+  'settings.schedule.emptyHint':
+    'Tiada tetingkap dikonfigurasikan, jadi tiada apa-apa di sini menjeda atau menghadkan baris gilir mengikut jam. Tambah satu untuk menahan muat turun pada waktu malam atau menghadkan kelajuan semasa anda sendiri menggunakan sambungan.',
+  'settings.schedule.use': 'Guna tetingkap ini',
+  'settings.schedule.moveUp': 'Alih ke atas',
+  'settings.schedule.moveDown': 'Alih ke bawah',
+  'settings.schedule.remove': 'Buang tetingkap ini',
+  'settings.schedule.edit': 'Sunting tetingkap ini',
+  'settings.schedule.name': 'Nama',
+  'settings.schedule.namePlaceholder': 'cth. Jeda malam',
+  'settings.schedule.days': 'Hari',
+  'settings.schedule.daysHint':
+    'Pada hari apa dalam seminggu tetingkap ini dibuka. Untuk tetingkap yang berlangsung melepasi tengah malam, tandakan hari ia BERMULA - “Jum 22:00-06:00” tamat Sabtu pagi tanpa hari Sabtu itu sendiri ditandakan.',
+  'settings.schedule.preset.every': 'Setiap hari',
+  'settings.schedule.preset.weekdays': 'Hari bekerja',
+  'settings.schedule.preset.weekends': 'Hujung minggu',
+  'settings.schedule.preset.custom': 'Tersuai',
+  'settings.schedule.start': 'Mula',
+  'settings.schedule.end': 'Tamat',
+  'settings.schedule.endHint':
+    'Sebelum masa mula, tetingkap ini berlangsung melepasi tengah malam dan tamat pada pagi berikutnya. Masa tamat yang sama dengan masa mula ditolak - ini boleh bermaksud sepanjang hari atau tiada masa langsung, dan meneka apa yang dimaksudkan lebih buruk daripada bertanya.',
+  'settings.schedule.action': 'Tindakan',
+  'settings.schedule.action.pause': 'Jeda',
+  'settings.schedule.action.resume': 'Sambung semula',
+  'settings.schedule.action.limit': 'Hadkan kelajuan',
+  'settings.schedule.limit': 'Had kelajuan',
+  'settings.schedule.disabledOff': 'Tetingkap ini diletak tepi dan tidak pernah tercetus. Baris gilir berkelakuan seolah-olah baris ini langsung tiada.',
+  'settings.schedule.activeNow': 'Aktif sekarang, sehingga {time}',
+  'settings.schedule.next': 'Seterusnya: {when}',
+  'settings.schedule.never': 'Tidak pernah tercetus mengikut konfigurasi semasa',
+  'settings.schedule.stateNow.paused': 'Baris gilir sedang dijeda oleh jadual sekarang.',
+  'settings.schedule.stateNow.limited': 'Baris gilir sedang dihadkan kepada {rate} oleh jadual sekarang.',
+  'settings.schedule.stateNow.running': 'Tiada tetingkap berkuat kuasa sekarang.',
+  'settings.schedule.nextChange': 'Perubahan seterusnya: {when}',
+  'settings.schedule.noNextChange': 'Tiada apa-apa dalam jadual akan mengubah baris gilir mengikut konfigurasi semasa.',
+  'settings.schedule.save': 'Simpan jadual',
+  'settings.schedule.discard': 'Buang',
+  'settings.schedule.unsaved': 'Perubahan belum disimpan pada jadual',
+  'settings.schedule.saveFailed': 'Jadual tidak dapat disimpan: {error}',
+  'settings.schedule.rowError': 'Baris {row}: {error}',
+
+  'idleAction.title': 'Baris gilir terbiar',
+  'idleAction.action.pause': 'Menjeda',
+  'idleAction.actionFallback': '“{action}” berjalan',
+  'idleAction.in': 'dalam {countdown}',
+  'idleAction.cancel': 'Batal',
+  'idleAction.cancelling': 'Membatalkan…',
+  'idleAction.cancelFailed': 'Tidak dapat membatalkan: pelayan tidak bertindak balas.',
+
+  'settings.idleAction.label': 'Tindakan apabila baris gilir kosong',
+  'settings.idleAction.hint':
+    'Apa yang berlaku sebaik sahaja tiada lagi yang berjalan, menunggu dalam baris gilir atau bersedia untuk bermula. Pautan yang anda nyahaktifkan tidak dikira di sini - lihat gelembung maklumat.',
+  'settings.idleAction.info':
+    'Pautan yang anda nyahaktifkan tidak pernah dikira sebagai kerja yang tinggal, jadi ia tidak boleh menangguhkan ini selama-lamanya. Pautan yang dijeda atau ditahan secara manual masih dikira - kedua-duanya bermaksud “tunggu sebentar”, bukan “tidak sekali-kali”.',
+  'settings.idleAction.none': 'Jangan buat apa-apa',
+  'settings.idleAction.pause': 'Jeda baris gilir',
+  'settings.idleAction.delay': 'Kira detik (saat)',
+  'settings.idleAction.delayHint':
+    'Berapa lama masa yang anda ada untuk membatalkan sebelum tindakan dijalankan, sebaik sahaja baris gilir benar-benar terbiar.',
+
+  'settings.nav.diagnostics': 'Diagnostik',
+  'settings.diagnostics.subtitle':
+    'Apakah build ini, apa yang dijalankannya, dan output log terbarunya sendiri - untuk dilampirkan pada laporan pepijat.',
+  'settings.diagnostics.version': 'Versi',
+  'settings.diagnostics.deployment': 'Build',
+  'settings.diagnostics.deployment.container': 'Bekas',
+  'settings.diagnostics.deployment.desktop': 'Desktop',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'Platform',
+  'settings.diagnostics.goroutines': 'Goroutine',
+  'settings.diagnostics.download': 'Muat turun pakej diagnostik',
+  'settings.diagnostics.downloading': 'Menyediakan…',
+  'settings.diagnostics.downloadHint':
+    'Fail JSON dengan medan di atas, tetapan anda dengan setiap kata laluan dialih keluar, dan baris log di bawah.',
+  'settings.diagnostics.downloadFailed': 'Pakej tidak dapat dibuat: {error}',
+  'settings.diagnostics.logTitle': 'Baris log terbaru',
+  'settings.diagnostics.logHint':
+    '{n} baris terakhir yang direkodkan oleh proses ini, paling lama dahulu. Tiada apa-apa di sini ditulis ke cakera.',
+  'settings.diagnostics.logEmpty': 'Belum ada apa-apa direkodkan.',
+  'settings.diagnostics.refresh': 'Segar semula',
+  'settings.diagnostics.loadFailed': 'Diagnostik tidak dapat dimuatkan. Pelayan boleh dicapai?',
+
+  'settings.nav.help': 'Bantuan',
+  'settings.help.intro':
+    'Apa yang boleh dilakukan oleh build ini, disusun mengikut tugas dan bukan mengikut halaman tetapan. Setiap bahagian memaut ke tempat ia dikonfigurasikan.',
+
+  'settings.help.intake.title': 'Menambah muat turun',
+  'settings.help.intake.body':
+    'Tampal pautan ke dalam Pengumpul - satu setiap baris, atau teks bercelaru: imbasan menemui pautan di mana sahaja ia berada, di tengah ayat, beberapa setiap baris, atau dipisahkan kepada dua baris oleh klien e-mel.',
+  'settings.help.intake.b1': 'Lepaskan fail bekas pautan (.dlc, .ccf, .rsdf) atau senarai pautan biasa.',
+  'settings.help.intake.b2':
+    "Butang Click'n'Load pada halaman hoster dan forum berfungsi tanpa perubahan - KnightLoader membalas pada 127.0.0.1:9666, port yang sama yang digunakan oleh setiap pengurus muat turun lain.",
+  'settings.help.intake.b3':
+    'Tampal URL halaman dan bukannya pautan fail dan hidupkan Rayapan untuk mengekstrak setiap fail yang dipautnya, bukannya memuat turun halaman itu sendiri.',
+  'settings.help.intake.b4': 'Folder yang diawasi secara automatik mengambil fail .txt/.crawljob yang dilepaskan ke dalamnya.',
+  'settings.help.intake.link1': 'Buka tetapan Muat turun',
+  'settings.help.intake.link2': "Buka tetapan Akses (Click'n'Load)",
+
+  'settings.help.collector.title': 'Pengumpul, sebelum apa-apa dimuat turun',
+  'settings.help.collector.body':
+    'Pautan baharu mula-mula tiba di Pengumpul, bukan baris gilir: zon peralihan untuk menyemak nama, saiz dan amaran pendua sebelum apa-apa bermula. Pengesahan automatik boleh melangkau langkah ini, dengan kelewatan pilihan; setelah disahkan, pautan sama ada mula serta-merta atau menunggu dalam baris gilir, bergantung pada permulaan automatik.',
+  'settings.help.collector.link': 'Buka tetapan Am',
+
+  'settings.help.rules.title': 'Peraturan: pakej, folder dan apa yang dikekalkan',
+  'settings.help.rules.body':
+    'Packagizer menamakan semula pautan, memilih foldernya dan menetapkan pilihan muat turunnya semasa ketibaan, berdasarkan syarat yang anda tulis. Penapis Pautan memutuskan sama ada pautan dikekalkan langsung - dan tidak seperti penapis yang hanya membiarkan pautan hilang, penolakan sentiasa menamakan peraturan yang menyebabkannya, dan sebabnya.',
+  'settings.help.rules.link': 'Buka Peraturan',
+
+  'settings.help.queue.title': 'Mengurus baris gilir',
+  'settings.help.queue.body':
+    'Jeda, sambung semula atau susun semula mana-mana pautan, secara berasingan atau sebagai keseluruhan pakej. Menghentikan baris gilir adalah dua tindakan berbeza: menghentikan membiarkan apa yang sudah berjalan tidak disentuh supaya ia selesai dengan sendirinya, manakala menghentikan segera semua pemindahan mula-mula menunjukkan apa yang akan hilang, dan hanya meneruskan selepas pengesahan anda - itulah tepatnya kegunaan amaran itu untuk pemindahan yang tidak dapat menyambung dari tempat ia terhenti.',
+  'settings.help.queue.b1': 'Satu pautan boleh mengatasi bilangan sambungan global atau suis ekstrak selepas muat turun.',
+  'settings.help.queue.b2': 'Pendua pautan yang sudah ada dalam senarai sentiasa ditolak, sebelum ia sampai ke Pengumpul.',
+
+  'settings.help.limits.title': 'Mengelak had hoster',
+  'settings.help.limits.body': 'Tiga cara bebas untuk menghalang had percuma daripada menjadi siling:',
+  'settings.help.limits.b1':
+    'Sambungan - agihkan muat turun ke lebih daripada satu laluan keluar (talian kedua, proksi, SOCKS) selain daripada sentiasa keluar melalui alamat sendiri mesin ini.',
+  'settings.help.limits.b2':
+    'Sambung semula - minta penghala untuk alamat awam baharu, satu-satunya perkara yang benar-benar menghapuskan had yang terikat pada alamat itu sendiri (UPnP, program luaran, skrip, atau memainkan semula permintaan HTTP terhadap halaman pentadbiran penghala - skrip JDownloader LiveHeader/curl sedia ada berfungsi tanpa perubahan).',
+  'settings.help.limits.b3':
+    'Akaun - simpan bukti kelayakan premium atau debrid (Real-Debrid, AllDebrid, TorBox dan lain-lain) supaya pautan yang layak diambil pada kelajuan penuh selain daripada had percuma.',
+  'settings.help.limits.link1': 'Buka Sambungan',
+  'settings.help.limits.link2': 'Buka Sambung semula',
+  'settings.help.limits.link3': 'Buka Akaun',
+
+  'settings.help.captcha.title': 'Captcha',
+  'settings.help.captcha.body':
+    'Apabila hoster meminta captcha, penyelesai automatik yang anda konfigurasikan dicuba dahulu, mengikut urutan yang anda tetapkan. Apa yang tidak dapat diselesaikannya - atau jika tiada yang dikonfigurasikan - dikemukakan kepada anda selain daripada gagal secara senyap.',
+  'settings.help.captcha.link': 'Buka tetapan Captcha',
+
+  'settings.help.after.title': 'Selepas muat turun',
+  'settings.help.after.body':
+    'Arkib diekstrak secara automatik: zip (termasuk yang disulitkan, kedua-dua WinZip AES dan ZipCrypto lama), rar dengan set berbilang volum, 7z, tar, serta gzip/bzip2/xz/zstd sama ada ia membungkus tar atau tidak - Go tulen, tanpa program unrar atau 7z luaran. Untuk arkib yang disulitkan, senarai kata laluan dicuba mengikut urutan. Fail yang selesai disemak terhadap sebarang checksum yang disertakan bersamanya: senarai .sfv, fail md5/sha1/sha256sum, atau CRC32 yang dibawa oleh nama keluaran itu sendiri.',
+  'settings.help.after.link1': 'Buka tetapan Arkib',
+  'settings.help.after.link2': 'Buka tetapan Muat turun',
+
+  'settings.help.schedule.title': 'Berjalan tanpa pengawasan',
+  'settings.help.schedule.body':
+    'Jadual mingguan menjeda atau menghadkan baris gilir mengikut jam - tetingkap malam, betul walaupun semasa peralihan waktu musim panas - idea yang sama seperti Scheduler dalam JDownloader.',
+  'settings.help.schedule.link': 'Buka Jadual',
+
+  'settings.help.instances.title': 'Menjalankan lebih daripada satu instans',
+  'settings.help.instances.body':
+    'Tambah KnightLoader lain sebagai rakan sebaya, dan baris gilirnya turut muncul pada papan pemuka ini - dihoskan sendiri, tanpa geganti yang terlibat: instans ini hanya memanggil API instans lain, dengan cara yang sama seperti pelayar akan lakukan.',
+  'settings.help.instances.link': 'Buka Instans',
+
+  'settings.help.access.title': 'Akses dan penyelesaian masalah',
+  'settings.help.access.body':
+    'Kata laluan mengunci keseluruhan antara muka di sebalik kuki sesi. Halaman Akses juga menyenaraikan port kemasukan dan kaedah akses build ini, dan sebabnya - supaya port terbuka yang tidak dikenali mempunyai jawapan dan bukan tekaan. Halaman Diagnostik mencipta fail untuk dilampirkan pada laporan pepijat: versi dan maklumat build, tetapan semasa dengan setiap kata laluan dialih keluar, baris log terbaru proses ini, dan berapa banyak goroutine yang berjalan.',
+  'settings.help.access.link1': 'Buka tetapan Akses',
+  'settings.help.access.link2': 'Buka Diagnostik',
+
+  'settings.help.advanced.title': 'Semua yang lain',
+  'settings.help.advanced.body':
+    'Setiap tetapan build ini boleh dibaca dan diubah melalui nama mentahnya pada halaman Lanjutan, termasuk beberapa - cara cermin fail yang sudah dimuat turun dikendalikan, apa yang berlaku apabila muat turun akan mendarat pada nama yang sudah digunakan - yang masih belum mempunyai kawalan khusus di tempat lain.',
+  'settings.help.advanced.link': 'Buka tetapan Lanjutan',
 };

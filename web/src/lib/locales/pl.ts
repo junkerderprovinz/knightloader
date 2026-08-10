@@ -1021,4 +1021,173 @@ export const pl: Dict = {
     'Ukrywa powiadomienia o sukcesie i informacyjne. Błąd, captcha czekająca na Ciebie lub konto na zawieszeniu nadal się pokazują.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Ostatnia zmiana',
+
+  'file.open': 'Otwórz',
+  'file.openNatively': 'Otwórz w domyślnej aplikacji',
+  'file.revealInFolder': 'Pokaż w folderze',
+  'file.desktopOnly': 'Tylko aplikacja na komputer',
+
+  'settings.schedule.title': 'Harmonogram',
+  'settings.schedule.subtitle': 'Pauzuj, wznawiaj lub ogranicz prędkość pobierania według harmonogramu.',
+  'settings.schedule.listTitle': 'Tabela czasowa',
+  'settings.schedule.orderHint':
+    'Wiersze są stosowane po kolei, od góry do dołu, a gdy dwa okna się nakładają, wygrywa niższe - szerokie „pauzuj każdej nocy” nad węższym wyjątkiem pozostawia wyjątek w mocy, a te same dwa wiersze w odwrotnej kolejności już nie.',
+  'settings.schedule.add': 'Dodaj okno',
+  'settings.schedule.empty': 'Kolejka trzyma się własnego harmonogramu',
+  'settings.schedule.emptyHint':
+    'Nie skonfigurowano żadnego okna, więc nic tutaj nie pauzuje ani nie ogranicza kolejki według zegara. Dodaj jedno, aby wstrzymywać pobieranie w nocy albo ograniczać prędkość, gdy sam korzystasz z łącza.',
+  'settings.schedule.use': 'Użyj tego okna',
+  'settings.schedule.moveUp': 'Przesuń w górę',
+  'settings.schedule.moveDown': 'Przesuń w dół',
+  'settings.schedule.remove': 'Usuń to okno',
+  'settings.schedule.edit': 'Edytuj to okno',
+  'settings.schedule.name': 'Nazwa',
+  'settings.schedule.namePlaceholder': 'np. Pauza nocna',
+  'settings.schedule.days': 'Dni',
+  'settings.schedule.daysHint':
+    'W które dni tygodnia otwiera się to okno. Dla okna, które trwa po północy, zaznacz dzień, w którym się ZACZYNA - „pt 22:00-06:00” kończy się w sobotni poranek bez zaznaczania samej soboty.',
+  'settings.schedule.preset.every': 'Codziennie',
+  'settings.schedule.preset.weekdays': 'Dni robocze',
+  'settings.schedule.preset.weekends': 'Weekendy',
+  'settings.schedule.preset.custom': 'Niestandardowe',
+  'settings.schedule.start': 'Początek',
+  'settings.schedule.end': 'Koniec',
+  'settings.schedule.endHint':
+    'Przed godziną początkową to okno trwa po północy i kończy się następnego ranka. Godzina końcowa równa początkowej jest odrzucana - mogłoby to oznaczać cały dzień albo wcale żadnego czasu, a zgadywanie, o co chodziło, jest gorsze niż zapytanie.',
+  'settings.schedule.action': 'Akcja',
+  'settings.schedule.action.pause': 'Pauza',
+  'settings.schedule.action.resume': 'Wznowienie',
+  'settings.schedule.action.limit': 'Ogranicz prędkość',
+  'settings.schedule.limit': 'Limit prędkości',
+  'settings.schedule.disabledOff': 'To okno jest zaparkowane i nigdy się nie uruchamia. Kolejka zachowuje się tak, jakby tego wiersza w ogóle nie było.',
+  'settings.schedule.activeNow': 'Aktywne teraz, do {time}',
+  'settings.schedule.next': 'Następne: {when}',
+  'settings.schedule.never': 'Nigdy się nie uruchamia w obecnej konfiguracji',
+  'settings.schedule.stateNow.paused': 'Kolejka jest teraz zatrzymana przez harmonogram.',
+  'settings.schedule.stateNow.limited': 'Kolejka jest teraz ograniczona do {rate} przez harmonogram.',
+  'settings.schedule.stateNow.running': 'Żadne okno nie obowiązuje w tej chwili.',
+  'settings.schedule.nextChange': 'Następna zmiana: {when}',
+  'settings.schedule.noNextChange': 'Nic w tabeli nigdy nie zmieni kolejki w obecnej konfiguracji.',
+  'settings.schedule.save': 'Zapisz harmonogram',
+  'settings.schedule.discard': 'Odrzuć',
+  'settings.schedule.unsaved': 'Niezapisane zmiany w harmonogramie',
+  'settings.schedule.saveFailed': 'Nie udało się zapisać harmonogramu: {error}',
+  'settings.schedule.rowError': 'Wiersz {row}: {error}',
+
+  'idleAction.title': 'Kolejka jest bezczynna',
+  'idleAction.action.pause': 'Pauzowanie',
+  'idleAction.actionFallback': '„{action}” w toku',
+  'idleAction.in': 'za {countdown}',
+  'idleAction.cancel': 'Anuluj',
+  'idleAction.cancelling': 'Anulowanie…',
+  'idleAction.cancelFailed': 'Nie udało się anulować: serwer nie odpowiedział.',
+
+  'settings.idleAction.label': 'Działanie po opróżnieniu kolejki',
+  'settings.idleAction.hint':
+    'Co się dzieje, gdy nic już nie działa, nie czeka w kolejce ani nie jest gotowe do startu. Wyłączony przez Ciebie link się nie liczy - zobacz dymek informacyjny.',
+  'settings.idleAction.info':
+    'Wyłączony przez Ciebie link nigdy nie liczy się jako pozostała praca, więc nie może opóźniać tego w nieskończoność. Ręcznie zatrzymany lub wstrzymany link nadal się liczy - oba znaczą „chwilę poczekać”, nie „nigdy”.',
+  'settings.idleAction.none': 'Nic nie rób',
+  'settings.idleAction.pause': 'Zatrzymaj kolejkę',
+  'settings.idleAction.delay': 'Odliczanie (sekundy)',
+  'settings.idleAction.delayHint':
+    'Ile czasu masz na anulowanie, zanim akcja zostanie wykonana, gdy kolejka naprawdę stanie się bezczynna.',
+
+  'settings.nav.diagnostics': 'Diagnostyka',
+  'settings.diagnostics.subtitle':
+    'Czym jest ten build, na czym działa, i jego własny ostatni zapis dziennika - do dołączenia do zgłoszenia błędu.',
+  'settings.diagnostics.version': 'Wersja',
+  'settings.diagnostics.deployment': 'Build',
+  'settings.diagnostics.deployment.container': 'Kontener',
+  'settings.diagnostics.deployment.desktop': 'Desktop',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'Platforma',
+  'settings.diagnostics.goroutines': 'Goroutines',
+  'settings.diagnostics.download': 'Pobierz pakiet diagnostyczny',
+  'settings.diagnostics.downloading': 'Przygotowywanie…',
+  'settings.diagnostics.downloadHint':
+    'Plik JSON z powyższymi polami, Twoimi ustawieniami z usuniętym każdym hasłem, oraz wierszami dziennika poniżej.',
+  'settings.diagnostics.downloadFailed': 'Nie udało się utworzyć pakietu: {error}',
+  'settings.diagnostics.logTitle': 'Ostatnie wiersze dziennika',
+  'settings.diagnostics.logHint':
+    'Ostatnie {n} wierszy zapisanych przez ten proces, od najstarszych. Nic tutaj nie jest zapisywane na dysku.',
+  'settings.diagnostics.logEmpty': 'Jeszcze nic nie zapisano.',
+  'settings.diagnostics.refresh': 'Odśwież',
+  'settings.diagnostics.loadFailed': 'Nie udało się wczytać diagnostyki. Czy serwer jest osiągalny?',
+
+  'settings.nav.help': 'Pomoc',
+  'settings.help.intro':
+    'Co potrafi ten build, uporządkowane według zadania, a nie strony ustawień. Każda sekcja prowadzi do miejsca, gdzie się to konfiguruje.',
+
+  'settings.help.intake.title': 'Dodawanie pobrań',
+  'settings.help.intake.body':
+    'Wklej linki do Kolektora - jeden w wierszu, albo w postaci nieuporządkowanego tekstu: skanowanie znajduje linki, gdziekolwiek się znajdują, w środku zdania, po kilka w wierszu, albo przełamane na dwa wiersze przez program pocztowy.',
+  'settings.help.intake.b1': 'Upuść plik kontenera linków (.dlc, .ccf, .rsdf) albo zwykłą listę linków.',
+  'settings.help.intake.b2':
+    "Przyciski Click'n'Load na stronach hosterów i forów działają bez zmian - KnightLoader odpowiada na 127.0.0.1:9666, tym samym porcie, którego używa każdy inny menedżer pobierania.",
+  'settings.help.intake.b3':
+    'Wklej adres URL strony zamiast linku do pliku i włącz Przeszukiwanie, aby wyciągnąć każdy plik, do którego prowadzi, zamiast pobierać samą stronę.',
+  'settings.help.intake.b4': 'Obserwowany folder automatycznie odbiera pliki .txt/.crawljob, które się w nim pojawią.',
+  'settings.help.intake.link1': 'Otwórz ustawienia Pobierania',
+  'settings.help.intake.link2': "Otwórz ustawienia Dostępu (Click'n'Load)",
+
+  'settings.help.collector.title': 'Kolektor, zanim cokolwiek zacznie się pobierać',
+  'settings.help.collector.body':
+    'Nowe linki trafiają najpierw do Kolektora, nie do kolejki: strefa przejściowa do sprawdzenia nazw, rozmiarów i ostrzeżeń o duplikatach, zanim cokolwiek się zacznie. Automatyczne potwierdzanie może pominąć ten krok, z opcjonalnym opóźnieniem; po potwierdzeniu link albo zaczyna się natychmiast, albo czeka w kolejce, zależnie od automatycznego startu.',
+  'settings.help.collector.link': 'Otwórz ustawienia Ogólne',
+
+  'settings.help.rules.title': 'Reguły: pakiety, foldery i co jest zachowywane',
+  'settings.help.rules.body':
+    'Packagizer zmienia nazwę linku, wybiera jego folder i ustawia jego opcje pobierania w chwili nadejścia, na podstawie warunków, które piszesz. Filtr linków decyduje, czy link w ogóle zostaje zachowany - a w przeciwieństwie do filtra, który po prostu usuwa linki z widoku, odrzucenie zawsze podaje regułę, która je spowodowała, i dlaczego.',
+  'settings.help.rules.link': 'Otwórz Reguły',
+
+  'settings.help.queue.title': 'Zarządzanie kolejką',
+  'settings.help.queue.body':
+    'Pauzuj, wznawiaj lub zmieniaj kolejność dowolnego linku, pojedynczo lub jako cały pakiet. Zatrzymanie kolejki to dwie różne akcje: zatrzymanie pozostawia to, co już działa, nietknięte, aby dokończyło samo, podczas gdy natychmiastowe zatrzymanie wszystkich transferów najpierw pokazuje, co zostałoby utracone, i przechodzi dalej dopiero po Twoim potwierdzeniu - to ostrzeżenie jest właśnie dla transferu, który nie może wznowić się od miejsca, w którym przerwał.',
+  'settings.help.queue.b1': 'Pojedynczy link może nadpisać globalną liczbę połączeń albo przełącznik wypakowywania po pobraniu.',
+  'settings.help.queue.b2': 'Duplikat linku już obecnego na liście jest zawsze odrzucany, zanim w ogóle dotrze do kolektora.',
+
+  'settings.help.limits.title': 'Omijanie limitów hostera',
+  'settings.help.limits.body': 'Trzy niezależne sposoby, aby darmowy limit nie był sufitem:',
+  'settings.help.limits.b1':
+    'Połączenia - rozłóż pobrania na więcej niż jedną drogę wychodzącą (druga linia, proxy, SOCKS) zamiast zawsze wychodzić przez własny adres tej maszyny.',
+  'settings.help.limits.b2':
+    'Ponowne łączenie - poproś router o nowy adres publiczny, jedyna rzecz, która naprawdę znosi limit przypisany do samego adresu (UPnP, zewnętrzny program, skrypt, albo odtwarzanie żądań HTTP wobec strony administracyjnej routera - istniejące skrypty JDownloader LiveHeader/curl działają bez zmian).',
+  'settings.help.limits.b3':
+    'Konta - zapisz dane logowania premium lub debrid (Real-Debrid, AllDebrid, TorBox i inne), aby uprawniony link był pobierany z pełną prędkością zamiast w ramach darmowego limitu.',
+  'settings.help.limits.link1': 'Otwórz Połączenia',
+  'settings.help.limits.link2': 'Otwórz Ponowne łączenie',
+  'settings.help.limits.link3': 'Otwórz Konta',
+
+  'settings.help.captcha.title': 'Captcha',
+  'settings.help.captcha.body':
+    'Gdy hoster prosi o captchę, najpierw próbowany jest skonfigurowany przez Ciebie automatyczny rozwiązywacz, w ustalonej przez Ciebie kolejności. To, czego nie potrafi rozwiązać - albo gdy żaden nie jest skonfigurowany - trafia przed Ciebie zamiast po cichu zawieść.',
+  'settings.help.captcha.link': 'Otwórz ustawienia Captcha',
+
+  'settings.help.after.title': 'Po pobraniu',
+  'settings.help.after.body':
+    'Archiwa są rozpakowywane automatycznie: zip (również szyfrowany, zarówno WinZip AES, jak i starszy ZipCrypto), rar z zestawami wielotomowymi, 7z, tar, oraz gzip/bzip2/xz/zstd niezależnie od tego, czy opakowują tar - czysty Go, bez zewnętrznych plików binarnych unrar czy 7z. Dla zaszyfrowanego archiwum po kolei próbowana jest lista haseł. Ukończony plik jest sprawdzany względem dowolnej sumy kontrolnej dostarczonej razem z nim: listy .sfv, pliku md5/sha1/sha256sum, albo CRC32 zawartego w samej nazwie wydania.',
+  'settings.help.after.link1': 'Otwórz ustawienia Archiwów',
+  'settings.help.after.link2': 'Otwórz ustawienia Pobierania',
+
+  'settings.help.schedule.title': 'Działanie bez nadzoru',
+  'settings.help.schedule.body':
+    'Cotygodniowy harmonogram pauzuje lub ogranicza kolejkę według zegara - nocne okno, poprawne nawet przy zmianie czasu letniego - ten sam pomysł co Scheduler w JDownloaderze.',
+  'settings.help.schedule.link': 'Otwórz Harmonogram',
+
+  'settings.help.instances.title': 'Uruchamianie więcej niż jednej instancji',
+  'settings.help.instances.body':
+    'Dodaj kolejny KnightLoader jako partnera, a jego kolejka pojawi się też na tym pulpicie - hostowane samodzielnie, bez żadnego pośrednika: ta instancja po prostu wywołuje API tamtej instancji, tak samo jak zrobiłaby to przeglądarka.',
+  'settings.help.instances.link': 'Otwórz Instancje',
+
+  'settings.help.access.title': 'Dostęp i rozwiązywanie problemów',
+  'settings.help.access.body':
+    'Hasło blokuje cały interfejs za ciasteczkiem sesji. Strona Dostęp wymienia też porty wejściowe i metody dostępu tego builda, i dlaczego - aby nieznany otwarty port miał odpowiedź zamiast domysłu. Strona Diagnostyka tworzy plik do dołączenia do zgłoszenia błędu: wersję i informacje o buildzie, bieżące ustawienia z usuniętym każdym hasłem, ostatnie wiersze dziennika tego procesu, oraz liczbę działających goroutines.',
+  'settings.help.access.link1': 'Otwórz ustawienia Dostępu',
+  'settings.help.access.link2': 'Otwórz Diagnostykę',
+
+  'settings.help.advanced.title': 'Wszystko inne',
+  'settings.help.advanced.body':
+    'Każde ustawienie tego builda można odczytać i zmienić po jego surowej nazwie na stronie Zaawansowane, w tym kilka - jak traktowane jest lustro już pobranego pliku, co się dzieje, gdy pobranie miałoby trafić na już zajętą nazwę - które nie mają jeszcze dedykowanej kontrolki nigdzie indziej.',
+  'settings.help.advanced.link': 'Otwórz ustawienia Zaawansowane',
 };

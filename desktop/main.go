@@ -18,6 +18,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/api"
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/provision"
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -25,6 +26,14 @@ import (
 )
 
 func main() {
+	// buildinfo.Deployment defaults to "container" - correct for
+	// cmd/knightloader, wrong here. Set before app.New below, per that
+	// var's own doc comment ("whichever one constructs the App sets this
+	// before serving a single request") - GET /api/system/deployment and
+	// the Diagnostics page both read it, and both exist specifically so a
+	// user can tell which build they are running.
+	buildinfo.Deployment = "desktop"
+
 	dataDir := dataDir()
 	if err := os.MkdirAll(dataDir, 0o755); err != nil {
 		log.Fatalf("data dir: %v", err)
@@ -49,6 +58,37 @@ func main() {
 		log.Fatalf("start: %v", err)
 	}
 
+	// Desktop-local window/tray preferences: never settings.Settings, which
+	// is served whole to every browser connected to this same server and
+	// would let a phone on the LAN decide whether this one installation's
+	// window starts hidden. See config.go's doc comment.
+	tc := newTrayController(a.Hub, filepath.Join(dataDir, "desktop.json"))
+
+	// Both Wails and the tray library want the real OS main thread on macOS,
+	// and systray.Run blocks in its own native loop until Quit() - so it is
+	// started in a goroutine before wails.Run, the established community
+	// pattern for this exact combination (see tray.go's package doc for the
+	// research this rests on). Never started at all when the probe already
+	// found no tray host: an icon nothing can show is not worth the log
+	// noise, and it keeps "close/minimize to tray" unreachable by
+	// construction rather than by a runtime check that could be missed.
+	//
+	// Deliberately a raw goroutine, not tc.spawn: tc.onShutdown calls
+	// tc.wg.Wait() before calling systray.Quit(), and this goroutine only
+	// returns once systray.Quit() is called - tracking it in the same
+	// WaitGroup that gates that same call would deadlock shutdown.
+	if tc.isTrayAvailable() {
+		go runTray(tc)
+	}
+
+	// Bound so the frontend can reach reveal-in-folder and open-natively
+	// (files.go): package 20's two desktop-only actions, reachable from the
+	// frontend as window.go.main.DesktopFiles.*. The container/browser build
+	// never registers this type at all, which is what makes those two
+	// buttons refuse with a stated reason there instead of doing nothing -
+	// see files.go's package doc.
+	desktopFiles := newDesktopFiles(a)
+
 	// The server's HTTP handler serves the SPA, REST and WebSocket; Wails runs
 	// it as the in-window asset handler.
 	err = wails.Run(&options.App{
@@ -59,7 +99,23 @@ func main() {
 		MinHeight:        480,
 		BackgroundColour: &options.RGBA{R: 22, G: 22, B: 22, A: 1},
 		AssetServer:      &assetserver.Options{Handler: api.Handler(a)},
-		OnShutdown:       func(context.Context) { _ = a.Close() },
+		Bind:             []interface{}{desktopFiles},
+		StartHidden:      tc.effectiveStartHidden(),
+		// Left false deliberately: the Windows, macOS and Linux frontends
+		// all route the native close signal through OnBeforeClose only when
+		// this is false (verified against v2.13.0's per-platform frontend
+		// sources - true skips OnBeforeClose entirely on Windows and just
+		// hides unconditionally). Everything close/minimize/tray do is
+		// decided dynamically inside the hooks below instead, from the live
+		// preference, so a change from the tray menu takes effect without a
+		// restart.
+		HideWindowOnClose: false,
+		OnStartup:         tc.onWailsStartup,
+		OnBeforeClose:     tc.onBeforeClose,
+		OnShutdown: func(context.Context) {
+			tc.onShutdown()
+			_ = a.Close()
+		},
 	})
 	if err != nil {
 		log.Fatal(err)

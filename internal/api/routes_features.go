@@ -413,6 +413,17 @@ func featurePages() []FeaturePage {
 		{ID: "look"},
 		{ID: "access", Modules: []string{"cnl", "myjd"}},
 		{ID: "advanced", Modules: []string{"scripting", "updater"}},
+		// diagnostics, system and help carry no module row of their own,
+		// same as look above: the log ring and the diagnostics bundle are
+		// always-on infrastructure rather than a subsystem with an on/off
+		// switch, backup/restore/quit/restart are the same regardless of
+		// which resolvers or modules happen to be enabled, and help is
+		// static content. They are filed here only so each gets a real,
+		// bookmarkable address in the rail the way every other sub-page
+		// does.
+		{ID: "diagnostics"},
+		{ID: "system"},
+		{ID: "help"},
 	}
 }
 

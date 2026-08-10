@@ -1029,4 +1029,173 @@ export const hu: Dict = {
     'Elrejti a sikeres és tájékoztató értesítéseket. Egy hiba, egy Önre váró captcha vagy egy felfüggesztett fiók továbbra is megjelenik.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Utoljára módosítva',
+
+  'file.open': 'Megnyitás',
+  'file.openNatively': 'Megnyitás az alapértelmezett alkalmazással',
+  'file.revealInFolder': 'Megjelenítés a mappában',
+  'file.desktopOnly': 'Csak asztali alkalmazásban',
+
+  'settings.schedule.title': 'Időzítés',
+  'settings.schedule.subtitle': 'A letöltési sebesség szüneteltetése, folytatása vagy korlátozása időzítés szerint.',
+  'settings.schedule.listTitle': 'Idősáv-táblázat',
+  'settings.schedule.orderHint':
+    'A sorok sorrendben, felülről lefelé érvényesülnek, és ha két idősáv átfedi egymást, az alsó nyer - egy tág „szüneteltetés minden éjjel” egy szűkebb kivétel felett érvényben hagyja a kivételt, ugyanez a két sor fordítva viszont nem.',
+  'settings.schedule.add': 'Idősáv hozzáadása',
+  'settings.schedule.empty': 'A sor a saját időzítését követi',
+  'settings.schedule.emptyHint':
+    'Nincs beállítva idősáv, így itt semmi sem szünetelteti vagy korlátozza a sort az óra szerint. Adjon hozzá egyet, hogy éjszaka visszatartsa a letöltéseket, vagy korlátozza a sebességet, amíg Ön maga használja a kapcsolatot.',
+  'settings.schedule.use': 'Ezen idősáv használata',
+  'settings.schedule.moveUp': 'Feljebb',
+  'settings.schedule.moveDown': 'Lejjebb',
+  'settings.schedule.remove': 'Ezen idősáv eltávolítása',
+  'settings.schedule.edit': 'Ezen idősáv szerkesztése',
+  'settings.schedule.name': 'Név',
+  'settings.schedule.namePlaceholder': 'pl. Éjszakai szünet',
+  'settings.schedule.days': 'Napok',
+  'settings.schedule.daysHint':
+    'A hét mely napjain nyílik meg ez az idősáv. Egy éjfél után is tartó idősávnál azt a napot jelölje be, amikor ELKEZDŐDIK - a „pén 22:00-06:00” szombat reggel ér véget anélkül, hogy maga a szombat be lenne jelölve.',
+  'settings.schedule.preset.every': 'Minden nap',
+  'settings.schedule.preset.weekdays': 'Hétköznapok',
+  'settings.schedule.preset.weekends': 'Hétvégék',
+  'settings.schedule.preset.custom': 'Egyéni',
+  'settings.schedule.start': 'Kezdés',
+  'settings.schedule.end': 'Vége',
+  'settings.schedule.endHint':
+    'A kezdési idő előtt ez az idősáv átnyúlik éjfélen, és a következő reggel ér véget. A kezdési idővel megegyező befejezési idő el van utasítva - ez jelenthetne egy egész napot vagy egyáltalán semmi időt, és a kitalálás rosszabb, mint a rákérdezés.',
+  'settings.schedule.action': 'Művelet',
+  'settings.schedule.action.pause': 'Szüneteltetés',
+  'settings.schedule.action.resume': 'Folytatás',
+  'settings.schedule.action.limit': 'Sebesség korlátozása',
+  'settings.schedule.limit': 'Sebességkorlát',
+  'settings.schedule.disabledOff': 'Ez az idősáv parkolva van, és soha nem lép működésbe. A sor úgy viselkedik, mintha ez a sor egyáltalán nem is létezne.',
+  'settings.schedule.activeNow': 'Most aktív, eddig: {time}',
+  'settings.schedule.next': 'Következő: {when}',
+  'settings.schedule.never': 'A jelenlegi beállítás szerint soha nem lép működésbe',
+  'settings.schedule.stateNow.paused': 'A sor most szüneteltetve van az időzítés által.',
+  'settings.schedule.stateNow.limited': 'A sor most {rate} értékre van korlátozva az időzítés által.',
+  'settings.schedule.stateNow.running': 'Jelenleg egyetlen idősáv sincs érvényben.',
+  'settings.schedule.nextChange': 'Következő változás: {when}',
+  'settings.schedule.noNextChange': 'A táblázatban semmi sem fogja megváltoztatni a sort a jelenlegi beállítás szerint.',
+  'settings.schedule.save': 'Időzítés mentése',
+  'settings.schedule.discard': 'Elvetés',
+  'settings.schedule.unsaved': 'Mentetlen változások az időzítésben',
+  'settings.schedule.saveFailed': 'Az időzítést nem sikerült menteni: {error}',
+  'settings.schedule.rowError': '{row}. sor: {error}',
+
+  'idleAction.title': 'A sor üresjáratban van',
+  'idleAction.action.pause': 'Szüneteltetés folyamatban',
+  'idleAction.actionFallback': '„{action}” folyamatban',
+  'idleAction.in': '{countdown} múlva',
+  'idleAction.cancel': 'Mégse',
+  'idleAction.cancelling': 'Megszakítás…',
+  'idleAction.cancelFailed': 'Nem sikerült megszakítani: a kiszolgáló nem válaszolt.',
+
+  'settings.idleAction.label': 'Művelet a sor kiürülésekor',
+  'settings.idleAction.hint':
+    'Mi történik, amint semmi sem fut, nem várakozik a sorban, és nem áll készen az indulásra. Az Ön által letiltott hivatkozás ebbe nem számít bele - lásd az információs buborékot.',
+  'settings.idleAction.info':
+    'Az Ön által letiltott hivatkozás soha nem számít hátralévő munkának, így nem tudja ezt a végtelenségig halogatni. A kézzel szüneteltetett vagy visszatartott hivatkozás továbbra is beleszámít - mindkettő azt jelenti, hogy „várjon egy kicsit”, nem azt, hogy „soha”.',
+  'settings.idleAction.none': 'Ne tegyen semmit',
+  'settings.idleAction.pause': 'Sor szüneteltetése',
+  'settings.idleAction.delay': 'Visszaszámlálás (másodperc)',
+  'settings.idleAction.delayHint':
+    'Mennyi ideje van a megszakításra, mielőtt a művelet végrehajtódik, amint a sor valóban üresjáratba kerül.',
+
+  'settings.nav.diagnostics': 'Diagnosztika',
+  'settings.diagnostics.subtitle':
+    'Mi ez a build, min fut, és a saját friss naplókimenete - egy hibajelentéshez csatolva.',
+  'settings.diagnostics.version': 'Verzió',
+  'settings.diagnostics.deployment': 'Build',
+  'settings.diagnostics.deployment.container': 'Konténer',
+  'settings.diagnostics.deployment.desktop': 'Asztali',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'Platform',
+  'settings.diagnostics.goroutines': 'Goroutine-ok',
+  'settings.diagnostics.download': 'Diagnosztikai csomag letöltése',
+  'settings.diagnostics.downloading': 'Előkészítés…',
+  'settings.diagnostics.downloadHint':
+    'Egy JSON-fájl a fenti mezőkkel, az Ön beállításaival minden jelszó eltávolítva, és az alábbi naplósorokkal.',
+  'settings.diagnostics.downloadFailed': 'Nem sikerült létrehozni a csomagot: {error}',
+  'settings.diagnostics.logTitle': 'Legutóbbi naplósorok',
+  'settings.diagnostics.logHint':
+    'Az ezen folyamat által naplózott utolsó {n} sor, a legrégebbi elöl. Itt semmi sem kerül lemezre írásra.',
+  'settings.diagnostics.logEmpty': 'Még nincs semmi naplózva.',
+  'settings.diagnostics.refresh': 'Frissítés',
+  'settings.diagnostics.loadFailed': 'Nem sikerült betölteni a diagnosztikát. Elérhető a kiszolgáló?',
+
+  'settings.nav.help': 'Súgó',
+  'settings.help.intro':
+    'Mire képes ez a build, feladat szerint rendszerezve, nem beállítási oldal szerint. Minden szakasz oda mutat, ahol az beállítható.',
+
+  'settings.help.intake.title': 'Letöltések hozzáadása',
+  'settings.help.intake.body':
+    'Illesszen be hivatkozásokat a Gyűjtőbe - soronként egyet, vagy rendezetlen szöveget: a keresés megtalálja a hivatkozásokat, bárhol legyenek is, egy mondat közepén, soronként többet, vagy egy levelezőprogram által két sorra tördelve.',
+  'settings.help.intake.b1': 'Húzzon be egy hivatkozás-konténer fájlt (.dlc, .ccf, .rsdf) vagy egy egyszerű hivatkozáslistát.',
+  'settings.help.intake.b2':
+    "A Click'n'Load gombok hoszter- és fórumoldalakon változatlanul működnek - a KnightLoader a 127.0.0.1:9666 címen válaszol, ugyanazon a porton, amit minden más letöltéskezelő is használ.",
+  'settings.help.intake.b3':
+    'Illesszen be egy oldal URL-t egy fájlhivatkozás helyett, és kapcsolja be a Bejárást, hogy minden hivatkozott fájlt kinyerjen, ahelyett hogy magát az oldalt töltené le.',
+  'settings.help.intake.b4': 'Egy figyelt mappa automatikusan felveszi a bele helyezett .txt/.crawljob fájlokat.',
+  'settings.help.intake.link1': 'Letöltések beállításainak megnyitása',
+  'settings.help.intake.link2': "Hozzáférés beállításainak megnyitása (Click'n'Load)",
+
+  'settings.help.collector.title': 'A gyűjtő, mielőtt bármi is letöltődne',
+  'settings.help.collector.body':
+    'Az új hivatkozások először a Gyűjtőbe érkeznek, nem a sorba: egy átmeneti terület a nevek, méretek és duplikátum-figyelmeztetések ellenőrzésére, mielőtt bármi elindulna. Az automatikus megerősítés kihagyhatja ezt a lépést, opcionális késleltetéssel; megerősítés után egy hivatkozás vagy azonnal elindul, vagy a sorban vár, az automatikus indítástól függően.',
+  'settings.help.collector.link': 'Általános beállítások megnyitása',
+
+  'settings.help.rules.title': 'Szabályok: csomagok, mappák és ami megmarad',
+  'settings.help.rules.body':
+    'A Packagizer átnevez egy hivatkozást, kiválasztja a mappáját, és beállítja a letöltési beállításait érkezéskor, az Ön által írt feltételek alapján. A Hivatkozásszűrő dönti el, hogy egy hivatkozás egyáltalán megmarad-e - és ellentétben egy olyan szűrővel, amely egyszerűen eltünteti a hivatkozásokat, egy elutasítás mindig megnevezi a felelős szabályt, és hogy miért.',
+  'settings.help.rules.link': 'Szabályok megnyitása',
+
+  'settings.help.queue.title': 'A sor kezelése',
+  'settings.help.queue.body':
+    'Szüneteltessen, folytasson vagy rendezzen át bármely hivatkozást, egyenként vagy egész csomagként. A sor leállítása két különböző művelet: a leállítás érintetlenül hagyja azt, ami már fut, hogy magától befejeződjön, míg az összes átvitel azonnali leállítása előbb megmutatja, mi veszne el, és csak az Ön megerősítése után folytatódik - pontosan erre való a figyelmeztetés egy olyan átvitelnél, amely nem tudja onnan folytatni, ahol abbahagyta.',
+  'settings.help.queue.b1': 'Egyetlen hivatkozás felülbírálhatja a globális kapcsolatszámot vagy a letöltés utáni kicsomagolás kapcsolóját.',
+  'settings.help.queue.b2': 'Egy már a listán szereplő hivatkozás duplikátuma mindig elutasításra kerül, mielőtt egyáltalán elérné a gyűjtőt.',
+
+  'settings.help.limits.title': 'A hoszterkorlátok megkerülése',
+  'settings.help.limits.body': 'Három független módszer, hogy egy ingyenes korlát ne legyen a plafon:',
+  'settings.help.limits.b1':
+    'Kapcsolatok - a letöltések elosztása több kimenő útvonalon (egy második vonal, egy proxy, SOCKS), ahelyett hogy mindig ennek a gépnek a saját címén keresztül menne ki.',
+  'settings.help.limits.b2':
+    'Újracsatlakozás - új nyilvános cím kérése a routertől, az egyetlen dolog, ami valóban feloldja a magához a címhez kötött korlátot (UPnP, egy külső program, egy szkript, vagy HTTP-kérések lejátszása a router adminisztrációs oldala ellen - a meglévő JDownloader LiveHeader/curl szkriptek változatlanul működnek).',
+  'settings.help.limits.b3':
+    'Fiókok - prémium vagy debrid bejelentkezési adatok tárolása (Real-Debrid, AllDebrid, TorBox és mások), hogy egy jogosult hivatkozás teljes sebességgel töltődjön le az ingyenes korlát helyett.',
+  'settings.help.limits.link1': 'Kapcsolatok megnyitása',
+  'settings.help.limits.link2': 'Újracsatlakozás megnyitása',
+  'settings.help.limits.link3': 'Fiókok megnyitása',
+
+  'settings.help.captcha.title': 'Captcha',
+  'settings.help.captcha.body':
+    'Amikor egy hoszter captchát kér, először egy Ön által beállított automatikus megoldó próbálkozik, az Ön által megadott sorrendben. Amit nem tud megoldani - vagy ha egy sincs beállítva -, azt Ön elé tárja, ahelyett hogy némán meghiúsulna.',
+  'settings.help.captcha.link': 'Captcha beállításainak megnyitása',
+
+  'settings.help.after.title': 'Letöltés után',
+  'settings.help.after.body':
+    'Az archívumok automatikusan kicsomagolásra kerülnek: zip (titkosítottal együtt, mind a WinZip AES, mind a régebbi ZipCrypto), rar többkötetes készletekkel, 7z, tar, valamint gzip/bzip2/xz/zstd, akár egy tar-t csomagolnak, akár nem - tiszta Go, külső unrar vagy 7z program nélkül. Egy titkosított archívumnál a jelszólista sorrendben kerül kipróbálásra. Egy kész fájl a vele érkező bármely ellenőrző összeggel összevetésre kerül: egy .sfv listával, egy md5/sha1/sha256sum fájllal, vagy egy CRC32-vel, amelyet maga a kiadás neve hordoz.',
+  'settings.help.after.link1': 'Archívumok beállításainak megnyitása',
+  'settings.help.after.link2': 'Letöltések beállításainak megnyitása',
+
+  'settings.help.schedule.title': 'Felügyelet nélküli működés',
+  'settings.help.schedule.body':
+    'Egy heti időzítés az óra szerint szünetelteti vagy korlátozza a sort - egy éjszakai idősáv, amely a nyári időszámítás váltásán át is helyes marad - ugyanaz az elgondolás, mint a JDownloader Scheduler-je.',
+  'settings.help.schedule.link': 'Időzítés megnyitása',
+
+  'settings.help.instances.title': 'Több példány futtatása',
+  'settings.help.instances.body':
+    'Adjon hozzá egy másik KnightLoadert társként, és annak sora is megjelenik ezen az irányítópulton - önállóan üzemeltetve, semmilyen relé nélkül: ez a példány egyszerűen meghívja a másik példány API-ját, ugyanúgy, ahogy egy böngésző is tenné.',
+  'settings.help.instances.link': 'Példányok megnyitása',
+
+  'settings.help.access.title': 'Hozzáférés és hibaelhárítás',
+  'settings.help.access.body':
+    'Egy jelszó egy munkamenet-sütő mögé zárja az egész felületet. A Hozzáférés oldal felsorolja ennek a buildnek a bejövő portjait és hozzáférési módszereit is, és hogy miért - hogy egy ismeretlen nyitott portnak válasza legyen, ne csak egy találgatás. A Diagnosztika oldal egy fájlt hoz létre egy hibajelentéshez csatolva: verzió- és build-információt, a jelenlegi beállításokat minden jelszó eltávolítva, ezen folyamat legutóbbi naplósorait, és hogy hány goroutine fut.',
+  'settings.help.access.link1': 'Hozzáférés beállításainak megnyitása',
+  'settings.help.access.link2': 'Diagnosztika megnyitása',
+
+  'settings.help.advanced.title': 'Minden más',
+  'settings.help.advanced.body':
+    'Ennek a buildnek minden beállítása kiolvasható és módosítható a nyers nevén a Haladó oldalon, néhányat is beleértve - hogy egy már letöltött fájl tükre hogyan kezelendő, mi történik, ha egy letöltés egy már használt névre kerülne - amelyeknek még nincs dedikált kezelőfelülete máshol.',
+  'settings.help.advanced.link': 'Haladó beállítások megnyitása',
 };

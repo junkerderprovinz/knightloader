@@ -1029,4 +1029,173 @@ export const ro: Dict = {
     'Ascunde notificările de succes și informative. O eroare, un captcha care te așteaptă sau un cont suspendat temporar tot se afișează.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Ultima modificare',
+
+  'file.open': 'Deschide',
+  'file.openNatively': 'Deschide cu aplicația implicită',
+  'file.revealInFolder': 'Arată în folder',
+  'file.desktopOnly': 'Doar în aplicația desktop',
+
+  'settings.schedule.title': 'Program',
+  'settings.schedule.subtitle': 'Pune pauză, reia sau limitează viteza de descărcare după un program.',
+  'settings.schedule.listTitle': 'Grafic orar',
+  'settings.schedule.orderHint':
+    'Rândurile se aplică în ordine, de sus în jos, iar când două ferestre se suprapun câștigă cea de mai jos - o fereastră largă „pauză în fiecare noapte” deasupra unei excepții mai înguste lasă excepția în vigoare, iar aceleași două rânduri invers nu.',
+  'settings.schedule.add': 'Adaugă fereastră',
+  'settings.schedule.empty': 'Coada își urmează propriul program',
+  'settings.schedule.emptyHint':
+    'Nu e configurată nicio fereastră, așa că nimic de aici nu pune pauză sau nu limitează coada după ceas. Adaugă una ca să reții descărcările peste noapte sau să limitezi viteza cât timp folosești tu însuți conexiunea.',
+  'settings.schedule.use': 'Folosește această fereastră',
+  'settings.schedule.moveUp': 'Mută în sus',
+  'settings.schedule.moveDown': 'Mută în jos',
+  'settings.schedule.remove': 'Elimină această fereastră',
+  'settings.schedule.edit': 'Editează această fereastră',
+  'settings.schedule.name': 'Nume',
+  'settings.schedule.namePlaceholder': 'de ex. Pauză de noapte',
+  'settings.schedule.days': 'Zile',
+  'settings.schedule.daysHint':
+    'În ce zile din săptămână se deschide această fereastră. Pentru o fereastră care trece de miezul nopții, bifează ziua în care ÎNCEPE - „vin. 22:00-06:00” se termină sâmbătă dimineața, fără ca sâmbăta însăși să fie bifată.',
+  'settings.schedule.preset.every': 'În fiecare zi',
+  'settings.schedule.preset.weekdays': 'Zile lucrătoare',
+  'settings.schedule.preset.weekends': 'Weekenduri',
+  'settings.schedule.preset.custom': 'Personalizat',
+  'settings.schedule.start': 'Început',
+  'settings.schedule.end': 'Sfârșit',
+  'settings.schedule.endHint':
+    'Înainte de ora de început, această fereastră trece de miezul nopții și se termină în dimineața următoare. O oră de sfârșit egală cu cea de început este refuzată - ar putea însemna o zi întreagă sau deloc timp, iar ghicitul intenției e mai rău decât întrebatul.',
+  'settings.schedule.action': 'Acțiune',
+  'settings.schedule.action.pause': 'Pauză',
+  'settings.schedule.action.resume': 'Reluare',
+  'settings.schedule.action.limit': 'Limitează viteza',
+  'settings.schedule.limit': 'Limită de viteză',
+  'settings.schedule.disabledOff': 'Această fereastră e parcată și nu pornește niciodată. Coada se comportă ca și cum acest rând nici n-ar exista.',
+  'settings.schedule.activeNow': 'Activă acum, până la {time}',
+  'settings.schedule.next': 'Următoarea: {when}',
+  'settings.schedule.never': 'Nu pornește niciodată așa cum e configurată',
+  'settings.schedule.stateNow.paused': 'Coada e pusă pe pauză chiar acum de program.',
+  'settings.schedule.stateNow.limited': 'Coada e limitată la {rate} chiar acum de program.',
+  'settings.schedule.stateNow.running': 'Nicio fereastră nu e în vigoare chiar acum.',
+  'settings.schedule.nextChange': 'Următoarea schimbare: {when}',
+  'settings.schedule.noNextChange': 'Nimic din tabel nu va schimba vreodată coada așa cum e configurată.',
+  'settings.schedule.save': 'Salvează programul',
+  'settings.schedule.discard': 'Renunță',
+  'settings.schedule.unsaved': 'Modificări nesalvate ale programului',
+  'settings.schedule.saveFailed': 'Programul nu a putut fi salvat: {error}',
+  'settings.schedule.rowError': 'Rândul {row}: {error}',
+
+  'idleAction.title': 'Coada e inactivă',
+  'idleAction.action.pause': 'Se pune pe pauză',
+  'idleAction.actionFallback': '„{action}” în curs',
+  'idleAction.in': 'în {countdown}',
+  'idleAction.cancel': 'Anulează',
+  'idleAction.cancelling': 'Se anulează…',
+  'idleAction.cancelFailed': 'Nu s-a putut anula: serverul nu a răspuns.',
+
+  'settings.idleAction.label': 'Acțiune la golirea cozii',
+  'settings.idleAction.hint':
+    'Ce se întâmplă imediat ce nu mai rămâne nimic în curs, în coadă sau gata de pornire. Un link pe care l-ai dezactivat nu contează aici - vezi bula de informații.',
+  'settings.idleAction.info':
+    'Un link pe care l-ai dezactivat nu contează niciodată ca muncă rămasă, așa că nu poate amâna asta la nesfârșit. Un link pus pe pauză sau reținut manual încă se numără - amândouă înseamnă „așteaptă puțin”, nu „niciodată”.',
+  'settings.idleAction.none': 'Nu face nimic',
+  'settings.idleAction.pause': 'Pune coada pe pauză',
+  'settings.idleAction.delay': 'Numărătoare inversă (secunde)',
+  'settings.idleAction.delayHint':
+    'Cât timp ai la dispoziție să anulezi înainte ca acțiunea să se execute, imediat ce coada devine cu adevărat inactivă.',
+
+  'settings.nav.diagnostics': 'Diagnostic',
+  'settings.diagnostics.subtitle':
+    'Ce este acest build, pe ce rulează, și propria lui ieșire recentă de jurnal - de atașat la un raport de eroare.',
+  'settings.diagnostics.version': 'Versiune',
+  'settings.diagnostics.deployment': 'Build',
+  'settings.diagnostics.deployment.container': 'Container',
+  'settings.diagnostics.deployment.desktop': 'Desktop',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'Platformă',
+  'settings.diagnostics.goroutines': 'Goroutine',
+  'settings.diagnostics.download': 'Descarcă pachetul de diagnostic',
+  'settings.diagnostics.downloading': 'Se pregătește…',
+  'settings.diagnostics.downloadHint':
+    'Un fișier JSON cu câmpurile de mai sus, setările tale cu fiecare parolă eliminată, și liniile de jurnal de mai jos.',
+  'settings.diagnostics.downloadFailed': 'Pachetul nu a putut fi creat: {error}',
+  'settings.diagnostics.logTitle': 'Linii de jurnal recente',
+  'settings.diagnostics.logHint':
+    'Ultimele {n} linii înregistrate de acest proces, cele mai vechi primele. Nimic de aici nu se scrie pe disc.',
+  'settings.diagnostics.logEmpty': 'Nimic înregistrat încă.',
+  'settings.diagnostics.refresh': 'Reîmprospătează',
+  'settings.diagnostics.loadFailed': 'Diagnosticul nu a putut fi încărcat. Serverul este accesibil?',
+
+  'settings.nav.help': 'Ajutor',
+  'settings.help.intro':
+    'Ce poate face acest build, organizat pe sarcini, nu pe pagini de setări. Fiecare secțiune trimite spre locul unde se configurează.',
+
+  'settings.help.intake.title': 'Adăugarea descărcărilor',
+  'settings.help.intake.body':
+    'Lipește linkuri în Colector - unul pe linie, sau text dezordonat: o scanare găsește linkuri oriunde s-ar afla, în mijlocul unei propoziții, mai multe pe linie, sau rupte pe două linii de un client de e-mail.',
+  'settings.help.intake.b1': 'Trage un fișier container de linkuri (.dlc, .ccf, .rsdf) sau o listă simplă de linkuri.',
+  'settings.help.intake.b2':
+    "Butoanele Click'n'Load de pe paginile de hostere și forumuri funcționează neschimbate - KnightLoader răspunde pe 127.0.0.1:9666, același port folosit de orice alt manager de descărcări.",
+  'settings.help.intake.b3':
+    'Lipește un URL de pagină în loc de un link de fișier și activează Scanare pentru a extrage fiecare fișier spre care trimite, în loc să descarce pagina în sine.',
+  'settings.help.intake.b4': 'Un folder urmărit preia automat fișierele .txt/.crawljob puse în el.',
+  'settings.help.intake.link1': 'Deschide setările Descărcări',
+  'settings.help.intake.link2': "Deschide setările Acces (Click'n'Load)",
+
+  'settings.help.collector.title': 'Colectorul, înainte să se descarce ceva',
+  'settings.help.collector.body':
+    'Linkurile noi ajung mai întâi în Colector, nu în coadă: o zonă de așteptare pentru verificarea numelor, dimensiunilor și avertismentelor de duplicat înainte să înceapă ceva. Confirmarea automată poate sări acest pas, cu o întârziere opțională; odată confirmat, un link fie pornește imediat, fie așteaptă în coadă, în funcție de pornirea automată.',
+  'settings.help.collector.link': 'Deschide setările Generale',
+
+  'settings.help.rules.title': 'Reguli: pachete, foldere și ce se păstrează',
+  'settings.help.rules.body':
+    'Packagizer redenumește un link, îi alege folderul și îi stabilește opțiunile de descărcare la sosire, pe baza unor condiții pe care le scrii tu. Filtrul de linkuri decide dacă un link se păstrează sau nu - și spre deosebire de un filtru care doar face linkurile să dispară, o respingere numește mereu regula responsabilă, și de ce.',
+  'settings.help.rules.link': 'Deschide Reguli',
+
+  'settings.help.queue.title': 'Gestionarea cozii',
+  'settings.help.queue.body':
+    'Pune pe pauză, reia sau reordonează orice link, singur sau ca pachet întreg. Oprirea cozii înseamnă două acțiuni diferite: oprirea lasă neatins ce rulează deja, ca să se termine singur, în timp ce oprirea imediată a tuturor transferurilor arată mai întâi ce s-ar pierde și continuă doar după confirmarea ta - exact pentru asta există avertismentul, pentru un transfer care nu poate relua de unde a rămas.',
+  'settings.help.queue.b1': 'Un singur link poate suprascrie numărul global de conexiuni sau comutatorul de extragere după descărcare.',
+  'settings.help.queue.b2': 'Un duplicat al unui link deja prezent în listă e mereu refuzat, înainte să ajungă vreodată în colector.',
+
+  'settings.help.limits.title': 'Ocolirea limitelor hosterului',
+  'settings.help.limits.body': 'Trei moduri independente de a împiedica o limită gratuită să fie plafonul:',
+  'settings.help.limits.b1':
+    'Conexiuni - distribuie descărcările pe mai multe căi de ieșire (o a doua linie, un proxy, SOCKS) în loc să ieși mereu prin propria adresă a acestui calculator.',
+  'settings.help.limits.b2':
+    'Reconectare - cere routerului o nouă adresă publică, singurul lucru care ridică efectiv o limită legată de adresa în sine (UPnP, un program extern, un script, sau reluarea cererilor HTTP către pagina de administrare a routerului - scripturile JDownloader LiveHeader/curl existente funcționează neschimbate).',
+  'settings.help.limits.b3':
+    'Conturi - salvează date de autentificare premium sau debrid (Real-Debrid, AllDebrid, TorBox și altele) ca un link eligibil să fie preluat la viteză maximă în loc de limita gratuită.',
+  'settings.help.limits.link1': 'Deschide Conexiuni',
+  'settings.help.limits.link2': 'Deschide Reconectare',
+  'settings.help.limits.link3': 'Deschide Conturi',
+
+  'settings.help.captcha.title': 'Captcha',
+  'settings.help.captcha.body':
+    'Când un hoster cere un captcha, se încearcă mai întâi un rezolvator automat pe care l-ai configurat, în ordinea pe care ai stabilit-o. Ce nu poate rezolva - sau dacă niciunul nu e configurat - ți se prezintă ție, în loc să eșueze în tăcere.',
+  'settings.help.captcha.link': 'Deschide setările Captcha',
+
+  'settings.help.after.title': 'După descărcare',
+  'settings.help.after.body':
+    'Arhivele sunt extrase automat: zip (inclusiv criptat, atât WinZip AES cât și vechiul ZipCrypto), rar cu seturi multi-volum, 7z, tar, și gzip/bzip2/xz/zstd indiferent dacă înfășoară un tar - Go pur, fără binare externe unrar sau 7z. Pentru o arhivă criptată se încearcă o listă de parole în ordine. Un fișier terminat e verificat cu orice sumă de control livrată cu el: o listă .sfv, un fișier md5/sha1/sha256sum, sau un CRC32 pe care îl poartă chiar numele versiunii.',
+  'settings.help.after.link1': 'Deschide setările Arhive',
+  'settings.help.after.link2': 'Deschide setările Descărcări',
+
+  'settings.help.schedule.title': 'Funcționare nesupravegheată',
+  'settings.help.schedule.body':
+    'Un program săptămânal pune pauză sau limitează coada după ceas - o fereastră de noapte, corectă chiar și peste schimbarea orei de vară - aceeași idee ca Scheduler-ul din JDownloader.',
+  'settings.help.schedule.link': 'Deschide Program',
+
+  'settings.help.instances.title': 'Rularea a mai mult de o instanță',
+  'settings.help.instances.body':
+    'Adaugă un alt KnightLoader ca partener, iar coada lui apare și pe acest tablou de bord - găzduit propriu, fără niciun releu implicat: această instanță pur și simplu apelează API-ul celeilalte instanțe, la fel cum ar face-o un browser.',
+  'settings.help.instances.link': 'Deschide Instanțe',
+
+  'settings.help.access.title': 'Acces și depanare',
+  'settings.help.access.body':
+    'O parolă blochează toată interfața în spatele unui cookie de sesiune. Pagina Acces listează și porturile de recepție și metodele de acces ale acestui build, și de ce - ca un port deschis necunoscut să aibă un răspuns în loc de o presupunere. Pagina Diagnostic creează un fișier de atașat la un raport de eroare: versiunea și informațiile despre build, setările actuale cu fiecare parolă eliminată, liniile de jurnal recente ale acestui proces, și câte goroutine rulează.',
+  'settings.help.access.link1': 'Deschide setările Acces',
+  'settings.help.access.link2': 'Deschide Diagnostic',
+
+  'settings.help.advanced.title': 'Tot restul',
+  'settings.help.advanced.body':
+    'Fiecare setare a acestui build poate fi citită și schimbată după numele ei brut pe pagina Avansat, inclusiv câteva - cum e tratată o oglindă a unui fișier deja descărcat, ce se întâmplă când o descărcare ar ajunge pe un nume deja folosit - care încă nu au un control dedicat nicăieri altundeva.',
+  'settings.help.advanced.link': 'Deschide setările Avansat',
 };

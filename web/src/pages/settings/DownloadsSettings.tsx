@@ -1,10 +1,24 @@
 import { useEffect, useState } from 'react';
 import { Card, Field, FieldGroup, InfoBubble, NumberInput, TextInput, Toggle } from '../../components/ui';
 import { Tabs } from '../../components/Tabs';
-import { fetchOptions } from '../../lib/api';
+import { fetchIdleActions, fetchOptions } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft, useFeatures } from './context';
 import { useTx } from './tx';
+
+// The end-of-queue action's menu labels - internal/idleaction.Actions() is
+// the source of truth for WHICH ids exist (fetched below), this is only what
+// each one reads as. Hardcoded English rather than useT(): the keys this
+// needs are not in any locale file yet, including en.ts, which is the
+// compile-time source of truth every real translation key is checked against
+// - see IdleActionBanner.tsx's own doc comment for the full reasoning and why
+// this is the same trade Wave 9's StatusStrip made first. An id this map has
+// no entry for (a future build's action, or one this build's own author
+// forgot to add here) still renders - as the raw id - rather than a blank tab.
+const IDLE_ACTION_LABELS: Record<string, string> = {
+  none: 'Do nothing',
+  pause: 'Pause the queue',
+};
 
 // Named DownloadsSettings and not Downloads: there is already a pages/Downloads
 // page, and two components with one name in the same import graph is a mistake
@@ -29,6 +43,26 @@ export function DownloadsSettings() {
       },
       () => {
         /* the strip stays out rather than offering a guess at the modes */
+      },
+    );
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  // Same shape, same reason, for the end-of-queue action's own menu - built
+  // from the server's list (internal/idleaction.Actions) rather than
+  // hardcoded here, so an id this build cannot carry out never appears as a
+  // tab that does nothing when pressed.
+  const [idleActions, setIdleActions] = useState<string[]>([]);
+  useEffect(() => {
+    let live = true;
+    void fetchIdleActions().then(
+      (a) => {
+        if (live) setIdleActions(a);
+      },
+      () => {
+        /* the row stays out rather than offering a guess at the actions */
       },
     );
     return () => {
@@ -157,6 +191,43 @@ export function DownloadsSettings() {
           </Field>
         </div>
       </Card>
+
+      {idleActions.length > 0 && (
+        <Card className="flex flex-col gap-5">
+          {/* No useT() label on the group itself either - see this file's
+              IDLE_ACTION_LABELS comment above for why. */}
+          <FieldGroup
+            label="End-of-queue action"
+            hint="What happens once nothing is left running, queued or waiting to start. A link you have switched off does not count - see the info bubble."
+          >
+            <div className="flex items-center gap-1.5">
+              <Tabs
+                size="sm"
+                className="w-fit"
+                label="End-of-queue action"
+                active={cfg.idleAction.action}
+                onSelect={(id) => patch({ idleAction: { ...cfg.idleAction, action: id } })}
+                items={idleActions.map((id) => ({ id, label: IDLE_ACTION_LABELS[id] ?? id }))}
+              />
+              <InfoBubble tip="A link you have switched off is never counted as work left to do, so it cannot hold this off forever. A manually paused or held link still counts - both mean 'wait a bit', not 'never'." />
+            </div>
+          </FieldGroup>
+
+          {cfg.idleAction.action !== 'none' && (
+            <Field
+              label="Countdown (seconds)"
+              hint="How long you have to cancel before the action runs, once the queue actually goes idle."
+            >
+              <NumberInput
+                value={cfg.idleAction.delaySeconds}
+                min={5}
+                max={86400}
+                onValue={(v) => patch({ idleAction: { ...cfg.idleAction, delaySeconds: v } })}
+              />
+            </Field>
+          )}
+        </Card>
+      )}
     </div>
   );
 }

@@ -1029,4 +1029,173 @@ export const id: Dict = {
     'Menyembunyikan notifikasi keberhasilan dan info. Kegagalan, captcha yang menunggu Anda, atau akun yang ditangguhkan tetap ditampilkan.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Terakhir diubah',
+
+  'file.open': 'Buka',
+  'file.openNatively': 'Buka dengan aplikasi default',
+  'file.revealInFolder': 'Tampilkan di folder',
+  'file.desktopOnly': 'Hanya di aplikasi desktop',
+
+  'settings.schedule.title': 'Jadwal',
+  'settings.schedule.subtitle': 'Jeda, lanjutkan, atau batasi kecepatan unduhan sesuai jadwal.',
+  'settings.schedule.listTitle': 'Tabel waktu',
+  'settings.schedule.orderHint':
+    'Baris diterapkan secara berurutan, dari atas ke bawah, dan ketika dua jendela tumpang tindih, yang di bawah menang - “jeda setiap malam” yang luas di atas pengecualian yang lebih sempit membuat pengecualian tetap berlaku, sedangkan dua baris yang sama dengan urutan terbalik tidak.',
+  'settings.schedule.add': 'Tambah jendela',
+  'settings.schedule.empty': 'Antrean mengikuti jadwalnya sendiri',
+  'settings.schedule.emptyHint':
+    'Tidak ada jendela yang dikonfigurasi, jadi tidak ada yang menjeda atau membatasi antrean sesuai jam di sini. Tambahkan satu untuk menahan unduhan pada malam hari atau membatasi kecepatan saat Anda sendiri menggunakan koneksi.',
+  'settings.schedule.use': 'Gunakan jendela ini',
+  'settings.schedule.moveUp': 'Pindah ke atas',
+  'settings.schedule.moveDown': 'Pindah ke bawah',
+  'settings.schedule.remove': 'Hapus jendela ini',
+  'settings.schedule.edit': 'Edit jendela ini',
+  'settings.schedule.name': 'Nama',
+  'settings.schedule.namePlaceholder': 'mis. Jeda malam',
+  'settings.schedule.days': 'Hari',
+  'settings.schedule.daysHint':
+    'Pada hari apa dalam seminggu jendela ini terbuka. Untuk jendela yang berlangsung melewati tengah malam, centang hari saat jendela itu MULAI - “Jum 22:00-06:00” berakhir Sabtu pagi tanpa hari Sabtu itu sendiri dicentang.',
+  'settings.schedule.preset.every': 'Setiap hari',
+  'settings.schedule.preset.weekdays': 'Hari kerja',
+  'settings.schedule.preset.weekends': 'Akhir pekan',
+  'settings.schedule.preset.custom': 'Kustom',
+  'settings.schedule.start': 'Mulai',
+  'settings.schedule.end': 'Selesai',
+  'settings.schedule.endHint':
+    'Sebelum waktu mulai, jendela ini berlangsung melewati tengah malam dan berakhir pagi berikutnya. Waktu selesai yang sama dengan waktu mulai ditolak - itu bisa berarti sehari penuh atau tidak ada waktu sama sekali, dan menebak apa yang dimaksud lebih buruk daripada bertanya.',
+  'settings.schedule.action': 'Tindakan',
+  'settings.schedule.action.pause': 'Jeda',
+  'settings.schedule.action.resume': 'Lanjutkan',
+  'settings.schedule.action.limit': 'Batasi kecepatan',
+  'settings.schedule.limit': 'Batas kecepatan',
+  'settings.schedule.disabledOff': 'Jendela ini diparkir dan tidak pernah aktif. Antrean berperilaku seolah-olah baris ini sama sekali tidak ada.',
+  'settings.schedule.activeNow': 'Aktif sekarang, hingga {time}',
+  'settings.schedule.next': 'Berikutnya: {when}',
+  'settings.schedule.never': 'Tidak pernah aktif sesuai konfigurasi saat ini',
+  'settings.schedule.stateNow.paused': 'Antrean sedang dijeda oleh jadwal saat ini.',
+  'settings.schedule.stateNow.limited': 'Antrean sedang dibatasi hingga {rate} oleh jadwal saat ini.',
+  'settings.schedule.stateNow.running': 'Tidak ada jendela yang berlaku saat ini.',
+  'settings.schedule.nextChange': 'Perubahan berikutnya: {when}',
+  'settings.schedule.noNextChange': 'Tidak ada yang di tabel yang akan pernah mengubah antrean sesuai konfigurasi saat ini.',
+  'settings.schedule.save': 'Simpan jadwal',
+  'settings.schedule.discard': 'Buang',
+  'settings.schedule.unsaved': 'Perubahan belum disimpan pada jadwal',
+  'settings.schedule.saveFailed': 'Jadwal tidak dapat disimpan: {error}',
+  'settings.schedule.rowError': 'Baris {row}: {error}',
+
+  'idleAction.title': 'Antrean menganggur',
+  'idleAction.action.pause': 'Menjeda',
+  'idleAction.actionFallback': '“{action}” berjalan',
+  'idleAction.in': 'dalam {countdown}',
+  'idleAction.cancel': 'Batal',
+  'idleAction.cancelling': 'Membatalkan…',
+  'idleAction.cancelFailed': 'Tidak dapat membatalkan: server tidak merespons.',
+
+  'settings.idleAction.label': 'Tindakan saat antrean kosong',
+  'settings.idleAction.hint':
+    'Apa yang terjadi begitu tidak ada lagi yang berjalan, menunggu di antrean, atau siap dimulai. Tautan yang Anda nonaktifkan tidak dihitung di sini - lihat gelembung info.',
+  'settings.idleAction.info':
+    'Tautan yang Anda nonaktifkan tidak pernah dihitung sebagai pekerjaan yang tersisa, jadi tidak bisa menunda ini selamanya. Tautan yang dijeda atau ditahan secara manual tetap dihitung - keduanya berarti “tunggu sebentar”, bukan “tidak pernah”.',
+  'settings.idleAction.none': 'Jangan lakukan apa pun',
+  'settings.idleAction.pause': 'Jeda antrean',
+  'settings.idleAction.delay': 'Hitung mundur (detik)',
+  'settings.idleAction.delayHint':
+    'Berapa lama waktu yang Anda miliki untuk membatalkan sebelum tindakan dijalankan, begitu antrean benar-benar menganggur.',
+
+  'settings.nav.diagnostics': 'Diagnostik',
+  'settings.diagnostics.subtitle':
+    'Apa build ini, di mana ia berjalan, dan output log terbarunya sendiri - untuk dilampirkan ke laporan bug.',
+  'settings.diagnostics.version': 'Versi',
+  'settings.diagnostics.deployment': 'Build',
+  'settings.diagnostics.deployment.container': 'Kontainer',
+  'settings.diagnostics.deployment.desktop': 'Desktop',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'Platform',
+  'settings.diagnostics.goroutines': 'Goroutine',
+  'settings.diagnostics.download': 'Unduh paket diagnostik',
+  'settings.diagnostics.downloading': 'Menyiapkan…',
+  'settings.diagnostics.downloadHint':
+    'File JSON dengan bidang di atas, pengaturan Anda dengan setiap kata sandi dihapus, dan baris log di bawah.',
+  'settings.diagnostics.downloadFailed': 'Paket tidak dapat dibuat: {error}',
+  'settings.diagnostics.logTitle': 'Baris log terbaru',
+  'settings.diagnostics.logHint':
+    '{n} baris terakhir yang dicatat proses ini, terlama dahulu. Tidak ada yang ditulis ke disk di sini.',
+  'settings.diagnostics.logEmpty': 'Belum ada yang dicatat.',
+  'settings.diagnostics.refresh': 'Segarkan',
+  'settings.diagnostics.loadFailed': 'Diagnostik tidak dapat dimuat. Apakah server terjangkau?',
+
+  'settings.nav.help': 'Bantuan',
+  'settings.help.intro':
+    'Apa yang dapat dilakukan build ini, diatur berdasarkan tugas, bukan berdasarkan halaman pengaturan. Setiap bagian menautkan ke tempat itu dikonfigurasi.',
+
+  'settings.help.intake.title': 'Menambahkan unduhan',
+  'settings.help.intake.body':
+    'Tempel tautan ke Kolektor - satu per baris, atau teks berantakan: pemindaian menemukan tautan di mana pun berada, di tengah kalimat, beberapa per baris, atau dipisah menjadi dua baris oleh klien email.',
+  'settings.help.intake.b1': 'Jatuhkan file kontainer tautan (.dlc, .ccf, .rsdf) atau daftar tautan biasa.',
+  'settings.help.intake.b2':
+    "Tombol Click'n'Load di halaman hoster dan forum bekerja tanpa perubahan - KnightLoader merespons di 127.0.0.1:9666, port yang sama yang digunakan setiap pengelola unduhan lainnya.",
+  'settings.help.intake.b3':
+    'Tempel URL halaman alih-alih tautan file dan aktifkan Perayapan untuk mengekstrak setiap file yang ditautkannya, bukan mengunduh halaman itu sendiri.',
+  'settings.help.intake.b4': 'Folder yang diawasi secara otomatis mengambil file .txt/.crawljob yang dijatuhkan ke dalamnya.',
+  'settings.help.intake.link1': 'Buka pengaturan Unduhan',
+  'settings.help.intake.link2': "Buka pengaturan Akses (Click'n'Load)",
+
+  'settings.help.collector.title': 'Kolektor, sebelum apa pun diunduh',
+  'settings.help.collector.body':
+    'Tautan baru pertama-tama masuk ke Kolektor, bukan antrean: zona transisi untuk memeriksa nama, ukuran, dan peringatan duplikat sebelum apa pun dimulai. Konfirmasi otomatis dapat melewati langkah ini, dengan penundaan opsional; setelah dikonfirmasi, tautan langsung mulai atau menunggu di antrean, tergantung pada mulai otomatis.',
+  'settings.help.collector.link': 'Buka pengaturan Umum',
+
+  'settings.help.rules.title': 'Aturan: paket, folder, dan apa yang dipertahankan',
+  'settings.help.rules.body':
+    'Packagizer mengganti nama tautan, memilih foldernya, dan mengatur opsi unduhannya saat tiba, berdasarkan kondisi yang Anda tulis. Filter Tautan memutuskan apakah tautan dipertahankan sama sekali - dan tidak seperti filter yang hanya membuat tautan menghilang, penolakan selalu menyebutkan aturan yang menyebabkannya, dan alasannya.',
+  'settings.help.rules.link': 'Buka Aturan',
+
+  'settings.help.queue.title': 'Mengelola antrean',
+  'settings.help.queue.body':
+    'Jeda, lanjutkan, atau susun ulang tautan apa pun, sendiri atau sebagai paket lengkap. Menghentikan antrean adalah dua tindakan berbeda: menghentikan membiarkan yang sudah berjalan tidak tersentuh agar selesai sendiri, sementara menghentikan semua transfer segera dulu menunjukkan apa yang akan hilang, dan hanya melanjutkan setelah konfirmasi Anda - itulah tepatnya kegunaan peringatan itu untuk transfer yang tidak dapat melanjutkan dari tempat terhentinya.',
+  'settings.help.queue.b1': 'Satu tautan dapat menggantikan jumlah koneksi global atau sakelar ekstrak setelah unduhan.',
+  'settings.help.queue.b2': 'Duplikat tautan yang sudah ada di daftar selalu ditolak, bahkan sebelum mencapai Kolektor.',
+
+  'settings.help.limits.title': 'Menghindari batasan hoster',
+  'settings.help.limits.body': 'Tiga cara independen agar batas gratis tidak menjadi plafon:',
+  'settings.help.limits.b1':
+    'Koneksi - sebarkan unduhan ke lebih dari satu jalur keluar (jalur kedua, proxy, SOCKS) alih-alih selalu keluar melalui alamat mesin ini sendiri.',
+  'settings.help.limits.b2':
+    'Sambung ulang - minta router untuk alamat publik baru, satu-satunya hal yang benar-benar menghapus batas yang terikat pada alamat itu sendiri (UPnP, program eksternal, skrip, atau memutar ulang permintaan HTTP terhadap halaman admin router - skrip JDownloader LiveHeader/curl yang ada bekerja tanpa perubahan).',
+  'settings.help.limits.b3':
+    'Akun - simpan kredensial premium atau debrid (Real-Debrid, AllDebrid, TorBox, dan lainnya) agar tautan yang memenuhi syarat diambil dengan kecepatan penuh alih-alih batas gratis.',
+  'settings.help.limits.link1': 'Buka Koneksi',
+  'settings.help.limits.link2': 'Buka Sambung ulang',
+  'settings.help.limits.link3': 'Buka Akun',
+
+  'settings.help.captcha.title': 'Captcha',
+  'settings.help.captcha.body':
+    'Ketika hoster meminta captcha, pemecah otomatis yang Anda konfigurasi dicoba terlebih dahulu, sesuai urutan yang Anda tetapkan. Apa yang tidak dapat dipecahkannya - atau jika tidak ada yang dikonfigurasi - disajikan kepada Anda alih-alih gagal secara diam-diam.',
+  'settings.help.captcha.link': 'Buka pengaturan Captcha',
+
+  'settings.help.after.title': 'Setelah unduhan',
+  'settings.help.after.body':
+    'Arsip diekstrak secara otomatis: zip (termasuk yang terenkripsi, baik WinZip AES maupun ZipCrypto lama), rar dengan set multi-volume, 7z, tar, serta gzip/bzip2/xz/zstd baik membungkus tar atau tidak - Go murni, tanpa program unrar atau 7z eksternal. Untuk arsip terenkripsi, daftar kata sandi dicoba secara berurutan. File yang selesai diperiksa terhadap checksum apa pun yang menyertainya: daftar .sfv, file md5/sha1/sha256sum, atau CRC32 yang dibawa oleh nama rilis itu sendiri.',
+  'settings.help.after.link1': 'Buka pengaturan Arsip',
+  'settings.help.after.link2': 'Buka pengaturan Unduhan',
+
+  'settings.help.schedule.title': 'Berjalan tanpa pengawasan',
+  'settings.help.schedule.body':
+    'Jadwal mingguan menjeda atau membatasi antrean sesuai jam - jendela malam, benar bahkan saat perubahan waktu musim panas - ide yang sama seperti Scheduler di JDownloader.',
+  'settings.help.schedule.link': 'Buka Jadwal',
+
+  'settings.help.instances.title': 'Menjalankan lebih dari satu instans',
+  'settings.help.instances.body':
+    'Tambahkan KnightLoader lain sebagai peer, dan antreannya juga muncul di dasbor ini - dihosting sendiri, tanpa relay yang terlibat: instans ini hanya memanggil API instans lain, dengan cara yang sama seperti yang akan dilakukan browser.',
+  'settings.help.instances.link': 'Buka Instans',
+
+  'settings.help.access.title': 'Akses dan pemecahan masalah',
+  'settings.help.access.body':
+    'Kata sandi mengunci seluruh antarmuka di balik cookie sesi. Halaman Akses juga mencantumkan port penerimaan dan metode akses build ini, dan alasannya - sehingga port terbuka yang tidak dikenal memiliki jawaban, bukan tebakan. Halaman Diagnostik membuat file untuk dilampirkan ke laporan bug: versi dan info build, pengaturan saat ini dengan setiap kata sandi dihapus, baris log terbaru proses ini, dan berapa banyak goroutine yang berjalan.',
+  'settings.help.access.link1': 'Buka pengaturan Akses',
+  'settings.help.access.link2': 'Buka Diagnostik',
+
+  'settings.help.advanced.title': 'Semua yang lain',
+  'settings.help.advanced.body':
+    'Setiap pengaturan build ini dapat dibaca dan diubah melalui nama mentahnya di halaman Lanjutan, termasuk beberapa - bagaimana mirror dari file yang sudah diunduh diperlakukan, apa yang terjadi ketika unduhan akan mendarat di nama yang sudah digunakan - yang belum memiliki kontrol khusus di tempat lain.',
+  'settings.help.advanced.link': 'Buka pengaturan Lanjutan',
 };

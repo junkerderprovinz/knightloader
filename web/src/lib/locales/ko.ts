@@ -1029,4 +1029,173 @@ export const ko: Dict = {
     '성공 및 정보 알림을 숨깁니다. 오류, 사용자를 기다리는 캡차, 일시 정지된 계정은 계속 표시됩니다.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': '마지막 변경',
+
+  'file.open': '열기',
+  'file.openNatively': '기본 앱으로 열기',
+  'file.revealInFolder': '폴더에서 표시',
+  'file.desktopOnly': '데스크톱 앱에서만',
+
+  'settings.schedule.title': '일정',
+  'settings.schedule.subtitle': '일정에 따라 다운로드 속도를 일시 정지, 재개 또는 제한합니다.',
+  'settings.schedule.listTitle': '시간표',
+  'settings.schedule.orderHint':
+    '행은 위에서 아래로 순서대로 적용되며, 두 창이 겹칠 때는 아래쪽 행이 우선합니다 - “매일 밤 일시 정지”처럼 넓은 범위가 더 좁은 예외 위에 있으면 예외가 그대로 적용되지만, 같은 두 행을 반대 순서로 두면 그렇지 않습니다.',
+  'settings.schedule.add': '창 추가',
+  'settings.schedule.empty': '대기열은 자체 일정을 따릅니다',
+  'settings.schedule.emptyHint':
+    '설정된 창이 없어서 여기서는 시계에 따라 대기열을 일시 정지하거나 제한하는 것이 없습니다. 밤에 다운로드를 보류하거나 직접 연결을 사용하는 동안 속도를 제한하려면 하나를 추가하세요.',
+  'settings.schedule.use': '이 창 사용',
+  'settings.schedule.moveUp': '위로 이동',
+  'settings.schedule.moveDown': '아래로 이동',
+  'settings.schedule.remove': '이 창 삭제',
+  'settings.schedule.edit': '이 창 편집',
+  'settings.schedule.name': '이름',
+  'settings.schedule.namePlaceholder': '예: 야간 정지',
+  'settings.schedule.days': '요일',
+  'settings.schedule.daysHint':
+    '이 창이 어느 요일에 열리는지. 자정을 넘겨 이어지는 창의 경우, 시작하는 요일에 체크하세요 - “금 22:00-06:00”은 토요일 자체를 체크하지 않아도 토요일 아침에 끝납니다.',
+  'settings.schedule.preset.every': '매일',
+  'settings.schedule.preset.weekdays': '평일',
+  'settings.schedule.preset.weekends': '주말',
+  'settings.schedule.preset.custom': '사용자 지정',
+  'settings.schedule.start': '시작',
+  'settings.schedule.end': '종료',
+  'settings.schedule.endHint':
+    '시작 시간 이전이면, 이 창은 자정을 넘겨 다음 날 아침에 끝납니다. 종료 시간이 시작 시간과 같으면 거부됩니다 - 이는 하루 종일을 의미할 수도, 전혀 시간이 없음을 의미할 수도 있어서, 무엇을 의도했는지 추측하는 것이 물어보는 것보다 더 나쁩니다.',
+  'settings.schedule.action': '동작',
+  'settings.schedule.action.pause': '일시 정지',
+  'settings.schedule.action.resume': '재개',
+  'settings.schedule.action.limit': '속도 제한',
+  'settings.schedule.limit': '속도 제한',
+  'settings.schedule.disabledOff': '이 창은 보류되어 있으며 절대 작동하지 않습니다. 대기열은 이 행이 아예 없는 것처럼 동작합니다.',
+  'settings.schedule.activeNow': '현재 활성, {time}까지',
+  'settings.schedule.next': '다음: {when}',
+  'settings.schedule.never': '설정대로라면 절대 작동하지 않습니다',
+  'settings.schedule.stateNow.paused': '대기열은 지금 일정에 의해 일시 정지되어 있습니다.',
+  'settings.schedule.stateNow.limited': '대기열은 지금 일정에 의해 {rate}로 제한되어 있습니다.',
+  'settings.schedule.stateNow.running': '지금 적용 중인 창이 없습니다.',
+  'settings.schedule.nextChange': '다음 변경: {when}',
+  'settings.schedule.noNextChange': '표에 있는 어떤 것도 설정대로라면 대기열을 바꾸지 않습니다.',
+  'settings.schedule.save': '일정 저장',
+  'settings.schedule.discard': '버리기',
+  'settings.schedule.unsaved': '일정에 저장하지 않은 변경 사항',
+  'settings.schedule.saveFailed': '일정을 저장할 수 없습니다: {error}',
+  'settings.schedule.rowError': '{row}행: {error}',
+
+  'idleAction.title': '대기열이 유휴 상태입니다',
+  'idleAction.action.pause': '일시 정지 중',
+  'idleAction.actionFallback': '“{action}” 진행 중',
+  'idleAction.in': '{countdown} 후',
+  'idleAction.cancel': '취소',
+  'idleAction.cancelling': '취소하는 중…',
+  'idleAction.cancelFailed': '취소할 수 없습니다: 서버가 응답하지 않았습니다.',
+
+  'settings.idleAction.label': '대기열이 빌 때의 동작',
+  'settings.idleAction.hint':
+    '더 이상 아무것도 실행 중이 아니고, 대기열에서 기다리지도 않고, 시작할 준비도 되지 않았을 때 일어나는 일입니다. 비활성화한 링크는 여기서 집계되지 않습니다 - 정보 말풍선을 확인하세요.',
+  'settings.idleAction.info':
+    '비활성화한 링크는 남은 작업으로 절대 집계되지 않으므로, 이를 무기한 미룰 수 없습니다. 수동으로 일시 정지되었거나 보류된 링크는 여전히 집계됩니다 - 둘 다 “조금 기다림”을 의미하지, “절대 안 함”을 의미하지 않습니다.',
+  'settings.idleAction.none': '아무것도 안 함',
+  'settings.idleAction.pause': '대기열 일시 정지',
+  'settings.idleAction.delay': '카운트다운(초)',
+  'settings.idleAction.delayHint':
+    '대기열이 실제로 유휴 상태가 되면, 동작이 실행되기 전에 취소할 수 있는 시간입니다.',
+
+  'settings.nav.diagnostics': '진단',
+  'settings.diagnostics.subtitle':
+    '이 빌드가 무엇인지, 무엇 위에서 실행되는지, 그리고 자체의 최근 로그 출력 - 버그 보고서에 첨부하기 위한 것입니다.',
+  'settings.diagnostics.version': '버전',
+  'settings.diagnostics.deployment': '빌드',
+  'settings.diagnostics.deployment.container': '컨테이너',
+  'settings.diagnostics.deployment.desktop': '데스크톱',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': '플랫폼',
+  'settings.diagnostics.goroutines': '고루틴',
+  'settings.diagnostics.download': '진단 패키지 다운로드',
+  'settings.diagnostics.downloading': '준비 중…',
+  'settings.diagnostics.downloadHint':
+    '위 필드가 포함된 JSON 파일, 모든 비밀번호를 제거한 설정, 그리고 아래 로그 줄입니다.',
+  'settings.diagnostics.downloadFailed': '패키지를 만들 수 없습니다: {error}',
+  'settings.diagnostics.logTitle': '최근 로그 줄',
+  'settings.diagnostics.logHint':
+    '이 프로세스가 기록한 마지막 {n}줄, 오래된 것부터 먼저입니다. 여기 있는 어떤 것도 디스크에 기록되지 않습니다.',
+  'settings.diagnostics.logEmpty': '아직 기록된 것이 없습니다.',
+  'settings.diagnostics.refresh': '새로 고침',
+  'settings.diagnostics.loadFailed': '진단을 불러올 수 없습니다. 서버에 연결할 수 있나요?',
+
+  'settings.nav.help': '도움말',
+  'settings.help.intro':
+    '이 빌드가 할 수 있는 일을, 설정 페이지가 아니라 작업별로 정리한 것입니다. 각 섹션은 설정하는 위치로 연결됩니다.',
+
+  'settings.help.intake.title': '다운로드 추가',
+  'settings.help.intake.body':
+    '링크를 컬렉터에 붙여넣으세요 - 줄마다 하나씩, 또는 지저분한 텍스트도 괜찮습니다: 스캔은 문장 중간, 줄마다 여러 개, 또는 메일 클라이언트가 두 줄로 나눈 링크까지 어디에 있든 찾아냅니다.',
+  'settings.help.intake.b1': '링크 컨테이너 파일(.dlc, .ccf, .rsdf) 또는 일반 링크 목록을 놓으세요.',
+  'settings.help.intake.b2':
+    "호스터와 포럼 페이지의 Click'n'Load 버튼은 변경 없이 작동합니다 - KnightLoader는 127.0.0.1:9666에서 응답하며, 이는 다른 모든 다운로드 관리자가 사용하는 것과 같은 포트입니다.",
+  'settings.help.intake.b3':
+    '파일 링크 대신 페이지 URL을 붙여넣고 크롤링을 켜면 페이지 자체를 다운로드하는 대신 링크된 모든 파일을 추출합니다.',
+  'settings.help.intake.b4': '감시 폴더는 그 안에 놓인 .txt/.crawljob 파일을 자동으로 가져옵니다.',
+  'settings.help.intake.link1': '다운로드 설정 열기',
+  'settings.help.intake.link2': "접근 설정 열기(Click'n'Load)",
+
+  'settings.help.collector.title': '무언가 다운로드되기 전의 컬렉터',
+  'settings.help.collector.body':
+    '새 링크는 대기열이 아니라 먼저 컬렉터에 도착합니다: 무언가 시작되기 전에 이름, 크기, 중복 경고를 확인하는 중간 영역입니다. 자동 확인은 이 단계를 건너뛸 수 있으며, 선택적 지연이 있습니다. 확인되면 링크는 즉시 시작하거나 자동 시작 여부에 따라 대기열에서 기다립니다.',
+  'settings.help.collector.link': '일반 설정 열기',
+
+  'settings.help.rules.title': '규칙: 패키지, 폴더, 그리고 보존되는 것',
+  'settings.help.rules.body':
+    'Packagizer는 도착 시 사용자가 작성한 조건에 따라 링크의 이름을 바꾸고, 폴더를 선택하고, 다운로드 옵션을 설정합니다. 링크 필터는 링크를 보존할지 여부를 결정합니다 - 링크를 그냥 사라지게 하는 필터와 달리, 거부는 항상 원인이 된 규칙과 이유를 알려줍니다.',
+  'settings.help.rules.link': '규칙 열기',
+
+  'settings.help.queue.title': '대기열 관리',
+  'settings.help.queue.body':
+    '어떤 링크든 단독으로든 패키지 전체로든 일시 정지, 재개 또는 재정렬할 수 있습니다. 대기열 정지는 두 가지 다른 동작입니다: 정지는 이미 실행 중인 것을 건드리지 않고 그대로 두어 스스로 완료되게 하지만, 모든 전송을 즉시 정지하면 먼저 무엇이 손실될지 보여주고 확인 후에만 진행합니다 - 이 경고는 멈춘 지점에서 재개할 수 없는 전송을 위한 것입니다.',
+  'settings.help.queue.b1': '단일 링크가 전역 연결 수나 다운로드 후 압축 해제 스위치를 재정의할 수 있습니다.',
+  'settings.help.queue.b2': '목록에 이미 있는 링크의 중복은 컬렉터에 도달하기도 전에 항상 거부됩니다.',
+
+  'settings.help.limits.title': '호스터 제한 우회',
+  'settings.help.limits.body': '무료 제한이 상한이 되지 않도록 하는 세 가지 독립적인 방법:',
+  'settings.help.limits.b1':
+    '연결 - 항상 이 컴퓨터 자체 주소로만 나가는 대신 둘 이상의 나가는 경로(두 번째 회선, 프록시, SOCKS)에 다운로드를 분산합니다.',
+  'settings.help.limits.b2':
+    '재연결 - 라우터에 새 공인 주소를 요청합니다. 이는 주소 자체에 묶인 제한을 실제로 해제하는 유일한 방법입니다(UPnP, 외부 프로그램, 스크립트, 또는 라우터의 관리 페이지에 대한 HTTP 요청 재생 - 기존 JDownloader LiveHeader/curl 스크립트는 변경 없이 작동합니다).',
+  'settings.help.limits.b3':
+    '계정 - 프리미엄 또는 debrid 로그인 정보를 저장하여(Real-Debrid, AllDebrid, TorBox 등) 해당 링크가 무료 제한 대신 최대 속도로 가져와지도록 합니다.',
+  'settings.help.limits.link1': '연결 열기',
+  'settings.help.limits.link2': '재연결 열기',
+  'settings.help.limits.link3': '계정 열기',
+
+  'settings.help.captcha.title': '캡차',
+  'settings.help.captcha.body':
+    '호스터가 캡차를 요청하면, 설정한 자동 솔버가 지정한 순서대로 먼저 시도됩니다. 해결하지 못하는 것 - 또는 설정된 솔버가 없는 경우 - 은 조용히 실패하는 대신 사용자에게 제시됩니다.',
+  'settings.help.captcha.link': '캡차 설정 열기',
+
+  'settings.help.after.title': '다운로드 후',
+  'settings.help.after.body':
+    '압축 파일은 자동으로 해제됩니다: zip(암호화된 것 포함, WinZip AES와 예전 ZipCrypto 모두), 여러 볼륨 세트가 있는 rar, 7z, tar, 그리고 tar를 감싸든 아니든 gzip/bzip2/xz/zstd - 외부 unrar나 7z 프로그램 없이 순수 Go입니다. 암호화된 압축 파일의 경우 비밀번호 목록을 순서대로 시도합니다. 완료된 파일은 함께 제공된 모든 체크섬(.sfv 목록, md5/sha1/sha256sum 파일, 또는 릴리스 이름 자체가 담고 있는 CRC32)과 대조하여 확인됩니다.',
+  'settings.help.after.link1': '압축 파일 설정 열기',
+  'settings.help.after.link2': '다운로드 설정 열기',
+
+  'settings.help.schedule.title': '무인 운영',
+  'settings.help.schedule.body':
+    '주간 일정은 시계에 따라 대기열을 일시 정지하거나 제한합니다 - 야간 창은 일광 절약 시간 전환을 거쳐도 정확합니다 - JDownloader의 Scheduler와 같은 개념입니다.',
+  'settings.help.schedule.link': '일정 열기',
+
+  'settings.help.instances.title': '둘 이상의 인스턴스 실행',
+  'settings.help.instances.body':
+    '다른 KnightLoader를 피어로 추가하면 그 대기열도 이 대시보드에 나타납니다 - 자체 호스팅이며 릴레이가 전혀 관여하지 않습니다: 이 인스턴스는 브라우저가 하는 것과 같은 방식으로 다른 인스턴스의 API를 그냥 호출할 뿐입니다.',
+  'settings.help.instances.link': '인스턴스 열기',
+
+  'settings.help.access.title': '접근 및 문제 해결',
+  'settings.help.access.body':
+    '비밀번호는 세션 쿠키 뒤로 전체 인터페이스를 잠급니다. 접근 페이지에는 이 빌드의 수신 포트와 접근 방법, 그리고 그 이유도 나열되어 있어, 낯선 열린 포트에 추측 대신 답이 있게 합니다. 진단 페이지는 버그 보고서에 첨부할 파일을 만듭니다: 버전과 빌드 정보, 모든 비밀번호를 제거한 현재 설정, 이 프로세스의 최근 로그 줄, 그리고 실행 중인 고루틴 수입니다.',
+  'settings.help.access.link1': '접근 설정 열기',
+  'settings.help.access.link2': '진단 열기',
+
+  'settings.help.advanced.title': '나머지 전부',
+  'settings.help.advanced.body':
+    '이 빌드의 모든 설정은 고급 페이지에서 원래 이름으로 읽고 바꿀 수 있으며, 이미 다운로드된 파일의 미러를 어떻게 처리하는지, 다운로드가 이미 사용 중인 이름에 놓이게 되면 어떻게 되는지 등 아직 다른 곳에 전용 컨트롤이 없는 몇 가지도 포함됩니다.',
+  'settings.help.advanced.link': '고급 설정 열기',
 };

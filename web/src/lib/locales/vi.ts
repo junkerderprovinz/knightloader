@@ -1029,4 +1029,173 @@ export const vi: Dict = {
     'Ẩn thông báo thành công và thông tin. Lỗi, captcha đang chờ bạn, hoặc tài khoản bị tạm ngưng vẫn hiển thị.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Thay đổi lần cuối',
+
+  'file.open': 'Mở',
+  'file.openNatively': 'Mở bằng ứng dụng mặc định',
+  'file.revealInFolder': 'Hiện trong thư mục',
+  'file.desktopOnly': 'Chỉ trong ứng dụng máy tính để bàn',
+
+  'settings.schedule.title': 'Lịch',
+  'settings.schedule.subtitle': 'Tạm dừng, tiếp tục hoặc giới hạn tốc độ tải xuống theo lịch.',
+  'settings.schedule.listTitle': 'Bảng thời gian',
+  'settings.schedule.orderHint':
+    'Các hàng được áp dụng theo thứ tự, từ trên xuống dưới, và khi hai khung giờ chồng lấn, hàng thấp hơn thắng - một khung giờ rộng “tạm dừng mỗi đêm” ở trên một ngoại lệ hẹp hơn để ngoại lệ đó vẫn có hiệu lực, còn hai hàng đó theo thứ tự ngược lại thì không.',
+  'settings.schedule.add': 'Thêm khung giờ',
+  'settings.schedule.empty': 'Hàng đợi tuân theo lịch riêng của nó',
+  'settings.schedule.emptyHint':
+    'Không có khung giờ nào được cấu hình, vì vậy không có gì ở đây tạm dừng hoặc giới hạn hàng đợi theo đồng hồ. Thêm một khung giờ để giữ các lượt tải xuống lại vào ban đêm hoặc giới hạn tốc độ trong khi chính bạn đang dùng kết nối.',
+  'settings.schedule.use': 'Dùng khung giờ này',
+  'settings.schedule.moveUp': 'Di chuyển lên',
+  'settings.schedule.moveDown': 'Di chuyển xuống',
+  'settings.schedule.remove': 'Xóa khung giờ này',
+  'settings.schedule.edit': 'Sửa khung giờ này',
+  'settings.schedule.name': 'Tên',
+  'settings.schedule.namePlaceholder': 'vd. Tạm dừng ban đêm',
+  'settings.schedule.days': 'Ngày',
+  'settings.schedule.daysHint':
+    'Khung giờ này mở vào những ngày nào trong tuần. Với khung giờ kéo dài qua nửa đêm, hãy đánh dấu ngày mà nó BẮT ĐẦU - “T6 22:00-06:00” kết thúc vào sáng thứ Bảy mà không cần đánh dấu chính thứ Bảy.',
+  'settings.schedule.preset.every': 'Mỗi ngày',
+  'settings.schedule.preset.weekdays': 'Ngày thường',
+  'settings.schedule.preset.weekends': 'Cuối tuần',
+  'settings.schedule.preset.custom': 'Tùy chỉnh',
+  'settings.schedule.start': 'Bắt đầu',
+  'settings.schedule.end': 'Kết thúc',
+  'settings.schedule.endHint':
+    'Trước giờ bắt đầu, khung giờ này kéo dài qua nửa đêm và kết thúc vào sáng hôm sau. Giờ kết thúc trùng với giờ bắt đầu sẽ bị từ chối - điều đó có thể có nghĩa là cả một ngày hoặc không có thời gian nào cả, và đoán xem ý định là gì còn tệ hơn là hỏi.',
+  'settings.schedule.action': 'Hành động',
+  'settings.schedule.action.pause': 'Tạm dừng',
+  'settings.schedule.action.resume': 'Tiếp tục',
+  'settings.schedule.action.limit': 'Giới hạn tốc độ',
+  'settings.schedule.limit': 'Giới hạn tốc độ',
+  'settings.schedule.disabledOff': 'Khung giờ này đã bị gác lại và không bao giờ kích hoạt. Hàng đợi hoạt động như thể hàng này hoàn toàn không tồn tại.',
+  'settings.schedule.activeNow': 'Đang hoạt động, đến {time}',
+  'settings.schedule.next': 'Tiếp theo: {when}',
+  'settings.schedule.never': 'Không bao giờ kích hoạt theo cấu hình hiện tại',
+  'settings.schedule.stateNow.paused': 'Hàng đợi hiện đang bị lịch tạm dừng.',
+  'settings.schedule.stateNow.limited': 'Hàng đợi hiện đang bị lịch giới hạn ở mức {rate}.',
+  'settings.schedule.stateNow.running': 'Hiện không có khung giờ nào có hiệu lực.',
+  'settings.schedule.nextChange': 'Thay đổi tiếp theo: {when}',
+  'settings.schedule.noNextChange': 'Không có gì trong bảng sẽ thay đổi hàng đợi theo cấu hình hiện tại.',
+  'settings.schedule.save': 'Lưu lịch',
+  'settings.schedule.discard': 'Bỏ',
+  'settings.schedule.unsaved': 'Thay đổi chưa lưu trong lịch',
+  'settings.schedule.saveFailed': 'Không thể lưu lịch: {error}',
+  'settings.schedule.rowError': 'Hàng {row}: {error}',
+
+  'idleAction.title': 'Hàng đợi đang rảnh',
+  'idleAction.action.pause': 'Đang tạm dừng',
+  'idleAction.actionFallback': '“{action}” đang chạy',
+  'idleAction.in': 'sau {countdown}',
+  'idleAction.cancel': 'Hủy',
+  'idleAction.cancelling': 'Đang hủy…',
+  'idleAction.cancelFailed': 'Không thể hủy: máy chủ không phản hồi.',
+
+  'settings.idleAction.label': 'Hành động khi hàng đợi trống',
+  'settings.idleAction.hint':
+    'Điều gì xảy ra ngay khi không còn gì đang chạy, đang chờ trong hàng đợi hoặc sẵn sàng bắt đầu. Một liên kết bạn đã tắt không được tính ở đây - xem bong bóng thông tin.',
+  'settings.idleAction.info':
+    'Một liên kết bạn đã tắt không bao giờ được tính là công việc còn lại, vì vậy nó không thể trì hoãn việc này mãi mãi. Một liên kết bị tạm dừng hoặc giữ lại thủ công vẫn được tính - cả hai đều có nghĩa là “chờ một chút”, không phải “không bao giờ”.',
+  'settings.idleAction.none': 'Không làm gì cả',
+  'settings.idleAction.pause': 'Tạm dừng hàng đợi',
+  'settings.idleAction.delay': 'Đếm ngược (giây)',
+  'settings.idleAction.delayHint':
+    'Bạn có bao nhiêu thời gian để hủy trước khi hành động được thực hiện, ngay khi hàng đợi thực sự trở nên rảnh.',
+
+  'settings.nav.diagnostics': 'Chẩn đoán',
+  'settings.diagnostics.subtitle':
+    'Build này là gì, nó đang chạy trên gì, và đầu ra nhật ký gần đây của chính nó - để đính kèm vào báo cáo lỗi.',
+  'settings.diagnostics.version': 'Phiên bản',
+  'settings.diagnostics.deployment': 'Build',
+  'settings.diagnostics.deployment.container': 'Container',
+  'settings.diagnostics.deployment.desktop': 'Máy tính để bàn',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'Nền tảng',
+  'settings.diagnostics.goroutines': 'Goroutine',
+  'settings.diagnostics.download': 'Tải gói chẩn đoán',
+  'settings.diagnostics.downloading': 'Đang chuẩn bị…',
+  'settings.diagnostics.downloadHint':
+    'Một tệp JSON với các trường ở trên, cài đặt của bạn với mọi mật khẩu đã bị xóa, và các dòng nhật ký bên dưới.',
+  'settings.diagnostics.downloadFailed': 'Không thể tạo gói: {error}',
+  'settings.diagnostics.logTitle': 'Các dòng nhật ký gần đây',
+  'settings.diagnostics.logHint':
+    '{n} dòng cuối cùng mà tiến trình này đã ghi lại, cũ nhất trước. Không có gì ở đây được ghi vào đĩa.',
+  'settings.diagnostics.logEmpty': 'Chưa có gì được ghi lại.',
+  'settings.diagnostics.refresh': 'Làm mới',
+  'settings.diagnostics.loadFailed': 'Không thể tải chẩn đoán. Máy chủ có truy cập được không?',
+
+  'settings.nav.help': 'Trợ giúp',
+  'settings.help.intro':
+    'Build này có thể làm gì, được tổ chức theo tác vụ thay vì theo trang cài đặt. Mỗi phần liên kết đến nơi nó được cấu hình.',
+
+  'settings.help.intake.title': 'Thêm lượt tải xuống',
+  'settings.help.intake.body':
+    'Dán liên kết vào Bộ thu thập - mỗi dòng một liên kết, hoặc văn bản lộn xộn: một lượt quét tìm liên kết ở bất cứ đâu chúng nằm, giữa câu, nhiều liên kết trên một dòng, hoặc bị ngắt thành hai dòng bởi trình email.',
+  'settings.help.intake.b1': 'Thả một tệp container liên kết (.dlc, .ccf, .rsdf) hoặc một danh sách liên kết đơn giản.',
+  'settings.help.intake.b2':
+    "Các nút Click'n'Load trên trang hoster và diễn đàn hoạt động không thay đổi - KnightLoader phản hồi trên 127.0.0.1:9666, cùng cổng mà mọi trình quản lý tải xuống khác sử dụng.",
+  'settings.help.intake.b3':
+    'Dán một URL trang thay vì liên kết tệp và bật Thu thập để trích xuất mọi tệp mà nó liên kết đến, thay vì tải xuống chính trang đó.',
+  'settings.help.intake.b4': 'Một thư mục được theo dõi tự động lấy các tệp .txt/.crawljob được thả vào đó.',
+  'settings.help.intake.link1': 'Mở cài đặt Tải xuống',
+  'settings.help.intake.link2': "Mở cài đặt Truy cập (Click'n'Load)",
+
+  'settings.help.collector.title': 'Bộ thu thập, trước khi bất cứ thứ gì được tải xuống',
+  'settings.help.collector.body':
+    'Các liên kết mới đến Bộ thu thập trước, không phải hàng đợi: một vùng chuyển tiếp để kiểm tra tên, kích thước và cảnh báo trùng lặp trước khi bất cứ thứ gì bắt đầu. Xác nhận tự động có thể bỏ qua bước này, với độ trễ tùy chọn; khi đã xác nhận, một liên kết hoặc bắt đầu ngay lập tức hoặc chờ trong hàng đợi, tùy thuộc vào việc tự động bắt đầu.',
+  'settings.help.collector.link': 'Mở cài đặt Chung',
+
+  'settings.help.rules.title': 'Quy tắc: gói, thư mục và những gì được giữ lại',
+  'settings.help.rules.body':
+    'Packagizer đổi tên một liên kết, chọn thư mục của nó và đặt các tùy chọn tải xuống khi đến, dựa trên các điều kiện mà bạn viết. Bộ lọc liên kết quyết định xem một liên kết có được giữ lại hay không - và khác với bộ lọc chỉ đơn giản làm liên kết biến mất, một sự từ chối luôn nêu tên quy tắc đã gây ra nó, và lý do.',
+  'settings.help.rules.link': 'Mở Quy tắc',
+
+  'settings.help.queue.title': 'Quản lý hàng đợi',
+  'settings.help.queue.body':
+    'Tạm dừng, tiếp tục hoặc sắp xếp lại bất kỳ liên kết nào, riêng lẻ hoặc như cả một gói. Dừng hàng đợi là hai hành động khác nhau: dừng để nguyên những gì đang chạy không bị động chạm để nó tự hoàn thành, trong khi dừng ngay tất cả các lượt truyền trước tiên cho thấy điều gì sẽ mất, và chỉ tiếp tục sau khi bạn xác nhận - đó chính xác là lý do cảnh báo đó tồn tại cho một lượt truyền không thể tiếp tục từ nơi nó dừng lại.',
+  'settings.help.queue.b1': 'Một liên kết duy nhất có thể ghi đè số lượng kết nối toàn cục hoặc công tắc giải nén sau khi tải xuống.',
+  'settings.help.queue.b2': 'Bản sao của một liên kết đã có trong danh sách luôn bị từ chối, ngay cả trước khi nó đến được Bộ thu thập.',
+
+  'settings.help.limits.title': 'Vượt qua giới hạn của hoster',
+  'settings.help.limits.body': 'Ba cách độc lập để ngăn giới hạn miễn phí trở thành trần:',
+  'settings.help.limits.b1':
+    'Kết nối - phân tán các lượt tải xuống qua nhiều hơn một đường ra (một đường dây thứ hai, một proxy, SOCKS) thay vì luôn ra bằng địa chỉ riêng của máy này.',
+  'settings.help.limits.b2':
+    'Kết nối lại - yêu cầu router cấp địa chỉ công khai mới, điều duy nhất thực sự dỡ bỏ giới hạn gắn với chính địa chỉ đó (UPnP, một chương trình bên ngoài, một tập lệnh, hoặc phát lại các yêu cầu HTTP đến trang quản trị của router - các tập lệnh JDownloader LiveHeader/curl hiện có hoạt động không thay đổi).',
+  'settings.help.limits.b3':
+    'Tài khoản - lưu thông tin đăng nhập premium hoặc debrid (Real-Debrid, AllDebrid, TorBox và những dịch vụ khác) để một liên kết đủ điều kiện được lấy ở tốc độ đầy đủ thay vì giới hạn miễn phí.',
+  'settings.help.limits.link1': 'Mở Kết nối',
+  'settings.help.limits.link2': 'Mở Kết nối lại',
+  'settings.help.limits.link3': 'Mở Tài khoản',
+
+  'settings.help.captcha.title': 'Captcha',
+  'settings.help.captcha.body':
+    'Khi một hoster yêu cầu captcha, một bộ giải tự động mà bạn đã cấu hình được thử trước, theo thứ tự bạn đã đặt. Những gì nó không thể giải - hoặc nếu không có bộ giải nào được cấu hình - được trình bày cho bạn thay vì âm thầm thất bại.',
+  'settings.help.captcha.link': 'Mở cài đặt Captcha',
+
+  'settings.help.after.title': 'Sau khi tải xuống',
+  'settings.help.after.body':
+    'Kho lưu trữ được giải nén tự động: zip (kể cả được mã hóa, cả WinZip AES lẫn ZipCrypto cũ), rar với các bộ nhiều tập, 7z, tar, và gzip/bzip2/xz/zstd bất kể có bọc một tar hay không - Go thuần túy, không cần chương trình unrar hoặc 7z bên ngoài. Đối với kho lưu trữ được mã hóa, một danh sách mật khẩu được thử theo thứ tự. Một tệp đã hoàn thành được kiểm tra so với bất kỳ checksum nào đi kèm với nó: một danh sách .sfv, một tệp md5/sha1/sha256sum, hoặc một CRC32 mà chính tên bản phát hành mang theo.',
+  'settings.help.after.link1': 'Mở cài đặt Kho lưu trữ',
+  'settings.help.after.link2': 'Mở cài đặt Tải xuống',
+
+  'settings.help.schedule.title': 'Chạy không cần giám sát',
+  'settings.help.schedule.body':
+    'Một lịch hàng tuần tạm dừng hoặc giới hạn hàng đợi theo đồng hồ - một khung giờ ban đêm, chính xác ngay cả khi chuyển sang giờ mùa hè - cùng ý tưởng như Scheduler của JDownloader.',
+  'settings.help.schedule.link': 'Mở Lịch',
+
+  'settings.help.instances.title': 'Chạy nhiều hơn một thực thể',
+  'settings.help.instances.body':
+    'Thêm một KnightLoader khác làm đối tác, và hàng đợi của nó cũng xuất hiện trên bảng điều khiển này - tự lưu trữ, không có relay nào tham gia: thực thể này chỉ đơn giản gọi API của thực thể kia, theo cùng cách mà một trình duyệt sẽ làm.',
+  'settings.help.instances.link': 'Mở Thực thể',
+
+  'settings.help.access.title': 'Truy cập và khắc phục sự cố',
+  'settings.help.access.body':
+    'Mật khẩu khóa toàn bộ giao diện sau một cookie phiên. Trang Truy cập cũng liệt kê các cổng tiếp nhận và phương thức truy cập của build này, và lý do - để một cổng mở không xác định có câu trả lời thay vì phỏng đoán. Trang Chẩn đoán tạo một tệp để đính kèm vào báo cáo lỗi: phiên bản và thông tin build, cài đặt hiện tại với mọi mật khẩu đã bị xóa, các dòng nhật ký gần đây của tiến trình này, và có bao nhiêu goroutine đang chạy.',
+  'settings.help.access.link1': 'Mở cài đặt Truy cập',
+  'settings.help.access.link2': 'Mở Chẩn đoán',
+
+  'settings.help.advanced.title': 'Tất cả những thứ khác',
+  'settings.help.advanced.body':
+    'Mỗi cài đặt của build này có thể được đọc và thay đổi qua tên thô của nó trên trang Nâng cao, bao gồm một vài cài đặt - cách xử lý bản sao của một tệp đã tải xuống, điều gì xảy ra khi một lượt tải xuống sẽ rơi vào một tên đã được sử dụng - vẫn chưa có điều khiển riêng ở nơi khác.',
+  'settings.help.advanced.link': 'Mở cài đặt Nâng cao',
 };

@@ -196,11 +196,13 @@ export const IconSignOut = (p: SVGProps<SVGSVGElement>) => (
 /* ---------------------------------------------------------------------------
    The settings tab bar.
 
-   Eight glyphs for the eight settings sections that had no icon in the app yet.
-   The other five reuse what is already here, on purpose: Downloads, Accounts
-   and Connections are the same idea as the sidebar entry and the connection row
-   that already carry those glyphs, Reconnect is the retry arrow the task list
-   uses for "do it again", and General is the gear — one idea, one drawing.
+   Ten glyphs for the ten settings sections that had no icon in the app yet
+   (eight from the original settings shell, plus Diagnostics and Help from
+   10C). The other five reuse what is already here, on purpose: Downloads,
+   Accounts and Connections are the same idea as the sidebar entry and the
+   connection row that already carry those glyphs, Reconnect is the retry
+   arrow the task list uses for "do it again", and General is the gear — one
+   idea, one drawing.
 
    Every one of these is drawn to survive 16px, which is the only size the tab
    bar ever asks for: no glyph here needs more than four strokes, and none of
@@ -271,10 +273,39 @@ export const IconSliders = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+/** Diagnostics: a pulse line, for the page that says whether the process is alive. */
+export const IconDiagnostics = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2.5 10.5h3l1.5-5 3 9 1.5-4h3.25l1.25 2" />
+  </svg>
+);
+
+/** Help: a question mark, same circle radius as Schedule's clock and Connections' globe. */
+export const IconHelp = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="10" cy="10" r="7.25" />
+    <path d="M7.7 7.9a2.35 2.35 0 1 1 3.4 2.1c-.75.4-1.1 1-1.1 1.75v.35" />
+    <circle cx="10" cy="14.2" r=".9" fill="currentColor" stroke="none" />
+  </svg>
+);
+
 /** The one-shot "paste from clipboard" button: a clipboard, clip and all. */
 export const IconClipboard = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
     <rect x="5" y="4.5" width="10" height="12.5" rx="1.5" />
     <path d="M7.5 4.25a1.25 1.25 0 0 1 1.25-1.25h2.5a1.25 1.25 0 0 1 1.25 1.25V5.5h-5V4.25Z" />
+  </svg>
+);
+
+/**
+ * "Open natively" (desktop only): a small app window, distinct from
+ * IconExternalLink's arrow-leaving-a-box, which already means "goes to a
+ * website" (Buy Premium/Renew). This one means "hands off to another
+ * application on this machine".
+ */
+export const IconApp = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3.5" y="4.5" width="13" height="11" rx="1.5" />
+    <path d="M3.5 7.5h13" />
   </svg>
 );

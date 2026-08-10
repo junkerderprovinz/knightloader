@@ -12,6 +12,7 @@ require (
 	github.com/nwaples/rardecode/v2 v2.3.0
 	github.com/ulikunitz/xz v0.5.16
 	golang.org/x/crypto v0.54.0
+	golang.org/x/mod v0.37.0
 	golang.org/x/net v0.57.0
 	golang.org/x/time v0.15.0
 	modernc.org/sqlite v1.56.0
@@ -145,7 +146,6 @@ require (
 	go.uber.org/mock v0.5.1 // indirect
 	go4.org v0.0.0-20260112195520-a5071408f32f // indirect
 	golang.org/x/exp v0.0.0-20251219203646-944ab1f22d93 // indirect
-	golang.org/x/mod v0.37.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.40.0 // indirect

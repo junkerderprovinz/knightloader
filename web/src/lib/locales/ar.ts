@@ -1031,4 +1031,173 @@ export const ar: Dict = {
     'يخفي إشعارات النجاح والمعلومات. الخطأ، أو كابتشا تنتظرك، أو حساب موقوف مؤقتًا، كلها تظل تظهر رغم ذلك.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'آخر تعديل',
+
+  'file.open': 'فتح',
+  'file.openNatively': 'فتح بالتطبيق الافتراضي',
+  'file.revealInFolder': 'إظهار في المجلد',
+  'file.desktopOnly': 'في تطبيق سطح المكتب فقط',
+
+  'settings.schedule.title': 'الجدول الزمني',
+  'settings.schedule.subtitle': 'أوقف مؤقتًا أو استأنف أو حدّد سرعة التنزيل حسب جدول زمني.',
+  'settings.schedule.listTitle': 'جدول الأوقات',
+  'settings.schedule.orderHint':
+    'تُطبَّق الصفوف بالترتيب، من الأعلى إلى الأسفل، وعندما تتداخل نافذتان، تفوز السفلى - نافذة واسعة مثل «إيقاف كل ليلة» فوق استثناء أضيق تُبقي الاستثناء ساريًا، لكن نفس الصفين بترتيب معكوس لا يفعلان ذلك.',
+  'settings.schedule.add': 'إضافة نافذة',
+  'settings.schedule.empty': 'يتبع الطابور جدوله الزمني الخاص',
+  'settings.schedule.emptyHint':
+    'لم يتم تكوين أي نافذة، لذا لا شيء هنا يوقف الطابور مؤقتًا أو يحدّه حسب الساعة. أضف واحدة لتأخير التنزيلات ليلًا أو لتحديد السرعة أثناء استخدامك أنت للاتصال.',
+  'settings.schedule.use': 'استخدام هذه النافذة',
+  'settings.schedule.moveUp': 'تحريك لأعلى',
+  'settings.schedule.moveDown': 'تحريك لأسفل',
+  'settings.schedule.remove': 'إزالة هذه النافذة',
+  'settings.schedule.edit': 'تعديل هذه النافذة',
+  'settings.schedule.name': 'الاسم',
+  'settings.schedule.namePlaceholder': 'مثلاً استراحة ليلية',
+  'settings.schedule.days': 'الأيام',
+  'settings.schedule.daysHint':
+    'في أي أيام الأسبوع تُفتح هذه النافذة. بالنسبة لنافذة تستمر إلى ما بعد منتصف الليل، ضع علامة على اليوم الذي تبدأ فيه - «جمعة 22:00-06:00» تنتهي صباح السبت دون وضع علامة على السبت نفسه.',
+  'settings.schedule.preset.every': 'كل يوم',
+  'settings.schedule.preset.weekdays': 'أيام العمل',
+  'settings.schedule.preset.weekends': 'عطلات نهاية الأسبوع',
+  'settings.schedule.preset.custom': 'مخصص',
+  'settings.schedule.start': 'البداية',
+  'settings.schedule.end': 'النهاية',
+  'settings.schedule.endHint':
+    'قبل وقت البداية، تستمر هذه النافذة إلى ما بعد منتصف الليل وتنتهي في الصباح التالي. يُرفض وقت نهاية يساوي وقت البداية - قد يعني ذلك يومًا كاملًا أو لا وقت على الإطلاق، وتخمين ما كان مقصودًا أسوأ من السؤال.',
+  'settings.schedule.action': 'الإجراء',
+  'settings.schedule.action.pause': 'إيقاف مؤقت',
+  'settings.schedule.action.resume': 'استئناف',
+  'settings.schedule.action.limit': 'تحديد السرعة',
+  'settings.schedule.limit': 'حد السرعة',
+  'settings.schedule.disabledOff': 'هذه النافذة متوقفة جانبًا ولا تُفعَّل أبدًا. يتصرف الطابور وكأن هذا الصف غير موجود على الإطلاق.',
+  'settings.schedule.activeNow': 'نشطة الآن، حتى {time}',
+  'settings.schedule.next': 'التالي: {when}',
+  'settings.schedule.never': 'لن تُفعَّل أبدًا كما هي مكوَّنة',
+  'settings.schedule.stateNow.paused': 'الطابور متوقف مؤقتًا الآن بواسطة الجدول الزمني.',
+  'settings.schedule.stateNow.limited': 'الطابور محدود الآن إلى {rate} بواسطة الجدول الزمني.',
+  'settings.schedule.stateNow.running': 'لا توجد نافذة سارية الآن.',
+  'settings.schedule.nextChange': 'التغيير التالي: {when}',
+  'settings.schedule.noNextChange': 'لن يغيّر أي شيء في الجدول الطابور أبدًا كما هو مكوَّن.',
+  'settings.schedule.save': 'حفظ الجدول الزمني',
+  'settings.schedule.discard': 'تجاهل',
+  'settings.schedule.unsaved': 'تغييرات غير محفوظة في الجدول الزمني',
+  'settings.schedule.saveFailed': 'تعذّر حفظ الجدول الزمني: {error}',
+  'settings.schedule.rowError': 'الصف {row}: {error}',
+
+  'idleAction.title': 'الطابور خامل',
+  'idleAction.action.pause': 'يتم الإيقاف المؤقت',
+  'idleAction.actionFallback': '«{action}» قيد التشغيل',
+  'idleAction.in': 'خلال {countdown}',
+  'idleAction.cancel': 'إلغاء',
+  'idleAction.cancelling': 'جارٍ الإلغاء…',
+  'idleAction.cancelFailed': 'تعذّر الإلغاء: لم يستجب الخادم.',
+
+  'settings.idleAction.label': 'الإجراء عند إفراغ الطابور',
+  'settings.idleAction.hint':
+    'ما الذي يحدث بمجرد ألا يبقى شيء قيد التشغيل، أو في انتظار الطابور، أو جاهزًا للبدء. الرابط الذي عطّلته لا يُحتسَب هنا - انظر فقاعة المعلومات.',
+  'settings.idleAction.info':
+    'الرابط الذي عطّلته لا يُحتسَب أبدًا كعمل متبقٍّ، لذا لا يمكنه تأجيل هذا إلى الأبد. الرابط الموقوف مؤقتًا أو المحتجز يدويًا لا يزال يُحتسَب - كلاهما يعني «انتظر قليلًا»، وليس «أبدًا».',
+  'settings.idleAction.none': 'لا تفعل شيئًا',
+  'settings.idleAction.pause': 'إيقاف الطابور مؤقتًا',
+  'settings.idleAction.delay': 'العد التنازلي (ثوانٍ)',
+  'settings.idleAction.delayHint':
+    'كم من الوقت لديك للإلغاء قبل تنفيذ الإجراء، بمجرد أن يصبح الطابور خاملًا فعلًا.',
+
+  'settings.nav.diagnostics': 'التشخيص',
+  'settings.diagnostics.subtitle':
+    'ما هذا البناء، وعلامَ يعمل، ومخرجات سجله الأخيرة الخاصة به - لإرفاقها بتقرير خطأ.',
+  'settings.diagnostics.version': 'الإصدار',
+  'settings.diagnostics.deployment': 'البناء',
+  'settings.diagnostics.deployment.container': 'حاوية',
+  'settings.diagnostics.deployment.desktop': 'سطح المكتب',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'المنصة',
+  'settings.diagnostics.goroutines': 'Goroutines',
+  'settings.diagnostics.download': 'تنزيل حزمة التشخيص',
+  'settings.diagnostics.downloading': 'جارٍ التحضير…',
+  'settings.diagnostics.downloadHint':
+    'ملف JSON بالحقول أعلاه، وإعداداتك مع إزالة كل كلمة مرور، وسطور السجل أدناه.',
+  'settings.diagnostics.downloadFailed': 'تعذّر إنشاء الحزمة: {error}',
+  'settings.diagnostics.logTitle': 'سطور السجل الأخيرة',
+  'settings.diagnostics.logHint':
+    'آخر {n} سطرًا سجّلتها هذه العملية، الأقدم أولًا. لا يُكتب شيء هنا على القرص.',
+  'settings.diagnostics.logEmpty': 'لم يُسجَّل شيء بعد.',
+  'settings.diagnostics.refresh': 'تحديث',
+  'settings.diagnostics.loadFailed': 'تعذّر تحميل التشخيص. هل الخادم متاح؟',
+
+  'settings.nav.help': 'المساعدة',
+  'settings.help.intro':
+    'ما يمكن أن يفعله هذا البناء، منظَّمًا حسب المهمة بدلًا من صفحة الإعدادات. يؤدي كل قسم إلى المكان الذي يُضبَط فيه.',
+
+  'settings.help.intake.title': 'إضافة تنزيلات',
+  'settings.help.intake.body':
+    'الصق الروابط في المجمِّع - رابط واحد لكل سطر، أو نصًا غير منظم: يجد الفحص الروابط أينما وُجدت، في منتصف جملة، عدة روابط في السطر الواحد، أو مقسَّمة على سطرين بواسطة برنامج بريد إلكتروني.',
+  'settings.help.intake.b1': 'أفلت ملف حاوية روابط (.dlc، .ccf، .rsdf) أو قائمة روابط عادية.',
+  'settings.help.intake.b2':
+    "تعمل أزرار Click'n'Load في صفحات المضيفين والمنتديات دون تغيير - يستجيب KnightLoader على 127.0.0.1:9666، نفس المنفذ الذي يستخدمه أي مدير تنزيلات آخر.",
+  'settings.help.intake.b3':
+    'الصق رابط URL لصفحة بدلًا من رابط ملف وفعّل الزحف لاستخراج كل ملف ترتبط به، بدلًا من تنزيل الصفحة نفسها.',
+  'settings.help.intake.b4': 'يلتقط مجلد مُراقَب تلقائيًا ملفات .txt/.crawljob التي تُوضع فيه.',
+  'settings.help.intake.link1': 'فتح إعدادات التنزيلات',
+  'settings.help.intake.link2': "فتح إعدادات الوصول (Click'n'Load)",
+
+  'settings.help.collector.title': 'المجمِّع، قبل أن يُنزَّل أي شيء',
+  'settings.help.collector.body':
+    'تصل الروابط الجديدة أولًا إلى المجمِّع، لا إلى الطابور: منطقة انتقالية للتحقق من الأسماء والأحجام وتحذيرات التكرار قبل أن يبدأ أي شيء. يمكن للتأكيد التلقائي تخطي هذه الخطوة، بتأخير اختياري؛ بمجرد التأكيد، يبدأ الرابط فورًا أو ينتظر في الطابور، حسب البدء التلقائي.',
+  'settings.help.collector.link': 'فتح الإعدادات العامة',
+
+  'settings.help.rules.title': 'القواعد: الحزم والمجلدات وما يُحتفَظ به',
+  'settings.help.rules.body':
+    'يعيد Packagizer تسمية رابط، ويختار مجلده، ويضبط خيارات تنزيله عند الوصول، بناءً على شروط تكتبها أنت. يقرر مرشِّح الروابط ما إذا كان الرابط يُحتفَظ به على الإطلاق - وخلافًا لمرشِّح يجعل الروابط تختفي فحسب، يُسمِّي الرفض دائمًا القاعدة التي تسبَّبت فيه، ولماذا.',
+  'settings.help.rules.link': 'فتح القواعد',
+
+  'settings.help.queue.title': 'إدارة الطابور',
+  'settings.help.queue.body':
+    'أوقف مؤقتًا أو استأنف أو أعد ترتيب أي رابط، بمفرده أو كحزمة كاملة. إيقاف الطابور إجراءان مختلفان: الإيقاف يترك ما يعمل بالفعل دون مساس ليكتمل من تلقاء نفسه، بينما الإيقاف الفوري لكل عمليات النقل يُظهر أولًا ما سيُفقَد، ولا يتابع إلا بعد تأكيدك - وهذا بالضبط ما يهدف إليه التحذير بالنسبة لعملية نقل لا يمكنها استئناف العمل من حيث توقفت.',
+  'settings.help.queue.b1': 'يمكن لرابط واحد تجاوز عدد الاتصالات العام أو مفتاح فك الضغط بعد التنزيل.',
+  'settings.help.queue.b2': 'يُرفَض دائمًا تكرار رابط موجود بالفعل في القائمة، حتى قبل وصوله إلى المجمِّع.',
+
+  'settings.help.limits.title': 'تجاوز حدود المضيف',
+  'settings.help.limits.body': 'ثلاث طرق مستقلة لمنع حد مجاني من أن يكون السقف:',
+  'settings.help.limits.b1':
+    'الاتصالات - وزّع التنزيلات على أكثر من مسار صادر واحد (خط ثانٍ، وكيل، SOCKS) بدلًا من الخروج دائمًا عبر عنوان هذا الجهاز نفسه.',
+  'settings.help.limits.b2':
+    'إعادة الاتصال - اطلب من الراوتر عنوانًا عامًا جديدًا، الشيء الوحيد الذي يرفع فعليًا حدًا مرتبطًا بالعنوان نفسه (UPnP، برنامج خارجي، سكربت، أو إعادة تشغيل طلبات HTTP مقابل صفحة إدارة الراوتر - سكربتات JDownloader LiveHeader/curl الحالية تعمل دون تغيير).',
+  'settings.help.limits.b3':
+    'الحسابات - احفظ بيانات اعتماد بريميوم أو debrid (Real-Debrid وAllDebrid وTorBox وغيرها) بحيث يُجلَب رابط مؤهَّل بالسرعة الكاملة بدلًا من الحد المجاني.',
+  'settings.help.limits.link1': 'فتح الاتصالات',
+  'settings.help.limits.link2': 'فتح إعادة الاتصال',
+  'settings.help.limits.link3': 'فتح الحسابات',
+
+  'settings.help.captcha.title': 'كابتشا',
+  'settings.help.captcha.body':
+    'عندما يطلب المضيف كابتشا، يُجرَّب أولًا حلّال تلقائي أعددتَه، بالترتيب الذي حدَّدتَه. ما لا يستطيع حلّه - أو إذا لم يُعدَّ أي حلّال - يُعرَض عليك بدلًا من الفشل بصمت.',
+  'settings.help.captcha.link': 'فتح إعدادات كابتشا',
+
+  'settings.help.after.title': 'بعد التنزيل',
+  'settings.help.after.body':
+    'تُستخرَج الأرشيفات تلقائيًا: zip (بما فيها المشفَّرة، سواء WinZip AES أو ZipCrypto القديم)، rar بمجموعات متعددة الأجزاء، 7z، tar، وgzip/bzip2/xz/zstd سواء غلَّفت tar أم لا - Go خالص، دون برنامج unrar أو 7z خارجي. بالنسبة لأرشيف مشفَّر، تُجرَّب قائمة كلمات مرور بالترتيب. يُتحقَّق من ملف مكتمل مقابل أي مجموع اختباري يصل معه: قائمة .sfv، ملف md5/sha1/sha256sum، أو CRC32 يحمله اسم الإصدار نفسه.',
+  'settings.help.after.link1': 'فتح إعدادات الأرشيفات',
+  'settings.help.after.link2': 'فتح إعدادات التنزيلات',
+
+  'settings.help.schedule.title': 'العمل دون إشراف',
+  'settings.help.schedule.body':
+    'يوقف جدول زمني أسبوعي الطابور مؤقتًا أو يحدّه حسب الساعة - نافذة ليلية، صحيحة حتى عبر تغيير التوقيت الصيفي - نفس فكرة Scheduler في JDownloader.',
+  'settings.help.schedule.link': 'فتح الجدول الزمني',
+
+  'settings.help.instances.title': 'تشغيل أكثر من نسخة واحدة',
+  'settings.help.instances.body':
+    'أضف KnightLoader آخر كنظير، وستظهر طابوره أيضًا على لوحة المعلومات هذه - مستضاف ذاتيًا، دون أي مُرحِّل: تستدعي هذه النسخة ببساطة واجهة برمجة تطبيقات النسخة الأخرى، بنفس الطريقة التي سيفعلها المتصفح.',
+  'settings.help.instances.link': 'فتح النُسخ',
+
+  'settings.help.access.title': 'الوصول واستكشاف الأخطاء وإصلاحها',
+  'settings.help.access.body':
+    'تقفل كلمة المرور الواجهة بأكملها خلف ملف تعريف ارتباط جلسة. تسرد صفحة الوصول أيضًا منافذ الاستقبال وطرق الوصول لهذا البناء، ولماذا - حتى يكون لمنفذ مفتوح غير معروف إجابة بدلًا من تخمين. تنشئ صفحة التشخيص ملفًا لإرفاقه بتقرير خطأ: الإصدار ومعلومات البناء، الإعدادات الحالية مع إزالة كل كلمة مرور، سطور السجل الأخيرة لهذه العملية، وعدد الـ goroutines قيد التشغيل.',
+  'settings.help.access.link1': 'فتح إعدادات الوصول',
+  'settings.help.access.link2': 'فتح التشخيص',
+
+  'settings.help.advanced.title': 'كل شيء آخر',
+  'settings.help.advanced.body':
+    'يمكن قراءة كل إعداد في هذا البناء وتغييره باسمه الخام في صفحة متقدم، بما في ذلك بعضها - كيفية التعامل مع نسخة مطابقة لملف تم تنزيله بالفعل، وما يحدث عندما ينتهي تنزيل باسم مستخدَم بالفعل - التي ليس لها بعد عنصر تحكم مخصص في مكان آخر.',
+  'settings.help.advanced.link': 'فتح إعدادات متقدم',
 };

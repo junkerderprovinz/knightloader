@@ -1029,4 +1029,173 @@ export const is: Dict = {
     'Felur tilkynningar um árangur og upplýsingar. Villa, captcha sem bíður eftir þér eða frystur reikningur birtast samt.',
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Síðast breytt',
+
+  'file.open': 'Opna',
+  'file.openNatively': 'Opna með sjálfgefnu forriti',
+  'file.revealInFolder': 'Sýna í möppu',
+  'file.desktopOnly': 'Aðeins í skjáborðsforritinu',
+
+  'settings.schedule.title': 'Tímaáætlun',
+  'settings.schedule.subtitle': 'Gera hlé á, halda áfram eða takmarka niðurhalshraða eftir tímaáætlun.',
+  'settings.schedule.listTitle': 'Tímatafla',
+  'settings.schedule.orderHint':
+    'Línur eiga við í röð, ofan frá og niður, og þegar tveir gluggar skarast vinnur sá neðri - breiður „hlé á hverju kvöldi“ fyrir ofan þrengri undantekningu lætur undantekninguna gilda, en sömu tvær línurnar öfugt gera það ekki.',
+  'settings.schedule.add': 'Bæta við glugga',
+  'settings.schedule.empty': 'Biðröðin fylgir sinni eigin tímaáætlun',
+  'settings.schedule.emptyHint':
+    'Enginn gluggi er stilltur, svo ekkert hér gerir hlé á eða takmarkar biðröðina eftir klukkunni. Bættu einum við til að halda niðurhali aftur á næturnar eða takmarka hraðann á meðan þú notar sjálf(ur) tenginguna.',
+  'settings.schedule.use': 'Nota þennan glugga',
+  'settings.schedule.moveUp': 'Færa upp',
+  'settings.schedule.moveDown': 'Færa niður',
+  'settings.schedule.remove': 'Fjarlægja þennan glugga',
+  'settings.schedule.edit': 'Breyta þessum glugga',
+  'settings.schedule.name': 'Heiti',
+  'settings.schedule.namePlaceholder': 't.d. Næturhlé',
+  'settings.schedule.days': 'Dagar',
+  'settings.schedule.daysHint':
+    'Á hvaða vikudögum þessi gluggi opnast. Fyrir glugga sem fer fram yfir miðnætti, hakaðu við daginn sem hann BYRJAR á - „fös 22:00-06:00“ endar laugardagsmorgun án þess að laugardagurinn sjálfur sé hakaður við.',
+  'settings.schedule.preset.every': 'Alla daga',
+  'settings.schedule.preset.weekdays': 'Virka daga',
+  'settings.schedule.preset.weekends': 'Helgar',
+  'settings.schedule.preset.custom': 'Sérsniðið',
+  'settings.schedule.start': 'Upphaf',
+  'settings.schedule.end': 'Endir',
+  'settings.schedule.endHint':
+    'Fyrir upphafstíma fer þessi gluggi fram yfir miðnætti og endar næsta morgun. Lokatími sem er sá sami og upphafstími er hafnað - það gæti þýtt heilan dag eða engan tíma, og að giska á hvað var átt við er verra en að spyrja.',
+  'settings.schedule.action': 'Aðgerð',
+  'settings.schedule.action.pause': 'Hlé',
+  'settings.schedule.action.resume': 'Áframhald',
+  'settings.schedule.action.limit': 'Takmarka hraða',
+  'settings.schedule.limit': 'Hraðatakmörk',
+  'settings.schedule.disabledOff': 'Þessi gluggi er lagður til hliðar og virkjast aldrei. Biðröðin hegðar sér eins og þessi lína væri alls ekki til.',
+  'settings.schedule.activeNow': 'Virkur núna, til {time}',
+  'settings.schedule.next': 'Næst: {when}',
+  'settings.schedule.never': 'Virkjast aldrei eins og hann er stilltur',
+  'settings.schedule.stateNow.paused': 'Biðröðin er í hléi núna vegna tímaáætlunarinnar.',
+  'settings.schedule.stateNow.limited': 'Biðröðin er takmörkuð við {rate} núna vegna tímaáætlunarinnar.',
+  'settings.schedule.stateNow.running': 'Enginn gluggi gildir núna.',
+  'settings.schedule.nextChange': 'Næsta breyting: {when}',
+  'settings.schedule.noNextChange': 'Ekkert í töflunni mun nokkurn tímann breyta biðröðinni eins og hún er stillt.',
+  'settings.schedule.save': 'Vista tímaáætlun',
+  'settings.schedule.discard': 'Henda',
+  'settings.schedule.unsaved': 'Óvistaðar breytingar á tímaáætluninni',
+  'settings.schedule.saveFailed': 'Ekki tókst að vista tímaáætlunina: {error}',
+  'settings.schedule.rowError': 'Lína {row}: {error}',
+
+  'idleAction.title': 'Biðröðin er í hvíld',
+  'idleAction.action.pause': 'Verið að gera hlé',
+  'idleAction.actionFallback': '„{action}“ í gangi',
+  'idleAction.in': 'eftir {countdown}',
+  'idleAction.cancel': 'Hætta við',
+  'idleAction.cancelling': 'Hætt við…',
+  'idleAction.cancelFailed': 'Ekki tókst að hætta við: netþjónninn svaraði ekki.',
+
+  'settings.idleAction.label': 'Aðgerð þegar biðröð tæmist',
+  'settings.idleAction.hint':
+    'Hvað gerist um leið og ekkert er lengur í gangi, í bið eða tilbúið að byrja. Tengill sem þú hefur gert óvirkan telst ekki með - sjá upplýsingablöðruna.',
+  'settings.idleAction.info':
+    'Tengill sem þú hefur gert óvirkan telst aldrei sem eftirstandandi verk, svo hann getur ekki tafið þetta endalaust. Tengill sem er í handvirku hléi eða haldið eftir telst samt með - hvort tveggja þýðir „bíddu aðeins“, ekki „aldrei“.',
+  'settings.idleAction.none': 'Gera ekkert',
+  'settings.idleAction.pause': 'Gera hlé á biðröðinni',
+  'settings.idleAction.delay': 'Niðurtalning (sekúndur)',
+  'settings.idleAction.delayHint':
+    'Hversu mikinn tíma þú hefur til að hætta við áður en aðgerðin keyrir, um leið og biðröðin verður í raun í hvíld.',
+
+  'settings.nav.diagnostics': 'Greining',
+  'settings.diagnostics.subtitle':
+    'Hvað þessi útgáfa er, á hverju hún keyrir, og hennar eigin nýlega annálaúttak - til að hengja við villutilkynningu.',
+  'settings.diagnostics.version': 'Útgáfa',
+  'settings.diagnostics.deployment': 'Gerð',
+  'settings.diagnostics.deployment.container': 'Gámur',
+  'settings.diagnostics.deployment.desktop': 'Skjáborð',
+  'settings.diagnostics.goVersion': 'Go',
+  'settings.diagnostics.platform': 'Vettvangur',
+  'settings.diagnostics.goroutines': 'Gorutínur',
+  'settings.diagnostics.download': 'Sækja greiningarpakka',
+  'settings.diagnostics.downloading': 'Undirbý…',
+  'settings.diagnostics.downloadHint':
+    'JSON-skrá með reitunum hér að ofan, stillingunum þínum með öllum lykilorðum fjarlægðum, og annálalínunum hér fyrir neðan.',
+  'settings.diagnostics.downloadFailed': 'Ekki tókst að útbúa pakkann: {error}',
+  'settings.diagnostics.logTitle': 'Nýlegar annálalínur',
+  'settings.diagnostics.logHint':
+    'Síðustu {n} línurnar sem þetta ferli hefur skráð, elstar fyrst. Ekkert hér er skrifað á diskinn.',
+  'settings.diagnostics.logEmpty': 'Ekkert skráð enn.',
+  'settings.diagnostics.refresh': 'Uppfæra',
+  'settings.diagnostics.loadFailed': 'Ekki tókst að hlaða inn greiningunni. Næst í netþjóninn?',
+
+  'settings.nav.help': 'Hjálp',
+  'settings.help.intro':
+    'Hvað þessi útgáfa getur gert, flokkað eftir verkefni frekar en stillingasíðu. Hver hluti tengir á staðinn þar sem það er stillt.',
+
+  'settings.help.intake.title': 'Bæta við niðurhali',
+  'settings.help.intake.body':
+    'Límdu tengla inn í Safnarann - einn í línu, eða óreglulegan texta: leit finnur tengla hvar sem þeir eru, í miðri setningu, marga í línu, eða brotna á tvær línur af póstforriti.',
+  'settings.help.intake.b1': 'Slepptu tengilsgáma-skrá (.dlc, .ccf, .rsdf) eða einföldum tenglalista.',
+  'settings.help.intake.b2':
+    "Click'n'Load-hnappar á hoster- og spjallsíðum virka óbreyttir - KnightLoader svarar á 127.0.0.1:9666, sömu höfn og allir aðrir niðurhalsstjórar nota.",
+  'settings.help.intake.b3':
+    'Límdu inn slóð síðu í stað tengils á skrá og kveiktu á Skrið til að ná í hverja skrá sem hún tengir í, í stað þess að sækja síðuna sjálfa.',
+  'settings.help.intake.b4': 'Vöktuð mappa nær sjálfkrafa í .txt-/.crawljob-skrár sem er sleppt í hana.',
+  'settings.help.intake.link1': 'Opna stillingar fyrir Niðurhal',
+  'settings.help.intake.link2': "Opna stillingar fyrir Aðgang (Click'n'Load)",
+
+  'settings.help.collector.title': 'Safnarinn, áður en nokkuð hleðst niður',
+  'settings.help.collector.body':
+    'Nýir tenglar lenda fyrst í Safnaranum, ekki í biðröðinni: millisvæði til að athuga heiti, stærðir og viðvaranir um tvítekningar áður en nokkuð byrjar. Sjálfvirk staðfesting getur sleppt þessu skrefi, með valfrjálsri töf; þegar staðfest, byrjar tengill annaðhvort strax eða bíður í biðröðinni, eftir sjálfvirkri ræsingu.',
+  'settings.help.collector.link': 'Opna Almennar stillingar',
+
+  'settings.help.rules.title': 'Reglur: pakkar, möppur og hvað er varðveitt',
+  'settings.help.rules.body':
+    'Packagizer endurnefnir tengil, velur möppuna hans og stillir niðurhalsvalkosti hans við komu, út frá skilyrðum sem þú skrifar. Tenglasían ákveður hvort tengill sé yfirhöfuð varðveittur - og ólíkt síu sem lætur tengla einfaldlega hverfa, nefnir höfnun alltaf regluna sem olli henni, og hvers vegna.',
+  'settings.help.rules.link': 'Opna Reglur',
+
+  'settings.help.queue.title': 'Stjórna biðröðinni',
+  'settings.help.queue.body':
+    'Gerðu hlé á, haltu áfram eða endurraðaðu hvaða tengli sem er, einum sér eða sem heilum pakka. Að stöðva biðröðina eru tvær ólíkar aðgerðir: stöðvun lætur það sem þegar er í gangi ósnert svo það klárist sjálft, á meðan að stöðva allar yfirfærslur samstundis sýnir fyrst hvað myndi tapast og heldur aðeins áfram eftir staðfestingu þína - það er nákvæmlega það sem sú viðvörun er fyrir hjá yfirfærslu sem getur ekki haldið áfram þar sem hún hætti.',
+  'settings.help.queue.b1': 'Einn tengill getur yfirskrifað almenna tengingafjöldann eða rofann fyrir að afþjappa eftir niðurhal.',
+  'settings.help.queue.b2': 'Tvítekningu tengils sem þegar er á listanum er alltaf hafnað, áður en hann nær nokkurn tímann til Safnarans.',
+
+  'settings.help.limits.title': 'Komast fram hjá takmörkunum hostersins',
+  'settings.help.limits.body': 'Þrjár óháðar leiðir til að koma í veg fyrir að frítt takmark sé þakið:',
+  'settings.help.limits.b1':
+    'Tengingar - dreifðu niðurhali yfir fleiri en eina útleið (aðra línu, staðgengil, SOCKS) í stað þess að fara alltaf út um eigið vistfang þessarar vélar.',
+  'settings.help.limits.b2':
+    'Endurtenging - biddu beininn um nýtt opinbert vistfang, það eina sem raunverulega afléttir takmarki sem er bundið sjálfu vistfanginu (UPnP, utanaðkomandi forrit, skrifta, eða að endurspila HTTP-fyrirspurnir gegn stjórnsíðu beinisins - núverandi JDownloader LiveHeader-/curl-skriftur virka óbreyttar).',
+  'settings.help.limits.b3':
+    'Reikningar - vistaðu premium- eða debrid-innskráningar (Real-Debrid, AllDebrid, TorBox og aðrir) svo hæfur tengill sé sóttur á fullum hraða í stað frírrar takmörkunar.',
+  'settings.help.limits.link1': 'Opna Tengingar',
+  'settings.help.limits.link2': 'Opna Endurtengingu',
+  'settings.help.limits.link3': 'Opna Reikninga',
+
+  'settings.help.captcha.title': 'Captcha',
+  'settings.help.captcha.body':
+    'Þegar hoster biður um captcha, er fyrst reyndur sjálfvirkur lausnari sem þú hefur stillt, í þeirri röð sem þú hefur ákveðið. Það sem hann getur ekki leyst - eða ef enginn er stilltur - er lagt fyrir þig í stað þess að mistakast í hljóði.',
+  'settings.help.captcha.link': 'Opna stillingar fyrir Captcha',
+
+  'settings.help.after.title': 'Eftir niðurhal',
+  'settings.help.after.body':
+    'Söfn eru afþjöppuð sjálfkrafa: zip (líka dulkóðað, bæði WinZip AES og eldra ZipCrypto), rar með fjölbinda söfnum, 7z, tar, og gzip/bzip2/xz/zstd hvort sem þau vefja utan um tar eða ekki - hreint Go, án utanaðkomandi unrar- eða 7z-forrita. Fyrir dulkóðað safn er listi lykilorða reyndur í röð. Fullkláruð skrá er athuguð gegn hvaða gátsummu sem fylgdi henni: .sfv-lista, md5-/sha1-/sha256sum-skrá, eða CRC32 sem sjálft útgáfuheitið ber.',
+  'settings.help.after.link1': 'Opna stillingar fyrir Söfn',
+  'settings.help.after.link2': 'Opna stillingar fyrir Niðurhal',
+
+  'settings.help.schedule.title': 'Keyra án eftirlits',
+  'settings.help.schedule.body':
+    'Vikuleg tímaáætlun gerir hlé á eða takmarkar biðröðina eftir klukkunni - næturgluggi, réttur jafnvel yfir breytinguna í sumartíma - sama hugmynd og Scheduler í JDownloader.',
+  'settings.help.schedule.link': 'Opna Tímaáætlun',
+
+  'settings.help.instances.title': 'Keyra fleiri en eitt tilvik',
+  'settings.help.instances.body':
+    'Bættu við öðru KnightLoader sem jafningja og biðröð þess birtist líka á þessu mælaborði - sjálfhýst, ekkert gengi með í för: þetta tilvik kallar einfaldlega á API hins tilviksins, á sama hátt og vafri myndi gera.',
+  'settings.help.instances.link': 'Opna Tilvik',
+
+  'settings.help.access.title': 'Aðgangur og bilanaleit',
+  'settings.help.access.body':
+    'Lykilorð læsir öllu viðmótinu á bak við setuköku. Aðgangs-síðan telur einnig upp inntakshafnir og aðgangsaðferðir þessarar útgáfu, og hvers vegna - svo óþekkt opin höfn hafi svar í stað ágiskunar. Greiningar-síðan býr til skrá til að hengja við villutilkynningu: útgáfu og byggingarupplýsingar, núverandi stillingar með öllum lykilorðum fjarlægðum, nýlegar annálalínur þessa ferlis, og hversu margar gorutínur eru í gangi.',
+  'settings.help.access.link1': 'Opna stillingar fyrir Aðgang',
+  'settings.help.access.link2': 'Opna Greiningu',
+
+  'settings.help.advanced.title': 'Allt annað',
+  'settings.help.advanced.body':
+    'Sérhver stilling þessarar útgáfu er hægt að lesa og breyta eftir hráu heiti hennar á Ítarlegt-síðunni, þar á meðal nokkrar - hvernig speglun skráar sem þegar hefur verið sótt er meðhöndluð, hvað gerist þegar niðurhal myndi lenda á heiti sem þegar er í notkun - sem hafa ekki enn sérstaka stjórn annars staðar.',
+  'settings.help.advanced.link': 'Opna stillingar fyrir Ítarlegt',
 };

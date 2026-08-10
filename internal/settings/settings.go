@@ -22,6 +22,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/confirm"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
+	"github.com/junkerderprovinz/knightloader/internal/idleaction"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
@@ -206,7 +207,23 @@ type Settings struct {
 
 	// Schedule is the timetable that pauses or throttles the queue by the clock.
 	// An empty timetable changes nothing, which is what a fresh install wants.
+	//
+	// It stays a field of this struct rather than a file of its own beside
+	// settings.json - see the doc comment on PUT /api/schedule in
+	// routes_schedule.go for why that is a considered choice and not an
+	// oversight, and setFeature's "scheduler" case in routes_features.go for
+	// the read-current/write-one-field shape every writer of this field, this
+	// route included, is expected to use.
 	Schedule []schedule.Entry `json:"schedule,omitempty"`
+
+	// IdleAction is what happens once the wait queue has nothing enabled left
+	// to run, start or finish, after a cancellable countdown - see
+	// internal/idleaction. Embedded here rather than in a file of its own for
+	// the same reason Schedule just above is: one small struct, one settings
+	// page, no secret in it anywhere. The zero value is Action=ActionNone, so
+	// a fresh install - and an upgrade that has never seen this key - has
+	// nothing armed.
+	IdleAction idleaction.Config `json:"idleAction"`
 
 	// ResumeOnStart is what happens to the downloads that were in flight when
 	// the process last stopped: never, only what was running, or everything
@@ -287,6 +304,7 @@ func Defaults() Settings {
 		MirrorPolicy:    string(dedupe.DefaultPolicy),
 		CollisionPolicy: string(collide.DefaultPolicy),
 		Reconnect:       reconnect.Defaults(),
+		IdleAction:      idleaction.Defaults(),
 		// The list is trimmed after a month and the history is not: the two
 		// together are the only combination in which "do not let the list grow
 		// forever" costs nobody the record of what they downloaded.
@@ -425,6 +443,7 @@ func sanitize(n Settings) Settings {
 	n = sanitizeNetwork(n)
 	n = sanitizeRules(n)
 	n = sanitizeLifecycle(n)
+	n = sanitizeIdleAction(n)
 	n = sanitizeCaptcha(n)
 	n = sanitizeConfirm(n)
 	return n
