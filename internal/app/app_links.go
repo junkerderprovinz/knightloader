@@ -15,13 +15,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/confirm"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/crawler"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
-	"github.com/junkerderprovinz/knightloader/internal/watch"
 )
 
 // The five entrances a link can arrive by.
@@ -84,6 +84,21 @@ type intake struct {
 	// the reason is kept on the task, not asked again at the queue either. See
 	// filterWaived.
 	waived string
+
+	// priority, autoExtract and comment are the add-links form's own per-batch
+	// options (§8A), carried from LinkBatchOptions through addLinksFrom into
+	// every task the batch creates - including the ones a crawled page yields,
+	// which is why they live here rather than being applied once after
+	// addLinksFrom returns. stage writes them onto the task BEFORE
+	// finishStaging runs the Packagizer, which is what makes a matching rule
+	// win over them by default: packagize() already overwrites a field a rule
+	// has an opinion about, exactly as it would for a plain paste with no form
+	// involved at all. AddLinksWithOptions applies them a second time,
+	// afterwards, when the form itself is meant to have the last word - see its
+	// own comment for why Dir and the two passwords never come through here.
+	priority    *int
+	autoExtract *bool
+	comment     string
 }
 
 // AddLinks stages links pasted into the collector. Every other entrance calls
@@ -102,7 +117,7 @@ func (a *App) AddLinks(urls []string, pkg string) []*core.Task {
 // here" without a memory of what happened last Tuesday, and it is what a rule
 // keyed on the entrance has to read.
 func (a *App) AddLinksFrom(urls []string, pkg string, origin core.Origin) []*core.Task {
-	return a.detached(a.addLinksFrom(urls, pkg, origin))
+	return a.detached(a.addLinksFrom(urls, pkg, origin, LinkBatchOptions{}))
 }
 
 // addLinksFrom is AddLinksFrom without the copy at the end.
@@ -113,7 +128,12 @@ func (a *App) AddLinksFrom(urls []string, pkg string, origin core.Origin) []*cor
 // Detaching here instead cost exactly that, and the test that caught it said so
 // plainly: the response carried an empty password because the write had landed
 // on the live task while the caller was returning a copy taken before it.
-func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin) []*core.Task {
+//
+// batch is the add-links form's own per-batch options, zero-valued for every
+// caller but AddLinksWithOptions - see intake's own comment for where they are
+// applied and app_links_batch.go for why applying them here is what lets a
+// Packagizer rule win by default.
+func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch LinkBatchOptions) []*core.Task {
 	var created []*core.Task
 	// seen is about the pasted text and nothing else: it stops one page being
 	// fetched twice when it appears twice in the same box. Whether a *link* is
@@ -161,7 +181,10 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin) []*cor
 				// did. Which page it was is on Source right beside it, which is also
 				// the only place a rule keyed on "where did this link come from" can
 				// get it.
-				if t := a.stage(c.URL, c.Name, intake{pkg: pkg, origin: OriginCrawl, source: u}); t != nil {
+				if t := a.stage(c.URL, c.Name, intake{
+					pkg: pkg, origin: OriginCrawl, source: u,
+					priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment,
+				}); t != nil {
 					b.tasks = append(b.tasks, t)
 					created = append(created, t)
 				}
@@ -169,7 +192,10 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin) []*cor
 			buckets = append(buckets, b)
 			continue
 		}
-		if t := a.stage(u, "", intake{pkg: pkg, origin: origin}); t != nil {
+		if t := a.stage(u, "", intake{
+			pkg: pkg, origin: origin,
+			priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment,
+		}); t != nil {
 			loose.tasks = append(loose.tasks, t)
 			created = append(created, t)
 		}
@@ -187,16 +213,26 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin) []*cor
 	}
 	a.catchAll(created)
 
-	// Auto-start hands everything straight to the queue for users who don't
-	// want the staging step. What the filter is holding is not in that set:
-	// StartTasks leaves a held link alone, which is the whole reason the flag is
-	// on the task rather than a note somewhere else.
-	if len(created) > 0 && a.Settings.Get().AutoStart {
+	// Auto-confirm hands everything straight past the collector for users who
+	// don't want the staging step - AutoConfirm, not AutoStart: the latter now
+	// answers a different question (settings.go's own doc comment on the
+	// three-way split) and reading it here was Wave 8's own regression, caught
+	// by that wave's adversarial review before it shipped - a fresh install
+	// defaults AutoConfirm false and AutoStart true, so this branch was firing
+	// on every paste regardless of the collector setting anyone actually chose.
+	// Routed through ConfirmTasks, not a raw StartTasks, so onDupes/onOffline
+	// apply here exactly as build-plan.md section 8's Wave 8 note asks - this
+	// is the one caller app_confirm.go's own package comment named as still
+	// missing. What the link filter is holding is not in ConfirmTasks' own
+	// StatusCollected scan (a held link never reaches that status), which is
+	// the whole reason the flag is on the task rather than a note somewhere
+	// else.
+	if len(created) > 0 && a.Settings.Get().AutoConfirm {
 		ids := make([]string, 0, len(created))
 		for _, t := range created {
 			ids = append(ids, t.ID)
 		}
-		a.StartTasks(ids)
+		a.ConfirmTasks(ids, confirm.Config{}, confirm.TriggerAutoConfirm)
 	}
 	return created
 }
@@ -499,6 +535,28 @@ func (a *App) stage(u, name string, in intake) *core.Task {
 		SkipReason: in.waived,
 		Host:       hostOf(u),
 		CreatedAt:  now,
+	}
+	// The add-links form's own batch options, seeded before ANY of the three
+	// finishStaging calls below - which is what runs the Packagizer - so that a
+	// matching rule overwrites them exactly as it would overwrite a value set
+	// no other way. See intake's own comment and app_links_batch.go for the
+	// other half: applying them again once staging is done, when the form is
+	// meant to win instead.
+	if in.priority != nil {
+		p := *in.priority
+		if p < rules.PriorityMin {
+			p = rules.PriorityMin
+		} else if p > rules.PriorityMax {
+			p = rules.PriorityMax
+		}
+		t.Priority = p
+	}
+	if in.autoExtract != nil {
+		v := *in.autoExtract
+		t.AutoExtract = &v
+	}
+	if in.comment != "" {
+		t.Comment = in.comment
 	}
 	if cand.Filename != "" {
 		t.Name = cand.Filename
@@ -962,7 +1020,7 @@ func (a *App) AddLinksCnL(urls []string, pkg string, passwords []string) {
 // relays it without naming the entrance at all. Pinning the origin here would
 // file those links under an entrance the caller had already contradicted.
 func (a *App) AddLinksWithPasswords(urls []string, pkg string, passwords []string, origin core.Origin) []*core.Task {
-	created := a.addLinksFrom(urls, pkg, origin)
+	created := a.addLinksFrom(urls, pkg, origin, LinkBatchOptions{})
 	var first string
 	for _, pw := range passwords {
 		if pw = strings.TrimSpace(pw); pw != "" {
@@ -1007,36 +1065,4 @@ func (a *App) rememberPasswords(passwords []string) {
 			log.Printf("could not store the passwords a submission brought along: %v", err)
 		}
 	}
-}
-
-// onWatchJob stages what a dropped file asked for. It runs on the watcher's
-// goroutine, so it hands the slow part off and returns quickly.
-func (a *App) onWatchJob(j watch.Job) {
-	go func() {
-		created := a.AddLinksFrom(j.URLs, j.Package, OriginWatch)
-		if len(created) == 0 {
-			return
-		}
-		ids := make([]string, 0, len(created))
-		for _, t := range created {
-			ids = append(ids, t.ID)
-		}
-		if j.Dir != "" || j.Password != "" {
-			opts := TaskOptions{}
-			if j.Dir != "" {
-				opts.Dir = &j.Dir
-			}
-			if j.Password != "" {
-				opts.Password = &j.Password
-			}
-			if err := a.SetTaskOptions(ids, opts); err != nil {
-				log.Printf("dropped job: %v", err)
-			}
-		}
-		// AutoStart on the job wins over the global setting, which has already
-		// started them if it was on.
-		if j.AutoStart && !a.Settings.Get().AutoStart {
-			a.StartTasks(ids)
-		}
-	}()
 }

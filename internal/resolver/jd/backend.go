@@ -33,6 +33,11 @@ func (b *Backend) Reachable() error { return b.c.Ping() }
 
 func (b *Backend) pkgName(taskID string) string { return "KL-" + taskID }
 
+// pollInterval paces awaitContainerLinks's polling of JD's link grabber. A
+// var, not a const, so a test does not have to sit through it for real (the
+// same convention internal/provision's stopGrace already uses).
+var pollInterval = time.Second
+
 // AddContainer hands JD an encrypted link container to open — a DLC, CCF or
 // RSDF, which need a key issued to registered clients and which JD holds one
 // for.
@@ -65,9 +70,32 @@ func (b *Backend) AddContainer(url, packageName string, timeout time.Duration) (
 	if _, err := b.c.AddContainerLinks(url, marker); err != nil {
 		return nil, err
 	}
+	return b.awaitContainerLinks(marker, timeout)
+}
 
+// AddCryptedV1 hands JD a Click'n'Load v1 ("addcrypted") submission's raw
+// content and waits for it exactly as AddContainer does. There is no URL to
+// submit it by: unlike a .dlc a user saves and later uploads, this payload
+// was never a file anywhere, only one CnL form field, so it goes in as inline
+// content (see Client.AddContainerData) instead of a fetchable address. The
+// wait-and-harvest half is otherwise identical, which is the point — this is
+// AddContainer's own reasoning ("JD holds the key; we hold the download
+// list"), not a second mechanism for the same problem.
+func (b *Backend) AddCryptedV1(data []byte, packageName string, timeout time.Duration) ([]string, error) {
+	marker := fmt.Sprintf("KL-%d", time.Now().UnixNano())
+	if _, err := b.c.AddContainerData("dlc", data, marker); err != nil {
+		return nil, err
+	}
+	return b.awaitContainerLinks(marker, timeout)
+}
+
+// awaitContainerLinks polls JD's link grabber for the package named marker,
+// waits for it to settle, harvests the plain URLs out of it and removes it so
+// JD does not start it itself. Shared by AddContainer and AddCryptedV1, whose
+// only difference is how the container's bytes reach JD in the first place.
+func (b *Backend) awaitContainerLinks(marker string, timeout time.Duration) ([]string, error) {
 	deadline := time.Now().Add(timeout)
-	tick := time.NewTicker(time.Second)
+	tick := time.NewTicker(pollInterval)
 	defer tick.Stop()
 
 	var pkg int64

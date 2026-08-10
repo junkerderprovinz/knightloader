@@ -1,8 +1,12 @@
 package jd
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
@@ -52,6 +56,100 @@ func TestAggregateFinishesOnlyWhenEveryFileIs(t *testing.T) {
 	one := []DownloadLink{{Name: "solo.bin", BytesTotal: 5, BytesLoaded: 5, Finished: true}}
 	if u := aggregate(one); u.Name != "solo.bin" {
 		t.Errorf("Name = %q; a single file gets no counter", u.Name)
+	}
+}
+
+// fakeJDContainer answers just enough of the Deprecated API for
+// awaitContainerLinks to run a full submit -> settle -> harvest -> remove
+// cycle against something that is not a live JD. It settles immediately
+// (isCollecting always false, the link count never changes) because the
+// settle-detection loop itself is awaitContainerLinks's own pre-existing,
+// unchanged logic — this fake exists to pin AddCryptedV1's wiring into that
+// shared path, not to re-prove the loop.
+type fakeJDContainer struct {
+	t        *testing.T
+	mu       sync.Mutex
+	dataURLs []string
+	pkgName  string
+	removed  []int64
+}
+
+func newFakeJDContainer(t *testing.T) *fakeJDContainer { return &fakeJDContainer{t: t} }
+
+func (f *fakeJDContainer) handler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/linkgrabberv2/addLinks":
+			var params []struct {
+				DataURLs    []string `json:"dataURLs"`
+				PackageName string   `json:"packageName"`
+			}
+			decodeCallParams(f.t, r.URL.RawQuery, &params)
+			f.mu.Lock()
+			if len(params) > 0 {
+				f.dataURLs = append(f.dataURLs, params[0].DataURLs...)
+				f.pkgName = params[0].PackageName
+			}
+			f.mu.Unlock()
+			_, _ = w.Write([]byte(`{"data":{"id":1}}`))
+		case "/linkgrabberv2/queryPackages":
+			f.mu.Lock()
+			name := f.pkgName
+			f.mu.Unlock()
+			if name == "" {
+				_, _ = w.Write([]byte(`{"data":[]}`))
+				return
+			}
+			_, _ = w.Write([]byte(`{"data":[{"uuid":7,"name":"` + name + `"}]}`))
+		case "/linkgrabberv2/isCollecting":
+			_, _ = w.Write([]byte(`{"data":false}`))
+		case "/linkgrabberv2/queryLinks":
+			_, _ = w.Write([]byte(`{"data":[{"uuid":100,"url":"https://host.example/a","name":"a.bin","host":"host.example"}]}`))
+		case "/linkgrabberv2/removeLinks":
+			f.mu.Lock()
+			f.removed = append(f.removed, 7)
+			f.mu.Unlock()
+			_, _ = w.Write([]byte(`{"data":true}`))
+		default:
+			http.NotFound(w, r)
+		}
+	})
+}
+
+// TestAddCryptedV1SubmitsHarvestsAndCleansUp drives AddCryptedV1 end to end
+// against fakeJDContainer: the raw bytes go in as an inline dataURLs entry
+// (not a URL — this payload was never fetchable), the harvested link comes
+// back as a plain URL through the same path AddContainer uses, and the
+// package is removed from JD's grabber afterwards so JD does not start it on
+// its own.
+func TestAddCryptedV1SubmitsHarvestsAndCleansUp(t *testing.T) {
+	orig := pollInterval
+	pollInterval = 5 * time.Millisecond
+	defer func() { pollInterval = orig }()
+
+	fake := newFakeJDContainer(t)
+	srv := httptest.NewServer(fake.handler())
+	defer srv.Close()
+
+	b := NewBackend(srv.URL, func(string, core.Update) {})
+	urls, err := b.AddCryptedV1([]byte("rsa-payload-stand-in"), "MyPackage", time.Second)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(urls) != 1 || urls[0] != "https://host.example/a" {
+		t.Fatalf("urls = %v, want the one harvested link", urls)
+	}
+
+	fake.mu.Lock()
+	defer fake.mu.Unlock()
+	if len(fake.dataURLs) != 1 {
+		t.Fatalf("JD received %d dataURLs entries, want 1", len(fake.dataURLs))
+	}
+	if want := "data:application/dlc;base64,"; len(fake.dataURLs[0]) < len(want) || fake.dataURLs[0][:len(want)] != want {
+		t.Errorf("dataURL = %q, want it to start with %q", fake.dataURLs[0], want)
+	}
+	if len(fake.removed) == 0 {
+		t.Error("JD's grabber package was never removed; JD is left free to start it on its own")
 	}
 }
 

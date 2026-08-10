@@ -38,7 +38,23 @@ than executing the snippet. `jk` is attacker-controlled JavaScript from an
 arbitrary website; running it would be an obvious way to lose the machine.
 
 **3. Plain variant.** Older or simpler sites post an unencrypted list to
-`/flash/add` with a `urls` field. Both are supported, over POST and GET.
+`/flash/add` with a `urls` field.
+
+**4. addcrypted (v1).** The oldest variant, from before addcrypted2 existed:
+the site posts a `crypted` field encrypted against JDownloader's own RSA
+public key rather than a key that travels with it, so nobody but a real
+JDownloader can open it. KnightLoader does not hold that key and never will —
+see "Container files" below for why that is a deliberate line rather than a
+gap, and how it is answered anyway when a JD backend is configured.
+
+Every one of these four is POST only, deliberately: a GET here would be a
+browser "simple request" — no preflight, no user gesture, no navigation — so
+any page in the world, an ad iframe or an email preview image tag included,
+could queue arbitrary downloads and archive passwords into this instance. A
+handful of read-only routes some sites and extensions probe before ever
+trying to submit — `/flash/addcnl`, `/flashgot`, `/alive`, `/favicon.ico`,
+`/crossdomain.xml`, alongside `jdcheck.js` and the bare detection paths above —
+answer GET only and never touch a link or a password.
 
 ## The three things that stop it working
 
@@ -100,9 +116,10 @@ machine, so its own CnL listener is already the one the browser means.
 
 ## Configuration
 
-| Var | Default | Meaning |
+| Var / flag | Default | Meaning |
 |---|---|---|
 | `KL_CNL` | `9666` | listener port on `127.0.0.1`; `0` disables it |
+| `-bridge-clipboard` | off | bridge mode only: watch the OS clipboard for hoster links (needs a `-tags bridgeclipboard` build) |
 
 In the container `KL_CNL` defaults to `0`, because a listener on a loopback
 address inside a container can never be reached and starting one would only be
@@ -127,10 +144,49 @@ button does nothing, the preflight is the first thing to look at — open the
 browser's network panel and check whether the `OPTIONS` request came back with
 `Access-Control-Allow-Private-Network`.
 
+## Container files, and addcrypted (v1)
+
+A `.dlc`, `.ccf` or `.rsdf` is encrypted the same way addcrypted (v1) is: the
+key is issued to registered clients, and no open-source client generates or
+holds one on its own. Rather than borrow somebody else's application key and
+pretend to be their client, KnightLoader hands the bytes to the headless
+JDownloader backend it already ships as its catch-all resolver, which has its
+own key and does this legitimately (see `internal/container`'s package doc).
+Handing KnightLoader one of these files (`POST /api/containers`) takes this
+path; so does a site's addcrypted (v1) submission, by the identical route —
+the payload is handed to JD as inline content instead of a fetchable URL,
+because unlike an uploaded file it was never a file anywhere to fetch.
+
+Without `KL_JD` configured, both are refused with that reason stated plainly
+rather than a vague failure — see the main README's configuration table.
+
+## Ambient clipboard watching (bridge only)
+
+The bridge can also watch the OS clipboard and forward anything that looks
+like a hoster link, without waiting for a CnL button or an explicit paste —
+useful for a site with no Click'n'Load button at all. Off by default:
+
+```sh
+knightloader -bridge http://nas:8749 -bridge-clipboard
+```
+
+This is scoped to the bridge specifically because it is the one build with an
+unambiguous claim on a user's own OS clipboard — the user started it, by hand,
+on their own machine. It also needs a build with `-tags bridgeclipboard`: the
+ordinary release binary (and the container image) does not carry the
+clipboard-reading dependency at all, not merely leave it switched off, because
+a headless server has no legitimate reason to touch a clipboard in the first
+place. Passing `-bridge-clipboard` against a plain build logs that plainly
+rather than doing nothing silently.
+
+Watching is narrow on purpose: only a line that is essentially just a link
+qualifies, not prose that happens to contain one, because nobody is watching
+the result to catch an accidental selection before it queues. A small ring of
+recently-forwarded content is kept so the same clipboard is not resubmitted on
+every poll tick, and so KnightLoader's own "copy link" writing a link back
+into the clipboard does not get read in as if it arrived from somewhere else.
+
 ## What CnL does not cover
 
 Right-click-send-to-KnightLoader on an arbitrary link is a browser extension's
-job, not CnL's: CnL only exists where a site chose to put a button. Container
-files (`.dlc`, `.ccf`, `.rsdf`) are also out of scope — `.dlc` decryption
-requires a call to a jdownloader.org service with a registered application key,
-which is not something this project can honestly ship.
+job, not CnL's: CnL only exists where a site chose to put a button.

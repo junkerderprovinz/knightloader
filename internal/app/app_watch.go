@@ -10,9 +10,12 @@ package app
 // not change, and stageWatchJob carries out as much of one job's stated intent
 // as this app has a switch for.
 //
-// The single-folder path in app.go (applyWatcher) is what this replaces; the
-// switch is one line, `a.applyWatchFolders(applied)` in place of
-// `a.applyWatcher(applied.WatchDir)`, in New and in ApplySettings.
+// This replaced the single-folder path that used to live in app.go
+// (applyWatcher/onWatchJob) - built to replace it since this file's own
+// introduction, wired in only later (Wave 8's own gate, once its adversarial
+// review found the old path's bare `go func(){...}()` still live and its
+// stale AutoStart read shipping alongside a genuine Wave 8 regression in the
+// same function).
 
 import (
 	"log"
@@ -20,6 +23,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/junkerderprovinz/knightloader/internal/confirm"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/knightloader/internal/watch"
 )
@@ -138,19 +142,36 @@ func (a *App) stageWatchJob(j watch.Job) {
 
 	if j.Disabled {
 		// The file asked for these to be parked: added, kept, and passed over by
-		// everything that starts downloads. What this cannot undo is a global
-		// auto-start that has already dispatched them on the way in - the flag
-		// stops the next dispatch, it does not call bytes back.
+		// everything that starts downloads. Checked before the confirm switch
+		// below, so a disabled job never reaches ConfirmTasks/StartTasks at all -
+		// nothing here needs undoing on the way out, only skipping on the way in.
 		a.SetEnabled(ids, false)
 		return
 	}
 	if j.Forced {
 		a.SetForced(ids, true)
 	}
-	// A start the file asked for, over and above the global setting, which has
-	// already started them if it was on.
-	if (j.AutoStart || j.Forced) && !a.Settings.Get().AutoStart {
+	// Unlike AddLinksFrom's own entrance, this one runs through
+	// AddLinksWithPasswords -> the unexported addLinksFrom, which has no
+	// auto-confirm check of its own - so, unlike that sibling entrance, there
+	// is nothing elsewhere in this call chain that already applied the global
+	// AutoConfirm setting. A prior version of this comment claimed otherwise
+	// ("already started them if it was on") without that being true of this
+	// specific path; trust the code, not the old comment, which is exactly
+	// the mistake Wave 8's own adversarial review caught one call site over.
+	//
+	// Forced bypasses onDupes/onOffline entirely rather than going through
+	// ConfirmTasks: a file explicitly forcing a link is a stronger, more
+	// specific signal than the batch-level confirm policy and must not be
+	// silently held back by it - the same reasoning Wave 4's own forced-download
+	// pool already applies to the concurrency limit. Otherwise, either the
+	// global setting or the job's own override wanting auto-confirm is enough
+	// to run the batch through the same policy engine a manual confirm would.
+	switch {
+	case j.Forced:
 		a.StartTasks(ids)
+	case a.Settings.Get().AutoConfirm || j.AutoStart:
+		a.ConfirmTasks(ids, confirm.Config{}, confirm.TriggerWatch)
 	}
 }
 

@@ -348,6 +348,12 @@ func (t TriBool) MarshalJSON() ([]byte, error) { return json.Marshal(t.Value) }
 type TaskOptions struct {
 	Dir      *string `json:"dir,omitempty"`
 	Password *string `json:"password,omitempty"`
+	// DownloadPassword is the password a hoster's own page asks for before it
+	// hands over the file. It is NOT Password above, which is the archive
+	// password extraction tries first - two secrets asked by two different
+	// parties, and one field for both is how the wrong one gets typed into the
+	// wrong prompt. See core.Task.DownloadPassword's own comment.
+	DownloadPassword *string `json:"downloadPassword,omitempty"`
 	// Name is a rename asked for by a person - the properties panel's name box.
 	// It is cut to one path segment and then applied according to what the task
 	// is doing right now (see renameLocked), which is the whole of the difference
@@ -442,6 +448,9 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 		}
 		if o.Password != nil {
 			t.Password = strings.TrimSpace(*o.Password)
+		}
+		if o.DownloadPassword != nil {
+			t.DownloadPassword = strings.TrimSpace(*o.DownloadPassword)
 		}
 		if o.Comment != nil {
 			t.Comment = strings.TrimSpace(*o.Comment)

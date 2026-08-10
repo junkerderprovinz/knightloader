@@ -270,3 +270,11 @@ export const IconSliders = (p: SVGProps<SVGSVGElement>) => (
     <circle cx="10.75" cy="13.25" r="2" />
   </svg>
 );
+
+/** The one-shot "paste from clipboard" button: a clipboard, clip and all. */
+export const IconClipboard = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+    <rect x="5" y="4.5" width="10" height="12.5" rx="1.5" />
+    <path d="M7.5 4.25a1.25 1.25 0 0 1 1.25-1.25h2.5a1.25 1.25 0 0 1 1.25 1.25V5.5h-5V4.25Z" />
+  </svg>
+);

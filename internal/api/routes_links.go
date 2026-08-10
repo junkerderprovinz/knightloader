@@ -10,11 +10,12 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/linkscan"
 )
 
 func registerLinks(reg *Registry, a *app.App) {
 	reg.Add(http.MethodPost, "/api/links",
-		"stage links in the collector, optionally naming the entrance they arrived by and the archive passwords that came with them; returns the tasks created",
+		"stage links in the collector; optional per-batch destination, priority, unpacking switch, comment, the two passwords, whether they overwrite a matching Packagizer rule, and which entrance they arrived by — returns the tasks created",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
 				Links   string `json:"links"` // newline-separated, like JD's paste box
@@ -33,6 +34,25 @@ func registerLinks(reg *Registry, a *app.App) {
 				// and the extraction then asked for one that had already been
 				// handed over.
 				Passwords []string `json:"passwords"`
+
+				// The rest are the add-links form's own per-batch options
+				// (build-plan.md §8A) — see app.LinkBatchOptions, which every one
+				// of these is decoded straight into. All are optional, and a
+				// request that sends none of them behaves exactly as it always
+				// has: this is what keeps the branch below backward compatible
+				// with a Click'n'Load submission's plain "passwords" list, and
+				// with a bare paste that names neither.
+				Dir              string `json:"dir"`
+				Password         string `json:"password"`
+				DownloadPassword string `json:"downloadPassword"`
+				Comment          string `json:"comment"`
+				Priority         *int   `json:"priority"`
+				AutoExtract      *bool  `json:"autoExtract"`
+				// Overrule makes Priority, AutoExtract and Comment win over a
+				// Packagizer rule that would otherwise set the same property —
+				// see app.LinkBatchOptions.Overrule for why Dir and the two
+				// passwords are never subject to it.
+				Overrule bool `json:"overrule"`
 			}
 			if !decodeJSON(w, r, &body) {
 				return
@@ -49,12 +69,32 @@ func registerLinks(reg *Registry, a *app.App) {
 				}
 				origin = known
 			}
-			urls := strings.FieldsFunc(body.Links, func(r rune) bool { return r == '\n' || r == '\r' })
+			urls := extractLinks(a.Settings.Get().PreParserEnabled, body.Links)
 			var created []*core.Task
 			if len(body.Passwords) > 0 {
+				// Click'n'Load's own shape, untouched: several candidate passwords
+				// a page offered rather than the one box a form has, so it keeps
+				// its own path rather than being squeezed through LinkBatchOptions.
 				created = a.AddLinksWithPasswords(urls, body.Package, body.Passwords, origin)
 			} else {
-				created = a.AddLinksFrom(urls, body.Package, origin)
+				var err error
+				created, err = a.AddLinksWithOptions(urls, body.Package, origin, app.LinkBatchOptions{
+					Dir:              body.Dir,
+					Password:         body.Password,
+					DownloadPassword: body.DownloadPassword,
+					Comment:          body.Comment,
+					Priority:         body.Priority,
+					AutoExtract:      body.AutoExtract,
+					Overrule:         body.Overrule,
+				})
+				if err != nil {
+					// The one field here that can genuinely be wrong rather than
+					// merely absent — a destination a person just typed deserves
+					// its own sentence back, not a batch quietly staged to the
+					// wrong folder.
+					http.Error(w, err.Error(), http.StatusBadRequest)
+					return
+				}
 			}
 			if created == nil {
 				created = []*core.Task{} // an empty result is [] for clients, never null
@@ -120,6 +160,23 @@ func registerLinks(reg *Registry, a *app.App) {
 			a.ClearSkipped()
 			w.WriteHeader(http.StatusNoContent)
 		})
+}
+
+// extractLinks turns the paste box's raw text into the URLs to stage.
+//
+// Enabled is internal/settings' PreParserEnabled, JD's own
+// AddLinksPreParserEnabled by another name: on, internal/linkscan scans the
+// whole blob for links wherever they sit in it, rejoins one a mail client
+// wrapped across a line break, and falls back to reading a bare
+// "host/path" line as a link with no scheme in front of it. Off is the
+// literal behaviour this route always had - one line taken as one link,
+// verbatim - kept reachable because a paste that linkscan mis-reads needs
+// an escape hatch that does not depend on linkscan agreeing with itself.
+func extractLinks(enabled bool, blob string) []string {
+	if !enabled {
+		return strings.FieldsFunc(blob, func(r rune) bool { return r == '\n' || r == '\r' })
+	}
+	return linkscan.Extract(blob)
 }
 
 // idsFromQuery reads a comma-separated ?ids= list. An empty or absent parameter

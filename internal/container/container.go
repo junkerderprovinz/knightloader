@@ -24,6 +24,8 @@ import (
 	"fmt"
 	"strings"
 	"unicode"
+
+	"github.com/junkerderprovinz/knightloader/internal/linkscan"
 )
 
 // Kind is the container format.
@@ -213,32 +215,17 @@ func looksLikeLinks(data []byte) bool {
 		strings.Contains(s, "magnet:?")
 }
 
-// parseText pulls the links out of a text file. Splitting on whitespace rather
-// than on lines is deliberate: link lists arrive pasted out of chat clients and
-// forum posts, where several links share a line as often as not.
+// parseText pulls the links out of a text file, sharing the one scanner
+// every other intake path uses (internal/linkscan) rather than a second,
+// looser splitter of its own - a wave that only fixed the paste box would
+// leave a container's own .txt list unable to rejoin a mail-wrapped link or
+// tell a matched Wikipedia-style bracket from an unmatched one, exactly the
+// gap this delegation exists to close. Links above has already turned the
+// file down when it holds nothing scheme-shaped at all (see looksLikeLinks
+// and Detect), so parseText itself always applies the full scanner, with
+// none of the settings-driven off switch POST /api/links has: a container
+// is a file somebody deliberately handed over as a link list, not free-form
+// prose that might not be one.
 func parseText(s string) []string {
-	// A byte-order mark leads every text file Windows writes, and left in
-	// place it fuses with the first link and makes exactly one link per file
-	// fail — the kind of bug that gets blamed on the site.
-	s = strings.TrimPrefix(s, "\ufeff")
-
-	var out []string
-	seen := make(map[string]struct{})
-	for _, f := range strings.FieldsFunc(s, func(r rune) bool {
-		return unicode.IsSpace(r) || r == '"' || r == '\'' || r == '<' || r == '>'
-	}) {
-		// Trailing punctuation comes from prose: a link at the end of a
-		// sentence, or one wrapped in brackets by a forum's editor.
-		f = strings.TrimRight(f, ".,;:)]}")
-		l := strings.ToLower(f)
-		if !strings.HasPrefix(l, "http://") && !strings.HasPrefix(l, "https://") && !strings.HasPrefix(l, "magnet:?") {
-			continue
-		}
-		if _, dup := seen[f]; dup {
-			continue
-		}
-		seen[f] = struct{}{}
-		out = append(out, f)
-	}
-	return out
+	return linkscan.Extract(s)
 }

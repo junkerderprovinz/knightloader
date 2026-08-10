@@ -5,6 +5,7 @@ import { QueueBar } from '../components/QueueBar';
 import { ShellStrip } from '../components/QuickSettings';
 import { AccountStrip } from '../components/AccountStrip';
 import { CaptchaModal } from '../components/CaptchaModal';
+import { GlobalIntake } from '../components/GlobalIntake';
 import { InfoBubble } from '../components/ui';
 import { connectWS, fetchSettings, type Task } from '../lib/api';
 import { applyAccent, applyRainbow, applyShape, cacheAppearance, rainbowFromSettings } from '../lib/appearance';
@@ -159,6 +160,13 @@ export function Layout() {
           open, so it is mounted exactly once here, reachable from every
           route (build-plan.md section 8's Wave 7 note). */}
       <CaptchaModal />
+      {/* Same reasoning, same reason it renders null and sits here rather
+          than inside a page: a document-level paste listener and a
+          window-level drop target are not "this page's" behaviour, and
+          mounting either inside the keyed div above would attach and
+          detach them on every navigation (build-plan.md section 8's Wave 8
+          note, 8B). */}
+      <GlobalIntake />
     </InstanceProvider>
   );
 }

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -34,6 +35,14 @@ type optionsBody struct {
 	Password string   `json:"password"`
 }
 
+// containerUpload is what the fake /api/containers route saw: the uploaded
+// file's name and bytes, and the package field beside it.
+type containerUpload struct {
+	filename string
+	data     []byte
+	pkg      string
+}
+
 // fakeRemote stands in for a KnightLoader instance. It records what the bridge
 // sent and can be locked and expired, which is how the tests reach the auth
 // paths without running a real app.
@@ -52,6 +61,12 @@ type fakeRemote struct {
 	links        []linksBody
 	options      []optionsBody
 	ids          []string // the task ids POST /api/links reports back
+
+	containerAttempts int // every POST /api/containers, including the ones answered 401
+	containers        []containerUpload
+	// containerFails, when true, makes /api/containers answer as an instance
+	// with no JD backend configured would (ErrNoContainerBackend's own 503).
+	containerFails bool
 }
 
 func newFakeRemote(t *testing.T, locked bool, ids ...string) *fakeRemote {
@@ -106,6 +121,34 @@ func newFakeRemote(t *testing.T, locked bool, ids ...string) *fakeRemote {
 		}
 		writeJSON(w, out)
 	})
+	mux.HandleFunc("POST /api/containers", func(w http.ResponseWriter, r *http.Request) {
+		f.mu.Lock()
+		f.containerAttempts++
+		fails := f.containerFails
+		f.mu.Unlock()
+		if !f.authorize(w, r) {
+			return
+		}
+		if fails {
+			http.Error(w, "this container is encrypted, and only the headless JDownloader backend can open it; none is configured", http.StatusServiceUnavailable)
+			return
+		}
+		file, header, err := r.FormFile("file")
+		if err != nil {
+			http.Error(w, "send the container as a multipart form field named \"file\"", http.StatusBadRequest)
+			return
+		}
+		defer file.Close()
+		data, err := io.ReadAll(file)
+		if err != nil {
+			http.Error(w, "could not read the uploaded file", http.StatusBadRequest)
+			return
+		}
+		f.mu.Lock()
+		f.containers = append(f.containers, containerUpload{filename: header.Filename, data: data, pkg: r.FormValue("package")})
+		f.mu.Unlock()
+		writeJSON(w, map[string]any{"kind": "dlc", "handedTo": "jd", "expiresIn": 120})
+	})
 	mux.HandleFunc("POST /api/tasks/options", func(w http.ResponseWriter, r *http.Request) {
 		if !f.authorize(w, r) {
 			return
@@ -155,6 +198,12 @@ func (f *fakeRemote) snapshot() (logins, attempts int, links []linksBody, option
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	return f.logins, f.linkAttempts, slices.Clone(f.links), slices.Clone(f.options)
+}
+
+func (f *fakeRemote) snapshotContainers() (attempts int, uploads []containerUpload) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.containerAttempts, slices.Clone(f.containers)
 }
 
 func writeJSON(w http.ResponseWriter, v any) {
@@ -475,5 +524,92 @@ func TestUnlockedRemoteNeverLogsIn(t *testing.T) {
 	}
 	if attempts != 1 || len(links) != 1 {
 		t.Fatalf("attempts=%d delivered=%d, want one clean delivery", attempts, len(links))
+	}
+}
+
+// TestAddContainerCnLPostsMultipartUpload pins the core relay for
+// Click'n'Load v1 ("addcrypted"): the exact bytes the site posted arrive at
+// the remote's ordinary container route, as a file upload, with the package
+// name beside them — the same route a browser reaches by uploading a .dlc by
+// hand, not a second mechanism built for this one entrance.
+func TestAddContainerCnLPostsMultipartUpload(t *testing.T) {
+	f := newFakeRemote(t, false)
+	b := newBridge(t, f, "")
+
+	payload := []byte("rsa-encrypted-stand-in")
+	if err := b.AddContainerCnL(payload, "CryptedSite"); err != nil {
+		t.Fatalf("AddContainerCnL: %v", err)
+	}
+
+	attempts, uploads := f.snapshotContainers()
+	if attempts != 1 {
+		t.Fatalf("POST /api/containers happened %d times, want 1", attempts)
+	}
+	if len(uploads) != 1 {
+		t.Fatalf("uploads = %d, want 1", len(uploads))
+	}
+	if string(uploads[0].data) != string(payload) {
+		t.Errorf("uploaded bytes = %q, want the original payload %q", uploads[0].data, payload)
+	}
+	if uploads[0].pkg != "CryptedSite" {
+		t.Errorf("package = %q, want CryptedSite", uploads[0].pkg)
+	}
+	if uploads[0].filename == "" {
+		t.Error("uploaded filename is empty; the remote's container detection needs a name to work with")
+	}
+}
+
+// TestAddContainerCnLIgnoresEmptySubmission mirrors
+// TestAddLinksCnLIgnoresEmptySubmission: a stray call with nothing in it must
+// not cost a round trip to the remote at all.
+func TestAddContainerCnLIgnoresEmptySubmission(t *testing.T) {
+	f := newFakeRemote(t, false)
+	b := newBridge(t, f, "")
+
+	if err := b.AddContainerCnL(nil, "MySite"); err != nil {
+		t.Fatalf("AddContainerCnL(nil, ...): %v", err)
+	}
+	if attempts, _ := f.snapshotContainers(); attempts != 0 {
+		t.Fatalf("POST /api/containers attempted %d times for an empty submission, want 0", attempts)
+	}
+}
+
+// TestAddContainerCnLSurfacesARemoteFailure is the branch AddLinksCnL does not
+// have: unlike a plain link, an addcrypted (v1) submission can synchronously
+// fail (no JD backend configured on the remote), and the caller — the CnL
+// listener — needs that error to tell the site honestly rather than claim
+// success for a submission that never reached the list.
+func TestAddContainerCnLSurfacesARemoteFailure(t *testing.T) {
+	f := newFakeRemote(t, false)
+	f.containerFails = true
+	b := newBridge(t, f, "")
+
+	if err := b.AddContainerCnL([]byte("payload"), "MySite"); err == nil {
+		t.Fatal("AddContainerCnL against a remote with no JD backend returned no error")
+	}
+}
+
+// TestAddContainerCnLRetriesLoginOn401 pins that the multipart upload shares
+// the exact same self-healing session handling every JSON call already has —
+// callAs's whole reason to exist rather than a second, upload-specific retry
+// loop.
+func TestAddContainerCnLRetriesLoginOn401(t *testing.T) {
+	f := newFakeRemote(t, true)
+	b := newBridge(t, f, remotePassword)
+
+	if err := b.AddContainerCnL([]byte("payload"), "CnL"); err != nil {
+		t.Fatalf("AddContainerCnL against a locked remote: %v", err)
+	}
+
+	logins, _, _, _ := f.snapshot()
+	if logins != 1 {
+		t.Fatalf("logins = %d, want exactly 1", logins)
+	}
+	attempts, uploads := f.snapshotContainers()
+	if attempts != 2 {
+		t.Fatalf("POST /api/containers attempted %d times, want 2 (the 401 and the retry)", attempts)
+	}
+	if len(uploads) != 1 {
+		t.Fatalf("uploads = %d, want the one that landed after the login", len(uploads))
 	}
 }

@@ -60,6 +60,21 @@ jobs:
           CGO_ENABLED: "0"
         run: go build -o /tmp/knightloader ./cmd/knightloader
 
+      # -tags bridgeclipboard is deliberately not part of any of the runs
+      # above: it must not ship in the plain build the Dockerfile produces
+      # (internal/bridge/clipboard.go's package comment explains why), which
+      # also means nothing above ever compiles or tests it. Without this run
+      # that file could sit broken for a whole wave before anyone building
+      # with the tag noticed. Still CGO_ENABLED=0, because the tagged build
+      # ships from the same static binary as everything else.
+      - name: Vet, test and build (bridge clipboard tag)
+        env:
+          CGO_ENABLED: "0"
+        run: |
+          go vet -tags bridgeclipboard ./...
+          go test -tags bridgeclipboard ./internal/bridge/... -count=1
+          go build -tags bridgeclipboard -o /tmp/knightloader-bridgeclipboard ./cmd/knightloader
+
   web:
     runs-on: ubuntu-latest
     timeout-minutes: 15

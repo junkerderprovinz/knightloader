@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -105,7 +106,7 @@ func (b *Bridge) Remote() string { return b.remote }
 // first CnL click.
 func (b *Bridge) Check(ctx context.Context) error {
 	epoch := b.sessionEpoch()
-	resp, err := b.send(ctx, http.MethodGet, "/api/health", nil)
+	resp, err := b.sendAs(ctx, http.MethodGet, "/api/health", nil, "application/json")
 	if err != nil {
 		return fmt.Errorf("bridge: %s is unreachable: %w", b.remote, err)
 	}
@@ -168,12 +169,72 @@ func (b *Bridge) AddLinksCnL(urls []string, pkg string, passwords []string) {
 	log.Printf("forwarded %d links to %s (package %q)", len(urls), b.remote, pkg)
 }
 
-// call performs one API request and, if the remote answers 401, logs in and
-// repeats it exactly once. A bridge is meant to sit running for weeks, so an
-// expired session has to heal itself rather than become a stream of lost links.
+// AddContainerCnL relays a Click'n'Load v1 ("addcrypted") submission to the
+// remote's container upload route. It satisfies cnl.ContainerAdder, the same
+// way AddLinksCnL satisfies cnl.Adder.
+//
+// There is no /api/links equivalent for this content: a v1 payload is
+// encrypted bytes, not a list of URLs, and /api/containers is where the
+// remote already knows how to hand encrypted content to its own JD backend —
+// the identical route a browser reaches by uploading a .dlc file by hand.
+// Sent as a multipart upload rather than folded into AddLinksCnL's JSON body
+// for the same reason: the remote's container route already exists and
+// already does the right thing, and duplicating its handling behind a second
+// shape here is exactly the "second mechanism" this feature is not supposed
+// to be.
+//
+// Unlike AddLinksCnL this returns an error instead of only logging one: a
+// remote with no JD backend configured refuses synchronously (see
+// HandContainerToJD/ErrNoContainerBackend), and the CnL listener can then
+// tell the site so, rather than claim success for a submission that never
+// reached the list.
+func (b *Bridge) AddContainerCnL(data []byte, pkg string) error {
+	if len(data) == 0 {
+		return nil
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+	defer cancel()
+
+	body := &bytes.Buffer{}
+	mw := multipart.NewWriter(body)
+	fw, err := mw.CreateFormFile("file", "clickload.dlc")
+	if err != nil {
+		return fmt.Errorf("bridge: could not prepare the addcrypted (v1) upload: %w", err)
+	}
+	if _, err := fw.Write(data); err != nil {
+		return fmt.Errorf("bridge: could not prepare the addcrypted (v1) upload: %w", err)
+	}
+	if pkg != "" {
+		if err := mw.WriteField("package", pkg); err != nil {
+			return fmt.Errorf("bridge: could not prepare the addcrypted (v1) upload: %w", err)
+		}
+	}
+	if err := mw.Close(); err != nil {
+		return fmt.Errorf("bridge: could not prepare the addcrypted (v1) upload: %w", err)
+	}
+
+	if _, err := b.callAs(ctx, http.MethodPost, "/api/containers", body.Bytes(), mw.FormDataContentType()); err != nil {
+		log.Printf("addcrypted (v1) dropped, it did not reach %s: %v", b.remote, err)
+		return fmt.Errorf("bridge: %w", err)
+	}
+	log.Printf("forwarded an addcrypted (v1) submission to %s (package %q)", b.remote, pkg)
+	return nil
+}
+
+// call performs one JSON API request and, if the remote answers 401, logs in
+// and repeats it exactly once. A bridge is meant to sit running for weeks, so
+// an expired session has to heal itself rather than become a stream of lost
+// links.
 func (b *Bridge) call(ctx context.Context, method, path string, body []byte) ([]byte, error) {
+	return b.callAs(ctx, method, path, body, "application/json")
+}
+
+// callAs is call with an explicit content type, for a body that is not JSON —
+// today only the multipart upload AddContainerCnL sends. The 401-retry-once
+// shape is identical either way, so this is the one place it is written.
+func (b *Bridge) callAs(ctx context.Context, method, path string, body []byte, contentType string) ([]byte, error) {
 	epoch := b.sessionEpoch()
-	resp, err := b.send(ctx, method, path, body)
+	resp, err := b.sendAs(ctx, method, path, body, contentType)
 	if err != nil {
 		return nil, fmt.Errorf("%s %s%s: %w", method, b.remote, path, err)
 	}
@@ -185,7 +246,7 @@ func (b *Bridge) call(ctx context.Context, method, path string, body []byte) ([]
 		// One retry only. If the freshly minted session is refused as well,
 		// something is wrong that retrying will not fix, and a loop here would
 		// hammer the remote for as long as the timeout allows.
-		resp, err = b.send(ctx, method, path, body)
+		resp, err = b.sendAs(ctx, method, path, body, contentType)
 		if err != nil {
 			return nil, fmt.Errorf("%s %s%s: %w", method, b.remote, path, err)
 		}
@@ -239,7 +300,7 @@ func (b *Bridge) login(ctx context.Context, seen uint64) error {
 	if err != nil {
 		return fmt.Errorf("bridge: could not encode the login for %s: %w", b.remote, err)
 	}
-	resp, err := b.send(ctx, http.MethodPost, "/api/auth/login", body)
+	resp, err := b.sendAs(ctx, http.MethodPost, "/api/auth/login", body, "application/json")
 	if err != nil {
 		return fmt.Errorf("bridge: login at %s failed: %w", b.remote, err)
 	}
@@ -263,8 +324,8 @@ func (b *Bridge) sessionEpoch() uint64 {
 	return b.epoch
 }
 
-// send issues a single request without any retry or auth handling.
-func (b *Bridge) send(ctx context.Context, method, path string, body []byte) (*http.Response, error) {
+// sendAs issues a single request without any retry or auth handling.
+func (b *Bridge) sendAs(ctx context.Context, method, path string, body []byte, contentType string) (*http.Response, error) {
 	var rd io.Reader
 	if body != nil {
 		rd = bytes.NewReader(body)
@@ -274,7 +335,7 @@ func (b *Bridge) send(ctx context.Context, method, path string, body []byte) (*h
 		return nil, err
 	}
 	if body != nil {
-		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Content-Type", contentType)
 	}
 	// No Origin header is set on purpose: the remote's same-origin guard only
 	// rejects requests that carry one that does not match, and this is not a

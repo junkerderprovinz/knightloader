@@ -25,6 +25,18 @@ type Adder interface {
 	AddLinksCnL(urls []string, pkg string, passwords []string)
 }
 
+// ContainerAdder is an Adder that can also accept a Click'n'Load v1
+// ("addcrypted") submission: RSA-encrypted content only JDownloader's own key
+// can open, structurally the same problem an uploaded .dlc already solves by
+// routing to the shipped JD backend. It is a separate, optional interface
+// rather than a third parameter on Adder because not every Adder has a JD
+// backend to hand it to — a plain Adder (or one whose backend does not
+// implement it) makes /flash/addcrypted answer honestly with 501 instead of
+// silently doing nothing.
+type ContainerAdder interface {
+	AddContainerCnL(data []byte, pkg string) error
+}
+
 // Server is the CnL listener.
 type Server struct {
 	adder Adder
@@ -42,17 +54,50 @@ func (s *Server) handler() http.Handler {
 
 	// Several sites probe for a running downloader before they render their
 	// CnL button, and they do not agree on where: some ask /flash, some
-	// /flash/, some the bare root. All three answer the same greeting JD does.
+	// /flash/, some the bare root, some /flash/addcnl or /alive. All of them
+	// answer the same greeting JD does — these are pure liveness checks, never
+	// a place a link or a password can arrive, so there is nothing here for a
+	// POST-only rule to guard.
 	greet := func(w http.ResponseWriter, r *http.Request) {
 		_, _ = fmt.Fprint(w, "JDownloader\r\n")
 	}
 	mux.HandleFunc("GET /{$}", greet)
 	mux.HandleFunc("GET /flash", greet)
 	mux.HandleFunc("GET /flash/{$}", greet)
+	mux.HandleFunc("GET /flash/addcnl", greet)
+	mux.HandleFunc("GET /alive", greet)
 
 	mux.HandleFunc("GET /jdcheck.js", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/javascript")
 		_, _ = fmt.Fprint(w, "jdownloader=true;\nvar version='90000';\n")
+	})
+
+	// /flashgot is the FlashGot extension's own detection probe. Real
+	// JDownloader's implementation of this route also accepts urls/dir/
+	// package/autostart/dpass/apass parameters and queues a download from
+	// them — reachable by plain GET, because the RemoteAPI framework it runs
+	// on reads parameters the same way regardless of method. Copying that
+	// would reopen exactly the hole the POST-only fix below closes, just under
+	// a different path, so this answers the bare liveness probe only: 200,
+	// no body, nothing parsed. A site that wants FlashGot's actual submission
+	// has no route here to use, same as before this change.
+	mux.HandleFunc("GET /flashgot", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	mux.HandleFunc("GET /favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "image/x-icon")
+		w.WriteHeader(http.StatusOK)
+	})
+
+	// The Flash cross-domain policy file, still probed for by CnL implementations
+	// old enough to predate fetch/XHR. Content verified against JDownloader's own
+	// Cnl2APIBasics#crossdomainxml.
+	mux.HandleFunc("GET /crossdomain.xml", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/xml")
+		_, _ = fmt.Fprint(w, "<?xml version=\"1.0\"?>\n"+
+			"<!DOCTYPE cross-domain-policy SYSTEM \"http://www.macromedia.com/xml/dtds/cross-domain-policy.dtd\">\n"+
+			"<cross-domain-policy>\n<allow-access-from domain=\"*\" />\n</cross-domain-policy>\n")
 	})
 
 	// Submission is POST only, deliberately. A GET route here would be a
@@ -87,12 +132,40 @@ func (s *Server) handler() http.Handler {
 	mux.HandleFunc("POST /flash/addcrypted2", addCrypted2)
 
 	// addcrypted (v1) encrypts its payload against JDownloader's own RSA public
-	// key, so nobody but JDownloader can open it. Answering 501 instead of
-	// letting the route 404 keeps the failure legible: the site reports "not
-	// supported" rather than "no downloader running", which is the difference
-	// between a bug report we can act on and a week of guessing.
-	mux.HandleFunc("/flash/addcrypted", func(w http.ResponseWriter, r *http.Request) {
-		http.Error(w, "addcrypted (v1) is RSA-encrypted for JDownloader and cannot be decrypted; the site must use addcrypted2", http.StatusNotImplemented)
+	// key, so nobody but KnightLoader can open it on its own — only a real JD
+	// holds that key. It is a submission route exactly like /flash/add and
+	// /flash/addcrypted2 above (it carries a link list), so it is POST only for
+	// the identical reason: a GET here would be a no-preflight, no-user-gesture
+	// request any ad iframe or email preview could fire. Unlike the other two,
+	// real JDownloader's own v1 handler reads no passwords field at all, so
+	// this does not invent one either.
+	mux.HandleFunc("POST /flash/addcrypted", func(w http.ResponseWriter, r *http.Request) {
+		ca, ok := s.adder.(ContainerAdder)
+		if !ok {
+			// 501, not a 404 or a silent drop: the site reports "not supported"
+			// rather than "no downloader running", which is the difference
+			// between a bug report we can act on and a week of guessing.
+			http.Error(w, "addcrypted (v1) needs the JDownloader backend, which is not available here; the site must use addcrypted2", http.StatusNotImplemented)
+			return
+		}
+		_ = r.ParseForm()
+		raw := r.FormValue("crypted")
+		if strings.TrimSpace(raw) == "" {
+			http.Error(w, "no crypted content", http.StatusBadRequest)
+			return
+		}
+		// Real JDownloader applies the identical fixup before treating this
+		// field as DLC content (org.jdownloader.api.cnl2.ExternInterfaceImpl
+		// #addcrypted): some clients turn a literal '+' in the base64 into a
+		// space when they form-encode it, and unlike addcrypted2's payload this
+		// one carries no separate integrity check to catch that silently
+		// corrupting it.
+		fixed := strings.ReplaceAll(strings.TrimSpace(raw), " ", "+")
+		if err := ca.AddContainerCnL([]byte(fixed), packageOf(r)); err != nil {
+			http.Error(w, "addcrypted (v1): "+err.Error(), http.StatusBadGateway)
+			return
+		}
+		_, _ = fmt.Fprint(w, "success\r\n")
 	})
 
 	return withCORS(mux)
@@ -124,6 +197,19 @@ func (s *Server) Start(port int) error {
 // main API in internal/api deliberately does the opposite: it sends no CORS
 // headers at all and relies on same-origin plus session auth, because it can
 // start, delete and reconfigure downloads. Do not "harmonise" the two.
+//
+// THIS IS ALSO THE ANSWER to build-plan.md section 9 package 17's
+// "authorized-sites allowlist must default to empty-means-allow-all": there is
+// no such allowlist anywhere in this package, on purpose, not as a gap Wave 8
+// left open. An origin allowlist and the reasoning two paragraphs up are the
+// same tradeoff twice - restricting which sites may reach this listener is
+// exactly as self-defeating as restricting which origin the wildcard CORS
+// above answers, for the identical reason (it would break every CnL button on
+// every site that is not on the list, which is the whole point of the
+// package). Loopback-bind plus wildcard CORS already is this listener's
+// entire authorization model; a second, narrower one sitting beside it would
+// not add safety, only a second place for the real one to be bypassed by
+// omission.
 func withCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		h := w.Header()

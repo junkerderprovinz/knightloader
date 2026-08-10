@@ -141,7 +141,33 @@ export interface Settings {
   chunks: number;
   speedLimit: number; // bytes/s, 0 = unlimited
   extract: boolean;
+  /**
+   * Skips the collector entirely: an added batch is confirmed the instant it
+   * stages, as if a person had clicked Confirm right away. This is what the
+   * settings page's own "start added links immediately" toggle controls -
+   * `autoStart` below answers a narrower, later question (does a CONFIRMED
+   * batch start immediately or wait), not this one. See settings.go's own
+   * three-way split doc comment on the Go side.
+   */
+  autoConfirm: boolean;
+  /** Seconds the collector waits before an unconfirmed batch auto-confirms on
+   *  its own - 0 disables the countdown. No UI control yet; server default
+   *  applies. */
+  autoConfirmDelay: number;
+  /** What a CONFIRMED batch does next: start immediately (true, the default -
+   *  preserves this app's behaviour from before autoConfirm/autoStart were
+   *  split apart) or wait on Hold for a person to start it by hand. */
   autoStart: boolean;
+  /** confirm.Policy value ("include"|"exclude"|"exclude-and-remove"|"ask") for
+   *  a link that duplicates one already in the list at confirm time. No UI
+   *  control yet; server default (exclude) applies. */
+  onDupes: string;
+  /** Same shape as onDupes, for a link already known offline at confirm time.
+   *  No UI control yet; server default (exclude) applies. */
+  onOffline: string;
+  /** A newly-confirmed batch is placed at the front of the queue rather than
+   *  the back. No UI control yet; server default (false) applies. */
+  addAtTop: boolean;
   downloadDir: string;
   subfolderByPackage: boolean;
   archivePasswords: string[];
@@ -193,6 +219,13 @@ export interface Settings {
   crawl: boolean;
   watchDir: string;
   verifyChecksums: boolean;
+  /**
+   * Scans a paste or drop for links wherever they sit in it, instead of
+   * reading one line as one link verbatim. JDownloader's own
+   * AddLinksPreParserEnabled by another name - off is that older, literal
+   * reading, kept reachable as an escape hatch.
+   */
+  preParserEnabled: boolean;
   shape: 'round' | 'soft' | 'square';
   accent: string;
   rainbow: boolean;
@@ -522,6 +555,48 @@ export async function addLinks(links: string, pkg: string, base = '/api'): Promi
   return (await json<Task[]>(r)) ?? [];
 }
 
+/**
+ * The add-links form's own per-batch options (build-plan.md §8A): every field
+ * is optional, and an empty object behaves exactly like the plain `addLinks`
+ * above. `dir`, `password` (the archive password) and `downloadPassword` (what
+ * a hoster's own page asks for - NOT the archive password) apply to the whole
+ * batch. `priority`, `autoExtract` and `comment` apply too, but a matching
+ * Packagizer rule wins over them UNLESS `overrule` is set - see the server's
+ * own comment on app.LinkBatchOptions for the full precedence and why the
+ * destination is never part of that bargain.
+ */
+export interface AddLinksOptions {
+  package?: string;
+  origin?: string;
+  dir?: string;
+  password?: string;
+  downloadPassword?: string;
+  comment?: string;
+  priority?: number;
+  autoExtract?: boolean;
+  overrule?: boolean;
+}
+
+/**
+ * addLinksWithOptions is `addLinks` plus the form's own per-batch fields. A
+ * destination that cannot be used refuses the WHOLE batch with the server's
+ * own sentence - `json` below throws an `ApiError` carrying it - rather than
+ * staging every link to the wrong folder in silence, so callers must let that
+ * throw reach the person who typed the path.
+ */
+export async function addLinksWithOptions(
+  links: string,
+  opts: AddLinksOptions,
+  base = '/api',
+): Promise<Task[]> {
+  const r = await fetch(`${base}/links`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ links, ...opts }),
+  });
+  return (await json<Task[]>(r)) ?? [];
+}
+
 // startTasks moves collected tasks into the download queue (empty = start all).
 export const startTasks = (ids: string[], base = '/api') =>
   fetch(`${base}/tasks/start`, {
@@ -656,6 +731,13 @@ export interface TaskOptionsPatch {
   name?: string;
   dir?: string;
   password?: string;
+  /**
+   * What a hoster's own page asks for before it hands over the file. NOT
+   * `password` above, which is the archive password tried when unpacking -
+   * two secrets, two parties, one label for both is how the wrong one gets
+   * typed into the wrong prompt.
+   */
+  downloadPassword?: string;
   comment?: string;
   priority?: number;
   /**
