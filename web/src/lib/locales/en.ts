@@ -12,6 +12,8 @@ export const en = {
   'theme.light': 'Light',
   'theme.toggle': 'Toggle theme',
   'lang.label': 'Language',
+  'lang.open': 'Change language',
+  'lang.close': 'Close language picker',
 
   'status.collected': 'Collected',
   'status.queued': 'Queued',
@@ -60,6 +62,22 @@ export const en = {
   'common.loading': 'Loading…',
   'common.loadFailed': 'Could not load this. Is the server reachable?',
   'common.retry': 'Try again',
+
+  // FirstTouchHint's own copy (components/FirstTouchHint.tsx) — one honest
+  // sentence or two about what a page actually does, shown once per surface
+  // and never again once dismissed (see that file's own doc comment). Keyed
+  // by page, not by component, because a hint is a fact about the page it
+  // sits on rather than a reusable string.
+  'hint.collector.title': 'Links are staged here, not downloaded yet',
+  'hint.collector.body':
+    'Everything you add lands in this collector first, where you can check names and sizes before anything starts. Start it here, or turn on auto-start in settings if you never want that pause.',
+  'hint.downloads.title': 'What is actually running',
+  'hint.downloads.body':
+    'This is the transfer queue — links you have started, whether they are running, waiting their turn, or already finished. Nothing you have merely staged in the collector shows up here yet.',
+  'hint.instances.title': 'A peer, not a copy',
+  'hint.instances.body':
+    'Adding another KnightLoader here does not move or sync anything — this instance simply calls that one’s own API to show and control its queue, the same way a browser would.',
+
   'empty.downloadsTitle': 'Nothing downloading yet',
   'empty.downloadsHint': 'Add links in the collector, then start them.',
   'empty.goCollector': 'Open the collector',
@@ -1632,6 +1650,94 @@ export const en = {
     'A private torrent is meant to switch both off automatically, regardless of what is set here - most private trackers ban accounts that use either - but this build cannot yet enforce it; see the note above.',
   'settings.torrents.engineNote':
     'Everything below is saved and validated, but this build does not yet carry it into a running download - a torrent seeds at the engine’s own built-in defaults (ratio 1.0, two hours, DHT and PEX on) and listens on whatever port the engine itself picks, regardless of what is set here. The mapping button further down still does a real thing: it asks the router to forward the port number typed above, honestly, whether or not a torrent is actually listening on it yet.',
+
+  // The first-run tour (components/OnboardingWizard.tsx): a short walkthrough
+  // shown once, gated on onboarding.done in the shared uistate bucket (see
+  // that file's own doc comment) rather than a page of its own - it is an
+  // overlay, mounted once beside CaptchaModal and IdleActionBanner, not a
+  // route.
+  'onboarding.step': 'Step {n} of {total}',
+  'onboarding.skip': 'Skip',
+  'onboarding.back': 'Back',
+  'onboarding.next': 'Next',
+  'onboarding.finish': 'Start using KnightLoader',
+  'onboarding.welcome.title': 'Welcome to KnightLoader',
+  'onboarding.welcome.body':
+    "KnightLoader is a self-hosted download manager: paste or drop a link and it is fetched by whichever backend actually handles it - the built-in engine for plain file links, yt-dlp for media pages, a debrid service for hosters you already pay for, or a headless JDownloader for everything else. This short tour covers the one setting worth checking before you start.",
+  'onboarding.welcome.langLabel': 'Interface language',
+  'onboarding.folder.title': 'Where should files land?',
+  'onboarding.folder.body':
+    'This is the folder finished downloads are written into. Type a path or browse the server for one - you can change it again anytime from the General settings page.',
+  'onboarding.accounts.title': 'Premium hosters, whenever you want them',
+  'onboarding.accounts.body':
+    'The queue works with no account at all. When you do want full speed on a hoster or debrid service you already pay for, add its login under Accounts - nothing here needs to be set up now.',
+  'onboarding.accounts.link': 'Open Accounts',
+  'onboarding.finished.title': "You're set",
+  'onboarding.finished.body':
+    'That covers the tour. The Help page under Settings has a full walkthrough of everything else this build does, and most controls carry their own explanation behind an (i) icon.',
+
+  // The command registry core (lib/commands/, Wave 12A) - the first, small
+  // set of commands visible on every surface: open the palette itself, the
+  // theme switch (its own label already existed as theme.toggle, reused
+  // rather than duplicated) and one "go to X" per main page. `group` on a
+  // Command is a real TranslationKey string, not literal English - see
+  // lib/commands/types.ts's own doc comment on why - so every later surface
+  // file reuses commands.group.navigation below or adds its own key here,
+  // never a bare word inline.
+  'commands.openPalette': 'Open command palette',
+  'commands.group.general': 'General',
+  'commands.group.navigation': 'Go to',
+  'commands.goOverview': 'Go to Overview',
+  'commands.goDownloads': 'Go to Downloads',
+  'commands.goCollector': 'Go to Collector',
+  'commands.goInstances': 'Go to Instances',
+  'commands.goAccounts': 'Go to Accounts',
+  'commands.goSettings': 'Go to Settings',
+
+  // lib/commands/settings.ts (Wave 12): one command per settings sub-page,
+  // e.g. "Settings: Torrents" - see that file's own doc comment. Every
+  // labelKey below reuses the page's existing settings.nav.<id> string
+  // rather than minting a second name per page.
+  'commands.group.settings': 'Settings',
+  // lib/commands/queue.ts (Wave 12): the shell's own master switch
+  // (QueueBar.tsx), reachable from every page rather than only Downloads'
+  // own copy (commands/downloads.ts) - see that file's own doc comment.
+  'commands.group.queue': 'Queue',
+  // lib/commands/language.ts (Wave 12): open/close the sidebar's language
+  // dropdown (components/LanguagePicker.tsx) from the palette.
+  'commands.group.language': 'Language',
+  // lib/commands/downloads.ts and lib/commands/collector.ts (Wave 12): the
+  // bulk/page-level actions those two pages' toolbars already had a plain
+  // onClick for - pause/resume/retry, select all, remove selected, clear
+  // finished, start selected/all, check all. See either file's own doc
+  // comment for which existing function each command calls.
+  'commands.group.downloads': 'Downloads',
+  'commands.group.collector': 'Collector',
+
+  // components/CommandPalette.tsx (Wave 12): the overlay itself, not any one
+  // command in it.
+  'commands.paletteLabel': 'Command palette',
+  'commands.searchPlaceholder': 'Type a command…',
+  'commands.noResults': 'No matching commands',
+
+  // The Shortcuts settings tab (pages/settings/Shortcuts.tsx, Wave 12): every
+  // command with a default keyboard shortcut, grouped and rebindable. See
+  // that file's own doc comment for why it reads lib/commands/allCommands.ts
+  // rather than useCommands(), and why `group` is shown through a
+  // fall-back-to-raw-string lookup instead of a plain t() call.
+  'settings.nav.shortcuts': 'Shortcuts',
+  'settings.shortcuts.subtitle':
+    'Every command that ships with a default keyboard shortcut, grouped by where it applies. Change a binding, or reset it back to its default.',
+  'settings.shortcuts.empty': 'No commands have a default shortcut yet.',
+  'settings.shortcuts.change': 'Change',
+  'settings.shortcuts.reset': 'Reset',
+  'settings.shortcuts.resetAll': 'Reset all to default',
+  'settings.shortcuts.resetAllConfirmTitle': 'Reset all shortcuts?',
+  'settings.shortcuts.resetAllConfirmBody': 'Every rebound shortcut goes back to its default. This cannot be undone.',
+  'settings.shortcuts.resetAllConfirm': 'Reset all',
+  'settings.shortcuts.captureTitle': 'Press a new shortcut for “{name}”',
+  'settings.shortcuts.captureHint': 'Press a key combination, or Escape to cancel.',
+  'settings.shortcuts.conflict': '“{combo}” is already used by {command}.',
 } as const;
 
 export type TranslationKey = keyof typeof en;

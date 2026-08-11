@@ -5,8 +5,11 @@ import { QueueBar } from '../components/QueueBar';
 import { ShellStrip } from '../components/QuickSettings';
 import { AccountStrip } from '../components/AccountStrip';
 import { CaptchaModal } from '../components/CaptchaModal';
+import { CommandDispatcher } from '../components/CommandDispatcher';
+import { CommandPalette } from '../components/CommandPalette';
 import { GlobalIntake } from '../components/GlobalIntake';
 import { IdleActionBanner } from '../components/IdleActionBanner';
+import { OnboardingWizard } from '../components/OnboardingWizard';
 import { StatusStrip } from '../components/StatusStrip';
 import { InfoBubble } from '../components/ui';
 import { connectWS, fetchSettings, type Task } from '../lib/api';
@@ -186,6 +189,25 @@ export function Layout() {
           courtesy notice and the Cancel button, and both have nothing to do
           with which page happens to be open when the queue goes idle. */}
       <IdleActionBanner />
+      {/* Same reasoning once more: the first-run tour is gated on a single
+          flag, not on which route is open, so it belongs beside the other
+          overlays rather than inside the keyed page div - see
+          OnboardingWizard.tsx's own doc comment. */}
+      <OnboardingWizard />
+      {/* Same reasoning once more: mod+k (or a command's own "open the
+          palette" entry, lib/commands/global.ts) has nothing to do with
+          which route is open when it fires, so this is mounted exactly
+          once here too - see CommandPalette.tsx's own doc comment. */}
+      <CommandPalette />
+      {/* The keyboard half of the command registry (lib/commands/types.ts) -
+          every OTHER command's defaultShortcut (mod+a, and whatever a later
+          wave adds) is matched here; CommandPalette.tsx recognises its own
+          mod+k independently (see its own doc comment on why), so the two
+          do not depend on mount order. Renders nothing; see
+          CommandDispatcher.tsx's own doc comment for why it lives beside
+          the other always-mounted, render-nothing pieces above rather than
+          inside a page. */}
+      <CommandDispatcher />
     </InstanceProvider>
   );
 }

@@ -616,11 +616,17 @@ const KEEPS_FILES = new Set<string>(['finished']);
  * useCleanup is the clean-up flow, once: fetch the classes the server actually
  * implements, preview what one would take, then confirm.
  *
- * Both the bar under the list and the right-click menu run it, and they run the
- * same one — a second copy in the menu is how the menu ends up offering a class
- * this server does not have, or removing without previewing first.
+ * The bar under the list and the right-click menu each run their own instance
+ * of this hook, and Downloads.tsx now holds a third — one for its own command
+ * surface's "clear finished" entry (lib/commands/downloads.ts), published
+ * through lib/commands/pageContext.ts so a command's run() can call this same
+ * preview() and the confirm dialog it raises is this same dialog. A third
+ * instance is the existing pattern, not a new one: every caller keeps its own
+ * `classes`/`confirm` state, and a shared one would be how the menu ends up
+ * offering a class the server does not have, or removing without previewing
+ * first.
  */
-function useCleanup(all: Task[]) {
+export function useCleanup(all: Task[]) {
   const { t } = useT();
   const { toast } = useToast();
   const [classes, setClasses] = useState<CleanupClass[] | null>(null);
@@ -678,6 +684,15 @@ function useCleanup(all: Task[]) {
 
   return { classes, load, preview, dialog };
 }
+
+/**
+ * Named the same way Removal is (this file, above): the return shape a
+ * caller outside this file needs to spell out, first needed by
+ * lib/commands/pageContext.ts so a page can publish its own useCleanup()
+ * instance to the command registry without that file re-deriving the shape
+ * via `ReturnType<typeof useCleanup>` itself.
+ */
+export type CleanupState = ReturnType<typeof useCleanup>;
 
 /** cleanupItems turns the classes the server offers into menu entries. */
 function cleanupItems(

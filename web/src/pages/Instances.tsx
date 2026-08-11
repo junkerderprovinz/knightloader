@@ -4,6 +4,7 @@ import { type Instance, fetchInstances, addInstance, removeInstance } from '../l
 import { useT } from '../lib/i18n';
 import { PageHeader, Card, Button, Field, TextInput, SectionTitle } from '../components/ui';
 import { InstanceCard } from '../components/InstanceCard';
+import { FirstTouchHint } from '../components/FirstTouchHint';
 
 export function Instances() {
   const { t } = useT();
@@ -39,6 +40,8 @@ export function Instances() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title={t('instances.title')} subtitle={t('instances.subtitle')} />
+
+      <FirstTouchHint id="instances" />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <InstanceCard name={t('instances.thisInstance')} url={location.host} base="/api" />

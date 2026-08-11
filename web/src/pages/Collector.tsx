@@ -43,6 +43,8 @@ import {
 } from '../components/CollectorFacets';
 import { CollectorStats } from '../components/CollectorStats';
 import { useScriptMenu } from '../components/ScriptActions';
+import { FirstTouchHint } from '../components/FirstTouchHint';
+import { usePublishCommandPageContext } from '../lib/commands/pageContext';
 import { IconPlay } from '../lib/icons';
 
 export function Collector() {
@@ -88,10 +90,6 @@ export function Collector() {
   );
   const groups = useMemo(() => groupByPackage(filtered), [filtered]);
 
-  // The shell's strip cannot see this page's search box or its quick filters, so
-  // it is told which rows survived them — see lib/listview.ts.
-  useReportListView(filtered, selected);
-
   // Drop selections that have left the collector.
   useEffect(() => {
     setSelected((prev) => {
@@ -103,6 +101,15 @@ export function Collector() {
 
   const clearSelection = useCallback(() => setSelected(new Set()), []);
   const removal = useRemoval({ all, selected, base: '/api', onDone: clearSelection });
+
+  // The shell's strip cannot see this page's search box or its quick filters, so
+  // it is told which rows survived them — see lib/listview.ts.
+  useReportListView(filtered, selected);
+  // The command surface's own bridge (lib/commands/pageContext.ts): the exact
+  // setSelected/removal this page already holds, so
+  // lib/commands/collector.ts's selectAll/removeSelected call the identical
+  // functions the toolbar's own buttons call.
+  usePublishCommandPageContext(useMemo(() => ({ setSelection: setSelected, removal }), [removal]));
   // Resolved once here rather than inside CollectorStats: `collected`, not
   // `all`, because the stats strip is about what is staged, the same scope
   // every other figure on this page already uses.
@@ -204,6 +211,8 @@ export function Collector() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title={t('collector.title')} subtitle={t('collector.subtitle')} />
+
+      <FirstTouchHint id="collector" />
 
       {/* The hero: one drop zone that is also the paste field, plus the
           per-batch destination/priority/unpacking/comment/password options

@@ -341,3 +341,13 @@ export const IconKey = (p: SVGProps<SVGSVGElement>) => (
     <path d="M8.4 11.6 15.5 4.5M13 7l1.75 1.75M15.25 4.75 17 6.5" />
   </svg>
 );
+
+/** Keyboard shortcuts: a keyboard's own outline with a row of keys and a
+ *  spacebar, distinct from IconKey's API-token key by shape and by idea -
+ *  nothing here is a credential. */
+export const IconKeyboard = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2.5" y="5.5" width="15" height="9" rx="1.5" />
+    <path d="M5.5 8.5h1M8.5 8.5h1M11.5 8.5h1M14.5 8.5h1M5.5 11.5h1M8.5 11.5h4M14.5 11.5h1" />
+  </svg>
+);

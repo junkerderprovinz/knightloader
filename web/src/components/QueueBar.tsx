@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { type QueueState, type Settings, fetchQueue, fetchSettings, patchSettings, setQueue } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { useInstanceScope } from '../lib/instance';
@@ -11,29 +11,16 @@ import { IconPause, IconPlay } from '../lib/icons';
 const RETRY_MS = 5000;
 
 /**
- * QueueBar is the master switch plus the speed limit, sitting where the work is
- * rather than three clicks away in Settings. It rides in the shell bar
- * (app/Layout.tsx), so it is on every page and outlives navigation.
- *
- * The switch is deliberately not "pause everything": halting stops the
- * scheduler from handing out new work and leaves running downloads to finish,
- * because aborting a transfer mid-file throws away bytes nobody asked to lose.
- * The running count beside it is what makes that legible.
- *
- * It takes no `base`. A bar the shell can hand an address to is a bar the shell
- * can hand the WRONG address to, and the wrong one here halts a different
- * machine than the list on screen; the scope comes from lib/instance.tsx, which
- * is the same value the page is reading.
+ * useQueueControl is the master switch's own state and its one verb, lifted
+ * out of the bar so the downloads command surface's "stop queue"/"start
+ * queue" entries (lib/commands/downloads.ts) call the exact same `toggle`
+ * this bar's own button does, instead of a second copy that fetches and
+ * halts the queue its own way. QueueBar below is this hook plus the speed
+ * limit, which stays local: the limit reads and writes /api/settings, never
+ * forwarded to a peer, and a command has no business touching it.
  */
-export function QueueBar() {
-  const { t } = useT();
-  const { instance, base } = useInstanceScope();
+export function useQueueControl(base: string, instance: string) {
   const [queue, setQ] = useState<QueueState | null>(null);
-  const [cfg, setCfg] = useState<Settings | null>(null);
-  // Held separately from cfg so typing a limit does not fight the field, and
-  // held as text so a half-typed "1." survives the keystroke that follows it.
-  const [limit, setLimit] = useState('');
-  const [unit, setUnit] = useState<RateUnit>('KiB/s');
   // Bumped by a failed load to ask again. This used to be mounted once per
   // visit to the download page, so every visit was a fresh attempt; in the
   // shell it mounts once for the session, and without a retry one dropped
@@ -68,6 +55,39 @@ export function QueueBar() {
     };
   }, [base, instance, attempt]);
 
+  const toggle = useCallback(async () => {
+    if (!queue) return;
+    setQ(await setQueue({ halted: !queue.halted }, base));
+  }, [queue, base]);
+
+  return { queue, toggle };
+}
+
+/**
+ * QueueBar is the master switch plus the speed limit, sitting where the work is
+ * rather than three clicks away in Settings. It rides in the shell bar
+ * (app/Layout.tsx), so it is on every page and outlives navigation.
+ *
+ * The switch is deliberately not "pause everything": halting stops the
+ * scheduler from handing out new work and leaves running downloads to finish,
+ * because aborting a transfer mid-file throws away bytes nobody asked to lose.
+ * The running count beside it is what makes that legible.
+ *
+ * It takes no `base`. A bar the shell can hand an address to is a bar the shell
+ * can hand the WRONG address to, and the wrong one here halts a different
+ * machine than the list on screen; the scope comes from lib/instance.tsx, which
+ * is the same value the page is reading.
+ */
+export function QueueBar() {
+  const { t } = useT();
+  const { instance, base } = useInstanceScope();
+  const { queue, toggle } = useQueueControl(base, instance);
+  const [cfg, setCfg] = useState<Settings | null>(null);
+  // Held separately from cfg so typing a limit does not fight the field, and
+  // held as text so a half-typed "1." survives the keystroke that follows it.
+  const [limit, setLimit] = useState('');
+  const [unit, setUnit] = useState<RateUnit>('KiB/s');
+
   // Loaded once, and deliberately not per scope change: the speed limit is a
   // setting of THIS instance whatever the page is showing, because /api/settings
   // is not forwarded to a peer either.
@@ -84,11 +104,6 @@ export function QueueBar() {
       })
       .catch(() => setCfg(null));
   }, []);
-
-  async function toggle() {
-    if (!queue) return;
-    setQ(await setQueue({ halted: !queue.halted }, base));
-  }
 
   // The limit is saved when the field is left or Enter is pressed, not on every
   // keystroke: saving per character would send a request for "5", "51", "512".

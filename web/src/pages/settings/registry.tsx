@@ -11,6 +11,7 @@ import {
   IconGlobe,
   IconHelp,
   IconInstances,
+  IconKeyboard,
   IconLock,
   IconLook,
   IconModules,
@@ -36,6 +37,7 @@ import { Resolvers } from './Resolvers';
 import { Rules } from './Rules';
 import { Schedule } from './Schedule';
 import { Scripts } from './Scripts';
+import { Shortcuts } from './Shortcuts';
 import { System } from './System';
 import { Torrents } from './Torrents';
 
@@ -97,6 +99,9 @@ const PAGES: Record<string, () => ReactNode> = {
   // The script editor (build-plan.md's 11B) — see Scripts.tsx's own doc
   // comment.
   scripts: () => <Scripts />,
+  // Every command with a default keyboard shortcut, rebindable - build-plan.md's
+  // Wave 12. See Shortcuts.tsx's own doc comment.
+  shortcuts: () => <Shortcuts />,
 };
 
 /**
@@ -135,6 +140,7 @@ const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   diagnostics: IconDiagnostics,
   help: IconHelp,
   scripts: IconCode,
+  shortcuts: IconKeyboard,
 };
 
 export function renderSettingsPage(id: string): ReactNode {
