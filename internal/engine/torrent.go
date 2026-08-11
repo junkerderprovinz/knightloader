@@ -54,8 +54,12 @@ func (e *Engine) DownloadTorrent(taskID, uri, dir string, sel []int) {
 // startTorrent is Start's torrent branch. It resolves the link (which for a
 // magnet means waiting on the swarm), checks where every file in it would
 // actually land, and only then creates the task.
+//
+// It does not call e.wg.Add itself - Start already did, under e.mu, before
+// branching here, and a second Add here would double-count this one job
+// against a single eventual Done. See Start's own comment for why that Add
+// has to happen before the branch, not inside either side of it.
 func (e *Engine) startTorrent(j Job) {
-	e.wg.Add(1)
 	go func() {
 		defer e.wg.Done()
 		rr, err := e.resolveTorrent(j)

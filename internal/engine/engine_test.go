@@ -2,12 +2,14 @@ package engine
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/GopeedLab/gopeed/pkg/base"
 	gopeed "github.com/GopeedLab/gopeed/pkg/util"
@@ -310,5 +312,66 @@ func TestStartAfterCloseAnswersInsteadOfPanicking(t *testing.T) {
 	}
 	if got.Err != "shutting down" {
 		t.Errorf("err = %q, want \"shutting down\"", got.Err)
+	}
+}
+
+// TestConcurrentStartAndCloseNeverPanics is the interleaving the test above
+// cannot reach: Close already fully returned there, which is the one
+// ordering the old select/default guard actually handled correctly. What it
+// missed - Start's own e.done check and its e.wg.Add(1) as two separate
+// steps, with Close free to land its own e.wg.Wait in between - only shows
+// up when a Start call is genuinely racing a Close, not following one.
+// That gap needed a real, live BitTorrent swarm and the race detector to
+// surface at all (see this package's own git history) - synthetic
+// concurrency here cannot force the exact interleaving on demand, so this
+// runs many overlapping attempts and leans on -race in CI to catch what a
+// single run might miss. A caller-side panic recovered into t.Errorf is a
+// clean, attributable failure; an unrecovered WaitGroup-misuse panic on some
+// other goroutine crashes the whole test binary instead, which is still a
+// failure but a cruder one - this exists to make the common case the clean
+// one.
+func TestConcurrentStartAndCloseNeverPanics(t *testing.T) {
+	for i := 0; i < 20; i++ {
+		e, err := New(t.TempDir(), func(string, core.Update) {})
+		if err != nil {
+			t.Fatalf("New: %v", err)
+		}
+
+		var wg sync.WaitGroup
+		for n := 0; n < 8; n++ {
+			wg.Add(1)
+			go func(n int) {
+				defer wg.Done()
+				defer func() {
+					if r := recover(); r != nil {
+						t.Errorf("Start panicked: %v", r)
+					}
+				}()
+				e.Start(Job{
+					TaskID: fmt.Sprintf("stress-%d-%d", i, n),
+					URL:    "http://127.0.0.1:1/unreachable",
+				})
+			}(n)
+		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			defer func() {
+				if r := recover(); r != nil {
+					t.Errorf("Close panicked: %v", r)
+				}
+			}()
+			if err := e.Close(); err != nil {
+				t.Errorf("Close: %v", err)
+			}
+		}()
+
+		done := make(chan struct{})
+		go func() { wg.Wait(); close(done) }()
+		select {
+		case <-done:
+		case <-time.After(10 * time.Second):
+			t.Fatalf("round %d: Start/Close never finished - deadlock, not a data race", i)
+		}
 	}
 }
