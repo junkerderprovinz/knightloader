@@ -39,6 +39,9 @@ type Engine struct {
 	closeOnce sync.Once
 	closeErr  error
 	pollOnce  sync.Once
+	// closed is set under mu, by Close, before wg.Wait ever runs - see Start's
+	// own comment for why a plain e.done check is not enough on its own.
+	closed bool
 
 	// metadataTimeout overrides how long a magnet may wait for its file list.
 	// Zero means defaultMetadataTimeout; a test sets it short.
@@ -129,8 +132,20 @@ func (e *Engine) UseProxy(hostPort string) error {
 // shutdown that hung on one slow host would be a worse failure than the race
 // this wait exists to close, so after closeGrace the library is shut down
 // anyway - which is also what releases the resolve.
+//
+// e.closed is set here, under e.mu, BEFORE anything else - not as a second
+// copy of what e.done already says, but because it is the one half of the
+// handshake Start's own e.mu.Lock can serialise against. e.done alone lets a
+// caller observe "not closed yet" and then still lose the race to actually
+// call wg.Add before this function's own wg.Wait begins - narrow, but a race
+// detector run with real network activity behind it did find that window.
+// Setting the flag under the same lock Start checks it under closes the
+// window rather than shrinking it.
 func (e *Engine) Close() error {
 	e.closeOnce.Do(func() {
+		e.mu.Lock()
+		e.closed = true
+		e.mu.Unlock()
 		close(e.done)
 		waited := make(chan struct{})
 		go func() {
@@ -229,23 +244,28 @@ type Job struct {
 // Start resolves the URL (to learn the name, the size and the shape of what is
 // on the other end), settles where the file lands, and then starts the task.
 func (e *Engine) Start(j Job) {
-	// Closed already. Every path below this ends in e.wg.Add(1) - the torrent
-	// branch inside startTorrent, the plain one a few lines down - and Close
-	// is, by the time this can even be reached, already past close(e.done) and
-	// quite possibly already inside e.wg.Wait(). Add racing a Wait already in
-	// progress is not "the task starts a little late", it is documented Go
-	// runtime behaviour ("sync: WaitGroup misuse: Add called concurrently with
-	// Wait") that can panic the whole process instead of losing one task - the
-	// one failure mode here worse than the race it would be replacing. A
-	// caller reaching Start after shutdown has begun gets the same terminal
-	// update resolveTorrent's own e.done case already gives a magnet cut off
-	// mid-resolve, rather than a task that silently never moves again.
-	select {
-	case <-e.done:
+	// Closed already, checked and counted as ONE atomic step under e.mu - not
+	// a plain e.done check followed by a separate e.wg.Add. Those two as
+	// separate steps still race: Close can set e.closed and start its own
+	// wg.Wait in the gap between this goroutine's check and its Add, which is
+	// exactly "sync: WaitGroup misuse: Add called concurrently with Wait" -
+	// documented Go runtime behaviour that panics the whole process rather
+	// than losing one task, and narrow enough that it took a race-detector run
+	// against a real, live BitTorrent swarm (dispatchLocked's own raw `go
+	// a.Engine.Start(...)`, never awaited by design - see its own comment) to
+	// actually land in the window. Locked together, there is no window: either
+	// this Add happens before Close's closed=true is visible, and Close's
+	// later Wait counts it correctly, or closed=true is already visible here
+	// and this returns before Add is ever called.
+	e.mu.Lock()
+	if e.closed {
+		e.mu.Unlock()
 		e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: "shutting down"})
 		return
-	default:
 	}
+	e.wg.Add(1)
+	e.mu.Unlock()
+
 	if j.Dir == "" {
 		j.Dir = e.dir
 	}
@@ -259,11 +279,14 @@ func (e *Engine) Start(j Job) {
 	// that decision, in a place with less information, that can disagree - and
 	// the way it would disagree is a magnet dispatched as an HTTP job, which
 	// resolves as a torrent anyway and skips every check below.
+	//
+	// The Add above already covers this branch too - startTorrent no longer
+	// takes its own, for the identical reason this function does not take two:
+	// one Add per Start call, whichever branch it ends up on.
 	if torrent.IsURI(j.URL) {
 		e.startTorrent(j)
 		return
 	}
-	e.wg.Add(1)
 	go func() {
 		defer e.wg.Done()
 		req := &base.Request{
