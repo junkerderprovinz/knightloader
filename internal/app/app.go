@@ -43,6 +43,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/schedule"
 	"github.com/junkerderprovinz/knightloader/internal/script"
@@ -278,6 +279,16 @@ func New(dataDir string) (*App, error) {
 	a.ctx, a.cancel = context.WithCancel(context.Background())
 	a.Registry.Register(resolver.Direct{})
 	a.Registry.Register(resolver.HTTPFallback{})
+	// Unconditional, like Direct and HTTPFallback above and unlike every
+	// resolver in app_accounts.go: a magnet link or an uploaded .torrent needs
+	// no account and no credential, so there is nothing to wait for a settings
+	// change to (re)register - see torrent.Resolver's own doc comment ("it
+	// carries no configuration"). Without this line Match/Resolve are correct
+	// but unreachable: Registry.For walks only what was Register'd, and a
+	// magnet pasted into the existing collector box would fail with "no
+	// backend handles this link" despite torrent.Resolver.Match already
+	// recognising it.
+	a.Registry.Register(torrent.Resolver{})
 
 	eng, err := engine.New(filepath.Join(dataDir, "downloads"), a.onUpdate)
 	if err != nil {

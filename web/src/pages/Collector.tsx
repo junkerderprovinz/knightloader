@@ -14,6 +14,7 @@ import {
 import { PackageActions } from '../components/PackageActions';
 import { AddLinksForm } from '../components/AddLinksForm';
 import { ContainerDrop } from '../components/ContainerDrop';
+import { TorrentUpload } from '../components/TorrentUpload';
 import { FilteredLinks, useFx } from '../components/FilteredLinks';
 import { SkippedLinks } from '../components/SkippedLinks';
 import {
@@ -217,6 +218,7 @@ export function Collector() {
           but duplicates stages nothing, and that is the moment it explains most. */}
       <div className="flex flex-col gap-3">
         <ContainerDrop pkg={pkg} />
+        <TorrentUpload pkg={pkg} />
         <FilteredLinks held={held} />
         <SkippedLinks />
       </div>

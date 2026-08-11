@@ -6,11 +6,13 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/GopeedLab/gopeed/pkg/base"
 	gopeed "github.com/GopeedLab/gopeed/pkg/util"
 	"github.com/junkerderprovinz/knightloader/internal/collide"
+	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 )
 
@@ -264,5 +266,49 @@ func TestNoPolicyLeavesTheLibraryToNameTheFile(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(dir, "movie.mkv")); err != nil {
 		t.Fatal("a job with no policy still touched the folder")
+	}
+}
+
+// TestStartAfterCloseAnswersInsteadOfPanicking is the guard at the top of
+// Start proven rather than merely present: every path through Start ends in
+// e.wg.Add(1), and by the time a caller can reach Start after Close has
+// begun, Close is already past close(e.done) and quite possibly already
+// inside e.wg.Wait(). Add racing a Wait already under way is not a slow
+// task, it is documented Go runtime behaviour ("sync: WaitGroup misuse: Add
+// called concurrently with Wait") that panics the whole process. Close has
+// already fully returned here, which is the one interleaving guaranteed to
+// still be true by the time this Start call runs, so this is the
+// deterministic slice of the race rather than an attempt to reproduce the
+// timing-dependent one.
+func TestStartAfterCloseAnswersInsteadOfPanicking(t *testing.T) {
+	var mu sync.Mutex
+	var got *core.Update
+	e, err := New(t.TempDir(), func(_ string, u core.Update) {
+		mu.Lock()
+		defer mu.Unlock()
+		got = &u
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	if err := e.Close(); err != nil {
+		t.Fatalf("Close: %v", err)
+	}
+
+	// A URL nothing could ever answer - if the guard did not stop this before
+	// e.wg.Add(1), this would hang or panic rather than merely fail the
+	// assertions below.
+	e.Start(Job{TaskID: "late-1", URL: "http://127.0.0.1:1/unreachable"})
+
+	mu.Lock()
+	defer mu.Unlock()
+	if got == nil {
+		t.Fatal("Start after Close produced no update at all")
+	}
+	if got.Status != core.StatusError {
+		t.Errorf("status = %q, want error", got.Status)
+	}
+	if got.Err != "shutting down" {
+		t.Errorf("err = %q, want \"shutting down\"", got.Err)
 	}
 }

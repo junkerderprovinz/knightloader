@@ -83,6 +83,24 @@ actual vendored source rather than assumed from gopeed's marketing:
    needed to get this right — the alternative (a global switch the user
    has to remember to flip per-torrent) is a trap most private trackers
    punish with a ban.
+
+   **STATUS (Wave 11.5's own build): NOT DELIVERED, and not currently
+   deliverable.** The "gopeed almost certainly reads and honours this flag
+   itself" hedge above (this section's own opening) was checked rather than
+   assumed, by three independent readings of the vendored source, and it
+   does not hold: `bt.Fetcher.initClient()` builds ONE package-level
+   singleton `torrent.Client` shared by every torrent task in the process,
+   and neither it nor anywhere else in `github.com/GopeedLab/gopeed@v1.9.3`
+   ever sets a `NoDHT` or `DisablePEX` field (or equivalent) — confirmed by
+   grep across the whole vendored module, zero matches. There is currently
+   no API surface through which KnightLoader could disable DHT/PEX for one
+   torrent, or even for all of them. The honest fix landed instead:
+   `web/src/pages/settings/Torrents.tsx`'s private-torrent note was reworded
+   from a present-tense enforcement claim ("private torrents automatically
+   get DHT/PEX disabled") to naming this exact gap, in every locale. Whoever
+   picks this back up needs a path INTO gopeed's fork or a patch upstream,
+   not another pass over this codebase's own torrent package - the
+   constraint is entirely on the other side of that boundary.
 6. **Selective download**: multi-file torrents get a file tree at add-time
    to check/uncheck individual files, the same way ordinary torrent
    clients do, rather than always fetching every file.

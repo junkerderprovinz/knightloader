@@ -49,6 +49,7 @@ func registerAll(reg *Registry, a *app.App) {
 	registerResolvers(reg, a)
 	registerSchedule(reg, a)
 	registerReconnect(reg, a)
+	registerPortmap(reg, a)
 	registerUIState(reg, a)
 	registerHistory(reg, a)
 	registerFederation(reg, a)
@@ -69,6 +70,7 @@ func registerAll(reg *Registry, a *app.App) {
 	registerRemoteAccess(reg, a)
 	registerScripts(reg, a)
 	registerHelp(reg, a)
+	registerTorrents(reg, a)
 }
 
 // AnyMethod is the method of a route that answers whatever it is sent, because

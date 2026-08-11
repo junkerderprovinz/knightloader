@@ -276,6 +276,12 @@ type Settings struct {
 	// any of them existed - an install that never opens the settings page
 	// this backs downloads exactly as it always has.
 	Ytdlp ytdlp.Options `json:"ytdlp"`
+
+	// Torrent is the seed/port/DHT/PEX policy for the BitTorrent backend -
+	// see settings_torrent.go for the full shape and, especially, for what
+	// of it is and is not actually enforced by the gopeed dependency this
+	// build embeds today.
+	Torrent Torrent `json:"torrent"`
 }
 
 // Defaults returns the settings a fresh install starts with.
@@ -319,6 +325,9 @@ func Defaults() Settings {
 		// out anyway so every sub-package's Defaults() is called from
 		// exactly one place, matching its three neighbours above.
 		Ytdlp: ytdlp.Defaults(),
+		// Unlike Ytdlp's, these are not the zero value - see defaultTorrent's
+		// own doc comment for where each number actually comes from.
+		Torrent: defaultTorrent(),
 		// The list is trimmed after a month and the history is not: the two
 		// together are the only combination in which "do not let the list grow
 		// forever" costs nobody the record of what they downloaded.
@@ -552,5 +561,6 @@ func sanitize(n Settings) Settings {
 	n = sanitizeIdleAction(n)
 	n = sanitizeCaptcha(n)
 	n = sanitizeConfirm(n)
+	n = sanitizeTorrent(n)
 	return n
 }

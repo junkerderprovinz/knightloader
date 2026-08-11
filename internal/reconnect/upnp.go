@@ -143,7 +143,7 @@ func (r *Reconnector) upnp(ctx context.Context, cfg Config) error {
 		}
 		for _, svc := range services {
 			if err := r.upnpDisconnect(ctx, svc); err != nil {
-				refusals = append(refusals, fmt.Sprintf("%s: %v", svc.serviceType, err))
+				refusals = append(refusals, fmt.Sprintf("%s: %v", svc.ServiceType, err))
 				continue
 			}
 			return nil
@@ -169,10 +169,20 @@ func (r *Reconnector) gateways(ctx context.Context, cfg Config) ([]Gateway, erro
 	return found, nil
 }
 
-// upnpService is one control endpoint, already resolved to an absolute URL.
-type upnpService struct {
-	serviceType string
-	controlURL  string
+// Service is one control endpoint, already resolved to an absolute URL and
+// pinned to the host that answered the original SSDP search - see the
+// security note in WANServices for why that pin has to travel with the
+// endpoint rather than be redone by whoever calls it.
+//
+// Exported, with exported fields: internal/portmap sends its own SOAP action
+// (AddPortMapping) against the same kind of endpoint this package already
+// finds for ForceTermination and RequestConnection, and it must not
+// re-implement the discovery that finds it - a second, unreviewed SSDP and
+// device-description parser is exactly the kind of duplicate this type
+// exists to prevent.
+type Service struct {
+	ServiceType string
+	ControlURL  string
 }
 
 // upnpDisconnect runs the two actions against one service.
@@ -184,7 +194,7 @@ type upnpService struct {
 // its own and answers the second action with "already connecting". Failing the
 // run there would report a reconnect that did happen as one that did not, and
 // the caller would go on holding downloads back.
-func (r *Reconnector) upnpDisconnect(ctx context.Context, svc upnpService) error {
+func (r *Reconnector) upnpDisconnect(ctx context.Context, svc Service) error {
 	termErr := r.soap(ctx, svc, actionForceTermination)
 	if termErr == nil {
 		// The wait is not politeness; see upnpSettleDelay.
@@ -228,8 +238,29 @@ type describedSvc struct {
 
 // wanServices reads a gateway's description and returns every WAN connection
 // service in it, with control URLs resolved against the description's own
-// location.
-func (r *Reconnector) wanServices(ctx context.Context, g Gateway) ([]upnpService, error) {
+// location. It is this method's own thin wrapper around WANServices, kept so
+// every call site in this file that already has a Reconnector in hand stays a
+// method call; see WANServices for the implementation, and for why it exists
+// as a package-level function taking a Doer instead of only as this method.
+func (r *Reconnector) wanServices(ctx context.Context, g Gateway) ([]Service, error) {
+	return WANServices(ctx, r.http, g)
+}
+
+// WANServices reads a gateway's device description over doer and returns
+// every WAN connection service in it, with control URLs resolved against the
+// description's own location.
+//
+// Exported and taking a Doer directly - rather than only living as the
+// Reconnector method above - so a caller that needs the same WAN control
+// endpoint for an action this package does not implement can reuse this
+// discovery instead of writing a second SSDP-and-device-description parser.
+// internal/portmap's AddPortMapping is that caller: port mapping needs
+// exactly the endpoint ForceTermination and RequestConnection already use,
+// and the SSRF pinning below is the reason it must come from here rather
+// than from a fresh implementation that has not been through the same
+// adversarial review this one has (see upnp_test.go's
+// TestWANServicesKeepsTheControlURLOnTheHostThatAnswered).
+func WANServices(ctx context.Context, doer Doer, g Gateway) ([]Service, error) {
 	base, err := url.Parse(g.Location)
 	if err != nil {
 		return nil, fmt.Errorf("its description URL is unusable: %v", err)
@@ -239,7 +270,7 @@ func (r *Reconnector) wanServices(ctx context.Context, g Gateway) ([]upnpService
 		return nil, fmt.Errorf("its description URL is not HTTP: %s", base.Scheme)
 	}
 
-	body, err := r.fetch(ctx, base.String(), maxDescriptionBody)
+	body, err := fetch(ctx, doer, base.String(), maxDescriptionBody)
 	if err != nil {
 		return nil, fmt.Errorf("its description could not be read: %v", err)
 	}
@@ -277,7 +308,7 @@ func (r *Reconnector) wanServices(ctx context.Context, g Gateway) ([]upnpService
 		// trying to redirect us simply does not get to.
 	}
 
-	var out []upnpService
+	var out []Service
 	// Two passes so a WANIPConnection is always tried before a WANPPPConnection
 	// on a device that lists both: the PPP service on such a device is usually
 	// the vestigial one, and calling ForceTermination on a service with no
@@ -293,8 +324,8 @@ func (r *Reconnector) wanServices(ctx context.Context, g Gateway) ([]upnpService
 // flat scan of the top-level service list finds nothing at all.
 // The host is passed alongside the base because a controlURL is allowed to be
 // absolute, and an absolute one replaces the base's host entirely rather than
-// resolving against it. See the pin in wanServices for why that matters.
-func collectWANServices(d describedDevice, prefix string, base *url.URL, host string, out *[]upnpService) {
+// resolving against it. See the pin in WANServices for why that matters.
+func collectWANServices(d describedDevice, prefix string, base *url.URL, host string, out *[]Service) {
 	for _, s := range d.Services {
 		t := strings.TrimSpace(s.ServiceType)
 		if !strings.HasPrefix(t, prefix) {
@@ -311,7 +342,7 @@ func collectWANServices(d describedDevice, prefix string, base *url.URL, host st
 		if !strings.EqualFold(u.Hostname(), host) {
 			continue
 		}
-		*out = append(*out, upnpService{serviceType: t, controlURL: u.String()})
+		*out = append(*out, Service{ServiceType: t, ControlURL: u.String()})
 	}
 	for _, child := range d.Devices {
 		collectWANServices(child, prefix, base, host, out)
@@ -328,16 +359,16 @@ const soapEnvelope = `<?xml version="1.0" encoding="utf-8"?>` +
 	`<s:Body><u:%s xmlns:u="%s"></u:%s></s:Body></s:Envelope>`
 
 // soap performs one action and turns a refusal into a sentence.
-func (r *Reconnector) soap(ctx context.Context, svc upnpService, action string) error {
+func (r *Reconnector) soap(ctx context.Context, svc Service, action string) error {
 	escaped := &bytes.Buffer{}
-	if err := xml.EscapeText(escaped, []byte(svc.serviceType)); err != nil {
+	if err := xml.EscapeText(escaped, []byte(svc.ServiceType)); err != nil {
 		return err
 	}
 	body := fmt.Sprintf(soapEnvelope, action, escaped.String(), action)
 
 	ctx, cancel := context.WithTimeout(ctx, requestTimeout)
 	defer cancel()
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, svc.controlURL, strings.NewReader(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, svc.ControlURL, strings.NewReader(body))
 	if err != nil {
 		return err
 	}
@@ -345,7 +376,7 @@ func (r *Reconnector) soap(ctx context.Context, svc upnpService, action string) 
 	// The quotes around the SOAPAction value are required by the specification,
 	// and a good deal of router firmware rejects the header without them with a
 	// bare 500 that names nothing.
-	req.Header.Set("SOAPAction", `"`+svc.serviceType+"#"+action+`"`)
+	req.Header.Set("SOAPAction", `"`+svc.ServiceType+"#"+action+`"`)
 
 	resp, err := r.http.Do(req)
 	if err != nil {
@@ -391,15 +422,27 @@ func soapFault(b []byte) (int, string) {
 	return env.Code, desc
 }
 
-// fetch reads a bounded body over the injected client.
-func (r *Reconnector) fetch(ctx context.Context, target string, limit int64) ([]byte, error) {
+// SOAPFault is soapFault, exported so a caller sending its own SOAP action
+// against a Service this package discovered - internal/portmap's
+// AddPortMapping and its GetSpecificPortMappingEntry read-back - can report
+// the router's own error code and text instead of a bare HTTP status, the
+// same quality of error this package gives its own two actions.
+func SOAPFault(b []byte) (code int, desc string) {
+	return soapFault(b)
+}
+
+// fetch reads a bounded body over doer. It is a package-level function
+// rather than a method on Reconnector so WANServices can be called with any
+// Doer, not only from a Reconnector that already has one - see that
+// function's own doc comment for why that matters.
+func fetch(ctx context.Context, doer Doer, target string, limit int64) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(ctx, requestTimeout)
 	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, target, nil)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := r.http.Do(req)
+	resp, err := doer.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -415,6 +458,16 @@ func (r *Reconnector) fetch(ctx context.Context, target string, limit int64) ([]
 		return nil, fmt.Errorf("unexpected status %s", statusText(resp))
 	}
 	return b, nil
+}
+
+// SSDPSearch is ssdpSearch, exported so a caller that needs the same gateway
+// search for an action this package does not implement - internal/portmap's
+// AddPortMapping, specifically - can reuse it as its own default Discoverer
+// instead of a second SSDP implementation. It is the identical function
+// New uses as the package's own default; there is only one SSDP search in
+// this codebase and this is it.
+func SSDPSearch(ctx context.Context, timeout time.Duration) ([]Gateway, error) {
+	return ssdpSearch(ctx, timeout)
 }
 
 // ssdpSearch is the default Discoverer: one M-SEARCH per search target on the

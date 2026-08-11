@@ -7,6 +7,7 @@ import (
 	"net"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/GopeedLab/gopeed/pkg/base"
 	"github.com/GopeedLab/gopeed/pkg/download"
@@ -14,6 +15,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 )
 
 type Engine struct {
@@ -23,8 +25,32 @@ type Engine struct {
 	mu       sync.Mutex
 	toKL     map[string]string // gopeed task id -> KL task id
 	toGopeed map[string]string // KL task id -> gopeed task id
+	torrents map[string]bool   // KL task id -> this one is a torrent
 
 	onUpdate func(taskID string, u core.Update)
+
+	// done is closed by Close, and wg counts every goroutine this engine
+	// started. Together they are what makes Close mean it: before they existed
+	// Start's own goroutine could still be mid-resolve while the downloader
+	// underneath was being torn down, and the torrent stats poller would have
+	// kept reading a closed library forever.
+	done      chan struct{}
+	wg        sync.WaitGroup
+	closeOnce sync.Once
+	closeErr  error
+	pollOnce  sync.Once
+
+	// metadataTimeout overrides how long a magnet may wait for its file list.
+	// Zero means defaultMetadataTimeout; a test sets it short.
+	metadataTimeout time.Duration
+}
+
+// SetMetadataTimeout caps how long a magnet may spend waiting for the swarm to
+// send its file list. Zero restores the built-in default.
+func (e *Engine) SetMetadataTimeout(d time.Duration) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	e.metadataTimeout = d
 }
 
 // New boots an embedded Gopeed downloader that saves into dir and reports
@@ -53,7 +79,9 @@ func New(dir string, onUpdate func(taskID string, u core.Update)) (*Engine, erro
 		dir:      dir,
 		toKL:     map[string]string{},
 		toGopeed: map[string]string{},
+		torrents: map[string]bool{},
 		onUpdate: onUpdate,
+		done:     make(chan struct{}),
 	}
 	d.Listener(e.onEvent)
 	return e, nil
@@ -83,7 +111,44 @@ func (e *Engine) UseProxy(hostPort string) error {
 	return e.d.PutConfig(cfg)
 }
 
-func (e *Engine) Close() error { return e.d.Close() }
+// Close stops every goroutine this engine started and then shuts the download
+// library down, in that order.
+//
+// THE ORDER IS THE POINT. Waiting first means nothing of ours is still calling
+// into the library when it is torn down. The one goroutine that cannot be
+// waited for is the bare resolve inside resolveTorrent, which is parked in the
+// torrent client with no way to be interrupted - what releases that one is the
+// d.Close() below, and its own caller has already stopped listening for it.
+// It is idempotent because the app shuts down from more than one place - a
+// second call must not close an already-closed channel or hand the download
+// library a second Close.
+//
+// THE WAIT IS BOUNDED, and the bound is not laziness. Every goroutine started
+// here watches e.done and leaves promptly, except the one thing that cannot:
+// a resolve already inside the download library, which takes no context. A
+// shutdown that hung on one slow host would be a worse failure than the race
+// this wait exists to close, so after closeGrace the library is shut down
+// anyway - which is also what releases the resolve.
+func (e *Engine) Close() error {
+	e.closeOnce.Do(func() {
+		close(e.done)
+		waited := make(chan struct{})
+		go func() {
+			e.wg.Wait()
+			close(waited)
+		}()
+		select {
+		case <-waited:
+		case <-time.After(closeGrace):
+		}
+		e.closeErr = e.d.Close()
+	})
+	return e.closeErr
+}
+
+// closeGrace is how long Close waits for its own goroutines before shutting the
+// download library down underneath whatever is left.
+const closeGrace = 10 * time.Second
 
 // Download resolves the direct URL (to learn name+size), then starts a task.
 // It runs async so the caller (an HTTP handler) never blocks on the network.
@@ -139,6 +204,16 @@ type Job struct {
 	Dir   string
 	Route proxycfg.Route
 
+	// TorrentSelect names which files of a multi-file torrent to fetch, by
+	// index in the resolved file list. Nil fetches all of them, which is what
+	// the download library reads an empty selection as. Ignored for every job
+	// whose URL is not a torrent.
+	TorrentSelect []int
+	// Trackers are extra announce URLs to add to a torrent. Ignored for a
+	// private torrent by the library itself, which is the correct behaviour and
+	// not something this side has to remember.
+	Trackers []string
+
 	// Collision is what to do when the resolved name is already taken. EMPTY
 	// MEANS NO POLICY AT ALL, which is not what the collide package reads it as:
 	// there an empty policy is its own default, Rename. The difference is
@@ -154,10 +229,43 @@ type Job struct {
 // Start resolves the URL (to learn the name, the size and the shape of what is
 // on the other end), settles where the file lands, and then starts the task.
 func (e *Engine) Start(j Job) {
+	// Closed already. Every path below this ends in e.wg.Add(1) - the torrent
+	// branch inside startTorrent, the plain one a few lines down - and Close
+	// is, by the time this can even be reached, already past close(e.done) and
+	// quite possibly already inside e.wg.Wait(). Add racing a Wait already in
+	// progress is not "the task starts a little late", it is documented Go
+	// runtime behaviour ("sync: WaitGroup misuse: Add called concurrently with
+	// Wait") that can panic the whole process instead of losing one task - the
+	// one failure mode here worse than the race it would be replacing. A
+	// caller reaching Start after shutdown has begun gets the same terminal
+	// update resolveTorrent's own e.done case already gives a magnet cut off
+	// mid-resolve, rather than a task that silently never moves again.
+	select {
+	case <-e.done:
+		e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: "shutting down"})
+		return
+	default:
+	}
 	if j.Dir == "" {
 		j.Dir = e.dir
 	}
+	// A magnet or an uploaded .torrent goes down the torrent branch, and the
+	// test for that is the URL itself rather than a flag on the Job.
+	//
+	// THE DISPATCHER IS NOT ASKED, on purpose. Which protocol a link belongs to
+	// is already decided by its scheme, and the library underneath decides it
+	// exactly this way (Downloader.parseFm walks its fetch managers' scheme
+	// filters). Making the caller state it as well would be a second copy of
+	// that decision, in a place with less information, that can disagree - and
+	// the way it would disagree is a magnet dispatched as an HTTP job, which
+	// resolves as a torrent anyway and skips every check below.
+	if torrent.IsURI(j.URL) {
+		e.startTorrent(j)
+		return
+	}
+	e.wg.Add(1)
 	go func() {
+		defer e.wg.Done()
 		req := &base.Request{
 			URL:   j.URL,
 			Extra: &fhttp.ReqExtra{Method: "GET", Header: j.Headers},
@@ -293,6 +401,7 @@ func (e *Engine) Remove(taskID string, deleteFiles bool) {
 	gid := e.toGopeed[taskID]
 	delete(e.toGopeed, taskID)
 	delete(e.toKL, gid)
+	delete(e.torrents, taskID)
 	e.mu.Unlock()
 	if gid != "" {
 		_ = e.d.Delete(&download.TaskFilter{IDs: []string{gid}}, deleteFiles)
@@ -320,6 +429,27 @@ func (e *Engine) onEvent(ev *download.Event) {
 	}
 	switch ev.Key {
 	case download.EventKeyProgress:
+		// A PROGRESS EVENT AFTER THE DONE EVENT IS NOT PROGRESS, and until
+		// torrents existed there was no such thing so this branch could assume
+		// otherwise. The download library's speed loop ticks for every task that
+		// is "running OR uploading", and a torrent goes on uploading for hours
+		// after it is done - so a finished torrent produces a progress event
+		// twice a second, forever, and mapping each of them to StatusRunning
+		// dragged the task back out of done immediately after it settled.
+		//
+		// The symptom was not subtle and it was still invisible without a live
+		// run: the task showed as running with a complete file and a full
+		// download bar, permanently. Downstream it is worse than cosmetic -
+		// Wave 10's end-of-queue idle action would see work owed for as long as
+		// anything seeds, which is exactly the outcome decision 4 of the torrent
+		// spec exists to prevent.
+		//
+		// Dropped rather than translated, because the seeding phase already has
+		// an owner: the stats poller, which reports peers, ratio and the end of
+		// seeding on its own three-second tick.
+		if ev.Task.Status == base.DownloadStatusDone {
+			return
+		}
 		if pr := ev.Task.Progress; pr != nil {
 			e.emit(taskID, core.Update{Status: core.StatusRunning, Loaded: pr.Downloaded, Speed: pr.Speed})
 		}
@@ -329,6 +459,15 @@ func (e *Engine) onEvent(ev *download.Event) {
 		u := core.Update{Status: core.StatusDone}
 		if pr := ev.Task.Progress; pr != nil {
 			u.Loaded = pr.Downloaded
+		}
+		// The seeding flag travels WITH the done, not three seconds behind it on
+		// the next poll. In that gap a torrent would be done and not seeding,
+		// which is the one combination that means "finished, nothing owed" - and
+		// the idle action fires on exactly that reading.
+		if e.isTorrent(taskID) {
+			if s, _, ok := e.readTorrentStats(ev.Task.ID); ok {
+				u.Torrent = &s
+			}
 		}
 		e.emit(taskID, u)
 	case download.EventKeyError:

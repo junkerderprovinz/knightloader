@@ -33,6 +33,29 @@ import (
 // held task is NOT subtracted: both are "wait a bit", not "never", and either
 // one still counts as work left to do, holding the action off exactly as a
 // running download would.
+//
+// A SEEDING TORRENT (core.Task.Seeding == true) NEEDED NO EXCLUSION ADDED
+// HERE, and that is a verified finding for this wave, not an oversight.
+// docs/torrent-support.md's decision 4 ("a torrent that is only seeding does
+// not count as owed work, or one perpetually-seeding torrent would
+// permanently disable this whole feature") is already met, by construction:
+// Seeding is a flag beside Status == core.StatusDone and never a status of
+// its own (core.Task's own doc comment on the field - the same "flag, not a
+// new core.Status" rule build-plan.md section 4 conflict 2 has held since
+// Wave 1), and the switch inside Counters already treats StatusDone as not
+// owed. A seeding task therefore never reaches c.Files at all, exactly like
+// any other finished download - see TestSeedingTorrentDoesNotBlockTheIdleAction
+// for this proven against a real App rather than left as a claim in a
+// comment. The one change that WOULD have broken this silently is a second
+// core.Status for "seeding", which is precisely the shape this rule already
+// forbids.
+//
+// watchQueueIdleForScripts (internal/app/app_script.go, Wave 11) is a second,
+// independent reader of this exact function, polling it for an unrelated
+// reason (firing a script trigger rather than pausing the queue). It needed
+// no change here either, for the same reason: one predicate, two readers,
+// and neither has to know the other exists for both to read a seeding
+// torrent correctly.
 func (a *App) queueIdleForAction() bool {
 	c := a.Counters()
 	return c.Files == c.Disabled

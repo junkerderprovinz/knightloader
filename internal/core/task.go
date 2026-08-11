@@ -101,6 +101,102 @@ type Update struct {
 	// do this" and "this did not work", and only the former should hand the
 	// task to the next backend in the chain.
 	Unsupported bool
+	// Torrent carries the swarm numbers when the backend has any, and nil when
+	// it does not - which is every update from every non-torrent backend, so
+	// nothing else pays for this field.
+	//
+	// IT IS DELIBERATELY A POINTER AND NOT FIVE MORE FLAT FIELDS. Zero peers on
+	// a finished torrent is a true statement; zero peers on an HTTP download is
+	// the absence of one, and flat fields cannot tell those apart, so every
+	// ordinary update would quietly write "0 peers, 0 seeds, ratio 0" over
+	// whatever a torrent task had a moment earlier.
+	Torrent *TorrentStats
+}
+
+// TorrentStats is one reading of a torrent's swarm, as the engine takes it off
+// the download library.
+//
+// Verified live against gopeed v1.9.3 rather than assumed (cmd/spike-torrent):
+// download.Downloader.Stats(taskID) answers a *pkg/protocol/bt.Stats for a
+// torrent task, and its TotalPeers/ConnectedSeeders/SeedBytes/SeedRatio are
+// where these four numbers come from.
+type TorrentStats struct {
+	Peers    int
+	Seeds    int
+	Ratio    float64
+	Uploaded int64
+	// Seeding is derived, not read: gopeed's own download.Task.Uploading is set
+	// at CREATE time for every torrent task and means "this fetcher can upload",
+	// not "this one is seeding now" - confirmed live, a task two seconds into its
+	// download already reports Uploading true. Seeding is that flag AND a
+	// finished download, which is the pair that actually means what the word
+	// says. See Engine.readTorrentStats.
+	Seeding bool
+}
+
+// ApplyTo writes one reading onto a task. It exists so the single place in the
+// app that folds an Update into a Task stays one line for this, rather than
+// five assignments that a sixth torrent field would have to be remembered in.
+func (s TorrentStats) ApplyTo(t *Task) {
+	t.Peers = s.Peers
+	t.Seeds = s.Seeds
+	t.Ratio = s.Ratio
+	t.Uploaded = s.Uploaded
+	t.Seeding = s.Seeding
+}
+
+// TorrentFile is one file inside a multi-file torrent, and the tick beside it.
+//
+// WHERE THIS LIVES, and why, because docs/torrent-support.md left it open.
+// It hangs off core.Task (Task.TorrentFiles) rather than becoming a new
+// pre-Task "resolved, awaiting selection" state, for three reasons:
+//
+//  1. StatusCollected already means exactly "resolved, staged, not started" -
+//     the state a file tree is chosen in. A second staging state ahead of it
+//     would be a new core.Status in all but name, and section 4 conflict 2 of
+//     the build plan has ruled that out for every wave since Wave 1.
+//  2. The two intake paths learn the file list at different moments. An
+//     uploaded .torrent is parsed with no network at all, so its tree exists
+//     before the task does; a magnet's tree arrives only once the swarm hands
+//     over metadata, seconds or minutes after the link was pasted. One field
+//     on the task lets the magnet stage immediately with an empty list and
+//     fill it in later, and lets both paths feed the same tree component.
+//  3. Nothing outside the torrent path pays anything: the field is omitempty
+//     and every other task carries an empty slice.
+//
+// Path is the file's path INSIDE the torrent, forward-slashed, relative to the
+// torrent's own root folder, exactly as BEP 3 states it - it is not a path on
+// this machine and must never be joined onto one without going through the
+// containment check in internal/resolver/torrent (Contained). It arrives
+// from a stranger's file.
+type TorrentFile struct {
+	Path     string `json:"path"`
+	Size     int64  `json:"size"`
+	Selected bool   `json:"selected"`
+}
+
+// SelectedTorrentIndices is the file selection in the form the download library
+// takes it: positions in the task's own TorrentFiles list.
+//
+// Nil for a task with no list and nil for a task with every box ticked are the
+// same answer on purpose, because they are the same instruction - gopeed reads
+// an empty selection as "fetch all of it" (base.Options.InitSelectFiles), which
+// is what both mean. Returning an explicit "all" list instead would differ only
+// in being longer to serialise and easy to get one short.
+func SelectedTorrentIndices(files []TorrentFile) []int {
+	if len(files) == 0 {
+		return nil
+	}
+	out := make([]int, 0, len(files))
+	for i, f := range files {
+		if f.Selected {
+			out = append(out, i)
+		}
+	}
+	if len(out) == len(files) {
+		return nil
+	}
+	return out
 }
 
 // Task is one download in the queue. It is what the UI renders and the store persists.
@@ -255,4 +351,53 @@ type Task struct {
 	// that is not part of one. Extraction already works this out from the name
 	// and throws it away, so the list cannot show the parts in order.
 	ArchivePart int `json:"archivePart,omitempty"`
+
+	// The torrent fields. Every one is omitempty and every non-torrent task
+	// leaves all of them at zero, which is why these are fields here rather than
+	// a nested struct nothing else would ever allocate.
+	//
+	// PEERS, SEEDS, RATIO, UPLOADED AND SEEDING ARE NOT PERSISTED, and that is
+	// deliberate rather than an omission. A peer count is true for the second it
+	// was read; written to the database and shown again after a restart it is a
+	// number about a swarm nobody has looked at since. The two that would survive
+	// being stale - Uploaded and Ratio - do not need this table either, because
+	// gopeed keeps its own SeedBytes/SeedTime across a restart and reports them
+	// back out of the restored task, so a second copy here could only ever
+	// disagree with the one the download library is still keeping.
+
+	// Peers is how many peers the swarm has shown us, seeding or not.
+	Peers int `json:"peers,omitempty"`
+	// Seeds is how many of those are connected and complete - the number that
+	// actually says whether this torrent can finish.
+	Seeds int `json:"seeds,omitempty"`
+	// Ratio is uploaded over downloaded, which is what a seed target is measured
+	// against.
+	Ratio float64 `json:"ratio,omitempty"`
+	// Uploaded is bytes sent to the swarm.
+	Uploaded int64 `json:"uploaded,omitempty"`
+	// Seeding is a finished torrent still giving bytes back. It is a FLAG beside
+	// Status == StatusDone and never a Status of its own, for the reason Skipped
+	// and Hold are flags: a new status value breaks every exhaustive mapping of
+	// the seven, the store round trip, and a rollback. A seeding task is done -
+	// the bytes the user asked for are on disk - and everything that reads "done"
+	// must keep reading it as done.
+	Seeding bool `json:"seeding,omitempty"`
+	// TorrentFiles is the multi-file selection tree. See TorrentFile for where
+	// this lives and why.
+	//
+	// UNLIKE THE FIVE ABOVE THIS ONE DOES WANT PERSISTING: it is a decision the
+	// user made, not a reading of the world, and a restart that quietly forgets
+	// which files were unticked starts fetching the ones they excluded. See
+	// internal/store/store.go's torrent_files column (migration 12).
+	TorrentFiles []TorrentFile `json:"torrentFiles,omitempty"`
+	// InfoHash and Trackers ALSO want persisting, unlike Peers/Seeds/Ratio/
+	// Uploaded/Seeding above: they are a fact about which torrent this is,
+	// fixed the moment it was staged, not a reading of a swarm that keeps
+	// changing. Set once, at stage time, from the same Describe call that
+	// already runs there (app_torrents.go's AddTorrent for an uploaded
+	// .torrent, app_links.go's stage for a pasted magnet) - never
+	// re-derived later, so there is exactly one place either can go stale.
+	// See internal/store/store.go's info_hash/trackers columns (migration 13).
+	InfoHash string   `json:"infoHash,omitempty"`
+	Trackers []string `json:"trackers,omitempty"`
 }

@@ -143,6 +143,41 @@ func TestRunningTaskBlocksTheIdleAction(t *testing.T) {
 	}
 }
 
+// TestSeedingTorrentDoesNotBlockTheIdleAction pins decision 4 of
+// docs/torrent-support.md: a torrent that is only seeding, not downloading
+// and not queued, must not be read as work still owed. queueIdleForAction's
+// own doc comment explains why no new exclusion was written for this
+// (Seeding rides along on Status == core.StatusDone, which Counters already
+// treats as not owed) - this test is what actually proves that reasoning
+// against a real App and a real idleaction.Controller, rather than leaving it
+// as an unverified claim in a comment.
+func TestSeedingTorrentDoesNotBlockTheIdleAction(t *testing.T) {
+	a := newQueueApp(t)
+
+	seeding := &core.Task{
+		ID: "torrent1", URL: "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567",
+		Status: core.StatusDone, Enabled: true, Size: 500, Loaded: 500,
+		Seeding: true, Peers: 4, Seeds: 2, Ratio: 0.4, Uploaded: 200,
+	}
+	a.mu.Lock()
+	a.tasks[seeding.ID] = seeding
+	a.mu.Unlock()
+
+	if _, err := a.ApplySettings(settings.Settings{
+		MaxConcurrent: 4, MaxPerHost: 4, DownloadDir: t.TempDir(),
+		IdleAction: idleaction.Config{Action: idleaction.ActionPause, DelaySeconds: 5},
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	if !pollUntil(t, 15*time.Second, func() bool { return a.IdleActionState().Idle }) {
+		t.Fatal("queueIdleForAction reported busy while the only task left is seeding, not downloading")
+	}
+	if !pollUntil(t, 10*time.Second, func() bool { return a.Queue().Halted }) {
+		t.Fatal("the idle action never fired despite nothing but a seeding torrent remaining")
+	}
+}
+
 func TestApplySettingsRefreshesIdleActionWithoutWaitingForThePoll(t *testing.T) {
 	a := newQueueApp(t)
 	// Enabling the action while the queue is already idle (newQueueApp starts

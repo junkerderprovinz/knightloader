@@ -132,6 +132,24 @@ var migrations = []string{
 	//     the process, and without this it is a scan of every task in the list
 	//     each time, to find the handful that have aged out.
 	`CREATE INDEX IF NOT EXISTS tasks_finished_at ON tasks(finished_at)`,
+	// 12 - the multi-file torrent selection: which files inside a resolved
+	//     torrent to fetch. JSON, same treatment as matched_rules above and for
+	//     the same reason (a variable-length list, one column). Unlike the
+	//     swarm numbers a torrent task also carries (peers, seeds, ratio,
+	//     uploaded, seeding - see core.TorrentStats), this one IS persisted: it
+	//     is a decision the user made by unticking a box, not a reading of the
+	//     world that goes stale, and a restart that forgot it would start
+	//     fetching the files the user just excluded.
+	`ALTER TABLE tasks ADD COLUMN torrent_files TEXT NOT NULL DEFAULT ''`,
+	// 13 - which torrent a task is, not what its swarm is doing right now: the
+	//     info hash and tracker list a Describe call already resolved at stage
+	//     time (see core.Task.InfoHash's own comment for why these two, alone
+	//     among the torrent fields, are worth persisting). trackers is JSON,
+	//     the same treatment as matched_rules and torrent_files above and for
+	//     the same reason - a variable-length list, one column. info_hash is a
+	//     single hex string and needs none of that.
+	`ALTER TABLE tasks ADD COLUMN info_hash TEXT NOT NULL DEFAULT ''`,
+	`ALTER TABLE tasks ADD COLUMN trackers TEXT NOT NULL DEFAULT ''`,
 }
 
 func Open(path string) (*Store, error) {
@@ -200,7 +218,7 @@ const columns = `id,url,name,package,resolver,size,loaded,speed,status,error,cre
 	comment,chunks,auto_extract,matched_rules,
 	finished_at,enabled,skipped,skip_reason,hold,forced,download_password,expected_hash,
 	connection,host,source,mirror_of,resumable,filename,variant,manual_package,
-	reason,origin,changed_at,archive_part`
+	reason,origin,changed_at,archive_part,torrent_files,info_hash,trackers`
 
 // placeholders is one ? per column, built from the list itself. Written out by
 // hand it is a row of forty-three question marks that has to be recounted every
@@ -248,6 +266,27 @@ func (s *Store) Save(t *core.Task) error {
 		}
 		matched = string(b)
 	}
+	// Same treatment as matched_rules just above, and for the same reason: a
+	// variable-length list has nowhere else to go in a fixed-column row.
+	torrentFiles := ""
+	if len(t.TorrentFiles) > 0 {
+		b, err := json.Marshal(t.TorrentFiles)
+		if err != nil {
+			return err
+		}
+		torrentFiles = string(b)
+	}
+	// Same treatment as matched_rules and torrent_files above, and for the
+	// same reason: a variable-length list has nowhere else to go in a
+	// fixed-column row. info_hash is a plain string and needs none of this.
+	trackers := ""
+	if len(t.Trackers) > 0 {
+		b, err := json.Marshal(t.Trackers)
+		if err != nil {
+			return err
+		}
+		trackers = string(b)
+	}
 	_, err := s.db.Exec(
 		`INSERT OR REPLACE INTO tasks (`+columns+`)
 		 VALUES (`+placeholders+`)`,
@@ -258,7 +297,8 @@ func (s *Store) Save(t *core.Task) error {
 		finishedAt, t.Enabled, t.Skipped, t.SkipReason, t.Hold, t.Forced,
 		t.DownloadPassword, t.ExpectedHash, t.Connection, t.Host, t.Source, t.MirrorOf,
 		resumable, t.Filename, t.Variant, t.ManualPackage,
-		string(t.Reason), string(t.Origin), changedAt, t.ArchivePart)
+		string(t.Reason), string(t.Origin), changedAt, t.ArchivePart, torrentFiles,
+		t.InfoHash, trackers)
 	if err != nil {
 		return err
 	}
@@ -286,7 +326,7 @@ func (s *Store) All() ([]*core.Task, error) {
 	var out []*core.Task
 	for rows.Next() {
 		t := &core.Task{}
-		var status, online, matched, reason, origin string
+		var status, online, matched, reason, origin, torrentFiles, trackers string
 		var created, nextTry, finishedAt, changedAt int64
 		var autoExtract, resumable sql.NullBool
 		if err := rows.Scan(&t.ID, &t.URL, &t.Name, &t.Package, &t.Resolver,
@@ -296,7 +336,8 @@ func (s *Store) All() ([]*core.Task, error) {
 			&finishedAt, &t.Enabled, &t.Skipped, &t.SkipReason, &t.Hold, &t.Forced,
 			&t.DownloadPassword, &t.ExpectedHash, &t.Connection, &t.Host, &t.Source, &t.MirrorOf,
 			&resumable, &t.Filename, &t.Variant, &t.ManualPackage,
-			&reason, &origin, &changedAt, &t.ArchivePart); err != nil {
+			&reason, &origin, &changedAt, &t.ArchivePart, &torrentFiles,
+			&t.InfoHash, &trackers); err != nil {
 			return nil, err
 		}
 		t.Status = core.Status(status)
@@ -326,6 +367,12 @@ func (s *Store) All() ([]*core.Task, error) {
 			// failing the whole reload over: the task itself is intact, and the list
 			// of rule names is only there to explain where it landed.
 			_ = json.Unmarshal([]byte(matched), &t.MatchedRules)
+		}
+		if torrentFiles != "" {
+			_ = json.Unmarshal([]byte(torrentFiles), &t.TorrentFiles)
+		}
+		if trackers != "" {
+			_ = json.Unmarshal([]byte(trackers), &t.Trackers)
 		}
 		out = append(out, t)
 	}
