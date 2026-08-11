@@ -124,39 +124,45 @@ export function CaptchaModal() {
       if (live) setChallenges(Object.fromEntries(list.map((c) => [c.id, c])));
     };
     fetchCaptchas().then(applyList);
-    const close = connectWS((type, data) => {
-      if (type === 'snapshot') {
-        fetchCaptchas().then(applyList);
-      } else if (type === 'captcha') {
-        const c = data as CaptchaChallenge;
-        setChallenges((p) => ({ ...p, [c.id]: c }));
-      } else if (type === 'captchaResolved') {
-        const r = data as CaptchaResolution;
-        setChallenges((p) => {
-          if (!(r.id in p)) return p;
-          const n = { ...p };
-          delete n[r.id];
-          return n;
-        });
-        // Only the ambient reasons: "solved"/"expired"/"aborted" are always
-        // the direct result of a POST this browser (or the one that pressed
-        // Continue/Cancel) just made and already has synchronous feedback
-        // for - see handleContinue/handleSkip. Toasting those here too would
-        // say the same thing twice. "timedOut"/"resolved" are the two this
-        // file has no other way to learn about: nobody in this tab did
-        // anything, and a modal that just silently vanishes reads as "did I
-        // lose the download?" rather than as the captcha having lapsed.
-        if (r.reason === 'timedOut') {
-          // Styled as 'info', not 'fail' - nothing broke - but still a
-          // critical kind: the download it was blocking is now stuck with
-          // nobody having answered for it, which is exactly the outcome
-          // quiet mode's CRITICAL table exists to never swallow.
-          toast(t('captcha.timedOut', { host: r.host }), 'info', 'captcha-failed');
-        } else if (r.reason === 'resolved') {
-          toast(t('captcha.resolvedElsewhere', { host: r.host }), 'info', 'captcha-resolved');
+    // 'snapshot' is not in kinds below and still arrives every time - see
+    // lib/useTasks.ts's identical note on why (Hub.SendTo bypasses a
+    // connection's own subscription filter).
+    const close = connectWS(
+      (type, data) => {
+        if (type === 'snapshot') {
+          fetchCaptchas().then(applyList);
+        } else if (type === 'captcha') {
+          const c = data as CaptchaChallenge;
+          setChallenges((p) => ({ ...p, [c.id]: c }));
+        } else if (type === 'captchaResolved') {
+          const r = data as CaptchaResolution;
+          setChallenges((p) => {
+            if (!(r.id in p)) return p;
+            const n = { ...p };
+            delete n[r.id];
+            return n;
+          });
+          // Only the ambient reasons: "solved"/"expired"/"aborted" are always
+          // the direct result of a POST this browser (or the one that pressed
+          // Continue/Cancel) just made and already has synchronous feedback
+          // for - see handleContinue/handleSkip. Toasting those here too would
+          // say the same thing twice. "timedOut"/"resolved" are the two this
+          // file has no other way to learn about: nobody in this tab did
+          // anything, and a modal that just silently vanishes reads as "did I
+          // lose the download?" rather than as the captcha having lapsed.
+          if (r.reason === 'timedOut') {
+            // Styled as 'info', not 'fail' - nothing broke - but still a
+            // critical kind: the download it was blocking is now stuck with
+            // nobody having answered for it, which is exactly the outcome
+            // quiet mode's CRITICAL table exists to never swallow.
+            toast(t('captcha.timedOut', { host: r.host }), 'info', 'captcha-failed');
+          } else if (r.reason === 'resolved') {
+            toast(t('captcha.resolvedElsewhere', { host: r.host }), 'info', 'captcha-resolved');
+          }
         }
-      }
-    });
+      },
+      ['captcha', 'captchaResolved'],
+    );
     return () => {
       live = false;
       close();

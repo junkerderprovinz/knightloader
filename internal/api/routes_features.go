@@ -33,6 +33,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/schedule"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
@@ -353,6 +354,13 @@ func featureList(a *app.App) []Feature {
 			Detail: jdDetail(a),
 		},
 		{
+			ID: "ytdlp", Verdict: VerdictShipped, Page: "resolvers",
+			Switch: SwitchNone, Enabled: resolverRegistered(a, "ytdlp"),
+			Reason: "the yt-dlp binary is detected at start-up (KL_YTDLP, or \"yt-dlp\" on PATH); " +
+				"missing it here needs a restart, the same as the jd backend above",
+			Detail: ytdlpDetail(a, s),
+		},
+		{
 			ID: "captcha", Verdict: VerdictShipped, Page: "captcha",
 			Switch: SwitchNone, Enabled: a.ContainerBackendConfigured(),
 			Reason: "the only source this build relays is the headless JDownloader sidecar (internal/captcha.JDSource); " +
@@ -361,9 +369,10 @@ func featureList(a *app.App) []Feature {
 			Detail: captchaDetail(a),
 		},
 		{
-			ID: "scripting", Verdict: VerdictNotBuilt, Page: "advanced",
-			Switch: SwitchNone,
-			Reason: "there is no script host in this build; event scripts and user actions have nowhere to run",
+			ID: "scripting", Verdict: VerdictShipped, Page: "scripts",
+			Switch: SwitchNone, Enabled: enabledScripts(a) > 0,
+			Reason: "a script is switched off by its own enabled field, edited on the Scripts page; there is no second flag here to disagree with it",
+			Detail: countDetail(enabledScripts(a), "script enabled", "scripts enabled"),
 		},
 		{
 			ID: "tray", Verdict: VerdictDesktop, Page: "",
@@ -408,11 +417,13 @@ func featurePages() []FeaturePage {
 		{ID: "connections", Modules: []string{"connections"}},
 		{ID: "reconnect", Modules: []string{"reconnect"}},
 		{ID: "accounts", Modules: []string{"jd"}},
+		{ID: "resolvers", Modules: []string{"ytdlp"}},
 		{ID: "captcha", Modules: []string{"captcha"}},
 		{ID: "schedule", Modules: []string{"scheduler"}},
 		{ID: "look"},
 		{ID: "access", Modules: []string{"cnl", "myjd"}},
-		{ID: "advanced", Modules: []string{"scripting", "updater"}},
+		{ID: "scripts", Modules: []string{"scripting"}},
+		{ID: "advanced", Modules: []string{"updater"}},
 		// diagnostics, system and help carry no module row of their own,
 		// same as look above: the log ring and the diagnostics bundle are
 		// always-on infrastructure rather than a subsystem with an on/off
@@ -424,6 +435,11 @@ func featurePages() []FeaturePage {
 		{ID: "diagnostics"},
 		{ID: "system"},
 		{ID: "help"},
+		// Same reasoning as look/diagnostics/system above: the bookmarklet,
+		// the extension zip and the PWA install step are tools, not a
+		// subsystem with live state to report, so there is no Feature{} row
+		// filed under this id — just a real, bookmarkable address in the rail.
+		{ID: "browsertools"},
 	}
 }
 
@@ -624,6 +640,34 @@ func jdDetail(a *app.App) string {
 	return "no backend configured (KL_JD); encrypted containers are refused with that reason"
 }
 
+// resolverRegistered reports whether a resolver with this id is in the live
+// routing table right now. rewireBackends only registers ytdlp.Resolver once
+// the binary has actually run (Backend.Available), so this is the same
+// "derived from live state, never a stored flag" signal every other row in
+// this table already uses - see the file comment.
+func resolverRegistered(a *app.App, id string) bool {
+	for _, rid := range a.Registry.IDs() {
+		if rid == id {
+			return true
+		}
+	}
+	return false
+}
+
+// ytdlpDetail mirrors jdDetail's own two-branch shape: either the backend is
+// not reachable at all, or a live one-line summary of what the next
+// download would actually do with the stored resolver options.
+func ytdlpDetail(a *app.App, s settings.Settings) string {
+	if !resolverRegistered(a, "ytdlp") {
+		return "yt-dlp binary not found (KL_YTDLP, or \"yt-dlp\" on PATH); media pages fail with the hoster's own error instead"
+	}
+	detail := "quality: " + string(s.Ytdlp.Quality)
+	if s.Ytdlp.Subtitles != ytdlp.SubtitlesOff {
+		detail += ", subtitles: " + string(s.Ytdlp.Subtitles)
+	}
+	return detail
+}
+
 // captchaDetail mirrors jdDetail's own two-branch shape rather than a
 // separate live check: internal/captcha.JDSource answers ErrJDNotConfigured
 // for the identical reason ContainerBackendConfigured is false, so asking
@@ -670,6 +714,19 @@ func enabledConnections(s settings.Settings) int {
 	n := 0
 	for _, c := range s.Connections {
 		if c.Enabled {
+			n++
+		}
+	}
+	return n
+}
+
+// enabledScripts mirrors enabledConnections' own shape: a.Scripts.ListScripts
+// is scripts.json's live contents, not a settings field, the same reason
+// federation's own count just above reads a.Federation.List rather than s.
+func enabledScripts(a *app.App) int {
+	n := 0
+	for _, sc := range a.Scripts.ListScripts() {
+		if sc.Enabled {
 			n++
 		}
 	}

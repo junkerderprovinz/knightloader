@@ -18,6 +18,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"log"
 	"net/http"
 	"net/url"
@@ -27,6 +28,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
+	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/crawler"
@@ -43,6 +45,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/schedule"
+	"github.com/junkerderprovinz/knightloader/internal/script"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/knightloader/internal/store"
 	"github.com/junkerderprovinz/knightloader/internal/throttle"
@@ -80,6 +83,18 @@ type App struct {
 	Settings   *settings.Store
 	Federation *federation.Manager
 	Auth       *auth.Guard
+	// APITokens are named, individually revocable credentials that satisfy
+	// the same session guard a password does (see api.authenticated) without
+	// sharing its one secret. See internal/apitoken's own package comment
+	// for why that has to be a second store rather than a second password.
+	APITokens *apitoken.Store
+	// Scripts hosts the goja VM that runs a user's own automation snippets
+	// on a task finishing, failing, the queue going idle, or on demand - see
+	// internal/script's own package doc comment for the sandbox it enforces
+	// and app_script.go for the Actions adapter and the Fire call sites this
+	// field's own triggers are wired at (app_dispatch.go's onUpdate for the
+	// two task triggers, watchQueueIdleForScripts for queue.idle).
+	Scripts *script.Host
 	// Throttle is the shared bandwidth allowance for everything downloading
 	// through the loopback proxy.
 	Throttle *throttle.Limiter
@@ -346,6 +361,24 @@ func New(dataDir string) (*App, error) {
 	}
 	a.Auth = guard
 
+	tokens, err := apitoken.Open(dataDir)
+	if err != nil {
+		st.Close()
+		return nil, err
+	}
+	a.APITokens = tokens
+
+	// Actions and Hub are the whole of what internal/script needs from this
+	// package - see scriptActions' own doc comment for why that adapter
+	// exists rather than *App satisfying script.Actions on its own, and
+	// *hub.Hub already satisfies script.Broadcaster with no changes.
+	scripts, err := script.NewHost(script.Options{DataDir: dataDir, Actions: scriptActions{a}, Hub: a.Hub})
+	if err != nil {
+		st.Close()
+		return nil, err
+	}
+	a.Scripts = scripts
+
 	a.rewireBackends()
 	a.applyWatchFolders(cfg.Get())
 
@@ -428,6 +461,11 @@ func New(dataDir string) (*App, error) {
 	// waits for this goroutine, because everything it does writes to the store.
 	a.wg.Add(1)
 	go a.upkeep()
+	// Same ordering reason as sched.Start/idleAction.Start just above:
+	// a.tasks is already whole by this point, so there is no boot-time
+	// window where this could read a half-assembled queue as idle - see
+	// watchQueueIdleForScripts' own doc comment.
+	a.spawn(a.watchQueueIdleForScripts)
 	return a, nil
 }
 
@@ -562,6 +600,15 @@ func (a *App) Close() error {
 	if a.idleAction != nil {
 		_ = a.idleAction.Close()
 	}
+	// Same promise as sched/idleAction just above: Close waits for an
+	// in-flight script (Fire's worker pool, or a RunNow call) to finish
+	// before anything it might call back into (Pause/Resume/RestartTasks/
+	// the Store) is torn down further down this function - see
+	// internal/script's own package doc comment, "every goroutine this
+	// package starts is tracked".
+	if a.Scripts != nil {
+		_ = a.Scripts.Close()
+	}
 	if a.proxy != nil {
 		_ = a.proxy.Close()
 	}
@@ -661,6 +708,33 @@ func (a *App) ApplySettings(s settings.Settings) (settings.Settings, error) {
 	if err != nil {
 		return applied, err
 	}
+	a.afterSettingsChange(applied)
+	return applied, nil
+}
+
+// PatchSettings is ApplySettings for a partial update: patch names only the
+// top-level fields it means to change, and settings.Store.SetPartial reads
+// every other field from whatever is stored right now, under the same lock
+// that then writes the merged result back. See that method's own comment
+// for why that has to be one critical section rather than a Get here
+// followed by a Set. Everything after the save runs exactly as it does for a
+// full PUT: a live-effect subsystem re-reading Settings.Get() would not be
+// able to tell the two apart, and it must not have to.
+func (a *App) PatchSettings(patch map[string]json.RawMessage) (settings.Settings, error) {
+	applied, err := a.Settings.SetPartial(patch)
+	if err != nil {
+		return applied, err
+	}
+	a.afterSettingsChange(applied)
+	return applied, nil
+}
+
+// afterSettingsChange is what ApplySettings and PatchSettings share: every
+// runtime effect a saved settings document can have, applied against
+// whichever one of them just landed on disk. Kept as one function precisely
+// so the two ways of saving cannot drift into applying a different subset of
+// this list, where a field patch could reach the store but not the scheduler.
+func (a *App) afterSettingsChange(applied settings.Settings) {
 	a.applyRuleSets(applied)
 	// The speed limit goes through the timetable and never straight to the
 	// limiter. Writing it here as well would let a saved settings page lift a
@@ -676,7 +750,7 @@ func (a *App) ApplySettings(s settings.Settings) (settings.Settings, error) {
 	a.applyConnections(applied.Connections)
 	a.mu.Lock()
 	if p := dedupe.ParsePolicy(applied.MirrorPolicy); p != a.dupes.Policy() {
-		// The policy is baked in at New, so a change needs a new set — re-seeded
+		// The policy is baked in at New, so a change needs a new set, re-seeded
 		// from the list it is meant to describe, or the first paste after the
 		// change would be checked against nothing.
 		a.dupes = dedupe.New(p)
@@ -688,7 +762,6 @@ func (a *App) ApplySettings(s settings.Settings) (settings.Settings, error) {
 	}
 	a.dispatchLocked()
 	a.mu.Unlock()
-	return applied, nil
 }
 
 // pushJDSpeedLimit hands the limit in force to the JD backend, which meters its

@@ -8,6 +8,7 @@ import (
 	"errors"
 	"flag"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -20,6 +21,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/backup"
 	"github.com/junkerderprovinz/knightloader/internal/bridge"
+	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/cnl"
 	"github.com/junkerderprovinz/knightloader/internal/provision"
 )
@@ -143,12 +145,28 @@ func main() {
 	}
 
 	addr := env("KL_ADDR", ":8749")
-	srv := &http.Server{Addr: addr, Handler: api.Handler(a)}
+	listener, err := net.Listen("tcp", addr)
+	if err != nil {
+		log.Fatalf("listen: %v", err)
+	}
+	// The listener's own resolved address answers "is this actually bound
+	// wider than loopback", which the configured string alone cannot:
+	// KL_ADDR's default (":8749") resolves an empty host to every
+	// interface, the normal, correct default for a container regardless of
+	// whether the host then forwards that port anywhere reachable - see
+	// internal/api/routes_remote.go's own doc comment for why that string
+	// was rejected as a signal there. Set once, before a single request is
+	// served, the same way buildinfo.Deployment already is.
+	if host, _, err := net.SplitHostPort(listener.Addr().String()); err == nil {
+		ip := net.ParseIP(host)
+		buildinfo.ListensWidely = host == "" || (ip != nil && !ip.IsLoopback())
+	}
+	srv := &http.Server{Handler: api.Handler(a)}
 
 	serveErr := make(chan error, 1)
 	go func() {
 		log.Printf("KnightLoader listening on %s (data: %s)", addr, dataDir)
-		err := srv.ListenAndServe()
+		err := srv.Serve(listener)
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			serveErr <- err
 			return

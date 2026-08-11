@@ -18,3 +18,21 @@ var Version = "dev"
 // build launched with no display from a script, or a server binary run
 // directly on bare metal with no container at all.
 var Deployment = "container"
+
+// ListensWidely reports whether this process's own HTTP listener is bound
+// to more than loopback - set once, before the server starts accepting
+// connections, the same way Deployment is. False for the desktop build,
+// which opens no TCP listener at all (see Deployment's own doc comment).
+//
+// Read from the real, resolved net.Listener address, never guessed from
+// the configured address string: KL_ADDR's default (":8749", empty host)
+// resolves to "every interface", which is the normal, correct default for
+// a container regardless of whether the host then forwards that port
+// anywhere reachable - internal/api/routes_remote.go's own doc comment
+// explains in full why that string alone was rejected as a signal for "a
+// request just arrived from outside this machine". This is a different
+// question this var answers: not "did something external just prove it can
+// reach this instance", but "could it, in principle" - the one thing an
+// admin looking at their own Access page from 127.0.0.1 has no way to see
+// for themselves, because every request they make is by definition local.
+var ListensWidely bool

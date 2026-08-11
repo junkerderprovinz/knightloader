@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>KnightLoader — instance settings</title>
+    <style>
+      :root { color-scheme: dark; }
+      body {
+        margin: 0;
+        max-width: 480px;
+        padding: 28px;
+        background: #161616;
+        color: #f4f4f4;
+        font: 14px/1.5 -apple-system, "Segoe UI", sans-serif;
+      }
+      h1 { font-size: 18px; margin: 0 0 6px; color: #fcc419; }
+      p.sub { color: #8d8d8d; margin: 0 0 22px; font-size: 13px; }
+      label { display: block; font-size: 12px; color: #c6c6c6; margin-bottom: 6px; }
+      input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 9px 10px;
+        border: 1px solid #393939;
+        border-radius: 8px;
+        background: #262626;
+        color: #f4f4f4;
+        font: inherit;
+      }
+      input:focus { outline: 2px solid #fcc419; outline-offset: -1px; }
+      button {
+        margin-top: 14px;
+        padding: 9px 16px;
+        border: 0;
+        border-radius: 8px;
+        background: #fcc419;
+        color: #161616;
+        font: inherit;
+        font-weight: 500;
+        cursor: pointer;
+      }
+      #status { margin-top: 10px; font-size: 12px; min-height: 1.2em; }
+      .ok { color: #24a148; }
+      .note { margin-top: 26px; font-size: 12px; color: #6f6f6f; }
+      .note a { color: #8d8d8d; }
+    </style>
+  </head>
+  <body>
+    <h1>KnightLoader</h1>
+    <p class="sub">
+      The address of the instance a link, a selection, or a page should be sent to —
+      whatever you would type into your own browser to reach it. No account,
+      relay or password is stored here: opening it points a small window at that
+      address, and the normal sign-in for that instance applies exactly as it
+      would if you had typed the address yourself.
+    </p>
+    <label for="url">Instance URL</label>
+    <input id="url" type="url" placeholder="http://192.168.1.20:8749" autocomplete="off" spellcheck="false" />
+    <button id="save">Save</button>
+    <div id="status"></div>
+    <p class="note">There is no hosted service this points at by default — it is always the address of one instance you run.</p>
+    <script src="shared.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { type QueueState, type Settings, fetchQueue, fetchSettings, saveSettings, setQueue } from '../lib/api';
+import { type QueueState, type Settings, fetchQueue, fetchSettings, patchSettings, setQueue } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { useInstanceScope } from '../lib/instance';
 import { Button } from './ui';
@@ -104,7 +104,13 @@ export function QueueBar() {
     setLimit(fmtRateValue(settled.value));
     setUnit(settled.unit);
     if (bytes === cfg.speedLimit) return;
-    setCfg(await saveSettings({ ...cfg, speedLimit: bytes }));
+    // PATCH, not the whole document: this bar only ever knows about
+    // speedLimit, and cfg is a snapshot that can already be behind whatever
+    // the Settings page (or another tab) saved since it was fetched - a PUT
+    // built from `{...cfg, speedLimit: bytes}` would silently put every one
+    // of those other fields back to what this bar last saw. See
+    // patchSettings' own doc comment (lib/api.ts).
+    setCfg(await patchSettings({ speedLimit: bytes }));
   }
 
   if (!queue) return null;

@@ -43,11 +43,27 @@ type client struct {
 	// without holding the hub lock, so closing it would race a live send.
 	quit chan struct{}
 	once sync.Once
+
+	// subs is the set of Broadcast kinds this connection wants, or nil for
+	// every connection until it asks otherwise. That is the default every
+	// consumer before Subscribe existed was already written against, and it
+	// stays exactly that for any connection that never sends a subscribe
+	// message.
+	//
+	// Read and written only under the owning Hub's mu, same as the map that
+	// holds this client; it is not its own little lock, so wants (below)
+	// must never be called without mu already held.
+	subs map[string]bool
 }
 
 // stop ends the writer goroutine. It is idempotent because both Remove and a
 // failed write can reach it for the same client.
 func (cl *client) stop() { cl.once.Do(func() { close(cl.quit) }) }
+
+// wants reports whether typ should reach this connection. Caller holds mu.
+func (cl *client) wants(typ string) bool {
+	return cl.subs == nil || cl.subs[typ]
+}
 
 // Hub is the set of connected UIs.
 type Hub struct {
@@ -124,24 +140,86 @@ func (h *Hub) SendTo(c Conn, typ string, data any) bool {
 	return h.enqueue(cl, msg)
 }
 
-// Broadcast queues a {type,data} message for every connected client. It never
-// waits for a write, so the cost of a broadcast does not depend on the slowest
-// client connected.
+// Broadcast queues a {type,data} message for every connected client whose own
+// subscription (see Subscribe) admits typ: everyone, for a connection that
+// never narrowed itself. It never waits for a write, so the cost of a
+// broadcast does not depend on the slowest client connected.
 func (h *Hub) Broadcast(typ string, data any) {
 	msg, err := json.Marshal(map[string]any{"type": typ, "data": data})
 	if err != nil {
 		return
 	}
 	h.mu.Lock()
+	// wants is decided in here, under the same lock subs is written under,
+	// rather than after Unlock below: a client slice built first and
+	// filtered afterwards would read subs unsynchronized the moment a
+	// concurrent Subscribe/Unsubscribe is written to it.
 	clients := make([]*client, 0, len(h.clients))
 	for _, cl := range h.clients {
-		clients = append(clients, cl)
+		if cl.wants(typ) {
+			clients = append(clients, cl)
+		}
 	}
 	h.mu.Unlock()
 	// The marshalled message is shared by every queue; nothing writes to it
-	// after this point, so one copy is enough.
+	// after this point, so one copy is enough. enqueue is called outside mu
+	// deliberately (unchanged from before this filter existed): a full queue
+	// makes it call Remove, which re-takes mu, and Go's Mutex is not
+	// reentrant.
 	for _, cl := range clients {
 		h.enqueue(cl, msg)
+	}
+}
+
+// Subscribe narrows which Broadcast kinds a connection receives from then on.
+//
+// The first call on a connection narrows it from the default "everything" to
+// exactly the named kinds; a later call only ADDS to whatever set is already
+// in force, so two subscribe calls compose rather than the second discarding
+// the first. Send every kind you want in one call if that is not the
+// intent. A kind of "*" resets to "everything" rather than being treated as a
+// literal type nothing ever broadcasts under, which is the way back out of a
+// narrowed stream without enumerating every kind this build knows about.
+//
+// Subscribing an unregistered connection (Add has not run, or Remove already
+// has) is a no-op: there is no client entry for a set to live on.
+func (h *Hub) Subscribe(c Conn, kinds []string) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	cl := h.clients[c]
+	if cl == nil {
+		return
+	}
+	for _, k := range kinds {
+		if k == "*" {
+			cl.subs = nil
+			return
+		}
+	}
+	if cl.subs == nil {
+		cl.subs = map[string]bool{}
+	}
+	for _, k := range kinds {
+		cl.subs[k] = true
+	}
+}
+
+// Unsubscribe removes kinds from a connection's own allowlist.
+//
+// It is a no-op on a connection that never called Subscribe: there is no
+// allowlist yet to remove from, and turning that into "everything except
+// these" would need a second, opposite kind of filter (a blocklist) this
+// package does not otherwise have. Subscribe with the kinds actually wanted
+// instead.
+func (h *Hub) Unsubscribe(c Conn, kinds []string) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	cl := h.clients[c]
+	if cl == nil || cl.subs == nil {
+		return
+	}
+	for _, k := range kinds {
+		delete(cl.subs, k)
 	}
 }
 

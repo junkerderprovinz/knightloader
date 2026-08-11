@@ -257,6 +257,14 @@ export interface Settings {
    * idle right now, whether a countdown is actually running).
    */
   idleAction: IdleActionConfig;
+
+  /**
+   * The yt-dlp backend's own configuration - mirrors settings.Settings.Ytdlp
+   * / ytdlp.Options (internal/resolver/ytdlp/options.go). See YtdlpOptions
+   * below for the shape and for why every field's zero value changes
+   * nothing about how this backend downloads.
+   */
+  ytdlp: YtdlpOptions;
 }
 
 /**
@@ -479,6 +487,12 @@ export interface ApiOptions {
   // build refuses can never appear in a dropdown.
   scheduleActions: string[];
   cleanupClasses: CleanupClass[];
+  /** The resolver options page's two menus - ytdlp.Qualities()/SubtitleModes()
+   *  (internal/resolver/ytdlp/options.go), served for the same reason as
+   *  every list above it: a value this build cannot honour must never be
+   *  selectable. */
+  ytdlpQualities: string[];
+  ytdlpSubtitleModes: string[];
 }
 
 /** A container that was a plain link list: parsed here and staged like any paste. */
@@ -1045,11 +1059,28 @@ export async function fetchSettings(): Promise<Settings> {
   return json<Settings>(await fetch('/api/settings'));
 }
 
-export async function saveSettings(s: Settings): Promise<Settings> {
+/**
+ * patchSettings updates only the named top-level fields. Every field left
+ * out, and any edit a different client made concurrently to a field this
+ * one did not touch, is left exactly as stored - see PATCH /api/settings's
+ * own doc comment (routes_settings.go) for why that is not something a PUT,
+ * which always sends and replaces the whole document, can promise. A nested
+ * object field (reconnect, idleAction, ...) is still replaced whole when
+ * named, the same as PUT already does for it; only fields omitted from
+ * patch are protected.
+ *
+ * This is the save path both real callers use - pages/Settings.tsx's own
+ * save bar (a diff of the draft against what it was seeded from) and
+ * QueueBar.tsx's speed-limit field (always exactly one field) - so there is
+ * no client-side saveSettings(PUT) wrapper here for either to fall back to;
+ * PUT /api/settings itself is still served, for whatever else wants to
+ * replace the whole document in one call.
+ */
+export async function patchSettings(patch: Partial<Settings>): Promise<Settings> {
   const r = await fetch('/api/settings', {
-    method: 'PUT',
+    method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(s),
+    body: JSON.stringify(patch),
   });
   return json<Settings>(r);
 }
@@ -1105,10 +1136,10 @@ export async function testAccount(service: string, account: string): Promise<Acc
 // What happens once the wait queue has nothing enabled left to run, start or
 // finish, after a cancellable countdown - internal/idleaction. The
 // configuration itself (which action, how long the countdown runs) is the
-// `idleAction` field on Settings above, saved the ordinary way through
-// saveSettings; what follows here is what that document alone cannot answer:
-// whether the queue is idle right now, whether a countdown is actually
-// running, and cancelling one.
+// `idleAction` field on Settings above, saved the ordinary way through the
+// Settings page's own save bar; what follows here is what that document
+// alone cannot answer: whether the queue is idle right now, whether a
+// countdown is actually running, and cancelling one.
 
 /** settings.Settings.IdleAction (internal/settings/settings.go) on the wire. */
 export interface IdleActionConfig {
@@ -1188,6 +1219,51 @@ export interface JDStatus {
 
 export async function fetchJDStatus(): Promise<JDStatus> {
   return json<JDStatus>(await fetch('/api/resolvers/jd'));
+}
+
+// ---- yt-dlp resolver options (internal/resolver/ytdlp) --------------------
+//
+// Which service handles a given link at all lives on the Accounts page's own
+// routing section (fetchResolverPriority/fetchJDStatus above) - this is the
+// other half, what the ONE resolver with anything configurable
+// (docs/jd-feature-census.md's "(per-plugin option list)" row) actually does
+// once it has a link. Read and written through Settings.ytdlp like every
+// other settings field, not a route of its own.
+
+/**
+ * Mirrors ytdlp.Options (internal/resolver/ytdlp/options.go) field for
+ * field. Every value is a plain string rather than a TS union, matching
+ * every other server-sourced menu in this file (archiveDisposal,
+ * collisionPolicy, resumeOnStart): the choices come from
+ * ApiOptions.ytdlpQualities/ytdlpSubtitleModes, so a value this build adds
+ * later still round-trips instead of failing to compile.
+ *
+ * Every field's zero value ('' / false) reproduces exactly what this
+ * backend did before any of them existed - see the Go type's own doc
+ * comment. An install that never opens the resolver options page downloads
+ * exactly as it always has.
+ */
+export interface YtdlpOptions {
+  /** 'best' | '2160p' | '1440p' | '1080p' | '720p' | '480p' | '360p' |
+   *  'audioOnly' | 'custom' - see ApiOptions.ytdlpQualities. */
+  quality: string;
+  /** yt-dlp's own -f selector, used verbatim when quality is 'custom' and
+   *  ignored otherwise. */
+  customFormat: string;
+  /** 'off' | 'file' | 'embed' - see ApiOptions.ytdlpSubtitleModes. */
+  subtitles: string;
+  /** yt-dlp's own --sub-langs value (e.g. "en,de"); empty defaults to "en"
+   *  server-side whenever subtitles is not 'off'. */
+  subtitleLangs: string;
+  /** Also fetch auto-generated captions when no manual track exists. */
+  subtitleAuto: boolean;
+  /** A playlist URL fetches every entry instead of only the one link
+   *  pointed at - off is what every install had before this existed. */
+  playlist: boolean;
+  /** yt-dlp's own -o template syntax; empty uses the built-in
+   *  "%(title)s.%(ext)s". Server-sanitized against path traversal on save -
+   *  see ytdlp.sanitizeTemplate's own doc comment. */
+  outputTemplate: string;
 }
 
 // ---- native hoster logins (internal/hosterauth) ----------------------------
@@ -1413,6 +1489,118 @@ export async function setPassword(current: string, next: string): Promise<AuthSt
   return json<AuthState>(r);
 }
 
+// ---- API tokens (internal/apitoken) ----------------------------------------
+//
+// Named, individually revocable credentials: the answer to "a phone gets its
+// own", so losing one device means revoking that one token rather than
+// rotating the shared password for every other client. See
+// internal/apitoken's own package comment for the full reasoning, and
+// bearerToken in internal/api/api.go for how a stored one is presented
+// (Authorization: Bearer <secret>) - this file has no helper for that half,
+// because it is a non-browser client, a script or another device, that
+// presents a token, never this same web UI to itself.
+
+/** One token's metadata - apitoken.Token. Never the secret itself. */
+export interface ApiToken {
+  id: string;
+  name: string;
+  createdAt: string;
+  /** Absent until this token's first successful use. */
+  lastUsed?: string;
+}
+
+/**
+ * What POST /api/tokens answers with: the same metadata GET /api/tokens
+ * lists forever after, plus the plaintext secret this instance will never
+ * be able to show again once this response has been read. The caller has to
+ * put it somewhere on this one screen, because asking again means issuing a
+ * new token.
+ */
+export interface NewApiToken extends ApiToken {
+  secret: string;
+}
+
+export async function fetchTokens(): Promise<ApiToken[]> {
+  return (await json<ApiToken[]>(await fetch('/api/tokens'))) ?? [];
+}
+
+export async function createToken(name: string): Promise<NewApiToken> {
+  const r = await fetch('/api/tokens', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+  return json<NewApiToken>(r);
+}
+
+/** revokeToken pulls one device's credential without touching the shared
+ *  password or any other token. */
+export const revokeToken = (id: string) => fetch(`/api/tokens/${encodeURIComponent(id)}`, { method: 'DELETE' });
+
+// ---- Remote access (internal/api/routes_remote.go) -------------------------
+//
+// What the Remote access settings page is built from: which addresses this
+// instance actually answers requests on, whether a password protects them,
+// and the loud warning for when it does not and can. There is no route here
+// (and none anywhere in this build) that pairs this instance with a hosted
+// relay or reaches off its own LAN by itself - see GET /api/help, whose
+// `remoteAccess` field states that plainly, for why.
+
+/** One URL this instance might answer on - api.ReachableAddress. */
+export interface ReachableAddress {
+  /** "this connection" for the address the request that fetched this data
+   *  itself arrived on (proven, not guessed), otherwise a local interface's
+   *  own IP. */
+  label: string;
+  url: string;
+  /** 127.0.0.1/localhost/::1: reachable only from this same machine, never
+   *  a phone on the LAN, and never what the QR code encodes. */
+  loopback: boolean;
+}
+
+/**
+ * A QR code as the plain module grid the server computed - api.QRMatrix.
+ * Rendered client-side as inline SVG (components/QRCode.tsx), never sent as
+ * an image - see that component's own comment for why encoding stays on the
+ * server (a solved, easy-to-get-subtly-wrong problem) while drawing stays on
+ * the client (trivial, and never out of sync with the address list this
+ * same response already carries).
+ */
+export interface QRMatrix {
+  size: number;
+  /** One string per row, '1' for a dark module, '0' for a light one. */
+  bits: string[];
+}
+
+/** What GET /api/remote-access answers with - api.RemoteAccessInfo. */
+export interface RemoteAccessInfo {
+  /** "container" or "desktop" - fetchDeploymentInfo's own fuller version of
+   *  the same fact. The desktop build never opens a TCP port at all, so
+   *  every field below is empty/false for it rather than guessed at. */
+  deployment: string;
+  passwordSet: boolean;
+  /** Every address this build can name for this instance, the one the
+   *  request itself arrived on always first. */
+  addresses: ReachableAddress[];
+  /**
+   * The loud warning's own condition: no password is set, AND this very
+   * request just proved this instance is reachable from somewhere other
+   * than this machine itself. Proof, not a forecast built from how the
+   * server is configured to listen - see the Go route's own comment on
+   * requestIsNonLoopback for why a configured-address forecast was tried
+   * and rejected (it reads "exposed" for nearly every ordinary container
+   * install, whether or not the host actually forwards the port anywhere).
+   */
+  exposed: boolean;
+  /** The primary address (addresses[0]) as a scannable code; absent when
+   *  there is nothing to encode (the desktop build, or no address at all). */
+  qr?: QRMatrix;
+}
+
+export async function fetchRemoteAccess(): Promise<RemoteAccessInfo> {
+  return json<RemoteAccessInfo>(await fetch('/api/remote-access'));
+}
+
 export async function fetchHealth(): Promise<{ status: string; version: string }> {
   return json(await fetch('/api/health'));
 }
@@ -1483,13 +1671,38 @@ export async function addInstance(name: string, url: string): Promise<{ online: 
 export const removeInstance = (name: string) =>
   fetch(`/api/instances/${encodeURIComponent(name)}`, { method: 'DELETE' });
 
-// connectWS opens the live task stream and auto-reconnects. Returns a closer.
-export function connectWS(onMessage: (type: string, data: any) => void): () => void {
+/**
+ * connectWS opens the live task, queue and activity stream and
+ * auto-reconnects. Returns a closer.
+ *
+ * kinds narrows what this connection receives - the hub's own Subscribe
+ * (internal/hub/hub.go) - to exactly those broadcast types. Every real
+ * caller in this app now passes one: lib/useTasks.ts and app/Layout.tsx's
+ * useCompletionToasts want 'task'/'removed', components/IdleActionBanner.tsx
+ * wants 'idleAction', components/StatusStrip.tsx wants 'activity',
+ * components/Archives.tsx's useExtractJobs wants 'extract',
+ * components/CaptchaModal.tsx wants 'captcha'/'captchaResolved', and
+ * components/SkippedLinks.tsx wants 'skipped' - each opens its own
+ * connection (there is no shared multiplexer yet) and previously received,
+ * parsed and discarded every OTHER kind too. A `Hub.SendTo` message
+ * ('snapshot', 'activitySnapshot') is a direct send to one connection, not a
+ * Broadcast, so it bypasses this filter entirely and still arrives whether
+ * or not its type is in kinds - see each call site's own note. kinds is
+ * still optional: omitting it keeps getting everything, unchanged, since
+ * the server-side default for a connection that never subscribes is
+ * "everything". Sent again on every reconnect, since a fresh socket starts
+ * unfiltered until it says otherwise.
+ */
+export function connectWS(onMessage: (type: string, data: any) => void, kinds?: string[]): () => void {
   let ws: WebSocket | null = null;
   let closed = false;
   const open = () => {
     const proto = location.protocol === 'https:' ? 'wss' : 'ws';
     ws = new WebSocket(`${proto}://${location.host}/api/ws`);
+    if (kinds && kinds.length > 0) {
+      const subscribe = kinds;
+      ws.onopen = () => ws?.send(JSON.stringify({ type: 'subscribe', kinds: subscribe }));
+    }
     ws.onmessage = (e) => {
       try {
         const m = JSON.parse(e.data);

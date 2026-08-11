@@ -172,6 +172,161 @@ func TestChangePasswordNeedsCurrent(t *testing.T) {
 	}
 }
 
+// TestAPITokenGrantsAccess is the whole point of internal/apitoken: a client
+// that has never seen the session cookie, and does not send one, still gets
+// in with a Bearer token, and a bad one is refused exactly like a bad
+// password would be.
+func TestAPITokenGrantsAccess(t *testing.T) {
+	srv, a := testServer(t)
+	defer srv.Close()
+	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
+		t.Fatal(err)
+	}
+	_, secret, err := a.APITokens.Create("test script")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req, _ := http.NewRequest(http.MethodGet, srv.URL+"/api/tasks", nil)
+	req.Header.Set("Authorization", "Bearer "+secret)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("a request with no cookie and a valid Bearer token answered %d, want 200", resp.StatusCode)
+	}
+
+	req2, _ := http.NewRequest(http.MethodGet, srv.URL+"/api/tasks", nil)
+	req2.Header.Set("Authorization", "Bearer kl_not-a-real-token")
+	resp2, err := http.DefaultClient.Do(req2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp2.Body.Close()
+	if resp2.StatusCode != http.StatusUnauthorized {
+		t.Errorf("a made-up Bearer token answered %d, want 401", resp2.StatusCode)
+	}
+}
+
+// TestRevokedTokenStopsAuthenticating is named tokens' reason to exist: one
+// device's credential can be pulled without touching the shared password or
+// any other token.
+func TestRevokedTokenStopsAuthenticating(t *testing.T) {
+	srv, a := testServer(t)
+	defer srv.Close()
+	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
+		t.Fatal(err)
+	}
+	tok, secret, err := a.APITokens.Create("lost phone")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := a.APITokens.Revoke(tok.ID); err != nil {
+		t.Fatal(err)
+	}
+
+	req, _ := http.NewRequest(http.MethodGet, srv.URL+"/api/tasks", nil)
+	req.Header.Set("Authorization", "Bearer "+secret)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusUnauthorized {
+		t.Errorf("a revoked token answered %d, want 401", resp.StatusCode)
+	}
+	// And the password it never touched still works.
+	client := &http.Client{Jar: newJar(t)}
+	if code := login(t, client, srv.URL, "a-good-password"); code != http.StatusOK {
+		t.Error("revoking a token broke the shared password")
+	}
+}
+
+// TestTokenMintedBeforePasswordIsRevokedWhenPasswordIsSet closes the standing
+// bypass apitoken.Store.RevokeAll exists for (see its own doc comment): a
+// token minted while the instance had no password protecting it must not go
+// on working once one is set. Reproduced live before this fix: exactly this
+// token kept authenticating after the very password change meant to lock the
+// instance down.
+func TestTokenMintedBeforePasswordIsRevokedWhenPasswordIsSet(t *testing.T) {
+	srv, a := testServer(t)
+	defer srv.Close()
+
+	_, secret, err := a.APITokens.Create("phone")
+	if err != nil {
+		t.Fatal(err)
+	}
+	req, _ := http.NewRequest(http.MethodGet, srv.URL+"/api/tasks", nil)
+	req.Header.Set("Authorization", "Bearer "+secret)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("token minted before any password answered %d, want 200", resp.StatusCode)
+	}
+
+	// Through the real route, not a.Auth.SetPassword directly: the eviction
+	// is wired into the HTTP handler (routes_system.go), not into Auth itself.
+	body, _ := json.Marshal(map[string]string{"current": "", "new": "a-good-password"})
+	putReq, _ := http.NewRequest(http.MethodPut, srv.URL+"/api/auth/password", bytes.NewReader(body))
+	putReq.Header.Set("Content-Type", "application/json")
+	putResp, err := http.DefaultClient.Do(putReq)
+	if err != nil {
+		t.Fatal(err)
+	}
+	putResp.Body.Close()
+	if putResp.StatusCode != http.StatusOK {
+		t.Fatalf("setting the first password answered %d, want 200", putResp.StatusCode)
+	}
+
+	req2, _ := http.NewRequest(http.MethodGet, srv.URL+"/api/tasks", nil)
+	req2.Header.Set("Authorization", "Bearer "+secret)
+	resp2, err := http.DefaultClient.Do(req2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp2.Body.Close()
+	if resp2.StatusCode != http.StatusUnauthorized {
+		t.Errorf("the pre-password token still authenticates after the password was set: %d, want 401", resp2.StatusCode)
+	}
+
+	// A token minted after the change is unaffected by that same call.
+	_, secret2, err := a.APITokens.Create("new phone")
+	if err != nil {
+		t.Fatal(err)
+	}
+	req3, _ := http.NewRequest(http.MethodGet, srv.URL+"/api/tasks", nil)
+	req3.Header.Set("Authorization", "Bearer "+secret2)
+	resp3, err := http.DefaultClient.Do(req3)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp3.Body.Close()
+	if resp3.StatusCode != http.StatusOK {
+		t.Errorf("a token minted after the password change answered %d, want 200", resp3.StatusCode)
+	}
+}
+
+// TestAPITokenNotNeededWithoutAPassword: a fresh, unprotected install answers
+// every route already, so a token is neither required nor checked.
+func TestAPITokenNotNeededWithoutAPassword(t *testing.T) {
+	srv, _ := testServer(t)
+	defer srv.Close()
+
+	resp, err := http.Get(srv.URL + "/api/tasks")
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("an unprotected instance answered %d, want 200", resp.StatusCode)
+	}
+}
+
 func testServer(t *testing.T) (*httptest.Server, *app.App) {
 	t.Helper()
 	a, err := app.New(t.TempDir())
@@ -243,5 +398,28 @@ func TestAssetsRevalidate(t *testing.T) {
 				t.Errorf("revalidating with the same ETag = %d, want 304", resp2.StatusCode)
 			}
 		})
+	}
+}
+
+// TestManifestServesTheRealContentType is spaHandler's own mime.AddExtensionType
+// call: Go's mime package has no built-in mapping for .webmanifest, so
+// without it http.FileServer falls through to content sniffing, which reads
+// a manifest's leading "{" as plain text - the PWA install prompt and
+// several browsers' own manifest parsers expect application/manifest+json,
+// not text/plain.
+func TestManifestServesTheRealContentType(t *testing.T) {
+	srv, _ := testServer(t)
+	defer srv.Close()
+
+	resp, err := http.Get(srv.URL + "/manifest.webmanifest")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("GET /manifest.webmanifest = %d, want 200", resp.StatusCode)
+	}
+	if ct := resp.Header.Get("Content-Type"); !strings.HasPrefix(ct, "application/manifest+json") {
+		t.Errorf("Content-Type = %q, want application/manifest+json", ct)
 	}
 }

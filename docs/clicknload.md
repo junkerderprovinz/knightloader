@@ -189,4 +189,6 @@ into the clipboard does not get read in as if it arrived from somewhere else.
 ## What CnL does not cover
 
 Right-click-send-to-KnightLoader on an arbitrary link is a browser extension's
-job, not CnL's: CnL only exists where a site chose to put a button.
+job, not CnL's: CnL only exists where a site chose to put a button. See
+`docs/browser-tools.md` for that extension, the bookmarklet, and the PWA
+share target — none of the three touch this port or this protocol.

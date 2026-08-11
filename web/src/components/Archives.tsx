@@ -52,17 +52,20 @@ export function useExtractJobs(instance: string): ExtractJob[] {
       const iv = setInterval(() => void load(), 2000);
       return () => clearInterval(iv);
     }
-    return connectWS((type, data) => {
-      if (type !== 'extract') return;
-      const j = data as ExtractJob;
-      setJobs((prev) => {
-        const i = prev.findIndex((x) => x.id === j.id);
-        if (i < 0) return [...prev, j];
-        const next = prev.slice();
-        next[i] = j;
-        return next;
-      });
-    });
+    return connectWS(
+      (type, data) => {
+        if (type !== 'extract') return;
+        const j = data as ExtractJob;
+        setJobs((prev) => {
+          const i = prev.findIndex((x) => x.id === j.id);
+          if (i < 0) return [...prev, j];
+          const next = prev.slice();
+          next[i] = j;
+          return next;
+        });
+      },
+      ['extract'],
+    );
   }, [instance]);
   return jobs;
 }

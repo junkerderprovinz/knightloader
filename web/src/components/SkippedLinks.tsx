@@ -37,14 +37,17 @@ export function SkippedLinks() {
     // the user has already given up looking for. connectWS is the only
     // subscription this app has — a shared multiplexer belongs in lib/, which
     // another agent owns.
-    const close = connectWS((type, data) => {
-      if (type !== 'skipped') return;
-      setItems((prev) => [...prev, data as SkippedLink]);
-      // A new refusal un-dismisses the strip. Dismissing means "I have read
-      // these", not "never tell me again", and staying hidden would put the app
-      // straight back to swallowing links silently.
-      setDismissed(false);
-    });
+    const close = connectWS(
+      (type, data) => {
+        if (type !== 'skipped') return;
+        setItems((prev) => [...prev, data as SkippedLink]);
+        // A new refusal un-dismisses the strip. Dismissing means "I have read
+        // these", not "never tell me again", and staying hidden would put the app
+        // straight back to swallowing links silently.
+        setDismissed(false);
+      },
+      ['skipped'],
+    );
 
     fetchSkipped()
       .then((history) => {

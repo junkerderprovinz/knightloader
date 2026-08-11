@@ -64,6 +64,11 @@ func registerAll(reg *Registry, a *app.App) {
 	registerLifecycle(reg, a)
 	registerBackup(reg, a)
 	registerIdleAction(reg, a)
+	registerBrowserTools(reg, a)
+	registerTokens(reg, a)
+	registerRemoteAccess(reg, a)
+	registerScripts(reg, a)
+	registerHelp(reg, a)
 }
 
 // AnyMethod is the method of a route that answers whatever it is sent, because

@@ -288,3 +288,193 @@ func TestRemoveLeavesNoGoroutine(t *testing.T) {
 		}
 	}
 }
+
+// TestUnsubscribedConnectionStillReceivesEverything pins the default every
+// consumer before Subscribe existed was already written against: a
+// connection that never sends a subscribe message must keep seeing every
+// kind, unchanged, forever.
+func TestUnsubscribedConnectionStillReceivesEverything(t *testing.T) {
+	h := New()
+	c := newFakeConn()
+	h.Add(c)
+	t.Cleanup(func() { h.Remove(c) })
+
+	h.Broadcast("task", "a")
+	h.Broadcast("queue", "b")
+	h.Broadcast("activity", "c")
+	for _, want := range []string{"task", "queue", "activity"} {
+		if got := recv(t, c, "an unsubscribed connection missed a broadcast"); !bytes.Contains(got, []byte(want)) {
+			t.Errorf("got %s, want the %q broadcast next", got, want)
+		}
+	}
+}
+
+// TestSubscribeNarrowsToNamedKinds is the feature itself: a connection that
+// only wants "activity" must not be woken for every "task" update in between.
+func TestSubscribeNarrowsToNamedKinds(t *testing.T) {
+	h := New()
+	c := newFakeConn()
+	h.Add(c)
+	t.Cleanup(func() { h.Remove(c) })
+
+	h.Subscribe(c, []string{"activity"})
+	h.Broadcast("task", "ignored")
+	h.Broadcast("queue", "ignored-too")
+	h.Broadcast("activity", "wanted")
+
+	got := recv(t, c, "the subscribed kind never arrived")
+	if !bytes.Contains(got, []byte("wanted")) {
+		t.Fatalf("got %s, want the activity broadcast", got)
+	}
+	select {
+	case extra := <-c.writes:
+		t.Fatalf("received an unsubscribed broadcast: %s", extra)
+	case <-time.After(100 * time.Millisecond):
+	}
+}
+
+// TestSubscribeCallsAddRatherThanReplace: two subscribe calls compose, so a
+// page that asks for "task" and, separately, for "activity" ends up wanting
+// both rather than only whichever call happened last.
+func TestSubscribeCallsAddRatherThanReplace(t *testing.T) {
+	h := New()
+	c := newFakeConn()
+	h.Add(c)
+	t.Cleanup(func() { h.Remove(c) })
+
+	h.Subscribe(c, []string{"task"})
+	h.Subscribe(c, []string{"activity"})
+	h.Broadcast("task", "1")
+	h.Broadcast("activity", "2")
+	h.Broadcast("queue", "not this one")
+
+	for _, want := range []string{"task", "activity"} {
+		if got := recv(t, c, "a kind from an earlier subscribe call was dropped"); !bytes.Contains(got, []byte(want)) {
+			t.Errorf("got %s, want %q", got, want)
+		}
+	}
+	select {
+	case extra := <-c.writes:
+		t.Fatalf("received an unsubscribed broadcast: %s", extra)
+	case <-time.After(100 * time.Millisecond):
+	}
+}
+
+// TestSubscribeWildcardResetsToEverything is the way back out of a narrowed
+// stream without a client having to enumerate every kind this build knows
+// about, several of which (like the test-sentinel above) it may not.
+func TestSubscribeWildcardResetsToEverything(t *testing.T) {
+	h := New()
+	c := newFakeConn()
+	h.Add(c)
+	t.Cleanup(func() { h.Remove(c) })
+
+	h.Subscribe(c, []string{"activity"})
+	h.Subscribe(c, []string{"*"})
+	h.Broadcast("task", "a")
+	h.Broadcast("queue", "b")
+
+	for _, want := range []string{"task", "queue"} {
+		if got := recv(t, c, "a wildcard resubscribe still filtered a kind"); !bytes.Contains(got, []byte(want)) {
+			t.Errorf("got %s, want %q", got, want)
+		}
+	}
+}
+
+// TestUnsubscribeRemovesOnlyNamedKinds narrows a connection with Subscribe
+// and then trims it further with Unsubscribe, leaving the rest of the
+// allowlist in force.
+func TestUnsubscribeRemovesOnlyNamedKinds(t *testing.T) {
+	h := New()
+	c := newFakeConn()
+	h.Add(c)
+	t.Cleanup(func() { h.Remove(c) })
+
+	h.Subscribe(c, []string{"task", "activity"})
+	h.Unsubscribe(c, []string{"task"})
+	h.Broadcast("task", "dropped")
+	h.Broadcast("activity", "kept")
+
+	got := recv(t, c, "the still-subscribed kind never arrived")
+	if !bytes.Contains(got, []byte("kept")) {
+		t.Fatalf("got %s, want the activity broadcast", got)
+	}
+	select {
+	case extra := <-c.writes:
+		t.Fatalf("received a kind that was unsubscribed: %s", extra)
+	case <-time.After(100 * time.Millisecond):
+	}
+}
+
+// TestUnsubscribeOnAnUnrestrictedConnectionIsANoOp pins the documented
+// limitation: there is no blocklist mode, so unsubscribing before ever
+// subscribing changes nothing and the connection goes on receiving
+// everything.
+func TestUnsubscribeOnAnUnrestrictedConnectionIsANoOp(t *testing.T) {
+	h := New()
+	c := newFakeConn()
+	h.Add(c)
+	t.Cleanup(func() { h.Remove(c) })
+
+	h.Unsubscribe(c, []string{"task"})
+	h.Broadcast("task", "still arrives")
+	got := recv(t, c, "unsubscribing from an unrestricted connection suppressed a broadcast")
+	if !bytes.Contains(got, []byte("still arrives")) {
+		t.Fatalf("got %s, want the task broadcast", got)
+	}
+}
+
+// TestSubscribeOnAnUnregisteredConnectionIsANoOp: a call racing Remove (the
+// WebSocket closed while its own read loop was mid-parse of a subscribe
+// frame) must not panic or resurrect a client entry.
+func TestSubscribeOnAnUnregisteredConnectionIsANoOp(t *testing.T) {
+	h := New()
+	c := newFakeConn()
+	h.Subscribe(c, []string{"task"}) // never Added
+	h.Unsubscribe(c, []string{"task"})
+	if h.Len() != 0 {
+		t.Fatal("Subscribe on an unregistered connection created a client entry")
+	}
+}
+
+// TestSubscribeUnderConcurrency runs Subscribe, Unsubscribe and Broadcast
+// from many goroutines at once against the same connections: the pattern
+// -race exists to catch, matched to TestAddRemoveUnderConcurrency just above
+// for the same reason. This package's own history is two real races that
+// only ever reproduced in CI (see the Wave 8 commits this comment's sibling
+// tests already point at).
+func TestSubscribeUnderConcurrency(t *testing.T) {
+	h := New()
+	const conns = 8
+	cs := make([]*fakeConn, conns)
+	for i := range cs {
+		cs[i] = newFakeConn()
+		h.Add(cs[i])
+	}
+	t.Cleanup(func() {
+		for _, c := range cs {
+			h.Remove(c)
+		}
+	})
+
+	var wg sync.WaitGroup
+	kinds := []string{"task", "queue", "activity", "*"}
+	for _, c := range cs {
+		wg.Add(1)
+		go func(c *fakeConn) {
+			defer wg.Done()
+			for i := 0; i < 200; i++ {
+				h.Subscribe(c, []string{kinds[i%len(kinds)]})
+				h.Unsubscribe(c, []string{kinds[(i+1)%len(kinds)]})
+			}
+		}(c)
+	}
+	for i := 0; i < 200; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			h.Broadcast(kinds[i%len(kinds)], i)
+		}(i)
+	}
+	wg.Wait()
+}

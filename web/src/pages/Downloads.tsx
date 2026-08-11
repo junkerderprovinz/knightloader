@@ -40,6 +40,7 @@ import {
 import { EMPTY_SEARCH, matchesSearch, type SearchQuery } from '../components/SearchField';
 import { ArchiveJobs, useArchiveMenu, useExtractJobs } from '../components/Archives';
 import { useFileMenu } from '../components/FileActions';
+import { useScriptMenu } from '../components/ScriptActions';
 import { anchorFromEvent, useContextMenu } from '../components/ContextMenu';
 import { IconSearch, IconDownloads, IconArrowUp, IconArrowDown, IconTop, IconBottom } from '../lib/icons';
 
@@ -111,6 +112,10 @@ export function Downloads() {
   // Reveal-in-folder and open-natively only ever mean this instance's own
   // filesystem, never a federated peer's - see FileActions.tsx.
   const fileGroups = useFileMenu({ chosen, base, local: instance === '' });
+  // Wave 11B: a saved script becomes a manual command on this table's own
+  // context menu - the census's "DOWNLOAD_TABLE_CONTEXT_MENU_BUTTON" half of
+  // the row. See ScriptActions.tsx.
+  const scriptGroups = useScriptMenu({ chosen, base });
 
   const selection: Selection = {
     ids: selected,
@@ -347,7 +352,7 @@ export function Downloads() {
         removal={removal}
         target={target}
         list={listContext}
-        extraGroups={[...archiveGroups, ...fileGroups]}
+        extraGroups={[...archiveGroups, ...fileGroups, ...scriptGroups]}
       />
       {removal.dialog}
     </div>

@@ -41,6 +41,7 @@ import {
   type FacetSelection,
 } from '../components/CollectorFacets';
 import { CollectorStats } from '../components/CollectorStats';
+import { useScriptMenu } from '../components/ScriptActions';
 import { IconPlay } from '../lib/icons';
 
 export function Collector() {
@@ -105,6 +106,11 @@ export function Collector() {
   // `all`, because the stats strip is about what is staged, the same scope
   // every other figure on this page already uses.
   const selectedTasks = useMemo(() => collected.filter((x) => selected.has(x.id)), [collected, selected]);
+  // Wave 11B: the LinkGrabber half of the census's "both table context
+  // menus" - a staged link is not downloaded yet, but a script that only
+  // ever ran once a file already existed would miss exactly the "inspect and
+  // adjust before it starts" use case Packagizer-style automation is for.
+  const scriptGroups = useScriptMenu({ chosen: selectedTasks, base: '/api' });
 
   const selection: Selection = {
     ids: selected,
@@ -306,6 +312,7 @@ export function Collector() {
         removal={removal}
         target={target}
         list={listContext}
+        extraGroups={scriptGroups}
       />
       {removal.dialog}
     </div>
