@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>KnightLoader</title>
+    <style>
+      :root { color-scheme: dark; }
+      body {
+        margin: 0;
+        width: 280px;
+        padding: 14px;
+        background: #161616;
+        color: #f4f4f4;
+        font: 13px/1.4 -apple-system, "Segoe UI", sans-serif;
+      }
+      h1 {
+        margin: 0 0 10px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #fcc419;
+      }
+      p {
+        margin: 0 0 12px;
+        color: #c6c6c6;
+        overflow-wrap: anywhere;
+      }
+      button {
+        display: block;
+        width: 100%;
+        padding: 9px 12px;
+        margin-bottom: 8px;
+        border: 0;
+        border-radius: 8px;
+        font: inherit;
+        font-weight: 500;
+        cursor: pointer;
+      }
+      .primary { background: #fcc419; color: #161616; }
+      .secondary { background: #393939; color: #f4f4f4; }
+      #status { min-height: 1.2em; color: #8d8d8d; font-size: 11px; }
+    </style>
+  </head>
+  <body>
+    <h1>KnightLoader</h1>
+    <p id="target">Loading the current page…</p>
+    <button id="send" class="primary">Send this page</button>
+    <button id="openOptions" class="secondary">Instance settings</button>
+    <div id="status"></div>
+    <script src="shared.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -103,20 +103,27 @@ export function StatusStrip() {
   const [signals, setSignals] = useState<Partial<Record<ActivityKind, ActivitySignal>>>({});
 
   useEffect(() => {
-    return connectWS((type, data) => {
-      if (type === 'activitySnapshot') {
-        // Sent once per connection (serveWS) - the authoritative current
-        // state, replacing whatever this browser last heard before a drop
-        // and reconnect. A single "activity" message below only ever
-        // patches one kind, which is exactly how a burst that ended while
-        // this client was disconnected became a phantom that never cleared.
-        const list = (data ?? []) as ActivitySignal[];
-        setSignals(Object.fromEntries(list.map((s) => [s.kind, s])));
-      } else if (type === 'activity') {
-        const s = data as ActivitySignal;
-        setSignals((prev) => ({ ...prev, [s.kind]: s }));
-      }
-    });
+    // 'activitySnapshot' is not in kinds below and still arrives every time:
+    // the server sends it with Hub.SendTo, not Broadcast, which bypasses a
+    // connection's own subscription filter entirely (internal/hub/hub.go).
+    // 'activity' is the only Broadcast kind this component ever reads.
+    return connectWS(
+      (type, data) => {
+        if (type === 'activitySnapshot') {
+          // Sent once per connection (serveWS) - the authoritative current
+          // state, replacing whatever this browser last heard before a drop
+          // and reconnect. A single "activity" message below only ever
+          // patches one kind, which is exactly how a burst that ended while
+          // this client was disconnected became a phantom that never cleared.
+          const list = (data ?? []) as ActivitySignal[];
+          setSignals(Object.fromEntries(list.map((s) => [s.kind, s])));
+        } else if (type === 'activity') {
+          const s = data as ActivitySignal;
+          setSignals((prev) => ({ ...prev, [s.kind]: s }));
+        }
+      },
+      ['activity'],
+    );
   }, []);
 
   const rows = ORDER.map((kind) => signals[kind]).filter((s): s is ActivitySignal => !!s && s.active > 0);

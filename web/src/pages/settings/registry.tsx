@@ -4,6 +4,7 @@ import {
   IconArchive,
   IconCaptcha,
   IconClock,
+  IconCode,
   IconDiagnostics,
   IconDownloads,
   IconFilter,
@@ -19,6 +20,7 @@ import {
 import { Access } from './Access';
 import { Advanced } from './Advanced';
 import { Archives } from './Archives';
+import { BrowserTools } from './BrowserTools';
 import { Captcha } from './Captcha';
 import { Connections } from './Connections';
 import { Diagnostics } from './Diagnostics';
@@ -29,8 +31,10 @@ import { Help } from './Help';
 import { Look } from './Look';
 import { Modules } from './Modules';
 import { Reconnect } from './Reconnect';
+import { Resolvers } from './Resolvers';
 import { Rules } from './Rules';
 import { Schedule } from './Schedule';
+import { Scripts } from './Scripts';
 import { System } from './System';
 
 /**
@@ -58,6 +62,11 @@ const PAGES: Record<string, () => ReactNode> = {
   // the failure this map is one line long to prevent.
   connections: () => <Connections />,
   reconnect: () => <Reconnect />,
+  // yt-dlp's own format/subtitle/output-template configuration - the one
+  // resolver with anything real to configure. See Resolvers.tsx's own doc
+  // comment for why the routing order itself lives on the Accounts page
+  // instead.
+  resolvers: () => <Resolvers />,
   // Wave 7 (7B) fills this line in - captcha settings: solver order and each
   // solver's own API key. See Captcha.tsx's own doc comment.
   captcha: () => <Captcha />,
@@ -76,6 +85,13 @@ const PAGES: Record<string, () => ReactNode> = {
   // gap, and this page does not yet warrant inventing a new glyph for it.
   system: () => <System />,
   help: () => <Help />,
+  // The bookmarklet, the extension download and the PWA install step
+  // (build-plan.md's 11D) — see BrowserTools.tsx's own doc comment. No icon
+  // registered below either, same reasoning as system above.
+  browsertools: () => <BrowserTools />,
+  // The script editor (build-plan.md's 11B) — see Scripts.tsx's own doc
+  // comment.
+  scripts: () => <Scripts />,
 };
 
 /**
@@ -108,6 +124,7 @@ const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   advanced: IconSliders,
   diagnostics: IconDiagnostics,
   help: IconHelp,
+  scripts: IconCode,
 };
 
 export function renderSettingsPage(id: string): ReactNode {

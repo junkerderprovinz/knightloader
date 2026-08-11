@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Navigate, Route, Routes, useMatch, useNavigate, useParams } from 'react-router-dom';
-import { ApiError, type Settings, fetchSettings, saveSettings } from '../lib/api';
+import { ApiError, type Settings, fetchSettings, patchSettings } from '../lib/api';
 import { useResource } from '../lib/useResource';
 import { readUIState, useUIState } from '../lib/uistate';
 import { useT } from '../lib/i18n';
@@ -8,6 +8,7 @@ import { Button, ErrorCard, LoadingCard, PageHeader } from '../components/ui';
 import { Tabs } from '../components/Tabs';
 import { SettingsProvider, type FeatureAccess, type SettingsDraft } from './settings/context';
 import { fetchFeatures, setFeature, type FeaturePage, type FeatureState } from './settings/features';
+import { same } from './settings/paths';
 import { FALLBACK_PAGE, hasContent, pageIcon, renderSettingsPage } from './settings/registry';
 import { label, useTx } from './settings/tx';
 
@@ -76,11 +77,29 @@ export function SettingsPage() {
   const replace = useCallback((next: Settings) => setDraft(next), []);
 
   async function onSave() {
-    if (!draft) return;
+    if (!draft || !saved) return;
     setSaveError('');
     setSaving(true);
     try {
-      const applied = await saveSettings(draft);
+      // PATCH, not the whole document: only the top-level fields this draft
+      // actually changed are sent, computed against `saved` (the copy this
+      // draft was seeded from), never the whole thing. `draft`/`saved` carry
+      // more real keys than the Settings type names (packagizer, connections,
+      // reconnect, ... - see SettingsDraft's own doc comment on `cfg`), so
+      // the diff walks the real runtime object rather than TypeScript's
+      // narrower view of it. A field a DIFFERENT browser tab saved in the
+      // meantime, one this tab never touched, survives instead of being
+      // silently put back to whatever stale copy this tab loaded with - see
+      // patchSettings' own doc comment (lib/api.ts) and PATCH
+      // /api/settings's (routes_settings.go) for the server side of that
+      // promise.
+      const savedDoc = saved as unknown as Record<string, unknown>;
+      const draftDoc = draft as unknown as Record<string, unknown>;
+      const changed: Record<string, unknown> = {};
+      for (const key of Object.keys(draftDoc)) {
+        if (!same(draftDoc[key], savedDoc[key])) changed[key] = draftDoc[key];
+      }
+      const applied = Object.keys(changed).length > 0 ? await patchSettings(changed as Partial<Settings>) : saved;
       setSaved(applied);
       setDraft(applied);
       // The registry reads live settings, so a save can have moved a module: the

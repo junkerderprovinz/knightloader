@@ -87,13 +87,19 @@ export function IdleActionBanner() {
     fetchIdleAction().then(apply, () => {
       /* the banner simply does not appear; nothing here is worth a toast */
     });
-    const close = connectWS((type, data) => {
-      if (type === 'snapshot') {
-        fetchIdleAction().then(apply, () => {});
-      } else if (type === 'idleAction') {
-        apply(data as IdleActionState);
-      }
-    });
+    // 'snapshot' is not in kinds below and still arrives every time - see
+    // lib/useTasks.ts's identical note on why (Hub.SendTo bypasses a
+    // connection's own subscription filter).
+    const close = connectWS(
+      (type, data) => {
+        if (type === 'snapshot') {
+          fetchIdleAction().then(apply, () => {});
+        } else if (type === 'idleAction') {
+          apply(data as IdleActionState);
+        }
+      },
+      ['idleAction'],
+    );
     return () => {
       live = false;
       close();

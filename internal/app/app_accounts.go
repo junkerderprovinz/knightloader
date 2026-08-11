@@ -103,6 +103,11 @@ func (a *App) rewireBackends() {
 		// leave yt-dlp running at the daytime speed right through a nightly window.
 		yb.RateLimit = a.Throttle.Limit
 		yb.Dir = a.taskDir
+		// Read live rather than captured once: a settings save between two
+		// downloads - or between a pause and its resume - must take effect on
+		// the next spawn without a restart, the same reason RateLimit and Dir
+		// just above are both closures rather than values copied in here.
+		yb.Options = func() ytdlp.Options { return a.Settings.Get().Ytdlp }
 		newYtdlp = yb
 		a.Registry.Register(ytdlp.Resolver{ExcludeHosts: hosterSet})
 		log.Printf("yt-dlp backend enabled: %s", ytbin)

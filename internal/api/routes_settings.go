@@ -15,6 +15,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/schedule"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -47,6 +48,54 @@ func registerSettings(reg *Registry, a *app.App) {
 				return
 			}
 			applied, err := a.ApplySettings(s)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			writeJSON(w, settingsBody(a, applied))
+		})
+	// PATCH is PUT's answer to the trap PUT's own summary names: PUT decodes and
+	// writes back the WHOLE document, so a browser that loaded the page before a
+	// concurrent edit elsewhere posts its stale copy of EVERY OTHER field back
+	// over that edit, silently. A patch body names only the fields it means to
+	// change; anything it does not name is read fresh from what is actually
+	// stored right now, under the same lock that then writes the merge back.
+	// settings.Store.SetPartial's own comment has the exact mechanism. Two
+	// clients patching two different sections at once, someone on the
+	// Reconnect page, someone else flipping the speed limit, therefore both
+	// survive, which two concurrent PUTs of the whole document cannot promise.
+	reg.Add(http.MethodPatch, "/api/settings",
+		"update only the named top-level fields; every field a caller did not name is left exactly as stored",
+		func(w http.ResponseWriter, r *http.Request) {
+			var patch map[string]json.RawMessage
+			if !decodeJSON(w, r, &patch) {
+				return
+			}
+			if len(patch) == 0 {
+				http.Error(w, "the patch names no fields to change", http.StatusBadRequest)
+				return
+			}
+			// Validated against a PREVIEW of the merge, built the same way
+			// SetPartial itself will build the real one, just outside its lock,
+			// so a patch gets the identical two refusals PUT already gives a whole
+			// document that fails them. This preview can go stale by the
+			// microseconds before SetPartial's own authoritative merge; see
+			// settings.ApplyPatch's own comment for why that is not a correctness
+			// problem, only ever a value sanitize would have clamped anyway.
+			preview, err := settings.ApplyPatch(a.Settings.Get(), patch)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			if err := settings.Validate(preview.DownloadDir); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			if err := validateRows(preview); err != nil {
+				writeValidationError(w, err)
+				return
+			}
+			applied, err := a.PatchSettings(patch)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -196,6 +245,11 @@ func options() map[string]any {
 			proxycfg.KindHTTP, proxycfg.KindHTTPS,
 			proxycfg.KindSOCKS4, proxycfg.KindSOCKS4A, proxycfg.KindSOCKS5,
 		},
+		// The resolver options page's two menus, from the package that reads
+		// them - same reasoning as every other list here: a quality preset or
+		// a subtitle mode this build cannot honour must never be selectable.
+		"ytdlpQualities":     ytdlp.Qualities(),
+		"ytdlpSubtitleModes": ytdlp.SubtitleModes(),
 		// The rule vocabulary is NOT here. It used to be: three hand-written lists
 		// of fields, operators and actions, next to the engine that defines all
 		// three. GET /api/rules/grammar builds them from the engine instead, and

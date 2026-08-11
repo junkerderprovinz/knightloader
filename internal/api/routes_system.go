@@ -67,6 +67,14 @@ func registerSystem(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
+			// A token minted under the old password state (no password, or a
+			// password this change just replaced) is a standing bypass of
+			// whatever protection this call just put in place — see
+			// apitoken.Store.RevokeAll's own doc comment for the live
+			// reproduction this closes. Best-effort: a failed revoke must not
+			// block the password change that already succeeded and is already
+			// persisted.
+			_ = a.APITokens.RevokeAll()
 			if body.New != "" {
 				setSession(w, r, a.Auth.Issue()) // don't lock out the person who just set it
 			} else {

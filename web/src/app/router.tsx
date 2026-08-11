@@ -7,6 +7,7 @@ import { Downloads } from '../pages/Downloads';
 import { Instances } from '../pages/Instances';
 import { Accounts } from '../pages/Accounts';
 import { SettingsPage } from '../pages/Settings';
+import { QuickAdd } from '../pages/QuickAdd';
 import { ToastProvider } from '../lib/toast';
 import { I18nProvider } from '../lib/i18n';
 import { TabIndicator } from '../components/TabIndicator';
@@ -22,6 +23,11 @@ export function AppRouter() {
         <TabIndicator />
         <BrowserRouter>
           <Routes>
+            {/* Outside <Layout> on purpose — see QuickAdd.tsx's own doc
+                comment: it is opened as a small standalone window by the
+                bookmarklet and the extension, and a sidebar squeezed into
+                that width helps nobody. */}
+            <Route path="/quickadd" element={<QuickAdd />} />
             <Route element={<Layout />}>
               <Route index element={<Dashboard />} />
               <Route path="/collector" element={<Collector />} />

@@ -32,6 +32,13 @@ type Backend struct {
 	// to the backend's default directory.
 	Dir func(taskID string) string
 
+	// Options, when set, returns the current instance-wide yt-dlp
+	// configuration - format/quality, subtitles, the output template,
+	// playlist handling. nil reads exactly like Options{}, the zero value
+	// that reproduces this backend's pre-Options behaviour, matching
+	// RateLimit's own "nil means no opinion" contract.
+	Options func() Options
+
 	mu     sync.Mutex
 	cancel map[string]context.CancelFunc
 	url    map[string]string // for resume
@@ -78,11 +85,11 @@ func (b *Backend) run(taskID, url string) {
 		b.onUpdate(taskID, core.Update{Status: core.StatusError, Err: "yt-dlp: " + err.Error()})
 		return
 	}
-	args := []string{
-		"--newline", "--no-warnings", "--no-color", "--no-playlist",
-		"--progress-template", "KLP:%(progress)j",
-		"-o", filepath.Join(dir, "%(title)s.%(ext)s"),
+	var opts Options
+	if b.Options != nil {
+		opts = b.Options()
 	}
+	args := buildArgs(dir, opts)
 	if b.RateLimit != nil {
 		if lim := b.RateLimit(); lim > 0 {
 			// --limit-rate is per fragment connection; fragments default to 1.
@@ -167,6 +174,80 @@ func notMine(msg string) bool {
 	return strings.Contains(m, "unsupported url") ||
 		strings.Contains(m, "no suitable extractor") ||
 		strings.Contains(m, "is not a valid url")
+}
+
+// buildArgs turns Options into the flags run() spawns yt-dlp with, minus the
+// binary and the URL - the caller still appends the URL last, exactly as it
+// did before Options existed. It is a pure function on purpose: everything
+// here is unit-tested without spawning yt-dlp at all, which run()'s own
+// process-spawning shape cannot be.
+//
+// exec.CommandContext never invokes a shell (it execs the binary directly
+// with an argv array), so nothing built here is a shell-injection vector
+// regardless of what CustomFormat or OutputTemplate contain - that is a
+// property of os/exec, not of anything this function checks.
+//
+// o is sanitized on entry rather than trusted from the caller. In practice
+// Backend.Options is always wired to a live settings snapshot that has
+// already been through Options.Sanitize (settings.sanitize calls it on
+// every load and every save), but this function shells out a real process
+// on the strength of what it is handed, so it does not get to assume its
+// caller remembered - the zero value Options{} must build the exact same
+// argument list Sanitize would produce from it, or the "every field's zero
+// value changes nothing" promise on Options's own doc comment is false the
+// one time something calls buildArgs directly.
+func buildArgs(dir string, o Options) []string {
+	o = o.Sanitize()
+	args := []string{
+		"--newline", "--no-warnings", "--no-color",
+		"--progress-template", "KLP:%(progress)j",
+	}
+	if !o.Playlist {
+		args = append(args, "--no-playlist")
+	}
+	switch {
+	case o.Quality == QualityAudioOnly:
+		args = append(args, "-f", "bestaudio/best", "-x")
+	default:
+		if f := formatSelector(o); f != "" {
+			args = append(args, "-f", f)
+		}
+	}
+	if o.Subtitles != SubtitlesOff {
+		langs := o.SubtitleLangs
+		if langs == "" {
+			langs = DefaultSubtitleLangs
+		}
+		args = append(args, "--write-subs", "--sub-langs", langs)
+		if o.SubtitleAuto {
+			args = append(args, "--write-auto-subs")
+		}
+		if o.Subtitles == SubtitlesEmbed {
+			args = append(args, "--embed-subs")
+		}
+	}
+	tmpl := o.OutputTemplate
+	if tmpl == "" {
+		tmpl = defaultOutputTemplate
+	}
+	args = append(args, "-o", filepath.Join(dir, tmpl))
+	return args
+}
+
+// formatSelector turns a resolution preset into yt-dlp's own -f value, or ""
+// when nothing should be passed at all (QualityBest, or anything Sanitize
+// would already have folded onto it). QualityCustom is a verbatim
+// passthrough with no selector logic of its own; QualityAudioOnly is
+// handled by buildArgs directly, since it pairs -f with a second flag (-x)
+// this function has no way to add.
+func formatSelector(o Options) string {
+	if o.Quality == QualityCustom {
+		return o.CustomFormat
+	}
+	if h, ok := heightCaps[o.Quality]; ok {
+		return "bestvideo[height<=?" + h + "]+bestaudio/best[height<=?" + h + "]"
+	}
+	return ""
 }
 
 func (b *Backend) Pause(taskID string) {

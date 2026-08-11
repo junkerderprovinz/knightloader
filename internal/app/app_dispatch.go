@@ -19,6 +19,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
+	"github.com/junkerderprovinz/knightloader/internal/script"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -844,6 +845,15 @@ func (a *App) onUpdate(id string, u core.Update) {
 	}
 	_ = a.Store.Save(&c)
 	a.Hub.Broadcast("task", &c)
+	// The one broadcast per settled state script.ClassifyTaskUpdate's own
+	// doc comment is grounded in: NextTry is already set (above, before
+	// this point) when a failure still has an automatic retry pending, so a
+	// script bound to task.failed fires on the final word only, never once
+	// per backoff attempt.
+	tv := scriptTaskView(c)
+	if trig, ok := script.ClassifyTaskUpdate(tv); ok {
+		a.Scripts.Fire(trig, &tv, a.ScriptQueue())
+	}
 	if extractCopy != nil {
 		_ = a.Store.Save(extractCopy)
 		a.Hub.Broadcast("task", extractCopy)

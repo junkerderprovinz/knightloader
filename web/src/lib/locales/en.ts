@@ -1350,6 +1350,198 @@ export const en = {
   'settings.help.advanced.body':
     'Every setting this build has can be read and changed by its raw name on the Advanced page, including a few - how a mirror of an already-downloaded file is treated, what happens when a download would land on a name already taken - that do not have a dedicated control anywhere else yet.',
   'settings.help.advanced.link': 'Open Advanced settings',
+
+  // The script editor (pages/settings/Scripts.tsx) and its manual-invocation
+  // menu entry (components/ScriptActions.tsx) - Wave 11B, JD's "Event
+  // Scripter" (census family E). settings.nav.scripts is this page's rail
+  // label, the same relationship every settings.nav.<id> key has to its own
+  // page - not yet reachable from the rail itself (see that file's own doc
+  // comment), landed regardless so the label is ready the moment it is.
+  'settings.nav.scripts': 'Scripts',
+  'settings.scripts.title': 'Scripts',
+  'settings.scripts.subtitle': 'Automate KnightLoader with your own JavaScript, run on an event or on demand.',
+  'settings.scripts.listTitle': 'Your scripts',
+  'settings.scripts.add': 'Add script',
+  'settings.scripts.empty': 'No scripts yet',
+  'settings.scripts.emptyHint':
+    'A script runs your own JavaScript when something happens - a download finishes, one fails, the queue goes idle - or on demand, from Test Run here and from the “Run script” entry this wave adds to the download list’s right-click menu. Add one to get started.',
+  'settings.scripts.loadFailed':
+    'Scripts could not be loaded. If this build does not yet include the automation engine, this page has nothing to show yet - try again once it does.',
+  'settings.scripts.name': 'Name',
+  'settings.scripts.namePlaceholder': 'e.g. Notify on failure',
+  'settings.scripts.unnamed': 'Untitled script {n}',
+  'settings.scripts.trigger': 'Runs on',
+  'settings.scripts.triggerHint':
+    'What starts this script. Manual only ever runs when you ask for it - from Test Run below, or from the “Run script” entry this wave adds to the download list’s right-click menu.',
+  'settings.scripts.trigger.manual': 'Manual (on demand only)',
+  'settings.scripts.trigger.taskDone': 'A download finishes',
+  'settings.scripts.trigger.taskFailed': 'A download fails',
+  'settings.scripts.trigger.queueIdle': 'The queue goes idle',
+  'settings.scripts.use': 'Enable this script',
+  'settings.scripts.code': 'Code',
+  'settings.scripts.codeStarter':
+    '// This script runs on the trigger picked above.\n// The sandbox API it runs against is still being finished - see Settings › Help once it lands.\n',
+  'settings.scripts.timeout': 'Time limit',
+  'settings.scripts.timeoutHint':
+    'How long this script may run before it is stopped. Between 100 ms and 30 s; 0 uses the default of 5000 ms.',
+  'settings.scripts.timeoutUnit': 'ms',
+  'settings.scripts.save': 'Save',
+  'settings.scripts.saving': 'Saving…',
+  'settings.scripts.saveFailed': 'Could not save: {error}',
+  'settings.scripts.discard': 'Discard changes',
+  'settings.scripts.remove': 'Remove',
+  'settings.scripts.removeNew': 'Cancel',
+  'settings.scripts.removeFailed': 'Could not remove: {error}',
+  'settings.scripts.unsaved': 'Unsaved',
+  'settings.scripts.run': 'Test run',
+  'settings.scripts.running': 'Running…',
+  'settings.scripts.runNeedsSaveHint': 'Save this script once before testing it.',
+  'settings.scripts.runDirtyHint': 'Save your changes to test the latest version.',
+  'settings.scripts.runOk': 'Ran successfully',
+  'settings.scripts.runOkDuration': 'Ran successfully in {ms} ms',
+  'settings.scripts.runTimedOut': 'Stopped: ran longer than its time limit',
+  'settings.scripts.runFailed': 'Failed: {error}',
+  'settings.scripts.output': 'Output',
+
+  // The manual-invocation half of Wave 11B (components/ScriptActions.tsx) -
+  // the "Run script" entry on the download list's own right-click menu.
+  'task.runScript': 'Run script',
+  'task.runScriptUnnamed': 'Untitled script',
+  'task.runScriptDone': 'Ran “{name}”',
+  'task.runScriptFailed': '“{name}” failed: {error}',
+
+  // The Remote access section and API tokens (pages/settings/Access.tsx,
+  // Wave 11C) - build-plan.md section 8's Wave 11 amendment on 11C: named,
+  // individually revocable tokens; the addresses this instance answers on,
+  // with a QR code; the PWA install BrowserTools.tsx also offers; and the
+  // loud warning when the server is reachable from off this machine with no
+  // password set.
+  'settings.access.tokens.title': 'API tokens',
+  'settings.access.tokens.intro':
+    'Named credentials for a script, a browser extension or a phone. Each one can be revoked on its own, without changing the shared password every other client uses.',
+  'settings.access.tokens.empty': 'No tokens issued yet.',
+  'settings.access.tokens.new': 'New token',
+  'settings.access.tokens.namePlaceholder': 'e.g. my phone',
+  'settings.access.tokens.cancel': 'Cancel',
+  'settings.access.tokens.create': 'Create',
+  'settings.access.tokens.creating': 'Creating…',
+  'settings.access.tokens.created': 'Created',
+  'settings.access.tokens.lastUsed': 'Last used',
+  'settings.access.tokens.neverUsed': 'never',
+  'settings.access.tokens.revoke': 'Revoke',
+  'settings.access.tokens.secretTitle': 'Copy this token now',
+  'settings.access.tokens.secretWarning':
+    'This is the only time this token is shown. It is stored as a one-way hash on this instance, so if it is lost there is no way to read it back, only to revoke it and create a new one.',
+  'settings.access.tokens.copy': 'Copy',
+  'settings.access.tokens.copied': 'Copied',
+  'settings.access.tokens.done': 'Done',
+  'settings.access.tokens.howToUse': 'Send it as a header: Authorization: Bearer <token>',
+  'settings.access.tokens.createFailed': 'Could not create the token: {error}',
+  'settings.access.remote.title': 'Remote access',
+  'settings.access.remote.desktopNote':
+    'This is the desktop build. It does not serve the API over the network at all, so there is nothing here to reach from outside this application.',
+  'settings.access.remote.exposedWarning':
+    'This instance just answered a request from outside this machine, and no password protects it. Anyone who can reach it can see and control every download. Set a password above now.',
+  'settings.access.remote.noRelayBody':
+    'There is no account service and no pairing step, and there never will be: running one would mean an ongoing hosted service with real cost and liability, not a feature of a self-hosted binary. Reaching this instance from outside your own network is your own port forward, reverse proxy or VPN, the same as any other self-hosted server.',
+  'settings.access.remote.addressesTitle': 'Addresses this instance answers on',
+  'settings.access.remote.noAddresses': 'No address could be determined for this request.',
+  'settings.access.remote.loopback': 'this machine only',
+  'settings.access.remote.scanHint': 'Only works on the same network as this instance.',
+  'settings.access.remote.installTitle': 'Install as an app',
+  'settings.access.remote.installBody':
+    'Add KnightLoader to a home screen or app list for a faster launch, without the browser chrome.',
+  'settings.access.remote.install': 'Install',
+  'settings.access.remote.installIOS':
+    'On iPhone or iPad: open this page in Safari, tap Share, then "Add to Home Screen".',
+
+  // Sending KnightLoader a link from outside the app - the bookmarklet, the
+  // MV3 browser extension and the PWA install step (pages/settings/
+  // BrowserTools.tsx, Wave 11D). settings.nav.browsertools is this page's
+  // rail label.
+  'settings.nav.browsertools': 'Browser tools',
+  'settings.browsertools.subtitle':
+    'Send a link to KnightLoader from anywhere else - another page, another app, or your phone’s Share menu.',
+  'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
+  'settings.browsertools.bookmarkletHint':
+    'Drag this to your bookmarks bar. On any page, click it to send that page (or whatever text you have selected) here.',
+  'settings.browsertools.bookmarkletLink': 'Add to KnightLoader',
+  'settings.browsertools.copyCode': 'Copy the code instead',
+  'settings.browsertools.copied': 'Copied.',
+  'settings.browsertools.extensionTitle': 'Browser extension',
+  'settings.browsertools.extensionHint':
+    'A right-click menu on any link, selection, or page, in Chrome, Edge, Brave, and other Chromium-based browsers. The download already points at this instance - nothing to configure.',
+  'settings.browsertools.download': 'Download extension',
+  'settings.browsertools.installTitle': 'Install as an app',
+  'settings.browsertools.installHint':
+    'Once installed, your device’s own Share menu can hand a link straight to KnightLoader - no browser tab required.',
+  'settings.browsertools.install': 'Install',
+  'settings.browsertools.installed': 'Already installed, or this browser offers its own install step in the address bar.',
+
+  // /quickadd (pages/QuickAdd.tsx, Wave 11D) - the one page the bookmarklet,
+  // the browser extension and the PWA share target all land on.
+  'quickadd.title': 'Add to KnightLoader',
+  'quickadd.manualLabel': 'Link (or paste several, one per line)',
+  'quickadd.manualPlaceholder': 'https://example.com/file.zip',
+  'quickadd.add': 'Add',
+  'quickadd.adding': 'Adding…',
+  'quickadd.emptyHint':
+    'Nothing was shared - paste a link by hand, or use this page from the bookmarklet, the browser extension, or your device’s Share menu.',
+  'quickadd.staged': 'Added to the collector.',
+  'quickadd.stagedNamed': 'Added “{name}” to the collector.',
+  'quickadd.stagedCount': 'Added {n} links to the collector.',
+  'quickadd.none': 'Nothing was added - every link here was already in the collector.',
+  'quickadd.failed': 'Could not add this: {error}',
+  'quickadd.undo': 'Undo',
+  'quickadd.undone': 'Removed.',
+  'quickadd.openCollector': 'Open Collector',
+  'quickadd.close': 'Close window',
+
+  // Quit/restart/backup/restore (pages/settings/System.tsx) - build-plan.md's
+  // Wave 10 (10D) shipped the whole backend with no page pointing at it at
+  // all; found by that wave's own adversarial review. settings.nav.system is
+  // this page's rail label.
+  'settings.nav.system': 'System',
+  'settings.system.subtitle': 'Quit, restart, and back up or restore this instance’s data.',
+  'settings.system.deployment.container': 'Container',
+  'settings.system.deployment.desktop': 'Desktop',
+  'settings.system.lifecycleTitle': 'Quit & restart',
+  'settings.system.quit': 'Quit',
+  'settings.system.restart': 'Restart',
+  'settings.system.quitConfirmTitle': 'Quit KnightLoader?',
+  'settings.system.restartConfirmTitle': 'Restart KnightLoader?',
+  'settings.system.quitConfirmBody': 'In-flight work is drained first, then the process exits. {note}',
+  'settings.system.confirmCancel': 'Cancel',
+  'settings.system.confirmProceed': 'Confirm',
+  'settings.system.unavailable': 'This build has no way to do this from the browser.',
+  'settings.system.acting': 'Working…',
+  'settings.system.shuttingDown':
+    'Shutting down. If this instance comes back on its own, the page will reconnect once it does; otherwise close this tab.',
+  'settings.system.actionFailed': 'Could not do this: {error}',
+  'settings.system.backupTitle': 'Backup',
+  'settings.system.backupHint':
+    'Downloads the database and settings as one archive, including passwords - keep it somewhere private.',
+  'settings.system.backupButton': 'Download backup',
+  'settings.system.restoreTitle': 'Restore',
+  'settings.system.restoreHint': 'Replaces this instance’s data with a previously downloaded backup.',
+  'settings.system.restoreButton': 'Upload backup…',
+  'settings.system.restoreConfirmTitle': 'Restore from backup?',
+  'settings.system.restoreConfirmBody':
+    'This replaces the current database and settings with the contents of “{name}”. This cannot be undone.',
+  'settings.system.restoring': 'Validating and staging…',
+  'settings.system.restoreFailed': 'Could not restore: {error}',
+  'settings.system.restoreStaged': '{status}',
+  'settings.system.loadFailed': 'Could not load. Is the server reachable?',
+
+  // Two more rail labels this wave's pages need: Resolvers.tsx (11E, yt-dlp
+  // format/subtitle/output-template options) and the "ytdlp" module row
+  // (routes_features.go) both already call label()/tx() against these keys
+  // today, falling back to the raw id until now. Resolvers.tsx's own page
+  // body is still hardcoded English throughout - see this wave's own report;
+  // unlike every sibling page above it ships with no PENDING table at all, so
+  // there are no ready-made keys to land verbatim here.
+  'settings.nav.resolvers': 'Resolvers',
+  'settings.module.ytdlp': 'yt-dlp',
 } as const;
 
 export type TranslationKey = keyof typeof en;

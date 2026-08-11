@@ -25,6 +25,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/idleaction"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/schedule"
 )
@@ -266,6 +267,15 @@ type Settings struct {
 	// field is always present and the frontend types it `string[] | null`,
 	// the same pairing RainbowPalette already uses.
 	CaptchaSolverOrder []string `json:"captchaSolverOrder"`
+
+	// Ytdlp is the yt-dlp backend's own configuration - format/quality
+	// selection, subtitles, the output filename template, whether a
+	// playlist URL fetches one video or the whole list. See
+	// internal/resolver/ytdlp's own doc comment on Options for why every
+	// field's zero value reproduces this backend's behaviour from before
+	// any of them existed - an install that never opens the settings page
+	// this backs downloads exactly as it always has.
+	Ytdlp ytdlp.Options `json:"ytdlp"`
 }
 
 // Defaults returns the settings a fresh install starts with.
@@ -305,6 +315,10 @@ func Defaults() Settings {
 		CollisionPolicy: string(collide.DefaultPolicy),
 		Reconnect:       reconnect.Defaults(),
 		IdleAction:      idleaction.Defaults(),
+		// The zero value already - see Options's own doc comment - written
+		// out anyway so every sub-package's Defaults() is called from
+		// exactly one place, matching its three neighbours above.
+		Ytdlp: ytdlp.Defaults(),
 		// The list is trimmed after a month and the history is not: the two
 		// together are the only combination in which "do not let the list grow
 		// forever" costs nobody the record of what they downloaded.
@@ -406,9 +420,50 @@ func (s *Store) Get() Settings {
 func (s *Store) Set(n Settings) (Settings, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	return s.setLocked(n)
+}
+
+// SetPartial applies patch on top of whatever is CURRENTLY stored and
+// persists the result, exactly like Set, except the fields patch does not
+// name are read from that current copy under the same lock that then writes
+// the result back, never from a copy the caller fetched earlier. Two partial
+// saves racing each other therefore compose (a speedLimit patch and a
+// concurrent, unrelated maxConcurrent patch both survive) instead of the
+// second one's read predating the first one's write and silently reverting
+// it. That is the same class of bug `PATCH /api/settings` exists to close,
+// guarded one layer further in than the HTTP handler alone could reach: see
+// Set's own comment just above for why taking a snapshot outside this lock
+// is exactly the mistake that already had to be avoided once, for
+// Reconnect's secret merge.
+//
+// patch's keys are top-level only, exactly as Settings' own JSON encoding
+// has them: a key present replaces that whole field. An object field
+// replaces the whole sub-document, not a deep per-field merge, so a partial
+// Reconnect edit still carries the whole Reconnect object, the same shape
+// the Reconnect settings page already saves today, and a key absent leaves
+// the stored field untouched. There is deliberately no dotted-path syntax
+// for reaching inside a nested field here: 2I's advanced key table
+// (routes_features.go, settings_describe.go) already owns that job and its
+// own validation pass, and duplicating a second one here is how the two
+// quietly disagree about what a clamp allows.
+func (s *Store) SetPartial(patch map[string]json.RawMessage) (Settings, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	merged, err := ApplyPatch(s.cur, patch)
+	if err != nil {
+		return s.cur, err
+	}
+	return s.setLocked(merged)
+}
+
+// setLocked is Set's body, factored out so SetPartial can build its merged
+// document from s.cur and persist it inside the one critical section that
+// also read s.cur. See SetPartial's own comment for why that is the whole
+// point. Callers hold mu.
+func (s *Store) setLocked(n Settings) (Settings, error) {
 	// The secrets the client was never shown are put back first, and against the
 	// value under this very lock. Reading the previous settings through Get would
-	// deadlock — mu is a plain Mutex and Get takes it — and taking a snapshot
+	// deadlock (mu is a plain Mutex and Get takes it), and taking a snapshot
 	// before the lock would let two concurrent saves merge against the same stale
 	// value, so the second one writes back a router password the first had
 	// already changed.
@@ -426,6 +481,56 @@ func (s *Store) Set(n Settings) (Settings, error) {
 	return n, nil
 }
 
+// ApplyPatch overlays patch's top-level keys onto base's own JSON encoding
+// and decodes the result back into a Settings, without validating, sanitizing
+// or persisting anything.
+//
+// Exported, and used two ways: SetPartial calls it inside its own lock to
+// build what it is about to write, and the PATCH /api/settings handler calls
+// it OUTSIDE any lock, against a freshly Get() copy, purely to validate the
+// would-be result the same way PUT validates its whole body before ever
+// reaching the store. settings.Validate(preview.DownloadDir) and
+// validateRows(preview) need a real Settings to inspect, and this is the one
+// path that builds one from a patch. That preview can go stale by the
+// microseconds between the read and SetPartial's own later, authoritative
+// merge under lock; sanitize (inside setLocked) is the same safety net PUT
+// already relies on for anything validateRows does not itself cover, so a
+// value that changed out from under a stale preview is clamped, never
+// corrupted.
+//
+// Marshal, merge as raw JSON, unmarshal, rather than a hand-written
+// field-by-field copy, because Settings already knows how to become and
+// come back from exactly this shape, and a second, hand-maintained copy of
+// "every field this struct has" is one waves 1-11 have already shown drifts
+// (settingsKinds' own doc comment in routes_features.go makes the identical
+// argument for reflecting over the struct instead of listing it by hand, in
+// the opposite direction of the same document). An unknown key in patch is
+// silently dropped by the final Unmarshal, the same as every other decode in
+// this codebase (see decodeJSON's own doc comment), not a new inconsistency
+// introduced here.
+func ApplyPatch(base Settings, patch map[string]json.RawMessage) (Settings, error) {
+	baseBytes, err := json.Marshal(base)
+	if err != nil {
+		return base, err
+	}
+	var merged map[string]json.RawMessage
+	if err := json.Unmarshal(baseBytes, &merged); err != nil {
+		return base, err
+	}
+	for k, v := range patch {
+		merged[k] = v
+	}
+	mergedBytes, err := json.Marshal(merged)
+	if err != nil {
+		return base, err
+	}
+	var out Settings
+	if err := json.Unmarshal(mergedBytes, &out); err != nil {
+		return base, err
+	}
+	return out, nil
+}
+
 // sanitize is the one path everything written to disk goes down, and it does
 // nothing itself: each group of fields is cleaned by the file that owns it. A
 // new setting therefore lands in one domain file and one line of this list,
@@ -441,6 +546,7 @@ func sanitize(n Settings) Settings {
 	n = sanitizeArchives(n)
 	n = sanitizeIntake(n)
 	n = sanitizeNetwork(n)
+	n = sanitizeResolvers(n)
 	n = sanitizeRules(n)
 	n = sanitizeLifecycle(n)
 	n = sanitizeIdleAction(n)

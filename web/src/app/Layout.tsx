@@ -22,21 +22,27 @@ function useCompletionToasts() {
   const { t } = useT();
   const prev = useRef<Record<string, string>>({});
   useEffect(() => {
-    return connectWS((type, data) => {
-      if (type === 'snapshot') {
-        prev.current = Object.fromEntries((data ?? []).map((t: Task) => [t.id, t.status]));
-      } else if (type === 'task') {
-        const before = prev.current[data.id];
-        prev.current[data.id] = data.status;
-        if (before && before !== data.status) {
-          const name = data.name || t('nav.downloads');
-          if (data.status === 'done') toast(t('downloads.finished', { name }), 'ok', 'download-done');
-          else if (data.status === 'error') toast(t('downloads.failed', { name }), 'fail', 'download-failed');
+    // 'snapshot' is not in kinds below and still arrives every time - see
+    // lib/useTasks.ts's identical note on why (Hub.SendTo bypasses a
+    // connection's own subscription filter).
+    return connectWS(
+      (type, data) => {
+        if (type === 'snapshot') {
+          prev.current = Object.fromEntries((data ?? []).map((t: Task) => [t.id, t.status]));
+        } else if (type === 'task') {
+          const before = prev.current[data.id];
+          prev.current[data.id] = data.status;
+          if (before && before !== data.status) {
+            const name = data.name || t('nav.downloads');
+            if (data.status === 'done') toast(t('downloads.finished', { name }), 'ok', 'download-done');
+            else if (data.status === 'error') toast(t('downloads.failed', { name }), 'fail', 'download-failed');
+          }
+        } else if (type === 'removed') {
+          delete prev.current[data.id];
         }
-      } else if (type === 'removed') {
-        delete prev.current[data.id];
-      }
-    });
+      },
+      ['task', 'removed'],
+    );
   }, [toast, t]);
 }
 

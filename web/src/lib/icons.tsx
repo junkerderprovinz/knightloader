@@ -289,6 +289,14 @@ export const IconHelp = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+/** Scripts (Wave 11B): angle brackets, the one glyph that reads as "code" at
+ *  16px without also reading as a browser tab or a terminal window. */
+export const IconCode = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M7.5 6L3.5 10l4 4M12.5 6l4 4-4 4" />
+  </svg>
+);
+
 /** The one-shot "paste from clipboard" button: a clipboard, clip and all. */
 export const IconClipboard = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
@@ -307,5 +315,29 @@ export const IconApp = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
     <rect x="3.5" y="4.5" width="13" height="11" rx="1.5" />
     <path d="M3.5 7.5h13" />
+  </svg>
+);
+
+/**
+ * Remote access's loud warning (build-plan.md's Wave 11 amendment on 11C): a
+ * triangle with an exclamation mark, the one glyph this app has no quieter
+ * equivalent of on purpose. Fill rather than stroke for the mark itself, so
+ * it stays legible at the small size a banner icon actually renders at.
+ */
+export const IconWarning = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.5} strokeLinejoin="round">
+    <path d="M10 3.25 17.25 16H2.75L10 3.25Z" strokeLinecap="round" />
+    <path d="M10 8.25v3.75" strokeLinecap="round" fill="none" />
+    <circle cx="10" cy="14.25" r=".9" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+/** API tokens: a key, distinct from IconLock's padlock (the shared
+ *  password) by shape alone, the same distinction the two credentials
+ *  themselves keep. */
+export const IconKey = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="6.25" cy="13.75" r="3" />
+    <path d="M8.4 11.6 15.5 4.5M13 7l1.75 1.75M15.25 4.75 17 6.5" />
   </svg>
 );

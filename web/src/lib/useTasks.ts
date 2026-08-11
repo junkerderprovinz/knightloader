@@ -20,16 +20,23 @@ export function useTasks(instance: string): Record<string, Task> {
     // it raced its own later delta events - whichever response landed last
     // won regardless of which was actually newer, so a slow GET could
     // silently revert tasks the socket had already updated.
-    return connectWS((type, data) => {
-      if (type === 'snapshot') setTasks(Object.fromEntries((data ?? []).map((t: Task) => [t.id, t])));
-      else if (type === 'task') setTasks((p) => ({ ...p, [data.id]: data }));
-      else if (type === 'removed')
-        setTasks((p) => {
-          const n = { ...p };
-          delete n[data.id];
-          return n;
-        });
-    });
+    // 'snapshot' is not in kinds below and still arrives every time: the
+    // server sends it with Hub.SendTo, not Broadcast, which bypasses a
+    // connection's own subscription filter entirely (internal/hub/hub.go).
+    // 'task'/'removed' are the only Broadcast kinds this hook ever reads.
+    return connectWS(
+      (type, data) => {
+        if (type === 'snapshot') setTasks(Object.fromEntries((data ?? []).map((t: Task) => [t.id, t])));
+        else if (type === 'task') setTasks((p) => ({ ...p, [data.id]: data }));
+        else if (type === 'removed')
+          setTasks((p) => {
+            const n = { ...p };
+            delete n[data.id];
+            return n;
+          });
+      },
+      ['task', 'removed'],
+    );
   }, [instance]);
   return tasks;
 }

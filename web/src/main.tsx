@@ -20,3 +20,19 @@ createRoot(document.getElementById('root')!).render(
     <AppRouter />
   </React.StrictMode>,
 );
+
+// Registered after the load event, not above: a service worker registration
+// competes with first paint for the main thread on some browsers, and
+// nothing here needs it before the app is already on screen — see
+// public/sw.js's own doc comment for why it deliberately caches nothing.
+// Feature-detected because the container's default deployment is plain
+// HTTP on a LAN address, where most browsers do not expose
+// navigator.serviceWorker at all (it needs a secure context).
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      // Installability (and the PWA share target) is a nicety this app
+      // otherwise works completely without — nothing here depends on it.
+    });
+  });
+}

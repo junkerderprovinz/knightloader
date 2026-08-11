@@ -12,6 +12,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"io/fs"
+	"mime"
 	"net/http"
 	"net/url"
 	"strings"
@@ -20,6 +21,7 @@ import (
 	"github.com/coder/websocket"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
+	"github.com/junkerderprovinz/knightloader/internal/hub"
 	"github.com/junkerderprovinz/knightloader/web"
 )
 
@@ -33,14 +35,41 @@ func Handler(a *app.App) http.Handler {
 	return sameOrigin(guard(a, reg, mux))
 }
 
-// authenticated reports whether the request carries a valid session, or whether
-// no password is set at all.
+// authenticated reports whether the request carries a valid session or a
+// valid API token, or whether no password is set at all.
+//
+// A token is checked whether or not a cookie was also sent, rather than only
+// when the cookie is absent, because that is what makes it possible to test
+// one route with `curl -H Authorization` without first fighting the browser
+// session out of the way.
 func authenticated(a *app.App, r *http.Request) bool {
 	if !a.Auth.Enabled() {
 		return true
 	}
-	c, err := r.Cookie(auth.CookieName)
-	return err == nil && a.Auth.Valid(c.Value)
+	if c, err := r.Cookie(auth.CookieName); err == nil && a.Auth.Valid(c.Value) {
+		return true
+	}
+	if tok := bearerToken(r); tok != "" {
+		if _, ok := a.APITokens.Check(tok); ok {
+			return true
+		}
+	}
+	return false
+}
+
+// bearerToken reads the RFC 6750 Authorization header, the way a script, a
+// browser extension background page or a phone app authenticates: none of
+// those hold the session cookie a browser tab does, and none of them should
+// have to. That is the entire reason a named token exists as well as the
+// shared password. Case-insensitive on the scheme, exactly as the RFC and
+// net/http's own header canonicalisation already are.
+func bearerToken(r *http.Request) string {
+	h := r.Header.Get("Authorization")
+	const prefix = "Bearer "
+	if len(h) <= len(prefix) || !strings.EqualFold(h[:len(prefix)], prefix) {
+		return ""
+	}
+	return strings.TrimSpace(h[len(prefix):])
 }
 
 func setSession(w http.ResponseWriter, r *http.Request, token string) {
@@ -127,9 +156,41 @@ func serveWS(a *app.App, w http.ResponseWriter, r *http.Request) {
 	// if that burst has since ended and nothing new of that kind starts.
 	a.Hub.SendTo(c, "activitySnapshot", a.ActivitySnapshot())
 	for {
-		if _, _, err := c.Read(r.Context()); err != nil {
+		_, data, err := c.Read(r.Context())
+		if err != nil {
 			return
 		}
+		handleWSControl(a, c, data)
+	}
+}
+
+// wsControl is the one message shape a client sends up this socket: which
+// broadcast kinds it wants from here on. See internal/hub.Subscribe's own
+// doc comment for what "type":"subscribe" vs "unsubscribe" and a Kinds of
+// "*" each mean. Everything this app pushes down the same socket is a
+// different, un-typed shape ({"type","data"}, see hub.Send), so the two
+// directions never collide on one Go type.
+type wsControl struct {
+	Type  string   `json:"type"`
+	Kinds []string `json:"kinds"`
+}
+
+// handleWSControl reads one client frame. An unparseable or unrecognised one
+// is silently ignored rather than closing the socket: the read loop's job is
+// to notice a dead connection, not to police malformed JSON from a client
+// that is otherwise working fine, and a client that only ever listens (every
+// version of the UI before this feature existed) never sends anything here
+// at all.
+func handleWSControl(a *app.App, c hub.Conn, data []byte) {
+	var msg wsControl
+	if json.Unmarshal(data, &msg) != nil {
+		return
+	}
+	switch msg.Type {
+	case "subscribe":
+		a.Hub.Subscribe(c, msg.Kinds)
+	case "unsubscribe":
+		a.Hub.Unsubscribe(c, msg.Kinds)
 	}
 }
 
@@ -147,6 +208,18 @@ func serveWS(a *app.App, w http.ResponseWriter, r *http.Request) {
 // mean "do not cache" but "revalidate before use". A reload then costs one
 // conditional request that almost always answers 304.
 func spaHandler() http.Handler {
+	// Go's own mime package has no built-in mapping for .webmanifest (checked
+	// against its source, not assumed - mime.TypeByExtension(".webmanifest")
+	// returns ""), so without this http.FileServer falls through to content
+	// sniffing, which reads a manifest's leading "{" as plain text and serves
+	// it as text/plain rather than the type the PWA install prompt and
+	// several browsers' own manifest parsers expect. Registered once, here
+	// rather than in an init(), because this file is a library package that
+	// might be imported without ever calling Handler - an init() would
+	// mutate the process-wide mime table as a side effect of importing this
+	// package, not of using it.
+	_ = mime.AddExtensionType(".webmanifest", "application/manifest+json")
+
 	sub, _ := fs.Sub(web.Dist, "dist")
 	etags := buildETags(sub)
 	fileServer := http.FileServer(http.FS(sub))
