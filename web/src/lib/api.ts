@@ -127,6 +127,58 @@ export interface Task {
   changedAt?: string;
   /** Volume number inside a multi-volume set, 0 for a file that is not in one. */
   archivePart?: number;
+
+  /**
+   * The multi-file selection tree for a torrent task - absent for every other
+   * task, and absent for a single-file torrent, which never shows one. See
+   * TorrentFile below and components/TorrentUpload.tsx for where it is built.
+   */
+  torrentFiles?: TorrentFile[];
+
+  /**
+   * The torrent swarm fields (11.5E: Peers/Seeds/Ratio columns, the row
+   * tooltip's fuller detail - components/columns.tsx), all omitempty and all
+   * absent for every non-torrent task. Mirrors core.Task field for field
+   * (internal/core/task.go) - see that struct's own doc comment for why
+   * these five specifically are never persisted to internal/store despite
+   * arriving on every live task update: a peer count is true for the second
+   * it was read, and writing it to disk only to show it stale after a
+   * restart would be worse than not showing it at all.
+   */
+  /** How many peers the swarm has shown us, seeding or not. */
+  peers?: number;
+  /** How many of those are connected and complete. */
+  seeds?: number;
+  /** Uploaded over downloaded - what a seed target is measured against. */
+  ratio?: number;
+  /** Bytes sent to the swarm. */
+  uploaded?: number;
+  /**
+   * A finished torrent still giving bytes back - a FLAG beside
+   * `status === 'done'`, never a status of its own (build-plan.md section 4,
+   * conflict 2: a new status value breaks every exhaustive mapping of the
+   * seven this app already has).
+   */
+  seeding?: boolean;
+
+  /**
+   * Which torrent this is, not what its swarm is doing right now - set once
+   * at stage time (app_torrents.go's AddTorrent, app_links.go's stage) and
+   * never re-derived, unlike the five swarm fields above. UNLIKE those five
+   * these two ARE persisted (internal/store/store.go's info_hash/trackers
+   * columns, migration 13) - see core.Task.InfoHash's own comment for why.
+   */
+  infoHash?: string;
+  trackers?: string[];
+}
+
+/** One file inside a multi-file torrent, and the tick beside it - mirrors
+ *  core.TorrentFile field for field. Path is the file's path INSIDE the
+ *  torrent, forward-slashed, never a path on this machine. */
+export interface TorrentFile {
+  path: string;
+  size: number;
+  selected: boolean;
 }
 
 export interface Settings {
@@ -905,6 +957,69 @@ export async function uploadContainer(file: File, pkg = ''): Promise<ContainerRe
   // No Content-Type header: the browser has to set the multipart boundary, and
   // setting it by hand produces a body the server cannot parse.
   return json<ContainerResult>(await ok(await fetch('/api/containers', { method: 'POST', body: form })));
+}
+
+// --- Torrent upload and the file-tree step ---------------------------------
+
+/** What POST /api/torrents/parse hands back: enough to draw the file tree,
+ *  and the `uri` the follow-up stageTorrent call needs. Nothing is staged by
+ *  this call - it is a preview, matching the collector's own new step
+ *  (components/TorrentUpload.tsx) that shows a tree before staging continues. */
+export interface TorrentTree {
+  uri: string;
+  infoHash: string;
+  name: string;
+  private: boolean;
+  totalSize: number;
+  pieceLength: number;
+  pieces: number;
+  files: TorrentFile[];
+  trackers: string[];
+  droppedTrackers: number;
+}
+
+/**
+ * parseTorrentUpload sends a .torrent file and gets back its file tree.
+ *
+ * A failure throws with the server's own sentence - "this .torrent's piece
+ * layout does not match the data it describes" is an explanation, and "invalid
+ * file" is what sends somebody re-uploading the same broken one, the same
+ * reasoning uploadContainer's own doc comment gives.
+ */
+export async function parseTorrentUpload(file: File): Promise<TorrentTree> {
+  const form = new FormData();
+  form.append('file', file);
+  return json<TorrentTree>(await fetch('/api/torrents/parse', { method: 'POST', body: form }));
+}
+
+/**
+ * stageTorrent is the confirm step: the `uri` parseTorrentUpload returned,
+ * with a file selection, becomes a task. `selectedPaths` names the files to
+ * KEEP (not the ones to drop) - omit it to keep every file selected, which is
+ * what a single-file torrent that never showed a tree wants, and what Parse
+ * itself defaults to.
+ *
+ * The server re-derives the real file list from its own fresh parse of `uri`
+ * and only ever narrows it against `selectedPaths` - a path that was never in
+ * the torrent has no effect, so this cannot be used to smuggle a fabricated
+ * entry onto the task. See routes_torrents.go's own comment on stageTorrent.
+ *
+ * Returns `null` when the mirror set folded this into a task already in the
+ * list - the same "nothing new to show" outcome addLinks's own duplicate
+ * handling already has, just for a single result instead of an array.
+ */
+export async function stageTorrent(
+  uri: string,
+  pkg: string,
+  selectedPaths?: string[],
+): Promise<Task | null> {
+  return json<Task | null>(
+    await fetch('/api/torrents', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uri, package: pkg, selectedPaths }),
+    }),
+  );
 }
 
 /**

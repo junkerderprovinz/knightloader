@@ -21,6 +21,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 )
 
@@ -539,8 +540,13 @@ func (a *App) stage(u, name string, in intake) *core.Task {
 		// what tells the queue apart from a link the filter has never seen — see
 		// filterWaived — and it is empty for everything that was never held.
 		SkipReason: in.waived,
-		Host:       hostOf(u),
-		CreatedAt:  now,
+		// torrentHost, not the bare hostOf every other link here gets: a magnet
+		// names no single host either, and falling back to hostOf's raw-string
+		// answer for one is exactly the bug torrentHost's own comment describes
+		// for an uploaded .torrent, just smaller - see that comment for why
+		// "smaller" does not mean "fine".
+		Host:      torrentHost(u),
+		CreatedAt: now,
 	}
 	// The add-links form's own batch options, seeded before ANY of the three
 	// finishStaging calls below - which is what runs the Packagizer - so that a
@@ -588,6 +594,20 @@ func (a *App) stage(u, name string, in intake) *core.Task {
 		t.Name = result.Name
 	}
 	t.Size = result.Size
+	if t.Resolver == "torrent" {
+		// resolver.Result (above) has no room for these - it is the one shape
+		// every resolver answers with, and InfoHash/Trackers mean nothing to
+		// the other five. A second, torrent-specific Describe call gets them
+		// the same way app_torrents.go's AddTorrent already does for an
+		// uploaded .torrent - cheap for the magnet case this path actually
+		// handles: checkMagnet is metainfo.ParseMagnetV2Uri, a local parse of
+		// the URI's own text, never a network call, so this is not a second
+		// real resolve.
+		if md, err := (torrent.Resolver{}).Describe(u); err == nil {
+			t.InfoHash = md.InfoHash
+			t.Trackers = md.Trackers
+		}
+	}
 
 	// Second pass, now that the name and the byte count exist. This is the one
 	// that can act on a size or a file-type condition, and it still runs before

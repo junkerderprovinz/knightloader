@@ -4,6 +4,7 @@ go 1.26.4
 
 require (
 	github.com/GopeedLab/gopeed v1.9.3
+	github.com/anacrolix/torrent v1.60.1-0.20251217073903-486bcbe758e0
 	github.com/atotto/clipboard v0.1.4
 	github.com/bodgit/sevenzip v1.6.5
 	github.com/coder/websocket v1.8.15
@@ -42,7 +43,6 @@ require (
 	github.com/anacrolix/multiless v0.4.0 // indirect
 	github.com/anacrolix/stm v0.5.0 // indirect
 	github.com/anacrolix/sync v0.6.0 // indirect
-	github.com/anacrolix/torrent v1.60.1-0.20251217073903-486bcbe758e0 // indirect
 	github.com/anacrolix/upnp v0.1.4 // indirect
 	github.com/anacrolix/utp v0.2.0 // indirect
 	github.com/andybalholm/brotli v1.2.2 // indirect

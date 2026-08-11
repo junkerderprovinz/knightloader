@@ -127,8 +127,8 @@ func TestWANServicesKeepsTheControlURLOnTheHostThatAnswered(t *testing.T) {
 			if len(svcs) != 1 {
 				t.Fatalf("got %d services, want 1: %+v", len(svcs), svcs)
 			}
-			if svcs[0].controlURL != tc.want {
-				t.Errorf("control URL = %q, want %q", svcs[0].controlURL, tc.want)
+			if svcs[0].ControlURL != tc.want {
+				t.Errorf("control URL = %q, want %q", svcs[0].ControlURL, tc.want)
 			}
 		})
 	}

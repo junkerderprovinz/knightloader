@@ -361,6 +361,17 @@ func featureList(a *app.App) []Feature {
 			Detail: ytdlpDetail(a, s),
 		},
 		{
+			ID: "torrents", Verdict: VerdictShipped, Page: "torrents",
+			Switch: SwitchNone, Enabled: resolverRegistered(a, "torrent"),
+			// A magnet link or an uploaded .torrent is routed by matching the same
+			// live resolver table jd/ytdlp register on above (resolverRegistered),
+			// so there is no separate flag here to disagree with it - same
+			// reasoning as the two rows just above.
+			Reason: "a magnet link or .torrent upload is routed by matching the live resolver table above; " +
+				"there is no separate flag here to disagree with it",
+			Detail: torrentsDetail(a),
+		},
+		{
 			ID: "captcha", Verdict: VerdictShipped, Page: "captcha",
 			Switch: SwitchNone, Enabled: a.ContainerBackendConfigured(),
 			Reason: "the only source this build relays is the headless JDownloader sidecar (internal/captcha.JDSource); " +
@@ -418,6 +429,7 @@ func featurePages() []FeaturePage {
 		{ID: "reconnect", Modules: []string{"reconnect"}},
 		{ID: "accounts", Modules: []string{"jd"}},
 		{ID: "resolvers", Modules: []string{"ytdlp"}},
+		{ID: "torrents", Modules: []string{"torrents"}},
 		{ID: "captcha", Modules: []string{"captcha"}},
 		{ID: "schedule", Modules: []string{"scheduler"}},
 		{ID: "look"},
@@ -666,6 +678,29 @@ func ytdlpDetail(a *app.App, s settings.Settings) string {
 		detail += ", subtitles: " + string(s.Ytdlp.Subtitles)
 	}
 	return detail
+}
+
+// torrentsDetail mirrors jdDetail/ytdlpDetail's own two-branch shape, read
+// live rather than assumed - Enabled and this string say the same live fact
+// two different ways on purpose, the same pairing every other resolver row
+// in this table already uses.
+//
+// app.go registers torrent.Resolver{} at boot alongside Direct/HTTPFallback
+// (unconditionally, unlike jd/ytdlp/torbox/debrid, which register only once
+// their own backend is confirmed reachable - a magnet or an uploaded
+// .torrent needs no external service to be resolvable at all), so the false
+// branch below is not expected to fire in this build. It stays rather than
+// being deleted because Enabled is still computed from live state and not
+// hardcoded true: a future build that makes registration conditional on
+// something (a build tag, a settings switch) keeps an honest row for free
+// instead of silently going stale the way this same string did earlier in
+// this wave, when it described a gap that had not yet closed.
+func torrentsDetail(a *app.App) string {
+	if !resolverRegistered(a, "torrent") {
+		return "the torrent resolver is not registered on the live routing table; " +
+			"magnet links and .torrent uploads are refused as unsupported"
+	}
+	return "magnet links and uploaded .torrent files are routed to the embedded torrent engine"
 }
 
 // captchaDetail mirrors jdDetail's own two-branch shape rather than a

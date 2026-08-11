@@ -10,6 +10,7 @@ import {
   IconFilter,
   IconGlobe,
   IconHelp,
+  IconInstances,
   IconLock,
   IconLook,
   IconModules,
@@ -36,6 +37,7 @@ import { Rules } from './Rules';
 import { Schedule } from './Schedule';
 import { Scripts } from './Scripts';
 import { System } from './System';
+import { Torrents } from './Torrents';
 
 /**
  * Which component renders which sub-page.
@@ -67,6 +69,9 @@ const PAGES: Record<string, () => ReactNode> = {
   // comment for why the routing order itself lives on the Accounts page
   // instead.
   resolvers: () => <Resolvers />,
+  // Seed target, transfer limit, port + UPnP mapping, DHT/PEX - build-plan.md's
+  // 11.5E. See Torrents.tsx's own doc comment.
+  torrents: () => <Torrents />,
   // Wave 7 (7B) fills this line in - captcha settings: solver order and each
   // solver's own API key. See Captcha.tsx's own doc comment.
   captcha: () => <Captcha />,
@@ -117,6 +122,11 @@ const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   connections: IconGlobe,
   reconnect: IconRetry,
   accounts: IconAccounts,
+  // Reused rather than a fresh glyph: IconInstances already draws "another
+  // device on the network" (see its own use on Reconnect.tsx's UPnP method
+  // tab), which is as close as the existing set gets to a peer-swarm idea,
+  // and it is not spoken for anywhere else in this map.
+  torrents: IconInstances,
   captcha: IconCaptcha,
   schedule: IconClock,
   look: IconLook,

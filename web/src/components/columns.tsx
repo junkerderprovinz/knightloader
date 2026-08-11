@@ -22,6 +22,7 @@ import { ProgressBar } from './ProgressBar';
 import { ResolverBadge, StatusPill } from './StatusPill';
 import { useTooltip } from './ui';
 
+
 export type ColumnId =
   | 'enabled'
   | 'name'
@@ -36,7 +37,10 @@ export type ColumnId =
   | 'finished'
   | 'comment'
   | 'resolver'
-  | 'source';
+  | 'source'
+  | 'peers'
+  | 'seeds'
+  | 'ratio';
 
 /**
  * Which list a layout belongs to. The collector shows staged links and the
@@ -263,6 +267,18 @@ const availChip: Record<Exclude<Availability, ''>, { key: TranslationKey; tone: 
 const PENDING = {
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Last changed',
+  // build-plan.md's 11.5E (torrent/magnet support) additions. columns.peers/
+  // columns.seeds/columns.ratio are deliberately NOT in this table - it only
+  // backs cx(), and the column header/menu row (TaskList.tsx, ColumnMenu.tsx)
+  // call t() on ColumnDef.labelKey directly, with no fallback of their own -
+  // see the labelKey casts below for where that gap actually lives and why it
+  // cannot be closed from this file.
+  'task.tooltip.infoHash': 'Info hash',
+  'task.tooltip.trackers': 'Trackers',
+  'task.tooltip.swarm': 'Peers / seeds / ratio',
+  'task.tooltip.swarmDetail': '{peers} peers, {seeds} seeds, ratio {ratio}',
+  'task.tooltip.uploaded': 'Uploaded',
+  'task.tooltip.seeding': 'Still seeding',
 } as const;
 
 type PendingKey = keyof typeof PENDING;
@@ -378,6 +394,9 @@ function TooltipField({ label, children, ltr }: { label: string; children: React
 function RowTooltipContent({ task, t, base }: { task: Task; t: Translate; base: string }) {
   const cx = useCx();
   const connection = useConnectionLabel(task, t, base);
+  // Same signal the Peers/Seeds/Ratio columns and ResolverBadge already key
+  // off - the torrent resolver's own Info().ID (internal/resolver/torrent).
+  const isTorrent = task.resolver === 'torrent';
   const name = task.name || task.url;
   // Only worth its own line when it says something the name above did not -
   // a task with no name already shows the URL as its name.
@@ -410,6 +429,36 @@ function RowTooltipContent({ task, t, base }: { task: Task; t: Translate; base: 
         <TooltipField label={t('columns.resolver')}>
           <ResolverBadge resolver={task.resolver} />
         </TooltipField>
+        {/* Peers/Seeds/Ratio also have their own columns (hidden by default,
+            like six other low-traffic ones already are - see DEFAULT_HIDDEN
+            below), so this is here for the same reason connection/added/
+            finished/comment/source are: readable without opening the column
+            menu and giving up width elsewhere for a column blank on every
+            non-torrent row. Uploaded and "still seeding" go no further than
+            here - the spec (docs/torrent-support.md) asks for "full peer/seed
+            detail" in the tooltip specifically, a fuller picture than the
+            three columns alone give. */}
+        {isTorrent && (
+          <TooltipField label={cx('task.tooltip.swarm')} ltr>
+            {cx('task.tooltip.swarmDetail', {
+              peers: task.peers ?? 0,
+              seeds: task.seeds ?? 0,
+              ratio: fmtRatio(task.ratio),
+            })}
+            {task.seeding ? ` · ${cx('task.tooltip.seeding')}` : ''}
+            {task.uploaded ? ` · ${cx('task.tooltip.uploaded')} ${fmtBytes(task.uploaded)}` : ''}
+          </TooltipField>
+        )}
+        {task.infoHash && (
+          <TooltipField label={cx('task.tooltip.infoHash')} ltr>
+            {task.infoHash}
+          </TooltipField>
+        )}
+        {task.trackers && task.trackers.length > 0 && (
+          <TooltipField label={cx('task.tooltip.trackers')} ltr>
+            {task.trackers.join(', ')}
+          </TooltipField>
+        )}
         {connection && (
           <TooltipField label={t('columns.connection')} ltr>
             {connection.text}
@@ -653,6 +702,20 @@ const cmpText = (a: string, b: string): number => a.localeCompare(b);
 
 const sum = (items: Task[], pick: (t: Task) => number): number => items.reduce((s, x) => s + pick(x), 0);
 
+/** Same signal as RowTooltipContent's own isTorrent - internal/resolver/torrent's Info().ID. */
+const isTorrentTask = (t: Task): boolean => t.resolver === 'torrent';
+
+/**
+ * fmtRatio prints uploaded-over-downloaded to two places, never scientific
+ * notation and never blank for a real zero - a fresh torrent that has not
+ * uploaded a byte yet genuinely is "0.00", the same "zero is a true statement
+ * for a torrent" rule core.TorrentStats' own doc comment states for peers and
+ * seeds.
+ */
+function fmtRatio(r: number | undefined): string {
+  return (r ?? 0).toFixed(2);
+}
+
 // --- The registry ----------------------------------------------------------
 
 export const COLUMNS: ColumnDef[] = [
@@ -866,6 +929,70 @@ export const COLUMNS: ColumnDef[] = [
     compare: (a, b) => cmpText(a.source ?? '', b.source ?? ''),
     render: (task) => task.source ?? '',
   },
+  // Peers/Seeds/Ratio - build-plan.md's 11.5E. Blank on every non-torrent row
+  // rather than "0": zero peers is a true, useful reading for a torrent and
+  // meaningless noise for an HTTP download, the same distinction
+  // core.TorrentStats' own doc comment draws. Hidden by default below
+  // (DEFAULT_HIDDEN), the same treatment six other low-traffic columns
+  // already get, and readable regardless via the row tooltip above.
+  //
+  // labelKey is cast the same way System.tsx/Scripts.tsx's own PENDING keys
+  // are, but with a real difference worth being explicit about: those are
+  // consumed through this file's own cx() (or their page's), which supplies
+  // an English fallback when the catalogue has no entry yet. These three are
+  // consumed by TaskList.tsx and ColumnMenu.tsx calling t(col.labelKey)
+  // directly, with no fallback of their own - neither file is this wave's to
+  // edit, and en.ts is 11.5F's (the translate phase, which lands right after
+  // this lane). Until 11.5F adds 'columns.peers'/'columns.seeds'/
+  // 'columns.ratio', t() returns undefined for these three specifically
+  // (i18n.tsx: `dict[key] ?? en[key]`, both undefined for a key neither
+  // object has) and React renders that as nothing - an empty header cell and
+  // an empty column-menu row, not a raw dotted key. Self-heals the moment
+  // 11.5F lands; see this wave's own report.
+  {
+    id: 'peers',
+    labelKey: 'columns.peers' as unknown as TranslationKey,
+    width: 76,
+    minWidth: 56,
+    align: 'end',
+    numeric: true,
+    hideable: true,
+    compare: (a, b) => (a.peers ?? 0) - (b.peers ?? 0),
+    render: (task) => (isTorrentTask(task) ? String(task.peers ?? 0) : ''),
+    aggregate: (items) => {
+      const torrents = items.filter(isTorrentTask);
+      return torrents.length > 0 ? String(sum(torrents, (x) => x.peers ?? 0)) : null;
+    },
+  },
+  {
+    id: 'seeds',
+    labelKey: 'columns.seeds' as unknown as TranslationKey,
+    width: 76,
+    minWidth: 56,
+    align: 'end',
+    numeric: true,
+    hideable: true,
+    compare: (a, b) => (a.seeds ?? 0) - (b.seeds ?? 0),
+    render: (task) => (isTorrentTask(task) ? String(task.seeds ?? 0) : ''),
+    aggregate: (items) => {
+      const torrents = items.filter(isTorrentTask);
+      return torrents.length > 0 ? String(sum(torrents, (x) => x.seeds ?? 0)) : null;
+    },
+  },
+  {
+    id: 'ratio',
+    labelKey: 'columns.ratio' as unknown as TranslationKey,
+    width: 84,
+    minWidth: 60,
+    align: 'end',
+    numeric: true,
+    hideable: true,
+    compare: (a, b) => (a.ratio ?? 0) - (b.ratio ?? 0),
+    render: (task) => (isTorrentTask(task) ? fmtRatio(task.ratio) : ''),
+    // No aggregate, matching added/finished/comment/source just above: a
+    // package's ratio is not a sum or a mean of its members' ratios in any
+    // sense somebody reading the header would recognise as "the" ratio.
+  },
 ];
 
 export const COLUMN_BY_ID = new Map<ColumnId, ColumnDef>(COLUMNS.map((c) => [c.id, c]));
@@ -920,9 +1047,27 @@ const FLEX_COLUMN: ColumnId = 'name';
  * click away for the people who have a list of proxies and want to see which of
  * them is carrying what, which is exactly who the column is for.
  */
+// Peers/seeds/ratio join both lists' hidden set, on top of everything the two
+// long comments above already argued for: they are blank on every row that is
+// not a torrent, which today is every row on every instance that has never
+// added a magnet link or a .torrent file, and a column of blanks earns its
+// keep even less than `connection` (which at least resolves once one proxy is
+// configured) does before this feature has been used even once.
 export const DEFAULT_HIDDEN: Record<ListProfile, ColumnId[]> = {
-  downloads: ['comment', 'source', 'added', 'finished', 'resolver', 'connection'],
-  collector: ['progress', 'speed', 'eta', 'finished', 'comment', 'added', 'source', 'connection'],
+  downloads: ['comment', 'source', 'added', 'finished', 'resolver', 'connection', 'peers', 'seeds', 'ratio'],
+  collector: [
+    'progress',
+    'speed',
+    'eta',
+    'finished',
+    'comment',
+    'added',
+    'source',
+    'connection',
+    'peers',
+    'seeds',
+    'ratio',
+  ],
 };
 
 // --- The stored layout, and surviving an update ----------------------------

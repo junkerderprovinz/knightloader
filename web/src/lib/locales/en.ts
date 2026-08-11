@@ -372,6 +372,27 @@ export const en = {
   'container.handed': '{file} is encrypted. It was handed to the JDownloader backend; its links appear here once it has fetched it (within {n}s).',
   'container.failed': '{file} was not taken: {reason}',
 
+  // Wave 11.5D: uploading a .torrent file, and the file-tree step a
+  // multi-file torrent shows before it is added. A magnet link needs none of
+  // this - it already stages through the paste box above, the moment
+  // internal/resolver/torrent.Resolver.Match recognises the scheme.
+  'torrent.prompt': 'Have a .torrent file? Drop it here.',
+  'torrent.info': 'A magnet link is staged through the paste box above - it needs no upload. A .torrent file is read here: for more than one file inside it, you get to choose which ones to fetch before it is added.',
+  'torrent.choose': 'Choose a .torrent file',
+  'torrent.uploading': 'Reading…',
+  'torrent.staging': 'Adding…',
+  'torrent.staged': 'Added {file} to the collector.',
+  'torrent.stagedIn': 'Added {file} to the collector in “{pkg}”.',
+  'torrent.duplicate': '{file} is already in the list.',
+  'torrent.failed': '{file} was not taken: {reason}',
+  'torrent.onlyOne': 'only one .torrent can be reviewed at a time',
+  'torrent.tree.summary': '{n} of {total} file(s) selected ({size})',
+  'torrent.tree.private': 'Private tracker',
+  'torrent.tree.selectAll': 'Select all',
+  'torrent.tree.selectNone': 'Select none',
+  'torrent.tree.cancel': 'Cancel',
+  'torrent.tree.add': 'Add to collector',
+
   // The one-shot clipboard button: hidden by itself wherever
   // navigator.clipboard is undefined (an ordinary http:// LAN address is not
   // a secure context), so its own label is all it ever needs — there is no
@@ -1154,6 +1175,23 @@ export const en = {
   'task.tooltip.url': 'URL',
   'task.tooltip.changed': 'Last changed',
 
+  // The row tooltip's swarm detail and the three hidden-by-default swarm
+  // columns (components/columns.tsx, Wave 11.5E) - the six tooltip strings
+  // land here verbatim from that file's own PENDING table (see its doc
+  // comment); columns.peers/seeds/ratio do not go through PENDING at all -
+  // TaskList.tsx/ColumnMenu.tsx call t(col.labelKey) directly with no
+  // fallback of their own, so these three are what resolves the labelKey
+  // casts the moment this lands.
+  'task.tooltip.infoHash': 'Info hash',
+  'task.tooltip.trackers': 'Trackers',
+  'task.tooltip.swarm': 'Peers / seeds / ratio',
+  'task.tooltip.swarmDetail': '{peers} peers, {seeds} seeds, ratio {ratio}',
+  'task.tooltip.uploaded': 'Uploaded',
+  'task.tooltip.seeding': 'Still seeding',
+  'columns.peers': 'Peers',
+  'columns.seeds': 'Seeds',
+  'columns.ratio': 'Ratio',
+
   // Reaching a task's own file (components/FileActions.tsx, Wave 10's 10G) -
   // "Open" streams it through the browser; the other two are desktop-only and
   // carry their reason in file.desktopOnly when they are shown disabled.
@@ -1542,6 +1580,58 @@ export const en = {
   // there are no ready-made keys to land verbatim here.
   'settings.nav.resolvers': 'Resolvers',
   'settings.module.ytdlp': 'yt-dlp',
+
+  // The Torrents settings page (pages/settings/Torrents.tsx, Wave 11.5E) -
+  // seed target, transfer limit, port + UPnP mapping, DHT/PEX. Landed here
+  // verbatim from that file's own PENDING table (see its doc comment); two
+  // more, settings.nav.torrents and settings.module.torrents, are not in
+  // that table at all - registry.tsx and routes_features.go already call
+  // label() against them (Settings.tsx's rail, Modules.tsx's row), falling
+  // back to the raw "torrents" id until now, the same gap this wave's own
+  // report closes the way 11G's report closed it for settings.nav.resolvers/
+  // settings.module.ytdlp just above.
+  'settings.nav.torrents': 'Torrents',
+  'settings.module.torrents': 'Torrents',
+  'settings.torrents.title': 'Torrents',
+  'settings.torrents.subtitle':
+    'Seed targets, transfer limits, port mapping and DHT/PEX for magnet links and .torrent files.',
+  'settings.torrents.seedingTitle': 'Seeding',
+  'settings.torrents.seedRatio': 'Seed ratio target',
+  'settings.torrents.seedRatioHint':
+    'Keep seeding a finished torrent until this much has gone back to the swarm, relative to its own size. 0 = no ratio target.',
+  'settings.torrents.seedDuration': 'Seed duration target',
+  'settings.torrents.seedDurationHint':
+    'Keep seeding a finished torrent for this long after it completes. 0 = no time limit. Whichever of the two targets above is reached first stops seeding.',
+  'settings.torrents.seedDurationUnit': 'hours',
+  'settings.torrents.transferTitle': 'Transfer limit',
+  'settings.torrents.uploadLimit': 'Upload limit',
+  'settings.torrents.uploadLimitHint': 'Caps how fast a torrent uploads to the swarm while seeding. 0 = unlimited.',
+  'settings.torrents.uploadLimitUnit': 'KiB/s',
+  'settings.torrents.portTitle': 'Port & mapping',
+  'settings.torrents.port': 'Port',
+  'settings.torrents.portHint':
+    'The port this instance listens for swarm connections on. 0 lets the torrent engine pick one.',
+  'settings.torrents.portMapHint':
+    'Asks the router to forward the port above to this machine over UPnP, so peers behind a different router can still reach it. Not every router supports this, and some accept the request without it actually working.',
+  'settings.torrents.portMapButton': 'Attempt UPnP mapping',
+  'settings.torrents.portMapping': 'Asking the router…',
+  'settings.torrents.portMapNeedsPort':
+    'Set a port above before mapping it - 0 leaves nothing for the router to forward to.',
+  'settings.torrents.portMapConfirmed': 'Confirmed: port {port} is mapped and was verified reachable.',
+  'settings.torrents.portMapUnconfirmed':
+    'The router accepted the request, but the mapping could not be confirmed as actually working. Some routers do this silently - try a connectivity check from outside the network.',
+  'settings.torrents.portMapFailed': 'Could not map the port: {error}',
+  'settings.torrents.portMapUnavailable': 'This build does not expose port mapping yet.',
+  'settings.torrents.networkTitle': 'Peer discovery',
+  'settings.torrents.dht': 'DHT',
+  'settings.torrents.dhtHint':
+    'Finds peers with no tracker involved, using other BitTorrent clients as a distributed lookup.',
+  'settings.torrents.pex': 'Peer exchange (PEX)',
+  'settings.torrents.pexHint': 'Trades known peers with the ones already connected, so a swarm with few peers is found faster.',
+  'settings.torrents.privateNote':
+    'A private torrent is meant to switch both off automatically, regardless of what is set here - most private trackers ban accounts that use either - but this build cannot yet enforce it; see the note above.',
+  'settings.torrents.engineNote':
+    'Everything below is saved and validated, but this build does not yet carry it into a running download - a torrent seeds at the engine’s own built-in defaults (ratio 1.0, two hours, DHT and PEX on) and listens on whatever port the engine itself picks, regardless of what is set here. The mapping button further down still does a real thing: it asks the router to forward the port number typed above, honestly, whether or not a torrent is actually listening on it yet.',
 } as const;
 
 export type TranslationKey = keyof typeof en;

@@ -5,6 +5,12 @@
 /dist/
 # go
 /vendor/
+# anacrolix/torrent's default piece-completion cache: created wherever a test
+# builds a real torrent.Client without an explicit storage dir (11.5's
+# internal/engine/torrent_live_test.go does, deliberately, to exercise gopeed's
+# bt.Fetcher against a real swarm) - not something this repo's own code names
+# or controls, so ignoring it here is the fix rather than a code change.
+*.torrent.bolt.db
 # local/tmp
 /tmp/
 .DS_Store

@@ -152,3 +152,135 @@ func TestEveryFieldSurvivesARestart(t *testing.T) {
 		})
 	}
 }
+
+// TestTorrentFileSelectionSurvivesARestart is TorrentFiles' own version of the
+// promise the test above pins for a Packagizer rule, and for the same reason:
+// unlike the swarm numbers a torrent task also carries (peers, seeds, ratio,
+// uploaded, seeding), which are a reading of the world and deliberately not
+// persisted at all - see core.Task's own doc comment - a file selection is a
+// decision the user made by unticking a box. A restart that forgot it would
+// silently start fetching the files the user just excluded, which is the
+// opposite of what decision 6 of docs/torrent-support.md asks for.
+func TestTorrentFileSelectionSurvivesARestart(t *testing.T) {
+	dir := t.TempDir()
+	s, err := Open(filepath.Join(dir, "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	task := core.Task{
+		ID: "tf1", URL: "magnet:?xt=urn:btih:0000000000000000000000000000000000000000",
+		Name: "a.folder", CreatedAt: time.Now(),
+		TorrentFiles: []core.TorrentFile{
+			{Path: "a/one.mkv", Size: 900, Selected: true},
+			{Path: "a/two.srt", Size: 12, Selected: false},
+		},
+	}
+	if err := s.Save(&task); err != nil {
+		t.Fatal(err)
+	}
+	s.Close()
+
+	again, err := Open(filepath.Join(dir, "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer again.Close()
+	all, err := again.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(all) != 1 {
+		t.Fatalf("reloaded %d tasks, want 1", len(all))
+	}
+	got := all[0].TorrentFiles
+	if len(got) != len(task.TorrentFiles) {
+		t.Fatalf("torrent files = %+v, want %+v", got, task.TorrentFiles)
+	}
+	for i, f := range task.TorrentFiles {
+		if got[i] != f {
+			t.Errorf("torrent file %d = %+v, want %+v", i, got[i], f)
+		}
+	}
+}
+
+// TestTaskWithNoTorrentFilesRoundTripsAsNilNotEmpty is the ordinary-task case:
+// every non-torrent task in the store must not gain a stray empty slice where
+// it used to carry a nil one, which would be a visible diff in every existing
+// save this column did not exist for.
+func TestTaskWithNoTorrentFilesRoundTripsAsNilNotEmpty(t *testing.T) {
+	s := open(t)
+	if err := s.Save(&core.Task{ID: "plain", URL: "https://host.example/f.bin", CreatedAt: time.Now()}); err != nil {
+		t.Fatal(err)
+	}
+	all, err := s.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(all) != 1 {
+		t.Fatalf("got %d tasks, want 1", len(all))
+	}
+	if all[0].TorrentFiles != nil {
+		t.Fatalf("torrent files = %+v, want nil", all[0].TorrentFiles)
+	}
+}
+
+// TestInfoHashAndTrackersSurviveARestart is InfoHash/Trackers' own version of
+// TestTorrentFileSelectionSurvivesARestart above, and for the same reason:
+// unlike the swarm numbers, these two are a fact about which torrent this is,
+// fixed at stage time, not a reading of a swarm that goes stale the moment
+// the process exits. See core.Task.InfoHash's own comment.
+func TestInfoHashAndTrackersSurviveARestart(t *testing.T) {
+	s := open(t)
+	task := core.Task{
+		ID: "ih1", URL: "magnet:?xt=urn:btih:1111111111111111111111111111111111111111",
+		Name: "a.folder", CreatedAt: time.Now(),
+		InfoHash: "1111111111111111111111111111111111111111",
+		Trackers: []string{"udp://tracker.example:80/announce", "https://tracker2.example/announce"},
+	}
+	if err := s.Save(&task); err != nil {
+		t.Fatal(err)
+	}
+	all, err := s.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(all) != 1 {
+		t.Fatalf("reloaded %d tasks, want 1", len(all))
+	}
+	if all[0].InfoHash != task.InfoHash {
+		t.Errorf("info hash = %q, want %q", all[0].InfoHash, task.InfoHash)
+	}
+	got := all[0].Trackers
+	if len(got) != len(task.Trackers) {
+		t.Fatalf("trackers = %+v, want %+v", got, task.Trackers)
+	}
+	for i, tr := range task.Trackers {
+		if got[i] != tr {
+			t.Errorf("tracker %d = %q, want %q", i, got[i], tr)
+		}
+	}
+}
+
+// TestTaskWithNoInfoHashRoundTripsAsNilTrackers is the ordinary-task case:
+// every non-torrent task must not gain a stray empty Trackers slice where it
+// used to carry a nil one, the same promise
+// TestTaskWithNoTorrentFilesRoundTripsAsNilNotEmpty makes for TorrentFiles.
+func TestTaskWithNoInfoHashRoundTripsAsNilTrackers(t *testing.T) {
+	s := open(t)
+	if err := s.Save(&core.Task{ID: "plain2", URL: "https://host.example/f.bin", CreatedAt: time.Now()}); err != nil {
+		t.Fatal(err)
+	}
+	all, err := s.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(all) != 1 {
+		t.Fatalf("got %d tasks, want 1", len(all))
+	}
+	if all[0].InfoHash != "" {
+		t.Fatalf("info hash = %q, want empty", all[0].InfoHash)
+	}
+	if all[0].Trackers != nil {
+		t.Fatalf("trackers = %+v, want nil", all[0].Trackers)
+	}
+}

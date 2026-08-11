@@ -420,6 +420,16 @@ func (a *App) dispatchLocked() {
 				TaskID: id, URL: result.DirectURL, Headers: result.Headers,
 				Conns: conns, Dir: dir, Route: route,
 				Collision: policy, MaxCollisionAttempts: cfg.CollisionMaxAttempts,
+				// nil for every non-torrent task (core.SelectedTorrentIndices(nil) is
+				// nil), and read by the engine only inside its own torrent.IsURI(j.URL)
+				// branch - see engine.Job.TorrentSelect's own comment - so this is safe
+				// to set unconditionally rather than gated on t.Resolver == "torrent".
+				// WITHOUT THIS LINE the file-tree step (11.5D) has no effect at all: a
+				// selection a person unticked in the collector would still be handed to
+				// Engine.Start as an empty TorrentSelect, which the library reads as
+				// "fetch everything" - the exact outcome decision 6 of
+				// docs/torrent-support.md exists to prevent.
+				TorrentSelect: core.SelectedTorrentIndices(t.TorrentFiles),
 			})
 		} else {
 			// Only the embedded engine takes a route today. A delegated backend
@@ -635,6 +645,9 @@ func (a *App) onUpdate(id string, u core.Update) {
 		t.Loaded = u.Loaded
 	}
 	t.Speed = u.Speed
+	if u.Torrent != nil {
+		u.Torrent.ApplyTo(t)
+	}
 	if u.Err != "" {
 		t.Error = u.Err
 		// Classified here rather than in each backend, because the update channel
@@ -843,16 +856,32 @@ func (a *App) onUpdate(id string, u core.Update) {
 		// download that belongs to a backend the task no longer uses.
 		fallbackTo.Remove(id, true)
 	}
-	_ = a.Store.Save(&c)
+	// u.Status == "" only ever happens for a torrent's periodic seeding-stats
+	// poll: engine/torrent.go's pollOne sends one deliberately, so a done
+	// torrent seeding for hours does not re-run rename/checksum/dispatch every
+	// three seconds - see that function's own doc comment. Saving here would
+	// persist nothing worth persisting (Peers/Seeds/Ratio/Uploaded/Seeding are
+	// documented on core.Task as deliberately NOT persisted), and the script
+	// trigger below would fire task.done again on every one of those polls for
+	// as long as the torrent seeds if it ran unconditionally - reproduced
+	// live: roughly 2400 firings over a default 2h seed window, the Wave 11 x
+	// Wave 11.5 collision neither wave's own tests could see alone. The
+	// broadcast stays unconditional: it is what makes the live peer/seed/ratio
+	// numbers this wave adds actually update while seeding.
+	if u.Status != "" {
+		_ = a.Store.Save(&c)
+	}
 	a.Hub.Broadcast("task", &c)
-	// The one broadcast per settled state script.ClassifyTaskUpdate's own
-	// doc comment is grounded in: NextTry is already set (above, before
-	// this point) when a failure still has an automatic retry pending, so a
-	// script bound to task.failed fires on the final word only, never once
-	// per backoff attempt.
-	tv := scriptTaskView(c)
-	if trig, ok := script.ClassifyTaskUpdate(tv); ok {
-		a.Scripts.Fire(trig, &tv, a.ScriptQueue())
+	if u.Status != "" {
+		// The one broadcast per settled state script.ClassifyTaskUpdate's own
+		// doc comment is grounded in: NextTry is already set (above, before
+		// this point) when a failure still has an automatic retry pending, so a
+		// script bound to task.failed fires on the final word only, never once
+		// per backoff attempt.
+		tv := scriptTaskView(c)
+		if trig, ok := script.ClassifyTaskUpdate(tv); ok {
+			a.Scripts.Fire(trig, &tv, a.ScriptQueue())
+		}
 	}
 	if extractCopy != nil {
 		_ = a.Store.Save(extractCopy)
