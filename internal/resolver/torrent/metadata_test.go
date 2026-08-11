@@ -366,7 +366,6 @@ func TestContainedRefusesEveryPathThatLeavesTheFolder(t *testing.T) {
 		"../elsewhere.mkv",
 		"../../etc/passwd",
 		"Show/../../../etc/passwd",
-		`..\elsewhere.mkv`,
 		"..",
 		"a/b/../../../c",
 	}
@@ -404,6 +403,22 @@ func TestContainedRefusesEveryPathThatLeavesTheFolder(t *testing.T) {
 	// gate a magnet's file list actually reaches (safeComponent's own test
 	// covers the .torrent-upload path, which never calls Contained at all).
 	for _, rel := range []string{"readme.txt:payload.exe", "sub:stream/a.mkv"} {
+		if err := Contained(dir, []string{rel}); !errors.Is(err, ErrUnsafePath) {
+			t.Fatalf("Contained(%q) = %v, want ErrUnsafePath", rel, err)
+		}
+	}
+	// A backslash is the identical shape of case, and cannot live in the
+	// escaping list above for the identical reason the colon cannot: its own
+	// naive-join self-check ("the join genuinely lands outside") is ITSELF
+	// platform-dependent - filepath.Join only walks ".." past a backslash on
+	// Windows, so on Linux "..\\elsewhere.mkv" textually stays inside dir,
+	// which used to be exactly the gap between "passes on the machine this
+	// was built on" and "passes where this app actually ships" (caught live
+	// by Linux CI, not by this test suite on this Windows machine). Checked
+	// here instead, the same way the colon is: refused unconditionally by
+	// Contained regardless of what filepath.Join would or would not do with
+	// it on whichever platform happens to be running.
+	for _, rel := range []string{`..\elsewhere.mkv`, `Show\..\..\etc\passwd`} {
 		if err := Contained(dir, []string{rel}); !errors.Is(err, ErrUnsafePath) {
 			t.Fatalf("Contained(%q) = %v, want ErrUnsafePath", rel, err)
 		}
