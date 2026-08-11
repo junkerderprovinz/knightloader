@@ -32,6 +32,7 @@ import {
   matchesQuickFilters,
   targetPackage,
   targetTaskId,
+  useCleanup,
   useRemoval,
   type ListContext,
   type MenuTarget,
@@ -42,6 +43,8 @@ import { ArchiveJobs, useArchiveMenu, useExtractJobs } from '../components/Archi
 import { useFileMenu } from '../components/FileActions';
 import { useScriptMenu } from '../components/ScriptActions';
 import { anchorFromEvent, useContextMenu } from '../components/ContextMenu';
+import { FirstTouchHint } from '../components/FirstTouchHint';
+import { usePublishCommandPageContext } from '../lib/commands/pageContext';
 import { IconSearch, IconDownloads, IconArrowUp, IconArrowDown, IconTop, IconBottom } from '../lib/icons';
 
 export function Downloads() {
@@ -90,12 +93,6 @@ export function Downloads() {
   );
   const groups = useMemo(() => groupByPackage(filtered), [filtered]);
 
-  // The shell's overview strip offers Total / Visible / Selected, and "visible"
-  // is the one it cannot work out for itself: the search text and the quick
-  // filters are page state. Told which rows, it sums them from its own stream —
-  // see lib/listview.ts.
-  useReportListView(filtered, selected);
-
   // Selections follow the list: anything that leaves it stops being selected.
   useEffect(() => {
     setSelected((prev) => {
@@ -107,6 +104,31 @@ export function Downloads() {
 
   const clearSelection = useCallback(() => setSelected(new Set()), []);
   const removal = useRemoval({ all, selected, base, onDone: clearSelection });
+  // The clean-up flow's own instance for this page's command surface (a
+  // third caller of useCleanup, the same as ListActionBar and ListMenu below
+  // already are — see that hook's own doc comment). Loaded proactively, the
+  // same reason ListMenu loads its own copy on mount rather than waiting for
+  // a click: a command visible in a palette that has to wait on a request
+  // before it can say whether "clear finished" applies is a command that
+  // answers late.
+  const cleanup = useCleanup(all);
+  useEffect(() => {
+    void cleanup.load().catch(() => {
+      /* the "Clean up" bar under the list already reports this; a command does not nag twice */
+    });
+  }, [cleanup.load]);
+
+  // The shell's overview strip offers Total / Visible / Selected, and "visible"
+  // is the one it cannot work out for itself: the search text and the quick
+  // filters are page state. Told which rows, it sums them from its own stream —
+  // see lib/listview.ts.
+  useReportListView(filtered, selected);
+  // The command surface's own bridge (lib/commands/pageContext.ts): the exact
+  // setSelected/removal/cleanup this page already holds, so
+  // lib/commands/downloads.ts's selectAll/removeSelected/clearFinished call
+  // the identical functions the toolbar's own buttons call, never a second
+  // copy of what those verbs mean here.
+  usePublishCommandPageContext(useMemo(() => ({ setSelection: setSelected, removal, cleanup }), [removal, cleanup]));
   const chosen = useMemo(() => all.filter((x) => selected.has(x.id)), [all, selected]);
   const archiveGroups = useArchiveMenu({ chosen, base, jobs });
   // Reveal-in-folder and open-natively only ever mean this instance's own
@@ -216,6 +238,8 @@ export function Downloads() {
           )
         }
       />
+
+      <FirstTouchHint id="downloads" />
 
       {/* No hero here — the list is this page's weight. The speed and counters
           ride as one quiet uncarded line so Overview keeps the big figure. */}
@@ -355,6 +379,11 @@ export function Downloads() {
         extraGroups={[...archiveGroups, ...fileGroups, ...scriptGroups]}
       />
       {removal.dialog}
+      {/* This page's own useCleanup() instance (above) — raised by
+          lib/commands/downloads.ts's "clear finished" command as well as by
+          ListActionBar/ListMenu's own "Clean up" entries, each with its own
+          copy of this same hook. */}
+      {cleanup.dialog}
     </div>
   );
 }

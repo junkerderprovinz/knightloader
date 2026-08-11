@@ -1,12 +1,40 @@
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '../lib/i18n';
+import { setLangPickerOpen, toggleLangPickerOpen, useLangPickerOpen } from '../lib/langPickerOpen';
 
 // The sidebar language picker: the current language with its flag, opening a
 // list upward (it lives at the bottom of the rail). Flags come from the
 // flag-icons stylesheet as `fi fi-XX`.
-export function LanguagePicker({ className }: { className?: string }) {
+//
+// `open` is lib/langPickerOpen.ts's module-level store rather than a local
+// useState: the command palette's "open the language picker" / "close the
+// language picker" commands (lib/commands/language.ts) drive the same
+// dropdown this component's own button does, and the two never meet in the
+// tree otherwise.
+//
+// `standalone` opts a SECOND, simultaneously-mounted instance (today, only
+// OnboardingWizard.tsx's welcome step) out of that shared store and into its
+// own local useState instead. The shared store is a singleton by design -
+// "the sidebar's own instance" above is not a loose description, it is the
+// one thing lib/langPickerOpen.ts's `open` boolean was ever meant to track -
+// and the wizard mounts its own, separately-styled copy of this component
+// WHILE the sidebar's copy stays mounted underneath the modal. Both reading
+// one shared flag meant opening either one opened both, each with its own
+// outside-click listener scoped to its own ref; clicking an option inside
+// the wizard's dropdown landed a mousedown OUTSIDE the sidebar instance's
+// ref, so the sidebar's listener fired setLangPickerOpen(false) first,
+// unmounting the wizard's own dropdown before the click event that would
+// have called setLang() could still land on it - a language choice that
+// silently did nothing. `standalone` gives the wizard's instance a state
+// nothing else can reach into, which is what two independent dropdowns
+// actually need; the sidebar's own usage is unchanged.
+export function LanguagePicker({ className, standalone }: { className?: string; standalone?: boolean }) {
   const { t, lang, setLang, languages } = useT();
-  const [open, setOpen] = useState(false);
+  const shared = useLangPickerOpen();
+  const [localOpen, setLocalOpen] = useState(false);
+  const open = standalone ? localOpen : shared;
+  const setOpen = standalone ? setLocalOpen : setLangPickerOpen;
+  const toggleOpen = standalone ? () => setLocalOpen((v) => !v) : toggleLangPickerOpen;
   const ref = useRef<HTMLDivElement>(null);
   const current = languages.find((l) => l.code === lang) ?? languages[0];
 
@@ -30,6 +58,7 @@ export function LanguagePicker({ className }: { className?: string }) {
       document.removeEventListener('mousedown', onClick);
       document.removeEventListener('keydown', onKey);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   if (!current) return null;
@@ -41,7 +70,7 @@ export function LanguagePicker({ className }: { className?: string }) {
         title={`${t('lang.label')}: ${current.label}`}
         aria-haspopup="listbox"
         aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
+        onClick={toggleOpen}
         className={className}
       >
         <Flag code={current.flag} />

@@ -432,6 +432,11 @@ func featurePages() []FeaturePage {
 		{ID: "torrents", Modules: []string{"torrents"}},
 		{ID: "captcha", Modules: []string{"captcha"}},
 		{ID: "schedule", Modules: []string{"scheduler"}},
+		// Same reasoning as look/diagnostics/system below: rebinding a
+		// keyboard shortcut has nothing to switch on or off, so there is no
+		// Feature{} row filed under this id either - just a real,
+		// bookmarkable address in the rail (Wave 12).
+		{ID: "shortcuts"},
 		{ID: "look"},
 		{ID: "access", Modules: []string{"cnl", "myjd"}},
 		{ID: "scripts", Modules: []string{"scripting"}},

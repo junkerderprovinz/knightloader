@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { cancelIdleAction, connectWS, fetchIdleAction, type IdleActionState } from '../lib/api';
 import { Button } from './ui';
 import { IconClock, IconPause } from '../lib/icons';
+import { useT, type TranslationKey } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 
 // IdleActionBanner is the courtesy half of build-plan.md's Wave 10B row: the
@@ -23,26 +24,12 @@ import { useToast } from '../lib/toast';
 // follow, so this is never a permanent fixture with "no countdown" written on
 // it somewhere on screen.
 //
-// i18n: every string below is plain English rather than a useT() call. The
-// keys this component needs do not exist in any locale file yet, including
-// en.ts, and en.ts is the compile-time source of truth every TranslationKey
-// is checked against (lib/locales/en.ts's own doc comment) - so calling
-// t('idleAction.…') here today would fail to build, not fall back to
-// English. web/src/lib/locales/*.ts is Wave 10F's file, run after 10A/10B/
-// 10C/10D/10G/10H land (this wave's brief), the same reason
-// components/StatusStrip.tsx shipped hardcoded English from Wave 9 and had
-// its keys landed in en.ts by a later pass without this file being rewritten
-// to use them (see en.ts's own "activity.*" comment block) - named here
-// rather than done, for the same reason.
-const STRINGS = {
-  idleTitle: 'The queue is idle',
-  action: {
-    pause: 'Pausing',
-  } as Record<string, string>,
-  actionFallback: (action: string) => `"${action}" running`,
-  in: (countdown: string) => `in ${countdown}`,
-  cancel: 'Cancel',
-  cancelling: 'Cancelling…',
+// actionKey mirrors columns.tsx's own reasonKey: only the actions this build
+// knows get a proper label; the server's `action` is an open string (a newer
+// backend can arm one this build has never heard of), and that falls back to
+// idleAction.actionFallback rather than a raw, untranslated token.
+const actionKey: Record<string, TranslationKey> = {
+  pause: 'idleAction.action.pause',
 };
 
 function fmtCountdown(totalSeconds: number): string {
@@ -69,6 +56,7 @@ function fireAtMs(iso: string | undefined): number | null {
 }
 
 export function IdleActionBanner() {
+  const { t } = useT();
   const { toast } = useToast();
   const [state, setState] = useState<IdleActionState | null>(null);
   const [now, setNow] = useState(() => Date.now());
@@ -119,7 +107,8 @@ export function IdleActionBanner() {
 
   const fireAt = fireAtMs(state.fireAt);
   const remaining = fireAt === null ? null : Math.max(0, Math.round((fireAt - now) / 1000));
-  const actionLabel = (state.action && STRINGS.action[state.action]) || STRINGS.actionFallback(state.action ?? '');
+  const key = state.action ? actionKey[state.action] : undefined;
+  const actionLabel = key ? t(key) : t('idleAction.actionFallback', { action: state.action ?? '' });
 
   async function handleCancel() {
     setCancelling(true);
@@ -130,7 +119,7 @@ export function IdleActionBanner() {
       // straight from the response instead of waiting for its own broadcast
       // to arrive, the same reason handleContinue in CaptchaModal does.
     } catch {
-      toast('could not cancel: the server did not answer', 'fail');
+      toast(t('idleAction.cancelFailed'), 'fail');
     } finally {
       setCancelling(false);
     }
@@ -147,13 +136,13 @@ export function IdleActionBanner() {
           {state.action === 'pause' ? <IconPause width={15} height={15} /> : <IconClock width={15} height={15} />}
         </span>
         <span className="flex flex-col gap-0.5">
-          <span className="text-carbon-text">{STRINGS.idleTitle}</span>
+          <span className="text-carbon-text">{t('idleAction.title')}</span>
           <span className="glim-num text-carbon-textSub">
-            {actionLabel} {remaining !== null && STRINGS.in(fmtCountdown(remaining))}
+            {actionLabel} {remaining !== null && t('idleAction.in', { countdown: fmtCountdown(remaining) })}
           </span>
         </span>
         <Button kind="secondary" onClick={handleCancel} disabled={cancelling} className="px-2.5 text-xs">
-          {cancelling ? STRINGS.cancelling : STRINGS.cancel}
+          {cancelling ? t('idleAction.cancelling') : t('idleAction.cancel')}
         </Button>
       </div>
     </div>

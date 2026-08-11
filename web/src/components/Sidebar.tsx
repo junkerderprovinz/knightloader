@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { hueVars, rainbowAt } from '../lib/appearance';
 import { useRainbow } from '../lib/useRainbow';
-import { getTheme, toggleTheme } from '../lib/theme';
+import { getTheme, onThemeChange, toggleTheme } from '../lib/theme';
 import { useT } from '../lib/i18n';
 import { LanguagePicker } from './LanguagePicker';
 import { fetchAuth, fetchHealth, logout } from '../lib/api';
@@ -76,6 +76,12 @@ export function Sidebar() {
   // Subscribed, not read: the nav re-renders when the palette or the mode
   // changes, so editing a swatch in Settings is visible in the rail at once.
   useRainbow();
+  // Subscribed for the identical reason: the theme can now change from
+  // somewhere other than the button below it (lib/commands/global.ts's
+  // theme.toggle command, fired from a keyboard shortcut with no button
+  // involved at all), and a local click handler alone would leave this
+  // icon showing the old theme until something else re-rendered the rail.
+  useEffect(() => onThemeChange(setThemeState), []);
 
   const [locked, setLocked] = useState(false);
 
@@ -133,7 +139,7 @@ export function Sidebar() {
       <div className="flex flex-col gap-1 p-3">
         <LanguagePicker className={`${navBase} ${navInactive} w-full`} />
         <button
-          onClick={() => setThemeState(toggleTheme())}
+          onClick={() => toggleTheme()}
           className={`${navBase} ${navInactive} w-full`}
           title={t('theme.toggle')}
         >
