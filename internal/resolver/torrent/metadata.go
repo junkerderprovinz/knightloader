@@ -376,6 +376,26 @@ func Contained(dir string, rels []string) error {
 		if strings.ContainsRune(rel, ':') {
 			return fmt.Errorf("%w: %q contains a colon", ErrUnsafePath, rel)
 		}
+		// rel is forward-slashed by contract (this function's own doc comment) -
+		// a backslash anywhere in it is never a legitimate separator, only ever
+		// an attacker hoping filepath.Join treats it as one. It does, but only
+		// on the platform that happens to be running this check: FromSlash below
+		// converts '/' to the native separator and leaves '\' untouched, and
+		// Join/Clean only walk ".." past a '\' on Windows, where it IS a
+		// separator - on Linux and Mac it is an ordinary character, making
+		// "..\x" one odd but perfectly CONTAINED filename rather than a
+		// traversal, and this check used to let it straight through. Caught
+		// live, not reasoned out: TestContainedRefusesEveryPathThatLeavesTheFolder
+		// passed on the Windows machine this was built on and failed on Linux
+		// CI for this exact case - "green on my machine" was never the same
+		// claim as "green everywhere this app actually runs" (KnightLoader
+		// ships Win/Mac/Linux). Refused unconditionally here, the same way the
+		// colon above is - not because a backslash is unsafe on THIS platform,
+		// but because the same torrent might be resolved by a Windows instance
+		// of this app where it is.
+		if strings.ContainsRune(rel, '\\') {
+			return fmt.Errorf("%w: %q contains a backslash", ErrUnsafePath, rel)
+		}
 		full := filepath.Join(base, filepath.FromSlash(rel))
 		if !within(base, full) {
 			return fmt.Errorf("%w: %q resolves to %q", ErrUnsafePath, rel, full)
