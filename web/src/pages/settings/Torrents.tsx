@@ -131,9 +131,9 @@ const PENDING = {
   'settings.torrents.pex': 'Peer exchange (PEX)',
   'settings.torrents.pexHint': 'Trades known peers with the ones already connected, so a swarm with few peers is found faster.',
   'settings.torrents.privateNote':
-    'A private torrent is meant to switch both off automatically, regardless of what is set here - most private trackers ban accounts that use either - but this build cannot yet enforce it; see the note above.',
+    'A private torrent switches both off automatically once its metadata is known, regardless of what is set here - immediately for an uploaded .torrent file, or as soon as a magnet link\'s own metadata arrives from the swarm. Most private trackers ban accounts that use either.',
   'settings.torrents.engineNote':
-    'Everything below is saved and validated, but this build does not yet carry it into a running download - a torrent seeds at the engine’s own built-in defaults (ratio 1.0, two hours, DHT and PEX on) and listens on whatever port the engine itself picks, regardless of what is set here. The mapping button further down still does a real thing: it asks the router to forward the port number typed above, honestly, whether or not a torrent is actually listening on it yet.',
+    'Seed ratio, seed duration and port now reach every torrent this engine starts - port only for the very first one since this instance’s last restart, because the engine’s own torrent client is built once and never rebuilt afterwards; a later save is still stored correctly and takes effect from the next restart on. Upload limit is still saved and validated only, with nowhere yet for the engine to carry it into a running download. DHT and PEX below are the same story for an ORDINARY torrent: this instance’s own default does not yet reach a running download either, so a torrent still seeds with both on regardless of what is set here - a PRIVATE torrent is a different case entirely, see the note further down. The mapping button further down still does a real thing: it asks the router to forward the port number typed above, honestly, whether or not a torrent is actually listening on it yet.',
 } as const;
 
 type PendingKey = keyof typeof PENDING;
@@ -183,13 +183,19 @@ export function Torrents() {
       <PageHeader title={cx('settings.torrents.title')} subtitle={cx('settings.torrents.subtitle')} />
 
       {/* Verified while building this page, not a hedge: settings_torrent.go's
-          own doc comments confirm SeedRatioTarget/SeedDurationSeconds/
-          UploadLimitKiBs/DHTEnabled/PEXEnabled have no read side in
-          internal/engine yet, and DHT/PEX have nowhere to go in gopeed's
-          public API at all. A page that let these look like they already
-          govern a running download would be the exact "looked correct on
-          paper" shape this wave's own brief names as the mistake to avoid -
-          so it says so, once, here, rather than nowhere. */}
+          own doc comments confirm SeedRatioTarget/SeedDurationSeconds/Port now
+          reach internal/engine (Engine.SetTorrentConfig, called from
+          internal/app's afterSettingsChange on every save and once at boot),
+          while UploadLimitKiBs and the DHTEnabled/PEXEnabled ORDINARY-torrent
+          default still do not - gopeed's own public surface has nowhere for
+          the first, and nowhere for the second's non-private case either (see
+          settings_torrent.go's DHTEnabled doc comment for exactly why that is
+          a different, still-open gap from the private-torrent case
+          privateNote below describes). A page that let the fields here look
+          uniformly wired, or uniformly not, would be the exact "looked
+          correct on paper" shape this codebase's own history names as the
+          mistake to avoid - so it says which is which, once, here, rather
+          than nowhere. */}
       <div className="glim-well px-3 py-2.5 text-[11px] text-statusWarn">
         {cx('settings.torrents.engineNote')}
       </div>

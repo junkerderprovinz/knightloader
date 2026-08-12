@@ -375,3 +375,123 @@ func TestConcurrentStartAndCloseNeverPanics(t *testing.T) {
 		}
 	}
 }
+
+// TestSetTorrentConfigReachesGopeedsOwnProtocolConfig is the read side of the
+// write SetTorrentConfig does: gopeed's own Fetcher.Setup (internal/protocol/
+// bt/fetcher.go) reads ProtocolConfig["bt"] back through exactly the same
+// GetConfig + util.MapToStruct path this test uses, so decoding it back the
+// same way is what "did this actually reach gopeed" means from this side of
+// the boundary. Distinct, mutually unmistakable values for the three fields -
+// not e.g. matching port and seed-duration - so a positional-argument mix-up
+// in SetTorrentConfig's own body would fail this test rather than pass it by
+// coincidence.
+func TestSetTorrentConfigReachesGopeedsOwnProtocolConfig(t *testing.T) {
+	e, err := New(t.TempDir(), func(string, core.Update) {})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	defer e.Close()
+
+	if err := e.SetTorrentConfig(6969, 2.5, 10800); err != nil {
+		t.Fatalf("SetTorrentConfig: %v", err)
+	}
+
+	cfg, err := e.d.GetConfig()
+	if err != nil {
+		t.Fatalf("GetConfig: %v", err)
+	}
+	var bt btProtocolConfig
+	if err := gopeed.MapToStruct(cfg.ProtocolConfig["bt"], &bt); err != nil {
+		t.Fatalf("MapToStruct: %v", err)
+	}
+	if bt.ListenPort != 6969 {
+		t.Errorf("ListenPort = %d, want 6969", bt.ListenPort)
+	}
+	if bt.SeedRatio != 2.5 {
+		t.Errorf("SeedRatio = %v, want 2.5", bt.SeedRatio)
+	}
+	if bt.SeedTime != 10800 {
+		t.Errorf("SeedTime = %d, want 10800", bt.SeedTime)
+	}
+}
+
+// TestSetTorrentConfigLeavesUnrelatedConfigAlone is the read-modify-write
+// this function has to be, not the construct-fresh-and-overwrite it would be
+// one refactor away from becoming: base.DownloaderStoreConfig carries proxy,
+// download directory, concurrency cap and every other protocol's own config
+// alongside ProtocolConfig["bt"], all in the one struct GetConfig/PutConfig
+// round-trip whole. A version of SetTorrentConfig that built a fresh
+// DownloaderStoreConfig instead of mutating the one GetConfig returned would
+// still pass the test above and silently wipe the proxy this engine's own
+// speed limiter depends on (see UseProxy's own doc comment) - this is what
+// catches that.
+func TestSetTorrentConfigLeavesUnrelatedConfigAlone(t *testing.T) {
+	e, err := New(t.TempDir(), func(string, core.Update) {})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	defer e.Close()
+
+	if err := e.UseProxy("127.0.0.1:9"); err != nil {
+		t.Fatalf("UseProxy: %v", err)
+	}
+	before, err := e.d.GetConfig()
+	if err != nil {
+		t.Fatalf("GetConfig: %v", err)
+	}
+	wantDownloadDir := before.DownloadDir
+	wantMaxRunning := before.MaxRunning
+	wantProxyHost := before.Proxy.Host
+
+	if err := e.SetTorrentConfig(51413, 1.0, 7200); err != nil {
+		t.Fatalf("SetTorrentConfig: %v", err)
+	}
+
+	after, err := e.d.GetConfig()
+	if err != nil {
+		t.Fatalf("GetConfig: %v", err)
+	}
+	if after.DownloadDir != wantDownloadDir {
+		t.Errorf("DownloadDir = %q, want %q (SetTorrentConfig must not touch it)", after.DownloadDir, wantDownloadDir)
+	}
+	if after.MaxRunning != wantMaxRunning {
+		t.Errorf("MaxRunning = %d, want %d (SetTorrentConfig must not touch it)", after.MaxRunning, wantMaxRunning)
+	}
+	if after.Proxy == nil || after.Proxy.Host != wantProxyHost {
+		t.Errorf("Proxy.Host = %v, want %q (SetTorrentConfig must not touch it)", after.Proxy, wantProxyHost)
+	}
+}
+
+// TestSetTorrentConfigOverwritesRatherThanAccumulates guards the other
+// direction from the two tests above: a second call with different numbers
+// must leave the second call's numbers in place, not the first's and not
+// some mix of both - the read-modify-write reads gopeed's CURRENT bt config
+// each time, which on a naive implementation could mean an old field
+// surviving a call that meant to replace it.
+func TestSetTorrentConfigOverwritesRatherThanAccumulates(t *testing.T) {
+	e, err := New(t.TempDir(), func(string, core.Update) {})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	defer e.Close()
+
+	if err := e.SetTorrentConfig(1111, 1.0, 3600); err != nil {
+		t.Fatalf("SetTorrentConfig (first): %v", err)
+	}
+	if err := e.SetTorrentConfig(2222, 3.0, 7200); err != nil {
+		t.Fatalf("SetTorrentConfig (second): %v", err)
+	}
+
+	cfg, err := e.d.GetConfig()
+	if err != nil {
+		t.Fatalf("GetConfig: %v", err)
+	}
+	var bt btProtocolConfig
+	if err := gopeed.MapToStruct(cfg.ProtocolConfig["bt"], &bt); err != nil {
+		t.Fatalf("MapToStruct: %v", err)
+	}
+	if bt.ListenPort != 2222 || bt.SeedRatio != 3.0 || bt.SeedTime != 7200 {
+		t.Errorf("after two calls: ListenPort=%d SeedRatio=%v SeedTime=%d, want 2222/3/7200 (the second call's own values)",
+			bt.ListenPort, bt.SeedRatio, bt.SeedTime)
+	}
+}

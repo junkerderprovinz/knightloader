@@ -84,23 +84,47 @@ actual vendored source rather than assumed from gopeed's marketing:
    has to remember to flip per-torrent) is a trap most private trackers
    punish with a ban.
 
-   **STATUS (Wave 11.5's own build): NOT DELIVERED, and not currently
-   deliverable.** The "gopeed almost certainly reads and honours this flag
+   **STATUS: DELIVERED**, through a different door than this section
+   predicted. The "gopeed almost certainly reads and honours this flag
    itself" hedge above (this section's own opening) was checked rather than
-   assumed, by three independent readings of the vendored source, and it
-   does not hold: `bt.Fetcher.initClient()` builds ONE package-level
-   singleton `torrent.Client` shared by every torrent task in the process,
-   and neither it nor anywhere else in `github.com/GopeedLab/gopeed@v1.9.3`
-   ever sets a `NoDHT` or `DisablePEX` field (or equivalent) — confirmed by
-   grep across the whole vendored module, zero matches. There is currently
-   no API surface through which KnightLoader could disable DHT/PEX for one
-   torrent, or even for all of them. The honest fix landed instead:
-   `web/src/pages/settings/Torrents.tsx`'s private-torrent note was reworded
-   from a present-tense enforcement claim ("private torrents automatically
-   get DHT/PEX disabled") to naming this exact gap, in every locale. Whoever
-   picks this back up needs a path INTO gopeed's fork or a patch upstream,
-   not another pass over this codebase's own torrent package - the
-   constraint is entirely on the other side of that boundary.
+   assumed, by three independent readings of the vendored source, during
+   Wave 11.5's own build, and it did not hold at the time:
+   `bt.Fetcher.initClient()` builds ONE package-level singleton
+   `torrent.Client` shared by every torrent task in the process, and
+   neither it nor anywhere else in `github.com/GopeedLab/gopeed@v1.9.3` ever
+   sets a `NoDHT` or `DisablePEX` field (or equivalent) — confirmed by grep
+   across the whole vendored module, zero matches, still zero matches
+   today. That part remains true, and still blocks the SEPARATE,
+   ordinary-torrent `DHTEnabled`/`PEXEnabled` instance-default toggle from
+   ever reaching gopeed's client (see
+   `internal/settings/settings_torrent.go`'s `DHTEnabled` doc comment for
+   that still-open half, which this fix does not touch).
+
+   The private-torrent half above — the one this decision actually asked
+   for — was never gopeed's to fix, and did not need "a path INTO gopeed's
+   fork or a patch upstream" as this section originally predicted.
+   `anacrolix/torrent` upstream PR #1053, "Implement BEP 27 (private
+   torrents)" (merged 2026-05-25), added a `Torrent.isPrivate()` check
+   directly inside the DHT-announce loop, PEX connection init and both
+   directions of Local Peer Discovery — five gates, all reading the
+   TORRENT's own parsed `info.Private`, none of them touching the CLIENT's
+   `NoDHT`/`DisablePEX` gopeed never sets. KnightLoader's own `go.mod`
+   already named `anacrolix/torrent` as a DIRECT requirement, not merely
+   transitive through gopeed, so Go's own minimum-version-selection let
+   this be a version bump on KnightLoader's own side alone — `go get
+   github.com/anacrolix/torrent@eda2204d2568…` — no gopeed change, no fork.
+   `web/src/pages/settings/Torrents.tsx`'s private-torrent note, and
+   `internal/settings/settings_torrent.go`'s own doc comments, were
+   reworded again to say so, in every locale.
+
+   One residual, upstream-acknowledged gap: a magnet link carries no info
+   dict to read `private` out of until the swarm answers, so a private
+   torrent added by magnet is only protected from the moment its metadata
+   arrives, not before — upstream's own comment on the DHT-announcer's
+   per-iteration re-check names this exact window ("we re-check every loop
+   because info may be loaded later, e.g. via magnet"). An uploaded
+   `.torrent` file has no such window; its metadata is known before the
+   first announce attempt.
 6. **Selective download**: multi-file torrents get a file tree at add-time
    to check/uncheck individual files, the same way ordinary torrent
    clients do, rather than always fetching every file.

@@ -309,6 +309,7 @@ func New(dataDir string) (*App, error) {
 	// settings page and press a button - and the symptom, downloads quietly
 	// leaving by the machine's own address, looks nothing like its cause.
 	a.applyConnections(s.Connections)
+	a.applyTorrentConfig(s.Torrent)
 	a.dupes = dedupe.New(dedupe.ParsePolicy(s.MirrorPolicy))
 	// The configuration is read through a closure rather than captured, so a
 	// reconnect fired after the user edited the router password uses the password
@@ -759,6 +760,7 @@ func (a *App) afterSettingsChange(applied settings.Settings) {
 	a.idleAction.Refresh()
 	a.applyWatchFolders(applied)
 	a.applyConnections(applied.Connections)
+	a.applyTorrentConfig(applied.Torrent)
 	a.mu.Lock()
 	if p := dedupe.ParsePolicy(applied.MirrorPolicy); p != a.dupes.Policy() {
 		// The policy is baked in at New, so a change needs a new set, re-seeded
@@ -810,6 +812,21 @@ func (a *App) applyConnections(rows []proxycfg.Entry) {
 		a.bans = proxycfg.NewBans()
 	}
 	a.picker = proxycfg.NewPicker(rows, proxycfg.Options{Bans: a.bans})
+}
+
+// applyTorrentConfig pushes the current seed-ratio/seed-duration/port policy
+// into the engine - the one live effect settings.Torrent currently has on a
+// running torrent. See Engine.SetTorrentConfig's own doc comment for exactly
+// what "reaches" means for each of the three: seed-ratio and seed-duration
+// take for every torrent added from here on, port only takes if no torrent
+// has started yet this process. Logged and swallowed rather than propagated,
+// the same non-fatal risk posture already established for engine.go's own
+// UseProxy call at boot: a failed push here is a setting not yet in effect,
+// not a reason to fail the save or the boot that called this.
+func (a *App) applyTorrentConfig(t settings.Torrent) {
+	if err := a.Engine.SetTorrentConfig(t.Port, t.SeedRatioTarget, t.SeedDurationSeconds); err != nil {
+		log.Printf("torrent config not applied (%v); torrents seed at the engine's own defaults", err)
+	}
 }
 
 func newID() string {
