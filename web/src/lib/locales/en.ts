@@ -1647,9 +1647,9 @@ export const en = {
   'settings.torrents.pex': 'Peer exchange (PEX)',
   'settings.torrents.pexHint': 'Trades known peers with the ones already connected, so a swarm with few peers is found faster.',
   'settings.torrents.privateNote':
-    'A private torrent is meant to switch both off automatically, regardless of what is set here - most private trackers ban accounts that use either - but this build cannot yet enforce it; see the note above.',
+    'A private torrent switches both off automatically once its metadata is known, regardless of what is set here - immediately for an uploaded .torrent file, or as soon as a magnet link\'s own metadata arrives from the swarm. Most private trackers ban accounts that use either.',
   'settings.torrents.engineNote':
-    'Everything below is saved and validated, but this build does not yet carry it into a running download - a torrent seeds at the engine’s own built-in defaults (ratio 1.0, two hours, DHT and PEX on) and listens on whatever port the engine itself picks, regardless of what is set here. The mapping button further down still does a real thing: it asks the router to forward the port number typed above, honestly, whether or not a torrent is actually listening on it yet.',
+    'Seed ratio, seed duration and port now reach every torrent this engine starts - port only for the very first one since this instance’s last restart, because the engine’s own torrent client is built once and never rebuilt afterwards; a later save is still stored correctly and takes effect from the next restart on. Upload limit is still saved and validated only, with nowhere yet for the engine to carry it into a running download. DHT and PEX below are the same story for an ORDINARY torrent: this instance’s own default does not yet reach a running download either, so a torrent still seeds with both on regardless of what is set here - a PRIVATE torrent is a different case entirely, see the note further down. The mapping button further down still does a real thing: it asks the router to forward the port number typed above, honestly, whether or not a torrent is actually listening on it yet.',
 
   // The first-run tour (components/OnboardingWizard.tsx): a short walkthrough
   // shown once, gated on onboarding.done in the shared uistate bucket (see

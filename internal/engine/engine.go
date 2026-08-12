@@ -12,6 +12,7 @@ import (
 	"github.com/GopeedLab/gopeed/pkg/base"
 	"github.com/GopeedLab/gopeed/pkg/download"
 	fhttp "github.com/GopeedLab/gopeed/pkg/protocol/http"
+	"github.com/GopeedLab/gopeed/pkg/util"
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
@@ -111,6 +112,64 @@ func (e *Engine) UseProxy(hostPort string) error {
 			Host:   hostPort,
 		}
 	}
+	return e.d.PutConfig(cfg)
+}
+
+// btProtocolConfig mirrors gopeed's own internal/protocol/bt.config
+// field-for-field (identical json tags) - this package cannot import that
+// type directly, it is unexported. GetConfig/PutConfig round-trip
+// ProtocolConfig["bt"] through JSON regardless of which concrete Go type is
+// on either side of it (gopeed's own pkg/util.MapToStruct is exactly
+// json.Marshal then json.Unmarshal), so a same-tagged mirror here reads and
+// writes it correctly without gopeed ever exporting the real one.
+type btProtocolConfig struct {
+	ListenPort int      `json:"listenPort"`
+	Trackers   []string `json:"trackers"`
+	SeedKeep   bool     `json:"seedKeep"`
+	SeedRatio  float64  `json:"seedRatio"`
+	SeedTime   int64    `json:"seedTime"`
+}
+
+// SetTorrentConfig pushes this instance's listen-port, seed-ratio and
+// seed-duration policy into gopeed's own per-protocol config -
+// DownloaderStoreConfig.ProtocolConfig["bt"] is the one surface that actually
+// reaches a running torrent. See settings_torrent.go's own SeedRatioTarget/
+// SeedDurationSeconds/Port doc comments for why exactly these three fields
+// and no others: UploadLimitKiBs and the DHT/PEX toggles have nowhere to go
+// through this same surface, verified there, not re-verified here.
+// Trackers/SeedKeep are read back and written back unchanged - this
+// instance has no setting for either, and leaving them as whatever is
+// already configured (gopeed's own zero-value defaults, since nothing on
+// this side ever sets them) is correct, not a gap.
+//
+// Call it once at boot and again on every settings save (mirroring UseProxy
+// above) - but the two calls do not carry equal weight. seedRatio and
+// seedDurationSeconds reach every torrent task from here on: gopeed's own
+// Fetcher.Setup reads ProtocolConfig["bt"] fresh for each new task
+// (internal/protocol/bt/fetcher.go's Setup calling ctl.GetConfig(&f.config)),
+// so a later call here changes what the NEXT torrent added does, without
+// reaching back into one already running (its own Fetcher already holds its
+// own copy). port does not: internal/protocol/bt/fetcher.go's initClient
+// reads f.config.ListenPort into the shared torrent.Client's own config
+// exactly once, on the first torrent this process ever starts ("if client
+// != nil { return }"), and never again - a later call here still saves the
+// new port correctly, but it only takes if no torrent has started yet this
+// process. That is gopeed's own constraint, not something a caller on this
+// side of it can work around; see settings_torrent.go's Port doc comment
+// for where it was first verified.
+func (e *Engine) SetTorrentConfig(port int, seedRatio float64, seedDurationSeconds int) error {
+	cfg, err := e.d.GetConfig()
+	if err != nil {
+		return err
+	}
+	var bt btProtocolConfig
+	if err := util.MapToStruct(cfg.ProtocolConfig["bt"], &bt); err != nil {
+		return err
+	}
+	bt.ListenPort = port
+	bt.SeedRatio = seedRatio
+	bt.SeedTime = int64(seedDurationSeconds)
+	cfg.ProtocolConfig["bt"] = bt
 	return e.d.PutConfig(cfg)
 }
 

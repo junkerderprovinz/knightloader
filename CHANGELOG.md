@@ -89,6 +89,11 @@ What follows is what exists and runs.
   label instead of as grey prose under the control. It opens on hover and on
   focus, closes on Escape, and is rendered at document level so no card or
   scroll container can clip it.
+- **BitTorrent and magnet links** as a fourth resolver alongside direct links,
+  yt-dlp and JDownloader: selective per-file download, a seed-to-ratio-or-
+  duration target, port mapping, and a private torrent's own metadata
+  switching off DHT and peer exchange for it automatically, no toggle
+  required.
 
 ### Security
 
@@ -116,3 +121,7 @@ What follows is what exists and runs.
   else.
 - The embedded UI carries an ETag and revalidates, so a redeploy cannot leave a
   browser on a stale bundle.
+- A private torrent's DHT and peer exchange refusal, and the seed-ratio,
+  seed-duration and port settings on the Torrents page, are now actually
+  carried into a running download - all four were previously saved and
+  validated but never reached the torrent engine.

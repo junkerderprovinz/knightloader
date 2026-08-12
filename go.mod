@@ -4,7 +4,7 @@ go 1.26.4
 
 require (
 	github.com/GopeedLab/gopeed v1.9.3
-	github.com/anacrolix/torrent v1.60.1-0.20251217073903-486bcbe758e0
+	github.com/anacrolix/torrent v1.61.1-0.20260525011549-eda2204d2568 // BEP 27 private-torrent DHT/PEX fix (upstream PR #1053) - do not downgrade below this commit, see settings_torrent.go's DHTEnabled doc comment
 	github.com/atotto/clipboard v0.1.4
 	github.com/bodgit/sevenzip v1.6.5
 	github.com/coder/websocket v1.8.15
@@ -25,7 +25,7 @@ require (
 	dario.cat/mergo v1.0.0 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20230717121422-5aa5874ade95 // indirect
-	github.com/RoaringBitmap/roaring v1.9.4 // indirect
+	github.com/RoaringBitmap/roaring/v2 v2.16.0 // indirect
 	github.com/STARRY-S/zip v0.2.3 // indirect
 	github.com/acomagu/bufpipe v1.0.4 // indirect
 	github.com/alecthomas/atomic v0.1.0-alpha2 // indirect
