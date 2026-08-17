@@ -245,7 +245,7 @@ export function Downloads() {
           ride as one quiet uncarded line so Overview keeps the big figure. */}
       {list.length > 0 && (
         <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
-          <span className="glim-num text-[20px] font-semibold leading-none text-carbon-text">
+          <span className="glim-num text-xl font-semibold leading-none text-carbon-text">
             {fmtSpeed(counts.speed) || '0 B/s'}
           </span>
           <Counters counts={counts} />

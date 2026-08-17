@@ -221,7 +221,7 @@ body {
    that names a category beside something louder (the typed reason on a failed
    row). It stays muted wherever it goes: it labels, it never announces. */
 .glim-eyebrow {
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--carbon-text-muted);
@@ -248,7 +248,7 @@ body {
   border-radius: var(--radius-control);
   box-shadow: var(--elevation), var(--hairline);
   padding: 7px 10px;
-  font-size: 11.5px;
+  font-size: 11px;
   line-height: 1.45;
   letter-spacing: normal;
   text-transform: none;
