@@ -1,4 +1,4 @@
-// Monochrome inline icons (currentColor), 20-22px, in the BombVault house style.
+// Monochrome inline icons (currentColor), 20-22px, in the GlimStone house style.
 import type { SVGProps } from 'react';
 
 const base = (p: SVGProps<SVGSVGElement>) => ({
