@@ -70,7 +70,7 @@ function Item({
 
 // GlimStone version this UI is built against — bump by hand whenever index.css /
 // appearance.ts are re-copied from a newer github.com/junkerderprovinz/glimstone release.
-const GLIMSTONE_VERSION = '1.5.0';
+const GLIMSTONE_VERSION = '1.0.0';
 
 export function Sidebar() {
   const { t } = useT();
