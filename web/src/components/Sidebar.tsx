@@ -68,6 +68,10 @@ function Item({
   );
 }
 
+// GlimStone version this UI is built against — bump by hand whenever index.css /
+// appearance.ts are re-copied from a newer github.com/junkerderprovinz/glimstone release.
+const GLIMSTONE_VERSION = '1.5.0';
+
 export function Sidebar() {
   const { t } = useT();
   const [theme, setThemeState] = useState(getTheme);
@@ -120,6 +124,8 @@ export function Sidebar() {
           <span className="text-carbon-text font-bold text-xl tracking-tight">KnightLoader</span>
           <span className="text-carbon-textMuted text-[11px]">
             {version && version !== 'dev' ? version : t('nav.workingTitle')}
+            {' · GlimStone '}
+            {GLIMSTONE_VERSION}
           </span>
         </span>
       </NavLink>
