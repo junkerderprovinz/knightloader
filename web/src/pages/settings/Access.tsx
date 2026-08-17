@@ -244,7 +244,7 @@ function RemoteAccessSection({ cx }: { cx: (k: PendingKey) => string }) {
                   {a.url}
                 </span>
                 {a.loopback && (
-                  <span className="shrink-0 text-[10px] text-carbon-textMuted">
+                  <span className="shrink-0 text-[11px] text-carbon-textMuted">
                     {cx('settings.access.remote.loopback')}
                   </span>
                 )}
@@ -255,7 +255,7 @@ function RemoteAccessSection({ cx }: { cx: (k: PendingKey) => string }) {
         {info.qr && primary && (
           <div className="flex shrink-0 flex-col items-center gap-2 self-start">
             <QRCode matrix={info.qr} label={primary.url} size={144} />
-            <span className="max-w-[144px] text-center text-[10px] text-carbon-textMuted">
+            <span className="max-w-[144px] text-center text-[11px] text-carbon-textMuted">
               {cx('settings.access.remote.scanHint')}
             </span>
           </div>
