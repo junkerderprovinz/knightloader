@@ -7,6 +7,9 @@
 // This file stays free of React on purpose: it is the piece a sibling app
 // copies, and a design language should not arrive with a framework attached.
 // The React binding is the small hook in useRainbow.ts.
+//
+// This is KnightLoader's own implementation. The canonical reference copy
+// lives at https://github.com/junkerderprovinz/glimstone/blob/main/reference/appearance.ts
 
 export type Shape = 'round' | 'soft' | 'square';
 
