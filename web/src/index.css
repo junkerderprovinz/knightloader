@@ -5,8 +5,13 @@
 /* ===========================================================================
    GlimStone — the shared design language
    ---------------------------------------------------------------------------
-   A warm, layered, low-noise system: warm near-black ground, one raised surface
-   level, generous radii, soft elevation, and heraldic gold used sparingly.
+   This is KnightLoader's own implementation of GlimStone, not the spec.
+   Full rules, palette rationale and reference files:
+   https://github.com/junkerderprovinz/glimstone
+
+   A layered, low-noise system: IBM Carbon's neutral ground, one raised
+   surface level, generous radii, soft elevation, and heraldic gold used
+   sparingly.
 
    The token NAMES are deliberately the same contract BombVault already uses
    (--carbon-*, --accent, --status-*), so a sibling app adopts this look by
