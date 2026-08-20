@@ -125,3 +125,9 @@ What follows is what exists and runs.
   seed-duration and port settings on the Torrents page, are now actually
   carried into a running download - all four were previously saved and
   validated but never reached the torrent engine.
+- A script started at the moment of shutdown can no longer outlive it. Asking
+  "is the host still open?" and signing up to be waited for were two separate
+  steps, so a run that slipped between them went untracked: shutdown returned
+  while the script kept calling into an app being torn down around it, and the
+  same gap could trip Go's own guard against that pattern and take the process
+  down. The two steps are now one.

@@ -78,6 +78,16 @@ type Host struct {
 	cancel context.CancelFunc
 	wg     sync.WaitGroup
 
+	// closeMu guards closing and nothing else, and is deliberately not the
+	// mu further down: that one is the trigger index's lock, and a single
+	// mutex holding two unrelated jobs is how a later change to Fire or
+	// rebuildIndex - either of which could one day want to reach a path
+	// that registers work - turns into a lifecycle deadlock nobody
+	// predicted. closing is what makes "is this host still accepting work?"
+	// and "count me in" one atomic step; see track.
+	closeMu sync.Mutex
+	closing bool
+
 	st        *store
 	actions   Actions
 	hub       Broadcaster
@@ -124,25 +134,68 @@ func NewHost(o Options) (*Host, error) {
 // package's own copy of the a.spawn convention (internal/app/app.go), not
 // that method itself: a.spawn is unexported on *app.App, and this package
 // does not import internal/app (see the package doc comment). A goroutine
-// started after ctx is already done does not start at all, the same
-// reasoning a.spawn's own doc comment gives: there is no useful work left
-// for it once shutdown is under way.
+// that arrives after Close has committed to shutting down does not start at
+// all, the same reasoning a.spawn's own doc comment gives: there is no
+// useful work left for it once shutdown is under way. Which side of that
+// line a given call falls on is track's decision, taken atomically - not a
+// context check Close can overtake between the check and the register.
 func (h *Host) spawn(f func()) {
-	if h.ctx.Err() != nil {
+	if !h.track() {
 		return
 	}
-	h.wg.Add(1)
 	go func() {
 		defer h.wg.Done()
 		f()
 	}()
 }
 
+// track counts the caller in as work Close has to wait for, or reports
+// false if Close has already committed to shutting down - in which case the
+// caller must not touch h.wg at all. Every h.wg.Add(1) in this package goes
+// through here; the matching Done stays with whoever called it.
+//
+// The check and the Add are one step under one lock on purpose. Written the
+// obvious way instead - `if h.ctx.Err() != nil { return }` and then a bare
+// h.wg.Add(1), which is what both spawn and RunNow used to do - the two
+// halves are a check-then-act with a gap Close can land in: the caller
+// finds the context still live, Close cancels and reaches h.wg.Wait() with
+// the counter already at zero so Wait returns at once, and only then does
+// the caller's Add(1) run. sync.WaitGroup names that case as misuse in so
+// many words ("calls with a positive delta that occur when the counter is
+// zero must happen before a Wait"), and it costs one of two things: a Close
+// that returned while a script it was supposed to wait for is still running
+// - free to go on calling h.actions and h.hub.Broadcast against a
+// torn-down app, which is the exact regression the wg/ctx pairing exists to
+// prevent - or an outright "sync: WaitGroup misuse: Add called concurrently
+// with Wait" panic taking the process down. Holding closeMu across both
+// halves closes the gap: a caller that gets in before Close's flip has its
+// Add(1) done before Wait can be reached, and one that arrives after it is
+// turned away instead of racing for the register.
+func (h *Host) track() bool {
+	h.closeMu.Lock()
+	defer h.closeMu.Unlock()
+	if h.closing {
+		return false
+	}
+	h.wg.Add(1)
+	return true
+}
+
 // Close stops accepting new work and waits for every worker to finish its
 // current script (bounded by that script's own timeout, at most
 // MaxTimeout) before returning. Wire this into App.Close alongside sched
 // and idleAction - see the package doc comment's own wiring note.
+// Calling it twice is harmless: the flag and cancel are both idempotent and
+// a second Wait on a drained WaitGroup returns immediately.
 func (h *Host) Close() error {
+	// Flipped first, under the same lock track() takes, so that from here on
+	// no RunNow or spawn can still slip a wg.Add(1) past the Wait below - see
+	// track's own comment for what that used to cost. cancel() stays after
+	// it: the flag is what refuses new work, cancel is what stops work
+	// already under way.
+	h.closeMu.Lock()
+	h.closing = true
+	h.closeMu.Unlock()
 	h.cancel()
 	h.wg.Wait()
 	return nil
@@ -257,11 +310,12 @@ func (h *Host) RunNow(ctx context.Context, scriptID string, task *TaskView, queu
 	// RunNow script was still running, free to go on calling h.actions and
 	// h.hub.Broadcast against a shut-down app. Not routed through spawn
 	// itself: spawn is fire-and-forget, and RunNow has to hand its Result
-	// back to the caller synchronously.
-	if h.ctx.Err() != nil {
+	// back to the caller synchronously. Registering through track rather
+	// than checking the context and then adding, because those two apart are
+	// a race Close can land in the middle of - see track.
+	if !h.track() {
 		return Result{}, errors.New("script: host is shutting down")
 	}
-	h.wg.Add(1)
 	defer h.wg.Done()
 	// Merged so EITHER the caller disconnecting or the host shutting down
 	// stops the script. runOne's own execute() only ever watches one ctx;

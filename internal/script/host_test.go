@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -515,6 +516,207 @@ func TestHost_CloseWaitsForAndInterruptsARunNowScript(t *testing.T) {
 	case <-runReturned:
 	case <-time.After(2 * time.Second):
 		t.Fatal("Close returned but the RunNow call it should have waited for never finished")
+	}
+}
+
+// closeWatchHub is the detector both races below hang off: it counts any
+// broadcast that arrives after Close has already returned. Nothing but a
+// running script ever reaches Broadcast (runOne's result event and the
+// sandbox's notify()), so a single count here means one thing - a script was
+// still executing against a host the app had finished tearing down.
+//
+// The check is sound in one direction only, which is the direction that
+// matters: a count is always a real violation (the Store of `closed`
+// happened before this Load of it saw true, so Close really had returned),
+// while a violating broadcast that lands a hair before the Store is simply
+// missed. False negatives cost detection rate; there are no false positives.
+type closeWatchHub struct {
+	closed     atomic.Bool
+	afterClose atomic.Int64
+}
+
+// Broadcast ignores both arguments on purpose: what is being asserted is
+// that a broadcast happened at all after Close returned, not what it said.
+func (h *closeWatchHub) Broadcast(_ string, _ any) {
+	if h.closed.Load() {
+		h.afterClose.Add(1)
+	}
+}
+
+// TestHost_RunNowRacingCloseNeverOutlivesIt hammers the one window that used
+// to be open between RunNow's shutdown check and its h.wg.Add(1): with those
+// two apart, a Close landing in the gap could cancel, find the WaitGroup
+// counter at zero, return - and only then would the RunNow register and go
+// on to run a whole script against a torn-down host. Both of that bug's
+// outcomes fail this test: the untracked run trips the hub's counter, and
+// the WaitGroup's own "Add called concurrently with Wait" panic takes the
+// binary down.
+//
+// Probabilistic on purpose, and worth saying plainly rather than dressing up:
+// the window is two adjacent statements wide, so no amount of test-side
+// scheduling makes hitting it a certainty - the same honest limit the sibling
+// investigation behind TestHost_CloseWaitsForAndInterruptsARunNowScript ran
+// into with this class of race. What the rounds buy is repeated exposure
+// under -race; what the invariant buys is that any hit at all is a hard,
+// non-flaky failure rather than a judgement call.
+//
+// That it detects the real thing was established rather than assumed: with a
+// throwaway 2ms sleep dropped between the old code's check and its Add - the
+// window widened, nothing else changed - this failed on the first round, both
+// on the count below and with -race naming h.wg itself ("Add called
+// concurrently with Wait" is annotated in sync as a data race for exactly
+// this). With the same 2ms sleep moved inside track's lock on the fixed code,
+// it passes: the width of the window stopped mattering once the check and the
+// register became one step.
+func TestHost_RunNowRacingCloseNeverOutlivesIt(t *testing.T) {
+	dir := t.TempDir()
+	setup, err := NewHost(Options{DataDir: dir, Actions: newFakeActions(), Hub: &closeWatchHub{}})
+	if err != nil {
+		t.Fatalf("NewHost: %v", err)
+	}
+	s, err := setup.SaveScript(Script{Name: "quick", Trigger: TriggerOnDemand, Enabled: true, Code: "notify('ran');"})
+	if err != nil {
+		t.Fatalf("SaveScript: %v", err)
+	}
+	if err := setup.Close(); err != nil {
+		t.Fatalf("Close: %v", err)
+	}
+
+	const (
+		rounds  = 300
+		callers = 3
+	)
+	var accepted, refused int64
+	for i := 0; i < rounds; i++ {
+		hub := &closeWatchHub{}
+		h, err := NewHost(Options{DataDir: dir, Actions: newFakeActions(), Hub: hub})
+		if err != nil {
+			t.Fatalf("round %d: NewHost: %v", i, err)
+		}
+
+		var (
+			stop     atomic.Bool
+			warm     = make(chan struct{})
+			warmOnce sync.Once
+			oddErr   atomic.Value
+			wg       sync.WaitGroup
+		)
+		wg.Add(callers)
+		for j := 0; j < callers; j++ {
+			go func() {
+				defer wg.Done()
+				for !stop.Load() {
+					_, err := h.RunNow(context.Background(), s.ID, nil, QueueView{})
+					warmOnce.Do(func() { close(warm) })
+					switch {
+					case err == nil:
+						atomic.AddInt64(&accepted, 1)
+					case strings.Contains(err.Error(), "shutting down"):
+						atomic.AddInt64(&refused, 1)
+					default:
+						oddErr.Store(err.Error())
+					}
+				}
+			}()
+		}
+		// Close deliberately lands in the middle of a running stream rather
+		// than at a shared starting gun: a single RunNow raced from a
+		// standstill loses almost every time (it has a store lookup and a
+		// goja.Compile in front of its shutdown check, while Close has
+		// nothing in front of its cancel), so that shape exercised the
+		// window it is meant to test roughly once in three hundred tries.
+		// Steady traffic puts several calls astride the flip every round.
+		<-warm
+		_ = h.Close()
+		hub.closed.Store(true)
+		stop.Store(true)
+		wg.Wait()
+
+		if n := hub.afterClose.Load(); n != 0 {
+			t.Fatalf("round %d: %d broadcast(s) arrived after Close() returned - a RunNow registered past the shutdown and ran untracked", i, n)
+		}
+		if e := oddErr.Load(); e != nil {
+			t.Fatalf("round %d: RunNow racing Close returned an unexpected error: %v", i, e)
+		}
+	}
+	// Not an assertion: which side of the flip a given call lands on is the
+	// scheduler's business, and pinning a ratio here would only buy a flaky
+	// test. Logged because a run that is all one way means the window never
+	// actually got exercised, which is worth seeing with -v before trusting a
+	// green result too far.
+	t.Logf("%d rounds: %d RunNow calls accepted and waited for, %d refused as shutting down",
+		rounds, atomic.LoadInt64(&accepted), atomic.LoadInt64(&refused))
+}
+
+// TestHost_SpawnRacingCloseNeverMisusesTheWaitGroup is the spawn half of the
+// race above. spawn only ever runs from NewHost today, so its stray
+// goroutine would be a worker that finds the context already cancelled and
+// returns at once - harmless in itself. The WaitGroup misuse is not: an
+// Add(1) that lands on a zero counter while Close is inside Wait panics the
+// whole process, and that consequence does not care whether the goroutine
+// had useful work to do. spawn being a general helper any future caller can
+// reach is the second reason it is fixed rather than argued away.
+//
+// A tight loop of spawns against Close is a far better probe than RunNow's
+// single call per round: spawn's check-and-register is two statements with
+// no compile step in front of them, so this hits the window far more often.
+func TestHost_SpawnRacingCloseNeverMisusesTheWaitGroup(t *testing.T) {
+	const (
+		rounds        = 200
+		spawners      = 4
+		spawnsEach    = 25
+		afterCloseMsg = "round %d: %d goroutine(s) started after Close() returned - spawn registered past the shutdown"
+	)
+	for i := 0; i < rounds; i++ {
+		h, err := NewHost(Options{DataDir: t.TempDir(), Actions: newFakeActions(), Hub: newFakeHub()})
+		if err != nil {
+			t.Fatalf("round %d: NewHost: %v", i, err)
+		}
+
+		var (
+			closed     atomic.Bool
+			afterClose atomic.Int64
+			wg         sync.WaitGroup
+			barrier    sync.WaitGroup
+			start      = make(chan struct{})
+		)
+		barrier.Add(spawners + 1)
+		wg.Add(spawners + 1)
+		for j := 0; j < spawners; j++ {
+			go func() {
+				defer wg.Done()
+				barrier.Done()
+				<-start
+				for k := 0; k < spawnsEach; k++ {
+					h.spawn(func() {
+						if closed.Load() {
+							afterClose.Add(1)
+						}
+					})
+				}
+			}()
+		}
+		go func() {
+			defer wg.Done()
+			barrier.Done()
+			<-start
+			_ = h.Close()
+			closed.Store(true)
+		}()
+		barrier.Wait()
+		close(start)
+		wg.Wait()
+		// A second Close, purely to drain: on a build where spawn could
+		// still register past the first one, this waits for that stray
+		// goroutine so the check below actually sees it instead of the test
+		// finishing first. On a correct build there is nothing left to wait
+		// for and this returns at once.
+		if err := h.Close(); err != nil {
+			t.Fatalf("round %d: second Close: %v", i, err)
+		}
+		if n := afterClose.Load(); n != 0 {
+			t.Fatalf(afterCloseMsg, i, n)
+		}
 	}
 }
 
