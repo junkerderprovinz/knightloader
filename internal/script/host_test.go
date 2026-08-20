@@ -499,10 +499,22 @@ func TestHost_CloseWaitsForAndInterruptsARunNowScript(t *testing.T) {
 	if elapsed > 3*time.Second {
 		t.Fatalf("Close took %v to interrupt a RunNow script whose own timeout was %v", elapsed, MaxTimeout)
 	}
+	// Waited for, not sampled. Close's guarantee is delivered by RunNow's
+	// deferred h.wg.Done(), which runs one stack frame BEFORE the calling
+	// goroutine above gets to its own `defer close(runReturned)` - so there
+	// is always a scheduling window in which Close has correctly returned
+	// and this channel is not closed yet. A `default:` branch read that
+	// window as a failure and made this test flaky (github.com/
+	// junkerderprovinz/knightloader CI run 32383148157, failing here in
+	// 0.00s while the same package had passed earlier in the same run).
+	// The bound stays well under the script's own MaxTimeout budget, so the
+	// regression this test exists for - a RunNow that Close never waited on,
+	// running on for its full 30s - still fails it rather than being waited
+	// out.
 	select {
 	case <-runReturned:
-	default:
-		t.Fatal("Close returned before the RunNow call it should have waited for did")
+	case <-time.After(2 * time.Second):
+		t.Fatal("Close returned but the RunNow call it should have waited for never finished")
 	}
 }
 
