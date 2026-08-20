@@ -8,7 +8,7 @@ require (
 	github.com/cardinalby/go-systray v1.0.2
 	github.com/coder/websocket v1.8.15
 	github.com/junkerderprovinz/knightloader v0.0.0
-	github.com/wailsapp/wails/v2 v2.13.0
+	github.com/wailsapp/wails/v2 v2.15.0
 )
 
 require (
@@ -185,7 +185,7 @@ require (
 // libayatana-appindicator3 - see tray_probe_linux.go's doc comment), pulled
 // in directly too since tray_probe_linux.go calls it for the availability
 // probe rather than only reaching it transitively through the tray library.
-require github.com/godbus/dbus/v5 v5.1.0
+require github.com/godbus/dbus/v5 v5.2.2
 
 // Use the server sources from the parent checkout.
 replace github.com/junkerderprovinz/knightloader => ../
