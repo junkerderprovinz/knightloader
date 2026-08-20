@@ -131,3 +131,9 @@ What follows is what exists and runs.
   while the script kept calling into an app being torn down around it, and the
   same gap could trip Go's own guard against that pattern and take the process
   down. The two steps are now one.
+- The same gap is closed in the two other places it existed: the background jobs
+  the app itself starts - an availability probe, a checksum pass, a dropped job
+  file, the update that publishes a finished task - and the desktop build's own
+  window and tray helpers. A shutdown now either waits for a job or refuses it
+  outright, with nothing in between, so none of them can still be writing to a
+  database or a window that has just been closed underneath them.
