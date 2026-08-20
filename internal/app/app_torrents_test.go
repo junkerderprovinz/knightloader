@@ -246,7 +246,20 @@ func TestPastedMagnetGetsTheShortHostBucket(t *testing.T) {
 // and by name (resolveTorrent's own sentence), which is the observable proof
 // that StartTasks -> the dispatch loop -> Engine.Start -> startTorrent ->
 // resolveTorrent is the intact chain this test exercises end to end.
+//
+// Gated on -short because reaching the engine's torrent branch is the same
+// thing as booting gopeed's shared torrent.Client for this process (see
+// Engine.SetTorrentConfig's own comment on initClient), and that client binds
+// a wildcard peer listener - verified here, 0.0.0.0 and [::] on the same port,
+// alongside the app's ordinary loopback proxy. Correct for the real app,
+// pointless for a unit test, and on Windows it is a firewall prompt every
+// single run: go test builds a fresh binary at a fresh temp path each time, so
+// no allow-rule can ever stick to it. Nothing about what this test asserts
+// changes; a plain go test ./... still runs it in full.
 func TestStartTasksThreadsTheSelectionIntoTheEngineJob(t *testing.T) {
+	if testing.Short() {
+		t.Skip("this starts a torrent client, which opens a network-facing listener")
+	}
 	a := newTorrentTestApp(t)
 	a.Engine.SetMetadataTimeout(200 * time.Millisecond)
 
