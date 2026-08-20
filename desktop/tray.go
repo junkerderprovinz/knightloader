@@ -67,6 +67,16 @@ type trayController struct {
 	closed    chan struct{}
 	closeOnce sync.Once
 	wg        sync.WaitGroup
+
+	// closeMu guards closing and nothing else, and is deliberately not mu:
+	// that one is this file's state lock, taken by every handler here, and
+	// giving one mutex two unrelated jobs is how a later change to one of them
+	// becomes a lifecycle deadlock. closing is what makes "is this controller
+	// still accepting work?" and "count me in" one atomic step; see track. It
+	// does not replace the closed channel - that is what the poll loop and the
+	// hub listener select on, which a flag cannot do.
+	closeMu sync.Mutex
+	closing bool
 }
 
 func newTrayController(h *hub.Hub, cfgPath string) *trayController {
@@ -90,18 +100,49 @@ func newTrayController(h *hub.Hub, cfgPath string) *trayController {
 // spawn tracks a goroutine so shutdown can wait for it, the same discipline
 // app.spawn enforces for App-owned state - this package has its own mutable
 // state (cfg, ctx, seenCaptcha) subject to exactly the same "a write after
-// Close" hazard.
+// Close" hazard. Which side of the shutdown a given call falls on is track's
+// decision, taken as one atomic step - not a check onShutdown can overtake
+// between the check and the register.
 func (tc *trayController) spawn(f func()) {
-	select {
-	case <-tc.closed:
+	if !tc.track() {
 		return
-	default:
 	}
-	tc.wg.Add(1)
 	go func() {
 		defer tc.wg.Done()
 		f()
 	}()
+}
+
+// track counts the caller in as work onShutdown has to wait for, or reports
+// false if the shutdown has already begun - in which case the caller must not
+// touch tc.wg at all. Every tc.wg.Add(1) in this package goes through here.
+//
+// The check and the Add are one step under one lock on purpose. Written the
+// obvious way instead - a non-blocking receive on tc.closed and then a bare
+// tc.wg.Add(1), which is what this used to do - the two halves are a
+// check-then-act with a gap onShutdown can land in: the caller finds the
+// channel still open, onShutdown closes it and reaches tc.wg.Wait() with the
+// counter already at zero so Wait returns at once, and only then does the
+// caller's Add(1) run. sync.WaitGroup names that case as misuse in so many
+// words ("calls with a positive delta that occur when the counter is zero must
+// happen before a Wait"), and it costs one of two things: a goroutine still
+// reading tc.ctx after main has gone on to tear the Wails context down, which
+// is the exact hazard this spawn exists to prevent - or an outright "sync:
+// WaitGroup misuse: Add called concurrently with Wait" panic taking the
+// process down. raiseIfNeeded is the live way in: it runs on the hub's own
+// writer goroutine, so a captcha arriving as the user quits is that race with
+// nothing synthetic about it.
+//
+// The same shape, and the same fix, as App.track in internal/app and
+// Host.track in internal/script.
+func (tc *trayController) track() bool {
+	tc.closeMu.Lock()
+	defer tc.closeMu.Unlock()
+	if tc.closing {
+		return false
+	}
+	tc.wg.Add(1)
+	return true
 }
 
 // isTrayAvailable reports the startup probe's result. Read-only after
@@ -215,6 +256,14 @@ func (tc *trayController) quit() {
 // package started can still be reading tc.ctx after the Wails context it
 // holds becomes invalid.
 func (tc *trayController) onShutdown() {
+	// Flipped first, under the same lock track takes, so that from here on no
+	// spawn can still slip a wg.Add(1) past the Wait below - see track's own
+	// comment for what that used to cost. Closing the channel stays after it:
+	// the flag is what refuses new work, the channel is what stops the loops
+	// already running.
+	tc.closeMu.Lock()
+	tc.closing = true
+	tc.closeMu.Unlock()
 	tc.closeOnce.Do(func() { close(tc.closed) })
 	tc.wg.Wait()
 	if tc.hub != nil && tc.hubConn != nil {

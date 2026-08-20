@@ -172,6 +172,17 @@ type App struct {
 	// afterwards.
 	wg sync.WaitGroup
 
+	// closeMu guards closing and nothing else, and is deliberately none of the
+	// four locks further down. Each of those already has a subject of its own -
+	// the task list, the watcher, the backends, the compiled rule sets - and
+	// mu in particular is held by callers that then reach spawn on the way out
+	// (dispatchLocked publishing settled tasks, unpackLocked starting the
+	// extraction worker), so registering work under mu would deadlock the
+	// moment a task settled, Close or no Close. closing is what makes "is this
+	// app still accepting work?" and "count me in" one atomic step; see track.
+	closeMu sync.Mutex
+	closing bool
+
 	jd     backend            // headless-JD backend, nil unless KL_JD is set and reachable
 	ytdlp  backend            // yt-dlp media backend, nil unless the yt-dlp binary is present
 	torbox backend            // TorBox debrid backend, nil unless a TorBox key is present
@@ -471,8 +482,16 @@ func New(dataDir string) (*App, error) {
 	a.idleAction.Start()
 	// Last, so nothing can sweep a list that is still being assembled. Close
 	// waits for this goroutine, because everything it does writes to the store.
-	a.wg.Add(1)
-	go a.upkeep()
+	//
+	// Registered through track like every other a.wg.Add in this package, even
+	// though nothing can turn it away here: New has not handed this *App to
+	// anybody yet, so there is no Close to race. One entry point with no
+	// exceptions in it is what stops the next a.wg.Add from being written the
+	// unsafe way - see track. Not a.spawn, because upkeep carries its own
+	// defer a.wg.Done() and spawn's wrapper would be a second one.
+	if a.track() {
+		go a.upkeep()
+	}
 	// Same ordering reason as sched.Start/idleAction.Start just above:
 	// a.tasks is already whole by this point, so there is no boot-time
 	// window where this could read a half-assembled queue as idle - see
@@ -540,6 +559,70 @@ func (a *App) taskDir(taskID string) string {
 	return a.dirFor(c)
 }
 
+// spawn runs f on its own goroutine and makes Close wait for it.
+//
+// The long-lived upkeep loop was counted on a.wg from the start; the short-lived
+// ones were not, and several of them write to the store - the availability
+// probe, the checksum pass, a watch-folder job, the settled-task publish. So
+// Close could cancel, wait for upkeep, close the store, and then one of those
+// would land: in production a write to a closed database with its error
+// discarded, and on CI a test failing with "TempDir RemoveAll cleanup:
+// directory not empty", because SQLite recreated its write-ahead log inside the
+// directory the harness was in the middle of deleting.
+//
+// A goroutine that arrives after Close has committed to shutting down does not
+// start at all. There is no useful work left for it: everything it would write
+// goes to a store that is closing, and the alternative - letting it run and
+// discarding the error - is how a shutdown grows a tail nobody can measure.
+// Which side of that line a given call falls on is track's decision, taken as
+// one atomic step - not a context check Close can overtake between the check
+// and the register.
+func (a *App) spawn(f func()) {
+	if !a.track() {
+		return
+	}
+	go func() {
+		defer a.wg.Done()
+		f()
+	}()
+}
+
+// track counts the caller in as work Close has to wait for, or reports false if
+// Close has already committed to shutting down - in which case the caller must
+// not touch a.wg at all. Every a.wg.Add(1) in this package goes through here;
+// the matching Done stays with whoever called it.
+//
+// The check and the Add are one step under one lock on purpose. Written the
+// obvious way instead - `if a.ctx != nil && a.ctx.Err() != nil { return }` and
+// then a bare a.wg.Add(1), which is what spawn used to do - the two halves are
+// a check-then-act with a gap Close can land in: the caller finds the context
+// still live, Close cancels and reaches a.wg.Wait() with the counter already at
+// zero so Wait returns at once, and only then does the caller's Add(1) run.
+// sync.WaitGroup names that case as misuse in so many words ("calls with a
+// positive delta that occur when the counter is zero must happen before a
+// Wait"), and it costs one of two things: a Close that returned with work it
+// was supposed to wait for still ahead of it - the availability probe, the
+// checksum pass, a watch-folder job, the settled-task publish, every one of
+// them writing into the store this same Close is about to shut, which is the
+// exact tail spawn exists to prevent - or an outright "sync: WaitGroup misuse:
+// Add called concurrently with Wait" panic taking the process down. Holding
+// closeMu across both halves closes the gap: a caller that gets in before
+// Close's flip has its Add(1) done before Wait can be reached, and one that
+// arrives after it is turned away instead of racing for the register.
+//
+// Nothing is called while closeMu is held, and Close lets it go again before it
+// cancels and waits. Both of those matter, because spawn's callers reach it
+// holding locks of their own - see closeMu's own comment on the struct.
+func (a *App) track() bool {
+	a.closeMu.Lock()
+	defer a.closeMu.Unlock()
+	if a.closing {
+		return false
+	}
+	a.wg.Add(1)
+	return true
+}
+
 // Close shuts the app down, and what that costs is worth stating plainly rather
 // than leaving somebody to find out during an incident.
 //
@@ -558,36 +641,22 @@ func (a *App) taskDir(taskID string) string {
 // app discards Save's error. That is not tidy, and it is precisely why boot
 // reconciles the list instead of trusting the last state written to it.
 //
-// The order below is the contract. Cancel first so nothing new begins, then the
-// goroutines this package owns, then the subsystems, and the store last because
-// every one of them writes to it.
-// spawn runs f on its own goroutine and makes Close wait for it.
+// The order below is the contract. Refuse new work and cancel first so nothing
+// new begins, then the goroutines this package owns, then the subsystems, and
+// the store last because every one of them writes to it.
 //
-// The long-lived upkeep loop was counted on a.wg from the start; the short-lived
-// ones were not, and several of them write to the store - the availability
-// probe, the checksum pass, a watch-folder job, the settled-task publish. So
-// Close could cancel, wait for upkeep, close the store, and then one of those
-// would land: in production a write to a closed database with its error
-// discarded, and on CI a test failing with "TempDir RemoveAll cleanup:
-// directory not empty", because SQLite recreated its write-ahead log inside the
-// directory the harness was in the middle of deleting.
-//
-// A goroutine started after the context is already done does not start at all.
-// There is no useful work left for it: everything it would write goes to a store
-// that is closing, and the alternative - letting it run and discarding the error
-// - is how a shutdown grows a tail nobody can measure.
-func (a *App) spawn(f func()) {
-	if a.ctx != nil && a.ctx.Err() != nil {
-		return
-	}
-	a.wg.Add(1)
-	go func() {
-		defer a.wg.Done()
-		f()
-	}()
-}
-
+// Calling it twice is harmless: the flag and cancel are both idempotent, a
+// second Wait on a drained WaitGroup returns immediately, and every subsystem
+// below either has its own closeOnce or takes a second Close without
+// complaining.
 func (a *App) Close() error {
+	// Flipped first, under the same lock track takes, so that from here on no
+	// spawn can still slip a wg.Add(1) past the Wait below - see track's own
+	// comment for what that used to cost. cancel() stays after it: the flag is
+	// what refuses new work, cancel is what stops work already under way.
+	a.closeMu.Lock()
+	a.closing = true
+	a.closeMu.Unlock()
 	if a.cancel != nil {
 		a.cancel()
 	}

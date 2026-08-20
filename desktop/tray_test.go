@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"path/filepath"
+	"sync"
+	"sync/atomic"
 	"testing"
 )
 
@@ -229,6 +231,100 @@ func TestIsTrayAvailableReflectsField(t *testing.T) {
 	tc.trayAvailable = false
 	if tc.isTrayAvailable() {
 		t.Errorf("isTrayAvailable() = true, want false")
+	}
+}
+
+// TestSpawnRacingShutdownNeverMisusesTheWaitGroup hammers the window that used
+// to be open between spawn's tc.closed check and its tc.wg.Add(1). With those
+// two apart, an onShutdown landing in the gap could close the channel, find
+// the WaitGroup counter at zero, return - and only then would the spawn
+// register and start a goroutine nothing was waiting for any more, free to go
+// on reading tc.ctx after main has torn the Wails context down. Both of that
+// bug's outcomes fail this test: the goroutine that starts late trips the
+// counter below, and the WaitGroup's own "Add called concurrently with Wait"
+// panic takes the binary down.
+//
+// The exposure is real: raiseIfNeeded spawns from the hub's own writer
+// goroutine, so a captcha arriving while the user quits is this interleaving
+// with nothing synthetic about it.
+//
+// Probabilistic on purpose, and worth saying plainly: the window is two
+// adjacent statements wide, so no amount of test-side scheduling makes hitting
+// it a certainty. What the rounds buy is repeated exposure under -race; what
+// the invariant buys is that any hit at all is a hard, non-flaky failure.
+//
+// That it detects the real thing was established rather than assumed: with a
+// throwaway 2ms sleep dropped between the old code's channel check and its Add
+// - the window widened, nothing else changed - this failed inside the first
+// two rounds in three runs out of three, on the count below. The count is the
+// detector rather than the WaitGroup's own misuse panic because that is what
+// the probe produced: a late Add lands after Wait has returned, not during it.
+// The panic is the same window's other documented outcome, reached when Wait
+// is still in progress, and no test can force which of the two a given
+// interleaving gives.
+//
+// The spawned closure deliberately touches nothing but its own counter: every
+// wailsruntime call log.Fatalf's on a context that is not Wails' own, per
+// newTestController's comment. Nor is the controller built by that helper -
+// nothing here reads cfg or cfgPath, and a round is cheap enough that its
+// t.TempDir() would be the most expensive thing in the loop.
+func TestSpawnRacingShutdownNeverMisusesTheWaitGroup(t *testing.T) {
+	const (
+		rounds     = 400
+		spawners   = 4
+		spawnsEach = 25
+	)
+	for i := 0; i < rounds; i++ {
+		tc := &trayController{
+			cfg:         defaultConfig(),
+			seenCaptcha: map[string]struct{}{},
+			closed:      make(chan struct{}),
+		}
+
+		var (
+			down      atomic.Bool
+			afterDown atomic.Int64
+			wg        sync.WaitGroup
+			barrier   sync.WaitGroup
+			start     = make(chan struct{})
+		)
+		barrier.Add(spawners + 1)
+		wg.Add(spawners + 1)
+		for j := 0; j < spawners; j++ {
+			go func() {
+				defer wg.Done()
+				barrier.Done()
+				<-start
+				for k := 0; k < spawnsEach; k++ {
+					tc.spawn(func() {
+						if down.Load() {
+							afterDown.Add(1)
+						}
+					})
+				}
+			}()
+		}
+		go func() {
+			defer wg.Done()
+			barrier.Done()
+			<-start
+			tc.onShutdown()
+			down.Store(true)
+		}()
+		// Released together rather than one after the other: the spawn stream
+		// has to already be running when the shutdown flips, or every call
+		// lands on the same side of it and the window never gets exercised.
+		barrier.Wait()
+		close(start)
+		wg.Wait()
+		// A second onShutdown, purely to drain: on a build where spawn could
+		// still register past the first one, this waits for that stray
+		// goroutine so the check below actually sees it. On a correct build
+		// there is nothing left to wait for and it returns at once.
+		tc.onShutdown()
+		if n := afterDown.Load(); n != 0 {
+			t.Fatalf("round %d: %d goroutine(s) started after onShutdown() returned - spawn registered past the shutdown", i, n)
+		}
 	}
 }
 
