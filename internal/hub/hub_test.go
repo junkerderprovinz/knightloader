@@ -281,7 +281,20 @@ func TestRemoveLeavesNoGoroutine(t *testing.T) {
 		h.Remove(c)
 	}
 
-	waitFor(t, func() bool { return settle(base) }, "writer goroutines outlived their connections")
+	// Wait for BOTH signals, not just the goroutine count: NumGoroutine() is a
+	// process-wide counter, so it can coincidentally settle to the baseline
+	// from unrelated scheduling even before every one of these 50 connections
+	// has actually run its own cleanup and set closed - checking count alone
+	// made this test intermittently flaky (github.com/junkerderprovinz/knightloader
+	// CI, three unrelated PRs blocked by the same failure the same day).
+	waitFor(t, func() bool {
+		for _, c := range cs {
+			if !c.closed.Load() {
+				return false
+			}
+		}
+		return settle(base)
+	}, "writer goroutines outlived their connections")
 	for _, c := range cs {
 		if !c.closed.Load() {
 			t.Fatal("a removed connection was never closed")
