@@ -364,6 +364,8 @@ export const vi: Dict = {
   'skipped.clear': 'Xóa',
   'skipped.clearFailed': 'Không xóa được danh sách. Máy chủ có kết nối được không?',
 
+  'collector.filedrop.prompt': 'Bạn có tệp .torrent hoặc tệp container? Thả vào đây — hoặc thả một liên kết.',
+  'collector.filedrop.info': 'Tệp .torrent được đọc tại đây — nếu có nhiều hơn một tệp bên trong, bạn có thể chọn tệp nào để tải trước khi thêm. Danh sách liên kết đơn giản (.txt) cũng được đọc tại đây và xếp hàng như khi dán; tệp .dlc, .ccf hoặc .rsdf được mã hóa và khóa của nó thuộc về một dịch vụ, vì vậy nó được chuyển cho backend JDownloader không giao diện, nơi có khóa đó. Liên kết được thả vào đây sẽ được xếp hàng giống như qua ô dán ở trên.',
   'container.prompt': 'Bạn có tệp container? Thả .txt, .dlc, .ccf hoặc .rsdf vào đây.',
   'container.info': 'Một danh sách liên kết thường sẽ được đọc ngay tại đây và xếp vào như khi bạn dán. Tệp .dlc, .ccf hoặc .rsdf thì được mã hóa và khóa thuộc về một dịch vụ, nên nó được giao cho backend JDownloader vốn có khóa. Không có backend đó thì không mở được, và KnightLoader nói thẳng thay vì đoán mò.',
   'container.choose': 'Chọn một tệp',

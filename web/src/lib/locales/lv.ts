@@ -364,6 +364,8 @@ export const lv: Dict = {
   'skipped.clear': 'Notīrīt',
   'skipped.clearFailed': 'Sarakstu neizdevās notīrīt. Vai serveris ir sasniedzams?',
 
+  'collector.filedrop.prompt': 'Vai jums ir .torrent vai konteinera fails? Nometiet to šeit — vai nometiet saiti.',
+  'collector.filedrop.info': '.torrent tiek nolasīts šeit — ja tajā ir vairāk par vienu failu, pirms pievienošanas varat izvēlēties, kurus ielādēt. Vienkāršs saišu saraksts (.txt) arī tiek nolasīts šeit un ievietots rindā kā ielīmēšana; .dlc, .ccf vai .rsdf ir šifrēts, un tā atslēga pieder pakalpojumam, tāpēc tas tiek nodots bezgalvas JDownloader aizmugursistēmai, kurai šī atslēga ir. Šeit nomesta saite tiek ievietota rindā tāpat kā, izmantojot iepriekš redzamo ielīmēšanas lauku.',
   'container.prompt': 'Ir konteinera fails? Nomet šeit .txt, .dlc, .ccf vai .rsdf.',
   'container.info': 'Vienkāršs saišu saraksts tiek nolasīts šeit un sagatavots kā ielīmēšana. Fails .dlc, .ccf vai .rsdf ir šifrēts, un tā atslēga pieder pakalpojumam, tāpēc to nodod JDownloader aizmugurei, kurai atslēga ir. Bez tās aizmugures to atvērt nevar, un KnightLoader to pasaka, nevis min.',
   'container.choose': 'Izvēlēties failu',

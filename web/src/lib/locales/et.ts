@@ -364,6 +364,8 @@ export const et: Dict = {
   'skipped.clear': 'Tühjenda',
   'skipped.clearFailed': 'Loendit ei õnnestunud tühjendada. Kas server on kättesaadav?',
 
+  'collector.filedrop.prompt': 'Kas sul on .torrent- või konteinerfail? Lohista see siia — või lohista link.',
+  'collector.filedrop.info': '.torrent loetakse siin — kui failis on rohkem kui üks fail, saad enne lisamist valida, millised alla laaditakse. Ka lihtne lingiloend (.txt) loetakse siin ja lisatakse järjekorda nagu kleepimisel; .dlc, .ccf või .rsdf on krüpteeritud ja selle võti kuulub teenusele, mistõttu see antakse üle peata JDownloaderi taustaprogrammile, kellel see võti on. Siia lohistatud link lisatakse järjekorda samamoodi nagu ülal oleva kleepimisvälja kaudu.',
   'container.prompt': 'On konteinerifail? Lohista siia .txt, .dlc, .ccf või .rsdf.',
   'container.info': 'Tavaline linkide loend loetakse siin ja pannakse valmis nagu kleepimine. Fail .dlc, .ccf või .rsdf on krüptitud ja selle võti kuulub teenusele, seega antakse see JDownloaderi taustsüsteemile, kellel võti on. Ilma selle taustsüsteemita ei saa seda avada, ja KnightLoader ütleb seda, selle asemel et pakkuda.',
   'container.choose': 'Vali fail',

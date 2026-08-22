@@ -364,6 +364,8 @@ export const hr: Dict = {
   'skipped.clear': 'Očisti',
   'skipped.clearFailed': 'Popis se nije mogao očistiti. Je li poslužitelj dostupan?',
 
+  'collector.filedrop.prompt': 'Imate .torrent ili kontejnersku datoteku? Ispustite je ovdje — ili ispustite poveznicu.',
+  'collector.filedrop.info': 'Datoteka .torrent čita se ovdje — ako sadrži više od jedne datoteke, prije dodavanja možete odabrati koje preuzeti. Obični popis poveznica (.txt) također se čita ovdje i dodaje u red kao lijepljenje; datoteka .dlc, .ccf ili .rsdf šifrirana je i njezin ključ pripada usluzi, pa se predaje headless JDownloader pozadinskom sustavu koji taj ključ ima. Poveznica ispuštena ovdje dodaje se u red isto kao putem gornjeg polja za lijepljenje.',
   'container.prompt': 'Imaš datoteku spremnika? Ispusti ovdje .txt, .dlc, .ccf ili .rsdf.',
   'container.info': 'Obični popis poveznica čita se ovdje i priprema kao lijepljenje. Datoteka .dlc, .ccf ili .rsdf je šifrirana, a ključ pripada usluzi, pa se predaje pozadini JDownloader koja ključ ima. Bez te pozadine ne može se otvoriti, i KnightLoader to kaže umjesto da nagađa.',
   'container.choose': 'Odaberi datoteku',

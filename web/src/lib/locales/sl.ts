@@ -364,6 +364,8 @@ export const sl: Dict = {
   'skipped.clear': 'Počisti',
   'skipped.clearFailed': 'Seznama ni bilo mogoče počistiti. Je strežnik dosegljiv?',
 
+  'collector.filedrop.prompt': 'Imate datoteko .torrent ali vsebnik? Spustite jo sem — ali spustite povezavo.',
+  'collector.filedrop.info': 'Datoteka .torrent se prebere tukaj — če vsebuje več kot eno datoteko, lahko pred dodajanjem izberete, katere naj se prenesejo. Tudi preprost seznam povezav (.txt) se prebere tukaj in doda v vrsto kot lepljenje; datoteka .dlc, .ccf ali .rsdf je šifrirana in njen ključ pripada storitvi, zato se preda brezglavemu zaledju JDownloader, ki ta ključ ima. Povezava, spuščena tukaj, se doda v vrsto enako kot prek polja za lepljenje zgoraj.',
   'container.prompt': 'Imaš datoteko vsebnika? Spusti sem .txt, .dlc, .ccf ali .rsdf.',
   'container.info': 'Navaden seznam povezav se prebere kar tukaj in pripravi kot prilepljanje. Datoteka .dlc, .ccf ali .rsdf je šifrirana, njen ključ pa pripada storitvi, zato gre zaledju JDownloader, ki ključ ima. Brez tega zaledja je ni mogoče odpreti in KnightLoader to pove, namesto da bi ugibal.',
   'container.choose': 'Izberi datoteko',

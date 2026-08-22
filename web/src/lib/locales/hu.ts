@@ -364,6 +364,8 @@ export const hu: Dict = {
   'skipped.clear': 'Törlés',
   'skipped.clearFailed': 'A listát nem sikerült törölni. Elérhető a kiszolgáló?',
 
+  'collector.filedrop.prompt': 'Van .torrent vagy konténer fájlod? Dobd ide — vagy dobj ide egy linket.',
+  'collector.filedrop.info': 'A .torrent fájlt itt olvassa be a rendszer — ha egynél több fájlt tartalmaz, hozzáadás előtt kiválaszthatod, melyeket töltse le. Az egyszerű linklistát (.txt) is itt olvassa be, és beillesztésként sorolja be; a .dlc, .ccf vagy .rsdf titkosított, kulcsa egy szolgáltatáshoz tartozik, ezért átadásra kerül a fejetlen JDownloader háttérrendszernek, amely rendelkezik ezzel a kulccsal. Az ide dobott link ugyanúgy sorba kerül, mint a fenti beillesztő mezőn keresztül.',
   'container.prompt': 'Van konténerfájlod? Húzz ide egy .txt, .dlc, .ccf vagy .rsdf fájlt.',
   'container.info': 'Egy sima linklistát itt olvasunk be, és úgy készítünk elő, mintha beillesztetted volna. A .dlc, .ccf vagy .rsdf titkosított, és a kulcsa egy szolgáltatóé, ezért a JDownloader backendhez kerül, amelynek van kulcsa. Enélkül a backend nélkül nem nyitható meg, és a KnightLoader ezt kimondja, ahelyett hogy találgatna.',
   'container.choose': 'Fájl kiválasztása',

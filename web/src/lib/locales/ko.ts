@@ -364,6 +364,8 @@ export const ko: Dict = {
   'skipped.clear': '지우기',
   'skipped.clearFailed': '목록을 지우지 못했습니다. 서버에 닿나요?',
 
+  'collector.filedrop.prompt': '.torrent 또는 컨테이너 파일이 있나요? 여기에 드롭하세요 — 또는 링크를 드롭하세요.',
+  'collector.filedrop.info': '.torrent 파일은 여기서 읽힙니다 — 파일이 여러 개 포함된 경우 추가하기 전에 가져올 파일을 선택할 수 있습니다. 일반 링크 목록(.txt)도 여기서 읽혀 붙여넣기처럼 등록됩니다. .dlc, .ccf, .rsdf는 암호화되어 있고 키는 서비스 소유이므로, 키를 가진 헤드리스 JDownloader 백엔드로 전달됩니다. 여기에 드롭된 링크는 위의 붙여넣기 상자와 동일한 방식으로 등록됩니다.',
   'container.prompt': '컨테이너 파일이 있나요? .txt, .dlc, .ccf, .rsdf를 여기에 놓으세요.',
   'container.info': '평범한 링크 목록은 여기서 읽혀 붙여넣기처럼 담깁니다. .dlc, .ccf, .rsdf는 암호화되어 있고 그 키는 서비스의 것이므로, 키를 가진 JDownloader 백엔드로 넘어갑니다. 그 백엔드가 없으면 열 수 없고, KnightLoader는 추측하는 대신 그렇다고 말합니다.',
   'container.choose': '파일 고르기',

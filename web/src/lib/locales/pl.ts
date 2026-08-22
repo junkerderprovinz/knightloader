@@ -356,6 +356,8 @@ export const pl: Dict = {
   'skipped.clear': 'Wyczyść',
   'skipped.clearFailed': 'Nie udało się wyczyścić listy. Czy serwer jest osiągalny?',
 
+  'collector.filedrop.prompt': 'Masz plik .torrent lub kontener? Upuść go tutaj — albo upuść link.',
+  'collector.filedrop.info': 'Plik .torrent jest tu odczytywany — jeśli zawiera więcej niż jeden plik, możesz wybrać, które pobrać przed dodaniem. Zwykła lista linków (.txt) jest tu również odczytywana i dodawana tak jak wklejenie; plik .dlc, .ccf lub .rsdf jest zaszyfrowany, a jego klucz należy do usługi, więc jest przekazywany do headless backendu JDownloader, który taki klucz posiada. Link upuszczony tutaj trafia do kolejki tak samo jak przez pole wklejania powyżej.',
   'container.prompt': 'Masz plik kontenera? Upuść tu .txt, .dlc, .ccf albo .rsdf.',
   'container.info': 'Zwykła lista linków jest tu odczytywana i przygotowywana jak wklejenie. Plik .dlc, .ccf lub .rsdf jest zaszyfrowany, a jego klucz należy do usługi, więc trafia do backendu JDownloader, który taki klucz ma. Bez tego backendu nie da się go otworzyć, a KnightLoader mówi to wprost, zamiast zgadywać.',
   'container.choose': 'Wybierz plik',

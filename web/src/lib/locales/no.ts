@@ -366,6 +366,8 @@ export const no: Dict = {
   'skipped.clear': 'Tøm',
   'skipped.clearFailed': 'Klarte ikke å tømme listen. Er serveren tilgjengelig?',
 
+  'collector.filedrop.prompt': 'Har du en .torrent- eller containerfil? Slipp den her — eller slipp en lenke.',
+  'collector.filedrop.info': 'En .torrent leses her — ved mer enn én fil inni kan du velge hvilke som skal hentes før den legges til. En enkel lenkeliste (.txt) leses også her og legges i kø som en innliming; en .dlc, .ccf eller .rsdf er kryptert og nøkkelen tilhører en tjeneste, så den overleveres til den hodeløse JDownloader-backenden som har en. En lenke som slippes her legges i kø på samme måte som via innlimingsboksen ovenfor.',
   'container.prompt': 'Har du en containerfil? Slipp en .txt, .dlc, .ccf eller .rsdf her.',
   'container.info': 'En vanlig lenkeliste leses her og klargjøres som en innliming. En .dlc, .ccf eller .rsdf er kryptert, og nøkkelen tilhører en tjeneste, så den sendes videre til JDownloader-backenden, som har en. Uten den backenden kan den ikke åpnes, og KnightLoader sier det i stedet for å gjette.',
   'container.choose': 'Velg en fil',

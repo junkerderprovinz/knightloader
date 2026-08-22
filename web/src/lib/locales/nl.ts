@@ -356,6 +356,8 @@ export const nl: Dict = {
   'skipped.clear': 'Wissen',
   'skipped.clearFailed': 'Kon de lijst niet wissen. Is de server bereikbaar?',
 
+  'collector.filedrop.prompt': 'Heb je een .torrent- of containerbestand? Sleep het hierheen — of sleep een link.',
+  'collector.filedrop.info': 'Een .torrent wordt hier gelezen — bij meer dan één bestand erin kun je kiezen welke worden opgehaald voordat het wordt toegevoegd. Een gewone linklijst (.txt) wordt hier ook gelezen en net als een plakactie in de wachtrij gezet; een .dlc, .ccf of .rsdf is versleuteld en de sleutel is van een dienst, dus wordt het doorgegeven aan de headless JDownloader-backend, die er een heeft. Een hier neergezette link wordt op dezelfde manier in de wachtrij gezet als via het plakvak hierboven.',
   'container.prompt': 'Heb je een containerbestand? Sleep hier een .txt, .dlc, .ccf of .rsdf naartoe.',
   'container.info': 'Een gewone linklijst wordt hier gelezen en klaargezet als een plakactie. Een .dlc, .ccf of .rsdf is versleuteld en de sleutel hoort bij een dienst, dus gaat hij naar de JDownloader-backend, die er een heeft. Zonder die backend valt hij niet te openen, en KnightLoader zegt dat in plaats van te gokken.',
   'container.choose': 'Bestand kiezen',

@@ -356,6 +356,8 @@ export const fr: Dict = {
   'skipped.clear': 'Effacer',
   'skipped.clearFailed': 'Impossible d’effacer la liste. Le serveur est-il joignable ?',
 
+  'collector.filedrop.prompt': 'Vous avez un fichier .torrent ou conteneur ? Déposez-le ici — ou déposez un lien.',
+  'collector.filedrop.info': 'Un .torrent est lu ici — s\'il contient plusieurs fichiers, vous pouvez choisir lesquels récupérer avant l\'ajout. Une simple liste de liens (.txt) est également lue ici et mise en attente comme un collage ; un .dlc, .ccf ou .rsdf est chiffré et sa clé appartient à un service, il est donc transmis au backend JDownloader headless, qui en possède une. Un lien déposé ici est mis en attente de la même façon que via la zone de collage ci-dessus.',
   'container.prompt': 'Vous avez un fichier conteneur ? Déposez un .txt, .dlc, .ccf ou .rsdf ici.',
   'container.info': 'Une simple liste de liens est lue ici et mise en attente comme un collage. Un .dlc, .ccf ou .rsdf est chiffré et sa clé appartient à un service : il est donc confié au backend JDownloader, qui en possède une. Sans ce backend il ne peut pas être ouvert, et KnightLoader le dit plutôt que de deviner.',
   'container.choose': 'Choisir un fichier',

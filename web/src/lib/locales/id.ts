@@ -364,6 +364,8 @@ export const id: Dict = {
   'skipped.clear': 'Bersihkan',
   'skipped.clearFailed': 'Daftar tidak bisa dibersihkan. Apakah server terjangkau?',
 
+  'collector.filedrop.prompt': 'Punya file .torrent atau kontainer? Jatuhkan di sini — atau jatuhkan sebuah tautan.',
+  'collector.filedrop.info': 'File .torrent dibaca di sini — jika berisi lebih dari satu file, Anda dapat memilih mana yang akan diambil sebelum ditambahkan. Daftar tautan sederhana (.txt) juga dibaca di sini dan diantrekan seperti tempel; file .dlc, .ccf, atau .rsdf terenkripsi dan kuncinya milik sebuah layanan, jadi diserahkan ke backend JDownloader headless yang memiliki kunci tersebut. Tautan yang dijatuhkan di sini diantrekan dengan cara yang sama seperti melalui kotak tempel di atas.',
   'container.prompt': 'Punya berkas kontainer? Jatuhkan .txt, .dlc, .ccf, atau .rsdf di sini.',
   'container.info': 'Daftar tautan biasa dibaca di sini dan disiapkan seperti tempelan. Berkas .dlc, .ccf, atau .rsdf terenkripsi dan kuncinya milik sebuah layanan, jadi diserahkan ke backend JDownloader yang punya kunci itu. Tanpa backend tersebut berkas itu tidak bisa dibuka, dan KnightLoader mengatakannya alih-alih menebak.',
   'container.choose': 'Pilih berkas',

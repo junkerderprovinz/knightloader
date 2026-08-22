@@ -364,6 +364,8 @@ export const sv: Dict = {
   'skipped.clear': 'Rensa',
   'skipped.clearFailed': 'Kunde inte rensa listan. Går servern att nå?',
 
+  'collector.filedrop.prompt': 'Har du en .torrent- eller containerfil? Släpp den här — eller släpp en länk.',
+  'collector.filedrop.info': 'En .torrent läses här — vid fler än en fil inuti kan du välja vilka som ska hämtas innan den läggs till. En vanlig länklista (.txt) läses också här och köas som en inklistring; en .dlc, .ccf eller .rsdf är krypterad och dess nyckel tillhör en tjänst, så den lämnas över till den huvudlösa JDownloader-backend som har en. En länk som släpps här köas på samma sätt som via inklistringsrutan ovan.',
   'container.prompt': 'Har du en containerfil? Släpp en .txt, .dlc, .ccf eller .rsdf här.',
   'container.info': 'En vanlig länklista läses här och förbereds som en inklistring. En .dlc, .ccf eller .rsdf är krypterad och nyckeln tillhör en tjänst, så den lämnas till JDownloader-backenden, som har en. Utan den backenden går den inte att öppna, och KnightLoader säger det i stället för att gissa.',
   'container.choose': 'Välj en fil',

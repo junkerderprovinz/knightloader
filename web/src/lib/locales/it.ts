@@ -356,6 +356,8 @@ export const it: Dict = {
   'skipped.clear': 'Cancella',
   'skipped.clearFailed': "Impossibile cancellare l'elenco. Il server è raggiungibile?",
 
+  'collector.filedrop.prompt': 'Hai un file .torrent o contenitore? Trascinalo qui, oppure trascina un link.',
+  'collector.filedrop.info': 'Un .torrent viene letto qui — se contiene più di un file, puoi scegliere quali scaricare prima di aggiungerlo. Anche un semplice elenco di link (.txt) viene letto qui e messo in coda come un incollaggio; un .dlc, .ccf o .rsdf è criptato e la sua chiave appartiene a un servizio, quindi viene inoltrato al backend JDownloader headless, che ne possiede una. Un link trascinato qui viene messo in coda come nel riquadro di incollaggio sopra.',
   'container.prompt': 'Hai un file contenitore? Trascina qui un .txt, .dlc, .ccf o .rsdf.',
   'container.info': 'Un semplice elenco di link viene letto qui e messo in attesa come un incolla. Un .dlc, .ccf o .rsdf è cifrato e la sua chiave appartiene a un servizio, quindi viene consegnato al backend JDownloader, che ne ha una. Senza quel backend non può essere aperto, e KnightLoader lo dice invece di tirare a indovinare.',
   'container.choose': 'Scegli un file',

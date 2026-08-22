@@ -364,6 +364,8 @@ export const zh: Dict = {
   'skipped.clear': '清空',
   'skipped.clearFailed': '无法清空列表。服务器还连得上吗？',
 
+  'collector.filedrop.prompt': '有 .torrent 或容器文件吗？拖到这里——或者拖入一个链接。',
+  'collector.filedrop.info': '在这里读取 .torrent 文件——如果其中包含多个文件，添加前可以选择要获取哪些。纯链接列表(.txt)也会在这里读取，并像粘贴一样加入队列；.dlc、.ccf 或 .rsdf 是加密的，其密钥属于某个服务，因此会交给拥有该密钥的无头 JDownloader 后端处理。拖到这里的链接会像上面的粘贴框一样加入队列。',
   'container.prompt': '有容器文件吗？把 .txt、.dlc、.ccf 或 .rsdf 拖到这里。',
   'container.info': '纯链接清单会在这里读取，并像粘贴一样加入列表。.dlc、.ccf 和 .rsdf 是加密的，密钥属于某个服务，因此会交给持有密钥的 JDownloader 后端。没有那个后端就打不开，KnightLoader 会直说，而不是瞎猜。',
   'container.choose': '选择文件',

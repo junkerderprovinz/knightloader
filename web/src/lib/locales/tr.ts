@@ -364,6 +364,8 @@ export const tr: Dict = {
   'skipped.clear': 'Temizle',
   'skipped.clearFailed': 'Liste temizlenemedi. Sunucuya erişilebiliyor mu?',
 
+  'collector.filedrop.prompt': '.torrent veya konteyner dosyanız mı var? Buraya bırakın — ya da bir bağlantı bırakın.',
+  'collector.filedrop.info': 'Bir .torrent burada okunur — içinde birden fazla dosya varsa, eklemeden önce hangilerinin alınacağını seçebilirsiniz. Basit bir bağlantı listesi (.txt) de burada okunur ve yapıştırma gibi kuyruğa alınır; bir .dlc, .ccf veya .rsdf şifrelidir ve anahtarı bir hizmete aittir, bu yüzden o anahtara sahip başsız JDownloader arka ucuna teslim edilir. Buraya bırakılan bir bağlantı, yukarıdaki yapıştırma kutusundaki gibi kuyruğa alınır.',
   'container.prompt': 'Bir konteyner dosyanız mı var? Buraya .txt, .dlc, .ccf ya da .rsdf bırakın.',
   'container.info': 'Düz bir bağlantı listesi burada okunur ve yapıştırma gibi hazırlanır. Bir .dlc, .ccf ya da .rsdf şifrelidir ve anahtarı bir servise aittir, bu yüzden anahtarı olan JDownloader arka ucuna verilir. O arka uç olmadan açılamaz ve KnightLoader tahmin etmek yerine bunu söyler.',
   'container.choose': 'Bir dosya seçin',

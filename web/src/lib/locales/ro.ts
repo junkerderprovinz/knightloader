@@ -364,6 +364,8 @@ export const ro: Dict = {
   'skipped.clear': 'Golește',
   'skipped.clearFailed': 'Lista nu a putut fi golită. Serverul este accesibil?',
 
+  'collector.filedrop.prompt': 'Ai un fișier .torrent sau container? Plasează-l aici — sau plasează un link.',
+  'collector.filedrop.info': 'Un fișier .torrent este citit aici — dacă conține mai multe fișiere, poți alege înainte de adăugare care dintre ele să fie preluate. O listă simplă de linkuri (.txt) este de asemenea citită aici și pusă în coadă ca la lipire; un fișier .dlc, .ccf sau .rsdf este criptat, iar cheia lui aparține unui serviciu, deci este predat backend-ului headless JDownloader, care deține acea cheie. Un link plasat aici este pus în coadă la fel ca prin caseta de lipire de mai sus.',
   'container.prompt': 'Ai un fișier container? Lasă aici un .txt, .dlc, .ccf sau .rsdf.',
   'container.info': 'O listă simplă de linkuri este citită aici și pregătită ca o lipire. Un .dlc, .ccf sau .rsdf este criptat, iar cheia lui aparține unui serviciu, deci este predat backendului JDownloader, care are una. Fără acel backend nu poate fi deschis, iar KnightLoader spune asta în loc să ghicească.',
   'container.choose': 'Alege un fișier',

@@ -364,6 +364,8 @@ export const fi: Dict = {
   'skipped.clear': 'Tyhjennä',
   'skipped.clearFailed': 'Listaa ei saatu tyhjennettyä. Onko palvelin tavoitettavissa?',
 
+  'collector.filedrop.prompt': 'Onko sinulla .torrent- tai container-tiedosto? Pudota se tähän — tai pudota linkki.',
+  'collector.filedrop.info': '.torrent luetaan tässä — jos siinä on useampi kuin yksi tiedosto, voit valita mitkä haetaan ennen lisäämistä. Myös yksinkertainen linkkilista (.txt) luetaan tässä ja jonotetaan kuin liittäminen; .dlc, .ccf tai .rsdf on salattu ja sen avain kuuluu palvelulle, joten se annetaan päättömälle JDownloader-taustajärjestelmälle, jolla avain on. Tähän pudotettu linkki jonotetaan samalla tavalla kuin yllä olevan liittämiskentän kautta.',
   'container.prompt': 'Onko sinulla säiliötiedosto? Pudota tähän .txt, .dlc, .ccf tai .rsdf.',
   'container.info': 'Tavallinen linkkilista luetaan tässä ja valmistellaan kuten liittäminen. Tiedosto .dlc, .ccf tai .rsdf on salattu ja sen avain kuuluu palvelulle, joten se annetaan JDownloader-taustaosalle, jolla avain on. Ilman sitä taustaosaa sitä ei voi avata, ja KnightLoader sanoo sen sen sijaan että arvaisi.',
   'container.choose': 'Valitse tiedosto',

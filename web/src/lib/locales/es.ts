@@ -356,6 +356,8 @@ export const es: Dict = {
   'skipped.clear': 'Borrar',
   'skipped.clearFailed': 'No se pudo borrar la lista. ¿Está accesible el servidor?',
 
+  'collector.filedrop.prompt': '¿Tienes un archivo .torrent o contenedor? Suéltalo aquí, o suelta un enlace.',
+  'collector.filedrop.info': 'Aquí se lee un .torrent; si contiene más de un archivo, puedes elegir cuáles descargar antes de añadirlo. Aquí también se lee una lista de enlaces simple (.txt) y se añade como un pegado; un .dlc, .ccf o .rsdf está cifrado y su clave pertenece a un servicio, por lo que se entrega al backend headless de JDownloader, que tiene una. Un enlace soltado aquí se añade igual que en el cuadro de pegado de arriba.',
   'container.prompt': '¿Tienes un archivo contenedor? Suelta aquí un .txt, .dlc, .ccf o .rsdf.',
   'container.info': 'Una lista de enlaces sencilla se lee aquí y se prepara como si la pegaras. Un .dlc, .ccf o .rsdf está cifrado y su clave pertenece a un servicio, así que se entrega al backend JDownloader, que sí la tiene. Sin ese backend no se puede abrir, y KnightLoader lo dice en lugar de adivinar.',
   'container.choose': 'Elegir un archivo',

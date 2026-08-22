@@ -364,6 +364,8 @@ export const is: Dict = {
   'skipped.clear': 'Hreinsa',
   'skipped.clearFailed': 'Ekki tókst að hreinsa listann. Næst í þjóninn?',
 
+  'collector.filedrop.prompt': 'Ertu með .torrent- eða gámaskrá? Slepptu henni hér — eða slepptu tengli.',
+  'collector.filedrop.info': '.torrent er lesin hér — ef hún inniheldur fleiri en eina skrá geturðu valið hverjar á að sækja áður en henni er bætt við. Einfaldur tengilisti (.txt) er einnig lesinn hér og settur í röð eins og innlíming; .dlc, .ccf eða .rsdf er dulkóðuð og lykillinn tilheyrir þjónustu, svo hún er afhent höfuðlausa JDownloader-bakendanum sem hefur lykilinn. Tengill sem er sleppt hér er settur í röð á sama hátt og í gegnum innlímingarreitinn hér að ofan.',
   'container.prompt': 'Ertu með gámaskrá? Slepptu .txt, .dlc, .ccf eða .rsdf hér.',
   'container.info': 'Venjulegur hlekkjalisti er lesinn hér og settur í bið eins og innlímun. Skrá með .dlc, .ccf eða .rsdf er dulkóðuð og lykillinn tilheyrir þjónustu, svo hún er afhent JDownloader-bakendanum sem á lykil. Án þess bakenda er ekki hægt að opna hana, og KnightLoader segir það frekar en að giska.',
   'container.choose': 'Velja skrá',

@@ -131,7 +131,7 @@ export interface Task {
   /**
    * The multi-file selection tree for a torrent task - absent for every other
    * task, and absent for a single-file torrent, which never shows one. See
-   * TorrentFile below and components/TorrentUpload.tsx for where it is built.
+   * TorrentFile below and components/FileDrop.tsx for where it is built.
    */
   torrentFiles?: TorrentFile[];
 
@@ -964,7 +964,7 @@ export async function uploadContainer(file: File, pkg = ''): Promise<ContainerRe
 /** What POST /api/torrents/parse hands back: enough to draw the file tree,
  *  and the `uri` the follow-up stageTorrent call needs. Nothing is staged by
  *  this call - it is a preview, matching the collector's own new step
- *  (components/TorrentUpload.tsx) that shows a tree before staging continues. */
+ *  (components/FileDrop.tsx) that shows a tree before staging continues. */
 export interface TorrentTree {
   uri: string;
   infoHash: string;
