@@ -30,7 +30,7 @@ import { PathInput } from './FolderPicker';
 import { PasteFromClipboardButton } from './PasteFromClipboardButton';
 import { Tabs } from './Tabs';
 import { Button, Card, Field, FieldGroup, TextArea, TextInput, Toggle } from './ui';
-import { IconArrowDown, IconCollector, IconPlus } from '../lib/icons';
+import { IconArrowDown, IconCollector, IconFolder, IconPlus } from '../lib/icons';
 
 // JD keeps 25; matched rather than picking a new number, because the point of
 // this list is "the folder I used last week", and there is no reason this
@@ -78,12 +78,17 @@ export function AddLinksForm({
   pkg,
   onPkgChange,
   onStaged,
+  onChooseFile,
 }: {
   pkg: string;
   onPkgChange: (v: string) => void;
   /** created is exactly what the server staged; submittedCount is how many
    *  distinct URL-shaped lines the box held, for the "N already known" toast. */
   onStaged: (created: Task[], submittedCount: number) => void;
+  /** Opens FileDrop's own file picker (jdp: "Dropzone mit Dateiwählen button
+   *  neben dem Zum-Sammler-Button") - this form owns none of that logic, it
+   *  only renders the trigger beside its own "Add to collector" button. */
+  onChooseFile: () => void;
 }) {
   const { t } = useT();
   const priorities = usePriorityTabs();
@@ -212,6 +217,12 @@ export function AddLinksForm({
           </Button>
           <span className="flex-1" />
           <PasteFromClipboardButton pkg={pkg} />
+          {/* Opens FileDrop's picker (jdp: "Dropzone mit Dateiwählen button
+              neben dem Zum-Sammler-Button") - the file-intake trigger sits
+              beside the link-intake one instead of in its own row below. */}
+          <Button kind="ghost" className="px-2.5 text-xs" icon={<IconFolder width={14} height={14} />} onClick={onChooseFile}>
+            {t('container.choose')}
+          </Button>
           <Button icon={<IconPlus />} onClick={() => void onAdd()} disabled={!links.trim() || busy}>
             {t('collector.add')}
           </Button>

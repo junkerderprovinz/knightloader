@@ -15,7 +15,7 @@
 // both formats - a convenience for the picker, never a gate, matching
 // ContainerDrop/TorrentUpload's own established reasoning: the server
 // decides by content, so a misnamed file dragged in is sent as it is.
-import { useRef, useState } from 'react';
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import {
   addLinks,
   parseTorrentUpload,
@@ -29,7 +29,16 @@ import { message } from '../lib/intake';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { Button, InfoBubble } from './ui';
-import { IconCheck, IconFolder } from '../lib/icons';
+import { IconCheck } from '../lib/icons';
+
+/** What Collector.tsx reaches through the ref for: opening the file picker
+ *  from AddLinksForm's own button row (jdp: "Dropzone mit Dateiwählen
+ *  button neben dem Zum-Sammler-Button") instead of FileDrop's own, since
+ *  the two share one destination and one moment somebody is done choosing
+ *  what to add. */
+export interface FileDropHandle {
+  openPicker: () => void;
+}
 
 const FILE_ACCEPT = '.torrent,.txt,.dlc,.ccf,.rsdf';
 
@@ -211,8 +220,12 @@ function TorrentTreeCard({
  * One row tall when idle, same footprint reasoning both former components
  * shared: the paste box above is why people open this page, and an intake
  * surface that pushes it off the top has cost more than it added.
+ *
+ * The file picker's own button does not live in this row - see
+ * FileDropHandle above - so this component's own visible surface is just
+ * the drop target and its explanation.
  */
-export function FileDrop({ pkg = '' }: { pkg?: string }) {
+export const FileDrop = forwardRef<FileDropHandle, { pkg?: string }>(function FileDrop({ pkg = '' }, ref) {
   const { t } = useT();
   const { toast } = useToast();
   const input = useRef<HTMLInputElement>(null);
@@ -220,6 +233,16 @@ export function FileDrop({ pkg = '' }: { pkg?: string }) {
   const [busy, setBusy] = useState(false);
   const [results, setResults] = useState<Outcome[]>([]);
   const [pending, setPending] = useState<Pending | null>(null);
+
+  useImperativeHandle(ref, () => ({
+    // Guarded here, not by the caller: sendFiles refuses the same way while
+    // busy or under tree review, so a picker opened past that point would
+    // stage a second batch that only shows up once the button is pressed
+    // again - the guard belongs next to the state it protects.
+    openPicker: () => {
+      if (!busy && !pending) input.current?.click();
+    },
+  }));
 
   async function commitTorrent(file: string, tree: TorrentTree, selected: boolean[]): Promise<Outcome> {
     try {
@@ -350,15 +373,7 @@ export function FileDrop({ pkg = '' }: { pkg?: string }) {
           <InfoBubble tip={t('collector.filedrop.info')} />
         </span>
         <span className="flex-1" />
-        <Button
-          kind="ghost"
-          className="px-2.5 text-xs"
-          icon={<IconFolder width={14} height={14} />}
-          onClick={() => input.current?.click()}
-          disabled={busy || !!pending}
-        >
-          {busy ? t('container.uploading') : t('container.choose')}
-        </Button>
+        {busy && <span className="text-xs text-carbon-textMuted">{t('container.uploading')}</span>}
         <input
           ref={input}
           type="file"
@@ -390,4 +405,4 @@ export function FileDrop({ pkg = '' }: { pkg?: string }) {
       ))}
     </div>
   );
-}
+});
