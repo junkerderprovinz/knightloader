@@ -12,19 +12,14 @@
 // The chunk spinner below is the configured number one download opens, it is
 // labelled as chunks, and its bubble says exactly that.
 import { useCallback, useEffect, useState } from 'react';
-import { type QueueState, fetchQueue, setQueue } from '../lib/api';
 import { type Controls, type ControlsPatch, fetchControls, saveControls } from '../lib/controls';
-import { fmtRateValue, splitRate } from '../lib/format';
 import { useT } from '../lib/i18n';
 import { useInstanceScope } from '../lib/instance';
-import { useListView } from '../lib/listview';
 import { useTasks } from '../lib/useTasks';
 import { useToast } from '../lib/toast';
-import { useUIState } from '../lib/uistate';
-import { Button, Field, InfoBubble, Modal, NumberInput, Toggle } from './ui';
-import { OverviewStrip, type StripScope } from './Counters';
+import { Button, Field, Modal, NumberInput } from './ui';
 import { SpeedMeter } from './SpeedGraph';
-import { IconPause, IconPlay, IconSliders } from '../lib/icons';
+import { IconMenu } from '../lib/icons';
 
 /**
  * One spinner that saves when it is LEFT, never as it is typed.
@@ -103,12 +98,6 @@ export function QuickSettings({ onClose }: { onClose: () => void }) {
   const { t } = useT();
   const { toast } = useToast();
   const [cfg, setCfg] = useState<Controls | null>(null);
-  const [queue, setQ] = useState<QueueState | null>(null);
-  // The limit the switch puts back. Held in the remembered UI state rather than
-  // in this component, because the panel is unmounted the moment it is closed —
-  // a value kept here would mean switching the limit off and on again inside one
-  // session silently lifted it for good.
-  const [lastLimit, setLastLimit] = useUIState('quickSpeedLimit', 0);
 
   useEffect(() => {
     let live = true;
@@ -120,14 +109,6 @@ export function QuickSettings({ onClose }: { onClose: () => void }) {
         // Guarded like the success path: a panel somebody closed while the
         // request was out must not throw a toast at the page they went to.
         if (live) toast(t('list.failed', { error: message(e) }), 'fail');
-      },
-    );
-    void fetchQueue().then(
-      (q) => {
-        if (live) setQ(q);
-      },
-      () => {
-        /* the switch stays out of the panel; the spinners are unaffected */
       },
     );
     return () => {
@@ -149,143 +130,75 @@ export function QuickSettings({ onClose }: { onClose: () => void }) {
     [t, toast],
   );
 
-  async function toggleHalt() {
-    if (!queue) return;
-    try {
-      setQ(await setQueue({ halted: !queue.halted }));
-    } catch (e) {
-      toast(t('list.failed', { error: message(e) }), 'fail');
-    }
-  }
-
-  function toggleLimit(on: boolean) {
-    if (!cfg) return;
-    if (on) {
-      void patch({ speedLimit: lastLimit });
-      return;
-    }
-    // Remembered before it is cleared, and only ever a real limit: writing a 0
-    // here would make the switch unable to put anything back.
-    if (cfg.speedLimit > 0) setLastLimit(cfg.speedLimit);
-    void patch({ speedLimit: 0 });
-  }
-
-  const shown = cfg?.speedLimit || lastLimit;
-  const rate = splitRate(shown);
-
   return (
     <Modal title={t('quick.title')} onClose={onClose}>
-      {/* The same switch and the same words as the bar's, on purpose: this panel
-          is also reached from the speed meter, and a reading of how fast the
-          queue is going that cannot stop it is a panel people close again. */}
-      {queue && (
-        <div className="flex flex-wrap items-center gap-3">
-          <Button
-            kind={queue.halted ? 'primary' : 'secondary'}
-            icon={queue.halted ? <IconPlay width={16} height={16} /> : <IconPause width={16} height={16} />}
-            onClick={toggleHalt}
-            className="px-2.5 text-xs"
-          >
-            {queue.halted ? t('queue.start') : t('queue.stop')}
-          </Button>
-          {queue.halted && <span className="text-statusInfo text-[11px]">{t('queue.halted')}</span>}
-        </div>
-      )}
-
+      {/* The master switch and the speed limit both moved out of this panel
+          (jdp: "für was brauchen wir den Button Warteschlange stoppen? das
+          Tempolimit kann da raus, das gibt es ja schon, ist redundant") -
+          QueueBar's own Play/Pause/Stop and its own limit field are the
+          same controls this panel used to duplicate. What is left here is
+          genuinely NOT available anywhere else: per-instance concurrency. */}
       {cfg && (
-        <>
-          {/* Read together because they multiply: two downloads on one host, each
-              pulled over eight sockets, is sixteen connections to that host and
-              no one of the three numbers says so on its own. */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {/* No `max` on the two concurrency spinners, and that is not an
-                omission: their bound lives in settings.sanitizeQueue and is not
-                served, so a number typed here would be a copy of it that drifts
-                the day it moves. The save answers with what was stored, and the
-                field adopts that instead. */}
-            <Spin
-              label={t('settings.maxConcurrent')}
-              value={cfg.maxConcurrent}
-              min={1}
-              onCommit={(n) => patch({ maxConcurrent: n })}
-            />
-            <Spin
-              label={t('settings.maxPerHost')}
-              value={cfg.maxPerHost}
-              min={1}
-              onCommit={(n) => patch({ maxPerHost: n })}
-            />
-            {/* This one does have a bound, because the server sends it: it is the
-                engine's own, and a spinner offering more than connsFor will
-                honour is a control lying about what saving it did. */}
-            <Spin
-              label={t('settings.chunks')}
-              hint={t('quick.chunksHint')}
-              value={cfg.chunks}
-              min={0}
-              max={cfg.maxChunks}
-              onCommit={(n) => patch({ chunks: n })}
-            />
-          </div>
-
-          {shown > 0 ? (
-            <div className="flex flex-wrap items-center gap-3">
-              <Toggle
-                checked={cfg.speedLimit > 0}
-                onChange={toggleLimit}
-                label={t('settings.speedLimit')}
-              />
-              {/* dir="ltr" so the number and its unit stay one token in a
-                  right-to-left locale. Muted while the switch is off: the value
-                  is what would come back, not what is in force. */}
-              <span
-                dir="ltr"
-                className={`glim-num text-xs ${cfg.speedLimit > 0 ? 'text-carbon-textSub' : 'text-carbon-textMuted'}`}
-              >
-                {fmtRateValue(rate.value)} {rate.unit}
-              </span>
-              <InfoBubble tip={t('quick.limitHint')} />
-            </div>
-          ) : (
-            // A switch with nothing to switch is worse than a sentence: pressing
-            // it would have to invent a limit nobody chose.
-            <div className="flex items-center gap-1.5 text-xs text-carbon-textMuted">
-              {t('quick.noLimit')}
-              <InfoBubble tip={t('quick.noLimitHint')} />
-            </div>
-          )}
-        </>
+        // Read together because they multiply: two downloads on one host, each
+        // pulled over eight sockets, is sixteen connections to that host and
+        // no one of the three numbers says so on its own.
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {/* No `max` on the two concurrency spinners, and that is not an
+              omission: their bound lives in settings.sanitizeQueue and is not
+              served, so a number typed here would be a copy of it that drifts
+              the day it moves. The save answers with what was stored, and the
+              field adopts that instead. */}
+          <Spin
+            label={t('settings.maxConcurrent')}
+            value={cfg.maxConcurrent}
+            min={1}
+            onCommit={(n) => patch({ maxConcurrent: n })}
+          />
+          <Spin
+            label={t('settings.maxPerHost')}
+            value={cfg.maxPerHost}
+            min={1}
+            onCommit={(n) => patch({ maxPerHost: n })}
+          />
+          {/* This one does have a bound, because the server sends it: it is the
+              engine's own, and a spinner offering more than connsFor will
+              honour is a control lying about what saving it did. */}
+          <Spin
+            label={t('settings.chunks')}
+            hint={t('quick.chunksHint')}
+            value={cfg.chunks}
+            min={0}
+            max={cfg.maxChunks}
+            onCommit={(n) => patch({ chunks: n })}
+          />
+        </div>
       )}
     </Modal>
   );
 }
 
 /**
- * ShellStrip is what mounts in the shell bar's widget slot: the figures, the
- * speed, and the way into the panel.
+ * ShellStrip is what mounts in the shell bar's widget slot: the speed and
+ * the way into the quick-settings panel.
+ *
+ * It used to also carry the Gesamt/Sichtbar/Ausgewählt figures
+ * (`OverviewStrip`) - dropped (jdp: "auf der Statuszeile können Gesamt,
+ * Sichtbar und Ausgewählt weg"), since the list page directly below already
+ * shows its own counts and this bar reading the same numbers a second time,
+ * one card up, was the redundant copy.
  *
  * It reads the stream for the instance the SHELL is scoped to, so on a peer's
- * download list the figures describe that peer. The panel does not follow: none
+ * download list the speed describes that peer. The panel does not follow: none
  * of its knobs is forwarded to a peer (only the task, link and queue routes
- * are), so a gear over somebody else's list would quietly tune this machine. The
- * bar's scope tag has already said whose list is on screen, which is why nothing
- * here repeats it.
+ * are), so opening it over somebody else's list would quietly tune this
+ * machine instead. The bar's scope tag has already said whose list is on
+ * screen, which is why nothing here repeats it.
  */
-const SCOPES: StripScope[] = ['total', 'visible', 'selected'];
-
 export function ShellStrip() {
   const { t } = useT();
   const { instance } = useInstanceScope();
   const tasks = useTasks(instance);
-  const view = useListView();
   const [open, setOpen] = useState(false);
-  const [storedScope, setScope] = useUIState<StripScope>('shellScope', 'total');
-  const [includeDisabled, setIncludeDisabled] = useUIState('shellIncludeDisabled', false);
-
-  // The remembered document is opaque JSON that another build, or a hand, may
-  // have written: an id the strip does not know would leave every tab
-  // unselected with nothing saying why.
-  const scope: StripScope = SCOPES.includes(storedScope) ? storedScope : 'total';
 
   let speed = 0;
   for (const id in tasks) {
@@ -296,21 +209,15 @@ export function ShellStrip() {
 
   return (
     <>
-      <OverviewStrip
-        tasks={tasks}
-        view={view}
-        scope={scope}
-        onScope={setScope}
-        includeDisabled={includeDisabled}
-        onIncludeDisabled={setIncludeDisabled}
-      />
-
       <span className="flex items-center gap-1">
         <SpeedMeter value={speed} label={t('quick.title')} onOpen={local ? () => setOpen(true) : undefined} />
         {local && (
+          // Always exactly three bars (GlimStone's own rule) - a
+          // sliders/equalizer glyph read as "adjust a value", not "open a
+          // menu", to anyone who had already seen either convention.
           <Button
             kind="ghost"
-            icon={<IconSliders width={16} height={16} />}
+            icon={<IconMenu width={16} height={16} />}
             aria-label={t('quick.title')}
             title={t('quick.title')}
             onClick={() => setOpen(true)}
