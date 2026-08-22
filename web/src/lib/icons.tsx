@@ -13,8 +13,7 @@ const base = (p: SVGProps<SVGSVGElement>) => ({
 
 export const IconDownloads = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-    <path d="M10 3v9M6 9l4 4 4-4" />
-    <path d="M4 15.5h12" />
+    <path d="M10 2.5v13M5.5 11l4.5 4.5 4.5-4.5" />
   </svg>
 );
 
@@ -51,6 +50,12 @@ export const IconPause = (p: SVGProps<SVGSVGElement>) => (
 export const IconPlay = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)} fill="currentColor">
     <path d="M6 4.5v11a.75.75 0 0 0 1.14.64l9-5.5a.75.75 0 0 0 0-1.28l-9-5.5A.75.75 0 0 0 6 4.5z" />
+  </svg>
+);
+
+export const IconStop = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)} fill="currentColor">
+    <rect x="4.5" y="4.5" width="11" height="11" rx="2" />
   </svg>
 );
 
