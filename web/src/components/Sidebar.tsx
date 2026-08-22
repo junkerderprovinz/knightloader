@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import logoUrl from '../assets/logo.svg';
 import { hueVars, rainbowAt } from '../lib/appearance';
 import { useRainbow } from '../lib/useRainbow';
 import { getTheme, onThemeChange, toggleTheme } from '../lib/theme';
@@ -117,9 +118,7 @@ export function Sidebar() {
   return (
     <aside className="flex flex-col w-56 shrink-0 h-full bg-carbon-sidebar">
       <NavLink to="/" end className="flex items-center gap-2.5 px-4 py-5 hover:opacity-90 transition-opacity">
-        <span className="text-3xl leading-none" aria-hidden>
-          ⚔️
-        </span>
+        <img src={logoUrl} alt="" aria-hidden className="h-8 w-auto shrink-0" />
         <span className="flex flex-col leading-none">
           <span className="text-carbon-text font-bold text-xl tracking-tight">KnightLoader</span>
           <span className="text-carbon-textMuted text-[11px]">
