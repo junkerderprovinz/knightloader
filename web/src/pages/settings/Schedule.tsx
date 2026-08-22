@@ -699,7 +699,7 @@ function EntryRow({
             {nextText}
           </span>
         </button>
-        <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+        <div className="flex items-center gap-0.5">
           <Button
             kind="ghost"
             icon={<IconArrowUp width={14} height={14} />}
