@@ -28,6 +28,15 @@ export interface SettingsDraft {
   /** Replace the whole draft, for the advanced table which edits by key path. */
   replace: (next: Settings) => void;
   dirty: boolean;
+  /**
+   * Patches AND saves the named fields immediately, bypassing the shared
+   * Save bar - for pages where every change is already its own live preview
+   * (Look.tsx: jdp "Wenn einstellungen geändert werden, zb die badge form,
+   * dann soll man das nicht speichern müssen"). Only the named fields are
+   * sent and only they are folded back into `draft`/`saved` on return, so an
+   * unsaved edit sitting on a DIFFERENT page's fields survives untouched.
+   */
+  patchNow: (fields: Partial<Settings>) => Promise<void>;
 }
 
 export interface FeatureAccess {

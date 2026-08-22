@@ -76,6 +76,31 @@ export function SettingsPage() {
 
   const replace = useCallback((next: Settings) => setDraft(next), []);
 
+  const patchNow = useCallback(async (fields: Partial<Settings>) => {
+    setDraft((d) => (d ? { ...d, ...fields } : d));
+    const applied = await patchSettings(fields);
+    const keys = Object.keys(fields) as Array<keyof Settings>;
+    // Fold back only the fields this call actually sent - not the whole
+    // document `applied` carries - so an edit still sitting unsaved on a
+    // different page (Rules, a resolver's API key, ...) is never quietly
+    // replaced by whatever this tab last loaded from the server.
+    const appliedDoc = applied as unknown as Record<string, unknown>;
+    setSaved((s) => {
+      if (!s) return s;
+      const next = s as unknown as Record<string, unknown>;
+      const merged = { ...next };
+      for (const k of keys) merged[k] = appliedDoc[k];
+      return merged as unknown as Settings;
+    });
+    setDraft((d) => {
+      if (!d) return d;
+      const next = d as unknown as Record<string, unknown>;
+      const merged = { ...next };
+      for (const k of keys) merged[k] = appliedDoc[k];
+      return merged as unknown as Settings;
+    });
+  }, []);
+
   async function onSave() {
     if (!draft || !saved) return;
     setSaveError('');
@@ -161,7 +186,7 @@ export function SettingsPage() {
   }
 
   const featureAccess: FeatureAccess = { features, toggle };
-  const settingsDraft: SettingsDraft = { cfg: draft, patch, replace, dirty };
+  const settingsDraft: SettingsDraft = { cfg: draft, patch, replace, dirty, patchNow };
 
   return (
     <SettingsProvider draft={settingsDraft} features={featureAccess}>
@@ -292,6 +317,7 @@ function SectionTabs({ pages }: { pages: FeaturePage[] }) {
       activateOnFocus={false}
       reorderable
       onReorder={setOrder}
+      equalWidth
       items={ordered.map((p) => ({
         id: p.id,
         label: label(tx, 'settings.nav.', p.id),
