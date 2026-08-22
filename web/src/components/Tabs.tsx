@@ -176,20 +176,18 @@ export function Tabs(props: TabsProps) {
     // than reordering four to twelve settings tabs needs - the CC pattern's
     // own answer is the same: the strip simply wiggles, and the held tab
     // slides other tabs aside as it passes over them.
+    // No setPointerCapture: capturing the press target and then moving past
+    // its own bounds triggered a spurious pointercancel in testing (Chromium,
+    // via CDP-dispatched input at least, possibly a broader interaction with
+    // a captured <button>/<a> - browsers vary here). Document-level move/up
+    // listeners already track the gesture regardless of which element the
+    // pointer is physically over, so capture was never load-bearing; it's
+    // simply not worth whatever platform-specific cancel behaviour it invites.
     holdTimer.current = window.setTimeout(() => {
       holdTimer.current = null;
       setReordering(true);
       setDraggingId(id);
       setLiveOrder(items.map((i) => i.id));
-      const el = e.currentTarget;
-      try {
-        el.setPointerCapture(e.pointerId);
-      } catch {
-        // Safari < 13 and a handful of older WebViews have no
-        // setPointerCapture - the drag still works via the document-level
-        // listeners below, it just cannot re-target mid-gesture if the
-        // pointer leaves the element's own hit area.
-      }
     }, 300);
   }
 
@@ -394,6 +392,16 @@ export function Tabs(props: TabsProps) {
           // plain clickable control until a hold arms reorder mode (jdp:
           // "beim mouseover erscheint die Hand, das soll nicht so sein").
           className: cls,
+          // A plain <a href> is natively draggable in every browser (the
+          // "drag this link to a bookmarks bar" gesture) - moving the
+          // pointer while pressed on one starts that native drag instead of
+          // (or as well as) the long-press gesture above, and starting it
+          // fires a real `pointercancel`, which this component's own
+          // pointercancel listener (further down) reads as "gesture over"
+          // and exits reorder mode the instant the pointer moves at all.
+          // Caught empirically: the hold armed correctly every time, but
+          // reorder mode dropped out on the very first pointermove past it.
+          draggable: reorderable ? false : undefined,
           onPointerDown: reorderable ? (e: PointerEvent<HTMLElement>) => onTabPointerDown(e, item.id) : undefined,
           onClick: (e: MouseEvent<HTMLElement>) => onClick(e, item),
         };
