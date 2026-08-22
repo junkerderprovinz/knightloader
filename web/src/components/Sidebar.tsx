@@ -109,8 +109,8 @@ export function Sidebar() {
 
   return (
     <aside className="flex flex-col w-56 shrink-0 h-full bg-carbon-sidebar">
-      <NavLink to="/" end className="flex items-center gap-2.5 px-4 py-5 hover:opacity-90 transition-opacity">
-        <img src={logoUrl} alt="" aria-hidden className="h-8 w-auto shrink-0" />
+      <NavLink to="/" end className="flex flex-col items-center gap-2 px-4 py-6 hover:opacity-90 transition-opacity">
+        <img src={logoUrl} alt="" aria-hidden className="h-20 w-auto shrink-0" />
         <span className="text-carbon-text font-bold text-xl tracking-tight">KnightLoader</span>
       </NavLink>
 
