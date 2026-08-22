@@ -28,7 +28,18 @@ import { setLangPickerOpen, toggleLangPickerOpen, useLangPickerOpen } from '../l
 // silently did nothing. `standalone` gives the wizard's instance a state
 // nothing else can reach into, which is what two independent dropdowns
 // actually need; the sidebar's own usage is unchanged.
-export function LanguagePicker({ className, standalone }: { className?: string; standalone?: boolean }) {
+export function LanguagePicker({
+  className,
+  standalone,
+  direction = 'up',
+}: {
+  className?: string;
+  standalone?: boolean;
+  /** Which way the option list opens. The sidebar sits at the bottom of the
+   * screen so it always opens 'up'; a copy placed further up the page (the
+   * Aussehen settings tab) needs 'down' or the list would open off-screen. */
+  direction?: 'up' | 'down';
+}) {
   const { t, lang, setLang, languages } = useT();
   const shared = useLangPickerOpen();
   const [localOpen, setLocalOpen] = useState(false);
@@ -81,7 +92,9 @@ export function LanguagePicker({ className, standalone }: { className?: string; 
         <div
           role="listbox"
           aria-label={t('lang.label')}
-          className="glim-card absolute bottom-full left-0 z-50 mb-2 max-h-72 w-52 overflow-y-auto p-1"
+          className={`glim-card absolute left-0 z-50 max-h-72 w-52 overflow-y-auto p-1 ${
+            direction === 'up' ? 'bottom-full mb-2' : 'top-full mt-2'
+          }`}
         >
           {languages.map((l) => (
             <button
