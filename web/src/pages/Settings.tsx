@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Navigate, Route, Routes, useMatch, useNavigate, useParams } from 'react-router-dom';
-import { ApiError, type Settings, fetchSettings, patchSettings } from '../lib/api';
+import { ApiError, type Settings, fetchHealth, fetchSettings, patchSettings } from '../lib/api';
 import { useResource } from '../lib/useResource';
 import { readUIState, useUIState } from '../lib/uistate';
 import { useT } from '../lib/i18n';
-import { Button, ErrorCard, LoadingCard, PageHeader } from '../components/ui';
+import { Button, ErrorCard, InfoBubble, LoadingCard, PageHeader } from '../components/ui';
 import { Tabs } from '../components/Tabs';
 import { SettingsProvider, type FeatureAccess, type SettingsDraft } from './settings/context';
 import { fetchFeatures, setFeature, type FeaturePage, type FeatureState } from './settings/features';
@@ -200,7 +200,42 @@ export function SettingsPage() {
           )}
         </div>
       </div>
+      <VersionFooter />
     </SettingsProvider>
+  );
+}
+
+// GlimStone version this UI is built against — bump by hand whenever index.css /
+// appearance.ts are re-copied from a newer github.com/junkerderprovinz/glimstone release.
+const GLIMSTONE_VERSION = '1.0.0';
+
+/**
+ * The build/GlimStone version, quiet in a window corner on every settings
+ * tab (jdp: "Die versionsnummern sollen in den Einstellungen in jedem Tab
+ * quasi im Hintergrund immer ganz unten im Fenster stehen") - moved here
+ * from a single card on the System tab, which only showed it on that one
+ * page. `fixed`, not `sticky`: it pins to the actual browser window rather
+ * than to the settings content's own scroll container, so it neither
+ * scrolls away nor competes with the unsaved-changes bar above for the same
+ * sticky-bottom slot - the two are visually and positionally independent.
+ * `pointer-events-none` keeps it out of the way of anything real underneath.
+ */
+function VersionFooter() {
+  const { t } = useT();
+  const [version, setVersion] = useState('');
+  useEffect(() => {
+    fetchHealth()
+      .then((h) => setVersion(h.version))
+      .catch(() => {});
+  }, []);
+  return (
+    <div className="pointer-events-none fixed bottom-1.5 right-4 z-0 select-none md:right-6" aria-hidden>
+      <span className="glim-num text-[10px] text-carbon-textMuted/50">
+        {version && version !== 'dev' ? version : t('nav.workingTitle')}
+        {' · GlimStone '}
+        {GLIMSTONE_VERSION}
+      </span>
+    </div>
   );
 }
 
@@ -267,6 +302,11 @@ function SectionTabs({ pages }: { pages: FeaturePage[] }) {
         // click is cheaper than after it.
         dim: !hasContent(p.id),
       }))}
+      // The reorder gesture itself has no visible affordance at rest (jdp
+      // explicitly did not want a grab cursor advertising it) - this is the
+      // one place that says it is possible at all, since "hold and drag"
+      // is not discoverable from the tab strip's own idle appearance.
+      after={<InfoBubble tip={tx('settings.railReorderHint')} />}
     />
   );
 }
