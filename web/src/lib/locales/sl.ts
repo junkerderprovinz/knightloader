@@ -69,7 +69,6 @@ export const sl: Dict = {
 
   'empty.downloadsTitle': 'Nič se še ne prenaša',
   'empty.downloadsHint': 'Dodaj povezave v zbiralnik in jih zaženi.',
-  'empty.goCollector': 'Odpri zbiralnik',
 
   'collector.title': 'Zbiralnik',
   'collector.subtitle': 'Prilepi ali spusti povezave — analizirajo se in počakajo, nato jih zaženeš.',
@@ -94,7 +93,6 @@ export const sl: Dict = {
   'collector.move': 'Premakni v paket',
 
   'downloads.title': 'Prenosi',
-  'downloads.subtitle': 'Tekoči in končani prenosi.',
   'downloads.thisInstance': 'Ta instanca',
   'downloads.totalSpeed': 'Skupna hitrost',
   'downloads.pauseAll': 'Zaustavi vse',
@@ -258,6 +256,8 @@ export const sl: Dict = {
   'settings.rainbowReactive': 'Mirno, dokler se ne dotakneš: barva ob prehodu in na tem, kar teče',
   'settings.rainbowRotate': 'Premešaj, kje se paleta začne',
   'settings.rainbowPalette': 'Barva palete',
+  'settings.look.saveFailed': 'Ni bilo mogoče shraniti: {error}',
+  'settings.theme': 'Tema',
   'queue.limitUnit': 'Enota',
 
   'common.show': 'Pokaži',

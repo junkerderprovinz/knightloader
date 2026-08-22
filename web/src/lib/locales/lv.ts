@@ -69,7 +69,6 @@ export const lv: Dict = {
 
   'empty.downloadsTitle': 'Vēl nekas netiek lejupielādēts',
   'empty.downloadsHint': 'Pievieno saites savācējā un palaid tās.',
-  'empty.goCollector': 'Atvērt savācēju',
 
   'collector.title': 'Savācējs',
   'collector.subtitle': 'Ielīmē vai ievelc saites — tās tiek analizētas un sagatavotas, tad tu tās palaid.',
@@ -94,7 +93,6 @@ export const lv: Dict = {
   'collector.move': 'Pārvietot uz paku',
 
   'downloads.title': 'Lejupielādes',
-  'downloads.subtitle': 'Aktīvie un pabeigtie pārsūtījumi.',
   'downloads.thisInstance': 'Šī instance',
   'downloads.totalSpeed': 'Kopējais ātrums',
   'downloads.pauseAll': 'Pauzēt visas',
@@ -258,6 +256,8 @@ export const lv: Dict = {
   'settings.rainbowReactive': 'Klusa, līdz pieskaras: krāsa, uzbraucot un tam, kas darbojas',
   'settings.rainbowRotate': 'Jaukt, ar kuru krāsu palete sākas',
   'settings.rainbowPalette': 'Paletes krāsa',
+  'settings.look.saveFailed': 'Neizdevās saglabāt: {error}',
+  'settings.theme': 'Tēma',
   'queue.limitUnit': 'Vienība',
 
   'common.show': 'Rādīt',

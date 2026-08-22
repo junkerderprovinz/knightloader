@@ -69,7 +69,6 @@ export const fi: Dict = {
 
   'empty.downloadsTitle': 'Mitään ei ladata vielä',
   'empty.downloadsHint': 'Lisää linkit kerääjään ja käynnistä ne sitten.',
-  'empty.goCollector': 'Avaa kerääjä',
 
   'collector.title': 'Kerääjä',
   'collector.subtitle': 'Liitä tai pudota linkkejä — ne analysoidaan ja odottavat, kunnes käynnistät ne.',
@@ -94,7 +93,6 @@ export const fi: Dict = {
   'collector.move': 'Siirrä pakettiin',
 
   'downloads.title': 'Lataukset',
-  'downloads.subtitle': 'Käynnissä olevat ja valmiit siirrot.',
   'downloads.thisInstance': 'Tämä instanssi',
   'downloads.totalSpeed': 'Kokonaisnopeus',
   'downloads.pauseAll': 'Keskeytä kaikki',
@@ -258,6 +256,8 @@ export const fi: Dict = {
   'settings.rainbowReactive': 'Rauhallinen kunnes kosketat: väri osoittaessa ja käynnissä olevassa',
   'settings.rainbowRotate': 'Sekoita, mistä paletti alkaa',
   'settings.rainbowPalette': 'Paletin väri',
+  'settings.look.saveFailed': 'Tallennus epäonnistui: {error}',
+  'settings.theme': 'Teema',
   'queue.limitUnit': 'Yksikkö',
 
   'common.show': 'Näytä',

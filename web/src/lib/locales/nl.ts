@@ -66,7 +66,6 @@ export const nl: Dict = {
 
   'empty.downloadsTitle': 'Er wordt nog niets gedownload',
   'empty.downloadsHint': 'Voeg links toe in de verzamelaar en start ze daarna.',
-  'empty.goCollector': 'Verzamelaar openen',
   'collector.title': 'Verzamelaar',
   'collector.subtitle': 'Plak of sleep links — ze worden geanalyseerd en klaargezet, daarna start jij ze.',
   'collector.placeholder': 'Plak links — één URL per regel — of sleep ze hierheen…  (Ctrl+Enter om toe te voegen)',
@@ -89,7 +88,6 @@ export const nl: Dict = {
   'collector.toastMoved': '{n} link(s) verplaatst naar “{pkg}”',
   'collector.move': 'Naar pakket verplaatsen',
   'downloads.title': 'Downloads',
-  'downloads.subtitle': 'Lopende en afgeronde overdrachten.',
   'downloads.thisInstance': 'Deze instantie',
   'downloads.totalSpeed': 'Totale snelheid',
   'downloads.pauseAll': 'Alles pauzeren',
@@ -250,6 +248,8 @@ export const nl: Dict = {
   'settings.rainbowReactive': 'Rustig tot je erover gaat: kleur bij hover en bij wat er loopt',
   'settings.rainbowRotate': 'Startpunt van het palet schudden',
   'settings.rainbowPalette': 'Paletkleur',
+  'settings.look.saveFailed': 'Kon niet worden opgeslagen: {error}',
+  'settings.theme': 'Thema',
   'queue.limitUnit': 'Eenheid',
 
   'common.show': 'Tonen',

@@ -69,7 +69,6 @@ export const gl: Dict = {
 
   'empty.downloadsTitle': 'Aínda non se descarga nada',
   'empty.downloadsHint': 'Engade ligazóns no colector e logo iníciaas.',
-  'empty.goCollector': 'Abrir o colector',
 
   'collector.title': 'Colector',
   'collector.subtitle': 'Pega ou solta ligazóns — analízanse e prepáranse, e despois iníciaas.',
@@ -94,7 +93,6 @@ export const gl: Dict = {
   'collector.move': 'Mover a un paquete',
 
   'downloads.title': 'Descargas',
-  'downloads.subtitle': 'Transferencias activas e rematadas.',
   'downloads.thisInstance': 'Esta instancia',
   'downloads.totalSpeed': 'Velocidade total',
   'downloads.pauseAll': 'Pausar todo',
@@ -258,6 +256,8 @@ export const gl: Dict = {
   'settings.rainbowReactive': 'Discreto ata que o tocas: cor ao pasar por riba e no que está en marcha',
   'settings.rainbowRotate': 'Barallar onde empeza a paleta',
   'settings.rainbowPalette': 'Cor da paleta',
+  'settings.look.saveFailed': 'Non se puido gardar: {error}',
+  'settings.theme': 'Tema',
   'queue.limitUnit': 'Unidade',
 
   'common.show': 'Amosar',

@@ -69,7 +69,6 @@ export const th: Dict = {
 
   'empty.downloadsTitle': 'ยังไม่มีอะไรกำลังดาวน์โหลด',
   'empty.downloadsHint': 'เพิ่มลิงก์ในตัวรวบรวม แล้วจึงเริ่ม',
-  'empty.goCollector': 'เปิดตัวรวบรวม',
 
   'collector.title': 'ตัวรวบรวม',
   'collector.subtitle': 'วางหรือลากลิงก์มาที่นี่ — ระบบจะวิเคราะห์และรอจนกว่าคุณจะสั่งเริ่ม',
@@ -94,7 +93,6 @@ export const th: Dict = {
   'collector.move': 'ย้ายไปแพ็กเกจ',
 
   'downloads.title': 'การดาวน์โหลด',
-  'downloads.subtitle': 'การถ่ายโอนที่กำลังทำงานและที่เสร็จแล้ว',
   'downloads.thisInstance': 'อินสแตนซ์นี้',
   'downloads.totalSpeed': 'ความเร็วรวม',
   'downloads.pauseAll': 'หยุดทั้งหมดชั่วคราว',
@@ -258,6 +256,8 @@ export const th: Dict = {
   'settings.rainbowReactive': 'เงียบจนกว่าจะแตะ: มีสีเมื่อชี้และในรายการที่กำลังทำงาน',
   'settings.rainbowRotate': 'สลับตำแหน่งเริ่มต้นของจานสี',
   'settings.rainbowPalette': 'สีในจานสี',
+  'settings.look.saveFailed': 'บันทึกไม่สำเร็จ: {error}',
+  'settings.theme': 'ธีม',
   'queue.limitUnit': 'หน่วย',
 
   'common.show': 'แสดง',

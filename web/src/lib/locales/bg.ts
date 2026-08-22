@@ -69,7 +69,6 @@ export const bg: Dict = {
 
   'empty.downloadsTitle': 'Още нищо не се тегли',
   'empty.downloadsHint': 'Добави връзки в колектора и ги стартирай.',
-  'empty.goCollector': 'Отвори колектора',
 
   'collector.title': 'Колектор',
   'collector.subtitle': 'Постави или пусни връзки — те се анализират и изчакват, после ги стартираш.',
@@ -94,7 +93,6 @@ export const bg: Dict = {
   'collector.move': 'Премести в пакет',
 
   'downloads.title': 'Изтегляния',
-  'downloads.subtitle': 'Активни и завършени трансфери.',
   'downloads.thisInstance': 'Тази инстанция',
   'downloads.totalSpeed': 'Обща скорост',
   'downloads.pauseAll': 'Пауза на всички',
@@ -258,6 +256,8 @@ export const bg: Dict = {
   'settings.rainbowReactive': 'Тихо, докато не го докоснеш: цвят при посочване и върху това, което тече',
   'settings.rainbowRotate': 'Разбъркай откъде започва палитрата',
   'settings.rainbowPalette': 'Цвят от палитрата',
+  'settings.look.saveFailed': 'Запазването не успя: {error}',
+  'settings.theme': 'Тема',
   'queue.limitUnit': 'Единица',
 
   'common.show': 'Покажи',

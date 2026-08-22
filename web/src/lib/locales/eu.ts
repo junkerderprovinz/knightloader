@@ -69,7 +69,6 @@ export const eu: Dict = {
 
   'empty.downloadsTitle': 'Oraindik ez da ezer deskargatzen',
   'empty.downloadsHint': 'Gehitu estekak biltzailean eta hasi itzazu.',
-  'empty.goCollector': 'Ireki biltzailea',
 
   'collector.title': 'Biltzailea',
   'collector.subtitle': 'Itsatsi edo jaregin estekak — aztertu eta gorde egiten dira, gero zuk abiarazten dituzu.',
@@ -94,7 +93,6 @@ export const eu: Dict = {
   'collector.move': 'Eraman paketera',
 
   'downloads.title': 'Deskargak',
-  'downloads.subtitle': 'Transferentzia aktiboak eta amaituak.',
   'downloads.thisInstance': 'Instantzia hau',
   'downloads.totalSpeed': 'Abiadura osoa',
   'downloads.pauseAll': 'Pausatu dena',
@@ -258,6 +256,8 @@ export const eu: Dict = {
   'settings.rainbowReactive': 'Isilik ukitu arte: kolorea gainetik pasatzean eta martxan dagoenean',
   'settings.rainbowRotate': 'Nahastu paletaren hasiera',
   'settings.rainbowPalette': 'Paletaren kolorea',
+  'settings.look.saveFailed': 'Ezin izan da gorde: {error}',
+  'settings.theme': 'Itxura',
   'queue.limitUnit': 'Unitatea',
 
   'common.show': 'Erakutsi',

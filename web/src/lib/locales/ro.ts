@@ -69,7 +69,6 @@ export const ro: Dict = {
 
   'empty.downloadsTitle': 'Încă nu se descarcă nimic',
   'empty.downloadsHint': 'Adaugă linkuri în colector, apoi pornește-le.',
-  'empty.goCollector': 'Deschide colectorul',
 
   'collector.title': 'Colector',
   'collector.subtitle': 'Lipește sau trage linkuri — sunt analizate și așteaptă până le pornești.',
@@ -94,7 +93,6 @@ export const ro: Dict = {
   'collector.move': 'Mută în pachet',
 
   'downloads.title': 'Descărcări',
-  'downloads.subtitle': 'Transferuri în curs și finalizate.',
   'downloads.thisInstance': 'Această instanță',
   'downloads.totalSpeed': 'Viteză totală',
   'downloads.pauseAll': 'Pune tot pe pauză',
@@ -258,6 +256,8 @@ export const ro: Dict = {
   'settings.rainbowReactive': 'Liniștit până îl atingi: culoare la trecerea cu mouse-ul și pe ce rulează',
   'settings.rainbowRotate': 'Amestecă de unde începe paleta',
   'settings.rainbowPalette': 'Culoare din paletă',
+  'settings.look.saveFailed': 'Nu s-a putut salva: {error}',
+  'settings.theme': 'Temă',
   'queue.limitUnit': 'Unitate',
 
   'common.show': 'Arată',

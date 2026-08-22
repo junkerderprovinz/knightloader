@@ -69,7 +69,6 @@ export const lt: Dict = {
 
   'empty.downloadsTitle': 'Kol kas nieko nesiunčiama',
   'empty.downloadsHint': 'Pridėk nuorodų rinktuve ir paleisk jas.',
-  'empty.goCollector': 'Atverti rinktuvą',
 
   'collector.title': 'Rinktuvas',
   'collector.subtitle': 'Įklijuok arba nutempk nuorodas — jos išanalizuojamos ir paruošiamos, tada jas paleidi.',
@@ -94,7 +93,6 @@ export const lt: Dict = {
   'collector.move': 'Perkelti į paketą',
 
   'downloads.title': 'Atsisiuntimai',
-  'downloads.subtitle': 'Vykstantys ir baigti perdavimai.',
   'downloads.thisInstance': 'Šis egzempliorius',
   'downloads.totalSpeed': 'Bendras greitis',
   'downloads.pauseAll': 'Pristabdyti visus',
@@ -258,6 +256,8 @@ export const lt: Dict = {
   'settings.rainbowReactive': 'Rami, kol nepaliesta: spalva užvedus ir ties tuo, kas vyksta',
   'settings.rainbowRotate': 'Maišyti, nuo kurios spalvos paletė prasideda',
   'settings.rainbowPalette': 'Paletės spalva',
+  'settings.look.saveFailed': 'Nepavyko įrašyti: {error}',
+  'settings.theme': 'Tema',
   'queue.limitUnit': 'Vienetas',
 
   'common.show': 'Rodyti',

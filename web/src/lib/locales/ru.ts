@@ -66,7 +66,6 @@ export const ru: Dict = {
 
   'empty.downloadsTitle': 'Пока ничего не загружается',
   'empty.downloadsHint': 'Добавьте ссылки в сборщик, затем запустите их.',
-  'empty.goCollector': 'Открыть сборщик',
   'collector.title': 'Сборщик',
   'collector.subtitle': 'Вставьте или перетащите ссылки — они разбираются и откладываются, запуск за вами.',
   'collector.placeholder': 'Вставьте ссылки — по одной в строке — или перетащите сюда…  (Ctrl+Enter, чтобы добавить)',
@@ -89,7 +88,6 @@ export const ru: Dict = {
   'collector.toastMoved': 'Перенесено ссылок: {n} → «{pkg}»',
   'collector.move': 'Перенести в пакет',
   'downloads.title': 'Загрузки',
-  'downloads.subtitle': 'Текущие и завершённые передачи.',
   'downloads.thisInstance': 'Этот экземпляр',
   'downloads.totalSpeed': 'Общая скорость',
   'downloads.pauseAll': 'Пауза для всех',
@@ -250,6 +248,8 @@ export const ru: Dict = {
   'settings.rainbowReactive': 'Тихо, пока не тронешь: цвет при наведении и у того, что работает',
   'settings.rainbowRotate': 'Перемешать, с какого цвета начинается палитра',
   'settings.rainbowPalette': 'Цвет палитры',
+  'settings.look.saveFailed': 'Не удалось сохранить: {error}',
+  'settings.theme': 'Тема',
   'queue.limitUnit': 'Единица',
 
   'common.show': 'Показать',

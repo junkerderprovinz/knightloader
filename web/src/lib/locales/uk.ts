@@ -69,7 +69,6 @@ export const uk: Dict = {
 
   'empty.downloadsTitle': 'Ще нічого не завантажується',
   'empty.downloadsHint': 'Додайте посилання у збирач, а потім запустіть їх.',
-  'empty.goCollector': 'Відкрити збирач',
 
   'collector.title': 'Збирач',
   'collector.subtitle': 'Вставте або перетягніть посилання — вони аналізуються та чекають, доки ви їх запустите.',
@@ -94,7 +93,6 @@ export const uk: Dict = {
   'collector.move': 'Перемістити до пакета',
 
   'downloads.title': 'Завантаження',
-  'downloads.subtitle': 'Активні та завершені передачі.',
   'downloads.thisInstance': 'Цей екземпляр',
   'downloads.totalSpeed': 'Загальна швидкість',
   'downloads.pauseAll': 'Призупинити все',
@@ -258,6 +256,8 @@ export const uk: Dict = {
   'settings.rainbowReactive': 'Тихо, доки не торкнешся: колір при наведенні та в того, що працює',
   'settings.rainbowRotate': 'Перемішати, з якого кольору починається палітра',
   'settings.rainbowPalette': 'Колір палітри',
+  'settings.look.saveFailed': 'Не вдалося зберегти: {error}',
+  'settings.theme': 'Тема',
   'queue.limitUnit': 'Одиниця',
 
   'common.show': 'Показати',

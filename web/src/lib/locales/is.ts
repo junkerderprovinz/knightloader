@@ -69,7 +69,6 @@ export const is: Dict = {
 
   'empty.downloadsTitle': 'Ekkert niðurhal í gangi',
   'empty.downloadsHint': 'Bættu tenglum við í safnaranum og ræstu þá.',
-  'empty.goCollector': 'Opna safnarann',
 
   'collector.title': 'Safnari',
   'collector.subtitle': 'Límdu eða slepptu tenglum — þeir eru greindir og geymdir, svo ræsir þú þá.',
@@ -94,7 +93,6 @@ export const is: Dict = {
   'collector.move': 'Færa í pakka',
 
   'downloads.title': 'Niðurhal',
-  'downloads.subtitle': 'Virkir og loknir flutningar.',
   'downloads.thisInstance': 'Þetta tilvik',
   'downloads.totalSpeed': 'Heildarhraði',
   'downloads.pauseAll': 'Gera hlé á öllu',
@@ -258,6 +256,8 @@ export const is: Dict = {
   'settings.rainbowReactive': 'Hljótt uns snert: litur við yfirferð og á því sem er í gangi',
   'settings.rainbowRotate': 'Stokka upp hvar litaspjaldið byrjar',
   'settings.rainbowPalette': 'Litur í spjaldi',
+  'settings.look.saveFailed': 'Ekki tókst að vista: {error}',
+  'settings.theme': 'Þema',
   'queue.limitUnit': 'Eining',
 
   'common.show': 'Sýna',

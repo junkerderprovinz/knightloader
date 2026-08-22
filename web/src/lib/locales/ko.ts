@@ -69,7 +69,6 @@ export const ko: Dict = {
 
   'empty.downloadsTitle': '아직 다운로드 중인 항목이 없습니다',
   'empty.downloadsHint': '수집함에 링크를 추가한 뒤 시작하세요.',
-  'empty.goCollector': '수집함 열기',
 
   'collector.title': '수집함',
   'collector.subtitle': '링크를 붙여넣거나 끌어다 놓으세요. 분석 후 시작할 때까지 기다립니다.',
@@ -94,7 +93,6 @@ export const ko: Dict = {
   'collector.move': '패키지로 이동',
 
   'downloads.title': '다운로드',
-  'downloads.subtitle': '진행 중이거나 완료된 전송.',
   'downloads.thisInstance': '이 인스턴스',
   'downloads.totalSpeed': '전체 속도',
   'downloads.pauseAll': '전체 일시 중지',
@@ -258,6 +256,8 @@ export const ko: Dict = {
   'settings.rainbowReactive': '건드리기 전까지는 조용히. 가리킬 때와 실행 중인 것에만 색이 붙습니다',
   'settings.rainbowRotate': '팔레트가 시작하는 위치를 섞기',
   'settings.rainbowPalette': '팔레트 색',
+  'settings.look.saveFailed': '저장할 수 없었습니다: {error}',
+  'settings.theme': '테마',
   'queue.limitUnit': '단위',
 
   'common.show': '보기',

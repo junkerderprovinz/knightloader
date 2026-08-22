@@ -69,7 +69,6 @@ export const sk: Dict = {
 
   'empty.downloadsTitle': 'Zatiaľ sa nič nesťahuje',
   'empty.downloadsHint': 'Pridaj odkazy v zberači a spusti ich.',
-  'empty.goCollector': 'Otvoriť zberač',
 
   'collector.title': 'Zberač',
   'collector.subtitle': 'Vlož alebo pretiahni odkazy — analyzujú sa a odložia, potom ich spustíš.',
@@ -94,7 +93,6 @@ export const sk: Dict = {
   'collector.move': 'Presunúť do balíka',
 
   'downloads.title': 'Sťahovanie',
-  'downloads.subtitle': 'Prebiehajúce a dokončené prenosy.',
   'downloads.thisInstance': 'Táto inštancia',
   'downloads.totalSpeed': 'Celková rýchlosť',
   'downloads.pauseAll': 'Pozastaviť',
@@ -258,6 +256,8 @@ export const sk: Dict = {
   'settings.rainbowReactive': 'Ticho, kým sa nedotkneš: farba pri prejdení a na tom, čo beží',
   'settings.rainbowRotate': 'Zamiešať, kde paleta začína',
   'settings.rainbowPalette': 'Farba palety',
+  'settings.look.saveFailed': 'Nepodarilo sa uložiť: {error}',
+  'settings.theme': 'Motív',
   'queue.limitUnit': 'Jednotka',
 
   'common.show': 'Zobraziť',

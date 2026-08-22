@@ -80,7 +80,6 @@ export const en = {
 
   'empty.downloadsTitle': 'Nothing downloading yet',
   'empty.downloadsHint': 'Add links in the collector, then start them.',
-  'empty.goCollector': 'Open the collector',
 
   'collector.title': 'Collector',
   'collector.subtitle': 'Paste or drop links — they are analysed and staged, then you start them.',
@@ -105,7 +104,6 @@ export const en = {
   'collector.move': 'Move to package',
 
   'downloads.title': 'Downloads',
-  'downloads.subtitle': 'Active and finished transfers.',
   'downloads.thisInstance': 'This instance',
   'downloads.totalSpeed': 'Total speed',
   'downloads.pauseAll': 'Pause all',
@@ -272,6 +270,8 @@ export const en = {
   'settings.rainbowReactive': 'Quiet until touched: colour on hover and on what is running',
   'settings.rainbowRotate': 'Shuffle where the palette starts',
   'settings.rainbowPalette': 'Palette colour',
+  'settings.look.saveFailed': 'Could not save: {error}',
+  'settings.theme': 'Theme',
   'queue.limitUnit': 'Unit',
 
   'common.show': 'Show',

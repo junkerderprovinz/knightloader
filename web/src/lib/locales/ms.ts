@@ -69,7 +69,6 @@ export const ms: Dict = {
 
   'empty.downloadsTitle': 'Belum ada muat turun',
   'empty.downloadsHint': 'Tambah pautan dalam pengumpul, kemudian mulakan.',
-  'empty.goCollector': 'Buka pengumpul',
 
   'collector.title': 'Pengumpul',
   'collector.subtitle': 'Tampal atau lepaskan pautan — ia dianalisis dan disediakan, kemudian anda mulakan.',
@@ -94,7 +93,6 @@ export const ms: Dict = {
   'collector.move': 'Pindah ke pakej',
 
   'downloads.title': 'Muat turun',
-  'downloads.subtitle': 'Pemindahan aktif dan selesai.',
   'downloads.thisInstance': 'Instance ini',
   'downloads.totalSpeed': 'Jumlah kelajuan',
   'downloads.pauseAll': 'Jeda semua',
@@ -258,6 +256,8 @@ export const ms: Dict = {
   'settings.rainbowReactive': 'Senyap sehingga disentuh: warna semasa tuding dan pada yang berjalan',
   'settings.rainbowRotate': 'Kocok titik mula palet',
   'settings.rainbowPalette': 'Warna palet',
+  'settings.look.saveFailed': 'Tidak dapat menyimpan: {error}',
+  'settings.theme': 'Tema',
   'queue.limitUnit': 'Unit',
 
   'common.show': 'Tunjuk',

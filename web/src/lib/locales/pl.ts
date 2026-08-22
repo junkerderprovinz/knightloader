@@ -66,7 +66,6 @@ export const pl: Dict = {
 
   'empty.downloadsTitle': 'Nic się nie pobiera',
   'empty.downloadsHint': 'Dodaj linki w kolektorze, a potem je uruchom.',
-  'empty.goCollector': 'Otwórz kolektor',
   'collector.title': 'Kolektor',
   'collector.subtitle': 'Wklej lub upuść linki — zostaną przeanalizowane i odłożone, a Ty je uruchomisz.',
   'collector.placeholder': 'Wklej linki — jeden adres na wiersz — albo upuść je tutaj…  (Ctrl+Enter, aby dodać)',
@@ -89,7 +88,6 @@ export const pl: Dict = {
   'collector.toastMoved': 'Przeniesiono {n} link(ów) do „{pkg}”',
   'collector.move': 'Przenieś do paczki',
   'downloads.title': 'Pobierania',
-  'downloads.subtitle': 'Trwające i zakończone transfery.',
   'downloads.thisInstance': 'Ta instancja',
   'downloads.totalSpeed': 'Łączna prędkość',
   'downloads.pauseAll': 'Wstrzymaj wszystko',
@@ -250,6 +248,8 @@ export const pl: Dict = {
   'settings.rainbowReactive': 'Spokojnie, dopóki nie dotkniesz: kolor po najechaniu i na tym, co działa',
   'settings.rainbowRotate': 'Przetasuj początek palety',
   'settings.rainbowPalette': 'Kolor palety',
+  'settings.look.saveFailed': 'Nie udało się zapisać: {error}',
+  'settings.theme': 'Motyw',
   'queue.limitUnit': 'Jednostka',
 
   'common.show': 'Pokaż',

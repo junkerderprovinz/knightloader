@@ -69,7 +69,6 @@ export const hi: Dict = {
 
   'empty.downloadsTitle': 'अभी कुछ डाउनलोड नहीं हो रहा',
   'empty.downloadsHint': 'कलेक्टर में लिंक जोड़ें, फिर शुरू करें।',
-  'empty.goCollector': 'कलेक्टर खोलें',
 
   'collector.title': 'कलेक्टर',
   'collector.subtitle': 'लिंक चिपकाएँ या यहाँ छोड़ें — वे जाँचे और तैयार होते हैं, फिर आप शुरू करते हैं।',
@@ -94,7 +93,6 @@ export const hi: Dict = {
   'collector.move': 'पैकेज में ले जाएँ',
 
   'downloads.title': 'डाउनलोड',
-  'downloads.subtitle': 'चालू और पूरे ट्रांसफ़र।',
   'downloads.thisInstance': 'यह इंस्टेंस',
   'downloads.totalSpeed': 'कुल गति',
   'downloads.pauseAll': 'सभी रोकें',
@@ -258,6 +256,8 @@ export const hi: Dict = {
   'settings.rainbowReactive': 'छूने तक शांत: होवर पर और जो चल रहा है उस पर रंग',
   'settings.rainbowRotate': 'पैलेट का शुरुआती रंग बदलें',
   'settings.rainbowPalette': 'पैलेट रंग',
+  'settings.look.saveFailed': 'सहेजा नहीं जा सका: {error}',
+  'settings.theme': 'थीम',
   'queue.limitUnit': 'इकाई',
 
   'common.show': 'दिखाएँ',
