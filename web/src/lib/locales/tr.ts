@@ -69,7 +69,6 @@ export const tr: Dict = {
 
   'empty.downloadsTitle': 'Henüz bir şey inmiyor',
   'empty.downloadsHint': 'Toplayıcıya bağlantı ekleyin, sonra başlatın.',
-  'empty.goCollector': 'Toplayıcıyı aç',
 
   'collector.title': 'Toplayıcı',
   'collector.subtitle': 'Bağlantıları yapıştırın veya sürükleyin — çözümlenip siz başlatana kadar bekler.',
@@ -94,7 +93,6 @@ export const tr: Dict = {
   'collector.move': 'Pakete taşı',
 
   'downloads.title': 'İndirmeler',
-  'downloads.subtitle': 'Süren ve tamamlanan aktarımlar.',
   'downloads.thisInstance': 'Bu örnek',
   'downloads.totalSpeed': 'Toplam hız',
   'downloads.pauseAll': 'Hepsini duraklat',
@@ -258,6 +256,8 @@ export const tr: Dict = {
   'settings.rainbowReactive': 'Dokunulana kadar sakin: üzerine gelince ve çalışanda renk',
   'settings.rainbowRotate': 'Paletin nereden başladığını karıştır',
   'settings.rainbowPalette': 'Palet rengi',
+  'settings.look.saveFailed': 'Kaydedilemedi: {error}',
+  'settings.theme': 'Tema',
   'queue.limitUnit': 'Birim',
 
   'common.show': 'Göster',

@@ -71,7 +71,6 @@ export const ar: Dict = {
 
   'empty.downloadsTitle': 'لا شيء قيد التنزيل بعد',
   'empty.downloadsHint': 'أضف روابط في المُجمِّع ثم ابدأها.',
-  'empty.goCollector': 'افتح المُجمِّع',
 
   'collector.title': 'المُجمِّع',
   'collector.subtitle': 'ألصق الروابط أو أفلتها هنا — تُحلَّل وتنتظر حتى تبدأها.',
@@ -96,7 +95,6 @@ export const ar: Dict = {
   'collector.move': 'نقل إلى حزمة',
 
   'downloads.title': 'التنزيلات',
-  'downloads.subtitle': 'عمليات النقل الجارية والمكتملة.',
   'downloads.thisInstance': 'هذه النسخة',
   'downloads.totalSpeed': 'السرعة الإجمالية',
   'downloads.pauseAll': 'إيقاف الكل مؤقتًا',
@@ -260,6 +258,8 @@ export const ar: Dict = {
   'settings.rainbowReactive': 'هادئ حتى تلمسه: يظهر اللون عند التحويم وعلى ما يعمل',
   'settings.rainbowRotate': 'خلط نقطة بداية اللوحة',
   'settings.rainbowPalette': 'لون اللوحة',
+  'settings.look.saveFailed': 'تعذّر الحفظ: {error}',
+  'settings.theme': 'السمة',
   'queue.limitUnit': 'الوحدة',
 
   'common.show': 'إظهار',

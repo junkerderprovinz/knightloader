@@ -69,7 +69,6 @@ export const el: Dict = {
 
   'empty.downloadsTitle': 'Δεν κατεβαίνει τίποτα ακόμη',
   'empty.downloadsHint': 'Προσθέστε συνδέσμους στον συλλέκτη και μετά ξεκινήστε τους.',
-  'empty.goCollector': 'Άνοιγμα συλλέκτη',
 
   'collector.title': 'Συλλέκτης',
   'collector.subtitle': 'Επικολλήστε ή σύρετε συνδέσμους — αναλύονται και περιμένουν μέχρι να τους ξεκινήσετε.',
@@ -94,7 +93,6 @@ export const el: Dict = {
   'collector.move': 'Μετακίνηση σε πακέτο',
 
   'downloads.title': 'Λήψεις',
-  'downloads.subtitle': 'Ενεργές και ολοκληρωμένες μεταφορές.',
   'downloads.thisInstance': 'Αυτό το στιγμιότυπο',
   'downloads.totalSpeed': 'Συνολική ταχύτητα',
   'downloads.pauseAll': 'Παύση όλων',
@@ -258,6 +256,8 @@ export const el: Dict = {
   'settings.rainbowReactive': 'Ήσυχο μέχρι να το αγγίξεις: χρώμα στο πέρασμα και σε ό,τι τρέχει',
   'settings.rainbowRotate': 'Ανακάτεμα του σημείου εκκίνησης της παλέτας',
   'settings.rainbowPalette': 'Χρώμα παλέτας',
+  'settings.look.saveFailed': 'Δεν ήταν δυνατή η αποθήκευση: {error}',
+  'settings.theme': 'Θέμα',
   'queue.limitUnit': 'Μονάδα',
 
   'common.show': 'Εμφάνιση',

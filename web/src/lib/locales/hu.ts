@@ -69,7 +69,6 @@ export const hu: Dict = {
 
   'empty.downloadsTitle': 'Még semmi sem töltődik le',
   'empty.downloadsHint': 'Adjon hozzá hivatkozásokat a gyűjtőben, majd indítsa el őket.',
-  'empty.goCollector': 'Gyűjtő megnyitása',
 
   'collector.title': 'Gyűjtő',
   'collector.subtitle': 'Illesszen be vagy húzzon ide hivatkozásokat — elemzés után megvárják, amíg elindítja őket.',
@@ -94,7 +93,6 @@ export const hu: Dict = {
   'collector.move': 'Áthelyezés csomagba',
 
   'downloads.title': 'Letöltések',
-  'downloads.subtitle': 'Folyamatban lévő és befejezett átvitelek.',
   'downloads.thisInstance': 'Ez a példány',
   'downloads.totalSpeed': 'Teljes sebesség',
   'downloads.pauseAll': 'Összes szüneteltetése',
@@ -258,6 +256,8 @@ export const hu: Dict = {
   'settings.rainbowReactive': 'Csendes, amíg hozzá nem érsz: szín rámutatáskor és azon, ami fut',
   'settings.rainbowRotate': 'A paletta kezdőszínének keverése',
   'settings.rainbowPalette': 'Palettaszín',
+  'settings.look.saveFailed': 'Nem sikerült menteni: {error}',
+  'settings.theme': 'Téma',
   'queue.limitUnit': 'Mértékegység',
 
   'common.show': 'Mutasd',

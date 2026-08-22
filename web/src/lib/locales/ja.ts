@@ -69,7 +69,6 @@ export const ja: Dict = {
 
   'empty.downloadsTitle': 'まだ何もダウンロードしていません',
   'empty.downloadsHint': 'コレクターにリンクを追加してから開始してください。',
-  'empty.goCollector': 'コレクターを開く',
 
   'collector.title': 'コレクター',
   'collector.subtitle': 'リンクを貼り付けるかドロップしてください。解析後、開始するまで待機します。',
@@ -94,7 +93,6 @@ export const ja: Dict = {
   'collector.move': 'パッケージへ移動',
 
   'downloads.title': 'ダウンロード',
-  'downloads.subtitle': '進行中および完了した転送。',
   'downloads.thisInstance': 'このインスタンス',
   'downloads.totalSpeed': '合計速度',
   'downloads.pauseAll': 'すべて一時停止',
@@ -258,6 +256,8 @@ export const ja: Dict = {
   'settings.rainbowReactive': '触れるまでは静か。ポインタを重ねたときと実行中のものだけ色がつきます',
   'settings.rainbowRotate': 'パレットの開始位置をシャッフルする',
   'settings.rainbowPalette': 'パレットの色',
+  'settings.look.saveFailed': '保存できませんでした: {error}',
+  'settings.theme': 'テーマ',
   'queue.limitUnit': '単位',
 
   'common.show': '表示',

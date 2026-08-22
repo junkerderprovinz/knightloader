@@ -69,7 +69,6 @@ export const zh: Dict = {
 
   'empty.downloadsTitle': '还没有在下载任何内容',
   'empty.downloadsHint': '在收集器中添加链接，然后启动它们。',
-  'empty.goCollector': '打开收集器',
 
   'collector.title': '收集器',
   'collector.subtitle': '粘贴或拖入链接 — 解析后会等你启动。',
@@ -94,7 +93,6 @@ export const zh: Dict = {
   'collector.move': '移到包',
 
   'downloads.title': '下载',
-  'downloads.subtitle': '进行中和已完成的传输。',
   'downloads.thisInstance': '本实例',
   'downloads.totalSpeed': '总速度',
   'downloads.pauseAll': '全部暂停',
@@ -258,6 +256,8 @@ export const zh: Dict = {
   'settings.rainbowReactive': '未触碰时安静：悬停时和正在运行的项目才上色',
   'settings.rainbowRotate': '打乱调色板的起始颜色',
   'settings.rainbowPalette': '调色板颜色',
+  'settings.look.saveFailed': '无法保存：{error}',
+  'settings.theme': '主题',
   'queue.limitUnit': '单位',
 
   'common.show': '显示',

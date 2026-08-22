@@ -69,7 +69,6 @@ export const vi: Dict = {
 
   'empty.downloadsTitle': 'Chưa có gì đang tải',
   'empty.downloadsHint': 'Thêm liên kết vào bộ thu thập rồi bắt đầu.',
-  'empty.goCollector': 'Mở bộ thu thập',
 
   'collector.title': 'Bộ thu thập',
   'collector.subtitle': 'Dán hoặc kéo thả liên kết — chúng được phân tích và chờ đến khi bạn bắt đầu.',
@@ -94,7 +93,6 @@ export const vi: Dict = {
   'collector.move': 'Chuyển sang gói',
 
   'downloads.title': 'Tải xuống',
-  'downloads.subtitle': 'Các lượt truyền đang chạy và đã xong.',
   'downloads.thisInstance': 'Phiên bản này',
   'downloads.totalSpeed': 'Tổng tốc độ',
   'downloads.pauseAll': 'Tạm dừng tất cả',
@@ -258,6 +256,8 @@ export const vi: Dict = {
   'settings.rainbowReactive': 'Yên cho tới khi chạm: có màu khi rê chuột và ở mục đang chạy',
   'settings.rainbowRotate': 'Xáo vị trí bắt đầu của bảng màu',
   'settings.rainbowPalette': 'Màu trong bảng',
+  'settings.look.saveFailed': 'Không thể lưu: {error}',
+  'settings.theme': 'Giao diện',
   'queue.limitUnit': 'Đơn vị',
 
   'common.show': 'Hiện',

@@ -69,7 +69,6 @@ export const ca: Dict = {
 
   'empty.downloadsTitle': 'Encara no es baixa res',
   'empty.downloadsHint': "Afegeix enllaços al col·lector i inicia'ls.",
-  'empty.goCollector': 'Obre el col·lector',
 
   'collector.title': 'Col·lector',
   'collector.subtitle': "Enganxa o deixa anar enllaços — s'analitzen i es preparen, i després els inicies.",
@@ -94,7 +93,6 @@ export const ca: Dict = {
   'collector.move': 'Mou a un paquet',
 
   'downloads.title': 'Baixades',
-  'downloads.subtitle': 'Transferències actives i acabades.',
   'downloads.thisInstance': 'Aquesta instància',
   'downloads.totalSpeed': 'Velocitat total',
   'downloads.pauseAll': 'Pausa-ho tot',
@@ -258,6 +256,8 @@ export const ca: Dict = {
   'settings.rainbowReactive': 'Discret fins que el toques: color en passar-hi i en el que corre',
   'settings.rainbowRotate': 'Barreja on comença la paleta',
   'settings.rainbowPalette': 'Color de la paleta',
+  'settings.look.saveFailed': 'No s’ha pogut desar: {error}',
+  'settings.theme': 'Tema',
   'queue.limitUnit': 'Unitat',
 
   'common.show': 'Mostra',

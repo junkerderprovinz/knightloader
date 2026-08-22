@@ -66,7 +66,6 @@ export const it: Dict = {
 
   'empty.downloadsTitle': 'Nessun download in corso',
   'empty.downloadsHint': 'Aggiungi i link nel raccoglitore, poi avviali.',
-  'empty.goCollector': 'Apri il raccoglitore',
   'collector.title': 'Raccoglitore',
   'collector.subtitle': 'Incolla o trascina i link — vengono analizzati e messi da parte, poi li avvii tu.',
   'collector.placeholder': 'Incolla i link — un URL per riga — o trascinali qui…  (Ctrl+Invio per aggiungere)',
@@ -89,7 +88,6 @@ export const it: Dict = {
   'collector.toastMoved': '{n} link spostati in «{pkg}»',
   'collector.move': 'Sposta nel pacchetto',
   'downloads.title': 'Download',
-  'downloads.subtitle': 'Trasferimenti in corso e completati.',
   'downloads.thisInstance': 'Questa istanza',
   'downloads.totalSpeed': 'Velocità totale',
   'downloads.pauseAll': 'Pausa tutto',
@@ -250,6 +248,8 @@ export const it: Dict = {
   'settings.rainbowReactive': 'Silenzioso finché non lo tocchi: colore al passaggio e su ciò che è in corso',
   'settings.rainbowRotate': 'Mescola da dove parte la tavolozza',
   'settings.rainbowPalette': 'Colore della tavolozza',
+  'settings.look.saveFailed': 'Impossibile salvare: {error}',
+  'settings.theme': 'Tema',
   'queue.limitUnit': 'Unità',
 
   'common.show': 'Mostra',

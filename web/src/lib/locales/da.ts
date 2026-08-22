@@ -69,7 +69,6 @@ export const da: Dict = {
 
   'empty.downloadsTitle': 'Der downloades ikke noget endnu',
   'empty.downloadsHint': 'Tilføj links i samleren, og start dem derefter.',
-  'empty.goCollector': 'Åbn samleren',
 
   'collector.title': 'Samler',
   'collector.subtitle': 'Indsæt eller slip links — de bliver analyseret og venter, til du starter dem.',
@@ -94,7 +93,6 @@ export const da: Dict = {
   'collector.move': 'Flyt til pakke',
 
   'downloads.title': 'Downloads',
-  'downloads.subtitle': 'Igangværende og færdige overførsler.',
   'downloads.thisInstance': 'Denne instans',
   'downloads.totalSpeed': 'Samlet hastighed',
   'downloads.pauseAll': 'Sæt alle på pause',
@@ -258,6 +256,8 @@ export const da: Dict = {
   'settings.rainbowReactive': 'Roligt indtil du rører det: farve ved hover og på det, der kører',
   'settings.rainbowRotate': 'Bland hvor paletten starter',
   'settings.rainbowPalette': 'Paletfarve',
+  'settings.look.saveFailed': 'Kunne ikke gemme: {error}',
+  'settings.theme': 'Tema',
   'queue.limitUnit': 'Enhed',
 
   'common.show': 'Vis',

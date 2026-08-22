@@ -69,7 +69,6 @@ export const fa: Dict = {
 
   'empty.downloadsTitle': 'هنوز چیزی دانلود نمی‌شود',
   'empty.downloadsHint': 'در جمع‌آور لینک اضافه کنید، بعد شروعشان کنید.',
-  'empty.goCollector': 'باز کردن جمع‌آور',
 
   'collector.title': 'جمع‌آور',
   'collector.subtitle': 'لینک‌ها را بچسبانید یا رها کنید — بررسی و آماده می‌شوند، بعد شما شروع می‌کنید.',
@@ -94,7 +93,6 @@ export const fa: Dict = {
   'collector.move': 'انتقال به بسته',
 
   'downloads.title': 'دانلودها',
-  'downloads.subtitle': 'انتقال‌های فعال و تمام‌شده.',
   'downloads.thisInstance': 'این نمونه',
   'downloads.totalSpeed': 'سرعت کل',
   'downloads.pauseAll': 'مکث همه',
@@ -258,6 +256,8 @@ export const fa: Dict = {
   'settings.rainbowReactive': 'آرام تا وقتی لمس شود: رنگ روی هاور و روی آنچه در حال اجراست',
   'settings.rainbowRotate': 'جابه‌جا کردن رنگ شروع پالت',
   'settings.rainbowPalette': 'رنگ پالت',
+  'settings.look.saveFailed': 'ذخیره نشد: {error}',
+  'settings.theme': 'تم',
   'queue.limitUnit': 'واحد',
 
   'common.show': 'نمایش',

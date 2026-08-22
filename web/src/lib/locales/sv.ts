@@ -69,7 +69,6 @@ export const sv: Dict = {
 
   'empty.downloadsTitle': 'Inget laddas ner än',
   'empty.downloadsHint': 'Lägg till länkar i samlaren och starta dem sedan.',
-  'empty.goCollector': 'Öppna samlaren',
 
   'collector.title': 'Samlare',
   'collector.subtitle': 'Klistra in eller släpp länkar — de analyseras och väntar tills du startar dem.',
@@ -94,7 +93,6 @@ export const sv: Dict = {
   'collector.move': 'Flytta till paket',
 
   'downloads.title': 'Nedladdningar',
-  'downloads.subtitle': 'Pågående och färdiga överföringar.',
   'downloads.thisInstance': 'Den här instansen',
   'downloads.totalSpeed': 'Total hastighet',
   'downloads.pauseAll': 'Pausa alla',
@@ -258,6 +256,8 @@ export const sv: Dict = {
   'settings.rainbowReactive': 'Stilla tills du rör vid det: färg vid hovring och på det som körs',
   'settings.rainbowRotate': 'Blanda var paletten börjar',
   'settings.rainbowPalette': 'Palettfärg',
+  'settings.look.saveFailed': 'Kunde inte spara: {error}',
+  'settings.theme': 'Tema',
   'queue.limitUnit': 'Enhet',
 
   'common.show': 'Visa',

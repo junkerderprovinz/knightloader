@@ -69,7 +69,6 @@ export const de: Dict = {
 
   'empty.downloadsTitle': 'Noch nichts am Laden',
   'empty.downloadsHint': 'Füge Links im Sammler hinzu und starte sie.',
-  'empty.goCollector': 'Zum Sammler',
 
   'collector.title': 'Sammler',
   'collector.subtitle': 'Links einfügen oder hineinziehen — sie werden analysiert und gesammelt, dann startest du sie.',
@@ -94,7 +93,6 @@ export const de: Dict = {
   'collector.move': 'Ins Paket',
 
   'downloads.title': 'Downloads',
-  'downloads.subtitle': 'Laufende und abgeschlossene Übertragungen.',
   'downloads.thisInstance': 'Diese Instanz',
   'downloads.totalSpeed': 'Gesamtgeschwindigkeit',
   'downloads.pauseAll': 'Pausieren',
@@ -258,6 +256,8 @@ export const de: Dict = {
   'settings.rainbowReactive': 'Ruhig bis berührt: Farbe beim Überfahren und bei dem, was läuft',
   'settings.rainbowRotate': 'Startfarbe der Palette durchmischen',
   'settings.rainbowPalette': 'Palettenfarbe',
+  'settings.look.saveFailed': 'Konnte nicht gespeichert werden: {error}',
+  'settings.theme': 'Design',
   'queue.limitUnit': 'Einheit',
 
   'common.show': 'Anzeigen',

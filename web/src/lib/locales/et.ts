@@ -69,7 +69,6 @@ export const et: Dict = {
 
   'empty.downloadsTitle': 'Midagi ei laadita veel alla',
   'empty.downloadsHint': 'Lisa lingid kogujasse ja käivita need.',
-  'empty.goCollector': 'Ava koguja',
 
   'collector.title': 'Koguja',
   'collector.subtitle': 'Kleebi või lohista lingid — need analüüsitakse ja pannakse ootele, siis käivitad need.',
@@ -94,7 +93,6 @@ export const et: Dict = {
   'collector.move': 'Liiguta pakki',
 
   'downloads.title': 'Allalaadimised',
-  'downloads.subtitle': 'Käimasolevad ja lõpetatud ülekanded.',
   'downloads.thisInstance': 'See eksemplar',
   'downloads.totalSpeed': 'Kogukiirus',
   'downloads.pauseAll': 'Peata kõik',
@@ -258,6 +256,8 @@ export const et: Dict = {
   'settings.rainbowReactive': 'Vaikne, kuni puudutad: värv hiire all ja sellel, mis töötab',
   'settings.rainbowRotate': 'Sega, millisest värvist palett algab',
   'settings.rainbowPalette': 'Paleti värv',
+  'settings.look.saveFailed': 'Salvestamine ebaõnnestus: {error}',
+  'settings.theme': 'Teema',
   'queue.limitUnit': 'Ühik',
 
   'common.show': 'Näita',

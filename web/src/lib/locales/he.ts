@@ -71,7 +71,6 @@ export const he: Dict = {
 
   'empty.downloadsTitle': 'עדיין לא יורד דבר',
   'empty.downloadsHint': 'הוסף קישורים באוסף ואז התחל אותם.',
-  'empty.goCollector': 'פתח את האוסף',
 
   'collector.title': 'אוסף',
   'collector.subtitle': 'הדבק או גרור קישורים — הם נבדקים וממתינים עד שתתחיל אותם.',
@@ -96,7 +95,6 @@ export const he: Dict = {
   'collector.move': 'העבר לחבילה',
 
   'downloads.title': 'הורדות',
-  'downloads.subtitle': 'העברות פעילות ומושלמות.',
   'downloads.thisInstance': 'המופע הזה',
   'downloads.totalSpeed': 'מהירות כוללת',
   'downloads.pauseAll': 'השהה הכול',
@@ -260,6 +258,8 @@ export const he: Dict = {
   'settings.rainbowReactive': 'שקט עד שנוגעים: צבע במעבר עכבר ועל מה שרץ',
   'settings.rainbowRotate': 'ערבוב נקודת ההתחלה של הלוח',
   'settings.rainbowPalette': 'צבע בלוח',
+  'settings.look.saveFailed': 'לא ניתן היה לשמור: {error}',
+  'settings.theme': 'ערכת נושא',
   'queue.limitUnit': 'יחידה',
 
   'common.show': 'הצג',
