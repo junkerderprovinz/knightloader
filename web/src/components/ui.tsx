@@ -638,11 +638,19 @@ export function ErrorCard({ message, retry, retryLabel }: { message: string; ret
   );
 }
 
-// SectionTitle labels a group of content without adding another surface.
+// SectionTitle labels a group of content without adding another raised
+// surface of its own - the label itself IS a filled badge rather than plain
+// text, matching BombVault's own current theming (jdp: "Das ganze theming
+// soll in den Settings so aussehen wie im aktuellen BV Testcontainer").
 export function SectionTitle({ children, right }: { children: ReactNode; right?: ReactNode }) {
   return (
-    <div className="flex items-baseline gap-3">
-      <h2 className="text-sm font-semibold text-carbon-textSub">{children}</h2>
+    <div className="flex items-center gap-3">
+      <h2
+        className="inline-flex h-[22px] w-fit items-center rounded-[var(--radius-pill)] bg-accentSoft
+          px-2.5 text-[11px] font-semibold uppercase tracking-widest text-carbon-textSub"
+      >
+        {children}
+      </h2>
       <span className="flex-1" />
       {right}
     </div>
