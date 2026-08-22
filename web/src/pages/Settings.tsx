@@ -218,10 +218,32 @@ export function SettingsPage() {
  * Downloads is a thing people do with something that looks like navigation, and
  * a strip of buttons quietly swallows the gesture.
  */
+/**
+ * orderPages applies a saved custom order, then appends anything the saved
+ * order doesn't mention (a page added since the order was last saved) in the
+ * registry's own order — so a new settings page shows up rather than
+ * silently vanishing because an old order array doesn't name it yet, and a
+ * page removed from the registry since just drops out on its own (the
+ * `.filter` below only keeps ids `pages` still has).
+ */
+function orderPages(pages: FeaturePage[], order: string[]): FeaturePage[] {
+  const byId = new Map(pages.map((p) => [p.id, p]));
+  const known = order.map((id) => byId.get(id)).filter((p): p is FeaturePage => p !== undefined);
+  const seen = new Set(known.map((p) => p.id));
+  return [...known, ...pages.filter((p) => !seen.has(p.id))];
+}
+
 function SectionTabs({ pages }: { pages: FeaturePage[] }) {
   const { tx } = useTx();
   const navigate = useNavigate();
   const here = useMatch('/settings/:page');
+  // Persisted drag order (jdp: "die Tabs in den Einstellungen soll man nach
+  // Belieben anordnen können") — same useUIState store as the remembered
+  // last-open page below, a per-browser preference rather than a server
+  // setting: which order somebody likes their own tabs in has nothing to do
+  // with what the instance itself is configured to do.
+  const [order, setOrder] = useUIState<string[]>('settingsTabOrder', []);
+  const ordered = orderPages(pages, order);
 
   return (
     <Tabs
@@ -233,7 +255,9 @@ function SectionTabs({ pages }: { pages: FeaturePage[] }) {
       // pushes a history entry — holding Right to reach Advanced would leave
       // twelve of them behind and turn the Back button into a chore.
       activateOnFocus={false}
-      items={pages.map((p) => ({
+      reorderable
+      onReorder={setOrder}
+      items={ordered.map((p) => ({
         id: p.id,
         label: label(tx, 'settings.nav.', p.id),
         icon: pageIcon(p.id),

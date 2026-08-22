@@ -20,7 +20,7 @@
 // Someone arriving from JDownloader meets a tab strip where they expect one and
 // the arrow keys do what Swing's tabs do: move along the strip and take the
 // selection with them.
-import { useRef, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react';
+import { useRef, type DragEvent, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react';
 import { useRainbow } from '../lib/useRainbow';
 import { hueStyle, segBase, segOff, segOn } from './ui';
 
@@ -64,6 +64,18 @@ interface Common {
   /** Lives inside the strip, after the tabs — the "show everything" reset. */
   after?: ReactNode;
   className?: string;
+  /**
+   * Opt-in drag-to-reorder (jdp: "die Tabs in den Einstellungen soll man
+   * nach Belieben anordnen können"). Off by default so every OTHER caller —
+   * the download list's quick filters, the corner/shape picker — is
+   * completely unaffected; only a caller that passes both `reorderable` and
+   * `onReorder` gets draggable tabs. Reordering never changes `active`: the
+   * caller decides what that means (it does not, for Settings — moving a
+   * tab does not navigate to it).
+   */
+  reorderable?: boolean;
+  /** Called with the full, reordered list of ids after a drop. */
+  onReorder?: (ids: string[]) => void;
 }
 
 export type TabsProps =
@@ -76,7 +88,7 @@ const SIZE = {
 } as const;
 
 export function Tabs(props: TabsProps) {
-  const { items, label, size = 'md', after, className = '' } = props;
+  const { items, label, size = 'md', after, className = '', reorderable = false, onReorder } = props;
 
   // Subscribed, not read: the palette is resolved during render, so a strip
   // that only learned about a change on the next paint would keep the previous
@@ -95,6 +107,35 @@ export function Tabs(props: TabsProps) {
 
   const strip = useRef<HTMLDivElement>(null);
   const isOn = (id: string) => (chosen ? chosen.has(id) : only === id);
+
+  // A ref, not state: the dragged id is read-only scratch space for the drag
+  // gesture itself and never needs to trigger a render — dragover fires
+  // continuously while the pointer moves, and re-rendering the whole strip on
+  // every one of those would be wasted work for a value nothing displays.
+  const draggedId = useRef<string | null>(null);
+
+  function onDragStart(e: DragEvent<HTMLElement>, id: string) {
+    draggedId.current = id;
+    e.dataTransfer.effectAllowed = 'move';
+  }
+  function onDragOver(e: DragEvent<HTMLElement>) {
+    // Required for onDrop to fire at all — a dragover with no
+    // preventDefault tells the browser this is not a valid drop target.
+    e.preventDefault();
+  }
+  function onDrop(e: DragEvent<HTMLElement>, overId: string) {
+    e.preventDefault();
+    const fromId = draggedId.current;
+    draggedId.current = null;
+    if (!fromId || fromId === overId || !onReorder) return;
+    const ids = items.map((i) => i.id);
+    const from = ids.indexOf(fromId);
+    if (from < 0) return;
+    ids.splice(from, 1);
+    const to = ids.indexOf(overId);
+    ids.splice(to < 0 ? ids.length : to, 0, fromId);
+    onReorder(ids);
+  }
 
   // Roving tabindex: the strip is ONE stop in the tab order and the arrows move
   // inside it. Tabbing through thirteen settings pages to reach the page is how
@@ -204,7 +245,15 @@ export function Tabs(props: TabsProps) {
           title: item.title,
           tabIndex: i === roved ? 0 : -1,
           style: hueStyle(i),
-          className: cls,
+          // Dragging its own visible feedback: the browser already renders a
+          // drag ghost, and a held-open drop target beyond that (a highlighted
+          // insertion point) is more machinery than reordering four to twelve
+          // settings tabs needs — the list simply jumps to its new order on drop.
+          className: `${cls} ${reorderable ? 'cursor-grab active:cursor-grabbing' : ''}`,
+          draggable: reorderable,
+          onDragStart: reorderable ? (e: DragEvent<HTMLElement>) => onDragStart(e, item.id) : undefined,
+          onDragOver: reorderable ? onDragOver : undefined,
+          onDrop: reorderable ? (e: DragEvent<HTMLElement>) => onDrop(e, item.id) : undefined,
           onClick: (e: MouseEvent<HTMLElement>) => onClick(e, item),
         };
 
