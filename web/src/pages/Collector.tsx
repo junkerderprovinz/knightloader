@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { recheckTasks, startTasks, type Task } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import { useReportListView } from '../lib/listview';
@@ -13,7 +13,7 @@ import {
 } from '../components/TaskList';
 import { PackageActions } from '../components/PackageActions';
 import { AddLinksForm } from '../components/AddLinksForm';
-import { FileDrop } from '../components/FileDrop';
+import { FileDrop, type FileDropHandle } from '../components/FileDrop';
 import { FilteredLinks, useFx } from '../components/FilteredLinks';
 import { SkippedLinks } from '../components/SkippedLinks';
 import {
@@ -55,6 +55,11 @@ export function Collector() {
   // container-drop zone below wants the same package name a link pasted at
   // the same time would get, and it is not part of the form's own lane.
   const [pkg, setPkg] = useState('');
+  // Reaches into FileDrop from AddLinksForm's own button row (jdp: "Dropzone
+  // mit Dateiwählen button neben dem Zum-Sammler-Button") - see
+  // FileDropHandle's own doc comment for why the button moved rather than
+  // the whole drop target.
+  const fileDrop = useRef<FileDropHandle>(null);
   const [search, setSearch] = useState<SearchQuery>(EMPTY_SEARCH);
   const [filters, setFilters] = useState<Set<QuickFilterId>>(() => new Set());
   // The facet groups the collector's own sidebar exposes (host, file type,
@@ -217,7 +222,7 @@ export function Collector() {
           per-batch destination/priority/unpacking/comment/password options
           and the recently-used-destination history — see
           components/AddLinksForm.tsx. */}
-      <AddLinksForm pkg={pkg} onPkgChange={setPkg} onStaged={handleStaged} />
+      <AddLinksForm pkg={pkg} onPkgChange={setPkg} onStaged={handleStaged} onChooseFile={() => fileDrop.current?.openPicker()} />
 
       {/* Intake that is not a paste, and the trace of what the paste dropped.
           Both sit under the hero and above the list: the paste box is why people
@@ -225,7 +230,7 @@ export function Collector() {
           in particular has to render when the list is empty — a paste of nothing
           but duplicates stages nothing, and that is the moment it explains most. */}
       <div className="flex flex-col gap-3">
-        <FileDrop pkg={pkg} />
+        <FileDrop ref={fileDrop} pkg={pkg} />
         <FilteredLinks held={held} />
         <SkippedLinks />
       </div>
