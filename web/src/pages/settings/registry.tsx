@@ -2,7 +2,9 @@ import type { ComponentType, ReactNode, SVGProps } from 'react';
 import {
   IconAccounts,
   IconArchive,
+  IconBrowser,
   IconCaptcha,
+  IconClipboard,
   IconClock,
   IconCode,
   IconDiagnostics,
@@ -15,6 +17,7 @@ import {
   IconLock,
   IconLook,
   IconModules,
+  IconPower,
   IconRetry,
   IconSettings,
   IconSliders,
@@ -87,14 +90,11 @@ const PAGES: Record<string, () => ReactNode> = {
   diagnostics: () => <Diagnostics />,
   // Quit/restart/backup/restore - build-plan.md's Wave 10 (10D) shipped the
   // whole backend with no page pointing at it at all; see System.tsx's own
-  // doc comment. No icon registered below on purpose - pageIcon's own
-  // fallback (a text-only tab label) is a supported, unbroken state, not a
-  // gap, and this page does not yet warrant inventing a new glyph for it.
+  // doc comment.
   system: () => <System />,
   help: () => <Help />,
   // The bookmarklet, the extension download and the PWA install step
-  // (build-plan.md's 11D) — see BrowserTools.tsx's own doc comment. No icon
-  // registered below either, same reasoning as system above.
+  // (build-plan.md's 11D) — see BrowserTools.tsx's own doc comment.
   browsertools: () => <BrowserTools />,
   // The script editor (build-plan.md's 11B) — see Scripts.tsx's own doc
   // comment.
@@ -127,6 +127,9 @@ const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   connections: IconGlobe,
   reconnect: IconRetry,
   accounts: IconAccounts,
+  // yt-dlp's format/subtitle/output-template config - a filled-in form, the
+  // same idea IconClipboard already draws for "a template with fields".
+  resolvers: IconClipboard,
   // Reused rather than a fresh glyph: IconInstances already draws "another
   // device on the network" (see its own use on Reconnect.tsx's UPnP method
   // tab), which is as close as the existing set gets to a peer-swarm idea,
@@ -141,6 +144,8 @@ const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   help: IconHelp,
   scripts: IconCode,
   shortcuts: IconKeyboard,
+  system: IconPower,
+  browsertools: IconBrowser,
 };
 
 export function renderSettingsPage(id: string): ReactNode {
