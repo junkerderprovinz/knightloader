@@ -235,6 +235,7 @@ export const no: Dict = {
   'settings.shape.square': 'Skarpe',
   'settings.accent': 'Aksentfarge',
   'settings.accentHint': 'Den ene fargen for aktivitet. Teksten oppå velges etter kontrast.',
+  'settings.accentPresets': 'Forhåndsinnstillinger',
   'settings.accentReset': 'Standard',
   'queue.stop': 'Stopp køen',
   'queue.start': 'Start køen',

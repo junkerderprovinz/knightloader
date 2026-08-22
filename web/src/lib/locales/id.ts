@@ -233,6 +233,7 @@ export const id: Dict = {
   'settings.shape.square': 'Kotak',
   'settings.accent': 'Warna aksen',
   'settings.accentHint': 'Satu warna untuk aktivitas. Teks di atasnya dipilih menurut kontras.',
+  'settings.accentPresets': 'Preset',
   'settings.accentReset': 'Bawaan',
   'queue.stop': 'Hentikan antrean',
   'queue.start': 'Mulai antrean',

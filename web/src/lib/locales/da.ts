@@ -233,6 +233,7 @@ export const da: Dict = {
   'settings.shape.square': 'Skarpe',
   'settings.accent': 'Accentfarve',
   'settings.accentHint': 'Den ene farve for aktivitet. Teksten ovenpå vælges efter kontrast.',
+  'settings.accentPresets': 'Forudindstillinger',
   'settings.accentReset': 'Standard',
   'queue.stop': 'Stop køen',
   'queue.start': 'Start køen',

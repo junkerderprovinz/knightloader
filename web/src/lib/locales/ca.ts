@@ -233,6 +233,7 @@ export const ca: Dict = {
   'settings.shape.square': 'Rectes',
   'settings.accent': "Color d'accent",
   'settings.accentHint': "L'únic color per a l'activitat. El text a sobre es tria per contrast.",
+  'settings.accentPresets': 'Predefinicions',
   'settings.accentReset': 'Per defecte',
   'queue.stop': 'Atura la cua',
   'queue.start': 'Inicia la cua',

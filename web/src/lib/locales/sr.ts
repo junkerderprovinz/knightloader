@@ -233,6 +233,7 @@ export const sr: Dict = {
   'settings.shape.square': 'Оштри',
   'settings.accent': 'Боја нагласка',
   'settings.accentHint': 'Једина боја за активност. Текст на њој се бира по контрасту.',
+  'settings.accentPresets': 'Пресети',
   'settings.accentReset': 'Подразумевано',
   'queue.stop': 'Заустави ред',
   'queue.start': 'Покрени ред',

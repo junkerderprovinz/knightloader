@@ -233,6 +233,7 @@ export const lt: Dict = {
   'settings.shape.square': 'Statūs',
   'settings.accent': 'Akcento spalva',
   'settings.accentHint': 'Viena spalva veiklai. Tekstas ant jos parenkamas pagal kontrastą.',
+  'settings.accentPresets': 'Išankstiniai nustatymai',
   'settings.accentReset': 'Numatytoji',
   'queue.stop': 'Stabdyti eilę',
   'queue.start': 'Paleisti eilę',

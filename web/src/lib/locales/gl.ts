@@ -233,6 +233,7 @@ export const gl: Dict = {
   'settings.shape.square': 'Rectas',
   'settings.accent': 'Cor de acento',
   'settings.accentHint': 'A única cor para a actividade. O texto enriba escóllese por contraste.',
+  'settings.accentPresets': 'Predefinicións',
   'settings.accentReset': 'Por defecto',
   'queue.stop': 'Deter a cola',
   'queue.start': 'Iniciar a cola',
