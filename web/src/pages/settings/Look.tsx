@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Button, Card, FieldGroup, InfoBubble, SectionTitle, Swatch, SwatchRow, Toggle } from '../../components/ui';
+import { Card, InfoBubble, SectionTitle, Toggle } from '../../components/ui';
 import { Tabs } from '../../components/Tabs';
 import { LanguagePicker } from '../../components/LanguagePicker';
 import { IconMoon, IconSun } from '../../lib/icons';
@@ -29,9 +29,9 @@ export function Look() {
   // Sprache and Hell/Dunkel are per-browser preferences (localStorage, not
   // this draft's server document - see lib/theme.ts and LanguagePicker.tsx),
   // so they already save themselves the instant they change with nothing
-  // further to do here; this page just gives the sidebar's own two controls
-  // a second, equally reachable home (jdp: "Auch Sprachen und Hell/dunkel
-  // kommen als eigene cards in den aussehen tab").
+  // further to do here. They live ONLY here now, not in the sidebar too
+  // (jdp: "Sprach und hell dunkel ist in der sidebar immer noch vorhanden" -
+  // one control, one home, not two copies of the same switch).
   const [theme, setThemeState] = useState(getTheme);
   useEffect(() => onThemeChange(setThemeState), []);
 
@@ -72,10 +72,10 @@ export function Look() {
   // nothing but instant visual feedback already, via the effect above. A
   // Save button on top of a change already visible on screen only adds a
   // step nobody asked for. Debounced on the same schedule as Advanced's
-  // search box, so dragging the palette's hex field sends one PATCH once
-  // it settles rather than one per keystroke; the very first run is
-  // skipped, since that one fires on mount with the value just loaded
-  // from the server, not a change to save.
+  // search box, so dragging a colour sends one PATCH once it settles rather
+  // than one per input event; the very first run is skipped, since that one
+  // fires on mount with the value just loaded from the server, not a change
+  // to save.
   const first = useRef(true);
   useEffect(() => {
     if (first.current) {
@@ -108,17 +108,16 @@ export function Look() {
     cfg.rainbowPalette?.join(),
   ]);
 
+  const accentLive = live(cfg.accent);
+
   return (
     <div className="flex flex-col gap-5">
-      <Card className="flex flex-col gap-5">
-      {/* FieldGroup, not Field: a Field is a `<label>`, and a label around three
-          tabs hands its clicks to the first of them — clicking the word
-          "Corners" set the app back to round. See ui.tsx. */}
-      <FieldGroup label={t('settings.shape')} hint={t('settings.shapeHint')}>
-        {/* The same strip the filters and the settings pages use. A corner
-            picker is a tab set with three entries and a preview for a glyph,
-            and building it out of its own buttons is how the two drifted apart
-            the last time. */}
+      {/* Corners has no BombVault equivalent (GlimStone-only, KnightLoader/
+          TrickWork feature) - its own card rather than folded into Aussehen
+          below, so it does not pretend to be part of the section that DOES
+          have to match BV's exact shape. */}
+      <Card className="flex flex-col gap-3">
+        <SectionTitle right={<InfoBubble tip={t('settings.shapeHint')} />}>{t('settings.shape')}</SectionTitle>
         <Tabs
           label={t('settings.shape')}
           size="sm"
@@ -128,12 +127,6 @@ export function Look() {
           items={SHAPES.map((s) => ({
             id: s,
             label: t(`settings.shape.${s}` as never),
-            // The glyph is the setting: it carries the radius it selects, so
-            // the choice is visible before it is made. It is an OUTLINE, not a
-            // filled square — a coloured dot beside each of three labels is
-            // three dots of decoration, and the accent is supposed to mean
-            // activity. Drawn in the label's own colour, it says what it has to
-            // say with the shape alone.
             icon: (
               <span
                 aria-hidden
@@ -143,141 +136,176 @@ export function Look() {
             ),
           }))}
         />
-      </FieldGroup>
+      </Card>
 
-      <FieldGroup label={t('settings.accent')} hint={t('settings.accentHint')}>
-        <SwatchRow
-          label={t('settings.accent')}
-          after={
-            <Button kind="ghost" className="px-2.5 text-xs" onClick={() => patch({ accent: '' })}>
-              {t('settings.accentReset')}
-            </Button>
-          }
-        >
-          {ACCENTS.map((a) => (
-            <Swatch
-              key={a.hex}
-              color={a.hex}
-              label={a.name}
-              selected={live(cfg.accent) === a.hex.toLowerCase()}
-              onPick={() => patch({ accent: a.hex })}
-            />
-          ))}
-          {/* A free colour beside the presets: the list is a shortcut, not a
-              fence. It wears the ring whenever the live accent is not one of
-              the five, so exactly one swatch in the row is always marked and
-              the free colour is never a square that looks switched off while
-              being the one in use. */}
-          <Swatch
-            color={cfg.accent || DEFAULT_ACCENT}
-            label={t('settings.accent')}
-            selected={!ACCENTS.some((a) => a.hex.toLowerCase() === live(cfg.accent))}
-            onColor={(hex) => patch({ accent: hex })}
-          />
-        </SwatchRow>
-      </FieldGroup>
+      {/* Aussehen - a literal structural port of BombVault's own Settings >
+          General > Appearance card (jdp, three rounds running: "Das ganze
+          Theming soll in den Settings so aussehen wie im aktuellen BV
+          Testcontainer", then "nicht exakt... übernommen... es fehlen
+          eigene Cards. Die Toggles falsch angeordnet. Farbwähler und
+          Resetbutton fehlen"). Same card title, same accent widget (a real
+          native `<input type="color">` swatch plus five preset circles plus
+          a Reset text link that only appears once the accent has actually
+          been changed), same border-top divider before Rainbow, same
+          same-row heading+master-switch, same native-input palette circles,
+          same Quiet-toasts row shape at the bottom - not GlimStone's
+          popover colour picker, on purpose, because this one card's job is
+          to be the BV reference implementation rather than KnightLoader's
+          own idiom. */}
+      <Card className="flex flex-col gap-4">
+        <SectionTitle>{t('settings.nav.look')}</SectionTitle>
 
-      {/* Three switches in one column, all starting at the same edge.
-          The master used to carry a second label ("use the palette") beside the
-          section's own name, which said the same thing twice, and the two
-          sub-switches were indented under it. The indent was meant to show they
-          belong to the mode — but they are already dimmed when it is off, which
-          says that better, and the step left three switch tracks starting at two
-          different x positions. Flush, the column reads down in one line. */}
-      <div className="flex flex-col gap-3">
-        <span className="flex items-center text-xs text-carbon-textSub">
-          {t('settings.rainbow')}
-          <InfoBubble tip={t('settings.rainbowHint')} />
-        </span>
-
-        {/* No visible words: the heading directly above already says Rainbow,
-            and a switch captioned "use the palette" under it said the same
-            decision twice. The label survives as the accessible name. */}
-        <Toggle
-          checked={cfg.rainbow}
-          onChange={(v) => patch({ rainbow: v })}
-          label={t('settings.rainbowOn')}
-          hideLabel
-        />
-
-        {/* Disabled rather than hidden: a control that vanishes teaches nobody
-            what the mode can do. */}
-        <div
-          className={`flex flex-col gap-3 transition-opacity ${
-            cfg.rainbow ? '' : 'pointer-events-none opacity-40'
-          }`}
-        >
-          <Toggle
-            checked={cfg.rainbowReactive}
-            onChange={(v) => patch({ rainbowReactive: v })}
-            label={t('settings.rainbowReactive')}
-          />
-          <Toggle
-            checked={cfg.rainbowRotate}
-            onChange={(v) =>
-              // Turning rotation on draws a fresh offset, so the switch does
-              // something visible instead of re-applying the rotation the
-              // palette already had.
-              patch({
-                rainbowRotate: v,
-                rainbowSeed: v ? 1 + Math.floor(Math.random() * (RAINBOW.length - 1)) : 0,
-              })
-            }
-            label={t('settings.rainbowRotate')}
-          />
-
-          {/* The very same row as the accent above it, because it is the very
-              same job: pick colours. It was a row of raw <input type="color">
-              boxes with the browser's chrome around each one, four rows under
-              a row of clean squares — two controls, one idea, on one page. */}
-          <SwatchRow
-            label={t('settings.rainbowPalette')}
-            after={
-              <Button kind="ghost" className="px-2.5 text-xs" onClick={() => patch({ rainbowPalette: null })}>
-                {t('settings.accentReset')}
-              </Button>
-            }
-          >
-            {palette.map((hex, i) => (
-              <Swatch
-                key={i}
-                color={hex}
-                label={`${t('settings.rainbowPalette')} ${i + 1}`}
-                onColor={(v) => {
-                  const next = palette.slice();
-                  next[i] = v;
-                  patch({ rainbowPalette: next });
-                }}
+        <div className="flex flex-col gap-2">
+          <span className="text-sm text-carbon-text">{t('settings.accent')}</span>
+          <div className="flex flex-wrap items-center gap-3">
+            {/* The real colour picker: a native input, its own swatch of
+                colour painted behind it so the control reads as "a colour"
+                rather than as an invisible hit-target over a plain box. */}
+            <label
+              title={t('settings.accent')}
+              className="relative h-8 w-14 shrink-0 cursor-pointer overflow-hidden rounded-[var(--radius-control)] bg-carbon-surface2 p-0.5"
+            >
+              <span
+                aria-hidden
+                className="pointer-events-none block h-full w-full rounded-[calc(var(--radius-control)-2px)]"
+                style={{ backgroundColor: accentLive }}
               />
-            ))}
-          </SwatchRow>
+              <input
+                type="color"
+                value={accentLive}
+                onChange={(e) => patch({ accent: e.target.value })}
+                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+              />
+            </label>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs text-carbon-textMuted">{t('settings.accentPresets')}:</span>
+              {ACCENTS.map((a) => (
+                <button
+                  key={a.hex}
+                  type="button"
+                  title={a.name}
+                  onClick={() => patch({ accent: a.hex })}
+                  className="h-6 w-6 rounded-full border-2 transition-transform hover:scale-110"
+                  style={{
+                    backgroundColor: a.hex,
+                    borderColor: accentLive === a.hex.toLowerCase() ? 'var(--carbon-text)' : 'var(--carbon-border)',
+                  }}
+                />
+              ))}
+              {/* Only once the accent has actually moved off the default -
+                  a reset that is always there and never does anything reads
+                  as furniture, and the BV reference itself only shows it
+                  conditionally. */}
+              {accentLive !== DEFAULT_ACCENT.toLowerCase() && (
+                <button
+                  type="button"
+                  onClick={() => patch({ accent: '' })}
+                  className="ms-1 text-xs text-carbon-textMuted transition-colors hover:text-carbon-text"
+                >
+                  {t('settings.accentReset')}
+                </button>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
 
-      {saveError && <p className="text-xs text-statusFail">{t('settings.look.saveFailed', { error: saveError })}</p>}
+        <div className="flex flex-col gap-3 border-t border-carbon-border pt-4">
+          {/* The master switch shares the heading's own row (BV's own fix
+              for the exact trap GlimStone's Switches rule calls out: a
+              caption-less toggle stranded far from the word that names it).
+              No caption of its own - the heading beside it already says
+              Rainbow. */}
+          <div className="flex items-start justify-between gap-4">
+            <span className="flex items-center gap-1.5 text-sm text-carbon-text">
+              {t('settings.rainbow')}
+              <InfoBubble tip={t('settings.rainbowHint')} />
+            </span>
+            <Toggle
+              hideLabel
+              label={t('settings.rainbowOn')}
+              checked={cfg.rainbow}
+              onChange={(v) => patch({ rainbow: v })}
+            />
+          </div>
 
-      {/* Not appearance, but there is no better-fitting page registered yet
-          (settings/registry.tsx's PAGES/ICONS only draw a tab the server's
-          own GET /api/features already lists - adding a dedicated
-          Notifications page is a real feature, not a fix). This used to be
-          a small panel pinned over the bottom-right corner of every route,
-          permanently, in English, regardless of which page was open; an
-          ordinary row here is reachable exactly once, on purpose, like
-          every other switch on this page. No extra heading above it - the
-          toggle's own label already says "Quiet mode", and the Rainbow
-          section above already established that a heading repeating what
-          the switch beneath it says is the same decision said twice. */}
-      <QuietModeToggle />
+          {/* Disabled rather than hidden: a control that vanishes teaches
+              nobody what the mode can do. */}
+          <div className={`flex flex-col gap-3 transition-opacity ${cfg.rainbow ? '' : 'pointer-events-none opacity-50'}`}>
+            <div className="flex items-start justify-between gap-4">
+              <span className="text-sm text-carbon-text">{t('settings.rainbowReactive')}</span>
+              <Toggle
+                hideLabel
+                label={t('settings.rainbowReactive')}
+                checked={cfg.rainbowReactive}
+                onChange={(v) => patch({ rainbowReactive: v })}
+              />
+            </div>
+            <div className="flex items-start justify-between gap-4">
+              <span className="text-sm text-carbon-text">{t('settings.rainbowRotate')}</span>
+              <Toggle
+                hideLabel
+                label={t('settings.rainbowRotate')}
+                checked={cfg.rainbowRotate}
+                onChange={(v) =>
+                  // Turning rotation on draws a fresh offset, so the switch does
+                  // something visible instead of re-applying the rotation the
+                  // palette already had.
+                  patch({
+                    rainbowRotate: v,
+                    rainbowSeed: v ? 1 + Math.floor(Math.random() * (RAINBOW.length - 1)) : 0,
+                  })
+                }
+              />
+            </div>
+
+            {/* The very same job as the accent swatch above: eight native
+                colour inputs, each painted with its own palette colour. */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs text-carbon-textMuted">{t('settings.rainbowPalette')}:</span>
+              {palette.map((hex, i) => (
+                <label
+                  key={i}
+                  title={`${t('settings.rainbowPalette')} ${i + 1}`}
+                  className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full border-2 border-carbon-border"
+                  style={{ backgroundColor: hex, opacity: cfg.rainbow ? undefined : 0.5 }}
+                >
+                  <input
+                    type="color"
+                    value={hex}
+                    disabled={!cfg.rainbow}
+                    onChange={(e) => {
+                      const next = palette.slice();
+                      next[i] = e.target.value;
+                      patch({ rainbowPalette: next });
+                    }}
+                    className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
+                  />
+                </label>
+              ))}
+              <button
+                type="button"
+                disabled={!cfg.rainbow}
+                onClick={() => patch({ rainbowPalette: null })}
+                className="ms-1 text-xs text-carbon-textMuted transition-colors hover:text-carbon-text disabled:pointer-events-none disabled:opacity-50"
+              >
+                {t('settings.accentReset')}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {saveError && <p className="text-xs text-statusFail">{t('settings.look.saveFailed', { error: saveError })}</p>}
+
+        <QuietModeToggle />
       </Card>
 
       <Card className="flex flex-col gap-3">
         <SectionTitle>{t('lang.label')}</SectionTitle>
-        {/* standalone: the sidebar mounts its own copy of this component at
-            the same time, sharing lib/langPickerOpen's store by default -
-            without this, opening either one opens both (the exact bug
-            LanguagePicker.tsx's own doc comment describes for
-            OnboardingWizard, which is why that instance carries the same
-            prop). */}
+        {/* standalone: the sidebar used to mount its own copy of this
+            component too, sharing lib/langPickerOpen's store by default -
+            now that Sprache lives only here, this is moot for the sidebar
+            itself, but OnboardingWizard.tsx still mounts a second,
+            simultaneous instance of its own, so this stays standalone. */}
         <LanguagePicker
           direction="down"
           standalone
