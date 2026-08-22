@@ -203,9 +203,19 @@ export function QueueBar() {
           downloads always finish either way, only new dispatch stops. Stop
           is the separate, harder verb (StopAll): it interrupts transfers in
           flight right now, so it always asks first via the cost dialog
-          below rather than acting on the first click. */}
+          below rather than acting on the first click.
+
+          `secondary`, never `ghost`, for the button that is not the current
+          "press this" one: ghost carries no background at all, so a
+          disabled ghost button (`disabled:opacity-35` on top of nothing)
+          reads as gone rather than as a control that simply isn't the right
+          moment for it (jdp: "sollen auch im deaktivierten Zustand als
+          Badge erkennbar sein"). Stop stays plain-coloured like its
+          siblings too, not tinted fault-red - it is a mode switch here, the
+          same weight as Play/Pause, and only the confirm dialog it opens
+          carries the real warning. */}
       <Button
-        kind={queue.halted ? 'primary' : 'ghost'}
+        kind={queue.halted ? 'primary' : 'secondary'}
         icon={<IconPlay width={16} height={16} />}
         onClick={() => void setHalted(false)}
         disabled={!queue.halted}
@@ -213,7 +223,7 @@ export function QueueBar() {
         aria-label={t('queue.play')}
       />
       <Button
-        kind={!queue.halted ? 'primary' : 'ghost'}
+        kind={!queue.halted ? 'primary' : 'secondary'}
         icon={<IconPause width={16} height={16} />}
         onClick={() => void setHalted(true)}
         disabled={queue.halted}
@@ -221,13 +231,12 @@ export function QueueBar() {
         aria-label={t('queue.pause')}
       />
       <Button
-        kind="ghost"
+        kind="secondary"
         icon={<IconStop width={16} height={16} />}
         onClick={() => void fetchStopCost(base).then(setStopCost)}
         disabled={queue.running === 0}
         title={t('queue.hardStop')}
         aria-label={t('queue.hardStop')}
-        className="text-statusFail"
       />
 
       {queue.halted && (
@@ -236,17 +245,18 @@ export function QueueBar() {
         </span>
       )}
 
-      {/* No spacer between the switch and the limit any more. On the download
-          page this bar was the full width of the content and pushed the limit
-          to the far edge; in the shell it is one item in a row that also holds
-          the scope tag and the widget slot, so a flex-1 here would collapse to
-          nothing and the two controls read better as one transport cluster. */}
+      {/* Always the far-right item in this row (jdp: "das Speedlimit soll
+          immer rechts drüben stehen") - ml-auto rather than a bare flex-1
+          spacer, so it pushes itself right regardless of how many other
+          items (the play/pause/stop cluster, the halted note) sit before it
+          in the same flex-wrap row, without needing an empty spacer element
+          of its own. */}
       {peer && (
-        <span className="text-[11px] text-carbon-textMuted">{t('queue.peerLimitLocal')}</span>
+        <span className="ml-auto text-[11px] text-carbon-textMuted">{t('queue.peerLimitLocal')}</span>
       )}
 
       {!peer && (
-      <label className="flex items-center gap-2 text-[11px] text-carbon-textMuted">
+      <label className="ml-auto flex items-center gap-2 text-[11px] text-carbon-textMuted">
         {t('queue.limit')}
         <span className="flex items-center gap-1">
           <input
