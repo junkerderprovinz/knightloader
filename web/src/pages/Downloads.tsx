@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   type Instance,
   pause,
@@ -16,6 +15,7 @@ import { useT } from '../lib/i18n';
 import { useInstanceScope } from '../lib/instance';
 import { PageHeader, Button, EmptyState } from '../components/ui';
 import { Counters } from '../components/Counters';
+import { SpeedGraph } from '../components/SpeedGraph';
 import {
   TaskListCard,
   groupByPackage,
@@ -49,7 +49,6 @@ import { IconSearch, IconDownloads, IconArrowUp, IconArrowDown, IconTop, IconBot
 
 export function Downloads() {
   const { t } = useT();
-  const navigate = useNavigate();
   const [instances, setInstances] = useState<Instance[]>([]);
   // Not page state: the shell bar's transport controls have to act on the same
   // instance this list is showing, and they cannot read a useState from in here.
@@ -57,6 +56,11 @@ export function Downloads() {
   const { instance, base, select } = useInstanceScope();
   const [search, setSearch] = useState<SearchQuery>(EMPTY_SEARCH);
   const [filters, setFilters] = useState<Set<QuickFilterId>>(() => new Set());
+  // The search field and its quick filters used to sit in a permanent row of
+  // their own (jdp: "was jetzt neben dem Suchfeld steht soll weg") - now they
+  // live behind the square badge on the stats line and only take up room
+  // while somebody is actually narrowing the list.
+  const [searchOpen, setSearchOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const menu = useContextMenu();
   // What the pointer landed on. A link, a package header and the empty space
@@ -167,6 +171,8 @@ export function Downloads() {
     return { running, queued, done, error, speed };
   }, [list]);
 
+  const narrowed = filters.size > 0 || search.text.trim() !== '';
+
   const pauseAll = () => list.filter((x) => x.status === 'running').forEach((x) => pause(x.id, base));
   const resumeAll = () => list.filter((x) => x.status === 'paused').forEach((x) => resume(x.id, base));
   const retryFailed = () => restartTasks([], base);
@@ -219,7 +225,6 @@ export function Downloads() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title={t('downloads.title')}
-        subtitle={t('downloads.subtitle')}
         right={
           instances.length > 0 && (
             <select
@@ -241,48 +246,79 @@ export function Downloads() {
 
       <FirstTouchHint id="downloads" />
 
-      {/* No hero here — the list is this page's weight. The speed and counters
-          ride as one quiet uncarded line so Overview keeps the big figure. */}
+      {/* Still no big hero card here — Overview owns that, and the list stays
+          this page's weight. The speed and counters ride as one quiet
+          uncarded line, with a slim live curve underneath it (jdp: "Wo ist
+          der Downloadspeedmeter im Download Tab? ... dieser schöne Verlauf
+          wie in JD") - shorter than Overview's own, since this page is not
+          trying to be a second hero, just to answer the question at a
+          glance. The search/filter toggle and the bulk transport verbs live
+          at the far end of the stats line, so nothing about narrowing the
+          list takes a row of its own until somebody actually asks for it
+          (jdp: "das suchfeld kommt als quadratischer badge... auf höhe von
+          0 B/s / Aktiv / Wartet / Fertig / Fehler hin und soll beim klick
+          das suchfeld aufklappen"). */}
       {list.length > 0 && (
-        <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
           <span className="glim-num text-xl font-semibold leading-none text-carbon-text">
             {fmtSpeed(counts.speed) || '0 B/s'}
           </span>
           <Counters counts={counts} />
+          <span className="flex-1" />
+          {/* Bulk actions appear only when they can do something, so the row
+              stays short instead of showing three greyed-out verbs. */}
+          <div className="flex items-center gap-0.5">
+            {counts.running > 0 && (
+              <Button kind="ghost" className="px-2.5 text-xs" onClick={pauseAll}>
+                {t('downloads.pauseAll')}
+              </Button>
+            )}
+            {list.some((x) => x.status === 'paused') && (
+              <Button kind="ghost" className="px-2.5 text-xs" onClick={resumeAll}>
+                {t('downloads.resumeAll')}
+              </Button>
+            )}
+            {counts.error > 0 && (
+              <Button kind="ghost" className="px-2.5 text-xs" onClick={retryFailed}>
+                {t('downloads.retryFailed')}
+              </Button>
+            )}
+          </div>
+          <div className="relative">
+            <Button
+              kind={searchOpen ? 'primary' : 'secondary'}
+              icon={<IconSearch width={16} height={16} />}
+              aria-label={t('search.placeholder')}
+              aria-expanded={searchOpen}
+              onClick={() => setSearchOpen((v) => !v)}
+            />
+            {/* The panel can close with a filter still active - this is the one
+                sign of that once it does, so "why is my list short" has an
+                answer without reopening the panel to find it. */}
+            {narrowed && !searchOpen && (
+              <span
+                aria-hidden
+                className="pointer-events-none absolute -right-1 -top-1 h-2 w-2 rounded-full bg-accent"
+              />
+            )}
+          </div>
         </div>
       )}
 
-      {list.length > 0 && (
-        <ListToolbar
-          search={search}
-          onSearch={setSearch}
-          filters={DOWNLOAD_FILTERS}
-          active={filters}
-          onActive={setFilters}
-          tasks={list}
-          shown={filtered.length}
-          right={
-            /* Bulk actions appear only when they can do something, so the strip
-               stays short instead of showing three greyed-out verbs. */
-            <div className="flex items-center gap-0.5">
-              {counts.running > 0 && (
-                <Button kind="ghost" className="px-2.5 text-xs" onClick={pauseAll}>
-                  {t('downloads.pauseAll')}
-                </Button>
-              )}
-              {list.some((x) => x.status === 'paused') && (
-                <Button kind="ghost" className="px-2.5 text-xs" onClick={resumeAll}>
-                  {t('downloads.resumeAll')}
-                </Button>
-              )}
-              {counts.error > 0 && (
-                <Button kind="ghost" className="px-2.5 text-xs" onClick={retryFailed}>
-                  {t('downloads.retryFailed')}
-                </Button>
-              )}
-            </div>
-          }
-        />
+      {list.length > 0 && <SpeedGraph value={counts.speed} height={48} />}
+
+      {list.length > 0 && searchOpen && (
+        <div className="glim-card p-3">
+          <ListToolbar
+            search={search}
+            onSearch={setSearch}
+            filters={DOWNLOAD_FILTERS}
+            active={filters}
+            onActive={setFilters}
+            tasks={list}
+            shown={filtered.length}
+          />
+        </div>
       )}
 
       <SelectionStrip
@@ -333,11 +369,6 @@ export function Downloads() {
             icon={<IconDownloads width={28} height={28} />}
             title={t('empty.downloadsTitle')}
             hint={t('empty.downloadsHint')}
-            action={
-              <Button kind="secondary" onClick={() => navigate('/collector')}>
-                {t('empty.goCollector')}
-              </Button>
-            }
           />
         ) : filtered.length === 0 ? (
           <EmptyState icon={<IconSearch width={26} height={26} />} title={t('downloads.noMatch')} />
@@ -359,11 +390,7 @@ export function Downloads() {
         onSelected={setSelected}
         visible={filtered}
         local={instance === ''}
-      >
-        <Button kind="secondary" className="px-2.5 text-xs" onClick={() => navigate('/collector')}>
-          {t('empty.goCollector')}
-        </Button>
-      </ListActionBar>
+      />
 
       {/* `all`, not `list`: a removal has to weigh bytes that belong to rows this
           page never shows, and a clean-up class picks its own. */}
