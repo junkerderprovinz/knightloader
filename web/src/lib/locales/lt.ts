@@ -364,6 +364,8 @@ export const lt: Dict = {
   'skipped.clear': 'Išvalyti',
   'skipped.clearFailed': 'Sąrašo išvalyti nepavyko. Ar serveris pasiekiamas?',
 
+  'collector.filedrop.prompt': 'Turite .torrent ar konteinerio failą? Nutempkite jį čia — arba nutempkite nuorodą.',
+  'collector.filedrop.info': '.torrent failas skaitomas čia — jei jame yra daugiau nei vienas failas, prieš pridedant galite pasirinkti, kuriuos atsisiųsti. Paprastas nuorodų sąrašas (.txt) taip pat skaitomas čia ir įtraukiamas kaip įklijavimas; .dlc, .ccf arba .rsdf yra šifruotas, o jo raktas priklauso paslaugai, todėl jis perduodamas be galvos veikiančiai JDownloader programai, kuri turi šį raktą. Čia numesta nuoroda įtraukiama taip pat, kaip ir per aukščiau esantį įklijavimo lauką.',
   'container.prompt': 'Turi konteinerio failą? Numesk čia .txt, .dlc, .ccf arba .rsdf.',
   'container.info': 'Paprastas nuorodų sąrašas perskaitomas čia pat ir paruošiamas kaip įklijavimas. Failas .dlc, .ccf ar .rsdf yra užšifruotas, o jo raktas priklauso paslaugai, todėl jis atiduodamas JDownloader posistemei, kuri raktą turi. Be tos posistemės jo atverti neįmanoma, ir KnightLoader tai pasako, o ne spėlioja.',
   'container.choose': 'Pasirinkti failą',

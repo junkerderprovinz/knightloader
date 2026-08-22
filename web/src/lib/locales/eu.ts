@@ -364,6 +364,8 @@ export const eu: Dict = {
   'skipped.clear': 'Garbitu',
   'skipped.clearFailed': 'Ezin izan da zerrenda garbitu. Zerbitzaria eskuragarri dago?',
 
+  'collector.filedrop.prompt': '.torrent edo eduskin-fitxategirik baduzu? Askatu hemen — edo askatu esteka bat.',
+  'collector.filedrop.info': '.torrent fitxategia hemen irakurtzen da — barruan fitxategi bat baino gehiago badu, gehitu aurretik zeintzuk eskuratu aukera dezakezu. Esteka-zerrenda soil bat (.txt) ere hemen irakurtzen da eta itsatsi bat bezala ilaratzen da; .dlc, .ccf edo .rsdf zifratuta dago eta bere gakoa zerbitzu batena da, beraz burugabeko JDownloader atzealdeari ematen zaio, gako hori duelako. Hemen askatutako esteka goiko itsasteko koadroaren bidez bezala ilaratzen da.',
   'container.prompt': 'Edukiontzi-fitxategirik baduzu? Jaregin hemen .txt, .dlc, .ccf edo .rsdf bat.',
   'container.info': 'Esteka-zerrenda arrunt bat hemen irakurtzen da eta itsatsi bazenu bezala prestatzen da. .dlc, .ccf edo .rsdf bat zifratuta dago eta bere gakoa zerbitzu batena da, beraz gakoa duen JDownloader backendari ematen zaio. Backend hori gabe ezin da ireki, eta KnightLoaderrek hala esaten du, asmatzen saiatu ordez.',
   'container.choose': 'Aukeratu fitxategi bat',

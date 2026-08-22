@@ -364,6 +364,8 @@ export const de: Dict = {
   'skipped.clear': 'Löschen',
   'skipped.clearFailed': 'Die Liste ließ sich nicht löschen. Ist der Server erreichbar?',
 
+  'collector.filedrop.prompt': 'Du hast eine .torrent- oder Container-Datei? Leg sie hier ab — oder leg einen Link ab.',
+  'collector.filedrop.info': 'Eine .torrent-Datei wird hier gelesen — bei mehr als einer Datei darin kannst du auswählen, welche geladen werden, bevor sie hinzugefügt wird. Eine reine Link-Liste (.txt) wird hier ebenfalls gelesen und wie eingefügt behandelt; eine .dlc, .ccf oder .rsdf ist verschlüsselt und ihr Schlüssel gehört einem Dienst, daher wird sie an das headless JDownloader-Backend übergeben, das einen hat. Ein hier abgelegter Link wird genauso gestaged wie über das Einfügefeld oben.',
   'container.prompt': 'Du hast eine Container-Datei? Lege eine .txt, .dlc, .ccf oder .rsdf hier ab.',
   'container.info': 'Eine einfache Linkliste wird hier gelesen und wie ein Einfügen gesammelt. Eine .dlc, .ccf oder .rsdf ist verschlüsselt und ihr Schlüssel gehört einem Dienst, also geht sie an das JDownloader-Backend, das einen hat. Ohne dieses Backend lässt sie sich nicht öffnen, und KnightLoader sagt das, statt zu raten.',
   'container.choose': 'Datei wählen',

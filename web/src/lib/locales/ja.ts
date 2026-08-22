@@ -364,6 +364,8 @@ export const ja: Dict = {
   'skipped.clear': 'クリア',
   'skipped.clearFailed': 'リストをクリアできませんでした。サーバーに届いていますか？',
 
+  'collector.filedrop.prompt': '.torrentファイルかコンテナファイルがありますか?ここにドロップしてください — またはリンクをドロップしてください。',
+  'collector.filedrop.info': '.torrentはここで読み込まれます — 複数ファイルが含まれる場合、追加前にどれを取得するか選べます。単純なリンクリスト(.txt)もここで読み込まれ、貼り付けと同様に登録されます。.dlc、.ccf、.rsdfは暗号化されており、その鍵はサービス側にあるため、鍵を持つヘッドレスJDownloaderバックエンドに渡されます。ここにドロップされたリンクは、上の貼り付けボックスと同じ方法で登録されます。',
   'container.prompt': 'コンテナファイルがありますか？ .txt、.dlc、.ccf、.rsdf をここにドロップしてください。',
   'container.info': 'ただのリンク一覧はここで読み取られ、貼り付けと同じように登録されます。.dlc、.ccf、.rsdf は暗号化されていて鍵はサービス側にあるため、鍵を持つ JDownloader バックエンドに渡されます。そのバックエンドが無ければ開けず、KnightLoader は推測せずにそう伝えます。',
   'container.choose': 'ファイルを選ぶ',

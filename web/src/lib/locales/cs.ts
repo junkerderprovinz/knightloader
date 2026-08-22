@@ -364,6 +364,8 @@ export const cs: Dict = {
   'skipped.clear': 'Vymazat',
   'skipped.clearFailed': 'Seznam se nepodařilo vymazat. Je server dostupný?',
 
+  'collector.filedrop.prompt': 'Máte soubor .torrent nebo kontejner? Přetáhněte ho sem — nebo přetáhněte odkaz.',
+  'collector.filedrop.info': 'Soubor .torrent se čte zde — pokud obsahuje více než jeden soubor, můžete před přidáním vybrat, které se mají stáhnout. Prostý seznam odkazů (.txt) se zde také čte a zařadí se stejně jako při vložení; soubor .dlc, .ccf nebo .rsdf je šifrovaný a jeho klíč patří službě, proto se předá bezhlavému backendu JDownloader, který tento klíč má. Odkaz přetažený sem se zařadí stejně jako přes vkládací pole výše.',
   'container.prompt': 'Máte soubor kontejneru? Přetáhněte sem .txt, .dlc, .ccf nebo .rsdf.',
   'container.info': 'Prostý seznam odkazů se přečte přímo tady a připraví se jako vložení. Soubor .dlc, .ccf nebo .rsdf je šifrovaný a klíč k němu patří službě, takže putuje na backend JDownloader, který klíč má. Bez toho backendu ho nelze otevřít a KnightLoader to řekne, místo aby hádal.',
   'container.choose': 'Vybrat soubor',

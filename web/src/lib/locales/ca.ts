@@ -364,6 +364,8 @@ export const ca: Dict = {
   'skipped.clear': 'Neteja',
   'skipped.clearFailed': "No s'ha pogut netejar la llista. El servidor és accessible?",
 
+  'collector.filedrop.prompt': 'Tens un fitxer .torrent o contenidor? Deixa\'l anar aquí — o deixa anar un enllaç.',
+  'collector.filedrop.info': 'Un .torrent es llegeix aquí — si conté més d\'un fitxer, pots triar quins obtenir abans d\'afegir-lo. Una llista de enllaços senzilla (.txt) també es llegeix aquí i s\'afegeix com un enganxat; un .dlc, .ccf o .rsdf està xifrat i la seva clau pertany a un servei, per la qual cosa es lliura al backend headless de JDownloader, que en té una. Un enllaç deixat anar aquí s\'afegeix de la mateixa manera que mitjançant el quadre d\'enganxar de dalt.',
   'container.prompt': 'Tens un fitxer contenidor? Deixa-hi anar un .txt, .dlc, .ccf o .rsdf.',
   'container.info': "Una llista d'enllaços simple es llegeix aquí i es prepara com si l'enganxessis. Un .dlc, .ccf o .rsdf està xifrat i la seva clau pertany a un servei, així que es lliura al rerefons JDownloader, que en té una. Sense aquest rerefons no es pot obrir, i el KnightLoader ho diu en comptes d'endevinar-ho.",
   'container.choose': 'Tria un fitxer',

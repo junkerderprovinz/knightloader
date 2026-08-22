@@ -364,6 +364,8 @@ export const ms: Dict = {
   'skipped.clear': 'Kosongkan',
   'skipped.clearFailed': 'Senarai tidak dapat dikosongkan. Adakah pelayan boleh dicapai?',
 
+  'collector.filedrop.prompt': 'Ada fail .torrent atau bekas? Lepaskan di sini — atau lepaskan pautan.',
+  'collector.filedrop.info': 'Fail .torrent dibaca di sini — jika mengandungi lebih daripada satu fail, anda boleh pilih fail mana untuk diambil sebelum ditambah. Senarai pautan biasa (.txt) turut dibaca di sini dan dibariskan seperti tampal; fail .dlc, .ccf atau .rsdf disulitkan dan kuncinya milik perkhidmatan tertentu, jadi ia diserahkan kepada bahagian belakang JDownloader tanpa kepala yang memiliki kunci itu. Pautan yang dilepaskan di sini dibariskan sama seperti melalui kotak tampal di atas.',
   'container.prompt': 'Ada fail bekas? Lepaskan .txt, .dlc, .ccf atau .rsdf di sini.',
   'container.info': 'Senarai pautan biasa dibaca di sini dan disediakan seperti tampalan. Fail .dlc, .ccf atau .rsdf disulitkan dan kuncinya milik sesuatu perkhidmatan, jadi ia diserahkan kepada backend JDownloader yang memegang kunci itu. Tanpa backend itu ia tidak dapat dibuka, dan KnightLoader mengatakannya dan bukan meneka.',
   'container.choose': 'Pilih fail',

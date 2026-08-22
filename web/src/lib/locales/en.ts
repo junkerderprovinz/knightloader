@@ -378,6 +378,9 @@ export const en = {
   'skipped.clear': 'Clear',
   'skipped.clearFailed': 'Could not clear the list. Is the server reachable?',
 
+  'collector.filedrop.prompt': 'Have a .torrent or container file? Drop it here — or drop a link.',
+  'collector.filedrop.info': 'A .torrent is read here — for more than one file inside it, you get to choose which ones to fetch before it is added. A plain link list (.txt) is read here too and staged like a paste; a .dlc, .ccf or .rsdf is encrypted and its key belongs to a service, so it is handed to the headless JDownloader backend, which has one. A link dropped here stages the same way the paste box above does.',
+
   'container.prompt': 'Have a container file? Drop a .txt, .dlc, .ccf or .rsdf here.',
   'container.info': 'A plain link list is read here and staged like a paste. A .dlc, .ccf or .rsdf is encrypted and its key belongs to a service, so it is handed to the headless JDownloader backend, which has one. Without that backend it cannot be opened, and KnightLoader says so rather than guessing.',
   'container.choose': 'Choose a file',

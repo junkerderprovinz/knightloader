@@ -6,7 +6,7 @@ import { useT } from '../lib/i18n';
 
 /**
  * Makes the whole window - not one textarea - a target for a link, and for
- * the .txt/.dlc/.ccf/.rsdf files ContainerDrop's own small zone already
+ * the .txt/.dlc/.ccf/.rsdf files the collector's own FileDrop zone already
  * takes. Paste works the document over the same way, one Ctrl+V anywhere
  * that is not already a field of its own.
  *
