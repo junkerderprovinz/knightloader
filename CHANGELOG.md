@@ -6,8 +6,8 @@ All notable changes to KnightLoader. The format follows
 
 ## [Unreleased]
 
-Nothing is released yet: the name, the logo and the first tag are still open.
-What follows is what exists and runs.
+Nothing is released yet: the name and the first tag are still open. What
+follows is what exists and runs.
 
 ### Added
 
