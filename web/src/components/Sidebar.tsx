@@ -6,7 +6,7 @@ import { useRainbow } from '../lib/useRainbow';
 import { getTheme, onThemeChange, toggleTheme } from '../lib/theme';
 import { useT } from '../lib/i18n';
 import { LanguagePicker } from './LanguagePicker';
-import { fetchAuth, fetchHealth, logout } from '../lib/api';
+import { fetchAuth, logout } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import {
   IconDashboard,
@@ -69,14 +69,9 @@ function Item({
   );
 }
 
-// GlimStone version this UI is built against — bump by hand whenever index.css /
-// appearance.ts are re-copied from a newer github.com/junkerderprovinz/glimstone release.
-const GLIMSTONE_VERSION = '1.0.0';
-
 export function Sidebar() {
   const { t } = useT();
   const [theme, setThemeState] = useState(getTheme);
-  const [version, setVersion] = useState('');
   const tasks = useTasks('');
   // Subscribed, not read: the nav re-renders when the palette or the mode
   // changes, so editing a swatch in Settings is visible in the rail at once.
@@ -91,9 +86,6 @@ export function Sidebar() {
   const [locked, setLocked] = useState(false);
 
   useEffect(() => {
-    fetchHealth()
-      .then((h) => setVersion(h.version))
-      .catch(() => {});
     // Signing out only makes sense on an instance that can be signed in to.
     fetchAuth()
       .then((a) => setLocked(a.enabled))
@@ -119,14 +111,7 @@ export function Sidebar() {
     <aside className="flex flex-col w-56 shrink-0 h-full bg-carbon-sidebar">
       <NavLink to="/" end className="flex items-center gap-2.5 px-4 py-5 hover:opacity-90 transition-opacity">
         <img src={logoUrl} alt="" aria-hidden className="h-8 w-auto shrink-0" />
-        <span className="flex flex-col leading-none">
-          <span className="text-carbon-text font-bold text-xl tracking-tight">KnightLoader</span>
-          <span className="text-carbon-textMuted text-[11px]">
-            {version && version !== 'dev' ? version : t('nav.workingTitle')}
-            {' · GlimStone '}
-            {GLIMSTONE_VERSION}
-          </span>
-        </span>
+        <span className="text-carbon-text font-bold text-xl tracking-tight">KnightLoader</span>
       </NavLink>
 
       <nav className="flex flex-col gap-1 p-3 flex-1">

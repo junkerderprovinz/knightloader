@@ -1,8 +1,9 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   type DeploymentInfo,
   BACKUP_DOWNLOAD_URL,
   fetchDeploymentInfo,
+  fetchHealth,
   requestQuit,
   requestRestart,
   uploadRestore,
@@ -61,6 +62,10 @@ const PENDING = {
 
 type PendingKey = keyof typeof PENDING;
 
+// GlimStone version this UI is built against — bump by hand whenever index.css /
+// appearance.ts are re-copied from a newer github.com/junkerderprovinz/glimstone release.
+const GLIMSTONE_VERSION = '1.0.0';
+
 function useCx() {
   const { t } = useT();
   return useCallback(
@@ -82,7 +87,18 @@ function deploymentLabel(cx: ReturnType<typeof useCx>, raw: string): string {
 
 export function System() {
   const cx = useCx();
+  const { t } = useT();
   const { data, failed, loading, reload } = useResource<DeploymentInfo>(fetchDeploymentInfo);
+
+  // Build/version readout - moved here from the sidebar header (jdp: "die
+  // versionsnummer soll in den einstellungen stehen nicht unter dem namen"),
+  // which now shows only the name and logo.
+  const [version, setVersion] = useState('');
+  useEffect(() => {
+    fetchHealth()
+      .then((h) => setVersion(h.version))
+      .catch(() => {});
+  }, []);
 
   const [confirmAction, setConfirmAction] = useState<'quit' | 'restart' | null>(null);
   const [acting, setActing] = useState(false);
@@ -144,7 +160,14 @@ export function System() {
     <div className="flex flex-col gap-6">
       <Card className="flex flex-col gap-2">
         <p className="text-sm text-carbon-textSub">{cx('settings.system.subtitle')}</p>
-        <span className="glim-eyebrow w-fit">{deploymentLabel(cx, data.deployment)}</span>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span className="glim-eyebrow w-fit">{deploymentLabel(cx, data.deployment)}</span>
+          <span className="text-[11px] text-carbon-textMuted">
+            {version && version !== 'dev' ? version : t('nav.workingTitle')}
+            {' · GlimStone '}
+            {GLIMSTONE_VERSION}
+          </span>
+        </div>
       </Card>
 
       <SectionTitle>{cx('settings.system.lifecycleTitle')}</SectionTitle>
