@@ -97,6 +97,12 @@ function useAppearance() {
  * unmounting on every navigation away from Downloads would throw away
  * QueueBar's queue-control state and ShellStrip/AccountStrip's own fetch
  * loops, remounting and refetching them the moment somebody navigates back.
+ *
+ * A real card, not a bar pinned to the window edge (jdp: "Die Statuszeile
+ * soll nicht oben am Fenster kleben sondern eine schöne eigene Card sein") —
+ * it scrolls with the page like every other card, sitting where a page's own
+ * hero content usually starts, with the identical horizontal inset the page
+ * below it uses so the two visually line up as one column.
  */
 function ShellBar({ visible }: { visible: boolean }) {
   const { t } = useT();
@@ -105,8 +111,8 @@ function ShellBar({ visible }: { visible: boolean }) {
     <div
       role="region"
       aria-label={t('shell.bar')}
-      className={`sticky top-0 z-20 flex-wrap items-center gap-x-4 gap-y-2 bg-carbon-sidebar
-        px-6 py-2.5 md:px-8 ${visible ? 'flex min-h-[52px]' : 'hidden'}`}
+      className={`glim-card mx-6 mt-6 flex-wrap items-center gap-x-4 gap-y-2 p-5 md:mx-8 md:mt-8
+        ${visible ? 'flex' : 'hidden'}`}
     >
       {/* Named only when it is not this machine. A tag on every screen would be
           furniture nobody reads, and then the one time it matters (the queue

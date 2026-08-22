@@ -1,10 +1,20 @@
 import { useCallback, useEffect, useState } from 'react';
-import { type QueueState, type Settings, fetchQueue, fetchSettings, patchSettings, setQueue } from '../lib/api';
+import {
+  type QueueState,
+  type Settings,
+  type StopCost,
+  fetchQueue,
+  fetchSettings,
+  fetchStopCost,
+  patchSettings,
+  setQueue,
+  stopAll,
+} from '../lib/api';
 import { useT } from '../lib/i18n';
 import { useInstanceScope } from '../lib/instance';
-import { Button } from './ui';
-import { RATE_UNITS, type RateUnit, fmtRateValue, joinRate, splitRate } from '../lib/format';
-import { IconPause, IconPlay } from '../lib/icons';
+import { Button, Modal } from './ui';
+import { fmtBytes, RATE_UNITS, type RateUnit, fmtRateValue, joinRate, splitRate } from '../lib/format';
+import { IconPause, IconPlay, IconStop } from '../lib/icons';
 
 // Long enough not to hammer a server that is genuinely down, short enough that
 // the controls are back before anyone has decided the app is broken.
@@ -60,7 +70,30 @@ export function useQueueControl(base: string, instance: string) {
     setQ(await setQueue({ halted: !queue.halted }, base));
   }, [queue, base]);
 
-  return { queue, toggle };
+  // The explicit halves of `toggle`, for the Play/Pause pair (jdp: "ein
+  // schöner Play, Pause, Stopp button wie in JD" - JD draws three distinct
+  // buttons rather than one that flips, and a Play button that could also
+  // BE the pause button depending on state reads as one control doing two
+  // jobs instead of two controls each doing one).
+  const setHalted = useCallback(
+    async (halted: boolean) => {
+      setQ(await setQueue({ halted }, base));
+    },
+    [base],
+  );
+
+  // The hard stop (internal/app/app_queue.go's StopAll) - a different verb
+  // from the master switch: this one interrupts transfers in flight instead
+  // of letting them finish. Exposed here too so QueueBar's Stop button
+  // updates the same `queue` state toggle/setHalted already own, rather than
+  // going around it and drifting out of sync until the next poll.
+  const stop = useCallback(async () => {
+    const r = await stopAll(base);
+    setQ(r.queue);
+    return r;
+  }, [base]);
+
+  return { queue, toggle, setHalted, stop };
 }
 
 /**
@@ -81,8 +114,15 @@ export function useQueueControl(base: string, instance: string) {
 export function QueueBar() {
   const { t } = useT();
   const { instance, base } = useInstanceScope();
-  const { queue, toggle } = useQueueControl(base, instance);
+  const { queue, setHalted, stop } = useQueueControl(base, instance);
   const [cfg, setCfg] = useState<Settings | null>(null);
+  // The hard-stop confirm step: null until the button is pressed, then the
+  // cost this exact moment would pay (internal/app/app_queue.go's StopCost -
+  // "the warning is half the feature", per its own doc comment). Fetched
+  // fresh on each press rather than kept live, because it is only ever read
+  // once, right before the confirm dialog opens.
+  const [stopCost, setStopCost] = useState<StopCost | null>(null);
+  const [stopping, setStopping] = useState(false);
   // Held separately from cfg so typing a limit does not fight the field, and
   // held as text so a half-typed "1." survives the keystroke that follows it.
   const [limit, setLimit] = useState('');
@@ -128,6 +168,16 @@ export function QueueBar() {
     setCfg(await patchSettings({ speedLimit: bytes }));
   }
 
+  async function confirmStop() {
+    setStopping(true);
+    try {
+      await stop();
+      setStopCost(null);
+    } finally {
+      setStopping(false);
+    }
+  }
+
   if (!queue) return null;
 
   // A peer is in view, and the two controls do NOT land in the same place. The
@@ -147,14 +197,38 @@ export function QueueBar() {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
+      {/* Three distinct transport buttons (jdp: "ein schöner Play, Pause,
+          Stopp button wie in JD") rather than one that flips between two
+          jobs. Play/Pause are the master switch (SetHalted) - running
+          downloads always finish either way, only new dispatch stops. Stop
+          is the separate, harder verb (StopAll): it interrupts transfers in
+          flight right now, so it always asks first via the cost dialog
+          below rather than acting on the first click. */}
       <Button
-        kind={queue.halted ? 'primary' : 'secondary'}
-        icon={queue.halted ? <IconPlay width={16} height={16} /> : <IconPause width={16} height={16} />}
-        onClick={toggle}
-        className="px-2.5 text-xs"
-      >
-        {queue.halted ? t('queue.start') : t('queue.stop')}
-      </Button>
+        kind={queue.halted ? 'primary' : 'ghost'}
+        icon={<IconPlay width={16} height={16} />}
+        onClick={() => void setHalted(false)}
+        disabled={!queue.halted}
+        title={t('queue.play')}
+        aria-label={t('queue.play')}
+      />
+      <Button
+        kind={!queue.halted ? 'primary' : 'ghost'}
+        icon={<IconPause width={16} height={16} />}
+        onClick={() => void setHalted(true)}
+        disabled={queue.halted}
+        title={t('queue.pause')}
+        aria-label={t('queue.pause')}
+      />
+      <Button
+        kind="ghost"
+        icon={<IconStop width={16} height={16} />}
+        onClick={() => void fetchStopCost(base).then(setStopCost)}
+        disabled={queue.running === 0}
+        title={t('queue.hardStop')}
+        aria-label={t('queue.hardStop')}
+        className="text-statusFail"
+      />
 
       {queue.halted && (
         <span className="text-statusInfo text-[11px]">
@@ -214,6 +288,37 @@ export function QueueBar() {
           </select>
         </span>
       </label>
+      )}
+
+      {stopCost && (
+        <Modal
+          title={t('queue.hardStopConfirmTitle')}
+          onClose={() => (stopping ? undefined : setStopCost(null))}
+          footer={
+            <>
+              <span className="flex-1" />
+              <Button kind="ghost" onClick={() => setStopCost(null)} disabled={stopping}>
+                {t('queue.hardStopConfirmCancel')}
+              </Button>
+              <Button kind="danger" disabled={stopping} onClick={() => void confirmStop()}>
+                {stopping ? t('settings.system.acting') : t('queue.hardStopConfirmProceed')}
+              </Button>
+            </>
+          }
+        >
+          <p className="text-sm text-carbon-text">
+            {t('queue.hardStopConfirmBody', {
+              n: stopCost.running,
+              detail:
+                stopCost.losing.length > 0
+                  ? t('queue.hardStopConfirmLoss', { bytes: fmtBytes(stopCost.bytes) })
+                  : t('queue.hardStopConfirmSafe'),
+            })}
+          </p>
+          {stopCost.unknown > 0 && (
+            <p className="mt-2 text-xs text-carbon-textMuted">{t('queue.hardStopConfirmUnknown', { n: stopCost.unknown })}</p>
+          )}
+        </Modal>
       )}
     </div>
   );
