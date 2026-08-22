@@ -341,7 +341,11 @@ export function useTooltip<T extends HTMLElement = HTMLElement>(content: ReactNo
  */
 export const segBase = 'rounded-[var(--radius-control)] font-medium transition-colors';
 export const segOn = 'bg-accent text-accentContrast';
-export const segOff = 'text-carbon-textMuted hover:text-carbon-text';
+// A quiet fill at rest, not bare text (GlimStone: "every tab is a badge, not
+// just the selected one") - an unfilled segment used to carry zero
+// background until actually hovered, which read as unfinished on a strip
+// with a dozen mostly-plain-text tabs.
+export const segOff = 'bg-carbon-surface2 text-carbon-textMuted hover:bg-carbon-hover hover:text-carbon-text';
 
 /**
  * hueStyle is how anything that is one member of a set claims a palette
