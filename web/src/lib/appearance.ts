@@ -154,7 +154,13 @@ export function rainbowAt(i: number): string {
   const p = state.palette;
   const off = state.rotate ? state.seed : 0;
   const n = ((Math.trunc(i) % p.length) + p.length) % p.length;
-  return p[(n + off) % p.length];
+  const color = p[(n + off) % p.length];
+  if (color === undefined) {
+    // Unreachable in practice: usablePalette() never lets state.palette go
+    // empty, but the index is computed via modulo, which TS can't verify.
+    throw new Error('rainbowAt: palette is empty');
+  }
+  return color;
 }
 
 /**
@@ -183,11 +189,22 @@ export function hueVars(hex: string | undefined): Record<string, string> {
   return {
     '--item-hue': hex,
     '--item-hue-ink': contrastOn(hex),
-    '--item-hue-soft': `rgba(${r}, ${g}, ${b}, 0.14)`,
-    // The wash covers a whole row, so it sits far below the soft tint: at 14%
-    // eight rows of eight hues stop being a download list and start being a
-    // colour chart.
-    '--item-hue-wash': `rgba(${r}, ${g}, ${b}, 0.07)`,
+    '--item-hue-soft': `rgba(${r}, ${g}, ${b}, 0.22)`,
+    // The wash covers a whole row, so it sits below the soft tint - but not as
+    // far below as an earlier 7% figure: real feedback across sibling apps
+    // said the mode "does nothing" at that strength even though the mechanism
+    // was wiring correctly (the values genuinely differed row to row). 16% is
+    // the floor - still short of 22%'s "colour chart" territory, but no longer
+    // indistinguishable from the ground colour at a glance.
+    '--item-hue-wash': `rgba(${r}, ${g}, ${b}, 0.16)`,
+    // A compact circular badge (an icon toggle, an undo/redo/zoom action) has
+    // no neighbouring row to reinforce the colour by repetition the way a list
+    // does, and reads as barely-tinted grey at the wash's own 16% once shrunk
+    // to badge size. This tier is deliberately separate from the wash above
+    // rather than just raising it - a list row's own 16% is calibrated for a
+    // different reason (dense/at-scale is exactly where subtlety matters) and
+    // must stay put.
+    '--item-hue-badge': `rgba(${r}, ${g}, ${b}, 0.5)`,
     // The focus ring follows the position too. A gold ring around a teal tab is
     // the one place the single accent leaks back into the plural mode, and it
     // is the most visible one, because it only ever appears on the element the

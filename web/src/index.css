@@ -64,6 +64,17 @@
   --radius-card: 1rem;
   --radius-control: 0.625rem;
   --radius-pill: 9999px;
+
+  /* The type scale: a fixed reference table, not an engine - nobody sets
+     their own type scale. --text-caption covers three treatments of the same
+     size (plain caption, .glim-eyebrow's uppercase label, the info bubble's
+     text) - the treatment carries the distinction, not the size. A page's one
+     hero figure and any brand-wordmark instance are deliberately NOT part of
+     this scale. Ported from upstream GlimStone. */
+  --text-heading: 1.25rem;  /* 20px */
+  --text-body: 0.875rem;    /* 14px */
+  --text-dense: 0.75rem;    /* 12px */
+  --text-caption: 0.6875rem; /* 11px */
 }
 
 /* Shape is one knob for the whole app. Every rounded corner in the UI reads one
@@ -142,6 +153,66 @@
   --focus-ring: rgba(252, 196, 25, .55);
 }
 
+/* System default (rule: theme defaults to system, not a hard-coded dark) —
+   applies the light ramp when the OS prefers light AND no explicit
+   data-theme override is set. Without this block, KnightLoader is
+   unconditionally dark regardless of the OS, which is exactly the "opens
+   dark on a light-mode OS nobody asked for" mistake GlimStone warns against.
+   Values are intentionally identical to [data-theme="light"] below - same
+   tier structure as the explicit override, just gated on the media query
+   instead of the attribute. Ported from upstream GlimStone. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+
+    --carbon-bg:         #f4f4f4;
+    --carbon-sidebar:    #ffffff;
+    --carbon-surface:    #ffffff;
+    --carbon-surface2:   #e8e8e8;
+    --carbon-surface3:   #d1d1d1;
+    --carbon-hover:      #e0e0e0;
+    --carbon-border:     #d1d1d1;
+
+    --carbon-text:       #161616;
+    --carbon-text-sub:   #525252;
+    --carbon-text-muted: #6f6f6f;
+    --sidebar-text:      #393939;
+
+    --accent:            #8E6A00;
+    --accent-contrast:   #ffffff;
+    --accent-soft:       rgba(142, 106, 0, 0.12);
+
+    --status-info-text:    #8E6A00;
+    --status-info-bg:      rgba(142, 106, 0, 0.12);
+    --status-info-solid:   #A87D00;
+
+    --status-ok-text:      #0e6027;
+    --status-ok-bg:        rgba(14, 96, 39, 0.11);
+    --status-ok-solid:     #198038;
+
+    --status-fail-text:    #da1e28;
+    --status-fail-bg:      rgba(218, 30, 40, 0.10);
+    --status-fail-solid:   #da1e28;
+
+    --status-warn-text:    #8E6A00;
+    --status-warn-bg:      rgba(142, 106, 0, 0.10);
+    --status-warn-solid:   #b28600;
+
+    --status-neutral-text: #6f6f6f;
+    --status-neutral-bg:   rgba(0, 0, 0, 0.045);
+    --status-neutral-solid: #8d8d8d;
+
+    --elevation: 0 1px 2px rgba(0, 0, 0, .06), 0 16px 36px -26px rgba(0, 0, 0, .35);
+    --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
+    --focus-ring: rgba(142, 106, 0, .5);
+  }
+}
+
+/* :root[data-theme="dark"] wins over the media query in both directions
+   (rule already covered by the ":root, [data-theme=dark]" selector above),
+   so an explicit dark override stays dark even under a light-preferring OS.
+   [data-theme="light"] below is the mirror: explicit light even under a
+   dark-preferring OS. */
 [data-theme="light"] {
   color-scheme: light;
 
@@ -200,6 +271,14 @@ body {
   letter-spacing: -0.008em;
 }
 
+/* The base letter-spacing above is a Latin-kerning assumption and reads as
+   crowding on CJK, which is set in full-width cells that don't kern the same
+   way - scoped back to normal for it. Directly relevant here: KnightLoader
+   ships 42 languages, several of them CJK. Ported from upstream GlimStone. */
+:lang(ja), :lang(zh), :lang(ko) {
+  letter-spacing: normal;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -217,11 +296,25 @@ body {
   border-radius: var(--radius-control);
 }
 
+/* A form control dropped inside a well shares its background colour by
+   default (TextInput/select both paint --carbon-surface2, same as the well
+   itself) - with no border anywhere in this design language, that leaves the
+   field with zero visible boundary until it happens to be focused. Bumped one
+   step further on the surface ramp so an "add new" form (Schedule, Rules,
+   Connections, Scripts) reads as fields sitting in a tray, not as a flat
+   colour with an invisible edit surface (jdp: "wenn man einen Zeitplan
+   hinzufügen will sieht man die Eingabefelder kaum"). */
+.glim-well input,
+.glim-well select,
+.glim-well textarea {
+  background-color: var(--carbon-surface3);
+}
+
 /* Eyebrow label: small, uppercase, quiet — above hero figures, and as the tag
    that names a category beside something louder (the typed reason on a failed
    row). It stays muted wherever it goes: it labels, it never announces. */
 .glim-eyebrow {
-  font-size: 11px;
+  font-size: var(--text-caption);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--carbon-text-muted);
@@ -324,16 +417,67 @@ body {
    fill, which turns green the moment it finishes (the state rule) — so on a
    list of completed downloads the palette would be invisible. The wash is an
    inset shadow, not a background, so the row's own hover tint still reads
-   through it at 7% alpha. */
+   through it at 16% alpha. */
 [data-rainbow] .glim-tint {
   box-shadow: inset 0 0 0 999px var(--item-hue-wash);
+}
+/* The active/selected member of the set gets the stronger soft tint instead of
+   the plain wash — `[data-rainbow]` (bare attribute) matches both `on` and
+   `reactive`, so this single rule covers both. Ported from upstream GlimStone
+   (bug found via TrickWork): without this rule, `.glim-tint`'s own box-shadow
+   always won the cascade against KnightLoader's own `.glim-active`-style rule
+   (attribute+class beats a single class) even though `.glim-hue` above it had
+   already resolved `--accent-soft` to the right colour — the active row's
+   highlight silently collapsed to the same flat wash as every idle row. Higher
+   specificity than the plain .glim-tint rule above by design, so it wins
+   regardless of source order. */
+[data-rainbow] .glim-tint.glim-active {
+  box-shadow: inset 0 0 0 999px var(--item-hue-soft);
 }
 [data-rainbow='reactive'] .glim-tint {
   box-shadow: none;
 }
-[data-rainbow='reactive'] .glim-tint:hover,
-[data-rainbow='reactive'] .glim-tint.glim-active {
+[data-rainbow='reactive'] .glim-tint:hover {
   box-shadow: inset 0 0 0 999px var(--item-hue-wash);
+}
+[data-rainbow='reactive'] .glim-tint.glim-active {
+  box-shadow: inset 0 0 0 999px var(--item-hue-soft);
+}
+
+/* .glim-tint-hover: the same rest-quiet/hover-reveals behaviour as reactive
+   mode above, but as a per-element choice, independent of the user's own
+   on/reactive setting — a row of equal-weight action buttons (not a
+   persistent selection) reads as noisy fully washed at rest even under `on`.
+   The reveal itself reads the stronger --item-hue-badge tier, not the
+   list-row --item-hue-wash — a hover reveal is a deliberate, momentary,
+   one-at-a-time state, closer to a badge's own "clearly coloured" bar than a
+   list's "don't overwhelm a whole column of these" one. */
+[data-rainbow] .glim-tint-hover {
+  box-shadow: none;
+}
+[data-rainbow] .glim-tint-hover:hover,
+[data-rainbow] .glim-tint-hover:focus-visible {
+  box-shadow: inset 0 0 0 999px var(--item-hue-badge);
+}
+
+/* .glim-tint-badge: the same wash mechanism as .glim-tint, but at the
+   stronger --item-hue-badge tier — for a compact circular badge that needs
+   colour AT REST because it has no checked/active state of its own to fall
+   back on. NOT for a real toggle badge: those carry only .glim-hue,
+   unconditionally, and stay uncoloured until checked. Reach for this class on
+   a badge that genuinely has no active state to read --accent through — a
+   badge is small and isolated with nothing beside it to reinforce the colour
+   by repetition, so .glim-tint's own 16% (calibrated for a dense list) would
+   read as barely-tinted grey at badge size. */
+[data-rainbow] .glim-tint-badge {
+  box-shadow: inset 0 0 0 999px var(--item-hue-badge);
+}
+[data-rainbow='reactive'] .glim-tint-badge {
+  box-shadow: none;
+}
+[data-rainbow='reactive'] .glim-tint-badge:hover,
+[data-rainbow='reactive'] .glim-tint-badge:focus-within {
+  box-shadow: inset 0 0 0 999px var(--item-hue-badge);
 }
 
 /* Reactive: the palette rests. Everything is quiet until it is hovered or is
