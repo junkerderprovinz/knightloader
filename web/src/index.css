@@ -502,6 +502,40 @@ body {
   --color-accentSoft: var(--item-hue-soft);
 }
 
+/* Long-press-to-wiggle reorder (Tabs.tsx, opt-in `reorderable`) - ported from
+   CannonadeCommand's own nav rail, the same reason `.glim-tab-wiggle` and
+   `.glim-tab-dragging` are named to match its CSS class shape rather than
+   invented fresh: one recognisable gesture across the whole house, not a
+   second one that happens to do the same thing. A held tab wiggles along
+   with every OTHER tab in the strip (not the held one - see .glim-tab-dragging
+   below), so the strip itself communicates "these are all rearrangeable now"
+   the same way an iOS/Android home screen does. */
+@keyframes glim-tab-wiggle {
+  0%   { transform: rotate(-1.6deg) translateY(0); }
+  25%  { transform: rotate(1.4deg)  translateY(-0.5px); }
+  50%  { transform: rotate(-1.2deg) translateY(0); }
+  75%  { transform: rotate(1.6deg)  translateY(0.5px); }
+  100% { transform: rotate(-1.6deg) translateY(0); }
+}
+.glim-tab-wiggle {
+  animation: glim-tab-wiggle .32s ease-in-out infinite;
+  transform-origin: 50% 50%;
+}
+/* The tab actually under the pointer: faded rather than wiggling with the
+   rest, so the one thing moving under a real finger/cursor doesn't ALSO
+   fight that motion with its own independent animation. */
+.glim-tab-dragging {
+  opacity: .45;
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .glim-tab-wiggle {
+    animation: none;
+    outline: 2px dashed var(--accent);
+    outline-offset: 2px;
+  }
+}
+
 :focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;

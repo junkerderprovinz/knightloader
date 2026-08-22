@@ -20,7 +20,7 @@
 // Someone arriving from JDownloader meets a tab strip where they expect one and
 // the arrow keys do what Swing's tabs do: move along the strip and take the
 // selection with them.
-import { useRef, type DragEvent, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent, type ReactNode } from 'react';
 import { useRainbow } from '../lib/useRainbow';
 import { hueStyle, segBase, segOff, segOn } from './ui';
 
@@ -65,13 +65,20 @@ interface Common {
   after?: ReactNode;
   className?: string;
   /**
-   * Opt-in drag-to-reorder (jdp: "die Tabs in den Einstellungen soll man
-   * nach Belieben anordnen können"). Off by default so every OTHER caller —
-   * the download list's quick filters, the corner/shape picker — is
-   * completely unaffected; only a caller that passes both `reorderable` and
-   * `onReorder` gets draggable tabs. Reordering never changes `active`: the
-   * caller decides what that means (it does not, for Settings — moving a
-   * tab does not navigate to it).
+   * Opt-in long-press-to-reorder (jdp: "die Tabs in den Einstellungen soll
+   * man nach Belieben anordnen können" - then, after seeing the first cut,
+   * "beim mouseover erscheint die Hand, das soll nicht so sein, erst bei
+   * langem gedrückten Klick sollen die Tabs anfangen zu wackeln, wie in
+   * CC"). Off by default so every OTHER caller - the download list's quick
+   * filters, the corner/shape picker - is completely unaffected; only a
+   * caller that passes both `reorderable` and `onReorder` gets this. A tab
+   * is a plain clickable control at rest (no grab cursor, no draggable
+   * affordance) - only a ~300ms hold with under 8px of movement arms
+   * reorder mode, at which point every tab starts to wiggle (the same
+   * gesture CannonadeCommand's own nav rail uses) and the held tab can be
+   * dragged into a new position in the same, continuous gesture. Reordering
+   * never changes `active`: the caller decides what that means (it does
+   * not, for Settings - moving a tab does not navigate to it).
    */
   reorderable?: boolean;
   /** Called with the full, reordered list of ids after a drop. */
@@ -108,46 +115,172 @@ export function Tabs(props: TabsProps) {
   const strip = useRef<HTMLDivElement>(null);
   const isOn = (id: string) => (chosen ? chosen.has(id) : only === id);
 
-  // A ref, not state: the dragged id is read-only scratch space for the drag
-  // gesture itself and never needs to trigger a render — dragover fires
-  // continuously while the pointer moves, and re-rendering the whole strip on
-  // every one of those would be wasted work for a value nothing displays.
-  const draggedId = useRef<string | null>(null);
+  function tabNodes(): HTMLElement[] {
+    return Array.from(strip.current?.querySelectorAll<HTMLElement>('[data-tab-id]') ?? []);
+  }
 
-  function onDragStart(e: DragEvent<HTMLElement>, id: string) {
-    draggedId.current = id;
-    e.dataTransfer.effectAllowed = 'move';
+  // --- Long-press-to-wiggle reorder (ported from CannonadeCommand's own nav
+  // rail - Pointer Events + a hold timer + manual position swapping, no HTML5
+  // draggable and no library). liveOrder is the working copy shown WHILE a
+  // drag is in progress (state, so the strip re-renders as tabs swap places);
+  // null the rest of the time, when `items`' own order is authoritative.
+  // Everything else below is refs: none of it should re-render the strip on
+  // its own, only liveOrder/reordering changing does.
+  const [reordering, setReordering] = useState(false);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [liveOrder, setLiveOrder] = useState<string[] | null>(null);
+  const holdTimer = useRef<number | null>(null);
+  const pressStart = useRef<{ x: number; y: number } | null>(null);
+  const pressId = useRef<string | null>(null);
+  const pressPointerId = useRef<number | null>(null);
+  const moved = useRef(false);
+  const suppressClick = useRef(false);
+
+  const orderedItems = liveOrder ? liveOrder.map((id) => items.find((i) => i.id === id)).filter((i): i is TabDef => !!i) : items;
+
+  // Mirrors of the state above, read by the document-level listeners further
+  // down: those bind once (empty-ish dependency array) rather than re-binding
+  // on every state change, so they read the CURRENT value through a ref
+  // instead of closing over a stale one from whichever render attached them.
+  const draggingIdRef = useRef<string | null>(null);
+  draggingIdRef.current = draggingId;
+  const reorderingRef = useRef(false);
+  reorderingRef.current = reordering;
+  const liveOrderRef = useRef<string[] | null>(null);
+  liveOrderRef.current = liveOrder;
+
+  function cancelHold() {
+    if (holdTimer.current !== null) {
+      window.clearTimeout(holdTimer.current);
+      holdTimer.current = null;
+    }
+    pressStart.current = null;
+    pressId.current = null;
   }
-  function onDragOver(e: DragEvent<HTMLElement>) {
-    // Required for onDrop to fire at all — a dragover with no
-    // preventDefault tells the browser this is not a valid drop target.
-    e.preventDefault();
+
+  function exitReorder() {
+    setReordering(false);
+    setDraggingId(null);
+    pressPointerId.current = null;
+    moved.current = false;
   }
-  function onDrop(e: DragEvent<HTMLElement>, overId: string) {
-    e.preventDefault();
-    const fromId = draggedId.current;
-    draggedId.current = null;
-    if (!fromId || fromId === overId || !onReorder) return;
-    const ids = items.map((i) => i.id);
-    const from = ids.indexOf(fromId);
-    if (from < 0) return;
-    ids.splice(from, 1);
-    const to = ids.indexOf(overId);
-    ids.splice(to < 0 ? ids.length : to, 0, fromId);
-    onReorder(ids);
+
+  function onTabPointerDown(e: PointerEvent<HTMLElement>, id: string) {
+    if (!reorderable || e.button !== 0) return;
+    cancelHold();
+    pressStart.current = { x: e.clientX, y: e.clientY };
+    pressId.current = id;
+    pressPointerId.current = e.pointerId;
+    moved.current = false;
+    // A held-open drop target or a live insertion-line is more machinery
+    // than reordering four to twelve settings tabs needs - the CC pattern's
+    // own answer is the same: the strip simply wiggles, and the held tab
+    // slides other tabs aside as it passes over them.
+    holdTimer.current = window.setTimeout(() => {
+      holdTimer.current = null;
+      setReordering(true);
+      setDraggingId(id);
+      setLiveOrder(items.map((i) => i.id));
+      const el = e.currentTarget;
+      try {
+        el.setPointerCapture(e.pointerId);
+      } catch {
+        // Safari < 13 and a handful of older WebViews have no
+        // setPointerCapture - the drag still works via the document-level
+        // listeners below, it just cannot re-target mid-gesture if the
+        // pointer leaves the element's own hit area.
+      }
+    }, 300);
   }
+
+  // Document-level, bound once (not per tab): the same reasons
+  // GlobalIntake.tsx's own whole-window listeners are document-level - a
+  // pointer that has left the pressed element entirely, mid-drag, must
+  // still be tracked.
+  useEffect(() => {
+    if (!reorderable) return;
+
+    function onMove(e: globalThis.PointerEvent) {
+      if (pressStart.current && !draggingIdRef.current) {
+        // Still deciding whether this is a hold or a click/scroll: a real
+        // move before the timer fires cancels the hold outright, the same
+        // 8px tolerance CC's own version uses.
+        if (Math.abs(e.clientX - pressStart.current.x) > 8 || Math.abs(e.clientY - pressStart.current.y) > 8) {
+          cancelHold();
+        }
+        return;
+      }
+      const dragging = draggingIdRef.current;
+      if (!dragging) return;
+      moved.current = true;
+      const nodes = tabNodes();
+      for (const node of nodes) {
+        const id = node.getAttribute('data-tab-id');
+        if (!id || id === dragging) continue;
+        const r = node.getBoundingClientRect();
+        // The +/-20 vertical fudge (CC's own figure) forgives a slightly
+        // sloppy hold on a strip that wraps to more than one line.
+        if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top - 20 || e.clientY > r.bottom + 20) continue;
+        setLiveOrder((prev) => {
+          if (!prev) return prev;
+          const from = prev.indexOf(dragging);
+          const to = prev.indexOf(id);
+          if (from < 0 || to < 0 || from === to) return prev;
+          const next = [...prev];
+          next.splice(from, 1);
+          next.splice(to, 0, dragging);
+          return next;
+        });
+        break;
+      }
+    }
+
+    function onUp() {
+      const wasReordering = reorderingRef.current;
+      const finalOrder = liveOrderRef.current;
+      const didMove = moved.current;
+      cancelHold();
+      if (wasReordering && finalOrder && onReorder) onReorder(finalOrder);
+      if (wasReordering && !didMove) {
+        // Armed (held past 300ms) but the pointer never actually moved
+        // anywhere - the browser still fires a click right after this
+        // pointerup, and without suppressing it a plain long-press-then-
+        // release would also select the tab.
+        suppressClick.current = true;
+      }
+      if (wasReordering) exitReorder();
+    }
+
+    function onEscape(e: globalThis.KeyboardEvent) {
+      if (e.key === 'Escape' && reorderingRef.current) {
+        cancelHold();
+        exitReorder();
+      }
+    }
+
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+    document.addEventListener('pointercancel', onUp);
+    document.addEventListener('keydown', onEscape);
+    return () => {
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+      document.removeEventListener('pointercancel', onUp);
+      document.removeEventListener('keydown', onEscape);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the refs above
+    // are read for their CURRENT value inside the listeners, not captured by
+    // this effect's own closure; only `reorderable`/`onReorder` (identity)
+    // ever need this effect to re-bind.
+  }, [reorderable, onReorder]);
 
   // Roving tabindex: the strip is ONE stop in the tab order and the arrows move
   // inside it. Tabbing through thirteen settings pages to reach the page is how
   // a keyboard user learns to stop using the keyboard.
   const roved = Math.max(
     0,
-    items.findIndex((i) => isOn(i.id)),
+    orderedItems.findIndex((i) => isOn(i.id)),
   );
-
-  function tabNodes(): HTMLElement[] {
-    return Array.from(strip.current?.querySelectorAll<HTMLElement>('[data-tab-id]') ?? []);
-  }
 
   function onKeyDown(e: KeyboardEvent<HTMLDivElement>) {
     // Space on an <a> scrolls the page instead of activating it, so the one
@@ -189,6 +322,15 @@ export function Tabs(props: TabsProps) {
   }
 
   function onClick(e: MouseEvent<HTMLElement>, item: TabDef) {
+    // A long-press that armed reorder mode but never actually moved still
+    // ends in a click once the pointer lifts - without this, holding a tab
+    // for 300ms and letting go in place would both wiggle it AND select it.
+    if (suppressClick.current) {
+      suppressClick.current = false;
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
     // A modified click on a link belongs to the browser: this is the gesture
     // that opens a settings page in a second window, and swallowing it is the
     // reason people stop trusting things that look like links.
@@ -216,11 +358,14 @@ export function Tabs(props: TabsProps) {
       // which is the one thing a tab bar across the top must never do.
       className={`flex flex-wrap items-center gap-1 ${className}`}
     >
-      {items.map((item, i) => {
+      {orderedItems.map((item, i) => {
         const on = isOn(item.id);
+        const wiggling = reordering && item.id !== draggingId;
+        const dragged = item.id === draggingId;
         const cls = `${segBase} glim-hue glim-hue-icon ${on ? `glim-active ${segOn}` : segOff} ${
           SIZE[size]
-        } flex min-w-0 max-w-full items-center ${!on && item.dim ? 'opacity-60' : ''}`;
+        } flex min-w-0 max-w-full items-center ${!on && item.dim ? 'opacity-60' : ''}
+          ${wiggling ? 'glim-tab-wiggle' : ''} ${dragged ? 'glim-tab-dragging' : ''}`;
 
         const inner = (
           <>
@@ -245,15 +390,11 @@ export function Tabs(props: TabsProps) {
           title: item.title,
           tabIndex: i === roved ? 0 : -1,
           style: hueStyle(i),
-          // Dragging its own visible feedback: the browser already renders a
-          // drag ghost, and a held-open drop target beyond that (a highlighted
-          // insertion point) is more machinery than reordering four to twelve
-          // settings tabs needs — the list simply jumps to its new order on drop.
-          className: `${cls} ${reorderable ? 'cursor-grab active:cursor-grabbing' : ''}`,
-          draggable: reorderable,
-          onDragStart: reorderable ? (e: DragEvent<HTMLElement>) => onDragStart(e, item.id) : undefined,
-          onDragOver: reorderable ? onDragOver : undefined,
-          onDrop: reorderable ? (e: DragEvent<HTMLElement>) => onDrop(e, item.id) : undefined,
+          // No grab cursor, no draggable affordance at rest - a tab is a
+          // plain clickable control until a hold arms reorder mode (jdp:
+          // "beim mouseover erscheint die Hand, das soll nicht so sein").
+          className: cls,
+          onPointerDown: reorderable ? (e: PointerEvent<HTMLElement>) => onTabPointerDown(e, item.id) : undefined,
           onClick: (e: MouseEvent<HTMLElement>) => onClick(e, item),
         };
 
