@@ -23,6 +23,9 @@
 node_modules/
 web/node_modules/
 
-# Wails desktop build output
-desktop/build/
+# Wails desktop build output - all ignored except appicon.png, which is the
+# actual repo asset gen-appicon.mjs writes there (Wails reads it from this
+# exact path at build time), not a build output.
+desktop/build/*
+!desktop/build/appicon.png
 desktop/go.sum

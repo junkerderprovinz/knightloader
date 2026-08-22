@@ -1,4 +1,11 @@
-<h1 align="center">KnightLoader</h1>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/knightloader-banner-dark.png">
+    <img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/knightloader-banner.png" alt="KnightLoader" width="100%">
+  </picture>
+</p>
+
+<br>
 
 <p align="center">
   <a href="https://github.com/junkerderprovinz/knightloader/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/junkerderprovinz/knightloader/ci.yml?branch=main&label=Build&style=for-the-badge&logo=githubactions&logoColor=white" alt="Build" height="36"></a>&nbsp;
@@ -25,8 +32,8 @@ A self-hosted, cross-platform download manager: a clean-UI alternative to JDownl
 
 <br>
 
-> **Working title.** The name, the logo and the first release are not settled
-> yet. Everything below is built and runs; the branding is what is missing.
+> **Working title.** The name and the first release are not settled yet.
+> Everything below is built and runs.
 
 <br>
 
