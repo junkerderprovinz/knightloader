@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/knightloader-banner-dark.png">
-    <img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/knightloader-banner.png" alt="KnightLoader" width="100%">
+    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/knightloader-banner-dark.png">
+    <img src=".github/assets/knightloader-banner.png" alt="KnightLoader" width="100%">
   </picture>
 </p>
 
@@ -29,11 +29,6 @@ A self-hosted, cross-platform download manager: a clean-UI alternative to JDownl
     <img src=".github/assets/button-buy-me-a-coffee.svg" alt="Buy me a coffee" width="220">
   </a>
 </p>
-
-<br>
-
-> **Working title.** The name and the first release are not settled yet.
-> Everything below is built and runs.
 
 <br>
 
