@@ -233,6 +233,7 @@ export const sl: Dict = {
   'settings.shape.square': 'Ravni',
   'settings.accent': 'Poudarna barva',
   'settings.accentHint': 'Edina barva za dejavnost. Besedilo na njej se izbere po kontrastu.',
+  'settings.accentPresets': 'Prednastavitve',
   'settings.accentReset': 'Privzeto',
   'queue.stop': 'Ustavi vrsto',
   'queue.start': 'Zaženi vrsto',

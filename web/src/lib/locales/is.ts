@@ -233,6 +233,7 @@ export const is: Dict = {
   'settings.shape.square': 'Ferköntuð',
   'settings.accent': 'Áherslulitur',
   'settings.accentHint': 'Eini liturinn fyrir virkni. Textinn ofan á er valinn eftir birtuskilum.',
+  'settings.accentPresets': 'Forstillingar',
   'settings.accentReset': 'Sjálfgefið',
   'queue.stop': 'Stöðva biðröð',
   'queue.start': 'Ræsa biðröð',

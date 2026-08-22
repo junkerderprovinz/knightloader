@@ -233,6 +233,7 @@ export const sv: Dict = {
   'settings.shape.square': 'Raka',
   'settings.accent': 'Accentfärg',
   'settings.accentHint': 'Den enda färgen för aktivitet. Texten på den väljs efter kontrast.',
+  'settings.accentPresets': 'Förinställningar',
   'settings.accentReset': 'Standard',
   'queue.stop': 'Stoppa kön',
   'queue.start': 'Starta kön',

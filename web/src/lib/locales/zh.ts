@@ -233,6 +233,7 @@ export const zh: Dict = {
   'settings.shape.square': '直角',
   'settings.accent': '强调色',
   'settings.accentHint': '表示活动的唯一颜色。其上的文字按对比度自动选取。',
+  'settings.accentPresets': '预设',
   'settings.accentReset': '默认',
   'queue.stop': '停止队列',
   'queue.start': '启动队列',

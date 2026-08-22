@@ -233,6 +233,7 @@ export const eu: Dict = {
   'settings.shape.square': 'Zuzenak',
   'settings.accent': 'Azentu kolorea',
   'settings.accentHint': 'Jarduerarako kolore bakarra. Gaineko testua kontrastearen arabera aukeratzen da.',
+  'settings.accentPresets': 'Aurrezarpenak',
   'settings.accentReset': 'Lehenetsia',
   'queue.stop': 'Gelditu ilara',
   'queue.start': 'Abiarazi ilara',

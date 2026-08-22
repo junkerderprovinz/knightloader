@@ -233,6 +233,7 @@ export const de: Dict = {
   'settings.shape.square': 'Eckig',
   'settings.accent': 'Akzentfarbe',
   'settings.accentHint': 'Die eine Farbe für Aktivität. Die Schrift darauf wird nach Kontrast gewählt.',
+  'settings.accentPresets': 'Voreinstellungen',
   'settings.accentReset': 'Standard',
   'queue.stop': 'Warteschlange stoppen',
   'queue.start': 'Warteschlange starten',

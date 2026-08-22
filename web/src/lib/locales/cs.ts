@@ -233,6 +233,7 @@ export const cs: Dict = {
   'settings.shape.square': 'Ostré',
   'settings.accent': 'Barva zvýraznění',
   'settings.accentHint': 'Jediná barva pro aktivitu. Text na ní se volí podle kontrastu.',
+  'settings.accentPresets': 'Předvolby',
   'settings.accentReset': 'Výchozí',
   'queue.stop': 'Zastavit frontu',
   'queue.start': 'Spustit frontu',

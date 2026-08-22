@@ -225,6 +225,7 @@ export const ru: Dict = {
   'settings.shape.square': 'Прямые',
   'settings.accent': 'Акцентный цвет',
   'settings.accentHint': 'Единственный цвет активности. Текст поверх подбирается по контрасту.',
+  'settings.accentPresets': 'Пресеты',
   'settings.accentReset': 'По умолчанию',
   'queue.stop': 'Остановить очередь',
   'queue.start': 'Запустить очередь',

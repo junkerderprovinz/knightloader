@@ -233,6 +233,7 @@ export const vi: Dict = {
   'settings.shape.square': 'Vuông',
   'settings.accent': 'Màu nhấn',
   'settings.accentHint': 'Màu duy nhất cho hoạt động. Chữ trên nền đó được chọn theo độ tương phản.',
+  'settings.accentPresets': 'Cài đặt sẵn',
   'settings.accentReset': 'Mặc định',
   'queue.stop': 'Dừng hàng đợi',
   'queue.start': 'Chạy hàng đợi',

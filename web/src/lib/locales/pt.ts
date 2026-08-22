@@ -225,6 +225,7 @@ export const pt: Dict = {
   'settings.shape.square': 'Retos',
   'settings.accent': 'Cor de destaque',
   'settings.accentHint': 'A única cor da atividade. O texto por cima é escolhido por contraste.',
+  'settings.accentPresets': 'Predefinições',
   'settings.accentReset': 'Predefinição',
   'queue.stop': 'Parar a fila',
   'queue.start': 'Iniciar a fila',

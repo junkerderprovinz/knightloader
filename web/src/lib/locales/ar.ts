@@ -235,6 +235,7 @@ export const ar: Dict = {
   'settings.shape.square': 'قائمة',
   'settings.accent': 'لون التمييز',
   'settings.accentHint': 'اللون الوحيد للنشاط. يُختار لون النص فوقه حسب التباين.',
+  'settings.accentPresets': 'إعدادات مسبقة',
   'settings.accentReset': 'الافتراضي',
   'queue.stop': 'إيقاف الطابور',
   'queue.start': 'بدء الطابور',

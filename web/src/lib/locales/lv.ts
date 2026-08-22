@@ -233,6 +233,7 @@ export const lv: Dict = {
   'settings.shape.square': 'Taisni',
   'settings.accent': 'Akcenta krāsa',
   'settings.accentHint': 'Vienīgā krāsa aktivitātei. Teksts uz tās tiek izvēlēts pēc kontrasta.',
+  'settings.accentPresets': 'Priekšiestatījumi',
   'settings.accentReset': 'Noklusējums',
   'queue.stop': 'Apturēt rindu',
   'queue.start': 'Palaist rindu',

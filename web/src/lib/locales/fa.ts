@@ -233,6 +233,7 @@ export const fa: Dict = {
   'settings.shape.square': 'تیز',
   'settings.accent': 'رنگ تأکید',
   'settings.accentHint': 'تنها رنگ فعالیت. متن روی آن بر اساس کنتراست انتخاب می‌شود.',
+  'settings.accentPresets': 'پیش‌تنظیم‌ها',
   'settings.accentReset': 'پیش‌فرض',
   'queue.stop': 'توقف صف',
   'queue.start': 'شروع صف',

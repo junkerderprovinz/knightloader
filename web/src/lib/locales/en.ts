@@ -247,6 +247,7 @@ export const en = {
   'settings.shape.square': 'Square',
   'settings.accent': 'Accent colour',
   'settings.accentHint': 'The one colour used for activity. Text on it is picked for contrast.',
+  'settings.accentPresets': 'Presets',
   'settings.accentReset': 'Default',
   'queue.stop': 'Stop queue',
   'queue.start': 'Start queue',
