@@ -3,9 +3,7 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import logoUrl from '../assets/logo.svg';
 import { hueVars, rainbowAt } from '../lib/appearance';
 import { useRainbow } from '../lib/useRainbow';
-import { getTheme, onThemeChange, toggleTheme } from '../lib/theme';
 import { useT } from '../lib/i18n';
-import { LanguagePicker } from './LanguagePicker';
 import { fetchAuth, logout } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import {
@@ -15,8 +13,6 @@ import {
   IconInstances,
   IconAccounts,
   IconSettings,
-  IconMoon,
-  IconSun,
   IconSignOut,
 } from '../lib/icons';
 
@@ -24,8 +20,12 @@ import {
 // on a raised surface; jdp wants no vertical lines anywhere, and the fill is
 // also the only treatment that survives the square corner setting, where a rail
 // reads as a stray border rather than as a mark.
+//
+// text-[15px], matching BombVault's own nav row exactly (jdp: "Die texte in
+// der sidebar sind zu klein. exakt gleiche Schriftgröße wie in BV") - this
+// was 14px, one size below BombVault's navBase.
 const navBase =
-  'relative flex items-center gap-3 rounded-[var(--radius-control)] px-3 py-2.5 text-[14px] font-medium transition duration-150 select-none';
+  'relative flex items-center gap-3 rounded-[var(--radius-control)] px-3 py-2.5 text-[15px] font-medium transition duration-150 select-none';
 const navActive = 'glim-active bg-accent text-accentContrast';
 const navInactive = 'text-[var(--sidebar-text)] hover:bg-carbon-hover hover:text-carbon-text';
 
@@ -71,17 +71,10 @@ function Item({
 
 export function Sidebar() {
   const { t } = useT();
-  const [theme, setThemeState] = useState(getTheme);
   const tasks = useTasks('');
   // Subscribed, not read: the nav re-renders when the palette or the mode
   // changes, so editing a swatch in Settings is visible in the rail at once.
   useRainbow();
-  // Subscribed for the identical reason: the theme can now change from
-  // somewhere other than the button below it (lib/commands/global.ts's
-  // theme.toggle command, fired from a keyboard shortcut with no button
-  // involved at all), and a local click handler alone would leave this
-  // icon showing the old theme until something else re-rendered the rail.
-  useEffect(() => onThemeChange(setThemeState), []);
 
   const [locked, setLocked] = useState(false);
 
@@ -126,16 +119,12 @@ export function Sidebar() {
         <Item to="/accounts" hue={4} label={t('nav.accounts')} icon={<IconAccounts />} />
       </nav>
 
+      {/* Sprache and Hell/Dunkel used to live here too, mirrored from the
+          Aussehen settings tab - one control, one home now, not two copies
+          of the same switch (jdp: "Sprach und hell dunkel ist in der
+          sidebar immer noch vorhanden"). Both still live on the Aussehen
+          tab (pages/settings/Look.tsx). */}
       <div className="flex flex-col gap-1 p-3">
-        <LanguagePicker className={`${navBase} ${navInactive} w-full`} />
-        <button
-          onClick={() => toggleTheme()}
-          className={`${navBase} ${navInactive} w-full`}
-          title={t('theme.toggle')}
-        >
-          {theme === 'dark' ? <IconMoon /> : <IconSun />}
-          <span>{theme === 'dark' ? t('theme.dark') : t('theme.light')}</span>
-        </button>
         <Item to="/settings" hue={5} label={t('nav.settings')} icon={<IconSettings />} />
         {locked && (
           <button

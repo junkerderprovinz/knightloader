@@ -20,7 +20,7 @@
 // sitting in the queue, the account strip or the list that caused it, so
 // nothing is lost by swallowing the bubble.
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Button, InfoBubble, Toggle } from '../components/ui';
+import { Button, Toggle } from '../components/ui';
 import { IconClose } from './icons';
 import { useT, type TranslationKey } from './i18n';
 import { useUIState } from './uistate';
@@ -229,14 +229,24 @@ function ToastBubble({ item, onDismiss }: { item: ToastMessage; onDismiss: (id: 
  * there - a plain toggle inflated into a floating fixture nobody asked for.
  * Reading QUIET_KEY through the same shared uistate bucket ToastProvider
  * reads keeps the two in sync with no prop wiring between them.
+ *
+ * Label+description left, switch flush right (jdp: "genau wie in BV") -
+ * BombVault's own ToggleRow shape for exactly this kind of row (a caption
+ * plus a one-line explanation UNDER it, not beside it in a bubble), rather
+ * than the InfoBubble-beside-a-bare-toggle this used to be.
  */
 export function QuietModeToggle() {
   const nx = useNx();
   const [quiet, setQuiet] = useUIState(QUIET_KEY, false);
   return (
-    <div className="flex items-center gap-1">
-      <Toggle checked={quiet} onChange={setQuiet} label={nx('notifications.quiet')} />
-      <InfoBubble tip={nx('notifications.quietHint')} />
+    <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-0.5">
+        <span className="text-sm text-carbon-text">{nx('notifications.quiet')}</span>
+        <span className="text-xs text-carbon-textMuted">{nx('notifications.quietHint')}</span>
+      </div>
+      <span className="mt-0.5">
+        <Toggle hideLabel checked={quiet} onChange={setQuiet} label={nx('notifications.quiet')} />
+      </span>
     </div>
   );
 }
