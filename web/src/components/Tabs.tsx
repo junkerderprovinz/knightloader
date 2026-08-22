@@ -83,6 +83,17 @@ interface Common {
   reorderable?: boolean;
   /** Called with the full, reordered list of ids after a drop. */
   onReorder?: (ids: string[]) => void;
+  /**
+   * Every tab sized to the longest label in the set, not to its own content
+   * (GlimStone: "a strip where each tab hugs its own text reads as a ransom
+   * note"). Opt-in - a strip of quick-filter chips (varying label lengths by
+   * design, e.g. the download list's "Fertig"/"Fehlgeschlagen") stays
+   * content-sized; a page-navigation strip like Settings' own tabs does not.
+   * Implemented as a shared `ch`-based min-width (character-count, not a
+   * measured pixel width) rather than equal flex-basis, so it still wraps
+   * correctly at narrow viewports instead of forcing one unbroken row.
+   */
+  equalWidth?: boolean;
 }
 
 export type TabsProps =
@@ -95,7 +106,7 @@ const SIZE = {
 } as const;
 
 export function Tabs(props: TabsProps) {
-  const { items, label, size = 'md', after, className = '', reorderable = false, onReorder } = props;
+  const { items, label, size = 'md', after, className = '', reorderable = false, onReorder, equalWidth = false } = props;
 
   // Subscribed, not read: the palette is resolved during render, so a strip
   // that only learned about a change on the next paint would keep the previous
@@ -137,6 +148,13 @@ export function Tabs(props: TabsProps) {
   const suppressClick = useRef(false);
 
   const orderedItems = liveOrder ? liveOrder.map((id) => items.find((i) => i.id === id)).filter((i): i is TabDef => !!i) : items;
+
+  // `ch` (the current font's own "0"-glyph width), not a measured pixel
+  // value - no ResizeObserver, no layout effect, just a CSS unit that is
+  // already text-metric-aware. +4 covers the icon, the icon-to-label gap and
+  // the tab's own horizontal padding, which none of the label characters
+  // themselves account for.
+  const maxLabelLen = equalWidth ? Math.max(0, ...items.map((i) => i.label.length)) : 0;
 
   // Mirrors of the state above, read by the document-level listeners further
   // down: those bind once (empty-ish dependency array) rather than re-binding
@@ -387,7 +405,7 @@ export function Tabs(props: TabsProps) {
           'data-tab-id': item.id,
           title: item.title,
           tabIndex: i === roved ? 0 : -1,
-          style: hueStyle(i),
+          style: equalWidth ? { ...hueStyle(i), minWidth: `${maxLabelLen + 4}ch`, justifyContent: 'center' as const } : hueStyle(i),
           // No grab cursor, no draggable affordance at rest - a tab is a
           // plain clickable control until a hold arms reorder mode (jdp:
           // "beim mouseover erscheint die Hand, das soll nicht so sein").
