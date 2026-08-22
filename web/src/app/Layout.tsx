@@ -90,16 +90,23 @@ function useAppearance() {
  * It is chrome, not content: the sidebar's shade continues across the top, so
  * the band reads as part of the frame and the page scrolls under it without a
  * separator line.
+ *
+ * Visually hidden outside the Downloads page (jdp: "die Statuszeile die ganz
+ * oben ist soll nur im Downloadfenster sichtbar sein") — hidden with `hidden`,
+ * not left unmounted, for the exact reason this component exists at all:
+ * unmounting on every navigation away from Downloads would throw away
+ * QueueBar's queue-control state and ShellStrip/AccountStrip's own fetch
+ * loops, remounting and refetching them the moment somebody navigates back.
  */
-function ShellBar() {
+function ShellBar({ visible }: { visible: boolean }) {
   const { t } = useT();
   const { instance } = useInstanceScope();
   return (
     <div
       role="region"
       aria-label={t('shell.bar')}
-      className="sticky top-0 z-20 flex min-h-[52px] flex-wrap items-center gap-x-4 gap-y-2
-        bg-carbon-sidebar px-6 py-2.5 md:px-8"
+      className={`sticky top-0 z-20 flex-wrap items-center gap-x-4 gap-y-2 bg-carbon-sidebar
+        px-6 py-2.5 md:px-8 ${visible ? 'flex min-h-[52px]' : 'hidden'}`}
     >
       {/* Named only when it is not this machine. A tag on every screen would be
           furniture nobody reads, and then the one time it matters (the queue
@@ -156,7 +163,7 @@ export function Layout() {
       <div className="flex h-screen overflow-hidden bg-carbon-background">
         <Sidebar />
         <main className="flex-1 overflow-y-auto min-w-0">
-          <ShellBar />
+          <ShellBar visible={section === 'downloads'} />
           <div key={section} className="glim-page-enter w-full p-6 md:p-8">
             <Outlet />
           </div>
