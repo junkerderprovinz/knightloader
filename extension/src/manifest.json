@@ -21,11 +21,21 @@
     "default_title": "Send to KnightLoader"
   },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "scripts": ["background.js"]
   },
   "options_ui": {
     "page": "options.html",
     "open_in_tab": true
   },
-  "permissions": ["contextMenus", "storage", "activeTab"]
+  "permissions": ["contextMenus", "storage", "activeTab"],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "extension@knightloader.junkerderprovinz.dev",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  }
 }
