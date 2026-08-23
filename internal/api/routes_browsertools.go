@@ -45,6 +45,34 @@ func registerBrowserTools(reg *Registry, a *app.App) {
 		func(w http.ResponseWriter, r *http.Request) {
 			downloadExtension(w, r, "knightloader-extension.xpi", "application/x-xpinstall")
 		})
+	reg.Add(http.MethodGet, "/api/browser-extension/version",
+		"the extension's own manifest version, so the settings card can show it without hardcoding a second copy",
+		func(w http.ResponseWriter, r *http.Request) {
+			extensionVersion(w, r)
+		})
+}
+
+// extensionVersion reads manifest.json straight out of the same embedded
+// tree downloadExtension packages, so this number can never drift from what
+// actually ships in the zip/xpi - a hand-copied constant in the frontend
+// would silently go stale the next time manifest.json's version is bumped.
+func extensionVersion(w http.ResponseWriter, r *http.Request) {
+	raw, err := fs.ReadFile(extension.Dist, "src/manifest.json")
+	if err != nil {
+		http.Error(w, "extension source is not embedded in this build", http.StatusInternalServerError)
+		return
+	}
+	var manifest struct {
+		Version string `json:"version"`
+	}
+	if err := json.Unmarshal(raw, &manifest); err != nil {
+		http.Error(w, "could not read the extension's manifest", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(struct {
+		Version string `json:"version"`
+	}{Version: manifest.Version})
 }
 
 // downloadExtension zips extension.Dist's src/ tree, substituting

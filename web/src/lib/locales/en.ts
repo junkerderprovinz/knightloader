@@ -1538,6 +1538,7 @@ export const en = {
   'settings.browsertools.bookmarkletStep1': 'Drag the button below onto your browser’s bookmarks bar - it saves like any other bookmark, nothing installs.',
   'settings.browsertools.bookmarkletStep2': 'On any page, click it (select some text first if you only want that). A small KnightLoader tab opens with that page’s link, or the selected text, already filled in - review it and add it as a download from there.',
   'settings.browsertools.installLabel': 'How to install',
+  'settings.browsertools.installedElsewhere': 'Install as an app? See the Access tab.',
   'settings.browsertools.installChromiumStep1': 'Unzip the downloaded file.',
   'settings.browsertools.installChromiumStep2': 'Open chrome://extensions (or edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Turn on Developer mode.',
@@ -1550,10 +1551,6 @@ export const en = {
   'settings.browsertools.copyCode': 'Copy the code instead',
   'settings.browsertools.copied': 'Copied.',
   'settings.browsertools.extensionTitle': 'Browser extension',
-  'settings.browsertools.installTitle': 'Install as an app',
-  'settings.browsertools.installHint': 'Adds KnightLoader as its own app - an icon on your home screen, app list, or desktop, opening in its own window without the browser around it. Once installed, your device’s Share menu can also hand it a link directly, with no browser tab needed.',
-  'settings.browsertools.install': 'Install',
-  'settings.browsertools.installed': 'Already installed, or this browser offers its own install step in the address bar.',
 
   // /quickadd (pages/QuickAdd.tsx, Wave 11D) - the one page the bookmarklet,
   // the browser extension and the PWA share target all land on.
