@@ -17,7 +17,45 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Cheap up-front check so the expensive suites below can skip themselves on
+  # changes that can't affect them (a Renovate github-actions-only bump, a
+  # docs-only edit) instead of always running the full Go race-test pass and
+  # web build. Always re-runs both suites when ci.yml itself changes.
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read # dorny/paths-filter reads the PR's file list via the API
+    outputs:
+      go: ${{ steps.filter.outputs.go }}
+      web: ${{ steps.filter.outputs.web }}
+    steps:
+      # Only needed for the push-to-main case: paths-filter diffs against the
+      # previous commit via git, which needs it to be present locally. On
+      # pull_request it skips this entirely and uses the GitHub API instead.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        if: github.event_name != 'pull_request'
+        with:
+          fetch-depth: 0
+
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: filter
+        with:
+          filters: |
+            go:
+              - '**/*.go'
+              - 'go.mod'
+              - 'go.sum'
+              - 'Dockerfile'
+              - '.github/workflows/ci.yml'
+            web:
+              - 'web/**'
+              - '.github/workflows/ci.yml'
+
   server:
+    needs: changes
+    if: needs.changes.outputs.go == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -76,6 +114,8 @@ jobs:
           go build -tags bridgeclipboard -o /tmp/knightloader-bridgeclipboard ./cmd/knightloader
 
   web:
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:
