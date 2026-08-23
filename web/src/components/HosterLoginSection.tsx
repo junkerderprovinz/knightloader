@@ -113,16 +113,21 @@ export function HosterLoginSection() {
       )}
 
       {hasRows ? (
-        <Button kind="secondary" icon={<IconPlus width={16} height={16} />} className="self-start" onClick={() => setDialogOpen(true)}>
+        <Button
+          kind="secondary"
+          hue={1}
+          icon={<IconPlus width={16} height={16} />}
+          className="self-start"
+          onClick={() => setDialogOpen(true)}
+        >
           {t('accounts.hoster.add')}
         </Button>
       ) : (
         <EmptyState
           icon={<IconAccounts width={26} height={26} />}
           title={t('accounts.hoster.empty')}
-          hint={t('accounts.hoster.emptyHint')}
           action={
-            <Button kind="secondary" icon={<IconPlus width={16} height={16} />} onClick={() => setDialogOpen(true)}>
+            <Button kind="secondary" hue={1} icon={<IconPlus width={16} height={16} />} onClick={() => setDialogOpen(true)}>
               {t('accounts.hoster.add')}
             </Button>
           }

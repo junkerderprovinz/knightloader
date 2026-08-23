@@ -16,22 +16,38 @@ const kindClass: Record<ButtonKind, string> = {
   danger: 'text-statusFail hover:bg-statusFailBg',
 };
 
+/**
+ * hue overrides `kind`'s own colour entirely, the same relationship
+ * NeutralSwitch's hue prop has to its neutral fill: the button becomes an
+ * accent-filled control (`bg-accent`/`text-accentContrast`, same as `kind:
+ * "primary"`), and `.glim-hue` then redefines those two custom properties to
+ * this button's own position colour under rainbow mode - see index.css's own
+ * comment on `.glim-hue` for why no separate hued style rules are needed:
+ * anything already painted with `var(--accent)` picks the position colour up
+ * for free. Inert when rainbow mode is off, same as everywhere else `hue` is
+ * used - the single global accent applies exactly as `kind: "primary"` would.
+ */
 export function Button({
   kind = 'primary',
   icon,
   children,
   className = '',
+  hue,
   ...rest
 }: {
   kind?: ButtonKind;
   icon?: ReactNode;
+  hue?: number;
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
   const iconOnly = icon && !children;
+  const hued = hue !== undefined;
   return (
     <button
       className={`inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] text-sm font-medium
         transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
-        motion-safe:active:scale-[.98] ${iconOnly ? 'p-2' : 'px-3.5 py-2'} ${kindClass[kind]} ${className}`}
+        motion-safe:active:scale-[.98] ${iconOnly ? 'p-2' : 'px-3.5 py-2'}
+        ${hued ? 'glim-hue bg-accent text-accentContrast hover:brightness-110' : kindClass[kind]} ${className}`}
+      style={hued ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
       {...rest}
     >
       {icon}

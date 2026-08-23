@@ -156,28 +156,30 @@ export function Accounts() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title={t('accounts.title')}
-        subtitle={t('accounts.subtitle')}
-        right={
-          <Button icon={<IconPlus width={16} height={16} />} onClick={() => setDialog({ mode: 'new' })}>
-            {t('accounts.newAccount')}
-          </Button>
-        }
-      />
+      <PageHeader title={t('accounts.title')} />
 
-      <div className="flex flex-col gap-3">
-        <SectionTitle>{t('accounts.debrid.title')}</SectionTitle>
-        <p className="max-w-2xl text-sm text-carbon-textSub">{t('accounts.debrid.note')}</p>
+      <div className="relative flex flex-col gap-3">
+        <SectionTitle hue={0}>{t('accounts.debrid.title')}</SectionTitle>
         {debridRows.length > 0 ? (
-          <AccountsTable rows={debridRows} {...tableProps} />
+          <>
+            <AccountsTable rows={debridRows} {...tableProps} />
+            <Button
+              kind="secondary"
+              hue={0}
+              icon={<IconPlus width={16} height={16} />}
+              className="self-start"
+              onClick={() => setDialog({ mode: 'new' })}
+            >
+              {t('accounts.newAccount')}
+            </Button>
+          </>
         ) : (
           <EmptyState
             icon={<IconAccounts width={26} height={26} />}
             title={t('accounts.debrid.empty')}
             hint={t('accounts.debrid.emptyHint')}
             action={
-              <Button kind="secondary" icon={<IconPlus width={16} height={16} />} onClick={() => setDialog({ mode: 'new' })}>
+              <Button kind="secondary" hue={0} icon={<IconPlus width={16} height={16} />} onClick={() => setDialog({ mode: 'new' })}>
                 {t('accounts.newAccount')}
               </Button>
             }
@@ -185,8 +187,8 @@ export function Accounts() {
         )}
       </div>
 
-      <div className="flex flex-col gap-3">
-        <SectionTitle>{t('accounts.hoster.title')}</SectionTitle>
+      <div className="relative flex flex-col gap-3">
+        <SectionTitle hue={1}>{t('accounts.hoster.title')}</SectionTitle>
         <HosterLoginSection />
       </div>
 
@@ -724,11 +726,11 @@ function RoutingSection({ catalogue }: { catalogue: CatalogueService[] }) {
   };
 
   return (
-    <div className="flex flex-col gap-3">
-      <SectionTitle>{t('accounts.routing.title')}</SectionTitle>
+    <div className="relative flex flex-col gap-3">
+      <SectionTitle hue={2}>{t('accounts.routing.title')}</SectionTitle>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Card className="flex flex-col gap-3">
-          <SectionTitle hint={t('accounts.routing.priorityHint')}>{t('accounts.routing.priorityTitle')}</SectionTitle>
+          <SectionTitle hue={3} hint={t('accounts.routing.priorityHint')}>{t('accounts.routing.priorityTitle')}</SectionTitle>
           {priority === null ? (
             <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>
           ) : priority.length === 0 ? (
@@ -746,7 +748,7 @@ function RoutingSection({ catalogue }: { catalogue: CatalogueService[] }) {
         </Card>
 
         <Card className="flex flex-col gap-3">
-          <SectionTitle>{t('accounts.routing.jdTitle')}</SectionTitle>
+          <SectionTitle hue={4}>{t('accounts.routing.jdTitle')}</SectionTitle>
           {jd === null ? (
             <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>
           ) : !jd.configured ? (
