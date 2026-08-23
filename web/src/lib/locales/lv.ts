@@ -438,7 +438,6 @@ export const lv: Dict = {
   'settings.modules.configuredOn': 'Iestata lapā {page}',
   'settings.modules.switchFailed': 'Šis slēdzis tika atteikts: {reason}',
   'settings.modules.configureFirst': 'Vēl nav ko ieslēgt. Vispirms iestatiet to lapā {page}; pēc tam slēdzis šeit to aptur un palaiž no jauna, nezaudējot iestatīto.',
-  'settings.modules.saveFirst': 'Vispirms saglabājiet vai atmetiet gaidošās izmaiņas. Moduļa pārslēgšana ieraksta iestatījumus uzreiz, un abi ieraksti pārrakstītu viens otru.',
 
   'settings.module.extraction': 'Arhīvu izpakošana',
   'settings.module.watch': 'Mapes uzraudzība',

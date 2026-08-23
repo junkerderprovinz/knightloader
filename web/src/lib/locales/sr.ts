@@ -438,7 +438,6 @@ export const sr: Dict = {
   'settings.modules.configuredOn': 'Подешава се на {page}',
   'settings.modules.switchFailed': 'Прекидач је одбијен: {reason}',
   'settings.modules.configureFirst': 'Још нема шта да се укључи. Прво то подесите на {page}; после тога прекидач овде га зауставља и поново покреће без губитка онога што сте подесили.',
-  'settings.modules.saveFirst': 'Прво сачувајте или одбаците измене на чекању. Пребацивање модула одмах уписује подешавања, а два уписа би преписала једно друго.',
 
   'settings.module.extraction': 'Распакивање архива',
   'settings.module.watch': 'Надгледање фасцикле',

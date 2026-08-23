@@ -438,7 +438,6 @@ export const fi: Dict = {
   'settings.modules.configuredOn': 'Säädetään sivulla {page}',
   'settings.modules.switchFailed': 'Kytkin hylättiin: {reason}',
   'settings.modules.configureFirst': 'Mitään ei ole vielä kytkettävänä. Määritä tämä ensin sivulla {page}; sen jälkeen täkäläinen kytkin pysäyttää ja käynnistää sen uudelleen menettämättä asettamaasi.',
-  'settings.modules.saveFirst': 'Tallenna tai hylkää keskeneräiset muutokset ensin. Moduulin kytkeminen kirjoittaa asetukset heti, ja nämä kaksi kirjoitusta yliajaisivat toisensa.',
 
   'settings.module.extraction': 'Arkistojen purku',
   'settings.module.watch': 'Kansion valvonta',

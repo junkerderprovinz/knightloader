@@ -430,7 +430,6 @@ export const ru: Dict = {
   'settings.modules.configuredOn': 'Настраивается на странице {page}',
   'settings.modules.switchFailed': 'Переключатель отклонён: {reason}',
   'settings.modules.configureFirst': 'Включать пока нечего. Сначала настройте это на странице {page}; после этого переключатель здесь останавливает и снова запускает модуль, не теряя заданного.',
-  'settings.modules.saveFirst': 'Сначала сохраните или отмените незавершённые изменения. Переключение модуля записывает настройки сразу, и две записи затёрли бы друг друга.',
 
   'settings.module.extraction': 'Распаковка архивов',
   'settings.module.watch': 'Наблюдение за папкой',

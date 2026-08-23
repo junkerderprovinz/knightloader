@@ -438,7 +438,6 @@ export const hi: Dict = {
   'settings.modules.configuredOn': '{page} पर तय होता है',
   'settings.modules.switchFailed': 'वह स्विच अस्वीकार हुआ: {reason}',
   'settings.modules.configureFirst': 'अभी चालू करने को कुछ नहीं है। पहले इसे {page} पर सेट करें; उसके बाद यहाँ का स्विच उसे रोकता और फिर चालू करता है, बिना आपकी सेटिंग खोए।',
-  'settings.modules.saveFirst': 'पहले लंबित बदलाव सहेजें या छोड़ दें। मॉड्यूल बदलते ही सेटिंग्स लिख दी जाती हैं, और दोनों लेखन एक-दूसरे को मिटा देंगे।',
 
   'settings.module.extraction': 'आर्काइव खोलना',
   'settings.module.watch': 'फ़ोल्डर निगरानी',

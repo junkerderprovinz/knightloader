@@ -440,7 +440,6 @@ export const ar: Dict = {
   'settings.modules.configuredOn': 'يُضبط في {page}',
   'settings.modules.switchFailed': 'رُفض هذا المفتاح: {reason}',
   'settings.modules.configureFirst': 'لا شيء لتشغيله بعد. اضبط هذا في {page} أولًا؛ بعدها يوقفه المفتاح هنا ويعيد تشغيله دون فقد ما ضبطته.',
-  'settings.modules.saveFirst': 'احفظ التغييرات المعلّقة أو تجاهلها أولًا. تبديل وحدة يكتب الإعدادات فورًا، والكتابتان ستطمس إحداهما الأخرى.',
 
   'settings.module.extraction': 'فك الأرشيفات',
   'settings.module.watch': 'مراقبة المجلد',

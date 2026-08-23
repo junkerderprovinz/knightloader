@@ -438,7 +438,6 @@ export const ko: Dict = {
   'settings.modules.configuredOn': '{page}에서 설정합니다',
   'settings.modules.switchFailed': '그 스위치는 거절되었습니다: {reason}',
   'settings.modules.configureFirst': '아직 켤 것이 없습니다. 먼저 {page}에서 설정하세요. 그다음부터는 여기 스위치가 설정을 잃지 않고 멈추고 다시 시작합니다.',
-  'settings.modules.saveFirst': '대기 중인 변경을 먼저 저장하거나 버리세요. 모듈을 켜고 끄면 설정이 바로 기록되어 두 기록이 서로 덮어씁니다.',
 
   'settings.module.extraction': '압축 풀기',
   'settings.module.watch': '폴더 감시',

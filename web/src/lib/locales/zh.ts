@@ -438,7 +438,6 @@ export const zh: Dict = {
   'settings.modules.configuredOn': '在 {page} 里设置',
   'settings.modules.switchFailed': '该开关被拒绝：{reason}',
   'settings.modules.configureFirst': '还没有可以打开的东西。请先在 {page} 里设置好；之后这里的开关就能停下再启动它，而不会丢掉你设的内容。',
-  'settings.modules.saveFirst': '请先保存或放弃待处理的更改。切换模块会立刻写入设置，两次写入会互相覆盖。',
 
   'settings.module.extraction': '解压压缩包',
   'settings.module.watch': '文件夹监视',

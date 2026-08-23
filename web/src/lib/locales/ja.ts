@@ -438,7 +438,6 @@ export const ja: Dict = {
   'settings.modules.configuredOn': '{page} で設定します',
   'settings.modules.switchFailed': 'そのスイッチは拒否されました: {reason}',
   'settings.modules.configureFirst': 'まだオンにできるものがありません。先に {page} で設定してください。そのあとは、ここのスイッチが設定を失わずに停止と再開を行います。',
-  'settings.modules.saveFirst': '先に保留中の変更を保存するか破棄してください。モジュールの切り替えは設定をすぐ書き込むため、二つの書き込みが互いを上書きしてしまいます。',
 
   'settings.module.extraction': 'アーカイブの展開',
   'settings.module.watch': 'フォルダー監視',

@@ -438,7 +438,6 @@ export const hr: Dict = {
   'settings.modules.configuredOn': 'Postavlja se na {page}',
   'settings.modules.switchFailed': 'Prekidač je odbijen: {reason}',
   'settings.modules.configureFirst': 'Zasad nema što uključiti. Postavite to najprije na {page}; nakon toga prekidač ovdje to zaustavlja i ponovno pokreće bez gubitka onoga što ste postavili.',
-  'settings.modules.saveFirst': 'Najprije spremite ili odbacite promjene na čekanju. Prebacivanje modula odmah zapisuje postavke, a dva zapisa bi jedan drugoga prebrisala.',
 
   'settings.module.extraction': 'Raspakiravanje arhiva',
   'settings.module.watch': 'Nadzor mape',

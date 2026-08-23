@@ -438,7 +438,6 @@ export const tr: Dict = {
   'settings.modules.configuredOn': '{page} sayfasında ayarlanır',
   'settings.modules.switchFailed': 'Bu anahtar reddedildi: {reason}',
   'settings.modules.configureFirst': 'Henüz açılacak bir şey yok. Bunu önce {page} sayfasında kurun; ondan sonra buradaki anahtar, kurduğunuzu kaybetmeden onu durdurup yeniden başlatır.',
-  'settings.modules.saveFirst': 'Önce bekleyen değişiklikleri kaydedin ya da atın. Bir modülü çevirmek ayarları hemen yazar ve iki yazma birbirinin üzerine geçer.',
 
   'settings.module.extraction': 'Arşiv açma',
   'settings.module.watch': 'Klasör izleme',

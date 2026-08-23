@@ -430,7 +430,6 @@ export const fr: Dict = {
   'settings.modules.configuredOn': 'Se règle sur {page}',
   'settings.modules.switchFailed': 'Cet interrupteur a été refusé : {reason}',
   'settings.modules.configureFirst': 'Il n’y a encore rien à activer. Configurez d’abord cela sur {page} ; ensuite l’interrupteur d’ici l’arrête et le relance sans perdre vos réglages.',
-  'settings.modules.saveFirst': 'Enregistrez ou abandonnez d’abord les modifications en attente. Basculer un module écrit les paramètres immédiatement, et les deux écritures s’écraseraient l’une l’autre.',
 
   'settings.module.extraction': 'Extraction des archives',
   'settings.module.watch': 'Surveillance de dossier',

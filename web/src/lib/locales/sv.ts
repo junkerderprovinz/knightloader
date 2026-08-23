@@ -438,7 +438,6 @@ export const sv: Dict = {
   'settings.modules.configuredOn': 'Ställs in på {page}',
   'settings.modules.switchFailed': 'Den brytaren nekades: {reason}',
   'settings.modules.configureFirst': 'Det finns inget att slå på än. Ställ in det på {page} först; därefter stoppar och startar brytaren här om det utan att tappa det du ställt in.',
-  'settings.modules.saveFirst': 'Spara eller släng de väntande ändringarna först. Att slå om en modul skriver inställningarna direkt, och de två skrivningarna skulle skriva över varandra.',
 
   'settings.module.extraction': 'Uppackning av arkiv',
   'settings.module.watch': 'Mappbevakning',

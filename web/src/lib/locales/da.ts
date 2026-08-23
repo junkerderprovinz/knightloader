@@ -438,7 +438,6 @@ export const da: Dict = {
   'settings.modules.configuredOn': 'Indstilles på {page}',
   'settings.modules.switchFailed': 'Den kontakt blev afvist: {reason}',
   'settings.modules.configureFirst': 'Der er endnu ikke noget at tænde for. Sæt det op på {page} først; derefter stopper og genstarter kontakten her det uden at miste det, du har sat op.',
-  'settings.modules.saveFirst': 'Gem eller kassér de ventende ændringer først. At slå et modul om skriver indstillingerne med det samme, og de to skrivninger ville overskrive hinanden.',
 
   'settings.module.extraction': 'Udpakning af arkiver',
   'settings.module.watch': 'Mappeovervågning',

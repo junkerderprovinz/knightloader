@@ -430,7 +430,6 @@ export const it: Dict = {
   'settings.modules.configuredOn': 'Si configura in {page}',
   'settings.modules.switchFailed': 'L’interruttore è stato rifiutato: {reason}',
   'settings.modules.configureFirst': 'Non c’è ancora niente da accendere. Configuralo prima in {page}; dopo, l’interruttore qui lo ferma e lo riavvia senza perdere quello che hai impostato.',
-  'settings.modules.saveFirst': 'Salva o scarta prima le modifiche in sospeso. Commutare un modulo scrive subito le impostazioni, e le due scritture si sovrascriverebbero a vicenda.',
 
   'settings.module.extraction': 'Estrazione archivi',
   'settings.module.watch': 'Sorveglianza cartella',

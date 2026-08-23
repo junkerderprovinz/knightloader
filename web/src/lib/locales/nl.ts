@@ -430,7 +430,6 @@ export const nl: Dict = {
   'settings.modules.configuredOn': 'Wordt ingesteld op {page}',
   'settings.modules.switchFailed': 'Die schakelaar werd geweigerd: {reason}',
   'settings.modules.configureFirst': 'Er valt nog niets aan te zetten. Stel dit eerst in op {page}; daarna stopt en herstart de schakelaar hier het zonder te verliezen wat je hebt ingesteld.',
-  'settings.modules.saveFirst': 'Sla de openstaande wijzigingen eerst op of gooi ze weg. Een module omzetten schrijft de instellingen meteen weg, en de twee schrijfacties zouden elkaar overschrijven.',
 
   'settings.module.extraction': 'Archieven uitpakken',
   'settings.module.watch': 'Mapbewaking',

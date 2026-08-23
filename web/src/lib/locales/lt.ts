@@ -438,7 +438,6 @@ export const lt: Dict = {
   'settings.modules.configuredOn': 'Nustatoma puslapyje {page}',
   'settings.modules.switchFailed': 'Jungiklis buvo atmestas: {reason}',
   'settings.modules.configureFirst': 'Kol kas nėra ko įjungti. Pirmiausia tai sutvarkykite puslapyje {page}; po to jungiklis čia jį sustabdo ir vėl paleidžia neprarasdamas to, ką nustatėte.',
-  'settings.modules.saveFirst': 'Pirma įrašykite arba atmeskite laukiančius pakeitimus. Modulio perjungimas įrašo nustatymus iškart, ir abu įrašymai perrašytų vienas kitą.',
 
   'settings.module.extraction': 'Archyvų išskleidimas',
   'settings.module.watch': 'Aplanko stebėjimas',

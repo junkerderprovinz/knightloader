@@ -440,7 +440,6 @@ export const no: Dict = {
   'settings.modules.configuredOn': 'Stilles inn på {page}',
   'settings.modules.switchFailed': 'Den bryteren ble avvist: {reason}',
   'settings.modules.configureFirst': 'Det er ennå ingenting å slå på. Sett dette opp på {page} først; deretter stopper og starter bryteren her det på nytt uten å miste det du har satt opp.',
-  'settings.modules.saveFirst': 'Lagre eller forkast de ventende endringene først. Å slå om en modul skriver innstillingene med én gang, og de to skrivingene ville overskrive hverandre.',
 
   'settings.module.extraction': 'Utpakking av arkiver',
   'settings.module.watch': 'Mappeovervåking',

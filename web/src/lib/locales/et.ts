@@ -438,7 +438,6 @@ export const et: Dict = {
   'settings.modules.configuredOn': 'Seadistatakse lehel {page}',
   'settings.modules.switchFailed': 'See lüliti lükati tagasi: {reason}',
   'settings.modules.configureFirst': 'Veel pole midagi sisse lülitada. Seadista see kõigepealt lehel {page}; pärast seda peatab ja käivitab siinne lüliti selle uuesti, kaotamata seatut.',
-  'settings.modules.saveFirst': 'Salvesta või loobu kõigepealt ootel muudatustest. Mooduli ümberlülitamine kirjutab seaded kohe, ja kaks kirjutust kirjutaksid teineteise üle.',
 
   'settings.module.extraction': 'Arhiivide lahtipakkimine',
   'settings.module.watch': 'Kausta jälgimine',

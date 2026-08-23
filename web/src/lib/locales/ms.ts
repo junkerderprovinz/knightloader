@@ -438,7 +438,6 @@ export const ms: Dict = {
   'settings.modules.configuredOn': 'Ditetapkan di {page}',
   'settings.modules.switchFailed': 'Suis itu ditolak: {reason}',
   'settings.modules.configureFirst': 'Belum ada apa-apa untuk dihidupkan. Sediakan dahulu di {page}; selepas itu suis di sini menghentikan dan memulakannya semula tanpa hilang apa yang anda tetapkan.',
-  'settings.modules.saveFirst': 'Simpan atau buang dahulu perubahan yang tertangguh. Menukar suis modul menulis tetapan serta-merta, dan kedua-dua penulisan akan menindih satu sama lain.',
 
   'settings.module.extraction': 'Nyahmampat arkib',
   'settings.module.watch': 'Pemantauan folder',

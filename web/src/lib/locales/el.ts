@@ -438,7 +438,6 @@ export const el: Dict = {
   'settings.modules.configuredOn': 'Ρυθμίζεται στη σελίδα {page}',
   'settings.modules.switchFailed': 'Ο διακόπτης απορρίφθηκε: {reason}',
   'settings.modules.configureFirst': 'Δεν υπάρχει ακόμη κάτι να ανάψει. Ρυθμίστε το πρώτα στη σελίδα {page}· μετά ο διακόπτης εδώ το σταματά και το ξεκινά ξανά χωρίς να χαθεί ό,τι ορίσατε.',
-  'settings.modules.saveFirst': 'Αποθηκεύστε ή απορρίψτε πρώτα τις εκκρεμείς αλλαγές. Το γύρισμα μιας μονάδας γράφει τις ρυθμίσεις αμέσως, και οι δύο εγγραφές θα έσβηνε η μία την άλλη.',
 
   'settings.module.extraction': 'Αποσυμπίεση αρχείων',
   'settings.module.watch': 'Παρακολούθηση φακέλου',
