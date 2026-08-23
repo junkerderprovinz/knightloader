@@ -438,7 +438,6 @@ export const is: Dict = {
   'settings.modules.configuredOn': 'Stillt á {page}',
   'settings.modules.switchFailed': 'Rofanum var hafnað: {reason}',
   'settings.modules.configureFirst': 'Það er ekkert til að kveikja á enn. Settu þetta upp á {page} fyrst; eftir það stöðvar rofinn hér það og ræsir aftur án þess að tapa því sem þú stilltir.',
-  'settings.modules.saveFirst': 'Vistaðu eða hentu bíðandi breytingum fyrst. Að skipta einingu skrifar stillingarnar strax, og skrifin tvö myndu skrifa hvort yfir annað.',
 
   'settings.module.extraction': 'Afþjöppun safnskráa',
   'settings.module.watch': 'Möppuvöktun',

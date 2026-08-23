@@ -438,7 +438,6 @@ export const uk: Dict = {
   'settings.modules.configuredOn': 'Налаштовується на {page}',
   'settings.modules.switchFailed': 'Перемикач відхилено: {reason}',
   'settings.modules.configureFirst': 'Вмикати ще нічого. Спершу налаштуйте це на {page}; після цього перемикач тут зупиняє і знову запускає модуль, не втрачаючи заданого.',
-  'settings.modules.saveFirst': 'Спершу збережіть або відкиньте незавершені зміни. Перемикання модуля записує налаштування одразу, і два записи затерли б один одного.',
 
   'settings.module.extraction': 'Розпакування архівів',
   'settings.module.watch': 'Нагляд за текою',

@@ -438,7 +438,6 @@ export const bg: Dict = {
   'settings.modules.configuredOn': 'Настройва се в {page}',
   'settings.modules.switchFailed': 'Ключът беше отказан: {reason}',
   'settings.modules.configureFirst': 'Още няма какво да се включи. Настройте това първо в {page}; след това ключът тук го спира и пуска отново, без да губи зададеното.',
-  'settings.modules.saveFirst': 'Първо запазете или отхвърлете чакащите промени. Превключването на модул записва настройките веднага и двата записа биха се презаписали един друг.',
 
   'settings.module.extraction': 'Разархивиране',
   'settings.module.watch': 'Наблюдение на папка',

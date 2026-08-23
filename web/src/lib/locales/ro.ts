@@ -438,7 +438,6 @@ export const ro: Dict = {
   'settings.modules.configuredOn': 'Se configurează în {page}',
   'settings.modules.switchFailed': 'Comutatorul a fost refuzat: {reason}',
   'settings.modules.configureFirst': 'Încă nu e nimic de pornit. Configurează mai întâi în {page}; după aceea comutatorul de aici îl oprește și îl repornește fără să piardă ce ai stabilit.',
-  'settings.modules.saveFirst': 'Salvează sau renunță întâi la modificările în așteptare. Comutarea unui modul scrie setările pe loc, iar cele două scrieri s-ar suprascrie una pe alta.',
 
   'settings.module.extraction': 'Dezarhivare',
   'settings.module.watch': 'Supraveghere dosar',

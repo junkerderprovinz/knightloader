@@ -430,7 +430,6 @@ export const pt: Dict = {
   'settings.modules.configuredOn': 'Configura-se em {page}',
   'settings.modules.switchFailed': 'Esse interruptor foi recusado: {reason}',
   'settings.modules.configureFirst': 'Ainda não há nada para ligar. Configure isto primeiro em {page}; depois disso o interruptor daqui pára-o e volta a arrancá-lo sem perder o que definiu.',
-  'settings.modules.saveFirst': 'Guarde ou descarte primeiro as alterações pendentes. Comutar um módulo escreve as definições de imediato, e as duas escritas sobrepunham-se uma à outra.',
 
   'settings.module.extraction': 'Extração de arquivos',
   'settings.module.watch': 'Vigilância de pasta',

@@ -438,7 +438,6 @@ export const hu: Dict = {
   'settings.modules.configuredOn': 'A(z) {page} oldalon állítható be',
   'settings.modules.switchFailed': 'A kapcsolót elutasította: {reason}',
   'settings.modules.configureFirst': 'Még nincs mit bekapcsolni. Előbb állítsd be a(z) {page} oldalon; utána az itteni kapcsoló leállítja és újraindítja anélkül, hogy a beállított elveszne.',
-  'settings.modules.saveFirst': 'Előbb mentsd vagy vesd el a függőben lévő változásokat. Egy modul átkapcsolása azonnal kiírja a beállításokat, és a két írás felülírná egymást.',
 
   'settings.module.extraction': 'Archívumok kicsomagolása',
   'settings.module.watch': 'Mappafigyelés',

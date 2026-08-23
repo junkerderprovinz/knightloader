@@ -438,7 +438,6 @@ export const vi: Dict = {
   'settings.modules.configuredOn': 'Đặt ở {page}',
   'settings.modules.switchFailed': 'Công tắc đó bị từ chối: {reason}',
   'settings.modules.configureFirst': 'Chưa có gì để bật. Hãy thiết lập ở {page} trước; sau đó công tắc ở đây sẽ dừng và chạy lại mà không mất những gì bạn đã đặt.',
-  'settings.modules.saveFirst': 'Hãy lưu hoặc bỏ các thay đổi đang chờ trước. Gạt một mô-đun sẽ ghi cài đặt ngay lập tức, và hai lần ghi sẽ đè lên nhau.',
 
   'settings.module.extraction': 'Giải nén tệp nén',
   'settings.module.watch': 'Theo dõi thư mục',

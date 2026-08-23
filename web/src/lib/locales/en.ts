@@ -483,7 +483,6 @@ export const en = {
   'settings.modules.configuredOn': 'Configured on {page}',
   'settings.modules.switchFailed': 'That switch was refused: {reason}',
   'settings.modules.configureFirst': 'There is nothing to switch on yet. Set this up on {page} first; after that the switch here stops and restarts it without losing what you set.',
-  'settings.modules.saveFirst': 'Save or discard the pending changes first. Switching a module writes the settings straight away, and the two writes would overwrite each other.',
 
   'settings.module.extraction': 'Archive extraction',
   'settings.module.watch': 'Folder watch',

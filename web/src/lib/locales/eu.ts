@@ -438,7 +438,6 @@ export const eu: Dict = {
   'settings.modules.configuredOn': '{page} orrian ezartzen da',
   'settings.modules.switchFailed': 'Etengailu hori ukatu da: {reason}',
   'settings.modules.configureFirst': 'Oraindik ez dago ezer pizteko. Ezarri hau lehenik {page} orrian; ondoren hemengo etengailuak gelditu eta berriro abiaraziko du, ezarritakoa galdu gabe.',
-  'settings.modules.saveFirst': 'Gorde edo baztertu lehenik zain dauden aldaketak. Modulu bat aldatzeak ezarpenak berehala idazten ditu, eta bi idazketek elkar gainidatziko lukete.',
 
   'settings.module.extraction': 'Artxiboak erauztea',
   'settings.module.watch': 'Karpeta zaintzea',

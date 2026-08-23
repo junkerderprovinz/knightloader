@@ -430,7 +430,6 @@ export const pl: Dict = {
   'settings.modules.configuredOn': 'Ustawia się na {page}',
   'settings.modules.switchFailed': 'Ten przełącznik odrzucono: {reason}',
   'settings.modules.configureFirst': 'Nie ma jeszcze czego włączać. Skonfiguruj to najpierw na {page}; potem przełącznik tutaj zatrzymuje to i uruchamia ponownie, nie tracąc tego, co ustawiłeś.',
-  'settings.modules.saveFirst': 'Najpierw zapisz albo odrzuć oczekujące zmiany. Przełączenie modułu zapisuje ustawienia od razu, a te dwa zapisy nadpisałyby się nawzajem.',
 
   'settings.module.extraction': 'Rozpakowywanie archiwów',
   'settings.module.watch': 'Obserwowanie folderu',

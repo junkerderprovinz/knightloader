@@ -438,7 +438,6 @@ export const id: Dict = {
   'settings.modules.configuredOn': 'Diatur di {page}',
   'settings.modules.switchFailed': 'Sakelar itu ditolak: {reason}',
   'settings.modules.configureFirst': 'Belum ada yang bisa dinyalakan. Siapkan dulu di {page}; setelah itu sakelar di sini menghentikan dan menjalankannya lagi tanpa kehilangan apa yang Anda atur.',
-  'settings.modules.saveFirst': 'Simpan atau buang dulu perubahan yang menggantung. Membalik sebuah modul langsung menulis pengaturan, dan kedua penulisan itu akan saling menimpa.',
 
   'settings.module.extraction': 'Ekstraksi arsip',
   'settings.module.watch': 'Pantauan folder',

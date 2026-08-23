@@ -440,7 +440,6 @@ export const he: Dict = {
   'settings.modules.configuredOn': 'נקבע ב{page}',
   'settings.modules.switchFailed': 'המתג נדחה: {reason}',
   'settings.modules.configureFirst': 'עדיין אין מה להדליק. הגדר את זה קודם ב{page}; אחרי כן המתג כאן עוצר ומפעיל אותו מחדש בלי לאבד את מה שהגדרת.',
-  'settings.modules.saveFirst': 'שמור או בטל קודם את השינויים הממתינים. החלפת מצב של מודול כותבת את ההגדרות מיד, ושתי הכתיבות ידרסו זו את זו.',
 
   'settings.module.extraction': 'חילוץ ארכיונים',
   'settings.module.watch': 'מעקב אחר תיקייה',

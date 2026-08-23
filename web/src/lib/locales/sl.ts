@@ -438,7 +438,6 @@ export const sl: Dict = {
   'settings.modules.configuredOn': 'Nastavi se na {page}',
   'settings.modules.switchFailed': 'To stikalo je bilo zavrnjeno: {reason}',
   'settings.modules.configureFirst': 'Zaenkrat ni ničesar za vklopiti. Najprej to nastavite na {page}; potem stikalo tukaj to ustavi in znova zažene, ne da bi izgubilo nastavljeno.',
-  'settings.modules.saveFirst': 'Najprej shranite ali zavrzite čakajoče spremembe. Preklop modula zapiše nastavitve takoj, in oba zapisa bi se prepisala med sabo.',
 
   'settings.module.extraction': 'Razpakiranje arhivov',
   'settings.module.watch': 'Nadzor mape',

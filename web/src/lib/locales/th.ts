@@ -438,7 +438,6 @@ export const th: Dict = {
   'settings.modules.configuredOn': 'ตั้งค่าที่ {page}',
   'settings.modules.switchFailed': 'สวิตช์นั้นถูกปฏิเสธ: {reason}',
   'settings.modules.configureFirst': 'ยังไม่มีอะไรให้เปิด ตั้งค่าที่ {page} ก่อน จากนั้นสวิตช์ตรงนี้จะหยุดและเริ่มใหม่ให้โดยไม่ทำสิ่งที่คุณตั้งไว้หาย',
-  'settings.modules.saveFirst': 'บันทึกหรือทิ้งการเปลี่ยนแปลงที่ค้างอยู่ก่อน การสลับโมดูลเขียนการตั้งค่าลงทันที และการเขียนสองครั้งจะทับกันเอง',
 
   'settings.module.extraction': 'แตกไฟล์บีบอัด',
   'settings.module.watch': 'เฝ้าดูโฟลเดอร์',

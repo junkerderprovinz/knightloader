@@ -438,7 +438,6 @@ export const ca: Dict = {
   'settings.modules.configuredOn': 'Es configura a {page}',
   'settings.modules.switchFailed': 'Aquest interruptor s’ha rebutjat: {reason}',
   'settings.modules.configureFirst': 'Encara no hi ha res per encendre. Configureu-ho primer a {page}; després l’interruptor d’aquí l’atura i el torna a engegar sense perdre el que hàgiu posat.',
-  'settings.modules.saveFirst': 'Deseu o descarteu primer els canvis pendents. Canviar un mòdul escriu la configuració a l’instant, i les dues escriptures es trepitjarien.',
 
   'settings.module.extraction': 'Extracció d’arxius',
   'settings.module.watch': 'Vigilància de carpeta',

@@ -438,7 +438,6 @@ export const fa: Dict = {
   'settings.modules.configuredOn': 'در {page} تنظیم می‌شود',
   'settings.modules.switchFailed': 'آن کلید رد شد: {reason}',
   'settings.modules.configureFirst': 'هنوز چیزی برای روشن کردن نیست. اول این را در {page} برپا کنید؛ پس از آن کلید اینجا آن را متوقف و دوباره اجرا می‌کند بی‌آنکه آنچه تنظیم کرده‌اید از دست برود.',
-  'settings.modules.saveFirst': 'اول تغییرهای در انتظار را ذخیره یا رها کنید. جابه‌جا کردن یک پودمان تنظیمات را فوراً می‌نویسد و دو نوشتن روی هم می‌افتند.',
 
   'settings.module.extraction': 'بازکردن آرشیوها',
   'settings.module.watch': 'دیده‌بانی پوشه',

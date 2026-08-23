@@ -438,7 +438,6 @@ export const de: Dict = {
   'settings.modules.configuredOn': 'Wird auf {page} eingestellt',
   'settings.modules.switchFailed': 'Der Schalter wurde abgelehnt: {reason}',
   'settings.modules.configureFirst': 'Es gibt noch nichts einzuschalten. Richte das zuerst auf {page} ein; danach hält der Schalter hier es an und startet es wieder, ohne das Eingerichtete zu verlieren.',
-  'settings.modules.saveFirst': 'Speichere oder verwirf zuerst die offenen Änderungen. Ein Modul zu schalten schreibt die Einstellungen sofort, und die beiden Schreibvorgänge würden sich gegenseitig überschreiben.',
 
   'settings.module.extraction': 'Archive entpacken',
   'settings.module.watch': 'Ordnerüberwachung',

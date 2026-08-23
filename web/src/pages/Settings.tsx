@@ -184,7 +184,21 @@ export function SettingsPage() {
 
   const toggle = useCallback(
     async (id: string, enabled: boolean) => {
-      if (dirty) throw new Error(tx('settings.modules.saveFirst'));
+      // A module switch writes immediately, so an unrelated field left
+      // dirty on another tab used to make this throw outright (jdp, 2026-08-23:
+      // "wenn ich ein modul deaktivieren will kommt: ... Speichere oder
+      // verwirf zuerst die offenen Änderungen") - every tab already autosaves
+      // itself 600ms after an edit (see the debounced effect above), so the
+      // right answer is to flush that pending save right now rather than
+      // reject the switch: the two writes still happen in order, they just
+      // both happen instead of one of them failing.
+      if (dirty) {
+        if (saveTimer.current !== null) {
+          window.clearTimeout(saveTimer.current);
+          saveTimer.current = null;
+        }
+        await onSave();
+      }
       const next = await setFeature(id, enabled);
       setFeatures(next);
       // A module switch writes settings on the server — it clears the watch
@@ -195,7 +209,7 @@ export function SettingsPage() {
       setSaved(fresh);
       setDraft(fresh);
     },
-    [dirty, setFeatures, setSaved, tx],
+    [dirty, onSave, setFeatures, setSaved],
   );
 
   if (loading || featuresLoading) return <LoadingCard label={t('common.loading')} />;

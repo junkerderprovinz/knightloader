@@ -438,7 +438,6 @@ export const gl: Dict = {
   'settings.modules.configuredOn': 'Configúrase en {page}',
   'settings.modules.switchFailed': 'Ese interruptor foi rexeitado: {reason}',
   'settings.modules.configureFirst': 'Aínda non hai nada que acender. Configúrao primeiro en {page}; despois o interruptor de aquí párao e vólveo arrincar sen perder o que puxeches.',
-  'settings.modules.saveFirst': 'Garda ou descarta primeiro os cambios pendentes. Cambiar un módulo escribe os axustes ao instante, e as dúas escrituras pisaríanse.',
 
   'settings.module.extraction': 'Extracción de arquivos',
   'settings.module.watch': 'Vixilancia de cartafol',

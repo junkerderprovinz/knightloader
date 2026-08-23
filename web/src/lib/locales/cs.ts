@@ -438,7 +438,6 @@ export const cs: Dict = {
   'settings.modules.configuredOn': 'Nastavuje se na {page}',
   'settings.modules.switchFailed': 'Přepínač byl odmítnut: {reason}',
   'settings.modules.configureFirst': 'Zatím není co zapínat. Nastavte to nejdřív na {page}; potom to přepínač tady zastaví a znovu spustí, aniž by se ztratilo, co jste nastavili.',
-  'settings.modules.saveFirst': 'Nejdřív uložte nebo zahoďte rozdělané změny. Přepnutí modulu zapíše nastavení okamžitě a oba zápisy by se navzájem přepsaly.',
 
   'settings.module.extraction': 'Rozbalování archivů',
   'settings.module.watch': 'Sledování složky',
