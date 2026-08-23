@@ -325,6 +325,7 @@ function ConnectionRow({
           on={row.enabled}
           onChange={(v) => onChange({ enabled: v })}
           name={cx('settings.connections.use')}
+          hue={index}
         />
         <button
           type="button"

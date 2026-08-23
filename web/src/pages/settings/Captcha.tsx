@@ -186,6 +186,7 @@ export function Captcha() {
             <SolverRow
               key={svc.id}
               svc={svc}
+              hue={i}
               enabled={order.includes(svc.id)}
               position={order.indexOf(svc.id)}
               count={order.length}
@@ -207,6 +208,7 @@ export function Captcha() {
 
 function SolverRow({
   svc,
+  hue,
   enabled,
   position,
   count,
@@ -220,6 +222,9 @@ function SolverRow({
   onSaved,
 }: {
   svc: CatalogueService;
+  /** This row's position in the full solver list - same 0-based sequence
+   *  every other hue-carrying set in the app uses. */
+  hue: number;
   enabled: boolean;
   /** Index within the enabled/order list, -1 when not enabled. */
   position: number;
@@ -239,7 +244,7 @@ function SolverRow({
   return (
     <li className={last ? '' : 'border-b border-carbon-border/60'}>
       <div className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-3 py-2.5">
-        <NeutralSwitch on={enabled} onChange={onToggle} name={cx('settings.captcha.enableSolver', { service: svc.label })} />
+        <NeutralSwitch on={enabled} onChange={onToggle} name={cx('settings.captcha.enableSolver', { service: svc.label })} hue={hue} />
 
         <div className="flex min-w-0 items-center gap-2">
           <span className="text-sm text-carbon-text">{svc.label}</span>

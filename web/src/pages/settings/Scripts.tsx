@@ -426,6 +426,7 @@ function ScriptRow({
           on={draft.enabled}
           onChange={(v) => update({ enabled: v })}
           name={cx('settings.scripts.use')}
+          hue={index}
         />
         <button type="button" onClick={onToggle} aria-expanded={open} className="flex min-w-0 items-center gap-3 text-left">
           <span className="min-w-0 flex-1">

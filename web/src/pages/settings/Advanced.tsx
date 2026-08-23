@@ -125,10 +125,11 @@ export function Advanced() {
             {shown.length === 0 ? (
               <p className="p-6 text-center text-sm text-carbon-textMuted">{tx('settings.advanced.noMatch')}</p>
             ) : (
-              shown.map((r) => (
+              shown.map((r, i) => (
                 <KeyRow
                   key={r.path}
                   row={r}
+                  hue={i}
                   fallback={schema ? getPath(schema.values, r.path) : undefined}
                   canReset={schema !== null}
                   onWrite={write}
@@ -144,11 +145,13 @@ export function Advanced() {
 
 function KeyRow({
   row,
+  hue,
   fallback,
   canReset,
   onWrite,
 }: {
   row: Row;
+  hue: number;
   fallback: unknown;
   canReset: boolean;
   onWrite: (path: string, value: unknown) => void;
@@ -177,7 +180,7 @@ function KeyRow({
       </div>
 
       <div className="w-full sm:w-72">
-        <ValueEditor row={row} onWrite={onWrite} />
+        <ValueEditor row={row} hue={hue} onWrite={onWrite} />
       </div>
 
       {/* Reset appears only where there is something to undo, so the column is
@@ -198,7 +201,15 @@ function KeyRow({
   );
 }
 
-function ValueEditor({ row, onWrite }: { row: Row; onWrite: (path: string, value: unknown) => void }) {
+function ValueEditor({
+  row,
+  hue,
+  onWrite,
+}: {
+  row: Row;
+  hue: number;
+  onWrite: (path: string, value: unknown) => void;
+}) {
   const { tx } = useTx();
   // A list is edited as text and only written back once it parses. Writing a
   // half-typed array into the draft would let the save button send `[{"na` as a
@@ -216,6 +227,7 @@ function ValueEditor({ row, onWrite }: { row: Row; onWrite: (path: string, value
           onLabel="on"
           offLabel="off"
           onChange={(v) => onWrite(row.path, v)}
+          hue={hue}
         />
       );
     case 'number':
