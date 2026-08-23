@@ -178,38 +178,43 @@ export function Look() {
       <Card className="flex flex-col gap-4">
         <SectionTitle hue={1}>{t('settings.colours')}</SectionTitle>
 
-        <div className="flex flex-wrap items-center gap-3">
-          {/* The current/custom accent trigger - a plain circle, no
-              selection ring of its own (the real container doesn't give it
-              one either), a native colour input as the invisible click
-              target. Not GlimStone's documented popover picker
-              (reference/colorPicker.ts) - that has no KnightLoader port
-              yet, and building one is a separate, dedicated piece of work
-              rather than something to fold into a visual-parity pass. */}
-          <span
-            className="relative inline-flex h-6 w-6 shrink-0 overflow-hidden rounded-[var(--radius-pill)] border-2 border-carbon-border"
-            title={t('settings.accent')}
-          >
-            <span aria-hidden className="pointer-events-none absolute inset-0" style={{ backgroundColor: accentLive }} />
-            <input
-              type="color"
-              value={accentLive}
-              onChange={(e) => patch({ accent: e.target.value })}
-              aria-label={t('settings.accent')}
-              className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-            />
+        <div className="flex flex-col gap-2">
+          <span className="flex items-center gap-1.5 text-sm text-carbon-text">
+            {t('settings.accent')}
+            <InfoBubble tip={t('settings.accentHint')} />
           </span>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-carbon-textMuted">{t('settings.accentPresets')}:</span>
-            {ACCENTS.map((a) => (
-              <RingSwatch
-                key={a.hex}
-                color={a.hex}
-                label={a.name}
-                selected={accentLive === a.hex.toLowerCase()}
-                onPick={() => patch({ accent: a.hex })}
+          <div className="flex flex-wrap items-center gap-3">
+            {/* The current/custom accent trigger - a plain circle, no
+                selection ring of its own (the real container doesn't give it
+                one either), a native colour input as the invisible click
+                target. Not GlimStone's documented popover picker
+                (reference/colorPicker.ts) - that has no KnightLoader port
+                yet, and building one is a separate, dedicated piece of work
+                rather than something to fold into a visual-parity pass. */}
+            <span
+              className="relative inline-flex h-6 w-6 shrink-0 overflow-hidden rounded-[var(--radius-pill)] border-2 border-carbon-border"
+              title={t('settings.accent')}
+            >
+              <span aria-hidden className="pointer-events-none absolute inset-0" style={{ backgroundColor: accentLive }} />
+              <input
+                type="color"
+                value={accentLive}
+                onChange={(e) => patch({ accent: e.target.value })}
+                aria-label={t('settings.accent')}
+                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
               />
-            ))}
+            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs text-carbon-textMuted">{t('settings.accentPresets')}:</span>
+              {ACCENTS.map((a) => (
+                <RingSwatch
+                  key={a.hex}
+                  color={a.hex}
+                  label={a.name}
+                  selected={accentLive === a.hex.toLowerCase()}
+                  onPick={() => patch({ accent: a.hex })}
+                />
+              ))}
             {/* Icon badge, not a text link (rule 13: "a small, single-purpose
                 action badge carries an icon"). Only once the accent has
                 actually moved off the default. */}
@@ -224,6 +229,7 @@ export function Look() {
                 <IconRetry width={13} height={13} />
               </button>
             )}
+          </div>
           </div>
         </div>
 
@@ -285,6 +291,11 @@ export function Look() {
                 colour inputs, plus an icon-only reset badge - always
                 rendered, disabled rather than hidden along with the rest of
                 this sub-section. */}
+            <div className="flex flex-col gap-2">
+            <span className="flex items-center gap-1.5 text-sm text-carbon-text">
+              {t('settings.rainbowPaletteLabel')}
+              <InfoBubble tip={t('settings.rainbowPaletteHint')} />
+            </span>
             <div className="flex flex-wrap items-center gap-2">
               {palette.map((hex, i) => (
                 <label
@@ -316,6 +327,7 @@ export function Look() {
               >
                 <IconRetry width={14} height={14} />
               </button>
+            </div>
             </div>
           </div>
         </div>
