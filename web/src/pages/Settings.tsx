@@ -226,7 +226,7 @@ export function SettingsPage() {
           sibling app is two answers to one question. It also gives the page its
           full width back, which is what the wide tables on Advanced and Rules
           were always short of. */}
-      <div className="mt-4 flex flex-col gap-6">
+      <div className="mt-4 flex flex-col gap-10">
         <SectionTabs pages={features.pages} />
 
         {/* No sticky Save/Discard bar any more - every edit on every settings

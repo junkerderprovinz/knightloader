@@ -221,7 +221,7 @@ export function Rules() {
   const on = !set.disabled;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-10">
       <Card className="flex flex-col gap-4">
         <SectionTitle hue={0}>{rx('settings.rules.setupTitle')}</SectionTitle>
         <div className="flex flex-wrap items-center gap-4">

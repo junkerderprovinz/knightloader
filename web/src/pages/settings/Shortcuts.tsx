@@ -90,7 +90,7 @@ export function Shortcuts() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-10">
       <Card className="flex flex-wrap items-center justify-between gap-3">
         <SectionTitle hue={0}>{t('settings.nav.shortcuts')}</SectionTitle>
         <p className="max-w-2xl text-sm text-carbon-textSub">{t('settings.shortcuts.subtitle')}</p>

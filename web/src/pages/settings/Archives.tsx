@@ -86,7 +86,7 @@ export function Archives() {
   const keeping = disposal === 'keep';
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-10">
       {/* What this build actually opens, in one line, taken from the extractor
           rather than written out here. It is drawn only once the server has
           answered: a page that names formats out of its own head goes on

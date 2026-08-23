@@ -78,7 +78,7 @@ export function Resolvers() {
   const module = features.modules.find((m) => m.id === 'ytdlp');
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-10">
       {module && !module.enabled && (
           <Card className="flex items-center gap-2 text-sm text-carbon-textSub">
             <SectionTitle hue={0}>Module unavailable</SectionTitle>

@@ -144,7 +144,7 @@ export function System() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-10">
       <Card className="flex flex-col gap-2">
         <SectionTitle hue={1}>{cx('settings.system.overviewTitle')}</SectionTitle>
         <p className="text-sm text-carbon-textSub">{cx('settings.system.subtitle')}</p>

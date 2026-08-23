@@ -446,15 +446,17 @@ export function useTooltip<T extends HTMLElement = HTMLElement>(content: ReactNo
  */
 export const segBase = 'rounded-[var(--radius-control)] font-medium transition-colors';
 export const segOn = 'bg-accent text-accentContrast';
-// Transparent at rest, matching the actual BombVault test container's own
-// Settings tab strip (computed styles read directly off it: unselected =
-// `background: transparent`, no fill at all, only the hover state paints
-// anything) - a prior pass here added a quiet resting fill on the strength
-// of GlimStone's own docs, which turned out to describe an undeployed
-// feature, not what jdp was actually comparing against (jdp: "Bitte
-// orientiere dich am Bombvault-Testcontainer!!! Es sieht nicht aus wie
-// dort!").
-export const segOff = 'text-carbon-textMuted hover:bg-carbon-hover hover:text-carbon-text';
+// bg-carbon-surface2 at rest, not transparent: the previous "transparent at
+// rest" call here was matching a BombVault test container that was itself
+// running a stale build (see KnightLoader's own changelog, "der
+// BV-Testcontainer läuft eine ÄLTERE Version als das Repo/GlimStone-Doku").
+// GlimStone's design-language.md now states this explicitly ("Every tab is
+// a badge, not just the selected one... an early build read this rule as
+// bare-until-selected... the resulting strip looked unfinished"), and
+// BombVault's own current source carries the fix. jdp, on KnightLoader
+// specifically: "auch im nicht ausgewählten zustand sollen sie als badges
+// erkennbar sein, siehe BV."
+export const segOff = 'bg-carbon-surface2 text-carbon-textMuted hover:bg-carbon-hover hover:text-carbon-text';
 
 /**
  * hueStyle is how anything that is one member of a set claims a palette

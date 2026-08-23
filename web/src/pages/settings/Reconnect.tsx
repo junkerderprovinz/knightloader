@@ -249,15 +249,16 @@ export function Reconnect() {
   const off = rc.method === 'none';
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-10">
       <Card className="flex flex-col gap-5">
         <SectionTitle hue={0}>{t('settings.reconnect.setupTitle')}</SectionTitle>
         {/* FieldGroup, not Field: a Field is a `<label>` and hands its clicks to
             the first control inside it, which for a tab strip is the first tab.
             See ui.tsx. */}
-        <FieldGroup label={t('settings.reconnect.method')} hint={t('settings.reconnect.methodHint')}>
+        <FieldGroup layout="row" label={t('settings.reconnect.method')} hint={t('settings.reconnect.methodHint')}>
           <Tabs
             label={t('settings.reconnect.method')}
+            variant="well"
             size="sm"
             className="w-fit"
             active={rc.method}

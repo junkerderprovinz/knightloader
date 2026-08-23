@@ -93,7 +93,7 @@ export function Access() {
   const listeners = features.modules.filter((m) => m.page === 'access');
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-10">
       <PasswordCard />
 
       <RemoteAccessSection cx={cx} />
