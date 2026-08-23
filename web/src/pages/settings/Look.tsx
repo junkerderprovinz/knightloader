@@ -117,24 +117,20 @@ export function Look() {
           below, so it does not pretend to be part of the section that DOES
           have to match BV's exact shape. */}
       <Card className="flex flex-col gap-3">
-        <SectionTitle right={<InfoBubble tip={t('settings.shapeHint')} />}>{t('settings.shape')}</SectionTitle>
+        <SectionTitle hint={t('settings.shapeHint')}>{t('settings.shape')}</SectionTitle>
+        {/* Plain text options, no per-item glyph (jdp: "die Auswahlfelder der
+            Ecken soll ein horizontaler Selektor werden, Auswahlflächen ohne
+            icon") - the outline-square glyph this used to carry per option
+            is gone; the label alone says which corner radius each option
+            picks. */}
         <Tabs
           label={t('settings.shape')}
           size="sm"
+          equalWidth
           className="w-fit"
           active={cfg.shape}
           onSelect={(id) => patch({ shape: id as Shape })}
-          items={SHAPES.map((s) => ({
-            id: s,
-            label: t(`settings.shape.${s}` as never),
-            icon: (
-              <span
-                aria-hidden
-                className="h-3.5 w-3.5 shrink-0 border-[1.5px] border-current"
-                style={{ borderRadius: s === 'round' ? '6px' : s === 'soft' ? '2px' : '0' }}
-              />
-            ),
-          }))}
+          items={SHAPES.map((s) => ({ id: s, label: t(`settings.shape.${s}` as never) }))}
         />
       </Card>
 
@@ -232,7 +228,10 @@ export function Look() {
               nobody what the mode can do. */}
           <div className={`flex flex-col gap-3 transition-opacity ${cfg.rainbow ? '' : 'pointer-events-none opacity-50'}`}>
             <div className="flex items-start justify-between gap-4">
-              <span className="text-sm text-carbon-text">{t('settings.rainbowReactive')}</span>
+              <span className="flex items-center gap-1.5 text-sm text-carbon-text">
+                {t('settings.rainbowReactive')}
+                <InfoBubble tip={t('settings.rainbowReactiveHint')} />
+              </span>
               <Toggle
                 hideLabel
                 label={t('settings.rainbowReactive')}
@@ -241,7 +240,10 @@ export function Look() {
               />
             </div>
             <div className="flex items-start justify-between gap-4">
-              <span className="text-sm text-carbon-text">{t('settings.rainbowRotate')}</span>
+              <span className="flex items-center gap-1.5 text-sm text-carbon-text">
+                {t('settings.rainbowRotate')}
+                <InfoBubble tip={t('settings.rainbowRotateHint')} />
+              </span>
               <Toggle
                 hideLabel
                 label={t('settings.rainbowRotate')}
@@ -295,7 +297,12 @@ export function Look() {
         </div>
 
         {saveError && <p className="text-xs text-statusFail">{t('settings.look.saveFailed', { error: saveError })}</p>}
+      </Card>
 
+      {/* Its own card now (jdp: "Stiller Modus in eigene Card") - was the
+          last row inside Aussehen above. */}
+      <Card className="flex flex-col gap-3">
+        <SectionTitle>{t('notifications.quiet')}</SectionTitle>
         <QuietModeToggle />
       </Card>
 
@@ -318,6 +325,7 @@ export function Look() {
         <Tabs
           label={t('settings.theme')}
           size="sm"
+          equalWidth
           className="w-fit"
           active={theme}
           onSelect={(id) => setTheme(id as 'dark' | 'light')}
