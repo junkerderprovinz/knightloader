@@ -1164,8 +1164,6 @@ export const hr: Dict = {
   'settings.diagnostics.loadFailed': 'Dijagnostiku nije bilo moguće učitati. Radi li poslužitelj?',
 
   'settings.nav.help': 'Pomoć',
-  'settings.help.intro':
-    'Što ovaj build zna raditi, organizirano prema zadatku, a ne prema stranici postavki. Svaki odjeljak vodi tamo gdje se to postavlja.',
 
   'settings.help.intake.title': 'Dodavanje preuzimanja',
   'settings.help.intake.body':
@@ -1331,9 +1329,9 @@ export const hr: Dict = {
   'settings.browsertools.installChromiumStep2': 'Otvori chrome://extensions (ili edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Uključi razvojni način.',
   'settings.browsertools.installChromiumStep4': 'Odaberi „Učitaj raspakirano” i odaberi raspakiranu mapu.',
-  'settings.browsertools.installFirefoxStep1': 'Otvori about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Odaberi „Učitaj privremeni dodatak” i odaberi ovu datoteku.',
-  'settings.browsertools.installFirefoxStep3': 'Ostaje instalirana dok se Firefox ponovno ne pokrene - trajna instalacija zahtijeva Mozillino vlastito potpisivanje, koje samostalno hostirani softver ne može automatski dobiti.',
+  'settings.browsertools.installFirefoxStep1': 'Za trajnu instalaciju: otvori about:addons i klikni ikonu zupčanika gore desno.',
+  'settings.browsertools.installFirefoxStep2': 'Odaberi „Instaliraj dodatak iz datoteke…” i odaberi ovu datoteku.',
+  'settings.browsertools.installFirefoxStep3': 'Za brzo isprobavanje umjesto toga otvori about:debugging#/runtime/this-firefox i odaberi „Učitaj privremeni dodatak” - nestaje pri ponovnom pokretanju Firefoxa.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'Dodaj u KnightLoader',
   'settings.browsertools.copyCode': 'Umjesto toga kopiraj kod',

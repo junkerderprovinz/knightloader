@@ -1164,8 +1164,6 @@ export const sl: Dict = {
   'settings.diagnostics.loadFailed': 'Diagnostike ni bilo mogoče naložiti. Ali strežnik teče?',
 
   'settings.nav.help': 'Pomoč',
-  'settings.help.intro':
-    'Kaj ta build zna, urejeno po opravilu, ne po strani z nastavitvami. Vsak razdelek vodi tja, kjer se to nastavi.',
 
   'settings.help.intake.title': 'Dodajanje prenosov',
   'settings.help.intake.body':
@@ -1331,9 +1329,9 @@ export const sl: Dict = {
   'settings.browsertools.installChromiumStep2': 'Odpri chrome://extensions (ali edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Vklopi razvijalski način.',
   'settings.browsertools.installChromiumStep4': 'Izberi „Naloži razširjeno“ in izberi razširjeno mapo.',
-  'settings.browsertools.installFirefoxStep1': 'Odpri about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Izberi „Naloži začasni dodatek“ in izberi to datoteko.',
-  'settings.browsertools.installFirefoxStep3': 'Ostane nameščena, dokler se Firefox ne znova zažene - trajna namestitev zahteva Mozillino lastno podpisovanje, ki ga samostojno gostovana programska oprema ne more pridobiti samodejno.',
+  'settings.browsertools.installFirefoxStep1': 'Za trajno namestitev: odpri about:addons in klikni ikono zobnika zgoraj desno.',
+  'settings.browsertools.installFirefoxStep2': 'Izberi „Namesti dodatek iz datoteke…“ in izberi to datoteko.',
+  'settings.browsertools.installFirefoxStep3': 'Za hiter preizkus namesto tega odpri about:debugging#/runtime/this-firefox in izberi „Naloži začasni dodatek“ - izgine ob ponovnem zagonu Firefoxa.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'Dodaj v KnightLoader',
   'settings.browsertools.copyCode': 'Namesto tega kopiraj kodo',

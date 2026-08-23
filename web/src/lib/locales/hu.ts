@@ -1164,8 +1164,6 @@ export const hu: Dict = {
   'settings.diagnostics.loadFailed': 'Nem sikerült betölteni a diagnosztikát. Elérhető a kiszolgáló?',
 
   'settings.nav.help': 'Súgó',
-  'settings.help.intro':
-    'Mire képes ez a build, feladat szerint rendszerezve, nem beállítási oldal szerint. Minden szakasz oda mutat, ahol az beállítható.',
 
   'settings.help.intake.title': 'Letöltések hozzáadása',
   'settings.help.intake.body':
@@ -1330,9 +1328,9 @@ export const hu: Dict = {
   'settings.browsertools.installChromiumStep2': 'Nyisd meg: chrome://extensions (vagy edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Kapcsold be a fejlesztői módot.',
   'settings.browsertools.installChromiumStep4': 'Válaszd a „Kicsomagolt elem betöltése” lehetőséget, és jelöld ki a kicsomagolt mappát.',
-  'settings.browsertools.installFirefoxStep1': 'Nyisd meg: about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Válaszd az „Ideiglenes kiegészítő betöltése” lehetőséget, és válaszd ki ezt a fájlt.',
-  'settings.browsertools.installFirefoxStep3': 'Telepítve marad a Firefox újraindításáig - a végleges telepítéshez a Mozilla saját aláírása kell, amit az önhosztolt szoftver nem tud automatikusan megszerezni.',
+  'settings.browsertools.installFirefoxStep1': 'A végleges telepítéshez: nyisd meg az about:addons oldalt, és kattints a jobb felső fogaskerék ikonra.',
+  'settings.browsertools.installFirefoxStep2': 'Válaszd a „Kiegészítő telepítése fájlból…” lehetőséget, és válaszd ki ezt a fájlt.',
+  'settings.browsertools.installFirefoxStep3': 'Gyors kipróbáláshoz nyisd meg helyette az about:debugging#/runtime/this-firefox oldalt, és válaszd az „Ideiglenes kiegészítő betöltése” lehetőséget - a Firefox újraindításakor eltűnik.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'Hozzáadás a KnightLoaderhez',
   'settings.browsertools.copyCode': 'Inkább a kód másolása',

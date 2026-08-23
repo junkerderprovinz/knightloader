@@ -1164,8 +1164,6 @@ export const fi: Dict = {
   'settings.diagnostics.loadFailed': 'Diagnostiikkaa ei voitu ladata. Vastaako palvelin?',
 
   'settings.nav.help': 'Ohje',
-  'settings.help.intro':
-    'Mitä tämä build osaa, järjestetty tehtävän eikä asetussivun mukaan. Jokainen osio linkittää sinne, missä se asetetaan.',
 
   'settings.help.intake.title': 'Latausten lisääminen',
   'settings.help.intake.body':
@@ -1330,9 +1328,9 @@ export const fi: Dict = {
   'settings.browsertools.installChromiumStep2': 'Avaa chrome://extensions (tai edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Ota kehittäjätila käyttöön.',
   'settings.browsertools.installChromiumStep4': 'Valitse ”Lataa pakkaamaton” ja valitse purettu kansio.',
-  'settings.browsertools.installFirefoxStep1': 'Avaa about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Valitse ”Lataa väliaikainen lisäosa” ja valitse tämä tiedosto.',
-  'settings.browsertools.installFirefoxStep3': 'Pysyy asennettuna, kunnes Firefox käynnistyy uudelleen - pysyvä asennus vaatii Mozillan oman allekirjoituksen, jota itse ylläpidetty ohjelmisto ei voi saada automaattisesti.',
+  'settings.browsertools.installFirefoxStep1': 'Pysyvää asennusta varten: avaa about:addons ja napsauta hammasratasta oikeassa yläkulmassa.',
+  'settings.browsertools.installFirefoxStep2': 'Valitse ”Asenna lisäosa tiedostosta…” ja valitse tämä tiedosto.',
+  'settings.browsertools.installFirefoxStep3': 'Nopeaa kokeilua varten avaa sen sijaan about:debugging#/runtime/this-firefox ja valitse ”Lataa väliaikainen lisäosa” - katoaa Firefoxin käynnistyessä uudelleen.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'Lisää KnightLoaderiin',
   'settings.browsertools.copyCode': 'Kopioi koodi sen sijaan',

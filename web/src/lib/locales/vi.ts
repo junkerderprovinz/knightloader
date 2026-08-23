@@ -1164,8 +1164,6 @@ export const vi: Dict = {
   'settings.diagnostics.loadFailed': 'Không thể tải chẩn đoán. Máy chủ có truy cập được không?',
 
   'settings.nav.help': 'Trợ giúp',
-  'settings.help.intro':
-    'Build này có thể làm gì, được tổ chức theo tác vụ thay vì theo trang cài đặt. Mỗi phần liên kết đến nơi nó được cấu hình.',
 
   'settings.help.intake.title': 'Thêm lượt tải xuống',
   'settings.help.intake.body':
@@ -1330,9 +1328,9 @@ export const vi: Dict = {
   'settings.browsertools.installChromiumStep2': 'Mở chrome://extensions (hoặc edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Bật Chế độ nhà phát triển.',
   'settings.browsertools.installChromiumStep4': 'Chọn “Load unpacked” rồi chọn thư mục đã giải nén.',
-  'settings.browsertools.installFirefoxStep1': 'Mở about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Chọn “Load Temporary Add-on” rồi chọn tệp này.',
-  'settings.browsertools.installFirefoxStep3': 'Vẫn được cài đặt cho đến khi Firefox khởi động lại - cài đặt vĩnh viễn cần chữ ký riêng của Mozilla, mà phần mềm tự lưu trữ không thể tự động có được.',
+  'settings.browsertools.installFirefoxStep1': 'Để cài đặt vĩnh viễn: mở about:addons và nhấp vào biểu tượng bánh răng ở góc trên bên phải.',
+  'settings.browsertools.installFirefoxStep2': 'Chọn “Install Add-on From File…” rồi chọn tệp này.',
+  'settings.browsertools.installFirefoxStep3': 'Để dùng thử nhanh, hãy mở about:debugging#/runtime/this-firefox và chọn “Load Temporary Add-on” - biến mất khi Firefox khởi động lại.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'Thêm vào KnightLoader',
   'settings.browsertools.copyCode': 'Sao chép mã thay vào đó',

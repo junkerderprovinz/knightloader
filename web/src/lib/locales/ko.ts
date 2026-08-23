@@ -1164,8 +1164,6 @@ export const ko: Dict = {
   'settings.diagnostics.loadFailed': '진단을 불러올 수 없습니다. 서버에 연결할 수 있나요?',
 
   'settings.nav.help': '도움말',
-  'settings.help.intro':
-    '이 빌드가 할 수 있는 일을, 설정 페이지가 아니라 작업별로 정리한 것입니다. 각 섹션은 설정하는 위치로 연결됩니다.',
 
   'settings.help.intake.title': '다운로드 추가',
   'settings.help.intake.body':
@@ -1330,9 +1328,9 @@ export const ko: Dict = {
   'settings.browsertools.installChromiumStep2': 'chrome://extensions(또는 edge://extensions, brave://extensions)를 엽니다.',
   'settings.browsertools.installChromiumStep3': '개발자 모드를 켭니다.',
   'settings.browsertools.installChromiumStep4': '“압축 해제된 확장 프로그램을 로드합니다”를 선택하고 압축을 푼 폴더를 선택합니다.',
-  'settings.browsertools.installFirefoxStep1': 'about:debugging#/runtime/this-firefox를 엽니다.',
-  'settings.browsertools.installFirefoxStep2': '“임시 부가 기능 로드”를 선택하고 이 파일을 선택합니다.',
-  'settings.browsertools.installFirefoxStep3': 'Firefox를 다시 시작할 때까지 설치된 상태로 유지됩니다 - 영구 설치에는 Mozilla 자체 서명이 필요하며, 셀프 호스팅 소프트웨어는 이를 자동으로 받을 수 없습니다.',
+  'settings.browsertools.installFirefoxStep1': '영구 설치를 위해: about:addons를 열고 오른쪽 상단의 톱니바퀴 아이콘을 클릭합니다.',
+  'settings.browsertools.installFirefoxStep2': '"파일에서 부가 기능 설치…"를 선택하고 이 파일을 선택합니다.',
+  'settings.browsertools.installFirefoxStep3': '대신 빠르게 사용해 보려면 about:debugging#/runtime/this-firefox를 열고 "임시 부가 기능 로드"를 선택합니다 - Firefox를 다시 시작하면 사라집니다.',
   'settings.browsertools.bookmarkletTitle': '북마클릿',
   'settings.browsertools.bookmarkletLink': 'KnightLoader에 추가',
   'settings.browsertools.copyCode': '대신 코드 복사',

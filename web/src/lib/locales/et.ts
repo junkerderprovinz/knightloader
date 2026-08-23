@@ -1164,8 +1164,6 @@ export const et: Dict = {
   'settings.diagnostics.loadFailed': 'Diagnostika laadimine ebaõnnestus. Kas server on kättesaadav?',
 
   'settings.nav.help': 'Abi',
-  'settings.help.intro':
-    'Mida see build oskab, korraldatud ülesande, mitte seadete lehe järgi. Iga jaotis viib sinna, kus seda seadistatakse.',
 
   'settings.help.intake.title': 'Allalaadimiste lisamine',
   'settings.help.intake.body':
@@ -1330,9 +1328,9 @@ export const et: Dict = {
   'settings.browsertools.installChromiumStep2': 'Ava chrome://extensions (või edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Lülita sisse arendajarežiim.',
   'settings.browsertools.installChromiumStep4': 'Vali „Laadi lahtipakitud” ja vali lahtipakitud kaust.',
-  'settings.browsertools.installFirefoxStep1': 'Ava about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Vali „Laadi ajutine lisand” ja vali see fail.',
-  'settings.browsertools.installFirefoxStep3': 'Jääb paigaldatuks kuni Firefoxi taaskäivituseni - püsiv paigaldus vajab Mozilla enda allkirja, mida ise majutatud tarkvara ei saa automaatselt.',
+  'settings.browsertools.installFirefoxStep1': 'Püsiva paigalduse jaoks: ava about:addons ja klõpsa hammasratta ikoonil paremal üleval.',
+  'settings.browsertools.installFirefoxStep2': 'Vali „Paigalda lisand failist…” ja vali see fail.',
+  'settings.browsertools.installFirefoxStep3': 'Kiire proovimise jaoks ava selle asemel about:debugging#/runtime/this-firefox ja vali „Laadi ajutine lisand” - kaob Firefoxi taaskäivitamisel.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'Lisa KnightLoaderisse',
   'settings.browsertools.copyCode': 'Kopeeri hoopis kood',

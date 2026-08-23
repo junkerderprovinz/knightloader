@@ -1164,8 +1164,6 @@ export const th: Dict = {
   'settings.diagnostics.loadFailed': 'โหลดการวินิจฉัยไม่สำเร็จ เข้าถึงเซิร์ฟเวอร์ได้หรือไม่',
 
   'settings.nav.help': 'วิธีใช้',
-  'settings.help.intro':
-    'บิลด์นี้ทำอะไรได้บ้าง จัดตามงานแทนที่จะจัดตามหน้าการตั้งค่า แต่ละส่วนจะลิงก์ไปยังที่ที่กำหนดค่าเรื่องนั้น',
 
   'settings.help.intake.title': 'การเพิ่มการดาวน์โหลด',
   'settings.help.intake.body':
@@ -1329,9 +1327,9 @@ export const th: Dict = {
   'settings.browsertools.installChromiumStep2': 'เปิด chrome://extensions (หรือ edge://extensions, brave://extensions)',
   'settings.browsertools.installChromiumStep3': 'เปิดโหมดนักพัฒนา',
   'settings.browsertools.installChromiumStep4': 'เลือก “โหลดที่ยังไม่ได้แพ็ก” แล้วเลือกโฟลเดอร์ที่แตกไฟล์แล้ว',
-  'settings.browsertools.installFirefoxStep1': 'เปิด about:debugging#/runtime/this-firefox',
-  'settings.browsertools.installFirefoxStep2': 'เลือก “โหลดส่วนเสริมชั่วคราว” แล้วเลือกไฟล์นี้',
-  'settings.browsertools.installFirefoxStep3': 'จะยังติดตั้งอยู่จนกว่า Firefox จะรีสตาร์ท - การติดตั้งถาวรต้องมีลายเซ็นของ Mozilla เอง ซึ่งซอฟต์แวร์ที่โฮสต์เองไม่สามารถขอรับได้โดยอัตโนมัติ',
+  'settings.browsertools.installFirefoxStep1': 'สำหรับการติดตั้งถาวร: เปิด about:addons แล้วคลิกไอคอนรูปเฟืองที่มุมขวาบน',
+  'settings.browsertools.installFirefoxStep2': 'เลือก “ติดตั้งส่วนเสริมจากไฟล์…” แล้วเลือกไฟล์นี้',
+  'settings.browsertools.installFirefoxStep3': 'สำหรับการทดลองอย่างรวดเร็ว ให้เปิด about:debugging#/runtime/this-firefox แทน แล้วเลือก “โหลดส่วนเสริมชั่วคราว” - จะหายไปเมื่อ Firefox รีสตาร์ท',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'เพิ่มไปยัง KnightLoader',
   'settings.browsertools.copyCode': 'คัดลอกโค้ดแทน',

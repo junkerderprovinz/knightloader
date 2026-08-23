@@ -1164,8 +1164,6 @@ export const el: Dict = {
   'settings.diagnostics.loadFailed': 'Δεν ήταν δυνατή η φόρτωση των διαγνωστικών. Είναι προσβάσιμος ο διακομιστής;',
 
   'settings.nav.help': 'Βοήθεια',
-  'settings.help.intro':
-    'Τι μπορεί να κάνει αυτό το build, οργανωμένο ανά εργασία και όχι ανά σελίδα ρυθμίσεων. Κάθε ενότητα οδηγεί εκεί όπου γίνεται η ρύθμιση.',
 
   'settings.help.intake.title': 'Προσθήκη λήψεων',
   'settings.help.intake.body':
@@ -1330,9 +1328,9 @@ export const el: Dict = {
   'settings.browsertools.installChromiumStep2': 'Ανοίξτε chrome://extensions (ή edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Ενεργοποιήστε τη λειτουργία προγραμματιστή.',
   'settings.browsertools.installChromiumStep4': 'Επιλέξτε «Φόρτωση χωρίς συμπίεση» και επιλέξτε τον αποσυμπιεσμένο φάκελο.',
-  'settings.browsertools.installFirefoxStep1': 'Ανοίξτε about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Επιλέξτε «Φόρτωση προσωρινής πρόσθετης λειτουργίας» και επιλέξτε αυτό το αρχείο.',
-  'settings.browsertools.installFirefoxStep3': 'Παραμένει εγκατεστημένη μέχρι την επανεκκίνηση του Firefox - η μόνιμη εγκατάσταση απαιτεί την υπογραφή της Mozilla, την οποία το αυτοφιλοξενούμενο λογισμικό δεν μπορεί να λάβει αυτόματα.',
+  'settings.browsertools.installFirefoxStep1': 'Για μόνιμη εγκατάσταση: ανοίξτε το about:addons και κάντε κλικ στο εικονίδιο γραναζιού πάνω δεξιά.',
+  'settings.browsertools.installFirefoxStep2': 'Επιλέξτε «Εγκατάσταση προσθέτου από αρχείο…» και επιλέξτε αυτό το αρχείο.',
+  'settings.browsertools.installFirefoxStep3': 'Για γρήγορη δοκιμή αντ’ αυτού, ανοίξτε το about:debugging#/runtime/this-firefox και επιλέξτε «Φόρτωση προσωρινής πρόσθετης λειτουργίας» - εξαφανίζεται με επανεκκίνηση του Firefox.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'Προσθήκη στο KnightLoader',
   'settings.browsertools.copyCode': 'Αντιγραφή του κώδικα αντ’ αυτού',

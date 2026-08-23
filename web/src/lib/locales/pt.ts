@@ -1156,8 +1156,6 @@ export const pt: Dict = {
   'settings.diagnostics.loadFailed': 'Não foi possível carregar o diagnóstico. O servidor está acessível?',
 
   'settings.nav.help': 'Ajuda',
-  'settings.help.intro':
-    'O que este build sabe fazer, organizado por tarefa em vez de por página de definições. Cada secção remete para onde é configurado.',
 
   'settings.help.intake.title': 'Adicionar transferências',
   'settings.help.intake.body':
@@ -1323,9 +1321,9 @@ export const pt: Dict = {
   'settings.browsertools.installChromiumStep2': 'Abra chrome://extensions (ou edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Ative o modo de desenvolvedor.',
   'settings.browsertools.installChromiumStep4': 'Escolha «Carregar sem compactação» e selecione a pasta descompactada.',
-  'settings.browsertools.installFirefoxStep1': 'Abra about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Escolha «Carregar add-on temporário» e selecione este arquivo.',
-  'settings.browsertools.installFirefoxStep3': 'Permanece instalada até o Firefox reiniciar - uma instalação permanente exige a assinatura própria da Mozilla, que um software autogerenciado não pode obter automaticamente.',
+  'settings.browsertools.installFirefoxStep1': 'Para uma instalação permanente: abra about:addons e clique no ícone de engrenagem no canto superior direito.',
+  'settings.browsertools.installFirefoxStep2': 'Escolha «Instalar add-on a partir de um arquivo…» e selecione este arquivo.',
+  'settings.browsertools.installFirefoxStep3': 'Para um teste rápido, abra about:debugging#/runtime/this-firefox e escolha «Carregar add-on temporário» - desaparece ao reiniciar o Firefox.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'Adicionar ao KnightLoader',
   'settings.browsertools.copyCode': 'Copiar o código em vez disso',

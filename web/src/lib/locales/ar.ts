@@ -1166,8 +1166,6 @@ export const ar: Dict = {
   'settings.diagnostics.loadFailed': 'تعذّر تحميل التشخيص. هل الخادم متاح؟',
 
   'settings.nav.help': 'المساعدة',
-  'settings.help.intro':
-    'ما يمكن أن يفعله هذا البناء، منظَّمًا حسب المهمة بدلًا من صفحة الإعدادات. يؤدي كل قسم إلى المكان الذي يُضبَط فيه.',
 
   'settings.help.intake.title': 'إضافة تنزيلات',
   'settings.help.intake.body':
@@ -1332,9 +1330,9 @@ export const ar: Dict = {
   'settings.browsertools.installChromiumStep2': 'افتح chrome://extensions (أو edge://extensions، brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'فعّل وضع المطوّر.',
   'settings.browsertools.installChromiumStep4': 'اختر «تحميل غير مضغوط» وحدد المجلد الذي تم فك ضغطه.',
-  'settings.browsertools.installFirefoxStep1': 'افتح about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'اختر «تحميل إضافة مؤقتة» وحدد هذا الملف.',
-  'settings.browsertools.installFirefoxStep3': 'تبقى مثبتة حتى تتم إعادة تشغيل Firefox - يتطلب التثبيت الدائم توقيع Mozilla الخاص، وهو ما لا يمكن للبرامج ذاتية الاستضافة الحصول عليه تلقائيًا.',
+  'settings.browsertools.installFirefoxStep1': 'للتثبيت الدائم: افتح about:addons وانقر على أيقونة الترس أعلى اليمين.',
+  'settings.browsertools.installFirefoxStep2': 'اختر «تثبيت إضافة من ملف…» وحدد هذا الملف.',
+  'settings.browsertools.installFirefoxStep3': 'لتجربة سريعة بدلاً من ذلك، افتح about:debugging#/runtime/this-firefox واختر «تحميل إضافة مؤقتة» - تختفي عند إعادة تشغيل Firefox.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'إضافة إلى KnightLoader',
   'settings.browsertools.copyCode': 'نسخ الكود بدلًا من ذلك',

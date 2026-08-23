@@ -1354,8 +1354,6 @@ export const en = {
   // Diagnostics.tsx above. settings.nav.help is this page's rail label, the
   // same relationship settings.nav.diagnostics has to Diagnostics.tsx.
   'settings.nav.help': 'Help',
-  'settings.help.intro':
-    'What this build can do, organised by task rather than by settings page. Every section links to where it is configured.',
 
   'settings.help.intake.title': 'Adding downloads',
   'settings.help.intake.body':
@@ -1542,9 +1540,9 @@ export const en = {
   'settings.browsertools.installChromiumStep2': 'Open chrome://extensions (or edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Turn on Developer mode.',
   'settings.browsertools.installChromiumStep4': 'Choose “Load unpacked” and select the unzipped folder.',
-  'settings.browsertools.installFirefoxStep1': 'Open about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Choose “Load Temporary Add-on” and pick this file.',
-  'settings.browsertools.installFirefoxStep3': 'It stays installed until Firefox restarts - a permanent install needs Mozilla’s own signing, which self-hosted software cannot get automatically.',
+  'settings.browsertools.installFirefoxStep1': 'For a permanent install, open about:addons and click the gear icon in the top-right.',
+  'settings.browsertools.installFirefoxStep2': 'Choose “Install Add-on From File…” and pick this file.',
+  'settings.browsertools.installFirefoxStep3': 'For a quick trial instead, open about:debugging#/runtime/this-firefox and choose “Load Temporary Add-on” - it disappears when Firefox restarts.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'Add to KnightLoader',
   'settings.browsertools.copyCode': 'Copy the code instead',

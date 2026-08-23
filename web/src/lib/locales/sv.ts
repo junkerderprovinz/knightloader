@@ -1164,8 +1164,6 @@ export const sv: Dict = {
   'settings.diagnostics.loadFailed': 'Diagnostiken kunde inte hämtas. Går servern att nå?',
 
   'settings.nav.help': 'Hjälp',
-  'settings.help.intro':
-    'Vad detta bygge kan göra, organiserat efter uppgift snarare än inställningssida. Varje avsnitt länkar till var det konfigureras.',
 
   'settings.help.intake.title': 'Lägga till nedladdningar',
   'settings.help.intake.body':
@@ -1331,9 +1329,9 @@ export const sv: Dict = {
   'settings.browsertools.installChromiumStep2': 'Öppna chrome://extensions (eller edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Slå på utvecklarläge.',
   'settings.browsertools.installChromiumStep4': 'Välj „Läs in okomprimerat” och välj den uppackade mappen.',
-  'settings.browsertools.installFirefoxStep1': 'Öppna about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Välj „Läs in tillfälligt tillägg” och välj den här filen.',
-  'settings.browsertools.installFirefoxStep3': 'Förblir installerad tills Firefox startas om - en permanent installation kräver Mozillas egen signering, som självhostad programvara inte automatiskt kan få.',
+  'settings.browsertools.installFirefoxStep1': 'För permanent installation: öppna about:addons och klicka på kugghjulsikonen uppe till höger.',
+  'settings.browsertools.installFirefoxStep2': 'Välj „Installera tillägg från fil…” och välj den här filen.',
+  'settings.browsertools.installFirefoxStep3': 'För ett snabbt test istället, öppna about:debugging#/runtime/this-firefox och välj „Läs in tillfälligt tillägg” - försvinner när Firefox startas om.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'Lägg till i KnightLoader',
   'settings.browsertools.copyCode': 'Kopiera koden istället',

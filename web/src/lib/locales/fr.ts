@@ -1157,8 +1157,6 @@ export const fr: Dict = {
   'settings.diagnostics.loadFailed': 'Impossible de charger le diagnostic. Le serveur est-il joignable ?',
 
   'settings.nav.help': 'Aide',
-  'settings.help.intro':
-    'Ce que ce build sait faire, organisé par tâche plutôt que par page de paramètres. Chaque section renvoie à l’endroit où c’est configuré.',
 
   'settings.help.intake.title': 'Ajouter des téléchargements',
   'settings.help.intake.body':
@@ -1323,9 +1321,9 @@ export const fr: Dict = {
   'settings.browsertools.installChromiumStep2': 'Ouvrez chrome://extensions (ou edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Activez le mode développeur.',
   'settings.browsertools.installChromiumStep4': 'Choisissez « Charger l’extension non empaquetée » et sélectionnez le dossier décompressé.',
-  'settings.browsertools.installFirefoxStep1': 'Ouvrez about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Choisissez « Charger un module complémentaire temporaire » et sélectionnez ce fichier.',
-  'settings.browsertools.installFirefoxStep3': 'Elle reste installée jusqu’au redémarrage de Firefox - une installation permanente nécessite la signature de Mozilla, que les logiciels autohébergés ne peuvent pas obtenir automatiquement.',
+  'settings.browsertools.installFirefoxStep1': 'Pour une installation permanente : ouvrez about:addons et cliquez sur l’icône d’engrenage en haut à droite.',
+  'settings.browsertools.installFirefoxStep2': 'Choisissez « Installer un module depuis un fichier… » et sélectionnez ce fichier.',
+  'settings.browsertools.installFirefoxStep3': 'Pour un essai rapide à la place, ouvrez about:debugging#/runtime/this-firefox et choisissez « Charger un module complémentaire temporaire » - il disparaît au redémarrage de Firefox.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'Ajouter à KnightLoader',
   'settings.browsertools.copyCode': 'Copier le code à la place',

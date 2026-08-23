@@ -1165,8 +1165,6 @@ export const de: Dict = {
   'settings.diagnostics.loadFailed': 'Diagnose konnte nicht geladen werden. Läuft der Server?',
 
   'settings.nav.help': 'Hilfe',
-  'settings.help.intro':
-    'Was dieser Build kann, gegliedert nach Aufgabe statt nach Einstellungsseite. Jeder Abschnitt verlinkt dorthin, wo es konfiguriert wird.',
 
   'settings.help.intake.title': 'Downloads hinzufügen',
   'settings.help.intake.body':
@@ -1331,9 +1329,9 @@ export const de: Dict = {
   'settings.browsertools.installChromiumStep2': 'Öffne chrome://extensions (oder edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Schalte den Entwicklermodus ein.',
   'settings.browsertools.installChromiumStep4': 'Wähle „Entpackte Erweiterung laden“ und wähle den entpackten Ordner aus.',
-  'settings.browsertools.installFirefoxStep1': 'Öffne about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Wähle „Temporäres Add-on laden“ und wähle diese Datei aus.',
-  'settings.browsertools.installFirefoxStep3': 'Sie bleibt installiert, bis Firefox neu startet - eine dauerhafte Installation braucht Mozillas eigene Signierung, die selbstgehostete Software nicht automatisch bekommen kann.',
+  'settings.browsertools.installFirefoxStep1': 'Für eine dauerhafte Installation: about:addons öffnen und oben rechts auf das Zahnrad klicken.',
+  'settings.browsertools.installFirefoxStep2': '„Add-on aus Datei installieren…“ wählen und diese Datei auswählen.',
+  'settings.browsertools.installFirefoxStep3': 'Für einen schnellen Test stattdessen about:debugging#/runtime/this-firefox öffnen und „Temporäres Add-on laden“ wählen - verschwindet beim Neustart von Firefox.',
   'settings.browsertools.bookmarkletTitle': 'Lesezeichen',
   'settings.browsertools.bookmarkletLink': 'Zu KnightLoader hinzufügen',
   'settings.browsertools.copyCode': 'Stattdessen den Code kopieren',

@@ -1164,8 +1164,6 @@ export const hi: Dict = {
   'settings.diagnostics.loadFailed': 'निदान लोड नहीं हो सका। क्या सर्वर उपलब्ध है?',
 
   'settings.nav.help': 'सहायता',
-  'settings.help.intro':
-    'यह बिल्ड क्या कर सकता है, सेटिंग्स पेज के बजाय काम के हिसाब से व्यवस्थित। हर सेक्शन वहाँ लिंक करता है जहाँ वह कॉन्फ़िगर किया जाता है।',
 
   'settings.help.intake.title': 'डाउनलोड जोड़ना',
   'settings.help.intake.body':
@@ -1330,9 +1328,9 @@ export const hi: Dict = {
   'settings.browsertools.installChromiumStep2': 'chrome://extensions खोलें (या edge://extensions, brave://extensions)।',
   'settings.browsertools.installChromiumStep3': 'डेवलपर मोड चालू करें।',
   'settings.browsertools.installChromiumStep4': '“Load unpacked” चुनें और अनज़िप किया गया फ़ोल्डर चुनें।',
-  'settings.browsertools.installFirefoxStep1': 'about:debugging#/runtime/this-firefox खोलें।',
-  'settings.browsertools.installFirefoxStep2': '“Load Temporary Add-on” चुनें और यह फ़ाइल चुनें।',
-  'settings.browsertools.installFirefoxStep3': 'Firefox के फिर से शुरू होने तक यह इंस्टॉल रहता है - स्थायी इंस्टॉल के लिए Mozilla के अपने हस्ताक्षर चाहिए, जो सेल्फ़-होस्टेड सॉफ़्टवेयर को अपने आप नहीं मिल सकते।',
+  'settings.browsertools.installFirefoxStep1': 'स्थायी इंस्टॉल के लिए: about:addons खोलें और ऊपर दाईं ओर गियर आइकन पर क्लिक करें।',
+  'settings.browsertools.installFirefoxStep2': '“Install Add-on From File…” चुनें और यह फ़ाइल चुनें।',
+  'settings.browsertools.installFirefoxStep3': 'इसके बजाय जल्दी आज़माने के लिए, about:debugging#/runtime/this-firefox खोलें और “Load Temporary Add-on” चुनें - Firefox के फिर से शुरू होने पर गायब हो जाता है।',
   'settings.browsertools.bookmarkletTitle': 'बुकमार्कलेट',
   'settings.browsertools.bookmarkletLink': 'KnightLoader में जोड़ें',
   'settings.browsertools.copyCode': 'इसके बजाय कोड कॉपी करें',
