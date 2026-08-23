@@ -165,6 +165,7 @@ export interface Report {
 
 export const RULE_STRINGS = {
   // The page around the editor.
+  'settings.rules.setupTitle': 'Rule set',
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Link filter',
   'settings.rules.flavourLabel': 'Which rule list',

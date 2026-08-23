@@ -92,6 +92,7 @@ export function Shortcuts() {
   return (
     <div className="flex flex-col gap-6">
       <Card className="flex flex-wrap items-center justify-between gap-3">
+        <SectionTitle hue={0}>{t('settings.nav.shortcuts')}</SectionTitle>
         <p className="max-w-2xl text-sm text-carbon-textSub">{t('settings.shortcuts.subtitle')}</p>
         <Button kind="ghost" disabled={!hasOverrides} onClick={() => setConfirmResetAll(true)}>
           {t('settings.shortcuts.resetAll')}
@@ -102,10 +103,12 @@ export function Shortcuts() {
         <EmptyState icon={<IconKeyboard width={28} height={28} />} title={t('settings.shortcuts.empty')} />
       )}
 
-      {groups.map(([group, cmds]) => (
+      {groups.map(([group, cmds], i) => (
         <div key={group} className="flex flex-col gap-3">
-          <SectionTitle>{groupLabel(t, group)}</SectionTitle>
           <Card className="flex flex-col divide-y divide-carbon-border/60 p-0">
+            <div className="p-5 pb-0">
+              <SectionTitle hue={i + 1}>{groupLabel(t, group)}</SectionTitle>
+            </div>
             {cmds.map((cmd) => (
               <ShortcutRow
                 key={cmd.id}

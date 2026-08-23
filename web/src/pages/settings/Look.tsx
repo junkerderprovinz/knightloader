@@ -186,7 +186,14 @@ export function Look() {
             then "Voreinstellungen:" then all eight presets, one flex-wrap
             line. */}
         <div className="flex flex-wrap items-center gap-3">
-          <span className="flex shrink-0 items-center gap-1.5 text-sm text-carbon-text">
+          {/* me-2 on top of the row's own gap-3, not just a bigger gap-*:
+              the label needs more breathing room before the colour fields
+              start than the fields need between each other (jdp: "der
+              Abstand zwischen Akzentfarbe [...] zu den Farbfeldern
+              vergrößern") - widening the row's shared gap would also push
+              every swatch further apart from its neighbour, which nobody
+              asked for. */}
+          <span className="me-2 flex shrink-0 items-center gap-1.5 text-sm text-carbon-text">
             {t('settings.accent')}
             <InfoBubble tip={t('settings.accentHint')} />
           </span>
@@ -299,7 +306,9 @@ export function Look() {
                 reset badge - always rendered, disabled rather than hidden
                 along with the rest of this sub-section. */}
             <div className="flex flex-wrap items-center gap-2">
-              <span className="flex shrink-0 items-center gap-1.5 text-sm text-carbon-text">
+              {/* Same reasoning as the Akzentfarbe row above: extra room
+                  after the label specifically, not a bigger shared gap. */}
+              <span className="me-2 flex shrink-0 items-center gap-1.5 text-sm text-carbon-text">
                 {t('settings.rainbowPaletteLabel')}
                 <InfoBubble tip={t('settings.rainbowPaletteHint')} />
               </span>

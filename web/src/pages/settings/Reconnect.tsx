@@ -250,6 +250,7 @@ export function Reconnect() {
   return (
     <div className="flex flex-col gap-6">
       <Card className="flex flex-col gap-5">
+        <SectionTitle hue={0}>{t('settings.reconnect.setupTitle')}</SectionTitle>
         {/* FieldGroup, not Field: a Field is a `<label>` and hands its clicks to
             the first control inside it, which for a tab strip is the first tab.
             See ui.tsx. */}
@@ -280,13 +281,13 @@ export function Reconnect() {
 
       {!off && (
         <Card className="flex flex-col gap-5">
-          <SectionTitle>{t('settings.reconnect.checkTitle')}</SectionTitle>
+          <SectionTitle hue={1}>{t('settings.reconnect.checkTitle')}</SectionTitle>
           <CheckFields rc={rc} write={write} />
         </Card>
       )}
 
       <Card className="flex flex-col gap-4">
-        <SectionTitle>{t('settings.reconnect.runTitle')}</SectionTitle>
+        <SectionTitle hue={2}>{t('settings.reconnect.runTitle')}</SectionTitle>
         <RunPanel state={state} disabled={off} />
       </Card>
     </div>

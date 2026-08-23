@@ -153,6 +153,7 @@ async function saveSchedule(entries: ScheduleEntry[]): Promise<SaveResult> {
 const PENDING = {
   'settings.schedule.title': 'Schedule',
   'settings.schedule.subtitle': 'Pause, resume or cap the download speed on a timetable.',
+  'settings.schedule.statusTitle': 'Current status',
   'settings.schedule.listTitle': 'Timetable',
   'settings.schedule.orderHint':
     'Rows are applied in order, top to bottom, and a later row wins where two windows overlap - so a broad "pause every night" above a narrow exception leaves the exception in force, and the same two rows the other way round do not.',
@@ -525,6 +526,7 @@ export function Schedule() {
 
       <Card className="flex flex-col gap-4">
         <SectionTitle
+          hue={1}
           right={
             <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
               {cx('settings.schedule.add')}
@@ -607,13 +609,14 @@ function StateBanner({
     : cx('settings.schedule.noNextChange');
   const active = state.paused || state.limit > 0;
   return (
-    <Card className="flex items-center gap-3">
-      <span className={`h-2 w-2 shrink-0 rounded-full ${active ? 'bg-accent' : 'bg-carbon-textMuted'}`} aria-hidden />
-      <div className="flex min-w-0 flex-col gap-0.5">
-        <span className="text-sm text-carbon-text">{nowText}</span>
-        <span className="text-xs text-carbon-textMuted">{changeText}</span>
-      </div>
-    </Card>
+      <Card className="flex items-center gap-3">
+        <SectionTitle hue={0}>{cx('settings.schedule.statusTitle')}</SectionTitle>
+        <span className={`h-2 w-2 shrink-0 rounded-full ${active ? 'bg-accent' : 'bg-carbon-textMuted'}`} aria-hidden />
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <span className="text-sm text-carbon-text">{nowText}</span>
+          <span className="text-xs text-carbon-textMuted">{changeText}</span>
+        </div>
+      </Card>
   );
 }
 

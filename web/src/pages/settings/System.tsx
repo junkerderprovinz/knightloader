@@ -27,6 +27,7 @@ import { IconDownloads, IconRetry, IconSignOut } from '../../lib/icons';
  */
 const PENDING = {
   'settings.system.subtitle': 'Quit, restart, and back up or restore this instance’s data.',
+  'settings.system.overviewTitle': 'Overview',
   'settings.system.deployment.container': 'Container',
   'settings.system.deployment.desktop': 'Desktop',
   'settings.system.lifecycleTitle': 'Quit & restart',
@@ -40,6 +41,7 @@ const PENDING = {
   'settings.system.confirmProceed': 'Confirm',
   'settings.system.unavailable': 'This build has no way to do this from the browser.',
   'settings.system.acting': 'Working…',
+  'settings.system.shuttingDownTitle': 'Shutting down',
   'settings.system.shuttingDown':
     'Shutting down. If this instance comes back on its own, the page will reconnect once it does; otherwise close this tab.',
   'settings.system.actionFailed': 'Could not do this: {error}',
@@ -135,6 +137,7 @@ export function System() {
   if (shuttingDown) {
     return (
       <Card className="flex flex-col gap-3">
+        <SectionTitle hue={0}>{cx('settings.system.shuttingDownTitle')}</SectionTitle>
         <p className="text-sm text-carbon-text">{cx('settings.system.shuttingDown')}</p>
       </Card>
     );
@@ -143,12 +146,13 @@ export function System() {
   return (
     <div className="flex flex-col gap-6">
       <Card className="flex flex-col gap-2">
+        <SectionTitle hue={1}>{cx('settings.system.overviewTitle')}</SectionTitle>
         <p className="text-sm text-carbon-textSub">{cx('settings.system.subtitle')}</p>
         <span className="glim-eyebrow w-fit">{deploymentLabel(cx, data.deployment)}</span>
       </Card>
 
-      <SectionTitle>{cx('settings.system.lifecycleTitle')}</SectionTitle>
       <Card className="flex flex-col gap-3">
+        <SectionTitle hue={2}>{cx('settings.system.lifecycleTitle')}</SectionTitle>
         <p className="text-[11px] text-carbon-textMuted">{data.note}</p>
         <div className="flex flex-wrap items-center gap-3">
           <Button
@@ -174,8 +178,8 @@ export function System() {
         {actionError && <span className="text-sm text-statusFail">{actionError}</span>}
       </Card>
 
-      <SectionTitle>{cx('settings.system.backupTitle')}</SectionTitle>
       <Card className="flex flex-col gap-3">
+        <SectionTitle hue={3}>{cx('settings.system.backupTitle')}</SectionTitle>
         <div className="flex flex-wrap items-center gap-3">
           <Button
             kind="secondary"
@@ -190,8 +194,8 @@ export function System() {
         </div>
       </Card>
 
-      <SectionTitle>{cx('settings.system.restoreTitle')}</SectionTitle>
       <Card className="flex flex-col gap-3">
+        <SectionTitle hue={4}>{cx('settings.system.restoreTitle')}</SectionTitle>
         <input
           ref={fileInput}
           type="file"

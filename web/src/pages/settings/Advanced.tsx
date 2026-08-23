@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Settings } from '../../lib/api';
-import { Button, Card, InfoBubble, NumberInput, TextArea, TextInput } from '../../components/ui';
+import { Button, Card, InfoBubble, NumberInput, SectionTitle, TextArea, TextInput } from '../../components/ui';
 import { useDraft } from './context';
 import { NeutralSwitch } from './controls';
 import { fetchSettingsSchema, type SettingsSchema } from './features';
@@ -114,6 +114,9 @@ export function Advanced() {
       </div>
 
       <Card className="p-0">
+        <div className="p-5 pb-0">
+          <SectionTitle hue={0}>{tx('settings.advanced.allSettings')}</SectionTitle>
+        </div>
         {/* The table scrolls inside its own box. A key path plus a value editor
             is wider than a phone, and letting the page scroll sideways instead
             would take the rail and the save bar off screen with it. */}

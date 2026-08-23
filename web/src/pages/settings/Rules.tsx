@@ -223,6 +223,7 @@ export function Rules() {
   return (
     <div className="flex flex-col gap-6">
       <Card className="flex flex-col gap-4">
+        <SectionTitle hue={0}>{rx('settings.rules.setupTitle')}</SectionTitle>
         <div className="flex flex-wrap items-center gap-4">
           <Segments
             label={rx('settings.rules.flavourLabel')}
@@ -272,6 +273,7 @@ export function Rules() {
 
       <Card className="flex flex-col gap-4">
         <SectionTitle
+          hue={1}
           right={
             <div className="flex items-center gap-2">
               <Button kind="secondary" title={rx('settings.rules.importTitle')} onClick={() => fileInput.current?.click()}>
@@ -535,6 +537,7 @@ function TestBox({
   return (
     <Card className="flex flex-col gap-4">
       <SectionTitle
+        hue={2}
         right={
           <Button kind="secondary" icon={<IconPlus width={14} height={14} />} onClick={() => setSamples([...samples, emptySample()])}>
             {rx('settings.rules.testAdd')}

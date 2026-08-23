@@ -100,9 +100,8 @@ export function Access() {
       <TokensSection cx={cx} />
 
       {listeners.length > 0 && (
-        <>
-          <SectionTitle>{tx('settings.sectionIntakePorts')}</SectionTitle>
           <Card className="flex flex-col gap-4">
+            <SectionTitle hue={4}>{tx('settings.sectionIntakePorts')}</SectionTitle>
             {listeners.map((m) => (
               <div key={m.id} className="flex items-baseline gap-3">
                 <span className="flex items-center text-sm text-carbon-text">
@@ -116,7 +115,6 @@ export function Access() {
               </div>
             ))}
           </Card>
-        </>
       )}
     </div>
   );
@@ -156,26 +154,27 @@ function PasswordCard() {
   const locked = auth?.enabled ?? false;
 
   return (
-    <Card className="flex flex-col gap-5">
-      <p className={`text-sm ${locked ? 'text-statusOk' : 'text-carbon-textSub'}`}>
-        {locked ? t('settings.lockOn') : t('settings.lockOff')}
-      </p>
-      {locked && (
-        <Field label={t('settings.passwordCurrent')}>
-          <TextInput type="password" value={current} onChange={(e) => setCurrent(e.target.value)} />
+      <Card className="flex flex-col gap-5">
+        <SectionTitle hue={0}>{t('auth.password')}</SectionTitle>
+        <p className={`text-sm ${locked ? 'text-statusOk' : 'text-carbon-textSub'}`}>
+          {locked ? t('settings.lockOn') : t('settings.lockOff')}
+        </p>
+        {locked && (
+          <Field label={t('settings.passwordCurrent')}>
+            <TextInput type="password" value={current} onChange={(e) => setCurrent(e.target.value)} />
+          </Field>
+        )}
+        <Field label={t('settings.passwordNew')} hint={t('settings.passwordHint')}>
+          <TextInput type="password" value={next} onChange={(e) => setNext(e.target.value)} />
         </Field>
-      )}
-      <Field label={t('settings.passwordNew')} hint={t('settings.passwordHint')}>
-        <TextInput type="password" value={next} onChange={(e) => setNext(e.target.value)} />
-      </Field>
-      <div className="flex items-center gap-3">
-        <Button kind="secondary" onClick={onApply} disabled={locked ? current === '' : next === ''}>
-          {next === '' && locked ? t('settings.removePassword') : t('settings.setPassword')}
-        </Button>
-        {done && <span className="text-statusOk text-sm">{t('settings.passwordSaved')}</span>}
-        {error && <span className="text-statusFail text-sm">{error}</span>}
-      </div>
-    </Card>
+        <div className="flex items-center gap-3">
+          <Button kind="secondary" onClick={onApply} disabled={locked ? current === '' : next === ''}>
+            {next === '' && locked ? t('settings.removePassword') : t('settings.setPassword')}
+          </Button>
+          {done && <span className="text-statusOk text-sm">{t('settings.passwordSaved')}</span>}
+          {error && <span className="text-statusFail text-sm">{error}</span>}
+        </div>
+      </Card>
   );
 }
 
@@ -201,12 +200,10 @@ function RemoteAccessSection({ cx }: { cx: (k: PendingKey) => string }) {
 
   if (info.deployment === 'desktop') {
     return (
-      <>
-        <SectionTitle>{cx('settings.access.remote.title')}</SectionTitle>
         <Card>
+          <SectionTitle hue={1}>{cx('settings.access.remote.title')}</SectionTitle>
           <p className="text-sm text-carbon-textSub">{cx('settings.access.remote.desktopNote')}</p>
         </Card>
-      </>
     );
   }
 
@@ -219,8 +216,6 @@ function RemoteAccessSection({ cx }: { cx: (k: PendingKey) => string }) {
 
   return (
     <>
-      <SectionTitle>{cx('settings.access.remote.title')}</SectionTitle>
-
       {info.exposed && (
         <div className="flex items-start gap-3 rounded-[var(--radius-card)] bg-statusFailBg p-4">
           <IconWarning width={20} height={20} className="mt-0.5 shrink-0 text-statusFail" />
@@ -229,6 +224,7 @@ function RemoteAccessSection({ cx }: { cx: (k: PendingKey) => string }) {
       )}
 
       <Card className="flex flex-col gap-4 sm:flex-row">
+        <SectionTitle hue={1}>{cx('settings.access.remote.title')}</SectionTitle>
         <div className="flex min-w-0 flex-1 flex-col gap-3">
           <p className="text-[11px] text-carbon-textMuted">{cx('settings.access.remote.noRelayBody')}</p>
           <div className="flex flex-col gap-1.5">
@@ -263,9 +259,7 @@ function RemoteAccessSection({ cx }: { cx: (k: PendingKey) => string }) {
       </Card>
 
       <Card className="flex flex-col gap-3">
-        <span className="text-xs font-semibold text-carbon-textSub">
-          {cx('settings.access.remote.installTitle')}
-        </span>
+        <SectionTitle hue={2}>{cx('settings.access.remote.installTitle')}</SectionTitle>
         <p className="text-[11px] text-carbon-textMuted">{cx('settings.access.remote.installBody')}</p>
         {canInstall && (
           <div>
@@ -333,21 +327,22 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
 
   return (
     <>
-      <SectionTitle
-        right={
-          <Button
-            kind="secondary"
-            className="px-2.5 text-xs"
-            icon={<IconPlus width={14} height={14} />}
-            onClick={() => setShowCreate(true)}
-          >
-            {cx('settings.access.tokens.new')}
-          </Button>
-        }
-      >
-        {cx('settings.access.tokens.title')}
-      </SectionTitle>
       <Card className="flex flex-col gap-3">
+        <SectionTitle
+          hue={3}
+          right={
+            <Button
+              kind="secondary"
+              className="px-2.5 text-xs"
+              icon={<IconPlus width={14} height={14} />}
+              onClick={() => setShowCreate(true)}
+            >
+              {cx('settings.access.tokens.new')}
+            </Button>
+          }
+        >
+          {cx('settings.access.tokens.title')}
+        </SectionTitle>
         <p className="text-[11px] text-carbon-textMuted">{cx('settings.access.tokens.intro')}</p>
         {tokens.length === 0 ? (
           <p className="text-sm text-carbon-textMuted">{cx('settings.access.tokens.empty')}</p>

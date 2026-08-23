@@ -30,29 +30,27 @@ export function Modules() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Group title={tx('settings.modules.sectionShipped')} hint={tx('settings.modules.fixedAtBuild')} rows={shipped} />
-      <Group title={tx('settings.modules.sectionDesktop')} rows={desktop} />
-      <Group title={tx('settings.modules.sectionNotBuilt')} rows={absent} />
+      <Group hue={0} title={tx('settings.modules.sectionShipped')} hint={tx('settings.modules.fixedAtBuild')} rows={shipped} />
+      <Group hue={1} title={tx('settings.modules.sectionDesktop')} rows={desktop} />
+      <Group hue={2} title={tx('settings.modules.sectionNotBuilt')} rows={absent} />
     </div>
   );
 }
 
-function Group({ title, hint, rows }: { title: string; hint?: string; rows: Feature[] }) {
+function Group({ hue, title, hint, rows }: { hue: number; title: string; hint?: string; rows: Feature[] }) {
   if (rows.length === 0) return null;
   return (
-    <>
-      <SectionTitle>
+    <Card className="flex flex-col gap-1 p-2">
+      <SectionTitle hue={hue}>
         <span className="flex items-center">
           {title}
           {hint && <InfoBubble tip={hint} />}
         </span>
       </SectionTitle>
-      <Card className="flex flex-col gap-1 p-2">
-        {rows.map((m) => (
-          <Row key={m.id} m={m} />
-        ))}
-      </Card>
-    </>
+      {rows.map((m) => (
+        <Row key={m.id} m={m} />
+      ))}
+    </Card>
   );
 }
 
