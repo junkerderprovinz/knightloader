@@ -116,7 +116,26 @@ export function FieldGroup({ label, hint, children }: { label: string; hint?: st
  * The icon is deliberately never the accent colour: it is furniture, and the
  * accent means activity.
  */
-export function InfoBubble({ tip, className = '' }: { tip: string; className?: string }) {
+export function InfoBubble({
+  tip,
+  className = '',
+  onColor = false,
+}: {
+  tip: string;
+  className?: string;
+  /**
+   * True when this bubble sits on a filled, coloured surface (a card
+   * title's own notch badge, whose fill can be the flat accent OR any
+   * rainbow position) rather than the page's own neutral ground - the
+   * fixed muted-grey trigger can read as nearly invisible against some of
+   * those fills, or blend into others entirely. Reads `currentColor`
+   * instead, so it always inherits whatever contrast-ink colour the
+   * surface it sits on already resolved for its own text (jdp: "die
+   * Infobubbles auf den Cardtitelbadges müssen ihre Farbe je nach
+   * Badgefarbe flippen, damit sie immer gut sichtbar sind").
+   */
+  onColor?: boolean;
+}) {
   const [at, setAt] = useState<{ top: number; left: number } | null>(null);
   const ref = useRef<HTMLSpanElement>(null);
 
@@ -152,8 +171,11 @@ export function InfoBubble({ tip, className = '' }: { tip: string; className?: s
         onFocus={open}
         onBlur={() => setAt(null)}
         className={`glim-info ms-1.5 inline-flex h-[15px] w-[15px] shrink-0 cursor-help items-center
-          justify-center rounded-full align-middle text-carbon-textMuted transition-opacity
-          hover:text-carbon-textSub focus-visible:text-carbon-textSub ${className}`}
+          justify-center rounded-full align-middle transition-opacity ${
+            onColor
+              ? 'text-current opacity-80 hover:opacity-100 focus-visible:opacity-100'
+              : 'text-carbon-textMuted hover:text-carbon-textSub focus-visible:text-carbon-textSub'
+          } ${className}`}
       >
         <svg viewBox="0 0 16 16" width={15} height={15} aria-hidden focusable="false">
           <circle cx="8" cy="8" r="7.1" fill="none" stroke="currentColor" strokeWidth="1.2" />
@@ -552,6 +574,46 @@ export function Toggle({
   );
 }
 
+/**
+ * ToggleRow is a Toggle used on its own as a whole card row: the caption
+ * flush left, the switch flush right on the SAME line - never the bare
+ * `Toggle` (track-then-label, both glued together at the left edge) and
+ * never a `FieldGroup` with the caption on its own line above a lone
+ * hideLabel switch below it. Both of those read as "shifted" once you
+ * compare them to every other left-started row on the same card (jdp:
+ * "Die Toggles sollen immer rechts in der Card sein (systemweit! Merken!)
+ * alles andere soll links bündig anfangen, ist jetzt teilweise nach
+ * rechts verschoben") - found live on the Archive tab, but the same two
+ * wrong shapes were repeated across most of the settings pages, so this
+ * is the one place the row gets built now.
+ */
+export function ToggleRow({
+  label,
+  hint,
+  checked,
+  onChange,
+  disabled = false,
+}: {
+  label: string;
+  hint?: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+  /** Dims the whole row and blocks interaction - a control that vanishes
+   *  teaches nobody what the mode can do; one that disagrees with its own
+   *  disabled sibling controls does. */
+  disabled?: boolean;
+}) {
+  return (
+    <div className={`flex items-center justify-between gap-4 ${disabled ? 'pointer-events-none opacity-40' : ''}`}>
+      <span className="flex items-center gap-1.5 text-sm text-carbon-text">
+        {label}
+        {hint && <InfoBubble tip={hint} />}
+      </span>
+      <Toggle hideLabel label={label} checked={checked} onChange={onChange} />
+    </div>
+  );
+}
+
 // Card is the one raised surface. Never nest it inside another Card.
 export function Card({
   children,
@@ -701,7 +763,7 @@ export function SectionTitle({
           style={hue !== undefined ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
         >
           {children}
-          {hint && <InfoBubble tip={hint} />}
+          {hint && <InfoBubble tip={hint} onColor />}
         </span>
       </h2>
       {right && (
