@@ -260,6 +260,8 @@ export const tr: Dict = {
   'settings.rainbowRotate': 'Renk döngüsü',
   'settings.rainbowRotateHint': 'Paletin nereden başladığını karıştır',
   'settings.rainbowPalette': 'Palet rengi',
+  'settings.rainbowPaletteLabel': 'Renk paleti',
+  'settings.rainbowPaletteHint': 'Konuma göre atanan sekiz renk. Her biri ayrı ayrı düzenlenebilir.',
   'settings.look.saveFailed': 'Kaydedilemedi: {error}',
   'settings.theme': 'Tema',
   'queue.limitUnit': 'Birim',
@@ -406,8 +408,6 @@ export const tr: Dict = {
   'settings.nav.access': 'Erişim',
   'settings.nav.advanced': 'Gelişmiş',
 
-  'settings.unsaved': 'Kaydedilmemiş değişiklikler',
-  'settings.discard': 'Vazgeç',
   'settings.railLabel': 'Ayar bölümleri',
   'settings.railReorderHint': 'Bir sekmeye basılı tutup sürükleyerek kendi bölümlerinizi öne alın.',
   'settings.empty': 'Burada henüz ayarlanacak bir şey yok.',

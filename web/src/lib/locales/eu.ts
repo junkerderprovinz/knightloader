@@ -260,6 +260,8 @@ export const eu: Dict = {
   'settings.rainbowRotate': 'Kolore-errotazioa',
   'settings.rainbowRotateHint': 'Nahastu paletaren hasiera',
   'settings.rainbowPalette': 'Paletaren kolorea',
+  'settings.rainbowPaletteLabel': 'Kolore-paleta',
+  'settings.rainbowPaletteHint': 'Posizioaren arabera esleitutako zortzi koloreak. Banaka editagarriak.',
   'settings.look.saveFailed': 'Ezin izan da gorde: {error}',
   'settings.theme': 'Itxura',
   'queue.limitUnit': 'Unitatea',
@@ -406,8 +408,6 @@ export const eu: Dict = {
   'settings.nav.access': 'Sarbidea',
   'settings.nav.advanced': 'Aurreratua',
 
-  'settings.unsaved': 'Gorde gabeko aldaketak',
-  'settings.discard': 'Baztertu',
   'settings.railLabel': 'Ezarpenen atalak',
   'settings.railReorderHint': 'Eutsi fitxa bati eta arrastatu zure atalak aurrera eramateko.',
   'settings.empty': 'Hemen ez dago oraindik ezer ezartzeko.',

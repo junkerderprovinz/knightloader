@@ -262,6 +262,8 @@ export const he: Dict = {
   'settings.rainbowRotate': 'סיבוב צבעים',
   'settings.rainbowRotateHint': 'ערבוב נקודת ההתחלה של הלוח',
   'settings.rainbowPalette': 'צבע בלוח',
+  'settings.rainbowPaletteLabel': 'פלטת צבעים',
+  'settings.rainbowPaletteHint': 'שמונת הצבעים המוקצים לפי מיקום. ניתן לערוך כל אחד בנפרד.',
   'settings.look.saveFailed': 'לא ניתן היה לשמור: {error}',
   'settings.theme': 'ערכת נושא',
   'queue.limitUnit': 'יחידה',
@@ -408,8 +410,6 @@ export const he: Dict = {
   'settings.nav.access': 'גישה',
   'settings.nav.advanced': 'מתקדם',
 
-  'settings.unsaved': 'שינויים שלא נשמרו',
-  'settings.discard': 'בטל שינויים',
   'settings.railLabel': 'מדורי ההגדרות',
   'settings.railReorderHint': 'החזק לשונית וגרור אותה כדי להעביר את הקטעים המועדפים עליך קדימה.',
   'settings.empty': 'אין כאן עדיין מה להגדיר.',

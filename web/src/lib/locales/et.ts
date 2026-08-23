@@ -260,6 +260,8 @@ export const et: Dict = {
   'settings.rainbowRotate': 'Värvide rotatsioon',
   'settings.rainbowRotateHint': 'Sega, millisest värvist palett algab',
   'settings.rainbowPalette': 'Paleti värv',
+  'settings.rainbowPaletteLabel': 'Värvipalett',
+  'settings.rainbowPaletteHint': 'Kaheksa positsiooni järgi jagatud värvi. Igaüht saab eraldi muuta.',
   'settings.look.saveFailed': 'Salvestamine ebaõnnestus: {error}',
   'settings.theme': 'Teema',
   'queue.limitUnit': 'Ühik',
@@ -406,8 +408,6 @@ export const et: Dict = {
   'settings.nav.access': 'Ligipääs',
   'settings.nav.advanced': 'Täpsem',
 
-  'settings.unsaved': 'Salvestamata muudatused',
-  'settings.discard': 'Loobu',
   'settings.railLabel': 'Seadete jaotised',
   'settings.railReorderHint': 'Hoia sakki all ja lohista, et tuua oma lemmiksektsioonid ette.',
   'settings.empty': 'Siin pole veel midagi seadistada.',

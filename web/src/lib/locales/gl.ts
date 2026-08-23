@@ -260,6 +260,8 @@ export const gl: Dict = {
   'settings.rainbowRotate': 'Rotación de cores',
   'settings.rainbowRotateHint': 'Barallar onde empeza a paleta',
   'settings.rainbowPalette': 'Cor da paleta',
+  'settings.rainbowPaletteLabel': 'Paleta de cores',
+  'settings.rainbowPaletteHint': 'As oito cores asignadas por posición. Editables individualmente.',
   'settings.look.saveFailed': 'Non se puido gardar: {error}',
   'settings.theme': 'Tema',
   'queue.limitUnit': 'Unidade',
@@ -406,8 +408,6 @@ export const gl: Dict = {
   'settings.nav.access': 'Acceso',
   'settings.nav.advanced': 'Avanzado',
 
-  'settings.unsaved': 'Cambios sen gardar',
-  'settings.discard': 'Descartar',
   'settings.railLabel': 'Seccións dos axustes',
   'settings.railReorderHint': 'Mantén premida unha lapela e arrástraa para poñer as túas seccións preferidas primeiro.',
   'settings.empty': 'Aquí aínda non hai nada que configurar.',

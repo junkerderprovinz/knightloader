@@ -260,6 +260,8 @@ export const cs: Dict = {
   'settings.rainbowRotate': 'Rotace barev',
   'settings.rainbowRotateHint': 'Zamíchat, kde paleta začíná',
   'settings.rainbowPalette': 'Barva palety',
+  'settings.rainbowPaletteLabel': 'Barevná paleta',
+  'settings.rainbowPaletteHint': 'Osm barev přiřazených podle pozice. Každou lze upravit zvlášť.',
   'settings.look.saveFailed': 'Nepodařilo se uložit: {error}',
   'settings.theme': 'Motiv',
   'queue.limitUnit': 'Jednotka',
@@ -406,8 +408,6 @@ export const cs: Dict = {
   'settings.nav.access': 'Přístup',
   'settings.nav.advanced': 'Pokročilé',
 
-  'settings.unsaved': 'Neuložené změny',
-  'settings.discard': 'Zahodit',
   'settings.railLabel': 'Sekce nastavení',
   'settings.railReorderHint': 'Podržte kartu a přetáhněte ji, abyste své oblíbené sekce dali na první místa.',
   'settings.empty': 'Tady zatím není co nastavovat.',

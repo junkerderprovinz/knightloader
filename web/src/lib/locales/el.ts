@@ -260,6 +260,8 @@ export const el: Dict = {
   'settings.rainbowRotate': 'Περιστροφή χρωμάτων',
   'settings.rainbowRotateHint': 'Ανακάτεμα του σημείου εκκίνησης της παλέτας',
   'settings.rainbowPalette': 'Χρώμα παλέτας',
+  'settings.rainbowPaletteLabel': 'Παλέτα χρωμάτων',
+  'settings.rainbowPaletteHint': 'Τα οκτώ χρώματα που αποδίδονται ανά θέση. Επεξεργάσιμα μεμονωμένα.',
   'settings.look.saveFailed': 'Δεν ήταν δυνατή η αποθήκευση: {error}',
   'settings.theme': 'Θέμα',
   'queue.limitUnit': 'Μονάδα',
@@ -406,8 +408,6 @@ export const el: Dict = {
   'settings.nav.access': 'Πρόσβαση',
   'settings.nav.advanced': 'Για προχωρημένους',
 
-  'settings.unsaved': 'Μη αποθηκευμένες αλλαγές',
-  'settings.discard': 'Απόρριψη',
   'settings.railLabel': 'Ενότητες ρυθμίσεων',
   'settings.railReorderHint': 'Κρατήστε πατημένη μια καρτέλα και σύρετέ την για να βάλετε τις δικές σας ενότητες πρώτες.',
   'settings.empty': 'Εδώ δεν υπάρχει ακόμη κάτι να ρυθμιστεί.',

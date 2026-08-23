@@ -260,6 +260,8 @@ export const sr: Dict = {
   'settings.rainbowRotate': 'Ротација боја',
   'settings.rainbowRotateHint': 'Промешај почетак палете',
   'settings.rainbowPalette': 'Боја палете',
+  'settings.rainbowPaletteLabel': 'Палета боја',
+  'settings.rainbowPaletteHint': 'Осам боја додељених по позицији. Свака се може уредити засебно.',
   'settings.look.saveFailed': 'Није успело чување: {error}',
   'settings.theme': 'Тема',
   'queue.limitUnit': 'Јединица',
@@ -406,8 +408,6 @@ export const sr: Dict = {
   'settings.nav.access': 'Приступ',
   'settings.nav.advanced': 'Напредно',
 
-  'settings.unsaved': 'Несачуване измене',
-  'settings.discard': 'Одбаци',
   'settings.railLabel': 'Одељци подешавања',
   'settings.railReorderHint': 'Држите картицу и превуците је да бисте своје одељке поставили напред.',
   'settings.empty': 'Овде још нема шта да се подеси.',

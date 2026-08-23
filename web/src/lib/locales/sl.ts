@@ -260,6 +260,8 @@ export const sl: Dict = {
   'settings.rainbowRotate': 'Vrtenje barv',
   'settings.rainbowRotateHint': 'Premešaj, kje se paleta začne',
   'settings.rainbowPalette': 'Barva palete',
+  'settings.rainbowPaletteLabel': 'Barvna paleta',
+  'settings.rainbowPaletteHint': 'Osem barv, dodeljenih glede na položaj. Vsako je mogoče urediti posebej.',
   'settings.look.saveFailed': 'Ni bilo mogoče shraniti: {error}',
   'settings.theme': 'Tema',
   'queue.limitUnit': 'Enota',
@@ -406,8 +408,6 @@ export const sl: Dict = {
   'settings.nav.access': 'Dostop',
   'settings.nav.advanced': 'Napredno',
 
-  'settings.unsaved': 'Neshranjene spremembe',
-  'settings.discard': 'Zavrzi',
   'settings.railLabel': 'Razdelki nastavitev',
   'settings.railReorderHint': 'Pridržite zavihek in ga povlecite, da svoje razdelke postavite naprej.',
   'settings.empty': 'Tu še ni ničesar za nastaviti.',

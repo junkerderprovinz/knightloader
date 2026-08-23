@@ -260,6 +260,8 @@ export const ko: Dict = {
   'settings.rainbowRotate': '색상 순환',
   'settings.rainbowRotateHint': '팔레트가 시작하는 위치를 섞기',
   'settings.rainbowPalette': '팔레트 색',
+  'settings.rainbowPaletteLabel': '색상 팔레트',
+  'settings.rainbowPaletteHint': '위치별로 지정되는 여덟 가지 색상입니다. 개별적으로 편집할 수 있습니다.',
   'settings.look.saveFailed': '저장할 수 없었습니다: {error}',
   'settings.theme': '테마',
   'queue.limitUnit': '단위',
@@ -406,8 +408,6 @@ export const ko: Dict = {
   'settings.nav.access': '접근',
   'settings.nav.advanced': '고급',
 
-  'settings.unsaved': '저장하지 않은 변경',
-  'settings.discard': '버리기',
   'settings.railLabel': '설정 구역',
   'settings.railReorderHint': '탭을 길게 눌러 드래그하면 원하는 섹션을 앞으로 옮길 수 있습니다.',
   'settings.empty': '여기에는 아직 설정할 것이 없습니다.',

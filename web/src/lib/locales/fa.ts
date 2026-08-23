@@ -260,6 +260,8 @@ export const fa: Dict = {
   'settings.rainbowRotate': 'چرخش رنگ',
   'settings.rainbowRotateHint': 'جابه‌جا کردن رنگ شروع پالت',
   'settings.rainbowPalette': 'رنگ پالت',
+  'settings.rainbowPaletteLabel': 'پالت رنگ',
+  'settings.rainbowPaletteHint': 'هشت رنگی که بر اساس موقعیت اختصاص می‌یابند. هر کدام جداگانه قابل ویرایش است.',
   'settings.look.saveFailed': 'ذخیره نشد: {error}',
   'settings.theme': 'تم',
   'queue.limitUnit': 'واحد',
@@ -406,8 +408,6 @@ export const fa: Dict = {
   'settings.nav.access': 'دسترسی',
   'settings.nav.advanced': 'پیشرفته',
 
-  'settings.unsaved': 'تغییرهای ذخیره‌نشده',
-  'settings.discard': 'دور انداختن',
   'settings.railLabel': 'بخش‌های تنظیمات',
   'settings.railReorderHint': 'یک تب را نگه دارید و بکشید تا بخش‌های دلخواه خود را اول قرار دهید.',
   'settings.empty': 'اینجا هنوز چیزی برای تنظیم نیست.',

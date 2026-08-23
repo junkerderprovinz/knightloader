@@ -262,6 +262,8 @@ export const ar: Dict = {
   'settings.rainbowRotate': 'تدوير الألوان',
   'settings.rainbowRotateHint': 'خلط نقطة بداية اللوحة',
   'settings.rainbowPalette': 'لون اللوحة',
+  'settings.rainbowPaletteLabel': 'لوحة الألوان',
+  'settings.rainbowPaletteHint': 'الألوان الثمانية الموزعة حسب الموضع. يمكن تعديل كل منها على حدة.',
   'settings.look.saveFailed': 'تعذّر الحفظ: {error}',
   'settings.theme': 'السمة',
   'queue.limitUnit': 'الوحدة',
@@ -408,8 +410,6 @@ export const ar: Dict = {
   'settings.nav.access': 'الوصول',
   'settings.nav.advanced': 'متقدم',
 
-  'settings.unsaved': 'تغييرات غير محفوظة',
-  'settings.discard': 'تجاهل',
   'settings.railLabel': 'أقسام الإعدادات',
   'settings.railReorderHint': 'اضغط مطولاً على تبويب واسحبه لوضع أقسامك المفضلة أولاً.',
   'settings.empty': 'لا شيء لضبطه هنا بعد.',

@@ -252,6 +252,8 @@ export const nl: Dict = {
   'settings.rainbowRotate': 'Kleurrotatie',
   'settings.rainbowRotateHint': 'Startpunt van het palet schudden',
   'settings.rainbowPalette': 'Paletkleur',
+  'settings.rainbowPaletteLabel': 'Kleurenpalet',
+  'settings.rainbowPaletteHint': 'De acht kleuren die op basis van positie worden toegewezen. Elk afzonderlijk bewerkbaar.',
   'settings.look.saveFailed': 'Kon niet worden opgeslagen: {error}',
   'settings.theme': 'Thema',
   'queue.limitUnit': 'Eenheid',
@@ -398,8 +400,6 @@ export const nl: Dict = {
   'settings.nav.access': 'Toegang',
   'settings.nav.advanced': 'Geavanceerd',
 
-  'settings.unsaved': 'Niet-opgeslagen wijzigingen',
-  'settings.discard': 'Weggooien',
   'settings.railLabel': 'Instellingenonderdelen',
   'settings.railReorderHint': 'Houd een tabblad ingedrukt en sleep het om je eigen secties vooraan te zetten.',
   'settings.empty': 'Hier valt nog niets in te stellen.',

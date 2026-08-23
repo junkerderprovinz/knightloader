@@ -260,6 +260,8 @@ export const vi: Dict = {
   'settings.rainbowRotate': 'Xoay vòng màu',
   'settings.rainbowRotateHint': 'Xáo vị trí bắt đầu của bảng màu',
   'settings.rainbowPalette': 'Màu trong bảng',
+  'settings.rainbowPaletteLabel': 'Bảng màu',
+  'settings.rainbowPaletteHint': 'Tám màu được gán theo vị trí. Có thể chỉnh sửa riêng từng màu.',
   'settings.look.saveFailed': 'Không thể lưu: {error}',
   'settings.theme': 'Giao diện',
   'queue.limitUnit': 'Đơn vị',
@@ -406,8 +408,6 @@ export const vi: Dict = {
   'settings.nav.access': 'Truy cập',
   'settings.nav.advanced': 'Nâng cao',
 
-  'settings.unsaved': 'Thay đổi chưa lưu',
-  'settings.discard': 'Bỏ',
   'settings.railLabel': 'Các mục cài đặt',
   'settings.railReorderHint': 'Giữ một thẻ và kéo để đưa các mục yêu thích lên đầu.',
   'settings.empty': 'Ở đây chưa có gì để đặt.',

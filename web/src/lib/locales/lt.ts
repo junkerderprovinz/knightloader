@@ -260,6 +260,8 @@ export const lt: Dict = {
   'settings.rainbowRotate': 'Spalvų rotacija',
   'settings.rainbowRotateHint': 'Maišyti, nuo kurios spalvos paletė prasideda',
   'settings.rainbowPalette': 'Paletės spalva',
+  'settings.rainbowPaletteLabel': 'Spalvų paletė',
+  'settings.rainbowPaletteHint': 'Aštuonios spalvos, priskirtos pagal poziciją. Kiekvieną galima redaguoti atskirai.',
   'settings.look.saveFailed': 'Nepavyko įrašyti: {error}',
   'settings.theme': 'Tema',
   'queue.limitUnit': 'Vienetas',
@@ -406,8 +408,6 @@ export const lt: Dict = {
   'settings.nav.access': 'Prieiga',
   'settings.nav.advanced': 'Išplėstiniai',
 
-  'settings.unsaved': 'Neįrašyti pakeitimai',
-  'settings.discard': 'Atmesti',
   'settings.railLabel': 'Nustatymų skiltys',
   'settings.railReorderHint': 'Palaikykite skirtuką ir vilkite, kad savo skiltis perkeltumėte į priekį.',
   'settings.empty': 'Čia dar nėra ko nustatyti.',
