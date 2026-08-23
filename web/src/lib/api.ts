@@ -1729,6 +1729,18 @@ export async function fetchExtensionVersion(): Promise<{ version: string }> {
   return json(await fetch('/api/browser-extension/version'));
 }
 
+export interface UpdateCheck {
+  checked: boolean;
+  available: boolean;
+  current: string;
+  latest?: string;
+  url?: string;
+}
+
+export async function fetchUpdateCheck(): Promise<UpdateCheck> {
+  return json(await fetch('/api/system/update-check'));
+}
+
 // fetchDiagnostics is called both to render the diagnostics page's live
 // preview and, again, right before a download - the bundle is meant to
 // reflect the moment it was pulled, not whatever the page happened to load

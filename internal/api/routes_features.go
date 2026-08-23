@@ -405,25 +405,36 @@ func featureList(a *app.App) []Feature {
 				"from outside the network is a port forward, a reverse proxy or a VPN, and a peer instance covers the LAN case",
 		},
 		{
-			ID: "updater", Verdict: VerdictNotBuilt, Page: "advanced",
+			ID: "updater", Verdict: updaterVerdict(), Page: "advanced",
 			Switch: SwitchNone,
 			Reason: updaterReason(),
 		},
 	}
 }
 
-// updaterReason is buildinfo.Deployment-aware (jdp, 2026-08-23: "bei der
-// Docker version soll halt stehen dass es in app nicht notwendig ist weil es
-// über zb unraid selbst läuft") - the container's own reasoning (it cannot
-// replace itself from the inside, and the deployment that can already both
-// detects and performs the update) does not apply to the desktop build,
-// which has no such surrounding platform to defer to; that one is a genuine
-// possibility, just not built yet, so it gets its own, honest wording rather
-// than borrowing the container's.
+// updaterVerdict/updaterReason are both buildinfo.Deployment-aware (jdp,
+// 2026-08-23: "bei der Docker version soll halt stehen dass es in app nicht
+// notwendig ist weil es über zb unraid selbst läuft", then "#19 bauen" once
+// the container-only wording landed) - the container's own reasoning (it
+// cannot replace itself from the inside, and the deployment that runs it
+// already both detects and performs the update) never applied to desktop,
+// which has no such surrounding platform to defer to. Desktop now has a
+// real update.Check (routes_lifecycle.go's GET /api/system/update-check,
+// surfaced on the Advanced tab) - VerdictDesktop rather than VerdictShipped
+// because there is no real on/off state to show as a switch-less row's
+// enabled/disabled text would imply; it sorts into the same "only reachable
+// in the desktop bundle" section tray/windowpolicy already use.
+func updaterVerdict() FeatureVerdict {
+	if buildinfo.Deployment == "desktop" {
+		return VerdictDesktop
+	}
+	return VerdictNotBuilt
+}
+
 func updaterReason() string {
 	if buildinfo.Deployment == "desktop" {
-		return "a real possibility here - unlike the container, a desktop build has no surrounding platform " +
-			"that already updates it - just not built yet"
+		return "checks GitHub for a newer release on demand from the Erweitert tab; downloading and installing it is still a manual step there, " +
+			"same as any other desktop app before it grows a silent auto-apply"
 	}
 	return "a container cannot replace itself from the inside, and the deployment that runs it " +
 		"(Docker, Unraid, ...) already both detects and performs the update; a second indicator here would only disagree with it"
