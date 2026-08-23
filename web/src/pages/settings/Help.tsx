@@ -70,9 +70,7 @@ export function Help() {
   const { t } = useT();
 
   return (
-    <div className="flex flex-col gap-6">
-      <p className="text-sm text-carbon-textSub">{t('settings.help.intro')}</p>
-
+    <div className="flex flex-col gap-10">
       <Topic
         title={t('settings.help.intake.title')}
         hue={0}

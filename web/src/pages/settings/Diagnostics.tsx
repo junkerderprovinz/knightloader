@@ -117,7 +117,7 @@ export function Diagnostics() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-10">
       <Card className="flex flex-col gap-5">
         <SectionTitle hue={0}>{cx('settings.diagnostics.systemTitle')}</SectionTitle>
         <p className="text-sm text-carbon-textSub">{cx('settings.diagnostics.subtitle')}</p>

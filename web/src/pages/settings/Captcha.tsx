@@ -174,7 +174,7 @@ export function Captcha() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-10">
       <PageHeader title={cx('settings.captcha.title')} subtitle={cx('settings.captcha.subtitle')} />
 
       <Card className="flex flex-col gap-1">

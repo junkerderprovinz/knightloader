@@ -29,7 +29,7 @@ export function Modules() {
   const absent = features.modules.filter((m) => m.verdict !== 'shipped' && m.verdict !== 'desktop');
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-10">
       <Group hue={0} title={tx('settings.modules.sectionShipped')} hint={tx('settings.modules.fixedAtBuild')} rows={shipped} />
       <Group hue={1} title={tx('settings.modules.sectionDesktop')} rows={desktop} />
       <Group hue={2} title={tx('settings.modules.sectionNotBuilt')} rows={absent} />

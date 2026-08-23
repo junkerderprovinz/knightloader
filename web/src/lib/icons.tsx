@@ -336,11 +336,18 @@ export const IconDiagnostics = (p: SVGProps<SVGSVGElement>) => (
 /** Help: a question mark, same circle radius as Schedule's clock and Connections' globe. */
 export const IconHelp = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
-    <circle cx="10" cy="10" r="7.25" />
+    {/* One path, not a circle plus a separate glyph path (jdp: "Hilf icon
+        ist ein runder Kreis ohne icon") - as two currentColor-filled
+        siblings the "?" sat directly on top of the identically-coloured
+        circle and was invisible. Combined into one evenodd path, the same
+        technique IconWarning already uses, so the "?"'s own sub-path
+        actually carves through the circle instead of just repainting the
+        same colour over it. */}
     <path
       fillRule="evenodd"
       clipRule="evenodd"
-      d="M7.7 7.9a2.35 2.35 0 1 1 3.4 2.1c-.6.32-.95.75-1.05 1.3h-1.8c.1-1.05.55-1.75 1.4-2.25a.85.85 0 1 0-1.25-.75Zm1.3 5.4a1 1 0 1 0 2 0 1 1 0 0 0-2 0Z"
+      d="M17.25 10A7.25 7.25 0 1 0 2.75 10a7.25 7.25 0 0 0 14.5 0Z
+         M7.7 7.9a2.35 2.35 0 1 1 3.4 2.1c-.6.32-.95.75-1.05 1.3h-1.8c.1-1.05.55-1.75 1.4-2.25a.85.85 0 1 0-1.25-.75Zm1.3 5.4a1 1 0 1 0 2 0 1 1 0 0 0-2 0Z"
     />
   </svg>
 );

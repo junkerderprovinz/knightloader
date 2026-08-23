@@ -179,7 +179,7 @@ export function Torrents() {
   const seedHours = Math.round(tr.seedDurationSeconds / 3600);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-10">
       <PageHeader title={cx('settings.torrents.title')} subtitle={cx('settings.torrents.subtitle')} />
 
       {/* Verified while building this page, not a hedge: settings_torrent.go's

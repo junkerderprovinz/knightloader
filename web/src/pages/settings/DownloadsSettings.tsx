@@ -85,7 +85,7 @@ export function DownloadsSettings() {
   const watchOff = watch !== undefined && !watch.enabled && watch.parked;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-10">
       {/* Moved in from the now-removed Allgemein tab (jdp: "Wir brauchen
           keinen Allgemein Tab: das alles in den Download Tab verschieben") -
           where files land and what happens to a link the moment it arrives,

@@ -520,7 +520,7 @@ export function Schedule() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-10">
       <PageHeader title={cx('settings.schedule.title')} subtitle={cx('settings.schedule.subtitle')} />
 
       <StateBanner live={live} cx={cx} locale={locale} />
