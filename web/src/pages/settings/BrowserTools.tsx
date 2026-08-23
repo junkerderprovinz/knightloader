@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import logoUrl from '../../assets/logo-icon.svg';
+import logoUrl from '../../assets/logo.svg';
 import { buildBookmarklet } from '../../lib/browserTools';
 import { useInstallPrompt } from '../../lib/pwaInstall';
 import { useT } from '../../lib/i18n';
