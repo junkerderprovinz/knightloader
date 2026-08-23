@@ -317,7 +317,11 @@ function SectionTabs({ pages }: { pages: FeaturePage[] }) {
       activateOnFocus={false}
       reorderable
       onReorder={setOrder}
-      equalWidth
+      // Content-hugging, not equal-width - the actual BombVault test
+      // container's own Settings tab strip sizes each tab to its own label
+      // (jdp: "Bitte orientiere dich am Bombvault-Testcontainer!!!"), and a
+      // prior "gleich breit" pass here was matching GlimStone's docs, not
+      // what is actually deployed there.
       items={ordered.map((p) => ({
         id: p.id,
         label: label(tx, 'settings.nav.', p.id),

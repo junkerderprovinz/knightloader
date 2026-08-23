@@ -341,11 +341,15 @@ export function useTooltip<T extends HTMLElement = HTMLElement>(content: ReactNo
  */
 export const segBase = 'rounded-[var(--radius-control)] font-medium transition-colors';
 export const segOn = 'bg-accent text-accentContrast';
-// A quiet fill at rest, not bare text (GlimStone: "every tab is a badge, not
-// just the selected one") - an unfilled segment used to carry zero
-// background until actually hovered, which read as unfinished on a strip
-// with a dozen mostly-plain-text tabs.
-export const segOff = 'bg-carbon-surface2 text-carbon-textMuted hover:bg-carbon-hover hover:text-carbon-text';
+// Transparent at rest, matching the actual BombVault test container's own
+// Settings tab strip (computed styles read directly off it: unselected =
+// `background: transparent`, no fill at all, only the hover state paints
+// anything) - a prior pass here added a quiet resting fill on the strength
+// of GlimStone's own docs, which turned out to describe an undeployed
+// feature, not what jdp was actually comparing against (jdp: "Bitte
+// orientiere dich am Bombvault-Testcontainer!!! Es sieht nicht aus wie
+// dort!").
+export const segOff = 'text-carbon-textMuted hover:bg-carbon-hover hover:text-carbon-text';
 
 /**
  * hueStyle is how anything that is one member of a set claims a palette
@@ -642,24 +646,23 @@ export function ErrorCard({ message, retry, retryLabel }: { message: string; ret
   );
 }
 
-// SectionTitle labels a group of content without adding another raised
-// surface of its own - the label itself IS a filled badge rather than plain
-// text, matching BombVault's own current theming (jdp: "Das ganze theming
-// soll in den Settings so aussehen wie im aktuellen BV Testcontainer").
+// SectionTitle labels a group of content: plain uppercase text, no filled
+// pill behind it. An earlier pass here read GlimStone's own docs as "every
+// heading is a filled badge, matching BombVault" and built exactly that -
+// but that rule describes BombVault's REPO, not what the actual BV test
+// container jdp has been comparing against renders. Read directly off that
+// container (computed styles, not source): every card h2 there is
+// `background: transparent`, `padding: 0`, 14px/600/uppercase/1.4px
+// tracking, plain `text-carbon-textSub` - no pill, no fill, no radius (jdp:
+// "Bitte orientiere dich am Bombvault-Testcontainer!!! Es sieht nicht aus
+// wie dort!"). This is that exact typography, verbatim.
 //
-// `hint` sits as a SIBLING immediately beside the badge, not inside its
-// coloured fill and not floated to the far right of the row - BombVault's
-// own Card component takes an equivalent `hint` prop for exactly this (see
-// its Badge.tsx file header: "the InfoBubble... sits as a SIBLING outside
-// the badge... keeps InfoBubble's rule-8 contract [neutral, never the
-// accent] true"). The previous version put every `right`-slotted node,
-// InfoBubble included, behind a `flex-1` spacer that flung it to the far
-// edge of the card - correct for a real header action (Add, Refresh), but
-// wrong for a one-line explanation that belongs read right after the title
-// it explains (jdp: "die cardtitelbadges sind falsch platziert... die
-// infobubble der Ecken in den Titelbadge"). `right` still exists, still
-// spaced off with its own gap, for the call sites that really do mean a
-// far-right action.
+// `hint` sits as a SIBLING immediately beside the title, not floated to the
+// far right of the row (a real, still-current fix from the previous round -
+// the flex-1 spacer bug it fixed was real regardless of the badge/no-badge
+// question). `right` still exists, still spaced off with its own gap, for
+// the call sites that really do mean a far-right header action (Add,
+// Refresh).
 export function SectionTitle({
   children,
   hint,
@@ -671,13 +674,8 @@ export function SectionTitle({
 }) {
   return (
     <div className="flex items-center gap-3">
-      <h2 className="flex items-center gap-1.5">
-        <span
-          className="inline-flex h-[22px] w-fit items-center rounded-[var(--radius-pill)] bg-accentSoft
-            px-2.5 text-[11px] font-semibold uppercase tracking-widest text-carbon-textSub"
-        >
-          {children}
-        </span>
+      <h2 className="flex items-center gap-1.5 text-[14px] font-semibold uppercase tracking-[1.4px] text-carbon-textSub">
+        {children}
         {hint && <InfoBubble tip={hint} />}
       </h2>
       {right && (
