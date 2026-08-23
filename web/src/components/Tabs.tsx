@@ -84,6 +84,18 @@ interface Common {
   /** Called with the full, reordered list of ids after a drop. */
   onReorder?: (ids: string[]) => void;
   /**
+   * Externally-driven reorder mode (jdp, 2026-08-23: replaces the InfoBubble
+   * hint at the end of the strip with a pencil button - clicking it should
+   * wiggle every tab immediately, no long-press needed). While true: every
+   * tab wiggles right away, and a plain pointerdown on one starts dragging it
+   * instantly instead of arming the usual 300ms hold timer first. A click
+   * never selects while this is on - there is no safe way to tell "picking
+   * this tab up" from "tapping it to navigate" once every tab is already
+   * primed to be dragged. Requires `reorderable`/`onReorder` the same as the
+   * long-press path; the two triggers share the rest of the machinery below.
+   */
+  editMode?: boolean;
+  /**
    * Every tab sized to the longest label in the set, not to its own content
    * (GlimStone: "a strip where each tab hugs its own text reads as a ransom
    * note"). Opt-in - a strip of quick-filter chips (varying label lengths by
@@ -127,6 +139,7 @@ export function Tabs(props: TabsProps) {
     className = '',
     reorderable = false,
     onReorder,
+    editMode = false,
     equalWidth = false,
     variant = 'default',
   } = props;
@@ -214,6 +227,14 @@ export function Tabs(props: TabsProps) {
     pressId.current = id;
     pressPointerId.current = e.pointerId;
     moved.current = false;
+    // Edit mode: every tab is already wiggling, so a press picks one up
+    // immediately - no hold timer, the strip is already primed.
+    if (editMode) {
+      setReordering(true);
+      setDraggingId(id);
+      setLiveOrder((prev) => prev ?? items.map((i) => i.id));
+      return;
+    }
     // A held-open drop target or a live insertion-line is more machinery
     // than reordering four to twelve settings tabs needs - the CC pattern's
     // own answer is the same: the strip simply wiggles, and the held tab
@@ -362,6 +383,14 @@ export function Tabs(props: TabsProps) {
   }
 
   function onClick(e: MouseEvent<HTMLElement>, item: TabDef) {
+    // Edit mode: every tab is primed to be picked up, so a click never
+    // navigates - there is no way to tell "tapping to select" apart from
+    // "about to drag" once the whole strip is already wiggling.
+    if (editMode) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
     // A long-press that armed reorder mode but never actually moved still
     // ends in a click once the pointer lifts - without this, holding a tab
     // for 300ms and letting go in place would both wiggle it AND select it.
@@ -407,7 +436,7 @@ export function Tabs(props: TabsProps) {
     >
       {orderedItems.map((item, i) => {
         const on = isOn(item.id);
-        const wiggling = reordering && item.id !== draggingId;
+        const wiggling = (reordering || editMode) && item.id !== draggingId;
         const dragged = item.id === draggingId;
         const cls = isWell
           ? // Fixed 200px per segment, not flex-1/content-hugging - measured

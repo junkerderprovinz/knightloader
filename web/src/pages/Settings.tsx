@@ -6,8 +6,9 @@ import { useResource } from '../lib/useResource';
 import { readUIState, useUIState } from '../lib/uistate';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
-import { ErrorCard, InfoBubble, LoadingCard, PageHeader } from '../components/ui';
+import { ErrorCard, IconBadge, LoadingCard, PageHeader } from '../components/ui';
 import { Tabs } from '../components/Tabs';
+import { IconEdit } from '../lib/icons';
 import { SettingsProvider, type FeatureAccess, type SettingsDraft } from './settings/context';
 import { fetchFeatures, setFeature, type FeaturePage, type FeatureState } from './settings/features';
 import { same } from './settings/paths';
@@ -348,6 +349,12 @@ function SectionTabs({ pages }: { pages: FeaturePage[] }) {
   // with what the instance itself is configured to do.
   const [order, setOrder] = useUIState<string[]>('settingsTabOrder', []);
   const ordered = orderPages(pages, order);
+  // Pencil replaces the old InfoBubble hint (jdp, 2026-08-23: "die ersetzten
+  // wir mit einem Stiftsymbol. wenn man draufklickt sollen alle tabs
+  // anfangen zu wackeln und man soll sie dann verschieben können") - a
+  // second click (or navigating elsewhere) turns it back off; see Tabs.tsx's
+  // own `editMode` prop for the wiggle/drag mechanics this drives.
+  const [editMode, setEditMode] = useState(false);
 
   return (
     <Tabs
@@ -361,6 +368,7 @@ function SectionTabs({ pages }: { pages: FeaturePage[] }) {
       activateOnFocus={false}
       reorderable
       onReorder={setOrder}
+      editMode={editMode}
       // Content-hugging, not equal-width - the actual BombVault test
       // container's own Settings tab strip sizes each tab to its own label
       // (jdp: "Bitte orientiere dich am Bombvault-Testcontainer!!!"), and a
@@ -376,11 +384,19 @@ function SectionTabs({ pages }: { pages: FeaturePage[] }) {
         // click is cheaper than after it.
         dim: !hasContent(p.id),
       }))}
-      // The reorder gesture itself has no visible affordance at rest (jdp
-      // explicitly did not want a grab cursor advertising it) - this is the
-      // one place that says it is possible at all, since "hold and drag"
-      // is not discoverable from the tab strip's own idle appearance.
-      after={<InfoBubble tip={tx('settings.railReorderHint')} />}
+      // The pencil is the one place that says reordering is possible at all
+      // - clicking it arms edit mode outright (every tab wiggles right
+      // away) rather than relying on the long-press's own, undiscoverable
+      // hold gesture.
+      after={
+        <IconBadge
+          icon={<IconEdit width={16} height={16} />}
+          aria-label={tx(editMode ? 'settings.railReorderDone' : 'settings.railReorderStart')}
+          aria-pressed={editMode}
+          className={editMode ? 'bg-accent text-accentContrast hover:brightness-110' : undefined}
+          onClick={() => setEditMode((v) => !v)}
+        />
+      }
     />
   );
 }
