@@ -260,6 +260,8 @@ export const uk: Dict = {
   'settings.rainbowRotate': 'Ротація кольорів',
   'settings.rainbowRotateHint': 'Перемішати, з якого кольору починається палітра',
   'settings.rainbowPalette': 'Колір палітри',
+  'settings.rainbowPaletteLabel': 'Кольорова палітра',
+  'settings.rainbowPaletteHint': 'Вісім кольорів, призначених за позицією. Кожен можна редагувати окремо.',
   'settings.look.saveFailed': 'Не вдалося зберегти: {error}',
   'settings.theme': 'Тема',
   'queue.limitUnit': 'Одиниця',
@@ -406,8 +408,6 @@ export const uk: Dict = {
   'settings.nav.access': 'Доступ',
   'settings.nav.advanced': 'Додатково',
 
-  'settings.unsaved': 'Незбережені зміни',
-  'settings.discard': 'Відкинути',
   'settings.railLabel': 'Розділи налаштувань',
   'settings.railReorderHint': 'Утримуйте вкладку й перетягніть її, щоб розмістити потрібні розділи першими.',
   'settings.empty': 'Тут поки нема чого налаштовувати.',

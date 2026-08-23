@@ -260,6 +260,8 @@ export const fi: Dict = {
   'settings.rainbowRotate': 'Värikierto',
   'settings.rainbowRotateHint': 'Sekoita, mistä paletti alkaa',
   'settings.rainbowPalette': 'Paletin väri',
+  'settings.rainbowPaletteLabel': 'Väripaletti',
+  'settings.rainbowPaletteHint': 'Kahdeksan sijainnin mukaan jaettua väriä. Muokattavissa yksitellen.',
   'settings.look.saveFailed': 'Tallennus epäonnistui: {error}',
   'settings.theme': 'Teema',
   'queue.limitUnit': 'Yksikkö',
@@ -406,8 +408,6 @@ export const fi: Dict = {
   'settings.nav.access': 'Pääsy',
   'settings.nav.advanced': 'Lisäasetukset',
 
-  'settings.unsaved': 'Tallentamattomia muutoksia',
-  'settings.discard': 'Hylkää',
   'settings.railLabel': 'Asetusten osiot',
   'settings.railReorderHint': 'Pidä välilehteä painettuna ja vedä siirtääksesi omat osiosi ensin.',
   'settings.empty': 'Täällä ei ole vielä mitään säädettävää.',

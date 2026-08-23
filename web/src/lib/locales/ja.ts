@@ -260,6 +260,8 @@ export const ja: Dict = {
   'settings.rainbowRotate': 'カラーローテーション',
   'settings.rainbowRotateHint': 'パレットの開始位置をシャッフルする',
   'settings.rainbowPalette': 'パレットの色',
+  'settings.rainbowPaletteLabel': 'カラーパレット',
+  'settings.rainbowPaletteHint': '位置ごとに割り当てられる8色。個別に編集できます。',
   'settings.look.saveFailed': '保存できませんでした: {error}',
   'settings.theme': 'テーマ',
   'queue.limitUnit': '単位',
@@ -406,8 +408,6 @@ export const ja: Dict = {
   'settings.nav.access': 'アクセス',
   'settings.nav.advanced': '詳細',
 
-  'settings.unsaved': '未保存の変更',
-  'settings.discard': '破棄',
   'settings.railLabel': '設定のセクション',
   'settings.railReorderHint': 'タブを長押ししてドラッグすると、よく使うセクションを先頭に移動できます。',
   'settings.empty': 'ここにはまだ設定するものがありません。',

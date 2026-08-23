@@ -252,6 +252,8 @@ export const ru: Dict = {
   'settings.rainbowRotate': 'Ротация цветов',
   'settings.rainbowRotateHint': 'Перемешать, с какого цвета начинается палитра',
   'settings.rainbowPalette': 'Цвет палитры',
+  'settings.rainbowPaletteLabel': 'Цветовая палитра',
+  'settings.rainbowPaletteHint': 'Восемь цветов, назначаемых по позиции. Каждый можно изменить отдельно.',
   'settings.look.saveFailed': 'Не удалось сохранить: {error}',
   'settings.theme': 'Тема',
   'queue.limitUnit': 'Единица',
@@ -398,8 +400,6 @@ export const ru: Dict = {
   'settings.nav.access': 'Доступ',
   'settings.nav.advanced': 'Дополнительно',
 
-  'settings.unsaved': 'Несохранённые изменения',
-  'settings.discard': 'Отменить',
   'settings.railLabel': 'Разделы настроек',
   'settings.railReorderHint': 'Удерживайте вкладку и перетащите её, чтобы разместить нужные разделы первыми.',
   'settings.empty': 'Здесь пока нечего настраивать.',

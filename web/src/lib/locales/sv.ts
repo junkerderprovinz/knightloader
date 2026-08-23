@@ -260,6 +260,8 @@ export const sv: Dict = {
   'settings.rainbowRotate': 'Färgrotation',
   'settings.rainbowRotateHint': 'Blanda var paletten börjar',
   'settings.rainbowPalette': 'Palettfärg',
+  'settings.rainbowPaletteLabel': 'Färgpalett',
+  'settings.rainbowPaletteHint': 'De åtta färgerna som tilldelas efter position. Redigerbara var för sig.',
   'settings.look.saveFailed': 'Kunde inte spara: {error}',
   'settings.theme': 'Tema',
   'queue.limitUnit': 'Enhet',
@@ -406,8 +408,6 @@ export const sv: Dict = {
   'settings.nav.access': 'Åtkomst',
   'settings.nav.advanced': 'Avancerat',
 
-  'settings.unsaved': 'Osparade ändringar',
-  'settings.discard': 'Släng',
   'settings.railLabel': 'Inställningsavsnitt',
   'settings.railReorderHint': 'Håll ner en flik och dra för att placera dina egna avsnitt först.',
   'settings.empty': 'Här finns inget att ställa in än.',

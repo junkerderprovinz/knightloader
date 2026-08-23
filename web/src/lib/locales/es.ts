@@ -252,6 +252,8 @@ export const es: Dict = {
   'settings.rainbowRotate': 'Rotación de colores',
   'settings.rainbowRotateHint': 'Mezclar por dónde empieza la paleta',
   'settings.rainbowPalette': 'Color de la paleta',
+  'settings.rainbowPaletteLabel': 'Paleta de colores',
+  'settings.rainbowPaletteHint': 'Los ocho colores asignados por posición. Editable individualmente.',
   'settings.look.saveFailed': 'No se pudo guardar: {error}',
   'settings.theme': 'Tema',
   'queue.limitUnit': 'Unidad',
@@ -398,8 +400,6 @@ export const es: Dict = {
   'settings.nav.access': 'Acceso',
   'settings.nav.advanced': 'Avanzado',
 
-  'settings.unsaved': 'Cambios sin guardar',
-  'settings.discard': 'Descartar',
   'settings.railLabel': 'Secciones de ajustes',
   'settings.railReorderHint': 'Mantén pulsada una pestaña y arrástrala para poner tus propias secciones primero.',
   'settings.empty': 'Aquí todavía no hay nada que configurar.',

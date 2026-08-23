@@ -260,6 +260,8 @@ export const lv: Dict = {
   'settings.rainbowRotate': 'Krāsu rotācija',
   'settings.rainbowRotateHint': 'Jaukt, ar kuru krāsu palete sākas',
   'settings.rainbowPalette': 'Paletes krāsa',
+  'settings.rainbowPaletteLabel': 'Krāsu palete',
+  'settings.rainbowPaletteHint': 'Astoņas krāsas, kas piešķirtas pēc pozīcijas. Katru var rediģēt atsevišķi.',
   'settings.look.saveFailed': 'Neizdevās saglabāt: {error}',
   'settings.theme': 'Tēma',
   'queue.limitUnit': 'Vienība',
@@ -406,8 +408,6 @@ export const lv: Dict = {
   'settings.nav.access': 'Piekļuve',
   'settings.nav.advanced': 'Papildu',
 
-  'settings.unsaved': 'Nesaglabātas izmaiņas',
-  'settings.discard': 'Atmest',
   'settings.railLabel': 'Iestatījumu sadaļas',
   'settings.railReorderHint': 'Turiet cilni un velciet, lai savas sadaļas ievietotu priekšā.',
   'settings.empty': 'Šeit vēl nav ko iestatīt.',

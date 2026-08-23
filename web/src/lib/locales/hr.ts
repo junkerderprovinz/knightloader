@@ -260,6 +260,8 @@ export const hr: Dict = {
   'settings.rainbowRotate': 'Rotacija boja',
   'settings.rainbowRotateHint': 'Izmiješaj gdje paleta počinje',
   'settings.rainbowPalette': 'Boja palete',
+  'settings.rainbowPaletteLabel': 'Paleta boja',
+  'settings.rainbowPaletteHint': 'Osam boja dodijeljenih prema poziciji. Svaku je moguće zasebno urediti.',
   'settings.look.saveFailed': 'Nije uspjelo spremiti: {error}',
   'settings.theme': 'Tema',
   'queue.limitUnit': 'Jedinica',
@@ -406,8 +408,6 @@ export const hr: Dict = {
   'settings.nav.access': 'Pristup',
   'settings.nav.advanced': 'Napredno',
 
-  'settings.unsaved': 'Nespremljene promjene',
-  'settings.discard': 'Odbaci',
   'settings.railLabel': 'Odjeljci postavki',
   'settings.railReorderHint': 'Zadržite karticu i povucite je kako biste svoje odjeljke postavili naprijed.',
   'settings.empty': 'Ovdje još nema što postaviti.',

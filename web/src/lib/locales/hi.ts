@@ -260,6 +260,8 @@ export const hi: Dict = {
   'settings.rainbowRotate': 'रंग घुमाव',
   'settings.rainbowRotateHint': 'पैलेट का शुरुआती रंग बदलें',
   'settings.rainbowPalette': 'पैलेट रंग',
+  'settings.rainbowPaletteLabel': 'रंग पैलेट',
+  'settings.rainbowPaletteHint': 'स्थिति के अनुसार दिए गए आठ रंग। हर एक को अलग-अलग संपादित किया जा सकता है।',
   'settings.look.saveFailed': 'सहेजा नहीं जा सका: {error}',
   'settings.theme': 'थीम',
   'queue.limitUnit': 'इकाई',
@@ -406,8 +408,6 @@ export const hi: Dict = {
   'settings.nav.access': 'पहुँच',
   'settings.nav.advanced': 'उन्नत',
 
-  'settings.unsaved': 'बिना सहेजे बदलाव',
-  'settings.discard': 'छोड़ दें',
   'settings.railLabel': 'सेटिंग्स के अनुभाग',
   'settings.railReorderHint': 'किसी टैब को दबाए रखें और खींचें ताकि अपने पसंदीदा अनुभाग सबसे आगे ला सकें।',
   'settings.empty': 'यहाँ अभी कुछ भी तय करने को नहीं है।',

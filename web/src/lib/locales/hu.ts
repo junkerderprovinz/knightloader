@@ -260,6 +260,8 @@ export const hu: Dict = {
   'settings.rainbowRotate': 'Színforgatás',
   'settings.rainbowRotateHint': 'A paletta kezdőszínének keverése',
   'settings.rainbowPalette': 'Palettaszín',
+  'settings.rainbowPaletteLabel': 'Színpaletta',
+  'settings.rainbowPaletteHint': 'A pozíció szerint kiosztott nyolc szín. Egyenként szerkeszthető.',
   'settings.look.saveFailed': 'Nem sikerült menteni: {error}',
   'settings.theme': 'Téma',
   'queue.limitUnit': 'Mértékegység',
@@ -406,8 +408,6 @@ export const hu: Dict = {
   'settings.nav.access': 'Hozzáférés',
   'settings.nav.advanced': 'Haladó',
 
-  'settings.unsaved': 'Mentetlen változások',
-  'settings.discard': 'Elvetés',
   'settings.railLabel': 'Beállítási szakaszok',
   'settings.railReorderHint': 'Tartsd lenyomva a fület, és húzd, hogy a saját szakaszaidat előre helyezd.',
   'settings.empty': 'Itt még nincs mit beállítani.',

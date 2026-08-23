@@ -260,6 +260,8 @@ export const sk: Dict = {
   'settings.rainbowRotate': 'Rotácia farieb',
   'settings.rainbowRotateHint': 'Zamiešať, kde paleta začína',
   'settings.rainbowPalette': 'Farba palety',
+  'settings.rainbowPaletteLabel': 'Farebná paleta',
+  'settings.rainbowPaletteHint': 'Osem farieb priradených podľa pozície. Každú možno upraviť samostatne.',
   'settings.look.saveFailed': 'Nepodarilo sa uložiť: {error}',
   'settings.theme': 'Motív',
   'queue.limitUnit': 'Jednotka',
@@ -406,8 +408,6 @@ export const sk: Dict = {
   'settings.nav.access': 'Prístup',
   'settings.nav.advanced': 'Pokročilé',
 
-  'settings.unsaved': 'Neuložené zmeny',
-  'settings.discard': 'Zahodiť',
   'settings.railLabel': 'Sekcie nastavení',
   'settings.railReorderHint': 'Podržte kartu a presuňte ju, aby ste svoje obľúbené sekcie dali na začiatok.',
   'settings.empty': 'Tu zatiaľ nie je čo nastavovať.',

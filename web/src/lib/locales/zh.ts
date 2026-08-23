@@ -260,6 +260,8 @@ export const zh: Dict = {
   'settings.rainbowRotate': '颜色轮换',
   'settings.rainbowRotateHint': '打乱调色板的起始颜色',
   'settings.rainbowPalette': '调色板颜色',
+  'settings.rainbowPaletteLabel': '调色板',
+  'settings.rainbowPaletteHint': '按位置分配的八种颜色，可单独编辑。',
   'settings.look.saveFailed': '无法保存：{error}',
   'settings.theme': '主题',
   'queue.limitUnit': '单位',
@@ -406,8 +408,6 @@ export const zh: Dict = {
   'settings.nav.access': '访问',
   'settings.nav.advanced': '高级',
 
-  'settings.unsaved': '有未保存的更改',
-  'settings.discard': '放弃',
   'settings.railLabel': '设置分区',
   'settings.railReorderHint': '长按并拖动标签，把常用的部分排到前面。',
   'settings.empty': '这里还没有可设置的内容。',

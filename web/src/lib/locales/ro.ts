@@ -260,6 +260,8 @@ export const ro: Dict = {
   'settings.rainbowRotate': 'Rotația culorilor',
   'settings.rainbowRotateHint': 'Amestecă de unde începe paleta',
   'settings.rainbowPalette': 'Culoare din paletă',
+  'settings.rainbowPaletteLabel': 'Paletă de culori',
+  'settings.rainbowPaletteHint': 'Cele opt culori atribuite după poziție. Editabile individual.',
   'settings.look.saveFailed': 'Nu s-a putut salva: {error}',
   'settings.theme': 'Temă',
   'queue.limitUnit': 'Unitate',
@@ -406,8 +408,6 @@ export const ro: Dict = {
   'settings.nav.access': 'Acces',
   'settings.nav.advanced': 'Avansat',
 
-  'settings.unsaved': 'Modificări nesalvate',
-  'settings.discard': 'Renunță',
   'settings.railLabel': 'Secțiunile setărilor',
   'settings.railReorderHint': 'Ține apăsată o filă și trage-o pentru a-ți pune secțiunile preferate primele.',
   'settings.empty': 'Aici nu e încă nimic de configurat.',

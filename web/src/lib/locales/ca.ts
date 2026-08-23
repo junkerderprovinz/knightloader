@@ -260,6 +260,8 @@ export const ca: Dict = {
   'settings.rainbowRotate': 'Rotació de colors',
   'settings.rainbowRotateHint': 'Barreja on comença la paleta',
   'settings.rainbowPalette': 'Color de la paleta',
+  'settings.rainbowPaletteLabel': 'Paleta de colors',
+  'settings.rainbowPaletteHint': 'Els vuit colors assignats per posició. Editables individualment.',
   'settings.look.saveFailed': 'No s’ha pogut desar: {error}',
   'settings.theme': 'Tema',
   'queue.limitUnit': 'Unitat',
@@ -406,8 +408,6 @@ export const ca: Dict = {
   'settings.nav.access': 'Accés',
   'settings.nav.advanced': 'Avançat',
 
-  'settings.unsaved': 'Canvis sense desar',
-  'settings.discard': 'Descarta',
   'settings.railLabel': 'Seccions de la configuració',
   'settings.railReorderHint': 'Mantén premuda una pestanya i arrossega-la per posar les teves seccions primer.',
   'settings.empty': 'Aquí encara no hi ha res per configurar.',

@@ -260,6 +260,8 @@ export const th: Dict = {
   'settings.rainbowRotate': 'การหมุนสี',
   'settings.rainbowRotateHint': 'สลับตำแหน่งเริ่มต้นของจานสี',
   'settings.rainbowPalette': 'สีในจานสี',
+  'settings.rainbowPaletteLabel': 'จานสี',
+  'settings.rainbowPaletteHint': 'แปดสีที่กำหนดตามตำแหน่ง แก้ไขได้ทีละสี',
   'settings.look.saveFailed': 'บันทึกไม่สำเร็จ: {error}',
   'settings.theme': 'ธีม',
   'queue.limitUnit': 'หน่วย',
@@ -406,8 +408,6 @@ export const th: Dict = {
   'settings.nav.access': 'การเข้าถึง',
   'settings.nav.advanced': 'ขั้นสูง',
 
-  'settings.unsaved': 'มีการเปลี่ยนแปลงที่ยังไม่บันทึก',
-  'settings.discard': 'ทิ้งไป',
   'settings.railLabel': 'ส่วนต่าง ๆ ของการตั้งค่า',
   'settings.railReorderHint': 'กดค้างที่แท็บแล้วลากเพื่อจัดหมวดที่คุณใช้บ่อยไว้ด้านหน้า',
   'settings.empty': 'ที่นี่ยังไม่มีอะไรให้ตั้งค่า',

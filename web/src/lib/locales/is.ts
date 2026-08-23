@@ -260,6 +260,8 @@ export const is: Dict = {
   'settings.rainbowRotate': 'Litaskipting',
   'settings.rainbowRotateHint': 'Stokka upp hvar litaspjaldið byrjar',
   'settings.rainbowPalette': 'Litur í spjaldi',
+  'settings.rainbowPaletteLabel': 'Litapallet',
+  'settings.rainbowPaletteHint': 'Litirnir átta sem úthlutað er eftir stöðu. Hægt er að breyta hverjum fyrir sig.',
   'settings.look.saveFailed': 'Ekki tókst að vista: {error}',
   'settings.theme': 'Þema',
   'queue.limitUnit': 'Eining',
@@ -406,8 +408,6 @@ export const is: Dict = {
   'settings.nav.access': 'Aðgangur',
   'settings.nav.advanced': 'Ítarlegt',
 
-  'settings.unsaved': 'Óvistaðar breytingar',
-  'settings.discard': 'Henda',
   'settings.railLabel': 'Kaflar stillinga',
   'settings.railReorderHint': 'Haltu flipa niðri og dragðu til að færa uppáhaldshlutana þína fremst.',
   'settings.empty': 'Hér er enn ekkert að stilla.',

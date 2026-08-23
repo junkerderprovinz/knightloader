@@ -262,6 +262,8 @@ export const no: Dict = {
   'settings.rainbowRotate': 'Fargerotasjon',
   'settings.rainbowRotateHint': 'Stokk hvor paletten starter',
   'settings.rainbowPalette': 'Palettfarge',
+  'settings.rainbowPaletteLabel': 'Fargepalett',
+  'settings.rainbowPaletteHint': 'De åtte fargene som tildeles etter posisjon. Kan redigeres hver for seg.',
   'settings.look.saveFailed': 'Kunne ikke lagre: {error}',
   'settings.theme': 'Tema',
   'queue.limitUnit': 'Enhet',
@@ -408,8 +410,6 @@ export const no: Dict = {
   'settings.nav.access': 'Tilgang',
   'settings.nav.advanced': 'Avansert',
 
-  'settings.unsaved': 'Ulagrede endringer',
-  'settings.discard': 'Forkast',
   'settings.railLabel': 'Innstillingsdeler',
   'settings.railReorderHint': 'Hold inne en fane og dra for å plassere dine egne seksjoner først.',
   'settings.empty': 'Her er det ikke noe å stille inn ennå.',

@@ -252,6 +252,8 @@ export const it: Dict = {
   'settings.rainbowRotate': 'Rotazione colori',
   'settings.rainbowRotateHint': 'Mescola da dove parte la tavolozza',
   'settings.rainbowPalette': 'Colore della tavolozza',
+  'settings.rainbowPaletteLabel': 'Tavolozza colori',
+  'settings.rainbowPaletteHint': 'Gli otto colori assegnati per posizione. Modificabili singolarmente.',
   'settings.look.saveFailed': 'Impossibile salvare: {error}',
   'settings.theme': 'Tema',
   'queue.limitUnit': 'Unità',
@@ -398,8 +400,6 @@ export const it: Dict = {
   'settings.nav.access': 'Accesso',
   'settings.nav.advanced': 'Avanzate',
 
-  'settings.unsaved': 'Modifiche non salvate',
-  'settings.discard': 'Scarta',
   'settings.railLabel': 'Sezioni delle impostazioni',
   'settings.railReorderHint': 'Tieni premuta una scheda e trascinala per mettere le tue sezioni preferite per prime.',
   'settings.empty': 'Qui non c’è ancora niente da impostare.',

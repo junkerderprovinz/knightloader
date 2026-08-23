@@ -274,6 +274,8 @@ export const en = {
   'settings.rainbowRotate': 'Color rotation',
   'settings.rainbowRotateHint': 'Shuffle where the palette starts',
   'settings.rainbowPalette': 'Palette colour',
+  'settings.rainbowPaletteLabel': 'Colour palette',
+  'settings.rainbowPaletteHint': 'The eight colours handed out by position. Edit any of them individually.',
   'settings.look.saveFailed': 'Could not save: {error}',
   'settings.theme': 'Theme',
   'queue.limitUnit': 'Unit',
@@ -451,8 +453,6 @@ export const en = {
   'settings.nav.access': 'Access',
   'settings.nav.advanced': 'Advanced',
 
-  'settings.unsaved': 'Unsaved changes',
-  'settings.discard': 'Discard',
   'settings.railLabel': 'Settings sections',
   'settings.railReorderHint': 'Hold a tab and drag to put your own sections first.',
   'settings.empty': 'Nothing to configure here yet.',

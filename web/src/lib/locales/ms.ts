@@ -260,6 +260,8 @@ export const ms: Dict = {
   'settings.rainbowRotate': 'Putaran warna',
   'settings.rainbowRotateHint': 'Kocok titik mula palet',
   'settings.rainbowPalette': 'Warna palet',
+  'settings.rainbowPaletteLabel': 'Palet warna',
+  'settings.rainbowPaletteHint': 'Lapan warna yang diberikan mengikut kedudukan. Boleh disunting secara berasingan.',
   'settings.look.saveFailed': 'Tidak dapat menyimpan: {error}',
   'settings.theme': 'Tema',
   'queue.limitUnit': 'Unit',
@@ -406,8 +408,6 @@ export const ms: Dict = {
   'settings.nav.access': 'Akses',
   'settings.nav.advanced': 'Lanjutan',
 
-  'settings.unsaved': 'Perubahan belum disimpan',
-  'settings.discard': 'Buang',
   'settings.railLabel': 'Bahagian tetapan',
   'settings.railReorderHint': 'Tahan tab dan seret untuk meletakkan bahagian pilihan anda di hadapan.',
   'settings.empty': 'Belum ada apa-apa untuk ditetapkan di sini.',
