@@ -102,17 +102,14 @@ export function Sidebar() {
 
   return (
     <aside className="flex flex-col w-56 shrink-0 h-full bg-carbon-sidebar">
-      {/* Horizontal, left-aligned - the actual BombVault test container's own
-          header row (jdp: "Bitte orientiere dich am Bombvault-
-          Testcontainer!!! Es sieht nicht aus wie dort!"; computed styles
-          read directly off it: flex row, align-center, 20px/16px padding,
-          10px gap, a 64px mark beside the wordmark - a prior pass here had
-          this centered and stacked, which is not what is actually
-          deployed there). Logo bigger than BV's own on purpose (jdp:
-          "Das Logo in der Sidebar größer") - everything else here is a
-          direct port of the row BV renders. */}
-      <NavLink to="/" end className="flex items-center gap-2.5 px-4 py-5 hover:opacity-90 transition-opacity">
-        <img src={logoUrl} alt="" aria-hidden className="h-20 w-auto shrink-0" />
+      {/* Centered and stacked - jdp's own call for KnightLoader specifically,
+          overriding the horizontal BV-matched row this briefly became ("Das
+          Logo in der Sidebar wieder größer und Text unter das Logo"): a
+          bigger mark reads better centered above its name than squeezed
+          into a compact side-by-side row sized for BV's own smaller 64px
+          icon. */}
+      <NavLink to="/" end className="flex flex-col items-center gap-2 px-4 py-6 hover:opacity-90 transition-opacity">
+        <img src={logoUrl} alt="" aria-hidden className="h-28 w-auto shrink-0" />
         <span className="text-carbon-text font-bold text-xl tracking-tight">KnightLoader</span>
       </NavLink>
 
