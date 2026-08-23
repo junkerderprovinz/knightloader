@@ -39,8 +39,13 @@ const PENDING = {
   'settings.browsertools.copied': 'Copied.',
   'settings.browsertools.extensionTitle': 'Browser extension',
   'settings.browsertools.extensionHint':
-    'A right-click menu on any link, selection, or page, in Chrome, Edge, Brave, and other Chromium-based browsers. The download already points at this instance — nothing to configure.',
-  'settings.browsertools.download': 'Download extension',
+    'A right-click menu on any link, selection, or page. The download already points at this instance — nothing to configure. Chromium and Firefox package extensions differently, so pick the one for your browser.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint':
+    'Unzip it, then open chrome://extensions (or edge://extensions, brave://extensions), turn on Developer mode, and choose “Load unpacked” on the unzipped folder.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint':
+    'Open about:debugging#/runtime/this-firefox, choose “Load Temporary Add-on”, and pick this file. It stays installed until Firefox restarts - a permanent install needs Mozilla’s own signing, which self-hosted software cannot get automatically.',
   'settings.browsertools.installTitle': 'Install as an app',
   'settings.browsertools.installHint':
     'Once installed, your device’s own Share menu can hand a link straight to KnightLoader — no browser tab required.',
@@ -107,17 +112,39 @@ export function BrowserTools() {
 
       <SectionTitle>{cx('settings.browsertools.extensionTitle')}</SectionTitle>
       <Card className="flex flex-col gap-3">
-        <p className="text-[11px] text-carbon-textMuted">{cx('settings.browsertools.extensionHint')}</p>
-        <div>
-          <Button
-            kind="secondary"
-            icon={<IconDownloads width={16} height={16} />}
-            onClick={() => {
-              window.location.href = '/api/browser-extension.zip';
-            }}
-          >
-            {cx('settings.browsertools.download')}
-          </Button>
+        <p className="text-sm text-carbon-textSub">{cx('settings.browsertools.extensionHint')}</p>
+        {/* Two buttons, not one: a bare zip only ever covered Chromium's own
+            "Load unpacked" flow. Firefox's install surfaces (about:addons
+            drag-and-drop, about:debugging's "Load Temporary Add-on") look
+            for a .xpi specifically - jdp: "Bei JD offizieller Homepage kann
+            man für Firefox z.B. eine xpi Datei runterladen". Same archive
+            either way (routes_browsertools.go's own doc comment) - only the
+            file extension and the instructions beside it differ. */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <div className="flex flex-col gap-1.5">
+            <Button
+              kind="secondary"
+              icon={<IconDownloads width={16} height={16} />}
+              onClick={() => {
+                window.location.href = '/api/browser-extension.zip';
+              }}
+            >
+              {cx('settings.browsertools.downloadChromium')}
+            </Button>
+            <p className="max-w-xs text-[11px] text-carbon-textMuted">{cx('settings.browsertools.installChromiumHint')}</p>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Button
+              kind="secondary"
+              icon={<IconDownloads width={16} height={16} />}
+              onClick={() => {
+                window.location.href = '/api/browser-extension.xpi';
+              }}
+            >
+              {cx('settings.browsertools.downloadFirefox')}
+            </Button>
+            <p className="max-w-xs text-[11px] text-carbon-textMuted">{cx('settings.browsertools.installFirefoxHint')}</p>
+          </div>
         </div>
       </Card>
 
