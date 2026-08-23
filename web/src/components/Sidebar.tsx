@@ -1,8 +1,9 @@
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import logoUrl from '../assets/logo.svg';
 import { hueVars, rainbowAt } from '../lib/appearance';
 import { useRainbow } from '../lib/useRainbow';
+import { setHideAccounts as setHideAccountsStore, useHideAccounts } from '../lib/sidebarPrefs';
 import { useT } from '../lib/i18n';
 import { fetchAuth, fetchSettings, logout } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
@@ -85,18 +86,20 @@ export function Sidebar() {
       .catch(() => {});
   }, []);
 
-  // Refetched on every navigation, not just on mount: this is a persistent
-  // layout element that never remounts, so a value flipped on the Konten
-  // settings tab a moment ago has to be picked up the next time someone
-  // actually looks at the rail (the next navigation), not only on a full
-  // page reload.
-  const routerLocation = useLocation();
-  const [hideAccounts, setHideAccounts] = useState(false);
+  // Live, not refetched on navigation: this is a persistent layout element
+  // that never remounts, and the Konten settings tab pushes into the same
+  // store the instant its toggle changes (see sidebarPrefs.ts), so the item
+  // appears/disappears while the user is still sitting on that tab, not only
+  // on the next navigation (jdp, 2026-08-23: "Kontentab in der sidebar wird
+  // nicht live ein und ausgeblendet"). Fetched once here purely to seed the
+  // store with whatever the server last saved, for the first paint after a
+  // reload / before the Accounts tab has ever been visited this session.
+  const hideAccounts = useHideAccounts();
   useEffect(() => {
     fetchSettings()
-      .then((s) => setHideAccounts(s.hideAccountsFromSidebar))
+      .then((s) => setHideAccountsStore(s.hideAccountsFromSidebar))
       .catch(() => {});
-  }, [routerLocation.pathname]);
+  }, []);
 
   const { collected, active } = useMemo(() => {
     let collected = 0,
