@@ -224,8 +224,6 @@ function ValueEditor({
         <NeutralSwitch
           on={row.value === true}
           name={row.path}
-          onLabel="on"
-          offLabel="off"
           onChange={(v) => onWrite(row.path, v)}
           hue={hue}
         />
