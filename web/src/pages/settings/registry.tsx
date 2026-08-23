@@ -22,6 +22,7 @@ import {
   IconSliders,
 } from '../../lib/icons';
 import { Access } from './Access';
+import { AccountsTab } from './Accounts';
 import { Advanced } from './Advanced';
 import { Archives } from './Archives';
 import { BrowserTools } from './BrowserTools';
@@ -81,9 +82,11 @@ const PAGES: Record<string, () => ReactNode> = {
   // and writes PUT /api/schedule directly rather than joining the shared
   // settings draft every other page here uses.
   schedule: () => <Schedule />,
-  // accounts is still deliberately absent: it is registered on the server,
-  // it has a working address, and until its wave lands it renders the
-  // registry's own reason.
+  // The settings tab and the sidebar's "Konten" nav item render the exact
+  // same page (Accounts.tsx here just adds a "hide the sidebar entry"
+  // toggle on top of the shared pages/Accounts.tsx) — see that file's own
+  // doc comment for why it stayed absent from this map for a while.
+  accounts: () => <AccountsTab />,
   diagnostics: () => <Diagnostics />,
   // Quit/restart/backup/restore - build-plan.md's Wave 10 (10D) shipped the
   // whole backend with no page pointing at it at all; see System.tsx's own

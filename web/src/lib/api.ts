@@ -286,6 +286,11 @@ export interface Settings {
   rainbowSeed: number;
   rainbowPalette: string[] | null;
 
+  /** Hides the sidebar's own "Konten" nav item - the settings tab and the
+   *  nav item render the same page either way, so this only ever removes a
+   *  second entry point to it, never the page itself. */
+  hideAccountsFromSidebar: boolean;
+
   /**
    * Which automatic captcha solvers to try, and in what order, before a
    * captcha ever reaches a human - catalogue ids ('2captcha' | 'anticaptcha',

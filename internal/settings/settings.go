@@ -154,6 +154,14 @@ type Settings struct {
 	// RainbowPalette overrides the eight built-in hues. Empty means the default.
 	RainbowPalette []string `json:"rainbowPalette"`
 
+	// HideAccountsFromSidebar removes the sidebar's own "Konten" nav item,
+	// for someone who only ever reaches accounts through the identical
+	// settings tab and finds the second entry point redundant rather than
+	// convenient. The zero value (false) keeps the current, pre-existing
+	// behaviour - both the nav item and the settings tab render the same
+	// page either way, so hiding one costs nothing but a click.
+	HideAccountsFromSidebar bool `json:"hideAccountsFromSidebar"`
+
 	// Packagizer names packages, picks folders and sets download options as
 	// links are staged. It is stored exactly as the user wrote it: rules.Compile
 	// is the validator, and a rule with a broken regular expression has to
