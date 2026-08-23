@@ -76,10 +76,19 @@ func main() {
 			manifest.Version, manifest.Deployment, manifest.CreatedAt.Format(time.RFC3339))
 	}
 
-	// Desktop first-run: provision a private headless JDownloader so the user
-	// gets full hoster coverage out of the box (KL_PROVISION_JD=1). Blocking on
-	// purpose — the jd backend is wired at app start from KL_JD.
-	if envInt("KL_PROVISION_JD", 0) == 1 && os.Getenv("KL_JD") == "" {
+	// Provision a private headless JDownloader so the user gets full hoster
+	// coverage out of the box, with no separate JD sidecar to set up first -
+	// on by default (KL_PROVISION_JD=0 opts out) for the same reason the
+	// desktop build already does this unconditionally: an encrypted DLC or a
+	// container-format link needs a JD backend to open at all, and requiring
+	// a manual KL_JD beforehand meant that failed with a raw error on first
+	// use rather than being something the app just handles (jdp: "es soll
+	// einfach immer zuverlässig funktionieren ohne das man manuell was
+	// machen muss"). Still skipped whenever KL_JD is already set - someone
+	// pointing at their own existing JD (a shared instance, a sidecar
+	// container) is never overridden by one this process starts itself.
+	// Blocking on purpose — the jd backend is wired at app start from KL_JD.
+	if envInt("KL_PROVISION_JD", 1) == 1 && os.Getenv("KL_JD") == "" {
 		pv := provision.New(filepath.Join(dataDir, "jd"))
 		// Held for the life of the process: dropping it would leave the JVM we
 		// started running after we exit, and the next start would then find

@@ -17,7 +17,14 @@ RUN CGO_ENABLED=0 go build \
       -o /out/knightloader ./cmd/knightloader
 
 FROM alpine:3.24@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b
-RUN apk add --no-cache ca-certificates yt-dlp ffmpeg tzdata \
+# openjdk21-jre-headless: KL_PROVISION_JD (on by default, see main.go) downloads
+# and runs a private headless JDownloader on first start so an encrypted DLC/
+# container link works with no separate JD sidecar to set up - that JVM needs
+# a `java` on PATH, which this image did not carry before (provision.Ensure
+# failed silently with "no Java runtime found" and the app just ran without a
+# jd backend, the exact gap behind "container is encrypted ... none is
+# configured" on first use).
+RUN apk add --no-cache ca-certificates yt-dlp ffmpeg tzdata openjdk21-jre-headless \
     && adduser -D -u 1000 knight
 COPY --from=build /out/knightloader /usr/local/bin/knightloader
 
