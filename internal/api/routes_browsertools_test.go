@@ -22,30 +22,45 @@ func browserToolsServer(t *testing.T) (*httptest.Server, string) {
 	return srv, srv.URL[len("http://"):]
 }
 
-// TestDownloadExtensionIsAValidZipWithTheRightOrigin is the route end to end:
-// what a GET produces has to be a real zip a browser's "load unpacked" (or
-// the store's own packer) can read, carrying the extension's manifest, and
-// config.default.json inside it has to name the exact host that asked for
-// it — that substitution is the one thing that makes the download need a
-// server at all rather than being a static file.
+// TestDownloadExtensionIsAValidZipWithTheRightOrigin is the .zip route end to
+// end: what a GET produces has to be a real zip a browser's "load unpacked"
+// (or the store's own packer) can read, carrying the extension's manifest,
+// and config.default.json inside it has to name the exact host that asked
+// for it — that substitution is the one thing that makes the download need
+// a server at all rather than being a static file.
 func TestDownloadExtensionIsAValidZipWithTheRightOrigin(t *testing.T) {
+	testDownloadExtension(t, "/api/browser-extension.zip", "application/zip", "knightloader-extension.zip")
+}
+
+// TestDownloadExtensionXpiForFirefox is the same archive under the .xpi
+// route Firefox's own install flow looks for - a different name and
+// content-type on the identical bytes, not a second build (jdp: "Bei JD
+// offizieller Homepage kann man für Firefox z.B. eine xpi Datei
+// runterladen" - the one-generic-zip-for-every-browser first pass here
+// didn't cover that).
+func TestDownloadExtensionXpiForFirefox(t *testing.T) {
+	testDownloadExtension(t, "/api/browser-extension.xpi", "application/x-xpinstall", "knightloader-extension.xpi")
+}
+
+func testDownloadExtension(t *testing.T, path, wantContentType, wantFilename string) {
+	t.Helper()
 	srv, host := browserToolsServer(t)
 
-	resp, err := http.Get(srv.URL + "/api/browser-extension.zip")
+	resp, err := http.Get(srv.URL + path)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("GET browser-extension.zip = %d", resp.StatusCode)
+		t.Fatalf("GET %s = %d", path, resp.StatusCode)
 	}
-	if ct := resp.Header.Get("Content-Type"); ct != "application/zip" {
-		t.Errorf("Content-Type = %q, want application/zip", ct)
+	if ct := resp.Header.Get("Content-Type"); ct != wantContentType {
+		t.Errorf("Content-Type = %q, want %s", ct, wantContentType)
 	}
 	if got := resp.Header.Get("X-Content-Type-Options"); got != "nosniff" {
 		t.Errorf("X-Content-Type-Options = %q, want nosniff", got)
 	}
-	if cd := resp.Header.Get("Content-Disposition"); !strings.Contains(cd, "knightloader-extension.zip") {
+	if cd := resp.Header.Get("Content-Disposition"); !strings.Contains(cd, wantFilename) {
 		t.Errorf("Content-Disposition = %q, missing the file name", cd)
 	}
 
