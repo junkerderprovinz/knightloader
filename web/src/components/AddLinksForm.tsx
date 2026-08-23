@@ -29,7 +29,7 @@ import { useUIState } from '../lib/uistate';
 import { PathInput } from './FolderPicker';
 import { PasteFromClipboardButton } from './PasteFromClipboardButton';
 import { Tabs } from './Tabs';
-import { Button, Card, Field, FieldGroup, TextArea, TextInput, Toggle } from './ui';
+import { Button, Card, Field, FieldGroup, TextArea, TextInput, ToggleRow } from './ui';
 import { IconArrowDown, IconCollector, IconFolder, IconPlus } from '../lib/icons';
 
 // JD keeps 25; matched rather than picking a new number, because the point of
@@ -301,8 +301,12 @@ export function AddLinksForm({
             </Field>
           </div>
 
-          <Toggle checked={overrule} onChange={setOverrule} label={t('collector.overrule')} />
-          <p className="text-xs text-carbon-textMuted">{t('collector.overruleHint')}</p>
+          <ToggleRow
+            checked={overrule}
+            onChange={setOverrule}
+            label={t('collector.overrule')}
+            hint={t('collector.overruleHint')}
+          />
 
           {error && <p className="text-sm text-statusFail">{error}</p>}
         </Card>

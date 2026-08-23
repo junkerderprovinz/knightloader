@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Card, Field, FieldGroup, InfoBubble, TextInput, Toggle } from '../../components/ui';
+import { Card, Field, FieldGroup, InfoBubble, TextInput, ToggleRow } from '../../components/ui';
 import { Tabs } from '../../components/Tabs';
 import { fetchOptions, type YtdlpOptions } from '../../lib/api';
 import { useDraft, useFeatures } from './context';
@@ -125,7 +125,7 @@ export function Resolvers() {
           </Field>
         )}
 
-        <Toggle
+        <ToggleRow
           checked={ytdlp.playlist}
           onChange={(v) => patchYtdlp({ playlist: v })}
           label="Download the whole playlist when a link points into one"
@@ -157,7 +157,7 @@ export function Resolvers() {
                 onChange={(e) => patchYtdlp({ subtitleLangs: e.target.value })}
               />
             </Field>
-            <Toggle
+            <ToggleRow
               checked={ytdlp.subtitleAuto}
               onChange={(v) => patchYtdlp({ subtitleAuto: v })}
               label="Also fetch auto-generated captions when no manual track exists"
