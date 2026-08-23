@@ -233,6 +233,7 @@ export const hr: Dict = {
   'settings.shape.square': 'Ravni',
   'settings.accent': 'Boja naglaska',
   'settings.accentHint': 'Jedina boja za aktivnost. Tekst na njoj bira se prema kontrastu.',
+  'settings.colours': 'Boje',
   'settings.accentPresets': 'Predefinirane postavke',
   'settings.accentReset': 'Zadano',
   'queue.stop': 'Zaustavi red',

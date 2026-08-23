@@ -235,6 +235,7 @@ export const he: Dict = {
   'settings.shape.square': 'מרובע',
   'settings.accent': 'צבע הדגשה',
   'settings.accentHint': 'הצבע היחיד לפעילות. הטקסט מעליו נבחר לפי ניגודיות.',
+  'settings.colours': 'צבעים',
   'settings.accentPresets': 'פריסטים',
   'settings.accentReset': 'ברירת מחדל',
   'queue.stop': 'עצירת התור',

@@ -233,6 +233,7 @@ export const ko: Dict = {
   'settings.shape.square': '각지게',
   'settings.accent': '강조 색',
   'settings.accentHint': '활동을 나타내는 단 하나의 색입니다. 위에 올라가는 글자는 대비에 맞춰 정해집니다.',
+  'settings.colours': '색상',
   'settings.accentPresets': '프리셋',
   'settings.accentReset': '기본값',
   'queue.stop': '대기열 정지',

@@ -233,6 +233,7 @@ export const tr: Dict = {
   'settings.shape.square': 'Köşeli',
   'settings.accent': 'Vurgu rengi',
   'settings.accentHint': 'Etkinlik için tek renk. Üzerindeki yazı karşıtlığa göre seçilir.',
+  'settings.colours': 'Renkler',
   'settings.accentPresets': 'Ön ayarlar',
   'settings.accentReset': 'Varsayılan',
   'queue.stop': 'Kuyruğu durdur',

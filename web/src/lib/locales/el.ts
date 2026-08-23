@@ -233,6 +233,7 @@ export const el: Dict = {
   'settings.shape.square': 'Ορθές',
   'settings.accent': 'Χρώμα τονισμού',
   'settings.accentHint': 'Το μοναδικό χρώμα δραστηριότητας. Το κείμενο πάνω επιλέγεται με βάση την αντίθεση.',
+  'settings.colours': 'Χρώματα',
   'settings.accentPresets': 'Προεπιλογές',
   'settings.accentReset': 'Προεπιλογή',
   'queue.stop': 'Διακοπή ουράς',

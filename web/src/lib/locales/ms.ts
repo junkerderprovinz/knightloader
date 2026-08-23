@@ -233,6 +233,7 @@ export const ms: Dict = {
   'settings.shape.square': 'Bersegi',
   'settings.accent': 'Warna aksen',
   'settings.accentHint': 'Satu warna untuk aktiviti. Teks di atasnya dipilih ikut kontras.',
+  'settings.colours': 'Warna',
   'settings.accentPresets': 'Praset',
   'settings.accentReset': 'Lalai',
   'queue.stop': 'Henti baris gilir',

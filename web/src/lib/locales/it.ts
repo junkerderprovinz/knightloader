@@ -225,6 +225,7 @@ export const it: Dict = {
   'settings.shape.square': 'Squadrati',
   'settings.accent': 'Colore d’accento',
   'settings.accentHint': 'Il solo colore per l’attività. Il testo sopra è scelto per contrasto.',
+  'settings.colours': 'Colori',
   'settings.accentPresets': 'Preimpostazioni',
   'settings.accentReset': 'Predefinito',
   'queue.stop': 'Ferma la coda',
