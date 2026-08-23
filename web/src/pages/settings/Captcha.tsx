@@ -178,8 +178,7 @@ export function Captcha() {
       <PageHeader title={cx('settings.captcha.title')} subtitle={cx('settings.captcha.subtitle')} />
 
       <Card className="flex flex-col gap-1">
-        <SectionTitle hint={cx('settings.captcha.orderHint')}>{cx('settings.captcha.orderTitle')}</SectionTitle>
-
+        <SectionTitle hue={0} hint={cx('settings.captcha.orderHint')}>{cx('settings.captcha.orderTitle')}</SectionTitle>
         {order.length === 0 && <p className="py-2 text-sm text-carbon-textSub">{cx('settings.captcha.orderEmpty')}</p>}
 
         <ul className="flex flex-col">

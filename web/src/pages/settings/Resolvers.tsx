@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Card, Field, FieldGroup, InfoBubble, TextInput, ToggleRow } from '../../components/ui';
+import { Card, Field, FieldGroup, InfoBubble, SectionTitle, TextInput, ToggleRow } from '../../components/ui';
 import { Tabs } from '../../components/Tabs';
 import { fetchOptions, type YtdlpOptions } from '../../lib/api';
 import { useDraft, useFeatures } from './context';
@@ -80,13 +80,15 @@ export function Resolvers() {
   return (
     <div className="flex flex-col gap-6">
       {module && !module.enabled && (
-        <Card className="flex items-center gap-2 text-sm text-carbon-textSub">
-          <span>{module.reason}</span>
-          <InfoBubble tip="Everything below is still saved and takes effect the moment yt-dlp becomes available - none of it is lost by editing it now." />
-        </Card>
+          <Card className="flex items-center gap-2 text-sm text-carbon-textSub">
+            <SectionTitle hue={0}>Module unavailable</SectionTitle>
+            <span>{module.reason}</span>
+            <InfoBubble tip="Everything below is still saved and takes effect the moment yt-dlp becomes available - none of it is lost by editing it now." />
+          </Card>
       )}
 
       <Card className="flex flex-col gap-5">
+        <SectionTitle hue={1}>Quality</SectionTitle>
         <p className="text-sm text-carbon-textMuted">
           Configuration for the yt-dlp backend, which fetches the media and streaming sites
           yt-dlp itself supports. Which service handles a given link at all - yt-dlp, a debrid
@@ -133,6 +135,7 @@ export function Resolvers() {
       </Card>
 
       <Card className="flex flex-col gap-5">
+        <SectionTitle hue={2}>Subtitles</SectionTitle>
         {subtitleModes.length > 0 && (
           <FieldGroup label="Subtitles" hint="Off is what every download did before this setting existed.">
             <Tabs
@@ -167,6 +170,7 @@ export function Resolvers() {
       </Card>
 
       <Card className="flex flex-col gap-5">
+        <SectionTitle hue={3}>Output filename</SectionTitle>
         <Field
           label="Output filename"
           hint="yt-dlp's own -o template. Empty uses the built-in %(title)s.%(ext)s. May include subfolders, e.g. %(uploader)s/%(title)s.%(ext)s."

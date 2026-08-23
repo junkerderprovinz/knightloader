@@ -103,7 +103,8 @@ export function Archives() {
       )}
 
       <Card className="flex flex-col gap-5">
-        <ToggleRow checked={cfg.extract} onChange={(v) => patch({ extract: v })} label={t('settings.extract')} />
+        <SectionTitle hue={0}>{t('settings.archives.extractionTitle')}</SectionTitle>
+        <ToggleRow hue={0} checked={cfg.extract} onChange={(v) => patch({ extract: v })} label={t('settings.extract')} />
 
         {/* Flush left, not indented under the switch (jdp: "In der Card von
             'Archive nach dem Download entpacken' soll alles ganz links
@@ -134,6 +135,7 @@ export function Archives() {
               greyed-out control says for itself, and grey prose under it is
               what the bubble exists to replace. */}
           <ToggleRow
+            hue={1}
             checked={cfg.extractSubfolder ?? false}
             onChange={(v) => patch({ extractSubfolder: v })}
             label={t('settings.archives.subfolder')}
@@ -162,8 +164,8 @@ export function Archives() {
         </div>
       </Card>
 
-      <SectionTitle>{t('settings.archives.afterwards')}</SectionTitle>
       <Card className="flex flex-col gap-5">
+        <SectionTitle hue={1}>{t('settings.archives.afterwards')}</SectionTitle>
         <div className={`flex flex-col gap-5 ${unpacking ? '' : 'pointer-events-none opacity-40'}`}>
           {options && options.archiveDisposals.length > 0 && (
             <FieldGroup
@@ -229,6 +231,7 @@ export function Archives() {
       </Card>
 
       <Card className="flex flex-col gap-5">
+        <SectionTitle hue={2}>{t('settings.archivePasswords')}</SectionTitle>
         <Field label={t('settings.archivePasswords')} hint={t('settings.archivePasswordsHint')}>
           <TextArea
             rows={4}

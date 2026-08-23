@@ -26,15 +26,16 @@ function Topic({
   title,
   children,
   links,
+  hue,
 }: {
   title: string;
   children: ReactNode;
   links?: { to: string; label: string }[];
+  hue?: number;
 }) {
   return (
-    <>
-      <SectionTitle>{title}</SectionTitle>
       <Card className="flex flex-col gap-3">
+        <SectionTitle hue={hue}>{title}</SectionTitle>
         <div className="flex flex-col gap-2 text-sm text-carbon-textSub">{children}</div>
         {links && links.length > 0 && (
           <div className="flex flex-wrap gap-x-4 gap-y-1 pt-1">
@@ -50,7 +51,6 @@ function Topic({
           </div>
         )}
       </Card>
-    </>
   );
 }
 
@@ -75,6 +75,7 @@ export function Help() {
 
       <Topic
         title={t('settings.help.intake.title')}
+        hue={0}
         links={[
           { to: '/settings/downloads', label: t('settings.help.intake.link1') },
           { to: '/settings/access', label: t('settings.help.intake.link2') },
@@ -93,22 +94,28 @@ export function Help() {
 
       <Topic
         title={t('settings.help.collector.title')}
+        hue={1}
         links={[{ to: '/settings/general', label: t('settings.help.collector.link') }]}
       >
         <p>{t('settings.help.collector.body')}</p>
       </Topic>
 
-      <Topic title={t('settings.help.rules.title')} links={[{ to: '/settings/rules', label: t('settings.help.rules.link') }]}>
+      <Topic
+        title={t('settings.help.rules.title')}
+        hue={2}
+        links={[{ to: '/settings/rules', label: t('settings.help.rules.link') }]}
+      >
         <p>{t('settings.help.rules.body')}</p>
       </Topic>
 
-      <Topic title={t('settings.help.queue.title')}>
+      <Topic title={t('settings.help.queue.title')} hue={3}>
         <p>{t('settings.help.queue.body')}</p>
         <Bullets items={[t('settings.help.queue.b1'), t('settings.help.queue.b2')]} />
       </Topic>
 
       <Topic
         title={t('settings.help.limits.title')}
+        hue={4}
         links={[
           { to: '/settings/connections', label: t('settings.help.limits.link1') },
           { to: '/settings/reconnect', label: t('settings.help.limits.link2') },
@@ -125,6 +132,7 @@ export function Help() {
 
       <Topic
         title={t('settings.help.captcha.title')}
+        hue={5}
         links={[{ to: '/settings/captcha', label: t('settings.help.captcha.link') }]}
       >
         <p>{t('settings.help.captcha.body')}</p>
@@ -132,6 +140,7 @@ export function Help() {
 
       <Topic
         title={t('settings.help.after.title')}
+        hue={6}
         links={[
           { to: '/settings/archives', label: t('settings.help.after.link1') },
           { to: '/settings/downloads', label: t('settings.help.after.link2') },
@@ -142,6 +151,7 @@ export function Help() {
 
       <Topic
         title={t('settings.help.schedule.title')}
+        hue={7}
         links={[{ to: '/settings/schedule', label: t('settings.help.schedule.link') }]}
       >
         <p>{t('settings.help.schedule.body')}</p>
@@ -149,6 +159,7 @@ export function Help() {
 
       <Topic
         title={t('settings.help.instances.title')}
+        hue={8}
         links={[{ to: '/instances', label: t('settings.help.instances.link') }]}
       >
         <p>{t('settings.help.instances.body')}</p>
@@ -156,6 +167,7 @@ export function Help() {
 
       <Topic
         title={t('settings.help.access.title')}
+        hue={9}
         links={[
           { to: '/settings/access', label: t('settings.help.access.link1') },
           { to: '/settings/diagnostics', label: t('settings.help.access.link2') },
@@ -166,6 +178,7 @@ export function Help() {
 
       <Topic
         title={t('settings.help.advanced.title')}
+        hue={10}
         links={[{ to: '/settings/advanced', label: t('settings.help.advanced.link') }]}
       >
         <p>{t('settings.help.advanced.body')}</p>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Card, Field, FieldGroup, InfoBubble, NumberInput, SectionTitle, TextInput, ToggleRow } from '../../components/ui';
+import { Card, Field, FieldGroup, NumberInput, SectionTitle, TextInput, ToggleRow } from '../../components/ui';
 import { PathInput } from '../../components/FolderPicker';
 import { Tabs } from '../../components/Tabs';
 import { fetchIdleActions, fetchOptions } from '../../lib/api';
@@ -91,6 +91,7 @@ export function DownloadsSettings() {
           where files land and what happens to a link the moment it arrives,
           the pair a new install has to answer before anything else works. */}
       <Card className="flex flex-col gap-5">
+        <SectionTitle hue={0}>{t('settings.downloads.locationTitle')}</SectionTitle>
         <Field
           label={t('settings.downloadDir')}
           hint={`${t('settings.downloadDirHint')} ${t('settings.pathVars')}`}
@@ -112,8 +113,8 @@ export function DownloadsSettings() {
         />
       </Card>
 
-      <SectionTitle>{tx('settings.sectionIntake')}</SectionTitle>
       <Card className="flex flex-col gap-5">
+        <SectionTitle hue={1}>{tx('settings.sectionIntake')}</SectionTitle>
         {/* This toggle has always meant "skip the collector", which is
             autoConfirm's job since Wave 8 split the old single autoStart flag
             in three (settings.go's own doc comment). Binding it to the new,
@@ -125,6 +126,7 @@ export function DownloadsSettings() {
       </Card>
 
       <Card className="flex flex-col gap-5">
+        <SectionTitle hue={2}>{t('settings.downloads.limitsTitle')}</SectionTitle>
         {/* The three counts that decide how much is open at once, together
             because they are read together: two downloads on one host, each
             pulled over eight sockets, is sixteen connections to that host and
@@ -157,10 +159,9 @@ export function DownloadsSettings() {
           </Field>
         </div>
         {modes.length > 0 && (
-          <FieldGroup label={t('settings.resumeOnStart')} hint={t('settings.resumeOnStartHint')}>
+          <FieldGroup layout="row" label={t('settings.resumeOnStart')} hint={t('settings.resumeOnStartHint')}>
             <Tabs
-              size="sm"
-              className="w-fit"
+              variant="well"
               label={t('settings.resumeOnStart')}
               active={cfg.resumeOnStart}
               onSelect={(id) => patch({ resumeOnStart: id })}
@@ -189,13 +190,15 @@ export function DownloadsSettings() {
         </div>
 
         <div className="flex flex-col gap-3">
-          <ToggleRow checked={cfg.crawl} onChange={(v) => patch({ crawl: v })} label={t('settings.crawl')} />
+          <ToggleRow hue={0} checked={cfg.crawl} onChange={(v) => patch({ crawl: v })} label={t('settings.crawl')} />
           <ToggleRow
+            hue={1}
             checked={cfg.verifyChecksums}
             onChange={(v) => patch({ verifyChecksums: v })}
             label={t('settings.verifyChecksums')}
           />
           <ToggleRow
+            hue={2}
             checked={cfg.preParserEnabled}
             onChange={(v) => patch({ preParserEnabled: v })}
             label={t('settings.preParser')}
@@ -205,6 +208,7 @@ export function DownloadsSettings() {
       </Card>
 
       <Card className="flex flex-col gap-5">
+        <SectionTitle hue={3}>{t('settings.downloads.watchTitle')}</SectionTitle>
         {/* Disabled rather than hidden: a field that vanishes teaches nobody
             that the folder watch exists, and the module page is where it is
             switched — which the info bubble says. */}
@@ -230,24 +234,22 @@ export function DownloadsSettings() {
       </Card>
 
       {idleActions.length > 0 && (
-        <Card className="flex flex-col gap-5">
+          <Card className="flex flex-col gap-5">
+          <SectionTitle hue={4}>{t('settings.downloads.idleTitle')}</SectionTitle>
           {/* No useT() label on the group itself either - see this file's
               IDLE_ACTION_LABELS comment above for why. */}
           <FieldGroup
+            layout="row"
             label="End-of-queue action"
-            hint="What happens once nothing is left running, queued or waiting to start. A link you have switched off does not count - see the info bubble."
+            hint="What happens once nothing is left running, queued or waiting to start. A link you have switched off does not count - it is never counted as work left to do, so it cannot hold this off forever. A manually paused or held link still counts - both mean 'wait a bit', not 'never'."
           >
-            <div className="flex items-center gap-1.5">
-              <Tabs
-                size="sm"
-                className="w-fit"
-                label="End-of-queue action"
-                active={cfg.idleAction.action}
-                onSelect={(id) => patch({ idleAction: { ...cfg.idleAction, action: id } })}
-                items={idleActions.map((id) => ({ id, label: IDLE_ACTION_LABELS[id] ?? id }))}
-              />
-              <InfoBubble tip="A link you have switched off is never counted as work left to do, so it cannot hold this off forever. A manually paused or held link still counts - both mean 'wait a bit', not 'never'." />
-            </div>
+            <Tabs
+              variant="well"
+              label="End-of-queue action"
+              active={cfg.idleAction.action}
+              onSelect={(id) => patch({ idleAction: { ...cfg.idleAction, action: id } })}
+              items={idleActions.map((id) => ({ id, label: IDLE_ACTION_LABELS[id] ?? id }))}
+            />
           </FieldGroup>
 
           {cfg.idleAction.action !== 'none' && (
@@ -263,7 +265,7 @@ export function DownloadsSettings() {
               />
             </Field>
           )}
-        </Card>
+          </Card>
       )}
     </div>
   );

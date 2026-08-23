@@ -26,6 +26,7 @@ import { IconDownloads } from '../../lib/icons';
 const PENDING = {
   'settings.diagnostics.subtitle':
     'What this build is, what it is running on, and its own recent log output - for attaching to a bug report.',
+  'settings.diagnostics.systemTitle': 'System information',
   'settings.diagnostics.version': 'Version',
   'settings.diagnostics.deployment': 'Build',
   'settings.diagnostics.deployment.container': 'Container',
@@ -118,6 +119,7 @@ export function Diagnostics() {
   return (
     <div className="flex flex-col gap-6">
       <Card className="flex flex-col gap-5">
+        <SectionTitle hue={0}>{cx('settings.diagnostics.systemTitle')}</SectionTitle>
         <p className="text-sm text-carbon-textSub">{cx('settings.diagnostics.subtitle')}</p>
 
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
@@ -137,16 +139,18 @@ export function Diagnostics() {
         {error && <span className="text-sm text-statusFail">{error}</span>}
       </Card>
 
-      <SectionTitle right={<Button kind="ghost" onClick={reload}>{cx('settings.diagnostics.refresh')}</Button>}>
-        {/* The hint lives behind the (i), not on its own line - see
-            components/ui.tsx's own Field comment on why, and Modules.tsx's
-            Group for the identical shape on a SectionTitle. */}
-        <span className="flex items-center">
-          {cx('settings.diagnostics.logTitle')}
-          <InfoBubble tip={cx('settings.diagnostics.logHint', { n: data.logCapacity })} />
-        </span>
-      </SectionTitle>
       <Card className="p-0">
+        <div className="p-5 pb-0">
+          <SectionTitle hue={1} right={<Button kind="ghost" onClick={reload}>{cx('settings.diagnostics.refresh')}</Button>}>
+            {/* The hint lives behind the (i), not on its own line - see
+                components/ui.tsx's own Field comment on why, and Modules.tsx's
+                Group for the identical shape on a SectionTitle. */}
+            <span className="flex items-center">
+              {cx('settings.diagnostics.logTitle')}
+              <InfoBubble tip={cx('settings.diagnostics.logHint', { n: data.logCapacity })} />
+            </span>
+          </SectionTitle>
+        </div>
         {data.logLines.length === 0 ? (
           <div className="p-5 text-sm text-carbon-textMuted">{cx('settings.diagnostics.logEmpty')}</div>
         ) : (

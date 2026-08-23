@@ -259,6 +259,7 @@ export function Scripts() {
 
       <Card className="flex flex-col gap-4">
         <SectionTitle
+          hue={0}
           right={
             <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
               {cx('settings.scripts.add')}
