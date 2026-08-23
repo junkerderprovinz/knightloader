@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Navigate, Route, Routes, useMatch, useNavigate, useParams } from 'react-router-dom';
 import { ApiError, type Settings, fetchHealth, fetchSettings, patchSettings } from '../lib/api';
 import { useResource } from '../lib/useResource';
@@ -266,15 +267,26 @@ export function SettingsPage() {
 const GLIMSTONE_VERSION = '1.0.0';
 
 /**
- * The build/GlimStone version, quiet in a window corner on every settings
- * tab (jdp: "Die versionsnummern sollen in den Einstellungen in jedem Tab
- * quasi im Hintergrund immer ganz unten im Fenster stehen") - moved here
- * from a single card on the System tab, which only showed it on that one
- * page. `fixed`, not `sticky`: it pins to the actual browser window rather
- * than to the settings content's own scroll container, so it neither
- * scrolls away nor competes with the unsaved-changes bar above for the same
- * sticky-bottom slot - the two are visually and positionally independent.
+ * The build/GlimStone version, quiet and centred at the very bottom of the
+ * window on every settings tab (jdp: "Die versionsnummern sollen in den
+ * Einstellungen in jedem Tab quasi im Hintergrund immer ganz unten im
+ * Fenster stehen, nicht direkt unter der untersten karte") - moved here from
+ * a single card on the System tab, which only showed it on that one page.
+ * `fixed`, not `sticky`: it pins to the actual browser window rather than to
+ * the settings content's own scroll container, so it neither scrolls away
+ * nor competes with the unsaved-changes bar above for the same sticky-bottom
+ * slot - the two are visually and positionally independent.
  * `pointer-events-none` keeps it out of the way of anything real underneath.
+ *
+ * Rendered through a portal straight onto document.body rather than in
+ * place: every routed page is wrapped in `.glim-page-enter`, whose entry
+ * animation runs on `transform` (index.css's own glim-page-in keyframes) -
+ * an ancestor animating `transform` establishes a new containing block for
+ * ANY `position: fixed` descendant, which is exactly why this footer used to
+ * end up pinned to that wrapper's own bottom edge (right under the last
+ * card) instead of the actual browser window. A portal escapes the DOM
+ * ancestor chain entirely, so this stays immune to that regardless of what
+ * other animated wrapper a page gains later.
  */
 function VersionFooter() {
   const { t } = useT();
@@ -284,14 +296,15 @@ function VersionFooter() {
       .then((h) => setVersion(h.version))
       .catch(() => {});
   }, []);
-  return (
-    <div className="pointer-events-none fixed bottom-1.5 right-4 z-0 select-none md:right-6" aria-hidden>
+  return createPortal(
+    <div className="pointer-events-none fixed inset-x-0 bottom-1.5 z-0 flex justify-center select-none" aria-hidden>
       <span className="glim-num text-[10px] text-carbon-textMuted/50">
         {version && version !== 'dev' ? version : t('nav.workingTitle')}
         {' · GlimStone '}
         {GLIMSTONE_VERSION}
       </span>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
