@@ -396,7 +396,6 @@ export const he: Dict = {
   'container.handed': '{file} מוצפן. הוא נמסר לצד השרת של JDownloader; הקישורים שלו יופיעו כאן ברגע שיאסוף אותו (תוך {n} שניות).',
   'container.failed': '{file} לא התקבל: {reason}',
 
-  'settings.nav.general': 'כללי',
   'settings.nav.modules': 'מודולים',
   'settings.nav.downloads': 'הורדות',
   'settings.nav.archives': 'ארכיונים',
@@ -1327,9 +1326,11 @@ export const he: Dict = {
   'settings.browsertools.copyCode': 'העתק את הקוד במקום זאת',
   'settings.browsertools.copied': 'הועתק.',
   'settings.browsertools.extensionTitle': 'הרחבת דפדפן',
-  'settings.browsertools.extensionHint':
-    'תפריט קליק ימני בכל קישור, בחירה או עמוד, ב-Chrome, ב-Edge, ב-Brave ובדפדפנים אחרים מבוססי Chromium. ההורדה כבר מצביעה על המופע הזה - אין מה להגדיר.',
-  'settings.browsertools.download': 'הורד הרחבה',
+  'settings.browsertools.extensionHint': 'תפריט לחיצה ימנית על כל קישור, בחירה או דף. ההורדה כבר מצביעה למופע הזה - אין כלום להגדיר. Chromium ו-Firefox אורזים תוספים באופן שונה, לכן בחרו את המתאים לדפדפן שלכם.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'פרקו אותו, פתחו את chrome://extensions (או edge://extensions, brave://extensions), הפעילו מצב מפתח ובחרו באפשרות טעינה לא ארוזה על התיקייה שפורקה.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'פתחו את about:debugging#/runtime/this-firefox, בחרו באפשרות טעינת תוסף זמני ובחרו את הקובץ הזה. הוא נשאר מותקן עד אתחול מחדש של Firefox - התקנה קבועה דורשת חתימה של Mozilla, אותה תוכנה מאוחסנת עצמית אינה יכולה לקבל באופן אוטומטי.',
   'settings.browsertools.installTitle': 'התקן כאפליקציה',
   'settings.browsertools.installHint':
     'לאחר ההתקנה, תפריט השיתוף של המכשיר שלך יכול למסור קישור ישירות ל-KnightLoader - אין צורך בכרטיסיית דפדפן.',

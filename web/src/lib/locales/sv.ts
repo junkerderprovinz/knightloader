@@ -394,7 +394,6 @@ export const sv: Dict = {
   'container.handed': '{file} är krypterad. Den lämnades till JDownloader-backenden; länkarna dyker upp här så snart den hämtat den (inom {n} s).',
   'container.failed': '{file} togs inte emot: {reason}',
 
-  'settings.nav.general': 'Allmänt',
   'settings.nav.modules': 'Moduler',
   'settings.nav.downloads': 'Nedladdningar',
   'settings.nav.archives': 'Arkiv',
@@ -1326,9 +1325,11 @@ export const sv: Dict = {
   'settings.browsertools.copyCode': 'Kopiera koden istället',
   'settings.browsertools.copied': 'Kopierat.',
   'settings.browsertools.extensionTitle': 'Webbläsartillägg',
-  'settings.browsertools.extensionHint':
-    'En högerklicksmeny på vilken länk, markering eller sida som helst, i Chrome, Edge, Brave och andra Chromium-baserade webbläsare. Nedladdningen pekar redan på denna instans - inget att ställa in.',
-  'settings.browsertools.download': 'Ladda ned tillägg',
+  'settings.browsertools.extensionHint': 'En högerklicksmeny på alla länkar, markeringar eller sidor. Nedladdningen pekar redan på den här instansen - inget att ställa in. Chromium och Firefox paketerar tillägg olika, så välj det för din webbläsare.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Packa upp den, öppna sedan chrome://extensions (eller edge://extensions, brave://extensions), slå på utvecklarläge och välj „Ladda in uppackat” på den uppackade mappen.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Öppna about:debugging#/runtime/this-firefox, välj „Ladda in tillfälligt tillägg” och välj den här filen. Den förblir installerad tills Firefox startar om - en permanent installation kräver Mozillas egen signering, vilket själv-hostad mjukvara inte kan få automatiskt.',
   'settings.browsertools.installTitle': 'Installera som app',
   'settings.browsertools.installHint':
     'När den väl är installerad kan enhetens egen delningsmeny skicka en länk direkt till KnightLoader - ingen webbläsarflik behövs.',

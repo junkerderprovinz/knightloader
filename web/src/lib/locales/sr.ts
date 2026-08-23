@@ -394,7 +394,6 @@ export const sr: Dict = {
   'container.handed': '{file} је шифрована. Предата је позадини JDownloader; њене везе се појављују овде чим је она преузме (у року од {n} с).',
   'container.failed': '{file} није прихваћена: {reason}',
 
-  'settings.nav.general': 'Опште',
   'settings.nav.modules': 'Модули',
   'settings.nav.downloads': 'Преузимања',
   'settings.nav.archives': 'Архиве',
@@ -1326,9 +1325,11 @@ export const sr: Dict = {
   'settings.browsertools.copyCode': 'Уместо тога копирај код',
   'settings.browsertools.copied': 'Копирано.',
   'settings.browsertools.extensionTitle': 'Екстензија прегледача',
-  'settings.browsertools.extensionHint':
-    'Контекстни мени на било којој вези, избору или страници, у Chrome-у, Edge-у, Brave-у и другим прегледачима заснованим на Chromium-у. Преузимање већ показује на ову инстанцу - нема шта да се подешава.',
-  'settings.browsertools.download': 'Преузми екстензију',
+  'settings.browsertools.extensionHint': 'Мени десног клика на било којој вези, избору или страни. Преузимање већ указује на ову инстанцу - ништа за подешавање. Chromium и Firefox пакују екстензије различито, па изабери ону за свој претраживач.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Распакуј га, отвори chrome://extensions (или edge://extensions, brave://extensions), укључи развојни режим и изабери „Учитај распаковано“ за распаковану фасциклу.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Отвори about:debugging#/runtime/this-firefox, изабери „Учитај привремени додатак“ и изабери ову датотеку. Остаје инсталиран до поновног покретања Firefox-a - трајна инсталација захтева сопствени потпис Мозиле, који самостално хостован софтвер не може аутоматски да добије.',
   'settings.browsertools.installTitle': 'Инсталирај као апликацију',
   'settings.browsertools.installHint':
     'Након инсталације, сопствени мени Подели твог уређаја може да пошаље везу директно у KnightLoader - картица прегледача није потребна.',

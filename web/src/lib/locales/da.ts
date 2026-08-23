@@ -394,7 +394,6 @@ export const da: Dict = {
   'container.handed': '{file} er krypteret. Den blev givet til JDownloader-backenden; dens links dukker op her, så snart den har hentet den (inden for {n} s).',
   'container.failed': '{file} blev ikke taget imod: {reason}',
 
-  'settings.nav.general': 'Generelt',
   'settings.nav.modules': 'Moduler',
   'settings.nav.downloads': 'Downloads',
   'settings.nav.archives': 'Arkiver',
@@ -1325,9 +1324,11 @@ export const da: Dict = {
   'settings.browsertools.copyCode': 'Kopiér koden i stedet',
   'settings.browsertools.copied': 'Kopieret.',
   'settings.browsertools.extensionTitle': 'Browserudvidelse',
-  'settings.browsertools.extensionHint':
-    'En højreklik-menu på ethvert link, markering eller side, i Chrome, Edge, Brave og andre Chromium-baserede browsere. Downloaden peger allerede på denne instans - intet at konfigurere.',
-  'settings.browsertools.download': 'Download udvidelse',
+  'settings.browsertools.extensionHint': 'En højreklik-menu på ethvert link, markering eller side. Downloadet peger allerede på denne instans - intet at konfigurere. Chromium og Firefox pakker udvidelser forskelligt, så vælg den til din browser.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Pak den ud, åbn så chrome://extensions (eller edge://extensions, brave://extensions), slå udviklertilstand til, og vælg „Indlæs upakket“ på den udpakkede mappe.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Åbn about:debugging#/runtime/this-firefox, vælg „Indlæs midlertidig tilføjelse“, og vælg denne fil. Den forbliver installeret indtil Firefox genstarter - en permanent installation kræver Mozillas egen signering, som selv-hostet software ikke automatisk kan få.',
   'settings.browsertools.installTitle': 'Installér som app',
   'settings.browsertools.installHint':
     'Når den er installeret, kan din enheds egen Del-menu give et link direkte til KnightLoader - ingen browserfane nødvendig.',

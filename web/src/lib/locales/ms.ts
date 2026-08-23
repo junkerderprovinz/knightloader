@@ -394,7 +394,6 @@ export const ms: Dict = {
   'container.handed': '{file} disulitkan. Ia diserahkan kepada backend JDownloader; pautannya muncul di sini sebaik backend mengambilnya (dalam {n} saat).',
   'container.failed': '{file} tidak diterima: {reason}',
 
-  'settings.nav.general': 'Umum',
   'settings.nav.modules': 'Modul',
   'settings.nav.downloads': 'Muat turun',
   'settings.nav.archives': 'Arkib',
@@ -1325,9 +1324,11 @@ export const ms: Dict = {
   'settings.browsertools.copyCode': 'Salin kod sebaliknya',
   'settings.browsertools.copied': 'Disalin.',
   'settings.browsertools.extensionTitle': 'Sambungan pelayar',
-  'settings.browsertools.extensionHint':
-    'Menu klik kanan pada mana-mana pautan, pilihan atau halaman, dalam Chrome, Edge, Brave dan pelayar lain berasaskan Chromium. Muat turun sudah menunjuk ke instans ini - tiada apa untuk dikonfigurasi.',
-  'settings.browsertools.download': 'Muat turun sambungan',
+  'settings.browsertools.extensionHint': 'Menu klik kanan pada mana-mana pautan, pemilihan, atau halaman. Muat turun sudah menunjuk ke instans ini - tiada apa untuk dikonfigurasikan. Chromium dan Firefox membungkus sambungan secara berbeza, jadi pilih yang sesuai untuk pelayar anda.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Nyahzip fail itu, kemudian buka chrome://extensions (atau edge://extensions, brave://extensions), hidupkan Mod Pembangun, dan pilih “Muatkan yang belum dibungkus” pada folder yang dinyahzip.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Buka about:debugging#/runtime/this-firefox, pilih “Muatkan Add-on Sementara”, dan pilih fail ini. Ia kekal dipasang sehingga Firefox dimulakan semula - pemasangan kekal memerlukan tandatangan Mozilla sendiri, yang perisian dihoskan sendiri tidak boleh dapatkan secara automatik.',
   'settings.browsertools.installTitle': 'Pasang sebagai aplikasi',
   'settings.browsertools.installHint':
     'Setelah dipasang, menu Kongsi peranti anda sendiri boleh menyerahkan pautan terus ke KnightLoader - tab pelayar tidak diperlukan.',

@@ -394,7 +394,6 @@ export const et: Dict = {
   'container.handed': '{file} on krüptitud. See anti JDownloaderi taustsüsteemile; selle lingid ilmuvad siia niipea, kui see on faili kätte saanud ({n} s jooksul).',
   'container.failed': '{file} ei võetud vastu: {reason}',
 
-  'settings.nav.general': 'Üldine',
   'settings.nav.modules': 'Moodulid',
   'settings.nav.downloads': 'Allalaadimised',
   'settings.nav.archives': 'Arhiivid',
@@ -1325,9 +1324,11 @@ export const et: Dict = {
   'settings.browsertools.copyCode': 'Kopeeri hoopis kood',
   'settings.browsertools.copied': 'Kopeeritud.',
   'settings.browsertools.extensionTitle': 'Brauserilaiendus',
-  'settings.browsertools.extensionHint':
-    'Paremklõpsumenüü igal lingil, valikul või lehel, Chrome’is, Edge’is, Braves ja teistes Chromiumil põhinevates brauserites. Allalaadimine osutab juba sellele isendile - midagi pole vaja seadistada.',
-  'settings.browsertools.download': 'Laadi laiendus alla',
+  'settings.browsertools.extensionHint': 'Paremklikimenüü igal lingil, valikul või lehel. Allalaadimine osutab juba sellele eksemplarile - midagi häälestada pole vaja. Chromium ja Firefox pakivad laiendusi erinevalt, vali oma brauserile sobiv.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Paki see lahti, ava seejärel chrome://extensions (või edge://extensions, brave://extensions), lülita sisse arendajarezhiim ja vali „Lae lahtipakitud laiendus“ lahtipakitud kausta jaoks.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Ava about:debugging#/runtime/this-firefox, vali „Lae ajutine lisand“ ja vali see fail. See jääb installituks Firefoxi taaskäivituseni - püsiv paigaldus vajab Mozilla enda allkirja, mida iseseisvalt majutatav tarkvara automaatselt saada ei saa.',
   'settings.browsertools.installTitle': 'Paigalda rakendusena',
   'settings.browsertools.installHint':
     'Kord paigaldatuna saab su seadme enda Jaga-menüü anda lingi otse KnightLoaderisse - brauseri vahekaarti pole vaja.',

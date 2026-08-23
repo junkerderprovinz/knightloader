@@ -394,7 +394,6 @@ export const de: Dict = {
   'container.handed': '{file} ist verschlüsselt. Sie ging an das JDownloader-Backend; ihre Links erscheinen hier, sobald es sie geholt hat (innerhalb von {n}s).',
   'container.failed': '{file} wurde nicht angenommen: {reason}',
 
-  'settings.nav.general': 'Allgemein',
   'settings.nav.modules': 'Module',
   'settings.nav.downloads': 'Downloads',
   'settings.nav.archives': 'Archive',
@@ -1326,9 +1325,11 @@ export const de: Dict = {
   'settings.browsertools.copyCode': 'Stattdessen den Code kopieren',
   'settings.browsertools.copied': 'Kopiert.',
   'settings.browsertools.extensionTitle': 'Browsererweiterung',
-  'settings.browsertools.extensionHint':
-    'Ein Rechtsklickmenü auf jedem Link, jeder Auswahl oder Seite, in Chrome, Edge, Brave und anderen Chromium-basierten Browsern. Der Download verweist bereits auf diese Instanz - nichts einzurichten.',
-  'settings.browsertools.download': 'Erweiterung herunterladen',
+  'settings.browsertools.extensionHint': 'Ein Rechtsklick-Menü auf jedem Link, jeder Auswahl oder Seite. Der Download zeigt bereits auf diese Instanz - nichts einzurichten. Chromium und Firefox packen Erweiterungen unterschiedlich, wähle also die passende für deinen Browser.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Entpacke es, öffne dann chrome://extensions (oder edge://extensions, brave://extensions), aktiviere den Entwicklermodus und wähle “Entpackte Erweiterung laden” für den entpackten Ordner.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Öffne about:debugging#/runtime/this-firefox, wähle “Temporäres Add-on laden” und wähle diese Datei aus. Sie bleibt installiert, bis Firefox neu startet - eine dauerhafte Installation braucht Mozillas eigene Signierung, die selbstgehostete Software nicht automatisch bekommen kann.',
   'settings.browsertools.installTitle': 'Als App installieren',
   'settings.browsertools.installHint':
     'Einmal installiert, kann das eigene Teilen-Menü deines Geräts einen Link direkt an KnightLoader übergeben - kein Browsertab nötig.',

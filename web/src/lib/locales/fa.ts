@@ -394,7 +394,6 @@ export const fa: Dict = {
   'container.handed': '{file} رمزگذاری شده است. به پشتیبان JDownloader سپرده شد؛ به‌محض اینکه آن را بگیرد (تا {n} ثانیه) پیوندهایش اینجا پیدا می‌شوند.',
   'container.failed': '{file} پذیرفته نشد: {reason}',
 
-  'settings.nav.general': 'عمومی',
   'settings.nav.modules': 'پودمان‌ها',
   'settings.nav.downloads': 'دانلودها',
   'settings.nav.archives': 'آرشیوها',
@@ -1325,9 +1324,11 @@ export const fa: Dict = {
   'settings.browsertools.copyCode': 'در عوض کد را کپی کنید',
   'settings.browsertools.copied': 'کپی شد.',
   'settings.browsertools.extensionTitle': 'افزونهٔ مرورگر',
-  'settings.browsertools.extensionHint':
-    'یک منوی کلیک‌راست روی هر پیوند، انتخاب یا صفحه، در Chrome، Edge، Brave و دیگر مرورگرهای مبتنی بر Chromium. دانلود از پیش به این نمونه اشاره می‌کند - چیزی برای پیکربندی نیست.',
-  'settings.browsertools.download': 'دانلود افزونه',
+  'settings.browsertools.extensionHint': 'یک منوی کلیک راست روی هر پیوند، انتخاب یا صفحه. دانلود هم‌اکنون به این نمونه اشاره می‌کند - چیزی برای پیکربندی نیست. Chromium و Firefox افزونه‌ها را متفاوت بسته‌بندی می‌کنند، پس مورد مرورگر خود را انتخاب کن.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'آن را استخراج کنید، سپس chrome://extensions (یا edge://extensions، brave://extensions) را باز کنید، حالت توسعه‌دهنده را فعال کنید و «بارگذاری فایل استخراج‌شده» را روی پوشه استخراج‌شده انتخاب کنید.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'about:debugging#/runtime/this-firefox را باز کنید، «بارگذاری افزونه موقت» را انتخاب کنید و این فایل را انتخاب کنید. تا راه‌اندازی مجدد Firefox نصب‌شده باقی می‌ماند - نصب دائمی نیاز به امضای رسمی خود Mozilla دارد که نرم‌افزار خودمیزبان نمی‌تواند به طور خودکار آن را بگیرد.',
   'settings.browsertools.installTitle': 'نصب به‌عنوان برنامه',
   'settings.browsertools.installHint':
     'پس از نصب، منوی اشتراک‌گذاری خود دستگاهتان می‌تواند پیوندی را مستقیماً به KnightLoader بدهد - نیازی به تب مرورگر نیست.',

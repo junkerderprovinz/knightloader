@@ -394,7 +394,6 @@ export const hi: Dict = {
   'container.handed': '{file} एन्क्रिप्टेड है। इसे JDownloader बैकएंड को सौंप दिया गया; जैसे ही वह इसे ले लेगा ({n} सेकंड के भीतर) इसके लिंक यहाँ दिखेंगे।',
   'container.failed': '{file} स्वीकार नहीं हुई: {reason}',
 
-  'settings.nav.general': 'सामान्य',
   'settings.nav.modules': 'मॉड्यूल',
   'settings.nav.downloads': 'डाउनलोड',
   'settings.nav.archives': 'आर्काइव',
@@ -1325,9 +1324,11 @@ export const hi: Dict = {
   'settings.browsertools.copyCode': 'इसके बजाय कोड कॉपी करें',
   'settings.browsertools.copied': 'कॉपी हो गया।',
   'settings.browsertools.extensionTitle': 'ब्राउज़र एक्सटेंशन',
-  'settings.browsertools.extensionHint':
-    'Chrome, Edge, Brave और अन्य Chromium-आधारित ब्राउज़रों में, किसी भी लिंक, चयन या पेज पर राइट-क्लिक मेनू। डाउनलोड पहले से ही इस इंस्टेंस पर इंगित करता है - कॉन्फ़िगर करने के लिए कुछ नहीं।',
-  'settings.browsertools.download': 'एक्सटेंशन डाउनलोड करें',
+  'settings.browsertools.extensionHint': 'किसी भी लिंक, चयन या पेज पर राइट-क्लिक मेन्यू। डाउनलोड पहले से ही इस इंस्टेंस की ओर इशारा करता है - कुछ भी सेट करने की जरूरत नहीं। Chromium और Firefox एक्सटेंशन को अलग-अलग तरीके से पैक करते हैं, इसलिए अपने ब्राउज़र के लिए सही विकल्प चुनें।',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'इसे अनजिप करें, फिर chrome://extensions (या edge://extensions, brave://extensions) खोलें, डेवलपर मोड चालू करें, और अनजिप की गई फ़ोल्डर पर “Load unpacked” चुनें।',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'about:debugging#/runtime/this-firefox खोलें, “Load Temporary Add-on” चुनें और यह फ़ाइल चुनें। यह Firefox के फिर से शुरू होने तक इंस्टॉल रहता है - स्थायी इंस्टॉलेशन के लिए Mozilla के खुद के सिग्नेचर की जरूरत होती है, जो स्वयं-होस्टेड सॉफ्टवेयर को स्वचालित रूप से नहीं मिल सकती।',
   'settings.browsertools.installTitle': 'ऐप के रूप में इंस्टॉल करें',
   'settings.browsertools.installHint':
     'एक बार इंस्टॉल होने पर, आपके डिवाइस का अपना शेयर मेनू सीधे KnightLoader को लिंक दे सकता है - किसी ब्राउज़र टैब की ज़रूरत नहीं।',

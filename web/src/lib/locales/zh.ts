@@ -394,7 +394,6 @@ export const zh: Dict = {
   'container.handed': '{file} 是加密的，已交给 JDownloader 后端；等它取回后（{n} 秒内）链接会出现在这里。',
   'container.failed': '{file} 未被接受：{reason}',
 
-  'settings.nav.general': '常规',
   'settings.nav.modules': '模块',
   'settings.nav.downloads': '下载',
   'settings.nav.archives': '压缩包',
@@ -1322,9 +1321,11 @@ export const zh: Dict = {
   'settings.browsertools.copyCode': '改为复制代码',
   'settings.browsertools.copied': '已复制。',
   'settings.browsertools.extensionTitle': '浏览器扩展',
-  'settings.browsertools.extensionHint':
-    '在 Chrome、Edge、Brave 及其他基于 Chromium 的浏览器中，为任意链接、选中内容或页面提供右键菜单。下载已经指向此实例 - 无需配置。',
-  'settings.browsertools.download': '下载扩展',
+  'settings.browsertools.extensionHint': '在任何链接、选中内容或页面上右键菜单。下载已经指向此实例 - 无需配置。Chromium 和 Firefox 打包扩展的方式不同，请选择适合你浏览器的那个。',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': '解压后打开 chrome://extensions（或 edge://extensions、brave://extensions），开启开发者模式，在解压后的文件夹上选择“加载已解压的扩展程序”。',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': '打开 about:debugging#/runtime/this-firefox，选择“临时加载附件”并选择此文件。它会保持安装直到 Firefox 重启 - 永久安装需要 Mozilla 自己的签名，自托管软件无法自动获得该签名。',
   'settings.browsertools.installTitle': '安装为应用',
   'settings.browsertools.installHint':
     '安装后，你设备自带的分享菜单就可以把链接直接交给 KnightLoader - 无需浏览器标签页。',

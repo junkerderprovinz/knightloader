@@ -394,7 +394,6 @@ export const fi: Dict = {
   'container.handed': '{file} on salattu. Se annettiin JDownloader-taustaosalle; sen linkit ilmestyvät tänne heti kun se on hakenut sen ({n} s kuluessa).',
   'container.failed': 'Tiedostoa {file} ei otettu vastaan: {reason}',
 
-  'settings.nav.general': 'Yleiset',
   'settings.nav.modules': 'Moduulit',
   'settings.nav.downloads': 'Lataukset',
   'settings.nav.archives': 'Arkistot',
@@ -1325,9 +1324,11 @@ export const fi: Dict = {
   'settings.browsertools.copyCode': 'Kopioi koodi sen sijaan',
   'settings.browsertools.copied': 'Kopioitu.',
   'settings.browsertools.extensionTitle': 'Selainlaajennus',
-  'settings.browsertools.extensionHint':
-    'Oikean napin valikko missä tahansa linkissä, valinnassa tai sivulla, Chromessa, Edgessä, Bravessa ja muissa Chromium-pohjaisissa selaimissa. Lataus osoittaa jo tähän instanssiin - ei mitään määritettävää.',
-  'settings.browsertools.download': 'Lataa laajennus',
+  'settings.browsertools.extensionHint': 'Hiiren oikean painikkeen valikko jokaisessa linkissä, valinnassa tai sivulla. Lataus osoittaa jo tähän instanssiin - ei mitään säädettävää. Chromium ja Firefox pakkaavat laajennukset eri tavoin, joten valitse omalle selaimellesi sopiva.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Pura se, avaa sitten chrome://extensions (tai edge://extensions, brave://extensions), kytke kehittäjätila päälle ja valitse ”Lataa purettuna” puretusta kansiosta.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Avaa about:debugging#/runtime/this-firefox, valitse ”Lataa väliaikainen lisäosa” ja valitse tämä tiedosto. Se pysyy asennettuna Firefoxin uudelleenkäynnistykseen asti - pysyvä asennus vaatii Mozillan oman allekirjoituksen, jota itseisänöity ohjelmisto ei voi saada automaattisesti.',
   'settings.browsertools.installTitle': 'Asenna sovelluksena',
   'settings.browsertools.installHint':
     'Kun asennettu, laitteesi oma Jaa-valikko voi antaa linkin suoraan KnightLoaderille - selainvälilehteä ei tarvita.',

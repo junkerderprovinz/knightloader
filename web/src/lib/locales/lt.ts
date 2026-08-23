@@ -394,7 +394,6 @@ export const lt: Dict = {
   'container.handed': '{file} yra užšifruotas. Jis atiduotas JDownloader posistemei; jo nuorodos pasirodys čia, kai ji jį pasiims (per {n} s).',
   'container.failed': '{file} nebuvo priimtas: {reason}',
 
-  'settings.nav.general': 'Bendra',
   'settings.nav.modules': 'Moduliai',
   'settings.nav.downloads': 'Atsisiuntimai',
   'settings.nav.archives': 'Archyvai',
@@ -1325,9 +1324,11 @@ export const lt: Dict = {
   'settings.browsertools.copyCode': 'Vietoj to kopijuoti kodą',
   'settings.browsertools.copied': 'Nukopijuota.',
   'settings.browsertools.extensionTitle': 'Naršyklės plėtinys',
-  'settings.browsertools.extensionHint':
-    'Dešiniojo klavišo meniu bet kuriai nuorodai, pažymėjimui ar puslapiui, „Chrome“, „Edge“, „Brave“ ir kitose „Chromium“ pagrindu sukurtose naršyklėse. Atsisiuntimas jau nurodo į šią instanciją - konfigūruoti nereikia nieko.',
-  'settings.browsertools.download': 'Atsisiųsti plėtinį',
+  'settings.browsertools.extensionHint': 'Dešiniojo pelės mygtuko meniu ant bet kurios nuorodos, pažymėjimo ar puslapio. Atsisiuntimas jau nukreiptas į šį egzempliorių - nieko konfigūruoti nereikia. Chromium ir Firefox skirtingai pakuoja plėtinius, todėl pasirink savo naršyklės plėtinį.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Išskleisk jį, tada atidaryk chrome://extensions (arba edge://extensions, brave://extensions), įjunk kūrėjo režimą ir pasirink „Ikelti išskleistą plėtinį“ išskleistam aplankui.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Atidaryk about:debugging#/runtime/this-firefox, pasirink „Ikelti laikiną priedą“ ir pasirink šį failą. Jis lieka įdiegtas iki Firefox paleidimo iš naujo - nuolatinis diegimas reikalauja paties Mozilla parašo, kurio savarankiškai talpinama programinė įranga negali gauti automatiškai.',
   'settings.browsertools.installTitle': 'Įdiegti kaip programėlę',
   'settings.browsertools.installHint':
     'Įdiegus, jūsų įrenginio nuosavas Bendrinimo meniu gali perduoti nuorodą tiesiai į KnightLoader - naršyklės skirtuko nereikia.',

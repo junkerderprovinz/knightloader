@@ -394,7 +394,6 @@ export const th: Dict = {
   'container.handed': '{file} ถูกเข้ารหัส ส่งต่อให้แบ็กเอนด์ JDownloader แล้ว ลิงก์จะปรากฏที่นี่เมื่อดึงมาได้ (ภายใน {n} วินาที)',
   'container.failed': 'ไม่ได้รับ {file}: {reason}',
 
-  'settings.nav.general': 'ทั่วไป',
   'settings.nav.modules': 'โมดูล',
   'settings.nav.downloads': 'การดาวน์โหลด',
   'settings.nav.archives': 'ไฟล์บีบอัด',
@@ -1324,9 +1323,11 @@ export const th: Dict = {
   'settings.browsertools.copyCode': 'คัดลอกโค้ดแทน',
   'settings.browsertools.copied': 'คัดลอกแล้ว',
   'settings.browsertools.extensionTitle': 'ส่วนขยายเบราว์เซอร์',
-  'settings.browsertools.extensionHint':
-    'เมนูคลิกขวาบนลิงก์ ส่วนที่เลือก หรือหน้าใดก็ได้ ใน Chrome, Edge, Brave และเบราว์เซอร์อื่น ๆ ที่ใช้ Chromium เป็นฐาน การดาวน์โหลดชี้ไปที่อินสแตนซ์นี้อยู่แล้ว - ไม่มีอะไรต้องตั้งค่า',
-  'settings.browsertools.download': 'ดาวน์โหลดส่วนขยาย',
+  'settings.browsertools.extensionHint': 'เมนูคลิกขวาบนลิงก์ ข้อความที่เลือก หรือหน้าใดก็ได้ การดาวน์โหลดชี้ไปที่อินสแตนซ์นี้อยู่แล้ว - ไม่ต้องตั้งค่าอะไร Chromium และ Firefox บรรจุส่วนขยายต่างกัน จึงเลือกให้ตรงกับเบราว์เซอร์ของคุณ',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'แตกไฟล์แล้วเปิด chrome://extensions (หรือ edge://extensions, brave://extensions) เปิดโหมดนักพัฒนา แล้วเลือก “โหลดส่วนขยายที่แตกไฟล์แล้ว” บนโฟลเดอร์ที่แตกไฟล์แล้ว',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'เปิด about:debugging#/runtime/this-firefox เลือก “โหลดส่วนเสริมชั่วคราว” แล้วเลือกไฟล์นี้ จะยังคงติดตั้งอยู่จนกว่า Firefox จะรีสตาร์ต - การติดตั้งอย่างถาวรต้องใช้ลายเซ็นของ Mozilla เอง ซึ่งซอฟต์แวร์ที่โฮสต์เองไม่สามารถรับได้โดยอัตโนมัติ',
   'settings.browsertools.installTitle': 'ติดตั้งเป็นแอป',
   'settings.browsertools.installHint':
     'เมื่อติดตั้งแล้ว เมนูแชร์ของอุปกรณ์คุณเองสามารถส่งลิงก์ไปยัง KnightLoader ได้โดยตรง - ไม่ต้องใช้แท็บเบราว์เซอร์',

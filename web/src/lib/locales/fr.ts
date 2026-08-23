@@ -386,7 +386,6 @@ export const fr: Dict = {
   'container.handed': '{file} est chiffré. Il a été confié au backend JDownloader ; ses liens apparaîtront ici dès qu’il l’aura récupéré (sous {n} s).',
   'container.failed': '{file} n’a pas été accepté : {reason}',
 
-  'settings.nav.general': 'Général',
   'settings.nav.modules': 'Modules',
   'settings.nav.downloads': 'Téléchargements',
   'settings.nav.archives': 'Archives',
@@ -1318,9 +1317,11 @@ export const fr: Dict = {
   'settings.browsertools.copyCode': 'Copier le code à la place',
   'settings.browsertools.copied': 'Copié.',
   'settings.browsertools.extensionTitle': 'Extension de navigateur',
-  'settings.browsertools.extensionHint':
-    'Un menu contextuel sur n’importe quel lien, sélection ou page, dans Chrome, Edge, Brave et d’autres navigateurs basés sur Chromium. Le téléchargement pointe déjà vers cette instance - rien à configurer.',
-  'settings.browsertools.download': 'Télécharger l’extension',
+  'settings.browsertools.extensionHint': 'Un menu clic droit sur n’importe quel lien, sélection ou page. Le téléchargement pointe déjà vers cette instance - rien à configurer. Chromium et Firefox emballent les extensions différemment, choisis donc celle de ton navigateur.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Dézippe-le, ouvre ensuite chrome://extensions (ou edge://extensions, brave://extensions), active le mode développeur et choisis «Charger l’extension non empaquetée» sur le dossier dézippé.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Ouvre about:debugging#/runtime/this-firefox, choisis «Charger un module complémentaire temporaire» et sélectionne ce fichier. Il reste installé jusqu’au redémarrage de Firefox - une installation permanente nécessite la signature de Mozilla, qu’un logiciel auto-hébergé ne peut pas obtenir automatiquement.',
   'settings.browsertools.installTitle': 'Installer comme application',
   'settings.browsertools.installHint':
     'Une fois installé, le menu Partager de votre appareil peut transmettre un lien directement à KnightLoader - aucun onglet de navigateur requis.',

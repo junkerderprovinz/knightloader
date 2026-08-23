@@ -386,7 +386,6 @@ export const es: Dict = {
   'container.handed': '{file} está cifrado. Se entregó al backend JDownloader; sus enlaces aparecerán aquí en cuanto lo haya recogido (en {n} s).',
   'container.failed': 'No se aceptó {file}: {reason}',
 
-  'settings.nav.general': 'General',
   'settings.nav.modules': 'Módulos',
   'settings.nav.downloads': 'Descargas',
   'settings.nav.archives': 'Archivos comprimidos',
@@ -1318,9 +1317,11 @@ export const es: Dict = {
   'settings.browsertools.copyCode': 'Copiar el código en su lugar',
   'settings.browsertools.copied': 'Copiado.',
   'settings.browsertools.extensionTitle': 'Extensión de navegador',
-  'settings.browsertools.extensionHint':
-    'Un menú contextual en cualquier enlace, selección o página, en Chrome, Edge, Brave y otros navegadores basados en Chromium. La descarga ya apunta a esta instancia - nada que configurar.',
-  'settings.browsertools.download': 'Descargar extensión',
+  'settings.browsertools.extensionHint': 'Un menú de clic derecho en cualquier enlace, selección o página. La descarga ya apunta a esta instancia - nada que configurar. Chromium y Firefox empaquetan las extensiones de forma distinta, elige la de tu navegador.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Descomprímelo, abre chrome://extensions (o edge://extensions, brave://extensions), activa el modo desarrollador y elige «Cargar descomprimida» sobre la carpeta descomprimida.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Abre about:debugging#/runtime/this-firefox, elige «Cargar complemento temporal» y selecciona este archivo. Permanece instalado hasta que Firefox se reinicie - una instalación permanente necesita la firma propia de Mozilla, que un software autoalojado no puede obtener automáticamente.',
   'settings.browsertools.installTitle': 'Instalar como aplicación',
   'settings.browsertools.installHint':
     'Una vez instalado, el propio menú Compartir de tu dispositivo puede enviar un enlace directamente a KnightLoader - sin necesidad de una pestaña del navegador.',

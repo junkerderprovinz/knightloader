@@ -394,7 +394,6 @@ export const ko: Dict = {
   'container.handed': '{file}은 암호화되어 있습니다. JDownloader 백엔드로 넘겼으며, 백엔드가 가져오는 대로({n}초 이내) 링크가 여기에 나타납니다.',
   'container.failed': '{file}을 받지 못했습니다: {reason}',
 
-  'settings.nav.general': '일반',
   'settings.nav.modules': '모듈',
   'settings.nav.downloads': '다운로드',
   'settings.nav.archives': '압축 파일',
@@ -1325,9 +1324,11 @@ export const ko: Dict = {
   'settings.browsertools.copyCode': '대신 코드 복사',
   'settings.browsertools.copied': '복사됨.',
   'settings.browsertools.extensionTitle': '브라우저 확장 프로그램',
-  'settings.browsertools.extensionHint':
-    'Chrome, Edge, Brave, 그리고 그 외 Chromium 기반 브라우저에서 어떤 링크, 선택 영역, 페이지에도 쓸 수 있는 우클릭 메뉴입니다. 다운로드는 이미 이 인스턴스를 가리키므로 설정할 것이 없습니다.',
-  'settings.browsertools.download': '확장 프로그램 다운로드',
+  'settings.browsertools.extensionHint': '링크, 선택 영역, 페이지 어디서나 우클릭 메뉴를 사용할 수 있습니다. 다운로드는 이미 이 인스턴스를 가리키고 있어 따로 설정할 것이 없습니다. Chromium과 Firefox는 확장프로그램을 다르게 패키징하므로 사용 중인 브라우저에 맞는 것을 선택하세요.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': '압축을 해제한 다음 chrome://extensions(또는 edge://extensions, brave://extensions)를 열고, 개발자 모드를 켜고, 압축 해제된 폴더에서 “패키징되지 않은 확장 프로그램을 로드”를 선택하세요.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'about:debugging#/runtime/this-firefox를 열고, “임시 부가 기능 로드”를 선택한 다음 이 파일을 선택하세요. Firefox를 다시 시작할 때까지 설치된 상태로 유지됩니다 - 영구 설치는 Mozilla 자체 서명이 필요하며, 자체 호스팅 소프트웨어는 이를 자동으로 받을 수 없습니다.',
   'settings.browsertools.installTitle': '앱으로 설치',
   'settings.browsertools.installHint':
     '설치하고 나면, 기기 자체의 공유 메뉴가 링크를 KnightLoader로 곧바로 전달할 수 있습니다 - 브라우저 탭이 필요 없습니다.',

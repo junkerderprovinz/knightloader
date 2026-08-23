@@ -394,7 +394,6 @@ export const eu: Dict = {
   'container.handed': '{file} zifratuta dago. JDownloader backendari eman zaio; bere estekak hemen agertuko dira hark jaso bezain laster ({n} s barru).',
   'container.failed': '{file} ez da onartu: {reason}',
 
-  'settings.nav.general': 'Orokorra',
   'settings.nav.modules': 'Moduluak',
   'settings.nav.downloads': 'Deskargak',
   'settings.nav.archives': 'Artxiboak',
@@ -1325,9 +1324,11 @@ export const eu: Dict = {
   'settings.browsertools.copyCode': 'Kopiatu kodea horren ordez',
   'settings.browsertools.copied': 'Kopiatuta.',
   'settings.browsertools.extensionTitle': 'Nabigatzaile-hedapena',
-  'settings.browsertools.extensionHint':
-    'Eskuineko klik-menu bat edozein esteka, hautapen edo orritan, Chrome-n, Edge-n, Brave-n eta Chromium-en oinarritutako beste nabigatzaileetan. Deskargak instantzia honi begiratzen dio jada - ez dago ezer konfiguratzeko.',
-  'settings.browsertools.download': 'Deskargatu hedapena',
+  'settings.browsertools.extensionHint': 'Eskuineko klik-menua edozein estekatan, hautaketan edo orritan. Deskarga jada instantzia honi begira dago - ez dago ezer konfiguratzeko. Chromium eta Firefoxek hedapenak modu ezberdinean paketatzen dituzte, hautatu zure nabigatzailerako egokia.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Deskonprimitu, ireki chrome://extensions (edo edge://extensions, brave://extensions), aktibatu garatzaile modua, eta hautatu “Kargatu deskonprimitua” deskonprimitutako karpetan.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Ireki about:debugging#/runtime/this-firefox, hautatu “Kargatu aldi baterako gehigarria” eta hautatu fitxategi hau. Instalatuta jarraitzen du Firefox berrabiarazi arte - instalazio iraunkorrak Mozillaren berezko sinadura behar du, autoostatatutako softwareak automatikoki lortu ezin duena.',
   'settings.browsertools.installTitle': 'Instalatu aplikazio gisa',
   'settings.browsertools.installHint':
     'Behin instalatuta, zure gailuaren Partekatu menuak esteka bat zuzenean KnightLoader-era pasa dezake - ez da nabigatzaile-fitxarik behar.',

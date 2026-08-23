@@ -394,7 +394,6 @@ export const sk: Dict = {
   'container.handed': '{file} je šifrovaný. Putoval na backend JDownloader; jeho odkazy sa tu objavia, len čo si ho stiahne (do {n} s).',
   'container.failed': '{file} nebol prijatý: {reason}',
 
-  'settings.nav.general': 'Všeobecné',
   'settings.nav.modules': 'Moduly',
   'settings.nav.downloads': 'Sťahovanie',
   'settings.nav.archives': 'Archívy',
@@ -1326,9 +1325,11 @@ export const sk: Dict = {
   'settings.browsertools.copyCode': 'Namiesto toho skopírovať kód',
   'settings.browsertools.copied': 'Skopírované.',
   'settings.browsertools.extensionTitle': 'Rozšírenie prehliadača',
-  'settings.browsertools.extensionHint':
-    'Kontextová ponuka na ľubovoľnom odkaze, výbere alebo stránke v Chrome, Edge, Brave a ďalších prehliadačoch založených na Chromium. Sťahovanie už ukazuje na túto inštanciu - nie je čo nastavovať.',
-  'settings.browsertools.download': 'Stiahnuť rozšírenie',
+  'settings.browsertools.extensionHint': 'Kontextové menu pravého tlačidla na akomkoľvek odkaze, výbere alebo stránke. Sťahovanie už smeruje na túto inštanciu - nič netreba nastavovať. Chromium a Firefox balíia rozšírenia inak, vyber si teda to pre svoj prehliadač.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Rozbaľ ho, otvor chrome://extensions (alebo edge://extensions, brave://extensions), zapni vývojársky režim a vyber „Načítať rozbalené“ na rozbalenom priečinku.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Otvor about:debugging#/runtime/this-firefox, vyber „Načítať dočasný doplnok“ a zvoľ tento súbor. Ostáva nainštalovaný do reštartu Firefoxu - trvalá inštalácia potrebuje vlastný podpis Mozilly, ktorý samostatne hostovaný softvér nemôže získať automaticky.',
   'settings.browsertools.installTitle': 'Nainštalovať ako aplikáciu',
   'settings.browsertools.installHint':
     'Po inštalácii môže vlastná ponuka Zdieľať tvojho zariadenia odovzdať odkaz priamo do KnightLoader - karta prehliadača nie je potrebná.',

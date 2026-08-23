@@ -396,7 +396,6 @@ export const ar: Dict = {
   'container.handed': '{file} مشفّر. سُلّم إلى خلفية JDownloader، وستظهر روابطه هنا فور جلبه (خلال {n} ثانية).',
   'container.failed': 'لم يُقبل {file}: {reason}',
 
-  'settings.nav.general': 'عام',
   'settings.nav.modules': 'الوحدات',
   'settings.nav.downloads': 'التنزيلات',
   'settings.nav.archives': 'الأرشيفات',
@@ -1327,9 +1326,11 @@ export const ar: Dict = {
   'settings.browsertools.copyCode': 'نسخ الكود بدلًا من ذلك',
   'settings.browsertools.copied': 'نُسخ.',
   'settings.browsertools.extensionTitle': 'إضافة المتصفح',
-  'settings.browsertools.extensionHint':
-    'قائمة نقر يمين على أي رابط أو تحديد أو صفحة، في Chrome وEdge وBrave وغيرها من متصفحات Chromium. يشير التنزيل بالفعل إلى هذه النسخة - لا شيء لضبطه.',
-  'settings.browsertools.download': 'تنزيل الإضافة',
+  'settings.browsertools.extensionHint': 'قائمة النقر بالزر الأيمن على أي رابط أو تحديد أو صفحة. التحميل يشير بالفعل إلى هذه النسخة - لا شيء لضبطه. يقوم Chromium و Firefox بتعبئة الإضافات بطرق مختلفة، فاختر ما يناسب متصفحك.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'فك ضغط الملف، ثم افتح chrome://extensions (أو edge://extensions أو brave://extensions)، فعّل وضع المطور، واختر «تحميل غير محزوم» للمجلد الذي تم فك ضغطه.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'افتح about:debugging#/runtime/this-firefox، واختر «تحميل إضافة مؤقتة»، ثم اختر هذا الملف. يبقى مثبتًا حتى إعادة تشغيل Firefox - التثبيت الدائم يحتاج توقيع Mozilla الخاص، الذي لا يمكن لبرمجية ذاتية الاستضافة الحصول عليه تلقائيًا.',
   'settings.browsertools.installTitle': 'التثبيت كتطبيق',
   'settings.browsertools.installHint':
     'بمجرد التثبيت، يمكن لقائمة المشاركة الخاصة بجهازك تمرير رابط مباشرة إلى KnightLoader - دون الحاجة إلى تبويب متصفح.',
