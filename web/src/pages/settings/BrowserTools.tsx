@@ -33,7 +33,7 @@ const PENDING = {
     'Send a link to KnightLoader from anywhere else — another page, another app, or your phone’s Share menu.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletHint':
-    'Drag this to your bookmarks bar. On any page, click it to send that page (or whatever text you have selected) here.',
+    '1. Drag the button below onto your browser’s bookmarks bar - it saves like any other bookmark, nothing installs. 2. On any page, click it (select some text first if you only want that). A small KnightLoader tab opens with that page’s link, or the selected text, already filled in - review it and add it as a download from there.',
   'settings.browsertools.bookmarkletLink': 'Add to KnightLoader',
   'settings.browsertools.copyCode': 'Copy the code instead',
   'settings.browsertools.copied': 'Copied.',
@@ -70,7 +70,12 @@ export function BrowserTools() {
 
       <SectionTitle>{cx('settings.browsertools.bookmarkletTitle')}</SectionTitle>
       <Card className="flex flex-col gap-3">
-        <p className="text-[11px] text-carbon-textMuted">{cx('settings.browsertools.bookmarkletHint')}</p>
+        {/* Normal body text, not a small muted caption - this is a two-step
+            how-it-works explanation someone reads once to understand the
+            feature at all (jdp: "Ich habe noch nicht verstanden was das
+            hier soll und wie das funktionieren soll"), not a passing hint
+            beside a control whose purpose is otherwise obvious. */}
+        <p className="text-sm text-carbon-textSub">{cx('settings.browsertools.bookmarkletHint')}</p>
         <div className="flex flex-wrap items-center gap-3">
           {/* A real link, not a button with an onClick — dragging IS the
               install step, and only an <a href="javascript:..."> is
