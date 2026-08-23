@@ -427,6 +427,7 @@ function RuleRow({
           on={!rule.disabled}
           onChange={(v) => onChange({ ...rule, disabled: !v })}
           name={rule.disabled ? rx('settings.rules.ruleOff') : rx('settings.rules.ruleOn')}
+          hue={index}
         />
         <button
           type="button"

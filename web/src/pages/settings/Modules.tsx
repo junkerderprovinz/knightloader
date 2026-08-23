@@ -47,14 +47,14 @@ function Group({ hue, title, hint, rows }: { hue: number; title: string; hint?: 
           {hint && <InfoBubble tip={hint} />}
         </span>
       </SectionTitle>
-      {rows.map((m) => (
-        <Row key={m.id} m={m} />
+      {rows.map((m, i) => (
+        <Row key={m.id} m={m} hue={i} />
       ))}
     </Card>
   );
 }
 
-function Row({ m }: { m: Feature }) {
+function Row({ m, hue }: { m: Feature; hue: number }) {
   const { tx } = useTx();
   const { toggle } = useFeatures();
   const { toast } = useToast();
@@ -131,6 +131,7 @@ function Row({ m }: { m: Feature }) {
           onLabel={tx('settings.modules.on')}
           offLabel={tx('settings.modules.off')}
           onChange={onToggle}
+          hue={hue}
         />
       ) : (
         <StateChip m={m} />

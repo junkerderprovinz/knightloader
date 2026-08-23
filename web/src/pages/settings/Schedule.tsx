@@ -696,6 +696,7 @@ function EntryRow({
           on={!entry.disabled}
           onChange={(v) => onChange({ disabled: !v })}
           name={cx('settings.schedule.use')}
+          hue={index}
         />
         <button
           type="button"
