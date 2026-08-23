@@ -230,20 +230,21 @@ function ToastBubble({ item, onDismiss }: { item: ToastMessage; onDismiss: (id: 
  * Reading QUIET_KEY through the same shared uistate bucket ToastProvider
  * reads keeps the two in sync with no prop wiring between them.
  *
- * Label+description left, switch flush right (jdp: "genau wie in BV") -
- * BombVault's own ToggleRow shape for exactly this kind of row (a caption
- * plus a one-line explanation UNDER it, not beside it in a bubble), rather
- * than the InfoBubble-beside-a-bare-toggle this used to be.
+ * Description + switch, no caption of its own (jdp: "Stiller Modus in
+ * eigene Card") - now the one control in its own single-purpose card, whose
+ * own title already says "Stiller Modus"; repeating that as this row's
+ * caption too would be the exact "heading says what the switch beneath it
+ * says" duplication the Rainbow master switch above already avoids, and
+ * BombVault's own Settings.tsx documents this exact case by name ("that IS
+ * the pattern for a single-purpose Card whose TITLE is the decision"). The
+ * label survives as the switch's accessible name either way.
  */
 export function QuietModeToggle() {
   const nx = useNx();
   const [quiet, setQuiet] = useUIState(QUIET_KEY, false);
   return (
     <div className="flex items-start justify-between gap-4">
-      <div className="flex flex-col gap-0.5">
-        <span className="text-sm text-carbon-text">{nx('notifications.quiet')}</span>
-        <span className="text-xs text-carbon-textMuted">{nx('notifications.quietHint')}</span>
-      </div>
+      <span className="text-xs text-carbon-textMuted">{nx('notifications.quietHint')}</span>
       <span className="mt-0.5">
         <Toggle hideLabel checked={quiet} onChange={setQuiet} label={nx('notifications.quiet')} />
       </span>
