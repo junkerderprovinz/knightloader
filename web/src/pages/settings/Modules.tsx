@@ -128,8 +128,6 @@ function Row({ m, hue }: { m: Feature; hue: number }) {
           on={m.enabled}
           disabled={busy || nothingToRestore}
           name={label(tx, 'settings.module.', m.id)}
-          onLabel={tx('settings.modules.on')}
-          offLabel={tx('settings.modules.off')}
           onChange={onToggle}
           hue={hue}
         />
