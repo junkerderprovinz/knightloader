@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>KnightLoader — instance settings</title>
+    <title>KnightLoader — instances</title>
     <style>
       :root { color-scheme: dark; }
       body {
@@ -14,10 +14,10 @@
         font: 14px/1.5 -apple-system, "Segoe UI", sans-serif;
       }
       h1 { font-size: 18px; margin: 0 0 6px; color: #fcc419; }
+      h2 { font-size: 13px; margin: 24px 0 10px; color: #c6c6c6; font-weight: 500; }
       p.sub { color: #8d8d8d; margin: 0 0 22px; font-size: 13px; }
       label { display: block; font-size: 12px; color: #c6c6c6; margin-bottom: 6px; }
       input {
-        width: 100%;
         box-sizing: border-box;
         padding: 9px 10px;
         border: 1px solid #393939;
@@ -28,7 +28,6 @@
       }
       input:focus { outline: 2px solid #fcc419; outline-offset: -1px; }
       button {
-        margin-top: 14px;
         padding: 9px 16px;
         border: 0;
         border-radius: 8px;
@@ -38,26 +37,75 @@
         font-weight: 500;
         cursor: pointer;
       }
+      button.secondary {
+        background: #393939;
+        color: #f4f4f4;
+      }
+      button.danger {
+        background: transparent;
+        color: #ff8389;
+        padding: 6px 10px;
+      }
       #status { margin-top: 10px; font-size: 12px; min-height: 1.2em; }
       .ok { color: #24a148; }
       .note { margin-top: 26px; font-size: 12px; color: #6f6f6f; }
       .note a { color: #8d8d8d; }
+      #list { display: flex; flex-direction: column; gap: 8px; }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border: 1px solid #393939;
+        border-radius: 8px;
+        background: #1d1d1d;
+      }
+      .row.isDefault { border-color: #fcc419; }
+      .row .info { flex: 1; min-width: 0; }
+      .row .name { font-weight: 500; }
+      .row .url { color: #8d8d8d; font-size: 12px; word-break: break-all; }
+      .row .badge {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #161616;
+        background: #fcc419;
+        border-radius: 4px;
+        padding: 2px 6px;
+        margin-left: 8px;
+      }
+      .empty { color: #6f6f6f; font-size: 13px; padding: 8px 0; }
+      #addForm { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+      #addForm .fields { display: flex; gap: 8px; }
+      #addForm .fields input#addName { flex: 0 0 40%; }
+      #addForm .fields input#addUrl { flex: 1; }
     </style>
   </head>
   <body>
     <h1>KnightLoader</h1>
     <p class="sub">
-      The address of the instance a link, a selection, or a page should be sent to —
-      whatever you would type into your own browser to reach it. No account,
-      relay or password is stored here: opening it points a small window at that
-      address, and the normal sign-in for that instance applies exactly as it
-      would if you had typed the address yourself.
+      Every instance the extension can send a link, a selection, or a page to.
+      No account, relay or password is stored here: sending to one points a
+      small window (or the toolbar popup) at that address, and the normal
+      sign-in for that instance applies exactly as it would if you had typed
+      the address yourself. The one marked "Default" is used when you have not
+      chosen otherwise.
     </p>
-    <label for="url">Instance URL</label>
-    <input id="url" type="url" placeholder="http://192.168.1.20:8749" autocomplete="off" spellcheck="false" />
-    <button id="save">Save</button>
+
+    <h2>Instances</h2>
+    <div id="list"></div>
+
+    <h2>Add an instance</h2>
+    <form id="addForm">
+      <div class="fields">
+        <input id="addName" type="text" placeholder="Name (e.g. Home)" autocomplete="off" />
+        <input id="addUrl" type="url" placeholder="http://192.168.1.20:8749" autocomplete="off" spellcheck="false" />
+      </div>
+      <button id="add" type="submit">Add instance</button>
+    </form>
+
     <div id="status"></div>
-    <p class="note">There is no hosted service this points at by default — it is always the address of one instance you run.</p>
+    <p class="note">There is no hosted service any of this points at by default — every entry is the address of one instance you run.</p>
     <script src="shared.js"></script>
     <script src="options.js"></script>
   </body>
