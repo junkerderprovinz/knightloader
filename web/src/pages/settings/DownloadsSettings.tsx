@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Card, Field, FieldGroup, InfoBubble, NumberInput, TextInput, ToggleRow } from '../../components/ui';
+import { Card, Field, FieldGroup, InfoBubble, NumberInput, SectionTitle, TextInput, ToggleRow } from '../../components/ui';
+import { PathInput } from '../../components/FolderPicker';
 import { Tabs } from '../../components/Tabs';
 import { fetchIdleActions, fetchOptions } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
@@ -85,6 +86,44 @@ export function DownloadsSettings() {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Moved in from the now-removed Allgemein tab (jdp: "Wir brauchen
+          keinen Allgemein Tab: das alles in den Download Tab verschieben") -
+          where files land and what happens to a link the moment it arrives,
+          the pair a new install has to answer before anything else works. */}
+      <Card className="flex flex-col gap-5">
+        <Field
+          label={t('settings.downloadDir')}
+          hint={`${t('settings.downloadDirHint')} ${t('settings.pathVars')}`}
+        >
+          {/* Still a box you can type a path into; the button beside it browses
+              the server. Picking a folder replaces only the fixed part of the
+              value - the <jd:…> tail is kept - which is the one thing a chooser
+              on this field has to get right. See components/FolderPicker.tsx. */}
+          <PathInput
+            value={cfg.downloadDir}
+            placeholder="/downloads"
+            onValue={(downloadDir) => patch({ downloadDir })}
+          />
+        </Field>
+        <ToggleRow
+          checked={cfg.subfolderByPackage}
+          onChange={(v) => patch({ subfolderByPackage: v })}
+          label={t('settings.subfolderByPackage')}
+        />
+      </Card>
+
+      <SectionTitle>{tx('settings.sectionIntake')}</SectionTitle>
+      <Card className="flex flex-col gap-5">
+        {/* This toggle has always meant "skip the collector", which is
+            autoConfirm's job since Wave 8 split the old single autoStart flag
+            in three (settings.go's own doc comment). Binding it to the new,
+            narrower autoStart field instead - an easy mistake once the old
+            name and the new name coexist - would leave the one visible
+            control on this page changing a field the label no longer
+            describes, silently. */}
+        <ToggleRow checked={cfg.autoConfirm} onChange={(v) => patch({ autoConfirm: v })} label={t('settings.autoStart')} />
+      </Card>
+
       <Card className="flex flex-col gap-5">
         {/* The three counts that decide how much is open at once, together
             because they are read together: two downloads on one host, each

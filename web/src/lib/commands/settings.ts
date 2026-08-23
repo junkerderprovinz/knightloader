@@ -20,7 +20,6 @@ import type { Command } from './types';
  * route.
  */
 const SETTINGS_PAGES: { id: string; labelKey: Command['labelKey'] }[] = [
-  { id: 'general', labelKey: 'settings.nav.general' },
   { id: 'modules', labelKey: 'settings.nav.modules' },
   { id: 'downloads', labelKey: 'settings.nav.downloads' },
   { id: 'archives', labelKey: 'settings.nav.archives' },

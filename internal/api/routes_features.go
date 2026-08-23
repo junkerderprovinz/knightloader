@@ -420,7 +420,6 @@ func featureList(a *app.App) []Feature {
 // and until then the page explains itself out of the module rows filed under it.
 func featurePages() []FeaturePage {
 	return []FeaturePage{
-		{ID: "general"},
 		{ID: "modules"},
 		{ID: "downloads", Modules: []string{"watch", "crawler", "checksums"}},
 		{ID: "archives", Modules: []string{"extraction"}},

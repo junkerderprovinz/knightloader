@@ -19,7 +19,6 @@ import {
   IconModules,
   IconPower,
   IconRetry,
-  IconSettings,
   IconSliders,
 } from '../../lib/icons';
 import { Access } from './Access';
@@ -31,7 +30,6 @@ import { Connections } from './Connections';
 import { Diagnostics } from './Diagnostics';
 import { DownloadsSettings } from './DownloadsSettings';
 import { EmptyPage } from './Empty';
-import { General } from './General';
 import { Help } from './Help';
 import { Look } from './Look';
 import { Modules } from './Modules';
@@ -55,7 +53,6 @@ import { Torrents } from './Torrents';
  * a route for starts rendering.
  */
 const PAGES: Record<string, () => ReactNode> = {
-  general: () => <General />,
   modules: () => <Modules />,
   downloads: () => <DownloadsSettings />,
   archives: () => <Archives />,
@@ -119,7 +116,6 @@ const PAGES: Record<string, () => ReactNode> = {
  * not a place to invent a second downloads icon.
  */
 const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
-  general: IconSettings,
   modules: IconModules,
   downloads: IconDownloads,
   archives: IconArchive,
@@ -166,4 +162,4 @@ export function pageIcon(id: string): ReactNode {
 export const hasContent = (id: string): boolean => id in PAGES;
 
 /** The page shown when nothing else applies. It always exists. */
-export const FALLBACK_PAGE = 'general';
+export const FALLBACK_PAGE = 'downloads';
