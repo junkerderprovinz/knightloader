@@ -15,6 +15,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
+	"github.com/junkerderprovinz/knightloader/internal/update"
 )
 
 // DeploymentInfo is what the interface needs to label a quit/restart control
@@ -58,6 +59,17 @@ func registerLifecycle(reg *Registry, a *app.App) {
 		"the identical action as quit, under the name that fits a supervised deployment",
 		func(w http.ResponseWriter, r *http.Request) {
 			requestExit(w, a, true)
+		})
+
+	// Desktop only in practice (see update.Check's own package doc for why a
+	// container has nothing for this to report), but registered
+	// unconditionally like every other route here - the frontend gates the
+	// UI on GET /api/system/deployment instead of this route refusing to
+	// exist on the wrong build.
+	reg.Add(http.MethodGet, "/api/system/update-check",
+		"whether a newer release exists on GitHub than this build's own version",
+		func(w http.ResponseWriter, r *http.Request) {
+			writeJSON(w, update.Check(r.Context(), buildinfo.Version))
 		})
 }
 

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { Settings } from '../../lib/api';
-import { Button, Card, InfoBubble, NumberInput, SectionTitle, TextArea, TextInput } from '../../components/ui';
+import { fetchDeploymentInfo, fetchUpdateCheck, type Settings, type UpdateCheck } from '../../lib/api';
+import { Button, Card, IconBadge, InfoBubble, NumberInput, SectionTitle, TextArea, TextInput } from '../../components/ui';
+import { IconRetry, IconSearch } from '../../lib/icons';
 import { useDraft } from './context';
 import { NeutralSwitch } from './controls';
 import { fetchSettingsSchema, type SettingsSchema } from './features';
@@ -41,6 +42,7 @@ export function Advanced() {
   const [schema, setSchema] = useState<SettingsSchema | null>(null);
   const [schemaFailed, setSchemaFailed] = useState(false);
   const [query, setQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
   // Debounced, because the filter runs over the whole flattened document and
   // re-renders every visible editor: typing "down" would otherwise rebuild the
   // table four times, and the input would stutter on exactly the keys somebody
@@ -86,18 +88,10 @@ export function Advanced() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-10">
+      <UpdateCard />
+      <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-3">
-        <div className="min-w-0 flex-1 sm:max-w-xs">
-          <TextInput
-            type="search"
-            spellCheck={false}
-            value={query}
-            placeholder={tx('settings.advanced.search')}
-            aria-label={tx('settings.advanced.search')}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </div>
         {/* Disabled until the factory values arrive: "only what differs from the
             default" with no defaults to compare against would answer "all of
             it", which is the opposite of what it says. */}
@@ -110,6 +104,35 @@ export function Advanced() {
         <span className="text-xs text-carbon-textSub">{tx('settings.advanced.onlyModified')}</span>
         {schemaFailed && (
           <span className="text-xs text-statusWarn">{tx('settings.advanced.defaultsUnavailable')}</span>
+        )}
+        <span className="flex-1" />
+        {/* A square badge that opens into the field, not an always-visible
+            search box (jdp, 2026-08-23: "Die suche soll rechts oben als
+            quadratischer badge mit glyph angezeigt werden und bei klick
+            soll das suchfeld ausklappen") - stays open while there is text
+            in it, so an active filter is never hidden without the user
+            seeing it. */}
+        {searchOpen || query ? (
+          <div className="min-w-0 sm:max-w-xs">
+            <TextInput
+              autoFocus={searchOpen}
+              type="search"
+              spellCheck={false}
+              value={query}
+              placeholder={tx('settings.advanced.search')}
+              aria-label={tx('settings.advanced.search')}
+              onChange={(e) => setQuery(e.target.value)}
+              onBlur={() => {
+                if (!query) setSearchOpen(false);
+              }}
+            />
+          </div>
+        ) : (
+          <IconBadge
+            icon={<IconSearch width={16} height={16} />}
+            aria-label={tx('settings.advanced.search')}
+            onClick={() => setSearchOpen(true)}
+          />
         )}
       </div>
 
@@ -139,7 +162,69 @@ export function Advanced() {
           </div>
         </div>
       </Card>
+      </div>
     </div>
+  );
+}
+
+/**
+ * Desktop only (jdp, 2026-08-23: "#19 bauen" - build in-app updates for the
+ * desktop build, container's own copy stays "not necessary here" on the
+ * Modules tab). Checks GitHub's latest release against buildinfo.Version and
+ * hands the user a real download link - it does not download or apply
+ * anything itself, see internal/update's own package doc for why that next
+ * step is deliberately not bundled into this same change.
+ */
+function UpdateCard() {
+  const { tx } = useTx();
+  const [deployment, setDeployment] = useState<string | null>(null);
+  const [check, setCheck] = useState<UpdateCheck | null>(null);
+  const [checking, setChecking] = useState(false);
+
+  useEffect(() => {
+    void fetchDeploymentInfo()
+      .then((d) => setDeployment(d.deployment))
+      .catch(() => {});
+  }, []);
+
+  async function onCheck() {
+    setChecking(true);
+    try {
+      setCheck(await fetchUpdateCheck());
+    } catch {
+      setCheck({ checked: false, available: false, current: '' });
+    } finally {
+      setChecking(false);
+    }
+  }
+
+  if (deployment !== 'desktop') return null;
+
+  return (
+    <Card className="flex flex-col gap-3">
+      <SectionTitle hue={5}>{tx('settings.advanced.updatesTitle')}</SectionTitle>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button kind="secondary" onClick={() => void onCheck()} disabled={checking}>
+          {checking ? tx('settings.advanced.updatesChecking') : tx('settings.advanced.updatesCheck')}
+        </Button>
+        {check && !check.checked && (
+          <span className="text-sm text-statusFail">{tx('settings.advanced.updatesFailed')}</span>
+        )}
+        {check && check.checked && !check.available && (
+          <span className="text-sm text-statusOk">{tx('settings.advanced.updatesCurrent', { version: check.current })}</span>
+        )}
+        {check && check.checked && check.available && check.url && (
+          <a
+            href={check.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm font-medium text-accent hover:underline"
+          >
+            {tx('settings.advanced.updatesAvailable', { version: check.latest ?? '' })}
+          </a>
+        )}
+      </div>
+    </Card>
   );
 }
 
@@ -184,17 +269,18 @@ function KeyRow({
       </div>
 
       {/* Reset appears only where there is something to undo, so the column is
-          not a wall of buttons on a page that is already dense. */}
-      <div className="w-16 shrink-0">
+          not a wall of buttons on a page that is already dense. A square
+          glyph badge (jdp, 2026-08-23: "Alle zurücksetzten sollen ein
+          quadratischer badge mit glyph werden"), matching every other
+          row-scoped action in the app (AccountsTable's own gear badge,
+          Rules.tsx's row actions) instead of a text button. */}
+      <div className="w-8 shrink-0">
         {modified && (
-          <Button
-            kind="ghost"
-            className="px-2 py-1 text-[11px]"
-            title={tx('settings.advanced.resetTitle')}
+          <IconBadge
+            icon={<IconRetry width={16} height={16} />}
+            aria-label={tx('settings.advanced.resetTitle')}
             onClick={() => onWrite(row.path, fallback ?? emptyFor(row.kind))}
-          >
-            {tx('settings.advanced.reset')}
-          </Button>
+          />
         )}
       </div>
     </div>
