@@ -1,6 +1,7 @@
-import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Card, EmptyState, ErrorCard, Field, LoadingCard, NumberInput, PageHeader, SectionTitle, TextInput } from '../../components/ui';
 import { NeutralSwitch } from './controls';
+import { useToast } from '../../lib/toast';
 import {
   FALLBACK_TRIGGERS,
   ScriptApiError,
@@ -140,18 +141,15 @@ const PENDING = {
   'settings.scripts.timeoutHint':
     'How long this script may run before it is stopped. Between 100 ms and 30 s; 0 uses the default of 5000 ms.',
   'settings.scripts.timeoutUnit': 'ms',
-  'settings.scripts.save': 'Save',
-  'settings.scripts.saving': 'Saving…',
   'settings.scripts.saveFailed': 'Could not save: {error}',
-  'settings.scripts.discard': 'Discard changes',
   'settings.scripts.remove': 'Remove',
   'settings.scripts.removeNew': 'Cancel',
   'settings.scripts.removeFailed': 'Could not remove: {error}',
   'settings.scripts.unsaved': 'Unsaved',
   'settings.scripts.run': 'Test run',
   'settings.scripts.running': 'Running…',
-  'settings.scripts.runNeedsSaveHint': 'Save this script once before testing it.',
-  'settings.scripts.runDirtyHint': 'Save your changes to test the latest version.',
+  'settings.scripts.runNeedsSaveHint': 'Give it a name or some code to create it, then test it here.',
+  'settings.scripts.runDirtyHint': 'Your changes are still saving - test run will use them in a moment.',
   'settings.scripts.runOk': 'Ran successfully',
   'settings.scripts.runOkDuration': 'Ran successfully in {ms} ms',
   'settings.scripts.runTimedOut': 'Stopped: ran longer than its time limit',
@@ -316,6 +314,8 @@ function ScriptRow({
   onSaved: (oldKey: string, script: Script) => void;
   onRemoved: (key: string, id: string | null) => void;
 }) {
+  const { t } = useT();
+  const { toast } = useToast();
   const [draft, setDraft] = useState<ScriptInput>(row.draft);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
@@ -326,31 +326,58 @@ function ScriptRow({
   const [runError, setRunError] = useState('');
 
   const dirty = row.saved === null || !same(draft, inputOf(row.saved));
+  // A freshly-added row (row.saved === null) is "dirty" the instant it
+  // exists, before anyone has typed a single character - the auto-save
+  // effect below must not fire on that alone, or add() would create an
+  // untitled, empty script the moment its row appears. touched flips true
+  // only from a real field edit, so an unopened new row just sits there.
+  const touched = useRef(false);
   const update = (fields: Partial<ScriptInput>) => {
+    touched.current = true;
     setDraft((d) => ({ ...d, ...fields }));
     setSaveError('');
     setRemoveError('');
   };
 
   async function onSave() {
+    if (saving) return;
     setSaving(true);
     setSaveError('');
     setRemoveError('');
     try {
       const script = row.saved ? await updateScript(row.saved.id, draft) : await createScript(draft);
       onSaved(row.key, script);
+      toast(t('settings.saved'), 'ok');
     } catch (e) {
-      setSaveError(e instanceof ScriptApiError ? e.message : String(e));
+      const msg = e instanceof ScriptApiError ? e.message : String(e);
+      setSaveError(msg);
+      toast(cx('settings.scripts.saveFailed', { error: msg }), 'fail');
     } finally {
       setSaving(false);
     }
   }
 
-  function onDiscard() {
-    if (row.saved) setDraft(inputOf(row.saved));
-    setSaveError('');
-    setRemoveError('');
-  }
+  // Saves itself like every other settings tab (jdp: "In allen
+  // Einstellungstabs soll alles was man einstellt automatisch sofort
+  // gespeichert werden, ohne dass ein Speichern Button erscheint") - a
+  // longer 900ms delay than the shared shell's 600ms since a keystroke
+  // here can be mid-line of actual authored code, not a single field.
+  const saveTimer = useRef<number | null>(null);
+  useEffect(() => {
+    if (!touched.current || !dirty) return;
+    if (saveTimer.current !== null) window.clearTimeout(saveTimer.current);
+    saveTimer.current = window.setTimeout(() => {
+      saveTimer.current = null;
+      void onSave();
+    }, 900);
+    return () => {
+      if (saveTimer.current !== null) {
+        window.clearTimeout(saveTimer.current);
+        saveTimer.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft]);
 
   async function onRemove() {
     if (!row.saved) {
@@ -476,14 +503,6 @@ function ScriptRow({
           {removeError && <p className="text-xs text-statusFail">{cx('settings.scripts.removeFailed', { error: removeError })}</p>}
 
           <div className="flex flex-wrap items-center gap-3">
-            <Button onClick={() => void onSave()} disabled={saving || !dirty}>
-              {saving ? cx('settings.scripts.saving') : cx('settings.scripts.save')}
-            </Button>
-            {row.saved && (
-              <Button kind="ghost" onClick={onDiscard} disabled={saving || !dirty}>
-                {cx('settings.scripts.discard')}
-              </Button>
-            )}
             <span className="flex-1" />
             <Button
               kind="secondary"
