@@ -5,9 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>KnightLoader</title>
     <!-- PWA install + share target (build-plan.md's 11D) — see
-         web/public/manifest.webmanifest and src/pages/QuickAdd.tsx. -->
+         web/public/manifest.webmanifest and src/pages/QuickAdd.tsx.
+
+         favicon.ico + the 16/32px PNGs exist because a single 192px
+         `<link rel="icon">` with no `type`/`sizes` is exactly the setup that
+         left a browser with nothing crisp to grab when the bookmarklet was
+         dragged onto a bookmarks bar (jdp: "wenn man es auf die
+         lesezeichenleiste zieht wird das logo nicht angezeigt") - the
+         bookmark's icon comes from the PAGE's own favicon, not anything the
+         bookmarklet link itself can carry, so this is the actual fix for
+         that report. -->
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="icon" href="/icons/icon-192.png" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <meta name="theme-color" content="#161616" />
   </head>
