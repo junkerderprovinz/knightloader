@@ -173,6 +173,7 @@ export const is: Dict = {
   'settings.historyMaxHint': '0 geymir hverja færslu.',
   'settings.maxRetriesHint': 'Misheppnað niðurhal er reynt aftur með vaxandi bið.',
   'settings.archivePasswords': 'Lykilorð safnskráa',
+  'settings.archives.extractionTitle': 'Afþjöppun',
   'settings.archivePasswordsHint': 'Eitt í línu. Reynd í röð þegar safnskrá er dulkóðuð.',
   'settings.lockOn': 'Lykilorð þarf til að nota þetta tilvik.',
   'settings.lockOff': 'Hver sem nær í þetta tilvik getur notað það.',
@@ -416,6 +417,10 @@ export const is: Dict = {
   'settings.sectionIntake': 'Nýir tenglar',
 
   'settings.downloads.watchOff': 'Möppuvöktun er slökkt á einingasíðunni, þess vegna er ekki hægt að breyta þessu. Ef kveikt er á henni aftur kemur mappan sem sett var hér til baka.',
+  'settings.downloads.locationTitle': 'Staðsetning',
+  'settings.downloads.limitsTitle': 'Mörk og hegðun',
+  'settings.downloads.watchTitle': 'Möppueftirlit',
+  'settings.downloads.idleTitle': 'Aðgerðarlaus',
 
   'settings.modules.subtitle': 'Hvað er í þessari smíð og hvað ekki.',
   'settings.modules.fixedAtBuild': 'Safn eininganna er fastsett þegar keyrsluskráin er smíðuð. Ekkert er hægt að setja upp í keyrandi tilviki, svo þessi listi er allt sem til er.',
@@ -453,6 +458,7 @@ export const is: Dict = {
 
   'settings.advanced.subtitle': 'Sérhver stilling þessa tilviks, eftir heiti.',
   'settings.advanced.search': 'Sía eftir heiti eða gildi',
+  'settings.advanced.allSettings': 'Allar stillingar',
   'settings.advanced.onlyModified': 'Aðeins það sem víkur frá sjálfgefnu',
   'settings.advanced.colKey': 'Lykill',
   'settings.advanced.colType': 'Tegund',
@@ -545,6 +551,7 @@ export const is: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Tenglasía',
   'settings.rules.flavourLabel': 'Hvaða reglulisti',
+  'settings.rules.setupTitle': 'Reglusett',
   'settings.rules.packagizerHint': 'Keyrir á hverjum tengli um leið og hann er undirbúinn og endurskrifar það sem hún getur: pakka, möppu, athugasemd, forgang, tengingar, sjálfvirka afþjöppun. Hver regla sem passar leggur sitt til og í hverjum reit vinnur sú síðari.',
   'settings.rules.filterHint': 'Ræður hvort tengill kemst yfirleitt í safnarann. Tengli sem er hafnað er ekki eytt: honum er haldið eftir ásamt reglunni og ástæðunni sem stöðvuðu hann, svo að ekkert hverfi nokkurn tíma án þess að segja hvers vegna.',
   'settings.rules.setOn': 'Þessi listi er í gildi',
@@ -692,6 +699,7 @@ export const is: Dict = {
   'settings.rules.alsoSets': 'Stillir einnig',
 
   'settings.reconnect.method': 'Aðferð',
+  'settings.reconnect.setupTitle': 'Uppsetning',
   'settings.reconnect.methodHint': 'Hvernig beininum er sagt að sleppa línunni og koma til baka með nýtt vistfang. „Skipun“ keyrir forrit, „Beiðnir“ spila aftur upptekið HTTP-samtal, UPnP spyr gáttina yfir netið án nokkurrar innskráningar og „Skrifta“ afhendir túlki skrá. Aðeins þeir reitir sem valda aðferðin þarf eru sýndir; hinir halda því sem þú skrifaðir og koma aftur þegar þú skiptir yfir á þá.',
   'settings.reconnect.method.none': 'Slökkt',
   'settings.reconnect.method.command': 'Skipun',
@@ -1318,12 +1326,12 @@ export const is: Dict = {
   'settings.browsertools.subtitle':
     'Sendu tengil á KnightLoader hvaðan annars staðar sem er - aðra síðu, annað forrit, eða Deila-valmynd símans þíns.',
   'settings.browsertools.bookmarkletTitle': 'Bókamerkjaforrit',
-  'settings.browsertools.bookmarkletHint':
-    'Dragðu þetta á bókamerkjastikuna þína. Á hvaða síðu sem er, smelltu á það til að senda þá síðu (eða þann texta sem þú hefur valið) hingað.',
+  'settings.browsertools.bookmarkletHint': '1. Dragðu hnappinn hér að neðan á bókamerkjastiku vafrans þíns - hann vistast eins og hvert annað bókamerki, ekkert er sett upp. 2. Á hvaða síðu sem er, smelltu á hann (veldu texta fyrst ef þú vilt aðeins hann). Lítill KnightLoader flipi opnast með tengli þeirrar síðu, eða valda textanum, þegar útfylltum - farðu yfir það og bættu því við þaðan sem niðurhal.',
   'settings.browsertools.bookmarkletLink': 'Bæta við KnightLoader',
   'settings.browsertools.copyCode': 'Afrita kóðann í staðinn',
   'settings.browsertools.copied': 'Afritað.',
   'settings.browsertools.extensionTitle': 'Vafraviðbót',
+  'settings.browsertools.aboutTitle': 'Hvaðan sem er annars staðar frá',
   'settings.browsertools.extensionHint': 'Hægriklikkvalásla á sérhverjum tengli, vali eda síðu. Nidurhalid vísar nú þégar á þætta instans - ekkert til að stilla. Chromium og Firefox pakka viðbótum á öðruvísi hátt, veldu þínum vafra hentandi valkoðinn.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Afpakkadu skrána, opnadu síðan chrome://extensions (eða edge://extensions, brave://extensions), kveiktu á þroskaham og veldu “Hlaða inn ópakkað“ fyrir afpakkaqa möppuna.',

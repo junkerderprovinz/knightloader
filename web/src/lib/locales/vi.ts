@@ -173,6 +173,7 @@ export const vi: Dict = {
   'settings.historyMaxHint': '0 giữ mọi mục.',
   'settings.maxRetriesHint': 'Lượt tải thất bại sẽ được thử lại với khoảng chờ tăng dần.',
   'settings.archivePasswords': 'Mật khẩu tệp nén',
+  'settings.archives.extractionTitle': 'Giải nén',
   'settings.archivePasswordsHint': 'Mỗi dòng một mật khẩu. Thử lần lượt khi tệp nén được mã hóa.',
   'settings.lockOn': 'Cần mật khẩu để dùng phiên bản này.',
   'settings.lockOff': 'Bất kỳ ai truy cập được phiên bản này đều có thể sử dụng nó.',
@@ -416,6 +417,10 @@ export const vi: Dict = {
   'settings.sectionIntake': 'Liên kết mới',
 
   'settings.downloads.watchOff': 'Theo dõi thư mục đang tắt ở trang Mô-đun, nên chỗ này không sửa được. Bật lại thì thư mục đã đặt ở đây sẽ trở lại.',
+  'settings.downloads.locationTitle': 'Vị trí',
+  'settings.downloads.limitsTitle': 'Giới hạn & hành vi',
+  'settings.downloads.watchTitle': 'Theo dõi thư mục',
+  'settings.downloads.idleTitle': 'Rảnh',
 
   'settings.modules.subtitle': 'Bản dựng này có gì và không có gì.',
   'settings.modules.fixedAtBuild': 'Tập mô-đun được chốt khi biên dịch tệp nhị phân. Không thể cài thêm gì vào một thực thể đang chạy, nên danh sách này là toàn bộ.',
@@ -453,6 +458,7 @@ export const vi: Dict = {
 
   'settings.advanced.subtitle': 'Mọi cài đặt của thực thể này, theo tên.',
   'settings.advanced.search': 'Lọc theo tên hoặc giá trị',
+  'settings.advanced.allSettings': 'Tất cả cài đặt',
   'settings.advanced.onlyModified': 'Chỉ những gì khác mặc định',
   'settings.advanced.colKey': 'Khoá',
   'settings.advanced.colType': 'Kiểu',
@@ -545,6 +551,7 @@ export const vi: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Bộ lọc liên kết',
   'settings.rules.flavourLabel': 'Danh sách quy tắc nào',
+  'settings.rules.setupTitle': 'Bộ quy tắc',
   'settings.rules.packagizerHint': 'Chạy trên từng liên kết ngay khi nó được chuẩn bị và viết lại những gì có thể: gói, thư mục, ghi chú, độ ưu tiên, số kết nối, giải nén tự động. Mọi quy tắc khớp đều góp phần, và trên cùng một trường thì quy tắc sau thắng.',
   'settings.rules.filterHint': 'Quyết định liên kết có được nhận vào bộ thu thập hay không. Liên kết bị từ chối không bị xoá: nó được giữ lại cùng quy tắc và lý do đã chặn nó, để không bao giờ có thứ gì biến mất mà không nói vì sao.',
   'settings.rules.setOn': 'Danh sách này đang được áp dụng',
@@ -692,6 +699,7 @@ export const vi: Dict = {
   'settings.rules.alsoSets': 'Còn đặt',
 
   'settings.reconnect.method': 'Cách làm',
+  'settings.reconnect.setupTitle': 'Thiết lập',
   'settings.reconnect.methodHint': 'Cách báo cho router thả đường truyền rồi quay lại với một địa chỉ mới. “Lệnh” chạy một chương trình, “Yêu cầu” phát lại một cuộc trao đổi HTTP đã ghi, UPnP hỏi thẳng gateway qua mạng mà không cần đăng nhập gì cả, còn “Kịch bản” giao một tệp cho trình thông dịch. Chỉ những ô mà cách đã chọn cần đến mới hiện ra; các ô còn lại vẫn giữ nguyên nội dung bạn gõ và quay lại khi bạn chuyển sang chúng.',
   'settings.reconnect.method.none': 'Tắt',
   'settings.reconnect.method.command': 'Lệnh',
@@ -1318,12 +1326,12 @@ export const vi: Dict = {
   'settings.browsertools.subtitle':
     'Gửi một liên kết đến KnightLoader từ bất kỳ nơi nào khác - một trang khác, một ứng dụng khác, hoặc menu Chia sẻ trên điện thoại của bạn.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'Kéo cái này vào thanh dấu trang của bạn. Trên bất kỳ trang nào, hãy nhấp vào nó để gửi trang đó (hoặc văn bản bạn đã chọn) về đây.',
+  'settings.browsertools.bookmarkletHint': '1. Kéo nút bên dưới vào thanh dấu trang của trình duyệt - nó được lưu như bất kỳ dấu trang nào khác, không cài đặt gì cả. 2. Trên bất kỳ trang nào, nhấp vào nó (chọn một số văn bản trước nếu bạn chỉ muốn phần đó). Một tab KnightLoader nhỏ mở ra với liên kết của trang đó, hoặc văn bản đã chọn, đã được điền sẵn - xem lại và thêm nó từ đó dưới dạng lượt tải xuống.',
   'settings.browsertools.bookmarkletLink': 'Thêm vào KnightLoader',
   'settings.browsertools.copyCode': 'Sao chép mã thay vào đó',
   'settings.browsertools.copied': 'Đã sao chép.',
   'settings.browsertools.extensionTitle': 'Tiện ích mở rộng trình duyệt',
+  'settings.browsertools.aboutTitle': 'Từ bất kỳ nơi nào khác',
   'settings.browsertools.extensionHint': 'Menu chuột phải trên bất kỳ liên kết, lựa chọn hay trang nào. Bản tải đã trỏ đến phiên bản này - không cần cấu hình gì. Chromium và Firefox đóng gói tiện ích mở rộng khác nhau, hãy chọn cái phù hợp với trình duyệt của bạn.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Giải nén nó, sau đó mở chrome://extensions (hoặc edge://extensions, brave://extensions), bật chế độ nhà phát triển, và chọn “Tải tiện ích đã giải nén” trên thư mục đã giải nén.',

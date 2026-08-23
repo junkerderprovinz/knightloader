@@ -173,6 +173,7 @@ export const lv: Dict = {
   'settings.historyMaxHint': '0 saglabā katru ierakstu.',
   'settings.maxRetriesHint': 'Neizdevusies lejupielāde tiek mēģināta atkal ar augošu aizturi.',
   'settings.archivePasswords': 'Arhīvu paroles',
+  'settings.archives.extractionTitle': 'Atarhivēšana',
   'settings.archivePasswordsHint': 'Viena rindā. Tiek izmēģinātas pēc kārtas, ja arhīvs ir šifrēts.',
   'settings.lockOn': 'Šīs instances lietošanai vajadzīga parole.',
   'settings.lockOff': 'Ikviens, kas sasniedz šo instanci, var to lietot.',
@@ -416,6 +417,10 @@ export const lv: Dict = {
   'settings.sectionIntake': 'Jaunas saites',
 
   'settings.downloads.watchOff': 'Mapes uzraudzība ir izslēgta moduļu lapā, tāpēc šo nevar rediģēt. Ieslēdzot to atpakaļ, šeit iestatītā mape atgriežas.',
+  'settings.downloads.locationTitle': 'Atrašanās vieta',
+  'settings.downloads.limitsTitle': 'Ierobežojumi un uzvedība',
+  'settings.downloads.watchTitle': 'Mapes uzraudzība',
+  'settings.downloads.idleTitle': 'Dīkstāve',
 
   'settings.modules.subtitle': 'Kas šajā būvējumā ir un kā nav.',
   'settings.modules.fixedAtBuild': 'Moduļu kopa tiek noteikta, būvējot bināro failu. Strādājošā instancē neko nevar uzstādīt, tāpēc šis saraksts ir viss.',
@@ -453,6 +458,7 @@ export const lv: Dict = {
 
   'settings.advanced.subtitle': 'Katrs šīs instances iestatījums pēc nosaukuma.',
   'settings.advanced.search': 'Filtrēt pēc nosaukuma vai vērtības',
+  'settings.advanced.allSettings': 'Visi iestatījumi',
   'settings.advanced.onlyModified': 'Tikai tas, kas atšķiras no noklusējuma',
   'settings.advanced.colKey': 'Atslēga',
   'settings.advanced.colType': 'Veids',
@@ -545,6 +551,7 @@ export const lv: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Saišu filtrs',
   'settings.rules.flavourLabel': 'Kurš noteikumu saraksts',
+  'settings.rules.setupTitle': 'Noteikumu kopa',
   'settings.rules.packagizerHint': 'Izpildās uz katras saites tās sagatavošanas brīdī un pārraksta, ko spēj: pakotni, mapi, piezīmi, prioritāti, savienojumus, automātisko atarhivēšanu. Katrs atbilstošs noteikums dod savu, bet vienā laukā uzvar vēlākais.',
   'settings.rules.filterHint': 'Izlemj, vai saite vispār nonāks savācējā. Noraidīta saite netiek dzēsta: tā tiek aizturēta kopā ar noteikumu un iemeslu, kas to apturēja, lai nekad nekas nepazustu, nepasakot kāpēc.',
   'settings.rules.setOn': 'Šis saraksts tiek piemērots',
@@ -692,6 +699,7 @@ export const lv: Dict = {
   'settings.rules.alsoSets': 'Uzstāda arī',
 
   'settings.reconnect.method': 'Veids',
+  'settings.reconnect.setupTitle': 'Iestatīšana',
   'settings.reconnect.methodHint': 'Kā maršrutētājam pasaka nomest līniju un atgriezties ar jaunu adresi. „Komanda“ palaiž programmu, „Pieprasījumi“ atkārto ierakstītu HTTP sarunu, UPnP pajautā vārtejai pa tīklu pavisam bez pieteikšanās, bet „Skripts“ nodod failu interpretatoram. Rāda tikai tos laukus, kas izvēlētajam veidam vajadzīgi; pārējie patur to, ko ieraksti, un atgriežas, kad uz tiem pārslēdzies.',
   'settings.reconnect.method.none': 'Izslēgts',
   'settings.reconnect.method.command': 'Komanda',
@@ -1318,12 +1326,12 @@ export const lv: Dict = {
   'settings.browsertools.subtitle':
     'Sūtiet saiti uz KnightLoader no jebkuras citas vietas - citas lapas, citas lietotnes vai jūsu tālruņa Kopīgot izvēlnes.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'Velciet šo uz savu grāmatzīmju joslu. Jebkurā lapā noklikšķiniet uz tā, lai nosūtītu šo lapu (vai jūsu iezīmēto tekstu) šeit.',
+  'settings.browsertools.bookmarkletHint': '1. Velc zemāk esošo pogu uz sava pārlūka grāmatzīmju joslu - tā saglabājas kā jebkura cita grāmatzīme, nekas netiek instalēts. 2. Jebkurā lapā noklikšķini uz tās (vispirms atlasi tekstu, ja vēlies tikai to). Atveras neliela KnightLoader cilne ar šīs lapas saiti vai atlasīto tekstu, jau aizpildīta - pārskati to un pievieno kā lejupielādi no turienes.',
   'settings.browsertools.bookmarkletLink': 'Pievienot KnightLoader',
   'settings.browsertools.copyCode': 'Tā vietā kopēt kodu',
   'settings.browsertools.copied': 'Nokopēts.',
   'settings.browsertools.extensionTitle': 'Pārlūka paplašinājums',
+  'settings.browsertools.aboutTitle': 'No jebkuras citas vietas',
   'settings.browsertools.extensionHint': 'Peles labais klikšķis jebkurā saitē, atlasē vai lapā. Lejupielāde jau norāda uz šo instanci - nekas nav jākonfigurē. Chromium un Firefox pako paplašinājumus atšķirīgi, tāpēc izvēlies savai pārlūkprogrammai atbilstošo.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Atarhivē to, atver chrome://extensions (vai edge://extensions, brave://extensions), ieslēdz izstrādātāja režīmu un izvēlies „Ielādēt atarhivēto“ atarhivētajai mapē.',

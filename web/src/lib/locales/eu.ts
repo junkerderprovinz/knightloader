@@ -173,6 +173,7 @@ export const eu: Dict = {
   'settings.historyMaxHint': '0 sarrera guztiak gordetzen ditu.',
   'settings.maxRetriesHint': 'Huts egindako deskarga berriro saiatzen da, itxaronaldia handituz.',
   'settings.archivePasswords': 'Artxiboen pasahitzak',
+  'settings.archives.extractionTitle': 'Erauzketa',
   'settings.archivePasswordsHint': 'Bat lerroko. Ordenan probatzen dira artxiboa zifratuta dagoenean.',
   'settings.lockOn': 'Pasahitza behar da instantzia hau erabiltzeko.',
   'settings.lockOff': 'Instantzia honetara iristen den edonork erabil dezake.',
@@ -416,6 +417,10 @@ export const eu: Dict = {
   'settings.sectionIntake': 'Esteka berriak',
 
   'settings.downloads.watchOff': 'Karpeta zaintzea itzalita dago moduluen orrian, horregatik ezin da hau editatu. Berriz pizten baduzu, hemen ezarritako karpeta itzuliko da.',
+  'settings.downloads.locationTitle': 'Kokapena',
+  'settings.downloads.limitsTitle': 'Mugak eta portaera',
+  'settings.downloads.watchTitle': 'Karpeta-zaintza',
+  'settings.downloads.idleTitle': 'Geldi',
 
   'settings.modules.subtitle': 'Zer dakarren eraikuntza honek eta zer ez.',
   'settings.modules.fixedAtBuild': 'Moduluen multzoa binarioa eraikitzean finkatzen da. Martxan dagoen instantzia batean ezin da ezer instalatu, beraz zerrenda hau da dagoen guztia.',
@@ -453,6 +458,7 @@ export const eu: Dict = {
 
   'settings.advanced.subtitle': 'Instantzia honen ezarpen guztiak, izenez.',
   'settings.advanced.search': 'Iragazi izenaren edo balioaren arabera',
+  'settings.advanced.allSettings': 'Ezarpen guztiak',
   'settings.advanced.onlyModified': 'Lehenetsitakotik aldentzen dena bakarrik',
   'settings.advanced.colKey': 'Gakoa',
   'settings.advanced.colType': 'Mota',
@@ -545,6 +551,7 @@ export const eu: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Esteken iragazkia',
   'settings.rules.flavourLabel': 'Zein arau-zerrenda',
+  'settings.rules.setupTitle': 'Arau-multzoa',
   'settings.rules.packagizerHint': 'Esteka bakoitzean exekutatzen da prestatzen den unean, eta ahal duena berridazten du: paketea, karpeta, oharra, lehentasuna, konexioak, erauzketa automatikoa. Bat datorren arau bakoitzak ekartzen du bere zatia, eta eremu berean geroagokoak irabazten du.',
   'settings.rules.filterHint': 'Erabakitzen du esteka biltzailera sartuko den ala ez. Baztertutako esteka ez da ezabatzen: gelditu duten arauarekin eta arrazoiarekin batera atxikitzen da, ezer ez dadin desagertu zergatik esan gabe.',
   'settings.rules.setOn': 'Zerrenda hau aplikatzen ari da',
@@ -692,6 +699,7 @@ export const eu: Dict = {
   'settings.rules.alsoSets': 'Hau ere ezartzen du',
 
   'settings.reconnect.method': 'Metodoa',
+  'settings.reconnect.setupTitle': 'Konfigurazioa',
   'settings.reconnect.methodHint': 'Nola esaten zaion bideratzaileari linea uzteko eta helbide berri batekin itzultzeko. «Komandoa» programa bat abiarazten du, «Eskaerak» grabatutako HTTP elkarrizketa bat berriro jotzen du, UPnP-k sarearen bidez galdetzen dio atebideari inolako saio-hasierarik gabe, eta «Script» fitxategi bat interpretatzaile bati ematen dio. Aukeratutako metodoak behar dituen eremuak baino ez dira erakusten; besteek idatzitakoa gordetzen dute eta itzultzen dira haietara aldatzean.',
   'settings.reconnect.method.none': 'Itzalita',
   'settings.reconnect.method.command': 'Komandoa',
@@ -1318,12 +1326,12 @@ export const eu: Dict = {
   'settings.browsertools.subtitle':
     'Bidali esteka bat KnightLoader-era beste edozein lekutik - beste orri batetik, beste aplikazio batetik, edo zure telefonoaren Partekatu menutik.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet-a',
-  'settings.browsertools.bookmarkletHint':
-    'Arrastatu hau zure laster-marken barrara. Edozein orritan, egin klik orri hori (edo hautatuta duzun testua) hona bidaltzeko.',
+  'settings.browsertools.bookmarkletHint': '1. Arrastatu beheko botoia zure nabigatzailearen laster-marken barrara - beste edozein laster-marka bezala gordetzen da, ez da ezer instalatzen. 2. Edozein orritan, egin klik gainean (aukeratu testua aurretik hori bakarrik nahi baduzu). KnightLoader fitxa txiki bat irekiko da orri horren estekarekin, edo aukeratutako testuarekin, jada beteta - berrikusi eta gehitu handik deskarga gisa.',
   'settings.browsertools.bookmarkletLink': 'Gehitu KnightLoader-era',
   'settings.browsertools.copyCode': 'Kopiatu kodea horren ordez',
   'settings.browsertools.copied': 'Kopiatuta.',
   'settings.browsertools.extensionTitle': 'Nabigatzaile-hedapena',
+  'settings.browsertools.aboutTitle': 'Beste edozein tokitatik',
   'settings.browsertools.extensionHint': 'Eskuineko klik-menua edozein estekatan, hautaketan edo orritan. Deskarga jada instantzia honi begira dago - ez dago ezer konfiguratzeko. Chromium eta Firefoxek hedapenak modu ezberdinean paketatzen dituzte, hautatu zure nabigatzailerako egokia.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Deskonprimitu, ireki chrome://extensions (edo edge://extensions, brave://extensions), aktibatu garatzaile modua, eta hautatu “Kargatu deskonprimitua” deskonprimitutako karpetan.',

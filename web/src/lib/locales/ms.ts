@@ -173,6 +173,7 @@ export const ms: Dict = {
   'settings.historyMaxHint': '0 menyimpan setiap entri.',
   'settings.maxRetriesHint': 'Muat turun yang gagal dicuba lagi dengan jeda yang makin panjang.',
   'settings.archivePasswords': 'Kata laluan arkib',
+  'settings.archives.extractionTitle': 'Pengekstrakan',
   'settings.archivePasswordsHint': 'Satu setiap baris. Dicuba mengikut urutan apabila arkib disulitkan.',
   'settings.lockOn': 'Kata laluan diperlukan untuk guna instance ini.',
   'settings.lockOff': 'Sesiapa yang boleh mencapai instance ini boleh menggunakannya.',
@@ -416,6 +417,10 @@ export const ms: Dict = {
   'settings.sectionIntake': 'Pautan baharu',
 
   'settings.downloads.watchOff': 'Pemantauan folder dimatikan di halaman Modul, sebab itu ini tidak boleh disunting. Menghidupkannya semula mengembalikan folder yang ditetapkan di sini.',
+  'settings.downloads.locationTitle': 'Lokasi',
+  'settings.downloads.limitsTitle': 'Had & kelakuan',
+  'settings.downloads.watchTitle': 'Pemantauan folder',
+  'settings.downloads.idleTitle': 'Melahu',
 
   'settings.modules.subtitle': 'Apa yang ada dalam binaan ini, dan apa yang tiada.',
   'settings.modules.fixedAtBuild': 'Set modul ditetapkan semasa binari dibina. Tiada apa-apa boleh dipasang ke dalam tika yang sedang berjalan, jadi senarai ini ialah keseluruhannya.',
@@ -453,6 +458,7 @@ export const ms: Dict = {
 
   'settings.advanced.subtitle': 'Setiap tetapan tika ini, mengikut nama.',
   'settings.advanced.search': 'Tapis mengikut nama atau nilai',
+  'settings.advanced.allSettings': 'Semua tetapan',
   'settings.advanced.onlyModified': 'Hanya yang berbeza daripada lalai',
   'settings.advanced.colKey': 'Kunci',
   'settings.advanced.colType': 'Jenis',
@@ -545,6 +551,7 @@ export const ms: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Penapis pautan',
   'settings.rules.flavourLabel': 'Senarai peraturan yang mana',
+  'settings.rules.setupTitle': 'Set peraturan',
   'settings.rules.packagizerHint': 'Berjalan pada setiap pautan sewaktu ia disediakan dan menulis semula apa yang boleh: pakej, folder, nota, keutamaan, sambungan, nyahzip automatik. Setiap peraturan yang padan menyumbang, dan pada satu medan peraturan kemudian yang menang.',
   'settings.rules.filterHint': 'Menentukan sama ada pautan masuk ke pengumpul langsung. Pautan yang ditolak tidak dipadam: ia ditahan bersama peraturan dan sebab yang menghalangnya, supaya tiada apa pun lenyap tanpa memberitahu mengapa.',
   'settings.rules.setOn': 'Senarai ini sedang digunakan',
@@ -692,6 +699,7 @@ export const ms: Dict = {
   'settings.rules.alsoSets': 'Turut menetapkan',
 
   'settings.reconnect.method': 'Kaedah',
+  'settings.reconnect.setupTitle': 'Persediaan',
   'settings.reconnect.methodHint': 'Bagaimana penghala diberitahu supaya melepaskan talian dan kembali dengan alamat baharu. “Perintah” menjalankan sebuah program, “Permintaan” memainkan semula perbualan HTTP yang dirakam, UPnP bertanya kepada get laluan melalui rangkaian tanpa sebarang log masuk, dan “Skrip” menyerahkan sebuah fail kepada pentafsir. Hanya medan yang diperlukan oleh kaedah yang dipilih ditunjukkan; selebihnya menyimpan apa yang anda taip dan muncul semula apabila anda beralih kepadanya.',
   'settings.reconnect.method.none': 'Mati',
   'settings.reconnect.method.command': 'Perintah',
@@ -1318,12 +1326,12 @@ export const ms: Dict = {
   'settings.browsertools.subtitle':
     'Hantar pautan ke KnightLoader dari mana-mana tempat lain - halaman lain, aplikasi lain, atau menu Kongsi telefon anda.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'Seret ini ke bar penanda halaman anda. Pada mana-mana halaman, klik untuk menghantar halaman itu (atau teks yang anda pilih) ke sini.',
+  'settings.browsertools.bookmarkletHint': '1. Seret butang di bawah ke bar penanda halaman pelayar anda - ia disimpan seperti mana-mana penanda halaman lain, tiada apa yang dipasang. 2. Pada mana-mana halaman, klik padanya (pilih teks dahulu jika hanya mahukan itu). Tab KnightLoader kecil dibuka dengan pautan halaman itu, atau teks yang dipilih, sudah diisi - semak dan tambahkannya dari sana sebagai muat turun.',
   'settings.browsertools.bookmarkletLink': 'Tambah ke KnightLoader',
   'settings.browsertools.copyCode': 'Salin kod sebaliknya',
   'settings.browsertools.copied': 'Disalin.',
   'settings.browsertools.extensionTitle': 'Sambungan pelayar',
+  'settings.browsertools.aboutTitle': 'Dari mana-mana sahaja',
   'settings.browsertools.extensionHint': 'Menu klik kanan pada mana-mana pautan, pemilihan, atau halaman. Muat turun sudah menunjuk ke instans ini - tiada apa untuk dikonfigurasikan. Chromium dan Firefox membungkus sambungan secara berbeza, jadi pilih yang sesuai untuk pelayar anda.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Nyahzip fail itu, kemudian buka chrome://extensions (atau edge://extensions, brave://extensions), hidupkan Mod Pembangun, dan pilih “Muatkan yang belum dibungkus” pada folder yang dinyahzip.',

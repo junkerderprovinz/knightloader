@@ -173,6 +173,7 @@ export const tr: Dict = {
   'settings.historyMaxHint': '0 her kaydı saklar.',
   'settings.maxRetriesHint': 'Başarısız bir indirme, artan bir gecikmeyle yeniden denenir.',
   'settings.archivePasswords': 'Arşiv parolaları',
+  'settings.archives.extractionTitle': 'Ayıklama',
   'settings.archivePasswordsHint': 'Her satıra bir tane. Arşiv şifreliyse sırayla denenir.',
   'settings.lockOn': 'Bu örneği kullanmak için parola gerekiyor.',
   'settings.lockOff': 'Bu örneğe erişebilen herkes onu kullanabilir.',
@@ -416,6 +417,10 @@ export const tr: Dict = {
   'settings.sectionIntake': 'Yeni bağlantılar',
 
   'settings.downloads.watchOff': 'Klasör izleme, Modüller sayfasından kapatılmış; bu yüzden burası düzenlenemiyor. Yeniden açtığınızda burada ayarlanan klasör geri gelir.',
+  'settings.downloads.locationTitle': 'Konum',
+  'settings.downloads.limitsTitle': 'Sınırlar ve davranış',
+  'settings.downloads.watchTitle': 'Klasör izleme',
+  'settings.downloads.idleTitle': 'Boşta',
 
   'settings.modules.subtitle': 'Bu yapının içinde ne var, ne yok.',
   'settings.modules.fixedAtBuild': 'Modül kümesi, ikili dosya derlenirken sabitlenir. Çalışan bir örneğe hiçbir şey kurulamaz, dolayısıyla bu liste her şeydir.',
@@ -453,6 +458,7 @@ export const tr: Dict = {
 
   'settings.advanced.subtitle': 'Bu örneğin her ayarı, adıyla.',
   'settings.advanced.search': 'Ada ya da değere göre süz',
+  'settings.advanced.allSettings': 'Tüm ayarlar',
   'settings.advanced.onlyModified': 'Yalnızca varsayılandan farklı olanlar',
   'settings.advanced.colKey': 'Anahtar',
   'settings.advanced.colType': 'Tür',
@@ -545,6 +551,7 @@ export const tr: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Bağlantı süzgeci',
   'settings.rules.flavourLabel': 'Hangi kural listesi',
+  'settings.rules.setupTitle': 'Kural kümesi',
   'settings.rules.packagizerHint': 'Her bağlantı hazırlanırken üzerinden geçer ve yapabildiğini yeniden yazar: paket, klasör, not, öncelik, bağlantı sayısı, kendiliğinden ayıklama. Uyan her kural katkı verir, tek bir alanda ise sonraki kazanır.',
   'settings.rules.filterHint': 'Bir bağlantının toplayıcıya girip girmeyeceğine karar verir. Reddedilen bağlantı silinmez: onu durduran kural ve gerekçeyle birlikte tutulur, böylece hiçbir şey nedenini söylemeden yok olmaz.',
   'settings.rules.setOn': 'Bu liste uygulanıyor',
@@ -692,6 +699,7 @@ export const tr: Dict = {
   'settings.rules.alsoSets': 'Ayrıca belirler',
 
   'settings.reconnect.method': 'Yöntem',
+  'settings.reconnect.setupTitle': 'Kurulum',
   'settings.reconnect.methodHint': 'Yönlendiriciye hattı bırakıp yeni bir adresle dönmesinin nasıl söylendiği. “Komut” bir program çalıştırır, “İstekler” kaydedilmiş bir HTTP konuşmasını yeniden oynatır, UPnP ağ geçidine ağ üzerinden hiçbir oturum açmadan sorar, “Betik” ise bir dosyayı bir yorumlayıcıya verir. Yalnızca seçilen yöntemin ihtiyaç duyduğu alanlar gösterilir; diğerleri yazdığınızı saklar ve onlara geçtiğinizde geri gelir.',
   'settings.reconnect.method.none': 'Kapalı',
   'settings.reconnect.method.command': 'Komut',
@@ -1318,12 +1326,12 @@ export const tr: Dict = {
   'settings.browsertools.subtitle':
     "KnightLoader'a başka herhangi bir yerden bir bağlantı gönderin - başka bir sayfadan, başka bir uygulamadan veya telefonunuzun Paylaş menüsünden.",
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'Bunu yer imleri çubuğunuza sürükleyin. Herhangi bir sayfada, o sayfayı (veya seçtiğiniz metni) buraya göndermek için üzerine tıklayın.',
+  'settings.browsertools.bookmarkletHint': '1. Aşağıdaki düğmeyi tarayıcının yer imleri çubuğuna sürükle - herhangi bir yer imi gibi kaydedilir, hiçbir şey yüklenmez. 2. Herhangi bir sayfada üzerine tıkla (yalnızca onu istiyorsan önce biraz metin seç). O sayfanın bağlantısı veya seçili metinle önceden doldurulmuş küçük bir KnightLoader sekmesi açılır - gözden geçir ve oradan indirme olarak ekle.',
   'settings.browsertools.bookmarkletLink': "KnightLoader'a ekle",
   'settings.browsertools.copyCode': 'Bunun yerine kodu kopyala',
   'settings.browsertools.copied': 'Kopyalandı.',
   'settings.browsertools.extensionTitle': 'Tarayıcı uzantısı',
+  'settings.browsertools.aboutTitle': 'Başka her yerden',
   'settings.browsertools.extensionHint': 'Herhangi bir bağlantı, seçim veya sayfada sağ tık menüsü. İndirme zaten bu örneği gösteriyor - ayarlanacak bir şey yok. Chromium ve Firefox eklentileri farklı paketler, o yüzden tarayıcına uygun olanı seç.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Çıkart, ardından chrome://extensions (veya edge://extensions, brave://extensions) aç, geliştirici modunu aç ve çıkartılan klasörde “Paketlenmemişi yükle” seçeneğini seç.',

@@ -173,6 +173,7 @@ export const sv: Dict = {
   'settings.historyMaxHint': '0 behåller varje post.',
   'settings.maxRetriesHint': 'En misslyckad nedladdning försöks igen med växande fördröjning.',
   'settings.archivePasswords': 'Arkivlösenord',
+  'settings.archives.extractionTitle': 'Uppackning',
   'settings.archivePasswordsHint': 'Ett per rad. Prövas i tur och ordning när ett arkiv är krypterat.',
   'settings.lockOn': 'Ett lösenord krävs för att använda den här instansen.',
   'settings.lockOff': 'Alla som når den här instansen kan styra den.',
@@ -416,6 +417,10 @@ export const sv: Dict = {
   'settings.sectionIntake': 'Nya länkar',
 
   'settings.downloads.watchOff': 'Mappbevakningen är avstängd på modulsidan, därför går det här inte att ändra. Slår du på den igen kommer mappen som satts här tillbaka.',
+  'settings.downloads.locationTitle': 'Plats',
+  'settings.downloads.limitsTitle': 'Gränser & beteende',
+  'settings.downloads.watchTitle': 'Mappövervakning',
+  'settings.downloads.idleTitle': 'Inaktiv',
 
   'settings.modules.subtitle': 'Vad det här bygget innehåller, och vad det inte gör.',
   'settings.modules.fixedAtBuild': 'Vilka moduler som finns avgörs när binären byggs. Inget kan installeras i en körande instans, så den här listan är alltihop.',
@@ -453,6 +458,7 @@ export const sv: Dict = {
 
   'settings.advanced.subtitle': 'Varenda inställning den här instansen har, efter namn.',
   'settings.advanced.search': 'Filtrera på namn eller värde',
+  'settings.advanced.allSettings': 'Alla inställningar',
   'settings.advanced.onlyModified': 'Bara det som skiljer sig från standardvärdet',
   'settings.advanced.colKey': 'Nyckel',
   'settings.advanced.colType': 'Typ',
@@ -545,6 +551,7 @@ export const sv: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Länkfilter',
   'settings.rules.flavourLabel': 'Vilken regellista',
+  'settings.rules.setupTitle': 'Regeluppsättning',
   'settings.rules.packagizerHint': 'Körs på varje länk medan den förbereds och skriver om vad den kan: paket, mapp, kommentar, prioritet, anslutningar, automatisk uppackning. Varje regel som matchar bidrar, och per fält vinner den senare.',
   'settings.rules.filterHint': 'Avgör om en länk över huvud taget tas in i samlaren. En nekad länk raderas inte: den hålls kvar tillsammans med regeln och skälet som stoppade den, så att inget någonsin försvinner utan att säga varför.',
   'settings.rules.setOn': 'Den här listan tillämpas',
@@ -692,6 +699,7 @@ export const sv: Dict = {
   'settings.rules.alsoSets': 'Sätter även',
 
   'settings.reconnect.method': 'Metod',
+  'settings.reconnect.setupTitle': 'Inställning',
   'settings.reconnect.methodHint': 'Hur routern får veta att den ska släppa linan och komma tillbaka med en ny adress. ”Kommando” kör ett program, ”Förfrågningar” spelar upp ett inspelat HTTP-samtal igen, UPnP frågar gatewayen över nätverket helt utan inloggning, och ”Skript” lämnar en fil till en tolk. Bara de fält den valda metoden behöver visas; de andra behåller det du skrivit och kommer tillbaka när du växlar till dem.',
   'settings.reconnect.method.none': 'Av',
   'settings.reconnect.method.command': 'Kommando',
@@ -1319,12 +1327,12 @@ export const sv: Dict = {
   'settings.browsertools.subtitle':
     'Skicka en länk till KnightLoader från någon annanstans - en annan sida, en annan app, eller telefonens delningsmeny.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'Dra denna till din bokmärkesrad. Klicka på den på vilken sida som helst för att skicka den sidan (eller markerad text) hit.',
+  'settings.browsertools.bookmarkletHint': '1. Dra knappen nedan till din webbläsares bokmärkesfält - den sparas som vilket annat bokmärke som helst, inget installeras. 2. Klicka på den på valfri sida (markera text först om du bara vill ha den). En liten KnightLoader-flik öppnas med den sidans länk, eller den markerade texten, redan ifylld - granska den och lägg till den som en nedladdning därifrån.',
   'settings.browsertools.bookmarkletLink': 'Lägg till i KnightLoader',
   'settings.browsertools.copyCode': 'Kopiera koden istället',
   'settings.browsertools.copied': 'Kopierat.',
   'settings.browsertools.extensionTitle': 'Webbläsartillägg',
+  'settings.browsertools.aboutTitle': 'Från alla andra platser',
   'settings.browsertools.extensionHint': 'En högerklicksmeny på alla länkar, markeringar eller sidor. Nedladdningen pekar redan på den här instansen - inget att ställa in. Chromium och Firefox paketerar tillägg olika, så välj det för din webbläsare.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Packa upp den, öppna sedan chrome://extensions (eller edge://extensions, brave://extensions), slå på utvecklarläge och välj „Ladda in uppackat” på den uppackade mappen.',

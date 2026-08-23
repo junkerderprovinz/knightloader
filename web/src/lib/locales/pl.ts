@@ -165,6 +165,7 @@ export const pl: Dict = {
   'settings.historyMaxHint': '0 zachowuje każdy wpis.',
   'settings.maxRetriesHint': 'Nieudane pobieranie jest ponawiane z rosnącą przerwą.',
   'settings.archivePasswords': 'Hasła do archiwów',
+  'settings.archives.extractionTitle': 'Wypakowywanie',
   'settings.archivePasswordsHint': 'Jedno w wierszu. Próbowane po kolei, gdy archiwum jest zaszyfrowane.',
   'settings.lockOn': 'Do korzystania z tej instancji wymagane jest hasło.',
   'settings.lockOff': 'Każdy, kto ma dostęp do tej instancji, może jej używać.',
@@ -408,6 +409,10 @@ export const pl: Dict = {
   'settings.sectionIntake': 'Nowe linki',
 
   'settings.downloads.watchOff': 'Obserwowanie folderu jest wyłączone na stronie Moduły, dlatego tego pola nie da się edytować. Po ponownym włączeniu wraca folder ustawiony tutaj.',
+  'settings.downloads.locationTitle': 'Lokalizacja',
+  'settings.downloads.limitsTitle': 'Limity i zachowanie',
+  'settings.downloads.watchTitle': 'Obserwacja folderu',
+  'settings.downloads.idleTitle': 'Bezczynność',
 
   'settings.modules.subtitle': 'Co zawiera ta kompilacja, a czego nie.',
   'settings.modules.fixedAtBuild': 'Zestaw modułów jest ustalany przy budowaniu pliku wykonywalnego. Do działającej instancji nie da się nic doinstalować, więc ta lista to całość.',
@@ -445,6 +450,7 @@ export const pl: Dict = {
 
   'settings.advanced.subtitle': 'Każde ustawienie tej instancji, po nazwie.',
   'settings.advanced.search': 'Filtruj po nazwie lub wartości',
+  'settings.advanced.allSettings': 'Wszystkie ustawienia',
   'settings.advanced.onlyModified': 'Tylko to, co różni się od wartości domyślnej',
   'settings.advanced.colKey': 'Klucz',
   'settings.advanced.colType': 'Typ',
@@ -537,6 +543,7 @@ export const pl: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Filtr linków',
   'settings.rules.flavourLabel': 'Która lista reguł',
+  'settings.rules.setupTitle': 'Zestaw reguł',
   'settings.rules.packagizerHint': 'Działa na każdym linku w chwili przygotowania i przepisuje, co może: pakiet, folder, komentarz, priorytet, połączenia, automatyczne rozpakowanie. Każda pasująca reguła dokłada swoje, a w danym polu wygrywa późniejsza.',
   'settings.rules.filterHint': 'Decyduje, czy link w ogóle trafi do kolektora. Odrzucony link nie jest usuwany: zostaje zatrzymany wraz z regułą i powodem, które go zatrzymały, żeby nic nigdy nie znikało bez wyjaśnienia.',
   'settings.rules.setOn': 'Ta lista jest stosowana',
@@ -684,6 +691,7 @@ export const pl: Dict = {
   'settings.rules.alsoSets': 'Ustawia też',
 
   'settings.reconnect.method': 'Metoda',
+  'settings.reconnect.setupTitle': 'Konfiguracja',
   'settings.reconnect.methodHint': 'Sposób, w jaki router dostaje polecenie zerwania łącza i powrotu z nowym adresem. „Polecenie” uruchamia program, „Żądania” odtwarzają nagraną rozmowę HTTP, UPnP pyta bramę przez sieć zupełnie bez logowania, a „Skrypt” przekazuje plik interpreterowi. Pokazywane są tylko pola, których potrzebuje wybrana metoda; pozostałe zachowują to, co wpisałeś, i wracają, gdy się na nie przełączysz.',
   'settings.reconnect.method.none': 'Wyłączone',
   'settings.reconnect.method.command': 'Polecenie',
@@ -1311,12 +1319,12 @@ export const pl: Dict = {
   'settings.browsertools.subtitle':
     'Wyślij link do KnightLoader z dowolnego innego miejsca - innej strony, innej aplikacji albo menu Udostępnij w telefonie.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'Przeciągnij to na pasek zakładek. Na dowolnej stronie kliknij go, aby wysłać tę stronę (lub zaznaczony tekst) tutaj.',
+  'settings.browsertools.bookmarkletHint': '1. Przeciągnij poniższy przycisk na pasek zakładek przeglądarki - zapisuje się jak każda inna zakładka, nic się nie instaluje. 2. Na dowolnej stronie kliknij go (najpierw zaznacz tekst, jeśli chcesz tylko jego). Otworzy się mała karta KnightLoader z linkiem tej strony lub zaznaczonym tekstem, już wypełniona - sprawdź to i dodaj jako pobieranie stamtąd.',
   'settings.browsertools.bookmarkletLink': 'Dodaj do KnightLoader',
   'settings.browsertools.copyCode': 'Zamiast tego skopiuj kod',
   'settings.browsertools.copied': 'Skopiowano.',
   'settings.browsertools.extensionTitle': 'Rozszerzenie przeglądarki',
+  'settings.browsertools.aboutTitle': 'Skąd indziej',
   'settings.browsertools.extensionHint': 'Menu prawego przycisku myszy na dowolnym linku, zaznaczeniu lub stronie. Pobieranie wskazuje już na tę instancję - nic do skonfigurowania. Chromium i Firefox pakują rozszerzenia inaczej, wybierz więc to dla swojej przeglądarki.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Rozpakuj, otwórz chrome://extensions (lub edge://extensions, brave://extensions), włącz tryb dewelopera i wybierz „Załaduj rozpakowane” na rozpakowanym folderze.',

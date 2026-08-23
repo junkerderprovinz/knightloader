@@ -173,6 +173,7 @@ export const th: Dict = {
   'settings.historyMaxHint': '0 เก็บทุกรายการ',
   'settings.maxRetriesHint': 'การดาวน์โหลดที่ล้มเหลวจะถูกลองใหม่โดยเว้นระยะนานขึ้นเรื่อย ๆ',
   'settings.archivePasswords': 'รหัสผ่านไฟล์บีบอัด',
+  'settings.archives.extractionTitle': 'การแตกไฟล์',
   'settings.archivePasswordsHint': 'บรรทัดละหนึ่งรหัส จะถูกลองตามลำดับเมื่อไฟล์ถูกเข้ารหัส',
   'settings.lockOn': 'ต้องใช้รหัสผ่านเพื่อใช้งานอินสแตนซ์นี้',
   'settings.lockOff': 'ใครก็ตามที่เข้าถึงอินสแตนซ์นี้ได้ สามารถใช้งานมันได้',
@@ -416,6 +417,10 @@ export const th: Dict = {
   'settings.sectionIntake': 'ลิงก์ใหม่',
 
   'settings.downloads.watchOff': 'การเฝ้าดูโฟลเดอร์ถูกปิดไว้ในหน้าโมดูล ช่องนี้จึงแก้ไขไม่ได้ เมื่อเปิดกลับมา โฟลเดอร์ที่ตั้งไว้ตรงนี้จะกลับมาด้วย',
+  'settings.downloads.locationTitle': 'ตำแหน่งที่ตั้ง',
+  'settings.downloads.limitsTitle': 'ขีดจำกัดและพฤติกรรม',
+  'settings.downloads.watchTitle': 'การเฝ้าดูโฟลเดอร์',
+  'settings.downloads.idleTitle': 'ว่าง',
 
   'settings.modules.subtitle': 'บิลด์นี้มีอะไร และไม่มีอะไร',
   'settings.modules.fixedAtBuild': 'ชุดโมดูลถูกกำหนดตายตัวตอนคอมไพล์ไฟล์ไบนารี ติดตั้งเพิ่มเข้าไปในอินสแตนซ์ที่กำลังทำงานไม่ได้ รายการนี้จึงคือทั้งหมดที่มี',
@@ -453,6 +458,7 @@ export const th: Dict = {
 
   'settings.advanced.subtitle': 'ทุกการตั้งค่าของอินสแตนซ์นี้ เรียงตามชื่อ',
   'settings.advanced.search': 'กรองตามชื่อหรือค่า',
+  'settings.advanced.allSettings': 'การตั้งค่าทั้งหมด',
   'settings.advanced.onlyModified': 'เฉพาะที่ต่างจากค่าเริ่มต้น',
   'settings.advanced.colKey': 'คีย์',
   'settings.advanced.colType': 'ชนิด',
@@ -545,6 +551,7 @@ export const th: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'ตัวกรองลิงก์',
   'settings.rules.flavourLabel': 'รายการกฎชุดไหน',
+  'settings.rules.setupTitle': 'ชุดกฎ',
   'settings.rules.packagizerHint': 'ทำงานกับทุกลิงก์ตอนที่ถูกเตรียม และเขียนทับสิ่งที่ทำได้: แพ็กเกจ โฟลเดอร์ หมายเหตุ ลำดับความสำคัญ จำนวนการเชื่อมต่อ และการแตกไฟล์อัตโนมัติ ทุกกฎที่ตรงจะมีส่วนร่วม และในแต่ละช่องกฎที่อยู่หลังจะชนะ',
   'settings.rules.filterHint': 'ตัดสินว่าลิงก์จะเข้าตัวรวบรวมหรือไม่ ลิงก์ที่ถูกปฏิเสธจะไม่ถูกลบ แต่ถูกกันไว้พร้อมกฎและเหตุผลที่หยุดมัน เพื่อไม่ให้มีอะไรหายไปโดยไม่บอกว่าทำไม',
   'settings.rules.setOn': 'รายการนี้กำลังถูกใช้',
@@ -692,6 +699,7 @@ export const th: Dict = {
   'settings.rules.alsoSets': 'ตั้งค่าเพิ่มด้วย',
 
   'settings.reconnect.method': 'วิธี',
+  'settings.reconnect.setupTitle': 'การตั้งค่า',
   'settings.reconnect.methodHint': 'วิธีบอกเราเตอร์ให้ปล่อยสายแล้วกลับมาพร้อมที่อยู่ใหม่ “คำสั่ง” รันโปรแกรมหนึ่งตัว “คำขอ” เล่นซ้ำบทสนทนา HTTP ที่บันทึกไว้ UPnP ถามเกตเวย์ผ่านเครือข่ายโดยไม่ต้องล็อกอินเลย ส่วน “สคริปต์” ส่งไฟล์ให้ตัวแปลภาษา จะแสดงเฉพาะช่องที่วิธีที่เลือกต้องใช้ ช่องอื่นยังเก็บสิ่งที่คุณพิมพ์ไว้และกลับมาเมื่อคุณสลับไปหามัน',
   'settings.reconnect.method.none': 'ปิด',
   'settings.reconnect.method.command': 'คำสั่ง',
@@ -1317,12 +1325,12 @@ export const th: Dict = {
   'settings.browsertools.subtitle':
     'ส่งลิงก์ไปยัง KnightLoader จากที่อื่นใดก็ได้ - หน้าอื่น แอปอื่น หรือเมนูแชร์ของโทรศัพท์คุณ',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'ลากอันนี้ไปที่แถบบุ๊กมาร์กของคุณ คลิกที่มันในหน้าใดก็ได้เพื่อส่งหน้านั้น (หรือข้อความที่คุณเลือกไว้) มาที่นี่',
+  'settings.browsertools.bookmarkletHint': '1. ลากปุ่มด้านล่างไปยังแถบบุ๊กมาร์กของเบราว์เซอร์ - มันจะถูกบันทึกเหมือนบุ๊กมาร์กอื่น ๆ ไม่มีการติดตั้งใด ๆ 2. คลิกที่ปุ่มนี้ในหน้าใดก็ได้ (เลือกข้อความก่อนหากต้องการเฉพาะส่วนนั้น) แท็บ KnightLoader ขนาดเล็กจะเปิดขึ้นพร้อมลิงก์ของหน้านั้น หรือข้อความที่เลือกไว้ กรอกไว้ล่วงหน้าแล้ว - ตรวจสอบแล้วเพิ่มเป็นการดาวน์โหลดจากที่นั่น',
   'settings.browsertools.bookmarkletLink': 'เพิ่มไปยัง KnightLoader',
   'settings.browsertools.copyCode': 'คัดลอกโค้ดแทน',
   'settings.browsertools.copied': 'คัดลอกแล้ว',
   'settings.browsertools.extensionTitle': 'ส่วนขยายเบราว์เซอร์',
+  'settings.browsertools.aboutTitle': 'จากที่อื่นใด',
   'settings.browsertools.extensionHint': 'เมนูคลิกขวาบนลิงก์ ข้อความที่เลือก หรือหน้าใดก็ได้ การดาวน์โหลดชี้ไปที่อินสแตนซ์นี้อยู่แล้ว - ไม่ต้องตั้งค่าอะไร Chromium และ Firefox บรรจุส่วนขยายต่างกัน จึงเลือกให้ตรงกับเบราว์เซอร์ของคุณ',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'แตกไฟล์แล้วเปิด chrome://extensions (หรือ edge://extensions, brave://extensions) เปิดโหมดนักพัฒนา แล้วเลือก “โหลดส่วนขยายที่แตกไฟล์แล้ว” บนโฟลเดอร์ที่แตกไฟล์แล้ว',

@@ -173,6 +173,7 @@ export const de: Dict = {
   'settings.historyMaxHint': '0 behält jeden Eintrag.',
   'settings.maxRetriesHint': 'Ein fehlgeschlagener Download wird mit wachsender Pause erneut versucht.',
   'settings.archivePasswords': 'Archiv-Passwörter',
+  'settings.archives.extractionTitle': 'Entpacken',
   'settings.archivePasswordsHint': 'Eines pro Zeile. Werden der Reihe nach probiert, wenn ein Archiv verschlüsselt ist.',
   'settings.lockOn': 'Für diese Instanz wird ein Passwort verlangt.',
   'settings.lockOff': 'Wer diese Instanz erreicht, kann sie auch bedienen.',
@@ -416,6 +417,10 @@ export const de: Dict = {
   'settings.sectionIntake': 'Neue Links',
 
   'settings.downloads.watchOff': 'Die Ordnerüberwachung ist auf der Seite „Module“ ausgeschaltet, deshalb ist das hier nicht änderbar. Beim Wiedereinschalten kommt der hier gesetzte Ordner zurück.',
+  'settings.downloads.locationTitle': 'Speicherort',
+  'settings.downloads.limitsTitle': 'Grenzwerte & Verhalten',
+  'settings.downloads.watchTitle': 'Ordnerüberwachung',
+  'settings.downloads.idleTitle': 'Leerlauf',
 
   'settings.modules.subtitle': 'Was dieser Build enthält und was nicht.',
   'settings.modules.fixedAtBuild': 'Welche Module es gibt, steht beim Bauen der Binärdatei fest. In eine laufende Instanz lässt sich nichts nachinstallieren, diese Liste ist also vollständig.',
@@ -453,6 +458,7 @@ export const de: Dict = {
 
   'settings.advanced.subtitle': 'Jede Einstellung dieser Instanz, nach Namen.',
   'settings.advanced.search': 'Nach Name oder Wert filtern',
+  'settings.advanced.allSettings': 'Alle Einstellungen',
   'settings.advanced.onlyModified': 'Nur was vom Standard abweicht',
   'settings.advanced.colKey': 'Schlüssel',
   'settings.advanced.colType': 'Typ',
@@ -545,6 +551,7 @@ export const de: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Linkfilter',
   'settings.rules.flavourLabel': 'Welche Regelliste',
+  'settings.rules.setupTitle': 'Regelsatz',
   'settings.rules.packagizerHint': 'Läuft über jeden Link, während er gesammelt wird, und schreibt um, was er kann: Paket, Ordner, Kommentar, Priorität, Verbindungen, Auto-Entpacken. Jede passende Regel trägt bei, und pro Feld gewinnt die spätere.',
   'settings.rules.filterHint': 'Entscheidet, ob ein Link überhaupt in den Sammler kommt. Ein abgelehnter Link wird nicht gelöscht: Er wird mit der Regel und dem Grund, der ihn gestoppt hat, zurückgehalten, damit nie etwas verschwindet, ohne zu sagen warum.',
   'settings.rules.setOn': 'Diese Liste wird angewendet',
@@ -692,6 +699,7 @@ export const de: Dict = {
   'settings.rules.alsoSets': 'Setzt außerdem',
 
   'settings.reconnect.method': 'Methode',
+  'settings.reconnect.setupTitle': 'Einrichtung',
   'settings.reconnect.methodHint': 'Wie dem Router gesagt wird, dass er die Leitung trennen und mit einer neuen Adresse zurückkommen soll. „Befehl“ startet ein Programm, „Anfragen“ spielt eine aufgezeichnete HTTP-Unterhaltung noch einmal ab, UPnP fragt das Gateway übers Netzwerk ganz ohne Anmeldung, und „Skript“ übergibt eine Datei an einen Interpreter. Angezeigt werden nur die Felder, die die gewählte Methode braucht; die anderen behalten, was du getippt hast, und kommen zurück, wenn du wieder umschaltest.',
   'settings.reconnect.method.none': 'Aus',
   'settings.reconnect.method.command': 'Befehl',
@@ -1319,12 +1327,12 @@ export const de: Dict = {
   'settings.browsertools.subtitle':
     'Sende KnightLoader einen Link von überall sonst - einer anderen Seite, einer anderen App oder dem Teilen-Menü deines Telefons.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'Ziehe dies in deine Lesezeichenleiste. Klicke auf einer beliebigen Seite darauf, um diese Seite (oder den markierten Text) hierher zu senden.',
+  'settings.browsertools.bookmarkletHint': '1. Ziehe den Button unten in die Lesezeichenleiste deines Browsers - er speichert sich wie jedes andere Lesezeichen, nichts wird installiert. 2. Klicke auf einer beliebigen Seite darauf (markiere vorher Text, wenn du nur den willst). Ein kleiner KnightLoader-Tab öffnet sich mit dem Link dieser Seite oder dem markierten Text bereits ausgefüllt - prüfe es und füge es von dort als Download hinzu.',
   'settings.browsertools.bookmarkletLink': 'Zu KnightLoader hinzufügen',
   'settings.browsertools.copyCode': 'Stattdessen den Code kopieren',
   'settings.browsertools.copied': 'Kopiert.',
   'settings.browsertools.extensionTitle': 'Browsererweiterung',
+  'settings.browsertools.aboutTitle': 'Von überall sonst',
   'settings.browsertools.extensionHint': 'Ein Rechtsklick-Menü auf jedem Link, jeder Auswahl oder Seite. Der Download zeigt bereits auf diese Instanz - nichts einzurichten. Chromium und Firefox packen Erweiterungen unterschiedlich, wähle also die passende für deinen Browser.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Entpacke es, öffne dann chrome://extensions (oder edge://extensions, brave://extensions), aktiviere den Entwicklermodus und wähle “Entpackte Erweiterung laden” für den entpackten Ordner.',

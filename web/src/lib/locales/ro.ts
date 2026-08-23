@@ -173,6 +173,7 @@ export const ro: Dict = {
   'settings.historyMaxHint': '0 păstrează fiecare intrare.',
   'settings.maxRetriesHint': 'O descărcare eșuată este reîncercată cu o pauză tot mai lungă.',
   'settings.archivePasswords': 'Parole de arhivă',
+  'settings.archives.extractionTitle': 'Extragere',
   'settings.archivePasswordsHint': 'Câte una pe rând. Se încearcă în ordine când o arhivă este criptată.',
   'settings.lockOn': 'Este necesară o parolă pentru a folosi această instanță.',
   'settings.lockOff': 'Oricine ajunge la această instanță o poate folosi.',
@@ -416,6 +417,10 @@ export const ro: Dict = {
   'settings.sectionIntake': 'Linkuri noi',
 
   'settings.downloads.watchOff': 'Supravegherea dosarului este oprită în pagina Module, de aceea acest câmp nu se poate edita. Dacă o repornești, revine dosarul stabilit aici.',
+  'settings.downloads.locationTitle': 'Locație',
+  'settings.downloads.limitsTitle': 'Limite și comportament',
+  'settings.downloads.watchTitle': 'Monitorizare folder',
+  'settings.downloads.idleTitle': 'Inactiv',
 
   'settings.modules.subtitle': 'Ce conține această compilare și ce nu.',
   'settings.modules.fixedAtBuild': 'Setul de module se fixează la compilarea binarului. Într-o instanță pornită nu se poate instala nimic, așa că lista aceasta este tot.',
@@ -453,6 +458,7 @@ export const ro: Dict = {
 
   'settings.advanced.subtitle': 'Fiecare setare a acestei instanțe, după nume.',
   'settings.advanced.search': 'Filtrează după nume sau valoare',
+  'settings.advanced.allSettings': 'Toate setările',
   'settings.advanced.onlyModified': 'Doar ce diferă de valoarea implicită',
   'settings.advanced.colKey': 'Cheie',
   'settings.advanced.colType': 'Tip',
@@ -545,6 +551,7 @@ export const ro: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Filtru de linkuri',
   'settings.rules.flavourLabel': 'Care listă de reguli',
+  'settings.rules.setupTitle': 'Set de reguli',
   'settings.rules.packagizerHint': 'Trece prin fiecare link în momentul pregătirii și rescrie ce poate: pachet, dosar, comentariu, prioritate, conexiuni, dezarhivare automată. Fiecare regulă care se potrivește contribuie, iar pe fiecare câmp câștigă cea de mai târziu.',
   'settings.rules.filterHint': 'Decide dacă un link ajunge măcar în colector. Un link refuzat nu se șterge: este reținut împreună cu regula și motivul care l-au oprit, ca nimic să nu dispară vreodată fără să spună de ce.',
   'settings.rules.setOn': 'Această listă se aplică',
@@ -692,6 +699,7 @@ export const ro: Dict = {
   'settings.rules.alsoSets': 'Setează și',
 
   'settings.reconnect.method': 'Metodă',
+  'settings.reconnect.setupTitle': 'Configurare',
   'settings.reconnect.methodHint': 'Felul în care i se spune routerului să lase linia și să revină cu o adresă nouă. „Comandă” rulează un program, „Cereri” redă o conversație HTTP înregistrată, UPnP întreabă gateway-ul prin rețea fără nicio autentificare, iar „Script” dă un fișier unui interpretor. Se arată doar câmpurile de care are nevoie metoda aleasă; celelalte păstrează ce ai scris și revin când comuți pe ele.',
   'settings.reconnect.method.none': 'Oprit',
   'settings.reconnect.method.command': 'Comandă',
@@ -1318,12 +1326,12 @@ export const ro: Dict = {
   'settings.browsertools.subtitle':
     'Trimite un link către KnightLoader din orice alt loc - o altă pagină, o altă aplicație, sau meniul Distribuie al telefonului tău.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'Trage acesta în bara ta de marcaje. Pe orice pagină, dă clic pe el ca să trimiți acea pagină (sau textul selectat) aici.',
+  'settings.browsertools.bookmarkletHint': '1. Trage butonul de mai jos în bara de marcaje a browserului tău - se salvează ca orice alt marcaj, nu se instalează nimic. 2. Pe orice pagină, dă clic pe el (selectează mai întâi text dacă vrei doar atât). Se deschide o filă mică KnightLoader cu linkul acelei pagini sau textul selectat, deja completat - verifică-l și adaugă-l de acolo ca descărcare.',
   'settings.browsertools.bookmarkletLink': 'Adaugă la KnightLoader',
   'settings.browsertools.copyCode': 'Copiază codul în schimb',
   'settings.browsertools.copied': 'Copiat.',
   'settings.browsertools.extensionTitle': 'Extensie de browser',
+  'settings.browsertools.aboutTitle': 'De oriunde altundeva',
   'settings.browsertools.extensionHint': 'Un meniu clic dreapta pe orice link, selecție sau pagină. Descărcarea indică deja spre această instanță - nimic de configurat. Chromium și Firefox împachetează extensiile diferit, alege-o pe cea pentru browserul tău.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Dezarhivează-l, deschide chrome://extensions (sau edge://extensions, brave://extensions), activează modul dezvoltator și alege „Încarcă extensia neambalată” pe folderul dezarhivat.',

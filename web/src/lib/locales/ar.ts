@@ -175,6 +175,7 @@ export const ar: Dict = {
   'settings.historyMaxHint': 'القيمة 0 تحتفظ بكل قيد.',
   'settings.maxRetriesHint': 'يُعاد التنزيل الفاشل بفاصل زمني متزايد.',
   'settings.archivePasswords': 'كلمات مرور الأرشيفات',
+  'settings.archives.extractionTitle': 'الاستخراج',
   'settings.archivePasswordsHint': 'واحدة في كل سطر. تُجرَّب بالترتيب عندما يكون الأرشيف مشفَّرًا.',
   'settings.lockOn': 'يلزم إدخال كلمة مرور لاستخدام هذه النسخة.',
   'settings.lockOff': 'كل من يصل إلى هذه النسخة يمكنه استخدامها.',
@@ -418,6 +419,10 @@ export const ar: Dict = {
   'settings.sectionIntake': 'روابط جديدة',
 
   'settings.downloads.watchOff': 'مراقبة المجلد مطفأة في صفحة الوحدات، ولهذا لا يمكن تحرير هذا الحقل. إعادة تشغيلها تستعيد المجلد الذي ضُبط هنا.',
+  'settings.downloads.locationTitle': 'الموقع',
+  'settings.downloads.limitsTitle': 'الحدود والسلوك',
+  'settings.downloads.watchTitle': 'مراقبة المجلد',
+  'settings.downloads.idleTitle': 'خمول',
 
   'settings.modules.subtitle': 'ما تحتويه هذه البنية وما لا تحتويه.',
   'settings.modules.fixedAtBuild': 'مجموعة الوحدات تُثبَّت عند بناء الملف التنفيذي. لا يمكن تركيب أي شيء في نسخة قيد التشغيل، فهذه القائمة هي كل ما هناك.',
@@ -455,6 +460,7 @@ export const ar: Dict = {
 
   'settings.advanced.subtitle': 'كل إعداد في هذه النسخة، بالاسم.',
   'settings.advanced.search': 'رشّح بالاسم أو القيمة',
+  'settings.advanced.allSettings': 'كل الإعدادات',
   'settings.advanced.onlyModified': 'ما يختلف عن الافتراضي فقط',
   'settings.advanced.colKey': 'المفتاح',
   'settings.advanced.colType': 'النوع',
@@ -547,6 +553,7 @@ export const ar: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'مرشّح الروابط',
   'settings.rules.flavourLabel': 'أي قائمة قواعد',
+  'settings.rules.setupTitle': 'مجموعة القواعد',
   'settings.rules.packagizerHint': 'يعمل على كل رابط لحظة تجهيزه ويعيد كتابة ما يستطيع: الحزمة والمجلد والملاحظة والأولوية والاتصالات وفك الضغط التلقائي. كل قاعدة مطابقة تُسهم، وفي الحقل الواحد تفوز القاعدة اللاحقة.',
   'settings.rules.filterHint': 'يقرّر ما إذا كان الرابط سيدخل المُجمِّع أصلًا. الرابط المرفوض لا يُحذف: يُحتجَز ومعه القاعدة والسبب اللذان أوقفاه، حتى لا يختفي شيء أبدًا دون أن يقول لماذا.',
   'settings.rules.setOn': 'هذه القائمة مطبَّقة',
@@ -694,6 +701,7 @@ export const ar: Dict = {
   'settings.rules.alsoSets': 'ويضبط أيضًا',
 
   'settings.reconnect.method': 'الطريقة',
+  'settings.reconnect.setupTitle': 'الإعداد',
   'settings.reconnect.methodHint': 'كيف يُطلب من الموجّه أن يُسقط الخط ويعود بعنوان جديد. «أمر» يشغّل برنامجًا، و«طلبات» تعيد تشغيل محادثة HTTP مسجّلة، وUPnP يسأل البوّابة عبر الشبكة دون أي تسجيل دخول، و«سكربت» يسلّم ملفًا إلى مفسّر. لا تظهر إلا الحقول التي تحتاجها الطريقة المختارة؛ أما البقية فتحتفظ بما كتبته وتعود حين تنتقل إليها.',
   'settings.reconnect.method.none': 'مُعطَّل',
   'settings.reconnect.method.command': 'أمر',
@@ -1320,12 +1328,12 @@ export const ar: Dict = {
   'settings.browsertools.subtitle':
     'أرسل رابطًا إلى KnightLoader من أي مكان آخر - صفحة أخرى، تطبيق آخر، أو قائمة المشاركة في هاتفك.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'اسحب هذا إلى شريط المفضلة لديك. في أي صفحة، انقر عليه لإرسال تلك الصفحة (أو أي نص محدد) إلى هنا.',
+  'settings.browsertools.bookmarkletHint': '1. اسحب الزر أدناه إلى شريط إشارات مرجعية في متصفحك - يُحفظ مثل أي إشارة مرجعية أخرى، لا يُثبَّت شيء. 2. في أي صفحة، انقر عليه (حدد بعض النص أولاً إذا كنت تريد ذلك فقط). يفتح تبويب صغير لـ KnightLoader برابط تلك الصفحة، أو النص المحدد، معبأ مسبقًا - راجعه وأضفه من هناك كتنزيل.',
   'settings.browsertools.bookmarkletLink': 'إضافة إلى KnightLoader',
   'settings.browsertools.copyCode': 'نسخ الكود بدلًا من ذلك',
   'settings.browsertools.copied': 'نُسخ.',
   'settings.browsertools.extensionTitle': 'إضافة المتصفح',
+  'settings.browsertools.aboutTitle': 'من أي مكان آخر',
   'settings.browsertools.extensionHint': 'قائمة النقر بالزر الأيمن على أي رابط أو تحديد أو صفحة. التحميل يشير بالفعل إلى هذه النسخة - لا شيء لضبطه. يقوم Chromium و Firefox بتعبئة الإضافات بطرق مختلفة، فاختر ما يناسب متصفحك.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'فك ضغط الملف، ثم افتح chrome://extensions (أو edge://extensions أو brave://extensions)، فعّل وضع المطور، واختر «تحميل غير محزوم» للمجلد الذي تم فك ضغطه.',

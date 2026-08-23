@@ -173,6 +173,7 @@ export const lt: Dict = {
   'settings.historyMaxHint': '0 išsaugo kiekvieną įrašą.',
   'settings.maxRetriesHint': 'Nepavykęs atsisiuntimas kartojamas vis ilgesnėmis pauzėmis.',
   'settings.archivePasswords': 'Archyvų slaptažodžiai',
+  'settings.archives.extractionTitle': 'Išpakavimas',
   'settings.archivePasswordsHint': 'Po vieną eilutėje. Bandomi iš eilės, kai archyvas užšifruotas.',
   'settings.lockOn': 'Šiam egzemplioriui naudoti reikia slaptažodžio.',
   'settings.lockOff': 'Kas pasiekia šį egzempliorių, tas gali juo naudotis.',
@@ -416,6 +417,10 @@ export const lt: Dict = {
   'settings.sectionIntake': 'Naujos nuorodos',
 
   'settings.downloads.watchOff': 'Aplanko stebėjimas išjungtas modulių puslapyje, todėl šito redaguoti negalima. Vėl įjungus, čia nustatytas aplankas sugrįžta.',
+  'settings.downloads.locationTitle': 'Vieta',
+  'settings.downloads.limitsTitle': 'Apribojimai ir elgsena',
+  'settings.downloads.watchTitle': 'Aplanko stebėjimas',
+  'settings.downloads.idleTitle': 'Neveikimas',
 
   'settings.modules.subtitle': 'Kas šioje laidoje yra ir ko nėra.',
   'settings.modules.fixedAtBuild': 'Modulių rinkinys nustatomas kuriant vykdomąjį failą. Į veikiantį egzempliorių nieko įdiegti negalima, tad šis sąrašas yra viskas.',
@@ -453,6 +458,7 @@ export const lt: Dict = {
 
   'settings.advanced.subtitle': 'Kiekvienas šio egzemplioriaus nustatymas pagal pavadinimą.',
   'settings.advanced.search': 'Filtruoti pagal pavadinimą ar reikšmę',
+  'settings.advanced.allSettings': 'Visi nustatymai',
   'settings.advanced.onlyModified': 'Tik tai, kas skiriasi nuo numatytosios reikšmės',
   'settings.advanced.colKey': 'Raktas',
   'settings.advanced.colType': 'Tipas',
@@ -545,6 +551,7 @@ export const lt: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Nuorodų filtras',
   'settings.rules.flavourLabel': 'Kuris taisyklių sąrašas',
+  'settings.rules.setupTitle': 'Taisyklių rinkinys',
   'settings.rules.packagizerHint': 'Vykdoma kiekvienai nuorodai jos paruošimo metu ir perrašo, ką gali: paketą, aplanką, pastabą, pirmenybę, ryšius, automatinį išpakavimą. Kiekviena atitinkanti taisyklė prisideda, o tame pačiame lauke laimi vėlesnė.',
   'settings.rules.filterHint': 'Nusprendžia, ar nuoroda apskritai pateks į rinktuvą. Atmesta nuoroda netrinama: ji sulaikoma kartu su taisykle ir priežastimi, kurios ją sustabdė, kad niekas niekada nedingtų nepasakęs kodėl.',
   'settings.rules.setOn': 'Šis sąrašas taikomas',
@@ -692,6 +699,7 @@ export const lt: Dict = {
   'settings.rules.alsoSets': 'Taip pat nustato',
 
   'settings.reconnect.method': 'Būdas',
+  'settings.reconnect.setupTitle': 'Sąranka',
   'settings.reconnect.methodHint': 'Kaip maršrutizatoriui pasakoma nuleisti liniją ir grįžti su nauju adresu. „Komanda“ paleidžia programą, „Užklausos“ iš naujo atkuria įrašytą HTTP pokalbį, UPnP tinkle paklausia šliuzo visai be jokio prisijungimo, o „Scenarijus“ perduoda failą interpretatoriui. Rodomi tik tie laukai, kurių reikia pasirinktam būdui; kiti išlaiko tai, ką įrašei, ir sugrįžta, kai persijungi į juos.',
   'settings.reconnect.method.none': 'Išjungta',
   'settings.reconnect.method.command': 'Komanda',
@@ -1318,12 +1326,12 @@ export const lt: Dict = {
   'settings.browsertools.subtitle':
     'Siųskite nuorodą į KnightLoader iš bet kur kitur - iš kito puslapio, kitos programėlės arba jūsų telefono Bendrinimo meniu.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'Nutempkite tai į savo žymių juostą. Bet kuriame puslapyje spustelėkite jį, kad išsiųstumėte tą puslapį (arba pažymėtą tekstą) čia.',
+  'settings.browsertools.bookmarkletHint': '1. Nutempk žemiau esantį mygtuką į naršyklės žymelių juostą - jis įrašomas kaip bet kuri kita žymelė, niekas nediegiama. 2. Bet kuriame puslapyje spustelėk jį (pirmiausia pažymėk tekstą, jei nori tik jo). Atsivers mažas KnightLoader skirtukas su to puslapio nuoroda arba pažymėtu tekstu, jau užpildytas - peržiūrėk ir pridėk jį iš ten kaip atsisiuntimą.',
   'settings.browsertools.bookmarkletLink': 'Pridėti prie KnightLoader',
   'settings.browsertools.copyCode': 'Vietoj to kopijuoti kodą',
   'settings.browsertools.copied': 'Nukopijuota.',
   'settings.browsertools.extensionTitle': 'Naršyklės plėtinys',
+  'settings.browsertools.aboutTitle': 'Iš bet kur kitur',
   'settings.browsertools.extensionHint': 'Dešiniojo pelės mygtuko meniu ant bet kurios nuorodos, pažymėjimo ar puslapio. Atsisiuntimas jau nukreiptas į šį egzempliorių - nieko konfigūruoti nereikia. Chromium ir Firefox skirtingai pakuoja plėtinius, todėl pasirink savo naršyklės plėtinį.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Išskleisk jį, tada atidaryk chrome://extensions (arba edge://extensions, brave://extensions), įjunk kūrėjo režimą ir pasirink „Ikelti išskleistą plėtinį“ išskleistam aplankui.',

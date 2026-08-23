@@ -173,6 +173,7 @@ export const zh: Dict = {
   'settings.historyMaxHint': '0 表示保留全部记录。',
   'settings.maxRetriesHint': '失败的下载会以逐渐加长的间隔重试。',
   'settings.archivePasswords': '压缩包密码',
+  'settings.archives.extractionTitle': '解压',
   'settings.archivePasswordsHint': '每行一个。压缩包加密时按顺序尝试。',
   'settings.lockOn': '使用本实例需要密码。',
   'settings.lockOff': '任何能访问到本实例的人都能操作它。',
@@ -416,6 +417,10 @@ export const zh: Dict = {
   'settings.sectionIntake': '新链接',
 
   'settings.downloads.watchOff': '文件夹监视已在模块页面关闭，所以这里不能编辑。重新打开后，这里设置的文件夹会回来。',
+  'settings.downloads.locationTitle': '位置',
+  'settings.downloads.limitsTitle': '限制与行为',
+  'settings.downloads.watchTitle': '文件夹监视',
+  'settings.downloads.idleTitle': '空闲',
 
   'settings.modules.subtitle': '这个构建里有什么，没有什么。',
   'settings.modules.fixedAtBuild': '模块集合在编译二进制时就定死了。运行中的实例装不进任何东西，所以这份清单就是全部。',
@@ -453,6 +458,7 @@ export const zh: Dict = {
 
   'settings.advanced.subtitle': '这个实例的每一项设置，按名称列出。',
   'settings.advanced.search': '按名称或值筛选',
+  'settings.advanced.allSettings': '所有设置',
   'settings.advanced.onlyModified': '只看与默认值不同的',
   'settings.advanced.colKey': '键',
   'settings.advanced.colType': '类型',
@@ -545,6 +551,7 @@ export const zh: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': '链接过滤',
   'settings.rules.flavourLabel': '哪一份规则列表',
+  'settings.rules.setupTitle': '规则集',
   'settings.rules.packagizerHint': '在每个链接被准备时逐个运行，并改写它能改的部分：包、文件夹、备注、优先级、连接数、自动解压。每条命中的规则都有贡献，同一字段上后面的规则获胜。',
   'settings.rules.filterHint': '决定一个链接是否会进入收集器。被拒绝的链接不会被删除：它会连同拦下它的规则和理由一起被扣下，这样就不会有东西不声不响地消失。',
   'settings.rules.setOn': '这份列表正在生效',
@@ -692,6 +699,7 @@ export const zh: Dict = {
   'settings.rules.alsoSets': '还会设置',
 
   'settings.reconnect.method': '方式',
+  'settings.reconnect.setupTitle': '设置',
   'settings.reconnect.methodHint': '用什么办法告诉路由器断开线路、换一个新地址回来。“命令”运行一个程序，“请求”重放一段录下来的 HTTP 对话，UPnP 直接在网络上问网关、完全不用登录，“脚本”则把一个文件交给解释器。只显示所选方式需要的字段；其他字段会保留你填过的内容，切回去时还在。',
   'settings.reconnect.method.none': '关闭',
   'settings.reconnect.method.command': '命令',
@@ -1315,12 +1323,12 @@ export const zh: Dict = {
   'settings.browsertools.subtitle':
     '从其他任何地方向 KnightLoader 发送链接 - 另一个页面、另一个应用，或你手机的分享菜单。',
   'settings.browsertools.bookmarkletTitle': '书签小工具',
-  'settings.browsertools.bookmarkletHint':
-    '把它拖到你的书签栏。在任何页面上点击它，即可把该页面（或你选中的文本）发送到这里。',
+  'settings.browsertools.bookmarkletHint': '1. 将下方按钮拖到浏览器的书签栏 - 它会像任何其他书签一样保存，不会安装任何东西。2. 在任意页面上点击它（如果只想要某段文字，先选中它）。会打开一个小的 KnightLoader 标签页，已自动填入该页面的链接或所选文字 - 检查一下，然后从那里将其添加为下载。',
   'settings.browsertools.bookmarkletLink': '添加到 KnightLoader',
   'settings.browsertools.copyCode': '改为复制代码',
   'settings.browsertools.copied': '已复制。',
   'settings.browsertools.extensionTitle': '浏览器扩展',
+  'settings.browsertools.aboutTitle': '从其他任何地方',
   'settings.browsertools.extensionHint': '在任何链接、选中内容或页面上右键菜单。下载已经指向此实例 - 无需配置。Chromium 和 Firefox 打包扩展的方式不同，请选择适合你浏览器的那个。',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': '解压后打开 chrome://extensions（或 edge://extensions、brave://extensions），开启开发者模式，在解压后的文件夹上选择“加载已解压的扩展程序”。',

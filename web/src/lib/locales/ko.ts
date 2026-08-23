@@ -173,6 +173,7 @@ export const ko: Dict = {
   'settings.historyMaxHint': '0이면 모든 기록을 남깁니다.',
   'settings.maxRetriesHint': '실패한 다운로드는 간격을 늘려 가며 다시 시도합니다.',
   'settings.archivePasswords': '압축 파일 암호',
+  'settings.archives.extractionTitle': '압축 해제',
   'settings.archivePasswordsHint': '한 줄에 하나씩. 암호가 걸린 압축 파일에 순서대로 시도합니다.',
   'settings.lockOn': '이 인스턴스를 쓰려면 암호가 필요합니다.',
   'settings.lockOff': '이 인스턴스에 닿을 수 있는 사람은 누구나 조작할 수 있습니다.',
@@ -416,6 +417,10 @@ export const ko: Dict = {
   'settings.sectionIntake': '새 링크',
 
   'settings.downloads.watchOff': '폴더 감시가 모듈 페이지에서 꺼져 있어 여기는 편집할 수 없습니다. 다시 켜면 여기에 설정했던 폴더가 돌아옵니다.',
+  'settings.downloads.locationTitle': '위치',
+  'settings.downloads.limitsTitle': '제한 및 동작',
+  'settings.downloads.watchTitle': '폴더 감시',
+  'settings.downloads.idleTitle': '유휴',
 
   'settings.modules.subtitle': '이 빌드에 들어 있는 것과 없는 것.',
   'settings.modules.fixedAtBuild': '모듈 구성은 바이너리를 빌드할 때 정해집니다. 실행 중인 인스턴스에는 아무것도 설치할 수 없으므로 이 목록이 전부입니다.',
@@ -453,6 +458,7 @@ export const ko: Dict = {
 
   'settings.advanced.subtitle': '이 인스턴스의 모든 설정을 이름으로.',
   'settings.advanced.search': '이름이나 값으로 거르기',
+  'settings.advanced.allSettings': '모든 설정',
   'settings.advanced.onlyModified': '기본값과 다른 것만',
   'settings.advanced.colKey': '키',
   'settings.advanced.colType': '형식',
@@ -545,6 +551,7 @@ export const ko: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': '링크 필터',
   'settings.rules.flavourLabel': '어느 규칙 목록',
+  'settings.rules.setupTitle': '규칙 집합',
   'settings.rules.packagizerHint': '링크가 준비되는 순간마다 실행되어 바꿀 수 있는 것을 다시 씁니다. 패키지, 폴더, 메모, 우선순위, 연결 수, 자동 압축 풀기입니다. 일치하는 규칙은 모두 기여하고, 같은 항목에서는 뒤의 규칙이 이깁니다.',
   'settings.rules.filterHint': '링크를 수집함에 들일지 말지를 정합니다. 거부된 링크는 삭제되지 않습니다. 그것을 멈춘 규칙과 이유와 함께 붙잡아 두므로, 이유를 말하지 않고 사라지는 것은 없습니다.',
   'settings.rules.setOn': '이 목록이 적용되고 있습니다',
@@ -692,6 +699,7 @@ export const ko: Dict = {
   'settings.rules.alsoSets': '함께 설정하는 것',
 
   'settings.reconnect.method': '방식',
+  'settings.reconnect.setupTitle': '설정',
   'settings.reconnect.methodHint': '회선을 끊고 새 주소로 돌아오라고 공유기에 알리는 방법입니다. “명령”은 프로그램을 실행하고, “요청”은 기록해 둔 HTTP 대화를 다시 재생하며, UPnP는 로그인 없이 네트워크로 게이트웨이에 물어보고, “스크립트”는 파일을 인터프리터에 넘깁니다. 고른 방식에 필요한 항목만 보이고, 나머지는 입력한 내용을 그대로 간직한 채 다시 그 방식으로 바꾸면 돌아옵니다.',
   'settings.reconnect.method.none': '끔',
   'settings.reconnect.method.command': '명령',
@@ -1318,12 +1326,12 @@ export const ko: Dict = {
   'settings.browsertools.subtitle':
     '다른 페이지, 다른 앱, 또는 휴대전화의 공유 메뉴 등 다른 어디에서든 KnightLoader로 링크를 보냅니다.',
   'settings.browsertools.bookmarkletTitle': '북마클릿',
-  'settings.browsertools.bookmarkletHint':
-    '이것을 북마크 바로 드래그하세요. 어떤 페이지에서든 클릭하면 그 페이지(또는 선택한 텍스트)를 여기로 보냅니다.',
+  'settings.browsertools.bookmarkletHint': '1. 아래 버튼을 브라우저의 북마크 바로 드래그하세요 - 다른 북마크와 마찬가지로 저장될 뿐 아무것도 설치되지 않습니다. 2. 어떤 페이지에서든 클릭하면(일부만 보내려면 먼저 텍스트를 선택) 해당 페이지의 링크나 선택한 텍스트가 이미 채워진 작은 KnightLoader 탭이 열립니다 - 확인 후 거기서 다운로드로 추가하세요.',
   'settings.browsertools.bookmarkletLink': 'KnightLoader에 추가',
   'settings.browsertools.copyCode': '대신 코드 복사',
   'settings.browsertools.copied': '복사됨.',
   'settings.browsertools.extensionTitle': '브라우저 확장 프로그램',
+  'settings.browsertools.aboutTitle': '다른 어디서든',
   'settings.browsertools.extensionHint': '링크, 선택 영역, 페이지 어디서나 우클릭 메뉴를 사용할 수 있습니다. 다운로드는 이미 이 인스턴스를 가리키고 있어 따로 설정할 것이 없습니다. Chromium과 Firefox는 확장프로그램을 다르게 패키징하므로 사용 중인 브라우저에 맞는 것을 선택하세요.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': '압축을 해제한 다음 chrome://extensions(또는 edge://extensions, brave://extensions)를 열고, 개발자 모드를 켜고, 압축 해제된 폴더에서 “패키징되지 않은 확장 프로그램을 로드”를 선택하세요.',

@@ -165,6 +165,7 @@ export const it: Dict = {
   'settings.historyMaxHint': '0 conserva ogni voce.',
   'settings.maxRetriesHint': 'Un download fallito viene ritentato con un attesa crescente.',
   'settings.archivePasswords': 'Password degli archivi',
+  'settings.archives.extractionTitle': 'Estrazione',
   'settings.archivePasswordsHint': 'Una per riga. Provate in ordine quando un archivio è cifrato.',
   'settings.lockOn': 'Per usare questa istanza serve una password.',
   'settings.lockOff': 'Chiunque riesca a raggiungere questa istanza può usarla.',
@@ -408,6 +409,10 @@ export const it: Dict = {
   'settings.sectionIntake': 'Nuovi link',
 
   'settings.downloads.watchOff': 'La sorveglianza della cartella è spenta nella pagina Moduli, per questo il campo non è modificabile. Riaccendendola torna la cartella impostata qui.',
+  'settings.downloads.locationTitle': 'Posizione',
+  'settings.downloads.limitsTitle': 'Limiti e comportamento',
+  'settings.downloads.watchTitle': 'Controllo cartella',
+  'settings.downloads.idleTitle': 'Inattivo',
 
   'settings.modules.subtitle': 'Cosa contiene questa build e cosa no.',
   'settings.modules.fixedAtBuild': 'L’insieme dei moduli è fissato quando il binario viene compilato. In un’istanza in esecuzione non si può installare nulla, quindi questo elenco è tutto.',
@@ -445,6 +450,7 @@ export const it: Dict = {
 
   'settings.advanced.subtitle': 'Ogni impostazione di questa istanza, per nome.',
   'settings.advanced.search': 'Filtra per nome o valore',
+  'settings.advanced.allSettings': 'Tutte le impostazioni',
   'settings.advanced.onlyModified': 'Solo ciò che si discosta dal valore predefinito',
   'settings.advanced.colKey': 'Chiave',
   'settings.advanced.colType': 'Tipo',
@@ -537,6 +543,7 @@ export const it: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Filtro link',
   'settings.rules.flavourLabel': 'Quale elenco di regole',
+  'settings.rules.setupTitle': 'Set di regole',
   'settings.rules.packagizerHint': 'Gira su ogni link mentre viene messo in attesa e riscrive quel che può: pacchetto, cartella, commento, priorità, connessioni, estrazione automatica. Ogni regola che corrisponde contribuisce e, per ciascun campo, vince quella successiva.',
   'settings.rules.filterHint': 'Decide se un link entra o no nel raccoglitore. Un link rifiutato non viene cancellato: viene trattenuto insieme alla regola e al motivo che l’hanno fermato, così niente sparisce mai senza dire perché.',
   'settings.rules.setOn': 'Questo elenco viene applicato',
@@ -684,6 +691,7 @@ export const it: Dict = {
   'settings.rules.alsoSets': 'Imposta anche',
 
   'settings.reconnect.method': 'Metodo',
+  'settings.reconnect.setupTitle': 'Configurazione',
   'settings.reconnect.methodHint': 'Come si dice al router di far cadere la linea e tornare con un indirizzo nuovo. «Comando» avvia un programma, «Richieste» riproduce una conversazione HTTP registrata, UPnP interroga il gateway via rete senza alcun accesso, e «Script» consegna un file a un interprete. Vengono mostrati solo i campi che servono al metodo scelto; gli altri conservano quello che hai scritto e tornano quando ci passi sopra.',
   'settings.reconnect.method.none': 'Spento',
   'settings.reconnect.method.command': 'Comando',
@@ -1311,12 +1319,12 @@ export const it: Dict = {
   'settings.browsertools.subtitle':
     'Invia un link a KnightLoader da qualunque altro posto - un’altra pagina, un’altra app, o il menu Condividi del tuo telefono.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'Trascina questo nella tua barra dei preferiti. Su qualsiasi pagina, cliccalo per inviare qui quella pagina (o il testo che hai selezionato).',
+  'settings.browsertools.bookmarkletHint': '1. Trascina il pulsante qui sotto nella barra dei preferiti del tuo browser - si salva come qualsiasi altro segnalibro, non si installa nulla. 2. Su qualsiasi pagina, cliccaci sopra (seleziona prima del testo se vuoi solo quello). Si apre una piccola scheda di KnightLoader con il link di quella pagina, o il testo selezionato, già inserito - controllalo e aggiungilo come download da lì.',
   'settings.browsertools.bookmarkletLink': 'Aggiungi a KnightLoader',
   'settings.browsertools.copyCode': 'Copia il codice invece',
   'settings.browsertools.copied': 'Copiato.',
   'settings.browsertools.extensionTitle': 'Estensione browser',
+  'settings.browsertools.aboutTitle': 'Da qualunque altro posto',
   'settings.browsertools.extensionHint': 'Un menu con il tasto destro su qualsiasi link, selezione o pagina. Il download punta già a questa istanza - niente da configurare. Chromium e Firefox impacchettano le estensioni in modo diverso, scegli quella per il tuo browser.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Decomprimilo, apri chrome://extensions (o edge://extensions, brave://extensions), attiva la modalità sviluppatore e scegli «Carica estensione non pacchettizzata» sulla cartella decompressa.',

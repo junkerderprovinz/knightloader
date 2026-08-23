@@ -173,6 +173,7 @@ export const sl: Dict = {
   'settings.historyMaxHint': '0 ohrani vsak vnos.',
   'settings.maxRetriesHint': 'Neuspel prenos se poskusi znova z vse daljšim premorom.',
   'settings.archivePasswords': 'Gesla za arhive',
+  'settings.archives.extractionTitle': 'Razširjanje',
   'settings.archivePasswordsHint': 'Eno na vrstico. Preizkusijo se po vrsti, kadar je arhiv šifriran.',
   'settings.lockOn': 'Za uporabo te instance je potrebno geslo.',
   'settings.lockOff': 'Kdor koli jo doseže, jo lahko tudi uporablja.',
@@ -416,6 +417,10 @@ export const sl: Dict = {
   'settings.sectionIntake': 'Nove povezave',
 
   'settings.downloads.watchOff': 'Nadzor mape je izklopljen na strani z moduli, zato tega ni mogoče urejati. Ko ga znova vklopite, se mapa, nastavljena tukaj, vrne.',
+  'settings.downloads.locationTitle': 'Lokacija',
+  'settings.downloads.limitsTitle': 'Omejitve in vedenje',
+  'settings.downloads.watchTitle': 'Nadzor mape',
+  'settings.downloads.idleTitle': 'Nedejavnost',
 
   'settings.modules.subtitle': 'Kaj ta izgradnja vsebuje in česa ne.',
   'settings.modules.fixedAtBuild': 'Nabor modulov se določi ob izgradnji binarne datoteke. V delujoč primerek ni mogoče nič namestiti, zato je ta seznam vse.',
@@ -453,6 +458,7 @@ export const sl: Dict = {
 
   'settings.advanced.subtitle': 'Vsaka nastavitev tega primerka, po imenu.',
   'settings.advanced.search': 'Filtriraj po imenu ali vrednosti',
+  'settings.advanced.allSettings': 'Vse nastavitve',
   'settings.advanced.onlyModified': 'Samo tisto, kar se razlikuje od privzetega',
   'settings.advanced.colKey': 'Ključ',
   'settings.advanced.colType': 'Vrsta',
@@ -545,6 +551,7 @@ export const sl: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Filter povezav',
   'settings.rules.flavourLabel': 'Kateri seznam pravil',
+  'settings.rules.setupTitle': 'Nabor pravil',
   'settings.rules.packagizerHint': 'Steče čez vsako povezavo v trenutku priprave in prepiše, kar zmore: paket, mapo, opombo, prednost, povezave, samodejno razpakiranje. Vsako ujemajoče pravilo prispeva, v posameznem polju pa zmaga poznejše.',
   'settings.rules.filterHint': 'Odloči, ali bo povezava sploh prišla v zbiralnik. Zavrnjena povezava se ne izbriše: zadrži se skupaj s pravilom in razlogom, ki sta jo ustavila, da nikoli nič ne izgine, ne da bi povedalo, zakaj.',
   'settings.rules.setOn': 'Ta seznam se uporablja',
@@ -692,6 +699,7 @@ export const sl: Dict = {
   'settings.rules.alsoSets': 'Nastavi tudi',
 
   'settings.reconnect.method': 'Način',
+  'settings.reconnect.setupTitle': 'Namestitev',
   'settings.reconnect.methodHint': 'Kako se usmerjevalniku pove, naj spusti povezavo in se vrne z novim naslovom. »Ukaz« zažene program, »Zahteve« ponovno predvajajo posnet pogovor HTTP, UPnP prek omrežja povpraša prehod čisto brez prijave, »Skripta« pa izroči datoteko tolmaču. Prikažejo se samo polja, ki jih izbrani način potrebuje; druga zadržijo, kar si vpisal, in se vrnejo, ko preklopiš nanje.',
   'settings.reconnect.method.none': 'Izklopljeno',
   'settings.reconnect.method.command': 'Ukaz',
@@ -1319,12 +1327,12 @@ export const sl: Dict = {
   'settings.browsertools.subtitle':
     'Pošlji povezavo v KnightLoader od koder koli drugje - z druge strani, iz druge aplikacije ali prek menija Deli na telefonu.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'Povleci to v vrstico zaznamkov. Na kateri koli strani klikni nanj, da to stran (ali izbrano besedilo) pošlješ sem.',
+  'settings.browsertools.bookmarkletHint': '1. Povleci spodnji gumb v vrstico zaznamkov brskalnika - shrani se kot vsak drug zaznamek, nič se ne namesti. 2. Na kateri koli strani klikni nanj (najprej izberi besedilo, če želiš samo tega). Odpre se majhen zavihek KnightLoader s povezavo te strani ali izbranim besedilom, že izpolnjeno - preglej ga in ga od tam dodaj kot prenos.',
   'settings.browsertools.bookmarkletLink': 'Dodaj v KnightLoader',
   'settings.browsertools.copyCode': 'Namesto tega kopiraj kodo',
   'settings.browsertools.copied': 'Kopirano.',
   'settings.browsertools.extensionTitle': 'Razširitev brskalnika',
+  'settings.browsertools.aboutTitle': 'Od kjer koli drugje',
   'settings.browsertools.extensionHint': 'Meni desnega klika na kateri koli povezavi, izboru ali strani. Prenos že kaže na to instanco - nič za nastaviti. Chromium in Firefox različno pakirata razširitve, zato izberi tisto za svoj brskalnik.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Razpakiraj ga, odpri chrome://extensions (ali edge://extensions, brave://extensions), vklopi razvijalski način in izberi „Naloži razpakirano“ na razpakirani mapi.',

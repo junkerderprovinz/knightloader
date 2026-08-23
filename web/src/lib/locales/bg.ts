@@ -173,6 +173,7 @@ export const bg: Dict = {
   'settings.historyMaxHint': '0 пази всеки запис.',
   'settings.maxRetriesHint': 'Неуспешно изтегляне се опитва пак с нарастващо изчакване.',
   'settings.archivePasswords': 'Пароли за архиви',
+  'settings.archives.extractionTitle': 'Разархивиране',
   'settings.archivePasswordsHint': 'По една на ред. Пробват се подред, когато архивът е криптиран.',
   'settings.lockOn': 'За тази инстанция се иска парола.',
   'settings.lockOff': 'Всеки, който я достига, може да я ползва.',
@@ -416,6 +417,10 @@ export const bg: Dict = {
   'settings.sectionIntake': 'Нови връзки',
 
   'settings.downloads.watchOff': 'Наблюдението на папка е изключено в страницата с модулите, затова това поле не може да се променя. Ако го включите отново, папката, зададена тук, се връща.',
+  'settings.downloads.locationTitle': 'Местоположение',
+  'settings.downloads.limitsTitle': 'Ограничения и поведение',
+  'settings.downloads.watchTitle': 'Наблюдение на папка',
+  'settings.downloads.idleTitle': 'Бездействие',
 
   'settings.modules.subtitle': 'Какво съдържа тази компилация и какво не.',
   'settings.modules.fixedAtBuild': 'Наборът от модули се определя при компилирането на изпълнимия файл. В работещ екземпляр не може да се инсталира нищо, така че този списък е всичко.',
@@ -453,6 +458,7 @@ export const bg: Dict = {
 
   'settings.advanced.subtitle': 'Всяка настройка на този екземпляр, по име.',
   'settings.advanced.search': 'Филтриране по име или стойност',
+  'settings.advanced.allSettings': 'Всички настройки',
   'settings.advanced.onlyModified': 'Само това, което се различава от подразбираното',
   'settings.advanced.colKey': 'Ключ',
   'settings.advanced.colType': 'Тип',
@@ -545,6 +551,7 @@ export const bg: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Филтър за връзки',
   'settings.rules.flavourLabel': 'Кой списък с правила',
+  'settings.rules.setupTitle': 'Набор от правила',
   'settings.rules.packagizerHint': 'Минава през всяка връзка в мига на подготовката и пренаписва каквото може: пакет, папка, бележка, приоритет, връзки, автоматично разархивиране. Всяко съвпадащо правило допринася, а в едно поле печели по-късното.',
   'settings.rules.filterHint': 'Решава дали връзката изобщо ще влезе в колектора. Отхвърлената връзка не се изтрива: задържа се заедно с правилото и причината, които са я спрели, за да не изчезва никога нищо, без да каже защо.',
   'settings.rules.setOn': 'Този списък се прилага',
@@ -692,6 +699,7 @@ export const bg: Dict = {
   'settings.rules.alsoSets': 'Задава още',
 
   'settings.reconnect.method': 'Начин',
+  'settings.reconnect.setupTitle': 'Настройка',
   'settings.reconnect.methodHint': 'Как на рутера се казва да пусне линията и да се върне с нов адрес. „Команда“ пуска програма, „Заявки“ възпроизвеждат записан HTTP разговор, UPnP пита шлюза по мрежата без каквото и да е влизане, а „Скрипт“ подава файл на интерпретатор. Показват се само полетата, от които избраният начин има нужда; останалите пазят каквото си написал и се връщат, щом превключиш към тях.',
   'settings.reconnect.method.none': 'Изключено',
   'settings.reconnect.method.command': 'Команда',
@@ -1319,12 +1327,12 @@ export const bg: Dict = {
   'settings.browsertools.subtitle':
     'Изпрати връзка към KnightLoader отвсякъде другаде - друга страница, друго приложение или менюто Сподели на телефона.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'Провлачи това до лентата с отметки. На всяка страница щракни върху него, за да изпратиш тази страница (или избрания текст) тук.',
+  'settings.browsertools.bookmarkletHint': '1. Плъзни бутона по-долу в лентата с отметки на браузъра си - записва се като всяка друга отметка, нищо не се инсталира. 2. На всяка страница щракни върху него (първо избери текст, ако искаш само него). Отваря се малък раздел на KnightLoader с връзката на тази страница или избрания текст, вече попълнен - прегледай го и го добави оттам като изтегляне.',
   'settings.browsertools.bookmarkletLink': 'Добави към KnightLoader',
   'settings.browsertools.copyCode': 'Вместо това копирай кода',
   'settings.browsertools.copied': 'Копирано.',
   'settings.browsertools.extensionTitle': 'Разширение за браузър',
+  'settings.browsertools.aboutTitle': 'От всяко друго място',
   'settings.browsertools.extensionHint': 'Меню с десен бутон върху всяка връзка, избор или страница. Изтеглянето вече сочи към този екземпляр - нищо за настройване. Chromium и Firefox опаковат разширенията различно, избери това за твоя браузър.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Разархивирай го, отвори chrome://extensions (или edge://extensions, brave://extensions), включи режима за разработчици и избери „Зареждане на разархивирано“ върху разархивираната папка.',
