@@ -1,5 +1,5 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
-import { Button, Card, EmptyState, ErrorCard, Field, LoadingCard, NumberInput, PageHeader, SectionTitle, TextInput } from '../../components/ui';
+import { Button, Card, EmptyState, ErrorCard, Field, IconBadge, LoadingCard, NumberInput, PageHeader, SectionTitle, TextInput } from '../../components/ui';
 import { NeutralSwitch } from './controls';
 import { useToast } from '../../lib/toast';
 import {
@@ -446,8 +446,8 @@ function ScriptRow({
             </span>
           </span>
         </button>
-        <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-          <Button
+        <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+          <IconBadge
             kind="danger"
             icon={<IconTrash width={14} height={14} />}
             aria-label={row.saved ? cx('settings.scripts.remove') : cx('settings.scripts.removeNew')}

@@ -3,6 +3,7 @@ import {
   Button,
   Card,
   Field,
+  IconBadge,
   Modal,
   NumberInput,
   SectionTitle,
@@ -350,22 +351,20 @@ function ConnectionRow({
         </button>
         {/* Secondary actions on hover, and on keyboard focus, so a long list
             reads as content rather than as a wall of buttons. */}
-        <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-          <Button
-            kind="ghost"
+        <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+          <IconBadge
             icon={<IconArrowUp width={14} height={14} />}
             aria-label={cx('settings.connections.moveUp')}
             disabled={index === 0}
             onClick={() => onMove(-1)}
           />
-          <Button
-            kind="ghost"
+          <IconBadge
             icon={<IconArrowDown width={14} height={14} />}
             aria-label={cx('settings.connections.moveDown')}
             disabled={last}
             onClick={() => onMove(1)}
           />
-          <Button
+          <IconBadge
             kind="danger"
             icon={<IconTrash width={14} height={14} />}
             aria-label={cx('settings.connections.remove')}

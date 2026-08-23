@@ -98,7 +98,7 @@ function AccountChip({ account, label }: { account: Account; label: string }) {
           furniture on every page for a fact that changes once every few
           months. */}
       {expiresSoon && (
-        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-statusWarnSolid" aria-hidden="true" />
+        <span className="h-1.5 w-1.5 shrink-0 rounded-[var(--radius-pill)] bg-statusWarnSolid" aria-hidden="true" />
       )}
       <span className="text-[11px] text-carbon-textMuted">{label}</span>
       {traffic.unlimited ? (

@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { en } from '../lib/locales/en';
 import { IconPlus, IconTrash } from '../lib/icons';
-import { Button, InfoBubble, TextInput, segBase, segOff, segOn } from './ui';
+import { Button, IconBadge, InfoBubble, TextInput, segBase, segOff, segOn } from './ui';
 
 /**
  * One rule, opened for editing. The Packagizer and the link filter are ONE
@@ -929,8 +929,8 @@ function ConditionRow({
           )}
         </div>
 
-        <Button
-          kind="ghost"
+        <IconBadge
+          kind="danger"
           icon={<IconTrash width={15} height={15} />}
           aria-label={rx('settings.rules.removeCondition')}
           title={rx('settings.rules.removeCondition')}

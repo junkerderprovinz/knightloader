@@ -128,7 +128,7 @@ export function OnboardingWizard() {
           {STEPS.map((s, i) => (
             <span
               key={s}
-              className={`h-1.5 w-1.5 rounded-full transition-colors ${
+              className={`h-1.5 w-1.5 rounded-[var(--radius-pill)] transition-colors ${
                 i === stepIndex ? 'bg-accent' : 'bg-carbon-surface2'
               }`}
             />

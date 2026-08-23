@@ -17,7 +17,7 @@ export function ProgressBar({
   const fill = tone === 'ok' ? 'var(--status-ok-solid)' : 'var(--accent)';
   return (
     <div
-      className="relative h-1.5 w-full overflow-hidden rounded-full bg-carbon-surface3/70"
+      className="relative h-1.5 w-full overflow-hidden rounded-[var(--radius-pill)] bg-carbon-surface3/70"
       role="progressbar"
       aria-valuemin={0}
       aria-valuemax={100}
@@ -25,12 +25,12 @@ export function ProgressBar({
     >
       {isIndet ? (
         <div
-          className="absolute inset-y-0 w-1/3 rounded-full opacity-70"
+          className="absolute inset-y-0 w-1/3 rounded-[var(--radius-pill)] opacity-70"
           style={{ background: fill, animation: 'glim-indeterminate 1.4s ease-in-out infinite' }}
         />
       ) : (
         <div
-          className="h-full rounded-full transition-[width] duration-500 ease-out"
+          className="h-full rounded-[var(--radius-pill)] transition-[width] duration-500 ease-out"
           style={{ width: `${clamped}%`, background: fill }}
         />
       )}

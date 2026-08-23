@@ -13,7 +13,7 @@ import { useReportListView } from '../lib/listview';
 import { fmtSpeed } from '../lib/format';
 import { useT } from '../lib/i18n';
 import { useInstanceScope } from '../lib/instance';
-import { PageHeader, Button, EmptyState } from '../components/ui';
+import { PageHeader, Button, EmptyState, IconBadge } from '../components/ui';
 import { Counters } from '../components/Counters';
 import { SpeedGraph } from '../components/SpeedGraph';
 import {
@@ -298,7 +298,7 @@ export function Downloads() {
             {narrowed && !searchOpen && (
               <span
                 aria-hidden
-                className="pointer-events-none absolute -right-1 -top-1 h-2 w-2 rounded-full bg-accent"
+                className="pointer-events-none absolute -right-1 -top-1 h-2 w-2 rounded-[var(--radius-pill)] bg-accent"
               />
             )}
           </div>
@@ -334,26 +334,22 @@ export function Downloads() {
         <PackageActions tasks={list} selected={selected} base={base} />
         {/* Queue order only means something while something is waiting, so these
             sit with the selection rather than on the page all the time. */}
-        <Button
-          kind="ghost"
+        <IconBadge
           icon={<IconArrowUp width={16} height={16} />}
           title={t('task.priorityUp')}
           onClick={() => setPriority(ids(), 1, base)}
         />
-        <Button
-          kind="ghost"
+        <IconBadge
           icon={<IconArrowDown width={16} height={16} />}
           title={t('task.priorityDown')}
           onClick={() => setPriority(ids(), -1, base)}
         />
-        <Button
-          kind="ghost"
+        <IconBadge
           icon={<IconTop width={16} height={16} />}
           title={t('task.moveTop')}
           onClick={() => moveTasks(ids(), 'top', base)}
         />
-        <Button
-          kind="ghost"
+        <IconBadge
           icon={<IconBottom width={16} height={16} />}
           title={t('task.moveBottom')}
           onClick={() => moveTasks(ids(), 'bottom', base)}

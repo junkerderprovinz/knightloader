@@ -38,7 +38,7 @@ export function StatusPill({ status }: { status: TaskStatus }) {
   const s = statusTone[status] ?? statusTone.queued;
   return (
     <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium ${toneText[s.tone]}`}>
-      <span className={`h-1.5 w-1.5 rounded-full ${toneDot[s.tone]}`} />
+      <span className={`h-1.5 w-1.5 rounded-[var(--radius-pill)] ${toneDot[s.tone]}`} />
       {t(s.key)}
     </span>
   );

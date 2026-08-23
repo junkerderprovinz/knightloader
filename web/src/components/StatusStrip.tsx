@@ -138,7 +138,7 @@ export function StatusStrip() {
             className="flex items-center gap-2 text-[11px]"
             title={`${t(LABEL_KEY[s.kind])}: ${t('activity.tooltipHint', { active: s.active, total: s.total })}`}
           >
-            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent glim-live" aria-hidden="true" />
+            <span className="h-1.5 w-1.5 shrink-0 rounded-[var(--radius-pill)] bg-accent glim-live" aria-hidden="true" />
             <span className="text-carbon-textMuted">{kindIcon(s.kind)}</span>
             <span className="text-carbon-textMuted">{t(LABEL_KEY[s.kind])}</span>
             <span className="flex-1" />
