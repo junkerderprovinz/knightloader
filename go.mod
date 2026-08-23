@@ -8,7 +8,7 @@ require (
 	github.com/atotto/clipboard v0.1.4
 	github.com/bodgit/sevenzip v1.6.5
 	github.com/coder/websocket v1.8.15
-	github.com/dop251/goja v0.0.0-20260806115107-493f22071ef6
+	github.com/dop251/goja v0.0.0-20260822123354-58e940e0d230
 	github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707
 	github.com/klauspost/compress v1.19.2
 	github.com/nwaples/rardecode/v2 v2.3.0
