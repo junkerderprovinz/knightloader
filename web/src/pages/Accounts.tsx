@@ -155,11 +155,13 @@ export function Accounts() {
   const tableProps = { catalogue: byId, refreshing, onRefresh, onToggle, onRename, onRemove, onEdit };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-10">
       <PageHeader title={t('accounts.title')} />
 
       <div className="relative flex flex-col gap-3">
-        <SectionTitle hue={0}>{t('accounts.debrid.title')}</SectionTitle>
+        <SectionTitle hue={0} hint={t('accounts.debrid.hint')}>
+          {t('accounts.debrid.title')}
+        </SectionTitle>
         {debridRows.length > 0 ? (
           <>
             <AccountsTable rows={debridRows} {...tableProps} />
@@ -188,7 +190,9 @@ export function Accounts() {
       </div>
 
       <div className="relative flex flex-col gap-3">
-        <SectionTitle hue={1}>{t('accounts.hoster.title')}</SectionTitle>
+        <SectionTitle hue={1} hint={t('accounts.hoster.hint')}>
+          {t('accounts.hoster.title')}
+        </SectionTitle>
         <HosterLoginSection />
       </div>
 
@@ -726,43 +730,49 @@ function RoutingSection({ catalogue }: { catalogue: CatalogueService[] }) {
   };
 
   return (
-    <div className="relative flex flex-col gap-3">
-      <SectionTitle hue={2}>{t('accounts.routing.title')}</SectionTitle>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Card className="flex flex-col gap-3">
-          <SectionTitle hue={3} hint={t('accounts.routing.priorityHint')}>{t('accounts.routing.priorityTitle')}</SectionTitle>
-          {priority === null ? (
-            <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>
-          ) : priority.length === 0 ? (
-            <p className="text-sm text-carbon-textMuted">{t('accounts.routing.priorityEmpty')}</p>
-          ) : (
-            <ol className="flex flex-col gap-1.5">
-              {priority.map((r, i) => (
-                <li key={r.id} className="flex items-center gap-2 text-sm text-carbon-textSub">
-                  <span className="glim-num w-4 shrink-0 text-carbon-textMuted">{i + 1}</span>
-                  <span className="text-carbon-text">{labelFor(r.id)}</span>
-                </li>
-              ))}
-            </ol>
-          )}
-        </Card>
+    // No outer "Weiterleitung" title any more - jdp, 2026-08-23: "badge ist
+    // immer noch da, jetzt nur weiter unten unter dem
+    // Prioritätsreihenfolge-badge. bitte entfernen." The two cards below
+    // each already carry their own clear title, so the umbrella label over
+    // both was redundant and, sitting this close above the grid, crowded
+    // the Prioritätsreihenfolge card's own badge instead of reading as a
+    // section header.
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <Card className="flex flex-col gap-3">
+        <SectionTitle hue={3} hint={t('accounts.routing.priorityHint')}>{t('accounts.routing.priorityTitle')}</SectionTitle>
+        {priority === null ? (
+          <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>
+        ) : priority.length === 0 ? (
+          <p className="text-sm text-carbon-textMuted">{t('accounts.routing.priorityEmpty')}</p>
+        ) : (
+          <ol className="flex flex-col gap-1.5">
+            {priority.map((r, i) => (
+              <li key={r.id} className="flex items-center gap-2 text-sm text-carbon-textSub">
+                <span className="glim-num w-4 shrink-0 text-carbon-textMuted">{i + 1}</span>
+                <span className="text-carbon-text">{labelFor(r.id)}</span>
+              </li>
+            ))}
+          </ol>
+        )}
+      </Card>
 
-        <Card className="flex flex-col gap-3">
-          <SectionTitle hue={4}>{t('accounts.routing.jdTitle')}</SectionTitle>
-          {jd === null ? (
-            <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>
-          ) : !jd.configured ? (
-            <p className="text-sm text-carbon-textMuted">{t('accounts.routing.jdNotConfigured')}</p>
-          ) : jd.reachable ? (
-            <p className="glim-num text-sm text-statusOk">{t('accounts.routing.jdReachable', { version: jd.version ?? 0 })}</p>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 text-sm text-statusFail">
-              {t('accounts.routing.jdUnreachable')}
-              {jd.detail && <InfoBubble tip={jd.detail} />}
-            </span>
-          )}
-        </Card>
-      </div>
+      <Card className="flex flex-col gap-3">
+        <SectionTitle hue={4} hint={t('accounts.routing.jdHint')}>
+          {t('accounts.routing.jdTitle')}
+        </SectionTitle>
+        {jd === null ? (
+          <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>
+        ) : !jd.configured ? (
+          <p className="text-sm text-carbon-textMuted">{t('accounts.routing.jdNotConfigured')}</p>
+        ) : jd.reachable ? (
+          <p className="glim-num text-sm text-statusOk">{t('accounts.routing.jdReachable', { version: jd.version ?? 0 })}</p>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 text-sm text-statusFail">
+            {t('accounts.routing.jdUnreachable')}
+            {jd.detail && <InfoBubble tip={jd.detail} />}
+          </span>
+        )}
+      </Card>
     </div>
   );
 }

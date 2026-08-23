@@ -457,7 +457,8 @@ export const en = {
   'settings.nav.advanced': 'Advanced',
 
   'settings.railLabel': 'Settings sections',
-  'settings.railReorderHint': 'Hold a tab and drag to put your own sections first.',
+  'settings.railReorderStart': 'Reorder tabs',
+  'settings.railReorderDone': 'Done reordering',
   'settings.empty': 'Nothing to configure here yet.',
   'settings.emptyHint': 'The page is registered so its address keeps working and so the controls land here when the subsystem does.',
 
@@ -510,8 +511,13 @@ export const en = {
   'settings.advanced.colKey': 'Key',
   'settings.advanced.colType': 'Type',
   'settings.advanced.colValue': 'Value',
-  'settings.advanced.reset': 'Reset',
   'settings.advanced.resetTitle': 'Put this key back to its default',
+  'settings.advanced.updatesTitle': 'Updates',
+  'settings.advanced.updatesCheck': 'Check for updates',
+  'settings.advanced.updatesChecking': 'Checking…',
+  'settings.advanced.updatesFailed': 'Could not check for updates.',
+  'settings.advanced.updatesCurrent': '{version} is the latest version.',
+  'settings.advanced.updatesAvailable': '{version} is available',
   'settings.advanced.modified': 'changed',
   'settings.advanced.noMatch': 'No key matches.',
   'settings.advanced.badJson': 'This has to be valid JSON, so it is not being applied.',
@@ -1036,6 +1042,7 @@ export const en = {
     'Add a TorBox, AllDebrid or Real-Debrid key to unlock hoster links automatically.',
   'accounts.debrid.note': 'The most convenient path - one API key covers many hosters at once.',
   'accounts.debrid.title': 'Debrid',
+  'accounts.debrid.hint': 'One API key covers many hosters at once.',
   'accounts.edit': 'Edit credential',
   'accounts.editTitle': '{service} account',
   'accounts.enableAccount': 'Enable {account}',
@@ -1043,6 +1050,7 @@ export const en = {
   'accounts.hoster.empty': 'No hoster logins yet',
   'accounts.hoster.emptyHint': 'Native per-hoster accounts are coming in a later update.',
   'accounts.hoster.title': 'Hoster logins',
+  'accounts.hoster.hint': 'Your own login for a single hoster, separate from any debrid account.',
   'accounts.newAccount': 'New account',
   'accounts.newAccountTitle': 'Add an account',
   'accounts.noServicesFound': 'No services match your search.',
@@ -1070,12 +1078,12 @@ export const en = {
   'accountStrip.trafficHint': '{used} of {limit} used',
   'accountStrip.expiryHint': 'Expires {date}',
   'accounts.hostsRefreshed': 'Host list refreshed {when}',
-  'accounts.routing.title': 'Routing',
   'accounts.routing.priorityTitle': 'Priority order',
   'accounts.routing.priorityHint':
     'When more than one configured service can fetch the same link, they are tried in this order.',
   'accounts.routing.priorityEmpty': 'No resolvers are registered yet.',
   'accounts.routing.jdTitle': 'JDownloader sidecar',
+  'accounts.routing.jdHint': 'The embedded, invisible JDownloader that opens encrypted containers and covers hosters no other resolver does.',
   'accounts.routing.jdNotConfigured': 'Not configured',
   'accounts.routing.jdReachable': 'Reachable, revision {version}',
   'accounts.routing.jdUnreachable': 'Unreachable',
@@ -1529,6 +1537,7 @@ export const en = {
   'settings.access.remote.install': 'Install',
   'settings.access.remote.installIOS':
     'On iPhone or iPad: open this page in Safari, tap Share, then "Add to Home Screen".',
+  'settings.access.intakePortsHint': 'Other ways this instance can be reached directly, outside the normal login - each with its own reachability shown here.',
 
   // Sending KnightLoader a link from outside the app - the bookmarklet, the
   // MV3 browser extension and the PWA install step (pages/settings/
