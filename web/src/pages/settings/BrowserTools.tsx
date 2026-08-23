@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import logoUrl from '../../assets/logo.svg';
+import logoUrl from '../../assets/logo-icon.svg';
 import { buildBookmarklet } from '../../lib/browserTools';
 import { useInstallPrompt } from '../../lib/pwaInstall';
 import { useT } from '../../lib/i18n';
@@ -49,7 +49,7 @@ export function BrowserTools() {
   const installLabel = t('settings.browsertools.installLabel');
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-10">
       <Card className="flex flex-col gap-3">
         <SectionTitle hue={0}>{t('settings.browsertools.bookmarkletTitle')}</SectionTitle>
         {/* A real numbered list, not a flowing paragraph - jdp: "Bitte
