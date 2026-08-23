@@ -1156,8 +1156,6 @@ export const it: Dict = {
   'settings.diagnostics.loadFailed': 'Impossibile caricare la diagnostica. Il server è raggiungibile?',
 
   'settings.nav.help': 'Guida',
-  'settings.help.intro':
-    'Cosa sa fare questo build, organizzato per attività invece che per pagina di impostazioni. Ogni sezione rimanda a dove si configura.',
 
   'settings.help.intake.title': 'Aggiungere download',
   'settings.help.intake.body':
@@ -1323,9 +1321,9 @@ export const it: Dict = {
   'settings.browsertools.installChromiumStep2': 'Apri chrome://extensions (o edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Attiva la modalità sviluppatore.',
   'settings.browsertools.installChromiumStep4': 'Scegli «Carica estensione non pacchettizzata» e seleziona la cartella estratta.',
-  'settings.browsertools.installFirefoxStep1': 'Apri about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Scegli «Carica componente aggiuntivo temporaneo» e seleziona questo file.',
-  'settings.browsertools.installFirefoxStep3': 'Resta installata finché Firefox non si riavvia - un’installazione permanente richiede la firma di Mozilla, che il software self-hosted non può ottenere automaticamente.',
+  'settings.browsertools.installFirefoxStep1': 'Per un’installazione permanente: apri about:addons e clicca sull’icona a forma di ingranaggio in alto a destra.',
+  'settings.browsertools.installFirefoxStep2': 'Scegli «Installa componente aggiuntivo da file…» e seleziona questo file.',
+  'settings.browsertools.installFirefoxStep3': 'Per una prova rapida, apri about:debugging#/runtime/this-firefox e scegli «Carica componente aggiuntivo temporaneo» - scompare al riavvio di Firefox.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'Aggiungi a KnightLoader',
   'settings.browsertools.copyCode': 'Copia il codice invece',

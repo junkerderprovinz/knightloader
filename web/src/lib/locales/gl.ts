@@ -1164,8 +1164,6 @@ export const gl: Dict = {
   'settings.diagnostics.loadFailed': 'Non se puido cargar o diagnóstico. Chégase ao servidor?',
 
   'settings.nav.help': 'Axuda',
-  'settings.help.intro':
-    'Que pode facer este build, organizado por tarefa en vez de por páxina de configuración. Cada sección enlaza onde se configura.',
 
   'settings.help.intake.title': 'Engadir descargas',
   'settings.help.intake.body':
@@ -1330,9 +1328,9 @@ export const gl: Dict = {
   'settings.browsertools.installChromiumStep2': 'Abre chrome://extensions (ou edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Activa o modo desenvolvedor.',
   'settings.browsertools.installChromiumStep4': 'Escolle «Cargar sen empaquetar» e selecciona o cartafol descomprimido.',
-  'settings.browsertools.installFirefoxStep1': 'Abre about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Escolle «Cargar complemento temporal» e selecciona este ficheiro.',
-  'settings.browsertools.installFirefoxStep3': 'Permanece instalada ata que Firefox reinicie - unha instalación permanente require a sinatura propia de Mozilla, que o software autoaloxado non pode obter automaticamente.',
+  'settings.browsertools.installFirefoxStep1': 'Para unha instalación permanente: abre about:addons e fai clic na icona de engrenaxe arriba á dereita.',
+  'settings.browsertools.installFirefoxStep2': 'Escolle «Instalar complemento desde ficheiro…» e selecciona este ficheiro.',
+  'settings.browsertools.installFirefoxStep3': 'Para unha proba rápida, abre about:debugging#/runtime/this-firefox e escolle «Cargar complemento temporal» - desaparece ao reiniciar Firefox.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'Engadir a KnightLoader',
   'settings.browsertools.copyCode': 'Copiar o código no seu lugar',

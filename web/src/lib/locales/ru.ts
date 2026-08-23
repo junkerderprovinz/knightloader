@@ -1156,8 +1156,6 @@ export const ru: Dict = {
   'settings.diagnostics.loadFailed': 'Не удалось загрузить диагностику. Сервер доступен?',
 
   'settings.nav.help': 'Справка',
-  'settings.help.intro':
-    'Что умеет эта сборка, по задачам, а не по страницам настроек. Каждый раздел ведёт туда, где это настраивается.',
 
   'settings.help.intake.title': 'Добавление загрузок',
   'settings.help.intake.body':
@@ -1323,9 +1321,9 @@ export const ru: Dict = {
   'settings.browsertools.installChromiumStep2': 'Открой chrome://extensions (или edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Включи режим разработчика.',
   'settings.browsertools.installChromiumStep4': 'Выбери «Загрузить распакованное расширение» и укажи распакованную папку.',
-  'settings.browsertools.installFirefoxStep1': 'Открой about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Выбери «Загрузить временное дополнение» и укажи этот файл.',
-  'settings.browsertools.installFirefoxStep3': 'Остаётся установленным до перезапуска Firefox - для постоянной установки нужна собственная подпись Mozilla, которую самостоятельно размещённое ПО не может получить автоматически.',
+  'settings.browsertools.installFirefoxStep1': 'Для постоянной установки: открой about:addons и нажми на значок шестерёнки в правом верхнем углу.',
+  'settings.browsertools.installFirefoxStep2': 'Выбери «Установить дополнение из файла…» и укажи этот файл.',
+  'settings.browsertools.installFirefoxStep3': 'Для быстрого теста вместо этого открой about:debugging#/runtime/this-firefox и выбери «Загрузить временное дополнение» - исчезает после перезапуска Firefox.',
   'settings.browsertools.bookmarkletTitle': 'Букмарклет',
   'settings.browsertools.bookmarkletLink': 'Добавить в KnightLoader',
   'settings.browsertools.copyCode': 'Вместо этого скопировать код',

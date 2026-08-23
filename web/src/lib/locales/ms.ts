@@ -1164,8 +1164,6 @@ export const ms: Dict = {
   'settings.diagnostics.loadFailed': 'Diagnostik tidak dapat dimuatkan. Pelayan boleh dicapai?',
 
   'settings.nav.help': 'Bantuan',
-  'settings.help.intro':
-    'Apa yang boleh dilakukan oleh build ini, disusun mengikut tugas dan bukan mengikut halaman tetapan. Setiap bahagian memaut ke tempat ia dikonfigurasikan.',
 
   'settings.help.intake.title': 'Menambah muat turun',
   'settings.help.intake.body':
@@ -1330,9 +1328,9 @@ export const ms: Dict = {
   'settings.browsertools.installChromiumStep2': 'Buka chrome://extensions (atau edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Hidupkan Mod Pembangun.',
   'settings.browsertools.installChromiumStep4': 'Pilih “Load unpacked” dan pilih folder yang dinyahzip.',
-  'settings.browsertools.installFirefoxStep1': 'Buka about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Pilih “Load Temporary Add-on” dan pilih fail ini.',
-  'settings.browsertools.installFirefoxStep3': 'Kekal dipasang sehingga Firefox dimulakan semula - pemasangan kekal memerlukan tandatangan rasmi Mozilla, yang perisian self-hosted tidak boleh dapat secara automatik.',
+  'settings.browsertools.installFirefoxStep1': 'Untuk pemasangan kekal: buka about:addons dan klik ikon gear di penjuru kanan atas.',
+  'settings.browsertools.installFirefoxStep2': 'Pilih “Install Add-on From File…” dan pilih fail ini.',
+  'settings.browsertools.installFirefoxStep3': 'Untuk cubaan pantas, buka about:debugging#/runtime/this-firefox dan pilih “Load Temporary Add-on” - hilang apabila Firefox dimulakan semula.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'Tambah ke KnightLoader',
   'settings.browsertools.copyCode': 'Salin kod sebaliknya',

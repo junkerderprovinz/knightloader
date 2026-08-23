@@ -1166,8 +1166,6 @@ export const no: Dict = {
   'settings.diagnostics.loadFailed': 'Kunne ikke laste inn diagnostikken. Er serveren tilgjengelig?',
 
   'settings.nav.help': 'Hjelp',
-  'settings.help.intro':
-    'Hva denne builden kan gjøre, organisert etter oppgave i stedet for innstillingsside. Hver seksjon lenker til der det stilles inn.',
 
   'settings.help.intake.title': 'Legge til nedlastinger',
   'settings.help.intake.body':
@@ -1332,9 +1330,9 @@ export const no: Dict = {
   'settings.browsertools.installChromiumStep2': 'Åpne chrome://extensions (eller edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Slå på utvikkermodus.',
   'settings.browsertools.installChromiumStep4': 'Velg «Last inn upakket» og velg den utpakkede mappen.',
-  'settings.browsertools.installFirefoxStep1': 'Åpne about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Velg «Last inn midlertidig tillegg» og velg denne filen.',
-  'settings.browsertools.installFirefoxStep3': 'Forblir installert til Firefox starter på nytt - en permanent installasjon krever Mozillas egen signering, som selvhostet programvare ikke kan få automatisk.',
+  'settings.browsertools.installFirefoxStep1': 'For permanent installasjon: åpne about:addons og klikk på tannhjulsikonet øverst til høyre.',
+  'settings.browsertools.installFirefoxStep2': 'Velg «Installer tillegg fra fil…» og velg denne filen.',
+  'settings.browsertools.installFirefoxStep3': 'For en rask test i stedet, åpne about:debugging#/runtime/this-firefox og velg «Last inn midlertidig tillegg» - forsvinner når Firefox starter på nytt.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'Legg til i KnightLoader',
   'settings.browsertools.copyCode': 'Kopier koden i stedet',

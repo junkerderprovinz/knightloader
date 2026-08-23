@@ -1164,8 +1164,6 @@ export const ca: Dict = {
   'settings.diagnostics.loadFailed': 'No s’ha pogut carregar el diagnòstic. El servidor és accessible?',
 
   'settings.nav.help': 'Ajuda',
-  'settings.help.intro':
-    'Què pot fer aquest build, organitzat per tasca en lloc de per pàgina de configuració. Cada secció enllaça on es configura.',
 
   'settings.help.intake.title': 'Afegir baixades',
   'settings.help.intake.body':
@@ -1330,9 +1328,9 @@ export const ca: Dict = {
   'settings.browsertools.installChromiumStep2': 'Obre chrome://extensions (o edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Activa el mode de desenvolupador.',
   'settings.browsertools.installChromiumStep4': 'Tria «Carrega sense empaquetar» i selecciona la carpeta descomprimida.',
-  'settings.browsertools.installFirefoxStep1': 'Obre about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Tria «Carrega un complement temporal» i selecciona aquest fitxer.',
-  'settings.browsertools.installFirefoxStep3': 'Roman instal·lada fins que es reiniciï el Firefox - una instal·lació permanent necessita la signatura pròpia de Mozilla, que el programari autoallotjat no pot obtenir automàticament.',
+  'settings.browsertools.installFirefoxStep1': 'Per a una instal·lació permanent: obre about:addons i fes clic a la icona d’engranatge a dalt a la dreta.',
+  'settings.browsertools.installFirefoxStep2': 'Tria «Instal·la el complement des d’un fitxer…» i selecciona aquest fitxer.',
+  'settings.browsertools.installFirefoxStep3': 'Per a una prova ràpida, obre about:debugging#/runtime/this-firefox i tria «Carrega un complement temporal» - desapareix en reiniciar el Firefox.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'Afegeix a KnightLoader',
   'settings.browsertools.copyCode': 'Copia el codi en lloc d’això',

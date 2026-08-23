@@ -1156,8 +1156,6 @@ export const pl: Dict = {
   'settings.diagnostics.loadFailed': 'Nie udało się wczytać diagnostyki. Czy serwer jest osiągalny?',
 
   'settings.nav.help': 'Pomoc',
-  'settings.help.intro':
-    'Co potrafi ten build, uporządkowane według zadania, a nie strony ustawień. Każda sekcja prowadzi do miejsca, gdzie się to konfiguruje.',
 
   'settings.help.intake.title': 'Dodawanie pobrań',
   'settings.help.intake.body':
@@ -1323,9 +1321,9 @@ export const pl: Dict = {
   'settings.browsertools.installChromiumStep2': 'Otwórz chrome://extensions (lub edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Włącz tryb dewelopera.',
   'settings.browsertools.installChromiumStep4': 'Wybierz „Wczytaj rozpakowane” i wskaż rozpakowany folder.',
-  'settings.browsertools.installFirefoxStep1': 'Otwórz about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Wybierz „Wczytaj tymczasowy dodatek” i wskaż ten plik.',
-  'settings.browsertools.installFirefoxStep3': 'Pozostaje zainstalowane do restartu Firefoksa - stała instalacja wymaga podpisu Mozilli, którego samodzielnie hostowane oprogramowanie nie może uzyskać automatycznie.',
+  'settings.browsertools.installFirefoxStep1': 'Aby zainstalować na stałe: otwórz about:addons i kliknij ikonę koła zębatego w prawym górnym rogu.',
+  'settings.browsertools.installFirefoxStep2': 'Wybierz „Zainstaluj dodatek z pliku…” i wskaż ten plik.',
+  'settings.browsertools.installFirefoxStep3': 'Aby wypróbować szybko, otwórz about:debugging#/runtime/this-firefox i wybierz „Wczytaj tymczasowy dodatek” - znika po restarcie Firefoksa.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'Dodaj do KnightLoader',
   'settings.browsertools.copyCode': 'Zamiast tego skopiuj kod',

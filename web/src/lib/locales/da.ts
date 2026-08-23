@@ -1164,8 +1164,6 @@ export const da: Dict = {
   'settings.diagnostics.loadFailed': 'Kunne ikke indlæse diagnostikken. Kan serveren nås?',
 
   'settings.nav.help': 'Hjælp',
-  'settings.help.intro':
-    'Hvad dette build kan, organiseret efter opgave i stedet for indstillingsside. Hvert afsnit linker til, hvor det konfigureres.',
 
   'settings.help.intake.title': 'Tilføj downloads',
   'settings.help.intake.body':
@@ -1330,9 +1328,9 @@ export const da: Dict = {
   'settings.browsertools.installChromiumStep2': 'Åbn chrome://extensions (eller edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Slå udviklertilstand til.',
   'settings.browsertools.installChromiumStep4': 'Vælg „Indlæs upakket” og vælg den udpakkede mappe.',
-  'settings.browsertools.installFirefoxStep1': 'Åbn about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Vælg „Indlæs midlertidig tilføjelse” og vælg denne fil.',
-  'settings.browsertools.installFirefoxStep3': 'Forbliver installeret, indtil Firefox genstarter - en permanent installation kræver Mozillas egen signering, som selv-hostet software ikke automatisk kan få.',
+  'settings.browsertools.installFirefoxStep1': 'For permanent installation: åbn about:addons og klik på tandhjulsikonet øverst til højre.',
+  'settings.browsertools.installFirefoxStep2': 'Vælg „Installer tilføjelse fra fil…” og vælg denne fil.',
+  'settings.browsertools.installFirefoxStep3': 'For en hurtig prøve i stedet, åbn about:debugging#/runtime/this-firefox og vælg „Indlæs midlertidig tilføjelse” - forsvinder når Firefox genstarter.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'Tilføj til KnightLoader',
   'settings.browsertools.copyCode': 'Kopiér koden i stedet',

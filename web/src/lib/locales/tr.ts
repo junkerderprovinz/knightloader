@@ -1164,8 +1164,6 @@ export const tr: Dict = {
   'settings.diagnostics.loadFailed': 'Tanılama yüklenemedi. Sunucuya erişilebiliyor mu?',
 
   'settings.nav.help': 'Yardım',
-  'settings.help.intro':
-    'Bu build’in neler yapabildiği, ayarlar sayfasına göre değil, göreve göre düzenlendi. Her bölüm, nerede yapılandırıldığına bağlantı verir.',
 
   'settings.help.intake.title': 'İndirme ekleme',
   'settings.help.intake.body':
@@ -1330,9 +1328,9 @@ export const tr: Dict = {
   'settings.browsertools.installChromiumStep2': 'chrome://extensions (veya edge://extensions, brave://extensions) adresini aç.',
   'settings.browsertools.installChromiumStep3': 'Geliştirici modunu aç.',
   'settings.browsertools.installChromiumStep4': '„Paketlenmemiş öğe yükle”yi seç ve ayıklanan klasörü belirle.',
-  'settings.browsertools.installFirefoxStep1': 'about:debugging#/runtime/this-firefox adresini aç.',
-  'settings.browsertools.installFirefoxStep2': '„Geçici Eklenti Yükle”yi seç ve bu dosyayı belirle.',
-  'settings.browsertools.installFirefoxStep3': 'Firefox yeniden başlayana kadar kurulu kalır - kalıcı kurulum, kendi barındırılan yazılımın otomatik olarak alamayacağı Mozilla’nın kendi imzasını gerektirir.',
+  'settings.browsertools.installFirefoxStep1': 'Kalıcı kurulum için: about:addons adresini aç ve sağ üstteki dişli simgesine tıkla.',
+  'settings.browsertools.installFirefoxStep2': '„Dosyadan Eklenti Yükle…”yi seç ve bu dosyayı belirle.',
+  'settings.browsertools.installFirefoxStep3': 'Bunun yerine hızlı bir deneme için about:debugging#/runtime/this-firefox adresini aç ve „Geçici Eklenti Yükle”yi seç - Firefox yeniden başlatıldığında kaybolur.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': "KnightLoader'a ekle",
   'settings.browsertools.copyCode': 'Bunun yerine kodu kopyala',

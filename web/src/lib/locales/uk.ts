@@ -1164,8 +1164,6 @@ export const uk: Dict = {
   'settings.diagnostics.loadFailed': 'Не вдалося завантажити діагностику. Сервер доступний?',
 
   'settings.nav.help': 'Довідка',
-  'settings.help.intro':
-    'Що вміє ця збірка, впорядковано за завданням, а не за сторінкою налаштувань. Кожен розділ веде туди, де це налаштовується.',
 
   'settings.help.intake.title': 'Додавання завантажень',
   'settings.help.intake.body':
@@ -1331,9 +1329,9 @@ export const uk: Dict = {
   'settings.browsertools.installChromiumStep2': 'Відкрий chrome://extensions (або edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Увімкни режим розробника.',
   'settings.browsertools.installChromiumStep4': 'Обери «Завантажити розпаковане» і вибери розпаковану теку.',
-  'settings.browsertools.installFirefoxStep1': 'Відкрий about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Обери «Завантажити тимчасове доповнення» і вибери цей файл.',
-  'settings.browsertools.installFirefoxStep3': 'Залишається встановленим до перезапуску Firefox - постійне встановлення потребує власного підпису Mozilla, який самостійно розміщене програмне забезпечення не може отримати автоматично.',
+  'settings.browsertools.installFirefoxStep1': 'Для постійного встановлення: відкрий about:addons і натисни іконку шестерні вгорі праворуч.',
+  'settings.browsertools.installFirefoxStep2': 'Обери «Встановити доповнення з файлу…» і вибери цей файл.',
+  'settings.browsertools.installFirefoxStep3': 'Для швидкого тесту натомість відкрий about:debugging#/runtime/this-firefox і обери «Завантажити тимчасове доповнення» - зникає після перезапуску Firefox.',
   'settings.browsertools.bookmarkletTitle': 'Букмарклет',
   'settings.browsertools.bookmarkletLink': 'Додати до KnightLoader',
   'settings.browsertools.copyCode': 'Натомість скопіювати код',

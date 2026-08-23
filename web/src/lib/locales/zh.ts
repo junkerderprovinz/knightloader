@@ -1163,8 +1163,6 @@ export const zh: Dict = {
   'settings.diagnostics.loadFailed': '无法加载诊断信息。服务器可以访问吗？',
 
   'settings.nav.help': '帮助',
-  'settings.help.intro':
-    '这个构建版本能做什么，按任务而非设置页面组织。每个部分都链接到配置它的位置。',
 
   'settings.help.intake.title': '添加下载',
   'settings.help.intake.body':
@@ -1327,9 +1325,9 @@ export const zh: Dict = {
   'settings.browsertools.installChromiumStep2': '打开 chrome://extensions(或 edge://extensions、brave://extensions)。',
   'settings.browsertools.installChromiumStep3': '开启开发者模式。',
   'settings.browsertools.installChromiumStep4': '选择"加载已解压的扩展程序",然后选择解压后的文件夹。',
-  'settings.browsertools.installFirefoxStep1': '打开 about:debugging#/runtime/this-firefox。',
-  'settings.browsertools.installFirefoxStep2': '选择"临时载入附加组件",然后选择此文件。',
-  'settings.browsertools.installFirefoxStep3': '在 Firefox 重启前会一直保持安装状态 - 永久安装需要 Mozilla 自己的签名,而自托管软件无法自动获取该签名。',
+  'settings.browsertools.installFirefoxStep1': '如需永久安装: 打开 about:addons,点击右上角的齿轮图标。',
+  'settings.browsertools.installFirefoxStep2': '选择"从文件安装附加组件…",然后选择此文件。',
+  'settings.browsertools.installFirefoxStep3': '如需快速试用,可改为打开 about:debugging#/runtime/this-firefox,选择"临时载入附加组件" - 重启 Firefox 后会消失。',
   'settings.browsertools.bookmarkletTitle': '书签小工具',
   'settings.browsertools.bookmarkletLink': '添加到 KnightLoader',
   'settings.browsertools.copyCode': '改为复制代码',

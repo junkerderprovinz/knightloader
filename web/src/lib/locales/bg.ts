@@ -1164,8 +1164,6 @@ export const bg: Dict = {
   'settings.diagnostics.loadFailed': 'Диагностиката не можа да бъде заредена. Работи ли сървърът?',
 
   'settings.nav.help': 'Помощ',
-  'settings.help.intro':
-    'Какво може тази компилация, подредено по задача, а не по страница с настройки. Всеки раздел води до мястото, където се настройва.',
 
   'settings.help.intake.title': 'Добавяне на изтегляния',
   'settings.help.intake.body':
@@ -1331,9 +1329,9 @@ export const bg: Dict = {
   'settings.browsertools.installChromiumStep2': 'Отворете chrome://extensions (или edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Включете режим за разработчици.',
   'settings.browsertools.installChromiumStep4': 'Изберете „Зареждане на разархивирано“ и посочете разархивираната папка.',
-  'settings.browsertools.installFirefoxStep1': 'Отворете about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Изберете „Зареждане на временна добавка“ и изберете този файл.',
-  'settings.browsertools.installFirefoxStep3': 'Остава инсталирана до рестартиране на Firefox - постоянна инсталация изисква собствения подпис на Mozilla, който самостоятелно хостван софтуер не може да получи автоматично.',
+  'settings.browsertools.installFirefoxStep1': 'За постоянна инсталация: отворете about:addons и щракнете върху иконата на зъбно колело горе вдясно.',
+  'settings.browsertools.installFirefoxStep2': 'Изберете „Инсталиране на добавка от файл…“ и изберете този файл.',
+  'settings.browsertools.installFirefoxStep3': 'За бърз тест вместо това отворете about:debugging#/runtime/this-firefox и изберете „Зареждане на временна добавка“ - изчезва при рестартиране на Firefox.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'Добави към KnightLoader',
   'settings.browsertools.copyCode': 'Вместо това копирай кода',

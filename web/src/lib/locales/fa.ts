@@ -1164,8 +1164,6 @@ export const fa: Dict = {
   'settings.diagnostics.loadFailed': 'بارگذاری عیب‌یابی ممکن نشد. سرور در دسترس است؟',
 
   'settings.nav.help': 'راهنما',
-  'settings.help.intro':
-    'این بیلد چه کاری می‌تواند انجام دهد، بر اساس وظیفه نه صفحهٔ تنظیمات سازمان‌دهی شده. هر بخش به جایی که در آن پیکربندی می‌شود پیوند می‌دهد.',
 
   'settings.help.intake.title': 'افزودن دانلودها',
   'settings.help.intake.body':
@@ -1330,9 +1328,9 @@ export const fa: Dict = {
   'settings.browsertools.installChromiumStep2': 'chrome://extensions را باز کنید (یا edge://extensions، brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'حالت توسعه‌دهنده را روشن کنید.',
   'settings.browsertools.installChromiumStep4': '«Load unpacked» را انتخاب کنید و پوشه استخراج‌شده را انتخاب کنید.',
-  'settings.browsertools.installFirefoxStep1': 'about:debugging#/runtime/this-firefox را باز کنید.',
-  'settings.browsertools.installFirefoxStep2': '«Load Temporary Add-on» را انتخاب کنید و این فایل را انتخاب کنید.',
-  'settings.browsertools.installFirefoxStep3': 'تا زمان راه‌اندازی مجدد فایرفاکس نصب باقی می‌ماند - نصب دائمی به امضای خود موزیلا نیاز دارد که نرم‌افزار میزبانی‌شده به‌صورت خودی نمی‌تواند به‌طور خودکار دریافت کند.',
+  'settings.browsertools.installFirefoxStep1': 'برای نصب دائمی: about:addons را باز کنید و روی نماد چرخ‌دنده در بالا سمت راست کلیک کنید.',
+  'settings.browsertools.installFirefoxStep2': '«Install Add-on From File…» را انتخاب کنید و این فایل را انتخاب کنید.',
+  'settings.browsertools.installFirefoxStep3': 'برای امتحان سریع، در عوض about:debugging#/runtime/this-firefox را باز کنید و «Load Temporary Add-on» را انتخاب کنید - با راه‌اندازی مجدد فایرفاکس ناپدید می‌شود.',
   'settings.browsertools.bookmarkletTitle': 'بوک‌مارکلت',
   'settings.browsertools.bookmarkletLink': 'افزودن به KnightLoader',
   'settings.browsertools.copyCode': 'در عوض کد را کپی کنید',

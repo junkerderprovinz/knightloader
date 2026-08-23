@@ -1166,8 +1166,6 @@ export const he: Dict = {
   'settings.diagnostics.loadFailed': 'לא ניתן היה לטעון את האבחון. האם השרת זמין?',
 
   'settings.nav.help': 'עזרה',
-  'settings.help.intro':
-    'מה הבילד הזה יודע לעשות, מאורגן לפי משימה ולא לפי עמוד הגדרות. כל קטע מקשר לאן זה מוגדר.',
 
   'settings.help.intake.title': 'הוספת הורדות',
   'settings.help.intake.body':
@@ -1332,9 +1330,9 @@ export const he: Dict = {
   'settings.browsertools.installChromiumStep2': 'פתח את chrome://extensions (או edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'הפעל מצב מפתחים.',
   'settings.browsertools.installChromiumStep4': 'בחר „טען ללא אריזה” ובחר את התיקייה המחולצת.',
-  'settings.browsertools.installFirefoxStep1': 'פתח את about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'בחר „טען תוסף זמני” ובחר קובץ זה.',
-  'settings.browsertools.installFirefoxStep3': 'נשאר מותקן עד להפעלה מחדש של פיירפוקס - התקנה קבועה דורשת חתימה של מוזילה עצמה, שתוכנה בארחה עצמית אינה יכולה לקבל אוטומטית.',
+  'settings.browsertools.installFirefoxStep1': 'להתקנה קבועה: פתח את about:addons ולחץ על סמל גלגל השיניים בפינה הימנית העליונה.',
+  'settings.browsertools.installFirefoxStep2': 'בחר „התקן תוסף מקובץ…” ובחר קובץ זה.',
+  'settings.browsertools.installFirefoxStep3': 'לניסיון מהיר במקום זאת, פתח את about:debugging#/runtime/this-firefox ובחר „טען תוסף זמני” - נעלם עם הפעלה מחדש של פיירפוקס.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'הוסף ל-KnightLoader',
   'settings.browsertools.copyCode': 'העתק את הקוד במקום זאת',

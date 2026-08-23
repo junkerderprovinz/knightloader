@@ -1156,8 +1156,6 @@ export const nl: Dict = {
   'settings.diagnostics.loadFailed': 'Kon de diagnostiek niet laden. Is de server bereikbaar?',
 
   'settings.nav.help': 'Hulp',
-  'settings.help.intro':
-    'Wat deze build kan, ingedeeld op taak in plaats van op instellingenpagina. Elke sectie linkt naar waar het wordt ingesteld.',
 
   'settings.help.intake.title': 'Downloads toevoegen',
   'settings.help.intake.body':
@@ -1323,9 +1321,9 @@ export const nl: Dict = {
   'settings.browsertools.installChromiumStep2': 'Open chrome://extensions (of edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Zet Ontwikkelaarsmodus aan.',
   'settings.browsertools.installChromiumStep4': 'Kies „Uitgepakte extensie laden” en selecteer de uitgepakte map.',
-  'settings.browsertools.installFirefoxStep1': 'Open about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Kies „Tijdelijke add-on laden” en selecteer dit bestand.',
-  'settings.browsertools.installFirefoxStep3': 'Blijft geïnstalleerd tot Firefox opnieuw start - een permanente installatie vereist Mozilla’s eigen ondertekening, die self-hosted software niet automatisch kan krijgen.',
+  'settings.browsertools.installFirefoxStep1': 'Voor een permanente installatie: open about:addons en klik rechtsboven op het tandwielicoon.',
+  'settings.browsertools.installFirefoxStep2': 'Kies „Add-on installeren vanuit bestand…” en selecteer dit bestand.',
+  'settings.browsertools.installFirefoxStep3': 'Voor een snelle test in plaats daarvan: open about:debugging#/runtime/this-firefox en kies „Tijdelijke add-on laden” - verdwijnt bij het herstarten van Firefox.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'Toevoegen aan KnightLoader',
   'settings.browsertools.copyCode': 'In plaats daarvan de code kopiëren',

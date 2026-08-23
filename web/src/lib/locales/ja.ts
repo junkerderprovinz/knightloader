@@ -1164,8 +1164,6 @@ export const ja: Dict = {
   'settings.diagnostics.loadFailed': '診断を読み込めませんでした。サーバーに接続できますか。',
 
   'settings.nav.help': 'ヘルプ',
-  'settings.help.intro':
-    'このビルドでできることを、設定ページ単位ではなくタスク単位でまとめたものです。各セクションは設定箇所へのリンクを含みます。',
 
   'settings.help.intake.title': 'ダウンロードの追加',
   'settings.help.intake.body':
@@ -1330,9 +1328,9 @@ export const ja: Dict = {
   'settings.browsertools.installChromiumStep2': 'chrome://extensions を開く(または edge://extensions、brave://extensions)。',
   'settings.browsertools.installChromiumStep3': 'デベロッパーモードをオンにする。',
   'settings.browsertools.installChromiumStep4': '「パッケージ化されていない拡張機能を読み込む」を選び、解凍したフォルダーを選択する。',
-  'settings.browsertools.installFirefoxStep1': 'about:debugging#/runtime/this-firefox を開く。',
-  'settings.browsertools.installFirefoxStep2': '「一時的なアドオンを読み込む」を選び、このファイルを選択する。',
-  'settings.browsertools.installFirefoxStep3': 'Firefox を再起動するまでインストールされたままになる - 恒久的なインストールには Mozilla 独自の署名が必要で、セルフホスト型ソフトウェアは自動的に取得できない。',
+  'settings.browsertools.installFirefoxStep1': '永続的にインストールするには: about:addons を開き、右上の歯車アイコンをクリックする。',
+  'settings.browsertools.installFirefoxStep2': '「ファイルからアドオンをインストール…」を選び、このファイルを選択する。',
+  'settings.browsertools.installFirefoxStep3': '代わりにすぐ試すには、about:debugging#/runtime/this-firefox を開き、「一時的なアドオンを読み込む」を選択する - Firefox を再起動すると消える。',
   'settings.browsertools.bookmarkletTitle': 'ブックマークレット',
   'settings.browsertools.bookmarkletLink': 'KnightLoaderに追加',
   'settings.browsertools.copyCode': '代わりにコードをコピー',

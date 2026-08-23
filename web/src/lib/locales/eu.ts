@@ -1164,8 +1164,6 @@ export const eu: Dict = {
   'settings.diagnostics.loadFailed': 'Ezin izan da diagnostikoa kargatu. Zerbitzaria eskuragarri dago?',
 
   'settings.nav.help': 'Laguntza',
-  'settings.help.intro':
-    'Build honek zer egin dezakeen, ezarpen-orriaren arabera ez, zereginaren arabera antolatuta. Atal bakoitzak konfiguratzen den lekura eramaten du.',
 
   'settings.help.intake.title': 'Deskargak gehitzea',
   'settings.help.intake.body':
@@ -1330,9 +1328,9 @@ export const eu: Dict = {
   'settings.browsertools.installChromiumStep2': 'Ireki chrome://extensions (edo edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Piztu garatzaile modua.',
   'settings.browsertools.installChromiumStep4': 'Aukeratu «Kargatu deskonprimitua» eta hautatu deskonprimitutako karpeta.',
-  'settings.browsertools.installFirefoxStep1': 'Ireki about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Aukeratu «Kargatu aldi baterako gehigarria» eta hautatu fitxategi hau.',
-  'settings.browsertools.installFirefoxStep3': 'Instalatuta jarraitzen du Firefox berrabiarazi arte - instalazio iraunkorrak Mozillaren berezko sinadura behar du, autoostatatutako softwareak automatikoki lortu ezin duena.',
+  'settings.browsertools.installFirefoxStep1': 'Betiko instalatzeko: ireki about:addons eta egin klik goiko eskuineko engranaje ikonoan.',
+  'settings.browsertools.installFirefoxStep2': 'Aukeratu «Instalatu gehigarria fitxategitik…» eta hautatu fitxategi hau.',
+  'settings.browsertools.installFirefoxStep3': 'Bizkor probatzeko, horren ordez ireki about:debugging#/runtime/this-firefox eta aukeratu «Kargatu aldi baterako gehigarria» - Firefox berrabiaraztean desagertzen da.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet-a',
   'settings.browsertools.bookmarkletLink': 'Gehitu KnightLoader-era',
   'settings.browsertools.copyCode': 'Kopiatu kodea horren ordez',

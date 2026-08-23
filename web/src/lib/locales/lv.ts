@@ -1164,8 +1164,6 @@ export const lv: Dict = {
   'settings.diagnostics.loadFailed': 'Neizdevās ielādēt diagnostiku. Vai serveris ir sasniedzams?',
 
   'settings.nav.help': 'Palīdzība',
-  'settings.help.intro':
-    'Ko šī versija spēj, sakārtots pēc uzdevuma, nevis pēc iestatījumu lapas. Katra sadaļa ved uz vietu, kur tas tiek konfigurēts.',
 
   'settings.help.intake.title': 'Lejupielāžu pievienošana',
   'settings.help.intake.body':
@@ -1330,9 +1328,9 @@ export const lv: Dict = {
   'settings.browsertools.installChromiumStep2': 'Atver chrome://extensions (vai edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Ieslēdz izstrādātāja režīmu.',
   'settings.browsertools.installChromiumStep4': 'Izvēlies „Ielādēt izpakotu” un norādi izpakoto mapi.',
-  'settings.browsertools.installFirefoxStep1': 'Atver about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Izvēlies „Ielādēt pagaidu papildinājumu” un norādi šo failu.',
-  'settings.browsertools.installFirefoxStep3': 'Paliek instalēts, līdz Firefox restartējas - pastāvīgai instalācijai nepieciešams Mozilla parakstījums, ko pašmitināta programmatūra nevar iegūt automātiski.',
+  'settings.browsertools.installFirefoxStep1': 'Pastāvīgai instalācijai: atver about:addons un noklikšķini uz zobrata ikonas augšējā labajā stūrī.',
+  'settings.browsertools.installFirefoxStep2': 'Izvēlies „Instalēt papildinājumu no faila…” un norādi šo failu.',
+  'settings.browsertools.installFirefoxStep3': 'Ātrai izmēģināšanai atver about:debugging#/runtime/this-firefox un izvēlies „Ielādēt pagaidu papildinājumu” - pazūd, kad Firefox restartējas.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'Pievienot KnightLoader',
   'settings.browsertools.copyCode': 'Tā vietā kopēt kodu',

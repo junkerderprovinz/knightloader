@@ -1164,8 +1164,6 @@ export const cs: Dict = {
   'settings.diagnostics.loadFailed': 'Diagnostiku se nepodařilo načíst. Je server dostupný?',
 
   'settings.nav.help': 'Nápověda',
-  'settings.help.intro':
-    'Co tento build umí, uspořádané podle úkolu, ne podle stránky nastavení. Každá část odkazuje tam, kde se to nastavuje.',
 
   'settings.help.intake.title': 'Přidávání stahování',
   'settings.help.intake.body':
@@ -1331,9 +1329,9 @@ export const cs: Dict = {
   'settings.browsertools.installChromiumStep2': 'Otevři chrome://extensions (nebo edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Zapni vývojářský režim.',
   'settings.browsertools.installChromiumStep4': 'Zvol „Načíst rozbalené“ a vyber rozbalenou složku.',
-  'settings.browsertools.installFirefoxStep1': 'Otevři about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Zvol „Načíst dočasný doplněk“ a vyber tento soubor.',
-  'settings.browsertools.installFirefoxStep3': 'Zůstane nainstalované do restartu Firefoxu - trvalá instalace vyžaduje vlastní podpis Mozilly, který si samostatně hostovaný software nemůže obstarat automaticky.',
+  'settings.browsertools.installFirefoxStep1': 'Pro trvalou instalaci: otevři about:addons a klikni na ikonu ozubeného kola vpravo nahoře.',
+  'settings.browsertools.installFirefoxStep2': 'Zvol „Instalovat doplněk ze souboru…“ a vyber tento soubor.',
+  'settings.browsertools.installFirefoxStep3': 'Pro rychlé vyzkoušení místo toho otevři about:debugging#/runtime/this-firefox a zvol „Načíst dočasný doplněk“ - zmizí po restartu Firefoxu.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'Přidat do KnightLoaderu',
   'settings.browsertools.copyCode': 'Místo toho zkopírovat kód',

@@ -1164,8 +1164,6 @@ export const is: Dict = {
   'settings.diagnostics.loadFailed': 'Ekki tókst að hlaða inn greiningunni. Næst í netþjóninn?',
 
   'settings.nav.help': 'Hjálp',
-  'settings.help.intro':
-    'Hvað þessi útgáfa getur gert, flokkað eftir verkefni frekar en stillingasíðu. Hver hluti tengir á staðinn þar sem það er stillt.',
 
   'settings.help.intake.title': 'Bæta við niðurhali',
   'settings.help.intake.body':
@@ -1330,9 +1328,9 @@ export const is: Dict = {
   'settings.browsertools.installChromiumStep2': 'Opnaðu chrome://extensions (eða edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Kveiktu á forritaraham.',
   'settings.browsertools.installChromiumStep4': 'Veldu „Hlaða inn óþjappaðri“ og veldu afþjappaðu möppuna.',
-  'settings.browsertools.installFirefoxStep1': 'Opnaðu about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Veldu „Hlaða inn tímabundinni viðbót“ og veldu þessa skrá.',
-  'settings.browsertools.installFirefoxStep3': 'Er áfram uppsett þar til Firefox endurræsist - varanleg uppsetning krefst eigin undirritunar Mozilla, sem sjálfhýst hugbúnaður getur ekki fengið sjálfkrafa.',
+  'settings.browsertools.installFirefoxStep1': 'Fyrir varanlega uppsetningu: opnaðu about:addons og smelltu á gírtannhjólstáknið efst til hægri.',
+  'settings.browsertools.installFirefoxStep2': 'Veldu „Setja upp viðbót úr skrá…“ og veldu þessa skrá.',
+  'settings.browsertools.installFirefoxStep3': 'Fyrir fljóta prófun skaltu í staðinn opna about:debugging#/runtime/this-firefox og velja „Hlaða inn tímabundinni viðbót“ - hverfur þegar Firefox endurræsist.',
   'settings.browsertools.bookmarkletTitle': 'Bókamerkjaforrit',
   'settings.browsertools.bookmarkletLink': 'Bæta við KnightLoader',
   'settings.browsertools.copyCode': 'Afrita kóðann í staðinn',

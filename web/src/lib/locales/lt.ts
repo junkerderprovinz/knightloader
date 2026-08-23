@@ -1164,8 +1164,6 @@ export const lt: Dict = {
   'settings.diagnostics.loadFailed': 'Nepavyko įkelti diagnostikos. Ar serveris pasiekiamas?',
 
   'settings.nav.help': 'Pagalba',
-  'settings.help.intro':
-    'Ką gali ši versija, sutvarkyta pagal užduotį, o ne pagal nustatymų puslapį. Kiekvienas skyrius nukreipia ten, kur tai konfigūruojama.',
 
   'settings.help.intake.title': 'Atsisiuntimų pridėjimas',
   'settings.help.intake.body':
@@ -1330,9 +1328,9 @@ export const lt: Dict = {
   'settings.browsertools.installChromiumStep2': 'Atidaryk chrome://extensions (arba edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Įjunk kūrėjo režimą.',
   'settings.browsertools.installChromiumStep4': 'Pasirink „Įkelti išpakuotą“ ir nurodyk išpakuotą aplanką.',
-  'settings.browsertools.installFirefoxStep1': 'Atidaryk about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Pasirink „Įkelti laikiną priedą“ ir pasirink šį failą.',
-  'settings.browsertools.installFirefoxStep3': 'Lieka įdiegtas, kol Firefox nepersikraus - nuolatiniam diegimui reikia Mozilla parašo, kurio savarankiškai talpinama programinė įranga negali gauti automatiškai.',
+  'settings.browsertools.installFirefoxStep1': 'Norint įdiegti visam laikui: atidaryk about:addons ir spustelėk krumpliaračio piktogramą viršuje dešinėje.',
+  'settings.browsertools.installFirefoxStep2': 'Pasirink „Įdiegti priedą iš failo…“ ir pasirink šį failą.',
+  'settings.browsertools.installFirefoxStep3': 'Greitam išbandymui atidaryk about:debugging#/runtime/this-firefox ir pasirink „Įkelti laikiną priedą“ - dingsta iš naujo paleidus Firefox.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'Pridėti prie KnightLoader',
   'settings.browsertools.copyCode': 'Vietoj to kopijuoti kodą',

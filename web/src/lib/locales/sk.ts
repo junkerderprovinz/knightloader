@@ -1164,8 +1164,6 @@ export const sk: Dict = {
   'settings.diagnostics.loadFailed': 'Diagnostiku sa nepodarilo načítať. Beží server?',
 
   'settings.nav.help': 'Pomocník',
-  'settings.help.intro':
-    'Čo tento build dokáže, usporiadané podľa úlohy, nie podľa stránky nastavení. Každá časť odkazuje tam, kde sa to nastavuje.',
 
   'settings.help.intake.title': 'Pridávanie sťahovaní',
   'settings.help.intake.body':
@@ -1331,9 +1329,9 @@ export const sk: Dict = {
   'settings.browsertools.installChromiumStep2': 'Otvor chrome://extensions (alebo edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Zapni vývojársky režim.',
   'settings.browsertools.installChromiumStep4': 'Zvoľ „Načítať rozbalené“ a vyber rozbalený priečinok.',
-  'settings.browsertools.installFirefoxStep1': 'Otvor about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Zvoľ „Načítať dočasný doplnok“ a vyber tento súbor.',
-  'settings.browsertools.installFirefoxStep3': 'Zostáva nainštalované, kým sa Firefox reštartuje - trvalá inštalácia vyžaduje vlastný podpis Mozilly, ktorý samostatne hostovaný softvér nemôže získať automaticky.',
+  'settings.browsertools.installFirefoxStep1': 'Pre trvalú inštaláciu: otvor about:addons a klikni na ikonu ozubeného kolieska vpravo hore.',
+  'settings.browsertools.installFirefoxStep2': 'Zvoľ „Inštalovať doplnok zo súboru…“ a vyber tento súbor.',
+  'settings.browsertools.installFirefoxStep3': 'Pre rýchle vyskúšanie namiesto toho otvor about:debugging#/runtime/this-firefox a zvoľ „Načítať dočasný doplnok“ - zmizne po reštarte Firefoxu.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'Pridať do KnightLoader',
   'settings.browsertools.copyCode': 'Namiesto toho skopírovať kód',

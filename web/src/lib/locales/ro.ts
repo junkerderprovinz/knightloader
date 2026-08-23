@@ -1164,8 +1164,6 @@ export const ro: Dict = {
   'settings.diagnostics.loadFailed': 'Diagnosticul nu a putut fi încărcat. Serverul este accesibil?',
 
   'settings.nav.help': 'Ajutor',
-  'settings.help.intro':
-    'Ce poate face acest build, organizat pe sarcini, nu pe pagini de setări. Fiecare secțiune trimite spre locul unde se configurează.',
 
   'settings.help.intake.title': 'Adăugarea descărcărilor',
   'settings.help.intake.body':
@@ -1330,9 +1328,9 @@ export const ro: Dict = {
   'settings.browsertools.installChromiumStep2': 'Deschide chrome://extensions (sau edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Activează modul dezvoltator.',
   'settings.browsertools.installChromiumStep4': 'Alege „Încarcă extensia neambalată” și selectează folderul dezarhivat.',
-  'settings.browsertools.installFirefoxStep1': 'Deschide about:debugging#/runtime/this-firefox.',
-  'settings.browsertools.installFirefoxStep2': 'Alege „Încarcă un supliment temporar” și selectează acest fișier.',
-  'settings.browsertools.installFirefoxStep3': 'Rămâne instalată până la repornirea Firefox - o instalare permanentă necesită semnătura proprie Mozilla, pe care software-ul auto-găzduit nu o poate obține automat.',
+  'settings.browsertools.installFirefoxStep1': 'Pentru o instalare permanentă: deschide about:addons și dă clic pe iconița roată dințată din dreapta sus.',
+  'settings.browsertools.installFirefoxStep2': 'Alege „Instalează suplimentul din fișier…” și selectează acest fișier.',
+  'settings.browsertools.installFirefoxStep3': 'Pentru o încercare rapidă, deschide about:debugging#/runtime/this-firefox și alege „Încarcă un supliment temporar” - dispare la repornirea Firefox.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
   'settings.browsertools.bookmarkletLink': 'Adaugă la KnightLoader',
   'settings.browsertools.copyCode': 'Copiază codul în schimb',
