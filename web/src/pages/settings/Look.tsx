@@ -126,7 +126,6 @@ export function Look() {
         <Tabs
           label={t('settings.shape')}
           size="sm"
-          equalWidth
           className="w-fit"
           active={cfg.shape}
           onSelect={(id) => patch({ shape: id as Shape })}
@@ -325,7 +324,6 @@ export function Look() {
         <Tabs
           label={t('settings.theme')}
           size="sm"
-          equalWidth
           className="w-fit"
           active={theme}
           onSelect={(id) => setTheme(id as 'dark' | 'light')}
