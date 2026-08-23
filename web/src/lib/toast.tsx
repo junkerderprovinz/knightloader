@@ -244,7 +244,12 @@ export function QuietModeToggle() {
   const [quiet, setQuiet] = useUIState(QUIET_KEY, false);
   return (
     <div className="flex items-start justify-between gap-4">
-      <span className="text-xs text-carbon-textMuted">{nx('notifications.quietHint')}</span>
+      {/* Normal body text, matching every other row's own caption (e.g.
+          Rainbow's "Regenbogen-Modus") - was text-xs/muted, which read as
+          a small secondary caption when it is actually this row's only
+          text (jdp: "bitte normal formatieren, wie die Schrift von zb
+          Regenbogen-Modus"). */}
+      <span className="text-sm text-carbon-text">{nx('notifications.quietHint')}</span>
       <span className="mt-0.5">
         <Toggle hideLabel checked={quiet} onChange={setQuiet} label={nx('notifications.quiet')} />
       </span>
