@@ -1,7 +1,8 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import logoUrl from '../../assets/logo.svg';
 import { buildBookmarklet } from '../../lib/browserTools';
-import { useInstallPrompt } from '../../lib/pwaInstall';
+import { fetchExtensionVersion } from '../../lib/api';
 import { useT } from '../../lib/i18n';
 import { Button, Card, InfoBubble, SectionTitle } from '../../components/ui';
 
@@ -9,27 +10,25 @@ import { Button, Card, InfoBubble, SectionTitle } from '../../components/ui';
  * Two ways to hand KnightLoader a link from outside the app itself
  * (build-plan.md's 11D): a bookmarklet and the MV3 browser extension
  * (extension/src, downloaded pre-filled with THIS instance's own address -
- * see internal/api/routes_browsertools.go), plus installing this page as an
- * app so the OS Share menu can reach it directly.
+ * see internal/api/routes_browsertools.go). Installing this page as an app
+ * lives on the Zugang tab, not here - see the note above the link at the
+ * bottom of this component for why.
  *
- * All three land on the same place, /quickadd (pages/QuickAdd.tsx) - this
- * page only ever has to build the address and the drag-target, not the
- * staging logic.
- *
- * Not the Remote access page build-plan.md section 8's Wave 11 note gives
- * 11C: that page is about reaching this INSTANCE (tokens, QR code, the
- * exposure warning), where this one is about reaching THIS APP from
- * somewhere else. useInstallPrompt (lib/pwaInstall.ts) is shared so 11C's
- * page can offer the identical install button without a second
- * beforeinstallprompt listener stepping on this one - see that file's own
- * doc comment.
+ * Both land on the same place, /quickadd (pages/QuickAdd.tsx) - this page
+ * only ever has to build the address and the drag-target, not the staging
+ * logic.
  */
 export function BrowserTools() {
   const { t } = useT();
   const origin = window.location.origin;
   const bookmarklet = buildBookmarklet(origin);
   const [copied, setCopied] = useState(false);
-  const { available: canInstall, promptInstall } = useInstallPrompt();
+  const [extensionVersion, setExtensionVersion] = useState<string | null>(null);
+  useEffect(() => {
+    void fetchExtensionVersion()
+      .then((v) => setExtensionVersion(v.version))
+      .catch(() => {});
+  }, []);
 
   const chromiumHint = (
     <ol className="list-decimal space-y-1 pl-4">
@@ -92,7 +91,12 @@ export function BrowserTools() {
       </Card>
 
       <Card className="flex flex-col gap-4">
-        <SectionTitle hue={1}>{t('settings.browsertools.extensionTitle')}</SectionTitle>
+        <SectionTitle
+          hue={1}
+          right={extensionVersion && <span className="glim-num text-[11px] text-carbon-textMuted">v{extensionVersion}</span>}
+        >
+          {t('settings.browsertools.extensionTitle')}
+        </SectionTitle>
         {/* One badge per browser, each the real brand mark (Simple Icons,
             taken 1:1 - never hand-rebuilt) instead of GlimStone's own
             monochrome glyph set: a Firefox logo re-tinted to the accent
@@ -108,30 +112,52 @@ export function BrowserTools() {
             icon soll in die ecke der jeweiligen downloadcard") rather than
             as a paragraph below the row. */}
         <div className="flex flex-wrap gap-3">
-          <BrowserBadge logo={<LogoChrome />} name="Chrome" onClick={downloadZip} hint={chromiumHint} hintLabel={installLabel} />
-          <BrowserBadge logo={<LogoEdge />} name="Edge" onClick={downloadZip} hint={chromiumHint} hintLabel={installLabel} />
-          <BrowserBadge logo={<LogoBrave />} name="Brave" onClick={downloadZip} hint={chromiumHint} hintLabel={installLabel} />
-          <BrowserBadge logo={<LogoOpera />} name="Opera" onClick={downloadZip} hint={chromiumHint} hintLabel={installLabel} />
-          <BrowserBadge logo={<LogoVivaldi />} name="Vivaldi" onClick={downloadZip} hint={chromiumHint} hintLabel={installLabel} />
-          <BrowserBadge logo={<LogoFirefox />} name="Firefox" onClick={downloadXpi} hint={firefoxHint} hintLabel={installLabel} />
+          <BrowserBadge logo={<LogoChrome />} name="Chrome" onClick={badgeAction('Chrome', downloadZip)} hint={chromiumHint} hintLabel={installLabel} />
+          <BrowserBadge logo={<LogoEdge />} name="Edge" onClick={badgeAction('Edge', downloadZip)} hint={chromiumHint} hintLabel={installLabel} />
+          <BrowserBadge logo={<LogoBrave />} name="Brave" onClick={badgeAction('Chrome', downloadZip)} hint={chromiumHint} hintLabel={installLabel} />
+          <BrowserBadge logo={<LogoOpera />} name="Opera" onClick={badgeAction('Chrome', downloadZip)} hint={chromiumHint} hintLabel={installLabel} />
+          <BrowserBadge logo={<LogoVivaldi />} name="Vivaldi" onClick={badgeAction('Chrome', downloadZip)} hint={chromiumHint} hintLabel={installLabel} />
+          <BrowserBadge logo={<LogoFirefox />} name="Firefox" onClick={badgeAction('Firefox', downloadXpi)} hint={firefoxHint} hintLabel={installLabel} />
         </div>
       </Card>
 
-      <Card className="flex flex-col gap-3">
-        <SectionTitle hue={2}>{t('settings.browsertools.installTitle')}</SectionTitle>
-        <p className="text-[11px] text-carbon-textMuted">{t('settings.browsertools.installHint')}</p>
-        {canInstall ? (
-          <div>
-            <Button kind="secondary" onClick={() => void promptInstall()}>
-              {t('settings.browsertools.install')}
-            </Button>
-          </div>
-        ) : (
-          <p className="text-[11px] text-carbon-textMuted">{t('settings.browsertools.installed')}</p>
-        )}
-      </Card>
+      {/* "Als App installieren" lives on the Zugang tab only now - jdp,
+          2026-08-23: "Im tab Zugang und Browsererweiterung ist eine Card
+          'Als app installieren'. warum zweimal?" That card is the more
+          complete one (it also covers the desktop build, where installing
+          as an app makes no sense, and Safari/iOS's manual share-sheet
+          path); this page just points at it instead of carrying a second,
+          thinner copy that could drift from it. */}
+      <Link
+        to="/settings/access"
+        className="self-start text-[11px] text-carbon-textMuted underline-offset-2 hover:text-carbon-text hover:underline"
+      >
+        {t('settings.browsertools.installedElsewhere')}
+      </Link>
     </div>
   );
+}
+
+/**
+ * Filled in once a listing actually goes live in that store - empty for now,
+ * since submission needs jdp's own developer accounts (Chrome Web Store,
+ * Microsoft Partner Center, addons.mozilla.org) and none exist yet. Brave,
+ * Opera and Vivaldi install straight from the Chrome Web Store rather than
+ * running their own listing, so they share Chrome's URL once it exists.
+ * Until a URL is set here, that badge keeps downloading the packaged
+ * extension directly - see badgeAction() below.
+ */
+const STORE_URLS: Record<'Chrome' | 'Edge' | 'Firefox', string> = {
+  Chrome: '',
+  Edge: '',
+  Firefox: '',
+};
+
+/** badgeAction opens the live store listing once one exists, otherwise falls
+ *  back to downloading the packaged extension straight from this instance. */
+function badgeAction(store: 'Chrome' | 'Edge' | 'Firefox', fallback: () => void): () => void {
+  const url = STORE_URLS[store];
+  return url ? () => window.open(url, '_blank', 'noopener,noreferrer') : fallback;
 }
 
 function downloadZip() {
