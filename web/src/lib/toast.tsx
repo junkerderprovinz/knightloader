@@ -207,7 +207,7 @@ function ToastBubble({ item, onDismiss }: { item: ToastMessage; onDismiss: (id: 
       // says - the second defect this file fixes.
       className="glim-toast pointer-events-auto flex items-center gap-2.5 rounded-[var(--radius-control)] bg-carbon-surface px-4 py-2.5 text-sm text-carbon-text shadow-[var(--elevation)]"
     >
-      <span className={`h-2 w-2 shrink-0 rounded-full ${dot[item.tone]}`} />
+      <span className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${dot[item.tone]}`} />
       <span className={toneClass[item.tone]}>{item.message}</span>
       <span className="flex-1" />
       <Button

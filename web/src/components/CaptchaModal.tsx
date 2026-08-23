@@ -375,7 +375,7 @@ export function CaptchaModal() {
               {points.map((p, i) => (
                 <span
                   key={i}
-                  className="pointer-events-none absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent ring-2 ring-white"
+                  className="pointer-events-none absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-[var(--radius-pill)] bg-accent ring-2 ring-white"
                   style={{ left: `${p.xFrac * 100}%`, top: `${p.yFrac * 100}%` }}
                 />
               ))}

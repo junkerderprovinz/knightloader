@@ -4,6 +4,7 @@ import {
   Card,
   Field,
   FieldGroup,
+  IconBadge,
   InfoBubble,
   NumberInput,
   SectionTitle,
@@ -573,22 +574,20 @@ function RequestRow({
         </span>
         <span className="flex-1" />
         {/* Secondary actions on hover and on keyboard focus - rule 6. */}
-        <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-          <Button
-            kind="ghost"
+        <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+          <IconBadge
             icon={<IconArrowUp width={14} height={14} />}
             aria-label={t('settings.reconnect.requestUp')}
             disabled={index === 0}
             onClick={() => onMove(-1)}
           />
-          <Button
-            kind="ghost"
+          <IconBadge
             icon={<IconArrowDown width={14} height={14} />}
             aria-label={t('settings.reconnect.requestDown')}
             disabled={last}
             onClick={() => onMove(1)}
           />
-          <Button
+          <IconBadge
             kind="danger"
             icon={<IconTrash width={14} height={14} />}
             aria-label={t('settings.reconnect.requestRemove')}

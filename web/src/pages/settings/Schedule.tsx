@@ -4,6 +4,7 @@ import {
   Card,
   Field,
   FieldGroup,
+  IconBadge,
   PageHeader,
   SectionTitle,
   TextInput,
@@ -611,7 +612,7 @@ function StateBanner({
   return (
       <Card className="flex items-center gap-3">
         <SectionTitle hue={0}>{cx('settings.schedule.statusTitle')}</SectionTitle>
-        <span className={`h-2 w-2 shrink-0 rounded-full ${active ? 'bg-accent' : 'bg-carbon-textMuted'}`} aria-hidden />
+        <span className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${active ? 'bg-accent' : 'bg-carbon-textMuted'}`} aria-hidden />
         <div className="flex min-w-0 flex-col gap-0.5">
           <span className="text-sm text-carbon-text">{nowText}</span>
           <span className="text-xs text-carbon-textMuted">{changeText}</span>
@@ -713,22 +714,20 @@ function EntryRow({
             {nextText}
           </span>
         </button>
-        <div className="flex items-center gap-0.5">
-          <Button
-            kind="ghost"
+        <div className="flex items-center gap-1.5">
+          <IconBadge
             icon={<IconArrowUp width={14} height={14} />}
             aria-label={cx('settings.schedule.moveUp')}
             disabled={index === 0}
             onClick={() => onMove(-1)}
           />
-          <Button
-            kind="ghost"
+          <IconBadge
             icon={<IconArrowDown width={14} height={14} />}
             aria-label={cx('settings.schedule.moveDown')}
             disabled={last}
             onClick={() => onMove(1)}
           />
-          <Button
+          <IconBadge
             kind="danger"
             icon={<IconTrash width={14} height={14} />}
             aria-label={cx('settings.schedule.remove')}

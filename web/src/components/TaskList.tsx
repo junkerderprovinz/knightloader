@@ -7,7 +7,7 @@ import { pause, resume, remove, startTasks, restartTasks, recheckTasks, setTaskO
 import { useT, type TranslationKey } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { useUIState } from '../lib/uistate';
-import { Button, Card, Field, FieldGroup, InfoBubble, SectionTitle, TextArea, TextInput } from './ui';
+import { Button, Card, Field, FieldGroup, IconBadge, InfoBubble, SectionTitle, TextArea, TextInput } from './ui';
 import { Tabs } from './Tabs';
 import { TaskOptionsDialog } from './ListToolbar';
 import { ColumnMenu } from './ColumnMenu';
@@ -218,36 +218,38 @@ function TaskRow({
       })}
 
       {/* The primary action stays visible; the rest appears on hover or focus,
-          so a long list reads as content instead of a wall of buttons. */}
-      <div className="flex items-center justify-end gap-0.5">
+          so a long list reads as content instead of a wall of buttons.
+          IconBadge, not a plain ghost icon (jdp, on the same pattern in
+          Rules.tsx: "die icons ... sind nicht im Glimstone. das sollen
+          farbige quadratischen badges mit icon sein") - this is the
+          highest-traffic row in the app, so it gets the fix first. */}
+      <div className="flex items-center justify-end gap-1">
         {collected && (
-          <Button kind="ghost" icon={<IconPlay />} title={t('task.start')} onClick={() => startTasks([task.id], base)} />
+          <IconBadge icon={<IconPlay />} title={t('task.start')} onClick={() => startTasks([task.id], base)} />
         )}
         {task.status === 'running' && (
-          <Button kind="ghost" icon={<IconPause />} title={t('task.pause')} onClick={() => pause(task.id, base)} />
+          <IconBadge icon={<IconPause />} title={t('task.pause')} onClick={() => pause(task.id, base)} />
         )}
         {task.status === 'paused' && (
-          <Button kind="ghost" icon={<IconPlay />} title={t('task.resume')} onClick={() => resume(task.id, base)} />
+          <IconBadge icon={<IconPlay />} title={t('task.resume')} onClick={() => resume(task.id, base)} />
         )}
-        <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+        <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           {collected && (
-            <Button
-              kind="ghost"
+            <IconBadge
               icon={<IconSearch />}
               title={t('task.recheck')}
               onClick={() => recheckTasks([task.id], base)}
             />
           )}
-          <Button kind="ghost" icon={<IconFolder />} title={t('task.folder')} onClick={() => setOptions(true)} />
+          <IconBadge icon={<IconFolder />} title={t('task.folder')} onClick={() => setOptions(true)} />
           {settled && (
-            <Button
-              kind="ghost"
+            <IconBadge
               icon={<IconRetry />}
               title={t('task.restart')}
               onClick={() => restartTasks([task.id], base)}
             />
           )}
-          <Button kind="danger" icon={<IconTrash />} title={t('task.remove')} onClick={() => remove(task.id, base)} />
+          <IconBadge kind="danger" icon={<IconTrash />} title={t('task.remove')} onClick={() => remove(task.id, base)} />
         </div>
       </div>
 

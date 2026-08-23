@@ -40,6 +40,45 @@ export function Button({
   );
 }
 
+type IconBadgeKind = 'neutral' | 'danger';
+
+const iconBadgeClass: Record<IconBadgeKind, string> = {
+  neutral: 'bg-carbon-surface2 text-carbon-textSub hover:bg-carbon-surface3 hover:text-carbon-text',
+  danger: 'bg-statusFailBg text-statusFail hover:brightness-110',
+};
+
+/**
+ * A small square colour tile around one glyph - the shape a cluster of
+ * icon-only actions (a row's hover controls, a header's small utility
+ * buttons) reads as, distinct from `Button`'s own icon-only mode, which
+ * stays transparent until hovered and reads as bare floating glyphs rather
+ * than a control (jdp, on Rules.tsx's row actions specifically: "die icons
+ * die bei mouseover auf die regel erscheinen sind nicht im Glimstone. das
+ * sollen farbige quadratischen badges mit icon sein"). `h-8 w-8` matches
+ * the sibling apps' own icon-badge footprint (BombVault's Settings.tsx).
+ */
+export function IconBadge({
+  icon,
+  kind = 'neutral',
+  className = '',
+  ...rest
+}: {
+  icon: ReactNode;
+  kind?: IconBadgeKind;
+} & ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button
+      type="button"
+      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-control)]
+        transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
+        motion-safe:active:scale-[.98] ${iconBadgeClass[kind]} ${className}`}
+      {...rest}
+    >
+      {icon}
+    </button>
+  );
+}
+
 // One caption, so a Field and a FieldGroup cannot drift apart: they are the same
 // row of words with the same (i) beside it, and the only difference between them
 // is which element wraps the control underneath.
@@ -215,7 +254,7 @@ export function InfoBubble({
         onFocus={open}
         onBlur={() => setAt(null)}
         className={`glim-info ms-1.5 inline-flex h-[15px] w-[15px] shrink-0 cursor-help items-center
-          justify-center rounded-full align-middle transition-opacity ${
+          justify-center rounded-[var(--radius-pill)] align-middle transition-opacity ${
             onColor
               ? 'text-current opacity-80 hover:opacity-100 focus-visible:opacity-100'
               : 'text-carbon-textMuted hover:text-carbon-textSub focus-visible:text-carbon-textSub'
@@ -591,7 +630,7 @@ export function NumberInput({
           tabIndex={-1}
           aria-hidden
           onClick={() => onValue(clamp(value + step))}
-          className="flex h-3.5 w-4 items-center justify-center rounded-sm text-carbon-textMuted
+          className="flex h-3.5 w-4 items-center justify-center rounded-[var(--radius-control)] text-carbon-textMuted
             hover:bg-carbon-surface3 hover:text-carbon-text"
         >
           <svg viewBox="0 0 10 6" width={9} height={5} aria-hidden>
@@ -603,7 +642,7 @@ export function NumberInput({
           tabIndex={-1}
           aria-hidden
           onClick={() => onValue(clamp(value - step))}
-          className="flex h-3.5 w-4 items-center justify-center rounded-sm text-carbon-textMuted
+          className="flex h-3.5 w-4 items-center justify-center rounded-[var(--radius-control)] text-carbon-textMuted
             hover:bg-carbon-surface3 hover:text-carbon-text"
         >
           <svg viewBox="0 0 10 6" width={9} height={5} aria-hidden>
@@ -666,9 +705,15 @@ export function Toggle({
         {/* left-0 is load-bearing: without it the knob starts from its static
             position, which a button's inherited text-align centres — the knob
             then slides out past the pill. Tailwind v4 also animates the
-            `translate` property here, not `transform`. */}
+            `translate` property here, not `transform`. `bg-carbon-background`
+            (not a fixed white) is the "opposite ground" trick — the knob is
+            the page's own background sitting on the accent-coloured track,
+            so it reads dark in dark mode and light in light mode instead of
+            a permanent white dot (jdp: "Die Toggle Punkte sollen im Darkmode
+            schwarz sein"). Matches BombVault's own Toggle.tsx thumb, the
+            reference this pattern is ported from. */}
         <span
-          className={`absolute left-0 top-0.5 h-4 w-4 rounded-[var(--radius-pill)] bg-white shadow-sm transition-[translate] duration-150 ${
+          className={`absolute left-0 top-0.5 h-4 w-4 rounded-[var(--radius-pill)] bg-carbon-background shadow-sm transition-[translate] duration-150 ${
             checked ? 'translate-x-4' : 'translate-x-0.5'
           }`}
         />

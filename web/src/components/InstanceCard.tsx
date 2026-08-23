@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { fetchTasks, type Task } from '../lib/api';
 import { fmtSpeed } from '../lib/format';
 import { useT } from '../lib/i18n';
-import { Card, Button } from './ui';
+import { Card, Button, IconBadge } from './ui';
 import { IconTrash } from '../lib/icons';
 
 interface Stats {
@@ -47,7 +47,7 @@ export function InstanceRow({ name, base, onOpen }: { name: string; base: string
   const body = (
     <>
       <span
-        className={`h-2 w-2 shrink-0 rounded-full ${online ? 'bg-statusOkSolid' : 'bg-statusFailSolid'}`}
+        className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${online ? 'bg-statusOkSolid' : 'bg-statusFailSolid'}`}
         title={online ? t('instances.online') : t('instances.offline')}
       />
       <span className="min-w-0 flex-1 truncate text-[13.5px] text-carbon-text">{name}</span>
@@ -90,19 +90,14 @@ export function InstanceCard({
     <Card hover={!!onOpen} className="group flex h-full flex-col gap-3">
       <div className="flex items-center gap-2.5">
         <span
-          className={`h-2 w-2 shrink-0 rounded-full ${online ? 'bg-statusOkSolid' : 'bg-statusFailSolid'}`}
+          className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${online ? 'bg-statusOkSolid' : 'bg-statusFailSolid'}`}
           title={online ? t('instances.online') : t('instances.offline')}
         />
         <span className="truncate font-semibold text-carbon-text">{name}</span>
         <span className="flex-1" />
         {onRemove && (
           <span className="opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-            <Button
-              kind="danger"
-              icon={<IconTrash />}
-              title={t('instances.removeTitle', { name })}
-              onClick={onRemove}
-            />
+            <IconBadge kind="danger" icon={<IconTrash />} title={t('instances.removeTitle', { name })} onClick={onRemove} />
           </span>
         )}
       </div>

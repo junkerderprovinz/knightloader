@@ -9,7 +9,7 @@ import {
 } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useToast } from '../../lib/toast';
-import { Button, Card, ErrorCard, LoadingCard, PageHeader, SectionTitle, TextInput } from '../../components/ui';
+import { Button, Card, ErrorCard, IconBadge, LoadingCard, PageHeader, SectionTitle, TextInput } from '../../components/ui';
 import { IconArrowDown, IconArrowUp, IconExternalLink } from '../../lib/icons';
 import { useDraft } from './context';
 import { NeutralSwitch } from './controls';
@@ -259,22 +259,20 @@ function SolverRow({
         <span
           className={`inline-flex shrink-0 items-center gap-1.5 text-[11px] font-medium ${configured ? 'text-statusOk' : 'text-carbon-textMuted'}`}
         >
-          <span className={`h-1.5 w-1.5 rounded-full ${configured ? 'bg-statusOkSolid' : 'bg-carbon-textMuted/50'}`} />
+          <span className={`h-1.5 w-1.5 rounded-[var(--radius-pill)] ${configured ? 'bg-statusOkSolid' : 'bg-carbon-textMuted/50'}`} />
           {configured ? cx('settings.captcha.set') : cx('settings.captcha.notSet')}
         </span>
 
         <div className="flex shrink-0 items-center gap-0.5">
           {enabled && (
             <>
-              <Button
-                kind="ghost"
+              <IconBadge
                 icon={<IconArrowUp width={14} height={14} />}
                 aria-label={cx('settings.captcha.moveUp')}
                 disabled={position <= 0}
                 onClick={() => onMove(-1)}
               />
-              <Button
-                kind="ghost"
+              <IconBadge
                 icon={<IconArrowDown width={14} height={14} />}
                 aria-label={cx('settings.captcha.moveDown')}
                 disabled={position < 0 || position >= count - 1}

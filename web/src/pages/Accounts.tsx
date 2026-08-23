@@ -37,6 +37,7 @@ import {
   EmptyState,
   ErrorCard,
   Field,
+  IconBadge,
   InfoBubble,
   LoadingCard,
   Modal,
@@ -302,8 +303,7 @@ function AccountsTable({ rows, catalogue, refreshing, onRefresh, onToggle, onRen
                 <td className="glim-num px-2 py-3 text-carbon-textSub">{a.expiry || '—'}</td>
                 <td className="glim-num px-2 py-3 text-carbon-textSub">{a.trafficLeft || '—'}</td>
                 <td className="px-2 py-3 text-end">
-                  <Button
-                    kind="ghost"
+                  <IconBadge
                     className="opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
                     icon={<IconSettings width={16} height={16} />}
                     aria-label={t('accounts.rowActions')}
@@ -398,7 +398,7 @@ function AccountStatus({ account, busy }: { account: Account; busy: boolean }) {
   if (!account.detail) {
     return (
       <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusNeutral">
-        <span className="h-1.5 w-1.5 rounded-full bg-statusNeutralSolid" />
+        <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusNeutralSolid" />
         {t('accounts.unchecked')}
       </span>
     );
@@ -406,14 +406,14 @@ function AccountStatus({ account, busy }: { account: Account; busy: boolean }) {
   if (account.ok) {
     return (
       <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusOk">
-        <span className="h-1.5 w-1.5 rounded-full bg-statusOkSolid" />
+        <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusOkSolid" />
         {t('accounts.ok')}
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusFail">
-      <span className="h-1.5 w-1.5 rounded-full bg-statusFailSolid" />
+      <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusFailSolid" />
       {t('accounts.failed')}
       <InfoBubble tip={account.detail} />
     </span>

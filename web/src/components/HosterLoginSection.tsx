@@ -22,7 +22,7 @@ import {
 } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
-import { Button, EmptyState, Field, InfoBubble, Modal, TextInput } from './ui';
+import { Button, EmptyState, Field, IconBadge, InfoBubble, Modal, TextInput } from './ui';
 import { IconAccounts, IconPlus, IconSearch, IconTrash } from '../lib/icons';
 
 // Faster than ACCOUNTS.HEALTH_POLL_MS (30s): a login this reconciler just
@@ -97,8 +97,8 @@ export function HosterLoginSection() {
                   </td>
                   <td className="px-2 py-3 text-carbon-textSub">{row.username || '—'}</td>
                   <td className="px-2 py-3 text-end">
-                    <Button
-                      kind="ghost"
+                    <IconBadge
+                      kind="danger"
                       className="opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
                       icon={<IconTrash width={16} height={16} />}
                       aria-label={t('accounts.remove')}
@@ -142,14 +142,14 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
     case 'active':
       return (
         <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusOk">
-          <span className="h-1.5 w-1.5 rounded-full bg-statusOkSolid" />
+          <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusOkSolid" />
           {t('accounts.hoster.status.active')}
         </span>
       );
     case 'rejected':
       return (
         <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusFail">
-          <span className="h-1.5 w-1.5 rounded-full bg-statusFailSolid" />
+          <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusFailSolid" />
           {t('accounts.hoster.status.rejected')}
           {login.detail && <InfoBubble tip={login.detail} />}
         </span>
@@ -162,7 +162,7 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
       // detail text (from hosterauth.LoginState.Detail) still says which one.
       return (
         <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusNeutral">
-          <span className="h-1.5 w-1.5 rounded-full bg-statusNeutralSolid" />
+          <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusNeutralSolid" />
           {t('accounts.hoster.status.queued')}
           {login.detail && <InfoBubble tip={login.detail} />}
         </span>

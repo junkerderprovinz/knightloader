@@ -51,8 +51,13 @@ export function NeutralSwitch({
             position, which a button's inherited text-align centres, and the knob
             then slides out past the pill. Tailwind v4 also animates the
             `translate` property here, not `transform`. */}
+        {/* bg-carbon-background, not a fixed white — same "opposite ground"
+            fix as Toggle's own knob in ui.tsx (jdp: "Die Toggle Punkte
+            sollen im Darkmode schwarz sein"); this switch was missed by
+            that pass since it is a separate component, just built to look
+            identical. */}
         <span
-          className={`absolute left-0 top-0.5 h-4 w-4 rounded-[var(--radius-pill)] bg-white shadow-sm transition-[translate] duration-150 ${
+          className={`absolute left-0 top-0.5 h-4 w-4 rounded-[var(--radius-pill)] bg-carbon-background shadow-sm transition-[translate] duration-150 ${
             on ? 'translate-x-4' : 'translate-x-0.5'
           }`}
         />
