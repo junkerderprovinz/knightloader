@@ -394,7 +394,6 @@ export const is: Dict = {
   'container.handed': '{file} er dulkóðuð. Hún var afhent JDownloader-bakendanum; hlekkirnir birtast hér um leið og hann hefur sótt hana (innan {n} s).',
   'container.failed': '{file} var ekki tekið við: {reason}',
 
-  'settings.nav.general': 'Almennt',
   'settings.nav.modules': 'Einingar',
   'settings.nav.downloads': 'Niðurhal',
   'settings.nav.archives': 'Safnskrár',
@@ -1325,9 +1324,11 @@ export const is: Dict = {
   'settings.browsertools.copyCode': 'Afrita kóðann í staðinn',
   'settings.browsertools.copied': 'Afritað.',
   'settings.browsertools.extensionTitle': 'Vafraviðbót',
-  'settings.browsertools.extensionHint':
-    'Hægrismelltu valmynd á hvaða tengli, vali eða síðu sem er, í Chrome, Edge, Brave og öðrum Chromium-tengdum vöfrum. Niðurhalið bendir nú þegar á þetta tilvik - ekkert að stilla.',
-  'settings.browsertools.download': 'Sækja viðbót',
+  'settings.browsertools.extensionHint': 'Hægriklikkvalásla á sérhverjum tengli, vali eda síðu. Nidurhalid vísar nú þégar á þætta instans - ekkert til að stilla. Chromium og Firefox pakka viðbótum á öðruvísi hátt, veldu þínum vafra hentandi valkoðinn.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Afpakkadu skrána, opnadu síðan chrome://extensions (eða edge://extensions, brave://extensions), kveiktu á þroskaham og veldu “Hlaða inn ópakkað“ fyrir afpakkaqa möppuna.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Opnadu about:debugging#/runtime/this-firefox, veldu “Hlaða inn tímabundinni viðbót“ og veldu þéssa skrá. Hún helst uppsett þar til Firefox er endurræst - varanleg uppsetning þarf sína eigin undirritun frá Mozilla, sem sjálfhyði hugbúnaður getur ekki fengið sjálfvirkt.',
   'settings.browsertools.installTitle': 'Setja upp sem forrit',
   'settings.browsertools.installHint':
     'Þegar uppsett getur eigin Deila-valmynd tækisins þíns gefið tengil beint til KnightLoader - engin vafraflipi þarf.',

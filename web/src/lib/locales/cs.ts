@@ -394,7 +394,6 @@ export const cs: Dict = {
   'container.handed': '{file} je šifrovaný. Putoval na backend JDownloader; jeho odkazy se tu objeví, jakmile si ho stáhne (do {n} s).',
   'container.failed': '{file} nebyl přijat: {reason}',
 
-  'settings.nav.general': 'Obecné',
   'settings.nav.modules': 'Moduly',
   'settings.nav.downloads': 'Stahování',
   'settings.nav.archives': 'Archivy',
@@ -1326,9 +1325,11 @@ export const cs: Dict = {
   'settings.browsertools.copyCode': 'Místo toho zkopírovat kód',
   'settings.browsertools.copied': 'Zkopírováno.',
   'settings.browsertools.extensionTitle': 'Rozšíření prohlížeče',
-  'settings.browsertools.extensionHint':
-    'Kontextová nabídka na libovolném odkazu, výběru nebo stránce v Chrome, Edge, Brave a dalších prohlížečích založených na Chromium. Stahování už ukazuje na tuto instanci - není co nastavovat.',
-  'settings.browsertools.download': 'Stáhnout rozšíření',
+  'settings.browsertools.extensionHint': 'Kontextové menu pravého tlačítka na jakémkoli odkazu, výběru nebo stránce. Stažení již směřuje na tuto instanci - nic k nastavení. Chromium a Firefox balí rozšíření jinak, vyber si tedy to pro svůj prohlížéč.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Rozbal jej, otevři chrome://extensions (nebo edge://extensions, brave://extensions), zapni vývojářský režim a vyber „Načíst rozbalené“ na rozbalené složce.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Otevři about:debugging#/runtime/this-firefox, vyber „Načíst dočasný doplněk“ a zvol tento soubor. Zůstává nainstalován do restartu Firefoxu - trvalá instalace vyžaduje vlastní podpis Mozilly, který samostatně hostovaný software nezíská automaticky.',
   'settings.browsertools.installTitle': 'Nainstalovat jako aplikaci',
   'settings.browsertools.installHint':
     'Po instalaci může vlastní nabídka Sdílet vašeho zařízení předat odkaz přímo do KnightLoaderu - karta prohlížeče není potřeba.',

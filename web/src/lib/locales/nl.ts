@@ -386,7 +386,6 @@ export const nl: Dict = {
   'container.handed': '{file} is versleuteld en is doorgegeven aan de JDownloader-backend; de links verschijnen hier zodra die hem opgehaald heeft (binnen {n} s).',
   'container.failed': '{file} is niet aangenomen: {reason}',
 
-  'settings.nav.general': 'Algemeen',
   'settings.nav.modules': 'Modules',
   'settings.nav.downloads': 'Downloads',
   'settings.nav.archives': 'Archieven',
@@ -1318,9 +1317,11 @@ export const nl: Dict = {
   'settings.browsertools.copyCode': 'In plaats daarvan de code kopiëren',
   'settings.browsertools.copied': 'Gekopieerd.',
   'settings.browsertools.extensionTitle': 'Browserextensie',
-  'settings.browsertools.extensionHint':
-    'Een rechtermuisknopmenu op elke link, selectie of pagina, in Chrome, Edge, Brave en andere op Chromium gebaseerde browsers. De download verwijst al naar deze instantie - niets in te stellen.',
-  'settings.browsertools.download': 'Extensie downloaden',
+  'settings.browsertools.extensionHint': 'Een rechtsklikmenu op elke link, selectie of pagina. De download wijst al naar deze instantie - niets in te stellen. Chromium en Firefox verpakken extensies verschillend, kies dus die van je browser.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Pak het uit, open dan chrome://extensions (of edge://extensions, brave://extensions), zet ontwikkelaarsmodus aan en kies “Uitgepakte extensie laden” op de uitgepakte map.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Open about:debugging#/runtime/this-firefox, kies “Tijdelijke add-on laden” en kies dit bestand. Het blijft geïnstalleerd tot Firefox opnieuw start - een permanente installatie heeft Mozilla’s eigen ondertekening nodig, die zelf-gehoste software niet automatisch kan krijgen.',
   'settings.browsertools.installTitle': 'Installeren als app',
   'settings.browsertools.installHint':
     'Eenmaal geïnstalleerd kan het eigen deelmenu van je apparaat een link rechtstreeks naar KnightLoader sturen - geen browsertabblad nodig.',

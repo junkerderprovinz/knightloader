@@ -394,7 +394,6 @@ export const tr: Dict = {
   'container.handed': '{file} şifreli. JDownloader arka ucuna verildi; onu aldığı anda bağlantıları burada görünür ({n} sn içinde).',
   'container.failed': '{file} kabul edilmedi: {reason}',
 
-  'settings.nav.general': 'Genel',
   'settings.nav.modules': 'Modüller',
   'settings.nav.downloads': 'İndirmeler',
   'settings.nav.archives': 'Arşivler',
@@ -1325,9 +1324,11 @@ export const tr: Dict = {
   'settings.browsertools.copyCode': 'Bunun yerine kodu kopyala',
   'settings.browsertools.copied': 'Kopyalandı.',
   'settings.browsertools.extensionTitle': 'Tarayıcı uzantısı',
-  'settings.browsertools.extensionHint':
-    "Chrome, Edge, Brave ve diğer Chromium tabanlı tarayıcılarda herhangi bir bağlantı, seçim veya sayfa üzerinde bir sağ tık menüsü. İndirme zaten bu örneği işaret ediyor - yapılandırılacak bir şey yok.",
-  'settings.browsertools.download': 'Uzantıyı indir',
+  'settings.browsertools.extensionHint': 'Herhangi bir bağlantı, seçim veya sayfada sağ tık menüsü. İndirme zaten bu örneği gösteriyor - ayarlanacak bir şey yok. Chromium ve Firefox eklentileri farklı paketler, o yüzden tarayıcına uygun olanı seç.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Çıkart, ardından chrome://extensions (veya edge://extensions, brave://extensions) aç, geliştirici modunu aç ve çıkartılan klasörde “Paketlenmemişi yükle” seçeneğini seç.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'about:debugging#/runtime/this-firefox adresini aç, “Geçici Eklenti Yükle” seçeneğini seç ve bu dosyayı seç. Firefox yeniden başlatılıncaya kadar yüklü kalır - kalıcı kurulum, kendi kendine barındırılan yazılımın otomatik olarak alamayacağı Mozilla’nın kendi imzasını gerektirir.',
   'settings.browsertools.installTitle': 'Uygulama olarak yükle',
   'settings.browsertools.installHint':
     "Yüklendikten sonra, cihazınızın kendi Paylaş menüsü bir bağlantıyı doğrudan KnightLoader'a verebilir - tarayıcı sekmesi gerekmez.",

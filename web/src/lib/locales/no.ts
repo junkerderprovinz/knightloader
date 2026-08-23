@@ -396,7 +396,6 @@ export const no: Dict = {
   'container.handed': '{file} er kryptert. Den ble sendt til JDownloader-backenden; lenkene dukker opp her så snart den har hentet den (innen {n} s).',
   'container.failed': '{file} ble ikke tatt imot: {reason}',
 
-  'settings.nav.general': 'Generelt',
   'settings.nav.modules': 'Moduler',
   'settings.nav.downloads': 'Nedlastinger',
   'settings.nav.archives': 'Arkiver',
@@ -1327,9 +1326,11 @@ export const no: Dict = {
   'settings.browsertools.copyCode': 'Kopier koden i stedet',
   'settings.browsertools.copied': 'Kopiert.',
   'settings.browsertools.extensionTitle': 'Nettleserutvidelse',
-  'settings.browsertools.extensionHint':
-    'En høyreklikkmeny på enhver lenke, markering eller side, i Chrome, Edge, Brave og andre Chromium-baserte nettlesere. Nedlastingen peker allerede til denne instansen - ingenting å konfigurere.',
-  'settings.browsertools.download': 'Last ned utvidelse',
+  'settings.browsertools.extensionHint': 'En høyreklikkmeny på alle lenker, utvalg eller sider. Nedlastingen peker allerede på denne instansen - ingenting å konfigurere. Chromium og Firefox pakker utvidelser ulikt, så velg den for nettleseren din.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Pakk den ut, åpne så chrome://extensions (eller edge://extensions, brave://extensions), slå på utviklermodus, og velg «Last inn upakket» på den utpakkede mappen.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Åpne about:debugging#/runtime/this-firefox, velg «Last inn midlertidig tillegg» og velg denne filen. Den forblir installert til Firefox starter på nytt - en permanent installasjon krever Mozillas egen signering, som selvhostet programvare ikke kan få automatisk.',
   'settings.browsertools.installTitle': 'Installer som app',
   'settings.browsertools.installHint':
     'Når installert kan enhetens egen Del-meny gi en lenke direkte til KnightLoader - ingen nettleserfane nødvendig.',

@@ -394,7 +394,6 @@ export const el: Dict = {
   'container.handed': 'Το {file} είναι κρυπτογραφημένο. Παραδόθηκε στο backend του JDownloader· οι σύνδεσμοί του εμφανίζονται εδώ μόλις το πάρει (εντός {n} δευτ.).',
   'container.failed': 'Το {file} δεν έγινε δεκτό: {reason}',
 
-  'settings.nav.general': 'Γενικά',
   'settings.nav.modules': 'Λειτουργικές μονάδες',
   'settings.nav.downloads': 'Λήψεις',
   'settings.nav.archives': 'Συμπιεσμένα αρχεία',
@@ -1325,9 +1324,11 @@ export const el: Dict = {
   'settings.browsertools.copyCode': 'Αντιγραφή του κώδικα αντ’ αυτού',
   'settings.browsertools.copied': 'Αντιγράφηκε.',
   'settings.browsertools.extensionTitle': 'Επέκταση περιηγητή',
-  'settings.browsertools.extensionHint':
-    'Ένα μενού δεξιού κλικ σε οποιονδήποτε σύνδεσμο, επιλογή ή σελίδα, στο Chrome, στο Edge, στο Brave και σε άλλους περιηγητές που βασίζονται σε Chromium. Η λήψη δείχνει ήδη σε αυτήν την περίπτωση - τίποτα να ρυθμίσετε.',
-  'settings.browsertools.download': 'Λήψη επέκτασης',
+  'settings.browsertools.extensionHint': 'Ένα μενού δεξιού κλικ σε οποιοδήποτε σύνδεσμο, επιλογή ή σελίδα. Η λήψη δείχνει ήδη σε αυτή την περίπτωση - τίποτα για ρύθμιση. Το Chromium και το Firefox συσκευάζουν διαφορετικά τις επεκτάσεις, επίλεξε αυτή για τον περιηγητή σου.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Αποσυμπίεσέ το, άνοιξε το chrome://extensions (ή edge://extensions, brave://extensions), ενεργοποίησε τη λειτουργία προγραμματιστή και επίλεξε «Φόρτωση αποσυμπιεσμένου» για τον αποσυμπιεσμένο φάκελο.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Άνοιξε το about:debugging#/runtime/this-firefox, επίλεξε «Φόρτωση προσωρινής προσθήκης» και επίλεξε αυτό το αρχείο. Παραμένει εγκατεστημένο μέχρι την επανεκκίνηση του Firefox - μια μόνιμη εγκατάσταση απαιτεί την δική υπογραφή της Mozilla, την οποία ένα αυτοφιλοξενούμενο λογισμικό δεν μπορεί να την αποκτήσει αυτόματα.',
   'settings.browsertools.installTitle': 'Εγκατάσταση ως εφαρμογή',
   'settings.browsertools.installHint':
     'Μόλις εγκατασταθεί, το μενού Κοινοποίησης της συσκευής σας μπορεί να δώσει έναν σύνδεσμο απευθείας στο KnightLoader - δεν απαιτείται καρτέλα περιηγητή.',

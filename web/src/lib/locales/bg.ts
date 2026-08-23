@@ -394,7 +394,6 @@ export const bg: Dict = {
   'container.handed': '{file} е шифрован. Подаден е на бекенда JDownloader; връзките му се появяват тук щом той го изтегли (до {n} с).',
   'container.failed': '{file} не беше приет: {reason}',
 
-  'settings.nav.general': 'Общи',
   'settings.nav.modules': 'Модули',
   'settings.nav.downloads': 'Изтегляния',
   'settings.nav.archives': 'Архиви',
@@ -1326,9 +1325,11 @@ export const bg: Dict = {
   'settings.browsertools.copyCode': 'Вместо това копирай кода',
   'settings.browsertools.copied': 'Копирано.',
   'settings.browsertools.extensionTitle': 'Разширение за браузър',
-  'settings.browsertools.extensionHint':
-    'Контекстно меню на всяка връзка, избор или страница, в Chrome, Edge, Brave и други браузъри, базирани на Chromium. Изтеглянето вече сочи към тази инстанция - няма какво да се настройва.',
-  'settings.browsertools.download': 'Изтегли разширение',
+  'settings.browsertools.extensionHint': 'Меню с десен бутон върху всяка връзка, избор или страница. Изтеглянето вече сочи към този екземпляр - нищо за настройване. Chromium и Firefox опаковат разширенията различно, избери това за твоя браузър.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Разархивирай го, отвори chrome://extensions (или edge://extensions, brave://extensions), включи режима за разработчици и избери „Зареждане на разархивирано“ върху разархивираната папка.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Отвори about:debugging#/runtime/this-firefox, избери „Зареждане на временно допълнение“ и избери този файл. Остава инсталиран до рестартиране на Firefox - постоянната инсталация изисква собствен подпис на Mozilla, който самостоятелно хостван софтуер не може да получи автоматично.',
   'settings.browsertools.installTitle': 'Инсталирай като приложение',
   'settings.browsertools.installHint':
     'След инсталиране собственото меню Сподели на устройството ти може да предаде връзка директно към KnightLoader - не е нужен раздел на браузъра.',

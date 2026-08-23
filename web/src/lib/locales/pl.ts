@@ -386,7 +386,6 @@ export const pl: Dict = {
   'container.handed': '{file} jest zaszyfrowany. Trafił do backendu JDownloader; jego linki pojawią się tu, gdy backend go pobierze (w ciągu {n} s).',
   'container.failed': '{file} nie został przyjęty: {reason}',
 
-  'settings.nav.general': 'Ogólne',
   'settings.nav.modules': 'Moduły',
   'settings.nav.downloads': 'Pobieranie',
   'settings.nav.archives': 'Archiwa',
@@ -1318,9 +1317,11 @@ export const pl: Dict = {
   'settings.browsertools.copyCode': 'Zamiast tego skopiuj kod',
   'settings.browsertools.copied': 'Skopiowano.',
   'settings.browsertools.extensionTitle': 'Rozszerzenie przeglądarki',
-  'settings.browsertools.extensionHint':
-    'Menu kontekstowe na dowolnym linku, zaznaczeniu lub stronie, w Chrome, Edge, Brave i innych przeglądarkach opartych na Chromium. Pobieranie już wskazuje na tę instancję - nic do skonfigurowania.',
-  'settings.browsertools.download': 'Pobierz rozszerzenie',
+  'settings.browsertools.extensionHint': 'Menu prawego przycisku myszy na dowolnym linku, zaznaczeniu lub stronie. Pobieranie wskazuje już na tę instancję - nic do skonfigurowania. Chromium i Firefox pakują rozszerzenia inaczej, wybierz więc to dla swojej przeglądarki.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Rozpakuj, otwórz chrome://extensions (lub edge://extensions, brave://extensions), włącz tryb dewelopera i wybierz „Załaduj rozpakowane” na rozpakowanym folderze.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Otwórz about:debugging#/runtime/this-firefox, wybierz „Wczytaj tymczasowy dodatek” i wskaż ten plik. Pozostaje zainstalowany do restartu Firefoksa - trwała instalacja wymaga podpisu Mozilli, którego samodzielnie hostowane oprogramowanie nie może uzyskać automatycznie.',
   'settings.browsertools.installTitle': 'Zainstaluj jako aplikację',
   'settings.browsertools.installHint':
     'Po zainstalowaniu własne menu Udostępnij twojego urządzenia może przekazać link bezpośrednio do KnightLoader - bez potrzeby otwierania karty przeglądarki.',

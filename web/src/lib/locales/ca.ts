@@ -394,7 +394,6 @@ export const ca: Dict = {
   'container.handed': "{file} està xifrat. S'ha lliurat al rerefons JDownloader; els seus enllaços apareixen aquí quan l'hagi recollit (en {n} s).",
   'container.failed': "No s'ha acceptat {file}: {reason}",
 
-  'settings.nav.general': 'General',
   'settings.nav.modules': 'Mòduls',
   'settings.nav.downloads': 'Baixades',
   'settings.nav.archives': 'Arxius',
@@ -1325,9 +1324,11 @@ export const ca: Dict = {
   'settings.browsertools.copyCode': 'Copia el codi en lloc d’això',
   'settings.browsertools.copied': 'Copiat.',
   'settings.browsertools.extensionTitle': 'Extensió de navegador',
-  'settings.browsertools.extensionHint':
-    'Un menú de clic dret a qualsevol enllaç, selecció o pàgina, a Chrome, Edge, Brave i altres navegadors basats en Chromium. La baixada ja apunta a aquesta instància - res a configurar.',
-  'settings.browsertools.download': 'Baixa l’extensió',
+  'settings.browsertools.extensionHint': 'Un menú de clic dret a qualsevol enllaç, selecció o pàgina. La descàrrega ja apunta a aquesta instància - res a configurar. Chromium i Firefox empaqueten les extensions de manera diferent, tria la del teu navegador.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Descomprimeix-lo, obre chrome://extensions (o edge://extensions, brave://extensions), activa el mode desenvolupador i tria «Carrega la descomprimida» sobre la carpeta descomprimida.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Obre about:debugging#/runtime/this-firefox, tria «Carrega un complement temporal» i selecciona aquest fitxer. Es manté instal·lat fins que es reinicia el Firefox - una instal·lació permanent necessita la signatura pròpia de Mozilla, que un programari autoallotjat no pot obtenir automàticament.',
   'settings.browsertools.installTitle': 'Instal·la com a aplicació',
   'settings.browsertools.installHint':
     'Un cop instal·lat, el menú Compartir del teu dispositiu pot passar un enllaç directament a KnightLoader - sense necessitat de pestanya de navegador.',

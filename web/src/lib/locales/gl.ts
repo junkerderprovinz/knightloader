@@ -394,7 +394,6 @@ export const gl: Dict = {
   'container.handed': '{file} está cifrado. Entregouse ao backend JDownloader; as súas ligazóns aparecen aquí en canto o recolla (en {n} s).',
   'container.failed': 'Non se aceptou {file}: {reason}',
 
-  'settings.nav.general': 'Xeral',
   'settings.nav.modules': 'Módulos',
   'settings.nav.downloads': 'Descargas',
   'settings.nav.archives': 'Arquivos',
@@ -1325,9 +1324,11 @@ export const gl: Dict = {
   'settings.browsertools.copyCode': 'Copiar o código no seu lugar',
   'settings.browsertools.copied': 'Copiado.',
   'settings.browsertools.extensionTitle': 'Extensión de navegador',
-  'settings.browsertools.extensionHint':
-    'Un menú de clic dereito en calquera ligazón, selección ou páxina, en Chrome, Edge, Brave e outros navegadores baseados en Chromium. A descarga xa apunta a esta instancia - nada que configurar.',
-  'settings.browsertools.download': 'Descargar extensión',
+  'settings.browsertools.extensionHint': 'Un menú de clic dereito en calquera ligazón, selección ou páxina. A descarga xa apunta a esta instancia - nada que configurar. Chromium e Firefox empaquetan as extensións de xeito distinto, escolle a do teu navegador.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Descomprímeo, abre chrome://extensions (ou edge://extensions, brave://extensions), activa o modo desenvolvedor e escolle «Cargar sen empaquetar» no cartafol descomprimido.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Abre about:debugging#/runtime/this-firefox, escolle «Cargar complemento temporal» e selecciona este ficheiro. Permanece instalado até que Firefox reinicie - unha instalación permanente precisa a sinatura propia de Mozilla, que un software autoaloxado non pode obter automaticamente.',
   'settings.browsertools.installTitle': 'Instalar coma aplicación',
   'settings.browsertools.installHint':
     'Unha vez instalado, o propio menú Compartir do teu dispositivo pode pasar unha ligazón directamente a KnightLoader - non fai falla ningunha lapela do navegador.',

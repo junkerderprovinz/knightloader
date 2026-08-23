@@ -394,7 +394,6 @@ export const id: Dict = {
   'container.handed': '{file} terenkripsi. Berkas itu diserahkan ke backend JDownloader; tautannya muncul di sini begitu backend mengambilnya (dalam {n} detik).',
   'container.failed': '{file} tidak diterima: {reason}',
 
-  'settings.nav.general': 'Umum',
   'settings.nav.modules': 'Modul',
   'settings.nav.downloads': 'Unduhan',
   'settings.nav.archives': 'Arsip',
@@ -1325,9 +1324,11 @@ export const id: Dict = {
   'settings.browsertools.copyCode': 'Salin kodenya saja',
   'settings.browsertools.copied': 'Disalin.',
   'settings.browsertools.extensionTitle': 'Ekstensi peramban',
-  'settings.browsertools.extensionHint':
-    'Menu klik kanan pada tautan, seleksi, atau halaman mana pun, di Chrome, Edge, Brave, dan peramban lain berbasis Chromium. Unduhan sudah menunjuk ke instans ini - tidak ada yang perlu dikonfigurasi.',
-  'settings.browsertools.download': 'Unduh ekstensi',
+  'settings.browsertools.extensionHint': 'Menu klik kanan pada tautan, seleksi, atau halaman apa pun. Unduhan sudah mengarah ke instans ini - tidak ada yang perlu dikonfigurasi. Chromium dan Firefox mengemas ekstensi secara berbeda, jadi pilih yang sesuai untuk browsermu.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Ekstrak filenya, lalu buka chrome://extensions (atau edge://extensions, brave://extensions), aktifkan Mode Pengembang, dan pilih “Muat yang belum dikemas” pada folder hasil ekstrak.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Buka about:debugging#/runtime/this-firefox, pilih “Muat Add-on Sementara”, dan pilih file ini. Ekstensi tetap terpasang sampai Firefox dimulai ulang - pemasangan permanen memerlukan tanda tangan Mozilla sendiri, yang tidak bisa didapatkan secara otomatis oleh perangkat lunak yang di-hosting sendiri.',
   'settings.browsertools.installTitle': 'Pasang sebagai aplikasi',
   'settings.browsertools.installHint':
     'Setelah dipasang, menu Bagikan perangkat Anda sendiri dapat menyerahkan tautan langsung ke KnightLoader - tidak perlu tab peramban.',

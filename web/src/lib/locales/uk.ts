@@ -394,7 +394,6 @@ export const uk: Dict = {
   'container.handed': '{file} зашифрований. Його передано бекенду JDownloader; його посилання з’являться тут, щойно той його забере (протягом {n} с).',
   'container.failed': '{file} не прийнято: {reason}',
 
-  'settings.nav.general': 'Загальні',
   'settings.nav.modules': 'Модулі',
   'settings.nav.downloads': 'Завантаження',
   'settings.nav.archives': 'Архіви',
@@ -1326,9 +1325,11 @@ export const uk: Dict = {
   'settings.browsertools.copyCode': 'Натомість скопіювати код',
   'settings.browsertools.copied': 'Скопійовано.',
   'settings.browsertools.extensionTitle': 'Розширення браузера',
-  'settings.browsertools.extensionHint':
-    'Контекстне меню на будь-якому посиланні, виділенні або сторінці в Chrome, Edge, Brave та інших браузерах на основі Chromium. Завантаження вже вказує на цей екземпляр - налаштовувати нічого.',
-  'settings.browsertools.download': 'Завантажити розширення',
+  'settings.browsertools.extensionHint': 'Контекстне меню правою кнопкою на будь-якому посиланні, виділенні чи сторінці. Завантаження вже вказує на цей екземпляр - нічого налаштовувати. Chromium і Firefox пакують розширення по-різному, оберіть відповідне для свого браузера.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Розпакуйте, відкрийте chrome://extensions (або edge://extensions, brave://extensions), увімкніть режим розробника і оберіть «Завантажити розпакований» для розпакованої папки.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Відкрийте about:debugging#/runtime/this-firefox, оберіть «Завантажити тимчасове доповнення» і оберіть цей файл. Він залишається встановленим до перезавантаження Firefox - постійне встановлення потребує підпису Mozilla, який самостійно розміщене ПЗ не може отримати автоматично.',
   'settings.browsertools.installTitle': 'Встановити як застосунок',
   'settings.browsertools.installHint':
     'Після встановлення власне меню «Поділитися» вашого пристрою може надсилати посилання прямо в KnightLoader - вкладка браузера не потрібна.',

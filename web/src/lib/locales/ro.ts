@@ -394,7 +394,6 @@ export const ro: Dict = {
   'container.handed': '{file} este criptat. A fost predat backendului JDownloader; linkurile lui apar aici imediat ce l-a preluat (în {n} s).',
   'container.failed': '{file} nu a fost acceptat: {reason}',
 
-  'settings.nav.general': 'General',
   'settings.nav.modules': 'Module',
   'settings.nav.downloads': 'Descărcări',
   'settings.nav.archives': 'Arhive',
@@ -1325,9 +1324,11 @@ export const ro: Dict = {
   'settings.browsertools.copyCode': 'Copiază codul în schimb',
   'settings.browsertools.copied': 'Copiat.',
   'settings.browsertools.extensionTitle': 'Extensie de browser',
-  'settings.browsertools.extensionHint':
-    'Un meniu clic-dreapta pe orice link, selecție sau pagină, în Chrome, Edge, Brave și alte browsere bazate pe Chromium. Descărcarea indică deja spre această instanță - nimic de configurat.',
-  'settings.browsertools.download': 'Descarcă extensia',
+  'settings.browsertools.extensionHint': 'Un meniu clic dreapta pe orice link, selecție sau pagină. Descărcarea indică deja spre această instanță - nimic de configurat. Chromium și Firefox împachetează extensiile diferit, alege-o pe cea pentru browserul tău.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Dezarhivează-l, deschide chrome://extensions (sau edge://extensions, brave://extensions), activează modul dezvoltator și alege „Încarcă extensia neambalată” pe folderul dezarhivat.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Deschide about:debugging#/runtime/this-firefox, alege „Încarcă modul suplimentar temporar” și selectează acest fișier. Rămâne instalat până la repornirea Firefox - o instalare permanentă are nevoie de semnătura proprie Mozilla, pe care un software auto-găzduit nu o poate obține automat.',
   'settings.browsertools.installTitle': 'Instalează ca aplicație',
   'settings.browsertools.installHint':
     'Odată instalat, meniul Distribuie propriu al dispozitivului tău poate transmite un link direct către KnightLoader - nu e nevoie de fila browserului.',

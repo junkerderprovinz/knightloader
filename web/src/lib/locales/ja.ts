@@ -394,7 +394,6 @@ export const ja: Dict = {
   'container.handed': '{file} は暗号化されています。JDownloader バックエンドに渡しました。取得され次第（{n} 秒以内）、リンクがここに表示されます。',
   'container.failed': '{file} は受け取れませんでした: {reason}',
 
-  'settings.nav.general': '全般',
   'settings.nav.modules': 'モジュール',
   'settings.nav.downloads': 'ダウンロード',
   'settings.nav.archives': 'アーカイブ',
@@ -1325,9 +1324,11 @@ export const ja: Dict = {
   'settings.browsertools.copyCode': '代わりにコードをコピー',
   'settings.browsertools.copied': 'コピーしました。',
   'settings.browsertools.extensionTitle': 'ブラウザー拡張機能',
-  'settings.browsertools.extensionHint':
-    'Chrome、Edge、Brave、その他のChromiumベースのブラウザーで、任意のリンク、選択範囲、ページに対する右クリックメニューです。ダウンロードはすでにこのインスタンスを指しているため、設定することは何もありません。',
-  'settings.browsertools.download': '拡張機能をダウンロード',
+  'settings.browsertools.extensionHint': 'どのリンク、選択、ページでも右クリックメニュー。ダウンロードはすでにこのインスタンスを指しています - 設定は不要です。Chromium と Firefox は拡張機能のパッケージ形式が異なるため、使用中のブラウザに合わせて選択してください。',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': '解圧後、chrome://extensions（または edge://extensions、brave://extensions）を開き、デベロッパーモードをオンにして、解圧したフォルダで「パッケージ化されていない拡張機能を読み込む」を選択してください。',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'about:debugging#/runtime/this-firefox を開き、「一時的なアドオンを読み込む」を選択し、このファイルを選んでください。Firefox を再起動するまでインストールされたままです - 恒久的なインストールには Mozilla 自身の署名が必要で、自己ホスティングソフトウェアでは自動的に取得できません。',
   'settings.browsertools.installTitle': 'アプリとしてインストール',
   'settings.browsertools.installHint':
     'インストールすると、お使いのデバイス自体の共有メニューからリンクを直接KnightLoaderに渡せます。ブラウザータブは不要です。',

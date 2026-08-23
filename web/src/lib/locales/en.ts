@@ -439,7 +439,6 @@ export const en = {
   // third phrasing of the same three states.
   'intake.pasteButton': 'Paste from clipboard',
 
-  'settings.nav.general': 'General',
   'settings.nav.modules': 'Modules',
   'settings.nav.downloads': 'Downloads',
   'settings.nav.archives': 'Archives',
@@ -1537,9 +1536,11 @@ export const en = {
   'settings.browsertools.copyCode': 'Copy the code instead',
   'settings.browsertools.copied': 'Copied.',
   'settings.browsertools.extensionTitle': 'Browser extension',
-  'settings.browsertools.extensionHint':
-    'A right-click menu on any link, selection, or page, in Chrome, Edge, Brave, and other Chromium-based browsers. The download already points at this instance - nothing to configure.',
-  'settings.browsertools.download': 'Download extension',
+  'settings.browsertools.extensionHint': 'A right-click menu on any link, selection, or page. The download already points at this instance - nothing to configure. Chromium and Firefox package extensions differently, so pick the one for your browser.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Unzip it, then open chrome://extensions (or edge://extensions, brave://extensions), turn on Developer mode, and choose “Load unpacked” on the unzipped folder.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Open about:debugging#/runtime/this-firefox, choose “Load Temporary Add-on”, and pick this file. It stays installed until Firefox restarts - a permanent install needs Mozilla’s own signing, which self-hosted software cannot get automatically.',
   'settings.browsertools.installTitle': 'Install as an app',
   'settings.browsertools.installHint':
     'Once installed, your device’s own Share menu can hand a link straight to KnightLoader - no browser tab required.',

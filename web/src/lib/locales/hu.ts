@@ -394,7 +394,6 @@ export const hu: Dict = {
   'container.handed': 'A(z) {file} titkosított. Átadtuk a JDownloader backendnek; a linkjei itt jelennek meg, amint az lehúzta ({n} másodpercen belül).',
   'container.failed': 'A(z) {file} nem lett elfogadva: {reason}',
 
-  'settings.nav.general': 'Általános',
   'settings.nav.modules': 'Modulok',
   'settings.nav.downloads': 'Letöltések',
   'settings.nav.archives': 'Archívumok',
@@ -1325,9 +1324,11 @@ export const hu: Dict = {
   'settings.browsertools.copyCode': 'Inkább a kód másolása',
   'settings.browsertools.copied': 'Másolva.',
   'settings.browsertools.extensionTitle': 'Böngészőbővítmény',
-  'settings.browsertools.extensionHint':
-    'Jobbklikk menü bármely linken, kijelölésen vagy oldalon, Chrome-ban, Edge-ben, Brave-ben és más Chromium-alapú böngészőkben. A letöltés már erre a példányra mutat - nincs mit beállítani.',
-  'settings.browsertools.download': 'Bővítmény letöltése',
+  'settings.browsertools.extensionHint': 'Jobb kattintásos menü bármely linken, kijelölésen vagy oldalon. A letöltés már ehhez a példányhoz mutat - semmit sem kell beállítani. A Chromium és a Firefox másként csomagolja a kiegészítőket, válaszd a saját böngésződhöz valót.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Csomagold ki, majd nyisd meg a chrome://extensions címet (vagy edge://extensions, brave://extensions), kapcsold be a fejlesztői módot, és válaszd a „Kicsomagolt betöltése” lehetőséget a kicsomagolt mappán.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Nyisd meg az about:debugging#/runtime/this-firefox címet, válaszd az „Ideiglenes kiegészítő betöltése” lehetőséget, és válaszd ki ezt a fájlt. Telepítve marad a Firefox újraindításáig - a tartós telepítéshez a Mozilla saját aláírása kell, amit egy önházasított szoftver nem tud automatikusan megszerezni.',
   'settings.browsertools.installTitle': 'Telepítés alkalmazásként',
   'settings.browsertools.installHint':
     'Telepítés után az eszköz saját Megosztás menüje egyenesen a KnightLoadernek adhat egy linket - nincs szükség böngészőlapra.',

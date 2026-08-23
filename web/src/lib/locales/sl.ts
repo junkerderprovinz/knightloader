@@ -394,7 +394,6 @@ export const sl: Dict = {
   'container.handed': '{file} je šifrirana. Predana je bila zaledju JDownloader; njene povezave se pojavijo tukaj, brž ko jo prevzame (v {n} s).',
   'container.failed': '{file} ni bila sprejeta: {reason}',
 
-  'settings.nav.general': 'Splošno',
   'settings.nav.modules': 'Moduli',
   'settings.nav.downloads': 'Prenosi',
   'settings.nav.archives': 'Arhivi',
@@ -1326,9 +1325,11 @@ export const sl: Dict = {
   'settings.browsertools.copyCode': 'Namesto tega kopiraj kodo',
   'settings.browsertools.copied': 'Kopirano.',
   'settings.browsertools.extensionTitle': 'Razširitev brskalnika',
-  'settings.browsertools.extensionHint':
-    'Kontekstni meni na kateri koli povezavi, izbiri ali strani, v Chromu, Edgeu, Bravu in drugih brskalnikih na osnovi Chromiuma. Prenos že kaže na ta primerek - ni česa nastavljati.',
-  'settings.browsertools.download': 'Prenesi razširitev',
+  'settings.browsertools.extensionHint': 'Meni desnega klika na kateri koli povezavi, izboru ali strani. Prenos že kaže na to instanco - nič za nastaviti. Chromium in Firefox različno pakirata razširitve, zato izberi tisto za svoj brskalnik.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Razpakiraj ga, odpri chrome://extensions (ali edge://extensions, brave://extensions), vklopi razvijalski način in izberi „Naloži razpakirano“ na razpakirani mapi.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Odpri about:debugging#/runtime/this-firefox, izberi „Naloži začasni dodatek“ in izberi to datoteko. Ostane nameščena do ponovnega zagona Firefoxa - trajna namestitev potrebuje lasten Mozillin podpis, ki ga samostojno gostovana programska oprema ne more pridobiti samodejno.',
   'settings.browsertools.installTitle': 'Namesti kot aplikacijo',
   'settings.browsertools.installHint':
     'Po namestitvi lahko lasten meni Deli tvoje naprave posreduje povezavo neposredno v KnightLoader - zavihek brskalnika ni potreben.',

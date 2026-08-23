@@ -394,7 +394,6 @@ export const lv: Dict = {
   'container.handed': '{file} ir šifrēts. Tas nodots JDownloader aizmugurei; tā saites parādīsies šeit, tiklīdz tā to būs paņēmusi ({n} s laikā).',
   'container.failed': '{file} netika pieņemts: {reason}',
 
-  'settings.nav.general': 'Vispārīgi',
   'settings.nav.modules': 'Moduļi',
   'settings.nav.downloads': 'Lejupielādes',
   'settings.nav.archives': 'Arhīvi',
@@ -1325,9 +1324,11 @@ export const lv: Dict = {
   'settings.browsertools.copyCode': 'Tā vietā kopēt kodu',
   'settings.browsertools.copied': 'Nokopēts.',
   'settings.browsertools.extensionTitle': 'Pārlūka paplašinājums',
-  'settings.browsertools.extensionHint':
-    'Labā klikšķa izvēlne jebkurai saitei, iezīmējumam vai lapai Chrome, Edge, Brave un citos uz Chromium balstītos pārlūkos. Lejupielāde jau norāda uz šo instanci - nav nekā, kas jākonfigurē.',
-  'settings.browsertools.download': 'Lejupielādēt paplašinājumu',
+  'settings.browsertools.extensionHint': 'Peles labais klikšķis jebkurā saitē, atlasē vai lapā. Lejupielāde jau norāda uz šo instanci - nekas nav jākonfigurē. Chromium un Firefox pako paplašinājumus atšķirīgi, tāpēc izvēlies savai pārlūkprogrammai atbilstošo.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Atarhivē to, atver chrome://extensions (vai edge://extensions, brave://extensions), ieslēdz izstrādātāja režīmu un izvēlies „Ielādēt atarhivēto“ atarhivētajai mapē.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Atver about:debugging#/runtime/this-firefox, izvēlies „Ielādēt pagaidu papildinājumu“ un izvēlies šo failu. Tas palēk instalēts līdz Firefox restartēšanai - pastāvīgai instalācijai nepieciešams pašam Mozilla parāksts, ko pašpielāgota programmatūra nevar automātiski iegūt.',
   'settings.browsertools.installTitle': 'Instalēt kā lietotni',
   'settings.browsertools.installHint':
     'Kad instalēts, jūsu ierīces pašas Kopīgot izvēlne var nodot saiti tieši KnightLoader - pārlūka cilne nav nepieciešama.',

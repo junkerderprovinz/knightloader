@@ -394,7 +394,6 @@ export const hr: Dict = {
   'container.handed': '{file} je šifrirana. Predana je pozadini JDownloader; njezine se poveznice pojavljuju ovdje čim je ona dohvati (unutar {n} s).',
   'container.failed': '{file} nije prihvaćena: {reason}',
 
-  'settings.nav.general': 'Općenito',
   'settings.nav.modules': 'Moduli',
   'settings.nav.downloads': 'Preuzimanja',
   'settings.nav.archives': 'Arhive',
@@ -1326,9 +1325,11 @@ export const hr: Dict = {
   'settings.browsertools.copyCode': 'Umjesto toga kopiraj kod',
   'settings.browsertools.copied': 'Kopirano.',
   'settings.browsertools.extensionTitle': 'Proširenje preglednika',
-  'settings.browsertools.extensionHint':
-    'Kontekstni izbornik na bilo kojoj poveznici, odabiru ili stranici, u Chromeu, Edgeu, Braveu i drugim preglednicima temeljenima na Chromiumu. Preuzimanje već pokazuje na ovu instancu - nema što podešavati.',
-  'settings.browsertools.download': 'Preuzmi proširenje',
+  'settings.browsertools.extensionHint': 'Izbornik desnog klika na bilo kojoj poveznici, odabiru ili stranici. Preuzimanje već pokazuje na ovu instancu - ništa za podešavanje. Chromium i Firefox drukčije pakiraju ekstenzije, pa odaberi onu za svoj preglednik.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Raspakiraj ga, otvori chrome://extensions (ili edge://extensions, brave://extensions), uključi način za razvojne programere i odaberi „Učitaj raspakiranu ekstenziju“ na raspakiranoj mapi.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Otvori about:debugging#/runtime/this-firefox, odaberi „Učitaj privremeni dodatak“ i odaberi ovu datoteku. Ostaje instaliran do ponovnog pokretanja Firefoxa - trajna instalacija zahtijeva Mozillin vlastiti potpis, koji samostalno hostiran softver ne može automatski dobiti.',
   'settings.browsertools.installTitle': 'Instaliraj kao aplikaciju',
   'settings.browsertools.installHint':
     'Nakon instalacije, vlastiti izbornik Podijeli tvog uređaja može poslati poveznicu izravno u KnightLoader - kartica preglednika nije potrebna.',

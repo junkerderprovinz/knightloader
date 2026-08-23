@@ -394,7 +394,6 @@ export const vi: Dict = {
   'container.handed': '{file} được mã hóa. Nó đã được giao cho backend JDownloader; các liên kết sẽ hiện ở đây ngay khi backend lấy về (trong {n} giây).',
   'container.failed': '{file} không được nhận: {reason}',
 
-  'settings.nav.general': 'Chung',
   'settings.nav.modules': 'Mô-đun',
   'settings.nav.downloads': 'Tải xuống',
   'settings.nav.archives': 'Tệp nén',
@@ -1325,9 +1324,11 @@ export const vi: Dict = {
   'settings.browsertools.copyCode': 'Sao chép mã thay vào đó',
   'settings.browsertools.copied': 'Đã sao chép.',
   'settings.browsertools.extensionTitle': 'Tiện ích mở rộng trình duyệt',
-  'settings.browsertools.extensionHint':
-    'Một menu chuột phải trên bất kỳ liên kết, lựa chọn hoặc trang nào, trong Chrome, Edge, Brave và các trình duyệt khác dựa trên Chromium. Lượt tải xuống đã trỏ đến thực thể này rồi - không có gì để định cấu hình.',
-  'settings.browsertools.download': 'Tải xuống tiện ích mở rộng',
+  'settings.browsertools.extensionHint': 'Menu chuột phải trên bất kỳ liên kết, lựa chọn hay trang nào. Bản tải đã trỏ đến phiên bản này - không cần cấu hình gì. Chromium và Firefox đóng gói tiện ích mở rộng khác nhau, hãy chọn cái phù hợp với trình duyệt của bạn.',
+  'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
+  'settings.browsertools.installChromiumHint': 'Giải nén nó, sau đó mở chrome://extensions (hoặc edge://extensions, brave://extensions), bật chế độ nhà phát triển, và chọn “Tải tiện ích đã giải nén” trên thư mục đã giải nén.',
+  'settings.browsertools.downloadFirefox': 'Firefox (.xpi)',
+  'settings.browsertools.installFirefoxHint': 'Mở about:debugging#/runtime/this-firefox, chọn “Tải tiện ích tạm thời” và chọn tệp này. Nó vẫn được cài đặt cho đến khi Firefox khởi động lại - cài đặt vĩnh viễn cần chữ ký riêng của Mozilla, thứ mà phần mềm tự lưu trữ không thể tự động nhận được.',
   'settings.browsertools.installTitle': 'Cài đặt như một ứng dụng',
   'settings.browsertools.installHint':
     'Sau khi cài đặt, menu Chia sẻ riêng của thiết bị bạn có thể chuyển thẳng một liên kết đến KnightLoader - không cần tab trình duyệt.',
