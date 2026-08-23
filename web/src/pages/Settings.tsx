@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, Route, Routes, useMatch, useNavigate, useParams } from 'react-router-dom';
 import { ApiError, type Settings, fetchHealth, fetchSettings, patchSettings } from '../lib/api';
 import { useResource } from '../lib/useResource';
 import { readUIState, useUIState } from '../lib/uistate';
 import { useT } from '../lib/i18n';
-import { Button, ErrorCard, InfoBubble, LoadingCard, PageHeader } from '../components/ui';
+import { useToast } from '../lib/toast';
+import { ErrorCard, InfoBubble, LoadingCard, PageHeader } from '../components/ui';
 import { Tabs } from '../components/Tabs';
 import { SettingsProvider, type FeatureAccess, type SettingsDraft } from './settings/context';
 import { fetchFeatures, setFeature, type FeaturePage, type FeatureState } from './settings/features';
@@ -58,8 +59,8 @@ export function SettingsPage() {
     if (saved) setDraft(saved);
   }, [saved]);
 
-  const [saveError, setSaveError] = useState('');
   const [saving, setSaving] = useState(false);
+  const { toast } = useToast();
 
   const dirty = useMemo(
     () => draft !== null && saved !== null && JSON.stringify(draft) !== JSON.stringify(saved),
@@ -102,8 +103,7 @@ export function SettingsPage() {
   }, []);
 
   async function onSave() {
-    if (!draft || !saved) return;
-    setSaveError('');
+    if (!draft || !saved || saving) return;
     setSaving(true);
     try {
       // PATCH, not the whole document: only the top-level fields this draft
@@ -124,18 +124,45 @@ export function SettingsPage() {
       for (const key of Object.keys(draftDoc)) {
         if (!same(draftDoc[key], savedDoc[key])) changed[key] = draftDoc[key];
       }
-      const applied = Object.keys(changed).length > 0 ? await patchSettings(changed as Partial<Settings>) : saved;
+      if (Object.keys(changed).length === 0) return;
+      const applied = await patchSettings(changed as Partial<Settings>);
       setSaved(applied);
       setDraft(applied);
       // The registry reads live settings, so a save can have moved a module: the
       // watch folder cleared by hand is the folder-watch module going off.
       reloadFeatures();
+      toast(t('settings.saved'), 'ok');
     } catch (e) {
-      setSaveError(saveErrorText(e));
+      toast(saveErrorText(e), 'fail');
     } finally {
       setSaving(false);
     }
   }
+
+  // Saves the instant anything changes, on EVERY settings tab (jdp: "In
+  // allen Einstellungstabs soll alles was man einstellt automatisch sofort
+  // gespeichert werden, ohne dass ein Speichern Button erscheint und man den
+  // anklicken muss") - reuses onSave()'s own diff-against-`saved` logic
+  // verbatim, just triggered by a debounced watch on the draft instead of a
+  // manual click. `dirty` starts false (draft seeded from saved), so this
+  // is inert until an actual edit lands; no separate skip-first-mount guard
+  // needed the way Look.tsx's own field-watching effect requires one.
+  const saveTimer = useRef<number | null>(null);
+  useEffect(() => {
+    if (!dirty) return;
+    if (saveTimer.current !== null) window.clearTimeout(saveTimer.current);
+    saveTimer.current = window.setTimeout(() => {
+      saveTimer.current = null;
+      void onSave();
+    }, 600);
+    return () => {
+      if (saveTimer.current !== null) {
+        window.clearTimeout(saveTimer.current);
+        saveTimer.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft]);
 
   /**
    * What the refusal says, in the reader's language when the server said which
@@ -202,6 +229,10 @@ export function SettingsPage() {
       <div className="mt-4 flex flex-col gap-6">
         <SectionTabs pages={features.pages} />
 
+        {/* No sticky Save/Discard bar any more - every edit on every settings
+            tab saves itself automatically (the debounced effect above),
+            confirmed by the same toast Look.tsx's own auto-save already
+            uses. */}
         <div className="flex min-w-0 flex-1 flex-col gap-6">
           <Routes>
             <Route index element={<RememberedPage pages={features.pages} />} />
@@ -209,20 +240,6 @@ export function SettingsPage() {
             {/* Anything deeper than one segment is not a page we ever made. */}
             <Route path="*" element={<Navigate to={pagePath(FALLBACK_PAGE)} replace />} />
           </Routes>
-
-          {dirty && (
-            <div className="glim-card sticky bottom-0 flex items-center gap-3 p-4">
-              <span className="text-sm text-carbon-textSub">{tx('settings.unsaved')}</span>
-              <span className="flex-1" />
-              {saveError && <span className="text-sm text-statusFail">{saveError}</span>}
-              <Button kind="ghost" onClick={() => setDraft(saved)} disabled={saving}>
-                {tx('settings.discard')}
-              </Button>
-              <Button onClick={onSave} disabled={saving}>
-                {t('settings.save')}
-              </Button>
-            </div>
-          )}
         </div>
       </div>
       <VersionFooter />
