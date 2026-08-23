@@ -146,7 +146,7 @@ export function Look() {
   const accentLive = live(cfg.accent);
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-10">
       {/* Every card title below is a "notch" badge - a filled pill sitting
           half over the card's own top edge - and carries its own rainbow
           position (hue 0-4, this page's own sequence), exactly like the
