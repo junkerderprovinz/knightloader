@@ -410,9 +410,19 @@ export function Tabs(props: TabsProps) {
         const wiggling = reordering && item.id !== draggingId;
         const dragged = item.id === draggingId;
         const cls = isWell
-          ? `${segBase} glim-hue glim-hue-icon flex-1 justify-center text-center gap-2 py-1.5 text-sm
+          ? // No min-w-0 here, unlike the default variant below: this well
+            // sits inside a `w-fit` track (jdp: "die horizontalen Selektoren
+            // nicht die ganze Card-Breite - exakt so breit wie in BV"), and
+            // min-w-0 lets a flex-basis-0 item's content shrink below its
+            // own label's width when the BROWSER computes that track's
+            // fit-content size - "Leicht"/"Dunkel" rendered as "Lei…"/"Du…"
+            // the moment the track stopped stretching full-width. The
+            // default (browser-native) min-width:auto keeps each item's
+            // min-content size in that computation, so the track ends up
+            // exactly as wide as its labels need, never narrower.
+            `${segBase} glim-hue glim-hue-icon flex-1 justify-center text-center gap-2 py-1.5 text-sm
               ${on ? 'glim-active bg-accent text-accentContrast' : 'bg-transparent text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text'}
-              flex min-w-0 max-w-full items-center ${!on && item.dim ? 'opacity-60' : ''}`
+              flex items-center ${!on && item.dim ? 'opacity-60' : ''}`
           : `${segBase} glim-hue glim-hue-icon ${on ? `glim-active ${segOn}` : segOff} ${
               SIZE[size]
             } flex min-w-0 max-w-full items-center ${!on && item.dim ? 'opacity-60' : ''}

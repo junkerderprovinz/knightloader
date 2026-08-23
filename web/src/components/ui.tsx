@@ -44,10 +44,17 @@ export function Button({
 // row of words with the same (i) beside it, and the only difference between them
 // is which element wraps the control underneath.
 const FIELD_SHELL = 'flex flex-col gap-1.5';
+// The caption sits BESIDE the control instead of above it - opt-in (jdp:
+// "Entpacken nach und Eingabefeld soll in einer Zeile sein", "[Wenn eine
+// Datei schon da ist] soll ein horizontaler Selektor werden, in die gleiche
+// Zeile wie der Text"), for a control that reads fine on one line rather
+// than every Field/FieldGroup by default - most captions are long enough,
+// or their control wide enough, that stacking is still the right call.
+const FIELD_SHELL_ROW = 'flex flex-wrap items-center gap-3';
 
 function Caption({ label, hint }: { label: string; hint?: string }) {
   return (
-    <span className="flex items-center text-xs text-carbon-textSub">
+    <span className="flex shrink-0 items-center text-xs text-carbon-textSub">
       {label}
       {hint && <InfoBubble tip={hint} />}
     </span>
@@ -75,11 +82,24 @@ function Caption({ label, hint }: { label: string; hint?: string }) {
  * strip, a pair of buttons — anything where "the first control" is not the
  * answer.
  */
-export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+export function Field({
+  label,
+  hint,
+  layout = 'stack',
+  children,
+}: {
+  label: string;
+  hint?: string;
+  /** `'row'` puts the caption and the control on one line instead of
+   *  stacking them - the control gets `flex-1` so it still fills the line
+   *  the way it always filled the full width when stacked. */
+  layout?: 'stack' | 'row';
+  children: ReactNode;
+}) {
   return (
-    <label className={FIELD_SHELL}>
+    <label className={layout === 'row' ? FIELD_SHELL_ROW : FIELD_SHELL}>
       <Caption label={label} hint={hint} />
-      {children}
+      {layout === 'row' ? <span className="min-w-0 flex-1">{children}</span> : children}
     </label>
   );
 }
@@ -94,9 +114,24 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
  * would announce the caption twice and give two names to one idea — the same
  * mistake in the accessibility tree that a nested card is in the layout.
  */
-export function FieldGroup({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
+export function FieldGroup({
+  label,
+  hint,
+  layout = 'stack',
+  children,
+}: {
+  label: string;
+  hint?: string;
+  /** `'row'` puts the caption beside the control set instead of above it -
+   *  unlike Field's own row mode, the children stay their own natural
+   *  width rather than stretching (a tab strip or swatch row is meant to
+   *  hug its content, the way the Look page's Akzentfarbe row already
+   *  does, not fill whatever's left on the line). */
+  layout?: 'stack' | 'row';
+  children: ReactNode;
+}) {
   return (
-    <div className={FIELD_SHELL}>
+    <div className={layout === 'row' ? FIELD_SHELL_ROW : FIELD_SHELL}>
       <Caption label={label} hint={hint} />
       {children}
     </div>

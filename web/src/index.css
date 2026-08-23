@@ -286,12 +286,26 @@ body {
 /* The one raised surface. Never nest it. `position: relative` anchors
    SectionTitle's notch badge (ui.tsx), which sits absolutely positioned
    half over the card's own top edge - harmless for every card that has
-   no notch child. */
-.glim-card {
-  position: relative;
-  background-color: var(--carbon-surface);
-  border-radius: var(--radius-card);
-  box-shadow: var(--elevation), var(--hairline);
+   no notch child.
+
+   In `@layer components`, not bare: this file's plain CSS sits OUTSIDE any
+   Tailwind layer, and an unlayered rule beats every layered one - including
+   Tailwind's own `.absolute` utility (`@layer utilities`) - regardless of
+   source order or specificity. LanguagePicker's dropdown carries both
+   `glim-card` (for the surface look) and `absolute` (to float over the
+   page); bare, this rule's `position: relative` silently won that fight,
+   so the dropdown rendered in flow and grew its parent Card instead of
+   overlaying it (jdp: "Die Sprach card wird immer noch vergrößert sobald
+   man das dropdown aufklappt"). Layered here, Tailwind's later `utilities`
+   layer wins for any element carrying both classes, the way Tailwind v4
+   itself expects custom component classes to be authored. */
+@layer components {
+  .glim-card {
+    position: relative;
+    background-color: var(--carbon-surface);
+    border-radius: var(--radius-card);
+    box-shadow: var(--elevation), var(--hairline);
+  }
 }
 
 /* An inset well for tracks, drop zones and quiet groupings. */
