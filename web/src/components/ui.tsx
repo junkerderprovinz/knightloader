@@ -646,37 +646,63 @@ export function ErrorCard({ message, retry, retryLabel }: { message: string; ret
   );
 }
 
-// SectionTitle labels a group of content: plain uppercase text, no filled
-// pill behind it. An earlier pass here read GlimStone's own docs as "every
-// heading is a filled badge, matching BombVault" and built exactly that -
-// but that rule describes BombVault's REPO, not what the actual BV test
-// container jdp has been comparing against renders. Read directly off that
-// container (computed styles, not source): every card h2 there is
-// `background: transparent`, `padding: 0`, 14px/600/uppercase/1.4px
-// tracking, plain `text-carbon-textSub` - no pill, no fill, no radius (jdp:
-// "Bitte orientiere dich am Bombvault-Testcontainer!!! Es sieht nicht aus
-// wie dort!"). This is that exact typography, verbatim.
+// SectionTitle labels a group of content as a "notch" badge: a small filled
+// pill that sits HALF OVER the card's own top edge (absolute, -11px, a
+// shadow lifting it off the surface) rather than as a plain heading inside
+// the card's normal content flow. Two prior passes on this component got it
+// wrong in opposite directions - first an accent-soft wash sitting inline
+// (matching GlimStone's repo/docs, never actually live anywhere), then
+// plain bare text (matching a DIFFERENT, older BombVault instance that
+// turned out not to be the real reference container at all, per jdp: "Nein
+// das ist falsch! Hier ist der Testcontainer erreichbar..."). This is the
+// real container's own markup, read directly off it and ported verbatim:
+// solid `bg-accent`/`text-accentContrast` fill, 12px/500/1.2px-tracking
+// uppercase, `rounded-[var(--radius-pill)]`, `absolute -top-[11px] z-10
+// shadow-[var(--elevation)]`. Requires its Card ancestor to be
+// `position: relative` (`.glim-card` carries that now) so the badge
+// anchors to the CARD's own box, not wherever it would otherwise fall in
+// normal flow.
 //
-// `hint` sits as a SIBLING immediately beside the title, not floated to the
-// far right of the row (a real, still-current fix from the previous round -
-// the flex-1 spacer bug it fixed was real regardless of the badge/no-badge
-// question). `right` still exists, still spaced off with its own gap, for
-// the call sites that really do mean a far-right header action (Add,
-// Refresh).
+// `hint` renders INSIDE the filled badge itself (a child of the same
+// span), not as a sibling beside it - confirmed from the live container's
+// own DOM, and matching jdp's own words two rounds ago ("die infobubble
+// der Ecken in den Titelbadge").
+//
+// `hue` opts the badge into a rainbow position exactly like Sidebar.tsx's
+// own nav items and Tabs.tsx's own segments already do (`glim-hue` +
+// `hueVars(rainbowAt(hue))`) - confirmed live: every card's own title on
+// the real container carries its own sequential `--item-hue`, gated by
+// the SAME `[data-rainbow]` mechanism as everywhere else (a hue is always
+// assigned, only actually painted once rainbow mode is on). Omit it for a
+// card that is the only one of its kind on the page - rule: "anything
+// that is the only one of its kind keeps the single accent."
+//
+// `right` still exists, still spaced off with its own gap after the row,
+// for the rare call site that means a real far-right header action (Add,
+// Refresh) rather than an explanatory hint.
 export function SectionTitle({
   children,
   hint,
+  hue,
   right,
 }: {
   children: ReactNode;
   hint?: string;
+  hue?: number;
   right?: ReactNode;
 }) {
   return (
     <div className="flex items-center gap-3">
-      <h2 className="flex items-center gap-1.5 text-[14px] font-semibold uppercase tracking-[1.4px] text-carbon-textSub">
-        {children}
-        {hint && <InfoBubble tip={hint} />}
+      <h2 className="flex items-center">
+        <span
+          className={`${hue !== undefined ? 'glim-hue' : ''} absolute -top-[11px] z-10 inline-flex min-h-[22px]
+            items-center gap-1 whitespace-nowrap rounded-[var(--radius-pill)] bg-accent px-3 py-0.5 text-[12px]
+            font-medium uppercase tracking-[1.2px] text-accentContrast shadow-[var(--elevation)]`}
+          style={hue !== undefined ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
+        >
+          {children}
+          {hint && <InfoBubble tip={hint} />}
+        </span>
       </h2>
       {right && (
         <>

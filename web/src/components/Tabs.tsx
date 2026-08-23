@@ -94,6 +94,19 @@ interface Common {
    * correctly at narrow viewports instead of forcing one unbroken row.
    */
   equalWidth?: boolean;
+  /**
+   * `'well'` is a second, opt-in styling of this same component (GlimStone:
+   * "A second styling: the well... First built for BombVault's shape
+   * picker") for a genuinely EXCLUSIVE, small, closely-related set - three
+   * shape options, an on/off pair - as opposed to the default's row of
+   * independent badges. All segments share one padded track
+   * (`bg-carbon-surface2`, `p-[0.2rem]`/`gap-[0.2rem]`) instead of each
+   * carrying its own resting fill, split evenly (`flex-1`) rather than
+   * sized to content or to `equalWidth`'s longest-label measurement.
+   * Confirmed live off the real BombVault test container's own Corners
+   * and Design pickers, not the repo/docs. Defaults to `'default'`.
+   */
+  variant?: 'default' | 'well';
 }
 
 export type TabsProps =
@@ -106,7 +119,18 @@ const SIZE = {
 } as const;
 
 export function Tabs(props: TabsProps) {
-  const { items, label, size = 'md', after, className = '', reorderable = false, onReorder, equalWidth = false } = props;
+  const {
+    items,
+    label,
+    size = 'md',
+    after,
+    className = '',
+    reorderable = false,
+    onReorder,
+    equalWidth = false,
+    variant = 'default',
+  } = props;
+  const isWell = variant === 'well';
 
   // Subscribed, not read: the palette is resolved during render, so a strip
   // that only learned about a change on the next paint would keep the previous
@@ -372,16 +396,27 @@ export function Tabs(props: TabsProps) {
       // behind a gesture nobody makes on a desktop, and a strip that grows
       // wider than its column puts the whole page into a horizontal scroll —
       // which is the one thing a tab bar across the top must never do.
-      className={`flex flex-wrap items-center gap-1 ${className}`}
+      //
+      // The well variant is the one exception to "no wrapping bar" - its
+      // whole point is one shared track behind a small, exclusive set.
+      className={
+        isWell
+          ? `flex flex-nowrap items-center gap-[0.2rem] rounded-[var(--radius-control)] bg-carbon-surface2 p-[0.2rem] ${className}`
+          : `flex flex-wrap items-center gap-1 ${className}`
+      }
     >
       {orderedItems.map((item, i) => {
         const on = isOn(item.id);
         const wiggling = reordering && item.id !== draggingId;
         const dragged = item.id === draggingId;
-        const cls = `${segBase} glim-hue glim-hue-icon ${on ? `glim-active ${segOn}` : segOff} ${
-          SIZE[size]
-        } flex min-w-0 max-w-full items-center ${!on && item.dim ? 'opacity-60' : ''}
-          ${wiggling ? 'glim-tab-wiggle' : ''} ${dragged ? 'glim-tab-dragging' : ''}`;
+        const cls = isWell
+          ? `${segBase} glim-hue glim-hue-icon flex-1 justify-center text-center gap-2 py-1.5 text-sm
+              ${on ? 'glim-active bg-accent text-accentContrast' : 'bg-transparent text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text'}
+              flex min-w-0 max-w-full items-center ${!on && item.dim ? 'opacity-60' : ''}`
+          : `${segBase} glim-hue glim-hue-icon ${on ? `glim-active ${segOn}` : segOff} ${
+              SIZE[size]
+            } flex min-w-0 max-w-full items-center ${!on && item.dim ? 'opacity-60' : ''}
+              ${wiggling ? 'glim-tab-wiggle' : ''} ${dragged ? 'glim-tab-dragging' : ''}`;
 
         const inner = (
           <>
