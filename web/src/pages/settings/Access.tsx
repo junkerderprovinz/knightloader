@@ -73,6 +73,9 @@ const PENDING = {
   'settings.access.remote.install': 'Install',
   'settings.access.remote.installIOS':
     'On iPhone or iPad: open this page in Safari, tap Share, then "Add to Home Screen".',
+
+  'settings.access.intakePortsHint':
+    'Other ways this instance can be reached directly, outside the normal login - each with its own reachability shown here.',
 } as const;
 
 type PendingKey = keyof typeof PENDING;
@@ -101,7 +104,9 @@ export function Access() {
 
       {listeners.length > 0 && (
           <Card className="flex flex-col gap-4">
-            <SectionTitle hue={4}>{tx('settings.sectionIntakePorts')}</SectionTitle>
+            <SectionTitle hue={4} hint={cx('settings.access.intakePortsHint')}>
+              {tx('settings.sectionIntakePorts')}
+            </SectionTitle>
             {listeners.map((m) => (
               <div key={m.id} className="flex items-baseline gap-3">
                 <span className="flex items-center text-sm text-carbon-text">
