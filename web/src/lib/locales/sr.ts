@@ -173,6 +173,7 @@ export const sr: Dict = {
   'settings.historyMaxHint': '0 чува сваки унос.',
   'settings.maxRetriesHint': 'Неуспело преузимање се понавља са све дужом паузом.',
   'settings.archivePasswords': 'Лозинке за архиве',
+  'settings.archives.extractionTitle': 'Распакивање',
   'settings.archivePasswordsHint': 'Једна по реду. Пробају се редом када је архива шифрована.',
   'settings.lockOn': 'За коришћење ове инстанце тражи се лозинка.',
   'settings.lockOff': 'Свако ко дође до ове инстанце може да је користи.',
@@ -416,6 +417,10 @@ export const sr: Dict = {
   'settings.sectionIntake': 'Нове везе',
 
   'settings.downloads.watchOff': 'Надгледање фасцикле је искључено на страници Модули, зато ово није могуће мењати. Када га поново укључите, фасцикла постављена овде се враћа.',
+  'settings.downloads.locationTitle': 'Локација',
+  'settings.downloads.limitsTitle': 'Ограничења и понашање',
+  'settings.downloads.watchTitle': 'Праћење фасцикле',
+  'settings.downloads.idleTitle': 'Мировање',
 
   'settings.modules.subtitle': 'Шта ово издање садржи, а шта не.',
   'settings.modules.fixedAtBuild': 'Скуп модула се утврђује при изградњи извршне датотеке. У покренут примерак не може ништа да се дода, па је овај списак све.',
@@ -453,6 +458,7 @@ export const sr: Dict = {
 
   'settings.advanced.subtitle': 'Свако подешавање овог примерка, по имену.',
   'settings.advanced.search': 'Филтрирај по имену или вредности',
+  'settings.advanced.allSettings': 'Сва подешавања',
   'settings.advanced.onlyModified': 'Само оно што одступа од подразумеваног',
   'settings.advanced.colKey': 'Кључ',
   'settings.advanced.colType': 'Врста',
@@ -544,6 +550,7 @@ export const sr: Dict = {
 
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Филтер веза',
+  'settings.rules.setupTitle': 'Скуп правила',
   'settings.rules.flavourLabel': 'Који списак правила',
   'settings.rules.packagizerHint': 'Пролази кроз сваку везу у тренутку припреме и преписује шта може: пакет, фасциклу, напомену, приоритет, везе, аутоматско распакивање. Свако правило које се поклопи доприноси, а у истом пољу побеђује касније.',
   'settings.rules.filterHint': 'Одлучује да ли ће веза уопште ући у сакупљач. Одбијена веза се не брише: задржава се заједно с правилом и разлогом који су је зауставили, да ништа никада не нестане а да не каже зашто.',
@@ -691,6 +698,7 @@ export const sr: Dict = {
   'settings.rules.folderFromSettingsHint': 'Ниједно правило није навело фасциклу, па веза завршава у подешеној фасцикли за преузимања — можда у подфасцикли по пакету, ако је то подешавање укључено. Ова страница вам неће погађати целу путању: сигурно може рећи само да је ниједно правило није променило.',
   'settings.rules.alsoSets': 'Поставља и',
 
+  'settings.reconnect.setupTitle': 'Подешавање',
   'settings.reconnect.method': 'Начин',
   'settings.reconnect.methodHint': 'Како се рутеру каже да спусти линију и врати се с новом адресом. „Наредба“ покреће програм, „Захтеви“ поново изводе снимљен HTTP разговор, UPnP пита мрежни пролаз преко мреже без икакве пријаве, а „Скрипта“ предаје датотеку тумачу. Приказују се само поља која изабрани начин тражи; остала чувају оно што си уписао и враћају се кад пребациш на њих.',
   'settings.reconnect.method.none': 'Искључено',
@@ -1319,12 +1327,12 @@ export const sr: Dict = {
   'settings.browsertools.subtitle':
     'Пошаљи везу у KnightLoader одакле год другде - са друге странице, из друге апликације или менија Подели на телефону.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'Превуци ово на траку омиљених. На било којој страници кликни на њега да овде пошаљеш ту страницу (или изабрани текст).',
+  'settings.browsertools.bookmarkletHint': '1. Превуци дугме испод на траку са обележивачима твог прегледача - чува се као свако друго обележивач, ништа се не инсталира. 2. На било којој страници кликни на њега (прво избери текст ако желиш само њега). Отвара се мали KnightLoader картица са везом те странице или изабраним текстом, већ попуњена - прегледај је и додај је одатле као преузимање.',
   'settings.browsertools.bookmarkletLink': 'Додај у KnightLoader',
   'settings.browsertools.copyCode': 'Уместо тога копирај код',
   'settings.browsertools.copied': 'Копирано.',
   'settings.browsertools.extensionTitle': 'Екстензија прегледача',
+  'settings.browsertools.aboutTitle': 'Са било ког другог места',
   'settings.browsertools.extensionHint': 'Мени десног клика на било којој вези, избору или страни. Преузимање већ указује на ову инстанцу - ништа за подешавање. Chromium и Firefox пакују екстензије различито, па изабери ону за свој претраживач.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Распакуј га, отвори chrome://extensions (или edge://extensions, brave://extensions), укључи развојни режим и изабери „Учитај распаковано“ за распаковану фасциклу.',

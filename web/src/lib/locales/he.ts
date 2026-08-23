@@ -175,6 +175,7 @@ export const he: Dict = {
   'settings.historyMaxHint': '0 שומר כל רשומה.',
   'settings.maxRetriesHint': 'הורדה שנכשלה תנוסה שוב בהשהיה גדלה.',
   'settings.archivePasswords': 'סיסמאות ארכיון',
+  'settings.archives.extractionTitle': 'חילוץ',
   'settings.archivePasswordsHint': 'אחת בכל שורה. נבדקות לפי הסדר כשארכיון מוצפן.',
   'settings.lockOn': 'נדרשת סיסמה כדי להשתמש במופע הזה.',
   'settings.lockOff': 'כל מי שמגיע למופע הזה יכול להפעיל אותו.',
@@ -418,6 +419,10 @@ export const he: Dict = {
   'settings.sectionIntake': 'קישורים חדשים',
 
   'settings.downloads.watchOff': 'מעקב אחר תיקייה כבוי בדף המודולים, ולכן אי אפשר לערוך כאן. הדלקה מחדש מחזירה את התיקייה שנקבעה כאן.',
+  'settings.downloads.locationTitle': 'מיקום',
+  'settings.downloads.limitsTitle': 'מגבלות והתנהגות',
+  'settings.downloads.watchTitle': 'מעקב אחר תיקייה',
+  'settings.downloads.idleTitle': 'סרק',
 
   'settings.modules.subtitle': 'מה יש בבנייה הזאת ומה אין בה.',
   'settings.modules.fixedAtBuild': 'אוסף המודולים נקבע כשהקובץ הבינארי נבנה. אי אפשר להתקין דבר במופע פועל, ולכן הרשימה הזאת היא הכול.',
@@ -455,6 +460,7 @@ export const he: Dict = {
 
   'settings.advanced.subtitle': 'כל הגדרה שיש למופע הזה, לפי שם.',
   'settings.advanced.search': 'סינון לפי שם או ערך',
+  'settings.advanced.allSettings': 'כל ההגדרות',
   'settings.advanced.onlyModified': 'רק מה ששונה מברירת המחדל',
   'settings.advanced.colKey': 'מפתח',
   'settings.advanced.colType': 'סוג',
@@ -547,6 +553,7 @@ export const he: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'מסנן קישורים',
   'settings.rules.flavourLabel': 'איזו רשימת כללים',
+  'settings.rules.setupTitle': 'ערכת כללים',
   'settings.rules.packagizerHint': 'רץ על כל קישור ברגע ההכנה ומשכתב את מה שהוא יכול: חבילה, תיקייה, הערה, עדיפות, חיבורים, חילוץ אוטומטי. כל כלל מתאים תורם, ובכל שדה הכלל המאוחר מנצח.',
   'settings.rules.filterHint': 'מחליט אם קישור ייכנס בכלל לאוסף. קישור שנדחה אינו נמחק: הוא מוחזק יחד עם הכלל והסיבה שעצרו אותו, כדי ששום דבר לא ייעלם בלי לומר מדוע.',
   'settings.rules.setOn': 'הרשימה הזו מופעלת',
@@ -694,6 +701,7 @@ export const he: Dict = {
   'settings.rules.alsoSets': 'קובע גם',
 
   'settings.reconnect.method': 'שיטה',
+  'settings.reconnect.setupTitle': 'הגדרה',
   'settings.reconnect.methodHint': 'איך אומרים לנתב לנתק את הקו ולחזור עם כתובת חדשה. „פקודה” מריצה תוכנית, „בקשות” מנגנות מחדש שיחת HTTP מוקלטת, UPnP שואל את השער דרך הרשת בלי שום התחברות, ו„סקריפט” מוסר קובץ למפרש. מוצגים רק השדות שהשיטה הנבחרת צריכה; שאר השדות שומרים את מה שהקלדת וחוזרים כשעוברים אליהם.',
   'settings.reconnect.method.none': 'כבוי',
   'settings.reconnect.method.command': 'פקודה',
@@ -1320,12 +1328,12 @@ export const he: Dict = {
   'settings.browsertools.subtitle':
     'שלח קישור אל KnightLoader מכל מקום אחר - עמוד אחר, אפליקציה אחרת, או תפריט השיתוף של הטלפון שלך.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'גרור את זה לשורת הסימניות שלך. בכל עמוד, לחץ עליו כדי לשלוח את העמוד הזה (או כל טקסט שסימנת) לכאן.',
+  'settings.browsertools.bookmarkletHint': '1. גרור את הכפתור למטה לשורת הסימניות של הדפדפן שלך - הוא נשמר כמו כל סימנייה אחרת, שום דבר לא מותקן. 2. בכל דף, לחץ עליו (בחר קודם טקסט אם אתה רוצה רק אותו). נפתחת כרטיסייה קטנה של KnightLoader עם הקישור של אותו דף, או הטקסט שנבחר, כבר ממולאים - עבור עליו והוסף אותו משם כהורדה.',
   'settings.browsertools.bookmarkletLink': 'הוסף ל-KnightLoader',
   'settings.browsertools.copyCode': 'העתק את הקוד במקום זאת',
   'settings.browsertools.copied': 'הועתק.',
   'settings.browsertools.extensionTitle': 'הרחבת דפדפן',
+  'settings.browsertools.aboutTitle': 'מכל מקום אחר',
   'settings.browsertools.extensionHint': 'תפריט לחיצה ימנית על כל קישור, בחירה או דף. ההורדה כבר מצביעה למופע הזה - אין כלום להגדיר. Chromium ו-Firefox אורזים תוספים באופן שונה, לכן בחרו את המתאים לדפדפן שלכם.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'פרקו אותו, פתחו את chrome://extensions (או edge://extensions, brave://extensions), הפעילו מצב מפתח ובחרו באפשרות טעינה לא ארוזה על התיקייה שפורקה.',

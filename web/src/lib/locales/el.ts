@@ -173,6 +173,7 @@ export const el: Dict = {
   'settings.historyMaxHint': 'Το 0 κρατά κάθε εγγραφή.',
   'settings.maxRetriesHint': 'Μια αποτυχημένη λήψη επαναλαμβάνεται με αυξανόμενη καθυστέρηση.',
   'settings.archivePasswords': 'Κωδικοί αρχείων',
+  'settings.archives.extractionTitle': 'Αποσυμπίεση',
   'settings.archivePasswordsHint': 'Ένας ανά γραμμή. Δοκιμάζονται με τη σειρά όταν ένα αρχείο είναι κρυπτογραφημένο.',
   'settings.lockOn': 'Απαιτείται κωδικός για τη χρήση αυτού του στιγμιότυπου.',
   'settings.lockOff': 'Όποιος φτάνει σε αυτό το στιγμιότυπο μπορεί να το χειριστεί.',
@@ -416,6 +417,10 @@ export const el: Dict = {
   'settings.sectionIntake': 'Νέοι σύνδεσμοι',
 
   'settings.downloads.watchOff': 'Η παρακολούθηση φακέλου είναι απενεργοποιημένη στη σελίδα των λειτουργικών μονάδων, γι’ αυτό εδώ δεν γίνεται επεξεργασία. Αν την ξαναανάψετε, ο φάκελος που ορίστηκε εδώ επανέρχεται.',
+  'settings.downloads.locationTitle': 'Τοποθεσία',
+  'settings.downloads.limitsTitle': 'Όρια & συμπεριφορά',
+  'settings.downloads.watchTitle': 'Παρακολούθηση φακέλου',
+  'settings.downloads.idleTitle': 'Αδράνεια',
 
   'settings.modules.subtitle': 'Τι περιέχει αυτή η έκδοση και τι όχι.',
   'settings.modules.fixedAtBuild': 'Το σύνολο των μονάδων καθορίζεται όταν χτίζεται το εκτελέσιμο. Σε ένα στιγμιότυπο που τρέχει δεν εγκαθίσταται τίποτα, άρα αυτή η λίστα είναι όλο κι όλο.',
@@ -453,6 +458,7 @@ export const el: Dict = {
 
   'settings.advanced.subtitle': 'Κάθε ρύθμιση αυτού του στιγμιότυπου, με το όνομά της.',
   'settings.advanced.search': 'Φιλτράρισμα κατά όνομα ή τιμή',
+  'settings.advanced.allSettings': 'Όλες οι ρυθμίσεις',
   'settings.advanced.onlyModified': 'Μόνο ό,τι διαφέρει από την προεπιλογή',
   'settings.advanced.colKey': 'Κλειδί',
   'settings.advanced.colType': 'Τύπος',
@@ -545,6 +551,7 @@ export const el: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Φίλτρο συνδέσμων',
   'settings.rules.flavourLabel': 'Ποια λίστα κανόνων',
+  'settings.rules.setupTitle': 'Σύνολο κανόνων',
   'settings.rules.packagizerHint': 'Τρέχει σε κάθε σύνδεσμο καθώς μπαίνει σε ετοιμότητα και ξαναγράφει ό,τι μπορεί: πακέτο, φάκελο, σχόλιο, προτεραιότητα, συνδέσεις, αυτόματη αποσυμπίεση. Κάθε κανόνας που ταιριάζει συνεισφέρει και, ανά πεδίο, κερδίζει ο μεταγενέστερος.',
   'settings.rules.filterHint': 'Αποφασίζει αν ένας σύνδεσμος θα μπει καν στον συλλέκτη. Ένας σύνδεσμος που απορρίπτεται δεν διαγράφεται: κρατείται μαζί με τον κανόνα και τον λόγο που τον σταμάτησαν, ώστε τίποτα να μην εξαφανίζεται χωρίς να λέει γιατί.',
   'settings.rules.setOn': 'Αυτή η λίστα εφαρμόζεται',
@@ -692,6 +699,7 @@ export const el: Dict = {
   'settings.rules.alsoSets': 'Ορίζει επίσης',
 
   'settings.reconnect.method': 'Μέθοδος',
+  'settings.reconnect.setupTitle': 'Ρύθμιση',
   'settings.reconnect.methodHint': 'Ο τρόπος με τον οποίο λέγεται στον δρομολογητή να ρίξει τη γραμμή και να επιστρέψει με νέα διεύθυνση. Η «Εντολή» τρέχει ένα πρόγραμμα, τα «Αιτήματα» αναπαράγουν μια καταγεγραμμένη συνομιλία HTTP, το UPnP ρωτά την πύλη μέσω δικτύου χωρίς καμία σύνδεση, και το «Σενάριο» παραδίδει ένα αρχείο σε έναν διερμηνέα. Εμφανίζονται μόνο τα πεδία που χρειάζεται η μέθοδος που επιλέξατε· τα υπόλοιπα κρατούν ό,τι πληκτρολογήσατε και επανέρχονται όταν γυρίσετε σε αυτά.',
   'settings.reconnect.method.none': 'Ανενεργό',
   'settings.reconnect.method.command': 'Εντολή',
@@ -1318,12 +1326,12 @@ export const el: Dict = {
   'settings.browsertools.subtitle':
     'Στείλτε έναν σύνδεσμο στο KnightLoader από οπουδήποτε αλλού - μια άλλη σελίδα, μια άλλη εφαρμογή, ή το μενού Κοινοποίησης του τηλεφώνου σας.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'Σύρετε αυτό στη γραμμή σελιδοδεικτών σας. Σε οποιαδήποτε σελίδα, κάντε κλικ για να στείλετε αυτήν τη σελίδα (ή το κείμενο που έχετε επιλέξει) εδώ.',
+  'settings.browsertools.bookmarkletHint': '1. Σύρε το παρακάτω κουμπί στη γραμμή σελιδοδεικτών του προγράμματος περιήγησης - αποθηκεύεται όπως κάθε άλλος σελιδοδείκτης, τίποτα δεν εγκαθίσταται. 2. Σε οποιαδήποτε σελίδα, κάνε κλικ πάνω του (επίλεξε πρώτα κείμενο αν θέλεις μόνο αυτό). Ανοίγει μια μικρή καρτέλα KnightLoader με τον σύνδεσμο αυτής της σελίδας, ή το επιλεγμένο κείμενο, ήδη συμπληρωμένο - έλεγξέ το και πρόσθεσέ το από εκεί ως λήψη.',
   'settings.browsertools.bookmarkletLink': 'Προσθήκη στο KnightLoader',
   'settings.browsertools.copyCode': 'Αντιγραφή του κώδικα αντ’ αυτού',
   'settings.browsertools.copied': 'Αντιγράφηκε.',
   'settings.browsertools.extensionTitle': 'Επέκταση περιηγητή',
+  'settings.browsertools.aboutTitle': 'Από οπουδήποτε αλλού',
   'settings.browsertools.extensionHint': 'Ένα μενού δεξιού κλικ σε οποιοδήποτε σύνδεσμο, επιλογή ή σελίδα. Η λήψη δείχνει ήδη σε αυτή την περίπτωση - τίποτα για ρύθμιση. Το Chromium και το Firefox συσκευάζουν διαφορετικά τις επεκτάσεις, επίλεξε αυτή για τον περιηγητή σου.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Αποσυμπίεσέ το, άνοιξε το chrome://extensions (ή edge://extensions, brave://extensions), ενεργοποίησε τη λειτουργία προγραμματιστή και επίλεξε «Φόρτωση αποσυμπιεσμένου» για τον αποσυμπιεσμένο φάκελο.',

@@ -184,6 +184,7 @@ export const en = {
   'settings.historyMaxHint': '0 keeps every entry.',
   'settings.maxRetriesHint': 'A failed download is tried again with a growing delay.',
   'settings.archivePasswords': 'Archive passwords',
+  'settings.archives.extractionTitle': 'Extraction',
   'settings.archivePasswordsHint': 'One per line. Tried in order when an archive is encrypted.',
   'settings.lockOn': 'A password is required to use this instance.',
   'settings.lockOff': 'Anyone who can reach this instance can use it.',
@@ -461,6 +462,10 @@ export const en = {
   'settings.sectionIntake': 'New links',
 
   'settings.downloads.watchOff': 'Folder watch is switched off on the Modules page, which is why this is not editable. Switching it back on restores the folder that was set here.',
+  'settings.downloads.locationTitle': 'Location',
+  'settings.downloads.limitsTitle': 'Limits & behaviour',
+  'settings.downloads.watchTitle': 'Folder watch',
+  'settings.downloads.idleTitle': 'Idle',
 
   'settings.modules.subtitle': 'What this build contains, and what it does not.',
   'settings.modules.fixedAtBuild': 'The set of modules is fixed when the binary is built. Nothing can be installed into a running instance, so this list is the whole of it.',
@@ -498,6 +503,7 @@ export const en = {
 
   'settings.advanced.subtitle': 'Every setting this instance has, by name.',
   'settings.advanced.search': 'Filter by name or value',
+  'settings.advanced.allSettings': 'All settings',
   'settings.advanced.onlyModified': 'Only what differs from the default',
   'settings.advanced.colKey': 'Key',
   'settings.advanced.colType': 'Type',
@@ -590,6 +596,7 @@ export const en = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Link filter',
   'settings.rules.flavourLabel': 'Which rule list',
+  'settings.rules.setupTitle': 'Rule set',
   'settings.rules.packagizerHint': 'Runs on every link as it is staged and rewrites what it can: package, folder, comment, priority, chunks, auto-extract. Every matching rule contributes and a later rule wins per field.',
   'settings.rules.filterHint': 'Decides whether a link is taken into the collector at all. A rejected link is not deleted: it is held aside with the rule and the reason that stopped it, so nothing ever disappears without saying why.',
   'settings.rules.setOn': 'This list is being applied',
@@ -737,6 +744,7 @@ export const en = {
   'settings.rules.alsoSets': 'Also sets',
 
   'settings.reconnect.method': 'Method',
+  'settings.reconnect.setupTitle': 'Setup',
   'settings.reconnect.methodHint':
     'How the router is told to drop the line and come back with a new address. Command runs a program, Requests replays a recorded HTTP conversation, UPnP asks the gateway over the network without any login at all, and Script hands a file to an interpreter. Only the fields the chosen method needs are shown; the others keep what you typed and come back when you switch to them.',
   'settings.reconnect.method.none': 'Off',
@@ -1530,12 +1538,12 @@ export const en = {
   'settings.browsertools.subtitle':
     'Send a link to KnightLoader from anywhere else - another page, another app, or your phone’s Share menu.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'Drag this to your bookmarks bar. On any page, click it to send that page (or whatever text you have selected) here.',
+  'settings.browsertools.bookmarkletHint': '1. Drag the button below onto your browser’s bookmarks bar - it saves like any other bookmark, nothing installs. 2. On any page, click it (select some text first if you only want that). A small KnightLoader tab opens with that page’s link, or the selected text, already filled in - review it and add it as a download from there.',
   'settings.browsertools.bookmarkletLink': 'Add to KnightLoader',
   'settings.browsertools.copyCode': 'Copy the code instead',
   'settings.browsertools.copied': 'Copied.',
   'settings.browsertools.extensionTitle': 'Browser extension',
+  'settings.browsertools.aboutTitle': 'From anywhere else',
   'settings.browsertools.extensionHint': 'A right-click menu on any link, selection, or page. The download already points at this instance - nothing to configure. Chromium and Firefox package extensions differently, so pick the one for your browser.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Unzip it, then open chrome://extensions (or edge://extensions, brave://extensions), turn on Developer mode, and choose “Load unpacked” on the unzipped folder.',

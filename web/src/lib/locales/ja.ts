@@ -173,6 +173,7 @@ export const ja: Dict = {
   'settings.historyMaxHint': '0 はすべての記録を残します。',
   'settings.maxRetriesHint': '失敗したダウンロードは間隔を延ばしながら再試行します。',
   'settings.archivePasswords': 'アーカイブのパスワード',
+  'settings.archives.extractionTitle': '展開',
   'settings.archivePasswordsHint': '1行に1つ。暗号化されたアーカイブでは順に試します。',
   'settings.lockOn': 'このインスタンスの利用にはパスワードが必要です。',
   'settings.lockOff': 'このインスタンスに到達できる人は誰でも操作できます。',
@@ -416,6 +417,10 @@ export const ja: Dict = {
   'settings.sectionIntake': '新しいリンク',
 
   'settings.downloads.watchOff': 'フォルダー監視はモジュールのページでオフになっているため、ここは編集できません。もう一度オンにすると、ここで設定したフォルダーが戻ります。',
+  'settings.downloads.locationTitle': '保存先',
+  'settings.downloads.limitsTitle': '制限と動作',
+  'settings.downloads.watchTitle': 'フォルダ監視',
+  'settings.downloads.idleTitle': 'アイドル',
 
   'settings.modules.subtitle': 'このビルドに入っているもの、入っていないもの。',
   'settings.modules.fixedAtBuild': 'モジュールの構成はバイナリをビルドした時点で決まります。動いているインスタンスに後から入れることはできないので、この一覧がすべてです。',
@@ -453,6 +458,7 @@ export const ja: Dict = {
 
   'settings.advanced.subtitle': 'このインスタンスの設定を名前ですべて。',
   'settings.advanced.search': '名前か値で絞り込む',
+  'settings.advanced.allSettings': 'すべての設定',
   'settings.advanced.onlyModified': '既定と違うものだけ',
   'settings.advanced.colKey': 'キー',
   'settings.advanced.colType': '型',
@@ -545,6 +551,7 @@ export const ja: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'リンクフィルター',
   'settings.rules.flavourLabel': 'どのルール一覧',
+  'settings.rules.setupTitle': 'ルールセット',
   'settings.rules.packagizerHint': 'リンクが準備される時点で一つずつ処理し、できるものを書き換えます。パッケージ、フォルダー、メモ、優先度、接続数、自動展開です。一致したルールはすべて寄与し、同じ項目では後のルールが勝ちます。',
   'settings.rules.filterHint': 'そもそもリンクをコレクターに入れるかどうかを決めます。拒否されたリンクは削除されません。止めたルールと理由とともに保留されるので、理由を告げずに何かが消えることはありません。',
   'settings.rules.setOn': 'この一覧は適用されています',
@@ -692,6 +699,7 @@ export const ja: Dict = {
   'settings.rules.alsoSets': '他に設定するもの',
 
   'settings.reconnect.method': '方式',
+  'settings.reconnect.setupTitle': 'セットアップ',
   'settings.reconnect.methodHint': '回線を切って新しいアドレスで戻ってくるよう、ルーターにどう伝えるかです。「コマンド」はプログラムを実行し、「リクエスト」は記録した HTTP のやり取りを再生し、UPnP はログインなしでネットワーク越しにゲートウェイへ問い合わせ、「スクリプト」はファイルをインタープリターに渡します。選んだ方式に必要な項目だけが表示されます。ほかの項目は入力した内容を保持したままで、切り替えればまた出てきます。',
   'settings.reconnect.method.none': 'オフ',
   'settings.reconnect.method.command': 'コマンド',
@@ -1318,12 +1326,12 @@ export const ja: Dict = {
   'settings.browsertools.subtitle':
     '他のどこからでもKnightLoaderにリンクを送信できます。別のページ、別のアプリ、または携帯電話の共有メニューからです。',
   'settings.browsertools.bookmarkletTitle': 'ブックマークレット',
-  'settings.browsertools.bookmarkletHint':
-    'これをブックマークバーにドラッグしてください。どのページでもクリックすると、そのページ(または選択したテキスト)をここに送信します。',
+  'settings.browsertools.bookmarkletHint': '1. 下のボタンをブラウザのブックマークバーにドラッグしてください - 他のブックマークと同様に保存されるだけで、何もインストールされません。2. どのページでもクリックすると（一部だけ送りたい場合は先にテキストを選択）、そのページのリンクまたは選択したテキストが入力済みの小さなKnightLoaderタブが開きます - 内容を確認し、そこからダウンロードとして追加してください。',
   'settings.browsertools.bookmarkletLink': 'KnightLoaderに追加',
   'settings.browsertools.copyCode': '代わりにコードをコピー',
   'settings.browsertools.copied': 'コピーしました。',
   'settings.browsertools.extensionTitle': 'ブラウザー拡張機能',
+  'settings.browsertools.aboutTitle': '他のどこからでも',
   'settings.browsertools.extensionHint': 'どのリンク、選択、ページでも右クリックメニュー。ダウンロードはすでにこのインスタンスを指しています - 設定は不要です。Chromium と Firefox は拡張機能のパッケージ形式が異なるため、使用中のブラウザに合わせて選択してください。',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': '解圧後、chrome://extensions（または edge://extensions、brave://extensions）を開き、デベロッパーモードをオンにして、解圧したフォルダで「パッケージ化されていない拡張機能を読み込む」を選択してください。',

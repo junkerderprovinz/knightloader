@@ -173,6 +173,7 @@ export const ca: Dict = {
   'settings.historyMaxHint': '0 conserva totes les entrades.',
   'settings.maxRetriesHint': 'Una baixada fallida es reintenta amb una espera creixent.',
   'settings.archivePasswords': 'Contrasenyes dels arxius',
+  'settings.archives.extractionTitle': 'Extracció',
   'settings.archivePasswordsHint': 'Una per línia. Es proven en ordre quan un arxiu està xifrat.',
   'settings.lockOn': 'Cal una contrasenya per fer servir aquesta instància.',
   'settings.lockOff': 'Qui pugui arribar a aquesta instància la pot fer servir.',
@@ -416,6 +417,10 @@ export const ca: Dict = {
   'settings.sectionIntake': 'Enllaços nous',
 
   'settings.downloads.watchOff': 'La vigilància de carpeta està apagada a la pàgina de mòduls, per això això no es pot editar. Si la torneu a encendre, es recupera la carpeta que es va posar aquí.',
+  'settings.downloads.locationTitle': 'Ubicació',
+  'settings.downloads.limitsTitle': 'Límits i comportament',
+  'settings.downloads.watchTitle': 'Vigilància de carpeta',
+  'settings.downloads.idleTitle': 'Inactiu',
 
   'settings.modules.subtitle': 'Què conté aquesta compilació i què no.',
   'settings.modules.fixedAtBuild': 'El conjunt de mòduls queda fixat quan es compila el binari. En una instància en marxa no s’hi pot instal·lar res, així que aquesta llista és tot el que hi ha.',
@@ -453,6 +458,7 @@ export const ca: Dict = {
 
   'settings.advanced.subtitle': 'Tots els paràmetres d’aquesta instància, per nom.',
   'settings.advanced.search': 'Filtra per nom o valor',
+  'settings.advanced.allSettings': 'Tots els ajustos',
   'settings.advanced.onlyModified': 'Només el que difereix del valor per defecte',
   'settings.advanced.colKey': 'Clau',
   'settings.advanced.colType': 'Tipus',
@@ -545,6 +551,7 @@ export const ca: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Filtre d’enllaços',
   'settings.rules.flavourLabel': 'Quina llista de regles',
+  'settings.rules.setupTitle': 'Conjunt de regles',
   'settings.rules.packagizerHint': 'S’executa sobre cada enllaç en el moment de preparar-lo i reescriu el que pot: paquet, carpeta, comentari, prioritat, connexions, extracció automàtica. Cada regla que hi encaixa hi aporta i, per camp, guanya la posterior.',
   'settings.rules.filterHint': 'Decideix si un enllaç entra al col·lector. Un enllaç rebutjat no s’esborra: es reté juntament amb la regla i el motiu que l’han aturat, perquè res no desaparegui mai sense dir per què.',
   'settings.rules.setOn': 'Aquesta llista s’està aplicant',
@@ -692,6 +699,7 @@ export const ca: Dict = {
   'settings.rules.alsoSets': 'També fixa',
 
   'settings.reconnect.method': 'Mètode',
+  'settings.reconnect.setupTitle': 'Configuració',
   'settings.reconnect.methodHint': 'Com se li diu al router que deixi caure la línia i torni amb una adreça nova. «Ordre» executa un programa, «Peticions» reprodueix una conversa HTTP enregistrada, UPnP pregunta a la passarel·la per la xarxa sense cap mena d’inici de sessió, i «Script» lliura un fitxer a un intèrpret. Només es mostren els camps que necessita el mètode triat; la resta conserven el que has escrit i tornen quan hi canvies.',
   'settings.reconnect.method.none': 'Desactivat',
   'settings.reconnect.method.command': 'Ordre',
@@ -1318,12 +1326,12 @@ export const ca: Dict = {
   'settings.browsertools.subtitle':
     'Envia un enllaç a KnightLoader des de qualsevol altre lloc - una altra pàgina, una altra aplicació, o el menú Compartir del teu mòbil.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'Arrossega això a la teva barra d’adreces d’interès. A qualsevol pàgina, clica-hi per enviar aquesta pàgina (o el text que tinguis seleccionat) cap aquí.',
+  'settings.browsertools.bookmarkletHint': '1. Arrossega el botó de sota a la barra d’adreces d’interès del teu navegador - es desa com qualsevol altra adreça d’interès, no s’instal·la res. 2. A qualsevol pàgina, fes-hi clic (selecciona primer text si només vols això). S’obre una petita pestanya de KnightLoader amb l’enllaç d’aquella pàgina, o el text seleccionat, ja emplenat - revisa-ho i afegeix-ho des d’allà com a baixada.',
   'settings.browsertools.bookmarkletLink': 'Afegeix a KnightLoader',
   'settings.browsertools.copyCode': 'Copia el codi en lloc d’això',
   'settings.browsertools.copied': 'Copiat.',
   'settings.browsertools.extensionTitle': 'Extensió de navegador',
+  'settings.browsertools.aboutTitle': 'Des de qualsevol altre lloc',
   'settings.browsertools.extensionHint': 'Un menú de clic dret a qualsevol enllaç, selecció o pàgina. La descàrrega ja apunta a aquesta instància - res a configurar. Chromium i Firefox empaqueten les extensions de manera diferent, tria la del teu navegador.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Descomprimeix-lo, obre chrome://extensions (o edge://extensions, brave://extensions), activa el mode desenvolupador i tria «Carrega la descomprimida» sobre la carpeta descomprimida.',

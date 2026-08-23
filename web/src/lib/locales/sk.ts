@@ -173,6 +173,7 @@ export const sk: Dict = {
   'settings.historyMaxHint': '0 uchová každý záznam.',
   'settings.maxRetriesHint': 'Neúspešné sťahovanie sa skúsi znova s rastúcou pauzou.',
   'settings.archivePasswords': 'Heslá k archívom',
+  'settings.archives.extractionTitle': 'Rozbaľovanie',
   'settings.archivePasswordsHint': 'Jedno na riadok. Skúšajú sa po poradí, keď je archív šifrovaný.',
   'settings.lockOn': 'Na použitie tejto inštancie je potrebné heslo.',
   'settings.lockOff': 'Ktokoľvek, kto sa k nej dostane, ju môže používať.',
@@ -416,6 +417,10 @@ export const sk: Dict = {
   'settings.sectionIntake': 'Nové odkazy',
 
   'settings.downloads.watchOff': 'Sledovanie priečinka je vypnuté na stránke Moduly, preto sa toto nedá upraviť. Po opätovnom zapnutí sa vráti priečinok nastavený tu.',
+  'settings.downloads.locationTitle': 'Umiestnenie',
+  'settings.downloads.limitsTitle': 'Limity a správanie',
+  'settings.downloads.watchTitle': 'Sledovanie priečinka',
+  'settings.downloads.idleTitle': 'Nečinnosť',
 
   'settings.modules.subtitle': 'Čo tento build obsahuje a čo nie.',
   'settings.modules.fixedAtBuild': 'Sada modulov je daná pri zostavení binárky. Do bežiacej inštancie sa nedá nič doinštalovať, takže tento zoznam je všetko.',
@@ -453,6 +458,7 @@ export const sk: Dict = {
 
   'settings.advanced.subtitle': 'Každé nastavenie tejto inštancie, podľa mena.',
   'settings.advanced.search': 'Filtrovať podľa mena alebo hodnoty',
+  'settings.advanced.allSettings': 'Všetky nastavenia',
   'settings.advanced.onlyModified': 'Len to, čo sa líši od predvoleného',
   'settings.advanced.colKey': 'Kľúč',
   'settings.advanced.colType': 'Typ',
@@ -545,6 +551,7 @@ export const sk: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Filter odkazov',
   'settings.rules.flavourLabel': 'Ktorý zoznam pravidiel',
+  'settings.rules.setupTitle': 'Sada pravidiel',
   'settings.rules.packagizerHint': 'Prejde každý odkaz vo chvíli, keď sa pripravuje, a prepíše, čo môže: balík, priečinok, poznámku, prioritu, spojenia, automatické rozbalenie. Každé zhodné pravidlo prispeje a v jednom poli vyhráva neskoršie.',
   'settings.rules.filterHint': 'Rozhoduje, či sa odkaz vôbec dostane do zberača. Odmietnutý odkaz sa nemaže: zadrží sa spolu s pravidlom a dôvodom, ktoré ho zastavili, aby nikdy nič nezmizlo bez vysvetlenia.',
   'settings.rules.setOn': 'Tento zoznam sa používa',
@@ -692,6 +699,7 @@ export const sk: Dict = {
   'settings.rules.alsoSets': 'Nastavuje aj',
 
   'settings.reconnect.method': 'Metóda',
+  'settings.reconnect.setupTitle': 'Nastavenie',
   'settings.reconnect.methodHint': 'Ako sa routeru povie, aby zhodil linku a vrátil sa s novou adresou. „Príkaz“ spustí program, „Požiadavky“ prehrajú zaznamenaný HTTP rozhovor, UPnP sa spýta brány po sieti úplne bez prihlásenia a „Skript“ odovzdá súbor interpretu. Zobrazujú sa len polia, ktoré zvolená metóda potrebuje; ostatné si podržia, čo ste napísali, a vrátia sa, keď na ne prepnete.',
   'settings.reconnect.method.none': 'Vypnuté',
   'settings.reconnect.method.command': 'Príkaz',
@@ -1319,12 +1327,12 @@ export const sk: Dict = {
   'settings.browsertools.subtitle':
     'Odošli odkaz do KnightLoader odkiaľkoľvek inde - z inej stránky, inej aplikácie alebo z ponuky Zdieľať v telefóne.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'Presuň toto do panela záložiek. Na ľubovoľnej stránke naň klikni a odošli túto stránku (alebo vybraný text) sem.',
+  'settings.browsertools.bookmarkletHint': '1. Presuň tlačidlo nižšie na panel záložiek prehliadača - uloží sa ako každá iná záložka, nič sa neinštaluje. 2. Na ktorejkoľvek stránke naň klikni (najprv vyber text, ak chceš len ten). Otvorí sa malá karta KnightLoader s odkazom na túto stránku alebo vybraným textom, už vyplnená - skontroluj ju a pridaj odtiaľ ako stiahnutie.',
   'settings.browsertools.bookmarkletLink': 'Pridať do KnightLoader',
   'settings.browsertools.copyCode': 'Namiesto toho skopírovať kód',
   'settings.browsertools.copied': 'Skopírované.',
   'settings.browsertools.extensionTitle': 'Rozšírenie prehliadača',
+  'settings.browsertools.aboutTitle': 'Odkiaľkoľvek inak',
   'settings.browsertools.extensionHint': 'Kontextové menu pravého tlačidla na akomkoľvek odkaze, výbere alebo stránke. Sťahovanie už smeruje na túto inštanciu - nič netreba nastavovať. Chromium a Firefox balíia rozšírenia inak, vyber si teda to pre svoj prehliadač.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Rozbaľ ho, otvor chrome://extensions (alebo edge://extensions, brave://extensions), zapni vývojársky režim a vyber „Načítať rozbalené“ na rozbalenom priečinku.',

@@ -173,6 +173,7 @@ export const fi: Dict = {
   'settings.historyMaxHint': '0 säilyttää jokaisen merkinnän.',
   'settings.maxRetriesHint': 'Epäonnistunutta latausta yritetään uudelleen kasvavalla viiveellä.',
   'settings.archivePasswords': 'Arkistojen salasanat',
+  'settings.archives.extractionTitle': 'Purkaminen',
   'settings.archivePasswordsHint': 'Yksi riviä kohti. Kokeillaan järjestyksessä, jos arkisto on salattu.',
   'settings.lockOn': 'Tämän instanssin käyttöön vaaditaan salasana.',
   'settings.lockOff': 'Kuka tahansa, joka tavoittaa tämän instanssin, voi käyttää sitä.',
@@ -416,6 +417,10 @@ export const fi: Dict = {
   'settings.sectionIntake': 'Uudet linkit',
 
   'settings.downloads.watchOff': 'Kansion valvonta on kytketty pois moduulisivulta, siksi tätä ei voi muokata. Kun sen kytkee takaisin päälle, tähän asetettu kansio palaa.',
+  'settings.downloads.locationTitle': 'Sijainti',
+  'settings.downloads.limitsTitle': 'Rajat ja käyttäytyminen',
+  'settings.downloads.watchTitle': 'Kansion tarkkailu',
+  'settings.downloads.idleTitle': 'Jouten',
 
   'settings.modules.subtitle': 'Mitä tämä käännös sisältää ja mitä ei.',
   'settings.modules.fixedAtBuild': 'Moduulijoukko lyödään lukkoon binääriä käännettäessä. Käynnissä olevaan instanssiin ei voi asentaa mitään, joten tämä lista on koko totuus.',
@@ -453,6 +458,7 @@ export const fi: Dict = {
 
   'settings.advanced.subtitle': 'Kaikki tämän instanssin asetukset nimeltä.',
   'settings.advanced.search': 'Suodata nimen tai arvon mukaan',
+  'settings.advanced.allSettings': 'Kaikki asetukset',
   'settings.advanced.onlyModified': 'Vain se, mikä poikkeaa oletuksesta',
   'settings.advanced.colKey': 'Avain',
   'settings.advanced.colType': 'Tyyppi',
@@ -545,6 +551,7 @@ export const fi: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Linkkisuodatin',
   'settings.rules.flavourLabel': 'Mikä sääntöluettelo',
+  'settings.rules.setupTitle': 'Sääntöjoukko',
   'settings.rules.packagizerHint': 'Käy läpi jokaisen linkin sitä valmisteltaessa ja kirjoittaa uusiksi sen minkä voi: paketin, kansion, kommentin, prioriteetin, yhteydet, automaattipurun. Jokainen osuva sääntö tuo oman lisänsä, ja yhdessä kentässä voittaa myöhempi.',
   'settings.rules.filterHint': 'Ratkaisee, päätyykö linkki kerääjään lainkaan. Hylättyä linkkiä ei poisteta: se pidätetään yhdessä sen pysäyttäneen säännön ja syyn kanssa, jottei mikään koskaan katoa kertomatta miksi.',
   'settings.rules.setOn': 'Tätä luetteloa sovelletaan',
@@ -692,6 +699,7 @@ export const fi: Dict = {
   'settings.rules.alsoSets': 'Asettaa myös',
 
   'settings.reconnect.method': 'Tapa',
+  'settings.reconnect.setupTitle': 'Asetus',
   'settings.reconnect.methodHint': 'Miten reitittimelle kerrotaan, että sen pitää pudottaa yhteys ja palata uudella osoitteella. ”Komento” käynnistää ohjelman, ”Pyynnöt” toistaa tallennetun HTTP-keskustelun uudelleen, UPnP kysyy yhdyskäytävältä verkon yli ilman minkäänlaista kirjautumista, ja ”Skripti” antaa tiedoston tulkille. Näkyvissä ovat vain ne kentät, joita valittu tapa tarvitsee; muut säilyttävät kirjoittamasi ja palaavat, kun vaihdat niihin.',
   'settings.reconnect.method.none': 'Pois',
   'settings.reconnect.method.command': 'Komento',
@@ -1318,12 +1326,12 @@ export const fi: Dict = {
   'settings.browsertools.subtitle':
     'Lähetä linkki KnightLoaderiin mistä tahansa muualta - toiselta sivulta, toisesta sovelluksesta, tai puhelimesi Jaa-valikosta.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'Vedä tämä kirjanmerkkipalkkiisi. Napsauta sitä millä tahansa sivulla lähettääksesi kyseisen sivun (tai valitsemasi tekstin) tänne.',
+  'settings.browsertools.bookmarkletHint': '1. Vedä alla oleva painike selaimesi kirjanmerkkipalkkiin - se tallentuu kuten mikä tahansa muu kirjanmerkki, mitään ei asenneta. 2. Napsauta sitä millä tahansa sivulla (valitse ensin tekstiä, jos haluat vain sen). Pieni KnightLoader-välilehti avautuu kyseisen sivun linkillä tai valitulla tekstillä valmiiksi täytettynä - tarkista se ja lisää se sieltä latauksena.',
   'settings.browsertools.bookmarkletLink': 'Lisää KnightLoaderiin',
   'settings.browsertools.copyCode': 'Kopioi koodi sen sijaan',
   'settings.browsertools.copied': 'Kopioitu.',
   'settings.browsertools.extensionTitle': 'Selainlaajennus',
+  'settings.browsertools.aboutTitle': 'Mistä tahansa muualta',
   'settings.browsertools.extensionHint': 'Hiiren oikean painikkeen valikko jokaisessa linkissä, valinnassa tai sivulla. Lataus osoittaa jo tähän instanssiin - ei mitään säädettävää. Chromium ja Firefox pakkaavat laajennukset eri tavoin, joten valitse omalle selaimellesi sopiva.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Pura se, avaa sitten chrome://extensions (tai edge://extensions, brave://extensions), kytke kehittäjätila päälle ja valitse ”Lataa purettuna” puretusta kansiosta.',

@@ -165,6 +165,7 @@ export const ru: Dict = {
   'settings.historyMaxHint': '0 сохраняет все записи.',
   'settings.maxRetriesHint': 'Неудачная загрузка повторяется с растущей паузой.',
   'settings.archivePasswords': 'Пароли архивов',
+  'settings.archives.extractionTitle': 'Распаковка',
   'settings.archivePasswordsHint': 'По одному в строке. Пробуются по порядку, если архив зашифрован.',
   'settings.lockOn': 'Для доступа к этому экземпляру нужен пароль.',
   'settings.lockOff': 'Любой, кто может обратиться к этому экземпляру, может им управлять.',
@@ -408,6 +409,10 @@ export const ru: Dict = {
   'settings.sectionIntake': 'Новые ссылки',
 
   'settings.downloads.watchOff': 'Наблюдение за папкой выключено на странице «Модули», поэтому поле недоступно. Если включить его обратно, папка, заданная здесь, вернётся.',
+  'settings.downloads.locationTitle': 'Расположение',
+  'settings.downloads.limitsTitle': 'Лимиты и поведение',
+  'settings.downloads.watchTitle': 'Слежение за папкой',
+  'settings.downloads.idleTitle': 'Простой',
 
   'settings.modules.subtitle': 'Что входит в эту сборку, а что нет.',
   'settings.modules.fixedAtBuild': 'Набор модулей задаётся при сборке двоичного файла. В работающий экземпляр ничего доустановить нельзя, так что этот список — всё, что есть.',
@@ -445,6 +450,7 @@ export const ru: Dict = {
 
   'settings.advanced.subtitle': 'Каждая настройка этого экземпляра, по имени.',
   'settings.advanced.search': 'Фильтр по имени или значению',
+  'settings.advanced.allSettings': 'Все настройки',
   'settings.advanced.onlyModified': 'Только то, что отличается от значения по умолчанию',
   'settings.advanced.colKey': 'Ключ',
   'settings.advanced.colType': 'Тип',
@@ -537,6 +543,7 @@ export const ru: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Фильтр ссылок',
   'settings.rules.flavourLabel': 'Какой список правил',
+  'settings.rules.setupTitle': 'Набор правил',
   'settings.rules.packagizerHint': 'Проходит по каждой ссылке в момент подготовки и переписывает то, что может: пакет, папку, комментарий, приоритет, соединения, автораспаковку. Каждое подошедшее правило вносит своё, а в одном поле побеждает более позднее.',
   'settings.rules.filterHint': 'Решает, попадёт ли ссылка в сборщик вообще. Отклонённая ссылка не удаляется: она придерживается вместе с правилом и причиной, которые её остановили, чтобы ничто никогда не исчезало без объяснения.',
   'settings.rules.setOn': 'Этот список применяется',
@@ -684,6 +691,7 @@ export const ru: Dict = {
   'settings.rules.alsoSets': 'Также задаёт',
 
   'settings.reconnect.method': 'Способ',
+  'settings.reconnect.setupTitle': 'Настройка',
   'settings.reconnect.methodHint': 'Каким образом роутеру сообщают, что нужно разорвать связь и вернуться с новым адресом. «Команда» запускает программу, «Запросы» воспроизводят записанный HTTP-разговор, UPnP спрашивает шлюз по сети вообще без входа в него, а «Скрипт» передаёт файл интерпретатору. Показываются только поля, нужные выбранному способу; остальные сохраняют введённое и вернутся, когда вы переключитесь обратно.',
   'settings.reconnect.method.none': 'Выключено',
   'settings.reconnect.method.command': 'Команда',
@@ -1311,12 +1319,12 @@ export const ru: Dict = {
   'settings.browsertools.subtitle':
     'Отправьте ссылку в KnightLoader откуда угодно ещё - с другой страницы, из другого приложения или через меню «Поделиться» на телефоне.',
   'settings.browsertools.bookmarkletTitle': 'Букмарклет',
-  'settings.browsertools.bookmarkletHint':
-    'Перетащите это на панель закладок. На любой странице щёлкните по нему, чтобы отправить эту страницу (или выделенный текст) сюда.',
+  'settings.browsertools.bookmarkletHint': '1. Перетащи кнопку ниже на панель закладок браузера - она сохраняется как любая другая закладка, ничего не устанавливается. 2. На любой странице щёлкни по ней (сначала выдели текст, если нужен только он). Откроется небольшая вкладка KnightLoader со ссылкой на эту страницу или выделенным текстом, уже заполненная - проверь и добавь как загрузку оттуда.',
   'settings.browsertools.bookmarkletLink': 'Добавить в KnightLoader',
   'settings.browsertools.copyCode': 'Вместо этого скопировать код',
   'settings.browsertools.copied': 'Скопировано.',
   'settings.browsertools.extensionTitle': 'Расширение браузера',
+  'settings.browsertools.aboutTitle': 'Отовсюду ещё',
   'settings.browsertools.extensionHint': 'Контекстное меню по правой кнопке на любой ссылке, выделении или странице. Загрузка уже указывает на этот экземпляр - ничего настраивать. Chromium и Firefox упаковывают расширения по-разному, выбери подходящий для своего браузера.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Распакуйте, откройте chrome://extensions (или edge://extensions, brave://extensions), включите режим разработчика и выберите «Загрузить распакованное расширение» для распакованной папки.',

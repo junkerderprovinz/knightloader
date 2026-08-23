@@ -173,6 +173,7 @@ export const hu: Dict = {
   'settings.historyMaxHint': 'A 0 minden bejegyzést megtart.',
   'settings.maxRetriesHint': 'A sikertelen letöltés növekvő várakozással újraindul.',
   'settings.archivePasswords': 'Archívumjelszavak',
+  'settings.archives.extractionTitle': 'Kicsomagolás',
   'settings.archivePasswordsHint': 'Soronként egy. Titkosított archívumnál sorban próbálja ki őket.',
   'settings.lockOn': 'A példány használatához jelszó szükséges.',
   'settings.lockOff': 'Bárki használhatja, aki eléri ezt a példányt.',
@@ -416,6 +417,10 @@ export const hu: Dict = {
   'settings.sectionIntake': 'Új hivatkozások',
 
   'settings.downloads.watchOff': 'A mappafigyelés a Modulok oldalon ki van kapcsolva, ezért ez nem szerkeszthető. Ha visszakapcsolod, az itt beállított mappa visszatér.',
+  'settings.downloads.locationTitle': 'Hely',
+  'settings.downloads.limitsTitle': 'Korlátok és viselkedés',
+  'settings.downloads.watchTitle': 'Mappafigyelés',
+  'settings.downloads.idleTitle': 'Üresjárat',
 
   'settings.modules.subtitle': 'Mit tartalmaz ez a build, és mit nem.',
   'settings.modules.fixedAtBuild': 'A modulok köre a bináris fordításakor dől el. Futó példányba semmit sem lehet telepíteni, tehát ez a lista a teljes készlet.',
@@ -453,6 +458,7 @@ export const hu: Dict = {
 
   'settings.advanced.subtitle': 'Ennek a példánynak minden beállítása, név szerint.',
   'settings.advanced.search': 'Szűrés név vagy érték szerint',
+  'settings.advanced.allSettings': 'Minden beállítás',
   'settings.advanced.onlyModified': 'Csak ami eltér az alapértéktől',
   'settings.advanced.colKey': 'Kulcs',
   'settings.advanced.colType': 'Típus',
@@ -545,6 +551,7 @@ export const hu: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Hivatkozásszűrő',
   'settings.rules.flavourLabel': 'Melyik szabálylista',
+  'settings.rules.setupTitle': 'Szabálykészlet',
   'settings.rules.packagizerHint': 'Minden hivatkozáson lefut az előkészítés pillanatában, és átírja, amit tud: csomag, mappa, megjegyzés, prioritás, kapcsolatok, automatikus kibontás. Minden illeszkedő szabály hozzátesz, és mezőnként a későbbi nyer.',
   'settings.rules.filterHint': 'Eldönti, hogy egy hivatkozás egyáltalán bekerül-e a gyűjtőbe. Az elutasított hivatkozás nem törlődik: visszatartja azzal a szabállyal és indokkal együtt, amely megállította, hogy soha semmi ne tűnjön el anélkül, hogy megmondaná, miért.',
   'settings.rules.setOn': 'Ez a lista érvényben van',
@@ -692,6 +699,7 @@ export const hu: Dict = {
   'settings.rules.alsoSets': 'Ezt is beállítja',
 
   'settings.reconnect.method': 'Módszer',
+  'settings.reconnect.setupTitle': 'Beállítás',
   'settings.reconnect.methodHint': 'Ahogy a router megkapja, hogy bontsa a vonalat és új címmel térjen vissza. A „Parancs” elindít egy programot, a „Kérések” újrajátszanak egy rögzített HTTP-beszélgetést, az UPnP a hálózaton keresztül kérdezi meg az átjárót, mindenféle bejelentkezés nélkül, a „Szkript” pedig átad egy fájlt egy értelmezőnek. Csak azok a mezők látszanak, amelyekre a választott módszernek szüksége van; a többi megőrzi, amit beírtál, és visszatér, ha átváltasz rájuk.',
   'settings.reconnect.method.none': 'Ki',
   'settings.reconnect.method.command': 'Parancs',
@@ -1318,12 +1326,12 @@ export const hu: Dict = {
   'settings.browsertools.subtitle':
     'Küldjön egy linket a KnightLoadernek bárhonnan máshonnan - egy másik oldalról, egy másik alkalmazásból, vagy a telefonja Megosztás menüjéből.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'Húzza ezt a könyvjelzősávjára. Bármely oldalon kattintson rá, hogy elküldje azt az oldalt (vagy a kijelölt szöveget) ide.',
+  'settings.browsertools.bookmarkletHint': '1. Húzd az alábbi gombot a böngésződ könyvjelzősávjára - úgy mentődik, mint bármelyik más könyvjelző, semmi sem települ. 2. Bármelyik oldalon kattints rá (előbb jelölj ki szöveget, ha csak azt szeretnéd). Megnyílik egy kis KnightLoader-lap az adott oldal linkjével vagy a kijelölt szöveggel, már kitöltve - nézd át, és onnan add hozzá letöltésként.',
   'settings.browsertools.bookmarkletLink': 'Hozzáadás a KnightLoaderhez',
   'settings.browsertools.copyCode': 'Inkább a kód másolása',
   'settings.browsertools.copied': 'Másolva.',
   'settings.browsertools.extensionTitle': 'Böngészőbővítmény',
+  'settings.browsertools.aboutTitle': 'Bárhonnan máshonnan',
   'settings.browsertools.extensionHint': 'Jobb kattintásos menü bármely linken, kijelölésen vagy oldalon. A letöltés már ehhez a példányhoz mutat - semmit sem kell beállítani. A Chromium és a Firefox másként csomagolja a kiegészítőket, válaszd a saját böngésződhöz valót.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Csomagold ki, majd nyisd meg a chrome://extensions címet (vagy edge://extensions, brave://extensions), kapcsold be a fejlesztői módot, és válaszd a „Kicsomagolt betöltése” lehetőséget a kicsomagolt mappán.',

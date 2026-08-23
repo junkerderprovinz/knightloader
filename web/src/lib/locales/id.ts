@@ -173,6 +173,7 @@ export const id: Dict = {
   'settings.historyMaxHint': '0 menyimpan setiap entri.',
   'settings.maxRetriesHint': 'Unduhan yang gagal dicoba lagi dengan jeda yang makin panjang.',
   'settings.archivePasswords': 'Kata sandi arsip',
+  'settings.archives.extractionTitle': 'Ekstraksi',
   'settings.archivePasswordsHint': 'Satu per baris. Dicoba berurutan bila arsip terenkripsi.',
   'settings.lockOn': 'Perlu kata sandi untuk memakai instance ini.',
   'settings.lockOff': 'Siapa pun yang bisa menjangkau instance ini bisa memakainya.',
@@ -416,6 +417,10 @@ export const id: Dict = {
   'settings.sectionIntake': 'Tautan baru',
 
   'settings.downloads.watchOff': 'Pantauan folder dimatikan di halaman Modul, karena itu ini tidak bisa disunting. Menyalakannya lagi mengembalikan folder yang diatur di sini.',
+  'settings.downloads.locationTitle': 'Lokasi',
+  'settings.downloads.limitsTitle': 'Batas & perilaku',
+  'settings.downloads.watchTitle': 'Pengawasan folder',
+  'settings.downloads.idleTitle': 'Menganggur',
 
   'settings.modules.subtitle': 'Apa yang ada di build ini, dan apa yang tidak.',
   'settings.modules.fixedAtBuild': 'Kumpulan modul ditetapkan saat binernya dibangun. Tidak ada yang bisa dipasang ke instans yang sedang berjalan, jadi daftar ini adalah seluruhnya.',
@@ -453,6 +458,7 @@ export const id: Dict = {
 
   'settings.advanced.subtitle': 'Setiap pengaturan instans ini, menurut nama.',
   'settings.advanced.search': 'Saring menurut nama atau nilai',
+  'settings.advanced.allSettings': 'Semua pengaturan',
   'settings.advanced.onlyModified': 'Hanya yang berbeda dari bawaan',
   'settings.advanced.colKey': 'Kunci',
   'settings.advanced.colType': 'Jenis',
@@ -545,6 +551,7 @@ export const id: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Penyaring tautan',
   'settings.rules.flavourLabel': 'Daftar aturan yang mana',
+  'settings.rules.setupTitle': 'Set aturan',
   'settings.rules.packagizerHint': 'Berjalan pada setiap tautan saat disiapkan dan menulis ulang apa yang bisa: paket, folder, catatan, prioritas, koneksi, ekstraksi otomatis. Setiap aturan yang cocok ikut menyumbang, dan pada satu ruas aturan yang belakangan menang.',
   'settings.rules.filterHint': 'Menentukan apakah sebuah tautan masuk ke pengumpul sama sekali. Tautan yang ditolak tidak dihapus: ia ditahan bersama aturan dan alasan yang menghentikannya, agar tidak ada yang pernah lenyap tanpa memberi tahu alasannya.',
   'settings.rules.setOn': 'Daftar ini sedang diterapkan',
@@ -692,6 +699,7 @@ export const id: Dict = {
   'settings.rules.alsoSets': 'Juga menetapkan',
 
   'settings.reconnect.method': 'Cara',
+  'settings.reconnect.setupTitle': 'Penyiapan',
   'settings.reconnect.methodHint': 'Bagaimana router diberi tahu untuk memutus jalur dan kembali dengan alamat baru. “Perintah” menjalankan sebuah program, “Permintaan” memutar ulang percakapan HTTP yang direkam, UPnP bertanya ke gateway lewat jaringan tanpa login sama sekali, dan “Skrip” menyerahkan sebuah berkas kepada penafsir. Hanya bidang yang dibutuhkan cara terpilih yang ditampilkan; sisanya menyimpan apa yang kamu ketik dan muncul lagi saat kamu berpindah ke sana.',
   'settings.reconnect.method.none': 'Mati',
   'settings.reconnect.method.command': 'Perintah',
@@ -1318,12 +1326,12 @@ export const id: Dict = {
   'settings.browsertools.subtitle':
     'Kirim tautan ke KnightLoader dari mana saja - halaman lain, aplikasi lain, atau menu Bagikan ponsel Anda.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'Seret ini ke bilah markah Anda. Di halaman mana pun, klik untuk mengirim halaman itu (atau teks yang Anda pilih) ke sini.',
+  'settings.browsertools.bookmarkletHint': '1. Seret tombol di bawah ke bilah markah buku browsermu - tersimpan seperti markah buku lainnya, tidak ada yang terpasang. 2. Di halaman mana pun, klik tombol itu (pilih teks terlebih dahulu jika hanya ingin bagian itu). Tab KnightLoader kecil terbuka dengan tautan halaman itu, atau teks yang dipilih, sudah terisi - tinjau lalu tambahkan sebagai unduhan dari sana.',
   'settings.browsertools.bookmarkletLink': 'Tambahkan ke KnightLoader',
   'settings.browsertools.copyCode': 'Salin kodenya saja',
   'settings.browsertools.copied': 'Disalin.',
   'settings.browsertools.extensionTitle': 'Ekstensi peramban',
+  'settings.browsertools.aboutTitle': 'Dari mana saja lainnya',
   'settings.browsertools.extensionHint': 'Menu klik kanan pada tautan, seleksi, atau halaman apa pun. Unduhan sudah mengarah ke instans ini - tidak ada yang perlu dikonfigurasi. Chromium dan Firefox mengemas ekstensi secara berbeda, jadi pilih yang sesuai untuk browsermu.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Ekstrak filenya, lalu buka chrome://extensions (atau edge://extensions, brave://extensions), aktifkan Mode Pengembang, dan pilih “Muat yang belum dikemas” pada folder hasil ekstrak.',

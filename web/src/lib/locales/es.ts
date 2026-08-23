@@ -165,6 +165,7 @@ export const es: Dict = {
   'settings.historyMaxHint': '0 conserva todas las entradas.',
   'settings.maxRetriesHint': 'Una descarga fallida se reintenta con una espera creciente.',
   'settings.archivePasswords': 'Contraseñas de archivos',
+  'settings.archives.extractionTitle': 'Extracción',
   'settings.archivePasswordsHint': 'Una por línea. Se prueban en orden cuando un archivo está cifrado.',
   'settings.lockOn': 'Se necesita una contraseña para usar esta instancia.',
   'settings.lockOff': 'Cualquiera que pueda acceder a esta instancia puede usarla.',
@@ -408,6 +409,10 @@ export const es: Dict = {
   'settings.sectionIntake': 'Enlaces nuevos',
 
   'settings.downloads.watchOff': 'La vigilancia de carpeta está apagada en la página de módulos, por eso esto no se puede editar. Al volver a encenderla se recupera la carpeta que se puso aquí.',
+  'settings.downloads.locationTitle': 'Ubicación',
+  'settings.downloads.limitsTitle': 'Límites y comportamiento',
+  'settings.downloads.watchTitle': 'Vigilancia de carpeta',
+  'settings.downloads.idleTitle': 'Inactivo',
 
   'settings.modules.subtitle': 'Lo que trae esta compilación y lo que no.',
   'settings.modules.fixedAtBuild': 'El conjunto de módulos queda fijado al compilar el binario. En una instancia en marcha no se puede instalar nada, así que esta lista es todo lo que hay.',
@@ -445,6 +450,7 @@ export const es: Dict = {
 
   'settings.advanced.subtitle': 'Todos los ajustes de esta instancia, por nombre.',
   'settings.advanced.search': 'Filtrar por nombre o valor',
+  'settings.advanced.allSettings': 'Todos los ajustes',
   'settings.advanced.onlyModified': 'Solo lo que difiere del valor predeterminado',
   'settings.advanced.colKey': 'Clave',
   'settings.advanced.colType': 'Tipo',
@@ -537,6 +543,7 @@ export const es: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Filtro de enlaces',
   'settings.rules.flavourLabel': 'Qué lista de reglas',
+  'settings.rules.setupTitle': 'Conjunto de reglas',
   'settings.rules.packagizerHint': 'Se ejecuta sobre cada enlace al prepararlo y reescribe lo que puede: paquete, carpeta, comentario, prioridad, conexiones, extracción automática. Cada regla que coincide aporta algo y, por campo, gana la última.',
   'settings.rules.filterHint': 'Decide si un enlace entra siquiera en el colector. Un enlace rechazado no se borra: se retiene junto con la regla y el motivo que lo detuvieron, para que nada desaparezca nunca sin decir por qué.',
   'settings.rules.setOn': 'Esta lista se está aplicando',
@@ -684,6 +691,7 @@ export const es: Dict = {
   'settings.rules.alsoSets': 'También fija',
 
   'settings.reconnect.method': 'Método',
+  'settings.reconnect.setupTitle': 'Configuración',
   'settings.reconnect.methodHint': 'Cómo se le dice al router que corte la línea y vuelva con una dirección nueva. «Comando» ejecuta un programa, «Peticiones» reproduce una conversación HTTP grabada, UPnP le pregunta a la puerta de enlace por la red sin ningún inicio de sesión, y «Script» le pasa un archivo a un intérprete. Solo se muestran los campos que necesita el método elegido; los demás conservan lo que escribiste y vuelven cuando cambias a ellos.',
   'settings.reconnect.method.none': 'Desactivado',
   'settings.reconnect.method.command': 'Comando',
@@ -1311,12 +1319,12 @@ export const es: Dict = {
   'settings.browsertools.subtitle':
     'Envía un enlace a KnightLoader desde cualquier otro sitio - otra página, otra aplicación o el menú Compartir de tu teléfono.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'Arrastra esto a tu barra de marcadores. En cualquier página, haz clic en él para enviar esa página (o el texto que tengas seleccionado) aquí.',
+  'settings.browsertools.bookmarkletHint': '1. Arrastra el botón de abajo a la barra de marcadores de tu navegador - se guarda como cualquier otro marcador, no se instala nada. 2. En cualquier página, haz clic en él (selecciona algo de texto antes si solo quieres eso). Se abre una pequeña pestaña de KnightLoader con el enlace de esa página, o el texto seleccionado, ya rellenado - revísalo y añádelo como descarga desde ahí.',
   'settings.browsertools.bookmarkletLink': 'Añadir a KnightLoader',
   'settings.browsertools.copyCode': 'Copiar el código en su lugar',
   'settings.browsertools.copied': 'Copiado.',
   'settings.browsertools.extensionTitle': 'Extensión de navegador',
+  'settings.browsertools.aboutTitle': 'Desde cualquier otro lugar',
   'settings.browsertools.extensionHint': 'Un menú de clic derecho en cualquier enlace, selección o página. La descarga ya apunta a esta instancia - nada que configurar. Chromium y Firefox empaquetan las extensiones de forma distinta, elige la de tu navegador.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Descomprímelo, abre chrome://extensions (o edge://extensions, brave://extensions), activa el modo desarrollador y elige «Cargar descomprimida» sobre la carpeta descomprimida.',

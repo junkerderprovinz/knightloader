@@ -173,6 +173,7 @@ export const da: Dict = {
   'settings.historyMaxHint': '0 beholder hver post.',
   'settings.maxRetriesHint': 'En mislykket download prøves igen med voksende pause.',
   'settings.archivePasswords': 'Arkivadgangskoder',
+  'settings.archives.extractionTitle': 'Udpakning',
   'settings.archivePasswordsHint': 'Én pr. linje. Prøves i rækkefølge, når et arkiv er krypteret.',
   'settings.lockOn': 'Der kræves en adgangskode for at bruge denne instans.',
   'settings.lockOff': 'Alle, der kan nå denne instans, kan betjene den.',
@@ -416,6 +417,10 @@ export const da: Dict = {
   'settings.sectionIntake': 'Nye links',
 
   'settings.downloads.watchOff': 'Mappeovervågning er slået fra på modulsiden, derfor kan det her ikke redigeres. Slår du den til igen, kommer mappen, der blev sat her, tilbage.',
+  'settings.downloads.locationTitle': 'Placering',
+  'settings.downloads.limitsTitle': 'Grænser & adfærd',
+  'settings.downloads.watchTitle': 'Mappeovervågning',
+  'settings.downloads.idleTitle': 'Inaktiv',
 
   'settings.modules.subtitle': 'Hvad denne build indeholder, og hvad den ikke gør.',
   'settings.modules.fixedAtBuild': 'Sættet af moduler ligger fast, når binæren bygges. Der kan ikke installeres noget i en kørende instans, så denne liste er det hele.',
@@ -453,6 +458,7 @@ export const da: Dict = {
 
   'settings.advanced.subtitle': 'Hver eneste indstilling denne instans har, efter navn.',
   'settings.advanced.search': 'Filtrér efter navn eller værdi',
+  'settings.advanced.allSettings': 'Alle indstillinger',
   'settings.advanced.onlyModified': 'Kun det, der afviger fra standarden',
   'settings.advanced.colKey': 'Nøgle',
   'settings.advanced.colType': 'Type',
@@ -545,6 +551,7 @@ export const da: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Linkfilter',
   'settings.rules.flavourLabel': 'Hvilken regelliste',
+  'settings.rules.setupTitle': 'Regelsæt',
   'settings.rules.packagizerHint': 'Kører på hvert link, mens det klargøres, og skriver om hvad den kan: pakke, mappe, kommentar, prioritet, forbindelser, automatisk udpakning. Hver regel der passer bidrager, og pr. felt vinder den senere.',
   'settings.rules.filterHint': 'Afgør om et link overhovedet kommer i samleren. Et afvist link slettes ikke: det holdes tilbage sammen med reglen og grunden, der standsede det, så intet nogensinde forsvinder uden at sige hvorfor.',
   'settings.rules.setOn': 'Denne liste bliver anvendt',
@@ -692,6 +699,7 @@ export const da: Dict = {
   'settings.rules.alsoSets': 'Sætter også',
 
   'settings.reconnect.method': 'Metode',
+  'settings.reconnect.setupTitle': 'Opsætning',
   'settings.reconnect.methodHint': 'Hvordan routeren får besked på at slippe linjen og komme tilbage med en ny adresse. “Kommando” kører et program, “Forespørgsler” afspiller en optaget HTTP-samtale igen, UPnP spørger gatewayen over netværket helt uden login, og “Script” giver en fil videre til en fortolker. Kun de felter, den valgte metode har brug for, vises; de øvrige beholder det, du har skrevet, og kommer tilbage, når du skifter til dem.',
   'settings.reconnect.method.none': 'Fra',
   'settings.reconnect.method.command': 'Kommando',
@@ -1318,12 +1326,12 @@ export const da: Dict = {
   'settings.browsertools.subtitle':
     'Send et link til KnightLoader fra et hvilket som helst andet sted - en anden side, en anden app, eller din telefons Del-menu.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'Træk dette til din bogmærkelinje. Klik på det på en hvilken som helst side for at sende den side (eller den tekst, du har markeret) hertil.',
+  'settings.browsertools.bookmarkletHint': '1. Træk knappen herunder til din browsers bogmærkelinje - den gemmes som ethvert andet bogmærke, intet installeres. 2. Klik på den på en hvilken som helst side (marker først noget tekst, hvis du kun vil have den). Der åbnes en lille KnightLoader-fane med linket til den side, eller den markerede tekst, allerede udfyldt - gennemgå det, og tilføj det derfra som en download.',
   'settings.browsertools.bookmarkletLink': 'Tilføj til KnightLoader',
   'settings.browsertools.copyCode': 'Kopiér koden i stedet',
   'settings.browsertools.copied': 'Kopieret.',
   'settings.browsertools.extensionTitle': 'Browserudvidelse',
+  'settings.browsertools.aboutTitle': 'Fra ethvert andet sted',
   'settings.browsertools.extensionHint': 'En højreklik-menu på ethvert link, markering eller side. Downloadet peger allerede på denne instans - intet at konfigurere. Chromium og Firefox pakker udvidelser forskelligt, så vælg den til din browser.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Pak den ud, åbn så chrome://extensions (eller edge://extensions, brave://extensions), slå udviklertilstand til, og vælg „Indlæs upakket“ på den udpakkede mappe.',

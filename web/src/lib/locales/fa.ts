@@ -173,6 +173,7 @@ export const fa: Dict = {
   'settings.historyMaxHint': '۰ هر مدخل را نگه می‌دارد.',
   'settings.maxRetriesHint': 'دانلود ناموفق با تأخیر فزاینده دوباره تلاش می‌شود.',
   'settings.archivePasswords': 'رمزهای آرشیو',
+  'settings.archives.extractionTitle': 'استخراج',
   'settings.archivePasswordsHint': 'هر خط یکی. اگر آرشیو رمزگذاری‌شده باشد به ترتیب امتحان می‌شوند.',
   'settings.lockOn': 'برای استفاده از این نمونه رمز لازم است.',
   'settings.lockOff': 'هر کسی به این نمونه برسد می‌تواند از آن استفاده کند.',
@@ -416,6 +417,10 @@ export const fa: Dict = {
   'settings.sectionIntake': 'پیوندهای تازه',
 
   'settings.downloads.watchOff': 'دیده‌بانی پوشه در صفحهٔ پودمان‌ها خاموش است، برای همین این قابل ویرایش نیست. اگر دوباره روشنش کنید، پوشه‌ای که اینجا تعیین شده برمی‌گردد.',
+  'settings.downloads.locationTitle': 'مکان',
+  'settings.downloads.limitsTitle': 'محدودیت‌ها و رفتار',
+  'settings.downloads.watchTitle': 'نظارت بر پوشه',
+  'settings.downloads.idleTitle': 'بیکار',
 
   'settings.modules.subtitle': 'این ساخت چه دارد و چه ندارد.',
   'settings.modules.fixedAtBuild': 'مجموعهٔ پودمان‌ها هنگام ساخت فایل اجرایی تثبیت می‌شود. در نمونه‌ای که در حال اجراست چیزی نصب نمی‌شود، پس همین فهرست همهٔ آن است.',
@@ -453,6 +458,7 @@ export const fa: Dict = {
 
   'settings.advanced.subtitle': 'هر تنظیم این نمونه، به نام.',
   'settings.advanced.search': 'پالایش بر پایهٔ نام یا مقدار',
+  'settings.advanced.allSettings': 'همه تنظیمات',
   'settings.advanced.onlyModified': 'فقط آنچه با پیش‌فرض فرق دارد',
   'settings.advanced.colKey': 'کلید',
   'settings.advanced.colType': 'گونه',
@@ -545,6 +551,7 @@ export const fa: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'پالایهٔ پیوندها',
   'settings.rules.flavourLabel': 'کدام فهرست قاعده',
+  'settings.rules.setupTitle': 'مجموعه قوانین',
   'settings.rules.packagizerHint': 'روی هر پیوند در لحظهٔ آماده‌سازی اجرا می‌شود و هرچه بتواند بازنویسی می‌کند: بسته، پوشه، یادداشت، اولویت، اتصال‌ها، استخراج خودکار. هر قاعدهٔ منطبق سهم خود را می‌گذارد و در یک میدان، قاعدهٔ بعدی برنده است.',
   'settings.rules.filterHint': 'تصمیم می‌گیرد که پیوند اصلاً وارد جمع‌آور بشود یا نه. پیوند ردشده حذف نمی‌شود: همراه با قاعده و دلیلی که جلویش را گرفته‌اند نگه داشته می‌شود، تا هیچ‌چیز بی‌آنکه بگوید چرا ناپدید نشود.',
   'settings.rules.setOn': 'این فهرست اعمال می‌شود',
@@ -692,6 +699,7 @@ export const fa: Dict = {
   'settings.rules.alsoSets': 'این را هم تعیین می‌کند',
 
   'settings.reconnect.method': 'روش',
+  'settings.reconnect.setupTitle': 'راه‌اندازی',
   'settings.reconnect.methodHint': 'اینکه چطور به روتر گفته می‌شود خط را رها کند و با نشانی تازه برگردد. «فرمان» یک برنامه را اجرا می‌کند، «درخواست‌ها» یک گفت‌وگوی HTTP ضبط‌شده را دوباره پخش می‌کند، UPnP بدون هیچ ورودی از روی شبکه از دروازه می‌پرسد، و «اسکریپت» یک پرونده را به مفسر می‌سپارد. تنها میدان‌هایی نشان داده می‌شوند که روش انتخابی به آن‌ها نیاز دارد؛ بقیه آنچه را نوشته‌اید نگه می‌دارند و وقتی به آن‌ها برگردید دوباره پیدا می‌شوند.',
   'settings.reconnect.method.none': 'خاموش',
   'settings.reconnect.method.command': 'فرمان',
@@ -1318,12 +1326,12 @@ export const fa: Dict = {
   'settings.browsertools.subtitle':
     'پیوندی را از هر جای دیگری به KnightLoader بفرستید - صفحه‌ای دیگر، برنامه‌ای دیگر، یا منوی اشتراک‌گذاری تلفنتان.',
   'settings.browsertools.bookmarkletTitle': 'بوک‌مارکلت',
-  'settings.browsertools.bookmarkletHint':
-    'این را به نوار نشانک‌های خود بکشید. روی هر صفحه‌ای، برای فرستادن آن صفحه (یا هر متنی که انتخاب کرده‌اید) به این‌جا، رویش کلیک کنید.',
+  'settings.browsertools.bookmarkletHint': '۱. دکمه زیر را به نوار نشانک‌های مرورگرت بکش - مثل هر نشانک دیگری ذخیره می‌شود، چیزی نصب نمی‌شود. ۲. در هر صفحه‌ای روی آن کلیک کن (اگر فقط متنی می‌خواهی، ابتدا آن را انتخاب کن). یک تب کوچک KnightLoader با پیوند آن صفحه، یا متن انتخاب‌شده، از پیش پر شده باز می‌شود - آن را بررسی کن و از آنجا به‌عنوان دانلود اضافه کن.',
   'settings.browsertools.bookmarkletLink': 'افزودن به KnightLoader',
   'settings.browsertools.copyCode': 'در عوض کد را کپی کنید',
   'settings.browsertools.copied': 'کپی شد.',
   'settings.browsertools.extensionTitle': 'افزونهٔ مرورگر',
+  'settings.browsertools.aboutTitle': 'از هر جای دیگر',
   'settings.browsertools.extensionHint': 'یک منوی کلیک راست روی هر پیوند، انتخاب یا صفحه. دانلود هم‌اکنون به این نمونه اشاره می‌کند - چیزی برای پیکربندی نیست. Chromium و Firefox افزونه‌ها را متفاوت بسته‌بندی می‌کنند، پس مورد مرورگر خود را انتخاب کن.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'آن را استخراج کنید، سپس chrome://extensions (یا edge://extensions، brave://extensions) را باز کنید، حالت توسعه‌دهنده را فعال کنید و «بارگذاری فایل استخراج‌شده» را روی پوشه استخراج‌شده انتخاب کنید.',

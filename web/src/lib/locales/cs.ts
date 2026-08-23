@@ -173,6 +173,7 @@ export const cs: Dict = {
   'settings.historyMaxHint': '0 uchová každý záznam.',
   'settings.maxRetriesHint': 'Neúspěšné stahování se opakuje s rostoucí prodlevou.',
   'settings.archivePasswords': 'Hesla k archivům',
+  'settings.archives.extractionTitle': 'Rozbalování',
   'settings.archivePasswordsHint': 'Jedno na řádek. Zkoušejí se po pořadí, když je archiv zašifrovaný.',
   'settings.lockOn': 'Pro použití této instance je vyžadováno heslo.',
   'settings.lockOff': 'Kdokoli, kdo se k této instanci dostane, ji může ovládat.',
@@ -416,6 +417,10 @@ export const cs: Dict = {
   'settings.sectionIntake': 'Nové odkazy',
 
   'settings.downloads.watchOff': 'Sledování složky je vypnuté na stránce Moduly, proto tohle nejde upravit. Po opětovném zapnutí se vrátí složka nastavená zde.',
+  'settings.downloads.locationTitle': 'Umístění',
+  'settings.downloads.limitsTitle': 'Limity a chování',
+  'settings.downloads.watchTitle': 'Sledování složky',
+  'settings.downloads.idleTitle': 'Nečinnost',
 
   'settings.modules.subtitle': 'Co tento build obsahuje a co ne.',
   'settings.modules.fixedAtBuild': 'Sada modulů je dána při sestavení binárky. Do běžící instance nejde nic doinstalovat, takže tenhle seznam je všechno.',
@@ -453,6 +458,7 @@ export const cs: Dict = {
 
   'settings.advanced.subtitle': 'Každé nastavení této instance, podle jména.',
   'settings.advanced.search': 'Filtrovat podle jména nebo hodnoty',
+  'settings.advanced.allSettings': 'Všechna nastavení',
   'settings.advanced.onlyModified': 'Jen to, co se liší od výchozího',
   'settings.advanced.colKey': 'Klíč',
   'settings.advanced.colType': 'Typ',
@@ -545,6 +551,7 @@ export const cs: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Filtr odkazů',
   'settings.rules.flavourLabel': 'Který seznam pravidel',
+  'settings.rules.setupTitle': 'Sada pravidel',
   'settings.rules.packagizerHint': 'Projde každý odkaz ve chvíli, kdy se připravuje, a přepíše, co může: balíček, složku, poznámku, prioritu, spojení, automatické rozbalení. Každé odpovídající pravidlo přispěje a v jednom poli vyhrává pozdější.',
   'settings.rules.filterHint': 'Rozhoduje, jestli se odkaz vůbec dostane do sběrače. Odmítnutý odkaz se nemaže: zadrží se spolu s pravidlem a důvodem, které ho zastavily, aby nikdy nic nezmizelo bez vysvětlení.',
   'settings.rules.setOn': 'Tento seznam se používá',
@@ -692,6 +699,7 @@ export const cs: Dict = {
   'settings.rules.alsoSets': 'Nastavuje také',
 
   'settings.reconnect.method': 'Metoda',
+  'settings.reconnect.setupTitle': 'Nastavení',
   'settings.reconnect.methodHint': 'Jak se routeru řekne, aby shodil linku a vrátil se s novou adresou. „Příkaz“ spustí program, „Požadavky“ přehrají zaznamenanou HTTP konverzaci, UPnP se zeptá brány po síti úplně bez přihlášení a „Skript“ předá soubor interpretu. Zobrazují se jen pole, která zvolená metoda potřebuje; ostatní si podrží, co jste napsali, a vrátí se, až na ně přepnete.',
   'settings.reconnect.method.none': 'Vypnuto',
   'settings.reconnect.method.command': 'Příkaz',
@@ -1319,12 +1327,12 @@ export const cs: Dict = {
   'settings.browsertools.subtitle':
     'Odešlete odkaz do KnightLoaderu odkudkoli jinud - z jiné stránky, jiné aplikace nebo z nabídky Sdílet v telefonu.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'Přetáhněte toto do panelu záložek. Na libovolné stránce na něj klikněte a odešlete tuto stránku (nebo vybraný text) sem.',
+  'settings.browsertools.bookmarkletHint': '1. Přetáhni tlačítko níže na panel záložek prohlížeče - uloží se jako jakákoli jiná záložka, nic se neinstaluje. 2. Na jakékoli stránce na něj klikni (nejprve vyber text, pokud chceš jen ten). Otevře se malá karta KnightLoader s odkazem na tuto stránku nebo vybraným textem, již vyplněná - zkontroluj ji a přidej odtud jako stahování.',
   'settings.browsertools.bookmarkletLink': 'Přidat do KnightLoaderu',
   'settings.browsertools.copyCode': 'Místo toho zkopírovat kód',
   'settings.browsertools.copied': 'Zkopírováno.',
   'settings.browsertools.extensionTitle': 'Rozšíření prohlížeče',
+  'settings.browsertools.aboutTitle': 'Odkudkoli jinud',
   'settings.browsertools.extensionHint': 'Kontextové menu pravého tlačítka na jakémkoli odkazu, výběru nebo stránce. Stažení již směřuje na tuto instanci - nic k nastavení. Chromium a Firefox balí rozšíření jinak, vyber si tedy to pro svůj prohlížéč.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Rozbal jej, otevři chrome://extensions (nebo edge://extensions, brave://extensions), zapni vývojářský režim a vyber „Načíst rozbalené“ na rozbalené složce.',

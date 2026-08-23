@@ -173,6 +173,7 @@ export const hi: Dict = {
   'settings.historyMaxHint': '0 हर प्रविष्टि रखता है।',
   'settings.maxRetriesHint': 'विफल डाउनलोड बढ़ती देरी के साथ फिर आज़माया जाता है।',
   'settings.archivePasswords': 'आर्काइव पासवर्ड',
+  'settings.archives.extractionTitle': 'निष्कर्षण',
   'settings.archivePasswordsHint': 'हर पंक्ति में एक। आर्काइव एन्क्रिप्टेड हो तो क्रम से आज़माए जाते हैं।',
   'settings.lockOn': 'इस इंस्टेंस के लिए पासवर्ड ज़रूरी है।',
   'settings.lockOff': 'जो भी इस इंस्टेंस तक पहुँच सके, वह इसे चला सकता है।',
@@ -416,6 +417,10 @@ export const hi: Dict = {
   'settings.sectionIntake': 'नए लिंक',
 
   'settings.downloads.watchOff': 'फ़ोल्डर निगरानी मॉड्यूल पन्ने पर बंद है, इसीलिए यह बदला नहीं जा सकता। दोबारा चालू करने पर यहाँ तय किया गया फ़ोल्डर लौट आता है।',
+  'settings.downloads.locationTitle': 'स्थान',
+  'settings.downloads.limitsTitle': 'सीमाएँ और व्यवहार',
+  'settings.downloads.watchTitle': 'फ़ोल्डर निगरानी',
+  'settings.downloads.idleTitle': 'निष्क्रिय',
 
   'settings.modules.subtitle': 'इस बिल्ड में क्या है और क्या नहीं।',
   'settings.modules.fixedAtBuild': 'मॉड्यूल का समूह बाइनरी बनाते समय ही तय हो जाता है। चालू इंस्टेंस में कुछ भी स्थापित नहीं किया जा सकता, इसलिए यही पूरी सूची है।',
@@ -453,6 +458,7 @@ export const hi: Dict = {
 
   'settings.advanced.subtitle': 'इस इंस्टेंस की हर सेटिंग, नाम से।',
   'settings.advanced.search': 'नाम या मान से छाँटें',
+  'settings.advanced.allSettings': 'सभी सेटिंग्स',
   'settings.advanced.onlyModified': 'केवल वही जो डिफ़ॉल्ट से अलग है',
   'settings.advanced.colKey': 'कुंजी',
   'settings.advanced.colType': 'प्रकार',
@@ -545,6 +551,7 @@ export const hi: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'लिंक फ़िल्टर',
   'settings.rules.flavourLabel': 'कौन-सी नियम सूची',
+  'settings.rules.setupTitle': 'नियम सेट',
   'settings.rules.packagizerHint': 'हर लिंक पर उसके तैयार होते ही चलता है और जो बदल सकता है बदल देता है: पैकेज, फ़ोल्डर, टिप्पणी, प्राथमिकता, कनेक्शन, स्वतः निकालना। हर मेल खाता नियम अपना योगदान देता है, और एक ही खाने में बाद वाला जीतता है।',
   'settings.rules.filterHint': 'तय करता है कि लिंक कलेक्टर में आएगा भी या नहीं। अस्वीकृत लिंक मिटाया नहीं जाता: उसे रोकने वाले नियम और कारण के साथ रोक लिया जाता है, ताकि कोई चीज़ बिना कारण बताए कभी गायब न हो।',
   'settings.rules.setOn': 'यह सूची लागू है',
@@ -692,6 +699,7 @@ export const hi: Dict = {
   'settings.rules.alsoSets': 'यह भी तय करता है',
 
   'settings.reconnect.method': 'तरीका',
+  'settings.reconnect.setupTitle': 'सेटअप',
   'settings.reconnect.methodHint': 'राउटर को यह कैसे बताया जाए कि वह लाइन गिराए और नए पते के साथ लौटे। “कमांड” एक प्रोग्राम चलाता है, “अनुरोध” रिकॉर्ड की गई HTTP बातचीत दोबारा चलाते हैं, UPnP बिना किसी लॉगिन के नेटवर्क पर ही गेटवे से पूछ लेता है, और “स्क्रिप्ट” एक फ़ाइल किसी इंटरप्रेटर को सौंप देता है। सिर्फ़ वही फ़ील्ड दिखते हैं जो चुने हुए तरीके को चाहिए; बाकी आपका लिखा हुआ सँभाले रखते हैं और उन पर लौटते ही फिर सामने आ जाते हैं।',
   'settings.reconnect.method.none': 'बंद',
   'settings.reconnect.method.command': 'कमांड',
@@ -1318,12 +1326,12 @@ export const hi: Dict = {
   'settings.browsertools.subtitle':
     'KnightLoader को कहीं और से लिंक भेजें - किसी और पेज से, किसी और ऐप से, या अपने फ़ोन के शेयर मेनू से।',
   'settings.browsertools.bookmarkletTitle': 'बुकमार्कलेट',
-  'settings.browsertools.bookmarkletHint':
-    'इसे अपनी बुकमार्क बार में खींचें। किसी भी पेज पर, उस पेज (या जो टेक्स्ट आपने चुना है) को यहाँ भेजने के लिए इस पर क्लिक करें।',
+  'settings.browsertools.bookmarkletHint': '1. नीचे दिए गए बटन को अपने ब्राउज़र की बुकमार्क बार पर खींचें - यह किसी भी अन्य बुकमार्क की तरह सेव होता है, कुछ भी इंस्टॉल नहीं होता। 2. किसी भी पेज पर उस पर क्लिक करें (यदि केवल वही चाहिए तो पहले कुछ टेक्स्ट चुनें)। उस पेज के लिंक या चुने गए टेक्स्ट के साथ पहले से भरा हुआ एक छोटा KnightLoader टैब खुलता है - इसकी समीक्षा करें और वहां से इसे डाउनलोड के रूप में जोड़ें।',
   'settings.browsertools.bookmarkletLink': 'KnightLoader में जोड़ें',
   'settings.browsertools.copyCode': 'इसके बजाय कोड कॉपी करें',
   'settings.browsertools.copied': 'कॉपी हो गया।',
   'settings.browsertools.extensionTitle': 'ब्राउज़र एक्सटेंशन',
+  'settings.browsertools.aboutTitle': 'कहीं और से',
   'settings.browsertools.extensionHint': 'किसी भी लिंक, चयन या पेज पर राइट-क्लिक मेन्यू। डाउनलोड पहले से ही इस इंस्टेंस की ओर इशारा करता है - कुछ भी सेट करने की जरूरत नहीं। Chromium और Firefox एक्सटेंशन को अलग-अलग तरीके से पैक करते हैं, इसलिए अपने ब्राउज़र के लिए सही विकल्प चुनें।',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'इसे अनजिप करें, फिर chrome://extensions (या edge://extensions, brave://extensions) खोलें, डेवलपर मोड चालू करें, और अनजिप की गई फ़ोल्डर पर “Load unpacked” चुनें।',

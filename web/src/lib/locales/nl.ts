@@ -165,6 +165,7 @@ export const nl: Dict = {
   'settings.historyMaxHint': '0 bewaart elke vermelding.',
   'settings.maxRetriesHint': 'Een mislukte download wordt opnieuw geprobeerd met een oplopende pauze.',
   'settings.archivePasswords': 'Archiefwachtwoorden',
+  'settings.archives.extractionTitle': 'Uitpakken',
   'settings.archivePasswordsHint': 'Eén per regel. Worden op volgorde geprobeerd bij een versleuteld archief.',
   'settings.lockOn': 'Voor deze instantie is een wachtwoord vereist.',
   'settings.lockOff': 'Iedereen die deze instantie kan bereiken, kan hem bedienen.',
@@ -408,6 +409,10 @@ export const nl: Dict = {
   'settings.sectionIntake': 'Nieuwe links',
 
   'settings.downloads.watchOff': 'Mapbewaking staat uit op de pagina Modules, daarom is dit niet te bewerken. Weer aanzetten haalt de map terug die hier was ingesteld.',
+  'settings.downloads.locationTitle': 'Locatie',
+  'settings.downloads.limitsTitle': 'Limieten & gedrag',
+  'settings.downloads.watchTitle': 'Mapbewaking',
+  'settings.downloads.idleTitle': 'Inactief',
 
   'settings.modules.subtitle': 'Wat deze build bevat, en wat niet.',
   'settings.modules.fixedAtBuild': 'Welke modules er zijn, ligt vast zodra het binaire bestand wordt gebouwd. In een draaiende instantie valt niets bij te installeren, dus deze lijst is het geheel.',
@@ -445,6 +450,7 @@ export const nl: Dict = {
 
   'settings.advanced.subtitle': 'Elke instelling van deze instantie, op naam.',
   'settings.advanced.search': 'Filteren op naam of waarde',
+  'settings.advanced.allSettings': 'Alle instellingen',
   'settings.advanced.onlyModified': 'Alleen wat afwijkt van de standaard',
   'settings.advanced.colKey': 'Sleutel',
   'settings.advanced.colType': 'Type',
@@ -537,6 +543,7 @@ export const nl: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Linkfilter',
   'settings.rules.flavourLabel': 'Welke regellijst',
+  'settings.rules.setupTitle': 'Regelset',
   'settings.rules.packagizerHint': 'Loopt over elke link zodra die wordt klaargezet en herschrijft wat het kan: pakket, map, notitie, prioriteit, verbindingen, automatisch uitpakken. Elke passende regel draagt bij en per veld wint de latere.',
   'settings.rules.filterHint': 'Bepaalt of een link überhaupt in de verzamelaar komt. Een geweigerde link wordt niet verwijderd: hij wordt vastgehouden met de regel en de reden die hem tegenhielden, zodat er nooit iets verdwijnt zonder te zeggen waarom.',
   'settings.rules.setOn': 'Deze lijst wordt toegepast',
@@ -684,6 +691,7 @@ export const nl: Dict = {
   'settings.rules.alsoSets': 'Zet ook',
 
   'settings.reconnect.method': 'Methode',
+  'settings.reconnect.setupTitle': 'Instellen',
   'settings.reconnect.methodHint': 'Hoe de router te horen krijgt dat hij de lijn moet laten vallen en met een nieuw adres terug moet komen. “Commando” start een programma, “Verzoeken” speelt een opgenomen HTTP-gesprek opnieuw af, UPnP vraagt het de gateway over het netwerk zonder enige aanmelding, en “Script” geeft een bestand aan een interpreter. Alleen de velden die de gekozen methode nodig heeft worden getoond; de rest bewaart wat je hebt getypt en komt terug zodra je erheen schakelt.',
   'settings.reconnect.method.none': 'Uit',
   'settings.reconnect.method.command': 'Commando',
@@ -1311,12 +1319,12 @@ export const nl: Dict = {
   'settings.browsertools.subtitle':
     'Stuur een link naar KnightLoader vanaf ergens anders - een andere pagina, een andere app, of het deelmenu van je telefoon.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'Sleep dit naar je bladwijzerbalk. Klik er op elke pagina op om die pagina (of de geselecteerde tekst) hierheen te sturen.',
+  'settings.browsertools.bookmarkletHint': '1. Sleep de knop hieronder naar de bladwijzerbalk van je browser - hij wordt opgeslagen als elke andere bladwijzer, er wordt niets geïnstalleerd. 2. Klik er op elke pagina op (selecteer eerst wat tekst als je alleen die wilt). Er opent een klein KnightLoader-tabblad met de link van die pagina, of de geselecteerde tekst, al ingevuld - controleer het en voeg het van daaruit toe als download.',
   'settings.browsertools.bookmarkletLink': 'Toevoegen aan KnightLoader',
   'settings.browsertools.copyCode': 'In plaats daarvan de code kopiëren',
   'settings.browsertools.copied': 'Gekopieerd.',
   'settings.browsertools.extensionTitle': 'Browserextensie',
+  'settings.browsertools.aboutTitle': 'Van overal elders',
   'settings.browsertools.extensionHint': 'Een rechtsklikmenu op elke link, selectie of pagina. De download wijst al naar deze instantie - niets in te stellen. Chromium en Firefox verpakken extensies verschillend, kies dus die van je browser.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Pak het uit, open dan chrome://extensions (of edge://extensions, brave://extensions), zet ontwikkelaarsmodus aan en kies “Uitgepakte extensie laden” op de uitgepakte map.',

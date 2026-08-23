@@ -173,6 +173,7 @@ export const uk: Dict = {
   'settings.historyMaxHint': '0 зберігає всі записи.',
   'settings.maxRetriesHint': 'Невдале завантаження повторюється зі зростаючою паузою.',
   'settings.archivePasswords': 'Паролі архівів',
+  'settings.archives.extractionTitle': 'Розпакування',
   'settings.archivePasswordsHint': 'По одному в рядок. Пробуються по черзі, якщо архів зашифрований.',
   'settings.lockOn': 'Для доступу до цього екземпляра потрібен пароль.',
   'settings.lockOff': 'Будь-хто, хто дістанеться цього екземпляра, може ним керувати.',
@@ -416,6 +417,10 @@ export const uk: Dict = {
   'settings.sectionIntake': 'Нові посилання',
 
   'settings.downloads.watchOff': 'Нагляд за текою вимкнено на сторінці «Модулі», тому це поле не редагується. Якщо увімкнути його знову, тека, задана тут, повернеться.',
+  'settings.downloads.locationTitle': 'Розташування',
+  'settings.downloads.limitsTitle': 'Ліміти та поведінка',
+  'settings.downloads.watchTitle': 'Стеження за папкою',
+  'settings.downloads.idleTitle': 'Простій',
 
   'settings.modules.subtitle': 'Що містить ця збірка, а чого ні.',
   'settings.modules.fixedAtBuild': 'Набір модулів визначається під час збирання двійкового файлу. У запущений примірник нічого доставити не можна, тож цей список — це все.',
@@ -453,6 +458,7 @@ export const uk: Dict = {
 
   'settings.advanced.subtitle': 'Кожне налаштування цього примірника, за назвою.',
   'settings.advanced.search': 'Фільтр за назвою або значенням',
+  'settings.advanced.allSettings': 'Усі налаштування',
   'settings.advanced.onlyModified': 'Лише те, що відрізняється від типового',
   'settings.advanced.colKey': 'Ключ',
   'settings.advanced.colType': 'Тип',
@@ -545,6 +551,7 @@ export const uk: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Фільтр посилань',
   'settings.rules.flavourLabel': 'Який список правил',
+  'settings.rules.setupTitle': 'Набір правил',
   'settings.rules.packagizerHint': 'Проходить кожним посиланням у мить підготовки й переписує те, що може: пакет, теку, коментар, пріоритет, з’єднання, автоматичне розпакування. Кожне відповідне правило додає своє, а в одному полі перемагає пізніше.',
   'settings.rules.filterHint': 'Вирішує, чи потрапить посилання до збирача взагалі. Відхилене посилання не видаляється: його притримують разом із правилом і причиною, що його спинили, щоб ніщо ніколи не зникало без пояснення.',
   'settings.rules.setOn': 'Цей список застосовується',
@@ -692,6 +699,7 @@ export const uk: Dict = {
   'settings.rules.alsoSets': 'Також задає',
 
   'settings.reconnect.method': 'Спосіб',
+  'settings.reconnect.setupTitle': 'Налаштування',
   'settings.reconnect.methodHint': 'Як роутерові повідомляють, що треба розірвати зв’язок і повернутися з новою адресою. «Команда» запускає програму, «Запити» відтворюють записану HTTP-розмову, UPnP питає шлюз мережею взагалі без входу, а «Скрипт» передає файл інтерпретатору. Показуються лише поля, потрібні вибраному способу; решта зберігає введене й повертається, коли ви перемкнетеся назад.',
   'settings.reconnect.method.none': 'Вимкнено',
   'settings.reconnect.method.command': 'Команда',
@@ -1319,12 +1327,12 @@ export const uk: Dict = {
   'settings.browsertools.subtitle':
     'Надішліть посилання в KnightLoader звідки завгодно ще - з іншої сторінки, іншого застосунку або меню «Поділитися» на телефоні.',
   'settings.browsertools.bookmarkletTitle': 'Букмарклет',
-  'settings.browsertools.bookmarkletHint':
-    'Перетягніть це на панель закладок. На будь-якій сторінці клацніть по ньому, щоб надіслати цю сторінку (або виділений текст) сюди.',
+  'settings.browsertools.bookmarkletHint': '1. Перетягни кнопку нижче на панель закладок браузера - вона зберігається як будь-яка інша закладка, нічого не встановлюється. 2. На будь-якій сторінці натисни на неї (спершу вибери текст, якщо потрібен лише він). Відкриється невелика вкладка KnightLoader із посиланням на цю сторінку або вибраним текстом, уже заповнена - перевір і додай як завантаження звідти.',
   'settings.browsertools.bookmarkletLink': 'Додати до KnightLoader',
   'settings.browsertools.copyCode': 'Натомість скопіювати код',
   'settings.browsertools.copied': 'Скопійовано.',
   'settings.browsertools.extensionTitle': 'Розширення браузера',
+  'settings.browsertools.aboutTitle': 'Звідусіль ще',
   'settings.browsertools.extensionHint': 'Контекстне меню правою кнопкою на будь-якому посиланні, виділенні чи сторінці. Завантаження вже вказує на цей екземпляр - нічого налаштовувати. Chromium і Firefox пакують розширення по-різному, оберіть відповідне для свого браузера.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Розпакуйте, відкрийте chrome://extensions (або edge://extensions, brave://extensions), увімкніть режим розробника і оберіть «Завантажити розпакований» для розпакованої папки.',

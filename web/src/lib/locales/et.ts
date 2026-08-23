@@ -173,6 +173,7 @@ export const et: Dict = {
   'settings.historyMaxHint': '0 säilitab iga kirje.',
   'settings.maxRetriesHint': 'Ebaõnnestunud allalaadimist proovitakse uuesti kasvava viivitusega.',
   'settings.archivePasswords': 'Arhiivide paroolid',
+  'settings.archives.extractionTitle': 'Lahtipakkimine',
   'settings.archivePasswordsHint': 'Üks rea kohta. Proovitakse järjest, kui arhiiv on krüptitud.',
   'settings.lockOn': 'Selle eksemplari kasutamiseks on vaja parooli.',
   'settings.lockOff': 'Igaüks, kes selle eksemplarini jõuab, saab seda kasutada.',
@@ -416,6 +417,10 @@ export const et: Dict = {
   'settings.sectionIntake': 'Uued lingid',
 
   'settings.downloads.watchOff': 'Kausta jälgimine on moodulite lehel välja lülitatud, seetõttu ei saa siin muuta. Tagasi sisse lülitades tuleb siin määratud kaust tagasi.',
+  'settings.downloads.locationTitle': 'Asukoht',
+  'settings.downloads.limitsTitle': 'Piirid ja käitumine',
+  'settings.downloads.watchTitle': 'Kausta jälgimine',
+  'settings.downloads.idleTitle': 'Jõude',
 
   'settings.modules.subtitle': 'Mis selles järgus on ja mis mitte.',
   'settings.modules.fixedAtBuild': 'Moodulite kogum pannakse paika binaari ehitamisel. Töötavasse eksemplari ei saa midagi paigaldada, nii et see nimekiri on kõik.',
@@ -453,6 +458,7 @@ export const et: Dict = {
 
   'settings.advanced.subtitle': 'Selle eksemplari iga seade, nime järgi.',
   'settings.advanced.search': 'Filtreeri nime või väärtuse järgi',
+  'settings.advanced.allSettings': 'Kõik seaded',
   'settings.advanced.onlyModified': 'Ainult see, mis erineb vaikeväärtusest',
   'settings.advanced.colKey': 'Võti',
   'settings.advanced.colType': 'Tüüp',
@@ -545,6 +551,7 @@ export const et: Dict = {
   'settings.rules.flavour.packagizer': 'Packagizer',
   'settings.rules.flavour.filter': 'Lingifilter',
   'settings.rules.flavourLabel': 'Milline reeglite loend',
+  'settings.rules.setupTitle': 'Reeglistik',
   'settings.rules.packagizerHint': 'Käib üle iga lingi selle ettevalmistamise hetkel ja kirjutab ümber, mida suudab: paki, kausta, märkuse, tähtsuse, ühendused, automaatse lahtipakkimise. Iga sobiv reegel annab oma osa ja ühes väljas võidab hilisem.',
   'settings.rules.filterHint': 'Otsustab, kas link üldse kogujasse jõuab. Tagasi lükatud linki ei kustutata: see peetakse kinni koos reegli ja põhjusega, mis ta peatasid, et miski ei kaoks kunagi ütlemata, miks.',
   'settings.rules.setOn': 'Seda loendit rakendatakse',
@@ -692,6 +699,7 @@ export const et: Dict = {
   'settings.rules.alsoSets': 'Määrab ka',
 
   'settings.reconnect.method': 'Viis',
+  'settings.reconnect.setupTitle': 'Seadistus',
   'settings.reconnect.methodHint': 'Kuidas ruuterile öeldakse, et ta liini maha laseks ja uue aadressiga tagasi tuleks. „Käsk“ käivitab programmi, „Päringud“ mängivad salvestatud HTTP-vestluse uuesti läbi, UPnP küsib lüüsilt üle võrgu ilma igasuguse sisselogimiseta ja „Skript“ annab faili tõlgi kätte. Näidatakse ainult neid välju, mida valitud viis vajab; ülejäänud hoiavad alles selle, mille kirjutasid, ja tulevad tagasi, kui nende juurde lülitud.',
   'settings.reconnect.method.none': 'Väljas',
   'settings.reconnect.method.command': 'Käsk',
@@ -1318,12 +1326,12 @@ export const et: Dict = {
   'settings.browsertools.subtitle':
     'Saada link KnightLoaderisse kust iganes mujalt - teiselt lehelt, teisest rakendusest või oma telefoni Jaga-menüüst.',
   'settings.browsertools.bookmarkletTitle': 'Bookmarklet',
-  'settings.browsertools.bookmarkletHint':
-    'Lohista see oma järjehoidjaribale. Klõpsa sellel mistahes lehel, et saata see leht (või valitud tekst) siia.',
+  'settings.browsertools.bookmarkletHint': '1. Lohista allolev nupp oma brauseri järjehoidjaribale - see salvestub nagu iga teine järjehoidja, midagi ei installita. 2. Klõpsa seda mis tahes lehel (vali kõigepealt tekst, kui soovid ainult seda). Avaneb väike KnightLoaderi vahekaart selle lehe lingiga või valitud tekstiga, juba täidetud - vaata see üle ja lisa see sealt allalaadimisena.',
   'settings.browsertools.bookmarkletLink': 'Lisa KnightLoaderisse',
   'settings.browsertools.copyCode': 'Kopeeri hoopis kood',
   'settings.browsertools.copied': 'Kopeeritud.',
   'settings.browsertools.extensionTitle': 'Brauserilaiendus',
+  'settings.browsertools.aboutTitle': 'Kõikjalt mujalt',
   'settings.browsertools.extensionHint': 'Paremklikimenüü igal lingil, valikul või lehel. Allalaadimine osutab juba sellele eksemplarile - midagi häälestada pole vaja. Chromium ja Firefox pakivad laiendusi erinevalt, vali oma brauserile sobiv.',
   'settings.browsertools.downloadChromium': 'Chrome, Edge, Brave (.zip)',
   'settings.browsertools.installChromiumHint': 'Paki see lahti, ava seejärel chrome://extensions (või edge://extensions, brave://extensions), lülita sisse arendajarezhiim ja vali „Lae lahtipakitud laiendus“ lahtipakitud kausta jaoks.',
