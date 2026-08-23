@@ -49,7 +49,7 @@ jobs:
       # and inherits their higher go directive; pinning to the desktop module's
       # own (lower) version would fail to build the very code it wraps. This
       # also keeps the desktop bundles on the same compiler as the container.
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version-file: go.mod
 

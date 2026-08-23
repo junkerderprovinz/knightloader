@@ -27,7 +27,7 @@ jobs:
       # CI, the Dockerfile's golang:1.26-alpine stage and a developer's local
       # build are always the same compiler. A second hard-coded copy of the
       # version is how CI stays green while the release image fails to build.
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version-file: go.mod
 
