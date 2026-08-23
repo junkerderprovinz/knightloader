@@ -105,12 +105,15 @@ export function Archives() {
       <Card className="flex flex-col gap-5">
         <ToggleRow checked={cfg.extract} onChange={(v) => patch({ extract: v })} label={t('settings.extract')} />
 
-        {/* Indented under the switch they depend on, and disabled rather than
-            hidden: a destination for extractions that never happen is a control
-            that can only mislead, but removing it teaches nobody that the
-            option exists. */}
-        <div className={`flex flex-col gap-5 ps-6 transition-opacity ${unpacking ? '' : 'pointer-events-none opacity-40'}`}>
+        {/* Flush left, not indented under the switch (jdp: "In der Card von
+            'Archive nach dem Download entpacken' soll alles ganz links
+            bündig anfangen") - disabled rather than hidden either way: a
+            destination for extractions that never happen is a control that
+            can only mislead, but removing it teaches nobody that the option
+            exists. */}
+        <div className={`flex flex-col gap-5 transition-opacity ${unpacking ? '' : 'pointer-events-none opacity-40'}`}>
           <Field
+            layout="row"
             label={t('settings.archives.destination')}
             hint={`${t('settings.archives.destinationHint')} ${t('settings.pathVars')}`}
           >
@@ -141,13 +144,15 @@ export function Archives() {
           {/* FieldGroup and not Field: a Field is a `<label>`, and a label
               around a tab strip hands a click on the caption to the first tab -
               so clicking the word "If it is already there" would set the
-              policy. See ui.tsx. */}
+              policy. See ui.tsx. The well variant, in the same line as its
+              own caption (jdp: "'Wenn eine Datei schon da ist' soll ein
+              horizontaler Selektor werden, in die gleiche Zeile wie der
+              Text"), same as Ecken/Design on the Aussehen page. */}
           {options && options.archiveCollisions.length > 0 && (
-            <FieldGroup label={t('settings.archives.collision')} hint={t('settings.archives.collisionHint')}>
+            <FieldGroup layout="row" label={t('settings.archives.collision')} hint={t('settings.archives.collisionHint')}>
               <Tabs
                 label={t('settings.archives.collision')}
-                size="sm"
-                className="w-fit"
+                variant="well"
                 active={cfg.extractCollision ?? ''}
                 onSelect={(extractCollision) => patch({ extractCollision })}
                 items={choices(options.archiveCollisions, COLLISION_LABEL)}
@@ -162,6 +167,7 @@ export function Archives() {
         <div className={`flex flex-col gap-5 ${unpacking ? '' : 'pointer-events-none opacity-40'}`}>
           {options && options.archiveDisposals.length > 0 && (
             <FieldGroup
+              layout="row"
               label={t('settings.archives.disposal')}
               // The bubble carries the whole truth about the middle answer,
               // because there is no recycle bin in a container to move anything
@@ -175,8 +181,7 @@ export function Archives() {
             >
               <Tabs
                 label={t('settings.archives.disposal')}
-                size="sm"
-                className="w-fit"
+                variant="well"
                 active={disposal}
                 onSelect={(archiveDisposal) => patch({ archiveDisposal })}
                 items={choices(options.archiveDisposals, DISPOSAL_LABEL)}
