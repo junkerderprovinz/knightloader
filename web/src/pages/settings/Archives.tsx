@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Card, Field, FieldGroup, NumberInput, SectionTitle, TextArea, Toggle } from '../../components/ui';
+import { Card, Field, FieldGroup, NumberInput, SectionTitle, TextArea, ToggleRow } from '../../components/ui';
 import { PathInput } from '../../components/FolderPicker';
 import { Tabs } from '../../components/Tabs';
 import { fetchOptions, type ApiOptions } from '../../lib/api';
@@ -103,7 +103,7 @@ export function Archives() {
       )}
 
       <Card className="flex flex-col gap-5">
-        <Toggle checked={cfg.extract} onChange={(v) => patch({ extract: v })} label={t('settings.extract')} />
+        <ToggleRow checked={cfg.extract} onChange={(v) => patch({ extract: v })} label={t('settings.extract')} />
 
         {/* Indented under the switch they depend on, and disabled rather than
             hidden: a destination for extractions that never happen is a control
@@ -127,20 +127,16 @@ export function Archives() {
             />
           </Field>
 
-          {/* Wrapped so the switch can carry an (i): "does nothing without a
-              destination" is not something a greyed-out control says for
-              itself, and grey prose under it is what the bubble exists to
-              replace. hideLabel because the caption above already says it. */}
-          <div className={collecting ? '' : 'pointer-events-none opacity-40'}>
-            <FieldGroup label={t('settings.archives.subfolder')} hint={t('settings.archives.subfolderHint')}>
-              <Toggle
-                checked={cfg.extractSubfolder ?? false}
-                onChange={(v) => patch({ extractSubfolder: v })}
-                label={t('settings.archives.subfolder')}
-                hideLabel
-              />
-            </FieldGroup>
-          </div>
+          {/* "Does nothing without a destination" is not something a
+              greyed-out control says for itself, and grey prose under it is
+              what the bubble exists to replace. */}
+          <ToggleRow
+            checked={cfg.extractSubfolder ?? false}
+            onChange={(v) => patch({ extractSubfolder: v })}
+            label={t('settings.archives.subfolder')}
+            hint={t('settings.archives.subfolderHint')}
+            disabled={!collecting}
+          />
 
           {/* FieldGroup and not Field: a Field is a `<label>`, and a label
               around a tab strip hands a click on the caption to the first tab -
@@ -212,24 +208,18 @@ export function Archives() {
           {/* Disabled while the archive is being kept, because the sweep has no
               disposal of its own: a swept .nfo goes the same way the archive
               goes, so "keep everything" cannot coherently mean "keep the
-              archive and destroy the notes beside it". */}
-          <div className={keeping ? 'pointer-events-none opacity-40' : ''}>
-            <FieldGroup
-              label={t('settings.archives.infoFiles')}
-              // The bubble says which files and, more to the point, how far the
-              // sweep reaches: the package's own files and never the folder. On
-              // the default layout one folder holds several releases, and a
-              // sweep that read the folder would take the neighbours' notes.
-              hint={t('settings.archives.infoFilesHint')}
-            >
-              <Toggle
-                checked={cfg.deleteInfoFiles ?? false}
-                onChange={(v) => patch({ deleteInfoFiles: v })}
-                label={t('settings.archives.infoFiles')}
-                hideLabel
-              />
-            </FieldGroup>
-          </div>
+              archive and destroy the notes beside it". The bubble says which
+              files and, more to the point, how far the sweep reaches: the
+              package's own files and never the folder. On the default layout
+              one folder holds several releases, and a sweep that read the
+              folder would take the neighbours' notes. */}
+          <ToggleRow
+            checked={cfg.deleteInfoFiles ?? false}
+            onChange={(v) => patch({ deleteInfoFiles: v })}
+            label={t('settings.archives.infoFiles')}
+            hint={t('settings.archives.infoFilesHint')}
+            disabled={keeping}
+          />
         </div>
       </Card>
 

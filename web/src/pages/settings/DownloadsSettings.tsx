@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Card, Field, FieldGroup, InfoBubble, NumberInput, TextInput, Toggle } from '../../components/ui';
+import { Card, Field, FieldGroup, InfoBubble, NumberInput, TextInput, ToggleRow } from '../../components/ui';
 import { Tabs } from '../../components/Tabs';
 import { fetchIdleActions, fetchOptions } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
@@ -150,20 +150,18 @@ export function DownloadsSettings() {
         </div>
 
         <div className="flex flex-col gap-3">
-          <Toggle checked={cfg.crawl} onChange={(v) => patch({ crawl: v })} label={t('settings.crawl')} />
-          <Toggle
+          <ToggleRow checked={cfg.crawl} onChange={(v) => patch({ crawl: v })} label={t('settings.crawl')} />
+          <ToggleRow
             checked={cfg.verifyChecksums}
             onChange={(v) => patch({ verifyChecksums: v })}
             label={t('settings.verifyChecksums')}
           />
-          <div className="flex items-center gap-1.5">
-            <Toggle
-              checked={cfg.preParserEnabled}
-              onChange={(v) => patch({ preParserEnabled: v })}
-              label={t('settings.preParser')}
-            />
-            <InfoBubble tip={t('settings.preParserHint')} />
-          </div>
+          <ToggleRow
+            checked={cfg.preParserEnabled}
+            onChange={(v) => patch({ preParserEnabled: v })}
+            label={t('settings.preParser')}
+            hint={t('settings.preParserHint')}
+          />
         </div>
       </Card>
 

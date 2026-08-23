@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Button, Card, Field, FieldGroup, NumberInput, PageHeader, SectionTitle, Toggle } from '../../components/ui';
+import { Button, Card, Field, NumberInput, PageHeader, SectionTitle, ToggleRow } from '../../components/ui';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft } from './context';
 
@@ -259,22 +259,18 @@ export function Torrents() {
 
       <SectionTitle>{cx('settings.torrents.networkTitle')}</SectionTitle>
       <Card className="flex flex-col gap-4">
-        <FieldGroup label={cx('settings.torrents.dht')} hint={cx('settings.torrents.dhtHint')}>
-          <Toggle
-            checked={tr.dhtEnabled}
-            onChange={(v) => write({ dhtEnabled: v })}
-            label={cx('settings.torrents.dht')}
-            hideLabel
-          />
-        </FieldGroup>
-        <FieldGroup label={cx('settings.torrents.pex')} hint={cx('settings.torrents.pexHint')}>
-          <Toggle
-            checked={tr.pexEnabled}
-            onChange={(v) => write({ pexEnabled: v })}
-            label={cx('settings.torrents.pex')}
-            hideLabel
-          />
-        </FieldGroup>
+        <ToggleRow
+          checked={tr.dhtEnabled}
+          onChange={(v) => write({ dhtEnabled: v })}
+          label={cx('settings.torrents.dht')}
+          hint={cx('settings.torrents.dhtHint')}
+        />
+        <ToggleRow
+          checked={tr.pexEnabled}
+          onChange={(v) => write({ pexEnabled: v })}
+          label={cx('settings.torrents.pex')}
+          hint={cx('settings.torrents.pexHint')}
+        />
         {/* A VISIBLE note, deliberately not behind an (i): this is the one
             fact on the page that overrides what the two switches above say,
             and a caveat that changes the switches' own meaning does not

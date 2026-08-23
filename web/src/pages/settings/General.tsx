@@ -1,4 +1,4 @@
-import { Card, Field, Toggle, SectionTitle } from '../../components/ui';
+import { Card, Field, ToggleRow, SectionTitle } from '../../components/ui';
 import { PathInput } from '../../components/FolderPicker';
 import { useT } from '../../lib/i18n';
 import { useDraft } from './context';
@@ -29,7 +29,7 @@ export function General() {
             onValue={(downloadDir) => patch({ downloadDir })}
           />
         </Field>
-        <Toggle
+        <ToggleRow
           checked={cfg.subfolderByPackage}
           onChange={(v) => patch({ subfolderByPackage: v })}
           label={t('settings.subfolderByPackage')}
@@ -45,7 +45,7 @@ export function General() {
             name and the new name coexist - would leave the one visible
             control on this page changing a field the label no longer
             describes, silently. */}
-        <Toggle checked={cfg.autoConfirm} onChange={(v) => patch({ autoConfirm: v })} label={t('settings.autoStart')} />
+        <ToggleRow checked={cfg.autoConfirm} onChange={(v) => patch({ autoConfirm: v })} label={t('settings.autoStart')} />
       </Card>
     </div>
   );
