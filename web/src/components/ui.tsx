@@ -646,17 +646,46 @@ export function ErrorCard({ message, retry, retryLabel }: { message: string; ret
 // surface of its own - the label itself IS a filled badge rather than plain
 // text, matching BombVault's own current theming (jdp: "Das ganze theming
 // soll in den Settings so aussehen wie im aktuellen BV Testcontainer").
-export function SectionTitle({ children, right }: { children: ReactNode; right?: ReactNode }) {
+//
+// `hint` sits as a SIBLING immediately beside the badge, not inside its
+// coloured fill and not floated to the far right of the row - BombVault's
+// own Card component takes an equivalent `hint` prop for exactly this (see
+// its Badge.tsx file header: "the InfoBubble... sits as a SIBLING outside
+// the badge... keeps InfoBubble's rule-8 contract [neutral, never the
+// accent] true"). The previous version put every `right`-slotted node,
+// InfoBubble included, behind a `flex-1` spacer that flung it to the far
+// edge of the card - correct for a real header action (Add, Refresh), but
+// wrong for a one-line explanation that belongs read right after the title
+// it explains (jdp: "die cardtitelbadges sind falsch platziert... die
+// infobubble der Ecken in den Titelbadge"). `right` still exists, still
+// spaced off with its own gap, for the call sites that really do mean a
+// far-right action.
+export function SectionTitle({
+  children,
+  hint,
+  right,
+}: {
+  children: ReactNode;
+  hint?: string;
+  right?: ReactNode;
+}) {
   return (
     <div className="flex items-center gap-3">
-      <h2
-        className="inline-flex h-[22px] w-fit items-center rounded-[var(--radius-pill)] bg-accentSoft
-          px-2.5 text-[11px] font-semibold uppercase tracking-widest text-carbon-textSub"
-      >
-        {children}
+      <h2 className="flex items-center gap-1.5">
+        <span
+          className="inline-flex h-[22px] w-fit items-center rounded-[var(--radius-pill)] bg-accentSoft
+            px-2.5 text-[11px] font-semibold uppercase tracking-widest text-carbon-textSub"
+        >
+          {children}
+        </span>
+        {hint && <InfoBubble tip={hint} />}
       </h2>
-      <span className="flex-1" />
-      {right}
+      {right && (
+        <>
+          <span className="flex-1" />
+          {right}
+        </>
+      )}
     </div>
   );
 }

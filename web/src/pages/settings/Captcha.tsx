@@ -9,7 +9,7 @@ import {
 } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useToast } from '../../lib/toast';
-import { Button, Card, ErrorCard, InfoBubble, LoadingCard, PageHeader, SectionTitle, TextInput } from '../../components/ui';
+import { Button, Card, ErrorCard, LoadingCard, PageHeader, SectionTitle, TextInput } from '../../components/ui';
 import { IconArrowDown, IconArrowUp, IconExternalLink } from '../../lib/icons';
 import { useDraft } from './context';
 import { NeutralSwitch } from './controls';
@@ -178,7 +178,7 @@ export function Captcha() {
       <PageHeader title={cx('settings.captcha.title')} subtitle={cx('settings.captcha.subtitle')} />
 
       <Card className="flex flex-col gap-1">
-        <SectionTitle right={<InfoBubble tip={cx('settings.captcha.orderHint')} />}>{cx('settings.captcha.orderTitle')}</SectionTitle>
+        <SectionTitle hint={cx('settings.captcha.orderHint')}>{cx('settings.captcha.orderTitle')}</SectionTitle>
 
         {order.length === 0 && <p className="py-2 text-sm text-carbon-textSub">{cx('settings.captcha.orderEmpty')}</p>}
 
