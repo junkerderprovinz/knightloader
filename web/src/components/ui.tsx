@@ -574,11 +574,24 @@ export function Toggle({
   onChange,
   label,
   hideLabel = false,
+  hue,
 }: {
   checked: boolean;
   onChange: (v: boolean) => void;
   label: string;
   hideLabel?: boolean;
+  /**
+   * This switch's position in a list of switches sharing one card, the same
+   * 0-based sequence SectionTitle/Tabs already carry (jdp, repeatedly:
+   * "Alle Toggles, buttons, badges, selektoren immer in die Farbmodi
+   * aufnehmen") - `bg-accent` on the "on" state was a flat, unconditional
+   * fill with no rainbow position at all, so a card with three toggles on
+   * showed one solid colour for all three instead of reading as three
+   * distinct rows. Omit it for a lone switch with no siblings needing to be
+   * told apart - the SectionTitle rule ("omit for the only one of its kind
+   * on the page") applies the same way here.
+   */
+  hue?: number;
 }) {
   return (
     <button
@@ -587,7 +600,8 @@ export function Toggle({
       aria-checked={checked}
       aria-label={hideLabel ? label : undefined}
       onClick={() => onChange(!checked)}
-      className="flex items-center gap-3 text-left text-sm text-carbon-text select-none"
+      className={`${hue !== undefined ? 'glim-hue' : ''} flex items-center gap-3 text-left text-sm text-carbon-text select-none`}
+      style={hue !== undefined ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
     >
       <span
         className={`relative h-5 w-9 shrink-0 rounded-[var(--radius-pill)] transition-colors ${
@@ -628,6 +642,7 @@ export function ToggleRow({
   checked,
   onChange,
   disabled = false,
+  hue,
 }: {
   label: string;
   hint?: string;
@@ -637,6 +652,9 @@ export function ToggleRow({
    *  teaches nobody what the mode can do; one that disagrees with its own
    *  disabled sibling controls does. */
   disabled?: boolean;
+  /** Passed straight through to the underlying Toggle - see its own doc
+   *  comment. Omit for a lone switch with nothing beside it to distinguish. */
+  hue?: number;
 }) {
   return (
     <div className={`flex items-center justify-between gap-4 ${disabled ? 'pointer-events-none opacity-40' : ''}`}>
@@ -644,7 +662,7 @@ export function ToggleRow({
         {label}
         {hint && <InfoBubble tip={hint} />}
       </span>
-      <Toggle hideLabel label={label} checked={checked} onChange={onChange} />
+      <Toggle hideLabel label={label} checked={checked} onChange={onChange} hue={hue} />
     </div>
   );
 }
