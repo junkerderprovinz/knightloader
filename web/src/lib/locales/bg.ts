@@ -233,6 +233,7 @@ export const bg: Dict = {
   'settings.shape.square': 'Прави',
   'settings.accent': 'Акцентен цвят',
   'settings.accentHint': 'Единственият цвят за активност. Текстът върху него се избира по контраст.',
+  'settings.colours': 'Цветове',
   'settings.accentPresets': 'Пресети',
   'settings.accentReset': 'По подразбиране',
   'queue.stop': 'Спри опашката',

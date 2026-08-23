@@ -233,6 +233,7 @@ export const ro: Dict = {
   'settings.shape.square': 'Drepte',
   'settings.accent': 'Culoare de accent',
   'settings.accentHint': 'Singura culoare pentru activitate. Textul de pe ea e ales după contrast.',
+  'settings.colours': 'Culori',
   'settings.accentPresets': 'Presetări',
   'settings.accentReset': 'Implicit',
   'queue.stop': 'Oprește coada',

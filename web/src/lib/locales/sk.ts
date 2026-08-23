@@ -233,6 +233,7 @@ export const sk: Dict = {
   'settings.shape.square': 'Hranaté',
   'settings.accent': 'Farba zvýraznenia',
   'settings.accentHint': 'Jediná farba pre aktivitu. Text na nej sa volí podľa kontrastu.',
+  'settings.colours': 'Farby',
   'settings.accentPresets': 'Predvoľby',
   'settings.accentReset': 'Predvolené',
   'queue.stop': 'Zastaviť front',

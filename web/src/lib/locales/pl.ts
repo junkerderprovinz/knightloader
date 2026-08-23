@@ -225,6 +225,7 @@ export const pl: Dict = {
   'settings.shape.square': 'Ostre',
   'settings.accent': 'Kolor akcentu',
   'settings.accentHint': 'Jedyny kolor aktywności. Tekst na nim dobierany jest pod kontrast.',
+  'settings.colours': 'Kolory',
   'settings.accentPresets': 'Presety',
   'settings.accentReset': 'Domyślny',
   'queue.stop': 'Zatrzymaj kolejkę',

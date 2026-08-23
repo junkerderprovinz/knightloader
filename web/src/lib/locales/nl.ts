@@ -225,6 +225,7 @@ export const nl: Dict = {
   'settings.shape.square': 'Recht',
   'settings.accent': 'Accentkleur',
   'settings.accentHint': 'De ene kleur voor activiteit. De tekst erop wordt op contrast gekozen.',
+  'settings.colours': 'Kleuren',
   'settings.accentPresets': 'Voorinstellingen',
   'settings.accentReset': 'Standaard',
   'queue.stop': 'Wachtrij stoppen',

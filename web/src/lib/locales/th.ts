@@ -233,6 +233,7 @@ export const th: Dict = {
   'settings.shape.square': 'เหลี่ยม',
   'settings.accent': 'สีเน้น',
   'settings.accentHint': 'สีเดียวที่ใช้แสดงการทำงาน ตัวอักษรบนสีนี้เลือกตามความต่างของสี',
+  'settings.colours': 'สี',
   'settings.accentPresets': 'พรีเซ็ต',
   'settings.accentReset': 'ค่าเริ่มต้น',
   'queue.stop': 'หยุดคิว',

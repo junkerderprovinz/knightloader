@@ -233,6 +233,7 @@ export const et: Dict = {
   'settings.shape.square': 'Teravad',
   'settings.accent': 'Rõhuvärv',
   'settings.accentHint': 'Ainus värv tegevuse jaoks. Tekst sellel valitakse kontrasti järgi.',
+  'settings.colours': 'Värvid',
   'settings.accentPresets': 'Eelseaded',
   'settings.accentReset': 'Vaikimisi',
   'queue.stop': 'Peata järjekord',

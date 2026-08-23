@@ -233,6 +233,7 @@ export const hu: Dict = {
   'settings.shape.square': 'Szögletes',
   'settings.accent': 'Kiemelőszín',
   'settings.accentHint': 'Az egyetlen szín a tevékenységhez. A rajta lévő szöveget a kontraszt dönti el.',
+  'settings.colours': 'Színek',
   'settings.accentPresets': 'Előbeállítások',
   'settings.accentReset': 'Alapérték',
   'queue.stop': 'Sor leállítása',

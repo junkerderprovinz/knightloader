@@ -233,6 +233,7 @@ export const uk: Dict = {
   'settings.shape.square': 'Прямі',
   'settings.accent': 'Акцентний колір',
   'settings.accentHint': 'Єдиний колір активності. Текст на ньому добирається за контрастом.',
+  'settings.colours': 'Кольори',
   'settings.accentPresets': 'Пресети',
   'settings.accentReset': 'За замовчуванням',
   'queue.stop': 'Зупинити чергу',

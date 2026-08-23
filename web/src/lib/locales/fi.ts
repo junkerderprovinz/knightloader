@@ -233,6 +233,7 @@ export const fi: Dict = {
   'settings.shape.square': 'Terävät',
   'settings.accent': 'Korostusväri',
   'settings.accentHint': 'Ainoa väri toiminnalle. Sen päällä oleva teksti valitaan kontrastin mukaan.',
+  'settings.colours': 'Värit',
   'settings.accentPresets': 'Esiasetukset',
   'settings.accentReset': 'Oletus',
   'queue.stop': 'Pysäytä jono',

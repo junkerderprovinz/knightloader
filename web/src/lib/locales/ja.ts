@@ -233,6 +233,7 @@ export const ja: Dict = {
   'settings.shape.square': '角',
   'settings.accent': 'アクセントカラー',
   'settings.accentHint': '動きを示す唯一の色です。上に載る文字は読みやすさで自動的に決まります。',
+  'settings.colours': '色',
   'settings.accentPresets': 'プリセット',
   'settings.accentReset': '既定',
   'queue.stop': 'キューを停止',
