@@ -283,8 +283,12 @@ body {
   box-sizing: border-box;
 }
 
-/* The one raised surface. Never nest it. */
+/* The one raised surface. Never nest it. `position: relative` anchors
+   SectionTitle's notch badge (ui.tsx), which sits absolutely positioned
+   half over the card's own top edge - harmless for every card that has
+   no notch child. */
 .glim-card {
+  position: relative;
   background-color: var(--carbon-surface);
   border-radius: var(--radius-card);
   box-shadow: var(--elevation), var(--hairline);

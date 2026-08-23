@@ -25,10 +25,13 @@ export const SHAPES: Shape[] = ['round', 'soft', 'square'];
 export const DEFAULT_ACCENT = '#FCC419';
 
 /**
- * ACCENTS are the presets offered in the picker — the same five the siblings
- * offer, in the same order, so a person who set "Blue" in one app finds the
- * same blue here. A free colour field sits beside them, so this list is a
- * shortcut rather than a restriction.
+ * ACCENTS are the presets offered in the picker — the same eight the siblings
+ * offer (the original five plus Orange/Teal/Pink, confirmed live off the real
+ * BombVault test container — the same eight hues as RAINBOW below, just in
+ * the presets' own order rather than the palette's position order), so a
+ * person who set "Blue" in one app finds the same blue here. A free colour
+ * field sits beside them, so this list is a shortcut rather than a
+ * restriction.
  */
 export const ACCENTS: { name: string; hex: string }[] = [
   { name: 'Sunflower', hex: '#FCC419' },
@@ -36,6 +39,9 @@ export const ACCENTS: { name: string; hex: string }[] = [
   { name: 'Green', hex: '#6FDC8C' },
   { name: 'Red', hex: '#FF8389' },
   { name: 'Purple', hex: '#BE95FF' },
+  { name: 'Orange', hex: '#FF832B' },
+  { name: 'Teal', hex: '#3DDBD9' },
+  { name: 'Pink', hex: '#FF7EB6' },
 ];
 
 /**
