@@ -1,10 +1,10 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import logoUrl from '../assets/logo.svg';
 import { hueVars, rainbowAt } from '../lib/appearance';
 import { useRainbow } from '../lib/useRainbow';
 import { useT } from '../lib/i18n';
-import { fetchAuth, logout } from '../lib/api';
+import { fetchAuth, fetchSettings, logout } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import {
   IconDashboard,
@@ -85,6 +85,19 @@ export function Sidebar() {
       .catch(() => {});
   }, []);
 
+  // Refetched on every navigation, not just on mount: this is a persistent
+  // layout element that never remounts, so a value flipped on the Konten
+  // settings tab a moment ago has to be picked up the next time someone
+  // actually looks at the rail (the next navigation), not only on a full
+  // page reload.
+  const routerLocation = useLocation();
+  const [hideAccounts, setHideAccounts] = useState(false);
+  useEffect(() => {
+    fetchSettings()
+      .then((s) => setHideAccounts(s.hideAccountsFromSidebar))
+      .catch(() => {});
+  }, [routerLocation.pathname]);
+
   const { collected, active } = useMemo(() => {
     let collected = 0,
       active = 0;
@@ -122,7 +135,7 @@ export function Sidebar() {
         <Item to="/downloads" hue={1} label={t('nav.downloads')} icon={<IconDownloads />} badge={active} />
         <Item to="/collector" hue={2} label={t('nav.collector')} icon={<IconCollector />} badge={collected} />
         <Item to="/instances" hue={3} label={t('nav.instances')} icon={<IconInstances />} />
-        <Item to="/accounts" hue={4} label={t('nav.accounts')} icon={<IconAccounts />} />
+        {!hideAccounts && <Item to="/accounts" hue={4} label={t('nav.accounts')} icon={<IconAccounts />} />}
       </nav>
 
       {/* Sprache and Hell/Dunkel used to live here too, mirrored from the
