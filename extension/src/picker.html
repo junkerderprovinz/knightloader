@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>KnightLoader — send to…</title>
+    <style>
+      :root { color-scheme: dark; }
+      body {
+        margin: 0;
+        width: 372px;
+        padding: 16px;
+        background: #161616;
+        color: #f4f4f4;
+        font: 13px/1.4 -apple-system, "Segoe UI", sans-serif;
+      }
+      h1 { margin: 0 0 10px; font-size: 13px; font-weight: 600; color: #fcc419; }
+      p#target { margin: 0 0 14px; color: #c6c6c6; overflow-wrap: anywhere; }
+      #choices { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+      .choice {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 10px;
+        border: 1px solid #393939;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      .choice input { margin: 0; accent-color: #fcc419; }
+      .choice .name { font-weight: 500; }
+      .choice .url { color: #8d8d8d; font-size: 11px; word-break: break-all; }
+      button {
+        display: block;
+        width: 100%;
+        padding: 9px 12px;
+        margin-bottom: 8px;
+        border: 0;
+        border-radius: 8px;
+        font: inherit;
+        font-weight: 500;
+        cursor: pointer;
+      }
+      .primary { background: #fcc419; color: #161616; }
+      .secondary { background: #393939; color: #f4f4f4; }
+    </style>
+  </head>
+  <body>
+    <h1>Send to…</h1>
+    <p id="target">Loading…</p>
+    <div id="choices"></div>
+    <button id="send" class="primary">Send</button>
+    <button id="cancel" class="secondary">Cancel</button>
+    <script src="shared.js"></script>
+    <script src="picker.js"></script>
+  </body>
+</html>

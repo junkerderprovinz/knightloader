@@ -39,15 +39,18 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     contexts: ['selection'],
   });
 
-  // First install only: a reinstall or an update must never overwrite a URL
-  // somebody already configured, and an unconfigured install has nothing to
-  // clobber, so this is a no-op the second time either way — the guard is
-  // about not undoing a later Options edit on an update, not about idempotency.
+  // First install only: a reinstall or an update must never overwrite an
+  // instance list somebody already configured, and an unconfigured install
+  // has nothing to clobber, so this is a no-op the second time either way —
+  // the guard is about not undoing a later Options edit on an update, not
+  // about idempotency. readInstances() itself folds an old single-URL config
+  // (from before multi-instance support) into a one-entry list, so that path
+  // is covered here too, not just on the next popup/options open.
   if (details.reason === 'install') {
-    const current = await chrome.storage.local.get('instanceUrl');
-    if (!current.instanceUrl) {
+    const { instances } = await readInstances();
+    if (instances.length === 0) {
       const baked = await readInstanceUrl();
-      if (baked) await writeInstanceUrl(baked);
+      if (baked) await writeInstances([{ name: 'Default', url: baked }], 'Default');
       else chrome.runtime.openOptionsPage();
     }
   }
@@ -68,14 +71,37 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 /**
  * sendToInstance is also called from popup.js (imported there via <script>,
  * not importScripts — see popup.html), so the toolbar button's "send this
- * page" action and every context-menu entry open the identical window.
+ * page" action and every context-menu entry go through the identical choice.
+ *
+ * One configured instance sends straight through, same as before multi-
+ * instance support existed — jdp: "es soll einfach immer zuverlässig
+ * funktionieren ohne das man manuell was machen muss", and a picker nobody
+ * needs is exactly the manual step that breaks that. More than one instance
+ * opens the picker (jdp, 2026-08-23: "wenn man auf einen click n load
+ * button klcikt soll die erweiterung aufploppen wie die von JD") so there is
+ * always a real choice, defaulted to whichever instance is marked default.
  */
 async function sendToInstance(payload) {
-  const origin = await readInstanceUrl();
-  if (!origin) {
+  const { instances, defaultName } = await readInstances();
+  if (instances.length === 0) {
     chrome.runtime.openOptionsPage();
     return;
   }
+  if (instances.length === 1) {
+    openQuickAdd(instances[0].url, payload);
+    return;
+  }
+  await chrome.storage.session.set({ pendingSend: { payload, defaultName } });
+  chrome.windows.create({ url: chrome.runtime.getURL('picker.html'), type: 'popup', width: 400, height: 480 });
+}
+
+/**
+ * openQuickAdd is exported for picker.js to call once a target is chosen —
+ * that page runs as a normal extension page (a <script> tag, like popup.js),
+ * not a service worker, so it reaches this through chrome.runtime.sendMessage
+ * rather than a direct call.
+ */
+function openQuickAdd(origin, payload) {
   const url = quickAddUrl(origin, payload);
   // A small popup window, not a background tab: the confirmation
   // (web/src/pages/QuickAdd.tsx) is the only thing anybody needs to see, and
@@ -83,3 +109,9 @@ async function sendToInstance(payload) {
   // for it.
   chrome.windows.create({ url, type: 'popup', width: 420, height: 560 });
 }
+
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg?.type === 'knightloader-send-to' && msg.origin && msg.payload) {
+    openQuickAdd(msg.origin, msg.payload);
+  }
+});
