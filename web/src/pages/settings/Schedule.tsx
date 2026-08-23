@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Button,
   Card,
@@ -25,6 +25,7 @@ import { fetchOptions } from '../../lib/api';
 import { RATE_UNITS, fmtRateValue, joinRate, splitRate, type RateUnit } from '../../lib/format';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useResource } from '../../lib/useResource';
+import { useToast } from '../../lib/toast';
 import { NeutralSwitch } from './controls';
 
 /**
@@ -191,9 +192,6 @@ const PENDING = {
   'settings.schedule.stateNow.running': 'No window is in force right now.',
   'settings.schedule.nextChange': 'Next change: {when}',
   'settings.schedule.noNextChange': 'Nothing in the table will ever change the queue as configured.',
-  'settings.schedule.save': 'Save timetable',
-  'settings.schedule.discard': 'Discard',
-  'settings.schedule.unsaved': 'Unsaved changes to the timetable',
   'settings.schedule.saveFailed': 'The timetable could not be saved: {error}',
   'settings.schedule.rowError': 'Row {row}: {error}',
 } as const;
@@ -363,6 +361,7 @@ export function Schedule() {
   const { t } = useT();
   const cx = useCx();
   const locale = uiLocale();
+  const { toast } = useToast();
 
   const { data: loaded, failed, loading, setData: setLoaded, reload } = useResource<ScheduleState>(fetchSchedule);
 
@@ -418,7 +417,6 @@ export function Schedule() {
   const [openKey, setOpenKey] = useState('');
   const [saving, setSaving] = useState(false);
   const [rowErrors, setRowErrors] = useState<Record<string, string>>({});
-  const [saveError, setSaveError] = useState('');
 
   const dirty =
     rows !== null &&
@@ -428,7 +426,6 @@ export function Schedule() {
   const write = useCallback((next: Row[]) => {
     setRows(next);
     setRowErrors({});
-    setSaveError('');
   }, []);
 
   const update = (key: string, fields: Partial<ScheduleEntry>) => {
@@ -458,15 +455,15 @@ export function Schedule() {
   };
 
   async function onSave() {
-    if (!rows) return;
+    if (!rows || saving) return;
     setSaving(true);
-    setSaveError('');
     setRowErrors({});
     try {
       const result = await saveSchedule(rows.map((r) => r.entry));
       if (result.ok) {
         setLoaded(result.state);
         setLive({ state: result.state.state, next: result.state.next });
+        toast(t('settings.saved'), 'ok');
         return;
       }
       if (result.rowErrors) {
@@ -480,12 +477,40 @@ export function Schedule() {
         const bad = first && rows[first.row - 1];
         if (bad) setOpenKey(bad.key);
       } else {
-        setSaveError(cx('settings.schedule.saveFailed', { error: result.error }));
+        toast(cx('settings.schedule.saveFailed', { error: result.error }), 'fail');
       }
     } finally {
       setSaving(false);
     }
   }
+
+  // Saves itself, like every other settings tab (jdp: "In allen
+  // Einstellungstabs soll alles was man einstellt automatisch sofort
+  // gespeichert werden, ohne dass ein Speichern Button erscheint") - this
+  // page was one of a handful sitting entirely outside the shared draft the
+  // main fix covers (routes_schedule.go's own dedicated PUT, see this file's
+  // module doc comment for why), so it needed its own copy of the same
+  // debounced-watch pattern rather than inheriting it for free. A longer
+  // 900ms delay than the shared shell's 600ms: a row here is a whole time
+  // range being typed field by field (a start time, an end time, a day
+  // selection), and firing mid-edit would surface a row's own validation
+  // error before the row is even finished, not just waste a request.
+  const saveTimer = useRef<number | null>(null);
+  useEffect(() => {
+    if (!dirty) return;
+    if (saveTimer.current !== null) window.clearTimeout(saveTimer.current);
+    saveTimer.current = window.setTimeout(() => {
+      saveTimer.current = null;
+      void onSave();
+    }, 900);
+    return () => {
+      if (saveTimer.current !== null) {
+        window.clearTimeout(saveTimer.current);
+        saveTimer.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows]);
 
   if (loading) return <LoadingState label={t('common.loading')} />;
   if (failed || rows === null) {
@@ -539,20 +564,6 @@ export function Schedule() {
           </ul>
         )}
       </Card>
-
-      {dirty && (
-        <div className="glim-card sticky bottom-0 flex items-center gap-3 p-4">
-          <span className="text-sm text-carbon-textSub">{cx('settings.schedule.unsaved')}</span>
-          <span className="flex-1" />
-          {saveError && <span className="text-sm text-statusFail">{saveError}</span>}
-          <Button kind="ghost" onClick={() => loaded && write(toRows(loaded.entries))} disabled={saving}>
-            {cx('settings.schedule.discard')}
-          </Button>
-          <Button onClick={onSave} disabled={saving}>
-            {cx('settings.schedule.save')}
-          </Button>
-        </div>
-      )}
     </div>
   );
 }
