@@ -410,17 +410,18 @@ export function Tabs(props: TabsProps) {
         const wiggling = reordering && item.id !== draggingId;
         const dragged = item.id === draggingId;
         const cls = isWell
-          ? // No min-w-0 here, unlike the default variant below: this well
-            // sits inside a `w-fit` track (jdp: "die horizontalen Selektoren
-            // nicht die ganze Card-Breite - exakt so breit wie in BV"), and
-            // min-w-0 lets a flex-basis-0 item's content shrink below its
-            // own label's width when the BROWSER computes that track's
-            // fit-content size - "Leicht"/"Dunkel" rendered as "Lei…"/"Du…"
-            // the moment the track stopped stretching full-width. The
-            // default (browser-native) min-width:auto keeps each item's
-            // min-content size in that computation, so the track ends up
-            // exactly as wide as its labels need, never narrower.
-            `${segBase} glim-hue glim-hue-icon flex-1 justify-center text-center gap-2 py-1.5 text-sm
+          ? // Fixed 200px per segment, not flex-1/content-hugging - measured
+            // directly off the real BombVault container's own Design/Ecken
+            // pickers (getComputedStyle: every segment is exactly 200px
+            // wide regardless of label length or how many segments share
+            // the track, padding 6px 12px). Content-hugging (an earlier cut
+            // at this) undershot badly for short labels like "Rund" -
+            // "much too narrow" (jdp) - and flex-1 stretched-to-card-width
+            // was the bug this whole thing started from. w-fit on the
+            // OUTER track (Look.tsx/Archives.tsx's own className) is what
+            // keeps the track's visible bg-carbon-surface2 surface from
+            // extending past the last fixed-width segment.
+            `${segBase} glim-hue glim-hue-icon w-[200px] min-w-0 shrink-0 justify-center text-center gap-2 px-3 py-1.5 text-sm
               ${on ? 'glim-active bg-accent text-accentContrast' : 'bg-transparent text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text'}
               flex items-center ${!on && item.dim ? 'opacity-60' : ''}`
           : `${segBase} glim-hue glim-hue-icon ${on ? `glim-active ${segOn}` : segOff} ${
