@@ -31,6 +31,7 @@ import (
 	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
@@ -406,10 +407,26 @@ func featureList(a *app.App) []Feature {
 		{
 			ID: "updater", Verdict: VerdictNotBuilt, Page: "advanced",
 			Switch: SwitchNone,
-			Reason: "a container cannot replace itself from the inside, and the deployment that can " +
-				"already both detects and performs the update; a second indicator would only disagree with it",
+			Reason: updaterReason(),
 		},
 	}
+}
+
+// updaterReason is buildinfo.Deployment-aware (jdp, 2026-08-23: "bei der
+// Docker version soll halt stehen dass es in app nicht notwendig ist weil es
+// über zb unraid selbst läuft") - the container's own reasoning (it cannot
+// replace itself from the inside, and the deployment that can already both
+// detects and performs the update) does not apply to the desktop build,
+// which has no such surrounding platform to defer to; that one is a genuine
+// possibility, just not built yet, so it gets its own, honest wording rather
+// than borrowing the container's.
+func updaterReason() string {
+	if buildinfo.Deployment == "desktop" {
+		return "a real possibility here - unlike the container, a desktop build has no surrounding platform " +
+			"that already updates it - just not built yet"
+	}
+	return "a container cannot replace itself from the inside, and the deployment that runs it " +
+		"(Docker, Unraid, ...) already both detects and performs the update; a second indicator here would only disagree with it"
 }
 
 // featurePages is the sub-page list, in rail order.
