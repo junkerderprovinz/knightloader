@@ -20,7 +20,7 @@ import { useCallback, useMemo, type ReactNode } from 'react';
 import type { Task } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { useUIState } from '../lib/uistate';
-import { Button, Card, InfoBubble, SectionTitle } from './ui';
+import { Button, Card, SectionTitle } from './ui';
 import { hostOf } from './columns';
 import { IconCheck, IconClose, IconFilter } from '../lib/icons';
 
@@ -304,9 +304,9 @@ export function CollectorFacetSidebar({
   return (
     <Card className="flex w-full shrink-0 flex-col gap-4 lg:w-64">
       <SectionTitle
+        hint={cx('collector.facets.hint')}
         right={
           <div className="flex items-center gap-1">
-            <InfoBubble tip={cx('collector.facets.hint')} />
             {activeCount > 0 && (
               <Button kind="ghost" className="px-2 py-1 text-[11px]" onClick={() => onChange(EMPTY_FACETS)}>
                 {cx('collector.facets.clearAll')}

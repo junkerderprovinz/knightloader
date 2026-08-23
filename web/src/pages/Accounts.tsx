@@ -728,9 +728,7 @@ function RoutingSection({ catalogue }: { catalogue: CatalogueService[] }) {
       <SectionTitle>{t('accounts.routing.title')}</SectionTitle>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Card className="flex flex-col gap-3">
-          <SectionTitle right={<InfoBubble tip={t('accounts.routing.priorityHint')} />}>
-            {t('accounts.routing.priorityTitle')}
-          </SectionTitle>
+          <SectionTitle hint={t('accounts.routing.priorityHint')}>{t('accounts.routing.priorityTitle')}</SectionTitle>
           {priority === null ? (
             <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>
           ) : priority.length === 0 ? (
