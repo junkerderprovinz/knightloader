@@ -153,10 +153,19 @@ export function FieldGroup({
  */
 export function InfoBubble({
   tip,
+  label,
   className = '',
   onColor = false,
 }: {
-  tip: string;
+  tip: ReactNode;
+  /**
+   * The accessible name for the trigger. Optional because most callers pass
+   * a plain sentence as `tip`, which doubles as its own label - only a
+   * caller whose `tip` is structured content (e.g. a stacked ordered list of
+   * steps) needs to supply this separately, since that content is no longer
+   * a single readable string.
+   */
+  label?: string;
   className?: string;
   /**
    * True when this bubble sits on a filled, coloured surface (a card
@@ -200,7 +209,7 @@ export function InfoBubble({
         ref={ref}
         role="note"
         tabIndex={0}
-        aria-label={tip}
+        aria-label={label ?? (typeof tip === 'string' ? tip : undefined)}
         onMouseEnter={open}
         onMouseLeave={() => setAt(null)}
         onFocus={open}
@@ -532,12 +541,24 @@ export function TextArea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement
   return <textarea className={`${inputClass} resize-y`} {...props} />;
 }
 
+/**
+ * The browser's own up/down spinner paints as one native widget under
+ * `color-scheme: dark` (see :root in index.css) - a themed rounded box
+ * behind the arrows that `background-color` on `::-webkit-inner-spin-button`
+ * cannot strip, because Chromium renders that widget as a single image, not
+ * a styleable box plus glyphs (jdp: "diese hoch und runterzähler haben einen
+ * kleinen dunklen hintergrund ... bitte den entfernen"). The native spinner
+ * is hidden outright (glim-num-hide-spin in index.css) and replaced with two
+ * plain chevrons in the same muted ink as everything else in this file, so
+ * "no visible box" actually means no box, not a differently-coloured one.
+ */
 export function NumberInput({
   value,
   onValue,
   min,
   max,
   step = 1,
+  className = '',
   ...rest
 }: {
   value: number;
@@ -545,18 +566,52 @@ export function NumberInput({
   min?: number;
   max?: number;
   step?: number;
-} & Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'>) {
+  className?: string;
+} & Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'className'>) {
+  function clamp(n: number) {
+    if (min !== undefined && n < min) return min;
+    if (max !== undefined && n > max) return max;
+    return n;
+  }
   return (
-    <input
-      type="number"
-      className={`${inputClass} glim-num`}
-      value={value}
-      min={min}
-      max={max}
-      step={step}
-      onChange={(e) => onValue(Number(e.target.value))}
-      {...rest}
-    />
+    <span className="relative inline-block w-full">
+      <input
+        type="number"
+        className={`${inputClass} glim-num glim-num-hide-spin pr-7 ${className}`}
+        value={value}
+        min={min}
+        max={max}
+        step={step}
+        onChange={(e) => onValue(Number(e.target.value))}
+        {...rest}
+      />
+      <span className="absolute inset-y-0 right-1.5 flex flex-col justify-center gap-0.5">
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-hidden
+          onClick={() => onValue(clamp(value + step))}
+          className="flex h-3.5 w-4 items-center justify-center rounded-sm text-carbon-textMuted
+            hover:bg-carbon-surface3 hover:text-carbon-text"
+        >
+          <svg viewBox="0 0 10 6" width={9} height={5} aria-hidden>
+            <path d="M1 5 5 1 9 5" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-hidden
+          onClick={() => onValue(clamp(value - step))}
+          className="flex h-3.5 w-4 items-center justify-center rounded-sm text-carbon-textMuted
+            hover:bg-carbon-surface3 hover:text-carbon-text"
+        >
+          <svg viewBox="0 0 10 6" width={9} height={5} aria-hidden>
+            <path d="M1 1 5 5 9 1" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      </span>
+    </span>
   );
 }
 

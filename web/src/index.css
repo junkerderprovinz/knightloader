@@ -344,6 +344,20 @@ body {
   font-feature-settings: "tnum" 1, "zero" 1;
 }
 
+/* :root sets color-scheme: dark, so Chromium paints the number input's own
+   increment/decrement control as one native dark-widget image - background
+   overrides on ::-webkit-inner-spin-button cannot touch it, since the widget
+   isn't a styleable box plus glyphs. NumberInput (components/ui.tsx) hides
+   it outright and draws its own two chevrons instead. */
+.glim-num-hide-spin::-webkit-inner-spin-button,
+.glim-num-hide-spin::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.glim-num-hide-spin {
+  -moz-appearance: textfield;
+}
+
 /* The info bubble. Rendered at body level (see InfoBubble in components/ui.tsx)
    so no scroll container, card or table can clip it. It is translated back by
    half its own width, which centres it under the icon without anyone having to
