@@ -24,19 +24,23 @@ token — and switch between them; onboarding a new one is still manual:
 1. On the server's web UI, open the Access tab and create a named API token
    (`POST /api/tokens` — see `internal/api/routes_tokens.go`). The secret is
    shown once.
-2. In the app's "add connection" screen, enter the server's address (typed,
-   or scanned off the Access tab's own QR card, which encodes the plain
-   address) and paste the token in.
+2. In the app's "add connection" screen, enter the server's address and
+   paste the token in — or scan a QR code and let it fill in what it can.
+   The Access tab carries two different QR codes, and the app's scanner
+   (`src/api/pairing.ts`'s `decodePairingCode`) tells them apart rather than
+   assuming: the plain remote-access QR encodes just a bare address, and the
+   pairing-code QR (see "Instances" below) encodes name + address + a
+   one-time token, so scanning THAT one here fills in both the name and the
+   address fields at once. Either way the token itself still needs pasting
+   by hand: even a decoded pairing offer's token is a short-lived federation
+   handshake secret, not a general-purpose bearer API token — see
+   `internal/api/routes_pairing.go`'s own doc comment on why. A single scan
+   that also carries a real, reusable token needs the server to grow a
+   dedicated QR payload for that, which does not exist yet.
 3. The app stores every saved connection, tokens included, in the OS
    keychain (`expo-secure-store`), never in plain storage, and sends the
    active one's token as `Authorization: Bearer <token>` on every request —
    the same header a script or the browser extension would use.
-
-A single scan that carries both the address AND a fresh token is a natural
-follow-up once the server grows a QR payload that encodes both, the way the
-existing Access tab's QR card only encodes the address today. Not built yet
-for THIS onboarding step — but see "Instances" below for a case where the
-server already has exactly that shape, and this app already uses it.
 
 ### Instances (federation peers)
 
@@ -53,8 +57,28 @@ Adding a peer works two ways: type its name and address by hand, or scan the
 pairing-code QR from the OTHER instance's own Access tab
 (`POST /api/instances/pairing-code`, `internal/api/routes_pairing.go`) —
 that code already carries the peer's name, address and a one-time token, so
-one scan registers both directions. This is a genuine one-scan flow today,
-unlike the address-only QR used for the initial connection above.
+one scan registers both directions. This is a genuine one-scan flow, unlike
+onboarding a brand new saved connection above, because redeeming it happens
+on an already-authenticated request to the connected server, which can act
+on the token itself server-side — the app never needs to hold or reuse that
+token, only relay the scanned code to it.
+
+## Language
+
+The app follows the device's own language setting (`expo-localization`'s
+`getLocales()`), picking the first one it has a translation for and falling
+back to English — there is no in-app language switcher, since nothing here
+depends on overriding the device's choice. `src/i18n/en.ts` is the source of
+truth (every UI string as a flat `key: string` dictionary); every other
+locale is typed against it, so a translation missing a key — or carrying a
+stray one — is a compile error, not a silent English string sneaking through
+or a blank one. `src/i18n/index.ts` lazily loads a language's dictionary the
+first time it is actually selected, the same interface the web UI's own
+`lib/locales/index.ts` uses, though on a native bundle every language still
+ships inside the one APK either way — see that file's own doc comment.
+Covers the same 42-language catalogue as the web UI and the browser
+extension, so the family offers one language list rather than three
+different ones.
 
 ## Live updates
 
@@ -76,9 +100,14 @@ header on the socket too, not a query parameter — see `src/api/client.ts`'s
   its polling equivalent for a peer.
 - `src/storage/connections.ts` — every saved connection plus which one is
   active, in the OS keychain.
+- `src/api/pairing.ts` — decodes a pairing-code string (pasted, or read off
+  a scanned QR) into the name/address/token it carries, entirely client-side
+  (mirrors `internal/api/routes_pairing.go`'s own encoding by hand, no
+  server round-trip needed just to tell what kind of code it is).
 - `src/components/QRScanner.tsx` — a full-screen camera modal
   (`expo-camera`) that hands back one decoded QR string; both scan buttons
   in the screens below use it.
+- `src/i18n/` — the translation system; see "Language" above.
 - `src/screens/` — Connections (the saved-server list), Connect (add one),
   Downloads (the live queue, a connected server's own or a peer's),
   Instances (that server's federation peers), Add Download.
@@ -153,15 +182,18 @@ project to point it at.
 
 ## Not done yet
 
-- A single scan that onboards a NEW connection (address + a fresh token in
-  one code) — the initial "add connection" step still needs the token
-  pasted by hand; see "How it connects" above for why the pairing-code QR
-  used for peers doesn't fit that case.
+- A single scan that onboards a NEW connection with a real, reusable bearer
+  token — the initial "add connection" step still needs the token pasted by
+  hand even after scanning a pairing-code QR (its token is single-use and
+  federation-only); see "How it connects" above for the full reasoning.
 - Push notifications for captcha challenges / finished downloads — the
   desktop tray already has an attention mechanism for captchas
   (`desktop/tray.go`); the mobile equivalent would need Expo push
   notifications plus a server-side trigger, neither exists yet.
 - Per-task actions beyond adding links — pause/resume/delete a single task
   exist on the server's `/api/tasks/*` routes but have no UI here yet; only
-  the queue's whole master switch does (the "Läuft"/"Angehalten" toggle on
-  the Downloads screen).
+  the queue's whole master switch does (the halted/running toggle on the
+  Downloads screen).
+- RTL layout mirroring — Arabic, Hebrew and Persian have real translations
+  (see "Language" above), but the screens themselves are not mirrored for
+  right-to-left reading yet, unlike the web UI.

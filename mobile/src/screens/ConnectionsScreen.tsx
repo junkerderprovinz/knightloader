@@ -4,6 +4,7 @@ import { checkConnection } from '../api/client';
 import { listConnections, removeConnection, setActiveConnectionId } from '../storage/connections';
 import type { ServerConnection } from '../api/types';
 import { colors } from '../theme';
+import { useT } from '../i18n/I18nContext';
 
 type ConnStatus = 'checking' | 'online' | 'offline';
 
@@ -18,6 +19,7 @@ export default function ConnectionsScreen({
   onActivate: (conn: ServerConnection) => void;
   onAddPress: () => void;
 }) {
+  const { t } = useT();
   const [connections, setConnections] = useState<ServerConnection[]>([]);
   const [status, setStatus] = useState<Record<string, ConnStatus>>({});
   const [loaded, setLoaded] = useState(false);
@@ -53,7 +55,7 @@ export default function ConnectionsScreen({
       <View style={styles.topBar}>
         <Text style={styles.title}>KnightLoader</Text>
         <TouchableOpacity style={styles.addButton} onPress={onAddPress}>
-          <Text style={styles.addButtonText}>+ Verbindung</Text>
+          <Text style={styles.addButtonText}>{t('connections.addButton')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -78,7 +80,7 @@ export default function ConnectionsScreen({
                 </Text>
               </View>
               <TouchableOpacity style={styles.removeButton} onPress={() => remove(item.id)}>
-                <Text style={styles.removeText}>Entfernen</Text>
+                <Text style={styles.removeText}>{t('connections.remove')}</Text>
               </TouchableOpacity>
             </TouchableOpacity>
           );
@@ -86,9 +88,9 @@ export default function ConnectionsScreen({
         ListEmptyComponent={
           loaded ? (
             <View style={styles.empty}>
-              <Text style={styles.emptyText}>Noch keine Verbindung gespeichert.</Text>
+              <Text style={styles.emptyText}>{t('connections.empty')}</Text>
               <TouchableOpacity style={styles.emptyButton} onPress={onAddPress}>
-                <Text style={styles.emptyButtonText}>Erste Verbindung hinzufügen</Text>
+                <Text style={styles.emptyButtonText}>{t('connections.emptyButton')}</Text>
               </TouchableOpacity>
             </View>
           ) : null

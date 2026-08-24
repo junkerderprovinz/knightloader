@@ -1,26 +1,34 @@
 import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { checkConnection } from '../api/client';
+import { decodePairingCode } from '../api/pairing';
 import { addConnection, setActiveConnectionId } from '../storage/connections';
 import type { ServerConnection } from '../api/types';
 import { colors } from '../theme';
+import { useT } from '../i18n/I18nContext';
 import QRScanner from '../components/QRScanner';
 
-// Onboarding is still address + pasted token, not a single scan: the QR on
-// the Access tab today only encodes the address (routes_remote.go's own
-// remoteAccessInfo, renderQR(addr) - a bare URL string, no token in it), the
-// same one this screen's scan button reads to fill the address field. A
-// one-scan flow needs the server to grow a QR that also carries a fresh
-// token - not built yet, see mobile/README.md. Adding a PEER to an already
-// connected instance is a genuine one-scan flow already, on
-// InstancesScreen, because that QR (the pairing-code one) already carries
-// both.
+// The Access tab carries two DIFFERENT QR codes, and this screen's scan
+// button has to tell them apart rather than assume: the plain
+// remote-access QR encodes just a bare address (routes_remote.go's own
+// remoteAccessInfo, renderQR(addr)), while the pairing-code QR
+// (routes_pairing.go) encodes base64 JSON carrying name+address+a one-time
+// token. Feeding the SECOND one's raw text straight into the address field,
+// as an earlier version of this screen did, put the pairing code itself
+// where the address belongs and left name/token untouched - decodePairingCode
+// (api/pairing.ts) is what tells the two apart. Either way the token itself
+// still needs pasting by hand: even a decoded pairing offer's token is a
+// short-lived federation handshake secret (routes_pairing.go's own doc
+// comment), not a bearer API token - a one-scan flow for THAT needs the
+// server to grow a QR that carries one, not built yet, see mobile/README.md.
 export default function ConnectScreen({ onConnected }: { onConnected: (conn: ServerConnection) => void }) {
+  const { t } = useT();
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
   const [token, setToken] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
 
   const normalizedUrl = url.trim().replace(/\/+$/, '');
@@ -28,7 +36,7 @@ export default function ConnectScreen({ onConnected }: { onConnected: (conn: Ser
   const connect = async () => {
     setError(null);
     if (!normalizedUrl || !token.trim()) {
-      setError('Server-Adresse und Token angeben.');
+      setError(t('connect.errorMissing'));
       return;
     }
     const conn: ServerConnection = {
@@ -41,14 +49,14 @@ export default function ConnectScreen({ onConnected }: { onConnected: (conn: Ser
     try {
       const auth = await checkConnection(conn);
       if (!auth.authenticated) {
-        setError('Verbindung ging durch, aber der Token wurde nicht akzeptiert.');
+        setError(t('connect.errorTokenRejected'));
         return;
       }
       await addConnection(conn);
       await setActiveConnectionId(conn.id);
       onConnected(conn);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Verbindung fehlgeschlagen.');
+      setError(err instanceof Error ? err.message : t('connect.errorTokenRejected'));
     } finally {
       setBusy(false);
     }
@@ -56,43 +64,43 @@ export default function ConnectScreen({ onConnected }: { onConnected: (conn: Ser
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Mit KnightLoader verbinden</Text>
-      <Text style={styles.hint}>
-        Im Access-Tab der KnightLoader-Weboberfläche einen Token erzeugen und hier einfügen. Die Adresse lässt sich
-        über den QR-Code auf derselben Seite einscannen.
-      </Text>
+      <Text style={styles.title}>{t('connect.title')}</Text>
+      <Text style={styles.hint}>{t('connect.hint')}</Text>
 
-      <Text style={styles.label}>Name (optional)</Text>
+      <Text style={styles.label}>{t('connect.nameLabel')}</Text>
       <TextInput
         style={styles.input}
-        placeholder="z. B. Bottich"
+        placeholder={t('connect.namePlaceholder')}
         placeholderTextColor={colors.textMuted}
         value={name}
         onChangeText={setName}
         autoCapitalize="none"
       />
 
-      <Text style={styles.label}>Server-Adresse</Text>
+      <Text style={styles.label}>{t('connect.addressLabel')}</Text>
       <View style={styles.inputRow}>
         <TextInput
           style={[styles.input, styles.inputFlex]}
           placeholder="https://192.168.10.10:1234"
           placeholderTextColor={colors.textMuted}
           value={url}
-          onChangeText={setUrl}
+          onChangeText={(v) => {
+            setUrl(v);
+            setNotice(null);
+          }}
           autoCapitalize="none"
           autoCorrect={false}
           keyboardType="url"
         />
         <TouchableOpacity style={styles.scanButton} onPress={() => setScanning(true)}>
-          <Text style={styles.scanButtonText}>QR</Text>
+          <Text style={styles.scanButtonText}>{t('connect.qrButton')}</Text>
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.label}>Token</Text>
+      <Text style={styles.label}>{t('connect.tokenLabel')}</Text>
       <TextInput
         style={styles.input}
-        placeholder="einfügen"
+        placeholder={t('connect.tokenPlaceholder')}
         placeholderTextColor={colors.textMuted}
         value={token}
         onChangeText={setToken}
@@ -101,18 +109,27 @@ export default function ConnectScreen({ onConnected }: { onConnected: (conn: Ser
         secureTextEntry
       />
 
+      {notice && <Text style={styles.notice}>{notice}</Text>}
       {error && <Text style={styles.error}>{error}</Text>}
 
       <TouchableOpacity style={[styles.button, busy && styles.buttonDisabled]} onPress={connect} disabled={busy}>
-        {busy ? <ActivityIndicator color={colors.text} /> : <Text style={styles.buttonText}>Verbinden</Text>}
+        {busy ? <ActivityIndicator color={colors.text} /> : <Text style={styles.buttonText}>{t('connect.connectButton')}</Text>}
       </TouchableOpacity>
 
       <QRScanner
         visible={scanning}
-        hint="QR-Code aus dem Access-Tab scannen"
+        hint={t('connect.qrHintAddress')}
         onScanned={(data) => {
           setScanning(false);
-          setUrl(data.trim());
+          const offer = decodePairingCode(data);
+          if (offer) {
+            setUrl(offer.url.trim());
+            if (offer.name) setName(offer.name.trim());
+            setNotice(t('connect.qrAutofillNotice'));
+          } else {
+            setUrl(data.trim());
+            setNotice(null);
+          }
         }}
         onClose={() => setScanning(false)}
       />
@@ -147,6 +164,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   scanButtonText: { color: colors.accent, fontSize: 13, fontWeight: '700' },
+  notice: { color: colors.success, marginTop: 16, fontSize: 13, lineHeight: 18 },
   error: { color: colors.danger, marginTop: 16, fontSize: 14 },
   button: {
     backgroundColor: colors.accent,

@@ -4,6 +4,7 @@ import { fetchQueue, pollTasks, setQueueHalted, subscribeTasks } from '../api/cl
 import type { Instance, QueueState, ServerConnection, Task } from '../api/types';
 import TaskRow from '../components/TaskRow';
 import { colors } from '../theme';
+import { useT } from '../i18n/I18nContext';
 
 // peer, when set, means this screen is showing a FEDERATION PEER of conn
 // rather than conn's own queue: base becomes the proxy prefix
@@ -27,6 +28,7 @@ export default function DownloadsScreen({
   onOpenInstances: () => void;
   onBackToOwn?: () => void;
 }) {
+  const { t } = useT();
   const base = peer ? `/api/instances/${encodeURIComponent(peer.name)}` : '/api';
   const [tasks, setTasks] = useState<Task[]>([]);
   const [connected, setConnected] = useState(false);
@@ -77,18 +79,18 @@ export default function DownloadsScreen({
           ) : null}
           <Text style={styles.title}>{peer ? peer.name : conn.name}</Text>
           <Text style={[styles.connState, { color: connected ? colors.success : colors.warning }]}>
-            {connected ? 'verbunden' : 'verbinde…'}
+            {connected ? t('downloads.connected') : t('downloads.connecting')}
           </Text>
         </View>
         <View style={styles.topBarRight}>
           {!peer && (
             <TouchableOpacity onPress={onOpenInstances}>
-              <Text style={styles.link}>Instanzen</Text>
+              <Text style={styles.link}>{t('downloads.instancesLink')}</Text>
             </TouchableOpacity>
           )}
           {!peer && (
             <TouchableOpacity onPress={onSwitchConnection}>
-              <Text style={styles.link}>Wechseln</Text>
+              <Text style={styles.link}>{t('downloads.switchLink')}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -96,8 +98,8 @@ export default function DownloadsScreen({
 
       <View style={styles.queueBar}>
         <Text style={styles.queueLabel}>
-          {queue ? (queue.halted ? 'Angehalten' : 'Läuft') : '—'}
-          {queue && queue.running > 0 ? ` · ${queue.running} aktiv` : ''}
+          {queue ? (queue.halted ? t('downloads.queueHalted') : t('downloads.queueRunning')) : '—'}
+          {queue && queue.running > 0 ? ` · ${t('downloads.queueActive', { n: queue.running })}` : ''}
         </Text>
         {queueBusy ? (
           <ActivityIndicator color={colors.accent} size="small" />
@@ -118,7 +120,7 @@ export default function DownloadsScreen({
         renderItem={({ item }) => <TaskRow task={item} />}
         contentContainerStyle={styles.list}
         ListEmptyComponent={
-          <Text style={styles.empty}>{connected ? 'Keine Downloads.' : 'Verbinde mit dem Server…'}</Text>
+          <Text style={styles.empty}>{connected ? t('downloads.empty') : t('downloads.emptyConnecting')}</Text>
         }
       />
 

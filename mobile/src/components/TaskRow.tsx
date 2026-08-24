@@ -1,6 +1,16 @@
 import { StyleSheet, Text, View } from 'react-native';
 import type { Task } from '../api/types';
 import { colors } from '../theme';
+import { useT, type TranslationKey } from '../i18n/I18nContext';
+
+const STATUS_KEYS: Record<string, TranslationKey> = {
+  queued: 'status.queued',
+  running: 'status.running',
+  paused: 'status.paused',
+  finished: 'status.finished',
+  failed: 'status.failed',
+  extracting: 'status.extracting',
+};
 
 function formatBytes(n: number): string {
   if (n <= 0) return '0 B';
@@ -25,7 +35,9 @@ function statusColor(status: string): string {
 }
 
 export default function TaskRow({ task }: { task: Task }) {
+  const { t } = useT();
   const pct = task.size > 0 ? Math.min(100, Math.round((task.loaded / task.size) * 100)) : null;
+  const statusKey = STATUS_KEYS[task.status];
 
   return (
     <View style={styles.row}>
@@ -33,7 +45,7 @@ export default function TaskRow({ task }: { task: Task }) {
         <Text style={styles.name} numberOfLines={1}>
           {task.name || task.url}
         </Text>
-        <Text style={[styles.status, { color: statusColor(task.status) }]}>{task.status}</Text>
+        <Text style={[styles.status, { color: statusColor(task.status) }]}>{statusKey ? t(statusKey) : task.status}</Text>
       </View>
 
       {task.status === 'running' && (
