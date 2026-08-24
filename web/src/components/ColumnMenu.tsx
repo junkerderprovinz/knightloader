@@ -106,23 +106,29 @@ export function ColumnMenu({
         const last = shown && visibleCount <= 1;
         const disabled = locked || last;
         return (
-          <button
-            key={c.id}
-            role="menuitemcheckbox"
-            aria-checked={shown}
-            disabled={disabled}
-            title={locked ? t('columns.alwaysShown') : last ? t('columns.lastVisible') : undefined}
-            onClick={() => onToggle(c.id)}
-            className={`flex w-full items-center gap-2.5 rounded-[var(--radius-control)] px-2 py-1.5 text-start text-[13px]
-              transition-colors ${
-                disabled
-                  ? 'cursor-not-allowed text-carbon-textMuted'
-                  : 'text-carbon-text hover:bg-carbon-hover'
-              }`}
-          >
-            <Mark on={shown} />
-            <span className="truncate">{t(c.labelKey)}</span>
-          </button>
+          // The InfoBubble sits beside the button rather than inside it -
+          // the same reason Mark's own comment above gives for keeping this
+          // row a single button: an interactive (i) nested inside another
+          // interactive control is not markup a browser, or a screen
+          // reader's menu navigation, can make sense of.
+          <div key={c.id} className="flex items-center">
+            <button
+              role="menuitemcheckbox"
+              aria-checked={shown}
+              disabled={disabled}
+              onClick={() => onToggle(c.id)}
+              className={`flex min-w-0 flex-1 items-center gap-2.5 rounded-[var(--radius-control)] px-2 py-1.5 text-start text-[13px]
+                transition-colors ${
+                  disabled
+                    ? 'cursor-not-allowed text-carbon-textMuted'
+                    : 'text-carbon-text hover:bg-carbon-hover'
+                }`}
+            >
+              <Mark on={shown} />
+              <span className="truncate">{t(c.labelKey)}</span>
+            </button>
+            {disabled && <InfoBubble tip={locked ? t('columns.alwaysShown') : t('columns.lastVisible')} className="mr-1.5" />}
+          </div>
         );
       })}
 

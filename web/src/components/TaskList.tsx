@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { priorityChoices, type PriorityChoice, type Task, type TaskOptionsPatch } from '../lib/api';
 import { hueVars, rainbowAt } from '../lib/appearance';
 import { useRainbow } from '../lib/useRainbow';
-import { pause, resume, remove, startTasks, restartTasks, recheckTasks, setTaskOptions } from '../lib/api';
+import { pause, resume, remove, startTasks, restartTasks, recheckTasks, setTaskOptions, reorderTasks } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { useUIState } from '../lib/uistate';
@@ -140,6 +140,7 @@ function TaskRow({
   columns,
   selection,
   index,
+  dnd,
 }: {
   task: Task;
   base: string;
@@ -148,11 +149,14 @@ function TaskRow({
   selection?: Selection;
   /** Position in the rendered list — the rainbow palette position. */
   index: number;
+  /** The row drag-to-reorder machinery — see TaskListCard, the one place it is built. */
+  dnd: RowDnD;
 }) {
   const { t } = useT();
   const [options, setOptions] = useState(false);
   const collected = task.status === 'collected';
   const settled = task.status === 'done' || task.status === 'error';
+  const dragging = dnd.draggingTask === task.id;
 
   // In rainbow mode the row owns a colour, and everything inside it that paints
   // activity — the progress fill above all — reads it through --accent without
@@ -171,7 +175,27 @@ function TaskRow({
       // download gets deleted.
       data-task-id={task.id}
       style={{ ...hueVars(rainbowAt(index)), ...ROW_GRID } as CSSProperties}
-      className={`glim-hue glim-tint ${task.status === 'running' ? 'glim-active' : ''} group relative grid
+      // Drag-to-reorder, on the same native HTML5 machinery the column
+      // headers already use above (Header's own dragId/onDragStart/onDrop).
+      // Only offered in queue-order view — see dndEnabled in TaskListCard.
+      // The CONTROL guard is the same one the package header below already
+      // folds by (jdp: everything that is its own control keeps its own
+      // gesture) — reused here so a drag never starts out from under the
+      // checkbox or an action badge.
+      draggable={dnd.enabled}
+      onDragStart={(e) => {
+        if (!dnd.enabled || (e.target instanceof Element && e.target.closest(CONTROL))) {
+          e.preventDefault();
+          return;
+        }
+        dnd.startTask(task.id);
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', task.id);
+      }}
+      onDragEnd={dnd.end}
+      onDragOver={(e) => dnd.active && e.preventDefault()}
+      onDrop={(e) => dnd.dropOnTask(task.id, e)}
+      className={`glim-hue glim-tint ${task.status === 'running' ? 'glim-active' : ''} ${dragging ? 'opacity-50' : ''} group relative grid
         items-center px-3 py-2 transition-colors hover:bg-carbon-hover/50`}
     >
       <div className="flex items-center justify-center">
@@ -398,6 +422,7 @@ function PackageGroup({
   collapsed,
   onToggleCollapsed,
   indexOffset,
+  dnd,
 }: {
   name: string;
   items: Task[];
@@ -408,9 +433,12 @@ function PackageGroup({
   collapsed: boolean;
   onToggleCollapsed: () => void;
   indexOffset: number;
+  /** The row drag-to-reorder machinery — see TaskListCard, the one place it is built. */
+  dnd: RowDnD;
 }) {
   const { t } = useT();
   const allSelected = selection && items.every((x) => selection.ids.has(x.id));
+  const dragging = dnd.draggingPackage === name;
 
   return (
     <section>
@@ -424,11 +452,26 @@ function PackageGroup({
           if (e.target instanceof Element && e.target.closest(CONTROL)) return;
           onToggleCollapsed();
         }}
+        // Drags the whole package as one block — see TaskRow's own drag
+        // handlers above for the identical pattern applied to one link.
+        draggable={dnd.enabled}
+        onDragStart={(e) => {
+          if (!dnd.enabled || (e.target instanceof Element && e.target.closest(CONTROL))) {
+            e.preventDefault();
+            return;
+          }
+          dnd.startPackage(name);
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', name);
+        }}
+        onDragEnd={dnd.end}
+        onDragOver={(e) => dnd.active && e.preventDefault()}
+        onDrop={(e) => dnd.dropOnPackage(name, e)}
         // A colour step, not a rule: the header sits on the quiet surface and
         // the links inside it sit on the card, which is the whole of the weight
         // difference between a container and its contents.
-        className="grid cursor-pointer select-none items-center bg-carbon-surface2/80 px-3 py-2.5
-          transition-colors hover:bg-carbon-surface2"
+        className={`grid cursor-pointer select-none items-center bg-carbon-surface2/80 px-3 py-2.5
+          transition-colors hover:bg-carbon-surface2 ${dragging ? 'opacity-50' : ''}`}
       >
         <div className="flex items-center justify-center">
           {selection && (
@@ -476,12 +519,35 @@ function PackageGroup({
               ctx={ctx}
               columns={columns}
               selection={selection}
+              dnd={dnd}
             />
           ))}
         </div>
       )}
     </section>
   );
+}
+
+/**
+ * What one row drag is carrying — a single link, or a whole package moved as
+ * one block. See TaskListCard's own "Row drag-to-reorder" section, the only
+ * place this is built; TaskRow and PackageGroup only read it.
+ */
+type RowDragKey = { kind: 'task'; id: string } | { kind: 'package'; name: string };
+
+/** The bundle TaskRow and PackageGroup share, built once per render in TaskListCard. */
+interface RowDnD {
+  /** False in a sorted view — see dndEnabled in TaskListCard for why. */
+  enabled: boolean;
+  /** Whether some row or package is currently mid-drag, anywhere in the list. */
+  active: boolean;
+  draggingTask: string | null;
+  draggingPackage: string | null;
+  startTask: (id: string) => void;
+  startPackage: (name: string) => void;
+  end: () => void;
+  dropOnTask: (id: string, e: DragEvent<HTMLElement>) => void;
+  dropOnPackage: (name: string, e: DragEvent<HTMLElement>) => void;
 }
 
 /**
@@ -531,6 +597,14 @@ function Header({
       }}
       className="grid items-center border-b border-carbon-border/60 px-3 py-1 select-none"
     >
+      {/* One bubble for the whole row, not one per column (SelectionStrip's own
+          `<InfoBubble tip={t('remove.keys')} />` is the same call: a repeated
+          small control explained once rather than on every instance of it) —
+          a column header already carries its own visible label, so a native
+          `title` repeating "sort by this column" forty columns over was the
+          plain-tooltip case this app's own convention puts behind a bubble
+          instead. columns.headerHint now covers sorting too (see its own
+          text), and the per-column title is gone below. */}
       <div className="flex items-center justify-center">
         <InfoBubble tip={t('columns.headerHint')} />
       </div>
@@ -557,7 +631,6 @@ function Header({
               onDragEnd={() => setDragId(null)}
               onClick={() => sortable && onSort(col.id)}
               aria-sort={sorted === 'asc' ? 'ascending' : sorted === 'desc' ? 'descending' : undefined}
-              title={sortable ? t('columns.sortHint') : undefined}
               className={`flex min-w-0 flex-1 items-center gap-1 px-2 py-1.5 text-[11px] font-semibold uppercase
                 tracking-wide transition-colors ${col.align === 'end' ? 'justify-end' : 'justify-start'} ${
                   sorted ? 'text-carbon-text' : 'text-carbon-textMuted hover:text-carbon-textSub'
@@ -791,36 +864,60 @@ export function TaskProperties({ ids, tasks, base }: { ids: string[]; tasks: Tas
 
         {/* A set of controls, so FieldGroup and not Field: a <label> hands its
             click to the first thing inside it, which here would pick a priority
-            every time somebody read the caption. */}
-        <FieldGroup
-          label={t('props.priority')}
-          hint={hint(t('props.priorityHint'), start.priority === null)}
-        >
-          <Tabs
-            size="sm"
-            label={t('props.priority')}
-            active={priority}
-            onSelect={edit('priority', setPriority)}
-            items={priorities.map((p) => ({ id: p.id, label: t(p.label) }))}
-          />
-        </FieldGroup>
+            every time somebody read the caption.
 
-        <FieldGroup
-          label={t('props.autoExtract')}
-          hint={hint(t('props.autoExtractHint'), start.autoExtract === null)}
-        >
-          <Tabs
-            size="sm"
+            Priority and auto-extract read as one decision (jdp: "Priorität und
+            Archive entpacken: beide sollen horizontale Selektoren sein und in
+            eine Zeile kommen") — the well variant (Tabs.tsx), the same tight
+            segmented-control treatment the Look page's own shape and theme
+            pickers already use for exactly this complaint, in place of the
+            loose default chip row; side by side on one grid row instead of
+            each stacked full-width, matching DownloadsSettings.tsx's own
+            two-fields-per-row pattern.
+
+            The well track sizes each segment to a fixed width rather than to
+            its label (Tabs.tsx: 200px, ported from BombVault's own picker),
+            so priority's own seven options run wider than either grid column
+            gives it at ordinary widths. overflow-x-auto on the track itself,
+            not on the grid or the card, keeps that scroll local to the one
+            control instead of ever pushing the panel — or the page — sideways. */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FieldGroup
+            label={t('props.priority')}
+            hint={hint(t('props.priorityHint'), start.priority === null)}
+          >
+            <div className="overflow-x-auto">
+              <Tabs
+                variant="well"
+                className="w-fit"
+                label={t('props.priority')}
+                active={priority}
+                onSelect={edit('priority', setPriority)}
+                items={priorities.map((p) => ({ id: p.id, label: t(p.label) }))}
+              />
+            </div>
+          </FieldGroup>
+
+          <FieldGroup
             label={t('props.autoExtract')}
-            active={extract}
-            onSelect={edit('autoExtract', setExtract)}
-            items={[
-              { id: 'inherit', label: t('props.inherit') },
-              { id: 'on', label: t('props.on') },
-              { id: 'off', label: t('props.off') },
-            ]}
-          />
-        </FieldGroup>
+            hint={hint(t('props.autoExtractHint'), start.autoExtract === null)}
+          >
+            <div className="overflow-x-auto">
+              <Tabs
+                variant="well"
+                className="w-fit"
+                label={t('props.autoExtract')}
+                active={extract}
+                onSelect={edit('autoExtract', setExtract)}
+                items={[
+                  { id: 'inherit', label: t('props.inherit') },
+                  { id: 'on', label: t('props.on') },
+                  { id: 'off', label: t('props.off') },
+                ]}
+              />
+            </div>
+          </FieldGroup>
+        </div>
 
         <div className="flex items-center gap-3">
           <Button disabled={touched.size === 0 || busy} onClick={() => void apply()}>
@@ -882,6 +979,129 @@ export function TaskListCard({
     () => (chosenIds ? view.flatMap(([, items]) => items).filter((x) => chosenIds.has(x.id)) : []),
     [view, chosenIds],
   );
+
+  // --- Row drag-to-reorder ---------------------------------------------
+  //
+  // A drag unit is one link or one whole package, moved by the same gesture
+  // ("links/ordner", jdp) and built on the same native HTML5 machinery
+  // Header's own column reorder already uses above: a "what is being
+  // dragged" key, onDragStart/onDragOver/onDrop on every draggable and
+  // droppable element, and a rect-vs-pointer check at drop time to decide
+  // before or after.
+  //
+  // Only offered in queue-order view — a client-side sort is documented
+  // above (applySort's own doc comment) as a VIEW and never the queue
+  // itself, and band-mates a size or status sort has scattered across the
+  // table would rarely even land next to each other to drag between. The
+  // sortedView banner right above the table already offers the way back.
+  const dndEnabled = !sort;
+  const [rowDrag, setRowDrag] = useState<RowDragKey | null>(null);
+
+  // Every task actually on screen, flattened out of the package groups in
+  // display order — the same tasks `chosen` reads off `view` above, not the
+  // raw `groups` prop, so a drag position always matches what is drawn.
+  const flatTasks = useMemo(() => view.flatMap(([, items]) => items), [view]);
+  const taskById = useMemo(() => new Map(flatTasks.map((x) => [x.id, x] as const)), [flatTasks]);
+
+  // A "band" mirrors the reorder endpoint's own grouping: same priority AND
+  // same forced. Each band's own ids, in the order they are drawn right now,
+  // is exactly what "the complete new order of every task in this band" —
+  // POST /api/tasks/reorder's own contract — means client-side.
+  const bandOf = (x: Task): string => `${x.priority}:${x.forced ? 1 : 0}`;
+  const bandOrder = useMemo(() => {
+    const m = new Map<string, string[]>();
+    for (const x of flatTasks) {
+      const key = bandOf(x);
+      const arr = m.get(key);
+      if (arr) arr.push(x.id);
+      else m.set(key, [x.id]);
+    }
+    return m;
+  }, [flatTasks]);
+
+  // A package's own band, or null when its links disagree — a mixed package
+  // has no one band to move it into, so a drop against it is refused rather
+  // than guessing which of its tasks the drag should follow.
+  function packageBand(name: string): string | null {
+    const items = view.find(([n]) => n === name)?.[1] ?? [];
+    if (items.length === 0) return null;
+    const first = bandOf(items[0]);
+    return items.every((x) => bandOf(x) === first) ? first : null;
+  }
+
+  function unitBand(u: RowDragKey): string | null {
+    if (u.kind === 'task') {
+      const t = taskById.get(u.id);
+      return t ? bandOf(t) : null;
+    }
+    return packageBand(u.name);
+  }
+
+  function unitIds(u: RowDragKey): string[] {
+    if (u.kind === 'task') return [u.id];
+    return (view.find(([n]) => n === u.name)?.[1] ?? []).map((x) => x.id);
+  }
+
+  // The one handler behind every row's and every package header's own
+  // onDrop — see dropOnTask/dropOnPackage below, which only add the
+  // rect-vs-pointer "before or after" read and then call this.
+  function dropRow(target: RowDragKey, after: boolean): void {
+    const dragged = rowDrag;
+    setRowDrag(null);
+    if (!dragged) return;
+    const band = unitBand(dragged);
+    // A different band, the dragged unit dropped on itself (or on part of
+    // itself — a package dropped onto one of its own links), or a mixed
+    // package on either end: a normal boundary, not a failure. Reverted
+    // visually by the drag simply ending above, no request and no toast —
+    // the reorder endpoint's own contract is that this backend does not
+    // support a list that crosses a band.
+    if (!band || band !== unitBand(target)) return;
+    const movedIds = unitIds(dragged);
+    const targetIds = unitIds(target);
+    if (movedIds.some((id) => targetIds.includes(id))) return;
+
+    const order = bandOrder.get(band) ?? [];
+    const without = order.filter((id) => !movedIds.includes(id));
+    // Anchored on the target's own edge — its first id when the moved block
+    // lands before it, its last when after — so dropping a package (several
+    // ids at once) keeps its own internal order and lands as one
+    // contiguous run, exactly where a single link would have landed alone.
+    const anchor = after ? targetIds[targetIds.length - 1] : targetIds[0];
+    const at = without.indexOf(anchor);
+    if (at < 0) return;
+    without.splice(after ? at + 1 : at, 0, ...movedIds);
+
+    // Fired and forgotten, like every other queue action on this row: there
+    // is no local override of the task order to unwind if this fails, so
+    // the next poll/WS tick is what settles rows back where the server
+    // actually put them.
+    void reorderTasks(without, base);
+  }
+
+  function dropOnTask(id: string, e: DragEvent<HTMLElement>): void {
+    e.preventDefault();
+    const r = e.currentTarget.getBoundingClientRect();
+    dropRow({ kind: 'task', id }, e.clientY > r.top + r.height / 2);
+  }
+
+  function dropOnPackage(name: string, e: DragEvent<HTMLElement>): void {
+    e.preventDefault();
+    const r = e.currentTarget.getBoundingClientRect();
+    dropRow({ kind: 'package', name }, e.clientY > r.top + r.height / 2);
+  }
+
+  const dnd: RowDnD = {
+    enabled: dndEnabled,
+    active: rowDrag !== null,
+    draggingTask: rowDrag?.kind === 'task' ? rowDrag.id : null,
+    draggingPackage: rowDrag?.kind === 'package' ? rowDrag.name : null,
+    startTask: (id) => setRowDrag({ kind: 'task', id }),
+    startPackage: (name) => setRowDrag({ kind: 'package', name }),
+    end: () => setRowDrag(null),
+    dropOnTask,
+    dropOnPackage,
+  };
 
   const template = gridTemplate(layout.visible, layout.widthOf);
 
@@ -1010,6 +1230,7 @@ export function TaskListCard({
                     collapsed={folded}
                     onToggleCollapsed={() => toggle(name)}
                     indexOffset={offset}
+                    dnd={dnd}
                   />
                 );
               })}

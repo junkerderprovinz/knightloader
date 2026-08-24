@@ -276,12 +276,22 @@ export function Rules() {
           hue={1}
           right={
             <div className="flex items-center gap-2">
-              <Button kind="secondary" title={rx('settings.rules.importTitle')} onClick={() => fileInput.current?.click()}>
+              {/* One InfoBubble per button rather than folding both into the
+                  SectionTitle's own hint below: that hint sits inside the
+                  section's title badge, over on the left, while Import and
+                  Export explain two DIFFERENT actions on the right - one
+                  combined sentence up there would explain neither well, and
+                  would sit visually far from the buttons it is about. This
+                  file's own stopAfterMatch row (above) already pairs a hint
+                  with its own label rather than a shared one further away. */}
+              <Button kind="secondary" onClick={() => fileInput.current?.click()}>
                 {rx('settings.rules.import')}
               </Button>
-              <Button kind="secondary" title={rx('settings.rules.exportTitle')} onClick={exportJSON}>
+              <InfoBubble tip={rx('settings.rules.importTitle')} />
+              <Button kind="secondary" onClick={exportJSON}>
                 {rx('settings.rules.export')}
               </Button>
+              <InfoBubble tip={rx('settings.rules.exportTitle')} />
               <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
                 {rx('settings.rules.add')}
               </Button>

@@ -43,6 +43,17 @@ func (Resolver) Resolve(_ context.Context, req resolver.Request) (resolver.Resul
 //
 // A check worth wiring would have to be cheaper than the download it is meant to
 // save. This one is the download, minus the bytes.
+//
+// A per-task ASYNC probe is a different shape, and it does exist: see
+// Backend.ProbeTitle (backend.go) and app.probeYtdlpTitle, which the
+// collector fires once per staged link as it is staged rather than once for
+// a whole pasted batch at once. What makes that safe where a batched Checker
+// here would not be is exactly the batching this comment is about - one
+// process per link, never one process per link times however many were
+// pasted together - so the per-link cost this comment already accepts is
+// still paid once, not multiplied by a paste's size. It fills in the name
+// this Resolve still cannot promise; it does not check whether the link is
+// still there, which stays exactly the gap described above.
 
 // hostInSet reports whether host or any parent domain is in set.
 func hostInSet(host string, set map[string]bool) bool {

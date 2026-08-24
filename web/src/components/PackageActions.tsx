@@ -1,10 +1,43 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type SVGProps } from 'react';
 import { type QueueMove, type Task, queueMove, setPackage } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
-import { Button, Field, Modal, TextInput } from './ui';
+import { Button, Field, IconBadge, Modal, TextInput } from './ui';
 import { ContextMenu, anchorBelow, useContextMenu } from './ContextMenu';
-import { IconArrowDown, IconArrowUp, IconBottom, IconTop } from '../lib/icons';
+import { IconArrowDown, IconArrowUp, IconBottom, IconFolder, IconTop } from '../lib/icons';
+
+// Two glyphs lib/icons.tsx has no equivalent for yet. Both follow that
+// file's own house style (solid fill, never a stroked outline) rather than
+// ListToolbar.tsx's local stroke-based glyphs, so a badge built from either
+// one sits at the same visual weight as the four page-level badges beside it
+// (jdp, 2026-08-24: "die sollen in der gleichen zeile wie die quadratischen
+// badges erscheinen").
+
+/** Split by hoster: one package's box forking into three per-host boxes. */
+const IconSplitHost = (p: SVGProps<SVGSVGElement>) => (
+  <svg width={22} height={22} viewBox="0 0 20 20" fill="currentColor" className="shrink-0" aria-hidden {...p}>
+    <rect x="8" y="2.5" width="4" height="3" rx="1" />
+    <rect x="9.3" y="5.5" width="1.4" height="2" />
+    <rect x="4.5" y="7.5" width="11" height="1.4" rx=".7" />
+    <rect x="3.8" y="8.9" width="1.4" height="2.5" />
+    <rect x="9.3" y="8.9" width="1.4" height="2.5" />
+    <rect x="14.8" y="8.9" width="1.4" height="2.5" />
+    <rect x="2" y="11.4" width="5" height="4" rx="1" />
+    <rect x="7.5" y="11.4" width="5" height="4" rx="1" />
+    <rect x="13" y="11.4" width="5" height="4" rx="1" />
+  </svg>
+);
+
+/** Queue order: three descending bars, the wait order seen side-on - the
+ *  filled twin of ListToolbar.tsx's own local (unexported, stroke-based)
+ *  IconPriority, which draws the same idea for the same reason. */
+const IconQueueOrder = (p: SVGProps<SVGSVGElement>) => (
+  <svg width={22} height={22} viewBox="0 0 20 20" fill="currentColor" className="shrink-0" aria-hidden {...p}>
+    <rect x="4" y="4.7" width="12" height="1.6" rx=".8" />
+    <rect x="4" y="9.2" width="8" height="1.6" rx=".8" />
+    <rect x="4" y="13.7" width="4" height="1.6" rx=".8" />
+  </svg>
+);
 
 // hostOf is the grouping label for "split by hoster". It mirrors what the
 // backend uses for its per-host concurrency limit, so the two agree on what
@@ -18,7 +51,13 @@ function hostOf(raw: string): string {
 }
 
 /**
- * PackageActions is the package-organising strip shown above a selection.
+ * PackageActions is the package-organising badges merged into Collector.tsx's
+ * own selection-mode action row (jdp, 2026-08-24: "die sollen in der
+ * gleichen zeile wie die quadratischen badges erscheinen, nicht in einer
+ * neuen Zeile") - three square IconBadges, not the text buttons this used to
+ * render, so they read as the same kind of control as the badges around them
+ * rather than as a different, unlabelled control floating among them.
+ *
  * Moving and merging are the same operation seen from two sides — several
  * tasks ending up under one name — so they share a dialog instead of being two
  * half-features.
@@ -84,24 +123,30 @@ export function PackageActions({
 
   return (
     <>
-      <Button kind="ghost" className="px-2.5 text-xs" onClick={() => setDialog(true)}>
-        {t('pkg.moveTitle')}
-      </Button>
-      <Button kind="ghost" className="px-2.5 text-xs" onClick={splitByHost}>
-        {t('pkg.splitByHost')}
-      </Button>
-      {/* One word rather than four more icon buttons beside the four the strip
-          already carries for the selection. The two sets do different things to
-          different rows, and side by side as identical arrows they would be
-          told apart only by hovering for a tooltip. */}
+      <IconBadge
+        icon={<IconFolder width={16} height={16} />}
+        title={t('pkg.moveTitle')}
+        aria-label={t('pkg.moveTitle')}
+        onClick={() => setDialog(true)}
+      />
+      <IconBadge
+        icon={<IconSplitHost width={16} height={16} />}
+        title={t('pkg.splitByHost')}
+        aria-label={t('pkg.splitByHost')}
+        onClick={splitByHost}
+      />
+      {/* A distinct glyph (three descending bars, not an arrow) rather than
+          the four arrow icons the queue-order submenu itself opens with — the
+          two sets do different things to different rows, and side by side as
+          identical arrows they would be told apart only by hovering for a
+          tooltip. */}
       {packages.length === 1 && (
-        <Button
-          kind="ghost"
-          className="px-2.5 text-xs"
+        <IconBadge
+          icon={<IconQueueOrder width={16} height={16} />}
+          title={t('pkg.queueOrder')}
+          aria-label={t('pkg.queueOrder')}
           onClick={(e) => order.openAt(anchorBelow(e.currentTarget))}
-        >
-          {t('pkg.queueOrder')}
-        </Button>
+        />
       )}
       {order.anchor && (
         <ContextMenu

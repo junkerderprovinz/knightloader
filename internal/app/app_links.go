@@ -698,6 +698,13 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	// check while the task waits in the collector.
 	if staged != nil && res.Info().ID == "direct" {
 		a.spawn(func() { a.analyze(t.ID, result.DirectURL) })
+	} else if staged != nil && res.Info().ID == "ytdlp" {
+		// Same shape, yt-dlp's own version: a title probe while the task waits
+		// in the collector, so a YouTube (etc.) link shows the video's real
+		// name instead of its own URL before anybody presses Start - see
+		// probeYtdlpTitle's own doc comment (app_tasks.go) for why this is
+		// silent on failure, the same as analyze's HEAD probe above.
+		a.spawn(func() { a.probeYtdlpTitle(t.ID, result.DirectURL) })
 	}
 	return staged
 }

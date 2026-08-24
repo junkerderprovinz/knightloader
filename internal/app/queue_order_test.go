@@ -128,6 +128,66 @@ func TestMoveRefusesADirectionItDoesNotKnow(t *testing.T) {
 	wantOrder(t, a, "a b c")
 }
 
+// TestReorderBandAppliesTheDraggedOrder is the whole point of ReorderBand: a
+// drag names an arbitrary new order for one band in a single request, which is
+// exactly what a relative step cannot do without letting two drags interleave.
+func TestReorderBandAppliesTheDraggedOrder(t *testing.T) {
+	a := newOrderApp(t)
+	stage(a, "a", "b", "c", "d")
+
+	ids, err := a.ReorderBand([]string{"d", "b", "a", "c"})
+	if err != nil {
+		t.Fatalf("ReorderBand: %v", err)
+	}
+	if got := strings.Join(ids, " "); got != "d b a c" {
+		t.Errorf("ReorderBand reported %q, want the ids handed back in the order given", got)
+	}
+	wantOrder(t, a, "d b a c")
+}
+
+// TestReorderRefusesIdsFromTwoBands pins the same boundary MoveIn's own moves
+// keep: a drag surface only ever shows one band at a time, so ids spanning two
+// is a bug upstream, and reconciling it quietly would put one band's row
+// inside another's.
+func TestReorderRefusesIdsFromTwoBands(t *testing.T) {
+	a := newOrderApp(t)
+	stage(a, "high", "n1", "n2")
+	a.mu.Lock()
+	a.tasks["high"].Priority = PriorityHighest
+	a.mu.Unlock()
+
+	if _, err := a.ReorderBand([]string{"high", "n1", "n2"}); err == nil {
+		t.Error("ReorderBand accepted ids spanning two bands")
+	}
+	wantOrder(t, a, "high n1 n2")
+}
+
+// TestReorderRefusesAPartialBand: a list that leaves one of the band's own
+// tasks out would have to renumber around a gap nobody named, silently
+// changing where that task waits without it ever appearing in the request.
+func TestReorderRefusesAPartialBand(t *testing.T) {
+	a := newOrderApp(t)
+	stage(a, "a", "b", "c")
+
+	if _, err := a.ReorderBand([]string{"a", "b"}); err == nil {
+		t.Error("ReorderBand accepted a list missing one of the band's own tasks")
+	}
+	wantOrder(t, a, "a b c")
+}
+
+// TestReorderRefusesAnUnknownId: an id nobody recognizes has nothing to
+// renumber, and applying the rest of the list around it would silently drop
+// the caller's mistake instead of reporting it.
+func TestReorderRefusesAnUnknownId(t *testing.T) {
+	a := newOrderApp(t)
+	stage(a, "a", "b", "c")
+
+	if _, err := a.ReorderBand([]string{"a", "b", "ghost"}); err == nil {
+		t.Error("ReorderBand accepted an id that names no task")
+	}
+	wantOrder(t, a, "a b c")
+}
+
 // --- helpers ---------------------------------------------------------------
 
 func newOrderApp(t *testing.T) *App {

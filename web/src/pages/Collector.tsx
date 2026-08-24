@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type SVGProps } from 'react';
 import { recheckTasks, startTasks, type Task } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import { useReportListView } from '../lib/listview';
 import { useToast } from '../lib/toast';
 import { useT } from '../lib/i18n';
-import { PageHeader, Button, IconBadge, hueStyle } from '../components/ui';
+import { PageHeader, IconBadge, InfoBubble, hueStyle } from '../components/ui';
 import {
   TaskListCard,
   groupByPackage,
@@ -20,7 +20,6 @@ import {
   COLLECTOR_FILTERS,
   ListMenu,
   ListToolbar,
-  SelectionStrip,
   cleanupItems,
   matchesQuickFilters,
   targetPackage,
@@ -43,7 +42,43 @@ import { CollectorStats } from '../components/CollectorStats';
 import { useScriptMenu } from '../components/ScriptActions';
 import { FirstTouchHint } from '../components/FirstTouchHint';
 import { usePublishCommandPageContext } from '../lib/commands/pageContext';
-import { IconCheck, IconPlay, IconRetry, IconSearch, IconTrash } from '../lib/icons';
+import { IconCheck, IconClose, IconPlay, IconRetry, IconSearch, IconTrash } from '../lib/icons';
+
+// Two glyphs lib/icons.tsx has no equivalent for yet, needed only by the
+// selection-mode half of the action row below. Both follow that file's own
+// house style (solid fill, never a stroked outline) rather than
+// ListToolbar.tsx's local stroke-based twins of the same ideas (its own
+// unexported IconMore/IconTrashFiles), which this file cannot import without
+// editing ListToolbar.tsx - not this file's lane this round.
+
+/** The selection strip's own "More" trigger: three dots, unchanged from
+ *  ListToolbar.tsx's own local glyph for the same button. */
+const IconMore = (p: SVGProps<SVGSVGElement>) => (
+  <svg width={22} height={22} viewBox="0 0 20 20" fill="currentColor" className="shrink-0" aria-hidden {...p}>
+    <circle cx="5" cy="10" r="1.4" />
+    <circle cx="10" cy="10" r="1.4" />
+    <circle cx="15" cy="10" r="1.4" />
+  </svg>
+);
+
+/** "Remove and delete files": IconTrash's own body with two slits carved
+ *  through it (fillRule="evenodd", the same technique IconWarning's "!" uses
+ *  in lib/icons.tsx) - a trash can whose contents are visibly gone, distinct
+ *  from the plain IconTrash beside it so the two danger badges are told
+ *  apart without hovering for a tooltip. */
+const IconTrashFiles = (p: SVGProps<SVGSVGElement>) => (
+  <svg width={22} height={22} viewBox="0 0 20 20" fill="currentColor" className="shrink-0" aria-hidden {...p}>
+    <rect x="8" y="2" width="4" height="2" rx="1" />
+    <rect x="3.5" y="4.5" width="13" height="2.2" rx="1.1" />
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M5.3 7.5h9.4l-.9 9.1a1.5 1.5 0 0 1-1.5 1.4H7.7a1.5 1.5 0 0 1-1.5-1.4L5.3 7.5Z
+         M7 9.6h6v1.3H7Z
+         M7 12.4h6v1.3H7Z"
+    />
+  </svg>
+);
 
 export function Collector() {
   const { t } = useT();
@@ -257,6 +292,11 @@ export function Collector() {
   };
 
   const allChosen = filtered.length > 0 && filtered.every((x) => selected.has(x.id));
+  // The selection-mode half of the action row below needs these twice each
+  // (the remove badge and, when it applies, the remove-with-files badge) -
+  // the same ids/onDisk SelectionStrip used to derive for itself.
+  const selectedIds = selectedTasks.map((x) => x.id);
+  const selectedOnDisk = selectedTasks.some((x) => x.loaded > 0);
 
   return (
     // flex-1, not h-full: app/Layout.tsx's own page wrapper is a flex
@@ -306,18 +346,20 @@ export function Collector() {
         <SkippedLinks />
       </div>
 
-      {/* Search bar, selection strip, the action-badge row and the list
-          itself all wrapped in ONE inner flex-col with a tighter gap-3
-          (jdp, 2026-08-24, second round: "zwischen suchfeld und
-          hauptfenster ist immer noch ein großer anbstand" - hiding the
-          empty SelectionStrip's own wrapper already removed one PHANTOM
-          gap, but the outer page's gap-6 still put a full 24px seam before
-          AND after the badge row on top of the row's own height, reading
-          as one big gap even with nothing phantom left in it). This
-          "list-management cluster" reads as one connected unit now,
-          gap-3 between its own parts; the hero row and the paste-intake
-          block above keep the page's normal gap-6 - they are genuinely
-          separate sections, this one is not. */}
+      {/* The quick-filter toolbar, the one action-badge row (search, the
+          selection actions and the four page-level actions all merged into
+          it now - see that row's own doc comment) and the list itself, all
+          wrapped in ONE inner flex-col with a tighter gap-3 (jdp,
+          2026-08-24, second round: "zwischen suchfeld und hauptfenster ist
+          immer noch ein großer anbstand" - hiding the empty selection
+          strip's own wrapper already removed one PHANTOM gap that round, but
+          the outer page's gap-6 still put a full 24px seam before AND after
+          the badge row on top of the row's own height, reading as one big
+          gap even with nothing phantom left in it). This "list-management
+          cluster" reads as one connected unit, gap-3 between its own parts;
+          the hero row and the paste-intake block above keep the page's
+          normal gap-6 - they are genuinely separate sections, this one is
+          not. */}
       <div className="flex min-h-0 flex-1 flex-col gap-3">
         {collected.length > 0 && (
           <div className="shrink-0">
@@ -334,111 +376,148 @@ export function Collector() {
           </div>
         )}
 
-        {/* The search field itself, folded away behind the badge below until
-            asked for (jdp, 2026-08-24: "das suchfeld soll auch als
-            quadratischer badge neben die andren vier badges. bei klick soll
-            das suchfeld ausklappen") - its own shrink-0 wrapper, matching
-            the ListToolbar and SelectionStrip wrappers around it in this
-            same cluster. */}
-        {searchOpen && (
-          <div className="shrink-0">
-            <SearchField value={search} onChange={setSearch} className="w-full" />
-          </div>
-        )}
+        {/* Search, the selection actions and the four page-level actions all
+            share ONE row now (bug #35 continued, jdp 2026-08-24: "suchfeld
+            badge soll das erste badge von links sein und wenn man drauf
+            klickt nach links aufklappen, nicht die suchleiste in eine neue
+            zeile packen"; same round, a second item: "wenn ich ein
+            Linkpaket auswähle kommen oben buttons wie zb Auswahlaufheben ...
+            die sind nicht als badges erkennbar und die sollen in der
+            gleichen zeile wie die quadratischen badges erscheinen, nicht in
+            einer neuen Zeile"). The search badge is always first; the field
+            itself, when open, is this row's own flex-1 child rather than a
+            row of its own, so it grows into whatever space the trailing
+            badges are not using instead of pushing them onto a second line.
+            Selection replaces the fixed four badges with its own set rather
+            than adding a second row above them, on the same "one connected
+            row" logic. Reuses the exact same allChosen/cleanup/checkAll/
+            startAll logic ListActionBar used to run for this page, and the
+            exact same removeNow/askWithFiles/onMore wiring SelectionStrip
+            used to run - only the trigger's shape changed, not what it
+            does - and stays local to this file since Downloads.tsx keeps
+            ListActionBar's and SelectionStrip's own text-button look
+            unchanged. */}
+        <div className="flex shrink-0 items-center gap-2" role="group" aria-label={t('list.actions')}>
+          <IconBadge
+            icon={<IconSearch width={16} height={16} />}
+            className="glim-hue glim-hue-icon"
+            style={hueStyle(0)}
+            title={t('collector.searchToggle')}
+            aria-label={t('collector.searchToggle')}
+            onClick={() => setSearchOpen((v) => !v)}
+          />
 
-        {selected.size > 0 && (
-          <div className="shrink-0">
-            <SelectionStrip
-              all={collected}
-              selected={selected}
-              onSelected={setSelected}
-              removal={removal}
-              onMore={(at) => {
-                setTarget({ kind: 'selection' });
-                menu.openAt(at);
-              }}
-            >
+          {searchOpen && <SearchField value={search} onChange={setSearch} className="min-w-0 flex-1" />}
+
+          {selected.size > 0 ? (
+            <>
+              <span className="glim-num text-sm text-carbon-textSub">
+                {selected.size} {t('select.count')}
+              </span>
+              <IconBadge
+                icon={<IconClose width={16} height={16} />}
+                title={t('select.none')}
+                aria-label={t('select.none')}
+                onClick={clearSelection}
+              />
               <PackageActions
                 tasks={collected}
                 selected={selected}
                 base="/api"
                 onDone={() => toast(t('task.applied'), 'ok')}
               />
-              {/* Secondary, not primary: the page's one accent button is "Add to
-                  collector" in the hero, and a second would make neither read as the
-                  thing to do next. */}
-              <Button
-                kind="secondary"
-                className="px-2.5 text-xs"
-                icon={<IconPlay width={15} height={15} />}
+              {/* Secondary, not primary: the page's one accent button is
+                  "Add to collector" in the hero, and a second would make
+                  neither read as the thing to do next - unchanged from
+                  before, just a square badge instead of a labelled button
+                  now. */}
+              <IconBadge
+                icon={<IconPlay width={16} height={16} />}
+                title={t('collector.startSelected')}
+                aria-label={t('collector.startSelected')}
                 onClick={startSelected}
-              >
-                {t('collector.startSelected')}
-              </Button>
-            </SelectionStrip>
-          </div>
-        )}
-
-        {/* jdp, 2026-08-24: "Alle buttons sollen oberhalb des fensters
-            platziert sein: Alle auswählen, Aufräumen, alle prüfen, alle
-            starten -> alle in einer zeile ganz rechts als badges (inkl.
-            farbmodi), der Filter button kann weg" - CollectorFacetsToggle
-            (the former "Filter" entry point) is gone entirely now that the
-            facets card above is always shown, not toggled. Reuses the exact
-            same allChosen/cleanup/checkAll/startAll logic ListActionBar used
-            to run for this page - only the trigger's shape changed, not what
-            it does - and stays local to this file since Downloads.tsx keeps
-            ListActionBar's own text-button look unchanged. */}
-        <div className="flex shrink-0 items-center justify-end gap-2" role="group" aria-label={t('list.actions')}>
-          <IconBadge
-            icon={<IconCheck width={16} height={16} />}
-            className="glim-hue glim-hue-icon"
-            style={hueStyle(0)}
-            title={allChosen ? t('select.none') : t('select.all')}
-            aria-label={allChosen ? t('select.none') : t('select.all')}
-            disabled={filtered.length === 0}
-            onClick={() => setSelected(allChosen ? new Set() : new Set(filtered.map((x) => x.id)))}
-          />
-          <IconBadge
-            icon={<IconTrash width={16} height={16} />}
-            className="glim-hue glim-hue-icon"
-            style={hueStyle(1)}
-            title={t('cleanup.menu')}
-            aria-label={t('cleanup.menu')}
-            onClick={(e) => void openCleanup(e.currentTarget)}
-          />
-          <IconBadge
-            icon={<IconRetry width={16} height={16} />}
-            className="glim-hue glim-hue-icon"
-            style={hueStyle(2)}
-            title={t('collector.checkAll')}
-            aria-label={t('collector.checkAll')}
-            disabled={collected.length === 0}
-            onClick={() => {
-              // An empty id list means every staged link on this route —
-              // deliberately unlike the bulk routes, where empty is refused
-              // outright rather than read as "all".
-              recheckTasks([]);
-              toast(t('task.recheck'), 'info');
-            }}
-          />
-          <IconBadge
-            icon={<IconPlay width={16} height={16} />}
-            className="glim-hue glim-hue-icon"
-            style={hueStyle(3)}
-            title={t('collector.startAll')}
-            aria-label={t('collector.startAll')}
-            disabled={collected.length === 0}
-            onClick={startAll}
-          />
-          <IconBadge
-            icon={<IconSearch width={16} height={16} />}
-            className="glim-hue glim-hue-icon"
-            style={hueStyle(4)}
-            title={t('collector.searchToggle')}
-            aria-label={t('collector.searchToggle')}
-            onClick={() => setSearchOpen((v) => !v)}
-          />
+              />
+              <span className="flex-1" />
+              <IconBadge
+                icon={<IconMore width={16} height={16} />}
+                title={t('menu.more')}
+                aria-label={t('menu.more')}
+                onClick={(e) => {
+                  setTarget({ kind: 'selection' });
+                  menu.openAt(anchorBelow(e.currentTarget));
+                }}
+              />
+              <IconBadge
+                kind="danger"
+                icon={<IconTrash width={16} height={16} />}
+                title={t('task.remove')}
+                aria-label={t('task.remove')}
+                onClick={() => void removal.removeNow(selectedIds)}
+              />
+              {/* Only when there is something on disk to erase, and never
+                  with the same treatment as the badge above it. */}
+              {selectedOnDisk && (
+                <IconBadge
+                  kind="danger"
+                  icon={<IconTrashFiles width={16} height={16} />}
+                  title={t('task.removeWithFiles')}
+                  aria-label={t('task.removeWithFiles')}
+                  onClick={() => removal.askWithFiles(selectedIds)}
+                />
+              )}
+              <InfoBubble tip={t('remove.keys')} />
+            </>
+          ) : (
+            <>
+              {/* Nothing else claims the row's flex-1 space while closed, so
+                  this spacer is what keeps the four badges hugging the right
+                  edge exactly as before - it drops out the moment the search
+                  field (or the selection actions above) has its own claim on
+                  that space. */}
+              {!searchOpen && <span className="flex-1" />}
+              <IconBadge
+                icon={<IconCheck width={16} height={16} />}
+                className="glim-hue glim-hue-icon"
+                style={hueStyle(1)}
+                title={allChosen ? t('select.none') : t('select.all')}
+                aria-label={allChosen ? t('select.none') : t('select.all')}
+                disabled={filtered.length === 0}
+                onClick={() => setSelected(allChosen ? new Set() : new Set(filtered.map((x) => x.id)))}
+              />
+              <IconBadge
+                icon={<IconTrash width={16} height={16} />}
+                className="glim-hue glim-hue-icon"
+                style={hueStyle(2)}
+                title={t('cleanup.menu')}
+                aria-label={t('cleanup.menu')}
+                onClick={(e) => void openCleanup(e.currentTarget)}
+              />
+              <IconBadge
+                icon={<IconRetry width={16} height={16} />}
+                className="glim-hue glim-hue-icon"
+                style={hueStyle(3)}
+                title={t('collector.checkAll')}
+                aria-label={t('collector.checkAll')}
+                disabled={collected.length === 0}
+                onClick={() => {
+                  // An empty id list means every staged link on this route —
+                  // deliberately unlike the bulk routes, where empty is
+                  // refused outright rather than read as "all".
+                  recheckTasks([]);
+                  toast(t('task.recheck'), 'info');
+                }}
+              />
+              <IconBadge
+                icon={<IconPlay width={16} height={16} />}
+                className="glim-hue glim-hue-icon"
+                style={hueStyle(4)}
+                title={t('collector.startAll')}
+                aria-label={t('collector.startAll')}
+                disabled={collected.length === 0}
+                onClick={startAll}
+              />
+            </>
+          )}
         </div>
 
         {/* jdp, 2026-08-24: "Das hauptlinkfenster soll immer die ganze

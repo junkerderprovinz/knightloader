@@ -84,6 +84,34 @@ export const RAINBOW_OFF: RainbowState = {
 export function applyShape(shape: Shape | string | undefined): void {
   const s = SHAPES.includes(shape as Shape) ? (shape as Shape) : 'round';
   document.documentElement.setAttribute('data-shape', s);
+  armShapeTransition();
+}
+
+// Module-level so it only ever arms once per page load, no matter how many
+// times applyShape() itself gets called (the cached boot apply, the live
+// -settings apply once fetchSettings() resolves, every future edit from the
+// picker) — see armShapeTransition() below.
+let shapeTransitionArmed = false;
+
+/**
+ * Arms the shape-morph transition (index.css's .glim-shape-armed) two
+ * animation frames after the first call. GlimStone's own "Round 2"
+ * motion-engine note: scoped to AFTER mount deliberately, not just relying
+ * on a transition being a harmless no-op on a freshly painted element's own
+ * first frame (true, but not the point being guarded against — the
+ * mechanism's correctness shouldn't quietly depend on a timing coincidence a
+ * future change could break). The class stays off for the app's own very
+ * first paint, which needs no transition at all, only the correct end
+ * state, and turns every FUTURE shape change into one.
+ */
+function armShapeTransition(): void {
+  if (shapeTransitionArmed) return;
+  shapeTransitionArmed = true;
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      document.documentElement.classList.add('glim-shape-armed');
+    });
+  });
 }
 
 /**
@@ -130,6 +158,17 @@ export function subscribeRainbow(fn: () => void): () => void {
 }
 
 /**
+ * The resolved on/off/reactive mode as of the last applyRainbow() call, or
+ * undefined before the first one. Tracked purely so a genuine mode CHANGE
+ * (fires the colour-wipe below) can be told apart from the initial boot
+ * apply and from a no-op re-apply of the same resolved state — neither of
+ * those should wipe. GlimStone, "The motion engine" > "Round 2" >
+ * "Colour-wipe".
+ */
+let lastRainbowMode: 'off' | 'on' | 'reactive' | undefined;
+let wipeTimeout: ReturnType<typeof setTimeout> | undefined;
+
+/**
  * applyRainbow stores the new state, mirrors it onto the document root and
  * wakes the readers. The custom properties are set even when the mode is off so
  * that a stylesheet can reference `--rb-3` without having to know; the
@@ -145,10 +184,39 @@ export function applyRainbow(next: Partial<RainbowState> | undefined): void {
   for (let i = 0; i < RAINBOW.length; i++) {
     root.style.setProperty(`--rb-${i}`, rainbowAt(i));
   }
-  if (!merged.on) root.removeAttribute('data-rainbow');
-  else root.setAttribute('data-rainbow', merged.reactive ? 'reactive' : 'on');
+  const mode: 'off' | 'on' | 'reactive' = !merged.on ? 'off' : merged.reactive ? 'reactive' : 'on';
+  if (mode === 'off') root.removeAttribute('data-rainbow');
+  else root.setAttribute('data-rainbow', mode);
+
+  if (lastRainbowMode !== undefined && lastRainbowMode !== mode) {
+    triggerColourWipe();
+  }
+  lastRainbowMode = mode;
 
   for (const fn of listeners) fn();
+}
+
+/**
+ * Colour-wipe: a genuine on/off/reactive change wipes every hued element's
+ * colour over one fixed window instead of each snapping independently. A
+ * temporary .glim-wipe class on the root arms a `transition` on the colour
+ * properties (index.css) for the --motion-wipe-dur token's own duration,
+ * then comes back off. Reads the duration from the live DOM rather than
+ * duplicating it as a number here, so it tracks whatever data-motion has
+ * already resolved it to (0 at "off", shorter at "subtle") without this
+ * module needing to know the axis' own numbers. GlimStone, "The motion
+ * engine" > "Round 2" > "Colour-wipe".
+ */
+function triggerColourWipe(): void {
+  const root = document.documentElement;
+  root.classList.add('glim-wipe');
+  if (wipeTimeout !== undefined) clearTimeout(wipeTimeout);
+  const raw = getComputedStyle(root).getPropertyValue('--motion-wipe-dur').trim();
+  const ms = parseFloat(raw);
+  wipeTimeout = setTimeout(() => {
+    root.classList.remove('glim-wipe');
+    wipeTimeout = undefined;
+  }, Number.isFinite(ms) ? ms : 0);
 }
 
 /**
@@ -315,5 +383,82 @@ export function applyCachedAppearance(): void {
   } catch {
     applyShape('round');
     applyRainbow(undefined);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Motion intensity
+//
+// The third user-owned axis alongside Shape and Accent/Rainbow above —
+// GlimStone's docs/design-language.md, "The user-owned axes" > "Motion
+// intensity" and "The motion engine" > "Round 2". data-motion on <html>
+// resolves the duration/distance/amplitude tokens index.css's keyframes
+// read; this module only ever sets the attribute and mirrors it to
+// localStorage — the same "single mechanism, nothing downstream has to know
+// which setting produced the value" shape Shape and Accent above already
+// use.
+//
+// Unlike Shape/Accent/Rainbow, this axis is NOT part of the server's
+// settings — it has nothing to round-trip (GlimStone's own "Persistence"
+// note under Motion intensity: "the same 'single-operator tool, no second
+// viewer who needs to agree on the current setting' reasoning Shape and
+// Accent already give... for staying client-side"). It gets its own
+// localStorage key rather than folding into CACHE's combined shape/accent
+// /rainbow blob above, for exactly that reason: it is never written by a
+// settings PATCH and never arrives in fetchSettings()'s response, so it has
+// no reason to travel through the same cache entry as three fields that do.
+//
+// Wiring: applyMotionIntensity/cacheMotionIntensity/readCachedMotionIntensity
+// are consumed by a settings-page row this module does not own (Look.tsx)
+// and by app/Layout.tsx's own boot-time apply, so the axis is live from
+// first paint everywhere, not only once that settings row mounts.
+// ---------------------------------------------------------------------------
+
+export type MotionIntensity = 'off' | 'subtle' | 'full';
+
+const MOTION_INTENSITIES: MotionIntensity[] = ['off', 'subtle', 'full'];
+
+/**
+ * The richest experience, not a compatibility fallback: this axis is
+ * additive polish a user dials DOWN, never one they have to opt into (unlike
+ * Theme's "system" default above, which exists because nothing else already
+ * reads prefers-color-scheme unconditionally — prefers-reduced-motion, by
+ * contrast, already gates every entrance in index.css regardless of this
+ * setting, so a "system" option here would just re-derive a signal the app
+ * honours everywhere already).
+ */
+export const DEFAULT_MOTION: MotionIntensity = 'full';
+
+/** applyMotionIntensity sets the attribute the motion tokens key off. */
+export function applyMotionIntensity(m: MotionIntensity): void {
+  document.documentElement.dataset.motion = m;
+}
+
+const MOTION_CACHE = 'kl-motion';
+
+/**
+ * Mirrors the chosen intensity into localStorage so the next load can apply
+ * it before first paint — the same reason cacheAppearance above exists.
+ */
+export function cacheMotionIntensity(m: MotionIntensity): void {
+  try {
+    localStorage.setItem(MOTION_CACHE, m);
+  } catch {
+    // A browser with storage disabled simply pays one flash per load.
+  }
+}
+
+/**
+ * Applied at boot (see app/Layout.tsx). Falls back to DEFAULT_MOTION on
+ * anything unexpected — no localStorage, a value this build doesn't
+ * recognise, or storage access throwing outright — the same defensive shape
+ * applyCachedAppearance above already uses for shape/accent/rainbow.
+ */
+export function readCachedMotionIntensity(): MotionIntensity {
+  try {
+    const raw = localStorage.getItem(MOTION_CACHE);
+    return MOTION_INTENSITIES.includes(raw as MotionIntensity) ? (raw as MotionIntensity) : DEFAULT_MOTION;
+  } catch {
+    return DEFAULT_MOTION;
   }
 }

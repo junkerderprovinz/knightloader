@@ -91,6 +91,35 @@ func (a *App) setAvailability(id string, avail core.Availability, msg string, re
 	a.Hub.Broadcast("task", &c)
 }
 
+// setTaskName records a name a probe found for a task that is still showing
+// its own URL as a placeholder - see stage's own comment (app_links.go) on
+// why every resolver that does not yet know a link's real name answers with
+// the URL itself rather than leaving Name blank, and filename() (also
+// app_links.go) which reads that exact convention back out.
+//
+// Same locked-read-modify-broadcast shape as setAvailability just above, and
+// it guards against the same class of late answer: the task can be gone, or
+// can already show a real name, by the time a backgrounded probe returns.
+// The guard is Name == URL rather than a status check, because a task can
+// leave StatusCollected (Start, then a real download begins) before a slow
+// probe answers - at which point the backend's own progress stream
+// (ytdlp/backend.go's "[download] Destination:" line, mirrored through
+// onUpdate) has very likely already supplied the real name, and a probe
+// fired before the download even started must not overwrite that.
+func (a *App) setTaskName(id, name string) {
+	a.mu.Lock()
+	t := a.tasks[id]
+	if t == nil || t.Name != t.URL {
+		a.mu.Unlock()
+		return
+	}
+	t.Name = name
+	c := *t
+	a.mu.Unlock()
+	_ = a.Store.Save(&c)
+	a.Hub.Broadcast("task", &c)
+}
+
 // checkTimeout bounds one round of service checks. Generous compared with the
 // staging HEAD, because a debrid provider asked about a hundred links is doing a
 // hundred lookups of its own, and cutting that off mid-answer files links as
@@ -294,6 +323,34 @@ func (a *App) analyze(id, rawurl string) {
 	a.setAvailability(id, core.AvailOnline, "", core.ReasonUnknown)
 	if resp.ContentLength > 0 {
 		a.onUpdate(id, core.Update{Size: resp.ContentLength})
+	}
+}
+
+// probeYtdlpTitle asks the yt-dlp backend for a collected task's real title
+// without downloading anything, and applies it - the yt-dlp counterpart to
+// analyze's HEAD probe just above for a plain file link, fired from the same
+// stage() call site (app_links.go) and gated on the resolver id the same
+// way analyze's own call is.
+//
+// Silent and non-fatal on failure or timeout, exactly like analyze's own
+// probe leaves availability unset rather than guessing: yt-dlp's own
+// progress stream still supplies the real name once a download actually
+// starts (backend.go's "[download] Destination:" line, mirrored through
+// onUpdate), so a probe that never answers costs the user nothing beyond the
+// placeholder standing a little longer in the collector.
+func (a *App) probeYtdlpTitle(id, rawurl string) {
+	tp, ok := a.ytdlpTitleProber()
+	if !ok {
+		return
+	}
+	ctx, cancel := context.WithTimeout(a.ctx, ytdlpProbeTimeout)
+	defer cancel()
+	title, err := tp.ProbeTitle(ctx, rawurl)
+	if err != nil {
+		return
+	}
+	if title = strings.TrimSpace(title); title != "" {
+		a.setTaskName(id, title)
 	}
 }
 

@@ -152,11 +152,13 @@ function StateChip({ m }: { m: Feature }) {
         ? tx('settings.modules.notBuilt')
         : tx(m.enabled ? 'settings.modules.on' : 'settings.modules.off');
   return (
-    <span
-      className="shrink-0 rounded-[var(--radius-pill)] bg-carbon-surface2 px-2 py-1 text-[11px] font-medium text-carbon-textSub"
-      title={m.verdict === 'shipped' ? tx('settings.modules.noSwitch') : undefined}
-    >
-      {text}
+    <span className="flex shrink-0 items-center">
+      <span className="rounded-[var(--radius-pill)] bg-carbon-surface2 px-2 py-1 text-[11px] font-medium text-carbon-textSub">
+        {text}
+      </span>
+      {/* Same "reason lives behind the (i)" pattern as Row's own label above -
+          identical job (explain why this row has no switch), a few lines away. */}
+      {m.verdict === 'shipped' && <InfoBubble tip={tx('settings.modules.noSwitch')} />}
     </span>
   );
 }
