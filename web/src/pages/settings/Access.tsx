@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, Field, InfoBubble, Modal, SectionTitle, TextInput } from '../../components/ui';
+import { Button, Card, Field, IconBadge, InfoBubble, Modal, SectionTitle, TextInput } from '../../components/ui';
 import { QRCode } from '../../components/QRCode';
 import {
   type ApiToken,
@@ -18,7 +18,7 @@ import {
 import { fmtDate } from '../../lib/format';
 import { useInstallPrompt } from '../../lib/pwaInstall';
 import { useT, type TranslationKey } from '../../lib/i18n';
-import { IconKey, IconPlus, IconTrash, IconWarning } from '../../lib/icons';
+import { IconCheck, IconClipboard, IconKey, IconPlus, IconTrash, IconWarning } from '../../lib/icons';
 import { useToast } from '../../lib/toast';
 import { useFeatures } from './context';
 import { NeutralSwitch } from './controls';
@@ -140,7 +140,7 @@ export function Access() {
 
       {listeners.length > 0 && (
           <Card className="flex flex-col gap-4">
-            <SectionTitle hue={4} hint={cx('settings.access.intakePortsHint')}>
+            <SectionTitle hue={5} hint={cx('settings.access.intakePortsHint')}>
               {tx('settings.sectionIntakePorts')}
             </SectionTitle>
             {listeners.map((m) => {
@@ -364,17 +364,27 @@ function PairingCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, string 
 
   return (
     <Card className="flex flex-col gap-3 sm:flex-row">
-      <SectionTitle hue={3} hint={cx('settings.access.remote.pairBody')}>
+      <SectionTitle
+        hue={3}
+        hint={cx('settings.access.remote.pairBody')}
+        right={
+          !code ? (
+            <Button
+              kind="secondary"
+              hue={3}
+              className="px-2.5 text-xs"
+              icon={<IconPlus width={14} height={14} />}
+              onClick={() => void onGenerate()}
+              disabled={busy}
+            >
+              {cx('settings.access.remote.pairGenerate')}
+            </Button>
+          ) : undefined
+        }
+      >
         {cx('settings.access.remote.pairTitle')}
       </SectionTitle>
       <div className="flex min-w-0 flex-1 flex-col gap-3">
-        {!code && (
-          <div>
-            <Button kind="secondary" onClick={() => void onGenerate()} disabled={busy}>
-              {cx('settings.access.remote.pairGenerate')}
-            </Button>
-          </div>
-        )}
         {code && (
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
@@ -382,17 +392,16 @@ function PairingCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, string 
                 {code.code}
               </code>
               {'clipboard' in navigator && (
-                <Button
-                  kind="ghost"
-                  className="shrink-0 px-2.5 text-xs"
+                <IconBadge
+                  icon={copied ? <IconCheck width={14} height={14} /> : <IconClipboard width={14} height={14} />}
+                  title={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
+                  aria-label={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
                   onClick={async () => {
                     await navigator.clipboard.writeText(code.code);
                     setCopied(true);
                     setTimeout(() => setCopied(false), 1800);
                   }}
-                >
-                  {copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
-                </Button>
+                />
               )}
             </div>
             {/* jdp, 2026-08-24: "wo muss man den pairing code eingeben?" -
@@ -474,11 +483,12 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
     <>
       <Card className="flex flex-col gap-3">
         <SectionTitle
-          hue={3}
+          hue={4}
           hint={cx('settings.access.tokens.intro')}
           right={
             <Button
               kind="secondary"
+              hue={4}
               className="px-2.5 text-xs"
               icon={<IconPlus width={14} height={14} />}
               onClick={() => setShowCreate(true)}
@@ -571,17 +581,16 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
                 {created.secret}
               </code>
               {'clipboard' in navigator && (
-                <Button
-                  kind="ghost"
-                  className="shrink-0 px-2.5 text-xs"
+                <IconBadge
+                  icon={copied ? <IconCheck width={14} height={14} /> : <IconClipboard width={14} height={14} />}
+                  title={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
+                  aria-label={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
                   onClick={async () => {
                     await navigator.clipboard.writeText(created.secret);
                     setCopied(true);
                     setTimeout(() => setCopied(false), 1800);
                   }}
-                >
-                  {copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
-                </Button>
+                />
               )}
             </div>
             <p className="text-[11px] text-carbon-textMuted" dir="ltr">

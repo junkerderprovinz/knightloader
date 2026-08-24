@@ -107,7 +107,7 @@ export function Shortcuts() {
 
       {groups.map(([group, cmds], i) => (
         <div key={group} className="flex flex-col gap-3">
-          <Card className="flex flex-col divide-y divide-carbon-border/60 p-0">
+          <Card padding="none" className="flex flex-col divide-y divide-carbon-border/60">
             <div className="p-5 pb-0">
               <SectionTitle hue={i + 1}>{groupLabel(t, group)}</SectionTitle>
             </div>

@@ -355,12 +355,16 @@ function ConnectionRow({
         <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           <IconBadge
             icon={<IconArrowUp width={14} height={14} />}
+            hue={index}
+            title={cx('settings.connections.moveUp')}
             aria-label={cx('settings.connections.moveUp')}
             disabled={index === 0}
             onClick={() => onMove(-1)}
           />
           <IconBadge
             icon={<IconArrowDown width={14} height={14} />}
+            hue={index}
+            title={cx('settings.connections.moveDown')}
             aria-label={cx('settings.connections.moveDown')}
             disabled={last}
             onClick={() => onMove(1)}
@@ -368,6 +372,8 @@ function ConnectionRow({
           <IconBadge
             kind="danger"
             icon={<IconTrash width={14} height={14} />}
+            hue={index}
+            title={cx('settings.connections.remove')}
             aria-label={cx('settings.connections.remove')}
             onClick={onRemove}
           />

@@ -139,7 +139,7 @@ export function Diagnostics() {
         {error && <span className="text-sm text-statusFail">{error}</span>}
       </Card>
 
-      <Card className="p-0">
+      <Card padding="none">
         <div className="p-5 pb-0">
           <SectionTitle
             hue={1}

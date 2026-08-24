@@ -144,6 +144,22 @@ type App struct {
 	// a shutdown is already under way and this one changes nothing.
 	RequestExit func(restart bool) bool
 
+	// RequestUpdateInstall, when set (desktop only, wired in
+	// desktop/main.go), downloads and applies a newer release, spawns it as
+	// a new process, then exits this one through the same graceful path the
+	// tray's own Quit menu item uses. Nil on the container build, where
+	// self-replacing the running binary makes no sense (see
+	// internal/update's own package doc on why the container side of
+	// "update available" only ever points at how the deployment itself
+	// updates - docker pull, Unraid CA, ...), and nil in every test, read
+	// the same "not supported here" way the API layer already reads
+	// RequestExit==nil. The actual download/verify/swap mechanics live in
+	// internal/update (deployment-agnostic, independently testable); this
+	// field is only how the API layer reaches whatever embeds this App to
+	// carry that out and then relaunch, the same "App owns no process
+	// lifecycle of its own" reasoning as RequestExit just above.
+	RequestUpdateInstall func(ctx context.Context) error
+
 	// CnLPort and CnLToggle are set by cmd/knightloader/main.go, the only
 	// embedding that starts a Click'n'Load listener today (see main.go's own
 	// comment on why desktop does not). Same shape and reasoning as

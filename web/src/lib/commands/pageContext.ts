@@ -32,6 +32,19 @@ export interface CommandPageContext {
    *  keyboard shortcut can reach it too (jdp, 2026-08-24: "im sammler fehlt
    *  mir der tastenkürzel um eine datei zu öffnen"). */
   openFilePicker?: () => void;
+  /**
+   * Toggles the page's own search/filter panel - Downloads.tsx's own
+   * `setSearchOpen((v) => !v)`, the exact call its search badge already
+   * makes. Published so a keyboard shortcut can reach it too, matching real
+   * JDownloader 2's own mod+F ("Find") on its downloads/linkgrabber tables
+   * (source: org/jdownloader/gui/views/downloads/bottombar/SearchMenuItem.java
+   * and .../linkgrabber/LinkgrabberSearchMenuItem.java, both
+   * `KeyStroke.getKeyStroke(KeyEvent.VK_F, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask())`).
+   * Collector.tsx has no matching panel to toggle (its own IconSearch badge
+   * is actually "check all", not a search reveal - see commands/collector.ts's
+   * own doc comment), so this stays a Downloads-only field for now.
+   */
+  toggleSearch?: () => void;
 }
 
 let current: CommandPageContext | null = null;

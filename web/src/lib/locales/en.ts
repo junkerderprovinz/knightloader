@@ -524,6 +524,13 @@ export const en = {
   'settings.look.updatesCurrent': '{version} is the latest version.',
   'settings.look.updatesAvailable': '{version} is available',
   'settings.look.updatesAvailableContainer': '{version} is available — update your container image the way you deployed it (docker pull, Unraid Community Applications, ...)',
+  'settings.look.updatesAutoInstall': 'Install automatically when found',
+  'settings.look.updatesAutoInstallHint': 'Downloads, verifies and applies a newer release the moment an automatic check finds one, then restarts. Requires "Check automatically on startup" above.',
+  'settings.look.updatesAutoInstalling': 'Installing {version}…',
+  'settings.look.updatesInstalling': 'Installing…',
+  'settings.look.updatesInstallNow': 'Install now',
+  'settings.look.updatesInstalled': 'Installed — restarting…',
+  'settings.look.updatesInstallFailed': 'Could not install the update: {error}',
   'settings.look.updatesContainerHint': 'Checking only compares versions and tells you when a newer release exists; it never replaces the running container. Update it the way you deployed it — docker pull, Unraid Community Applications, Watchtower, or whatever manages this container.',
   'settings.advanced.modified': 'changed',
   'settings.advanced.noMatch': 'No key matches.',
@@ -1549,7 +1556,7 @@ export const en = {
   'settings.access.remote.pairGenerate': 'Generate pairing code',
   'settings.access.remote.pairExpires': 'Valid for {min} minutes, then it expires unused.',
   'settings.access.remote.vsPairing': 'This is for opening this instance\'s own interface on another device by hand (a phone, another browser). Pairing another KnightLoader you run yourself, so the two show up on each other\'s Instances page, is the separate card below.',
-  'settings.access.remote.pairWhere': 'Not here - on the other instance, under Settings → Instances.',
+  'settings.access.remote.pairWhere': 'Not here — on the other instance\'s own Instances page.',
   'settings.access.remote.pairScan': 'Or scan this with the other instance, once a KnightLoader app can.',
   'settings.access.intakePortsHint': 'Other ways this instance can be reached directly, outside the normal login - each with its own reachability shown here.',
 
@@ -1594,11 +1601,12 @@ export const en = {
   'quickadd.openCollector': 'Open Collector',
   'quickadd.close': 'Close window',
 
-  // Quit/restart/backup/restore (pages/settings/System.tsx) - build-plan.md's
-  // Wave 10 (10D) shipped the whole backend with no page pointing at it at
-  // all; found by that wave's own adversarial review. settings.nav.system is
-  // this page's rail label.
-  'settings.nav.system': 'System',
+  // Quit/restart/backup/restore - build-plan.md's Wave 10 (10D) shipped the
+  // whole backend with no page pointing at it at all; found by that wave's
+  // own adversarial review. Merged into the General tab's own SystemCards
+  // (pages/settings/Look.tsx) 2026-08-24 rather than kept on a dedicated
+  // "System" tab of its own.
+  'settings.system.overviewTitle': 'Overview',
   'settings.system.subtitle': 'Quit, restart, and back up or restore this instance’s data.',
   'settings.system.deployment.container': 'Container',
   'settings.system.deployment.desktop': 'Desktop',
@@ -1612,6 +1620,8 @@ export const en = {
   'settings.system.confirmProceed': 'Confirm',
   'settings.system.unavailable': 'This build has no way to do this from the browser.',
   'settings.system.acting': 'Working…',
+  'settings.system.shuttingDownTitle': 'Shutting down',
+
   'settings.system.shuttingDown':
     'Shutting down. If this instance comes back on its own, the page will reconnect once it does; otherwise close this tab.',
   'settings.system.actionFailed': 'Could not do this: {error}',

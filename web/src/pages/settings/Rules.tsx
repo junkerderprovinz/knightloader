@@ -463,24 +463,32 @@ function RuleRow({
         <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           <IconBadge
             icon={<IconArrowUp width={14} height={14} />}
+            hue={index}
+            title={rx('settings.rules.moveUp')}
             aria-label={rx('settings.rules.moveUp')}
             disabled={index === 0}
             onClick={() => onMove(-1)}
           />
           <IconBadge
             icon={<IconArrowDown width={14} height={14} />}
+            hue={index}
+            title={rx('settings.rules.moveDown')}
             aria-label={rx('settings.rules.moveDown')}
             disabled={last}
             onClick={() => onMove(1)}
           />
           <IconBadge
             icon={<IconDuplicate width={14} height={14} />}
+            hue={index}
+            title={rx('settings.rules.duplicate')}
             aria-label={rx('settings.rules.duplicate')}
             onClick={onDuplicate}
           />
           <IconBadge
             kind="danger"
             icon={<IconTrash width={14} height={14} />}
+            hue={index}
+            title={rx('settings.rules.remove')}
             aria-label={rx('settings.rules.remove')}
             onClick={onRemove}
           />

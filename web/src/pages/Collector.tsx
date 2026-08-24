@@ -314,36 +314,47 @@ export function Collector() {
         </div>
       )}
 
-      <div className="shrink-0">
-        <SelectionStrip
-          all={collected}
-          selected={selected}
-          onSelected={setSelected}
-          removal={removal}
-          onMore={(at) => {
-            setTarget({ kind: 'selection' });
-            menu.openAt(at);
-          }}
-        >
-          <PackageActions
-            tasks={collected}
+      {/* Only rendered while something is actually selected - SelectionStrip
+          itself already returns null then, but this wrapper div is a direct
+          child of the page's own gap-6 flex column, so leaving it mounted
+          empty still cost one full gap unit of dead space between the
+          search bar and the badges row below (jdp, 2026-08-24: "das
+          Linkhauptfenster ist zu weit unten, das soll unter der Suchleiste
+          direkt anfangen") - same conditional-wrapper pattern the search
+          bar's own ListToolbar block above already uses for the same
+          reason. */}
+      {selected.size > 0 && (
+        <div className="shrink-0">
+          <SelectionStrip
+            all={collected}
             selected={selected}
-            base="/api"
-            onDone={() => toast(t('task.applied'), 'ok')}
-          />
-          {/* Secondary, not primary: the page's one accent button is "Add to
-              collector" in the hero, and a second would make neither read as the
-              thing to do next. */}
-          <Button
-            kind="secondary"
-            className="px-2.5 text-xs"
-            icon={<IconPlay width={15} height={15} />}
-            onClick={startSelected}
+            onSelected={setSelected}
+            removal={removal}
+            onMore={(at) => {
+              setTarget({ kind: 'selection' });
+              menu.openAt(at);
+            }}
           >
-            {t('collector.startSelected')}
-          </Button>
-        </SelectionStrip>
-      </div>
+            <PackageActions
+              tasks={collected}
+              selected={selected}
+              base="/api"
+              onDone={() => toast(t('task.applied'), 'ok')}
+            />
+            {/* Secondary, not primary: the page's one accent button is "Add to
+                collector" in the hero, and a second would make neither read as the
+                thing to do next. */}
+            <Button
+              kind="secondary"
+              className="px-2.5 text-xs"
+              icon={<IconPlay width={15} height={15} />}
+              onClick={startSelected}
+            >
+              {t('collector.startSelected')}
+            </Button>
+          </SelectionStrip>
+        </div>
+      )}
 
       {/* jdp, 2026-08-24: "Alle buttons sollen oberhalb des fensters
           platziert sein: Alle auswählen, Aufräumen, alle prüfen, alle

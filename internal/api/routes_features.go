@@ -465,26 +465,29 @@ func featurePages() []FeaturePage {
 		{ID: "torrents", Modules: []string{"torrents"}},
 		{ID: "captcha", Modules: []string{"captcha"}},
 		{ID: "schedule", Modules: []string{"scheduler"}},
-		// Same reasoning as look/diagnostics/system below: rebinding a
-		// keyboard shortcut has nothing to switch on or off, so there is no
-		// Feature{} row filed under this id either - just a real,
-		// bookmarkable address in the rail (Wave 12).
+		// Same reasoning as look/diagnostics below: rebinding a keyboard
+		// shortcut has nothing to switch on or off, so there is no Feature{}
+		// row filed under this id either - just a real, bookmarkable
+		// address in the rail (Wave 12).
 		{ID: "shortcuts"},
 		{ID: "access", Modules: []string{"cnl"}},
 		{ID: "scripts", Modules: []string{"scripting"}},
 		{ID: "advanced"},
-		// diagnostics, system and help carry no module row of their own,
-		// same as look above: the log ring and the diagnostics bundle are
+		// diagnostics and help carry no module row of their own, same as
+		// look above: the log ring and the diagnostics bundle are
 		// always-on infrastructure rather than a subsystem with an on/off
-		// switch, backup/restore/quit/restart are the same regardless of
-		// which resolvers or modules happen to be enabled, and help is
-		// static content. They are filed here only so each gets a real,
-		// bookmarkable address in the rail the way every other sub-page
-		// does.
+		// switch, and help is static content. They are filed here only so
+		// each gets a real, bookmarkable address in the rail the way every
+		// other sub-page does. Quit/restart/backup/restore (Wave 10/10D)
+		// used to be a fourth id here ("system") for the same reason, but
+		// merged into "look" (jdp, 2026-08-24: "Alles was im Systemtab ist
+		// in den Allgemein-Tab mergen") since none of the four needed a
+		// dedicated tab any more than Updates already didn't - not
+		// aliased, since nothing outside this repo could have bookmarked
+		// an address that never shipped past a preview deploy.
 		{ID: "diagnostics"},
-		{ID: "system"},
 		{ID: "help"},
-		// Same reasoning as look/diagnostics/system above: the bookmarklet,
+		// Same reasoning as look/diagnostics above: the bookmarklet,
 		// the extension zip and the PWA install step are tools, not a
 		// subsystem with live state to report, so there is no Feature{} row
 		// filed under this id — just a real, bookmarkable address in the rail.

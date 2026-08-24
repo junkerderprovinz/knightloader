@@ -70,7 +70,7 @@ export function Instances() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <InstanceCard name={t('instances.thisInstance')} url={location.host} base="/api" />
-        {peers.map((p) => (
+        {peers.map((p, i) => (
           <InstanceCard
             key={p.name}
             name={p.name}
@@ -78,6 +78,7 @@ export function Instances() {
             base={`/api/instances/${encodeURIComponent(p.name)}`}
             onOpen={() => navigate(`/downloads?instance=${encodeURIComponent(p.name)}`)}
             onRemove={() => onRemove(p.name)}
+            hue={i}
           />
         ))}
       </div>

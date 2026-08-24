@@ -17,7 +17,6 @@ import {
   IconLock,
   IconLook,
   IconModules,
-  IconPower,
   IconRetry,
   IconSliders,
 } from '../../lib/icons';
@@ -40,7 +39,6 @@ import { Rules } from './Rules';
 import { Schedule } from './Schedule';
 import { Scripts } from './Scripts';
 import { Shortcuts } from './Shortcuts';
-import { System } from './System';
 import { Torrents } from './Torrents';
 
 /**
@@ -88,10 +86,6 @@ const PAGES: Record<string, () => ReactNode> = {
   // doc comment for why it stayed absent from this map for a while.
   accounts: () => <AccountsTab />,
   diagnostics: () => <Diagnostics />,
-  // Quit/restart/backup/restore - build-plan.md's Wave 10 (10D) shipped the
-  // whole backend with no page pointing at it at all; see System.tsx's own
-  // doc comment.
-  system: () => <System />,
   help: () => <Help />,
   // The bookmarklet, the extension download and the PWA install step
   // (build-plan.md's 11D) — see BrowserTools.tsx's own doc comment.
@@ -143,7 +137,6 @@ const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   help: IconHelp,
   scripts: IconCode,
   shortcuts: IconKeyboard,
-  system: IconPower,
   browsertools: IconBrowser,
 };
 

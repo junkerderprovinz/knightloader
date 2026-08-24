@@ -49,6 +49,22 @@
       }
       .iconBadge:hover { background: #525252; color: #f4f4f4; }
       .iconBadge:active { transform: scale(0.97); }
+      /* jdp, 2026-08-24: "da steht es doppelt" - not actually a second
+         KnightLoader heading (there is only ever one <h1>), but #target
+         below shows the ACTIVE TAB's own title with no label of its own -
+         when that tab happens to be KnightLoader's own web app, its title
+         IS "KnightLoader" too, and two bare, identically-styled lines read
+         as a mistake even though they answer different questions ("this is
+         the extension" vs "this is the page you're about to send"). This
+         eyebrow makes that second line self-explanatory regardless of what
+         page it names. */
+      #targetLabel {
+        margin: 0 0 2px;
+        font-size: 10px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #8d8d8d;
+      }
       p {
         margin: 0 0 12px;
         color: #c6c6c6;
@@ -92,6 +108,7 @@
         </svg>
       </button>
     </div>
+    <p id="targetLabel">Sending</p>
     <p id="target">Loading the current page…</p>
     <div id="instanceRow" hidden>
       <label for="instance" id="instanceLabel">Send to</label>

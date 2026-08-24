@@ -578,12 +578,16 @@ function RequestRow({
         <div className="flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           <IconBadge
             icon={<IconArrowUp width={14} height={14} />}
+            hue={index}
+            title={t('settings.reconnect.requestUp')}
             aria-label={t('settings.reconnect.requestUp')}
             disabled={index === 0}
             onClick={() => onMove(-1)}
           />
           <IconBadge
             icon={<IconArrowDown width={14} height={14} />}
+            hue={index}
+            title={t('settings.reconnect.requestDown')}
             aria-label={t('settings.reconnect.requestDown')}
             disabled={last}
             onClick={() => onMove(1)}
@@ -591,6 +595,8 @@ function RequestRow({
           <IconBadge
             kind="danger"
             icon={<IconTrash width={14} height={14} />}
+            hue={index}
+            title={t('settings.reconnect.requestRemove')}
             aria-label={t('settings.reconnect.requestRemove')}
             onClick={onRemove}
           />

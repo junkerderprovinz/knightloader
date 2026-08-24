@@ -132,7 +132,12 @@ export function Downloads() {
   // lib/commands/downloads.ts's selectAll/removeSelected/clearFinished call
   // the identical functions the toolbar's own buttons call, never a second
   // copy of what those verbs mean here.
-  usePublishCommandPageContext(useMemo(() => ({ setSelection: setSelected, removal, cleanup }), [removal, cleanup]));
+  usePublishCommandPageContext(
+    useMemo(
+      () => ({ setSelection: setSelected, removal, cleanup, toggleSearch: () => setSearchOpen((v) => !v) }),
+      [removal, cleanup],
+    ),
+  );
   const chosen = useMemo(() => all.filter((x) => selected.has(x.id)), [all, selected]);
   const archiveGroups = useArchiveMenu({ chosen, base, jobs });
   // Reveal-in-folder and open-natively only ever mean this instance's own
@@ -333,25 +338,36 @@ export function Downloads() {
       >
         <PackageActions tasks={list} selected={selected} base={base} />
         {/* Queue order only means something while something is waiting, so these
-            sit with the selection rather than on the page all the time. */}
+            sit with the selection rather than on the page all the time. Four
+            fixed, parallel actions in one toolbar - a set in its own right,
+            same as the row-action badges elsewhere - so each gets its own
+            position. */}
         <IconBadge
           icon={<IconArrowUp width={16} height={16} />}
+          hue={0}
           title={t('task.priorityUp')}
+          aria-label={t('task.priorityUp')}
           onClick={() => setPriority(ids(), 1, base)}
         />
         <IconBadge
           icon={<IconArrowDown width={16} height={16} />}
+          hue={1}
           title={t('task.priorityDown')}
+          aria-label={t('task.priorityDown')}
           onClick={() => setPriority(ids(), -1, base)}
         />
         <IconBadge
           icon={<IconTop width={16} height={16} />}
+          hue={2}
           title={t('task.moveTop')}
+          aria-label={t('task.moveTop')}
           onClick={() => moveTasks(ids(), 'top', base)}
         />
         <IconBadge
           icon={<IconBottom width={16} height={16} />}
+          hue={3}
           title={t('task.moveBottom')}
+          aria-label={t('task.moveBottom')}
           onClick={() => moveTasks(ids(), 'bottom', base)}
         />
         <Button kind="secondary" className="px-2.5 text-xs" onClick={() => restartTasks(ids(), base)}>

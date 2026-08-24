@@ -12,7 +12,7 @@ import { IdleActionBanner } from '../components/IdleActionBanner';
 import { OnboardingWizard } from '../components/OnboardingWizard';
 import { StatusStrip } from '../components/StatusStrip';
 import { InfoBubble } from '../components/ui';
-import { connectWS, fetchDeploymentInfo, fetchSettings, fetchUpdateCheck, type Task } from '../lib/api';
+import { connectWS, fetchDeploymentInfo, fetchSettings, fetchUpdateCheck, installUpdate, type Task } from '../lib/api';
 import { applyAccent, applyRainbow, applyShape, cacheAppearance, rainbowFromSettings } from '../lib/appearance';
 import { InstanceProvider, useInstanceScope } from '../lib/instance';
 import { useToast } from '../lib/toast';
@@ -156,6 +156,17 @@ function ShellBar({ visible }: { visible: boolean }) {
 // opens Settings at all. Silent when off, on the container build, or when
 // already current - a toast on every launch for "you're up to date" would
 // train people to dismiss it without reading.
+//
+// autoUpdateInstall (jdp, 2026-08-24: "kannst du bei updates auch ein
+// toggle machen für updates automatisch installieren?") rides the exact
+// same check result: meaningless without autoUpdateCheck also being on (see
+// its own doc comment on the settings field), so there is nothing to
+// install here unless the block above already found something available.
+// Installing calls POST /api/system/update-install directly rather than
+// going through Look.tsx's own UpdateCard state - this hook fires whether
+// or not that page is even mounted, the identical reasoning that already
+// justifies toasting from here instead of only checking when the tab is
+// open.
 function useAutoUpdateToast() {
   const { toast } = useToast();
   const { t } = useT();
@@ -165,8 +176,16 @@ function useAutoUpdateToast() {
       const [deployment, settings] = await Promise.all([fetchDeploymentInfo(), fetchSettings()]);
       if (!live || deployment.deployment !== 'desktop' || !settings.autoUpdateCheck) return;
       const check = await fetchUpdateCheck().catch(() => null);
-      if (live && check?.checked && check.available && check.latest) {
+      if (!live || !check?.checked || !check.available || !check.latest) return;
+      if (!settings.autoUpdateInstall) {
         toast(t('settings.look.updatesAvailable', { version: check.latest }), 'info');
+        return;
+      }
+      toast(t('settings.look.updatesAutoInstalling', { version: check.latest }), 'info');
+      try {
+        await installUpdate();
+      } catch {
+        if (live) toast(t('settings.look.updatesInstallFailed', { error: t('settings.look.updatesFailed') }), 'fail');
       }
     })();
     return () => {
