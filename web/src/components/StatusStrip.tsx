@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactElement } from 'react';
 import { connectWS } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { IconCaptcha, IconCheck, IconGlobe, IconSearch } from '../lib/icons';
+import { InfoBubble } from './ui';
 
 type Translate = ReturnType<typeof useT>['t'];
 
@@ -133,16 +134,16 @@ export function StatusStrip() {
     <div className="fixed top-20 right-5 z-30">
       <div role="status" aria-live="polite" className="glim-card glim-fade flex min-w-[190px] flex-col gap-2 px-3.5 py-3">
         {rows.map((s) => (
-          <div
-            key={s.kind}
-            className="flex items-center gap-2 text-[11px]"
-            title={`${t(LABEL_KEY[s.kind])}: ${t('activity.tooltipHint', { active: s.active, total: s.total })}`}
-          >
+          <div key={s.kind} className="flex items-center gap-2 text-[11px]">
             <span className="h-1.5 w-1.5 shrink-0 rounded-[var(--radius-pill)] bg-accent glim-live" aria-hidden="true" />
             <span className="text-carbon-textMuted">{kindIcon(s.kind)}</span>
             <span className="text-carbon-textMuted">{t(LABEL_KEY[s.kind])}</span>
             <span className="flex-1" />
             <span className="glim-num font-semibold text-carbon-text">{formatCount(t, s.kind, s)}</span>
+            {/* The row's own label and count are already visible beside this -
+                the bubble adds the one thing they don't say: active vs. total
+                for the whole run, not just this instant's count. */}
+            <InfoBubble tip={t('activity.tooltipHint', { active: s.active, total: s.total })} />
           </div>
         ))}
       </div>

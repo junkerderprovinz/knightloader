@@ -4,6 +4,8 @@ package app
 // decides whether anything leaves it at all.
 
 import (
+	"errors"
+	"fmt"
 	"sort"
 	"time"
 
@@ -370,10 +372,11 @@ func (a *App) SetPriorityIn(sel Selection, priority int) []string {
 
 // --- The manual order -------------------------------------------------------
 
-// The four ways a selection changes place in the wait order. They are the whole
-// vocabulary on purpose: anything finer is a drag-and-drop reorder, which has
-// to arrive as one ordered list in one request — two browsers interleaving
-// move-up and move-down produce an order neither of them asked for.
+// The four relative ways a selection changes place in the wait order. They are
+// the whole vocabulary for a single step on purpose: anything finer is a
+// drag-and-drop reorder, which has to arrive as one ordered list in one
+// request — two browsers interleaving move-up and move-down produce an order
+// neither of them asked for. That is ReorderBand, further down.
 const (
 	MoveTop    = "top"
 	MoveUp     = "up"
@@ -447,14 +450,34 @@ func (a *App) renumberLocked(want map[string]bool, where string) []core.Task {
 		if !reorder(band, want, where) {
 			continue
 		}
-		for i, t := range band {
-			pos := i - len(band)
-			if t.Position == pos {
-				continue
-			}
-			t.Position = pos
-			copies = append(copies, *t)
+		copies = append(copies, renumberBand(band)...)
+	}
+	return copies
+}
+
+// renumberBand writes dense positions for one band, in the slice's current
+// order, and hands back the tasks whose position actually changed.
+//
+// Shared by renumberLocked and ReorderBand, because both end at the same
+// place — a band settled into a definite order, needing a definite position
+// per task — and only differ in how that order was decided: a relative step
+// rearranges the band first and hands it here unchanged in length, an
+// explicit drag order already arrives as the exact band, ready to number.
+//
+// The dense run is negative, ending at -1, for the reason given above MoveIn:
+// a task nobody has touched carries position zero, so a run starting at zero
+// would put every task numbered here ahead of the ones sitting untouched at
+// the back — including one pasted in after this call returns. Caller holds
+// a.mu.
+func renumberBand(band []*core.Task) []core.Task {
+	var copies []core.Task
+	for i, t := range band {
+		pos := i - len(band)
+		if t.Position == pos {
+			continue
 		}
+		t.Position = pos
+		copies = append(copies, *t)
 	}
 	return copies
 }
@@ -541,6 +564,96 @@ func reorder(band []*core.Task, want map[string]bool, where string) bool {
 		}
 	}
 	return true
+}
+
+// --- Drag-and-drop: the fifth way, deliberately apart from the other four ---
+
+// ReorderBand puts one whole priority band in the exact order a drag arrived
+// with, rather than a relative step.
+//
+// It is the reorder the comment above MoveTop et al. says a one-step
+// vocabulary cannot express, and it exists for exactly the case that comment
+// names: an arbitrary drag cannot be replayed as a sequence of up/down/top/
+// bottom without two browsers' drags being able to interleave into an order
+// neither of them asked for. So it does not try — a drag arrives here as one
+// complete ordered list, every id currently in the band, and is applied in a
+// single pass under the lock, the same as a click already is.
+//
+// ids has to be the band's entire membership: every id has to exist, all of
+// them have to share one priority and one forced flag — the same pairing
+// bandsLocked already groups by — and none of that band's own tasks may be
+// left out of the list, nor any id from outside it included. Anything else is
+// refused with a reason rather than reconciled quietly: applying a partial
+// list as given would scramble the tasks left out of it, and an unknown id
+// would have nothing to renumber.
+func (a *App) ReorderBand(ids []string) ([]string, error) {
+	// The route layer already refuses an empty list before this is ever
+	// reached (requireIDs, routes_queue.go) - guarded again here too, since
+	// this is an exported method any future caller could reach directly, and
+	// tasks[0] below would panic on an empty slice rather than fail cleanly.
+	if len(ids) == 0 {
+		return nil, errors.New("this needs at least one task id")
+	}
+	a.mu.Lock()
+	seen := make(map[string]bool, len(ids))
+	tasks := make([]*core.Task, 0, len(ids))
+	for _, id := range ids {
+		if seen[id] {
+			a.mu.Unlock()
+			return nil, fmt.Errorf("id %q is listed twice", id)
+		}
+		seen[id] = true
+		t := a.tasks[id]
+		if t == nil {
+			a.mu.Unlock()
+			return nil, fmt.Errorf("no such task: %s", id)
+		}
+		if !movable(t) {
+			a.mu.Unlock()
+			return nil, fmt.Errorf("task %s is not in the wait queue", id)
+		}
+		tasks = append(tasks, t)
+	}
+
+	// Same band as each other: the pairing bandsLocked groups by, checked here
+	// against the first task rather than reaching for bandsLocked twice.
+	first := tasks[0]
+	for _, t := range tasks[1:] {
+		if t.Priority != first.Priority || t.Forced != first.Forced {
+			a.mu.Unlock()
+			return nil, errors.New("ids span more than one band")
+		}
+	}
+
+	// Same band as bandsLocked itself would draw it, so a missing or extra id
+	// is caught even though every id given so far checked out on its own.
+	var band []*core.Task
+	for _, b := range a.bandsLocked() {
+		if b[0].Forced == first.Forced && b[0].Priority == first.Priority {
+			band = b
+			break
+		}
+	}
+	if len(band) != len(tasks) {
+		var missing string
+		for _, t := range band {
+			if !seen[t.ID] {
+				missing = t.ID
+				break
+			}
+		}
+		a.mu.Unlock()
+		return nil, fmt.Errorf("task %s belongs to this band and is missing from ids", missing)
+	}
+
+	// tasks is already the caller's order and exactly the band's membership, so
+	// there is nothing left to rearrange - only to renumber, the same helper a
+	// relative move ends with.
+	copies := renumberBand(tasks)
+	a.dispatchLocked()
+	a.mu.Unlock()
+	a.saveAndBroadcast(copies)
+	return idsOf(tasks), nil
 }
 
 // QueueState is the master switch and the stop mark, as the UI sees them.

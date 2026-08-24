@@ -134,15 +134,17 @@ export function Instances() {
               soll normalgroß sein, jetzt ist es zu groß" - the rows={2}
               TextArea this replaced rendered as a two-row block for a value
               that is never more than one line). */}
-          <div className="flex min-w-0 flex-1 items-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
-            <input
-              type="text"
-              dir="ltr"
-              placeholder={t('instances.pairPlaceholder')}
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              className="glim-num min-w-0 flex-1 border-0 bg-transparent p-0 text-xs text-carbon-text placeholder:text-carbon-textMuted outline-none"
-            />
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <div className="min-w-0 flex-1 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
+              <input
+                type="text"
+                dir="ltr"
+                placeholder={t('instances.pairPlaceholder')}
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                className="glim-num w-full border-0 bg-transparent p-0 text-sm text-carbon-text placeholder:text-carbon-textMuted outline-none"
+              />
+            </div>
             <IconBadge
               icon={<IconClipboard width={14} height={14} />}
               title={CLIPBOARD_READABLE ? t('instances.pairPaste') : t('instances.pairPasteUnavailable')}

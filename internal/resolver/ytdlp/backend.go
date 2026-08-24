@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -166,6 +167,63 @@ func (b *Backend) run(taskID, url string) {
 		return
 	}
 	b.onUpdate(taskID, core.Update{Status: core.StatusDone, Speed: 0})
+}
+
+// ProbeTitle asks yt-dlp for a link's real title without downloading
+// anything - the per-task ASYNC probe Resolver's own doc comment (resolver.go)
+// says is a different shape from the batched resolver.Checker deliberately
+// left unbuilt there. --skip-download and --print %(title)s (no -f, no
+// format list) ask yt-dlp to extract just enough metadata to answer, never
+// the muxed formats a real download or a "--simulate" would resolve, so this
+// is cheaper than the download it stands in for - though it is still one
+// real process per call, including whatever anti-bot gauntlet the site puts
+// in front of extraction, which is exactly why app.probeYtdlpTitle (the only
+// caller) fires this once per staged task rather than batching a paste's
+// worth of links into one call the way a Checker would.
+//
+// The caller is expected to bound ctx - see app.ytdlpProbeTimeout, applied
+// by probeYtdlpTitle the same way app.checkTimeout already bounds
+// resolver.Checker.Check. Not baked in here, so a test can hand this
+// whatever timeout (or none) it needs without the constant living in this
+// package at all.
+//
+// Known simplification, not a guess dressed up as a decision: --flat-playlist
+// is deliberately NOT passed. It would make a playlist/channel URL's probe
+// far cheaper - yt-dlp could answer from the listing alone instead of
+// opening entries - but it also changes what --print %(title)s answers for
+// an ordinary single-video URL in ways this change could not confirm safely
+// from documented behaviour alone, and guessing wrong here means a working
+// single-video probe breaks instead of a playlist probe staying merely slow.
+// Without the flag, a playlist/channel URL's probe still runs rather than
+// failing outright - slower, and %(title)s answers with the first entry's
+// title rather than the playlist's own name - which is a known gap for a
+// later pass, not a crash today.
+func (b *Backend) ProbeTitle(ctx context.Context, url string) (string, error) {
+	cmd := exec.CommandContext(ctx, b.bin, "--skip-download", "--no-warnings", "--print", "%(title)s", url)
+	cmd.Env = append(os.Environ(), "PYTHONIOENCODING=utf-8")
+	out, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	title := firstLine(string(out))
+	if title == "" {
+		return "", errors.New("ytdlp: probe returned no title")
+	}
+	return title, nil
+}
+
+// firstLine is the first non-empty line of s. A single-video probe's
+// %(title)s prints exactly one line; the --flat-playlist gap documented on
+// ProbeTitle above means a playlist/channel URL can print one title per
+// entry instead, and the first is the best single answer available without
+// a second, playlist-aware flag.
+func firstLine(s string) string {
+	for _, line := range strings.Split(s, "\n") {
+		if line = strings.TrimSpace(line); line != "" {
+			return line
+		}
+	}
+	return ""
 }
 
 // notMine recognises yt-dlp's way of saying a link is not something it handles.

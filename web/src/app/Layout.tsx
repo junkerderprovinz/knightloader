@@ -13,7 +13,15 @@ import { OnboardingWizard } from '../components/OnboardingWizard';
 import { StatusStrip } from '../components/StatusStrip';
 import { InfoBubble } from '../components/ui';
 import { connectWS, fetchDeploymentInfo, fetchSettings, fetchUpdateCheck, installUpdate, type Task } from '../lib/api';
-import { applyAccent, applyRainbow, applyShape, cacheAppearance, rainbowFromSettings } from '../lib/appearance';
+import {
+  applyAccent,
+  applyMotionIntensity,
+  applyRainbow,
+  applyShape,
+  cacheAppearance,
+  rainbowFromSettings,
+  readCachedMotionIntensity,
+} from '../lib/appearance';
 import { InstanceProvider, useInstanceScope } from '../lib/instance';
 import { useToast } from '../lib/toast';
 import { useT } from '../lib/i18n';
@@ -56,6 +64,14 @@ function useCompletionToasts() {
 // must not do.
 function useAppearance() {
   useEffect(() => {
+    // Motion intensity is a client-only preference (see lib/appearance.ts's
+    // own "Motion intensity" section) — it has nothing to fetch, so it is
+    // applied synchronously here rather than nested inside fetchSettings()'s
+    // callback below. This is what makes the axis live from first paint
+    // everywhere Layout mounts, not only once the Look settings row itself
+    // mounts.
+    applyMotionIntensity(readCachedMotionIntensity());
+
     let live = true;
     fetchSettings()
       .then((s) => {

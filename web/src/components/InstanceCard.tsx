@@ -47,8 +47,10 @@ export function InstanceRow({ name, base, onOpen }: { name: string; base: string
   const body = (
     <>
       <span
-        className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${online ? 'bg-statusOkSolid' : 'bg-statusFailSolid'}`}
+        role="img"
+        aria-label={online ? t('instances.online') : t('instances.offline')}
         title={online ? t('instances.online') : t('instances.offline')}
+        className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${online ? 'bg-statusOkSolid' : 'bg-statusFailSolid'}`}
       />
       <span className="min-w-0 flex-1 truncate text-[13.5px] text-carbon-text">{name}</span>
       <span className="glim-num text-xs text-carbon-textSub">
@@ -95,8 +97,10 @@ export function InstanceCard({
     <Card hover={!!onOpen} className="group flex h-full flex-col gap-3">
       <div className="flex items-center gap-2.5">
         <span
-          className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${online ? 'bg-statusOkSolid' : 'bg-statusFailSolid'}`}
+          role="img"
+          aria-label={online ? t('instances.online') : t('instances.offline')}
           title={online ? t('instances.online') : t('instances.offline')}
+          className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${online ? 'bg-statusOkSolid' : 'bg-statusFailSolid'}`}
         />
         <span className="truncate font-semibold text-carbon-text">{name}</span>
         <span className="flex-1" />

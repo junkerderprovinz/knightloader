@@ -644,12 +644,63 @@ body {
   background-clip: content-box;
 }
 
+/* ===========================================================================
+   The motion engine
+   ---------------------------------------------------------------------------
+   Ported from upstream GlimStone (docs/design-language.md, "The motion
+   engine" + "Round 2 — seven more animations"). Twelve keyframes/utilities
+   below answer one of: is this new, arriving, ongoing, confirmed, changing
+   shape, changing colour, or refused? Nothing else in the system animates.
+
+   MOTION INTENSITY (data-motion="off"|"subtle"|"full" on <html>, default
+   "full" — applyMotionIntensity() in lib/appearance.ts) is the user-owned
+   axis layered on top: duration/distance/amplitude custom properties,
+   redefined per [data-motion], consumed by the SAME keyframes at every
+   intensity — the identical "one token set, no exception list" shape the
+   shape engine's own radius tokens use above. These tokens resolve ONLY
+   inside the @media (prefers-reduced-motion: no-preference) block below, per
+   GlimStone: the OS-level (reduce) block further down keeps its own
+   hard-coded fallback values completely untouched and unconditional, so a
+   browser reporting OS-level reduced motion never even reaches a data-motion
+   selector for these properties — "off" without OS-level reduced motion gets
+   the SAME numbers the (reduce) block already uses for the same element, by
+   design, not a second, separately-tuned recipe.
+   =========================================================================== */
+
+/* Direction is a layout fact, not a motion preference, so this lives outside
+   the motion gate — a distance of 0 at "off" multiplies out to 0 regardless
+   of the sign. The one consumer so far is the directional panel slide below;
+   this app's existing .glim-toast-in does NOT itself read this token (it
+   never flipped under RTL before this pass, and adopting --dir-sign here
+   doesn't retroactively change that — a future pass, not this one). */
+:root {
+  --dir-sign: 1;
+}
+[dir="rtl"] {
+  --dir-sign: -1;
+}
+
+/* Drawn-checkmark's safe default lives HERE, outside every gate, and that
+   ordering is load-bearing (GlimStone, "Round 2"): the unconditional base is
+   "fully drawn, no animation," so a browser — or a future edit — that never
+   reaches the animated override further down still shows a checkmark, not a
+   permanently invisible dashed line. The consumer's own <path> carries
+   pathLength="1", which is what makes a plain 1 → 0 dashoffset always draw
+   the whole glyph regardless of real path geometry. Stroke colour is left to
+   the consumer (currentColor off a state token, never a rainbow hue — a
+   success/fail glyph is rule 4's territory, not a list-position identity). */
+.glim-checkmark {
+  fill: none;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
 @keyframes glim-indeterminate {
   0%   { left: -35%; }
   100% { left: 100%; }
 }
 @keyframes glim-page-in {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(calc(var(--motion-page-slide-scale) * 6px)); }
   to   { opacity: 1; transform: none; }
 }
 @keyframes glim-fade-in {
@@ -657,12 +708,12 @@ body {
   to   { opacity: 1; }
 }
 @keyframes glim-toast-in {
-  from { opacity: 0; transform: translateX(12px); }
+  from { opacity: 0; transform: translateX(calc(var(--motion-toast-slide-scale) * 12px)); }
   to   { opacity: 1; transform: none; }
 }
 @keyframes glim-pulse {
   0%, 100% { opacity: 1; }
-  50%      { opacity: .45; }
+  50%      { opacity: var(--motion-pulse-min-opacity); }
 }
 /* A control refusing an action — optimistically shown, then reverted because
    a real backend precondition failed — shakes instead of just silently
@@ -677,10 +728,10 @@ body {
    lib/toast.tsx's push() mints a fresh id per call. */
 @keyframes glim-shake {
   0%, 100% { transform: translateX(0); }
-  20%      { transform: translateX(-4px); }
-  40%      { transform: translateX(4px); }
-  60%      { transform: translateX(-2px); }
-  80%      { transform: translateX(2px); }
+  20%      { transform: translateX(calc(var(--motion-shake-scale) * -4px)); }
+  40%      { transform: translateX(calc(var(--motion-shake-scale) * 4px)); }
+  60%      { transform: translateX(calc(var(--motion-shake-scale) * -2px)); }
+  80%      { transform: translateX(calc(var(--motion-shake-scale) * 2px)); }
 }
 /* The same "still arrives legibly, minus the motion" substitution every
    other entrance gets under reduced motion. */
@@ -689,17 +740,264 @@ body {
   50%      { opacity: .5; }
 }
 
+/* Round 2 — seven more animations (GlimStone, "The motion engine"). Two of
+   the seven (staggered-list fade-in, skeleton-to-content crossfade) reuse
+   glim-page-in/glim-fade-in above rather than duplicating an identical shape
+   under a new name — only their own duration token and delay recipe differ,
+   so they have no keyframes of their own below. Shape-morph and colour-wipe
+   are plain `transition`s, not keyframes, and live with the utility classes
+   further down since that's the only place they mean anything. */
+@keyframes glim-confirm-pulse {
+  0%   { box-shadow: 0 0 0 0 var(--accent-soft); transform: scale(1); }
+  50%  { box-shadow: 0 0 0 calc(var(--motion-confirm-glow-mult) * 6px) var(--accent-soft);
+         transform: scale(calc(1 + var(--motion-confirm-scale-mult) * 0.05)); }
+  100% { box-shadow: 0 0 0 0 var(--accent-soft); transform: scale(1); }
+}
+@keyframes glim-checkmark-draw {
+  from { stroke-dashoffset: 1; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes glim-panel-in-forward {
+  from { opacity: 0; transform: translateX(calc(var(--dir-sign) * var(--motion-panel-dist))); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes glim-panel-in-back {
+  from { opacity: 0; transform: translateX(calc(var(--dir-sign) * -1 * var(--motion-panel-dist))); }
+  to   { opacity: 1; transform: none; }
+}
+
 @media (prefers-reduced-motion: no-preference) {
-  .glim-page-enter { animation: glim-page-in 280ms cubic-bezier(.2, .6, .2, 1) both; }
-  .glim-toast { animation: glim-toast-in 220ms cubic-bezier(.2, .6, .2, 1) both; }
-  .glim-live { animation: glim-pulse 2s ease-in-out infinite; }
+  /* Full-intensity defaults — data-motion="full", and also what the app
+     renders before the setting has ever been touched (DEFAULT_MOTION in
+     lib/appearance.ts is 'full'). One token per timing/distance/amplitude
+     value the keyframes above and the utilities below actually read. */
+  :root {
+    --motion-page-dur: 280ms;
+    --motion-page-slide-scale: 1;
+    --motion-toast-dur: 220ms;
+    --motion-toast-slide-scale: 1;
+    --motion-fade-dur: 110ms;
+    --motion-shake-dur: 360ms;
+    --motion-shake-scale: 1;
+    --motion-pulse-dur: 2s;
+    --motion-pulse-min-opacity: .45;
+    --motion-shape-dur: 260ms;
+    --motion-confirm-dur: 420ms;
+    --motion-confirm-glow-mult: 1;
+    --motion-confirm-scale-mult: 1;
+    --motion-stagger-step: 30ms;
+    --motion-stagger-cap: 480ms;
+    --motion-wipe-dur: 320ms;
+    --motion-checkmark-dur: 360ms;
+    --motion-content-dur: 220ms;
+    --motion-panel-dur: 220ms;
+    --motion-panel-dist: 18px;
+  }
+
+  /* data-motion="subtle" — smaller numbers, the SAME keyframes throughout.
+     :root[data-motion="subtle"] mirrors :root[data-shape="soft"] above, so
+     the override wins on specificity alone rather than on being later in
+     the file. */
+  :root[data-motion="subtle"] {
+    --motion-page-dur: 160ms;
+    --motion-page-slide-scale: .5;
+    --motion-toast-dur: 130ms;
+    --motion-toast-slide-scale: .5;
+    --motion-fade-dur: 70ms;
+    --motion-shake-dur: 220ms;
+    --motion-shake-scale: .5;
+    --motion-pulse-min-opacity: .7;
+    --motion-shape-dur: 140ms;
+    --motion-confirm-dur: 260ms;
+    --motion-confirm-glow-mult: .5;
+    --motion-confirm-scale-mult: .5;
+    --motion-stagger-step: 15ms;
+    --motion-stagger-cap: 200ms;
+    --motion-wipe-dur: 160ms;
+    --motion-checkmark-dur: 200ms;
+    --motion-content-dur: 120ms;
+    --motion-panel-dur: 130ms;
+    --motion-panel-dist: 10px;
+  }
+
+  /* data-motion="off" without OS-level reduced motion — "the manual
+     equivalent of what OS-level reduced motion already does," per
+     GlimStone, not a second, separately-tuned recipe: glim-page-in and
+     glim-toast-in's own durations below are the exact numbers the (reduce)
+     block further down already uses for the same two elements, just reached
+     by the slide scale going to 0 instead of forking to a different
+     keyframe. glim-shake and glim-live/glim-pulse are the two documented
+     exceptions — an invisible shake or a zero-duration infinite pulse
+     communicates nothing, so both swap to a real substitute below instead of
+     reading a token at all; their own tokens are therefore not redefined
+     here. */
+  :root[data-motion="off"] {
+    --motion-page-dur: 180ms;
+    --motion-page-slide-scale: 0;
+    --motion-toast-dur: 160ms;
+    --motion-toast-slide-scale: 0;
+    --motion-fade-dur: 0ms;
+    --motion-shape-dur: 0ms;
+    --motion-confirm-dur: 0ms;
+    --motion-confirm-glow-mult: 0;
+    --motion-confirm-scale-mult: 0;
+    --motion-stagger-step: 0ms;
+    --motion-stagger-cap: 0ms;
+    --motion-wipe-dur: 0ms;
+    --motion-checkmark-dur: 0ms;
+    --motion-content-dur: 0ms;
+    --motion-panel-dur: 0ms;
+    --motion-panel-dist: 0px;
+  }
+
+  .glim-page-enter { animation: glim-page-in var(--motion-page-dur) cubic-bezier(.2, .6, .2, 1) both; }
+  .glim-toast { animation: glim-toast-in var(--motion-toast-dur) cubic-bezier(.2, .6, .2, 1) both; }
+  .glim-live { animation: glim-pulse var(--motion-pulse-dur) ease-in-out infinite; }
   /* Short on purpose: a bubble that fades in slowly reads as lag, because the
      pointer is already there waiting for it. */
-  .glim-fade { animation: glim-fade-in 110ms ease both; }
-  .glim-shake { animation: glim-shake 360ms ease-in-out; }
+  .glim-fade { animation: glim-fade-in var(--motion-fade-dur) ease both; }
+  .glim-shake { animation: glim-shake var(--motion-shake-dur) ease-in-out; }
+
+  /* glim-pulse's own "off" state: a zero-duration infinite animation is
+     meaningless, so "off" reuses the SAME static-dot fallback the (reduce)
+     block further down already gives .glim-live, rather than reading a
+     token — GlimStone's own documented exception. Kept inside this gate,
+     as data-motion is required to be; the (reduce) media block's own copy
+     is what actually covers OS-level reduced motion. */
+  :root[data-motion="off"] .glim-live {
+    animation: none;
+    opacity: 1;
+  }
+  /* glim-shake's own "off" state: the same reasoning BombVault's own port
+     documents — an invisible shake carries no "rejected" signal — so it
+     swaps to the opacity-pulse substitute already used under OS-level
+     reduced motion (glim-shake-reduced below) instead of a zero-amplitude
+     glim-shake. */
+  :root[data-motion="off"] .glim-shake {
+    animation: glim-shake-reduced 300ms ease-in-out;
+  }
+
+  /* Shape-morph: transitions every --radius-card/-control/-pill-driven
+     corner instead of snapping when the Shape picker changes. Scoped to
+     AFTER mount via .glim-shape-armed — lib/appearance.ts's applyShape()
+     arms it two animation frames after its first call — rather than relying
+     on a transition being a no-op on a freshly painted element's own first
+     frame (true, but not the point being guarded against: the mechanism's
+     correctness shouldn't depend on that timing coincidence). */
+  .glim-shape-armed,
+  .glim-shape-armed * {
+    transition: border-radius var(--motion-shape-dur) ease;
+  }
+
+  /* Colour-wipe: flipping rainbow on/off/reactive (lib/appearance.ts's
+     applyRainbow(), on a genuine mode change only) wipes every hued
+     element's colour over one fixed window instead of each snapping
+     independently. THE TRAP (GlimStone, "Round 2" — caught live, not just
+     read about): almost every element this needs to reach is ALSO
+     shape-reactive, `transition` is a shorthand, and two same-specificity
+     rules setting it don't merge — the higher-specificity one wins outright
+     and the loser's entire property list silently vanishes. Against the
+     plain single-class .glim-shape-armed rule above, a plain single-class
+     .glim-wipe rule here would lose that fight on every hued button/badge,
+     and the colour flip would snap instead of wipe. Fixed the documented
+     way: deliberately doubling this rule's own class in its selector
+     (.glim-wipe.glim-wipe — not a typo) so it outranks shape-morph's rule
+     regardless of source order. Worth a live
+     getComputedStyle().transitionProperty check on a genuinely
+     double-matched element if a future transition-based axis is ever added
+     here — two rules both reaching for the bare `transition` shorthand on
+     overlapping elements are one accidental specificity tie away from one
+     silently eating the other's entire property list. */
+  .glim-wipe.glim-wipe,
+  .glim-wipe.glim-wipe * {
+    transition:
+      background-color var(--motion-wipe-dur) ease,
+      color var(--motion-wipe-dur) ease,
+      border-color var(--motion-wipe-dur) ease,
+      box-shadow var(--motion-wipe-dur) ease,
+      fill var(--motion-wipe-dur) ease,
+      stroke var(--motion-wipe-dur) ease;
+  }
+
+  /* Confirmation-pulse: glim-shake's gentler sibling for the opposite
+     outcome — a field or toggle that just auto-saved successfully. Reads
+     --accent-soft directly, so an element that also owns a rainbow position
+     (.glim-hue) pulses in its own hue for free, no rainbow-awareness needed
+     in this rule. Layers on top of whatever toast already reports success;
+     never a replacement for it. DEFINED HERE, NOT YET WIRED to a consumer —
+     see lib/appearance.ts's own note on which of the seven Round-2
+     animations this pass wires up. A future consumer needs the same
+     fresh-DOM-node replay discipline glim-shake already uses: a per-field
+     success counter, keyed the same way lib/toast.tsx's push() mints a
+     fresh id per call. */
+  .glim-confirm {
+    animation: glim-confirm-pulse var(--motion-confirm-dur) ease-out;
+  }
+
+  /* Staggered list fade-in: same-type rows fade/slide in with a small
+     per-row delay instead of all appearing at once. Reuses glim-page-in
+     above rather than a fourth near-identical entrance keyframe — only the
+     delay recipe below is new. A future consumer sets --stagger-index (the
+     SAME per-row position index the colour engine already threads through
+     for rainbow — a second counter would drift from the first) as an inline
+     custom property; min() does the capping in one declaration so even a
+     long list finishes its own stagger within --motion-stagger-cap.
+     DEFINED HERE, NOT YET WIRED to a consumer. */
+  .glim-stagger {
+    animation: glim-page-in var(--motion-page-dur) cubic-bezier(.2, .6, .2, 1) both;
+    animation-delay: min(calc(var(--stagger-index, 0) * var(--motion-stagger-step)), var(--motion-stagger-cap));
+  }
+
+  /* Drawn-checkmark's animated override — the unconditional "fully drawn"
+     base rule lives at the top of this section, outside every gate; this is
+     what actually draws it in when motion is allowed. `both` fill mode
+     applies the "from" keyframe's undrawn state immediately, so no separate
+     static stroke-dashoffset needs restating here. DEFINED HERE, NOT YET
+     WIRED to a consumer. */
+  .glim-checkmark {
+    animation: glim-checkmark-draw var(--motion-checkmark-dur) ease-out both;
+  }
+
+  /* Skeleton-to-content crossfade: the simplest of the seven — an
+     entrance-only fade on the freshly mounted real-content node, reusing
+     glim-fade-in above at its own (longer) duration rather than the
+     bubble/tooltip's fast one. Plays once per real mount, the same
+     "a persistent class on a freshly-created node only plays its entrance
+     once" mechanism glim-page-in/glim-toast-in already rely on. DEFINED
+     HERE, NOT YET WIRED to a consumer. */
+  .glim-content-in {
+    animation: glim-fade-in var(--motion-content-dur) ease both;
+  }
+
+  /* Directional panel slide: the new panel slides in from the trailing edge
+     moving to a LATER section, from the leading edge moving to an EARLIER
+     one. --dir-sign (defined near the top of this file, outside the motion
+     gate) keeps "later" meaning "trailing edge" rather than "always
+     rightward" once the page mirrors under [dir="rtl"]. A future consumer's
+     own click handler picks -forward vs -back (it has both the old and new
+     position in the same synchronous event, the one place that's still
+     true). DEFINED HERE, NOT YET WIRED to a consumer — and this app's
+     existing .glim-toast-in above does NOT itself flip under [dir="rtl"]
+     today, so adopting --dir-sign here doesn't retroactively fix that; a
+     future pass, not this one. */
+  .glim-panel-in-forward {
+    animation: glim-panel-in-forward var(--motion-panel-dur) cubic-bezier(.2, .6, .2, 1) both;
+  }
+  .glim-panel-in-back {
+    animation: glim-panel-in-back var(--motion-panel-dur) cubic-bezier(.2, .6, .2, 1) both;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .glim-page-enter { animation: glim-fade-in 180ms ease both; }
   .glim-toast { animation: glim-fade-in 160ms ease both; }
   .glim-shake { animation: glim-shake-reduced 300ms ease-in-out; }
+  /* Previously missing here despite being GlimStone's own documented
+     requirement ("An infinite animation gets a true stop under reduced
+     motion, not a slower version") — .glim-live simply had no matching
+     animation property under this query before, which happened to look
+     right (a static dot) without actually forcing the opacity, and without
+     giving data-motion="off" (above) an existing rule to share. Added now
+     so both genuinely share one rule's worth of declarations rather than
+     data-motion="off" inventing a second, separately-maintained copy. */
+  .glim-live { animation: none; opacity: 1; }
 }

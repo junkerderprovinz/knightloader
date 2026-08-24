@@ -511,7 +511,6 @@ function ScriptRow({
             <Button
               kind="secondary"
               icon={<IconPlay width={14} height={14} />}
-              title={runHint}
               disabled={runDisabled}
               onClick={() => void onRun()}
             >

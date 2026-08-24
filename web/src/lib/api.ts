@@ -1153,6 +1153,18 @@ export interface StopResult {
 export const queueMove = async (sel: QueueSelection, where: QueueMove, base = '/api') =>
   json<BulkResult>(await ok(await post(`${base}/queue/move`, { ...sel, where })));
 
+/**
+ * reorderTasks writes the full drag-and-drop order for one "band" - every
+ * task sharing both `priority` and `forced`, which is as far as a single
+ * request reaches: the server groups the queue the same way and refuses a
+ * list that mixes bands rather than guessing which one the drop belongs to.
+ * `ids` is the COMPLETE new order of that band, top to bottom, not a diff -
+ * see TaskList.tsx's own row drag for how that list is built and why a drag
+ * that would leave its band is never sent at all.
+ */
+export const reorderTasks = async (ids: string[], base = '/api') =>
+  json<BulkResult>(await ok(await post(`${base}/tasks/reorder`, { ids })));
+
 /** queuePriority puts a selection at one of the seven. */
 export const queuePriority = async (sel: QueueSelection, priority: number, base = '/api') =>
   json<BulkResult>(await ok(await post(`${base}/queue/priority`, { ...sel, priority })));

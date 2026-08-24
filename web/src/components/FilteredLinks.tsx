@@ -114,8 +114,9 @@ export function FilteredLinks({ held }: { held: Task[] }) {
             <span dir="ltr" className="min-w-0 flex-1 truncate text-carbon-textMuted" title={h.url}>
               {h.url}
             </span>
-            <span className="shrink-0 text-carbon-textMuted" title={fx('collector.filtered.originTitle')}>
+            <span className="flex shrink-0 items-center text-carbon-textMuted">
               {originLabel(fx, h.origin)}
+              <InfoBubble tip={fx('collector.filtered.originTitle')} />
             </span>
             <span className="glim-num shrink-0 text-carbon-textMuted">{fmtDate(h.createdAt)}</span>
             <Button

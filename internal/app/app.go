@@ -67,6 +67,20 @@ type backend interface {
 // stops talking must not decide how long staging takes.
 const probeTimeout = 10 * time.Second
 
+// ytdlpProbeTimeout bounds one yt-dlp title probe (see ytdlp.Backend.ProbeTitle
+// and probeYtdlpTitle in app_tasks.go, which applies this). Deliberately
+// longer than probeTimeout above rather than reusing it: a plain HEAD is one
+// TCP round trip, but yt-dlp's --print %(title)s still has to launch a real
+// process and, for a good share of the sites it handles, fetch and parse the
+// same page a full extraction would before it can answer at all - closer to
+// a slow page load than a bare HEAD. Twenty seconds is a conservative
+// judgement call for that shape of work rather than a number measured
+// against real hosts as part of this change; it is the one constant to
+// revisit first if staging a media link routinely times out its probe in
+// practice, or if it turns out to be tying up probe goroutines needlessly
+// long against sites that fail fast.
+const ytdlpProbeTimeout = 20 * time.Second
+
 // doer is the part of an HTTP client this package's probe uses. It is declared
 // here rather than in internal/httpx because the consumer owns the interface:
 // httpx hands out a *http.Client, and a test hands out whatever answers without
@@ -820,6 +834,20 @@ type speedLimiter interface {
 	SetSpeedLimit(bytesPerSec int64) error
 }
 
+// titleProber is implemented by a backend that can look up a link's real name
+// without downloading it - the yt-dlp counterpart to the collector's own HEAD
+// probe (analyze, app_tasks.go) for a plain file link. Optional for the same
+// reason speedLimiter above is: most backends already report a real name off
+// their own progress stream once a download starts (a backend's Download
+// reaching onUpdate with Update.Name set), and forcing every one of them to
+// grow a method that would just return "", nil is the wrong trade for what
+// only one of them can actually answer ahead of time. See
+// ytdlp.Backend.ProbeTitle and probeYtdlpTitle in app_tasks.go, the two
+// halves of the one caller this exists for.
+type titleProber interface {
+	ProbeTitle(ctx context.Context, url string) (string, error)
+}
+
 // ApplySettings persists new settings and applies what can change at runtime:
 // raised limits dispatch waiting tasks immediately, the JD limit is pushed
 // live, and yt-dlp picks the limit up on its next spawn. The embedded engine
@@ -897,6 +925,20 @@ func (a *App) pushJDSpeedLimit(limit int64) {
 			log.Printf("JD speed limit not applied: %v", err)
 		}
 	}
+}
+
+// ytdlpTitleProber returns the yt-dlp backend as a titleProber, and whether
+// it actually is one - the same pattern pushJDSpeedLimit above uses for its
+// own optional interface. False when no yt-dlp backend is wired at all
+// (a.ytdlp nil, no binary present at boot) exactly as much as when one is
+// wired that does not implement it; either way probeYtdlpTitle's only caller
+// has nothing to do.
+func (a *App) ytdlpTitleProber() (titleProber, bool) {
+	a.bmu.RLock()
+	b := a.ytdlp
+	a.bmu.RUnlock()
+	tp, ok := b.(titleProber)
+	return tp, ok
 }
 
 // applyConnections rebuilds the connection picker from the saved rows.

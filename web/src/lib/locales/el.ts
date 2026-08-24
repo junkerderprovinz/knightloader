@@ -275,6 +275,11 @@ export const el: Dict = {
   'settings.rainbowPaletteHint': 'Τα οκτώ χρώματα που αποδίδονται ανά θέση. Επεξεργάσιμα μεμονωμένα.',
   'settings.look.saveFailed': 'Δεν ήταν δυνατή η αποθήκευση: {error}',
   'settings.theme': 'Θέμα',
+  'settings.motion.full': 'Πλήρες',
+  'settings.motion.subtle': 'Διακριτικό',
+  'settings.motion.off': 'Ανενεργό',
+  'settings.motion.hint': 'Το Ανενεργό απενεργοποιεί κάθε μη απαραίτητη κίνηση· το Διακριτικό κρατά τις εμφανίσεις σύντομες· το Πλήρες είναι η πλουσιότερη εμπειρία.',
+  'settings.motion.title': 'Κίνηση',
   'queue.limitUnit': 'Μονάδα',
 
   'common.show': 'Εμφάνιση',
@@ -297,7 +302,7 @@ export const el: Dict = {
   'columns.enabled': 'Ενεργό',
   'columns.menuTitle': 'Στήλες',
   'columns.reset': 'Επαναφορά στηλών',
-  'columns.headerHint': 'Σύρετε μια κεφαλίδα για να μετακινήσετε τη στήλη, σύρετε την άκρη της για να αλλάξετε πλάτος, διπλό κλικ στην άκρη επαναφέρει το πλάτος. Δεξί κλικ στην κεφαλίδα ανοίγει τη λίστα στηλών.',
+  'columns.headerHint': 'Κάντε κλικ σε μια επικεφαλίδα για ταξινόμηση, σύρετέ την για αναδιάταξη της στήλης, σύρετε την άκρη της για αλλαγή μεγέθους, διπλό κλικ στην άκρη επαναφέρει το πλάτος. Δεξί κλικ στην επικεφαλίδα για τη λίστα στηλών.',
   'columns.alwaysShown': 'Αυτή η στήλη εμφανίζεται πάντα.',
   'columns.lastVisible': 'Μια λίστα χρειάζεται τουλάχιστον μία στήλη.',
   'columns.resizeHint': 'Σύρετε για αλλαγή πλάτους, διπλό κλικ για επαναφορά',
@@ -838,6 +843,7 @@ export const el: Dict = {
   'task.moveUp': 'Μετακίνηση πάνω',
   'task.moveDown': 'Μετακίνηση κάτω',
   'menu.priority': 'Προτεραιότητα',
+  'menu.move': 'Μετακίνηση',
   'menu.forceStart': 'Έναρξη τώρα',
   'menu.queueStopped': 'Η ουρά σταμάτησε',
   'pkg.queueOrder': 'Μετακίνηση όλου του πακέτου',
@@ -1404,6 +1410,8 @@ export const el: Dict = {
   'settings.system.confirmCancel': 'Άκυρο',
   'settings.system.confirmProceed': 'Επιβεβαίωση',
   'settings.system.unavailable': 'Αυτό το build δεν έχει τρόπο να το κάνει αυτό από τον περιηγητή.',
+  'settings.system.lifecycleNoteContainer': 'Αυτό είναι build container. Το αν η διεργασία θα επιστρέψει μετά την Έξοδο ή την Επανεκκίνηση αποφασίζεται αποκλειστικά από την πολιτική επανεκκίνησης του container σας, όχι από το ποιο από τα δύο πατάτε: και τα δύο κάνουν το ίδιο πράγμα.',
+  'settings.system.lifecycleNoteDesktop': 'Αυτό είναι το desktop build· η έξοδος και η επανεκκίνηση ολοκληρώνονται όπως ακριβώς και το κλείσιμο του παραθύρου.',
   'settings.system.acting': 'Εργασία σε εξέλιξη…',
   'settings.system.shuttingDownTitle': 'Τερματισμός',
 
@@ -1417,7 +1425,9 @@ export const el: Dict = {
   'settings.system.restoreTitle': 'Επαναφορά',
   'settings.system.restoreHint':
     'Αντικαθιστά τα δεδομένα αυτής της περίπτωσης με ένα προηγουμένως ληφθέν αντίγραφο ασφαλείας.',
-  'settings.system.restoreButton': 'Μεταφόρτωση αντιγράφου ασφαλείας…',
+  'settings.system.restoreButton': 'Μεταφόρτωση αντιγράφου ασφαλείας',
+  'settings.system.backupRestoreHint': 'Κατεβάζει τη βάση δεδομένων και τις ρυθμίσεις ως ένα αρχείο, συμπεριλαμβανομένων των κωδικών πρόσβασης - κρατήστε το κάπου ιδιωτικά - ή τα επαναφέρει από ένα προηγουμένως κατεβασμένο αντίγραφο ασφαλείας, αντικαθιστώντας ό,τι υπάρχει τώρα.',
+  'settings.system.backupRestoreTitle': 'Αντίγραφο ασφαλείας & Επαναφορά',
   'settings.system.restoreConfirmTitle': 'Επαναφορά από αντίγραφο ασφαλείας;',
   'settings.system.restoreConfirmBody':
     'Αυτό αντικαθιστά την τρέχουσα βάση δεδομένων και τις ρυθμίσεις με τα περιεχόμενα του «{name}». Αυτό δεν μπορεί να αναιρεθεί.',

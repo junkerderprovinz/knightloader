@@ -13,7 +13,7 @@ import {
   uploadRestore,
   type UpdateCheck as UpdateCheckT,
 } from '../../lib/api';
-import { IconDownloads, IconMoon, IconRetry, IconSignOut, IconSun } from '../../lib/icons';
+import { IconDownloads, IconMoon, IconRetry, IconSignOut, IconSun, IconUpload } from '../../lib/icons';
 import { QuietModeToggle, useToast } from '../../lib/toast';
 import { getTheme, onThemeChange, setTheme } from '../../lib/theme';
 import { useT } from '../../lib/i18n';
@@ -23,14 +23,18 @@ import {
   DEFAULT_ACCENT,
   RAINBOW,
   SHAPES,
+  type MotionIntensity,
   type Shape,
   applyAccent,
+  applyMotionIntensity,
   applyRainbow,
   applyShape,
   cacheAppearance,
+  cacheMotionIntensity,
   hueVars,
   rainbowAt,
   rainbowFromSettings,
+  readCachedMotionIntensity,
 } from '../../lib/appearance';
 import { useDraft } from './context';
 
@@ -86,6 +90,11 @@ export function Look() {
   const [theme, setThemeState] = useState(getTheme);
   useEffect(() => onThemeChange(setThemeState), []);
 
+  // Motion intensity is client-only too, same reasoning as shape/accent/
+  // rainbow just below: a single-operator tool has no second viewer who
+  // needs to agree on how much animation there is.
+  const [motion, setMotion] = useState<MotionIntensity>(readCachedMotionIntensity);
+
   // What the swatch row edits: the saved palette when it is complete, the
   // built-in hues otherwise. Either way the row shows eight editable colours, so
   // "reset" and "never customised" look the same and behave the same.
@@ -101,6 +110,7 @@ export function Look() {
     applyShape(cfg.shape);
     applyAccent(cfg.accent);
     applyRainbow(rainbow);
+    applyMotionIntensity(motion);
     cacheAppearance(cfg.shape, cfg.accent, rainbow);
   }, [
     cfg.shape,
@@ -112,6 +122,7 @@ export function Look() {
     // The palette is an array, so the effect has to depend on its contents; the
     // identity changes on every keystroke of the colour picker anyway.
     cfg.rainbowPalette?.join(),
+    motion,
   ]);
 
   // Saves the instant anything on this page changes - every other settings
@@ -188,6 +199,34 @@ export function Look() {
         />
       </Card>
 
+      {/* Motion intensity - the settings-UI half of a separate parallel piece
+          of work (the keyframes/data-motion mechanism lives in index.css and
+          lib/appearance.ts). hue=8 reuses the slot the Backup/Restore merge
+          below just freed, rather than renumbering every other card's own
+          fixed position in the sequence for one new row. */}
+      <Card className="flex flex-col gap-3">
+        <SectionTitle hue={8} hint={t('settings.motion.hint')}>
+          {t('settings.motion.title')}
+        </SectionTitle>
+        <Tabs
+          label={t('settings.motion.title')}
+          variant="well"
+          className="w-fit"
+          active={motion}
+          onSelect={(id) => {
+            const next = id as MotionIntensity;
+            setMotion(next);
+            applyMotionIntensity(next);
+            cacheMotionIntensity(next);
+          }}
+          items={[
+            { id: 'off', label: t('settings.motion.off') },
+            { id: 'subtle', label: t('settings.motion.subtle') },
+            { id: 'full', label: t('settings.motion.full') },
+          ]}
+        />
+      </Card>
+
       <Card className="flex flex-col gap-4">
         <SectionTitle hue={1}>{t('settings.colours')}</SectionTitle>
 
@@ -197,7 +236,7 @@ export function Look() {
             test container lays this row out: "Akzentfarbe:" then the swatch
             then "Voreinstellungen:" then all eight presets, one flex-wrap
             line. */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center justify-end gap-3">
           {/* me-2 on top of the row's own gap-3, not just a bigger gap-*:
               the label needs more breathing room before the colour fields
               start than the fields need between each other (jdp: "der
@@ -317,7 +356,7 @@ export function Look() {
                 verschieben"): eight native colour inputs, plus an icon-only
                 reset badge - always rendered, disabled rather than hidden
                 along with the rest of this sub-section. */}
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-2">
               {/* Same reasoning as the Akzentfarbe row above: extra room
                   after the label specifically, not a bigger shared gap. */}
               <span className="me-2 flex shrink-0 items-center gap-1.5 text-sm text-carbon-text">
@@ -335,6 +374,12 @@ export function Look() {
                     type="color"
                     value={hex}
                     disabled={!cfg.rainbow}
+                    // The label wrapping this input carries no text content
+                    // (its `title` is a hover-only tooltip), so without an
+                    // accessible name of its own the actually-focusable
+                    // element here - this input, not the label - announced
+                    // nothing to a screen reader.
+                    aria-label={`${t('settings.rainbowPalette')} ${i + 1}`}
                     onChange={(e) => {
                       const next = palette.slice();
                       next[i] = e.target.value;
@@ -479,15 +524,36 @@ function SystemCards() {
           same intro sentence this whole section already opens with once)
           removed outright (jdp, 2026-08-24: "Übersicht card entfernen") -
           the one fact worth keeping, what quit/restart actually do on THIS
-          deployment, still shows right below via data.note. */}
+          deployment, still shows right below, now as the card's own hint
+          rather than data.note's raw English. */}
       <Card className="flex flex-col gap-3">
-        <SectionTitle hue={6} hint={!data.canQuit || !data.canRestart ? t('settings.system.unavailable') : undefined}>
+        {/* What quit/restart actually do here used to print data.note
+            straight from the wire - internal/api/routes_lifecycle.go's own
+            deploymentInfo() hardcodes that sentence in English regardless of
+            the browser's locale, so it never went through this app's i18n at
+            all. Told through the two translated lifecycleNote* keys instead,
+            keyed off the same data.deployment this page already has -
+            the unavailable reason still wins when there is one, since a
+            control that cannot be used at all is the more urgent fact. */}
+        <SectionTitle
+          hue={6}
+          hint={
+            !data.canQuit || !data.canRestart
+              ? t('settings.system.unavailable')
+              : t(data.deployment === 'desktop' ? 'settings.system.lifecycleNoteDesktop' : 'settings.system.lifecycleNoteContainer')
+          }
+        >
           {t('settings.system.lifecycleTitle')}
         </SectionTitle>
-        <p className="text-[11px] text-carbon-textMuted">{data.note}</p>
         <div className="flex flex-wrap items-center gap-3">
+          {/* hue on both, and both `kind="primary"` now (jdp: "Der beenden
+              button soll nicht extra anders eingefärbt sein") - hue already
+              overrides kind's own colour entirely (see Button's own doc
+              comment in ui.tsx), so the two read identically styled, the
+              only difference their label/icon and which confirm-modal opens. */}
           <Button
-            kind="danger"
+            hue={6}
+            kind="primary"
             icon={<IconSignOut width={16} height={16} />}
             disabled={!data.canQuit || acting}
             onClick={() => setConfirmAction('quit')}
@@ -495,7 +561,8 @@ function SystemCards() {
             {t('settings.system.quit')}
           </Button>
           <Button
-            kind="secondary"
+            hue={6}
+            kind="primary"
             icon={<IconRetry width={16} height={16} />}
             disabled={!data.canRestart || acting}
             onClick={() => setConfirmAction('restart')}
@@ -506,26 +573,14 @@ function SystemCards() {
         {actionError && <span className="text-sm text-statusFail">{actionError}</span>}
       </Card>
 
+      {/* Backup and Restore, one card (jdp, 2026-08-24: "Sicherung und
+          wiederherstellungscard in eine zusammenfassen") - two former
+          standalone Cards (hue 7 and hue 8) merged into hue 7 alone; nothing
+          after this needed hue 8 any more than the Motion card above needed a
+          fresh one of its own. */}
       <Card className="flex flex-col gap-3">
-        <SectionTitle hue={7} hint={t('settings.system.backupHint')}>
-          {t('settings.system.backupTitle')}
-        </SectionTitle>
-        <div className="flex flex-wrap items-center gap-3">
-          <Button
-            kind="secondary"
-            icon={<IconDownloads width={16} height={16} />}
-            onClick={() => {
-              window.location.href = BACKUP_DOWNLOAD_URL;
-            }}
-          >
-            {t('settings.system.backupButton')}
-          </Button>
-        </div>
-      </Card>
-
-      <Card className="flex flex-col gap-3">
-        <SectionTitle hue={8} hint={t('settings.system.restoreHint')}>
-          {t('settings.system.restoreTitle')}
+        <SectionTitle hue={7} hint={t('settings.system.backupRestoreHint')}>
+          {t('settings.system.backupRestoreTitle')}
         </SectionTitle>
         <input
           ref={fileInput}
@@ -543,7 +598,23 @@ function SystemCards() {
           }}
         />
         <div className="flex flex-wrap items-center gap-3">
-          <Button kind="secondary" onClick={() => fileInput.current?.click()} disabled={restoring}>
+          <Button
+            hue={7}
+            kind="secondary"
+            icon={<IconDownloads width={16} height={16} />}
+            onClick={() => {
+              window.location.href = BACKUP_DOWNLOAD_URL;
+            }}
+          >
+            {t('settings.system.backupButton')}
+          </Button>
+          <Button
+            hue={7}
+            kind="secondary"
+            icon={<IconUpload width={16} height={16} />}
+            onClick={() => fileInput.current?.click()}
+            disabled={restoring}
+          >
             {t('settings.system.restoreButton')}
           </Button>
         </div>

@@ -513,15 +513,15 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
                     {tok.lastUsed ? fmtDate(tok.lastUsed) : cx('settings.access.tokens.neverUsed')}
                   </div>
                 </div>
-                <Button
+                <IconBadge
                   kind="danger"
-                  className="shrink-0 px-2.5 text-xs"
                   icon={<IconTrash width={15} height={15} />}
                   disabled={revoking === tok.id}
+                  title={cx('settings.access.tokens.revoke')}
+                  aria-label={cx('settings.access.tokens.revoke')}
                   onClick={() => void onRevoke(tok.id)}
-                >
-                  {cx('settings.access.tokens.revoke')}
-                </Button>
+                  className="shrink-0"
+                />
               </div>
             ))}
           </div>

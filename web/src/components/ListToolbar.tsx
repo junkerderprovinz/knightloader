@@ -843,12 +843,22 @@ function taskMenuGroups({
     // left a task exactly where the first press put it, and pressing it on a
     // task the Packagizer had already set to highest silently demoted it.
     const step = (where: QueueMove) => guard(() => queueMove({ ids }, where, base));
-    queueGroup.items.push(
-      { id: 'top', label: t('task.moveTop'), icon: <IconTop width={14} height={14} />, onSelect: step('top') },
-      { id: 'up', label: t('task.moveUp'), icon: <IconArrowUp width={14} height={14} />, onSelect: step('up') },
-      { id: 'down', label: t('task.moveDown'), icon: <IconArrowDown width={14} height={14} />, onSelect: step('down') },
-      { id: 'bottom', label: t('task.moveBottom'), icon: <IconBottom width={14} height={14} />, onSelect: step('bottom') },
-    );
+    queueGroup.items.push({
+      id: 'move',
+      label: t('menu.move'),
+      icon: <IconTop width={14} height={14} />,
+      submenu: [
+        {
+          id: 'steps',
+          items: [
+            { id: 'top', label: t('task.moveTop'), icon: <IconTop width={14} height={14} />, onSelect: step('top') },
+            { id: 'up', label: t('task.moveUp'), icon: <IconArrowUp width={14} height={14} />, onSelect: step('up') },
+            { id: 'down', label: t('task.moveDown'), icon: <IconArrowDown width={14} height={14} />, onSelect: step('down') },
+            { id: 'bottom', label: t('task.moveBottom'), icon: <IconBottom width={14} height={14} />, onSelect: step('bottom') },
+          ],
+        },
+      ],
+    });
 
     // Behind one word, the way JDownloader keeps it: seven more entries in a
     // menu that already has a dozen would bury everything under them. The tick

@@ -123,6 +123,29 @@ func registerQueue(reg *Registry, a *app.App) {
 			bulkDone(w, a.MoveIn(body.Selection, body.Where))
 		})
 
+	// The drag-and-drop reorder: not a step but a whole new order for one band,
+	// so it takes a plain id list rather than app.Selection - a drag already
+	// knows exactly which rows moved and where, and it is the interface's own
+	// contract for the drag surface, not a case of "id, package, or all". It
+	// lives here rather than in routes_tasks.go because it is the same manual
+	// order every other route in this file orders, only driven by a complete
+	// list instead of a relative step.
+	reg.Add(http.MethodPost, "/api/tasks/reorder", "put one whole band of the wait queue in the exact order given, as a drag would",
+		func(w http.ResponseWriter, r *http.Request) {
+			var body struct {
+				Ids []string `json:"ids"`
+			}
+			if !decodeJSON(w, r, &body) || !requireIDs(w, body.Ids) {
+				return
+			}
+			ids, err := a.ReorderBand(body.Ids)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			bulkDone(w, ids)
+		})
+
 	reg.Add(http.MethodPost, "/api/queue/force", "start a selection now: to the front of the queue, switched on and released",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {

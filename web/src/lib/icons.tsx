@@ -29,6 +29,15 @@ export const IconDownloads = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+/** The upload counterpart: IconDownloads' own path mirrored vertically
+ *  (y' = 19 - y around its glyph's centre) so the arrow points up into a
+ *  tray instead of down out of one, for the restore/upload button. */
+export const IconUpload = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M8.5 16.5H11.5V9H16L10 2.5L4 9H8.5Z" />
+  </svg>
+);
+
 export const IconSettings = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path
