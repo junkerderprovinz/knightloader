@@ -7,7 +7,7 @@ import (
 
 func TestIsNewer(t *testing.T) {
 	cases := []struct {
-		latest, current string
+		latest, current   string
 		wantNewer, wantOK bool
 	}{
 		{"1.2.0", "1.1.9", true, true},

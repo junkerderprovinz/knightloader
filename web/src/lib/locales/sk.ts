@@ -132,6 +132,7 @@ export const sk: Dict = {
   'instances.pairHint': 'Vložte kód zo stránky Prístup druhej inštancie namiesto ručného zadávania jej názvu a adresy.',
   'instances.pairPlaceholder': 'Vložiť párovací kód',
   'instances.pairPaste': 'Vložiť',
+  'instances.pairPasteUnavailable': 'Čítanie schránky vyžaduje zabezpečené pripojenie (HTTPS alebo localhost) - táto inštancia beží cez obyčajné HTTP.',
   'instances.pairButton': 'Spárovať',
   'instances.pairSuccess': 'Spárované s {name} - teraz pozná aj túto inštanciu.',
 
@@ -384,6 +385,7 @@ export const sk: Dict = {
   'menu.collapseAll': 'Zbaliť všetky balíky',
   'menu.expandAll': 'Rozbaliť všetky balíky',
   'collector.checkAll': 'Overiť všetko',
+  'collector.searchToggle': 'Hľadať',
 
   'skipped.summary': '{n} odkazov nebolo pridaných',
   'skipped.info': 'Odkazy, ktoré zberač spoznal ako už pripravené. Nič sa nestratilo: stiahne sa tá kópia, ktorá už v zozname je. Vymazanie zabudne len túto poznámku, nič nevracia späť.',
@@ -489,6 +491,7 @@ export const sk: Dict = {
   'settings.look.updatesInstalled': 'Nainštalované — reštartujem…',
   'settings.look.updatesInstallFailed': 'Aktualizáciu sa nepodarilo nainštalovať: {error}',
   'settings.look.updatesContainerHint': "Kontrola iba porovnáva verzie a upozorní vás, keď je k dispozícii novšia verzia; nikdy nenahrádza bežiaci kontajner. Aktualizujte ho rovnako, ako ste ho nasadili — docker pull, Unraid Community Applications, Watchtower alebo čokoľvek iné, čo tento kontajner spravuje.",
+  'settings.look.updatesHint': 'Porovnáva verziu tohto zostavenia s najnovším vydaním na GitHube. Desktopová verzia dokáže novšiu verziu aj automaticky stiahnuť a nainštalovať; kontajner sa namiesto toho aktualizuje tak, ako bol nasadený (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.advanced.modified': 'zmenené',
   'settings.advanced.noMatch': 'Žiadny kľúč nezodpovedá.',
   'settings.advanced.badJson': 'Toto musí byť platný JSON, takže sa to nepoužije.',
@@ -1353,7 +1356,7 @@ export const sk: Dict = {
   'settings.access.remote.pairExpires': 'Platný {min} minút, potom bez použitia vyprší.',
   'settings.access.remote.vsPairing': 'Toto slúži na ručné otvorenie vlastného rozhrania tejto inštancie na inom zariadení (telefón, iný prehliadač). Spárovanie ďalšej inštancie KnightLoader, ktorú sami prevádzkujete, aby sa obe zobrazovali na stránke Inštancie tej druhej, je samostatná karta nižšie.',
   'settings.access.remote.pairWhere': 'Nie tu, ale na vlastnej stránke Inštancie tej druhej inštancie.',
-  'settings.access.remote.pairScan': 'Alebo to naskenujte druhou inštanciou, hneď ako to aplikácia KnightLoader umožní.',
+  'settings.access.remote.pairScan': 'Naskenuj QR kód aplikáciou KnightLoader.',
   'settings.access.intakePortsHint': 'Ďalšie spôsoby priameho oslovenia tejto inštancie, mimo bežného prihlásenia - každý s vlastnou dostupnosťou zobrazenou tu.',
   'settings.nav.browsertools': 'Nástroje prehliadača',
   'settings.browsertools.bookmarkletStep1': 'Presuň tlačidlo nižšie na panel záložiek prehliadača - uloží sa ako každá iná záložka, nič sa neinštaluje.',

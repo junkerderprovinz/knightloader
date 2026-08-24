@@ -560,6 +560,36 @@ body {
   --color-accentSoft: var(--item-hue-soft);
 }
 
+/* SectionTitle's own notch badge (ui.tsx) is a special case of the rest/hover
+   pair above: it is a small pill that sits HALF OVER its card's own top
+   edge, so the plain `.glim-hue:hover` target above is a sliver nobody can
+   aim at reliably - the hover has to land on that exact overlapping strip,
+   not the card it titles. `.glim-section-badge` is the marker SectionTitle
+   adds alongside `.glim-hue` for exactly this (never present alone), so the
+   widened hover target below only ever applies to a card's own title badge,
+   never to some other hued element (a list row, an icon) that merely
+   happens to share the same card - proximity to the card is not enough on
+   its own, the element has to be the title badge itself. `.glim-card` is
+   SectionTitle's required ancestor already (position: relative anchors the
+   badge, see .glim-card's own comment above), so hovering or focusing
+   anywhere in that card re-colours the badge the same way directly
+   hovering it already does. Composes with the rest/hover pair above rather
+   than replacing it: this is additional matches, not a narrower one -
+   source order puts it after that pair for readability, though the doubled
+   class on `.glim-section-badge.glim-hue` already outranks the bare
+   `.glim-hue:hover` selector regardless of order (jdp: "Die
+   cardabschnittbadges sollen im reaktiven modus immer farbig sein sobald
+   man in deren card ist. system weit! Alle checken!"). */
+[data-rainbow='reactive'] .glim-card:hover .glim-section-badge.glim-hue,
+[data-rainbow='reactive'] .glim-card:focus-within .glim-section-badge.glim-hue {
+  --accent: var(--item-hue);
+  --accent-contrast: var(--item-hue-ink);
+  --accent-soft: var(--item-hue-soft);
+  --color-accent: var(--item-hue);
+  --color-accentContrast: var(--item-hue-ink);
+  --color-accentSoft: var(--item-hue-soft);
+}
+
 /* Long-press-to-wiggle reorder (Tabs.tsx, opt-in `reorderable`) - ported from
    CannonadeCommand's own nav rail, the same reason `.glim-tab-wiggle` and
    `.glim-tab-dragging` are named to match its CSS class shape rather than

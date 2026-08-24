@@ -132,6 +132,7 @@ export const vi: Dict = {
   'instances.pairHint': 'Dán mã từ trang Truy cập của phiên bản kia thay vì gõ tên và địa chỉ của nó.',
   'instances.pairPlaceholder': 'Dán mã ghép nối',
   'instances.pairPaste': 'Dán',
+  'instances.pairPasteUnavailable': 'Đọc bộ nhớ tạm cần kết nối an toàn (HTTPS hoặc localhost) - phiên bản này đang chạy qua HTTP thường.',
   'instances.pairButton': 'Ghép nối',
   'instances.pairSuccess': 'Đã ghép nối với {name} - giờ đây nó cũng biết về phiên bản này.',
 
@@ -384,6 +385,7 @@ export const vi: Dict = {
   'menu.collapseAll': 'Thu gọn mọi gói',
   'menu.expandAll': 'Mở rộng mọi gói',
   'collector.checkAll': 'Kiểm tra tất cả',
+  'collector.searchToggle': 'Tìm kiếm',
 
   'skipped.summary': '{n} liên kết không được thêm',
   'skipped.info': 'Những liên kết mà bộ thu nhận ra là đã có sẵn. Không mất gì cả: bản đã nằm trong danh sách chính là bản sẽ được tải. Xóa chỉ quên ghi chú này đi, không thêm lại gì.',
@@ -489,6 +491,7 @@ export const vi: Dict = {
   'settings.look.updatesInstalled': 'Đã cài đặt — đang khởi động lại…',
   'settings.look.updatesInstallFailed': 'Không thể cài đặt bản cập nhật: {error}',
   'settings.look.updatesContainerHint': "Việc kiểm tra chỉ so sánh phiên bản và báo cho bạn biết khi có bản phát hành mới hơn; nó không bao giờ thay thế container đang chạy. Hãy cập nhật nó theo cách bạn đã triển khai — docker pull, Unraid Community Applications, Watchtower, hoặc bất cứ thứ gì đang quản lý container này.",
+  'settings.look.updatesHint': 'So sánh phiên bản của bản dựng này với bản phát hành mới nhất trên GitHub. Bản dựng desktop cũng có thể tự động tải xuống và cài đặt phiên bản mới hơn; container thì được cập nhật theo cách nó đã được triển khai (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.advanced.modified': 'đã đổi',
   'settings.advanced.noMatch': 'Không khoá nào khớp.',
   'settings.advanced.badJson': 'Cái này phải là JSON hợp lệ, nên nó không được áp dụng.',
@@ -1352,7 +1355,7 @@ export const vi: Dict = {
   'settings.access.remote.pairExpires': 'Có hiệu lực trong {min} phút, sau đó hết hạn nếu không dùng.',
   'settings.access.remote.vsPairing': 'Đây là để mở thủ công giao diện riêng của phiên bản này trên một thiết bị khác (điện thoại, trình duyệt khác). Ghép nối một phiên bản KnightLoader khác mà bạn tự chạy, để cả hai hiện lên trên trang Instances của nhau, là thẻ riêng bên dưới.',
   'settings.access.remote.pairWhere': 'Không phải ở đây, mà ở trang Phiên bản riêng của phiên bản kia.',
-  'settings.access.remote.pairScan': 'Hoặc quét mã này bằng phiên bản kia, ngay khi có ứng dụng KnightLoader làm được điều đó.',
+  'settings.access.remote.pairScan': 'Quét mã QR bằng ứng dụng KnightLoader.',
   'settings.access.intakePortsHint': 'Các cách khác để truy cập trực tiếp vào phiên bản này, ngoài đăng nhập thông thường - mỗi cách hiển thị khả năng truy cập riêng tại đây.',
   'settings.nav.browsertools': 'Công cụ trình duyệt',
   'settings.browsertools.bookmarkletStep1': 'Kéo nút bên dưới vào thanh dấu trang của trình duyệt - nó được lưu như bất kỳ dấu trang nào khác, không cài đặt gì cả.',

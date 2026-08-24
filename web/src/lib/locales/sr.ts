@@ -132,6 +132,7 @@ export const sr: Dict = {
   'instances.pairHint': 'Налепи код са странице Приступ друге инстанце уместо да ручно уносиш назив и адресу.',
   'instances.pairPlaceholder': 'Налепи код за упаривање',
   'instances.pairPaste': 'Налепи',
+  'instances.pairPasteUnavailable': 'Читање из привремене меморије захтева безбедну везу (HTTPS или localhost) - ова инстанца ради преко обичног HTTP-а.',
   'instances.pairButton': 'Упари',
   'instances.pairSuccess': 'Упарено са {name} - сада зна и за ову инстанцу.',
 
@@ -384,6 +385,7 @@ export const sr: Dict = {
   'menu.collapseAll': 'Скупи све пакете',
   'menu.expandAll': 'Прошири све пакете',
   'collector.checkAll': 'Провери све',
+  'collector.searchToggle': 'Претрага',
 
   'skipped.summary': '{n} веза није додато',
   'skipped.info': 'Везе које је сакупљач препознао као већ припремљене. Ништа није изгубљено: преузеће се копија која је већ на списку. Чишћење заборавља само ову белешку, ништа не враћа назад.',
@@ -489,6 +491,7 @@ export const sr: Dict = {
   'settings.look.updatesInstalled': 'Инсталирано — поновно покретање…',
   'settings.look.updatesInstallFailed': 'Ажурирање није могло да се инсталира: {error}',
   'settings.look.updatesContainerHint': "Провера само упоређује верзије и обавештава вас када постоји новије издање; никада не замењује контејнер који ради. Ажурирајте га на исти начин на који сте га поставили — docker pull, Unraid Community Applications, Watchtower или шта год управља овим контејнером.",
+  'settings.look.updatesHint': 'Упоређује верзију овог билда са најновијим издањем на GitHub-у. Десктоп верзија такође може аутоматски преузети и инсталирати новију верзију; контејнер се уместо тога ажурира онако како је постављен (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.advanced.modified': 'промењено',
   'settings.advanced.noMatch': 'Ниједан кључ се не поклапа.',
   'settings.advanced.badJson': 'Ово мора бити исправан JSON, зато се не примењује.',
@@ -1353,7 +1356,7 @@ export const sr: Dict = {
   'settings.access.remote.pairExpires': 'Важи {min} минута, а затим истиче неискоришћен.',
   'settings.access.remote.vsPairing': 'Ово је за ручно отварање сопственог интерфејса ове инстанце на другом уређају (телефон, други прегледач). Упаривање друге KnightLoader инстанце коју сам покрећеш, тако да се обе виде на страници Инстанце оне друге, посебна је картица испод.',
   'settings.access.remote.pairWhere': 'Не овде, него на сопственој страници Инстанце те друге инстанце.',
-  'settings.access.remote.pairScan': 'Или скенирај ово другом инстанцом, чим то KnightLoader апликација буде могла.',
+  'settings.access.remote.pairScan': 'Скенирај QR код апликацијом KnightLoader.',
   'settings.access.intakePortsHint': 'Други начини директног приступа овој инстанци, изван уобичајене пријаве - сваки са својом доступношћу приказаном овде.',
   'settings.nav.browsertools': 'Алатке прегледача',
   'settings.browsertools.bookmarkletStep1': 'Превуци дугме испод на траку са обележивачима твог прегледача - чува се као свако друго обележивач, ништа се не инсталира.',

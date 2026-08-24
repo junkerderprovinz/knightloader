@@ -132,6 +132,7 @@ export const de: Dict = {
   'instances.pairHint': 'Füge einen Code von der Zugang-Seite der anderen Instanz ein, statt Name und Adresse selbst einzutippen.',
   'instances.pairPlaceholder': 'Pairing-Code einfügen',
   'instances.pairPaste': 'Einfügen',
+  'instances.pairPasteUnavailable': 'Zwischenablage lesen braucht eine sichere Verbindung (HTTPS oder localhost) - diese Instanz läuft über einfaches HTTP.',
   'instances.pairButton': 'Koppeln',
   'instances.pairSuccess': 'Mit {name} gekoppelt - kennt jetzt auch diese Instanz.',
 
@@ -384,6 +385,7 @@ export const de: Dict = {
   'menu.collapseAll': 'Alle Pakete zuklappen',
   'menu.expandAll': 'Alle Pakete aufklappen',
   'collector.checkAll': 'Alle prüfen',
+  'collector.searchToggle': 'Suchen',
 
   'skipped.summary': '{n} Link(s) wurden nicht hinzugefügt',
   'skipped.info': 'Links, die der Sammler als bereits gesammelt erkannt hat. Nichts ging verloren — die Kopie in der Liste ist die, die geladen wird. Löschen vergisst nur diesen Hinweis, es fügt nichts zurück.',
@@ -489,6 +491,7 @@ export const de: Dict = {
   'settings.look.updatesInstalled': 'Installiert — wird neu gestartet…',
   'settings.look.updatesInstallFailed': 'Update konnte nicht installiert werden: {error}',
   'settings.look.updatesContainerHint': "Die Prüfung vergleicht nur Versionen und meldet, wenn eine neuere Version verfügbar ist; sie ersetzt niemals den laufenden Container. Aktualisiere ihn so, wie du ihn bereitgestellt hast – docker pull, Unraid Community Applications, Watchtower oder womit auch immer dieser Container verwaltet wird.",
+  'settings.look.updatesHint': 'Vergleicht die Version dieses Builds mit dem neuesten Release auf GitHub. Der Desktop-Build kann eine neuere Version zusätzlich automatisch herunterladen und installieren; ein Container wird stattdessen so aktualisiert, wie er bereitgestellt wurde (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.advanced.modified': 'geändert',
   'settings.advanced.noMatch': 'Kein Schlüssel passt.',
   'settings.advanced.badJson': 'Das muss gültiges JSON sein, deshalb wird es nicht übernommen.',
@@ -1353,7 +1356,7 @@ export const de: Dict = {
   'settings.access.remote.pairExpires': 'Gültig für {min} Minuten, danach verfällt er ungenutzt.',
   'settings.access.remote.vsPairing': 'Das hier ist zum manuellen Öffnen der Oberfläche dieser Instanz auf einem anderen Gerät (Handy, anderer Browser). Eine andere KnightLoader-Instanz zu koppeln, die du selbst betreibst, damit beide sich gegenseitig auf der Instanzen-Seite zeigen, ist die separate Karte weiter unten.',
   'settings.access.remote.pairWhere': 'Nicht hier, sondern auf der eigenen Instanzen-Seite der anderen Instanz.',
-  'settings.access.remote.pairScan': 'Oder mit der anderen Instanz scannen, sobald eine KnightLoader-App das kann.',
+  'settings.access.remote.pairScan': 'Scanne den QR-Code mit der KnightLoader-App.',
   'settings.access.intakePortsHint': 'Weitere Wege, auf denen diese Instanz direkt erreichbar ist, außerhalb des normalen Logins - jeder mit seiner eigenen Erreichbarkeit hier angezeigt.',
   'settings.nav.browsertools': 'Browser-Werkzeuge',
   'settings.browsertools.bookmarkletStep1': 'Ziehe den Button unten in die Lesezeichenleiste deines Browsers - er speichert sich wie jedes andere Lesezeichen, nichts wird installiert.',

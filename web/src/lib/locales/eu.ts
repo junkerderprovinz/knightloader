@@ -132,6 +132,7 @@ export const eu: Dict = {
   'instances.pairHint': 'Itsatsi beste instantziaren Sarbidea orriko kodea, izena eta helbidea eskuz idatzi beharrean.',
   'instances.pairPlaceholder': 'Itsatsi parekatze-kodea',
   'instances.pairPaste': 'Itsatsi',
+  'instances.pairPasteUnavailable': 'Arbela irakurtzeko konexio segurua behar da (HTTPS edo localhost) - instantzia hau HTTP arrunt bidez zerbitzatzen da.',
   'instances.pairButton': 'Parekatu',
   'instances.pairSuccess': '{name} instantziarekin parekatuta - honek ere instantzia hau ezagutzen du orain.',
 
@@ -384,6 +385,7 @@ export const eu: Dict = {
   'menu.collapseAll': 'Tolestu pakete guztiak',
   'menu.expandAll': 'Zabaldu pakete guztiak',
   'collector.checkAll': 'Egiaztatu dena',
+  'collector.searchToggle': 'Bilatu',
 
   'skipped.summary': '{n} esteka ez dira gehitu',
   'skipped.info': 'Biltzaileak dagoeneko prestatuta zeudela ezagutu dituen estekak. Ez da ezer galdu: zerrendan dagoeneko dagoen kopia da deskargatuko dena. Garbitzeak ohar hau ahazten du soilik, ez du ezer itzultzen.',
@@ -489,6 +491,7 @@ export const eu: Dict = {
   'settings.look.updatesInstalled': 'Instalatuta — berrabiarazten…',
   'settings.look.updatesInstallFailed': 'Ezin izan da eguneraketa instalatu: {error}',
   'settings.look.updatesContainerHint': "Egiaztapenak bertsioak alderatzen ditu bakarrik eta bertsio berriago bat dagoenean jakinarazten dizu; ez du inoiz martxan dagoen edukiontzia ordezten. Eguneratu zabaldu zenuen bezalaxe — docker pull, Unraid Community Applications, Watchtower edo edukiontzi hau kudeatzen duen edozer.",
+  'settings.look.updatesHint': 'Build honen bertsioa GitHub-eko azken argitalpenarekin alderatzen du. Mahaigaineko bertsioak berriagoa automatikoki deskargatu eta instalatu ere badezake; edukiontzi bat, berriz, hedatu zen moduan eguneratzen da (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.advanced.modified': 'aldatuta',
   'settings.advanced.noMatch': 'Ez dator bat gakorik.',
   'settings.advanced.badJson': 'Honek baliozko JSON izan behar du, beraz ez da aplikatzen.',
@@ -1352,7 +1355,7 @@ export const eu: Dict = {
   'settings.access.remote.pairExpires': '{min} minutuz baliozkoa, ondoren erabili gabe iraungiko da.',
   'settings.access.remote.vsPairing': 'Hau instantzia honen interfazea bera eskuz beste gailu batean irekitzeko da (telefono bat, beste nabigatzaile bat). Zeuk exekutatzen duzun beste KnightLoader bat parekatzea, biak elkarren Instantziak orrian ager daitezen, beheko txartel bereizia da.',
   'settings.access.remote.pairWhere': 'Ez hemen, beste instantziaren bere Instantziak orrian baizik.',
-  'settings.access.remote.pairScan': 'Edo eskaneatu hau beste instantziarekin, KnightLoader aplikazio batek egin ahal duenean.',
+  'settings.access.remote.pairScan': 'Eskaneatu QR kodea KnightLoader aplikazioarekin.',
   'settings.access.intakePortsHint': 'Instantzia honetara zuzenean iristeko beste bide batzuk, ohiko saio-hasitik kanpo - bakoitzak bere eskuragarritasuna hemen erakutsita.',
   'settings.nav.browsertools': 'Nabigatzaile-tresnak',
   'settings.browsertools.bookmarkletStep1': 'Arrastatu beheko botoia zure nabigatzailearen laster-marken barrara - beste edozein laster-marka bezala gordetzen da, ez da ezer instalatzen.',

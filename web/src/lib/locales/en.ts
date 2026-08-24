@@ -143,6 +143,7 @@ export const en = {
   'instances.pairHint': 'Paste a code from the other instance\'s Access page instead of typing its name and address.',
   'instances.pairPlaceholder': 'Paste pairing code',
   'instances.pairPaste': 'Paste',
+  'instances.pairPasteUnavailable': 'Reading the clipboard needs a secure connection (HTTPS or localhost) - this instance is served over plain HTTP.',
   'instances.pairButton': 'Pair',
   'instances.pairSuccess': 'Paired with {name} - it now knows about this instance too.',
 
@@ -398,6 +399,7 @@ export const en = {
   'menu.collapseAll': 'Collapse all packages',
   'menu.expandAll': 'Expand all packages',
   'collector.checkAll': 'Check all',
+  'collector.searchToggle': 'Search',
 
   'skipped.summary': '{n} link(s) were not added',
   'skipped.info': 'Links the collector recognised as already staged. Nothing was lost — the copy already in the list is the one that will download. Clearing forgets this note; it does not add anything back.',
@@ -534,6 +536,7 @@ export const en = {
   'settings.look.updatesInstalled': 'Installed — restarting…',
   'settings.look.updatesInstallFailed': 'Could not install the update: {error}',
   'settings.look.updatesContainerHint': 'Checking only compares versions and tells you when a newer release exists; it never replaces the running container. Update it the way you deployed it — docker pull, Unraid Community Applications, Watchtower, or whatever manages this container.',
+  'settings.look.updatesHint': "Compares this build's version against the latest release on GitHub. The desktop build can also download and install a newer one automatically; a container updates the way it was deployed instead (docker pull, Unraid Community Applications, Watchtower, ...).",
   'settings.advanced.modified': 'changed',
   'settings.advanced.noMatch': 'No key matches.',
   'settings.advanced.badJson': 'This has to be valid JSON, so it is not being applied.',
@@ -1559,7 +1562,7 @@ export const en = {
   'settings.access.remote.pairExpires': 'Valid for {min} minutes, then it expires unused.',
   'settings.access.remote.vsPairing': 'This is for opening this instance\'s own interface on another device by hand (a phone, another browser). Pairing another KnightLoader you run yourself, so the two show up on each other\'s Instances page, is the separate card below.',
   'settings.access.remote.pairWhere': 'Not here — on the other instance\'s own Instances page.',
-  'settings.access.remote.pairScan': 'Or scan this with the other instance, once a KnightLoader app can.',
+  'settings.access.remote.pairScan': 'Scan the QR code with the KnightLoader app.',
   'settings.access.intakePortsHint': 'Other ways this instance can be reached directly, outside the normal login - each with its own reachability shown here.',
 
   // Sending KnightLoader a link from outside the app - the bookmarklet, the

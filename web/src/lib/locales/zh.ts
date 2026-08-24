@@ -132,6 +132,7 @@ export const zh: Dict = {
   'instances.pairHint': '粘贴另一个实例「访问」页面上的配对码，而不用手动输入它的名称和地址。',
   'instances.pairPlaceholder': '粘贴配对码',
   'instances.pairPaste': '粘贴',
+  'instances.pairPasteUnavailable': '读取剪贴板需要安全连接(HTTPS 或 localhost)- 此实例通过普通 HTTP 提供服务。',
   'instances.pairButton': '配对',
   'instances.pairSuccess': '已与 {name} 配对 - 现在它也知道这个实例了。',
 
@@ -384,6 +385,7 @@ export const zh: Dict = {
   'menu.collapseAll': '折叠所有包',
   'menu.expandAll': '展开所有包',
   'collector.checkAll': '全部检查',
+  'collector.searchToggle': '搜索',
 
   'skipped.summary': '有 {n} 个链接没有添加',
   'skipped.info': '收集器认出这些链接已经在列表里了。什么都没丢：会下载的是列表中已有的那一份。清空只是忘掉这条提示，不会把任何东西加回来。',
@@ -489,6 +491,7 @@ export const zh: Dict = {
   'settings.look.updatesInstalled': '已安装 — 正在重启…',
   'settings.look.updatesInstallFailed': '无法安装更新：{error}',
   'settings.look.updatesContainerHint': "检查只会比较版本号并在有新版本时通知你,绝不会替换正在运行的容器。请按照你部署时的方式更新它 — docker pull、Unraid Community Applications、Watchtower,或任何管理这个容器的工具。",
+  'settings.look.updatesHint': '将此构建版本与 GitHub 上的最新版本进行比较。桌面版还可以自动下载并安装新版本;容器则按部署时的方式更新(docker pull、Unraid Community Applications、Watchtower 等)。',
   'settings.advanced.modified': '已改',
   'settings.advanced.noMatch': '没有匹配的键。',
   'settings.advanced.badJson': '这必须是合法的 JSON，所以没有生效。',
@@ -1349,7 +1352,7 @@ export const zh: Dict = {
   'settings.access.remote.pairExpires': '有效期 {min} 分钟，过期未使用将失效。',
   'settings.access.remote.vsPairing': '这是用来在另一台设备（手机、另一个浏览器）上手动打开这个实例自己的界面的。配对另一个你自己运行的 KnightLoader 实例，让两者互相显示在对方的「实例」页面上，是下方那张单独的卡片。',
   'settings.access.remote.pairWhere': '不是这里，而是在另一个实例自己的"实例"页面上。',
-  'settings.access.remote.pairScan': '或者用另一个实例扫描这个，前提是有 KnightLoader 应用支持扫描后。',
+  'settings.access.remote.pairScan': '用 KnightLoader 应用扫描二维码。',
   'settings.access.intakePortsHint': '在正常登录之外，直接访问此实例的其他方式 - 每种方式的可达性都显示在这里。',
   'settings.nav.browsertools': '浏览器工具',
   'settings.browsertools.bookmarkletStep1': '将下方按钮拖到浏览器的书签栏 - 它会像任何其他书签一样保存，不会安装任何东西。',

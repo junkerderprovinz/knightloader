@@ -132,6 +132,7 @@ export const id: Dict = {
   'instances.pairHint': 'Tempel kode dari halaman Akses instans lain, bukan mengetik nama dan alamatnya sendiri.',
   'instances.pairPlaceholder': 'Tempel kode pemasangan',
   'instances.pairPaste': 'Tempel',
+  'instances.pairPasteUnavailable': 'Membaca papan klip perlu koneksi aman (HTTPS atau localhost) - instans ini dilayani lewat HTTP biasa.',
   'instances.pairButton': 'Pasangkan',
   'instances.pairSuccess': 'Dipasangkan dengan {name} - sekarang juga mengenal instans ini.',
 
@@ -384,6 +385,7 @@ export const id: Dict = {
   'menu.collapseAll': 'Ciutkan semua paket',
   'menu.expandAll': 'Bentangkan semua paket',
   'collector.checkAll': 'Cek semua',
+  'collector.searchToggle': 'Cari',
 
   'skipped.summary': '{n} tautan tidak ditambahkan',
   'skipped.info': 'Tautan yang dikenali kolektor sudah ada di daftar. Tidak ada yang hilang: salinan yang sudah di daftar itulah yang akan diunduh. Membersihkan hanya melupakan catatan ini, bukan menambahkan apa pun kembali.',
@@ -489,6 +491,7 @@ export const id: Dict = {
   'settings.look.updatesInstalled': 'Terinstal — memulai ulang…',
   'settings.look.updatesInstallFailed': 'Tidak dapat menginstal pembaruan: {error}',
   'settings.look.updatesContainerHint': "Pemeriksaan hanya membandingkan versi dan memberi tahu Anda saat ada rilis yang lebih baru; ini tidak pernah menggantikan kontainer yang sedang berjalan. Perbarui dengan cara yang sama seperti saat Anda menerapkannya — docker pull, Unraid Community Applications, Watchtower, atau apa pun yang mengelola kontainer ini.",
+  'settings.look.updatesHint': 'Membandingkan versi build ini dengan rilis terbaru di GitHub. Build desktop juga bisa mengunduh dan memasang versi baru secara otomatis; kontainer diperbarui dengan cara yang sama seperti saat di-deploy (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.advanced.modified': 'berubah',
   'settings.advanced.noMatch': 'Tidak ada kunci yang cocok.',
   'settings.advanced.badJson': 'Ini harus JSON yang sah, jadi tidak diterapkan.',
@@ -1352,7 +1355,7 @@ export const id: Dict = {
   'settings.access.remote.pairExpires': 'Berlaku selama {min} menit, setelah itu kedaluwarsa jika tidak digunakan.',
   'settings.access.remote.vsPairing': 'Ini untuk membuka antarmuka instans ini sendiri secara manual di perangkat lain (ponsel, browser lain). Memasangkan instans KnightLoader lain yang Anda jalankan sendiri, sehingga keduanya muncul di halaman Instances satu sama lain, adalah kartu terpisah di bawah ini.',
   'settings.access.remote.pairWhere': 'Bukan di sini, melainkan di halaman Instance milik instans lain itu sendiri.',
-  'settings.access.remote.pairScan': 'Atau pindai ini dengan instans lain, begitu ada aplikasi KnightLoader yang bisa.',
+  'settings.access.remote.pairScan': 'Pindai kode QR dengan aplikasi KnightLoader.',
   'settings.access.intakePortsHint': 'Cara lain untuk menjangkau instans ini secara langsung, di luar login normal - masing-masing dengan keterjangkauannya sendiri yang ditampilkan di sini.',
   'settings.nav.browsertools': 'Alat peramban',
   'settings.browsertools.bookmarkletStep1': 'Seret tombol di bawah ke bilah markah buku browsermu - tersimpan seperti markah buku lainnya, tidak ada yang terpasang.',

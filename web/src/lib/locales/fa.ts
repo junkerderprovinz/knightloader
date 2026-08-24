@@ -132,6 +132,7 @@ export const fa: Dict = {
   'instances.pairHint': 'به‌جای تایپ نام و آدرس نمونه دیگر، کدی از صفحه دسترسی آن را جای‌گذاری کنید.',
   'instances.pairPlaceholder': 'جای‌گذاری کد جفت‌سازی',
   'instances.pairPaste': 'جای‌گذاری',
+  'instances.pairPasteUnavailable': 'خواندن کلیپ‌بورد به اتصال امن (HTTPS یا localhost) نیاز دارد - این نمونه از طریق HTTP ساده ارائه می‌شود.',
   'instances.pairButton': 'جفت‌سازی',
   'instances.pairSuccess': 'با {name} جفت شد - اکنون این نمونه را هم می‌شناسد.',
 
@@ -384,6 +385,7 @@ export const fa: Dict = {
   'menu.collapseAll': 'جمع کردن همه بسته‌ها',
   'menu.expandAll': 'گسترش همه بسته‌ها',
   'collector.checkAll': 'بررسی همه',
+  'collector.searchToggle': 'جستجو',
 
   'skipped.summary': '{n} پیوند افزوده نشد',
   'skipped.info': 'پیوندهایی که گردآور آنها را از پیش آماده شناخت. چیزی از دست نرفت: همان نسخه‌ای که در فهرست است دانلود خواهد شد. پاک کردن فقط این یادداشت را فراموش می‌کند و چیزی را برنمی‌گرداند.',
@@ -489,6 +491,7 @@ export const fa: Dict = {
   'settings.look.updatesInstalled': 'نصب شد — در حال راه‌اندازی مجدد…',
   'settings.look.updatesInstallFailed': 'به‌روزرسانی نصب نشد: {error}',
   'settings.look.updatesContainerHint': "این بررسی فقط نسخه‌ها را مقایسه می‌کند و هنگام وجود نسخهٔ جدیدتر به شما اطلاع می‌دهد؛ هرگز جایگزین کانتینر در حال اجرا نمی‌شود. آن را به همان روشی که مستقر کرده‌اید به‌روزرسانی کنید — docker pull، Unraid Community Applications، Watchtower یا هر ابزاری که این کانتینر را مدیریت می‌کند.",
+  'settings.look.updatesHint': 'نسخهٔ این بیلد را با آخرین انتشار در GitHub مقایسه می‌کند. نسخهٔ دسکتاپ می‌تواند نسخهٔ جدیدتر را نیز به‌طور خودکار دانلود و نصب کند؛ کانتینر در عوض به همان روشی که مستقر شده به‌روزرسانی می‌شود (docker pull، Unraid Community Applications، Watchtower، ...).',
   'settings.advanced.modified': 'تغییر کرده',
   'settings.advanced.noMatch': 'هیچ کلیدی همخوان نیست.',
   'settings.advanced.badJson': 'این باید JSON معتبر باشد، پس اعمال نمی‌شود.',
@@ -1352,7 +1355,7 @@ export const fa: Dict = {
   'settings.access.remote.pairExpires': 'به مدت {min} دقیقه معتبر است، سپس بدون استفاده منقضی می‌شود.',
   'settings.access.remote.vsPairing': 'این برای باز کردن دستی رابط کاربری همین نمونه در دستگاهی دیگر است (تلفن، مرورگر دیگر). جفت‌سازی نمونه دیگری از KnightLoader که خودتان اجرا می‌کنید، به‌طوری که هر دو در صفحه نمونه‌های یکدیگر ظاهر شوند، کارت جداگانه زیر است.',
   'settings.access.remote.pairWhere': 'نه اینجا، بلکه در صفحه نمونه‌های خودِ آن نمونهٔ دیگر.',
-  'settings.access.remote.pairScan': 'یا این را با نمونه دیگر اسکن کنید، به‌محض اینکه اپلیکیشن KnightLoader بتواند.',
+  'settings.access.remote.pairScan': 'کد QR را با اپلیکیشن KnightLoader اسکن کنید.',
   'settings.access.intakePortsHint': 'راه‌های دیگر دسترسی مستقیم به این نمونه، خارج از ورود معمول - هر کدام با دسترس‌پذیری خودش در اینجا نشان داده شده.',
   'settings.nav.browsertools': 'ابزارهای مرورگر',
   'settings.browsertools.bookmarkletStep1': 'دکمه زیر را به نوار نشانک‌های مرورگرت بکش - مثل هر نشانک دیگری ذخیره می‌شود، چیزی نصب نمی‌شود.',

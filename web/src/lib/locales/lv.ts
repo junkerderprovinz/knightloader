@@ -132,6 +132,7 @@ export const lv: Dict = {
   'instances.pairHint': 'Ielīmē kodu no otras instances lapas Piekļuve, nevis ievadi tās nosaukumu un adresi manuāli.',
   'instances.pairPlaceholder': 'Ielīmēt pārošanas kodu',
   'instances.pairPaste': 'Ielīmēt',
+  'instances.pairPasteUnavailable': 'Starpliktuves lasīšanai nepieciešams drošs savienojums (HTTPS vai localhost) - šī instance darbojas caur vienkāršu HTTP.',
   'instances.pairButton': 'Sapārot',
   'instances.pairSuccess': 'Sapārots ar {name} - tagad tā zina arī par šo instanci.',
 
@@ -384,6 +385,7 @@ export const lv: Dict = {
   'menu.collapseAll': 'Sakļaut visas pakotnes',
   'menu.expandAll': 'Izvērst visas pakotnes',
   'collector.checkAll': 'Pārbaudīt visu',
+  'collector.searchToggle': 'Meklēt',
 
   'skipped.summary': '{n} saites netika pievienotas',
   'skipped.info': 'Saites, ko savācējs atpazina kā jau sagatavotas. Nekas nav zudis: lejupielādēsies tā kopija, kas jau ir sarakstā. Notīrīšana tikai aizmirst šo piezīmi, tā neko neatgriež.',
@@ -489,6 +491,7 @@ export const lv: Dict = {
   'settings.look.updatesInstalled': 'Instalēts — restartējas…',
   'settings.look.updatesInstallFailed': 'Neizdevās instalēt atjauninājumu: {error}',
   'settings.look.updatesContainerHint': "Pārbaude tikai salīdzina versijas un paziņo, kad ir pieejama jaunāka versija; tā nekad neaizstāj darbojošos konteineru. Atjaunini to tāpat, kā to izvietoji — docker pull, Unraid Community Applications, Watchtower vai lai kas šo konteineru pārvaldītu.",
+  'settings.look.updatesHint': 'Salīdzina šī būvējuma versiju ar jaunāko izlaidumu vietnē GitHub. Darbvirsmas versija var arī automātiski lejupielādēt un instalēt jaunāku versiju; konteiners tā vietā tiek atjaunināts tāpat, kā tas tika izvietots (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.advanced.modified': 'mainīts',
   'settings.advanced.noMatch': 'Neviena atslēga neatbilst.',
   'settings.advanced.badJson': 'Šim jābūt derīgam JSON, tāpēc tas netiek piemērots.',
@@ -1352,7 +1355,7 @@ export const lv: Dict = {
   'settings.access.remote.pairExpires': 'Derīgs {min} minūtes, pēc tam beidzas neizmantots.',
   'settings.access.remote.vsPairing': 'Tas ir paredzēts šīs instances pašas saskarnes manuālai atvēršanai citā ierīcē (tālrunī, citā pārlūkā). Citas pašu darbinātas KnightLoader instances sapārošana, lai abas parādītos vienai otras Instances lapā, ir atsevišķā karte zemāk.',
   'settings.access.remote.pairWhere': 'Ne šeit, bet otras instances pašas lapā Instances.',
-  'settings.access.remote.pairScan': 'Vai noskenē to ar otru instanci, tiklīdz to varēs KnightLoader lietotne.',
+  'settings.access.remote.pairScan': 'Skenējiet QR kodu ar KnightLoader lietotni.',
   'settings.access.intakePortsHint': 'Citi veidi, kā tieši sasniegt šo instanci, ārpus parastās pieteikšanās - katram sava sasniedzamība parādīta šeit.',
   'settings.nav.browsertools': 'Pārlūka rīki',
   'settings.browsertools.bookmarkletStep1': 'Velc zemāk esošo pogu uz sava pārlūka grāmatzīmju joslu - tā saglabājas kā jebkura cita grāmatzīme, nekas netiek instalēts.',

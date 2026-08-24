@@ -177,6 +177,7 @@ export function Accounts() {
           </>
         ) : (
           <EmptyState
+            nested
             icon={<IconAccounts width={26} height={26} />}
             title={t('accounts.debrid.empty')}
             hint={t('accounts.debrid.emptyHint')}
@@ -239,7 +240,7 @@ function AccountsTable({ rows, catalogue, refreshing, onRefresh, onToggle, onRen
   }
 
   return (
-    <div className="glim-card overflow-x-auto p-0">
+    <div className="glim-well overflow-x-auto p-0">
       <table className="w-full min-w-[42rem] border-collapse text-sm">
         <thead>
           <tr className="text-start text-xs text-carbon-textMuted">

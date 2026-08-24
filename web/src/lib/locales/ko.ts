@@ -132,6 +132,7 @@ export const ko: Dict = {
   'instances.pairHint': '다른 인스턴스의 이름과 주소를 직접 입력하는 대신, 해당 인스턴스의 액세스 페이지에서 코드를 붙여넣으세요.',
   'instances.pairPlaceholder': '페어링 코드 붙여넣기',
   'instances.pairPaste': '붙여넣기',
+  'instances.pairPasteUnavailable': '클립보드를 읽으려면 보안 연결(HTTPS 또는 localhost)이 필요합니다 - 이 인스턴스는 일반 HTTP로 제공됩니다.',
   'instances.pairButton': '페어링',
   'instances.pairSuccess': '{name}와(과) 페어링됨 - 이제 이 인스턴스도 알고 있습니다.',
 
@@ -384,6 +385,7 @@ export const ko: Dict = {
   'menu.collapseAll': '모든 패키지 접기',
   'menu.expandAll': '모든 패키지 펼치기',
   'collector.checkAll': '전부 확인',
+  'collector.searchToggle': '검색',
 
   'skipped.summary': '링크 {n}개가 추가되지 않았습니다',
   'skipped.info': '수집기가 이미 담겨 있다고 알아본 링크입니다. 잃은 것은 없습니다. 목록에 이미 있는 사본이 내려받아집니다. 지우면 이 알림만 잊을 뿐 무엇도 되돌아오지 않습니다.',
@@ -489,6 +491,7 @@ export const ko: Dict = {
   'settings.look.updatesInstalled': '설치됨 — 다시 시작하는 중…',
   'settings.look.updatesInstallFailed': '업데이트를 설치할 수 없습니다: {error}',
   'settings.look.updatesContainerHint': "확인 작업은 버전을 비교하고 새 릴리스가 있을 때 알려줄 뿐, 실행 중인 컨테이너를 대체하지 않습니다. 배포한 방식대로 업데이트하세요 — docker pull, Unraid Community Applications, Watchtower, 또는 이 컨테이너를 관리하는 다른 어떤 방법이든 사용하면 됩니다.",
+  'settings.look.updatesHint': '이 빌드의 버전을 GitHub의 최신 릴리스와 비교합니다. 데스크톱 빌드는 최신 버전을 자동으로 다운로드하고 설치할 수도 있습니다. 컨테이너는 대신 배포했던 방식대로 업데이트합니다(docker pull, Unraid Community Applications, Watchtower 등).',
   'settings.advanced.modified': '변경됨',
   'settings.advanced.noMatch': '일치하는 키가 없습니다.',
   'settings.advanced.badJson': '올바른 JSON이어야 하므로 적용되지 않습니다.',
@@ -1352,7 +1355,7 @@ export const ko: Dict = {
   'settings.access.remote.pairExpires': '{min}분 동안 유효하며, 이후 사용하지 않으면 만료됩니다.',
   'settings.access.remote.vsPairing': '이것은 이 인스턴스 자체의 인터페이스를 다른 기기(휴대폰, 다른 브라우저)에서 수동으로 여는 용도입니다. 본인이 직접 실행하는 다른 KnightLoader를 페어링하여 서로의 인스턴스 페이지에 표시되도록 하는 것은 아래의 별도 카드입니다.',
   'settings.access.remote.pairWhere': '여기가 아니라 다른 인스턴스 자체의 인스턴스 페이지에서 입력하세요.',
-  'settings.access.remote.pairScan': '또는 KnightLoader 앱이 지원하게 되면 다른 인스턴스로 이것을 스캔하세요.',
+  'settings.access.remote.pairScan': 'KnightLoader 앱으로 QR 코드를 스캔하세요.',
   'settings.access.intakePortsHint': '일반 로그인 외에 이 인스턴스에 직접 도달할 수 있는 다른 방법 - 각각의 도달 가능성이 여기에 표시됩니다.',
   'settings.nav.browsertools': '브라우저 도구',
   'settings.browsertools.bookmarkletStep1': '아래 버튼을 브라우저의 북마크 바로 드래그하세요 - 다른 북마크와 마찬가지로 저장될 뿐 아무것도 설치되지 않습니다.',

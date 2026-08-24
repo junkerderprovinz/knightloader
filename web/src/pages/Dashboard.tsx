@@ -79,9 +79,9 @@ export function Dashboard() {
         <Card className="flex flex-col gap-3">
           <SectionTitle>{t('overview.recent')}</SectionTitle>
           {recent.length === 0 ? (
-            <EmptyState icon={<IconDownloads width={26} height={26} />} title={t('overview.noDownloads')} />
+            <EmptyState nested icon={<IconDownloads width={26} height={26} />} title={t('overview.noDownloads')} />
           ) : (
-            <div className="glim-card divide-y divide-carbon-border/60 p-0">
+            <div className="glim-well divide-y divide-carbon-border/60 p-0">
               {recent.map((x) => (
                 <div key={x.id} className="flex items-center gap-4 px-5 py-3">
                   <div className="min-w-0 flex-1">
@@ -109,7 +109,7 @@ export function Dashboard() {
             downloads card above. */}
         <Card className="flex flex-col gap-3">
           <SectionTitle>{t('overview.instances')}</SectionTitle>
-          <div className="glim-card divide-y divide-carbon-border/60 p-0">
+          <div className="glim-well divide-y divide-carbon-border/60 p-0">
             <InstanceRow name={t('instances.thisInstance')} base="/api" />
             {(instances ?? []).map((i) => (
               <InstanceRow

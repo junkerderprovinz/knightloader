@@ -31,7 +31,7 @@ import {
   type MenuTarget,
   type QuickFilterId,
 } from '../components/ListToolbar';
-import { EMPTY_SEARCH, matchesSearch, type SearchQuery } from '../components/SearchField';
+import { EMPTY_SEARCH, matchesSearch, SearchField, type SearchQuery } from '../components/SearchField';
 import { anchorBelow, anchorFromEvent, useContextMenu, ContextMenu } from '../components/ContextMenu';
 import {
   CollectorFacetSidebar,
@@ -43,7 +43,7 @@ import { CollectorStats } from '../components/CollectorStats';
 import { useScriptMenu } from '../components/ScriptActions';
 import { FirstTouchHint } from '../components/FirstTouchHint';
 import { usePublishCommandPageContext } from '../lib/commands/pageContext';
-import { IconCheck, IconPlay, IconSearch, IconTrash } from '../lib/icons';
+import { IconCheck, IconPlay, IconRetry, IconSearch, IconTrash } from '../lib/icons';
 
 export function Collector() {
   const { t } = useT();
@@ -62,6 +62,12 @@ export function Collector() {
   // entfernen" - the paste box's own drop target hands files here too).
   const fileDrop = useRef<FileDropHandle>(null);
   const [search, setSearch] = useState<SearchQuery>(EMPTY_SEARCH);
+  // The search field's own open/closed state (jdp, 2026-08-24: "das
+  // suchfeld soll auch als quadratischer badge neben die andren vier
+  // badges. bei klick soll das suchfeld ausklappen") - the field itself
+  // stays mounted only while this is true; ListToolbar's own inline copy is
+  // suppressed below via hideSearch so the two never both show at once.
+  const [searchOpen, setSearchOpen] = useState(false);
   const [filters, setFilters] = useState<Set<QuickFilterId>>(() => new Set());
   // The facet groups the collector's own sidebar exposes (host, file type,
   // package) — see components/CollectorFacets.tsx for why availability is not a
@@ -323,7 +329,20 @@ export function Collector() {
               onActive={setFilters}
               tasks={collected}
               shown={filtered.length}
+              hideSearch
             />
+          </div>
+        )}
+
+        {/* The search field itself, folded away behind the badge below until
+            asked for (jdp, 2026-08-24: "das suchfeld soll auch als
+            quadratischer badge neben die andren vier badges. bei klick soll
+            das suchfeld ausklappen") - its own shrink-0 wrapper, matching
+            the ListToolbar and SelectionStrip wrappers around it in this
+            same cluster. */}
+        {searchOpen && (
+          <div className="shrink-0">
+            <SearchField value={search} onChange={setSearch} className="w-full" />
           </div>
         )}
 
@@ -389,7 +408,7 @@ export function Collector() {
             onClick={(e) => void openCleanup(e.currentTarget)}
           />
           <IconBadge
-            icon={<IconSearch width={16} height={16} />}
+            icon={<IconRetry width={16} height={16} />}
             className="glim-hue glim-hue-icon"
             style={hueStyle(2)}
             title={t('collector.checkAll')}
@@ -411,6 +430,14 @@ export function Collector() {
             aria-label={t('collector.startAll')}
             disabled={collected.length === 0}
             onClick={startAll}
+          />
+          <IconBadge
+            icon={<IconSearch width={16} height={16} />}
+            className="glim-hue glim-hue-icon"
+            style={hueStyle(4)}
+            title={t('collector.searchToggle')}
+            aria-label={t('collector.searchToggle')}
+            onClick={() => setSearchOpen((v) => !v)}
           />
         </div>
 

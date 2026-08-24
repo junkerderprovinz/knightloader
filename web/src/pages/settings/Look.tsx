@@ -481,7 +481,9 @@ function SystemCards() {
           the one fact worth keeping, what quit/restart actually do on THIS
           deployment, still shows right below via data.note. */}
       <Card className="flex flex-col gap-3">
-        <SectionTitle hue={6}>{t('settings.system.lifecycleTitle')}</SectionTitle>
+        <SectionTitle hue={6} hint={!data.canQuit || !data.canRestart ? t('settings.system.unavailable') : undefined}>
+          {t('settings.system.lifecycleTitle')}
+        </SectionTitle>
         <p className="text-[11px] text-carbon-textMuted">{data.note}</p>
         <div className="flex flex-wrap items-center gap-3">
           <Button
@@ -500,15 +502,14 @@ function SystemCards() {
           >
             {t('settings.system.restart')}
           </Button>
-          {(!data.canQuit || !data.canRestart) && (
-            <span className="text-[11px] text-carbon-textMuted">{t('settings.system.unavailable')}</span>
-          )}
         </div>
         {actionError && <span className="text-sm text-statusFail">{actionError}</span>}
       </Card>
 
       <Card className="flex flex-col gap-3">
-        <SectionTitle hue={7}>{t('settings.system.backupTitle')}</SectionTitle>
+        <SectionTitle hue={7} hint={t('settings.system.backupHint')}>
+          {t('settings.system.backupTitle')}
+        </SectionTitle>
         <div className="flex flex-wrap items-center gap-3">
           <Button
             kind="secondary"
@@ -519,12 +520,13 @@ function SystemCards() {
           >
             {t('settings.system.backupButton')}
           </Button>
-          <span className="text-[11px] text-carbon-textMuted">{t('settings.system.backupHint')}</span>
         </div>
       </Card>
 
       <Card className="flex flex-col gap-3">
-        <SectionTitle hue={8}>{t('settings.system.restoreTitle')}</SectionTitle>
+        <SectionTitle hue={8} hint={t('settings.system.restoreHint')}>
+          {t('settings.system.restoreTitle')}
+        </SectionTitle>
         <input
           ref={fileInput}
           type="file"
@@ -544,7 +546,6 @@ function SystemCards() {
           <Button kind="secondary" onClick={() => fileInput.current?.click()} disabled={restoring}>
             {t('settings.system.restoreButton')}
           </Button>
-          <span className="text-[11px] text-carbon-textMuted">{t('settings.system.restoreHint')}</span>
         </div>
         {restoreError && <span className="text-sm text-statusFail">{restoreError}</span>}
         {restoreStatus && !restoreError && (
@@ -708,7 +709,7 @@ function UpdateCard() {
 
   return (
     <Card className="flex flex-col gap-3">
-      <SectionTitle hue={5} hint={isDesktop ? undefined : t('settings.look.updatesContainerHint')}>
+      <SectionTitle hue={5} hint={t('settings.look.updatesHint')}>
         {t('settings.look.updatesTitle')}
       </SectionTitle>
       <div className="flex items-center justify-between gap-4">

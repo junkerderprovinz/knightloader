@@ -132,6 +132,7 @@ export const uk: Dict = {
   'instances.pairHint': 'Вставте код зі сторінки «Доступ» іншого екземпляра замість того, щоб вводити його назву й адресу вручну.',
   'instances.pairPlaceholder': 'Вставте код спарювання',
   'instances.pairPaste': 'Вставити',
+  'instances.pairPasteUnavailable': "Читання буфера обміну потребує захищеного з'єднання (HTTPS або localhost) - цей екземпляр працює через звичайний HTTP.",
   'instances.pairButton': 'Спарувати',
   'instances.pairSuccess': 'Спаровано з {name} - тепер він теж знає про цей екземпляр.',
 
@@ -384,6 +385,7 @@ export const uk: Dict = {
   'menu.collapseAll': 'Згорнути всі пакети',
   'menu.expandAll': 'Розгорнути всі пакети',
   'collector.checkAll': 'Перевірити все',
+  'collector.searchToggle': 'Пошук',
 
   'skipped.summary': '{n} посилань не додано',
   'skipped.info': 'Посилання, які збирач упізнав як уже підготовлені. Нічого не втрачено: завантажиться та копія, що вже у списку. Очищення забуває лише цю нотатку й нічого не повертає.',
@@ -489,6 +491,7 @@ export const uk: Dict = {
   'settings.look.updatesInstalled': 'Встановлено — перезапуск…',
   'settings.look.updatesInstallFailed': 'Не вдалося встановити оновлення: {error}',
   'settings.look.updatesContainerHint': "Перевірка лише порівнює версії та повідомляє, коли з'являється новіша версія; вона ніколи не замінює контейнер, що працює. Оновіть його так само, як розгортали — docker pull, Unraid Community Applications, Watchtower або чим би ви не керували цим контейнером.",
+  'settings.look.updatesHint': 'Порівнює версію цієї збірки з останнім релізом на GitHub. Версія для настільних систем також може автоматично завантажити та встановити новішу; контейнер натомість оновлюється так само, як був розгорнутий (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.advanced.modified': 'змінено',
   'settings.advanced.noMatch': 'Жоден ключ не збігається.',
   'settings.advanced.badJson': 'Це має бути коректний JSON, тому воно не застосовується.',
@@ -1353,7 +1356,7 @@ export const uk: Dict = {
   'settings.access.remote.pairExpires': 'Дійсний {min} хв, після чого спливає невикористаним.',
   'settings.access.remote.vsPairing': 'Це для ручного відкриття власного інтерфейсу цього екземпляра на іншому пристрої (телефон, інший браузер). Спарювання іншого екземпляра KnightLoader, який ви самі запускаєте, щоб обидва відображалися один в одного на сторінці «Екземпляри», — це окрема картка нижче.',
   'settings.access.remote.pairWhere': 'Не тут, а на власній сторінці «Екземпляри» іншого екземпляра.',
-  'settings.access.remote.pairScan': 'Або відскануйте це з іншого екземпляра, щойно це зможе застосунок KnightLoader.',
+  'settings.access.remote.pairScan': 'Відскануйте QR-код у застосунку KnightLoader.',
   'settings.access.intakePortsHint': 'Інші способи прямого доступу до цього екземпляра, поза звичайним входом - кожен із власною доступністю, показаною тут.',
   'settings.nav.browsertools': 'Інструменти браузера',
   'settings.browsertools.bookmarkletStep1': 'Перетягни кнопку нижче на панель закладок браузера - вона зберігається як будь-яка інша закладка, нічого не встановлюється.',

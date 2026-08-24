@@ -270,7 +270,7 @@ export function Scripts() {
         </SectionTitle>
 
         {rows.length === 0 ? (
-          <EmptyState icon={<IconCode width={26} height={26} />} title={cx('settings.scripts.empty')} hint={cx('settings.scripts.emptyHint')} />
+          <EmptyState nested icon={<IconCode width={26} height={26} />} title={cx('settings.scripts.empty')} hint={cx('settings.scripts.emptyHint')} />
         ) : (
           <ul className="flex flex-col">
             {rows.map((row, i) => (
@@ -522,7 +522,7 @@ function ScriptRow({
 
           {runError && <p className="text-xs text-statusFail">{cx('settings.scripts.runFailed', { error: runError })}</p>}
           {runResult && (
-            <div className="glim-card flex flex-col gap-1.5 p-3 text-xs">
+            <div className="glim-well flex flex-col gap-1.5 p-3 text-xs">
               <p className={runResult.ok ? 'text-statusOk' : 'text-statusFail'}>
                 {runResult.ok
                   ? cx('settings.scripts.runOkDuration', { ms: runResult.durationMs })

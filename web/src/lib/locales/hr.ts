@@ -132,6 +132,7 @@ export const hr: Dict = {
   'instances.pairHint': 'Zalijepi kod sa stranice Pristup druge instance umjesto ručnog unosa naziva i adrese.',
   'instances.pairPlaceholder': 'Zalijepi kod za uparivanje',
   'instances.pairPaste': 'Zalijepi',
+  'instances.pairPasteUnavailable': 'Čitanje međuspremnika zahtijeva sigurnu vezu (HTTPS ili localhost) - ova instanca radi preko običnog HTTP-a.',
   'instances.pairButton': 'Upari',
   'instances.pairSuccess': 'Upareno s {name} - sada zna i za ovu instancu.',
 
@@ -384,6 +385,7 @@ export const hr: Dict = {
   'menu.collapseAll': 'Sažmi sve pakete',
   'menu.expandAll': 'Proširi sve pakete',
   'collector.checkAll': 'Provjeri sve',
+  'collector.searchToggle': 'Pretraži',
 
   'skipped.summary': '{n} poveznica nije dodano',
   'skipped.info': 'Poveznice koje je skupljač prepoznao kao već pripremljene. Ništa nije izgubljeno: preuzet će se kopija koja je već na popisu. Čišćenje zaboravlja samo ovu bilješku, ne vraća ništa natrag.',
@@ -489,6 +491,7 @@ export const hr: Dict = {
   'settings.look.updatesInstalled': 'Instalirano — ponovno pokretanje…',
   'settings.look.updatesInstallFailed': 'Ažuriranje se nije moglo instalirati: {error}',
   'settings.look.updatesContainerHint': "Provjera samo uspoređuje verzije i javlja kada postoji novije izdanje; nikada ne zamjenjuje spremnik koji je pokrenut. Ažurirajte ga na isti način na koji ste ga postavili — docker pull, Unraid Community Applications, Watchtower ili što god upravlja ovim spremnikom.",
+  'settings.look.updatesHint': 'Uspoređuje verziju ove izvedbe s najnovijim izdanjem na GitHubu. Desktop verzija može noviju verziju i automatski preuzeti i instalirati; spremnik se umjesto toga ažurira onako kako je postavljen (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.advanced.modified': 'promijenjeno',
   'settings.advanced.noMatch': 'Nijedan ključ ne odgovara.',
   'settings.advanced.badJson': 'Ovo mora biti valjan JSON, pa se ne primjenjuje.',
@@ -1353,7 +1356,7 @@ export const hr: Dict = {
   'settings.access.remote.pairExpires': 'Vrijedi {min} minuta, zatim istječe neiskorišten.',
   'settings.access.remote.vsPairing': 'Ovo služi za ručno otvaranje vlastitog sučelja ove instance na drugom uređaju (telefon, drugi preglednik). Uparivanje druge KnightLoader instance koju sam pokrećeš, tako da se obje vide na stranici Instance one druge, zasebna je kartica ispod.',
   'settings.access.remote.pairWhere': 'Ne ovdje, nego na vlastitoj stranici Instance te druge instance.',
-  'settings.access.remote.pairScan': 'Ili skeniraj ovo drugom instancom, čim to KnightLoader aplikacija bude mogla.',
+  'settings.access.remote.pairScan': 'Skeniraj QR kod aplikacijom KnightLoader.',
   'settings.access.intakePortsHint': 'Drugi načini izravnog pristupa ovoj instanci, izvan uobičajene prijave - svaki sa svojom vlastitom dostupnošću prikazanom ovdje.',
   'settings.nav.browsertools': 'Alati preglednika',
   'settings.browsertools.bookmarkletStep1': 'Povuci gumb ispod na traku oznaka svog preglednika - sprema se kao svaka druga oznaka, ništa se ne instalira.',
