@@ -16,13 +16,12 @@
 // regex away from the name already rendered in the list — so there is no new
 // server route here and nothing in this file can drift from what the tasks
 // stream actually holds.
-import { useCallback, useMemo, type ReactNode } from 'react';
+import { useCallback, useMemo } from 'react';
 import type { Task } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { useUIState } from '../lib/uistate';
 import { Button, Card, SectionTitle } from './ui';
 import { hostOf } from './columns';
-import { IconCheck, IconClose, IconFilter } from '../lib/icons';
+import { IconCheck } from '../lib/icons';
 
 // New UI text for this wave, kept out of en.ts on purpose: the locale files are
 // one writer's lane and it runs after 8A–8D/8G land (build-plan.md section 8's
@@ -32,12 +31,9 @@ import { IconCheck, IconClose, IconFilter } from '../lib/icons';
 // consulted and can be deleted without touching anything else here.
 const PENDING = {
   'collector.facets.title': 'Filters',
-  'collector.facets.hint':
-    'Narrow the staged list by where a link points, what kind of file it is, or which package it landed in. Hiding this panel does not clear what is checked here.',
+  'collector.facets.hint': 'Narrow the staged list by where a link points, what kind of file it is, or which package it landed in.',
   'collector.facets.fileType': 'File type',
   'collector.facets.clearAll': 'Clear',
-  'collector.facets.hide': 'Hide filters',
-  'collector.facets.show': 'Filters',
   'collector.facets.unknownHost': 'Unknown host',
   'collector.facets.type.archive': 'Archives',
   'collector.facets.type.video': 'Video',
@@ -63,14 +59,6 @@ function useCx() {
     [t],
   );
 }
-
-// Persisted, so a panel somebody hid stays hidden across a reload — the same
-// bucket useCollapsedPackages and the stored column layout already use
-// (lib/uistate.ts). Both the panel and the toggle button below read and write
-// this one field, which is what keeps the two from ever disagreeing about
-// whether it is open — the same arrangement TaskList.tsx's own doc comment
-// describes for the fold state shared between the list card and the page menu.
-const OPEN_FIELD = 'collector.facetsOpen';
 
 export type FacetKind = 'host' | 'fileType' | 'package';
 
@@ -269,7 +257,6 @@ export function CollectorFacetSidebar({
 }) {
   const { t } = useT();
   const cx = useCx();
-  const [open, setOpen] = useUIState(OPEN_FIELD, true);
 
   const hostOptions = useMemo(
     () =>
@@ -296,30 +283,20 @@ export function CollectorFacetSidebar({
     [tasks, selection.package, t],
   );
 
-  if (!open) return null;
-
   const set = (kind: FacetKind, value: string) => onChange({ ...selection, [kind]: toggled(selection[kind], value) });
   const activeCount = facetActiveCount(selection);
 
   return (
     <Card className="flex w-full shrink-0 flex-col gap-4 lg:w-64">
       <SectionTitle
+        hue={2}
         hint={cx('collector.facets.hint')}
         right={
-          <div className="flex items-center gap-1">
-            {activeCount > 0 && (
-              <Button kind="ghost" className="px-2 py-1 text-[11px]" onClick={() => onChange(EMPTY_FACETS)}>
-                {cx('collector.facets.clearAll')}
-              </Button>
-            )}
-            <Button
-              kind="ghost"
-              icon={<IconClose width={14} height={14} />}
-              title={cx('collector.facets.hide')}
-              aria-label={cx('collector.facets.hide')}
-              onClick={() => setOpen(false)}
-            />
-          </div>
+          activeCount > 0 && (
+            <Button kind="ghost" className="px-2 py-1 text-[11px]" onClick={() => onChange(EMPTY_FACETS)}>
+              {cx('collector.facets.clearAll')}
+            </Button>
+          )
         }
       >
         {cx('collector.facets.title')}
@@ -337,35 +314,3 @@ export function CollectorFacetSidebar({
   );
 }
 
-/**
- * CollectorFacetsToggle is the way back once the panel is hidden — reachable
- * from the toolbar's own `right` slot (ListToolbar already takes one, see
- * pages/Downloads.tsx for the other caller), so re-opening the panel never
- * depends on the panel itself still being on screen to click something on. It
- * reads and writes the very same stored field the panel does, which is what
- * keeps a click here and the panel's own hide button from ever disagreeing
- * about whether it is open.
- */
-export function CollectorFacetsToggle({ activeCount }: { activeCount: number }): ReactNode {
-  const cx = useCx();
-  const [open, setOpen] = useUIState(OPEN_FIELD, true);
-  return (
-    <Button
-      kind={open ? 'secondary' : 'ghost'}
-      className="px-2.5 text-xs"
-      icon={<IconFilter width={15} height={15} />}
-      aria-pressed={open}
-      onClick={() => setOpen(!open)}
-    >
-      {cx('collector.facets.show')}
-      {activeCount > 0 && (
-        <span
-          className="glim-num rounded-[var(--radius-pill)] bg-carbon-surface3/60 px-1.5 py-0.5 text-[11px] font-semibold
-            leading-none text-carbon-textSub"
-        >
-          {activeCount}
-        </span>
-      )}
-    </Button>
-  );
-}

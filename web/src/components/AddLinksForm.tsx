@@ -29,7 +29,7 @@ import { useUIState } from '../lib/uistate';
 import { PathInput } from './FolderPicker';
 import { PasteFromClipboardButton } from './PasteFromClipboardButton';
 import { Tabs } from './Tabs';
-import { Button, Card, Field, FieldGroup, IconBadge, TextArea, TextInput, ToggleRow } from './ui';
+import { Button, Card, Field, FieldGroup, IconBadge, SectionTitle, TextArea, TextInput, ToggleRow } from './ui';
 import { IconCollector, IconFolder, IconPlus, IconSettings } from '../lib/icons';
 
 // JD keeps 25; matched rather than picking a new number, because the point of
@@ -79,6 +79,7 @@ export function AddLinksForm({
   onPkgChange,
   onStaged,
   onChooseFile,
+  onFilesDropped,
 }: {
   pkg: string;
   onPkgChange: (v: string) => void;
@@ -89,6 +90,11 @@ export function AddLinksForm({
    *  neben dem Zum-Sammler-Button") - this form owns none of that logic, it
    *  only renders the trigger beside its own "Add to collector" button. */
   onChooseFile: () => void;
+  /** Hands a dropped FILE list to FileDrop's own handling (jdp, 2026-08-24:
+   *  "können wir diesen text und card nicht entfernen" - FileDrop no longer
+   *  keeps a visible drop target of its own, so this box's own drop target
+   *  is now the one place both text AND files can land). */
+  onFilesDropped: (files: File[]) => void;
 }) {
   const { t } = useT();
   const priorities = usePriorityTabs();
@@ -152,8 +158,16 @@ export function AddLinksForm({
   function onDrop(e: React.DragEvent) {
     e.preventDefault();
     setDragOver(false);
-    // A drop onto the textarea itself stays a plain text drop; the whole-window
-    // drop zone (build-plan.md §8B) is a separate, broader listener elsewhere.
+    // Files first: a torrent/container file dropped here goes to FileDrop's
+    // own handling (jdp: "können wir diesen text und card nicht entfernen" -
+    // this box is now the one drop target for both). Text falls through to
+    // the plain-link path below; the whole-window drop zone (build-plan.md
+    // §8B) is a separate, broader listener elsewhere.
+    const files = [...e.dataTransfer.files];
+    if (files.length) {
+      onFilesDropped(files);
+      return;
+    }
     const text = e.dataTransfer.getData('text');
     if (text) setLinks((l) => (l ? `${l}\n${text}` : text));
   }
@@ -161,6 +175,9 @@ export function AddLinksForm({
   return (
     <div className="flex flex-col gap-3">
       <div className="glim-card p-0 overflow-hidden">
+        <div className="px-4 pt-3">
+          <SectionTitle hue={0}>{t('collector.addTitle')}</SectionTitle>
+        </div>
         <div
           onDragOver={(e) => {
             e.preventDefault();

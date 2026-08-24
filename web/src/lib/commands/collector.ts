@@ -7,7 +7,7 @@
 // lib/commands/downloads.ts's own doc comment, which registers the same
 // pair the same way).
 import { recheckTasks, startTasks, type Task } from '../api';
-import { IconCheck, IconPlay, IconSearch, IconTrash } from '../icons';
+import { IconCheck, IconFolder, IconPlay, IconSearch, IconTrash } from '../icons';
 import type { Command, CommandContext } from './types';
 
 // ctx.tasks is every task on the instance, unfiltered (CommandContext's own
@@ -20,6 +20,20 @@ function staged(ctx: CommandContext): Task[] {
 }
 
 export const collectorCommands: Command[] = [
+  {
+    id: 'collector.chooseFile',
+    labelKey: 'container.choose',
+    icon: IconFolder,
+    group: 'commands.group.collector',
+    surfaces: ['collector'],
+    defaultShortcut: 'mod+shift+o',
+    enabled: () => true,
+    visible: () => true,
+    // The exact same trigger AddLinksForm's own folder-icon badge calls
+    // (Collector.tsx's fileDrop ref, published through pageContext.ts as
+    // openFilePicker) - one file picker, two ways to open it.
+    run: (ctx) => ctx.openFilePicker(),
+  },
   {
     id: 'collector.startSelected',
     labelKey: 'collector.startSelected',

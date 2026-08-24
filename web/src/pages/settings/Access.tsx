@@ -19,7 +19,9 @@ import { fmtDate } from '../../lib/format';
 import { useInstallPrompt } from '../../lib/pwaInstall';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { IconKey, IconPlus, IconTrash, IconWarning } from '../../lib/icons';
+import { useToast } from '../../lib/toast';
 import { useFeatures } from './context';
+import { NeutralSwitch } from './controls';
 import { label, useTx } from './tx';
 
 /**
@@ -65,6 +67,8 @@ const PENDING = {
     'This instance just answered a request from outside this machine, and no password protects it. Anyone who can reach it can see and control every download. Set a password above now.',
   'settings.access.remote.noRelayBody':
     'There is no account service and no pairing step, and there never will be: running one would mean an ongoing hosted service with real cost and liability, not a feature of a self-hosted binary. Reaching this instance from outside your own network is your own port forward, reverse proxy or VPN, the same as any other self-hosted server.',
+  'settings.access.remote.vsPairing':
+    "This is for opening this instance's own interface on another device by hand (a phone, another browser). Pairing another KnightLoader you run yourself, so the two show up on each other's Instances page, is the separate card below.",
   'settings.access.remote.addressesTitle': 'Addresses this instance answers on',
   'settings.access.remote.noAddresses': 'No address could be determined for this request.',
   'settings.access.remote.loopback': 'this machine only',
@@ -80,6 +84,8 @@ const PENDING = {
     "Add a KnightLoader you already run - no address to type, no account, nothing hosted. Generate a code here, then paste it into that instance's own Instances page.",
   'settings.access.remote.pairGenerate': 'Generate pairing code',
   'settings.access.remote.pairExpires': 'Valid for {min} minutes, then it expires unused.',
+  'settings.access.remote.pairWhere': 'Not here - on the other instance, under Settings → Instances.',
+  'settings.access.remote.pairScan': 'Or scan this with the other instance, once a KnightLoader app can.',
 
   'settings.access.intakePortsHint':
     'Other ways this instance can be reached directly, outside the normal login - each with its own reachability shown here.',
@@ -99,12 +105,31 @@ function useCx() {
 export function Access() {
   const { tx } = useTx();
   const cx = useCx();
-  const { features } = useFeatures();
+  const { features, toggle } = useFeatures();
+  const { toast } = useToast();
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   // The listeners this instance answers on are a property of the build and the
   // environment, not of settings.json, so they are read out of the module
   // registry rather than described a second time here.
   const listeners = features.modules.filter((m) => m.page === 'access');
+
+  // The same switch Modules.tsx's own row runs, reached from a second place
+  // on purpose (jdp, 2026-08-24: "im Zugang tab ist bei CnL kein Toggle ...
+  // für was brauchen wir das denn eigentlich" - the toggle belongs on the
+  // page where the port itself lives, not only on the module registry's own
+  // overview). Same failure handling as that row: the server refuses a
+  // switch it cannot honour and says why, shown rather than swallowed.
+  async function onToggle(id: string, next: boolean) {
+    setBusyId(id);
+    try {
+      await toggle(id, next);
+    } catch (e) {
+      toast(tx('settings.modules.switchFailed', { reason: String(e).replace(/^Error:\s*/, '') }), 'fail');
+    } finally {
+      setBusyId(null);
+    }
+  }
 
   return (
     <div className="flex flex-col gap-10">
@@ -118,18 +143,29 @@ export function Access() {
             <SectionTitle hue={4} hint={cx('settings.access.intakePortsHint')}>
               {tx('settings.sectionIntakePorts')}
             </SectionTitle>
-            {listeners.map((m) => (
-              <div key={m.id} className="flex items-baseline gap-3">
-                <span className="flex items-center text-sm text-carbon-text">
-                  {label(tx, 'settings.module.', m.id)}
-                  {m.reason && <InfoBubble tip={m.reason} />}
-                </span>
-                <span className="flex-1" />
-                <span className="text-[11px] text-carbon-textMuted" dir="ltr">
-                  {m.detail || tx(m.enabled ? 'settings.modules.on' : 'settings.modules.off')}
-                </span>
-              </div>
-            ))}
+            {listeners.map((m) => {
+              const switchable = m.verdict === 'shipped' && m.switch !== 'none';
+              return (
+                <div key={m.id} className="flex items-baseline gap-3">
+                  <span className="flex items-center text-sm text-carbon-text">
+                    {label(tx, 'settings.module.', m.id)}
+                    {m.reason && <InfoBubble tip={m.reason} />}
+                  </span>
+                  <span className="flex-1" />
+                  <span className="text-[11px] text-carbon-textMuted" dir="ltr">
+                    {m.detail || tx(m.enabled ? 'settings.modules.on' : 'settings.modules.off')}
+                  </span>
+                  {switchable && (
+                    <NeutralSwitch
+                      on={m.enabled}
+                      disabled={busyId === m.id}
+                      name={label(tx, 'settings.module.', m.id)}
+                      onChange={(next) => void onToggle(m.id, next)}
+                    />
+                  )}
+                </div>
+              );
+            })}
           </Card>
       )}
     </div>
@@ -217,8 +253,9 @@ function RemoteAccessSection({ cx }: { cx: (k: PendingKey) => string }) {
   if (info.deployment === 'desktop') {
     return (
         <Card>
-          <SectionTitle hue={1}>{cx('settings.access.remote.title')}</SectionTitle>
-          <p className="text-sm text-carbon-textSub">{cx('settings.access.remote.desktopNote')}</p>
+          <SectionTitle hue={1} hint={cx('settings.access.remote.desktopNote')}>
+            {cx('settings.access.remote.title')}
+          </SectionTitle>
         </Card>
     );
   }
@@ -240,9 +277,13 @@ function RemoteAccessSection({ cx }: { cx: (k: PendingKey) => string }) {
       )}
 
       <Card className="flex flex-col gap-4 sm:flex-row">
-        <SectionTitle hue={1}>{cx('settings.access.remote.title')}</SectionTitle>
+        <SectionTitle
+          hue={1}
+          hint={`${cx('settings.access.remote.noRelayBody')} ${cx('settings.access.remote.vsPairing')}`}
+        >
+          {cx('settings.access.remote.title')}
+        </SectionTitle>
         <div className="flex min-w-0 flex-1 flex-col gap-3">
-          <p className="text-[11px] text-carbon-textMuted">{cx('settings.access.remote.noRelayBody')}</p>
           <div className="flex flex-col gap-1.5">
             <span className="text-xs font-semibold text-carbon-textSub">
               {cx('settings.access.remote.addressesTitle')}
@@ -275,8 +316,9 @@ function RemoteAccessSection({ cx }: { cx: (k: PendingKey) => string }) {
       </Card>
 
       <Card className="flex flex-col gap-3">
-        <SectionTitle hue={2}>{cx('settings.access.remote.installTitle')}</SectionTitle>
-        <p className="text-[11px] text-carbon-textMuted">{cx('settings.access.remote.installBody')}</p>
+        <SectionTitle hue={2} hint={cx('settings.access.remote.installBody')}>
+          {cx('settings.access.remote.installTitle')}
+        </SectionTitle>
         {canInstall && (
           <div>
             <Button kind="secondary" onClick={() => void promptInstall()}>
@@ -321,42 +363,60 @@ function PairingCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, string 
   }
 
   return (
-    <Card className="flex flex-col gap-3">
-      <SectionTitle hue={3}>{cx('settings.access.remote.pairTitle')}</SectionTitle>
-      <p className="text-[11px] text-carbon-textMuted">{cx('settings.access.remote.pairBody')}</p>
-      {!code && (
-        <div>
-          <Button kind="secondary" onClick={() => void onGenerate()} disabled={busy}>
-            {cx('settings.access.remote.pairGenerate')}
-          </Button>
-        </div>
-      )}
-      {code && (
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
-            <code className="glim-num min-w-0 flex-1 overflow-x-auto whitespace-nowrap text-xs text-carbon-text" dir="ltr">
-              {code.code}
-            </code>
-            {'clipboard' in navigator && (
-              <Button
-                kind="ghost"
-                className="shrink-0 px-2.5 text-xs"
-                onClick={async () => {
-                  await navigator.clipboard.writeText(code.code);
-                  setCopied(true);
-                  setTimeout(() => setCopied(false), 1800);
-                }}
-              >
-                {copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
-              </Button>
-            )}
+    <Card className="flex flex-col gap-3 sm:flex-row">
+      <SectionTitle hue={3} hint={cx('settings.access.remote.pairBody')}>
+        {cx('settings.access.remote.pairTitle')}
+      </SectionTitle>
+      <div className="flex min-w-0 flex-1 flex-col gap-3">
+        {!code && (
+          <div>
+            <Button kind="secondary" onClick={() => void onGenerate()} disabled={busy}>
+              {cx('settings.access.remote.pairGenerate')}
+            </Button>
           </div>
-          <span className="text-[11px] text-carbon-textMuted">
-            {cx('settings.access.remote.pairExpires', { min: Math.round(code.expiresIn / 60) })}
+        )}
+        {code && (
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
+              <code className="glim-num min-w-0 flex-1 overflow-x-auto whitespace-nowrap text-xs text-carbon-text" dir="ltr">
+                {code.code}
+              </code>
+              {'clipboard' in navigator && (
+                <Button
+                  kind="ghost"
+                  className="shrink-0 px-2.5 text-xs"
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(code.code);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 1800);
+                  }}
+                >
+                  {copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
+                </Button>
+              )}
+            </div>
+            {/* jdp, 2026-08-24: "wo muss man den pairing code eingeben?" -
+                the code is generated here but redeemed on a DIFFERENT
+                instance's own Instances page (Instances.tsx's own "Mit Code
+                koppeln" card), which the generating side cannot deep-link
+                to (it does not know that instance's address until the code
+                is redeemed) - so this says exactly where in words instead. */}
+            <p className="text-[11px] font-medium text-carbon-text">{cx('settings.access.remote.pairWhere')}</p>
+            <p className="text-[11px] text-carbon-textMuted">
+              {cx('settings.access.remote.pairExpires', { min: Math.round(code.expiresIn / 60) })}
+            </p>
+          </div>
+        )}
+        {err && <p className="text-sm text-statusFail">{err}</p>}
+      </div>
+      {code?.qr && (
+        <div className="flex shrink-0 flex-col items-center gap-2 self-start">
+          <QRCode matrix={code.qr} label={code.code} size={144} />
+          <span className="max-w-[144px] text-center text-[11px] text-carbon-textMuted">
+            {cx('settings.access.remote.pairScan')}
           </span>
         </div>
       )}
-      {err && <p className="text-sm text-statusFail">{err}</p>}
     </Card>
   );
 }
@@ -415,6 +475,7 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
       <Card className="flex flex-col gap-3">
         <SectionTitle
           hue={3}
+          hint={cx('settings.access.tokens.intro')}
           right={
             <Button
               kind="secondary"
@@ -428,7 +489,6 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
         >
           {cx('settings.access.tokens.title')}
         </SectionTitle>
-        <p className="text-[11px] text-carbon-textMuted">{cx('settings.access.tokens.intro')}</p>
         {tokens.length === 0 ? (
           <p className="text-sm text-carbon-textMuted">{cx('settings.access.tokens.empty')}</p>
         ) : (

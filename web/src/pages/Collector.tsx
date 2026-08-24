@@ -4,7 +4,7 @@ import { useTasks } from '../lib/useTasks';
 import { useReportListView } from '../lib/listview';
 import { useToast } from '../lib/toast';
 import { useT } from '../lib/i18n';
-import { PageHeader, Button } from '../components/ui';
+import { PageHeader, Button, IconBadge, hueStyle } from '../components/ui';
 import {
   TaskListCard,
   groupByPackage,
@@ -18,25 +18,24 @@ import { FilteredLinks, useFx } from '../components/FilteredLinks';
 import { SkippedLinks } from '../components/SkippedLinks';
 import {
   COLLECTOR_FILTERS,
-  ListActionBar,
   ListMenu,
   ListToolbar,
   SelectionStrip,
+  cleanupItems,
   matchesQuickFilters,
   targetPackage,
   targetTaskId,
+  useCleanup,
   useRemoval,
   type ListContext,
   type MenuTarget,
   type QuickFilterId,
 } from '../components/ListToolbar';
 import { EMPTY_SEARCH, matchesSearch, type SearchQuery } from '../components/SearchField';
-import { anchorFromEvent, useContextMenu } from '../components/ContextMenu';
+import { anchorBelow, anchorFromEvent, useContextMenu, ContextMenu } from '../components/ContextMenu';
 import {
   CollectorFacetSidebar,
-  CollectorFacetsToggle,
   EMPTY_FACETS,
-  facetActiveCount,
   matchesFacets,
   type FacetSelection,
 } from '../components/CollectorFacets';
@@ -44,7 +43,7 @@ import { CollectorStats } from '../components/CollectorStats';
 import { useScriptMenu } from '../components/ScriptActions';
 import { FirstTouchHint } from '../components/FirstTouchHint';
 import { usePublishCommandPageContext } from '../lib/commands/pageContext';
-import { IconPlay } from '../lib/icons';
+import { IconCheck, IconPlay, IconSearch, IconTrash } from '../lib/icons';
 
 export function Collector() {
   const { t } = useT();
@@ -58,7 +57,9 @@ export function Collector() {
   // Reaches into FileDrop from AddLinksForm's own button row (jdp: "Dropzone
   // mit Dateiwählen button neben dem Zum-Sammler-Button") - see
   // FileDropHandle's own doc comment for why the button moved rather than
-  // the whole drop target.
+  // the whole drop target, and now also for the drop-target's own file
+  // handling (jdp, 2026-08-24: "können wir diesen text und card nicht
+  // entfernen" - the paste box's own drop target hands files here too).
   const fileDrop = useRef<FileDropHandle>(null);
   const [search, setSearch] = useState<SearchQuery>(EMPTY_SEARCH);
   const [filters, setFilters] = useState<Set<QuickFilterId>>(() => new Set());
@@ -68,6 +69,10 @@ export function Collector() {
   const [facets, setFacets] = useState<FacetSelection>(EMPTY_FACETS);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const menu = useContextMenu();
+  // The cleanup menu's own anchor, separate from `menu` above: this is the
+  // badge row's own dropdown (jdp, 2026-08-24: "Aufräumen ... als badge"),
+  // not the row/package/list context menu ListMenu below already owns.
+  const cleanupMenu = useContextMenu();
   const [target, setTarget] = useState<MenuTarget>({ kind: 'selection' });
   const folds = useCollapsedPackages('collector');
 
@@ -105,15 +110,39 @@ export function Collector() {
 
   const clearSelection = useCallback(() => setSelected(new Set()), []);
   const removal = useRemoval({ all, selected, base: '/api', onDone: clearSelection });
+  // This page's own useCleanup() instance, now driven by the badge row below
+  // instead of ListActionBar's text-button trigger (which Downloads.tsx keeps
+  // unchanged - this page stopped using that shared component so its own
+  // restyle never touches Downloads' look). Loaded proactively, the same
+  // reason ListMenu loads its own copy on mount rather than waiting for a
+  // click: a command visible in a palette that has to wait on a request
+  // before it can say whether "clear finished" applies is a command that
+  // answers late.
+  const cleanup = useCleanup(all);
+  useEffect(() => {
+    void cleanup.load().catch(() => {
+      /* the badge's own menu already reports this when opened; a command does not nag twice */
+    });
+  }, [cleanup.load]);
 
   // The shell's strip cannot see this page's search box or its quick filters, so
   // it is told which rows survived them — see lib/listview.ts.
   useReportListView(filtered, selected);
   // The command surface's own bridge (lib/commands/pageContext.ts): the exact
-  // setSelected/removal this page already holds, so
-  // lib/commands/collector.ts's selectAll/removeSelected call the identical
-  // functions the toolbar's own buttons call.
-  usePublishCommandPageContext(useMemo(() => ({ setSelection: setSelected, removal }), [removal]));
+  // setSelected/removal/cleanup this page already holds, so
+  // lib/commands/collector.ts's selectAll/removeSelected/chooseFile call
+  // the identical functions the toolbar's own buttons call.
+  usePublishCommandPageContext(
+    useMemo(
+      () => ({
+        setSelection: setSelected,
+        removal,
+        cleanup,
+        openFilePicker: () => fileDrop.current?.openPicker(),
+      }),
+      [removal, cleanup],
+    ),
+  );
   // Resolved once here rather than inside CollectorStats: `collected`, not
   // `all`, because the stats strip is about what is staged, the same scope
   // every other figure on this page already uses.
@@ -177,6 +206,15 @@ export function Collector() {
     toast(t('collector.toastStarted', { n: collected.length }), 'info');
   };
 
+  async function openCleanup(el: HTMLButtonElement | null): Promise<void> {
+    try {
+      await cleanup.load();
+      cleanupMenu.openAt(anchorBelow(el));
+    } catch {
+      toast(t('list.optionsFailed'), 'fail');
+    }
+  }
+
   // The same three readings as the download list: a link, a package header, or
   // the empty space around them.
   function onContextMenu(e: React.MouseEvent): void {
@@ -212,25 +250,39 @@ export function Collector() {
     local: true,
   };
 
+  const allChosen = filtered.length > 0 && filtered.every((x) => selected.has(x.id));
+
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader title={t('collector.title')} />
+    <div className="flex h-full min-h-0 flex-col gap-6">
+      <div className="shrink-0">
+        <PageHeader title={t('collector.title')} />
+      </div>
 
-      <FirstTouchHint id="collector" />
+      <div className="shrink-0">
+        <FirstTouchHint id="collector" />
+      </div>
 
-      {/* The hero: one drop zone that is also the paste field, plus the
-          per-batch destination/priority/unpacking/comment/password options
-          and the recently-used-destination history — see
-          components/AddLinksForm.tsx. The stats card (jdp, 2026-08-24: "rechts
-          von der Dropzone soll eine card mit den ganzen zahlen sein") sits beside
-          it rather than below the list, keyed off `collected` like the facet
-          sidebar below: a facet that has narrowed the list to nothing must not
-          also make the controls that would widen it disappear. */}
-      <div className="flex min-w-0 flex-col items-start gap-4 lg:flex-row">
+      {/* Three equal-height columns (jdp, 2026-08-24: "erst soll die
+          linksammler-card kommen, rechts daneben die statistik-card, und
+          rechts davon die filter card. alle drei card sollen immer gleich
+          hoch sein. wenn eine wächst sollen die anderen mitwachsen") - a
+          plain flex row leaves align-items at its default `stretch`, which is
+          exactly "all three grow together": no explicit height math, no
+          `items-start` override fighting it. AddLinksForm is the one hero
+          (flex-1), the other two size to their own content but still match
+          whichever of the three is tallest. */}
+      <div className="flex min-w-0 shrink-0 flex-col gap-4 lg:flex-row">
         <div className="min-w-0 flex-1">
-          <AddLinksForm pkg={pkg} onPkgChange={setPkg} onStaged={handleStaged} onChooseFile={() => fileDrop.current?.openPicker()} />
+          <AddLinksForm
+            pkg={pkg}
+            onPkgChange={setPkg}
+            onStaged={handleStaged}
+            onChooseFile={() => fileDrop.current?.openPicker()}
+            onFilesDropped={(files) => fileDrop.current?.handleFiles(files)}
+          />
         </div>
         {collected.length > 0 && <CollectorStats all={collected} visible={filtered} selected={selectedTasks} />}
+        {collected.length > 0 && <CollectorFacetSidebar tasks={collected} selection={facets} onChange={setFacets} />}
       </div>
 
       {/* Intake that is not a paste, and the trace of what the paste dropped.
@@ -238,88 +290,140 @@ export function Collector() {
           open this page, and nothing may push it off the top. The skipped strip
           in particular has to render when the list is empty — a paste of nothing
           but duplicates stages nothing, and that is the moment it explains most. */}
-      <div className="flex flex-col gap-3">
+      <div className="shrink-0 flex flex-col gap-3">
         <FileDrop ref={fileDrop} pkg={pkg} />
         <FilteredLinks held={held} />
         <SkippedLinks />
       </div>
 
-      <div className="flex min-w-0 flex-col items-start gap-6 lg:flex-row">
-        {collected.length > 0 && <CollectorFacetSidebar tasks={collected} selection={facets} onChange={setFacets} />}
-
-        <div className="flex min-w-0 flex-1 flex-col gap-4">
-          {collected.length > 0 && (
-            <ListToolbar
-              search={search}
-              onSearch={setSearch}
-              filters={COLLECTOR_FILTERS}
-              active={filters}
-              onActive={setFilters}
-              tasks={collected}
-              shown={filtered.length}
-              right={<CollectorFacetsToggle activeCount={facetActiveCount(facets)} />}
-            />
-          )}
-
-          <SelectionStrip
-            all={collected}
-            selected={selected}
-            onSelected={setSelected}
-            removal={removal}
-            onMore={(at) => {
-              setTarget({ kind: 'selection' });
-              menu.openAt(at);
-            }}
-          >
-            <PackageActions
-              tasks={collected}
-              selected={selected}
-              base="/api"
-              onDone={() => toast(t('task.applied'), 'ok')}
-            />
-            {/* Secondary, not primary: the page's one accent button is "Add to
-                collector" in the hero, and a second would make neither read as the
-                thing to do next. */}
-            <Button
-              kind="secondary"
-              className="px-2.5 text-xs"
-              icon={<IconPlay width={15} height={15} />}
-              onClick={startSelected}
-            >
-              {t('collector.startSelected')}
-            </Button>
-          </SelectionStrip>
-
-          <div onContextMenu={onContextMenu}>
-            {collected.length === 0 ? (
-              <div className="glim-card p-12 text-center text-sm text-carbon-textMuted">{t('collector.empty')}</div>
-            ) : filtered.length === 0 ? (
-              <div className="glim-card p-12 text-center text-sm text-carbon-textMuted">{t('downloads.noMatch')}</div>
-            ) : (
-              <TaskListCard groups={groups} base="/api" selection={selection} profile="collector" />
-            )}
-          </div>
-
-          <ListActionBar all={all} selected={selected} onSelected={setSelected} visible={filtered} local>
-            <Button
-              kind="ghost"
-              className="px-2.5 text-xs"
-              onClick={() => {
-                // An empty id list means every staged link on this route —
-                // deliberately unlike the bulk routes, where empty is refused
-                // outright rather than read as "all".
-                recheckTasks([]);
-                toast(t('task.recheck'), 'info');
-              }}
-            >
-              {t('collector.checkAll')}
-            </Button>
-            <Button kind="secondary" className="px-2.5 text-xs" onClick={startAll} disabled={collected.length === 0}>
-              {t('collector.startAll')}
-            </Button>
-          </ListActionBar>
+      {collected.length > 0 && (
+        <div className="shrink-0">
+          <ListToolbar
+            search={search}
+            onSearch={setSearch}
+            filters={COLLECTOR_FILTERS}
+            active={filters}
+            onActive={setFilters}
+            tasks={collected}
+            shown={filtered.length}
+          />
         </div>
+      )}
+
+      <div className="shrink-0">
+        <SelectionStrip
+          all={collected}
+          selected={selected}
+          onSelected={setSelected}
+          removal={removal}
+          onMore={(at) => {
+            setTarget({ kind: 'selection' });
+            menu.openAt(at);
+          }}
+        >
+          <PackageActions
+            tasks={collected}
+            selected={selected}
+            base="/api"
+            onDone={() => toast(t('task.applied'), 'ok')}
+          />
+          {/* Secondary, not primary: the page's one accent button is "Add to
+              collector" in the hero, and a second would make neither read as the
+              thing to do next. */}
+          <Button
+            kind="secondary"
+            className="px-2.5 text-xs"
+            icon={<IconPlay width={15} height={15} />}
+            onClick={startSelected}
+          >
+            {t('collector.startSelected')}
+          </Button>
+        </SelectionStrip>
       </div>
+
+      {/* jdp, 2026-08-24: "Alle buttons sollen oberhalb des fensters
+          platziert sein: Alle auswählen, Aufräumen, alle prüfen, alle
+          starten -> alle in einer zeile ganz rechts als badges (inkl.
+          farbmodi), der Filter button kann weg" - CollectorFacetsToggle
+          (the former "Filter" entry point) is gone entirely now that the
+          facets card above is always shown, not toggled. Reuses the exact
+          same allChosen/cleanup/checkAll/startAll logic ListActionBar used
+          to run for this page - only the trigger's shape changed, not what
+          it does - and stays local to this file since Downloads.tsx keeps
+          ListActionBar's own text-button look unchanged. */}
+      <div className="flex shrink-0 items-center justify-end gap-2" role="group" aria-label={t('list.actions')}>
+        <IconBadge
+          icon={<IconCheck width={16} height={16} />}
+          className="glim-hue glim-hue-icon"
+          style={hueStyle(0)}
+          aria-label={allChosen ? t('select.none') : t('select.all')}
+          disabled={filtered.length === 0}
+          onClick={() => setSelected(allChosen ? new Set() : new Set(filtered.map((x) => x.id)))}
+        />
+        <IconBadge
+          icon={<IconTrash width={16} height={16} />}
+          className="glim-hue glim-hue-icon"
+          style={hueStyle(1)}
+          aria-label={t('cleanup.menu')}
+          onClick={(e) => void openCleanup(e.currentTarget)}
+        />
+        <IconBadge
+          icon={<IconSearch width={16} height={16} />}
+          className="glim-hue glim-hue-icon"
+          style={hueStyle(2)}
+          aria-label={t('collector.checkAll')}
+          disabled={collected.length === 0}
+          onClick={() => {
+            // An empty id list means every staged link on this route —
+            // deliberately unlike the bulk routes, where empty is refused
+            // outright rather than read as "all".
+            recheckTasks([]);
+            toast(t('task.recheck'), 'info');
+          }}
+        />
+        <IconBadge
+          icon={<IconPlay width={16} height={16} />}
+          className="glim-hue glim-hue-icon"
+          style={hueStyle(3)}
+          aria-label={t('collector.startAll')}
+          disabled={collected.length === 0}
+          onClick={startAll}
+        />
+      </div>
+
+      {/* jdp, 2026-08-24: "Das hauptlinkfenster soll immer die ganze
+          fensterbreite einnehmen und immer bis ganz nach unten im fenster
+          gehen. egal wie viele links drinn sind." - min-h-0 + flex-1 here,
+          inside the root's own h-full/min-h-0 above (itself inside
+          app/Layout.tsx's h-screen/overflow-y-auto <main>), makes the list
+          the one scrolling region: everything above it keeps its natural
+          height (shrink-0), this section absorbs whatever space is left and
+          never less than that, and the row list inside scrolls on its own
+          rather than growing the whole page. */}
+      <div className="flex min-h-0 flex-1 flex-col" onContextMenu={onContextMenu}>
+        {collected.length === 0 ? (
+          <div className="glim-card flex flex-1 items-center justify-center p-12 text-center text-sm text-carbon-textMuted">
+            {t('collector.empty')}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="glim-card flex flex-1 items-center justify-center p-12 text-center text-sm text-carbon-textMuted">
+            {t('downloads.noMatch')}
+          </div>
+        ) : (
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <TaskListCard groups={groups} base="/api" selection={selection} profile="collector" />
+          </div>
+        )}
+      </div>
+
+      {cleanupMenu.anchor && cleanup.classes && (
+        <ContextMenu
+          anchor={cleanupMenu.anchor}
+          label={t('cleanup.menuLabel')}
+          onClose={cleanupMenu.close}
+          groups={[{ id: 'cleanup', items: cleanupItems(cleanup.classes, t, (cls) => void cleanup.preview(cls)) }]}
+        />
+      )}
 
       <ListMenu
         anchor={menu.anchor}
@@ -333,6 +437,7 @@ export function Collector() {
         extraGroups={scriptGroups}
       />
       {removal.dialog}
+      {cleanup.dialog}
     </div>
   );
 }

@@ -1,43 +1,42 @@
-// One combined intake surface for everything that isn't a plain pasted link
-// (AddLinksForm already owns that): a .torrent file, a link-container file
-// (.txt/.dlc/.ccf/.rsdf), OR a link dropped/pasted straight onto this zone
-// instead of into the box above it (jdp: "Der Sammler soll eine Dropzone
-// bekommen für alle Dateien, auch dort soll man Links einfügen können").
+// The collector's file intake for everything that isn't a plain pasted link
+// (AddLinksForm already owns that): a .torrent file, or a link-container file
+// (.txt/.dlc/.ccf/.rsdf). Reached two ways - AddLinksForm's own folder-icon
+// badge opens the picker below through this component's ref, and (jdp,
+// 2026-08-24) the same paste box's own drop target hands dropped FILES here
+// too, so this component keeps no drop target of its own - see
+// FileDropHandle's own doc comment.
 //
-// Replaces the two former one-row bars (ContainerDrop, TorrentUpload) that
-// used to sit here side by side - same underlying requests
-// (parseTorrentUpload/stageTorrent, uploadContainer, addLinks), one drop
-// target instead of two, so a person does not have to guess which of two
-// near-identical bars a given file belongs on. A dropped FILE is tried as a
+// Replaces the two former one-row bars (ContainerDrop, TorrentUpload) - same
+// underlying requests (parseTorrentUpload/stageTorrent, uploadContainer), one
+// intake path instead of two, so a person does not have to guess which of two
+// near-identical surfaces a given file belongs on. A file is tried as a
 // torrent first (server sniffs the bencoded bytes, not the extension) and
-// falls back to the container endpoint on failure; dropped or pasted TEXT is
-// tried as a link. What the file picker's `accept` offers is the union of
-// both formats - a convenience for the picker, never a gate, matching
-// ContainerDrop/TorrentUpload's own established reasoning: the server
-// decides by content, so a misnamed file dragged in is sent as it is.
+// falls back to the container endpoint on failure. What the file picker's
+// `accept` offers is the union of both formats - a convenience for the
+// picker, never a gate, matching ContainerDrop/TorrentUpload's own
+// established reasoning: the server decides by content, so a misnamed file
+// chosen anyway is sent as it is.
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
-import {
-  addLinks,
-  parseTorrentUpload,
-  stageTorrent,
-  uploadContainer,
-  type Task,
-  type TorrentTree,
-} from '../lib/api';
+import { parseTorrentUpload, stageTorrent, uploadContainer, type Task, type TorrentTree } from '../lib/api';
 import { fmtBytes } from '../lib/format';
 import { message } from '../lib/intake';
 import { useT } from '../lib/i18n';
-import { useToast } from '../lib/toast';
-import { Button, InfoBubble } from './ui';
+import { Button } from './ui';
 import { IconCheck } from '../lib/icons';
 
 /** What Collector.tsx reaches through the ref for: opening the file picker
  *  from AddLinksForm's own button row (jdp: "Dropzone mit Dateiwählen
  *  button neben dem Zum-Sammler-Button") instead of FileDrop's own, since
  *  the two share one destination and one moment somebody is done choosing
- *  what to add. */
+ *  what to add. handleFiles is the same reason, extended to drag-and-drop
+ *  (jdp, 2026-08-24: "können wir diesen text und card nicht entfernen" —
+ *  AddLinksForm's own paste box now accepts a file drop directly and hands
+ *  the files here instead of this component keeping a second, visible drop
+ *  target of its own; see this file's own top-of-file comment for why the
+ *  visible row is gone but the handling underneath it is not). */
 export interface FileDropHandle {
   openPicker: () => void;
+  handleFiles: (files: File[]) => void;
 }
 
 const FILE_ACCEPT = '.torrent,.txt,.dlc,.ccf,.rsdf';
@@ -214,22 +213,19 @@ function TorrentTreeCard({
 }
 
 /**
- * FileDrop is the collector's one file/link intake zone below the paste box,
- * merging what used to be ContainerDrop and TorrentUpload.
- *
- * One row tall when idle, same footprint reasoning both former components
- * shared: the paste box above is why people open this page, and an intake
- * surface that pushes it off the top has cost more than it added.
- *
- * The file picker's own button does not live in this row - see
- * FileDropHandle above - so this component's own visible surface is just
- * the drop target and its explanation.
+ * FileDrop is the collector's file intake: what used to be ContainerDrop and
+ * TorrentUpload, then a merged visible drop row of its own, now a purely
+ * reactive component with no visible surface of its own most of the time
+ * (jdp, 2026-08-24: "können wir diesen text und card nicht entfernen" — the
+ * hint text and its row are gone; AddLinksForm's own paste box is the one
+ * drop target now, for both text and files, and reaches the handling below
+ * through the ref rather than this component keeping a second target
+ * beside it). It still renders something the moment there is something to
+ * show: the torrent file-tree review card, or a batch's outcome lines.
  */
 export const FileDrop = forwardRef<FileDropHandle, { pkg?: string }>(function FileDrop({ pkg = '' }, ref) {
   const { t } = useT();
-  const { toast } = useToast();
   const input = useRef<HTMLInputElement>(null);
-  const [dragOver, setDragOver] = useState(false);
   const [busy, setBusy] = useState(false);
   const [results, setResults] = useState<Outcome[]>([]);
   const [pending, setPending] = useState<Pending | null>(null);
@@ -242,6 +238,7 @@ export const FileDrop = forwardRef<FileDropHandle, { pkg?: string }>(function Fi
     openPicker: () => {
       if (!busy && !pending) input.current?.click();
     },
+    handleFiles: (files: File[]) => void sendFiles(files),
   }));
 
   async function commitTorrent(file: string, tree: TorrentTree, selected: boolean[]): Promise<Outcome> {
@@ -334,61 +331,24 @@ export const FileDrop = forwardRef<FileDropHandle, { pkg?: string }>(function Fi
     setBusy(false);
   }
 
-  async function sendLink(text: string) {
-    const trimmed = text.trim();
-    if (!trimmed) return;
-    const created = await addLinks(trimmed, pkg);
-    toast(
-      created.length ? t('collector.toastStaged', { n: created.length }) : t('collector.toastNone'),
-      created.length ? 'ok' : 'fail',
-    );
-  }
-
   return (
     <div className="flex flex-col gap-1.5">
-      <div
-        onDragOver={(e) => {
-          e.preventDefault();
-          setDragOver(true);
+      <input
+        ref={input}
+        type="file"
+        hidden
+        multiple
+        accept={FILE_ACCEPT}
+        onChange={(e) => {
+          void sendFiles([...(e.target.files ?? [])]);
+          // Cleared so picking the same file again still fires a change
+          // event - otherwise a re-upload after fixing the JD backend
+          // silently does nothing.
+          e.target.value = '';
         }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={(e) => {
-          e.preventDefault();
-          setDragOver(false);
-          const files = [...e.dataTransfer.files];
-          if (files.length) {
-            void sendFiles(files);
-            return;
-          }
-          // No files - a dragged text selection or an address-bar drag is a
-          // link, handled the same way AddLinksForm's own paste box handles one.
-          void sendLink(e.dataTransfer.getData('text'));
-        }}
-        className={`flex flex-wrap items-center gap-3 rounded-[var(--radius-control)] px-4 py-2 transition-colors ${
-          dragOver ? 'bg-accentSoft shadow-[0_0_0_2px_var(--focus-ring)]' : 'bg-carbon-surface2'
-        }`}
-      >
-        <span className="flex items-center text-xs text-carbon-textSub">
-          {t('collector.filedrop.prompt')}
-          <InfoBubble tip={t('collector.filedrop.info')} />
-        </span>
-        <span className="flex-1" />
-        {busy && <span className="text-xs text-carbon-textMuted">{t('container.uploading')}</span>}
-        <input
-          ref={input}
-          type="file"
-          hidden
-          multiple
-          accept={FILE_ACCEPT}
-          onChange={(e) => {
-            void sendFiles([...(e.target.files ?? [])]);
-            // Cleared so picking the same file again still fires a change
-            // event - otherwise a re-upload after fixing the JD backend
-            // silently does nothing.
-            e.target.value = '';
-          }}
-        />
-      </div>
+      />
+
+      {busy && <p className="px-1 text-xs text-carbon-textMuted">{t('container.uploading')}</p>}
 
       {pending && (
         <TorrentTreeCard

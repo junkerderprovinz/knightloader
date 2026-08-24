@@ -393,7 +393,7 @@ func featureList(a *app.App) []Feature {
 				"so it is not served from here at all",
 		},
 		{
-			ID: "updater", Verdict: updaterVerdict(), Page: "advanced",
+			ID: "updater", Verdict: updaterVerdict(), Page: "look",
 			Switch: SwitchNone,
 			Reason: updaterReason(),
 		},
@@ -403,15 +403,25 @@ func featureList(a *app.App) []Feature {
 // updaterVerdict/updaterReason are both buildinfo.Deployment-aware (jdp,
 // 2026-08-23: "bei der Docker version soll halt stehen dass es in app nicht
 // notwendig ist weil es über zb unraid selbst läuft", then "#19 bauen" once
-// the container-only wording landed) - the container's own reasoning (it
-// cannot replace itself from the inside, and the deployment that runs it
-// already both detects and performs the update) never applied to desktop,
-// which has no such surrounding platform to defer to. Desktop now has a
-// real update.Check (routes_lifecycle.go's GET /api/system/update-check,
-// surfaced on the Advanced tab) - VerdictDesktop rather than VerdictShipped
-// because there is no real on/off state to show as a switch-less row's
-// enabled/disabled text would imply; it sorts into the same "only reachable
-// in the desktop bundle" section tray/windowpolicy already use.
+// the container-only wording landed; jdp, 2026-08-24, once a container user
+// hit that same container-only gate on the General tab's own update card
+// and asked where it had gone: "warum machen wir da nicht irgendwo ein
+// toggle um auto update zu aktivieren?" - the card now shows on both
+// builds, so this row's reason had to stop claiming there is nothing to see
+// here on a container). Checking and being told a newer release exists is
+// harmless on either deployment - it is only ever a GET to GitHub plus a
+// notification - so what still differs is not whether the row is built but
+// what it can honestly promise to DO: desktop can hand you a page to fetch
+// an installer from, and a container - which cannot replace itself from
+// the inside - cannot, so its General tab points at the same release but
+// says to update the way you deployed this container instead.
+// VerdictDesktop rather than VerdictShipped because there is no real on/off
+// state to show as a switch-less row's enabled/disabled text would imply;
+// it sorts into the same "only reachable in the desktop bundle" section
+// tray/windowpolicy already use. Page is "look" (the General tab, where the
+// card actually lives), not "advanced" (the raw key/value table every
+// setting is technically also editable from) - same convention every other
+// row in this table follows, pointing at the page that configures it.
 func updaterVerdict() FeatureVerdict {
 	if buildinfo.Deployment == "desktop" {
 		return VerdictDesktop
@@ -421,11 +431,12 @@ func updaterVerdict() FeatureVerdict {
 
 func updaterReason() string {
 	if buildinfo.Deployment == "desktop" {
-		return "checks GitHub for a newer release on demand from the Erweitert tab; downloading and installing it is still a manual step there, " +
-			"same as any other desktop app before it grows a silent auto-apply"
+		return "checks GitHub for a newer release on demand from the General tab, or automatically on load there if its toggle is on; " +
+			"downloading and installing it is still a manual step there, same as any other desktop app before it grows a silent auto-apply"
 	}
-	return "a container cannot replace itself from the inside, and the deployment that runs it " +
-		"(Docker, Unraid, ...) already both detects and performs the update; a second indicator here would only disagree with it"
+	return "a container cannot replace itself from the inside, so the General tab's check-and-notify only tells you a newer release exists " +
+		"and points at it, same as on desktop - updating still means pulling the new image the way you deployed this one " +
+		"(docker pull, Unraid Community Applications, Watchtower, ...), which is what the deployment that runs it already does or lets you do"
 }
 
 // featurePages is the sub-page list, in rail order.
@@ -442,7 +453,7 @@ func featurePages() []FeaturePage {
 		// bookmarked /settings/look URL and the stored settingsTabOrder/
 		// settingsPage UI-state values for no visible benefit); only the
 		// displayed label (settings.nav.look) changed to "Allgemein".
-		{ID: "look"},
+		{ID: "look", Modules: []string{"updater"}},
 		{ID: "modules"},
 		{ID: "downloads", Modules: []string{"watch", "crawler", "checksums"}},
 		{ID: "archives", Modules: []string{"extraction"}},
@@ -461,7 +472,7 @@ func featurePages() []FeaturePage {
 		{ID: "shortcuts"},
 		{ID: "access", Modules: []string{"cnl"}},
 		{ID: "scripts", Modules: []string{"scripting"}},
-		{ID: "advanced", Modules: []string{"updater"}},
+		{ID: "advanced"},
 		// diagnostics, system and help carry no module row of their own,
 		// same as look above: the log ring and the diagnostics bundle are
 		// always-on infrastructure rather than a subsystem with an on/off

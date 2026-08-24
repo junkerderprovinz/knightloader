@@ -24,7 +24,7 @@ import { useT, type TranslationKey } from '../lib/i18n';
 import { fmtBytes } from '../lib/format';
 import { hostOf } from './columns';
 import { Tabs } from './Tabs';
-import { Card } from './ui';
+import { Card, SectionTitle } from './ui';
 
 // Same PENDING-table arrangement as CollectorFacets.tsx (see that file's own
 // comment for the precedent) — locale files are one writer's lane, 8F, and it
@@ -136,6 +136,7 @@ export function CollectorStats({ all, visible, selected }: { all: Task[]; visibl
   return (
     <div role="group" aria-label={cx('collector.stats.label')}>
       <Card className="flex w-fit min-w-[13rem] flex-col gap-3">
+        <SectionTitle hue={1}>{cx('collector.stats.label')}</SectionTitle>
         <Tabs
           select="one"
           size="sm"

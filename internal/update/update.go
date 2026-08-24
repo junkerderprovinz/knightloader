@@ -1,7 +1,14 @@
-// Package update checks whether a newer KnightLoader release exists, for the
-// desktop build only - a container has no update mechanism of its own to
-// drive (see routes_features.go's updaterReason: the deployment that runs a
-// container already detects and performs its own update).
+// Package update checks whether a newer KnightLoader release exists,
+// surfaced on both deployments' General tab now (jdp, 2026-08-24: a
+// container user hit the card's old desktop-only gate and asked where the
+// toggle had gone - checking GitHub and saying so is exactly as harmless
+// for a container as for desktop). What differs by deployment is never
+// whether the check runs, only what "update available" tells you to do
+// about it: desktop hands you the release page to fetch an installer from,
+// and a container - which cannot replace itself from the inside - is
+// pointed at the same release page but told to update the way it was
+// deployed instead (docker pull, Unraid Community Applications, ...); see
+// routes_features.go's updaterReason for the fuller version of that split.
 //
 // This package only CHECKS and reports. It does not download, verify or
 // apply anything: a desktop auto-updater that silently replaces its own

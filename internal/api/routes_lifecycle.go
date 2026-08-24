@@ -61,11 +61,12 @@ func registerLifecycle(reg *Registry, a *app.App) {
 			requestExit(w, a, true)
 		})
 
-	// Desktop only in practice (see update.Check's own package doc for why a
-	// container has nothing for this to report), but registered
-	// unconditionally like every other route here - the frontend gates the
-	// UI on GET /api/system/deployment instead of this route refusing to
-	// exist on the wrong build.
+	// Both deployments call this now (see update.Check's own package doc for
+	// why what differs by deployment is only what "update available" tells
+	// you to do, never whether the check runs) - registered unconditionally
+	// like every other route here regardless, so the frontend gates the UI
+	// on GET /api/system/deployment instead of this route refusing to exist
+	// on the wrong build.
 	reg.Add(http.MethodGet, "/api/system/update-check",
 		"whether a newer release exists on GitHub than this build's own version",
 		func(w http.ResponseWriter, r *http.Request) {
