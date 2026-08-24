@@ -15,6 +15,7 @@ import {
   revokeToken,
   setPassword,
 } from '../../lib/api';
+import { copyToClipboard } from '../../lib/clipboard';
 import { fmtDate } from '../../lib/format';
 import { useInstallPrompt } from '../../lib/pwaInstall';
 import { useT, type TranslationKey } from '../../lib/i18n';
@@ -391,26 +392,18 @@ function PairingCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, string 
               <code className="glim-num min-w-0 flex-1 overflow-x-auto whitespace-nowrap text-xs text-carbon-text" dir="ltr">
                 {code.code}
               </code>
-              {'clipboard' in navigator && (
-                <IconBadge
-                  icon={copied ? <IconCheck width={14} height={14} /> : <IconClipboard width={14} height={14} />}
-                  title={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
-                  aria-label={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
-                  onClick={async () => {
-                    await navigator.clipboard.writeText(code.code);
+              <IconBadge
+                icon={copied ? <IconCheck width={14} height={14} /> : <IconClipboard width={14} height={14} />}
+                title={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
+                aria-label={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
+                onClick={async () => {
+                  if (await copyToClipboard(code.code)) {
                     setCopied(true);
                     setTimeout(() => setCopied(false), 1800);
-                  }}
-                />
-              )}
+                  }
+                }}
+              />
             </div>
-            {/* jdp, 2026-08-24: "wo muss man den pairing code eingeben?" -
-                the code is generated here but redeemed on a DIFFERENT
-                instance's own Instances page (Instances.tsx's own "Mit Code
-                koppeln" card), which the generating side cannot deep-link
-                to (it does not know that instance's address until the code
-                is redeemed) - so this says exactly where in words instead. */}
-            <p className="text-[11px] font-medium text-carbon-text">{cx('settings.access.remote.pairWhere')}</p>
             <p className="text-[11px] text-carbon-textMuted">
               {cx('settings.access.remote.pairExpires', { min: Math.round(code.expiresIn / 60) })}
             </p>
@@ -580,18 +573,17 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
               <code className="glim-num min-w-0 flex-1 overflow-x-auto whitespace-nowrap text-xs text-carbon-text" dir="ltr">
                 {created.secret}
               </code>
-              {'clipboard' in navigator && (
-                <IconBadge
-                  icon={copied ? <IconCheck width={14} height={14} /> : <IconClipboard width={14} height={14} />}
-                  title={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
-                  aria-label={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
-                  onClick={async () => {
-                    await navigator.clipboard.writeText(created.secret);
+              <IconBadge
+                icon={copied ? <IconCheck width={14} height={14} /> : <IconClipboard width={14} height={14} />}
+                title={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
+                aria-label={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
+                onClick={async () => {
+                  if (await copyToClipboard(created.secret)) {
                     setCopied(true);
                     setTimeout(() => setCopied(false), 1800);
-                  }}
-                />
-              )}
+                  }
+                }}
+              />
             </div>
             <p className="text-[11px] text-carbon-textMuted" dir="ltr">
               {cx('settings.access.tokens.howToUse')}

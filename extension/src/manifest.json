@@ -29,6 +29,7 @@
     "open_in_tab": true
   },
   "permissions": ["contextMenus", "storage", "activeTab"],
+  "optional_host_permissions": ["<all_urls>"],
   "browser_specific_settings": {
     "gecko": {
       "id": "extension@knightloader.junkerderprovinz.dev",

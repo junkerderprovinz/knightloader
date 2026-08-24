@@ -300,122 +300,129 @@ export function Collector() {
         <SkippedLinks />
       </div>
 
-      {collected.length > 0 && (
-        <div className="shrink-0">
-          <ListToolbar
-            search={search}
-            onSearch={setSearch}
-            filters={COLLECTOR_FILTERS}
-            active={filters}
-            onActive={setFilters}
-            tasks={collected}
-            shown={filtered.length}
+      {/* Search bar, selection strip, the action-badge row and the list
+          itself all wrapped in ONE inner flex-col with a tighter gap-3
+          (jdp, 2026-08-24, second round: "zwischen suchfeld und
+          hauptfenster ist immer noch ein großer anbstand" - hiding the
+          empty SelectionStrip's own wrapper already removed one PHANTOM
+          gap, but the outer page's gap-6 still put a full 24px seam before
+          AND after the badge row on top of the row's own height, reading
+          as one big gap even with nothing phantom left in it). This
+          "list-management cluster" reads as one connected unit now,
+          gap-3 between its own parts; the hero row and the paste-intake
+          block above keep the page's normal gap-6 - they are genuinely
+          separate sections, this one is not. */}
+      <div className="flex min-h-0 flex-1 flex-col gap-3">
+        {collected.length > 0 && (
+          <div className="shrink-0">
+            <ListToolbar
+              search={search}
+              onSearch={setSearch}
+              filters={COLLECTOR_FILTERS}
+              active={filters}
+              onActive={setFilters}
+              tasks={collected}
+              shown={filtered.length}
+            />
+          </div>
+        )}
+
+        {selected.size > 0 && (
+          <div className="shrink-0">
+            <SelectionStrip
+              all={collected}
+              selected={selected}
+              onSelected={setSelected}
+              removal={removal}
+              onMore={(at) => {
+                setTarget({ kind: 'selection' });
+                menu.openAt(at);
+              }}
+            >
+              <PackageActions
+                tasks={collected}
+                selected={selected}
+                base="/api"
+                onDone={() => toast(t('task.applied'), 'ok')}
+              />
+              {/* Secondary, not primary: the page's one accent button is "Add to
+                  collector" in the hero, and a second would make neither read as the
+                  thing to do next. */}
+              <Button
+                kind="secondary"
+                className="px-2.5 text-xs"
+                icon={<IconPlay width={15} height={15} />}
+                onClick={startSelected}
+              >
+                {t('collector.startSelected')}
+              </Button>
+            </SelectionStrip>
+          </div>
+        )}
+
+        {/* jdp, 2026-08-24: "Alle buttons sollen oberhalb des fensters
+            platziert sein: Alle auswählen, Aufräumen, alle prüfen, alle
+            starten -> alle in einer zeile ganz rechts als badges (inkl.
+            farbmodi), der Filter button kann weg" - CollectorFacetsToggle
+            (the former "Filter" entry point) is gone entirely now that the
+            facets card above is always shown, not toggled. Reuses the exact
+            same allChosen/cleanup/checkAll/startAll logic ListActionBar used
+            to run for this page - only the trigger's shape changed, not what
+            it does - and stays local to this file since Downloads.tsx keeps
+            ListActionBar's own text-button look unchanged. */}
+        <div className="flex shrink-0 items-center justify-end gap-2" role="group" aria-label={t('list.actions')}>
+          <IconBadge
+            icon={<IconCheck width={16} height={16} />}
+            className="glim-hue glim-hue-icon"
+            style={hueStyle(0)}
+            title={allChosen ? t('select.none') : t('select.all')}
+            aria-label={allChosen ? t('select.none') : t('select.all')}
+            disabled={filtered.length === 0}
+            onClick={() => setSelected(allChosen ? new Set() : new Set(filtered.map((x) => x.id)))}
+          />
+          <IconBadge
+            icon={<IconTrash width={16} height={16} />}
+            className="glim-hue glim-hue-icon"
+            style={hueStyle(1)}
+            title={t('cleanup.menu')}
+            aria-label={t('cleanup.menu')}
+            onClick={(e) => void openCleanup(e.currentTarget)}
+          />
+          <IconBadge
+            icon={<IconSearch width={16} height={16} />}
+            className="glim-hue glim-hue-icon"
+            style={hueStyle(2)}
+            title={t('collector.checkAll')}
+            aria-label={t('collector.checkAll')}
+            disabled={collected.length === 0}
+            onClick={() => {
+              // An empty id list means every staged link on this route —
+              // deliberately unlike the bulk routes, where empty is refused
+              // outright rather than read as "all".
+              recheckTasks([]);
+              toast(t('task.recheck'), 'info');
+            }}
+          />
+          <IconBadge
+            icon={<IconPlay width={16} height={16} />}
+            className="glim-hue glim-hue-icon"
+            style={hueStyle(3)}
+            title={t('collector.startAll')}
+            aria-label={t('collector.startAll')}
+            disabled={collected.length === 0}
+            onClick={startAll}
           />
         </div>
-      )}
 
-      {/* Only rendered while something is actually selected - SelectionStrip
-          itself already returns null then, but this wrapper div is a direct
-          child of the page's own gap-6 flex column, so leaving it mounted
-          empty still cost one full gap unit of dead space between the
-          search bar and the badges row below (jdp, 2026-08-24: "das
-          Linkhauptfenster ist zu weit unten, das soll unter der Suchleiste
-          direkt anfangen") - same conditional-wrapper pattern the search
-          bar's own ListToolbar block above already uses for the same
-          reason. */}
-      {selected.size > 0 && (
-        <div className="shrink-0">
-          <SelectionStrip
-            all={collected}
-            selected={selected}
-            onSelected={setSelected}
-            removal={removal}
-            onMore={(at) => {
-              setTarget({ kind: 'selection' });
-              menu.openAt(at);
-            }}
-          >
-            <PackageActions
-              tasks={collected}
-              selected={selected}
-              base="/api"
-              onDone={() => toast(t('task.applied'), 'ok')}
-            />
-            {/* Secondary, not primary: the page's one accent button is "Add to
-                collector" in the hero, and a second would make neither read as the
-                thing to do next. */}
-            <Button
-              kind="secondary"
-              className="px-2.5 text-xs"
-              icon={<IconPlay width={15} height={15} />}
-              onClick={startSelected}
-            >
-              {t('collector.startSelected')}
-            </Button>
-          </SelectionStrip>
-        </div>
-      )}
-
-      {/* jdp, 2026-08-24: "Alle buttons sollen oberhalb des fensters
-          platziert sein: Alle auswählen, Aufräumen, alle prüfen, alle
-          starten -> alle in einer zeile ganz rechts als badges (inkl.
-          farbmodi), der Filter button kann weg" - CollectorFacetsToggle
-          (the former "Filter" entry point) is gone entirely now that the
-          facets card above is always shown, not toggled. Reuses the exact
-          same allChosen/cleanup/checkAll/startAll logic ListActionBar used
-          to run for this page - only the trigger's shape changed, not what
-          it does - and stays local to this file since Downloads.tsx keeps
-          ListActionBar's own text-button look unchanged. */}
-      <div className="flex shrink-0 items-center justify-end gap-2" role="group" aria-label={t('list.actions')}>
-        <IconBadge
-          icon={<IconCheck width={16} height={16} />}
-          className="glim-hue glim-hue-icon"
-          style={hueStyle(0)}
-          aria-label={allChosen ? t('select.none') : t('select.all')}
-          disabled={filtered.length === 0}
-          onClick={() => setSelected(allChosen ? new Set() : new Set(filtered.map((x) => x.id)))}
-        />
-        <IconBadge
-          icon={<IconTrash width={16} height={16} />}
-          className="glim-hue glim-hue-icon"
-          style={hueStyle(1)}
-          aria-label={t('cleanup.menu')}
-          onClick={(e) => void openCleanup(e.currentTarget)}
-        />
-        <IconBadge
-          icon={<IconSearch width={16} height={16} />}
-          className="glim-hue glim-hue-icon"
-          style={hueStyle(2)}
-          aria-label={t('collector.checkAll')}
-          disabled={collected.length === 0}
-          onClick={() => {
-            // An empty id list means every staged link on this route —
-            // deliberately unlike the bulk routes, where empty is refused
-            // outright rather than read as "all".
-            recheckTasks([]);
-            toast(t('task.recheck'), 'info');
-          }}
-        />
-        <IconBadge
-          icon={<IconPlay width={16} height={16} />}
-          className="glim-hue glim-hue-icon"
-          style={hueStyle(3)}
-          aria-label={t('collector.startAll')}
-          disabled={collected.length === 0}
-          onClick={startAll}
-        />
-      </div>
-
-      {/* jdp, 2026-08-24: "Das hauptlinkfenster soll immer die ganze
-          fensterbreite einnehmen und immer bis ganz nach unten im fenster
-          gehen. egal wie viele links drinn sind." - min-h-0 + flex-1 here,
-          inside the root's own h-full/min-h-0 above (itself inside
-          app/Layout.tsx's h-screen/overflow-y-auto <main>), makes the list
-          the one scrolling region: everything above it keeps its natural
-          height (shrink-0), this section absorbs whatever space is left and
-          never less than that, and the row list inside scrolls on its own
-          rather than growing the whole page. */}
-      <div className="flex min-h-0 flex-1 flex-col" onContextMenu={onContextMenu}>
+        {/* jdp, 2026-08-24: "Das hauptlinkfenster soll immer die ganze
+            fensterbreite einnehmen und immer bis ganz nach unten im fenster
+            gehen. egal wie viele links drinn sind." - min-h-0 + flex-1 here
+            makes the list the one scrolling region: everything above it in
+            THIS inner cluster keeps its natural height (shrink-0), this
+            section absorbs whatever space is left and never less than
+            that, and the row list inside scrolls on its own rather than
+            growing the whole page. */}
+        <div className="flex min-h-0 flex-1 flex-col" onContextMenu={onContextMenu}>
         {collected.length === 0 ? (
           <div className="glim-card flex flex-1 items-center justify-center p-12 text-center text-sm text-carbon-textMuted">
             {t('collector.empty')}
@@ -439,6 +446,7 @@ export function Collector() {
             <TaskListCard groups={groups} base="/api" selection={selection} profile="collector" />
           </div>
         )}
+        </div>
       </div>
 
       {cleanupMenu.anchor && cleanup.classes && (

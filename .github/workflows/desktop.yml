@@ -127,6 +127,22 @@ jobs:
           done
           ls -lh dist
 
+      # sha256 alongside each zip so a download can be checked against what
+      # this pipeline actually produced, not just trusted because it arrived
+      # over TLS from a real GitHub asset host - internal/update's Download
+      # (see that package's own doc comment) fetches this file next to the
+      # platform zip and refuses to hand the download to Apply if the digest
+      # does not match. Run from inside dist/ so the entries in the file are
+      # bare filenames with no "dist/" prefix: that is what lets Download
+      # match an entry by the same asset name it already downloaded under,
+      # and what lets a human run `sha256sum -c checksums.txt` by hand from
+      # inside a folder holding just the downloaded zip and this file.
+      - name: Checksums
+        run: |
+          set -eu
+          (cd dist && sha256sum *.zip > checksums.txt)
+          cat dist/checksums.txt
+
       # The release is created by release.yml on the same tag, and these builds
       # take twenty minutes longer than it does — but a runner queue can invert
       # that, and uploading to a release that does not exist yet fails outright.
@@ -147,7 +163,12 @@ jobs:
           echo "release $GITHUB_REF_NAME never appeared; is release.yml failing?" >&2
           exit 1
 
+      # dist/checksums.txt is listed alongside the zip glob explicitly rather
+      # than widened into it (a `dist/*` glob would also happily sweep up
+      # anything else that ever lands in dist/) - it does not match
+      # `dist/*.zip` on its own, so without this it would silently never
+      # reach the release at all.
       - name: Attach the bundles
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$GITHUB_REF_NAME" dist/*.zip --clobber --repo "$GITHUB_REPOSITORY"
+        run: gh release upload "$GITHUB_REF_NAME" dist/*.zip dist/checksums.txt --clobber --repo "$GITHUB_REPOSITORY"

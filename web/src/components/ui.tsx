@@ -253,13 +253,28 @@ export function InfoBubble({
    */
   onColor?: boolean;
 }) {
-  const [at, setAt] = useState<{ top: number; left: number } | null>(null);
+  const [at, setAt] = useState<{ left: number; top?: number; bottom?: number } | null>(null);
   const ref = useRef<HTMLSpanElement>(null);
 
+  // Same clamp/flip math as useTooltip's own `place()` below (GlimStone
+  // 1.2.0: "the tooltip/info-bubble viewport-clip fix" - this one had been
+  // missed when useTooltip first got it, so an InfoBubble opened near an
+  // edge - a card's own bottom-right corner, the last item in a short
+  // viewport - could render partly or fully off-screen with nothing to pull
+  // it back in). Horizontally clamped against the WORST-CASE (max) width
+  // rather than a measured one - cheaper than a second-pass measure for a
+  // small read-only panel, and only ever errs towards more margin, never
+  // towards clipping. Vertically flipped by the viewport's bottom edge
+  // rather than a measured height, since nothing has rendered yet to
+  // measure at the moment this runs.
   function open() {
     const r = ref.current?.getBoundingClientRect();
     if (!r) return;
-    setAt({ top: r.bottom + 8, left: r.left + r.width / 2 });
+    const margin = 12;
+    const half = TOOLTIP_MAX_WIDTH / 2;
+    const left = Math.min(Math.max(r.left + r.width / 2, margin + half), window.innerWidth - margin - half);
+    if (r.bottom + TOOLTIP_EST_HEIGHT <= window.innerHeight) setAt({ left, top: r.bottom + 8 });
+    else setAt({ left, bottom: window.innerHeight - r.top + 8 });
   }
 
   // Escape closes it, because a bubble opened by keyboard has to be closable by
@@ -306,7 +321,7 @@ export function InfoBubble({
             role="tooltip"
             dir="auto"
             className="glim-bubble glim-fade"
-            style={{ top: at.top, left: at.left }}
+            style={{ left: at.left, top: at.top, bottom: at.bottom, maxWidth: TOOLTIP_MAX_WIDTH }}
           >
             {tip}
           </span>,

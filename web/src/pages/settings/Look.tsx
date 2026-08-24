@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
-import { Button, Card, ErrorCard, InfoBubble, Modal, SectionTitle, Toggle } from '../../components/ui';
+import { Button, Card, ErrorCard, InfoBubble, Modal, SectionTitle, Toggle, ToggleRow } from '../../components/ui';
 import { Tabs } from '../../components/Tabs';
 import { LanguagePicker } from '../../components/LanguagePicker';
 import {
@@ -467,7 +467,7 @@ function SystemCards() {
   if (shuttingDown) {
     return (
       <Card className="flex flex-col gap-3">
-        <SectionTitle hue={8}>{t('settings.system.shuttingDownTitle')}</SectionTitle>
+        <SectionTitle hue={6}>{t('settings.system.shuttingDownTitle')}</SectionTitle>
         <p className="text-sm text-carbon-text">{t('settings.system.shuttingDown')}</p>
       </Card>
     );
@@ -475,20 +475,13 @@ function SystemCards() {
 
   return (
     <>
-      <Card className="flex flex-col gap-2">
-        <SectionTitle hue={6}>{t('settings.system.overviewTitle')}</SectionTitle>
-        <p className="text-sm text-carbon-textSub">{t('settings.system.subtitle')}</p>
-        <span className="glim-eyebrow w-fit">
-          {data.deployment === 'container'
-            ? t('settings.system.deployment.container')
-            : data.deployment === 'desktop'
-              ? t('settings.system.deployment.desktop')
-              : data.deployment}
-        </span>
-      </Card>
-
+      {/* The former standalone "Übersicht" card (deployment badge + the
+          same intro sentence this whole section already opens with once)
+          removed outright (jdp, 2026-08-24: "Übersicht card entfernen") -
+          the one fact worth keeping, what quit/restart actually do on THIS
+          deployment, still shows right below via data.note. */}
       <Card className="flex flex-col gap-3">
-        <SectionTitle hue={7}>{t('settings.system.lifecycleTitle')}</SectionTitle>
+        <SectionTitle hue={6}>{t('settings.system.lifecycleTitle')}</SectionTitle>
         <p className="text-[11px] text-carbon-textMuted">{data.note}</p>
         <div className="flex flex-wrap items-center gap-3">
           <Button
@@ -515,7 +508,7 @@ function SystemCards() {
       </Card>
 
       <Card className="flex flex-col gap-3">
-        <SectionTitle hue={8}>{t('settings.system.backupTitle')}</SectionTitle>
+        <SectionTitle hue={7}>{t('settings.system.backupTitle')}</SectionTitle>
         <div className="flex flex-wrap items-center gap-3">
           <Button
             kind="secondary"
@@ -531,7 +524,7 @@ function SystemCards() {
       </Card>
 
       <Card className="flex flex-col gap-3">
-        <SectionTitle hue={9}>{t('settings.system.restoreTitle')}</SectionTitle>
+        <SectionTitle hue={8}>{t('settings.system.restoreTitle')}</SectionTitle>
         <input
           ref={fileInput}
           type="file"
@@ -722,20 +715,22 @@ function UpdateCard() {
         <span className="text-sm text-carbon-text">{t('settings.look.updatesAuto')}</span>
         <Toggle checked={cfg.autoUpdateCheck} onChange={(v) => patch({ autoUpdateCheck: v })} label={t('settings.look.updatesAuto')} hideLabel />
       </div>
-      {isDesktop && (
-        <div className="flex items-center justify-between gap-4">
-          <span className="flex items-center gap-1.5 text-sm text-carbon-text">
-            {t('settings.look.updatesAutoInstall')}
-            <InfoBubble tip={t('settings.look.updatesAutoInstallHint')} />
-          </span>
-          <Toggle
-            checked={cfg.autoUpdateInstall}
-            onChange={(v) => patch({ autoUpdateInstall: v })}
-            label={t('settings.look.updatesAutoInstall')}
-            hideLabel
-          />
-        </div>
-      )}
+      {/* Always shown, same reasoning as the Auto-Check row above and the
+          card's own doc comment: shown on both, only what it explains
+          differs. A container cannot ever install an update from here
+          (routes_lifecycle.go's own POST /api/system/update-install stays
+          501 there), so this reads-only-disables + explains rather than
+          disappearing - jdp hit exactly the "disappeared instead of
+          disabled" version of this on the auto-check toggle earlier this
+          same campaign (see updater doc comment above) and it was the
+          wrong call there too. */}
+      <ToggleRow
+        label={t('settings.look.updatesAutoInstall')}
+        hint={isDesktop ? t('settings.look.updatesAutoInstallHint') : t('settings.look.updatesAutoInstallContainerHint')}
+        checked={isDesktop && cfg.autoUpdateInstall}
+        disabled={!isDesktop}
+        onChange={(v) => patch({ autoUpdateInstall: v })}
+      />
       <div className="flex flex-wrap items-center gap-3">
         <Button kind="secondary" onClick={() => void onCheck()} disabled={checking || installing}>
           {checking ? t('settings.look.updatesChecking') : t('settings.look.updatesCheck')}

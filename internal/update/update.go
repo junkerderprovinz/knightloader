@@ -3,27 +3,34 @@
 // container user hit the card's old desktop-only gate and asked where the
 // toggle had gone - checking GitHub and saying so is exactly as harmless
 // for a container as for desktop). What differs by deployment is never
-// whether the check runs, only what "update available" tells you to do
-// about it: desktop hands you the release page to fetch an installer from,
-// and a container - which cannot replace itself from the inside - is
-// pointed at the same release page but told to update the way it was
-// deployed instead (docker pull, Unraid Community Applications, ...); see
+// whether the check runs, only what happens once "update available" is
+// true: desktop can fetch, verify and install the new release itself when
+// the user asks it to (Download/Apply/Relaunch, further down), while a
+// container - which cannot replace itself from the inside - is instead
+// pointed at the release page and told to update the way it was deployed
+// (docker pull, Unraid Community Applications, ...); see
 // routes_features.go's updaterReason for the fuller version of that split.
 //
-// This package only CHECKS and reports. It does not download, verify or
-// apply anything: a desktop auto-updater that silently replaces its own
-// binary is a real attack surface (an unverified download executed with the
-// user's own privileges), and building that safely - code-signature
-// verification, an atomic swap with rollback, per-platform install
-// mechanics - is its own careful piece of work, not something to bolt onto
-// a UI change. What ships here is the honest first slice: tell the user a
-// newer version exists and hand them the release page to fetch it
-// themselves, the same tier of "auto-update" a great many desktop apps ship
-// before ever attempting a silent one.
+// Check itself only checks and reports, and that half is identical on both
+// deployments. Download/Apply/Relaunch, further down, are desktop-only
+// (App.RequestUpdateInstall is nil on the container build - a container has
+// no running binary of its own to swap) and are never triggered
+// automatically: updaterReason is explicit that installing a fetched
+// release "is still a manual step there, same as any other desktop app
+// before it grows a silent auto-apply" - a background auto-updater that
+// replaces its own binary unattended is a real attack surface regardless of
+// how well it verifies what it downloads, and that line is deliberately not
+// crossed here. What does run, once the user asks: fetch the matching
+// platform zip, verify its SHA-256 against a checksums.txt published in the
+// same release (see INTEGRITY, below), atomically swap it into place, and
+// relaunch. Full code-signature verification is the one piece of that chain
+// still not attempted - see INTEGRITY for exactly what is, and is not,
+// covered.
 package update
 
 import (
 	"archive/zip"
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -38,6 +45,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/checksum"
 )
 
 // releasesAPI is GitHub's own "latest release" endpoint - not the releases
@@ -189,19 +198,48 @@ func parts(v string) ([3]int, bool) {
 // "App owns no process lifecycle of its own" split RequestExit already
 // established.
 //
-// INTEGRITY. desktop.yml's release pipeline does not publish a checksums
-// file today, so there is nothing to verify the download against beyond
-// what TLS to a real GitHub asset host already guarantees (transport
-// integrity + that the bytes came from this repo's own release, since only
-// this repo's own Actions runner can attach an asset to its releases in the
-// first place). downloadAsset therefore pins the download to GitHub's own
-// asset hosts rather than following browser_download_url blindly, and
-// confirms the downloaded size matches the asset metadata GitHub itself
-// reported. Full code-signature verification (checking the binary was
-// signed by the same identity as this running one) remains the honest gap
-// this package's own doc comment already names - add a checksums.txt to
-// desktop.yml's "attach" job and verify against it here as the natural next
-// hardening step, not attempted today.
+// INTEGRITY. downloadAsset pins the download to GitHub's own asset hosts
+// rather than following browser_download_url blindly, and confirms the
+// downloaded size matches the asset metadata GitHub itself reported (bytes
+// came from this repo's own release, since only this repo's own Actions
+// runner can attach an asset to its releases in the first place) - that much
+// has been true since the very first cut of this package.
+//
+// Beyond it, desktop.yml's "attach" job now also generates a checksums.txt
+// (sha256sum of every platform zip, produced in the same job run that zips
+// them - see that workflow's own "Checksums" step) and publishes it as a
+// release asset next to the bundles. Download fetches it alongside the
+// platform zip and verifyChecksum checks the downloaded file's own SHA-256
+// against the matching line in it before Download ever returns a path for
+// Apply to unpack. That closes the gap this comment used to name here: a
+// download can no longer be truncated, corrupted, or tampered with in
+// transit or in a compromised CDN cache without Download refusing to hand it
+// to Apply.
+//
+// It is deliberately still not code-signature verification. A published
+// sha256 proves the bytes match what the release pipeline itself produced;
+// it says nothing about whether that pipeline was trustworthy in the first
+// place, since both the zip and its checksums.txt are generated and
+// published by the exact same Actions job - a compromise of that job could
+// forge a matching pair as easily as a real release. Only a signature tied
+// to an identity outside the build pipeline (a hardware key, a separate
+// signing service) could close that remaining gap, and that stays the
+// honest gap this package's doc comment names, not attempted today.
+//
+// A release whose latest tag has a platform zip but no checksums.txt asset
+// is treated as a hard failure by Download, not a warn-and-proceed
+// fallback for "older releases predate this feature" - deliberately, not by
+// oversight. Download only ever looks at GitHub's "latest" release, and
+// every release cut from this point forward publishes checksums.txt in the
+// same workflow revision, at the same tag, in the same job run, that
+// publishes the platform zips themselves - so "latest has a zip but no
+// checksums.txt" cannot legitimately happen once this change has shipped;
+// it can only mean the attach job's Checksums step failed or the asset was
+// removed after publishing, i.e. exactly the kind of broken/incomplete
+// release this package already refuses to install from (see the identical
+// treatment of a missing platform-zip asset in Download below). Silently
+// falling back to unverified in that case would quietly defeat the point of
+// adding verification at all.
 // ---------------------------------------------------------------------------
 
 // allowedAssetHosts are the only hosts downloadAsset will fetch from,
@@ -258,13 +296,24 @@ func executableName() string {
 	}
 }
 
+// checksumAssetName is the file desktop.yml's "attach" job writes alongside
+// the platform zips (see that workflow's "Checksums" step) - a plain
+// sha256sum-format text file, one line per zip, filenames bare with no path
+// prefix.
+const checksumAssetName = "checksums.txt"
+
 // Download fetches the release asset matching this platform from the
 // latest GitHub release (only when it is actually newer than `current` -
 // mirrors Check's own "dev never compares" and X.Y.Z-only rules so a caller
 // cannot download a same-or-older build by mistake) into a fresh temp file
-// and returns its path. Deleting it once Apply has consumed it is the
-// caller's job (os.RemoveAll is safe to call on a path that no longer
-// exists).
+// and returns its path. Before returning, it also fetches that same
+// release's checksums.txt asset and verifies the downloaded zip's own
+// SHA-256 against the entry in it for this platform's filename - see this
+// package's own doc comment for what that does and does not prove, and for
+// why a release missing checksums.txt entirely is a hard failure here
+// rather than a fallback to unverified. Deleting the returned path once
+// Apply has consumed it is the caller's job (os.RemoveAll is safe to call
+// on a path that no longer exists).
 func Download(ctx context.Context, current string) (zipPath string, tag string, err error) {
 	if current == "" || current == "dev" {
 		return "", "", errors.New("update: cannot compare an untagged build to a release")
@@ -299,25 +348,60 @@ func Download(ctx context.Context, current string) (zipPath string, tag string, 
 		return "", "", fmt.Errorf("update: release %s has no asset named %s", rel.TagName, want)
 	}
 
+	var checksums *ghAsset
+	for i := range rel.Assets {
+		if rel.Assets[i].Name == checksumAssetName {
+			checksums = &rel.Assets[i]
+			break
+		}
+	}
+	if checksums == nil {
+		// Treated exactly like the missing-zip-asset case just above, not as
+		// a softer "older release predates this feature" fallback - see this
+		// package's doc comment for the reasoning. In short: Download only
+		// ever looks at "latest", and every release from this feature
+		// onward publishes checksums.txt in the same job run that publishes
+		// the platform zips, so this can only mean the release is broken or
+		// was tampered with after publishing - either way, not something to
+		// quietly proceed past.
+		return "", "", fmt.Errorf("update: release %s has no %s asset - refusing to install an unverifiable download", rel.TagName, checksumAssetName)
+	}
+
 	path, err := downloadAsset(ctx, *asset)
 	if err != nil {
 		return "", "", err
 	}
+
+	checksumsData, err := downloadChecksums(ctx, *checksums)
+	if err != nil {
+		os.Remove(path)
+		return "", "", err
+	}
+	if err := verifyChecksum(path, want, checksumsData); err != nil {
+		os.Remove(path)
+		return "", "", err
+	}
+
 	return path, rel.TagName, nil
 }
 
-func downloadAsset(ctx context.Context, asset ghAsset) (string, error) {
+// fetchAsset builds the validated request and does the GET common to both
+// downloadAsset (the platform zip, staged to a temp file) and
+// downloadChecksums (checksums.txt, small enough to keep in memory) - host
+// pinning and redirect re-validation only need writing once. The caller owns
+// resp.Body and must close it.
+func fetchAsset(ctx context.Context, asset ghAsset) (*http.Response, error) {
 	u, err := url.Parse(asset.BrowserDownloadURL)
 	if err != nil {
-		return "", fmt.Errorf("update: bad asset URL: %w", err)
+		return nil, fmt.Errorf("update: bad asset URL: %w", err)
 	}
 	if u.Scheme != "https" || !allowedAssetHosts[u.Hostname()] {
-		return "", fmt.Errorf("update: refusing to download from untrusted host %q", u.Hostname())
+		return nil, fmt.Errorf("update: refusing to download from untrusted host %q", u.Hostname())
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	// A plain http.Client follows redirects (including cross-host ones) by
 	// default - GitHub's download URL 302s to its own CDN host, which is
@@ -336,12 +420,21 @@ func downloadAsset(ctx context.Context, asset ghAsset) (string, error) {
 	}
 	resp, err := client.Do(req)
 	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		resp.Body.Close()
+		return nil, fmt.Errorf("update: download failed: %s", resp.Status)
+	}
+	return resp, nil
+}
+
+func downloadAsset(ctx context.Context, asset ghAsset) (string, error) {
+	resp, err := fetchAsset(ctx, asset)
+	if err != nil {
 		return "", err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("update: download failed: %s", resp.Status)
-	}
 
 	out, err := os.CreateTemp("", "knightloader-update-*.zip")
 	if err != nil {
@@ -362,6 +455,79 @@ func downloadAsset(ctx context.Context, asset ghAsset) (string, error) {
 		return "", fmt.Errorf("update: downloaded %d bytes, release reports %d - refusing a partial/corrupt asset", n, asset.Size)
 	}
 	return out.Name(), nil
+}
+
+// downloadChecksums fetches checksums.txt through the same host-pinned,
+// redirect-revalidated path as downloadAsset, but keeps the bytes in memory
+// instead of staging a temp file - the file is a handful of short text
+// lines (one per platform zip), nothing that benefits from disk staging the
+// way a multi-hundred-megabyte platform bundle does. The 1 MiB cap is
+// generous headroom over anything three platforms' worth of "<hex>
+// <filename>" lines could ever need; it exists only so a compromised or
+// misbehaving host cannot turn this into an unbounded read.
+func downloadChecksums(ctx context.Context, asset ghAsset) ([]byte, error) {
+	resp, err := fetchAsset(ctx, asset)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
+	if err != nil {
+		return nil, err
+	}
+	if asset.Size > 0 && int64(len(body)) != asset.Size {
+		return nil, fmt.Errorf("update: downloaded %s is %d bytes, release reports %d - refusing a partial/corrupt asset", checksumAssetName, len(body), asset.Size)
+	}
+	return body, nil
+}
+
+// verifyChecksum checks the file at zipPath against the entry for
+// wantAssetName in checksumsData (checksums.txt's raw bytes, as downloaded)
+// - the integrity half this package's doc comment names: TLS plus host
+// pinning (fetchAsset) already guarantee the bytes came from this repo's own
+// GitHub release, this additionally guarantees they were not truncated,
+// corrupted, or altered after the release pipeline published them, by
+// checking them against a digest published as its own asset at release
+// time.
+//
+// The actual parsing and hashing is internal/checksum's job, not
+// reimplemented here: that package already reads the exact
+// "<hex>  <filename>" sha256sum format desktop.yml's "Checksums" step
+// writes (ParseHashFile, shared with .sfv/md5sum/sha1sum downloads
+// elsewhere in this codebase) and already hashes-and-compares a file on
+// disk against one parsed entry (Verify) with its own test coverage - this
+// function is just the two calls plus finding the one entry that matters
+// for this asset name.
+func verifyChecksum(zipPath, wantAssetName string, checksumsData []byte) error {
+	sums, err := checksum.ParseHashFile(bytes.NewReader(checksumsData))
+	if err != nil {
+		return fmt.Errorf("update: %s: %w", checksumAssetName, err)
+	}
+	var want *checksum.Sum
+	for i := range sums {
+		if sums[i].Name == wantAssetName {
+			want = &sums[i]
+			break
+		}
+	}
+	if want == nil {
+		return fmt.Errorf("update: %s has no entry for %s", checksumAssetName, wantAssetName)
+	}
+	if want.Kind != checksum.SHA256 {
+		// desktop.yml only ever writes sha256sum output - a different digest
+		// length here means checksums.txt was hand-edited or generated by
+		// something else, not the format this package knows how to trust.
+		return fmt.Errorf("update: %s entry for %s is %s, not sha256", checksumAssetName, wantAssetName, want.Kind)
+	}
+	ok, err := checksum.Verify(zipPath, *want)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return fmt.Errorf("update: checksum mismatch for %s against %s - refusing to install a download that does not match its published digest", wantAssetName, checksumAssetName)
+	}
+	return nil
 }
 
 // CurrentExecutable resolves the running process's own image, and - on
