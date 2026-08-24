@@ -104,7 +104,7 @@ func (f *fakeJDContainer) handler() http.Handler {
 		case "/linkgrabberv2/isCollecting":
 			_, _ = w.Write([]byte(`{"data":false}`))
 		case "/linkgrabberv2/queryLinks":
-			_, _ = w.Write([]byte(`{"data":[{"uuid":100,"url":"https://host.example/a","name":"a.bin","host":"host.example"}]}`))
+			_, _ = w.Write([]byte(`{"data":[{"uuid":100,"url":"https://host.example/a","name":"a.bin","host":"host.example","bytesTotal":4096}]}`))
 		case "/linkgrabberv2/removeLinks":
 			f.mu.Lock()
 			f.removed = append(f.removed, 7)
@@ -119,9 +119,10 @@ func (f *fakeJDContainer) handler() http.Handler {
 // TestAddCryptedV1SubmitsHarvestsAndCleansUp drives AddCryptedV1 end to end
 // against fakeJDContainer: the raw bytes go in as an inline dataURLs entry
 // (not a URL — this payload was never fetchable), the harvested link comes
-// back as a plain URL through the same path AddContainer uses, and the
-// package is removed from JD's grabber afterwards so JD does not start it on
-// its own.
+// back as a resolver.Result (URL, name AND size - the crawl that decrypted
+// the container already knows all three) through the same path AddContainer
+// uses, and the package is removed from JD's grabber afterwards so JD does
+// not start it on its own.
 func TestAddCryptedV1SubmitsHarvestsAndCleansUp(t *testing.T) {
 	orig := pollInterval
 	pollInterval = 5 * time.Millisecond
@@ -132,12 +133,18 @@ func TestAddCryptedV1SubmitsHarvestsAndCleansUp(t *testing.T) {
 	defer srv.Close()
 
 	b := NewBackend(srv.URL, func(string, core.Update) {})
-	urls, err := b.AddCryptedV1([]byte("rsa-payload-stand-in"), "MyPackage", time.Second)
+	links, err := b.AddCryptedV1([]byte("rsa-payload-stand-in"), "MyPackage", time.Second)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(urls) != 1 || urls[0] != "https://host.example/a" {
-		t.Fatalf("urls = %v, want the one harvested link", urls)
+	if len(links) != 1 || links[0].DirectURL != "https://host.example/a" {
+		t.Fatalf("links = %+v, want the one harvested link", links)
+	}
+	if links[0].Name != "a.bin" {
+		t.Errorf("Name = %q, want the name the crawl already found, not a bare URL", links[0].Name)
+	}
+	if links[0].Size != 4096 {
+		t.Errorf("Size = %d, want the size the crawl already found", links[0].Size)
 	}
 
 	fake.mu.Lock()

@@ -89,6 +89,8 @@ func TestOnlyTheseRoutesAreOpen(t *testing.T) {
 		"POST /api/auth/logout": "logging out of a session the server no longer honours must still work",
 		"GET /api/containers/relay/{token}": "the fetch comes from the JD backend on another host, " +
 			"with no session; the unguessable single-use token in the path is the credential",
+		"POST /api/instances/pairing-code/complete": "called by the other instance's own backend to " +
+			"finish a pairing, with no session; the token in the body is the credential",
 	}
 	got := map[string]bool{}
 	for _, r := range buildRegistry(t).Routes() {

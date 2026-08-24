@@ -331,15 +331,9 @@ func featureList(a *app.App) []Feature {
 		},
 		{
 			ID: "cnl", Verdict: VerdictShipped, Page: "access",
-			Switch: SwitchNone, Enabled: cnlPort() > 0,
-			// This is the one named in the brief that genuinely cannot be wired from
-			// here, and saying so beats shipping a switch that closes nothing: the
-			// listener is created in cmd/knightloader/main.go and its handle never
-			// reaches the app, so nothing reachable from an HTTP handler can close
-			// the port.
-			Reason: "the listener is started by the process, not by the app: KL_CNL picks the port " +
-				"(KL_CNL=0 switches it off) and closing it needs a restart",
-			Detail: cnlDetail(),
+			Switch: cnlSwitch(a), Enabled: cnlEnabled(a),
+			Reason: cnlReason(a),
+			Detail: cnlDetail(a),
 		},
 		{
 			ID: "federation", Verdict: VerdictShipped, Page: "",
@@ -399,12 +393,6 @@ func featureList(a *app.App) []Feature {
 				"so it is not served from here at all",
 		},
 		{
-			ID: "myjd", Verdict: VerdictNotBuilt, Page: "access",
-			Switch: SwitchNone,
-			Reason: "my.jdownloader.org is a vendor relay with no protocol to join; reaching this instance " +
-				"from outside the network is a port forward, a reverse proxy or a VPN, and a peer instance covers the LAN case",
-		},
-		{
 			ID: "updater", Verdict: updaterVerdict(), Page: "advanced",
 			Switch: SwitchNone,
 			Reason: updaterReason(),
@@ -448,6 +436,13 @@ func updaterReason() string {
 // and until then the page explains itself out of the module rows filed under it.
 func featurePages() []FeaturePage {
 	return []FeaturePage{
+		// First in the rail (jdp, 2026-08-24: "Der aussehen Tab soll in
+		// Allgemein umbenannt werden und immer an erster stelle stehen") -
+		// the id and route stay "look" (a rename here would break every
+		// bookmarked /settings/look URL and the stored settingsTabOrder/
+		// settingsPage UI-state values for no visible benefit); only the
+		// displayed label (settings.nav.look) changed to "Allgemein".
+		{ID: "look"},
 		{ID: "modules"},
 		{ID: "downloads", Modules: []string{"watch", "crawler", "checksums"}},
 		{ID: "archives", Modules: []string{"extraction"}},
@@ -464,8 +459,7 @@ func featurePages() []FeaturePage {
 		// Feature{} row filed under this id either - just a real,
 		// bookmarkable address in the rail (Wave 12).
 		{ID: "shortcuts"},
-		{ID: "look"},
-		{ID: "access", Modules: []string{"cnl", "myjd"}},
+		{ID: "access", Modules: []string{"cnl"}},
 		{ID: "scripts", Modules: []string{"scripting"}},
 		{ID: "advanced", Modules: []string{"updater"}},
 		// diagnostics, system and help carry no module row of their own,
@@ -497,6 +491,16 @@ func setFeature(a *app.App, id string, on bool) error {
 	next := a.Settings.Get()
 
 	switch id {
+	case "cnl":
+		// Bypasses the shared ApplySettings tail below on purpose: this is
+		// not a settings field, it is a live net.Listener - see app.App's
+		// own CnLPort/CnLToggle doc comment for why that pair exists and why
+		// it is deliberately not persisted here alongside everything else.
+		if a.CnLToggle == nil {
+			return fmt.Errorf("%s: %w", id, errNoSwitch)
+		}
+		return a.CnLToggle(on)
+
 	case "extraction":
 		next.Extract = on
 	case "crawler":
@@ -753,6 +757,11 @@ func captchaDetail(a *app.App) string {
 // reaches the app — which is also why this module has no switch. The two
 // readings agreeing is a convention, so the default lives in one named constant
 // on each side and this comment is the pointer between them.
+// cnlPort reads the boot-time KL_CNL value, used only as the pre-toggle
+// fallback below (a.CnLEnabled unwired - desktop, or a test with no App
+// embedding it) and no longer as the row's live state once a.CnLEnabled is
+// set, which is a real read of whether the listener is actually up right
+// now rather than a guess from the environment it started with.
 func cnlPort() int {
 	v := os.Getenv("KL_CNL")
 	if v == "" {
@@ -765,16 +774,55 @@ func cnlPort() int {
 	return n
 }
 
-func cnlDetail() string {
-	p := cnlPort()
-	if p <= 0 {
+// cnlSwitch/cnlEnabled/cnlReason/cnlDetail: a.CnLPort/a.CnLToggle are set
+// only by cmd/knightloader/main.go (see app.App's own doc comment on why
+// desktop never wires them) - unwired falls back to the old env-var-only
+// read, exactly what this row showed before the toggle existed.
+func cnlSwitch(a *app.App) FeatureSwitch {
+	if a.CnLToggle == nil {
+		return SwitchNone
+	}
+	return SwitchSetting
+}
+
+func cnlEnabled(a *app.App) bool {
+	if a.CnLPort != nil {
+		return a.CnLPort() > 0
+	}
+	return cnlPort() > 0
+}
+
+func cnlReason(a *app.App) string {
+	if a.CnLToggle != nil {
+		return "the standard Click'n'Load port, 127.0.0.1:9666 unless KL_CNL names another - " +
+			"switching this off here does not change KL_CNL itself, so a restart still comes back up the way the environment says"
+	}
+	// This is the one named in the brief that genuinely cannot be wired from
+	// here, and saying so beats shipping a switch that closes nothing: the
+	// listener is created in cmd/knightloader/main.go and its handle never
+	// reaches the app, so nothing reachable from an HTTP handler can close
+	// the port.
+	return "the listener is started by the process, not by the app: KL_CNL picks the port " +
+		"(KL_CNL=0 switches it off) and closing it needs a restart"
+}
+
+func cnlDetail(a *app.App) string {
+	if a.CnLPort != nil {
+		if p := a.CnLPort(); p > 0 {
+			// This IS "listening", not "configured to": CnLPort only reports
+			// non-zero once Start actually bound the port.
+			return fmt.Sprintf("listening on 127.0.0.1:%d", p)
+		}
+		return "switched off"
+	}
+	if cnlPort() <= 0 {
 		return "switched off with KL_CNL=0"
 	}
 	// Deliberately "configured to listen" and not "listening": a port already
 	// held by a running JDownloader is logged at start-up and not fatal, and this
 	// handler has no way to tell the two apart. Claiming it is up would be the
 	// same lie as a switch that does nothing.
-	return fmt.Sprintf("configured to listen on 127.0.0.1:%d; the start-up log says whether the port was free", p)
+	return fmt.Sprintf("configured to listen on 127.0.0.1:%d; the start-up log says whether the port was free", cnlPort())
 }
 
 func enabledConnections(s settings.Settings) int {

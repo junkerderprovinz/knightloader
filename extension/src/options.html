@@ -79,11 +79,24 @@
       #addForm .fields { display: flex; gap: 8px; }
       #addForm .fields input#addName { flex: 0 0 40%; }
       #addForm .fields input#addUrl { flex: 1; }
+      select#languageSelect {
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 320px;
+        padding: 9px 10px;
+        border: 1px solid #393939;
+        border-radius: 8px;
+        background: #262626;
+        color: #f4f4f4;
+        font: inherit;
+      }
+      select#languageSelect:focus { outline: 2px solid #fcc419; outline-offset: -1px; }
+      p.fieldSub { color: #6f6f6f; margin: 0 0 10px; font-size: 12px; }
     </style>
   </head>
   <body>
     <h1>KnightLoader</h1>
-    <p class="sub">
+    <p class="sub" id="subtitle">
       Every instance the extension can send a link, a selection, or a page to.
       No account, relay or password is stored here: sending to one points a
       small window (or the toolbar popup) at that address, and the normal
@@ -92,10 +105,14 @@
       chosen otherwise.
     </p>
 
-    <h2>Instances</h2>
+    <h2 id="languageHeading">Language</h2>
+    <p class="fieldSub" id="languageSub">Applies to the popup, this page, and the send-to window.</p>
+    <select id="languageSelect"></select>
+
+    <h2 id="instancesHeading">Instances</h2>
     <div id="list"></div>
 
-    <h2>Add an instance</h2>
+    <h2 id="addHeading">Add an instance</h2>
     <form id="addForm">
       <div class="fields">
         <input id="addName" type="text" placeholder="Name (e.g. Home)" autocomplete="off" />
@@ -105,7 +122,8 @@
     </form>
 
     <div id="status"></div>
-    <p class="note">There is no hosted service any of this points at by default — every entry is the address of one instance you run.</p>
+    <p class="note" id="note">There is no hosted service any of this points at by default — every entry is the address of one instance you run.</p>
+    <script src="i18n.js"></script>
     <script src="shared.js"></script>
     <script src="options.js"></script>
   </body>

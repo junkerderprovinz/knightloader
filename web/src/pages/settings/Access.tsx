@@ -5,11 +5,13 @@ import {
   type ApiToken,
   type AuthState,
   type NewApiToken,
+  type PairingCode,
   type RemoteAccessInfo,
   createToken,
   fetchAuth,
   fetchRemoteAccess,
   fetchTokens,
+  generatePairingCode,
   revokeToken,
   setPassword,
 } from '../../lib/api';
@@ -73,6 +75,11 @@ const PENDING = {
   'settings.access.remote.install': 'Install',
   'settings.access.remote.installIOS':
     'On iPhone or iPad: open this page in Safari, tap Share, then "Add to Home Screen".',
+  'settings.access.remote.pairTitle': 'Pair another instance',
+  'settings.access.remote.pairBody':
+    "Add a KnightLoader you already run - no address to type, no account, nothing hosted. Generate a code here, then paste it into that instance's own Instances page.",
+  'settings.access.remote.pairGenerate': 'Generate pairing code',
+  'settings.access.remote.pairExpires': 'Valid for {min} minutes, then it expires unused.',
 
   'settings.access.intakePortsHint':
     'Other ways this instance can be reached directly, outside the normal login - each with its own reachability shown here.',
@@ -82,7 +89,11 @@ type PendingKey = keyof typeof PENDING;
 
 function useCx() {
   const { t } = useT();
-  return (key: PendingKey) => (t(key as unknown as TranslationKey) as string | undefined) ?? PENDING[key];
+  return (key: PendingKey, vars?: Record<string, string | number>) => {
+    let s = (t(key as unknown as TranslationKey) as string | undefined) ?? PENDING[key];
+    if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
+    return s;
+  };
 }
 
 export function Access() {
@@ -277,7 +288,76 @@ function RemoteAccessSection({ cx }: { cx: (k: PendingKey) => string }) {
           <p className="text-[11px] text-carbon-textMuted">{cx('settings.access.remote.installIOS')}</p>
         )}
       </Card>
+
+      <PairingCard cx={cx} />
     </>
+  );
+}
+
+// PairingCard is the OTHER half of Instances.tsx's own "Pair with a code"
+// card: this instance generates the code (internal/api/routes_pairing.go's
+// POST /api/instances/pairing-code), the other instance's Instances page
+// redeems it. No account, no vendor relay - see noRelayBody just above,
+// still true: this only ever reaches a KnightLoader you already run and
+// already have network access to, the same as typing its address by hand
+// would.
+function PairingCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, string | number>) => string }) {
+  const [code, setCode] = useState<PairingCode | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [err, setErr] = useState('');
+
+  async function onGenerate() {
+    setErr('');
+    setBusy(true);
+    try {
+      setCode(await generatePairingCode());
+      setCopied(false);
+    } catch (e: any) {
+      setErr(String(e?.message ?? e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Card className="flex flex-col gap-3">
+      <SectionTitle hue={3}>{cx('settings.access.remote.pairTitle')}</SectionTitle>
+      <p className="text-[11px] text-carbon-textMuted">{cx('settings.access.remote.pairBody')}</p>
+      {!code && (
+        <div>
+          <Button kind="secondary" onClick={() => void onGenerate()} disabled={busy}>
+            {cx('settings.access.remote.pairGenerate')}
+          </Button>
+        </div>
+      )}
+      {code && (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
+            <code className="glim-num min-w-0 flex-1 overflow-x-auto whitespace-nowrap text-xs text-carbon-text" dir="ltr">
+              {code.code}
+            </code>
+            {'clipboard' in navigator && (
+              <Button
+                kind="ghost"
+                className="shrink-0 px-2.5 text-xs"
+                onClick={async () => {
+                  await navigator.clipboard.writeText(code.code);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 1800);
+                }}
+              >
+                {copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
+              </Button>
+            )}
+          </div>
+          <span className="text-[11px] text-carbon-textMuted">
+            {cx('settings.access.remote.pairExpires', { min: Math.round(code.expiresIn / 60) })}
+          </span>
+        </div>
+      )}
+      {err && <p className="text-sm text-statusFail">{err}</p>}
+    </Card>
   );
 }
 

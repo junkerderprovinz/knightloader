@@ -3,11 +3,67 @@ const status = document.getElementById('status');
 const addForm = document.getElementById('addForm');
 const addName = document.getElementById('addName');
 const addUrl = document.getElementById('addUrl');
+const subtitleEl = document.getElementById('subtitle');
+const languageHeadingEl = document.getElementById('languageHeading');
+const languageSubEl = document.getElementById('languageSub');
+const languageSelect = document.getElementById('languageSelect');
+const instancesHeadingEl = document.getElementById('instancesHeading');
+const addHeadingEl = document.getElementById('addHeading');
+const addButton = document.getElementById('add');
+const noteEl = document.getElementById('note');
 
 function say(text, ok) {
   status.textContent = text;
   status.className = ok ? 'ok' : '';
 }
+
+/**
+ * applyStaticText fills in every fixed label on the page from the current
+ * language — called once on load and again whenever the language picker
+ * below changes it, so nothing needs a full page reload to update (jdp:
+ * "Die sprache soll eingestellt werden können und soll die sprache die im
+ * Bowser eingestellt ist standardmäßig übernehmen"). "KnightLoader" itself
+ * (the <h1>) is left alone — a product name, not translated.
+ */
+function applyStaticText() {
+  subtitleEl.textContent = t('options.subtitle');
+  languageHeadingEl.textContent = t('options.languageHeading');
+  languageSubEl.textContent = t('options.languageSub');
+  instancesHeadingEl.textContent = t('options.instancesHeading');
+  addHeadingEl.textContent = t('options.addHeading');
+  addName.placeholder = t('options.addNamePlaceholder');
+  addUrl.placeholder = t('options.addUrlPlaceholder');
+  addButton.textContent = t('options.addButton');
+  noteEl.textContent = t('options.note');
+}
+
+/** buildLanguageSelect fills the dropdown once; renderLanguageSelect (below) only updates which option is selected. */
+function buildLanguageSelect() {
+  languageSelect.innerHTML = '';
+  const auto = document.createElement('option');
+  auto.value = '';
+  languageSelect.appendChild(auto);
+  for (const lang of LANGUAGES) {
+    const opt = document.createElement('option');
+    opt.value = lang.code;
+    opt.textContent = lang.label;
+    languageSelect.appendChild(opt);
+  }
+}
+
+async function renderLanguageSelect() {
+  languageSelect.firstElementChild.textContent = t('options.languageAuto');
+  const stored = await chrome.storage.local.get('language');
+  languageSelect.value = typeof stored.language === 'string' ? stored.language : '';
+}
+
+languageSelect.addEventListener('change', async () => {
+  await setLanguage(languageSelect.value || null);
+  await loadLanguage();
+  applyStaticText();
+  await renderLanguageSelect();
+  render();
+});
 
 async function render() {
   const { instances, defaultName } = await readInstances();
@@ -15,7 +71,7 @@ async function render() {
   if (instances.length === 0) {
     const p = document.createElement('p');
     p.className = 'empty';
-    p.textContent = 'No instances yet — add one below.';
+    p.textContent = t('options.empty');
     list.appendChild(p);
     return;
   }
@@ -31,7 +87,7 @@ async function render() {
     if (inst.name === defaultName) {
       const badge = document.createElement('span');
       badge.className = 'badge';
-      badge.textContent = 'Default';
+      badge.textContent = t('options.defaultBadge');
       name.appendChild(badge);
     }
     const url = document.createElement('div');
@@ -44,10 +100,10 @@ async function render() {
       const makeDefault = document.createElement('button');
       makeDefault.className = 'secondary';
       makeDefault.type = 'button';
-      makeDefault.textContent = 'Make default';
+      makeDefault.textContent = t('options.makeDefault');
       makeDefault.addEventListener('click', async () => {
         await writeInstances(instances, inst.name);
-        say(`"${inst.name}" is now the default.`, true);
+        say(t('options.setDefault', { name: inst.name }), true);
         render();
       });
       row.appendChild(makeDefault);
@@ -56,11 +112,11 @@ async function render() {
     const remove = document.createElement('button');
     remove.className = 'danger';
     remove.type = 'button';
-    remove.textContent = 'Remove';
+    remove.textContent = t('options.remove');
     remove.addEventListener('click', async () => {
       const next = instances.filter((i) => i.name !== inst.name);
       await writeInstances(next, defaultName);
-      say(`Removed "${inst.name}".`, true);
+      say(t('options.removed', { name: inst.name }), true);
       render();
     });
     row.appendChild(remove);
@@ -74,18 +130,18 @@ addForm.addEventListener('submit', async (e) => {
   const name = addName.value.trim();
   const urlValue = addUrl.value.trim();
   if (!name) {
-    say('Give this instance a name.', false);
+    say(t('options.needName'), false);
     return;
   }
   try {
     new URL(urlValue);
   } catch {
-    say('That does not look like a full address (include http:// or https://).', false);
+    say(t('options.badUrl'), false);
     return;
   }
   const { instances, defaultName } = await readInstances();
   if (instances.some((i) => i.name === name)) {
-    say(`"${name}" is already in the list — remove it first to replace it.`, false);
+    say(t('options.duplicate', { name }), false);
     return;
   }
   const next = [...instances, { name, url: urlValue }];
@@ -94,8 +150,14 @@ addForm.addEventListener('submit', async (e) => {
   await writeInstances(next, defaultName ?? name);
   addName.value = '';
   addUrl.value = '';
-  say(`Added "${name}".`, true);
+  say(t('options.added', { name }), true);
   render();
 });
 
-render();
+(async () => {
+  await loadLanguage();
+  buildLanguageSelect();
+  applyStaticText();
+  await renderLanguageSelect();
+  render();
+})();

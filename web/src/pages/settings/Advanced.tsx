@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { fetchDeploymentInfo, fetchUpdateCheck, type Settings, type UpdateCheck } from '../../lib/api';
-import { Button, Card, IconBadge, InfoBubble, NumberInput, SectionTitle, TextArea, TextInput } from '../../components/ui';
+import type { Settings } from '../../lib/api';
+import { Card, IconBadge, InfoBubble, NumberInput, SectionTitle, TextArea, TextInput } from '../../components/ui';
 import { IconRetry, IconSearch } from '../../lib/icons';
 import { useDraft } from './context';
 import { NeutralSwitch } from './controls';
@@ -88,9 +88,7 @@ export function Advanced() {
   }
 
   return (
-    <div className="flex flex-col gap-10">
-      <UpdateCard />
-      <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center gap-3">
         {/* Disabled until the factory values arrive: "only what differs from the
             default" with no defaults to compare against would answer "all of
@@ -162,69 +160,7 @@ export function Advanced() {
           </div>
         </div>
       </Card>
-      </div>
     </div>
-  );
-}
-
-/**
- * Desktop only (jdp, 2026-08-23: "#19 bauen" - build in-app updates for the
- * desktop build, container's own copy stays "not necessary here" on the
- * Modules tab). Checks GitHub's latest release against buildinfo.Version and
- * hands the user a real download link - it does not download or apply
- * anything itself, see internal/update's own package doc for why that next
- * step is deliberately not bundled into this same change.
- */
-function UpdateCard() {
-  const { tx } = useTx();
-  const [deployment, setDeployment] = useState<string | null>(null);
-  const [check, setCheck] = useState<UpdateCheck | null>(null);
-  const [checking, setChecking] = useState(false);
-
-  useEffect(() => {
-    void fetchDeploymentInfo()
-      .then((d) => setDeployment(d.deployment))
-      .catch(() => {});
-  }, []);
-
-  async function onCheck() {
-    setChecking(true);
-    try {
-      setCheck(await fetchUpdateCheck());
-    } catch {
-      setCheck({ checked: false, available: false, current: '' });
-    } finally {
-      setChecking(false);
-    }
-  }
-
-  if (deployment !== 'desktop') return null;
-
-  return (
-    <Card className="flex flex-col gap-3">
-      <SectionTitle hue={5}>{tx('settings.advanced.updatesTitle')}</SectionTitle>
-      <div className="flex flex-wrap items-center gap-3">
-        <Button kind="secondary" onClick={() => void onCheck()} disabled={checking}>
-          {checking ? tx('settings.advanced.updatesChecking') : tx('settings.advanced.updatesCheck')}
-        </Button>
-        {check && !check.checked && (
-          <span className="text-sm text-statusFail">{tx('settings.advanced.updatesFailed')}</span>
-        )}
-        {check && check.checked && !check.available && (
-          <span className="text-sm text-statusOk">{tx('settings.advanced.updatesCurrent', { version: check.current })}</span>
-        )}
-        {check && check.checked && check.available && check.url && (
-          <a
-            href={check.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm font-medium text-accent hover:underline"
-          >
-            {tx('settings.advanced.updatesAvailable', { version: check.latest ?? '' })}
-          </a>
-        )}
-      </div>
-    </Card>
   );
 }
 

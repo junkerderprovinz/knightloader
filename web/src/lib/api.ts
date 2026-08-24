@@ -290,6 +290,7 @@ export interface Settings {
    *  nav item render the same page either way, so this only ever removes a
    *  second entry point to it, never the page itself. */
   hideAccountsFromSidebar: boolean;
+  autoUpdateCheck: boolean;
 
   /**
    * Which automatic captcha solvers to try, and in what order, before a
@@ -1806,6 +1807,37 @@ export async function addInstance(name: string, url: string): Promise<{ online: 
 
 export const removeInstance = (name: string) =>
   fetch(`/api/instances/${encodeURIComponent(name)}`, { method: 'DELETE' });
+
+/**
+ * A code POST /api/instances/pairing-code just issued - paste it into the
+ * Instances tab of the OTHER instance instead of typing name+address by
+ * hand. code is opaque (base64url of {name, url, token}); name/url are
+ * shown alongside it purely so the person generating it can confirm which
+ * instance they are about to hand out an address for.
+ */
+export interface PairingCode {
+  code: string;
+  name: string;
+  url: string;
+  expiresIn: number;
+}
+
+export async function generatePairingCode(): Promise<PairingCode> {
+  const r = await fetch('/api/instances/pairing-code', { method: 'POST' });
+  if (!r.ok) throw new Error(await r.text());
+  return json(r);
+}
+
+/** redeemPairingCode both adds the peer behind `code` here AND registers this instance back with it - one action, both directions. */
+export async function redeemPairingCode(code: string): Promise<{ name: string; url: string; online: boolean }> {
+  const r = await fetch('/api/instances/pairing-code/redeem', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code }),
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return json(r);
+}
 
 /**
  * connectWS opens the live task, queue and activity stream and

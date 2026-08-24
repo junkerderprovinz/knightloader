@@ -203,6 +203,14 @@ type CrawledLink struct {
 	URL  string `json:"url"`
 	Name string `json:"name"`
 	Host string `json:"host"`
+	// Size is what the crawl itself already knows about the file, the same
+	// number JD's own link-grabber window shows in its Size column before
+	// anything downloads. Requested here for the same reason Name is: a
+	// container's crawl is the one moment this size is free to ask for, and
+	// awaitContainerLinks hands both back rather than making the caller wait
+	// for a second crawl, at download time, to learn what this one already
+	// knew.
+	Size int64 `json:"bytesTotal"`
 }
 
 // AddContainerLinks hands JD a container and pins the package it lands in.
@@ -313,6 +321,7 @@ func (c *Client) CrawledLinks(packageUUID int64) ([]CrawledLink, error) {
 		"url":          true,
 		"name":         true,
 		"host":         true,
+		"bytesTotal":   true,
 		"packageUUIDs": []int64{packageUUID},
 	})
 	if err != nil {

@@ -32,6 +32,7 @@ export const queueCommands: Command[] = [
     icon: IconPause,
     group: 'commands.group.queue',
     surfaces: ['global'],
+    defaultShortcut: 'mod+shift+h',
     enabled: () => true,
     visible: () => true,
     run: async (ctx) => {
@@ -44,6 +45,7 @@ export const queueCommands: Command[] = [
     icon: IconPlay,
     group: 'commands.group.queue',
     surfaces: ['global'],
+    defaultShortcut: 'mod+shift+g',
     enabled: () => true,
     visible: () => true,
     run: async (ctx) => {

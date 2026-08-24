@@ -162,6 +162,14 @@ type Settings struct {
 	// page either way, so hiding one costs nothing but a click.
 	HideAccountsFromSidebar bool `json:"hideAccountsFromSidebar"`
 
+	// AutoUpdateCheck asks the desktop build to call update.Check once at
+	// startup (and the Allgemein tab to do the same on load) instead of only
+	// on an explicit click of "Check for updates" - desktop only in
+	// practice, read nowhere on the container build. Off by default: it is
+	// an outbound call to GitHub on every launch, and that is an opt-in, not
+	// something a fresh install does before being asked.
+	AutoUpdateCheck bool `json:"autoUpdateCheck"`
+
 	// Packagizer names packages, picks folders and sets download options as
 	// links are staged. It is stored exactly as the user wrote it: rules.Compile
 	// is the validator, and a rule with a broken regular expression has to

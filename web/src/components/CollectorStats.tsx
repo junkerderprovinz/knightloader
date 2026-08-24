@@ -24,6 +24,7 @@ import { useT, type TranslationKey } from '../lib/i18n';
 import { fmtBytes } from '../lib/format';
 import { hostOf } from './columns';
 import { Tabs } from './Tabs';
+import { Card } from './ui';
 
 // Same PENDING-table arrangement as CollectorFacets.tsx (see that file's own
 // comment for the precedent) — locale files are one writer's lane, 8F, and it
@@ -109,16 +110,20 @@ function Item({ label, value, tone = 'text-carbon-text' }: { label: string; valu
 }
 
 /**
- * CollectorStats is the row of figures above the collector's list.
+ * CollectorStats is the card of figures beside the collector's own paste box
+ * (jdp, 2026-08-24: "rechts von der Dropzone soll eine card mit den ganzen
+ * zahlen sein") - a vertical stack rather than the horizontal strip this used
+ * to be, since a narrow side card has no width to wrap a row of eight figures
+ * into and still read cleanly.
  *
  * `all`, `visible` and `selected` are the same three arrays the page already
  * holds for its own list — the collected set, the post-search-and-facets set,
  * and the current selection resolved to tasks — handed straight in rather than
  * read back off lib/listview.ts the way the shell strip does. That store is a
- * round trip this component does not need: the page rendering this strip is
+ * round trip this component does not need: the page rendering this card is
  * the very page that just computed all three, in the same render, and reading
  * them back through a store it also happens to publish to would only add a
- * tick of lag between a keystroke in the search box and this row noticing it.
+ * tick of lag between a keystroke in the search box and this card noticing it.
  */
 export function CollectorStats({ all, visible, selected }: { all: Task[]; visible: Task[]; selected: Task[] }) {
   const { t } = useT();
@@ -129,29 +134,31 @@ export function CollectorStats({ all, visible, selected }: { all: Task[]; visibl
   const f = useMemo(() => weigh(scoped), [scoped]);
 
   return (
-    <div className="flex flex-wrap items-center gap-x-5 gap-y-2" role="group" aria-label={cx('collector.stats.label')}>
-      <Item label={cx('collector.stats.packages')} value={f.packages} />
-      <Item label={cx('collector.stats.links')} value={f.links} />
-      <Item label={cx('collector.stats.totalSize')} value={f.bytes > 0 ? fmtBytes(f.bytes) : '0 B'} />
-      <Item label={cx('collector.stats.hosts')} value={f.hosts} />
-      <Item label={t('filter.online')} value={f.online} />
-      <Item label={t('filter.offline')} value={f.offline} tone={f.offline > 0 ? 'text-statusFail' : 'text-carbon-textMuted'} />
-      <Item label={t('filter.uncheckable')} value={f.uncheckable} tone="text-carbon-textMuted" />
-      <Item label={t('filter.unchecked')} value={f.unchecked} tone="text-carbon-textMuted" />
-
-      <span className="flex-1" />
-      <Tabs
-        select="one"
-        size="sm"
-        label={t('strip.scope')}
-        active={scope}
-        onSelect={(id) => setScope(id as StatsScope)}
-        items={[
-          { id: 'total', label: t('strip.total'), badge: all.length },
-          { id: 'visible', label: t('strip.visible'), badge: visible.length },
-          { id: 'selected', label: t('strip.selected'), badge: selected.length },
-        ]}
-      />
+    <div role="group" aria-label={cx('collector.stats.label')}>
+      <Card className="flex w-fit min-w-[13rem] flex-col gap-3">
+        <Tabs
+          select="one"
+          size="sm"
+          label={t('strip.scope')}
+          active={scope}
+          onSelect={(id) => setScope(id as StatsScope)}
+          items={[
+            { id: 'total', label: t('strip.total'), badge: all.length },
+            { id: 'visible', label: t('strip.visible'), badge: visible.length },
+            { id: 'selected', label: t('strip.selected'), badge: selected.length },
+          ]}
+        />
+        <div className="flex flex-col gap-2">
+          <Item label={cx('collector.stats.packages')} value={f.packages} />
+          <Item label={cx('collector.stats.links')} value={f.links} />
+          <Item label={cx('collector.stats.totalSize')} value={f.bytes > 0 ? fmtBytes(f.bytes) : '0 B'} />
+          <Item label={cx('collector.stats.hosts')} value={f.hosts} />
+          <Item label={t('filter.online')} value={f.online} />
+          <Item label={t('filter.offline')} value={f.offline} tone={f.offline > 0 ? 'text-statusFail' : 'text-carbon-textMuted'} />
+          <Item label={t('filter.uncheckable')} value={f.uncheckable} tone="text-carbon-textMuted" />
+          <Item label={t('filter.unchecked')} value={f.unchecked} tone="text-carbon-textMuted" />
+        </div>
+      </Card>
     </div>
   );
 }
