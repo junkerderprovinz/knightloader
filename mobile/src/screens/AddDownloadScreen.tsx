@@ -1,10 +1,19 @@
 import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { addLinks, ApiError } from '../api/client';
-import type { ServerConnection } from '../api/types';
+import type { Instance, ServerConnection } from '../api/types';
 import { colors } from '../theme';
 
-export default function AddDownloadScreen({ conn, onDone }: { conn: ServerConnection; onDone: () => void }) {
+export default function AddDownloadScreen({
+  conn,
+  peer,
+  onDone,
+}: {
+  conn: ServerConnection;
+  peer?: Instance;
+  onDone: () => void;
+}) {
+  const base = peer ? `/api/instances/${encodeURIComponent(peer.name)}` : '/api';
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +30,7 @@ export default function AddDownloadScreen({ conn, onDone }: { conn: ServerConnec
     setBusy(true);
     setError(null);
     try {
-      await addLinks(conn, links);
+      await addLinks(conn, links, base);
       onDone();
     } catch (err) {
       setError(err instanceof ApiError ? `Server: ${err.message}` : 'Konnte Links nicht senden.');
@@ -32,7 +41,7 @@ export default function AddDownloadScreen({ conn, onDone }: { conn: ServerConnec
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Links hinzufügen</Text>
+      <Text style={styles.title}>Links hinzufügen{peer ? ` – ${peer.name}` : ''}</Text>
       <Text style={styles.hint}>Ein Link pro Zeile, genau wie im Paste-Feld der Weboberfläche.</Text>
 
       <TextInput

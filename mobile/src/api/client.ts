@@ -1,4 +1,4 @@
-import type { AuthState, ServerConnection, Task } from './types';
+import type { AuthState, Instance, QueueState, ServerConnection, Task } from './types';
 
 export class ApiError extends Error {
   constructor(
@@ -9,8 +9,15 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(conn: ServerConnection, path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${conn.baseUrl}${path}`, {
+// Every call takes a connection (which host + token to talk to) and a base
+// path prefix. base defaults to '/api', the connection's own instance; a
+// peer's routes proxy through the connected server at
+// '/api/instances/{name}' instead (internal/api/routes_federation.go) -
+// same host, same token, only the prefix changes. That mirrors the web UI's
+// own lib/api.ts, so this app and the web client never drift on the shape of
+// a "which instance is this for" call.
+async function request<T>(conn: ServerConnection, base: string, path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`${conn.baseUrl}${base}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
@@ -30,30 +37,85 @@ async function request<T>(conn: ServerConnection, path: string, init?: RequestIn
 // it proves the URL is reachable and the token is accepted, without
 // requiring a password (a token stands on its own, see routes_tokens.go).
 export async function checkConnection(conn: ServerConnection): Promise<AuthState> {
-  return request<AuthState>(conn, '/api/auth');
+  return request<AuthState>(conn, '/api', '/auth');
+}
+
+export async function fetchTasks(conn: ServerConnection, base = '/api'): Promise<Task[]> {
+  return request<Task[]>(conn, base, '/tasks');
 }
 
 // addLinks stages one batch of links exactly like the paste box on the web
 // UI (POST /api/links). One link per line, matching the server's own
 // newline-separated convention.
-export async function addLinks(conn: ServerConnection, links: string[]): Promise<Task[]> {
-  return request<Task[]>(conn, '/api/links', {
+export async function addLinks(conn: ServerConnection, links: string[], base = '/api'): Promise<Task[]> {
+  return request<Task[]>(conn, base, '/links', {
     method: 'POST',
     body: JSON.stringify({ links: links.join('\n') }),
   });
 }
 
-export async function setTasksEnabled(conn: ServerConnection, ids: string[], enabled: boolean): Promise<void> {
-  await request(conn, '/api/tasks/enabled', {
+export async function setTasksEnabled(conn: ServerConnection, ids: string[], enabled: boolean, base = '/api'): Promise<void> {
+  await request(conn, base, '/tasks/enabled', {
     method: 'POST',
     body: JSON.stringify({ ids, enabled }),
   });
 }
 
-export async function deleteTasks(conn: ServerConnection, ids: string[], deleteFiles: boolean): Promise<void> {
-  await request(conn, '/api/tasks/delete', {
+export async function deleteTasks(conn: ServerConnection, ids: string[], deleteFiles: boolean, base = '/api'): Promise<void> {
+  await request(conn, base, '/tasks/delete', {
     method: 'POST',
     body: JSON.stringify({ ids, files: deleteFiles }),
+  });
+}
+
+// --- Queue master switch ------------------------------------------------
+//
+// "Start/stop this instance" in this app's UI is this switch, the same one
+// the web UI's quick controls flip - KnightLoader has no remote power-on for
+// the server process itself (there's no relay, see routes_remote.go's own
+// doc comment), only the queue it already runs can be halted or released.
+
+export async function fetchQueue(conn: ServerConnection, base = '/api'): Promise<QueueState> {
+  return request<QueueState>(conn, base, '/queue');
+}
+
+export async function setQueueHalted(conn: ServerConnection, halted: boolean, base = '/api'): Promise<QueueState> {
+  return request<QueueState>(conn, base, '/queue', {
+    method: 'POST',
+    body: JSON.stringify({ halted }),
+  });
+}
+
+// --- Federation: the peer instances the connected server itself knows -----
+//
+// These always run against the connected server's OWN base ('/api'), never
+// a peer's - a peer's peers are not this app's concern, same as the web
+// UI's Instances.tsx only ever calls these against its own origin.
+
+export async function fetchInstances(conn: ServerConnection): Promise<Instance[]> {
+  return request<Instance[]>(conn, '/api', '/instances');
+}
+
+export async function addInstance(conn: ServerConnection, name: string, url: string): Promise<{ name: string; url: string; online: boolean }> {
+  return request(conn, '/api', '/instances', {
+    method: 'POST',
+    body: JSON.stringify({ name, url }),
+  });
+}
+
+export async function removeInstance(conn: ServerConnection, name: string): Promise<void> {
+  await request(conn, '/api', `/instances/${encodeURIComponent(name)}`, { method: 'DELETE' });
+}
+
+// redeemPairingCode is the one-scan way to add a peer: the code (pasted, or
+// read off the peer's own Access-tab QR) already carries that peer's name,
+// address and a one-time token, so this single call registers it AND tells
+// it about the connected server back - see routes_pairing.go's own doc
+// comment on why it completes the other side before adding it locally.
+export async function redeemPairingCode(conn: ServerConnection, code: string): Promise<{ name: string; url: string; online: boolean }> {
+  return request(conn, '/api', '/instances/pairing-code/redeem', {
+    method: 'POST',
+    body: JSON.stringify({ code }),
   });
 }
 
@@ -65,6 +127,11 @@ export async function deleteTasks(conn: ServerConnection, ids: string[], deleteF
 // client folds both into one onSnapshot(tasks) callback rather than
 // exposing the wire protocol, since every screen just wants "the current
 // list", not the delta mechanics.
+//
+// Only the connected server's own queue has this: the federation proxy
+// (routes_federation.go) forwards plain REST calls, not a WebSocket
+// upgrade, so a peer's tasks are never streamed here - see fetchTasks +
+// pollTasks below for how a peer's screen stays live instead.
 export type UnsubscribeFn = () => void;
 
 export function subscribeTasks(
@@ -137,5 +204,38 @@ export function subscribeTasks(
     closedByCaller = true;
     if (retryTimer) clearTimeout(retryTimer);
     socket?.close();
+  };
+}
+
+// pollTasks is subscribeTasks' equivalent for a proxied peer, which has no
+// WebSocket to attach to (see the doc comment above). Same callback shape,
+// so a screen can point at either without caring which one it got.
+export function pollTasks(
+  conn: ServerConnection,
+  base: string,
+  onSnapshot: (tasks: Task[]) => void,
+  onError?: (err: unknown) => void,
+  intervalMs = 3000
+): UnsubscribeFn {
+  let stopped = false;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+
+  const tick = async () => {
+    if (stopped) return;
+    try {
+      const tasks = await fetchTasks(conn, base);
+      if (!stopped) onSnapshot(tasks.slice().sort((a, b) => a.position - b.position));
+    } catch (err) {
+      if (!stopped) onError?.(err);
+    } finally {
+      if (!stopped) timer = setTimeout(tick, intervalMs);
+    }
+  };
+
+  tick();
+
+  return () => {
+    stopped = true;
+    if (timer) clearTimeout(timer);
   };
 }
