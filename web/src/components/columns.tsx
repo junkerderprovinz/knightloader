@@ -1063,6 +1063,7 @@ export const DEFAULT_HIDDEN: Record<ListProfile, ColumnId[]> = {
     'comment',
     'added',
     'source',
+    'resolver',
     'connection',
     'peers',
     'seeds',

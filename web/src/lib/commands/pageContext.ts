@@ -27,6 +27,11 @@ export interface CommandPageContext {
   setSelection?: (next: Set<string>) => void;
   removal?: Removal;
   cleanup?: CleanupState;
+  /** Opens the Collector's own file picker (FileDrop.tsx's ref handle) - the
+   *  same trigger AddLinksForm's own folder-icon badge calls. Published so a
+   *  keyboard shortcut can reach it too (jdp, 2026-08-24: "im sammler fehlt
+   *  mir der tastenkürzel um eine datei zu öffnen"). */
+  openFilePicker?: () => void;
 }
 
 let current: CommandPageContext | null = null;

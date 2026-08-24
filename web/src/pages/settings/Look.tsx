@@ -389,17 +389,29 @@ export function Look() {
 }
 
 /**
- * Desktop only (jdp, 2026-08-23: "#19 bauen"; 2026-08-24: "warum machen wir
- * da nicht irgendwo ein toggle um auto update zu aktivieren? Am besten im
- * allgemein-Tab"). The manual "Check for updates" button always works; the
- * toggle additionally makes both this card AND the desktop process itself
- * (cmd desktop main.go) call update.Check once at their own startup,
- * without asking - the setting round-trips to the server the same as every
- * other field on this page, autosaved by the shared draft. Off by default:
- * an outbound call to GitHub on every launch is an opt-in, not something a
- * fresh install does before being asked. Checking is all this does - see
+ * Both deployments now (jdp, 2026-08-23: "#19 bauen"; 2026-08-24: "warum
+ * machen wir da nicht irgendwo ein toggle um auto update zu aktivieren? Am
+ * besten im allgemein-Tab", which first landed desktop-only; then, once a
+ * container user hit the same hard `deployment !== 'desktop'` gate this
+ * card used to have and asked where the card and toggle had gone: shown on
+ * BOTH builds, because checking GitHub and telling someone a newer release
+ * exists is equally harmless either way - a GET request and a notification,
+ * not a self-update). The manual "Check for updates" button always works on
+ * both; the toggle additionally makes this card check once as soon as it
+ * mounts with the toggle already on, without asking - the setting
+ * round-trips to the server the same as every other field on this page,
+ * autosaved by the shared draft. Off by default: an outbound call to GitHub
+ * every time this page is opened is an opt-in, not something a fresh
+ * install does before being asked.
+ *
+ * What still differs by deployment is only what "update available" tells
+ * you to do about it, never whether the check runs - see
  * internal/update's own package doc for why downloading and applying an
- * update is deliberately not part of this.
+ * update is deliberately not part of this even on desktop, and
+ * routes_features.go's updaterReason for the container side of the same
+ * split: a container cannot replace itself from the inside, so its "update
+ * available" state points at the release instead of implying a click here
+ * installs it.
  */
 function UpdateCard() {
   const { t } = useT();
@@ -426,19 +438,25 @@ function UpdateCard() {
   }, []);
 
   // Auto-check once, right after the toggle's own current value arrives -
-  // not on every render, and not before deployment is confirmed to be
-  // desktop (a container never reaches this branch at all).
+  // not on every render. Both deployments reach this now; the check itself
+  // (internal/update.Check) has never cared which one is asking.
   useEffect(() => {
-    if (deployment === 'desktop' && cfg.autoUpdateCheck) void onCheck();
+    if (cfg.autoUpdateCheck) void onCheck();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- fires once
     // when deployment/autoUpdateCheck first resolve, not on every cfg change.
   }, [deployment, cfg.autoUpdateCheck]);
 
-  if (deployment !== 'desktop') return null;
+  // Wait for deployment to resolve rather than guessing - one flash of the
+  // wrong copy (desktop's install-oriented link, briefly, on a container) is
+  // exactly the overpromise this card exists to avoid.
+  if (deployment === null) return null;
+  const isDesktop = deployment === 'desktop';
 
   return (
     <Card className="flex flex-col gap-3">
-      <SectionTitle hue={5}>{t('settings.look.updatesTitle')}</SectionTitle>
+      <SectionTitle hue={5} hint={isDesktop ? undefined : t('settings.look.updatesContainerHint')}>
+        {t('settings.look.updatesTitle')}
+      </SectionTitle>
       <div className="flex items-center justify-between gap-4">
         <span className="text-sm text-carbon-text">{t('settings.look.updatesAuto')}</span>
         <Toggle checked={cfg.autoUpdateCheck} onChange={(v) => patch({ autoUpdateCheck: v })} label={t('settings.look.updatesAuto')} hideLabel />
@@ -453,7 +471,7 @@ function UpdateCard() {
         )}
         {check && check.checked && check.available && check.url && (
           <a href={check.url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-accent hover:underline">
-            {t('settings.look.updatesAvailable', { version: check.latest ?? '' })}
+            {t(isDesktop ? 'settings.look.updatesAvailable' : 'settings.look.updatesAvailableContainer', { version: check.latest ?? '' })}
           </a>
         )}
       </div>

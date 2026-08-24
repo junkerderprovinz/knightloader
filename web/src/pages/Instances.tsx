@@ -99,8 +99,7 @@ export function Instances() {
       </Card>
 
       <Card className="flex flex-col gap-3">
-        <SectionTitle>{t('instances.pairTitle')}</SectionTitle>
-        <p className="text-[11px] text-carbon-textMuted">{t('instances.pairHint')}</p>
+        <SectionTitle hint={t('instances.pairHint')}>{t('instances.pairTitle')}</SectionTitle>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <div className="min-w-0 flex-1">
             <TextArea

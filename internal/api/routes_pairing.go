@@ -158,7 +158,12 @@ func registerPairing(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			writeJSON(w, map[string]any{"code": code, "name": name, "url": url, "expiresIn": int(pairingTTL.Seconds())})
+			// The QR encodes the code itself, not a URL: whatever scans it
+			// (jdp: "später mit der app scannen") only needs to read the same
+			// string a person would paste by hand and POST it to its own
+			// /api/instances/pairing-code/redeem - one payload, two ways to
+			// get it off this screen, never two protocols to keep in sync.
+			writeJSON(w, map[string]any{"code": code, "name": name, "url": url, "expiresIn": int(pairingTTL.Seconds()), "qr": renderQR(code)})
 		})
 
 	// Redeem: the Instances tab's own action, on the instance joining an

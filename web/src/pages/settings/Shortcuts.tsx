@@ -91,10 +91,12 @@ export function Shortcuts() {
 
   return (
     <div className="flex flex-col gap-10">
-      <Card className="flex flex-wrap items-center justify-between gap-3">
-        <SectionTitle hue={0}>{t('settings.nav.shortcuts')}</SectionTitle>
-        <p className="max-w-2xl text-sm text-carbon-textSub">{t('settings.shortcuts.subtitle')}</p>
-        <Button kind="ghost" disabled={!hasOverrides} onClick={() => setConfirmResetAll(true)}>
+      <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-1">
+          <SectionTitle hue={0}>{t('settings.nav.shortcuts')}</SectionTitle>
+          <p className="text-sm text-carbon-textSub">{t('settings.shortcuts.subtitle')}</p>
+        </div>
+        <Button kind="secondary" className="shrink-0" disabled={!hasOverrides} onClick={() => setConfirmResetAll(true)}>
           {t('settings.shortcuts.resetAll')}
         </Button>
       </Card>

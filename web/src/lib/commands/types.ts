@@ -107,6 +107,8 @@ export interface CommandContext {
     classes: CleanupClass[] | null;
     preview: (cls: CleanupClass) => void;
   };
+  /** That page's own file-picker trigger (pageContext.ts's own doc comment). A no-op where no page has published one. */
+  openFilePicker: () => void;
   /** The same t() the page itself renders with, for a run() that builds a toast sentence. */
   t: (key: TranslationKey, vars?: Record<string, string | number>) => string;
   /** A result banner without a command needing its own toast plumbing. */
@@ -238,6 +240,7 @@ export function useCommandContext(surface: CommandSurface): CommandContext {
       setSelection: page?.setSelection ?? (() => {}),
       removeSelected: page?.removal ? page.removal.removeNow : () => {},
       cleanup: page?.cleanup ? { classes: page.cleanup.classes, preview: page.cleanup.preview } : NO_CLEANUP,
+      openFilePicker: page?.openFilePicker ?? (() => {}),
       t,
       toast,
       queue,

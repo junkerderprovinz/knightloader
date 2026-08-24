@@ -694,8 +694,12 @@ export function useCleanup(all: Task[]) {
  */
 export type CleanupState = ReturnType<typeof useCleanup>;
 
-/** cleanupItems turns the classes the server offers into menu entries. */
-function cleanupItems(
+/** cleanupItems turns the classes the server offers into menu entries. Exported
+ *  for Collector.tsx's own badge-triggered cleanup menu (jdp, 2026-08-24:
+ *  "Aufräumen ... als badge"), which needs the same entries ListActionBar's
+ *  own text-button trigger already builds from this, just behind a different
+ *  visual trigger - never a second, separately-maintained item list. */
+export function cleanupItems(
   classes: CleanupClass[],
   t: (key: TranslationKey) => string,
   preview: (cls: CleanupClass) => void,

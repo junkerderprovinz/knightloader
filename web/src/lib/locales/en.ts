@@ -88,6 +88,7 @@ export const en = {
   'collector.placeholder': 'Paste links — one URL per line — or drop them here…  (Ctrl+Enter to add)',
   'collector.package': 'Package (optional)',
   'collector.add': 'Add to collector',
+  'collector.addTitle': 'Links',
   'collector.empty': 'The collector is empty. Paste some links above to stage them.',
   'collector.staged': 'staged',
   'collector.selected': 'selected',
@@ -522,6 +523,8 @@ export const en = {
   'settings.look.updatesFailed': 'Could not check for updates.',
   'settings.look.updatesCurrent': '{version} is the latest version.',
   'settings.look.updatesAvailable': '{version} is available',
+  'settings.look.updatesAvailableContainer': '{version} is available — update your container image the way you deployed it (docker pull, Unraid Community Applications, ...)',
+  'settings.look.updatesContainerHint': 'Checking only compares versions and tells you when a newer release exists; it never replaces the running container. Update it the way you deployed it — docker pull, Unraid Community Applications, Watchtower, or whatever manages this container.',
   'settings.advanced.modified': 'changed',
   'settings.advanced.noMatch': 'No key matches.',
   'settings.advanced.badJson': 'This has to be valid JSON, so it is not being applied.',
@@ -1545,6 +1548,9 @@ export const en = {
   'settings.access.remote.pairBody': 'Add a KnightLoader you already run - no address to type, no account, nothing hosted. Generate a code here, then paste it into that instance\'s own Instances page.',
   'settings.access.remote.pairGenerate': 'Generate pairing code',
   'settings.access.remote.pairExpires': 'Valid for {min} minutes, then it expires unused.',
+  'settings.access.remote.vsPairing': 'This is for opening this instance\'s own interface on another device by hand (a phone, another browser). Pairing another KnightLoader you run yourself, so the two show up on each other\'s Instances page, is the separate card below.',
+  'settings.access.remote.pairWhere': 'Not here - on the other instance, under Settings → Instances.',
+  'settings.access.remote.pairScan': 'Or scan this with the other instance, once a KnightLoader app can.',
   'settings.access.intakePortsHint': 'Other ways this instance can be reached directly, outside the normal login - each with its own reachability shown here.',
 
   // Sending KnightLoader a link from outside the app - the bookmarklet, the

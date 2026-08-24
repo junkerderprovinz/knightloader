@@ -1820,6 +1820,7 @@ export interface PairingCode {
   name: string;
   url: string;
   expiresIn: number;
+  qr?: QRMatrix;
 }
 
 export async function generatePairingCode(): Promise<PairingCode> {
