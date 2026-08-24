@@ -96,6 +96,43 @@ func TestRemoteAccessListsTheConnectionThatAskedFirst(t *testing.T) {
 	}
 }
 
+// TestRemoteAccessTrustsForwardedProtoForScheme covers a reverse proxy that
+// terminates TLS itself and talks to this instance over plain HTTP - the
+// ordinary shape for a domain in front of a container (Nginx Proxy Manager,
+// Traefik, Caddy). r.TLS is nil on a request like that even though the
+// address a phone would actually use is https, so the reported address -
+// which both the plain QR and the pairing-code QR are built from - has to
+// trust X-Forwarded-Proto the same way requestOrigin (routes_containers.go)
+// already does, or every one of them carries the wrong scheme.
+func TestRemoteAccessTrustsForwardedProtoForScheme(t *testing.T) {
+	requireContainerDeployment(t)
+	srv, _ := testServer(t)
+	defer srv.Close()
+
+	req, err := http.NewRequest(http.MethodGet, srv.URL+"/api/remote-access", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Host = "knightloader.example.tld"
+	req.Header.Set("X-Forwarded-Proto", "https")
+
+	var info RemoteAccessInfo
+	code := doJSON(t, req, &info)
+	if code != http.StatusOK {
+		t.Fatalf("GET /api/remote-access answered %d", code)
+	}
+	if len(info.Addresses) == 0 {
+		t.Fatal("no addresses reported at all")
+	}
+	first := info.Addresses[0]
+	if !strings.HasPrefix(first.URL, "https://") {
+		t.Errorf("first address = %q, want an https:// scheme trusted from X-Forwarded-Proto", first.URL)
+	}
+	if !strings.Contains(first.URL, "knightloader.example.tld") {
+		t.Errorf("first address = %q, does not carry the forwarded Host", first.URL)
+	}
+}
+
 // TestRemoteAccessNotExposedWhenLoopbackAndUnprotected: no password is the
 // ordinary state of a fresh install, and by itself must never trip the loud
 // warning. It needs the OTHER half too, an actual non-loopback request.
