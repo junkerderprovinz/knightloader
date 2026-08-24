@@ -3,17 +3,21 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { loadConnection } from './src/storage/connection';
-import type { ServerConnection } from './src/api/types';
+import { listConnections, loadActiveConnection, setActiveConnectionId } from './src/storage/connections';
+import type { Instance, ServerConnection } from './src/api/types';
+import ConnectionsScreen from './src/screens/ConnectionsScreen';
 import ConnectScreen from './src/screens/ConnectScreen';
 import DownloadsScreen from './src/screens/DownloadsScreen';
+import InstancesScreen from './src/screens/InstancesScreen';
 import AddDownloadScreen from './src/screens/AddDownloadScreen';
 import { colors } from './src/theme';
 
 type RootStackParamList = {
-  Connect: undefined;
-  Downloads: undefined;
-  AddDownload: undefined;
+  Connections: undefined;
+  AddConnection: undefined;
+  Downloads: { peer?: Instance } | undefined;
+  Instances: undefined;
+  AddDownload: { peer?: Instance } | undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -21,11 +25,25 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export default function App() {
   const [conn, setConn] = useState<ServerConnection | null>(null);
   const [loading, setLoading] = useState(true);
+  // The screen the navigator opens on: Downloads if a connection was left
+  // active last time, Connections if there's a saved list to pick from,
+  // AddConnection only on a genuine first run with nothing saved yet -
+  // mirrors the single-connection app's old "straight to Connect" behavior
+  // for that one case, instead of showing an empty list first.
+  const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList>('AddConnection');
 
   useEffect(() => {
-    loadConnection()
-      .then(setConn)
-      .finally(() => setLoading(false));
+    (async () => {
+      const active = await loadActiveConnection();
+      if (active) {
+        setConn(active);
+        setInitialRoute('Downloads');
+      } else {
+        const saved = await listConnections();
+        setInitialRoute(saved.length > 0 ? 'Connections' : 'AddConnection');
+      }
+      setLoading(false);
+    })();
   }, []);
 
   if (loading) {
@@ -39,25 +57,63 @@ export default function App() {
   return (
     <NavigationContainer theme={{ dark: true, colors: navColors, fonts: navFonts }}>
       <StatusBar style="light" />
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {!conn ? (
-          <Stack.Screen name="Connect">{() => <ConnectScreen onConnected={setConn} />}</Stack.Screen>
-        ) : (
-          <>
-            <Stack.Screen name="Downloads">
-              {({ navigation }) => (
-                <DownloadsScreen
-                  conn={conn}
-                  onAddPress={() => navigation.navigate('AddDownload')}
-                  onDisconnect={() => setConn(null)}
-                />
-              )}
-            </Stack.Screen>
-            <Stack.Screen name="AddDownload" options={{ presentation: 'modal' }}>
-              {({ navigation }) => <AddDownloadScreen conn={conn} onDone={() => navigation.goBack()} />}
-            </Stack.Screen>
-          </>
-        )}
+      <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Connections">
+          {({ navigation }) => (
+            <ConnectionsScreen
+              onActivate={(c) => {
+                setConn(c);
+                navigation.navigate('Downloads', {});
+              }}
+              onAddPress={() => navigation.navigate('AddConnection')}
+            />
+          )}
+        </Stack.Screen>
+
+        <Stack.Screen name="AddConnection" options={{ presentation: 'modal' }}>
+          {({ navigation }) => (
+            <ConnectScreen
+              onConnected={(c) => {
+                setConn(c);
+                navigation.navigate('Downloads', {});
+              }}
+            />
+          )}
+        </Stack.Screen>
+
+        <Stack.Screen name="Downloads">
+          {({ navigation, route }) =>
+            conn ? (
+              <DownloadsScreen
+                conn={conn}
+                peer={route.params?.peer}
+                onAddPress={() => navigation.navigate('AddDownload', { peer: route.params?.peer })}
+                onSwitchConnection={async () => {
+                  await setActiveConnectionId(null);
+                  navigation.navigate('Connections');
+                }}
+                onOpenInstances={() => navigation.navigate('Instances')}
+                onBackToOwn={route.params?.peer ? () => navigation.goBack() : undefined}
+              />
+            ) : null
+          }
+        </Stack.Screen>
+
+        <Stack.Screen name="Instances">
+          {({ navigation }) =>
+            conn ? (
+              <InstancesScreen conn={conn} onOpenInstance={(peer) => navigation.push('Downloads', { peer })} />
+            ) : null
+          }
+        </Stack.Screen>
+
+        <Stack.Screen name="AddDownload" options={{ presentation: 'modal' }}>
+          {({ navigation, route }) =>
+            conn ? (
+              <AddDownloadScreen conn={conn} peer={route.params?.peer} onDone={() => navigation.goBack()} />
+            ) : null
+          }
+        </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
   );

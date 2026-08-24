@@ -29,6 +29,12 @@
             "ndkVersion": "26.1.10909125"
           }
         }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Zum Scannen des QR-Codes einer KnightLoader-Instanz."
+        }
       ]
     ]
   }

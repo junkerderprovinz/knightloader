@@ -17,22 +17,44 @@ that was never going to run the engine anyway.
 ## How it connects
 
 There is no relay and no account, the same as the rest of KnightLoader (see
-`internal/api/routes_remote.go`'s own doc comment on why). Onboarding for
-v1 is manual:
+`internal/api/routes_remote.go`'s own doc comment on why). The app can hold
+several saved connections — one per KnightLoader server, each with its own
+token — and switch between them; onboarding a new one is still manual:
 
 1. On the server's web UI, open the Access tab and create a named API token
    (`POST /api/tokens` — see `internal/api/routes_tokens.go`). The secret is
    shown once.
-2. In the app's connect screen, enter the server's address and paste that
-   token in.
-3. The app stores the token in the OS keychain (`expo-secure-store`), never
-   in plain storage, and sends it as `Authorization: Bearer <token>` on every
-   request — the same header a script or the browser extension would use.
+2. In the app's "add connection" screen, enter the server's address (typed,
+   or scanned off the Access tab's own QR card, which encodes the plain
+   address) and paste the token in.
+3. The app stores every saved connection, tokens included, in the OS
+   keychain (`expo-secure-store`), never in plain storage, and sends the
+   active one's token as `Authorization: Bearer <token>` on every request —
+   the same header a script or the browser extension would use.
 
-A QR-based pairing flow (scan instead of type/paste) is a natural follow-up
-once the server grows a QR payload that encodes both the address and a fresh
-token in one code, the way the existing Access tab's QR card already encodes
-just the address. Not built yet — tracked as an open item, not started.
+A single scan that carries both the address AND a fresh token is a natural
+follow-up once the server grows a QR payload that encodes both, the way the
+existing Access tab's QR card only encodes the address today. Not built yet
+for THIS onboarding step — but see "Instances" below for a case where the
+server already has exactly that shape, and this app already uses it.
+
+### Instances (federation peers)
+
+Once connected, the app also shows the peer instances that server itself
+knows about (`GET /api/instances`, `internal/api/routes_federation.go`) —
+the mobile equivalent of the web UI's own Instances tab. Opening a peer
+shows its queue and lets you add links and flip its queue's master switch,
+proxied through the connected server (`/api/instances/{name}/...`); the
+proxy only forwards task/link/queue routes, and only plain REST, so a peer's
+own queue is polled every few seconds there rather than streamed over the
+WebSocket the connected server's own queue uses.
+
+Adding a peer works two ways: type its name and address by hand, or scan the
+pairing-code QR from the OTHER instance's own Access tab
+(`POST /api/instances/pairing-code`, `internal/api/routes_pairing.go`) —
+that code already carries the peer's name, address and a one-time token, so
+one scan registers both directions. This is a genuine one-scan flow today,
+unlike the address-only QR used for the initial connection above.
 
 ## Live updates
 
@@ -44,12 +66,22 @@ header on the socket too, not a query parameter — see `src/api/client.ts`'s
 
 ## Structure
 
-- `src/api/types.ts` — mirrors `internal/core/task.go`'s `Task` shape. Keep
-  these in sync with the Go struct, not the other way round.
-- `src/api/client.ts` — REST calls plus the WebSocket task subscription.
-- `src/storage/connection.ts` — the one saved server connection, in the OS
-  keychain.
-- `src/screens/` — Connect, Downloads (the live queue), Add Download.
+- `src/api/types.ts` — mirrors `internal/core/task.go`'s `Task` shape (plus
+  `Instance`/`QueueState`, mirroring `internal/federation` and
+  `internal/app.QueueState`). Keep these in sync with the Go structs, not
+  the other way round.
+- `src/api/client.ts` — REST calls (each taking a `base`, `/api` for the
+  connected server or `/api/instances/{name}` for a proxied peer), the
+  WebSocket task subscription for the connected server, and `pollTasks` as
+  its polling equivalent for a peer.
+- `src/storage/connections.ts` — every saved connection plus which one is
+  active, in the OS keychain.
+- `src/components/QRScanner.tsx` — a full-screen camera modal
+  (`expo-camera`) that hands back one decoded QR string; both scan buttons
+  in the screens below use it.
+- `src/screens/` — Connections (the saved-server list), Connect (add one),
+  Downloads (the live queue, a connected server's own or a peer's),
+  Instances (that server's federation peers), Add Download.
 - `src/theme.ts` — a small dark palette, not the full GlimStone/Carbon token
   set the web UI carries.
 
@@ -121,12 +153,15 @@ project to point it at.
 
 ## Not done yet
 
-- QR-based pairing (see above).
+- A single scan that onboards a NEW connection (address + a fresh token in
+  one code) — the initial "add connection" step still needs the token
+  pasted by hand; see "How it connects" above for why the pairing-code QR
+  used for peers doesn't fit that case.
 - Push notifications for captcha challenges / finished downloads — the
   desktop tray already has an attention mechanism for captchas
   (`desktop/tray.go`); the mobile equivalent would need Expo push
   notifications plus a server-side trigger, neither exists yet.
-- Only one saved connection; multi-instance support (the desktop/web
-  federation dashboard's mobile equivalent) is future scope.
-- No task actions yet beyond adding links (pause/resume/delete exist on the
-  server's `/api/tasks/*` routes but have no UI here yet).
+- Per-task actions beyond adding links — pause/resume/delete a single task
+  exist on the server's `/api/tasks/*` routes but have no UI here yet; only
+  the queue's whole master switch does (the "Läuft"/"Angehalten" toggle on
+  the Downloads screen).
