@@ -223,33 +223,68 @@ function TaskRow({
           Rules.tsx: "die icons ... sind nicht im Glimstone. das sollen
           farbige quadratischen badges mit icon sein") - this is the
           highest-traffic row in the app, so it gets the fix first. */}
+      {/* No hue on any badge here: the row itself already owns one position
+          (glim-hue/glim-tint above), and these are not several equal-weight
+          badges of the SAME kind repeated across a set - play/pause/resume
+          is one control in three states, and search/folder/retry/trash are
+          each a different job. Colouring them individually would fight the
+          row's own single position with arbitrary small indices that repeat
+          identically on every row, rather than reading as this row's colour. */}
       <div className="flex items-center justify-end gap-1">
         {collected && (
-          <IconBadge icon={<IconPlay />} title={t('task.start')} onClick={() => startTasks([task.id], base)} />
+          <IconBadge
+            icon={<IconPlay />}
+            title={t('task.start')}
+            aria-label={t('task.start')}
+            onClick={() => startTasks([task.id], base)}
+          />
         )}
         {task.status === 'running' && (
-          <IconBadge icon={<IconPause />} title={t('task.pause')} onClick={() => pause(task.id, base)} />
+          <IconBadge
+            icon={<IconPause />}
+            title={t('task.pause')}
+            aria-label={t('task.pause')}
+            onClick={() => pause(task.id, base)}
+          />
         )}
         {task.status === 'paused' && (
-          <IconBadge icon={<IconPlay />} title={t('task.resume')} onClick={() => resume(task.id, base)} />
+          <IconBadge
+            icon={<IconPlay />}
+            title={t('task.resume')}
+            aria-label={t('task.resume')}
+            onClick={() => resume(task.id, base)}
+          />
         )}
         <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           {collected && (
             <IconBadge
               icon={<IconSearch />}
               title={t('task.recheck')}
+              aria-label={t('task.recheck')}
               onClick={() => recheckTasks([task.id], base)}
             />
           )}
-          <IconBadge icon={<IconFolder />} title={t('task.folder')} onClick={() => setOptions(true)} />
+          <IconBadge
+            icon={<IconFolder />}
+            title={t('task.folder')}
+            aria-label={t('task.folder')}
+            onClick={() => setOptions(true)}
+          />
           {settled && (
             <IconBadge
               icon={<IconRetry />}
               title={t('task.restart')}
+              aria-label={t('task.restart')}
               onClick={() => restartTasks([task.id], base)}
             />
           )}
-          <IconBadge kind="danger" icon={<IconTrash />} title={t('task.remove')} onClick={() => remove(task.id, base)} />
+          <IconBadge
+            kind="danger"
+            icon={<IconTrash />}
+            title={t('task.remove')}
+            aria-label={t('task.remove')}
+            onClick={() => remove(task.id, base)}
+          />
         </div>
       </div>
 

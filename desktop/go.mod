@@ -17,7 +17,7 @@ require (
 	github.com/GopeedLab/gopeed v1.9.3 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.1.6 // indirect
-	github.com/RoaringBitmap/roaring v1.9.4 // indirect
+	github.com/RoaringBitmap/roaring/v2 v2.16.0 // indirect
 	github.com/STARRY-S/zip v0.2.3 // indirect
 	github.com/alecthomas/atomic v0.1.0-alpha2 // indirect
 	github.com/anacrolix/btree v0.1.1 // indirect
@@ -34,7 +34,7 @@ require (
 	github.com/anacrolix/multiless v0.4.0 // indirect
 	github.com/anacrolix/stm v0.5.0 // indirect
 	github.com/anacrolix/sync v0.6.0 // indirect
-	github.com/anacrolix/torrent v1.60.1-0.20251217073903-486bcbe758e0 // indirect
+	github.com/anacrolix/torrent v1.61.1-0.20260525011549-eda2204d2568 // indirect
 	github.com/anacrolix/upnp v0.1.4 // indirect
 	github.com/anacrolix/utp v0.2.0 // indirect
 	github.com/andybalholm/brotli v1.2.2 // indirect
@@ -51,8 +51,8 @@ require (
 	github.com/cloudflare/circl v1.6.3 // indirect
 	github.com/cyphar/filepath-securejoin v0.6.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/dlclark/regexp2 v1.11.5 // indirect
-	github.com/dop251/goja v0.0.0-20260106131823-651366fbe6e3 // indirect
+	github.com/dlclark/regexp2/v2 v2.5.2 // indirect
+	github.com/dop251/goja v0.0.0-20260822123354-58e940e0d230 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20240728170619-29b559befffc // indirect
 	github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
@@ -61,7 +61,7 @@ require (
 	github.com/felixge/fgprof v0.9.5 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
 	github.com/go-git/go-billy/v5 v5.9.0 // indirect
-	github.com/go-git/go-git/v5 v5.19.1 // indirect
+	github.com/go-git/go-git/v5 v5.19.2 // indirect
 	github.com/go-llsqlite/adapter v0.2.0 // indirect
 	github.com/go-llsqlite/crawshaw v0.6.0 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
@@ -162,21 +162,22 @@ require (
 	go.uber.org/automaxprocs v1.6.0 // indirect
 	go.uber.org/mock v0.5.1 // indirect
 	go4.org v0.0.0-20260112195520-a5071408f32f // indirect
-	golang.org/x/crypto v0.54.0 // indirect
+	golang.org/x/crypto v0.55.0 // indirect
 	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f // indirect
-	golang.org/x/mod v0.37.0 // indirect
-	golang.org/x/net v0.57.0 // indirect
+	golang.org/x/mod v0.40.0 // indirect
+	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
-	golang.org/x/text v0.40.0 // indirect
+	golang.org/x/text v0.41.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
-	golang.org/x/tools v0.47.0 // indirect
+	golang.org/x/tools v0.49.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	lukechampine.com/blake3 v1.4.1 // indirect
 	modernc.org/libc v1.74.4 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
-	modernc.org/sqlite v1.56.0 // indirect
+	modernc.org/sqlite v1.57.0 // indirect
+	rsc.io/qr v0.2.0 // indirect
 	zombiezen.com/go/sqlite v1.4.2 // indirect
 )
 

@@ -170,6 +170,19 @@ type Settings struct {
 	// something a fresh install does before being asked.
 	AutoUpdateCheck bool `json:"autoUpdateCheck"`
 
+	// AutoUpdateInstall asks the desktop build to install a newer release
+	// (download, verify, swap the running binary, relaunch) the moment
+	// AutoUpdateCheck's own check finds one, instead of only offering the
+	// release page to fetch by hand. Meaningless without AutoUpdateCheck
+	// also being on - nothing reads this unless a check already found an
+	// update - and meaningless on the container build, which cannot replace
+	// itself from the inside (App.RequestUpdateInstall is nil there; the
+	// route refuses before this field is ever read). Off by default, for
+	// the same reason AutoUpdateCheck is: silently replacing your own
+	// running binary is a bigger step than an outbound version check, and
+	// opting into "check" does not imply opting into "also apply".
+	AutoUpdateInstall bool `json:"autoUpdateInstall"`
+
 	// Packagizer names packages, picks folders and sets download options as
 	// links are staged. It is stored exactly as the user wrote it: rules.Compile
 	// is the validator, and a rule with a broken regular expression has to

@@ -451,6 +451,8 @@ function ScriptRow({
           <IconBadge
             kind="danger"
             icon={<IconTrash width={14} height={14} />}
+            hue={index}
+            title={row.saved ? cx('settings.scripts.remove') : cx('settings.scripts.removeNew')}
             aria-label={row.saved ? cx('settings.scripts.remove') : cx('settings.scripts.removeNew')}
             disabled={removing}
             onClick={() => void onRemove()}

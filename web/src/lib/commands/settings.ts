@@ -1,3 +1,5 @@
+import { fetchDeploymentInfo, fetchUpdateCheck } from '../api';
+import { IconRetry } from '../icons';
 import type { Command } from './types';
 
 /**
@@ -34,27 +36,66 @@ const SETTINGS_PAGES: { id: string; labelKey: Command['labelKey'] }[] = [
   { id: 'captcha', labelKey: 'settings.nav.captcha' },
   { id: 'schedule', labelKey: 'settings.nav.schedule' },
   { id: 'diagnostics', labelKey: 'settings.nav.diagnostics' },
-  { id: 'system', labelKey: 'settings.nav.system' },
   { id: 'help', labelKey: 'settings.nav.help' },
   { id: 'browsertools', labelKey: 'settings.nav.browsertools' },
   { id: 'scripts', labelKey: 'settings.nav.scripts' },
   { id: 'shortcuts', labelKey: 'settings.nav.shortcuts' },
 ];
 
-export const settingsCommands: Command[] = SETTINGS_PAGES.map(({ id, labelKey }) => ({
-  id: `settings.open.${id}`,
-  labelKey,
-  group: 'commands.group.settings',
-  // 'global', not 'settings' - the whole point named in this file's own doc
-  // comment above ("jump straight to Settings: Torrents instead of a click
-  // through Settings' own rail") requires being reachable from EVERY page,
-  // the same way global.ts's own six "go to X" nav commands are. Scoped to
-  // 'settings' this list would only ever appear once already on a settings
-  // page, where clicking the rail tab is no slower than the palette - the
-  // one place these commands are actually worth pressing mod+k for is
-  // everywhere else, which is exactly what 'settings' excluded.
-  surfaces: ['global'],
-  enabled: () => true,
-  visible: () => true,
-  run: (ctx) => ctx.navigate(`/settings/${id}`),
-}));
+export const settingsCommands: Command[] = [
+  ...SETTINGS_PAGES.map(
+    ({ id, labelKey }): Command => ({
+      id: `settings.open.${id}`,
+      labelKey,
+      group: 'commands.group.settings',
+      // 'global', not 'settings' - the whole point named in this file's own doc
+      // comment above ("jump straight to Settings: Torrents instead of a click
+      // through Settings' own rail") requires being reachable from EVERY page,
+      // the same way global.ts's own six "go to X" nav commands are. Scoped to
+      // 'settings' this list would only ever appear once already on a settings
+      // page, where clicking the rail tab is no slower than the palette - the
+      // one place these commands are actually worth pressing mod+k for is
+      // everywhere else, which is exactly what 'settings' excluded.
+      surfaces: ['global'],
+      enabled: () => true,
+      visible: () => true,
+      run: (ctx) => ctx.navigate(`/settings/${id}`),
+    }),
+  ),
+  {
+    id: 'settings.checkForUpdates',
+    labelKey: 'settings.look.updatesCheck',
+    icon: IconRetry,
+    group: 'commands.group.settings',
+    surfaces: ['global'],
+    // Real JDownloader 2's own mod+U ("check for updates") — source:
+    // jd/gui/swing/jdgui/components/toolbar/actions/UpdateAction.java,
+    // `setAccelerator(KeyEvent.VK_U)` (the single-arg AppAction overload,
+    // which itself adds the platform menu-shortcut mask).
+    defaultShortcut: 'mod+u',
+    enabled: () => true,
+    visible: () => true,
+    // Exactly the two calls settings/Look.tsx's own UpdateCard makes
+    // (fetchDeploymentInfo to pick the desktop/container wording,
+    // fetchUpdateCheck for the result), reported as a toast instead of
+    // UpdateCard's own inline state - this command has no page mounted to
+    // hold that state in, and the page itself still shows the full card
+    // for anyone who wants the persistent "Check for updates" button and
+    // the clickable release link.
+    run: async (ctx) => {
+      try {
+        const [deploy, check] = await Promise.all([fetchDeploymentInfo(), fetchUpdateCheck()]);
+        if (!check.checked) {
+          ctx.toast(ctx.t('settings.look.updatesFailed'), 'fail');
+        } else if (check.available) {
+          const key = deploy.deployment === 'desktop' ? 'settings.look.updatesAvailable' : 'settings.look.updatesAvailableContainer';
+          ctx.toast(ctx.t(key, { version: check.latest ?? '' }), 'info');
+        } else {
+          ctx.toast(ctx.t('settings.look.updatesCurrent', { version: check.current }), 'ok');
+        }
+      } catch {
+        ctx.toast(ctx.t('settings.look.updatesFailed'), 'fail');
+      }
+    },
+  },
+];

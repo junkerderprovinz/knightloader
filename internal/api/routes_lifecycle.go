@@ -72,6 +72,29 @@ func registerLifecycle(reg *Registry, a *app.App) {
 		func(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, update.Check(r.Context(), buildinfo.Version))
 		})
+
+	// Desktop only - App.RequestUpdateInstall is nil on the container build
+	// (registered unconditionally like every route here regardless, same
+	// convention as update-check just above: the frontend gates the UI on
+	// GET /api/system/deployment rather than this route refusing to exist).
+	// Long-running (download + swap can take a while over a slow link), so
+	// this blocks the request until it either succeeds - in which case the
+	// process is about to exit and relaunch, and the response race with
+	// that exit is expected and harmless - or fails with a reason the UI
+	// can show.
+	reg.Add(http.MethodPost, "/api/system/update-install",
+		"download and apply the latest release, then relaunch - desktop only",
+		func(w http.ResponseWriter, r *http.Request) {
+			if a.RequestUpdateInstall == nil {
+				http.Error(w, "this build cannot install updates from here", http.StatusNotImplemented)
+				return
+			}
+			if err := a.RequestUpdateInstall(r.Context()); err != nil {
+				writeJSONStatus(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+				return
+			}
+			writeJSONStatus(w, http.StatusAccepted, map[string]string{"status": "installing"})
+		})
 }
 
 func deploymentInfo(a *app.App) DeploymentInfo {

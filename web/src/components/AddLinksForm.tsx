@@ -182,7 +182,17 @@ export function AddLinksForm({
           shorter, with invisible empty space below them instead of a
           taller card. flex-1 on the visible card itself, in an h-full
           flex-col parent, is what actually grows the card. */}
-      <div className="glim-card flex flex-1 flex-col p-0 overflow-hidden">
+      {/* No overflow-hidden on this outer box (jdp, 2026-08-24: "der
+          cardtitelbadge der linksammmler card ist nicht ganz sichtbar") -
+          SectionTitle's own pill sits `absolute -top-[11px]`, half over
+          this card's own top edge by design (its doc comment in ui.tsx),
+          and overflow-hidden here clipped exactly that half off. Nothing
+          below actually needs corner-clipping: the title row has its own
+          px-4 pt-3 inset, the dropzone sits in an m-3 margin, and the
+          button row has its own px-4 pb-4 inset - none of them are flush
+          against this card's own rounded edge the way a clip would exist
+          to protect against. */}
+      <div className="glim-card flex flex-1 flex-col p-0">
         <div className="px-4 pt-3">
           <SectionTitle hue={0}>{t('collector.addTitle')}</SectionTitle>
         </div>
@@ -227,6 +237,8 @@ export function AddLinksForm({
               rest of that panel already groups. */}
           <IconBadge
             icon={<IconSettings width={16} height={16} />}
+            hue={0}
+            title={t('collector.options')}
             aria-label={t('collector.options')}
             aria-expanded={optionsOpen}
             onClick={() => setOptionsOpen(!optionsOpen)}
@@ -236,9 +248,17 @@ export function AddLinksForm({
           {/* Opens FileDrop's picker (jdp: "Dropzone mit Dateiwählen button
               neben dem Zum-Sammler-Button") - the file-intake trigger sits
               beside the link-intake one instead of in its own row below. */}
-          <IconBadge icon={<IconFolder width={16} height={16} />} aria-label={t('container.choose')} onClick={onChooseFile} />
+          <IconBadge
+            icon={<IconFolder width={16} height={16} />}
+            hue={1}
+            title={t('container.choose')}
+            aria-label={t('container.choose')}
+            onClick={onChooseFile}
+          />
           <IconBadge
             icon={<IconPlus width={16} height={16} />}
+            hue={2}
+            title={t('collector.add')}
             aria-label={t('collector.add')}
             className="bg-accent text-accentContrast hover:brightness-110"
             onClick={() => void onAdd()}

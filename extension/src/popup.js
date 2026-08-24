@@ -9,6 +9,7 @@
 // this is just a more discoverable door to it than the old full-width
 // "Instance settings" button used to be.
 
+const targetLabelEl = document.getElementById('targetLabel');
 const targetEl = document.getElementById('target');
 const instanceRow = document.getElementById('instanceRow');
 const instanceLabel = document.getElementById('instanceLabel');
@@ -26,6 +27,7 @@ let activeTab = null;
   openOptionsBtn.title = t('common.settings');
   instanceLabel.textContent = t('popup.sendToLabel');
   sendBtn.textContent = t('popup.send');
+  targetLabelEl.textContent = t('popup.targetLabel');
   targetEl.textContent = t('popup.loading');
 
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });

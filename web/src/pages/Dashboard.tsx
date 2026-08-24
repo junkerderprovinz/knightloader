@@ -5,7 +5,7 @@ import { useTasks } from '../lib/useTasks';
 import { useResource } from '../lib/useResource';
 import { fmtBytes, fmtSpeed, pct } from '../lib/format';
 import { useT } from '../lib/i18n';
-import { PageHeader, SectionTitle, EmptyState } from '../components/ui';
+import { Card, PageHeader, SectionTitle, EmptyState } from '../components/ui';
 import { SpeedGraph } from '../components/SpeedGraph';
 import { Counters } from '../components/Counters';
 import { ProgressBar } from '../components/ProgressBar';
@@ -69,7 +69,12 @@ export function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <div className="flex flex-col gap-3">
+        {/* Card, not a bare div (jdp, 2026-08-24, same bug found and fixed on
+            Accounts.tsx: SectionTitle's badge is `absolute -top-[11px]` and
+            requires its ancestor to be `.glim-card` - a plain flex wrapper
+            with no visible box left the badge anchored to nothing, floating
+            above the real (nested) card instead of notching over it). */}
+        <Card className="flex flex-col gap-3">
           <SectionTitle>{t('overview.recent')}</SectionTitle>
           {recent.length === 0 ? (
             <EmptyState icon={<IconDownloads width={26} height={26} />} title={t('overview.noDownloads')} />
@@ -94,11 +99,13 @@ export function Dashboard() {
               ))}
             </div>
           )}
-        </div>
+        </Card>
 
         {/* Instances here are a quiet summary, not a stack of raised cards —
-            the full dashboard lives on the Instances page. */}
-        <div className="flex flex-col gap-3">
+            the full dashboard lives on the Instances page. Card, not a bare
+            div, for the same SectionTitle-anchor reason as the recent-
+            downloads card above. */}
+        <Card className="flex flex-col gap-3">
           <SectionTitle>{t('overview.instances')}</SectionTitle>
           <div className="glim-card divide-y divide-carbon-border/60 p-0">
             <InstanceRow name={t('instances.thisInstance')} base="/api" />
@@ -111,7 +118,7 @@ export function Dashboard() {
               />
             ))}
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

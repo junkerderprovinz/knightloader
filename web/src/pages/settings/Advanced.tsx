@@ -128,13 +128,14 @@ export function Advanced() {
         ) : (
           <IconBadge
             icon={<IconSearch width={16} height={16} />}
+            title={tx('settings.advanced.search')}
             aria-label={tx('settings.advanced.search')}
             onClick={() => setSearchOpen(true)}
           />
         )}
       </div>
 
-      <Card className="p-0">
+      <Card padding="none">
         <div className="p-5 pb-0">
           <SectionTitle hue={0}>{tx('settings.advanced.allSettings')}</SectionTitle>
         </div>
@@ -214,6 +215,8 @@ function KeyRow({
         {modified && (
           <IconBadge
             icon={<IconRetry width={16} height={16} />}
+            hue={hue}
+            title={tx('settings.advanced.resetTitle')}
             aria-label={tx('settings.advanced.resetTitle')}
             onClick={() => onWrite(row.path, fallback ?? emptyFor(row.kind))}
           />

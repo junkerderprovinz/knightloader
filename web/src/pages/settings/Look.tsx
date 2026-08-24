@@ -1,12 +1,23 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
-import { Button, Card, InfoBubble, SectionTitle, Toggle } from '../../components/ui';
+import { Button, Card, ErrorCard, InfoBubble, Modal, SectionTitle, Toggle } from '../../components/ui';
 import { Tabs } from '../../components/Tabs';
 import { LanguagePicker } from '../../components/LanguagePicker';
-import { fetchDeploymentInfo, fetchUpdateCheck, type UpdateCheck as UpdateCheckT } from '../../lib/api';
-import { IconMoon, IconRetry, IconSun } from '../../lib/icons';
+import {
+  type DeploymentInfo,
+  BACKUP_DOWNLOAD_URL,
+  fetchDeploymentInfo,
+  fetchUpdateCheck,
+  installUpdate,
+  requestQuit,
+  requestRestart,
+  uploadRestore,
+  type UpdateCheck as UpdateCheckT,
+} from '../../lib/api';
+import { IconDownloads, IconMoon, IconRetry, IconSignOut, IconSun } from '../../lib/icons';
 import { QuietModeToggle, useToast } from '../../lib/toast';
 import { getTheme, onThemeChange, setTheme } from '../../lib/theme';
 import { useT } from '../../lib/i18n';
+import { useResource } from '../../lib/useResource';
 import {
   ACCENTS,
   DEFAULT_ACCENT,
@@ -384,7 +395,210 @@ export function Look() {
       </Card>
 
       <UpdateCard />
+      <SystemCards />
     </div>
+  );
+}
+
+/**
+ * Overview, quit/restart, backup and restore — formerly their own "System"
+ * tab (build-plan.md's Wave 10/10D), merged in here (jdp, 2026-08-24: "Alles
+ * was im Systemtab ist in den Allgemein-Tab mergen") since none of the four
+ * needed a dedicated tab of their own any more than Updates above already
+ * didn't. Self-contained and independently loading, same as UpdateCard: a
+ * slow or failed /api/deployment fetch delays or drops only this section,
+ * never the appearance controls above it.
+ */
+function SystemCards() {
+  const { t } = useT();
+  const { data, failed, loading, reload } = useResource<DeploymentInfo>(fetchDeploymentInfo);
+
+  const [confirmAction, setConfirmAction] = useState<'quit' | 'restart' | null>(null);
+  const [acting, setActing] = useState(false);
+  const [actionError, setActionError] = useState('');
+  const [shuttingDown, setShuttingDown] = useState(false);
+
+  const fileInput = useRef<HTMLInputElement>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [restoring, setRestoring] = useState(false);
+  const [restoreError, setRestoreError] = useState('');
+  const [restoreStatus, setRestoreStatus] = useState('');
+
+  async function confirmLifecycle() {
+    if (!confirmAction) return;
+    setActing(true);
+    setActionError('');
+    try {
+      const res = confirmAction === 'quit' ? await requestQuit() : await requestRestart();
+      setShuttingDown(true);
+      void res;
+    } catch (e) {
+      setActionError(t('settings.system.actionFailed', { error: String(e).replace(/^Error:\s*/, '') }));
+    } finally {
+      setActing(false);
+      setConfirmAction(null);
+    }
+  }
+
+  async function confirmRestore() {
+    if (!pendingFile) return;
+    setRestoring(true);
+    setRestoreError('');
+    try {
+      const res = await uploadRestore(pendingFile);
+      setRestoreStatus(res.status);
+      if (res.restarting) setShuttingDown(true);
+    } catch (e) {
+      setRestoreError(t('settings.system.restoreFailed', { error: String(e).replace(/^Error:\s*/, '') }));
+    } finally {
+      setRestoring(false);
+      setPendingFile(null);
+    }
+  }
+
+  // Same choice as UpdateCard just above: render nothing while this
+  // section's own fetch is in flight rather than a separate loading card
+  // popping into an otherwise-instant page.
+  if (loading) return null;
+  if (failed || !data) {
+    return <ErrorCard message={t('settings.system.loadFailed')} retry={reload} retryLabel="↻" />;
+  }
+
+  if (shuttingDown) {
+    return (
+      <Card className="flex flex-col gap-3">
+        <SectionTitle hue={8}>{t('settings.system.shuttingDownTitle')}</SectionTitle>
+        <p className="text-sm text-carbon-text">{t('settings.system.shuttingDown')}</p>
+      </Card>
+    );
+  }
+
+  return (
+    <>
+      <Card className="flex flex-col gap-2">
+        <SectionTitle hue={6}>{t('settings.system.overviewTitle')}</SectionTitle>
+        <p className="text-sm text-carbon-textSub">{t('settings.system.subtitle')}</p>
+        <span className="glim-eyebrow w-fit">
+          {data.deployment === 'container'
+            ? t('settings.system.deployment.container')
+            : data.deployment === 'desktop'
+              ? t('settings.system.deployment.desktop')
+              : data.deployment}
+        </span>
+      </Card>
+
+      <Card className="flex flex-col gap-3">
+        <SectionTitle hue={7}>{t('settings.system.lifecycleTitle')}</SectionTitle>
+        <p className="text-[11px] text-carbon-textMuted">{data.note}</p>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            kind="danger"
+            icon={<IconSignOut width={16} height={16} />}
+            disabled={!data.canQuit || acting}
+            onClick={() => setConfirmAction('quit')}
+          >
+            {t('settings.system.quit')}
+          </Button>
+          <Button
+            kind="secondary"
+            icon={<IconRetry width={16} height={16} />}
+            disabled={!data.canRestart || acting}
+            onClick={() => setConfirmAction('restart')}
+          >
+            {t('settings.system.restart')}
+          </Button>
+          {(!data.canQuit || !data.canRestart) && (
+            <span className="text-[11px] text-carbon-textMuted">{t('settings.system.unavailable')}</span>
+          )}
+        </div>
+        {actionError && <span className="text-sm text-statusFail">{actionError}</span>}
+      </Card>
+
+      <Card className="flex flex-col gap-3">
+        <SectionTitle hue={8}>{t('settings.system.backupTitle')}</SectionTitle>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            kind="secondary"
+            icon={<IconDownloads width={16} height={16} />}
+            onClick={() => {
+              window.location.href = BACKUP_DOWNLOAD_URL;
+            }}
+          >
+            {t('settings.system.backupButton')}
+          </Button>
+          <span className="text-[11px] text-carbon-textMuted">{t('settings.system.backupHint')}</span>
+        </div>
+      </Card>
+
+      <Card className="flex flex-col gap-3">
+        <SectionTitle hue={9}>{t('settings.system.restoreTitle')}</SectionTitle>
+        <input
+          ref={fileInput}
+          type="file"
+          accept="application/zip,.zip"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            // Cleared straight away, or picking the same file twice in a row
+            // raises no change event and a second restore attempt after a
+            // failed one silently does nothing - the same reason Rules.tsx's
+            // import input already does this.
+            e.target.value = '';
+            if (f) setPendingFile(f);
+          }}
+        />
+        <div className="flex flex-wrap items-center gap-3">
+          <Button kind="secondary" onClick={() => fileInput.current?.click()} disabled={restoring}>
+            {t('settings.system.restoreButton')}
+          </Button>
+          <span className="text-[11px] text-carbon-textMuted">{t('settings.system.restoreHint')}</span>
+        </div>
+        {restoreError && <span className="text-sm text-statusFail">{restoreError}</span>}
+        {restoreStatus && !restoreError && (
+          <span className="text-sm text-statusOk">{t('settings.system.restoreStaged', { status: restoreStatus })}</span>
+        )}
+      </Card>
+
+      {confirmAction && (
+        <Modal
+          title={t(confirmAction === 'quit' ? 'settings.system.quitConfirmTitle' : 'settings.system.restartConfirmTitle')}
+          onClose={() => (acting ? undefined : setConfirmAction(null))}
+          footer={
+            <>
+              <span className="flex-1" />
+              <Button kind="ghost" onClick={() => setConfirmAction(null)} disabled={acting}>
+                {t('settings.system.confirmCancel')}
+              </Button>
+              <Button kind="danger" onClick={() => void confirmLifecycle()} disabled={acting}>
+                {acting ? t('settings.system.acting') : t('settings.system.confirmProceed')}
+              </Button>
+            </>
+          }
+        >
+          <p className="text-sm text-carbon-text">{t('settings.system.quitConfirmBody', { note: data.note })}</p>
+        </Modal>
+      )}
+
+      {pendingFile && (
+        <Modal
+          title={t('settings.system.restoreConfirmTitle')}
+          onClose={() => (restoring ? undefined : setPendingFile(null))}
+          footer={
+            <>
+              <span className="flex-1" />
+              <Button kind="ghost" onClick={() => setPendingFile(null)} disabled={restoring}>
+                {t('settings.system.confirmCancel')}
+              </Button>
+              <Button kind="danger" onClick={() => void confirmRestore()} disabled={restoring}>
+                {restoring ? t('settings.system.restoring') : t('settings.system.confirmProceed')}
+              </Button>
+            </>
+          }
+        >
+          <p className="text-sm text-carbon-text">{t('settings.system.restoreConfirmBody', { name: pendingFile.name })}</p>
+        </Modal>
+      )}
+    </>
   );
 }
 
@@ -405,20 +619,33 @@ export function Look() {
  * install does before being asked.
  *
  * What still differs by deployment is only what "update available" tells
- * you to do about it, never whether the check runs - see
- * internal/update's own package doc for why downloading and applying an
- * update is deliberately not part of this even on desktop, and
- * routes_features.go's updaterReason for the container side of the same
- * split: a container cannot replace itself from the inside, so its "update
- * available" state points at the release instead of implying a click here
- * installs it.
+ * you to do about it by default - a container cannot replace itself from
+ * the inside, so its "update available" state points at the release
+ * instead (routes_features.go's updaterReason) - never whether a check can
+ * run, and on desktop specifically not whether an install can now be
+ * triggered from here either: internal/update's Download/Apply/Relaunch
+ * (jdp, 2026-08-24: "kannst du bei updates auch ein toggle machen für
+ * updates automatisch installieren?", after weighing the security tradeoff
+ * explicitly and choosing the real thing over the safer "check only"
+ * default this card shipped with first) do the actual download, atomic
+ * swap and relaunch; this card only offers the toggle and the manual
+ * button, same "settings page does not own the mechanism" split every
+ * other control here already follows.
  */
 function UpdateCard() {
   const { t } = useT();
   const { cfg, patch } = useDraft();
+  const { toast } = useToast();
   const [deployment, setDeployment] = useState<string | null>(null);
   const [check, setCheck] = useState<UpdateCheckT | null>(null);
   const [checking, setChecking] = useState(false);
+  const [installing, setInstalling] = useState(false);
+  const [installError, setInstallError] = useState('');
+  // Once true, stays true: a successful POST /api/system/update-install
+  // means the process is already on its way out to relaunch, so there is
+  // no "installing" state to return to and nothing further this card
+  // should let a click do.
+  const [installed, setInstalled] = useState(false);
 
   useEffect(() => {
     void fetchDeploymentInfo()
@@ -437,6 +664,24 @@ function UpdateCard() {
     }
   }, []);
 
+  const onInstall = useCallback(async () => {
+    setInstallError('');
+    setInstalling(true);
+    try {
+      await installUpdate();
+      setInstalled(true);
+    } catch (e) {
+      // A network error here is genuinely ambiguous (routes_lifecycle.go's
+      // own comment: the process may already be exiting to relaunch by the
+      // time this rejects) - but showing a plausible failure and letting
+      // someone press the button again is still better than a spinner that
+      // never resolves if the install truly did fail before ever swapping
+      // anything.
+      setInstallError(String(e).replace(/^(Error|ApiError):\s*/, ''));
+      setInstalling(false);
+    }
+  }, []);
+
   // Auto-check once, right after the toggle's own current value arrives -
   // not on every render. Both deployments reach this now; the check itself
   // (internal/update.Check) has never cared which one is asking.
@@ -446,11 +691,27 @@ function UpdateCard() {
     // when deployment/autoUpdateCheck first resolve, not on every cfg change.
   }, [deployment, cfg.autoUpdateCheck]);
 
+  // Auto-install, once, the moment a check this page itself ran (manual or
+  // automatic - both flow through the same `check` state) finds something
+  // available and the toggle is on. Deliberately NOT re-checked whenever
+  // cfg.autoUpdateInstall flips true on its own - toggling it on does not
+  // reach back into a `check` result from before the toggle existed in
+  // this session, matching autoUpdateCheck's own "acts on what happens
+  // from here, not on stale state" behaviour above.
+  useEffect(() => {
+    if (deployment === 'desktop' && cfg.autoUpdateInstall && check?.checked && check.available && !installing && !installed) {
+      toast(t('settings.look.updatesAutoInstalling', { version: check.latest ?? '' }), 'info');
+      void onInstall();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reacts only to a fresh check result
+  }, [check]);
+
   // Wait for deployment to resolve rather than guessing - one flash of the
   // wrong copy (desktop's install-oriented link, briefly, on a container) is
   // exactly the overpromise this card exists to avoid.
   if (deployment === null) return null;
   const isDesktop = deployment === 'desktop';
+  const canInstallNow = isDesktop && !installed && check?.checked && check.available;
 
   return (
     <Card className="flex flex-col gap-3">
@@ -461,10 +722,29 @@ function UpdateCard() {
         <span className="text-sm text-carbon-text">{t('settings.look.updatesAuto')}</span>
         <Toggle checked={cfg.autoUpdateCheck} onChange={(v) => patch({ autoUpdateCheck: v })} label={t('settings.look.updatesAuto')} hideLabel />
       </div>
+      {isDesktop && (
+        <div className="flex items-center justify-between gap-4">
+          <span className="flex items-center gap-1.5 text-sm text-carbon-text">
+            {t('settings.look.updatesAutoInstall')}
+            <InfoBubble tip={t('settings.look.updatesAutoInstallHint')} />
+          </span>
+          <Toggle
+            checked={cfg.autoUpdateInstall}
+            onChange={(v) => patch({ autoUpdateInstall: v })}
+            label={t('settings.look.updatesAutoInstall')}
+            hideLabel
+          />
+        </div>
+      )}
       <div className="flex flex-wrap items-center gap-3">
-        <Button kind="secondary" onClick={() => void onCheck()} disabled={checking}>
+        <Button kind="secondary" onClick={() => void onCheck()} disabled={checking || installing}>
           {checking ? t('settings.look.updatesChecking') : t('settings.look.updatesCheck')}
         </Button>
+        {canInstallNow && (
+          <Button kind="primary" onClick={() => void onInstall()} disabled={installing}>
+            {installing ? t('settings.look.updatesInstalling') : t('settings.look.updatesInstallNow')}
+          </Button>
+        )}
         {check && !check.checked && <span className="text-sm text-statusFail">{t('settings.look.updatesFailed')}</span>}
         {check && check.checked && !check.available && (
           <span className="text-sm text-statusOk">{t('settings.look.updatesCurrent', { version: check.current })}</span>
@@ -475,6 +755,8 @@ function UpdateCard() {
           </a>
         )}
       </div>
+      {installed && <p className="text-sm text-statusOk">{t('settings.look.updatesInstalled')}</p>}
+      {installError && <p className="text-sm text-statusFail">{t('settings.look.updatesInstallFailed', { error: installError })}</p>}
     </Card>
   );
 }

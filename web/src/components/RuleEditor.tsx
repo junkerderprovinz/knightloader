@@ -760,6 +760,7 @@ export function RuleEditor({
             rx={rx}
             grammar={grammar}
             condition={c}
+            index={i}
             // Problem.condition counts from 1, so the row that caused a message
             // is highlighted instead of the user counting rows against a
             // sentence that names a number.
@@ -816,6 +817,7 @@ function ConditionRow({
   rx,
   grammar,
   condition,
+  index,
   problems,
   onChange,
   onRemove,
@@ -823,6 +825,9 @@ function ConditionRow({
   rx: Rx;
   grammar: Grammar;
   condition: Condition;
+  /** This condition's position among its rule's own conditions - the same
+   *  0-based sequence every other repeated row-action badge in the app uses. */
+  index: number;
   problems: Problem[];
   onChange: (next: Condition) => void;
   onRemove: () => void;
@@ -932,6 +937,7 @@ function ConditionRow({
         <IconBadge
           kind="danger"
           icon={<IconTrash width={15} height={15} />}
+          hue={index}
           aria-label={rx('settings.rules.removeCondition')}
           title={rx('settings.rules.removeCondition')}
           onClick={onRemove}

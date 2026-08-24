@@ -355,6 +355,9 @@ function SectionTabs({ pages }: { pages: FeaturePage[] }) {
   // second click (or navigating elsewhere) turns it back off; see Tabs.tsx's
   // own `editMode` prop for the wiggle/drag mechanics this drives.
   const [editMode, setEditMode] = useState(false);
+  // Shared between the tooltip and the accessible name, so the two can never
+  // say something different about the same badge.
+  const reorderLabel = tx(editMode ? 'settings.railReorderDone' : 'settings.railReorderStart');
 
   return (
     <Tabs
@@ -391,7 +394,8 @@ function SectionTabs({ pages }: { pages: FeaturePage[] }) {
       after={
         <IconBadge
           icon={<IconEdit width={16} height={16} />}
-          aria-label={tx(editMode ? 'settings.railReorderDone' : 'settings.railReorderStart')}
+          title={reorderLabel}
+          aria-label={reorderLabel}
           aria-pressed={editMode}
           className={editMode ? 'bg-accent text-accentContrast hover:brightness-110' : undefined}
           onClick={() => setEditMode((v) => !v)}

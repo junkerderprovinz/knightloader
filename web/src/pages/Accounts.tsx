@@ -158,7 +158,7 @@ export function Accounts() {
     <div className="flex flex-col gap-10">
       <PageHeader title={t('accounts.title')} />
 
-      <div className="relative flex flex-col gap-3">
+      <Card className="flex flex-col gap-3">
         <SectionTitle hue={0} hint={t('accounts.debrid.hint')}>
           {t('accounts.debrid.title')}
         </SectionTitle>
@@ -187,14 +187,14 @@ export function Accounts() {
             }
           />
         )}
-      </div>
+      </Card>
 
-      <div className="relative flex flex-col gap-3">
+      <Card className="flex flex-col gap-3">
         <SectionTitle hue={1} hint={t('accounts.hoster.hint')}>
           {t('accounts.hoster.title')}
         </SectionTitle>
         <HosterLoginSection />
-      </div>
+      </Card>
 
       <RoutingSection catalogue={catalogue} />
 
@@ -255,7 +255,7 @@ function AccountsTable({ rows, catalogue, refreshing, onRefresh, onToggle, onRen
           </tr>
         </thead>
         <tbody className="divide-y divide-carbon-border/40">
-          {rows.map((a) => {
+          {rows.map((a, i) => {
             const svc = catalogue.get(a.service);
             const busy = refreshing.has(a.id);
             return (
@@ -310,8 +310,10 @@ function AccountsTable({ rows, catalogue, refreshing, onRefresh, onToggle, onRen
                 <td className="glim-num px-2 py-3 text-carbon-textSub">{a.trafficLeft || '—'}</td>
                 <td className="px-2 py-3 text-end">
                   <IconBadge
+                    hue={i}
                     className="opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
                     icon={<IconSettings width={16} height={16} />}
+                    title={t('accounts.rowActions')}
                     aria-label={t('accounts.rowActions')}
                     onClick={(e) => {
                       setMenuRow(a);

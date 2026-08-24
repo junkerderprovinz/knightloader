@@ -72,22 +72,40 @@ const iconBadgeClass: Record<IconBadgeKind, string> = {
  * die bei mouseover auf die regel erscheinen sind nicht im Glimstone. das
  * sollen farbige quadratischen badges mit icon sein"). `h-8 w-8` matches
  * the sibling apps' own icon-badge footprint (BombVault's Settings.tsx).
+ *
+ * `hue` opts a badge into the rainbow palette the same way Button and
+ * SectionTitle already do (jdp: "Bitte alle quadratischen badges in die
+ * farbengine aufnehmen. Die icons sollen keine farbe haben sondern nur der
+ * badge selbst") — but via `.glim-tint-badge`, not `.glim-hue` +
+ * `.glim-hue-icon`: a badge is a compact, isolated square with no
+ * checked/active state of its own to read `--accent` through (unlike a
+ * Button, which paints its whole fill with `bg-accent`), so it needs the
+ * stronger at-rest wash index.css's own doc comment on `.glim-tint-badge`
+ * describes for exactly this case. Deliberately NOT `.glim-hue-icon`: that
+ * class colours the glyph itself, which is the one thing this request asks
+ * to keep neutral — only the tile takes the hue, the icon stays
+ * `currentColor` from `iconBadgeClass[kind]` regardless.
  */
 export function IconBadge({
   icon,
   kind = 'neutral',
+  hue,
   className = '',
+  style,
   ...rest
 }: {
   icon: ReactNode;
   kind?: IconBadgeKind;
+  hue?: number;
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
+  const hued = hue !== undefined;
   return (
     <button
       type="button"
       className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-control)]
         transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
-        motion-safe:active:scale-[.98] ${iconBadgeClass[kind]} ${className}`}
+        motion-safe:active:scale-[.98] ${hued ? 'glim-tint-badge' : ''} ${iconBadgeClass[kind]} ${className}`}
+      style={hued ? { ...(hueVars(rainbowAt(hue)) as CSSProperties), ...style } : style}
       {...rest}
     >
       {icon}
@@ -790,14 +808,39 @@ export function Card({
   children,
   className = '',
   hover = false,
+  padding = 'normal',
 }: {
   children: ReactNode;
   className?: string;
   hover?: boolean;
+  /**
+   * 'none' drops the default p-5 outright rather than relying on a caller's
+   * own `className="... p-0"` to beat it - it never can. Tailwind's compiled
+   * stylesheet orders same-property utilities by their own scale value
+   * (`.p-0` before `.p-5`, confirmed in dist/assets/index.css: p-0 at byte
+   * offset 21089, p-5 at 21332), not by where they appear in a className
+   * string, and CSS resolves a same-specificity tie in favour of whichever
+   * rule comes LAST in the stylesheet - so p-5 always won regardless of
+   * which order a caller wrote them in. That silently kept every
+   * `<Card className="p-0">` at the full 20px padding underneath, which is
+   * exactly what broke Shortcuts.tsx's per-group SectionTitle badges: the
+   * badge has no left/right of its own (only `top`), so its horizontal
+   * position falls out of normal flow (the CSS "static position" rule) -
+   * doubling the padding (Card's own unremoved p-5, THEN the group's inner
+   * `p-5 pb-0` wrapper on top of it) pushed every group's badge 20px right
+   * of where the page-header Card's badge sits, since that one Card never
+   * attempted this override and so never doubled up (jdp, 2026-08-24:
+   * "alle cardtitelbadges sind zu weit rechts außer der der ersten card").
+   * Advanced.tsx and Diagnostics.tsx carried the identical latent bug from
+   * the identical `className="p-0"` pattern, just not visibly misaligned
+   * since neither page puts a correctly-padded SectionTitle beside the
+   * doubled one to compare against.
+   */
+  padding?: 'normal' | 'none';
 }) {
   return (
     <div
-      className={`glim-card p-5 ${
+      className={`glim-card ${padding === 'normal' ? 'p-5' : ''} ${
         hover ? 'transition-transform duration-150 motion-safe:hover:-translate-y-0.5' : ''
       } ${className}`}
     >

@@ -75,12 +75,17 @@ export function InstanceCard({
   base,
   onOpen,
   onRemove,
+  hue,
 }: {
   name: string;
   url: string;
   base: string;
   onOpen?: () => void;
   onRemove?: () => void;
+  /** This card's position among the OTHER linked instances on Instances.tsx
+   *  - "this instance"'s own card carries none, since it has no remove
+   *  badge to colour and is not one of that set to begin with. */
+  hue?: number;
 }) {
   const { t } = useT();
   const stats = usePeerStats(base);
@@ -97,7 +102,14 @@ export function InstanceCard({
         <span className="flex-1" />
         {onRemove && (
           <span className="opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-            <IconBadge kind="danger" icon={<IconTrash />} title={t('instances.removeTitle', { name })} onClick={onRemove} />
+            <IconBadge
+              kind="danger"
+              hue={hue}
+              icon={<IconTrash />}
+              title={t('instances.removeTitle', { name })}
+              aria-label={t('instances.removeTitle', { name })}
+              onClick={onRemove}
+            />
           </span>
         )}
       </div>

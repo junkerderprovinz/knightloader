@@ -718,12 +718,16 @@ function EntryRow({
         <div className="flex items-center gap-1.5">
           <IconBadge
             icon={<IconArrowUp width={14} height={14} />}
+            hue={index}
+            title={cx('settings.schedule.moveUp')}
             aria-label={cx('settings.schedule.moveUp')}
             disabled={index === 0}
             onClick={() => onMove(-1)}
           />
           <IconBadge
             icon={<IconArrowDown width={14} height={14} />}
+            hue={index}
+            title={cx('settings.schedule.moveDown')}
             aria-label={cx('settings.schedule.moveDown')}
             disabled={last}
             onClick={() => onMove(1)}
@@ -731,6 +735,8 @@ function EntryRow({
           <IconBadge
             kind="danger"
             icon={<IconTrash width={14} height={14} />}
+            hue={index}
+            title={cx('settings.schedule.remove')}
             aria-label={cx('settings.schedule.remove')}
             onClick={onRemove}
           />

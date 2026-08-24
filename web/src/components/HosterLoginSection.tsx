@@ -89,7 +89,7 @@ export function HosterLoginSection() {
               </tr>
             </thead>
             <tbody className="divide-y divide-carbon-border/40">
-              {logins?.map((row) => (
+              {logins?.map((row, i) => (
                 <tr key={row.host} className="group transition-colors hover:bg-carbon-hover">
                   <td className="px-4 py-3 font-medium text-carbon-text">{row.host}</td>
                   <td className="px-2 py-3">
@@ -99,8 +99,10 @@ export function HosterLoginSection() {
                   <td className="px-2 py-3 text-end">
                     <IconBadge
                       kind="danger"
+                      hue={i}
                       className="opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
                       icon={<IconTrash width={16} height={16} />}
+                      title={t('accounts.remove')}
                       aria-label={t('accounts.remove')}
                       onClick={() => void onRemove(row.host)}
                     />

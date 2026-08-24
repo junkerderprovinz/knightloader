@@ -291,6 +291,10 @@ export interface Settings {
    *  second entry point to it, never the page itself. */
   hideAccountsFromSidebar: boolean;
   autoUpdateCheck: boolean;
+  /** Meaningless without autoUpdateCheck also being on, and only ever acted
+   *  on by the desktop build - see internal/settings/settings.go's own doc
+   *  comment on the mirrored server field. */
+  autoUpdateInstall: boolean;
 
   /**
    * Which automatic captcha solvers to try, and in what order, before a
@@ -1740,6 +1744,21 @@ export interface UpdateCheck {
 
 export async function fetchUpdateCheck(): Promise<UpdateCheck> {
   return json(await fetch('/api/system/update-check'));
+}
+
+/**
+ * Downloads and applies the latest release, then relaunches - desktop only
+ * (internal/api/routes_lifecycle.go's own POST /api/system/update-install
+ * refuses with 501 on the container build, where App.RequestUpdateInstall
+ * is nil). Slow: the request does not resolve until the download and swap
+ * finish, at which point the process is already on its way out to
+ * relaunch - the caller races that exit the same way requestRestart's own
+ * "shutting down" response already does, and should treat any network
+ * error here (a fetch that never resolves, a reset connection) as "it
+ * probably worked" rather than a real failure.
+ */
+export async function installUpdate(): Promise<{ status: string }> {
+  return json(await fetch('/api/system/update-install', { method: 'POST' }));
 }
 
 // fetchDiagnostics is called both to render the diagnostics page's live

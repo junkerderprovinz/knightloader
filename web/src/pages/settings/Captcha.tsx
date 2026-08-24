@@ -273,12 +273,16 @@ function SolverRow({
             <>
               <IconBadge
                 icon={<IconArrowUp width={14} height={14} />}
+                hue={hue}
+                title={cx('settings.captcha.moveUp')}
                 aria-label={cx('settings.captcha.moveUp')}
                 disabled={position <= 0}
                 onClick={() => onMove(-1)}
               />
               <IconBadge
                 icon={<IconArrowDown width={14} height={14} />}
+                hue={hue}
+                title={cx('settings.captcha.moveDown')}
                 aria-label={cx('settings.captcha.moveDown')}
                 disabled={position < 0 || position >= count - 1}
                 onClick={() => onMove(1)}
