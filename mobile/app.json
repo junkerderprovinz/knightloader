@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "KnightLoader",
+    "slug": "knightloader-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.junkerderprovinz.knightloader"
+    },
+    "android": {
+      "package": "com.junkerderprovinz.knightloader",
+      "adaptiveIcon": {
+        "backgroundColor": "#161616",
+        "foregroundImage": "./assets/android-icon-foreground.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
