@@ -253,7 +253,11 @@ export function Collector() {
   const allChosen = filtered.length > 0 && filtered.every((x) => selected.has(x.id));
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-6">
+    // flex-1, not h-full: app/Layout.tsx's own page wrapper is a flex
+    // column now specifically so a page can grow into it this way - see
+    // that file's own doc comment on why flex-grow, not a percentage
+    // height, is what reliably fills it.
+    <div className="flex min-h-0 flex-1 flex-col gap-6">
       <div className="shrink-0">
         <PageHeader title={t('collector.title')} />
       </div>
@@ -410,7 +414,17 @@ export function Collector() {
             {t('downloads.noMatch')}
           </div>
         ) : (
-          <div className="min-h-0 flex-1 overflow-y-auto">
+          // flex flex-col here, not just min-h-0/flex-1: a percentage height
+          // on TaskListCard's own root (h-full) does not reliably resolve
+          // through a plain block box whose OWN height came from flex-grow
+          // plus overflow-auto - a genuine browser quirk (confirmed live:
+          // the wrapper measured a real 738px, the h-full child inside it
+          // still fell back to its own content height). Making this wrapper
+          // a flex container too, and TaskListCard's own root a flex-grow
+          // child (flex-1, not h-full) below, sidesteps it entirely - flex
+          // distributes space in one pass, with none of percentage-height's
+          // resolve-through-an-overflow-box ambiguity.
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
             <TaskListCard groups={groups} base="/api" selection={selection} profile="collector" />
           </div>
         )}

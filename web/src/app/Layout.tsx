@@ -199,7 +199,22 @@ export function Layout() {
         <Sidebar />
         <main className="flex-1 overflow-y-auto min-w-0">
           <ShellBar visible={section === 'downloads'} />
-          <div key={section} className="glim-page-enter w-full p-6 md:p-8">
+          {/* flex flex-col min-h-full: a no-op for every page that just
+              renders its own natural content height - a flex container's
+              lone child with no flex-grow of its own still sizes to its own
+              content, identical to plain block layout. What this adds is a
+              way for a page to opt INTO filling the available height via
+              flex-grow instead of a percentage `height: 100%`, which does
+              not reliably resolve through an auto-height ancestor even with
+              min-height set on it (browser-inconsistent CSS territory,
+              deliberately avoided rather than relied on). Needed for
+              Collector.tsx's own flex-1 (jdp, 2026-08-24: "Das
+              hauptlinkfenster soll immer ... bis ganz nach unten im fenster
+              gehen") - main's own height is definite here (a flex row's own
+              align-items:stretch under h-screen, this file's own outer div),
+              so min-h-full itself resolves correctly; flex-grow from there
+              down is what makes a child reliably fill it. */}
+          <div key={section} className="glim-page-enter flex w-full min-h-full flex-col p-6 md:p-8">
             <Outlet />
           </div>
         </main>

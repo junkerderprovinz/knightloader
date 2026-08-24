@@ -134,8 +134,13 @@ export function CollectorStats({ all, visible, selected }: { all: Task[]; visibl
   const f = useMemo(() => weigh(scoped), [scoped]);
 
   return (
-    <div role="group" aria-label={cx('collector.stats.label')}>
-      <Card className="flex w-fit min-w-[13rem] flex-col gap-3">
+    // h-full + flex-1 on the Card itself, not just this wrapper: the top
+    // row's own items-stretch (Collector.tsx) only stretches this wrapper's
+    // box, never the visible Card inside it - see AddLinksForm.tsx's own
+    // doc comment on the identical fix, needed for the same reason (jdp,
+    // 2026-08-24: "alle drei card sollen immer gleich hoch sein").
+    <div role="group" aria-label={cx('collector.stats.label')} className="h-full">
+      <Card className="flex h-full w-fit min-w-[13rem] flex-col gap-3">
         <SectionTitle hue={1}>{cx('collector.stats.label')}</SectionTitle>
         <Tabs
           select="one"
