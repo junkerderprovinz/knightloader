@@ -11,8 +11,10 @@ package api
 // anything: the named, revocable tokens themselves.
 
 import (
+	"encoding/json"
 	"net"
 	"net/http"
+	neturl "net/url"
 	"sort"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
@@ -57,13 +59,22 @@ type RemoteAccessInfo struct {
 // ReachableAddress is one URL this instance might answer on.
 type ReachableAddress struct {
 	// Label names where this address came from: "this connection" for the
-	// one the request itself arrived on, otherwise the interface's own IP.
+	// one the request itself arrived on, "known" for one remembered or typed
+	// in by hand (see rememberDomain below), otherwise the interface's own
+	// IP.
 	Label string `json:"label"`
 	URL   string `json:"url"`
 	// Loopback is true for 127.0.0.1/localhost/::1: reachable only from this
 	// same machine, never a phone on the LAN, and never what the QR code
 	// should encode.
 	Loopback bool `json:"loopback"`
+	// Domain is true when URL's host is a real hostname rather than a bare
+	// IP - a domain behind a reverse proxy or VPN is what actually lets
+	// pairing and the QR code work from outside this LAN, so it outranks a
+	// LAN IP the moment one is known (see preferredAddress below), and the
+	// Access tab uses this to tell a remembered domain apart from a plain
+	// interface IP in the same list.
+	Domain bool `json:"domain"`
 }
 
 // QRMatrix is a QR code as the plain module grid rsc.io/qr computed, not a
@@ -102,9 +113,11 @@ func remoteAccessInfo(a *app.App, r *http.Request) RemoteAccessInfo {
 	if buildinfo.Deployment == "desktop" {
 		return info
 	}
-	info.Addresses = remoteAddresses(r)
+	known := a.Settings.Get().KnownDomains
+	info.Addresses = remoteAddresses(r, known)
 	info.Exposed = !info.PasswordSet && (requestIsNonLoopback(r) || buildinfo.ListensWidely)
-	// The first NON-loopback address, never Addresses[0] unconditionally:
+	rememberDomain(a, info.Addresses, known)
+	// The best NON-loopback address, never Addresses[0] unconditionally:
 	// that entry is "this connection", which is 127.0.0.1 whenever the
 	// viewer themselves is on loopback - the ordinary case for the admin
 	// configuring their own instance. A QR code encoding a loopback address
@@ -112,14 +125,29 @@ func remoteAccessInfo(a *app.App, r *http.Request) RemoteAccessInfo {
 	// this machine), reproduced live before this fix: the served matrix
 	// from a 127.0.0.1 request was bit-identical to a direct encode of
 	// "http://127.0.0.1:PORT", sitting directly under a caption promising a
-	// LAN address.
-	if addr, ok := firstNonLoopback(info.Addresses); ok {
+	// LAN address. preferredAddress additionally reaches past a bare LAN IP
+	// for a known domain when one exists - a domain behind a reverse proxy
+	// or VPN is what a phone OUTSIDE this LAN can actually use, which a LAN
+	// IP never is (jdp: "Die domain soll auch mit dem QR Code an die App
+	// weitergegeben werden").
+	if addr, ok := preferredAddress(info.Addresses); ok {
 		info.QR = renderQR(addr)
 	}
 	return info
 }
 
-func firstNonLoopback(addrs []ReachableAddress) (string, bool) {
+// preferredAddress is the one address worth encoding into a QR code or
+// offering into a pairing code: the best non-loopback entry, with a known
+// DOMAIN outranking a bare LAN IP the moment one exists, since a domain is
+// what still works once the phone scanning it has left this LAN. Falls back
+// to the first non-loopback entry of any kind (the request's own address,
+// ordinarily) when no domain is known yet.
+func preferredAddress(addrs []ReachableAddress) (string, bool) {
+	for _, a := range addrs {
+		if !a.Loopback && a.Domain {
+			return a.URL, true
+		}
+	}
 	for _, a := range addrs {
 		if !a.Loopback {
 			return a.URL, true
@@ -130,10 +158,12 @@ func firstNonLoopback(addrs []ReachableAddress) (string, bool) {
 
 // remoteAddresses is every address this build can name for this instance,
 // most trustworthy first: the address THIS REQUEST actually arrived on is
-// always first when known, because it is not a guess, it just worked, and
-// every other non-loopback IPv4 address bound to a local interface follows,
-// sharing the same port and scheme, deduplicated against it.
-func remoteAddresses(r *http.Request) []ReachableAddress {
+// always first when known, because it is not a guess, it just worked, then
+// every KNOWN domain (remembered or typed in by hand - settings.Settings.
+// KnownDomains, full base URLs), then every other non-loopback IPv4 address
+// bound to a local interface, sharing the request's own port and scheme,
+// deduplicated against everything already added.
+func remoteAddresses(r *http.Request, known []string) []ReachableAddress {
 	scheme := "http"
 	if r.TLS != nil {
 		scheme = "https"
@@ -151,23 +181,72 @@ func remoteAddresses(r *http.Request) []ReachableAddress {
 	}
 	var out []ReachableAddress
 	seen := map[string]bool{}
-	add := func(label, hostport string, loopback bool) {
+	add := func(label, urlScheme, hostport string, loopback bool) {
 		if hostport == "" || seen[hostport] {
 			return
 		}
 		seen[hostport] = true
-		out = append(out, ReachableAddress{Label: label, URL: scheme + "://" + hostport, Loopback: loopback})
+		out = append(out, ReachableAddress{Label: label, URL: urlScheme + "://" + hostport, Loopback: loopback, Domain: !loopback && isDomainHost(hostport)})
 	}
 
 	if r.Host != "" {
-		add("this connection", r.Host, isLoopbackHost(r.Host))
+		add("this connection", scheme, r.Host, isLoopbackHost(r.Host))
+	}
+	for _, d := range known {
+		// A known domain keeps ITS OWN scheme (u.Scheme, stored alongside the
+		// host the moment this was remembered - rememberDomain below), not
+		// this request's: a domain in front of a reverse proxy is reached
+		// over https, whether or not the request that happens to be loading
+		// this page right now arrived over plain LAN http. Using the current
+		// request's scheme here would offer a domain address that a proxy
+		// terminating TLS may refuse or redirect away from.
+		if u, err := neturl.Parse(d); err == nil && u.Host != "" {
+			add("known", u.Scheme, u.Host, isLoopbackHost(u.Host))
+		}
 	}
 	if port := portOf(r.Host); port != "" {
 		for _, ip := range localIPv4s() {
-			add(ip, ip+":"+port, false)
+			add(ip, scheme, ip+":"+port, false)
 		}
 	}
 	return out
+}
+
+// rememberDomain is remoteAccessInfo's other half: the moment a real
+// request arrives on a real domain (not a bare IP, not loopback) that is
+// not already in Settings.KnownDomains, it is saved there - the same
+// reasoning the doc comment atop this section gives, stated as code: "a
+// domain seen once has to stay listed even when every later request comes
+// in over the LAN IP instead." addrs is what remoteAddresses just built, so
+// this reads the SAME "this connection" entry rather than re-deriving it
+// from r a second time.
+func rememberDomain(a *app.App, addrs []ReachableAddress, known []string) {
+	if len(addrs) == 0 || addrs[0].Label != "this connection" || addrs[0].Loopback || !addrs[0].Domain {
+		return
+	}
+	for _, k := range known {
+		if k == addrs[0].URL {
+			return
+		}
+	}
+	patch, err := json.Marshal(append(append([]string{}, known...), addrs[0].URL))
+	if err != nil {
+		return
+	}
+	_, _ = a.Settings.SetPartial(map[string]json.RawMessage{"knownDomains": patch})
+}
+
+// isDomainHost reports whether hostport's host part is a real hostname
+// rather than a bare IP literal - the one distinction preferredAddress
+// needs, since a bare IP is never reachable once the phone scanning a QR
+// code has left this network, and a real hostname behind a reverse proxy or
+// VPN still is.
+func isDomainHost(hostport string) bool {
+	host := hostport
+	if h, _, err := net.SplitHostPort(hostport); err == nil {
+		host = h
+	}
+	return net.ParseIP(host) == nil
 }
 
 // requestIsNonLoopback is Exposed's whole non-loopback check: proof, this

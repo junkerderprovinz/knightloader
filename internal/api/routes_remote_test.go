@@ -265,10 +265,15 @@ func TestRemoteAccessExposedWhenListeningWidelyEvenFromLoopback(t *testing.T) {
 	}
 }
 
-// TestFirstNonLoopback is the pure half of the QR-loopback fix: given a
-// mixed list, it must skip every loopback entry and return the first real
-// one, not just the head of the slice.
-func TestFirstNonLoopback(t *testing.T) {
+// TestPreferredAddress is the pure half of the QR-loopback fix (formerly
+// firstNonLoopback): given a mixed list, it must skip every loopback entry
+// and return the first real one, not just the head of the slice - and now,
+// reach past a bare LAN IP for a known domain the moment one exists,
+// regardless of where in the list it sits (jdp: "Die domain soll auch mit
+// dem QR Code an die App weitergegeben werden" - a domain is what a phone
+// outside this LAN can still use once it has left the network the LAN IP
+// only ever worked on).
+func TestPreferredAddress(t *testing.T) {
 	cases := []struct {
 		name  string
 		addrs []ReachableAddress
@@ -285,12 +290,29 @@ func TestFirstNonLoopback(t *testing.T) {
 			},
 			"http://192.168.1.20:8749", true,
 		},
+		{
+			"a known domain outranks a LAN IP even though it sorts after it",
+			[]ReachableAddress{
+				{URL: "http://127.0.0.1:8749", Loopback: true},
+				{URL: "http://192.168.1.20:8749", Loopback: false, Domain: false},
+				{URL: "https://knightloader.example.com", Loopback: false, Domain: true},
+			},
+			"https://knightloader.example.com", true,
+		},
+		{
+			"no domain known falls back to the first real address, same as before",
+			[]ReachableAddress{
+				{URL: "http://192.168.1.20:8749", Loopback: false, Domain: false},
+				{URL: "http://192.168.1.30:8749", Loopback: false, Domain: false},
+			},
+			"http://192.168.1.20:8749", true,
+		},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			got, ok := firstNonLoopback(c.addrs)
+			got, ok := preferredAddress(c.addrs)
 			if ok != c.found || got != c.want {
-				t.Errorf("firstNonLoopback(%v) = (%q, %v), want (%q, %v)", c.addrs, got, ok, c.want, c.found)
+				t.Errorf("preferredAddress(%v) = (%q, %v), want (%q, %v)", c.addrs, got, ok, c.want, c.found)
 			}
 		})
 	}
@@ -322,6 +344,142 @@ func TestRemoteAccessQRMatchesThePrimaryAddress(t *testing.T) {
 		if strings.Trim(row, "01") != "" {
 			t.Fatalf("QR row %q has a character that is not 0 or 1", row)
 		}
+	}
+}
+
+// TestIsDomainHost pins the one distinction preferredAddress needs: a real
+// hostname behind a reverse proxy or VPN still works once whatever is
+// scanning the QR code has left this LAN, a bare IP literal never does.
+func TestIsDomainHost(t *testing.T) {
+	cases := []struct {
+		hostport string
+		want     bool
+	}{
+		{"knightloader.example.com", true},
+		{"knightloader.example.com:8749", true},
+		{"192.168.1.20", false},
+		{"192.168.1.20:8749", false},
+		{"127.0.0.1", false},
+		{"[::1]:8749", false},
+		{"[2001:db8::1]:8749", false},
+		{"localhost", true}, // a name, even though isLoopbackHost treats it as loopback separately
+	}
+	for _, c := range cases {
+		t.Run(c.hostport, func(t *testing.T) {
+			if got := isDomainHost(c.hostport); got != c.want {
+				t.Errorf("isDomainHost(%q) = %v, want %v", c.hostport, got, c.want)
+			}
+		})
+	}
+}
+
+// TestRemoteAccessRemembersDomainSeenOnARequest is rememberDomain's own
+// integration proof: the moment a request genuinely arrives on a real
+// domain, it has to end up in Settings.KnownDomains, or it stops being
+// listed the instant a later request comes in over the LAN IP instead (the
+// whole reason this field exists - see settings_identity.go's own doc
+// comment).
+func TestRemoteAccessRemembersDomainSeenOnARequest(t *testing.T) {
+	requireContainerDeployment(t)
+	srv, a := testServer(t)
+	defer srv.Close()
+
+	req, err := http.NewRequest(http.MethodGet, srv.URL+"/api/remote-access", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Host = "knightloader.example.tld"
+	req.Header.Set("X-Forwarded-Proto", "https")
+	if code := doJSON(t, req, nil); code != http.StatusOK {
+		t.Fatalf("GET /api/remote-access answered %d", code)
+	}
+
+	known := a.Settings.Get().KnownDomains
+	want := "https://knightloader.example.tld"
+	if len(known) != 1 || known[0] != want {
+		t.Fatalf("KnownDomains = %v, want [%q]", known, want)
+	}
+}
+
+// TestRemoteAccessDoesNotRememberLoopbackOrBareIP: rememberDomain's whole
+// point is a real domain, not every address a request happens to arrive on
+// - a loopback request or a bare LAN IP must never end up in
+// Settings.KnownDomains.
+func TestRemoteAccessDoesNotRememberLoopbackOrBareIP(t *testing.T) {
+	requireContainerDeployment(t)
+	srv, a := testServer(t)
+	defer srv.Close()
+
+	if code, _ := getRemoteAccess(t, srv.URL, ""); code != http.StatusOK {
+		t.Fatalf("loopback GET /api/remote-access answered %d", code)
+	}
+	if code, info := getRemoteAccess(t, srv.URL, "192.0.2.10:8749"); code != http.StatusOK {
+		t.Fatalf("bare-IP GET /api/remote-access answered %d", code)
+	} else if len(info.Addresses) == 0 {
+		t.Fatal("no addresses reported for the bare-IP request")
+	}
+
+	if known := a.Settings.Get().KnownDomains; len(known) != 0 {
+		t.Fatalf("KnownDomains = %v, want none after only loopback/bare-IP requests", known)
+	}
+}
+
+// TestRemoteAccessDoesNotDuplicateAlreadyKnownDomain: replaying a request on
+// a domain already in Settings.KnownDomains must not grow the list.
+func TestRemoteAccessDoesNotDuplicateAlreadyKnownDomain(t *testing.T) {
+	requireContainerDeployment(t)
+	srv, a := testServer(t)
+	defer srv.Close()
+
+	cfg := a.Settings.Get()
+	cfg.KnownDomains = []string{"https://knightloader.example.tld"}
+	if _, err := a.Settings.Set(cfg); err != nil {
+		t.Fatal(err)
+	}
+
+	req, _ := http.NewRequest(http.MethodGet, srv.URL+"/api/remote-access", nil)
+	req.Host = "knightloader.example.tld"
+	req.Header.Set("X-Forwarded-Proto", "https")
+	if code := doJSON(t, req, nil); code != http.StatusOK {
+		t.Fatalf("GET /api/remote-access answered %d", code)
+	}
+
+	if known := a.Settings.Get().KnownDomains; len(known) != 1 {
+		t.Fatalf("KnownDomains = %v, want the same single entry, not a duplicate", known)
+	}
+}
+
+// TestRemoteAccessKnownDomainKeepsItsOwnScheme: a known domain is reached
+// through a reverse proxy that ordinarily terminates TLS, so it has to keep
+// the scheme it was remembered with (u.Scheme from the stored URL) rather
+// than borrowing whatever scheme the CURRENT request happens to carry - a
+// request arriving over plain LAN http must not turn a remembered
+// "https://kl.example.com" into "http://kl.example.com" in the address list.
+func TestRemoteAccessKnownDomainKeepsItsOwnScheme(t *testing.T) {
+	requireContainerDeployment(t)
+	srv, a := testServer(t)
+	defer srv.Close()
+
+	cfg := a.Settings.Get()
+	cfg.KnownDomains = []string{"https://knightloader.example.tld"}
+	if _, err := a.Settings.Set(cfg); err != nil {
+		t.Fatal(err)
+	}
+
+	// A plain, unencrypted LAN request - no TLS, no X-Forwarded-Proto.
+	_, info := getRemoteAccess(t, srv.URL, "192.0.2.10:8749")
+
+	var found *ReachableAddress
+	for i := range info.Addresses {
+		if info.Addresses[i].URL == "https://knightloader.example.tld" {
+			found = &info.Addresses[i]
+		}
+	}
+	if found == nil {
+		t.Fatalf("addresses = %v, want the known domain listed with its own https scheme", info.Addresses)
+	}
+	if !found.Domain || found.Loopback {
+		t.Errorf("known domain entry = %+v, want Domain=true Loopback=false", found)
 	}
 }
 
