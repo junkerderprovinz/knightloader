@@ -62,6 +62,27 @@ npm run android   # needs Android Studio/an emulator, or a device with Expo Go
 npm run ios       # needs a Mac — see below if you don't have one
 ```
 
+## Building a local Android APK
+
+`npx expo prebuild --platform android && cd android && ./gradlew assembleDebug`
+currently fails on Windows: the New Architecture native codegen
+(`expo-modules-core`, `react-native-screens`, `react-native-safe-area-context`)
+hits `ld.lld: error: undefined symbol: operator new/delete` — libc++ isn't
+linking. This is a known class of issue (matching upstream reports like
+`react-native-reanimated#8269`), normally fixed by pinning NDK
+`26.1.10909125` instead of the SDK Manager's default `27.x` — already
+configured here via the `expo-build-properties` plugin in `app.json` — but
+that pin did not actually resolve it in testing; the autolinked native
+modules seem not to read `rootProject.ext.ndkVersion` for their own CMake
+config. Not resolved. Full diagnostic trail, including what was tried and
+ruled out, is in Claude's memory file
+`knightloader-mobile-android-ndk-linker-blocker.md` (not committed to this
+repo, ask if you need the details reconstructed here instead).
+
+Until that's fixed, **Expo Go** (see "Running it" above) is the practical way
+to test on a real device without a native build at all, and **EAS Build**
+(below) sidesteps it entirely by building on Linux.
+
 ## Building without a Mac (iOS)
 
 Xcode only runs on macOS, so a local `ios` build is not possible from this
