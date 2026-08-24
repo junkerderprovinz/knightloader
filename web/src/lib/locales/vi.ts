@@ -1047,7 +1047,7 @@ export const vi: Dict = {
   'collector.overrule': 'Ưu tiên hơn quy tắc Packagizer khớp',
   'collector.overruleHint': 'Tắt thì quy tắc Packagizer khớp thắng ưu tiên, giải nén và ghi chú ở trên. Bật thì các giá trị này thắng thay vào đó. Thư mục đích ở trên không bao giờ nằm trong việc này: nó luôn được áp dụng đúng như đã nhập.',
   'collector.facets.title': 'Bộ lọc',
-  'collector.facets.hint': 'Thu hẹp danh sách đã gom theo nơi liên kết trỏ tới, loại tệp là gì, hoặc nó rơi vào gói nào. Ẩn bảng này không xóa những gì đã chọn ở đây.',
+  'collector.facets.hint': 'Thu hẹp danh sách đã gom theo nơi liên kết trỏ tới, loại tệp là gì, hoặc nó rơi vào gói nào.',
   'collector.facets.fileType': 'Loại tệp',
   'collector.facets.clearAll': 'Xóa',
   'collector.facets.hide': 'Ẩn bộ lọc',

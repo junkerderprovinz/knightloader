@@ -1047,7 +1047,7 @@ export const eu: Dict = {
   'collector.overrule': 'Bat datorren Packagizer arau bati nagusitu',
   'collector.overruleHint': 'Itzalita, bat datorren Packagizer arauak nagusitasuna, deskonpresioa eta goiko iruzkina gainditzen ditu. Piztuta, balio hauek nagusitzen dira. Goiko helmugako karpeta ez da inoiz honen parte: idatzi bezala aplikatzen da beti.',
   'collector.facets.title': 'Iragazkiak',
-  'collector.facets.hint': 'Bildutako zerrenda murrizten du esteka nora doan, zer motatako fitxategia den, edo zein paketetan amaitu duen kontuan hartuta. Panel hau ezkutatzeak ez du garbitzen hemen markatuta dagoena.',
+  'collector.facets.hint': 'Bildutako zerrenda murrizten du esteka nora doan, zer motatako fitxategia den, edo zein paketetan amaitu duen kontuan hartuta.',
   'collector.facets.fileType': 'Fitxategi mota',
   'collector.facets.clearAll': 'Garbitu',
   'collector.facets.hide': 'Ezkutatu iragazkiak',

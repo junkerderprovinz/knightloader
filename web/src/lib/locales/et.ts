@@ -1047,7 +1047,7 @@ export const et: Dict = {
   'collector.overrule': 'Tühista sobiv Packagizeri reegel',
   'collector.overruleHint': 'Väljas võidab sobiv Packagizeri reegel prioriteedi, lahtipakkimise ja ülal oleva kommentaari üle. Sees võidavad need väärtused. Ülalolev sihtkaust ei kuulu siia kunagi: see kehtib alati täpselt nii, nagu sisestatud.',
   'collector.facets.title': 'Filtrid',
-  'collector.facets.hint': 'Kitsendab kogutud loendit selle järgi, kuhu link viitab, mis tüüpi fail see on või millisesse paketti see sattus. Selle paneeli peitmine ei tühjenda siin märgitut.',
+  'collector.facets.hint': 'Kitsendab kogutud loendit selle järgi, kuhu link viitab, mis tüüpi fail see on või millisesse paketti see sattus.',
   'collector.facets.fileType': 'Failitüüp',
   'collector.facets.clearAll': 'Tühjenda',
   'collector.facets.hide': 'Peida filtrid',

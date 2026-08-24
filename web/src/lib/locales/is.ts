@@ -1047,7 +1047,7 @@ export const is: Dict = {
   'collector.overrule': 'Yfirtaka samsvarandi Packagizer-reglu',
   'collector.overruleHint': 'Slökkt vinnur samsvarandi Packagizer-regla yfir forgangi, affermingu og athugasemdinni hér að ofan. Kveikt vinna þessi gildi í staðinn. Áfangamappan hér að ofan er aldrei hluti af þessu: hún gildir alltaf nákvæmlega eins og hún var slegin inn.',
   'collector.facets.title': 'Síur',
-  'collector.facets.hint': 'Þrengir safnaða listann eftir því hvert tengill vísar, hvers konar skrá það er eða í hvaða pakka hún lenti. Að fela þessa spjaldið hreinsar ekki það sem er hakað hér.',
+  'collector.facets.hint': 'Þrengir safnaða listann eftir því hvert tengill vísar, hvers konar skrá það er eða í hvaða pakka hún lenti.',
   'collector.facets.fileType': 'Skráartegund',
   'collector.facets.clearAll': 'Hreinsa',
   'collector.facets.hide': 'Fela síur',

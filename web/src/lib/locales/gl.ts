@@ -1047,7 +1047,7 @@ export const gl: Dict = {
   'collector.overrule': 'Prevalecer sobre unha regra do Packagizer coincidente',
   'collector.overruleHint': 'Desactivado, unha regra do Packagizer coincidente gaña sobre a prioridade, a descompresión e o comentario de arriba. Activado, gañan estes valores. O cartafol de destino de arriba nunca forma parte disto: sempre se aplica tal como se escribiu.',
   'collector.facets.title': 'Filtros',
-  'collector.facets.hint': 'Reduce a lista recollida segundo cara onde apunta unha ligazón, que tipo de ficheiro é, ou en que paquete acabou. Agochar este panel non borra o que está marcado aquí.',
+  'collector.facets.hint': 'Reduce a lista recollida segundo cara onde apunta unha ligazón, que tipo de ficheiro é, ou en que paquete acabou.',
   'collector.facets.fileType': 'Tipo de ficheiro',
   'collector.facets.clearAll': 'Limpar',
   'collector.facets.hide': 'Agochar filtros',

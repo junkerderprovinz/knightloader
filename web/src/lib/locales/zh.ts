@@ -1047,7 +1047,7 @@ export const zh: Dict = {
   'collector.overrule': '优先于匹配的 Packagizer 规则',
   'collector.overruleHint': '关闭时，匹配的 Packagizer 规则会优先于上面的优先级、解压和备注。开启时，这些值会优先生效。上面的目标文件夹永远不受此影响：它始终按输入的原样应用。',
   'collector.facets.title': '筛选器',
-  'collector.facets.hint': '按链接指向的位置、文件类型或所属的包，缩小已收集的列表范围。隐藏此面板不会清除这里勾选的内容。',
+  'collector.facets.hint': '按链接指向的位置、文件类型或所属的包，缩小已收集的列表范围。',
   'collector.facets.fileType': '文件类型',
   'collector.facets.clearAll': '清除',
   'collector.facets.hide': '隐藏筛选器',

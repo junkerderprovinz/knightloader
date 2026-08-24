@@ -1047,7 +1047,7 @@ export const sv: Dict = {
   'collector.overrule': 'Åsidosätt en matchande Packagizer-regel',
   'collector.overruleHint': 'Av vinner en matchande Packagizer-regel över prioritet, uppackning och kommentaren ovan. På vinner de här värdena istället. Målmappen ovan är aldrig en del av det: den gäller alltid exakt som den skrevs in.',
   'collector.facets.title': 'Filter',
-  'collector.facets.hint': 'Begränsar den insamlade listan efter vart en länk pekar, vilken filtyp det är eller vilket paket den hamnade i. Att dölja panelen rensar inte det som är ikryssat här.',
+  'collector.facets.hint': 'Begränsar den insamlade listan efter vart en länk pekar, vilken filtyp det är eller vilket paket den hamnade i.',
   'collector.facets.fileType': 'Filtyp',
   'collector.facets.clearAll': 'Rensa',
   'collector.facets.hide': 'Dölj filter',

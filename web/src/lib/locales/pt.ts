@@ -1039,7 +1039,7 @@ export const pt: Dict = {
   'collector.overrule': 'Sobrepor-se a uma regra do Packagizer correspondente',
   'collector.overruleHint': 'Desligado, uma regra do Packagizer correspondente vence a prioridade, a descompactação e o comentário acima. Ligado, vencem estes valores. O destino acima nunca faz parte disto: aplica-se sempre exatamente como foi escrito.',
   'collector.facets.title': 'Filtros',
-  'collector.facets.hint': 'Restringe a lista reunida consoante para onde aponta uma ligação, que tipo de ficheiro é, ou em que pacote acabou. Ocultar este painel não limpa o que está assinalado aqui.',
+  'collector.facets.hint': 'Restringe a lista reunida consoante para onde aponta uma ligação, que tipo de ficheiro é, ou em que pacote acabou.',
   'collector.facets.fileType': 'Tipo de ficheiro',
   'collector.facets.clearAll': 'Limpar',
   'collector.facets.hide': 'Ocultar filtros',

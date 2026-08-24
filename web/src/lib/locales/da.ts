@@ -1047,7 +1047,7 @@ export const da: Dict = {
   'collector.overrule': 'Tilsidesæt en matchende Packagizer-regel',
   'collector.overruleHint': 'Fra vinder en matchende Packagizer-regel over prioritet, udpakning og kommentaren ovenfor. Til vinder disse værdier i stedet. Destinationsmappen ovenfor er aldrig en del af dette: den gælder altid præcis som indtastet.',
   'collector.facets.title': 'Filtre',
-  'collector.facets.hint': 'Indsnævrer den indsamlede liste efter, hvor et link peger hen, hvilken filtype det er, eller hvilken pakke det endte i. At skjule dette panel rydder ikke det, der er markeret her.',
+  'collector.facets.hint': 'Indsnævrer den indsamlede liste efter, hvor et link peger hen, hvilken filtype det er, eller hvilken pakke det endte i.',
   'collector.facets.fileType': 'Filtype',
   'collector.facets.clearAll': 'Ryd',
   'collector.facets.hide': 'Skjul filtre',

@@ -1047,7 +1047,7 @@ export const ca: Dict = {
   'collector.overrule': 'Substituir una regla del Packagizer coincident',
   'collector.overruleHint': 'Desactivat, una regla del Packagizer coincident guanya per sobre de la prioritat, la descompressió i el comentari de dalt. Activat, guanyen aquests valors. La carpeta de destinació de dalt mai no en forma part: sempre s’aplica tal com es va escriure.',
   'collector.facets.title': 'Filtres',
-  'collector.facets.hint': 'Redueix la llista recollida segons on apunta un enllaç, quin tipus de fitxer és, o a quin paquet ha anat a parar. Amagar aquest panell no esborra el que hi ha marcat aquí.',
+  'collector.facets.hint': 'Redueix la llista recollida segons on apunta un enllaç, quin tipus de fitxer és, o a quin paquet ha anat a parar.',
   'collector.facets.fileType': 'Tipus de fitxer',
   'collector.facets.clearAll': 'Neteja',
   'collector.facets.hide': 'Amaga els filtres',

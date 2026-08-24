@@ -1039,7 +1039,7 @@ export const es: Dict = {
   'collector.overrule': 'Anular una regla de Packagizer coincidente',
   'collector.overruleHint': 'Desactivado, una regla de Packagizer coincidente gana sobre la prioridad, el descomprimido y el comentario de arriba. Activado, ganan estos valores. El destino de arriba nunca forma parte de esto: siempre se aplica tal cual se escribió.',
   'collector.facets.title': 'Filtros',
-  'collector.facets.hint': 'Reduce la lista reunida según a dónde apunta un enlace, qué tipo de archivo es o en qué paquete acabó. Ocultar este panel no borra lo marcado aquí.',
+  'collector.facets.hint': 'Reduce la lista reunida según a dónde apunta un enlace, qué tipo de archivo es o en qué paquete acabó.',
   'collector.facets.fileType': 'Tipo de archivo',
   'collector.facets.clearAll': 'Vaciar',
   'collector.facets.hide': 'Ocultar filtros',

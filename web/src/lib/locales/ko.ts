@@ -1047,7 +1047,7 @@ export const ko: Dict = {
   'collector.overrule': '일치하는 Packagizer 규칙보다 우선하기',
   'collector.overruleHint': '꺼짐이면 일치하는 Packagizer 규칙이 위의 우선순위, 압축 풀기, 메모보다 우선합니다. 켜짐이면 이 값들이 대신 우선합니다. 위의 대상 폴더는 여기에 절대 포함되지 않습니다. 항상 입력한 그대로 적용됩니다.',
   'collector.facets.title': '필터',
-  'collector.facets.hint': '링크가 가리키는 곳, 파일 종류, 어느 패키지에 들어갔는지에 따라 수집된 목록을 좁힙니다. 이 패널을 숨겨도 여기서 선택한 항목은 지워지지 않습니다.',
+  'collector.facets.hint': '링크가 가리키는 곳, 파일 종류, 어느 패키지에 들어갔는지에 따라 수집된 목록을 좁힙니다.',
   'collector.facets.fileType': '파일 종류',
   'collector.facets.clearAll': '지우기',
   'collector.facets.hide': '필터 숨기기',

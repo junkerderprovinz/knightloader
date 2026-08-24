@@ -1047,7 +1047,7 @@ export const ja: Dict = {
   'collector.overrule': '一致するPackagizerルールより優先する',
   'collector.overruleHint': 'オフの場合、一致するPackagizerルールが上の優先度・解凍・コメントより優先されます。オンの場合、これらの値が優先されます。上の保存先フォルダーはこれに含まれません。常に入力したとおりに適用されます。',
   'collector.facets.title': 'フィルター',
-  'collector.facets.hint': 'リンクの行き先、ファイルの種類、収まったパッケージに応じて、集めたリストを絞り込みます。このパネルを隠しても、ここでチェックした内容は消えません。',
+  'collector.facets.hint': 'リンクの行き先、ファイルの種類、収まったパッケージに応じて、集めたリストを絞り込みます。',
   'collector.facets.fileType': 'ファイルの種類',
   'collector.facets.clearAll': 'クリア',
   'collector.facets.hide': 'フィルターを隠す',

@@ -1047,7 +1047,7 @@ export const fi: Dict = {
   'collector.overrule': 'Ohita täsmäävä Packagizer-sääntö',
   'collector.overruleHint': 'Pois päältä täsmäävä Packagizer-sääntö voittaa yllä olevan tärkeysjärjestyksen, purkamisen ja kommentin. Päällä nämä arvot voittavat sen sijaan. Yllä oleva kohdekansio ei koskaan kuulu tähän: se pätee aina juuri sellaisena kuin se kirjoitettiin.',
   'collector.facets.title': 'Suodattimet',
-  'collector.facets.hint': 'Rajaa kerättyä luetteloa sen mukaan, minne linkki osoittaa, minkä tyyppinen tiedosto se on tai mihin pakettiin se päätyi. Tämän paneelin piilottaminen ei tyhjennä täältä valittuja.',
+  'collector.facets.hint': 'Rajaa kerättyä luetteloa sen mukaan, minne linkki osoittaa, minkä tyyppinen tiedosto se on tai mihin pakettiin se päätyi.',
   'collector.facets.fileType': 'Tiedostotyyppi',
   'collector.facets.clearAll': 'Tyhjennä',
   'collector.facets.hide': 'Piilota suodattimet',

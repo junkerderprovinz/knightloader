@@ -1047,7 +1047,7 @@ export const hr: Dict = {
   'collector.overrule': 'Nadjačati odgovarajuće pravilo Packagizera',
   'collector.overruleHint': 'Isključeno: odgovarajuće pravilo Packagizera pobjeđuje kod prioriteta, raspakiravanja i komentara iznad. Uključeno: pobjeđuju ove vrijednosti. Odredišna mapa iznad nikad nije dio toga: uvijek se primjenjuje točno onako kako je upisana.',
   'collector.facets.title': 'Filtri',
-  'collector.facets.hint': 'Sužava prikupljeni popis prema tome kamo poveznica vodi, koje je vrste datoteka ili u koji je paket dospjela. Skrivanje ove ploče ne briše ono što je ovdje označeno.',
+  'collector.facets.hint': 'Sužava prikupljeni popis prema tome kamo poveznica vodi, koje je vrste datoteka ili u koji je paket dospjela.',
   'collector.facets.fileType': 'Vrsta datoteke',
   'collector.facets.clearAll': 'Očisti',
   'collector.facets.hide': 'Sakrij filtre',

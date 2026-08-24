@@ -1047,7 +1047,7 @@ export const lt: Dict = {
   'collector.overrule': 'Viršenybė prieš atitinkančią Packagizer taisyklę',
   'collector.overruleHint': 'Išjungus atitinkanti Packagizer taisyklė laimi prieš pirmenybę, išpakavimą ir komentarą aukščiau. Įjungus laimi šios reikšmės. Paskirties aplankas aukščiau niekada nėra to dalis: jis visada taikomas taip, kaip įvestas.',
   'collector.facets.title': 'Filtrai',
-  'collector.facets.hint': 'Susiaurina surinktą sąrašą pagal tai, kur veda nuoroda, kokio tipo failas tai yra arba į kokį paketą jis pateko. Šio skydelio slėpimas neišvalo to, kas čia pažymėta.',
+  'collector.facets.hint': 'Susiaurina surinktą sąrašą pagal tai, kur veda nuoroda, kokio tipo failas tai yra arba į kokį paketą jis pateko.',
   'collector.facets.fileType': 'Failo tipas',
   'collector.facets.clearAll': 'Išvalyti',
   'collector.facets.hide': 'Slėpti filtrus',

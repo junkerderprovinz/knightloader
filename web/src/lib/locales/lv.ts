@@ -1047,7 +1047,7 @@ export const lv: Dict = {
   'collector.overrule': 'Pārspēt atbilstošu Packagizer noteikumu',
   'collector.overruleHint': 'Izslēgts: atbilstošs Packagizer noteikums uzvar pār prioritāti, atpakošanu un komentāru augstāk. Ieslēgts: uzvar šīs vērtības. Mērķa mape augstāk nekad nav daļa no tā: tā vienmēr tiek piemērota tieši tā, kā ievadīta.',
   'collector.facets.title': 'Filtri',
-  'collector.facets.hint': 'Sašaurina savākto sarakstu pēc tā, uz kurieni saite ved, kāda tipa fails tas ir vai kurā pakotnē tas nonācis. Šī paneļa paslēpšana nenotīra to, kas šeit atzīmēts.',
+  'collector.facets.hint': 'Sašaurina savākto sarakstu pēc tā, uz kurieni saite ved, kāda tipa fails tas ir vai kurā pakotnē tas nonācis.',
   'collector.facets.fileType': 'Faila tips',
   'collector.facets.clearAll': 'Notīrīt',
   'collector.facets.hide': 'Paslēpt filtrus',

@@ -1047,7 +1047,7 @@ export const sk: Dict = {
   'collector.overrule': 'Uprednostniť pred zodpovedajúcim pravidlom Packagizeru',
   'collector.overruleHint': 'Vypnuté: zodpovedajúce pravidlo Packagizeru vyhráva nad prioritou, rozbalením a komentárom vyššie. Zapnuté: vyhrávajú tieto hodnoty. Cieľový priečinok vyššie do toho nikdy nepatrí: vždy platí presne tak, ako bol zadaný.',
   'collector.facets.title': 'Filtre',
-  'collector.facets.hint': 'Zúži zozbieraný zoznam podľa toho, kam odkaz smeruje, akého je typu súbor alebo do akého balíka spadol. Skrytie tohto panela nezmaže, čo je tu začiarknuté.',
+  'collector.facets.hint': 'Zúži zozbieraný zoznam podľa toho, kam odkaz smeruje, akého je typu súbor alebo do akého balíka spadol.',
   'collector.facets.fileType': 'Typ súboru',
   'collector.facets.clearAll': 'Vymazať',
   'collector.facets.hide': 'Skryť filtre',

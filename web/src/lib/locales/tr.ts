@@ -1047,7 +1047,7 @@ export const tr: Dict = {
   'collector.overrule': 'Eşleşen bir Packagizer kuralını geçersiz kıl',
   'collector.overruleHint': 'Kapalıyken eşleşen bir Packagizer kuralı yukarıdaki öncelik, çıkarma ve yorumun önüne geçer. Açıkken bu değerler geçerli olur. Yukarıdaki hedef klasör buna hiçbir zaman dahil değildir: her zaman tam olarak yazıldığı gibi uygulanır.',
   'collector.facets.title': 'Süzgeçler',
-  'collector.facets.hint': 'Toplanan listeyi bağlantının nereye gittiğine, dosya türüne veya hangi pakete düştüğüne göre daraltır. Bu paneli gizlemek burada işaretli olanı temizlemez.',
+  'collector.facets.hint': 'Toplanan listeyi bağlantının nereye gittiğine, dosya türüne veya hangi pakete düştüğüne göre daraltır.',
   'collector.facets.fileType': 'Dosya türü',
   'collector.facets.clearAll': 'Temizle',
   'collector.facets.hide': 'Süzgeçleri gizle',

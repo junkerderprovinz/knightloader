@@ -1039,7 +1039,7 @@ export const pl: Dict = {
   'collector.overrule': 'Nadpisz pasującą regułę Packagizera',
   'collector.overruleHint': 'Wyłączone: pasująca reguła Packagizera wygrywa z priorytetem, rozpakowywaniem i komentarzem powyżej. Włączone: wygrywają te wartości. Miejsce docelowe powyżej nigdy nie jest tego częścią: zawsze stosowane jest tak, jak wpisano.',
   'collector.facets.title': 'Filtry',
-  'collector.facets.hint': 'Zawęża zebraną listę według tego, dokąd prowadzi link, jakiego jest typu plik lub do jakiego pakietu trafił. Ukrycie tego panelu nie czyści tego, co tu zaznaczono.',
+  'collector.facets.hint': 'Zawęża zebraną listę według tego, dokąd prowadzi link, jakiego jest typu plik lub do jakiego pakietu trafił.',
   'collector.facets.fileType': 'Typ pliku',
   'collector.facets.clearAll': 'Wyczyść',
   'collector.facets.hide': 'Ukryj filtry',
