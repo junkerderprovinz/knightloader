@@ -4,6 +4,18 @@
 // preference about itself: whether it exists at all. Everything else below
 // the toggle card is pages/Accounts.tsx, unmodified and unwrapped, not a
 // second implementation that could drift from the first.
+//
+// The wrapper below carries NO gap of its own between the toggle card and
+// <Accounts/> (jdp, 2026-08-24: "im einstellungs-konten-tab ist der abstand
+// zwischen seitenleiste und debrid card zu groß"). <Accounts/> already opens
+// with its own `flex flex-col gap-10` and a PageHeader whose title is
+// sr-only (zero visible height, see PageHeader's own doc comment) - that
+// alone already reserves one full gap-10 before its first real card. Giving
+// this wrapper its own gap-10 as well, as a plain sibling-of-two flex
+// column would normally want, stacked a SECOND 40px gap on top of the first
+// (toggle card -> 40px -> invisible header -> 40px -> debrid card, 80px
+// total) purely because this is the one settings tab that wraps another
+// already-complete page instead of rendering its own content directly.
 import { Accounts } from '../Accounts';
 import { Card, SectionTitle, ToggleRow } from '../../components/ui';
 import { useT } from '../../lib/i18n';
@@ -15,7 +27,7 @@ export function AccountsTab() {
   const { cfg, patch } = useDraft();
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col">
       <Card className="flex flex-col gap-3">
         <SectionTitle hue={0}>{t('settings.accounts.setupTitle')}</SectionTitle>
         <ToggleRow

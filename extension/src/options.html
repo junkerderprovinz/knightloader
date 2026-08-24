@@ -46,6 +46,8 @@
         color: #ff8389;
         padding: 6px 10px;
       }
+      #syncPeers { margin-top: 12px; }
+      #syncPeers:disabled { opacity: 0.55; cursor: default; }
       #status { margin-top: 10px; font-size: 12px; min-height: 1.2em; }
       .ok { color: #24a148; }
       .note { margin-top: 26px; font-size: 12px; color: #6f6f6f; }
@@ -111,6 +113,7 @@
 
     <h2 id="instancesHeading">Instances</h2>
     <div id="list"></div>
+    <button id="syncPeers" class="secondary" type="button">Sync paired instances</button>
 
     <h2 id="addHeading">Add an instance</h2>
     <form id="addForm">

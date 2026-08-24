@@ -107,19 +107,31 @@ export function Shortcuts() {
 
       {groups.map(([group, cmds], i) => (
         <div key={group} className="flex flex-col gap-3">
-          <Card padding="none" className="flex flex-col divide-y divide-carbon-border/60">
+          {/* Two separate flex children, not one shared divide-y flow (jdp,
+              2026-08-24: "die erste feine trennlinie unter dem
+              cardtitelbadge kann weg. in allen cards") - `divide-y` puts a
+              border-top on every child but the first, so with the title
+              wrapper as divide-y's own first child, the FIRST shortcut row
+              (its second child) was the one getting a divider nobody
+              wanted, right under the badge. The rows below still divide
+              from EACH OTHER exactly as before - only the title-to-first-row
+              seam lost its line. */}
+          <Card padding="none" className="flex flex-col">
             <div className="p-5 pb-0">
               <SectionTitle hue={i + 1}>{groupLabel(t, group)}</SectionTitle>
             </div>
-            {cmds.map((cmd) => (
-              <ShortcutRow
-                key={cmd.id}
-                cmd={cmd}
-                overrides={overrides}
-                onChange={() => setCaptureFor(cmd)}
-                onReset={() => resetOne(cmd.id)}
-              />
-            ))}
+            <div className="flex flex-col divide-y divide-carbon-border/60">
+              {cmds.map((cmd) => (
+                <ShortcutRow
+                  key={cmd.id}
+                  cmd={cmd}
+                  overrides={overrides}
+                  onChange={() => setCaptureFor(cmd)}
+                  onReset={() => resetOne(cmd.id)}
+                  hue={i + 1}
+                />
+              ))}
+            </div>
           </Card>
         </div>
       ))}
@@ -162,11 +174,18 @@ function ShortcutRow({
   overrides,
   onChange,
   onReset,
+  hue,
 }: {
   cmd: Command;
   overrides: ShortcutOverrides;
   onChange: () => void;
   onReset: () => void;
+  /** The enclosing group's own SectionTitle hue (jdp, 2026-08-24: "die
+   *  ganzen ändern buttons sind nicht in der fabrenginge bzw im
+   *  regenbogenmodus") - every row's "Change" button in one group shares
+   *  that group's own colour, so the badge and its rows read as one set
+   *  rather than the badge being the only coloured thing in the card. */
+  hue: number;
 }) {
   const { t } = useT();
   const Icon = cmd.icon;
@@ -178,9 +197,9 @@ function ShortcutRow({
       {Icon && <Icon className="h-4 w-4 shrink-0 text-carbon-textMuted" />}
       <span className="min-w-0 flex-1 truncate text-sm text-carbon-text">{t(cmd.labelKey)}</span>
       <kbd className="glim-num shrink-0 rounded-[var(--radius-control)] bg-carbon-surface2 px-2 py-1 text-[11px] font-medium text-carbon-textSub">
-        {bound ? formatShortcut(bound) : ''}
+        {bound ? formatShortcut(bound, t) : ''}
       </kbd>
-      <Button kind="secondary" className="shrink-0 px-2.5 py-1 text-xs" onClick={onChange}>
+      <Button kind="secondary" hue={hue} className="shrink-0 px-2.5 py-1 text-xs" onClick={onChange}>
         {t('settings.shortcuts.change')}
       </Button>
       {isOverridden && (
@@ -254,7 +273,7 @@ function CaptureModal({
       if (!combo) return; // only modifiers held so far - keep listening
       const conflict = findConflict(allCmds, overrides, combo, cmd.id);
       if (conflict) {
-        setError(t('settings.shortcuts.conflict', { combo: formatShortcut(combo), command: t(conflict.labelKey) }));
+        setError(t('settings.shortcuts.conflict', { combo: formatShortcut(combo, t), command: t(conflict.labelKey) }));
         return;
       }
       onSave(cmd.id, combo);

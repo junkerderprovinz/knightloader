@@ -2,31 +2,30 @@ import { useEffect, useState } from 'react';
 import { Card, Field, FieldGroup, InfoBubble, SectionTitle, TextInput, ToggleRow } from '../../components/ui';
 import { Tabs } from '../../components/Tabs';
 import { fetchOptions, type YtdlpOptions } from '../../lib/api';
+import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft, useFeatures } from './context';
 
-// Hardcoded English rather than useT(): the keys this page needs are not in
-// any locale file yet, including en.ts, which is the compile-time source of
-// truth every real translation key is checked against - see
-// DownloadsSettings.tsx's own doc comment for the full reasoning and why
-// this is the same trade Wave 9's StatusStrip and this page's own sibling
-// both made first. i18n for this page lands with the wave's own locale
-// pass, not here.
-const QUALITY_LABELS: Record<string, string> = {
-  best: 'Best available',
-  '2160p': 'Up to 2160p (4K)',
-  '1440p': 'Up to 1440p',
-  '1080p': 'Up to 1080p',
-  '720p': 'Up to 720p',
-  '480p': 'Up to 480p',
-  '360p': 'Up to 360p',
-  audioOnly: 'Audio only',
-  custom: 'Custom format string',
+// Keyed by the id the server sends (YtdlpOptions.quality/subtitles and the
+// /api/options menus below), each pointing at the real settings.resolvers.*
+// catalogue entry rather than embedding English text here - an id neither
+// list has a key for still falls back to the raw id, the same "never a
+// blank tab" rule QUALITY_LABELS used before this page had any i18n at all.
+const QUALITY_KEYS: Record<string, TranslationKey> = {
+  best: 'settings.resolvers.quality.best',
+  '2160p': 'settings.resolvers.quality.2160p',
+  '1440p': 'settings.resolvers.quality.1440p',
+  '1080p': 'settings.resolvers.quality.1080p',
+  '720p': 'settings.resolvers.quality.720p',
+  '480p': 'settings.resolvers.quality.480p',
+  '360p': 'settings.resolvers.quality.360p',
+  audioOnly: 'settings.resolvers.quality.audioOnly',
+  custom: 'settings.resolvers.quality.custom',
 };
 
-const SUBTITLE_LABELS: Record<string, string> = {
-  off: 'Off',
-  file: 'Save alongside the video',
-  embed: 'Embed into the video',
+const SUBTITLE_KEYS: Record<string, TranslationKey> = {
+  off: 'settings.resolvers.subtitles.off',
+  file: 'settings.resolvers.subtitles.file',
+  embed: 'settings.resolvers.subtitles.embed',
 };
 
 /**
@@ -45,6 +44,7 @@ const SUBTITLE_LABELS: Record<string, string> = {
  * already been routed to it.
  */
 export function Resolvers() {
+  const { t } = useT();
   const { cfg, patch } = useDraft();
   const { features } = useFeatures();
 
@@ -81,42 +81,31 @@ export function Resolvers() {
     <div className="flex flex-col gap-10">
       {module && !module.enabled && (
           <Card className="flex items-center gap-2 text-sm text-carbon-textSub">
-            <SectionTitle hue={0}>Module unavailable</SectionTitle>
+            <SectionTitle hue={0}>{t('settings.resolvers.moduleUnavailable')}</SectionTitle>
             <span>{module.reason}</span>
-            <InfoBubble tip="Everything below is still saved and takes effect the moment yt-dlp becomes available - none of it is lost by editing it now." />
+            <InfoBubble tip={t('settings.resolvers.moduleUnavailableHint')} />
           </Card>
       )}
 
       <Card className="flex flex-col gap-5">
-        <SectionTitle hue={1}>Quality</SectionTitle>
-        <p className="text-sm text-carbon-textMuted">
-          Configuration for the yt-dlp backend, which fetches the media and streaming sites
-          yt-dlp itself supports. Which service handles a given link at all - yt-dlp, a debrid
-          account, the headless JD sidecar - is decided on the Accounts page's routing order;
-          this is what yt-dlp does once a link has already been routed to it.
-        </p>
+        <SectionTitle hue={1}>{t('settings.resolvers.quality')}</SectionTitle>
+        <p className="text-sm text-carbon-textMuted">{t('settings.resolvers.intro')}</p>
 
         {qualities.length > 0 && (
-          <FieldGroup
-            label="Quality"
-            hint="Which -f selector yt-dlp is spawned with. Best available is yt-dlp's own default, and what every download used before this setting existed."
-          >
+          <FieldGroup label={t('settings.resolvers.quality')} hint={t('settings.resolvers.qualityHint')}>
             <Tabs
               size="sm"
               className="w-fit"
-              label="Quality"
+              label={t('settings.resolvers.quality')}
               active={ytdlp.quality}
               onSelect={(id) => patchYtdlp({ quality: id })}
-              items={qualities.map((q) => ({ id: q, label: QUALITY_LABELS[q] ?? q }))}
+              items={qualities.map((q) => ({ id: q, label: QUALITY_KEYS[q] ? t(QUALITY_KEYS[q]) : q }))}
             />
           </FieldGroup>
         )}
 
         {ytdlp.quality === 'custom' && (
-          <Field
-            label="Custom format"
-            hint="yt-dlp's own -f value, e.g. bestvideo[height<=720]+bestaudio/best. Passed through unexamined; a value yt-dlp rejects fails with its own error on the task."
-          >
+          <Field label={t('settings.resolvers.customFormat')} hint={t('settings.resolvers.customFormatHint')}>
             <TextInput
               dir="ltr"
               value={ytdlp.customFormat}
@@ -130,28 +119,28 @@ export function Resolvers() {
         <ToggleRow
           checked={ytdlp.playlist}
           onChange={(v) => patchYtdlp({ playlist: v })}
-          label="Download the whole playlist when a link points into one"
+          label={t('settings.resolvers.playlist')}
         />
       </Card>
 
       <Card className="flex flex-col gap-5">
-        <SectionTitle hue={2}>Subtitles</SectionTitle>
+        <SectionTitle hue={2}>{t('settings.resolvers.subtitles')}</SectionTitle>
         {subtitleModes.length > 0 && (
-          <FieldGroup label="Subtitles" hint="Off is what every download did before this setting existed.">
+          <FieldGroup label={t('settings.resolvers.subtitles')} hint={t('settings.resolvers.subtitlesHint')}>
             <Tabs
               size="sm"
               className="w-fit"
-              label="Subtitles"
+              label={t('settings.resolvers.subtitles')}
               active={ytdlp.subtitles}
               onSelect={(id) => patchYtdlp({ subtitles: id })}
-              items={subtitleModes.map((m) => ({ id: m, label: SUBTITLE_LABELS[m] ?? m }))}
+              items={subtitleModes.map((m) => ({ id: m, label: SUBTITLE_KEYS[m] ? t(SUBTITLE_KEYS[m]) : m }))}
             />
           </FieldGroup>
         )}
 
         {ytdlp.subtitles !== 'off' && (
           <>
-            <Field label="Languages" hint="yt-dlp's own --sub-langs value, e.g. en,de. Empty defaults to en.">
+            <Field label={t('settings.resolvers.subtitleLangs')} hint={t('settings.resolvers.subtitleLangsHint')}>
               <TextInput
                 dir="ltr"
                 value={ytdlp.subtitleLangs}
@@ -163,18 +152,15 @@ export function Resolvers() {
             <ToggleRow
               checked={ytdlp.subtitleAuto}
               onChange={(v) => patchYtdlp({ subtitleAuto: v })}
-              label="Also fetch auto-generated captions when no manual track exists"
+              label={t('settings.resolvers.subtitleAuto')}
             />
           </>
         )}
       </Card>
 
       <Card className="flex flex-col gap-5">
-        <SectionTitle hue={3}>Output filename</SectionTitle>
-        <Field
-          label="Output filename"
-          hint="yt-dlp's own -o template. Empty uses the built-in %(title)s.%(ext)s. May include subfolders, e.g. %(uploader)s/%(title)s.%(ext)s."
-        >
+        <SectionTitle hue={3}>{t('settings.resolvers.outputTitle')}</SectionTitle>
+        <Field label={t('settings.resolvers.outputTitle')} hint={t('settings.resolvers.outputHint')}>
           <TextInput
             dir="ltr"
             value={ytdlp.outputTemplate}

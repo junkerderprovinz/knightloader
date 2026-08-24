@@ -738,10 +738,17 @@ function RoutingSection({ catalogue }: { catalogue: CatalogueService[] }) {
     // each already carry their own clear title, so the umbrella label over
     // both was redundant and, sitting this close above the grid, crowded
     // the Prioritätsreihenfolge card's own badge instead of reading as a
-    // section header.
+    // section header. That removed title used to own hue 2, which left this
+    // page's SectionTitle sequence at 0 (debrid), 1 (hoster), 3, 4 - a gap
+    // that read as an arbitrary, non-sequential rainbow once the debrid/
+    // hoster cards above got their own real .glim-card box and all four
+    // badges became visible together as one set for the first time (jdp,
+    // 2026-08-24: "jetzt sind die card falsch eingefärbt"). Renumbered to 2
+    // and 3 below so the whole page runs 0-1-2-3 with no skip, matching
+    // every other multi-card settings page (Look.tsx, Access.tsx).
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <Card className="flex flex-col gap-3">
-        <SectionTitle hue={3} hint={t('accounts.routing.priorityHint')}>{t('accounts.routing.priorityTitle')}</SectionTitle>
+        <SectionTitle hue={2} hint={t('accounts.routing.priorityHint')}>{t('accounts.routing.priorityTitle')}</SectionTitle>
         {priority === null ? (
           <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>
         ) : priority.length === 0 ? (
@@ -759,7 +766,7 @@ function RoutingSection({ catalogue }: { catalogue: CatalogueService[] }) {
       </Card>
 
       <Card className="flex flex-col gap-3">
-        <SectionTitle hue={4} hint={t('accounts.routing.jdHint')}>
+        <SectionTitle hue={3} hint={t('accounts.routing.jdHint')}>
           {t('accounts.routing.jdTitle')}
         </SectionTitle>
         {jd === null ? (

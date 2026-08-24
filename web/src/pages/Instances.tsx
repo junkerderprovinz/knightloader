@@ -2,12 +2,24 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { type Instance, fetchInstances, addInstance, removeInstance, redeemPairingCode } from '../lib/api';
 import { useT } from '../lib/i18n';
-import { PageHeader, Card, Button, Field, TextInput, TextArea, SectionTitle } from '../components/ui';
+import { PageHeader, Card, Button, Field, IconBadge, TextInput, TextArea, SectionTitle } from '../components/ui';
 import { InstanceCard } from '../components/InstanceCard';
 import { FirstTouchHint } from '../components/FirstTouchHint';
+import { IconClipboard } from '../lib/icons';
+import { useToast } from '../lib/toast';
+
+// Reading the clipboard, unlike writing it (lib/clipboard.ts's copyToClipboard),
+// has no reliable fallback for an insecure origin - execCommand('copy') works
+// everywhere, but browsers refuse a script-driven execCommand('paste') outright
+// as a real security boundary, not merely an availability quirk. Feature-detected
+// and hidden entirely rather than disabled, the same reasoning and the same
+// module-scope-once check PasteFromClipboardButton.tsx already established for
+// exactly this API.
+const CLIPBOARD_READABLE = typeof navigator !== 'undefined' && !!navigator.clipboard?.readText;
 
 export function Instances() {
   const { t } = useT();
+  const { toast } = useToast();
   const [peers, setPeers] = useState<Instance[]>([]);
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
@@ -64,7 +76,10 @@ export function Instances() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={t('instances.title')} subtitle={t('instances.subtitle')} />
+      {/* Subtitle removed (jdp, 2026-08-24: "text entfernen: Alle
+          KnightLoader von einer Oberfläche aus sehen und steuern.") - the
+          title alone already says what this page is. */}
+      <PageHeader title={t('instances.title')} />
 
       <FirstTouchHint id="instances" />
 
@@ -102,15 +117,37 @@ export function Instances() {
       <Card className="flex flex-col gap-3">
         <SectionTitle hint={t('instances.pairHint')}>{t('instances.pairTitle')}</SectionTitle>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          <div className="min-w-0 flex-1">
+          {/* Same "this holds a code" treatment as the generated-code display
+              on the OTHER instance's own Access tab (settings/Access.tsx's
+              PairingCard) - monospace, ltr, a surface2 well - rather than a
+              plain multi-line textarea that gave no visual hint this field
+              specifically wants a pasted code (jdp, 2026-08-24: "schönes
+              eingabefeld bitte machen"). */}
+          <div className="flex min-w-0 flex-1 items-start gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
             <TextArea
               rows={2}
               dir="ltr"
               placeholder={t('instances.pairPlaceholder')}
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              className="text-xs"
+              className="glim-num min-w-0 flex-1 resize-none border-0 bg-transparent p-0 text-xs text-carbon-text placeholder:text-carbon-textMuted outline-none"
             />
+            {CLIPBOARD_READABLE && (
+              <IconBadge
+                icon={<IconClipboard width={14} height={14} />}
+                title={t('instances.pairPaste')}
+                aria-label={t('instances.pairPaste')}
+                className="shrink-0"
+                onClick={async () => {
+                  try {
+                    const text = (await navigator.clipboard.readText()).trim();
+                    if (text) setCode(text);
+                  } catch (e) {
+                    toast(t('list.failed', { error: String(e) }), 'fail');
+                  }
+                }}
+              />
+            )}
           </div>
           <Button kind="secondary" onClick={() => void onPair()} disabled={!code.trim() || pairing}>
             {t('instances.pairButton')}

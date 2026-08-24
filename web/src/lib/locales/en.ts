@@ -142,6 +142,7 @@ export const en = {
   'instances.pairTitle': 'Pair with a code',
   'instances.pairHint': 'Paste a code from the other instance\'s Access page instead of typing its name and address.',
   'instances.pairPlaceholder': 'Paste pairing code',
+  'instances.pairPaste': 'Paste',
   'instances.pairButton': 'Pair',
   'instances.pairSuccess': 'Paired with {name} - it now knows about this instance too.',
 
@@ -526,6 +527,7 @@ export const en = {
   'settings.look.updatesAvailableContainer': '{version} is available — update your container image the way you deployed it (docker pull, Unraid Community Applications, ...)',
   'settings.look.updatesAutoInstall': 'Install automatically when found',
   'settings.look.updatesAutoInstallHint': 'Downloads, verifies and applies a newer release the moment an automatic check finds one, then restarts. Requires "Check automatically on startup" above.',
+  'settings.look.updatesAutoInstallContainerHint': 'Only possible on the desktop build — a container cannot replace itself from the inside; update it the way you deployed it instead (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.look.updatesAutoInstalling': 'Installing {version}…',
   'settings.look.updatesInstalling': 'Installing…',
   'settings.look.updatesInstallNow': 'Install now',
@@ -1642,13 +1644,46 @@ export const en = {
 
   // Two more rail labels this wave's pages need: Resolvers.tsx (11E, yt-dlp
   // format/subtitle/output-template options) and the "ytdlp" module row
-  // (routes_features.go) both already call label()/tx() against these keys
-  // today, falling back to the raw id until now. Resolvers.tsx's own page
-  // body is still hardcoded English throughout - see this wave's own report;
-  // unlike every sibling page above it ships with no PENDING table at all, so
-  // there are no ready-made keys to land verbatim here.
+  // (routes_features.go) both already call label()/tx() against these keys.
   'settings.nav.resolvers': 'Resolvers',
   'settings.module.ytdlp': 'yt-dlp',
+
+  // Resolvers.tsx's own page body - it shipped with no PENDING table at all
+  // (see that file's earlier doc comment), so unlike every sibling page above
+  // there were no ready-made keys to land verbatim; this is that pass,
+  // written directly against the real catalogue instead.
+  'settings.resolvers.moduleUnavailable': 'Module unavailable',
+  'settings.resolvers.moduleUnavailableHint':
+    'Everything below is still saved and takes effect the moment yt-dlp becomes available - none of it is lost by editing it now.',
+  'settings.resolvers.intro':
+    "Configuration for the yt-dlp backend, which fetches the media and streaming sites yt-dlp itself supports. Which service handles a given link at all - yt-dlp, a debrid account, the headless JD sidecar - is decided on the Accounts page's routing order; this is what yt-dlp does once a link has already been routed to it.",
+  'settings.resolvers.quality': 'Quality',
+  'settings.resolvers.qualityHint':
+    "Which -f selector yt-dlp is spawned with. Best available is yt-dlp's own default, and what every download used before this setting existed.",
+  'settings.resolvers.quality.best': 'Best available',
+  'settings.resolvers.quality.2160p': 'Up to 2160p (4K)',
+  'settings.resolvers.quality.1440p': 'Up to 1440p',
+  'settings.resolvers.quality.1080p': 'Up to 1080p',
+  'settings.resolvers.quality.720p': 'Up to 720p',
+  'settings.resolvers.quality.480p': 'Up to 480p',
+  'settings.resolvers.quality.360p': 'Up to 360p',
+  'settings.resolvers.quality.audioOnly': 'Audio only',
+  'settings.resolvers.quality.custom': 'Custom format string',
+  'settings.resolvers.customFormat': 'Custom format',
+  'settings.resolvers.customFormatHint':
+    "yt-dlp's own -f value, e.g. bestvideo[height<=720]+bestaudio/best. Passed through unexamined; a value yt-dlp rejects fails with its own error on the task.",
+  'settings.resolvers.playlist': 'Download the whole playlist when a link points into one',
+  'settings.resolvers.subtitles': 'Subtitles',
+  'settings.resolvers.subtitlesHint': 'Off is what every download did before this setting existed.',
+  'settings.resolvers.subtitles.off': 'Off',
+  'settings.resolvers.subtitles.file': 'Save alongside the video',
+  'settings.resolvers.subtitles.embed': 'Embed into the video',
+  'settings.resolvers.subtitleLangs': 'Languages',
+  'settings.resolvers.subtitleLangsHint': "yt-dlp's own --sub-langs value, e.g. en,de. Empty defaults to en.",
+  'settings.resolvers.subtitleAuto': 'Also fetch auto-generated captions when no manual track exists',
+  'settings.resolvers.outputTitle': 'Output filename',
+  'settings.resolvers.outputHint':
+    "yt-dlp's own -o template. Empty uses the built-in %(title)s.%(ext)s. May include subfolders, e.g. %(uploader)s/%(title)s.%(ext)s.",
 
   // The Torrents settings page (pages/settings/Torrents.tsx, Wave 11.5E) -
   // seed target, transfer limit, port + UPnP mapping, DHT/PEX. Landed here
@@ -1789,6 +1824,8 @@ export const en = {
   'settings.shortcuts.captureTitle': 'Press a new shortcut for “{name}”',
   'settings.shortcuts.captureHint': 'Press a key combination, or Escape to cancel.',
   'settings.shortcuts.conflict': '“{combo}” is already used by {command}.',
+  'settings.shortcuts.key.ctrl': 'Ctrl',
+  'settings.shortcuts.key.alt': 'Alt',
 } as const;
 
 export type TranslationKey = keyof typeof en;

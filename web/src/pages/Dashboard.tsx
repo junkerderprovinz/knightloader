@@ -51,7 +51,9 @@ export function Dashboard() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={t('overview.title')} subtitle={t('overview.subtitle')} />
+      {/* Subtitle removed (jdp, 2026-08-24: "text entfernen: Alles auf
+          einen Blick.") - the title alone already says what this page is. */}
+      <PageHeader title={t('overview.title')} />
 
       {/* The one hero of the whole app: this page owns the big figure and the
           curve; every other page opens quietly. */}

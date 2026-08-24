@@ -2,9 +2,13 @@ package update
 
 import (
 	"archive/zip"
+	"crypto/sha256"
+	"encoding/hex"
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 )
 
@@ -171,5 +175,92 @@ func TestApplyLeavesTheOldVersionRunnableWhenThereWasNoPreviousInstall(t *testin
 	}
 	if string(got) != "first-install" {
 		t.Fatalf("installPath content = %q, want %q", got, "first-install")
+	}
+}
+
+// sha256sumFormat renders one checksums.txt line in exactly the format
+// desktop.yml's `sha256sum *.zip` produces, and internal/checksum's
+// ParseHashFile (which verifyChecksum delegates to) already has its own
+// test coverage for parsing it: the digest, two spaces, the bare filename.
+func sha256sumFormat(content []byte, name string) string {
+	sum := sha256.Sum256(content)
+	return fmt.Sprintf("%s  %s\n", hex.EncodeToString(sum[:]), name)
+}
+
+// TestVerifyChecksumSucceedsOnMatch exercises verifyChecksum against a real
+// zip file on disk and a real checksums.txt payload built the same way
+// desktop.yml's "Checksums" step builds one (sha256sum of the actual file
+// bytes, bare filename, two-space separator) - the success path this whole
+// feature exists for.
+func TestVerifyChecksumSucceedsOnMatch(t *testing.T) {
+	dir := t.TempDir()
+	zipPath := filepath.Join(dir, "release.zip")
+	buildZip(t, zipPath, executableName(), "verified-binary-contents")
+
+	zipBytes, err := os.ReadFile(zipPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assetName := "knightloader-v1.2.3-windows-amd64.zip"
+	checksums := sha256sumFormat(zipBytes, assetName)
+
+	if err := verifyChecksum(zipPath, assetName, []byte(checksums)); err != nil {
+		t.Fatalf("verifyChecksum: want nil error on a matching digest, got %v", err)
+	}
+}
+
+func TestVerifyChecksumFailsOnMismatch(t *testing.T) {
+	dir := t.TempDir()
+	zipPath := filepath.Join(dir, "release.zip")
+	buildZip(t, zipPath, executableName(), "tampered-after-the-fact")
+
+	assetName := "knightloader-v1.2.3-windows-amd64.zip"
+	// A digest for entirely different bytes than what is actually on disk -
+	// stands in for a download that was truncated, corrupted, or altered
+	// after checksums.txt was published for it.
+	checksums := sha256sumFormat([]byte("this is not what's in the zip"), assetName)
+
+	err := verifyChecksum(zipPath, assetName, []byte(checksums))
+	if err == nil {
+		t.Fatal("verifyChecksum: want an error on a digest mismatch, got nil")
+	}
+}
+
+func TestVerifyChecksumFailsWhenChecksumsHasNoEntryForTheAsset(t *testing.T) {
+	dir := t.TempDir()
+	zipPath := filepath.Join(dir, "release.zip")
+	buildZip(t, zipPath, executableName(), "some-content")
+
+	zipBytes, err := os.ReadFile(zipPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// checksums.txt is real and well-formed, just for a different platform's
+	// asset name than the one being verified - the release-is-missing-an-
+	// entry case, distinct from a digest mismatch.
+	checksums := sha256sumFormat(zipBytes, "knightloader-v1.2.3-linux-amd64.zip")
+
+	err = verifyChecksum(zipPath, "knightloader-v1.2.3-windows-amd64.zip", []byte(checksums))
+	if err == nil {
+		t.Fatal("verifyChecksum: want an error when checksums.txt has no entry for the requested asset, got nil")
+	}
+}
+
+// TestVerifyChecksumRejectsANonSHA256Entry covers a checksums.txt that
+// parses fine (internal/checksum.ParseHashFile infers the kind from digest
+// length, so an md5sum-format line is a perfectly valid parse) but is not
+// what desktop.yml's "Checksums" step ever writes - a hand-edited or
+// differently-generated file should not be trusted just because its syntax
+// happens to be well-formed.
+func TestVerifyChecksumRejectsANonSHA256Entry(t *testing.T) {
+	dir := t.TempDir()
+	zipPath := filepath.Join(dir, "release.zip")
+	buildZip(t, zipPath, executableName(), "some-content")
+
+	assetName := "knightloader-v1.2.3-windows-amd64.zip"
+	md5Line := fmt.Sprintf("%s  %s\n", strings.Repeat("a", 32), assetName) // 32 hex chars = md5, not sha256
+
+	if err := verifyChecksum(zipPath, assetName, []byte(md5Line)); err == nil {
+		t.Fatal("verifyChecksum: want an error for a non-sha256 checksums.txt entry, got nil")
 	}
 }

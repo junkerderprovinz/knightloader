@@ -366,6 +366,14 @@ body {
   position: fixed;
   z-index: 60;
   transform: translateX(-50%);
+  /* A position: fixed box with only `left` set otherwise sizes itself via
+     CSS shrink-to-fit (available width = containing-block width minus
+     `left`), which can silently shrink or grow the bubble AFTER its size
+     was already measured to compute that same `left` — invalidating the
+     measurement. Ported from upstream GlimStone (1.2.0): missing here the
+     same way it was missing from BombVault's own shipped CSS despite being
+     documented. */
+  width: max-content;
   max-width: 280px;
   pointer-events: none;
   background-color: var(--carbon-surface);
@@ -441,6 +449,24 @@ body {
    colour here on purpose — eight tinted labels beside eight tinted counts is a
    colour chart, not a filter. */
 [data-rainbow] .glim-hue-icon:not(.glim-active) svg {
+  color: var(--accent);
+}
+/* The rule above stays unconditional in every mode by design — Reactive is
+   the one exception, and it gets its own explicit rest/hover pair layered on
+   top rather than a mode gate on the base rule (GlimStone: "The tab-strip
+   colour rule" — idle is colourless only in Reactive mode; in Normal and
+   Rainbow mode idle already carries colour, always, no hover required).
+   Mirrors [data-rainbow='reactive'] .glim-hue's own rest/hover split below —
+   that block's --accent swap alone doesn't keep an icon's separate
+   idle-vs-selected exclusion (:not(.glim-active)) straight on its own.
+   First implemented in BombVault's Settings tab strip and sidebar nav; both
+   consumers here (Tabs.tsx, Sidebar.tsx) share this one rule, no per-caller
+   CSS needed. */
+[data-rainbow='reactive'] .glim-hue-icon:not(.glim-active) svg {
+  color: var(--carbon-text-muted);
+}
+[data-rainbow='reactive'] .glim-hue-icon:hover:not(.glim-active) svg,
+[data-rainbow='reactive'] .glim-hue-icon:focus-within:not(.glim-active) svg {
   color: var(--accent);
 }
 
@@ -608,6 +634,30 @@ body {
   0%, 100% { opacity: 1; }
   50%      { opacity: .45; }
 }
+/* A control refusing an action — optimistically shown, then reverted because
+   a real backend precondition failed — shakes instead of just silently
+   snapping back. Decaying so the eye reads it as "pushed back," not a
+   glitch. Apply .glim-shake to the control itself at the moment it reverts.
+   Ported from upstream GlimStone (the motion engine's fifth keyframe, first
+   implemented in BombVault) — reach for it anywhere an optimistic update
+   needs undoing, not just switches: a rejected toggle, a form field failing
+   validation, a drag snapping back. Replaying on a repeated identical
+   failure needs a fresh DOM node, not a re-toggled class — key the shaking
+   element on an incrementing per-instance failure counter, the same way
+   lib/toast.tsx's push() mints a fresh id per call. */
+@keyframes glim-shake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-4px); }
+  40%      { transform: translateX(4px); }
+  60%      { transform: translateX(-2px); }
+  80%      { transform: translateX(2px); }
+}
+/* The same "still arrives legibly, minus the motion" substitution every
+   other entrance gets under reduced motion. */
+@keyframes glim-shake-reduced {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: .5; }
+}
 
 @media (prefers-reduced-motion: no-preference) {
   .glim-page-enter { animation: glim-page-in 280ms cubic-bezier(.2, .6, .2, 1) both; }
@@ -616,8 +666,10 @@ body {
   /* Short on purpose: a bubble that fades in slowly reads as lag, because the
      pointer is already there waiting for it. */
   .glim-fade { animation: glim-fade-in 110ms ease both; }
+  .glim-shake { animation: glim-shake 360ms ease-in-out; }
 }
 @media (prefers-reduced-motion: reduce) {
   .glim-page-enter { animation: glim-fade-in 180ms ease both; }
   .glim-toast { animation: glim-fade-in 160ms ease both; }
+  .glim-shake { animation: glim-shake-reduced 300ms ease-in-out; }
 }

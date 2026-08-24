@@ -265,7 +265,7 @@ export function SettingsPage() {
 
 // GlimStone version this UI is built against — bump by hand whenever index.css /
 // appearance.ts are re-copied from a newer github.com/junkerderprovinz/glimstone release.
-const GLIMSTONE_VERSION = '1.0.0';
+const GLIMSTONE_VERSION = '1.2.0';
 
 /**
  * The build/GlimStone version, quiet and centred at the very bottom of the
