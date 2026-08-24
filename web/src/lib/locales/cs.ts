@@ -1047,7 +1047,7 @@ export const cs: Dict = {
   'collector.overrule': 'Nadřadit odpovídající pravidlo Packagizeru',
   'collector.overruleHint': 'Vypnuto: odpovídající pravidlo Packagizeru vyhrává nad prioritou, rozbalením a komentářem výše. Zapnuto: vyhrávají tyto hodnoty. Cílová složka výše do toho nikdy nespadá: vždy platí přesně tak, jak byla zadána.',
   'collector.facets.title': 'Filtry',
-  'collector.facets.hint': 'Zúží sesbíraný seznam podle toho, kam odkaz míří, jaký je to typ souboru nebo do jakého balíčku spadl. Skrytí tohoto panelu nesmaže, co je tu zaškrtnuté.',
+  'collector.facets.hint': 'Zúží sesbíraný seznam podle toho, kam odkaz míří, jaký je to typ souboru nebo do jakého balíčku spadl.',
   'collector.facets.fileType': 'Typ souboru',
   'collector.facets.clearAll': 'Vymazat',
   'collector.facets.hide': 'Skrýt filtry',

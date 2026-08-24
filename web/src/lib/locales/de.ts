@@ -1047,7 +1047,7 @@ export const de: Dict = {
   'collector.overrule': 'Eine passende Packagizer-Regel überstimmen',
   'collector.overruleHint': 'Aus gewinnt eine passende Packagizer-Regel bei Priorität, Entpacken und Kommentar oben. An gewinnen stattdessen diese Werte. Der Zielordner oben ist davon nie betroffen: Er gilt immer wie eingegeben.',
   'collector.facets.title': 'Filter',
-  'collector.facets.hint': 'Grenzt die gesammelte Liste danach ein, wohin ein Link zeigt, um welche Art Datei es sich handelt oder in welches Paket er gelandet ist. Das Ausblenden dieses Bereichs löscht nicht, was hier angehakt ist.',
+  'collector.facets.hint': 'Grenzt die gesammelte Liste danach ein, wohin ein Link zeigt, um welche Art Datei es sich handelt oder in welches Paket er gelandet ist.',
   'collector.facets.fileType': 'Dateityp',
   'collector.facets.clearAll': 'Zurücksetzen',
   'collector.facets.hide': 'Filter ausblenden',

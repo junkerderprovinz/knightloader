@@ -1047,7 +1047,7 @@ export const ro: Dict = {
   'collector.overrule': 'Suprascrie o regulă Packagizer care se potrivește',
   'collector.overruleHint': 'Dezactivat, o regulă Packagizer care se potrivește câștigă în fața priorității, dezarhivării și comentariului de mai sus. Activat, câștigă aceste valori. Folderul de destinație de mai sus nu face niciodată parte din asta: se aplică mereu exact așa cum a fost scris.',
   'collector.facets.title': 'Filtre',
-  'collector.facets.hint': 'Restrânge lista adunată după unde duce un link, ce tip de fișier este sau în ce pachet a ajuns. Ascunderea acestui panou nu șterge ce e bifat aici.',
+  'collector.facets.hint': 'Restrânge lista adunată după unde duce un link, ce tip de fișier este sau în ce pachet a ajuns.',
   'collector.facets.fileType': 'Tip de fișier',
   'collector.facets.clearAll': 'Golește',
   'collector.facets.hide': 'Ascunde filtrele',

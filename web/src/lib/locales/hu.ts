@@ -1047,7 +1047,7 @@ export const hu: Dict = {
   'collector.overrule': 'Illeszkedő Packagizer-szabály felülbírálása',
   'collector.overruleHint': 'Kikapcsolva az illeszkedő Packagizer-szabály nyer a fenti prioritással, kicsomagolással és megjegyzéssel szemben. Bekapcsolva ezek az értékek nyernek. A fenti célmappa sosem része ennek: mindig pontosan úgy érvényesül, ahogy be lett írva.',
   'collector.facets.title': 'Szűrők',
-  'collector.facets.hint': 'Szűkíti az összegyűjtött listát aszerint, hova mutat a hivatkozás, milyen típusú fájl, vagy melyik csomagba került. A panel elrejtése nem törli az itt bejelölteket.',
+  'collector.facets.hint': 'Szűkíti az összegyűjtött listát aszerint, hova mutat a hivatkozás, milyen típusú fájl, vagy melyik csomagba került.',
   'collector.facets.fileType': 'Fájltípus',
   'collector.facets.clearAll': 'Törlés',
   'collector.facets.hide': 'Szűrők elrejtése',

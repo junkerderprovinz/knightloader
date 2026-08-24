@@ -1047,7 +1047,7 @@ export const ms: Dict = {
   'collector.overrule': 'Mengatasi peraturan Packagizer yang sepadan',
   'collector.overruleHint': 'Mati, peraturan Packagizer yang sepadan menang atas keutamaan, pengekstrakan dan komen di atas. Hidup, nilai-nilai ini menang sebaliknya. Folder destinasi di atas tidak pernah menjadi sebahagian daripada ini: ia sentiasa terpakai betul-betul seperti yang ditaip.',
   'collector.facets.title': 'Penapis',
-  'collector.facets.hint': 'Menyempitkan senarai yang dikumpul mengikut destinasi pautan, jenis fail, atau pakej tempatnya berakhir. Menyembunyikan panel ini tidak mengosongkan apa yang ditanda di sini.',
+  'collector.facets.hint': 'Menyempitkan senarai yang dikumpul mengikut destinasi pautan, jenis fail, atau pakej tempatnya berakhir.',
   'collector.facets.fileType': 'Jenis fail',
   'collector.facets.clearAll': 'Kosongkan',
   'collector.facets.hide': 'Sembunyikan penapis',

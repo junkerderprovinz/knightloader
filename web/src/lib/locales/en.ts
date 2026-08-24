@@ -1183,7 +1183,7 @@ export const en = {
   // in place, unread once every key here resolves through the real catalogue.
   'collector.facets.title': 'Filters',
   'collector.facets.hint':
-    'Narrow the staged list by where a link points, what kind of file it is, or which package it landed in. Hiding this panel does not clear what is checked here.',
+    'Narrow the staged list by where a link points, what kind of file it is, or which package it landed in.',
   'collector.facets.fileType': 'File type',
   'collector.facets.clearAll': 'Clear',
   'collector.facets.hide': 'Hide filters',

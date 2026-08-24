@@ -1049,7 +1049,7 @@ export const he: Dict = {
   'collector.overrule': 'עדיפות על פני כלל Packagizer מתאים',
   'collector.overruleHint': 'כבוי: כלל Packagizer מתאים מנצח בעדיפות, בפריקה ובהערה שלמעלה. פועל: הערכים האלה מנצחים במקום זאת. תיקיית היעד שלמעלה אינה חלק מזה לעולם: היא תמיד חלה בדיוק כפי שהוזנה.',
   'collector.facets.title': 'מסננים',
-  'collector.facets.hint': 'מצמצם את הרשימה שנאספה לפי היעד של קישור, סוג הקובץ, או החבילה שאליה הגיע. הסתרת הלוח הזה אינה מנקה את מה שמסומן כאן.',
+  'collector.facets.hint': 'מצמצם את הרשימה שנאספה לפי היעד של קישור, סוג הקובץ, או החבילה שאליה הגיע.',
   'collector.facets.fileType': 'סוג קובץ',
   'collector.facets.clearAll': 'ניקוי',
   'collector.facets.hide': 'הסתרת מסננים',

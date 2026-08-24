@@ -1047,7 +1047,7 @@ export const id: Dict = {
   'collector.overrule': 'Mengutamakan aturan Packagizer yang cocok',
   'collector.overruleHint': 'Mati, aturan Packagizer yang cocok menang atas prioritas, pembongkaran, dan komentar di atas. Nyala, nilai-nilai ini yang menang. Folder tujuan di atas tidak pernah menjadi bagian dari ini: selalu berlaku persis seperti yang diketik.',
   'collector.facets.title': 'Filter',
-  'collector.facets.hint': 'Mempersempit daftar yang terkumpul berdasarkan ke mana tautan menuju, jenis berkasnya, atau paket tempatnya berakhir. Menyembunyikan panel ini tidak menghapus apa yang dicentang di sini.',
+  'collector.facets.hint': 'Mempersempit daftar yang terkumpul berdasarkan ke mana tautan menuju, jenis berkasnya, atau paket tempatnya berakhir.',
   'collector.facets.fileType': 'Jenis berkas',
   'collector.facets.clearAll': 'Bersihkan',
   'collector.facets.hide': 'Sembunyikan filter',

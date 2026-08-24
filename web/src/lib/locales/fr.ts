@@ -1039,7 +1039,7 @@ export const fr: Dict = {
   'collector.overrule': 'Outrepasser une règle Packagizer correspondante',
   'collector.overruleHint': 'Désactivé, une règle Packagizer correspondante l’emporte sur la priorité, la décompression et le commentaire ci-dessus. Activé, ce sont ces valeurs qui l’emportent. La destination ci-dessus n’en fait jamais partie : elle s’applique toujours telle quelle.',
   'collector.facets.title': 'Filtres',
-  'collector.facets.hint': 'Réduit la liste rassemblée selon la destination d’un lien, le type de fichier ou le paquet où il a atterri. Masquer ce panneau n’efface pas ce qui y est coché.',
+  'collector.facets.hint': 'Réduit la liste rassemblée selon la destination d’un lien, le type de fichier ou le paquet où il a atterri.',
   'collector.facets.fileType': 'Type de fichier',
   'collector.facets.clearAll': 'Effacer',
   'collector.facets.hide': 'Masquer les filtres',

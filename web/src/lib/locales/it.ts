@@ -1039,7 +1039,7 @@ export const it: Dict = {
   'collector.overrule': 'Prevalere su una regola Packagizer corrispondente',
   'collector.overruleHint': 'Disattivato, una regola Packagizer corrispondente prevale su priorità, estrazione e commento qui sopra. Attivato, prevalgono questi valori. La destinazione qui sopra non ne fa mai parte: si applica sempre così come scritta.',
   'collector.facets.title': 'Filtri',
-  'collector.facets.hint': 'Restringe l’elenco raccolto in base a dove punta un link, che tipo di file è o in quale pacchetto è finito. Nascondere questo pannello non cancella ciò che è spuntato qui.',
+  'collector.facets.hint': 'Restringe l’elenco raccolto in base a dove punta un link, che tipo di file è o in quale pacchetto è finito.',
   'collector.facets.fileType': 'Tipo di file',
   'collector.facets.clearAll': 'Svuota',
   'collector.facets.hide': 'Nascondi filtri',

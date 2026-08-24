@@ -1049,7 +1049,7 @@ export const no: Dict = {
   'collector.overrule': 'Overstyr en matchende Packagizer-regel',
   'collector.overruleHint': 'Av vinner en matchende Packagizer-regel over prioritet, utpakking og kommentaren ovenfor. På vinner disse verdiene i stedet. Målmappen ovenfor er aldri en del av dette: den gjelder alltid nøyaktig som skrevet inn.',
   'collector.facets.title': 'Filtre',
-  'collector.facets.hint': 'Snevrer inn den samlede listen etter hvor en lenke peker, hvilken filtype det er, eller hvilken pakke den havnet i. Å skjule dette panelet fjerner ikke det som er huket av her.',
+  'collector.facets.hint': 'Snevrer inn den samlede listen etter hvor en lenke peker, hvilken filtype det er, eller hvilken pakke den havnet i.',
   'collector.facets.fileType': 'Filtype',
   'collector.facets.clearAll': 'Tøm',
   'collector.facets.hide': 'Skjul filtre',

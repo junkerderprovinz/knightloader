@@ -1039,7 +1039,7 @@ export const nl: Dict = {
   'collector.overrule': 'Een overeenkomende Packagizer-regel overstemmen',
   'collector.overruleHint': 'Uit wint een overeenkomende Packagizer-regel het van prioriteit, uitpakken en de opmerking hierboven. Aan winnen deze waarden juist. De bestemming hierboven maakt hier nooit deel van uit: die geldt altijd zoals getypt.',
   'collector.facets.title': 'Filters',
-  'collector.facets.hint': 'Beperkt de verzamelde lijst op basis van waar een link naartoe wijst, welk bestandstype het is, of in welk pakket hij terechtkwam. Dit paneel verbergen wist niet wat hier is aangevinkt.',
+  'collector.facets.hint': 'Beperkt de verzamelde lijst op basis van waar een link naartoe wijst, welk bestandstype het is, of in welk pakket hij terechtkwam.',
   'collector.facets.fileType': 'Bestandstype',
   'collector.facets.clearAll': 'Wissen',
   'collector.facets.hide': 'Filters verbergen',
