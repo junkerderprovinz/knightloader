@@ -28,16 +28,26 @@ ssh -p <ssh-port> root@<host> '
     --restart unless-stopped \
     --user 99:100 \
     --cpus 2 --memory 1g \
-    -p 8749:8749 \
+    --network br0.20 --ip 192.168.20.46 \
     -v /mnt/user/appdata/knightloader:/data \
     -v /mnt/user/downloads/knightloader:/data/downloads \
     -e TZ=Europe/Berlin \
+    --label net.unraid.docker.managed=dockerman \
+    --label "net.unraid.docker.webui=http://[IP]:[PORT:8749]" \
     knightloader:preview'
 ```
 
 `--user 99:100` makes downloaded files land as `nobody:users`, which is what the
 rest of an Unraid box expects. `VERSION` is stamped into the binary and shown
 under the wordmark in the sidebar.
+
+Every container on this box gets its own `br0.20` IP rather than a host port
+mapping — this is the standing convention for every self-hosted service here,
+not something specific to KnightLoader. `192.168.20.46` is this instance's
+fixed IP; a second instance used for testing pairing/federation runs the same
+way at `192.168.20.47` (same image, its own `/mnt/user/appdata/knightloader2`
+and `/mnt/user/downloads/knightloader2` volumes, no `-p` either — each
+instance is reachable on its own IP at the container's own port 8749).
 
 ## Where things live
 
