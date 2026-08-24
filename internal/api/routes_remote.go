@@ -138,6 +138,17 @@ func remoteAddresses(r *http.Request) []ReachableAddress {
 	if r.TLS != nil {
 		scheme = "https"
 	}
+	// A reverse proxy terminating TLS itself (the ordinary case for a domain
+	// in front of a container - Nginx Proxy Manager, Traefik, Caddy) talks to
+	// this instance over plain HTTP, so r.TLS above is nil even though the
+	// address a phone would actually use is https. requestOrigin
+	// (routes_containers.go) already trusts this same header for the
+	// identical reason; every address this function reports - the plain QR
+	// AND the pairing-code QR, both built from this list - would otherwise
+	// carry the wrong scheme for that setup.
+	if fwd := r.Header.Get("X-Forwarded-Proto"); fwd == "https" {
+		scheme = "https"
+	}
 	var out []ReachableAddress
 	seen := map[string]bool{}
 	add := func(label, hostport string, loopback bool) {
