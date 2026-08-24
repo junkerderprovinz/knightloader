@@ -59,6 +59,81 @@ func TestPairingCodeGenerate(t *testing.T) {
 	}
 }
 
+// TestPairingCodeGeneratePrefersInstanceName proves pairingSelf's new
+// preference (jdp: "der soll dann mit dem QR code an die App weitergegeben
+// werden"): once Settings.InstanceName is set, it replaces os.Hostname() in
+// what a generated pairing code offers, without requiring one - the field
+// stays optional, this only proves it is HONOURED once set.
+func TestPairingCodeGeneratePrefersInstanceName(t *testing.T) {
+	aApp, err := app.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer aApp.Close()
+
+	cfg := aApp.Settings.Get()
+	cfg.InstanceName = "My Home Server"
+	if _, err := aApp.Settings.Set(cfg); err != nil {
+		t.Fatal(err)
+	}
+
+	aSrv := httptest.NewServer(Handler(aApp))
+	defer aSrv.Close()
+
+	resp, err := http.Post(aSrv.URL+"/api/instances/pairing-code", "application/json", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	var issued struct {
+		Name string `json:"name"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&issued); err != nil {
+		t.Fatal(err)
+	}
+	if issued.Name != "My Home Server" {
+		t.Fatalf("issued.Name = %q, want the configured InstanceName", issued.Name)
+	}
+}
+
+// TestPairingCodeGeneratePrefersKnownDomain proves pairingSelf reuses
+// preferredAddress the same way the QR card does (jdp: "Die domain soll auch
+// mit dem QR Code an die App weitergegeben werden" - true for the pairing
+// code's own QR too, not only the plain Remote access one): once a domain is
+// known, it is offered instead of the loopback address this test's own
+// httptest request actually arrives on.
+func TestPairingCodeGeneratePrefersKnownDomain(t *testing.T) {
+	aApp, err := app.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer aApp.Close()
+
+	cfg := aApp.Settings.Get()
+	cfg.KnownDomains = []string{"https://knightloader.example.tld"}
+	if _, err := aApp.Settings.Set(cfg); err != nil {
+		t.Fatal(err)
+	}
+
+	aSrv := httptest.NewServer(Handler(aApp))
+	defer aSrv.Close()
+
+	resp, err := http.Post(aSrv.URL+"/api/instances/pairing-code", "application/json", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	var issued struct {
+		URL string `json:"url"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&issued); err != nil {
+		t.Fatal(err)
+	}
+	if issued.URL != "https://knightloader.example.tld" {
+		t.Fatalf("issued.URL = %q, want the known domain preferred over aSrv's own loopback address", issued.URL)
+	}
+}
+
 // TestPairingCodeRoundTrip runs two real instances and pairs them with one
 // action on the joining side: A issues a code, B redeems it, and afterward
 // each must know about the other with no second, manual entry. Skips itself

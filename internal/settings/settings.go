@@ -311,6 +311,12 @@ type Settings struct {
 	// of it is and is not actually enforced by the gopeed dependency this
 	// build embeds today.
 	Torrent Torrent `json:"torrent"`
+
+	// InstanceName and KnownDomains are this instance's own identity - see
+	// settings_identity.go for the sanitize hook and both fields' own doc
+	// comments.
+	InstanceName string   `json:"instanceName"`
+	KnownDomains []string `json:"knownDomains"`
 }
 
 // Defaults returns the settings a fresh install starts with.
@@ -591,5 +597,6 @@ func sanitize(n Settings) Settings {
 	n = sanitizeCaptcha(n)
 	n = sanitizeConfirm(n)
 	n = sanitizeTorrent(n)
+	n = sanitizeIdentity(n)
 	return n
 }

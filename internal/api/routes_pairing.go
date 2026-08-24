@@ -89,30 +89,45 @@ func (p *pairingCodes) sweepLocked() {
 }
 
 // pairingSelf is this instance's own name and best address, built from the
-// same remoteAddresses() routes_remote.go's QR card already computes -
-// reused rather than re-implemented, so a pairing code and the QR card can
-// never disagree about which address is "this instance". Unlike the QR
-// card, a loopback address is not thrown away when it is the only one
-// available: two instances on the SAME machine (a desktop build and a local
-// container, say) legitimately reach each other over 127.0.0.1, and only a
-// request with no address at all - not even the one it arrived on - has
-// nothing to offer. The name is never typed: os.Hostname() is the whole
-// point of a code that replaces typing name AND address (jdp: "statt
-// Name+Adresse von Hand zu tippen").
-func pairingSelf(r *http.Request) (name, url string, ok bool) {
-	addrs := remoteAddresses(r)
-	if u, found := firstNonLoopback(addrs); found {
+// same remoteAddresses()/preferredAddress() routes_remote.go's QR card
+// already computes - reused rather than re-implemented, so a pairing code
+// and the QR card can never disagree about which address is "this
+// instance", and a known domain reaches this code the exact same way it
+// reaches the QR card (jdp: "Die domain soll auch mit dem QR Code an die
+// App weitergegeben werden" - true for BOTH QR codes on the Access tab, not
+// only the plain one). Unlike the QR card's own preferredAddress call, a
+// loopback address is not thrown away when it is the only one available:
+// two instances on the SAME machine (a desktop build and a local container,
+// say) legitimately reach each other over 127.0.0.1, and only a request
+// with no address at all - not even the one it arrived on - has nothing to
+// offer.
+//
+// The name defaults to os.Hostname(), never typed, the original point of a
+// code that replaces typing name AND address (jdp: "statt Name+Adresse von
+// Hand zu tippen") - but a.Settings.Get().InstanceName, once someone sets
+// one, replaces that default: naming this instance is still never REQUIRED
+// for pairing to work, it is just no longer stuck with whatever the OS or
+// the container runtime happened to call it (jdp, a later round: "der soll
+// dann mit dem QR code an die App weitergegeben werden").
+func pairingSelf(r *http.Request, a *app.App) (name, url string, ok bool) {
+	known := a.Settings.Get().KnownDomains
+	addrs := remoteAddresses(r, known)
+	if u, found := preferredAddress(addrs); found {
 		url = u
 	} else if len(addrs) > 0 {
 		url = addrs[0].URL
 	} else {
 		return "", "", false
 	}
-	host, err := os.Hostname()
-	if err != nil || host == "" {
-		host = "KnightLoader"
+	name = a.Settings.Get().InstanceName
+	if name == "" {
+		host, err := os.Hostname()
+		if err != nil || host == "" {
+			host = "KnightLoader"
+		}
+		name = host
 	}
-	return host, url, true
+	return name, url, true
 }
 
 func encodeOffer(o pairingOffer) (string, error) {
@@ -143,7 +158,7 @@ func registerPairing(reg *Registry, a *app.App) {
 	reg.Add(http.MethodPost, "/api/instances/pairing-code",
 		"issue a short-lived code another instance can redeem to add this one, and be added back",
 		func(w http.ResponseWriter, r *http.Request) {
-			name, url, ok := pairingSelf(r)
+			name, url, ok := pairingSelf(r, a)
 			if !ok {
 				http.Error(w, "no address to offer for this instance", http.StatusConflict)
 				return
@@ -184,7 +199,7 @@ func registerPairing(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			selfName, selfURL, ok := pairingSelf(r)
+			selfName, selfURL, ok := pairingSelf(r, a)
 			if !ok {
 				http.Error(w, "no address to offer back for this instance", http.StatusConflict)
 				return

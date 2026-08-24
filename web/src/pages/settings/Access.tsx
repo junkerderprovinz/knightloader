@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, Field, IconBadge, InfoBubble, Modal, SectionTitle, TextInput } from '../../components/ui';
+import { Button, Card, Field, IconBadge, InfoBubble, Modal, SectionTitle, TextArea, TextInput } from '../../components/ui';
 import { QRCode } from '../../components/QRCode';
 import {
   type ApiToken,
@@ -21,7 +21,7 @@ import { useInstallPrompt } from '../../lib/pwaInstall';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { IconCheck, IconClipboard, IconKey, IconPlus, IconTrash, IconWarning } from '../../lib/icons';
 import { useToast } from '../../lib/toast';
-import { useFeatures } from './context';
+import { useDraft, useFeatures } from './context';
 import { NeutralSwitch } from './controls';
 import { label, useTx } from './tx';
 
@@ -73,7 +73,18 @@ const PENDING = {
   'settings.access.remote.addressesTitle': 'Addresses this instance answers on',
   'settings.access.remote.noAddresses': 'No address could be determined for this request.',
   'settings.access.remote.loopback': 'this machine only',
+  'settings.access.remote.domain': 'domain',
   'settings.access.remote.scanHint': 'Only works on the same network as this instance.',
+
+  'settings.access.identity.title': "This instance's identity",
+  'settings.access.identity.nameLabel': 'Name',
+  'settings.access.identity.namePlaceholder': 'e.g. Home server',
+  'settings.access.identity.nameHint':
+    'Offered first when pairing and in the QR code below, instead of whatever the OS or container runtime happens to call this machine. Optional - leave it empty to keep using that.',
+  'settings.access.identity.domainsLabel': 'Known domains',
+  'settings.access.identity.domainsHint':
+    'Remembered automatically the first time a request actually arrives on one, so it stays listed here even when later requests come in over the LAN IP instead. Add one by hand for a domain that is already configured but has not been visited through yet - one full address per line, e.g. https://kl.example.com.',
+
   'settings.access.remote.installTitle': 'Install as an app',
   'settings.access.remote.installBody':
     'Add KnightLoader to a home screen or app list for a faster launch, without the browser chrome.',
@@ -83,6 +94,8 @@ const PENDING = {
   'settings.access.remote.pairTitle': 'Pair another instance',
   'settings.access.remote.pairBody':
     "Add a KnightLoader you already run - no address to type, no account, nothing hosted. Generate a code here, then paste it into that instance's own Instances page.",
+  'settings.access.remote.pairPrereq':
+    'For this to work from outside your own network - say, pairing with a phone away from home - this instance needs a domain behind a reverse proxy, or a VPN, set up first. A LAN-only address only pairs with another instance on the same network.',
   'settings.access.remote.pairGenerate': 'Generate pairing code',
   'settings.access.remote.pairExpires': 'Valid for {min} minutes, then it expires unused.',
   'settings.access.remote.pairWhere': 'Not here - on the other instance, under Settings → Instances.',
@@ -141,7 +154,7 @@ export function Access() {
 
       {listeners.length > 0 && (
           <Card className="flex flex-col gap-4">
-            <SectionTitle hue={5} hint={cx('settings.access.intakePortsHint')}>
+            <SectionTitle hue={6} hint={cx('settings.access.intakePortsHint')}>
               {tx('settings.sectionIntakePorts')}
             </SectionTitle>
             {listeners.map((m) => {
@@ -302,6 +315,11 @@ function RemoteAccessSection({ cx }: { cx: (k: PendingKey) => string }) {
                     {cx('settings.access.remote.loopback')}
                   </span>
                 )}
+                {a.domain && (
+                  <span className="shrink-0 rounded-full bg-carbon-surface2 px-2 py-0.5 text-[11px] text-carbon-textSub">
+                    {cx('settings.access.remote.domain')}
+                  </span>
+                )}
               </div>
             ))}
           </div>
@@ -316,8 +334,10 @@ function RemoteAccessSection({ cx }: { cx: (k: PendingKey) => string }) {
         )}
       </Card>
 
+      <IdentityCard cx={cx} />
+
       <Card className="flex flex-col gap-3">
-        <SectionTitle hue={2} hint={cx('settings.access.remote.installBody')}>
+        <SectionTitle hue={3} hint={cx('settings.access.remote.installBody')}>
           {cx('settings.access.remote.installTitle')}
         </SectionTitle>
         {canInstall && (
@@ -334,6 +354,46 @@ function RemoteAccessSection({ cx }: { cx: (k: PendingKey) => string }) {
 
       <PairingCard cx={cx} />
     </>
+  );
+}
+
+// IdentityCard: an optional friendly name and the domains this instance is
+// known to be reachable through, both read/written through the normal
+// settings draft (useDraft) and the shared Save bar, same as any other field
+// on this page - not a live-preview control like Look.tsx's, so there is no
+// reason to save it any differently.
+//
+// KnownDomains is shown here for the SAME reason a bare LAN IP still shows in
+// the addresses card above: this is a normal settings field, editable
+// independently of whatever request happened to load this page. The list
+// itself is otherwise populated automatically (routes_remote.go's own
+// rememberDomain, the moment a request actually arrives on a domain) - this
+// textarea only matters for a domain that is already configured but has not
+// been visited through yet, so pairingSelf and the QR code above have
+// something to prefer before that first visit happens.
+function IdentityCard({ cx }: { cx: (k: PendingKey) => string }) {
+  const { cfg, patch } = useDraft();
+
+  return (
+    <Card className="flex flex-col gap-5">
+      <SectionTitle hue={2}>{cx('settings.access.identity.title')}</SectionTitle>
+      <Field label={cx('settings.access.identity.nameLabel')} hint={cx('settings.access.identity.nameHint')}>
+        <TextInput
+          placeholder={cx('settings.access.identity.namePlaceholder')}
+          value={cfg.instanceName}
+          onChange={(e) => patch({ instanceName: e.target.value })}
+        />
+      </Field>
+      <Field label={cx('settings.access.identity.domainsLabel')} hint={cx('settings.access.identity.domainsHint')}>
+        <TextArea
+          rows={3}
+          spellCheck={false}
+          dir="ltr"
+          value={(cfg.knownDomains ?? []).join('\n')}
+          onChange={(e) => patch({ knownDomains: e.target.value.split('\n').filter((d) => d.trim() !== '') })}
+        />
+      </Field>
+    </Card>
   );
 }
 
@@ -366,13 +426,13 @@ function PairingCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, string 
   return (
     <Card className="flex flex-col gap-3">
       <SectionTitle
-        hue={3}
-        hint={cx('settings.access.remote.pairBody')}
+        hue={4}
+        hint={`${cx('settings.access.remote.pairBody')} ${cx('settings.access.remote.pairPrereq')}`}
         right={
           !code ? (
             <Button
               kind="secondary"
-              hue={3}
+              hue={4}
               className="px-2.5 text-xs"
               icon={<IconPlus width={14} height={14} />}
               onClick={() => void onGenerate()}
@@ -396,7 +456,7 @@ function PairingCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, string 
                   </code>
                 </div>
                 <IconBadge
-                  hue={3}
+                  hue={4}
                   icon={copied ? <IconCheck width={14} height={14} /> : <IconClipboard width={14} height={14} />}
                   title={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
                   aria-label={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
@@ -481,12 +541,12 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
     <>
       <Card className="flex flex-col gap-3">
         <SectionTitle
-          hue={4}
+          hue={5}
           hint={cx('settings.access.tokens.intro')}
           right={
             <Button
               kind="secondary"
-              hue={4}
+              hue={5}
               className="px-2.5 text-xs"
               icon={<IconPlus width={14} height={14} />}
               onClick={() => setShowCreate(true)}
@@ -581,7 +641,7 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
                 </code>
               </div>
               <IconBadge
-                hue={4}
+                hue={5}
                 icon={copied ? <IconCheck width={14} height={14} /> : <IconClipboard width={14} height={14} />}
                 title={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
                 aria-label={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}

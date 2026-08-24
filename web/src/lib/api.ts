@@ -327,6 +327,19 @@ export interface Settings {
    * nothing about how this backend downloads.
    */
   ytdlp: YtdlpOptions;
+
+  /**
+   * This instance's own identity - mirrors settings.Settings.InstanceName /
+   * KnownDomains (internal/settings/settings_identity.go). Both are optional
+   * and only ever change what this instance offers when pairing or building
+   * its own QR code (routes_pairing.go's pairingSelf, routes_remote.go's
+   * preferredAddress) - neither is required for anything else to work.
+   */
+  instanceName: string;
+  /** Full URLs (scheme included, e.g. "https://kl.example.com"), remembered
+   *  automatically the first time a request arrives on one, or added by hand
+   *  for a domain that is configured but has not been visited through yet. */
+  knownDomains: string[];
 }
 
 /**
@@ -1693,6 +1706,10 @@ export interface ReachableAddress {
   /** 127.0.0.1/localhost/::1: reachable only from this same machine, never
    *  a phone on the LAN, and never what the QR code encodes. */
   loopback: boolean;
+  /** A real hostname behind a reverse proxy or VPN, not a bare LAN IP -
+   *  api.ReachableAddress.Domain. The one kind of address that still works
+   *  once whatever is scanning the QR code has left this network. */
+  domain: boolean;
 }
 
 /**
