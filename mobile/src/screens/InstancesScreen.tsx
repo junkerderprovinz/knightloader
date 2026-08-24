@@ -3,6 +3,7 @@ import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'r
 import { addInstance, ApiError, fetchInstances, redeemPairingCode, removeInstance } from '../api/client';
 import type { Instance, ServerConnection } from '../api/types';
 import { colors } from '../theme';
+import { useT } from '../i18n/I18nContext';
 import QRScanner from '../components/QRScanner';
 
 // The peers the CONNECTED server itself knows about (GET /api/instances) -
@@ -20,6 +21,7 @@ export default function InstancesScreen({
   conn: ServerConnection;
   onOpenInstance: (peer: Instance) => void;
 }) {
+  const { t } = useT();
   const [peers, setPeers] = useState<Instance[]>([]);
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
@@ -42,12 +44,12 @@ export default function InstancesScreen({
     setAddError('');
     try {
       const r = await addInstance(conn, name.trim(), url.trim());
-      if (!r.online) setAddError('Hinzugefügt, aber gerade nicht erreichbar.');
+      if (!r.online) setAddError(t('instances.addOfflineWarning'));
       setName('');
       setUrl('');
       reload();
     } catch (err) {
-      setAddError(err instanceof ApiError ? err.message : 'Konnte Instanz nicht hinzufügen.');
+      setAddError(err instanceof ApiError ? err.message : t('instances.addError'));
     }
   };
 
@@ -57,11 +59,11 @@ export default function InstancesScreen({
     setPairing(true);
     try {
       const r = await redeemPairingCode(conn, rawCode.trim());
-      setPairOk(`${r.name} hinzugefügt${r.online ? '' : ' (gerade nicht erreichbar)'}.`);
+      setPairOk(t('instances.pairSuccess', { name: r.name }) + (r.online ? '' : t('instances.pairSuccessOffline')));
       setCode('');
       reload();
     } catch (err) {
-      setPairError(err instanceof ApiError ? err.message : 'Code ungültig oder abgelaufen.');
+      setPairError(err instanceof ApiError ? err.message : t('instances.pairError'));
     } finally {
       setPairing(false);
     }
@@ -75,8 +77,8 @@ export default function InstancesScreen({
   return (
     <View style={styles.container}>
       <View style={styles.topBar}>
-        <Text style={styles.title}>Instanzen</Text>
-        <Text style={styles.subtitle}>Alle KnightLoader, die {conn.name} kennt.</Text>
+        <Text style={styles.title}>{t('instances.title')}</Text>
+        <Text style={styles.subtitle}>{t('instances.subtitle', { name: conn.name })}</Text>
       </View>
 
       <FlatList
@@ -92,18 +94,18 @@ export default function InstancesScreen({
               </Text>
             </View>
             <TouchableOpacity style={styles.removeButton} onPress={() => remove(item.name)}>
-              <Text style={styles.removeText}>Entfernen</Text>
+              <Text style={styles.removeText}>{t('instances.remove')}</Text>
             </TouchableOpacity>
           </TouchableOpacity>
         )}
-        ListEmptyComponent={<Text style={styles.empty}>Keine weiteren Instanzen bekannt.</Text>}
+        ListEmptyComponent={<Text style={styles.empty}>{t('instances.empty')}</Text>}
       />
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Manuell hinzufügen</Text>
+        <Text style={styles.cardTitle}>{t('instances.manualTitle')}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Name"
+          placeholder={t('instances.namePlaceholder')}
           placeholderTextColor={colors.textMuted}
           value={name}
           onChangeText={setName}
@@ -111,7 +113,7 @@ export default function InstancesScreen({
         />
         <TextInput
           style={styles.input}
-          placeholder="http://host:port"
+          placeholder={t('instances.urlPlaceholder')}
           placeholderTextColor={colors.textMuted}
           value={url}
           onChangeText={setUrl}
@@ -120,21 +122,18 @@ export default function InstancesScreen({
           keyboardType="url"
         />
         <TouchableOpacity style={styles.button} onPress={onAdd} disabled={!name.trim() || !url.trim()}>
-          <Text style={styles.buttonText}>Hinzufügen</Text>
+          <Text style={styles.buttonText}>{t('instances.addButton')}</Text>
         </TouchableOpacity>
         {addError && <Text style={styles.error}>{addError}</Text>}
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Per Pairing-Code</Text>
-        <Text style={styles.cardHint}>
-          Auf der anderen Instanz im Access-Tab einen Pairing-Code erzeugen, dann hier einfügen oder den QR-Code
-          scannen.
-        </Text>
+        <Text style={styles.cardTitle}>{t('instances.pairingTitle')}</Text>
+        <Text style={styles.cardHint}>{t('instances.pairingHint')}</Text>
         <View style={styles.inputRow}>
           <TextInput
             style={[styles.input, styles.inputFlex]}
-            placeholder="Code einfügen"
+            placeholder={t('instances.codePlaceholder')}
             placeholderTextColor={colors.textMuted}
             value={code}
             onChangeText={setCode}
@@ -142,7 +141,7 @@ export default function InstancesScreen({
             autoCorrect={false}
           />
           <TouchableOpacity style={styles.scanButton} onPress={() => setScanning(true)}>
-            <Text style={styles.scanButtonText}>QR</Text>
+            <Text style={styles.scanButtonText}>{t('connect.qrButton')}</Text>
           </TouchableOpacity>
         </View>
         <TouchableOpacity
@@ -150,7 +149,7 @@ export default function InstancesScreen({
           onPress={() => void redeem(code)}
           disabled={pairing || !code.trim()}
         >
-          <Text style={styles.buttonText}>{pairing ? 'Wird gepaart…' : 'Code einlösen'}</Text>
+          <Text style={styles.buttonText}>{pairing ? t('instances.redeeming') : t('instances.redeemButton')}</Text>
         </TouchableOpacity>
         {pairError && <Text style={styles.error}>{pairError}</Text>}
         {pairOk && <Text style={styles.success}>{pairOk}</Text>}
@@ -158,7 +157,7 @@ export default function InstancesScreen({
 
       <QRScanner
         visible={scanning}
-        hint="Pairing-QR aus dem Access-Tab der anderen Instanz scannen"
+        hint={t('instances.scanHint')}
         onScanned={(data) => {
           setScanning(false);
           void redeem(data);

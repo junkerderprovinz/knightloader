@@ -1,15 +1,25 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { colors } from '../theme';
+import { useT } from '../i18n/I18nContext';
 
 // A full-screen modal scanner, not a screen of its own: every place that
 // wants a QR code (the address card on ConnectScreen, a pairing code on
 // InstancesScreen) just needs "hand me one decoded string back", not a spot
 // in the navigation stack.
 export default function QRScanner({ visible, onScanned, onClose, hint }: { visible: boolean; onScanned: (data: string) => void; onClose: () => void; hint: string }) {
+  const { t } = useT();
   const [permission, requestPermission] = useCameraPermissions();
   const [locked, setLocked] = useState(false);
+
+  // The component stays mounted (it only renders null below) across opens
+  // and closes, so `locked` from a PREVIOUS scan would otherwise still be
+  // true the next time this reopens - every scan after the first silently
+  // doing nothing.
+  useEffect(() => {
+    if (visible) setLocked(false);
+  }, [visible]);
 
   if (!visible) return null;
 
@@ -26,9 +36,9 @@ export default function QRScanner({ visible, onScanned, onClose, hint }: { visib
           <View style={styles.center} />
         ) : !permission.granted ? (
           <View style={styles.center}>
-            <Text style={styles.hint}>Kamera-Zugriff wird für den QR-Scan benötigt.</Text>
+            <Text style={styles.hint}>{t('qr.cameraPermissionHint')}</Text>
             <TouchableOpacity style={styles.button} onPress={requestPermission}>
-              <Text style={styles.buttonText}>Zugriff erlauben</Text>
+              <Text style={styles.buttonText}>{t('qr.grantAccess')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -46,7 +56,7 @@ export default function QRScanner({ visible, onScanned, onClose, hint }: { visib
           </>
         )}
         <TouchableOpacity style={styles.close} onPress={onClose}>
-          <Text style={styles.closeText}>Abbrechen</Text>
+          <Text style={styles.closeText}>{t('qr.cancel')}</Text>
         </TouchableOpacity>
       </View>
     </Modal>

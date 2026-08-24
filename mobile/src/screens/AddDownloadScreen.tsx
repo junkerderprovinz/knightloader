@@ -3,6 +3,7 @@ import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View 
 import { addLinks, ApiError } from '../api/client';
 import type { Instance, ServerConnection } from '../api/types';
 import { colors } from '../theme';
+import { useT } from '../i18n/I18nContext';
 
 export default function AddDownloadScreen({
   conn,
@@ -13,6 +14,7 @@ export default function AddDownloadScreen({
   peer?: Instance;
   onDone: () => void;
 }) {
+  const { t } = useT();
   const base = peer ? `/api/instances/${encodeURIComponent(peer.name)}` : '/api';
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
@@ -24,7 +26,7 @@ export default function AddDownloadScreen({
       .map((l) => l.trim())
       .filter(Boolean);
     if (links.length === 0) {
-      setError('Mindestens einen Link einfügen.');
+      setError(t('addDownload.errorEmpty'));
       return;
     }
     setBusy(true);
@@ -33,7 +35,7 @@ export default function AddDownloadScreen({
       await addLinks(conn, links, base);
       onDone();
     } catch (err) {
-      setError(err instanceof ApiError ? `Server: ${err.message}` : 'Konnte Links nicht senden.');
+      setError(err instanceof ApiError ? t('addDownload.errorServer', { message: err.message }) : t('addDownload.errorGeneric'));
     } finally {
       setBusy(false);
     }
@@ -41,13 +43,13 @@ export default function AddDownloadScreen({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Links hinzufügen{peer ? ` – ${peer.name}` : ''}</Text>
-      <Text style={styles.hint}>Ein Link pro Zeile, genau wie im Paste-Feld der Weboberfläche.</Text>
+      <Text style={styles.title}>{peer ? t('addDownload.titlePeer', { name: peer.name }) : t('addDownload.title')}</Text>
+      <Text style={styles.hint}>{t('addDownload.hint')}</Text>
 
       <TextInput
         style={styles.textArea}
         multiline
-        placeholder="https://…"
+        placeholder={t('addDownload.placeholder')}
         placeholderTextColor={colors.textMuted}
         value={text}
         onChangeText={setText}
@@ -60,10 +62,10 @@ export default function AddDownloadScreen({
 
       <View style={styles.actions}>
         <TouchableOpacity style={styles.secondaryButton} onPress={onDone}>
-          <Text style={styles.secondaryButtonText}>Abbrechen</Text>
+          <Text style={styles.secondaryButtonText}>{t('addDownload.cancel')}</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.button, busy && styles.buttonDisabled]} onPress={submit} disabled={busy}>
-          {busy ? <ActivityIndicator color={colors.text} /> : <Text style={styles.buttonText}>Hinzufügen</Text>}
+          {busy ? <ActivityIndicator color={colors.text} /> : <Text style={styles.buttonText}>{t('addDownload.button')}</Text>}
         </TouchableOpacity>
       </View>
     </View>

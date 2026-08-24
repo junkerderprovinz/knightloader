@@ -11,6 +11,7 @@ import DownloadsScreen from './src/screens/DownloadsScreen';
 import InstancesScreen from './src/screens/InstancesScreen';
 import AddDownloadScreen from './src/screens/AddDownloadScreen';
 import { colors } from './src/theme';
+import { I18nProvider } from './src/i18n/I18nContext';
 
 type RootStackParamList = {
   Connections: undefined;
@@ -55,67 +56,69 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer theme={{ dark: true, colors: navColors, fonts: navFonts }}>
-      <StatusBar style="light" />
-      <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Connections">
-          {({ navigation }) => (
-            <ConnectionsScreen
-              onActivate={(c) => {
-                setConn(c);
-                navigation.navigate('Downloads', {});
-              }}
-              onAddPress={() => navigation.navigate('AddConnection')}
-            />
-          )}
-        </Stack.Screen>
-
-        <Stack.Screen name="AddConnection" options={{ presentation: 'modal' }}>
-          {({ navigation }) => (
-            <ConnectScreen
-              onConnected={(c) => {
-                setConn(c);
-                navigation.navigate('Downloads', {});
-              }}
-            />
-          )}
-        </Stack.Screen>
-
-        <Stack.Screen name="Downloads">
-          {({ navigation, route }) =>
-            conn ? (
-              <DownloadsScreen
-                conn={conn}
-                peer={route.params?.peer}
-                onAddPress={() => navigation.navigate('AddDownload', { peer: route.params?.peer })}
-                onSwitchConnection={async () => {
-                  await setActiveConnectionId(null);
-                  navigation.navigate('Connections');
+    <I18nProvider>
+      <NavigationContainer theme={{ dark: true, colors: navColors, fonts: navFonts }}>
+        <StatusBar style="light" />
+        <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Connections">
+            {({ navigation }) => (
+              <ConnectionsScreen
+                onActivate={(c) => {
+                  setConn(c);
+                  navigation.navigate('Downloads', {});
                 }}
-                onOpenInstances={() => navigation.navigate('Instances')}
-                onBackToOwn={route.params?.peer ? () => navigation.goBack() : undefined}
+                onAddPress={() => navigation.navigate('AddConnection')}
               />
-            ) : null
-          }
-        </Stack.Screen>
+            )}
+          </Stack.Screen>
 
-        <Stack.Screen name="Instances">
-          {({ navigation }) =>
-            conn ? (
-              <InstancesScreen conn={conn} onOpenInstance={(peer) => navigation.push('Downloads', { peer })} />
-            ) : null
-          }
-        </Stack.Screen>
+          <Stack.Screen name="AddConnection" options={{ presentation: 'modal' }}>
+            {({ navigation }) => (
+              <ConnectScreen
+                onConnected={(c) => {
+                  setConn(c);
+                  navigation.navigate('Downloads', {});
+                }}
+              />
+            )}
+          </Stack.Screen>
 
-        <Stack.Screen name="AddDownload" options={{ presentation: 'modal' }}>
-          {({ navigation, route }) =>
-            conn ? (
-              <AddDownloadScreen conn={conn} peer={route.params?.peer} onDone={() => navigation.goBack()} />
-            ) : null
-          }
-        </Stack.Screen>
-      </Stack.Navigator>
-    </NavigationContainer>
+          <Stack.Screen name="Downloads">
+            {({ navigation, route }) =>
+              conn ? (
+                <DownloadsScreen
+                  conn={conn}
+                  peer={route.params?.peer}
+                  onAddPress={() => navigation.navigate('AddDownload', { peer: route.params?.peer })}
+                  onSwitchConnection={async () => {
+                    await setActiveConnectionId(null);
+                    navigation.navigate('Connections');
+                  }}
+                  onOpenInstances={() => navigation.navigate('Instances')}
+                  onBackToOwn={route.params?.peer ? () => navigation.goBack() : undefined}
+                />
+              ) : null
+            }
+          </Stack.Screen>
+
+          <Stack.Screen name="Instances">
+            {({ navigation }) =>
+              conn ? (
+                <InstancesScreen conn={conn} onOpenInstance={(peer) => navigation.push('Downloads', { peer })} />
+              ) : null
+            }
+          </Stack.Screen>
+
+          <Stack.Screen name="AddDownload" options={{ presentation: 'modal' }}>
+            {({ navigation, route }) =>
+              conn ? (
+                <AddDownloadScreen conn={conn} peer={route.params?.peer} onDone={() => navigation.goBack()} />
+              ) : null
+            }
+          </Stack.Screen>
+        </Stack.Navigator>
+      </NavigationContainer>
+    </I18nProvider>
   );
 }
 

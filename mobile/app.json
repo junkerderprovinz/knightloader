@@ -35,7 +35,8 @@
         {
           "cameraPermission": "Zum Scannen des QR-Codes einer KnightLoader-Instanz."
         }
-      ]
+      ],
+      "expo-localization"
     ]
   }
 }
