@@ -132,6 +132,7 @@ export const fi: Dict = {
   'instances.pairHint': 'Liitä koodi toisen instanssin Käyttöoikeudet-sivulta sen sijaan, että kirjoitat nimen ja osoitteen itse.',
   'instances.pairPlaceholder': 'Liitä pariutuskoodi',
   'instances.pairPaste': 'Liitä',
+  'instances.pairPasteUnavailable': 'Leikepöydän lukeminen vaatii suojatun yhteyden (HTTPS tai localhost) - tämä instanssi toimii tavallisen HTTP:n kautta.',
   'instances.pairButton': 'Pariuta',
   'instances.pairSuccess': 'Pariutettu instanssin {name} kanssa - se tuntee nyt myös tämän instanssin.',
 
@@ -384,6 +385,7 @@ export const fi: Dict = {
   'menu.collapseAll': 'Supista kaikki paketit',
   'menu.expandAll': 'Laajenna kaikki paketit',
   'collector.checkAll': 'Tarkista kaikki',
+  'collector.searchToggle': 'Haku',
 
   'skipped.summary': '{n} linkkiä ei lisätty',
   'skipped.info': 'Linkit jotka kerääjä tunnisti jo valmiiksi lisätyiksi. Mitään ei menetetty: listalla jo oleva kopio on se joka ladataan. Tyhjentäminen unohtaa vain tämän muistutuksen, se ei lisää mitään takaisin.',
@@ -489,6 +491,7 @@ export const fi: Dict = {
   'settings.look.updatesInstalled': 'Asennettu — käynnistetään uudelleen…',
   'settings.look.updatesInstallFailed': 'Päivitystä ei voitu asentaa: {error}',
   'settings.look.updatesContainerHint': "Tarkistus vain vertailee versioita ja kertoo, kun uudempi julkaisu on saatavilla; se ei koskaan korvaa käynnissä olevaa säilöä. Päivitä se samalla tavalla kuin otit sen käyttöön — docker pull, Unraid Community Applications, Watchtower tai millä tahansa hallitset tätä säilöä.",
+  'settings.look.updatesHint': 'Vertaa tämän buildin versiota GitHubin uusimpaan julkaisuun. Työpöytäversio voi myös ladata ja asentaa uudemman version automaattisesti; kontti sen sijaan päivitetään samalla tavalla kuin se otettiin käyttöön (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.advanced.modified': 'muutettu',
   'settings.advanced.noMatch': 'Yksikään avain ei täsmää.',
   'settings.advanced.badJson': 'Tämän on oltava kelvollista JSONia, joten sitä ei oteta käyttöön.',
@@ -1352,7 +1355,7 @@ export const fi: Dict = {
   'settings.access.remote.pairExpires': 'Voimassa {min} minuuttia, jonka jälkeen se vanhenee käyttämättömänä.',
   'settings.access.remote.vsPairing': 'Tämä on tämän instanssin oman käyttöliittymän avaamiseen käsin toisella laitteella (puhelin, toinen selain). Toisen itse ylläpitämäsi KnightLoaderin pariuttaminen, jotta molemmat näkyvät toistensa Instanssit-sivulla, on erillinen kortti alla.',
   'settings.access.remote.pairWhere': 'Ei tässä, vaan toisen instanssin omalla Instanssit-sivulla.',
-  'settings.access.remote.pairScan': 'Tai skannaa tämä toisella instanssilla, kunhan KnightLoader-sovellus osaa sen.',
+  'settings.access.remote.pairScan': 'Skannaa QR-koodi KnightLoader-sovelluksella.',
   'settings.access.intakePortsHint': 'Muita tapoja tavoittaa tämä instanssi suoraan, tavanomaisen kirjautumisen ulkopuolella - kunkin oma tavoitettavuus näkyy tässä.',
   'settings.nav.browsertools': 'Selaintyökalut',
   'settings.browsertools.bookmarkletStep1': 'Vedä alla oleva painike selaimesi kirjanmerkkipalkkiin - se tallentuu kuten mikä tahansa muu kirjanmerkki, mitään ei asenneta.',

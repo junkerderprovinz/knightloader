@@ -134,6 +134,7 @@ export const no: Dict = {
   'instances.pairHint': 'Lim inn en kode fra den andre instansens Tilgang-side i stedet for å skrive inn navn og adresse.',
   'instances.pairPlaceholder': 'Lim inn parkoblingskode',
   'instances.pairPaste': 'Lim inn',
+  'instances.pairPasteUnavailable': 'Å lese utklippstavlen krever en sikker tilkobling (HTTPS eller localhost) - denne instansen kjører over vanlig HTTP.',
   'instances.pairButton': 'Par',
   'instances.pairSuccess': 'Paret med {name} - den kjenner nå også til denne instansen.',
 
@@ -386,6 +387,7 @@ export const no: Dict = {
   'menu.collapseAll': 'Fold sammen alle pakker',
   'menu.expandAll': 'Fold ut alle pakker',
   'collector.checkAll': 'Sjekk alle',
+  'collector.searchToggle': 'Søk',
 
   'skipped.summary': '{n} lenke(r) ble ikke lagt til',
   'skipped.info': 'Lenker samleren kjente igjen som allerede klargjort. Ingenting gikk tapt: kopien som allerede står i listen, er den som lastes ned. Å tømme glemmer bare denne merknaden, den legger ikke noe tilbake.',
@@ -491,6 +493,7 @@ export const no: Dict = {
   'settings.look.updatesInstalled': 'Installert — starter på nytt…',
   'settings.look.updatesInstallFailed': 'Kunne ikke installere oppdateringen: {error}',
   'settings.look.updatesContainerHint': "Sjekken sammenligner bare versjoner og varsler deg når en nyere versjon finnes; den erstatter aldri den kjørende containeren. Oppdater den på samme måte som du rullet den ut — docker pull, Unraid Community Applications, Watchtower, eller det som nå styrer denne containeren.",
+  'settings.look.updatesHint': 'Sammenligner versjonen av denne buildet med den nyeste utgivelsen på GitHub. Desktop-builden kan også laste ned og installere en nyere versjon automatisk; en container oppdateres i stedet på samme måte som den ble satt opp (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.advanced.modified': 'endret',
   'settings.advanced.noMatch': 'Ingen nøkkel passer.',
   'settings.advanced.badJson': 'Dette må være gyldig JSON, så det blir ikke tatt i bruk.',
@@ -1354,7 +1357,7 @@ export const no: Dict = {
   'settings.access.remote.pairExpires': 'Gyldig i {min} minutter, deretter utløper den ubrukt.',
   'settings.access.remote.vsPairing': 'Dette er for å åpne denne instansens eget grensesnitt manuelt på en annen enhet (en telefon, en annen nettleser). Å pare en annen KnightLoader du selv kjører, slik at begge vises på hverandres Instanser-side, er det egne kortet under.',
   'settings.access.remote.pairWhere': 'Ikke her, men på den andre instansens egen Instanser-side.',
-  'settings.access.remote.pairScan': 'Eller skann dette med den andre instansen, så snart en KnightLoader-app kan.',
+  'settings.access.remote.pairScan': 'Skann QR-koden med KnightLoader-appen.',
   'settings.access.intakePortsHint': 'Andre måter denne instansen kan nås direkte på, utenom vanlig innlogging - hver med sin egen tilgjengelighet vist her.',
   'settings.nav.browsertools': 'Nettleserverktøy',
   'settings.browsertools.bookmarkletStep1': 'Dra knappen nedenfor til bokmerkelinjen i nettleseren din - den lagres som ethvert annet bokmerke, ingenting installeres.',

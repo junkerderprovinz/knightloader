@@ -132,6 +132,7 @@ export const sl: Dict = {
   'instances.pairHint': 'Prilepi kodo s strani Dostop druge instance, namesto da ročno vnašaš njeno ime in naslov.',
   'instances.pairPlaceholder': 'Prilepi kodo za seznanitev',
   'instances.pairPaste': 'Prilepi',
+  'instances.pairPasteUnavailable': 'Branje odložišča zahteva varno povezavo (HTTPS ali localhost) - ta primerek deluje prek navadnega HTTP.',
   'instances.pairButton': 'Seznani',
   'instances.pairSuccess': 'Seznanjeno z {name} - zdaj pozna tudi to instanco.',
 
@@ -384,6 +385,7 @@ export const sl: Dict = {
   'menu.collapseAll': 'Strni vse pakete',
   'menu.expandAll': 'Razširi vse pakete',
   'collector.checkAll': 'Preveri vse',
+  'collector.searchToggle': 'Iskanje',
 
   'skipped.summary': '{n} povezav ni bilo dodanih',
   'skipped.info': 'Povezave, ki jih je zbiralnik prepoznal kot že pripravljene. Nič ni izgubljeno: prenesla se bo kopija, ki je že na seznamu. Čiščenje pozabi le to opombo, ničesar ne doda nazaj.',
@@ -489,6 +491,7 @@ export const sl: Dict = {
   'settings.look.updatesInstalled': 'Nameščeno — ponovni zagon…',
   'settings.look.updatesInstallFailed': 'Posodobitve ni bilo mogoče namestiti: {error}',
   'settings.look.updatesContainerHint': "Preverjanje zgolj primerja različice in vas obvesti, ko je na voljo novejša izdaja; nikoli ne nadomesti delujočega vsebnika. Posodobite ga na enak način, kot ste ga namestili — docker pull, Unraid Community Applications, Watchtower ali karkoli že upravlja ta vsebnik.",
+  'settings.look.updatesHint': 'Primerja različico te izdaje z najnovejšo izdajo na GitHubu. Namizna različica lahko novejšo različico tudi samodejno prenese in namesti; vsebnik se namesto tega posodobi tako, kot je bil postavljen (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.advanced.modified': 'spremenjeno',
   'settings.advanced.noMatch': 'Noben ključ se ne ujema.',
   'settings.advanced.badJson': 'To mora biti veljaven JSON, zato se ne uporabi.',
@@ -1353,7 +1356,7 @@ export const sl: Dict = {
   'settings.access.remote.pairExpires': 'Veljavna {min} minut, nato poteče neuporabljena.',
   'settings.access.remote.vsPairing': 'To je za ročno odpiranje lastnega vmesnika te instance na drugi napravi (telefon, drug brskalnik). Seznanjanje druge instance KnightLoader, ki jo poganjaš sam, da se obe pokažeta na strani Instance druge, je ločena kartica spodaj.',
   'settings.access.remote.pairWhere': 'Ne tukaj, ampak na lastni strani Instance te druge instance.',
-  'settings.access.remote.pairScan': 'Ali to skenirajte z drugo instanco, takoj ko bo aplikacija KnightLoader to znala.',
+  'settings.access.remote.pairScan': 'Skeniraj kodo QR z aplikacijo KnightLoader.',
   'settings.access.intakePortsHint': 'Drugi načini neposrednega dostopa do te instance, zunaj običajne prijave - vsak s svojo lastno dosegljivostjo prikazano tukaj.',
   'settings.nav.browsertools': 'Orodja brskalnika',
   'settings.browsertools.bookmarkletStep1': 'Povleci spodnji gumb v vrstico zaznamkov brskalnika - shrani se kot vsak drug zaznamek, nič se ne namesti.',

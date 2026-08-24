@@ -132,6 +132,7 @@ export const tr: Dict = {
   'instances.pairHint': 'Diğer örneğin adını ve adresini elle yazmak yerine, Erişim sayfasından bir kod yapıştırın.',
   'instances.pairPlaceholder': 'Eşleştirme kodunu yapıştır',
   'instances.pairPaste': 'Yapıştır',
+  'instances.pairPasteUnavailable': 'Panoyu okumak güvenli bir bağlantı gerektirir (HTTPS veya localhost) - bu örnek düz HTTP üzerinden sunuluyor.',
   'instances.pairButton': 'Eşleştir',
   'instances.pairSuccess': '{name} ile eşleştirildi - artık bu örneği de tanıyor.',
 
@@ -384,6 +385,7 @@ export const tr: Dict = {
   'menu.collapseAll': 'Tüm paketleri daralt',
   'menu.expandAll': 'Tüm paketleri genişlet',
   'collector.checkAll': 'Hepsini denetle',
+  'collector.searchToggle': 'Ara',
 
   'skipped.summary': '{n} bağlantı eklenmedi',
   'skipped.info': 'Toplayıcının zaten hazırda olduğunu anladığı bağlantılar. Hiçbir şey kaybolmadı: indirilecek olan, listede zaten duran kopya. Temizlemek yalnızca bu notu unutur, hiçbir şeyi geri eklemez.',
@@ -489,6 +491,7 @@ export const tr: Dict = {
   'settings.look.updatesInstalled': 'Yüklendi — yeniden başlatılıyor…',
   'settings.look.updatesInstallFailed': 'Güncelleme yüklenemedi: {error}',
   'settings.look.updatesContainerHint': "Denetim yalnızca sürümleri karşılaştırır ve daha yeni bir sürüm olduğunda sizi bilgilendirir; çalışan konteyneri asla değiştirmez. Onu dağıttığınız şekilde güncelleyin — docker pull, Unraid Community Applications, Watchtower veya bu konteyneri yöneten her neyse.",
+  'settings.look.updatesHint': "Bu derlemenin sürümünü GitHub'daki en son sürümle karşılaştırır. Masaüstü sürümü daha yenisini otomatik olarak indirip kurabilir de; bir konteyner ise bunun yerine nasıl dağıtıldıysa o şekilde güncellenir (docker pull, Unraid Community Applications, Watchtower, ...).",
   'settings.advanced.modified': 'değişti',
   'settings.advanced.noMatch': 'Eşleşen anahtar yok.',
   'settings.advanced.badJson': 'Bunun geçerli JSON olması gerekir, bu yüzden uygulanmıyor.',
@@ -1352,7 +1355,7 @@ export const tr: Dict = {
   'settings.access.remote.pairExpires': '{min} dakika geçerlidir, ardından kullanılmadan sona erer.',
   'settings.access.remote.vsPairing': 'Bu, bu örneğin kendi arayüzünü başka bir cihazda (bir telefon, başka bir tarayıcı) elle açmak içindir. Kendi çalıştırdığınız başka bir KnightLoader\'ı eşleştirmek, böylece ikisi de birbirinin Örnekler sayfasında görünsün, aşağıdaki ayrı karttır.',
   'settings.access.remote.pairWhere': 'Burada değil, diğer örneğin kendi Örnekler sayfasında.',
-  'settings.access.remote.pairScan': 'Ya da bir KnightLoader uygulaması yapabildiğinde diğer örnekle bunu tarayın.',
+  'settings.access.remote.pairScan': 'QR kodu KnightLoader uygulamasıyla tarayın.',
   'settings.access.intakePortsHint': 'Bu örneğe normal girişin dışında doğrudan ulaşmanın diğer yolları - her birinin kendi erişilebilirliği burada gösterilir.',
   'settings.nav.browsertools': 'Tarayıcı araçları',
   'settings.browsertools.bookmarkletStep1': 'Aşağıdaki düğmeyi tarayıcının yer imleri çubuğuna sürükle - herhangi bir yer imi gibi kaydedilir, hiçbir şey yüklenmez.',

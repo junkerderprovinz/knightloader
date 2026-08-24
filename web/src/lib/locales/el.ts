@@ -132,6 +132,7 @@ export const el: Dict = {
   'instances.pairHint': 'Επικολλήστε έναν κωδικό από τη σελίδα Πρόσβαση της άλλης instance αντί να πληκτρολογήσετε το όνομα και τη διεύθυνσή της.',
   'instances.pairPlaceholder': 'Επικόλληση κωδικού σύζευξης',
   'instances.pairPaste': 'Επικόλληση',
+  'instances.pairPasteUnavailable': 'Η ανάγνωση του προχείρου απαιτεί ασφαλή σύνδεση (HTTPS ή localhost) - αυτή η υπηρεσία εξυπηρετείται μέσω απλού HTTP.',
   'instances.pairButton': 'Σύζευξη',
   'instances.pairSuccess': 'Συζεύχθηκε με {name} - τώρα γνωρίζει και αυτήν την instance.',
 
@@ -384,6 +385,7 @@ export const el: Dict = {
   'menu.collapseAll': 'Σύμπτυξη όλων των πακέτων',
   'menu.expandAll': 'Ανάπτυξη όλων των πακέτων',
   'collector.checkAll': 'Έλεγχος όλων',
+  'collector.searchToggle': 'Αναζήτηση',
 
   'skipped.summary': '{n} σύνδεσμοι δεν προστέθηκαν',
   'skipped.info': 'Σύνδεσμοι που ο συλλέκτης αναγνώρισε ως ήδη έτοιμους. Δεν χάθηκε τίποτα: το αντίγραφο που είναι ήδη στη λίστα είναι αυτό που θα κατέβει. Ο καθαρισμός ξεχνά μόνο αυτή τη σημείωση, δεν προσθέτει τίποτα πίσω.',
@@ -489,6 +491,7 @@ export const el: Dict = {
   'settings.look.updatesInstalled': 'Εγκαταστάθηκε — γίνεται επανεκκίνηση…',
   'settings.look.updatesInstallFailed': 'Δεν ήταν δυνατή η εγκατάσταση της ενημέρωσης: {error}',
   'settings.look.updatesContainerHint': "Ο έλεγχος απλώς συγκρίνει εκδόσεις και σας ειδοποιεί όταν υπάρχει νεότερη έκδοση· δεν αντικαθιστά ποτέ το container που εκτελείται. Ενημερώστε το με τον τρόπο που το αναπτύξατε — docker pull, Unraid Community Applications, Watchtower ή ό,τι διαχειρίζεται αυτό το container.",
+  'settings.look.updatesHint': "Συγκρίνει την έκδοση αυτού του build με την πιο πρόσφατη έκδοση στο GitHub. Το desktop build μπορεί επίσης να κατεβάσει και να εγκαταστήσει αυτόματα μια νεότερη έκδοση· ένα container ενημερώνεται αντ' αυτού με τον τρόπο που αναπτύχθηκε (docker pull, Unraid Community Applications, Watchtower, ...).",
   'settings.advanced.modified': 'άλλαξε',
   'settings.advanced.noMatch': 'Κανένα κλειδί δεν ταιριάζει.',
   'settings.advanced.badJson': 'Αυτό πρέπει να είναι έγκυρο JSON, γι’ αυτό δεν εφαρμόζεται.',
@@ -1352,7 +1355,7 @@ export const el: Dict = {
   'settings.access.remote.pairExpires': 'Ισχύει για {min} λεπτά, μετά λήγει αχρησιμοποίητος.',
   'settings.access.remote.vsPairing': 'Αυτό είναι για το χειροκίνητο άνοιγμα της δικής του διεπαφής αυτής της instance σε άλλη συσκευή (τηλέφωνο, άλλο πρόγραμμα περιήγησης). Η σύζευξη μιας άλλης instance KnightLoader που εκτελείτε εσείς οι ίδιοι, ώστε και οι δύο να εμφανίζονται η μία στη σελίδα Instances της άλλης, είναι η ξεχωριστή κάρτα παρακάτω.',
   'settings.access.remote.pairWhere': 'Όχι εδώ, αλλά στη δική της σελίδα Στιγμιότυπα της άλλης instance.',
-  'settings.access.remote.pairScan': 'Ή σαρώστε το με την άλλη instance, μόλις μια εφαρμογή KnightLoader το υποστηρίξει.',
+  'settings.access.remote.pairScan': 'Σάρωσε τον κωδικό QR με την εφαρμογή KnightLoader.',
   'settings.access.intakePortsHint': 'Άλλοι τρόποι απευθείας πρόσβασης σε αυτή την εγκατάσταση, εκτός της κανονικής σύνδεσης - καθένας με τη δική του διαθεσιμότητα εδώ.',
   'settings.nav.browsertools': 'Εργαλεία περιηγητή',
   'settings.browsertools.bookmarkletStep1': 'Σύρε το παρακάτω κουμπί στη γραμμή σελιδοδεικτών του προγράμματος περιήγησης - αποθηκεύεται όπως κάθε άλλος σελιδοδείκτης, τίποτα δεν εγκαθίσταται.',

@@ -132,6 +132,7 @@ export const ca: Dict = {
   'instances.pairHint': 'Enganxa un codi de la pàgina Accés de l\'altra instància en lloc d\'escriure\'n el nom i l\'adreça.',
   'instances.pairPlaceholder': 'Enganxa el codi de vinculació',
   'instances.pairPaste': 'Enganxa',
+  'instances.pairPasteUnavailable': "Llegir el porta-retalls necessita una connexió segura (HTTPS o localhost) - aquesta instància s'ofereix per HTTP pla.",
   'instances.pairButton': 'Vincula',
   'instances.pairSuccess': 'Vinculat amb {name} - ara també coneix aquesta instància.',
 
@@ -384,6 +385,7 @@ export const ca: Dict = {
   'menu.collapseAll': 'Plega tots els paquets',
   'menu.expandAll': 'Desplega tots els paquets',
   'collector.checkAll': 'Comprova-ho tot',
+  'collector.searchToggle': 'Cerca',
 
   'skipped.summary': "No s'han afegit {n} enllaços",
   'skipped.info': "Enllaços que el col·lector ha reconegut com ja preparats. No s'ha perdut res: la còpia que ja és a la llista és la que es baixarà. Netejar només oblida aquesta nota, no hi torna a afegir res.",
@@ -489,6 +491,7 @@ export const ca: Dict = {
   'settings.look.updatesInstalled': 'Instal·lada — reiniciant…',
   'settings.look.updatesInstallFailed': 'No s\'ha pogut instal·lar l\'actualització: {error}',
   'settings.look.updatesContainerHint': "La comprovació només compara versions i t'avisa quan hi ha una versió més nova; mai substitueix el contenidor en execució. Actualitza'l tal com el vas desplegar — docker pull, Unraid Community Applications, Watchtower o el que sigui que gestioni aquest contenidor.",
+  'settings.look.updatesHint': "Compara la versió d'aquesta build amb l'última versió a GitHub. La versió d'escriptori també pot descarregar i instal·lar una de més nova automàticament; un contenidor s'actualitza tal com es va desplegar (docker pull, Unraid Community Applications, Watchtower, ...).",
   'settings.advanced.modified': 'canviada',
   'settings.advanced.noMatch': 'Cap clau no coincideix.',
   'settings.advanced.badJson': 'Això ha de ser JSON vàlid, per tant no s’aplica.',
@@ -1352,7 +1355,7 @@ export const ca: Dict = {
   'settings.access.remote.pairExpires': 'Vàlid durant {min} minuts; després caduca sense usar-se.',
   'settings.access.remote.vsPairing': 'Això és per obrir manualment la interfície pròpia d\'aquesta instància en un altre dispositiu (un telèfon, un altre navegador). Vincular una altra instància de KnightLoader que tu mateix executis, perquè totes dues apareguin l\'una a la pàgina Instàncies de l\'altra, és la targeta separada d\'aquí sota.',
   'settings.access.remote.pairWhere': 'No aquí, sinó a la pròpia pàgina Instàncies de l\'altra instància.',
-  'settings.access.remote.pairScan': 'O escaneja això amb l\'altra instància, tan bon punt una app de KnightLoader ho pugui fer.',
+  'settings.access.remote.pairScan': "Escaneja el codi QR amb l'app KnightLoader.",
   'settings.access.intakePortsHint': 'Altres maneres d\'accedir directament a aquesta instància, fora de l\'inici de sessió normal - cadascuna amb la seva pròpia accessibilitat mostrada aquí.',
   'settings.nav.browsertools': 'Eines de navegador',
   'settings.browsertools.bookmarkletStep1': 'Arrossega el botó de sota a la barra d’adreces d’interès del teu navegador - es desa com qualsevol altra adreça d’interès, no s’instal·la res.',

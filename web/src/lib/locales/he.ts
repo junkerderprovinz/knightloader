@@ -134,6 +134,7 @@ export const he: Dict = {
   'instances.pairHint': 'הדבק קוד מדף הגישה של המופע האחר במקום להקליד את שמו וכתובתו.',
   'instances.pairPlaceholder': 'הדבק קוד צימוד',
   'instances.pairPaste': 'הדבק',
+  'instances.pairPasteUnavailable': 'קריאת הלוח דורשת חיבור מאובטח (HTTPS או localhost) - מופע זה מוגש דרך HTTP רגיל.',
   'instances.pairButton': 'צימוד',
   'instances.pairSuccess': 'צומד עם {name} - הוא כעת מכיר גם את המופע הזה.',
 
@@ -386,6 +387,7 @@ export const he: Dict = {
   'menu.collapseAll': 'כיווץ כל החבילות',
   'menu.expandAll': 'פריסת כל החבילות',
   'collector.checkAll': 'בדוק הכול',
+  'collector.searchToggle': 'חיפוש',
 
   'skipped.summary': '{n} קישורים לא נוספו',
   'skipped.info': 'קישורים שהאספן זיהה שכבר מוכנים. שום דבר לא אבד: העותק שכבר ברשימה הוא זה שיורד. ניקוי רק שוכח את ההודעה הזאת, הוא לא מחזיר כלום.',
@@ -491,6 +493,7 @@ export const he: Dict = {
   'settings.look.updatesInstalled': 'הותקן — מפעיל מחדש…',
   'settings.look.updatesInstallFailed': 'לא ניתן היה להתקין את העדכון: {error}',
   'settings.look.updatesContainerHint': "הבדיקה רק משווה גרסאות ומודיעה לך כשקיימת גרסה חדשה יותר; היא לעולם לא מחליפה את הקונטיינר הפעיל. עדכן אותו באותה הדרך שבה פרסת אותו — docker pull, Unraid Community Applications, Watchtower, או כל מה שמנהל את הקונטיינר הזה.",
+  'settings.look.updatesHint': 'משווה את גרסת הבנייה הזו לגרסה האחרונה ב-GitHub. גרסת שולחן העבודה יכולה גם להוריד ולהתקין גרסה חדשה יותר אוטומטית; קונטיינר, לעומת זאת, מתעדכן באותה דרך שבה נפרס (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.advanced.modified': 'שונה',
   'settings.advanced.noMatch': 'אף מפתח לא מתאים.',
   'settings.advanced.badJson': 'זה חייב להיות JSON תקין, ולכן זה לא מוחל.',
@@ -1354,7 +1357,7 @@ export const he: Dict = {
   'settings.access.remote.pairExpires': 'בתוקף למשך {min} דקות, ולאחר מכן פג ללא שימוש.',
   'settings.access.remote.vsPairing': 'זה מיועד לפתיחה ידנית של הממשק של המופע הזה במכשיר אחר (טלפון, דפדפן אחר). צימוד מופע KnightLoader אחר שאתה מריץ בעצמך, כך ששניהם יופיעו בדף המופעים זה של זה, הוא הכרטיס הנפרד למטה.',
   'settings.access.remote.pairWhere': 'לא כאן, אלא בעמוד המופעים של המופע האחר עצמו.',
-  'settings.access.remote.pairScan': 'או סרוק זאת עם המופע האחר, ברגע שאפליקציית KnightLoader תוכל.',
+  'settings.access.remote.pairScan': 'סרוק את קוד ה-QR עם אפליקציית KnightLoader.',
   'settings.access.intakePortsHint': 'דרכים נוספות להגיע ישירות למופע הזה, מחוץ להתחברות הרגילה - כל אחת עם הזמינות שלה מוצגת כאן.',
   'settings.nav.browsertools': 'כלי דפדפן',
   'settings.browsertools.bookmarkletStep1': 'גרור את הכפתור למטה לשורת הסימניות של הדפדפן שלך - הוא נשמר כמו כל סימנייה אחרת, שום דבר לא מותקן.',

@@ -132,6 +132,7 @@ export const bg: Dict = {
   'instances.pairHint': 'Поставете код от страницата Достъп на другата инстанция, вместо да въвеждате нейното име и адрес.',
   'instances.pairPlaceholder': 'Постави код за сдвояване',
   'instances.pairPaste': 'Постави',
+  'instances.pairPasteUnavailable': 'Четенето от клипборда изисква защитена връзка (HTTPS или localhost) - тази инстанция работи през обикновен HTTP.',
   'instances.pairButton': 'Сдвои',
   'instances.pairSuccess': 'Сдвоено с {name} - вече знае и за тази инстанция.',
 
@@ -384,6 +385,7 @@ export const bg: Dict = {
   'menu.collapseAll': 'Сгъни всички пакети',
   'menu.expandAll': 'Разгъни всички пакети',
   'collector.checkAll': 'Провери всичко',
+  'collector.searchToggle': 'Търсене',
 
   'skipped.summary': '{n} връзки не бяха добавени',
   'skipped.info': 'Връзки, които събирачът разпозна като вече подготвени. Нищо не се загуби: копието, което вече е в списъка, е това, което ще се тегли. Изчистването само забравя тази бележка, не връща нищо обратно.',
@@ -489,6 +491,7 @@ export const bg: Dict = {
   'settings.look.updatesInstalled': 'Инсталирано — рестартиране…',
   'settings.look.updatesInstallFailed': 'Актуализацията не можа да бъде инсталирана: {error}',
   'settings.look.updatesContainerHint': "Проверката само сравнява версиите и ви уведомява, когато има по-нова версия; тя никога не заменя работещия контейнер. Актуализирайте го по същия начин, по който сте го внедрили — docker pull, Unraid Community Applications, Watchtower или каквото и да управлява този контейнер.",
+  'settings.look.updatesHint': 'Сравнява версията на тази компилация с последното издание в GitHub. Настолната версия може също автоматично да изтегли и инсталира по-нова; контейнерът се обновява по начина, по който е бил разгърнат (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.advanced.modified': 'променено',
   'settings.advanced.noMatch': 'Никой ключ не съвпада.',
   'settings.advanced.badJson': 'Това трябва да е валиден JSON, затова не се прилага.',
@@ -1353,7 +1356,7 @@ export const bg: Dict = {
   'settings.access.remote.pairExpires': 'Валиден {min} минути, след което изтича неизползван.',
   'settings.access.remote.vsPairing': 'Това е за ръчно отваряне на собствения интерфейс на тази инстанция на друго устройство (телефон, друг браузър). Сдвояването на друга инстанция на KnightLoader, която сами управлявате, така че двете да се виждат взаимно на страницата Инстанции, е отделната карта по-долу.',
   'settings.access.remote.pairWhere': 'Не тук, а на собствената страница „Инстанции“ на другата инстанция.',
-  'settings.access.remote.pairScan': 'Или го сканирайте с другата инстанция, щом приложение KnightLoader може.',
+  'settings.access.remote.pairScan': 'Сканирай QR кода с приложението KnightLoader.',
   'settings.access.intakePortsHint': 'Други начини, по които тази инстанция може да бъде достигната директно, извън обичайния вход - всеки с показана тук собствена достъпност.',
   'settings.nav.browsertools': 'Инструменти на браузъра',
   'settings.browsertools.bookmarkletStep1': 'Плъзни бутона по-долу в лентата с отметки на браузъра си - записва се като всяка друга отметка, нищо не се инсталира.',

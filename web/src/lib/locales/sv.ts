@@ -132,6 +132,7 @@ export const sv: Dict = {
   'instances.pairHint': 'Klistra in en kod från den andra instansens Åtkomst-sida istället för att skriva in namn och adress.',
   'instances.pairPlaceholder': 'Klistra in parkopplingskod',
   'instances.pairPaste': 'Klistra in',
+  'instances.pairPasteUnavailable': 'Att läsa urklipp kräver en säker anslutning (HTTPS eller localhost) - den här instansen körs över vanlig HTTP.',
   'instances.pairButton': 'Parkoppla',
   'instances.pairSuccess': 'Parkopplad med {name} - den känner nu också till den här instansen.',
 
@@ -384,6 +385,7 @@ export const sv: Dict = {
   'menu.collapseAll': 'Fäll ihop alla paket',
   'menu.expandAll': 'Fäll ut alla paket',
   'collector.checkAll': 'Kontrollera alla',
+  'collector.searchToggle': 'Sök',
 
   'skipped.summary': '{n} länk(ar) lades inte till',
   'skipped.info': 'Länkar som insamlaren kände igen som redan förberedda. Inget gick förlorat: kopian som redan finns i listan är den som laddas ned. Att rensa glömmer bara den här noteringen, den lägger inte tillbaka något.',
@@ -489,6 +491,7 @@ export const sv: Dict = {
   'settings.look.updatesInstalled': 'Installerad — startar om…',
   'settings.look.updatesInstallFailed': 'Kunde inte installera uppdateringen: {error}',
   'settings.look.updatesContainerHint': "Kontrollen jämför bara versioner och meddelar dig när en nyare version finns; den ersätter aldrig den körande containern. Uppdatera den på samma sätt som du driftsatte den — docker pull, Unraid Community Applications, Watchtower eller vad som nu hanterar den här containern.",
+  'settings.look.updatesHint': 'Jämför den här buildens version med den senaste utgåvan på GitHub. Skrivbordsbuilden kan också ladda ner och installera en nyare version automatiskt; en container uppdateras i stället på samma sätt som den driftsattes (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.advanced.modified': 'ändrad',
   'settings.advanced.noMatch': 'Ingen nyckel matchar.',
   'settings.advanced.badJson': 'Det här måste vara giltig JSON, så det tillämpas inte.',
@@ -1353,7 +1356,7 @@ export const sv: Dict = {
   'settings.access.remote.pairExpires': 'Giltig i {min} minuter, sedan går den ut oanvänd.',
   'settings.access.remote.vsPairing': 'Det här är för att manuellt öppna den här instansens egna gränssnitt på en annan enhet (en telefon, en annan webbläsare). Att parkoppla en annan KnightLoader du själv kör, så att båda visas på varandras Instanser-sida, är det separata kortet nedan.',
   'settings.access.remote.pairWhere': 'Inte här, utan på den andra instansens egen sida Instanser.',
-  'settings.access.remote.pairScan': 'Eller skanna detta med den andra instansen, så snart en KnightLoader-app kan.',
+  'settings.access.remote.pairScan': 'Skanna QR-koden med KnightLoader-appen.',
   'settings.access.intakePortsHint': 'Andra sätt att nå den här instansen direkt, utanför den vanliga inloggningen - var och en med sin egen nåbarhet visad här.',
   'settings.nav.browsertools': 'Webbläsarverktyg',
   'settings.browsertools.bookmarkletStep1': 'Dra knappen nedan till din webbläsares bokmärkesfält - den sparas som vilket annat bokmärke som helst, inget installeras.',

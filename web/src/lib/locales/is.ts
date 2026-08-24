@@ -132,6 +132,7 @@ export const is: Dict = {
   'instances.pairHint': 'Límdu inn kóða af Aðgangs-síðu hinnar tilvikinnar í stað þess að slá inn nafn og vistfang.',
   'instances.pairPlaceholder': 'Líma inn pörunarkóða',
   'instances.pairPaste': 'Líma inn',
+  'instances.pairPasteUnavailable': 'Að lesa klippiborðið krefst öruggrar tengingar (HTTPS eða localhost) - þetta tilvik keyrir yfir venjulegt HTTP.',
   'instances.pairButton': 'Para saman',
   'instances.pairSuccess': 'Parað saman við {name} - það þekkir nú einnig þetta tilvik.',
 
@@ -384,6 +385,7 @@ export const is: Dict = {
   'menu.collapseAll': 'Fella saman alla pakka',
   'menu.expandAll': 'Fletta út öllum pökkum',
   'collector.checkAll': 'Athuga allt',
+  'collector.searchToggle': 'Leita',
 
   'skipped.summary': '{n} hlekkjum var ekki bætt við',
   'skipped.info': 'Hlekkir sem safnarinn þekkti sem þegar tilbúna. Ekkert glataðist: eintakið sem er þegar á listanum er það sem verður sótt. Að hreinsa gleymir aðeins þessari athugasemd, það bætir engu við aftur.',
@@ -489,6 +491,7 @@ export const is: Dict = {
   'settings.look.updatesInstalled': 'Uppsett — endurræsir…',
   'settings.look.updatesInstallFailed': 'Ekki tókst að setja upp uppfærsluna: {error}',
   'settings.look.updatesContainerHint': "Athugunin ber aðeins saman útgáfur og lætur þig vita þegar nýrri útgáfa er til; hún kemur aldrei í staðinn fyrir keyrandi gáminn. Uppfærðu hann á sama hátt og þú settir hann upp — docker pull, Unraid Community Applications, Watchtower eða hvað sem stýrir þessum gámi.",
+  'settings.look.updatesHint': 'Ber saman útgáfu þessarar smíðar við nýjustu útgáfuna á GitHub. Skjáborðsútgáfan getur líka sótt og sett upp nýrri útgáfu sjálfkrafa; gámur uppfærist þess í stað á sama hátt og hann var settur upp (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.advanced.modified': 'breytt',
   'settings.advanced.noMatch': 'Enginn lykill passar.',
   'settings.advanced.badJson': 'Þetta verður að vera gilt JSON, svo það er ekki tekið í notkun.',
@@ -1352,7 +1355,7 @@ export const is: Dict = {
   'settings.access.remote.pairExpires': 'Gildir í {min} mínútur, rennur svo út ónotaður.',
   'settings.access.remote.vsPairing': 'Þetta er til að opna eigið viðmót þessa tilviks handvirkt á öðru tæki (síma, öðrum vafra). Að para annað KnightLoader sem þú keyrir sjálf(ur), svo bæði birtist á Tilvik-síðu hins, er sérstaka spjaldið hér fyrir neðan.',
   'settings.access.remote.pairWhere': 'Ekki hér, heldur á eigin Tilvik-síðu hins tilviksins.',
-  'settings.access.remote.pairScan': 'Eða skannaðu þetta með hinu tilvikinu, um leið og KnightLoader-forrit getur það.',
+  'settings.access.remote.pairScan': 'Skannaðu QR-kóðann með KnightLoader appinu.',
   'settings.access.intakePortsHint': 'Aðrar leiðir til að ná beint í þetta tilvik, utan venjulegrar innskráningar - hver með eigin aðgengi sýnt hér.',
   'settings.nav.browsertools': 'Vafratól',
   'settings.browsertools.bookmarkletStep1': 'Dragðu hnappinn hér að neðan á bókamerkjastiku vafrans þíns - hann vistast eins og hvert annað bókamerki, ekkert er sett upp.',

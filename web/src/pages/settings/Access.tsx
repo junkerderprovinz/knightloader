@@ -86,7 +86,7 @@ const PENDING = {
   'settings.access.remote.pairGenerate': 'Generate pairing code',
   'settings.access.remote.pairExpires': 'Valid for {min} minutes, then it expires unused.',
   'settings.access.remote.pairWhere': 'Not here - on the other instance, under Settings → Instances.',
-  'settings.access.remote.pairScan': 'Or scan this with the other instance, once a KnightLoader app can.',
+  'settings.access.remote.pairScan': 'Scan the QR code with the KnightLoader app.',
 
   'settings.access.intakePortsHint':
     'Other ways this instance can be reached directly, outside the normal login - each with its own reachability shown here.',
@@ -364,7 +364,7 @@ function PairingCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, string 
   }
 
   return (
-    <Card className="flex flex-col gap-3 sm:flex-row">
+    <Card className="flex flex-col gap-3">
       <SectionTitle
         hue={3}
         hint={cx('settings.access.remote.pairBody')}
@@ -385,40 +385,45 @@ function PairingCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, string 
       >
         {cx('settings.access.remote.pairTitle')}
       </SectionTitle>
-      <div className="flex min-w-0 flex-1 flex-col gap-3">
-        {code && (
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
-              <code className="glim-num min-w-0 flex-1 overflow-x-auto whitespace-nowrap text-xs text-carbon-text" dir="ltr">
-                {code.code}
-              </code>
-              <IconBadge
-                icon={copied ? <IconCheck width={14} height={14} /> : <IconClipboard width={14} height={14} />}
-                title={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
-                aria-label={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
-                onClick={async () => {
-                  if (await copyToClipboard(code.code)) {
-                    setCopied(true);
-                    setTimeout(() => setCopied(false), 1800);
-                  }
-                }}
-              />
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="flex min-w-0 flex-1 flex-col gap-3">
+          {code && (
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <div className="min-w-0 flex-1 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
+                  <code className="glim-num block overflow-x-auto whitespace-nowrap text-xs text-carbon-text" dir="ltr">
+                    {code.code}
+                  </code>
+                </div>
+                <IconBadge
+                  hue={3}
+                  icon={copied ? <IconCheck width={14} height={14} /> : <IconClipboard width={14} height={14} />}
+                  title={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
+                  aria-label={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
+                  onClick={async () => {
+                    if (await copyToClipboard(code.code)) {
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 1800);
+                    }
+                  }}
+                />
+              </div>
+              <p className="text-[11px] text-carbon-textMuted">
+                {cx('settings.access.remote.pairExpires', { min: Math.round(code.expiresIn / 60) })}
+              </p>
             </div>
-            <p className="text-[11px] text-carbon-textMuted">
-              {cx('settings.access.remote.pairExpires', { min: Math.round(code.expiresIn / 60) })}
-            </p>
+          )}
+          {err && <p className="text-sm text-statusFail">{err}</p>}
+        </div>
+        {code?.qr && (
+          <div className="flex shrink-0 flex-col items-center gap-2 self-start">
+            <QRCode matrix={code.qr} label={code.code} size={144} />
+            <span className="max-w-[144px] text-center text-[11px] text-carbon-textMuted">
+              {cx('settings.access.remote.pairScan')}
+            </span>
           </div>
         )}
-        {err && <p className="text-sm text-statusFail">{err}</p>}
       </div>
-      {code?.qr && (
-        <div className="flex shrink-0 flex-col items-center gap-2 self-start">
-          <QRCode matrix={code.qr} label={code.code} size={144} />
-          <span className="max-w-[144px] text-center text-[11px] text-carbon-textMuted">
-            {cx('settings.access.remote.pairScan')}
-          </span>
-        </div>
-      )}
     </Card>
   );
 }
@@ -569,11 +574,14 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
         >
           <div className="flex flex-col gap-3">
             <p className="text-sm text-statusFail">{cx('settings.access.tokens.secretWarning')}</p>
-            <div className="flex items-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
-              <code className="glim-num min-w-0 flex-1 overflow-x-auto whitespace-nowrap text-xs text-carbon-text" dir="ltr">
-                {created.secret}
-              </code>
+            <div className="flex items-center gap-2">
+              <div className="min-w-0 flex-1 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
+                <code className="glim-num block overflow-x-auto whitespace-nowrap text-xs text-carbon-text" dir="ltr">
+                  {created.secret}
+                </code>
+              </div>
               <IconBadge
+                hue={4}
                 icon={copied ? <IconCheck width={14} height={14} /> : <IconClipboard width={14} height={14} />}
                 title={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
                 aria-label={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}

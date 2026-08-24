@@ -1214,6 +1214,7 @@ export function ListToolbar({
   tasks,
   shown,
   right,
+  hideSearch = false,
 }: {
   search: SearchQuery;
   onSearch: (next: SearchQuery) => void;
@@ -1226,6 +1227,14 @@ export function ListToolbar({
   /** How many rows survived them. */
   shown: number;
   right?: ReactNode;
+  /**
+   * Skips the inline SearchField entirely. Collector.tsx moved its own search
+   * field into a badge-toggled row of its own (jdp, 2026-08-24: "das
+   * suchfeld soll auch als quadratischer badge neben die andren vier
+   * badges") — Downloads.tsx never passes this and keeps the field inline
+   * exactly as before.
+   */
+  hideSearch?: boolean;
 }) {
   const { t } = useT();
 
@@ -1249,7 +1258,7 @@ export function ListToolbar({
 
   return (
     <div className="flex flex-wrap items-center gap-2" role="group" aria-label={t('list.controls')}>
-      <SearchField value={search} onChange={onSearch} className="max-w-md flex-1" />
+      {!hideSearch && <SearchField value={search} onChange={onSearch} className="max-w-md flex-1" />}
 
       {/* The same strip as the settings tabs and the corner picker, in its
           multi-select reading: two filters on means "show me both kinds". These

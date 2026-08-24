@@ -132,6 +132,7 @@ export const hu: Dict = {
   'instances.pairHint': 'Illessz be egy kódot a másik példány Hozzáférés oldaláról ahelyett, hogy begépelnéd a nevét és címét.',
   'instances.pairPlaceholder': 'Párosítási kód beillesztése',
   'instances.pairPaste': 'Beillesztés',
+  'instances.pairPasteUnavailable': 'A vágólap olvasásához biztonságos kapcsolat kell (HTTPS vagy localhost) - ez a példány sima HTTP-n fut.',
   'instances.pairButton': 'Párosítás',
   'instances.pairSuccess': 'Párosítva ezzel: {name} - mostantól ez is ismeri ezt a példányt.',
 
@@ -384,6 +385,7 @@ export const hu: Dict = {
   'menu.collapseAll': 'Összes csomag összecsukása',
   'menu.expandAll': 'Összes csomag kibontása',
   'collector.checkAll': 'Mind ellenőrzése',
+  'collector.searchToggle': 'Keresés',
 
   'skipped.summary': '{n} link nem lett hozzáadva',
   'skipped.info': 'Linkek, amelyeket a gyűjtő már előkészítettként ismert fel. Semmi nem veszett el: az a másolat töltődik le, amelyik már a listán van. A törlés csak ezt a jegyzetet felejti el, nem tesz vissza semmit.',
@@ -489,6 +491,7 @@ export const hu: Dict = {
   'settings.look.updatesInstalled': 'Telepítve — újraindítás…',
   'settings.look.updatesInstallFailed': 'A frissítést nem sikerült telepíteni: {error}',
   'settings.look.updatesContainerHint': "Az ellenőrzés csak a verziókat hasonlítja össze, és jelzi, ha újabb kiadás érhető el; a futó konténert soha nem cseréli le. Frissítsd ugyanúgy, ahogyan telepítetted — docker pull, Unraid Community Applications, Watchtower, vagy bármi, ami ezt a konténert kezeli.",
+  'settings.look.updatesHint': 'Összehasonlítja ennek a buildnek a verzióját a GitHubon elérhető legújabb kiadással. A desktop build automatikusan is le tudja tölteni és telepíteni egy újabb verziót; egy konténer helyette úgy frissül, ahogyan telepítve lett (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.advanced.modified': 'megváltozott',
   'settings.advanced.noMatch': 'Egyetlen kulcs sem illik.',
   'settings.advanced.badJson': 'Ennek érvényes JSON-nak kell lennie, ezért nem kerül alkalmazásra.',
@@ -1352,7 +1355,7 @@ export const hu: Dict = {
   'settings.access.remote.pairExpires': '{min} percig érvényes, utána felhasználatlanul lejár.',
   'settings.access.remote.vsPairing': 'Ez arra való, hogy ennek a példánynak a saját felületét kézzel megnyisd egy másik eszközön (telefon, másik böngésző). Egy másik, saját magad üzemeltetett KnightLoader párosítása, hogy mindkettő megjelenjen a másik Példányok oldalán, az alábbi külön kártya.',
   'settings.access.remote.pairWhere': 'Nem itt, hanem a másik példány saját Példányok oldalán.',
-  'settings.access.remote.pairScan': 'Vagy olvassa be a másik példánnyal, amint egy KnightLoader-alkalmazás képes lesz rá.',
+  'settings.access.remote.pairScan': 'Olvasd be a QR-kódot a KnightLoader alkalmazással.',
   'settings.access.intakePortsHint': 'Más módok, amelyekkel ez a példány közvetlenül elérhető, a szokásos bejelentkezésen kívül - mindegyik saját elérhetőségével itt megjelenítve.',
   'settings.nav.browsertools': 'Böngészőeszközök',
   'settings.browsertools.bookmarkletStep1': 'Húzd az alábbi gombot a böngésződ könyvjelzősávjára - úgy mentődik, mint bármelyik más könyvjelző, semmi sem települ.',

@@ -132,6 +132,7 @@ export const th: Dict = {
   'instances.pairHint': 'วางรหัสจากหน้าการเข้าถึงของอินสแตนซ์อื่น แทนที่จะพิมพ์ชื่อและที่อยู่เอง',
   'instances.pairPlaceholder': 'วางรหัสจับคู่',
   'instances.pairPaste': 'วาง',
+  'instances.pairPasteUnavailable': 'การอ่านคลิปบอร์ดต้องการการเชื่อมต่อที่ปลอดภัย (HTTPS หรือ localhost) - อินสแตนซ์นี้ให้บริการผ่าน HTTP ธรรมดา',
   'instances.pairButton': 'จับคู่',
   'instances.pairSuccess': 'จับคู่กับ {name} แล้ว - ตอนนี้รู้จักอินสแตนซ์นี้ด้วย',
 
@@ -384,6 +385,7 @@ export const th: Dict = {
   'menu.collapseAll': 'ยุบทุกแพ็กเกจ',
   'menu.expandAll': 'กางทุกแพ็กเกจ',
   'collector.checkAll': 'ตรวจทั้งหมด',
+  'collector.searchToggle': 'ค้นหา',
 
   'skipped.summary': 'มี {n} ลิงก์ที่ไม่ได้ถูกเพิ่ม',
   'skipped.info': 'ลิงก์ที่ตัวเก็บรู้ว่ามีอยู่ในรายการแล้ว ไม่มีอะไรหาย สำเนาที่อยู่ในรายการแล้วคือตัวที่จะถูกดาวน์โหลด การล้างแค่ลืมข้อความนี้ ไม่ได้เพิ่มอะไรกลับมา',
@@ -489,6 +491,7 @@ export const th: Dict = {
   'settings.look.updatesInstalled': 'ติดตั้งแล้ว — กำลังรีสตาร์ท…',
   'settings.look.updatesInstallFailed': 'ไม่สามารถติดตั้งอัปเดตได้: {error}',
   'settings.look.updatesContainerHint': "การตรวจสอบเป็นเพียงการเปรียบเทียบเวอร์ชันและแจ้งเตือนเมื่อมีรุ่นใหม่กว่า โดยจะไม่แทนที่คอนเทนเนอร์ที่กำลังทำงานอยู่เลย ให้อัปเดตตามวิธีที่คุณปรับใช้ไว้ — docker pull, Unraid Community Applications, Watchtower หรือเครื่องมือใดก็ตามที่จัดการคอนเทนเนอร์นี้",
+  'settings.look.updatesHint': 'เปรียบเทียบเวอร์ชันของบิลด์นี้กับรุ่นล่าสุดบน GitHub บิลด์เดสก์ท็อปยังสามารถดาวน์โหลดและติดตั้งเวอร์ชันใหม่โดยอัตโนมัติได้ด้วย ส่วนคอนเทนเนอร์จะอัปเดตตามวิธีที่ใช้ติดตั้งไว้แทน (docker pull, Unraid Community Applications, Watchtower, ...)',
   'settings.advanced.modified': 'เปลี่ยนแล้ว',
   'settings.advanced.noMatch': 'ไม่มีคีย์ที่ตรง',
   'settings.advanced.badJson': 'ค่านี้ต้องเป็น JSON ที่ถูกต้อง จึงยังไม่ถูกนำไปใช้',
@@ -1351,7 +1354,7 @@ export const th: Dict = {
   'settings.access.remote.pairExpires': 'ใช้ได้นาน {min} นาที จากนั้นจะหมดอายุหากไม่ได้ใช้',
   'settings.access.remote.vsPairing': 'นี่สำหรับเปิดอินเทอร์เฟซของอินสแตนซ์นี้เองบนอุปกรณ์อื่นด้วยตนเอง (โทรศัพท์ เบราว์เซอร์อื่น) การจับคู่อินสแตนซ์ KnightLoader อื่นที่คุณรันเอง เพื่อให้ทั้งสองแสดงในหน้าอินสแตนซ์ของกันและกัน คือการ์ดแยกต่างหากด้านล่าง',
   'settings.access.remote.pairWhere': 'ไม่ใช่ที่นี่ แต่อยู่ที่หน้าอินสแตนซ์ของอินสแตนซ์อื่นนั้นเอง',
-  'settings.access.remote.pairScan': 'หรือสแกนสิ่งนี้ด้วยอินสแตนซ์อื่น เมื่อแอป KnightLoader ทำได้',
+  'settings.access.remote.pairScan': 'สแกนคิวอาร์โค้ดด้วยแอป KnightLoader',
   'settings.access.intakePortsHint': 'วิธีอื่นในการเข้าถึงอินสแตนซ์นี้โดยตรง นอกเหนือจากการเข้าสู่ระบบปกติ - แต่ละวิธีแสดงความสามารถในการเข้าถึงของตัวเองที่นี่',
   'settings.nav.browsertools': 'เครื่องมือเบราว์เซอร์',
   'settings.browsertools.bookmarkletStep1': 'ลากปุ่มด้านล่างไปยังแถบบุ๊กมาร์กของเบราว์เซอร์ - มันจะถูกบันทึกเหมือนบุ๊กมาร์กอื่น ๆ ไม่มีการติดตั้งใด ๆ',

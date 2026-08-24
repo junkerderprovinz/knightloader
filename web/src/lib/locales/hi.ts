@@ -132,6 +132,7 @@ export const hi: Dict = {
   'instances.pairHint': 'दूसरे इंस्टेंस का नाम और पता खुद टाइप करने के बजाय उसके एक्सेस पेज से एक कोड पेस्ट करें।',
   'instances.pairPlaceholder': 'पेयरिंग कोड पेस्ट करें',
   'instances.pairPaste': 'पेस्ट करें',
+  'instances.pairPasteUnavailable': 'क्लिपबोर्ड पढ़ने के लिए सुरक्षित कनेक्शन चाहिए (HTTPS या localhost) - यह इंस्टेंस सादे HTTP पर चल रहा है।',
   'instances.pairButton': 'पेयर करें',
   'instances.pairSuccess': '{name} के साथ पेयर हो गया - अब यह इस इंस्टेंस को भी जानता है।',
 
@@ -384,6 +385,7 @@ export const hi: Dict = {
   'menu.collapseAll': 'सभी पैकेज समेटें',
   'menu.expandAll': 'सभी पैकेज खोलें',
   'collector.checkAll': 'सब जाँचें',
+  'collector.searchToggle': 'खोजें',
 
   'skipped.summary': '{n} लिंक जोड़े नहीं गए',
   'skipped.info': 'वे लिंक जिन्हें कलेक्टर ने पहले से मौजूद पहचाना। कुछ नहीं खोया: सूची में पहले से मौजूद प्रति ही डाउनलोड होगी। मिटाने से सिर्फ़ यह सूचना भूल जाती है, कुछ वापस नहीं जुड़ता।',
@@ -489,6 +491,7 @@ export const hi: Dict = {
   'settings.look.updatesInstalled': 'इंस्टॉल हो गया — पुनः आरंभ हो रहा है…',
   'settings.look.updatesInstallFailed': 'अपडेट इंस्टॉल नहीं किया जा सका: {error}',
   'settings.look.updatesContainerHint': "जाँच केवल संस्करणों की तुलना करती है और जब कोई नया रिलीज़ उपलब्ध हो तो आपको सूचित करती है; यह चल रहे कंटेनर को कभी नहीं बदलती। इसे उसी तरीके से अपडेट करें जिस तरीके से आपने इसे डिप्लॉय किया था — docker pull, Unraid Community Applications, Watchtower, या जो भी इस कंटेनर का प्रबंधन करता हो।",
+  'settings.look.updatesHint': 'यह इस बिल्ड के वर्शन की तुलना GitHub पर नवीनतम रिलीज़ से करता है। डेस्कटॉप बिल्ड नई वर्शन को स्वतः डाउनलोड और इंस्टॉल भी कर सकता है; कंटेनर इसके बजाय उसी तरह अपडेट होता है जैसे इसे डिप्लॉय किया गया था (docker pull, Unraid Community Applications, Watchtower, ...)।',
   'settings.advanced.modified': 'बदला हुआ',
   'settings.advanced.noMatch': 'कोई कुंजी मेल नहीं खाती।',
   'settings.advanced.badJson': 'यह वैध JSON होना चाहिए, इसलिए यह लागू नहीं हो रहा।',
@@ -1352,7 +1355,7 @@ export const hi: Dict = {
   'settings.access.remote.pairExpires': '{min} मिनट तक मान्य है, उसके बाद बिना उपयोग के समाप्त हो जाता है।',
   'settings.access.remote.vsPairing': 'यह इस इंस्टेंस के अपने इंटरफ़ेस को किसी अन्य डिवाइस (फ़ोन, दूसरे ब्राउज़र) पर मैन्युअल रूप से खोलने के लिए है। अपने द्वारा चलाए जा रहे किसी अन्य KnightLoader को पेयर करना, ताकि दोनों एक-दूसरे के इंस्टेंसेज़ पेज पर दिखें, नीचे दिया गया अलग कार्ड है।',
   'settings.access.remote.pairWhere': 'यहाँ नहीं, बल्कि दूसरे इंस्टेंस के अपने इंस्टेंस पेज पर।',
-  'settings.access.remote.pairScan': 'या इसे दूसरे इंस्टेंस से स्कैन करें, जैसे ही कोई KnightLoader ऐप ऐसा कर सके।',
+  'settings.access.remote.pairScan': 'KnightLoader ऐप से QR कोड स्कैन करें।',
   'settings.access.intakePortsHint': 'इस इंस्टेंस तक सीधे पहुंचने के अन्य तरीके, सामान्य लॉगिन के बाहर - हर एक की अपनी पहुंच यहां दिखाई गई है।',
   'settings.nav.browsertools': 'ब्राउज़र टूल',
   'settings.browsertools.bookmarkletStep1': 'नीचे दिए गए बटन को अपने ब्राउज़र की बुकमार्क बार पर खींचें - यह किसी भी अन्य बुकमार्क की तरह सेव होता है, कुछ भी इंस्टॉल नहीं होता।',

@@ -132,6 +132,7 @@ export const gl: Dict = {
   'instances.pairHint': 'Pega un código da páxina Acceso da outra instancia en vez de escribir o seu nome e enderezo.',
   'instances.pairPlaceholder': 'Pegar código de emparellamento',
   'instances.pairPaste': 'Pegar',
+  'instances.pairPasteUnavailable': 'Ler o portapapeis precisa dunha conexión segura (HTTPS ou localhost) - esta instancia serve por HTTP simple.',
   'instances.pairButton': 'Emparellar',
   'instances.pairSuccess': 'Emparellado con {name} - agora tamén coñece esta instancia.',
 
@@ -384,6 +385,7 @@ export const gl: Dict = {
   'menu.collapseAll': 'Pregar todos os paquetes',
   'menu.expandAll': 'Despregar todos os paquetes',
   'collector.checkAll': 'Comprobar todo',
+  'collector.searchToggle': 'Buscar',
 
   'skipped.summary': 'Non se engadiron {n} ligazóns',
   'skipped.info': 'Ligazóns que o colector recoñeceu como xa preparadas. Non se perdeu nada: a copia que xa está na lista é a que se descargará. Limpar só esquece esta nota, non engade nada de volta.',
@@ -489,6 +491,7 @@ export const gl: Dict = {
   'settings.look.updatesInstalled': 'Instalada — reiniciando…',
   'settings.look.updatesInstallFailed': 'Non se puido instalar a actualización: {error}',
   'settings.look.updatesContainerHint': "A comprobación só compara versións e avísache cando hai unha versión máis recente; nunca substitúe o contedor en execución. Actualízao do xeito en que o implantaches — docker pull, Unraid Community Applications, Watchtower ou o que sexa que xestione este contedor.",
+  'settings.look.updatesHint': 'Compara a versión desta build coa última versión en GitHub. A build de escritorio tamén pode descargar e instalar unha máis nova automaticamente; un contedor actualízase do xeito en que foi despregado (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.advanced.modified': 'cambiada',
   'settings.advanced.noMatch': 'Ningunha chave coincide.',
   'settings.advanced.badJson': 'Isto ten que ser JSON válido, así que non se está a aplicar.',
@@ -1352,7 +1355,7 @@ export const gl: Dict = {
   'settings.access.remote.pairExpires': 'Válido durante {min} minutos; despois caduca sen usar.',
   'settings.access.remote.vsPairing': 'Isto serve para abrir manualmente a propia interface desta instancia noutro dispositivo (un teléfono, outro navegador). Emparellar outra instancia de KnightLoader que ti mesmo executes, para que ambas aparezan unha na páxina Instancias da outra, é a tarxeta separada de aquí abaixo.',
   'settings.access.remote.pairWhere': 'Non aquí, senón na propia páxina Instancias da outra instancia.',
-  'settings.access.remote.pairScan': 'Ou escanea isto coa outra instancia, en canto unha app de KnightLoader poida.',
+  'settings.access.remote.pairScan': 'Escanea o código QR coa app de KnightLoader.',
   'settings.access.intakePortsHint': 'Outras formas de acceder directamente a esta instancia, fóra do inicio de sesión normal - cada unha coa súa propia accesibilidade amosada aquí.',
   'settings.nav.browsertools': 'Ferramentas de navegador',
   'settings.browsertools.bookmarkletStep1': 'Arrastra o botón de abaixo á barra de marcadores do teu navegador - gárdase como calquera outro marcador, non se instala nada.',

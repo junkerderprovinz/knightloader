@@ -13,7 +13,7 @@ const kindClass: Record<ButtonKind, string> = {
   primary: 'bg-accent text-accentContrast hover:brightness-110',
   secondary: 'bg-carbon-surface2 text-carbon-text hover:bg-carbon-surface3',
   ghost: 'text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text',
-  danger: 'text-statusFail hover:bg-statusFailBg',
+  danger: 'bg-statusFailBg text-carbon-text hover:brightness-110',
 };
 
 /**
@@ -809,7 +809,14 @@ export function ToggleRow({
 }) {
   return (
     <div className={`flex items-center justify-between gap-4 ${disabled ? 'pointer-events-none opacity-40' : ''}`}>
-      <span className="flex items-center gap-1.5 text-sm text-carbon-text">
+      {/* pointer-events-auto re-opens hit-testing for just this span, undoing the
+          row-wide pointer-events-none above it - CSS pointer-events isn't a one-way
+          lock, a descendant can switch itself back on. Without this a disabled row's
+          own (i) could never be hovered or focused, so the one place that explains
+          WHY the row is disabled was exactly the thing the disabled state hid. The
+          Toggle switch itself is a sibling, still under the row's pointer-events-none,
+          so the check stays un-clickable either way. */}
+      <span className="pointer-events-auto flex items-center gap-1.5 text-sm text-carbon-text">
         {label}
         {hint && <InfoBubble tip={hint} />}
       </span>
@@ -895,19 +902,34 @@ export function PageHeader({
 
 // One treatment for "there is nothing here", used everywhere so an empty app
 // never looks broken — and, where it makes sense, offers the way out.
+//
+// `nested` swaps the raised .glim-card surface for the quieter .glim-well one
+// - this component is called BOTH as a whole-page/whole-tab replacement (a
+// bare glim-card is correct there, nothing else on screen to nest inside of)
+// AND from inside an existing Card as that card's own "nothing here yet"
+// state (Dashboard's Recent list, Scripts' script list, the hoster-login and
+// debrid sections, an onboarding step's own Modal) - the second case was
+// rendering a real .glim-card, with its own drop shadow and the SAME surface
+// colour as its parent, inside another .glim-card, which index.css's own
+// comment on .glim-card explicitly forbids ("never nest it") and which read
+// as a visually unrelated floating box rather than a quiet inset section
+// (jdp, live: "die cards in den cards haben einen schlagschatten und sind
+// nicht heller eingefärbt... die sind optisch total anders").
 export function EmptyState({
   icon,
   title,
   hint,
   action,
+  nested,
 }: {
   icon?: ReactNode;
   title: string;
   hint?: string;
   action?: ReactNode;
+  nested?: boolean;
 }) {
   return (
-    <div className="glim-card flex flex-col items-center gap-2 p-10 text-center">
+    <div className={`${nested ? 'glim-well' : 'glim-card'} flex flex-col items-center gap-2 p-10 text-center`}>
       {icon && <div className="text-carbon-textMuted/60">{icon}</div>}
       <div className="text-sm text-carbon-textSub">{title}</div>
       {hint && <div className="text-[11px] text-carbon-textMuted">{hint}</div>}
@@ -916,17 +938,30 @@ export function EmptyState({
   );
 }
 
-// A quiet placeholder while a page's data is still on the wire.
-export function LoadingCard({ label }: { label: string }) {
+// A quiet placeholder while a page's data is still on the wire. `nested`: see
+// EmptyState's own doc comment just above - the same whole-page-vs-inside-a-
+// card split applies here.
+export function LoadingCard({ label, nested }: { label: string; nested?: boolean }) {
   return (
-    <div className="glim-card p-10 text-center text-sm text-carbon-textMuted">{label}</div>
+    <div className={`${nested ? 'glim-well' : 'glim-card'} p-10 text-center text-sm text-carbon-textMuted`}>{label}</div>
   );
 }
 
 // A fault state that says what went wrong and offers a way to recover.
-export function ErrorCard({ message, retry, retryLabel }: { message: string; retry?: () => void; retryLabel?: string }) {
+// `nested`: see EmptyState's own doc comment above.
+export function ErrorCard({
+  message,
+  retry,
+  retryLabel,
+  nested,
+}: {
+  message: string;
+  retry?: () => void;
+  retryLabel?: string;
+  nested?: boolean;
+}) {
   return (
-    <div className="glim-card flex flex-col items-center gap-3 p-10 text-center">
+    <div className={`${nested ? 'glim-well' : 'glim-card'} flex flex-col items-center gap-3 p-10 text-center`}>
       <div className="text-sm text-statusFail">{message}</div>
       {retry && (
         <Button kind="secondary" onClick={retry}>
@@ -986,7 +1021,7 @@ export function SectionTitle({
     <div className="flex items-center gap-3">
       <h2 className="flex items-center">
         <span
-          className={`${hue !== undefined ? 'glim-hue' : ''} absolute -top-[11px] z-10 inline-flex min-h-[22px]
+          className={`${hue !== undefined ? 'glim-hue glim-section-badge' : ''} absolute -top-[11px] z-10 inline-flex min-h-[22px]
             items-center gap-1 whitespace-nowrap rounded-[var(--radius-pill)] bg-accent px-3 py-0.5 text-[12px]
             font-medium uppercase tracking-[1.2px] text-accentContrast shadow-[var(--elevation)]`}
           style={hue !== undefined ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}

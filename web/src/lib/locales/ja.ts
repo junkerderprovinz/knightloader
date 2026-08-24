@@ -132,6 +132,7 @@ export const ja: Dict = {
   'instances.pairHint': '他のインスタンスの名前とアドレスを自分で入力する代わりに、そのアクセスページのコードを貼り付けます。',
   'instances.pairPlaceholder': 'ペアリングコードを貼り付け',
   'instances.pairPaste': '貼り付け',
+  'instances.pairPasteUnavailable': 'クリップボードの読み取りには安全な接続(HTTPSまたはlocalhost)が必要です - このインスタンスは通常のHTTPで提供されています。',
   'instances.pairButton': 'ペアリング',
   'instances.pairSuccess': '{name} とペアリングしました - このインスタンスのことも認識しています。',
 
@@ -384,6 +385,7 @@ export const ja: Dict = {
   'menu.collapseAll': 'すべてのパッケージを折りたたむ',
   'menu.expandAll': 'すべてのパッケージを展開',
   'collector.checkAll': 'すべて確認',
+  'collector.searchToggle': '検索',
 
   'skipped.summary': '{n} 件のリンクは追加されませんでした',
   'skipped.info': 'コレクターがすでに登録済みと判断したリンクです。失われたものはありません。ダウンロードされるのはリストにある方の複製です。クリアするとこの通知を忘れるだけで、何かが戻ることはありません。',
@@ -489,6 +491,7 @@ export const ja: Dict = {
   'settings.look.updatesInstalled': 'インストールしました — 再起動中…',
   'settings.look.updatesInstallFailed': '更新をインストールできませんでした: {error}',
   'settings.look.updatesContainerHint': "チェックはバージョンを比較して新しいリリースがあることを知らせるだけで、実行中のコンテナを置き換えることはありません。デプロイした方法で更新してください — docker pull、Unraid Community Applications、Watchtower、またはこのコンテナを管理している方法であれば何でも構いません。",
+  'settings.look.updatesHint': 'このビルドのバージョンをGitHub上の最新リリースと比較します。デスクトップ版は新しいバージョンを自動的にダウンロードしてインストールすることもできます。コンテナはその代わり、デプロイした方法(docker pull、Unraid Community Applications、Watchtowerなど)で更新してください。',
   'settings.advanced.modified': '変更あり',
   'settings.advanced.noMatch': '一致するキーがありません。',
   'settings.advanced.badJson': 'これは正しい JSON である必要があるため、適用されていません。',
@@ -1352,7 +1355,7 @@ export const ja: Dict = {
   'settings.access.remote.pairExpires': '{min} 分間有効で、その後未使用のまま失効します。',
   'settings.access.remote.vsPairing': 'これはこのインスタンス自身のインターフェースを、別のデバイス（スマートフォンや別のブラウザ）で手動で開くためのものです。自分で実行している別のKnightLoaderをペアリングして、両方が互いのインスタンスページに表示されるようにするのは、下の別のカードです。',
   'settings.access.remote.pairWhere': 'ここではなく、もう一方のインスタンス自身の「インスタンス」ページです。',
-  'settings.access.remote.pairScan': 'または、KnightLoaderアプリが対応次第、もう一方のインスタンスでこれをスキャンしてください。',
+  'settings.access.remote.pairScan': 'KnightLoaderアプリでQRコードをスキャンしてください。',
   'settings.access.intakePortsHint': '通常のログイン以外で、このインスタンスに直接到達できる方法 - それぞれの到達可能性がここに表示されます。',
   'settings.nav.browsertools': 'ブラウザーツール',
   'settings.browsertools.bookmarkletStep1': '下のボタンをブラウザのブックマークバーにドラッグしてください - 他のブックマークと同様に保存されるだけで、何もインストールされません。',

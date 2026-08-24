@@ -132,6 +132,7 @@ export const lt: Dict = {
   'instances.pairHint': 'Įklijuok kodą iš kito egzemplioriaus Prieigos puslapio, o ne rankiniu būdu įvesk jo pavadinimą ir adresą.',
   'instances.pairPlaceholder': 'Įklijuoti susiejimo kodą',
   'instances.pairPaste': 'Įklijuoti',
+  'instances.pairPasteUnavailable': 'Iškarpinės skaitymui reikia saugaus ryšio (HTTPS arba localhost) - šis egzempliorius veikia per įprastą HTTP.',
   'instances.pairButton': 'Susieti',
   'instances.pairSuccess': 'Susieta su {name} - dabar ji taip pat žino apie šį egzempliorių.',
 
@@ -384,6 +385,7 @@ export const lt: Dict = {
   'menu.collapseAll': 'Suskleisti visus paketus',
   'menu.expandAll': 'Išskleisti visus paketus',
   'collector.checkAll': 'Patikrinti viską',
+  'collector.searchToggle': 'Ieškoti',
 
   'skipped.summary': '{n} nuorodų nepridėta',
   'skipped.info': 'Nuorodos, kurias rinkiklis atpažino kaip jau paruoštas. Niekas nedingo: bus atsiųsta ta kopija, kuri jau yra sąraše. Išvalymas tik pamiršta šį pranešimą, nieko negrąžina.',
@@ -489,6 +491,7 @@ export const lt: Dict = {
   'settings.look.updatesInstalled': 'Įdiegta — paleidžiama iš naujo…',
   'settings.look.updatesInstallFailed': 'Nepavyko įdiegti naujinimo: {error}',
   'settings.look.updatesContainerHint': "Patikra tik palygina versijas ir praneša, kai atsiranda naujesnė versija; ji niekada nepakeičia veikiančio konteinerio. Atnaujink jį taip pat, kaip jį diegei — docker pull, Unraid Community Applications, Watchtower arba kad ir kas valdytų šį konteinerį.",
+  'settings.look.updatesHint': 'Palygina šios versijos numerį su naujausiu leidimu GitHub. Darbalaukio versija taip pat gali automatiškai atsisiųsti ir įdiegti naujesnę; konteineris vietoj to atnaujinamas taip, kaip buvo įdiegtas (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.advanced.modified': 'pakeista',
   'settings.advanced.noMatch': 'Nė vienas raktas neatitinka.',
   'settings.advanced.badJson': 'Tai turi būti tinkamas JSON, todėl nepritaikoma.',
@@ -1352,7 +1355,7 @@ export const lt: Dict = {
   'settings.access.remote.pairExpires': 'Galioja {min} min., po to nepanaudotas nustoja galioti.',
   'settings.access.remote.vsPairing': 'Tai skirta rankiniu būdu atverti šio egzemplioriaus sąsają kitame įrenginyje (telefone, kitoje naršyklėje). Kito paties valdomo KnightLoader egzemplioriaus susiejimas, kad abu matytųsi vienas kito Egzempliorių puslapyje, yra atskira kortelė žemiau.',
   'settings.access.remote.pairWhere': 'Ne čia, o kito egzemplioriaus paties Egzemplioriai puslapyje.',
-  'settings.access.remote.pairScan': 'Arba nuskenuok tai su kitu egzemplioriumi, kai tik tai galės KnightLoader programėlė.',
+  'settings.access.remote.pairScan': 'Nuskaitykite QR kodą su KnightLoader programėle.',
   'settings.access.intakePortsHint': 'Kiti būdai tiesiogiai pasiekti šį egzempliorių, be įprasto prisijungimo - kiekvieno paties pasiekiamumas rodomas čia.',
   'settings.nav.browsertools': 'Naršyklės įrankiai',
   'settings.browsertools.bookmarkletStep1': 'Nutempk žemiau esantį mygtuką į naršyklės žymelių juostą - jis įrašomas kaip bet kuri kita žymelė, niekas nediegiama.',

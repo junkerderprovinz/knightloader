@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { type Instance, fetchInstances, addInstance, removeInstance, redeemPairingCode } from '../lib/api';
 import { useT } from '../lib/i18n';
-import { PageHeader, Card, Button, Field, IconBadge, TextInput, TextArea, SectionTitle } from '../components/ui';
+import { PageHeader, Card, Button, Field, IconBadge, TextInput, SectionTitle } from '../components/ui';
 import { InstanceCard } from '../components/InstanceCard';
 import { FirstTouchHint } from '../components/FirstTouchHint';
 import { IconClipboard } from '../lib/icons';
@@ -12,9 +12,15 @@ import { useToast } from '../lib/toast';
 // has no reliable fallback for an insecure origin - execCommand('copy') works
 // everywhere, but browsers refuse a script-driven execCommand('paste') outright
 // as a real security boundary, not merely an availability quirk. Feature-detected
-// and hidden entirely rather than disabled, the same reasoning and the same
-// module-scope-once check PasteFromClipboardButton.tsx already established for
-// exactly this API.
+// once at module scope (the same check PasteFromClipboardButton.tsx already
+// established for exactly this API), then used to DISABLE the paste badge
+// below rather than hide it - a control that vanishes teaches nobody what the
+// mode can do (settings/Look.tsx's UpdateCard/SystemCards established that
+// pattern first). `disabled` carries the "why" in its own title instead of
+// pretending the option was never there, which is the honest response to a
+// real, unworkaroundable browser boundary - KnightLoader's most common real
+// deployment is plain http://<lan-ip>, an insecure context, where this is
+// always false.
 const CLIPBOARD_READABLE = typeof navigator !== 'undefined' && !!navigator.clipboard?.readText;
 
 export function Instances() {
@@ -122,32 +128,36 @@ export function Instances() {
               PairingCard) - monospace, ltr, a surface2 well - rather than a
               plain multi-line textarea that gave no visual hint this field
               specifically wants a pasted code (jdp, 2026-08-24: "schönes
-              eingabefeld bitte machen"). */}
-          <div className="flex min-w-0 flex-1 items-start gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
-            <TextArea
-              rows={2}
+              eingabefeld bitte machen"). A single-line <input>, not TextArea:
+              a pasted code is one line, and PairingCard's own read-only
+              <code> display is the height this now matches (jdp: "eingabefeld
+              soll normalgroß sein, jetzt ist es zu groß" - the rows={2}
+              TextArea this replaced rendered as a two-row block for a value
+              that is never more than one line). */}
+          <div className="flex min-w-0 flex-1 items-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
+            <input
+              type="text"
               dir="ltr"
               placeholder={t('instances.pairPlaceholder')}
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              className="glim-num min-w-0 flex-1 resize-none border-0 bg-transparent p-0 text-xs text-carbon-text placeholder:text-carbon-textMuted outline-none"
+              className="glim-num min-w-0 flex-1 border-0 bg-transparent p-0 text-xs text-carbon-text placeholder:text-carbon-textMuted outline-none"
             />
-            {CLIPBOARD_READABLE && (
-              <IconBadge
-                icon={<IconClipboard width={14} height={14} />}
-                title={t('instances.pairPaste')}
-                aria-label={t('instances.pairPaste')}
-                className="shrink-0"
-                onClick={async () => {
-                  try {
-                    const text = (await navigator.clipboard.readText()).trim();
-                    if (text) setCode(text);
-                  } catch (e) {
-                    toast(t('list.failed', { error: String(e) }), 'fail');
-                  }
-                }}
-              />
-            )}
+            <IconBadge
+              icon={<IconClipboard width={14} height={14} />}
+              title={CLIPBOARD_READABLE ? t('instances.pairPaste') : t('instances.pairPasteUnavailable')}
+              aria-label={CLIPBOARD_READABLE ? t('instances.pairPaste') : t('instances.pairPasteUnavailable')}
+              disabled={!CLIPBOARD_READABLE}
+              className="shrink-0"
+              onClick={async () => {
+                try {
+                  const text = (await navigator.clipboard.readText()).trim();
+                  if (text) setCode(text);
+                } catch (e) {
+                  toast(t('list.failed', { error: String(e) }), 'fail');
+                }
+              }}
+            />
           </div>
           <Button kind="secondary" onClick={() => void onPair()} disabled={!code.trim() || pairing}>
             {t('instances.pairButton')}

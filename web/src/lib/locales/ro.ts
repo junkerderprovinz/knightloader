@@ -132,6 +132,7 @@ export const ro: Dict = {
   'instances.pairHint': 'Lipește un cod de pe pagina Acces a celeilalte instanțe, în loc să tastezi numele și adresa acesteia.',
   'instances.pairPlaceholder': 'Lipește codul de asociere',
   'instances.pairPaste': 'Lipește',
+  'instances.pairPasteUnavailable': 'Citirea clipboard-ului necesită o conexiune securizată (HTTPS sau localhost) - această instanță rulează prin HTTP simplu.',
   'instances.pairButton': 'Asociază',
   'instances.pairSuccess': 'Asociat cu {name} - acum cunoaște și această instanță.',
 
@@ -384,6 +385,7 @@ export const ro: Dict = {
   'menu.collapseAll': 'Restrânge toate pachetele',
   'menu.expandAll': 'Extinde toate pachetele',
   'collector.checkAll': 'Verifică tot',
+  'collector.searchToggle': 'Căutare',
 
   'skipped.summary': '{n} linkuri nu au fost adăugate',
   'skipped.info': 'Linkuri pe care colectorul le-a recunoscut ca fiind deja pregătite. Nu s-a pierdut nimic: copia aflată deja în listă este cea care se va descărca. Golirea uită doar această notă, nu adaugă nimic înapoi.',
@@ -489,6 +491,7 @@ export const ro: Dict = {
   'settings.look.updatesInstalled': 'Instalat — se repornește…',
   'settings.look.updatesInstallFailed': 'Actualizarea nu a putut fi instalată: {error}',
   'settings.look.updatesContainerHint': "Verificarea doar compară versiunile și te anunță când există o versiune mai nouă; nu înlocuiește niciodată containerul care rulează. Actualizează-l la fel cum l-ai implementat — docker pull, Unraid Community Applications, Watchtower sau orice altceva administrează acest container.",
+  'settings.look.updatesHint': 'Compară versiunea acestei build-uri cu cea mai recentă versiune de pe GitHub. Build-ul desktop poate, de asemenea, descărca și instala automat o versiune mai nouă; un container se actualizează în schimb așa cum a fost implementat (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.advanced.modified': 'modificată',
   'settings.advanced.noMatch': 'Nicio cheie nu se potrivește.',
   'settings.advanced.badJson': 'Acesta trebuie să fie JSON valid, așa că nu se aplică.',
@@ -1352,7 +1355,7 @@ export const ro: Dict = {
   'settings.access.remote.pairExpires': 'Valabil {min} minute, apoi expiră neutilizat.',
   'settings.access.remote.vsPairing': 'Aceasta este pentru deschiderea manuală a interfeței proprii a acestei instanțe pe un alt dispozitiv (un telefon, un alt browser). Asocierea unei alte instanțe KnightLoader pe care o rulezi tu însuți, astfel încât ambele să apară una pe pagina Instanțe a celeilalte, este cardul separat de mai jos.',
   'settings.access.remote.pairWhere': 'Nu aici, ci pe propria pagină Instanțe a celeilalte instanțe.',
-  'settings.access.remote.pairScan': 'Sau scanează-l cu cealaltă instanță, de îndată ce o aplicație KnightLoader va putea.',
+  'settings.access.remote.pairScan': 'Scanează codul QR cu aplicația KnightLoader.',
   'settings.access.intakePortsHint': 'Alte moduri de a ajunge direct la această instanță, în afara autentificării normale - fiecare cu propria accesibilitate afișată aici.',
   'settings.nav.browsertools': 'Unelte de browser',
   'settings.browsertools.bookmarkletStep1': 'Trage butonul de mai jos în bara de marcaje a browserului tău - se salvează ca orice alt marcaj, nu se instalează nimic.',

@@ -132,6 +132,7 @@ export const cs: Dict = {
   'instances.pairHint': 'Vložte kód ze stránky Přístup druhé instance, místo abyste ručně zadávali její název a adresu.',
   'instances.pairPlaceholder': 'Vložit párovací kód',
   'instances.pairPaste': 'Vložit',
+  'instances.pairPasteUnavailable': 'Čtení schránky vyžaduje zabezpečené připojení (HTTPS nebo localhost) - tato instance běží přes obyčejné HTTP.',
   'instances.pairButton': 'Spárovat',
   'instances.pairSuccess': 'Spárováno s {name} - nyní zná i tuto instanci.',
 
@@ -384,6 +385,7 @@ export const cs: Dict = {
   'menu.collapseAll': 'Sbalit všechny balíčky',
   'menu.expandAll': 'Rozbalit všechny balíčky',
   'collector.checkAll': 'Ověřit vše',
+  'collector.searchToggle': 'Hledat',
 
   'skipped.summary': '{n} odkazů nebylo přidáno',
   'skipped.info': 'Odkazy, které sběrač poznal jako už připravené. Nic se neztratilo: stáhne se ta kopie, která už v seznamu je. Vymazání zapomene jen tuhle poznámku, nic nevrací zpět.',
@@ -489,6 +491,7 @@ export const cs: Dict = {
   'settings.look.updatesInstalled': 'Nainstalováno — restartuji…',
   'settings.look.updatesInstallFailed': 'Aktualizaci se nepodařilo nainstalovat: {error}',
   'settings.look.updatesContainerHint': "Kontrola pouze porovnává verze a upozorní vás, když je k dispozici novější verze; nikdy nenahrazuje běžící kontejner. Aktualizujte jej stejně, jako jste jej nasadili — docker pull, Unraid Community Applications, Watchtower nebo cokoli jiného, co tento kontejner spravuje.",
+  'settings.look.updatesHint': 'Porovnává verzi tohoto sestavení s nejnovějším vydáním na GitHubu. Desktopová verze umí novější vydání i automaticky stáhnout a nainstalovat; kontejner se místo toho aktualizuje tak, jak byl nasazen (docker pull, Unraid Community Applications, Watchtower, ...).',
   'settings.advanced.modified': 'změněno',
   'settings.advanced.noMatch': 'Žádný klíč neodpovídá.',
   'settings.advanced.badJson': 'Tohle musí být platný JSON, takže se to nepoužije.',
@@ -1353,7 +1356,7 @@ export const cs: Dict = {
   'settings.access.remote.pairExpires': 'Platný {min} minut, poté bez použití vyprší.',
   'settings.access.remote.vsPairing': 'Toto slouží k ručnímu otevření vlastního rozhraní této instance na jiném zařízení (telefon, jiný prohlížeč). Spárování další instance KnightLoader, kterou sami provozujete, aby se obě zobrazovaly na stránce Instance té druhé, je samostatná karta níže.',
   'settings.access.remote.pairWhere': 'Ne zde, ale na vlastní stránce Instance té druhé instance.',
-  'settings.access.remote.pairScan': 'Nebo to naskenujte druhou instancí, jakmile to aplikace KnightLoader umožní.',
+  'settings.access.remote.pairScan': 'Naskenuj QR kód aplikací KnightLoader.',
   'settings.access.intakePortsHint': 'Další způsoby, jak lze tuto instanci přímo kontaktovat, mimo běžné přihlášení - každý s vlastní dostupností zobrazenou zde.',
   'settings.nav.browsertools': 'Nástroje prohlížeče',
   'settings.browsertools.bookmarkletStep1': 'Přetáhni tlačítko níže na panel záložek prohlížeče - uloží se jako jakákoli jiná záložka, nic se neinstaluje.',

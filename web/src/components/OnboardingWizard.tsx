@@ -155,7 +155,7 @@ export function OnboardingWizard() {
                 <PathInput value={downloadDir} placeholder="/downloads" onValue={setDownloadDir} />
               </Field>
             ) : (
-              <LoadingCard label={t('common.loading')} />
+              <LoadingCard nested label={t('common.loading')} />
             )}
           </div>
         )}

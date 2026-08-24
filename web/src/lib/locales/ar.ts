@@ -134,6 +134,7 @@ export const ar: Dict = {
   'instances.pairHint': 'الصق رمزًا من صفحة الوصول الخاصة بالنسخة الأخرى بدلاً من كتابة اسمها وعنوانها يدويًا.',
   'instances.pairPlaceholder': 'الصق رمز الإقران',
   'instances.pairPaste': 'لصق',
+  'instances.pairPasteUnavailable': 'قراءة الحافظة تحتاج اتصالاً آمناً (HTTPS أو localhost) - هذه الإنستانس تعمل عبر HTTP عادي.',
   'instances.pairButton': 'إقران',
   'instances.pairSuccess': 'تم الإقران مع {name} - أصبحت تعرف الآن هذه النسخة أيضًا.',
 
@@ -386,6 +387,7 @@ export const ar: Dict = {
   'menu.collapseAll': 'طي كل الحزم',
   'menu.expandAll': 'توسيع كل الحزم',
   'collector.checkAll': 'فحص الكل',
+  'collector.searchToggle': 'بحث',
 
   'skipped.summary': 'لم يُضف {n} رابط',
   'skipped.info': 'روابط عرف المجمّع أنها مُجهّزة سلفًا. لم يضع شيء: النسخة الموجودة في القائمة هي التي ستُنزَّل. المسح ينسى هذه الملاحظة فقط ولا يعيد شيئًا.',
@@ -491,6 +493,7 @@ export const ar: Dict = {
   'settings.look.updatesInstalled': 'تم التثبيت — جارٍ إعادة التشغيل…',
   'settings.look.updatesInstallFailed': 'تعذر تثبيت التحديث: {error}',
   'settings.look.updatesContainerHint': "يقارن الفحص الإصدارات فقط ويخبرك عند توفر إصدار أحدث؛ فهو لا يستبدل الحاوية قيد التشغيل أبدًا. حدّثها بنفس الطريقة التي نشرتها بها — docker pull، Unraid Community Applications، Watchtower، أو أي أداة تُدير هذه الحاوية.",
+  'settings.look.updatesHint': 'يقارن إصدار هذا البناء بأحدث إصدار على GitHub. يمكن لنسخة سطح المكتب أيضاً تنزيل الإصدار الأحدث وتثبيته تلقائياً؛ أما الحاوية فتُحدَّث بالطريقة التي نُشرت بها (docker pull، Unraid Community Applications، Watchtower، ...).',
   'settings.advanced.modified': 'مُغيَّر',
   'settings.advanced.noMatch': 'لا مفتاح يطابق.',
   'settings.advanced.badJson': 'يجب أن يكون هذا JSON صالحًا، لذلك لا يُطبَّق.',
@@ -1354,7 +1357,7 @@ export const ar: Dict = {
   'settings.access.remote.pairExpires': 'صالح لمدة {min} دقيقة، ثم ينتهي دون استخدام.',
   'settings.access.remote.vsPairing': 'هذا مخصص لفتح واجهة هذه النسخة يدويًا على جهاز آخر (هاتف، متصفح آخر). أما إقران نسخة KnightLoader أخرى تُشغّلها بنفسك، بحيث تظهر كل واحدة في صفحة النُسخ الخاصة بالأخرى، فهو البطاقة المنفصلة أدناه.',
   'settings.access.remote.pairWhere': 'ليس هنا، بل في صفحة النُسخ الخاصة بالنسخة الأخرى.',
-  'settings.access.remote.pairScan': 'أو امسح هذا ضوئيًا بالنسخة الأخرى، بمجرد أن يتمكن تطبيق KnightLoader من ذلك.',
+  'settings.access.remote.pairScan': 'امسح رمز QR ضوئياً بتطبيق KnightLoader.',
   'settings.access.intakePortsHint': 'طرق أخرى يمكن من خلالها الوصول إلى هذه النسخة مباشرة، خارج تسجيل الدخول المعتاد - كل واحدة مع إمكانية الوصول الخاصة بها معروضة هنا.',
   'settings.nav.browsertools': 'أدوات المتصفح',
   'settings.browsertools.bookmarkletStep1': 'اسحب الزر أدناه إلى شريط إشارات مرجعية في متصفحك - يُحفظ مثل أي إشارة مرجعية أخرى، لا يُثبَّت شيء.',

@@ -132,6 +132,7 @@ export const et: Dict = {
   'instances.pairHint': 'Kleebi kood teise eksemplari juurdepääsu lehelt, selle asemel et sisestada nimi ja aadress käsitsi.',
   'instances.pairPlaceholder': 'Kleebi sidumiskood',
   'instances.pairPaste': 'Kleebi',
+  'instances.pairPasteUnavailable': 'Lõikelaua lugemine vajab turvalist ühendust (HTTPS või localhost) - see eksemplar töötab tavalise HTTP kaudu.',
   'instances.pairButton': 'Seo',
   'instances.pairSuccess': 'Seotud eksemplariga {name} - see teab nüüd ka sellest eksemplarist.',
 
@@ -384,6 +385,7 @@ export const et: Dict = {
   'menu.collapseAll': 'Sulge kõik pakid',
   'menu.expandAll': 'Ava kõik pakid',
   'collector.checkAll': 'Kontrolli kõiki',
+  'collector.searchToggle': 'Otsi',
 
   'skipped.summary': '{n} linki ei lisatud',
   'skipped.info': 'Lingid, mille koguja tundis ära juba olemasolevatena. Midagi ei läinud kaotsi: alla laaditakse see koopia, mis on juba loendis. Tühjendamine ainult unustab selle märkuse, see ei lisa midagi tagasi.',
@@ -489,6 +491,7 @@ export const et: Dict = {
   'settings.look.updatesInstalled': 'Paigaldatud — taaskäivitamine…',
   'settings.look.updatesInstallFailed': 'Värskendust ei õnnestunud paigaldada: {error}',
   'settings.look.updatesContainerHint': "Kontroll ainult võrdleb versioone ja teavitab, kui uuem versioon on saadaval; see ei asenda kunagi töötavat konteinerit. Uuenda seda samal viisil, nagu selle kasutusele võtsid — docker pull, Unraid Community Applications, Watchtower või mis iganes seda konteinerit haldab.",
+  'settings.look.updatesHint': "Võrdleb selle build'i versiooni GitHubi uusima väljalaskega. Töölauaversioon saab uuema versiooni ka automaatselt alla laadida ja paigaldada; konteiner uuendatakse selle asemel samal viisil, nagu see juurutati (docker pull, Unraid Community Applications, Watchtower, ...).",
   'settings.advanced.modified': 'muudetud',
   'settings.advanced.noMatch': 'Ükski võti ei sobi.',
   'settings.advanced.badJson': 'See peab olema kehtiv JSON, nii et seda ei rakendata.',
@@ -1352,7 +1355,7 @@ export const et: Dict = {
   'settings.access.remote.pairExpires': 'Kehtib {min} minutit, seejärel aegub kasutamata.',
   'settings.access.remote.vsPairing': 'See on selle eksemplari enda liidese käsitsi avamiseks teises seadmes (telefon, teine brauser). Teise ise käitatava KnightLoaderi sidumine, et mõlemad kuvataks teineteise eksemplaride lehel, on eraldi kaart allpool.',
   'settings.access.remote.pairWhere': 'Mitte siin, vaid teise eksemplari enda lehel Eksemplarid.',
-  'settings.access.remote.pairScan': 'Või skanni seda teise eksemplariga, niipea kui KnightLoaderi rakendus seda oskab.',
+  'settings.access.remote.pairScan': 'Skanni QR-kood KnightLoaderi rakendusega.',
   'settings.access.intakePortsHint': 'Muud viisid, kuidas seda eksemplari saab otse kätte, väljaspool tavapärast sisselogimist - igaühe enda kättesaadavus siin näidatud.',
   'settings.nav.browsertools': 'Brauseritööriistad',
   'settings.browsertools.bookmarkletStep1': 'Lohista allolev nupp oma brauseri järjehoidjaribale - see salvestub nagu iga teine järjehoidja, midagi ei installita.',
