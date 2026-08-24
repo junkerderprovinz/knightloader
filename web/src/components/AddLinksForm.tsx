@@ -173,8 +173,16 @@ export function AddLinksForm({
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="glim-card p-0 overflow-hidden">
+    <div className="flex h-full flex-col gap-3">
+      {/* flex-1 here, not just on the row wrapper in Collector.tsx: a flex
+          row's own `items-stretch` only stretches its direct children's
+          BOX, not whatever content sits inside them - without this, the
+          taller of the three top-row cards (jdp, 2026-08-24: "alle drei
+          card sollen immer gleich hoch sein") left the other two visibly
+          shorter, with invisible empty space below them instead of a
+          taller card. flex-1 on the visible card itself, in an h-full
+          flex-col parent, is what actually grows the card. */}
+      <div className="glim-card flex flex-1 flex-col p-0 overflow-hidden">
         <div className="px-4 pt-3">
           <SectionTitle hue={0}>{t('collector.addTitle')}</SectionTitle>
         </div>
@@ -185,7 +193,7 @@ export function AddLinksForm({
           }}
           onDragLeave={() => setDragOver(false)}
           onDrop={onDrop}
-          className={`relative m-3 rounded-[var(--radius-control)] transition-colors ${
+          className={`relative m-3 flex-1 rounded-[var(--radius-control)] transition-colors ${
             dragOver ? 'bg-accentSoft shadow-[0_0_0_2px_var(--focus-ring)]' : 'bg-carbon-surface2'
           }`}
         >
@@ -198,7 +206,7 @@ export function AddLinksForm({
             onKeyDown={(e) => {
               if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') void onAdd();
             }}
-            className="w-full resize-y rounded-[var(--radius-control)] bg-transparent px-4 py-3 text-sm text-carbon-text placeholder:text-carbon-textMuted outline-none"
+            className="h-full min-h-[6rem] w-full resize-y rounded-[var(--radius-control)] bg-transparent px-4 py-3 text-sm text-carbon-text placeholder:text-carbon-textMuted outline-none"
           />
           {dragOver && (
             <div className="pointer-events-none absolute inset-0 grid place-items-center rounded-[var(--radius-control)]">

@@ -907,8 +907,23 @@ export function TaskListCard({
     // Two surfaces side by side and never one inside the other: the panel is a
     // card of its own under the list, because a card inside a card is the one
     // elevation rule this language does not bend.
-    <div className="flex flex-col gap-4">
-      <div className="glim-card overflow-hidden">
+    //
+    // flex-1 on both, not h-full: harmless where a caller (Downloads.tsx)
+    // renders this in normal document flow - a flex item with no flex
+    // container ancestor of its own just falls back to its natural content
+    // size, so nothing changes there. Meaningful where a caller wraps this
+    // in its own flex column (Collector.tsx's own overflow-y-auto wrapper,
+    // jdp 2026-08-24: "Das hauptlinkfenster soll immer ... bis ganz nach
+    // unten im fenster gehen. egal wie viele links drinn sind") - flex-1
+    // rather than a percentage height on purpose: h-full measured correctly
+    // on paper here but did not actually resolve in the browser, a known
+    // quirk where a percentage height does not reliably propagate through a
+    // block box whose own height came from flex-grow plus overflow-auto
+    // (confirmed live rather than assumed). flex-grow has none of that
+    // ambiguity, so this is the one place in this component that composes
+    // with whatever a caller does about height.
+    <div className="flex flex-1 flex-col gap-4">
+      <div className="glim-card flex-1 overflow-hidden">
         {/* Sorting is a view of the queue and not the queue. Saying so where the
             order is visibly different is the whole of it — a list that quietly
             shows one order while running another is read as a bug in the queue. */}
