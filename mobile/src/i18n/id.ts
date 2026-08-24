@@ -72,4 +72,18 @@ export const id: Dict = {
   'status.finished': 'selesai',
   'status.failed': 'gagal',
   'status.extracting': 'mengekstrak',
+
+  'settings.title': 'Pengaturan',
+  'settings.language': 'Bahasa',
+  'settings.languageAutomatic': 'Otomatis (perangkat)',
+  'settings.about': 'Tentang',
+  'settings.version': 'Versi {version}',
+  'settings.githubLink': 'Lihat di GitHub',
+  'settings.dangerZone': 'Zona berbahaya',
+  'settings.removeAllConnections': 'Hapus semua koneksi',
+  'settings.removeAllConfirmTitle': 'Hapus semua koneksi?',
+  'settings.removeAllConfirmMessage':
+    'Tindakan ini menghapus setiap koneksi tersimpan beserta tokennya dari perangkat ini. Tidak ada yang berubah di server itu sendiri.',
+  'settings.removeAllConfirmButton': 'Hapus semua',
+  'settings.cancel': 'Batal',
 };

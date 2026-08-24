@@ -72,4 +72,18 @@ export const fa: Dict = {
   'status.finished': 'تمام‌شده',
   'status.failed': 'ناموفق',
   'status.extracting': 'در حال استخراج',
+
+  'settings.title': 'تنظیمات',
+  'settings.language': 'زبان',
+  'settings.languageAutomatic': 'خودکار (بر اساس دستگاه)',
+  'settings.about': 'درباره',
+  'settings.version': 'نسخه {version}',
+  'settings.githubLink': 'مشاهده در GitHub',
+  'settings.dangerZone': 'منطقه خطر',
+  'settings.removeAllConnections': 'حذف همه اتصال‌ها',
+  'settings.removeAllConfirmTitle': 'همه اتصال‌ها حذف شوند؟',
+  'settings.removeAllConfirmMessage':
+    'این کار هر اتصال ذخیره‌شده را همراه با توکن آن از این دستگاه حذف می‌کند. در خود سرورها چیزی تغییر نمی‌کند.',
+  'settings.removeAllConfirmButton': 'حذف همه',
+  'settings.cancel': 'لغو',
 };

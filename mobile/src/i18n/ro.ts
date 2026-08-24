@@ -72,4 +72,18 @@ export const ro: Dict = {
   'status.finished': 'finalizată',
   'status.failed': 'eșuată',
   'status.extracting': 'se extrage',
+
+  'settings.title': 'Setări',
+  'settings.language': 'Limbă',
+  'settings.languageAutomatic': 'Automat (dispozitiv)',
+  'settings.about': 'Despre',
+  'settings.version': 'Versiunea {version}',
+  'settings.githubLink': 'Vezi pe GitHub',
+  'settings.dangerZone': 'Zonă periculoasă',
+  'settings.removeAllConnections': 'Elimină toate conexiunile',
+  'settings.removeAllConfirmTitle': 'Elimini toate conexiunile?',
+  'settings.removeAllConfirmMessage':
+    'Elimină de pe acest dispozitiv fiecare conexiune salvată împreună cu tokenul ei. Pe servere în sine nu se schimbă nimic.',
+  'settings.removeAllConfirmButton': 'Elimină tot',
+  'settings.cancel': 'Anulează',
 };

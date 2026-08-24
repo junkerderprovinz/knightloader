@@ -72,4 +72,18 @@ export const ru: Dict = {
   'status.finished': 'завершено',
   'status.failed': 'ошибка',
   'status.extracting': 'распаковка',
+
+  'settings.title': 'Настройки',
+  'settings.language': 'Язык',
+  'settings.languageAutomatic': 'Автоматически (устройство)',
+  'settings.about': 'О приложении',
+  'settings.version': 'Версия {version}',
+  'settings.githubLink': 'Открыть на GitHub',
+  'settings.dangerZone': 'Опасная зона',
+  'settings.removeAllConnections': 'Удалить все подключения',
+  'settings.removeAllConfirmTitle': 'Удалить все подключения?',
+  'settings.removeAllConfirmMessage':
+    'Удаляет с этого устройства каждое сохранённое подключение вместе с его токеном. На самих серверах ничего не изменится.',
+  'settings.removeAllConfirmButton': 'Удалить всё',
+  'settings.cancel': 'Отмена',
 };

@@ -72,4 +72,18 @@ export const ko: Dict = {
   'status.finished': '완료',
   'status.failed': '실패',
   'status.extracting': '압축 해제 중',
+
+  'settings.title': '설정',
+  'settings.language': '언어',
+  'settings.languageAutomatic': '자동(기기 설정)',
+  'settings.about': '앱 정보',
+  'settings.version': '버전 {version}',
+  'settings.githubLink': 'GitHub에서 보기',
+  'settings.dangerZone': '위험 구역',
+  'settings.removeAllConnections': '모든 연결 제거',
+  'settings.removeAllConfirmTitle': '모든 연결을 제거할까요?',
+  'settings.removeAllConfirmMessage':
+    '이 기기에 저장된 모든 연결과 해당 토큰을 제거합니다. 서버 자체는 변경되지 않습니다.',
+  'settings.removeAllConfirmButton': '모두 제거',
+  'settings.cancel': '취소',
 };

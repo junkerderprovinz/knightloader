@@ -72,4 +72,18 @@ export const tr: Dict = {
   'status.finished': 'tamamlandı',
   'status.failed': 'başarısız',
   'status.extracting': 'çıkartılıyor',
+
+  'settings.title': 'Ayarlar',
+  'settings.language': 'Dil',
+  'settings.languageAutomatic': 'Otomatik (cihaz)',
+  'settings.about': 'Hakkında',
+  'settings.version': 'Sürüm {version}',
+  'settings.githubLink': "GitHub'da görüntüle",
+  'settings.dangerZone': 'Tehlikeli bölge',
+  'settings.removeAllConnections': 'Tüm bağlantıları kaldır',
+  'settings.removeAllConfirmTitle': 'Tüm bağlantılar kaldırılsın mı?',
+  'settings.removeAllConfirmMessage':
+    'Bu cihazdaki her kayıtlı bağlantıyı ve tokenini kaldırır. Sunucuların kendisinde hiçbir şey değişmez.',
+  'settings.removeAllConfirmButton': 'Tümünü kaldır',
+  'settings.cancel': 'İptal',
 };

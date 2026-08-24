@@ -72,4 +72,18 @@ export const hi: Dict = {
   'status.finished': 'पूर्ण',
   'status.failed': 'विफल',
   'status.extracting': 'निकाला जा रहा है',
+
+  'settings.title': 'सेटिंग्स',
+  'settings.language': 'भाषा',
+  'settings.languageAutomatic': 'ऑटोमैटिक (डिवाइस के अनुसार)',
+  'settings.about': 'ऐप के बारे में',
+  'settings.version': 'वर्शन {version}',
+  'settings.githubLink': 'GitHub पर देखें',
+  'settings.dangerZone': 'खतरे वाला ज़ोन',
+  'settings.removeAllConnections': 'सभी कनेक्शन हटाएं',
+  'settings.removeAllConfirmTitle': 'क्या सभी कनेक्शन हटाने हैं?',
+  'settings.removeAllConfirmMessage':
+    'यह इस डिवाइस से हर सेव किया गया कनेक्शन और उसका टोकन हटा देता है। सर्वर पर खुद कुछ भी नहीं बदलता।',
+  'settings.removeAllConfirmButton': 'सभी हटाएं',
+  'settings.cancel': 'रद्द करें',
 };

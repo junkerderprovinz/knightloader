@@ -5,6 +5,7 @@ import type { Instance, QueueState, ServerConnection, Task } from '../api/types'
 import TaskRow from '../components/TaskRow';
 import { colors } from '../theme';
 import { useT } from '../i18n/I18nContext';
+import IconBadge from '../components/IconBadge';
 
 // peer, when set, means this screen is showing a FEDERATION PEER of conn
 // rather than conn's own queue: base becomes the proxy prefix
@@ -19,6 +20,7 @@ export default function DownloadsScreen({
   onAddPress,
   onSwitchConnection,
   onOpenInstances,
+  onOpenSettings,
   onBackToOwn,
 }: {
   conn: ServerConnection;
@@ -26,6 +28,7 @@ export default function DownloadsScreen({
   onAddPress: () => void;
   onSwitchConnection: () => void;
   onOpenInstances: () => void;
+  onOpenSettings: () => void;
   onBackToOwn?: () => void;
 }) {
   const { t } = useT();
@@ -93,6 +96,7 @@ export default function DownloadsScreen({
               <Text style={styles.link}>{t('downloads.switchLink')}</Text>
             </TouchableOpacity>
           )}
+          {!peer && <IconBadge symbol="⚙" onPress={onOpenSettings} accessibilityLabel={t('settings.title')} />}
         </View>
       </View>
 

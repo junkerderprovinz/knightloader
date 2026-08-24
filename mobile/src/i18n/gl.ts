@@ -72,4 +72,18 @@ export const gl: Dict = {
   'status.finished': 'rematado',
   'status.failed': 'fallido',
   'status.extracting': 'extraendo',
+
+  'settings.title': 'Axustes',
+  'settings.language': 'Idioma',
+  'settings.languageAutomatic': 'Automático (dispositivo)',
+  'settings.about': 'Sobre',
+  'settings.version': 'Versión {version}',
+  'settings.githubLink': 'Ver en GitHub',
+  'settings.dangerZone': 'Zona de perigo',
+  'settings.removeAllConnections': 'Eliminar todas as conexións',
+  'settings.removeAllConfirmTitle': 'Eliminar todas as conexións?',
+  'settings.removeAllConfirmMessage':
+    'Elimina deste dispositivo cada conexión gardada xunto co seu token. Nos propios servidores non cambia nada.',
+  'settings.removeAllConfirmButton': 'Eliminar todo',
+  'settings.cancel': 'Cancelar',
 };

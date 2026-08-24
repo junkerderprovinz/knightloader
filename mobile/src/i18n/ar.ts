@@ -72,4 +72,18 @@ export const ar: Dict = {
   'status.finished': 'مكتمل',
   'status.failed': 'فشل',
   'status.extracting': 'جارٍ الاستخراج',
+
+  'settings.title': 'الإعدادات',
+  'settings.language': 'اللغة',
+  'settings.languageAutomatic': 'تلقائي (حسب الجهاز)',
+  'settings.about': 'حول التطبيق',
+  'settings.version': 'الإصدار {version}',
+  'settings.githubLink': 'عرض على GitHub',
+  'settings.dangerZone': 'منطقة الخطر',
+  'settings.removeAllConnections': 'إزالة جميع الاتصالات',
+  'settings.removeAllConfirmTitle': 'هل تريد إزالة جميع الاتصالات؟',
+  'settings.removeAllConfirmMessage':
+    'يؤدي هذا إلى إزالة كل اتصال محفوظ ورمزه من هذا الجهاز. لن يتغيّر شيء على الخوادم نفسها.',
+  'settings.removeAllConfirmButton': 'إزالة الكل',
+  'settings.cancel': 'إلغاء',
 };

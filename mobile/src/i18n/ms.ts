@@ -72,4 +72,18 @@ export const ms: Dict = {
   'status.finished': 'selesai',
   'status.failed': 'gagal',
   'status.extracting': 'mengekstrak',
+
+  'settings.title': 'Tetapan',
+  'settings.language': 'Bahasa',
+  'settings.languageAutomatic': 'Automatik (peranti)',
+  'settings.about': 'Perihal',
+  'settings.version': 'Versi {version}',
+  'settings.githubLink': 'Lihat di GitHub',
+  'settings.dangerZone': 'Zon berbahaya',
+  'settings.removeAllConnections': 'Alih keluar semua sambungan',
+  'settings.removeAllConfirmTitle': 'Alih keluar semua sambungan?',
+  'settings.removeAllConfirmMessage':
+    'Ini mengalih keluar setiap sambungan yang disimpan berserta tokennya daripada peranti ini. Tiada apa yang berubah pada pelayan itu sendiri.',
+  'settings.removeAllConfirmButton': 'Alih keluar semua',
+  'settings.cancel': 'Batal',
 };

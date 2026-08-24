@@ -72,4 +72,18 @@ export const da: Dict = {
   'status.finished': 'fuldført',
   'status.failed': 'mislykkedes',
   'status.extracting': 'udpakker',
+
+  'settings.title': 'Indstillinger',
+  'settings.language': 'Sprog',
+  'settings.languageAutomatic': 'Automatisk (enhed)',
+  'settings.about': 'Om appen',
+  'settings.version': 'Version {version}',
+  'settings.githubLink': 'Se på GitHub',
+  'settings.dangerZone': 'Farezone',
+  'settings.removeAllConnections': 'Fjern alle forbindelser',
+  'settings.removeAllConfirmTitle': 'Fjern alle forbindelser?',
+  'settings.removeAllConfirmMessage':
+    'Fjerner hver gemte forbindelse og dens token fra denne enhed. Det ændrer ikke noget på selve serverne.',
+  'settings.removeAllConfirmButton': 'Fjern alle',
+  'settings.cancel': 'Annuller',
 };

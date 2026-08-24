@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { getLocales } from 'expo-localization';
 import { en, type Dict, type TranslationKey } from './en';
 import { AVAILABLE, load, loaded } from './index';
+import { getLanguageOverride, setLanguageOverride } from '../storage/languagePreference';
 
 export type { TranslationKey, Dict };
 
@@ -9,8 +10,7 @@ export type { TranslationKey, Dict };
 // wraps the platform API) and picks the first one this app actually has a
 // dictionary for - the same "closest available match, else English" logic
 // as the web UI's own detect() (lib/i18n.tsx), just off the device's own
-// setting instead of navigator.language, and with no stored override: this
-// app has no in-app language picker, so there is nothing else to check.
+// setting instead of navigator.language.
 export function detectDeviceLanguage(): string {
   for (const locale of getLocales()) {
     const code = locale.languageCode?.toLowerCase();
@@ -22,23 +22,37 @@ export function detectDeviceLanguage(): string {
 interface I18nAPI {
   t: (key: TranslationKey, vars?: Record<string, string | number>) => string;
   lang: string;
+  /** null clears the override and goes back to following the device. */
+  setLanguage: (code: string | null) => void;
 }
 
 const Ctx = createContext<I18nAPI>({
   t: (k) => en[k],
   lang: 'en',
+  setLanguage: () => {},
 });
 
 export const useT = () => useContext(Ctx);
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  // The device language does not change while the app is running, so this
-  // only needs computing once, not tracked in state.
-  const [lang] = useState(detectDeviceLanguage);
+  const [lang, setLangState] = useState(detectDeviceLanguage);
   // The chosen language's dictionary arrives asynchronously (its chunk has
   // to load); until it does, English stands in rather than the UI showing
   // raw keys - same reasoning as the web UI's own I18nProvider.
   const [dict, setDict] = useState<Dict>(() => loaded(lang) ?? en);
+
+  // A saved manual override (Settings' language picker) beats the device
+  // setting once it's read back, but the device-detected language is what
+  // renders in the meantime rather than a loading flash.
+  useEffect(() => {
+    let current = true;
+    getLanguageOverride().then((override) => {
+      if (current && override && AVAILABLE.includes(override)) setLangState(override);
+    });
+    return () => {
+      current = false;
+    };
+  }, []);
 
   useEffect(() => {
     let current = true;
@@ -50,6 +64,11 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     };
   }, [lang]);
 
+  const setLanguage = useCallback((code: string | null) => {
+    setLanguageOverride(code);
+    setLangState(code ?? detectDeviceLanguage());
+  }, []);
+
   const t = useCallback(
     (key: TranslationKey, vars?: Record<string, string | number>) => {
       let s: string = dict[key] ?? en[key];
@@ -59,5 +78,5 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     [dict]
   );
 
-  return <Ctx.Provider value={{ t, lang }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ t, lang, setLanguage }}>{children}</Ctx.Provider>;
 }

@@ -72,4 +72,18 @@ export const vi: Dict = {
   'status.finished': 'đã hoàn tất',
   'status.failed': 'thất bại',
   'status.extracting': 'đang giải nén',
+
+  'settings.title': 'Cài đặt',
+  'settings.language': 'Ngôn ngữ',
+  'settings.languageAutomatic': 'Tự động (theo thiết bị)',
+  'settings.about': 'Giới thiệu',
+  'settings.version': 'Phiên bản {version}',
+  'settings.githubLink': 'Xem trên GitHub',
+  'settings.dangerZone': 'Khu vực nguy hiểm',
+  'settings.removeAllConnections': 'Xóa tất cả kết nối',
+  'settings.removeAllConfirmTitle': 'Xóa tất cả kết nối?',
+  'settings.removeAllConfirmMessage':
+    'Thao tác này xóa khỏi thiết bị mọi kết nối đã lưu cùng token của nó. Không có gì thay đổi trên bản thân các máy chủ.',
+  'settings.removeAllConfirmButton': 'Xóa tất cả',
+  'settings.cancel': 'Hủy',
 };

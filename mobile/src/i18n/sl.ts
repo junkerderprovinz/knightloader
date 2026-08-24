@@ -72,4 +72,18 @@ export const sl: Dict = {
   'status.finished': 'končano',
   'status.failed': 'spodletelo',
   'status.extracting': 'razširjanje',
+
+  'settings.title': 'Nastavitve',
+  'settings.language': 'Jezik',
+  'settings.languageAutomatic': 'Samodejno (glede na napravo)',
+  'settings.about': 'O aplikaciji',
+  'settings.version': 'Različica {version}',
+  'settings.githubLink': 'Ogled na GitHubu',
+  'settings.dangerZone': 'Nevarno območje',
+  'settings.removeAllConnections': 'Odstrani vse povezave',
+  'settings.removeAllConfirmTitle': 'Odstranim vse povezave?',
+  'settings.removeAllConfirmMessage':
+    'S te naprave odstrani vsako shranjeno povezavo skupaj z njenim žetonom. Na samih strežnikih se ne spremeni nič.',
+  'settings.removeAllConfirmButton': 'Odstrani vse',
+  'settings.cancel': 'Prekliči',
 };

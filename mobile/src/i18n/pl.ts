@@ -72,4 +72,18 @@ export const pl: Dict = {
   'status.finished': 'zakończono',
   'status.failed': 'niepowodzenie',
   'status.extracting': 'wypakowywanie',
+
+  'settings.title': 'Ustawienia',
+  'settings.language': 'Język',
+  'settings.languageAutomatic': 'Automatycznie (urządzenie)',
+  'settings.about': 'O aplikacji',
+  'settings.version': 'Wersja {version}',
+  'settings.githubLink': 'Zobacz na GitHubie',
+  'settings.dangerZone': 'Strefa zagrożenia',
+  'settings.removeAllConnections': 'Usuń wszystkie połączenia',
+  'settings.removeAllConfirmTitle': 'Usunąć wszystkie połączenia?',
+  'settings.removeAllConfirmMessage':
+    'Usuwa z tego urządzenia każde zapisane połączenie razem z jego tokenem. Na samych serwerach nic się nie zmienia.',
+  'settings.removeAllConfirmButton': 'Usuń wszystko',
+  'settings.cancel': 'Anuluj',
 };

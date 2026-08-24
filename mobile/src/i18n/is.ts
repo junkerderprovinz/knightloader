@@ -72,4 +72,18 @@ export const is: Dict = {
   'status.finished': 'lokið',
   'status.failed': 'mistókst',
   'status.extracting': 'afþjappar',
+
+  'settings.title': 'Stillingar',
+  'settings.language': 'Tungumál',
+  'settings.languageAutomatic': 'Sjálfvirkt (tæki)',
+  'settings.about': 'Um appið',
+  'settings.version': 'Útgáfa {version}',
+  'settings.githubLink': 'Skoða á GitHub',
+  'settings.dangerZone': 'Hættusvæði',
+  'settings.removeAllConnections': 'Fjarlægja allar tengingar',
+  'settings.removeAllConfirmTitle': 'Fjarlægja allar tengingar?',
+  'settings.removeAllConfirmMessage':
+    'Þetta fjarlægir hverja vistaða tengingu og teikn hennar af þessu tæki. Ekkert breytist á netþjónunum sjálfum.',
+  'settings.removeAllConfirmButton': 'Fjarlægja allt',
+  'settings.cancel': 'Hætta við',
 };

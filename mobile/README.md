@@ -65,15 +65,18 @@ token, only relay the scanned code to it.
 
 ## Language
 
-The app follows the device's own language setting (`expo-localization`'s
-`getLocales()`), picking the first one it has a translation for and falling
-back to English — there is no in-app language switcher, since nothing here
-depends on overriding the device's choice. `src/i18n/en.ts` is the source of
-truth (every UI string as a flat `key: string` dictionary); every other
-locale is typed against it, so a translation missing a key — or carrying a
-stray one — is a compile error, not a silent English string sneaking through
-or a blank one. `src/i18n/index.ts` lazily loads a language's dictionary the
-first time it is actually selected, the same interface the web UI's own
+The app follows the device's own language setting by default
+(`expo-localization`'s `getLocales()`), picking the first one it has a
+translation for and falling back to English. Settings → Language can
+override that with a specific one instead (stored in `AsyncStorage`, a
+plain preference, unlike the connections list's own OS-keychain storage);
+picking "Automatic" there clears the override and goes back to following
+the device. `src/i18n/en.ts` is the source of truth (every UI string as a
+flat `key: string` dictionary); every other locale is typed against it, so a
+translation missing a key — or carrying a stray one — is a compile error,
+not a silent English string sneaking through or a blank one.
+`src/i18n/index.ts` lazily loads a language's dictionary the first time it
+is actually selected, the same interface the web UI's own
 `lib/locales/index.ts` uses, though on a native bundle every language still
 ships inside the one APK either way — see that file's own doc comment.
 Covers the same 42-language catalogue as the web UI and the browser
@@ -108,11 +111,35 @@ header on the socket too, not a query parameter — see `src/api/client.ts`'s
   (`expo-camera`) that hands back one decoded QR string; both scan buttons
   in the screens below use it.
 - `src/i18n/` — the translation system; see "Language" above.
-- `src/screens/` — Connections (the saved-server list), Connect (add one),
-  Downloads (the live queue, a connected server's own or a peer's),
-  Instances (that server's federation peers), Add Download.
+- `src/components/IconBadge.tsx` — the small round glyph buttons in a
+  screen's top bar (add, settings) - text glyphs, not an icon font/SVG set,
+  matching `QRScanner`'s own "QR" label and the back chevron already used
+  elsewhere.
+- `src/screens/` — Connections (the saved-server list and the app's own
+  landing screen), Connect (add one), Downloads (the live queue, a
+  connected server's own or a peer's), Instances (that server's federation
+  peers), Add Download, Settings, Language (the picker Settings opens).
 - `src/theme.ts` — a small dark palette, not the full GlimStone/Carbon token
   set the web UI carries.
+
+## App icon
+
+`assets/icon.png`/`favicon.png` (full-bleed, own white/grey backdrop baked
+in) and `assets/android-icon-foreground.png` (the logo alone, on true
+transparency, scaled to ~56% of the canvas) are generated from
+`.github/assets/kl_app_logo.svg` — a dedicated square variant of the repo's
+logo, made for exactly this — by `.github/assets/gen-mobile-icon.mjs`
+(`node .github/assets/gen-mobile-icon.mjs` from the repo root). Never hand-export
+a new `android-icon-foreground.png` by just re-exporting the flat square icon
+at a smaller size: Android's adaptive-icon system masks that layer itself
+(circle, squircle, rounded square... the shape varies by launcher) and only
+guarantees the inner ~61% of the canvas survives every shape, so a full-bleed
+or lightly-padded export gets its edges clipped on most of them — confirmed
+live, that was exactly the original bug (jdp: "ist falsch beschnitten. Ich
+hab ja extra ein quadratisches gemacht" — a square SOURCE image is right,
+but Android's own masking still needs the extra padding on the exported
+foreground layer specifically, a different requirement than the plain
+`icon.png`/`favicon.png` a square source is otherwise already correct for).
 
 ## Running it
 

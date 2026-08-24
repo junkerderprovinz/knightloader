@@ -72,4 +72,18 @@ export const nl: Dict = {
   'status.finished': 'voltooid',
   'status.failed': 'mislukt',
   'status.extracting': 'uitpakken',
+
+  'settings.title': 'Instellingen',
+  'settings.language': 'Taal',
+  'settings.languageAutomatic': 'Automatisch (apparaat)',
+  'settings.about': 'Over deze app',
+  'settings.version': 'Versie {version}',
+  'settings.githubLink': 'Bekijk op GitHub',
+  'settings.dangerZone': 'Gevarenzone',
+  'settings.removeAllConnections': 'Alle verbindingen verwijderen',
+  'settings.removeAllConfirmTitle': 'Alle verbindingen verwijderen?',
+  'settings.removeAllConfirmMessage':
+    'Verwijdert elke opgeslagen verbinding en het bijbehorende token van dit apparaat. Op de servers zelf verandert er niets.',
+  'settings.removeAllConfirmButton': 'Alles verwijderen',
+  'settings.cancel': 'Annuleren',
 };
