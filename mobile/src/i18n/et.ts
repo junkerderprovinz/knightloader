@@ -72,4 +72,18 @@ export const et: Dict = {
   'status.finished': 'lõpetatud',
   'status.failed': 'ebaõnnestus',
   'status.extracting': 'pakitakse lahti',
+
+  'settings.title': 'Seaded',
+  'settings.language': 'Keel',
+  'settings.languageAutomatic': 'Automaatne (seadme järgi)',
+  'settings.about': 'Rakendusest',
+  'settings.version': 'Versioon {version}',
+  'settings.githubLink': 'Vaata GitHubis',
+  'settings.dangerZone': 'Ohtlik tsoon',
+  'settings.removeAllConnections': 'Eemalda kõik ühendused',
+  'settings.removeAllConfirmTitle': 'Eemaldada kõik ühendused?',
+  'settings.removeAllConfirmMessage':
+    'See eemaldab sellest seadmest iga salvestatud ühenduse koos selle võtmega. Serverites endis ei muutu midagi.',
+  'settings.removeAllConfirmButton': 'Eemalda kõik',
+  'settings.cancel': 'Tühista',
 };

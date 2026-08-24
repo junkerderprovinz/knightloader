@@ -72,4 +72,18 @@ export const uk: Dict = {
   'status.finished': 'завершено',
   'status.failed': 'помилка',
   'status.extracting': 'розпакування',
+
+  'settings.title': 'Налаштування',
+  'settings.language': 'Мова',
+  'settings.languageAutomatic': 'Автоматично (пристрій)',
+  'settings.about': 'Про застосунок',
+  'settings.version': 'Версія {version}',
+  'settings.githubLink': 'Переглянути на GitHub',
+  'settings.dangerZone': 'Небезпечна зона',
+  'settings.removeAllConnections': 'Видалити всі підключення',
+  'settings.removeAllConfirmTitle': 'Видалити всі підключення?',
+  'settings.removeAllConfirmMessage':
+    'Видаляє з цього пристрою кожне збережене підключення разом із його токеном. На самих серверах нічого не зміниться.',
+  'settings.removeAllConfirmButton': 'Видалити все',
+  'settings.cancel': 'Скасувати',
 };

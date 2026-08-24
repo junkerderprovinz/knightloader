@@ -72,4 +72,18 @@ export const th: Dict = {
   'status.finished': 'เสร็จสิ้น',
   'status.failed': 'ล้มเหลว',
   'status.extracting': 'กำลังแตกไฟล์',
+
+  'settings.title': 'การตั้งค่า',
+  'settings.language': 'ภาษา',
+  'settings.languageAutomatic': 'อัตโนมัติ (ตามอุปกรณ์)',
+  'settings.about': 'เกี่ยวกับแอป',
+  'settings.version': 'เวอร์ชัน {version}',
+  'settings.githubLink': 'ดูใน GitHub',
+  'settings.dangerZone': 'โซนอันตราย',
+  'settings.removeAllConnections': 'ลบการเชื่อมต่อทั้งหมด',
+  'settings.removeAllConfirmTitle': 'ลบการเชื่อมต่อทั้งหมดหรือไม่',
+  'settings.removeAllConfirmMessage':
+    'การดำเนินการนี้จะลบการเชื่อมต่อที่บันทึกไว้ทั้งหมดพร้อมโทเคนออกจากอุปกรณ์นี้ โดยไม่มีผลต่อตัวเซิร์ฟเวอร์เอง',
+  'settings.removeAllConfirmButton': 'ลบทั้งหมด',
+  'settings.cancel': 'ยกเลิก',
 };

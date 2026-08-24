@@ -72,4 +72,18 @@ export const hu: Dict = {
   'status.finished': 'befejezve',
   'status.failed': 'sikertelen',
   'status.extracting': 'kicsomagolás',
+
+  'settings.title': 'Beállítások',
+  'settings.language': 'Nyelv',
+  'settings.languageAutomatic': 'Automatikus (eszköz)',
+  'settings.about': 'Névjegy',
+  'settings.version': 'Verzió {version}',
+  'settings.githubLink': 'Megtekintés a GitHubon',
+  'settings.dangerZone': 'Veszélyzóna',
+  'settings.removeAllConnections': 'Összes kapcsolat eltávolítása',
+  'settings.removeAllConfirmTitle': 'Eltávolítod az összes kapcsolatot?',
+  'settings.removeAllConfirmMessage':
+    'Eltávolít erről az eszközről minden elmentett kapcsolatot a hozzá tartozó tokennel együtt. Magukon a szervereken semmi nem változik.',
+  'settings.removeAllConfirmButton': 'Összes eltávolítása',
+  'settings.cancel': 'Mégse',
 };

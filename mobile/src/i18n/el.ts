@@ -72,4 +72,18 @@ export const el: Dict = {
   'status.finished': 'ολοκληρώθηκε',
   'status.failed': 'απέτυχε',
   'status.extracting': 'εξαγωγή',
+
+  'settings.title': 'Ρυθμίσεις',
+  'settings.language': 'Γλώσσα',
+  'settings.languageAutomatic': 'Αυτόματα (συσκευή)',
+  'settings.about': 'Σχετικά',
+  'settings.version': 'Έκδοση {version}',
+  'settings.githubLink': 'Προβολή στο GitHub',
+  'settings.dangerZone': 'Επικίνδυνη ζώνη',
+  'settings.removeAllConnections': 'Αφαίρεση όλων των συνδέσεων',
+  'settings.removeAllConfirmTitle': 'Αφαίρεση όλων των συνδέσεων;',
+  'settings.removeAllConfirmMessage':
+    'Αφαιρεί από αυτή τη συσκευή κάθε αποθηκευμένη σύνδεση μαζί με το token της. Στους ίδιους τους διακομιστές δεν αλλάζει τίποτα.',
+  'settings.removeAllConfirmButton': 'Αφαίρεση όλων',
+  'settings.cancel': 'Ακύρωση',
 };

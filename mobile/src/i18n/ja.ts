@@ -72,4 +72,18 @@ export const ja: Dict = {
   'status.finished': '完了',
   'status.failed': '失敗',
   'status.extracting': '展開中',
+
+  'settings.title': '設定',
+  'settings.language': '言語',
+  'settings.languageAutomatic': '自動(端末)',
+  'settings.about': 'このアプリについて',
+  'settings.version': 'バージョン {version}',
+  'settings.githubLink': 'GitHubで見る',
+  'settings.dangerZone': '危険な操作',
+  'settings.removeAllConnections': 'すべての接続を削除',
+  'settings.removeAllConfirmTitle': 'すべての接続を削除しますか?',
+  'settings.removeAllConfirmMessage':
+    'この端末に保存されているすべての接続とそのトークンを削除します。サーバー側は何も変わりません。',
+  'settings.removeAllConfirmButton': 'すべて削除',
+  'settings.cancel': 'キャンセル',
 };

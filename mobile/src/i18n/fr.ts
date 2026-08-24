@@ -72,4 +72,18 @@ export const fr: Dict = {
   'status.finished': 'terminé',
   'status.failed': 'échoué',
   'status.extracting': 'extraction',
+
+  'settings.title': 'Paramètres',
+  'settings.language': 'Langue',
+  'settings.languageAutomatic': 'Automatique (appareil)',
+  'settings.about': 'À propos',
+  'settings.version': 'Version {version}',
+  'settings.githubLink': 'Voir sur GitHub',
+  'settings.dangerZone': 'Zone dangereuse',
+  'settings.removeAllConnections': 'Supprimer toutes les connexions',
+  'settings.removeAllConfirmTitle': 'Supprimer toutes les connexions ?',
+  'settings.removeAllConfirmMessage':
+    'Supprime chaque connexion enregistrée et son jeton de cet appareil. Cela ne change rien sur les serveurs eux-mêmes.',
+  'settings.removeAllConfirmButton': 'Tout supprimer',
+  'settings.cancel': 'Annuler',
 };

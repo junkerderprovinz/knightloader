@@ -72,4 +72,18 @@ export const eu: Dict = {
   'status.finished': 'amaituta',
   'status.failed': 'huts egin du',
   'status.extracting': 'erauzten',
+
+  'settings.title': 'Ezarpenak',
+  'settings.language': 'Hizkuntza',
+  'settings.languageAutomatic': 'Automatikoa (gailuaren arabera)',
+  'settings.about': 'Honi buruz',
+  'settings.version': 'Bertsioa {version}',
+  'settings.githubLink': 'Ikusi GitHub-en',
+  'settings.dangerZone': 'Arrisku-eremua',
+  'settings.removeAllConnections': 'Kendu konexio guztiak',
+  'settings.removeAllConfirmTitle': 'Konexio guztiak kendu nahi dituzu?',
+  'settings.removeAllConfirmMessage':
+    'Honek gailu honetatik kentzen du gordetako konexio bakoitza, bere tokenarekin batera. Zerbitzarietan bertan ez da ezer aldatzen.',
+  'settings.removeAllConfirmButton': 'Kendu guztiak',
+  'settings.cancel': 'Utzi',
 };

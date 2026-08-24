@@ -5,19 +5,26 @@ import { listConnections, removeConnection, setActiveConnectionId } from '../sto
 import type { ServerConnection } from '../api/types';
 import { colors } from '../theme';
 import { useT } from '../i18n/I18nContext';
+import IconBadge from '../components/IconBadge';
 
 type ConnStatus = 'checking' | 'online' | 'offline';
 
-// The home screen once more than one server is saved: every KnightLoader
-// this phone knows about directly, each with its own token. A tap makes one
-// active and opens its Downloads screen; this screen itself never shows
-// tasks, so it stays fast to scan even with several boxes on flaky Wi-Fi.
+// The home screen, opened straight from a fresh install rather than the
+// connect form: it lands you IN the app first, empty state included, with
+// the connect screen and Settings only ever a badge tap away, not something
+// forced on you before you have looked at anything (jdp, 2026-08-24: "es
+// soll nicht sofort gleich der Verbindungsbildschirm kommen"). A tap on a
+// row makes that connection active and opens its Downloads screen; this
+// screen itself never shows tasks, so it stays fast to scan even with
+// several boxes on flaky Wi-Fi.
 export default function ConnectionsScreen({
   onActivate,
   onAddPress,
+  onOpenSettings,
 }: {
   onActivate: (conn: ServerConnection) => void;
   onAddPress: () => void;
+  onOpenSettings: () => void;
 }) {
   const { t } = useT();
   const [connections, setConnections] = useState<ServerConnection[]>([]);
@@ -54,9 +61,10 @@ export default function ConnectionsScreen({
     <View style={styles.container}>
       <View style={styles.topBar}>
         <Text style={styles.title}>KnightLoader</Text>
-        <TouchableOpacity style={styles.addButton} onPress={onAddPress}>
-          <Text style={styles.addButtonText}>{t('connections.addButton')}</Text>
-        </TouchableOpacity>
+        <View style={styles.badgeRow}>
+          <IconBadge symbol="+" accent onPress={onAddPress} accessibilityLabel={t('connections.addButton')} />
+          <IconBadge symbol="⚙" onPress={onOpenSettings} accessibilityLabel={t('settings.title')} />
+        </View>
       </View>
 
       <FlatList
@@ -110,8 +118,7 @@ const styles = StyleSheet.create({
     paddingTop: 56,
   },
   title: { color: colors.text, fontSize: 22, fontWeight: '700' },
-  addButton: { backgroundColor: colors.accent, borderRadius: 8, paddingVertical: 8, paddingHorizontal: 14 },
-  addButtonText: { color: colors.text, fontSize: 13, fontWeight: '600' },
+  badgeRow: { flexDirection: 'row', gap: 10 },
   list: { paddingHorizontal: 16, paddingBottom: 32, gap: 8 },
   row: {
     flexDirection: 'row',

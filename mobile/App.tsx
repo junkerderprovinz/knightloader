@@ -3,13 +3,15 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { listConnections, loadActiveConnection, setActiveConnectionId } from './src/storage/connections';
+import { loadActiveConnection, setActiveConnectionId } from './src/storage/connections';
 import type { Instance, ServerConnection } from './src/api/types';
 import ConnectionsScreen from './src/screens/ConnectionsScreen';
 import ConnectScreen from './src/screens/ConnectScreen';
 import DownloadsScreen from './src/screens/DownloadsScreen';
 import InstancesScreen from './src/screens/InstancesScreen';
 import AddDownloadScreen from './src/screens/AddDownloadScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
+import LanguagePickerScreen from './src/screens/LanguagePickerScreen';
 import { colors } from './src/theme';
 import { I18nProvider } from './src/i18n/I18nContext';
 
@@ -19,6 +21,8 @@ type RootStackParamList = {
   Downloads: { peer?: Instance } | undefined;
   Instances: undefined;
   AddDownload: { peer?: Instance } | undefined;
+  Settings: undefined;
+  LanguagePicker: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -27,11 +31,15 @@ export default function App() {
   const [conn, setConn] = useState<ServerConnection | null>(null);
   const [loading, setLoading] = useState(true);
   // The screen the navigator opens on: Downloads if a connection was left
-  // active last time, Connections if there's a saved list to pick from,
-  // AddConnection only on a genuine first run with nothing saved yet -
-  // mirrors the single-connection app's old "straight to Connect" behavior
-  // for that one case, instead of showing an empty list first.
-  const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList>('AddConnection');
+  // active last time, Connections otherwise - EVERY other case, saved list
+  // or none at all, lands in the app itself first. It used to jump straight
+  // to the connect form on a bare-empty list, which is exactly the "thrown
+  // into a form before I've even seen the app" jdp asked to remove
+  // (2026-08-24: "es soll nicht sofort gleich der Verbindungsbildschirm
+  // kommen") - ConnectionsScreen's own empty state already offers the same
+  // "add a connection" action, just as something you land ON rather than
+  // something forced in front of you.
+  const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList>('Connections');
 
   useEffect(() => {
     (async () => {
@@ -39,9 +47,6 @@ export default function App() {
       if (active) {
         setConn(active);
         setInitialRoute('Downloads');
-      } else {
-        const saved = await listConnections();
-        setInitialRoute(saved.length > 0 ? 'Connections' : 'AddConnection');
       }
       setLoading(false);
     })();
@@ -68,6 +73,7 @@ export default function App() {
                   navigation.navigate('Downloads', {});
                 }}
                 onAddPress={() => navigation.navigate('AddConnection')}
+                onOpenSettings={() => navigation.navigate('Settings')}
               />
             )}
           </Stack.Screen>
@@ -95,6 +101,7 @@ export default function App() {
                     navigation.navigate('Connections');
                   }}
                   onOpenInstances={() => navigation.navigate('Instances')}
+                  onOpenSettings={() => navigation.navigate('Settings')}
                   onBackToOwn={route.params?.peer ? () => navigation.goBack() : undefined}
                 />
               ) : null
@@ -115,6 +122,23 @@ export default function App() {
                 <AddDownloadScreen conn={conn} peer={route.params?.peer} onDone={() => navigation.goBack()} />
               ) : null
             }
+          </Stack.Screen>
+
+          <Stack.Screen name="Settings">
+            {({ navigation }) => (
+              <SettingsScreen
+                onBack={() => navigation.goBack()}
+                onOpenLanguagePicker={() => navigation.navigate('LanguagePicker')}
+                onRemovedAllConnections={() => {
+                  setConn(null);
+                  navigation.reset({ index: 0, routes: [{ name: 'Connections' }] });
+                }}
+              />
+            )}
+          </Stack.Screen>
+
+          <Stack.Screen name="LanguagePicker">
+            {({ navigation }) => <LanguagePickerScreen onBack={() => navigation.goBack()} />}
           </Stack.Screen>
         </Stack.Navigator>
       </NavigationContainer>

@@ -72,4 +72,18 @@ export const lv: Dict = {
   'status.finished': 'pabeigts',
   'status.failed': 'neizdevās',
   'status.extracting': 'atspiež',
+
+  'settings.title': 'Iestatījumi',
+  'settings.language': 'Valoda',
+  'settings.languageAutomatic': 'Automātiski (pēc ierīces)',
+  'settings.about': 'Par lietotni',
+  'settings.version': 'Versija {version}',
+  'settings.githubLink': 'Skatīt GitHub',
+  'settings.dangerZone': 'Bīstamā zona',
+  'settings.removeAllConnections': 'Noņemt visus savienojumus',
+  'settings.removeAllConfirmTitle': 'Noņemt visus savienojumus?',
+  'settings.removeAllConfirmMessage':
+    'Šī darbība no ierīces noņem katru saglabāto savienojumu kopā ar tā piekļuves marķieri. Pašos serveros nekas nemainās.',
+  'settings.removeAllConfirmButton': 'Noņemt visu',
+  'settings.cancel': 'Atcelt',
 };

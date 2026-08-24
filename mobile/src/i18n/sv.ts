@@ -72,4 +72,18 @@ export const sv: Dict = {
   'status.finished': 'klar',
   'status.failed': 'misslyckades',
   'status.extracting': 'packar upp',
+
+  'settings.title': 'Inställningar',
+  'settings.language': 'Språk',
+  'settings.languageAutomatic': 'Automatiskt (enhet)',
+  'settings.about': 'Om appen',
+  'settings.version': 'Version {version}',
+  'settings.githubLink': 'Visa på GitHub',
+  'settings.dangerZone': 'Farozon',
+  'settings.removeAllConnections': 'Ta bort alla anslutningar',
+  'settings.removeAllConfirmTitle': 'Ta bort alla anslutningar?',
+  'settings.removeAllConfirmMessage':
+    'Tar bort varje sparad anslutning och dess token från den här enheten. Det ändrar ingenting på själva servrarna.',
+  'settings.removeAllConfirmButton': 'Ta bort alla',
+  'settings.cancel': 'Avbryt',
 };

@@ -72,4 +72,18 @@ export const bg: Dict = {
   'status.finished': 'завършено',
   'status.failed': 'неуспешно',
   'status.extracting': 'разархивиране',
+
+  'settings.title': 'Настройки',
+  'settings.language': 'Език',
+  'settings.languageAutomatic': 'Автоматично (според устройството)',
+  'settings.about': 'Относно',
+  'settings.version': 'Версия {version}',
+  'settings.githubLink': 'Преглед в GitHub',
+  'settings.dangerZone': 'Опасна зона',
+  'settings.removeAllConnections': 'Премахване на всички връзки',
+  'settings.removeAllConfirmTitle': 'Премахване на всички връзки?',
+  'settings.removeAllConfirmMessage':
+    'Това премахва от това устройство всяка запазена връзка заедно с нейния токен. На самите сървъри нищо не се променя.',
+  'settings.removeAllConfirmButton': 'Премахни всички',
+  'settings.cancel': 'Отказ',
 };

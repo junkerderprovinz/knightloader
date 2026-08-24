@@ -72,4 +72,18 @@ export const it: Dict = {
   'status.finished': 'completato',
   'status.failed': 'non riuscito',
   'status.extracting': 'estrazione',
+
+  'settings.title': 'Impostazioni',
+  'settings.language': 'Lingua',
+  'settings.languageAutomatic': 'Automatica (dispositivo)',
+  'settings.about': 'Informazioni',
+  'settings.version': 'Versione {version}',
+  'settings.githubLink': 'Vedi su GitHub',
+  'settings.dangerZone': 'Zona pericolosa',
+  'settings.removeAllConnections': 'Rimuovi tutte le connessioni',
+  'settings.removeAllConfirmTitle': 'Rimuovere tutte le connessioni?',
+  'settings.removeAllConfirmMessage':
+    'Rimuove da questo dispositivo ogni connessione salvata e il relativo token. Sui server non cambia nulla.',
+  'settings.removeAllConfirmButton': 'Rimuovi tutto',
+  'settings.cancel': 'Annulla',
 };

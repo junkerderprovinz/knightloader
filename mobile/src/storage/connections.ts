@@ -37,6 +37,14 @@ export async function removeConnection(id: string): Promise<void> {
   if (active === id) await setActiveConnectionId(null);
 }
 
+// removeAllConnections is Settings' own "start over" action - every saved
+// token gone from this device in one step, not one remove tap per
+// connection.
+export async function removeAllConnections(): Promise<void> {
+  await saveList([]);
+  await setActiveConnectionId(null);
+}
+
 export async function getActiveConnectionId(): Promise<string | null> {
   return (await SecureStore.getItemAsync(ACTIVE_KEY)) || null;
 }

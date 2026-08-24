@@ -71,4 +71,18 @@ export const de: Dict = {
   'status.finished': 'fertig',
   'status.failed': 'fehlgeschlagen',
   'status.extracting': 'entpackt',
+
+  'settings.title': 'Einstellungen',
+  'settings.language': 'Sprache',
+  'settings.languageAutomatic': 'Automatisch (Gerät)',
+  'settings.about': 'Über diese App',
+  'settings.version': 'Version {version}',
+  'settings.githubLink': 'Auf GitHub ansehen',
+  'settings.dangerZone': 'Gefahrenzone',
+  'settings.removeAllConnections': 'Alle Verbindungen entfernen',
+  'settings.removeAllConfirmTitle': 'Alle Verbindungen entfernen?',
+  'settings.removeAllConfirmMessage':
+    'Entfernt jede gespeicherte Verbindung samt Token von diesem Gerät. Auf den Servern selbst ändert sich dadurch nichts.',
+  'settings.removeAllConfirmButton': 'Alle entfernen',
+  'settings.cancel': 'Abbrechen',
 };

@@ -72,4 +72,18 @@ export const lt: Dict = {
   'status.finished': 'baigta',
   'status.failed': 'nepavyko',
   'status.extracting': 'išpakuojama',
+
+  'settings.title': 'Nustatymai',
+  'settings.language': 'Kalba',
+  'settings.languageAutomatic': 'Automatinė (pagal įrenginį)',
+  'settings.about': 'Apie programą',
+  'settings.version': 'Versija {version}',
+  'settings.githubLink': 'Žiūrėti „GitHub“',
+  'settings.dangerZone': 'Pavojinga zona',
+  'settings.removeAllConnections': 'Pašalinti visus ryšius',
+  'settings.removeAllConfirmTitle': 'Pašalinti visus ryšius?',
+  'settings.removeAllConfirmMessage':
+    'Iš šio įrenginio pašalinamas kiekvienas išsaugotas ryšys kartu su jo prieigos raktu. Pačiuose serveriuose niekas nepakinta.',
+  'settings.removeAllConfirmButton': 'Pašalinti viską',
+  'settings.cancel': 'Atšaukti',
 };

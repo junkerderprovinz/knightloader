@@ -72,4 +72,18 @@ export const cs: Dict = {
   'status.finished': 'dokončeno',
   'status.failed': 'selhalo',
   'status.extracting': 'rozbaluje se',
+
+  'settings.title': 'Nastavení',
+  'settings.language': 'Jazyk',
+  'settings.languageAutomatic': 'Automaticky (zařízení)',
+  'settings.about': 'O aplikaci',
+  'settings.version': 'Verze {version}',
+  'settings.githubLink': 'Zobrazit na GitHubu',
+  'settings.dangerZone': 'Nebezpečná zóna',
+  'settings.removeAllConnections': 'Odebrat všechna připojení',
+  'settings.removeAllConfirmTitle': 'Odebrat všechna připojení?',
+  'settings.removeAllConfirmMessage':
+    'Odebere z tohoto zařízení každé uložené připojení i jeho token. Na samotných serverech se nic nezmění.',
+  'settings.removeAllConfirmButton': 'Odebrat vše',
+  'settings.cancel': 'Zrušit',
 };

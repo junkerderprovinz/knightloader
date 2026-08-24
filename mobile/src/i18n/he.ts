@@ -72,4 +72,18 @@ export const he: Dict = {
   'status.finished': 'הושלם',
   'status.failed': 'נכשל',
   'status.extracting': 'מחלץ',
+
+  'settings.title': 'הגדרות',
+  'settings.language': 'שפה',
+  'settings.languageAutomatic': 'אוטומטי (לפי המכשיר)',
+  'settings.about': 'אודות',
+  'settings.version': 'גרסה {version}',
+  'settings.githubLink': 'צפייה ב-GitHub',
+  'settings.dangerZone': 'אזור מסוכן',
+  'settings.removeAllConnections': 'הסרת כל החיבורים',
+  'settings.removeAllConfirmTitle': 'להסיר את כל החיבורים?',
+  'settings.removeAllConfirmMessage':
+    'פעולה זו מסירה ממכשיר זה כל חיבור שנשמר יחד עם הטוקן שלו. בשרתים עצמם שום דבר לא משתנה.',
+  'settings.removeAllConfirmButton': 'הסרת הכול',
+  'settings.cancel': 'ביטול',
 };

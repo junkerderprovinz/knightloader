@@ -73,6 +73,20 @@ export const en = {
   'status.finished': 'finished',
   'status.failed': 'failed',
   'status.extracting': 'extracting',
+
+  'settings.title': 'Settings',
+  'settings.language': 'Language',
+  'settings.languageAutomatic': 'Automatic (device)',
+  'settings.about': 'About',
+  'settings.version': 'Version {version}',
+  'settings.githubLink': 'View on GitHub',
+  'settings.dangerZone': 'Danger zone',
+  'settings.removeAllConnections': 'Remove all connections',
+  'settings.removeAllConfirmTitle': 'Remove all connections?',
+  'settings.removeAllConfirmMessage':
+    'This removes every saved connection and its token from this device. It does not change anything on the servers themselves.',
+  'settings.removeAllConfirmButton': 'Remove all',
+  'settings.cancel': 'Cancel',
 } as const;
 
 export type Dict = { [K in keyof typeof en]: string };

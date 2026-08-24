@@ -72,4 +72,18 @@ export const ca: Dict = {
   'status.finished': 'finalitzat',
   'status.failed': 'fallit',
   'status.extracting': 'extraient',
+
+  'settings.title': 'Configuració',
+  'settings.language': 'Idioma',
+  'settings.languageAutomatic': 'Automàtic (dispositiu)',
+  'settings.about': 'Quant a',
+  'settings.version': 'Versió {version}',
+  'settings.githubLink': 'Veure a GitHub',
+  'settings.dangerZone': 'Zona de perill',
+  'settings.removeAllConnections': 'Elimina totes les connexions',
+  'settings.removeAllConfirmTitle': 'Vols eliminar totes les connexions?',
+  'settings.removeAllConfirmMessage':
+    "Elimina d'aquest dispositiu cada connexió desada juntament amb el seu token. Als servidors mateixos no hi canvia res.",
+  'settings.removeAllConfirmButton': 'Elimina-ho tot',
+  'settings.cancel': 'Cancel·la',
 };

@@ -72,4 +72,18 @@ export const sk: Dict = {
   'status.finished': 'dokončené',
   'status.failed': 'zlyhalo',
   'status.extracting': 'rozbaľuje sa',
+
+  'settings.title': 'Nastavenia',
+  'settings.language': 'Jazyk',
+  'settings.languageAutomatic': 'Automaticky (podľa zariadenia)',
+  'settings.about': 'O aplikácii',
+  'settings.version': 'Verzia {version}',
+  'settings.githubLink': 'Zobraziť na GitHube',
+  'settings.dangerZone': 'Nebezpečná zóna',
+  'settings.removeAllConnections': 'Odstrániť všetky pripojenia',
+  'settings.removeAllConfirmTitle': 'Odstrániť všetky pripojenia?',
+  'settings.removeAllConfirmMessage':
+    'Odstráni z tohto zariadenia každé uložené pripojenie spolu s jeho tokenom. Na samotných serveroch sa nič nezmení.',
+  'settings.removeAllConfirmButton': 'Odstrániť všetko',
+  'settings.cancel': 'Zrušiť',
 };

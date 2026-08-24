@@ -72,4 +72,18 @@ export const no: Dict = {
   'status.finished': 'fullført',
   'status.failed': 'mislyktes',
   'status.extracting': 'pakker ut',
+
+  'settings.title': 'Innstillinger',
+  'settings.language': 'Språk',
+  'settings.languageAutomatic': 'Automatisk (enhet)',
+  'settings.about': 'Om appen',
+  'settings.version': 'Versjon {version}',
+  'settings.githubLink': 'Vis på GitHub',
+  'settings.dangerZone': 'Faresone',
+  'settings.removeAllConnections': 'Fjern alle tilkoblinger',
+  'settings.removeAllConfirmTitle': 'Fjerne alle tilkoblinger?',
+  'settings.removeAllConfirmMessage':
+    'Fjerner hver lagrede tilkobling og tilhørende token fra denne enheten. Det endrer ingenting på selve serverne.',
+  'settings.removeAllConfirmButton': 'Fjern alle',
+  'settings.cancel': 'Avbryt',
 };

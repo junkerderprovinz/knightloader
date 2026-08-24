@@ -72,4 +72,18 @@ export const zh: Dict = {
   'status.finished': '已完成',
   'status.failed': '失败',
   'status.extracting': '解压中',
+
+  'settings.title': '设置',
+  'settings.language': '语言',
+  'settings.languageAutomatic': '自动（跟随设备）',
+  'settings.about': '关于',
+  'settings.version': '版本 {version}',
+  'settings.githubLink': '在 GitHub 上查看',
+  'settings.dangerZone': '危险区域',
+  'settings.removeAllConnections': '移除所有连接',
+  'settings.removeAllConfirmTitle': '移除所有连接？',
+  'settings.removeAllConfirmMessage':
+    '这会从此设备移除每一个已保存的连接及其令牌，服务器本身不会有任何变化。',
+  'settings.removeAllConfirmButton': '全部移除',
+  'settings.cancel': '取消',
 };

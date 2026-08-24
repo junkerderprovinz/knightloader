@@ -72,4 +72,18 @@ export const fi: Dict = {
   'status.finished': 'valmis',
   'status.failed': 'epäonnistui',
   'status.extracting': 'puretaan',
+
+  'settings.title': 'Asetukset',
+  'settings.language': 'Kieli',
+  'settings.languageAutomatic': 'Automaattinen (laite)',
+  'settings.about': 'Tietoja',
+  'settings.version': 'Versio {version}',
+  'settings.githubLink': 'Näytä GitHubissa',
+  'settings.dangerZone': 'Vaaravyöhyke',
+  'settings.removeAllConnections': 'Poista kaikki yhteydet',
+  'settings.removeAllConfirmTitle': 'Poistetaanko kaikki yhteydet?',
+  'settings.removeAllConfirmMessage':
+    'Poistaa tästä laitteesta jokaisen tallennetun yhteyden ja sen tokenin. Palvelimilla itsellään ei muutu mikään.',
+  'settings.removeAllConfirmButton': 'Poista kaikki',
+  'settings.cancel': 'Peruuta',
 };

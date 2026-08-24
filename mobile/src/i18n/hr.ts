@@ -72,4 +72,18 @@ export const hr: Dict = {
   'status.finished': 'završeno',
   'status.failed': 'neuspjelo',
   'status.extracting': 'raspakiravanje',
+
+  'settings.title': 'Postavke',
+  'settings.language': 'Jezik',
+  'settings.languageAutomatic': 'Automatski (prema uređaju)',
+  'settings.about': 'O aplikaciji',
+  'settings.version': 'Verzija {version}',
+  'settings.githubLink': 'Pogledaj na GitHubu',
+  'settings.dangerZone': 'Opasna zona',
+  'settings.removeAllConnections': 'Ukloni sve veze',
+  'settings.removeAllConfirmTitle': 'Ukloniti sve veze?',
+  'settings.removeAllConfirmMessage':
+    'Ovo uklanja svaku spremljenu vezu i njezin token s ovog uređaja. Na samim poslužiteljima ništa se ne mijenja.',
+  'settings.removeAllConfirmButton': 'Ukloni sve',
+  'settings.cancel': 'Odustani',
 };
