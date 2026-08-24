@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { type Diagnostics as DiagnosticsBundle, fetchDiagnostics } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useResource } from '../../lib/useResource';
-import { Button, Card, ErrorCard, InfoBubble, LoadingCard, SectionTitle } from '../../components/ui';
+import { Button, Card, ErrorCard, LoadingCard, SectionTitle } from '../../components/ui';
 import { IconDownloads } from '../../lib/icons';
 
 /**
@@ -141,14 +141,12 @@ export function Diagnostics() {
 
       <Card className="p-0">
         <div className="p-5 pb-0">
-          <SectionTitle hue={1} right={<Button kind="ghost" onClick={reload}>{cx('settings.diagnostics.refresh')}</Button>}>
-            {/* The hint lives behind the (i), not on its own line - see
-                components/ui.tsx's own Field comment on why, and Modules.tsx's
-                Group for the identical shape on a SectionTitle. */}
-            <span className="flex items-center">
-              {cx('settings.diagnostics.logTitle')}
-              <InfoBubble tip={cx('settings.diagnostics.logHint', { n: data.logCapacity })} />
-            </span>
+          <SectionTitle
+            hue={1}
+            hint={cx('settings.diagnostics.logHint', { n: data.logCapacity })}
+            right={<Button kind="ghost" onClick={reload}>{cx('settings.diagnostics.refresh')}</Button>}
+          >
+            {cx('settings.diagnostics.logTitle')}
           </SectionTitle>
         </div>
         {data.logLines.length === 0 ? (

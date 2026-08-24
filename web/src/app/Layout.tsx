@@ -12,7 +12,7 @@ import { IdleActionBanner } from '../components/IdleActionBanner';
 import { OnboardingWizard } from '../components/OnboardingWizard';
 import { StatusStrip } from '../components/StatusStrip';
 import { InfoBubble } from '../components/ui';
-import { connectWS, fetchSettings, type Task } from '../lib/api';
+import { connectWS, fetchDeploymentInfo, fetchSettings, fetchUpdateCheck, type Task } from '../lib/api';
 import { applyAccent, applyRainbow, applyShape, cacheAppearance, rainbowFromSettings } from '../lib/appearance';
 import { InstanceProvider, useInstanceScope } from '../lib/instance';
 import { useToast } from '../lib/toast';
@@ -148,9 +148,38 @@ function ShellBar({ visible }: { visible: boolean }) {
   );
 }
 
+// Once per app load (jdp, 2026-08-24: the toggle on the Allgemein tab should
+// mean "automatic", not "only while that tab happens to be open"): if the
+// build is desktop and the setting is on, check for a newer release and
+// toast it - the same GET /api/system/update-check the Allgemein tab's own
+// manual button uses, just fired here too so it reaches someone who never
+// opens Settings at all. Silent when off, on the container build, or when
+// already current - a toast on every launch for "you're up to date" would
+// train people to dismiss it without reading.
+function useAutoUpdateToast() {
+  const { toast } = useToast();
+  const { t } = useT();
+  useEffect(() => {
+    let live = true;
+    void (async () => {
+      const [deployment, settings] = await Promise.all([fetchDeploymentInfo(), fetchSettings()]);
+      if (!live || deployment.deployment !== 'desktop' || !settings.autoUpdateCheck) return;
+      const check = await fetchUpdateCheck().catch(() => null);
+      if (live && check?.checked && check.available && check.latest) {
+        toast(t('settings.look.updatesAvailable', { version: check.latest }), 'info');
+      }
+    })();
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per mount
+  }, []);
+}
+
 export function Layout() {
   const location = useLocation();
   useCompletionToasts();
+  useAutoUpdateToast();
   useAppearance();
   // Keyed on the SECTION, not the whole path.
   //

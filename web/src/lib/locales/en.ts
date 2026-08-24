@@ -85,7 +85,6 @@ export const en = {
   'empty.downloadsHint': 'Add links in the collector, then start them.',
 
   'collector.title': 'Collector',
-  'collector.subtitle': 'Paste or drop links — they are analysed and staged, then you start them.',
   'collector.placeholder': 'Paste links — one URL per line — or drop them here…  (Ctrl+Enter to add)',
   'collector.package': 'Package (optional)',
   'collector.add': 'Add to collector',
@@ -139,6 +138,11 @@ export const en = {
   'instances.metricTasks': 'Tasks',
   'instances.metricSpeed': 'Speed',
   'instances.removeTitle': 'Remove {name}',
+  'instances.pairTitle': 'Pair with a code',
+  'instances.pairHint': 'Paste a code from the other instance\'s Access page instead of typing its name and address.',
+  'instances.pairPlaceholder': 'Paste pairing code',
+  'instances.pairButton': 'Pair',
+  'instances.pairSuccess': 'Paired with {name} - it now knows about this instance too.',
 
   'accounts.title': 'Accounts',
   'accounts.subtitle': 'Premium and debrid accounts stay yours, stored encrypted on this instance.',
@@ -452,7 +456,7 @@ export const en = {
   'settings.nav.accounts': 'Accounts',
   'settings.nav.captcha': 'Captcha',
   'settings.nav.schedule': 'Schedule',
-  'settings.nav.look': 'Look',
+  'settings.nav.look': 'General',
   'settings.nav.access': 'Access',
   'settings.nav.advanced': 'Advanced',
 
@@ -501,7 +505,6 @@ export const en = {
   'settings.module.scripting': 'Event scripts',
   'settings.module.tray': 'Tray icon',
   'settings.module.windowpolicy': 'Window behaviour',
-  'settings.module.myjd': 'My.JDownloader',
   'settings.module.updater': 'In-app updates',
 
   'settings.advanced.subtitle': 'Every setting this instance has, by name.',
@@ -512,12 +515,13 @@ export const en = {
   'settings.advanced.colType': 'Type',
   'settings.advanced.colValue': 'Value',
   'settings.advanced.resetTitle': 'Put this key back to its default',
-  'settings.advanced.updatesTitle': 'Updates',
-  'settings.advanced.updatesCheck': 'Check for updates',
-  'settings.advanced.updatesChecking': 'Checking…',
-  'settings.advanced.updatesFailed': 'Could not check for updates.',
-  'settings.advanced.updatesCurrent': '{version} is the latest version.',
-  'settings.advanced.updatesAvailable': '{version} is available',
+  'settings.look.updatesTitle': 'Updates',
+  'settings.look.updatesAuto': 'Check automatically on startup',
+  'settings.look.updatesCheck': 'Check for updates',
+  'settings.look.updatesChecking': 'Checking…',
+  'settings.look.updatesFailed': 'Could not check for updates.',
+  'settings.look.updatesCurrent': '{version} is the latest version.',
+  'settings.look.updatesAvailable': '{version} is available',
   'settings.advanced.modified': 'changed',
   'settings.advanced.noMatch': 'No key matches.',
   'settings.advanced.badJson': 'This has to be valid JSON, so it is not being applied.',
@@ -1537,6 +1541,10 @@ export const en = {
   'settings.access.remote.install': 'Install',
   'settings.access.remote.installIOS':
     'On iPhone or iPad: open this page in Safari, tap Share, then "Add to Home Screen".',
+  'settings.access.remote.pairTitle': 'Pair another instance',
+  'settings.access.remote.pairBody': 'Add a KnightLoader you already run - no address to type, no account, nothing hosted. Generate a code here, then paste it into that instance\'s own Instances page.',
+  'settings.access.remote.pairGenerate': 'Generate pairing code',
+  'settings.access.remote.pairExpires': 'Valid for {min} minutes, then it expires unused.',
   'settings.access.intakePortsHint': 'Other ways this instance can be reached directly, outside the normal login - each with its own reachability shown here.',
 
   // Sending KnightLoader a link from outside the app - the bookmarklet, the

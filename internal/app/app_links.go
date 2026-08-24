@@ -121,6 +121,60 @@ func (a *App) AddLinksFrom(urls []string, pkg string, origin core.Origin) []*cor
 	return a.detached(a.addLinksFrom(urls, pkg, origin, LinkBatchOptions{}))
 }
 
+// AddResolvedLinksFrom stages links whose name and, where known, size have
+// already been found — a container's crawl (internal/resolver/jd's
+// AddContainer/AddCryptedV1) learns both while opening the container, because
+// opening it IS crawling it. Routing those links back through AddLinksFrom
+// would throw that answer away and stage bare URLs instead, leaving the
+// collector to show the raw link and no size until the user starts the
+// download and JD crawls the very same links a second time.
+//
+// It skips crawl(): a link a container already named is a resolved file, not
+// a page that might point at more of them, which page-crawling that link
+// again would only risk mistaking it for. Everything else - the link filter,
+// the packagizer, the duplicate check, batch naming and auto-confirm - runs
+// exactly as it does for AddLinksFrom, because a container is a delivery
+// mechanism and none of those decisions is about how a link arrived.
+func (a *App) AddResolvedLinksFrom(links []resolver.Result, pkg string, origin core.Origin) []*core.Task {
+	return a.detached(a.addResolvedLinksFrom(links, pkg, origin))
+}
+
+func (a *App) addResolvedLinksFrom(links []resolver.Result, pkg string, origin core.Origin) []*core.Task {
+	var created []*core.Task
+	seen := map[string]bool{}
+	b := &bucket{}
+	for _, l := range links {
+		u := strings.TrimSpace(l.DirectURL)
+		if u == "" || seen[u] {
+			continue
+		}
+		seen[u] = true
+		cand := rules.Candidate{URL: u, Package: pkg, Added: time.Now()}
+		if v := a.filter(cand); v.Rejected {
+			if t := a.hold(cand, v, origin, cand.Added); t != nil {
+				created = append(created, t)
+			}
+			continue
+		}
+		if t := a.stage(u, l.Name, l.Size, intake{pkg: pkg, origin: origin}); t != nil {
+			b.tasks = append(b.tasks, t)
+			created = append(created, t)
+		}
+	}
+	if strings.TrimSpace(pkg) == "" {
+		a.nameBucket(b)
+	}
+	a.catchAll(created)
+	if len(created) > 0 && a.Settings.Get().AutoConfirm {
+		ids := make([]string, 0, len(created))
+		for _, t := range created {
+			ids = append(ids, t.ID)
+		}
+		a.ConfirmTasks(ids, confirm.Config{}, confirm.TriggerAutoConfirm)
+	}
+	return created
+}
+
 // addLinksFrom is AddLinksFrom without the copy at the end.
 //
 // The copy has to happen once, at the outermost exported call, and not here: a
@@ -182,7 +236,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 				// did. Which page it was is on Source right beside it, which is also
 				// the only place a rule keyed on "where did this link come from" can
 				// get it.
-				if t := a.stage(c.URL, c.Name, intake{
+				if t := a.stage(c.URL, c.Name, 0, intake{
 					pkg: pkg, origin: OriginCrawl, source: u,
 					priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment,
 				}); t != nil {
@@ -193,7 +247,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 			buckets = append(buckets, b)
 			continue
 		}
-		if t := a.stage(u, "", intake{
+		if t := a.stage(u, "", 0, intake{
 			pkg: pkg, origin: origin,
 			priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment,
 		}); t != nil {
@@ -495,7 +549,13 @@ func (a *App) crawl(u string) []crawler.Result {
 //
 // It returns nil when the link never became a task, and the held task when the
 // filter refused it.
-func (a *App) stage(u, name string, in intake) *core.Task {
+//
+// sizeHint is what the caller already knows about the byte count - a
+// container's own crawl, for the same reason name can arrive pre-known (see
+// addResolvedLinksFrom) - and 0 for every caller that does not. It is applied
+// before the resolver runs and, like name, is not allowed to be overwritten by
+// a resolver's placeholder answer of 0 - see the guard below.
+func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	// One clock reading for the whole link, in local time: it is what CreatedAt
 	// gets and what pathvars formats for <jd:date>, and a UTC reading here would
 	// flip a dated folder name a day early for everyone east of Greenwich.
@@ -573,6 +633,9 @@ func (a *App) stage(u, name string, in intake) *core.Task {
 	if cand.Filename != "" {
 		t.Name = cand.Filename
 	}
+	if sizeHint > 0 {
+		t.Size = sizeHint
+	}
 	res := a.Registry.For(u)
 	if res == nil {
 		// A link is never dropped on the floor. If nothing can handle it, or
@@ -590,10 +653,22 @@ func (a *App) stage(u, name string, in intake) *core.Task {
 		t.Reason = classify(failure{err: err})
 		return a.finishStaging(t, cand)
 	}
-	if result.Name != "" {
+	// result.Name != u is deliberate, not a stray strictness. A resolver that
+	// does not yet know the real name answers with the URL itself rather than
+	// leaving Name blank - jd, ytdlp, debrid and torbox's own Resolve methods
+	// all do this, by their own doc comments, so a task always has something to
+	// show. filename() (below) already reads that exact convention the other
+	// way, treating Name == URL as "nothing resolved yet". That placeholder
+	// must not be allowed to overwrite a real name this link arrived with (a
+	// container's own crawl - see addResolvedLinksFrom), or the one useful
+	// answer staging already had is thrown away for the one that means "I don't
+	// know" - which is the bug a DLC's name and size were disappearing to.
+	if result.Name != "" && result.Name != u {
 		t.Name = result.Name
 	}
-	t.Size = result.Size
+	if result.Size > 0 {
+		t.Size = result.Size
+	}
 	if t.Resolver == "torrent" {
 		// resolver.Result (above) has no room for these - it is the one shape
 		// every resolver answers with, and InfoHash/Trackers mean nothing to

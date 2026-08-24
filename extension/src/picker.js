@@ -3,6 +3,7 @@
 // where" moment (jdp, 2026-08-23) for context-menu sends, which otherwise
 // bypass popup.html entirely and had no place to offer that choice.
 
+const headingEl = document.getElementById('heading');
 const targetEl = document.getElementById('target');
 const choicesEl = document.getElementById('choices');
 const sendBtn = document.getElementById('send');
@@ -11,17 +12,23 @@ const cancelBtn = document.getElementById('cancel');
 let payload = null;
 
 (async () => {
+  await loadLanguage();
+  headingEl.textContent = t('picker.title');
+  targetEl.textContent = t('picker.loading');
+  sendBtn.textContent = t('picker.send');
+  cancelBtn.textContent = t('picker.cancel');
+
   const { pendingSend } = await chrome.storage.session.get('pendingSend');
   // Read-once: a stale entry from a window the user closed without choosing
   // must never resurface and send the wrong link on the next click.
   await chrome.storage.session.remove('pendingSend');
   if (!pendingSend) {
-    targetEl.textContent = 'Nothing to send — this window can be closed.';
+    targetEl.textContent = t('picker.nothing');
     sendBtn.disabled = true;
     return;
   }
   payload = pendingSend.payload;
-  targetEl.textContent = payload.title || payload.url || payload.text || 'Untitled';
+  targetEl.textContent = payload.title || payload.url || payload.text || t('picker.untitled');
 
   const { instances } = await readInstances();
   for (const inst of instances) {

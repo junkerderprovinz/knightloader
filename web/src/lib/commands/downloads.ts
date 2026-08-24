@@ -24,6 +24,7 @@ export const downloadsCommands: Command[] = [
     icon: IconPause,
     group: 'commands.group.downloads',
     surfaces: ['downloads'],
+    defaultShortcut: 'mod+shift+p',
     // Same guard the toolbar button uses: the button itself only renders
     // while counts.running > 0 (Downloads.tsx), mirrored here against the
     // unfiltered task stream CommandContext carries instead of the page's
@@ -40,6 +41,7 @@ export const downloadsCommands: Command[] = [
     icon: IconPlay,
     group: 'commands.group.downloads',
     surfaces: ['downloads'],
+    defaultShortcut: 'mod+shift+r',
     enabled: (ctx) => ctx.tasks.some((x) => x.status === 'paused'),
     visible: (ctx) => ctx.tasks.some((x) => x.status === 'paused'),
     run: (ctx) => {
@@ -52,6 +54,7 @@ export const downloadsCommands: Command[] = [
     icon: IconRetry,
     group: 'commands.group.downloads',
     surfaces: ['downloads'],
+    defaultShortcut: 'mod+shift+z',
     enabled: (ctx) => ctx.tasks.some((x) => x.status === 'error'),
     visible: (ctx) => ctx.tasks.some((x) => x.status === 'error'),
     // restartTasks([], base) is the bulk form: an empty id list means every
@@ -93,6 +96,7 @@ export const downloadsCommands: Command[] = [
     icon: IconTrash,
     group: 'commands.group.downloads',
     surfaces: ['downloads'],
+    defaultShortcut: 'mod+shift+f',
     enabled: (ctx) => !!ctx.cleanup.classes?.includes('finished'),
     // Offered once the server has actually announced the class and there is
     // something for it to find — the same "an entry that cannot act on

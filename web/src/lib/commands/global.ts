@@ -26,13 +26,13 @@ import type { Command, CommandSurface } from './types';
 export const OPEN_PALETTE_ID = 'app.commandPalette.open';
 
 /** One "go to X" per surface with a real page, sharing the same run/enabled/visible shape. */
-const NAV: { id: string; labelKey: Command['labelKey']; icon: Command['icon']; surface: CommandSurface; path: string }[] = [
-  { id: 'nav.goOverview', labelKey: 'commands.goOverview', icon: IconDashboard, surface: 'overview', path: '/' },
-  { id: 'nav.goDownloads', labelKey: 'commands.goDownloads', icon: IconDownloads, surface: 'downloads', path: '/downloads' },
-  { id: 'nav.goCollector', labelKey: 'commands.goCollector', icon: IconCollector, surface: 'collector', path: '/collector' },
-  { id: 'nav.goInstances', labelKey: 'commands.goInstances', icon: IconInstances, surface: 'instances', path: '/instances' },
-  { id: 'nav.goAccounts', labelKey: 'commands.goAccounts', icon: IconAccounts, surface: 'accounts', path: '/accounts' },
-  { id: 'nav.goSettings', labelKey: 'commands.goSettings', icon: IconSettings, surface: 'settings', path: '/settings' },
+const NAV: { id: string; labelKey: Command['labelKey']; icon: Command['icon']; surface: CommandSurface; path: string; shortcut: string }[] = [
+  { id: 'nav.goOverview', labelKey: 'commands.goOverview', icon: IconDashboard, surface: 'overview', path: '/', shortcut: 'mod+shift+1' },
+  { id: 'nav.goDownloads', labelKey: 'commands.goDownloads', icon: IconDownloads, surface: 'downloads', path: '/downloads', shortcut: 'mod+shift+2' },
+  { id: 'nav.goCollector', labelKey: 'commands.goCollector', icon: IconCollector, surface: 'collector', path: '/collector', shortcut: 'mod+shift+3' },
+  { id: 'nav.goInstances', labelKey: 'commands.goInstances', icon: IconInstances, surface: 'instances', path: '/instances', shortcut: 'mod+shift+4' },
+  { id: 'nav.goAccounts', labelKey: 'commands.goAccounts', icon: IconAccounts, surface: 'accounts', path: '/accounts', shortcut: 'mod+shift+5' },
+  { id: 'nav.goSettings', labelKey: 'commands.goSettings', icon: IconSettings, surface: 'settings', path: '/settings', shortcut: 'mod+shift+6' },
 ];
 
 export const GLOBAL_COMMANDS: Command[] = [
@@ -61,6 +61,7 @@ export const GLOBAL_COMMANDS: Command[] = [
     icon: IconMoon,
     group: 'commands.group.general',
     surfaces: ['global'],
+    defaultShortcut: 'mod+shift+m',
     enabled: () => true,
     visible: () => true,
     // toggleTheme() itself notifies every onThemeChange() subscriber
@@ -72,12 +73,13 @@ export const GLOBAL_COMMANDS: Command[] = [
     },
   },
   ...NAV.map(
-    ({ id, labelKey, icon, surface, path }): Command => ({
+    ({ id, labelKey, icon, surface, path, shortcut }): Command => ({
       id,
       labelKey,
       icon,
       group: 'commands.group.navigation',
       surfaces: ['global'],
+      defaultShortcut: shortcut,
       enabled: () => true,
       // Left out of its own destination's list: jumping to the page already
       // open is a no-op with nothing to show for it, the same reason a

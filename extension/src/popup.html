@@ -13,12 +13,42 @@
         color: #f4f4f4;
         font: 13px/1.4 -apple-system, "Segoe UI", sans-serif;
       }
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
       h1 {
-        margin: 0 0 10px;
+        margin: 0;
         font-size: 13px;
         font-weight: 600;
         color: #fcc419;
       }
+      /* The settings badge (jdp: "im fenster oben rechts ein quadratischer
+         badge mit zahnrad um die einstellungen zu öffnen") — square, same
+         neutral/hover pair as the main app's own IconBadge (neutral kind:
+         web/src/components/ui.tsx), reused here in plain CSS since this
+         extension has no build step to pull the component from. */
+      .iconBadge {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        width: 26px;
+        height: 26px;
+        padding: 0;
+        margin: 0;
+        border: 0;
+        border-radius: 6px;
+        background: #393939;
+        color: #c6c6c6;
+        cursor: pointer;
+        transition: background-color 150ms ease, color 150ms ease;
+      }
+      .iconBadge:hover { background: #525252; color: #f4f4f4; }
+      .iconBadge:active { transform: scale(0.97); }
       p {
         margin: 0 0 12px;
         color: #c6c6c6;
@@ -53,15 +83,23 @@
     </style>
   </head>
   <body>
-    <h1>KnightLoader</h1>
+    <div class="header">
+      <h1>KnightLoader</h1>
+      <button id="openOptions" class="iconBadge" type="button" aria-label="Settings" title="Settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
+    </div>
     <p id="target">Loading the current page…</p>
     <div id="instanceRow" hidden>
-      <label for="instance">Send to</label>
+      <label for="instance" id="instanceLabel">Send to</label>
       <select id="instance"></select>
     </div>
     <button id="send" class="primary">Send this page</button>
-    <button id="openOptions" class="secondary">Instance settings</button>
     <div id="status"></div>
+    <script src="i18n.js"></script>
     <script src="shared.js"></script>
     <script src="popup.js"></script>
   </body>

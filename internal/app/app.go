@@ -144,6 +144,30 @@ type App struct {
 	// a shutdown is already under way and this one changes nothing.
 	RequestExit func(restart bool) bool
 
+	// CnLPort and CnLToggle are set by cmd/knightloader/main.go, the only
+	// embedding that starts a Click'n'Load listener today (see main.go's own
+	// comment on why desktop does not). Same shape and reasoning as
+	// RequestExit just above: App owns no net.Listener of its own to start
+	// or stop, only whatever embeds it does, so this is a callback pair
+	// rather than a field App could act on directly. Nil wherever nothing
+	// wired it (every test, the desktop build) - routes_features.go's own
+	// "cnl" switch case reads that as "not supported here", the same
+	// convention RequestExit already established.
+	//
+	// CnLPort reports the actual bound port when the listener is up, 0 when
+	// it is not - a real read of live state, not a guess from the
+	// environment it started with, so the module row can say exactly what
+	// is listening right now instead of what KL_CNL asked for at boot.
+	//
+	// Deliberately NOT persisted to settings.json: KL_CNL is the real,
+	// deployment-level decision (should this container even try to bind the
+	// port at all), and this toggle is a lighter, in-process pause/resume on
+	// top of it - flipping it back off after a restart if the environment
+	// still says off is the expected behaviour, not a bug to route around
+	// with a second, competing on/off flag in the settings document.
+	CnLPort   func() int
+	CnLToggle func(on bool) error
+
 	// ctx is cancelled by Close. It bounds work that outlives the call that
 	// started it: a reconnect can hold the line for the whole configured timeout,
 	// and a shutdown must not wait two minutes for a router to answer — nor fire

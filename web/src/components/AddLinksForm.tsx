@@ -29,8 +29,8 @@ import { useUIState } from '../lib/uistate';
 import { PathInput } from './FolderPicker';
 import { PasteFromClipboardButton } from './PasteFromClipboardButton';
 import { Tabs } from './Tabs';
-import { Button, Card, Field, FieldGroup, TextArea, TextInput, ToggleRow } from './ui';
-import { IconArrowDown, IconCollector, IconFolder, IconPlus } from '../lib/icons';
+import { Button, Card, Field, FieldGroup, IconBadge, TextArea, TextInput, ToggleRow } from './ui';
+import { IconCollector, IconFolder, IconPlus, IconSettings } from '../lib/icons';
 
 // JD keeps 25; matched rather than picking a new number, because the point of
 // this list is "the folder I used last week", and there is no reason this
@@ -193,44 +193,40 @@ export function AddLinksForm({
           )}
         </div>
         <div className="flex items-center gap-3 px-4 pb-4">
-          <TextInput
-            placeholder={t('collector.package')}
-            value={pkg}
-            onChange={(e) => onPkgChange(e.target.value)}
-            className="max-w-xs"
-          />
-          <Button
-            type="button"
-            kind="ghost"
-            className="px-2.5 text-xs"
+          {/* Square glyph badges, not text buttons (jdp, 2026-08-24: "Optionen
+              soll ein quadratisches badge mit zahnrad sein, ordner hinzufügen
+              ein quadratisches badge mit ordner symbol und zum sammler
+              hinzufügen ein quadratisches badge mit plus"). "Paket (optional)"
+              moved into the Optionen panel below instead of sitting here
+              always-visible - it is exactly the kind of per-batch detail the
+              rest of that panel already groups. */}
+          <IconBadge
+            icon={<IconSettings width={16} height={16} />}
+            aria-label={t('collector.options')}
             aria-expanded={optionsOpen}
-            icon={
-              <IconArrowDown
-                width={14}
-                height={14}
-                className={`transition-transform duration-150 ${optionsOpen ? 'rotate-180' : ''}`}
-              />
-            }
             onClick={() => setOptionsOpen(!optionsOpen)}
-          >
-            {t('collector.options')}
-          </Button>
+          />
           <span className="flex-1" />
           <PasteFromClipboardButton pkg={pkg} />
           {/* Opens FileDrop's picker (jdp: "Dropzone mit Dateiwählen button
               neben dem Zum-Sammler-Button") - the file-intake trigger sits
               beside the link-intake one instead of in its own row below. */}
-          <Button kind="ghost" className="px-2.5 text-xs" icon={<IconFolder width={14} height={14} />} onClick={onChooseFile}>
-            {t('container.choose')}
-          </Button>
-          <Button icon={<IconPlus />} onClick={() => void onAdd()} disabled={!links.trim() || busy}>
-            {t('collector.add')}
-          </Button>
+          <IconBadge icon={<IconFolder width={16} height={16} />} aria-label={t('container.choose')} onClick={onChooseFile} />
+          <IconBadge
+            icon={<IconPlus width={16} height={16} />}
+            aria-label={t('collector.add')}
+            className="bg-accent text-accentContrast hover:brightness-110"
+            onClick={() => void onAdd()}
+            disabled={!links.trim() || busy}
+          />
         </div>
       </div>
 
       {optionsOpen && (
         <Card className="flex flex-col gap-4">
+          <Field label={t('collector.package')}>
+            <TextInput value={pkg} onChange={(e) => onPkgChange(e.target.value)} className="max-w-xs" />
+          </Field>
           <Field
             label={t('collector.destination')}
             hint={`${t('settings.downloadDirHint')} ${t('settings.pathVars')}`}

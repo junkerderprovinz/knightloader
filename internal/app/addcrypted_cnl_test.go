@@ -11,6 +11,9 @@ import (
 	"errors"
 	"testing"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 )
 
 // stubCryptedV1Backend is a backend implementing addcrypted v1 support on top
@@ -18,7 +21,7 @@ import (
 type stubCryptedV1Backend struct {
 	gotData []byte
 	gotPkg  string
-	urls    []string
+	links   []resolver.Result
 	err     error
 }
 
@@ -27,9 +30,9 @@ func (s *stubCryptedV1Backend) Pause(string)                                    
 func (s *stubCryptedV1Backend) Resume(string)                                   {}
 func (s *stubCryptedV1Backend) Remove(string, bool)                             {}
 
-func (s *stubCryptedV1Backend) AddCryptedV1(data []byte, packageName string, _ time.Duration) ([]string, error) {
+func (s *stubCryptedV1Backend) AddCryptedV1(data []byte, packageName string, _ time.Duration) ([]resolver.Result, error) {
 	s.gotData, s.gotPkg = data, packageName
-	return s.urls, s.err
+	return s.links, s.err
 }
 
 // TestAddContainerCnLWithoutBackendRefuses is the same refusal
@@ -54,7 +57,7 @@ func TestAddContainerCnLWithoutBackendRefuses(t *testing.T) {
 func TestAddContainerCnLRefusesEmptyContent(t *testing.T) {
 	a := newCrawlApp(t, false)
 	a.bmu.Lock()
-	a.jd = &stubCryptedV1Backend{urls: []string{"https://host.example/x"}}
+	a.jd = &stubCryptedV1Backend{links: []resolver.Result{{DirectURL: "https://host.example/x"}}}
 	a.bmu.Unlock()
 	if err := a.AddContainerCnL(nil, "pkg"); err == nil {
 		t.Fatal("AddContainerCnL(nil, ...) returned no error")
@@ -64,12 +67,28 @@ func TestAddContainerCnLRefusesEmptyContent(t *testing.T) {
 // TestAddContainerCnLStagesHarvestedLinksAsCnLOrigin drives the success path:
 // the backend receives exactly the bytes and package name the submission
 // carried, and what it hands back is staged through the ordinary intake path
-// (AddLinksFrom) tagged OriginCnL — the same entrance a plain /flash/add or
-// /flash/addcrypted2 submission uses, because from the collector's point of
-// view all three are "Click'n'Load", not three different sources.
+// (AddResolvedLinksFrom) tagged OriginCnL — the same entrance a plain
+// /flash/add or /flash/addcrypted2 submission uses, because from the
+// collector's point of view all three are "Click'n'Load", not three
+// different sources.
+//
+// The harvested link's name and size are asserted here too, and the URL is
+// deliberately extensionless so resolver.Direct (which would derive its own
+// name from the path) does not claim it - jd.Resolver is registered and does
+// instead, and jd's own Resolve answers with the URL as a placeholder Name
+// and no Size (see its own doc comment). Without stage()'s guard against that
+// placeholder overwriting a real hint, this test catches exactly the bug a
+// DLC's crawled name and size were disappearing to: the harvest already knew
+// both, and the ordinary intake path was throwing them away only to wait for
+// JD to crawl the same link a second time, at download time, to learn them
+// again.
 func TestAddContainerCnLStagesHarvestedLinksAsCnLOrigin(t *testing.T) {
 	a := newCrawlApp(t, false)
-	stub := &stubCryptedV1Backend{urls: []string{"https://host.example/harvested.bin"}}
+	a.Registry.Register(jd.Resolver{})
+	const harvestedURL = "https://host.example/dl/harvested"
+	stub := &stubCryptedV1Backend{links: []resolver.Result{
+		{DirectURL: harvestedURL, Name: "Harvested File.bin", Size: 123456},
+	}}
 	a.bmu.Lock()
 	a.jd = stub
 	a.bmu.Unlock()
@@ -89,8 +108,17 @@ func TestAddContainerCnLStagesHarvestedLinksAsCnLOrigin(t *testing.T) {
 	if created[0].Origin != OriginCnL {
 		t.Errorf("origin = %q, want %q", created[0].Origin, OriginCnL)
 	}
-	if created[0].URL != "https://host.example/harvested.bin" {
+	if created[0].URL != harvestedURL {
 		t.Errorf("url = %q, want the harvested link", created[0].URL)
+	}
+	if created[0].Resolver != "jd" {
+		t.Fatalf("test fixture broken: resolver = %q, want %q (jd's own placeholder Name is the case this test pins)", created[0].Resolver, "jd")
+	}
+	if created[0].Name != "Harvested File.bin" {
+		t.Errorf("name = %q, want the name the harvest already knew, not jd's URL placeholder", created[0].Name)
+	}
+	if created[0].Size != 123456 {
+		t.Errorf("size = %d, want the size the harvest already knew", created[0].Size)
 	}
 
 	if string(stub.gotData) != string(payload) {

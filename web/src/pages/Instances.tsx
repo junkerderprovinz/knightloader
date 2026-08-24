@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { type Instance, fetchInstances, addInstance, removeInstance } from '../lib/api';
+import { type Instance, fetchInstances, addInstance, removeInstance, redeemPairingCode } from '../lib/api';
 import { useT } from '../lib/i18n';
-import { PageHeader, Card, Button, Field, TextInput, SectionTitle } from '../components/ui';
+import { PageHeader, Card, Button, Field, TextInput, TextArea, SectionTitle } from '../components/ui';
 import { InstanceCard } from '../components/InstanceCard';
 import { FirstTouchHint } from '../components/FirstTouchHint';
 
@@ -12,6 +12,10 @@ export function Instances() {
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
   const [err, setErr] = useState('');
+  const [code, setCode] = useState('');
+  const [pairing, setPairing] = useState(false);
+  const [pairErr, setPairErr] = useState('');
+  const [pairOk, setPairOk] = useState('');
   const navigate = useNavigate();
 
   const load = () => fetchInstances().then(setPeers);
@@ -29,6 +33,27 @@ export function Instances() {
       await load();
     } catch (e: any) {
       setErr(String(e?.message ?? e));
+    }
+  }
+
+  // Redeem a code from the OTHER instance's own Access tab (settings/Access.tsx's
+  // own "Generate pairing code" card, backed by POST /api/instances/pairing-code)
+  // instead of typing that instance's name and address here by hand - one call
+  // registers both directions (internal/api/routes_pairing.go's own doc comment
+  // on why the redeem handler completes the other side before adding it locally).
+  async function onPair() {
+    setPairErr('');
+    setPairOk('');
+    setPairing(true);
+    try {
+      const r = await redeemPairingCode(code.trim());
+      setPairOk(t('instances.pairSuccess', { name: r.name }));
+      setCode('');
+      await load();
+    } catch (e: any) {
+      setPairErr(String(e?.message ?? e));
+    } finally {
+      setPairing(false);
     }
   }
 
@@ -71,6 +96,28 @@ export function Instances() {
           </Button>
         </div>
         {err && <div className="text-statusFail text-sm">{err}</div>}
+      </Card>
+
+      <Card className="flex flex-col gap-3">
+        <SectionTitle>{t('instances.pairTitle')}</SectionTitle>
+        <p className="text-[11px] text-carbon-textMuted">{t('instances.pairHint')}</p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <div className="min-w-0 flex-1">
+            <TextArea
+              rows={2}
+              dir="ltr"
+              placeholder={t('instances.pairPlaceholder')}
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              className="text-xs"
+            />
+          </div>
+          <Button kind="secondary" onClick={() => void onPair()} disabled={!code.trim() || pairing}>
+            {t('instances.pairButton')}
+          </Button>
+        </div>
+        {pairErr && <div className="text-statusFail text-sm">{pairErr}</div>}
+        {pairOk && <div className="text-statusOk text-sm">{pairOk}</div>}
       </Card>
     </div>
   );

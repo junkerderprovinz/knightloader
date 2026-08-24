@@ -41,11 +41,8 @@ function Group({ hue, title, hint, rows }: { hue: number; title: string; hint?: 
   if (rows.length === 0) return null;
   return (
     <Card className="flex flex-col gap-1 p-2">
-      <SectionTitle hue={hue}>
-        <span className="flex items-center">
-          {title}
-          {hint && <InfoBubble tip={hint} />}
-        </span>
+      <SectionTitle hue={hue} hint={hint}>
+        {title}
       </SectionTitle>
       {rows.map((m, i) => (
         <Row key={m.id} m={m} hue={i} />

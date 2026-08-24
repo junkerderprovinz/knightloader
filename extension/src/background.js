@@ -6,27 +6,39 @@
 // on the server side rather than worked around here with a stripped Origin
 // header: this extension talks to KnightLoader exactly the way a person with
 // a browser tab open to it would, never around that boundary.
-importScripts('shared.js');
+importScripts('shared.js', 'i18n.js');
 
 const MENU_PAGE = 'knightloader-send-page';
 const MENU_LINK = 'knightloader-send-link';
 const MENU_IMAGE = 'knightloader-send-image';
 const MENU_SELECTION = 'knightloader-send-selection';
 
+/** menuTitles() reads the fresh translation for every context-menu entry — called on install and whenever the language changes. */
+function menuTitles() {
+  return {
+    [MENU_PAGE]: t('menu.page'),
+    [MENU_LINK]: t('menu.link'),
+    [MENU_IMAGE]: t('menu.image'),
+    [MENU_SELECTION]: t('menu.selection'),
+  };
+}
+
 chrome.runtime.onInstalled.addListener(async (details) => {
+  await loadLanguage();
+  const titles = menuTitles();
   chrome.contextMenus.create({
     id: MENU_PAGE,
-    title: 'Send page to KnightLoader',
+    title: titles[MENU_PAGE],
     contexts: ['page'],
   });
   chrome.contextMenus.create({
     id: MENU_LINK,
-    title: 'Send link to KnightLoader',
+    title: titles[MENU_LINK],
     contexts: ['link'],
   });
   chrome.contextMenus.create({
     id: MENU_IMAGE,
-    title: 'Send image to KnightLoader',
+    title: titles[MENU_IMAGE],
     // A separate entry from MENU_LINK: Chrome shows both 'link' and 'image'
     // together when an image is itself wrapped in an <a>, and the two
     // usually point at different URLs (a thumbnail's link vs. its full-size
@@ -35,7 +47,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
   });
   chrome.contextMenus.create({
     id: MENU_SELECTION,
-    title: 'Send selection to KnightLoader',
+    title: titles[MENU_SELECTION],
     contexts: ['selection'],
   });
 
@@ -53,6 +65,20 @@ chrome.runtime.onInstalled.addListener(async (details) => {
       if (baked) await writeInstances([{ name: 'Default', url: baked }], 'Default');
       else chrome.runtime.openOptionsPage();
     }
+  }
+});
+
+// The context-menu titles are set once at creation time — Chrome has no
+// "re-read this on every open" hook — so a language change made in Options
+// (this service worker may be asleep at that moment) needs its own nudge:
+// wake up on the storage write and push updated titles onto the existing
+// menu items via chrome.contextMenus.update rather than recreating them.
+chrome.storage.onChanged.addListener(async (changes, area) => {
+  if (area !== 'local' || !changes.language) return;
+  await loadLanguage();
+  const titles = menuTitles();
+  for (const [id, title] of Object.entries(titles)) {
+    chrome.contextMenus.update(id, { title });
   }
 });
 

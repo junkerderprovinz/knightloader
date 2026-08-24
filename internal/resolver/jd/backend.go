@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/resolver"
 )
 
 // Backend performs delegated downloads through headless JD and mirrors the live
@@ -57,11 +58,14 @@ var pollInterval = time.Second
 // The crawl is waited out rather than fired and forgotten, which is what the
 // first version did: JD decrypted the container perfectly into its own grabber
 // and nothing ever read it back, so the upload reported success and the user's
-// list stayed empty. Waiting is also why the links are handed back as plain URLs
-// instead of being started in JD — coming back through the ordinary staging path
-// means the link filter, the packagizer and the duplicate check all still apply
-// to them, which they would not if JD simply started downloading.
-func (b *Backend) AddContainer(url, packageName string, timeout time.Duration) ([]string, error) {
+// list stayed empty. Waiting is also why the links are handed back as
+// resolver.Results instead of being started in JD - coming back through the
+// ordinary staging path means the link filter, the packagizer and the
+// duplicate check all still apply to them, which they would not if JD simply
+// started downloading. Each Result carries the crawl's own Name and Size, not
+// only the URL, so the collector does not have to wait for a second crawl at
+// download time to learn what this one already found.
+func (b *Backend) AddContainer(url, packageName string, timeout time.Duration) ([]resolver.Result, error) {
 	// A name of our own, not the caller's: the caller's package name is where
 	// the links should land in OUR list, while this one exists only to find them
 	// again in JD's. Using the caller's would collide the moment two containers
@@ -81,7 +85,7 @@ func (b *Backend) AddContainer(url, packageName string, timeout time.Duration) (
 // wait-and-harvest half is otherwise identical, which is the point — this is
 // AddContainer's own reasoning ("JD holds the key; we hold the download
 // list"), not a second mechanism for the same problem.
-func (b *Backend) AddCryptedV1(data []byte, packageName string, timeout time.Duration) ([]string, error) {
+func (b *Backend) AddCryptedV1(data []byte, packageName string, timeout time.Duration) ([]resolver.Result, error) {
 	marker := fmt.Sprintf("KL-%d", time.Now().UnixNano())
 	if _, err := b.c.AddContainerData("dlc", data, marker); err != nil {
 		return nil, err
@@ -90,10 +94,11 @@ func (b *Backend) AddCryptedV1(data []byte, packageName string, timeout time.Dur
 }
 
 // awaitContainerLinks polls JD's link grabber for the package named marker,
-// waits for it to settle, harvests the plain URLs out of it and removes it so
-// JD does not start it itself. Shared by AddContainer and AddCryptedV1, whose
-// only difference is how the container's bytes reach JD in the first place.
-func (b *Backend) awaitContainerLinks(marker string, timeout time.Duration) ([]string, error) {
+// waits for it to settle, harvests the links (URL, name and size) out of it
+// and removes it so JD does not start it itself. Shared by AddContainer and
+// AddCryptedV1, whose only difference is how the container's bytes reach JD
+// in the first place.
+func (b *Backend) awaitContainerLinks(marker string, timeout time.Duration) ([]resolver.Result, error) {
 	deadline := time.Now().Add(timeout)
 	tick := time.NewTicker(pollInterval)
 	defer tick.Stop()
@@ -154,16 +159,22 @@ func (b *Backend) awaitContainerLinks(marker string, timeout time.Duration) ([]s
 		}
 	}
 
-	urls := make([]string, 0, len(links))
+	// Name and Size ride along rather than being dropped here and re-learned at
+	// download time: this crawl already answered both (the same numbers JD's
+	// own link-grabber window would show), and a caller that discards them
+	// only forces JD to crawl the identical links a second time to say the
+	// same thing again - which is exactly what left the collector showing the
+	// bare URL and no size until the download itself started.
+	out := make([]resolver.Result, 0, len(links))
 	for _, l := range links {
 		if l.URL != "" {
-			urls = append(urls, l.URL)
+			out = append(out, resolver.Result{DirectURL: l.URL, Name: l.Name, Size: l.Size})
 		}
 	}
 	// Best effort: we have the links, and failing to tidy JD's grabber is not a
 	// reason to tell the user their container did not open.
 	_ = b.c.RemoveCrawledPackage(pkg)
-	return urls, nil
+	return out, nil
 }
 
 // Download hands the link to JD (auto-crawl + start) and polls its progress.

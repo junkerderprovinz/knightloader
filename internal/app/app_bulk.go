@@ -16,6 +16,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
+	"github.com/junkerderprovinz/knightloader/internal/resolver"
 )
 
 // SetEnabled switches links on or off. A disabled link keeps its place, its
@@ -305,7 +306,7 @@ func joinClasses(in []CleanupClass) string {
 // open. Only the shipped headless JD can: the encrypted formats need a key that
 // is issued to registered clients, and JD holds one legitimately.
 type containerAdder interface {
-	AddContainer(url, packageName string, timeout time.Duration) ([]string, error)
+	AddContainer(url, packageName string, timeout time.Duration) ([]resolver.Result, error)
 }
 
 // containerCrawlLimit is how long the backend gets to open a container. Minutes
@@ -362,7 +363,7 @@ func (a *App) HandContainerToJD(rawurl, name, pkg string) error {
 	// Wave 6's commit 813cf29 for the shape of bug an untracked goroutine here
 	// produces.
 	a.spawn(func() {
-		urls, err := adder.AddContainer(rawurl, pkg, containerCrawlLimit)
+		links, err := adder.AddContainer(rawurl, pkg, containerCrawlLimit)
 		if err != nil {
 			log.Printf("container %s: %v", name, err)
 			// Recorded rather than logged only: a container that opened into
@@ -373,9 +374,12 @@ func (a *App) HandContainerToJD(rawurl, name, pkg string) error {
 		}
 		// Back through the ordinary path, so the link filter, the packagizer and
 		// the duplicate check apply to a container's contents exactly as they do
-		// to a paste. A container is a delivery mechanism, not an exemption.
-		created := a.AddLinksFrom(urls, pkg, OriginContainer)
-		log.Printf("container %s: %d links, %d staged", name, len(urls), len(created))
+		// to a paste. A container is a delivery mechanism, not an exemption. Unlike
+		// a plain paste, though, each link already carries the name and size the
+		// container's own crawl found - AddResolvedLinksFrom is what keeps those
+		// instead of discarding them back down to a bare URL.
+		created := a.AddResolvedLinksFrom(links, pkg, OriginContainer)
+		log.Printf("container %s: %d links, %d staged", name, len(links), len(created))
 	})
 	return nil
 }
@@ -387,7 +391,7 @@ func (a *App) HandContainerToJD(rawurl, name, pkg string) error {
 // for it; only the shipped JD's Deprecated API answers this shape (inline
 // content, see internal/resolver/jd's AddContainerData/AddCryptedV1).
 type cryptedV1Adder interface {
-	AddCryptedV1(data []byte, packageName string, timeout time.Duration) ([]string, error)
+	AddCryptedV1(data []byte, packageName string, timeout time.Duration) ([]resolver.Result, error)
 }
 
 // CryptedV1BackendConfigured mirrors ContainerBackendConfigured for
@@ -428,14 +432,14 @@ func (a *App) AddContainerCnL(data []byte, pkg string) error {
 		return ErrNoContainerBackend
 	}
 	a.spawn(func() {
-		urls, err := adder.AddCryptedV1(data, pkg, containerCrawlLimit)
+		links, err := adder.AddCryptedV1(data, pkg, containerCrawlLimit)
 		if err != nil {
 			log.Printf("addcrypted (v1): %v", err)
 			a.recordSkippedReason("Click'n'Load (addcrypted v1)", "container", err.Error())
 			return
 		}
-		created := a.AddLinksFrom(urls, pkg, OriginCnL)
-		log.Printf("addcrypted (v1): %d links, %d staged", len(urls), len(created))
+		created := a.AddResolvedLinksFrom(links, pkg, OriginCnL)
+		log.Printf("addcrypted (v1): %d links, %d staged", len(links), len(created))
 	})
 	return nil
 }

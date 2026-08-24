@@ -14,6 +14,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strconv"
+	"sync"
 	"syscall"
 	"time"
 
@@ -122,14 +123,72 @@ func main() {
 	// Click'n'Load listener on the standard port 9666 (KL_CNL=0 disables, any
 	// other value overrides the port). A taken port (e.g. a running JD) is not
 	// fatal — CnL is simply unavailable then.
-	if port := envInt("KL_CNL", 9666); port > 0 {
-		c := cnl.New(a)
-		if err := c.Start(port); err != nil {
-			log.Printf("Click'n'Load not available on :%d (%v)", port, err)
-		} else {
-			defer c.Close()
-			log.Printf("Click'n'Load listening on 127.0.0.1:%d", port)
+	//
+	// Wrapped in start/stop closures rather than a bare defer c.Close() (jdp,
+	// 2026-08-24: "wieso kann man es nicht dort direkt aktivieren/
+	// deaktivieren?") so the Modules/Zugang tab's own switch can start and
+	// stop the real listener at runtime without a restart - see app.App's
+	// own CnLEnabled/CnLToggle doc comment for why this lives here rather
+	// than as a field App manages itself, and for why it is deliberately
+	// NOT persisted to settings.json. cnlPort is fixed at boot (0 disables
+	// the feature outright - nothing to reach for a port to bind if
+	// re-enabled later - anything else is remembered as the port a later
+	// toggle-on should use, even while currently off).
+	cnlPort := envInt("KL_CNL", 9666)
+	// KL_CNL=0 means "do not auto-start" (autoStart below), never "there is
+	// no port to bind if someone flips the switch on later" - the standard
+	// 9666 is still what a runtime toggle-on reaches for, same as a fresh
+	// install with no KL_CNL override at all would.
+	bindPort := cnlPort
+	if bindPort <= 0 {
+		bindPort = 9666
+	}
+	var cnlMu sync.Mutex
+	var cnlServer *cnl.Server
+	startCnL := func() error {
+		cnlMu.Lock()
+		defer cnlMu.Unlock()
+		if cnlServer != nil {
+			return nil
 		}
+		c := cnl.New(a)
+		if err := c.Start(bindPort); err != nil {
+			return err
+		}
+		cnlServer = c
+		return nil
+	}
+	stopCnL := func() {
+		cnlMu.Lock()
+		defer cnlMu.Unlock()
+		if cnlServer == nil {
+			return
+		}
+		cnlServer.Close()
+		cnlServer = nil
+	}
+	if cnlPort > 0 {
+		if err := startCnL(); err != nil {
+			log.Printf("Click'n'Load not available on :%d (%v)", cnlPort, err)
+		} else {
+			log.Printf("Click'n'Load listening on 127.0.0.1:%d", cnlPort)
+		}
+	}
+	defer stopCnL()
+	a.CnLPort = func() int {
+		cnlMu.Lock()
+		defer cnlMu.Unlock()
+		if cnlServer == nil {
+			return 0
+		}
+		return bindPort
+	}
+	a.CnLToggle = func(on bool) error {
+		if on {
+			return startCnL()
+		}
+		stopCnL()
+		return nil
 	}
 
 	// Wired before the server ever accepts a request, so a quit or restart

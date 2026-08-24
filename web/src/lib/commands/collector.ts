@@ -26,6 +26,7 @@ export const collectorCommands: Command[] = [
     icon: IconPlay,
     group: 'commands.group.collector',
     surfaces: ['collector'],
+    defaultShortcut: 'mod+shift+enter',
     enabled: (ctx) => ctx.selection.length > 0,
     visible: (ctx) => ctx.selection.length > 0,
     // The same two calls Collector.tsx's own startSelected() makes: start the
@@ -41,6 +42,7 @@ export const collectorCommands: Command[] = [
     icon: IconPlay,
     group: 'commands.group.collector',
     surfaces: ['collector'],
+    defaultShortcut: 'mod+shift+a',
     enabled: (ctx) => staged(ctx).length > 0,
     visible: (ctx) => staged(ctx).length > 0,
     // Collector.tsx's own startAll(): an empty id list means every staged
@@ -56,6 +58,7 @@ export const collectorCommands: Command[] = [
     icon: IconSearch,
     group: 'commands.group.collector',
     surfaces: ['collector'],
+    defaultShortcut: 'mod+shift+u',
     enabled: (ctx) => staged(ctx).length > 0,
     visible: (ctx) => staged(ctx).length > 0,
     // The bar's own "Check all" button (Collector.tsx): an empty id list

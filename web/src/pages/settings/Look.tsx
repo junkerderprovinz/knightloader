@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import { Card, InfoBubble, SectionTitle, Toggle } from '../../components/ui';
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
+import { Button, Card, InfoBubble, SectionTitle, Toggle } from '../../components/ui';
 import { Tabs } from '../../components/Tabs';
 import { LanguagePicker } from '../../components/LanguagePicker';
+import { fetchDeploymentInfo, fetchUpdateCheck, type UpdateCheck as UpdateCheckT } from '../../lib/api';
 import { IconMoon, IconRetry, IconSun } from '../../lib/icons';
 import { QuietModeToggle, useToast } from '../../lib/toast';
 import { getTheme, onThemeChange, setTheme } from '../../lib/theme';
@@ -381,7 +382,82 @@ export function Look() {
           ]}
         />
       </Card>
+
+      <UpdateCard />
     </div>
+  );
+}
+
+/**
+ * Desktop only (jdp, 2026-08-23: "#19 bauen"; 2026-08-24: "warum machen wir
+ * da nicht irgendwo ein toggle um auto update zu aktivieren? Am besten im
+ * allgemein-Tab"). The manual "Check for updates" button always works; the
+ * toggle additionally makes both this card AND the desktop process itself
+ * (cmd desktop main.go) call update.Check once at their own startup,
+ * without asking - the setting round-trips to the server the same as every
+ * other field on this page, autosaved by the shared draft. Off by default:
+ * an outbound call to GitHub on every launch is an opt-in, not something a
+ * fresh install does before being asked. Checking is all this does - see
+ * internal/update's own package doc for why downloading and applying an
+ * update is deliberately not part of this.
+ */
+function UpdateCard() {
+  const { t } = useT();
+  const { cfg, patch } = useDraft();
+  const [deployment, setDeployment] = useState<string | null>(null);
+  const [check, setCheck] = useState<UpdateCheckT | null>(null);
+  const [checking, setChecking] = useState(false);
+
+  useEffect(() => {
+    void fetchDeploymentInfo()
+      .then((d) => setDeployment(d.deployment))
+      .catch(() => {});
+  }, []);
+
+  const onCheck = useCallback(async () => {
+    setChecking(true);
+    try {
+      setCheck(await fetchUpdateCheck());
+    } catch {
+      setCheck({ checked: false, available: false, current: '' });
+    } finally {
+      setChecking(false);
+    }
+  }, []);
+
+  // Auto-check once, right after the toggle's own current value arrives -
+  // not on every render, and not before deployment is confirmed to be
+  // desktop (a container never reaches this branch at all).
+  useEffect(() => {
+    if (deployment === 'desktop' && cfg.autoUpdateCheck) void onCheck();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fires once
+    // when deployment/autoUpdateCheck first resolve, not on every cfg change.
+  }, [deployment, cfg.autoUpdateCheck]);
+
+  if (deployment !== 'desktop') return null;
+
+  return (
+    <Card className="flex flex-col gap-3">
+      <SectionTitle hue={5}>{t('settings.look.updatesTitle')}</SectionTitle>
+      <div className="flex items-center justify-between gap-4">
+        <span className="text-sm text-carbon-text">{t('settings.look.updatesAuto')}</span>
+        <Toggle checked={cfg.autoUpdateCheck} onChange={(v) => patch({ autoUpdateCheck: v })} label={t('settings.look.updatesAuto')} hideLabel />
+      </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button kind="secondary" onClick={() => void onCheck()} disabled={checking}>
+          {checking ? t('settings.look.updatesChecking') : t('settings.look.updatesCheck')}
+        </Button>
+        {check && !check.checked && <span className="text-sm text-statusFail">{t('settings.look.updatesFailed')}</span>}
+        {check && check.checked && !check.available && (
+          <span className="text-sm text-statusOk">{t('settings.look.updatesCurrent', { version: check.current })}</span>
+        )}
+        {check && check.checked && check.available && check.url && (
+          <a href={check.url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-accent hover:underline">
+            {t('settings.look.updatesAvailable', { version: check.latest ?? '' })}
+          </a>
+        )}
+      </div>
+    </Card>
   );
 }
 

@@ -214,15 +214,24 @@ export function Collector() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={t('collector.title')} subtitle={t('collector.subtitle')} />
+      <PageHeader title={t('collector.title')} />
 
       <FirstTouchHint id="collector" />
 
       {/* The hero: one drop zone that is also the paste field, plus the
           per-batch destination/priority/unpacking/comment/password options
           and the recently-used-destination history — see
-          components/AddLinksForm.tsx. */}
-      <AddLinksForm pkg={pkg} onPkgChange={setPkg} onStaged={handleStaged} onChooseFile={() => fileDrop.current?.openPicker()} />
+          components/AddLinksForm.tsx. The stats card (jdp, 2026-08-24: "rechts
+          von der Dropzone soll eine card mit den ganzen zahlen sein") sits beside
+          it rather than below the list, keyed off `collected` like the facet
+          sidebar below: a facet that has narrowed the list to nothing must not
+          also make the controls that would widen it disappear. */}
+      <div className="flex min-w-0 flex-col items-start gap-4 lg:flex-row">
+        <div className="min-w-0 flex-1">
+          <AddLinksForm pkg={pkg} onPkgChange={setPkg} onStaged={handleStaged} onChooseFile={() => fileDrop.current?.openPicker()} />
+        </div>
+        {collected.length > 0 && <CollectorStats all={collected} visible={filtered} selected={selectedTasks} />}
+      </div>
 
       {/* Intake that is not a paste, and the trace of what the paste dropped.
           Both sit under the hero and above the list: the paste box is why people
@@ -234,11 +243,6 @@ export function Collector() {
         <FilteredLinks held={held} />
         <SkippedLinks />
       </div>
-
-      {/* The strip and the facet sidebar are both keyed off `collected`, not
-          `filtered`: a facet that has narrowed the list to nothing must not
-          also make the controls that would widen it disappear. */}
-      {collected.length > 0 && <CollectorStats all={collected} visible={filtered} selected={selectedTasks} />}
 
       <div className="flex min-w-0 flex-col items-start gap-6 lg:flex-row">
         {collected.length > 0 && <CollectorFacetSidebar tasks={collected} selection={facets} onChange={setFacets} />}
