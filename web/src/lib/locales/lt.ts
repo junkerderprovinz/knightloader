@@ -74,6 +74,7 @@ export const lt: Dict = {
   'empty.downloadsHint': 'Pridėk nuorodų rinktuve ir paleisk jas.',
 
   'collector.title': 'Rinktuvas',
+  'collector.listTitle': 'Rinkinys',
   'collector.placeholder': 'Įklijuok nuorodas — po vieną URL eilutėje — arba nutempk čia…  (Ctrl+Enter pridėti)',
   'collector.package': 'Paketas (nebūtina)',
   'collector.add': 'Pridėti į rinktuvą',
@@ -96,6 +97,7 @@ export const lt: Dict = {
   'collector.move': 'Perkelti į paketą',
 
   'downloads.title': 'Atsisiuntimai',
+  'downloads.listTitle': 'Eilė',
   'downloads.thisInstance': 'Šis egzempliorius',
   'downloads.totalSpeed': 'Bendras greitis',
   'downloads.pauseAll': 'Pristabdyti visus',

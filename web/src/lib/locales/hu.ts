@@ -74,6 +74,7 @@ export const hu: Dict = {
   'empty.downloadsHint': 'Adjon hozzá hivatkozásokat a gyűjtőben, majd indítsa el őket.',
 
   'collector.title': 'Gyűjtő',
+  'collector.listTitle': 'Gyűjtemény',
   'collector.placeholder': 'Illesszen be hivatkozásokat — soronként egyet — vagy húzza ide őket…  (Ctrl+Enter hozzáadja)',
   'collector.package': 'Csomag (nem kötelező)',
   'collector.add': 'Hozzáadás a gyűjtőhöz',
@@ -96,6 +97,7 @@ export const hu: Dict = {
   'collector.move': 'Áthelyezés csomagba',
 
   'downloads.title': 'Letöltések',
+  'downloads.listTitle': 'Várólista',
   'downloads.thisInstance': 'Ez a példány',
   'downloads.totalSpeed': 'Teljes sebesség',
   'downloads.pauseAll': 'Összes szüneteltetése',

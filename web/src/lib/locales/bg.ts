@@ -74,6 +74,7 @@ export const bg: Dict = {
   'empty.downloadsHint': 'Добави връзки в колектора и ги стартирай.',
 
   'collector.title': 'Колектор',
+  'collector.listTitle': 'Колекция',
   'collector.placeholder': 'Постави връзки — по един URL на ред — или ги пусни тук…  (Ctrl+Enter добавя)',
   'collector.package': 'Пакет (по избор)',
   'collector.add': 'В колектора',
@@ -96,6 +97,7 @@ export const bg: Dict = {
   'collector.move': 'Премести в пакет',
 
   'downloads.title': 'Изтегляния',
+  'downloads.listTitle': 'Опашка',
   'downloads.thisInstance': 'Тази инстанция',
   'downloads.totalSpeed': 'Обща скорост',
   'downloads.pauseAll': 'Пауза на всички',

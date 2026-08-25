@@ -193,7 +193,11 @@ function TaskRow({
         e.dataTransfer.setData('text/plain', task.id);
       }}
       onDragEnd={dnd.end}
-      onDragOver={(e) => dnd.active && e.preventDefault()}
+      onDragOver={(e) => {
+        if (!dnd.active) return;
+        e.preventDefault();
+        dnd.previewOverTask(task.id, e);
+      }}
       onDrop={(e) => dnd.dropOnTask(task.id, e)}
       // select-none, only while a drag is actually possible: without it, a
       // real mouse press-and-drag that starts over the row's own text (the
@@ -267,7 +271,7 @@ function TaskRow({
       <div className="flex items-center justify-end gap-1">
         {collected && (
           <IconBadge
-            icon={<IconPlay />}
+            icon={<IconPlay width={16} height={16} />}
             title={t('task.start')}
             aria-label={t('task.start')}
             onClick={() => startTasks([task.id], base)}
@@ -275,7 +279,7 @@ function TaskRow({
         )}
         {task.status === 'running' && (
           <IconBadge
-            icon={<IconPause />}
+            icon={<IconPause width={16} height={16} />}
             title={t('task.pause')}
             aria-label={t('task.pause')}
             onClick={() => pause(task.id, base)}
@@ -283,7 +287,7 @@ function TaskRow({
         )}
         {task.status === 'paused' && (
           <IconBadge
-            icon={<IconPlay />}
+            icon={<IconPlay width={16} height={16} />}
             title={t('task.resume')}
             aria-label={t('task.resume')}
             onClick={() => resume(task.id, base)}
@@ -292,21 +296,21 @@ function TaskRow({
         <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           {collected && (
             <IconBadge
-              icon={<IconSearch />}
+              icon={<IconSearch width={16} height={16} />}
               title={t('task.recheck')}
               aria-label={t('task.recheck')}
               onClick={() => recheckTasks([task.id], base)}
             />
           )}
           <IconBadge
-            icon={<IconFolder />}
+            icon={<IconFolder width={16} height={16} />}
             title={t('task.folder')}
             aria-label={t('task.folder')}
             onClick={() => setOptions(true)}
           />
           {settled && (
             <IconBadge
-              icon={<IconRetry />}
+              icon={<IconRetry width={16} height={16} />}
               title={t('task.restart')}
               aria-label={t('task.restart')}
               onClick={() => restartTasks([task.id], base)}
@@ -314,7 +318,7 @@ function TaskRow({
           )}
           <IconBadge
             kind="danger"
-            icon={<IconTrash />}
+            icon={<IconTrash width={16} height={16} />}
             title={t('task.remove')}
             aria-label={t('task.remove')}
             onClick={() => remove(task.id, base)}
@@ -475,7 +479,11 @@ function PackageGroup({
           e.dataTransfer.setData('text/plain', name);
         }}
         onDragEnd={dnd.end}
-        onDragOver={(e) => dnd.active && e.preventDefault()}
+        onDragOver={(e) => {
+          if (!dnd.active) return;
+          e.preventDefault();
+          dnd.previewOverPackage(name, e);
+        }}
         onDrop={(e) => dnd.dropOnPackage(name, e)}
         // A colour step, not a rule: the header sits on the quiet surface and
         // the links inside it sit on the card, which is the whole of the weight
@@ -558,6 +566,10 @@ interface RowDnD {
   end: () => void;
   dropOnTask: (id: string, e: DragEvent<HTMLElement>) => void;
   dropOnPackage: (name: string, e: DragEvent<HTMLElement>) => void;
+  /** Called from onDragOver, not just onDrop - what makes the rest of the
+   *  list move out of the way live instead of only on release. */
+  previewOverTask: (id: string, e: DragEvent<HTMLElement>) => void;
+  previewOverPackage: (name: string, e: DragEvent<HTMLElement>) => void;
 }
 
 /**
@@ -959,6 +971,8 @@ export function TaskListCard({
   base,
   selection,
   profile = 'downloads',
+  title,
+  hue,
 }: {
   groups: [string, Task[]][];
   base: string;
@@ -969,6 +983,18 @@ export function TaskListCard({
    * off on the list where it is useless switches it off where it is the point.
    */
   profile?: ListProfile;
+  /** This card's own title-badge (jdp, 2026-08-25: the list itself was the
+   *  one card left without one) - pre-translated by the caller, the same
+   *  way every other shared component here takes its label text rather
+   *  than a translation key, since Collector.tsx and Downloads.tsx each
+   *  want a name distinct from their own page heading, not this file
+   *  guessing which page it is from `profile`. */
+  title: string;
+  /** This card's own rainbow position, independent of whatever hues the
+   *  caller's own hero row or badge row already used - see Collector.tsx's
+   *  and Downloads.tsx's own call sites for why each picks a different
+   *  number. */
+  hue?: number;
 }) {
   const { t } = useT();
   // One subscription for the whole table rather than one per row: the palette
@@ -1019,6 +1045,16 @@ export function TaskListCard({
   // sortedView banner right above the table already offers the way back.
   const dndEnabled = !sort;
   const [rowDrag, setRowDrag] = useState<RowDragKey | null>(null);
+  // The row(s) currently under the pointer mid-drag, and which half of it —
+  // updated on every dragover, not just the eventual drop. This is what
+  // lets the OTHER rows actually move out of the way live instead of only
+  // snapping into their new order once the mouse is released (jdp,
+  // 2026-08-25: "die elemente sollen live verrutschen wenn ich zb ein link
+  // über einen anderen ziehe"), the same "recompute the order from a
+  // pointer position, every event, no separate animation step" shape
+  // Tabs.tsx's own long-press reorder already uses for the identical
+  // reason (its own liveOrder/reordering state).
+  const [dragOver, setDragOver] = useState<{ target: RowDragKey; after: boolean } | null>(null);
 
   // Every task actually on screen, flattened out of the package groups in
   // display order — the same tasks `chosen` reads off `view` above, not the
@@ -1065,24 +1101,20 @@ export function TaskListCard({
     return (view.find(([n]) => n === u.name)?.[1] ?? []).map((x) => x.id);
   }
 
-  // The one handler behind every row's and every package header's own
-  // onDrop — see dropOnTask/dropOnPackage below, which only add the
-  // rect-vs-pointer "before or after" read and then call this.
-  function dropRow(target: RowDragKey, after: boolean): void {
-    const dragged = rowDrag;
-    setRowDrag(null);
-    if (!dragged) return;
+  // The splice math behind both a live preview and the eventual drop: the
+  // band `dragged` would end up in if it landed on `target`'s given half
+  // right now, or null for a boundary that refuses the move outright (a
+  // different band, dropping a unit on itself or part of itself, a mixed
+  // package on either end) — the same three reasons dropRow below always
+  // refused, just returning "no" instead of silently doing nothing so a
+  // live preview can tell "moved" from "invalid, ignore this dragover"
+  // too.
+  function reorderedBand(dragged: RowDragKey, target: RowDragKey, after: boolean): string[] | null {
     const band = unitBand(dragged);
-    // A different band, the dragged unit dropped on itself (or on part of
-    // itself — a package dropped onto one of its own links), or a mixed
-    // package on either end: a normal boundary, not a failure. Reverted
-    // visually by the drag simply ending above, no request and no toast —
-    // the reorder endpoint's own contract is that this backend does not
-    // support a list that crosses a band.
-    if (!band || band !== unitBand(target)) return;
+    if (!band || band !== unitBand(target)) return null;
     const movedIds = unitIds(dragged);
     const targetIds = unitIds(target);
-    if (movedIds.some((id) => targetIds.includes(id))) return;
+    if (movedIds.some((id) => targetIds.includes(id))) return null;
 
     const order = bandOrder.get(band) ?? [];
     const without = order.filter((id) => !movedIds.includes(id));
@@ -1092,9 +1124,26 @@ export function TaskListCard({
     // contiguous run, exactly where a single link would have landed alone.
     const anchor = after ? targetIds[targetIds.length - 1] : targetIds[0];
     const at = without.indexOf(anchor);
-    if (at < 0) return;
+    if (at < 0) return null;
     without.splice(after ? at + 1 : at, 0, ...movedIds);
+    return without;
+  }
 
+  // The one handler behind every row's and every package header's own
+  // onDrop — see dropOnTask/dropOnPackage below, which only add the
+  // rect-vs-pointer "before or after" read and then call this.
+  function dropRow(target: RowDragKey, after: boolean): void {
+    const dragged = rowDrag;
+    setRowDrag(null);
+    setDragOver(null);
+    if (!dragged) return;
+    // A different band, the dragged unit dropped on itself, or a mixed
+    // package on either end: a normal boundary, not a failure. Reverted
+    // visually by the drag simply ending above, no request and no toast —
+    // the reorder endpoint's own contract is that this backend does not
+    // support a list that crosses a band.
+    const without = reorderedBand(dragged, target, after);
+    if (!without) return;
     // Fired and forgotten, like every other queue action on this row: there
     // is no local override of the task order to unwind if this fails, so
     // the next poll/WS tick is what settles rows back where the server
@@ -1114,6 +1163,67 @@ export function TaskListCard({
     dropRow({ kind: 'package', name }, e.clientY > r.top + r.height / 2);
   }
 
+  // dragOver's own before-or-after read, shared with dropOnTask/
+  // dropOnPackage above rather than duplicated: dragover fires continuously
+  // while a drag crosses a row, so this is called far more often than a
+  // drop ever is and only updates state when the (target, half) pair it
+  // computed actually changed — an update on every one of those events,
+  // most of which land on the same row half as the previous one, would
+  // re-render the whole list dozens of times a second for nothing.
+  function previewOver(target: RowDragKey, e: DragEvent<HTMLElement>): void {
+    if (!rowDrag) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    const after = e.clientY > r.top + r.height / 2;
+    setDragOver((prev) => {
+      if (prev && prev.after === after && sameUnit(prev.target, target)) return prev;
+      return { target, after };
+    });
+  }
+
+  function sameUnit(a: RowDragKey, b: RowDragKey): boolean {
+    return a.kind === b.kind && (a.kind === 'task' ? a.id === (b as typeof a).id : a.name === (b as typeof a).name);
+  }
+
+  // The band order a live drag would produce right now, band id -> ids -
+  // falls back to bandOrder unchanged (and so does every OTHER band the
+  // current drag has nothing to do with) whenever there is nothing to
+  // preview, so PackageGroup below never has to tell "mid-drag" apart from
+  // "at rest" itself.
+  const liveBandOrder = useMemo(() => {
+    if (!rowDrag || !dragOver) return bandOrder;
+    const band = unitBand(rowDrag);
+    if (!band) return bandOrder;
+    const reordered = reorderedBand(rowDrag, dragOver.target, dragOver.after);
+    if (!reordered) return bandOrder;
+    const next = new Map(bandOrder);
+    next.set(band, reordered);
+    return next;
+    // reorderedBand and unitBand close over bandOrder/view already in their
+    // own dependency chain - bandOrder is the one value this actually
+    // varies with, plus the drag's own two pieces of state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rowDrag, dragOver, bandOrder]);
+
+  // The live-preview order applied to what actually renders: each group's
+  // own tasks, re-sorted by where liveBandOrder above says they now sit -
+  // groupByPackage's own contract (render order follows array order) means
+  // this is the one place that has to change for every row below to move,
+  // not each row deciding for itself where it is.
+  const liveView = useMemo(() => {
+    if (!rowDrag || !dragOver) return view;
+    const indexOf = new Map<string, number>();
+    for (const ids of liveBandOrder.values()) ids.forEach((id, i) => indexOf.set(id, i));
+    return view.map(([name, items]) => {
+      const reordered = [...items].sort((a, b) => {
+        const ia = indexOf.get(a.id);
+        const ib = indexOf.get(b.id);
+        if (ia === undefined || ib === undefined) return 0;
+        return ia - ib;
+      });
+      return [name, reordered] as [string, Task[]];
+    });
+  }, [view, rowDrag, dragOver, liveBandOrder]);
+
   const dnd: RowDnD = {
     enabled: dndEnabled,
     active: rowDrag !== null,
@@ -1121,9 +1231,14 @@ export function TaskListCard({
     draggingPackage: rowDrag?.kind === 'package' ? rowDrag.name : null,
     startTask: (id) => setRowDrag({ kind: 'task', id }),
     startPackage: (name) => setRowDrag({ kind: 'package', name }),
-    end: () => setRowDrag(null),
+    end: () => {
+      setRowDrag(null);
+      setDragOver(null);
+    },
     dropOnTask,
     dropOnPackage,
+    previewOverTask: (id, e) => previewOver({ kind: 'task', id }, e),
+    previewOverPackage: (name, e) => previewOver({ kind: 'package', name }, e),
   };
 
   const template = gridTemplate(layout.visible, layout.widthOf);
@@ -1200,8 +1315,11 @@ export function TaskListCard({
     // (confirmed live rather than assumed). flex-grow has none of that
     // ambiguity, so this is the one place in this component that composes
     // with whatever a caller does about height.
-    <div className="flex flex-1 flex-col gap-4">
+    <div className="flex flex-1 flex-col gap-6">
       <div className="glim-card flex-1 overflow-hidden">
+        <div className="px-4 pt-4">
+          <SectionTitle hue={hue}>{title}</SectionTitle>
+        </div>
         {/* Sorting is a view of the queue and not the queue. Saying so where the
             order is visibly different is the whole of it — a list that quietly
             shows one order while running another is read as a bug in the queue. */}
@@ -1237,7 +1355,7 @@ export function TaskListCard({
             />
 
             <div className="divide-y divide-carbon-border/60">
-              {view.map(([name, items]) => {
+              {liveView.map(([name, items]) => {
                 const folded = collapsed.has(name);
                 const offset = index;
                 if (!folded) index += items.length;

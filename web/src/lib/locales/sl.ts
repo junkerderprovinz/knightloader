@@ -74,6 +74,7 @@ export const sl: Dict = {
   'empty.downloadsHint': 'Dodaj povezave v zbiralnik in jih zaženi.',
 
   'collector.title': 'Zbiralnik',
+  'collector.listTitle': 'Zbirka',
   'collector.placeholder': 'Prilepi povezave — en URL na vrstico — ali jih spusti sem…  (Ctrl+Enter doda)',
   'collector.package': 'Paket (izbirno)',
   'collector.add': 'V zbiralnik',
@@ -96,6 +97,7 @@ export const sl: Dict = {
   'collector.move': 'Premakni v paket',
 
   'downloads.title': 'Prenosi',
+  'downloads.listTitle': 'Vrsta',
   'downloads.thisInstance': 'Ta instanca',
   'downloads.totalSpeed': 'Skupna hitrost',
   'downloads.pauseAll': 'Zaustavi vse',

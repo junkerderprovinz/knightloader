@@ -74,6 +74,7 @@ export const sk: Dict = {
   'empty.downloadsHint': 'Pridaj odkazy v zberači a spusti ich.',
 
   'collector.title': 'Zberač',
+  'collector.listTitle': 'Zbierka',
   'collector.placeholder': 'Vlož odkazy — jedna URL na riadok — alebo ich sem pretiahni…  (Ctrl+Enter pridá)',
   'collector.package': 'Balík (voliteľné)',
   'collector.add': 'Do zberača',
@@ -96,6 +97,7 @@ export const sk: Dict = {
   'collector.move': 'Presunúť do balíka',
 
   'downloads.title': 'Sťahovanie',
+  'downloads.listTitle': 'Fronta',
   'downloads.thisInstance': 'Táto inštancia',
   'downloads.totalSpeed': 'Celková rýchlosť',
   'downloads.pauseAll': 'Pozastaviť',

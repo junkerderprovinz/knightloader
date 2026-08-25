@@ -74,6 +74,7 @@ export const ro: Dict = {
   'empty.downloadsHint': 'Adaugă linkuri în colector, apoi pornește-le.',
 
   'collector.title': 'Colector',
+  'collector.listTitle': 'Colecție',
   'collector.placeholder': 'Lipește linkuri — câte unul pe rând — sau trage-le aici…  (Ctrl+Enter adaugă)',
   'collector.package': 'Pachet (opțional)',
   'collector.add': 'Adaugă în colector',
@@ -96,6 +97,7 @@ export const ro: Dict = {
   'collector.move': 'Mută în pachet',
 
   'downloads.title': 'Descărcări',
+  'downloads.listTitle': 'Coadă',
   'downloads.thisInstance': 'Această instanță',
   'downloads.totalSpeed': 'Viteză totală',
   'downloads.pauseAll': 'Pune tot pe pauză',

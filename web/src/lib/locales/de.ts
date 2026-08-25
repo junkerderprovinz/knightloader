@@ -74,6 +74,7 @@ export const de: Dict = {
   'empty.downloadsHint': 'Füge Links im Sammler hinzu und starte sie.',
 
   'collector.title': 'Sammler',
+  'collector.listTitle': 'Sammlung',
   'collector.placeholder': 'Links einfügen — eine URL pro Zeile — oder hier ablegen…  (Strg+Enter zum Hinzufügen)',
   'collector.package': 'Paket (optional)',
   'collector.add': 'Zum Sammler',
@@ -96,6 +97,7 @@ export const de: Dict = {
   'collector.move': 'Ins Paket',
 
   'downloads.title': 'Downloads',
+  'downloads.listTitle': 'Warteschlange',
   'downloads.thisInstance': 'Diese Instanz',
   'downloads.totalSpeed': 'Gesamtgeschwindigkeit',
   'downloads.pauseAll': 'Pausieren',
