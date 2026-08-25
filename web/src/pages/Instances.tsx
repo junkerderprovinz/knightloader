@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { type Instance, fetchInstances, addInstance, removeInstance, redeemPairingCode } from '../lib/api';
+import { type Instance, type Settings, fetchInstances, fetchSettings, addInstance, removeInstance, redeemPairingCode } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { PageHeader, Card, Button, Field, IconBadge, TextInput, SectionTitle } from '../components/ui';
 import { InstanceCard } from '../components/InstanceCard';
@@ -34,11 +34,21 @@ export function Instances() {
   const [pairing, setPairing] = useState(false);
   const [pairErr, setPairErr] = useState('');
   const [pairOk, setPairOk] = useState('');
+  // The configured name (settings/Access.tsx's own IdentityCard), so this
+  // instance shows up on its own card the same way a peer does - not the
+  // generic "this instance" placeholder (jdp: "unter instanz soll diese
+  // instanz mit dem eingestellten namen erscheinen nicht mit 'diese
+  // instanz'"). Falls back to the placeholder for the common case of never
+  // having named it.
+  const [ownName, setOwnName] = useState('');
   const navigate = useNavigate();
 
   const load = () => fetchInstances().then(setPeers);
   useEffect(() => {
     load();
+    fetchSettings()
+      .then((s: Settings) => setOwnName(s.instanceName))
+      .catch(() => {});
   }, []);
 
   async function onAdd() {
@@ -90,7 +100,7 @@ export function Instances() {
       <FirstTouchHint id="instances" />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <InstanceCard name={t('instances.thisInstance')} url={location.host} base="/api" />
+        <InstanceCard name={ownName || t('instances.thisInstance')} url={location.host} base="/api" />
         {peers.map((p, i) => (
           <InstanceCard
             key={p.name}
@@ -124,34 +134,34 @@ export function Instances() {
       <Card className="flex flex-col gap-3">
         <SectionTitle hint={t('instances.pairHint')}>{t('instances.pairTitle')}</SectionTitle>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          {/* Same "this holds a code" treatment as the generated-code display
-              on the OTHER instance's own Access tab (settings/Access.tsx's
-              PairingCard) - monospace, ltr, a surface2 well - rather than a
-              plain multi-line textarea that gave no visual hint this field
-              specifically wants a pasted code (jdp, 2026-08-24: "schönes
-              eingabefeld bitte machen"). A single-line <input>, not TextArea:
-              a pasted code is one line, and PairingCard's own read-only
-              <code> display is the height this now matches (jdp: "eingabefeld
-              soll normalgroß sein, jetzt ist es zu groß" - the rows={2}
-              TextArea this replaced rendered as a two-row block for a value
-              that is never more than one line). */}
+          {/* Same TextInput the Name field above uses (jdp, 2026-08-25:
+              "das eingabefeld für den Pairing-code ... soll exakt gleich
+              hoch und formatiert sein wie ... das Eingabefeld für den
+              Namen") - a hand-built well (a div padded around a bare
+              <input>) LOOKS like it should match TextInput's own
+              px-3/py-2/text-sm, but a native <input>'s own box-model
+              quirks are exactly why that component exists instead of every
+              caller re-deriving the same three classes; dir="ltr" and a
+              monospace class are just props now, not a reason to opt out
+              of it. h-9 on all three controls below (the input, the paste
+              badge, the button) is the second half of the same request -
+              IconBadge's own square footprint is a fixed h-8 everywhere
+              else it is used, which reads a few px short beside a
+              text-sm/py-2 input and button once the three sit in one row. */}
           <div className="flex min-w-0 flex-1 items-center gap-2">
-            <div className="min-w-0 flex-1 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
-              <input
-                type="text"
-                dir="ltr"
-                placeholder={t('instances.pairPlaceholder')}
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                className="glim-num w-full border-0 bg-transparent p-0 text-sm text-carbon-text placeholder:text-carbon-textMuted outline-none"
-              />
-            </div>
+            <TextInput
+              dir="ltr"
+              placeholder={t('instances.pairPlaceholder')}
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              className="glim-num h-9 min-w-0 flex-1"
+            />
             <IconBadge
               icon={<IconClipboard width={14} height={14} />}
               title={CLIPBOARD_READABLE ? t('instances.pairPaste') : t('instances.pairPasteUnavailable')}
               aria-label={CLIPBOARD_READABLE ? t('instances.pairPaste') : t('instances.pairPasteUnavailable')}
               disabled={!CLIPBOARD_READABLE}
-              className="shrink-0"
+              className="h-9 w-9 shrink-0"
               onClick={async () => {
                 try {
                   const text = (await navigator.clipboard.readText()).trim();
@@ -162,7 +172,7 @@ export function Instances() {
               }}
             />
           </div>
-          <Button kind="secondary" onClick={() => void onPair()} disabled={!code.trim() || pairing}>
+          <Button kind="secondary" className="h-9" onClick={() => void onPair()} disabled={!code.trim() || pairing}>
             {t('instances.pairButton')}
           </Button>
         </div>

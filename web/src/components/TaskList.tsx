@@ -195,7 +195,17 @@ function TaskRow({
       onDragEnd={dnd.end}
       onDragOver={(e) => dnd.active && e.preventDefault()}
       onDrop={(e) => dnd.dropOnTask(task.id, e)}
-      className={`glim-hue glim-tint ${task.status === 'running' ? 'glim-active' : ''} ${dragging ? 'opacity-50' : ''} group relative grid
+      // select-none, only while a drag is actually possible: without it, a
+      // real mouse press-and-drag that starts over the row's own text (the
+      // name or URL column - the columns a hand naturally lands on) is read
+      // by the browser as starting a text selection instead of the native
+      // HTML5 drag, so draggable="true" never gets as far as firing
+      // dragstart at all. The package header beside this row already has
+      // this for the same reason (its own onClick needs the identical
+      // guard) - this row was the one place it had been missed. Left
+      // selectable when dnd is off (a sorted view) since nothing here
+      // competes with it then.
+      className={`glim-hue glim-tint ${dnd.enabled ? 'select-none' : ''} ${task.status === 'running' ? 'glim-active' : ''} ${dragging ? 'opacity-50' : ''} group relative grid
         items-center px-3 py-2 transition-colors hover:bg-carbon-hover/50`}
     >
       <div className="flex items-center justify-center">
