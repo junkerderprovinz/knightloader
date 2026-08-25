@@ -438,64 +438,124 @@ async function suggestLocalDefault() {
 // asks for one only from a real click on the sync button. Paying a permission
 // prompt for a colour is a bad trade.
 
-const themeSelect = document.getElementById('themeSelect');
-const shapeSelect = document.getElementById('shapeSelect');
-const accentSelect = document.getElementById('accentSelect');
+const themeSeg = document.getElementById('themeSeg');
+const shapeSeg = document.getElementById('shapeSeg');
+const accentSwatches = document.getElementById('accentSwatches');
+const accentNow = document.getElementById('accentNow');
+const accentInput = document.getElementById('accentInput');
+
+/**
+ * segment builds one "well" selector: a shared padded track with equal
+ * segments and no per-item glyph, which is the variant KnightLoader's own
+ * Corners picker uses. Three native <select>s stood here before, and a native
+ * dropdown next to token-styled controls reads as another application's
+ * widget sitting inside this one.
+ *
+ * aria-pressed rather than a class carries which one is on, so the state is
+ * the button's own and a screen reader gets it for free; the stylesheet
+ * selects on the same attribute.
+ */
+function segment(host, options, current, onPick) {
+  host.innerHTML = '';
+  for (const o of options) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = o.label;
+    b.setAttribute('aria-pressed', String(o.value === current));
+    b.addEventListener('click', () => onPick(o.value));
+    host.appendChild(b);
+  }
+}
 
 async function renderAppearance() {
   const a = await readAppearance();
 
-  const fill = (el, opts, current) => {
-    el.innerHTML = '';
-    for (const o of opts) {
-      const opt = document.createElement('option');
-      opt.value = o.value;
-      opt.textContent = o.label;
-      if (o.value === current) opt.selected = true;
-      el.appendChild(opt);
-    }
-  };
-
   // "" is the honest default for two of the three: follow the browser, and use
   // the theme's own gold. Neither is a fourth value to invent.
-  fill(
-    themeSelect,
+  segment(
+    themeSeg,
     [
       { value: '', label: t('options.themeSystem') },
       { value: 'light', label: t('options.themeLight') },
       { value: 'dark', label: t('options.themeDark') },
     ],
     a.theme,
+    async (v) => {
+      await writeAppearance({ theme: v });
+      applyTheme(v);
+      await renderAppearance();
+    },
   );
-  fill(
-    shapeSelect,
+
+  segment(
+    shapeSeg,
     [
       { value: 'round', label: t('options.shapeRound') },
       { value: 'soft', label: t('options.shapeSoft') },
       { value: 'square', label: t('options.shapeSquare') },
     ],
     a.shape,
+    async (v) => {
+      await writeAppearance({ shape: v });
+      applyShape(v);
+      await renderAppearance();
+    },
   );
-  fill(
-    accentSelect,
-    [{ value: '', label: t('options.accentDefault') }].concat(
-      ACCENTS.map((x) => ({ value: x.hex, label: x.name })),
-    ),
-    a.accent,
-  );
+
+  // The live accent, which is the stored one or the default when nothing is
+  // stored - the swatch row marks whichever of the eight matches it, and the
+  // colour input beside them is the way to any other colour, exactly as on
+  // KnightLoader's own Look page.
+  const live = (a.accent || DEFAULT_ACCENT).toLowerCase();
+  accentNow.style.backgroundColor = live;
+  accentInput.value = live;
+  accentInput.setAttribute('aria-label', t('options.accentLabel'));
+
+  accentSwatches.innerHTML = '';
+  // The presets are a shortcut, not the whole choice - the colour field to
+  // their left is any other colour - and KnightLoader's own row says so with
+  // this label, so this one does too.
+  const presets = document.createElement('span');
+  presets.className = 'glim-eyebrow';
+  presets.style.marginInlineEnd = '2px';
+  presets.textContent = t('options.accentPresets');
+  accentSwatches.appendChild(presets);
+  const pick = async (v) => {
+    await writeAppearance({ accent: v });
+    applyAccent(v);
+    await renderAppearance();
+  };
+  for (const x of ACCENTS) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'glim-swatch';
+    b.style.backgroundColor = x.hex;
+    b.title = x.name;
+    b.setAttribute('aria-label', x.name);
+    // A ring, not a tick: a glyph would have to stay legible on all eight,
+    // which means computing an ink colour for a decoration.
+    b.setAttribute('aria-pressed', String(x.hex.toLowerCase() === live));
+    b.addEventListener('click', () => pick(x.hex));
+    accentSwatches.appendChild(b);
+  }
+  // Offered only once the accent has actually moved off the default, so the
+  // row does not carry a control that would do nothing.
+  if (live !== DEFAULT_ACCENT.toLowerCase()) {
+    const reset = document.createElement('button');
+    reset.type = 'button';
+    reset.className = 'secondary';
+    reset.style.padding = '4px 10px';
+    reset.style.fontSize = 'var(--text-caption)';
+    reset.textContent = t('options.accentDefault');
+    reset.addEventListener('click', () => pick(''));
+    accentSwatches.appendChild(reset);
+  }
 }
 
-themeSelect.addEventListener('change', async () => {
-  await writeAppearance({ theme: themeSelect.value });
-  applyTheme(themeSelect.value);
-});
-shapeSelect.addEventListener('change', async () => {
-  await writeAppearance({ shape: shapeSelect.value });
-  applyShape(shapeSelect.value);
-});
-accentSelect.addEventListener('change', async () => {
-  await writeAppearance({ accent: accentSelect.value });
-  applyAccent(accentSelect.value);
+accentInput.addEventListener('change', async () => {
+  await writeAppearance({ accent: accentInput.value });
+  applyAccent(accentInput.value);
+  await renderAppearance();
 });
 
 // --- Problems? -------------------------------------------------------------
