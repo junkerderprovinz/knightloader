@@ -12,6 +12,12 @@ const addHeadingEl = document.getElementById('addHeading');
 const addButton = document.getElementById('add');
 const noteEl = document.getElementById('note');
 const syncPeersBtn = document.getElementById('syncPeers');
+const appearanceHeadingEl = document.getElementById('appearanceHeading');
+const appearanceSubEl = document.getElementById('appearanceSub');
+const themeLabelEl = document.getElementById('themeLabel');
+const shapeLabelEl = document.getElementById('shapeLabel');
+const accentLabelEl = document.getElementById('accentLabel');
+const problemsHeadingEl = document.getElementById('problemsHeading');
 
 function say(text, ok) {
   status.textContent = text;
@@ -37,6 +43,17 @@ function applyStaticText() {
   addButton.textContent = t('options.addButton');
   noteEl.textContent = t('options.note');
   syncPeersBtn.textContent = t('options.syncButton');
+  // The appearance axes and the Problems heading. They were translated into
+  // every language and then never read: the markup carried English text and
+  // nothing overwrote it, so the page rendered half in the reader's language
+  // and half in mine. check-locales.mjs could not see it - a parity gate asks
+  // whether a key EXISTS everywhere, not whether anything ever renders it.
+  appearanceHeadingEl.textContent = t('options.appearanceHeading');
+  appearanceSubEl.textContent = t('options.appearanceSub');
+  themeLabelEl.textContent = t('options.themeLabel');
+  shapeLabelEl.textContent = t('options.shapeLabel');
+  accentLabelEl.textContent = t('options.accentLabel');
+  problemsHeadingEl.textContent = t('options.problemsHeading');
 }
 
 /** buildLanguageSelect fills the dropdown once; renderLanguageSelect (below) only updates which option is selected. */
