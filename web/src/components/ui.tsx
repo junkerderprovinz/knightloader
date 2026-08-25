@@ -355,7 +355,10 @@ const TOOLTIP_DELAY_MS = 400;
 export interface TooltipHandle<T extends HTMLElement> {
   /** Spread onto the element the tooltip is ABOUT. */
   triggerProps: {
-    ref: RefObject<T>;
+    // RefObject<T | null>, matching what useRef<T>(null) actually returns
+    // under React 19's types - they stopped pretending a ref initialised to
+    // null holds a T before it is attached.
+    ref: RefObject<T | null>;
     tabIndex: number;
     role: string;
     onMouseEnter: () => void;

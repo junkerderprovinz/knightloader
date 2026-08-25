@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import type { QRMatrix } from '../lib/api';
 
 /**
@@ -37,7 +38,10 @@ export function QRCode({
 }) {
   const quiet = 4;
   const total = matrix.size + quiet * 2;
-  const modules: JSX.Element[] = [];
+  // ReactElement, not the global JSX namespace: React 19 stopped declaring
+  // that namespace globally, so `JSX.Element` no longer resolves without
+  // pulling it off React itself.
+  const modules: ReactElement[] = [];
   for (let y = 0; y < matrix.size; y++) {
     const row = matrix.bits[y] ?? '';
     for (let x = 0; x < matrix.size; x++) {

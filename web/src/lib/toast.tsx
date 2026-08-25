@@ -161,7 +161,9 @@ function ToastBubble({ item, onDismiss }: { item: ToastMessage; onDismiss: (id: 
   const { t } = useT();
   const remaining = useRef(DURATION_MS);
   const armedAt = useRef(0);
-  const timer = useRef<ReturnType<typeof setTimeout>>();
+  // The initial value is explicit and the type carries undefined: React 19's
+  // useRef no longer has an overload that takes no argument at all.
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const held = useRef({ hover: false, focus: false });
 
   const clear = useCallback(() => {
