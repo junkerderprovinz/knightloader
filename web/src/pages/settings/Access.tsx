@@ -114,7 +114,7 @@ const PENDING = {
   'settings.access.remote.installIOS':
     'On iPhone or iPad: open this page in Safari, tap Share, then "Add to Home Screen".',
   'settings.access.remote.pairExpires': 'Valid for {min} minutes, then it expires unused.',
-  'settings.access.remote.pairWhere': 'Paste it into the other instance, under Settings → Access or on its Instances page.',
+  'settings.access.remote.pairWhere': 'Paste it into the other instance, using its own “Enter a code” button.',
   'settings.access.remote.pairScan': 'Scan the QR code with the KnightLoader app.',
 
   // One sentence for "can another KnightLoader reach this one", because which
@@ -132,6 +132,13 @@ const PENDING = {
   'settings.access.remote.enterCode': 'Enter a code',
   'settings.access.remote.beyond': 'Reaching instances outside this network',
   'settings.access.remote.beyondOff': 'not set up',
+
+  'settings.access.relay.serveLabel': 'Run the relay on this instance',
+  'settings.access.relay.serveHint':
+    'Saves running a second program: the relay answers under /relay/connect on the address this instance already uses, behind the same reverse proxy and the same certificate, and the other instances point at that address. It admits only the key below, so nobody else can meet on it. What it cannot change is that a relay has to be reachable by both sides - turning this on inside an instance nothing can reach from outside gives the others nothing to dial.',
+  'settings.access.relay.serveAddress': 'Give the other instances this address',
+  'settings.access.relay.serveClients': 'connected right now: {n}',
+  'settings.access.relay.serveOn': 'running here',
 
   'settings.access.relay.title': 'Relay',
   'settings.access.relay.body':
@@ -638,14 +645,23 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
   // replaces it - the three cases PUT /api/relay/config tells apart by
   // whether `key` is on the wire, which is why an untouched field must send
   // nothing rather than the empty string it holds.
-  async function saveRelay(nextKey?: string) {
+  //
+  // nextServe is the switch, and passing it makes this a save of the switch
+  // ALONE: it sends the address that is already stored rather than whatever is
+  // in the field, and leaves the field alone afterwards. A toggle that quietly
+  // committed a half-typed address somebody was still editing, or that wiped
+  // that edit on the way back, would be a control doing two things.
+  async function saveRelay(nextKey?: string, nextServe?: boolean) {
+    const switchOnly = nextServe !== undefined;
     setRelayError('');
     setRelayBusy(true);
     try {
-      const c = await saveRelayConfig(url.trim(), nextKey);
+      const c = await saveRelayConfig(switchOnly ? (cfg?.relayUrl ?? '') : url.trim(), nextKey, nextServe);
       setCfg(c);
-      setUrl(c.relayUrl);
-      setKey('');
+      if (!switchOnly) {
+        setUrl(c.relayUrl);
+        setKey('');
+      }
       setRelayDone(true);
       setTimeout(() => setRelayDone(false), 1800);
     } catch (e) {
@@ -817,8 +833,16 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
           onClick={() => setOpenRelay(!relayOpen)}
         >
           <span className="text-xs font-semibold text-carbon-textSub">{cx('settings.access.remote.beyond')}</span>
-          <span className={`text-[11px] ${relayOk ? 'text-statusOk' : 'text-carbon-textMuted'}`}>
-            {relayOk ? t('instances.online') : cx('settings.access.remote.beyondOff')}
+          {/* Two roles, and either one counts as set up: dialling somebody
+              else's relay, or being the relay. An instance serving one while
+              dialling none would otherwise have read "not set up" on the row
+              summarising the thing it was doing. */}
+          <span className={`text-[11px] ${relayOk || cfg.serve ? 'text-statusOk' : 'text-carbon-textMuted'}`}>
+            {relayOk
+              ? t('instances.online')
+              : cfg.serve
+                ? cx('settings.access.relay.serveOn')
+                : cx('settings.access.remote.beyondOff')}
           </span>
           <span className="flex-1" />
           <span className="text-[11px] text-carbon-textMuted" aria-hidden="true">
@@ -831,6 +855,47 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
             <div className="flex items-center gap-2">
               <span className="text-[11px] text-carbon-textMuted">{cx('settings.access.relay.title')}</span>
               <InfoBubble tip={`${cx('settings.access.relay.body')} ${cx('settings.access.relay.selfHosted')}`} />
+            </div>
+
+            {/* jdp: "Können wir nicht das relay in KL integrieren? Also wenn
+                jemand zb zwei desktop instanzen hat und die koppeln will, dass
+                er dann in einer instanz das relay aktiveren kann?" It sits
+                above the address field on purpose: an instance serving the
+                relay is the answer to "which address do I put in the others",
+                so finding it after filling that field in is finding it too
+                late. */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-carbon-text">{cx('settings.access.relay.serveLabel')}</span>
+                <InfoBubble tip={cx('settings.access.relay.serveHint')} />
+                <span className="flex-1" />
+                {cfg.serve && (
+                  <span className="text-[11px] text-carbon-textMuted">
+                    {cx('settings.access.relay.serveClients', { n: cfg.serveClients })}
+                  </span>
+                )}
+                <NeutralSwitch
+                  on={cfg.serve}
+                  disabled={relayBusy}
+                  name={cx('settings.access.relay.serveLabel')}
+                  onChange={(next) => void saveRelay(undefined, next)}
+                />
+              </div>
+              {cfg.serve && (
+                <div className="flex flex-col gap-1">
+                  <span className="text-[11px] text-carbon-textSub">{cx('settings.access.relay.serveAddress')}</span>
+                  {/* The address this page was opened on, which is the one that
+                      actually reached this instance - not a guess assembled
+                      from a hostname, and not a stored field that goes stale
+                      the first time a domain changes. */}
+                  <code
+                    className="glim-num overflow-x-auto whitespace-nowrap rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-xs text-carbon-text"
+                    dir="ltr"
+                  >
+                    {location.origin}
+                  </code>
+                </div>
+              )}
             </div>
 
             <Field label={cx('settings.access.relay.urlLabel')} hint={cx('settings.access.relay.urlHint')}>

@@ -152,15 +152,40 @@ type Server struct {
 	clients map[Conn]*client
 	keys    map[string]map[Conn]*client
 	pending map[string]map[string]pending // relay key -> request id -> pending
+
+	// Admit decides whether a key may connect at all, and is consulted before
+	// anything is registered. nil admits every key, which is what the
+	// standalone relay wants: it is a rendezvous point that nobody's downloads
+	// pass through, and grouping strangers by key already keeps them apart.
+	//
+	// A KnightLoader serving a relay from inside itself needs the opposite
+	// default. There the relay rides on an address somebody published so their
+	// own instances could find each other, and admitting every key would make
+	// their server a rendezvous for whoever finds it. So that caller sets this,
+	// and only its own key gets in.
+	//
+	// It is a function rather than a stored key because the answer changes
+	// while the process runs: the switch can be turned off and the key
+	// replaced, and a relay that had to be rebuilt for either would keep
+	// serving the old answer to whoever was already connected.
+	Admit func(key string) bool
 }
 
-// New returns an empty relay.
+// New returns an empty relay that admits every key. Set Admit to narrow it.
 func New() *Server {
 	return &Server{
 		clients: map[Conn]*client{},
 		keys:    map[string]map[Conn]*client{},
 		pending: map[string]map[string]pending{},
 	}
+}
+
+// admits reports whether key may connect. Reading the field under no lock is
+// deliberate and safe in the one shape it is used in: it is set once, before
+// the server is ever mounted, to a closure that reads live configuration
+// itself.
+func (s *Server) admits(key string) bool {
+	return s.Admit == nil || s.Admit(key)
 }
 
 // Len reports how many connections are registered across every key.
@@ -568,6 +593,15 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	hello, err := readHello(r.Context(), c)
 	if err != nil {
 		c.Close(websocket.StatusPolicyViolation, "the first frame must be a hello with a relay key of at least 16 characters and an instance id")
+		return
+	}
+	// Checked before Join, so a key this relay does not serve costs one
+	// goroutine for the length of a handshake and never appears in the
+	// registry. The close reason says the key was refused rather than that the
+	// relay is picky about which ones: an instance whose own key stopped
+	// matching needs to know that is what happened.
+	if !s.admits(hello.Key) {
+		c.Close(websocket.StatusPolicyViolation, "this relay does not serve that relay key")
 		return
 	}
 	if !s.Join(hello.Key, c, hello.Announce) {

@@ -95,6 +95,26 @@ The relay is self-hosted. There is no official one, and the design note that
 deferred that decision still stands. `docker compose` it anywhere both ends can
 reach, put the same key in both, done.
 
+### Or let one instance be the relay
+
+**Settings → Access → Remote access → Reaching instances outside this network →
+Run the relay on this instance.** The relay then answers under `/relay/connect`
+on the address that instance already uses, behind the same reverse proxy and the
+same certificate, and the other instances put that address in their own relay
+field. No second container, no second port, no second certificate.
+
+It admits only the relay key that instance stores, so switching it on does not
+turn a published address into a meeting place for whoever finds it. With the
+switch off, `/relay/connect` answers 404, the same as any build that never had
+the feature.
+
+What this does *not* change is the one requirement a relay has: it is the third
+point both sides dial out to, so it has to be reachable by both. Turning it on
+inside a desktop install that nothing can reach from outside gives the other
+instances nothing to dial. The instance that hosts it is the one with the
+address - a server, a NAS, anything already behind a domain - and the ones
+behind NAT are what it exists to connect.
+
 What the relay operator can see is stated plainly rather than implied: a
 proxied request carries the caller's bearer token, so whoever runs the relay can
 read a reusable credential out of it. Run your own.
