@@ -284,10 +284,13 @@ function TaskRow({
           identity" rule Look.tsx's own colour swatches and every other
           badge SET in this app already follow - not a hash of the task id,
           which would repaint a badge a different colour every time its own
-          row moved. Trash stays plain danger red without a hue: a
-          destructive action keeps its own semantic colour instead of taking
-          a rainbow position, the same choice this file already made for the
-          bulk-remove badges in Collector.tsx/Downloads.tsx. */}
+          row moved. Trash itself takes a hue too now (jdp, 2026-08-25:
+          "der löschen badge soll nie anders eingfärbt sein... der soll
+          ganz normal eingefärbt sein") - a second Kurswechsel, reversing
+          this file's own earlier "destructive action keeps its own
+          semantic red" choice: the badge that stood out in solid red next
+          to its now-hued, at-rest-neutral siblings was read as the actual
+          inconsistency, not the fix. */}
       <div className="flex items-center justify-end gap-1">
         {collected && (
           <IconBadge
@@ -343,7 +346,7 @@ function TaskRow({
             />
           )}
           <IconBadge
-            kind="danger"
+            hue={4}
             icon={<IconTrash width={16} height={16} />}
             title={t('task.remove')}
             aria-label={t('task.remove')}

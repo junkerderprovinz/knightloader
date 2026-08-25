@@ -413,20 +413,30 @@ export function Collector() {
             Linkpaket auswähle kommen oben buttons wie zb Auswahlaufheben ...
             die sind nicht als badges erkennbar und die sollen in der
             gleichen zeile wie die quadratischen badges erscheinen, nicht in
-            einer neuen Zeile"). The search badge is always first; the field
-            itself, when open, is this row's own flex-1 child rather than a
-            row of its own, so it grows into whatever space the trailing
-            badges are not using instead of pushing them onto a second line.
-            Selection replaces the fixed four badges with its own set rather
-            than adding a second row above them, on the same "one connected
-            row" logic. Reuses the exact same allChosen/cleanup/checkAll/
-            startAll logic ListActionBar used to run for this page, and the
-            exact same removeNow/askWithFiles/onMore wiring SelectionStrip
-            used to run - only the trigger's shape changed, not what it
-            does - and stays local to this file since Downloads.tsx keeps
-            ListActionBar's and SelectionStrip's own text-button look
-            unchanged. */}
+            einer neuen Zeile"). Reversed 2026-08-25 (jdp: "die suche bitte
+            auch wieder rechts zu den anderen dazumachen. es soll aber der
+            linkeste badge sein und das suchfeld nach links aufklappen") -
+            search is now the FIRST badge of the right-hugging cluster
+            instead of its own left-aligned element, and the field opens
+            leftward from there rather than growing rightward from the left
+            edge: the spacer and the field now trade places in front of the
+            badge (was behind it), so whichever of the two is present eats
+            the same leftover space and the badge cluster itself never
+            moves. Selection replaces the fixed set of badges after search
+            with its own, on the same "one connected row" logic. Reuses the
+            exact same allChosen/cleanup/checkAll/startAll logic
+            ListActionBar used to run for this page, and the exact same
+            removeNow/askWithFiles/onMore wiring SelectionStrip used to run -
+            only the trigger's shape changed, not what it does - and stays
+            local to this file since Downloads.tsx keeps ListActionBar's and
+            SelectionStrip's own text-button look unchanged. */}
         <div className="flex shrink-0 items-center gap-2" role="group" aria-label={t('list.actions')}>
+          {searchOpen ? (
+            <SearchField value={search} onChange={setSearch} className="min-w-0 flex-1" />
+          ) : (
+            <span className="flex-1" />
+          )}
+
           <IconBadge
             hue={0}
             icon={<IconSearch width={16} height={16} />}
@@ -434,19 +444,6 @@ export function Collector() {
             aria-label={t('collector.searchToggle')}
             onClick={() => setSearchOpen((v) => !v)}
           />
-
-          {searchOpen && <SearchField value={search} onChange={setSearch} className="min-w-0 flex-1" />}
-
-          {/* Search is the row's one left-aligned element; everything else -
-              the selection cluster below as much as the four page-level
-              badges - hugs the right edge instead (jdp: "die icons ... sollen
-              alle rechts drüben sein nur die suche links. auch wenn ein
-              element ausgewählt wird"). One spacer, placed once here rather
-              than inside each branch below, is what keeps both readings
-              right-aligned the same way instead of the selection branch
-              needing its own copy of this same rule. It drops out the moment
-              the open search field has its own flex-1 claim on that space. */}
-          {!searchOpen && <span className="flex-1" />}
 
           {/* Filters, not actions — visible regardless of selection, the
               same reasoning the search badge beside them already follows,
@@ -512,17 +509,16 @@ export function Collector() {
                 }}
               />
               <IconBadge
-                kind="danger"
+                hue={4}
                 icon={<IconTrash width={16} height={16} />}
                 title={t('task.remove')}
                 aria-label={t('task.remove')}
                 onClick={() => void removal.removeNow(selectedIds)}
               />
-              {/* Only when there is something on disk to erase, and never
-                  with the same treatment as the badge above it. */}
+              {/* Only when there is something on disk to erase. */}
               {selectedOnDisk && (
                 <IconBadge
-                  kind="danger"
+                  hue={5}
                   icon={<IconTrashFiles width={16} height={16} />}
                   title={t('task.removeWithFiles')}
                   aria-label={t('task.removeWithFiles')}

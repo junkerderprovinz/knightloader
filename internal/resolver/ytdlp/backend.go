@@ -270,6 +270,19 @@ func buildArgs(dir string, o Options) []string {
 		if f := formatSelector(o); f != "" {
 			args = append(args, "-f", f)
 		}
+		// Only reachable outside the AudioOnly case above: that branch
+		// already IS an audio extraction (-x with no video format at all),
+		// so a second -x --keep-video here would ask yt-dlp to keep a video
+		// that was never going to be downloaded in the first place.
+		if o.KeepAudio {
+			args = append(args, "-x", "--keep-video")
+		}
+	}
+	if o.Thumbnail {
+		args = append(args, "--write-thumbnail")
+	}
+	if o.Description {
+		args = append(args, "--write-description")
 	}
 	if o.Subtitles != SubtitlesOff {
 		langs := o.SubtitleLangs

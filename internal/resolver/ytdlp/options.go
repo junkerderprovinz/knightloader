@@ -34,6 +34,24 @@ type Options struct {
 	// Playlist, when true, drops --no-playlist: a playlist URL fetches
 	// every entry instead of only the one the link happened to point at.
 	Playlist bool `json:"playlist"`
+	// Thumbnail adds --write-thumbnail, saving the video's own cover image
+	// beside it - the "Bild" file jdp asked for (2026-08-25: "ich möchte
+	// alle dateitype aktiveren und deaktivieren können", matching how JD's
+	// own per-plugin settings let a person keep or drop each file a job
+	// produces, not just the main download).
+	Thumbnail bool `json:"thumbnail"`
+	// Description adds --write-description, a plain .description text file
+	// carrying the page's own description - the "txt" file in the same
+	// request.
+	Description bool `json:"description"`
+	// KeepAudio adds -x --keep-video, so a video download ALSO yields a
+	// separate audio-only file next to it instead of only the muxed
+	// original - distinct from Quality=QualityAudioOnly, which replaces the
+	// video entirely rather than keeping both. Meaningless (and left
+	// unapplied by buildArgs) when Quality is already QualityAudioOnly:
+	// there is no separate video in that download to extract a second copy
+	// of the audio from.
+	KeepAudio bool `json:"keepAudio"`
 	// OutputTemplate is yt-dlp's own -o template syntax, joined onto the
 	// task's destination directory. Empty uses defaultOutputTemplate.
 	OutputTemplate string `json:"outputTemplate"`

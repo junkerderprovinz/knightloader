@@ -1728,6 +1728,12 @@ export const en = {
   'settings.resolvers.customFormatHint':
     "yt-dlp's own -f value, e.g. bestvideo[height<=720]+bestaudio/best. Passed through unexamined; a value yt-dlp rejects fails with its own error on the task.",
   'settings.resolvers.playlist': 'Download the whole playlist when a link points into one',
+  'settings.resolvers.extraFiles': 'Extra files',
+  'settings.resolvers.thumbnail': 'Save the cover image',
+  'settings.resolvers.description': "Save the page's own description as a text file",
+  'settings.resolvers.keepAudio': 'Also keep a separate audio file',
+  'settings.resolvers.keepAudioHint':
+    "Alongside the video, not instead of it - for audio only, set Quality to \"Audio only\" above.",
   'settings.resolvers.subtitles': 'Subtitles',
   'settings.resolvers.subtitlesHint': 'Off is what every download did before this setting existed.',
   'settings.resolvers.subtitles.off': 'Off',

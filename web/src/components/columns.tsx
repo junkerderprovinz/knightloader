@@ -609,22 +609,35 @@ function ProgressCell({ loaded, size, done, active }: { loaded: number; size: nu
 }
 
 function StatusCell({ task, t }: { task: Task; t: Translate }) {
-  // An availability verdict is worth showing only while nothing has been
-  // attempted yet; once a transfer is running, the status is the answer.
-  const chip = task.status === 'collected' && task.online ? availChip[task.online] : undefined;
   // The typed cause carries the detail, as a tooltip rather than a second word
   // on the line. "Host would not say" is the verdict and it is what the column
   // is for; whether the host was rate-limiting us or simply down is the next
   // question, and it belongs one hover away, not in the width of the cell.
   const why = task.reason ? reasonKey[task.reason] : undefined;
+  // Every row in the Collector carries the same task.status, so StatusPill's
+  // own dot+word here would always read "collected" in grey - the one thing
+  // that actually varies while a link is staged is the availability check,
+  // which this cell shows instead: just the dot, coloured by that verdict
+  // rather than by a status that never changes (jdp, 2026-08-25: "status-
+  // spalte soll nicht gesammelt text anzeigen sondern nur der status
+  // punkt... der soll grün wenn der link online ist... oder rot wenn
+  // offline"). Once a task leaves "collected" the availability question is
+  // moot - the transfer's own status IS the answer - so StatusPill's usual
+  // dot+word takes back over below, unchanged.
+  if (task.status === 'collected') {
+    const avail = task.online;
+    return (
+      <span
+        title={why ? t(why) : avail ? t(availChip[avail].key) : undefined}
+        className={`inline-block h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${
+          avail ? availDot[avail] : 'bg-carbon-textMuted/40'
+        }`}
+      />
+    );
+  }
   return (
     <span className="inline-flex min-w-0 items-center gap-2">
       <StatusPill status={task.status} />
-      {chip && (
-        <span title={why ? t(why) : undefined} className={`truncate text-[11px] ${chip.tone}`}>
-          {t(chip.key)}
-        </span>
-      )}
       {/* Only a real verdict is shown. An unverified download stays unmarked,
           because a tick that also means "not checked" is worse than none. */}
       {task.checksum === 'ok' && (

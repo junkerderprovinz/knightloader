@@ -1434,6 +1434,14 @@ export interface YtdlpOptions {
   /** A playlist URL fetches every entry instead of only the one link
    *  pointed at - off is what every install had before this existed. */
   playlist: boolean;
+  /** Also save the video's own cover image (--write-thumbnail). */
+  thumbnail: boolean;
+  /** Also save a plain .description text file (--write-description). */
+  description: boolean;
+  /** Also keep a separate audio-only file alongside the video
+   *  (-x --keep-video) - distinct from quality 'audioOnly', which replaces
+   *  the video rather than keeping both. */
+  keepAudio: boolean;
   /** yt-dlp's own -o template syntax; empty uses the built-in
    *  "%(title)s.%(ext)s". Server-sanitized against path traversal on save -
    *  see ytdlp.sanitizeTemplate's own doc comment. */

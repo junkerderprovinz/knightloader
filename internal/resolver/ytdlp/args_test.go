@@ -142,6 +142,54 @@ func TestBuildArgsSubtitleAutoAddsWriteAutoSubs(t *testing.T) {
 	}
 }
 
+func TestBuildArgsThumbnailAddsWriteThumbnail(t *testing.T) {
+	args := buildArgs("d", Options{Thumbnail: true})
+	if !hasArg(args, "--write-thumbnail") {
+		t.Errorf("Thumbnail=true did not pass --write-thumbnail: %v", args)
+	}
+}
+
+func TestBuildArgsThumbnailOffAddsNothing(t *testing.T) {
+	args := buildArgs("d", Options{})
+	if hasArg(args, "--write-thumbnail") {
+		t.Errorf("buildArgs(Options{}) passed --write-thumbnail, want none: %v", args)
+	}
+}
+
+func TestBuildArgsDescriptionAddsWriteDescription(t *testing.T) {
+	args := buildArgs("d", Options{Description: true})
+	if !hasArg(args, "--write-description") {
+		t.Errorf("Description=true did not pass --write-description: %v", args)
+	}
+}
+
+func TestBuildArgsKeepAudioPairsDashXWithKeepVideo(t *testing.T) {
+	args := buildArgs("d", Options{KeepAudio: true})
+	if !hasArg(args, "-x") || !hasArg(args, "--keep-video") {
+		t.Errorf("KeepAudio=true missing -x/--keep-video: %v", args)
+	}
+}
+
+// TestBuildArgsKeepAudioIsANoOpUnderAudioOnly is the guard on the flag
+// above: AudioOnly already IS an audio extraction with no video format
+// requested at all, so KeepAudio must not add a second, redundant -x or a
+// --keep-video that has no video to keep.
+func TestBuildArgsKeepAudioIsANoOpUnderAudioOnly(t *testing.T) {
+	args := buildArgs("d", Options{Quality: QualityAudioOnly, KeepAudio: true})
+	if hasArg(args, "--keep-video") {
+		t.Errorf("KeepAudio under QualityAudioOnly passed --keep-video, want none: %v", args)
+	}
+	n := 0
+	for _, a := range args {
+		if a == "-x" {
+			n++
+		}
+	}
+	if n != 1 {
+		t.Errorf("-x appears %d times under QualityAudioOnly+KeepAudio, want exactly 1: %v", n, args)
+	}
+}
+
 func TestBuildArgsCustomOutputTemplate(t *testing.T) {
 	dir := filepath.Join("d", "l")
 	args := buildArgs(dir, Options{OutputTemplate: "%(uploader)s/%(title)s.%(ext)s"})
