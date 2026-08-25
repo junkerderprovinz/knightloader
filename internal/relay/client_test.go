@@ -342,8 +342,17 @@ func TestCallInFlightFailsWhenTheConnectionDies(t *testing.T) {
 		if err == nil {
 			t.Fatal("the call succeeded, want it to fail with the connection")
 		}
-		if !strings.Contains(err.Error(), "dropped") {
-			t.Errorf("got %v, want it to say the connection dropped", err)
+		// Two legitimate paths race here, and either is a correct answer:
+		// alpha's own connection can notice it died first ("...dropped"), or
+		// the relay can notice bravo left first and answer alpha with a
+		// synthetic failure before alpha's own socket has even reported
+		// anything wrong (server.go's own failPending, added once a target
+		// disconnecting mid-request started failing the call fast instead of
+		// leaving the caller to time out) - which one wins is inherent to
+		// killing the whole relay process out from under both connections at
+		// once, not something either side controls.
+		if !strings.Contains(err.Error(), "dropped") && !strings.Contains(err.Error(), "disconnected before it replied") {
+			t.Errorf("got %v, want it to say the connection dropped or that the target disconnected first", err)
 		}
 	case <-time.After(wsTimeout):
 		t.Fatal("the call is still waiting; a dead connection must fail it at once")
