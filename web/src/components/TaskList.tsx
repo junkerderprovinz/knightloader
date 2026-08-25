@@ -850,27 +850,38 @@ export function TaskProperties({ ids, tasks, base }: { ids: string[]; tasks: Tas
           </Field>
         )}
 
-        <Field
-          label={t('task.folder')}
-          hint={hint(t('settings.downloadDirHint'), start.dir === null)}
-        >
-          <TextInput
-            dir="ltr"
-            value={dir}
-            spellCheck={false}
-            placeholder={placeholder(start.dir === null)}
-            onChange={(e) => edit('dir', setDir)(e.target.value)}
-          />
-        </Field>
+        {/* One row, not two stacked full-width fields (jdp, 2026-08-25:
+            "Ordner und Kommentar in eine Zeile") - the same
+            grid-cols-2 pattern the priority/auto-extract row below already
+            uses. Comment is a single-row TextArea now, not rows={2}: it
+            shares TextInput's own inputClass (px-3/py-2/text-sm) so a
+            rows={1} textarea lands at the same height as Folder's TextInput
+            beside it (jdp: "Kommentarfeld gleich hoch wie das eingabefeld
+            des Ordners") - still resize-y, so a longer comment can still be
+            grown by hand rather than always reserving the space for one. */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field
+            label={t('task.folder')}
+            hint={hint(t('settings.downloadDirHint'), start.dir === null)}
+          >
+            <TextInput
+              dir="ltr"
+              value={dir}
+              spellCheck={false}
+              placeholder={placeholder(start.dir === null)}
+              onChange={(e) => edit('dir', setDir)(e.target.value)}
+            />
+          </Field>
 
-        <Field label={t('props.comment')} hint={hint(t('props.commentHint'), start.comment === null)}>
-          <TextArea
-            rows={2}
-            value={comment}
-            placeholder={placeholder(start.comment === null)}
-            onChange={(e) => edit('comment', setComment)(e.target.value)}
-          />
-        </Field>
+          <Field label={t('props.comment')} hint={hint(t('props.commentHint'), start.comment === null)}>
+            <TextArea
+              rows={1}
+              value={comment}
+              placeholder={placeholder(start.comment === null)}
+              onChange={(e) => edit('comment', setComment)(e.target.value)}
+            />
+          </Field>
+        </div>
 
         {/* A set of controls, so FieldGroup and not Field: a <label> hands its
             click to the first thing inside it, which here would pick a priority
@@ -899,6 +910,7 @@ export function TaskProperties({ ids, tasks, base }: { ids: string[]; tasks: Tas
             <div className="overflow-x-auto">
               <Tabs
                 variant="well"
+                size="sm"
                 className="w-fit"
                 label={t('props.priority')}
                 active={priority}
@@ -915,6 +927,7 @@ export function TaskProperties({ ids, tasks, base }: { ids: string[]; tasks: Tas
             <div className="overflow-x-auto">
               <Tabs
                 variant="well"
+                size="sm"
                 className="w-fit"
                 label={t('props.autoExtract')}
                 active={extract}

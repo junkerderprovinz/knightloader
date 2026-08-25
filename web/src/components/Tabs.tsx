@@ -130,6 +130,26 @@ const SIZE = {
   md: 'gap-2 px-3 py-2 text-[13px]',
 } as const;
 
+// The well variant's own gap/padding/text, kept separate from SIZE above
+// (its md does not match SIZE.md - a well segment already reads bigger
+// than a chip at the same nominal stage, so the two were never the same
+// numbers) and gated on `size` for the first time here: every existing
+// well caller (Look.tsx's shape/theme pickers, Archives.tsx) leaves `size`
+// unset, defaults to 'md', and gets the exact classes this replaces -
+// pixel-identical, nothing to re-verify there. `sm` reuses SIZE.sm's own
+// values (BombVault's Selector establishes the same idea - a well
+// segment's size stage still varies gap/text even though its box comes
+// from a fixed height rather than padding math - this codebase's own
+// existing chip-sm numbers are the in-house-consistent choice over
+// copying BombVault's literal ones) for a genuinely smaller track, used by
+// TaskProperties' priority/auto-extract selectors (jdp, 2026-08-25: "Die
+// horizontalen Selektoren sollen kleiner sein... kleinere Größe in BV und
+// Glimstone etabliert").
+const WELL_SIZE: Record<'sm' | 'md', string> = {
+  sm: 'gap-1.5 px-2.5 py-1 text-xs',
+  md: 'gap-2 px-3 py-1.5 text-sm',
+};
+
 export function Tabs(props: TabsProps) {
   const {
     items,
@@ -450,7 +470,7 @@ export function Tabs(props: TabsProps) {
             // OUTER track (Look.tsx/Archives.tsx's own className) is what
             // keeps the track's visible bg-carbon-surface2 surface from
             // extending past the last fixed-width segment.
-            `${segBase} glim-hue glim-hue-icon w-[200px] min-w-0 shrink-0 justify-center text-center gap-2 px-3 py-1.5 text-sm
+            `${segBase} glim-hue glim-hue-icon w-[200px] min-w-0 shrink-0 justify-center text-center ${WELL_SIZE[size]}
               ${on ? 'glim-active bg-accent text-accentContrast' : 'bg-transparent text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text'}
               flex items-center ${!on && item.dim ? 'opacity-60' : ''}`
           : `${segBase} glim-hue glim-hue-icon ${on ? `glim-active ${segOn}` : segOff} ${
