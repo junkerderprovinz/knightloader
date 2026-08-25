@@ -1,0 +1,230 @@
+/* GlimStone tokens for the browser extension.
+ *
+ * Copied from the shared reference (github.com/junkerderprovinz/glimstone,
+ * reference/tokens.css) rather than re-picked, because the point of a shared
+ * design language is that this yellow is the same yellow everywhere. Only the
+ * parts this extension actually uses are here - the colour picker, the info
+ * bubble and the rainbow classes are left out, and the reason for the rainbow
+ * is worth stating: it colours ACTIVITY in a list by position, and nothing in
+ * these three small pages is a list of activity. Adding it would be a mode with
+ * nothing to colour.
+ *
+ * Shared by options.html, popup.html and picker.html. One file rather than
+ * three copies of the same block, which is how three pages of one product end
+ * up three slightly different products.
+ */
+
+
+
+:root {
+  --radius-card: 1rem;
+  --radius-control: 0.625rem;
+  --radius-pill: 9999px;
+
+  /* The type scale: a fixed reference table, not an engine — nobody sets
+     their own type scale. --text-caption covers three treatments of the
+     same size (plain caption, .glim-eyebrow's uppercase label, the info
+     bubble's text) — the treatment carries the distinction, not the size.
+     A page's one hero figure and any brand-wordmark instance are
+     deliberately NOT part of this scale — see docs/design-language.md,
+     "The type scale". */
+  --text-heading: 1.25rem;  /* 20px */
+  --text-body: 0.875rem;    /* 14px */
+  --text-dense: 0.75rem;    /* 12px */
+  --text-caption: 0.6875rem; /* 11px */
+}
+
+:root[data-shape="soft"] {
+  --radius-card: 0.5rem;
+  --radius-control: 0.3125rem;
+  --radius-pill: 0.3125rem;
+}
+
+:root[data-shape="square"] {
+  --radius-card: 0;
+  --radius-control: 0;
+  --radius-pill: 0;
+}
+
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Ground and surfaces — IBM Carbon's neutral greys. Not a warm near-black:
+     that reads as brown next to any sibling app that already agreed on this
+     palette. A design language shared across apps has to share its ground
+     first. */
+  --carbon-bg:         #161616;
+  --carbon-sidebar:    #262626;
+  --carbon-surface:    #262626;
+  --carbon-surface2:   #393939;
+  --carbon-surface3:   #525252;
+  --carbon-hover:      #353535;
+  --carbon-border:     #393939;
+
+  /* Text ramp — three steps, the last still legible at 11px. */
+  --carbon-text:       #f4f4f4;
+  --carbon-text-sub:   #c6c6c6;
+  --carbon-text-muted: #8d8d8d;
+  --sidebar-text:      #e0e0e0;
+
+  /* Activity, and nothing else. The default is every sibling app's own
+     default accent, so a fresh install of any of them looks like the same
+     product; it is a setting, and the picker is one page away. */
+  --accent:            #FCC419;
+  --accent-contrast:   #161616;
+  --accent-soft:       rgba(252, 196, 25, 0.14);
+
+  /* Four state hues, Carbon's dark support tones. Paused reuses neutral
+     on purpose — its label and its resume control carry the difference. */
+  --status-info-text:    #FCC419;
+  --status-info-bg:      rgba(252, 196, 25, 0.13);
+  --status-info-solid:   #FCC419;
+
+  --status-ok-text:      #6fdc8c;
+  --status-ok-bg:        rgba(111, 220, 140, 0.13);
+  --status-ok-solid:     #6fdc8c;
+
+  --status-fail-text:    #ff8389;
+  --status-fail-bg:      rgba(255, 131, 137, 0.14);
+  --status-fail-solid:   #ff8389;
+
+  --status-warn-text:    #f1c21b;
+  --status-warn-bg:      rgba(241, 194, 27, 0.12);
+  --status-warn-solid:   #f1c21b;
+
+  --status-neutral-text: #a8a8a8;
+  --status-neutral-bg:   rgba(255, 255, 255, 0.05);
+  --status-neutral-solid: #8d8d8d;
+
+  /* One elevation, one hairline. Neutral black, not a warm one: a brown
+     shadow under a grey card is visible and reads as a colour cast. */
+  --elevation: 0 1px 2px rgba(0, 0, 0, .40), 0 18px 40px -24px rgba(0, 0, 0, .85);
+  --hairline: inset 0 1px 0 rgba(255, 255, 255, .045);
+  --focus-ring: rgba(252, 196, 25, .55);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* Carbon's light greys, mirroring the dark ramp step for step. */
+  --carbon-bg:         #f4f4f4;
+  --carbon-sidebar:    #ffffff;
+  --carbon-surface:    #ffffff;
+  --carbon-surface2:   #e8e8e8;
+  --carbon-surface3:   #d1d1d1;
+  --carbon-hover:      #e0e0e0;
+  --carbon-border:     #d1d1d1;
+
+  --carbon-text:       #161616;
+  --carbon-text-sub:   #525252;
+  --carbon-text-muted: #6f6f6f;
+  --sidebar-text:      #393939;
+
+  /* The dark accent is a yellow, and yellow on white is unreadable at 11px.
+     Carbon's own answer is to darken the hue rather than pick another one,
+     so the accent stays recognisably the same colour across both themes. */
+  --accent:            #8E6A00;
+  --accent-contrast:   #ffffff;
+  --accent-soft:       rgba(142, 106, 0, 0.12);
+
+  --status-info-text:    #8E6A00;
+  --status-info-bg:      rgba(142, 106, 0, 0.12);
+  --status-info-solid:   #A87D00;
+
+  --status-ok-text:      #0e6027;
+  --status-ok-bg:        rgba(14, 96, 39, 0.11);
+  --status-ok-solid:     #198038;
+
+  --status-fail-text:    #da1e28;
+  --status-fail-bg:      rgba(218, 30, 40, 0.10);
+  --status-fail-solid:   #da1e28;
+
+  --status-warn-text:    #8E6A00;
+  --status-warn-bg:      rgba(142, 106, 0, 0.10);
+  --status-warn-solid:   #b28600;
+
+  --status-neutral-text: #6f6f6f;
+  --status-neutral-bg:   rgba(0, 0, 0, 0.045);
+  --status-neutral-solid: #8d8d8d;
+
+  --elevation: 0 1px 2px rgba(0, 0, 0, .06), 0 16px 36px -26px rgba(0, 0, 0, .35);
+  --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
+  --focus-ring: rgba(142, 106, 0, .5);
+}
+
+.glim-card {
+  background-color: var(--carbon-surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--elevation), var(--hairline);
+}
+
+.glim-well {
+  background-color: var(--carbon-surface2);
+  border-radius: var(--radius-control);
+}
+
+.glim-eyebrow {
+  font-size: var(--text-caption);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--carbon-text-muted);
+}
+
+.glim-num {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "zero" 1;
+}
+
+:focus-visible {
+  opacity: 1;
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+
+    --carbon-bg:         #f4f4f4;
+    --carbon-sidebar:    #ffffff;
+    --carbon-surface:    #ffffff;
+    --carbon-surface2:   #e8e8e8;
+    --carbon-surface3:   #d1d1d1;
+    --carbon-hover:      #e0e0e0;
+    --carbon-border:     #d1d1d1;
+
+    --carbon-text:       #161616;
+    --carbon-text-sub:   #525252;
+    --carbon-text-muted: #6f6f6f;
+    --sidebar-text:      #393939;
+
+    --accent:            #8E6A00;
+    --accent-contrast:   #ffffff;
+    --accent-soft:       rgba(142, 106, 0, 0.12);
+
+    --status-info-text:    #8E6A00;
+    --status-info-bg:      rgba(142, 106, 0, 0.12);
+    --status-info-solid:   #A87D00;
+
+    --status-ok-text:      #0e6027;
+    --status-ok-bg:        rgba(14, 96, 39, 0.11);
+    --status-ok-solid:     #198038;
+
+    --status-fail-text:    #da1e28;
+    --status-fail-bg:      rgba(218, 30, 40, 0.10);
+    --status-fail-solid:   #da1e28;
+
+    --status-warn-text:    #8E6A00;
+    --status-warn-bg:      rgba(142, 106, 0, 0.10);
+    --status-warn-solid:   #b28600;
+
+    --status-neutral-text: #6f6f6f;
+    --status-neutral-bg:   rgba(0, 0, 0, 0.045);
+    --status-neutral-solid: #8d8d8d;
+
+    --elevation: 0 1px 2px rgba(0, 0, 0, .06), 0 16px 36px -26px rgba(0, 0, 0, .35);
+    --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
+    --focus-ring: rgba(142, 106, 0, .5);
+  }
+}

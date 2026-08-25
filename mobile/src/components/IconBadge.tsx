@@ -1,5 +1,5 @@
 import { StyleSheet, Text, TouchableOpacity } from 'react-native';
-import { colors } from '../theme';
+import { useAppearance } from '../theme/AppearanceContext';
 
 // A small round glyph button - the "+" that opens Connect, the gear that
 // opens Settings, wherever a screen needs an icon-sized action rather than
@@ -20,14 +20,23 @@ export default function IconBadge({
    *  surface for a secondary one (e.g. the settings gear). */
   accent?: boolean;
 }) {
+  const { c, accent: accentColor, accentContrast, radii } = useAppearance();
+
   return (
     <TouchableOpacity
-      style={[styles.badge, accent && styles.badgeAccent]}
+      style={[
+        styles.badge,
+        { borderRadius: radii.pill, backgroundColor: c.surface, borderColor: c.border },
+        accent && { backgroundColor: accentColor, borderColor: accentColor },
+      ]}
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
     >
-      <Text style={[styles.symbol, accent && styles.symbolAccent]}>{symbol}</Text>
+      {/* The glyph on a filled badge takes the computed ink rather than the
+          body text colour: the accent is user-chosen, and white on Sunflower
+          is exactly the unreadable pairing contrastOn exists to rule out. */}
+      <Text style={[styles.symbol, { color: accent ? accentContrast : accentColor }]}>{symbol}</Text>
     </TouchableOpacity>
   );
 }
@@ -36,17 +45,9 @@ const styles = StyleSheet.create({
   badge: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  badgeAccent: {
-    backgroundColor: colors.accent,
-    borderColor: colors.accent,
-  },
-  symbol: { color: colors.accent, fontSize: 16, fontWeight: '700', lineHeight: 18 },
-  symbolAccent: { color: colors.text },
+  symbol: { fontSize: 16, fontWeight: '700', lineHeight: 18 },
 });

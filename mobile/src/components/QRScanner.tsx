@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { colors } from '../theme';
+import { useAppearance } from '../theme/AppearanceContext';
+import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 
 // A full-screen modal scanner, not a screen of its own: every place that
@@ -10,6 +11,7 @@ import { useT } from '../i18n/I18nContext';
 // in the navigation stack.
 export default function QRScanner({ visible, onScanned, onClose, hint }: { visible: boolean; onScanned: (data: string) => void; onClose: () => void; hint: string }) {
   const { t } = useT();
+  const { c, accent, accentContrast, radii } = useAppearance();
   const [permission, requestPermission] = useCameraPermissions();
   const [locked, setLocked] = useState(false);
 
@@ -31,14 +33,17 @@ export default function QRScanner({ visible, onScanned, onClose, hint }: { visib
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: c.bg }]}>
         {!permission ? (
           <View style={styles.center} />
         ) : !permission.granted ? (
           <View style={styles.center}>
-            <Text style={styles.hint}>{t('qr.cameraPermissionHint')}</Text>
-            <TouchableOpacity style={styles.button} onPress={requestPermission}>
-              <Text style={styles.buttonText}>{t('qr.grantAccess')}</Text>
+            <Text style={[styles.hint, { color: c.text }]}>{t('qr.cameraPermissionHint')}</Text>
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: accent, borderRadius: radii.control }]}
+              onPress={requestPermission}
+            >
+              <Text style={[styles.buttonText, { color: accentContrast }]}>{t('qr.grantAccess')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -50,41 +55,42 @@ export default function QRScanner({ visible, onScanned, onClose, hint }: { visib
               onBarcodeScanned={(result) => handleScanned(result.data)}
             />
             <View style={styles.overlay} pointerEvents="none">
-              <View style={styles.frame} />
-              <Text style={styles.hint}>{hint}</Text>
+              <View style={[styles.frame, { borderColor: accent, borderRadius: radii.card }]} />
+              <Text style={[styles.hint, { color: c.text }]}>{hint}</Text>
             </View>
           </>
         )}
-        <TouchableOpacity style={styles.close} onPress={onClose}>
-          <Text style={styles.closeText}>{t('qr.cancel')}</Text>
+        <TouchableOpacity
+          style={[styles.close, { backgroundColor: c.surface, borderRadius: radii.pill }]}
+          onPress={onClose}
+        >
+          <Text style={[styles.closeText, { color: c.text }]}>{t('qr.cancel')}</Text>
         </TouchableOpacity>
       </View>
     </Modal>
   );
 }
 
+// Colours and radii are applied inline from the resolved tokens, never baked
+// in here: a stylesheet is built once and cannot follow a theme change.
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 16 },
   overlay: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 24 },
   frame: {
     width: 240,
     height: 240,
-    borderRadius: 16,
     borderWidth: 2,
-    borderColor: colors.accent,
   },
-  hint: { color: colors.text, fontSize: 14, textAlign: 'center', paddingHorizontal: 32 },
-  button: { backgroundColor: colors.accent, borderRadius: 8, paddingVertical: 12, paddingHorizontal: 20 },
-  buttonText: { color: colors.text, fontSize: 15, fontWeight: '600' },
+  hint: { fontSize: TYPE.body, textAlign: 'center', paddingHorizontal: 32 },
+  button: { paddingVertical: 12, paddingHorizontal: 20 },
+  buttonText: { fontSize: 15, fontWeight: '600' },
   close: {
     position: 'absolute',
     top: 56,
     right: 20,
-    backgroundColor: colors.surface,
-    borderRadius: 20,
     paddingVertical: 8,
     paddingHorizontal: 16,
   },
-  closeText: { color: colors.text, fontSize: 14 },
+  closeText: { fontSize: TYPE.body },
 });

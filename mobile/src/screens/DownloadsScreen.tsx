@@ -3,7 +3,8 @@ import { ActivityIndicator, FlatList, StyleSheet, Switch, Text, TouchableOpacity
 import { fetchQueue, liveTasks, setQueueHalted } from '../api/client';
 import type { Instance, QueueState, ServerConnection, Task } from '../api/types';
 import TaskRow from '../components/TaskRow';
-import { colors } from '../theme';
+import { useAppearance } from '../theme/AppearanceContext';
+import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import IconBadge from '../components/IconBadge';
 
@@ -33,6 +34,7 @@ export default function DownloadsScreen({
   onBackToOwn?: () => void;
 }) {
   const { t } = useT();
+  const { c, accent, accentContrast, radii } = useAppearance();
   const base = peer ? `/api/instances/${encodeURIComponent(peer.name)}` : '/api';
   const [tasks, setTasks] = useState<Task[]>([]);
   const [connected, setConnected] = useState(false);
@@ -72,48 +74,48 @@ export default function DownloadsScreen({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: c.bg }]}>
       <View style={styles.topBar}>
         <View style={styles.topBarLeft}>
           {peer && onBackToOwn ? (
             <TouchableOpacity onPress={onBackToOwn}>
-              <Text style={styles.back}>‹ {conn.name}</Text>
+              <Text style={[styles.back, { color: c.textMuted }]}>‹ {conn.name}</Text>
             </TouchableOpacity>
           ) : null}
-          <Text style={styles.title}>{peer ? (peer.displayName ?? peer.name) : conn.name}</Text>
-          <Text style={[styles.connState, { color: connected ? colors.success : colors.warning }]}>
+          <Text style={[styles.title, { color: c.text }]}>{peer ? (peer.displayName ?? peer.name) : conn.name}</Text>
+          <Text style={[styles.connState, { color: connected ? c.statusOkSolid : c.statusWarnSolid }]}>
             {connected ? t('downloads.connected') : t('downloads.connecting')}
           </Text>
         </View>
         <View style={styles.topBarRight}>
           {!peer && (
             <TouchableOpacity onPress={onOpenInstances}>
-              <Text style={styles.link}>{t('downloads.instancesLink')}</Text>
+              <Text style={[styles.link, { color: accent }]}>{t('downloads.instancesLink')}</Text>
             </TouchableOpacity>
           )}
           {!peer && (
             <TouchableOpacity onPress={onSwitchConnection}>
-              <Text style={styles.link}>{t('downloads.switchLink')}</Text>
+              <Text style={[styles.link, { color: accent }]}>{t('downloads.switchLink')}</Text>
             </TouchableOpacity>
           )}
           {!peer && <IconBadge symbol="⚙" onPress={onOpenSettings} accessibilityLabel={t('settings.title')} />}
         </View>
       </View>
 
-      <View style={styles.queueBar}>
-        <Text style={styles.queueLabel}>
+      <View style={[styles.queueBar, { backgroundColor: c.surface, borderRadius: radii.card }]}>
+        <Text style={[styles.queueLabel, { color: c.textMuted }]}>
           {queue ? (queue.halted ? t('downloads.queueHalted') : t('downloads.queueRunning')) : '—'}
           {queue && queue.running > 0 ? ` · ${t('downloads.queueActive', { n: queue.running })}` : ''}
         </Text>
         {queueBusy ? (
-          <ActivityIndicator color={colors.accent} size="small" />
+          <ActivityIndicator color={accent} size="small" />
         ) : (
           <Switch
             value={!!queue && !queue.halted}
             onValueChange={(on) => toggleHalted(!on)}
             disabled={!queue}
-            trackColor={{ false: colors.border, true: colors.accent }}
-            thumbColor={colors.text}
+            trackColor={{ false: c.border, true: accent }}
+            thumbColor={c.text}
           />
         )}
       </View>
@@ -121,22 +123,29 @@ export default function DownloadsScreen({
       <FlatList
         data={tasks}
         keyExtractor={(t) => t.id}
-        renderItem={({ item }) => <TaskRow task={item} />}
+        renderItem={({ item, index }) => <TaskRow task={item} index={index} />}
         contentContainerStyle={styles.list}
         ListEmptyComponent={
-          <Text style={styles.empty}>{connected ? t('downloads.empty') : t('downloads.emptyConnecting')}</Text>
+          <Text style={[styles.empty, { color: c.textMuted }]}>
+            {connected ? t('downloads.empty') : t('downloads.emptyConnecting')}
+          </Text>
         }
       />
 
-      <TouchableOpacity style={styles.fab} onPress={onAddPress}>
-        <Text style={styles.fabText}>+</Text>
+      <TouchableOpacity
+        style={[styles.fab, { backgroundColor: accent, borderRadius: radii.pill }]}
+        onPress={onAddPress}
+      >
+        <Text style={[styles.fabText, { color: accentContrast }]}>+</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
+// Colours and radii are applied inline from the resolved tokens, never baked
+// in here: a stylesheet is built once and cannot follow a theme change.
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1 },
   topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -146,35 +155,31 @@ const styles = StyleSheet.create({
   },
   topBarLeft: { minWidth: 0, flexShrink: 1 },
   topBarRight: { flexDirection: 'row', gap: 16, alignItems: 'center' },
-  back: { color: colors.textMuted, fontSize: 13, marginBottom: 4 },
-  title: { color: colors.text, fontSize: 20, fontWeight: '600' },
-  connState: { fontSize: 12, marginTop: 2 },
-  link: { color: colors.accent, fontSize: 13, fontWeight: '600' },
+  back: { fontSize: 13, marginBottom: 4 },
+  title: { fontSize: TYPE.heading, fontWeight: '600' },
+  connState: { fontSize: TYPE.dense, marginTop: 2 },
+  link: { fontSize: 13, fontWeight: '600' },
   queueBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginHorizontal: 16,
     marginBottom: 12,
-    backgroundColor: colors.surface,
-    borderRadius: 8,
     paddingHorizontal: 14,
     paddingVertical: 10,
   },
-  queueLabel: { color: colors.textMuted, fontSize: 13 },
+  queueLabel: { fontSize: 13 },
   list: { paddingHorizontal: 16, paddingBottom: 96 },
-  empty: { color: colors.textMuted, textAlign: 'center', marginTop: 48 },
+  empty: { textAlign: 'center', marginTop: 48 },
   fab: {
     position: 'absolute',
     right: 20,
     bottom: 32,
     width: 56,
     height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 4,
   },
-  fabText: { color: colors.text, fontSize: 28, lineHeight: 30, fontWeight: '400' },
+  fabText: { fontSize: 28, lineHeight: 30, fontWeight: '400' },
 });

@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import type { Task } from '../api/types';
-import { colors } from '../theme';
+import { useAppearance } from '../theme/AppearanceContext';
+import { TYPE, type Palette } from '../theme/tokens';
 import { useT, type TranslationKey } from '../i18n/I18nContext';
 
 const STATUS_KEYS: Record<string, TranslationKey> = {
@@ -19,52 +20,106 @@ function formatBytes(n: number): string {
   return `${(n / 1024 ** i).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
 }
 
-function statusColor(status: string): string {
+// The palette is handed in rather than read from a module: this runs outside
+// any component, where a hook cannot go, and a fixed palette here would be the
+// one colour on the row that never follows a theme change.
+/**
+ * blend lays `over` on `base` at `alpha`, returning an opaque colour.
+ *
+ * Computed rather than layered as a translucent view: React Native has no
+ * colour-mix and no inset shadow, and a second absolutely-positioned view
+ * inside every row would sit above the row's own children and swallow their
+ * touches. Mixing the value is the version with no side effects.
+ */
+function blend(base: string, over: string, alpha: number): string {
+  const b = rgb(base);
+  const o = rgb(over);
+  if (!b || !o) return base;
+  const mix = (x: number, y: number) => Math.round(x + (y - x) * alpha);
+  return `rgb(${mix(b.r, o.r)}, ${mix(b.g, o.g)}, ${mix(b.b, o.b)})`;
+}
+
+function rgb(hex: string): { r: number; g: number; b: number } | null {
+  if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return null;
+  const n = parseInt(hex.slice(1), 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
+function statusColor(status: string, c: Palette, accent: string): string {
   switch (status) {
     case 'running':
-      return colors.accent;
+      return accent;
     case 'finished':
-      return colors.success;
+      return c.statusOkSolid;
     case 'failed':
-      return colors.danger;
+      return c.statusFailSolid;
     case 'paused':
-      return colors.warning;
+      return c.statusWarnSolid;
     default:
-      return colors.textMuted;
+      return c.textMuted;
   }
 }
 
-export default function TaskRow({ task }: { task: Task }) {
+export default function TaskRow({ task, index }: { task: Task; index: number }) {
   const { t } = useT();
+  const { c, accent, radii, hueAt, rainbow } = useAppearance();
+  // The rainbow hands colours out by POSITION, so this row's colour comes from
+  // where it sits, not from its id. A hash keeps a row's colour when the rows
+  // above it finish, which sounds better until three rows and eight colours
+  // give two neighbours the same one - the single thing the mode exists to
+  // prevent.
+  const hue = hueAt(index);
+  // The colour this row paints activity in: its own when the mode is on, the
+  // single accent otherwise.
+  const rowAccent = hue ?? accent;
   const pct = task.size > 0 ? Math.min(100, Math.round((task.loaded / task.size) * 100)) : null;
   const statusKey = STATUS_KEYS[task.status];
 
   return (
-    <View style={styles.row}>
+    <View
+      style={[
+        styles.row,
+        { backgroundColor: c.surface, borderRadius: radii.card },
+        // The row itself carries a wash of its colour, and it has to: without
+        // it the hue reaches the row only through the progress bar - and that
+        // turns green when a download finishes, because green means finished
+        // everywhere. On a list of finished downloads the mode that exists for
+        // lists would then show nothing at all.
+        //
+        // "reactive" is the restrained reading: rest neutral, colour what is
+        // running. There is no hover on a phone, so what is running is the
+        // whole of it here.
+        hue && (!rainbow.reactive || task.status === 'running')
+          ? { backgroundColor: blend(c.surface, hue, 0.07) }
+          : null,
+      ]}
+    >
       <View style={styles.header}>
-        <Text style={styles.name} numberOfLines={1}>
+        <Text style={[styles.name, { color: c.text }]} numberOfLines={1}>
           {task.name || task.url}
         </Text>
-        <Text style={[styles.status, { color: statusColor(task.status) }]}>{statusKey ? t(statusKey) : task.status}</Text>
+        <Text style={[styles.status, { color: statusColor(task.status, c, rowAccent) }]}>
+          {statusKey ? t(statusKey) : task.status}
+        </Text>
       </View>
 
       {task.status === 'running' && (
-        <View style={styles.progressTrack}>
-          <View style={[styles.progressFill, { width: `${pct ?? 0}%` }]} />
+        <View style={[styles.progressTrack, { backgroundColor: c.surface2, borderRadius: radii.pill }]}>
+          <View style={[styles.progressFill, { width: `${pct ?? 0}%`, backgroundColor: rowAccent }]} />
         </View>
       )}
 
       <View style={styles.footer}>
-        <Text style={styles.meta}>
+        <Text style={[styles.meta, { color: c.textMuted }]}>
           {formatBytes(task.loaded)}
           {task.size > 0 ? ` / ${formatBytes(task.size)}` : ''}
           {pct !== null ? ` · ${pct}%` : ''}
         </Text>
-        {task.speed > 0 && <Text style={styles.meta}>{formatBytes(task.speed)}/s</Text>}
+        {task.speed > 0 && <Text style={[styles.meta, { color: c.textMuted }]}>{formatBytes(task.speed)}/s</Text>}
       </View>
 
       {task.error ? (
-        <Text style={styles.errorText} numberOfLines={2}>
+        <Text style={[styles.errorText, { color: c.statusFailSolid }]} numberOfLines={2}>
           {task.error}
         </Text>
       ) : null}
@@ -72,25 +127,23 @@ export default function TaskRow({ task }: { task: Task }) {
   );
 }
 
+// Colours and radii are applied inline from the resolved tokens, never baked
+// in here: a stylesheet is built once and cannot follow a theme change.
 const styles = StyleSheet.create({
   row: {
-    backgroundColor: colors.surface,
-    borderRadius: 8,
     padding: 12,
     marginBottom: 8,
   },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  name: { color: colors.text, fontSize: 14, fontWeight: '500', flex: 1, marginRight: 8 },
-  status: { fontSize: 12, fontWeight: '600', textTransform: 'uppercase' },
+  name: { fontSize: TYPE.body, fontWeight: '500', flex: 1, marginRight: 8 },
+  status: { fontSize: TYPE.dense, fontWeight: '600', textTransform: 'uppercase' },
   progressTrack: {
     height: 4,
-    backgroundColor: colors.surfaceRaised,
-    borderRadius: 2,
     marginTop: 8,
     overflow: 'hidden',
   },
-  progressFill: { height: '100%', backgroundColor: colors.accent },
+  progressFill: { height: '100%' },
   footer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
-  meta: { color: colors.textMuted, fontSize: 12 },
-  errorText: { color: colors.danger, fontSize: 12, marginTop: 6 },
+  meta: { fontSize: TYPE.dense },
+  errorText: { fontSize: TYPE.dense, marginTop: 6 },
 });

@@ -13,7 +13,8 @@ import InstancesScreen from './src/screens/InstancesScreen';
 import AddDownloadScreen from './src/screens/AddDownloadScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import LanguagePickerScreen from './src/screens/LanguagePickerScreen';
-import { colors } from './src/theme';
+import { fetchAppearance } from './src/api/client';
+import { AppearanceProvider, useAppearance } from './src/theme/AppearanceContext';
 import { I18nProvider } from './src/i18n/I18nContext';
 
 type RootStackParamList = {
@@ -29,7 +30,22 @@ type RootStackParamList = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+// The provider sits ABOVE everything, because look is applied at the root of
+// an app and never by the screen that edits it: a screen that paints itself
+// leaves every other screen behind on the old value, and the settings page is
+// the last place to notice.
 export default function App() {
+  return (
+    <AppearanceProvider>
+      <I18nProvider>
+        <Shell />
+      </I18nProvider>
+    </AppearanceProvider>
+  );
+}
+
+function Shell() {
+  const { c, accent, dark, setInstanceAppearance } = useAppearance();
   const [conn, setConn] = useState<ServerConnection | null>(null);
   const [loading, setLoading] = useState(true);
   // The screen the navigator opens on: Downloads if a connection was left
@@ -54,18 +70,51 @@ export default function App() {
     })();
   }, []);
 
+  // Adopt the look of whichever instance is active. Cleared when there is
+  // none, so switching to a connection that cannot be reached falls back to
+  // the family default rather than keeping the previous instance's colour and
+  // quietly claiming to be it.
+  useEffect(() => {
+    let alive = true;
+    if (!conn) {
+      setInstanceAppearance(undefined);
+      return;
+    }
+    fetchAppearance(conn).then((a) => {
+      if (alive) setInstanceAppearance(a);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [conn, setInstanceAppearance]);
+
   if (loading) {
     return (
-      <View style={styles.loading}>
-        <ActivityIndicator color={colors.accent} size="large" />
+      <View style={[styles.loading, { backgroundColor: c.bg }]}>
+        <ActivityIndicator color={accent} size="large" />
       </View>
     );
   }
 
   return (
-    <I18nProvider>
-      <NavigationContainer theme={{ dark: true, colors: navColors, fonts: navFonts }}>
-        <StatusBar style="light" />
+      <NavigationContainer
+        theme={{
+          dark,
+          // Built from the resolved tokens rather than a second, fixed set:
+          // the navigator paints the gaps between screens, and a hard-coded
+          // dark there is exactly how a light theme ends up with black bars.
+          colors: {
+            primary: accent,
+            background: c.bg,
+            card: c.surface,
+            text: c.text,
+            border: c.border,
+            notification: accent,
+          },
+          fonts: navFonts,
+        }}
+      >
+        <StatusBar style={dark ? 'light' : 'dark'} />
         <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Connections">
             {({ navigation }) => (
@@ -156,18 +205,8 @@ export default function App() {
           </Stack.Screen>
         </Stack.Navigator>
       </NavigationContainer>
-    </I18nProvider>
   );
 }
-
-const navColors = {
-  primary: colors.accent,
-  background: colors.background,
-  card: colors.surface,
-  text: colors.text,
-  border: colors.border,
-  notification: colors.danger,
-};
 
 const navFonts = {
   regular: { fontFamily: 'System', fontWeight: '400' as const },
@@ -177,5 +216,7 @@ const navFonts = {
 };
 
 const styles = StyleSheet.create({
-  loading: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },
+  // The ground colour is applied inline from the resolved tokens, not baked in
+  // here: a stylesheet is built once and cannot follow a theme change.
+  loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 });

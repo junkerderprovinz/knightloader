@@ -3,15 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <title>KnightLoader</title>
+    <link rel="stylesheet" href="glimstone.css" />
     <style>
-      :root { color-scheme: dark; }
       body {
         margin: 0;
         width: 280px;
         padding: 14px;
-        background: #161616;
-        color: #f4f4f4;
-        font: 13px/1.4 -apple-system, "Segoe UI", sans-serif;
+        background: var(--carbon-bg);
+        color: var(--carbon-text);
+        font-family: -apple-system, "Segoe UI", sans-serif;
+        font-size: var(--text-body);
+        line-height: 1.4;
       }
       .header {
         display: flex;
@@ -22,9 +24,9 @@
       }
       h1 {
         margin: 0;
-        font-size: 13px;
+        font-size: var(--text-body);
         font-weight: 600;
-        color: #fcc419;
+        color: var(--accent);
       }
       /* The settings badge (jdp: "im fenster oben rechts ein quadratischer
          badge mit zahnrad um die einstellungen zu öffnen") — square, same
@@ -41,13 +43,13 @@
         padding: 0;
         margin: 0;
         border: 0;
-        border-radius: 6px;
-        background: #393939;
-        color: #c6c6c6;
+        border-radius: var(--radius-control);
+        background: var(--carbon-surface2);
+        color: var(--carbon-text-sub);
         cursor: pointer;
         transition: background-color 150ms ease, color 150ms ease;
       }
-      .iconBadge:hover { background: #525252; color: #f4f4f4; }
+      .iconBadge:hover { background: var(--carbon-surface3); color: var(--carbon-text); }
       .iconBadge:active { transform: scale(0.97); }
       /* jdp, 2026-08-24: "da steht es doppelt" - not actually a second
          KnightLoader heading (there is only ever one <h1>), but #target
@@ -57,17 +59,12 @@
          as a mistake even though they answer different questions ("this is
          the extension" vs "this is the page you're about to send"). This
          eyebrow makes that second line self-explanatory regardless of what
-         page it names. */
-      #targetLabel {
-        margin: 0 0 2px;
-        font-size: 10px;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        color: #8d8d8d;
-      }
+         page it names. The eyebrow treatment itself is .glim-eyebrow on the
+         element, so only its spacing is left here. */
+      #targetLabel { margin: 0 0 2px; }
       p {
         margin: 0 0 12px;
-        color: #c6c6c6;
+        color: var(--carbon-text-sub);
         overflow-wrap: anywhere;
       }
       button {
@@ -76,24 +73,26 @@
         padding: 9px 12px;
         margin-bottom: 8px;
         border: 0;
-        border-radius: 8px;
+        border-radius: var(--radius-control);
         font: inherit;
         font-weight: 500;
         cursor: pointer;
       }
-      .primary { background: #fcc419; color: #161616; }
-      .secondary { background: #393939; color: #f4f4f4; }
-      #status { min-height: 1.2em; color: #8d8d8d; font-size: 11px; }
+      .primary { background: var(--accent); color: var(--accent-contrast); }
+      .secondary { background: var(--carbon-surface2); color: var(--carbon-text); }
+      #status { min-height: 1.2em; color: var(--carbon-text-muted); font-size: var(--text-caption); }
       #instanceRow { margin-bottom: 12px; }
-      #instanceRow label { display: block; font-size: 11px; color: #8d8d8d; margin-bottom: 4px; }
+      #instanceRow label { display: block; font-size: var(--text-caption); color: var(--carbon-text-muted); margin-bottom: 4px; }
+      /* Shaped like a text field rather than left native: it sits under a
+         label in the same 280px column as the Send button. */
       #instance {
         width: 100%;
         box-sizing: border-box;
         padding: 7px 8px;
-        border: 1px solid #393939;
-        border-radius: 8px;
-        background: #262626;
-        color: #f4f4f4;
+        border: 1px solid var(--carbon-border);
+        border-radius: var(--radius-control);
+        background: var(--carbon-surface);
+        color: var(--carbon-text);
         font: inherit;
       }
     </style>
@@ -108,7 +107,7 @@
         </svg>
       </button>
     </div>
-    <p id="targetLabel">Sending</p>
+    <p id="targetLabel" class="glim-eyebrow">Sending</p>
     <p id="target">Loading the current page…</p>
     <div id="instanceRow" hidden>
       <label for="instance" id="instanceLabel">Send to</label>
@@ -116,6 +115,10 @@
     </div>
     <button id="send" class="primary">Send this page</button>
     <div id="status"></div>
+    <!-- Appearance first: the look is put on <html> before anything is
+         drawn, so no page is ever painted in one look and repainted in
+         another. -->
+    <script src="appearance.js"></script>
     <script src="i18n.js"></script>
     <script src="shared.js"></script>
     <script src="popup.js"></script>

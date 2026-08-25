@@ -1,0 +1,38 @@
+name: Browser extension
+description: Something is wrong in the KnightLoader browser extension
+labels: ["bug", "extension"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The extension's Options page has a **Problems?** section that gathers
+        its version, the browser, and what its instances look like from here.
+        Copy that in and most of this form answers itself.
+
+  - type: textarea
+    id: report
+    attributes:
+      label: The report from the extension
+      description: Options → Problems? → Copy report.
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+      placeholder: |
+        "Sync paired instances" says it found nothing, but the instance it is
+        pointed at lists two peers in its own web UI.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      options: [Chrome, Edge, Firefox, Brave, Vivaldi, Opera, Other]
+    validations:
+      required: false

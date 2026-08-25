@@ -3,10 +3,12 @@ import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native
 import { useT } from '../i18n/I18nContext';
 import { LANGUAGES, flagEmoji } from '../i18n/catalogue';
 import { getLanguageOverride } from '../storage/languagePreference';
-import { colors } from '../theme';
+import { useAppearance } from '../theme/AppearanceContext';
+import { TYPE } from '../theme/tokens';
 
 export default function LanguagePickerScreen({ onBack }: { onBack: () => void }) {
   const { t, lang, setLanguage } = useT();
+  const { c, accent, radii } = useAppearance();
   const [override, setOverride] = useState<string | null>(null);
 
   useEffect(() => {
@@ -32,12 +34,12 @@ export default function LanguagePickerScreen({ onBack }: { onBack: () => void })
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: c.bg }]}>
       <View style={styles.topBar}>
         <TouchableOpacity onPress={onBack}>
-          <Text style={styles.back}>‹ {t('settings.title')}</Text>
+          <Text style={[styles.back, { color: c.textMuted }]}>‹ {t('settings.title')}</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>{t('settings.language')}</Text>
+        <Text style={[styles.title, { color: c.text }]}>{t('settings.language')}</Text>
       </View>
 
       <FlatList
@@ -47,10 +49,17 @@ export default function LanguagePickerScreen({ onBack }: { onBack: () => void })
         renderItem={({ item }) => {
           const isSelected = override === item.code;
           return (
-            <TouchableOpacity style={[styles.row, isSelected && styles.rowSelected]} onPress={() => pick(item.code)}>
+            <TouchableOpacity
+              style={[
+                styles.row,
+                { backgroundColor: c.surface, borderRadius: radii.card },
+                isSelected && { borderWidth: 1, borderColor: accent },
+              ]}
+              onPress={() => pick(item.code)}
+            >
               <Text style={styles.flag}>{item.flag}</Text>
-              <Text style={styles.rowLabel}>{item.label}</Text>
-              {isSelected && <Text style={styles.check}>✓</Text>}
+              <Text style={[styles.rowLabel, { color: c.text }]}>{item.label}</Text>
+              {isSelected && <Text style={[styles.check, { color: accent }]}>✓</Text>}
             </TouchableOpacity>
           );
         }}
@@ -59,11 +68,13 @@ export default function LanguagePickerScreen({ onBack }: { onBack: () => void })
   );
 }
 
+// Colours and radii are applied inline from the resolved tokens, never baked
+// in here: a stylesheet is built once and cannot follow a theme change.
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1 },
   topBar: { padding: 16, paddingTop: 56, gap: 4 },
-  back: { color: colors.textMuted, fontSize: 13 },
-  title: { color: colors.text, fontSize: 20, fontWeight: '600' },
+  back: { fontSize: 13 },
+  title: { fontSize: TYPE.heading, fontWeight: '600' },
   list: { paddingHorizontal: 16, paddingBottom: 32 },
   row: {
     flexDirection: 'row',
@@ -71,14 +82,13 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 14,
     paddingHorizontal: 16,
-    backgroundColor: colors.surface,
-    borderRadius: 8,
     marginBottom: 6,
   },
-  rowSelected: { borderWidth: 1, borderColor: colors.accent },
   // A fixed width keeps every label starting on the same column even though
-  // emoji flags do not all measure identically across platform fonts.
+  // emoji flags do not all measure identically across platform fonts. The size
+  // is an icon metric next to that width, not a role on the type scale, which
+  // is why it stays a number while the heading beside it does not.
   flag: { fontSize: 20, width: 30 },
-  rowLabel: { color: colors.text, fontSize: 15, flex: 1 },
-  check: { color: colors.accent, fontSize: 15, fontWeight: '700' },
+  rowLabel: { fontSize: 15, flex: 1 },
+  check: { fontSize: 15, fontWeight: '700' },
 });

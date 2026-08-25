@@ -5,7 +5,8 @@ import { scanLocalNetwork, type Found } from '../api/discover';
 import { decodePairingCode } from '../api/pairing';
 import { addConnection, setActiveConnectionId } from '../storage/connections';
 import type { ServerConnection } from '../api/types';
-import { colors } from '../theme';
+import { useAppearance } from '../theme/AppearanceContext';
+import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import QRScanner from '../components/QRScanner';
 
@@ -30,6 +31,7 @@ export default function ConnectScreen({
   onUseRelay: () => void;
 }) {
   const { t } = useT();
+  const { c, accent, accentContrast, radii } = useAppearance();
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
   const [token, setToken] = useState('');
@@ -92,27 +94,34 @@ export default function ConnectScreen({
     }
   };
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{t('connect.title')}</Text>
-      <Text style={styles.hint}>{t('connect.hint')}</Text>
+  const inputStyle = {
+    backgroundColor: c.surface,
+    color: c.text,
+    borderColor: c.border,
+    borderRadius: radii.control,
+  };
 
-      <Text style={styles.label}>{t('connect.nameLabel')}</Text>
+  return (
+    <View style={[styles.container, { backgroundColor: c.bg }]}>
+      <Text style={[styles.title, { color: c.text }]}>{t('connect.title')}</Text>
+      <Text style={[styles.hint, { color: c.textMuted }]}>{t('connect.hint')}</Text>
+
+      <Text style={[styles.label, { color: c.textMuted }]}>{t('connect.nameLabel')}</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, inputStyle]}
         placeholder={t('connect.namePlaceholder')}
-        placeholderTextColor={colors.textMuted}
+        placeholderTextColor={c.textMuted}
         value={name}
         onChangeText={setName}
         autoCapitalize="none"
       />
 
-      <Text style={styles.label}>{t('connect.addressLabel')}</Text>
+      <Text style={[styles.label, { color: c.textMuted }]}>{t('connect.addressLabel')}</Text>
       <View style={styles.inputRow}>
         <TextInput
-          style={[styles.input, styles.inputFlex]}
+          style={[styles.input, inputStyle, styles.inputFlex]}
           placeholder="https://192.168.10.10:1234"
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={c.textMuted}
           value={url}
           onChangeText={(v) => {
             setUrl(v);
@@ -122,8 +131,14 @@ export default function ConnectScreen({
           autoCorrect={false}
           keyboardType="url"
         />
-        <TouchableOpacity style={styles.scanButton} onPress={() => setScanning(true)}>
-          <Text style={styles.scanButtonText}>{t('connect.qrButton')}</Text>
+        <TouchableOpacity
+          style={[
+            styles.scanButton,
+            { backgroundColor: c.surface, borderColor: c.border, borderRadius: radii.control },
+          ]}
+          onPress={() => setScanning(true)}
+        >
+          <Text style={[styles.scanButtonText, { color: accent }]}>{t('connect.qrButton')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -131,38 +146,43 @@ export default function ConnectScreen({
           fills in - the whole point is that nobody has to know the address. */}
       <TouchableOpacity style={styles.findLink} onPress={findOnNetwork} disabled={finding}>
         {finding ? (
-          <Text style={styles.findLinkText}>{t('connect.finding')}</Text>
+          <Text style={[styles.findLinkText, { color: accent }]}>{t('connect.finding')}</Text>
         ) : (
-          <Text style={styles.findLinkText}>{t('connect.findButton')}</Text>
+          <Text style={[styles.findLinkText, { color: accent }]}>{t('connect.findButton')}</Text>
         )}
       </TouchableOpacity>
 
-      {found?.length === 0 && <Text style={styles.hintSmall}>{t('connect.foundNone')}</Text>}
+      {found?.length === 0 && <Text style={[styles.hintSmall, { color: c.textMuted }]}>{t('connect.foundNone')}</Text>}
       {found && found.length > 1 && (
         <View>
-          <Text style={styles.hintSmall}>{t('connect.foundMany', { n: String(found.length) })}</Text>
+          <Text style={[styles.hintSmall, { color: c.textMuted }]}>
+            {t('connect.foundMany', { n: String(found.length) })}
+          </Text>
           {found.map((f) => (
             <TouchableOpacity
               key={f.url}
-              style={styles.foundRow}
+              style={[
+                styles.foundRow,
+                { backgroundColor: c.surface, borderColor: c.border, borderRadius: radii.card },
+              ]}
               onPress={() => {
                 setUrl(f.url);
                 setFound(null);
                 setNotice(t('connect.foundOne'));
               }}
             >
-              <Text style={styles.foundUrl}>{f.url}</Text>
-              <Text style={styles.foundMeta}>{f.version}</Text>
+              <Text style={[styles.foundUrl, { color: c.text }]}>{f.url}</Text>
+              <Text style={[styles.foundMeta, { color: c.textMuted }]}>{f.version}</Text>
             </TouchableOpacity>
           ))}
         </View>
       )}
 
-      <Text style={styles.label}>{t('connect.tokenLabel')}</Text>
+      <Text style={[styles.label, { color: c.textMuted }]}>{t('connect.tokenLabel')}</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, inputStyle]}
         placeholder={t('connect.tokenPlaceholder')}
-        placeholderTextColor={colors.textMuted}
+        placeholderTextColor={c.textMuted}
         value={token}
         onChangeText={setToken}
         autoCapitalize="none"
@@ -170,11 +190,19 @@ export default function ConnectScreen({
         secureTextEntry
       />
 
-      {notice && <Text style={styles.notice}>{notice}</Text>}
-      {error && <Text style={styles.error}>{error}</Text>}
+      {notice && <Text style={[styles.notice, { color: c.statusOkSolid }]}>{notice}</Text>}
+      {error && <Text style={[styles.error, { color: c.statusFailSolid }]}>{error}</Text>}
 
-      <TouchableOpacity style={[styles.button, busy && styles.buttonDisabled]} onPress={connect} disabled={busy}>
-        {busy ? <ActivityIndicator color={colors.text} /> : <Text style={styles.buttonText}>{t('connect.connectButton')}</Text>}
+      <TouchableOpacity
+        style={[styles.button, { backgroundColor: accent, borderRadius: radii.control }, busy && styles.buttonDisabled]}
+        onPress={connect}
+        disabled={busy}
+      >
+        {busy ? (
+          <ActivityIndicator color={accentContrast} />
+        ) : (
+          <Text style={[styles.buttonText, { color: accentContrast }]}>{t('connect.connectButton')}</Text>
+        )}
       </TouchableOpacity>
 
       {/* The relay is the fallback, not an equal first choice: it only helps
@@ -182,7 +210,7 @@ export default function ConnectScreen({
           shared key. So it sits below as a way out of a dead end rather than
           as a second button someone has to choose between up front. */}
       <TouchableOpacity style={styles.relayLink} onPress={onUseRelay}>
-        <Text style={styles.relayLinkText}>{t('connect.relayLink')}</Text>
+        <Text style={[styles.relayLinkText, { color: accent }]}>{t('connect.relayLink')}</Text>
       </TouchableOpacity>
 
       <QRScanner
@@ -215,58 +243,48 @@ export default function ConnectScreen({
   );
 }
 
+// Colours and radii are applied inline from the resolved tokens, never baked
+// in here: a stylesheet is built once and cannot follow a theme change.
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, padding: 24, justifyContent: 'center' },
-  title: { color: colors.text, fontSize: 22, fontWeight: '600', marginBottom: 8 },
-  hint: { color: colors.textMuted, fontSize: 14, marginBottom: 24, lineHeight: 20 },
-  label: { color: colors.textMuted, fontSize: 13, marginBottom: 6, marginTop: 12 },
+  container: { flex: 1, padding: 24, justifyContent: 'center' },
+  title: { fontSize: 22, fontWeight: '600', marginBottom: 8 },
+  hint: { fontSize: TYPE.body, marginBottom: 24, lineHeight: 20 },
+  label: { fontSize: 13, marginBottom: 6, marginTop: 12 },
   input: {
-    backgroundColor: colors.surface,
-    color: colors.text,
-    borderRadius: 8,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 15,
     borderWidth: 1,
-    borderColor: colors.border,
   },
   inputRow: { flexDirection: 'row', gap: 8, alignItems: 'stretch' },
   inputFlex: { flex: 1 },
   scanButton: {
-    backgroundColor: colors.surface,
-    borderRadius: 8,
     borderWidth: 1,
-    borderColor: colors.border,
     paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  scanButtonText: { color: colors.accent, fontSize: 13, fontWeight: '700' },
+  scanButtonText: { fontSize: 13, fontWeight: '700' },
   findLink: { marginTop: 10, alignSelf: 'flex-start' },
-  findLinkText: { color: colors.accent, fontSize: 13 },
-  hintSmall: { color: colors.textMuted, fontSize: 12, marginTop: 8, lineHeight: 17 },
+  findLinkText: { fontSize: 13 },
+  hintSmall: { fontSize: TYPE.dense, marginTop: 8, lineHeight: 17 },
   foundRow: {
-    backgroundColor: colors.surface,
-    borderRadius: 8,
     borderWidth: 1,
-    borderColor: colors.border,
     paddingHorizontal: 14,
     paddingVertical: 10,
     marginTop: 8,
   },
-  foundUrl: { color: colors.text, fontSize: 14 },
-  foundMeta: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
-  notice: { color: colors.success, marginTop: 16, fontSize: 13, lineHeight: 18 },
-  error: { color: colors.danger, marginTop: 16, fontSize: 14 },
+  foundUrl: { fontSize: TYPE.body },
+  foundMeta: { fontSize: TYPE.dense, marginTop: 2 },
+  notice: { marginTop: 16, fontSize: 13, lineHeight: 18 },
+  error: { marginTop: 16, fontSize: TYPE.body },
   button: {
-    backgroundColor: colors.accent,
-    borderRadius: 8,
     paddingVertical: 14,
     alignItems: 'center',
     marginTop: 24,
   },
   buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: colors.text, fontSize: 16, fontWeight: '600' },
+  buttonText: { fontSize: 16, fontWeight: '600' },
   relayLink: { marginTop: 18, alignItems: 'center' },
-  relayLinkText: { color: colors.accent, fontSize: 13 },
+  relayLinkText: { fontSize: 13 },
 });

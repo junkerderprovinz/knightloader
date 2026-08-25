@@ -18,8 +18,12 @@ not contain, or not bumping it for changes it does.
 | Android app | `mobile/app.json` (`expo.version` **and** `expo.android.versionCode`) | `mobile/vX.Y.Z` |
 | Browser extension | `extension/src/manifest.json` | `extension/vX.Y.Z` |
 
-Both are released: `mobile/v1.0.0` and `extension/v1.3.0`. KnightLoader itself
-has no tag yet - see [Unreleased] below.
+Both are released at `mobile/v1.0.0` and `extension/v1.0.0`. KnightLoader
+itself has no tag yet - see [Unreleased] below.
+
+The extension's earlier 1.1 and 1.2 were numbers in `manifest.json` that were
+never tagged or published, so its first release folds them in rather than
+starting at a version nobody ever had.
 
 Each tag runs its own workflow and no other: a `*` in a GitHub ref filter does
 not cross a `/`, so `mobile/v1.0.0` is invisible to the bare `v*.*.*` pattern
@@ -88,6 +92,22 @@ see Versioning above.
   is filed under every key the peer can be addressed by rather than under a
   guess about which one will be used. A desktop build can issue a code now for
   the same reason.
+- **The app and the extension follow GlimStone**, the design language the web
+  UI already speaks: the same palette, the same corner shapes, the same
+  Sunflower-gold accent before anyone touches a picker. The app takes its look
+  from the instance it is connected to, so opening the app and that instance's
+  web interface side by side shows one product rather than two opinions - with
+  a local override for anyone who wants a different colour on their own phone.
+- **Rainbow in the app**: a long list of downloads reads as distinct rows
+  instead of one gold wall. Shown rather than set, because the palette offset
+  lives on the instance - two clients of one server disagreeing about the
+  colour of a download is a bug, not a preference.
+- **Problems?** in the app's settings and the extension's options: the version,
+  the platform and the shape of the configuration, copied in one tap or opened
+  as a prefilled report. No address, no token and no relay key is in it - an
+  address is somebody's home network and a token is a credential, and both
+  would otherwise be pasted into a public issue by anyone who trusted the
+  button.
 - **Connect from anywhere**: the Android app finds servers on its own network
   and fills the address in; the browser extension can send to a peer that has
   no address of its own, by routing through an instance that does; the desktop

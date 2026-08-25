@@ -17,6 +17,7 @@ import {
   fetchRemoteAccess,
   fetchTokens,
   generatePairingCode,
+  redeemPairingCode,
   revokeToken,
   saveRelayConfig,
   setPassword,
@@ -112,15 +113,25 @@ const PENDING = {
   'settings.access.remote.install': 'Install',
   'settings.access.remote.installIOS':
     'On iPhone or iPad: open this page in Safari, tap Share, then "Add to Home Screen".',
-  'settings.access.remote.pairTitle': 'Pair another instance',
-  'settings.access.remote.pairBody':
-    "Add a KnightLoader you already run - no address to type, no account, nothing hosted. Generate a code here, then paste it into that instance's own Instances page.",
-  'settings.access.remote.pairPrereq':
-    'For this to work from outside your own network - say, pairing with a phone away from home - this instance needs a domain behind a reverse proxy, or a VPN, set up first. A LAN-only address only pairs with another instance on the same network.',
-  'settings.access.remote.pairGenerate': 'Generate pairing code',
   'settings.access.remote.pairExpires': 'Valid for {min} minutes, then it expires unused.',
-  'settings.access.remote.pairWhere': 'Not here - on the other instance, under Settings → Instances.',
+  'settings.access.remote.pairWhere': 'Paste it into the other instance, under Settings → Access or on its Instances page.',
   'settings.access.remote.pairScan': 'Scan the QR code with the KnightLoader app.',
+
+  // One sentence for "can another KnightLoader reach this one", because which
+  // road it takes is this card's business and not the reader's. The four cases
+  // are written out rather than assembled from clauses: a sentence stitched
+  // together at runtime reads like one in every language it was written in.
+  'settings.access.remote.stateLan': 'Another KnightLoader on this network can reach this one.',
+  'settings.access.remote.stateBoth':
+    'Another KnightLoader can reach this one on this network, and from anywhere through your relay.',
+  'settings.access.remote.stateRelay': 'Another KnightLoader can reach this one from anywhere through your relay.',
+  'settings.access.remote.stateNone':
+    'Nothing can reach this one yet. This is the desktop build, which serves nothing over the network, so a relay is the way to connect it.',
+  'settings.access.remote.showCode': 'Show a code',
+  'settings.access.remote.hideCode': 'Hide the code',
+  'settings.access.remote.enterCode': 'Enter a code',
+  'settings.access.remote.beyond': 'Reaching instances outside this network',
+  'settings.access.remote.beyondOff': 'not set up',
 
   'settings.access.relay.title': 'Relay',
   'settings.access.relay.body':
@@ -514,15 +525,27 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
       .catch(() => {});
   }, []);
 
-  // --- Pairing ---
+  // --- Connecting ---
+  //
+  // Both halves of it, in one place. Showing a code and entering one are the
+  // same act seen from the two ends, and splitting them across two pages made
+  // a person hold in their head which end they were at. Only one panel is open
+  // at a time: they are alternatives, never a sequence.
+  const [panel, setPanel] = useState<'' | 'show' | 'enter'>('');
   const [code, setCode] = useState<PairingCode | null>(null);
   const [pairBusy, setPairBusy] = useState(false);
   const [pairCopied, setPairCopied] = useState(false);
   const [pairErr, setPairErr] = useState('');
 
+  const [redeem, setRedeem] = useState('');
+  const [redeemBusy, setRedeemBusy] = useState(false);
+  const [redeemMsg, setRedeemMsg] = useState('');
+  const [redeemErr, setRedeemErr] = useState('');
+
   async function onGenerate() {
     setPairErr('');
     setPairBusy(true);
+    setPanel('show');
     try {
       setCode(await generatePairingCode());
       setPairCopied(false);
@@ -530,6 +553,32 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
       setPairErr(String(e?.message ?? e));
     } finally {
       setPairBusy(false);
+    }
+  }
+
+  async function onRedeem() {
+    setRedeemErr('');
+    setRedeemMsg('');
+    setRedeemBusy(true);
+    try {
+      const r = await redeemPairingCode(redeem.trim());
+      // The same three cases the Instances page tells apart, for the same
+      // reason: the two directions fail separately, and a pairing that works
+      // one way only is not a success with a footnote.
+      const warn = !r.online && !r.reachedBack
+        ? t('instances.pairNeitherWay')
+        : !r.online
+          ? t('instances.offlineWarning')
+          : !r.reachedBack
+            ? t('instances.pairOneWay')
+            : '';
+      const how = r.viaRelay ? ` ${t('instances.pairViaRelay')}` : '';
+      setRedeemMsg(t('instances.pairSuccess', { name: r.name }) + how + (warn ? ` ${warn}` : ''));
+      setRedeem('');
+    } catch (e: any) {
+      setRedeemErr(String(e?.message ?? e));
+    } finally {
+      setRedeemBusy(false);
     }
   }
 
@@ -544,6 +593,8 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
   const [relayDone, setRelayDone] = useState(false);
   const [relayError, setRelayError] = useState('');
   const [siblings, setSiblings] = useState<Instance[]>([]);
+  // null means nobody has clicked yet, so the row can decide for itself.
+  const [openRelay, setOpenRelay] = useState<boolean | null>(null);
 
   useEffect(() => {
     fetchRelayConfig()
@@ -614,166 +665,254 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
   // check.
   if (!cfg) return null;
 
+  // What actually works right now, in one sentence. Which of the two roads
+  // carries it is this card's business, not the reader's: the question a
+  // person arrives with is whether another KnightLoader can reach this one.
+  const relayOk = relayLive && cfg.connected;
+  const relayBroken = relayLive && !cfg.connected;
+  const stateKey: PendingKey = desktop
+    ? relayOk
+      ? 'settings.access.remote.stateRelay'
+      : 'settings.access.remote.stateNone'
+    : relayOk
+      ? 'settings.access.remote.stateBoth'
+      : 'settings.access.remote.stateLan';
+  const reachable = !desktop || relayOk;
+  // Opens itself when a relay is already configured, because hiding the state
+  // of something you run is worse than one extra open row, and follows the
+  // click from the first one onwards.
+  const relayOpen = openRelay ?? relayLive;
+
   return (
-    <Card className="flex flex-col gap-6">
+    <Card className="flex flex-col gap-5">
       <SectionTitle hue={4} hint={cx('settings.access.remote.combinedHint')}>
         {cx('settings.access.remote.title')}
       </SectionTitle>
+
+      <div className="flex items-start gap-2.5">
+        <span
+          className={`mt-1.5 h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${
+            reachable ? 'bg-statusOkSolid' : 'bg-carbon-textMuted'
+          }`}
+        />
+        <div className="flex min-w-0 flex-col gap-1">
+          <span className="text-sm text-carbon-text">{cx(stateKey)}</span>
+          {/* Configured but the socket is down: a typo in the address, a key
+              the relay rejects, or a relay that is simply not running. Its own
+              line even when the sentence above is a cheerful one, because
+              something you set up is broken and that is worth saying whether
+              or not another road happens to be open. */}
+          {relayBroken && <span className="text-[11px] text-statusFail">{cx('settings.access.relay.unreachable')}</span>}
+        </div>
+      </div>
 
       {/* Not "is this a desktop": "is there a way for the other side to
           complete the exchange back to here". On a container that is its own
           address; on a desktop it is the relay, and only while the socket is
           actually up - a stored address and key with nothing connected cannot
           carry a pairing. Matches pairingSelf's own gate on the server, which
-          answers 409 in exactly the cases this hides the section for. */}
+          answers 409 in exactly the cases this hides the buttons for. */}
       {(!desktop || relayConnected) && (
         <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-carbon-textSub">{cx('settings.access.remote.pairTitle')}</span>
-            <InfoBubble tip={`${cx('settings.access.remote.pairBody')} ${cx('settings.access.remote.pairPrereq')}`} />
-            <span className="flex-1" />
-            {!code && (
-              <Button
-                kind="secondary"
-                hue={4}
-                className="px-2.5 text-xs"
-                icon={<IconPlus width={14} height={14} />}
-                onClick={() => void onGenerate()}
-                disabled={pairBusy}
-              >
-                {cx('settings.access.remote.pairGenerate')}
-              </Button>
-            )}
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              kind="secondary"
+              hue={4}
+              icon={<IconPlus width={14} height={14} />}
+              onClick={() => (panel === 'show' ? setPanel('') : void onGenerate())}
+              disabled={pairBusy}
+            >
+              {cx(panel === 'show' ? 'settings.access.remote.hideCode' : 'settings.access.remote.showCode')}
+            </Button>
+            <Button
+              kind="secondary"
+              hue={4}
+              icon={<IconClipboard width={14} height={14} />}
+              onClick={() => {
+                setPanel(panel === 'enter' ? '' : 'enter');
+                setRedeemErr('');
+                setRedeemMsg('');
+              }}
+            >
+              {cx('settings.access.remote.enterCode')}
+            </Button>
           </div>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <div className="flex min-w-0 flex-1 flex-col gap-3">
-              {code && (
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="min-w-0 flex-1 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
-                      <code className="glim-num block overflow-x-auto whitespace-nowrap text-xs text-carbon-text" dir="ltr">
-                        {code.code}
-                      </code>
+
+          {panel === 'show' && (
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <div className="flex min-w-0 flex-1 flex-col gap-3">
+                {code && (
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <div className="min-w-0 flex-1 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
+                        <code className="glim-num block overflow-x-auto whitespace-nowrap text-xs text-carbon-text" dir="ltr">
+                          {code.code}
+                        </code>
+                      </div>
+                      <IconBadge
+                        hue={4}
+                        icon={pairCopied ? <IconCheck width={14} height={14} /> : <IconClipboard width={14} height={14} />}
+                        title={pairCopied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
+                        aria-label={pairCopied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
+                        onClick={async () => {
+                          if (await copyToClipboard(code.code)) {
+                            setPairCopied(true);
+                            setTimeout(() => setPairCopied(false), 1800);
+                          }
+                        }}
+                      />
                     </div>
-                    <IconBadge
-                      hue={4}
-                      icon={pairCopied ? <IconCheck width={14} height={14} /> : <IconClipboard width={14} height={14} />}
-                      title={pairCopied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
-                      aria-label={pairCopied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
-                      onClick={async () => {
-                        if (await copyToClipboard(code.code)) {
-                          setPairCopied(true);
-                          setTimeout(() => setPairCopied(false), 1800);
-                        }
-                      }}
-                    />
+                    <p className="text-[11px] text-carbon-textMuted">{cx('settings.access.remote.pairWhere')}</p>
+                    <p className="text-[11px] text-carbon-textMuted">
+                      {cx('settings.access.remote.pairExpires', { min: Math.round(code.expiresIn / 60) })}
+                    </p>
                   </div>
-                  <p className="text-[11px] text-carbon-textMuted">
-                    {cx('settings.access.remote.pairExpires', { min: Math.round(code.expiresIn / 60) })}
-                  </p>
+                )}
+                {pairErr && <p className="text-sm text-statusFail">{pairErr}</p>}
+              </div>
+              {code?.qr && (
+                <div className="flex shrink-0 flex-col items-center gap-2 self-start">
+                  <QRCode matrix={code.qr} label={code.code} size={144} />
+                  <span className="max-w-[144px] text-center text-[11px] text-carbon-textMuted">
+                    {cx('settings.access.remote.pairScan')}
+                  </span>
                 </div>
               )}
-              {pairErr && <p className="text-sm text-statusFail">{pairErr}</p>}
             </div>
-            {code?.qr && (
-              <div className="flex shrink-0 flex-col items-center gap-2 self-start">
-                <QRCode matrix={code.qr} label={code.code} size={144} />
-                <span className="max-w-[144px] text-center text-[11px] text-carbon-textMuted">
-                  {cx('settings.access.remote.pairScan')}
-                </span>
+          )}
+
+          {panel === 'enter' && (
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <TextInput
+                  dir="ltr"
+                  spellCheck={false}
+                  className="min-w-0 flex-1"
+                  placeholder={t('instances.pairPlaceholder')}
+                  value={redeem}
+                  onChange={(e) => setRedeem(e.target.value)}
+                />
+                <Button hue={4} disabled={redeemBusy || redeem.trim() === ''} onClick={() => void onRedeem()}>
+                  {t('instances.pairButton')}
+                </Button>
               </div>
-            )}
-          </div>
+              {redeemMsg && <p className="text-sm text-statusOk">{redeemMsg}</p>}
+              {redeemErr && <p className="text-sm text-statusFail">{redeemErr}</p>}
+            </div>
+          )}
         </div>
       )}
 
-      <div className={`flex flex-col gap-3 ${!desktop ? 'border-t border-carbon-border/40 pt-5' : ''}`}>
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-carbon-textSub">{cx('settings.access.relay.title')}</span>
-          <InfoBubble tip={`${cx('settings.access.relay.body')} ${cx('settings.access.relay.selfHosted')}`} />
-        </div>
-
-        <Field label={cx('settings.access.relay.urlLabel')} hint={cx('settings.access.relay.urlHint')}>
-          <TextInput
-            dir="ltr"
-            spellCheck={false}
-            placeholder={cx('settings.access.relay.urlPlaceholder')}
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-          />
-        </Field>
-
-        <Field label={cx('settings.access.relay.keyLabel')} hint={cx('settings.access.relay.keyHint')}>
-          <TextInput
-            type="password"
-            dir="ltr"
-            autoComplete="off"
-            spellCheck={false}
-            placeholder={cx(
-              cfg.keySet ? 'settings.access.relay.keyPlaceholderSet' : 'settings.access.relay.keyPlaceholderUnset',
-            )}
-            value={key}
-            onChange={(e) => setKey(e.target.value)}
-          />
-        </Field>
-
-        <div className="flex items-center gap-3">
-          <Button kind="secondary" disabled={relayBusy} onClick={() => void saveRelay(key === '' ? undefined : key)}>
-            {relayBusy ? cx('settings.access.relay.saving') : cx('settings.access.relay.save')}
-          </Button>
-          <span className={`text-sm ${cfg.keySet ? 'text-statusOk' : 'text-carbon-textMuted'}`}>
-            {cx(cfg.keySet ? 'settings.access.relay.keySet' : 'settings.access.relay.keyUnset')}
+      {/* The relay, demoted to what it is: the thing you set up so the two
+          buttons above keep working when the other instance is not on this
+          network. Named by what it is for rather than by what it is, and
+          folded away, because a person who has one already read the state
+          sentence at the top and a person who has none is not shopping for a
+          protocol. */}
+      <div className="flex flex-col gap-3 border-t border-carbon-border/40 pt-4">
+        <button
+          type="button"
+          className="flex items-center gap-2 text-left"
+          aria-expanded={relayOpen}
+          onClick={() => setOpenRelay(!relayOpen)}
+        >
+          <span className="text-xs font-semibold text-carbon-textSub">{cx('settings.access.remote.beyond')}</span>
+          <span className={`text-[11px] ${relayOk ? 'text-statusOk' : 'text-carbon-textMuted'}`}>
+            {relayOk ? t('instances.online') : cx('settings.access.remote.beyondOff')}
           </span>
-          {cfg.keySet && (
-            <IconBadge
-              kind="danger"
-              icon={<IconTrash width={15} height={15} />}
-              disabled={relayBusy}
-              title={cx('settings.access.relay.keyClear')}
-              aria-label={cx('settings.access.relay.keyClear')}
-              onClick={() => void saveRelay('')}
-            />
-          )}
           <span className="flex-1" />
-          {relayDone && <span className="text-sm text-statusOk">{cx('settings.access.relay.saved')}</span>}
-          {relayError && <span className="text-sm text-statusFail">{relayError}</span>}
-        </div>
+          <span className="text-[11px] text-carbon-textMuted" aria-hidden="true">
+            {relayOpen ? '−' : '+'}
+          </span>
+        </button>
 
-        <div className="flex flex-col gap-1.5">
-          <span className="text-xs font-semibold text-carbon-textSub">{cx('settings.access.relay.siblingsTitle')}</span>
-          {!relayLive && (
-            <span className="text-[11px] text-carbon-textMuted">{cx('settings.access.relay.siblingsOff')}</span>
-          )}
-          {/* Configured but the socket is down: a typo'd address, a key the
-              relay rejects, or a relay that is simply not running. This used
-              to be indistinguishable from "connected, nobody else here",
-              because the page could only see the stored config - relayConfig
-              .connected now carries the real answer (relay.Client.Connected,
-              surfaced through federation.Manager.RelayConnected). */}
-          {relayLive && !cfg.connected && (
-            <span className="text-[11px] text-statusFail">{cx('settings.access.relay.unreachable')}</span>
-          )}
-          {relayLive && cfg.connected && siblings.length === 0 && (
-            <span className="text-[11px] text-carbon-textMuted">{cx('settings.access.relay.siblingsEmpty')}</span>
-          )}
-          {siblings.map((p) => (
-            <div key={p.relayId} className="flex items-center gap-2 text-sm">
-              {/* Always the online dot: a relay peer is on this list exactly as
-                  long as the relay reports it connected, so there is no offline
-                  state for one to be in - it is simply gone from the next poll. */}
-              <span
-                role="img"
-                aria-label={t('instances.online')}
-                title={t('instances.online')}
-                className="h-2 w-2 shrink-0 rounded-[var(--radius-pill)] bg-statusOkSolid"
-              />
-              <span className="min-w-0 flex-1 truncate text-carbon-text">{p.displayName ?? p.name}</span>
-              <span className="glim-num max-w-[10rem] shrink-0 truncate text-[11px] text-carbon-textMuted" dir="ltr" title={p.relayId}>
-                {p.relayId}
-              </span>
+        {relayOpen && (
+          <>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-carbon-textMuted">{cx('settings.access.relay.title')}</span>
+              <InfoBubble tip={`${cx('settings.access.relay.body')} ${cx('settings.access.relay.selfHosted')}`} />
             </div>
-          ))}
-        </div>
+
+            <Field label={cx('settings.access.relay.urlLabel')} hint={cx('settings.access.relay.urlHint')}>
+              <TextInput
+                dir="ltr"
+                spellCheck={false}
+                placeholder={cx('settings.access.relay.urlPlaceholder')}
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+              />
+            </Field>
+
+            <Field label={cx('settings.access.relay.keyLabel')} hint={cx('settings.access.relay.keyHint')}>
+              <TextInput
+                type="password"
+                dir="ltr"
+                autoComplete="off"
+                spellCheck={false}
+                placeholder={cx(
+                  cfg.keySet ? 'settings.access.relay.keyPlaceholderSet' : 'settings.access.relay.keyPlaceholderUnset',
+                )}
+                value={key}
+                onChange={(e) => setKey(e.target.value)}
+              />
+            </Field>
+
+            <div className="flex items-center gap-3">
+              <Button kind="secondary" disabled={relayBusy} onClick={() => void saveRelay(key === '' ? undefined : key)}>
+                {relayBusy ? cx('settings.access.relay.saving') : cx('settings.access.relay.save')}
+              </Button>
+              <span className={`text-sm ${cfg.keySet ? 'text-statusOk' : 'text-carbon-textMuted'}`}>
+                {cx(cfg.keySet ? 'settings.access.relay.keySet' : 'settings.access.relay.keyUnset')}
+              </span>
+              {cfg.keySet && (
+                <IconBadge
+                  kind="danger"
+                  icon={<IconTrash width={15} height={15} />}
+                  disabled={relayBusy}
+                  title={cx('settings.access.relay.keyClear')}
+                  aria-label={cx('settings.access.relay.keyClear')}
+                  onClick={() => void saveRelay('')}
+                />
+              )}
+              <span className="flex-1" />
+              {relayDone && <span className="text-sm text-statusOk">{cx('settings.access.relay.saved')}</span>}
+              {relayError && <span className="text-sm text-statusFail">{relayError}</span>}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <span className="text-xs font-semibold text-carbon-textSub">
+                {cx('settings.access.relay.siblingsTitle')}
+              </span>
+              {!relayLive && (
+                <span className="text-[11px] text-carbon-textMuted">{cx('settings.access.relay.siblingsOff')}</span>
+              )}
+              {relayOk && siblings.length === 0 && (
+                <span className="text-[11px] text-carbon-textMuted">{cx('settings.access.relay.siblingsEmpty')}</span>
+              )}
+              {siblings.map((p) => (
+                <div key={p.relayId} className="flex items-center gap-2 text-sm">
+                  {/* Always the online dot: a relay peer is on this list exactly as
+                      long as the relay reports it connected, so there is no offline
+                      state for one to be in - it is simply gone from the next poll. */}
+                  <span
+                    role="img"
+                    aria-label={t('instances.online')}
+                    title={t('instances.online')}
+                    className="h-2 w-2 shrink-0 rounded-[var(--radius-pill)] bg-statusOkSolid"
+                  />
+                  <span className="min-w-0 flex-1 truncate text-carbon-text">{p.displayName ?? p.name}</span>
+                  <span
+                    className="glim-num max-w-[10rem] shrink-0 truncate text-[11px] text-carbon-textMuted"
+                    dir="ltr"
+                    title={p.relayId}
+                  >
+                    {p.relayId}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </Card>
   );
