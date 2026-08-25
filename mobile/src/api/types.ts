@@ -35,11 +35,46 @@ export interface AuthState {
   authenticated: boolean;
 }
 
-export interface ServerConnection {
+// A saved connection is one KnightLoader this phone talks to, over one of two
+// transports. Everything above the transport - every screen, every call in
+// api/client.ts - takes a ServerConnection and never asks which kind it got;
+// api/client.ts's own request() is the single place that branches.
+
+/** Reached by opening an HTTP connection straight to it. */
+export interface DirectConnection {
+  // Optional, and absent on every connection saved before relay support
+  // existed. Those are all direct ones, so "no kind" reads as direct and no
+  // migration of the stored list is needed - see isRelayConnection.
+  kind?: 'direct';
   id: string; // stable local id, so a rename doesn't orphan the "last active" pointer
   baseUrl: string; // e.g. "https://192.168.10.10:1234", no trailing slash
   token: string; // the API token secret, sent as "Authorization: Bearer <token>"
   name: string; // whatever the user called this connection, e.g. "Home KL"
+}
+
+/**
+ * Reached only through a relay both ends dial out to - the case where nothing
+ * on this phone's network can open a connection to the instance at all.
+ *
+ * Note this still carries a token: a relay-proxied call is replayed against
+ * the target's own API and hits its normal auth guard, so a password-protected
+ * instance needs one exactly as it would over HTTP. The relay key gets the
+ * call to the instance; the token gets it past the door.
+ */
+export interface RelayConnection {
+  kind: 'relay';
+  id: string;
+  name: string;
+  relayUrl: string; // the relay's address, as typed - normalised when dialled
+  relayKey: string; // the relay's only credential, shared with the instances
+  instanceId: string; // WHICH sibling on that key this connection is for
+  token: string; // API token for that instance; '' when it has no password
+}
+
+export type ServerConnection = DirectConnection | RelayConnection;
+
+export function isRelayConnection(c: ServerConnection): c is RelayConnection {
+  return c.kind === 'relay';
 }
 
 // Mirrors internal/federation.Instance - a peer the CONNECTED server itself

@@ -24,6 +24,7 @@ export const da: Dict = {
   'connections.empty': 'Ingen forbindelse gemt endnu.',
   'connections.emptyButton': 'Tilføj din første forbindelse',
   'connections.remove': 'Fjern',
+  'connections.viaRelay': 'via relæ {relay}',
 
   'instances.title': 'Instanser',
   'instances.subtitle': 'Alle KnightLoader-instanser som {name} kender til.',
@@ -87,4 +88,20 @@ export const da: Dict = {
     'Fjerner hver gemte forbindelse og dens token fra denne enhed. Det ændrer ikke noget på selve serverne.',
   'settings.removeAllConfirmButton': 'Fjern alle',
   'settings.cancel': 'Annuller',
+
+  'connect.relayLink': 'Kan den ikke nås direkte? Opret forbindelse via et relæ',
+  'relay.title': 'Forbind via relæ',
+  'relay.hint':
+    'Til instanser, som intet på dette netværk kan nå direkte. Hver enkelt ringer selv ud til det samme relæ, og det gør denne app også. Angiv relæets adresse og nøgle, som de er sat op på instanserne.',
+  'relay.urlLabel': 'Relæadresse',
+  'relay.keyLabel': 'Relænøgle',
+  'relay.keyPlaceholder': 'den fælles nøgle for dine instanser',
+  'relay.searchButton': 'Find instanser',
+  'relay.errorMissing': 'Angiv relæadressen og nøglen.',
+  'relay.errorBadUrl': 'Det er ikke en relæadresse.',
+  'relay.errorKeyShort': 'En relænøgle er mindst {n} tegn lang.',
+  'relay.instancesTitle': 'På dette relæ',
+  'relay.noInstances': 'Der er ingen instanser forbundet til dette relæ lige nu. Tjek nøglen, og at mindst én instans kører.',
+  'relay.tokenHint': 'Kun nødvendig, hvis der er sat en adgangskode på den instans.',
+  'relay.saveButton': 'Gem forbindelse',
 };

@@ -24,6 +24,7 @@ export const eu: Dict = {
   'connections.empty': 'Oraindik ez da konexiorik gorde.',
   'connections.emptyButton': 'Gehitu zure lehen konexioa',
   'connections.remove': 'Kendu',
+  'connections.viaRelay': '{relay} erlaiaren bidez',
 
   'instances.title': 'Instantziak',
   'instances.subtitle': '{name}(e)k ezagutzen dituen KnightLoader instantzia guztiak.',
@@ -87,4 +88,20 @@ export const eu: Dict = {
     'Honek gailu honetatik kentzen du gordetako konexio bakoitza, bere tokenarekin batera. Zerbitzarietan bertan ez da ezer aldatzen.',
   'settings.removeAllConfirmButton': 'Kendu guztiak',
   'settings.cancel': 'Utzi',
+
+  'connect.relayLink': 'Ezin duzu zuzenean atzitu? Konektatu erlai baten bidez',
+  'relay.title': 'Erlai baten bidez konektatu',
+  'relay.hint':
+    'Sare honetatik zuzenean inolaz ere atzi ezin daitezkeen instantzietarako. Bakoitzak erlai berera deitzen du, eta aplikazio honek ere bai. Sartu erlaiaren helbidea eta gakoa, instantzietan ezarri dituzun bezala.',
+  'relay.urlLabel': 'Erlaiaren helbidea',
+  'relay.keyLabel': 'Erlaiaren gakoa',
+  'relay.keyPlaceholder': 'zure instantzien gako partekatua',
+  'relay.searchButton': 'Bilatu instantziak',
+  'relay.errorMissing': 'Sartu erlaiaren helbidea eta gakoa.',
+  'relay.errorBadUrl': 'Hori ez da erlai helbide bat.',
+  'relay.errorKeyShort': 'Erlai gako batek gutxienez {n} karaktere ditu.',
+  'relay.instancesTitle': 'Erlai honetan',
+  'relay.noInstances': 'Une honetan ez dago instantziarik erlai honetara konektatuta. Egiaztatu gakoa eta gutxienez instantzia bat abian dagoen.',
+  'relay.tokenHint': 'Instantzia horrek pasahitza ezarrita badu bakarrik behar da.',
+  'relay.saveButton': 'Gorde konexioa',
 };

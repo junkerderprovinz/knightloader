@@ -24,6 +24,7 @@ export const lt: Dict = {
   'connections.empty': 'Kol kas neišsaugotas nė vienas ryšys.',
   'connections.emptyButton': 'Pridėkite pirmąjį ryšį',
   'connections.remove': 'Pašalinti',
+  'connections.viaRelay': 'per relę {relay}',
 
   'instances.title': 'Egzemplioriai',
   'instances.subtitle': 'Visi „KnightLoader“ egzemplioriai, kuriuos žino {name}.',
@@ -87,4 +88,20 @@ export const lt: Dict = {
     'Iš šio įrenginio pašalinamas kiekvienas išsaugotas ryšys kartu su jo prieigos raktu. Pačiuose serveriuose niekas nepakinta.',
   'settings.removeAllConfirmButton': 'Pašalinti viską',
   'settings.cancel': 'Atšaukti',
+
+  'connect.relayLink': 'Nepasiekiamas tiesiogiai? Prisijunkite per relę',
+  'relay.title': 'Prisijungimas per relę',
+  'relay.hint':
+    'Skirta egzemplioriams, kurių iš šio tinklo apskritai negalima pasiekti tiesiogiai. Kiekvienas jų pats jungiasi prie tos pačios relės, taip pat ir ši programa. Įveskite relės adresą ir raktą tokius, kokie nurodyti egzemplioriuose.',
+  'relay.urlLabel': 'Relės adresas',
+  'relay.keyLabel': 'Relės raktas',
+  'relay.keyPlaceholder': 'bendras jūsų egzempliorių raktas',
+  'relay.searchButton': 'Ieškoti egzempliorių',
+  'relay.errorMissing': 'Įveskite relės adresą ir raktą.',
+  'relay.errorBadUrl': 'Tai ne relės adresas.',
+  'relay.errorKeyShort': 'Relės raktas yra bent {n} simbolių ilgio.',
+  'relay.instancesTitle': 'Šioje relėje',
+  'relay.noInstances': 'Šiuo metu prie šios relės neprijungtas nė vienas egzempliorius. Patikrinkite raktą ir ar veikia bent vienas egzempliorius.',
+  'relay.tokenHint': 'Reikalingas tik tada, jei tam egzemplioriui nustatytas slaptažodis.',
+  'relay.saveButton': 'Išsaugoti ryšį',
 };

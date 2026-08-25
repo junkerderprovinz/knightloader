@@ -24,6 +24,7 @@ export const ko: Dict = {
   'connections.empty': '아직 저장된 연결이 없습니다.',
   'connections.emptyButton': '첫 연결 추가하기',
   'connections.remove': '제거',
+  'connections.viaRelay': '릴레이 {relay} 경유',
 
   'instances.title': '인스턴스',
   'instances.subtitle': '{name}이(가) 알고 있는 모든 KnightLoader 인스턴스.',
@@ -87,4 +88,20 @@ export const ko: Dict = {
     '이 기기에 저장된 모든 연결과 해당 토큰을 제거합니다. 서버 자체는 변경되지 않습니다.',
   'settings.removeAllConfirmButton': '모두 제거',
   'settings.cancel': '취소',
+
+  'connect.relayLink': '직접 연결되지 않나요? 릴레이를 통해 연결하세요',
+  'relay.title': '릴레이를 통해 연결',
+  'relay.hint':
+    '이 네트워크에서는 직접 접근할 수 없는 인스턴스를 위한 방법입니다. 각 인스턴스가 같은 릴레이로 접속하고, 이 앱도 마찬가지입니다. 인스턴스에 설정한 릴레이 주소와 키를 입력하세요.',
+  'relay.urlLabel': '릴레이 주소',
+  'relay.keyLabel': '릴레이 키',
+  'relay.keyPlaceholder': '인스턴스들이 공유하는 키',
+  'relay.searchButton': '인스턴스 찾기',
+  'relay.errorMissing': '릴레이 주소와 키를 입력하세요.',
+  'relay.errorBadUrl': '릴레이 주소가 아닙니다.',
+  'relay.errorKeyShort': '릴레이 키는 최소 {n}자입니다.',
+  'relay.instancesTitle': '이 릴레이의 인스턴스',
+  'relay.noInstances': '지금 이 릴레이에 연결된 인스턴스가 없습니다. 키를 확인하고, 인스턴스가 최소 하나 실행 중인지 확인하세요.',
+  'relay.tokenHint': '해당 인스턴스에 비밀번호가 설정된 경우에만 필요합니다.',
+  'relay.saveButton': '연결 저장',
 };

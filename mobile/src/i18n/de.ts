@@ -24,6 +24,23 @@ export const de: Dict = {
   'connections.empty': 'Noch keine Verbindung gespeichert.',
   'connections.emptyButton': 'Erste Verbindung hinzufügen',
   'connections.remove': 'Entfernen',
+  'connections.viaRelay': 'über Relay {relay}',
+
+  'connect.relayLink': 'Nicht direkt erreichbar? Über ein Relay verbinden',
+  'relay.title': 'Über Relay verbinden',
+  'relay.hint':
+    'Für Instanzen, die aus diesem Netz gar nicht direkt erreichbar sind. Jede wählt sich beim selben Relay ein, diese App ebenfalls. Adresse und Schlüssel des Relays eingeben, so wie bei den Instanzen hinterlegt.',
+  'relay.urlLabel': 'Relay-Adresse',
+  'relay.keyLabel': 'Relay-Schlüssel',
+  'relay.keyPlaceholder': 'der gemeinsame Schlüssel deiner Instanzen',
+  'relay.searchButton': 'Instanzen suchen',
+  'relay.errorMissing': 'Relay-Adresse und Schlüssel angeben.',
+  'relay.errorBadUrl': 'Das ist keine Relay-Adresse.',
+  'relay.errorKeyShort': 'Ein Relay-Schlüssel hat mindestens {n} Zeichen.',
+  'relay.instancesTitle': 'An diesem Relay',
+  'relay.noInstances': 'Gerade ist keine Instanz an diesem Relay. Prüf den Schlüssel, und ob mindestens eine Instanz läuft.',
+  'relay.tokenHint': 'Nur nötig, wenn für die Instanz ein Passwort gesetzt ist.',
+  'relay.saveButton': 'Verbindung speichern',
 
   'instances.title': 'Instanzen',
   'instances.subtitle': 'Alle KnightLoader, die {name} kennt.',

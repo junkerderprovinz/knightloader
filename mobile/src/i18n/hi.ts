@@ -24,6 +24,7 @@ export const hi: Dict = {
   'connections.empty': 'अभी तक कोई कनेक्शन सेव नहीं किया गया है।',
   'connections.emptyButton': 'अपना पहला कनेक्शन जोड़ें',
   'connections.remove': 'हटाएं',
+  'connections.viaRelay': 'रिले {relay} के माध्यम से',
 
   'instances.title': 'इंस्टेंस',
   'instances.subtitle': '{name} को ज्ञात सभी KnightLoader इंस्टेंस।',
@@ -87,4 +88,20 @@ export const hi: Dict = {
     'यह इस डिवाइस से हर सेव किया गया कनेक्शन और उसका टोकन हटा देता है। सर्वर पर खुद कुछ भी नहीं बदलता।',
   'settings.removeAllConfirmButton': 'सभी हटाएं',
   'settings.cancel': 'रद्द करें',
+
+  'connect.relayLink': 'सीधे नहीं पहुंच पा रहे? रिले के माध्यम से कनेक्ट करें',
+  'relay.title': 'रिले के माध्यम से कनेक्ट करें',
+  'relay.hint':
+    'उन इंस्टेंस के लिए जिन तक इस नेटवर्क से सीधे पहुंचा ही नहीं जा सकता। हर इंस्टेंस खुद उसी रिले से जुड़ता है, और यह ऐप भी। रिले का पता और कुंजी वैसे ही दर्ज करें जैसे आपने इंस्टेंस पर सेट किए हैं।',
+  'relay.urlLabel': 'रिले का पता',
+  'relay.keyLabel': 'रिले कुंजी',
+  'relay.keyPlaceholder': 'आपके इंस्टेंस की साझा कुंजी',
+  'relay.searchButton': 'इंस्टेंस खोजें',
+  'relay.errorMissing': 'रिले का पता और कुंजी दर्ज करें।',
+  'relay.errorBadUrl': 'यह रिले का पता नहीं है।',
+  'relay.errorKeyShort': 'रिले कुंजी कम से कम {n} अक्षर लंबी होती है।',
+  'relay.instancesTitle': 'इस रिले पर',
+  'relay.noInstances': 'अभी इस रिले से कोई इंस्टेंस जुड़ा हुआ नहीं है। कुंजी जांचें, और यह भी कि कम से कम एक इंस्टेंस चल रहा हो।',
+  'relay.tokenHint': 'केवल तभी जरूरी है जब उस इंस्टेंस पर पासवर्ड सेट हो।',
+  'relay.saveButton': 'कनेक्शन सेव करें',
 };

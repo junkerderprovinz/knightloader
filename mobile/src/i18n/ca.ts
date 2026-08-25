@@ -24,6 +24,7 @@ export const ca: Dict = {
   'connections.empty': "Encara no s'ha desat cap connexió.",
   'connections.emptyButton': 'Afegeix la teva primera connexió',
   'connections.remove': 'Elimina',
+  'connections.viaRelay': 'mitjançant el relé {relay}',
 
   'instances.title': 'Instàncies',
   'instances.subtitle': 'Totes les instàncies de KnightLoader que coneix {name}.',
@@ -87,4 +88,20 @@ export const ca: Dict = {
     "Elimina d'aquest dispositiu cada connexió desada juntament amb el seu token. Als servidors mateixos no hi canvia res.",
   'settings.removeAllConfirmButton': 'Elimina-ho tot',
   'settings.cancel': 'Cancel·la',
+
+  'connect.relayLink': 'No hi pots accedir directament? Connecta mitjançant un relé',
+  'relay.title': 'Connecta mitjançant un relé',
+  'relay.hint':
+    "Per a instàncies que res d'aquesta xarxa no pot abastar directament. Cadascuna es connecta al mateix relé, i aquesta aplicació també. Indica l'adreça i la clau del relé, tal com les has configurat a les instàncies.",
+  'relay.urlLabel': 'Adreça del relé',
+  'relay.keyLabel': 'Clau del relé',
+  'relay.keyPlaceholder': 'la clau compartida de les teves instàncies',
+  'relay.searchButton': 'Cerca instàncies',
+  'relay.errorMissing': "Indica l'adreça del relé i la clau.",
+  'relay.errorBadUrl': 'Això no és una adreça de relé.',
+  'relay.errorKeyShort': 'Una clau de relé té com a mínim {n} caràcters.',
+  'relay.instancesTitle': 'En aquest relé',
+  'relay.noInstances': 'Ara mateix no hi ha cap instància connectada a aquest relé. Comprova la clau i que hi hagi almenys una instància en marxa.',
+  'relay.tokenHint': 'Només cal si aquesta instància té una contrasenya definida.',
+  'relay.saveButton': 'Desa la connexió',
 };

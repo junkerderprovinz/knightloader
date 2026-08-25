@@ -24,6 +24,7 @@ export const sv: Dict = {
   'connections.empty': 'Ingen anslutning sparad ännu.',
   'connections.emptyButton': 'Lägg till din första anslutning',
   'connections.remove': 'Ta bort',
+  'connections.viaRelay': 'via relä {relay}',
 
   'instances.title': 'Instanser',
   'instances.subtitle': 'Alla KnightLoader-instanser som {name} känner till.',
@@ -87,4 +88,20 @@ export const sv: Dict = {
     'Tar bort varje sparad anslutning och dess token från den här enheten. Det ändrar ingenting på själva servrarna.',
   'settings.removeAllConfirmButton': 'Ta bort alla',
   'settings.cancel': 'Avbryt',
+
+  'connect.relayLink': 'Går den inte att nå direkt? Anslut via ett relä',
+  'relay.title': 'Anslut via relä',
+  'relay.hint':
+    'För instanser som ingenting i det här nätverket når direkt. Var och en ringer ut till samma relä, och det gör den här appen också. Ange adressen och nyckeln till relät, samma som du lagt in på instanserna.',
+  'relay.urlLabel': 'Reläadress',
+  'relay.keyLabel': 'Relänyckel',
+  'relay.keyPlaceholder': 'den gemensamma nyckeln för dina instanser',
+  'relay.searchButton': 'Hitta instanser',
+  'relay.errorMissing': 'Ange reläadressen och nyckeln.',
+  'relay.errorBadUrl': 'Det är ingen reläadress.',
+  'relay.errorKeyShort': 'En relänyckel är minst {n} tecken lång.',
+  'relay.instancesTitle': 'På det här relät',
+  'relay.noInstances': 'Just nu är ingen instans ansluten till det här relät. Kontrollera nyckeln, och att minst en instans är igång.',
+  'relay.tokenHint': 'Behövs bara om den instansen har ett lösenord satt.',
+  'relay.saveButton': 'Spara anslutning',
 };

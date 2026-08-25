@@ -24,6 +24,7 @@ export const tr: Dict = {
   'connections.empty': 'Henüz kaydedilmiş bir bağlantı yok.',
   'connections.emptyButton': 'İlk bağlantınızı ekleyin',
   'connections.remove': 'Kaldır',
+  'connections.viaRelay': '{relay} rölesi üzerinden',
 
   'instances.title': 'Örnekler',
   'instances.subtitle': '{name} tarafından bilinen tüm KnightLoader örnekleri.',
@@ -87,4 +88,20 @@ export const tr: Dict = {
     'Bu cihazdaki her kayıtlı bağlantıyı ve tokenini kaldırır. Sunucuların kendisinde hiçbir şey değişmez.',
   'settings.removeAllConfirmButton': 'Tümünü kaldır',
   'settings.cancel': 'İptal',
+
+  'connect.relayLink': 'Doğrudan erişilemiyor mu? Bir röle üzerinden bağlanın',
+  'relay.title': 'Röle üzerinden bağlan',
+  'relay.hint':
+    'Bu ağdan hiçbir şekilde doğrudan erişilemeyen örnekler için. Her biri aynı röleye kendisi bağlanır, bu uygulama da öyle. Örneklerinizde tanımladığınız röle adresini ve anahtarı girin.',
+  'relay.urlLabel': 'Röle adresi',
+  'relay.keyLabel': 'Röle anahtarı',
+  'relay.keyPlaceholder': 'örneklerinizin paylaştığı anahtar',
+  'relay.searchButton': 'Örnekleri bul',
+  'relay.errorMissing': 'Röle adresini ve anahtarı girin.',
+  'relay.errorBadUrl': 'Bu bir röle adresi değil.',
+  'relay.errorKeyShort': 'Bir röle anahtarı en az {n} karakter uzunluğundadır.',
+  'relay.instancesTitle': 'Bu rölede',
+  'relay.noInstances': 'Şu anda bu röleye bağlı örnek yok. Anahtarı ve en az bir örneğin çalışıp çalışmadığını kontrol edin.',
+  'relay.tokenHint': 'Yalnızca o örnek için bir parola ayarlandıysa gerekir.',
+  'relay.saveButton': 'Bağlantıyı kaydet',
 };

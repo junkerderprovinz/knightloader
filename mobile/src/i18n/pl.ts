@@ -24,6 +24,7 @@ export const pl: Dict = {
   'connections.empty': 'Nie zapisano jeszcze żadnego połączenia.',
   'connections.emptyButton': 'Dodaj pierwsze połączenie',
   'connections.remove': 'Usuń',
+  'connections.viaRelay': 'przez przekaźnik {relay}',
 
   'instances.title': 'Instancje',
   'instances.subtitle': 'Wszystkie instancje KnightLoader, które zna {name}.',
@@ -87,4 +88,20 @@ export const pl: Dict = {
     'Usuwa z tego urządzenia każde zapisane połączenie razem z jego tokenem. Na samych serwerach nic się nie zmienia.',
   'settings.removeAllConfirmButton': 'Usuń wszystko',
   'settings.cancel': 'Anuluj',
+
+  'connect.relayLink': 'Brak bezpośredniego dostępu? Połącz przez przekaźnik',
+  'relay.title': 'Połącz przez przekaźnik',
+  'relay.hint':
+    'Dla instancji, do których z tej sieci nie da się dotrzeć bezpośrednio. Każda łączy się z tym samym przekaźnikiem, ta aplikacja również. Podaj adres i klucz przekaźnika, tak jak ustawiono je w instancjach.',
+  'relay.urlLabel': 'Adres przekaźnika',
+  'relay.keyLabel': 'Klucz przekaźnika',
+  'relay.keyPlaceholder': 'wspólny klucz twoich instancji',
+  'relay.searchButton': 'Szukaj instancji',
+  'relay.errorMissing': 'Podaj adres przekaźnika i klucz.',
+  'relay.errorBadUrl': 'To nie jest adres przekaźnika.',
+  'relay.errorKeyShort': 'Klucz przekaźnika ma co najmniej {n} znaków.',
+  'relay.instancesTitle': 'Na tym przekaźniku',
+  'relay.noInstances': 'Obecnie żadna instancja nie jest połączona z tym przekaźnikiem. Sprawdź klucz i to, czy działa co najmniej jedna instancja.',
+  'relay.tokenHint': 'Potrzebny tylko wtedy, gdy dla tej instancji ustawiono hasło.',
+  'relay.saveButton': 'Zapisz połączenie',
 };

@@ -24,6 +24,7 @@ export const ms: Dict = {
   'connections.empty': 'Belum ada sambungan disimpan.',
   'connections.emptyButton': 'Tambah sambungan pertama anda',
   'connections.remove': 'Alih keluar',
+  'connections.viaRelay': 'melalui geganti {relay}',
 
   'instances.title': 'Instans',
   'instances.subtitle': 'Semua instans KnightLoader yang diketahui oleh {name}.',
@@ -87,4 +88,20 @@ export const ms: Dict = {
     'Ini mengalih keluar setiap sambungan yang disimpan berserta tokennya daripada peranti ini. Tiada apa yang berubah pada pelayan itu sendiri.',
   'settings.removeAllConfirmButton': 'Alih keluar semua',
   'settings.cancel': 'Batal',
+
+  'connect.relayLink': 'Tidak dapat dicapai secara terus? Sambung melalui geganti',
+  'relay.title': 'Sambung melalui geganti',
+  'relay.hint':
+    'Untuk instans yang langsung tidak dapat dicapai dari rangkaian ini. Setiap satu menghubungi geganti yang sama, begitu juga aplikasi ini. Masukkan alamat dan kunci geganti seperti yang anda tetapkan pada instans.',
+  'relay.urlLabel': 'Alamat geganti',
+  'relay.keyLabel': 'Kunci geganti',
+  'relay.keyPlaceholder': 'kunci sepunya instans anda',
+  'relay.searchButton': 'Cari instans',
+  'relay.errorMissing': 'Masukkan alamat geganti dan kunci.',
+  'relay.errorBadUrl': 'Itu bukan alamat geganti.',
+  'relay.errorKeyShort': 'Kunci geganti sekurang-kurangnya {n} aksara panjangnya.',
+  'relay.instancesTitle': 'Pada geganti ini',
+  'relay.noInstances': 'Tiada instans yang disambungkan ke geganti ini sekarang. Semak kunci, dan pastikan sekurang-kurangnya satu instans sedang berjalan.',
+  'relay.tokenHint': 'Hanya perlu jika instans itu mempunyai kata laluan.',
+  'relay.saveButton': 'Simpan sambungan',
 };

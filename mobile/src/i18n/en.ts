@@ -25,6 +25,23 @@ export const en = {
   'connections.empty': 'No connection saved yet.',
   'connections.emptyButton': 'Add your first connection',
   'connections.remove': 'Remove',
+  'connections.viaRelay': 'via relay {relay}',
+
+  'connect.relayLink': 'Cannot reach it directly? Connect via a relay',
+  'relay.title': 'Connect via relay',
+  'relay.hint':
+    'For instances nothing on this network can reach directly. Each one dials out to the same relay, and so does this app. Enter the relay address and key you gave your instances.',
+  'relay.urlLabel': 'Relay address',
+  'relay.keyLabel': 'Relay key',
+  'relay.keyPlaceholder': 'the key your instances share',
+  'relay.searchButton': 'Find instances',
+  'relay.errorMissing': 'Enter the relay address and the key.',
+  'relay.errorBadUrl': 'That is not a relay address.',
+  'relay.errorKeyShort': 'A relay key is at least {n} characters long.',
+  'relay.instancesTitle': 'On this relay',
+  'relay.noInstances': 'No instances are connected to this relay right now. Check the key, and that at least one instance is running.',
+  'relay.tokenHint': 'Only needed if that instance has a password set.',
+  'relay.saveButton': 'Save connection',
 
   'instances.title': 'Instances',
   'instances.subtitle': 'Every KnightLoader that {name} knows about.',

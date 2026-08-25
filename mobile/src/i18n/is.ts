@@ -24,6 +24,7 @@ export const is: Dict = {
   'connections.empty': 'Engin tenging vistuð ennþá.',
   'connections.emptyButton': 'Bættu við fyrstu tengingunni þinni',
   'connections.remove': 'Fjarlægja',
+  'connections.viaRelay': 'um endurvarpa {relay}',
 
   'instances.title': 'Tilvik',
   'instances.subtitle': 'Öll KnightLoader-tilvik sem {name} þekkir.',
@@ -87,4 +88,20 @@ export const is: Dict = {
     'Þetta fjarlægir hverja vistaða tengingu og teikn hennar af þessu tæki. Ekkert breytist á netþjónunum sjálfum.',
   'settings.removeAllConfirmButton': 'Fjarlægja allt',
   'settings.cancel': 'Hætta við',
+
+  'connect.relayLink': 'Næst ekki beint í hana? Tengstu um endurvarpa',
+  'relay.title': 'Tengjast um endurvarpa',
+  'relay.hint':
+    'Fyrir tilvik sem ekkert á þessu neti nær beint í. Hvert þeirra hringir sjálft út í sama endurvarpann, og þetta forrit líka. Sláðu inn vistfang og lykil endurvarpans, eins og þau eru stillt á tilvikunum.',
+  'relay.urlLabel': 'Vistfang endurvarpa',
+  'relay.keyLabel': 'Lykill endurvarpa',
+  'relay.keyPlaceholder': 'sameiginlegi lykill tilvikanna þinna',
+  'relay.searchButton': 'Finna tilvik',
+  'relay.errorMissing': 'Sláðu inn vistfang endurvarpans og lykilinn.',
+  'relay.errorBadUrl': 'Þetta er ekki vistfang endurvarpa.',
+  'relay.errorKeyShort': 'Lykill endurvarpa er að minnsta kosti {n} stafir.',
+  'relay.instancesTitle': 'Á þessum endurvarpa',
+  'relay.noInstances': 'Ekkert tilvik er tengt þessum endurvarpa núna. Athugaðu lykilinn og hvort að minnsta kosti eitt tilvik sé í gangi.',
+  'relay.tokenHint': 'Aðeins nauðsynlegt ef lykilorð er stillt á því tilviki.',
+  'relay.saveButton': 'Vista tengingu',
 };

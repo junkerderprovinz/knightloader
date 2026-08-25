@@ -24,6 +24,7 @@ export const et: Dict = {
   'connections.empty': 'Ühtegi ühendust pole veel salvestatud.',
   'connections.emptyButton': 'Lisage oma esimene ühendus',
   'connections.remove': 'Eemalda',
+  'connections.viaRelay': 'relee {relay} kaudu',
 
   'instances.title': 'Eksemplarid',
   'instances.subtitle': 'Kõik rakenduse KnightLoader eksemplarid, mida {name} tunneb.',
@@ -87,4 +88,20 @@ export const et: Dict = {
     'See eemaldab sellest seadmest iga salvestatud ühenduse koos selle võtmega. Serverites endis ei muutu midagi.',
   'settings.removeAllConfirmButton': 'Eemalda kõik',
   'settings.cancel': 'Tühista',
+
+  'connect.relayLink': 'Otse ei saa ühendust? Ühendu relee kaudu',
+  'relay.title': 'Ühendumine relee kaudu',
+  'relay.hint':
+    'Eksemplaridele, milleni sellest võrgust otse üldse ei pääse. Iga eksemplar võtab ise ühendust sama releega, samuti see rakendus. Sisestage relee aadress ja võti nii, nagu need on eksemplaridel seadistatud.',
+  'relay.urlLabel': 'Relee aadress',
+  'relay.keyLabel': 'Relee võti',
+  'relay.keyPlaceholder': 'teie eksemplaride ühine võti',
+  'relay.searchButton': 'Otsi eksemplare',
+  'relay.errorMissing': 'Sisestage relee aadress ja võti.',
+  'relay.errorBadUrl': 'See ei ole relee aadress.',
+  'relay.errorKeyShort': 'Relee võti on vähemalt {n} märki pikk.',
+  'relay.instancesTitle': 'Selles relees',
+  'relay.noInstances': 'Praegu pole selle releega ühendatud ühtegi eksemplari. Kontrollige võtit ja seda, kas vähemalt üks eksemplar töötab.',
+  'relay.tokenHint': 'Vajalik ainult siis, kui sellel eksemplaril on määratud parool.',
+  'relay.saveButton': 'Salvesta ühendus',
 };

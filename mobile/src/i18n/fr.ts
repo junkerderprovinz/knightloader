@@ -24,6 +24,7 @@ export const fr: Dict = {
   'connections.empty': 'Aucune connexion enregistrée pour l’instant.',
   'connections.emptyButton': 'Ajouter votre première connexion',
   'connections.remove': 'Supprimer',
+  'connections.viaRelay': 'via le relais {relay}',
 
   'instances.title': 'Instances',
   'instances.subtitle': 'Toutes les instances de KnightLoader que {name} connaît.',
@@ -87,4 +88,20 @@ export const fr: Dict = {
     'Supprime chaque connexion enregistrée et son jeton de cet appareil. Cela ne change rien sur les serveurs eux-mêmes.',
   'settings.removeAllConfirmButton': 'Tout supprimer',
   'settings.cancel': 'Annuler',
+
+  'connect.relayLink': 'Injoignable en direct ? Se connecter via un relais',
+  'relay.title': 'Se connecter via un relais',
+  'relay.hint':
+    'Pour les instances qu’aucun appareil de ce réseau ne peut joindre directement. Chacune se connecte au même relais, et cette application aussi. Indiquez l’adresse et la clé du relais, telles qu’elles sont configurées sur vos instances.',
+  'relay.urlLabel': 'Adresse du relais',
+  'relay.keyLabel': 'Clé du relais',
+  'relay.keyPlaceholder': 'la clé commune à vos instances',
+  'relay.searchButton': 'Chercher les instances',
+  'relay.errorMissing': 'Indiquez l’adresse du relais et la clé.',
+  'relay.errorBadUrl': 'Ce n’est pas une adresse de relais.',
+  'relay.errorKeyShort': 'Une clé de relais fait au moins {n} caractères.',
+  'relay.instancesTitle': 'Sur ce relais',
+  'relay.noInstances': 'Aucune instance n’est connectée à ce relais pour l’instant. Vérifiez la clé, et qu’au moins une instance tourne.',
+  'relay.tokenHint': 'Nécessaire seulement si un mot de passe est défini sur cette instance.',
+  'relay.saveButton': 'Enregistrer la connexion',
 };

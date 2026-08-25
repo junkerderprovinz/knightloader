@@ -21,7 +21,13 @@ import QRScanner from '../components/QRScanner';
 // short-lived federation handshake secret (routes_pairing.go's own doc
 // comment), not a bearer API token - a one-scan flow for THAT needs the
 // server to grow a QR that carries one, not built yet, see mobile/README.md.
-export default function ConnectScreen({ onConnected }: { onConnected: (conn: ServerConnection) => void }) {
+export default function ConnectScreen({
+  onConnected,
+  onUseRelay,
+}: {
+  onConnected: (conn: ServerConnection) => void;
+  onUseRelay: () => void;
+}) {
   const { t } = useT();
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
@@ -116,6 +122,14 @@ export default function ConnectScreen({ onConnected }: { onConnected: (conn: Ser
         {busy ? <ActivityIndicator color={colors.text} /> : <Text style={styles.buttonText}>{t('connect.connectButton')}</Text>}
       </TouchableOpacity>
 
+      {/* The relay is the fallback, not an equal first choice: it only helps
+          when nothing here can reach the instance directly, and it costs a
+          shared key. So it sits below as a way out of a dead end rather than
+          as a second button someone has to choose between up front. */}
+      <TouchableOpacity style={styles.relayLink} onPress={onUseRelay}>
+        <Text style={styles.relayLinkText}>{t('connect.relayLink')}</Text>
+      </TouchableOpacity>
+
       <QRScanner
         visible={scanning}
         hint={t('connect.qrHintAddress')}
@@ -175,4 +189,6 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { color: colors.text, fontSize: 16, fontWeight: '600' },
+  relayLink: { marginTop: 18, alignItems: 'center' },
+  relayLinkText: { color: colors.accent, fontSize: 13 },
 });

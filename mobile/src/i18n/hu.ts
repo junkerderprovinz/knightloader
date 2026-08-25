@@ -24,6 +24,7 @@ export const hu: Dict = {
   'connections.empty': 'Még nincs elmentett kapcsolat.',
   'connections.emptyButton': 'Add hozzá az első kapcsolatodat',
   'connections.remove': 'Eltávolítás',
+  'connections.viaRelay': '{relay} relén keresztül',
 
   'instances.title': 'Példányok',
   'instances.subtitle': 'Az összes KnightLoader-példány, amelyet {name} ismer.',
@@ -87,4 +88,20 @@ export const hu: Dict = {
     'Eltávolít erről az eszközről minden elmentett kapcsolatot a hozzá tartozó tokennel együtt. Magukon a szervereken semmi nem változik.',
   'settings.removeAllConfirmButton': 'Összes eltávolítása',
   'settings.cancel': 'Mégse',
+
+  'connect.relayLink': 'Nem érhető el közvetlenül? Kapcsolódj relén keresztül',
+  'relay.title': 'Kapcsolódás relén keresztül',
+  'relay.hint':
+    'Olyan példányokhoz, amelyek erről a hálózatról egyáltalán nem érhetők el közvetlenül. Mindegyik ugyanahhoz a reléhez kapcsolódik kifelé, és ez az alkalmazás is. Add meg a relé címét és kulcsát úgy, ahogy a példányokon be van állítva.',
+  'relay.urlLabel': 'Relé címe',
+  'relay.keyLabel': 'Relé kulcsa',
+  'relay.keyPlaceholder': 'a példányaid közös kulcsa',
+  'relay.searchButton': 'Példányok keresése',
+  'relay.errorMissing': 'Add meg a relé címét és a kulcsot.',
+  'relay.errorBadUrl': 'Ez nem egy relé címe.',
+  'relay.errorKeyShort': 'Egy relékulcs legalább {n} karakter hosszú.',
+  'relay.instancesTitle': 'Ezen a relén',
+  'relay.noInstances': 'Jelenleg egyetlen példány sem kapcsolódik ehhez a reléhez. Ellenőrizd a kulcsot, és hogy legalább egy példány fut-e.',
+  'relay.tokenHint': 'Csak akkor kell, ha az adott példányhoz jelszó van beállítva.',
+  'relay.saveButton': 'Kapcsolat mentése',
 };

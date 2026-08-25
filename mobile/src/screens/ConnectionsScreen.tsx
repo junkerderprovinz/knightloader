@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { checkConnection } from '../api/client';
 import { listConnections, removeConnection, setActiveConnectionId } from '../storage/connections';
-import type { ServerConnection } from '../api/types';
+import { isRelayConnection, type ServerConnection } from '../api/types';
 import { colors } from '../theme';
 import { useT } from '../i18n/I18nContext';
 import IconBadge from '../components/IconBadge';
@@ -84,7 +84,7 @@ export default function ConnectionsScreen({
               <View style={styles.rowText}>
                 <Text style={styles.rowName}>{item.name}</Text>
                 <Text style={styles.rowUrl} numberOfLines={1}>
-                  {item.baseUrl}
+                  {isRelayConnection(item) ? t('connections.viaRelay', { relay: item.relayUrl }) : item.baseUrl}
                 </Text>
               </View>
               <TouchableOpacity style={styles.removeButton} onPress={() => remove(item.id)}>

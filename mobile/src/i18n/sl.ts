@@ -24,6 +24,7 @@ export const sl: Dict = {
   'connections.empty': 'Še ni shranjene povezave.',
   'connections.emptyButton': 'Dodajte svojo prvo povezavo',
   'connections.remove': 'Odstrani',
+  'connections.viaRelay': 'prek releja {relay}',
 
   'instances.title': 'Instance',
   'instances.subtitle': 'Vse instance aplikacije KnightLoader, ki jih pozna {name}.',
@@ -87,4 +88,20 @@ export const sl: Dict = {
     'S te naprave odstrani vsako shranjeno povezavo skupaj z njenim žetonom. Na samih strežnikih se ne spremeni nič.',
   'settings.removeAllConfirmButton': 'Odstrani vse',
   'settings.cancel': 'Prekliči',
+
+  'connect.relayLink': 'Ni neposredno dosegljiva? Povežite se prek releja',
+  'relay.title': 'Povezava prek releja',
+  'relay.hint':
+    'Za instance, ki iz tega omrežja sploh niso neposredno dosegljive. Vsaka se sama poveže na isti rele, prav tako ta aplikacija. Vnesite naslov in ključ releja, tako kot sta nastavljena na instancah.',
+  'relay.urlLabel': 'Naslov releja',
+  'relay.keyLabel': 'Ključ releja',
+  'relay.keyPlaceholder': 'skupni ključ vaših instanc',
+  'relay.searchButton': 'Poišči instance',
+  'relay.errorMissing': 'Vnesite naslov releja in ključ.',
+  'relay.errorBadUrl': 'To ni naslov releja.',
+  'relay.errorKeyShort': 'Ključ releja ima vsaj {n} znakov.',
+  'relay.instancesTitle': 'Na tem releju',
+  'relay.noInstances': 'Trenutno na ta rele ni povezana nobena instanca. Preverite ključ in to, ali teče vsaj ena instanca.',
+  'relay.tokenHint': 'Potreben le, če je za to instanco nastavljeno geslo.',
+  'relay.saveButton': 'Shrani povezavo',
 };

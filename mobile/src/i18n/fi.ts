@@ -24,6 +24,7 @@ export const fi: Dict = {
   'connections.empty': 'Yhtään yhteyttä ei ole vielä tallennettu.',
   'connections.emptyButton': 'Lisää ensimmäinen yhteytesi',
   'connections.remove': 'Poista',
+  'connections.viaRelay': 'releen {relay} kautta',
 
   'instances.title': 'Instanssit',
   'instances.subtitle': 'Kaikki KnightLoader-instanssit, jotka {name} tuntee.',
@@ -87,4 +88,20 @@ export const fi: Dict = {
     'Poistaa tästä laitteesta jokaisen tallennetun yhteyden ja sen tokenin. Palvelimilla itsellään ei muutu mikään.',
   'settings.removeAllConfirmButton': 'Poista kaikki',
   'settings.cancel': 'Peruuta',
+
+  'connect.relayLink': 'Eikö siihen saa suoraa yhteyttä? Yhdistä releen kautta',
+  'relay.title': 'Yhdistä releen kautta',
+  'relay.hint':
+    'Instansseille, joihin tästä verkosta ei pääse lainkaan suoraan. Jokainen niistä ottaa itse yhteyden samaan releeseen, ja niin tekee tämäkin sovellus. Anna releen osoite ja avain samoin kuin ne on määritetty instansseille.',
+  'relay.urlLabel': 'Releen osoite',
+  'relay.keyLabel': 'Releen avain',
+  'relay.keyPlaceholder': 'instanssiesi yhteinen avain',
+  'relay.searchButton': 'Etsi instansseja',
+  'relay.errorMissing': 'Anna releen osoite ja avain.',
+  'relay.errorBadUrl': 'Tämä ei ole releen osoite.',
+  'relay.errorKeyShort': 'Releen avaimessa on vähintään {n} merkkiä.',
+  'relay.instancesTitle': 'Tässä releessä',
+  'relay.noInstances': 'Tähän releeseen ei ole juuri nyt yhteydessä yhtään instanssia. Tarkista avain ja se, että ainakin yksi instanssi on käynnissä.',
+  'relay.tokenHint': 'Tarvitaan vain, jos kyseiselle instanssille on asetettu salasana.',
+  'relay.saveButton': 'Tallenna yhteys',
 };

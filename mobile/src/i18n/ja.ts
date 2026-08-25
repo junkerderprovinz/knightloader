@@ -24,6 +24,7 @@ export const ja: Dict = {
   'connections.empty': 'まだ接続が保存されていません。',
   'connections.emptyButton': '最初の接続を追加',
   'connections.remove': '削除',
+  'connections.viaRelay': 'リレー {relay} 経由',
 
   'instances.title': 'インスタンス',
   'instances.subtitle': '{name}が把握しているすべてのKnightLoaderインスタンス。',
@@ -87,4 +88,20 @@ export const ja: Dict = {
     'この端末に保存されているすべての接続とそのトークンを削除します。サーバー側は何も変わりません。',
   'settings.removeAllConfirmButton': 'すべて削除',
   'settings.cancel': 'キャンセル',
+
+  'connect.relayLink': '直接つながりませんか?リレー経由で接続',
+  'relay.title': 'リレー経由で接続',
+  'relay.hint':
+    'このネットワークからはまったく直接アクセスできないインスタンス向けです。各インスタンスが同じリレーに接続し、このアプリも同じリレーに接続します。インスタンスに設定したリレーのアドレスとキーを入力してください。',
+  'relay.urlLabel': 'リレーのアドレス',
+  'relay.keyLabel': 'リレーキー',
+  'relay.keyPlaceholder': 'インスタンス共通のキー',
+  'relay.searchButton': 'インスタンスを検索',
+  'relay.errorMissing': 'リレーのアドレスとキーを入力してください。',
+  'relay.errorBadUrl': 'これはリレーのアドレスではありません。',
+  'relay.errorKeyShort': 'リレーキーは{n}文字以上です。',
+  'relay.instancesTitle': 'このリレー上のインスタンス',
+  'relay.noInstances': '現在このリレーに接続しているインスタンスはありません。キーと、インスタンスが少なくとも1つ動作しているかを確認してください。',
+  'relay.tokenHint': 'そのインスタンスにパスワードが設定されている場合のみ必要です。',
+  'relay.saveButton': '接続を保存',
 };

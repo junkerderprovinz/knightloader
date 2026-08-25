@@ -24,6 +24,7 @@ export const zh: Dict = {
   'connections.empty': '尚未保存任何连接。',
   'connections.emptyButton': '添加你的第一个连接',
   'connections.remove': '移除',
+  'connections.viaRelay': '通过中继 {relay}',
 
   'instances.title': '实例',
   'instances.subtitle': '{name} 已知的所有 KnightLoader 实例。',
@@ -87,4 +88,20 @@ export const zh: Dict = {
     '这会从此设备移除每一个已保存的连接及其令牌，服务器本身不会有任何变化。',
   'settings.removeAllConfirmButton': '全部移除',
   'settings.cancel': '取消',
+
+  'connect.relayLink': '无法直接访问？通过中继连接',
+  'relay.title': '通过中继连接',
+  'relay.hint':
+    '适用于本网络完全无法直接访问的实例。每个实例都会主动连接到同一个中继，本应用也一样。请填写你在实例上配置的中继地址和密钥。',
+  'relay.urlLabel': '中继地址',
+  'relay.keyLabel': '中继密钥',
+  'relay.keyPlaceholder': '各实例共用的密钥',
+  'relay.searchButton': '查找实例',
+  'relay.errorMissing': '请输入中继地址和密钥。',
+  'relay.errorBadUrl': '这不是中继地址。',
+  'relay.errorKeyShort': '中继密钥至少 {n} 个字符。',
+  'relay.instancesTitle': '此中继上的实例',
+  'relay.noInstances': '目前没有实例连接到此中继。请检查密钥，以及是否至少有一个实例正在运行。',
+  'relay.tokenHint': '仅在该实例设置了密码时才需要。',
+  'relay.saveButton': '保存连接',
 };

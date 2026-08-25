@@ -24,6 +24,7 @@ export const nl: Dict = {
   'connections.empty': 'Nog geen verbinding opgeslagen.',
   'connections.emptyButton': 'Voeg je eerste verbinding toe',
   'connections.remove': 'Verwijderen',
+  'connections.viaRelay': 'via relay {relay}',
 
   'instances.title': 'Instanties',
   'instances.subtitle': 'Elke KnightLoader-instantie die {name} kent.',
@@ -87,4 +88,20 @@ export const nl: Dict = {
     'Verwijdert elke opgeslagen verbinding en het bijbehorende token van dit apparaat. Op de servers zelf verandert er niets.',
   'settings.removeAllConfirmButton': 'Alles verwijderen',
   'settings.cancel': 'Annuleren',
+
+  'connect.relayLink': 'Niet rechtstreeks bereikbaar? Verbind via een relay',
+  'relay.title': 'Verbinden via relay',
+  'relay.hint':
+    'Voor instanties die vanaf dit netwerk helemaal niet rechtstreeks bereikbaar zijn. Elke instantie belt uit naar dezelfde relay, deze app ook. Vul het adres en de sleutel van de relay in, zoals je ze bij je instanties hebt ingesteld.',
+  'relay.urlLabel': 'Relay-adres',
+  'relay.keyLabel': 'Relay-sleutel',
+  'relay.keyPlaceholder': 'de gedeelde sleutel van je instanties',
+  'relay.searchButton': 'Instanties zoeken',
+  'relay.errorMissing': 'Vul het relay-adres en de sleutel in.',
+  'relay.errorBadUrl': 'Dat is geen relay-adres.',
+  'relay.errorKeyShort': 'Een relay-sleutel is minstens {n} tekens lang.',
+  'relay.instancesTitle': 'Op deze relay',
+  'relay.noInstances': 'Er is op dit moment geen instantie verbonden met deze relay. Controleer de sleutel en of er minstens één instantie draait.',
+  'relay.tokenHint': 'Alleen nodig als voor die instantie een wachtwoord is ingesteld.',
+  'relay.saveButton': 'Verbinding opslaan',
 };

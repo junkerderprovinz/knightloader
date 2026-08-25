@@ -7,6 +7,7 @@ import { loadActiveConnection, setActiveConnectionId } from './src/storage/conne
 import type { Instance, ServerConnection } from './src/api/types';
 import ConnectionsScreen from './src/screens/ConnectionsScreen';
 import ConnectScreen from './src/screens/ConnectScreen';
+import RelayConnectScreen from './src/screens/RelayConnectScreen';
 import DownloadsScreen from './src/screens/DownloadsScreen';
 import InstancesScreen from './src/screens/InstancesScreen';
 import AddDownloadScreen from './src/screens/AddDownloadScreen';
@@ -18,6 +19,7 @@ import { I18nProvider } from './src/i18n/I18nContext';
 type RootStackParamList = {
   Connections: undefined;
   AddConnection: undefined;
+  RelayConnect: undefined;
   Downloads: { peer?: Instance } | undefined;
   Instances: undefined;
   AddDownload: { peer?: Instance } | undefined;
@@ -81,6 +83,18 @@ export default function App() {
           <Stack.Screen name="AddConnection" options={{ presentation: 'modal' }}>
             {({ navigation }) => (
               <ConnectScreen
+                onConnected={(c) => {
+                  setConn(c);
+                  navigation.navigate('Downloads', {});
+                }}
+                onUseRelay={() => navigation.replace('RelayConnect')}
+              />
+            )}
+          </Stack.Screen>
+
+          <Stack.Screen name="RelayConnect" options={{ presentation: 'modal' }}>
+            {({ navigation }) => (
+              <RelayConnectScreen
                 onConnected={(c) => {
                   setConn(c);
                   navigation.navigate('Downloads', {});
