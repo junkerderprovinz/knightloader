@@ -327,3 +327,29 @@ func TestAddNeverStoresARelayIdentity(t *testing.T) {
 		t.Fatalf("got %+v, want the relay identity dropped", list)
 	}
 }
+
+// TestClientOnlySiblingsAreNotListedAsInstances: the mobile companion app
+// joins the relay key to CALL instances, not to be one - it serves no API, so
+// an entry for it in this list would be somewhere the UI offers to open and
+// which then answers 501 to every route. Every connection must announce
+// before the relay will join it to a key, so "just don't announce" is not
+// available and the announce carries a flag instead.
+//
+// Pinned as its own test because the failure is silent and remote: it would
+// show up as a stray, broken peer on OTHER people's Instances pages, not
+// anywhere the phone's own owner would look.
+func TestClientOnlySiblingsAreNotListedAsInstances(t *testing.T) {
+	m, err := Load(t.TempDir())
+	if err != nil {
+		t.Fatalf("load: %v", err)
+	}
+	m.SetRelay(&fakeRelay{sibs: []relay.Announce{
+		{InstanceID: "id-nas", Name: "Cellar", Deployment: "container"},
+		{InstanceID: "id-phone", Name: "Pixel", Deployment: "mobile", Client: true},
+	}})
+
+	list := m.List()
+	if len(list) != 1 || list[0].Name != "id-nas" {
+		t.Fatalf("got %+v, want only the real instance - a client-only sibling is not a place to go", list)
+	}
+}

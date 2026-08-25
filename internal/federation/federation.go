@@ -184,6 +184,12 @@ func (m *Manager) reachable() (map[string]Instance, RelayTransport) {
 		return out, nil
 	}
 	for _, sib := range rt.Siblings() {
+		// A client-only sibling (the mobile app) is on the key to CALL
+		// instances, not to be one - listing it would offer a peer that
+		// answers 501 to every route. See relay.Announce.Client.
+		if sib.Client {
+			continue
+		}
 		in := Instance{Name: sib.InstanceID, RelayID: sib.InstanceID}
 		if sib.Name != "" && sib.Name != sib.InstanceID {
 			in.DisplayName = sib.Name

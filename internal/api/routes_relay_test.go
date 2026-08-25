@@ -359,3 +359,66 @@ func TestChangingInstanceNameReconnectsTheRelayClient(t *testing.T) {
 
 	waitForSiblingName("Renamed Instance")
 }
+
+// TestRelayProxyHonoursTheAuthorizationField pins the one thing that lets the
+// mobile companion app reach an instance it can only see through a relay.
+//
+// A relay-proxied call is replayed against the target's own real handler, and
+// that handler's guard accepts exactly two credentials: a session cookie (a
+// browser thing, which nothing on this transport has) and a bearer token. The
+// frame carried neither until ProxyRequest.Authorization existed, so every
+// relay call arrived unauthenticated - fine between instances, which is how
+// federation has always worked, but it left a phone able to talk only to
+// instances with no password at all. Those are precisely the instances nobody
+// should be exposing to a relay, so the feature was inverted: it worked only
+// where it should not be used.
+//
+// Tested against the real Handler(a) rather than a stub, because what is
+// being asserted is the interaction with the actual auth guard - a stub would
+// prove the header is copied and nothing about whether it is believed.
+func TestRelayProxyHonoursTheAuthorizationField(t *testing.T) {
+	_, a := testServer(t)
+	serve := relayProxyHandler(Handler(a))
+
+	// Unprotected first: the pre-existing contract, and the baseline that
+	// makes the 401s below mean "the password did it", not "this route was
+	// broken all along".
+	if status, body := serve(context.Background(), relay.ProxyRequest{
+		Method: http.MethodGet, Path: "/api/tasks",
+	}); status != http.StatusOK {
+		t.Fatalf("unprotected instance answered %d (%s), want 200 - relay calls have always worked without a credential here", status, body)
+	}
+
+	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
+		t.Fatal(err)
+	}
+
+	if status, _ := serve(context.Background(), relay.ProxyRequest{
+		Method: http.MethodGet, Path: "/api/tasks",
+	}); status != http.StatusUnauthorized {
+		t.Errorf("no Authorization against a protected instance = %d, want 401", status)
+	}
+
+	if status, _ := serve(context.Background(), relay.ProxyRequest{
+		Method: http.MethodGet, Path: "/api/tasks",
+		Authorization: "Bearer not-a-real-token",
+	}); status != http.StatusUnauthorized {
+		t.Errorf("a made-up bearer token = %d, want 401 - the header must be CHECKED, not merely present", status)
+	}
+
+	_, secret, err := a.APITokens.Create("phone")
+	if err != nil {
+		t.Fatal(err)
+	}
+	status, body := serve(context.Background(), relay.ProxyRequest{
+		Method: http.MethodGet, Path: "/api/tasks",
+		Authorization: "Bearer " + secret,
+	})
+	if status != http.StatusOK {
+		t.Fatalf("a real API token = %d (%s), want 200", status, body)
+	}
+	var tasks []any
+	if err := json.Unmarshal(body, &tasks); err != nil {
+		t.Errorf("authenticated relay call answered unparseable JSON: %v (%s)", err, body)
+	}
+}
