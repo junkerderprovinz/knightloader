@@ -124,6 +124,7 @@ export const da: Dict = {
   'instances.open': 'Åbn',
   'instances.online': 'Online',
   'instances.offline': 'Offline',
+  'instances.viaRelay': 'Forbundet via relæ',
   'instances.metricActive': 'Aktive',
   'instances.metricTasks': 'Opgaver',
   'instances.metricSpeed': 'Hastighed',

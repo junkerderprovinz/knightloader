@@ -124,6 +124,7 @@ export const fi: Dict = {
   'instances.open': 'Avaa',
   'instances.online': 'Verkossa',
   'instances.offline': 'Poissa',
+  'instances.viaRelay': 'Yhdistetty releen kautta',
   'instances.metricActive': 'Aktiiviset',
   'instances.metricTasks': 'Tehtävät',
   'instances.metricSpeed': 'Nopeus',

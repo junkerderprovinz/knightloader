@@ -28,6 +28,7 @@ export const it: Dict = {
   'instances.title': 'Istanze',
   'instances.subtitle': 'Tutte le istanze di KnightLoader che {name} conosce.',
   'instances.empty': 'Nessun’altra istanza nota.',
+  'instances.viaRelay': 'Connesso tramite relay',
   'instances.manualTitle': 'Aggiungi manualmente',
   'instances.namePlaceholder': 'Nome',
   'instances.urlPlaceholder': 'http://host:porta',

@@ -74,13 +74,20 @@ export function InstanceRow({ name, base, onOpen }: { name: string; base: string
 export function InstanceCard({
   name,
   url,
+  relayId,
   base,
   onOpen,
   onRemove,
   hue,
 }: {
+  /** The label shown - callers pass a peer's displayName (falling back to
+   *  its name) here, never the raw relay address. */
   name: string;
   url: string;
+  /** Set for a peer reached through the relay: url is empty for one of
+   *  these (federation.Instance's own doc comment on why), so the second
+   *  line shows "connected via relay" instead of a blank line. */
+  relayId?: string;
   base: string;
   onOpen?: () => void;
   onRemove?: () => void;
@@ -118,7 +125,7 @@ export function InstanceCard({
         )}
       </div>
 
-      <div className="truncate text-xs text-carbon-textMuted">{url}</div>
+      <div className="truncate text-xs text-carbon-textMuted">{relayId ? t('instances.viaRelay') : url}</div>
 
       <div className="flex items-baseline gap-5">
         <Metric value={stats?.active ?? '—'} label={t('instances.metricActive')} />

@@ -28,6 +28,7 @@ export const hu: Dict = {
   'instances.title': 'Példányok',
   'instances.subtitle': 'Az összes KnightLoader-példány, amelyet {name} ismer.',
   'instances.empty': 'Nincs ismert másik példány.',
+  'instances.viaRelay': 'Relén keresztül csatlakoztatva',
   'instances.manualTitle': 'Kézi hozzáadás',
   'instances.namePlaceholder': 'Név',
   'instances.urlPlaceholder': 'http://host:port',

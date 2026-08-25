@@ -28,6 +28,7 @@ export const he: Dict = {
   'instances.title': 'מופעים',
   'instances.subtitle': 'כל מופעי KnightLoader ש-{name} מכיר.',
   'instances.empty': 'לא ידועים מופעים נוספים.',
+  'instances.viaRelay': 'מחובר דרך הממסר',
   'instances.manualTitle': 'הוספה ידנית',
   'instances.namePlaceholder': 'שם',
   'instances.urlPlaceholder': 'http://host:port',

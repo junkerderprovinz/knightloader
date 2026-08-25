@@ -124,6 +124,7 @@ export const ko: Dict = {
   'instances.open': '열기',
   'instances.online': '온라인',
   'instances.offline': '오프라인',
+  'instances.viaRelay': '릴레이를 통해 연결됨',
   'instances.metricActive': '진행 중',
   'instances.metricTasks': '작업',
   'instances.metricSpeed': '속도',

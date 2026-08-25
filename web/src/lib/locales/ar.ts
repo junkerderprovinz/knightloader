@@ -126,6 +126,7 @@ export const ar: Dict = {
   'instances.open': 'فتح',
   'instances.online': 'متصلة',
   'instances.offline': 'غير متصلة',
+  'instances.viaRelay': 'متصل عبر المُرحّل',
   'instances.metricActive': 'نشط',
   'instances.metricTasks': 'المهام',
   'instances.metricSpeed': 'السرعة',

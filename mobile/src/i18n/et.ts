@@ -28,6 +28,7 @@ export const et: Dict = {
   'instances.title': 'Eksemplarid',
   'instances.subtitle': 'Kõik rakenduse KnightLoader eksemplarid, mida {name} tunneb.',
   'instances.empty': 'Ühtegi teist eksemplari pole teada.',
+  'instances.viaRelay': 'Ühendatud releed kaudu',
   'instances.manualTitle': 'Lisa käsitsi',
   'instances.namePlaceholder': 'Nimi',
   'instances.urlPlaceholder': 'http://host:port',

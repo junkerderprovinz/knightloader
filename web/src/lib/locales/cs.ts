@@ -124,6 +124,7 @@ export const cs: Dict = {
   'instances.open': 'Otevřít',
   'instances.online': 'Online',
   'instances.offline': 'Offline',
+  'instances.viaRelay': 'Připojeno přes relé',
   'instances.metricActive': 'Aktivní',
   'instances.metricTasks': 'Úlohy',
   'instances.metricSpeed': 'Rychlost',

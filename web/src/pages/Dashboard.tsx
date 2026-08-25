@@ -114,7 +114,7 @@ export function Dashboard() {
             {(instances ?? []).map((i) => (
               <InstanceRow
                 key={i.name}
-                name={i.name}
+                name={i.displayName ?? i.name}
                 base={`/api/instances/${encodeURIComponent(i.name)}`}
                 onOpen={() => navigate(`/downloads?instance=${encodeURIComponent(i.name)}`)}
               />

@@ -124,6 +124,7 @@ export const ro: Dict = {
   'instances.open': 'Deschide',
   'instances.online': 'Online',
   'instances.offline': 'Offline',
+  'instances.viaRelay': 'Conectat prin releu',
   'instances.metricActive': 'Active',
   'instances.metricTasks': 'Sarcini',
   'instances.metricSpeed': 'Viteză',

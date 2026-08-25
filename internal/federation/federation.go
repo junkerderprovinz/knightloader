@@ -34,8 +34,21 @@ import (
 // Instance is a peer KnightLoader, either reachable over HTTP at URL or
 // visible through the relay under RelayID.
 type Instance struct {
+	// Name is the stable address every route below keys on
+	// (/api/instances/{name}/...) - for a stored peer, the name somebody
+	// chose when adding it; for a relay peer, always its InstanceID. Never
+	// the relay's own announced display name, which two different
+	// instances are free to share and which any instance is free to
+	// change at any time - see DisplayName.
 	Name string `json:"name"`
 	URL  string `json:"url"`
+	// DisplayName is what a relay peer calls itself, set only when it
+	// differs from Name (i.e. only for relay peers, and only once they have
+	// announced a name at all). A stored peer never sets it: Name already
+	// is what the person who added it chose to see. The UI shows this over
+	// Name when present; nothing here or on the wire ever addresses a peer
+	// by it, which is what makes it safe for two peers to share one.
+	DisplayName string `json:"displayName,omitempty"`
 	// RelayID is the instance ID a call is addressed to when this peer is only
 	// reachable through the relay, and is empty for every stored peer. It is
 	// never written to instances.json, because it is never true for longer
@@ -120,16 +133,26 @@ func (m *Manager) SetRelay(rt RelayTransport) {
 	}
 }
 
-// List returns the peers sorted by name: the stored ones plus whatever the
-// relay currently makes visible, in one list, because the Instances page shows
-// one list.
+// List returns the peers sorted by what a person reads as their name: the
+// stored ones plus whatever the relay currently makes visible, in one list,
+// because the Instances page shows one list. Sorted by DisplayName where a
+// relay peer has one, not by Name - Name is now always that peer's raw
+// InstanceID (reachable's own doc comment explains why), and sorting on a
+// column nobody sees would scatter relay peers through the list in an order
+// that looks arbitrary next to the friendly names right beside them.
 func (m *Manager) List() []Instance {
 	all, _ := m.reachable()
 	out := make([]Instance, 0, len(all))
 	for _, in := range all {
 		out = append(out, in)
 	}
-	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
+	label := func(in Instance) string {
+		if in.DisplayName != "" {
+			return in.DisplayName
+		}
+		return in.Name
+	}
+	sort.Slice(out, func(i, j int) bool { return label(out[i]) < label(out[j]) })
 	return out
 }
 
@@ -138,12 +161,17 @@ func (m *Manager) List() []Instance {
 // come out of one call so a relay that disconnects between resolving a name
 // and using it cannot leave a relay peer with no way to reach it.
 //
-// A stored peer always wins a name: it is the one somebody configured
-// deliberately, and the one that keeps working when the relay does not. A
-// relay peer whose name is taken - by a stored peer, or by another relay peer
-// that sorted ahead of it - is listed under its instance ID instead. That is
-// not a rare edge: an instance nobody has named announces its hostname, and
-// two containers from the same image routinely have the same one.
+// A relay peer is always keyed by its InstanceID, never by the name it
+// announced. An earlier version tried to key it by that name when nothing
+// else had it yet, falling back to the ID only on a collision - which let
+// the same peer's address change on its own: removing an unrelated stored
+// peer, or an unrelated sibling connecting or disconnecting, could flip a
+// peer already in use from one key to the other with nothing about that
+// peer itself having changed. A stored peer's Name is validated against
+// nameRe (max 32 chars); an InstanceID is 40 hex characters
+// (newInstanceID, internal/settings), so the two key spaces can never
+// collide - every peer's address is decided once, by what kind of peer it
+// is, and never moves again for as long as it is reachable at all.
 func (m *Manager) reachable() (map[string]Instance, RelayTransport) {
 	m.mu.Lock()
 	rt := m.rt
@@ -155,18 +183,12 @@ func (m *Manager) reachable() (map[string]Instance, RelayTransport) {
 	if rt == nil {
 		return out, nil
 	}
-	// Siblings is sorted by instance ID, so which of two same-named peers
-	// keeps the name is the same on every call rather than whichever the map
-	// happened to yield first.
 	for _, sib := range rt.Siblings() {
-		name := sib.Name
-		if _, taken := out[name]; taken || name == "" {
-			name = sib.InstanceID
+		in := Instance{Name: sib.InstanceID, RelayID: sib.InstanceID}
+		if sib.Name != "" && sib.Name != sib.InstanceID {
+			in.DisplayName = sib.Name
 		}
-		if _, taken := out[name]; taken {
-			continue
-		}
-		out[name] = Instance{Name: name, RelayID: sib.InstanceID}
+		out[sib.InstanceID] = in
 	}
 	return out, rt
 }
@@ -175,11 +197,14 @@ func (m *Manager) reachable() (map[string]Instance, RelayTransport) {
 func (m *Manager) Add(in Instance) error {
 	in.Name = strings.TrimSpace(in.Name)
 	in.URL = strings.TrimRight(strings.TrimSpace(in.URL), "/")
-	// A stored peer is an HTTP peer by definition. Dropping this rather than
-	// rejecting it keeps the route that decodes an Instance straight off a
-	// request body (routes_federation.go) from turning a field the UI only
-	// reads into a way to store a peer that claims a relay identity.
+	// A stored peer is an HTTP peer by definition, addressed by the Name it
+	// is given here. Dropping these rather than rejecting them keeps the
+	// route that decodes an Instance straight off a request body
+	// (routes_federation.go) from turning a field the UI only reads into a
+	// way to store a peer that claims a relay identity or a display name
+	// that disagrees with its own address.
 	in.RelayID = ""
+	in.DisplayName = ""
 	if !nameRe.MatchString(in.Name) {
 		return errors.New("federation: invalid instance name")
 	}

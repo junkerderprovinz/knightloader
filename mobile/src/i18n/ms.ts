@@ -28,6 +28,7 @@ export const ms: Dict = {
   'instances.title': 'Instans',
   'instances.subtitle': 'Semua instans KnightLoader yang diketahui oleh {name}.',
   'instances.empty': 'Tiada instans lain diketahui.',
+  'instances.viaRelay': 'Disambung melalui geganti',
   'instances.manualTitle': 'Tambah secara manual',
   'instances.namePlaceholder': 'Nama',
   'instances.urlPlaceholder': 'http://host:port',

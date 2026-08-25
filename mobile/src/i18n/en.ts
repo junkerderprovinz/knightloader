@@ -29,6 +29,7 @@ export const en = {
   'instances.title': 'Instances',
   'instances.subtitle': 'Every KnightLoader that {name} knows about.',
   'instances.empty': 'No other instances known.',
+  'instances.viaRelay': 'Connected via relay',
   'instances.manualTitle': 'Add manually',
   'instances.namePlaceholder': 'Name',
   'instances.urlPlaceholder': 'http://host:port',

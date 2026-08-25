@@ -126,6 +126,7 @@ export const he: Dict = {
   'instances.open': 'פתח',
   'instances.online': 'מקוון',
   'instances.offline': 'לא מקוון',
+  'instances.viaRelay': 'מחובר דרך הממסר',
   'instances.metricActive': 'פעילים',
   'instances.metricTasks': 'משימות',
   'instances.metricSpeed': 'מהירות',

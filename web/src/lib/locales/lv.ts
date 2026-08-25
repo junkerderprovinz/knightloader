@@ -124,6 +124,7 @@ export const lv: Dict = {
   'instances.open': 'Atvērt',
   'instances.online': 'Tiešsaistē',
   'instances.offline': 'Bezsaistē',
+  'instances.viaRelay': 'Savienots caur releju',
   'instances.metricActive': 'Aktīvi',
   'instances.metricTasks': 'Uzdevumi',
   'instances.metricSpeed': 'Ātrums',

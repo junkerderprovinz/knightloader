@@ -28,6 +28,7 @@ export const lv: Dict = {
   'instances.title': 'Instances',
   'instances.subtitle': 'Visas „KnightLoader“ instances, ko zina {name}.',
   'instances.empty': 'Citas instances nav zināmas.',
+  'instances.viaRelay': 'Savienots caur releju',
   'instances.manualTitle': 'Pievienot manuāli',
   'instances.namePlaceholder': 'Nosaukums',
   'instances.urlPlaceholder': 'http://resursdators:ports',

@@ -126,6 +126,7 @@ export const no: Dict = {
   'instances.open': 'Åpne',
   'instances.online': 'Tilkoblet',
   'instances.offline': 'Frakoblet',
+  'instances.viaRelay': 'Tilkoblet via relé',
   'instances.metricActive': 'Aktive',
   'instances.metricTasks': 'Oppgaver',
   'instances.metricSpeed': 'Hastighet',

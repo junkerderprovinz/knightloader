@@ -28,6 +28,7 @@ export const ca: Dict = {
   'instances.title': 'Instàncies',
   'instances.subtitle': 'Totes les instàncies de KnightLoader que coneix {name}.',
   'instances.empty': 'No es coneix cap altra instància.',
+  'instances.viaRelay': 'Connectat mitjançant el relé',
   'instances.manualTitle': 'Afegeix manualment',
   'instances.namePlaceholder': 'Nom',
   'instances.urlPlaceholder': 'http://host:port',

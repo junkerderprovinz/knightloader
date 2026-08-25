@@ -124,6 +124,7 @@ export const el: Dict = {
   'instances.open': 'Άνοιγμα',
   'instances.online': 'Σε σύνδεση',
   'instances.offline': 'Εκτός σύνδεσης',
+  'instances.viaRelay': 'Συνδέθηκε μέσω αναμεταδότη',
   'instances.metricActive': 'Ενεργά',
   'instances.metricTasks': 'Εργασίες',
   'instances.metricSpeed': 'Ταχύτητα',

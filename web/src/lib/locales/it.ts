@@ -118,6 +118,7 @@ export const it: Dict = {
   'instances.open': 'Apri',
   'instances.online': 'Online',
   'instances.offline': 'Offline',
+  'instances.viaRelay': 'Connesso tramite relay',
   'instances.metricActive': 'Attivi',
   'instances.metricTasks': 'Attività',
   'instances.metricSpeed': 'Velocità',

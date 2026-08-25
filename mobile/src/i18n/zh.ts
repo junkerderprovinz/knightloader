@@ -28,6 +28,7 @@ export const zh: Dict = {
   'instances.title': '实例',
   'instances.subtitle': '{name} 已知的所有 KnightLoader 实例。',
   'instances.empty': '没有已知的其他实例。',
+  'instances.viaRelay': '通过中继连接',
   'instances.manualTitle': '手动添加',
   'instances.namePlaceholder': '名称',
   'instances.urlPlaceholder': 'http://主机:端口',

@@ -118,6 +118,7 @@ export const ru: Dict = {
   'instances.open': 'Открыть',
   'instances.online': 'В сети',
   'instances.offline': 'Не в сети',
+  'instances.viaRelay': 'Подключено через ретранслятор',
   'instances.metricActive': 'Активные',
   'instances.metricTasks': 'Задачи',
   'instances.metricSpeed': 'Скорость',

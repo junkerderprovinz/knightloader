@@ -94,8 +94,9 @@ export function Instances() {
         {peers.map((p, i) => (
           <InstanceCard
             key={p.name}
-            name={p.name}
+            name={p.displayName ?? p.name}
             url={p.url}
+            relayId={p.relayId}
             base={`/api/instances/${encodeURIComponent(p.name)}`}
             onOpen={() => navigate(`/downloads?instance=${encodeURIComponent(p.name)}`)}
             onRemove={() => onRemove(p.name)}

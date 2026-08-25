@@ -124,6 +124,7 @@ export const zh: Dict = {
   'instances.open': '打开',
   'instances.online': '在线',
   'instances.offline': '离线',
+  'instances.viaRelay': '通过中继连接',
   'instances.metricActive': '进行中',
   'instances.metricTasks': '任务',
   'instances.metricSpeed': '速度',

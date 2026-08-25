@@ -28,6 +28,7 @@ export const no: Dict = {
   'instances.title': 'Instanser',
   'instances.subtitle': 'Alle KnightLoader-instanser som {name} kjenner til.',
   'instances.empty': 'Ingen andre instanser kjent.',
+  'instances.viaRelay': 'Tilkoblet via relé',
   'instances.manualTitle': 'Legg til manuelt',
   'instances.namePlaceholder': 'Navn',
   'instances.urlPlaceholder': 'http://vert:port',

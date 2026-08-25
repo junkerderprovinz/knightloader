@@ -135,6 +135,7 @@ export const en = {
   'instances.open': 'Open',
   'instances.online': 'Online',
   'instances.offline': 'Offline',
+  'instances.viaRelay': 'Connected via relay',
   'instances.metricActive': 'Active',
   'instances.metricTasks': 'Tasks',
   'instances.metricSpeed': 'Speed',

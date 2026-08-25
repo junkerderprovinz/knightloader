@@ -28,6 +28,7 @@ export const sr: Dict = {
   'instances.title': 'Instance',
   'instances.subtitle': 'Sve instance aplikacije KnightLoader koje poznaje {name}.',
   'instances.empty': 'Nema poznatih drugih instanci.',
+  'instances.viaRelay': 'Повезано преко релеја',
   'instances.manualTitle': 'Dodaj ručno',
   'instances.namePlaceholder': 'Naziv',
   'instances.urlPlaceholder': 'http://host:port',

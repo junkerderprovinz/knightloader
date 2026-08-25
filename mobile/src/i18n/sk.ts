@@ -28,6 +28,7 @@ export const sk: Dict = {
   'instances.title': 'Inštancie',
   'instances.subtitle': 'Všetky inštancie aplikácie KnightLoader, ktoré {name} pozná.',
   'instances.empty': 'Nie sú známe žiadne ďalšie inštancie.',
+  'instances.viaRelay': 'Pripojené cez relé',
   'instances.manualTitle': 'Pridať manuálne',
   'instances.namePlaceholder': 'Názov',
   'instances.urlPlaceholder': 'http://host:port',

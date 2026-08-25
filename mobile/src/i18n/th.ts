@@ -28,6 +28,7 @@ export const th: Dict = {
   'instances.title': 'อินสแตนซ์',
   'instances.subtitle': 'อินสแตนซ์ KnightLoader ทั้งหมดที่ {name} รู้จัก',
   'instances.empty': 'ไม่มีอินสแตนซ์อื่นที่รู้จัก',
+  'instances.viaRelay': 'เชื่อมต่อผ่านรีเลย์',
   'instances.manualTitle': 'เพิ่มด้วยตนเอง',
   'instances.namePlaceholder': 'ชื่อ',
   'instances.urlPlaceholder': 'http://host:port',

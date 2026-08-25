@@ -124,6 +124,7 @@ export const ja: Dict = {
   'instances.open': '開く',
   'instances.online': 'オンライン',
   'instances.offline': 'オフライン',
+  'instances.viaRelay': 'リレー経由で接続',
   'instances.metricActive': '実行中',
   'instances.metricTasks': 'タスク',
   'instances.metricSpeed': '速度',

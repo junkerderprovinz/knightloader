@@ -88,9 +88,9 @@ export default function InstancesScreen({
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.row} onPress={() => onOpenInstance(item)}>
             <View style={styles.rowText}>
-              <Text style={styles.rowName}>{item.name}</Text>
+              <Text style={styles.rowName}>{item.displayName ?? item.name}</Text>
               <Text style={styles.rowUrl} numberOfLines={1}>
-                {item.url}
+                {item.relayId ? t('instances.viaRelay') : item.url}
               </Text>
             </View>
             <TouchableOpacity style={styles.removeButton} onPress={() => remove(item.name)}>

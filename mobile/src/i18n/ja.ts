@@ -28,6 +28,7 @@ export const ja: Dict = {
   'instances.title': 'インスタンス',
   'instances.subtitle': '{name}が把握しているすべてのKnightLoaderインスタンス。',
   'instances.empty': '他のインスタンスは見つかりません。',
+  'instances.viaRelay': 'リレー経由で接続',
   'instances.manualTitle': '手動で追加',
   'instances.namePlaceholder': '名前',
   'instances.urlPlaceholder': 'http://ホスト:ポート',

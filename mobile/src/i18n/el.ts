@@ -28,6 +28,7 @@ export const el: Dict = {
   'instances.title': 'Στιγμιότυπα',
   'instances.subtitle': 'Όλα τα στιγμιότυπα KnightLoader που γνωρίζει το {name}.',
   'instances.empty': 'Δεν είναι γνωστό κανένα άλλο στιγμιότυπο.',
+  'instances.viaRelay': 'Συνδέθηκε μέσω αναμεταδότη',
   'instances.manualTitle': 'Προσθήκη με το χέρι',
   'instances.namePlaceholder': 'Όνομα',
   'instances.urlPlaceholder': 'http://host:θύρα',

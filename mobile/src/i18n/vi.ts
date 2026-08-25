@@ -28,6 +28,7 @@ export const vi: Dict = {
   'instances.title': 'Thực thể',
   'instances.subtitle': 'Tất cả các thực thể KnightLoader mà {name} biết.',
   'instances.empty': 'Không có thực thể nào khác được biết đến.',
+  'instances.viaRelay': 'Đã kết nối qua relay',
   'instances.manualTitle': 'Thêm thủ công',
   'instances.namePlaceholder': 'Tên',
   'instances.urlPlaceholder': 'http://host:port',
