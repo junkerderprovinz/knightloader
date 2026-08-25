@@ -44,6 +44,21 @@ func (a *App) Tasks() []*core.Task {
 }
 
 // SetPackage moves tasks into a package (an empty name ungroups them).
+//
+// A "Variante" family (expandYtdlpVariants, app_ytdlp_variants.go) moves
+// together even when only one of its own ids was named here: every sibling
+// shares the primary's own URL exactly and deliberately - nothing else
+// legitimately does, since put()'s own dedupe check refuses a second task
+// sharing a URL under every other circumstance (see insertVariantSibling's
+// own doc comment) - so any OTHER task found sharing that URL can only be
+// a fellow row of the same family, never a coincidence. Found the hard
+// way: nameBucket's own call to this function runs AFTER
+// expandYtdlpVariants already propagated whatever the package was BEFORE
+// nameBucket's derivation ran, so without this the batch-naming pass (and
+// catchAll's own call just below it) renamed the primary alone and left
+// the four siblings permanently stuck on the pre-naming guess - a case
+// setTaskName's own sibling propagation could not paper over, since it
+// only fires once, on that ONE task's own first probe answer.
 func (a *App) SetPackage(ids []string, pkg string) {
 	pkg = strings.TrimSpace(pkg)
 	a.mu.Lock()
@@ -245,17 +260,18 @@ func setPackageLocked(tasks map[string]*core.Task, t *core.Task, pkg string, out
 
 // packageURLGuess returns what fileStem's own URL-path fallback
 // (app_links.go) would have produced for t's package at staging time - or
-// "" when there is nothing safe to compare against: t has no package, or
-// the guess itself would have been too short for derivePackage to have used
-// in the first place (its own len(stem) >= 3 rule, mirrored here so this
-// reports exactly what that function would have). t.Name is deliberately
-// not read - the caller already knows it equalled t.URL a moment ago, which
-// is exactly the condition under which fileStem takes this same
-// path.Base fallback.
+// "" when the URL will not parse, or the guess itself would have been too
+// short for derivePackage to have used in the first place (its own
+// len(stem) >= 3 rule, mirrored here so this reports exactly what that
+// function would have). Computed purely from t.URL, independent of
+// whatever t.Package currently is - the caller (setTaskName) is the one
+// that decides what a match against the CURRENT value means, including
+// "nothing has run yet" (t.Package == ""), which nameBucket's own
+// batch-naming pass (app_links.go) can still be waiting to fill in when a
+// fast enough probe gets here first. t.Name is deliberately not read - the
+// caller already knows it equalled t.URL a moment ago, which is exactly
+// the condition under which fileStem takes this same path.Base fallback.
 func packageURLGuess(t *core.Task) string {
-	if t.Package == "" {
-		return ""
-	}
 	u, err := url.Parse(t.URL)
 	if err != nil {
 		return ""
@@ -527,17 +543,21 @@ func (a *App) analyze(id, rawurl string) {
 }
 
 // probeYtdlpTitle asks the yt-dlp backend for a collected task's real title
-// without downloading anything, and applies it - the yt-dlp counterpart to
-// analyze's HEAD probe just above for a plain file link, fired from the same
-// stage() call site (app_links.go) and gated on the resolver id the same
-// way analyze's own call is.
+// AND its real available formats, without downloading anything, and applies
+// both - the yt-dlp counterpart to analyze's HEAD probe just above for a
+// plain file link, fired from the same stage() call site (app_links.go) and
+// gated on the resolver id the same way analyze's own call is.
 //
 // Silent and non-fatal on failure or timeout, exactly like analyze's own
 // probe leaves availability unset rather than guessing: yt-dlp's own
 // progress stream still supplies the real name once a download actually
 // starts (backend.go's "[download] Destination:" line, mirrored through
 // onUpdate), so a probe that never answers costs the user nothing beyond the
-// placeholder standing a little longer in the collector.
+// placeholder standing a little longer in the collector, ungraded and
+// unchecked. A probe that DID answer is itself the availability check a
+// yt-dlp-routed link never otherwise gets before download - see
+// applyProbeFormats's own doc comment for why success alone is read as
+// "online" and failure is deliberately NOT read as "offline".
 func (a *App) probeYtdlpTitle(id, rawurl string) {
 	tp, ok := a.ytdlpTitleProber()
 	if !ok {
@@ -545,13 +565,14 @@ func (a *App) probeYtdlpTitle(id, rawurl string) {
 	}
 	ctx, cancel := context.WithTimeout(a.ctx, ytdlpProbeTimeout)
 	defer cancel()
-	title, err := tp.ProbeTitle(ctx, rawurl)
+	res, err := tp.ProbeTitle(ctx, rawurl)
 	if err != nil {
 		return
 	}
-	if title = strings.TrimSpace(title); title != "" {
+	if title := strings.TrimSpace(res.Title); title != "" {
 		a.setTaskName(id, title)
 	}
+	a.applyProbeFormats(rawurl, res.Formats)
 }
 
 // availabilityFor reads a HEAD's status code as a statement about the link.

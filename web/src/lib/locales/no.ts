@@ -76,11 +76,11 @@ export const no: Dict = {
   'empty.downloadsHint': 'Legg til lenker i samleren, og start dem deretter.',
 
   'collector.title': 'Samler',
-  'collector.listTitle': 'Samling',
+  'collector.listTitle': 'Lenkeliste',
   'collector.placeholder': 'Lim inn lenker - én per linje - eller slipp dem her…  (Ctrl+Enter legger til)',
   'collector.package': 'Pakke (valgfritt)',
   'collector.add': 'Legg til i samleren',
-  'collector.addTitle': 'Nye lenker',
+  'collector.addTitle': 'Lenkesamler',
   'collector.empty': 'Samleren er tom. Lim inn lenker over for å klargjøre dem.',
   'collector.staged': 'klargjort',
   'collector.selected': 'valgt',

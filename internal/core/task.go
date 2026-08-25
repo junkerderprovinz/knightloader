@@ -335,6 +335,27 @@ type Task struct {
 	// Variant is which of several forms of the same resource was picked — a
 	// yt-dlp format, a quality. It is kept so a re-run fetches the same one.
 	Variant string `json:"variant,omitempty"`
+	// Ext is a display-only best-effort file extension, shown next to Name
+	// in the collector before a download has actually started (Name itself
+	// never carries one for a yt-dlp-routed task — see filename()'s own
+	// comment on why Name doubles as the URL-vs-resolved sentinel and must
+	// not). Set only where it is genuinely certain ahead of time (a
+	// description file, a fixed --audio-format target); left empty rather
+	// than guessed everywhere yt-dlp's own eventual format selection could
+	// still change it - see app_ytdlp_variants.go's applyProbeFormats for
+	// exactly which variant kinds qualify and why. Once a real download
+	// starts, the backend's own progress stream supplies the true name
+	// (with its own real extension) the ordinary way, superseding this.
+	Ext string `json:"ext,omitempty"`
+	// AvailableQualities narrows the "Variante" quality picker to what a
+	// probed yt-dlp source genuinely offers (jdp, 2026-08-25: "man soll nur
+	// die varianten auswählen können die wirklich verfügbar sind" - an old
+	// or low-resolution source may not actually have a 1080p/4K stream at
+	// all). Read only on a video row; nil/empty means "no opinion yet" (the
+	// probe hasn't answered, or this isn't a video row) and the frontend
+	// falls back to the full static menu, the same "empty means unset"
+	// convention every other optional field on this struct already follows.
+	AvailableQualities []string `json:"availableQualities,omitempty"`
 	// ManualPackage marks a package the user chose by hand. Everything that
 	// re-packages links automatically has to leave those alone, or a catch-all
 	// rule quietly undoes the grouping somebody just did.

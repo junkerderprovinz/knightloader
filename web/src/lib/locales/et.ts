@@ -74,11 +74,11 @@ export const et: Dict = {
   'empty.downloadsHint': 'Lisa lingid kogujasse ja käivita need.',
 
   'collector.title': 'Koguja',
-  'collector.listTitle': 'Kogu',
+  'collector.listTitle': 'Lingiloend',
   'collector.placeholder': 'Kleebi lingid - üks URL rea kohta - või lohista siia…  (Ctrl+Enter lisamiseks)',
   'collector.package': 'Pakk (valikuline)',
   'collector.add': 'Lisa kogujasse',
-  'collector.addTitle': 'Uued lingid',
+  'collector.addTitle': 'Lingikoguja',
   'collector.empty': 'Koguja on tühi. Kleebi ülal lingid, et need ootele panna.',
   'collector.staged': 'ootel',
   'collector.selected': 'valitud',

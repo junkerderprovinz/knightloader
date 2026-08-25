@@ -74,11 +74,11 @@ export const hu: Dict = {
   'empty.downloadsHint': 'Adjon hozzá hivatkozásokat a gyűjtőben, majd indítsa el őket.',
 
   'collector.title': 'Gyűjtő',
-  'collector.listTitle': 'Gyűjtemény',
+  'collector.listTitle': 'Linklista',
   'collector.placeholder': 'Illesszen be hivatkozásokat - soronként egyet - vagy húzza ide őket…  (Ctrl+Enter hozzáadja)',
   'collector.package': 'Csomag (nem kötelező)',
   'collector.add': 'Hozzáadás a gyűjtőhöz',
-  'collector.addTitle': 'Új linkek',
+  'collector.addTitle': 'Linkgyűjtő',
   'collector.empty': 'A gyűjtő üres. Illesszen be fent hivatkozásokat az előkészítéshez.',
   'collector.staged': 'előkészítve',
   'collector.selected': 'kijelölve',

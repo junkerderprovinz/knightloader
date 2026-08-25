@@ -74,11 +74,11 @@ export const sr: Dict = {
   'empty.downloadsHint': 'Додај линкове у сакупљач, па их покрени.',
 
   'collector.title': 'Сакупљач',
-  'collector.listTitle': 'Колекција',
+  'collector.listTitle': 'Листа линкова',
   'collector.placeholder': 'Налепи линкове — један URL по реду — или их превуци овде…  (Ctrl+Enter за додавање)',
   'collector.package': 'Пакет (опционо)',
   'collector.add': 'Додај у сакупљач',
-  'collector.addTitle': 'Нови линкови',
+  'collector.addTitle': 'Сакупљач линкова',
   'collector.empty': 'Сакупљач је празан. Налепи линкове изнад да их припремиш.',
   'collector.staged': 'припремљено',
   'collector.selected': 'изабрано',

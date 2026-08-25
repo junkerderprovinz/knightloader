@@ -119,6 +119,16 @@ export interface Task {
   filename?: string;
   /** Which form of the same resource was picked — a yt-dlp format, a quality. */
   variant?: string;
+  /** A display-only best-effort file extension, shown next to name before a
+   *  download has started — set only where it is genuinely certain ahead of
+   *  time (see core.Task.Ext's own doc comment for exactly which variant
+   *  kinds qualify and why the rest are deliberately left blank rather than
+   *  guessed). */
+  ext?: string;
+  /** For a yt-dlp "Variante" video row, which quality presets the probed
+   *  source genuinely offers — empty/absent means "no opinion yet" and the
+   *  Variante column falls back to the full static menu. */
+  availableQualities?: string[];
   /** A package the user chose by hand; automatic re-packaging leaves it alone. */
   manualPackage?: boolean;
   reason?: Reason;

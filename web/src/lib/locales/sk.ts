@@ -74,11 +74,11 @@ export const sk: Dict = {
   'empty.downloadsHint': 'Pridaj odkazy v zberači a spusti ich.',
 
   'collector.title': 'Zberač',
-  'collector.listTitle': 'Zbierka',
+  'collector.listTitle': 'Zoznam odkazov',
   'collector.placeholder': 'Vlož odkazy - jedna URL na riadok - alebo ich sem pretiahni…  (Ctrl+Enter pridá)',
   'collector.package': 'Balík (voliteľné)',
   'collector.add': 'Do zberača',
-  'collector.addTitle': 'Nové odkazy',
+  'collector.addTitle': 'Zberač odkazov',
   'collector.empty': 'Zberač je prázdny. Vlož odkazy hore a odložia sa sem.',
   'collector.staged': 'odložené',
   'collector.selected': 'vybrané',

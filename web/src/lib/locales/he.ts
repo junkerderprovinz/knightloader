@@ -76,11 +76,11 @@ export const he: Dict = {
   'empty.downloadsHint': 'הוסף קישורים באוסף ואז התחל אותם.',
 
   'collector.title': 'אוסף',
-  'collector.listTitle': 'אוסף',
+  'collector.listTitle': 'רשימת קישורים',
   'collector.placeholder': 'הדבק קישורים - אחד בכל שורה - או גרור לכאן…  (Ctrl+Enter להוספה)',
   'collector.package': 'חבילה (רשות)',
   'collector.add': 'הוסף לאוסף',
-  'collector.addTitle': 'קישורים חדשים',
+  'collector.addTitle': 'אוסף קישורים',
   'collector.empty': 'האוסף ריק. הדבק קישורים למעלה כדי להכין אותם.',
   'collector.staged': 'מוכנים',
   'collector.selected': 'נבחרו',

@@ -108,7 +108,7 @@ export interface ColumnDef {
   /** Default width in CSS pixels; what the user drags overrides it. */
   width: number;
   minWidth: number;
-  align: 'start' | 'end';
+  align: 'start' | 'center' | 'end';
   /** Tabular digits, for a value that changes while somebody is looking at it. */
   numeric?: boolean;
   /** A path or a URL, which reads left-to-right even in a right-to-left interface. */
@@ -539,7 +539,13 @@ function NameCell({ task, t, base }: { task: Task; t: Translate; base: string })
           />
         )}
         <div dir="ltr" {...tip.triggerProps} className="min-w-0 truncate text-start text-[13.5px] text-carbon-text">
-          {task.name || task.url}
+          {/* task.ext is a display-only best-effort hint (core.Task.Ext's
+              own doc comment), never appended to task.name itself - Name
+              stays the resolved-vs-placeholder sentinel every rename/probe
+              guard in the backend already keys on. Only shown once a real
+              name has resolved: a bare URL placeholder gets no extension
+              tacked onto it. */}
+          {task.name && task.name !== task.url && task.ext ? `${task.name}.${task.ext}` : task.name || task.url}
         </div>
       </div>
       {tip.node}
@@ -862,7 +868,24 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
   if (!kind) return null;
   const sub = variantSubOf(task);
   const label = ctx.t(VARIANT_KIND_LABEL_KEY[kind] ?? VARIANT_KIND_LABEL_KEY.video);
-  const options = kind === 'video' ? menus.qualities : kind === 'audio' ? menus.audioFormats : null;
+  // A video row's own probe (task.availableQualities, core.Task's own doc
+  // comment) narrows the menu to what this specific source genuinely
+  // offers (jdp, 2026-08-25: "man soll nur die varianten auswählen können
+  // die wirklich verfügbar sind") - falling back to the full static menu
+  // whenever nothing has probed yet, exactly like every other "empty means
+  // no opinion" field this feature already follows. Audio format has no
+  // equivalent narrowing: -x --audio-format transcodes via ffmpeg, which
+  // works for any of the fixed formats regardless of what codec the source
+  // itself uses, so restricting that menu by source codec would hide
+  // choices that actually work fine.
+  const options =
+    kind === 'video'
+      ? task.availableQualities?.length
+        ? task.availableQualities
+        : menus.qualities
+      : kind === 'audio'
+        ? menus.audioFormats
+        : null;
 
   async function change(value: string) {
     setBusy(true);
@@ -1002,7 +1025,7 @@ export const COLUMNS: ColumnDef[] = [
     labelKey: 'columns.status',
     width: 148,
     minWidth: 90,
-    align: 'start',
+    align: 'center',
     hideable: true,
     compare: (a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status],
     render: (task, ctx) => <StatusCell task={task} t={ctx.t} />,

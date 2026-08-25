@@ -74,11 +74,11 @@ export const sv: Dict = {
   'empty.downloadsHint': 'Lägg till länkar i samlaren och starta dem sedan.',
 
   'collector.title': 'Samlare',
-  'collector.listTitle': 'Samling',
+  'collector.listTitle': 'Länklista',
   'collector.placeholder': 'Klistra in länkar - en per rad - eller släpp dem här…  (Ctrl+Enter lägger till)',
   'collector.package': 'Paket (valfritt)',
   'collector.add': 'Lägg till i samlaren',
-  'collector.addTitle': 'Nya länkar',
+  'collector.addTitle': 'Länksamlare',
   'collector.empty': 'Samlaren är tom. Klistra in länkar ovan för att förbereda dem.',
   'collector.staged': 'förberedda',
   'collector.selected': 'valda',

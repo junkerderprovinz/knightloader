@@ -74,11 +74,11 @@ export const ms: Dict = {
   'empty.downloadsHint': 'Tambah pautan dalam pengumpul, kemudian mulakan.',
 
   'collector.title': 'Pengumpul',
-  'collector.listTitle': 'Koleksi',
+  'collector.listTitle': 'Senarai pautan',
   'collector.placeholder': 'Tampal pautan - satu URL setiap baris - atau lepaskan di sini…  (Ctrl+Enter untuk tambah)',
   'collector.package': 'Pakej (pilihan)',
   'collector.add': 'Tambah ke pengumpul',
-  'collector.addTitle': 'Pautan baharu',
+  'collector.addTitle': 'Pengumpul pautan',
   'collector.empty': 'Pengumpul kosong. Tampal pautan di atas untuk menyediakannya.',
   'collector.staged': 'disediakan',
   'collector.selected': 'dipilih',

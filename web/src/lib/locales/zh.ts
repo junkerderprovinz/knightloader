@@ -74,11 +74,11 @@ export const zh: Dict = {
   'empty.downloadsHint': '在收集器中添加链接，然后启动它们。',
 
   'collector.title': '收集器',
-  'collector.listTitle': '收藏',
+  'collector.listTitle': '链接列表',
   'collector.placeholder': '粘贴链接（每行一个），或拖到这里…（Ctrl+Enter 添加）',
   'collector.package': '包（可选）',
   'collector.add': '加入收集器',
-  'collector.addTitle': '新链接',
+  'collector.addTitle': '链接收集器',
   'collector.empty': '收集器是空的。在上面粘贴链接来准备它们。',
   'collector.staged': '个已准备',
   'collector.selected': '个已选中',

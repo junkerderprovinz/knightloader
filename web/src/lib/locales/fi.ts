@@ -74,11 +74,11 @@ export const fi: Dict = {
   'empty.downloadsHint': 'Lisää linkit kerääjään ja käynnistä ne sitten.',
 
   'collector.title': 'Kerääjä',
-  'collector.listTitle': 'Kokoelma',
+  'collector.listTitle': 'Linkkiluettelo',
   'collector.placeholder': 'Liitä linkkejä - yksi riviä kohti - tai pudota ne tähän…  (Ctrl+Enter lisää)',
   'collector.package': 'Paketti (valinnainen)',
   'collector.add': 'Lisää kerääjään',
-  'collector.addTitle': 'Uudet linkit',
+  'collector.addTitle': 'Linkkikerääjä',
   'collector.empty': 'Kerääjä on tyhjä. Liitä linkkejä yllä valmistellaksesi ne.',
   'collector.staged': 'valmisteltu',
   'collector.selected': 'valittu',

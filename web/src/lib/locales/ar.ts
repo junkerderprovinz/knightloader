@@ -76,11 +76,11 @@ export const ar: Dict = {
   'empty.downloadsHint': 'أضف روابط في المُجمِّع ثم ابدأها.',
 
   'collector.title': 'المُجمِّع',
-  'collector.listTitle': 'المجموعة',
+  'collector.listTitle': 'قائمة الروابط',
   'collector.placeholder': 'ألصق الروابط - رابط في كل سطر - أو أفلتها هنا…  (Ctrl+Enter للإضافة)',
   'collector.package': 'حزمة (اختياري)',
   'collector.add': 'أضف إلى المُجمِّع',
-  'collector.addTitle': 'روابط جديدة',
+  'collector.addTitle': 'مُجمِّع الروابط',
   'collector.empty': 'المُجمِّع فارغ. ألصق روابط في الأعلى لتحضيرها.',
   'collector.staged': 'جاهز',
   'collector.selected': 'محدد',

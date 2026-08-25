@@ -1,6 +1,9 @@
 package ytdlp
 
-import "strings"
+import (
+	"strconv"
+	"strings"
+)
 
 // Options is the user-configurable half of a yt-dlp invocation: which
 // variant of the source this one task downloads, format selection,
@@ -233,6 +236,58 @@ func validQuality(q Quality) bool {
 var heightCaps = map[Quality]string{
 	Quality2160p: "2160", Quality1440p: "1440", Quality1080p: "1080",
 	Quality720p: "720", Quality480p: "480", Quality360p: "360",
+}
+
+// HeightCap is heightCaps's own mapping, parsed and exported - what a probed
+// source's own available heights need comparing against (AvailableQualities
+// below) and what a video row's own currently-picked Quality caps out at
+// (a probe's best-effort Size estimate, app_ytdlp_variants.go). false for
+// QualityBest/QualityCustom/anything else with no fixed cap of its own.
+func HeightCap(q Quality) (int, bool) {
+	h, ok := heightCaps[q]
+	if !ok {
+		return 0, false
+	}
+	n, err := strconv.Atoi(h)
+	if err != nil {
+		return 0, false
+	}
+	return n, true
+}
+
+// AvailableQualities is the subset of Qualities() worth offering for a
+// source whose own real video streams top out at maxHeight (jdp,
+// 2026-08-25: "man soll nur die varianten auswählen können die wirklich
+// verfügbar sind" - an old or low-resolution source may genuinely not have
+// a 1080p/4K stream at all). Anything above that ceiling is not wrong to
+// pick - formatSelector's own "<=?H" selector already falls back to the
+// best height actually available rather than erroring - it is only ever a
+// menu entry that quietly resolves to the exact same thing the ceiling
+// itself would have, which is a discoverability wart worth trimming, not a
+// behaviour worth warning about. maxHeight <= 0 (nothing probed yet, or the
+// probe found no real video track at all) returns every quality unfiltered
+// - the same "no opinion yet" default every other optional signal in this
+// feature already falls back to.
+//
+// QualityBest and QualityCustom are always kept: "best" has no ceiling of
+// its own to compare against, and "custom" is a verbatim -f passthrough
+// this function has no way to evaluate.
+func AvailableQualities(maxHeight int) []Quality {
+	all := Qualities()
+	if maxHeight <= 0 {
+		return all
+	}
+	out := make([]Quality, 0, len(all))
+	for _, q := range all {
+		if q == QualityBest || q == QualityCustom {
+			out = append(out, q)
+			continue
+		}
+		if capH, ok := HeightCap(q); ok && capH <= maxHeight {
+			out = append(out, q)
+		}
+	}
+	return out
 }
 
 // DefaultSubtitleLangs is what --sub-langs gets when subtitles are switched

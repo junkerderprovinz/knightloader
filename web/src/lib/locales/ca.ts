@@ -74,11 +74,11 @@ export const ca: Dict = {
   'empty.downloadsHint': "Afegeix enllaços al col·lector i inicia'ls.",
 
   'collector.title': 'Col·lector',
-  'collector.listTitle': 'Col·lecció',
+  'collector.listTitle': 'Llista d\'enllaços',
   'collector.placeholder': "Enganxa enllaços - un URL per línia - o deixa'ls aquí…  (Ctrl+Retorn per afegir)",
   'collector.package': 'Paquet (opcional)',
   'collector.add': 'Afegeix al col·lector',
-  'collector.addTitle': 'Enllaços nous',
+  'collector.addTitle': 'Col·lector d\'enllaços',
   'collector.empty': 'El col·lector és buit. Enganxa enllaços a dalt per preparar-los.',
   'collector.staged': 'preparats',
   'collector.selected': 'seleccionats',

@@ -74,11 +74,11 @@ export const sl: Dict = {
   'empty.downloadsHint': 'Dodaj povezave v zbiralnik in jih zaženi.',
 
   'collector.title': 'Zbiralnik',
-  'collector.listTitle': 'Zbirka',
+  'collector.listTitle': 'Seznam povezav',
   'collector.placeholder': 'Prilepi povezave - en URL na vrstico - ali jih spusti sem…  (Ctrl+Enter doda)',
   'collector.package': 'Paket (izbirno)',
   'collector.add': 'V zbiralnik',
-  'collector.addTitle': 'Nove povezave',
+  'collector.addTitle': 'Zbiralnik povezav',
   'collector.empty': 'Zbiralnik je prazen. Prilepi povezave zgoraj, da se pripravijo.',
   'collector.staged': 'pripravljenih',
   'collector.selected': 'izbranih',

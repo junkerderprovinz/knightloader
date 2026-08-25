@@ -175,3 +175,166 @@ func (a *App) insertVariantSibling(t *core.Task) {
 	_ = a.Store.Save(&c)
 	a.Hub.Broadcast("task", &c)
 }
+
+// applyProbeFormats is what a completed probe's own format list (
+// ytdlp.ProbeResult.Formats) lets the family answer for certain, plus the
+// availability signal a probe that came back AT ALL already proves (jdp,
+// 2026-08-25: "der [status-punkt] zeigt immer noch keine farbe an" - a
+// freshly staged link's Online field starts unset/grey until something
+// checks it, and unlike a plain HTTP link (analyze's own HEAD probe, called
+// automatically at staging - app_links.go), nothing did that for a yt-dlp
+// link before now; the title/format probe this function rides along with
+// already IS that check, for free, so there is no reason to leave the
+// family gray until somebody presses "recheck" by hand). A probe that
+// failed never reaches this function at all (probeYtdlpTitle returns
+// before calling it) - failure is deliberately NOT read as "offline": too
+// many failure causes (a timeout, an age gate, a transient site hiccup)
+// are not the host actually saying the file is gone, and this package's
+// own analyze()/RecheckTasks already draw that same line.
+//
+// Per variant kind, matching buildArgs's own per-variant extension table
+// (backend.go) exactly - honestly answerable ahead of time or not:
+//   - description: Ext is always "description" - no probe maths needed.
+//   - audio, a FIXED format (mp3/m4a/opus/wav/flac): Ext is that format
+//     itself (deterministic - ffmpeg's own --audio-format target) - but
+//     not Size, since transcoding changes the byte count unpredictably
+//     from the source track's own.
+//   - audio, "best" (-x with no --audio-format - a straight extract, not a
+//     transcode): Size from the best-matching source audio-only track's
+//     own filesize, a close estimate since nothing re-encodes it - but not
+//     Ext, since the container it keeps varies by source (m4a/webm/opus…).
+//   - video: AvailableQualities from every real video-track height found
+//     (ytdlp.AvailableQualities), and Size from the best-matching
+//     video-only track at or under this row's own currently-picked quality
+//     cap - not Ext, since a muxed video+audio file's real container
+//     depends on which two streams actually get picked and merged.
+//   - thumbnail/subtitle: neither - format varies by site/track in ways
+//     nothing here predicts.
+func (a *App) applyProbeFormats(rawurl string, formats []ytdlp.FormatEntry) {
+	var maxVideoHeight int
+	var bestAudio ytdlp.FormatEntry
+	hasBestAudio := false
+	for _, f := range formats {
+		isVideo := f.Vcodec != "" && f.Vcodec != "none"
+		isAudio := f.Acodec != "" && f.Acodec != "none"
+		if isVideo && f.Height > maxVideoHeight {
+			maxVideoHeight = f.Height
+		}
+		if isAudio && !isVideo && (!hasBestAudio || formatSize(f) > formatSize(bestAudio)) {
+			bestAudio = f
+			hasBestAudio = true
+		}
+	}
+	qualities := ytdlp.AvailableQualities(maxVideoHeight)
+	availableQualities := make([]string, len(qualities))
+	for i, q := range qualities {
+		availableQualities[i] = string(q)
+	}
+
+	a.mu.Lock()
+	var touched []core.Task
+	for _, t := range a.tasks {
+		if t.URL != rawurl {
+			continue
+		}
+		changed := false
+		if t.Online != core.AvailOnline {
+			t.Online = core.AvailOnline
+			if t.Status != core.StatusError {
+				t.Error = ""
+				t.Reason = ""
+			}
+			changed = true
+		}
+		kind, sub := variantDecode(t.Variant)
+		switch kind {
+		case ytdlp.VariantDescription:
+			if t.Ext != "description" {
+				t.Ext = "description"
+				changed = true
+			}
+		case ytdlp.VariantAudio:
+			if sub != "" && sub != "best" {
+				if t.Ext != sub {
+					t.Ext = sub
+					changed = true
+				}
+			} else if hasBestAudio {
+				if sz := formatSize(bestAudio); sz > 0 && t.Size != sz {
+					t.Size = sz
+					changed = true
+				}
+			}
+		case ytdlp.VariantVideo:
+			if !stringSlicesEqual(t.AvailableQualities, availableQualities) {
+				t.AvailableQualities = availableQualities
+				changed = true
+			}
+			capHeight := maxVideoHeight
+			if sub != "" && sub != string(ytdlp.QualityBest) && sub != string(ytdlp.QualityCustom) {
+				if h, ok := ytdlp.HeightCap(ytdlp.Quality(sub)); ok {
+					capHeight = h
+				}
+			}
+			if best := bestVideoAtOrUnder(formats, capHeight); best != nil {
+				if sz := formatSize(*best); sz > 0 && t.Size != sz {
+					t.Size = sz
+					changed = true
+				}
+			}
+		}
+		if changed {
+			touched = append(touched, *t)
+		}
+	}
+	a.mu.Unlock()
+	for i := range touched {
+		_ = a.Store.Save(&touched[i])
+		a.Hub.Broadcast("task", &touched[i])
+	}
+}
+
+// formatSize is a FormatEntry's own best available byte count - exact when
+// the host reports one, yt-dlp's own estimate otherwise, 0 when neither is
+// known.
+func formatSize(f ytdlp.FormatEntry) int64 {
+	if f.Filesize > 0 {
+		return f.Filesize
+	}
+	return f.FilesizeApprox
+}
+
+// bestVideoAtOrUnder is the largest (best-quality) video-only track at or
+// under capHeight - the same "closest to the cap from below" choice
+// formatSelector's own "<=?H" selector makes for a real download, mirrored
+// here so the Size estimate matches what buildArgs would actually pick.
+// capHeight <= 0 (this row's own Variant is "best", or nothing was probed)
+// picks the single tallest track available, matching "best"'s own
+// no-cap meaning.
+func bestVideoAtOrUnder(formats []ytdlp.FormatEntry, capHeight int) *ytdlp.FormatEntry {
+	var best *ytdlp.FormatEntry
+	for i, f := range formats {
+		if f.Vcodec == "" || f.Vcodec == "none" {
+			continue
+		}
+		if capHeight > 0 && f.Height > capHeight {
+			continue
+		}
+		if best == nil || f.Height > best.Height {
+			best = &formats[i]
+		}
+	}
+	return best
+}
+
+func stringSlicesEqual(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}

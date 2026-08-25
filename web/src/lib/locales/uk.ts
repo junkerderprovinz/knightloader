@@ -74,11 +74,11 @@ export const uk: Dict = {
   'empty.downloadsHint': 'Додайте посилання у збирач, а потім запустіть їх.',
 
   'collector.title': 'Збирач',
-  'collector.listTitle': 'Колекція',
+  'collector.listTitle': 'Список посилань',
   'collector.placeholder': 'Вставте посилання — по одному в рядок — або перетягніть сюди…  (Ctrl+Enter, щоб додати)',
   'collector.package': 'Пакет (необовʼязково)',
   'collector.add': 'Додати до збирача',
-  'collector.addTitle': 'Нові посилання',
+  'collector.addTitle': 'Збирач посилань',
   'collector.empty': 'Збирач порожній. Вставте посилання вище, щоб їх підготувати.',
   'collector.staged': 'підготовлено',
   'collector.selected': 'вибрано',

@@ -392,3 +392,154 @@ func TestACoincidentalPackageCollisionIsStillLeftAlone(t *testing.T) {
 		}
 	}
 }
+
+// putYtdlpFamily builds a five-row "Variante" family directly (putTask, no
+// AddLinks/probe involved) sharing one URL, one per subs entries plus
+// thumbnail/subtitle (which take no sub-value) - the shape
+// expandYtdlpVariants itself would have produced, minus the async probe
+// applyProbeFormats's own tests want to call by hand instead.
+func putYtdlpFamily(t *testing.T, a *App, url string, subs map[ytdlp.Variant]string) map[ytdlp.Variant]*core.Task {
+	t.Helper()
+	family := map[ytdlp.Variant]*core.Task{}
+	for _, v := range ytdlp.Variants() {
+		family[v] = putTask(t, a, core.Task{
+			URL: url, Name: "Some Title", Package: "some-package", Status: core.StatusCollected, Enabled: true,
+			Variant: variantEncode(v, subs[v]),
+		})
+	}
+	return family
+}
+
+// A realistic mixed format list, the same shape backend_test.go's own
+// "formats" TestMain case uses: two video-only tracks (144p/1080p), one
+// audio-only track, one combined progressive track. Declared once so every
+// test below reasons about the identical source.
+var testProbeFormats = []ytdlp.FormatEntry{
+	{FormatID: "160", Ext: "mp4", Vcodec: "avc1.4d400b", Acodec: "none", Height: 144, Filesize: 195278},
+	{FormatID: "137", Ext: "mp4", Vcodec: "avc1.640028", Acodec: "none", Height: 1080, FilesizeApprox: 52428800},
+	{FormatID: "140", Ext: "m4a", Vcodec: "none", Acodec: "mp4a.40.2", Filesize: 3145728},
+	{FormatID: "18", Ext: "mp4", Vcodec: "avc1.42001E", Acodec: "mp4a.40.2", Height: 360, Filesize: 8388608},
+}
+
+// TestApplyProbeFormatsMarksTheWholeFamilyOnline is [83b]'s own fix (jdp,
+// 2026-08-25: "der [status-punkt] zeigt immer noch keine farbe an"): a
+// probe that came back AT ALL is itself the availability check a yt-dlp
+// link never otherwise gets before download, and since every row in the
+// family is the same source, all five get the same verdict.
+func TestApplyProbeFormatsMarksTheWholeFamilyOnline(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=online0001"
+	family := putYtdlpFamily(t, a, url, nil)
+
+	a.applyProbeFormats(url, testProbeFormats)
+
+	for kind, task := range family {
+		if live := snapshot(t, a, task.ID); live.Online != core.AvailOnline {
+			t.Errorf("%q row Online = %q, want %q", kind, live.Online, core.AvailOnline)
+		}
+	}
+}
+
+// TestApplyProbeFormatsSetsDescriptionExt is [87]'s zero-cost, always
+// correct case: yt-dlp hardcodes .description for this output regardless
+// of the source, so it needs no format-list lookup at all.
+func TestApplyProbeFormatsSetsDescriptionExt(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=ext0001"
+	family := putYtdlpFamily(t, a, url, nil)
+
+	a.applyProbeFormats(url, testProbeFormats)
+
+	live := snapshot(t, a, family[ytdlp.VariantDescription].ID)
+	if live.Ext != "description" {
+		t.Errorf("description row Ext = %q, want %q", live.Ext, "description")
+	}
+}
+
+// TestApplyProbeFormatsSetsFixedAudioFormatExtNotSize is [87]/[89]'s own
+// split for a fixed --audio-format target: the extension is certain
+// (ffmpeg's own conversion target), the size is not (transcoding changes
+// the byte count unpredictably from the source track's own) - so only Ext
+// may be set, Size must stay at its own zero/unknown value.
+func TestApplyProbeFormatsSetsFixedAudioFormatExtNotSize(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=ext0002"
+	family := putYtdlpFamily(t, a, url, map[ytdlp.Variant]string{ytdlp.VariantAudio: "mp3"})
+
+	a.applyProbeFormats(url, testProbeFormats)
+
+	live := snapshot(t, a, family[ytdlp.VariantAudio].ID)
+	if live.Ext != "mp3" {
+		t.Errorf("fixed-format audio row Ext = %q, want %q", live.Ext, "mp3")
+	}
+	if live.Size != 0 {
+		t.Errorf("fixed-format audio row Size = %d, want 0 (transcoded size is not derivable from the source track)", live.Size)
+	}
+}
+
+// TestApplyProbeFormatsSetsBestAudioSizeNotExt is the "best" audio row's
+// own opposite split: -x with no --audio-format is a straight extract, not
+// a transcode, so the source audio-only track's own size is a close
+// estimate (Size may be set) - but the container it keeps varies by
+// source, so Ext must stay unset rather than guessed.
+func TestApplyProbeFormatsSetsBestAudioSizeNotExt(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=size0001"
+	family := putYtdlpFamily(t, a, url, nil) // VariantAudio's own sub defaults to "" (best)
+
+	a.applyProbeFormats(url, testProbeFormats)
+
+	live := snapshot(t, a, family[ytdlp.VariantAudio].ID)
+	if live.Ext != "" {
+		t.Errorf("best-audio row Ext = %q, want it left unset", live.Ext)
+	}
+	if live.Size != 3145728 {
+		t.Errorf("best-audio row Size = %d, want the audio-only entry's own filesize %d", live.Size, 3145728)
+	}
+}
+
+// TestApplyProbeFormatsConstrainsVideoAvailableQualities is [88]'s own fix
+// (jdp, 2026-08-25: "man soll nur die varianten auswählen können die
+// wirklich verfügbar sind"): testProbeFormats' own tallest real video track
+// is 1080p, so nothing above that should be offered - 2160p/1440p drop out,
+// 1080p and everything under it (plus best/custom, always kept) survive.
+func TestApplyProbeFormatsConstrainsVideoAvailableQualities(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=avail0001"
+	family := putYtdlpFamily(t, a, url, nil)
+
+	a.applyProbeFormats(url, testProbeFormats)
+
+	live := snapshot(t, a, family[ytdlp.VariantVideo].ID)
+	got := map[string]bool{}
+	for _, q := range live.AvailableQualities {
+		got[q] = true
+	}
+	for _, want := range []string{"best", "1080p", "720p", "480p", "360p", "custom"} {
+		if !got[want] {
+			t.Errorf("AvailableQualities = %v, missing expected %q", live.AvailableQualities, want)
+		}
+	}
+	for _, unwanted := range []string{"2160p", "1440p"} {
+		if got[unwanted] {
+			t.Errorf("AvailableQualities = %v, want %q excluded - the source has no track above 1080p", live.AvailableQualities, unwanted)
+		}
+	}
+}
+
+// TestApplyProbeFormatsSetsVideoSizeAtItsOwnQualityCap is [89]'s own video
+// case: the estimate must match THIS row's own currently-picked quality,
+// not the source's tallest track - a 360p-capped row gets the 360p track's
+// own size (8388608), not the 1080p track's.
+func TestApplyProbeFormatsSetsVideoSizeAtItsOwnQualityCap(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=size0002"
+	family := putYtdlpFamily(t, a, url, map[ytdlp.Variant]string{ytdlp.VariantVideo: "360p"})
+
+	a.applyProbeFormats(url, testProbeFormats)
+
+	live := snapshot(t, a, family[ytdlp.VariantVideo].ID)
+	if live.Size != 8388608 {
+		t.Errorf("360p-capped video row Size = %d, want the 360p track's own size %d, not the 1080p track's", live.Size, 8388608)
+	}
+}

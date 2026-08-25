@@ -37,14 +37,33 @@ func TestMain(m *testing.M) {
 		os.Exit(m.Run())
 	case "title":
 		// A title yt-dlp could plausibly hand back verbatim: mixed case,
-		// punctuation, nothing that needs escaping.
-		fmt.Println("Rick Astley - Never Gonna Give You Up (Official Video)")
+		// punctuation, nothing that needs escaping. -j prints one JSON
+		// object per line - this stands in for that, with no formats at
+		// all (a source ProbeTitle's own format-list logic never sees).
+		fmt.Println(`{"title":"Rick Astley - Never Gonna Give You Up (Official Video)","formats":[]}`)
+		os.Exit(0)
+	case "formats":
+		// A source with a real, mixed format list - two video-only tracks
+		// (144p/1080p), one audio-only track, one combined progressive
+		// track (has BOTH a real vcodec and a real acodec) that ProbeTitle
+		// must not misfile as video-only, exercising the exact
+		// vcodec/acodec-both-real branch neither of isVideo/isAudio in
+		// applyProbeFormats treats as mutually exclusive.
+		fmt.Println(`{"title":"Formats Video","formats":[` +
+			`{"format_id":"160","ext":"mp4","vcodec":"avc1.4d400b","acodec":"none","height":144,"filesize":195278},` +
+			`{"format_id":"137","ext":"mp4","vcodec":"avc1.640028","acodec":"none","height":1080,"filesize_approx":52428800},` +
+			`{"format_id":"140","ext":"m4a","vcodec":"none","acodec":"mp4a.40.2","filesize":3145728},` +
+			`{"format_id":"18","ext":"mp4","vcodec":"avc1.42001E","acodec":"mp4a.40.2","height":360,"filesize":8388608}` +
+			`]}`)
 		os.Exit(0)
 	case "playlist":
 		// Stands in for the --flat-playlist gap ProbeTitle's own doc comment
 		// names: multiple lines out, one per entry.
-		fmt.Println("Entry One")
-		fmt.Println("Entry Two")
+		fmt.Println(`{"title":"Entry One","formats":[]}`)
+		fmt.Println(`{"title":"Entry Two","formats":[]}`)
+		os.Exit(0)
+	case "badjson":
+		fmt.Println("not json at all")
 		os.Exit(0)
 	case "fail":
 		fmt.Fprintln(os.Stderr, "ERROR: [youtube] abc123: Video unavailable")
@@ -78,8 +97,57 @@ func TestProbeTitleReturnsTheParsedTitleOnSuccess(t *testing.T) {
 		t.Fatalf("ProbeTitle: %v", err)
 	}
 	want := "Rick Astley - Never Gonna Give You Up (Official Video)"
-	if got != want {
-		t.Errorf("ProbeTitle = %q, want %q", got, want)
+	if got.Title != want {
+		t.Errorf("ProbeTitle().Title = %q, want %q", got.Title, want)
+	}
+	if len(got.Formats) != 0 {
+		t.Errorf("ProbeTitle().Formats = %+v, want none for a source with an empty formats array", got.Formats)
+	}
+}
+
+// TestProbeTitleReturnsTheParsedFormats is the format-list half ("man soll
+// nur die varianten auswählen können die wirklich verfügbar sind" /
+// "dateiendungen... größe" - jdp, 2026-08-25): every field
+// applyProbeFormats actually reads must survive the JSON round trip
+// correctly, including telling a video-only track apart from an
+// audio-only one and from a combined progressive track that carries both a
+// real vcodec AND a real acodec at once.
+func TestProbeTitleReturnsTheParsedFormats(t *testing.T) {
+	b := fakeYtdlpBackend(t, "formats")
+	got, err := b.ProbeTitle(context.Background(), "https://youtube.com/watch?v=formats")
+	if err != nil {
+		t.Fatalf("ProbeTitle: %v", err)
+	}
+	if len(got.Formats) != 4 {
+		t.Fatalf("ProbeTitle().Formats has %d entries, want 4: %+v", len(got.Formats), got.Formats)
+	}
+	videoOnly := got.Formats[1] // format_id "137", 1080p
+	if videoOnly.FormatID != "137" || videoOnly.Height != 1080 || videoOnly.Vcodec == "none" || videoOnly.Acodec != "none" {
+		t.Errorf("video-only entry = %+v, want format_id 137, height 1080, a real vcodec, acodec \"none\"", videoOnly)
+	}
+	if videoOnly.Filesize != 0 || videoOnly.FilesizeApprox != 52428800 {
+		t.Errorf("video-only entry sizes = filesize=%d filesize_approx=%d, want filesize 0 (never reported) and filesize_approx 52428800", videoOnly.Filesize, videoOnly.FilesizeApprox)
+	}
+	audioOnly := got.Formats[2] // format_id "140"
+	if audioOnly.FormatID != "140" || audioOnly.Vcodec != "none" || audioOnly.Acodec == "none" || audioOnly.Filesize != 3145728 {
+		t.Errorf("audio-only entry = %+v, want format_id 140, vcodec \"none\", a real acodec, filesize 3145728", audioOnly)
+	}
+	progressive := got.Formats[3] // format_id "18", has BOTH a real vcodec and a real acodec
+	if progressive.FormatID != "18" || progressive.Vcodec == "none" || progressive.Acodec == "none" || progressive.Height != 360 {
+		t.Errorf("progressive entry = %+v, want format_id 18, a real vcodec AND a real acodec, height 360", progressive)
+	}
+}
+
+// TestProbeTitleReturnsErrorOnUnparseableJSON covers a yt-dlp whose own -j
+// output could not be decoded at all - a corrupt/truncated line, or (as
+// stood in for here) a caller mistakenly pointed at a binary that isn't
+// yt-dlp. The caller must see an error, never a zero-value ProbeResult
+// mistaken for "a source with a real but empty format list".
+func TestProbeTitleReturnsErrorOnUnparseableJSON(t *testing.T) {
+	b := fakeYtdlpBackend(t, "badjson")
+	got, err := b.ProbeTitle(context.Background(), "https://youtube.com/watch?v=x")
+	if err == nil {
+		t.Fatalf("ProbeTitle returned no error for unparseable output (title = %q)", got.Title)
 	}
 }
 
@@ -93,8 +161,8 @@ func TestProbeTitleTakesTheFirstLineOfAMultiLineAnswer(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ProbeTitle: %v", err)
 	}
-	if got != "Entry One" {
-		t.Errorf("ProbeTitle = %q, want the first entry's title", got)
+	if got.Title != "Entry One" {
+		t.Errorf("ProbeTitle().Title = %q, want the first entry's title", got.Title)
 	}
 }
 
@@ -106,7 +174,7 @@ func TestProbeTitleReturnsErrorOnAFailingInvocation(t *testing.T) {
 	b := fakeYtdlpBackend(t, "fail")
 	got, err := b.ProbeTitle(context.Background(), "https://youtube.com/watch?v=gone")
 	if err == nil {
-		t.Fatalf("ProbeTitle returned no error for a failing invocation (title = %q)", got)
+		t.Fatalf("ProbeTitle returned no error for a failing invocation (title = %q)", got.Title)
 	}
 }
 
@@ -118,7 +186,7 @@ func TestProbeTitleReturnsErrorOnEmptyOutput(t *testing.T) {
 	b := fakeYtdlpBackend(t, "empty")
 	got, err := b.ProbeTitle(context.Background(), "https://youtube.com/watch?v=x")
 	if err == nil {
-		t.Fatalf("ProbeTitle returned no error for empty output (title = %q)", got)
+		t.Fatalf("ProbeTitle returned no error for empty output (title = %q)", got.Title)
 	}
 }
 
@@ -137,7 +205,7 @@ func TestProbeTitleTimesOutWithoutPanicking(t *testing.T) {
 	elapsed := time.Since(start)
 
 	if err == nil {
-		t.Fatalf("ProbeTitle returned no error for a context that expired (title = %q)", got)
+		t.Fatalf("ProbeTitle returned no error for a context that expired (title = %q)", got.Title)
 	}
 	// Generous margin above the 300ms deadline: proves the context actually
 	// bounded the wait rather than ProbeTitle silently ignoring ctx and

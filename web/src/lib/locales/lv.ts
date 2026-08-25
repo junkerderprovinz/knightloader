@@ -74,11 +74,11 @@ export const lv: Dict = {
   'empty.downloadsHint': 'Pievieno saites savācējā un palaid tās.',
 
   'collector.title': 'Savācējs',
-  'collector.listTitle': 'Kolekcija',
+  'collector.listTitle': 'Saišu saraksts',
   'collector.placeholder': 'Ielīmē saites - viena URL rindā - vai ievelc tās šeit…  (Ctrl+Enter, lai pievienotu)',
   'collector.package': 'Paka (nav obligāti)',
   'collector.add': 'Pievienot savācējam',
-  'collector.addTitle': 'Jaunas saites',
+  'collector.addTitle': 'Saišu savācējs',
   'collector.empty': 'Savācējs ir tukšs. Ielīmē saites augšā, lai tās sagatavotu.',
   'collector.staged': 'sagatavotas',
   'collector.selected': 'atlasītas',

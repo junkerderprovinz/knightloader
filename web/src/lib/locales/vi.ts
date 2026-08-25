@@ -74,11 +74,11 @@ export const vi: Dict = {
   'empty.downloadsHint': 'Thêm liên kết vào bộ thu thập rồi bắt đầu.',
 
   'collector.title': 'Bộ thu thập',
-  'collector.listTitle': 'Bộ sưu tập',
+  'collector.listTitle': 'Danh sách liên kết',
   'collector.placeholder': 'Dán liên kết - mỗi dòng một cái - hoặc thả vào đây…  (Ctrl+Enter để thêm)',
   'collector.package': 'Gói (tùy chọn)',
   'collector.add': 'Thêm vào bộ thu thập',
-  'collector.addTitle': 'Liên kết mới',
+  'collector.addTitle': 'Bộ thu thập liên kết',
   'collector.empty': 'Bộ thu thập đang trống. Dán liên kết ở trên để chuẩn bị.',
   'collector.staged': 'đã chuẩn bị',
   'collector.selected': 'đã chọn',

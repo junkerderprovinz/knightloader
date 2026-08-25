@@ -74,11 +74,11 @@ export const eu: Dict = {
   'empty.downloadsHint': 'Gehitu estekak biltzailean eta hasi itzazu.',
 
   'collector.title': 'Biltzailea',
-  'collector.listTitle': 'Bilduma',
+  'collector.listTitle': 'Esteka-zerrenda',
   'collector.placeholder': 'Itsatsi estekak - URL bat lerroko - edo jaregin hemen…  (Ctrl+Sartu gehitzeko)',
   'collector.package': 'Paketea (aukerakoa)',
   'collector.add': 'Gehitu biltzailera',
-  'collector.addTitle': 'Esteka berriak',
+  'collector.addTitle': 'Esteka-biltzailea',
   'collector.empty': 'Biltzailea hutsik dago. Itsatsi estekak goian gordetzeko.',
   'collector.staged': 'gordeta',
   'collector.selected': 'hautatuta',
