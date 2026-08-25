@@ -1,32 +1,50 @@
-// Composes the mobile app's Android adaptive-icon foreground layer and
-// refreshes its plain icon.png/favicon.png, from the same square app-icon
-// source gen-appicon.mjs's desktop tile uses a differently-shaped logo for
-// (kl_app_logo.svg, a dedicated 1000x1000 square variant of logo.svg made
-// for exactly this - an app icon slot, not the tall banner shape).
-//
-// The plain icon.png/favicon.png stay full-bleed, no padding added: that is
-// correct for iOS (Apple's own guidance is a full square, no rounding, no
-// transparency - the OS masks corners itself) and for a favicon, the same
-// "solid, edge to edge" shape this project's own Unraid CA icon already
-// uses on purpose (see ca-icon-background in Claude's memory).
-//
-// The Android adaptive-icon foreground is a SEPARATE shape with its own
-// rule, not an iOS convention at all: the system composites this layer
-// under its OWN mask (circle on stock/Pixel, squircle on Samsung, rounded
-// square, teardrop...), varying by launcher, and only the inner ~66% "safe
-// zone" of the 108x108dp canvas is guaranteed visible on every one of them.
-// A full-bleed logo - which is what an EARLIER, un-padded export of this
-// same source into mobile/assets/android-icon-foreground.png actually was,
-// confirmed by inspecting its alpha channel: 99.6% of the canvas fully
-// opaque, transparency only in a few corner-rounding pixels - gets its
-// edges clipped by every mask shape except the least aggressive one. This
-// script fixes that by scaling the logo down to fit SAFE_FRACTION of the
-// canvas and centering it on a FULLY TRANSPARENT background (never a solid
-// fill here - the background color layer is app.json's own
-// adaptiveIcon.backgroundColor, a second, separate image the OS composites
-// underneath this one, not something this file needs to paint).
+// Generates every mobile app-icon asset from ONE source of truth,
+// .github/assets/kl_app_logo.svg - a dedicated 1000x1000 square variant of
+// the repo logo, drawn for an app-icon slot (gen-appicon.mjs's desktop tile
+// uses the tall banner-shaped logo.svg instead).
 //
 // Run: node .github/assets/gen-mobile-icon.mjs
+//
+// Three outputs, because the platforms want genuinely different shapes:
+//
+//   icon.png / favicon.png - the source verbatim, full-bleed, its own
+//   white/grey backdrop included. Correct for iOS (Apple's guidance is a
+//   full opaque square; the OS rounds the corners itself) and for a browser
+//   tab, neither of which composites anything underneath.
+//
+//   android-icon-background.png + android-icon-foreground.png - Android's
+//   adaptive icon, which is TWO layers the system composites and then masks
+//   with a shape that varies by launcher (circle on stock/Pixel, squircle on
+//   Samsung, rounded square, teardrop...).
+//
+// Two things about that Android pair have each already been a real, shipped
+// bug, so both are spelled out here:
+//
+// 1. THE FOREGROUND NEEDS ITS OWN MARGIN. Both layers are 108x108dp but only
+//    the central 72x72dp survives every mask - the outer 18dp per side is
+//    reserved for masking and the launcher's parallax/zoom. An earlier
+//    export of this file wrote the logo full-bleed (alpha channel confirmed
+//    99.6% of the canvas fully opaque), so every mask except the loosest one
+//    clipped its edges. Hence SAFE_FRACTION below.
+//
+// 2. THE BACKGROUND IS A LAYER, NOT A COLOR. The fix for (1) stripped the
+//    source's own backdrop out of the foreground - correct, since a backdrop
+//    baked into the foreground would render as a square-within-a-square -
+//    but paired it with a flat dark adaptiveIcon.backgroundColor. That threw
+//    the source's white/grey ground away and shipped a dark icon that no
+//    longer matched the artwork anywhere else. The backdrop belongs in the
+//    OTHER layer: this script renders it as a real backgroundImage, so the
+//    composited result is the source artwork again, with the launcher's mask
+//    supplying the rounding the source drew for itself.
+//
+// SAFE_FRACTION is 72/108 exactly, and that exactness is the point rather
+// than a taste call: shrinking the full source canvas by 72/108 makes the
+// guaranteed-visible 72dp window show precisely what the 1000x1000 source
+// shows edge to edge. The glyph measures 56.0% x 89.8% of the source canvas,
+// so it lands at 89.8% of the visible height - the artwork's own
+// proportions, not a re-composition of them.
+const SAFE_FRACTION = 72 / 108;
+
 import { readFileSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -45,23 +63,36 @@ const vbMatch = LOGO_RAW.match(/viewBox="[\d.\-]+\s+[\d.\-]+\s+([\d.]+)\s+([\d.]
 if (!vbMatch) throw new Error("kl_app_logo.svg: no viewBox found");
 const VB_W = parseFloat(vbMatch[1]), VB_H = parseFloat(vbMatch[2]);
 
-// The source draws its own square backdrop as two shapes - a white rounded
-// rect the full canvas, and a light-grey rounded panel over its right half
-// (echoing the blade's own light/dark split) - which is exactly right for
-// icon.png/favicon.png (a full square WITH its own background is the
-// correct, expected shape for iOS and a browser tab, both of which mask or
-// round it themselves and never composite a second background layer under
-// it). Android's adaptive icon is the one consumer that DOES composite a
-// separate background layer of its own (app.json's adaptiveIcon.backgroundColor,
-// #161616) underneath this foreground, so keeping the source's white/grey
-// backdrop here would produce a solid off-white square-within-a-square
-// instead of the dark app background showing through - stripped for that
-// one render only.
+// The source draws its backdrop as two shapes: a rounded rect covering the
+// whole canvas, and a second rounded panel over its right half (echoing the
+// blade's own light/dark split). Both are located, and their colours and the
+// split position READ OUT of the source rather than restated here, so a
+// palette or layout change in the SVG carries into the Android background
+// layer instead of silently drifting from it.
+const bgRect = LOGO_FULL.match(/<rect id="background" class="(cls-\d+)"[^/]*\/>/);
+if (!bgRect) throw new Error("kl_app_logo.svg: no <rect id=\"background\"> found");
+const panel = LOGO_FULL.match(/<path class="(cls-\d+)" d="M(\d+(?:\.\d+)?),0h-(\d+(?:\.\d+)?)v/);
+if (!panel) throw new Error("kl_app_logo.svg: right-hand backdrop panel not found");
+
+function fillOf(cls) {
+  const m = LOGO_FULL.match(new RegExp(`\\.${cls}\\s*\\{[^}]*fill:\\s*([^;\\s}]+)`));
+  if (!m) throw new Error(`kl_app_logo.svg: no fill for .${cls}`);
+  return m[1];
+}
+const GROUND = fillOf(bgRect[1]);
+const PANEL = fillOf(panel[1]);
+// "M932,0h-432v..." starts at the panel's right edge and draws left, so its
+// left edge - the split - is 932-432 = 500 of the 1000-wide viewBox.
+const SPLIT = (parseFloat(panel[2]) - parseFloat(panel[3])) / VB_W;
+
+// The glyph alone, for the foreground layer: the same two backdrop shapes
+// removed, matched by the patterns already validated above.
 const LOGO_GLYPH_ONLY = LOGO_FULL
-  .replace(/<rect id="background"[^/]*\/>\s*/, "")
-  .replace(/<path class="cls-5" d="M932,0h-432v1000h432c37\.56,0,68-30\.44,68-68V68c0-37\.56-30\.44-68-68-68Z"\/>\s*/, "");
+  .replace(bgRect[0], "")
+  .replace(panel[0].replace(/v$/, ""), "")
+  .replace(/^\s*[\r\n]/gm, "");
 if (LOGO_GLYPH_ONLY === LOGO_FULL) {
-  throw new Error("kl_app_logo.svg: expected background shapes not found - update the strip patterns above");
+  throw new Error("kl_app_logo.svg: backdrop strip did not change anything");
 }
 
 const SIZE = 1024;
@@ -73,27 +104,41 @@ function embedAt(logo, x, y, w, h) {
   );
 }
 
-function renderSquare(name, { pad, logo }) {
-  const avail = SIZE * (1 - pad * 2);
-  const scale = Math.min(avail / VB_W, avail / VB_H);
-  const logoW = VB_W * scale, logoH = VB_H * scale;
-  const x = (SIZE - logoW) / 2, y = (SIZE - logoH) / 2;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}">
-  ${embedAt(logo, x, y, logoW, logoH)}
-</svg>
-`;
+function write(name, svg) {
   const png = new Resvg(svg, { fitTo: { mode: "width", value: SIZE } }).render().asPng();
   writeFileSync(join(REPO, "mobile/assets", name), png);
-  console.log(`wrote mobile/assets/${name} (${png.length} bytes, ${((1 - pad * 2) * 100).toFixed(0)}% fill)`);
+  console.log(`wrote mobile/assets/${name} (${png.length} bytes)`);
 }
 
-// icon.png / favicon.png: full-bleed, own backdrop included - iOS and a
-// browser tab both mask/round it themselves.
-renderSquare("icon.png", { pad: 0, logo: LOGO_FULL });
-renderSquare("favicon.png", { pad: 0, logo: LOGO_FULL });
+/** fraction 1 = the logo fills the canvas edge to edge. */
+function renderLogo(name, logo, fraction) {
+  const avail = SIZE * fraction;
+  const scale = Math.min(avail / VB_W, avail / VB_H);
+  const w = VB_W * scale, h = VB_H * scale;
+  write(
+    name,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}">
+  ${embedAt(logo, (SIZE - w) / 2, (SIZE - h) / 2, w, h)}
+</svg>
+`,
+  );
+}
 
-// android-icon-foreground.png: glyph only, on true transparency. Android's
-// own adaptive-icon safe zone is the inner 66dp circle of a 108dp canvas
-// (~61%); this leaves real margin beyond that minimum so the logo survives
-// even a tight squircle mask without hugging the guaranteed-safe edge.
-renderSquare("android-icon-foreground.png", { pad: 0.22, logo: LOGO_GLYPH_ONLY });
+renderLogo("icon.png", LOGO_FULL, 1);
+renderLogo("favicon.png", LOGO_FULL, 1);
+renderLogo("android-icon-foreground.png", LOGO_GLYPH_ONLY, SAFE_FRACTION);
+
+// The background layer is deliberately NOT the source's rounded rect: it has
+// to bleed past the mask on every side, and its own rounding would fight the
+// launcher's. Square, edge to edge, split where the source splits it - the
+// mask alone decides the silhouette.
+write(
+  "android-icon-background.png",
+  `<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}">
+  <rect width="${SIZE}" height="${SIZE}" fill="${GROUND}"/>
+  <rect x="${(SIZE * SPLIT).toFixed(1)}" width="${(SIZE * (1 - SPLIT)).toFixed(1)}" height="${SIZE}" fill="${PANEL}"/>
+</svg>
+`,
+);
+
+console.log(`ground=${GROUND} panel=${PANEL} split=${(SPLIT * 100).toFixed(1)}% safe=${(SAFE_FRACTION * 100).toFixed(1)}%`);

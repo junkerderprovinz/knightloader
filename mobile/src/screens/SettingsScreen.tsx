@@ -3,7 +3,7 @@ import { Alert, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-
 import { useFocusEffect } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import { useT } from '../i18n/I18nContext';
-import { LANGUAGES } from '../i18n/catalogue';
+import { LANGUAGES, flagEmoji } from '../i18n/catalogue';
 import { getLanguageOverride } from '../storage/languagePreference';
 import { removeAllConnections } from '../storage/connections';
 import { colors } from '../theme';
@@ -19,7 +19,7 @@ export default function SettingsScreen({
   onOpenLanguagePicker: () => void;
   onRemovedAllConnections: () => void;
 }) {
-  const { t } = useT();
+  const { t, lang } = useT();
   const [override, setOverride] = useState<string | null>(null);
 
   // useFocusEffect, not a plain mount-only effect: this screen stays
@@ -32,7 +32,12 @@ export default function SettingsScreen({
     }, [])
   );
 
+  // The flag always tracks the language actually IN EFFECT (`lang`), even on
+  // "Automatic", where the label deliberately says "Automatic" rather than
+  // naming the language - so the row still answers which one that resolved
+  // to without spelling it out twice.
   const currentLabel = override ? LANGUAGES.find((l) => l.code === override)?.label ?? override : t('settings.languageAutomatic');
+  const currentFlag = flagEmoji(LANGUAGES.find((l) => l.code === lang)?.flag ?? '');
 
   const confirmRemoveAll = () => {
     Alert.alert(t('settings.removeAllConfirmTitle'), t('settings.removeAllConfirmMessage'), [
@@ -61,7 +66,10 @@ export default function SettingsScreen({
         <Text style={styles.sectionTitle}>{t('settings.language')}</Text>
         <TouchableOpacity style={styles.row} onPress={onOpenLanguagePicker}>
           <Text style={styles.rowLabel}>{t('settings.language')}</Text>
-          <Text style={styles.rowValue}>{currentLabel}</Text>
+          <View style={styles.rowValueGroup}>
+            <Text style={styles.rowFlag}>{currentFlag}</Text>
+            <Text style={styles.rowValue}>{currentLabel}</Text>
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -102,6 +110,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   rowLabel: { color: colors.text, fontSize: 15 },
+  rowValueGroup: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
+  rowFlag: { fontSize: 17 },
   rowValue: { color: colors.textMuted, fontSize: 14 },
   link: { color: colors.accent },
   dangerButton: {
