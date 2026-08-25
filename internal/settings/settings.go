@@ -312,11 +312,19 @@ type Settings struct {
 	// build embeds today.
 	Torrent Torrent `json:"torrent"`
 
-	// InstanceName and KnownDomains are this instance's own identity - see
-	// settings_identity.go for the sanitize hook and both fields' own doc
-	// comments.
+	// InstanceID, InstanceName and KnownDomains are this instance's own
+	// identity - see settings_identity.go for the sanitize hook and all
+	// three fields' own doc comments.
+	InstanceID   string   `json:"instanceId"`
 	InstanceName string   `json:"instanceName"`
 	KnownDomains []string `json:"knownDomains"`
+
+	// RelayURL is the self-hosted relay this instance dials out to so that
+	// it can be reached by siblings on other networks - see
+	// settings_relay.go for the field's own doc comment, and especially for
+	// why the relay key that goes with it is a credential in
+	// internal/accounts rather than a second field here.
+	RelayURL string `json:"relayUrl"`
 }
 
 // Defaults returns the settings a fresh install starts with.
@@ -598,5 +606,6 @@ func sanitize(n Settings) Settings {
 	n = sanitizeConfirm(n)
 	n = sanitizeTorrent(n)
 	n = sanitizeIdentity(n)
+	n = sanitizeRelay(n)
 	return n
 }

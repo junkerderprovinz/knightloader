@@ -119,15 +119,23 @@ func pairingSelf(r *http.Request, a *app.App) (name, url string, ok bool) {
 	} else {
 		return "", "", false
 	}
-	name = a.Settings.Get().InstanceName
-	if name == "" {
-		host, err := os.Hostname()
-		if err != nil || host == "" {
-			host = "KnightLoader"
-		}
-		name = host
+	return instanceDisplayName(a), url, true
+}
+
+// instanceDisplayName is InstanceName if the user set one, else os.Hostname,
+// else the fixed fallback "KnightLoader" for the rare host where even that
+// fails - the same precedence pairingSelf originally had inline, shared here
+// because routes_relay.go's own Announce needs the identical name a pairing
+// code already offers, and a name resolved two different ways in two places
+// is a name that eventually disagrees with itself.
+func instanceDisplayName(a *app.App) string {
+	if name := a.Settings.Get().InstanceName; name != "" {
+		return name
 	}
-	return name, url, true
+	if host, err := os.Hostname(); err == nil && host != "" {
+		return host
+	}
+	return "KnightLoader"
 }
 
 func encodeOffer(o pairingOffer) (string, error) {

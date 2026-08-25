@@ -4,15 +4,20 @@ import { QRCode } from '../../components/QRCode';
 import {
   type ApiToken,
   type AuthState,
+  type Instance,
   type NewApiToken,
   type PairingCode,
+  type RelayConfig,
   type RemoteAccessInfo,
   createToken,
   fetchAuth,
+  fetchInstances,
+  fetchRelayConfig,
   fetchRemoteAccess,
   fetchTokens,
   generatePairingCode,
   revokeToken,
+  saveRelayConfig,
   setPassword,
 } from '../../lib/api';
 import { copyToClipboard } from '../../lib/clipboard';
@@ -101,6 +106,31 @@ const PENDING = {
   'settings.access.remote.pairWhere': 'Not here - on the other instance, under Settings → Instances.',
   'settings.access.remote.pairScan': 'Scan the QR code with the KnightLoader app.',
 
+  'settings.access.relay.title': 'Relay',
+  'settings.access.relay.body':
+    'A relay is a small separate server that instances dial out to, so two KnightLoaders which cannot reach each other directly - each behind its own NAT, on different networks - still find each other. Every instance you give the same address and key to appears on the Instances page of the others by itself, with no pairing code to carry across.',
+  'settings.access.relay.selfHosted':
+    'Nobody runs a relay for you. It is a separate binary you host yourself, the same way you already host KnightLoader, and it only routes messages between your own instances: no download and no file byte ever travels over it. Leaving this empty changes nothing about the rest of this page.',
+  'settings.access.relay.urlLabel': 'Relay address',
+  'settings.access.relay.urlPlaceholder': 'https://relay.example.com',
+  'settings.access.relay.urlHint':
+    'The address your own relay answers on, behind TLS for anything beyond a LAN test. Clearing it disconnects from the relay and leaves every other way of reaching this instance untouched.',
+  'settings.access.relay.keyLabel': 'Relay key',
+  'settings.access.relay.keyHint':
+    'One shared secret is the whole of the authorisation, so every instance that should see the others gets the same one. It is stored encrypted here, like a debrid key, and is never shown again once saved - if it is lost, make a new one and enter that everywhere.',
+  'settings.access.relay.keyPlaceholderSet': 'Stored. Type a new key to replace it.',
+  'settings.access.relay.keyPlaceholderUnset': 'Paste the relay key',
+  'settings.access.relay.keySet': 'Key stored',
+  'settings.access.relay.keyUnset': 'No key stored',
+  'settings.access.relay.keyClear': 'Remove the stored key',
+  'settings.access.relay.save': 'Save',
+  'settings.access.relay.saving': 'Saving…',
+  'settings.access.relay.saved': 'Saved',
+  'settings.access.relay.siblingsTitle': 'Visible through the relay',
+  'settings.access.relay.siblingsOff': 'Enter an address and a key to see the instances that share them.',
+  'settings.access.relay.siblingsEmpty':
+    'Nothing right now. Either no other instance is connected with this key, or the relay cannot be reached from here. Both look the same from this side, and neither stops this instance doing anything else.',
+
   'settings.access.intakePortsHint':
     'Other ways this instance can be reached directly, outside the normal login - each with its own reachability shown here.',
 } as const;
@@ -150,11 +180,17 @@ export function Access() {
       <PasswordCard />
 
       <RemoteAccessSection cx={cx} />
+      {/* Outside RemoteAccessSection on purpose, even though it reads as the
+          card right after that section's own PairingCard: that section
+          renders nothing but a note on the desktop build, and the desktop
+          build is the one that needs a relay MOST - it opens no port at all,
+          so a relay is its only way to be paired with anything. */}
+      <RelayCard cx={cx} />
       <TokensSection cx={cx} />
 
       {listeners.length > 0 && (
           <Card className="flex flex-col gap-4">
-            <SectionTitle hue={6} hint={cx('settings.access.intakePortsHint')}>
+            <SectionTitle hue={7} hint={cx('settings.access.intakePortsHint')}>
               {tx('settings.sectionIntakePorts')}
             </SectionTitle>
             {listeners.map((m) => {
@@ -488,6 +524,189 @@ function PairingCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, string 
   );
 }
 
+// ---- Relay -------------------------------------------------------------------
+
+// How often the sibling list is re-read while a relay is configured. Slower
+// than InstanceCard's own 3s stats poll, because this list only changes when
+// another instance is switched on or off or the relay connection itself
+// drops, not continuously the way a speed figure does.
+const RELAY_POLL_MS = 5000;
+
+/**
+ * RelayCard is the "Vermittler" side of pairing: the address this instance
+ * dials out to, the key that decides whose instances it meets there, and who
+ * is currently on the other end of it.
+ *
+ * The two fields are saved on their own button rather than through the shared
+ * settings draft the IdentityCard above uses, for the same reason PasswordCard
+ * is: only the address is a setting. The key is a credential, it never travels
+ * through GET/PUT /api/settings at all (internal/api/routes_relay.go's own
+ * comment on why a secret must not ride on a route that hands the whole
+ * document back), and the two halves are stored by one request that answers
+ * with what is now stored - so what is rendered below is always the server's
+ * account of it, never this form's hope.
+ *
+ * The key is write-only here. Once it is stored, this card can say that it is
+ * and nothing more: the route never sends the plaintext back, not even
+ * redacted, so there is nothing to display and no way to pretend otherwise.
+ */
+function RelayCard({ cx }: { cx: (k: PendingKey) => string }) {
+  const { t } = useT();
+  const [cfg, setCfg] = useState<RelayConfig | null>(null);
+  const [url, setUrl] = useState('');
+  const [key, setKey] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState('');
+  const [siblings, setSiblings] = useState<Instance[]>([]);
+
+  useEffect(() => {
+    fetchRelayConfig()
+      .then((c) => {
+        setCfg(c);
+        setUrl(c.relayUrl);
+      })
+      .catch(() => setCfg(null));
+  }, []);
+
+  // A relay peer arrives on the ordinary peer list (GET /api/instances,
+  // federation.Manager.List merges the stored peers and the relay-visible
+  // ones into the one list the Instances page already draws) and is told
+  // apart by carrying a relayId. Reading it here rather than inventing a
+  // second endpoint keeps one answer to "who can this instance see".
+  const live = !!cfg && cfg.relayUrl !== '' && cfg.keySet;
+  useEffect(() => {
+    if (!live) {
+      setSiblings([]);
+      return;
+    }
+    let alive = true;
+    const load = () =>
+      fetchInstances()
+        .then((list) => {
+          if (alive) setSiblings(list.filter((p) => !!p.relayId));
+        })
+        // A missed poll leaves the previous rows up rather than blanking a
+        // list that was right a moment ago - the relay dropping out is
+        // reported by the next successful read, not by a failed one.
+        .catch(() => {});
+    void load();
+    const timer = window.setInterval(() => void load(), RELAY_POLL_MS);
+    return () => {
+      alive = false;
+      window.clearInterval(timer);
+    };
+  }, [live]);
+
+  // Hidden entirely when the route is not there: a build without the relay
+  // has nothing to configure, and an empty form for a feature that cannot
+  // work is worse than no card at all.
+  if (!cfg) return null;
+
+  // undefined leaves the stored key alone, '' clears it, anything else
+  // replaces it - the three cases PUT /api/relay/config tells apart by
+  // whether `key` is on the wire, which is why an untouched field must send
+  // nothing rather than the empty string it holds.
+  async function save(nextKey?: string) {
+    setError('');
+    setBusy(true);
+    try {
+      const c = await saveRelayConfig(url.trim(), nextKey);
+      setCfg(c);
+      setUrl(c.relayUrl);
+      setKey('');
+      setDone(true);
+      setTimeout(() => setDone(false), 1800);
+    } catch (e) {
+      // The server's own sentence, unwrapped: json() throws an ApiError whose
+      // name would otherwise be printed in front of it (String(err) reads
+      // "ApiError: ..."), which is the route's message with noise on it.
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Card className="flex flex-col gap-5">
+      <SectionTitle hue={5} hint={`${cx('settings.access.relay.body')} ${cx('settings.access.relay.selfHosted')}`}>
+        {cx('settings.access.relay.title')}
+      </SectionTitle>
+
+      <Field label={cx('settings.access.relay.urlLabel')} hint={cx('settings.access.relay.urlHint')}>
+        <TextInput
+          dir="ltr"
+          spellCheck={false}
+          placeholder={cx('settings.access.relay.urlPlaceholder')}
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+        />
+      </Field>
+
+      <Field label={cx('settings.access.relay.keyLabel')} hint={cx('settings.access.relay.keyHint')}>
+        <TextInput
+          type="password"
+          dir="ltr"
+          autoComplete="off"
+          spellCheck={false}
+          placeholder={cx(
+            cfg.keySet ? 'settings.access.relay.keyPlaceholderSet' : 'settings.access.relay.keyPlaceholderUnset',
+          )}
+          value={key}
+          onChange={(e) => setKey(e.target.value)}
+        />
+      </Field>
+
+      <div className="flex items-center gap-3">
+        <Button kind="secondary" disabled={busy} onClick={() => void save(key === '' ? undefined : key)}>
+          {busy ? cx('settings.access.relay.saving') : cx('settings.access.relay.save')}
+        </Button>
+        <span className={`text-sm ${cfg.keySet ? 'text-statusOk' : 'text-carbon-textMuted'}`}>
+          {cx(cfg.keySet ? 'settings.access.relay.keySet' : 'settings.access.relay.keyUnset')}
+        </span>
+        {cfg.keySet && (
+          <IconBadge
+            kind="danger"
+            icon={<IconTrash width={15} height={15} />}
+            disabled={busy}
+            title={cx('settings.access.relay.keyClear')}
+            aria-label={cx('settings.access.relay.keyClear')}
+            onClick={() => void save('')}
+          />
+        )}
+        <span className="flex-1" />
+        {done && <span className="text-sm text-statusOk">{cx('settings.access.relay.saved')}</span>}
+        {error && <span className="text-sm text-statusFail">{error}</span>}
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <span className="text-xs font-semibold text-carbon-textSub">{cx('settings.access.relay.siblingsTitle')}</span>
+        {!live && <span className="text-[11px] text-carbon-textMuted">{cx('settings.access.relay.siblingsOff')}</span>}
+        {live && siblings.length === 0 && (
+          <span className="text-[11px] text-carbon-textMuted">{cx('settings.access.relay.siblingsEmpty')}</span>
+        )}
+        {siblings.map((p) => (
+          <div key={p.relayId} className="flex items-center gap-2 text-sm">
+            {/* Always the online dot: a relay peer is on this list exactly as
+                long as the relay reports it connected, so there is no offline
+                state for one to be in - it is simply gone from the next poll. */}
+            <span
+              role="img"
+              aria-label={t('instances.online')}
+              title={t('instances.online')}
+              className="h-2 w-2 shrink-0 rounded-[var(--radius-pill)] bg-statusOkSolid"
+            />
+            <span className="min-w-0 flex-1 truncate text-carbon-text">{p.name}</span>
+            <span className="glim-num max-w-[10rem] shrink-0 truncate text-[11px] text-carbon-textMuted" dir="ltr" title={p.relayId}>
+              {p.relayId}
+            </span>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 // ---- API tokens -------------------------------------------------------------
 
 function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
@@ -541,12 +760,12 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
     <>
       <Card className="flex flex-col gap-3">
         <SectionTitle
-          hue={5}
+          hue={6}
           hint={cx('settings.access.tokens.intro')}
           right={
             <Button
               kind="secondary"
-              hue={5}
+              hue={6}
               className="px-2.5 text-xs"
               icon={<IconPlus width={14} height={14} />}
               onClick={() => setShowCreate(true)}
@@ -641,7 +860,7 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
                 </code>
               </div>
               <IconBadge
-                hue={5}
+                hue={6}
                 icon={copied ? <IconCheck width={14} height={14} /> : <IconClipboard width={14} height={14} />}
                 title={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
                 aria-label={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}

@@ -54,6 +54,7 @@ func registerAll(reg *Registry, a *app.App) {
 	registerHistory(reg, a)
 	registerFederation(reg, a)
 	registerPairing(reg, a)
+	registerRelay(reg, a)
 	registerFeatures(reg, a)
 	registerConnections(reg, a)
 	registerRules(reg, a)
