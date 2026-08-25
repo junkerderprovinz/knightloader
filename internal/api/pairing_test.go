@@ -3,12 +3,15 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 )
 
 // TestPairingCodeGenerate proves the generate endpoint's response shape:
@@ -308,5 +311,113 @@ func TestPairingCodeRedeemUnreachablePeerAddsNothing(t *testing.T) {
 	}
 	if len(bApp.Federation.List()) != 0 {
 		t.Fatalf("federation list = %v, want empty: an unreachable peer must not be added", bApp.Federation.List())
+	}
+}
+
+// TestDesktopCannotPair: the desktop build serves its API only inside its own
+// Wails window and opens no listener, so it has no address any peer could dial.
+// Before this was gated, pairingSelf reported the Wails webview host
+// (http://wails.localhost) - not loopback, and a valid domain, so
+// preferredAddress ranked it FIRST, ahead of any real configured domain - and
+// federation.Add, which validates only scheme and host, wrote it into the
+// OTHER instance's stored peer list. Both sides were told the pairing
+// succeeded; the peer was dead forever.
+//
+// Pinned on BOTH routes: minting a code and redeeming one each need this
+// instance's own address, so each has to refuse. The web UI hid the generate
+// card on the desktop build but never the redeem card, which is exactly how
+// this silent failure ended up on somebody else's machine.
+func TestDesktopCannotPair(t *testing.T) {
+	prev := buildinfo.Deployment
+	buildinfo.Deployment = "desktop"
+	t.Cleanup(func() { buildinfo.Deployment = prev })
+
+	srv, _ := testServer(t)
+	defer srv.Close()
+
+	resp, err := http.Post(srv.URL+"/api/instances/pairing-code", "application/json", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusConflict {
+		t.Errorf("POST /api/instances/pairing-code on a desktop build = %d, want 409", resp.StatusCode)
+	}
+
+	body := bytes.NewBufferString(`{"code":"irrelevant-the-refusal-comes-first"}`)
+	resp2, err := http.Post(srv.URL+"/api/instances/pairing-code/redeem", "application/json", body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp2.Body.Close()
+	// 409, not the 400 a malformed code would get: the refusal is about THIS
+	// build having no address at all, and must not depend on the code.
+	if resp2.StatusCode != http.StatusConflict {
+		t.Errorf("POST /api/instances/pairing-code/redeem on a desktop build = %d, want 409", resp2.StatusCode)
+	}
+}
+
+// TestCompleteDoesNotBurnTheCodeOnAnUnrelatedFailure: the token was taken and
+// deleted before the operation it gates had succeeded, with no way back. So a
+// peer name the federation store rejects - a hostname with an unusual
+// character, or a user-set InstanceName, since that is only trimmed - burned
+// the code on the first attempt. Every retry then answered "that code is
+// invalid or has expired", including with a freshly generated code, because
+// the same name kept failing. That reads as a clock problem and is unfixable
+// until somebody guesses it is really about the name.
+//
+// Two things are pinned here: the code SURVIVES a failure that was not about
+// the code, and the answer carries the real reason instead of an expiry story.
+func TestCompleteDoesNotBurnTheCodeOnAnUnrelatedFailure(t *testing.T) {
+	srv, _ := testServer(t)
+	defer srv.Close()
+
+	resp, err := http.Post(srv.URL+"/api/instances/pairing-code", "application/json", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var issued struct {
+		Code string `json:"code"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&issued); err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	offer, err := decodeOffer(issued.Code)
+	if err != nil {
+		t.Fatalf("decode our own code: %v", err)
+	}
+
+	complete := func(name string) (int, string) {
+		t.Helper()
+		body, _ := json.Marshal(map[string]string{
+			"token": offer.Token, "name": name, "url": "http://192.168.10.10:8749",
+		})
+		resp, err := http.Post(srv.URL+"/api/instances/pairing-code/complete", "application/json", bytes.NewReader(body))
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer resp.Body.Close()
+		msg, _ := io.ReadAll(resp.Body)
+		return resp.StatusCode, strings.TrimSpace(string(msg))
+	}
+
+	// A name federation.Add refuses (nameRe). Nothing to do with the token.
+	status, msg := complete("this name is far too long to be a valid instance name and also has spaces")
+	if status != http.StatusBadRequest {
+		t.Fatalf("a rejected name answered %d, want 400", status)
+	}
+	if strings.Contains(msg, "expired") {
+		t.Errorf("answer was %q - a name rejection must not be reported as an expiry", msg)
+	}
+
+	// The same code must still work once the name is acceptable.
+	if status, msg := complete("cellar"); status != http.StatusNoContent {
+		t.Fatalf("retry with a valid name answered %d (%s), want 204 - the code was burned by a failure that was not about it", status, msg)
+	}
+
+	// And it really is single-use: the successful redemption consumed it.
+	if status, _ := complete("cellar"); status != http.StatusBadRequest {
+		t.Errorf("reusing a successfully redeemed code answered %d, want 400", status)
 	}
 }

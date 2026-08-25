@@ -145,7 +145,9 @@ const PENDING = {
   'settings.access.relay.siblingsTitle': 'Visible through the relay',
   'settings.access.relay.siblingsOff': 'Enter an address and a key to see the instances that share them.',
   'settings.access.relay.siblingsEmpty':
-    'Nothing right now. Either no other instance is connected with this key, or the relay cannot be reached from here. Both look the same from this side, and neither stops this instance doing anything else.',
+    'Nothing right now - the relay is reachable, no other instance is connected with this key.',
+  'settings.access.relay.unreachable':
+    'The relay cannot be reached with this address and key. Check both, and that the relay is running - nothing else on this instance is affected.',
 
   'settings.access.intakePortsHint':
     'Other ways this instance can be reached directly, outside the normal login - each with its own reachability shown here.',
@@ -730,7 +732,16 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
           {!relayLive && (
             <span className="text-[11px] text-carbon-textMuted">{cx('settings.access.relay.siblingsOff')}</span>
           )}
-          {relayLive && siblings.length === 0 && (
+          {/* Configured but the socket is down: a typo'd address, a key the
+              relay rejects, or a relay that is simply not running. This used
+              to be indistinguishable from "connected, nobody else here",
+              because the page could only see the stored config - relayConfig
+              .connected now carries the real answer (relay.Client.Connected,
+              surfaced through federation.Manager.RelayConnected). */}
+          {relayLive && !cfg.connected && (
+            <span className="text-[11px] text-statusFail">{cx('settings.access.relay.unreachable')}</span>
+          )}
+          {relayLive && cfg.connected && siblings.length === 0 && (
             <span className="text-[11px] text-carbon-textMuted">{cx('settings.access.relay.siblingsEmpty')}</span>
           )}
           {siblings.map((p) => (
