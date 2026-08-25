@@ -74,11 +74,11 @@ export const ja: Dict = {
   'empty.downloadsHint': 'コレクターにリンクを追加してから開始してください。',
 
   'collector.title': 'コレクター',
-  'collector.listTitle': 'コレクション',
+  'collector.listTitle': 'リンクリスト',
   'collector.placeholder': 'リンクを貼り付け（1行に1つ）、またはここにドロップ…（Ctrl+Enter で追加）',
   'collector.package': 'パッケージ（任意）',
   'collector.add': 'コレクターに追加',
-  'collector.addTitle': '新しいリンク',
+  'collector.addTitle': 'リンクコレクター',
   'collector.empty': 'コレクターは空です。上にリンクを貼り付けて準備してください。',
   'collector.staged': '件を準備済み',
   'collector.selected': '件を選択中',

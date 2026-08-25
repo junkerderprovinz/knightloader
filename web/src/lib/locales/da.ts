@@ -74,11 +74,11 @@ export const da: Dict = {
   'empty.downloadsHint': 'Tilføj links i samleren, og start dem derefter.',
 
   'collector.title': 'Samler',
-  'collector.listTitle': 'Samling',
+  'collector.listTitle': 'Linkliste',
   'collector.placeholder': 'Indsæt links - ét pr. linje - eller slip dem her…  (Ctrl+Enter tilføjer)',
   'collector.package': 'Pakke (valgfrit)',
   'collector.add': 'Føj til samleren',
-  'collector.addTitle': 'Nye links',
+  'collector.addTitle': 'Linksamler',
   'collector.empty': 'Samleren er tom. Indsæt links ovenfor for at klargøre dem.',
   'collector.staged': 'klargjort',
   'collector.selected': 'valgt',

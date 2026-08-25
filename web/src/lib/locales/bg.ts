@@ -74,11 +74,11 @@ export const bg: Dict = {
   'empty.downloadsHint': 'Добави връзки в колектора и ги стартирай.',
 
   'collector.title': 'Колектор',
-  'collector.listTitle': 'Колекция',
+  'collector.listTitle': 'Списък с връзки',
   'collector.placeholder': 'Постави връзки — по един URL на ред — или ги пусни тук…  (Ctrl+Enter добавя)',
   'collector.package': 'Пакет (по избор)',
   'collector.add': 'В колектора',
-  'collector.addTitle': 'Нови връзки',
+  'collector.addTitle': 'Колектор за връзки',
   'collector.empty': 'Колекторът е празен. Постави връзки горе, за да ги подготвиш.',
   'collector.staged': 'подготвени',
   'collector.selected': 'избрани',

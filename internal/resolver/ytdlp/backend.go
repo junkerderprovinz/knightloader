@@ -173,17 +173,62 @@ func (b *Backend) run(taskID, url string) {
 	b.onUpdate(taskID, core.Update{Status: core.StatusDone, Speed: 0})
 }
 
-// ProbeTitle asks yt-dlp for a link's real title without downloading
-// anything - the per-task ASYNC probe Resolver's own doc comment (resolver.go)
-// says is a different shape from the batched resolver.Checker deliberately
-// left unbuilt there. --skip-download and --print %(title)s (no -f, no
-// format list) ask yt-dlp to extract just enough metadata to answer, never
-// the muxed formats a real download or a "--simulate" would resolve, so this
-// is cheaper than the download it stands in for - though it is still one
-// real process per call, including whatever anti-bot gauntlet the site puts
-// in front of extraction, which is exactly why app.probeYtdlpTitle (the only
-// caller) fires this once per staged task rather than batching a paste's
-// worth of links into one call the way a Checker would.
+// FormatEntry is one entry from yt-dlp's own "formats" array (-j/
+// --dump-json's info dict), reduced to the fields KnightLoader actually
+// reads: whether it is a video or audio track (Vcodec/Acodec is "none" for
+// the side that format doesn't carry), the quality/size that track is, and
+// what container it lands in. Height is 0 for an audio-only entry - yt-dlp
+// itself uses that same "not a video dimension" convention.
+type FormatEntry struct {
+	FormatID string
+	Ext      string
+	Vcodec   string
+	Acodec   string
+	Height   int
+	// Filesize is the exact byte count when the host reports one (a plain
+	// https download); FilesizeApprox is yt-dlp's own estimate when it does
+	// not (an m3u8/DASH manifest, most commonly) - never both at once in
+	// practice, callers wanting "whatever number is available" should read
+	// Filesize first and fall back to FilesizeApprox.
+	Filesize       int64
+	FilesizeApprox int64
+}
+
+// ProbeResult is what a single -j extraction pass answers: the resolved
+// title (setTaskName's own input) and every format the source actually
+// offers (what the "Variante" quality/audio-format pickers narrow down to,
+// and what a specific pick's own extension/size come from) - one process,
+// one network round trip, both answers already sitting in yt-dlp's own info
+// dict by the time extraction finishes; see ProbeTitle's own doc comment
+// for why asking for more from the SAME call costs nothing extra.
+type ProbeResult struct {
+	Title   string
+	Formats []FormatEntry
+}
+
+// ProbeTitle asks yt-dlp for a link's real title AND its real available
+// formats without downloading anything - the per-task ASYNC probe
+// Resolver's own doc comment (resolver.go) says is a different shape from
+// the batched resolver.Checker deliberately left unbuilt there. -j
+// (--dump-json) with --skip-download (no -f, no format selection) asks
+// yt-dlp to extract just enough metadata to answer, never the muxed formats
+// a real download or a "--simulate" would resolve, so this is cheaper than
+// the download it stands in for - though it is still one real process per
+// call, including whatever anti-bot gauntlet the site puts in front of
+// extraction, which is exactly why app.probeYtdlpTitle (the only caller)
+// fires this once per staged task rather than batching a paste's worth of
+// links into one call the way a Checker would.
+//
+// -j rather than the older --print %(title)s (jdp, 2026-08-25: "man soll
+// nur die varianten auswählen können die wirklich verfügbar sind" / "es
+// zeigt die dateiendungen... und die größe nicht an"): yt-dlp builds its
+// complete internal info dict - including every format's own id, container,
+// codecs and size - during extraction regardless of what gets printed
+// afterward; --print only threw the rest away. Asking for it all via -j
+// measured indistinguishable from the old --print call in wall-clock time
+// (both are dominated by the site's own extraction round trip, not by what
+// gets serialized afterward), so there is no real cost to always having the
+// format list on hand instead of a second, separate probe for it.
 //
 // The caller is expected to bound ctx - see app.ytdlpProbeTimeout, applied
 // by probeYtdlpTitle the same way app.checkTimeout already bounds
@@ -194,33 +239,59 @@ func (b *Backend) run(taskID, url string) {
 // Known simplification, not a guess dressed up as a decision: --flat-playlist
 // is deliberately NOT passed. It would make a playlist/channel URL's probe
 // far cheaper - yt-dlp could answer from the listing alone instead of
-// opening entries - but it also changes what --print %(title)s answers for
-// an ordinary single-video URL in ways this change could not confirm safely
+// opening entries - but it also changes what the info dict answers for an
+// ordinary single-video URL in ways this change could not confirm safely
 // from documented behaviour alone, and guessing wrong here means a working
 // single-video probe breaks instead of a playlist probe staying merely slow.
 // Without the flag, a playlist/channel URL's probe still runs rather than
-// failing outright - slower, and %(title)s answers with the first entry's
-// title rather than the playlist's own name - which is a known gap for a
-// later pass, not a crash today.
-func (b *Backend) ProbeTitle(ctx context.Context, url string) (string, error) {
-	cmd := exec.CommandContext(ctx, b.bin, "--skip-download", "--no-warnings", "--print", "%(title)s", url)
+// failing outright - slower, and -j prints one JSON object per entry rather
+// than the playlist's own single answer, of which firstLine below still
+// takes the first - a known gap for a later pass, not a crash today.
+func (b *Backend) ProbeTitle(ctx context.Context, url string) (ProbeResult, error) {
+	cmd := exec.CommandContext(ctx, b.bin, "--skip-download", "--no-warnings", "-j", url)
 	cmd.Env = append(os.Environ(), "PYTHONIOENCODING=utf-8")
 	out, err := cmd.Output()
 	if err != nil {
-		return "", err
+		return ProbeResult{}, err
 	}
-	title := firstLine(string(out))
+	line := firstLine(string(out))
+	if line == "" {
+		return ProbeResult{}, errors.New("ytdlp: probe returned no data")
+	}
+	var raw struct {
+		Title   string `json:"title"`
+		Formats []struct {
+			FormatID       string  `json:"format_id"`
+			Ext            string  `json:"ext"`
+			Vcodec         string  `json:"vcodec"`
+			Acodec         string  `json:"acodec"`
+			Height         int     `json:"height"`
+			Filesize       int64   `json:"filesize"`
+			FilesizeApprox float64 `json:"filesize_approx"`
+		} `json:"formats"`
+	}
+	if err := json.Unmarshal([]byte(line), &raw); err != nil {
+		return ProbeResult{}, fmt.Errorf("ytdlp: probe returned unparseable data: %w", err)
+	}
+	title := strings.TrimSpace(raw.Title)
 	if title == "" {
-		return "", errors.New("ytdlp: probe returned no title")
+		return ProbeResult{}, errors.New("ytdlp: probe returned no title")
 	}
-	return title, nil
+	res := ProbeResult{Title: title, Formats: make([]FormatEntry, 0, len(raw.Formats))}
+	for _, f := range raw.Formats {
+		res.Formats = append(res.Formats, FormatEntry{
+			FormatID: f.FormatID, Ext: f.Ext, Vcodec: f.Vcodec, Acodec: f.Acodec,
+			Height: f.Height, Filesize: f.Filesize, FilesizeApprox: int64(f.FilesizeApprox),
+		})
+	}
+	return res, nil
 }
 
-// firstLine is the first non-empty line of s. A single-video probe's
-// %(title)s prints exactly one line; the --flat-playlist gap documented on
-// ProbeTitle above means a playlist/channel URL can print one title per
-// entry instead, and the first is the best single answer available without
-// a second, playlist-aware flag.
+// firstLine is the first non-empty line of s. A single-video probe's -j
+// prints exactly one JSON object per line; the --flat-playlist gap
+// documented on ProbeTitle above means a playlist/channel URL can print one
+// object per entry instead, and the first is the best single answer
+// available without a second, playlist-aware flag.
 func firstLine(s string) string {
 	for _, line := range strings.Split(s, "\n") {
 		if line = strings.TrimSpace(line); line != "" {

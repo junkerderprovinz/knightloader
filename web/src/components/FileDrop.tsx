@@ -16,13 +16,65 @@
 // picker, never a gate, matching ContainerDrop/TorrentUpload's own
 // established reasoning: the server decides by content, so a misnamed file
 // chosen anyway is sent as it is.
-import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { parseTorrentUpload, stageTorrent, uploadContainer, type Task, type TorrentTree } from '../lib/api';
 import { fmtBytes } from '../lib/format';
 import { message } from '../lib/intake';
 import { useT } from '../lib/i18n';
 import { Button } from './ui';
+import { ProgressBar } from './ProgressBar';
 import { IconCheck } from '../lib/icons';
+
+/** seconds → "12s" / "3m 5s" / "1h 2m", the same compact shape fmtEta
+ *  (lib/format.ts) already prints, just from a plain elapsed count instead
+ *  of a loaded/size/speed computation - the two are not the same question,
+ *  so this stays its own tiny helper rather than forcing an ETA function to
+ *  answer something it was never about. */
+function fmtElapsed(totalSeconds: number): string {
+  const s = Math.max(0, Math.floor(totalSeconds));
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  if (s < 3600) return `${m}m ${s % 60}s`;
+  const h = Math.floor(s / 3600);
+  return `${h}h ${Math.floor((s % 3600) / 60)}m`;
+}
+
+/**
+ * ContainerHandedProgress replaces a bare wait sentence with the same
+ * indeterminate-bar language every other "something is happening, no
+ * percentage available yet" moment in this app already speaks (ProgressBar
+ * itself, queued/extracting rows) - jdp, 2026-08-25, on the plain text this
+ * used to be: "Können wir statt dem Text ein progressbar wie in BV anzeigen
+ * lassen?" (BombVault's own OffsiteIndicator does the identical thing for
+ * its own "waiting on an external process, roughly bounded" case - an
+ * indeterminate sweep plus a live elapsed-duration caption, since neither
+ * app can honestly claim a completion percentage for a handover that
+ * either finishes or expires, never partially progresses).
+ *
+ * startedAt is stamped client-side the moment the handover response
+ * arrived (sendOne below) - the backend's own handover has no notion of a
+ * "started at" timestamp of its own to read back (routes_containers.go's
+ * relayTTL is a flat duration, not a deadline), so this is the best
+ * available anchor for "how long has this actually been waiting".
+ */
+function ContainerHandedProgress({ file, expiresIn, startedAt }: { file: string; expiresIn: number; startedAt: number }) {
+  const { t } = useT();
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const elapsed = Math.max(0, Math.round((now - startedAt) / 1000));
+  return (
+    <div className="flex flex-col gap-1.5 px-4">
+      <p className="text-xs text-carbon-textSub">{t('container.handed', { file, n: expiresIn })}</p>
+      <div className="flex items-center gap-2">
+        <ProgressBar active percent={0} indeterminate />
+        <span className="glim-num shrink-0 text-[11px] text-carbon-textMuted">{fmtElapsed(elapsed)}</span>
+      </div>
+    </div>
+  );
+}
 
 /** What Collector.tsx reaches through the ref for: opening the file picker
  *  from AddLinksForm's own button row (jdp: "Dropzone mit Dateiwählen
@@ -49,7 +101,7 @@ const MAX_CONTAINER_BYTES = 8 << 20;
  *  and follows a language change instead of freezing at upload time. */
 type Outcome =
   | { file: string; kind: 'container-staged'; links: number; created: number; pkg: string }
-  | { file: string; kind: 'container-handed'; expiresIn: number }
+  | { file: string; kind: 'container-handed'; expiresIn: number; startedAt: number }
   | { file: string; kind: 'torrent-staged'; task: Task }
   | { file: string; kind: 'torrent-duplicate' }
   | { file: string; kind: 'failed'; reason: string };
@@ -74,7 +126,7 @@ function Result({ o }: { o: Outcome }) {
   // people upload the same file four times. The links arrive over the websocket
   // when the backend has fetched the handover.
   if (o.kind === 'container-handed') {
-    return <p className="px-4 text-xs text-carbon-textSub">{t('container.handed', { file: o.file, n: o.expiresIn })}</p>;
+    return <ContainerHandedProgress file={o.file} expiresIn={o.expiresIn} startedAt={o.startedAt} />;
   }
   // The container held links and none of them became a task: every one was
   // already in the list. Not a fault, and not silence either.
@@ -284,7 +336,9 @@ export const FileDrop = forwardRef<FileDropHandle, { pkg?: string }>(function Fi
     }
     try {
       const r = await uploadContainer(f, pkg);
-      if (r.handedTo === 'jd') return { file: f.name, kind: 'container-handed', expiresIn: r.expiresIn };
+      if (r.handedTo === 'jd') {
+        return { file: f.name, kind: 'container-handed', expiresIn: r.expiresIn, startedAt: Date.now() };
+      }
       // The package is read off what was actually created rather than off the
       // package field, because a Packagizer rule may have overridden it;
       // several packages means there is no single one to name.

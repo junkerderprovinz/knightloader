@@ -74,11 +74,11 @@ export const de: Dict = {
   'empty.downloadsHint': 'Füge Links im Sammler hinzu und starte sie.',
 
   'collector.title': 'Sammler',
-  'collector.listTitle': 'Sammlung',
+  'collector.listTitle': 'Linkliste',
   'collector.placeholder': 'Links einfügen - eine URL pro Zeile - oder hier ablegen…  (Strg+Enter zum Hinzufügen)',
   'collector.package': 'Paket (optional)',
   'collector.add': 'Zum Sammler',
-  'collector.addTitle': 'Neue Links',
+  'collector.addTitle': 'Linksammler',
   'collector.empty': 'Der Sammler ist leer. Füge oben Links ein, um sie zu sammeln.',
   'collector.staged': 'gesammelt',
   'collector.selected': 'ausgewählt',

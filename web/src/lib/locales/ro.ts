@@ -74,11 +74,11 @@ export const ro: Dict = {
   'empty.downloadsHint': 'Adaugă linkuri în colector, apoi pornește-le.',
 
   'collector.title': 'Colector',
-  'collector.listTitle': 'Colecție',
+  'collector.listTitle': 'Listă de linkuri',
   'collector.placeholder': 'Lipește linkuri - câte unul pe rând - sau trage-le aici…  (Ctrl+Enter adaugă)',
   'collector.package': 'Pachet (opțional)',
   'collector.add': 'Adaugă în colector',
-  'collector.addTitle': 'Linkuri noi',
+  'collector.addTitle': 'Colector de linkuri',
   'collector.empty': 'Colectorul este gol. Lipește linkuri mai sus pentru a le pregăti.',
   'collector.staged': 'pregătite',
   'collector.selected': 'selectate',

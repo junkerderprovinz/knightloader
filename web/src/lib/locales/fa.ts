@@ -74,11 +74,11 @@ export const fa: Dict = {
   'empty.downloadsHint': 'در جمع‌آور لینک اضافه کنید، بعد شروعشان کنید.',
 
   'collector.title': 'جمع‌آور',
-  'collector.listTitle': 'مجموعه',
+  'collector.listTitle': 'فهرست پیوندها',
   'collector.placeholder': 'لینک‌ها را بچسبانید - هر خط یک URL - یا اینجا رها کنید…  (Ctrl+Enter برای افزودن)',
   'collector.package': 'بسته (اختیاری)',
   'collector.add': 'افزودن به جمع‌آور',
-  'collector.addTitle': 'پیوندهای جدید',
+  'collector.addTitle': 'جمع‌آور پیوند',
   'collector.empty': 'جمع‌آور خالی است. بالا لینک بچسبانید تا آماده شوند.',
   'collector.staged': 'آماده',
   'collector.selected': 'انتخاب‌شده',

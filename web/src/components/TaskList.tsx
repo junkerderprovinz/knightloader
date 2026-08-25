@@ -271,7 +271,7 @@ function TaskRow({
             style={col.id === 'name' ? { paddingInlineStart: `${TREE_INDENT}px` } : undefined}
             className={`min-w-0 truncate text-[12.5px] text-carbon-textSub ${
               col.id === 'name' ? 'pe-2' : 'px-2'
-            } ${col.align === 'end' ? 'text-end' : 'text-start'} ${col.numeric ? 'glim-num' : ''}`}
+            } ${col.align === 'end' ? 'text-end' : col.align === 'center' ? 'text-center' : 'text-start'} ${col.numeric ? 'glim-num' : ''}`}
           >
             {node}
           </div>
@@ -701,7 +701,7 @@ function PackageGroup({
           <div
             key={col.id}
             className={`min-w-0 truncate px-2 text-[12px] text-carbon-textSub ${
-              col.align === 'end' ? 'text-end' : 'text-start'
+              col.align === 'end' ? 'text-end' : col.align === 'center' ? 'text-center' : 'text-start'
             } ${col.numeric ? 'glim-num' : ''}`}
           >
             {col.id === 'name' ? (
@@ -849,9 +849,9 @@ function Header({
               onClick={() => sortable && onSort(col.id)}
               aria-sort={sorted === 'asc' ? 'ascending' : sorted === 'desc' ? 'descending' : undefined}
               className={`flex min-w-0 flex-1 items-center gap-1 px-2 py-1.5 text-[11px] font-semibold uppercase
-                tracking-wide transition-colors ${col.align === 'end' ? 'justify-end' : 'justify-start'} ${
-                  sorted ? 'text-carbon-text' : 'text-carbon-textMuted hover:text-carbon-textSub'
-                }`}
+                tracking-wide transition-colors ${
+                  col.align === 'end' ? 'justify-end' : col.align === 'center' ? 'justify-center' : 'justify-start'
+                } ${sorted ? 'text-carbon-text' : 'text-carbon-textMuted hover:text-carbon-textSub'}`}
             >
               <span className="truncate">{t(col.labelKey)}</span>
               {sorted === 'asc' && <IconArrowUp width={11} height={11} className="shrink-0" />}

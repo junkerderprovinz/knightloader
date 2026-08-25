@@ -4,7 +4,8 @@ import { useTasks } from '../lib/useTasks';
 import { useReportListView } from '../lib/listview';
 import { useToast } from '../lib/toast';
 import { useT } from '../lib/i18n';
-import { PageHeader, IconBadge, InfoBubble } from '../components/ui';
+import { PageHeader, IconBadge, InfoBubble, Button } from '../components/ui';
+import { Tabs } from '../components/Tabs';
 import {
   TaskListCard,
   groupByPackage,
@@ -19,9 +20,9 @@ import { SkippedLinks } from '../components/SkippedLinks';
 import {
   COLLECTOR_FILTERS,
   ListMenu,
-  ListToolbar,
   cleanupItems,
   matchesQuickFilters,
+  offeredQuickFilters,
   targetPackage,
   targetTaskId,
   useCleanup,
@@ -108,9 +109,12 @@ export function Collector() {
   // The search field's own open/closed state (jdp, 2026-08-24: "das
   // suchfeld soll auch als quadratischer badge neben die andren vier
   // badges. bei klick soll das suchfeld ausklappen") - the field itself
-  // stays mounted only while this is true; ListToolbar's own inline copy is
-  // suppressed below via hideSearch so the two never both show at once.
+  // stays mounted only while this is true, as a small popover anchored
+  // under searchRef below rather than growing inline (jdp, 2026-08-25:
+  // "die suche soll einfach nach unten aufklappen und über allem
+  // hoovern").
   const [searchOpen, setSearchOpen] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
   const [filters, setFilters] = useState<Set<QuickFilterId>>(() => new Set());
   // The facet groups the collector's own sidebar exposes (host, file type,
   // package) — see components/CollectorFacets.tsx for why availability is not a
@@ -161,6 +165,21 @@ export function Collector() {
   // itself reads — COLLECTOR_BADGE_FILTERS below is what stays in the strip.
   const uncheckableCount = useMemo(() => collected.filter((x) => x.online === 'uncheckable').length, [collected]);
   const uncheckedCount = useMemo(() => collected.filter((x) => !x.online).length, [collected]);
+  // The rest of the strip (Online/Offline/Deaktiviert/Gehalten), merged
+  // into the badge row below (jdp, 2026-08-25: "können wir die nicht in
+  // der zeile der quadratischen icons platzieren"). offeredQuickFilters is
+  // ListToolbar's own logic, reused rather than copied so the two inline
+  // renderings of "which chip, which count" can never drift apart.
+  const offeredFilters = useMemo(
+    () => offeredQuickFilters(COLLECTOR_BADGE_FILTERS, collected, filters),
+    [collected, filters],
+  );
+  // filtered.length !== collected.length rather than ListToolbar's own
+  // "active.size > 0 || search text" reading: this page also narrows by
+  // the sidebar's own facets (host/type/package), which that simpler
+  // reading knows nothing about - a facet-only narrowing would otherwise
+  // show every row without ever explaining why fewer are visible.
+  const narrowed = filtered.length !== collected.length;
 
   function toggleFilter(id: QuickFilterId): void {
     const next = new Set(filters);
@@ -168,6 +187,22 @@ export function Collector() {
     else next.add(id);
     setFilters(next);
   }
+
+  // Closes the search popover on an outside click or Escape - the same
+  // pattern LanguagePicker.tsx's own dropdown already uses.
+  useEffect(() => {
+    if (!searchOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) setSearchOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setSearchOpen(false);
+    document.addEventListener('mousedown', onClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [searchOpen]);
 
   // Drop selections that have left the collector.
   useEffect(() => {
@@ -404,60 +439,75 @@ export function Collector() {
           <FilteredLinks held={held} />
           <SkippedLinks />
         </div>
-        {collected.length > 0 && (
-          <div className="shrink-0">
-            <ListToolbar
-              search={search}
-              onSearch={setSearch}
-              filters={COLLECTOR_BADGE_FILTERS}
-              active={filters}
-              onActive={setFilters}
-              tasks={collected}
-              shown={filtered.length}
-              hideSearch
-            />
-          </div>
-        )}
 
-        {/* Search, the selection actions and the four page-level actions all
-            share ONE row now (bug #35 continued, jdp 2026-08-24: "suchfeld
-            badge soll das erste badge von links sein und wenn man drauf
-            klickt nach links aufklappen, nicht die suchleiste in eine neue
-            zeile packen"; same round, a second item: "wenn ich ein
-            Linkpaket auswähle kommen oben buttons wie zb Auswahlaufheben ...
-            die sind nicht als badges erkennbar und die sollen in der
-            gleichen zeile wie die quadratischen badges erscheinen, nicht in
-            einer neuen Zeile"). Reversed 2026-08-25 (jdp: "die suche bitte
-            auch wieder rechts zu den anderen dazumachen. es soll aber der
-            linkeste badge sein und das suchfeld nach links aufklappen") -
-            search is now the FIRST badge of the right-hugging cluster
-            instead of its own left-aligned element, and the field opens
-            leftward from there rather than growing rightward from the left
-            edge: the spacer and the field now trade places in front of the
-            badge (was behind it), so whichever of the two is present eats
-            the same leftover space and the badge cluster itself never
-            moves. Selection replaces the fixed set of badges after search
-            with its own, on the same "one connected row" logic. Reuses the
+        {/* Search, the quick-filter strip, the selection actions and the
+            four page-level actions all share ONE row now (bug #35
+            continued, jdp 2026-08-24: "suchfeld badge soll das erste badge
+            von links sein und wenn man drauf klickt nach links aufklappen,
+            nicht die suchleiste in eine neue zeile packen"; same round, a
+            second item: "wenn ich ein Linkpaket auswähle kommen oben
+            buttons wie zb Auswahlaufheben ... die sind nicht als badges
+            erkennbar und die sollen in der gleichen zeile wie die
+            quadratischen badges erscheinen, nicht in einer neuen Zeile").
+            Reversed 2026-08-25 (jdp: "die suche bitte auch wieder rechts zu
+            den anderen dazumachen. es soll aber der linkeste badge sein und
+            das suchfeld nach links aufklappen") - search is now the FIRST
+            badge of the right-hugging cluster instead of its own
+            left-aligned element. Reversed again the SAME day (jdp: "die
+            suche soll einfach nach unten aufklappen und über allem
+            hoovern"): the field no longer trades places with the leading
+            spacer to grow INLINE (which pushed every badge after it
+            sideways and widened the whole row) - it is now a small
+            absolutely-positioned popover anchored under the search badge
+            itself (position: relative on that one badge's own wrapper,
+            the field position: absolute below it, same click-outside +
+            Escape close LanguagePicker.tsx's own dropdown already uses),
+            so opening it never moves anything else in this row at all.
+            Selection replaces the fixed set of badges after search with
+            its own, on the same "one connected row" logic. Reuses the
             exact same allChosen/cleanup/checkAll/startAll logic
             ListActionBar used to run for this page, and the exact same
             removeNow/askWithFiles/onMore wiring SelectionStrip used to run -
             only the trigger's shape changed, not what it does - and stays
             local to this file since Downloads.tsx keeps ListActionBar's and
-            SelectionStrip's own text-button look unchanged. */}
-        <div className="flex shrink-0 items-center gap-2" role="group" aria-label={t('list.actions')}>
-          {searchOpen ? (
-            <SearchField value={search} onChange={setSearch} className="min-w-0 flex-1" />
-          ) : (
-            <span className="flex-1" />
-          )}
+            SelectionStrip's own text-button look unchanged.
 
-          <IconBadge
-            hue={0}
-            icon={<IconSearch width={16} height={16} />}
-            title={t('collector.searchToggle')}
-            aria-label={t('collector.searchToggle')}
-            onClick={() => setSearchOpen((v) => !v)}
-          />
+            The quick-filter strip (Online/Offline/Deaktiviert/Gehalten
+            chips, the "Alles anzeigen" clear button, the "N von M
+            angezeigt" readout) moved into this same row too (jdp,
+            2026-08-25: "können wir die nicht in der zeile der quadratischen
+            icons platzieren damit wie den abstand zwischen der 'neue Links'
+            und der 'Sammlung' card verringern können?") - it used to be
+            ListToolbar's own separate `shrink-0` row above this one,
+            costing a full extra flex gap even when nothing in it had
+            anything to show. offeredQuickFilters is ListToolbar's own
+            counting/visibility logic, exported so this inline copy of its
+            markup never drifts from what ListToolbar itself still renders
+            for Downloads.tsx. flex-wrap here (this row alone, not the
+            layout above it) is new: a variable number of filter chips can
+            now share the row with the action badges, and wrapping is safer
+            than a horizontal scrollbar for a row this narrow a window can
+            make. */}
+        <div className="flex flex-wrap shrink-0 items-center gap-2" role="group" aria-label={t('list.actions')}>
+          <span className="flex-1" />
+
+          <div ref={searchRef} className="relative">
+            <IconBadge
+              hue={0}
+              icon={<IconSearch width={16} height={16} />}
+              title={t('collector.searchToggle')}
+              aria-label={t('collector.searchToggle')}
+              onClick={() => setSearchOpen((v) => !v)}
+            />
+            {searchOpen && (
+              <div
+                className="absolute end-0 top-full z-20 mt-2 w-72 rounded-[var(--radius-control)]
+                  bg-carbon-surface p-2 shadow-[var(--elevation)]"
+              >
+                <SearchField value={search} onChange={setSearch} className="w-full" />
+              </div>
+            )}
+          </div>
 
           {/* Filters, not actions — visible regardless of selection, the
               same reasoning the search badge beside them already follows,
@@ -481,6 +531,29 @@ export function Collector() {
             disabled={uncheckedCount === 0 && !filters.has('unchecked')}
             onClick={() => toggleFilter('unchecked')}
           />
+
+          {offeredFilters.length > 0 && (
+            <Tabs
+              select="many"
+              size="sm"
+              label={t('filter.label')}
+              active={filters}
+              onSelect={(id) => toggleFilter(id as QuickFilterId)}
+              items={offeredFilters.map(({ f, n }) => ({ id: f.id, label: t(f.label), badge: n }))}
+              after={
+                filters.size > 0 && (
+                  <Button kind="ghost" className="px-2 py-1 text-xs" onClick={() => setFilters(new Set())}>
+                    {t('filter.clear')}
+                  </Button>
+                )
+              }
+            />
+          )}
+          {narrowed && (
+            <span className="glim-num text-xs text-carbon-textMuted">
+              {t('search.shown', { n: filtered.length, total: collected.length })}
+            </span>
+          )}
 
           {selected.size > 0 ? (
             <>

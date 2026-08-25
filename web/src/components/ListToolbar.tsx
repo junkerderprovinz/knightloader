@@ -227,13 +227,13 @@ export type QuickFilterId =
   | 'uncheckable'
   | 'unchecked';
 
-interface QuickFilter {
+export interface QuickFilter {
   id: QuickFilterId;
   label: TranslationKey;
   match: (t: Task) => boolean;
 }
 
-const QUICK_FILTERS: QuickFilter[] = [
+export const QUICK_FILTERS: QuickFilter[] = [
   // Extracting is part of running: the download is not over, and a row that
   // vanished from "running" while it unpacks reads as a finished download.
   { id: 'running', label: 'filter.running', match: (t) => t.status === 'running' || t.status === 'extracting' },
@@ -251,6 +251,28 @@ const QUICK_FILTERS: QuickFilter[] = [
   { id: 'disabled', label: 'filter.disabled', match: (t) => !t.enabled },
   { id: 'held', label: 'filter.held', match: (t) => !!t.hold },
 ];
+
+/**
+ * offeredQuickFilters is ListToolbar's own filter-chip logic, exported so a
+ * page that renders these chips somewhere OTHER than ListToolbar's own row
+ * (Collector.tsx's badge row, jdp 2026-08-25: "können wir die nicht in der
+ * zeile der quadratischen icons platzieren") can reuse the exact same
+ * counting/visibility rule without a second, drifting copy of it. A filter
+ * with nothing to match is left off the menu - eight always-visible chips
+ * reading zero are eight things to read past on the way to the two that
+ * mean something - but one that is switched ON stays even at zero, or
+ * turning a filter on could make its own chip disappear out from under it.
+ */
+export function offeredQuickFilters(
+  filterIds: QuickFilterId[],
+  tasks: Task[],
+  active: Set<QuickFilterId>,
+): { f: QuickFilter; n: number }[] {
+  const defs = filterIds.map((id) => QUICK_FILTERS.find((f) => f.id === id)).filter((f): f is QuickFilter => !!f);
+  return defs
+    .map((f) => ({ f, n: tasks.reduce((s, x) => s + (f.match(x) ? 1 : 0), 0) }))
+    .filter(({ f, n }) => n > 0 || active.has(f.id));
+}
 
 /** The eight states a download list is actually filtered by. */
 export const DOWNLOAD_FILTERS: QuickFilterId[] = [
@@ -1248,14 +1270,7 @@ export function ListToolbar({
 }) {
   const { t } = useT();
 
-  const offered = useMemo(() => {
-    const defs = filters
-      .map((id) => QUICK_FILTERS.find((f) => f.id === id))
-      .filter((f): f is QuickFilter => !!f);
-    return defs
-      .map((f) => ({ f, n: tasks.reduce((s, x) => s + (f.match(x) ? 1 : 0), 0) }))
-      .filter(({ f, n }) => n > 0 || active.has(f.id));
-  }, [filters, tasks, active]);
+  const offered = useMemo(() => offeredQuickFilters(filters, tasks, active), [filters, tasks, active]);
 
   const narrowed = active.size > 0 || search.text.trim() !== '';
 

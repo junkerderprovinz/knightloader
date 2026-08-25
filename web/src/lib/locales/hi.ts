@@ -74,11 +74,11 @@ export const hi: Dict = {
   'empty.downloadsHint': 'कलेक्टर में लिंक जोड़ें, फिर शुरू करें।',
 
   'collector.title': 'कलेक्टर',
-  'collector.listTitle': 'संग्रह',
+  'collector.listTitle': 'लिंक सूची',
   'collector.placeholder': 'लिंक चिपकाएँ - हर पंक्ति में एक URL - या यहाँ छोड़ें…  (जोड़ने के लिए Ctrl+Enter)',
   'collector.package': 'पैकेज (वैकल्पिक)',
   'collector.add': 'कलेक्टर में जोड़ें',
-  'collector.addTitle': 'नए लिंक',
+  'collector.addTitle': 'लिंक कलेक्टर',
   'collector.empty': 'कलेक्टर खाली है। ऊपर लिंक चिपकाकर उन्हें तैयार करें।',
   'collector.staged': 'तैयार',
   'collector.selected': 'चुने गए',

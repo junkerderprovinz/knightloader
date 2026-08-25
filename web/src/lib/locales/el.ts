@@ -74,11 +74,11 @@ export const el: Dict = {
   'empty.downloadsHint': 'Προσθέστε συνδέσμους στον συλλέκτη και μετά ξεκινήστε τους.',
 
   'collector.title': 'Συλλέκτης',
-  'collector.listTitle': 'Συλλογή',
+  'collector.listTitle': 'Λίστα συνδέσμων',
   'collector.placeholder': 'Επικολλήστε συνδέσμους - έναν ανά γραμμή - ή αφήστε τους εδώ…  (Ctrl+Enter για προσθήκη)',
   'collector.package': 'Πακέτο (προαιρετικό)',
   'collector.add': 'Προσθήκη στον συλλέκτη',
-  'collector.addTitle': 'Νέοι σύνδεσμοι',
+  'collector.addTitle': 'Συλλέκτης συνδέσμων',
   'collector.empty': 'Ο συλλέκτης είναι άδειος. Επικολλήστε συνδέσμους παραπάνω για να ετοιμαστούν.',
   'collector.staged': 'σε ετοιμότητα',
   'collector.selected': 'επιλεγμένα',

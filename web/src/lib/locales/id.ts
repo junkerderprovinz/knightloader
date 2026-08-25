@@ -74,11 +74,11 @@ export const id: Dict = {
   'empty.downloadsHint': 'Tambahkan tautan di pengumpul, lalu mulai.',
 
   'collector.title': 'Pengumpul',
-  'collector.listTitle': 'Koleksi',
+  'collector.listTitle': 'Daftar tautan',
   'collector.placeholder': 'Tempel tautan - satu URL per baris - atau seret ke sini…  (Ctrl+Enter untuk menambah)',
   'collector.package': 'Paket (opsional)',
   'collector.add': 'Tambah ke pengumpul',
-  'collector.addTitle': 'Tautan baru',
+  'collector.addTitle': 'Pengumpul tautan',
   'collector.empty': 'Pengumpul kosong. Tempel tautan di atas untuk menyiapkannya.',
   'collector.staged': 'disiapkan',
   'collector.selected': 'dipilih',

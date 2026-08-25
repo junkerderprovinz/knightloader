@@ -74,11 +74,11 @@ export const th: Dict = {
   'empty.downloadsHint': 'เพิ่มลิงก์ในตัวรวบรวม แล้วจึงเริ่ม',
 
   'collector.title': 'ตัวรวบรวม',
-  'collector.listTitle': 'คอลเลกชัน',
+  'collector.listTitle': 'รายการลิงก์',
   'collector.placeholder': 'วางลิงก์ - บรรทัดละหนึ่งลิงก์ - หรือลากมาที่นี่…  (Ctrl+Enter เพื่อเพิ่ม)',
   'collector.package': 'แพ็กเกจ (ไม่บังคับ)',
   'collector.add': 'เพิ่มลงตัวรวบรวม',
-  'collector.addTitle': 'ลิงก์ใหม่',
+  'collector.addTitle': 'ตัวรวบรวมลิงก์',
   'collector.empty': 'ตัวรวบรวมว่างเปล่า วางลิงก์ด้านบนเพื่อเตรียมไว้',
   'collector.staged': 'เตรียมไว้',
   'collector.selected': 'ที่เลือก',

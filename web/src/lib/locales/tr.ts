@@ -74,11 +74,11 @@ export const tr: Dict = {
   'empty.downloadsHint': 'Toplayıcıya bağlantı ekleyin, sonra başlatın.',
 
   'collector.title': 'Toplayıcı',
-  'collector.listTitle': 'Koleksiyon',
+  'collector.listTitle': 'Bağlantı listesi',
   'collector.placeholder': 'Bağlantıları yapıştırın - her satıra bir tane - veya buraya bırakın…  (Ctrl+Enter ekler)',
   'collector.package': 'Paket (isteğe bağlı)',
   'collector.add': 'Toplayıcıya ekle',
-  'collector.addTitle': 'Yeni bağlantılar',
+  'collector.addTitle': 'Bağlantı toplayıcı',
   'collector.empty': 'Toplayıcı boş. Hazırlamak için yukarıya bağlantı yapıştırın.',
   'collector.staged': 'hazır',
   'collector.selected': 'seçili',

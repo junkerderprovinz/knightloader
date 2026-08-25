@@ -85,11 +85,11 @@ export const en = {
   'empty.downloadsHint': 'Add links in the collector, then start them.',
 
   'collector.title': 'Collector',
-  'collector.listTitle': 'Collection',
+  'collector.listTitle': 'Link list',
   'collector.placeholder': 'Paste links - one URL per line - or drop them here…  (Ctrl+Enter to add)',
   'collector.package': 'Package (optional)',
   'collector.add': 'Add to collector',
-  'collector.addTitle': 'New links',
+  'collector.addTitle': 'Link collector',
   'collector.empty': 'The collector is empty. Paste some links above to stage them.',
   'collector.staged': 'staged',
   'collector.selected': 'selected',

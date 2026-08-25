@@ -45,6 +45,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/schedule"
 	"github.com/junkerderprovinz/knightloader/internal/script"
@@ -898,17 +899,23 @@ type speedLimiter interface {
 }
 
 // titleProber is implemented by a backend that can look up a link's real name
-// without downloading it - the yt-dlp counterpart to the collector's own HEAD
-// probe (analyze, app_tasks.go) for a plain file link. Optional for the same
-// reason speedLimiter above is: most backends already report a real name off
-// their own progress stream once a download starts (a backend's Download
-// reaching onUpdate with Update.Name set), and forcing every one of them to
-// grow a method that would just return "", nil is the wrong trade for what
+// (and, since this round's probe upgrade, its real available formats) without
+// downloading it - the yt-dlp counterpart to the collector's own HEAD probe
+// (analyze, app_tasks.go) for a plain file link. Optional for the same reason
+// speedLimiter above is: most backends already report a real name off their
+// own progress stream once a download starts (a backend's Download reaching
+// onUpdate with Update.Name set), and forcing every one of them to grow a
+// method that would just return a zero value is the wrong trade for what
 // only one of them can actually answer ahead of time. See
 // ytdlp.Backend.ProbeTitle and probeYtdlpTitle in app_tasks.go, the two
 // halves of the one caller this exists for.
+//
+// Returns ytdlp.ProbeResult directly rather than a locally-decoupled shape:
+// app_ytdlp_variants.go already imports the ytdlp package concretely for
+// Variant/HosterPreset, so this interface staying "decoupled" bought nothing
+// real - the package already depends on ytdlp's own vocabulary elsewhere.
 type titleProber interface {
-	ProbeTitle(ctx context.Context, url string) (string, error)
+	ProbeTitle(ctx context.Context, url string) (ytdlp.ProbeResult, error)
 }
 
 // ApplySettings persists new settings and applies what can change at runtime:

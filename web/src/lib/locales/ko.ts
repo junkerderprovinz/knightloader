@@ -74,11 +74,11 @@ export const ko: Dict = {
   'empty.downloadsHint': '수집함에 링크를 추가한 뒤 시작하세요.',
 
   'collector.title': '수집함',
-  'collector.listTitle': '컬렉션',
+  'collector.listTitle': '링크 목록',
   'collector.placeholder': '링크를 한 줄에 하나씩 붙여넣거나 여기에 끌어다 놓으세요…  (Ctrl+Enter로 추가)',
   'collector.package': '패키지 (선택)',
   'collector.add': '수집함에 추가',
-  'collector.addTitle': '새 링크',
+  'collector.addTitle': '링크 수집함',
   'collector.empty': '수집함이 비어 있습니다. 위에 링크를 붙여넣어 준비하세요.',
   'collector.staged': '개 준비됨',
   'collector.selected': '개 선택됨',

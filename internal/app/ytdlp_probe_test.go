@@ -26,8 +26,12 @@ import (
 // a test can wait for "the probe ran" without a sleep-and-hope loop.
 type fakeYtdlpBackend struct {
 	title string
-	err   error
-	done  chan struct{}
+	// formats stands in for a probe's own discovered format list - nil
+	// (every existing test's own zero value) is "a source with no formats
+	// reported", the same as a real empty formats array.
+	formats []ytdlp.FormatEntry
+	err     error
+	done    chan struct{}
 }
 
 func (fakeYtdlpBackend) Download(string, string, map[string]string, int) {}
@@ -35,12 +39,12 @@ func (fakeYtdlpBackend) Pause(string)                                    {}
 func (fakeYtdlpBackend) Resume(string)                                   {}
 func (fakeYtdlpBackend) Remove(string, bool)                             {}
 
-func (f fakeYtdlpBackend) ProbeTitle(_ context.Context, _ string) (string, error) {
+func (f fakeYtdlpBackend) ProbeTitle(_ context.Context, _ string) (ytdlp.ProbeResult, error) {
 	defer close(f.done)
 	if f.err != nil {
-		return "", f.err
+		return ytdlp.ProbeResult{}, f.err
 	}
-	return f.title, nil
+	return ytdlp.ProbeResult{Title: f.title, Formats: f.formats}, nil
 }
 
 // blockingYtdlpBackend answers ProbeTitle only once release is closed, so a
@@ -62,12 +66,12 @@ func (blockingYtdlpBackend) Pause(string)                                    {}
 func (blockingYtdlpBackend) Resume(string)                                   {}
 func (blockingYtdlpBackend) Remove(string, bool)                             {}
 
-func (b blockingYtdlpBackend) ProbeTitle(ctx context.Context, _ string) (string, error) {
+func (b blockingYtdlpBackend) ProbeTitle(ctx context.Context, _ string) (ytdlp.ProbeResult, error) {
 	select {
 	case <-b.release:
-		return b.title, nil
+		return ytdlp.ProbeResult{Title: b.title}, nil
 	case <-ctx.Done():
-		return "", ctx.Err()
+		return ytdlp.ProbeResult{}, ctx.Err()
 	}
 }
 
@@ -228,6 +232,15 @@ func TestAFailedYtdlpProbeLeavesThePlaceholderNameAlone(t *testing.T) {
 	live := snapshot(t, a, id)
 	if live.Name != url {
 		t.Errorf("Name = %q after a failed probe, want the placeholder URL untouched", live.Name)
+	}
+	// applyProbeFormats (app_ytdlp_variants.go) is never even reached on a
+	// failed probe - probeYtdlpTitle returns before calling it - so Online
+	// must stay exactly as unset as it started. A failure is deliberately
+	// NOT read as "offline": too many failure causes (a timeout, an age
+	// gate, a transient site hiccup) are not the host actually saying the
+	// file is gone.
+	if live.Online != "" {
+		t.Errorf("Online = %q after a failed probe, want it left unset (a failure is not read as offline)", live.Online)
 	}
 }
 

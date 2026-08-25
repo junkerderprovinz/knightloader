@@ -74,11 +74,11 @@ export const gl: Dict = {
   'empty.downloadsHint': 'Engade ligazóns no colector e logo iníciaas.',
 
   'collector.title': 'Colector',
-  'collector.listTitle': 'Colección',
+  'collector.listTitle': 'Lista de ligazóns',
   'collector.placeholder': 'Pega ligazóns - un URL por liña - ou sóltaas aquí…  (Ctrl+Intro para engadir)',
   'collector.package': 'Paquete (opcional)',
   'collector.add': 'Engadir ao colector',
-  'collector.addTitle': 'Ligazóns novas',
+  'collector.addTitle': 'Colector de ligazóns',
   'collector.empty': 'O colector está baleiro. Pega ligazóns arriba para preparalas.',
   'collector.staged': 'preparadas',
   'collector.selected': 'seleccionadas',
