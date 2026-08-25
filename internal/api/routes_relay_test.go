@@ -266,7 +266,7 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 	// proving SetSelfServeHandler + relayProxyHandler actually reach it
 	// rather than the relay having nothing to answer with on that side.
 	selfID := a.Settings.Get().InstanceID
-	inBody, inStatus, err := sibling.Proxy(context.Background(), selfID, http.MethodGet, "/api/tasks", nil)
+	inBody, inStatus, err := sibling.Proxy(context.Background(), selfID, http.MethodGet, "/api/tasks", nil, "")
 	if err != nil {
 		t.Fatalf("sibling proxy into the app: %v", err)
 	}

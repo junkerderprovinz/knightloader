@@ -13,8 +13,11 @@
 # Both names, because the library renamed it: a run of the current pin leaves
 # .torrent.db behind, and the older .torrent.bolt.db is kept so an older
 # checkout does not start showing one either.
-*.torrent.bolt.db
-.torrent.db
+# The -shm/-wal suffixes are SQLite's own side files: the same run that leaves
+# the database leaves those two next to it, and ignoring only the database is a
+# rule that catches one of the three files it was written for.
+*.torrent.bolt.db*
+.torrent.db*
 # local/tmp
 /tmp/
 .DS_Store

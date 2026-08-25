@@ -19,6 +19,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -261,6 +262,9 @@ type App struct {
 	// back a Handler neither of them built.
 	smu       sync.RWMutex
 	selfServe http.Handler
+	// discovery is the multicast announce/listen service, nil unless a main
+	// package enabled it (buildinfo.DiscoveryEnabled).
+	discovery io.Closer
 
 	// bmu guards the backend fields above. It is deliberately separate from mu:
 	// re-wiring does network calls, and task state must not wait for those.
@@ -729,6 +733,15 @@ func (a *App) SetSelfServeHandler(h http.Handler) {
 	a.smu.Unlock()
 }
 
+// SetDiscovery stores the network-discovery service so Close can stop it,
+// the same arrangement the relay has via SetRelay(nil) below - a shutting
+// down instance must stop announcing that it is there.
+func (a *App) SetDiscovery(c io.Closer) {
+	a.smu.Lock()
+	a.discovery = c
+	a.smu.Unlock()
+}
+
 // SelfServeHandler returns whatever SetSelfServeHandler last stored, or nil
 // before that has ever run.
 func (a *App) SelfServeHandler() http.Handler {
@@ -754,6 +767,15 @@ func (a *App) Close() error {
 	// for.
 	if a.Federation != nil {
 		a.Federation.SetRelay(nil)
+	}
+	// Same reasoning one line up: stop telling the network this instance is
+	// available while it is shutting down.
+	a.smu.Lock()
+	disc := a.discovery
+	a.discovery = nil
+	a.smu.Unlock()
+	if disc != nil {
+		_ = disc.Close()
 	}
 	// Before the engine and before the store, because a sweep in flight is
 	// removing tasks from both.

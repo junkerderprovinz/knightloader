@@ -30,6 +30,8 @@ jobs:
     outputs:
       go: ${{ steps.filter.outputs.go }}
       web: ${{ steps.filter.outputs.web }}
+      extension: ${{ steps.filter.outputs.extension }}
+      mobile: ${{ steps.filter.outputs.mobile }}
     steps:
       # Only needed for the push-to-main case: paths-filter diffs against the
       # previous commit via git, which needs it to be present locally. On
@@ -52,12 +54,25 @@ jobs:
             web:
               - 'web/**'
               - '.github/workflows/ci.yml'
+            extension:
+              - 'extension/**'
+              - '.github/workflows/ci.yml'
+            mobile:
+              - 'mobile/**'
+              - '.github/workflows/ci.yml'
 
   server:
     needs: changes
     if: needs.changes.outputs.go == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # 40, not 20. The suite takes ~12 min on a healthy runner, and internal/app
+    # alone is ~7.5 of that (it drives the queue and engine end to end, so much
+    # of it is real waiting). At 20 a merely slow runner CANCELLED a good run -
+    # measured: the identical commit passed on rerun. A job timeout is a
+    # runaway backstop, not a performance budget; if the suite ever really does
+    # hang, -timeout below reports WHICH package, which a job cancellation
+    # never does.
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
@@ -78,18 +93,31 @@ jobs:
       # normal test pass runs in exactly that configuration. A dependency that
       # only compiles with cgo would pass a default `go test` and then break
       # the container build.
+      # -timeout is explicit rather than Go's default 10m PER PACKAGE, which
+      # internal/app runs close enough to trip on a loaded machine. When it
+      # does, the panic names whichever test happened to be running - which is
+      # not the slow one, and has already sent someone chasing the wrong test.
       - name: Test
         env:
           CGO_ENABLED: "0"
-        run: go test ./... -count=1
+        run: go test ./... -count=1 -timeout 25m
 
       # The race detector needs cgo and therefore cannot share the pure-Go pass
       # above. It gets its own run because the engine, the throttle and the
       # federation hub are all goroutine-heavy: a data race there surfaces as a
       # silently corrupted download rather than as a crash, which no functional
       # test would catch.
+      # The number has to fit in what is LEFT of the job, not in the job. The
+      # steps run one after another: the pure-Go pass above may take up to its
+      # own 25m, so this one can start around minute 13 on a normal run and far
+      # later on a slow one. A 35m deadline could therefore never fire inside a
+      # 40-minute job - the run would be cancelled by Actions first, with no
+      # panic, no goroutine dump and no package name, which is precisely the
+      # outcome the -timeout above exists to prevent. 12m is what reliably
+      # remains, and it is still comfortably more than the ~12 min the whole
+      # suite takes when it is healthy.
       - name: Test (race)
-        run: go test -race ./... -count=1
+        run: go test -race ./... -count=1 -timeout 12m
 
       # Same flags as the Dockerfile, so a build that only fails when cgo is off
       # is caught here instead of during the release image build.
@@ -147,3 +175,73 @@ jobs:
 
       - name: Build UI
         run: npm run build
+
+      # web/dist is COMMITTED and embedded into the Go binary (web/embed.go's
+      # //go:embed all:dist, and the Dockerfile skips a Node stage entirely
+      # because of it). Nothing was checking that the committed bundle matched
+      # the sources, so a change touching only .tsx files got a fully green
+      # pipeline while the container went on serving the previous UI - a gap
+      # this repository's own history has had to reconcile with several
+      # after-the-fact "chore(web): rebuild web/dist" commits.
+      #
+      # The gate is only possible because the bundle names carry no content
+      # hash (see spaHandler's doc comment in internal/api/api.go for why),
+      # which makes the output stable enough to diff.
+      - name: Committed bundle is current
+        run: |
+          if ! git diff --exit-code -- dist; then
+            echo "::error::web/dist does not match the sources. Run 'npm run build' in web/ and commit the result."
+            exit 1
+          fi
+
+  # The extension and the app had no gate at all, which is how a syntax error
+  # or a locale short one key would have reached a release: neither ships
+  # through the web build, and the extension deliberately has no build step of
+  # its own (see extension/embed.go). Both jobs are seconds long.
+  extension:
+    needs: changes
+    if: needs.changes.outputs.extension == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "24"
+
+      # Plain files loaded by <script> and importScripts, so nothing else ever
+      # parses them before a browser does.
+      - name: Syntax check
+        run: for f in extension/src/*.js; do node --check "$f"; done
+
+      # The parity gate the web UI and the app get from `: Dict` for free.
+      - name: Locale parity
+        run: node extension/check-locales.mjs
+
+  mobile:
+    needs: changes
+    if: needs.changes.outputs.mobile == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      # Same reasoning as the web job's own type check: every locale is typed
+      # as Dict derived from English, so this is what catches a missing key.
+      # No native build here - that needs an Android SDK and takes minutes;
+      # this catches the class of mistake that actually happens.
+      - name: Type check
+        run: npx tsc --noEmit

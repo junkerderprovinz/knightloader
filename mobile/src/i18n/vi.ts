@@ -15,6 +15,12 @@ export const vi: Dict = {
   'connect.connectButton': 'Kết nối',
   'connect.qrHintAddress': 'Quét mã QR từ tab Truy cập',
   'connect.qrAutofillNotice': 'Tên và địa chỉ được lấy từ mã. Loại mã này không bao giờ chứa token - hãy dán token theo cách thủ công.',
+  'connect.findButton': 'Tìm trong mạng này',
+  'connect.finding': 'Đang tìm trong mạng này…',
+  'connect.foundNone': 'Không tìm thấy gì trong mạng này. Hãy nhập địa chỉ theo cách thủ công, hoặc quét mã QR từ tab Truy cập.',
+  'connect.foundOne': 'Tìm thấy một. Địa chỉ đã được điền sẵn - hãy dán token vào rồi kết nối.',
+  'connect.foundMany': 'Tìm thấy {n}. Hãy chọn một:',
+  'connect.foundPick': 'Dùng cái này',
 
   'qr.cancel': 'Hủy',
   'qr.cameraPermissionHint': 'Cần quyền truy cập máy ảnh để quét mã QR.',

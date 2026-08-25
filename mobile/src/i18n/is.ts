@@ -15,6 +15,12 @@ export const is: Dict = {
   'connect.connectButton': 'Tengjast',
   'connect.qrHintAddress': 'Skannaðu QR-kóðann af flipanum Aðgangur',
   'connect.qrAutofillNotice': 'Nafn og vistfang voru sótt úr kóðanum. Þessi tegund kóða inniheldur aldrei teikn - límdu það handvirkt.',
+  'connect.findButton': 'Finna á þessu neti',
+  'connect.finding': 'Leita á þessu neti…',
+  'connect.foundNone': 'Ekkert fannst á þessu neti. Sláðu vistfangið inn handvirkt eða skannaðu QR-kóðann af flipanum Aðgangur.',
+  'connect.foundOne': 'Eitt fannst. Vistfangið er komið inn - límdu inn teikn og tengstu.',
+  'connect.foundMany': '{n} fundust. Veldu eitt:',
+  'connect.foundPick': 'Nota þetta',
 
   'qr.cancel': 'Hætta við',
   'qr.cameraPermissionHint': 'Aðgang að myndavél þarf til að skanna QR-kóðann.',

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { addLinksWithOptions, remove, type Task } from '../lib/api';
-import { useT, type TranslationKey } from '../lib/i18n';
+import { useT } from '../lib/i18n';
 import { Button, Card, Field, TextArea } from '../components/ui';
 import { IconDownloads } from '../lib/icons';
 
@@ -18,51 +18,36 @@ import { IconDownloads } from '../lib/icons';
  * URL, because AuthGate only decides what to render, never navigates, so
  * the query string is exactly as intact after signing in as before it.
  *
- * The strings this page needs are not in en.ts yet - locale files are one
- * writer's lane per wave (11G, phase 3 of this one), same arrangement
- * System.tsx, Diagnostics.tsx, Schedule.tsx and Captcha.tsx already use.
+ * Every string here lives in lib/locales like any other page. It used to
+ * carry its own PENDING fallback table, from the wave that added this page
+ * before the locale files caught up - long since redundant, since all but two
+ * of its entries had already been superseded by the real catalogue and the
+ * fallback only ever shadowed a translation that existed.
  */
-const PENDING = {
-  'quickadd.title': 'Add to KnightLoader',
-  'quickadd.manualLabel': 'Link (or paste several, one per line)',
-  'quickadd.manualPlaceholder': 'https://example.com/file.zip',
-  'quickadd.add': 'Add',
-  'quickadd.adding': 'Adding…',
-  'quickadd.emptyHint': 'Nothing was shared — paste a link by hand, or use this page from the bookmarklet, the browser extension, or your device’s Share menu.',
-  'quickadd.staged': 'Added to the collector.',
-  'quickadd.stagedNamed': 'Added “{name}” to the collector.',
-  'quickadd.stagedCount': 'Added {n} links to the collector.',
-  'quickadd.none': 'Nothing was added — every link here was already in the collector.',
-  'quickadd.failed': 'Could not add this: {error}',
-  'quickadd.undo': 'Undo',
-  'quickadd.undone': 'Removed.',
-  'quickadd.openCollector': 'Open Collector',
-  'quickadd.close': 'Close window',
-} as const;
-
-type PendingKey = keyof typeof PENDING;
-
-function useCx() {
-  const { t } = useT();
-  return useCallback(
-    (key: PendingKey, vars?: Record<string, string | number>) => {
-      const translated = t(key as unknown as TranslationKey) as string | undefined;
-      let s: string = translated ?? PENDING[key];
-      if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
-      return s;
-    },
-    [t],
-  );
-}
 
 type Phase = { kind: 'form' } | { kind: 'busy' } | { kind: 'done'; created: Task[] } | { kind: 'error'; message: string } | { kind: 'undone' };
 
 export function QuickAdd() {
-  const cx = useCx();
+  const { t } = useT();
   const [params] = useSearchParams();
   const url = params.get('url') ?? '';
   const text = params.get('text') ?? '';
   const title = params.get('title') ?? '';
+  // Issue #27: which instance this link is FOR. Empty means this one, which
+  // is every existing caller - the bookmarklet, the share target, and an
+  // extension entry that has an address of its own.
+  //
+  // It exists for the peers that have no address at all: a desktop build, or
+  // anything reachable only through a relay. Those cannot be opened in a tab,
+  // so the extension cannot send them anything directly - but THIS instance
+  // is already federated with them, over whichever transport works, and
+  // /api/instances/{name}/links is a route it already forwards
+  // (routes_federation.go's own allowlist). Routing through the one instance
+  // the browser CAN reach is what makes those peers reachable, and it needs
+  // no relay client, no second copy of the relay key, and no persistent
+  // socket in a service worker that the browser is free to kill.
+  const to = params.get('to') ?? '';
+  const apiBase = to ? `/api/instances/${encodeURIComponent(to)}` : '/api';
   // A share can carry both a url and prose that mentions one; joined rather
   // than picking one, because linkscan on the server (internal/linkscan,
   // reused by POST /api/links) already extracts every URL out of a blob and
@@ -84,13 +69,13 @@ export function QuickAdd() {
     async (blob: string) => {
       setPhase({ kind: 'busy' });
       try {
-        const created = await addLinksWithOptions(blob, { package: title || undefined });
-        setPhase(created.length ? { kind: 'done', created } : { kind: 'error', message: cx('quickadd.none') });
+        const created = await addLinksWithOptions(blob, { package: title || undefined }, apiBase);
+        setPhase(created.length ? { kind: 'done', created } : { kind: 'error', message: t('quickadd.none') });
       } catch (e) {
-        setPhase({ kind: 'error', message: cx('quickadd.failed', { error: String(e).replace(/^Error:\s*/, '') }) });
+        setPhase({ kind: 'error', message: t('quickadd.failed', { error: String(e).replace(/^Error:\s*/, '') }) });
       }
     },
-    [title, cx],
+    [title, t, apiBase],
   );
 
   // Auto-submits once, on the params the page was opened with — the whole
@@ -102,8 +87,24 @@ export function QuickAdd() {
   }, []);
 
   async function undo(created: Task[]) {
-    await Promise.all(created.map((t) => remove(t.id)));
-    setPhase({ kind: 'undone' });
+    // Checked, not fired and forgotten. `remove` is a bare fetch, which
+    // resolves happily on a 502 - so the old version reported "Removed." for a
+    // delete that did not happen. That was survivable while every undo was a
+    // same-process call; with `?to=` it crosses to another instance, where a
+    // peer that went offline between the add and the undo is an ordinary
+    // Tuesday, and the link stays queued on a machine the user believes they
+    // just cleared.
+    try {
+      const results = await Promise.all(created.map((t) => remove(t.id, apiBase)));
+      const failed = results.filter((r) => !r.ok);
+      if (failed.length > 0) {
+        setPhase({ kind: 'error', message: t('quickadd.undoFailed', { error: String(failed[0].status) }) });
+        return;
+      }
+      setPhase({ kind: 'undone' });
+    } catch (e) {
+      setPhase({ kind: 'error', message: t('quickadd.undoFailed', { error: String(e).replace(/^Error:\s*/, '') }) });
+    }
   }
 
   return (
@@ -111,63 +112,68 @@ export function QuickAdd() {
       <div className="flex w-full max-w-sm flex-col gap-4">
         <div className="flex items-center gap-2">
           <IconDownloads width={20} height={20} className="text-accent" />
-          <span className="text-[15px] font-semibold text-carbon-text">{cx('quickadd.title')}</span>
+          <span className="text-[15px] font-semibold text-carbon-text">{t('quickadd.title')}</span>
         </div>
+
+        {/* Named, always, when this is not the instance being looked at: a
+            link quietly landing on a different machine is the one thing this
+            page must never do. */}
+        {to !== '' && <p className="-mt-2 text-xs text-carbon-textMuted">{t('quickadd.toPeer', { name: to })}</p>}
 
         <Card className="flex flex-col gap-4">
           {phase.kind === 'form' && (
             <>
-              <p className="text-xs text-carbon-textMuted">{cx('quickadd.emptyHint')}</p>
-              <Field label={cx('quickadd.manualLabel')}>
+              <p className="text-xs text-carbon-textMuted">{t('quickadd.emptyHint')}</p>
+              <Field label={t('quickadd.manualLabel')}>
                 <TextArea
                   rows={4}
                   autoFocus
                   value={manual}
-                  placeholder={cx('quickadd.manualPlaceholder')}
+                  placeholder={t('quickadd.manualPlaceholder')}
                   onChange={(e) => setManual(e.target.value)}
                 />
               </Field>
               <Button disabled={manual.trim() === ''} onClick={() => void stage(manual)}>
-                {cx('quickadd.add')}
+                {t('quickadd.add')}
               </Button>
             </>
           )}
 
-          {phase.kind === 'busy' && <p className="text-sm text-carbon-textSub">{cx('quickadd.adding')}</p>}
+          {phase.kind === 'busy' && <p className="text-sm text-carbon-textSub">{t('quickadd.adding')}</p>}
 
           {phase.kind === 'done' && (
             <>
               <p className="text-sm text-statusOk">
                 {phase.created.length === 1
                   ? phase.created[0].name
-                    ? cx('quickadd.stagedNamed', { name: phase.created[0].name })
-                    : cx('quickadd.staged')
-                  : cx('quickadd.stagedCount', { n: phase.created.length })}
+                    ? t('quickadd.stagedNamed', { name: phase.created[0].name })
+                    : t('quickadd.staged')
+                  : t('quickadd.stagedCount', { n: phase.created.length })}
               </p>
               <div className="flex flex-wrap items-center gap-3">
                 <Button kind="ghost" className="px-2.5 text-xs" onClick={() => void undo(phase.created)}>
-                  {cx('quickadd.undo')}
+                  {t('quickadd.undo')}
                 </Button>
                 {isPopup ? (
                   <Button kind="secondary" className="px-2.5 text-xs" onClick={() => window.close()}>
-                    {cx('quickadd.close')}
+                    {t('quickadd.close')}
                   </Button>
                 ) : (
                   <a href="/collector" className="text-xs text-accent hover:underline">
-                    {cx('quickadd.openCollector')}
+                    {t('quickadd.openCollector')}
                   </a>
                 )}
               </div>
             </>
           )}
 
-          {phase.kind === 'undone' && <p className="text-sm text-carbon-textSub">{cx('quickadd.undone')}</p>}
+          {phase.kind === 'undone' && <p className="text-sm text-carbon-textSub">{t('quickadd.undone')}</p>}
 
           {phase.kind === 'error' && (
             <>
               <p className="text-sm text-statusFail">{phase.message}</p>
               <Button kind="secondary" onClick={() => setPhase({ kind: 'form' })}>
-                {cx('quickadd.add')}
+                {t('quickadd.add')}
               </Button>
             </>
           )}

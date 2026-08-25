@@ -16,10 +16,28 @@ address already filled in, so there is nothing to configure afterwards.
 1. `chrome://extensions` (or the equivalent `about:addons` /
    `edge://extensions` page) → enable Developer mode.
 2. "Load unpacked" → pick `extension/src`.
-3. Open the extension's Options and set the instance URL by hand — a copy
-   loaded this way has no request to bake an address into, so
-   `config.default.json` ships with `instanceUrl` empty on purpose rather
-   than pointing every developer checkout at somebody else's server.
+3. Open the extension's Options and add an instance. The form arrives
+   pre-filled with `http://localhost:8749`, which is right for a KnightLoader
+   running on the same machine — it is a suggestion, not a silent default:
+   `config.default.json` ships with `instanceUrl` empty on purpose, so a copy
+   loaded from a checkout never points at an address nobody looked at.
+
+## Instances it cannot open a connection to
+
+Some peers have no address at all: a desktop build opens no API listener, and
+a relay-only peer is reachable purely through the relay. Neither can be opened
+in a browser tab.
+
+They are still usable here. **Sync paired instances** keeps such a peer and
+records which instance told the extension about it; sending to it opens
+`<that instance>/quickadd?to=<peer>`, and that instance forwards over whichever
+transport it already has. So the extension needs no relay client, no second
+copy of the relay key, and no persistent socket in a service worker the browser
+is free to kill.
+
+Host permissions are asked for the exact origins already configured, from the
+sync button's own click, never wider. Opening Options prompts for nothing: the
+automatic check only touches origins an earlier click already granted.
 
 ## Why it opens a window instead of calling the API directly
 

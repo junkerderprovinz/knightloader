@@ -15,6 +15,12 @@ export const hu: Dict = {
   'connect.connectButton': 'Kapcsolódás',
   'connect.qrHintAddress': 'Olvasd be a QR-kódot a Hozzáférés lapról',
   'connect.qrAutofillNotice': 'A név és a cím a kódból származik. Ez a fajta kód sosem tartalmaz tokent - illeszd be kézzel.',
+  'connect.findButton': 'Keresés ezen a hálózaton',
+  'connect.finding': 'Keresem ezen a hálózaton…',
+  'connect.foundNone': 'Ezen a hálózaton nem található semmi. Add meg a címet kézzel, vagy olvasd be a QR-kódot a Hozzáférés lapról.',
+  'connect.foundOne': 'Egyet találtam. A cím ki van töltve - illessz be egy tokent, és kapcsolódj.',
+  'connect.foundMany': '{n} találat. Válassz egyet:',
+  'connect.foundPick': 'Ezt használom',
 
   'qr.cancel': 'Mégse',
   'qr.cameraPermissionHint': 'A QR-kód beolvasásához kamera-hozzáférés szükséges.',

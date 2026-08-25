@@ -45,6 +45,10 @@ func Handler(a *app.App) http.Handler {
 	// container-only or desktop-only line to keep in sync between them.
 	a.SetSelfServeHandler(h)
 	applyRelay(a)
+	// Same reasoning as the two lines above: wired here, unconditionally, so a
+	// peer credential saved in an earlier run is in effect the moment either
+	// binary boots, with nothing for a caller to remember. See peertokens.go.
+	a.Federation.SetPeerTokens(peerTokens{a: a})
 	return h
 }
 

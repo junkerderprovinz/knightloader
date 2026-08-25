@@ -15,6 +15,12 @@ export const he: Dict = {
   'connect.connectButton': 'התחברות',
   'connect.qrHintAddress': 'סרקו את קוד ה-QR מלשונית "גישה"',
   'connect.qrAutofillNotice': 'השם והכתובת נלקחו מהקוד. סוג קוד זה לעולם לא כולל טוקן - יש להדביק אותו ידנית.',
+  'connect.findButton': 'חיפוש ברשת הזו',
+  'connect.finding': 'מחפש ברשת הזו…',
+  'connect.foundNone': 'לא נמצא דבר ברשת הזו. הזינו את הכתובת ידנית, או סרקו את קוד ה-QR מלשונית "גישה".',
+  'connect.foundOne': 'נמצא אחד. הכתובת מולאה - הדביקו טוקן והתחברו.',
+  'connect.foundMany': 'נמצאו {n}. בחרו אחד:',
+  'connect.foundPick': 'להשתמש בזה',
 
   'qr.cancel': 'ביטול',
   'qr.cameraPermissionHint': 'נדרשת גישה למצלמה כדי לסרוק את קוד ה-QR.',

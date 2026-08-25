@@ -15,6 +15,12 @@ export const fa: Dict = {
   'connect.connectButton': 'اتصال',
   'connect.qrHintAddress': 'کد QR را از تب «دسترسی» اسکن کنید',
   'connect.qrAutofillNotice': 'نام و آدرس از روی کد گرفته شده‌اند. این نوع کد هرگز شامل توکن نمی‌شود - آن را به‌صورت دستی جای‌گذاری کنید.',
+  'connect.findButton': 'یافتن در این شبکه',
+  'connect.finding': 'در حال جست‌وجو در این شبکه…',
+  'connect.foundNone': 'چیزی در این شبکه پیدا نشد. آدرس را دستی وارد کنید یا کد QR را از تب «دسترسی» اسکن کنید.',
+  'connect.foundOne': 'یکی پیدا شد. آدرس پر شد - یک توکن جای‌گذاری کنید و وصل شوید.',
+  'connect.foundMany': '{n} مورد پیدا شد. یکی را انتخاب کنید:',
+  'connect.foundPick': 'استفاده از این',
 
   'qr.cancel': 'لغو',
   'qr.cameraPermissionHint': 'برای اسکن کد QR به دسترسی دوربین نیاز است.',

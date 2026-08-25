@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { checkConnection } from '../api/client';
+import { scanLocalNetwork, type Found } from '../api/discover';
 import { decodePairingCode } from '../api/pairing';
 import { addConnection, setActiveConnectionId } from '../storage/connections';
 import type { ServerConnection } from '../api/types';
@@ -36,6 +37,29 @@ export default function ConnectScreen({
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
+  // The LAN sweep (api/discover.ts). null means it has not been run; an empty
+  // array means it ran and found nothing, and those two say different things
+  // to somebody looking at this screen.
+  const [found, setFound] = useState<Found[] | null>(null);
+  const [finding, setFinding] = useState(false);
+
+  const findOnNetwork = async () => {
+    setFinding(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const hits = await scanLocalNetwork();
+      setFound(hits);
+      // One hit needs no list: fill it in, say so, and leave the token as the
+      // only thing left to do.
+      if (hits.length === 1) {
+        setUrl(hits[0].url);
+        setNotice(t('connect.foundOne'));
+      }
+    } finally {
+      setFinding(false);
+    }
+  };
 
   const normalizedUrl = url.trim().replace(/\/+$/, '');
 
@@ -102,6 +126,37 @@ export default function ConnectScreen({
           <Text style={styles.scanButtonText}>{t('connect.qrButton')}</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Sits directly under the address field because that is the field it
+          fills in - the whole point is that nobody has to know the address. */}
+      <TouchableOpacity style={styles.findLink} onPress={findOnNetwork} disabled={finding}>
+        {finding ? (
+          <Text style={styles.findLinkText}>{t('connect.finding')}</Text>
+        ) : (
+          <Text style={styles.findLinkText}>{t('connect.findButton')}</Text>
+        )}
+      </TouchableOpacity>
+
+      {found?.length === 0 && <Text style={styles.hintSmall}>{t('connect.foundNone')}</Text>}
+      {found && found.length > 1 && (
+        <View>
+          <Text style={styles.hintSmall}>{t('connect.foundMany', { n: String(found.length) })}</Text>
+          {found.map((f) => (
+            <TouchableOpacity
+              key={f.url}
+              style={styles.foundRow}
+              onPress={() => {
+                setUrl(f.url);
+                setFound(null);
+                setNotice(t('connect.foundOne'));
+              }}
+            >
+              <Text style={styles.foundUrl}>{f.url}</Text>
+              <Text style={styles.foundMeta}>{f.version}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
 
       <Text style={styles.label}>{t('connect.tokenLabel')}</Text>
       <TextInput
@@ -178,6 +233,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   scanButtonText: { color: colors.accent, fontSize: 13, fontWeight: '700' },
+  findLink: { marginTop: 10, alignSelf: 'flex-start' },
+  findLinkText: { color: colors.accent, fontSize: 13 },
+  hintSmall: { color: colors.textMuted, fontSize: 12, marginTop: 8, lineHeight: 17 },
+  foundRow: {
+    backgroundColor: colors.surface,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginTop: 8,
+  },
+  foundUrl: { color: colors.text, fontSize: 14 },
+  foundMeta: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
   notice: { color: colors.success, marginTop: 16, fontSize: 13, lineHeight: 18 },
   error: { color: colors.danger, marginTop: 16, fontSize: 14 },
   button: {

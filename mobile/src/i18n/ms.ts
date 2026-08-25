@@ -15,6 +15,12 @@ export const ms: Dict = {
   'connect.connectButton': 'Sambung',
   'connect.qrHintAddress': 'Imbas kod QR daripada tab Akses',
   'connect.qrAutofillNotice': 'Nama dan alamat diambil daripada kod. Jenis kod ini tidak pernah mengandungi token - tampal secara manual.',
+  'connect.findButton': 'Cari pada rangkaian ini',
+  'connect.finding': 'Mencari pada rangkaian ini…',
+  'connect.foundNone': 'Tiada apa-apa ditemui pada rangkaian ini. Masukkan alamat secara manual, atau imbas kod QR daripada tab Akses.',
+  'connect.foundOne': 'Satu ditemui. Alamat sudah diisi - tampal token dan sambung.',
+  'connect.foundMany': '{n} ditemui. Pilih satu:',
+  'connect.foundPick': 'Guna yang ini',
 
   'qr.cancel': 'Batal',
   'qr.cameraPermissionHint': 'Akses kamera diperlukan untuk mengimbas kod QR.',

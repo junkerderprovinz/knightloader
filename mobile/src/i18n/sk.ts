@@ -15,6 +15,12 @@ export const sk: Dict = {
   'connect.connectButton': 'Pripojiť',
   'connect.qrHintAddress': 'Naskenujte QR kód z karty Prístup',
   'connect.qrAutofillNotice': 'Názov a adresa boli prevzaté z kódu. Tento typ kódu nikdy neobsahuje token - vložte ho ručne.',
+  'connect.findButton': 'Nájsť v tejto sieti',
+  'connect.finding': 'Hľadanie v tejto sieti…',
+  'connect.foundNone': 'V tejto sieti sa nič nenašlo. Zadajte adresu ručne alebo naskenujte QR kód z karty Prístup.',
+  'connect.foundOne': 'Našiel sa jeden. Adresa je vyplnená - vložte token a pripojte sa.',
+  'connect.foundMany': 'Našlo sa {n}. Vyberte jeden:',
+  'connect.foundPick': 'Použiť tento',
 
   'qr.cancel': 'Zrušiť',
   'qr.cameraPermissionHint': 'Na skenovanie QR kódu je potrebný prístup ku kamere.',

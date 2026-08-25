@@ -15,6 +15,12 @@ export const tr: Dict = {
   'connect.connectButton': 'Bağlan',
   'connect.qrHintAddress': 'QR kodu Erişim sekmesinden tarayın',
   'connect.qrAutofillNotice': 'Ad ve adres koddan alındı. Bu tür bir kod hiçbir zaman token içermez - onu elle yapıştırın.',
+  'connect.findButton': 'Bu ağda ara',
+  'connect.finding': 'Bu ağda aranıyor…',
+  'connect.foundNone': 'Bu ağda hiçbir şey bulunamadı. Adresi elle girin ya da QR kodu Erişim sekmesinden tarayın.',
+  'connect.foundOne': 'Bir tane bulundu. Adres dolduruldu - bir token yapıştırıp bağlanın.',
+  'connect.foundMany': '{n} tane bulundu. Birini seçin:',
+  'connect.foundPick': 'Bunu kullan',
 
   'qr.cancel': 'İptal',
   'qr.cameraPermissionHint': 'QR kodu taramak için kamera erişimi gerekir.',

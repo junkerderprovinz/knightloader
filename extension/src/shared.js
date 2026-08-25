@@ -83,10 +83,46 @@ function normalizeOrigin(url) {
  * bookmarklet and the PWA share target land on, so all three entrances share
  * one implementation of "stage this and say what happened" (web/src/pages/QuickAdd.tsx).
  */
-function quickAddUrl(origin, { url, text, title } = {}) {
+function quickAddUrl(origin, { url, text, title, to } = {}) {
   const u = new URL(normalizeOrigin(origin) + '/quickadd');
   if (url) u.searchParams.set('url', url);
   if (text) u.searchParams.set('text', text);
   if (title) u.searchParams.set('title', title);
+  // `to` names a peer of `origin` rather than origin itself - see entryTarget
+  // below, and QuickAdd.tsx's own doc comment for how it forwards.
+  if (to) u.searchParams.set('to', to);
   return u.toString();
+}
+
+/**
+ * entryTarget turns one stored instance into the two things every caller
+ * needs: the origin to OPEN, and the peer name to send TO (empty for the
+ * ordinary case).
+ *
+ * Issue #27: an entry can have no address of its own. A desktop build opens
+ * no listener at all, and a relay-only peer is reachable purely through the
+ * relay - neither can be opened in a browser tab, so the extension used to
+ * drop both on the floor during a sync and then report "No new instances
+ * found". Such an entry now carries `via`: the origin of an instance that IS
+ * federated with it and CAN be opened, which forwards on its behalf. One
+ * extra field, no relay client here.
+ *
+ * Returns null for an entry with neither, which is an entry nothing can be
+ * done with - the callers show it as unreachable rather than failing.
+ */
+/**
+ * entryLabel is what to SHOW for an entry, which is not always what to send
+ * to. A relay peer is ADDRESSED by the announcing instance's own id (that is
+ * what federation.Instance.Name is for a relay peer, see its doc comment), and
+ * the human name it announced arrives separately as displayName. Showing the
+ * id would put a string like "id-7f3a..." in the picker where a name belongs.
+ */
+function entryLabel(inst) {
+  return inst.label || inst.name;
+}
+
+function entryTarget(inst) {
+  if (inst.url) return { origin: inst.url, to: '' };
+  if (inst.via) return { origin: inst.via, to: inst.name };
+  return null;
 }

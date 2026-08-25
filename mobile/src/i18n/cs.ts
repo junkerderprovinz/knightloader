@@ -15,6 +15,12 @@ export const cs: Dict = {
   'connect.connectButton': 'Připojit',
   'connect.qrHintAddress': 'Naskenujte QR kód z karty Přístup',
   'connect.qrAutofillNotice': 'Název a adresa převzaty z kódu. Tento typ kódu nikdy neobsahuje token - vložte ho ručně.',
+  'connect.findButton': 'Najít v této síti',
+  'connect.finding': 'Hledání v této síti…',
+  'connect.foundNone': 'V této síti se nic nenašlo. Zadejte adresu ručně, nebo naskenujte QR kód z karty Přístup.',
+  'connect.foundOne': 'Nalezen jeden. Adresa je vyplněná - vložte token a připojte se.',
+  'connect.foundMany': 'Nalezeno: {n}. Vyberte jeden:',
+  'connect.foundPick': 'Použít tento',
 
   'qr.cancel': 'Zrušit',
   'qr.cameraPermissionHint': 'Ke skenování QR kódu je potřeba přístup ke kameře.',

@@ -15,6 +15,12 @@ export const hi: Dict = {
   'connect.connectButton': 'कनेक्ट करें',
   'connect.qrHintAddress': '"एक्सेस" टैब से QR कोड स्कैन करें',
   'connect.qrAutofillNotice': 'नाम और पता कोड से लिए गए हैं। इस तरह के कोड में कभी भी टोकन नहीं होता - उसे मैन्युअल रूप से पेस्ट करें।',
+  'connect.findButton': 'इस नेटवर्क पर खोजें',
+  'connect.finding': 'इस नेटवर्क पर खोज रहे हैं…',
+  'connect.foundNone': 'इस नेटवर्क पर कुछ नहीं मिला। पता हाथ से दर्ज करें, या "एक्सेस" टैब से QR कोड स्कैन करें।',
+  'connect.foundOne': 'एक मिला। पता भर दिया गया है - अब बस टोकन पेस्ट करें और कनेक्ट करें।',
+  'connect.foundMany': '{n} मिले। इनमें से एक चुनें:',
+  'connect.foundPick': 'इसे इस्तेमाल करें',
 
   'qr.cancel': 'रद्द करें',
   'qr.cameraPermissionHint': 'QR कोड स्कैन करने के लिए कैमरे की अनुमति चाहिए।',

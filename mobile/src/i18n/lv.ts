@@ -15,6 +15,12 @@ export const lv: Dict = {
   'connect.connectButton': 'Savienot',
   'connect.qrHintAddress': 'Noskenējiet QR kodu no cilnes Piekļuve',
   'connect.qrAutofillNotice': 'Nosaukums un adrese iegūti no koda. Šāda veida kodā marķiera nekad nav - ielīmējiet to pašrocīgi.',
+  'connect.findButton': 'Meklēt šajā tīklā',
+  'connect.finding': 'Meklē šajā tīklā…',
+  'connect.foundNone': 'Šajā tīklā nekas netika atrasts. Ievadiet adresi pašrocīgi vai noskenējiet QR kodu no cilnes Piekļuve.',
+  'connect.foundOne': 'Atrasts viens. Adrese ir aizpildīta - ielīmējiet piekļuves marķieri un savienojieties.',
+  'connect.foundMany': 'Atrasti {n}. Izvēlieties vienu:',
+  'connect.foundPick': 'Izmantot šo',
 
   'qr.cancel': 'Atcelt',
   'qr.cameraPermissionHint': 'Lai noskenētu QR kodu, nepieciešama piekļuve kamerai.',
