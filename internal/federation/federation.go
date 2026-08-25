@@ -73,6 +73,13 @@ type RelayTransport interface {
 	Siblings() []relay.Announce
 	// Proxy calls one sibling, addressed by its instance ID.
 	Proxy(ctx context.Context, target, method, path string, body []byte) ([]byte, int, error)
+	// Connected reports whether the socket to the relay is up right now.
+	//
+	// Siblings() alone cannot answer that: it is empty both when the relay is
+	// unreachable and when it is perfectly fine but nobody else is on the key.
+	// Those need telling apart - one is a configuration mistake to go fix, the
+	// other is normal - and nothing above this could tell them apart before.
+	Connected() bool
 	// Close stops the connection for good. SetRelay calls it on whatever
 	// transport it is replacing, which is what makes reconfiguring the relay
 	// (a new address, a new key, or switching it off) safe to call as often
@@ -123,6 +130,16 @@ func Load(dir string) (*Manager, error) {
 // Peers the relay reports are not stored and not persisted: they appear and
 // disappear with the relay connection itself, so there is nothing here to
 // save and nothing to load back.
+// RelayConnected reports whether a relay is configured AND its socket is up.
+// False means either no relay at all or one that cannot be reached - the
+// caller that wants to tell those apart has the stored config to check.
+func (m *Manager) RelayConnected() bool {
+	m.mu.Lock()
+	rt := m.rt
+	m.mu.Unlock()
+	return rt != nil && rt.Connected()
+}
+
 func (m *Manager) SetRelay(rt RelayTransport) {
 	m.mu.Lock()
 	prev := m.rt

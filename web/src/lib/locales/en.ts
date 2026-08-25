@@ -1607,7 +1607,8 @@ export const en = {
   'settings.access.relay.saved': 'Saved',
   'settings.access.relay.siblingsTitle': 'Visible through the relay',
   'settings.access.relay.siblingsOff': 'Enter an address and a key to see the instances that share them.',
-  'settings.access.relay.siblingsEmpty': 'Nothing right now. Either no other instance is connected with this key, or the relay cannot be reached from here. Both look the same from this side, and neither stops this instance doing anything else.',
+  'settings.access.relay.siblingsEmpty': 'Nothing right now - the relay is reachable, no other instance is connected with this key.',
+  'settings.access.relay.unreachable': 'The relay cannot be reached with this address and key. Check both, and that the relay is running - nothing else on this instance is affected.',
   'settings.access.intakePortsHint': 'Other ways this instance can be reached directly, outside the normal login - each with its own reachability shown here.',
 
   // Sending KnightLoader a link from outside the app - the bookmarklet, the

@@ -18,12 +18,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
@@ -70,13 +73,34 @@ func (p *pairingCodes) issue() (string, error) {
 // redeemLocal reports whether token is a still-live code this instance
 // issued, and forgets it either way: one redemption is all a pairing code is
 // for, the same reasoning containerRelay.take() already documents.
-func (p *pairingCodes) redeemLocal(token string) bool {
+func (p *pairingCodes) redeemLocal(token string) (expires time.Time, ok bool) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.sweepLocked()
-	exp, ok := p.items[token]
+	exp, found := p.items[token]
 	delete(p.items, token)
-	return ok && time.Now().Before(exp)
+	return exp, found && time.Now().Before(exp)
+}
+
+// restore puts a taken token back, for the case the operation it gated failed
+// for a reason that has nothing to do with the code - a peer name the
+// federation store rejects, say.
+//
+// Taking it first and restoring on failure, rather than checking without
+// taking, is what keeps a code single-use under concurrent redemptions: only
+// one caller can ever hold it at a time. Without this the code was burned by
+// the FIRST attempt whatever went wrong, and every retry - including with a
+// freshly generated code - then reported "invalid or expired", which sent
+// people looking at the clock instead of at the real error.
+//
+// An already-expired token is not restored: it has no life left to give back.
+func (p *pairingCodes) restore(token string, expires time.Time) {
+	if !time.Now().Before(expires) {
+		return
+	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.items[token] = expires
 }
 
 func (p *pairingCodes) sweepLocked() {
@@ -110,6 +134,26 @@ func (p *pairingCodes) sweepLocked() {
 // the container runtime happened to call it (jdp, a later round: "der soll
 // dann mit dem QR code an die App weitergegeben werden").
 func pairingSelf(r *http.Request, a *app.App) (name, url string, ok bool) {
+	// The desktop build has no address to offer, ever: it hands api.Handler to
+	// Wails as an in-window asset handler and opens no API listener at all
+	// (desktop/main.go), so nothing outside that process can dial it.
+	//
+	// Refused here rather than left to fail later, because the failure was
+	// SILENT and landed on somebody else's machine. remoteAddresses would
+	// report the Wails webview host (http://wails.localhost on Windows,
+	// http://wails elsewhere), which is not loopback and parses as a domain -
+	// so preferredAddress ranks it FIRST, ahead of any real configured
+	// domain. federation.Add validates only scheme and host, so redeeming a
+	// code from a desktop build wrote a permanently dead peer into the OTHER
+	// instance's stored list and reported success to both sides.
+	//
+	// The relay is the way a desktop build reaches other instances (see
+	// internal/relay): both ends dial out, so neither needs an address. Adding
+	// a peer BY address (POST /api/instances) still works from a desktop too -
+	// that is one-way by nature and honest about it.
+	if buildinfo.Deployment == "desktop" {
+		return "", "", false
+	}
 	known := a.Settings.Get().KnownDomains
 	addrs := remoteAddresses(r, known)
 	if u, found := preferredAddress(addrs); found {
@@ -196,6 +240,17 @@ func registerPairing(reg *Registry, a *app.App) {
 	reg.Add(http.MethodPost, "/api/instances/pairing-code/redeem",
 		"add the instance behind a pairing code, and register this instance back with it in the same action",
 		func(w http.ResponseWriter, r *http.Request) {
+			// Before the code is even looked at: redeeming registers this
+			// instance BACK with the other one, so an instance with no address
+			// to offer cannot redeem at all, however good the code is. Checked
+			// first so the answer names the real reason - a desktop build that
+			// got "not a pairing code" for a perfectly valid code would send
+			// somebody hunting the wrong problem.
+			selfName, selfURL, ok := pairingSelf(r, a)
+			if !ok {
+				http.Error(w, "no address to offer back for this instance", http.StatusConflict)
+				return
+			}
 			var body struct {
 				Code string `json:"code"`
 			}
@@ -205,11 +260,6 @@ func registerPairing(reg *Registry, a *app.App) {
 			offer, err := decodeOffer(body.Code)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-			selfName, selfURL, ok := pairingSelf(r, a)
-			if !ok {
-				http.Error(w, "no address to offer back for this instance", http.StatusConflict)
 				return
 			}
 
@@ -232,7 +282,19 @@ func registerPairing(reg *Registry, a *app.App) {
 			}
 			defer resp.Body.Close()
 			if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
-				http.Error(w, "that code is invalid or has expired", http.StatusBadRequest)
+				// Pass the peer's own reason through instead of replacing it
+				// with a guess. The peer answers 400 for several distinct
+				// things - a code that really did expire, but also a name or
+				// address ITS federation store rejects - and flattening them
+				// all to "expired" is why a rejected name read as a clock
+				// problem and stayed unfixable through any number of fresh
+				// codes.
+				reason, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<12))
+				msg := strings.TrimSpace(string(reason))
+				if msg == "" {
+					msg = "that code is invalid or has expired"
+				}
+				http.Error(w, msg, http.StatusBadRequest)
 				return
 			}
 
@@ -260,11 +322,16 @@ func registerPairing(reg *Registry, a *app.App) {
 			if !decodeJSON(w, r, &body) {
 				return
 			}
-			if !codes.redeemLocal(body.Token) {
+			expires, ok := codes.redeemLocal(body.Token)
+			if !ok {
 				http.Error(w, "that code is invalid or has expired", http.StatusBadRequest)
 				return
 			}
 			if err := a.Federation.Add(federation.Instance{Name: body.Name, URL: body.URL}); err != nil {
+				// The code itself was fine - this failed on the peer's name or
+				// address. Give it back, so retrying after fixing that works
+				// instead of reporting an expiry that never happened.
+				codes.restore(body.Token, expires)
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}

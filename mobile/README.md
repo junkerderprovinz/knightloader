@@ -179,6 +179,28 @@ header on the socket too, not a query parameter — see `src/api/client.ts`'s
 - `src/theme.ts` — a small dark palette, not the full GlimStone/Carbon token
   set the web UI carries.
 
+## Why the app allows cleartext HTTP
+
+`app.json` sets `expo-build-properties`' `android.usesCleartextTraffic: true`,
+and it has to. Android disables cleartext HTTP by default for any app whose
+`targetSdk` is 28 or higher (this one targets 36), and the ordinary
+KnightLoader install is a container on the LAN answering plain
+`http://192.168.x.x:8749` — `cmd/knightloader/main.go` serves HTTP and
+terminates no TLS of its own. Without this flag a release build cannot reach
+the most common setup at all, and fails with a transport error that names
+nothing.
+
+It was missing until 2026-08-25 and the first release APKs shipped with it
+missing, so a plain-HTTP LAN address simply could not connect. Note that debug
+builds hide this: Expo adds the flag itself for the dev server, so the failure
+only ever appears in a release build.
+
+A per-domain `networkSecurityConfig` would be narrower, but Android matches it
+by domain and has no CIDR form, so there is no way to express "permit cleartext
+to private address ranges only" — the choice is all or nothing, and for a tool
+whose whole job is talking to a self-hosted box on your own network, nothing is
+the wrong half. HTTPS is still used whenever the address is `https://`.
+
 ## App icon
 
 `assets/icon.png`/`favicon.png` (full-bleed, own white/grey backdrop baked

@@ -34,6 +34,15 @@ import (
 type relayConfig struct {
 	RelayURL string `json:"relayUrl"`
 	KeySet   bool   `json:"keySet"`
+	// Connected is whether the socket to that relay is actually up right now,
+	// not whether a URL and a key happen to be stored.
+	//
+	// Without it the Access page could only infer "live" from the config being
+	// filled in, which is true for a typo'd address, a key the relay rejects
+	// and a relay that is simply down - all three then looked identical to a
+	// working relay with nobody else connected to it. relay.Client.Connected()
+	// existed for exactly this and had no callers at all.
+	Connected bool `json:"connected"`
 }
 
 func registerRelay(reg *Registry, a *app.App) {
@@ -98,7 +107,11 @@ func registerRelay(reg *Registry, a *app.App) {
 // checkmark from.
 func relayConfigOf(a *app.App) relayConfig {
 	key, err := a.Accounts.Get(relay.AccountService)
-	return relayConfig{RelayURL: a.Settings.Get().RelayURL, KeySet: err == nil && key != ""}
+	return relayConfig{
+		RelayURL:  a.Settings.Get().RelayURL,
+		KeySet:    err == nil && key != "",
+		Connected: a.Federation.RelayConnected(),
+	}
 }
 
 // applyRelay (re)builds the relay client from whatever is currently stored
