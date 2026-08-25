@@ -440,7 +440,7 @@ function PackageName({
           called "Season One" in a 200px column rendered as "S · 3 files", which
           is the one word on the row nobody can do without. */}
       <span
-        title={`${name || t('task.ungrouped')} — ${count}`}
+        title={`${name || t('task.ungrouped')} - ${count}`}
         className="min-w-[5rem] flex-1 truncate text-[13.5px] font-semibold text-carbon-text"
       >
         {name || t('task.ungrouped')}

@@ -174,7 +174,7 @@ const clearFiltered = (ids: string[]) =>
 export const FILTERED_STRINGS = {
   'collector.filtered.summary': '{n} link(s) held by the link filter',
   'collector.filtered.info':
-    'Links a filter rule refused. They are kept here rather than in the list above, so a filter that is working does not look like a collector full of junk — nothing was lost. Restore puts a link back and lets it past the rule that caught it, which is what you want when the rule turned out to be too broad. Clear deletes it; no file has been downloaded either way.',
+    'Links a filter rule refused. They are kept here rather than in the list above, so a filter that is working does not look like a collector full of junk - nothing was lost. Restore puts a link back and lets it past the rule that caught it, which is what you want when the rule turned out to be too broad. Clear deletes it; no file has been downloaded either way.',
   'collector.filtered.restore': 'Restore',
   'collector.filtered.restoreAll': 'Restore all',
   'collector.filtered.clear': 'Clear',

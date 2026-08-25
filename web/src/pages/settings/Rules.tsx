@@ -697,7 +697,7 @@ function Outcomes({
                     again reads as "by rule 1 — by rule 1", which looks like a
                     bug in the page rather than a rejection worth reading. */}
                 {l.verdict.rule && !l.verdict.reason?.includes(l.verdict.rule)
-                  ? ` — ${rx('settings.rules.resultBy', { rule: l.verdict.rule })}`
+                  ? ` - ${rx('settings.rules.resultBy', { rule: l.verdict.rule })}`
                   : ''}
               </p>
             )}

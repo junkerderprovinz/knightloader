@@ -266,7 +266,7 @@ function AccountsTable({ rows, catalogue, refreshing, onRefresh, onToggle, onRen
                     checked={a.enabled}
                     onChange={(v) => onToggle(a, v)}
                     label={t('accounts.enableAccount', {
-                      account: a.label ? `${svc?.label ?? a.service} — ${a.label}` : (svc?.label ?? a.service),
+                      account: a.label ? `${svc?.label ?? a.service} - ${a.label}` : (svc?.label ?? a.service),
                     })}
                     hideLabel
                   />

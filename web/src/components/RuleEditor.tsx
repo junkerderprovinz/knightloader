@@ -176,7 +176,7 @@ export const RULE_STRINGS = {
   'settings.rules.setOn': 'This list is being applied',
   'settings.rules.setOff': 'This list is switched off',
   'settings.rules.setSwitchHint':
-    'The master switch for the whole list. Off, no rule below runs — but they are all still edited and dry-run normally, because a list cannot be repaired while it is off if being off also hides what is wrong with it.',
+    'The master switch for the whole list. Off, no rule below runs - but they are all still edited and dry-run normally, because a list cannot be repaired while it is off if being off also hides what is wrong with it.',
   'settings.rules.stopAfterMatch': 'Stop at the first matching rule',
   'settings.rules.stopHint':
     'Off, every matching rule contributes and a later rule wins per field, which is what the Packagizer wants. On, evaluation ends at the first match, which is what a filter usually wants: an accept placed above a broad reject then actually protects the link.',
@@ -208,7 +208,7 @@ export const RULE_STRINGS = {
   'settings.rules.name': 'Name',
   'settings.rules.namePlaceholder': 'What this rule is for',
   'settings.rules.nameHint':
-    'Only ever shown to you — in this list, on a problem, and on the reason a link was held aside. An unnamed rule is called by its position, which changes when you reorder the list.',
+    'Only ever shown to you - in this list, on a problem, and on the reason a link was held aside. An unnamed rule is called by its position, which changes when you reorder the list.',
   'settings.rules.sectionIf': 'If all of these are true',
   'settings.rules.ifHint':
     'Every condition has to hold. An either/or is written as two rules, which keeps the list readable top to bottom. A rule with NO conditions matches every link, which is how a catch-all folder or a blanket reject at the end is written.',
@@ -221,21 +221,21 @@ export const RULE_STRINGS = {
     'A rule that rejects holds the link aside with its reason. A rule that accepts is worth having too: placed above a broad reject, with "stop at the first match" on, it is how one hoster is let through.',
   'settings.rules.addCondition': 'Add condition',
   'settings.rules.removeCondition': 'Remove this condition',
-  'settings.rules.noConditions': 'No conditions — this rule matches every link.',
+  'settings.rules.noConditions': 'No conditions - this rule matches every link.',
   'settings.rules.value': 'Value',
   'settings.rules.min': 'At least',
   'settings.rules.max': 'At most',
   'settings.rules.noUpperBound': 'no upper bound',
   'settings.rules.sizeHint':
-    'A plain number is bytes. A unit is understood too — 700 MB, 1.5 GiB — and both are read as 1024-based, the same as every size the rest of the app prints.',
+    'A plain number is bytes. A unit is understood too - 700 MB, 1.5 GiB - and both are read as 1024-based, the same as every size the rest of the app prints.',
   'settings.rules.badSize': 'This is not a size.',
   'settings.rules.pattern': 'Pattern',
   'settings.rules.patternHint':
-    'A Go regular expression, unanchored, and the one operator that does NOT ignore case — put (?i) at the front if you want it to. An unparsable pattern is refused with the reason rather than quietly matching nothing.',
+    'A Go regular expression, unanchored, and the one operator that does NOT ignore case - put (?i) at the front if you want it to. An unparsable pattern is refused with the reason rather than quietly matching nothing.',
   'settings.rules.category': 'File type',
   'settings.rules.categoryCustom': 'Custom pattern',
   'settings.rules.categoryHint':
-    'A shortcut that fills in the pattern for a whole family of extensions. It is stored as an ordinary pattern, so you can pick one and then edit it — after which this goes back to "custom pattern", because it no longer says what the rule does.',
+    'A shortcut that fills in the pattern for a whole family of extensions. It is stored as an ordinary pattern, so you can pick one and then edit it - after which this goes back to "custom pattern", because it no longer says what the rule does.',
   'settings.rules.categoryExtensions': 'Covers: {list}',
   'settings.rules.unchanged': 'Unchanged',
   'settings.rules.yes': 'On',
@@ -311,12 +311,12 @@ export const RULE_STRINGS = {
   'settings.rules.var.day': 'The day, as DD',
   'settings.rules.var.simpledate': 'The date in a pattern you write, in Java’s date syntax',
   'settings.rules.var.source':
-    'The Nth path segment of the source page’s URL, counting from 1: on https://site.org/tv/s01/list.html, 1 is tv and 2 is s01. NOT what JDownloader means by this tag — see the note below.',
+    'The Nth path segment of the source page’s URL, counting from 1: on https://site.org/tv/s01/list.html, 1 is tv and 2 is s01. NOT what JDownloader means by this tag - see the note below.',
   'settings.rules.var.match':
     'Capture group N of this rule’s "matches" pattern on FIELD. This is JDownloader’s <jd:source:N>, under a name that says which pattern it reads. A rule with no matching pattern on that field is refused when you save it, rather than quietly producing a folder called <jd:match:url:1>.',
   'settings.rules.var.append': 'Nothing the first time this value comes up, then _2, _3 and so on',
   'settings.rules.sourceDivergence':
-    'Copying a template out of a JDownloader config? <jd:source:N> means something different here — a path segment of the source URL, not a capture group. JD’s meaning is spelled <jd:match:FIELD:N>. The two agree often enough to be dangerous, so a copied template is worth dry-running below before you save it.',
+    'Copying a template out of a JDownloader config? <jd:source:N> means something different here - a path segment of the source URL, not a capture group. JD’s meaning is spelled <jd:match:FIELD:N>. The two agree often enough to be dangerous, so a copied template is worth dry-running below before you save it.',
 
   // The test box.
   'settings.rules.testTitle': 'Try it on a link',
@@ -346,7 +346,7 @@ export const RULE_STRINGS = {
   'settings.rules.resultBy': 'by {rule}',
   'settings.rules.folderFromSettings': 'from the download settings',
   'settings.rules.folderFromSettingsHint':
-    'No rule named a folder, so the link lands in the configured download folder — possibly inside a per-package subfolder, if that setting is on. This page will not guess the full path at you: what it can say for certain is that no rule changed it.',
+    'No rule named a folder, so the link lands in the configured download folder - possibly inside a per-package subfolder, if that setting is on. This page will not guess the full path at you: what it can say for certain is that no rule changed it.',
   'settings.rules.alsoSets': 'Also sets',
 } as const;
 
@@ -523,7 +523,7 @@ function VariablesMenu({
           </span>
           <span className="text-[11px] leading-snug text-carbon-textMuted">
             {variableLabel(rx, v.id)}
-            {v.params?.length ? ` — ${rx('settings.rules.varParams', { params: v.params.join(', ') })}` : ''}
+            {v.params?.length ? ` - ${rx('settings.rules.varParams', { params: v.params.join(', ') })}` : ''}
           </span>
         </button>
       ))}
