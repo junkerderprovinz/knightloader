@@ -37,3 +37,11 @@ desktop/go.sum
 # the shared web/ project - regenerated on every build, not source.
 web/wailsjs/
 web/package.json.md5
+# A signing key never belongs in here. mobile/.gitignore already covers *.jks
+# for the app; this is the same rule at the root, because the one place a
+# keystore actually gets dropped by accident is next to whatever command was
+# being run at the time.
+*.jks
+*.keystore
+*.p12
+*.pfx

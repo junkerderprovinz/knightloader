@@ -31,9 +31,11 @@ jobs:
           node-version: "24"
 
       - name: Tag matches the manifest
+        id: version
         if: github.ref_type == 'tag'
         run: |
           tagged="${GITHUB_REF_NAME#extension/v}"
+          echo "bare=$tagged" >> "$GITHUB_OUTPUT"
           declared=$(node -p "require('./extension/src/manifest.json').version")
           if [ "$tagged" != "$declared" ]; then
             echo "::error::tag says $tagged, manifest.json says $declared - bump the manifest before tagging."
@@ -76,7 +78,16 @@ jobs:
           ls -l "$out"
 
       - uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3
+        # A workflow_dispatch run is for checking that the zip still builds.
+        # Without this it reaches here with github.ref_name holding a BRANCH,
+        # looks for release notes under that name, finds none, and publishes an
+        # empty release from a branch - the silent-empty-release failure the
+        # notes gate above exists to prevent, arriving through the one door
+        # that gate skips.
+        if: github.ref_type == 'tag'
         with:
-          name: ${{ github.ref_name }}
+          # See release-mobile.yml for why the product is named here rather
+          # than left as the bare ref.
+          name: Browser Extension ${{ steps.version.outputs.bare }}
           body_path: .github/release-notes/${{ github.ref_name }}.md
           files: ${{ steps.zip.outputs.path }}
