@@ -4,7 +4,7 @@ import { useTasks } from '../lib/useTasks';
 import { useReportListView } from '../lib/listview';
 import { useToast } from '../lib/toast';
 import { useT } from '../lib/i18n';
-import { PageHeader, IconBadge, InfoBubble, hueStyle } from '../components/ui';
+import { PageHeader, IconBadge, InfoBubble } from '../components/ui';
 import {
   TaskListCard,
   groupByPackage,
@@ -42,7 +42,7 @@ import { CollectorStats } from '../components/CollectorStats';
 import { useScriptMenu } from '../components/ScriptActions';
 import { FirstTouchHint } from '../components/FirstTouchHint';
 import { usePublishCommandPageContext } from '../lib/commands/pageContext';
-import { IconCheck, IconClose, IconPlay, IconRetry, IconSearch, IconTrash } from '../lib/icons';
+import { IconCheck, IconClock, IconClose, IconPlay, IconRetry, IconSearch, IconTrash, IconWarning } from '../lib/icons';
 
 // Two glyphs lib/icons.tsx has no equivalent for yet, needed only by the
 // selection-mode half of the action row below. Both follow that file's own
@@ -78,6 +78,14 @@ const IconTrashFiles = (p: SVGProps<SVGSVGElement>) => (
          M7 12.4h6v1.3H7Z"
     />
   </svg>
+);
+
+/** COLLECTOR_FILTERS minus the two now rendered as their own square badges
+ *  in the action row instead (see the "Nicht prüfbar" / "Ungeprüft"
+ *  IconBadges below) — the strip this feeds keeps Online/Offline/Deaktiviert/
+ *  Gehalten, the four that stayed text chips. */
+const COLLECTOR_BADGE_FILTERS: QuickFilterId[] = COLLECTOR_FILTERS.filter(
+  (id) => id !== 'uncheckable' && id !== 'unchecked',
 );
 
 export function Collector() {
@@ -145,6 +153,21 @@ export function Collector() {
     [collected, filters, search, facets],
   );
   const groups = useMemo(() => groupByPackage(filtered), [filtered]);
+
+  // "Nicht prüfbar" / "Ungeprüft" moved out of ListToolbar's own text-chip
+  // filter strip and into this row of square badges (jdp, 2026-08-25: "die
+  // 'nicht prüfbar' und 'ungeprüft' buttons sollen auch in die zeile der
+  // ganzen quadratischen badges"), toggling the SAME `filters` set the strip
+  // itself reads — COLLECTOR_BADGE_FILTERS below is what stays in the strip.
+  const uncheckableCount = useMemo(() => collected.filter((x) => x.online === 'uncheckable').length, [collected]);
+  const uncheckedCount = useMemo(() => collected.filter((x) => !x.online).length, [collected]);
+
+  function toggleFilter(id: QuickFilterId): void {
+    const next = new Set(filters);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setFilters(next);
+  }
 
   // Drop selections that have left the collector.
   useEffect(() => {
@@ -372,7 +395,7 @@ export function Collector() {
             <ListToolbar
               search={search}
               onSearch={setSearch}
-              filters={COLLECTOR_FILTERS}
+              filters={COLLECTOR_BADGE_FILTERS}
               active={filters}
               onActive={setFilters}
               tasks={collected}
@@ -405,9 +428,8 @@ export function Collector() {
             unchanged. */}
         <div className="flex shrink-0 items-center gap-2" role="group" aria-label={t('list.actions')}>
           <IconBadge
+            hue={0}
             icon={<IconSearch width={16} height={16} />}
-            className="glim-hue glim-hue-icon"
-            style={hueStyle(0)}
             title={t('collector.searchToggle')}
             aria-label={t('collector.searchToggle')}
             onClick={() => setSearchOpen((v) => !v)}
@@ -426,12 +448,36 @@ export function Collector() {
               the open search field has its own flex-1 claim on that space. */}
           {!searchOpen && <span className="flex-1" />}
 
+          {/* Filters, not actions — visible regardless of selection, the
+              same reasoning the search badge beside them already follows,
+              rather than living only in one of the two clusters below that
+              swap out with a selection. */}
+          <IconBadge
+            hue={0}
+            active={filters.has('uncheckable')}
+            icon={<IconWarning width={16} height={16} />}
+            title={t('filter.uncheckable')}
+            aria-label={t('filter.uncheckable')}
+            disabled={uncheckableCount === 0 && !filters.has('uncheckable')}
+            onClick={() => toggleFilter('uncheckable')}
+          />
+          <IconBadge
+            hue={1}
+            active={filters.has('unchecked')}
+            icon={<IconClock width={16} height={16} />}
+            title={t('filter.unchecked')}
+            aria-label={t('filter.unchecked')}
+            disabled={uncheckedCount === 0 && !filters.has('unchecked')}
+            onClick={() => toggleFilter('unchecked')}
+          />
+
           {selected.size > 0 ? (
             <>
               <span className="glim-num text-sm text-carbon-textSub">
                 {selected.size} {t('select.count')}
               </span>
               <IconBadge
+                hue={1}
                 icon={<IconClose width={16} height={16} />}
                 title={t('select.none')}
                 aria-label={t('select.none')}
@@ -449,12 +495,14 @@ export function Collector() {
                   before, just a square badge instead of a labelled button
                   now. */}
               <IconBadge
+                hue={2}
                 icon={<IconPlay width={16} height={16} />}
                 title={t('collector.startSelected')}
                 aria-label={t('collector.startSelected')}
                 onClick={startSelected}
               />
               <IconBadge
+                hue={3}
                 icon={<IconMore width={16} height={16} />}
                 title={t('menu.more')}
                 aria-label={t('menu.more')}
@@ -486,26 +534,23 @@ export function Collector() {
           ) : (
             <>
               <IconBadge
+                hue={1}
                 icon={<IconCheck width={16} height={16} />}
-                className="glim-hue glim-hue-icon"
-                style={hueStyle(1)}
                 title={allChosen ? t('select.none') : t('select.all')}
                 aria-label={allChosen ? t('select.none') : t('select.all')}
                 disabled={filtered.length === 0}
                 onClick={() => setSelected(allChosen ? new Set() : new Set(filtered.map((x) => x.id)))}
               />
               <IconBadge
+                hue={2}
                 icon={<IconTrash width={16} height={16} />}
-                className="glim-hue glim-hue-icon"
-                style={hueStyle(2)}
                 title={t('cleanup.menu')}
                 aria-label={t('cleanup.menu')}
                 onClick={(e) => void openCleanup(e.currentTarget)}
               />
               <IconBadge
+                hue={3}
                 icon={<IconRetry width={16} height={16} />}
-                className="glim-hue glim-hue-icon"
-                style={hueStyle(3)}
                 title={t('collector.checkAll')}
                 aria-label={t('collector.checkAll')}
                 disabled={collected.length === 0}
@@ -518,9 +563,8 @@ export function Collector() {
                 }}
               />
               <IconBadge
+                hue={4}
                 icon={<IconPlay width={16} height={16} />}
-                className="glim-hue glim-hue-icon"
-                style={hueStyle(4)}
                 title={t('collector.startAll')}
                 aria-label={t('collector.startAll')}
                 disabled={collected.length === 0}
@@ -558,7 +602,26 @@ export function Collector() {
           // child (flex-1, not h-full) below, sidesteps it entirely - flex
           // distributes space in one pass, with none of percentage-height's
           // resolve-through-an-overflow-box ambiguity.
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+          // pt-3: this wrapper's own overflow-y-auto is a SECOND clipping
+          // ancestor beside TaskListCard's own (already fixed there) - its
+          // border-box starts flush against the card's own top edge, so
+          // SectionTitle's `-top-[11px]` badge poked straight into IT
+          // instead (jdp, 2026-08-25: "cardtitelbadge des linkhauptfenster
+          // ... [ist] nur halb sichtbar und abgeschnitten" - confirmed live,
+          // getBoundingClientRect measured the wrapper's own top at 566 and
+          // the badge's at 555, 11px above it). Unlike removing overflow on
+          // the card, overflow here is load-bearing (this IS what scrolls a
+          // long list), so the fix is headroom, not removal: padding keeps
+          // the clip boundary fixed where it already is while moving what
+          // renders inside it down far enough to clear the badge, at every
+          // scroll position (the padding is content, not a one-time offset
+          // the user could scroll past). pt-4 rather than the 12px that
+          // would just barely clear it (measured live: 1px of margin, too
+          // thin to trust across zoom levels/DPI) - also the exact value
+          // TaskListCard's own title wrapper already uses for its own top
+          // inset, so the two agree instead of stacking two different "how
+          // much space a title badge needs" numbers.
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-4">
             <TaskListCard
               groups={groups}
               base="/api"
