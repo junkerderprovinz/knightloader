@@ -416,9 +416,10 @@ func (a *App) regressGuessedPackages(ids []string) {
 		if t == nil || t.Name == "" || t.Name == t.URL {
 			continue
 		}
-		if reguessPackageLocked(a.tasks, t, t.Name) {
-			changed = append(changed, *t)
-		}
+		// The whole family comes back, not just t: the variant siblings are in
+		// no id list of their own, so this is the only place their own rename
+		// is ever seen.
+		changed = append(changed, reguessPackageLocked(a.tasks, t, t.Name)...)
 	}
 	a.mu.Unlock()
 	for i := range changed {

@@ -813,9 +813,18 @@ func TestSkipPolicyDoesNotDownloadOverAnExistingFile(t *testing.T) {
 
 // waitFor polls a condition another goroutine satisfies: the schedule runner
 // applying a window, or the dispatcher publishing what it settled.
+//
+// The deadline is a HANG DETECTOR, not a speed assertion. It was three seconds
+// and that turned out to be an assertion about how fast the machine is: a full
+// `go test ./...` runs 46 packages at once, so three seconds of wall clock can
+// be a fraction of a second of CPU for the one goroutine being waited on, and
+// TestExpandYtdlpVariantsFamilyStillRenamesThePackageOnceNamed failed at 3.51s
+// on a loaded run while passing on every unloaded one. Waiting longer costs
+// nothing when the condition is met - the loop returns on the next 10ms tick -
+// and only spends the extra time on a failure that was going to fail anyway.
 func waitFor(t *testing.T, what string, ok func() bool) {
 	t.Helper()
-	deadline := time.Now().Add(3 * time.Second)
+	deadline := time.Now().Add(30 * time.Second)
 	for time.Now().Before(deadline) {
 		if ok() {
 			return
