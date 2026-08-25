@@ -21,6 +21,24 @@ package settings
 // relay.AccountService, beside the TorBox and debrid keys. Public identity
 // and a secret do not belong in the same file, let alone the same sanitize
 // path, which is why this hook has exactly one field to clean.
+//
+// RelayServe is the other direction: this instance BEING the relay, on its
+// own address, for instances carrying the same key. It is worth being plain
+// about what it moves and what it does not. It removes the second binary and
+// the second address: the relay lives under /relay/connect on the address
+// this instance already answers on, behind the same reverse proxy and the
+// same certificate, and the other instances point at that. What it cannot
+// remove is the requirement that SOMETHING be reachable from both sides. A
+// relay is the third point two NATed instances both dial out to, so the one
+// hosting it has to be reachable, and switching it on inside a desktop
+// install that nothing outside can reach changes nothing about what can
+// reach it.
+//
+// It carries no address of its own. The address is this instance's, which it
+// already knows and already shows on the same page, and a second copy here
+// would be a field that goes stale the first time a domain changes. Nor is
+// it a second key: it admits exactly the key this instance already stores,
+// so "my relay" is one key rather than two that have to be kept in step.
 
 import "strings"
 

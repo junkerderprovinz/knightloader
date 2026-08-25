@@ -180,6 +180,12 @@ jobs:
       # that is what is read, and "CN=Android Debug" fails the run.
       - name: The APK is signed with our own key
         if: github.ref_type == 'tag'
+        # From the workspace root: this job's run steps default to mobile/, and
+        # the path the previous step published is already workspace-relative -
+        # so without this the file is looked for at mobile/mobile/... and the
+        # step fails on a missing file rather than on what it went to check.
+        # Same shape as the notes gate above, which had the same bug.
+        working-directory: ${{ github.workspace }}
         run: |
           apksigner=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner 2>/dev/null | sort -V | tail -1)
           if [ -z "$apksigner" ]; then

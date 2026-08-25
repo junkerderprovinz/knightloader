@@ -92,6 +92,22 @@ see Versioning above.
   is filed under every key the peer can be addressed by rather than under a
   guess about which one will be used. A desktop build can issue a code now for
   the same reason.
+- **One instance can be the relay**, from a switch on the Access tab, instead of
+  a second program on a second address. It answers under `/relay/connect` on the
+  address that instance already uses, behind the same reverse proxy and the same
+  certificate, and it admits only the relay key that instance stores - so
+  turning it on does not make a published address a meeting place for whoever
+  finds it. Off, the route answers 404, exactly as a build without the feature
+  does. What it cannot change is the one thing a relay needs: it is the third
+  point both sides dial out to, so the instance hosting it has to be reachable.
+- **One card for remote access.** Pairing and the relay were two headed sections
+  of the same card, which showed the plumbing to somebody who came for an
+  answer. It now opens with the answer - one sentence saying whether another
+  KnightLoader can reach this one, and by which of the two roads - and both
+  halves of connecting are in one place, because showing a code and entering one
+  are the same act seen from the two ends and they lived on two different pages.
+  The relay is folded away under what it is for rather than what it is, and
+  unfolds by itself when one is already configured.
 - **The app and the extension follow GlimStone**, the design language the web
   UI already speaks: the same palette, the same corner shapes, the same
   Sunflower-gold accent before anyone touches a picker. The app takes its look
