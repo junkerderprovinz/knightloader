@@ -256,6 +256,19 @@ const availChip: Record<Exclude<Availability, ''>, { key: TranslationKey; tone: 
   uncheckable: { key: 'task.uncheckable', tone: 'text-carbon-textMuted' },
 };
 
+// The same verdict as availChip, as a dot rather than a word — for NameCell
+// below, which shows it beside the name itself rather than only in the
+// Status column (jdp, 2026-08-25: "Der status der links soll auch per
+// eingefärbtem icon angezeigt werden (als online oder offline)"). The same
+// solid-dot tokens StatusPill's own status dot already uses, not the softer
+// text-status* wash availChip reads: a 6px dot needs the fully saturated
+// colour to read at all, where a word has its own text weight to carry it.
+const availDot: Record<Exclude<Availability, ''>, string> = {
+  online: 'bg-statusOkSolid',
+  offline: 'bg-statusFailSolid',
+  uncheckable: 'bg-statusNeutralSolid',
+};
+
 // --- The row tooltip --------------------------------------------------------
 //
 // New UI text for this wave, kept out of en.ts on purpose: the locale files
@@ -509,10 +522,24 @@ function NameCell({ task, t, base }: { task: Task; t: Translate; base: string })
   // - the two would be hovering the exact same box, and the browser's own
   // delayed tooltip would eventually stack on top of this one.
   const tip = useTooltip<HTMLDivElement>(<RowTooltipContent task={task} t={t} base={base} />);
+  // Same gating as StatusCell's own chip: a verdict is only worth a glance
+  // while nothing has been attempted yet, and once a transfer starts the
+  // status itself is the answer (see that cell's own doc comment).
+  const avail = task.status === 'collected' && task.online ? task.online : undefined;
   return (
     <div className="min-w-0">
-      <div dir="ltr" {...tip.triggerProps} className="truncate text-start text-[13.5px] text-carbon-text">
-        {task.name || task.url}
+      <div className="flex min-w-0 items-center gap-1.5">
+        {avail && (
+          <span
+            role="img"
+            title={t(availChip[avail].key)}
+            aria-label={t(availChip[avail].key)}
+            className={`h-1.5 w-1.5 shrink-0 rounded-[var(--radius-pill)] ${availDot[avail]}`}
+          />
+        )}
+        <div dir="ltr" {...tip.triggerProps} className="min-w-0 truncate text-start text-[13.5px] text-carbon-text">
+          {task.name || task.url}
+        </div>
       </div>
       {tip.node}
       {task.error && (

@@ -1,4 +1,14 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type DragEvent, type PointerEvent } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type DragEvent,
+  type PointerEvent,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { priorityChoices, type PriorityChoice, type Task, type TaskOptionsPatch } from '../lib/api';
 import { hueVars, rainbowAt } from '../lib/appearance';
@@ -261,16 +271,27 @@ function TaskRow({
           Rules.tsx: "die icons ... sind nicht im Glimstone. das sollen
           farbige quadratischen badges mit icon sein") - this is the
           highest-traffic row in the app, so it gets the fix first. */}
-      {/* No hue on any badge here: the row itself already owns one position
-          (glim-hue/glim-tint above), and these are not several equal-weight
-          badges of the SAME kind repeated across a set - play/pause/resume
-          is one control in three states, and search/folder/retry/trash are
-          each a different job. Colouring them individually would fight the
-          row's own single position with arbitrary small indices that repeat
-          identically on every row, rather than reading as this row's colour. */}
+      {/* Hued as of jdp, 2026-08-25: "alle quadratischen icons in die
+          farbmodie bzw die farbengine aufnehmen. auch die überhalb des
+          hauptfensters" - a Kurswechsel from this section's own earlier
+          reasoning (the row already owns one rainbow position via
+          glim-hue/glim-tint above, and colouring several DIFFERENT-job
+          badges with small repeating indices would read as a second,
+          competing colour layer rather than this row's own colour). Kept
+          per SLOT rather than per row-position, so every row's own
+          play/pause/resume badge is always the same hue and Folder is
+          always the next one after it, the same "the position is the
+          identity" rule Look.tsx's own colour swatches and every other
+          badge SET in this app already follow - not a hash of the task id,
+          which would repaint a badge a different colour every time its own
+          row moved. Trash stays plain danger red without a hue: a
+          destructive action keeps its own semantic colour instead of taking
+          a rainbow position, the same choice this file already made for the
+          bulk-remove badges in Collector.tsx/Downloads.tsx. */}
       <div className="flex items-center justify-end gap-1">
         {collected && (
           <IconBadge
+            hue={0}
             icon={<IconPlay width={16} height={16} />}
             title={t('task.start')}
             aria-label={t('task.start')}
@@ -279,6 +300,7 @@ function TaskRow({
         )}
         {task.status === 'running' && (
           <IconBadge
+            hue={0}
             icon={<IconPause width={16} height={16} />}
             title={t('task.pause')}
             aria-label={t('task.pause')}
@@ -287,6 +309,7 @@ function TaskRow({
         )}
         {task.status === 'paused' && (
           <IconBadge
+            hue={0}
             icon={<IconPlay width={16} height={16} />}
             title={t('task.resume')}
             aria-label={t('task.resume')}
@@ -296,6 +319,7 @@ function TaskRow({
         <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
           {collected && (
             <IconBadge
+              hue={1}
               icon={<IconSearch width={16} height={16} />}
               title={t('task.recheck')}
               aria-label={t('task.recheck')}
@@ -303,6 +327,7 @@ function TaskRow({
             />
           )}
           <IconBadge
+            hue={2}
             icon={<IconFolder width={16} height={16} />}
             title={t('task.folder')}
             aria-label={t('task.folder')}
@@ -310,6 +335,7 @@ function TaskRow({
           />
           {settled && (
             <IconBadge
+              hue={3}
               icon={<IconRetry width={16} height={16} />}
               title={t('task.restart')}
               aria-label={t('task.restart')}
@@ -1050,11 +1076,38 @@ export function TaskListCard({
   // lets the OTHER rows actually move out of the way live instead of only
   // snapping into their new order once the mouse is released (jdp,
   // 2026-08-25: "die elemente sollen live verrutschen wenn ich zb ein link
-  // über einen anderen ziehe"), the same "recompute the order from a
-  // pointer position, every event, no separate animation step" shape
-  // Tabs.tsx's own long-press reorder already uses for the identical
-  // reason (its own liveOrder/reordering state).
+  // über einen anderen ziehe").
   const [dragOver, setDragOver] = useState<{ target: RowDragKey; after: boolean } | null>(null);
+
+  // A frozen snapshot of every draggable row's own on-screen position, taken
+  // once at the START of a drag — see snapshotSlots() below for why this
+  // exists at all: without it, previewOver's "which row, which half" read
+  // came from whichever DOM element the browser currently delivers dragover
+  // to, and that element itself moves the moment the live preview reorders
+  // it, feeding its own output back in as its next input (jdp, 2026-08-25:
+  // "jetzt springen die einzelnen elemente... die ganze zeit hin und her").
+  // A snapshot the reorder itself never touches breaks that loop.
+  const rowSlotsRef = useRef<{ unit: RowDragKey; top: number; bottom: number }[]>([]);
+
+  function snapshotSlots(): void {
+    const root = tableRef.current;
+    if (!root) {
+      rowSlotsRef.current = [];
+      return;
+    }
+    const slots: { unit: RowDragKey; top: number; bottom: number }[] = [];
+    root.querySelectorAll<HTMLElement>('[data-task-id],[data-package-row]').forEach((el) => {
+      const r = el.getBoundingClientRect();
+      const unit: RowDragKey | undefined =
+        el.dataset.taskId !== undefined
+          ? { kind: 'task', id: el.dataset.taskId }
+          : el.dataset.packageRow !== undefined
+            ? { kind: 'package', name: el.dataset.packageRow }
+            : undefined;
+      if (unit) slots.push({ unit, top: r.top, bottom: r.bottom });
+    });
+    rowSlotsRef.current = slots;
+  }
 
   // Every task actually on screen, flattened out of the package groups in
   // display order — the same tasks `chosen` reads off `view` above, not the
@@ -1163,17 +1216,35 @@ export function TaskListCard({
     dropRow({ kind: 'package', name }, e.clientY > r.top + r.height / 2);
   }
 
-  // dragOver's own before-or-after read, shared with dropOnTask/
-  // dropOnPackage above rather than duplicated: dragover fires continuously
-  // while a drag crosses a row, so this is called far more often than a
-  // drop ever is and only updates state when the (target, half) pair it
-  // computed actually changed — an update on every one of those events,
-  // most of which land on the same row half as the previous one, would
-  // re-render the whole list dozens of times a second for nothing.
-  function previewOver(target: RowDragKey, e: DragEvent<HTMLElement>): void {
+  // dragOver's own hit test, shared by every row's and package header's own
+  // onDragOver rather than duplicated. Deliberately NOT `e.currentTarget`'s
+  // own rect: once the live preview starts moving rows, the element the
+  // browser delivers the NEXT dragover to is itself a consequence of the
+  // LAST reorder this function produced — under a stationary pointer that
+  // sits right on the boundary between two rows, that is a closed loop (this
+  // function's own output changes what its next input will be), and the
+  // symptom is rows endlessly swapping back and forth rather than settling.
+  // Reading against rowSlotsRef's frozen, pre-drag snapshot instead means
+  // "which row, which half" is a pure function of the pointer's own Y
+  // position and never of whatever this function itself just rendered.
+  function previewOver(e: DragEvent<HTMLElement>): void {
     if (!rowDrag) return;
-    const r = e.currentTarget.getBoundingClientRect();
-    const after = e.clientY > r.top + r.height / 2;
+    const band = unitBand(rowDrag);
+    if (!band) return;
+    const y = e.clientY;
+    let best: { unit: RowDragKey; top: number; bottom: number } | null = null;
+    let bestDist = Infinity;
+    for (const slot of rowSlotsRef.current) {
+      if (unitBand(slot.unit) !== band) continue;
+      const dist = y < slot.top ? slot.top - y : y > slot.bottom ? y - slot.bottom : 0;
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = slot;
+      }
+    }
+    if (!best) return;
+    const after = y > (best.top + best.bottom) / 2;
+    const target = best.unit;
     setDragOver((prev) => {
       if (prev && prev.after === after && sameUnit(prev.target, target)) return prev;
       return { target, after };
@@ -1224,21 +1295,92 @@ export function TaskListCard({
     });
   }, [view, rowDrag, dragOver, liveBandOrder]);
 
+  // FLIP (First-Last-Invert-Play): a reorder driven by liveView above moves
+  // real DOM rows to a new position, but React and the browser never animate
+  // a row simply changing its place in the document flow — without this it
+  // is an instant snap (jdp, 2026-08-25: "das zur seite rutschen soll sehr
+  // smooth sein"). This layout effect runs after every commit, reads each
+  // row's now-current rect ("Last"), compares it against the rect the SAME
+  // row had after the previous commit ("First", from flipRectsRef), and for
+  // any row whose position actually changed, jumps it back there with a
+  // transform (no transition — instant, invisible) and then, one frame
+  // later, clears the transform WITH a transition so the browser animates
+  // the row sliding from its old spot to its real new one.
+  //
+  // Gated to only animate while a live drag preview is actually running
+  // (rowDrag && dragOver): the same effect also fires on an ordinary poll
+  // update that happens to reorder something for an unrelated reason (a
+  // priority change from elsewhere, a task settling), where a surprise
+  // slide animation would read as a glitch rather than a response to
+  // something the person watching just did. Ending a drag lets liveView
+  // fall back to the server's own order in the same render that dragOver
+  // clears, so that snap-back is deliberately left un-animated too — it
+  // reads as "this is where the server actually put it", not a slide.
+  const flipRectsRef = useRef<Map<string, DOMRect>>(new Map());
+  useLayoutEffect(() => {
+    const root = tableRef.current;
+    const prev = flipRectsRef.current;
+    const next = new Map<string, DOMRect>();
+    const animate = rowDrag !== null && dragOver !== null;
+    root?.querySelectorAll<HTMLElement>('[data-task-id],[data-package-row]').forEach((el) => {
+      const key = el.dataset.taskId !== undefined ? `task:${el.dataset.taskId}` : `pkg:${el.dataset.packageRow}`;
+      // A drag can end (drop, or the drag simply leaving the list) WHILE a
+      // row is still mid-slide from the last preview update — without this,
+      // that row's own translateY never gets cleared (the code below that
+      // clears it only runs while animate is true) and it would sit
+      // visibly offset from where it belongs from then on. Cleared BEFORE
+      // measuring the rect below, so `next`'s own snapshot reflects the
+      // row's true flow position and not a still-transformed one.
+      if (!animate && el.style.transform) {
+        el.style.transition = 'none';
+        el.style.transform = '';
+      }
+      const rect = el.getBoundingClientRect();
+      next.set(key, rect);
+      if (!animate) return;
+      const before = prev.get(key);
+      if (!before) return;
+      const dy = before.top - rect.top;
+      if (Math.abs(dy) < 1) return;
+      el.style.transition = 'none';
+      el.style.transform = `translateY(${dy}px)`;
+      // Forces the browser to apply the transform above before the next
+      // line changes it again — without this read, the two style writes
+      // would be batched together and only the final (no-transform) state
+      // would ever paint, and there would be nothing to animate FROM.
+      void el.offsetHeight;
+      requestAnimationFrame(() => {
+        el.style.transition = 'transform 180ms ease';
+        el.style.transform = '';
+      });
+    });
+    flipRectsRef.current = next;
+  }, [liveView, rowDrag, dragOver]);
+
   const dnd: RowDnD = {
     enabled: dndEnabled,
     active: rowDrag !== null,
     draggingTask: rowDrag?.kind === 'task' ? rowDrag.id : null,
     draggingPackage: rowDrag?.kind === 'package' ? rowDrag.name : null,
-    startTask: (id) => setRowDrag({ kind: 'task', id }),
-    startPackage: (name) => setRowDrag({ kind: 'package', name }),
+    startTask: (id) => {
+      // Taken from the DOM at this exact moment, before any reorder preview
+      // has ever run for this drag — the one point at which the rendered
+      // order is guaranteed to still match the server's own bandOrder.
+      snapshotSlots();
+      setRowDrag({ kind: 'task', id });
+    },
+    startPackage: (name) => {
+      snapshotSlots();
+      setRowDrag({ kind: 'package', name });
+    },
     end: () => {
       setRowDrag(null);
       setDragOver(null);
     },
     dropOnTask,
     dropOnPackage,
-    previewOverTask: (id, e) => previewOver({ kind: 'task', id }, e),
-    previewOverPackage: (name, e) => previewOver({ kind: 'package', name }, e),
+    previewOverTask: (_id, e) => previewOver(e),
+    previewOverPackage: (_name, e) => previewOver(e),
   };
 
   const template = gridTemplate(layout.visible, layout.widthOf);
@@ -1316,73 +1458,95 @@ export function TaskListCard({
     // ambiguity, so this is the one place in this component that composes
     // with whatever a caller does about height.
     <div className="flex flex-1 flex-col gap-6">
-      <div className="glim-card flex-1 overflow-hidden">
+      {/* No overflow-hidden on this outer box (jdp, 2026-08-25: "cardtitelbadge
+          des linkhauptfenster und downloadhauptfenster sind nur halb sichtbar
+          und abgeschnitten") - the SAME bug and the SAME fix as
+          AddLinksForm.tsx's own card (see its doc comment): SectionTitle's own
+          pill sits `absolute -top-[11px]`, half over this card's own top edge
+          by design, and overflow-hidden on the element that hosts its
+          `position: relative` clipped exactly that half off. Unlike
+          AddLinksForm.tsx, this card DOES have flush-edged content below the
+          title (the table can run edge-to-edge under overflow-x-auto, and the
+          rows are not their own rounded shape) - so the clip still needs to
+          exist, just scoped to a wrapper that starts BELOW the title instead
+          of on the card's own positioning box. rounded-b (not rounded-t) to
+          match: the title sits far enough below the card's own top corners
+          already (the badge's negative offset only reaches into the pt-4
+          above it, never past the card's own top edge), and the h-10 spacer
+          after the rows already keeps the last row's own square corners clear
+          of the card's rounded bottom corners - but a table that is
+          user-scrolled all the way down, or a card too short to show that
+          full spacer, still deserves the same rounded-bottom guarantee an
+          unclipped square row would otherwise be able to break. */}
+      <div className="glim-card flex-1">
         <div className="px-4 pt-4">
           <SectionTitle hue={hue}>{title}</SectionTitle>
         </div>
-        {/* Sorting is a view of the queue and not the queue. Saying so where the
-            order is visibly different is the whole of it — a list that quietly
-            shows one order while running another is read as a bug in the queue. */}
-        {sort && (
-          <div className="flex items-center gap-1 px-4 py-2 text-[11px] text-carbon-textMuted">
-            <span>{t('list.sortedView')}</span>
-            <InfoBubble tip={t('list.sortedViewTip')} />
-            <span className="flex-1" />
-            <Button kind="ghost" className="px-2 py-1 text-[11px]" onClick={() => setSort(null)}>
-              {t('list.queueOrder')}
-            </Button>
-          </div>
-        )}
-
-        {/* min-w-min, not min-w-max: max-content pins the table at the sum of its
-            own columns, which overrides the flexible name track entirely and makes
-            the list open scrolled off its right edge in any window narrower than
-            that sum. With min-content the name column gives way down to its own
-            minimum first, and only then does the table start scrolling — which is
-            the point at which scrolling is actually the right answer. */}
-        <div className="overflow-x-auto">
-          <div ref={tableRef} className="min-w-min" style={{ ['--kl-cols' as string]: template } as CSSProperties}>
-            <Header
-              layout={layout}
-              sort={sort}
-              onSort={(id) => setSort(nextSort(storedSort, id))}
-              onReorder={(id, target, after) =>
-                persist({ order: moveColumn(layout.order.map((c) => c.id), id, target, after) })
-              }
-              onResize={onResize}
-              onResizeReset={resetWidth}
-              onMenu={setMenuAt}
-            />
-
-            <div className="divide-y divide-carbon-border/60">
-              {liveView.map(([name, items]) => {
-                const folded = collapsed.has(name);
-                const offset = index;
-                if (!folded) index += items.length;
-                return (
-                  <PackageGroup
-                    key={name || '__none'}
-                    name={name}
-                    items={items}
-                    base={base}
-                    ctx={ctx}
-                    columns={layout.visible}
-                    selection={selection}
-                    collapsed={folded}
-                    onToggleCollapsed={() => toggle(name)}
-                    indexOffset={offset}
-                    dnd={dnd}
-                  />
-                );
-              })}
+        <div className="overflow-hidden rounded-b-[var(--radius-card)]">
+          {/* Sorting is a view of the queue and not the queue. Saying so where the
+              order is visibly different is the whole of it — a list that quietly
+              shows one order while running another is read as a bug in the queue. */}
+          {sort && (
+            <div className="flex items-center gap-1 px-4 py-2 text-[11px] text-carbon-textMuted">
+              <span>{t('list.sortedView')}</span>
+              <InfoBubble tip={t('list.sortedViewTip')} />
+              <span className="flex-1" />
+              <Button kind="ghost" className="px-2 py-1 text-[11px]" onClick={() => setSort(null)}>
+                {t('list.queueOrder')}
+              </Button>
             </div>
+          )}
 
-            {/* The empty space under the rows, and it earns its keep twice: a
-                table that ends flush against the edge of its card reads as cut
-                off, and a right-click needs somewhere to land that is not a row.
-                That is where the list's own menu lives — select all, fold the lot,
-                clean up — the same place a desktop list keeps it. */}
-            <div className="h-10" />
+          {/* min-w-min, not min-w-max: max-content pins the table at the sum of its
+              own columns, which overrides the flexible name track entirely and makes
+              the list open scrolled off its right edge in any window narrower than
+              that sum. With min-content the name column gives way down to its own
+              minimum first, and only then does the table start scrolling — which is
+              the point at which scrolling is actually the right answer. */}
+          <div className="overflow-x-auto">
+            <div ref={tableRef} className="min-w-min" style={{ ['--kl-cols' as string]: template } as CSSProperties}>
+              <Header
+                layout={layout}
+                sort={sort}
+                onSort={(id) => setSort(nextSort(storedSort, id))}
+                onReorder={(id, target, after) =>
+                  persist({ order: moveColumn(layout.order.map((c) => c.id), id, target, after) })
+                }
+                onResize={onResize}
+                onResizeReset={resetWidth}
+                onMenu={setMenuAt}
+              />
+
+              <div className="divide-y divide-carbon-border/60">
+                {liveView.map(([name, items]) => {
+                  const folded = collapsed.has(name);
+                  const offset = index;
+                  if (!folded) index += items.length;
+                  return (
+                    <PackageGroup
+                      key={name || '__none'}
+                      name={name}
+                      items={items}
+                      base={base}
+                      ctx={ctx}
+                      columns={layout.visible}
+                      selection={selection}
+                      collapsed={folded}
+                      onToggleCollapsed={() => toggle(name)}
+                      indexOffset={offset}
+                      dnd={dnd}
+                    />
+                  );
+                })}
+              </div>
+
+              {/* The empty space under the rows, and it earns its keep twice: a
+                  table that ends flush against the edge of its card reads as cut
+                  off, and a right-click needs somewhere to land that is not a row.
+                  That is where the list's own menu lives — select all, fold the lot,
+                  clean up — the same place a desktop list keeps it. */}
+              <div className="h-10" />
+            </div>
           </div>
         </div>
 

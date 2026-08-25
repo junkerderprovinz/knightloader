@@ -90,6 +90,7 @@ export function IconBadge({
   icon,
   kind = 'neutral',
   hue,
+  active,
   className = '',
   style,
   ...rest
@@ -97,14 +98,32 @@ export function IconBadge({
   icon: ReactNode;
   kind?: IconBadgeKind;
   hue?: number;
+  /**
+   * Marks a TOGGLE badge (a filter switching on/off, not a one-shot action)
+   * as currently engaged — added for Collector.tsx's "Nicht prüfbar" /
+   * "Ungeprüft" filters, jdp 2026-08-25: moved off ListToolbar's text-chip
+   * strip into this same badge row. Left `undefined` by every other call
+   * site in the app (a one-shot action has no pressed state to report), so
+   * `aria-pressed` is only ever rendered where a caller opts in — an action
+   * button staying a plain button, not silently becoming a toggle button
+   * for assistive tech everywhere else this component is already used. A
+   * halo ring in the tile's own current colour, not a Button-style
+   * `bg-accent` fill: the doc comment above already covers why a fill would
+   * cost the tile its own hue/kind colour, and this app's own rule against
+   * border lines (Look.tsx's colour swatches use the identical halo) rules
+   * out a plain border too.
+   */
+  active?: boolean;
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
   const hued = hue !== undefined;
   return (
     <button
       type="button"
+      aria-pressed={active}
       className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-control)]
         transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
-        motion-safe:active:scale-[.98] ${hued ? 'glim-tint-badge' : ''} ${iconBadgeClass[kind]} ${className}`}
+        motion-safe:active:scale-[.98] ${hued ? 'glim-tint-badge' : ''} ${iconBadgeClass[kind]}
+        ${active ? 'shadow-[0_0_0_2px_var(--carbon-bg),0_0_0_2px_currentColor]' : ''} ${className}`}
       style={hued ? { ...(hueVars(rainbowAt(hue)) as CSSProperties), ...style } : style}
       {...rest}
     >
