@@ -18,6 +18,9 @@ not contain, or not bumping it for changes it does.
 | Android app | `mobile/app.json` (`expo.version` **and** `expo.android.versionCode`) | `mobile/vX.Y.Z` |
 | Browser extension | `extension/src/manifest.json` | `extension/vX.Y.Z` |
 
+Both are released: `mobile/v1.0.0` and `extension/v1.3.0`. KnightLoader itself
+has no tag yet - see [Unreleased] below.
+
 Each tag runs its own workflow and no other: a `*` in a GitHub ref filter does
 not cross a `/`, so `mobile/v1.0.0` is invisible to the bare `v*.*.*` pattern
 and the reverse. Each workflow refuses a tag whose version does not match the
