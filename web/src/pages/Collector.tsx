@@ -409,6 +409,17 @@ export function Collector() {
 
           {searchOpen && <SearchField value={search} onChange={setSearch} className="min-w-0 flex-1" />}
 
+          {/* Search is the row's one left-aligned element; everything else -
+              the selection cluster below as much as the four page-level
+              badges - hugs the right edge instead (jdp: "die icons ... sollen
+              alle rechts drüben sein nur die suche links. auch wenn ein
+              element ausgewählt wird"). One spacer, placed once here rather
+              than inside each branch below, is what keeps both readings
+              right-aligned the same way instead of the selection branch
+              needing its own copy of this same rule. It drops out the moment
+              the open search field has its own flex-1 claim on that space. */}
+          {!searchOpen && <span className="flex-1" />}
+
           {selected.size > 0 ? (
             <>
               <span className="glim-num text-sm text-carbon-textSub">
@@ -437,7 +448,6 @@ export function Collector() {
                 aria-label={t('collector.startSelected')}
                 onClick={startSelected}
               />
-              <span className="flex-1" />
               <IconBadge
                 icon={<IconMore width={16} height={16} />}
                 title={t('menu.more')}
@@ -469,12 +479,6 @@ export function Collector() {
             </>
           ) : (
             <>
-              {/* Nothing else claims the row's flex-1 space while closed, so
-                  this spacer is what keeps the four badges hugging the right
-                  edge exactly as before - it drops out the moment the search
-                  field (or the selection actions above) has its own claim on
-                  that space. */}
-              {!searchOpen && <span className="flex-1" />}
               <IconBadge
                 icon={<IconCheck width={16} height={16} />}
                 className="glim-hue glim-hue-icon"

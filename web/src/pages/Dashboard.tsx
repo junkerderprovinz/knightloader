@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { type Instance, fetchInstances } from '../lib/api';
+import { type Instance, type Settings, fetchInstances, fetchSettings } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import { useResource } from '../lib/useResource';
 import { fmtBytes, fmtSpeed, pct } from '../lib/format';
@@ -17,6 +17,14 @@ export function Dashboard() {
   const { t } = useT();
   const tasks = useTasks('');
   const { data: instances } = useResource<Instance[]>(fetchInstances);
+  // The configured name (settings/access.tsx's own IdentityCard), so this
+  // instance shows up on its own list the same way a peer does - not the
+  // generic "this instance" placeholder, which reads like every other
+  // KnightLoader is also called that (jdp: "unter instanz soll diese
+  // instanz mit dem eingestellten namen erscheinen nicht mit 'diese
+  // instanz'"). Falls back to the placeholder for the common case of never
+  // having named it.
+  const { data: settings } = useResource<Settings>(fetchSettings);
   const navigate = useNavigate();
 
   const list = useMemo(() => Object.values(tasks), [tasks]);
@@ -110,7 +118,7 @@ export function Dashboard() {
         <Card className="flex flex-col gap-3">
           <SectionTitle>{t('overview.instances')}</SectionTitle>
           <div className="glim-well divide-y divide-carbon-border/60 p-0">
-            <InstanceRow name={t('instances.thisInstance')} base="/api" />
+            <InstanceRow name={settings?.instanceName || t('instances.thisInstance')} base="/api" />
             {(instances ?? []).map((i) => (
               <InstanceRow
                 key={i.name}

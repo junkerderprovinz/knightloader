@@ -623,8 +623,15 @@ const inputClass =
   'placeholder:text-carbon-textMuted outline-none transition-shadow ' +
   'focus:shadow-[0_0_0_2px_var(--focus-ring)]';
 
-export function TextInput(props: InputHTMLAttributes<HTMLInputElement>) {
-  return <input className={inputClass} {...props} />;
+// className is pulled out and merged rather than left in `props`: JSX spread
+// applies later props last, so `<input className={inputClass} {...props} />`
+// let a caller's own className silently REPLACE the base look (padding,
+// background, focus ring) instead of extending it - the one existing caller
+// that passed one only ever added a width constraint, so the difference
+// never showed, but it made every base style invisible to any prop that
+// isn't width.
+export function TextInput({ className = '', ...props }: InputHTMLAttributes<HTMLInputElement>) {
+  return <input className={`${inputClass} ${className}`} {...props} />;
 }
 
 export function TextArea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
