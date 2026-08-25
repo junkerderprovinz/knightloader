@@ -57,10 +57,10 @@ const PENDING = {
     'Everything you add lands in this collector first, where you can check names and sizes before anything starts. Start it here, or turn on auto-start in settings if you never want that pause.',
   'hint.downloads.title': 'What is actually running',
   'hint.downloads.body':
-    'This is the transfer queue — links you have started, whether they are running, waiting their turn, or already finished. Nothing you have merely staged in the collector shows up here yet.',
+    'This is the transfer queue - links you have started, whether they are running, waiting their turn, or already finished. Nothing you have merely staged in the collector shows up here yet.',
   'hint.instances.title': 'A peer, not a copy',
   'hint.instances.body':
-    'Adding another KnightLoader here does not move or sync anything — this instance simply calls that one’s own API to show and control its queue, the same way a browser would.',
+    'Adding another KnightLoader here does not move or sync anything - this instance simply calls that one’s own API to show and control its queue, the same way a browser would.',
 } as const;
 
 /** The set of hints this build knows how to draw — one entry per page that calls FirstTouchHint. */

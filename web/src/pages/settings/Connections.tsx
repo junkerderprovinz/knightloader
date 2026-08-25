@@ -107,7 +107,7 @@ const PENDING = {
   'settings.connections.edit': 'Edit this connection',
   'settings.connections.type': 'Type',
   'settings.connections.typeHint':
-    'None and direct are not the same row. None is inert: it names no connection and is never used, so it survives only until you finish filling it in. Direct is a real choice — go out over this machine’s own connection and deliberately bypass every proxy for the hosts named below, which is how a NAS is excluded from a whole-app proxy. A row whose filter matches the host beats a row with no filter, so a direct row with a filter always wins over a catch-all proxy.',
+    'None and direct are not the same row. None is inert: it names no connection and is never used, so it survives only until you finish filling it in. Direct is a real choice - go out over this machine’s own connection and deliberately bypass every proxy for the hosts named below, which is how a NAS is excluded from a whole-app proxy. A row whose filter matches the host beats a row with no filter, so a direct row with a filter always wins over a catch-all proxy.',
   'settings.connections.kind.none': 'None',
   'settings.connections.kind.direct': 'Direct',
   'settings.connections.stateNone': 'Inert. Nothing is ever sent through this row.',
@@ -122,7 +122,7 @@ const PENDING = {
   'settings.connections.usernameHint':
     'The proxy’s own credentials, not a hoster account. Clearing the user name clears the stored password with it.',
   'settings.connections.password': 'Password',
-  'settings.connections.passwordStored': 'stored — leave empty to keep it',
+  'settings.connections.passwordStored': 'stored - leave empty to keep it',
   'settings.connections.passwordHint':
     'A stored password is never sent to this page, which is why the box is empty. Leave it empty and the saved one is kept. A stored password does not follow the row to a different host, port or type: change one of those and this has to be set again.',
   'settings.connections.filter': 'Host filter',
@@ -132,7 +132,7 @@ const PENDING = {
   'settings.connections.filterCount': '{n} hosts',
   'settings.connections.cap': 'Downloads at once',
   'settings.connections.capHint':
-    'How many downloads may share this connection at the same time. 0 uses the default of 2 — spreading downloads is what the list is for, and one connection taking the whole queue would defeat it.',
+    'How many downloads may share this connection at the same time. 0 uses the default of 2 - spreading downloads is what the list is for, and one connection taking the whole queue would defeat it.',
   'settings.connections.capDefault': 'default',
   'settings.connections.test': 'Test',
   'settings.connections.testing': 'Testing…',
