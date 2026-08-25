@@ -213,6 +213,17 @@ export function Tabs(props: TabsProps) {
   // themselves account for.
   const maxLabelLen = equalWidth ? Math.max(0, ...items.map((i) => i.label.length)) : 0;
 
+  // Every well segment's own width: a flat 200px for `md` (unchanged -
+  // Look.tsx/Archives.tsx's 2-3 item pickers, where a content-hugging width
+  // was tried and explicitly rejected: "much too narrow" for a short label
+  // like "Rund"). `sm` uses the same ch-based measurement equalWidth uses
+  // above instead - introduced for TaskProperties' seven-item priority
+  // selector, where inheriting the SAME flat 200px (built for 2-3 items)
+  // is the reason it needed a horizontal scrollbar to hold them at all;
+  // `md`'s own callers never had that problem, so their fixed width is
+  // untouched.
+  const wellWidth = !isWell ? undefined : size === 'sm' ? `${Math.max(0, ...items.map((i) => i.label.length)) + 4}ch` : '200px';
+
   // Mirrors of the state above, read by the document-level listeners further
   // down: those bind once (empty-ish dependency array) rather than re-binding
   // on every state change, so they read the CURRENT value through a ref
@@ -446,11 +457,20 @@ export function Tabs(props: TabsProps) {
       // wider than its column puts the whole page into a horizontal scroll —
       // which is the one thing a tab bar across the top must never do.
       //
-      // The well variant is the one exception to "no wrapping bar" - its
-      // whole point is one shared track behind a small, exclusive set.
+      // The well variant used to be the one exception to "no wrapping bar",
+      // on the reasoning that its whole point is one shared track behind a
+      // small, exclusive set - true for the 2-3 item pickers (Look.tsx's
+      // shape/theme) it was built for, but TaskProperties' own priority
+      // selector carries seven, wide enough at any legible size that a
+      // fixed-width nowrap track needed a horizontal scrollbar to hold them
+      // (jdp, 2026-08-25: "die buttons so breit machen dass kein
+      // horizontaler scrollbar notwendig ist"). flex-wrap costs nothing for
+      // a set that already fits its track in one row - it only ever
+      // engages once a track would otherwise have overflowed into a
+      // scrollbar, growing the track's height instead.
       className={
         isWell
-          ? `flex flex-nowrap items-center gap-[0.2rem] rounded-[var(--radius-control)] bg-carbon-surface2 p-[0.2rem] ${className}`
+          ? `flex flex-wrap items-center gap-[0.2rem] rounded-[var(--radius-control)] bg-carbon-surface2 p-[0.2rem] ${className}`
           : `flex flex-wrap items-center gap-1 ${className}`
       }
     >
@@ -459,18 +479,17 @@ export function Tabs(props: TabsProps) {
         const wiggling = (reordering || editMode) && item.id !== draggingId;
         const dragged = item.id === draggingId;
         const cls = isWell
-          ? // Fixed 200px per segment, not flex-1/content-hugging - measured
-            // directly off the real BombVault container's own Design/Ecken
-            // pickers (getComputedStyle: every segment is exactly 200px
-            // wide regardless of label length or how many segments share
-            // the track, padding 6px 12px). Content-hugging (an earlier cut
-            // at this) undershot badly for short labels like "Rund" -
-            // "much too narrow" (jdp) - and flex-1 stretched-to-card-width
-            // was the bug this whole thing started from. w-fit on the
-            // OUTER track (Look.tsx/Archives.tsx's own className) is what
-            // keeps the track's visible bg-carbon-surface2 surface from
-            // extending past the last fixed-width segment.
-            `${segBase} glim-hue glim-hue-icon w-[200px] min-w-0 shrink-0 justify-center text-center ${WELL_SIZE[size]}
+          ? // wellWidth (above) sets the actual width now, not a class here
+            // - not flex-1/content-hugging either: see wellWidth's own doc
+            // comment for why a plain content-hugging width was tried and
+            // rejected. min-w-0/shrink-0 still matter with an explicit
+            // width set via style: without them a flex item's automatic
+            // minimum content size can still force it wider than that
+            // style asks for. w-fit on the OUTER track (Look.tsx/
+            // Archives.tsx's own className) is what keeps the track's
+            // visible bg-carbon-surface2 surface from extending past the
+            // last segment.
+            `${segBase} glim-hue glim-hue-icon min-w-0 shrink-0 justify-center text-center ${WELL_SIZE[size]}
               ${on ? 'glim-active bg-accent text-accentContrast' : 'bg-transparent text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text'}
               flex items-center ${!on && item.dim ? 'opacity-60' : ''}`
           : `${segBase} glim-hue glim-hue-icon ${on ? `glim-active ${segOn}` : segOff} ${
@@ -500,7 +519,11 @@ export function Tabs(props: TabsProps) {
           'data-tab-id': item.id,
           title: item.title,
           tabIndex: i === roved ? 0 : -1,
-          style: equalWidth ? { ...hueStyle(i), minWidth: `${maxLabelLen + 4}ch`, justifyContent: 'center' as const } : hueStyle(i),
+          style: isWell
+            ? { ...hueStyle(i), width: wellWidth, justifyContent: 'center' as const }
+            : equalWidth
+              ? { ...hueStyle(i), minWidth: `${maxLabelLen + 4}ch`, justifyContent: 'center' as const }
+              : hueStyle(i),
           // No grab cursor, no draggable affordance at rest - a tab is a
           // plain clickable control until a hold arms reorder mode (jdp:
           // "beim mouseover erscheint die Hand, das soll nicht so sein").

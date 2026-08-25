@@ -83,11 +83,25 @@ export function Downloads() {
   // to weigh bytes that the download list itself never shows.
   const all = useMemo(() => Object.values(tasks), [tasks]);
 
+  // position over createdAt between two tasks that are BOTH still in the
+  // wait queue: position is what drag-to-reorder and the menu's own
+  // top/up/down/bottom moves actually write (App.ReorderBand/renumberBand),
+  // and staying on createdAt here meant a reorder kept saving and
+  // broadcasting a real change that this list re-sorted right back out of
+  // view on every render. A settled task's position is frozen at whatever
+  // it happened to be the moment it left the queue and compares to
+  // nothing - createdAt is kept for any comparison touching one, unchanged
+  // from before.
   const list = useMemo(
     () =>
       all
         .filter((x) => x.status !== 'collected')
-        .sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1)),
+        .sort((a, b) => {
+          const movableA = a.status !== 'done' && a.status !== 'error';
+          const movableB = b.status !== 'done' && b.status !== 'error';
+          if (movableA && movableB) return a.position - b.position;
+          return a.createdAt < b.createdAt ? -1 : 1;
+        }),
     [all],
   );
 

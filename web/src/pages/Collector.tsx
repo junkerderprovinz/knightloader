@@ -120,11 +120,17 @@ export function Collector() {
   // Everything this instance holds, not only what is staged: a removal weighs
   // the bytes already on disk, and those belong to rows this page never shows.
   const all = useMemo(() => Object.values(tasks), [tasks]);
+  // position, not createdAt: position is the field drag-to-reorder (and the
+  // menu's own top/up/down/bottom) actually writes (App.ReorderBand,
+  // renumberBand), and applySort below is a no-op in the default queue-order
+  // view (sort === null, exactly when dnd is enabled) - createdAt here meant
+  // every reorder kept broadcasting a real, saved position change that never
+  // once became visible, because nothing downstream ever read it back.
   const collected = useMemo(
     () =>
       all
         .filter((x) => x.status === 'collected' && !x.skipped)
-        .sort((a, b) => (a.createdAt < b.createdAt ? -1 : 1)),
+        .sort((a, b) => a.position - b.position),
     [all],
   );
   // The holding area, kept out of the list above on purpose: a link the filter
