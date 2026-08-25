@@ -322,6 +322,22 @@ func (a *App) detached(in []*core.Task) []*core.Task {
 	return out
 }
 
+// snapshotTasks is detached without the nil-passthrough: nameBucket always
+// has at least one task (its own caller checks len(b.tasks) == 0 first), and
+// every caller here is, unlike detached's, still inside the same method that
+// goes on to read the copies afterwards - so there is always a real slice to
+// copy, not an optional one to pass along.
+func (a *App) snapshotTasks(in []*core.Task) []*core.Task {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	out := make([]*core.Task, len(in))
+	for i, t := range in {
+		c := *t
+		out[i] = &c
+	}
+	return out
+}
+
 // bucket is one group of links that will be named together: the yield of a
 // single crawl, or everything in a paste that was already a link.
 type bucket struct {
@@ -349,15 +365,25 @@ func crawlTitle(found []crawler.Result) string {
 // A task a Packagizer rule already named is left out. The rule is the more
 // specific answer and it ran first, so overwriting it here would make a rule that
 // works look like one that does nothing.
+//
+// b.tasks are live pointers into a.tasks: stage has already handed the newest
+// of them to a background probe (probeYtdlpTitle or analyze) before returning
+// them here, so derivePackage's read of a task's Name is racing that probe's
+// own locked write the same way a caller reading Tasks() would be without its
+// copy - see detached's own comment just above for the general shape of the
+// hazard. snapshotTasks takes the same locked copy detached and Tasks already
+// take, so derivePackage and unpackagedIDs read a name that can no longer
+// change under them instead of the live one a probe might be mid-write on.
 func (a *App) nameBucket(b *bucket) {
 	if b == nil || len(b.tasks) == 0 {
 		return
 	}
-	derived := derivePackage(b.tasks, b.title)
+	snap := a.snapshotTasks(b.tasks)
+	derived := derivePackage(snap, b.title)
 	if derived == "" {
 		return
 	}
-	ids := unpackagedIDs(b.tasks)
+	ids := unpackagedIDs(snap)
 	if len(ids) > 0 {
 		a.SetPackage(ids, derived)
 	}
