@@ -1,0 +1,37 @@
+name: KnightLoader itself
+description: The server, the web UI or the desktop build
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Shown at the bottom of the sidebar.
+      placeholder: "dev, or vX.Y.Z"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: How is it running?
+      options: [Docker / container, Desktop build, From source]
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Anything in the log
+      description: Only the lines around the problem - a whole log is harder to read, not easier.
+      render: text
+    validations:
+      required: false

@@ -197,8 +197,15 @@ header on the socket too, not a query parameter — see `src/api/client.ts`'s
   reachable through a relay), Downloads (the live queue, a connected
   server's own or a peer's), Instances (that server's federation peers),
   Add Download, Settings, Language (the picker Settings opens).
-- `src/theme.ts` — a small dark palette, not the full GlimStone/Carbon token
-  set the web UI carries.
+- `src/theme/` — GlimStone, the same design language the web UI carries:
+  `tokens.ts` (palette, radii, type scale), `appearance.ts` (the
+  framework-free helpers, a straight copy of the shared reference so the two
+  never disagree about what "Sunflower" is) and `AppearanceContext.tsx`,
+  which resolves instance settings, a local override and the device's
+  light/dark into the one object every screen reads. React Native has no CSS
+  custom properties and no cascade, so a screen applies colours and radii
+  inline from that object rather than from its stylesheet — a
+  `StyleSheet.create` block is built once and cannot follow a theme change.
 
 ## Why the app allows cleartext HTTP
 

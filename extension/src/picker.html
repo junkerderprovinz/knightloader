@@ -3,44 +3,46 @@
   <head>
     <meta charset="UTF-8" />
     <title>KnightLoader — send to…</title>
+    <link rel="stylesheet" href="glimstone.css" />
     <style>
-      :root { color-scheme: dark; }
       body {
         margin: 0;
         width: 372px;
         padding: 16px;
-        background: #161616;
-        color: #f4f4f4;
-        font: 13px/1.4 -apple-system, "Segoe UI", sans-serif;
+        background: var(--carbon-bg);
+        color: var(--carbon-text);
+        font-family: -apple-system, "Segoe UI", sans-serif;
+        font-size: var(--text-body);
+        line-height: 1.4;
       }
-      h1 { margin: 0 0 10px; font-size: 13px; font-weight: 600; color: #fcc419; }
-      p#target { margin: 0 0 14px; color: #c6c6c6; overflow-wrap: anywhere; }
+      h1 { margin: 0 0 10px; font-size: var(--text-body); font-weight: 600; color: var(--accent); }
+      p#target { margin: 0 0 14px; color: var(--carbon-text-sub); overflow-wrap: anywhere; }
       #choices { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
       .choice {
         display: flex;
         align-items: center;
         gap: 10px;
         padding: 9px 10px;
-        border: 1px solid #393939;
-        border-radius: 8px;
+        border: 1px solid var(--carbon-border);
+        border-radius: var(--radius-control);
         cursor: pointer;
       }
-      .choice input { margin: 0; accent-color: #fcc419; }
+      .choice input { margin: 0; accent-color: var(--accent); }
       .choice .name { font-weight: 500; }
-      .choice .url { color: #8d8d8d; font-size: 11px; word-break: break-all; }
+      .choice .url { color: var(--carbon-text-muted); font-size: var(--text-caption); word-break: break-all; }
       button {
         display: block;
         width: 100%;
         padding: 9px 12px;
         margin-bottom: 8px;
         border: 0;
-        border-radius: 8px;
+        border-radius: var(--radius-control);
         font: inherit;
         font-weight: 500;
         cursor: pointer;
       }
-      .primary { background: #fcc419; color: #161616; }
-      .secondary { background: #393939; color: #f4f4f4; }
+      .primary { background: var(--accent); color: var(--accent-contrast); }
+      .secondary { background: var(--carbon-surface2); color: var(--carbon-text); }
     </style>
   </head>
   <body>
@@ -49,6 +51,10 @@
     <div id="choices"></div>
     <button id="send" class="primary">Send</button>
     <button id="cancel" class="secondary">Cancel</button>
+    <!-- Appearance first: the look is put on <html> before anything is
+         drawn, so no page is ever painted in one look and repainted in
+         another. -->
+    <script src="appearance.js"></script>
     <script src="i18n.js"></script>
     <script src="shared.js"></script>
     <script src="picker.js"></script>

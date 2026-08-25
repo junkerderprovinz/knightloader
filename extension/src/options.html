@@ -3,97 +3,120 @@
   <head>
     <meta charset="UTF-8" />
     <title>KnightLoader — instances</title>
+    <link rel="stylesheet" href="glimstone.css" />
     <style>
-      :root { color-scheme: dark; }
       body {
         margin: 0;
         max-width: 480px;
         padding: 28px;
-        background: #161616;
-        color: #f4f4f4;
-        font: 14px/1.5 -apple-system, "Segoe UI", sans-serif;
+        background: var(--carbon-bg);
+        color: var(--carbon-text);
+        font-family: -apple-system, "Segoe UI", sans-serif;
+        font-size: var(--text-body);
+        line-height: 1.5;
       }
-      h1 { font-size: 18px; margin: 0 0 6px; color: #fcc419; }
-      h2 { font-size: 13px; margin: 24px 0 10px; color: #c6c6c6; font-weight: 500; }
-      p.sub { color: #8d8d8d; margin: 0 0 22px; font-size: 13px; }
-      label { display: block; font-size: 12px; color: #c6c6c6; margin-bottom: 6px; }
-      input {
+      h1 { font-size: 18px; margin: 0 0 6px; color: var(--accent); }
+      h2 { font-size: var(--text-body); margin: 24px 0 10px; color: var(--carbon-text-sub); font-weight: 500; }
+      p.sub { color: var(--carbon-text-muted); margin: 0 0 22px; font-size: var(--text-body); }
+      p.fieldSub { color: var(--carbon-text-muted); margin: 0 0 10px; font-size: var(--text-dense); }
+      label { display: block; font-size: var(--text-dense); color: var(--carbon-text-sub); margin-bottom: 6px; }
+      /* Selects are shaped like the inputs deliberately: a native dropdown
+         standing next to a token-styled field reads as another app's control. */
+      input,
+      select {
         box-sizing: border-box;
         padding: 9px 10px;
-        border: 1px solid #393939;
-        border-radius: 8px;
-        background: #262626;
-        color: #f4f4f4;
+        border: 1px solid var(--carbon-border);
+        border-radius: var(--radius-control);
+        background: var(--carbon-surface);
+        color: var(--carbon-text);
         font: inherit;
       }
-      input:focus { outline: 2px solid #fcc419; outline-offset: -1px; }
-      button {
+      input:focus,
+      select:focus { outline: 2px solid var(--focus-ring); outline-offset: -1px; }
+      /* The "Report it" link has to be the same object as the button beside it,
+         so the look lives here once and the anchor is only told to be a box. */
+      button,
+      a.btnlike {
         padding: 9px 16px;
         border: 0;
-        border-radius: 8px;
-        background: #fcc419;
-        color: #161616;
+        border-radius: var(--radius-control);
+        background: var(--accent);
+        color: var(--accent-contrast);
         font: inherit;
         font-weight: 500;
         cursor: pointer;
       }
-      button.secondary {
-        background: #393939;
-        color: #f4f4f4;
+      a.btnlike {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+      }
+      button.secondary,
+      a.btnlike.secondary {
+        background: var(--carbon-surface2);
+        color: var(--carbon-text);
       }
       button.danger {
         background: transparent;
-        color: #ff8389;
+        color: var(--status-fail-text);
         padding: 6px 10px;
       }
       #syncPeers { margin-top: 12px; }
       #syncPeers:disabled { opacity: 0.55; cursor: default; }
-      #status { margin-top: 10px; font-size: 12px; min-height: 1.2em; }
-      .ok { color: #24a148; }
-      .note { margin-top: 26px; font-size: 12px; color: #6f6f6f; }
-      .note a { color: #8d8d8d; }
+      #status { margin-top: 10px; font-size: var(--text-dense); min-height: 1.2em; }
+      .ok { color: var(--status-ok-text); }
+      .note { margin-top: 26px; font-size: var(--text-dense); color: var(--carbon-text-muted); }
+      /* One step brighter than the muted paragraph around it, or the link stops
+         looking like one. */
+      .note a { color: var(--carbon-text-sub); }
       #list { display: flex; flex-direction: column; gap: 8px; }
       .row {
         display: flex;
         align-items: center;
         gap: 10px;
         padding: 10px 12px;
-        border: 1px solid #393939;
-        border-radius: 8px;
-        background: #1d1d1d;
+        border: 1px solid var(--carbon-border);
+        border-radius: var(--radius-control);
+        background: var(--carbon-surface);
       }
-      .row.isDefault { border-color: #fcc419; }
+      .row.isDefault { border-color: var(--accent); }
       .row .info { flex: 1; min-width: 0; }
       .row .name { font-weight: 500; }
-      .row .url { color: #8d8d8d; font-size: 12px; word-break: break-all; }
+      .row .url { color: var(--carbon-text-muted); font-size: var(--text-dense); word-break: break-all; }
       .row .badge {
         font-size: 10px;
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        color: #161616;
-        background: #fcc419;
-        border-radius: 4px;
+        color: var(--accent-contrast);
+        background: var(--accent);
+        border-radius: var(--radius-pill);
         padding: 2px 6px;
         margin-left: 8px;
       }
-      .empty { color: #6f6f6f; font-size: 13px; padding: 8px 0; }
+      .empty { color: var(--carbon-text-muted); font-size: var(--text-body); padding: 8px 0; }
       #addForm { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
-      #addForm .fields { display: flex; gap: 8px; }
+      .fields { display: flex; gap: 8px; }
       #addForm .fields input#addName { flex: 0 0 40%; }
       #addForm .fields input#addUrl { flex: 1; }
-      select#languageSelect {
-        box-sizing: border-box;
-        width: 100%;
-        max-width: 320px;
-        padding: 9px 10px;
-        border: 1px solid #393939;
-        border-radius: 8px;
-        background: #262626;
-        color: #f4f4f4;
-        font: inherit;
+      select#languageSelect { width: 100%; max-width: 320px; }
+      /* Three settings that differ only in what they set, stacked in one column
+         so the eye compares the answers instead of the layout. The label rule
+         above would otherwise shrink the selects along with their captions. */
+      .axes { display: grid; gap: 12px; max-width: 320px; margin-bottom: 6px; }
+      .axis { display: grid; gap: 4px; margin-bottom: 0; font-size: var(--text-body); }
+      .axis > span { font-size: var(--text-dense); color: var(--carbon-text-muted); }
+      pre.report {
+        margin: 0 0 10px;
+        padding: 12px;
+        max-height: 220px;
+        overflow: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-size: var(--text-dense);
+        color: var(--carbon-text-sub);
       }
-      select#languageSelect:focus { outline: 2px solid #fcc419; outline-offset: -1px; }
-      p.fieldSub { color: #6f6f6f; margin: 0 0 10px; font-size: 12px; }
     </style>
   </head>
   <body>
@@ -115,6 +138,14 @@
     <div id="list"></div>
     <button id="syncPeers" class="secondary" type="button">Sync paired instances</button>
 
+    <h2 id="appearanceHeading">Appearance</h2>
+    <p class="fieldSub" id="appearanceSub">Applies to this page, the popup and the send-to window.</p>
+    <div class="axes">
+      <label class="axis"><span id="themeLabel">Theme</span><select id="themeSelect"></select></label>
+      <label class="axis"><span id="shapeLabel">Corners</span><select id="shapeSelect"></select></label>
+      <label class="axis"><span id="accentLabel">Accent</span><select id="accentSelect"></select></label>
+    </div>
+
     <h2 id="addHeading">Add an instance</h2>
     <form id="addForm">
       <div class="fields">
@@ -125,7 +156,20 @@
     </form>
 
     <div id="status"></div>
+
+    <h2 id="problemsHeading">Problems?</h2>
+    <p class="fieldSub" id="problemsSub"></p>
+    <pre id="report" class="report glim-well glim-num"></pre>
+    <div class="fields">
+      <button id="copyReport" class="secondary" type="button">Copy report</button>
+      <a id="reportLink" class="secondary btnlike" target="_blank" rel="noreferrer noopener">Report it</a>
+    </div>
+
     <p class="note" id="note">There is no hosted service any of this points at by default — every entry is the address of one instance you run.</p>
+    <!-- Appearance first: the look is put on <html> before anything is
+         drawn, so no page is ever painted in one look and repainted in
+         another. -->
+    <script src="appearance.js"></script>
     <script src="i18n.js"></script>
     <script src="shared.js"></script>
     <script src="options.js"></script>

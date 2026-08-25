@@ -22,6 +22,9 @@ openOptionsBtn.addEventListener('click', () => chrome.runtime.openOptionsPage())
 let activeTab = null;
 
 (async () => {
+  // Before anything is drawn: the look goes on <html> first, so no page is
+  // ever painted in one look and repainted in another.
+  await applyAppearance();
   await loadLanguage();
   openOptionsBtn.setAttribute('aria-label', t('common.settings'));
   openOptionsBtn.title = t('common.settings');

@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { addInstance, ApiError, fetchInstances, redeemPairingCode, removeInstance } from '../api/client';
 import type { Instance, ServerConnection } from '../api/types';
-import { colors } from '../theme';
+import { useAppearance } from '../theme/AppearanceContext';
+import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import QRScanner from '../components/QRScanner';
 
@@ -22,6 +23,7 @@ export default function InstancesScreen({
   onOpenInstance: (peer: Instance) => void;
 }) {
   const { t } = useT();
+  const { c, accent, accentContrast, radii } = useAppearance();
   const [peers, setPeers] = useState<Instance[]>([]);
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
@@ -74,11 +76,19 @@ export default function InstancesScreen({
     reload();
   };
 
+  const cardStyle = { backgroundColor: c.surface, borderRadius: radii.card };
+  const inputStyle = {
+    backgroundColor: c.surface2,
+    color: c.text,
+    borderColor: c.border,
+    borderRadius: radii.control,
+  };
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: c.bg }]}>
       <View style={styles.topBar}>
-        <Text style={styles.title}>{t('instances.title')}</Text>
-        <Text style={styles.subtitle}>{t('instances.subtitle', { name: conn.name })}</Text>
+        <Text style={[styles.title, { color: c.text }]}>{t('instances.title')}</Text>
+        <Text style={[styles.subtitle, { color: c.textMuted }]}>{t('instances.subtitle', { name: conn.name })}</Text>
       </View>
 
       <FlatList
@@ -86,10 +96,10 @@ export default function InstancesScreen({
         keyExtractor={(p) => p.name}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.row} onPress={() => onOpenInstance(item)}>
+          <TouchableOpacity style={[styles.row, cardStyle]} onPress={() => onOpenInstance(item)}>
             <View style={styles.rowText}>
-              <Text style={styles.rowName}>{item.displayName ?? item.name}</Text>
-              <Text style={styles.rowUrl} numberOfLines={1}>
+              <Text style={[styles.rowName, { color: c.text }]}>{item.displayName ?? item.name}</Text>
+              <Text style={[styles.rowUrl, { color: c.textMuted }]} numberOfLines={1}>
                 {item.relayId ? t('instances.viaRelay') : item.url}
               </Text>
             </View>
@@ -101,66 +111,82 @@ export default function InstancesScreen({
                 disconnecting it or clearing the relay config, not from here. */}
             {!item.relayId && (
               <TouchableOpacity style={styles.removeButton} onPress={() => remove(item.name)}>
-                <Text style={styles.removeText}>{t('instances.remove')}</Text>
+                <Text style={[styles.removeText, { color: c.statusFailSolid }]}>{t('instances.remove')}</Text>
               </TouchableOpacity>
             )}
           </TouchableOpacity>
         )}
-        ListEmptyComponent={<Text style={styles.empty}>{t('instances.empty')}</Text>}
+        ListEmptyComponent={<Text style={[styles.empty, { color: c.textMuted }]}>{t('instances.empty')}</Text>}
       />
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>{t('instances.manualTitle')}</Text>
+      <View style={[styles.card, cardStyle]}>
+        <Text style={[styles.cardTitle, { color: c.text }]}>{t('instances.manualTitle')}</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, inputStyle]}
           placeholder={t('instances.namePlaceholder')}
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={c.textMuted}
           value={name}
           onChangeText={setName}
           autoCapitalize="none"
         />
         <TextInput
-          style={styles.input}
+          style={[styles.input, inputStyle]}
           placeholder={t('instances.urlPlaceholder')}
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={c.textMuted}
           value={url}
           onChangeText={setUrl}
           autoCapitalize="none"
           autoCorrect={false}
           keyboardType="url"
         />
-        <TouchableOpacity style={styles.button} onPress={onAdd} disabled={!name.trim() || !url.trim()}>
-          <Text style={styles.buttonText}>{t('instances.addButton')}</Text>
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: accent, borderRadius: radii.control }]}
+          onPress={onAdd}
+          disabled={!name.trim() || !url.trim()}
+        >
+          <Text style={[styles.buttonText, { color: accentContrast }]}>{t('instances.addButton')}</Text>
         </TouchableOpacity>
-        {addError && <Text style={styles.error}>{addError}</Text>}
+        {addError && <Text style={[styles.error, { color: c.statusFailSolid }]}>{addError}</Text>}
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>{t('instances.pairingTitle')}</Text>
-        <Text style={styles.cardHint}>{t('instances.pairingHint')}</Text>
+      <View style={[styles.card, cardStyle]}>
+        <Text style={[styles.cardTitle, { color: c.text }]}>{t('instances.pairingTitle')}</Text>
+        <Text style={[styles.cardHint, { color: c.textMuted }]}>{t('instances.pairingHint')}</Text>
         <View style={styles.inputRow}>
           <TextInput
-            style={[styles.input, styles.inputFlex]}
+            style={[styles.input, inputStyle, styles.inputFlex]}
             placeholder={t('instances.codePlaceholder')}
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={c.textMuted}
             value={code}
             onChangeText={setCode}
             autoCapitalize="none"
             autoCorrect={false}
           />
-          <TouchableOpacity style={styles.scanButton} onPress={() => setScanning(true)}>
-            <Text style={styles.scanButtonText}>{t('connect.qrButton')}</Text>
+          <TouchableOpacity
+            style={[
+              styles.scanButton,
+              { backgroundColor: c.surface2, borderColor: c.border, borderRadius: radii.control },
+            ]}
+            onPress={() => setScanning(true)}
+          >
+            <Text style={[styles.scanButtonText, { color: accent }]}>{t('connect.qrButton')}</Text>
           </TouchableOpacity>
         </View>
         <TouchableOpacity
-          style={[styles.button, (pairing || !code.trim()) && styles.buttonDisabled]}
+          style={[
+            styles.button,
+            { backgroundColor: accent, borderRadius: radii.control },
+            (pairing || !code.trim()) && styles.buttonDisabled,
+          ]}
           onPress={() => void redeem(code)}
           disabled={pairing || !code.trim()}
         >
-          <Text style={styles.buttonText}>{pairing ? t('instances.redeeming') : t('instances.redeemButton')}</Text>
+          <Text style={[styles.buttonText, { color: accentContrast }]}>
+            {pairing ? t('instances.redeeming') : t('instances.redeemButton')}
+          </Text>
         </TouchableOpacity>
-        {pairError && <Text style={styles.error}>{pairError}</Text>}
-        {pairOk && <Text style={styles.success}>{pairOk}</Text>}
+        {pairError && <Text style={[styles.error, { color: c.statusFailSolid }]}>{pairError}</Text>}
+        {pairOk && <Text style={[styles.success, { color: c.statusOkSolid }]}>{pairOk}</Text>}
       </View>
 
       <QRScanner
@@ -176,54 +202,47 @@ export default function InstancesScreen({
   );
 }
 
+// Colours and radii are applied inline from the resolved tokens, never baked
+// in here: a stylesheet is built once and cannot follow a theme change.
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1 },
   topBar: { padding: 16, paddingTop: 56 },
-  title: { color: colors.text, fontSize: 20, fontWeight: '600' },
-  subtitle: { color: colors.textMuted, fontSize: 13, marginTop: 2 },
+  title: { fontSize: TYPE.heading, fontWeight: '600' },
+  subtitle: { fontSize: 13, marginTop: 2 },
   list: { paddingHorizontal: 16, gap: 8 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: 8,
     padding: 14,
     gap: 12,
   },
   rowText: { flex: 1, minWidth: 0 },
-  rowName: { color: colors.text, fontSize: 15, fontWeight: '600' },
-  rowUrl: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
+  rowName: { fontSize: 15, fontWeight: '600' },
+  rowUrl: { fontSize: TYPE.dense, marginTop: 2 },
   removeButton: { paddingHorizontal: 8, paddingVertical: 4 },
-  removeText: { color: colors.danger, fontSize: 12 },
-  empty: { color: colors.textMuted, textAlign: 'center', marginTop: 16 },
-  card: { backgroundColor: colors.surface, borderRadius: 8, padding: 16, margin: 16, marginTop: 8, gap: 10 },
-  cardTitle: { color: colors.text, fontSize: 14, fontWeight: '600' },
-  cardHint: { color: colors.textMuted, fontSize: 12, lineHeight: 17 },
+  removeText: { fontSize: TYPE.dense },
+  empty: { textAlign: 'center', marginTop: 16 },
+  card: { padding: 16, margin: 16, marginTop: 8, gap: 10 },
+  cardTitle: { fontSize: TYPE.body, fontWeight: '600' },
+  cardHint: { fontSize: TYPE.dense, lineHeight: 17 },
   input: {
-    backgroundColor: colors.surfaceRaised,
-    color: colors.text,
-    borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    fontSize: 14,
+    fontSize: TYPE.body,
     borderWidth: 1,
-    borderColor: colors.border,
   },
   inputRow: { flexDirection: 'row', gap: 8, alignItems: 'stretch' },
   inputFlex: { flex: 1 },
   scanButton: {
-    backgroundColor: colors.surfaceRaised,
-    borderRadius: 8,
     borderWidth: 1,
-    borderColor: colors.border,
     paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  scanButtonText: { color: colors.accent, fontSize: 13, fontWeight: '700' },
-  button: { backgroundColor: colors.accent, borderRadius: 8, paddingVertical: 12, alignItems: 'center' },
+  scanButtonText: { fontSize: 13, fontWeight: '700' },
+  button: { paddingVertical: 12, alignItems: 'center' },
   buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: colors.text, fontSize: 14, fontWeight: '600' },
-  error: { color: colors.danger, fontSize: 12 },
-  success: { color: colors.success, fontSize: 12 },
+  buttonText: { fontSize: TYPE.body, fontWeight: '600' },
+  error: { fontSize: TYPE.dense },
+  success: { fontSize: TYPE.dense },
 });

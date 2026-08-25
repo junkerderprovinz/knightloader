@@ -1,5 +1,6 @@
 import { isRelayConnection, type AuthState, type Instance, type QueueState, type ServerConnection, type Task } from './types';
 import { relayClientFor } from './relayClient';
+import type { InstanceAppearance } from '../theme/appearance';
 import { relayIdentity } from '../storage/relayIdentity';
 
 export class ApiError extends Error {
@@ -302,4 +303,36 @@ export function pollTasks(
     stopped = true;
     if (timer) clearTimeout(timer);
   };
+}
+
+/**
+ * fetchAppearance reads the look this instance is configured with - the accent,
+ * the shape and the rainbow state - so the app can show the same product as
+ * that instance's own web UI rather than a second opinion about it.
+ *
+ * Taken from GET /api/settings rather than from an endpoint of its own: those
+ * fields already live there, redacted of every secret, and one more route for
+ * four fields is surface nobody asked for. The whole document is larger than
+ * what is used here, which is the price of not inventing an endpoint - paid
+ * once per connection, not per screen.
+ *
+ * Never throws. An instance too old to carry these fields, or one that cannot
+ * be reached right now, means the app keeps GlimStone's own defaults, which is
+ * exactly what it shows before any connection exists.
+ */
+export async function fetchAppearance(conn: ServerConnection): Promise<InstanceAppearance | undefined> {
+  try {
+    const s = await request<Record<string, unknown>>(conn, '/api', '/settings');
+    return {
+      shape: typeof s.shape === 'string' ? s.shape : undefined,
+      accent: typeof s.accent === 'string' ? s.accent : undefined,
+      rainbow: !!s.rainbow,
+      rainbowReactive: !!s.rainbowReactive,
+      rainbowRotate: !!s.rainbowRotate,
+      rainbowSeed: typeof s.rainbowSeed === 'number' ? s.rainbowSeed : 0,
+      rainbowPalette: Array.isArray(s.rainbowPalette) ? (s.rainbowPalette as string[]) : undefined,
+    };
+  } catch {
+    return undefined;
+  }
 }

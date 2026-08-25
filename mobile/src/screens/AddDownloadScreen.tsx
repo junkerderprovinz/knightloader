@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { addLinks, ApiError } from '../api/client';
 import type { Instance, ServerConnection } from '../api/types';
-import { colors } from '../theme';
+import { useAppearance } from '../theme/AppearanceContext';
+import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 
 export default function AddDownloadScreen({
@@ -15,6 +16,7 @@ export default function AddDownloadScreen({
   onDone: () => void;
 }) {
   const { t } = useT();
+  const { c, accent, accentContrast, radii } = useAppearance();
   const base = peer ? `/api/instances/${encodeURIComponent(peer.name)}` : '/api';
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
@@ -42,17 +44,20 @@ export default function AddDownloadScreen({
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>
+    <View style={[styles.container, { backgroundColor: c.bg }]}>
+      <Text style={[styles.title, { color: c.text }]}>
         {peer ? t('addDownload.titlePeer', { name: peer.displayName ?? peer.name }) : t('addDownload.title')}
       </Text>
-      <Text style={styles.hint}>{t('addDownload.hint')}</Text>
+      <Text style={[styles.hint, { color: c.textMuted }]}>{t('addDownload.hint')}</Text>
 
       <TextInput
-        style={styles.textArea}
+        style={[
+          styles.textArea,
+          { backgroundColor: c.surface, color: c.text, borderColor: c.border, borderRadius: radii.control },
+        ]}
         multiline
         placeholder={t('addDownload.placeholder')}
-        placeholderTextColor={colors.textMuted}
+        placeholderTextColor={c.textMuted}
         value={text}
         onChangeText={setText}
         autoCapitalize="none"
@@ -60,53 +65,60 @@ export default function AddDownloadScreen({
         textAlignVertical="top"
       />
 
-      {error && <Text style={styles.error}>{error}</Text>}
+      {error && <Text style={[styles.error, { color: c.statusFailSolid }]}>{error}</Text>}
 
       <View style={styles.actions}>
-        <TouchableOpacity style={styles.secondaryButton} onPress={onDone}>
-          <Text style={styles.secondaryButtonText}>{t('addDownload.cancel')}</Text>
+        <TouchableOpacity
+          style={[
+            styles.secondaryButton,
+            { backgroundColor: c.surface, borderColor: c.border, borderRadius: radii.control },
+          ]}
+          onPress={onDone}
+        >
+          <Text style={[styles.secondaryButtonText, { color: c.textMuted }]}>{t('addDownload.cancel')}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.button, busy && styles.buttonDisabled]} onPress={submit} disabled={busy}>
-          {busy ? <ActivityIndicator color={colors.text} /> : <Text style={styles.buttonText}>{t('addDownload.button')}</Text>}
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: accent, borderRadius: radii.control }, busy && styles.buttonDisabled]}
+          onPress={submit}
+          disabled={busy}
+        >
+          {busy ? (
+            <ActivityIndicator color={accentContrast} />
+          ) : (
+            <Text style={[styles.buttonText, { color: accentContrast }]}>{t('addDownload.button')}</Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>
   );
 }
 
+// Colours and radii are applied inline from the resolved tokens, never baked
+// in here: a stylesheet is built once and cannot follow a theme change.
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, padding: 24, paddingTop: 56 },
-  title: { color: colors.text, fontSize: 20, fontWeight: '600', marginBottom: 8 },
-  hint: { color: colors.textMuted, fontSize: 14, marginBottom: 16 },
+  container: { flex: 1, padding: 24, paddingTop: 56 },
+  title: { fontSize: TYPE.heading, fontWeight: '600', marginBottom: 8 },
+  hint: { fontSize: TYPE.body, marginBottom: 16 },
   textArea: {
     flex: 1,
-    backgroundColor: colors.surface,
-    color: colors.text,
-    borderRadius: 8,
     padding: 14,
-    fontSize: 14,
+    fontSize: TYPE.body,
     borderWidth: 1,
-    borderColor: colors.border,
   },
-  error: { color: colors.danger, marginTop: 12, fontSize: 14 },
+  error: { marginTop: 12, fontSize: TYPE.body },
   actions: { flexDirection: 'row', gap: 12, marginTop: 16 },
   button: {
     flex: 1,
-    backgroundColor: colors.accent,
-    borderRadius: 8,
     paddingVertical: 14,
     alignItems: 'center',
   },
   buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: colors.text, fontSize: 16, fontWeight: '600' },
+  buttonText: { fontSize: 16, fontWeight: '600' },
   secondaryButton: {
     flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: 8,
     paddingVertical: 14,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.border,
   },
-  secondaryButtonText: { color: colors.textMuted, fontSize: 16 },
+  secondaryButtonText: { fontSize: 16 },
 });

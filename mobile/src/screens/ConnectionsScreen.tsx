@@ -3,7 +3,8 @@ import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native
 import { checkConnection } from '../api/client';
 import { listConnections, removeConnection, setActiveConnectionId } from '../storage/connections';
 import { isRelayConnection, type ServerConnection } from '../api/types';
-import { colors } from '../theme';
+import { useAppearance } from '../theme/AppearanceContext';
+import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import IconBadge from '../components/IconBadge';
 
@@ -27,6 +28,7 @@ export default function ConnectionsScreen({
   onOpenSettings: () => void;
 }) {
   const { t } = useT();
+  const { c, accent, accentContrast, radii } = useAppearance();
   const [connections, setConnections] = useState<ServerConnection[]>([]);
   const [status, setStatus] = useState<Record<string, ConnStatus>>({});
   const [loaded, setLoaded] = useState(false);
@@ -58,9 +60,9 @@ export default function ConnectionsScreen({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: c.bg }]}>
       <View style={styles.topBar}>
-        <Text style={styles.title}>KnightLoader</Text>
+        <Text style={[styles.title, { color: c.text }]}>KnightLoader</Text>
         <View style={styles.badgeRow}>
           <IconBadge symbol="+" accent onPress={onAddPress} accessibilityLabel={t('connections.addButton')} />
           <IconBadge symbol="⚙" onPress={onOpenSettings} accessibilityLabel={t('settings.title')} />
@@ -69,26 +71,33 @@ export default function ConnectionsScreen({
 
       <FlatList
         data={connections}
-        keyExtractor={(c) => c.id}
+        keyExtractor={(conn) => conn.id}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => {
           const s = status[item.id] ?? 'checking';
           return (
-            <TouchableOpacity style={styles.row} onPress={() => activate(item)}>
+            <TouchableOpacity
+              style={[styles.row, { backgroundColor: c.surface, borderRadius: radii.card }]}
+              onPress={() => activate(item)}
+            >
               <View
                 style={[
                   styles.dot,
-                  { backgroundColor: s === 'online' ? colors.success : s === 'checking' ? colors.warning : colors.danger },
+                  {
+                    borderRadius: radii.pill,
+                    backgroundColor:
+                      s === 'online' ? c.statusOkSolid : s === 'checking' ? c.statusWarnSolid : c.statusFailSolid,
+                  },
                 ]}
               />
               <View style={styles.rowText}>
-                <Text style={styles.rowName}>{item.name}</Text>
-                <Text style={styles.rowUrl} numberOfLines={1}>
+                <Text style={[styles.rowName, { color: c.text }]}>{item.name}</Text>
+                <Text style={[styles.rowUrl, { color: c.textMuted }]} numberOfLines={1}>
                   {isRelayConnection(item) ? t('connections.viaRelay', { relay: item.relayUrl }) : item.baseUrl}
                 </Text>
               </View>
               <TouchableOpacity style={styles.removeButton} onPress={() => remove(item.id)}>
-                <Text style={styles.removeText}>{t('connections.remove')}</Text>
+                <Text style={[styles.removeText, { color: c.statusFailSolid }]}>{t('connections.remove')}</Text>
               </TouchableOpacity>
             </TouchableOpacity>
           );
@@ -96,9 +105,12 @@ export default function ConnectionsScreen({
         ListEmptyComponent={
           loaded ? (
             <View style={styles.empty}>
-              <Text style={styles.emptyText}>{t('connections.empty')}</Text>
-              <TouchableOpacity style={styles.emptyButton} onPress={onAddPress}>
-                <Text style={styles.emptyButtonText}>{t('connections.emptyButton')}</Text>
+              <Text style={[styles.emptyText, { color: c.textMuted }]}>{t('connections.empty')}</Text>
+              <TouchableOpacity
+                style={[styles.emptyButton, { backgroundColor: accent, borderRadius: radii.control }]}
+                onPress={onAddPress}
+              >
+                <Text style={[styles.emptyButtonText, { color: accentContrast }]}>{t('connections.emptyButton')}</Text>
               </TouchableOpacity>
             </View>
           ) : null
@@ -108,8 +120,10 @@ export default function ConnectionsScreen({
   );
 }
 
+// Colours and radii are applied inline from the resolved tokens, never baked
+// in here: a stylesheet is built once and cannot follow a theme change.
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1 },
   topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -117,25 +131,23 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 56,
   },
-  title: { color: colors.text, fontSize: 22, fontWeight: '700' },
+  title: { fontSize: 22, fontWeight: '700' },
   badgeRow: { flexDirection: 'row', gap: 10 },
   list: { paddingHorizontal: 16, paddingBottom: 32, gap: 8 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: 8,
     padding: 14,
     gap: 12,
   },
-  dot: { width: 10, height: 10, borderRadius: 5 },
+  dot: { width: 10, height: 10 },
   rowText: { flex: 1, minWidth: 0 },
-  rowName: { color: colors.text, fontSize: 15, fontWeight: '600' },
-  rowUrl: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
+  rowName: { fontSize: 15, fontWeight: '600' },
+  rowUrl: { fontSize: TYPE.dense, marginTop: 2 },
   removeButton: { paddingHorizontal: 8, paddingVertical: 4 },
-  removeText: { color: colors.danger, fontSize: 12 },
+  removeText: { fontSize: TYPE.dense },
   empty: { alignItems: 'center', marginTop: 64, gap: 16, paddingHorizontal: 32 },
-  emptyText: { color: colors.textMuted, fontSize: 14, textAlign: 'center' },
-  emptyButton: { backgroundColor: colors.accent, borderRadius: 8, paddingVertical: 12, paddingHorizontal: 20 },
-  emptyButtonText: { color: colors.text, fontSize: 14, fontWeight: '600' },
+  emptyText: { fontSize: TYPE.body, textAlign: 'center' },
+  emptyButton: { paddingVertical: 12, paddingHorizontal: 20 },
+  emptyButtonText: { fontSize: TYPE.body, fontWeight: '600' },
 });

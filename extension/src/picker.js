@@ -12,6 +12,9 @@ const cancelBtn = document.getElementById('cancel');
 let payload = null;
 
 (async () => {
+  // Before anything is drawn: the look goes on <html> first, so no page is
+  // ever painted in one look and repainted in another.
+  await applyAppearance();
   await loadLanguage();
   headingEl.textContent = t('picker.title');
   targetEl.textContent = t('picker.loading');

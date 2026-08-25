@@ -1,0 +1,42 @@
+name: Android app
+description: Something is wrong in the KnightLoader app on a phone or tablet
+labels: ["bug", "app"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The app has a **Problems?** screen in its settings. It gathers the
+        version, the connection kind and the last error, and copies them in one
+        tap - paste that below and most of this form answers itself.
+
+  - type: textarea
+    id: report
+    attributes:
+      label: The report from the app
+      description: Settings → Problems? → Copy report.
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+      placeholder: |
+        I tapped "Find on this network" and it said it found nothing, but the
+        web UI on the same phone reaches the server fine.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: connection
+    attributes:
+      label: How is the app connected?
+      options:
+        - Directly, by address
+        - Through a relay
+        - Not connected yet
+        - I do not know
+    validations:
+      required: false

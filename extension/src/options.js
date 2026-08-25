@@ -408,13 +408,151 @@ async function suggestLocalDefault() {
   if (addName.value === '') addName.value = t('options.localName');
 }
 
+
+// --- Appearance ------------------------------------------------------------
+//
+// The three axes GlimStone gives the user: theme, corners, accent. Applied at
+// the top of every page (appearance.js) rather than by the page that edits
+// them - a page that paints itself leaves every other page on the old value,
+// and this one is the last place anyone would notice.
+//
+// Local rather than read from a configured instance, and worth stating why:
+// fetching it would need a host permission for that origin, and this extension
+// asks for one only from a real click on the sync button. Paying a permission
+// prompt for a colour is a bad trade.
+
+const themeSelect = document.getElementById('themeSelect');
+const shapeSelect = document.getElementById('shapeSelect');
+const accentSelect = document.getElementById('accentSelect');
+
+async function renderAppearance() {
+  const a = await readAppearance();
+
+  const fill = (el, opts, current) => {
+    el.innerHTML = '';
+    for (const o of opts) {
+      const opt = document.createElement('option');
+      opt.value = o.value;
+      opt.textContent = o.label;
+      if (o.value === current) opt.selected = true;
+      el.appendChild(opt);
+    }
+  };
+
+  // "" is the honest default for two of the three: follow the browser, and use
+  // the theme's own gold. Neither is a fourth value to invent.
+  fill(
+    themeSelect,
+    [
+      { value: '', label: t('options.themeSystem') },
+      { value: 'light', label: t('options.themeLight') },
+      { value: 'dark', label: t('options.themeDark') },
+    ],
+    a.theme,
+  );
+  fill(
+    shapeSelect,
+    [
+      { value: 'round', label: t('options.shapeRound') },
+      { value: 'soft', label: t('options.shapeSoft') },
+      { value: 'square', label: t('options.shapeSquare') },
+    ],
+    a.shape,
+  );
+  fill(
+    accentSelect,
+    [{ value: '', label: t('options.accentDefault') }].concat(
+      ACCENTS.map((x) => ({ value: x.hex, label: x.name })),
+    ),
+    a.accent,
+  );
+}
+
+themeSelect.addEventListener('change', async () => {
+  await writeAppearance({ theme: themeSelect.value });
+  applyTheme(themeSelect.value);
+});
+shapeSelect.addEventListener('change', async () => {
+  await writeAppearance({ shape: shapeSelect.value });
+  applyShape(shapeSelect.value);
+});
+accentSelect.addEventListener('change', async () => {
+  await writeAppearance({ accent: accentSelect.value });
+  applyAccent(accentSelect.value);
+});
+
+// --- Problems? -------------------------------------------------------------
+//
+// A report first, a link second, and in that order on purpose: an issue that
+// arrives with no version and no idea how the extension is configured costs a
+// round trip before anyone can even start, and the person who filed it has
+// usually moved on by then.
+//
+// What it does NOT collect is as deliberate as what it does. No instance
+// address (that is someone's home network), no token, no relay key. What is
+// left is what is actually needed: which build, which browser, and the SHAPE
+// of the configuration - how many instances, and how many of them are reached
+// through a forwarder rather than directly.
+
+const REPORT_URL = 'https://github.com/junkerderprovinz/knightloader/issues/new?template=extension.yml';
+
+const reportEl = document.getElementById('report');
+const problemsSubEl = document.getElementById('problemsSub');
+const copyReportBtn = document.getElementById('copyReport');
+const reportLink = document.getElementById('reportLink');
+
+async function buildReport() {
+  const { instances, defaultName } = await readInstances();
+  const viaForwarder = instances.filter((i) => !i.url && i.via).length;
+  const unreachable = instances.filter((i) => !entryTarget(i)).length;
+  const a = await readAppearance();
+  const m = chrome.runtime.getManifest();
+  return [
+    `extension: ${m.version}`,
+    `browser:   ${navigator.userAgent}`,
+    `language:  ${currentLanguage()} (browser: ${navigator.language})`,
+    `appearance: theme=${a.theme || 'system'} shape=${a.shape} accent=${a.accent || 'default'}`,
+    `instances: ${instances.length} configured, ${viaForwarder} via a forwarder, ${unreachable} with no way in`,
+    `default:   ${defaultName ? 'set' : 'none'}`,
+  ].join('\n');
+}
+
+async function renderReport() {
+  const text = await buildReport();
+  reportEl.textContent = text;
+  problemsSubEl.textContent = t('options.problemsSub');
+  // Prefilled, so the form opens with the report already in it rather than
+  // asking somebody to paste something they have to go back for.
+  reportLink.href = `${REPORT_URL}&report=${encodeURIComponent(text)}`;
+  reportLink.textContent = t('options.problemsReport');
+  copyReportBtn.textContent = t('options.problemsCopy');
+}
+
+copyReportBtn.addEventListener('click', async () => {
+  const text = await buildReport();
+  try {
+    await navigator.clipboard.writeText(text);
+    say(t('options.problemsCopied'), true);
+  } catch {
+    // Clipboard permission is not guaranteed on an extension page in every
+    // browser. The report is already on screen, so the fallback is to say so
+    // rather than to fail silently.
+    say(t('options.problemsCopyFailed'), false);
+  }
+});
+
 (async () => {
+  // Before anything is drawn: the look goes on <html> first, so no page is
+  // ever painted in one look and repainted in another.
+  await applyAppearance();
   await loadLanguage();
   buildLanguageSelect();
   applyStaticText();
   await renderLanguageSelect();
+  await renderAppearance();
   render();
   suggestLocalDefault();
+  void renderReport();
 
   // Silent half of the sync: only origins a PRIOR click of the button
   // already got permission for, so simply opening this page can never pop

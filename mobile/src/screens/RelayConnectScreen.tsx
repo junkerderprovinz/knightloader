@@ -4,7 +4,8 @@ import { closeRelayClient, connectURL, relayClientFor, type RelaySibling } from 
 import { relayIdentity } from '../storage/relayIdentity';
 import { addConnection, listConnections, setActiveConnectionId } from '../storage/connections';
 import type { RelayConnection, ServerConnection } from '../api/types';
-import { colors } from '../theme';
+import { useAppearance } from '../theme/AppearanceContext';
+import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 
 // The second way in, for the one case the direct one cannot cover: no
@@ -26,6 +27,7 @@ const MIN_KEY_LENGTH = 16; // relay.minKeyLength, server side
 
 export default function RelayConnectScreen({ onConnected }: { onConnected: (conn: ServerConnection) => void }) {
   const { t } = useT();
+  const { c, accent, accentContrast, radii } = useAppearance();
   const [url, setUrl] = useState('');
   const [key, setKey] = useState('');
   const [searching, setSearching] = useState(false);
@@ -52,7 +54,7 @@ export default function RelayConnectScreen({ onConnected }: { onConnected: (conn
     const open = liveRef.current;
     if (!open) return;
     const saved = await listConnections();
-    const stillUsed = saved.some((c) => c.kind === 'relay' && c.relayUrl === open.url && c.relayKey === open.key);
+    const stillUsed = saved.some((sc) => sc.kind === 'relay' && sc.relayUrl === open.url && sc.relayKey === open.key);
     if (!stillUsed) closeRelayClient(open.url, open.key);
     liveRef.current = null;
   }, []);
@@ -127,16 +129,23 @@ export default function RelayConnectScreen({ onConnected }: { onConnected: (conn
     onConnected(conn);
   };
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{t('relay.title')}</Text>
-      <Text style={styles.hint}>{t('relay.hint')}</Text>
+  const inputStyle = {
+    backgroundColor: c.surface,
+    color: c.text,
+    borderColor: c.border,
+    borderRadius: radii.control,
+  };
 
-      <Text style={styles.label}>{t('relay.urlLabel')}</Text>
+  return (
+    <View style={[styles.container, { backgroundColor: c.bg }]}>
+      <Text style={[styles.title, { color: c.text }]}>{t('relay.title')}</Text>
+      <Text style={[styles.hint, { color: c.textMuted }]}>{t('relay.hint')}</Text>
+
+      <Text style={[styles.label, { color: c.textMuted }]}>{t('relay.urlLabel')}</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, inputStyle]}
         placeholder="https://relay.example.com"
-        placeholderTextColor={colors.textMuted}
+        placeholderTextColor={c.textMuted}
         value={url}
         onChangeText={setUrl}
         autoCapitalize="none"
@@ -144,11 +153,11 @@ export default function RelayConnectScreen({ onConnected }: { onConnected: (conn
         keyboardType="url"
       />
 
-      <Text style={styles.label}>{t('relay.keyLabel')}</Text>
+      <Text style={[styles.label, { color: c.textMuted }]}>{t('relay.keyLabel')}</Text>
       <TextInput
-        style={styles.input}
+        style={[styles.input, inputStyle]}
         placeholder={t('relay.keyPlaceholder')}
-        placeholderTextColor={colors.textMuted}
+        placeholderTextColor={c.textMuted}
         value={key}
         onChangeText={setKey}
         autoCapitalize="none"
@@ -156,63 +165,84 @@ export default function RelayConnectScreen({ onConnected }: { onConnected: (conn
         secureTextEntry
       />
 
-      <TouchableOpacity style={[styles.button, searching && styles.buttonDisabled]} onPress={search} disabled={searching}>
-        {searching ? <ActivityIndicator color={colors.text} /> : <Text style={styles.buttonText}>{t('relay.searchButton')}</Text>}
+      <TouchableOpacity
+        style={[
+          styles.button,
+          { backgroundColor: accent, borderRadius: radii.control },
+          searching && styles.buttonDisabled,
+        ]}
+        onPress={search}
+        disabled={searching}
+      >
+        {searching ? (
+          <ActivityIndicator color={accentContrast} />
+        ) : (
+          <Text style={[styles.buttonText, { color: accentContrast }]}>{t('relay.searchButton')}</Text>
+        )}
       </TouchableOpacity>
 
-      {error && <Text style={styles.error}>{error}</Text>}
+      {error && <Text style={[styles.error, { color: c.statusFailSolid }]}>{error}</Text>}
 
       {live && (
         <>
-          <Text style={styles.sectionTitle}>{t('relay.instancesTitle')}</Text>
+          <Text style={[styles.sectionTitle, { color: c.textMuted }]}>{t('relay.instancesTitle')}</Text>
           <FlatList
             data={sibs}
             keyExtractor={(s) => s.instanceId}
             style={styles.list}
             renderItem={({ item }) => (
               <TouchableOpacity
-                style={[styles.row, picked?.instanceId === item.instanceId && styles.rowPicked]}
+                style={[
+                  styles.row,
+                  { backgroundColor: c.surface, borderRadius: radii.card },
+                  picked?.instanceId === item.instanceId && { borderWidth: 1, borderColor: accent },
+                ]}
                 onPress={() => pick(item)}
               >
                 <View style={styles.rowText}>
-                  <Text style={styles.rowName}>{item.name || item.instanceId}</Text>
-                  <Text style={styles.rowSub} numberOfLines={1}>
+                  <Text style={[styles.rowName, { color: c.text }]}>{item.name || item.instanceId}</Text>
+                  <Text style={[styles.rowSub, { color: c.textMuted }]} numberOfLines={1}>
                     {item.deployment}
                   </Text>
                 </View>
-                {picked?.instanceId === item.instanceId && <Text style={styles.check}>✓</Text>}
+                {picked?.instanceId === item.instanceId && <Text style={[styles.check, { color: accent }]}>✓</Text>}
               </TouchableOpacity>
             )}
-            ListEmptyComponent={searching ? null : <Text style={styles.empty}>{t('relay.noInstances')}</Text>}
+            ListEmptyComponent={
+              searching ? null : <Text style={[styles.empty, { color: c.textMuted }]}>{t('relay.noInstances')}</Text>
+            }
           />
         </>
       )}
 
       {picked && (
         <View style={styles.saveCard}>
-          <Text style={styles.label}>{t('connect.nameLabel')}</Text>
+          <Text style={[styles.label, { color: c.textMuted }]}>{t('connect.nameLabel')}</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, inputStyle]}
             placeholder={t('connect.namePlaceholder')}
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={c.textMuted}
             value={name}
             onChangeText={setName}
             autoCapitalize="none"
           />
-          <Text style={styles.label}>{t('connect.tokenLabel')}</Text>
+          <Text style={[styles.label, { color: c.textMuted }]}>{t('connect.tokenLabel')}</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, inputStyle]}
             placeholder={t('connect.tokenPlaceholder')}
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={c.textMuted}
             value={token}
             onChangeText={setToken}
             autoCapitalize="none"
             autoCorrect={false}
             secureTextEntry
           />
-          <Text style={styles.tokenHint}>{t('relay.tokenHint')}</Text>
-          <TouchableOpacity style={styles.button} onPress={save}>
-            <Text style={styles.buttonText}>{t('relay.saveButton')}</Text>
+          <Text style={[styles.tokenHint, { color: c.textMuted }]}>{t('relay.tokenHint')}</Text>
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: accent, borderRadius: radii.control }]}
+            onPress={save}
+          >
+            <Text style={[styles.buttonText, { color: accentContrast }]}>{t('relay.saveButton')}</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -220,48 +250,41 @@ export default function RelayConnectScreen({ onConnected }: { onConnected: (conn
   );
 }
 
+// Colours and radii are applied inline from the resolved tokens, never baked
+// in here: a stylesheet is built once and cannot follow a theme change.
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, padding: 24, paddingTop: 56 },
-  title: { color: colors.text, fontSize: 22, fontWeight: '600', marginBottom: 8 },
-  hint: { color: colors.textMuted, fontSize: 14, marginBottom: 16, lineHeight: 20 },
-  label: { color: colors.textMuted, fontSize: 13, marginBottom: 6, marginTop: 12 },
+  container: { flex: 1, padding: 24, paddingTop: 56 },
+  title: { fontSize: 22, fontWeight: '600', marginBottom: 8 },
+  hint: { fontSize: TYPE.body, marginBottom: 16, lineHeight: 20 },
+  label: { fontSize: 13, marginBottom: 6, marginTop: 12 },
   input: {
-    backgroundColor: colors.surface,
-    color: colors.text,
-    borderRadius: 8,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 15,
     borderWidth: 1,
-    borderColor: colors.border,
   },
   button: {
-    backgroundColor: colors.accent,
-    borderRadius: 8,
     paddingVertical: 14,
     alignItems: 'center',
     marginTop: 16,
   },
   buttonDisabled: { opacity: 0.6 },
-  buttonText: { color: colors.text, fontSize: 16, fontWeight: '600' },
-  error: { color: colors.danger, marginTop: 12, fontSize: 14 },
-  sectionTitle: { color: colors.textMuted, fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 20 },
+  buttonText: { fontSize: 16, fontWeight: '600' },
+  error: { marginTop: 12, fontSize: TYPE.body },
+  sectionTitle: { fontSize: TYPE.dense, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 20 },
   list: { flexGrow: 0, marginTop: 8 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: colors.surface,
-    borderRadius: 8,
     padding: 14,
     marginBottom: 6,
   },
-  rowPicked: { borderWidth: 1, borderColor: colors.accent },
   rowText: { flex: 1, minWidth: 0 },
-  rowName: { color: colors.text, fontSize: 15, fontWeight: '600' },
-  rowSub: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
-  check: { color: colors.accent, fontSize: 15, fontWeight: '700' },
-  empty: { color: colors.textMuted, fontSize: 13, textAlign: 'center', marginTop: 12 },
+  rowName: { fontSize: 15, fontWeight: '600' },
+  rowSub: { fontSize: TYPE.dense, marginTop: 2 },
+  check: { fontSize: 15, fontWeight: '700' },
+  empty: { fontSize: 13, textAlign: 'center', marginTop: 12 },
   saveCard: { marginTop: 8 },
-  tokenHint: { color: colors.textMuted, fontSize: 12, marginTop: 6, lineHeight: 16 },
+  tokenHint: { fontSize: TYPE.dense, marginTop: 6, lineHeight: 16 },
 });

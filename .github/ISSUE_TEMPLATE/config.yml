@@ -1,0 +1,3 @@
+# Three products share this repository, so the chooser names them rather than
+# offering one "bug" form that then has to ask which one.
+blank_issues_enabled: true
