@@ -1432,6 +1432,7 @@ export const he: Dict = {
   'settings.access.relay.serveAddress': 'תנו למופעים האחרים את הכתובת הזאת',
   'settings.access.relay.serveClients': 'מחוברים כרגע: {n}',
   'settings.access.relay.serveOn': 'פועל כאן',
+  'settings.access.relay.serveNeedsKey': 'לא נשמר מפתח ממסר, ולכן שום דבר עדיין לא יכול להתחבר לממסר הזה. הגדירו אחד למטה, ותנו למופעים האחרים את אותו המפתח.',
   'settings.access.relay.unreachable': 'לא ניתן להגיע לממסר עם הכתובת והמפתח האלה. בדקו את שניהם, וגם שהממסר פועל - שום דבר אחר במופע הזה לא מושפע.',
   'settings.access.intakePortsHint': 'דרכים נוספות להגיע ישירות למופע הזה, מחוץ להתחברות הרגילה - כל אחת עם הזמינות שלה מוצגת כאן.',
   'settings.nav.browsertools': 'כלי דפדפן',

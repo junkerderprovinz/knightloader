@@ -1431,6 +1431,7 @@ export const bg: Dict = {
   'settings.access.relay.serveAddress': 'Дайте на другите инстанции този адрес',
   'settings.access.relay.serveClients': 'свързани в момента: {n}',
   'settings.access.relay.serveOn': 'работи тук',
+  'settings.access.relay.serveNeedsKey': 'Не е запазен ключ за реле, така че още нищо не може да се свърже с това реле. Задайте един по-долу и дайте същия на другите инстанции.',
   'settings.access.relay.unreachable': 'Релето не може да бъде достигнато с този адрес и ключ. Проверете и двете, както и дали релето работи - нищо друго на тази инстанция не е засегнато.',
   'settings.access.intakePortsHint': 'Други начини, по които тази инстанция може да бъде достигната директно, извън обичайния вход - всеки с показана тук собствена достъпност.',
   'settings.nav.browsertools': 'Инструменти на браузъра',

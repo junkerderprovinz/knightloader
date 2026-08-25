@@ -1430,6 +1430,7 @@ export const et: Dict = {
   'settings.access.relay.serveAddress': 'Anna teistele eksemplaridele see aadress',
   'settings.access.relay.serveClients': 'praegu ühendatud: {n}',
   'settings.access.relay.serveOn': 'töötab siin',
+  'settings.access.relay.serveNeedsKey': 'Relee võtit pole salvestatud, seega ei saa sellega veel miski ühenduda. Määra see allpool ja anna teistele eksemplaridele sama.',
   'settings.access.relay.unreachable': 'Selle aadressi ja võtmega ei ole releed võimalik kätte saada. Kontrolli mõlemat ja seda, kas relee töötab - miski muu selles eksemplaris ei ole mõjutatud.',
   'settings.access.intakePortsHint': 'Muud viisid, kuidas seda eksemplari saab otse kätte, väljaspool tavapärast sisselogimist - igaühe enda kättesaadavus siin näidatud.',
   'settings.nav.browsertools': 'Brauseritööriistad',

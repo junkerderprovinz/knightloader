@@ -1431,6 +1431,7 @@ export const sl: Dict = {
   'settings.access.relay.serveAddress': 'Drugim instancam daj ta naslov',
   'settings.access.relay.serveClients': 'trenutno povezanih: {n}',
   'settings.access.relay.serveOn': 'teče tukaj',
+  'settings.access.relay.serveNeedsKey': 'Ključ releja ni shranjen, zato se na ta relej še nič ne more povezati. Nastavi ga spodaj in daj drugim instancam istega.',
   'settings.access.relay.unreachable': 'Releja s tem naslovom in tem ključem ni mogoče doseči. Preverite oboje in ali relej teče - nič drugega na tej instanci ni prizadeto.',
   'settings.access.intakePortsHint': 'Drugi načini neposrednega dostopa do te instance, zunaj običajne prijave - vsak s svojo lastno dosegljivostjo prikazano tukaj.',
   'settings.nav.browsertools': 'Orodja brskalnika',

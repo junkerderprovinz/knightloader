@@ -1431,6 +1431,7 @@ export const uk: Dict = {
   'settings.access.relay.serveAddress': 'Вкажіть цю адресу в інших екземплярах',
   'settings.access.relay.serveClients': 'підключено зараз: {n}',
   'settings.access.relay.serveOn': 'працює тут',
+  'settings.access.relay.serveNeedsKey': 'Ключ реле не збережено, тож до цього реле поки ніщо не може під\'єднатися. Задайте його нижче й укажіть той самий в інших екземплярах.',
   'settings.access.relay.unreachable': 'Із цією адресою та цим ключем реле недосяжне. Перевірте і те, і інше, а також чи запущене реле - більше нічого в цьому екземплярі це не зачіпає.',
   'settings.access.intakePortsHint': 'Інші способи прямого доступу до цього екземпляра, поза звичайним входом - кожен із власною доступністю, показаною тут.',
   'settings.nav.browsertools': 'Інструменти браузера',

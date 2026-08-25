@@ -1637,6 +1637,7 @@ export const en = {
   'settings.access.relay.serveAddress': 'Give the other instances this address',
   'settings.access.relay.serveClients': 'connected right now: {n}',
   'settings.access.relay.serveOn': 'running here',
+  'settings.access.relay.serveNeedsKey': 'No relay key is stored, so nothing can connect to this relay yet. Set one below, and give the other instances the same one.',
   'settings.access.relay.unreachable': 'The relay cannot be reached with this address and key. Check both, and that the relay is running - nothing else on this instance is affected.',
   'settings.access.intakePortsHint': 'Other ways this instance can be reached directly, outside the normal login - each with its own reachability shown here.',
 

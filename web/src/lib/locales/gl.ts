@@ -1430,6 +1430,7 @@ export const gl: Dict = {
   'settings.access.relay.serveAddress': 'Dálle este enderezo ás demais instancias',
   'settings.access.relay.serveClients': 'conectadas agora mesmo: {n}',
   'settings.access.relay.serveOn': 'funcionando aquí',
+  'settings.access.relay.serveNeedsKey': 'Non hai ningunha chave de relay gardada, así que aínda non se pode conectar nada. Establece unha abaixo e dálles a mesma ás outras instancias.',
   'settings.access.relay.unreachable': 'Non se pode chegar ao relay con este enderezo e esta clave. Comproba ambas as dúas cousas, e que o relay estea en marcha - nada máis desta instancia se ve afectado.',
   'settings.access.intakePortsHint': 'Outras formas de acceder directamente a esta instancia, fóra do inicio de sesión normal - cada unha coa súa propia accesibilidade amosada aquí.',
   'settings.nav.browsertools': 'Ferramentas de navegador',

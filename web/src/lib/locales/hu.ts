@@ -1430,6 +1430,7 @@ export const hu: Dict = {
   'settings.access.relay.serveAddress': 'Add meg ezt a címet a többi példánynak',
   'settings.access.relay.serveClients': 'most csatlakozva: {n}',
   'settings.access.relay.serveOn': 'itt fut',
+  'settings.access.relay.serveNeedsKey': 'Nincs mentett relay kulcs, így ehhez a relayhez még semmi sem tud csatlakozni. Állíts be egyet alább, és add meg ugyanazt a többi példánynak.',
   'settings.access.relay.unreachable': 'A relay nem érhető el ezzel a címmel és kulccsal. Ellenőrizd mindkettőt, és azt is, hogy fut-e a relay - ezen a példányon semmi mást nem érint.',
   'settings.access.intakePortsHint': 'Más módok, amelyekkel ez a példány közvetlenül elérhető, a szokásos bejelentkezésen kívül - mindegyik saját elérhetőségével itt megjelenítve.',
   'settings.nav.browsertools': 'Böngészőeszközök',

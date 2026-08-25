@@ -1430,6 +1430,7 @@ export const ro: Dict = {
   'settings.access.relay.serveAddress': 'Dă celorlalte instanțe această adresă',
   'settings.access.relay.serveClients': 'conectate chiar acum: {n}',
   'settings.access.relay.serveOn': 'rulează aici',
+  'settings.access.relay.serveNeedsKey': 'Nu este salvată nicio cheie de releu, așa că încă nu se poate conecta nimic la acest releu. Setează una mai jos și dă-le celorlalte instanțe aceeași cheie.',
   'settings.access.relay.unreachable': 'Releul nu poate fi accesat cu această adresă și această cheie. Verifică-le pe amândouă și dacă releul rulează - nimic altceva pe această instanță nu este afectat.',
   'settings.access.intakePortsHint': 'Alte moduri de a ajunge direct la această instanță, în afara autentificării normale - fiecare cu propria accesibilitate afișată aici.',
   'settings.nav.browsertools': 'Unelte de browser',

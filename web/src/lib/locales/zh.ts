@@ -1427,6 +1427,7 @@ export const zh: Dict = {
   'settings.access.relay.serveAddress': '把这个地址给其他实例',
   'settings.access.relay.serveClients': '当前已连接：{n}',
   'settings.access.relay.serveOn': '在此运行',
+  'settings.access.relay.serveNeedsKey': '尚未保存中继密钥，因此还没有东西能连接到这个中继。请在下面设置一个，并把同一个密钥给其他实例。',
   'settings.access.relay.unreachable': '使用此地址和密钥无法连接到中继。请检查两者，并确认中继正在运行 - 此实例上的其他任何功能都不受影响。',
   'settings.access.intakePortsHint': '在正常登录之外，直接访问此实例的其他方式 - 每种方式的可达性都显示在这里。',
   'settings.nav.browsertools': '浏览器工具',

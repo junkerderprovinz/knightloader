@@ -1423,6 +1423,7 @@ export const fr: Dict = {
   'settings.access.relay.serveAddress': 'Donne cette adresse aux autres instances',
   'settings.access.relay.serveClients': 'connectées en ce moment : {n}',
   'settings.access.relay.serveOn': 'tourne ici',
+  'settings.access.relay.serveNeedsKey': 'Aucune clé de relais n\'est enregistrée, donc rien ne peut encore se connecter à ce relais. Définis-en une ci-dessous et donne la même aux autres instances.',
   'settings.access.relay.unreachable': "Le relais n'est pas joignable avec cette adresse et cette clé. Vérifiez les deux, ainsi que le fait que le relais tourne - rien d'autre sur cette instance n'est affecté.",
   'settings.access.intakePortsHint': 'D’autres façons d’atteindre directement cette instance, en dehors de la connexion normale - chacune avec sa propre accessibilité affichée ici.',
   'settings.nav.browsertools': 'Outils navigateur',

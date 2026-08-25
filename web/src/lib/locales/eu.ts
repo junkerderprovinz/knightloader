@@ -1430,6 +1430,7 @@ export const eu: Dict = {
   'settings.access.relay.serveAddress': 'Eman helbide hau gainerako instantziei',
   'settings.access.relay.serveClients': 'orain konektatuta: {n}',
   'settings.access.relay.serveOn': 'hemen martxan',
+  'settings.access.relay.serveNeedsKey': 'Ez dago errelebo-gakorik gordeta, beraz oraindik ezin da ezer konektatu errelebo honetara. Ezarri bat behean, eta eman gako bera gainerako instantziei.',
   'settings.access.relay.unreachable': 'Ezin da erreleboa atzitu helbide eta gako honekin. Egiaztatu biak, eta erreleboa martxan dagoela - instantzia honetan ez dago beste ezer kaltetuta.',
   'settings.access.intakePortsHint': 'Instantzia honetara zuzenean iristeko beste bide batzuk, ohiko saio-hasitik kanpo - bakoitzak bere eskuragarritasuna hemen erakutsita.',
   'settings.nav.browsertools': 'Nabigatzaile-tresnak',

@@ -1430,6 +1430,7 @@ export const is: Dict = {
   'settings.access.relay.serveAddress': 'Gefðu hinum tilvikunum þetta vistfang',
   'settings.access.relay.serveClients': 'tengd núna: {n}',
   'settings.access.relay.serveOn': 'keyrir hér',
+  'settings.access.relay.serveNeedsKey': 'Enginn endurvarpalykill er vistaður, svo ekkert getur enn tengst þessum endurvarpa. Stilltu einn hér að neðan og gefðu hinum tilvikunum þann sama.',
   'settings.access.relay.unreachable': 'Ekki næst í endurvarpann með þessu vistfangi og þessum lykli. Athugaðu hvort tveggja, og hvort endurvarpinn sé í gangi - ekkert annað í þessu tilviki verður fyrir áhrifum.',
   'settings.access.intakePortsHint': 'Aðrar leiðir til að ná beint í þetta tilvik, utan venjulegrar innskráningar - hver með eigin aðgengi sýnt hér.',
   'settings.nav.browsertools': 'Vafratól',

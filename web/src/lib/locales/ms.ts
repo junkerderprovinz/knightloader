@@ -1430,6 +1430,7 @@ export const ms: Dict = {
   'settings.access.relay.serveAddress': 'Beri instance lain alamat ini',
   'settings.access.relay.serveClients': 'bersambung sekarang: {n}',
   'settings.access.relay.serveOn': 'berjalan di sini',
+  'settings.access.relay.serveNeedsKey': 'Tiada kunci relay disimpan, jadi belum ada yang boleh menyambung ke relay ini. Tetapkan satu di bawah, dan beri instance lain kunci yang sama.',
   'settings.access.relay.unreachable': 'Relay tidak dapat dicapai dengan alamat dan kunci ini. Periksa kedua-duanya, dan pastikan relay sedang berjalan - tiada apa-apa lagi pada instans ini yang terjejas.',
   'settings.access.intakePortsHint': 'Cara lain untuk mencapai instans ini secara langsung, di luar log masuk biasa - setiap satu dengan kebolehcapaiannya sendiri ditunjukkan di sini.',
   'settings.nav.browsertools': 'Alat pelayar',

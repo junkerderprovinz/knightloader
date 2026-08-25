@@ -1430,6 +1430,7 @@ export const hi: Dict = {
   'settings.access.relay.serveAddress': 'बाकी इंस्टेंस को यह पता दें',
   'settings.access.relay.serveClients': 'अभी जुड़े हुए: {n}',
   'settings.access.relay.serveOn': 'यहाँ चल रहा है',
+  'settings.access.relay.serveNeedsKey': 'कोई रिले कुंजी सहेजी नहीं गई है, इसलिए अभी कुछ भी इस रिले से नहीं जुड़ सकता। नीचे एक सेट करें और बाकी इंस्टेंस को वही दें।',
   'settings.access.relay.unreachable': 'इस पते और कुंजी से रिले तक नहीं पहुँचा जा सकता। दोनों जाँचें, और यह भी कि रिले चल रहा है - इस इंस्टेंस पर और कुछ भी प्रभावित नहीं होता।',
   'settings.access.intakePortsHint': 'इस इंस्टेंस तक सीधे पहुंचने के अन्य तरीके, सामान्य लॉगिन के बाहर - हर एक की अपनी पहुंच यहां दिखाई गई है।',
   'settings.nav.browsertools': 'ब्राउज़र टूल',
