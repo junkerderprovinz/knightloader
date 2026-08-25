@@ -559,7 +559,14 @@ export function Collector() {
           // distributes space in one pass, with none of percentage-height's
           // resolve-through-an-overflow-box ambiguity.
           <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-            <TaskListCard groups={groups} base="/api" selection={selection} profile="collector" />
+            <TaskListCard
+              groups={groups}
+              base="/api"
+              selection={selection}
+              profile="collector"
+              title={t('collector.listTitle')}
+              hue={3}
+            />
           </div>
         )}
         </div>

@@ -74,6 +74,7 @@ export const zh: Dict = {
   'empty.downloadsHint': '在收集器中添加链接，然后启动它们。',
 
   'collector.title': '收集器',
+  'collector.listTitle': '收藏',
   'collector.placeholder': '粘贴链接（每行一个），或拖到这里…（Ctrl+Enter 添加）',
   'collector.package': '包（可选）',
   'collector.add': '加入收集器',
@@ -96,6 +97,7 @@ export const zh: Dict = {
   'collector.move': '移到包',
 
   'downloads.title': '下载',
+  'downloads.listTitle': '队列',
   'downloads.thisInstance': '本实例',
   'downloads.totalSpeed': '总速度',
   'downloads.pauseAll': '全部暂停',

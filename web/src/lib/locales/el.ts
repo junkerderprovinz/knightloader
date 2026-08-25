@@ -74,6 +74,7 @@ export const el: Dict = {
   'empty.downloadsHint': 'Προσθέστε συνδέσμους στον συλλέκτη και μετά ξεκινήστε τους.',
 
   'collector.title': 'Συλλέκτης',
+  'collector.listTitle': 'Συλλογή',
   'collector.placeholder': 'Επικολλήστε συνδέσμους — έναν ανά γραμμή — ή αφήστε τους εδώ…  (Ctrl+Enter για προσθήκη)',
   'collector.package': 'Πακέτο (προαιρετικό)',
   'collector.add': 'Προσθήκη στον συλλέκτη',
@@ -96,6 +97,7 @@ export const el: Dict = {
   'collector.move': 'Μετακίνηση σε πακέτο',
 
   'downloads.title': 'Λήψεις',
+  'downloads.listTitle': 'Ουρά',
   'downloads.thisInstance': 'Αυτό το στιγμιότυπο',
   'downloads.totalSpeed': 'Συνολική ταχύτητα',
   'downloads.pauseAll': 'Παύση όλων',

@@ -74,6 +74,7 @@ export const da: Dict = {
   'empty.downloadsHint': 'Tilføj links i samleren, og start dem derefter.',
 
   'collector.title': 'Samler',
+  'collector.listTitle': 'Samling',
   'collector.placeholder': 'Indsæt links — ét pr. linje — eller slip dem her…  (Ctrl+Enter tilføjer)',
   'collector.package': 'Pakke (valgfrit)',
   'collector.add': 'Føj til samleren',
@@ -96,6 +97,7 @@ export const da: Dict = {
   'collector.move': 'Flyt til pakke',
 
   'downloads.title': 'Downloads',
+  'downloads.listTitle': 'Kø',
   'downloads.thisInstance': 'Denne instans',
   'downloads.totalSpeed': 'Samlet hastighed',
   'downloads.pauseAll': 'Sæt alle på pause',

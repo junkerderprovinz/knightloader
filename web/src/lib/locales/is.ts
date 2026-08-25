@@ -74,6 +74,7 @@ export const is: Dict = {
   'empty.downloadsHint': 'Bættu tenglum við í safnaranum og ræstu þá.',
 
   'collector.title': 'Safnari',
+  'collector.listTitle': 'Safn',
   'collector.placeholder': 'Límdu tengla — eina slóð í línu — eða slepptu þeim hér…  (Ctrl+Enter til að bæta við)',
   'collector.package': 'Pakki (valfrjálst)',
   'collector.add': 'Bæta í safnara',
@@ -96,6 +97,7 @@ export const is: Dict = {
   'collector.move': 'Færa í pakka',
 
   'downloads.title': 'Niðurhal',
+  'downloads.listTitle': 'Biðröð',
   'downloads.thisInstance': 'Þetta tilvik',
   'downloads.totalSpeed': 'Heildarhraði',
   'downloads.pauseAll': 'Gera hlé á öllu',

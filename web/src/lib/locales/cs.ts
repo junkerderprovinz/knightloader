@@ -74,6 +74,7 @@ export const cs: Dict = {
   'empty.downloadsHint': 'Přidejte odkazy do sběrače a pak je spusťte.',
 
   'collector.title': 'Sběrač',
+  'collector.listTitle': 'Sbírka',
   'collector.placeholder': 'Vložte odkazy — jeden na řádek — nebo je sem přetáhněte…  (Ctrl+Enter přidá)',
   'collector.package': 'Balíček (volitelné)',
   'collector.add': 'Přidat do sběrače',
@@ -96,6 +97,7 @@ export const cs: Dict = {
   'collector.move': 'Přesunout do balíčku',
 
   'downloads.title': 'Stahování',
+  'downloads.listTitle': 'Fronta',
   'downloads.thisInstance': 'Tato instance',
   'downloads.totalSpeed': 'Celková rychlost',
   'downloads.pauseAll': 'Pozastavit vše',

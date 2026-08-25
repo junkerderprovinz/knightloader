@@ -85,6 +85,7 @@ export const en = {
   'empty.downloadsHint': 'Add links in the collector, then start them.',
 
   'collector.title': 'Collector',
+  'collector.listTitle': 'Collection',
   'collector.placeholder': 'Paste links — one URL per line — or drop them here…  (Ctrl+Enter to add)',
   'collector.package': 'Package (optional)',
   'collector.add': 'Add to collector',
@@ -107,6 +108,7 @@ export const en = {
   'collector.move': 'Move to package',
 
   'downloads.title': 'Downloads',
+  'downloads.listTitle': 'Queue',
   'downloads.thisInstance': 'This instance',
   'downloads.totalSpeed': 'Total speed',
   'downloads.pauseAll': 'Pause all',

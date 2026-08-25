@@ -74,6 +74,7 @@ export const sv: Dict = {
   'empty.downloadsHint': 'Lägg till länkar i samlaren och starta dem sedan.',
 
   'collector.title': 'Samlare',
+  'collector.listTitle': 'Samling',
   'collector.placeholder': 'Klistra in länkar — en per rad — eller släpp dem här…  (Ctrl+Enter lägger till)',
   'collector.package': 'Paket (valfritt)',
   'collector.add': 'Lägg till i samlaren',
@@ -96,6 +97,7 @@ export const sv: Dict = {
   'collector.move': 'Flytta till paket',
 
   'downloads.title': 'Nedladdningar',
+  'downloads.listTitle': 'Kö',
   'downloads.thisInstance': 'Den här instansen',
   'downloads.totalSpeed': 'Total hastighet',
   'downloads.pauseAll': 'Pausa alla',

@@ -74,6 +74,7 @@ export const fi: Dict = {
   'empty.downloadsHint': 'Lisää linkit kerääjään ja käynnistä ne sitten.',
 
   'collector.title': 'Kerääjä',
+  'collector.listTitle': 'Kokoelma',
   'collector.placeholder': 'Liitä linkkejä — yksi riviä kohti — tai pudota ne tähän…  (Ctrl+Enter lisää)',
   'collector.package': 'Paketti (valinnainen)',
   'collector.add': 'Lisää kerääjään',
@@ -96,6 +97,7 @@ export const fi: Dict = {
   'collector.move': 'Siirrä pakettiin',
 
   'downloads.title': 'Lataukset',
+  'downloads.listTitle': 'Jono',
   'downloads.thisInstance': 'Tämä instanssi',
   'downloads.totalSpeed': 'Kokonaisnopeus',
   'downloads.pauseAll': 'Keskeytä kaikki',

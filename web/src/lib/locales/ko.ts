@@ -74,6 +74,7 @@ export const ko: Dict = {
   'empty.downloadsHint': '수집함에 링크를 추가한 뒤 시작하세요.',
 
   'collector.title': '수집함',
+  'collector.listTitle': '컬렉션',
   'collector.placeholder': '링크를 한 줄에 하나씩 붙여넣거나 여기에 끌어다 놓으세요…  (Ctrl+Enter로 추가)',
   'collector.package': '패키지 (선택)',
   'collector.add': '수집함에 추가',
@@ -96,6 +97,7 @@ export const ko: Dict = {
   'collector.move': '패키지로 이동',
 
   'downloads.title': '다운로드',
+  'downloads.listTitle': '대기열',
   'downloads.thisInstance': '이 인스턴스',
   'downloads.totalSpeed': '전체 속도',
   'downloads.pauseAll': '전체 일시 중지',

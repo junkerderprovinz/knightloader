@@ -74,6 +74,7 @@ export const gl: Dict = {
   'empty.downloadsHint': 'Engade ligazóns no colector e logo iníciaas.',
 
   'collector.title': 'Colector',
+  'collector.listTitle': 'Colección',
   'collector.placeholder': 'Pega ligazóns — un URL por liña — ou sóltaas aquí…  (Ctrl+Intro para engadir)',
   'collector.package': 'Paquete (opcional)',
   'collector.add': 'Engadir ao colector',
@@ -96,6 +97,7 @@ export const gl: Dict = {
   'collector.move': 'Mover a un paquete',
 
   'downloads.title': 'Descargas',
+  'downloads.listTitle': 'Cola',
   'downloads.thisInstance': 'Esta instancia',
   'downloads.totalSpeed': 'Velocidade total',
   'downloads.pauseAll': 'Pausar todo',

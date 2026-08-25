@@ -74,6 +74,7 @@ export const fa: Dict = {
   'empty.downloadsHint': 'در جمع‌آور لینک اضافه کنید، بعد شروعشان کنید.',
 
   'collector.title': 'جمع‌آور',
+  'collector.listTitle': 'مجموعه',
   'collector.placeholder': 'لینک‌ها را بچسبانید — هر خط یک URL — یا اینجا رها کنید…  (Ctrl+Enter برای افزودن)',
   'collector.package': 'بسته (اختیاری)',
   'collector.add': 'افزودن به جمع‌آور',
@@ -96,6 +97,7 @@ export const fa: Dict = {
   'collector.move': 'انتقال به بسته',
 
   'downloads.title': 'دانلودها',
+  'downloads.listTitle': 'صف',
   'downloads.thisInstance': 'این نمونه',
   'downloads.totalSpeed': 'سرعت کل',
   'downloads.pauseAll': 'مکث همه',

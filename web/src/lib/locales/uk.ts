@@ -74,6 +74,7 @@ export const uk: Dict = {
   'empty.downloadsHint': 'Додайте посилання у збирач, а потім запустіть їх.',
 
   'collector.title': 'Збирач',
+  'collector.listTitle': 'Колекція',
   'collector.placeholder': 'Вставте посилання — по одному в рядок — або перетягніть сюди…  (Ctrl+Enter, щоб додати)',
   'collector.package': 'Пакет (необовʼязково)',
   'collector.add': 'Додати до збирача',
@@ -96,6 +97,7 @@ export const uk: Dict = {
   'collector.move': 'Перемістити до пакета',
 
   'downloads.title': 'Завантаження',
+  'downloads.listTitle': 'Черга',
   'downloads.thisInstance': 'Цей екземпляр',
   'downloads.totalSpeed': 'Загальна швидкість',
   'downloads.pauseAll': 'Призупинити все',

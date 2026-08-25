@@ -74,6 +74,7 @@ export const ms: Dict = {
   'empty.downloadsHint': 'Tambah pautan dalam pengumpul, kemudian mulakan.',
 
   'collector.title': 'Pengumpul',
+  'collector.listTitle': 'Koleksi',
   'collector.placeholder': 'Tampal pautan — satu URL setiap baris — atau lepaskan di sini…  (Ctrl+Enter untuk tambah)',
   'collector.package': 'Pakej (pilihan)',
   'collector.add': 'Tambah ke pengumpul',
@@ -96,6 +97,7 @@ export const ms: Dict = {
   'collector.move': 'Pindah ke pakej',
 
   'downloads.title': 'Muat turun',
+  'downloads.listTitle': 'Baris gilir',
   'downloads.thisInstance': 'Instance ini',
   'downloads.totalSpeed': 'Jumlah kelajuan',
   'downloads.pauseAll': 'Jeda semua',

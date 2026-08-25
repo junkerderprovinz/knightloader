@@ -74,6 +74,7 @@ export const vi: Dict = {
   'empty.downloadsHint': 'Thêm liên kết vào bộ thu thập rồi bắt đầu.',
 
   'collector.title': 'Bộ thu thập',
+  'collector.listTitle': 'Bộ sưu tập',
   'collector.placeholder': 'Dán liên kết — mỗi dòng một cái — hoặc thả vào đây…  (Ctrl+Enter để thêm)',
   'collector.package': 'Gói (tùy chọn)',
   'collector.add': 'Thêm vào bộ thu thập',
@@ -96,6 +97,7 @@ export const vi: Dict = {
   'collector.move': 'Chuyển sang gói',
 
   'downloads.title': 'Tải xuống',
+  'downloads.listTitle': 'Hàng đợi',
   'downloads.thisInstance': 'Phiên bản này',
   'downloads.totalSpeed': 'Tổng tốc độ',
   'downloads.pauseAll': 'Tạm dừng tất cả',

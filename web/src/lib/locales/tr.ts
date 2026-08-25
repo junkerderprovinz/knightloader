@@ -74,6 +74,7 @@ export const tr: Dict = {
   'empty.downloadsHint': 'Toplayıcıya bağlantı ekleyin, sonra başlatın.',
 
   'collector.title': 'Toplayıcı',
+  'collector.listTitle': 'Koleksiyon',
   'collector.placeholder': 'Bağlantıları yapıştırın — her satıra bir tane — veya buraya bırakın…  (Ctrl+Enter ekler)',
   'collector.package': 'Paket (isteğe bağlı)',
   'collector.add': 'Toplayıcıya ekle',
@@ -96,6 +97,7 @@ export const tr: Dict = {
   'collector.move': 'Pakete taşı',
 
   'downloads.title': 'İndirmeler',
+  'downloads.listTitle': 'Sıra',
   'downloads.thisInstance': 'Bu örnek',
   'downloads.totalSpeed': 'Toplam hız',
   'downloads.pauseAll': 'Hepsini duraklat',

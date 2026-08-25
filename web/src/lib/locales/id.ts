@@ -74,6 +74,7 @@ export const id: Dict = {
   'empty.downloadsHint': 'Tambahkan tautan di pengumpul, lalu mulai.',
 
   'collector.title': 'Pengumpul',
+  'collector.listTitle': 'Koleksi',
   'collector.placeholder': 'Tempel tautan — satu URL per baris — atau seret ke sini…  (Ctrl+Enter untuk menambah)',
   'collector.package': 'Paket (opsional)',
   'collector.add': 'Tambah ke pengumpul',
@@ -96,6 +97,7 @@ export const id: Dict = {
   'collector.move': 'Pindah ke paket',
 
   'downloads.title': 'Unduhan',
+  'downloads.listTitle': 'Antrean',
   'downloads.thisInstance': 'Instance ini',
   'downloads.totalSpeed': 'Kecepatan total',
   'downloads.pauseAll': 'Jeda semua',

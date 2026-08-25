@@ -74,6 +74,7 @@ export const et: Dict = {
   'empty.downloadsHint': 'Lisa lingid kogujasse ja käivita need.',
 
   'collector.title': 'Koguja',
+  'collector.listTitle': 'Kogu',
   'collector.placeholder': 'Kleebi lingid — üks URL rea kohta — või lohista siia…  (Ctrl+Enter lisamiseks)',
   'collector.package': 'Pakk (valikuline)',
   'collector.add': 'Lisa kogujasse',
@@ -96,6 +97,7 @@ export const et: Dict = {
   'collector.move': 'Liiguta pakki',
 
   'downloads.title': 'Allalaadimised',
+  'downloads.listTitle': 'Järjekord',
   'downloads.thisInstance': 'See eksemplar',
   'downloads.totalSpeed': 'Kogukiirus',
   'downloads.pauseAll': 'Peata kõik',

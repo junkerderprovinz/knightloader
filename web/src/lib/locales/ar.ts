@@ -76,6 +76,7 @@ export const ar: Dict = {
   'empty.downloadsHint': 'أضف روابط في المُجمِّع ثم ابدأها.',
 
   'collector.title': 'المُجمِّع',
+  'collector.listTitle': 'المجموعة',
   'collector.placeholder': 'ألصق الروابط — رابط في كل سطر — أو أفلتها هنا…  (Ctrl+Enter للإضافة)',
   'collector.package': 'حزمة (اختياري)',
   'collector.add': 'أضف إلى المُجمِّع',
@@ -98,6 +99,7 @@ export const ar: Dict = {
   'collector.move': 'نقل إلى حزمة',
 
   'downloads.title': 'التنزيلات',
+  'downloads.listTitle': 'قائمة الانتظار',
   'downloads.thisInstance': 'هذه النسخة',
   'downloads.totalSpeed': 'السرعة الإجمالية',
   'downloads.pauseAll': 'إيقاف الكل مؤقتًا',

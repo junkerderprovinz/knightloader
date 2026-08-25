@@ -74,6 +74,7 @@ export const ja: Dict = {
   'empty.downloadsHint': 'コレクターにリンクを追加してから開始してください。',
 
   'collector.title': 'コレクター',
+  'collector.listTitle': 'コレクション',
   'collector.placeholder': 'リンクを貼り付け（1行に1つ）、またはここにドロップ…（Ctrl+Enter で追加）',
   'collector.package': 'パッケージ（任意）',
   'collector.add': 'コレクターに追加',
@@ -96,6 +97,7 @@ export const ja: Dict = {
   'collector.move': 'パッケージへ移動',
 
   'downloads.title': 'ダウンロード',
+  'downloads.listTitle': 'キュー',
   'downloads.thisInstance': 'このインスタンス',
   'downloads.totalSpeed': '合計速度',
   'downloads.pauseAll': 'すべて一時停止',

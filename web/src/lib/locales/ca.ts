@@ -74,6 +74,7 @@ export const ca: Dict = {
   'empty.downloadsHint': "Afegeix enllaços al col·lector i inicia'ls.",
 
   'collector.title': 'Col·lector',
+  'collector.listTitle': 'Col·lecció',
   'collector.placeholder': "Enganxa enllaços — un URL per línia — o deixa'ls aquí…  (Ctrl+Retorn per afegir)",
   'collector.package': 'Paquet (opcional)',
   'collector.add': 'Afegeix al col·lector',
@@ -96,6 +97,7 @@ export const ca: Dict = {
   'collector.move': 'Mou a un paquet',
 
   'downloads.title': 'Baixades',
+  'downloads.listTitle': 'Cua',
   'downloads.thisInstance': 'Aquesta instància',
   'downloads.totalSpeed': 'Velocitat total',
   'downloads.pauseAll': 'Pausa-ho tot',

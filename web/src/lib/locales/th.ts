@@ -74,6 +74,7 @@ export const th: Dict = {
   'empty.downloadsHint': 'เพิ่มลิงก์ในตัวรวบรวม แล้วจึงเริ่ม',
 
   'collector.title': 'ตัวรวบรวม',
+  'collector.listTitle': 'คอลเลกชัน',
   'collector.placeholder': 'วางลิงก์ — บรรทัดละหนึ่งลิงก์ — หรือลากมาที่นี่…  (Ctrl+Enter เพื่อเพิ่ม)',
   'collector.package': 'แพ็กเกจ (ไม่บังคับ)',
   'collector.add': 'เพิ่มลงตัวรวบรวม',
@@ -96,6 +97,7 @@ export const th: Dict = {
   'collector.move': 'ย้ายไปแพ็กเกจ',
 
   'downloads.title': 'การดาวน์โหลด',
+  'downloads.listTitle': 'คิว',
   'downloads.thisInstance': 'อินสแตนซ์นี้',
   'downloads.totalSpeed': 'ความเร็วรวม',
   'downloads.pauseAll': 'หยุดทั้งหมดชั่วคราว',

@@ -76,6 +76,7 @@ export const he: Dict = {
   'empty.downloadsHint': 'הוסף קישורים באוסף ואז התחל אותם.',
 
   'collector.title': 'אוסף',
+  'collector.listTitle': 'אוסף',
   'collector.placeholder': 'הדבק קישורים — אחד בכל שורה — או גרור לכאן…  (Ctrl+Enter להוספה)',
   'collector.package': 'חבילה (רשות)',
   'collector.add': 'הוסף לאוסף',
@@ -98,6 +99,7 @@ export const he: Dict = {
   'collector.move': 'העבר לחבילה',
 
   'downloads.title': 'הורדות',
+  'downloads.listTitle': 'תור',
   'downloads.thisInstance': 'המופע הזה',
   'downloads.totalSpeed': 'מהירות כוללת',
   'downloads.pauseAll': 'השהה הכול',

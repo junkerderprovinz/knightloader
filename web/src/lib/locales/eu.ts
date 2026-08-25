@@ -74,6 +74,7 @@ export const eu: Dict = {
   'empty.downloadsHint': 'Gehitu estekak biltzailean eta hasi itzazu.',
 
   'collector.title': 'Biltzailea',
+  'collector.listTitle': 'Bilduma',
   'collector.placeholder': 'Itsatsi estekak — URL bat lerroko — edo jaregin hemen…  (Ctrl+Sartu gehitzeko)',
   'collector.package': 'Paketea (aukerakoa)',
   'collector.add': 'Gehitu biltzailera',
@@ -96,6 +97,7 @@ export const eu: Dict = {
   'collector.move': 'Eraman paketera',
 
   'downloads.title': 'Deskargak',
+  'downloads.listTitle': 'Ilara',
   'downloads.thisInstance': 'Instantzia hau',
   'downloads.totalSpeed': 'Abiadura osoa',
   'downloads.pauseAll': 'Pausatu dena',

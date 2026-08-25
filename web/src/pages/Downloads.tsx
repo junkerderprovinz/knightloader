@@ -399,7 +399,7 @@ export function Downloads() {
         ) : filtered.length === 0 ? (
           <EmptyState icon={<IconSearch width={26} height={26} />} title={t('downloads.noMatch')} />
         ) : (
-          <TaskListCard groups={groups} base={base} selection={selection} />
+          <TaskListCard groups={groups} base={base} selection={selection} title={t('downloads.listTitle')} hue={0} />
         )}
       </div>
 

@@ -74,6 +74,7 @@ export const hr: Dict = {
   'empty.downloadsHint': 'Dodaj poveznice u sakupljač pa ih pokreni.',
 
   'collector.title': 'Sakupljač',
+  'collector.listTitle': 'Zbirka',
   'collector.placeholder': 'Zalijepi poveznice — jedan URL po retku — ili ih ispusti ovdje…  (Ctrl+Enter dodaje)',
   'collector.package': 'Paket (neobavezno)',
   'collector.add': 'U sakupljač',
@@ -96,6 +97,7 @@ export const hr: Dict = {
   'collector.move': 'Premjesti u paket',
 
   'downloads.title': 'Preuzimanja',
+  'downloads.listTitle': 'Red čekanja',
   'downloads.thisInstance': 'Ova instanca',
   'downloads.totalSpeed': 'Ukupna brzina',
   'downloads.pauseAll': 'Pauziraj sve',
