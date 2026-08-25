@@ -12,7 +12,9 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -113,11 +115,57 @@ func (a *App) setTaskName(id, name string) {
 		a.mu.Unlock()
 		return
 	}
+	// A package that still says exactly what the URL's own path guessed at
+	// staging time (fileStem/derivePackage's last resort, app_links.go) is
+	// worth re-deriving now that a real name has arrived - jdp, 2026-08-25:
+	// "bei einem Youtubelink heißt der Ordner nur watch. der soll den namen
+	// anzeigen" (every YouTube watch page's path is /watch, so every bare-
+	// pasted video landed in the identically-misnamed folder). Scoped tight
+	// on purpose: only while this task is still the ONLY member of that
+	// package (a real multi-link batch's own name comes from the shared
+	// stem across all of them - one member's late answer must not rename
+	// it out from under the others) and only while the package still
+	// matches that guess exactly (a package the user renamed by hand,
+	// coincidentally or not, is left alone).
+	if guess := solePackageURLGuess(a.tasks, t); guess != "" && t.Package == guess {
+		t.Package = sanitizeSegment(name)
+	}
 	t.Name = name
 	c := *t
 	a.mu.Unlock()
 	_ = a.Store.Save(&c)
 	a.Hub.Broadcast("task", &c)
+}
+
+// solePackageURLGuess returns what fileStem's own URL-path fallback
+// (app_links.go) would have produced for t's package at staging time - or
+// "" when there is nothing safe to compare against: t has no package,
+// another task already shares it (a shared package belongs to the group,
+// not to one member's own URL), or the guess itself would have been too
+// short for derivePackage to have used in the first place (its own
+// len(stem) >= 3 rule, mirrored here so this reports exactly what that
+// function would have). t.Name is deliberately not read - the caller
+// already knows it equalled t.URL a moment ago, which is exactly the
+// condition under which fileStem takes this same path.Base fallback.
+// Callers must already hold a.mu.
+func solePackageURLGuess(tasks map[string]*core.Task, t *core.Task) string {
+	if t.Package == "" {
+		return ""
+	}
+	for _, other := range tasks {
+		if other != t && other.Package == t.Package {
+			return ""
+		}
+	}
+	u, err := url.Parse(t.URL)
+	if err != nil {
+		return ""
+	}
+	stem := strings.Trim(path.Base(u.Path), ".-_ ")
+	if len(stem) < 3 {
+		return ""
+	}
+	return sanitizeSegment(stem)
 }
 
 // checkTimeout bounds one round of service checks. Generous compared with the

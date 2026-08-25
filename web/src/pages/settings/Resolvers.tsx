@@ -123,8 +123,38 @@ export function Resolvers() {
         />
       </Card>
 
+      {/* Which extra files a download produces beside the video itself
+          (jdp, 2026-08-25: "ich möchte alle dateitype aktiveren und
+          deaktivieren können... video, audio, bild, txt") - subtitles
+          already had their own card below (its own language/auto knobs
+          need the room), so this one covers the other three: the cover
+          image, a plain-text description, and a standalone audio copy
+          kept alongside the video rather than replacing it (quality
+          "audioOnly" already covers audio-instead-of-video). */}
+      <Card className="flex flex-col gap-3">
+        <SectionTitle hue={2}>{t('settings.resolvers.extraFiles')}</SectionTitle>
+        <ToggleRow
+          checked={ytdlp.thumbnail}
+          onChange={(v) => patchYtdlp({ thumbnail: v })}
+          label={t('settings.resolvers.thumbnail')}
+        />
+        <ToggleRow
+          checked={ytdlp.description}
+          onChange={(v) => patchYtdlp({ description: v })}
+          label={t('settings.resolvers.description')}
+        />
+        {ytdlp.quality !== 'audioOnly' && (
+          <ToggleRow
+            checked={ytdlp.keepAudio}
+            onChange={(v) => patchYtdlp({ keepAudio: v })}
+            label={t('settings.resolvers.keepAudio')}
+            hint={t('settings.resolvers.keepAudioHint')}
+          />
+        )}
+      </Card>
+
       <Card className="flex flex-col gap-5">
-        <SectionTitle hue={2}>{t('settings.resolvers.subtitles')}</SectionTitle>
+        <SectionTitle hue={3}>{t('settings.resolvers.subtitles')}</SectionTitle>
         {subtitleModes.length > 0 && (
           <FieldGroup label={t('settings.resolvers.subtitles')} hint={t('settings.resolvers.subtitlesHint')}>
             <Tabs
@@ -159,7 +189,7 @@ export function Resolvers() {
       </Card>
 
       <Card className="flex flex-col gap-5">
-        <SectionTitle hue={3}>{t('settings.resolvers.outputTitle')}</SectionTitle>
+        <SectionTitle hue={4}>{t('settings.resolvers.outputTitle')}</SectionTitle>
         <Field label={t('settings.resolvers.outputTitle')} hint={t('settings.resolvers.outputHint')}>
           <TextInput
             dir="ltr"

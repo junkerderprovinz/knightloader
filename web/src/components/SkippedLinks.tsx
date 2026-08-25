@@ -21,6 +21,17 @@ const keyOf = (s: SkippedLink) => `${s.at}|${s.url}`;
  *
  * Quiet by design — one line plus the newest entry — because the common case is
  * one duplicate in a paste of forty and it must not compete with the list.
+ *
+ * Floats as its own card (jdp, 2026-08-25, screenshot of the old full-width
+ * banner: "können wir die meldung in eine toastmeldung umwandeln?") rather
+ * than a fixed-height ToastBubble text line - "Anzeigen"/expand and "Löschen"
+ * are real controls this notification needs and a plain toast has no room
+ * for, and the whole point of building this instead of a toast in the first
+ * place was that a skip must stay reachable rather than vanish after a few
+ * seconds. A different corner (top-right) than the toast stack (bottom-
+ * right, lib/toast.tsx) on purpose: the two are independent, unsynchronised
+ * stacks, and sharing one corner would mean either could end up on top of
+ * the other rather than beside it.
  */
 export function SkippedLinks() {
   const { t } = useT();
@@ -95,48 +106,50 @@ export function SkippedLinks() {
   const shown = showAll ? newest : newest.slice(0, 1);
 
   return (
-    <div className="glim-well overflow-hidden">
-      <div className="flex flex-wrap items-center gap-2 px-4 py-2">
-        <span className="glim-num flex items-center text-xs text-carbon-textSub">
-          {t('skipped.summary', { n: items.length })}
-          <InfoBubble tip={t('skipped.info')} />
-        </span>
-        <span className="flex-1" />
-        {items.length > 1 && (
-          <Button kind="ghost" className="px-2.5 text-xs" onClick={() => setShowAll((v) => !v)}>
-            {showAll ? t('common.hide') : t('common.show')}
+    <div className="fixed right-5 top-5 z-40 w-[min(92vw,26rem)]">
+      <div className="glim-toast overflow-hidden rounded-[var(--radius-control)] bg-carbon-surface shadow-[var(--elevation)]">
+        <div className="flex flex-wrap items-center gap-2 px-4 py-2.5">
+          <span className="glim-num flex items-center text-xs text-carbon-textSub">
+            {t('skipped.summary', { n: items.length })}
+            <InfoBubble tip={t('skipped.info')} />
+          </span>
+          <span className="flex-1" />
+          {items.length > 1 && (
+            <Button kind="ghost" className="px-2.5 text-xs" onClick={() => setShowAll((v) => !v)}>
+              {showAll ? t('common.hide') : t('common.show')}
+            </Button>
+          )}
+          <Button
+            kind="ghost"
+            className="px-2.5 text-xs"
+            icon={<IconTrash width={14} height={14} />}
+            onClick={onClear}
+          >
+            {t('skipped.clear')}
           </Button>
-        )}
-        <Button
-          kind="ghost"
-          className="px-2.5 text-xs"
-          icon={<IconTrash width={14} height={14} />}
-          onClick={onClear}
-        >
-          {t('skipped.clear')}
-        </Button>
-        <Button
-          kind="ghost"
-          icon={<IconClose width={14} height={14} />}
-          aria-label={t('common.dismiss')}
-          onClick={() => setDismissed(true)}
-        />
-      </div>
+          <Button
+            kind="ghost"
+            icon={<IconClose width={14} height={14} />}
+            aria-label={t('common.dismiss')}
+            onClick={() => setDismissed(true)}
+          />
+        </div>
 
-      <div className="max-h-56 overflow-y-auto pb-1.5">
-        {shown.map((s, i) => (
-          <div key={`${keyOf(s)}|${i}`} className="flex items-baseline gap-3 px-4 py-1 text-xs">
-            <span className="max-w-[45%] shrink-0 truncate text-carbon-textSub" title={s.reason}>
-              {s.reason}
-            </span>
-            {/* dir=ltr: a URL is not prose and must not be reordered when the
-                interface language is right-to-left. */}
-            <span dir="ltr" className="min-w-0 flex-1 truncate text-carbon-textMuted" title={s.url}>
-              {s.url}
-            </span>
-            <span className="glim-num shrink-0 text-carbon-textMuted">{fmtDate(s.at)}</span>
-          </div>
-        ))}
+        <div className="max-h-56 overflow-y-auto pb-1.5">
+          {shown.map((s, i) => (
+            <div key={`${keyOf(s)}|${i}`} className="flex items-baseline gap-3 px-4 py-1 text-xs">
+              <span className="max-w-[45%] shrink-0 truncate text-carbon-textSub" title={s.reason}>
+                {s.reason}
+              </span>
+              {/* dir=ltr: a URL is not prose and must not be reordered when the
+                  interface language is right-to-left. */}
+              <span dir="ltr" className="min-w-0 flex-1 truncate text-carbon-textMuted" title={s.url}>
+                {s.url}
+              </span>
+              <span className="glim-num shrink-0 text-carbon-textMuted">{fmtDate(s.at)}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
