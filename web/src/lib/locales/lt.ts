@@ -1128,6 +1128,7 @@ export const lt: Dict = {
   'columns.variant.thumbnail': 'Miniatiūra',
   'columns.variant.subtitle': 'Subtitrai',
   'columns.variant.description': 'Aprašymas',
+  'columns.variant.bitrateAuto': 'Automatinis',
 
   'file.open': 'Atverti',
   'file.openNatively': 'Atverti numatytąja programa',

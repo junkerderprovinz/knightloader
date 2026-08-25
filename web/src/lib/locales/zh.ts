@@ -1127,6 +1127,7 @@ export const zh: Dict = {
   'columns.variant.thumbnail': '缩略图',
   'columns.variant.subtitle': '字幕',
   'columns.variant.description': '描述',
+  'columns.variant.bitrateAuto': '自动',
 
   'file.open': '打开',
   'file.openNatively': '用默认应用打开',

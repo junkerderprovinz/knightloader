@@ -1128,6 +1128,7 @@ export const el: Dict = {
   'columns.variant.thumbnail': 'Μικρογραφία',
   'columns.variant.subtitle': 'Υπότιτλοι',
   'columns.variant.description': 'Περιγραφή',
+  'columns.variant.bitrateAuto': 'Αυτόματο',
 
   'file.open': 'Άνοιγμα',
   'file.openNatively': 'Άνοιγμα με την προεπιλεγμένη εφαρμογή',

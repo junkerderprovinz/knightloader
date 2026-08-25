@@ -128,6 +128,13 @@ func TestBuildArgsVariantThumbnailAddsSkipDownloadAndWriteThumbnail(t *testing.T
 	if !hasArg(args, "--write-thumbnail") {
 		t.Errorf("VariantThumbnail did not pass --write-thumbnail: %v", args)
 	}
+	// Forces a deterministic container (jdp, 2026-08-26: "dateiendungen
+	// werden immer noch nicht angezeigt") - applyProbeFormats
+	// (app_ytdlp_variants.go) reads this same fact to answer Ext="jpg".
+	got, ok := valueAfter(args, "--convert-thumbnails")
+	if !ok || got != "jpg" {
+		t.Errorf("--convert-thumbnails = %q (found=%v), want %q", got, ok, "jpg")
+	}
 }
 
 func TestBuildArgsVariantSubtitleAddsSkipDownloadWriteSubsAndDefaultLangs(t *testing.T) {
@@ -144,6 +151,11 @@ func TestBuildArgsVariantSubtitleAddsSkipDownloadWriteSubsAndDefaultLangs(t *tes
 	}
 	if hasArg(args, "--write-auto-subs") {
 		t.Errorf("VariantSubtitle with SubtitleAuto=false passed --write-auto-subs, want none: %v", args)
+	}
+	// Forces a deterministic format, same reasoning as --convert-thumbnails
+	// above - applyProbeFormats reads this same fact to answer Ext="srt".
+	if got, ok := valueAfter(args, "--sub-format"); !ok || got != "srt" {
+		t.Errorf("--sub-format = %q (found=%v), want %q", got, ok, "srt")
 	}
 }
 
@@ -193,6 +205,33 @@ func TestBuildArgsVariantVideoAddsNoSubtitleFlags(t *testing.T) {
 		if hasArg(args, flag) {
 			t.Errorf("VariantVideo still passed %s: %v", flag, args)
 		}
+	}
+}
+
+// TestBuildArgsVariantVideoForcesMkvMerge is [87]'s own video case: a merge
+// target has to be fixed ahead of time for applyProbeFormats
+// (app_ytdlp_variants.go) to be able to answer Ext="mkv" as a fact rather
+// than a guess about which two streams formatSelector's own selector picks.
+func TestBuildArgsVariantVideoForcesMkvMerge(t *testing.T) {
+	args := buildArgs("d", Options{Variant: VariantVideo})
+	got, ok := valueAfter(args, "--merge-output-format")
+	if !ok || got != "mkv" {
+		t.Errorf("--merge-output-format = %q (found=%v), want %q", got, ok, "mkv")
+	}
+}
+
+func TestBuildArgsVariantAudioHonoursAudioBitrate(t *testing.T) {
+	args := buildArgs("d", Options{Variant: VariantAudio, AudioFormat: "mp3", AudioBitrate: "192"})
+	got, ok := valueAfter(args, "--audio-quality")
+	if !ok || got != "192K" {
+		t.Errorf("--audio-quality = %q (found=%v), want %q", got, ok, "192K")
+	}
+}
+
+func TestBuildArgsVariantAudioNoBitrateOmitsDashAudioQuality(t *testing.T) {
+	args := buildArgs("d", Options{Variant: VariantAudio})
+	if hasArg(args, "--audio-quality") {
+		t.Errorf("VariantAudio with no AudioBitrate passed --audio-quality, want none: %v", args)
 	}
 }
 

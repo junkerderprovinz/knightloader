@@ -477,12 +477,16 @@ func TestApplyProbeFormatsSetsFixedAudioFormatExtNotSize(t *testing.T) {
 	}
 }
 
-// TestApplyProbeFormatsSetsBestAudioSizeNotExt is the "best" audio row's
-// own opposite split: -x with no --audio-format is a straight extract, not
-// a transcode, so the source audio-only track's own size is a close
-// estimate (Size may be set) - but the container it keeps varies by
-// source, so Ext must stay unset rather than guessed.
-func TestApplyProbeFormatsSetsBestAudioSizeNotExt(t *testing.T) {
+// TestApplyProbeFormatsSetsBestAudioExtAndSize is the "best" audio row's own
+// case: -x with no --audio-format is a straight extract, not a transcode,
+// so BOTH the container and the size are real facts read straight off the
+// matched source track's own reported values, not guesses (jdp, 2026-08-26:
+// "dateiendungen werden immer noch nicht angezeigt" - an earlier version of
+// this function left Ext unset here on the theory that "the container
+// varies by source", which is true across different sources but not true
+// of the ONE specific matched format this row already resolved to: its own
+// Ext field already says what container it is in).
+func TestApplyProbeFormatsSetsBestAudioExtAndSize(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	const url = "https://youtube.com/watch?v=size0001"
 	family := putYtdlpFamily(t, a, url, nil) // VariantAudio's own sub defaults to "" (best)
@@ -490,11 +494,91 @@ func TestApplyProbeFormatsSetsBestAudioSizeNotExt(t *testing.T) {
 	a.applyProbeFormats(url, testProbeFormats)
 
 	live := snapshot(t, a, family[ytdlp.VariantAudio].ID)
-	if live.Ext != "" {
-		t.Errorf("best-audio row Ext = %q, want it left unset", live.Ext)
+	if live.Ext != "m4a" {
+		t.Errorf("best-audio row Ext = %q, want the matched track's own %q", live.Ext, "m4a")
 	}
 	if live.Size != 3145728 {
 		t.Errorf("best-audio row Size = %d, want the audio-only entry's own filesize %d", live.Size, 3145728)
+	}
+}
+
+// TestApplyProbeFormatsSetsAvailableAudioFormats is [87]/[88]'s own
+// extension to the audio row (jdp, 2026-08-26: "bei der audio spur sollen
+// nur die formate angezeigt werden die wirklich von hoster angeboten
+// werden. Youtube bietet zb keine flac audio"): testProbeFormats' own
+// audio-only entry is mp4a.40.2 (AAC), which maps to "m4a" - "best" is
+// always kept alongside it, and the fixed transcode targets nothing in the
+// source actually offers (mp3/opus/wav/flac) do not appear.
+func TestApplyProbeFormatsSetsAvailableAudioFormats(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=formats0001"
+	family := putYtdlpFamily(t, a, url, nil)
+
+	a.applyProbeFormats(url, testProbeFormats)
+
+	live := snapshot(t, a, family[ytdlp.VariantAudio].ID)
+	if got := live.AvailableAudioFormats; len(got) != 2 || got[0] != "best" || got[1] != "m4a" {
+		t.Errorf("AvailableAudioFormats = %v, want exactly [best m4a]", got)
+	}
+}
+
+// TestApplyProbeFormatsSetsVideoExtOnlyWhenAMergeWouldHappen is [87]'s own
+// video case: testProbeFormats has both a real video-only track and a real
+// audio-only track, so formatSelector's own bestvideo+bestaudio selector
+// will merge them - buildArgs' own forced --merge-output-format mkv
+// (backend.go) then makes mkv a fact this function can state.
+func TestApplyProbeFormatsSetsVideoExtOnlyWhenAMergeWouldHappen(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=merge0001"
+	family := putYtdlpFamily(t, a, url, nil)
+
+	a.applyProbeFormats(url, testProbeFormats)
+
+	live := snapshot(t, a, family[ytdlp.VariantVideo].ID)
+	if live.Ext != "mkv" {
+		t.Errorf("video row Ext = %q, want %q - the source has both a video-only and an audio-only track to merge", live.Ext, "mkv")
+	}
+}
+
+// TestApplyProbeFormatsLeavesVideoExtUnsetWithNoMergeToPromise is the
+// opposite end of the same rule: a source with no real video-only/audio-only
+// pair (the exact shape a very old upload's format list can have) takes
+// formatSelector's own muxed-fallback path instead, where
+// --merge-output-format has no effect at all - claiming mkv there would be
+// wrong, not merely unhelpful, so Ext stays unset the same way it already
+// does for AvailableQualities collapsing to best/custom alone.
+func TestApplyProbeFormatsLeavesVideoExtUnsetWithNoMergeToPromise(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=nomerge0001"
+	family := putYtdlpFamily(t, a, url, nil)
+	noAdaptiveTracks := []ytdlp.FormatEntry{
+		{FormatID: "18", Ext: "mp4", Vcodec: "avc1.42001E", Acodec: "mp4a.40.2", Height: 360, Filesize: 8388608},
+	}
+
+	a.applyProbeFormats(url, noAdaptiveTracks)
+
+	live := snapshot(t, a, family[ytdlp.VariantVideo].ID)
+	if live.Ext != "" {
+		t.Errorf("video row Ext = %q, want it left unset - no video-only/audio-only pair exists to merge", live.Ext)
+	}
+}
+
+// TestApplyProbeFormatsSetsThumbnailAndSubtitleExt is [87]'s own remaining
+// two cases: both are forced conversions (--convert-thumbnails jpg,
+// --sub-format srt, backend.go), so Ext is a fixed fact independent of
+// anything in the probed formats list.
+func TestApplyProbeFormatsSetsThumbnailAndSubtitleExt(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=fixedext0001"
+	family := putYtdlpFamily(t, a, url, nil)
+
+	a.applyProbeFormats(url, testProbeFormats)
+
+	if live := snapshot(t, a, family[ytdlp.VariantThumbnail].ID); live.Ext != "jpg" {
+		t.Errorf("thumbnail row Ext = %q, want %q", live.Ext, "jpg")
+	}
+	if live := snapshot(t, a, family[ytdlp.VariantSubtitle].ID); live.Ext != "srt" {
+		t.Errorf("subtitle row Ext = %q, want %q", live.Ext, "srt")
 	}
 }
 

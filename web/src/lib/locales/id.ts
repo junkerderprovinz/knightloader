@@ -1128,6 +1128,7 @@ export const id: Dict = {
   'columns.variant.thumbnail': 'Gambar mini',
   'columns.variant.subtitle': 'Subtitel',
   'columns.variant.description': 'Deskripsi',
+  'columns.variant.bitrateAuto': 'Otomatis',
 
   'file.open': 'Buka',
   'file.openNatively': 'Buka dengan aplikasi default',

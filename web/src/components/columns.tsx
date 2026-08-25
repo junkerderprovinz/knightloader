@@ -523,21 +523,9 @@ function NameCell({ task, t, base }: { task: Task; t: Translate; base: string })
   // - the two would be hovering the exact same box, and the browser's own
   // delayed tooltip would eventually stack on top of this one.
   const tip = useTooltip<HTMLDivElement>(<RowTooltipContent task={task} t={t} base={base} />);
-  // Same gating as StatusCell's own chip: a verdict is only worth a glance
-  // while nothing has been attempted yet, and once a transfer starts the
-  // status itself is the answer (see that cell's own doc comment).
-  const avail = task.status === 'collected' && task.online ? task.online : undefined;
   return (
     <div className="min-w-0">
       <div className="flex min-w-0 items-center gap-1.5">
-        {avail && (
-          <span
-            role="img"
-            title={t(availChip[avail].key)}
-            aria-label={t(availChip[avail].key)}
-            className={`h-1.5 w-1.5 shrink-0 rounded-[var(--radius-pill)] ${availDot[avail]}`}
-          />
-        )}
         <div dir="ltr" {...tip.triggerProps} className="min-w-0 truncate text-start text-[13.5px] text-carbon-text">
           {/* task.ext is a display-only best-effort hint (core.Task.Ext's
               own doc comment), never appended to task.name itself - Name
@@ -831,21 +819,26 @@ export const VARIANT_KIND_LABEL_KEY: Record<string, TranslationKey> = {
  * isTorrentTask does, instead of widening what every OTHER cell's context
  * has to carry for a menu only this one column reads.
  */
-let ytdlpMenus: Promise<{ qualities: string[]; audioFormats: string[] }> | null = null;
+let ytdlpMenus: Promise<{ qualities: string[]; audioFormats: string[]; audioBitrates: string[] }> | null = null;
 function loadYtdlpMenus() {
   if (!ytdlpMenus) {
     ytdlpMenus = fetchOptions().then(
-      (o) => ({ qualities: o.ytdlpQualities ?? [], audioFormats: o.ytdlpAudioFormats ?? [] }),
-      () => ({ qualities: [], audioFormats: [] }),
+      (o) => ({
+        qualities: o.ytdlpQualities ?? [],
+        audioFormats: o.ytdlpAudioFormats ?? [],
+        audioBitrates: o.ytdlpAudioBitrates ?? [],
+      }),
+      () => ({ qualities: [], audioFormats: [], audioBitrates: [] }),
     );
   }
   return ytdlpMenus;
 }
 
 function useYtdlpMenus() {
-  const [menus, setMenus] = useState<{ qualities: string[]; audioFormats: string[] }>({
+  const [menus, setMenus] = useState<{ qualities: string[]; audioFormats: string[]; audioBitrates: string[] }>({
     qualities: [],
     audioFormats: [],
+    audioBitrates: [],
   });
   useEffect(() => {
     let live = true;
@@ -873,24 +866,40 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
   // offers (jdp, 2026-08-25: "man soll nur die varianten auswählen können
   // die wirklich verfügbar sind") - falling back to the full static menu
   // whenever nothing has probed yet, exactly like every other "empty means
-  // no opinion" field this feature already follows. Audio format has no
-  // equivalent narrowing: -x --audio-format transcodes via ffmpeg, which
-  // works for any of the fixed formats regardless of what codec the source
-  // itself uses, so restricting that menu by source codec would hide
-  // choices that actually work fine.
+  // no opinion" field this feature already follows. Audio format now
+  // narrows the same way (jdp, 2026-08-26, reversing this cell's own
+  // earlier reasoning that -x --audio-format works for any target
+  // regardless of source codec: "bei der audio spur sollen nur die formate
+  // angezeigt werden die wirklich von hoster angeboten werden" - a source
+  // never really WAS lossless just because ffmpeg can technically wrap its
+  // lossy audio in a lossless container, and offering that choice invited
+  // exactly that misunderstanding).
   const options =
     kind === 'video'
       ? task.availableQualities?.length
         ? task.availableQualities
         : menus.qualities
       : kind === 'audio'
-        ? menus.audioFormats
+        ? task.availableAudioFormats?.length
+          ? task.availableAudioFormats
+          : menus.audioFormats
         : null;
 
   async function change(value: string) {
     setBusy(true);
     try {
       await setTaskOptions([task.id], { variantQuality: value }, ctx.base);
+    } catch (err) {
+      toast(err instanceof Error && err.message ? err.message : ctx.t('task.switchFailed'), 'fail');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function changeBitrate(value: string) {
+    setBusy(true);
+    try {
+      await setTaskOptions([task.id], { audioBitrate: value }, ctx.base);
     } catch (err) {
       toast(err instanceof Error && err.message ? err.message : ctx.t('task.switchFailed'), 'fail');
     } finally {
@@ -912,6 +921,25 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
           {options.map((o) => (
             <option key={o} value={o}>
               {o}
+            </option>
+          ))}
+        </select>
+      )}
+      {/* The audio row's own second, independent picker - a bitrate on top
+          of the format above, not a mode of it (jdp, 2026-08-26: "soll die
+          Audioqualität also die kbit/s auswählbar sein"). Shown only on the
+          audio row, alongside its format select rather than replacing it. */}
+      {kind === 'audio' && menus.audioBitrates.length > 0 && (
+        <select
+          value={task.audioBitrate || ''}
+          disabled={busy}
+          onChange={(e) => void changeBitrate(e.target.value)}
+          onClick={(e) => e.stopPropagation()}
+          className="min-w-0 rounded-[var(--radius-control)] bg-carbon-surface3/60 px-1 py-0.5 text-[11px] text-carbon-text disabled:opacity-40"
+        >
+          {menus.audioBitrates.map((b) => (
+            <option key={b} value={b}>
+              {b ? `${b} kbit/s` : ctx.t('columns.variant.bitrateAuto')}
             </option>
           ))}
         </select>
@@ -1427,11 +1455,15 @@ export function moveColumn(order: ColumnId[], id: ColumnId, target: ColumnId, af
   return without;
 }
 
-// The leading gutter holds the selection mark and the trailing one the row's
-// actions. Neither is a column: they cannot be hidden, sorted by or dragged, and
-// putting them in the registry would only mean writing "except these two"
-// everywhere the registry is used.
-export const GUTTER_SELECT = '2.5rem';
+// The leading gutter is grid alignment for the header's own hint bubble
+// (Header, TaskList.tsx) - empty on every actual row now that a plain click
+// selects the row itself (jdp, 2026-08-26: "die checkbox spalte können wir
+// wegmachen"; TaskList.tsx's own click-to-select comment has the full
+// request) - and the trailing one the row's actions. Neither is a column:
+// they cannot be hidden, sorted by or dragged, and putting them in the
+// registry would only mean writing "except these two" everywhere the
+// registry is used.
+export const GUTTER_LEAD = '2.5rem';
 export const GUTTER_ACTIONS = '9.5rem';
 
 /**
@@ -1464,7 +1496,7 @@ export function gridTemplate(visible: ColumnDef[], widthOf: (id: ColumnId) => nu
   const tracks = visible.map((c) =>
     c.id === FLEX_COLUMN ? `minmax(${c.minWidth}px, ${widthOf(c.id)}fr)` : `${widthOf(c.id)}px`,
   );
-  return [GUTTER_SELECT, ...tracks, GUTTER_ACTIONS].join(' ');
+  return [GUTTER_LEAD, ...tracks, GUTTER_ACTIONS].join(' ');
 }
 
 // --- Sorting, which is a view and nothing more -----------------------------

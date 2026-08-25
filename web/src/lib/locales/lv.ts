@@ -1128,6 +1128,7 @@ export const lv: Dict = {
   'columns.variant.thumbnail': 'Sīktēls',
   'columns.variant.subtitle': 'Subtitri',
   'columns.variant.description': 'Apraksts',
+  'columns.variant.bitrateAuto': 'Automātisks',
 
   'file.open': 'Atvērt',
   'file.openNatively': 'Atvērt ar noklusējuma lietotni',

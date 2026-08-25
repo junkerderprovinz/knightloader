@@ -34,6 +34,13 @@ type Options struct {
 	// "opus", or "best" for whatever the source itself already is) - read
 	// only when Variant is VariantAudio.
 	AudioFormat  string       `json:"audioFormat"`
+	// AudioBitrate is yt-dlp's own --audio-quality target (e.g. "192" for
+	// 192 kbit/s), read only when Variant is VariantAudio. Empty passes no
+	// flag at all, leaving ffmpeg's own default bitrate for whatever
+	// AudioFormat asks it to encode - meaningful only once AudioFormat names
+	// an actual transcode target; a "best" extract copies the source's own
+	// audio stream and has no bitrate of its own to retarget.
+	AudioBitrate string       `json:"audioBitrate"`
 	// SubtitleLangs is yt-dlp's own --sub-langs value (comma-separated
 	// codes, or a pattern like "en.*"; "all" is also yt-dlp's own keyword).
 	// Empty falls back to DefaultSubtitleLangs. Read only when Variant is
@@ -111,6 +118,69 @@ func validAudioFormat(f string) bool {
 		}
 	}
 	return false
+}
+
+// AudioBitrates lists every --audio-quality target this build offers on the
+// audio variant's own bitrate picker, in menu order. "" is "no opinion" -
+// ffmpeg's own default (yt-dlp's own default is 5, an ~128kbit/s-equivalent
+// VBR setting) - the zero value, so an Options with no bitrate chosen
+// behaves exactly as it always did before this field existed.
+func AudioBitrates() []string {
+	return []string{"", "64", "96", "128", "160", "192", "256", "320"}
+}
+
+func validAudioBitrate(b string) bool {
+	for _, x := range AudioBitrates() {
+		if x == b {
+			return true
+		}
+	}
+	return false
+}
+
+// audioFormatForCodec maps one of yt-dlp's own reported audio codec ids
+// (FormatEntry.Acodec, e.g. "opus", "mp4a.40.2") onto the matching entry in
+// AudioFormats()'s own menu - the source's own NATIVE container, not a
+// generic transcode target ffmpeg could also reach from it (see
+// AvailableAudioFormats' own doc comment for why the distinction matters).
+// "" means the codec has no native match on that menu at all (vorbis, ac-3,
+// eac3, alac...) - not an error, simply nothing to offer for it.
+func audioFormatForCodec(acodec string) string {
+	switch {
+	case strings.HasPrefix(acodec, "mp4a"):
+		return "m4a"
+	case strings.HasPrefix(acodec, "opus"):
+		return "opus"
+	case strings.HasPrefix(acodec, "mp3"):
+		return "mp3"
+	case strings.HasPrefix(acodec, "flac"):
+		return "flac"
+	default:
+		return ""
+	}
+}
+
+// AvailableAudioFormats is the subset of AudioFormats() worth offering for a
+// source whose own audio-only tracks report codecs - built from the DISTINCT
+// native formats acodecs maps onto, in AudioFormats()'s own menu order, with
+// "best" always kept (it names no specific codec to compare against). A
+// codec audioFormatForCodec does not recognise contributes nothing rather
+// than a guess. codecs may repeat or come in any order - every source track
+// naturally offers more than one bitrate of the same codec.
+func AvailableAudioFormats(codecs []string) []string {
+	present := make(map[string]bool, len(codecs))
+	for _, c := range codecs {
+		if f := audioFormatForCodec(c); f != "" {
+			present[f] = true
+		}
+	}
+	out := make([]string, 0, len(present)+1)
+	for _, f := range AudioFormats() {
+		if f == "best" || present[f] {
+			out = append(out, f)
+		}
+	}
+	return out
 }
 
 // HosterPreset is what a person configures once per site (a host string,
@@ -328,6 +398,9 @@ func (o Options) Sanitize() Options {
 	}
 	if !validAudioFormat(o.AudioFormat) {
 		o.AudioFormat = "best"
+	}
+	if !validAudioBitrate(o.AudioBitrate) {
+		o.AudioBitrate = ""
 	}
 	o.CustomFormat = clip(strings.TrimSpace(o.CustomFormat))
 	o.SubtitleLangs = clip(strings.TrimSpace(o.SubtitleLangs))

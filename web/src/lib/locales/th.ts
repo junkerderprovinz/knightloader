@@ -1128,6 +1128,7 @@ export const th: Dict = {
   'columns.variant.thumbnail': 'ภาพขนาดย่อ',
   'columns.variant.subtitle': 'คำบรรยาย',
   'columns.variant.description': 'คำอธิบาย',
+  'columns.variant.bitrateAuto': 'อัตโนมัติ',
 
   'file.open': 'เปิด',
   'file.openNatively': 'เปิดด้วยแอปเริ่มต้น',

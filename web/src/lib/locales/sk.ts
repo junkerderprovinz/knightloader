@@ -1128,6 +1128,7 @@ export const sk: Dict = {
   'columns.variant.thumbnail': 'Náhľad',
   'columns.variant.subtitle': 'Titulky',
   'columns.variant.description': 'Popis',
+  'columns.variant.bitrateAuto': 'Automaticky',
 
   'file.open': 'Otvoriť',
   'file.openNatively': 'Otvoriť predvolenou aplikáciou',

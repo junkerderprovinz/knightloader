@@ -61,6 +61,9 @@ func (a *App) ytdlpOptionsForTask(taskID string) ytdlp.Options {
 		if sub != "" {
 			base.AudioFormat = sub
 		}
+		if t.AudioBitrate != "" {
+			base.AudioBitrate = t.AudioBitrate
+		}
 	}
 	return base
 }
@@ -193,36 +196,57 @@ func (a *App) insertVariantSibling(t *core.Task) {
 // own analyze()/RecheckTasks already draw that same line.
 //
 // Per variant kind, matching buildArgs's own per-variant extension table
-// (backend.go) exactly - honestly answerable ahead of time or not:
+// (backend.go) exactly - honestly answerable ahead of time or not. Every
+// kind now gets an Ext (jdp, 2026-08-26: "dateiendungen werden immer noch
+// nicht angezeigt" - the video/thumbnail/subtitle rows answered nothing at
+// all before this pass, because their own real container genuinely used to
+// depend on the source; buildArgs now forces a fixed target for each
+// (--merge-output-format mkv, --convert-thumbnails jpg, --sub-format srt),
+// which turns "depends on the source" into a fact this function can state
+// instead of a guess it has to avoid making):
 //   - description: Ext is always "description" - no probe maths needed.
 //   - audio, a FIXED format (mp3/m4a/opus/wav/flac): Ext is that format
 //     itself (deterministic - ffmpeg's own --audio-format target) - but
 //     not Size, since transcoding changes the byte count unpredictably
-//     from the source track's own.
+//     from the source track's own. AvailableAudioFormats always narrows to
+//     what the source's own audio-only tracks actually carry, regardless
+//     of which format is currently picked.
 //   - audio, "best" (-x with no --audio-format - a straight extract, not a
-//     transcode): Size from the best-matching source audio-only track's
-//     own filesize, a close estimate since nothing re-encodes it - but not
-//     Ext, since the container it keeps varies by source (m4a/webm/opus…).
+//     transcode): both Ext and Size come from the best-matching source
+//     audio-only track's own reported values - a real fact, not a guess,
+//     since nothing re-encodes it and the container it lands in IS
+//     whatever that specific format's own extension already says.
 //   - video: AvailableQualities from every real video-track height found
-//     (ytdlp.AvailableQualities), and Size from the best-matching
-//     video-only track at or under this row's own currently-picked quality
-//     cap - not Ext, since a muxed video+audio file's real container
-//     depends on which two streams actually get picked and merged.
-//   - thumbnail/subtitle: neither - format varies by site/track in ways
-//     nothing here predicts.
+//     (ytdlp.AvailableQualities), Size from the best-matching video-only
+//     track at or under this row's own currently-picked quality cap, and
+//     Ext="mkv" ONLY when the source actually offers a real video-only +
+//     audio-only pair to merge (buildArgs' own forced merge format has no
+//     effect on the muxed-fallback path a source without one takes
+//     instead - see that branch's own comment).
+//   - thumbnail: Ext="jpg" always (the forced conversion never fails to
+//     produce one once any thumbnail exists at all).
+//   - subtitle: Ext="srt" always, same reasoning.
 func (a *App) applyProbeFormats(rawurl string, formats []ytdlp.FormatEntry) {
 	var maxVideoHeight int
 	var bestAudio ytdlp.FormatEntry
 	hasBestAudio := false
+	hasVideoOnly := false
+	audioCodecs := make([]string, 0, len(formats))
 	for _, f := range formats {
 		isVideo := f.Vcodec != "" && f.Vcodec != "none"
 		isAudio := f.Acodec != "" && f.Acodec != "none"
 		if isVideo && f.Height > maxVideoHeight {
 			maxVideoHeight = f.Height
 		}
-		if isAudio && !isVideo && (!hasBestAudio || formatSize(f) > formatSize(bestAudio)) {
-			bestAudio = f
-			hasBestAudio = true
+		if isVideo && !isAudio {
+			hasVideoOnly = true
+		}
+		if isAudio && !isVideo {
+			audioCodecs = append(audioCodecs, f.Acodec)
+			if !hasBestAudio || formatSize(f) > formatSize(bestAudio) {
+				bestAudio = f
+				hasBestAudio = true
+			}
 		}
 	}
 	qualities := ytdlp.AvailableQualities(maxVideoHeight)
@@ -230,6 +254,7 @@ func (a *App) applyProbeFormats(rawurl string, formats []ytdlp.FormatEntry) {
 	for i, q := range qualities {
 		availableQualities[i] = string(q)
 	}
+	availableAudioFormats := ytdlp.AvailableAudioFormats(audioCodecs)
 
 	a.mu.Lock()
 	var touched []core.Task
@@ -254,12 +279,24 @@ func (a *App) applyProbeFormats(rawurl string, formats []ytdlp.FormatEntry) {
 				changed = true
 			}
 		case ytdlp.VariantAudio:
+			if !stringSlicesEqual(t.AvailableAudioFormats, availableAudioFormats) {
+				t.AvailableAudioFormats = availableAudioFormats
+				changed = true
+			}
 			if sub != "" && sub != "best" {
 				if t.Ext != sub {
 					t.Ext = sub
 					changed = true
 				}
 			} else if hasBestAudio {
+				// -x with no --audio-format copies the source track without
+				// re-encoding it, so the container it lands in genuinely IS
+				// the matched format's own reported extension - not a guess,
+				// the same value yt-dlp itself will write.
+				if bestAudio.Ext != "" && t.Ext != bestAudio.Ext {
+					t.Ext = bestAudio.Ext
+					changed = true
+				}
 				if sz := formatSize(bestAudio); sz > 0 && t.Size != sz {
 					t.Size = sz
 					changed = true
@@ -268,6 +305,18 @@ func (a *App) applyProbeFormats(rawurl string, formats []ytdlp.FormatEntry) {
 		case ytdlp.VariantVideo:
 			if !stringSlicesEqual(t.AvailableQualities, availableQualities) {
 				t.AvailableQualities = availableQualities
+				changed = true
+			}
+			// mkv only when a real merge will actually happen - buildArgs'
+			// own --merge-output-format mkv (backend.go) has no effect on
+			// the muxed-fallback path a source with no true video-only/
+			// audio-only pair takes instead (formatSelector's own selector
+			// falls back to a single pre-muxed stream, unchanged by that
+			// flag), so claiming mkv there would be wrong rather than merely
+			// unhelpful - see this case's own AvailableQualities collapsing
+			// to best/custom alone for the same source-shape signal.
+			if hasVideoOnly && hasBestAudio && t.Ext != "mkv" {
+				t.Ext = "mkv"
 				changed = true
 			}
 			capHeight := maxVideoHeight
@@ -281,6 +330,21 @@ func (a *App) applyProbeFormats(rawurl string, formats []ytdlp.FormatEntry) {
 					t.Size = sz
 					changed = true
 				}
+			}
+		case ytdlp.VariantThumbnail:
+			// --convert-thumbnails jpg (backend.go) makes this a fact rather
+			// than a guess: whatever format the source's own thumbnail
+			// arrives in, ffmpeg converts it before it lands on disk.
+			if t.Ext != "jpg" {
+				t.Ext = "jpg"
+				changed = true
+			}
+		case ytdlp.VariantSubtitle:
+			// --sub-format srt (backend.go), same reasoning as the
+			// thumbnail case just above.
+			if t.Ext != "srt" {
+				t.Ext = "srt"
+				changed = true
 			}
 		}
 		if changed {

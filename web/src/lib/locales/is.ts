@@ -1128,6 +1128,7 @@ export const is: Dict = {
   'columns.variant.thumbnail': 'Smámynd',
   'columns.variant.subtitle': 'Skjátextar',
   'columns.variant.description': 'Lýsing',
+  'columns.variant.bitrateAuto': 'Sjálfvirkt',
 
   'file.open': 'Opna',
   'file.openNatively': 'Opna með sjálfgefnu forriti',

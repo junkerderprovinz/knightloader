@@ -692,6 +692,14 @@ type TaskOptions struct {
 	// task's own Quality on Options.QualityBest), not "leave alone" - a nil
 	// pointer is how a request already says that.
 	VariantQuality *string `json:"variantQuality,omitempty"`
+	// AudioBitrate is the audio row's own second, independent picker -
+	// VariantQuality above already carries the row's FORMAT (mp3/m4a/...),
+	// and a bitrate is a second axis on top of it, not a replacement for
+	// it, so it gets its own field rather than a second colon packed into
+	// the same encoded string. An empty string is a real answer ("no
+	// opinion, ffmpeg's own default"), not "leave alone" - same convention
+	// as VariantQuality.
+	AudioBitrate *string `json:"audioBitrate,omitempty"`
 }
 
 // SetTaskOptions applies per-task overrides. Changing the folder of a running
@@ -769,6 +777,9 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 				kind = ytdlp.VariantVideo
 			}
 			t.Variant = variantEncode(kind, strings.TrimSpace(*o.VariantQuality))
+		}
+		if o.AudioBitrate != nil {
+			t.AudioBitrate = strings.TrimSpace(*o.AudioBitrate)
 		}
 		if o.Filename != nil {
 			t.Filename = newName

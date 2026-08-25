@@ -1290,6 +1290,7 @@ export const en = {
   'columns.variant.thumbnail': 'Thumbnail',
   'columns.variant.subtitle': 'Subtitles',
   'columns.variant.description': 'Description',
+  'columns.variant.bitrateAuto': 'Auto',
 
   // Reaching a task's own file (components/FileActions.tsx, Wave 10's 10G) -
   // "Open" streams it through the browser; the other two are desktop-only and

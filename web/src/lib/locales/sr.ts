@@ -1128,6 +1128,7 @@ export const sr: Dict = {
   'columns.variant.thumbnail': 'Сличица',
   'columns.variant.subtitle': 'Титлови',
   'columns.variant.description': 'Опис',
+  'columns.variant.bitrateAuto': 'Аутоматски',
 
   'file.open': 'Отвори',
   'file.openNatively': 'Отвори подразумеваном апликацијом',

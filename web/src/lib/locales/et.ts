@@ -1128,6 +1128,7 @@ export const et: Dict = {
   'columns.variant.thumbnail': 'Pisipilt',
   'columns.variant.subtitle': 'Subtiitrid',
   'columns.variant.description': 'Kirjeldus',
+  'columns.variant.bitrateAuto': 'Automaatne',
 
   'file.open': 'Ava',
   'file.openNatively': 'Ava vaikerakendusega',

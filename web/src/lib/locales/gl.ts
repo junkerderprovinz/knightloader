@@ -1128,6 +1128,7 @@ export const gl: Dict = {
   'columns.variant.thumbnail': 'Miniatura',
   'columns.variant.subtitle': 'Subtítulos',
   'columns.variant.description': 'Descrición',
+  'columns.variant.bitrateAuto': 'Automático',
 
   'file.open': 'Abrir',
   'file.openNatively': 'Abrir coa aplicación predeterminada',

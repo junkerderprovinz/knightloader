@@ -278,8 +278,9 @@ func options() map[string]any {
 		// There is no sibling subtitle-mode menu any more: whether a subtitle
 		// row exists at all is that row's own Enabled switch under the
 		// "Variante" model now, not a mode chosen here.
-		"ytdlpQualities":    ytdlp.Qualities(),
-		"ytdlpAudioFormats": ytdlp.AudioFormats(),
+		"ytdlpQualities":     ytdlp.Qualities(),
+		"ytdlpAudioFormats":  ytdlp.AudioFormats(),
+		"ytdlpAudioBitrates": ytdlp.AudioBitrates(),
 		// The rule vocabulary is NOT here. It used to be: three hand-written lists
 		// of fields, operators and actions, next to the engine that defines all
 		// three. GET /api/rules/grammar builds them from the engine instead, and

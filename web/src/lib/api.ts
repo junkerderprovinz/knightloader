@@ -129,6 +129,15 @@ export interface Task {
    *  source genuinely offers — empty/absent means "no opinion yet" and the
    *  Variante column falls back to the full static menu. */
   availableQualities?: string[];
+  /** For a yt-dlp "Variante" audio row, which of AudioFormats() the probed
+   *  source's own audio-only tracks genuinely offer natively — empty/absent
+   *  falls back to the full static menu, same convention as
+   *  availableQualities above. */
+  availableAudioFormats?: string[];
+  /** The audio row's own bitrate pick (yt-dlp's --audio-quality, e.g. "192"
+   *  for 192 kbit/s) — meaningful only once the row's own format asks for
+   *  an actual transcode, not a "best" extract. */
+  audioBitrate?: string;
   /** A package the user chose by hand; automatic re-packaging leaves it alone. */
   manualPackage?: boolean;
   reason?: Reason;
@@ -603,6 +612,9 @@ export interface ApiOptions {
    *  must never be selectable. */
   ytdlpQualities: string[];
   ytdlpAudioFormats: string[];
+  /** ytdlp.AudioBitrates() (internal/resolver/ytdlp/options.go) - the
+   *  audio row's own --audio-quality menu, "" meaning no opinion. */
+  ytdlpAudioBitrates: string[];
 }
 
 /** A container that was a plain link list: parsed here and staged like any paste. */
@@ -938,6 +950,13 @@ export interface TaskOptionsPatch {
    * changed the row's own picker.
    */
   variantQuality?: string;
+  /**
+   * The audio row's own second, independent picker (core.TaskOptions.
+   * AudioBitrate's own doc comment, app_tasks.go) - a bitrate on top of the
+   * format above, not a replacement for it. '' is a real answer ("no
+   * opinion, ffmpeg's own default"), same convention as variantQuality.
+   */
+  audioBitrate?: string;
 }
 
 // setTaskOptions applies per-task overrides; omitted fields stay as they are.

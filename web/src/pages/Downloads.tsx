@@ -171,6 +171,7 @@ export function Downloads() {
         else n.add(id);
         return n;
       }),
+    set: setSelected,
   };
   const ids = () => [...selected];
 

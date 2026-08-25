@@ -1128,6 +1128,7 @@ export const eu: Dict = {
   'columns.variant.thumbnail': 'Miniatura',
   'columns.variant.subtitle': 'Azpitituluak',
   'columns.variant.description': 'Deskribapena',
+  'columns.variant.bitrateAuto': 'Automatikoa',
 
   'file.open': 'Ireki',
   'file.openNatively': 'Ireki aplikazio lehenetsiarekin',
