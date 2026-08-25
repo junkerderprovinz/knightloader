@@ -586,12 +586,13 @@ export interface ApiOptions {
   // build refuses can never appear in a dropdown.
   scheduleActions: string[];
   cleanupClasses: CleanupClass[];
-  /** The resolver options page's two menus - ytdlp.Qualities()/SubtitleModes()
-   *  (internal/resolver/ytdlp/options.go), served for the same reason as
-   *  every list above it: a value this build cannot honour must never be
-   *  selectable. */
+  /** The resolver options page's own quality menu, and the "Variante"
+   *  preset editor's own audio-format menu - ytdlp.Qualities()/
+   *  AudioFormats() (internal/resolver/ytdlp/options.go), served for the
+   *  same reason as every list above it: a value this build cannot honour
+   *  must never be selectable. */
   ytdlpQualities: string[];
-  ytdlpSubtitleModes: string[];
+  ytdlpAudioFormats: string[];
 }
 
 /** A container that was a plain link list: parsed here and staged like any paste. */
@@ -908,6 +909,14 @@ export interface TaskOptionsPatch {
    */
   chunks?: number;
   autoExtract?: boolean | null;
+  /**
+   * The "Variante" column's own edit: a video row's resolution preset, or
+   * an audio row's format - the sub-value half of the task's own `variant`
+   * string (see Task.variant's own doc comment). '' is a real answer ("no
+   * opinion"), not an omission - send this key only when the user actually
+   * changed the row's own picker.
+   */
+  variantQuality?: string;
 }
 
 // setTaskOptions applies per-task overrides; omitted fields stay as they are.
@@ -1405,12 +1414,19 @@ export async function fetchJDStatus(): Promise<JDStatus> {
 // other settings field, not a route of its own.
 
 /**
- * Mirrors ytdlp.Options (internal/resolver/ytdlp/options.go) field for
- * field. Every value is a plain string rather than a TS union, matching
+ * Mirrors ytdlp.Options (internal/resolver/ytdlp/options.go), minus its own
+ * Variant field: Variant is decided per-task (core.Task.Variant, one of the
+ * five "Variante" rows), never a global default, so it has nothing to save
+ * here. Every value is a plain string rather than a TS union, matching
  * every other server-sourced menu in this file (archiveDisposal,
  * collisionPolicy, resumeOnStart): the choices come from
- * ApiOptions.ytdlpQualities/ytdlpSubtitleModes, so a value this build adds
- * later still round-trips instead of failing to compile.
+ * ApiOptions.ytdlpQualities, so a value this build adds later still
+ * round-trips instead of failing to compile.
+ *
+ * These are the INSTANCE-WIDE defaults a yt-dlp-routed link's "Variante"
+ * rows are built from (app_ytdlp_variants.go's ytdlpOptionsForTask); which
+ * variant rows exist at all, and whether each starts enabled, is a
+ * per-hoster HosterPreset instead (settings.YtdlpPresets), not a field here.
  *
  * Every field's zero value ('' / false) reproduces exactly what this
  * backend did before any of them existed - see the Go type's own doc
@@ -1419,33 +1435,57 @@ export async function fetchJDStatus(): Promise<JDStatus> {
  */
 export interface YtdlpOptions {
   /** 'best' | '2160p' | '1440p' | '1080p' | '720p' | '480p' | '360p' |
-   *  'audioOnly' | 'custom' - see ApiOptions.ytdlpQualities. */
+   *  'custom' - see ApiOptions.ytdlpQualities. Read only on a video row. */
   quality: string;
   /** yt-dlp's own -f selector, used verbatim when quality is 'custom' and
    *  ignored otherwise. */
   customFormat: string;
-  /** 'off' | 'file' | 'embed' - see ApiOptions.ytdlpSubtitleModes. */
-  subtitles: string;
-  /** yt-dlp's own --sub-langs value (e.g. "en,de"); empty defaults to "en"
-   *  server-side whenever subtitles is not 'off'. */
+  /** yt-dlp's own --audio-format value (e.g. "mp3", "m4a", "opus"), or
+   *  "best" for no opinion. Read only on an audio row. */
+  audioFormat: string;
+  /** yt-dlp's own --sub-langs value (e.g. "en,de"); empty defaults to "en".
+   *  Read only on a subtitle row. */
   subtitleLangs: string;
-  /** Also fetch auto-generated captions when no manual track exists. */
+  /** Also fetch auto-generated captions when no manual track exists. Read
+   *  only on a subtitle row. */
   subtitleAuto: boolean;
   /** A playlist URL fetches every entry instead of only the one link
    *  pointed at - off is what every install had before this existed. */
   playlist: boolean;
-  /** Also save the video's own cover image (--write-thumbnail). */
-  thumbnail: boolean;
-  /** Also save a plain .description text file (--write-description). */
-  description: boolean;
-  /** Also keep a separate audio-only file alongside the video
-   *  (-x --keep-video) - distinct from quality 'audioOnly', which replaces
-   *  the video rather than keeping both. */
-  keepAudio: boolean;
   /** yt-dlp's own -o template syntax; empty uses the built-in
    *  "%(title)s.%(ext)s". Server-sanitized against path traversal on save -
    *  see ytdlp.sanitizeTemplate's own doc comment. */
   outputTemplate: string;
+}
+
+/** Every "Variante" row kind a yt-dlp-routed link stages, in the fixed
+ *  order expandYtdlpVariants (app_ytdlp_variants.go) creates them - a
+ *  closed, stable set fixed in that Go code, so unlike quality/audioFormat
+ *  it is not fetched from /api/options. */
+export const YTDLP_VARIANT_KINDS = ['video', 'audio', 'thumbnail', 'subtitle', 'description'] as const;
+export type YtdlpVariantKind = (typeof YTDLP_VARIANT_KINDS)[number];
+
+/**
+ * Mirrors ytdlp.HosterPreset (internal/resolver/ytdlp/options.go): which of
+ * the five "Variante" rows a hoster's own links start with enabled, and the
+ * default quality/audioFormat those rows start on. Read/written through
+ * GET/POST /api/ytdlp/preset, one host at a time - not part of the general
+ * settings draft (see that route's own comment in routes_resolvers.go for
+ * why).
+ */
+export interface YtdlpHosterPreset {
+  variants: YtdlpVariantKind[];
+  quality: string;
+  audioFormat: string;
+}
+
+export async function fetchHosterPreset(host: string, base = '/api'): Promise<YtdlpHosterPreset> {
+  return json<YtdlpHosterPreset>(await fetch(`${base}/ytdlp/preset?host=${encodeURIComponent(host)}`));
+}
+
+export async function saveHosterPreset(host: string, preset: YtdlpHosterPreset, base = '/api'): Promise<void> {
+  const r = await post(`${base}/ytdlp/preset`, { host, ...preset });
+  if (!r.ok) throw new ApiError((await r.text()).trim() || String(r.status));
 }
 
 // ---- native hoster logins (internal/hosterauth) ----------------------------

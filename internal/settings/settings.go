@@ -306,6 +306,17 @@ type Settings struct {
 	// this backs downloads exactly as it always has.
 	Ytdlp ytdlp.Options `json:"ytdlp"`
 
+	// YtdlpPresets is per-host (e.g. "youtube.com") config for the
+	// "Variante" rows a yt-dlp link now stages (see ytdlp.HosterPreset's
+	// own doc comment): which of video/audio/thumbnail/subtitle/
+	// description land in the collector by default for links from that
+	// host, and the default quality/audio-format for the two variants that
+	// have one. A host with no entry here gets ytdlp.DefaultHosterPreset()
+	// - map, not omitempty, matching CaptchaSolverOrder's own reasoning
+	// just above for why a field a caller has never touched should not
+	// vanish from the JSON rather than round-trip as an empty object.
+	YtdlpPresets map[string]ytdlp.HosterPreset `json:"ytdlpPresets"`
+
 	// Torrent is the seed/port/DHT/PEX policy for the BitTorrent backend -
 	// see settings_torrent.go for the full shape and, especially, for what
 	// of it is and is not actually enforced by the gopeed dependency this
@@ -368,6 +379,12 @@ func Defaults() Settings {
 		// out anyway so every sub-package's Defaults() is called from
 		// exactly one place, matching its three neighbours above.
 		Ytdlp: ytdlp.Defaults(),
+		// Empty, not nil - see this field's own doc comment on YtdlpPresets
+		// for why a host with nothing saved here still gets
+		// ytdlp.DefaultHosterPreset() rather than no variants at all; that
+		// fallback is applied by whoever looks a host up, not baked into
+		// every fresh install's own JSON.
+		YtdlpPresets: map[string]ytdlp.HosterPreset{},
 		// Unlike Ytdlp's, these are not the zero value - see defaultTorrent's
 		// own doc comment for where each number actually comes from.
 		Torrent: defaultTorrent(),

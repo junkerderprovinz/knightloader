@@ -364,17 +364,6 @@ export function Collector() {
         {collected.length > 0 && <CollectorFacetSidebar tasks={collected} selection={facets} onChange={setFacets} />}
       </div>
 
-      {/* Intake that is not a paste, and the trace of what the paste dropped.
-          Both sit under the hero and above the list: the paste box is why people
-          open this page, and nothing may push it off the top. The skipped strip
-          in particular has to render when the list is empty — a paste of nothing
-          but duplicates stages nothing, and that is the moment it explains most. */}
-      <div className="shrink-0 flex flex-col gap-3">
-        <FileDrop ref={fileDrop} pkg={pkg} />
-        <FilteredLinks held={held} />
-        <SkippedLinks />
-      </div>
-
       {/* The quick-filter toolbar, the one action-badge row (search, the
           selection actions and the four page-level actions all merged into
           it now - see that row's own doc comment) and the list itself, all
@@ -386,10 +375,35 @@ export function Collector() {
           the badge row on top of the row's own height, reading as one big
           gap even with nothing phantom left in it). This "list-management
           cluster" reads as one connected unit, gap-3 between its own parts;
-          the hero row and the paste-intake block above keep the page's
-          normal gap-6 - they are genuinely separate sections, this one is
-          not. */}
+          the hero row above keeps the page's normal gap-6 - it is a
+          genuinely separate section, this one is not.
+
+          The intake block (a file drop's own feedback, the trace of a held
+          link, the skipped-links notice) moved IN here too, jdp 2026-08-25:
+          "der abstand zwischen der Link-card und der Sammlung-card ist zu
+          groß" - it used to be its own standalone gap-6 sibling between the
+          hero and this cluster, and every one of the three things in it is
+          normally rendered as literally nothing (no file just dropped, no
+          held link, no skip in this session - see FileDrop.tsx's own doc
+          comment: its visible drop-zone row was already removed in an
+          earlier round, only the handling survives), which put a full
+          double gap-6 (48px) of dead air where nothing was ever showing.
+          Nested here at gap-3 instead, that same common case costs at most
+          one 12px seam rather than two 24px ones - and on the rarer
+          occasion any of the three DOES have something to show, it now
+          reads as part of the same list-management moment instead of its
+          own disconnected block. FileDrop still needs to stay mounted
+          unconditionally for its own ref API (AddLinksForm's folder-icon
+          badge opens the picker through it) and SkippedLinks now floats as
+          its own fixed card regardless of where it is mounted (see its own
+          doc comment) - neither depends on living in any particular
+          position in the tree, only on living somewhere. */}
       <div className="flex min-h-0 flex-1 flex-col gap-3">
+        <div className="shrink-0 flex flex-col gap-3">
+          <FileDrop ref={fileDrop} pkg={pkg} />
+          <FilteredLinks held={held} />
+          <SkippedLinks />
+        </div>
         {collected.length > 0 && (
           <div className="shrink-0">
             <ListToolbar

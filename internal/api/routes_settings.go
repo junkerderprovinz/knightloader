@@ -265,11 +265,15 @@ func options() map[string]any {
 			proxycfg.KindHTTP, proxycfg.KindHTTPS,
 			proxycfg.KindSOCKS4, proxycfg.KindSOCKS4A, proxycfg.KindSOCKS5,
 		},
-		// The resolver options page's two menus, from the package that reads
-		// them - same reasoning as every other list here: a quality preset or
-		// a subtitle mode this build cannot honour must never be selectable.
-		"ytdlpQualities":     ytdlp.Qualities(),
-		"ytdlpSubtitleModes": ytdlp.SubtitleModes(),
+		// The resolver options page's own quality menu, and the audio-format
+		// menu the "Variante" preset editor's own Audio row offers - both from
+		// the package that reads them, same reasoning as every other list
+		// here: a value this build cannot honour must never be selectable.
+		// There is no sibling subtitle-mode menu any more: whether a subtitle
+		// row exists at all is that row's own Enabled switch under the
+		// "Variante" model now, not a mode chosen here.
+		"ytdlpQualities":    ytdlp.Qualities(),
+		"ytdlpAudioFormats": ytdlp.AudioFormats(),
 		// The rule vocabulary is NOT here. It used to be: three hand-written lists
 		// of fields, operators and actions, next to the engine that defines all
 		// three. GET /api/rules/grammar builds them from the engine instead, and

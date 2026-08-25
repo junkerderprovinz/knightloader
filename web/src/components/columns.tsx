@@ -10,8 +10,8 @@
 // renderers into the list component would leave the registry describing columns
 // it cannot draw, which is the drift the registry exists to prevent.
 
-import { useCallback, useState, type ReactNode } from 'react';
-import { setEnabled, type Availability, type Task } from '../lib/api';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { fetchOptions, setEnabled, setTaskOptions, type Availability, type Task } from '../lib/api';
 import { DIRECT_ID, endpointOf, useConnections } from '../lib/connections';
 import { fmtBytes, fmtDate, fmtEta, fmtSpeed, pct } from '../lib/format';
 import type { TranslationKey } from '../lib/i18n';
@@ -38,6 +38,7 @@ export type ColumnId =
   | 'comment'
   | 'resolver'
   | 'source'
+  | 'variant'
   | 'peers'
   | 'seeds'
   | 'ratio';
@@ -608,6 +609,36 @@ function ProgressCell({ loaded, size, done, active }: { loaded: number; size: nu
   );
 }
 
+// AvailDot is StatusCell's own dot, pulled out so PackageStatusCell below -
+// the status column's PACKAGE row, jdp 2026-08-25's own follow-up ("auf dem
+// ordner wird in der spalte immer noch gesammelt angezeigt") - can paint the
+// exact same shape over a whole package's aggregate verdict instead of one
+// task's.
+function AvailDot({ avail, title }: { avail: Availability | undefined; title?: string }) {
+  return (
+    <span
+      title={title}
+      className={`inline-block h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${
+        avail ? availDot[avail] : 'bg-carbon-textMuted/40'
+      }`}
+    />
+  );
+}
+
+// packageAvailStatus folds every item's own verdict into the one worth
+// showing on their shared package row: any dead link outranks everything
+// else (the same "bad news wins" rule packageStatus's own error check
+// already follows), all-online is the other unambiguous case, uncheckable
+// is worth a glance even mixed with plain unchecked, and undefined (the
+// neutral dot) is what a package nobody has checked yet - or one that
+// mixes online and offline links with nothing worse - shows.
+function packageAvailStatus(items: Task[]): Availability | undefined {
+  if (items.some((x) => x.online === 'offline')) return 'offline';
+  if (items.length > 0 && items.every((x) => x.online === 'online')) return 'online';
+  if (items.some((x) => x.online === 'uncheckable')) return 'uncheckable';
+  return undefined;
+}
+
 function StatusCell({ task, t }: { task: Task; t: Translate }) {
   // The typed cause carries the detail, as a tooltip rather than a second word
   // on the line. "Host would not say" is the verdict and it is what the column
@@ -626,14 +657,7 @@ function StatusCell({ task, t }: { task: Task; t: Translate }) {
   // dot+word takes back over below, unchanged.
   if (task.status === 'collected') {
     const avail = task.online;
-    return (
-      <span
-        title={why ? t(why) : avail ? t(availChip[avail].key) : undefined}
-        className={`inline-block h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${
-          avail ? availDot[avail] : 'bg-carbon-textMuted/40'
-        }`}
-      />
-    );
+    return <AvailDot avail={avail} title={why ? t(why) : avail ? t(availChip[avail].key) : undefined} />;
   }
   return (
     <span className="inline-flex min-w-0 items-center gap-2">
@@ -756,6 +780,123 @@ function fmtRatio(r: number | undefined): string {
   return (r ?? 0).toFixed(2);
 }
 
+// --- The "Variante" column --------------------------------------------------
+//
+// core.Task.Variant, decoded the same way variantEncode/variantDecode
+// (app_ytdlp_variants.go) encode it: "<kind>" or "<kind>:<sub>". kind is one
+// of the five rows expandYtdlpVariants always creates for a yt-dlp-routed
+// link - video/audio/thumbnail/subtitle/description - fixed the moment that
+// row was created, never edited here. sub is a quality preset on a video
+// row or an audio format on an audio row, the only two kinds this column's
+// own picker edits (jdp, 2026-08-25's locked answer: "Video (Auflösung...),
+// Audio (Format/Bitrate...)" - a thumbnail/subtitle/description row gets no
+// picker, just its own kind label).
+//
+// This column is not only a nicety: setTaskName (app_tasks.go) propagates
+// one resolved title to every URL-sharing sibling, so all five of a link's
+// own rows show the exact same Name. This is the one column where they read
+// differently from each other at all.
+export function variantKindOf(task: Task): string {
+  const v = task.variant ?? '';
+  const i = v.indexOf(':');
+  return i === -1 ? v : v.slice(0, i);
+}
+
+function variantSubOf(task: Task): string {
+  const v = task.variant ?? '';
+  const i = v.indexOf(':');
+  return i === -1 ? '' : v.slice(i + 1);
+}
+
+export const VARIANT_KIND_LABEL_KEY: Record<string, TranslationKey> = {
+  video: 'columns.variant.video',
+  audio: 'columns.variant.audio',
+  thumbnail: 'columns.variant.thumbnail',
+  subtitle: 'columns.variant.subtitle',
+  description: 'columns.variant.description',
+};
+
+/**
+ * One shared fetch backs every row's own picker, not one per row: the menu
+ * is the same handful of ids for the whole table, and forty rows each
+ * calling fetchOptions() on mount would be forty identical requests for the
+ * same short list. Module-scoped rather than threaded through CellContext,
+ * so this column stays self-contained the way peers/seeds/ratio's own
+ * isTorrentTask does, instead of widening what every OTHER cell's context
+ * has to carry for a menu only this one column reads.
+ */
+let ytdlpMenus: Promise<{ qualities: string[]; audioFormats: string[] }> | null = null;
+function loadYtdlpMenus() {
+  if (!ytdlpMenus) {
+    ytdlpMenus = fetchOptions().then(
+      (o) => ({ qualities: o.ytdlpQualities ?? [], audioFormats: o.ytdlpAudioFormats ?? [] }),
+      () => ({ qualities: [], audioFormats: [] }),
+    );
+  }
+  return ytdlpMenus;
+}
+
+function useYtdlpMenus() {
+  const [menus, setMenus] = useState<{ qualities: string[]; audioFormats: string[] }>({
+    qualities: [],
+    audioFormats: [],
+  });
+  useEffect(() => {
+    let live = true;
+    void loadYtdlpMenus().then((m) => {
+      if (live) setMenus(m);
+    });
+    return () => {
+      live = false;
+    };
+  }, []);
+  return menus;
+}
+
+function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
+  const { toast } = useToast();
+  const [busy, setBusy] = useState(false);
+  const menus = useYtdlpMenus();
+
+  const kind = variantKindOf(task);
+  if (!kind) return null;
+  const sub = variantSubOf(task);
+  const label = ctx.t(VARIANT_KIND_LABEL_KEY[kind] ?? VARIANT_KIND_LABEL_KEY.video);
+  const options = kind === 'video' ? menus.qualities : kind === 'audio' ? menus.audioFormats : null;
+
+  async function change(value: string) {
+    setBusy(true);
+    try {
+      await setTaskOptions([task.id], { variantQuality: value }, ctx.base);
+    } catch (err) {
+      toast(err instanceof Error && err.message ? err.message : ctx.t('task.switchFailed'), 'fail');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <span className="flex min-w-0 items-center gap-1.5 text-[11px] text-carbon-textMuted">
+      <span className="shrink-0">{label}</span>
+      {options && options.length > 0 && (
+        <select
+          value={sub || options[0]}
+          disabled={busy}
+          onChange={(e) => void change(e.target.value)}
+          onClick={(e) => e.stopPropagation()}
+          className="min-w-0 rounded-[var(--radius-control)] bg-carbon-surface3/60 px-1 py-0.5 text-[11px] text-carbon-text disabled:opacity-40"
+        >
+          {options.map((o) => (
+            <option key={o} value={o}>
+              {o}
+            </option>
+          ))}
+        </select>
+      )}
+    </span>
+  );
+}
+
 // --- The registry ----------------------------------------------------------
 
 export const COLUMNS: ColumnDef[] = [
@@ -866,8 +1007,19 @@ export const COLUMNS: ColumnDef[] = [
     compare: (a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status],
     render: (task, ctx) => <StatusCell task={task} t={ctx.t} />,
     // A package that shows nothing in the status column is a package that looks
-    // like a spacer. It gets the same pill as a link, over the whole package.
-    aggregate: (items) => <StatusPill status={packageStatus(items)} />,
+    // like a spacer. It gets the same pill as a link, over the whole package -
+    // or, while every one of its links is still sitting in the collector, the
+    // same availability dot StatusCell's own row shows instead (jdp,
+    // 2026-08-25: "auf dem ordner wird in der spalte immer noch gesammelt
+    // angezeigt" - this aggregate branch was the one place still missed when
+    // StatusCell itself was fixed, since a folded package's own row never
+    // calls StatusCell at all).
+    aggregate: (items) =>
+      packageStatus(items) === 'collected' ? (
+        <AvailDot avail={packageAvailStatus(items)} />
+      ) : (
+        <StatusPill status={packageStatus(items)} />
+      ),
   },
   {
     id: 'host',
@@ -957,6 +1109,19 @@ export const COLUMNS: ColumnDef[] = [
       const one = new Set(items.map((x) => x.resolver));
       return one.size === 1 ? <ResolverBadge resolver={items[0].resolver} /> : null;
     },
+  },
+  {
+    id: 'variant',
+    labelKey: 'columns.variant',
+    width: 132,
+    minWidth: 90,
+    align: 'start',
+    hideable: true,
+    compare: (a, b) => cmpText(variantKindOf(a), variantKindOf(b)),
+    render: (task, ctx) => <VarianteCell task={task} ctx={ctx} />,
+    // No aggregate: a package almost always mixes kinds (its own video,
+    // audio, thumbnail... rows all share one package), so there is no
+    // single variant a package header could honestly show.
   },
   {
     id: 'source',
@@ -1094,7 +1259,24 @@ const FLEX_COLUMN: ColumnId = 'name';
 // keep even less than `connection` (which at least resolves once one proxy is
 // configured) does before this feature has been used even once.
 export const DEFAULT_HIDDEN: Record<ListProfile, ColumnId[]> = {
-  downloads: ['comment', 'source', 'added', 'finished', 'resolver', 'connection', 'peers', 'seeds', 'ratio'],
+  // 'variant' stays visible here (unlike its own downloads-list default just
+  // below): it is only blank once a link is already routed and past
+  // choosing a quality, where a resolver+status pair already says what
+  // downloads mostly wants to know. The collector is exactly where a
+  // yt-dlp-routed link's five rows appear and want a quality picked, so
+  // hiding it there by default would hide the "Variante" feature itself.
+  downloads: [
+    'comment',
+    'source',
+    'added',
+    'finished',
+    'resolver',
+    'connection',
+    'variant',
+    'peers',
+    'seeds',
+    'ratio',
+  ],
   collector: [
     'progress',
     'speed',

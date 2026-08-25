@@ -68,14 +68,99 @@ func TestBuildArgsHeightCappedQuality(t *testing.T) {
 	}
 }
 
-func TestBuildArgsAudioOnlyPairsDashXWithBestaudio(t *testing.T) {
+// TestBuildArgsQualityAudioOnlyFoldsToNoOpinionUnderVariantVideo pins
+// QualityAudioOnly's retirement (options.go's own doc comment on the
+// constant): Qualities() no longer offers it, so Sanitize folds an old
+// saved value onto QualityBest the same as any other value it no longer
+// recognises - a video-variant row with it set passes no -f at all rather
+// than the audio-extraction behaviour the preset used to trigger. Getting
+// audio-only now means enabling the Audio row (VariantAudio, tested below)
+// and leaving Video off, not a video-quality preset in disguise.
+func TestBuildArgsQualityAudioOnlyFoldsToNoOpinionUnderVariantVideo(t *testing.T) {
 	args := buildArgs("d", Options{Quality: QualityAudioOnly})
+	if hasArg(args, "-f") {
+		t.Errorf("buildArgs(Quality: QualityAudioOnly) passed -f, want none (folded to QualityBest): %v", args)
+	}
+	if hasArg(args, "-x") {
+		t.Errorf("buildArgs(Quality: QualityAudioOnly) passed -x under VariantVideo, want none: %v", args)
+	}
+}
+
+func TestBuildArgsVariantAudioPairsDashXWithBestaudio(t *testing.T) {
+	args := buildArgs("d", Options{Variant: VariantAudio})
 	got, ok := valueAfter(args, "-f")
 	if !ok || got != "bestaudio/best" {
 		t.Errorf("-f = %q (found=%v), want %q", got, ok, "bestaudio/best")
 	}
 	if !hasArg(args, "-x") {
-		t.Errorf("audio-only did not pass -x: %v", args)
+		t.Errorf("VariantAudio did not pass -x: %v", args)
+	}
+	if hasArg(args, "--audio-format") {
+		t.Errorf("VariantAudio with no AudioFormat passed --audio-format, want none: %v", args)
+	}
+}
+
+func TestBuildArgsVariantAudioHonoursAudioFormat(t *testing.T) {
+	args := buildArgs("d", Options{Variant: VariantAudio, AudioFormat: "mp3"})
+	got, ok := valueAfter(args, "--audio-format")
+	if !ok || got != "mp3" {
+		t.Errorf("--audio-format = %q (found=%v), want %q", got, ok, "mp3")
+	}
+}
+
+// TestBuildArgsVariantAudioFormatBestOmitsDashAudioFormat is the same "no
+// opinion" shape formatSelector's own QualityBest branch uses: "best" is
+// AudioFormats()'s own default entry, standing for "whatever yt-dlp already
+// picks", not a real -x --audio-format target worth naming on the command
+// line.
+func TestBuildArgsVariantAudioFormatBestOmitsDashAudioFormat(t *testing.T) {
+	args := buildArgs("d", Options{Variant: VariantAudio, AudioFormat: "best"})
+	if hasArg(args, "--audio-format") {
+		t.Errorf("VariantAudio with AudioFormat=best passed --audio-format, want none: %v", args)
+	}
+}
+
+func TestBuildArgsVariantThumbnailAddsSkipDownloadAndWriteThumbnail(t *testing.T) {
+	args := buildArgs("d", Options{Variant: VariantThumbnail})
+	if !hasArg(args, "--skip-download") {
+		t.Errorf("VariantThumbnail did not pass --skip-download: %v", args)
+	}
+	if !hasArg(args, "--write-thumbnail") {
+		t.Errorf("VariantThumbnail did not pass --write-thumbnail: %v", args)
+	}
+}
+
+func TestBuildArgsVariantSubtitleAddsSkipDownloadWriteSubsAndDefaultLangs(t *testing.T) {
+	args := buildArgs("d", Options{Variant: VariantSubtitle})
+	if !hasArg(args, "--skip-download") {
+		t.Errorf("VariantSubtitle did not pass --skip-download: %v", args)
+	}
+	if !hasArg(args, "--write-subs") {
+		t.Errorf("VariantSubtitle did not pass --write-subs: %v", args)
+	}
+	got, ok := valueAfter(args, "--sub-langs")
+	if !ok || got != DefaultSubtitleLangs {
+		t.Errorf("--sub-langs = %q (found=%v), want default %q", got, ok, DefaultSubtitleLangs)
+	}
+	if hasArg(args, "--write-auto-subs") {
+		t.Errorf("VariantSubtitle with SubtitleAuto=false passed --write-auto-subs, want none: %v", args)
+	}
+}
+
+func TestBuildArgsVariantSubtitleAutoAddsWriteAutoSubs(t *testing.T) {
+	args := buildArgs("d", Options{Variant: VariantSubtitle, SubtitleAuto: true})
+	if !hasArg(args, "--write-auto-subs") {
+		t.Errorf("VariantSubtitle with SubtitleAuto=true did not pass --write-auto-subs: %v", args)
+	}
+}
+
+func TestBuildArgsVariantDescriptionAddsSkipDownloadAndWriteDescription(t *testing.T) {
+	args := buildArgs("d", Options{Variant: VariantDescription})
+	if !hasArg(args, "--skip-download") {
+		t.Errorf("VariantDescription did not pass --skip-download: %v", args)
+	}
+	if !hasArg(args, "--write-description") {
+		t.Errorf("VariantDescription did not pass --write-description: %v", args)
 	}
 }
 
@@ -97,96 +182,17 @@ func TestBuildArgsCustomQualityWithNoFormatOmitsDashF(t *testing.T) {
 	}
 }
 
-func TestBuildArgsSubtitlesOffAddsNoSubtitleFlags(t *testing.T) {
-	args := buildArgs("d", Options{Subtitles: SubtitlesOff, SubtitleAuto: true})
+// TestBuildArgsVariantVideoAddsNoSubtitleFlags is TestBuildArgsSubtitlesOff's
+// replacement under the row model: a video row has no subtitle fields to
+// read at all any more (SubtitleLangs/SubtitleAuto are read only under
+// VariantSubtitle, see Options.SubtitleLangs's own doc comment), so passing
+// them alongside VariantVideo must have no effect on this row's own args.
+func TestBuildArgsVariantVideoAddsNoSubtitleFlags(t *testing.T) {
+	args := buildArgs("d", Options{Variant: VariantVideo, SubtitleAuto: true, SubtitleLangs: "de"})
 	for _, flag := range []string{"--write-subs", "--write-auto-subs", "--embed-subs", "--sub-langs"} {
 		if hasArg(args, flag) {
-			t.Errorf("SubtitlesOff still passed %s: %v", flag, args)
+			t.Errorf("VariantVideo still passed %s: %v", flag, args)
 		}
-	}
-}
-
-func TestBuildArgsSubtitleFileDefaultsLangsToEnglish(t *testing.T) {
-	args := buildArgs("d", Options{Subtitles: SubtitlesFile})
-	if !hasArg(args, "--write-subs") {
-		t.Errorf("SubtitlesFile did not pass --write-subs: %v", args)
-	}
-	if hasArg(args, "--embed-subs") {
-		t.Errorf("SubtitlesFile passed --embed-subs, want file-only: %v", args)
-	}
-	got, ok := valueAfter(args, "--sub-langs")
-	if !ok || got != DefaultSubtitleLangs {
-		t.Errorf("--sub-langs = %q (found=%v), want default %q", got, ok, DefaultSubtitleLangs)
-	}
-}
-
-func TestBuildArgsSubtitleLangsIsHonoured(t *testing.T) {
-	args := buildArgs("d", Options{Subtitles: SubtitlesFile, SubtitleLangs: "de,fr"})
-	got, ok := valueAfter(args, "--sub-langs")
-	if !ok || got != "de,fr" {
-		t.Errorf("--sub-langs = %q (found=%v), want %q", got, ok, "de,fr")
-	}
-}
-
-func TestBuildArgsSubtitleEmbedAddsEmbedFlag(t *testing.T) {
-	args := buildArgs("d", Options{Subtitles: SubtitlesEmbed})
-	if !hasArg(args, "--write-subs") || !hasArg(args, "--embed-subs") {
-		t.Errorf("SubtitlesEmbed missing --write-subs/--embed-subs: %v", args)
-	}
-}
-
-func TestBuildArgsSubtitleAutoAddsWriteAutoSubs(t *testing.T) {
-	args := buildArgs("d", Options{Subtitles: SubtitlesFile, SubtitleAuto: true})
-	if !hasArg(args, "--write-auto-subs") {
-		t.Errorf("SubtitleAuto=true did not pass --write-auto-subs: %v", args)
-	}
-}
-
-func TestBuildArgsThumbnailAddsWriteThumbnail(t *testing.T) {
-	args := buildArgs("d", Options{Thumbnail: true})
-	if !hasArg(args, "--write-thumbnail") {
-		t.Errorf("Thumbnail=true did not pass --write-thumbnail: %v", args)
-	}
-}
-
-func TestBuildArgsThumbnailOffAddsNothing(t *testing.T) {
-	args := buildArgs("d", Options{})
-	if hasArg(args, "--write-thumbnail") {
-		t.Errorf("buildArgs(Options{}) passed --write-thumbnail, want none: %v", args)
-	}
-}
-
-func TestBuildArgsDescriptionAddsWriteDescription(t *testing.T) {
-	args := buildArgs("d", Options{Description: true})
-	if !hasArg(args, "--write-description") {
-		t.Errorf("Description=true did not pass --write-description: %v", args)
-	}
-}
-
-func TestBuildArgsKeepAudioPairsDashXWithKeepVideo(t *testing.T) {
-	args := buildArgs("d", Options{KeepAudio: true})
-	if !hasArg(args, "-x") || !hasArg(args, "--keep-video") {
-		t.Errorf("KeepAudio=true missing -x/--keep-video: %v", args)
-	}
-}
-
-// TestBuildArgsKeepAudioIsANoOpUnderAudioOnly is the guard on the flag
-// above: AudioOnly already IS an audio extraction with no video format
-// requested at all, so KeepAudio must not add a second, redundant -x or a
-// --keep-video that has no video to keep.
-func TestBuildArgsKeepAudioIsANoOpUnderAudioOnly(t *testing.T) {
-	args := buildArgs("d", Options{Quality: QualityAudioOnly, KeepAudio: true})
-	if hasArg(args, "--keep-video") {
-		t.Errorf("KeepAudio under QualityAudioOnly passed --keep-video, want none: %v", args)
-	}
-	n := 0
-	for _, a := range args {
-		if a == "-x" {
-			n++
-		}
-	}
-	if n != 1 {
-		t.Errorf("-x appears %d times under QualityAudioOnly+KeepAudio, want exactly 1: %v", n, args)
 	}
 }
 
