@@ -694,21 +694,22 @@ export function Collector() {
           // child (flex-1, not h-full) below, sidesteps it entirely - flex
           // distributes space in one pass, with none of percentage-height's
           // resolve-through-an-overflow-box ambiguity.
-          // No padding of its own any more (jdp, 2026-08-26, [81]: "immer
-          // noch zu weit weg" - the badge-row-to-list gap was still too big
-          // after the first pass at this same complaint). This wrapper's
-          // own overflow-y-auto is a SECOND clipping ancestor beside
-          // TaskListCard's own (already fixed there), which is what the
-          // pt-4 removed here used to guard against - but TaskListCard's
-          // OWN internal `px-4 pt-4` (TaskList.tsx, right before its
-          // SectionTitle) already reserves 16px before the badge's own
-          // `-top-[11px]` offset, a 5px margin on its own - bigger than the
-          // 1px margin the ORIGINAL fix for this measured as "too thin to
-          // trust" for pt-3 alone, and this fix removes an entirely
-          // separate, stacked 16px on top of that, not the card's own.
-          // Verified live rather than assumed: this specific card's own
-          // title badge, unclipped, at the tightened gap.
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+          // pt-3, down from pt-4 (jdp, 2026-08-26, [81]: "immer noch zu weit
+          // weg" - the gap was still too big after the first pass at this
+          // same complaint). A first attempt at THIS pass removed this
+          // padding entirely, on the theory that TaskListCard's own internal
+          // `px-4 pt-4` (right before its SectionTitle) already covered the
+          // badge's own `-top-[11px]` offset on its own - live-measured
+          // straight after and proven wrong: the badge sat at 494 against
+          // this wrapper's own clip boundary at 505, an 11px overshoot
+          // identical to the ORIGINAL bug report, meaning the card's own
+          // padding does not protect against THIS wrapper's own
+          // overflow-y-auto at all. pt-3 is not a fresh guess - it is the
+          // exact value the original fix already measured a 1px margin at,
+          // tighter than pt-4's 5px and still positive. Verified live rather
+          // than assumed, again, after this correction: badge fully clear
+          // of the boundary at pt-3, gap visibly tighter than pt-4 was.
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-3">
             <TaskListCard
               groups={groups}
               base="/api"
