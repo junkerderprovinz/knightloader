@@ -92,6 +92,7 @@ see Versioning above.
   is filed under every key the peer can be addressed by rather than under a
   guess about which one will be used. A desktop build can issue a code now for
   the same reason.
+- **The Android app asks for four fewer permissions**, and the four it dropped are the reason Play Protect blocked the install: `SYSTEM_ALERT_WINDOW` ("draw over other apps"), the microphone, biometrics and external storage. None of them came from this code. expo-camera brings the microphone along because it can also record video, React Native brings the overlay permission for its own developer overlay, and expo-secure-store brings biometrics for an option that is not used here. A download manager asking for the microphone and permission to draw over other apps looks like malware, and Play Protect was right to say so. What remains is camera, internet, and network and Wi-Fi state.
 - **One instance can be the relay**, from a switch on the Access tab, instead of
   a second program on a second address. It answers under `/relay/connect` on the
   address that instance already uses, behind the same reverse proxy and the same
