@@ -15,6 +15,7 @@ export const ko: Dict = {
   'connect.connectButton': '연결',
   'connect.qrHintAddress': '접근 탭의 QR 코드를 스캔하세요',
   'connect.qrAutofillNotice': '이름과 주소는 코드에서 가져왔습니다. 이런 종류의 코드에는 토큰이 포함되지 않습니다. 토큰은 직접 붙여넣으세요.',
+  'connect.qrRelayOnly': '이 코드는 KnightLoader 인스턴스 두 개를 릴레이로 연결하는 코드여서 여기서는 쓸 수 없습니다. 이 앱은 인스턴스가 아니라 클라이언트입니다. 아래의 “직접 연결되지 않나요? 릴레이를 통해 연결하세요”에서 릴레이 주소와 키를 입력하세요.',
   'connect.findButton': '이 네트워크에서 찾기',
   'connect.finding': '이 네트워크에서 찾는 중…',
   'connect.foundNone': '이 네트워크에서 아무것도 찾지 못했습니다. 주소를 직접 입력하거나 접근 탭의 QR 코드를 스캔하세요.',

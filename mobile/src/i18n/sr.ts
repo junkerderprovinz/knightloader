@@ -15,6 +15,7 @@ export const sr: Dict = {
   'connect.connectButton': 'Poveži se',
   'connect.qrHintAddress': 'Skenirajte QR kod sa kartice Pristup',
   'connect.qrAutofillNotice': 'Naziv i adresa su preuzeti iz koda. Ova vrsta koda nikada ne sadrži token - nalepite ga ručno.',
+  'connect.qrRelayOnly': 'Taj kod povezuje dve instance aplikacije KnightLoader preko releja i ovde se ne može koristiti - ova aplikacija je klijent, a ne instanca. Upotrebite ispod „Nije direktno dostupna? Povežite se preko releja“ sa adresom i ključem releja.',
   'connect.findButton': 'Pronađi na ovoj mreži',
   'connect.finding': 'Traženje na ovoj mreži…',
   'connect.foundNone': 'Na ovoj mreži nije pronađeno ništa. Unesite adresu ručno ili skenirajte QR kod sa kartice Pristup.',

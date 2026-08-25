@@ -15,6 +15,7 @@ export const id: Dict = {
   'connect.connectButton': 'Sambungkan',
   'connect.qrHintAddress': 'Pindai kode QR dari tab Akses',
   'connect.qrAutofillNotice': 'Nama dan alamat diambil dari kode. Kode jenis ini tidak pernah menyertakan token - tempelkan secara manual.',
+  'connect.qrRelayOnly': 'Kode itu menghubungkan dua instansi KnightLoader lewat relai dan tidak bisa dipakai di sini - aplikasi ini adalah klien, bukan instansi. Gunakan “Tidak bisa dijangkau langsung? Sambungkan lewat relai” di bawah dengan alamat dan kunci relai.',
   'connect.findButton': 'Cari di jaringan ini',
   'connect.finding': 'Mencari di jaringan ini…',
   'connect.foundNone': 'Tidak ada yang ditemukan di jaringan ini. Masukkan alamat secara manual, atau pindai kode QR dari tab Akses.',

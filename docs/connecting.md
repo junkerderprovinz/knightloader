@@ -66,14 +66,24 @@ instance with an umlaut in its name could not be paired at all, and the far side
 reported it as an invalid name the person redeeming the code had never typed and
 could not see from there.
 
-Reachability is reported per direction, because it fails per direction. A
+Reachability is reported per direction, because it fails per direction.
+
+**Setting a password later breaks an existing pairing**, and it is meant to: an
+instance revokes every credential it ever issued when its password is set or
+changed, because a credential minted while there was none is a standing bypass
+of the protection just put in place. The peer then refuses this instance, and
+the Instances page says so rather than showing it as offline - a machine that is
+answering and saying no is not a machine that is switched off, and only one of
+those is fixed by pairing again. Which is the fix: issue a fresh code. A
 pairing where only one side can dial the other is kept and labelled, not thrown
 away: the half that works is worth having, and a peer that is merely asleep
 should not cost you the pairing.
 
-A **desktop build cannot issue a code.** It opens no API listener at all - it
-hands its handler to the window - so there is no address anything could dial. It
-uses the relay instead, and it can still find and add other instances itself.
+A **desktop build has no address**, ever. It opens no API listener at all - it
+hands its handler to the window - so nothing can dial it. It can still find and
+add other instances itself, and, once it is on a relay, it can issue and redeem
+pairing codes like anything else: the code then carries its relay identifier
+rather than a URL.
 
 ## When neither can reach the other: the relay
 
@@ -89,17 +99,40 @@ What the relay operator can see is stated plainly rather than implied: a
 proxied request carries the caller's bearer token, so whoever runs the relay can
 read a reusable credential out of it. Run your own.
 
-**One gap, stated rather than glossed over.** Two instances that can reach each
-other only through the relay cannot pair, because redeeming a pairing code is
-an ordinary HTTP request to the other side and there is no address to make it
-to. So a password-protected instance in that position still refuses federation
-calls: the credential exchange has nowhere to happen. Everything else about
-the relay works, and an instance with no password works over it today.
+**Pairing works over the relay too.** A code from an instance with no address
+carries its relay identifier instead of a URL, and redeeming it sends the
+completion through the relay rather than over HTTP. Both ends arrive at the
+same handler, so there is no second implementation of pairing to keep in step.
 
-Pairing over the relay is the missing piece. The wiring for it is already
-there - a proxied request carries an Authorization value end to end, which is
-how the mobile app authenticates over the relay - but nothing yet performs the
-exchange itself.
+A code may carry both a URL and a relay identifier, and then the direct route
+is tried first: it is one hop, it does not depend on a third machine being up,
+and it does not put the exchange in front of a relay operator. The relay takes
+over when the address does not carry - which happens more often than it sounds,
+because an address in a code is what the issuing instance believes it is
+reachable at, and a NAS announcing its LAN address is right for everyone on
+that LAN and wrong for everyone else.
+
+The fallback is only for a connection that never landed, never for an answer:
+a peer that replied at all has already seen that code, and a pairing code is
+single-use.
+
+Two consequences worth knowing:
+
+- **A desktop build can now issue a pairing code**, which it never could
+  before. It still has no address - that has not changed - but the relay
+  addresses it by identifier, and both ends dial out.
+- **A peer's credential is filed under every key it can be addressed by** - its
+  pairing name over a direct connection, its instance id over the relay -
+  because which one ends up being used is not knowable while pairing. An
+  address is what the far side believes it is reachable at, and a container
+  behind NAT announces one that is right for its own network and wrong for
+  everywhere else. Filing under a guess is why two NAT'd containers could pair
+  successfully and then go on refusing each other: both offered an address, so
+  both filed under a name, while both were addressed by id.
+
+A relay peer is still never written to disk. It exists for as long as the relay
+sees it, and one remembered across a restart would be a peer that cannot be
+reached and cannot be explained. Only the credential is kept.
 
 ## The Android app
 

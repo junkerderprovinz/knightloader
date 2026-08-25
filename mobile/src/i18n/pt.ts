@@ -15,6 +15,7 @@ export const pt: Dict = {
   'connect.connectButton': 'Conectar',
   'connect.qrHintAddress': 'Leia o código QR na aba Acesso',
   'connect.qrAutofillNotice': 'Nome e endereço obtidos do código. Esse tipo de código nunca traz um token - cole-o manualmente.',
+  'connect.qrRelayOnly': 'Esse código liga duas instâncias do KnightLoader por um relay e não serve aqui - este app é um cliente, não uma instância. Use «Não dá para acessar direto? Conecte via relay» abaixo, com o endereço e a chave do relay.',
   'connect.findButton': 'Procurar nesta rede',
   'connect.finding': 'Procurando nesta rede…',
   'connect.foundNone': 'Nada encontrado nesta rede. Digite o endereço manualmente ou leia o código QR na aba Acesso.',

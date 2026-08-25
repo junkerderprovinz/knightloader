@@ -37,13 +37,27 @@ import (
 // left visible on screen is not a standing credential.
 const pairingTTL = 5 * time.Minute
 
-// pairingOffer is what a generated code decodes to: enough for the other
-// side to reach this instance and register it under a name, with no second
-// lookup anywhere - there is no relay to look one up through.
+// pairingOffer is what a generated code decodes to: enough for the other side
+// to reach this instance and register it under a name, with no second lookup
+// anywhere.
+//
+// TWO ways to be reached, and a code may carry either or both. URL is the
+// direct one and is preferred wherever it works. RelayID is this instance's
+// own identifier on the relay it is connected to, which is what makes pairing
+// possible between two instances that have no address either can dial - the
+// case the relay exists for, and the one where pairing used to be impossible
+// (so a password-protected instance there stayed unreachable forever, see
+// internal/api/peertokens.go).
+//
+// Both fields are omitempty, so a code from an instance with only one way in
+// stays as short as it was. A reader must therefore check which it got: an
+// older redeemer sees a relay-only code as having no URL and refuses it, which
+// is the correct answer for a build that cannot use one.
 type pairingOffer struct {
-	Name  string `json:"n"`
-	URL   string `json:"u"`
-	Token string `json:"t"`
+	Name    string `json:"n"`
+	URL     string `json:"u,omitempty"`
+	RelayID string `json:"r,omitempty"`
+	Token   string `json:"t"`
 }
 
 // pairingCodes tracks tokens this instance itself issued, so /complete can
@@ -134,8 +148,8 @@ func (p *pairingCodes) sweepLocked() {
 // for pairing to work, it is just no longer stuck with whatever the OS or
 // the container runtime happened to call it (jdp, a later round: "der soll
 // dann mit dem QR code an die App weitergegeben werden").
-func pairingSelf(r *http.Request, a *app.App) (name, url string, ok bool) {
-	// The desktop build has no address to offer, ever: it hands api.Handler to
+func pairingSelf(r *http.Request, a *app.App) (name, url, relayID string, ok bool) {
+	// The desktop build has no ADDRESS to offer, ever: it hands api.Handler to
 	// Wails as an in-window asset handler and opens no API listener at all
 	// (desktop/main.go), so nothing outside that process can dial it.
 	//
@@ -152,17 +166,28 @@ func pairingSelf(r *http.Request, a *app.App) (name, url string, ok bool) {
 	// internal/relay): both ends dial out, so neither needs an address. Adding
 	// a peer BY address (POST /api/instances) still works from a desktop too -
 	// that is one-way by nature and honest about it.
-	if buildinfo.Deployment == "desktop" {
-		return "", "", false
+	//
+	// It can still OFFER a code, as of relay pairing: the relay addresses it by
+	// its instance id, both ends dial out, and neither needs an address. So the
+	// gate below is no longer "is this a desktop" but "is there any way in at
+	// all" - which is the question that was always really being asked.
+	if buildinfo.Deployment != "desktop" {
+		known := a.Settings.Get().KnownDomains
+		addrs := remoteAddresses(r, known)
+		if u, found := preferredAddress(addrs); found {
+			url = u
+		} else if len(addrs) > 0 {
+			url = addrs[0].URL
+		}
 	}
-	known := a.Settings.Get().KnownDomains
-	addrs := remoteAddresses(r, known)
-	if u, found := preferredAddress(addrs); found {
-		url = u
-	} else if len(addrs) > 0 {
-		url = addrs[0].URL
-	} else {
-		return "", "", false
+	// Offered alongside the URL rather than instead of it, so one code works
+	// for a redeemer that can dial directly AND for one that cannot. The
+	// redeemer picks; see deliverCompletion.
+	if a.Federation.RelayConnected() {
+		relayID = a.Settings.Get().InstanceID
+	}
+	if url == "" && relayID == "" {
+		return "", "", "", false
 	}
 	// Sanitised, because this name is DERIVED - it is whatever the instance
 	// calls itself, or the hostname, neither of which was chosen to satisfy
@@ -174,10 +199,10 @@ func pairingSelf(r *http.Request, a *app.App) (name, url string, ok bool) {
 		// Nothing addressable could be made of it. Refused here, where the
 		// message reaches the person who can fix it by naming the instance,
 		// rather than on the far side as a rejection of a name they cannot
-		// see - the same reasoning as the desktop gate above.
-		return "", "", false
+		// see - the same reasoning as the gate above.
+		return "", "", "", false
 	}
-	return name, url, true
+	return name, url, relayID, true
 }
 
 // instanceDisplayName is InstanceName if the user set one, else os.Hostname,
@@ -210,7 +235,11 @@ func decodeOffer(code string) (pairingOffer, error) {
 		return pairingOffer{}, errors.New("not a pairing code")
 	}
 	var o pairingOffer
-	if err := json.Unmarshal(b, &o); err != nil || o.URL == "" || o.Token == "" {
+	// A code needs its one-time token and at least one way in. Either way in
+	// counts: an instance reachable only through a relay carries a relay id and
+	// no URL, and requiring a URL here is what made such a code read as "not a
+	// pairing code" - a rejection about the wrong thing entirely.
+	if err := json.Unmarshal(b, &o); err != nil || o.Token == "" || (o.URL == "" && o.RelayID == "") {
 		return pairingOffer{}, errors.New("not a pairing code")
 	}
 	return o, nil
@@ -224,9 +253,9 @@ func registerPairing(reg *Registry, a *app.App) {
 	reg.Add(http.MethodPost, "/api/instances/pairing-code",
 		"issue a short-lived code another instance can redeem to add this one, and be added back",
 		func(w http.ResponseWriter, r *http.Request) {
-			name, url, ok := pairingSelf(r, a)
+			name, url, relayID, ok := pairingSelf(r, a)
 			if !ok {
-				http.Error(w, "no address to offer for this instance", http.StatusConflict)
+				http.Error(w, "no address to offer for this instance, and no relay connected", http.StatusConflict)
 				return
 			}
 			token, err := codes.issue()
@@ -234,7 +263,7 @@ func registerPairing(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			code, err := encodeOffer(pairingOffer{Name: name, URL: url, Token: token})
+			code, err := encodeOffer(pairingOffer{Name: name, URL: url, RelayID: relayID, Token: token})
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -244,7 +273,14 @@ func registerPairing(reg *Registry, a *app.App) {
 			// string a person would paste by hand and POST it to its own
 			// /api/instances/pairing-code/redeem - one payload, two ways to
 			// get it off this screen, never two protocols to keep in sync.
-			writeJSON(w, map[string]any{"code": code, "name": name, "url": url, "expiresIn": int(pairingTTL.Seconds()), "qr": renderQR(code)})
+			// viaRelay rather than the id itself: the page wants to say HOW this
+			// code can be redeemed, and the id is an address, not a fact worth
+			// putting on screen.
+			writeJSON(w, map[string]any{
+				"code": code, "name": name, "url": url,
+				"viaRelay":  relayID != "",
+				"expiresIn": int(pairingTTL.Seconds()), "qr": renderQR(code),
+			})
 		})
 
 	// Redeem: the Instances tab's own action, on the instance joining an
@@ -260,9 +296,9 @@ func registerPairing(reg *Registry, a *app.App) {
 			// first so the answer names the real reason - a desktop build that
 			// got "not a pairing code" for a perfectly valid code would send
 			// somebody hunting the wrong problem.
-			selfName, selfURL, ok := pairingSelf(r, a)
+			selfName, selfURL, selfRelayID, ok := pairingSelf(r, a)
 			if !ok {
-				http.Error(w, "no address to offer back for this instance", http.StatusConflict)
+				http.Error(w, "no address to offer back for this instance, and no relay connected", http.StatusConflict)
 				return
 			}
 			var body struct {
@@ -288,29 +324,25 @@ func registerPairing(reg *Registry, a *app.App) {
 			// (issue #26). Minted before the call, because it has to travel
 			// IN it; dropped again below if the pairing does not complete, so
 			// a failed attempt does not leave a usable token behind.
-			mintedID, forPeer, err := mintPeerToken(a, offer.Name)
+			// Everything this peer can be addressed by. The relay id is
+			// validated on the way in - see peerIdentity.
+			peer := newPeerIdentity(offer.Name, offer.RelayID)
+			mintedID, forPeer, err := mintPeerToken(a, peer.canonical())
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 			cb, _ := json.Marshal(map[string]string{
-				"token": offer.Token, "name": selfName, "url": selfURL, "peerToken": forPeer,
+				"token": offer.Token, "name": selfName, "url": selfURL,
+				"relayId": selfRelayID, "peerToken": forPeer,
 			})
-			req, err := http.NewRequestWithContext(r.Context(), http.MethodPost, offer.URL+"/api/instances/pairing-code/complete", bytes.NewReader(cb))
+			status, respBody, viaRelay, err := deliverCompletion(r.Context(), a, hc, offer, cb)
 			if err != nil {
 				revokeMintedToken(a, mintedID)
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				http.Error(w, err.Error(), http.StatusBadGateway)
 				return
 			}
-			req.Header.Set("Content-Type", "application/json")
-			resp, err := hc.Do(req)
-			if err != nil {
-				revokeMintedToken(a, mintedID)
-				http.Error(w, fmt.Sprintf("could not reach %s: %v", offer.URL, err), http.StatusBadGateway)
-				return
-			}
-			defer resp.Body.Close()
-			if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
+			if status != http.StatusOK && status != http.StatusNoContent {
 				// Pass the peer's own reason through instead of replacing it
 				// with a guess. The peer answers 400 for several distinct
 				// things - a code that really did expire, but also a name or
@@ -318,8 +350,7 @@ func registerPairing(reg *Registry, a *app.App) {
 				// all to "expired" is why a rejected name read as a clock
 				// problem and stayed unfixable through any number of fresh
 				// codes.
-				reason, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<12))
-				msg := strings.TrimSpace(string(reason))
+				msg := strings.TrimSpace(string(respBody))
 				if msg == "" {
 					msg = "that code is invalid or has expired"
 				}
@@ -339,15 +370,27 @@ func registerPairing(reg *Registry, a *app.App) {
 				// genuinely never checked.
 				ReachedBack bool `json:"reachedBack"`
 			}
-			_ = json.NewDecoder(io.LimitReader(resp.Body, 1<<12)).Decode(&back)
+			_ = json.Unmarshal(respBody, &back)
 
-			if err := addPeer(a, federation.Instance{Name: offer.Name, URL: offer.URL}); err != nil {
-				revokeMintedToken(a, mintedID)
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
+			// An address is only written down once it has been PROVEN to carry -
+			// which the delivery above just did or did not do. Storing one the
+			// relay had to rescue leaves a peer nothing can reach sitting in
+			// instances.json next to the live relay entry for the same machine:
+			// two rows, one of them permanently dead.
+			//
+			// A relay peer is never stored either way. It appears and disappears
+			// with the connection, and one remembered across a restart is a peer
+			// this instance cannot reach and cannot explain (see
+			// federation.Instance.RelayID's own doc comment).
+			if offer.URL != "" && !viaRelay {
+				if err := addPeer(a, federation.Instance{Name: offer.Name, URL: offer.URL}); err != nil {
+					revokeMintedToken(a, mintedID)
+					http.Error(w, err.Error(), http.StatusBadRequest)
+					return
+				}
 			}
 			if back.PeerToken != "" {
-				if err := storePeerToken(a, offer.Name, back.PeerToken); err != nil {
+				if err := storePeerTokens(a, peer, back.PeerToken); err != nil {
 					// The only exit here that used to leave the minted token
 					// live: the peer has already committed its half, so this
 					// half is what fails, and the credential this side handed
@@ -360,8 +403,8 @@ func registerPairing(reg *Registry, a *app.App) {
 			// Pairing is complete. Anything issued for this peer by an EARLIER
 			// pairing is now dead weight - see supersedePeerTokens for why
 			// this happens here and not before the mint.
-			supersedePeerTokens(a, offer.Name, mintedID)
-			online := a.Federation.Ping(r.Context(), offer.Name) == nil
+			supersedePeerTokens(a, peer.canonical(), mintedID)
+			online := a.Federation.Ping(r.Context(), peer.canonical()) == nil
 			// Both halves reported separately, because they fail separately:
 			// "online" is us reaching the peer, "reachedBack" is the peer
 			// reaching us. A pairing with one of them false works in one
@@ -369,7 +412,8 @@ func registerPairing(reg *Registry, a *app.App) {
 			// an unqualified success.
 			writeJSON(w, map[string]any{
 				"name": offer.Name, "url": offer.URL,
-				"online": online, "reachedBack": back.ReachedBack,
+				"viaRelay": viaRelay,
+				"online":   online, "reachedBack": back.ReachedBack,
 			})
 		})
 
@@ -385,6 +429,12 @@ func registerPairing(reg *Registry, a *app.App) {
 				Token string `json:"token"`
 				Name  string `json:"name"`
 				URL   string `json:"url"`
+				// RelayID is the redeemer's own instance id, set when it has no
+				// address of its own to offer back. Absent from an older
+				// redeemer, and from any redeemer that does have an address -
+				// in which case the URL above is the better way to reach it and
+				// this stays empty.
+				RelayID string `json:"relayId"`
 				// The credential the redeemer minted for THIS instance to call
 				// it with. Absent from an older redeemer, which is fine: that
 				// peer is then called unauthenticated, as every peer was
@@ -399,16 +449,38 @@ func registerPairing(reg *Registry, a *app.App) {
 				http.Error(w, "that code is invalid or has expired", http.StatusBadRequest)
 				return
 			}
-			if err := addPeer(a, federation.Instance{Name: body.Name, URL: body.URL}); err != nil {
-				// The code itself was fine - this failed on the peer's name or
-				// address. Give it back, so retrying after fixing that works
-				// instead of reporting an expiry that never happened.
+			// Same as the redeem side: file under everything this peer can be
+			// addressed by, rather than guessing which one will be used.
+			peer := newPeerIdentity(body.Name, body.RelayID)
+			// At least one WAY IN, not merely a name. A name is a label; it is
+			// not somewhere this instance can call. Without this, a completion
+			// carrying only a name got a full-power token minted for a peer
+			// that can never be reached - and a relay id that is not shaped
+			// like one silently degrades to exactly that shape, so the two
+			// checks belong together.
+			if body.URL == "" && peer.RelayID == "" {
 				codes.restore(body.Token, expires)
-				http.Error(w, err.Error(), http.StatusBadRequest)
+				http.Error(w, "that instance offered no address and no usable relay id", http.StatusBadRequest)
 				return
 			}
+			// This side cannot test the redeemer's address - it is the one being
+			// called, not the one calling - so it uses the next best evidence:
+			// a peer the relay already makes visible needs no stored row, and
+			// adding one would put a possibly-dead address beside a live entry
+			// for the same machine.
+			_, relayVisible := findPeer(a, peer.RelayID)
+			if body.URL != "" && !relayVisible {
+				if err := addPeer(a, federation.Instance{Name: body.Name, URL: body.URL}); err != nil {
+					// The code itself was fine - this failed on the peer's name or
+					// address. Give it back, so retrying after fixing that works
+					// instead of reporting an expiry that never happened.
+					codes.restore(body.Token, expires)
+					http.Error(w, err.Error(), http.StatusBadRequest)
+					return
+				}
+			}
 			if body.PeerToken != "" {
-				if err := storePeerToken(a, body.Name, body.PeerToken); err != nil {
+				if err := storePeerTokens(a, peer, body.PeerToken); err != nil {
 					// Give the code back for the same reason the Add failure
 					// above does: this failed on the credential store, not on
 					// the code, and reporting an expiry that never happened
@@ -423,7 +495,7 @@ func registerPairing(reg *Registry, a *app.App) {
 			// redeemer that predates this ignores the body and simply calls
 			// this instance unauthenticated, which is exactly what it did
 			// before.
-			mintedID, forPeer, err := mintPeerToken(a, body.Name)
+			mintedID, forPeer, err := mintPeerToken(a, peer.canonical())
 			if err != nil {
 				// Same again: the code is fine, this instance's token store is
 				// not (full, or unwritable). A retry after clearing that out
@@ -453,7 +525,7 @@ func registerPairing(reg *Registry, a *app.App) {
 			// succeed into one that times out. Everything above is already
 			// stored; this only decides which sentence the redeemer shows.
 			pingCtx, cancel := context.WithTimeout(r.Context(), 4*time.Second)
-			reachable := a.Federation.Ping(pingCtx, body.Name) == nil
+			reachable := a.Federation.Ping(pingCtx, peer.canonical()) == nil
 			cancel()
 
 			// The previous credential for this peer is retired only once the
@@ -472,12 +544,95 @@ func registerPairing(reg *Registry, a *app.App) {
 			// clears it, and it is one revocable row on the Access tab
 			// meanwhile.
 			if reachable {
-				supersedePeerTokens(a, body.Name, mintedID)
+				supersedePeerTokens(a, peer.canonical(), mintedID)
 			} else {
 				// Unproven, so the older credential stays - but not forever:
 				// see keepPerPeer for why an unbounded pile is its own bug.
-				trimPeerTokens(a, body.Name, mintedID)
+				trimPeerTokens(a, peer.canonical(), mintedID)
 			}
 			writeJSON(w, map[string]any{"peerToken": forPeer, "reachedBack": reachable})
 		})
+}
+
+// deliverCompletion carries the completion payload to the instance that issued
+// the code, over whichever way in that code offered.
+//
+// Direct HTTP is preferred wherever it is available: it is one hop, it does not
+// depend on a third machine being up, and it does not put the exchange in front
+// of a relay operator. The relay is the fallback, and it is what makes pairing
+// possible at all between two instances that have no address either can dial -
+// the deployment the relay exists for, and the one where pairing used to be
+// impossible, so a password-protected instance there stayed unreachable
+// forever.
+//
+// Both ways end at the same handler: the receiving side's relay client serves a
+// proxied request through its own normal stack (see internal/api/routes_relay.go),
+// so /complete cannot tell the two apart and needs no second implementation.
+func deliverCompletion(ctx context.Context, a *app.App, hc *http.Client, offer pairingOffer, payload []byte) (status int, body []byte, viaRelay bool, err error) {
+	var directErr error
+	if offer.URL != "" {
+		status, body, err := postCompletion(ctx, hc, offer.URL, payload)
+		if err == nil {
+			return status, body, false, nil
+		}
+		directErr = err
+		if offer.RelayID == "" {
+			return 0, nil, false, err
+		}
+		// Fall through to the relay. An address in a code is what the issuing
+		// instance believes it is reachable at, and it is often right for
+		// somebody and wrong for somebody else - a NAS announcing its LAN
+		// address is unreachable from anywhere but that LAN, and refusing to
+		// pair there while both ends sit on the same relay is giving up with
+		// the answer in hand.
+		//
+		// Only on a TRANSPORT failure, never on an answer: a peer that replied
+		// at all, however badly, has seen this code, and asking again over
+		// another road would be asking it to redeem a one-time token twice. The
+		// narrow risk this leaves is a connection dying after the far side
+		// committed but before its answer arrived - the retry then reports the
+		// code as spent, which is confusing but true, and a fresh code works.
+	}
+	if offer.RelayID == "" {
+		return 0, nil, false, errors.New("that code carries no address and no relay id")
+	}
+	if !a.Federation.RelayConnected() {
+		// Named precisely, because the fix is specific: this code can only be
+		// redeemed over a relay, and this instance is not on one. "Could not
+		// reach it" would send somebody checking a network path that was never
+		// going to be used.
+		return 0, nil, false, errors.New("that code can only be redeemed over a relay, and this instance is not connected to one")
+	}
+	// Addressed by instance id, which is exactly how the relay routes and how
+	// federation already addresses a sibling - no new addressing scheme, and no
+	// need for the peer to be registered first: the relay makes every sibling
+	// reachable the moment it sees it.
+	rbody, code, err := a.Federation.Proxy(ctx, offer.RelayID, http.MethodPost, "/api/instances/pairing-code/complete", payload)
+	if err != nil {
+		if directErr != nil {
+			// Both roads failed, so both reasons are reported. Naming only the
+			// relay would hide that the address in the code did not work
+			// either, which is the half somebody can actually go and fix.
+			return 0, nil, false, fmt.Errorf("%w, and the relay could not reach it either: %v", directErr, err)
+		}
+		return 0, nil, false, fmt.Errorf("could not reach that instance over the relay: %w", err)
+	}
+	return code, rbody, true, nil
+}
+
+// postCompletion is the direct half of deliverCompletion: one ordinary HTTP
+// POST to the address a code carries.
+func postCompletion(ctx context.Context, hc *http.Client, base string, payload []byte) (int, []byte, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, base+"/api/instances/pairing-code/complete", bytes.NewReader(payload))
+	if err != nil {
+		return 0, nil, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := hc.Do(req)
+	if err != nil {
+		return 0, nil, fmt.Errorf("could not reach %s: %w", base, err)
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<12))
+	return resp.StatusCode, body, nil
 }

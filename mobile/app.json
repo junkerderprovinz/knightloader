@@ -11,6 +11,7 @@
       "bundleIdentifier": "com.junkerderprovinz.knightloader"
     },
     "android": {
+      "versionCode": 1,
       "package": "com.junkerderprovinz.knightloader",
       "adaptiveIcon": {
         "backgroundImage": "./assets/android-icon-background.png",

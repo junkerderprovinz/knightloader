@@ -15,6 +15,7 @@ export const et: Dict = {
   'connect.connectButton': 'Ühenda',
   'connect.qrHintAddress': 'Skannige QR-kood vahekaardilt Juurdepääs',
   'connect.qrAutofillNotice': 'Nimi ja aadress on võetud koodist. Seda tüüpi kood ei sisalda kunagi võtit - kleepige see käsitsi.',
+  'connect.qrRelayOnly': 'See kood ühendab kaks rakenduse KnightLoader eksemplari relee kaudu ja siin seda kasutada ei saa - see rakendus on klient, mitte eksemplar. Kasutage allpool valikut „Otse ei saa ühendust? Ühendu relee kaudu“ koos relee aadressi ja võtmega.',
   'connect.findButton': 'Otsi sellest võrgust',
   'connect.finding': 'Otsimine sellest võrgust…',
   'connect.foundNone': 'Sellest võrgust ei leitud midagi. Sisestage aadress käsitsi või skannige QR-kood vahekaardilt Juurdepääs.',

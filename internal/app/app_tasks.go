@@ -140,9 +140,8 @@ func (a *App) setTaskName(id, name string) {
 	// have, while a real batch (any sibling already named for real) is
 	// left standing untouched.
 	newPackage := t.Package
-	if guess := packageURLGuess(t); guess != "" && t.Package == guess && noSiblingHasARealNameYet(a.tasks, t) {
-		newPackage = sanitizeSegment(name)
-		t.Package = newPackage
+	if reguessPackageLocked(a.tasks, t, name) {
+		newPackage = t.Package
 	}
 	t.Name = name
 	c := *t
@@ -174,6 +173,31 @@ func (a *App) setTaskName(id, name string) {
 		_ = a.Store.Save(&siblings[i])
 		a.Hub.Broadcast("task", &siblings[i])
 	}
+}
+
+// reguessPackageLocked replaces a package that is still nothing but the URL
+// path's own guess with one built from the real name that has now arrived, and
+// reports whether it did.
+//
+// The condition is the one setTaskName reasons about at length just above -
+// lifted out rather than copied, because it is applied from a SECOND place
+// (regressGuessedPackages, app_links.go) and two copies of a rule this subtle
+// would drift apart on the first change to either.
+//
+// That second caller exists because the answer arrives from two directions and
+// neither can be relied on to come first: nameBucket decides a package from a
+// snapshot and writes it afterwards, so a probe answering in that gap sets the
+// real name while the package is still unset - this finds nothing to replace,
+// and the write then files a correctly-titled link under the guess anyway.
+//
+// Callers must already hold a.mu.
+func reguessPackageLocked(tasks map[string]*core.Task, t *core.Task, name string) bool {
+	guess := packageURLGuess(t)
+	if guess == "" || t.Package != guess || !noSiblingHasARealNameYet(tasks, t) {
+		return false
+	}
+	t.Package = sanitizeSegment(name)
+	return true
 }
 
 // packageURLGuess returns what fileStem's own URL-path fallback

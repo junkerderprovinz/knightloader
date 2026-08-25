@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { fetchTasks, type Task } from '../lib/api';
+import { ApiError, fetchTasks, type Task } from '../lib/api';
 import { fmtSpeed } from '../lib/format';
 import { useT } from '../lib/i18n';
 import { Card, Button, IconBadge } from './ui';
@@ -7,6 +7,14 @@ import { IconTrash } from '../lib/icons';
 
 interface Stats {
   online: boolean;
+  /**
+   * Reached, and it said no. Distinct from offline because the fix is
+   * different: a peer refuses once the credential pairing gave it stops being
+   * valid, which happens on its own the moment that peer sets or changes its
+   * password - every token it issued is revoked with it. Shown as plain
+   * offline, that reads as a machine somebody unplugged.
+   */
+  refused: boolean;
   active: number;
   total: number;
   speed: number;
@@ -23,9 +31,17 @@ function usePeerStats(base: string): Stats | null {
         if (!alive) return;
         const running = list.filter((x) => x.status === 'running' || x.status === 'extracting').length;
         const speed = list.reduce((s, x) => s + (x.status === 'running' ? x.speed : 0), 0);
-        setStats({ online: true, active: running, total: list.length, speed });
-      } catch {
-        if (alive) setStats({ online: false, active: 0, total: 0, speed: 0 });
+        setStats({ online: true, refused: false, active: running, total: list.length, speed });
+      } catch (e) {
+        // "It refused us" is not "it is switched off", and the two need
+        // opposite reactions. A peer stops accepting this instance whenever the
+        // credential pairing handed over stops being valid - most easily by
+        // that peer setting or changing its password, which revokes every token
+        // it ever issued. Reported as plain offline, that looks like a machine
+        // somebody unplugged, and the pairing that would fix it is the last
+        // thing anyone would try.
+        const refused = e instanceof ApiError && (e.status === 401 || e.status === 403);
+        if (alive) setStats({ online: false, refused, active: 0, total: 0, speed: 0 });
       }
     };
     load();
@@ -44,12 +60,14 @@ export function InstanceRow({ name, base, onOpen }: { name: string; base: string
   const { t } = useT();
   const stats = usePeerStats(base);
   const online = stats?.online ?? false;
+  const refused = stats?.refused ?? false;
+  const state = online ? t('instances.online') : refused ? t('instances.refused') : t('instances.offline');
   const body = (
     <>
       <span
         role="img"
-        aria-label={online ? t('instances.online') : t('instances.offline')}
-        title={online ? t('instances.online') : t('instances.offline')}
+        aria-label={state}
+        title={state}
         className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${online ? 'bg-statusOkSolid' : 'bg-statusFailSolid'}`}
       />
       <span className="min-w-0 flex-1 truncate text-[13.5px] text-carbon-text">{name}</span>
@@ -99,15 +117,22 @@ export function InstanceCard({
   const { t } = useT();
   const stats = usePeerStats(base);
   const online = stats?.online ?? false;
+  const refused = stats?.refused ?? false;
+  // Three states, one dot. Refused gets the warning colour rather than the
+  // failure one: the peer is there and answering, it just will not accept this
+  // instance - a different thing from a machine that is gone, and one a person
+  // fixes with a pairing code rather than by checking cables.
+  const state = online ? t('instances.online') : refused ? t('instances.refused') : t('instances.offline');
+  const dot = online ? 'bg-statusOkSolid' : refused ? 'bg-statusWarnSolid' : 'bg-statusFailSolid';
 
   return (
     <Card hover={!!onOpen} className="group flex h-full flex-col gap-3">
       <div className="flex items-center gap-2.5">
         <span
           role="img"
-          aria-label={online ? t('instances.online') : t('instances.offline')}
-          title={online ? t('instances.online') : t('instances.offline')}
-          className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${online ? 'bg-statusOkSolid' : 'bg-statusFailSolid'}`}
+          aria-label={state}
+          title={state}
+          className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${dot}`}
         />
         <span className="truncate font-semibold text-carbon-text">{name}</span>
         <span className="flex-1" />

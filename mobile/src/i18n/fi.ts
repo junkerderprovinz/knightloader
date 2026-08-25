@@ -15,6 +15,7 @@ export const fi: Dict = {
   'connect.connectButton': 'Yhdistä',
   'connect.qrHintAddress': 'Skannaa QR-koodi Käyttöoikeus-välilehdeltä',
   'connect.qrAutofillNotice': 'Nimi ja osoite haettu koodista. Tämäntyyppinen koodi ei koskaan sisällä tokenia - liitä se käsin.',
+  'connect.qrRelayOnly': 'Tuo koodi yhdistää kaksi KnightLoader-instanssia releen kautta, eikä sitä voi käyttää täällä - tämä sovellus on asiakas, ei instanssi. Käytä alempana kohtaa ”Eikö siihen saa suoraa yhteyttä? Yhdistä releen kautta” releen osoitteella ja avaimella.',
   'connect.findButton': 'Etsi tästä verkosta',
   'connect.finding': 'Etsitään tästä verkosta…',
   'connect.foundNone': 'Tästä verkosta ei löytynyt mitään. Anna osoite käsin tai skannaa QR-koodi Käyttöoikeus-välilehdeltä.',

@@ -7,7 +7,19 @@ import { base64Decode, bytesToUtf8 } from './base64';
 // carried twice - see that file for why neither is taken from the engine.
 export interface PairingOffer {
   name: string;
+  /** The direct address, empty for a code that can only be redeemed over a relay. */
   url: string;
+  /**
+   * The issuing instance's own id on its relay, empty for a plain code.
+   *
+   * The app cannot redeem such a code by itself - it has no federation of its
+   * own to register the other side with - but it must still RECOGNISE one,
+   * because the alternative is worse: an unrecognised code falls through to
+   * "this is a plain address" and the whole base64 blob lands in the address
+   * field, which is exactly the bug the QR scanner had before decodePairingCode
+   * existed.
+   */
+  relayId: string;
   token: string;
 }
 
@@ -21,10 +33,14 @@ export function decodePairingCode(code: string): PairingOffer | null {
     const bytes = base64Decode(code.trim());
     if (bytes.length === 0) return null;
     const parsed = JSON.parse(bytesToUtf8(bytes));
-    if (parsed && typeof parsed.u === 'string' && typeof parsed.t === 'string' && parsed.u && parsed.t) {
-      return { name: typeof parsed.n === 'string' ? parsed.n : '', url: parsed.u, token: parsed.t };
-    }
-    return null;
+    if (!parsed || typeof parsed.t !== 'string' || !parsed.t) return null;
+    const url = typeof parsed.u === 'string' ? parsed.u : '';
+    const relayId = typeof parsed.r === 'string' ? parsed.r : '';
+    // Either way in makes it a pairing code. Requiring the URL is what made a
+    // relay-only code read as "not a pairing code" and get treated as a plain
+    // address instead.
+    if (!url && !relayId) return null;
+    return { name: typeof parsed.n === 'string' ? parsed.n : '', url, relayId, token: parsed.t };
   } catch {
     return null;
   }

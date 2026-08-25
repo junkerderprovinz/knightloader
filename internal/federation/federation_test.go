@@ -397,27 +397,30 @@ func TestRelayConnectedDistinguishesUnreachableFromAbsent(t *testing.T) {
 	}
 }
 
-// TestARelayPeerCarriesNoCredential pins what is actually true today, because
-// a comment here once claimed the opposite and nothing tested it.
+// TestBothTransportsCarryTheirPeerCredential pins the symmetry the two
+// transports have to keep: each looks its credential up by the key it actually
+// ADDRESSES the peer as, and both find one.
 //
-// A stored peer is addressed by its pairing name, which is the key a peer
-// token is filed under, so an HTTP call carries one. A relay peer is addressed
-// by its 40-hex InstanceID, and no credential is ever filed under that -
-// pairing is an HTTP POST to the other side, which two instances that can only
-// meet over a relay cannot make.
-//
-// So this asserts an EMPTY Authorization for the relay transport and a
-// populated one for HTTP. If relay pairing is ever built, this test failing is
-// the correct and intended signal to update it.
-func TestARelayPeerCarriesNoCredential(t *testing.T) {
+// Not symmetric for a long time, and the asymmetry was invisible. A stored peer
+// is addressed by its pairing name, a relay peer by its 40-hex InstanceID - and
+// while pairing was HTTP-only, a relay peer's credential could only ever be
+// filed under a name. The lookup asked for an id, nothing matched, and relay
+// peers were called unauthenticated: a password-protected instance reachable
+// only that way refused every call, which is issue #26 surviving in precisely
+// the deployment the relay exists for.
+func TestBothTransportsCarryTheirPeerCredential(t *testing.T) {
 	m, err := Load(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}
-	// Filed the way production files them: under PAIRING NAMES only. Nothing
-	// ever writes a credential under an InstanceID, because the only thing
-	// that writes one is the pairing exchange, and that names its peer.
-	m.SetPeerTokens(staticTokens{"cellar": "secret-for-cellar", "Laptop": "the-relay-peer-s-display-name"})
+	// Filed the way the pairing exchange files them: a stored peer under its
+	// name, a relay peer under its instance id. The display name is present and
+	// deliberately unused - it is not an address and nothing may key on it.
+	m.SetPeerTokens(staticTokens{
+		"cellar":   "secret-for-cellar",
+		"id-bravo": "secret-for-the-relay-peer",
+		"Laptop":   "a-display-name-is-not-an-address",
+	})
 
 	rt := &fakeRelay{sibs: []relay.Announce{{InstanceID: "id-bravo", Name: "Laptop"}}}
 	m.SetRelay(rt)
@@ -425,16 +428,11 @@ func TestARelayPeerCarriesNoCredential(t *testing.T) {
 	if _, _, err := m.Proxy(context.Background(), "id-bravo", http.MethodGet, "/api/tasks", nil); err != nil {
 		t.Fatalf("relay proxy: %v", err)
 	}
-	// Empty, and note the second entry above: not even the peer's DISPLAY name
-	// helps, because a relay peer is addressed by its id and that is the key
-	// the lookup uses. Both halves of the gap in one assertion.
-	if rt.auth != "" {
-		t.Errorf("relay call carried Authorization %q, want none - no credential is filed under an InstanceID", rt.auth)
+	if rt.auth != "Bearer secret-for-the-relay-peer" {
+		t.Errorf("relay call carried %q, want the credential filed under the instance id - without it a password-protected relay peer answers 401 forever", rt.auth)
 	}
 
-	// The HTTP half, for contrast: same manager, same hook, a credential does
-	// travel - so an empty one above is about the key, not about the hook
-	// being unwired.
+	// The HTTP half, unchanged, for contrast.
 	var seen string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		seen = r.Header.Get("Authorization")

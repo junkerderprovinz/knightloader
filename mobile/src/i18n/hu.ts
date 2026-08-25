@@ -15,6 +15,7 @@ export const hu: Dict = {
   'connect.connectButton': 'Kapcsolódás',
   'connect.qrHintAddress': 'Olvasd be a QR-kódot a Hozzáférés lapról',
   'connect.qrAutofillNotice': 'A név és a cím a kódból származik. Ez a fajta kód sosem tartalmaz tokent - illeszd be kézzel.',
+  'connect.qrRelayOnly': 'Ez a kód két KnightLoader-példányt köt össze relén keresztül, és itt nem használható - ez az alkalmazás kliens, nem példány. Használd lentebb a „Nem érhető el közvetlenül? Kapcsolódj relén keresztül” lehetőséget a relé címével és kulcsával.',
   'connect.findButton': 'Keresés ezen a hálózaton',
   'connect.finding': 'Keresem ezen a hálózaton…',
   'connect.foundNone': 'Ezen a hálózaton nem található semmi. Add meg a címet kézzel, vagy olvasd be a QR-kódot a Hozzáférés lapról.',

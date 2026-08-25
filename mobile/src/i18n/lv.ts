@@ -15,6 +15,7 @@ export const lv: Dict = {
   'connect.connectButton': 'Savienot',
   'connect.qrHintAddress': 'Noskenējiet QR kodu no cilnes Piekļuve',
   'connect.qrAutofillNotice': 'Nosaukums un adrese iegūti no koda. Šāda veida kodā marķiera nekad nav - ielīmējiet to pašrocīgi.',
+  'connect.qrRelayOnly': 'Šis kods savieno divas „KnightLoader“ instances caur releju, un šeit to izmantot nevar - šī lietotne ir klients, nevis instance. Izmantojiet zemāk „Nav tieši sasniedzama? Savienojieties caur releju“ ar releja adresi un atslēgu.',
   'connect.findButton': 'Meklēt šajā tīklā',
   'connect.finding': 'Meklē šajā tīklā…',
   'connect.foundNone': 'Šajā tīklā nekas netika atrasts. Ievadiet adresi pašrocīgi vai noskenējiet QR kodu no cilnes Piekļuve.',

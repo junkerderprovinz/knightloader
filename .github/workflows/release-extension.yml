@@ -1,0 +1,82 @@
+name: Release (browser extension)
+
+# The extension carries its own version in src/manifest.json and is tagged on
+# its own, for the same reason the app is: it is installed separately and
+# upgrades separately.
+#
+# ONE honest caveat, because the shape here is unusual. The copy most people
+# run does NOT come from this release: Settings > Browser tools serves a zip
+# built from the extension embedded in whatever server binary they are running
+# (extension/embed.go), so that copy tracks the server, not this tag. This tag
+# and its zip exist for a browser store submission and for anyone who wants a
+# fixed, downloadable build - not as the primary channel.
+on:
+  push:
+    tags:
+      - "extension/v*.*.*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  zip:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "24"
+
+      - name: Tag matches the manifest
+        if: github.ref_type == 'tag'
+        run: |
+          tagged="${GITHUB_REF_NAME#extension/v}"
+          declared=$(node -p "require('./extension/src/manifest.json').version")
+          if [ "$tagged" != "$declared" ]; then
+            echo "::error::tag says $tagged, manifest.json says $declared - bump the manifest before tagging."
+            exit 1
+          fi
+          echo "version $declared"
+
+      # action-gh-release swallows an unreadable body_path and publishes an
+      # EMPTY release, with only a warning buried in the log - quieter than a
+      # failure and just as wrong. release.yml probes for the file and falls
+      # back to generated notes; here a release without hand-written notes is a
+      # mistake, so it stops instead.
+      - name: Notes exist for this tag
+        if: github.ref_type == 'tag'
+        run: |
+          file=".github/release-notes/${GITHUB_REF_NAME}.md"
+          if [ ! -s "$file" ]; then
+            echo "::error::no release notes at $file - write them before tagging."
+            exit 1
+          fi
+          wc -l "$file"
+
+      # The same gate CI runs, repeated here rather than assumed: a release is
+      # exactly the moment a locale short one key would ship unnoticed.
+      - name: Syntax and locale parity
+        run: |
+          for f in extension/src/*.js; do node --check "$f"; done
+          node extension/check-locales.mjs
+
+      # src/ ships as plain files - no build step - so the zip is the directory
+      # itself. Built from src/ rather than from the repo root so the archive
+      # unpacks to a loadable extension rather than to a path.
+      - name: Zip it
+        id: zip
+        run: |
+          v="${GITHUB_REF_NAME#extension/v}"
+          out="knightloader-extension-$v.zip"
+          (cd extension/src && zip -qr "../../$out" .)
+          echo "path=$out" >> "$GITHUB_OUTPUT"
+          ls -l "$out"
+
+      - uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3
+        with:
+          name: ${{ github.ref_name }}
+          body_path: .github/release-notes/${{ github.ref_name }}.md
+          files: ${{ steps.zip.outputs.path }}

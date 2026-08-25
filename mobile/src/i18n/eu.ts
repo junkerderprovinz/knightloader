@@ -15,6 +15,7 @@ export const eu: Dict = {
   'connect.connectButton': 'Konektatu',
   'connect.qrHintAddress': 'Eskaneatu QR kodea Sarbidea fitxatik',
   'connect.qrAutofillNotice': 'Izena eta helbidea kodetik hartu dira. Kode mota honek ez du inoiz tokenik izaten - itsatsi eskuz.',
+  'connect.qrRelayOnly': 'Kode horrek bi KnightLoader instantzia lotzen ditu erlai baten bidez, eta hemen ezin da erabili - aplikazio hau bezeroa da, ez instantzia. Erabili beherago dagoen «Ezin duzu zuzenean atzitu? Konektatu erlai baten bidez» aukera, erlaiaren helbidea eta gakoa sartuta.',
   'connect.findButton': 'Bilatu sare honetan',
   'connect.finding': 'Sare honetan bilatzen…',
   'connect.foundNone': 'Ez da ezer aurkitu sare honetan. Idatzi helbidea eskuz, edo eskaneatu QR kodea Sarbidea fitxatik.',

@@ -191,7 +191,16 @@ export default function ConnectScreen({
         onScanned={(data) => {
           setScanning(false);
           const offer = decodePairingCode(data);
-          if (offer) {
+          if (offer && !offer.url) {
+            // A code that can only be redeemed over a relay. Recognised so it
+            // never falls through to "this is a plain address", but not usable
+            // here: redeeming it means registering the other instance as a
+            // federation peer, and this app is a client, not an instance. Said
+            // plainly instead of half-filling the form.
+            if (offer.name) setName(offer.name.trim());
+            setError(t('connect.qrRelayOnly'));
+            setNotice(null);
+          } else if (offer) {
             setUrl(offer.url.trim());
             if (offer.name) setName(offer.name.trim());
             setNotice(t('connect.qrAutofillNotice'));

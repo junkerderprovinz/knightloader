@@ -4,10 +4,39 @@ All notable changes to KnightLoader. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Versioning
+
+Three things here are installed separately and upgrade separately, so they are
+versioned and tagged separately. An APK on a phone does not change when a
+container is pulled, and a browser extension does not change because a server
+did - tying them to one number would mean either bumping it for changes it does
+not contain, or not bumping it for changes it does.
+
+| What | Version lives in | Tag |
+| --- | --- | --- |
+| KnightLoader itself (server, web UI, desktop) | the tag | `vX.Y.Z` |
+| Android app | `mobile/app.json` (`expo.version` **and** `expo.android.versionCode`) | `mobile/vX.Y.Z` |
+| Browser extension | `extension/src/manifest.json` | `extension/vX.Y.Z` |
+
+Each tag runs its own workflow and no other: a `*` in a GitHub ref filter does
+not cross a `/`, so `mobile/v1.0.0` is invisible to the bare `v*.*.*` pattern
+and the reverse. Each workflow refuses a tag whose version does not match the
+file it claims to describe.
+
+`versionCode` matters as much as the version string: Android decides upgrade
+order by it, and it must go up on every build you hand anybody, even when the
+version name is unchanged.
+
+The copy of the extension most people run does not come from its tag. Settings
+> Browser tools serves a zip built from the copy embedded in whatever server
+binary is running, so that one tracks the server. The tag exists for a store
+submission and for a fixed download.
+
 ## [Unreleased]
 
-Nothing is released yet: the name and the first tag are still open. What
-follows is what exists and runs.
+This section is KnightLoader itself, which has no tag yet: the name and the
+first release are still open. The app and the extension are tagged already -
+see Versioning above.
 
 ### Added
 
@@ -47,6 +76,15 @@ follows is what exists and runs.
   directions and gives each side its own named, revocable credential for the
   other. Neither has to be reachable from the internet. Reachability is
   reported per direction, because it fails per direction.
+- **Pairing over a relay**: two instances with no address either can dial pair
+  through the relay they already share, which is the one case pairing could not
+  cover before - so a password-protected instance there refused every call
+  forever. That includes two containers behind separate NATs, each announcing a
+  LAN address the other cannot use: a code that carries an address tries it
+  first and falls back to the relay when it does not carry, and the credential
+  is filed under every key the peer can be addressed by rather than under a
+  guess about which one will be used. A desktop build can issue a code now for
+  the same reason.
 - **Connect from anywhere**: the Android app finds servers on its own network
   and fills the address in; the browser extension can send to a peer that has
   no address of its own, by routing through an instance that does; the desktop
@@ -108,6 +146,18 @@ follows is what exists and runs.
 
 ### Security
 
+- The relay identifier in a pairing completion is checked for shape before it is
+  used as a credential key. `/complete` accepts a pairing code without
+  authentication, so an unchecked field there was a free hand at the key space
+  every peer already lives in: naming an existing peer got a full-power token
+  minted and labelled after it, and then had that peer's real credential revoked
+  as a superseded duplicate - inbound federation from it dying silently, with
+  nothing visible on any page. An instance id is 40 hex characters and a pairing
+  name is capped at 32, so checking the shape separates the two key spaces
+  entirely.
+- A pairing completion must offer a way to be reached - an address, or a usable
+  relay identifier. A name alone is a label, not somewhere to call, and minting
+  a full-power token for one was work done on behalf of nobody.
 - A pairing code naming an instance you are ALREADY paired with can no longer
   walk off with that peer's credential. Registering a peer overwrites by name
   and a credential is filed by name, so re-pointing a name at a new address
@@ -139,6 +189,16 @@ follows is what exists and runs.
 
 ### Fixed
 
+- A peer that REFUSES this instance is no longer shown as simply offline. That
+  happens on its own whenever the other side sets or changes its password -
+  every credential it ever issued is revoked with it - and reported as offline
+  it reads as a machine somebody unplugged, so the pairing that would fix it is
+  the last thing anyone would try. The status dot has a third state now, and it
+  names the pairing code.
+- A YouTube link no longer lands in a folder called "watch" when its title
+  arrives quickly. The name and the folder were decided by two things racing,
+  and the one that lost left the guessed folder in place - so the fix worked
+  only when the title took its time.
 - An instance whose name is not plain ASCII, or is longer than 32 characters,
   can be paired at all. The name is folded into one that works as a URL path
   segment ("Bürglers Keller" becomes "Burglers Keller"); before, the far side

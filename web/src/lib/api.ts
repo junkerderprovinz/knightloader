@@ -630,12 +630,23 @@ export type ContainerResult = ContainerStaged | ContainerHandedOver;
 export class ApiError extends Error {
   code?: string;
   params?: Record<string, string | number>;
+  /**
+   * The HTTP status the request failed with, when there was one.
+   *
+   * Carried because some failures need telling apart and the sentence alone
+   * cannot do it: a peer that REFUSED a call and a peer that could not be
+   * reached both surface as an exception, and they need completely different
+   * things from the user - a pairing code in one case, a look at the network in
+   * the other.
+   */
+  status?: number;
 
-  constructor(message: string, code?: string, params?: Record<string, string | number>) {
+  constructor(message: string, code?: string, params?: Record<string, string | number>, status?: number) {
     super(message);
     this.name = 'ApiError';
     this.code = code;
     this.params = params;
+    this.status = status;
   }
 }
 
@@ -663,7 +674,7 @@ async function json<T>(r: Response): Promise<T> {
       if (e instanceof ApiError) throw e;
       // Not JSON at all, which is the ordinary case.
     }
-    throw new ApiError(body || String(r.status));
+    throw new ApiError(body || String(r.status), undefined, undefined, r.status);
   }
   return (await r.json()) as T;
 }
@@ -1985,7 +1996,7 @@ export async function generatePairingCode(): Promise<PairingCode> {
 /** redeemPairingCode both adds the peer behind `code` here AND registers this instance back with it - one action, both directions. */
 export async function redeemPairingCode(
   code: string,
-): Promise<{ name: string; url: string; online: boolean; reachedBack: boolean }> {
+): Promise<{ name: string; url: string; online: boolean; reachedBack: boolean; viaRelay: boolean }> {
   const r = await fetch('/api/instances/pairing-code/redeem', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

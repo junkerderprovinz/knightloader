@@ -15,6 +15,7 @@ export const cs: Dict = {
   'connect.connectButton': 'Připojit',
   'connect.qrHintAddress': 'Naskenujte QR kód z karty Přístup',
   'connect.qrAutofillNotice': 'Název a adresa převzaty z kódu. Tento typ kódu nikdy neobsahuje token - vložte ho ručně.',
+  'connect.qrRelayOnly': 'Tento kód propojuje dvě instance aplikace KnightLoader přes relé a tady ho použít nelze - tato aplikace je klient, ne instance. Použijte níže „Není přímo dostupná? Připojte se přes relé“ s adresou a klíčem relé.',
   'connect.findButton': 'Najít v této síti',
   'connect.finding': 'Hledání v této síti…',
   'connect.foundNone': 'V této síti se nic nenašlo. Zadejte adresu ručně, nebo naskenujte QR kód z karty Přístup.',
