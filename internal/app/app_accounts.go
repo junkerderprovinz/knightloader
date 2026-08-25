@@ -121,7 +121,17 @@ func (a *App) rewireBackends() {
 		// downloads - or between a pause and its resume - must take effect on
 		// the next spawn without a restart, the same reason RateLimit and Dir
 		// just above are both closures rather than values copied in here.
-		yb.Options = func() ytdlp.Options { return a.Settings.Get().Ytdlp }
+		// Per-task now (jdp, 2026-08-25's "Variante" rows): the base is
+		// still the instance-wide defaults (subtitle language, playlist,
+		// output template - nothing this task's own Variant string
+		// overrides), but Variant/Quality/AudioFormat come from THIS
+		// task's own core.Task.Variant, set once at variant-expansion time
+		// (see expandYtdlpVariants) and editable afterwards from the
+		// list's own "Variante" column - see variantOptions's own doc
+		// comment for the encoding.
+		yb.Options = func(taskID string) ytdlp.Options {
+			return a.ytdlpOptionsForTask(taskID)
+		}
 		newYtdlp = yb
 		a.Registry.Register(ytdlp.Resolver{ExcludeHosts: ytdlpExclude})
 		log.Printf("yt-dlp backend enabled: %s", ytbin)

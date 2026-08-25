@@ -10,14 +10,24 @@ import {
   type PointerEvent,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { priorityChoices, type PriorityChoice, type Task, type TaskOptionsPatch } from '../lib/api';
+import {
+  priorityChoices,
+  type PriorityChoice,
+  type Task,
+  type TaskOptionsPatch,
+  type YtdlpHosterPreset,
+  YTDLP_VARIANT_KINDS,
+  fetchHosterPreset,
+  fetchOptions,
+  saveHosterPreset,
+} from '../lib/api';
 import { hueVars, rainbowAt } from '../lib/appearance';
 import { useRainbow } from '../lib/useRainbow';
 import { pause, resume, remove, startTasks, restartTasks, recheckTasks, setTaskOptions, reorderTasks } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { useUIState } from '../lib/uistate';
-import { Button, Card, Field, FieldGroup, IconBadge, InfoBubble, SectionTitle, TextArea, TextInput } from './ui';
+import { Button, Card, Field, FieldGroup, IconBadge, InfoBubble, Modal, SectionTitle, TextArea, TextInput } from './ui';
 import { Tabs } from './Tabs';
 import { TaskOptionsDialog } from './ListToolbar';
 import { ColumnMenu } from './ColumnMenu';
@@ -26,12 +36,14 @@ import {
   Checkbox,
   FOLDER_GLYPH,
   TREE_INDENT,
+  VARIANT_KIND_LABEL_KEY,
   applySort,
   gridTemplate,
   moveColumn,
   nextSort,
   resolveLayout,
   toStored,
+  variantKindOf,
   type CellContext,
   type ColumnDef,
   type ColumnId,
@@ -47,6 +59,7 @@ import {
   IconRetry,
   IconFolder,
   IconSearch,
+  IconSettings,
   IconArrowUp,
   IconArrowDown,
 } from '../lib/icons';
@@ -446,6 +459,154 @@ function PackageName({
   );
 }
 
+/**
+ * The gear badge a yt-dlp-routed package's header carries (jdp, 2026-08-25:
+ * "auf dem link-ordner soll ein zahnrad-badge sein der mich zu den
+ * voreinstellungen des Hosters führt") - it opens that link's own host's
+ * "Variante" preset: which of the five rows (video/audio/thumbnail/
+ * subtitle/description) a NEW link from this host starts with enabled, and
+ * the default quality/audio format those rows start on. Not per-package -
+ * per-HOST (GET/POST /api/ytdlp/preset), the same as every other link from
+ * the same site, so a package with more than one host shows the badge for
+ * whichever host its own "Variante" rows actually share.
+ */
+function HosterPresetButton({ host, base }: { host: string; base: string }) {
+  const { t } = useT();
+  const [open, setOpen] = useState(false);
+  const label = `${t('collector.hosterPreset')} · ${host}`;
+  return (
+    <>
+      <IconBadge
+        hue={0}
+        icon={<IconSettings width={16} height={16} />}
+        title={label}
+        aria-label={label}
+        onClick={() => setOpen(true)}
+      />
+      {open &&
+        createPortal(<HosterPresetDialog host={host} base={base} onClose={() => setOpen(false)} />, document.body)}
+    </>
+  );
+}
+
+function HosterPresetDialog({ host, base, onClose }: { host: string; base: string; onClose: () => void }) {
+  const { t } = useT();
+  const { toast } = useToast();
+  const [preset, setPreset] = useState<YtdlpHosterPreset | null>(null);
+  const [qualities, setQualities] = useState<string[]>([]);
+  const [audioFormats, setAudioFormats] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let live = true;
+    void Promise.all([fetchHosterPreset(host, base), fetchOptions()]).then(
+      ([p, o]) => {
+        if (!live) return;
+        setPreset(p);
+        setQualities(o.ytdlpQualities ?? []);
+        setAudioFormats(o.ytdlpAudioFormats ?? []);
+      },
+      (err) => {
+        if (live) setError(err instanceof Error && err.message ? err.message : String(err));
+      },
+    );
+    return () => {
+      live = false;
+    };
+  }, [host, base]);
+
+  function toggleVariant(kind: (typeof YTDLP_VARIANT_KINDS)[number]) {
+    setPreset((p) => {
+      if (!p) return p;
+      const on = p.variants.includes(kind);
+      return { ...p, variants: on ? p.variants.filter((v) => v !== kind) : [...p.variants, kind] };
+    });
+  }
+
+  async function save() {
+    if (!preset) return;
+    setSaving(true);
+    try {
+      await saveHosterPreset(host, preset, base);
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error && err.message ? err.message : String(err));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Modal
+      title={`${t('collector.hosterPreset')} · ${host}`}
+      onClose={onClose}
+      footer={
+        <>
+          <Button onClick={() => void save()} disabled={!preset || saving}>
+            {t('settings.save')}
+          </Button>
+          {error && <span className="text-sm text-statusFail">{error}</span>}
+        </>
+      }
+    >
+      {!preset ? (
+        <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>
+      ) : (
+        <>
+          <p className="text-sm text-carbon-textMuted">{t('collector.hosterPresetIntro', { host })}</p>
+
+          <FieldGroup label={t('columns.variant')}>
+            <div className="flex flex-col gap-1.5">
+              {YTDLP_VARIANT_KINDS.map((kind) => {
+                const kindLabel = t(VARIANT_KIND_LABEL_KEY[kind] ?? VARIANT_KIND_LABEL_KEY.video);
+                return (
+                  <div key={kind} className="flex items-center gap-2 text-sm text-carbon-text">
+                    <Checkbox
+                      checked={preset.variants.includes(kind)}
+                      label={kindLabel}
+                      onChange={() => toggleVariant(kind)}
+                    />
+                    <span className="cursor-pointer" onClick={() => toggleVariant(kind)}>
+                      {kindLabel}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </FieldGroup>
+
+          {qualities.length > 0 && (
+            <FieldGroup label={t('settings.resolvers.quality')}>
+              <Tabs
+                size="sm"
+                className="w-fit"
+                label={t('settings.resolvers.quality')}
+                active={preset.quality}
+                onSelect={(id) => setPreset((p) => (p ? { ...p, quality: id } : p))}
+                items={qualities.map((q) => ({ id: q, label: q }))}
+              />
+            </FieldGroup>
+          )}
+
+          {audioFormats.length > 0 && (
+            <FieldGroup label={t('collector.hosterPresetAudioFormat')}>
+              <Tabs
+                size="sm"
+                className="w-fit"
+                label={t('collector.hosterPresetAudioFormat')}
+                active={preset.audioFormat}
+                onSelect={(id) => setPreset((p) => (p ? { ...p, audioFormat: id } : p))}
+                items={audioFormats.map((f) => ({ id: f, label: f }))}
+              />
+            </FieldGroup>
+          )}
+        </>
+      )}
+    </Modal>
+  );
+}
+
 // Anything that is itself a control keeps its own click. Everything else on a
 // package header folds it, which is what people try first and what JDownloader
 // does.
@@ -482,6 +643,7 @@ function PackageGroup({
   const { t } = useT();
   const allSelected = selection && items.every((x) => selection.ids.has(x.id));
   const dragging = dnd.draggingPackage === name;
+  const ytdlpHost = items.find((x) => variantKindOf(x) && x.host)?.host;
 
   return (
     <section>
@@ -550,9 +712,13 @@ function PackageGroup({
           </div>
         ))}
 
-        {/* The actions gutter, empty in a header row. One cell per track: a
-            spare one wraps the grid onto a second line. */}
-        <span />
+        {/* The actions gutter - empty for most packages, but the gear badge
+            for one whose own "Variante" rows share a host (variantKindOf is
+            '' for anything not yt-dlp-routed). One cell per track: a spare
+            one wraps the grid onto a second line. */}
+        <div className="flex items-center justify-end">
+          {ytdlpHost && <HosterPresetButton host={ytdlpHost} base={base} />}
+        </div>
       </div>
 
       {!collapsed && (

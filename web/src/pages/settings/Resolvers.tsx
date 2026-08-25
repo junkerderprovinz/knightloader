@@ -5,11 +5,12 @@ import { fetchOptions, type YtdlpOptions } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft, useFeatures } from './context';
 
-// Keyed by the id the server sends (YtdlpOptions.quality/subtitles and the
-// /api/options menus below), each pointing at the real settings.resolvers.*
-// catalogue entry rather than embedding English text here - an id neither
-// list has a key for still falls back to the raw id, the same "never a
-// blank tab" rule QUALITY_LABELS used before this page had any i18n at all.
+// Keyed by the id the server sends (YtdlpOptions.quality and the
+// /api/options ytdlpQualities menu below), each pointing at the real
+// settings.resolvers.* catalogue entry rather than embedding English text
+// here - an id the list has no key for still falls back to the raw id, the
+// same "never a blank tab" rule QUALITY_LABELS used before this page had
+// any i18n at all. Read only on a video row - see YtdlpOptions.quality.
 const QUALITY_KEYS: Record<string, TranslationKey> = {
   best: 'settings.resolvers.quality.best',
   '2160p': 'settings.resolvers.quality.2160p',
@@ -18,14 +19,7 @@ const QUALITY_KEYS: Record<string, TranslationKey> = {
   '720p': 'settings.resolvers.quality.720p',
   '480p': 'settings.resolvers.quality.480p',
   '360p': 'settings.resolvers.quality.360p',
-  audioOnly: 'settings.resolvers.quality.audioOnly',
   custom: 'settings.resolvers.quality.custom',
-};
-
-const SUBTITLE_KEYS: Record<string, TranslationKey> = {
-  off: 'settings.resolvers.subtitles.off',
-  file: 'settings.resolvers.subtitles.file',
-  embed: 'settings.resolvers.subtitles.embed',
 };
 
 /**
@@ -49,18 +43,16 @@ export function Resolvers() {
   const { features } = useFeatures();
 
   const [qualities, setQualities] = useState<string[]>([]);
-  const [subtitleModes, setSubtitleModes] = useState<string[]>([]);
   useEffect(() => {
     let live = true;
     void fetchOptions().then(
       (o) => {
         if (!live) return;
         setQualities(o.ytdlpQualities ?? []);
-        setSubtitleModes(o.ytdlpSubtitleModes ?? []);
       },
       () => {
         /* the page still renders with whatever is already stored; the
-           pickers stay out rather than offering a guess at the menus */
+           picker stays out rather than offering a guess at the menu */
       },
     );
     return () => {
@@ -123,69 +115,27 @@ export function Resolvers() {
         />
       </Card>
 
-      {/* Which extra files a download produces beside the video itself
-          (jdp, 2026-08-25: "ich möchte alle dateitype aktiveren und
-          deaktivieren können... video, audio, bild, txt") - subtitles
-          already had their own card below (its own language/auto knobs
-          need the room), so this one covers the other three: the cover
-          image, a plain-text description, and a standalone audio copy
-          kept alongside the video rather than replacing it (quality
-          "audioOnly" already covers audio-instead-of-video). */}
-      <Card className="flex flex-col gap-3">
-        <SectionTitle hue={2}>{t('settings.resolvers.extraFiles')}</SectionTitle>
-        <ToggleRow
-          checked={ytdlp.thumbnail}
-          onChange={(v) => patchYtdlp({ thumbnail: v })}
-          label={t('settings.resolvers.thumbnail')}
-        />
-        <ToggleRow
-          checked={ytdlp.description}
-          onChange={(v) => patchYtdlp({ description: v })}
-          label={t('settings.resolvers.description')}
-        />
-        {ytdlp.quality !== 'audioOnly' && (
-          <ToggleRow
-            checked={ytdlp.keepAudio}
-            onChange={(v) => patchYtdlp({ keepAudio: v })}
-            label={t('settings.resolvers.keepAudio')}
-            hint={t('settings.resolvers.keepAudioHint')}
-          />
-        )}
-      </Card>
-
+      {/* Whether a subtitle row exists at all, per hoster, lives on that
+          hoster's own "Variante" preset now (the gear badge on a link's
+          package row) - this card is only the two knobs that still apply
+          instance-wide once a subtitle row is enabled: which languages and
+          whether auto-generated captions count. */}
       <Card className="flex flex-col gap-5">
         <SectionTitle hue={3}>{t('settings.resolvers.subtitles')}</SectionTitle>
-        {subtitleModes.length > 0 && (
-          <FieldGroup label={t('settings.resolvers.subtitles')} hint={t('settings.resolvers.subtitlesHint')}>
-            <Tabs
-              size="sm"
-              className="w-fit"
-              label={t('settings.resolvers.subtitles')}
-              active={ytdlp.subtitles}
-              onSelect={(id) => patchYtdlp({ subtitles: id })}
-              items={subtitleModes.map((m) => ({ id: m, label: SUBTITLE_KEYS[m] ? t(SUBTITLE_KEYS[m]) : m }))}
-            />
-          </FieldGroup>
-        )}
-
-        {ytdlp.subtitles !== 'off' && (
-          <>
-            <Field label={t('settings.resolvers.subtitleLangs')} hint={t('settings.resolvers.subtitleLangsHint')}>
-              <TextInput
-                dir="ltr"
-                value={ytdlp.subtitleLangs}
-                placeholder="en"
-                spellCheck={false}
-                onChange={(e) => patchYtdlp({ subtitleLangs: e.target.value })}
-              />
-            </Field>
-            <ToggleRow
-              checked={ytdlp.subtitleAuto}
-              onChange={(v) => patchYtdlp({ subtitleAuto: v })}
-              label={t('settings.resolvers.subtitleAuto')}
-            />
-          </>
-        )}
+        <Field label={t('settings.resolvers.subtitleLangs')} hint={t('settings.resolvers.subtitleLangsHint')}>
+          <TextInput
+            dir="ltr"
+            value={ytdlp.subtitleLangs}
+            placeholder="en"
+            spellCheck={false}
+            onChange={(e) => patchYtdlp({ subtitleLangs: e.target.value })}
+          />
+        </Field>
+        <ToggleRow
+          checked={ytdlp.subtitleAuto}
+          onChange={(v) => patchYtdlp({ subtitleAuto: v })}
+          label={t('settings.resolvers.subtitleAuto')}
+        />
       </Card>
 
       <Card className="flex flex-col gap-5">

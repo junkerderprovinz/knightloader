@@ -89,7 +89,7 @@ export const en = {
   'collector.placeholder': 'Paste links — one URL per line — or drop them here…  (Ctrl+Enter to add)',
   'collector.package': 'Package (optional)',
   'collector.add': 'Add to collector',
-  'collector.addTitle': 'Links',
+  'collector.addTitle': 'New links',
   'collector.empty': 'The collector is empty. Paste some links above to stage them.',
   'collector.staged': 'staged',
   'collector.selected': 'selected',
@@ -1225,6 +1225,9 @@ export const en = {
   'collector.stats.links': 'Links',
   'collector.stats.totalSize': 'Total size',
   'collector.stats.hosts': 'Hosts',
+  'collector.hosterPreset': 'Variant settings',
+  'collector.hosterPresetIntro': 'Which variants new links from {host} collect, and at what quality.',
+  'collector.hosterPresetAudioFormat': 'Audio format',
 
   // The ambient-activity status strip (components/StatusStrip.tsx, Wave 9's
   // 9A) - its LABEL record and formatCount()/tooltip strings were left
@@ -1272,6 +1275,12 @@ export const en = {
   'columns.peers': 'Peers',
   'columns.seeds': 'Seeds',
   'columns.ratio': 'Ratio',
+  'columns.variant': 'Variant',
+  'columns.variant.video': 'Video',
+  'columns.variant.audio': 'Audio',
+  'columns.variant.thumbnail': 'Thumbnail',
+  'columns.variant.subtitle': 'Subtitles',
+  'columns.variant.description': 'Description',
 
   // Reaching a task's own file (components/FileActions.tsx, Wave 10's 10G) -
   // "Open" streams it through the browser; the other two are desktop-only and
@@ -1722,23 +1731,12 @@ export const en = {
   'settings.resolvers.quality.720p': 'Up to 720p',
   'settings.resolvers.quality.480p': 'Up to 480p',
   'settings.resolvers.quality.360p': 'Up to 360p',
-  'settings.resolvers.quality.audioOnly': 'Audio only',
   'settings.resolvers.quality.custom': 'Custom format string',
   'settings.resolvers.customFormat': 'Custom format',
   'settings.resolvers.customFormatHint':
     "yt-dlp's own -f value, e.g. bestvideo[height<=720]+bestaudio/best. Passed through unexamined; a value yt-dlp rejects fails with its own error on the task.",
   'settings.resolvers.playlist': 'Download the whole playlist when a link points into one',
-  'settings.resolvers.extraFiles': 'Extra files',
-  'settings.resolvers.thumbnail': 'Save the cover image',
-  'settings.resolvers.description': "Save the page's own description as a text file",
-  'settings.resolvers.keepAudio': 'Also keep a separate audio file',
-  'settings.resolvers.keepAudioHint':
-    "Alongside the video, not instead of it - for audio only, set Quality to \"Audio only\" above.",
   'settings.resolvers.subtitles': 'Subtitles',
-  'settings.resolvers.subtitlesHint': 'Off is what every download did before this setting existed.',
-  'settings.resolvers.subtitles.off': 'Off',
-  'settings.resolvers.subtitles.file': 'Save alongside the video',
-  'settings.resolvers.subtitles.embed': 'Embed into the video',
   'settings.resolvers.subtitleLangs': 'Languages',
   'settings.resolvers.subtitleLangsHint': "yt-dlp's own --sub-langs value, e.g. en,de. Empty defaults to en.",
   'settings.resolvers.subtitleAuto': 'Also fetch auto-generated captions when no manual track exists',

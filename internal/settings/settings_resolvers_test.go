@@ -41,7 +41,6 @@ func TestYtdlpOptionsSurviveTheStoreRoundTrip(t *testing.T) {
 	n := Defaults()
 	n.Ytdlp = ytdlp.Options{
 		Quality:        ytdlp.Quality1080p,
-		Subtitles:      ytdlp.SubtitlesEmbed,
 		SubtitleLangs:  "en,de",
 		SubtitleAuto:   true,
 		Playlist:       true,

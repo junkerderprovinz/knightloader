@@ -33,12 +33,16 @@ type Backend struct {
 	// to the backend's default directory.
 	Dir func(taskID string) string
 
-	// Options, when set, returns the current instance-wide yt-dlp
-	// configuration - format/quality, subtitles, the output template,
-	// playlist handling. nil reads exactly like Options{}, the zero value
-	// that reproduces this backend's pre-Options behaviour, matching
+	// Options, when set, returns the yt-dlp configuration for ONE task -
+	// which variant it is, format/quality, subtitles, the output template,
+	// playlist handling - the same per-task shape Dir already uses just
+	// above, and for the identical reason: five sibling tasks sharing one
+	// source URL (jdp, 2026-08-25's "Variante" rows) each need their OWN
+	// answer, not one instance-wide value applied to all of them. nil, or
+	// a nil return for one taskID, reads exactly like Options{}, the zero
+	// value that reproduces this backend's pre-Options behaviour, matching
 	// RateLimit's own "nil means no opinion" contract.
-	Options func() Options
+	Options func(taskID string) Options
 
 	mu     sync.Mutex
 	cancel map[string]context.CancelFunc
@@ -88,7 +92,7 @@ func (b *Backend) run(taskID, url string) {
 	}
 	var opts Options
 	if b.Options != nil {
-		opts = b.Options()
+		opts = b.Options(taskID)
 	}
 	args := buildArgs(dir, opts)
 	if b.RateLimit != nil {
@@ -263,38 +267,40 @@ func buildArgs(dir string, o Options) []string {
 	if !o.Playlist {
 		args = append(args, "--no-playlist")
 	}
-	switch {
-	case o.Quality == QualityAudioOnly:
+	// Branches on the VARIANT this one task is - which of the source's own
+	// forms it downloads - rather than folding every possible extra file
+	// onto a single video job (jdp, 2026-08-25, after a first attempt at
+	// this same request built exactly that instead: "ich glaub du hast
+	// nicht verstanden was ich mein... genau so soll es auch in KL sein",
+	// pointing at JD's own five independently keepable rows per link -
+	// video, audio, thumbnail, subtitles, description - each its own task
+	// here now, so each gets its own args and its own Enabled switch
+	// rather than a bundle of booleans on one task nobody could turn off
+	// individually).
+	switch o.Variant {
+	case VariantAudio:
 		args = append(args, "-f", "bestaudio/best", "-x")
-	default:
-		if f := formatSelector(o); f != "" {
-			args = append(args, "-f", f)
+		if o.AudioFormat != "" && o.AudioFormat != "best" {
+			args = append(args, "--audio-format", o.AudioFormat)
 		}
-		// Only reachable outside the AudioOnly case above: that branch
-		// already IS an audio extraction (-x with no video format at all),
-		// so a second -x --keep-video here would ask yt-dlp to keep a video
-		// that was never going to be downloaded in the first place.
-		if o.KeepAudio {
-			args = append(args, "-x", "--keep-video")
-		}
-	}
-	if o.Thumbnail {
-		args = append(args, "--write-thumbnail")
-	}
-	if o.Description {
-		args = append(args, "--write-description")
-	}
-	if o.Subtitles != SubtitlesOff {
+	case VariantThumbnail:
+		// --skip-download: this task's own job is the cover image alone,
+		// not a byproduct of a video download it does not also do.
+		args = append(args, "--skip-download", "--write-thumbnail")
+	case VariantSubtitle:
 		langs := o.SubtitleLangs
 		if langs == "" {
 			langs = DefaultSubtitleLangs
 		}
-		args = append(args, "--write-subs", "--sub-langs", langs)
+		args = append(args, "--skip-download", "--write-subs", "--sub-langs", langs)
 		if o.SubtitleAuto {
 			args = append(args, "--write-auto-subs")
 		}
-		if o.Subtitles == SubtitlesEmbed {
-			args = append(args, "--embed-subs")
+	case VariantDescription:
+		args = append(args, "--skip-download", "--write-description")
+	default: // VariantVideo
+		if f := formatSelector(o); f != "" {
+			args = append(args, "-f", f)
 		}
 	}
 	tmpl := o.OutputTemplate
@@ -307,10 +313,12 @@ func buildArgs(dir string, o Options) []string {
 
 // formatSelector turns a resolution preset into yt-dlp's own -f value, or ""
 // when nothing should be passed at all (QualityBest, or anything Sanitize
-// would already have folded onto it). QualityCustom is a verbatim
-// passthrough with no selector logic of its own; QualityAudioOnly is
-// handled by buildArgs directly, since it pairs -f with a second flag (-x)
-// this function has no way to add.
+// would already have folded onto it - Qualities() no longer offers
+// QualityAudioOnly, superseded by the dedicated VariantAudio row, but the
+// constant and this fallthrough both stay so an install with one already
+// saved just quietly reads as "no opinion" rather than refusing the whole
+// settings load). QualityCustom is a verbatim passthrough with no selector
+// logic of its own.
 func formatSelector(o Options) string {
 	if o.Quality == QualityCustom {
 		return o.CustomFormat

@@ -725,6 +725,13 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	if staged != nil && res.Info().ID == "direct" {
 		a.spawn(func() { a.analyze(t.ID, result.DirectURL) })
 	} else if staged != nil && res.Info().ID == "ytdlp" {
+		// expandYtdlpVariants turns this one staged task into the full
+		// video/audio/thumbnail/subtitle/description family - see its own
+		// doc comment (app_ytdlp_variants.go). Synchronous, not spawned like
+		// the probe below: it is a handful of local map writes and a Store
+		// save, not a network call, so there is nothing to wait on and the
+		// row family should exist as soon as the link ever appears.
+		a.expandYtdlpVariants(staged)
 		// Same shape, yt-dlp's own version: a title probe while the task waits
 		// in the collector, so a YouTube (etc.) link shows the video's real
 		// name instead of its own URL before anybody presses Start - see

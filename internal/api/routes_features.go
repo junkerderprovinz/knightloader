@@ -34,7 +34,6 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
-	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/schedule"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
@@ -723,11 +722,7 @@ func ytdlpDetail(a *app.App, s settings.Settings) string {
 	if !resolverRegistered(a, "ytdlp") {
 		return "yt-dlp binary not found (KL_YTDLP, or \"yt-dlp\" on PATH); media pages fail with the hoster's own error instead"
 	}
-	detail := "quality: " + string(s.Ytdlp.Quality)
-	if s.Ytdlp.Subtitles != ytdlp.SubtitlesOff {
-		detail += ", subtitles: " + string(s.Ytdlp.Subtitles)
-	}
-	return detail
+	return "quality: " + string(s.Ytdlp.Quality)
 }
 
 // torrentsDetail mirrors jdDetail/ytdlpDetail's own two-branch shape, read

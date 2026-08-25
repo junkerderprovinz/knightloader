@@ -13,22 +13,10 @@ func TestSanitizeFoldsUnknownQualityOntoBest(t *testing.T) {
 	}
 }
 
-func TestSanitizeFoldsUnknownSubtitleModeOntoOff(t *testing.T) {
-	got := Options{Subtitles: "burn-in"}.Sanitize()
-	if got.Subtitles != SubtitlesOff {
-		t.Errorf("Subtitles = %q, want %q for an unrecognised value", got.Subtitles, SubtitlesOff)
-	}
-}
-
-func TestSanitizeKeepsEveryKnownQualityAndSubtitleMode(t *testing.T) {
+func TestSanitizeKeepsEveryKnownQuality(t *testing.T) {
 	for _, q := range Qualities() {
 		if got := (Options{Quality: q}).Sanitize().Quality; got != q {
 			t.Errorf("Sanitize() folded known quality %q onto %q", q, got)
-		}
-	}
-	for _, m := range SubtitleModes() {
-		if got := (Options{Subtitles: m}).Sanitize().Subtitles; got != m {
-			t.Errorf("Sanitize() folded known subtitle mode %q onto %q", m, got)
 		}
 	}
 }

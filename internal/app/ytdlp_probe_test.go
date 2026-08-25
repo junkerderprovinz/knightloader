@@ -86,7 +86,10 @@ func TestStagingAYtdlpLinkProbesAndNamesTheTask(t *testing.T) {
 // derivePackage, app_links.go) - every youtube.com/watch link guesses
 // "watch", since the query string carrying the actual video id is not part
 // of the URL's path. setTaskName now re-derives that guess once a real name
-// arrives, but only while nothing else has claimed the same package.
+// arrives, as long as no sibling in the same package already has a real
+// name of its own (see noSiblingHasARealNameYet's own doc comment - a
+// second link pasted alongside this one, still unresolved, does not block
+// the rename, only an already-named one does).
 func TestNamingLatelyRenamesAnAutoDerivedSoloPackage(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	done := make(chan struct{})
@@ -110,28 +113,59 @@ func TestNamingLatelyRenamesAnAutoDerivedSoloPackage(t *testing.T) {
 	})
 }
 
-// TestNamingNeverRenamesAPackageTwoLinksShare is the guard on the fix above:
-// a package with more than one member belongs to the whole group (its name
-// came from what they share, not from any one member's own URL), so a
-// single member's own late-resolved title must not rename it out from under
-// its sibling. Built directly with putTask/setTaskName rather than through
-// AddLinks and a real probe: two tasks routed to the same fake backend
-// would both call its ProbeTitle, and that fake closes a single `done`
-// channel exactly once (ytdlp_probe_test.go's own doc comment on
-// fakeYtdlpBackend) - this test is about setTaskName's own package guard,
-// not about wiring a fake that tolerates concurrent callers.
-func TestNamingNeverRenamesAPackageTwoLinksShare(t *testing.T) {
+// TestNamingSplitsOneLinkOutOfACoincidentallySharedPackage is the case the
+// first, narrower version of this fix got wrong: pasting two ordinary
+// YouTube links together stages both under "watch" (every bare watch-page
+// URL guesses the identical stem - there is nothing "batch-like" about
+// this, it is simply the same fallback firing twice), and the earlier
+// "only while this task is the package's ONLY member" guard meant NEITHER
+// of them could ever rename after that, which is exactly the bug jdp
+// reported still happening. The fix renames only the ONE task whose own
+// probe just answered, leaving its still-unresolved sibling right where it
+// was - each one peels off into its own package as its own name arrives,
+// same as if they had never shared one at all.
+func TestNamingSplitsOneLinkOutOfACoincidentallySharedPackage(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 
 	const urlA = "https://youtube.com/watch?v=dQw4w9WgXcQ"
 	const urlB = "https://youtube.com/watch?v=aaaaaaaaaaa"
 	taskA := putTask(t, a, core.Task{URL: urlA, Name: urlA, Package: "watch", Status: core.StatusCollected, Enabled: true})
-	putTask(t, a, core.Task{URL: urlB, Name: urlB, Package: "watch", Status: core.StatusCollected, Enabled: true})
+	taskB := putTask(t, a, core.Task{URL: urlB, Name: urlB, Package: "watch", Status: core.StatusCollected, Enabled: true})
+
+	a.setTaskName(taskA.ID, "Never Gonna Give You Up")
+
+	if live := snapshot(t, a, taskA.ID); live.Package != "Never Gonna Give You Up" {
+		t.Errorf("resolved task's own package = %q, want it renamed to its own new title", live.Package)
+	}
+	if live := snapshot(t, a, taskB.ID); live.Package != "watch" {
+		t.Errorf("still-unresolved sibling's package = %q, want it left in %q until its own name arrives", live.Package, "watch")
+	}
+}
+
+// TestNamingNeverRenamesAPackageASiblingAlreadyNamedForReal is the guard
+// that actually matters: a package is left alone once ANY of its members
+// already carries a real (non-placeholder) name - the signal that this was
+// a deliberate, already-resolved batch (a real crawl hands every member a
+// real name immediately, never leaving one at the URL placeholder for a
+// later probe) rather than a coincidental collision of not-yet-named links.
+func TestNamingNeverRenamesAPackageASiblingAlreadyNamedForReal(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+
+	// Both URLs guess "watch" - same as every test above - so this reaches
+	// the guard this test is actually about (t.Package == the URL guess)
+	// rather than bailing out earlier on a package/guess mismatch.
+	const urlA = "https://youtube.com/watch?v=dQw4w9WgXcQ"
+	const urlB = "https://youtube.com/watch?v=aaaaaaaaaaa"
+	taskA := putTask(t, a, core.Task{URL: urlA, Name: urlA, Package: "watch", Status: core.StatusCollected, Enabled: true})
+	// taskB already carries a real name, as a genuine crawled batch would
+	// from the moment it was staged - unlike taskA here, standing in for a
+	// link that has not resolved yet.
+	putTask(t, a, core.Task{URL: urlB, Name: "Some Other Video", Package: "watch", Status: core.StatusCollected, Enabled: true})
 
 	a.setTaskName(taskA.ID, "Never Gonna Give You Up")
 
 	if live := snapshot(t, a, taskA.ID); live.Package != "watch" {
-		t.Errorf("package = %q after one of two sharing tasks resolved its own name, want the shared package %q left alone", live.Package, "watch")
+		t.Errorf("package = %q after resolving, want the shared batch package %q left alone (a sibling already had a real name)", live.Package, "watch")
 	}
 }
 

@@ -25,6 +25,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
@@ -120,42 +121,73 @@ func (a *App) setTaskName(id, name string) {
 	// worth re-deriving now that a real name has arrived - jdp, 2026-08-25:
 	// "bei einem Youtubelink heißt der Ordner nur watch. der soll den namen
 	// anzeigen" (every YouTube watch page's path is /watch, so every bare-
-	// pasted video landed in the identically-misnamed folder). Scoped tight
-	// on purpose: only while this task is still the ONLY member of that
-	// package (a real multi-link batch's own name comes from the shared
-	// stem across all of them - one member's late answer must not rename
-	// it out from under the others) and only while the package still
-	// matches that guess exactly (a package the user renamed by hand,
-	// coincidentally or not, is left alone).
-	if guess := solePackageURLGuess(a.tasks, t); guess != "" && t.Package == guess {
-		t.Package = sanitizeSegment(name)
+	// pasted video landed in the identically-misnamed folder), confirmed
+	// still broken after a first, narrower attempt at this same fix: "der
+	// ordner heißt immer noch watch". That attempt only re-derived a
+	// package while this task was its ONLY member - which sounds safe, but
+	// every bare YouTube link guesses the exact same "watch" stem, so
+	// pasting two or more together (an entirely ordinary thing to do) put
+	// them all in the SAME shared package from the very first one, and
+	// "only member" was never true for any of them again. The actual line
+	// that needs protecting is not "shared with anyone", it is "shared
+	// with a sibling that already has a REAL name" - that is what marks a
+	// package as a deliberate, resolved batch (a real crawl hands out real
+	// names immediately; nothing here waits on an async probe the way a
+	// bare paste does). Renaming still only ever touches THIS task's own
+	// Package field, never a sibling's - so a package of N still-
+	// unresolved coincidental collisions peels apart one link at a time as
+	// each one's own probe answers, exactly like N solo packages would
+	// have, while a real batch (any sibling already named for real) is
+	// left standing untouched.
+	newPackage := t.Package
+	if guess := packageURLGuess(t); guess != "" && t.Package == guess && noSiblingHasARealNameYet(a.tasks, t) {
+		newPackage = sanitizeSegment(name)
+		t.Package = newPackage
 	}
 	t.Name = name
 	c := *t
+
+	// Variant siblings (the audio/thumbnail/subtitle/description rows
+	// expandYtdlpVariants, app_ytdlp_variants.go, created alongside this
+	// one) share this task's own URL exactly - nothing else legitimately
+	// does, since that sharing is deliberate rather than the coincidental
+	// package-stem collision noSiblingHasARealNameYet is guarding against
+	// above. They move with the primary here: same resolved Name, and the
+	// same Package whenever it just changed, so the whole family stays
+	// grouped in one folder instead of the video row alone jumping to the
+	// real title while its siblings are left behind under the old guess.
+	var siblings []core.Task
+	for _, other := range a.tasks {
+		if other == t || other.URL != t.URL {
+			continue
+		}
+		if other.Name == other.URL {
+			other.Name = name
+		}
+		other.Package = newPackage
+		siblings = append(siblings, *other)
+	}
 	a.mu.Unlock()
 	_ = a.Store.Save(&c)
 	a.Hub.Broadcast("task", &c)
+	for i := range siblings {
+		_ = a.Store.Save(&siblings[i])
+		a.Hub.Broadcast("task", &siblings[i])
+	}
 }
 
-// solePackageURLGuess returns what fileStem's own URL-path fallback
+// packageURLGuess returns what fileStem's own URL-path fallback
 // (app_links.go) would have produced for t's package at staging time - or
-// "" when there is nothing safe to compare against: t has no package,
-// another task already shares it (a shared package belongs to the group,
-// not to one member's own URL), or the guess itself would have been too
-// short for derivePackage to have used in the first place (its own
-// len(stem) >= 3 rule, mirrored here so this reports exactly what that
-// function would have). t.Name is deliberately not read - the caller
-// already knows it equalled t.URL a moment ago, which is exactly the
-// condition under which fileStem takes this same path.Base fallback.
-// Callers must already hold a.mu.
-func solePackageURLGuess(tasks map[string]*core.Task, t *core.Task) string {
+// "" when there is nothing safe to compare against: t has no package, or
+// the guess itself would have been too short for derivePackage to have used
+// in the first place (its own len(stem) >= 3 rule, mirrored here so this
+// reports exactly what that function would have). t.Name is deliberately
+// not read - the caller already knows it equalled t.URL a moment ago, which
+// is exactly the condition under which fileStem takes this same
+// path.Base fallback.
+func packageURLGuess(t *core.Task) string {
 	if t.Package == "" {
 		return ""
-	}
-	for _, other := range tasks {
-		if other != t && other.Package == t.Package {
-			return ""
-		}
 	}
 	u, err := url.Parse(t.URL)
 	if err != nil {
@@ -166,6 +198,27 @@ func solePackageURLGuess(tasks map[string]*core.Task, t *core.Task) string {
 		return ""
 	}
 	return sanitizeSegment(stem)
+}
+
+// noSiblingHasARealNameYet is what actually distinguishes a package worth
+// splitting one member out of from a deliberate, already-resolved batch:
+// every OTHER task sharing t's package must still be showing its own URL as
+// a placeholder Name (t's own Name is not checked here - the caller already
+// knows it just resolved). A real crawled batch hands out real names to
+// every member immediately at staging time, never leaving them at the
+// placeholder for a later probe to fill in, so finding even one already-
+// named sibling is enough to leave the whole package alone. Callers must
+// already hold a.mu.
+func noSiblingHasARealNameYet(tasks map[string]*core.Task, t *core.Task) bool {
+	for _, other := range tasks {
+		if other == t || other.Package != t.Package {
+			continue
+		}
+		if other.Name != other.URL {
+			return false
+		}
+	}
+	return true
 }
 
 // checkTimeout bounds one round of service checks. Generous compared with the
@@ -522,6 +575,16 @@ type TaskOptions struct {
 	// rather than at download time — turning it on for something that finished an
 	// hour ago unpacks it now.
 	AutoExtract TriBool `json:"autoExtract"`
+	// VariantQuality is the "Variante" column's own edit (Variante.tsx): the
+	// resolution preset for a video row, or the audio format for an audio
+	// row - the sub-value half of core.Task.Variant's own encoding
+	// (variantEncode/variantDecode, app_ytdlp_variants.go). The row's own
+	// kind (video/audio/thumbnail/subtitle/description) is never edited
+	// here - it is fixed at the moment expandYtdlpVariants created the row.
+	// An empty string is a real answer ("no opinion", the same as leaving a
+	// task's own Quality on Options.QualityBest), not "leave alone" - a nil
+	// pointer is how a request already says that.
+	VariantQuality *string `json:"variantQuality,omitempty"`
 }
 
 // SetTaskOptions applies per-task overrides. Changing the folder of a running
@@ -592,6 +655,13 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 		}
 		if o.Chunks != nil {
 			t.Chunks = *o.Chunks
+		}
+		if o.VariantQuality != nil {
+			kind, _ := variantDecode(t.Variant)
+			if kind == "" {
+				kind = ytdlp.VariantVideo
+			}
+			t.Variant = variantEncode(kind, strings.TrimSpace(*o.VariantQuality))
 		}
 		if o.Filename != nil {
 			t.Filename = newName

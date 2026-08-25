@@ -2,10 +2,11 @@ package ytdlp
 
 import "strings"
 
-// Options is the user-configurable half of a yt-dlp invocation: format
-// selection, subtitles, the output filename, and whether a playlist URL
-// fetches one video or the whole list - everything backend.go used to bake
-// straight into args with no field anywhere to change it (see
+// Options is the user-configurable half of a yt-dlp invocation: which
+// variant of the source this one task downloads, format selection,
+// subtitles, the output filename, and whether a playlist URL fetches one
+// video or the whole list - everything backend.go used to bake straight
+// into args with no field anywhere to change it (see
 // docs/jd-feature-census.md's "(per-plugin option list)" and "Variante"
 // rows: this resolver is the only one with anything real to configure).
 //
@@ -19,14 +20,27 @@ import "strings"
 // name, --no-playlist. An install that never opens the settings page this
 // wires into downloads exactly as it always has.
 type Options struct {
+	// Variant is which of the resource's own forms THIS task downloads -
+	// see Variant's own doc comment. The zero value is VariantVideo, so an
+	// Options built before this field existed (or a task with no variant
+	// recorded on it) downloads exactly what it always did.
+	Variant      Variant      `json:"variant"`
 	Quality      Quality      `json:"quality"`
 	CustomFormat string       `json:"customFormat"`
-	Subtitles    SubtitleMode `json:"subtitles"`
+	// AudioFormat is yt-dlp's own --audio-format value (e.g. "mp3", "m4a",
+	// "opus", or "best" for whatever the source itself already is) - read
+	// only when Variant is VariantAudio.
+	AudioFormat  string       `json:"audioFormat"`
 	// SubtitleLangs is yt-dlp's own --sub-langs value (comma-separated
 	// codes, or a pattern like "en.*"; "all" is also yt-dlp's own keyword).
-	// Empty falls back to DefaultSubtitleLangs whenever Subtitles is not
-	// SubtitlesOff - yt-dlp requires some language list to fetch, and this
-	// package cannot guess a person's language for them.
+	// Empty falls back to DefaultSubtitleLangs. Read only when Variant is
+	// VariantSubtitle - whether a subtitle row exists at all is that row's
+	// own Enabled switch now, not a mode on this struct (a leftover
+	// SubtitleMode on/off/embed field lived here before the "Variante" row
+	// redesign and was removed with it: an "embed into the video" mode
+	// cannot mean anything once fetching subtitles and fetching video are
+	// two entirely separate tasks/invocations, and "off" duplicated what
+	// the row's own Enabled already says).
 	SubtitleLangs string `json:"subtitleLangs"`
 	// SubtitleAuto adds --write-auto-subs, so a site with no manually
 	// authored track still yields one from its auto-generated captions.
@@ -34,27 +48,127 @@ type Options struct {
 	// Playlist, when true, drops --no-playlist: a playlist URL fetches
 	// every entry instead of only the one the link happened to point at.
 	Playlist bool `json:"playlist"`
-	// Thumbnail adds --write-thumbnail, saving the video's own cover image
-	// beside it - the "Bild" file jdp asked for (2026-08-25: "ich möchte
-	// alle dateitype aktiveren und deaktivieren können", matching how JD's
-	// own per-plugin settings let a person keep or drop each file a job
-	// produces, not just the main download).
-	Thumbnail bool `json:"thumbnail"`
-	// Description adds --write-description, a plain .description text file
-	// carrying the page's own description - the "txt" file in the same
-	// request.
-	Description bool `json:"description"`
-	// KeepAudio adds -x --keep-video, so a video download ALSO yields a
-	// separate audio-only file next to it instead of only the muxed
-	// original - distinct from Quality=QualityAudioOnly, which replaces the
-	// video entirely rather than keeping both. Meaningless (and left
-	// unapplied by buildArgs) when Quality is already QualityAudioOnly:
-	// there is no separate video in that download to extract a second copy
-	// of the audio from.
-	KeepAudio bool `json:"keepAudio"`
 	// OutputTemplate is yt-dlp's own -o template syntax, joined onto the
 	// task's destination directory. Empty uses defaultOutputTemplate.
 	OutputTemplate string `json:"outputTemplate"`
+}
+
+// Variant is which piece of a yt-dlp-resolved resource one task downloads -
+// core.Task's own Variant field, in this package's own vocabulary. JD calls
+// the same idea "Variante": pasting one YouTube link there lists a video
+// track, an audio-only extraction, a thumbnail image, subtitles and a plain
+// description as separate rows, each independently keepable, and a person
+// picks which ones they actually want rather than always getting the one
+// video KnightLoader used to hand-wire (jdp, 2026-08-25, after a first,
+// narrower attempt at this same request: "ich glaub du hast nicht
+// verstanden was ich mein... genau so soll es auch in KL sein" - a global
+// on/off per file TYPE was not it; five independently keepable rows per
+// link, the way JD shows them, was always the ask).
+type Variant string
+
+const (
+	// VariantVideo is the zero value - a task with none recorded (every
+	// task created before this field existed) downloads exactly what it
+	// always did.
+	VariantVideo       Variant = "video"
+	VariantAudio       Variant = "audio"
+	VariantThumbnail   Variant = "thumbnail"
+	VariantSubtitle    Variant = "subtitle"
+	VariantDescription Variant = "description"
+)
+
+// Variants lists every variant this build can offer, in the order JD's own
+// list shows them and internal/app's variant-expansion iterates them.
+func Variants() []Variant {
+	return []Variant{VariantVideo, VariantAudio, VariantThumbnail, VariantSubtitle, VariantDescription}
+}
+
+func validVariant(v Variant) bool {
+	for _, x := range Variants() {
+		if x == v {
+			return true
+		}
+	}
+	return false
+}
+
+// AudioFormats lists every --audio-format value this build offers on the
+// audio variant's own quality picker, in menu order. "best" is yt-dlp's own
+// keyword for "whatever the source's own audio codec already is, do not
+// transcode" - the zero value, so an Options with no opinion re-encodes
+// nothing.
+func AudioFormats() []string {
+	return []string{"best", "mp3", "m4a", "opus", "wav", "flac"}
+}
+
+func validAudioFormat(f string) bool {
+	for _, x := range AudioFormats() {
+		if x == f {
+			return true
+		}
+	}
+	return false
+}
+
+// HosterPreset is what a person configures once per site (a host string,
+// e.g. "youtube.com") for every future link from it: which of the five
+// variants land in the collector by default, and - for the two with a
+// quality choice - the default they land with. Reached from the
+// collector's own package row (a gear badge, jdp 2026-08-25: "auf dem
+// link-ordner soll ein zahnrad-badge sein der mich zu den voreinstellungen
+// des Hosters führt wo ich einstellen kann welche variante es
+// standardmäßig in den sammler packen soll und wo ich die einzelnen
+// formata an und abhaken kann").
+type HosterPreset struct {
+	// Variants lists which of Variants() are staged enabled by default. A
+	// host with no preset saved yet gets DefaultHosterPreset's own answer
+	// (every one on) - see that function's own doc comment for why.
+	Variants    []Variant `json:"variants"`
+	Quality     Quality   `json:"quality"`
+	AudioFormat string    `json:"audioFormat"`
+}
+
+// DefaultHosterPreset is what a host nobody has configured gets: all five
+// variants enabled. JD's own list shows every row it found and leaves
+// unticking any of them to the person looking at it - starting from
+// "nothing" here would mean a first-ever YouTube paste quietly stages only
+// a lone video task with no visible sign four more rows were even
+// possible, which is a worse first impression than five rows to glance at
+// and switch off.
+func DefaultHosterPreset() HosterPreset {
+	return HosterPreset{Variants: Variants(), Quality: QualityBest, AudioFormat: "best"}
+}
+
+// Sanitize repairs a HosterPreset the same way Options.Sanitize does -
+// always succeeds, never refuses a whole settings save over one bad field.
+func (p HosterPreset) Sanitize() HosterPreset {
+	kept := make([]Variant, 0, len(p.Variants))
+	seen := map[Variant]bool{}
+	for _, v := range p.Variants {
+		if validVariant(v) && !seen[v] {
+			kept = append(kept, v)
+			seen[v] = true
+		}
+	}
+	p.Variants = kept
+	if !validQuality(p.Quality) {
+		p.Quality = QualityBest
+	}
+	if !validAudioFormat(p.AudioFormat) {
+		p.AudioFormat = "best"
+	}
+	return p
+}
+
+// HasVariant reports whether v is one of this preset's own enabled
+// variants.
+func (p HosterPreset) HasVariant(v Variant) bool {
+	for _, x := range p.Variants {
+		if x == v {
+			return true
+		}
+	}
+	return false
 }
 
 // Quality is a format-selector preset offered on the settings page.
@@ -65,13 +179,23 @@ const (
 	// default selection - named so the page has something to show selected
 	// on a fresh install, not so this package ever compares against it
 	// before Sanitize has run.
-	QualityBest      Quality = "best"
-	Quality2160p     Quality = "2160p"
-	Quality1440p     Quality = "1440p"
-	Quality1080p     Quality = "1080p"
-	Quality720p      Quality = "720p"
-	Quality480p      Quality = "480p"
-	Quality360p      Quality = "360p"
+	QualityBest  Quality = "best"
+	Quality2160p Quality = "2160p"
+	Quality1440p Quality = "1440p"
+	Quality1080p Quality = "1080p"
+	Quality720p  Quality = "720p"
+	Quality480p  Quality = "480p"
+	Quality360p  Quality = "360p"
+	// QualityAudioOnly is no longer offered on Qualities()'s own menu -
+	// superseded by the dedicated VariantAudio row (jdp, 2026-08-25: five
+	// independently keepable rows per link, JD-style, not a video-quality
+	// preset standing in for "no video at all"). The constant stays
+	// declared only so old code/tests that still name it compile; an
+	// install with one already saved on its video quality is folded onto
+	// QualityBest by Sanitize the same as any other value Qualities() no
+	// longer lists - the right way to get audio-only now is enabling the
+	// Audio row and leaving Video off, not a video-quality preset that
+	// secretly downloads no video at all.
 	QualityAudioOnly Quality = "audioOnly"
 	// QualityCustom hands CustomFormat to -f verbatim, unexamined - yt-dlp's
 	// own format-selector grammar is not reimplemented here, and a value it
@@ -82,11 +206,13 @@ const (
 
 // Qualities lists every quality this build can offer, in menu order - the
 // same "the menu and the validity check read one list" shape
-// internal/idleaction.Actions already uses for Config.Action.
+// internal/idleaction.Actions already uses for Config.Action. See
+// QualityAudioOnly's own doc comment for why it is declared above but not
+// listed here.
 func Qualities() []Quality {
 	return []Quality{
 		QualityBest, Quality2160p, Quality1440p, Quality1080p,
-		Quality720p, Quality480p, Quality360p, QualityAudioOnly, QualityCustom,
+		Quality720p, Quality480p, Quality360p, QualityCustom,
 	}
 }
 
@@ -107,35 +233,6 @@ func validQuality(q Quality) bool {
 var heightCaps = map[Quality]string{
 	Quality2160p: "2160", Quality1440p: "1440", Quality1080p: "1080",
 	Quality720p: "720", Quality480p: "480", Quality360p: "360",
-}
-
-// SubtitleMode is what a downloaded video does with subtitle tracks.
-type SubtitleMode string
-
-const (
-	// SubtitlesOff is the zero value and today's only behaviour: no
-	// subtitle flags at all.
-	SubtitlesOff SubtitleMode = "off"
-	// SubtitlesFile writes subtitles beside the video (--write-subs).
-	SubtitlesFile SubtitleMode = "file"
-	// SubtitlesEmbed writes AND muxes them into the video container
-	// (--write-subs --embed-subs); yt-dlp remuxes into a container that can
-	// hold them when the chosen format's own container cannot.
-	SubtitlesEmbed SubtitleMode = "embed"
-)
-
-// SubtitleModes lists every mode this build can offer, in menu order.
-func SubtitleModes() []SubtitleMode {
-	return []SubtitleMode{SubtitlesOff, SubtitlesFile, SubtitlesEmbed}
-}
-
-func validSubtitleMode(m SubtitleMode) bool {
-	for _, x := range SubtitleModes() {
-		if x == m {
-			return true
-		}
-	}
-	return false
 }
 
 // DefaultSubtitleLangs is what --sub-langs gets when subtitles are switched
@@ -168,11 +265,14 @@ func Defaults() Options {
 // documents: it always succeeds, because the one path that calls it
 // (settings.sanitize) never fails an entire save because of one field.
 func (o Options) Sanitize() Options {
+	if !validVariant(o.Variant) {
+		o.Variant = VariantVideo
+	}
 	if !validQuality(o.Quality) {
 		o.Quality = QualityBest
 	}
-	if !validSubtitleMode(o.Subtitles) {
-		o.Subtitles = SubtitlesOff
+	if !validAudioFormat(o.AudioFormat) {
+		o.AudioFormat = "best"
 	}
 	o.CustomFormat = clip(strings.TrimSpace(o.CustomFormat))
 	o.SubtitleLangs = clip(strings.TrimSpace(o.SubtitleLangs))

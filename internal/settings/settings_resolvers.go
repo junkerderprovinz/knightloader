@@ -1,5 +1,11 @@
 package settings
 
+import (
+	"strings"
+
+	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
+)
+
 // settings_resolvers.go: per-resolver configuration that a resolver backend
 // reads but had no field on Settings to read it FROM - see
 // docs/jd-feature-census.md's "(per-plugin option list)" and "Variante"
@@ -13,5 +19,14 @@ package settings
 
 func sanitizeResolvers(n Settings) Settings {
 	n.Ytdlp = n.Ytdlp.Sanitize()
+	presets := make(map[string]ytdlp.HosterPreset, len(n.YtdlpPresets))
+	for host, p := range n.YtdlpPresets {
+		host = strings.TrimSpace(strings.ToLower(host))
+		if host == "" {
+			continue
+		}
+		presets[host] = p.Sanitize()
+	}
+	n.YtdlpPresets = presets
 	return n
 }
