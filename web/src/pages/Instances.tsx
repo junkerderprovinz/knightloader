@@ -75,7 +75,12 @@ export function Instances() {
     setPairing(true);
     try {
       const r = await redeemPairingCode(code.trim());
-      setPairOk(t('instances.pairSuccess', { name: r.name }));
+      // The offline warning matters MORE here than on the manual-add path
+      // above, which already showed it: a pairing that reports plain success
+      // while the peer cannot actually be reached is the failure mode this
+      // whole flow is prone to, since only one of the two directions is ever
+      // tested during pairing.
+      setPairOk(t('instances.pairSuccess', { name: r.name }) + (r.online ? '' : ` ${t('instances.offlineWarning')}`));
       setCode('');
       await load();
     } catch (e: any) {
@@ -109,7 +114,15 @@ export function Instances() {
             relayId={p.relayId}
             base={`/api/instances/${encodeURIComponent(p.name)}`}
             onOpen={() => navigate(`/downloads?instance=${encodeURIComponent(p.name)}`)}
-            onRemove={() => onRemove(p.name)}
+            // No remove badge for a relay peer, because there is nothing to
+            // remove. A relay peer is synthesised per request from whoever is
+            // currently connected to the relay (federation.Manager.reachable)
+            // and is never in the stored list, so Remove deleted nothing, the
+            // route still answered 204, and the reload put the identical card
+            // straight back - a button that reproducibly did nothing, silently.
+            // A relay peer goes away by disconnecting it or clearing the relay
+            // config, not from here.
+            onRemove={p.relayId ? undefined : () => onRemove(p.name)}
             hue={i}
           />
         ))}

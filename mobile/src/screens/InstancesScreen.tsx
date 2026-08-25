@@ -93,9 +93,17 @@ export default function InstancesScreen({
                 {item.relayId ? t('instances.viaRelay') : item.url}
               </Text>
             </View>
-            <TouchableOpacity style={styles.removeButton} onPress={() => remove(item.name)}>
-              <Text style={styles.removeText}>{t('instances.remove')}</Text>
-            </TouchableOpacity>
+            {/* No remove for a relay peer: it is synthesised per request from
+                whoever is connected to the relay right now
+                (federation.Manager.reachable) and is never in the stored list,
+                so removing it deleted nothing while still answering 204 - the
+                row simply came back on the next reload. It goes away by
+                disconnecting it or clearing the relay config, not from here. */}
+            {!item.relayId && (
+              <TouchableOpacity style={styles.removeButton} onPress={() => remove(item.name)}>
+                <Text style={styles.removeText}>{t('instances.remove')}</Text>
+              </TouchableOpacity>
+            )}
           </TouchableOpacity>
         )}
         ListEmptyComponent={<Text style={styles.empty}>{t('instances.empty')}</Text>}
