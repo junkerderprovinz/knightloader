@@ -2050,6 +2050,12 @@ export interface RelayConfig {
    *  relay rejects and a relay that is down all leave the config filled in
    *  and this false. */
   connected: boolean;
+  /** Whether this instance is itself running the relay, under /relay/connect
+   *  on its own address. */
+  serve: boolean;
+  /** How many instances are connected to the relay this instance is serving,
+   *  this one included when it dials its own. Zero while `serve` is false. */
+  serveClients: number;
 }
 
 export async function fetchRelayConfig(): Promise<RelayConfig> {
@@ -2071,12 +2077,18 @@ export async function fetchRelayConfig(): Promise<RelayConfig> {
  * either way and the client keeps dialling it - an outage of an optional,
  * self-hosted relay must never read as "your settings were rejected".
  */
-export async function saveRelayConfig(relayUrl: string, key?: string): Promise<RelayConfig> {
+export async function saveRelayConfig(relayUrl: string, key?: string, serve?: boolean): Promise<RelayConfig> {
+  // `serve` is omitted the same way `key` is, and for the same reason: a save
+  // from the address form must not carry the switch back to whatever it was
+  // when that form was drawn.
+  const body: Record<string, unknown> = { relayUrl };
+  if (key !== undefined) body.key = key;
+  if (serve !== undefined) body.serve = serve;
   return json<RelayConfig>(
     await fetch('/api/relay/config', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(key === undefined ? { relayUrl } : { relayUrl, key }),
+      body: JSON.stringify(body),
     }),
   );
 }

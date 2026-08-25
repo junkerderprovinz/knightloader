@@ -1633,6 +1633,12 @@ export const en = {
   'settings.access.relay.siblingsTitle': 'Visible through the relay',
   'settings.access.relay.siblingsOff': 'Enter an address and a key to see the instances that share them.',
   'settings.access.relay.siblingsEmpty': 'Nothing right now - the relay is reachable, no other instance is connected with this key.',
+  'settings.access.relay.serveLabel': 'Run the relay on this instance',
+  'settings.access.relay.serveHint': 'Saves running a second program: the relay answers under /relay/connect on the address this instance already uses, behind the same reverse proxy and the same certificate, and the other instances point at that address. It admits only the key below, so nobody else can meet on it. What it cannot change is that a relay has to be reachable by both sides - turning this on inside an instance nothing can reach from outside gives the others nothing to dial.',
+  'settings.access.relay.serveAddress': 'Give the other instances this address',
+  'settings.access.relay.serveClients': 'connected right now: {n}',
+  'settings.access.relay.serveOn': 'running here',
+  'settings.access.relay.serveNeedsKey': 'No relay key is stored, so nothing can connect to this relay yet. Set one below, and give the other instances the same one.',
   'settings.access.relay.unreachable': 'The relay cannot be reached with this address and key. Check both, and that the relay is running - nothing else on this instance is affected.',
   'settings.access.intakePortsHint': 'Other ways this instance can be reached directly, outside the normal login - each with its own reachability shown here.',
 

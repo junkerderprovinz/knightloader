@@ -19,6 +19,7 @@ package api
 import (
 	"bytes"
 	"context"
+	"crypto/subtle"
 	"encoding/json"
 	"io"
 	"log"
@@ -43,13 +44,57 @@ type relayConfig struct {
 	// working relay with nobody else connected to it. relay.Client.Connected()
 	// existed for exactly this and had no callers at all.
 	Connected bool `json:"connected"`
+	// Serve is whether this instance is itself running the relay, under
+	// /relay/connect on its own address.
+	Serve bool `json:"serve"`
+	// ServeClients is how many instances are connected to it right now, this
+	// one included if it dials its own relay. Zero while Serve is false.
+	ServeClients int `json:"serveClients"`
 }
 
 func registerRelay(reg *Registry, a *app.App) {
+	// The relay's own socket, on this instance's address. Open, because the
+	// relay key in the first frame IS the credential and there is no other:
+	// every instance dialling in is a different machine with no session here,
+	// which is the whole point. relay.Server admits only the key this instance
+	// stores, so an open route is not an open relay.
+	//
+	// One Server for the life of the process, with the switch read per
+	// connection. Building it on demand would drop every connected sibling
+	// each time an unrelated setting was saved.
+	srv := relay.New()
+	srv.Admit = func(key string) bool {
+		if !a.Settings.Get().RelayServe {
+			return false
+		}
+		stored, err := a.Accounts.Get(relay.AccountService)
+		if err != nil || stored == "" {
+			return false
+		}
+		// Constant time, because this is a bearer credential and the caller
+		// controls the guess. The relay's own minimum key length keeps the
+		// comparison from being a useful oracle about length alone.
+		return subtle.ConstantTimeCompare([]byte(key), []byte(stored)) == 1
+	}
+	reg.AddOpen(http.MethodGet, "/relay/connect",
+		"the relay socket, when this instance is serving one - authorised by the relay key in the first frame, never by a session",
+		func(w http.ResponseWriter, r *http.Request) {
+			// Answered as a route that is not there, rather than as one that
+			// refuses: with the switch off this instance is not a relay, and
+			// saying "no such endpoint" is the same answer any KnightLoader
+			// that never had the feature gives. A client that gets it can
+			// treat every version alike.
+			if !a.Settings.Get().RelayServe {
+				http.Error(w, "no such endpoint: "+r.Method+" "+r.URL.Path, http.StatusNotFound)
+				return
+			}
+			srv.ServeHTTP(w, r)
+		})
+
 	reg.Add(http.MethodGet, "/api/relay/config",
 		"the relay this instance dials out to, and whether a key is stored for it - never the key itself",
 		func(w http.ResponseWriter, r *http.Request) {
-			writeJSON(w, relayConfigOf(a))
+			writeJSON(w, relayConfigOf(a, srv))
 		})
 
 	reg.Add(http.MethodPut, "/api/relay/config",
@@ -68,6 +113,10 @@ func registerRelay(reg *Registry, a *app.App) {
 				// string could express two of those, and the one it would
 				// have to give up is the common one.
 				Key *string `json:"key"`
+				// Serve is a pointer for the same reason Key is: a form that
+				// only edited the address must not carry the switch back to
+				// whatever it happened to be when that form was drawn.
+				Serve *bool `json:"serve"`
 			}
 			if !decodeJSON(w, r, &body) {
 				return
@@ -83,7 +132,16 @@ func registerRelay(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			if _, err := a.Settings.SetPartial(map[string]json.RawMessage{"relayUrl": patch}); err != nil {
+			fields := map[string]json.RawMessage{"relayUrl": patch}
+			if body.Serve != nil {
+				serve, err := json.Marshal(*body.Serve)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+				fields["relayServe"] = serve
+			}
+			if _, err := a.Settings.SetPartial(fields); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
@@ -94,7 +152,7 @@ func registerRelay(reg *Registry, a *app.App) {
 				}
 			}
 			applyRelay(a)
-			writeJSON(w, relayConfigOf(a))
+			writeJSON(w, relayConfigOf(a, srv))
 		})
 }
 
@@ -105,12 +163,23 @@ func registerRelay(reg *Registry, a *app.App) {
 // gives an unreadable one: there is nothing usable there either way, and the
 // difference belongs in a log, not in a boolean the settings page draws a
 // checkmark from.
-func relayConfigOf(a *app.App) relayConfig {
+func relayConfigOf(a *app.App, srv *relay.Server) relayConfig {
 	key, err := a.Accounts.Get(relay.AccountService)
+	cfg := a.Settings.Get()
+	// The count is reported only while the switch is on. A relay just switched
+	// off keeps whatever sockets were already open until each drops on its own,
+	// and a number that outlived the switch would read as the feature still
+	// running rather than as it finishing.
+	clients := 0
+	if cfg.RelayServe {
+		clients = srv.Len()
+	}
 	return relayConfig{
-		RelayURL:  a.Settings.Get().RelayURL,
-		KeySet:    err == nil && key != "",
-		Connected: a.Federation.RelayConnected(),
+		RelayURL:     cfg.RelayURL,
+		KeySet:       err == nil && key != "",
+		Connected:    a.Federation.RelayConnected(),
+		Serve:        cfg.RelayServe,
+		ServeClients: clients,
 	}
 }
 

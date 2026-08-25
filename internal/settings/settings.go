@@ -336,6 +336,11 @@ type Settings struct {
 	// why the relay key that goes with it is a credential in
 	// internal/accounts rather than a second field here.
 	RelayURL string `json:"relayUrl"`
+
+	// RelayServe makes this instance run the relay itself, on its own address
+	// under /relay/connect, for instances carrying the same relay key - see
+	// settings_relay.go for what that does and does not buy.
+	RelayServe bool `json:"relayServe"`
 }
 
 // Defaults returns the settings a fresh install starts with.
