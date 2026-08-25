@@ -114,7 +114,7 @@ const PENDING = {
   'settings.access.remote.installIOS':
     'On iPhone or iPad: open this page in Safari, tap Share, then "Add to Home Screen".',
   'settings.access.remote.pairExpires': 'Valid for {min} minutes, then it expires unused.',
-  'settings.access.remote.pairWhere': 'Paste it into the other instance, under Settings → Access or on its Instances page.',
+  'settings.access.remote.pairWhere': 'Paste it into the other instance, using its own “Enter a code” button.',
   'settings.access.remote.pairScan': 'Scan the QR code with the KnightLoader app.',
 
   // One sentence for "can another KnightLoader reach this one", because which
@@ -132,6 +132,15 @@ const PENDING = {
   'settings.access.remote.enterCode': 'Enter a code',
   'settings.access.remote.beyond': 'Reaching instances outside this network',
   'settings.access.remote.beyondOff': 'not set up',
+
+  'settings.access.relay.serveLabel': 'Run the relay on this instance',
+  'settings.access.relay.serveHint':
+    'Saves running a second program: the relay answers under /relay/connect on the address this instance already uses, behind the same reverse proxy and the same certificate, and the other instances point at that address. It admits only the key below, so nobody else can meet on it. What it cannot change is that a relay has to be reachable by both sides - turning this on inside an instance nothing can reach from outside gives the others nothing to dial.',
+  'settings.access.relay.serveAddress': 'Give the other instances this address',
+  'settings.access.relay.serveClients': 'connected right now: {n}',
+  'settings.access.relay.serveOn': 'running here',
+  'settings.access.relay.serveNeedsKey':
+    'No relay key is stored, so nothing can connect to this relay yet. Set one below, and give the other instances the same one.',
 
   'settings.access.relay.title': 'Relay',
   'settings.access.relay.body':
@@ -638,14 +647,23 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
   // replaces it - the three cases PUT /api/relay/config tells apart by
   // whether `key` is on the wire, which is why an untouched field must send
   // nothing rather than the empty string it holds.
-  async function saveRelay(nextKey?: string) {
+  //
+  // nextServe is the switch, and passing it makes this a save of the switch
+  // ALONE: it sends the address that is already stored rather than whatever is
+  // in the field, and leaves the field alone afterwards. A toggle that quietly
+  // committed a half-typed address somebody was still editing, or that wiped
+  // that edit on the way back, would be a control doing two things.
+  async function saveRelay(nextKey?: string, nextServe?: boolean) {
+    const switchOnly = nextServe !== undefined;
     setRelayError('');
     setRelayBusy(true);
     try {
-      const c = await saveRelayConfig(url.trim(), nextKey);
+      const c = await saveRelayConfig(switchOnly ? (cfg?.relayUrl ?? '') : url.trim(), nextKey, nextServe);
       setCfg(c);
-      setUrl(c.relayUrl);
-      setKey('');
+      if (!switchOnly) {
+        setUrl(c.relayUrl);
+        setKey('');
+      }
       setRelayDone(true);
       setTimeout(() => setRelayDone(false), 1800);
     } catch (e) {
@@ -810,27 +828,112 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
           sentence at the top and a person who has none is not shopping for a
           protocol. */}
       <div className="flex flex-col gap-3 border-t border-carbon-border/40 pt-4">
+        {/* The bubble is a SIBLING of the button, not a child of it: it is
+            interactive itself, and an interactive control inside a button is
+            both an accessibility problem and a click the outer button would
+            swallow. */}
+        <div className="flex items-center gap-2">
         <button
           type="button"
-          className="flex items-center gap-2 text-left"
+          className="flex flex-1 items-center gap-2 text-left"
           aria-expanded={relayOpen}
           onClick={() => setOpenRelay(!relayOpen)}
         >
           <span className="text-xs font-semibold text-carbon-textSub">{cx('settings.access.remote.beyond')}</span>
-          <span className={`text-[11px] ${relayOk ? 'text-statusOk' : 'text-carbon-textMuted'}`}>
-            {relayOk ? t('instances.online') : cx('settings.access.remote.beyondOff')}
+          {/* Two roles, and either one counts as set up: dialling somebody
+              else's relay, or being the relay. An instance serving one while
+              dialling none would otherwise have read "not set up" on the row
+              summarising the thing it was doing. */}
+          <span
+            className={`text-[11px] ${
+              cfg.serve && !cfg.keySet
+                ? 'text-statusFail'
+                : relayOk || cfg.serve
+                  ? 'text-statusOk'
+                  : 'text-carbon-textMuted'
+            }`}
+          >
+            {relayOk
+              ? t('instances.online')
+              : cfg.serve
+                ? // Switched on without a key is not "running": Admit refuses
+                  // every key, so the relay is up and admits nobody. Saying
+                  // "running here" there would be the row lying about the one
+                  // thing it exists to report.
+                  cx(cfg.keySet ? 'settings.access.relay.serveOn' : 'settings.access.relay.keyUnset')
+                : cx('settings.access.remote.beyondOff')}
           </span>
           <span className="flex-1" />
           <span className="text-[11px] text-carbon-textMuted" aria-hidden="true">
             {relayOpen ? '−' : '+'}
           </span>
         </button>
+        <InfoBubble tip={`${cx('settings.access.relay.body')} ${cx('settings.access.relay.selfHosted')}`} />
+        </div>
 
         {relayOpen && (
           <>
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] text-carbon-textMuted">{cx('settings.access.relay.title')}</span>
-              <InfoBubble tip={`${cx('settings.access.relay.body')} ${cx('settings.access.relay.selfHosted')}`} />
+            {/* jdp: "Können wir nicht das relay in KL integrieren? Also wenn
+                jemand zb zwei desktop instanzen hat und die koppeln will, dass
+                er dann in einer instanz das relay aktiveren kann?" It sits
+                above the address field on purpose: an instance serving the
+                relay is the answer to "which address do I put in the others",
+                so finding it after filling that field in is finding it too
+                late. */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-carbon-text">{cx('settings.access.relay.serveLabel')}</span>
+                <InfoBubble tip={cx('settings.access.relay.serveHint')} />
+                <span className="flex-1" />
+                {cfg.serve && (
+                  <span className="text-[11px] text-carbon-textMuted">
+                    {cx('settings.access.relay.serveClients', { n: cfg.serveClients })}
+                  </span>
+                )}
+                <NeutralSwitch
+                  on={cfg.serve}
+                  disabled={relayBusy}
+                  name={cx('settings.access.relay.serveLabel')}
+                  onChange={(next) => void saveRelay(undefined, next)}
+                />
+              </div>
+              {/* The switch alone does nothing without a key, because Admit
+                  compares against the stored one and there is nothing to
+                  compare with. Left unsaid, this is a feature that is on,
+                  reachable, and silently refuses everybody. */}
+              {cfg.serve && !cfg.keySet && (
+                <span className="text-[11px] text-statusFail">{cx('settings.access.relay.serveNeedsKey')}</span>
+              )}
+              {cfg.serve && (
+                <div className="flex flex-col gap-1">
+                  <span className="text-[11px] text-carbon-textSub">{cx('settings.access.relay.serveAddress')}</span>
+                  {/* The address this page was opened on, which is the one
+                      that actually reached this instance - not a guess
+                      assembled from a hostname, and not a stored field that
+                      goes stale the first time a domain changes.
+                      
+                      Marked when it is a loopback address, because then it is
+                      the one address that CANNOT be what the other instances
+                      dial: it reaches this machine only. Handing it over
+                      unmarked is the same blind spot that once put a loopback
+                      address into the pairing QR code - an admin looking at
+                      their own instance always sees 127.0.0.1, and the page
+                      has no other way to know. */}
+                  <div className="flex flex-wrap items-baseline gap-2">
+                    <code
+                      className="glim-num min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-xs text-carbon-text"
+                      dir="ltr"
+                    >
+                      {location.origin}
+                    </code>
+                    {isLoopbackHost(location.hostname) && (
+                      <span className="shrink-0 text-[11px] text-statusFail">
+                        {cx('settings.access.network.loopback')}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <Field label={cx('settings.access.relay.urlLabel')} hint={cx('settings.access.relay.urlHint')}>
@@ -916,6 +1019,21 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
       </div>
     </Card>
   );
+}
+
+/**
+ * isLoopbackHost reports whether a hostname only ever reaches the machine it is
+ * typed on. Used to mark the address this card offers to hand to other
+ * instances: a relay nobody else can dial is the one failure this feature can
+ * produce silently, and an admin browsing their own instance sees 127.0.0.1
+ * every time.
+ *
+ * IPv6 hostnames arrive from location.hostname without their brackets, so ::1
+ * is compared bare.
+ */
+function isLoopbackHost(host: string): boolean {
+  const h = host.toLowerCase();
+  return h === 'localhost' || h === '::1' || h === '[::1]' || h.endsWith('.localhost') || /^127\./.test(h);
 }
 
 // ---- API tokens -------------------------------------------------------------

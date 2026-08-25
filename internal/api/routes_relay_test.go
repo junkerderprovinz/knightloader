@@ -422,3 +422,175 @@ func TestRelayProxyHonoursTheAuthorizationField(t *testing.T) {
 		t.Errorf("authenticated relay call answered unparseable JSON: %v (%s)", err, body)
 	}
 }
+
+// ---- the relay served from inside an instance -------------------------------
+
+// fixedSibling is a second relay client standing in for another instance, so a
+// test can prove a relay actually carried something rather than only that a
+// socket opened.
+func fixedSibling(t *testing.T, url, key, id string) *relay.Client {
+	t.Helper()
+	c, err := relay.NewClient(relay.ClientOptions{
+		URL:  url,
+		Key:  key,
+		Self: relay.Announce{InstanceID: id, Name: "Sibling", Deployment: "desktop"},
+		Serve: func(ctx context.Context, req relay.ProxyRequest) (int, []byte) {
+			return http.StatusOK, []byte(`{"from":"sibling"}`)
+		},
+	})
+	if err != nil {
+		t.Fatalf("build sibling client: %v", err)
+	}
+	c.Start()
+	t.Cleanup(func() { _ = c.Close() })
+	return c
+}
+
+// TestServingARelayFromInsideAnInstance is jdp's own framing of the feature:
+// "Können wir nicht das relay in KL integrieren? Also wenn jemand zb zwei
+// desktop instanzen hat und die koppeln will, dass er dann in einer instanz
+// das relay aktiveren kann?"
+//
+// The whole loop in one test, because every part of it is new and any one of
+// them failing quietly would look like the others working: the switch turns
+// the socket on, this instance's own relay client dials its own relay, a
+// second instance dials the same address with the same key, they see each
+// other on the Instances page, and a call actually crosses.
+func TestServingARelayFromInsideAnInstance(t *testing.T) {
+	srv, a := testServer(t)
+	defer srv.Close()
+
+	const key = "a-relay-served-from-inside-an-instance"
+	code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"`+srv.URL+`","key":"`+key+`","serve":true}`)
+	if code != http.StatusOK || !put.Serve {
+		t.Fatalf("PUT /api/relay/config = %d %+v, want serve=true", code, put)
+	}
+
+	fixedSibling(t, srv.URL, key, "sibling-1")
+
+	var list []struct {
+		Name        string `json:"name"`
+		DisplayName string `json:"displayName"`
+		RelayID     string `json:"relayId"`
+	}
+	deadline := time.Now().Add(5 * time.Second)
+	for time.Now().Before(deadline) {
+		if resp, err := http.Get(srv.URL + "/api/instances"); err == nil {
+			_ = json.NewDecoder(resp.Body).Decode(&list)
+			resp.Body.Close()
+		}
+		if len(list) == 1 {
+			break
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	if len(list) != 1 || list[0].RelayID != "sibling-1" {
+		t.Fatalf("GET /api/instances = %+v, want the sibling visible through the relay this instance is serving", list)
+	}
+
+	body, status, err := a.Federation.Proxy(context.Background(), "sibling-1", http.MethodGet, "/api/tasks", nil)
+	if err != nil {
+		t.Fatalf("proxy to the sibling through our own relay: %v", err)
+	}
+	if status != http.StatusOK || string(body) != `{"from":"sibling"}` {
+		t.Errorf("proxy = %d %s, want the sibling's own fixed answer", status, body)
+	}
+
+	// Two connections: this instance's own client and the sibling's. The count
+	// is what the settings card shows, so it has to be the real registry rather
+	// than something derived from the switch being on.
+	_, cfg := getRelayConfig(t, srv.URL)
+	if !cfg.Serve || cfg.ServeClients != 2 {
+		t.Errorf("config = %+v, want serve=true and 2 connected clients", cfg)
+	}
+}
+
+// TestAServedRelayAdmitsOnlyTheKeyTheInstanceStores is the reason Admit exists
+// at all. The standalone relay accepts every key and merely groups by it,
+// which is right for a rendezvous point nobody's downloads pass through. This
+// one rides on the address somebody published so their own instances could
+// reach them, so admitting every key would quietly turn their server into a
+// meeting place for whoever finds it.
+func TestAServedRelayAdmitsOnlyTheKeyTheInstanceStores(t *testing.T) {
+	srv, _ := testServer(t)
+	defer srv.Close()
+
+	if code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"","key":"the-key-this-instance-serves","serve":true}`); code != http.StatusOK || !put.Serve {
+		t.Fatalf("PUT /api/relay/config = %d %+v", code, put)
+	}
+
+	stranger := fixedSibling(t, srv.URL, "some-other-relay-key-entirely", "stranger-1")
+
+	// Long enough that a connection which was going to succeed has, and that
+	// the client has had time for a reconnect attempt or two after being
+	// refused. Connected() is the client's own view; ServeClients is the
+	// relay's. Both have to say no, because either one alone could be a
+	// timing artefact.
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		if stranger.Connected() {
+			t.Fatal("a client carrying a key this instance does not serve was admitted to its relay")
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	if _, cfg := getRelayConfig(t, srv.URL); cfg.ServeClients != 0 {
+		t.Errorf("serveClients = %d, want the stranger never registered", cfg.ServeClients)
+	}
+}
+
+// TestWithTheSwitchOffTheRelaySocketIsNotThere: an instance that is not
+// serving a relay answers the way one that never had the feature does. That
+// is deliberate rather than incidental - a client told "no such endpoint" can
+// treat every version of KnightLoader alike, while a 403 would have it
+// reporting a refusal to somebody who never asked for anything.
+func TestWithTheSwitchOffTheRelaySocketIsNotThere(t *testing.T) {
+	srv, _ := testServer(t)
+	defer srv.Close()
+
+	resp, err := http.Get(srv.URL + "/relay/connect")
+	if err != nil {
+		t.Fatalf("GET /relay/connect: %v", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusNotFound {
+		t.Errorf("GET /relay/connect answered %d with the switch off, want 404", resp.StatusCode)
+	}
+
+	// And it is the switch doing it, not a route that was never registered:
+	// with the switch on the same plain GET gets as far as the WebSocket
+	// handshake, which refuses it for not being one.
+	if code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"","key":"a-key-long-enough-to-pass","serve":true}`); code != http.StatusOK || !put.Serve {
+		t.Fatalf("PUT /api/relay/config = %d %+v", code, put)
+	}
+	on, err := http.Get(srv.URL + "/relay/connect")
+	if err != nil {
+		t.Fatalf("GET /relay/connect with the switch on: %v", err)
+	}
+	defer on.Body.Close()
+	if on.StatusCode == http.StatusNotFound {
+		t.Error("GET /relay/connect still answers 404 with the switch on")
+	}
+}
+
+// TestTheServeSwitchIsLeftAloneWhenTheRequestOmitsIt: the address form and the
+// switch are two controls on one card, and PUT carries both. Serve is a
+// pointer for the same reason Key is - a save from a form that only edited the
+// address must not carry the switch back to whatever it was when that form was
+// drawn - and a pointer that is only DECLARED optional is not optional.
+func TestTheServeSwitchIsLeftAloneWhenTheRequestOmitsIt(t *testing.T) {
+	srv, _ := testServer(t)
+	defer srv.Close()
+
+	if code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"","key":"a-key-long-enough-to-pass","serve":true}`); code != http.StatusOK || !put.Serve {
+		t.Fatalf("turning it on = %d %+v", code, put)
+	}
+	if code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"https://relay.example.com"}`); code != http.StatusOK || !put.Serve {
+		t.Fatalf("saving an address turned the switch off: %d %+v", code, put)
+	}
+	if code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"https://relay.example.com","serve":false}`); code != http.StatusOK || put.Serve {
+		t.Fatalf("turning it off = %d %+v", code, put)
+	}
+	if _, cfg := getRelayConfig(t, srv.URL); cfg.Serve || cfg.ServeClients != 0 {
+		t.Errorf("config = %+v, want serve=false and no clients reported", cfg)
+	}
+}

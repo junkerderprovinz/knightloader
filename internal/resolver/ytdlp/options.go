@@ -27,20 +27,20 @@ type Options struct {
 	// see Variant's own doc comment. The zero value is VariantVideo, so an
 	// Options built before this field existed (or a task with no variant
 	// recorded on it) downloads exactly what it always did.
-	Variant      Variant      `json:"variant"`
-	Quality      Quality      `json:"quality"`
-	CustomFormat string       `json:"customFormat"`
+	Variant      Variant `json:"variant"`
+	Quality      Quality `json:"quality"`
+	CustomFormat string  `json:"customFormat"`
 	// AudioFormat is yt-dlp's own --audio-format value (e.g. "mp3", "m4a",
 	// "opus", or "best" for whatever the source itself already is) - read
 	// only when Variant is VariantAudio.
-	AudioFormat  string       `json:"audioFormat"`
+	AudioFormat string `json:"audioFormat"`
 	// AudioBitrate is yt-dlp's own --audio-quality target (e.g. "192" for
 	// 192 kbit/s), read only when Variant is VariantAudio. Empty passes no
 	// flag at all, leaving ffmpeg's own default bitrate for whatever
 	// AudioFormat asks it to encode - meaningful only once AudioFormat names
 	// an actual transcode target; a "best" extract copies the source's own
 	// audio stream and has no bitrate of its own to retarget.
-	AudioBitrate string       `json:"audioBitrate"`
+	AudioBitrate string `json:"audioBitrate"`
 	// SubtitleLangs is yt-dlp's own --sub-langs value (comma-separated
 	// codes, or a pattern like "en.*"; "all" is also yt-dlp's own keyword).
 	// Empty falls back to DefaultSubtitleLangs. Read only when Variant is

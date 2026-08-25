@@ -65,13 +65,30 @@ func TestNothingRegistersOutsideTheTable(t *testing.T) {
 // worse than an absent one: it looks like the page is broken rather than like
 // somebody forgot a string.
 func TestEveryRouteDescribesItself(t *testing.T) {
+	// The one route outside /api/, and the reason it has to be. The relay
+	// client appends "/relay/connect" to whatever relay address it was given
+	// (relay.connectURL), so an instance serving a relay has to answer on
+	// exactly that path or a relay address would mean two different things
+	// depending on which kind of relay is behind it - and the card that offers
+	// the switch shows the reader this instance's plain address to hand out.
+	//
+	// Being outside /api/ means the session guard does not cover it, which is
+	// correct here rather than convenient: every instance dialling in is a
+	// different machine with no session, and the relay key in the first frame
+	// is the credential. TestOnlyTheseRoutesAreOpen pins that separately.
+	outsideAPI := map[string]string{
+		"GET /relay/connect": "the relay socket has to sit where relay clients dial, which is the " +
+			"address itself plus /relay/connect, not under /api/",
+	}
 	reg := buildRegistry(t)
 	for _, r := range reg.Routes() {
 		if strings.TrimSpace(r.Summary) == "" {
 			t.Errorf("%s %s has no summary", r.Method, r.Path)
 		}
 		if !strings.HasPrefix(r.Path, "/api/") {
-			t.Errorf("%s %s is not under /api/, where the session guard only protects what is", r.Method, r.Path)
+			if _, ok := outsideAPI[r.Method+" "+r.Path]; !ok {
+				t.Errorf("%s %s is not under /api/, where the session guard only protects what is", r.Method, r.Path)
+			}
 		}
 	}
 }
@@ -91,6 +108,11 @@ func TestOnlyTheseRoutesAreOpen(t *testing.T) {
 			"with no session; the unguessable single-use token in the path is the credential",
 		"POST /api/instances/pairing-code/complete": "called by the other instance's own backend to " +
 			"finish a pairing, with no session; the token in the body is the credential",
+		"GET /relay/connect": "the relay socket, when this instance is serving one; every instance " +
+			"dialling in is a different machine with no session here, and the relay key in the first " +
+			"frame is the only credential there is. relay.Server.Admit lets in exactly the key this " +
+			"instance stores, and the route answers 404 while the switch is off, so an open route is " +
+			"not an open relay",
 	}
 	got := map[string]bool{}
 	for _, r := range buildRegistry(t).Routes() {
