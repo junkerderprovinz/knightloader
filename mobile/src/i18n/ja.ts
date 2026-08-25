@@ -15,6 +15,12 @@ export const ja: Dict = {
   'connect.connectButton': '接続',
   'connect.qrHintAddress': 'アクセスタブのQRコードをスキャン',
   'connect.qrAutofillNotice': '名前とアドレスはコードから取得されました。このコードにトークンは含まれません。トークンは手動で貼り付けてください。',
+  'connect.findButton': 'このネットワークから探す',
+  'connect.finding': 'このネットワークを検索中…',
+  'connect.foundNone': 'このネットワークでは見つかりませんでした。アドレスを手動で入力するか、アクセスタブのQRコードをスキャンしてください。',
+  'connect.foundOne': '1台見つかりました。アドレスは入力済みです。あとはトークンを貼り付けて接続してください。',
+  'connect.foundMany': '{n}台見つかりました。1つ選んでください：',
+  'connect.foundPick': 'これを使う',
 
   'qr.cancel': 'キャンセル',
   'qr.cameraPermissionHint': 'QRコードのスキャンにはカメラへのアクセスが必要です。',

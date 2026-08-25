@@ -15,6 +15,12 @@ export const ru: Dict = {
   'connect.connectButton': 'Подключиться',
   'connect.qrHintAddress': 'Отсканируйте QR-код на вкладке «Доступ»',
   'connect.qrAutofillNotice': 'Название и адрес взяты из кода. Такой код никогда не содержит токен - вставьте его вручную.',
+  'connect.findButton': 'Найти в этой сети',
+  'connect.finding': 'Поиск в этой сети…',
+  'connect.foundNone': 'В этой сети ничего не найдено. Введите адрес вручную или отсканируйте QR-код на вкладке «Доступ».',
+  'connect.foundOne': 'Найден один. Адрес заполнен - вставьте токен и подключитесь.',
+  'connect.foundMany': 'Найдено: {n}. Выберите один:',
+  'connect.foundPick': 'Использовать этот',
 
   'qr.cancel': 'Отмена',
   'qr.cameraPermissionHint': 'Для сканирования QR-кода нужен доступ к камере.',

@@ -15,6 +15,12 @@ export const de: Dict = {
   'connect.connectButton': 'Verbinden',
   'connect.qrHintAddress': 'QR-Code aus dem Access-Tab scannen',
   'connect.qrAutofillNotice': 'Name und Adresse aus dem Code übernommen. Ein Token steckt in dieser Art Code nie mit drin - bitte weiterhin von Hand einfügen.',
+  'connect.findButton': 'In diesem Netz suchen',
+  'connect.finding': 'Suche in diesem Netz…',
+  'connect.foundNone': 'In diesem Netz nichts gefunden. Adresse von Hand eingeben oder den QR-Code aus dem Access-Tab scannen.',
+  'connect.foundOne': 'Einen gefunden. Die Adresse steht schon drin - jetzt nur noch einen Token einfügen und verbinden.',
+  'connect.foundMany': '{n} gefunden. Such dir einen aus:',
+  'connect.foundPick': 'Diesen nehmen',
 
   'qr.cancel': 'Abbrechen',
   'qr.cameraPermissionHint': 'Kamera-Zugriff wird für den QR-Scan benötigt.',

@@ -15,6 +15,12 @@ export const it: Dict = {
   'connect.connectButton': 'Connetti',
   'connect.qrHintAddress': 'Scansiona il codice QR dalla scheda Accesso',
   'connect.qrAutofillNotice': 'Nome e indirizzo presi dal codice. Questo tipo di codice non contiene mai un token: incollalo a mano.',
+  'connect.findButton': 'Cerca in questa rete',
+  'connect.finding': 'Ricerca in questa rete…',
+  'connect.foundNone': 'Non è stato trovato nulla in questa rete. Inserisci l’indirizzo a mano oppure scansiona il codice QR dalla scheda Accesso.',
+  'connect.foundOne': 'Ne è stato trovato uno. L’indirizzo è già compilato: incolla un token e connettiti.',
+  'connect.foundMany': 'Ne sono stati trovati {n}. Scegline uno:',
+  'connect.foundPick': 'Usa questo',
 
   'qr.cancel': 'Annulla',
   'qr.cameraPermissionHint': 'Per scansionare il codice QR serve l’accesso alla fotocamera.',

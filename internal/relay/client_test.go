@@ -153,7 +153,7 @@ func TestClientProxiesToASibling(t *testing.T) {
 	}
 	done := make(chan result, 1)
 	go func() {
-		body, status, err := alpha.Proxy(context.Background(), "bravo", http.MethodPost, "/api/links", []byte(`{"url":"x"}`))
+		body, status, err := alpha.Proxy(context.Background(), "bravo", http.MethodPost, "/api/links", []byte(`{"url":"x"}`), "")
 		done <- result{body, status, err}
 	}()
 
@@ -269,7 +269,7 @@ func TestProxyFailsFastRatherThanWaiting(t *testing.T) {
 			}
 
 			began := time.Now()
-			_, _, err := alpha.Proxy(context.Background(), tc.target, http.MethodGet, "/api/tasks", nil)
+			_, _, err := alpha.Proxy(context.Background(), tc.target, http.MethodGet, "/api/tasks", nil, "")
 			if err == nil {
 				t.Fatal("the call succeeded, want it to fail")
 			}
@@ -330,7 +330,7 @@ func TestCallInFlightFailsWhenTheConnectionDies(t *testing.T) {
 
 	failed := make(chan error, 1)
 	go func() {
-		_, _, err := alpha.Proxy(context.Background(), "bravo", http.MethodGet, "/api/tasks", nil)
+		_, _, err := alpha.Proxy(context.Background(), "bravo", http.MethodGet, "/api/tasks", nil, "")
 		failed <- err
 	}()
 	// bravo receives the call and deliberately never answers it.

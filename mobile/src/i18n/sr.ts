@@ -15,6 +15,12 @@ export const sr: Dict = {
   'connect.connectButton': 'Poveži se',
   'connect.qrHintAddress': 'Skenirajte QR kod sa kartice Pristup',
   'connect.qrAutofillNotice': 'Naziv i adresa su preuzeti iz koda. Ova vrsta koda nikada ne sadrži token - nalepite ga ručno.',
+  'connect.findButton': 'Pronađi na ovoj mreži',
+  'connect.finding': 'Traženje na ovoj mreži…',
+  'connect.foundNone': 'Na ovoj mreži nije pronađeno ništa. Unesite adresu ručno ili skenirajte QR kod sa kartice Pristup.',
+  'connect.foundOne': 'Pronađen je jedan. Adresa je popunjena - nalepite token i povežite se.',
+  'connect.foundMany': 'Pronađeno: {n}. Izaberite jedan:',
+  'connect.foundPick': 'Koristi ovaj',
 
   'qr.cancel': 'Otkaži',
   'qr.cameraPermissionHint': 'Za skeniranje QR koda potreban je pristup kameri.',

@@ -15,6 +15,12 @@ export const nl: Dict = {
   'connect.connectButton': 'Verbinden',
   'connect.qrHintAddress': 'Scan de QR-code van het tabblad Toegang',
   'connect.qrAutofillNotice': 'Naam en adres overgenomen uit de code. Dit type code bevat nooit een token - plak dat handmatig.',
+  'connect.findButton': 'Zoeken op dit netwerk',
+  'connect.finding': 'Bezig met zoeken op dit netwerk…',
+  'connect.foundNone': 'Niets gevonden op dit netwerk. Vul het adres handmatig in of scan de QR-code van het tabblad Toegang.',
+  'connect.foundOne': 'Eén gevonden. Het adres is ingevuld - plak een token en verbind.',
+  'connect.foundMany': '{n} gevonden. Kies er een:',
+  'connect.foundPick': 'Deze gebruiken',
 
   'qr.cancel': 'Annuleren',
   'qr.cameraPermissionHint': 'Cameratoegang is nodig om de QR-code te scannen.',

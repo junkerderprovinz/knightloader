@@ -71,8 +71,9 @@ type RelayTransport interface {
 	// while the relay is unreachable, which is the whole of the outage
 	// handling here: no relay, no relay peers, nothing else affected.
 	Siblings() []relay.Announce
-	// Proxy calls one sibling, addressed by its instance ID.
-	Proxy(ctx context.Context, target, method, path string, body []byte) ([]byte, int, error)
+	// Proxy calls one sibling, addressed by its instance ID. authorization is
+	// the Authorization header value the target should see, or "" for none.
+	Proxy(ctx context.Context, target, method, path string, body []byte, authorization string) ([]byte, int, error)
 	// Connected reports whether the socket to the relay is up right now.
 	//
 	// Siblings() alone cannot answer that: it is empty both when the relay is
@@ -103,6 +104,7 @@ type Manager struct {
 	mu   sync.Mutex
 	list map[string]Instance // by name
 	rt   RelayTransport      // nil until SetRelay, and again after it is cleared
+	pt   PeerTokens          // nil until SetPeerTokens: peers are then called unauthenticated
 }
 
 // Load reads instances.json from dir (missing file = empty list).
@@ -123,13 +125,6 @@ func Load(dir string) (*Manager, error) {
 	return m, nil
 }
 
-// SetRelay installs the transport that reaches relay-visible peers, or clears
-// it with nil when relay mode is switched off - and closes whatever transport
-// it is replacing, so calling this again (a new address, a new key, an
-// application restart's own first call) never leaks the previous connection.
-// Peers the relay reports are not stored and not persisted: they appear and
-// disappear with the relay connection itself, so there is nothing here to
-// save and nothing to load back.
 // RelayConnected reports whether a relay is configured AND its socket is up.
 // False means either no relay at all or one that cannot be reached - the
 // caller that wants to tell those apart has the stored config to check.
@@ -140,6 +135,13 @@ func (m *Manager) RelayConnected() bool {
 	return rt != nil && rt.Connected()
 }
 
+// SetRelay installs the transport that reaches relay-visible peers, or clears
+// it with nil when relay mode is switched off - and closes whatever transport
+// it is replacing, so calling this again (a new address, a new key, an
+// application restart's own first call) never leaks the previous connection.
+// Peers the relay reports are not stored and not persisted: they appear and
+// disappear with the relay connection itself, so there is nothing here to
+// save and nothing to load back.
 func (m *Manager) SetRelay(rt RelayTransport) {
 	m.mu.Lock()
 	prev := m.rt
@@ -148,6 +150,39 @@ func (m *Manager) SetRelay(rt RelayTransport) {
 	if prev != nil {
 		_ = prev.Close()
 	}
+}
+
+// PeerTokens supplies the credential a call to one peer must carry.
+//
+// A hook rather than a field on Instance, because an Instance is written to
+// instances.json in plaintext and a bearer token is a secret - the same
+// separation settings.RelayURL and the relay key already keep (see
+// settings_relay.go's own doc comment). The implementation lives with the
+// encrypted store; this package only asks.
+//
+// Empty is a valid answer and means "call it unauthenticated", which is what
+// every peer call did before peer tokens existed and what a manually added
+// peer still does.
+type PeerTokens interface {
+	TokenFor(peer string) string
+}
+
+// SetPeerTokens installs the lookup. Safe to call with nil, which restores the
+// old credential-free behaviour.
+func (m *Manager) SetPeerTokens(pt PeerTokens) {
+	m.mu.Lock()
+	m.pt = pt
+	m.mu.Unlock()
+}
+
+func (m *Manager) tokenFor(peer string) string {
+	m.mu.Lock()
+	pt := m.pt
+	m.mu.Unlock()
+	if pt == nil {
+		return ""
+	}
+	return pt.TokenFor(peer)
 }
 
 // List returns the peers sorted by what a person reads as their name: the
@@ -278,8 +313,32 @@ func (m *Manager) Proxy(ctx context.Context, name, method, path string, body []b
 	}
 	// rt is never nil here when RelayID is set: the entry came from that same
 	// transport in the same call, above.
+	//
+	// The credential is looked up by the name this peer is ADDRESSED as, which
+	// is not the same key for both transports and is worth being precise
+	// about, because an earlier version of this comment claimed it was.
+	//
+	// A stored peer is addressed by its pairing name, and that is exactly the
+	// key a peer token is filed under, so an HTTP call carries one. A RELAY
+	// peer is addressed by its 40-hex InstanceID (see reachable), and no
+	// credential is ever filed under that - pairing is an HTTP POST to the
+	// other side's /complete, which two instances that can only meet over the
+	// relay cannot make. So this is empty for them, and they are called
+	// unauthenticated, exactly as every peer was before peer tokens existed.
+	//
+	// The honest consequence: a password-protected peer reachable ONLY through
+	// a relay still answers 401, so issue #26 is unfixed for that one
+	// deployment. Pairing over the relay is the missing piece, and it is a
+	// feature rather than a line of glue - the authorization field is threaded
+	// all the way through RelayTransport.Proxy and relay.ProxyRequest and is
+	// ready for it. It is filled in today by the mobile companion app, which
+	// holds a token a person typed (see relay/protocol.go).
+	auth := ""
+	if tok := m.tokenFor(name); tok != "" {
+		auth = "Bearer " + tok
+	}
 	if in.RelayID != "" {
-		return rt.Proxy(ctx, in.RelayID, method, path, body)
+		return rt.Proxy(ctx, in.RelayID, method, path, body, auth)
 	}
 	var rd io.Reader
 	if len(body) > 0 {
@@ -292,6 +351,9 @@ func (m *Manager) Proxy(ctx context.Context, name, method, path string, body []b
 	if len(body) > 0 {
 		req.Header.Set("Content-Type", "application/json")
 	}
+	if auth != "" {
+		req.Header.Set("Authorization", auth)
+	}
 	resp, err := m.hc.Do(req)
 	if err != nil {
 		return nil, http.StatusBadGateway, fmt.Errorf("federation: %s unreachable: %w", in.Name, err)
@@ -301,11 +363,23 @@ func (m *Manager) Proxy(ctx context.Context, name, method, path string, body []b
 	return b, resp.StatusCode, nil
 }
 
+// ErrUnauthorized is what Ping reports when a peer was REACHED and refused the
+// call. Distinguished from every other failure because the fix is completely
+// different and the two look identical from outside: unreachable means check
+// the address or the network, refused means this instance holds no credential
+// the peer accepts, which pairing is what supplies. Reporting both as "offline"
+// is what made a password-protected peer indistinguishable from a switched-off
+// one - the state issue #26 was about.
+var ErrUnauthorized = errors.New("federation: the peer refused this instance's credentials")
+
 // Ping checks a peer by listing its tasks.
 func (m *Manager) Ping(ctx context.Context, name string) error {
 	_, code, err := m.Proxy(ctx, name, http.MethodGet, "/api/tasks", nil)
 	if err != nil {
 		return err
+	}
+	if code == http.StatusUnauthorized || code == http.StatusForbidden {
+		return ErrUnauthorized
 	}
 	if code != http.StatusOK {
 		return fmt.Errorf("federation: peer answered HTTP %d", code)

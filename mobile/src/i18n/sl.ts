@@ -15,6 +15,12 @@ export const sl: Dict = {
   'connect.connectButton': 'Poveži se',
   'connect.qrHintAddress': 'Skenirajte kodo QR z zavihka Dostop',
   'connect.qrAutofillNotice': 'Ime in naslov sta prevzeta iz kode. Tovrstna koda nikoli ne vsebuje žetona - prilepite ga ročno.',
+  'connect.findButton': 'Poišči v tem omrežju',
+  'connect.finding': 'Iskanje v tem omrežju…',
+  'connect.foundNone': 'V tem omrežju ni bilo najdenega ničesar. Vnesite naslov ročno ali skenirajte kodo QR z zavihka Dostop.',
+  'connect.foundOne': 'Najden je eden. Naslov je izpolnjen - prilepite žeton in se povežite.',
+  'connect.foundMany': 'Najdenih: {n}. Izberite enega:',
+  'connect.foundPick': 'Uporabi tega',
 
   'qr.cancel': 'Prekliči',
   'qr.cameraPermissionHint': 'Za skeniranje kode QR je potreben dostop do kamere.',

@@ -23,6 +23,9 @@ type fakeRelay struct {
 	// instance ID was used as the address rather than the display name.
 	target, method, path string
 	body                 []byte
+	// auth is what the credential hook produced for this call, so a test
+	// can prove a peer token reaches the relay transport too.
+	auth string
 
 	resp   []byte
 	status int
@@ -38,8 +41,9 @@ func (f *fakeRelay) Siblings() []relay.Announce { return f.sibs }
 
 func (f *fakeRelay) Connected() bool { return !f.down }
 
-func (f *fakeRelay) Proxy(_ context.Context, target, method, path string, body []byte) ([]byte, int, error) {
+func (f *fakeRelay) Proxy(_ context.Context, target, method, path string, body []byte, authorization string) ([]byte, int, error) {
 	f.target, f.method, f.path, f.body = target, method, path, body
+	f.auth = authorization
 	return f.resp, f.status, f.err
 }
 
@@ -392,3 +396,63 @@ func TestRelayConnectedDistinguishesUnreachableFromAbsent(t *testing.T) {
 		t.Error("relay configured but down, want RelayConnected false")
 	}
 }
+
+// TestARelayPeerCarriesNoCredential pins what is actually true today, because
+// a comment here once claimed the opposite and nothing tested it.
+//
+// A stored peer is addressed by its pairing name, which is the key a peer
+// token is filed under, so an HTTP call carries one. A relay peer is addressed
+// by its 40-hex InstanceID, and no credential is ever filed under that -
+// pairing is an HTTP POST to the other side, which two instances that can only
+// meet over a relay cannot make.
+//
+// So this asserts an EMPTY Authorization for the relay transport and a
+// populated one for HTTP. If relay pairing is ever built, this test failing is
+// the correct and intended signal to update it.
+func TestARelayPeerCarriesNoCredential(t *testing.T) {
+	m, err := Load(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Filed the way production files them: under PAIRING NAMES only. Nothing
+	// ever writes a credential under an InstanceID, because the only thing
+	// that writes one is the pairing exchange, and that names its peer.
+	m.SetPeerTokens(staticTokens{"cellar": "secret-for-cellar", "Laptop": "the-relay-peer-s-display-name"})
+
+	rt := &fakeRelay{sibs: []relay.Announce{{InstanceID: "id-bravo", Name: "Laptop"}}}
+	m.SetRelay(rt)
+
+	if _, _, err := m.Proxy(context.Background(), "id-bravo", http.MethodGet, "/api/tasks", nil); err != nil {
+		t.Fatalf("relay proxy: %v", err)
+	}
+	// Empty, and note the second entry above: not even the peer's DISPLAY name
+	// helps, because a relay peer is addressed by its id and that is the key
+	// the lookup uses. Both halves of the gap in one assertion.
+	if rt.auth != "" {
+		t.Errorf("relay call carried Authorization %q, want none - no credential is filed under an InstanceID", rt.auth)
+	}
+
+	// The HTTP half, for contrast: same manager, same hook, a credential does
+	// travel - so an empty one above is about the key, not about the hook
+	// being unwired.
+	var seen string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		seen = r.Header.Get("Authorization")
+		_, _ = w.Write([]byte("[]"))
+	}))
+	defer srv.Close()
+	if err := m.Add(Instance{Name: "cellar", URL: srv.URL}); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := m.Proxy(context.Background(), "cellar", http.MethodGet, "/api/tasks", nil); err != nil {
+		t.Fatalf("http proxy: %v", err)
+	}
+	if seen != "Bearer secret-for-cellar" {
+		t.Errorf("http call carried %q, want the stored peer token", seen)
+	}
+}
+
+// staticTokens is a PeerTokens hook backed by a plain map.
+type staticTokens map[string]string
+
+func (s staticTokens) TokenFor(peer string) string { return s[peer] }

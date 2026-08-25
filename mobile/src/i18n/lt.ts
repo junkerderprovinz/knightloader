@@ -15,6 +15,12 @@ export const lt: Dict = {
   'connect.connectButton': 'Prisijungti',
   'connect.qrHintAddress': 'Nuskaitykite QR kodą iš skirtuko „Prieiga“',
   'connect.qrAutofillNotice': 'Pavadinimas ir adresas paimti iš kodo. Šio tipo kode prieigos rakto niekada nebūna - įklijuokite jį rankiniu būdu.',
+  'connect.findButton': 'Ieškoti šiame tinkle',
+  'connect.finding': 'Ieškoma šiame tinkle…',
+  'connect.foundNone': 'Šiame tinkle nieko nerasta. Įveskite adresą ranka arba nuskaitykite QR kodą iš skirtuko „Prieiga“.',
+  'connect.foundOne': 'Rastas vienas. Adresas įrašytas - įklijuokite prieigos raktą ir prisijunkite.',
+  'connect.foundMany': 'Rasta: {n}. Pasirinkite vieną:',
+  'connect.foundPick': 'Naudoti šį',
 
   'qr.cancel': 'Atšaukti',
   'qr.cameraPermissionHint': 'Norint nuskaityti QR kodą, reikalinga prieiga prie kameros.',

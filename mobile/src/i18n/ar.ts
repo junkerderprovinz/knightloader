@@ -15,6 +15,12 @@ export const ar: Dict = {
   'connect.connectButton': 'اتصال',
   'connect.qrHintAddress': 'امسح رمز QR من تبويب "الوصول"',
   'connect.qrAutofillNotice': 'تم أخذ الاسم والعنوان من الرمز. هذا النوع من الرموز لا يحتوي أبدًا على رمز وصول - الصقه يدويًا.',
+  'connect.findButton': 'البحث في هذه الشبكة',
+  'connect.finding': 'يجري البحث في هذه الشبكة…',
+  'connect.foundNone': 'لم يُعثر على شيء في هذه الشبكة. أدخل العنوان يدويًا، أو امسح رمز QR من تبويب "الوصول".',
+  'connect.foundOne': 'تم العثور على واحد. تم ملء العنوان - الصق رمز وصول ثم اتصل.',
+  'connect.foundMany': 'تم العثور على {n}. اختر واحدًا:',
+  'connect.foundPick': 'استخدام هذا',
 
   'qr.cancel': 'إلغاء',
   'qr.cameraPermissionHint': 'يلزم الوصول إلى الكاميرا لمسح رمز QR.',

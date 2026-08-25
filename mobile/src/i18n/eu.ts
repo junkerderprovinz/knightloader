@@ -15,6 +15,12 @@ export const eu: Dict = {
   'connect.connectButton': 'Konektatu',
   'connect.qrHintAddress': 'Eskaneatu QR kodea Sarbidea fitxatik',
   'connect.qrAutofillNotice': 'Izena eta helbidea kodetik hartu dira. Kode mota honek ez du inoiz tokenik izaten - itsatsi eskuz.',
+  'connect.findButton': 'Bilatu sare honetan',
+  'connect.finding': 'Sare honetan bilatzen…',
+  'connect.foundNone': 'Ez da ezer aurkitu sare honetan. Idatzi helbidea eskuz, edo eskaneatu QR kodea Sarbidea fitxatik.',
+  'connect.foundOne': 'Bat aurkitu da. Helbidea beteta dago - itsatsi token bat eta konektatu.',
+  'connect.foundMany': '{n} aurkitu dira. Aukeratu bat:',
+  'connect.foundPick': 'Erabili hau',
 
   'qr.cancel': 'Utzi',
   'qr.cameraPermissionHint': 'Kamerarako sarbidea behar da QR kodea eskaneatzeko.',
