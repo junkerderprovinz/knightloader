@@ -43,6 +43,34 @@ func (f fakeYtdlpBackend) ProbeTitle(_ context.Context, _ string) (string, error
 	return f.title, nil
 }
 
+// blockingYtdlpBackend answers ProbeTitle only once release is closed, so a
+// test can let the five-row variant family finish being built and then decide
+// for itself whether the title ever arrives at all.
+//
+// fakeYtdlpBackend above answers instantly, which is the right shape for "the
+// probe ran and the name landed" but the wrong one for anything about
+// ORDERING: a test that needs the probe to be still outstanding can only get
+// there by luck with a fake that has already answered by the time AddLinks
+// returns.
+type blockingYtdlpBackend struct {
+	title   string
+	release chan struct{}
+}
+
+func (blockingYtdlpBackend) Download(string, string, map[string]string, int) {}
+func (blockingYtdlpBackend) Pause(string)                                    {}
+func (blockingYtdlpBackend) Resume(string)                                   {}
+func (blockingYtdlpBackend) Remove(string, bool)                             {}
+
+func (b blockingYtdlpBackend) ProbeTitle(ctx context.Context, _ string) (string, error) {
+	select {
+	case <-b.release:
+		return b.title, nil
+	case <-ctx.Done():
+		return "", ctx.Err()
+	}
+}
+
 // wireYtdlp routes ytdlp-shaped links (see routing_test.go's own use of the
 // same resolver) to a fake backend, without a real yt-dlp binary anywhere on
 // the machine running the test.

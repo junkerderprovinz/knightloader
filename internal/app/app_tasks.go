@@ -48,10 +48,10 @@ func (a *App) SetPackage(ids []string, pkg string) {
 	pkg = strings.TrimSpace(pkg)
 	a.mu.Lock()
 	var copies []core.Task
+	seen := make(map[string]bool, len(ids))
 	for _, id := range ids {
 		if t := a.tasks[id]; t != nil {
-			t.Package = pkg
-			copies = append(copies, *t)
+			copies = setPackageLocked(a.tasks, t, pkg, copies, seen)
 		}
 	}
 	a.mu.Unlock()
@@ -139,8 +139,11 @@ func (a *App) setTaskName(id, name string) {
 	// each one's own probe answers, exactly like N solo packages would
 	// have, while a real batch (any sibling already named for real) is
 	// left standing untouched.
+	// The returned copies are discarded on purpose: this function's own
+	// sibling loop below walks the same family and broadcasts every row of it
+	// anyway, so taking them here would send each sibling twice.
 	newPackage := t.Package
-	if reguessPackageLocked(a.tasks, t, name) {
+	if reguessPackageLocked(a.tasks, t, name) != nil {
 		newPackage = t.Package
 	}
 	t.Name = name
@@ -191,13 +194,53 @@ func (a *App) setTaskName(id, name string) {
 // and the write then files a correctly-titled link under the guess anyway.
 //
 // Callers must already hold a.mu.
-func reguessPackageLocked(tasks map[string]*core.Task, t *core.Task, name string) bool {
+func reguessPackageLocked(tasks map[string]*core.Task, t *core.Task, name string) []core.Task {
 	guess := packageURLGuess(t)
 	if guess == "" || t.Package != guess || !noSiblingHasARealNameYet(tasks, t) {
-		return false
+		return nil
 	}
-	t.Package = sanitizeSegment(name)
-	return true
+	return setPackageLocked(tasks, t, sanitizeSegment(name), nil, nil)
+}
+
+// setPackageLocked files t in pkg, and with it every task sharing t's EXACT
+// URL - t's own variant siblings (expandYtdlpVariants). Every task it touched
+// is appended to out and returned, so the caller can save and broadcast them.
+// seen, when non-nil, keeps a task out of that list twice; pass nil when the
+// caller only ever asks about one family.
+//
+// A variant family sharing one package is not a nicety: it is what makes the
+// five rows of one video one thing on screen and one folder on disk. Until
+// now only setTaskName enforced it, and setTaskName is simply the one writer
+// that happens to SEE the whole family - the siblings are created inside
+// stage() after the bucket was already assembled, so they appear in nobody's
+// id list, and neither SetPackage nor regressGuessedPackages ever reached
+// them. When a title probe answered before the package had been decided, the
+// video row ended up correctly filed under the video's name and its four
+// siblings in no package at all, about one paste in seven.
+//
+// Enforcing it here rather than at the one caller that showed the symptom is
+// deliberate: the rule is a property of the family, so every write has to keep
+// it, including the ordinary one where a person picks a package for a row by
+// hand. Callers must already hold a.mu.
+func setPackageLocked(tasks map[string]*core.Task, t *core.Task, pkg string, out []core.Task, seen map[string]bool) []core.Task {
+	add := func(x *core.Task) {
+		x.Package = pkg
+		if seen != nil {
+			if seen[x.ID] {
+				return
+			}
+			seen[x.ID] = true
+		}
+		out = append(out, *x)
+	}
+	add(t)
+	for _, other := range tasks {
+		if other == t || other.URL != t.URL {
+			continue
+		}
+		add(other)
+	}
+	return out
 }
 
 // packageURLGuess returns what fileStem's own URL-path fallback
@@ -236,6 +279,25 @@ func packageURLGuess(t *core.Task) string {
 func noSiblingHasARealNameYet(tasks map[string]*core.Task, t *core.Task) bool {
 	for _, other := range tasks {
 		if other == t || other.Package != t.Package {
+			continue
+		}
+		// A row sharing t's EXACT URL is one of t's own variant siblings
+		// (expandYtdlpVariants), not an unrelated member of a resolved batch.
+		// That sharing is deliberate - nothing else legitimately produces two
+		// tasks with one URL - and setTaskName's own propagation loop already
+		// treats such a row as family rather than as a stranger.
+		//
+		// Not skipping them was a real, ~15%-of-the-time bug, and the ordering
+		// that reached it is the one nameBucket's own call site describes: a
+		// probe answering between snapshotTasks and SetPackage renames the
+		// whole family (setTaskName propagates the name to every sibling) while
+		// the package is still unset, so nothing is re-guessed there; SetPackage
+		// then writes "watch" onto all five; and regressGuessedPackages, which
+		// exists precisely to repair that, asked each row whether a sibling
+		// already had a real name - and by then every one of them did. All five
+		// vetoed each other and the family stayed in a folder called "watch",
+		// which is the exact complaint this whole feature exists to fix.
+		if other.URL == t.URL {
 			continue
 		}
 		if other.Name != other.URL {

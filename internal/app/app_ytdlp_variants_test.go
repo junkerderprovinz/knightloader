@@ -19,13 +19,21 @@ import (
 // URL (see insertVariantSibling's own doc comment on why that sharing is
 // deliberate rather than the ordinary "same link pasted twice" case put()
 // refuses).
-func tasksSharingURL(a *App, url string) []*core.Task {
+//
+// It returns COPIES, not the live pointers. Handing out pointers and releasing
+// the lock let a caller read one row's Package before the title probe landed
+// and the next row's after, so a family that was consistent at every instant
+// looked torn - "sibling package = %q, want every row in the same package %q"
+// with the two halves of the same rename on either side of the comma. It was
+// also a plain data race: the probe goroutine writes those fields under a.mu
+// while the reader held nothing.
+func tasksSharingURL(a *App, url string) []core.Task {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	var out []*core.Task
+	var out []core.Task
 	for _, x := range a.tasks {
 		if x.URL == url {
-			out = append(out, x)
+			out = append(out, *x)
 		}
 	}
 	return out
@@ -237,4 +245,150 @@ func TestExpandYtdlpVariantsFamilyStillRenamesThePackageOnceNamed(t *testing.T) 
 		}
 		return true
 	})
+}
+
+// familyOf is the two lines every test below opens with: stage one yt-dlp link
+// whose title probe is still outstanding, and hand back the five rows it
+// became.
+func familyOf(t *testing.T, url, title string) (*App, []core.Task) {
+	t.Helper()
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	release := make(chan struct{})
+	t.Cleanup(func() { close(release) })
+	wireYtdlp(a, blockingYtdlpBackend{title: title, release: release})
+
+	if created := a.AddLinks([]string{url}, ""); len(created) != 1 {
+		t.Fatalf("AddLinks created %d tasks, want 1", len(created))
+	}
+	waitFor(t, "expandYtdlpVariants to add the four sibling rows", func() bool {
+		return len(tasksSharingURL(a, url)) == 5
+	})
+	return a, tasksSharingURL(a, url)
+}
+
+// rowOf picks one named row out of a family.
+func rowOf(t *testing.T, family []core.Task, want ytdlp.Variant) string {
+	t.Helper()
+	for _, x := range family {
+		if kind, _ := variantDecode(x.Variant); kind == want {
+			return x.ID
+		}
+	}
+	t.Fatalf("no %q row in the family", want)
+	return ""
+}
+
+// TestSetPackageMovesTheWholeVariantFamily locks the invariant the rest of
+// this area is built on: the five rows of one video are ONE thing, so they
+// share one package, and picking a package for any one of them files all five.
+//
+// The row picked here is deliberately not the primary. A family that only
+// holds together when the video row leads is not holding together.
+func TestSetPackageMovesTheWholeVariantFamily(t *testing.T) {
+	const url = "https://www.youtube.com/watch?v=jNQXAC9IVRw"
+	a, family := familyOf(t, url, "Me at the zoo")
+
+	a.SetPackage([]string{rowOf(t, family, ytdlp.VariantSubtitle)}, "Zoo trip")
+
+	for _, x := range tasksSharingURL(a, url) {
+		if x.Package != "Zoo trip" {
+			t.Errorf("row %q is in package %q, want the whole family in %q", x.Variant, x.Package, "Zoo trip")
+		}
+	}
+}
+
+// TestAFamilyLeavesTheURLGuessWhenOnlyThePrimaryIsInTheIdList is the losing
+// ordering's own end state, set up by hand rather than raced for.
+//
+// TestExpandYtdlpVariantsFamilyStillRenamesThePackageOnceNamed reaches this
+// same defect through a real paste, but only when the probe happens to answer
+// inside one particular gap - about one run in seven, which is a fine way to
+// DISCOVER a bug and a poor way to guard against its return. This states the
+// state directly: every row of the family already carries the real name (that
+// is what setTaskName's own propagation loop does when it runs while the
+// package is still unset), all five are filed under the URL path's guess, and
+// the id list nameBucket hands on holds the primary alone, because the four
+// siblings were created inside stage() after the bucket was assembled and are
+// in no list anywhere.
+//
+// It failed twice over before the fix: noSiblingHasARealNameYet counted the
+// family's own rows as strangers with real names, so all five vetoed each
+// other's rename; and even once the primary was let through, the package was
+// written to that one row, leaving its four siblings behind.
+func TestAFamilyLeavesTheURLGuessWhenOnlyThePrimaryIsInTheIdList(t *testing.T) {
+	const url = "https://www.youtube.com/watch?v=jNQXAC9IVRw"
+	a, family := familyOf(t, url, "Me at the zoo")
+	primary := rowOf(t, family, ytdlp.VariantVideo)
+
+	a.mu.Lock()
+	for _, x := range a.tasks {
+		if x.URL == url {
+			x.Name = "Me at the zoo"
+			x.Package = "watch"
+		}
+	}
+	a.mu.Unlock()
+
+	a.regressGuessedPackages([]string{primary})
+
+	for _, x := range tasksSharingURL(a, url) {
+		if x.Package != "Me at the zoo" {
+			t.Errorf("row %q stayed in %q, want the whole family re-filed under %q", x.Variant, x.Package, "Me at the zoo")
+		}
+	}
+}
+
+// TestACoincidentalPackageCollisionIsStillLeftAlone is the other half of the
+// same guard, and the reason it cannot simply be deleted: two bare YouTube
+// links pasted together both guess the package "watch" without being related
+// at all, and one of them resolving its title must not drag the other one's
+// row along. Only rows sharing an EXACT URL are family.
+func TestACoincidentalPackageCollisionIsStillLeftAlone(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	release := make(chan struct{})
+	t.Cleanup(func() { close(release) })
+	wireYtdlp(a, blockingYtdlpBackend{title: "unused", release: release})
+
+	const mine = "https://www.youtube.com/watch?v=jNQXAC9IVRw"
+	const theirs = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+	for _, u := range []string{mine, theirs} {
+		if created := a.AddLinks([]string{u}, ""); len(created) != 1 {
+			t.Fatalf("AddLinks(%s) created %d tasks, want 1", u, len(created))
+		}
+	}
+	waitFor(t, "both links to become their own five-row families", func() bool {
+		return len(tasksSharingURL(a, mine)) == 5 && len(tasksSharingURL(a, theirs)) == 5
+	})
+
+	// Both families land in the same guessed package, which is the whole
+	// point: every bare YouTube watch page guesses "watch". The other link's
+	// rows already carry a real name, so they are a resolved batch this one
+	// must not touch.
+	var primary string
+	a.mu.Lock()
+	for _, x := range a.tasks {
+		switch x.URL {
+		case mine:
+			x.Name, x.Package = "Me at the zoo", "watch"
+			if kind, _ := variantDecode(x.Variant); kind == ytdlp.VariantVideo {
+				primary = x.ID
+			}
+		case theirs:
+			x.Name, x.Package = "Never Gonna Give You Up", "watch"
+		}
+	}
+	a.mu.Unlock()
+
+	a.regressGuessedPackages([]string{primary})
+
+	for _, x := range tasksSharingURL(a, mine) {
+		if x.Package != "watch" {
+			t.Errorf("row %q moved to %q, want the whole batch left in %q - an unrelated link already resolved into it", x.Variant, x.Package, "watch")
+		}
+	}
+	for _, x := range tasksSharingURL(a, theirs) {
+		if x.Package != "watch" {
+			t.Errorf("the other link's row %q moved to %q, want it untouched in %q", x.Variant, x.Package, "watch")
+		}
+	}
 }
