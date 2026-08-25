@@ -40,7 +40,18 @@ follows is what exists and runs.
 - **Watched folder** for `.txt` and JDownloader `.crawljob` drop files, carrying
   package name, destination and archive password.
 - **Multi-instance federation**: register other KnightLoaders and drive them all
-  from one dashboard, with no relay in between.
+  from one dashboard. Instances on the same network announce themselves over
+  multicast and are one click to add, with nothing configured. Two that cannot
+  reach each other directly meet through a relay you host yourself.
+- **Pairing**: one code, scanned or pasted, connects two instances in both
+  directions and gives each side its own named, revocable credential for the
+  other. Neither has to be reachable from the internet. Reachability is
+  reported per direction, because it fails per direction.
+- **Connect from anywhere**: the Android app finds servers on its own network
+  and fills the address in; the browser extension can send to a peer that has
+  no address of its own, by routing through an instance that does; the desktop
+  build finds and adds instances even though nothing can dial it back. See
+  [docs/connecting.md](docs/connecting.md).
 - **Access control**: an optional password lock with signed session cookies,
   off by default.
 - **The download list is a real table**: sortable columns you choose, packages
@@ -97,6 +108,26 @@ follows is what exists and runs.
 
 ### Security
 
+- A pairing code naming an instance you are ALREADY paired with can no longer
+  walk off with that peer's credential. Registering a peer overwrites by name
+  and a credential is filed by name, so re-pointing a name at a new address
+  left the old peer's token attached to it - and the reachability check that
+  runs next put that token in an Authorization header addressed to whoever now
+  owned the name.
+- Removing a peer now ends its credentials. It used to delete a line and
+  nothing else, leaving that peer a live, full-power API token indefinitely,
+  and leaving this instance's own credential for it to be inherited by whatever
+  was registered under the same name next.
+- A peer credential is addressed by token ID rather than by name, so a pairing
+  attempt that fails can no longer revoke the credential from the pairing that
+  worked. Names are not unique, and "revoke what I just minted" was revoking
+  every token ever minted for that peer.
+- Nothing announced over multicast is trusted: fields are length-capped on
+  arrival and the peer list is bounded, so a device on the network cannot grow
+  it without limit.
+- Adding a discovered instance exchanges no credentials, and the interface now
+  says so instead of claiming otherwise. A password-protected peer added that
+  way is reported as needing a pairing code rather than as offline.
 - The API no longer sends a wildcard CORS header and the WebSocket no longer
   accepts any origin, which together stopped another website from driving an
   instance through the visitor's browser.
@@ -108,6 +139,28 @@ follows is what exists and runs.
 
 ### Fixed
 
+- An instance whose name is not plain ASCII, or is longer than 32 characters,
+  can be paired at all. The name is folded into one that works as a URL path
+  segment ("Bürglers Keller" becomes "Burglers Keller"); before, the far side
+  refused it as invalid, about a name the person redeeming the code never typed
+  and could not see.
+- Pairing no longer reports plain success when only one of the two directions
+  works, and no longer hangs on a peer that accepts a connection and then says
+  nothing - a probe that outlived the other side's own budget could turn a
+  working pairing into a timeout.
+- The browser extension keeps peers it cannot open a connection to, instead of
+  dropping them silently and reporting "No new instances found" - the sentence
+  it also showed for an empty list, a sign-in problem, an unreachable host and
+  a timeout. Each of those now says what actually happened.
+- The Android app's network scan reaches the whole subnet. It probed every
+  address at once, and Android's HTTP client queues past 64 concurrent
+  requests, so everything past the first batch timed out while still waiting
+  for a slot - never sent, never answered. A server anywhere in a typical DHCP
+  range was simply never found.
+- Renaming an instance reaches the network immediately, rather than leaving
+  every other machine showing the old name until the process restarts.
+- An instance bound to loopback no longer announces a network address nothing
+  serves.
 - Removing a task no longer deletes what was downloaded. That was data loss on
   the ordinary "clear finished" path.
 - Task IDs are checked for collisions before entering the map, where a duplicate

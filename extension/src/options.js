@@ -85,7 +85,7 @@ async function render() {
     info.className = 'info';
     const name = document.createElement('div');
     name.className = 'name';
-    name.textContent = inst.name;
+    name.textContent = entryLabel(inst);
     if (inst.name === defaultName) {
       const badge = document.createElement('span');
       badge.className = 'badge';
@@ -94,7 +94,9 @@ async function render() {
     }
     const url = document.createElement('div');
     url.className = 'url';
-    url.textContent = inst.url;
+    // An entry with no address says WHAT it is instead of showing a blank
+    // line: reached through another instance, or not reachable at all.
+    url.textContent = inst.url || (inst.via ? t('options.viaPeer', { via: inst.via }) : t('options.unreachable'));
     info.append(name, url);
     row.appendChild(info);
 
@@ -105,7 +107,7 @@ async function render() {
       makeDefault.textContent = t('options.makeDefault');
       makeDefault.addEventListener('click', async () => {
         await writeInstances(instances, inst.name);
-        say(t('options.setDefault', { name: inst.name }), true);
+        say(t('options.setDefault', { name: entryLabel(inst) }), true);
         render();
       });
       row.appendChild(makeDefault);
@@ -118,7 +120,7 @@ async function render() {
     remove.addEventListener('click', async () => {
       const next = instances.filter((i) => i.name !== inst.name);
       await writeInstances(next, defaultName);
-      say(t('options.removed', { name: inst.name }), true);
+      say(t('options.removed', { name: entryLabel(inst) }), true);
       render();
     });
     row.appendChild(remove);
@@ -195,11 +197,17 @@ async function fetchPeers(baseUrl) {
       credentials: 'include',
       signal: ctrl.signal,
     });
-    if (!res.ok) return [];
+    // Issue #27: the reason travels with the failure now. It used to be
+    // thrown away here and every caller was told "No new instances found" -
+    // the same sentence for an empty list, a 401, a dead host and a timeout.
+    // Four different problems with four different fixes, and one message that
+    // pointed at none of them.
+    if (res.status === 401 || res.status === 403) return { peers: [], failure: 'signedOut' };
+    if (!res.ok) return { peers: [], failure: 'error' };
     const data = await res.json();
-    return Array.isArray(data) ? data : [];
-  } catch {
-    return [];
+    return { peers: Array.isArray(data) ? data : [], failure: null };
+  } catch (e) {
+    return { peers: [], failure: e?.name === 'AbortError' ? 'timeout' : 'unreachable' };
   } finally {
     clearTimeout(timer);
   }
@@ -215,8 +223,8 @@ async function fetchPeers(baseUrl) {
  * shadow an entry the user already named themselves.
  */
 function isKnownPeer(instances, candidate) {
-  const url = normalizeOrigin(candidate.url);
-  return instances.some((i) => i.name === candidate.name || normalizeOrigin(i.url) === url);
+  const url = candidate.url ? normalizeOrigin(candidate.url) : '';
+  return instances.some((i) => i.name === candidate.name || (url !== '' && normalizeOrigin(i.url ?? '') === url));
 }
 
 /**
@@ -234,10 +242,14 @@ function isKnownPeer(instances, candidate) {
  */
 async function syncPairedInstances({ requestPermission }) {
   const { instances, defaultName } = await readInstances();
-  if (instances.length === 0) return { added: 0, permissionDenied: false };
+  const empty = { added: 0, viaRelay: 0, permissionDenied: false, failures: [], asked: 0 };
+  if (instances.length === 0) return empty;
 
-  const withOrigin = instances.map((i) => ({ ...i, origin: peerOrigin(i.url) })).filter((i) => i.origin);
-  if (withOrigin.length === 0) return { added: 0, permissionDenied: false };
+  // Only entries with an address of their own can be ASKED - a relay-only
+  // peer has no API this browser can open. It is still a perfectly good
+  // sync TARGET (that is what `via` is for); it just cannot be a source.
+  const withOrigin = instances.map((i) => ({ ...i, origin: peerOrigin(i.url ?? '') })).filter((i) => i.origin);
+  if (withOrigin.length === 0) return empty;
 
   let reachable;
   if (requestPermission) {
@@ -247,7 +259,7 @@ async function syncPairedInstances({ requestPermission }) {
     } catch {
       granted = false;
     }
-    if (!granted) return { added: 0, permissionDenied: true };
+    if (!granted) return { ...empty, permissionDenied: true };
     reachable = withOrigin;
   } else {
     reachable = [];
@@ -259,39 +271,95 @@ async function syncPairedInstances({ requestPermission }) {
       }
     }
   }
-  if (reachable.length === 0) return { added: 0, permissionDenied: false };
+  if (reachable.length === 0) return empty;
 
-  const results = await Promise.allSettled(reachable.map((i) => fetchPeers(i.url)));
+  const results = await Promise.allSettled(reachable.map(async (i) => ({ from: i, ...(await fetchPeers(i.url)) })));
   let current = instances;
   let added = 0;
+  let viaRelay = 0;
+  const failures = [];
   for (const r of results) {
-    if (r.status !== 'fulfilled') continue;
-    for (const peer of r.value) {
-      if (typeof peer?.name !== 'string' || typeof peer?.url !== 'string' || !peer.name || !peer.url) continue;
+    if (r.status !== 'fulfilled') {
+      failures.push('error');
+      continue;
+    }
+    const { from, peers, failure } = r.value;
+    if (failure) failures.push(failure);
+    for (const peer of peers) {
+      if (typeof peer?.name !== 'string' || !peer.name) continue;
       if (isKnownPeer(current, peer)) continue;
-      // The peer's own federation name IS the name it gets here — no second
+      // Issue #27: a peer with no URL is not junk to drop - it is a desktop
+      // build or a relay-only peer, exactly the case the extension could
+      // never reach. It is kept with `via` set to the instance that told us
+      // about it, which forwards on its behalf (entryTarget in shared.js).
+      // Dropping it is what produced "No new instances found" for a sync that
+      // had in fact found something.
+      // name is the ADDRESS (federation addresses a relay peer by its
+      // instance id); label is the name it announced for people to read.
+      // Kept apart deliberately - collapsing them would either show an id or
+      // send to a name nothing answers to.
+      const label = typeof peer.displayName === 'string' && peer.displayName ? peer.displayName : peer.name;
+      const entry =
+        typeof peer.url === 'string' && peer.url
+          ? { name: peer.name, label, url: peer.url }
+          : { name: peer.name, label, url: '', via: normalizeOrigin(from.url) };
+      if (!entry.url) viaRelay++;
+      // The peer's own federation name IS the name it gets here - no second
       // naming scheme invented on top of internal/federation's.
-      current = [...current, { name: peer.name, url: peer.url }];
+      current = [...current, entry];
       added++;
     }
   }
   if (added > 0) await writeInstances(current, defaultName);
-  return { added, permissionDenied: false };
+  return { added, viaRelay, permissionDenied: false, failures, asked: reachable.length };
+}
+
+/**
+ * syncOutcome turns one sync result into the sentence that is actually true
+ * for it. Issue #27's first half: five different outcomes used to share the
+ * string "No new instances found", which is a lie for four of them and
+ * points at a fix for none.
+ */
+function syncOutcome({ added, viaRelay, permissionDenied, failures, asked }) {
+  if (permissionDenied) return { msg: t('options.syncPermissionDenied'), ok: false };
+  if (asked === 0) return { msg: t('options.syncNothingConfigured'), ok: false };
+  if (added > 0) {
+    const base = t('options.syncAdded', { count: added });
+    // Named separately, because those entries behave differently: they have
+    // no address of their own and are reached through the instance that knows
+    // them. Somebody who sees one appear with no URL deserves to know why.
+    return { msg: viaRelay > 0 ? base + ' ' + t('options.syncViaRelay', { count: viaRelay }) : base, ok: true };
+  }
+  // Nothing added, and at least one instance could not be asked at all: that
+  // is the answer, not "no new instances".
+  if (failures.length > 0) {
+    const [worst, key] = failures.includes('signedOut')
+      ? ['signedOut', 'options.syncSignedOut']
+      : failures.includes('timeout')
+        ? ['timeout', 'options.syncTimeout']
+        : failures.includes('unreachable')
+          ? ['unreachable', 'options.syncUnreachable']
+          : ['error', 'options.syncError'];
+    // Count the instances that failed THIS way, not every instance that
+    // failed. Three configured, one not signed in and two switched off, and
+    // the total would read "not signed in to 3 of the configured instances" -
+    // sending somebody to open three tabs and sign in to two machines that
+    // were never asking. Which is the same shape of wrong answer this whole
+    // function exists to stop giving.
+    const count = failures.filter((f) => f === worst).length;
+    return { msg: t(key, { count }), ok: false };
+  }
+  return { msg: t('options.syncNoNew'), ok: true };
 }
 
 syncPeersBtn.addEventListener('click', async () => {
   syncPeersBtn.disabled = true;
   say(t('options.syncing'), true);
-  const { added, permissionDenied } = await syncPairedInstances({ requestPermission: true });
+  const result = await syncPairedInstances({ requestPermission: true });
   syncPeersBtn.disabled = false;
-  if (permissionDenied) {
-    say(t('options.syncPermissionDenied'), false);
-  } else if (added > 0) {
-    say(t('options.syncAdded', { count: added }), true);
-    render();
-  } else {
-    say(t('options.syncNoNew'), true);
-  }
+  const { msg, ok } = syncOutcome(result);
+  say(msg, ok);
+  if (result.added > 0) render();
 });
 
 addForm.addEventListener('submit', async (e) => {
@@ -323,12 +391,30 @@ addForm.addEventListener('submit', async (e) => {
   render();
 });
 
+/**
+ * A fresh install starts with the add form already filled in for the case
+ * that is true for most people: KnightLoader running on this same machine,
+ * on its own default port. It is a SUGGESTION, not a silent default - the
+ * form still has to be submitted, so nothing ever gets pointed at an address
+ * nobody looked at (which is exactly why config.default.json ships empty for
+ * a `git clone` checkout, see readInstanceUrl in shared.js).
+ */
+const LOCAL_DEFAULT = 'http://localhost:8749';
+
+async function suggestLocalDefault() {
+  const { instances } = await readInstances();
+  if (instances.length > 0) return;
+  if (addUrl.value === '') addUrl.value = LOCAL_DEFAULT;
+  if (addName.value === '') addName.value = t('options.localName');
+}
+
 (async () => {
   await loadLanguage();
   buildLanguageSelect();
   applyStaticText();
   await renderLanguageSelect();
   render();
+  suggestLocalDefault();
 
   // Silent half of the sync: only origins a PRIOR click of the button
   // already got permission for, so simply opening this page can never pop

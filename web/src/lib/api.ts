@@ -1875,7 +1875,40 @@ export async function fetchInstances(): Promise<Instance[]> {
   return (await json<Instance[]>(await fetch('/api/instances'))) ?? [];
 }
 
-export async function addInstance(name: string, url: string): Promise<{ online: boolean }> {
+/**
+ * One instance announcing itself on this network right now (internal/discovery).
+ *
+ * Nothing here is paired or trusted - being on the same network is not
+ * consent. This is the address, found without anyone typing it. Adding it is a
+ * deliberate action, and it stores that address and nothing else: a peer with
+ * a password set then needs a pairing code before it will accept anything,
+ * which is the only path that exchanges credentials.
+ */
+export interface DiscoveredInstance {
+  id: string;
+  name: string;
+  url: string;
+  deployment: string;
+  /** Already a stored or relay peer. Shown anyway, greyed - "the one I wanted
+   *  is missing" and "it is here and already added" are different answers. */
+  known: boolean;
+}
+
+export async function fetchDiscovered(): Promise<DiscoveredInstance[]> {
+  return (await json<DiscoveredInstance[]>(await fetch('/api/discovery'))) ?? [];
+}
+
+/**
+ * addInstance registers a peer BY ADDRESS. It exchanges no credential -
+ * only a pairing code does that - so `needsPairing` is how a peer that was
+ * reached and refused this instance's credentials is told apart from one
+ * that could not be reached at all. Two problems with two different fixes
+ * that used to share the word "offline".
+ */
+export async function addInstance(
+  name: string,
+  url: string,
+): Promise<{ online: boolean; needsPairing: boolean }> {
   const r = await fetch('/api/instances', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -1910,7 +1943,9 @@ export async function generatePairingCode(): Promise<PairingCode> {
 }
 
 /** redeemPairingCode both adds the peer behind `code` here AND registers this instance back with it - one action, both directions. */
-export async function redeemPairingCode(code: string): Promise<{ name: string; url: string; online: boolean }> {
+export async function redeemPairingCode(
+  code: string,
+): Promise<{ name: string; url: string; online: boolean; reachedBack: boolean }> {
   const r = await fetch('/api/instances/pairing-code/redeem', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

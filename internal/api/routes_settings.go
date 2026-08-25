@@ -59,6 +59,11 @@ func registerSettings(reg *Registry, a *app.App) {
 			// reach any sibling.
 			if applied.InstanceName != before {
 				applyRelay(a)
+				// The LAN announce carries the same name and goes just as
+				// stale (internal/discovery.SetSelf) - one rename, both
+				// announces, rather than fixing one and leaving the other to
+				// be noticed later.
+				discoveryRefresh()
 			}
 			writeJSON(w, settingsBody(a, applied))
 		})
@@ -119,6 +124,7 @@ func registerSettings(reg *Registry, a *app.App) {
 			// built from.
 			if _, ok := patch["instanceName"]; ok {
 				applyRelay(a)
+				discoveryRefresh()
 			}
 			writeJSON(w, settingsBody(a, applied))
 		})

@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { type Instance, type Settings, fetchInstances, fetchSettings, addInstance, removeInstance, redeemPairingCode } from '../lib/api';
+import {
+  type DiscoveredInstance,
+  type Instance,
+  type Settings,
+  addInstance,
+  fetchDiscovered,
+  fetchInstances,
+  fetchSettings,
+  redeemPairingCode,
+  removeInstance,
+} from '../lib/api';
 import { useT } from '../lib/i18n';
 import { PageHeader, Card, Button, Field, IconBadge, TextInput, SectionTitle } from '../components/ui';
 import { InstanceCard } from '../components/InstanceCard';
@@ -41,21 +51,50 @@ export function Instances() {
   // instanz'"). Falls back to the placeholder for the common case of never
   // having named it.
   const [ownName, setOwnName] = useState('');
+  // Instances announcing themselves on this network (internal/discovery).
+  // Polled rather than pushed: an instance appears when it boots and drops out
+  // when it stops announcing, so a page left open should follow that without
+  // needing a reload.
+  const [found, setFound] = useState<DiscoveredInstance[]>([]);
   const navigate = useNavigate();
 
   const load = () => fetchInstances().then(setPeers);
+  const loadFound = () => fetchDiscovered().then(setFound).catch(() => {});
   useEffect(() => {
     load();
+    loadFound();
     fetchSettings()
       .then((s: Settings) => setOwnName(s.instanceName))
       .catch(() => {});
+    const iv = setInterval(loadFound, 5000);
+    return () => clearInterval(iv);
   }, []);
+
+  // One click instead of typing an address. Deliberately the SAME add the
+  // form below runs - discovery supplies the address, it does not grant any
+  // trust of its own, and a peer with a password still needs a pairing code
+  // to exchange credentials (see internal/api/peertokens.go).
+  async function onAddFound(f: DiscoveredInstance) {
+    setErr('');
+    try {
+      const r = await addInstance(f.name, f.url);
+      // "Refused us" and "could not be reached" have completely different
+      // fixes, so they get different sentences. See addInstance's own doc.
+      if (r.needsPairing) setErr(t('instances.needsPairing'));
+      else if (!r.online) setErr(t('instances.offlineWarning'));
+      await load();
+      await loadFound();
+    } catch (e: any) {
+      setErr(String(e?.message ?? e));
+    }
+  }
 
   async function onAdd() {
     setErr('');
     try {
       const r = await addInstance(name.trim(), url.trim());
-      if (!r.online) setErr(t('instances.offlineWarning'));
+      if (r.needsPairing) setErr(t('instances.needsPairing'));
+      else if (!r.online) setErr(t('instances.offlineWarning'));
       setName('');
       setUrl('');
       await load();
@@ -75,12 +114,29 @@ export function Instances() {
     setPairing(true);
     try {
       const r = await redeemPairingCode(code.trim());
-      // The offline warning matters MORE here than on the manual-add path
-      // above, which already showed it: a pairing that reports plain success
-      // while the peer cannot actually be reached is the failure mode this
-      // whole flow is prone to, since only one of the two directions is ever
-      // tested during pairing.
-      setPairOk(t('instances.pairSuccess', { name: r.name }) + (r.online ? '' : ` ${t('instances.offlineWarning')}`));
+      // Two independent halves, reported separately because they fail
+      // separately: `online` is this instance reaching the peer, `reachedBack`
+      // is the peer reaching this one. Both are now measured - until issue #28
+      // the second was stored on the redeemer's word and never tried, so an
+      // asymmetric pairing reported a clean success with one half dead.
+      //
+      // Saying so matters more here than on the manual-add path above: that
+      // one only ever claimed one direction, while this one connects both and
+      // would otherwise imply both work.
+      //
+      // THREE cases, not two warnings concatenated. Stacking them produced a
+      // message that contradicted itself: the offline warning says the peer
+      // did not answer, and pairOneWay's closing clause says this instance can
+      // still reach it. Both true only if you read one of them as being about
+      // a different moment, which nobody does.
+      const warn = !r.online && !r.reachedBack
+        ? t('instances.pairNeitherWay')
+        : !r.online
+          ? t('instances.offlineWarning')
+          : !r.reachedBack
+            ? t('instances.pairOneWay')
+            : '';
+      setPairOk(t('instances.pairSuccess', { name: r.name }) + (warn ? ` ${warn}` : ''));
       setCode('');
       await load();
     } catch (e: any) {
@@ -127,6 +183,29 @@ export function Instances() {
           />
         ))}
       </div>
+
+      {found.length > 0 && (
+        <Card className="flex flex-col gap-3">
+          <SectionTitle hint={t('instances.foundHint')}>{t('instances.foundTitle')}</SectionTitle>
+          {found.map((f) => (
+            <div key={f.id} className="flex flex-wrap items-center gap-3">
+              <span className="min-w-0 flex-1">
+                <span className="text-sm text-carbon-text">{f.name}</span>
+                <span className="ml-2 text-xs text-carbon-textMuted" dir="ltr">
+                  {f.url}
+                </span>
+              </span>
+              {f.known ? (
+                <span className="text-xs text-carbon-textMuted">{t('instances.foundKnown')}</span>
+              ) : (
+                <Button kind="secondary" className="px-2.5 text-xs" onClick={() => void onAddFound(f)}>
+                  {t('instances.foundAdd')}
+                </Button>
+              )}
+            </div>
+          ))}
+        </Card>
+      )}
 
       <Card className="flex flex-col gap-4">
         <SectionTitle>{t('instances.add')}</SectionTitle>

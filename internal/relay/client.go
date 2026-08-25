@@ -254,7 +254,7 @@ func (c *Client) Siblings() []Announce {
 // A reply the sibling actually produced is returned as its own body and status
 // however bad that status is, exactly as the HTTP transport does, so a caller
 // can tell "your other instance said no" from "your other instance is gone".
-func (c *Client) Proxy(ctx context.Context, target, method, path string, body []byte) ([]byte, int, error) {
+func (c *Client) Proxy(ctx context.Context, target, method, path string, body []byte, authorization string) ([]byte, int, error) {
 	id, err := requestID()
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
@@ -280,6 +280,7 @@ func (c *Client) Proxy(ctx context.Context, target, method, path string, body []
 	defer cancel()
 	frame := frameOf(TypeProxyRequest, ProxyRequest{
 		RequestID: id, Target: target, Method: method, Path: path, Body: body,
+		Authorization: authorization,
 	})
 	if err := writeFrameTo(ctx, conn, frame); err != nil {
 		return nil, http.StatusBadGateway, fmt.Errorf("relay: %w", err)

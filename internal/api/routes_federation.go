@@ -4,6 +4,7 @@ package api
 // forwarding task operations to one.
 
 import (
+	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -23,19 +24,36 @@ func registerFederation(reg *Registry, a *app.App) {
 			if !decodeJSON(w, r, &in) {
 				return
 			}
-			if err := a.Federation.Add(in); err != nil {
+			if err := addPeer(a, in); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			online := a.Federation.Ping(r.Context(), in.Name) == nil
-			writeJSON(w, map[string]any{"name": in.Name, "url": in.URL, "online": online})
+			// Three outcomes, not two. "Reached it and it refused this
+			// instance's credentials" needs a completely different fix from
+			// "could not reach it at all", and adding a peer by address never
+			// exchanges a credential - only a pairing code does. Collapsing
+			// them into one "offline" is exactly what made a password-locked
+			// peer look switched off.
+			err := a.Federation.Ping(r.Context(), in.Name)
+			writeJSON(w, map[string]any{
+				"name": in.Name, "url": in.URL,
+				"online":       err == nil,
+				"needsPairing": errors.Is(err, federation.ErrUnauthorized),
+			})
 		})
 	reg.Add(http.MethodDelete, "/api/instances/{name}", "forget a peer instance",
 		func(w http.ResponseWriter, r *http.Request) {
-			if err := a.Federation.Remove(r.PathValue("name")); err != nil {
+			name := r.PathValue("name")
+			if err := a.Federation.Remove(name); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
+			// Removing a peer is the action somebody takes to END the
+			// relationship, so it has to end the credentials too. Without
+			// this, the peer keeps a live full-power token on this instance
+			// forever, and the token this instance held for it gets silently
+			// re-attached to whatever is registered under that name next.
+			forgetPeerCredentials(a, name)
 			w.WriteHeader(http.StatusNoContent)
 		})
 	// Proxy task operations to a peer instance: only the task/link routes are

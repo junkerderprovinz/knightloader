@@ -45,9 +45,15 @@ let activeTab = null;
     instanceRow.hidden = false;
     for (const inst of instances) {
       const opt = document.createElement('option');
-      opt.value = inst.url;
-      opt.textContent = inst.name;
-      if (inst.name === defaultName) opt.selected = true;
+      // Keyed by name, not URL: an entry reached through a forwarder has no
+      // URL of its own (issue #27, see entryTarget in shared.js).
+      opt.value = inst.name;
+      opt.textContent = entryLabel(inst);
+      opt.disabled = !entryTarget(inst);
+      // Never preselect an option that cannot be sent to - same reasoning as
+      // picker.js: a selection the Send button cannot act on is worse than no
+      // selection, because the button still looks ready.
+      if (!opt.disabled && inst.name === defaultName) opt.selected = true;
       instanceSelect.appendChild(opt);
     }
   }
@@ -58,9 +64,19 @@ sendBtn.addEventListener('click', async () => {
   sendBtn.disabled = true;
   statusEl.textContent = t('popup.opening');
   const { instances, defaultName } = await readInstances();
-  const origin =
-    instances.length > 1 ? instanceSelect.value : (instances.find((i) => i.name === defaultName) ?? instances[0])?.url;
-  const url = quickAddUrl(origin, { url: activeTab.url, title: activeTab.title });
+  const picked =
+    instances.length > 1
+      ? instances.find((i) => i.name === instanceSelect.value)
+      : (instances.find((i) => i.name === defaultName) ?? instances[0]);
+  const target = entryTarget(picked ?? {});
+  if (!target) {
+    // Said out loud rather than opening a window on nothing - this is the
+    // exact failure issue #27 was filed about.
+    statusEl.textContent = t('popup.unreachable');
+    sendBtn.disabled = false;
+    return;
+  }
+  const url = quickAddUrl(target.origin, { url: activeTab.url, title: activeTab.title, to: target.to });
   await chrome.windows.create({ url, type: 'popup', width: 420, height: 560 });
   window.close();
 });

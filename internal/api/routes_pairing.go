@@ -12,6 +12,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
@@ -163,7 +164,20 @@ func pairingSelf(r *http.Request, a *app.App) (name, url string, ok bool) {
 	} else {
 		return "", "", false
 	}
-	return instanceDisplayName(a), url, true
+	// Sanitised, because this name is DERIVED - it is whatever the instance
+	// calls itself, or the hostname, neither of which was chosen to satisfy
+	// federation's naming rule. An unsanitised umlaut or an over-long hostname
+	// made the far side answer "invalid instance name" about a name the user
+	// never typed and could not see (see federation.SanitiseName).
+	name = federation.SanitiseName(instanceDisplayName(a))
+	if name == "" {
+		// Nothing addressable could be made of it. Refused here, where the
+		// message reaches the person who can fix it by naming the instance,
+		// rather than on the far side as a rejection of a name they cannot
+		// see - the same reasoning as the desktop gate above.
+		return "", "", false
+	}
+	return name, url, true
 }
 
 // instanceDisplayName is InstanceName if the user set one, else os.Hostname,
@@ -268,15 +282,30 @@ func registerPairing(reg *Registry, a *app.App) {
 			// one-sided pairing is worse than none, see the doc comment atop
 			// this file.
 			hc := httpx.New(httpx.Options{Timeout: 15 * time.Second})
-			cb, _ := json.Marshal(map[string]string{"token": offer.Token, "name": selfName, "url": selfURL})
+			// Each side mints a credential for the OTHER and hands it over in
+			// the same exchange, so a peer with a password set is reachable
+			// the moment pairing finishes rather than answering 401 forever
+			// (issue #26). Minted before the call, because it has to travel
+			// IN it; dropped again below if the pairing does not complete, so
+			// a failed attempt does not leave a usable token behind.
+			mintedID, forPeer, err := mintPeerToken(a, offer.Name)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			cb, _ := json.Marshal(map[string]string{
+				"token": offer.Token, "name": selfName, "url": selfURL, "peerToken": forPeer,
+			})
 			req, err := http.NewRequestWithContext(r.Context(), http.MethodPost, offer.URL+"/api/instances/pairing-code/complete", bytes.NewReader(cb))
 			if err != nil {
+				revokeMintedToken(a, mintedID)
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 			req.Header.Set("Content-Type", "application/json")
 			resp, err := hc.Do(req)
 			if err != nil {
+				revokeMintedToken(a, mintedID)
 				http.Error(w, fmt.Sprintf("could not reach %s: %v", offer.URL, err), http.StatusBadGateway)
 				return
 			}
@@ -294,16 +323,54 @@ func registerPairing(reg *Registry, a *app.App) {
 				if msg == "" {
 					msg = "that code is invalid or has expired"
 				}
+				revokeMintedToken(a, mintedID)
 				http.Error(w, msg, http.StatusBadRequest)
 				return
 			}
 
-			if err := a.Federation.Add(federation.Instance{Name: offer.Name, URL: offer.URL}); err != nil {
+			// The peer answers with the credential IT minted for us. An older
+			// build answers 204 with no body and no token, which stays
+			// perfectly valid: the peer is then simply called unauthenticated,
+			// exactly as before this existed.
+			var back struct {
+				PeerToken string `json:"peerToken"`
+				// Whether the peer could reach US back. Absent from an older
+				// peer, where it reads as false - which is honest: that build
+				// genuinely never checked.
+				ReachedBack bool `json:"reachedBack"`
+			}
+			_ = json.NewDecoder(io.LimitReader(resp.Body, 1<<12)).Decode(&back)
+
+			if err := addPeer(a, federation.Instance{Name: offer.Name, URL: offer.URL}); err != nil {
+				revokeMintedToken(a, mintedID)
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
+			if back.PeerToken != "" {
+				if err := storePeerToken(a, offer.Name, back.PeerToken); err != nil {
+					// The only exit here that used to leave the minted token
+					// live: the peer has already committed its half, so this
+					// half is what fails, and the credential this side handed
+					// out has to come back with it.
+					revokeMintedToken(a, mintedID)
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			}
+			// Pairing is complete. Anything issued for this peer by an EARLIER
+			// pairing is now dead weight - see supersedePeerTokens for why
+			// this happens here and not before the mint.
+			supersedePeerTokens(a, offer.Name, mintedID)
 			online := a.Federation.Ping(r.Context(), offer.Name) == nil
-			writeJSON(w, map[string]any{"name": offer.Name, "url": offer.URL, "online": online})
+			// Both halves reported separately, because they fail separately:
+			// "online" is us reaching the peer, "reachedBack" is the peer
+			// reaching us. A pairing with one of them false works in one
+			// direction only, and the page can now say so instead of showing
+			// an unqualified success.
+			writeJSON(w, map[string]any{
+				"name": offer.Name, "url": offer.URL,
+				"online": online, "reachedBack": back.ReachedBack,
+			})
 		})
 
 	// Complete: called by the OTHER instance's backend, with no session and
@@ -318,6 +385,11 @@ func registerPairing(reg *Registry, a *app.App) {
 				Token string `json:"token"`
 				Name  string `json:"name"`
 				URL   string `json:"url"`
+				// The credential the redeemer minted for THIS instance to call
+				// it with. Absent from an older redeemer, which is fine: that
+				// peer is then called unauthenticated, as every peer was
+				// before peer tokens existed.
+				PeerToken string `json:"peerToken"`
 			}
 			if !decodeJSON(w, r, &body) {
 				return
@@ -327,7 +399,7 @@ func registerPairing(reg *Registry, a *app.App) {
 				http.Error(w, "that code is invalid or has expired", http.StatusBadRequest)
 				return
 			}
-			if err := a.Federation.Add(federation.Instance{Name: body.Name, URL: body.URL}); err != nil {
+			if err := addPeer(a, federation.Instance{Name: body.Name, URL: body.URL}); err != nil {
 				// The code itself was fine - this failed on the peer's name or
 				// address. Give it back, so retrying after fixing that works
 				// instead of reporting an expiry that never happened.
@@ -335,6 +407,77 @@ func registerPairing(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			w.WriteHeader(http.StatusNoContent)
+			if body.PeerToken != "" {
+				if err := storePeerToken(a, body.Name, body.PeerToken); err != nil {
+					// Give the code back for the same reason the Add failure
+					// above does: this failed on the credential store, not on
+					// the code, and reporting an expiry that never happened
+					// makes a retry look pointless when it is the right move.
+					codes.restore(body.Token, expires)
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			}
+			// Mint one back, so the exchange is symmetric and BOTH directions
+			// are authenticated. Answered as JSON rather than the old 204: a
+			// redeemer that predates this ignores the body and simply calls
+			// this instance unauthenticated, which is exactly what it did
+			// before.
+			mintedID, forPeer, err := mintPeerToken(a, body.Name)
+			if err != nil {
+				// Same again: the code is fine, this instance's token store is
+				// not (full, or unwritable). A retry after clearing that out
+				// has to still work.
+				codes.restore(body.Token, expires)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			// Issue #28: pairing used to prove only redeemer -> generator,
+			// because that is the direction the redemption itself travels.
+			// THIS direction - generator -> redeemer - was stored on the
+			// redeemer's word alone and never tried, so asymmetric
+			// reachability produced a pairing both sides called successful
+			// with one half permanently dead.
+			//
+			// Reported, not enforced: a peer that is not reachable right now
+			// is still worth keeping (it may be asleep, or behind a relay
+			// that is not up yet), and refusing the pairing would throw away
+			// the half that does work. The redeemer shows this, so the
+			// failure surfaces at the moment somebody is looking.
+			//
+			// On its OWN short deadline, not the request's. A federation call
+			// is allowed 15s (federation.peerTimeout) and the redeemer gives
+			// this whole request 15s, so a peer that accepts a connection and
+			// then goes quiet would burn the redeemer's entire budget on a
+			// check that changes nothing - turning a pairing that used to
+			// succeed into one that times out. Everything above is already
+			// stored; this only decides which sentence the redeemer shows.
+			pingCtx, cancel := context.WithTimeout(r.Context(), 4*time.Second)
+			reachable := a.Federation.Ping(pingCtx, body.Name) == nil
+			cancel()
+
+			// The previous credential for this peer is retired only once the
+			// new one is DEMONSTRATED to work - the probe above just used it.
+			//
+			// Retiring it before that opened a window where a re-pairing could
+			// kill both directions at once: this side had already dropped the
+			// old token, and if the redeemer then failed (its connection
+			// dropped, its own 15s budget expired during this very probe, its
+			// credential store would not write) it revokes what it minted, and
+			// a pairing that had been working ends up 401 in both directions
+			// over an attempt that reported one unrelated error.
+			//
+			// An extra token that outlives its pairing is untidy; two dead
+			// directions are a broken feature. The next successful pairing
+			// clears it, and it is one revocable row on the Access tab
+			// meanwhile.
+			if reachable {
+				supersedePeerTokens(a, body.Name, mintedID)
+			} else {
+				// Unproven, so the older credential stays - but not forever:
+				// see keepPerPeer for why an unbounded pile is its own bug.
+				trimPeerTokens(a, body.Name, mintedID)
+			}
+			writeJSON(w, map[string]any{"peerToken": forPeer, "reachedBack": reachable})
 		})
 }

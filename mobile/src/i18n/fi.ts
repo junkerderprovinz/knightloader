@@ -15,6 +15,12 @@ export const fi: Dict = {
   'connect.connectButton': 'Yhdistä',
   'connect.qrHintAddress': 'Skannaa QR-koodi Käyttöoikeus-välilehdeltä',
   'connect.qrAutofillNotice': 'Nimi ja osoite haettu koodista. Tämäntyyppinen koodi ei koskaan sisällä tokenia - liitä se käsin.',
+  'connect.findButton': 'Etsi tästä verkosta',
+  'connect.finding': 'Etsitään tästä verkosta…',
+  'connect.foundNone': 'Tästä verkosta ei löytynyt mitään. Anna osoite käsin tai skannaa QR-koodi Käyttöoikeus-välilehdeltä.',
+  'connect.foundOne': 'Yksi löytyi. Osoite on täytetty - liitä token ja yhdistä.',
+  'connect.foundMany': 'Löytyi {n}. Valitse yksi:',
+  'connect.foundPick': 'Käytä tätä',
 
   'qr.cancel': 'Peruuta',
   'qr.cameraPermissionHint': 'QR-koodin skannaamiseen tarvitaan kameran käyttöoikeus.',

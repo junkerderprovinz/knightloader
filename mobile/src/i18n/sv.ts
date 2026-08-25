@@ -15,6 +15,12 @@ export const sv: Dict = {
   'connect.connectButton': 'Anslut',
   'connect.qrHintAddress': 'Skanna QR-koden från fliken Åtkomst',
   'connect.qrAutofillNotice': 'Namn och adress hämtade från koden. Den här sortens kod innehåller aldrig en token - klistra in den för hand.',
+  'connect.findButton': 'Sök i det här nätverket',
+  'connect.finding': 'Söker i det här nätverket…',
+  'connect.foundNone': 'Inget hittades i det här nätverket. Skriv in adressen för hand, eller skanna QR-koden från fliken Åtkomst.',
+  'connect.foundOne': 'Hittade en. Adressen är ifylld - klistra in en token och anslut.',
+  'connect.foundMany': 'Hittade {n}. Välj en:',
+  'connect.foundPick': 'Använd den här',
 
   'qr.cancel': 'Avbryt',
   'qr.cameraPermissionHint': 'Kameraåtkomst behövs för att skanna QR-koden.',

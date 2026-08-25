@@ -225,10 +225,19 @@ func main() {
 	// internal/api/routes_remote.go's own doc comment for why that string
 	// was rejected as a signal there. Set once, before a single request is
 	// served, the same way buildinfo.Deployment already is.
-	if host, _, err := net.SplitHostPort(listener.Addr().String()); err == nil {
+	if host, portStr, err := net.SplitHostPort(listener.Addr().String()); err == nil {
 		ip := net.ParseIP(host)
 		buildinfo.ListensWidely = host == "" || (ip != nil && !ip.IsLoopback())
+		// The same resolved address also carries the port internal/discovery
+		// has to announce, which nothing else can know before the first
+		// request arrives.
+		if n, err := strconv.Atoi(portStr); err == nil {
+			buildinfo.ListenPort = n
+		}
 	}
+	// Announce on the local network, so another instance finds this one
+	// with nothing configured (internal/discovery).
+	buildinfo.DiscoveryEnabled = true
 	srv := &http.Server{Handler: api.Handler(a)}
 
 	serveErr := make(chan error, 1)

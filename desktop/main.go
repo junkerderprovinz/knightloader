@@ -34,6 +34,9 @@ func main() {
 	// the Diagnostics page both read it, and both exist specifically so a
 	// user can tell which build they are running.
 	buildinfo.Deployment = "desktop"
+	// The desktop opens no listener, so it never announces - but it still
+	// LISTENS, so it can find the server on its own network and add it.
+	buildinfo.DiscoveryEnabled = true
 
 	dataDir := dataDir()
 	if err := os.MkdirAll(dataDir, 0o755); err != nil {

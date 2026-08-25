@@ -15,6 +15,12 @@ export const et: Dict = {
   'connect.connectButton': 'Ühenda',
   'connect.qrHintAddress': 'Skannige QR-kood vahekaardilt Juurdepääs',
   'connect.qrAutofillNotice': 'Nimi ja aadress on võetud koodist. Seda tüüpi kood ei sisalda kunagi võtit - kleepige see käsitsi.',
+  'connect.findButton': 'Otsi sellest võrgust',
+  'connect.finding': 'Otsimine sellest võrgust…',
+  'connect.foundNone': 'Sellest võrgust ei leitud midagi. Sisestage aadress käsitsi või skannige QR-kood vahekaardilt Juurdepääs.',
+  'connect.foundOne': 'Leiti üks. Aadress on täidetud - kleepige võti ja ühendage.',
+  'connect.foundMany': 'Leiti {n}. Valige üks:',
+  'connect.foundPick': 'Kasuta seda',
 
   'qr.cancel': 'Tühista',
   'qr.cameraPermissionHint': 'QR-koodi skannimiseks on vaja kaamera juurdepääsu.',
