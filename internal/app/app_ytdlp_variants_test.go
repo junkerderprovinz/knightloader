@@ -203,3 +203,38 @@ func TestSetTaskOptionsVariantQualityKeepsTheRowsOwnKind(t *testing.T) {
 
 // wireYtdlp/fakeYtdlpBackend used above are ytdlp_probe_test.go's own
 // fixtures, reused here rather than duplicated.
+
+// TestExpandYtdlpVariantsFamilyStillRenamesThePackageOnceNamed is the
+// intersection [79] and [35b]'s own fix never got tested together: a real
+// AddLinks paste creates the primary PLUS four siblings before the title
+// probe ever answers (stage()'s own synchronous expandYtdlpVariants call,
+// app_links.go), so by the time setTaskName's own guard asks
+// noSiblingHasARealNameYet, every one of those four siblings is already a
+// "sibling sharing this package" - if that guard were not sibling-URL-aware
+// the same way setTaskName's OWN propagation loop already is, a link's
+// entire five-row family would stay named "watch" forever, the very bug
+// this test exists to catch before a live deploy does.
+func TestExpandYtdlpVariantsFamilyStillRenamesThePackageOnceNamed(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	done := make(chan struct{})
+	wireYtdlp(a, fakeYtdlpBackend{title: "Me at the zoo", done: done})
+
+	const url = "https://www.youtube.com/watch?v=jNQXAC9IVRw"
+	created := a.AddLinks([]string{url}, "")
+	if len(created) != 1 {
+		t.Fatalf("AddLinks created %d tasks, want 1", len(created))
+	}
+
+	waitFor(t, "every row in the family to pick up the resolved package", func() bool {
+		family := tasksSharingURL(a, url)
+		if len(family) != 5 {
+			return false
+		}
+		for _, x := range family {
+			if x.Package != "Me at the zoo" {
+				return false
+			}
+		}
+		return true
+	})
+}
