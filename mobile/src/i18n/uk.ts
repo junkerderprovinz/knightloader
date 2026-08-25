@@ -28,6 +28,7 @@ export const uk: Dict = {
   'instances.title': 'Екземпляри',
   'instances.subtitle': 'Усі екземпляри KnightLoader, які знає {name}.',
   'instances.empty': 'Інших екземплярів не знайдено.',
+  'instances.viaRelay': 'Підключено через ретранслятор',
   'instances.manualTitle': 'Додати вручну',
   'instances.namePlaceholder': 'Назва',
   'instances.urlPlaceholder': 'http://хост:порт',

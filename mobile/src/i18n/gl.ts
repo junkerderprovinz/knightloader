@@ -28,6 +28,7 @@ export const gl: Dict = {
   'instances.title': 'Instancias',
   'instances.subtitle': 'Todas as instancias de KnightLoader que coñece {name}.',
   'instances.empty': 'Non se coñece ningunha outra instancia.',
+  'instances.viaRelay': 'Conectado a través do relé',
   'instances.manualTitle': 'Engadir manualmente',
   'instances.namePlaceholder': 'Nome',
   'instances.urlPlaceholder': 'http://host:porto',

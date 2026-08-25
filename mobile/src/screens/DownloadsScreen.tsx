@@ -80,7 +80,7 @@ export default function DownloadsScreen({
               <Text style={styles.back}>‹ {conn.name}</Text>
             </TouchableOpacity>
           ) : null}
-          <Text style={styles.title}>{peer ? peer.name : conn.name}</Text>
+          <Text style={styles.title}>{peer ? (peer.displayName ?? peer.name) : conn.name}</Text>
           <Text style={[styles.connState, { color: connected ? colors.success : colors.warning }]}>
             {connected ? t('downloads.connected') : t('downloads.connecting')}
           </Text>

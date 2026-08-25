@@ -124,6 +124,7 @@ export const ca: Dict = {
   'instances.open': 'Obre',
   'instances.online': 'En línia',
   'instances.offline': 'Fora de línia',
+  'instances.viaRelay': 'Connectat mitjançant el relé',
   'instances.metricActive': 'Actives',
   'instances.metricTasks': 'Tasques',
   'instances.metricSpeed': 'Velocitat',

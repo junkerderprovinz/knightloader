@@ -28,6 +28,7 @@ export const ar: Dict = {
   'instances.title': 'المثيلات',
   'instances.subtitle': 'كل مثيلات KnightLoader التي يعرفها {name}.',
   'instances.empty': 'لا توجد مثيلات أخرى معروفة.',
+  'instances.viaRelay': 'متصل عبر المُرحّل',
   'instances.manualTitle': 'إضافة يدويًا',
   'instances.namePlaceholder': 'الاسم',
   'instances.urlPlaceholder': 'http://host:port',

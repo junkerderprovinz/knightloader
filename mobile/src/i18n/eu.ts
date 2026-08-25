@@ -28,6 +28,7 @@ export const eu: Dict = {
   'instances.title': 'Instantziak',
   'instances.subtitle': '{name}(e)k ezagutzen dituen KnightLoader instantzia guztiak.',
   'instances.empty': 'Ez da beste instantziarik ezagutzen.',
+  'instances.viaRelay': 'Erlaiaren bidez konektatuta',
   'instances.manualTitle': 'Eskuz gehitu',
   'instances.namePlaceholder': 'Izena',
   'instances.urlPlaceholder': 'http://host:port',

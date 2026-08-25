@@ -124,6 +124,7 @@ export const et: Dict = {
   'instances.open': 'Ava',
   'instances.online': 'Võrgus',
   'instances.offline': 'Võrgust väljas',
+  'instances.viaRelay': 'Ühendatud releed kaudu',
   'instances.metricActive': 'Aktiivsed',
   'instances.metricTasks': 'Ülesanded',
   'instances.metricSpeed': 'Kiirus',

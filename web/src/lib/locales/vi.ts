@@ -124,6 +124,7 @@ export const vi: Dict = {
   'instances.open': 'Mở',
   'instances.online': 'Trực tuyến',
   'instances.offline': 'Ngoại tuyến',
+  'instances.viaRelay': 'Đã kết nối qua relay',
   'instances.metricActive': 'Đang chạy',
   'instances.metricTasks': 'Tác vụ',
   'instances.metricSpeed': 'Tốc độ',

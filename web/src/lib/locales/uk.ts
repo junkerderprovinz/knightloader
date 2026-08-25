@@ -124,6 +124,7 @@ export const uk: Dict = {
   'instances.open': 'Відкрити',
   'instances.online': 'У мережі',
   'instances.offline': 'Не в мережі',
+  'instances.viaRelay': 'Підключено через ретранслятор',
   'instances.metricActive': 'Активні',
   'instances.metricTasks': 'Завдання',
   'instances.metricSpeed': 'Швидкість',

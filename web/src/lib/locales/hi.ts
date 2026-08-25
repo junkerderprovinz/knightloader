@@ -124,6 +124,7 @@ export const hi: Dict = {
   'instances.open': 'खोलें',
   'instances.online': 'ऑनलाइन',
   'instances.offline': 'ऑफ़लाइन',
+  'instances.viaRelay': 'रिले के माध्यम से जुड़ा हुआ',
   'instances.metricActive': 'सक्रिय',
   'instances.metricTasks': 'कार्य',
   'instances.metricSpeed': 'गति',

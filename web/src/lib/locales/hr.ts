@@ -124,6 +124,7 @@ export const hr: Dict = {
   'instances.open': 'Otvori',
   'instances.online': 'Online',
   'instances.offline': 'Offline',
+  'instances.viaRelay': 'Povezano putem releja',
   'instances.metricActive': 'Aktivna',
   'instances.metricTasks': 'Zadaci',
   'instances.metricSpeed': 'Brzina',

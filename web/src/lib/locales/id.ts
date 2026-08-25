@@ -124,6 +124,7 @@ export const id: Dict = {
   'instances.open': 'Buka',
   'instances.online': 'Online',
   'instances.offline': 'Offline',
+  'instances.viaRelay': 'Terhubung melalui relai',
   'instances.metricActive': 'Aktif',
   'instances.metricTasks': 'Tugas',
   'instances.metricSpeed': 'Kecepatan',

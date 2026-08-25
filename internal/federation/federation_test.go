@@ -118,9 +118,11 @@ func TestRelayPeersAppearWithoutBeingStored(t *testing.T) {
 	}}
 	m.SetRelay(rt)
 
+	// Name is the address (always the InstanceID for a relay peer, see
+	// reachable's own doc comment) - DisplayName is what carries "Laptop".
 	list := m.List()
-	if len(list) != 1 || list[0].Name != "Laptop" || list[0].RelayID != "id-bravo" || list[0].URL != "" {
-		t.Fatalf("got %+v, want one relay peer named Laptop", list)
+	if len(list) != 1 || list[0].Name != "id-bravo" || list[0].DisplayName != "Laptop" || list[0].RelayID != "id-bravo" || list[0].URL != "" {
+		t.Fatalf("got %+v, want one relay peer addressed as id-bravo, displayed as Laptop", list)
 	}
 	if _, err := os.Stat(filepath.Join(dir, "instances.json")); !os.IsNotExist(err) {
 		t.Errorf("instances.json exists, want a relay peer never written to disk")
@@ -173,33 +175,39 @@ func TestProxyReachesARelayPeerThroughTheTransport(t *testing.T) {
 	}
 	m.SetRelay(rt)
 
-	body, code, err := m.Proxy(context.Background(), "Laptop", http.MethodPost, "/api/links", []byte(`{"url":"x"}`))
+	// Addressed by instance ID, the peer's Name - "Laptop" is only its
+	// DisplayName, and DisplayName is never an address (see the assertion
+	// below, and reachable's own doc comment for why).
+	body, code, err := m.Proxy(context.Background(), "id-bravo", http.MethodPost, "/api/links", []byte(`{"url":"x"}`))
 	if err != nil {
 		t.Fatalf("proxy: %v", err)
 	}
 	if code != http.StatusCreated || string(body) != `{"added":1}` {
 		t.Errorf("got %d %s, want the peer's own answer", code, body)
 	}
-	// Addressed by instance ID, not by the name the page shows: two peers can
-	// share a name, and only the ID routes.
 	if rt.target != "id-bravo" || rt.method != http.MethodPost || rt.path != "/api/links" || string(rt.body) != `{"url":"x"}` {
 		t.Errorf("the transport was asked for %s %s %s %s, want the call unchanged and addressed by ID",
 			rt.target, rt.method, rt.path, rt.body)
 	}
+	if _, code, err := m.Proxy(context.Background(), "Laptop", http.MethodGet, "/api/tasks", nil); err == nil || code != http.StatusNotFound {
+		t.Errorf("got %d %v proxying by the display name, want a 404 - display names never route", code, err)
+	}
 }
 
 // TestPeerNamesCollide: an instance nobody has named announces its hostname,
-// and two containers from one image routinely share it - so every peer has to
-// stay addressable under some name, and a stored peer must never lose its own.
+// and two containers from one image routinely share it, so a shared
+// DisplayName must never keep a peer from being listed or reached - and a
+// stored peer must never lose its own address to a relay peer sharing its
+// name, because a relay peer no longer competes for one at all.
 func TestPeerNamesCollide(t *testing.T) {
 	tests := []struct {
 		name   string
 		stored []Instance
 		sibs   []relay.Announce
-		want   map[string]string // name -> relay ID ("" for a stored peer)
+		want   map[string]string // address (Name) -> relay ID ("" for a stored peer)
 	}{
 		{
-			name: "a stored peer keeps its name",
+			name: "a stored peer keeps its name even when a relay peer announces the same one",
 			// A port nothing listens on: this peer is only ever resolved
 			// here, never called, and refusing instantly keeps the resolve
 			// check below from waiting out a real peerTimeout.
@@ -213,7 +221,7 @@ func TestPeerNamesCollide(t *testing.T) {
 				{InstanceID: "id-a", Name: "knightloader"},
 				{InstanceID: "id-b", Name: "knightloader"},
 			},
-			want: map[string]string{"knightloader": "id-a", "id-b": "id-b"},
+			want: map[string]string{"id-a": "id-a", "id-b": "id-b"},
 		},
 		{
 			name: "a peer that announced no name at all",
@@ -243,9 +251,9 @@ func TestPeerNamesCollide(t *testing.T) {
 					t.Errorf("%q is reached as %q, want %q", name, got[name], relayID)
 				}
 			}
-			// Every name in the list has to actually resolve, which is the
+			// Every address in the list has to actually resolve, which is the
 			// whole point of handing them out. 404 is the one status Proxy
-			// gives a name it could not place; whether the peer behind it
+			// gives an address it could not place; whether the peer behind it
 			// then answers is a different question, and not this one.
 			for name := range got {
 				if _, code, _ := m.Proxy(context.Background(), name, http.MethodGet, "/api/tasks", nil); code == http.StatusNotFound {
@@ -253,6 +261,40 @@ func TestPeerNamesCollide(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+// TestRelayPeerAddressSurvivesUnrelatedChanges is the regression this whole
+// scheme exists for: a relay peer's address (its Name/InstanceID) must never
+// change because something ELSE about the reachable set changed - not a
+// same-named stored peer coming or going, and not another sibling coming or
+// going. The older, name-first scheme flipped a peer between its friendly
+// name and its ID exactly on events like these, silently breaking anything
+// that had cached the address from before.
+func TestRelayPeerAddressSurvivesUnrelatedChanges(t *testing.T) {
+	m := newManager(t)
+	rt := &fakeRelay{sibs: []relay.Announce{{InstanceID: "id-a", Name: "Cellar"}}}
+	m.SetRelay(rt)
+	addressBefore := m.List()[0].Name
+
+	// A stored peer sharing the relay peer's DisplayName arrives...
+	if err := m.Add(Instance{Name: "Cellar", URL: "http://127.0.0.1:1"}); err != nil {
+		t.Fatalf("add: %v", err)
+	}
+	// ...and a second sibling joins, then leaves again.
+	rt.sibs = append(rt.sibs, relay.Announce{InstanceID: "id-b", Name: "Other"})
+	rt.sibs = rt.sibs[:1]
+	// ...and the stored peer is removed again.
+	if err := m.Remove("Cellar"); err != nil {
+		t.Fatalf("remove: %v", err)
+	}
+
+	list := m.List()
+	if len(list) != 1 || list[0].Name != addressBefore {
+		t.Fatalf("relay peer's address is %q after unrelated churn, want it unchanged at %q", list, addressBefore)
+	}
+	if _, code, _ := m.Proxy(context.Background(), addressBefore, http.MethodGet, "/api/tasks", nil); code == http.StatusNotFound {
+		t.Errorf("the original address no longer resolves after unrelated churn")
 	}
 }
 

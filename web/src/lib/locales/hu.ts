@@ -124,6 +124,7 @@ export const hu: Dict = {
   'instances.open': 'Megnyitás',
   'instances.online': 'Elérhető',
   'instances.offline': 'Nem elérhető',
+  'instances.viaRelay': 'Relén keresztül csatlakoztatva',
   'instances.metricActive': 'Aktív',
   'instances.metricTasks': 'Feladatok',
   'instances.metricSpeed': 'Sebesség',

@@ -28,6 +28,7 @@ export const fa: Dict = {
   'instances.title': 'نمونه‌ها',
   'instances.subtitle': 'همه نمونه‌های KnightLoader که {name} می‌شناسد.',
   'instances.empty': 'نمونه دیگری شناخته نشده است.',
+  'instances.viaRelay': 'متصل از طریق رله',
   'instances.manualTitle': 'افزودن دستی',
   'instances.namePlaceholder': 'نام',
   'instances.urlPlaceholder': 'http://host:port',

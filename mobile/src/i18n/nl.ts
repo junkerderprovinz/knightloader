@@ -28,6 +28,7 @@ export const nl: Dict = {
   'instances.title': 'Instanties',
   'instances.subtitle': 'Elke KnightLoader-instantie die {name} kent.',
   'instances.empty': 'Nog geen andere instanties bekend.',
+  'instances.viaRelay': 'Verbonden via de relay',
   'instances.manualTitle': 'Handmatig toevoegen',
   'instances.namePlaceholder': 'Naam',
   'instances.urlPlaceholder': 'http://host:poort',

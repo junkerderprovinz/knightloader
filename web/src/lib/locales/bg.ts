@@ -124,6 +124,7 @@ export const bg: Dict = {
   'instances.open': 'Отвори',
   'instances.online': 'Онлайн',
   'instances.offline': 'Офлайн',
+  'instances.viaRelay': 'Свързан през релето',
   'instances.metricActive': 'Активни',
   'instances.metricTasks': 'Задачи',
   'instances.metricSpeed': 'Скорост',

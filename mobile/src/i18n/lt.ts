@@ -28,6 +28,7 @@ export const lt: Dict = {
   'instances.title': 'Egzemplioriai',
   'instances.subtitle': 'Visi „KnightLoader“ egzemplioriai, kuriuos žino {name}.',
   'instances.empty': 'Kitų egzempliorių nežinoma.',
+  'instances.viaRelay': 'Prijungta per relę',
   'instances.manualTitle': 'Pridėti rankiniu būdu',
   'instances.namePlaceholder': 'Pavadinimas',
   'instances.urlPlaceholder': 'http://host:port',

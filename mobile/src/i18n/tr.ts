@@ -28,6 +28,7 @@ export const tr: Dict = {
   'instances.title': 'Örnekler',
   'instances.subtitle': '{name} tarafından bilinen tüm KnightLoader örnekleri.',
   'instances.empty': 'Bilinen başka örnek yok.',
+  'instances.viaRelay': 'Röle üzerinden bağlandı',
   'instances.manualTitle': 'Elle ekle',
   'instances.namePlaceholder': 'Ad',
   'instances.urlPlaceholder': 'http://sunucu:port',

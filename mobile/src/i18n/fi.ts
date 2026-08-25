@@ -28,6 +28,7 @@ export const fi: Dict = {
   'instances.title': 'Instanssit',
   'instances.subtitle': 'Kaikki KnightLoader-instanssit, jotka {name} tuntee.',
   'instances.empty': 'Muita instansseja ei tunneta.',
+  'instances.viaRelay': 'Yhdistetty releen kautta',
   'instances.manualTitle': 'Lisää manuaalisesti',
   'instances.namePlaceholder': 'Nimi',
   'instances.urlPlaceholder': 'http://isäntä:portti',

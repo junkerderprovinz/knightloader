@@ -124,6 +124,7 @@ export const ms: Dict = {
   'instances.open': 'Buka',
   'instances.online': 'Dalam talian',
   'instances.offline': 'Luar talian',
+  'instances.viaRelay': 'Disambung melalui geganti',
   'instances.metricActive': 'Aktif',
   'instances.metricTasks': 'Tugas',
   'instances.metricSpeed': 'Kelajuan',

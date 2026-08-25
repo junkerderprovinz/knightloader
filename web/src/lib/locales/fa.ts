@@ -124,6 +124,7 @@ export const fa: Dict = {
   'instances.open': 'باز کردن',
   'instances.online': 'آنلاین',
   'instances.offline': 'آفلاین',
+  'instances.viaRelay': 'متصل از طریق رله',
   'instances.metricActive': 'فعال',
   'instances.metricTasks': 'کارها',
   'instances.metricSpeed': 'سرعت',

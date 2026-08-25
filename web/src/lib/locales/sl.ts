@@ -124,6 +124,7 @@ export const sl: Dict = {
   'instances.open': 'Odpri',
   'instances.online': 'Povezana',
   'instances.offline': 'Nepovezana',
+  'instances.viaRelay': 'Povezano prek releja',
   'instances.metricActive': 'Aktivni',
   'instances.metricTasks': 'Opravila',
   'instances.metricSpeed': 'Hitrost',

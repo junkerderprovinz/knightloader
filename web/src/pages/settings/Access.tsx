@@ -696,7 +696,7 @@ function RelayCard({ cx }: { cx: (k: PendingKey) => string }) {
               title={t('instances.online')}
               className="h-2 w-2 shrink-0 rounded-[var(--radius-pill)] bg-statusOkSolid"
             />
-            <span className="min-w-0 flex-1 truncate text-carbon-text">{p.name}</span>
+            <span className="min-w-0 flex-1 truncate text-carbon-text">{p.displayName ?? p.name}</span>
             <span className="glim-num max-w-[10rem] shrink-0 truncate text-[11px] text-carbon-textMuted" dir="ltr" title={p.relayId}>
               {p.relayId}
             </span>

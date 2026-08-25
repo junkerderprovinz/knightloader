@@ -459,8 +459,23 @@ export interface AuthState {
 }
 
 export interface Instance {
+  /**
+   * The address every proxied call is built from (`/api/instances/${name}`)
+   * - for a relay peer this is always its InstanceID, never the name it
+   * announced, so it never changes on its own when something else about the
+   * reachable set changes (federation.Manager.reachable's own doc comment
+   * has the full reasoning). Never render this for a relay peer; render
+   * displayName instead.
+   */
   name: string;
   url: string;
+  /**
+   * What a relay peer calls itself, present only when it differs from
+   * `name` (i.e. only for a relay peer that has announced one). Purely a
+   * label - nothing addresses a peer by it, which is what lets two peers
+   * safely share one. Fall back to `name` when absent.
+   */
+  displayName?: string;
   /**
    * Set only for a peer that is reachable through the relay right now -
    * federation.Instance.RelayID, the instance ID a call to it is addressed

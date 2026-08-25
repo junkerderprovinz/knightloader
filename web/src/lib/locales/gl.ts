@@ -124,6 +124,7 @@ export const gl: Dict = {
   'instances.open': 'Abrir',
   'instances.online': 'En liña',
   'instances.offline': 'Fóra de liña',
+  'instances.viaRelay': 'Conectado a través do relé',
   'instances.metricActive': 'Activas',
   'instances.metricTasks': 'Tarefas',
   'instances.metricSpeed': 'Velocidade',

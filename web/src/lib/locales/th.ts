@@ -124,6 +124,7 @@ export const th: Dict = {
   'instances.open': 'เปิด',
   'instances.online': 'ออนไลน์',
   'instances.offline': 'ออฟไลน์',
+  'instances.viaRelay': 'เชื่อมต่อผ่านรีเลย์',
   'instances.metricActive': 'กำลังทำงาน',
   'instances.metricTasks': 'งาน',
   'instances.metricSpeed': 'ความเร็ว',

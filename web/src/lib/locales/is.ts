@@ -124,6 +124,7 @@ export const is: Dict = {
   'instances.open': 'Opna',
   'instances.online': 'Tengt',
   'instances.offline': 'Ótengt',
+  'instances.viaRelay': 'Tengt í gegnum endurvarpa',
   'instances.metricActive': 'Virk',
   'instances.metricTasks': 'Verk',
   'instances.metricSpeed': 'Hraði',

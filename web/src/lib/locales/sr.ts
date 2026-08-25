@@ -124,6 +124,7 @@ export const sr: Dict = {
   'instances.open': 'Отвори',
   'instances.online': 'Доступна',
   'instances.offline': 'Недоступна',
+  'instances.viaRelay': 'Повезано преко релеја',
   'instances.metricActive': 'Активно',
   'instances.metricTasks': 'Задаци',
   'instances.metricSpeed': 'Брзина',

@@ -28,6 +28,7 @@ export const ru: Dict = {
   'instances.title': 'Экземпляры',
   'instances.subtitle': 'Все экземпляры KnightLoader, которые знает {name}.',
   'instances.empty': 'Другие экземпляры не найдены.',
+  'instances.viaRelay': 'Подключено через ретранслятор',
   'instances.manualTitle': 'Добавить вручную',
   'instances.namePlaceholder': 'Название',
   'instances.urlPlaceholder': 'http://хост:порт',

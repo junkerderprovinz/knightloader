@@ -43,7 +43,9 @@ export default function AddDownloadScreen({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{peer ? t('addDownload.titlePeer', { name: peer.name }) : t('addDownload.title')}</Text>
+      <Text style={styles.title}>
+        {peer ? t('addDownload.titlePeer', { name: peer.displayName ?? peer.name }) : t('addDownload.title')}
+      </Text>
       <Text style={styles.hint}>{t('addDownload.hint')}</Text>
 
       <TextInput

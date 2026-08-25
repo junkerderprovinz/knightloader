@@ -230,8 +230,9 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 	// Both sides connect and announce asynchronously, so this is the one
 	// thing here worth polling rather than asserting on the first try.
 	var list []struct {
-		Name    string `json:"name"`
-		RelayID string `json:"relayId"`
+		Name        string `json:"name"`
+		DisplayName string `json:"displayName"`
+		RelayID     string `json:"relayId"`
 	}
 	deadline := time.Now().Add(5 * time.Second)
 	for time.Now().Before(deadline) {
@@ -244,12 +245,16 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 		}
 		time.Sleep(20 * time.Millisecond)
 	}
-	if len(list) != 1 || list[0].Name != "Sibling" || list[0].RelayID != "sibling-1" {
+	// Name is the address - always the InstanceID for a relay peer, never
+	// the name it announced (federation.Manager.reachable's own doc comment
+	// on why) - DisplayName carries "Sibling" instead.
+	if len(list) != 1 || list[0].Name != "sibling-1" || list[0].DisplayName != "Sibling" || list[0].RelayID != "sibling-1" {
 		t.Fatalf("GET /api/instances = %+v, want the sibling visible through the relay", list)
 	}
 
-	// Outbound: the app calls the sibling through the relay.
-	body, status, err := a.Federation.Proxy(context.Background(), "Sibling", http.MethodGet, "/api/tasks", nil)
+	// Outbound: the app calls the sibling through the relay, addressed by
+	// its InstanceID - the same address the list above just returned.
+	body, status, err := a.Federation.Proxy(context.Background(), "sibling-1", http.MethodGet, "/api/tasks", nil)
 	if err != nil {
 		t.Fatalf("proxy to sibling: %v", err)
 	}

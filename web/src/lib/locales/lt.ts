@@ -124,6 +124,7 @@ export const lt: Dict = {
   'instances.open': 'Atverti',
   'instances.online': 'Prisijungęs',
   'instances.offline': 'Neprisijungęs',
+  'instances.viaRelay': 'Prijungta per relę',
   'instances.metricActive': 'Aktyvūs',
   'instances.metricTasks': 'Užduotys',
   'instances.metricSpeed': 'Greitis',

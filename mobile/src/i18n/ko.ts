@@ -28,6 +28,7 @@ export const ko: Dict = {
   'instances.title': '인스턴스',
   'instances.subtitle': '{name}이(가) 알고 있는 모든 KnightLoader 인스턴스.',
   'instances.empty': '알려진 다른 인스턴스가 없습니다.',
+  'instances.viaRelay': '릴레이를 통해 연결됨',
   'instances.manualTitle': '수동으로 추가',
   'instances.namePlaceholder': '이름',
   'instances.urlPlaceholder': 'http://호스트:포트',

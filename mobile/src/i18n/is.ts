@@ -28,6 +28,7 @@ export const is: Dict = {
   'instances.title': 'Tilvik',
   'instances.subtitle': 'Öll KnightLoader-tilvik sem {name} þekkir.',
   'instances.empty': 'Engin önnur tilvik þekkt.',
+  'instances.viaRelay': 'Tengt í gegnum endurvarpa',
   'instances.manualTitle': 'Bæta við handvirkt',
   'instances.namePlaceholder': 'Nafn',
   'instances.urlPlaceholder': 'http://hýsill:gátt',

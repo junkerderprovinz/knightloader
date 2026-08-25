@@ -28,6 +28,7 @@ export const ro: Dict = {
   'instances.title': 'Instanțe',
   'instances.subtitle': 'Toate instanțele KnightLoader pe care le cunoaște {name}.',
   'instances.empty': 'Nu este cunoscută nicio altă instanță.',
+  'instances.viaRelay': 'Conectat prin releu',
   'instances.manualTitle': 'Adaugă manual',
   'instances.namePlaceholder': 'Nume',
   'instances.urlPlaceholder': 'http://host:port',

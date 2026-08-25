@@ -28,6 +28,7 @@ export const bg: Dict = {
   'instances.title': 'Инстанции',
   'instances.subtitle': 'Всички инстанции на KnightLoader, които {name} познава.',
   'instances.empty': 'Не са известни други инстанции.',
+  'instances.viaRelay': 'Свързан през релето',
   'instances.manualTitle': 'Добавяне ръчно',
   'instances.namePlaceholder': 'Име',
   'instances.urlPlaceholder': 'http://host:port',

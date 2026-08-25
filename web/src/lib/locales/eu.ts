@@ -124,6 +124,7 @@ export const eu: Dict = {
   'instances.open': 'Ireki',
   'instances.online': 'Linean',
   'instances.offline': 'Lineaz kanpo',
+  'instances.viaRelay': 'Erlaiaren bidez konektatuta',
   'instances.metricActive': 'Aktibo',
   'instances.metricTasks': 'Atazak',
   'instances.metricSpeed': 'Abiadura',

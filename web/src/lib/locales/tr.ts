@@ -124,6 +124,7 @@ export const tr: Dict = {
   'instances.open': 'Aç',
   'instances.online': 'Çevrimiçi',
   'instances.offline': 'Çevrimdışı',
+  'instances.viaRelay': 'Röle üzerinden bağlandı',
   'instances.metricActive': 'Etkin',
   'instances.metricTasks': 'Görevler',
   'instances.metricSpeed': 'Hız',

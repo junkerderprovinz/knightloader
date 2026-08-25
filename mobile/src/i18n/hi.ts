@@ -28,6 +28,7 @@ export const hi: Dict = {
   'instances.title': 'इंस्टेंस',
   'instances.subtitle': '{name} को ज्ञात सभी KnightLoader इंस्टेंस।',
   'instances.empty': 'कोई अन्य इंस्टेंस ज्ञात नहीं है।',
+  'instances.viaRelay': 'रिले के माध्यम से जुड़ा हुआ',
   'instances.manualTitle': 'मैन्युअल रूप से जोड़ें',
   'instances.namePlaceholder': 'नाम',
   'instances.urlPlaceholder': 'http://host:port',
