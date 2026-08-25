@@ -177,6 +177,14 @@ func relayProxyHandler(serve http.Handler) relay.ProxyHandler {
 		if len(req.Body) > 0 {
 			httpReq.Header.Set("Content-Type", "application/json")
 		}
+		// Set, never appended to: the frame is the only source of this header,
+		// so a caller cannot stack a second value onto one the relay path
+		// might otherwise have added. An empty field leaves the request
+		// unauthenticated, which is what every relay call was before the
+		// field existed and still is for instance-to-instance traffic.
+		if req.Authorization != "" {
+			httpReq.Header.Set("Authorization", req.Authorization)
+		}
 		rec := newRelayRecorder()
 		serve.ServeHTTP(rec, httpReq)
 		return rec.status, rec.body.Bytes()

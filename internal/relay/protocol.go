@@ -97,6 +97,20 @@ type Announce struct {
 	// Deployment is "container" or "desktop" (buildinfo.Deployment), so the
 	// UI can tell a NAS install from a laptop without a second round trip.
 	Deployment string `json:"deployment"`
+	// Client marks a connection that USES the relay without being an instance
+	// on it: the mobile companion app, which calls its siblings but serves no
+	// API of its own for them to call back.
+	//
+	// Every connection has to announce - the relay needs an InstanceID before
+	// it will join one to a key - so without this flag a phone would land in
+	// every sibling's instance list (federation.Manager.reachable adds every
+	// sibling it sees) as an entry somebody can open, and which then answers
+	// 501 to everything because there is nothing behind it. This says "route
+	// to me if you must, but do not offer me as somewhere to go".
+	//
+	// omitempty, and read as false when absent, so an instance keeps
+	// announcing exactly the frame it announced before this existed.
+	Client bool `json:"client,omitempty"`
 }
 
 // Presence reports that a sibling's connection state changed. The relay only
@@ -124,6 +138,41 @@ type ProxyRequest struct {
 	Method string `json:"method"`
 	Path   string `json:"path"`
 	Body   []byte `json:"body,omitempty"`
+	// Authorization, when set, becomes the Authorization header of the request
+	// the target replays against its own API - the one credential that API
+	// accepts from a caller holding no session cookie (internal/api's own
+	// bearerToken).
+	//
+	// It exists for the mobile companion app, and only it fills it in.
+	// Instance-to-instance calls leave it empty and keep behaving exactly as
+	// before: federation.Manager has never attached a credential to a peer
+	// call over either transport, and this does not change that.
+	//
+	// The app needs it because the relay is its ONLY channel to the target -
+	// there is no second connection it could authenticate over. Without this
+	// field a relay-connected phone could reach password-less instances only,
+	// which are precisely the instances one would not expose to a relay in the
+	// first place.
+	//
+	// Deliberately this one named field rather than a general header map: the
+	// target replays these calls against its real handler, so a map would let
+	// a caller set Host, X-Forwarded-For or a cookie and have the target
+	// believe them. One field that can only ever be one header cannot be
+	// turned into that. Optional in the JSON, so an older relay or an older
+	// target simply drops it and the call arrives unauthenticated - the exact
+	// behaviour of every relay call before this field existed.
+	//
+	// WHAT THIS COSTS, stated plainly: the relay forwards frames without
+	// encrypting them, so a relay OPERATOR can read whatever travels through
+	// theirs - and this field is the first thing on this channel that is a
+	// reusable credential rather than data. The relay could already see every
+	// path and body (a task list, the links being added); a token is worse
+	// because it keeps working afterwards. That is tolerable because this
+	// project ships a relay people run THEMSELVES, so operator and owner are
+	// normally the same person - but pointing a phone at somebody else's
+	// relay means handing that somebody a token, and it should be a named,
+	// revocable one (internal/apitoken) rather than the account password.
+	Authorization string `json:"authorization,omitempty"`
 }
 
 // ProxyResponse is the answer to exactly one ProxyRequest.
