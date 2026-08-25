@@ -15,6 +15,7 @@ export const zh: Dict = {
   'connect.connectButton': '连接',
   'connect.qrHintAddress': '扫描"访问"标签页中的二维码',
   'connect.qrAutofillNotice': '名称和地址已从二维码中获取。这类二维码不会包含令牌，请手动粘贴。',
+  'connect.qrRelayOnly': '该二维码用于通过中继连接两个 KnightLoader 实例，无法在此使用，因为本应用是客户端而非实例。请使用下方的"无法直接访问？通过中继连接"，并填写中继地址和密钥。',
   'connect.findButton': '在本网络中查找',
   'connect.finding': '正在本网络中查找…',
   'connect.foundNone': '在本网络中没有找到任何服务器。请手动输入地址，或扫描"访问"标签页中的二维码。',

@@ -15,6 +15,7 @@ export const da: Dict = {
   'connect.connectButton': 'Opret forbindelse',
   'connect.qrHintAddress': 'Scan QR-koden fra fanen Adgang',
   'connect.qrAutofillNotice': 'Navn og adresse hentet fra koden. Denne type kode indeholder aldrig en token - indsæt den manuelt.',
+  'connect.qrRelayOnly': 'Den kode forbinder to KnightLoader-instanser via et relæ og kan ikke bruges her - appen er en klient, ikke en instans. Brug „Kan den ikke nås direkte? Opret forbindelse via et relæ“ nedenfor med relæets adresse og nøgle.',
   'connect.findButton': 'Find på dette netværk',
   'connect.finding': 'Leder på dette netværk…',
   'connect.foundNone': 'Intet fundet på dette netværk. Indtast adressen manuelt, eller scan QR-koden fra fanen Adgang.',

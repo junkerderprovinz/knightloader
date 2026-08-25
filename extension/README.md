@@ -5,6 +5,19 @@ it to your own KnightLoader instance. See `docs/browser-tools.md` at the repo
 root for the full picture, including how this relates to the bookmarklet and
 the PWA share target.
 
+## Versions
+
+This extension carries its own version in `src/manifest.json` and is tagged on
+its own (`extension/vX.Y.Z`), separately from KnightLoader itself - it is
+installed separately and upgrades separately, so one shared number would be
+wrong in one direction or the other. See the Versioning section of the root
+`CHANGELOG.md`.
+
+The copy most people run does not come from that tag. The zip served by
+Settings > Browser tools is built from the copy embedded in whatever server
+binary is running (`embed.go`), so that one tracks the server. The tag exists
+for a browser store submission and for anyone who wants a fixed download.
+
 ## Loading it
 
 **From a running instance (recommended for most people):** Settings > Browser

@@ -386,6 +386,45 @@ func (a *App) nameBucket(b *bucket) {
 	ids := unpackagedIDs(snap)
 	if len(ids) > 0 {
 		a.SetPackage(ids, derived)
+		// And then look again, because the snapshot above settled what to READ,
+		// not what happens in between. A probe answering between snapshotTasks
+		// and this write lands in the gap: setTaskName runs while the package
+		// is still unset, so its own re-guess finds nothing to replace, and
+		// SetPackage then writes the URL-path guess over a task that by now has
+		// a real name. The result was a YouTube link correctly titled and still
+		// filed under "watch" - the exact complaint this feature exists for,
+		// reappearing whenever the probe was quick.
+		//
+		// Re-checking here closes that ordering; setTaskName closes the other
+		// one (a probe answering after this write). Between them every order
+		// ends in the same place.
+		a.regressGuessedPackages(ids)
+	}
+}
+
+// regressGuessedPackages re-runs the URL-path-guess replacement for tasks that
+// have a real name by now. See nameBucket's call site for the ordering this
+// exists to close.
+func (a *App) regressGuessedPackages(ids []string) {
+	changed := make([]core.Task, 0, len(ids))
+	a.mu.Lock()
+	for _, id := range ids {
+		t := a.tasks[id]
+		// Name == URL is the placeholder every stage path leaves behind, so a
+		// task still showing it has nothing better to offer yet - setTaskName
+		// will handle it when its probe answers.
+		if t == nil || t.Name == "" || t.Name == t.URL {
+			continue
+		}
+		if reguessPackageLocked(a.tasks, t, t.Name) {
+			changed = append(changed, *t)
+		}
+	}
+	a.mu.Unlock()
+	for i := range changed {
+		c := changed[i]
+		_ = a.Store.Save(&c)
+		a.Hub.Broadcast("task", &c)
 	}
 }
 

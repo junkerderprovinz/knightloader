@@ -15,6 +15,7 @@ export const ja: Dict = {
   'connect.connectButton': '接続',
   'connect.qrHintAddress': 'アクセスタブのQRコードをスキャン',
   'connect.qrAutofillNotice': '名前とアドレスはコードから取得されました。このコードにトークンは含まれません。トークンは手動で貼り付けてください。',
+  'connect.qrRelayOnly': 'このコードはリレー経由で2つのKnightLoaderインスタンスをつなぐためのもので、ここでは使えません。このアプリはインスタンスではなくクライアントです。下にある「直接つながりませんか?リレー経由で接続」から、リレーのアドレスとキーを入力してください。',
   'connect.findButton': 'このネットワークから探す',
   'connect.finding': 'このネットワークを検索中…',
   'connect.foundNone': 'このネットワークでは見つかりませんでした。アドレスを手動で入力するか、アクセスタブのQRコードをスキャンしてください。',

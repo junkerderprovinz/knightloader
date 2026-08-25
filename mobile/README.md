@@ -6,6 +6,27 @@ KnightLoader server over the same REST + WebSocket API the web UI and the
 browser extension use, the way My.JDownloader's mobile app is a client of a
 JDownloader instance rather than a second JDownloader.
 
+## Versions
+
+The app carries its own version in `app.json` and is tagged on its own
+(`mobile/vX.Y.Z`), separately from KnightLoader itself - an APK on a phone does
+not change when a container is pulled. See the Versioning section of the root
+`CHANGELOG.md`.
+
+Bump **both** fields together: `expo.version` is the name people see, and
+`expo.android.versionCode` is what Android decides upgrade order by. A build
+handed to anybody needs a higher versionCode than the one before it, even when
+the version name is unchanged - two builds sharing a versionCode are
+indistinguishable to the phone. `.github/workflows/release-mobile.yml` refuses
+a tag whose version does not match `app.json`.
+
+**Signing.** The release APK is signed with the Android debug key the Expo
+template ships (`CN=Android Debug`) - public, and identical for everyone. That
+is what makes a build install cleanly over an earlier one, and it is fine for
+installing on your own devices. It is not fine for publishing anywhere: anyone
+can sign an APK that Android accepts as an update to it. A real key belongs in
+a repository secret, never in the repo.
+
 ## Why a companion app, not a second engine
 
 KnightLoader's engine, resolvers and JD sidecar are built to run 24/7 on a

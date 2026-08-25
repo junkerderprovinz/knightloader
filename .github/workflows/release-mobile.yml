@@ -1,0 +1,129 @@
+name: Release (Android app)
+
+# The app is versioned and released on its own, separately from the server.
+#
+# It is a separately installed artifact with its own upgrade story - an APK on a
+# phone does not change when a container is pulled - so tying it to the server's
+# version would mean either bumping it for changes it does not contain, or not
+# bumping it for changes it does. The tag namespace keeps the two apart:
+# "mobile/vX.Y.Z" here, "extension/vX.Y.Z" for the browser extension, and a
+# bare "vX.Y.Z" for KnightLoader itself.
+#
+# The bare pattern in release.yml does NOT match these: a "*" in a GitHub ref
+# filter does not cross a "/", so "mobile/v1.0.0" is invisible to it and this
+# workflow is invisible to a plain "v1.0.0".
+on:
+  push:
+    tags:
+      - "mobile/v*.*.*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # The versionCode check compares against the previous mobile tag, and
+          # a shallow checkout has no tags to compare against.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      # The APK's own Java, not the app's. Pinned to 17 because that is what
+      # the Gradle plugin this Expo SDK generates expects.
+      - uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install
+        run: npm ci
+
+      # The version in the tag and the version in app.json have to agree, or
+      # the release says one thing and the file inside it says another. Checked
+      # before anything expensive runs, and only on a tag: dispatched from a
+      # branch there is no version in the ref to compare, and the check would
+      # otherwise fail with advice about a problem that does not exist.
+      - name: Tag matches app.json
+        if: github.ref_type == 'tag'
+        run: |
+          tagged="${GITHUB_REF_NAME#mobile/v}"
+          declared=$(node -p "require('./app.json').expo.version")
+          if [ "$tagged" != "$declared" ]; then
+            echo "::error::tag says $tagged, app.json says $declared - bump app.json before tagging."
+            exit 1
+          fi
+          # versionCode is not cosmetic: Android decides upgrade order by it, so
+          # two builds sharing one are indistinguishable to a phone. Compared
+          # against the previous mobile tag rather than merely required to
+          # exist, because "present but never incremented" is the failure that
+          # actually happens.
+          code=$(node -p "require('./app.json').expo.android.versionCode || 0")
+          if [ "$code" = "0" ]; then
+            echo "::error::app.json has no expo.android.versionCode."
+            exit 1
+          fi
+          prev=$(git tag -l 'mobile/v*' --sort=-v:refname | grep -v "^${GITHUB_REF_NAME}$" | head -1)
+          if [ -n "$prev" ]; then
+            prevCode=$(git show "$prev:mobile/app.json" | node -e "let s='';process.stdin.on('data',c=>s+=c).on('end',()=>console.log(JSON.parse(s).expo.android.versionCode||0))")
+            if [ "$code" -le "$prevCode" ]; then
+              echo "::error::versionCode $code is not above $prev's $prevCode - a phone cannot tell the two builds apart."
+              exit 1
+            fi
+          fi
+          echo "version $declared (versionCode $code)"
+
+      # action-gh-release swallows an unreadable body_path and publishes an
+      # EMPTY release, with only a warning in the log. After a build this long
+      # that is the worst of both worlds: quieter than a failure and just as
+      # wrong. release.yml probes for the file and falls back to generated
+      # notes; here a release without hand-written notes is a mistake, so it
+      # stops instead.
+      - name: Notes exist for this tag
+        if: github.ref_type == 'tag'
+        # From the workspace root, not from mobile/: this job's run steps
+        # default to mobile/, and the notes live at the top of the repository.
+        working-directory: ${{ github.workspace }}
+        run: |
+          file=".github/release-notes/${GITHUB_REF_NAME}.md"
+          if [ ! -s "$file" ]; then
+            echo "::error::no release notes at $file - write them before tagging."
+            exit 1
+          fi
+          wc -l "$file"
+
+      # android/ is not committed - it is generated, and regenerating it is how
+      # a build stays reproducible from the sources alone.
+      - name: Generate the native project
+        run: npx expo prebuild --platform android --clean
+
+      - name: Build the APK
+        run: ./gradlew assembleRelease --no-daemon
+        working-directory: mobile/android
+
+      - name: Name it after the version
+        id: apk
+        run: |
+          v="${GITHUB_REF_NAME#mobile/v}"
+          out="KnightLoader-$v.apk"
+          cp android/app/build/outputs/apk/release/app-release.apk "$out"
+          echo "path=mobile/$out" >> "$GITHUB_OUTPUT"
+          ls -l "$out"
+
+      - uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3
+        with:
+          name: ${{ github.ref_name }}
+          body_path: .github/release-notes/${{ github.ref_name }}.md
+          files: ${{ steps.apk.outputs.path }}

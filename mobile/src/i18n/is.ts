@@ -15,6 +15,7 @@ export const is: Dict = {
   'connect.connectButton': 'Tengjast',
   'connect.qrHintAddress': 'Skannaðu QR-kóðann af flipanum Aðgangur',
   'connect.qrAutofillNotice': 'Nafn og vistfang voru sótt úr kóðanum. Þessi tegund kóða inniheldur aldrei teikn - límdu það handvirkt.',
+  'connect.qrRelayOnly': 'Þessi kóði tengir saman tvö KnightLoader-tilvik um endurvarpa og nýtist ekki hér - þetta forrit er biðlari, ekki tilvik. Notaðu „Næst ekki beint í hana? Tengstu um endurvarpa“ hér fyrir neðan með vistfangi og lykli endurvarpans.',
   'connect.findButton': 'Finna á þessu neti',
   'connect.finding': 'Leita á þessu neti…',
   'connect.foundNone': 'Ekkert fannst á þessu neti. Sláðu vistfangið inn handvirkt eða skannaðu QR-kóðann af flipanum Aðgangur.',

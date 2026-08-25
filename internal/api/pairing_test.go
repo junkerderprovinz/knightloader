@@ -4,12 +4,15 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
@@ -18,6 +21,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
+	"github.com/junkerderprovinz/knightloader/internal/relay"
 )
 
 // TestPairingCodeGenerate proves the generate endpoint's response shape:
@@ -318,6 +322,80 @@ func TestPairingCodeRedeemUnreachablePeerAddsNothing(t *testing.T) {
 	if len(bApp.Federation.List()) != 0 {
 		t.Fatalf("federation list = %v, want empty: an unreachable peer must not be added", bApp.Federation.List())
 	}
+}
+
+// TestDesktopWithARelayCanPair is the other half of TestDesktopCannotPair
+// below: the refusal there is about having no way in AT ALL, not about being a
+// desktop. A desktop on a relay is addressed by identifier, both ends dial out,
+// and it can issue and redeem codes like anything else.
+//
+// Worth pinning separately, because the gate reads as a deployment check and
+// the next person to touch it could easily restore one.
+func TestDesktopWithARelayCanPair(t *testing.T) {
+	prev := buildinfo.Deployment
+	buildinfo.Deployment = "desktop"
+	defer func() { buildinfo.Deployment = prev }()
+
+	a, err := app.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Close()
+	srv := httptest.NewServer(Handler(a))
+	defer srv.Close()
+
+	// No relay yet: refused, and the reason is the absence of any way in.
+	resp, err := http.Post(srv.URL+"/api/instances/pairing-code", "application/json", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusConflict {
+		t.Fatalf("a desktop with no relay answered %d, want 409", resp.StatusCode)
+	}
+
+	// On a relay: it has an identifier, so it can offer one.
+	a.Federation.SetRelay(&fakeRelayTransport{})
+	resp2, err := http.Post(srv.URL+"/api/instances/pairing-code", "application/json", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp2.Body.Close()
+	if resp2.StatusCode != http.StatusOK {
+		t.Fatalf("a desktop ON a relay answered %d, want 200 - the relay is exactly how it is reachable", resp2.StatusCode)
+	}
+	var issued struct {
+		Code     string `json:"code"`
+		URL      string `json:"url"`
+		ViaRelay bool   `json:"viaRelay"`
+	}
+	if err := json.NewDecoder(resp2.Body).Decode(&issued); err != nil {
+		t.Fatal(err)
+	}
+	if issued.URL != "" {
+		t.Errorf("the code carries url %q - a desktop has no address and must never claim one", issued.URL)
+	}
+	if !issued.ViaRelay {
+		t.Error("the code does not report itself as redeemable over the relay")
+	}
+	offer, err := decodeOffer(issued.Code)
+	if err != nil {
+		t.Fatalf("the code it just issued does not decode: %v", err)
+	}
+	if offer.RelayID != a.Settings.Get().InstanceID {
+		t.Errorf("offer carries relay id %q, want this instance's own", offer.RelayID)
+	}
+}
+
+// fakeRelayTransport is a connected relay with no siblings - enough to make
+// this instance addressable, which is all the pairing gate asks about.
+type fakeRelayTransport struct{}
+
+func (fakeRelayTransport) Siblings() []relay.Announce { return nil }
+func (fakeRelayTransport) Connected() bool            { return true }
+func (fakeRelayTransport) Close() error               { return nil }
+func (fakeRelayTransport) Proxy(context.Context, string, string, string, []byte, string) ([]byte, int, error) {
+	return nil, http.StatusBadGateway, errors.New("no siblings")
 }
 
 // TestDesktopCannotPair: the desktop build serves its API only inside its own
@@ -1093,4 +1171,516 @@ func TestRemovingAPeerEndsItsCredentials(t *testing.T) {
 	if live := peerTokensNamed(bApp, aName); len(live) != 0 {
 		t.Errorf("%d token(s) minted for the removed peer are still live - it can still reach this instance", len(live))
 	}
+}
+
+// pairRelay is a two-ended stand-in for a relay: each side's transport hands a
+// proxied request to the OTHER side's real HTTP handler, which is exactly what
+// a relay does (see internal/api/routes_relay.go - the receiving client serves
+// the frame through its own normal stack). No socket, no relay server, and no
+// second implementation of the handler under test.
+type pairRelay struct {
+	id    string
+	other *pairRelay
+	srv   *httptest.Server
+	name  string
+}
+
+func (p *pairRelay) Siblings() []relay.Announce {
+	if p.other == nil {
+		return nil
+	}
+	return []relay.Announce{{InstanceID: p.other.id, Name: p.other.name}}
+}
+func (p *pairRelay) Connected() bool { return true }
+func (p *pairRelay) Close() error    { return nil }
+
+func (p *pairRelay) Proxy(ctx context.Context, target, method, path string, body []byte, authorization string) ([]byte, int, error) {
+	if p.other == nil || target != p.other.id {
+		return nil, http.StatusBadGateway, fmt.Errorf("relay: no sibling %q", target)
+	}
+	var rd io.Reader
+	if len(body) > 0 {
+		rd = bytes.NewReader(body)
+	}
+	req, err := http.NewRequestWithContext(ctx, method, p.other.srv.URL+path, rd)
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+	if len(body) > 0 {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	if authorization != "" {
+		req.Header.Set("Authorization", authorization)
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, http.StatusBadGateway, err
+	}
+	defer resp.Body.Close()
+	out, _ := io.ReadAll(resp.Body)
+	return out, resp.StatusCode, nil
+}
+
+// TestTwoRelayOnlyInstancesCanPairAndThenAuthenticate is the gap issue #26 was
+// closed with an explicit exception for: two instances that can reach each
+// other ONLY through a relay could not pair, because redeeming a code was an
+// ordinary HTTP request and there was no address to make it to. A
+// password-protected instance in that position therefore refused every
+// federation call forever - which is the deployment the relay exists for.
+//
+// Neither instance here announces an address. The pairing travels over the
+// relay, the credentials are filed under the instance ids the relay addresses
+// them by, and the proof is the last assertion: a call that answers 401 before
+// pairing answers 200 after it.
+func TestTwoRelayOnlyInstancesCanPairAndThenAuthenticate(t *testing.T) {
+	aApp, err := app.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer aApp.Close()
+	aSrv := httptest.NewServer(Handler(aApp))
+	defer aSrv.Close()
+
+	bApp, err := app.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer bApp.Close()
+	bSrv := httptest.NewServer(Handler(bApp))
+	defer bSrv.Close()
+
+	// A is locked. Before pairing it refuses B; after pairing it must not.
+	if err := aApp.Auth.SetPassword("", "a-good-password"); err != nil {
+		t.Fatal(err)
+	}
+
+	aID := aApp.Settings.Get().InstanceID
+	bID := bApp.Settings.Get().InstanceID
+	aRelay := &pairRelay{id: aID, srv: aSrv, name: "A"}
+	bRelay := &pairRelay{id: bID, srv: bSrv, name: "B"}
+	aRelay.other, bRelay.other = bRelay, aRelay
+	// After Handler, which calls applyRelay and would drop a transport
+	// installed before it.
+	aApp.Federation.SetRelay(aRelay)
+	bApp.Federation.SetRelay(bRelay)
+
+	// Before pairing: B sees A as a sibling and gets refused, because nothing
+	// has handed it a credential.
+	if err := bApp.Federation.Ping(context.Background(), aID); !errors.Is(err, federation.ErrUnauthorized) {
+		t.Fatalf("before pairing B -> A gave %v, want ErrUnauthorized (the state issue #26 is about)", err)
+	}
+
+	// A issues a code, from its own logged-in session - the Access tab's own
+	// action, and an authenticated route like any other. A token stands in for
+	// the session here, and is created AFTER the password: setting one revokes
+	// every token issued under the old state (see routes_system.go).
+	_, adminSecret, err := aApp.APITokens.Create("test-admin")
+	if err != nil {
+		t.Fatal(err)
+	}
+	req, _ := http.NewRequest(http.MethodPost, aSrv.URL+"/api/instances/pairing-code", nil)
+	req.Header.Set("Authorization", "Bearer "+adminSecret)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var issued struct {
+		Code     string `json:"code"`
+		URL      string `json:"url"`
+		ViaRelay bool   `json:"viaRelay"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&issued); err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("issuing a code answered %d - an instance with only a relay must still be able to offer one", resp.StatusCode)
+	}
+	if !issued.ViaRelay {
+		t.Error("the code does not report itself as redeemable over the relay")
+	}
+
+	offer, err := decodeOffer(issued.Code)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if offer.RelayID != aID {
+		t.Fatalf("offer carries relay id %q, want A's own %q", offer.RelayID, aID)
+	}
+	// httptest gives every server a loopback address, and remoteAddresses picks
+	// one up from the request - which a real relay-only instance would not
+	// have. Cleared so this test exercises the path it is about.
+	offer.URL = ""
+	code, err := encodeOffer(offer)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	body, _ := json.Marshal(map[string]string{"code": code})
+	rd, err := http.Post(bSrv.URL+"/api/instances/pairing-code/redeem", "application/json", bytes.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rd.Body.Close()
+	var got struct {
+		ViaRelay bool `json:"viaRelay"`
+		Online   bool `json:"online"`
+	}
+	msg, _ := io.ReadAll(io.LimitReader(rd.Body, 1<<12))
+	if rd.StatusCode != http.StatusOK {
+		t.Fatalf("redeeming a relay-only code answered %d: %s", rd.StatusCode, strings.TrimSpace(string(msg)))
+	}
+	_ = json.Unmarshal(msg, &got)
+	if !got.ViaRelay {
+		t.Error("the redemption does not report itself as having gone over the relay")
+	}
+	if !got.Online {
+		t.Error("online = false right after a pairing that just succeeded over that same relay")
+	}
+
+	// The whole point: the call that was refused above now succeeds.
+	if err := bApp.Federation.Ping(context.Background(), aID); err != nil {
+		t.Errorf("after pairing B -> A still fails: %v", err)
+	}
+	// And the other direction, which the exchange is symmetric for.
+	if err := aApp.Federation.Ping(context.Background(), bID); err != nil {
+		t.Errorf("after pairing A -> B fails: %v", err)
+	}
+
+	// Nothing was written to disk: a relay peer comes and goes with the
+	// connection, and one remembered across a restart is a peer that cannot be
+	// reached and cannot be explained.
+	if _, err := os.Stat(filepath.Join(bApp.DataDir, "instances.json")); !os.IsNotExist(err) {
+		t.Error("the relay peer was written to instances.json, which it must never be")
+	}
+}
+
+// TestAnUnreachableAddressFallsBackToTheRelay: an address in a pairing code is
+// what the issuing instance believes it is reachable at, and it is routinely
+// right for somebody and wrong for somebody else. A NAS announcing its LAN
+// address cannot be dialled from anywhere but that LAN - and refusing to pair
+// there, while both ends sit on the same relay, is giving up with the answer
+// in hand.
+//
+// The offer here carries BOTH: an address nothing listens on, and a relay id
+// that works. The direct attempt has to fail and the relay has to finish the
+// job.
+func TestAnUnreachableAddressFallsBackToTheRelay(t *testing.T) {
+	aApp, err := app.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer aApp.Close()
+	aSrv := httptest.NewServer(Handler(aApp))
+	defer aSrv.Close()
+
+	bApp, err := app.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer bApp.Close()
+	bSrv := httptest.NewServer(Handler(bApp))
+	defer bSrv.Close()
+
+	aID := aApp.Settings.Get().InstanceID
+	bID := bApp.Settings.Get().InstanceID
+	aRelay := &pairRelay{id: aID, srv: aSrv, name: "A"}
+	bRelay := &pairRelay{id: bID, srv: bSrv, name: "B"}
+	aRelay.other, bRelay.other = bRelay, aRelay
+	aApp.Federation.SetRelay(aRelay)
+	bApp.Federation.SetRelay(bRelay)
+
+	resp, err := http.Post(aSrv.URL+"/api/instances/pairing-code", "application/json", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var issued struct {
+		Code string `json:"code"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&issued); err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	offer, err := decodeOffer(issued.Code)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if offer.RelayID != aID {
+		t.Fatalf("offer carries relay id %q, want A's own", offer.RelayID)
+	}
+	// An address nothing listens on, standing in for one that is simply not
+	// reachable from where the redeemer is.
+	offer.URL = "http://127.0.0.1:1"
+	code, err := encodeOffer(offer)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	body, _ := json.Marshal(map[string]string{"code": code})
+	rd, err := http.Post(bSrv.URL+"/api/instances/pairing-code/redeem", "application/json", bytes.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rd.Body.Close()
+	msg, _ := io.ReadAll(io.LimitReader(rd.Body, 1<<12))
+	if rd.StatusCode != http.StatusOK {
+		t.Fatalf("redeem answered %d (%s) - the relay should have carried this after the address failed",
+			rd.StatusCode, strings.TrimSpace(string(msg)))
+	}
+
+	// And it really paired: the credential has to be usable in both directions.
+	if err := bApp.Federation.Ping(context.Background(), aID); err != nil {
+		t.Errorf("B -> A after the fallback: %v", err)
+	}
+	if err := aApp.Federation.Ping(context.Background(), bID); err != nil {
+		t.Errorf("A -> B after the fallback: %v", err)
+	}
+}
+
+// TestBothRoadsFailingReportsBoth: naming only the relay would hide that the
+// address in the code did not work either - and the address is the half
+// somebody can actually go and fix.
+func TestBothRoadsFailingReportsBoth(t *testing.T) {
+	a, err := app.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Close()
+	srv := httptest.NewServer(Handler(a))
+	defer srv.Close()
+	// Connected, but with no sibling by that id: the relay is up and still
+	// cannot deliver, which is the case worth telling apart from "no relay".
+	a.Federation.SetRelay(&fakeRelayTransport{})
+
+	code, err := encodeOffer(pairingOffer{
+		Name: "nowhere", URL: "http://127.0.0.1:1", RelayID: "id-that-is-not-there", Token: "x",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	body, _ := json.Marshal(map[string]string{"code": code})
+	resp, err := http.Post(srv.URL+"/api/instances/pairing-code/redeem", "application/json", bytes.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	msg, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<12))
+	got := strings.TrimSpace(string(msg))
+	if resp.StatusCode == http.StatusOK {
+		t.Fatal("redeem succeeded against an address and a relay id that both lead nowhere")
+	}
+	if !strings.Contains(got, "127.0.0.1:1") {
+		t.Errorf("the answer %q does not mention the address that failed", got)
+	}
+	if !strings.Contains(strings.ToLower(got), "relay") {
+		t.Errorf("the answer %q does not mention that the relay failed too", got)
+	}
+}
+
+// TestTwoNattedContainersPairOverTheRelay is the deployment the relay exists
+// for, and the one the relay-only test does NOT cover: two CONTAINERS, each
+// behind its own NAT, each password-protected, each announcing a LAN address
+// the other cannot dial.
+//
+// It is different from the desktop case in one way that turns out to decide
+// everything: a container always has an address to offer, so both sides send
+// one - and the credential is then filed under the name that address implies,
+// while the peer is actually addressed by its relay id. The lookup asks for
+// one key, the credential sits under the other, and both instances go on
+// calling each other unauthenticated.
+func TestTwoNattedContainersPairOverTheRelay(t *testing.T) {
+	aApp, err := app.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer aApp.Close()
+	aSrv := httptest.NewServer(Handler(aApp))
+	defer aSrv.Close()
+
+	bApp, err := app.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer bApp.Close()
+	bSrv := httptest.NewServer(Handler(bApp))
+	defer bSrv.Close()
+
+	// Both locked, which is the whole point: an unlocked peer answers an
+	// unauthenticated call happily and hides exactly the bug being looked for.
+	for _, a := range []*app.App{aApp, bApp} {
+		if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
+			t.Fatal(err)
+		}
+	}
+	// B announces an address nothing can dial, the way a container behind NAT
+	// announces its LAN address to somebody on another network.
+	cfg := bApp.Settings.Get()
+	cfg.KnownDomains = []string{"http://unreachable.invalid:9"}
+	if _, err := bApp.Settings.Set(cfg); err != nil {
+		t.Fatal(err)
+	}
+
+	aID := aApp.Settings.Get().InstanceID
+	bID := bApp.Settings.Get().InstanceID
+	aRelay := &pairRelay{id: aID, srv: aSrv, name: "A"}
+	bRelay := &pairRelay{id: bID, srv: bSrv, name: "B"}
+	aRelay.other, bRelay.other = bRelay, aRelay
+	aApp.Federation.SetRelay(aRelay)
+	bApp.Federation.SetRelay(bRelay)
+
+	_, adminSecret, err := aApp.APITokens.Create("test-admin")
+	if err != nil {
+		t.Fatal(err)
+	}
+	req, _ := http.NewRequest(http.MethodPost, aSrv.URL+"/api/instances/pairing-code", nil)
+	req.Header.Set("Authorization", "Bearer "+adminSecret)
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var issued struct {
+		Code string `json:"code"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&issued); err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	offer, err := decodeOffer(issued.Code)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// A's own announced address is equally undialable from where B sits.
+	offer.URL = "http://unreachable.invalid:9"
+	code, err := encodeOffer(offer)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, bSecret, err := bApp.APITokens.Create("test-admin")
+	if err != nil {
+		t.Fatal(err)
+	}
+	body, _ := json.Marshal(map[string]string{"code": code})
+	rdReq, _ := http.NewRequest(http.MethodPost, bSrv.URL+"/api/instances/pairing-code/redeem", bytes.NewReader(body))
+	rdReq.Header.Set("Content-Type", "application/json")
+	rdReq.Header.Set("Authorization", "Bearer "+bSecret)
+	rd, err := http.DefaultClient.Do(rdReq)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rd.Body.Close()
+	msg, _ := io.ReadAll(io.LimitReader(rd.Body, 1<<12))
+	if rd.StatusCode != http.StatusOK {
+		t.Fatalf("redeem answered %d: %s", rd.StatusCode, strings.TrimSpace(string(msg)))
+	}
+
+	// The point of the whole exercise: both directions authenticated.
+	if err := bApp.Federation.Ping(context.Background(), aID); err != nil {
+		t.Errorf("B -> A over the relay: %v", err)
+	}
+	if err := aApp.Federation.Ping(context.Background(), bID); err != nil {
+		t.Errorf("A -> B over the relay: %v", err)
+	}
+
+	// And no dead stored peer: the address neither side can dial must not be
+	// written down as if it were a way in.
+	for _, a := range []*app.App{aApp, bApp} {
+		for _, in := range a.Federation.List() {
+			if in.URL != "" && strings.Contains(in.URL, "unreachable.invalid") {
+				t.Errorf("stored a peer at %q, which nothing can reach", in.URL)
+			}
+		}
+	}
+}
+
+// TestAHostileRelayIDCannotTouchAnExistingPeer: /complete takes a pairing code
+// without authentication, and it takes a "relayId" that becomes a CREDENTIAL
+// KEY. Unvalidated, that is a free hand at the key space every stored peer
+// already lives in.
+//
+// The attack needs one valid code - the threat addPeer's own doc comment names,
+// "a code somebody was persuaded to paste, or read off a screen" - and then
+// names an EXISTING peer in the relayId field. Nothing is added, so nothing
+// appears on the Instances page; but a full-power token gets minted and
+// labelled after that peer, and retiring "older duplicates" of it then revokes
+// the credential the real peer uses. Inbound federation dies silently.
+//
+// An InstanceID is 40 hex characters and a pairing name is capped at 32, so
+// checking the shape closes the whole class rather than this one instance of it.
+func TestAHostileRelayIDCannotTouchAnExistingPeer(t *testing.T) {
+	victim, err := app.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer victim.Close()
+	srv := httptest.NewServer(Handler(victim))
+	defer srv.Close()
+
+	// A real, working peer, and the credential it uses to call this instance.
+	realPeer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte("[]"))
+	}))
+	defer realPeer.Close()
+	if err := addPeer(victim, federation.Instance{Name: "office", URL: realPeer.URL}); err != nil {
+		t.Fatal(err)
+	}
+	_, theirSecret, err := mintPeerToken(victim, "office")
+	if err != nil {
+		t.Fatal(err)
+	}
+	// And the credential this instance uses to CALL office - a different thing
+	// from the one just minted, and the one the attack would overwrite.
+	if err := storePeerToken(victim, "office", "the-real-outbound-credential"); err != nil {
+		t.Fatal(err)
+	}
+	before := peerTokensNamed(victim, "office")
+	if len(before) != 1 {
+		t.Fatalf("setup: %d tokens for office, want 1", len(before))
+	}
+
+	// One valid code, and a body naming the existing peer where an instance id
+	// belongs.
+	resp, err := http.Post(srv.URL+"/api/instances/pairing-code", "application/json", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var issued struct {
+		Code string `json:"code"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&issued); err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	offer, err := decodeOffer(issued.Code)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	body, _ := json.Marshal(map[string]string{
+		"token": offer.Token, "name": "anything", "url": "", "relayId": "office",
+	})
+	cr, err := http.Post(srv.URL+"/api/instances/pairing-code/complete", "application/json", bytes.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer cr.Body.Close()
+	msg, _ := io.ReadAll(io.LimitReader(cr.Body, 1<<12))
+	if cr.StatusCode == http.StatusOK {
+		t.Errorf("/complete accepted %q as an instance id", "office")
+	}
+	_ = msg
+
+	// Whatever the answer, the real peer must be untouched: same credential,
+	// same single token, still reachable.
+	after := peerTokensNamed(victim, "office")
+	if len(after) != 1 || after[0] != before[0] {
+		t.Errorf("the real peer's token changed: %v -> %v", before, after)
+	}
+	if got := (peerTokens{a: victim}).TokenFor("office"); got != "the-real-outbound-credential" {
+		t.Errorf("the credential used to call office is now %q", got)
+	}
+	if err := victim.Federation.Ping(context.Background(), "office"); err != nil {
+		t.Errorf("the real peer is no longer reachable: %v", err)
+	}
+	_ = theirSecret
 }

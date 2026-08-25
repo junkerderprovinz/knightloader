@@ -15,6 +15,7 @@ export const pl: Dict = {
   'connect.connectButton': 'Połącz',
   'connect.qrHintAddress': 'Zeskanuj kod QR z zakładki Dostęp',
   'connect.qrAutofillNotice': 'Nazwa i adres pobrane z kodu. Ten rodzaj kodu nigdy nie zawiera tokenu - wklej go ręcznie.',
+  'connect.qrRelayOnly': 'Ten kod łączy dwie instancje KnightLoader przez przekaźnik i nie da się go tu użyć - ta aplikacja jest klientem, a nie instancją. Skorzystaj poniżej z „Brak bezpośredniego dostępu? Połącz przez przekaźnik” i podaj adres oraz klucz przekaźnika.',
   'connect.findButton': 'Szukaj w tej sieci',
   'connect.finding': 'Szukanie w tej sieci…',
   'connect.foundNone': 'Nic nie znaleziono w tej sieci. Wpisz adres ręcznie lub zeskanuj kod QR z zakładki Dostęp.',

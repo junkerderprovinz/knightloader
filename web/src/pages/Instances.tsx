@@ -136,7 +136,12 @@ export function Instances() {
           : !r.reachedBack
             ? t('instances.pairOneWay')
             : '';
-      setPairOk(t('instances.pairSuccess', { name: r.name }) + (warn ? ` ${warn}` : ''));
+      // Said out loud, because it changes what the peer IS: a relay peer is
+      // live only while the relay sees it, and it is never written down. A
+      // pairing that quietly took a different road than the address suggested
+      // is worth one sentence.
+      const how = r.viaRelay ? ` ${t('instances.pairViaRelay')}` : '';
+      setPairOk(t('instances.pairSuccess', { name: r.name }) + how + (warn ? ` ${warn}` : ''));
       setCode('');
       await load();
     } catch (e: any) {

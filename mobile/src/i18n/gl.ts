@@ -15,6 +15,7 @@ export const gl: Dict = {
   'connect.connectButton': 'Conectar',
   'connect.qrHintAddress': 'Escanea o código QR desde a pestana Acceso',
   'connect.qrAutofillNotice': 'Nome e enderezo tomados do código. Este tipo de código nunca inclúe un token: pégao a man.',
+  'connect.qrRelayOnly': 'Ese código conecta dúas instancias de KnightLoader a través dun relé e aquí non serve: esta aplicación é un cliente, non unha instancia. Usa «Non é accesible directamente? Conecta a través dun relé» máis abaixo co enderezo e a chave do relé.',
   'connect.findButton': 'Buscar nesta rede',
   'connect.finding': 'Buscando nesta rede…',
   'connect.foundNone': 'Non se atopou nada nesta rede. Escribe o enderezo a man ou escanea o código QR desde a pestana Acceso.',

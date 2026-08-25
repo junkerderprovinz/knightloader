@@ -15,6 +15,7 @@ export const tr: Dict = {
   'connect.connectButton': 'Bağlan',
   'connect.qrHintAddress': 'QR kodu Erişim sekmesinden tarayın',
   'connect.qrAutofillNotice': 'Ad ve adres koddan alındı. Bu tür bir kod hiçbir zaman token içermez - onu elle yapıştırın.',
+  'connect.qrRelayOnly': 'Bu kod iki KnightLoader örneğini bir röle üzerinden birbirine bağlar ve burada kullanılamaz - bu uygulama bir istemcidir, örnek değil. Aşağıdaki “Doğrudan erişilemiyor mu? Bir röle üzerinden bağlanın” seçeneğini rölenin adresi ve anahtarıyla kullanın.',
   'connect.findButton': 'Bu ağda ara',
   'connect.finding': 'Bu ağda aranıyor…',
   'connect.foundNone': 'Bu ağda hiçbir şey bulunamadı. Adresi elle girin ya da QR kodu Erişim sekmesinden tarayın.',

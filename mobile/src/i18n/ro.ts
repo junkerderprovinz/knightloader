@@ -15,6 +15,7 @@ export const ro: Dict = {
   'connect.connectButton': 'Conectare',
   'connect.qrHintAddress': 'Scanează codul QR din fila Acces',
   'connect.qrAutofillNotice': 'Numele și adresa au fost preluate din cod. Acest tip de cod nu conține niciodată un token - lipește-l manual.',
+  'connect.qrRelayOnly': 'Acel cod leagă două instanțe KnightLoader printr-un releu și nu poate fi folosit aici - această aplicație este un client, nu o instanță. Folosește mai jos „Nu e accesibilă direct? Conectează-te printr-un releu” cu adresa și cheia releului.',
   'connect.findButton': 'Caută în această rețea',
   'connect.finding': 'Se caută în această rețea…',
   'connect.foundNone': 'Nu s-a găsit nimic în această rețea. Introdu adresa manual sau scanează codul QR din fila Acces.',

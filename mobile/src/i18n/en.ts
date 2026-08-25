@@ -16,6 +16,7 @@ export const en = {
   'connect.connectButton': 'Connect',
   'connect.qrHintAddress': 'Scan the QR code from the Access tab',
   'connect.qrAutofillNotice': 'Name and address taken from the code. This kind of code never carries a token - paste that in by hand.',
+  'connect.qrRelayOnly': 'That code connects two KnightLoader instances through a relay, and cannot be used here - the app is a client, not an instance. Use “Cannot reach it directly? Connect via a relay” below, with the relay’s address and key.',
   'connect.findButton': 'Find on this network',
   'connect.finding': 'Looking on this network\u2026',
   'connect.foundNone': 'Nothing found on this network. Enter the address by hand, or scan the QR code from the Access tab.',

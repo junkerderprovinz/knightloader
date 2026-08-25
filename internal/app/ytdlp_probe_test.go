@@ -202,3 +202,37 @@ func TestAFailedYtdlpProbeLeavesThePlaceholderNameAlone(t *testing.T) {
 		t.Errorf("Name = %q after a failed probe, want the placeholder URL untouched", live.Name)
 	}
 }
+
+// TestAQuickProbeStillFixesTheGuessedPackage pins the ordering that made the
+// rename fail in practice, rather than leaving it to chance.
+//
+// nameBucket decides a package from a SNAPSHOT and writes it afterwards. A
+// probe answering in that gap sets the real name while the package is still
+// unset, so setTaskName's own re-guess finds nothing to replace - and then the
+// write lands, filing a correctly-titled YouTube link under "watch". That is
+// the complaint the feature was built for, reappearing whenever the probe was
+// quick.
+//
+// Driven deterministically here: the fake backend answers instantly, which is
+// exactly the losing order, and the assertion is on the settled state rather
+// than on who won.
+func TestAQuickProbeStillFixesTheGuessedPackage(t *testing.T) {
+	for i := 0; i < 25; i++ {
+		a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+		done := make(chan struct{})
+		wireYtdlp(a, fakeYtdlpBackend{title: "Never Gonna Give You Up", done: done})
+
+		created := a.AddLinks([]string{"https://youtube.com/watch?v=dQw4w9WgXcQ"}, "")
+		if len(created) != 1 {
+			t.Fatalf("round %d: AddLinks created %d tasks, want 1", i, len(created))
+		}
+		id := created[0].ID
+
+		waitFor(t, "the guessed package to be replaced by the probed title", func() bool {
+			return snapshot(t, a, id).Package == "Never Gonna Give You Up"
+		})
+		if got := snapshot(t, a, id).Package; got == "watch" {
+			t.Fatalf("round %d: package stayed %q - the URL-path guess won", i, got)
+		}
+	}
+}

@@ -318,21 +318,17 @@ func (m *Manager) Proxy(ctx context.Context, name, method, path string, body []b
 	// is not the same key for both transports and is worth being precise
 	// about, because an earlier version of this comment claimed it was.
 	//
-	// A stored peer is addressed by its pairing name, and that is exactly the
-	// key a peer token is filed under, so an HTTP call carries one. A RELAY
-	// peer is addressed by its 40-hex InstanceID (see reachable), and no
-	// credential is ever filed under that - pairing is an HTTP POST to the
-	// other side's /complete, which two instances that can only meet over the
-	// relay cannot make. So this is empty for them, and they are called
-	// unauthenticated, exactly as every peer was before peer tokens existed.
+	// A stored peer is addressed by its pairing name; a RELAY peer by its
+	// 40-hex InstanceID (see reachable). Both are looked up here by the key
+	// they are actually addressed as, which is the key the pairing exchange
+	// files the credential under - routes_pairing.go picks one or the other
+	// depending on how the pairing travelled.
 	//
-	// The honest consequence: a password-protected peer reachable ONLY through
-	// a relay still answers 401, so issue #26 is unfixed for that one
-	// deployment. Pairing over the relay is the missing piece, and it is a
-	// feature rather than a line of glue - the authorization field is threaded
-	// all the way through RelayTransport.Proxy and relay.ProxyRequest and is
-	// ready for it. It is filled in today by the mobile companion app, which
-	// holds a token a person typed (see relay/protocol.go).
+	// That symmetry is newer than it looks. While pairing was HTTP-only, a
+	// relay peer's credential could only ever be filed under a name, the lookup
+	// here asked for an id, and nothing matched - so relay peers were called
+	// unauthenticated and a password-protected one refused everything, which is
+	// issue #26 surviving in exactly the deployment the relay exists for.
 	auth := ""
 	if tok := m.tokenFor(name); tok != "" {
 		auth = "Bearer " + tok

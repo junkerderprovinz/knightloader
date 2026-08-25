@@ -493,11 +493,14 @@ const RELAY_POLL_MS = 5000;
  * card rather than one merged form that would have to paper over that
  * difference.
  *
- * Pairing needs this instance to accept an inbound request to complete the
- * exchange (routes_pairing.go's own redeem handler calls back here), which
- * the desktop build cannot do at all - it opens no port - so that section
- * is skipped there and the card is left showing only Relay, desktop's own
- * one way to be paired with anything (fetchDeploymentInfo, not
+ * Pairing needs the other side to be able to complete the exchange back to
+ * this instance (routes_pairing.go's own redeem handler calls back here). A
+ * desktop build opens no port, so for a long time that was impossible there
+ * and the section was simply hidden - but the relay carries the completion
+ * now, addressing this instance by identifier rather than by address, so a
+ * desktop ON A RELAY can issue and redeem codes like anything else. The
+ * section therefore follows the relay's actual state rather than the
+ * deployment, which is the thing that was really being asked about (fetchDeploymentInfo, not
  * fetchRemoteAccess: this card renders outside RemoteAccessSection
  * specifically so it still shows on desktop, see Access()'s own comment on
  * why).
@@ -532,6 +535,9 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
 
   // --- Relay ---
   const [cfg, setCfg] = useState<RelayConfig | null>(null);
+  // Read by the pairing section above, which on a desktop build exists only
+  // while this is true.
+  const relayConnected = !!cfg?.connected;
   const [url, setUrl] = useState('');
   const [key, setKey] = useState('');
   const [relayBusy, setRelayBusy] = useState(false);
@@ -614,7 +620,13 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
         {cx('settings.access.remote.title')}
       </SectionTitle>
 
-      {!desktop && (
+      {/* Not "is this a desktop": "is there a way for the other side to
+          complete the exchange back to here". On a container that is its own
+          address; on a desktop it is the relay, and only while the socket is
+          actually up - a stored address and key with nothing connected cannot
+          carry a pairing. Matches pairingSelf's own gate on the server, which
+          answers 409 in exactly the cases this hides the section for. */}
+      {(!desktop || relayConnected) && (
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold text-carbon-textSub">{cx('settings.access.remote.pairTitle')}</span>

@@ -15,6 +15,7 @@ export const sv: Dict = {
   'connect.connectButton': 'Anslut',
   'connect.qrHintAddress': 'Skanna QR-koden från fliken Åtkomst',
   'connect.qrAutofillNotice': 'Namn och adress hämtade från koden. Den här sortens kod innehåller aldrig en token - klistra in den för hand.',
+  'connect.qrRelayOnly': 'Den koden kopplar ihop två KnightLoader-instanser via ett relä och går inte att använda här - appen är en klient, inte en instans. Använd ”Går den inte att nå direkt? Anslut via ett relä” längre ned med reläets adress och nyckel.',
   'connect.findButton': 'Sök i det här nätverket',
   'connect.finding': 'Söker i det här nätverket…',
   'connect.foundNone': 'Inget hittades i det här nätverket. Skriv in adressen för hand, eller skanna QR-koden från fliken Åtkomst.',

@@ -15,6 +15,7 @@ export const ca: Dict = {
   'connect.connectButton': 'Connecta',
   'connect.qrHintAddress': 'Escaneja el codi QR des de la pestanya Accés',
   'connect.qrAutofillNotice': "Nom i adreça obtinguts del codi. Aquest tipus de codi mai no inclou un token: enganxa'l a mà.",
+  'connect.qrRelayOnly': "Aquest codi connecta dues instàncies de KnightLoader mitjançant un relé i aquí no es pot fer servir: aquesta aplicació és un client, no pas una instància. Fes servir «No hi pots accedir directament? Connecta mitjançant un relé» més avall amb l'adreça i la clau del relé.",
   'connect.findButton': 'Cerca en aquesta xarxa',
   'connect.finding': 'Cercant en aquesta xarxa…',
   'connect.foundNone': "No s'ha trobat res en aquesta xarxa. Escriu l'adreça a mà o escaneja el codi QR des de la pestanya Accés.",

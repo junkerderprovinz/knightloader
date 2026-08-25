@@ -15,6 +15,7 @@ export const vi: Dict = {
   'connect.connectButton': 'Kết nối',
   'connect.qrHintAddress': 'Quét mã QR từ tab Truy cập',
   'connect.qrAutofillNotice': 'Tên và địa chỉ được lấy từ mã. Loại mã này không bao giờ chứa token - hãy dán token theo cách thủ công.',
+  'connect.qrRelayOnly': 'Mã đó kết nối hai thực thể KnightLoader với nhau qua relay và không dùng được ở đây - ứng dụng này là máy khách, không phải một thực thể. Hãy dùng “Không truy cập trực tiếp được? Kết nối qua relay” bên dưới, kèm địa chỉ và khóa relay.',
   'connect.findButton': 'Tìm trong mạng này',
   'connect.finding': 'Đang tìm trong mạng này…',
   'connect.foundNone': 'Không tìm thấy gì trong mạng này. Hãy nhập địa chỉ theo cách thủ công, hoặc quét mã QR từ tab Truy cập.',

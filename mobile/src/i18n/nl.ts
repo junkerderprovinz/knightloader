@@ -15,6 +15,7 @@ export const nl: Dict = {
   'connect.connectButton': 'Verbinden',
   'connect.qrHintAddress': 'Scan de QR-code van het tabblad Toegang',
   'connect.qrAutofillNotice': 'Naam en adres overgenomen uit de code. Dit type code bevat nooit een token - plak dat handmatig.',
+  'connect.qrRelayOnly': 'Die code koppelt twee KnightLoader-instanties via een relay en kun je hier niet gebruiken - deze app is een client, geen instantie. Gebruik hieronder “Niet rechtstreeks bereikbaar? Verbind via een relay” met het adres en de sleutel van de relay.',
   'connect.findButton': 'Zoeken op dit netwerk',
   'connect.finding': 'Bezig met zoeken op dit netwerk…',
   'connect.foundNone': 'Niets gevonden op dit netwerk. Vul het adres handmatig in of scan de QR-code van het tabblad Toegang.',

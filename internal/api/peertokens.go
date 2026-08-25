@@ -24,6 +24,7 @@ package api
 // the mitigation available today.
 
 import (
+	"regexp"
 	"sort"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
@@ -58,6 +59,88 @@ func (p peerTokens) TokenFor(peer string) string {
 func storePeerToken(a *app.App, peer, token string) error {
 	return a.Accounts.SetCredential(peerTokenService, peer, accounts.Credential{APIKey: token})
 }
+
+// storePeerTokens files one credential under every key the peer can be
+// addressed by. See peerIdentity for why that is more than one.
+func storePeerTokens(a *app.App, id peerIdentity, token string) error {
+	for _, k := range id.keys() {
+		if err := storePeerToken(a, k, token); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// instanceIDRe is the shape of an InstanceID: 20 random bytes as lowercase hex
+// (settings_identity.go). Checked wherever one arrives from outside, because a
+// relay id is used as a CREDENTIAL KEY and nothing else validates it - and the
+// route it arrives on, /complete, takes a pairing code without authentication.
+//
+// Unchecked, "relayId" was a free hand at that key space: naming an existing
+// peer there got a full-power token minted and labelled after that peer, and
+// then had the real peer's credential revoked as a superseded duplicate. The
+// two key spaces provably cannot collide once this holds, which is the same
+// argument federation.reachable already makes: nameRe caps a pairing name at 32
+// characters, and this is exactly 40.
+var instanceIDRe = regexp.MustCompile(`^[0-9a-f]{40}$`)
+
+// peerIdentity is everything one peer can be addressed by, which is not always
+// one thing.
+//
+// A peer reached over HTTP is addressed by its pairing name; one reached over
+// the relay by its instance id (federation.Manager.reachable). An instance can
+// offer both, and which one ends up being USED is not known at pairing time -
+// an address is what the far side believes it is reachable at, and it is
+// routinely right for somebody and wrong for somebody else.
+//
+// So the credential is filed under every key the peer might be addressed by,
+// rather than under a guess. Guessing is what made pairing between two
+// NAT'd containers succeed and then leave both sides calling each other
+// unauthenticated: both had an address to offer, so both filed under a name,
+// while both were actually addressed by id.
+type peerIdentity struct {
+	// Name is the pairing name, empty when the peer offered no address at all.
+	Name string
+	// RelayID is the peer's instance id, empty unless it is relay-visible.
+	// Always validated through validRelayID before it gets here.
+	RelayID string
+}
+
+// newPeerIdentity builds one from what arrived on the wire, dropping a relay id
+// that is not shaped like one.
+func newPeerIdentity(name, relayID string) peerIdentity {
+	if !instanceIDRe.MatchString(relayID) {
+		relayID = ""
+	}
+	return peerIdentity{Name: name, RelayID: relayID}
+}
+
+// keys is every key this peer's credential has to be findable under.
+func (p peerIdentity) keys() []string {
+	var out []string
+	if p.Name != "" {
+		out = append(out, p.Name)
+	}
+	if p.RelayID != "" {
+		out = append(out, p.RelayID)
+	}
+	return out
+}
+
+// canonical is the ONE key used for bookkeeping that must not be split across
+// two names: the token minted for this peer, and the search that retires an
+// older one. The relay id wins when there is one, because it is the identity
+// that cannot change - a pairing name is whatever the peer called itself on the
+// day. Mint and supersede must agree on this or nothing is ever retired, which
+// is how a re-pairing loop walks into apitoken.MaxTokens.
+func (p peerIdentity) canonical() string {
+	if p.RelayID != "" {
+		return p.RelayID
+	}
+	return p.Name
+}
+
+func (p peerIdentity) empty() bool { return p.Name == "" && p.RelayID == "" }
 
 // peerTokenName is what a minted peer token is called on the Access tab, so
 // that list reads as a list of who can reach this instance rather than a row

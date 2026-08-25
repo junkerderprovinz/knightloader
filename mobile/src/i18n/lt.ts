@@ -15,6 +15,7 @@ export const lt: Dict = {
   'connect.connectButton': 'Prisijungti',
   'connect.qrHintAddress': 'Nuskaitykite QR kodą iš skirtuko „Prieiga“',
   'connect.qrAutofillNotice': 'Pavadinimas ir adresas paimti iš kodo. Šio tipo kode prieigos rakto niekada nebūna - įklijuokite jį rankiniu būdu.',
+  'connect.qrRelayOnly': 'Šis kodas per relę sujungia du „KnightLoader“ egzempliorius ir čia netinka - ši programa yra klientas, o ne egzempliorius. Naudokite žemiau esantį „Nepasiekiamas tiesiogiai? Prisijunkite per relę“ su relės adresu ir raktu.',
   'connect.findButton': 'Ieškoti šiame tinkle',
   'connect.finding': 'Ieškoma šiame tinkle…',
   'connect.foundNone': 'Šiame tinkle nieko nerasta. Įveskite adresą ranka arba nuskaitykite QR kodą iš skirtuko „Prieiga“.',

@@ -15,6 +15,7 @@ export const ms: Dict = {
   'connect.connectButton': 'Sambung',
   'connect.qrHintAddress': 'Imbas kod QR daripada tab Akses',
   'connect.qrAutofillNotice': 'Nama dan alamat diambil daripada kod. Jenis kod ini tidak pernah mengandungi token - tampal secara manual.',
+  'connect.qrRelayOnly': 'Kod itu menyambungkan dua instans KnightLoader melalui geganti dan tidak boleh digunakan di sini - aplikasi ini ialah klien, bukan instans. Gunakan “Tidak dapat dicapai secara terus? Sambung melalui geganti” di bawah dengan alamat dan kunci geganti.',
   'connect.findButton': 'Cari pada rangkaian ini',
   'connect.finding': 'Mencari pada rangkaian ini…',
   'connect.foundNone': 'Tiada apa-apa ditemui pada rangkaian ini. Masukkan alamat secara manual, atau imbas kod QR daripada tab Akses.',
