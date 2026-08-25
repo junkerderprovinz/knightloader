@@ -48,8 +48,18 @@ func (a *App) rewireBackends() {
 	jdBase := os.Getenv("KL_JD")
 
 	var hosterSet map[string]bool
+	// ytdlpExclude starts as the narrower, type:"hoster"-only view of the
+	// same TorBox list (see fetchTorboxHosterOnlyHosts) - hosterSet itself
+	// stays the FULL union (file hosters AND the "stream"/media sites TorBox
+	// also unlocks) for torbox.Resolver and the debrid union just below,
+	// since a real TorBox account genuinely can fetch from those too; only
+	// yt-dlp's own resolver needs the narrower set, so it does not lose the
+	// exact hosts it exists to serve to the JD catch-all's no-staging-name
+	// path (see this function's own doc comment on hosterSet's other uses).
+	var ytdlpExclude map[string]bool
 	if torboxKey != "" || jdBase != "" {
 		hosterSet = a.fetchTorboxHosters(torboxKey)
+		ytdlpExclude = a.fetchTorboxHosterOnlyHosts(torboxKey)
 	}
 
 	// One-shot debrid services (AllDebrid, Real-Debrid): a single unlock call
@@ -85,6 +95,10 @@ func (a *App) rewireBackends() {
 				hosterSet = map[string]bool{}
 			}
 			hosterSet[h] = true
+			if ytdlpExclude == nil {
+				ytdlpExclude = map[string]bool{}
+			}
+			ytdlpExclude[h] = true
 		}
 		log.Printf("%s debrid backend enabled (%d supported hosts)", d.svc.Label(), len(hosts))
 	}
@@ -109,7 +123,7 @@ func (a *App) rewireBackends() {
 		// just above are both closures rather than values copied in here.
 		yb.Options = func() ytdlp.Options { return a.Settings.Get().Ytdlp }
 		newYtdlp = yb
-		a.Registry.Register(ytdlp.Resolver{ExcludeHosts: hosterSet})
+		a.Registry.Register(ytdlp.Resolver{ExcludeHosts: ytdlpExclude})
 		log.Printf("yt-dlp backend enabled: %s", ytbin)
 	}
 
@@ -228,6 +242,38 @@ func (a *App) fetchDebridHosts(svc debrid.Service) map[string]bool {
 	return cache.Hosts()
 }
 
+// torboxHosterDomains folds a Hosters() response into a lowercase, "www."
+// -stripped domain set - the one piece of both fetchTorboxHosters and
+// fetchTorboxHosterOnlyHosts that has nothing to do with the network or the
+// on-disk cache, pulled out so it can be tested directly against a plain
+// []torbox.Hoster slice instead of only through a live API call.
+//
+// hosterOnly narrows the result to type:"hoster" entries - a real
+// file-hosting service - and skips "stream" entries (media/social pages
+// TorBox also unlocks by scraping them, e.g. YouTube, Twitch, TikTok,
+// Instagram; live-confirmed 2026-08-25: 67 of TorBox's 161 public entries
+// are type:"stream"). That distinction is what fetchTorboxHosterOnlyHosts
+// needs and fetchTorboxHosters does not - see the doc comment there.
+func torboxHosterDomains(hs []torbox.Hoster, hosterOnly bool) map[string]bool {
+	set := map[string]bool{}
+	add := func(d string) {
+		d = strings.ToLower(strings.TrimSpace(strings.TrimPrefix(d, "www.")))
+		if d != "" {
+			set[d] = true
+		}
+	}
+	for _, h := range hs {
+		if hosterOnly && h.Type != "hoster" {
+			continue
+		}
+		add(h.Domain)
+		for _, d := range h.Domains {
+			add(d)
+		}
+	}
+	return set
+}
+
 // fetchTorboxHosters is fetchDebridHosts for TorBox, which speaks a different
 // client shape (Hosters, not Hosts) but gets the identical fix: the union of
 // every hoster's Domain/Domains through the same keep-last-good cache, never
@@ -238,25 +284,50 @@ func (a *App) fetchTorboxHosters(key string) map[string]bool {
 		if err != nil {
 			return nil, err
 		}
-		set := map[string]bool{}
-		add := func(d string) {
-			d = strings.ToLower(strings.TrimSpace(strings.TrimPrefix(d, "www.")))
-			if d != "" {
-				set[d] = true
-			}
-		}
-		for _, h := range hs {
-			add(h.Domain)
-			for _, d := range h.Domains {
-				add(d)
-			}
-		}
-		return set, nil
+		return torboxHosterDomains(hs, false), nil
 	})
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := cache.Refresh(ctx); err != nil {
 		log.Printf("TorBox hoster list unavailable (%v); keeping the last good list (%d hosts)", err, len(cache.Hosts()))
+	}
+	return cache.Hosts()
+}
+
+// fetchTorboxHosterOnlyHosts is fetchTorboxHosters narrowed to type:"hoster"
+// entries only - the domains a real file-hosting service actually serves,
+// not the "stream" ones TorBox also lists (YouTube, Twitch, TikTok,
+// Instagram, ...; live-confirmed: 67 of TorBox's 161 public hoster entries
+// are type:"stream"). This is the set yt-dlp's own resolver should be kept
+// off of, not the wider union used elsewhere in this file: a "stream" entry
+// names exactly the kind of page yt-dlp exists to serve directly, and
+// dumping the unfiltered list into ExcludeHosts (the bug this fixes, jdp
+// 2026-08-25: "Die ganzen links im linksammler zeigen noch immer nicht ihre
+// namen richtig an") silently routed YouTube - and every other TorBox
+// "stream" host - around yt-dlp and onto the JD catch-all instead, which
+// (unlike yt-dlp's own async title probe) has no way to learn a link's real
+// name before Start is pressed.
+//
+// A second live fetch rather than reusing fetchTorboxHosters' own cached
+// result: resolver.HostCache caches one map[string]bool per service id, and
+// splitting that into "both variants from one fetch" would mean rewriting
+// the cache's own storage shape for a distinction only this one call site
+// needs. The two calls share the same 6-hour refresh cadence and TorBox's
+// own /hosters response is small (161 entries), so the extra request is
+// cheap - and each keeps its own on-disk keep-last-good copy, so an outage
+// affecting one still leaves the other's most recent good answer in place.
+func (a *App) fetchTorboxHosterOnlyHosts(key string) map[string]bool {
+	cache := a.hostCacheFor("torbox-hoster-only", func(ctx context.Context) (map[string]bool, error) {
+		hs, err := torbox.NewClient(key).Hosters(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return torboxHosterDomains(hs, true), nil
+	})
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := cache.Refresh(ctx); err != nil {
+		log.Printf("TorBox hoster-only list unavailable (%v); keeping the last good list (%d hosts)", err, len(cache.Hosts()))
 	}
 	return cache.Hosts()
 }

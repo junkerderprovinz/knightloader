@@ -189,7 +189,20 @@ func (a *App) RecheckTasks(ids []string) {
 		a.mu.Lock()
 		if live := a.tasks[t.ID]; live != nil {
 			live.Resolver = res.Info().ID
-			if result.Name != "" {
+			// result.Name != t.URL, not just != "": every resolver but "direct"
+			// answers Resolve() with Name set to the URL itself as its "nothing
+			// learned yet" placeholder (documented on stage()'s own matching
+			// guard, app_links.go), and that string is never empty - so without
+			// this half of the check, a routine Recheck (or the automatic one
+			// RestoreFiltered fires) silently threw away any real name a task
+			// had already picked up (the async yt-dlp title probe, a JD poll
+			// update) and put the bare URL back, every time. jdp 2026-08-25:
+			// "Die ganzen links im linksammler zeigen noch immer nicht ihre
+			// namen richtig an, darauf habe ich dich jetzt schon mehrfach
+			// angesprochen" - this klobber, parallel to the one round 35b fixed
+			// in stage() but never mirrored here, is why a name that WAS
+			// correct could still end up wrong on screen.
+			if result.Name != "" && result.Name != t.URL {
 				live.Name = result.Name
 			}
 		}
