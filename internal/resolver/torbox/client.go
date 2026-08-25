@@ -151,11 +151,20 @@ func (c *Client) Account(ctx context.Context) (AccountInfo, error) {
 
 // Hoster describes one supported file host. TorBox returns either a single
 // `domain` or a `domains` list depending on the host.
+//
+// Type is "hoster" for a real file-hosting service (rapidgator, etc.) or
+// "stream" for a media/social page TorBox unlocks by scraping it (YouTube,
+// Twitch, TikTok, Instagram, ...) - the same shape yt-dlp exists to serve
+// directly. Kept as a plain string rather than an enum: this only ever
+// filters a domain set, and a value TorBox adds later that this app does not
+// yet know about should fail open (treated as "not a plain hoster", so it
+// stays eligible for yt-dlp) rather than fail to compile.
 type Hoster struct {
 	Name    string   `json:"name"`
 	Domain  string   `json:"domain"`
 	Domains []string `json:"domains"`
 	Status  bool     `json:"status"`
+	Type    string   `json:"type"`
 }
 
 // Hosters returns the supported file hosts. Auth is optional here.

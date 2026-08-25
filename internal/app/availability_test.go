@@ -178,6 +178,31 @@ func TestABackendThatCannotCheckSaysSo(t *testing.T) {
 	}
 }
 
+// TestRecheckDoesNotThrowAwayARealName is the klobber round 35b fixed in
+// stage() but never mirrored here (found 2026-08-25, in response to "die
+// ganzen links im linksammler zeigen noch immer nicht ihre namen richtig
+// an... schon mehrfach angesprochen"): plainResolver.Resolve, like every
+// real non-direct resolver (jd/ytdlp/torbox/debrid), answers with
+// Name == the URL itself as its "nothing new learned" placeholder. Without
+// the `result.Name != t.URL` half of RecheckTasks' own guard, that
+// non-empty-but-meaningless string overwrote a task's already-correct name
+// on every recheck - including the automatic one RestoreFiltered fires -
+// silently turning a resolved title back into a bare URL.
+func TestRecheckDoesNotThrowAwayARealName(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	a.Registry.Register(plainResolver{})
+	task := putTask(t, a, core.Task{
+		URL: "https://plain.example/movie.bin", Name: "A Real Movie Title.mkv",
+		Status: core.StatusCollected, Enabled: true,
+	})
+
+	a.RecheckTasks([]string{task.ID})
+
+	if live := snapshot(t, a, task.ID); live.Name != "A Real Movie Title.mkv" {
+		t.Errorf("name = %q, want the real name preserved instead of the resolver's own placeholder", live.Name)
+	}
+}
+
 // TestARefusedKeyIsNotAPileOfDeadLinks is the worst thing a batched check can
 // do. One expired credential answers for every link that backend claims, and if
 // that answer is "offline" the user is looking at a collector telling them to
