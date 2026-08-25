@@ -1128,6 +1128,7 @@ export const bg: Dict = {
   'columns.variant.thumbnail': 'Миниатюра',
   'columns.variant.subtitle': 'Субтитри',
   'columns.variant.description': 'Описание',
+  'columns.variant.bitrateAuto': 'Автоматично',
 
   'file.open': 'Отвори',
   'file.openNatively': 'Отвори с приложението по подразбиране',

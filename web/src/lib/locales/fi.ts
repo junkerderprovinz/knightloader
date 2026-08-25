@@ -1128,6 +1128,7 @@ export const fi: Dict = {
   'columns.variant.thumbnail': 'Pikkukuva',
   'columns.variant.subtitle': 'Tekstitykset',
   'columns.variant.description': 'Kuvaus',
+  'columns.variant.bitrateAuto': 'Automaattinen',
 
   'file.open': 'Avaa',
   'file.openNatively': 'Avaa oletussovelluksella',

@@ -1128,6 +1128,7 @@ export const ko: Dict = {
   'columns.variant.thumbnail': '썸네일',
   'columns.variant.subtitle': '자막',
   'columns.variant.description': '설명',
+  'columns.variant.bitrateAuto': '자동',
 
   'file.open': '열기',
   'file.openNatively': '기본 앱으로 열기',

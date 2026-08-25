@@ -267,6 +267,7 @@ export function Collector() {
         else n.add(id);
         return n;
       }),
+    set: setSelected,
   };
 
   // Handed to AddLinksForm as onStaged: the form owns the request and its own
@@ -393,6 +394,14 @@ export function Collector() {
             onStaged={handleStaged}
             onChooseFile={() => fileDrop.current?.openPicker()}
             onFilesDropped={(files) => fileDrop.current?.handleFiles(files)}
+            // FileDrop's own visible output now lives inside this same card
+            // (jdp, 2026-08-26: "der Fortschrittsbalken soll im
+            // Linksammlerfenster angezeigt werden") - it still needs to stay
+            // mounted unconditionally for its own ref API regardless of
+            // where its OUTPUT renders (AddLinksForm's folder-icon badge
+            // opens the picker through it), which is why the component
+            // itself is instantiated once, here, rather than twice.
+            footer={<FileDrop ref={fileDrop} pkg={pkg} />}
           />
         </div>
         {collected.length > 0 && <CollectorStats all={collected} visible={filtered} selected={selectedTasks} />}
@@ -413,29 +422,20 @@ export function Collector() {
           the hero row above keeps the page's normal gap-6 - it is a
           genuinely separate section, this one is not.
 
-          The intake block (a file drop's own feedback, the trace of a held
-          link, the skipped-links notice) moved IN here too, jdp 2026-08-25:
-          "der abstand zwischen der Link-card und der Sammlung-card ist zu
-          groß" - it used to be its own standalone gap-6 sibling between the
-          hero and this cluster, and every one of the three things in it is
-          normally rendered as literally nothing (no file just dropped, no
-          held link, no skip in this session - see FileDrop.tsx's own doc
-          comment: its visible drop-zone row was already removed in an
-          earlier round, only the handling survives), which put a full
-          double gap-6 (48px) of dead air where nothing was ever showing.
-          Nested here at gap-3 instead, that same common case costs at most
-          one 12px seam rather than two 24px ones - and on the rarer
-          occasion any of the three DOES have something to show, it now
-          reads as part of the same list-management moment instead of its
-          own disconnected block. FileDrop still needs to stay mounted
-          unconditionally for its own ref API (AddLinksForm's folder-icon
-          badge opens the picker through it) and SkippedLinks now floats as
-          its own fixed card regardless of where it is mounted (see its own
-          doc comment) - neither depends on living in any particular
-          position in the tree, only on living somewhere. */}
+          The rest of the intake trace (a held link, the skipped-links
+          notice) still sits here rather than in the hero card - FileDrop's
+          own visible output moved into the Linksammler card itself
+          (jdp, 2026-08-26, see AddLinksForm's own `footer` prop), but a
+          held/skipped link is not something FileDrop produced, so it stays
+          exactly where it was. Both are normally rendered as literally
+          nothing (no held link, no skip in this session), which is why
+          they cost gap-3 rather than gap-6 here - see this cluster's own
+          reasoning above. SkippedLinks floats as its own fixed card
+          regardless of where it is mounted (see its own doc comment) -
+          it does not depend on living in any particular position in the
+          tree, only on living somewhere. */}
       <div className="flex min-h-0 flex-1 flex-col gap-3">
         <div className="shrink-0 flex flex-col gap-3">
-          <FileDrop ref={fileDrop} pkg={pkg} />
           <FilteredLinks held={held} />
           <SkippedLinks />
         </div>
@@ -491,28 +491,15 @@ export function Collector() {
         <div className="flex flex-wrap shrink-0 items-center gap-2" role="group" aria-label={t('list.actions')}>
           <span className="flex-1" />
 
-          <div ref={searchRef} className="relative">
-            <IconBadge
-              hue={0}
-              icon={<IconSearch width={16} height={16} />}
-              title={t('collector.searchToggle')}
-              aria-label={t('collector.searchToggle')}
-              onClick={() => setSearchOpen((v) => !v)}
-            />
-            {searchOpen && (
-              <div
-                className="absolute end-0 top-full z-20 mt-2 w-72 rounded-[var(--radius-control)]
-                  bg-carbon-surface p-2 shadow-[var(--elevation)]"
-              >
-                <SearchField value={search} onChange={setSearch} className="w-full" />
-              </div>
-            )}
-          </div>
-
           {/* Filters, not actions — visible regardless of selection, the
               same reasoning the search badge beside them already follows,
               rather than living only in one of the two clusters below that
-              swap out with a selection. */}
+              swap out with a selection. Left of the search badge (jdp,
+              2026-08-26: "die sollen links vom suchbadge sein nicht mitten
+              drin") - the search badge is the row's own fixed anchor point
+              (its popover opens from it every time), so a variable number
+              of filter chips sits on the side that does not push it around
+              as chips appear and disappear. */}
           <IconBadge
             hue={0}
             active={filters.has('uncheckable')}
@@ -554,6 +541,28 @@ export function Collector() {
               {t('search.shown', { n: filtered.length, total: collected.length })}
             </span>
           )}
+
+          <div ref={searchRef} className="relative">
+            <IconBadge
+              hue={0}
+              icon={<IconSearch width={16} height={16} />}
+              title={t('collector.searchToggle')}
+              aria-label={t('collector.searchToggle')}
+              onClick={() => setSearchOpen((v) => !v)}
+            />
+            {searchOpen && (
+              <div
+                // w-96 (jdp, 2026-08-26: "suchfeld soll breiter sein"), up
+                // from w-72 - end-0 keeps it hugging the badge's own trailing
+                // edge regardless of width, so widening it only ever grows
+                // the field towards the row's own leading side.
+                className="absolute end-0 top-full z-20 mt-2 w-96 rounded-[var(--radius-control)]
+                  bg-carbon-surface p-2 shadow-[var(--elevation)]"
+              >
+                <SearchField value={search} onChange={setSearch} className="w-full" />
+              </div>
+            )}
+          </div>
 
           {selected.size > 0 ? (
             <>
@@ -685,26 +694,21 @@ export function Collector() {
           // child (flex-1, not h-full) below, sidesteps it entirely - flex
           // distributes space in one pass, with none of percentage-height's
           // resolve-through-an-overflow-box ambiguity.
-          // pt-3: this wrapper's own overflow-y-auto is a SECOND clipping
-          // ancestor beside TaskListCard's own (already fixed there) - its
-          // border-box starts flush against the card's own top edge, so
-          // SectionTitle's `-top-[11px]` badge poked straight into IT
-          // instead (jdp, 2026-08-25: "cardtitelbadge des linkhauptfenster
-          // ... [ist] nur halb sichtbar und abgeschnitten" - confirmed live,
-          // getBoundingClientRect measured the wrapper's own top at 566 and
-          // the badge's at 555, 11px above it). Unlike removing overflow on
-          // the card, overflow here is load-bearing (this IS what scrolls a
-          // long list), so the fix is headroom, not removal: padding keeps
-          // the clip boundary fixed where it already is while moving what
-          // renders inside it down far enough to clear the badge, at every
-          // scroll position (the padding is content, not a one-time offset
-          // the user could scroll past). pt-4 rather than the 12px that
-          // would just barely clear it (measured live: 1px of margin, too
-          // thin to trust across zoom levels/DPI) - also the exact value
-          // TaskListCard's own title wrapper already uses for its own top
-          // inset, so the two agree instead of stacking two different "how
-          // much space a title badge needs" numbers.
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-4">
+          // No padding of its own any more (jdp, 2026-08-26, [81]: "immer
+          // noch zu weit weg" - the badge-row-to-list gap was still too big
+          // after the first pass at this same complaint). This wrapper's
+          // own overflow-y-auto is a SECOND clipping ancestor beside
+          // TaskListCard's own (already fixed there), which is what the
+          // pt-4 removed here used to guard against - but TaskListCard's
+          // OWN internal `px-4 pt-4` (TaskList.tsx, right before its
+          // SectionTitle) already reserves 16px before the badge's own
+          // `-top-[11px]` offset, a 5px margin on its own - bigger than the
+          // 1px margin the ORIGINAL fix for this measured as "too thin to
+          // trust" for pt-3 alone, and this fix removes an entirely
+          // separate, stacked 16px on top of that, not the card's own.
+          // Verified live rather than assumed: this specific card's own
+          // title badge, unclipped, at the tightened gap.
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
             <TaskListCard
               groups={groups}
               base="/api"

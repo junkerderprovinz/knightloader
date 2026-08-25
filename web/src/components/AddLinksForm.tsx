@@ -80,6 +80,7 @@ export function AddLinksForm({
   onStaged,
   onChooseFile,
   onFilesDropped,
+  footer,
 }: {
   pkg: string;
   onPkgChange: (v: string) => void;
@@ -95,6 +96,14 @@ export function AddLinksForm({
    *  keeps a visible drop target of its own, so this box's own drop target
    *  is now the one place both text AND files can land). */
   onFilesDropped: (files: File[]) => void;
+  /** FileDrop's own visible output (a torrent's file-tree review, or a
+   *  batch's outcome lines - see that component's own doc comment),
+   *  rendered inside THIS card rather than as a sibling block below it
+   *  (jdp, 2026-08-26: "der Fortschrittsbalken soll im Linksammlerfenster
+   *  angezeigt werden" - the drop target that produced the outcome and the
+   *  outcome itself now share one card, instead of the feedback surfacing
+   *  further down the page). */
+  footer?: React.ReactNode;
 }) {
   const { t } = useT();
   const priorities = usePriorityTabs();
@@ -265,6 +274,7 @@ export function AddLinksForm({
             disabled={!links.trim() || busy}
           />
         </div>
+        {footer && <div className="flex flex-col gap-1.5 px-4 pb-4">{footer}</div>}
       </div>
 
       {optionsOpen && (

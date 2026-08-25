@@ -1128,6 +1128,7 @@ export const uk: Dict = {
   'columns.variant.thumbnail': 'Мініатюра',
   'columns.variant.subtitle': 'Субтитри',
   'columns.variant.description': 'Опис',
+  'columns.variant.bitrateAuto': 'Авто',
 
   'file.open': 'Відкрити',
   'file.openNatively': 'Відкрити в програмі за замовчуванням',

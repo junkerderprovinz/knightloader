@@ -354,16 +354,33 @@ func buildArgs(dir string, o Options) []string {
 		if o.AudioFormat != "" && o.AudioFormat != "best" {
 			args = append(args, "--audio-format", o.AudioFormat)
 		}
+		// Meaningful only once AudioFormat above actually asks for a
+		// transcode - a "best" extract copies the source's own stream and
+		// ffmpeg has nothing to re-encode, so the flag is passed unconditionally
+		// (yt-dlp itself is the one place that decides whether it applies)
+		// rather than this function trying to duplicate that rule.
+		if o.AudioBitrate != "" {
+			args = append(args, "--audio-quality", o.AudioBitrate+"K")
+		}
 	case VariantThumbnail:
 		// --skip-download: this task's own job is the cover image alone,
 		// not a byproduct of a video download it does not also do.
-		args = append(args, "--skip-download", "--write-thumbnail")
+		// --convert-thumbnails jpg: the source's own image format otherwise
+		// varies (webp/jpg/png by site), which is exactly why applyProbeFormats
+		// (app_ytdlp_variants.go) leaves this row's own Ext unset - forcing
+		// the one universally-supported format here makes Ext="jpg" a real
+		// fact about what lands on disk instead of a guess about it.
+		args = append(args, "--skip-download", "--write-thumbnail", "--convert-thumbnails", "jpg")
 	case VariantSubtitle:
 		langs := o.SubtitleLangs
 		if langs == "" {
 			langs = DefaultSubtitleLangs
 		}
-		args = append(args, "--skip-download", "--write-subs", "--sub-langs", langs)
+		// --sub-format srt: the same reasoning as --convert-thumbnails above
+		// - a site's own default (usually vtt) varies, srt is the one every
+		// media player reads without a second thought, and forcing it is
+		// what lets Ext="srt" be a fact rather than a guess.
+		args = append(args, "--skip-download", "--write-subs", "--sub-langs", langs, "--sub-format", "srt")
 		if o.SubtitleAuto {
 			args = append(args, "--write-auto-subs")
 		}
@@ -373,6 +390,15 @@ func buildArgs(dir string, o Options) []string {
 		if f := formatSelector(o); f != "" {
 			args = append(args, "-f", f)
 		}
+		// --merge-output-format mkv: with no opinion of its own, yt-dlp's
+		// merge target depends on which two streams formatSelector's own
+		// selector actually picked - not knowable ahead of time, which is
+		// why applyProbeFormats leaves a video row's own Ext unset. mkv
+		// accepts any video/audio codec pairing (unlike mp4, which only
+		// merges cleanly for a compatible subset), so forcing it here makes
+		// the real container a fact instead of a guess - Ext="mkv" below is
+		// this flag's own promise, not a prediction of yt-dlp's default.
+		args = append(args, "--merge-output-format", "mkv")
 	}
 	tmpl := o.OutputTemplate
 	if tmpl == "" {

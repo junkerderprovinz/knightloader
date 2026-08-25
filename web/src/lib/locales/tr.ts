@@ -1128,6 +1128,7 @@ export const tr: Dict = {
   'columns.variant.thumbnail': 'Küçük resim',
   'columns.variant.subtitle': 'Altyazılar',
   'columns.variant.description': 'Açıklama',
+  'columns.variant.bitrateAuto': 'Otomatik',
 
   'file.open': 'Aç',
   'file.openNatively': 'Varsayılan uygulamayla aç',

@@ -1128,6 +1128,7 @@ export const ja: Dict = {
   'columns.variant.thumbnail': 'サムネイル',
   'columns.variant.subtitle': '字幕',
   'columns.variant.description': '説明',
+  'columns.variant.bitrateAuto': '自動',
 
   'file.open': '開く',
   'file.openNatively': '既定のアプリで開く',

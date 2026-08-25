@@ -356,6 +356,26 @@ type Task struct {
 	// falls back to the full static menu, the same "empty means unset"
 	// convention every other optional field on this struct already follows.
 	AvailableQualities []string `json:"availableQualities,omitempty"`
+	// AvailableAudioFormats narrows the "Variante" audio row's own format
+	// picker to what the probed source's own audio-only tracks genuinely
+	// carry (jdp, 2026-08-26: "bei der audio spur sollen nur die formate
+	// angezeigt werden die wirklich von hoster angeboten werden. Youtube
+	// bietet zb keine flac audio") - a source-native codec (its own
+	// passthrough extension) rather than a generic ffmpeg transcode target:
+	// picking flac from a source that never had lossless audio produces a
+	// larger file with no more real fidelity than the lossy source already
+	// had, which is worth not offering rather than technically permitting.
+	// "best" is always kept even when this is populated (it has no codec of
+	// its own to compare against); empty (nothing probed yet, or this isn't
+	// an audio row) falls back to AudioFormats()'s full static menu, same
+	// convention as AvailableQualities above.
+	AvailableAudioFormats []string `json:"availableAudioFormats,omitempty"`
+	// AudioBitrate is the "Variante" audio row's own bitrate pick (yt-dlp's
+	// own --audio-quality, e.g. "192" for 192 kbit/s) - only meaningful once
+	// AudioFormat asks for an actual transcode (a "best" extract has no
+	// bitrate to target, it copies the source's own). Empty leaves the
+	// bitrate to ffmpeg's own default.
+	AudioBitrate string `json:"audioBitrate,omitempty"`
 	// ManualPackage marks a package the user chose by hand. Everything that
 	// re-packages links automatically has to leave those alone, or a catch-all
 	// rule quietly undoes the grouping somebody just did.

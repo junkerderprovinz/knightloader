@@ -1128,6 +1128,7 @@ export const hr: Dict = {
   'columns.variant.thumbnail': 'Sličica',
   'columns.variant.subtitle': 'Titlovi',
   'columns.variant.description': 'Opis',
+  'columns.variant.bitrateAuto': 'Automatski',
 
   'file.open': 'Otvori',
   'file.openNatively': 'Otvori zadanom aplikacijom',

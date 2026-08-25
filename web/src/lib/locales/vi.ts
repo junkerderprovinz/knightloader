@@ -1128,6 +1128,7 @@ export const vi: Dict = {
   'columns.variant.thumbnail': 'Ảnh thu nhỏ',
   'columns.variant.subtitle': 'Phụ đề',
   'columns.variant.description': 'Mô tả',
+  'columns.variant.bitrateAuto': 'Tự động',
 
   'file.open': 'Mở',
   'file.openNatively': 'Mở bằng ứng dụng mặc định',

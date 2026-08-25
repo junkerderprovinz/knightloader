@@ -1130,6 +1130,7 @@ export const he: Dict = {
   'columns.variant.thumbnail': 'תמונה ממוזערת',
   'columns.variant.subtitle': 'כתוביות',
   'columns.variant.description': 'תיאור',
+  'columns.variant.bitrateAuto': 'אוטומטי',
 
   'file.open': 'פתח',
   'file.openNatively': 'פתח באפליקציית ברירת המחדל',

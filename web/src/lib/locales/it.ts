@@ -1120,6 +1120,7 @@ export const it: Dict = {
   'columns.variant.thumbnail': 'Miniatura',
   'columns.variant.subtitle': 'Sottotitoli',
   'columns.variant.description': 'Descrizione',
+  'columns.variant.bitrateAuto': 'Automatico',
 
   'file.open': 'Apri',
   'file.openNatively': 'Apri con l’app predefinita',

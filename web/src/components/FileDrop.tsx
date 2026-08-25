@@ -51,23 +51,51 @@ function fmtElapsed(totalSeconds: number): string {
  * app can honestly claim a completion percentage for a handover that
  * either finishes or expires, never partially progresses).
  *
+ * Two follow-ups from the first pass at this (jdp, 2026-08-26): the
+ * explanatory sentence itself is gone now, not merely joined by the bar -
+ * only the file name stays, since a stack of these next to each other still
+ * needs SOME way to tell which file is which, but the "ist verschlüsselt...
+ * erscheint hier sobald..." explanation was the wordy part nobody wanted
+ * repeated. And the bar now actually stops: it used to run forever even
+ * once the container had long since resolved into real links elsewhere in
+ * the collector, because nothing here ever heard about that. There is
+ * still no reliable per-container "it landed" signal to wait for - the
+ * backend's own handover answers once with expiresIn and nothing else - so
+ * onExpire fires once elapsed reaches it and the caller drops this result
+ * rather than this component guessing at success or failure either way;
+ * the honest, bounded thing to say by then is nothing at all.
+ *
  * startedAt is stamped client-side the moment the handover response
  * arrived (sendOne below) - the backend's own handover has no notion of a
  * "started at" timestamp of its own to read back (routes_containers.go's
  * relayTTL is a flat duration, not a deadline), so this is the best
  * available anchor for "how long has this actually been waiting".
  */
-function ContainerHandedProgress({ file, expiresIn, startedAt }: { file: string; expiresIn: number; startedAt: number }) {
-  const { t } = useT();
+function ContainerHandedProgress({
+  file,
+  expiresIn,
+  startedAt,
+  onExpire,
+}: {
+  file: string;
+  expiresIn: number;
+  startedAt: number;
+  onExpire: () => void;
+}) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
   const elapsed = Math.max(0, Math.round((now - startedAt) / 1000));
+  useEffect(() => {
+    if (elapsed >= expiresIn) onExpire();
+  }, [elapsed, expiresIn, onExpire]);
   return (
     <div className="flex flex-col gap-1.5 px-4">
-      <p className="text-xs text-carbon-textSub">{t('container.handed', { file, n: expiresIn })}</p>
+      <p dir="ltr" className="truncate text-xs text-carbon-textSub" title={file}>
+        {file}
+      </p>
       <div className="flex items-center gap-2">
         <ProgressBar active percent={0} indeterminate />
         <span className="glim-num shrink-0 text-[11px] text-carbon-textMuted">{fmtElapsed(elapsed)}</span>
@@ -106,7 +134,7 @@ type Outcome =
   | { file: string; kind: 'torrent-duplicate' }
   | { file: string; kind: 'failed'; reason: string };
 
-function Result({ o }: { o: Outcome }) {
+function Result({ o, onExpire }: { o: Outcome; onExpire: () => void }) {
   const { t } = useT();
 
   if (o.kind === 'failed') {
@@ -126,7 +154,7 @@ function Result({ o }: { o: Outcome }) {
   // people upload the same file four times. The links arrive over the websocket
   // when the backend has fetched the handover.
   if (o.kind === 'container-handed') {
-    return <ContainerHandedProgress file={o.file} expiresIn={o.expiresIn} startedAt={o.startedAt} />;
+    return <ContainerHandedProgress file={o.file} expiresIn={o.expiresIn} startedAt={o.startedAt} onExpire={onExpire} />;
   }
   // The container held links and none of them became a task: every one was
   // already in the list. Not a fault, and not silence either.
@@ -415,7 +443,7 @@ export const FileDrop = forwardRef<FileDropHandle, { pkg?: string }>(function Fi
       )}
 
       {results.map((o, i) => (
-        <Result key={`${o.file}|${i}`} o={o} />
+        <Result key={`${o.file}|${i}`} o={o} onExpire={() => setResults((r) => r.filter((x) => x !== o))} />
       ))}
     </div>
   );

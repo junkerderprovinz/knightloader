@@ -1128,6 +1128,7 @@ export const hi: Dict = {
   'columns.variant.thumbnail': 'थंबनेल',
   'columns.variant.subtitle': 'सबटाइटल',
   'columns.variant.description': 'विवरण',
+  'columns.variant.bitrateAuto': 'स्वचालित',
 
   'file.open': 'खोलें',
   'file.openNatively': 'डिफ़ॉल्ट ऐप से खोलें',

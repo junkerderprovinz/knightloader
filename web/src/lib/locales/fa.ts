@@ -1128,6 +1128,7 @@ export const fa: Dict = {
   'columns.variant.thumbnail': 'بندانگشتی',
   'columns.variant.subtitle': 'زیرنویس',
   'columns.variant.description': 'توضیحات',
+  'columns.variant.bitrateAuto': 'خودکار',
 
   'file.open': 'باز کردن',
   'file.openNatively': 'باز کردن با برنامهٔ پیش‌فرض',

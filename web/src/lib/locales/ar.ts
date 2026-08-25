@@ -1130,6 +1130,7 @@ export const ar: Dict = {
   'columns.variant.thumbnail': 'صورة مصغرة',
   'columns.variant.subtitle': 'الترجمة',
   'columns.variant.description': 'الوصف',
+  'columns.variant.bitrateAuto': 'تلقائي',
 
   'file.open': 'فتح',
   'file.openNatively': 'فتح بالتطبيق الافتراضي',

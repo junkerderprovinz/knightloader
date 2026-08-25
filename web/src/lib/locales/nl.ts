@@ -1120,6 +1120,7 @@ export const nl: Dict = {
   'columns.variant.thumbnail': 'Miniatuur',
   'columns.variant.subtitle': 'Ondertitels',
   'columns.variant.description': 'Beschrijving',
+  'columns.variant.bitrateAuto': 'Automatisch',
 
   'file.open': 'Openen',
   'file.openNatively': 'Openen met standaardprogramma',

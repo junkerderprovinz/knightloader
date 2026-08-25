@@ -1128,6 +1128,7 @@ export const cs: Dict = {
   'columns.variant.thumbnail': 'Náhled',
   'columns.variant.subtitle': 'Titulky',
   'columns.variant.description': 'Popis',
+  'columns.variant.bitrateAuto': 'Automaticky',
 
   'file.open': 'Otevřít',
   'file.openNatively': 'Otevřít výchozí aplikací',

@@ -1128,6 +1128,7 @@ export const da: Dict = {
   'columns.variant.thumbnail': 'Miniature',
   'columns.variant.subtitle': 'Undertekster',
   'columns.variant.description': 'Beskrivelse',
+  'columns.variant.bitrateAuto': 'Automatisk',
 
   'file.open': 'Åbn',
   'file.openNatively': 'Åbn med standardprogram',

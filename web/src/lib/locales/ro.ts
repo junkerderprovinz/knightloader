@@ -1128,6 +1128,7 @@ export const ro: Dict = {
   'columns.variant.thumbnail': 'Miniatură',
   'columns.variant.subtitle': 'Subtitrări',
   'columns.variant.description': 'Descriere',
+  'columns.variant.bitrateAuto': 'Automat',
 
   'file.open': 'Deschide',
   'file.openNatively': 'Deschide cu aplicația implicită',

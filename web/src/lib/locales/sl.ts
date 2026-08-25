@@ -1128,6 +1128,7 @@ export const sl: Dict = {
   'columns.variant.thumbnail': 'Sličica',
   'columns.variant.subtitle': 'Podnapisi',
   'columns.variant.description': 'Opis',
+  'columns.variant.bitrateAuto': 'Samodejno',
 
   'file.open': 'Odpri',
   'file.openNatively': 'Odpri s privzeto aplikacijo',

@@ -1128,6 +1128,7 @@ export const ms: Dict = {
   'columns.variant.thumbnail': 'Imej kecil',
   'columns.variant.subtitle': 'Sari kata',
   'columns.variant.description': 'Penerangan',
+  'columns.variant.bitrateAuto': 'Automatik',
 
   'file.open': 'Buka',
   'file.openNatively': 'Buka dengan aplikasi lalai',

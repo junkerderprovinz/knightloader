@@ -1128,6 +1128,7 @@ export const hu: Dict = {
   'columns.variant.thumbnail': 'Bélyegkép',
   'columns.variant.subtitle': 'Feliratok',
   'columns.variant.description': 'Leírás',
+  'columns.variant.bitrateAuto': 'Automatikus',
 
   'file.open': 'Megnyitás',
   'file.openNatively': 'Megnyitás az alapértelmezett alkalmazással',

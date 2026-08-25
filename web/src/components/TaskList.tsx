@@ -67,6 +67,11 @@ import {
 export interface Selection {
   ids: Set<string>;
   toggle: (id: string) => void;
+  /** Replaces the whole selection outright - the write path a plain click
+   *  and a Shift-range both need (TaskListCard's own selectUnit), which a
+   *  per-id toggle cannot express without the caller reconstructing the
+   *  diff itself. */
+  set: (ids: Set<string>) => void;
 }
 
 // A stable empty default: useUIState leaves the fallback out of its dependencies
@@ -164,6 +169,7 @@ function TaskRow({
   selection,
   index,
   dnd,
+  onSelect,
 }: {
   task: Task;
   base: string;
@@ -174,6 +180,11 @@ function TaskRow({
   index: number;
   /** The row drag-to-reorder machinery — see TaskListCard, the one place it is built. */
   dnd: RowDnD;
+  /** Click-to-select (TaskListCard's own selectUnit) - reads the click's own
+   *  modifier keys, so this row does not have to know Ctrl/Shift's meaning
+   *  itself. Absent wherever selection is (Downloads.tsx renders no
+   *  checkbox column and takes no selection prop today either). */
+  onSelect?: (e: { ctrlKey: boolean; metaKey: boolean; shiftKey: boolean }) => void;
 }) {
   const { t } = useT();
   const [options, setOptions] = useState(false);
@@ -222,6 +233,18 @@ function TaskRow({
         dnd.previewOverTask(task.id, e);
       }}
       onDrop={(e) => dnd.dropOnTask(task.id, e)}
+      // Click-to-select (jdp, 2026-08-26: "in der linkliste soll man links
+      // und ordner mit einem klick markieren können, nicht den ordner
+      // aufklappen... mehrere links oder ordner soll man mit klick und
+      // strg oder umschalttaste auswählen können. wie in windows") -
+      // replaces the checkbox column this row used to carry. Guarded by
+      // CONTROL the same way PackageGroup's own row click already is, so
+      // clicking an action badge or the Enabled switch acts on that
+      // control instead of also selecting the row underneath it.
+      onClick={(e) => {
+        if (e.target instanceof Element && e.target.closest(CONTROL)) return;
+        onSelect?.(e);
+      }}
       // select-none, only while a drag is actually possible: without it, a
       // real mouse press-and-drag that starts over the row's own text (the
       // name or URL column - the columns a hand naturally lands on) is read
@@ -232,18 +255,13 @@ function TaskRow({
       // guard) - this row was the one place it had been missed. Left
       // selectable when dnd is off (a sorted view) since nothing here
       // competes with it then.
-      className={`glim-hue glim-tint ${dnd.enabled ? 'select-none' : ''} ${task.status === 'running' ? 'glim-active' : ''} ${dragging ? 'opacity-50' : ''} group relative grid
+      className={`glim-hue glim-tint ${dnd.enabled ? 'select-none' : ''} ${task.status === 'running' ? 'glim-active' : ''} ${dragging ? 'opacity-50' : ''} ${
+        selection?.ids.has(task.id) ? 'bg-accentSoft' : ''
+      } group relative grid
         items-center px-3 py-2 transition-colors hover:bg-carbon-hover/50`}
     >
-      <div className="flex items-center justify-center">
-        {selection && (
-          <Checkbox
-            checked={selection.ids.has(task.id)}
-            onChange={() => selection.toggle(task.id)}
-            label={t('select.row')}
-          />
-        )}
-      </div>
+      {/* Grid alignment only - GUTTER_LEAD's own doc comment (columns.tsx). */}
+      <div />
 
       {columns.map((col) => {
         const node = col.render(task, ctx);
@@ -627,6 +645,8 @@ function PackageGroup({
   onToggleCollapsed,
   indexOffset,
   dnd,
+  onSelect,
+  onSelectTask,
 }: {
   name: string;
   items: Task[];
@@ -639,8 +659,14 @@ function PackageGroup({
   indexOffset: number;
   /** The row drag-to-reorder machinery — see TaskListCard, the one place it is built. */
   dnd: RowDnD;
+  /** Click-to-select (TaskListCard's own selectUnit) - see TaskRow's own
+   *  identical prop for why the modifier keys travel up rather than being
+   *  read here. */
+  onSelect?: (e: { ctrlKey: boolean; metaKey: boolean; shiftKey: boolean }) => void;
+  /** The same selection engine, for one child row rather than the whole
+   *  package - forwarded to each TaskRow below as its own onSelect. */
+  onSelectTask?: (id: string, e: { ctrlKey: boolean; metaKey: boolean; shiftKey: boolean }) => void;
 }) {
-  const { t } = useT();
   const allSelected = selection && items.every((x) => selection.ids.has(x.id));
   const dragging = dnd.draggingPackage === name;
   const ytdlpHost = items.find((x) => variantKindOf(x) && x.host)?.host;
@@ -653,9 +679,14 @@ function PackageGroup({
         // and empty rather than absent, and the page tells the two apart.
         data-package-row={name}
         style={ROW_GRID}
+        // Click-to-select (jdp, 2026-08-26 - see TaskRow's own identical
+        // comment for the full request): a plain click on the header now
+        // selects the whole package instead of folding it - the twisty
+        // button beside the name is CONTROL's own match, so it keeps
+        // folding/unfolding on its own click exactly as before.
         onClick={(e) => {
           if (e.target instanceof Element && e.target.closest(CONTROL)) return;
-          onToggleCollapsed();
+          onSelect?.(e);
         }}
         // Drags the whole package as one block — see TaskRow's own drag
         // handlers above for the identical pattern applied to one link.
@@ -680,22 +711,10 @@ function PackageGroup({
         // the links inside it sit on the card, which is the whole of the weight
         // difference between a container and its contents.
         className={`grid cursor-pointer select-none items-center bg-carbon-surface2/80 px-3 py-2.5
-          transition-colors hover:bg-carbon-surface2 ${dragging ? 'opacity-50' : ''}`}
+          transition-colors hover:bg-carbon-surface2 ${dragging ? 'opacity-50' : ''} ${allSelected ? 'bg-accentSoft' : ''}`}
       >
-        <div className="flex items-center justify-center">
-          {selection && (
-            <Checkbox
-              checked={!!allSelected}
-              label={t('select.all')}
-              onChange={() => {
-                const target = !allSelected;
-                items.forEach((x) => {
-                  if (selection.ids.has(x.id) !== target) selection.toggle(x.id);
-                });
-              }}
-            />
-          )}
-        </div>
+        {/* Grid alignment only - GUTTER_LEAD's own doc comment (columns.tsx). */}
+        <div />
 
         {columns.map((col) => (
           <div
@@ -733,6 +752,7 @@ function PackageGroup({
               columns={columns}
               selection={selection}
               dnd={dnd}
+              onSelect={onSelectTask ? (e) => onSelectTask(x.id, e) : undefined}
             />
           ))}
         </div>
@@ -1213,6 +1233,69 @@ export function TaskListCard({
   // to explain it.
   const sort = storedSort && !layout.hidden.has(storedSort.id) ? storedSort : null;
   const view = useMemo(() => applySort(groups, sort), [groups, sort]);
+
+  // --- Click-to-select (jdp, 2026-08-26: "in der linkliste soll man
+  // links und ordner mit einem klick markieren können, nicht den ordner
+  // aufklappen. die checkbox spalte können wir wegmachen. mehrere links
+  // oder ordner soll man mit klick und strg oder umschalttaste auswählen
+  // können. wie in windows") -------------------------------------------
+  //
+  // selectableOrder is the flat, on-screen order a Shift-range walks: every
+  // package header first, then - only while that package is expanded - its
+  // own rows, exactly the order the table below actually renders them in. A
+  // collapsed package contributes only itself; Shift-clicking across one
+  // selects the whole folded package as a single step, the same as if its
+  // rows had never been individually visible to click between.
+  const selectableOrder = useMemo(() => {
+    const out: { kind: 'task' | 'package'; key: string; ids: string[] }[] = [];
+    for (const [name, items] of view) {
+      out.push({ kind: 'package', key: name, ids: items.map((x) => x.id) });
+      if (!collapsed.has(name)) {
+        for (const x of items) out.push({ kind: 'task', key: x.id, ids: [x.id] });
+      }
+    }
+    return out;
+  }, [view, collapsed]);
+
+  // The last unit clicked plain or with Ctrl/Cmd - what a Shift-click
+  // measures its range from. An index into selectableOrder rather than a
+  // remembered key, so a Shift-click still works after the list itself has
+  // re-sorted or re-filtered, as long as the anchor unit is still on screen
+  // somewhere. Deliberately NOT moved by a Shift-click itself (see
+  // selectUnit below) - the same behaviour Explorer's own shift-click has:
+  // clicking further away with Shift still held extends or shrinks the
+  // SAME range rather than starting a new one from wherever the last
+  // Shift-click landed.
+  const selectAnchor = useRef<number | null>(null);
+
+  function selectUnit(
+    kind: 'task' | 'package',
+    key: string,
+    ids: string[],
+    e: { ctrlKey: boolean; metaKey: boolean; shiftKey: boolean },
+  ): void {
+    if (!selection) return;
+    const index = selectableOrder.findIndex((u) => u.kind === kind && u.key === key);
+    if (index < 0) return;
+    if (e.shiftKey && selectAnchor.current !== null) {
+      const lo = Math.min(selectAnchor.current, index);
+      const hi = Math.max(selectAnchor.current, index);
+      const range = new Set<string>();
+      for (let i = lo; i <= hi; i++) selectableOrder[i].ids.forEach((id) => range.add(id));
+      selection.set(range);
+      return; // The anchor itself does not move - see its own comment above.
+    }
+    if (e.ctrlKey || e.metaKey) {
+      const next = new Set(selection.ids);
+      const allIn = ids.every((id) => next.has(id));
+      ids.forEach((id) => (allIn ? next.delete(id) : next.add(id)));
+      selection.set(next);
+      selectAnchor.current = index;
+      return;
+    }
+    selection.set(new Set(ids));
+    selectAnchor.current = index;
+  }
 
   // The rows the properties panel shows values from. The ids it WRITES come
   // straight off the selection, which is a larger set whenever a quick filter is
@@ -1704,6 +1787,8 @@ export function TaskListCard({
                       onToggleCollapsed={() => toggle(name)}
                       indexOffset={offset}
                       dnd={dnd}
+                      onSelect={(e) => selectUnit('package', name, items.map((x) => x.id), e)}
+                      onSelectTask={(id, e) => selectUnit('task', id, [id], e)}
                     />
                   );
                 })}
