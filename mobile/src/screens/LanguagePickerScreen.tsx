@@ -1,21 +1,29 @@
 import { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useT } from '../i18n/I18nContext';
-import { LANGUAGES } from '../i18n/catalogue';
+import { LANGUAGES, flagEmoji } from '../i18n/catalogue';
 import { getLanguageOverride } from '../storage/languagePreference';
 import { colors } from '../theme';
 
 export default function LanguagePickerScreen({ onBack }: { onBack: () => void }) {
-  const { t, setLanguage } = useT();
+  const { t, lang, setLanguage } = useT();
   const [override, setOverride] = useState<string | null>(null);
 
   useEffect(() => {
     getLanguageOverride().then(setOverride);
   }, []);
 
-  const rows: { code: string | null; label: string }[] = [
-    { code: null, label: t('settings.languageAutomatic') },
-    ...LANGUAGES.map((l) => ({ code: l.code as string | null, label: l.label })),
+  // The "Automatic" row shows the flag of whatever the device actually
+  // resolved to, so following the device is not the one row that reads as a
+  // blank next to 42 flagged ones - and it doubles as the answer to "which
+  // language IS automatic picking for me right now?".
+  const rows: { code: string | null; label: string; flag: string }[] = [
+    {
+      code: null,
+      label: t('settings.languageAutomatic'),
+      flag: flagEmoji(LANGUAGES.find((l) => l.code === lang)?.flag ?? ''),
+    },
+    ...LANGUAGES.map((l) => ({ code: l.code as string | null, label: l.label, flag: flagEmoji(l.flag) })),
   ];
 
   const pick = (code: string | null) => {
@@ -40,6 +48,7 @@ export default function LanguagePickerScreen({ onBack }: { onBack: () => void })
           const isSelected = override === item.code;
           return (
             <TouchableOpacity style={[styles.row, isSelected && styles.rowSelected]} onPress={() => pick(item.code)}>
+              <Text style={styles.flag}>{item.flag}</Text>
               <Text style={styles.rowLabel}>{item.label}</Text>
               {isSelected && <Text style={styles.check}>✓</Text>}
             </TouchableOpacity>
@@ -67,6 +76,9 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   rowSelected: { borderWidth: 1, borderColor: colors.accent },
+  // A fixed width keeps every label starting on the same column even though
+  // emoji flags do not all measure identically across platform fonts.
+  flag: { fontSize: 20, width: 30 },
   rowLabel: { color: colors.text, fontSize: 15, flex: 1 },
   check: { color: colors.accent, fontSize: 15, fontWeight: '700' },
 });
