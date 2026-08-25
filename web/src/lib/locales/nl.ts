@@ -1423,6 +1423,7 @@ export const nl: Dict = {
   'settings.access.relay.serveAddress': 'Geef de andere instanties dit adres',
   'settings.access.relay.serveClients': 'nu verbonden: {n}',
   'settings.access.relay.serveOn': 'draait hier',
+  'settings.access.relay.serveNeedsKey': 'Er is geen relay-sleutel opgeslagen, dus er kan nog niets verbinding maken met dit relay. Stel er hieronder een in en geef de andere instanties dezelfde.',
   'settings.access.relay.unreachable': 'De relay is niet bereikbaar met dit adres en deze sleutel. Controleer beide, en of de relay draait - verder is er op deze instantie niets aangetast.',
   'settings.access.intakePortsHint': 'Andere manieren om deze instantie rechtstreeks te bereiken, buiten de normale login om - elk met zijn eigen bereikbaarheid hier getoond.',
   'settings.nav.browsertools': 'Browserhulpmiddelen',

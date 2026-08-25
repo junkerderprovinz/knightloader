@@ -1430,6 +1430,7 @@ export const ko: Dict = {
   'settings.access.relay.serveAddress': '다른 인스턴스에는 이 주소를 알려주세요',
   'settings.access.relay.serveClients': '현재 연결됨: {n}',
   'settings.access.relay.serveOn': '여기서 실행 중',
+  'settings.access.relay.serveNeedsKey': '릴레이 키가 저장되어 있지 않아 아직 아무것도 이 릴레이에 연결할 수 없습니다. 아래에서 키를 설정하고, 다른 인스턴스에도 같은 키를 알려주세요.',
   'settings.access.relay.unreachable': '이 주소와 키로는 릴레이에 도달할 수 없습니다. 둘 다, 그리고 릴레이가 실행 중인지 확인하세요. 이 인스턴스의 다른 부분은 영향을 받지 않습니다.',
   'settings.access.intakePortsHint': '일반 로그인 외에 이 인스턴스에 직접 도달할 수 있는 다른 방법 - 각각의 도달 가능성이 여기에 표시됩니다.',
   'settings.nav.browsertools': '브라우저 도구',

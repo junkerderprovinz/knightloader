@@ -1431,6 +1431,7 @@ export const sr: Dict = {
   'settings.access.relay.serveAddress': 'Дај осталим инстанцама ову адресу',
   'settings.access.relay.serveClients': 'тренутно повезано: {n}',
   'settings.access.relay.serveOn': 'ради овде',
+  'settings.access.relay.serveNeedsKey': 'Није сачуван ниједан кључ релеја, па се на овај реле још ништа не може повезати. Постави га испод и дај осталим инстанцама исти.',
   'settings.access.relay.unreachable': 'Релеј није досежан са овом адресом и овим кључем. Проверите обоје, као и то да ли релеј ради - ништа друго на овој инстанци није погођено.',
   'settings.access.intakePortsHint': 'Други начини директног приступа овој инстанци, изван уобичајене пријаве - сваки са својом доступношћу приказаном овде.',
   'settings.nav.browsertools': 'Алатке прегледача',

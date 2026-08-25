@@ -1430,6 +1430,7 @@ export const vi: Dict = {
   'settings.access.relay.serveAddress': 'Đưa địa chỉ này cho các phiên bản khác',
   'settings.access.relay.serveClients': 'đang kết nối: {n}',
   'settings.access.relay.serveOn': 'đang chạy ở đây',
+  'settings.access.relay.serveNeedsKey': 'Chưa lưu khóa relay nào, nên chưa có gì kết nối được tới relay này. Hãy đặt một khóa bên dưới và đưa cùng khóa đó cho các phiên bản khác.',
   'settings.access.relay.unreachable': 'Không thể truy cập relay bằng địa chỉ và khóa này. Hãy kiểm tra cả hai, và xem relay có đang chạy hay không - không có gì khác trên phiên bản này bị ảnh hưởng.',
   'settings.access.intakePortsHint': 'Các cách khác để truy cập trực tiếp vào phiên bản này, ngoài đăng nhập thông thường - mỗi cách hiển thị khả năng truy cập riêng tại đây.',
   'settings.nav.browsertools': 'Công cụ trình duyệt',

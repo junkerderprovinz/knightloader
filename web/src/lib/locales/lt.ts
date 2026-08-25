@@ -1430,6 +1430,7 @@ export const lt: Dict = {
   'settings.access.relay.serveAddress': 'Duok kitiems egzemplioriams šį adresą',
   'settings.access.relay.serveClients': 'dabar prisijungę: {n}',
   'settings.access.relay.serveOn': 'veikia čia',
+  'settings.access.relay.serveNeedsKey': 'Nėra išsaugoto relay rakto, tad prie šio relay dar niekas negali prisijungti. Nustatyk jį žemiau ir duok kitiems egzemplioriams tą patį.',
   'settings.access.relay.unreachable': 'Su šiuo adresu ir raktu relay pasiekti nepavyksta. Patikrinkite abu ir tai, ar relay veikia - nieko kito šiame egzemplioriuje tai nepaveikia.',
   'settings.access.intakePortsHint': 'Kiti būdai tiesiogiai pasiekti šį egzempliorių, be įprasto prisijungimo - kiekvieno paties pasiekiamumas rodomas čia.',
   'settings.nav.browsertools': 'Naršyklės įrankiai',

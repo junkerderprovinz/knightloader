@@ -1430,6 +1430,7 @@ export const tr: Dict = {
   'settings.access.relay.serveAddress': 'Diğer örneklere bu adresi ver',
   'settings.access.relay.serveClients': 'şu anda bağlı: {n}',
   'settings.access.relay.serveOn': 'burada çalışıyor',
+  'settings.access.relay.serveNeedsKey': 'Kayıtlı bir röle anahtarı yok, bu yüzden bu röleye henüz hiçbir şey bağlanamaz. Aşağıdan bir tane belirle ve diğer örneklere aynısını ver.',
   'settings.access.relay.unreachable': 'Bu adres ve anahtarla röleye ulaşılamıyor. Her ikisini de ve rölenin çalışıp çalışmadığını kontrol edin - bu örnekte başka hiçbir şey etkilenmez.',
   'settings.access.intakePortsHint': 'Bu örneğe normal girişin dışında doğrudan ulaşmanın diğer yolları - her birinin kendi erişilebilirliği burada gösterilir.',
   'settings.nav.browsertools': 'Tarayıcı araçları',

@@ -1423,6 +1423,7 @@ export const pl: Dict = {
   'settings.access.relay.serveAddress': 'Podaj pozostałym instancjom ten adres',
   'settings.access.relay.serveClients': 'połączonych teraz: {n}',
   'settings.access.relay.serveOn': 'działa tutaj',
+  'settings.access.relay.serveNeedsKey': 'Nie zapisano klucza przekaźnika, więc nic nie może się jeszcze z nim połączyć. Ustaw go poniżej i podaj ten sam pozostałym instancjom.',
   'settings.access.relay.unreachable': 'Przekaźnik jest nieosiągalny pod tym adresem i z tym kluczem. Sprawdź jedno i drugie oraz to, czy przekaźnik działa - nic innego w tej instancji nie jest tym dotknięte.',
   'settings.access.intakePortsHint': 'Inne sposoby bezpośredniego dotarcia do tej instancji, poza normalnym logowaniem - każdy z własną dostępnością pokazaną tutaj.',
   'settings.nav.browsertools': 'Narzędzia przeglądarki',

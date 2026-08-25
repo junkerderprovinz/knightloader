@@ -1430,6 +1430,7 @@ export const ca: Dict = {
   'settings.access.relay.serveAddress': 'Dona aquesta adreça a les altres instàncies',
   'settings.access.relay.serveClients': 'connectades ara mateix: {n}',
   'settings.access.relay.serveOn': 'funcionant aquí',
+  'settings.access.relay.serveNeedsKey': 'No hi ha cap clau de relay desada, de manera que encara no s\'hi pot connectar res. Estableix-ne una a sota i dona la mateixa a les altres instàncies.',
   'settings.access.relay.unreachable': "No es pot arribar al relay amb aquesta adreça i aquesta clau. Comprova-les totes dues, i que el relay s'estigui executant - res més d'aquesta instància no es veu afectat.",
   'settings.access.intakePortsHint': 'Altres maneres d\'accedir directament a aquesta instància, fora de l\'inici de sessió normal - cadascuna amb la seva pròpia accessibilitat mostrada aquí.',
   'settings.nav.browsertools': 'Eines de navegador',

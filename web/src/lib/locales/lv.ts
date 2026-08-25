@@ -1430,6 +1430,7 @@ export const lv: Dict = {
   'settings.access.relay.serveAddress': 'Iedod pārējām instancēm šo adresi',
   'settings.access.relay.serveClients': 'šobrīd pieslēgtas: {n}',
   'settings.access.relay.serveOn': 'darbojas šeit',
+  'settings.access.relay.serveNeedsKey': 'Nav saglabāta releja atslēga, tāpēc šim relejam vēl nekas nevar pieslēgties. Iestati to zemāk un iedod pārējām instancēm to pašu.',
   'settings.access.relay.unreachable': 'Ar šo adresi un atslēgu releju nevar sasniegt. Pārbaudiet abus, kā arī to, vai relejs darbojas - nekas cits šajā eksemplārā netiek ietekmēts.',
   'settings.access.intakePortsHint': 'Citi veidi, kā tieši sasniegt šo instanci, ārpus parastās pieteikšanās - katram sava sasniedzamība parādīta šeit.',
   'settings.nav.browsertools': 'Pārlūka rīki',

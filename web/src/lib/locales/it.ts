@@ -1423,6 +1423,7 @@ export const it: Dict = {
   'settings.access.relay.serveAddress': 'Dai questo indirizzo alle altre istanze',
   'settings.access.relay.serveClients': 'collegate in questo momento: {n}',
   'settings.access.relay.serveOn': 'in funzione qui',
+  'settings.access.relay.serveNeedsKey': 'Nessuna chiave di relay è salvata, quindi non può ancora collegarsi nulla. Impostane una qui sotto e dai la stessa alle altre istanze.',
   'settings.access.relay.unreachable': "Il relay non è raggiungibile con questo indirizzo e questa chiave. Controlla entrambi, e che il relay sia in esecuzione - nient'altro su questa istanza ne risente.",
   'settings.access.intakePortsHint': 'Altri modi per raggiungere direttamente questa istanza, al di fuori del normale login - ciascuno con la propria raggiungibilità mostrata qui.',
   'settings.nav.browsertools': 'Strumenti browser',

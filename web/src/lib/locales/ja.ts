@@ -1430,6 +1430,7 @@ export const ja: Dict = {
   'settings.access.relay.serveAddress': 'ほかのインスタンスにはこのアドレスを渡します',
   'settings.access.relay.serveClients': '現在の接続数: {n}',
   'settings.access.relay.serveOn': 'ここで稼働中',
+  'settings.access.relay.serveNeedsKey': 'リレーキーが保存されていないため、このリレーにはまだ何も接続できません。下でキーを設定し、同じものをほかのインスタンスにも渡してください。',
   'settings.access.relay.unreachable': 'このアドレスとキーではリレーに到達できません。両方と、リレーが動作しているかを確認してください。このインスタンスの他の動作には何も影響しません。',
   'settings.access.intakePortsHint': '通常のログイン以外で、このインスタンスに直接到達できる方法 - それぞれの到達可能性がここに表示されます。',
   'settings.nav.browsertools': 'ブラウザーツール',

@@ -1430,6 +1430,7 @@ export const fa: Dict = {
   'settings.access.relay.serveAddress': 'این نشانی را به نمونه‌های دیگر بدهید',
   'settings.access.relay.serveClients': 'هم‌اکنون متصل: {n}',
   'settings.access.relay.serveOn': 'اینجا در حال اجرا',
+  'settings.access.relay.serveNeedsKey': 'هیچ کلید رله‌ای ذخیره نشده است، بنابراین هنوز چیزی نمی‌تواند به این رله متصل شود. یکی را در پایین تنظیم کنید و همان را به نمونه‌های دیگر بدهید.',
   'settings.access.relay.unreachable': 'با این آدرس و این کلید نمی‌توان به رله دسترسی داشت. هر دو را بررسی کنید و اینکه رله در حال اجرا باشد - هیچ چیز دیگری در این نمونه تحت تأثیر قرار نمی‌گیرد.',
   'settings.access.intakePortsHint': 'راه‌های دیگر دسترسی مستقیم به این نمونه، خارج از ورود معمول - هر کدام با دسترس‌پذیری خودش در اینجا نشان داده شده.',
   'settings.nav.browsertools': 'ابزارهای مرورگر',

@@ -1432,6 +1432,7 @@ export const ar: Dict = {
   'settings.access.relay.serveAddress': 'أعطِ النُسخ الأخرى هذا العنوان',
   'settings.access.relay.serveClients': 'متصل الآن: {n}',
   'settings.access.relay.serveOn': 'يعمل هنا',
+  'settings.access.relay.serveNeedsKey': 'لا يوجد مفتاح مُرحّل مخزَّن، لذا لا يستطيع شيء الاتصال بهذا المُرحّل بعد. عيّن واحدًا أدناه، وأعطِ النُسخ الأخرى المفتاح نفسه.',
   'settings.access.relay.unreachable': 'لا يمكن الوصول إلى المُرحّل بهذا العنوان وهذا المفتاح. تحقّق من كليهما ومن أن المُرحّل يعمل - لا شيء آخر في هذا المثيل يتأثر.',
   'settings.access.intakePortsHint': 'طرق أخرى يمكن من خلالها الوصول إلى هذه النسخة مباشرة، خارج تسجيل الدخول المعتاد - كل واحدة مع إمكانية الوصول الخاصة بها معروضة هنا.',
   'settings.nav.browsertools': 'أدوات المتصفح',
