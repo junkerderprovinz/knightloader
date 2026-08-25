@@ -249,6 +249,19 @@ type App struct {
 	wmu     sync.Mutex
 	watcher *watch.Watcher
 
+	// smu guards selfServe: this instance's own fully-wired HTTP handler
+	// (auth guard and all), the same one a browser or an API token reaches.
+	// Set once by internal/api.Handler as its very last step - so any earlier
+	// reader sees "not ready yet" rather than a half-built stack - and read
+	// by the relay client's inbound proxy handler (routes_relay.go) to
+	// answer a sibling's call exactly the way this instance would answer its
+	// own UI. A relay reconnect is what needs "has this changed" rather than
+	// a plain field: applyRelay runs from Handler's own last step too, so a
+	// second app.New/api.Handler pair in the same test binary must not read
+	// back a Handler neither of them built.
+	smu       sync.RWMutex
+	selfServe http.Handler
+
 	// bmu guards the backend fields above. It is deliberately separate from mu:
 	// re-wiring does network calls, and task state must not wait for those.
 	bmu sync.RWMutex
@@ -703,6 +716,27 @@ func (a *App) track() bool {
 // second Wait on a drained WaitGroup returns immediately, and every subsystem
 // below either has its own closeOnce or takes a second Close without
 // complaining.
+// SetSelfServeHandler stores this instance's own fully-wired HTTP handler,
+// so the relay client's inbound proxy handler (routes_relay.go) can answer a
+// sibling's call exactly the way this instance would answer a browser's or
+// an API token's - same auth guard, same routes, no second surface to keep
+// in sync with the first. Called once, by internal/api.Handler as its very
+// last step; nil until then, which SelfServeHandler's own callers read as
+// "not ready yet" rather than nothing happening silently.
+func (a *App) SetSelfServeHandler(h http.Handler) {
+	a.smu.Lock()
+	a.selfServe = h
+	a.smu.Unlock()
+}
+
+// SelfServeHandler returns whatever SetSelfServeHandler last stored, or nil
+// before that has ever run.
+func (a *App) SelfServeHandler() http.Handler {
+	a.smu.RLock()
+	defer a.smu.RUnlock()
+	return a.selfServe
+}
+
 func (a *App) Close() error {
 	// Flipped first, under the same lock track takes, so that from here on no
 	// spawn can still slip a wg.Add(1) past the Wait below - see track's own
@@ -713,6 +747,13 @@ func (a *App) Close() error {
 	a.closeMu.Unlock()
 	if a.cancel != nil {
 		a.cancel()
+	}
+	// Stops and closes whatever relay connection is currently open, the same
+	// as any other SetRelay(nil) call - a shutting-down instance has no
+	// business staying registered on a relay it is about to stop answering
+	// for.
+	if a.Federation != nil {
+		a.Federation.SetRelay(nil)
 	}
 	// Before the engine and before the store, because a sweep in flight is
 	// removing tasks from both.

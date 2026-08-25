@@ -1,6 +1,13 @@
 // Package federation lets one KnightLoader act as the dashboard for others:
 // peer instances are stored locally, and their REST APIs are proxied so the UI
-// can view and control every instance from one place (self-hosted, no relay).
+// can view and control every instance from one place.
+//
+// A peer is reached one of two ways, and List/Proxy hide which: over plain
+// HTTP to an address somebody stored (the original path - a LAN IP, or a
+// domain behind a reverse proxy), or through a self-hosted relay both sides
+// dial out to when neither can accept an inbound connection. The relay is
+// additive and optional; with none configured this package behaves exactly as
+// it did before one existed.
 package federation
 
 import (
@@ -21,12 +28,43 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
+	"github.com/junkerderprovinz/knightloader/internal/relay"
 )
 
-// Instance is a peer KnightLoader reachable over HTTP.
+// Instance is a peer KnightLoader, either reachable over HTTP at URL or
+// visible through the relay under RelayID.
 type Instance struct {
 	Name string `json:"name"`
 	URL  string `json:"url"`
+	// RelayID is the instance ID a call is addressed to when this peer is only
+	// reachable through the relay, and is empty for every stored peer. It is
+	// never written to instances.json, because it is never true for longer
+	// than the relay connection that produced it: a relay peer comes and goes
+	// live, and one remembered across a restart would be a peer this instance
+	// cannot reach and cannot explain.
+	//
+	// The UI reads it to say how a peer is reached; the API layer does not
+	// need to, which is the point of it being on the same struct.
+	RelayID string `json:"relayId,omitempty"`
+}
+
+// RelayTransport is the relay client seen from here: the sibling list it keeps
+// live, one call over it, and the ability to shut the connection down.
+// Declared as an interface rather than taking *relay.Client so this package's
+// tests can exercise a relay peer without a socket - *relay.Client satisfies
+// it as it stands, with no adapter.
+type RelayTransport interface {
+	// Siblings is the instances the relay makes visible right now. It is empty
+	// while the relay is unreachable, which is the whole of the outage
+	// handling here: no relay, no relay peers, nothing else affected.
+	Siblings() []relay.Announce
+	// Proxy calls one sibling, addressed by its instance ID.
+	Proxy(ctx context.Context, target, method, path string, body []byte) ([]byte, int, error)
+	// Close stops the connection for good. SetRelay calls it on whatever
+	// transport it is replacing, which is what makes reconfiguring the relay
+	// (a new address, a new key, or switching it off) safe to call as often
+	// as a settings save happens, rather than leaking one socket per save.
+	Close() error
 }
 
 var nameRe = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9 _.-]{0,31}$`)
@@ -44,6 +82,7 @@ type Manager struct {
 
 	mu   sync.Mutex
 	list map[string]Instance // by name
+	rt   RelayTransport      // nil until SetRelay, and again after it is cleared
 }
 
 // Load reads instances.json from dir (missing file = empty list).
@@ -64,22 +103,83 @@ func Load(dir string) (*Manager, error) {
 	return m, nil
 }
 
-// List returns the peers sorted by name.
-func (m *Manager) List() []Instance {
+// SetRelay installs the transport that reaches relay-visible peers, or clears
+// it with nil when relay mode is switched off - and closes whatever transport
+// it is replacing, so calling this again (a new address, a new key, an
+// application restart's own first call) never leaks the previous connection.
+// Peers the relay reports are not stored and not persisted: they appear and
+// disappear with the relay connection itself, so there is nothing here to
+// save and nothing to load back.
+func (m *Manager) SetRelay(rt RelayTransport) {
 	m.mu.Lock()
-	defer m.mu.Unlock()
-	out := make([]Instance, 0, len(m.list))
-	for _, in := range m.list {
+	prev := m.rt
+	m.rt = rt
+	m.mu.Unlock()
+	if prev != nil {
+		_ = prev.Close()
+	}
+}
+
+// List returns the peers sorted by name: the stored ones plus whatever the
+// relay currently makes visible, in one list, because the Instances page shows
+// one list.
+func (m *Manager) List() []Instance {
+	all, _ := m.reachable()
+	out := make([]Instance, 0, len(all))
+	for _, in := range all {
 		out = append(out, in)
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
 	return out
 }
 
+// reachable is every peer addressable right now, keyed by the name the API
+// layer addresses it as, together with the transport the relay ones need. Both
+// come out of one call so a relay that disconnects between resolving a name
+// and using it cannot leave a relay peer with no way to reach it.
+//
+// A stored peer always wins a name: it is the one somebody configured
+// deliberately, and the one that keeps working when the relay does not. A
+// relay peer whose name is taken - by a stored peer, or by another relay peer
+// that sorted ahead of it - is listed under its instance ID instead. That is
+// not a rare edge: an instance nobody has named announces its hostname, and
+// two containers from the same image routinely have the same one.
+func (m *Manager) reachable() (map[string]Instance, RelayTransport) {
+	m.mu.Lock()
+	rt := m.rt
+	out := make(map[string]Instance, len(m.list))
+	for name, in := range m.list {
+		out[name] = in
+	}
+	m.mu.Unlock()
+	if rt == nil {
+		return out, nil
+	}
+	// Siblings is sorted by instance ID, so which of two same-named peers
+	// keeps the name is the same on every call rather than whichever the map
+	// happened to yield first.
+	for _, sib := range rt.Siblings() {
+		name := sib.Name
+		if _, taken := out[name]; taken || name == "" {
+			name = sib.InstanceID
+		}
+		if _, taken := out[name]; taken {
+			continue
+		}
+		out[name] = Instance{Name: name, RelayID: sib.InstanceID}
+	}
+	return out, rt
+}
+
 // Add validates and stores a peer (overwrites the same name).
 func (m *Manager) Add(in Instance) error {
 	in.Name = strings.TrimSpace(in.Name)
 	in.URL = strings.TrimRight(strings.TrimSpace(in.URL), "/")
+	// A stored peer is an HTTP peer by definition. Dropping this rather than
+	// rejecting it keeps the route that decodes an Instance straight off a
+	// request body (routes_federation.go) from turning a field the UI only
+	// reads into a way to store a peer that claims a relay identity.
+	in.RelayID = ""
 	if !nameRe.MatchString(in.Name) {
 		return errors.New("federation: invalid instance name")
 	}
@@ -116,23 +216,22 @@ func (m *Manager) flushLocked() error {
 	return os.WriteFile(m.path, b, 0o600)
 }
 
-// get returns the stored instance for a name.
-func (m *Manager) get(name string) (Instance, error) {
-	m.mu.Lock()
-	in, ok := m.list[name]
-	m.mu.Unlock()
-	if !ok {
-		return Instance{}, fmt.Errorf("federation: unknown instance %q", name)
-	}
-	return in, nil
-}
-
 // Proxy forwards an API call to a peer and returns its response body.
 // method + path are the peer-local API route (e.g. GET /api/tasks).
+//
+// The transport is chosen from the peer, not from the caller: a relay-visible
+// peer goes over the relay, a stored one over HTTP, and the route that calls
+// this (and the page behind it) never learns which.
 func (m *Manager) Proxy(ctx context.Context, name, method, path string, body []byte) ([]byte, int, error) {
-	in, err := m.get(name)
-	if err != nil {
-		return nil, http.StatusNotFound, err
+	all, rt := m.reachable()
+	in, ok := all[name]
+	if !ok {
+		return nil, http.StatusNotFound, fmt.Errorf("federation: unknown instance %q", name)
+	}
+	// rt is never nil here when RelayID is set: the entry came from that same
+	// transport in the same call, above.
+	if in.RelayID != "" {
+		return rt.Proxy(ctx, in.RelayID, method, path, body)
 	}
 	var rd io.Reader
 	if len(body) > 0 {

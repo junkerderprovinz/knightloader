@@ -32,7 +32,20 @@ func Handler(a *app.App) http.Handler {
 
 	mux := http.NewServeMux()
 	reg.attach(mux, spaHandler())
-	return sameOrigin(guard(a, reg, mux))
+	h := sameOrigin(guard(a, reg, mux))
+
+	// Stored before applyRelay, which is the one thing downstream that reads
+	// it back: a relay-proxied call has to be answered exactly the way this
+	// same handler would answer a browser or an API token, not by some
+	// second, hand-built stack that can drift from the real one. Called here,
+	// unconditionally, rather than left for whoever embeds this App to
+	// remember - both cmd/knightloader/main.go and desktop/main.go already
+	// call Handler exactly once, so a relay address saved in an earlier run
+	// reconnects on its own the moment either binary boots, with no
+	// container-only or desktop-only line to keep in sync between them.
+	a.SetSelfServeHandler(h)
+	applyRelay(a)
+	return h
 }
 
 // authenticated reports whether the request carries a valid session or a

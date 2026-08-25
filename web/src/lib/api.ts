@@ -461,6 +461,15 @@ export interface AuthState {
 export interface Instance {
   name: string;
   url: string;
+  /**
+   * Set only for a peer that is reachable through the relay right now -
+   * federation.Instance.RelayID, the instance ID a call to it is addressed
+   * by. A stored peer never carries one, so this is also how the UI tells
+   * the two apart: a relay peer exists exactly as long as the relay says so
+   * and has no address of its own to show, which is why `url` is empty for
+   * it rather than guessed at.
+   */
+  relayId?: string;
 }
 
 /**
@@ -1886,6 +1895,47 @@ export async function redeemPairingCode(code: string): Promise<{ name: string; u
   });
   if (!r.ok) throw new Error(await r.text());
   return json(r);
+}
+
+/**
+ * What GET and PUT /api/relay/config both answer with - api.relayConfig. The
+ * relay key itself is never in it, not even redacted: it lives in the
+ * encrypted account store, and the only thing anybody is entitled to read
+ * back is whether one is there at all, the same shape GET /api/tokens and
+ * GET /api/accounts already report a credential in.
+ */
+export interface RelayConfig {
+  relayUrl: string;
+  keySet: boolean;
+}
+
+export async function fetchRelayConfig(): Promise<RelayConfig> {
+  return json<RelayConfig>(await fetch('/api/relay/config'));
+}
+
+/**
+ * saveRelayConfig stores the address and, when `key` is given, the key -
+ * answering with what is now stored, so the form renders from the save
+ * rather than from what it hoped the save did.
+ *
+ * `key` has three meanings and the route can only tell them apart by
+ * whether the field is on the wire at all, so this signature keeps that
+ * distinction instead of flattening it: undefined leaves the stored key
+ * alone (the ordinary save of an edited address from a form that was never
+ * shown the key), '' clears it, and anything else replaces it.
+ *
+ * A relay that is unreachable is not a failure here. The address is stored
+ * either way and the client keeps dialling it - an outage of an optional,
+ * self-hosted relay must never read as "your settings were rejected".
+ */
+export async function saveRelayConfig(relayUrl: string, key?: string): Promise<RelayConfig> {
+  return json<RelayConfig>(
+    await fetch('/api/relay/config', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(key === undefined ? { relayUrl } : { relayUrl, key }),
+    }),
+  );
 }
 
 /**
