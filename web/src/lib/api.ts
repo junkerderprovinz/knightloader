@@ -1922,6 +1922,11 @@ export async function redeemPairingCode(code: string): Promise<{ name: string; u
 export interface RelayConfig {
   relayUrl: string;
   keySet: boolean;
+  /** Whether the socket to the relay is actually up right now - NOT merely
+   *  whether an address and a key are stored. A typo'd address, a key the
+   *  relay rejects and a relay that is down all leave the config filled in
+   *  and this false. */
+  connected: boolean;
 }
 
 export async function fetchRelayConfig(): Promise<RelayConfig> {

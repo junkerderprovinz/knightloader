@@ -28,10 +28,15 @@ type fakeRelay struct {
 	status int
 	err    error
 
+	// down makes Connected() report false, for the case a relay is configured
+	// but unreachable - which must NOT look the same as no relay at all.
+	down   bool
 	closed bool
 }
 
 func (f *fakeRelay) Siblings() []relay.Announce { return f.sibs }
+
+func (f *fakeRelay) Connected() bool { return !f.down }
 
 func (f *fakeRelay) Proxy(_ context.Context, target, method, path string, body []byte) ([]byte, int, error) {
 	f.target, f.method, f.path, f.body = target, method, path, body
@@ -351,5 +356,39 @@ func TestClientOnlySiblingsAreNotListedAsInstances(t *testing.T) {
 	list := m.List()
 	if len(list) != 1 || list[0].Name != "id-nas" {
 		t.Fatalf("got %+v, want only the real instance - a client-only sibling is not a place to go", list)
+	}
+}
+
+// TestRelayConnectedDistinguishesUnreachableFromAbsent: an empty sibling list
+// is ambiguous - it means both "the relay is fine, nobody else is on the key"
+// and "the relay cannot be reached at all". Those want different reactions
+// from the user, and nothing above this layer could tell them apart, because
+// relay.Client.Connected() had no callers even though its own doc comment
+// calls it the honest answer to whether relay pairing is working.
+func TestRelayConnectedDistinguishesUnreachableFromAbsent(t *testing.T) {
+	m, err := Load(t.TempDir())
+	if err != nil {
+		t.Fatalf("load: %v", err)
+	}
+
+	if m.RelayConnected() {
+		t.Error("no relay configured at all, want RelayConnected false")
+	}
+
+	// Configured and up, but nobody else on the key: no peers, yet connected.
+	up := &fakeRelay{}
+	m.SetRelay(up)
+	if !m.RelayConnected() {
+		t.Error("relay up with no siblings, want RelayConnected true")
+	}
+	if len(m.List()) != 0 {
+		t.Error("want no peers from an empty relay")
+	}
+
+	// Configured but unreachable: also no peers - and this is the case that
+	// used to be indistinguishable from the one above.
+	m.SetRelay(&fakeRelay{down: true})
+	if m.RelayConnected() {
+		t.Error("relay configured but down, want RelayConnected false")
 	}
 }
