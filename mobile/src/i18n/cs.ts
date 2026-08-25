@@ -24,6 +24,7 @@ export const cs: Dict = {
   'connections.empty': 'Zatím není uloženo žádné připojení.',
   'connections.emptyButton': 'Přidat první připojení',
   'connections.remove': 'Odebrat',
+  'connections.viaRelay': 'přes relé {relay}',
 
   'instances.title': 'Instance',
   'instances.subtitle': 'Všechny instance aplikace KnightLoader, které {name} zná.',
@@ -87,4 +88,20 @@ export const cs: Dict = {
     'Odebere z tohoto zařízení každé uložené připojení i jeho token. Na samotných serverech se nic nezmění.',
   'settings.removeAllConfirmButton': 'Odebrat vše',
   'settings.cancel': 'Zrušit',
+
+  'connect.relayLink': 'Není přímo dostupná? Připojte se přes relé',
+  'relay.title': 'Připojení přes relé',
+  'relay.hint':
+    'Pro instance, na které se z této sítě nedá dosáhnout přímo. Každá se sama připojuje ke stejnému relé, tato aplikace také. Zadejte adresu a klíč relé tak, jak jsou nastavené na instancích.',
+  'relay.urlLabel': 'Adresa relé',
+  'relay.keyLabel': 'Klíč relé',
+  'relay.keyPlaceholder': 'společný klíč vašich instancí',
+  'relay.searchButton': 'Najít instance',
+  'relay.errorMissing': 'Zadejte adresu relé a klíč.',
+  'relay.errorBadUrl': 'To není adresa relé.',
+  'relay.errorKeyShort': 'Klíč relé má alespoň {n} znaků.',
+  'relay.instancesTitle': 'Na tomto relé',
+  'relay.noInstances': 'K tomuto relé teď není připojená žádná instance. Zkontrolujte klíč a to, že běží alespoň jedna instance.',
+  'relay.tokenHint': 'Potřeba jen tehdy, když je pro tu instanci nastavené heslo.',
+  'relay.saveButton': 'Uložit připojení',
 };

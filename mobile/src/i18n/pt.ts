@@ -24,6 +24,7 @@ export const pt: Dict = {
   'connections.empty': 'Nenhuma conexão salva ainda.',
   'connections.emptyButton': 'Adicionar sua primeira conexão',
   'connections.remove': 'Remover',
+  'connections.viaRelay': 'via relay {relay}',
 
   'instances.title': 'Instâncias',
   'instances.subtitle': 'Todas as instâncias do KnightLoader que {name} conhece.',
@@ -87,4 +88,20 @@ export const pt: Dict = {
     'Remove deste dispositivo cada conexão salva e o token correspondente. Nada muda nos servidores em si.',
   'settings.removeAllConfirmButton': 'Remover tudo',
   'settings.cancel': 'Cancelar',
+
+  'connect.relayLink': 'Não dá para acessar direto? Conecte via relay',
+  'relay.title': 'Conectar via relay',
+  'relay.hint':
+    'Para instâncias que nada nesta rede alcança diretamente. Cada uma se conecta ao mesmo relay, e este app também. Informe o endereço e a chave do relay, como estão configurados nas instâncias.',
+  'relay.urlLabel': 'Endereço do relay',
+  'relay.keyLabel': 'Chave do relay',
+  'relay.keyPlaceholder': 'a chave que suas instâncias compartilham',
+  'relay.searchButton': 'Procurar instâncias',
+  'relay.errorMissing': 'Informe o endereço do relay e a chave.',
+  'relay.errorBadUrl': 'Isso não é um endereço de relay.',
+  'relay.errorKeyShort': 'Uma chave de relay tem pelo menos {n} caracteres.',
+  'relay.instancesTitle': 'Neste relay',
+  'relay.noInstances': 'No momento nenhuma instância está conectada a este relay. Confira a chave e se pelo menos uma instância está rodando.',
+  'relay.tokenHint': 'Só é necessário se essa instância tiver senha definida.',
+  'relay.saveButton': 'Salvar conexão',
 };

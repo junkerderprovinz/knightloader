@@ -1,4 +1,6 @@
-import type { AuthState, Instance, QueueState, ServerConnection, Task } from './types';
+import { isRelayConnection, type AuthState, type Instance, type QueueState, type ServerConnection, type Task } from './types';
+import { relayClientFor } from './relayClient';
+import { relayIdentity } from '../storage/relayIdentity';
 
 export class ApiError extends Error {
   constructor(
@@ -9,15 +11,41 @@ export class ApiError extends Error {
   }
 }
 
-// Every call takes a connection (which host + token to talk to) and a base
+// Every call takes a connection (which instance + token to talk to) and a base
 // path prefix. base defaults to '/api', the connection's own instance; a
 // peer's routes proxy through the connected server at
 // '/api/instances/{name}' instead (internal/api/routes_federation.go) -
 // same host, same token, only the prefix changes. That mirrors the web UI's
 // own lib/api.ts, so this app and the web client never drift on the shape of
 // a "which instance is this for" call.
+//
+// This function is also the ONE place that knows a connection has a transport
+// at all. Everything above it - every screen, every exported call below -
+// works in terms of (connection, base, path), so a relay connection reaches
+// exactly the same routes with exactly the same code, including the federation
+// proxy prefix: a relay-reached instance's OWN peers stay browsable, because
+// that is just another path the target resolves for itself.
 async function request<T>(conn: ServerConnection, base: string, path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${conn.baseUrl}${base}${path}`, {
+  const { status, body, statusText } = isRelayConnection(conn)
+    ? await relayRequest(conn, base + path, init)
+    : await httpRequest(conn, base + path, init);
+
+  if (status < 200 || status >= 300) {
+    throw new ApiError(body || statusText, status);
+  }
+  if (status === 204 || body === '') return undefined as T;
+  return JSON.parse(body) as T;
+}
+
+interface RawResponse {
+  status: number;
+  body: string;
+  statusText: string;
+}
+
+async function httpRequest(conn: ServerConnection, path: string, init?: RequestInit): Promise<RawResponse> {
+  const base = isRelayConnection(conn) ? '' : conn.baseUrl;
+  const res = await fetch(`${base}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
@@ -25,12 +53,31 @@ async function request<T>(conn: ServerConnection, base: string, path: string, in
       ...(init?.headers ?? {}),
     },
   });
-  if (!res.ok) {
-    const body = await res.text().catch(() => '');
-    throw new ApiError(body || res.statusText, res.status);
-  }
-  if (res.status === 204) return undefined as T;
-  return (await res.json()) as T;
+  return { status: res.status, body: await res.text().catch(() => ''), statusText: res.statusText };
+}
+
+// A relay call is the same request, addressed to an instance id instead of a
+// host. The token travels in the frame's own authorization field rather than a
+// header, because the frame is all there is - see relay.ProxyRequest.
+async function relayRequest(conn: ServerConnection, path: string, init?: RequestInit): Promise<RawResponse> {
+  if (!isRelayConnection(conn)) throw new Error('relayRequest called with a direct connection');
+  const client = relayClientFor({
+    url: conn.relayUrl,
+    key: conn.relayKey,
+    selfId: await relayIdentity(),
+    selfName: 'KnightLoader app',
+  });
+  const body = typeof init?.body === 'string' ? init.body : undefined;
+  const r = await client.proxy(
+    conn.instanceId,
+    init?.method ?? 'GET',
+    path,
+    body,
+    conn.token ? `Bearer ${conn.token}` : undefined,
+  );
+  // A transport failure throws out of proxy() and never reaches here, so
+  // anything with a status is genuinely the instance's own answer.
+  return { status: r.status, body: r.body, statusText: `relay ${r.status}` };
 }
 
 // checkConnection is what the connect screen calls before saving anything:
@@ -128,17 +175,34 @@ export async function redeemPairingCode(conn: ServerConnection, code: string): P
 // exposing the wire protocol, since every screen just wants "the current
 // list", not the delta mechanics.
 //
-// Only the connected server's own queue has this: the federation proxy
-// (routes_federation.go) forwards plain REST calls, not a WebSocket
-// upgrade, so a peer's tasks are never streamed here - see fetchTasks +
-// pollTasks below for how a peer's screen stays live instead.
+// Only a DIRECTLY connected server's own queue has this. Two separate cases
+// forward plain REST calls rather than a WebSocket upgrade, and each falls
+// back to pollTasks below: the federation proxy (routes_federation.go), so a
+// peer's tasks are never streamed, and the relay (internal/relay), which
+// carries request/response frames and has no tunnel for a socket either.
+//
+// liveTasks picks the right one, so a screen can just ask for "the tasks,
+// kept current" without knowing which transport it ended up with.
 export type UnsubscribeFn = () => void;
+
+export function liveTasks(
+  conn: ServerConnection,
+  base: string,
+  onSnapshot: (tasks: Task[]) => void,
+  onError?: (err: unknown) => void
+): UnsubscribeFn {
+  const streamable = !isRelayConnection(conn) && base === '/api';
+  return streamable
+    ? subscribeTasks(conn, onSnapshot, onError)
+    : pollTasks(conn, base, onSnapshot, onError);
+}
 
 export function subscribeTasks(
   conn: ServerConnection,
   onSnapshot: (tasks: Task[]) => void,
   onError?: (err: unknown) => void
 ): UnsubscribeFn {
+  if (isRelayConnection(conn)) throw new Error('subscribeTasks: a relay connection has no stream - use liveTasks');
   const wsUrl = conn.baseUrl.replace(/^http/, 'ws') + '/api/ws';
   let tasks = new Map<string, Task>();
   let closedByCaller = false;

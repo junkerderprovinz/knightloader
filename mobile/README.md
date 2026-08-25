@@ -42,6 +42,53 @@ token — and switch between them; onboarding a new one is still manual:
    active one's token as `Authorization: Bearer <token>` on every request —
    the same header a script or the browser extension would use.
 
+### When nothing here can reach it at all (relay)
+
+The flow above needs a network path from the phone to the instance. When there
+is none — every instance behind a NAT with no port forwarding and no reverse
+proxy — the app can dial a [relay](../docs/superpowers/specs/2026-08-25-self-hosted-relay-design.md)
+instead, the same self-hosted relay the instances themselves dial out to. The
+connect screen's "connect via a relay" link asks for the relay address and key,
+lists the instances currently connected to that key, and saves one of them as a
+connection.
+
+From there a relay connection behaves like any other: the same screens, the same
+calls. `src/api/client.ts`'s `request()` is the only place that knows the
+difference, and it swaps `fetch` for a relay frame — so the federation proxy
+prefix keeps working through it too, and a relay-reached instance's own peers
+stay browsable.
+
+Three things are genuinely different, all of them consequences of the transport
+rather than choices:
+
+- **It polls, it does not stream.** The relay carries request/response frames,
+  not a tunnelled WebSocket, so there is no `/api/ws` to attach to. `liveTasks()`
+  picks streaming or polling per connection; a federation peer already had the
+  same limitation for the same reason.
+- **A token is still needed if the instance has a password.** A relay-proxied
+  call is replayed against the target's own API and meets its normal auth guard.
+  The relay key gets the call *to* the instance; the token gets it *past the
+  door*. The token rides in the frame's own `authorization` field
+  (`relay.ProxyRequest`), because the frame is all there is — a header would have
+  nowhere to live.
+- **The relay key is shared, a token is not.** Every instance on a key can see
+  every other. A phone holding the key holds the whole federation's admission
+  ticket, which is worth knowing before putting one on a device that gets lost.
+
+Worth being explicit about, since this transport carries a credential the
+direct one keeps between the phone and the instance: **the relay operator can
+read what passes through their relay.** Frames are forwarded unencrypted, so the
+address, the paths, the bodies and now the token are all visible to whoever runs
+it. That is fine when you run it yourself, which is what this project ships it
+for. Pointing the app at someone else's relay means handing them a working
+token — use a named, revocable one from the Access tab, never the account
+password.
+
+The app announces itself to the relay with `client: true` (`relay.Announce`), so
+it never appears as a browsable instance on anyone else's Instances page — it
+consumes the relay without being something on it. It answers any call made to it
+anyway with 501 rather than letting the caller time out.
+
 ### Instances (federation peers)
 
 Once connected, the app also shows the peer instances that server itself
@@ -107,6 +154,15 @@ header on the socket too, not a query parameter — see `src/api/client.ts`'s
   a scanned QR) into the name/address/token it carries, entirely client-side
   (mirrors `internal/api/routes_pairing.go`'s own encoding by hand, no
   server round-trip needed just to tell what kind of code it is).
+- `src/api/relayClient.ts` — this app's own client for
+  `internal/relay`'s wire protocol; see "When nothing here can reach it at
+  all" above. One shared socket per (relay, key), because the relay treats a
+  second connection under the same identity as the first one reconnecting.
+- `src/api/base64.ts` — base64 and UTF-8 in both directions, by hand rather
+  than from the engine (`atob`/`TextEncoder` are not guaranteed present on
+  every Hermes build). Shared by the pairing decoder and the relay's frame
+  bodies, which Go marshals as base64 `[]byte`.
+- `src/storage/relayIdentity.ts` — this device's stable id on a relay.
 - `src/components/QRScanner.tsx` — a full-screen camera modal
   (`expo-camera`) that hands back one decoded QR string; both scan buttons
   in the screens below use it.
@@ -116,9 +172,10 @@ header on the socket too, not a query parameter — see `src/api/client.ts`'s
   matching `QRScanner`'s own "QR" label and the back chevron already used
   elsewhere.
 - `src/screens/` — Connections (the saved-server list and the app's own
-  landing screen), Connect (add one), Downloads (the live queue, a
-  connected server's own or a peer's), Instances (that server's federation
-  peers), Add Download, Settings, Language (the picker Settings opens).
+  landing screen), Connect (add one), RelayConnect (add one that is only
+  reachable through a relay), Downloads (the live queue, a connected
+  server's own or a peer's), Instances (that server's federation peers),
+  Add Download, Settings, Language (the picker Settings opens).
 - `src/theme.ts` — a small dark palette, not the full GlimStone/Carbon token
   set the web UI carries.
 
@@ -213,6 +270,12 @@ project to point it at.
   token — the initial "add connection" step still needs the token pasted by
   hand even after scanning a pairing-code QR (its token is single-use and
   federation-only); see "How it connects" above for the full reasoning.
+- No keepalive on the relay socket. The Go client pings every 30s to hold the
+  connection open through a reverse proxy that drops idle upstreams; the
+  WebSocket API React Native exposes cannot send a ping frame at all, so this
+  client relies on reconnecting after the drop instead. In practice an open
+  Downloads screen polls often enough to keep the link warm, and a backgrounded
+  app reconnects when it comes back.
 - Push notifications for captcha challenges / finished downloads — the
   desktop tray already has an attention mechanism for captchas
   (`desktop/tray.go`); the mobile equivalent would need Expo push

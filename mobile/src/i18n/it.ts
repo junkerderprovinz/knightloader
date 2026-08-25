@@ -24,6 +24,7 @@ export const it: Dict = {
   'connections.empty': 'Nessuna connessione salvata finora.',
   'connections.emptyButton': 'Aggiungi la tua prima connessione',
   'connections.remove': 'Rimuovi',
+  'connections.viaRelay': 'tramite relay {relay}',
 
   'instances.title': 'Istanze',
   'instances.subtitle': 'Tutte le istanze di KnightLoader che {name} conosce.',
@@ -87,4 +88,20 @@ export const it: Dict = {
     'Rimuove da questo dispositivo ogni connessione salvata e il relativo token. Sui server non cambia nulla.',
   'settings.removeAllConfirmButton': 'Rimuovi tutto',
   'settings.cancel': 'Annulla',
+
+  'connect.relayLink': 'Non è raggiungibile direttamente? Connettiti tramite un relay',
+  'relay.title': 'Connettiti tramite relay',
+  'relay.hint':
+    'Per le istanze che da questa rete non sono raggiungibili direttamente. Ognuna si collega allo stesso relay, e anche questa app. Inserisci indirizzo e chiave del relay, come li hai impostati sulle istanze.',
+  'relay.urlLabel': 'Indirizzo del relay',
+  'relay.keyLabel': 'Chiave del relay',
+  'relay.keyPlaceholder': 'la chiave condivisa dalle tue istanze',
+  'relay.searchButton': 'Cerca istanze',
+  'relay.errorMissing': 'Inserisci l’indirizzo del relay e la chiave.',
+  'relay.errorBadUrl': 'Questo non è un indirizzo di relay.',
+  'relay.errorKeyShort': 'Una chiave di relay ha almeno {n} caratteri.',
+  'relay.instancesTitle': 'Su questo relay',
+  'relay.noInstances': 'Al momento nessuna istanza è collegata a questo relay. Controlla la chiave e che almeno un’istanza sia in funzione.',
+  'relay.tokenHint': 'Serve solo se per quell’istanza è impostata una password.',
+  'relay.saveButton': 'Salva connessione',
 };

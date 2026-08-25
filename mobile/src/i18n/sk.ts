@@ -24,6 +24,7 @@ export const sk: Dict = {
   'connections.empty': 'Zatiaľ nie je uložené žiadne pripojenie.',
   'connections.emptyButton': 'Pridať prvé pripojenie',
   'connections.remove': 'Odstrániť',
+  'connections.viaRelay': 'cez relé {relay}',
 
   'instances.title': 'Inštancie',
   'instances.subtitle': 'Všetky inštancie aplikácie KnightLoader, ktoré {name} pozná.',
@@ -87,4 +88,20 @@ export const sk: Dict = {
     'Odstráni z tohto zariadenia každé uložené pripojenie spolu s jeho tokenom. Na samotných serveroch sa nič nezmení.',
   'settings.removeAllConfirmButton': 'Odstrániť všetko',
   'settings.cancel': 'Zrušiť',
+
+  'connect.relayLink': 'Nie je priamo dostupná? Pripojte sa cez relé',
+  'relay.title': 'Pripojenie cez relé',
+  'relay.hint':
+    'Pre inštancie, na ktoré sa z tejto siete nedá dostať priamo. Každá sa sama pripája k tomu istému relé, táto aplikácia tiež. Zadajte adresu a kľúč relé tak, ako sú nastavené na inštanciách.',
+  'relay.urlLabel': 'Adresa relé',
+  'relay.keyLabel': 'Kľúč relé',
+  'relay.keyPlaceholder': 'spoločný kľúč vašich inštancií',
+  'relay.searchButton': 'Nájsť inštancie',
+  'relay.errorMissing': 'Zadajte adresu relé a kľúč.',
+  'relay.errorBadUrl': 'Toto nie je adresa relé.',
+  'relay.errorKeyShort': 'Kľúč relé má aspoň {n} znakov.',
+  'relay.instancesTitle': 'Na tomto relé',
+  'relay.noInstances': 'K tomuto relé teraz nie je pripojená žiadna inštancia. Skontrolujte kľúč a to, či beží aspoň jedna inštancia.',
+  'relay.tokenHint': 'Potrebný len vtedy, keď je pre danú inštanciu nastavené heslo.',
+  'relay.saveButton': 'Uložiť pripojenie',
 };

@@ -24,6 +24,7 @@ export const hr: Dict = {
   'connections.empty': 'Još nije spremljena nijedna veza.',
   'connections.emptyButton': 'Dodajte svoju prvu vezu',
   'connections.remove': 'Ukloni',
+  'connections.viaRelay': 'putem releja {relay}',
 
   'instances.title': 'Instance',
   'instances.subtitle': 'Sve instance aplikacije KnightLoader koje poznaje {name}.',
@@ -87,4 +88,20 @@ export const hr: Dict = {
     'Ovo uklanja svaku spremljenu vezu i njezin token s ovog uređaja. Na samim poslužiteljima ništa se ne mijenja.',
   'settings.removeAllConfirmButton': 'Ukloni sve',
   'settings.cancel': 'Odustani',
+
+  'connect.relayLink': 'Nije izravno dostupna? Povežite se putem releja',
+  'relay.title': 'Povezivanje putem releja',
+  'relay.hint':
+    'Za instance do kojih se iz ove mreže uopće ne može doći izravno. Svaka se sama spaja na isti relej, kao i ova aplikacija. Unesite adresu i ključ releja onako kako su postavljeni na instancama.',
+  'relay.urlLabel': 'Adresa releja',
+  'relay.keyLabel': 'Ključ releja',
+  'relay.keyPlaceholder': 'zajednički ključ vaših instanci',
+  'relay.searchButton': 'Pronađi instance',
+  'relay.errorMissing': 'Unesite adresu releja i ključ.',
+  'relay.errorBadUrl': 'To nije adresa releja.',
+  'relay.errorKeyShort': 'Ključ releja ima najmanje {n} znakova.',
+  'relay.instancesTitle': 'Na ovom releju',
+  'relay.noInstances': 'Trenutno nijedna instanca nije povezana s ovim relejem. Provjerite ključ i radi li barem jedna instanca.',
+  'relay.tokenHint': 'Potreban samo ako je za tu instancu postavljena lozinka.',
+  'relay.saveButton': 'Spremi vezu',
 };

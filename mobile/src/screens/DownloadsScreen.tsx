@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
-import { fetchQueue, pollTasks, setQueueHalted, subscribeTasks } from '../api/client';
+import { fetchQueue, liveTasks, setQueueHalted } from '../api/client';
 import type { Instance, QueueState, ServerConnection, Task } from '../api/types';
 import TaskRow from '../components/TaskRow';
 import { colors } from '../theme';
@@ -9,11 +9,12 @@ import IconBadge from '../components/IconBadge';
 
 // peer, when set, means this screen is showing a FEDERATION PEER of conn
 // rather than conn's own queue: base becomes the proxy prefix
-// (/api/instances/{name}, see internal/api/routes_federation.go) and the
-// live feed switches from the WebSocket subscription to polling, because
-// the proxy only forwards plain REST calls, not a WebSocket upgrade - the
-// web UI's own InstanceCard.tsx polls a peer's tasks for exactly this
-// reason.
+// (/api/instances/{name}, see internal/api/routes_federation.go).
+//
+// Whether the task list then streams or polls is liveTasks' decision, not
+// this screen's - a federation peer and a relay connection both forward
+// plain REST calls with no socket to attach to, and only api/client.ts knows
+// which of those is in play.
 export default function DownloadsScreen({
   conn,
   peer,
@@ -46,8 +47,7 @@ export default function DownloadsScreen({
       setTasks(snapshot);
     };
     const onError = () => setConnected(false);
-    const unsubscribe = peer ? pollTasks(conn, base, onSnapshot, onError) : subscribeTasks(conn, onSnapshot, onError);
-    return unsubscribe;
+    return liveTasks(conn, base, onSnapshot, onError);
   }, [conn, base, peer]);
 
   useEffect(() => {

@@ -24,6 +24,7 @@ export const gl: Dict = {
   'connections.empty': 'Aínda non hai ningunha conexión gardada.',
   'connections.emptyButton': 'Engade a túa primeira conexión',
   'connections.remove': 'Eliminar',
+  'connections.viaRelay': 'a través do relé {relay}',
 
   'instances.title': 'Instancias',
   'instances.subtitle': 'Todas as instancias de KnightLoader que coñece {name}.',
@@ -87,4 +88,20 @@ export const gl: Dict = {
     'Elimina deste dispositivo cada conexión gardada xunto co seu token. Nos propios servidores non cambia nada.',
   'settings.removeAllConfirmButton': 'Eliminar todo',
   'settings.cancel': 'Cancelar',
+
+  'connect.relayLink': 'Non é accesible directamente? Conecta a través dun relé',
+  'relay.title': 'Conectar a través dun relé',
+  'relay.hint':
+    'Para instancias que nada nesta rede pode alcanzar directamente. Cada unha conéctase ao mesmo relé, e esta aplicación tamén. Indica o enderezo e a chave do relé tal e como os configuraches nas instancias.',
+  'relay.urlLabel': 'Enderezo do relé',
+  'relay.keyLabel': 'Chave do relé',
+  'relay.keyPlaceholder': 'a chave común das túas instancias',
+  'relay.searchButton': 'Buscar instancias',
+  'relay.errorMissing': 'Indica o enderezo do relé e a chave.',
+  'relay.errorBadUrl': 'Iso non é un enderezo de relé.',
+  'relay.errorKeyShort': 'Unha chave de relé ten polo menos {n} caracteres.',
+  'relay.instancesTitle': 'Neste relé',
+  'relay.noInstances': 'Agora mesmo non hai ningunha instancia conectada a este relé. Comproba a chave e que polo menos unha instancia estea en marcha.',
+  'relay.tokenHint': 'Só é necesario se esa instancia ten un contrasinal definido.',
+  'relay.saveButton': 'Gardar a conexión',
 };

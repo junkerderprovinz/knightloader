@@ -24,6 +24,7 @@ export const no: Dict = {
   'connections.empty': 'Ingen tilkobling lagret ennå.',
   'connections.emptyButton': 'Legg til din første tilkobling',
   'connections.remove': 'Fjern',
+  'connections.viaRelay': 'via relé {relay}',
 
   'instances.title': 'Instanser',
   'instances.subtitle': 'Alle KnightLoader-instanser som {name} kjenner til.',
@@ -87,4 +88,20 @@ export const no: Dict = {
     'Fjerner hver lagrede tilkobling og tilhørende token fra denne enheten. Det endrer ingenting på selve serverne.',
   'settings.removeAllConfirmButton': 'Fjern alle',
   'settings.cancel': 'Avbryt',
+
+  'connect.relayLink': 'Ikke direkte tilgjengelig? Koble til via et relé',
+  'relay.title': 'Koble til via relé',
+  'relay.hint':
+    'For instanser som ingenting på dette nettverket når direkte. Hver av dem ringer selv ut til det samme reléet, og det gjør denne appen også. Oppgi adressen og nøkkelen til reléet, slik de er satt opp på instansene.',
+  'relay.urlLabel': 'Reléadresse',
+  'relay.keyLabel': 'Relénøkkel',
+  'relay.keyPlaceholder': 'den felles nøkkelen til instansene dine',
+  'relay.searchButton': 'Finn instanser',
+  'relay.errorMissing': 'Oppgi reléadressen og nøkkelen.',
+  'relay.errorBadUrl': 'Det er ikke en reléadresse.',
+  'relay.errorKeyShort': 'En relénøkkel er minst {n} tegn lang.',
+  'relay.instancesTitle': 'På dette reléet',
+  'relay.noInstances': 'Ingen instanser er koblet til dette reléet akkurat nå. Sjekk nøkkelen, og at minst én instans kjører.',
+  'relay.tokenHint': 'Bare nødvendig hvis den instansen har et passord satt.',
+  'relay.saveButton': 'Lagre tilkobling',
 };

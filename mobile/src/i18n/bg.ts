@@ -24,6 +24,7 @@ export const bg: Dict = {
   'connections.empty': 'Все още няма запазена връзка.',
   'connections.emptyButton': 'Добавете първата си връзка',
   'connections.remove': 'Премахни',
+  'connections.viaRelay': 'през реле {relay}',
 
   'instances.title': 'Инстанции',
   'instances.subtitle': 'Всички инстанции на KnightLoader, които {name} познава.',
@@ -87,4 +88,20 @@ export const bg: Dict = {
     'Това премахва от това устройство всяка запазена връзка заедно с нейния токен. На самите сървъри нищо не се променя.',
   'settings.removeAllConfirmButton': 'Премахни всички',
   'settings.cancel': 'Отказ',
+
+  'connect.relayLink': 'Няма пряк достъп? Свържете се през реле',
+  'relay.title': 'Свързване през реле',
+  'relay.hint':
+    'За инстанции, до които от тази мрежа изобщо няма пряк достъп. Всяка от тях сама се свързва към същото реле, както и това приложение. Въведете адреса и ключа на релето така, както са зададени в инстанциите.',
+  'relay.urlLabel': 'Адрес на релето',
+  'relay.keyLabel': 'Ключ на релето',
+  'relay.keyPlaceholder': 'общият ключ на вашите инстанции',
+  'relay.searchButton': 'Търсене на инстанции',
+  'relay.errorMissing': 'Въведете адреса на релето и ключа.',
+  'relay.errorBadUrl': 'Това не е адрес на реле.',
+  'relay.errorKeyShort': 'Ключът на реле е дълъг поне {n} знака.',
+  'relay.instancesTitle': 'На това реле',
+  'relay.noInstances': 'В момента към това реле няма свързана нито една инстанция. Проверете ключа и дали работи поне една инстанция.',
+  'relay.tokenHint': 'Нужен е само ако за тази инстанция е зададена парола.',
+  'relay.saveButton': 'Запази връзката',
 };

@@ -24,6 +24,7 @@ export const lv: Dict = {
   'connections.empty': 'Vēl nav saglabāts neviens savienojums.',
   'connections.emptyButton': 'Pievienojiet savu pirmo savienojumu',
   'connections.remove': 'Noņemt',
+  'connections.viaRelay': 'caur releju {relay}',
 
   'instances.title': 'Instances',
   'instances.subtitle': 'Visas „KnightLoader“ instances, ko zina {name}.',
@@ -87,4 +88,20 @@ export const lv: Dict = {
     'Šī darbība no ierīces noņem katru saglabāto savienojumu kopā ar tā piekļuves marķieri. Pašos serveros nekas nemainās.',
   'settings.removeAllConfirmButton': 'Noņemt visu',
   'settings.cancel': 'Atcelt',
+
+  'connect.relayLink': 'Nav tieši sasniedzama? Savienojieties caur releju',
+  'relay.title': 'Savienojums caur releju',
+  'relay.hint':
+    'Instancēm, kuras no šī tīkla nemaz nav tieši sasniedzamas. Katra no tām pati pieslēdzas vienam un tam pašam relejam, tāpat arī šī lietotne. Ievadiet releja adresi un atslēgu tieši tā, kā tās norādītas instancēs.',
+  'relay.urlLabel': 'Releja adrese',
+  'relay.keyLabel': 'Releja atslēga',
+  'relay.keyPlaceholder': 'jūsu instanču kopīgā atslēga',
+  'relay.searchButton': 'Meklēt instances',
+  'relay.errorMissing': 'Ievadiet releja adresi un atslēgu.',
+  'relay.errorBadUrl': 'Šī nav releja adrese.',
+  'relay.errorKeyShort': 'Releja atslēgā ir vismaz {n} rakstzīmes.',
+  'relay.instancesTitle': 'Šajā relejā',
+  'relay.noInstances': 'Šobrīd ar šo releju nav savienota neviena instance. Pārbaudiet atslēgu un to, vai darbojas vismaz viena instance.',
+  'relay.tokenHint': 'Nepieciešams tikai tad, ja šai instancei ir iestatīta parole.',
+  'relay.saveButton': 'Saglabāt savienojumu',
 };

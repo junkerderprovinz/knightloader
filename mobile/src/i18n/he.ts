@@ -24,6 +24,7 @@ export const he: Dict = {
   'connections.empty': 'עדיין לא נשמר אף חיבור.',
   'connections.emptyButton': 'הוסיפו את החיבור הראשון שלכם',
   'connections.remove': 'הסרה',
+  'connections.viaRelay': 'דרך הממסר {relay}',
 
   'instances.title': 'מופעים',
   'instances.subtitle': 'כל מופעי KnightLoader ש-{name} מכיר.',
@@ -87,4 +88,20 @@ export const he: Dict = {
     'פעולה זו מסירה ממכשיר זה כל חיבור שנשמר יחד עם הטוקן שלו. בשרתים עצמם שום דבר לא משתנה.',
   'settings.removeAllConfirmButton': 'הסרת הכול',
   'settings.cancel': 'ביטול',
+
+  'connect.relayLink': 'לא נגיש ישירות? התחברו דרך ממסר',
+  'relay.title': 'התחברות דרך ממסר',
+  'relay.hint':
+    'למופעים ששום דבר ברשת הזו לא יכול להגיע אליהם ישירות. כל אחד מהם מתחבר בעצמו לאותו ממסר, וגם האפליקציה הזו. הזינו את כתובת הממסר ואת המפתח, בדיוק כפי שהוגדרו במופעים שלכם.',
+  'relay.urlLabel': 'כתובת הממסר',
+  'relay.keyLabel': 'מפתח הממסר',
+  'relay.keyPlaceholder': 'המפתח המשותף למופעים שלכם',
+  'relay.searchButton': 'חיפוש מופעים',
+  'relay.errorMissing': 'הזינו את כתובת הממסר ואת המפתח.',
+  'relay.errorBadUrl': 'זו אינה כתובת של ממסר.',
+  'relay.errorKeyShort': 'מפתח ממסר מכיל לפחות {n} תווים.',
+  'relay.instancesTitle': 'על הממסר הזה',
+  'relay.noInstances': 'כרגע אף מופע לא מחובר לממסר הזה. בדקו את המפתח, ושלפחות מופע אחד פועל.',
+  'relay.tokenHint': 'נדרש רק אם הוגדרה סיסמה למופע הזה.',
+  'relay.saveButton': 'שמירת החיבור',
 };

@@ -24,6 +24,7 @@ export const ro: Dict = {
   'connections.empty': 'Nicio conexiune salvată încă.',
   'connections.emptyButton': 'Adaugă prima ta conexiune',
   'connections.remove': 'Elimină',
+  'connections.viaRelay': 'prin releul {relay}',
 
   'instances.title': 'Instanțe',
   'instances.subtitle': 'Toate instanțele KnightLoader pe care le cunoaște {name}.',
@@ -87,4 +88,20 @@ export const ro: Dict = {
     'Elimină de pe acest dispozitiv fiecare conexiune salvată împreună cu tokenul ei. Pe servere în sine nu se schimbă nimic.',
   'settings.removeAllConfirmButton': 'Elimină tot',
   'settings.cancel': 'Anulează',
+
+  'connect.relayLink': 'Nu e accesibilă direct? Conectează-te printr-un releu',
+  'relay.title': 'Conectare prin releu',
+  'relay.hint':
+    'Pentru instanțe care nu pot fi accesate deloc direct din această rețea. Fiecare se conectează singură la același releu, la fel și această aplicație. Introdu adresa și cheia releului, așa cum sunt configurate pe instanțe.',
+  'relay.urlLabel': 'Adresa releului',
+  'relay.keyLabel': 'Cheia releului',
+  'relay.keyPlaceholder': 'cheia comună a instanțelor tale',
+  'relay.searchButton': 'Caută instanțe',
+  'relay.errorMissing': 'Introdu adresa releului și cheia.',
+  'relay.errorBadUrl': 'Aceasta nu este o adresă de releu.',
+  'relay.errorKeyShort': 'O cheie de releu are cel puțin {n} caractere.',
+  'relay.instancesTitle': 'Pe acest releu',
+  'relay.noInstances': 'Momentan nicio instanță nu este conectată la acest releu. Verifică cheia și dacă rulează cel puțin o instanță.',
+  'relay.tokenHint': 'Necesar doar dacă pentru instanța respectivă este setată o parolă.',
+  'relay.saveButton': 'Salvează conexiunea',
 };

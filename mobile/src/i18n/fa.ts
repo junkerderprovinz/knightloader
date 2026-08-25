@@ -24,6 +24,7 @@ export const fa: Dict = {
   'connections.empty': 'هنوز هیچ اتصالی ذخیره نشده است.',
   'connections.emptyButton': 'اولین اتصال خود را اضافه کنید',
   'connections.remove': 'حذف',
+  'connections.viaRelay': 'از طریق رله {relay}',
 
   'instances.title': 'نمونه‌ها',
   'instances.subtitle': 'همه نمونه‌های KnightLoader که {name} می‌شناسد.',
@@ -87,4 +88,20 @@ export const fa: Dict = {
     'این کار هر اتصال ذخیره‌شده را همراه با توکن آن از این دستگاه حذف می‌کند. در خود سرورها چیزی تغییر نمی‌کند.',
   'settings.removeAllConfirmButton': 'حذف همه',
   'settings.cancel': 'لغو',
+
+  'connect.relayLink': 'مستقیم در دسترس نیست؟ از طریق رله وصل شوید',
+  'relay.title': 'اتصال از طریق رله',
+  'relay.hint':
+    'برای نمونه‌هایی که از این شبکه اصلاً به‌طور مستقیم در دسترس نیستند. هر نمونه خودش به همان رله وصل می‌شود، این برنامه هم همین‌طور. آدرس و کلید رله را همان‌طور که روی نمونه‌ها تنظیم کرده‌اید وارد کنید.',
+  'relay.urlLabel': 'آدرس رله',
+  'relay.keyLabel': 'کلید رله',
+  'relay.keyPlaceholder': 'کلید مشترک نمونه‌های شما',
+  'relay.searchButton': 'یافتن نمونه‌ها',
+  'relay.errorMissing': 'آدرس رله و کلید را وارد کنید.',
+  'relay.errorBadUrl': 'این آدرس رله نیست.',
+  'relay.errorKeyShort': 'کلید رله دست‌کم {n} نویسه دارد.',
+  'relay.instancesTitle': 'روی این رله',
+  'relay.noInstances': 'در حال حاضر هیچ نمونه‌ای به این رله متصل نیست. کلید را بررسی کنید و اینکه دست‌کم یک نمونه در حال اجرا باشد.',
+  'relay.tokenHint': 'فقط در صورتی لازم است که برای آن نمونه گذرواژه تنظیم شده باشد.',
+  'relay.saveButton': 'ذخیره اتصال',
 };

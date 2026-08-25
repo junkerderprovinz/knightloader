@@ -24,6 +24,7 @@ export const id: Dict = {
   'connections.empty': 'Belum ada koneksi yang tersimpan.',
   'connections.emptyButton': 'Tambahkan koneksi pertama Anda',
   'connections.remove': 'Hapus',
+  'connections.viaRelay': 'melalui relai {relay}',
 
   'instances.title': 'Instansi',
   'instances.subtitle': 'Semua instansi KnightLoader yang diketahui {name}.',
@@ -87,4 +88,20 @@ export const id: Dict = {
     'Tindakan ini menghapus setiap koneksi tersimpan beserta tokennya dari perangkat ini. Tidak ada yang berubah di server itu sendiri.',
   'settings.removeAllConfirmButton': 'Hapus semua',
   'settings.cancel': 'Batal',
+
+  'connect.relayLink': 'Tidak bisa dijangkau langsung? Sambungkan lewat relai',
+  'relay.title': 'Sambungkan lewat relai',
+  'relay.hint':
+    'Untuk instansi yang sama sekali tidak bisa dijangkau langsung dari jaringan ini. Masing-masing menghubungi relai yang sama, begitu pula aplikasi ini. Masukkan alamat dan kunci relai seperti yang Anda atur di instansi.',
+  'relay.urlLabel': 'Alamat relai',
+  'relay.keyLabel': 'Kunci relai',
+  'relay.keyPlaceholder': 'kunci bersama instansi Anda',
+  'relay.searchButton': 'Cari instansi',
+  'relay.errorMissing': 'Masukkan alamat relai dan kuncinya.',
+  'relay.errorBadUrl': 'Itu bukan alamat relai.',
+  'relay.errorKeyShort': 'Kunci relai panjangnya minimal {n} karakter.',
+  'relay.instancesTitle': 'Di relai ini',
+  'relay.noInstances': 'Saat ini tidak ada instansi yang tersambung ke relai ini. Periksa kuncinya, dan pastikan setidaknya satu instansi berjalan.',
+  'relay.tokenHint': 'Hanya diperlukan jika instansi itu punya kata sandi.',
+  'relay.saveButton': 'Simpan koneksi',
 };

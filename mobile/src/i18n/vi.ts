@@ -24,6 +24,7 @@ export const vi: Dict = {
   'connections.empty': 'Chưa có kết nối nào được lưu.',
   'connections.emptyButton': 'Thêm kết nối đầu tiên của bạn',
   'connections.remove': 'Xóa',
+  'connections.viaRelay': 'qua relay {relay}',
 
   'instances.title': 'Thực thể',
   'instances.subtitle': 'Tất cả các thực thể KnightLoader mà {name} biết.',
@@ -87,4 +88,20 @@ export const vi: Dict = {
     'Thao tác này xóa khỏi thiết bị mọi kết nối đã lưu cùng token của nó. Không có gì thay đổi trên bản thân các máy chủ.',
   'settings.removeAllConfirmButton': 'Xóa tất cả',
   'settings.cancel': 'Hủy',
+
+  'connect.relayLink': 'Không truy cập trực tiếp được? Kết nối qua relay',
+  'relay.title': 'Kết nối qua relay',
+  'relay.hint':
+    'Dành cho các thực thể mà không gì trong mạng này truy cập trực tiếp được. Mỗi thực thể tự kết nối ra cùng một relay, ứng dụng này cũng vậy. Nhập địa chỉ và khóa relay đúng như đã đặt trên các thực thể của bạn.',
+  'relay.urlLabel': 'Địa chỉ relay',
+  'relay.keyLabel': 'Khóa relay',
+  'relay.keyPlaceholder': 'khóa dùng chung của các thực thể',
+  'relay.searchButton': 'Tìm thực thể',
+  'relay.errorMissing': 'Nhập địa chỉ relay và khóa.',
+  'relay.errorBadUrl': 'Đó không phải địa chỉ relay.',
+  'relay.errorKeyShort': 'Khóa relay dài ít nhất {n} ký tự.',
+  'relay.instancesTitle': 'Trên relay này',
+  'relay.noInstances': 'Hiện không có thực thể nào kết nối tới relay này. Kiểm tra khóa, và xem có ít nhất một thực thể đang chạy hay không.',
+  'relay.tokenHint': 'Chỉ cần khi thực thể đó có đặt mật khẩu.',
+  'relay.saveButton': 'Lưu kết nối',
 };

@@ -24,6 +24,7 @@ export const ar: Dict = {
   'connections.empty': 'لا يوجد اتصال محفوظ بعد.',
   'connections.emptyButton': 'أضف أول اتصال لك',
   'connections.remove': 'إزالة',
+  'connections.viaRelay': 'عبر المُرحّل {relay}',
 
   'instances.title': 'المثيلات',
   'instances.subtitle': 'كل مثيلات KnightLoader التي يعرفها {name}.',
@@ -87,4 +88,20 @@ export const ar: Dict = {
     'يؤدي هذا إلى إزالة كل اتصال محفوظ ورمزه من هذا الجهاز. لن يتغيّر شيء على الخوادم نفسها.',
   'settings.removeAllConfirmButton': 'إزالة الكل',
   'settings.cancel': 'إلغاء',
+
+  'connect.relayLink': 'يتعذر الوصول إليه مباشرة؟ اتصل عبر مُرحّل',
+  'relay.title': 'الاتصال عبر مُرحّل',
+  'relay.hint':
+    'للمثيلات التي لا يمكن الوصول إليها مباشرة من هذه الشبكة إطلاقًا. كل مثيل يتصل بالمُرحّل نفسه، وهذا التطبيق كذلك. أدخل عنوان المُرحّل ومفتاحه كما هما مضبوطان على مثيلاتك.',
+  'relay.urlLabel': 'عنوان المُرحّل',
+  'relay.keyLabel': 'مفتاح المُرحّل',
+  'relay.keyPlaceholder': 'المفتاح المشترك بين مثيلاتك',
+  'relay.searchButton': 'البحث عن المثيلات',
+  'relay.errorMissing': 'أدخل عنوان المُرحّل والمفتاح.',
+  'relay.errorBadUrl': 'هذا ليس عنوان مُرحّل.',
+  'relay.errorKeyShort': 'مفتاح المُرحّل لا يقل طوله عن {n} حرفًا.',
+  'relay.instancesTitle': 'على هذا المُرحّل',
+  'relay.noInstances': 'لا يوجد حاليًا أي مثيل متصل بهذا المُرحّل. تحقق من المفتاح، ومن أن مثيلًا واحدًا على الأقل قيد التشغيل.',
+  'relay.tokenHint': 'مطلوب فقط إذا كانت هناك كلمة مرور مضبوطة على ذلك المثيل.',
+  'relay.saveButton': 'حفظ الاتصال',
 };
