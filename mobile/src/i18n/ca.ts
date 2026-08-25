@@ -15,6 +15,12 @@ export const ca: Dict = {
   'connect.connectButton': 'Connecta',
   'connect.qrHintAddress': 'Escaneja el codi QR des de la pestanya Accés',
   'connect.qrAutofillNotice': "Nom i adreça obtinguts del codi. Aquest tipus de codi mai no inclou un token: enganxa'l a mà.",
+  'connect.findButton': 'Cerca en aquesta xarxa',
+  'connect.finding': 'Cercant en aquesta xarxa…',
+  'connect.foundNone': "No s'ha trobat res en aquesta xarxa. Escriu l'adreça a mà o escaneja el codi QR des de la pestanya Accés.",
+  'connect.foundOne': "S'ha trobat un. L'adreça ja està emplenada: enganxa un token i connecta.",
+  'connect.foundMany': "S'han trobat {n}. Tria'n un:",
+  'connect.foundPick': 'Fes servir aquest',
 
   'qr.cancel': 'Cancel·la',
   'qr.cameraPermissionHint': 'Cal accés a la càmera per escanejar el codi QR.',

@@ -15,6 +15,12 @@ export const ro: Dict = {
   'connect.connectButton': 'Conectare',
   'connect.qrHintAddress': 'Scanează codul QR din fila Acces',
   'connect.qrAutofillNotice': 'Numele și adresa au fost preluate din cod. Acest tip de cod nu conține niciodată un token - lipește-l manual.',
+  'connect.findButton': 'Caută în această rețea',
+  'connect.finding': 'Se caută în această rețea…',
+  'connect.foundNone': 'Nu s-a găsit nimic în această rețea. Introdu adresa manual sau scanează codul QR din fila Acces.',
+  'connect.foundOne': 'S-a găsit unul. Adresa este completată - lipește un token și conectează-te.',
+  'connect.foundMany': 'S-au găsit {n}. Alege unul:',
+  'connect.foundPick': 'Folosește-l pe acesta',
 
   'qr.cancel': 'Anulează',
   'qr.cameraPermissionHint': 'Este necesar accesul la cameră pentru a scana codul QR.',

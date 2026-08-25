@@ -15,6 +15,12 @@ export const gl: Dict = {
   'connect.connectButton': 'Conectar',
   'connect.qrHintAddress': 'Escanea o código QR desde a pestana Acceso',
   'connect.qrAutofillNotice': 'Nome e enderezo tomados do código. Este tipo de código nunca inclúe un token: pégao a man.',
+  'connect.findButton': 'Buscar nesta rede',
+  'connect.finding': 'Buscando nesta rede…',
+  'connect.foundNone': 'Non se atopou nada nesta rede. Escribe o enderezo a man ou escanea o código QR desde a pestana Acceso.',
+  'connect.foundOne': 'Atopouse un. O enderezo xa está posto: pega un token e conecta.',
+  'connect.foundMany': 'Atopáronse {n}. Escolle un:',
+  'connect.foundPick': 'Usar este',
 
   'qr.cancel': 'Cancelar',
   'qr.cameraPermissionHint': 'Requírese acceso á cámara para escanear o código QR.',

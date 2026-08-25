@@ -79,7 +79,9 @@ your own box.
 | **Connections** | Several outbound routes with order, credentials and a per-host filter, handed out round-robin up to a cap each. Passwords are stored, never served back. |
 | **Reconnect** | Get a new address when a hoster's limit is keyed to the one you have: run a command, replay a recorded HTTP exchange, ask the gateway over UPnP (which needs no router details at all), or run a script through a named interpreter. A recorded LiveHeader script imports as it is. An unchanged address counts as a failure, not a success. |
 | **Intake** | Paste, drop, [Click'n'Load](docs/clicknload.md) from a site's own button, a container file, or a watched folder for `.txt` and `.crawljob` files. |
-| **Multi-instance** | Register other KnightLoaders and drive them all from one dashboard. Self-hosted federation, no relay. |
+| **Multi-instance** | Register other KnightLoaders and drive them all from one dashboard. Instances on the same network announce themselves and are one click to add - nothing to configure. Two that cannot reach each other meet through a relay you host yourself. |
+| **Pairing** | One code, scanned or pasted, connects two instances in both directions and hands each side its own revocable credential. Neither side has to be reachable from the internet. See [connecting](docs/connecting.md). |
+| **Everywhere** | The web UI, a desktop build, an Android app and a browser extension all talk to the same instance, and to each other's. |
 | **Access** | An optional password lock, off by default. Same-origin API, origin-checked WebSocket. |
 | **Languages** | 42, each fetched only when chosen, right-to-left included. |
 

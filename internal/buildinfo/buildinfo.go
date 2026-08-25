@@ -36,3 +36,25 @@ var Deployment = "container"
 // admin looking at their own Access page from 127.0.0.1 has no way to see
 // for themselves, because every request they make is by definition local.
 var ListensWidely bool
+
+// ListenPort is the port this process's own HTTP listener actually resolved
+// to, or 0 for a build that opens none (the desktop).
+//
+// Read from the real listener rather than parsed out of KL_ADDR for the same
+// reason ListensWidely is: ":8749" and an ephemeral ":0" are both legal, and
+// only the resolved address knows what the second one became.
+//
+// It exists for internal/discovery, which has to put a reachable address in
+// the announce it sends before any request has ever arrived - so the usual
+// trick of reading it off r.Host (routes_remote.go) is not available there.
+var ListenPort int
+
+// DiscoveryEnabled turns on internal/discovery's multicast announce and
+// listener. Set by whichever main package is actually serving, exactly like
+// Deployment and ListensWidely.
+//
+// Off by default, and therefore off in tests: api.Handler is constructed
+// hundreds of times across the test suite, and each one starting a real
+// multicast socket and two goroutines would leak both for the life of the
+// test binary. A main that serves opts in; nothing else needs to.
+var DiscoveryEnabled bool

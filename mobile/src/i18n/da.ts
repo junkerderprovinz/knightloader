@@ -15,6 +15,12 @@ export const da: Dict = {
   'connect.connectButton': 'Opret forbindelse',
   'connect.qrHintAddress': 'Scan QR-koden fra fanen Adgang',
   'connect.qrAutofillNotice': 'Navn og adresse hentet fra koden. Denne type kode indeholder aldrig en token - indsæt den manuelt.',
+  'connect.findButton': 'Find på dette netværk',
+  'connect.finding': 'Leder på dette netværk…',
+  'connect.foundNone': 'Intet fundet på dette netværk. Indtast adressen manuelt, eller scan QR-koden fra fanen Adgang.',
+  'connect.foundOne': 'Fandt én. Adressen er udfyldt - indsæt en token, og opret forbindelse.',
+  'connect.foundMany': 'Fandt {n}. Vælg én:',
+  'connect.foundPick': 'Brug denne',
 
   'qr.cancel': 'Annuller',
   'qr.cameraPermissionHint': 'Kameraadgang er nødvendig for at scanne QR-koden.',

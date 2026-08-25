@@ -133,6 +133,13 @@ export const en = {
   'instances.name': 'Name',
   'instances.url': 'URL',
   'instances.addButton': 'Add instance',
+  'instances.needsPairing': 'Added, but that instance refused this one - it has a password set. Pair the two with a code from its Settings \u2192 Access to exchange credentials.',
+  'instances.pairNeitherWay': 'Paired, but neither instance can reach the other right now. The pairing is stored - if the other one is asleep or still starting, it will start working on its own; if not, check the address each side has for the other.',
+  'instances.pairOneWay': 'Paired, but that instance could not reach this one back - it will see this one as offline. This one can still reach it.',
+  'instances.foundTitle': 'Found on your network',
+  'instances.foundHint': 'KnightLoader instances announcing themselves on this network. Nothing is connected until you add one, and adding only stores the address - being on the same network is not permission. An instance with a password set also needs a pairing code before it will accept anything.',
+  'instances.foundAdd': 'Add',
+  'instances.foundKnown': 'already added',
   'instances.offlineWarning': 'Added, but the instance did not answer (offline?).',
   'instances.open': 'Open',
   'instances.online': 'Online',
@@ -1652,6 +1659,8 @@ export const en = {
   'quickadd.undo': 'Undo',
   'quickadd.undone': 'Removed.',
   'quickadd.openCollector': 'Open Collector',
+  'quickadd.toPeer': 'Sending to \u201c{name}\u201d.',
+  'quickadd.undoFailed': 'Could not undo this - it is still there. ({error})',
   'quickadd.close': 'Close window',
 
   // Quit/restart/backup/restore - build-plan.md's Wave 10 (10D) shipped the

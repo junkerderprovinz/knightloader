@@ -16,6 +16,12 @@ export const en = {
   'connect.connectButton': 'Connect',
   'connect.qrHintAddress': 'Scan the QR code from the Access tab',
   'connect.qrAutofillNotice': 'Name and address taken from the code. This kind of code never carries a token - paste that in by hand.',
+  'connect.findButton': 'Find on this network',
+  'connect.finding': 'Looking on this network\u2026',
+  'connect.foundNone': 'Nothing found on this network. Enter the address by hand, or scan the QR code from the Access tab.',
+  'connect.foundOne': 'Found one. The address is filled in - paste a token in and connect.',
+  'connect.foundMany': 'Found {n}. Pick one:',
+  'connect.foundPick': 'Use this one',
 
   'qr.cancel': 'Cancel',
   'qr.cameraPermissionHint': 'Camera access is needed to scan the QR code.',

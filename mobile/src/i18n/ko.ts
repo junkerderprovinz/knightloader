@@ -15,6 +15,12 @@ export const ko: Dict = {
   'connect.connectButton': '연결',
   'connect.qrHintAddress': '접근 탭의 QR 코드를 스캔하세요',
   'connect.qrAutofillNotice': '이름과 주소는 코드에서 가져왔습니다. 이런 종류의 코드에는 토큰이 포함되지 않습니다. 토큰은 직접 붙여넣으세요.',
+  'connect.findButton': '이 네트워크에서 찾기',
+  'connect.finding': '이 네트워크에서 찾는 중…',
+  'connect.foundNone': '이 네트워크에서 아무것도 찾지 못했습니다. 주소를 직접 입력하거나 접근 탭의 QR 코드를 스캔하세요.',
+  'connect.foundOne': '하나 찾았습니다. 주소는 입력되었습니다. 토큰을 붙여넣고 연결하세요.',
+  'connect.foundMany': '{n}개를 찾았습니다. 하나를 선택하세요:',
+  'connect.foundPick': '이것 사용',
 
   'qr.cancel': '취소',
   'qr.cameraPermissionHint': 'QR 코드를 스캔하려면 카메라 접근 권한이 필요합니다.',

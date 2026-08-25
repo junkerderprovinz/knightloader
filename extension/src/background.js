@@ -114,7 +114,15 @@ async function sendToInstance(payload) {
     return;
   }
   if (instances.length === 1) {
-    openQuickAdd(instances[0].url, payload);
+    const only = entryTarget(instances[0]);
+    // An entry with no address and no forwarder is one nothing can be sent
+    // to. Options is where that is fixed, and it is where the reason is
+    // shown - better than a window that opens on nothing.
+    if (!only) {
+      chrome.runtime.openOptionsPage();
+      return;
+    }
+    openQuickAdd(only.origin, { ...payload, to: only.to });
     return;
   }
   await chrome.storage.session.set({ pendingSend: { payload, defaultName } });

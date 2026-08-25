@@ -15,6 +15,12 @@ export const zh: Dict = {
   'connect.connectButton': '连接',
   'connect.qrHintAddress': '扫描"访问"标签页中的二维码',
   'connect.qrAutofillNotice': '名称和地址已从二维码中获取。这类二维码不会包含令牌，请手动粘贴。',
+  'connect.findButton': '在本网络中查找',
+  'connect.finding': '正在本网络中查找…',
+  'connect.foundNone': '在本网络中没有找到任何服务器。请手动输入地址，或扫描"访问"标签页中的二维码。',
+  'connect.foundOne': '找到一个。地址已自动填好，粘贴令牌即可连接。',
+  'connect.foundMany': '找到 {n} 个。请选择一个：',
+  'connect.foundPick': '使用这个',
 
   'qr.cancel': '取消',
   'qr.cameraPermissionHint': '扫描二维码需要相机权限。',
