@@ -11,7 +11,7 @@ require (
 	github.com/dop251/goja v0.0.0-20260822123354-58e940e0d230
 	github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707
 	github.com/klauspost/compress v1.19.2
-	github.com/nwaples/rardecode/v2 v2.3.0
+	github.com/nwaples/rardecode/v2 v2.4.1
 	github.com/ulikunitz/xz v0.5.16
 	golang.org/x/crypto v0.55.0
 	golang.org/x/mod v0.40.0
