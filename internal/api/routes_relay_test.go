@@ -273,3 +273,84 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 		t.Fatalf("the app's own /api/tasks answered unparseable JSON through the relay: %v (%s)", err, inBody)
 	}
 }
+
+// TestChangingInstanceNameReconnectsTheRelayClient: the relay only learns a
+// display name once, in the hello frame a connection opens with - a name
+// changed afterwards on Settings has to reconnect the client, or every
+// sibling keeps showing the old one until something else happens to drop the
+// connection. Caught live on the actual Bottich deployment before this test
+// existed: two real instances configured with the same relay showed each
+// other's container hostname long after both had a proper InstanceName set.
+func TestChangingInstanceNameReconnectsTheRelayClient(t *testing.T) {
+	relaySrv := httptest.NewServer(relay.New())
+	defer relaySrv.Close()
+
+	srv, _ := testServer(t)
+	defer srv.Close()
+
+	const key = "instance-name-reconnect-test-key"
+	if code, _ := putRelayConfig(t, srv.URL, `{"relayUrl":"`+relaySrv.URL+`","key":"`+key+`"}`); code != http.StatusOK {
+		t.Fatalf("PUT /api/relay/config failed: %d", code)
+	}
+
+	observer, err := relay.NewClient(relay.ClientOptions{
+		URL:  relaySrv.URL,
+		Key:  key,
+		Self: relay.Announce{InstanceID: "observer-1", Name: "Observer", Deployment: "container"},
+	})
+	if err != nil {
+		t.Fatalf("build observer client: %v", err)
+	}
+	observer.Start()
+	defer observer.Close()
+
+	waitForSiblingName := func(want string) {
+		t.Helper()
+		deadline := time.Now().Add(5 * time.Second)
+		var last string
+		for time.Now().Before(deadline) {
+			for _, sib := range observer.Siblings() {
+				last = sib.Name
+				if sib.Name == want {
+					return
+				}
+			}
+			time.Sleep(20 * time.Millisecond)
+		}
+		t.Fatalf("observer never saw sibling name %q, last seen %q", want, last)
+	}
+	waitForAnySibling := func() {
+		t.Helper()
+		deadline := time.Now().Add(5 * time.Second)
+		for time.Now().Before(deadline) {
+			if len(observer.Siblings()) > 0 {
+				return
+			}
+			time.Sleep(20 * time.Millisecond)
+		}
+		t.Fatal("observer never saw the app connect at all")
+	}
+
+	// Before any InstanceName is set, the app announces under its hostname -
+	// whatever that is, it is not yet "Renamed Instance".
+	waitForAnySibling()
+	if got := observer.Siblings()[0].Name; got == "Renamed Instance" {
+		t.Fatal("the app announced the not-yet-set name before it was ever saved")
+	}
+
+	req, err := http.NewRequest(http.MethodPatch, srv.URL+"/api/settings", bytes.NewReader([]byte(`{"instanceName":"Renamed Instance"}`)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("PATCH /api/settings answered %d", resp.StatusCode)
+	}
+
+	waitForSiblingName("Renamed Instance")
+}

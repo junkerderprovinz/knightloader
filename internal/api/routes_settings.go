@@ -47,10 +47,18 @@ func registerSettings(reg *Registry, a *app.App) {
 				writeValidationError(w, err)
 				return
 			}
+			before := a.Settings.Get().InstanceName
 			applied, err := a.ApplySettings(s)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
+			}
+			// Same reasoning as PATCH's own call below: the relay only learns
+			// this instance's display name once, at connect time, so a
+			// changed name has to reconnect the relay client to actually
+			// reach any sibling.
+			if applied.InstanceName != before {
+				applyRelay(a)
 			}
 			writeJSON(w, settingsBody(a, applied))
 		})
@@ -99,6 +107,18 @@ func registerSettings(reg *Registry, a *app.App) {
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
+			}
+			// The relay only learns this instance's display name once, in the
+			// hello frame a connection opens with (see protocol.go's own
+			// comment: clients never send a later announce, only their
+			// initial one) - so a name changed here would otherwise sit
+			// stale on every sibling's Instances page until something else
+			// happened to reconnect the relay client. Reconnecting on every
+			// unrelated settings save would be wasteful; this only fires when
+			// the patch actually touched the one field the relay announce is
+			// built from.
+			if _, ok := patch["instanceName"]; ok {
+				applyRelay(a)
 			}
 			writeJSON(w, settingsBody(a, applied))
 		})
