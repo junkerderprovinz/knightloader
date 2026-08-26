@@ -106,20 +106,17 @@ const PENDING = {
   'settings.access.identity.domainsHint':
     'Remembered automatically the first time a request actually arrives on one, so it stays listed here even when later requests come in over the LAN IP instead. Add one by hand for a domain that is already configured but has not been visited through yet - one full address per line, e.g. https://kl.example.com.',
 
-  // Renamed from "Install as an app" and re-scoped (jdp, 2026-08-26: "die
-  // jetzige funktion die in der i infobubble beschrieben ist will ich
-  // nicht... dort sollen die Verlinkungen zum Play Store und App Store
-  // stehen") - the card now leads with the native apps KnightLoader
-  // actually ships (desktop, Android, iOS), with installing this page
-  // itself kept as the smaller, still-real third option rather than the
-  // card's whole premise.
-  'settings.access.remote.installTitle': 'Get the app',
-  'settings.access.remote.installBody':
-    'Native apps for desktop, Android and iOS - this page can also be installed straight from your browser, without either.',
-  'settings.access.remote.storeAndroid': 'Google Play',
-  'settings.access.remote.storeIOS': 'App Store',
-  'settings.access.remote.storeComingSoon': 'Not published yet.',
-  'settings.access.remote.installPwaLabel': 'Or install this page as an app',
+  // installTitle/installBody/storeAndroid/storeIOS/storeComingSoon/
+  // installPwaLabel are real, fully-translated locale keys now (jdp,
+  // 2026-08-26 rescope: "die jetzige funktion die in der i infobubble
+  // beschrieben ist will ich nicht... dort sollen die Verlinkungen zum Play
+  // Store und App Store stehen") - not listed here, because installTitle
+  // and installBody already existed in every locale file from an earlier
+  // wave, and a PENDING entry here would have been silently shadowed by
+  // that real value instead of overriding it (t(key) is checked before
+  // PENDING[key], never the other way around) - the exact bug this file's
+  // own comment about "not in en.ts yet" no longer describes for these six
+  // keys, and almost caused this rescope to ship invisibly.
   'settings.access.remote.install': 'Install',
   'settings.access.remote.installIOS':
     'On iPhone or iPad: open this page in Safari, tap Share, then "Add to Home Screen".',
@@ -153,30 +150,21 @@ const PENDING = {
     'No relay key is stored, so nothing can connect to this relay yet. Set one below, and give the other instances the same one.',
 
   'settings.access.relay.title': 'Relay',
-  // Rewritten (jdp, 2026-08-26: "Das ist alles viel zu kompliziert! die
-  // infotexte sind verwirrend... Wo muss man die relayadresse in der
-  // anderen instanz eingeben? ... Muss die Relayadresse keine domain
-  // sein?") to state the two things a first-time relay user actually needs
-  // and never found stated outright: the SAME address+key goes into this
-  // same spot on every instance you connect, and a domain is not required.
-  // The card's shape (one merged pairing+relay card, folded relay section)
-  // stays - the problem measured out to be the copy, not the layout.
-  'settings.access.relay.body':
-    'A relay is a small server both instances dial out to, so two KnightLoaders that cannot reach each other directly - each behind its own router - still find each other through it. Set one relay up (self-host it, or run it on one of your own instances below), then enter that exact same address and key on every instance you want connected to it, including this one.',
+  // body/urlPlaceholder/urlHint/bothSidesHint/keyHint are real,
+  // fully-translated locale keys now, rewritten (jdp, 2026-08-26: "Das ist
+  // alles viel zu kompliziert! die infotexte sind verwirrend... Wo muss man
+  // die relayadresse in der anderen instanz eingeben? ... Muss die
+  // Relayadresse keine domain sein?") to state the two things a first-time
+  // relay user actually needs and never found stated outright: the SAME
+  // address+key goes into this same spot on every instance you connect,
+  // and a domain is not required. Not listed here for the same shadowing
+  // reason as the install keys above - see that comment. The card's shape
+  // (one merged pairing+relay card, folded relay section) stays unchanged;
+  // the problem measured out to be the copy, not the layout.
   'settings.access.relay.selfHosted':
     'Nobody runs a relay for you. It is a separate binary you host yourself, the same way you already host KnightLoader, and it only routes messages between your own instances: no download and no file byte ever travels over it. Leaving this empty changes nothing about the rest of this page.',
   'settings.access.relay.urlLabel': 'Relay address',
-  'settings.access.relay.urlPlaceholder': 'https://relay.example.com or http://192.168.1.10:8443',
-  'settings.access.relay.urlHint':
-    "Where the relay itself answers. It does not have to be a domain - a plain IP address and port work fine as long as every connecting instance can reach it. Use https:// with a real domain once the relay needs to be reached from outside your own network; a bare IP with http:// is fine for a same-network test. Clearing it disconnects from the relay and leaves every other way of reaching this instance untouched.",
-  // Placed directly beside the address+key fields (not only in the body
-  // paragraph above) so it is read at the moment of the actual question,
-  // not buried above a scroll of unrelated toggles.
-  'settings.access.relay.bothSidesHint':
-    'Enter the same address and key here that you enter on this same page of every other instance you want to connect - a relay only introduces instances that were both told about it.',
   'settings.access.relay.keyLabel': 'Relay key',
-  'settings.access.relay.keyHint':
-    'One shared secret is the whole of the authorisation, so every instance that should see the others gets the same one. It is stored encrypted here, like a debrid key, and is never shown again once saved - if it is lost, make a new one and enter that same key everywhere, on every instance.',
   'settings.access.relay.keyPlaceholderSet': 'Stored. Type a new key to replace it.',
   'settings.access.relay.keyPlaceholderUnset': 'Paste the relay key',
   'settings.access.relay.keySet': 'Key stored',
@@ -420,6 +408,11 @@ function ExposedWarningBanner({ cx }: { cx: (k: PendingKey) => string }) {
 // which apps exist has nothing to do with network-reachability fetch
 // state.
 function GetTheAppCard({ cx }: { cx: (k: PendingKey) => string }) {
+  // installTitle/installBody/installPwaLabel are real, translated locale
+  // keys (see the PENDING map's own comment on why they are not listed
+  // there) - read via t(), not cx(), same as install/installIOS just below
+  // stay on cx() because those two are still PENDING-only.
+  const { t } = useT();
   const { available: canInstall, promptInstall } = useInstallPrompt();
   // Safari (desktop and iOS) never fires beforeinstallprompt, so
   // useInstallPrompt's `available` is permanently false there - this is the
@@ -429,17 +422,17 @@ function GetTheAppCard({ cx }: { cx: (k: PendingKey) => string }) {
 
   return (
     <Card className="flex flex-col gap-4">
-      <SectionTitle hue={3} hint={cx('settings.access.remote.installBody')}>
-        {cx('settings.access.remote.installTitle')}
+      <SectionTitle hue={3} hint={t('settings.access.remote.installBody')}>
+        {t('settings.access.remote.installTitle')}
       </SectionTitle>
       <div className="flex flex-wrap gap-3">
-        <StoreButton store="android" cx={cx} />
-        <StoreButton store="ios" cx={cx} />
+        <StoreButton store="android" />
+        <StoreButton store="ios" />
       </div>
       {(canInstall || iOS) && (
         <div className="flex flex-col gap-2 border-t border-carbon-border/40 pt-4">
           <span className="text-xs font-semibold text-carbon-textSub">
-            {cx('settings.access.remote.installPwaLabel')}
+            {t('settings.access.remote.installPwaLabel')}
           </span>
           {canInstall && (
             <div>
@@ -470,14 +463,15 @@ const APP_STORE_URLS: Record<'android' | 'ios', string> = {
   ios: '',
 };
 
-function StoreButton({ store, cx }: { store: 'android' | 'ios'; cx: (k: PendingKey) => string }) {
+function StoreButton({ store }: { store: 'android' | 'ios' }) {
+  const { t } = useT();
   const url = APP_STORE_URLS[store];
-  const label = cx(store === 'android' ? 'settings.access.remote.storeAndroid' : 'settings.access.remote.storeIOS');
+  const label = t(store === 'android' ? 'settings.access.remote.storeAndroid' : 'settings.access.remote.storeIOS');
   return (
     <Button
       kind="secondary"
       disabled={!url}
-      title={url ? undefined : cx('settings.access.remote.storeComingSoon')}
+      title={url ? undefined : t('settings.access.remote.storeComingSoon')}
       onClick={() => url && window.open(url, '_blank', 'noopener,noreferrer')}
     >
       {label}
@@ -901,7 +895,7 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
             {relayOpen ? '−' : '+'}
           </span>
         </button>
-        <InfoBubble tip={`${cx('settings.access.relay.body')} ${cx('settings.access.relay.selfHosted')}`} />
+        <InfoBubble tip={`${t('settings.access.relay.body')} ${cx('settings.access.relay.selfHosted')}`} />
         </div>
 
         {relayOpen && (
@@ -974,19 +968,19 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
                 where the address on the OTHER instance goes, right beside
                 the fields it's about, rather than only in the body
                 paragraph above. */}
-            <p className="text-[11px] text-carbon-textMuted">{cx('settings.access.relay.bothSidesHint')}</p>
+            <p className="text-[11px] text-carbon-textMuted">{t('settings.access.relay.bothSidesHint')}</p>
 
-            <Field label={cx('settings.access.relay.urlLabel')} hint={cx('settings.access.relay.urlHint')}>
+            <Field label={cx('settings.access.relay.urlLabel')} hint={t('settings.access.relay.urlHint')}>
               <TextInput
                 dir="ltr"
                 spellCheck={false}
-                placeholder={cx('settings.access.relay.urlPlaceholder')}
+                placeholder={t('settings.access.relay.urlPlaceholder')}
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
               />
             </Field>
 
-            <Field label={cx('settings.access.relay.keyLabel')} hint={cx('settings.access.relay.keyHint')}>
+            <Field label={cx('settings.access.relay.keyLabel')} hint={t('settings.access.relay.keyHint')}>
               <TextInput
                 type="password"
                 dir="ltr"
