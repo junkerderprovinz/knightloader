@@ -139,16 +139,19 @@ unprotected instance leaking it therefore escalates beyond itself.
 
 Two rules follow:
 
-1. **Remote access can only be activated on an instance that has a password
-   set.** Making an instance reachable from anywhere with no password is
-   already the condition the exposure warning shouts about; here it also
-   risks the *other* instances, so it becomes a hard gate rather than a
-   warning. The UI explains this at the point of refusal, with the password
-   field one click away.
-2. **Revealing the phrase requires re-entering that password**, not merely
-   holding a session. The same pattern GitHub uses before showing a token
-   again. A session that was opened hours ago on an unattended screen is not
-   evidence that the person now looking at it is the owner.
+1. **Activating remote access without a password set is warned about, loudly,
+   but not blocked** (jdp's call, 2026-08-27, against the recommendation of a
+   hard gate). The warning must say the non-obvious part outright — that this
+   phrase reaches *every* instance in the group, so an unprotected instance
+   puts the others at risk too, not only itself. "Set a password" is offered
+   inline; proceeding anyway is one deliberate click, not a dismissable
+   banner that a person can scroll past without reading.
+2. **Revealing the phrase again requires re-entering the password**, whenever
+   one is set — not merely holding a session. The same pattern GitHub uses
+   before showing a token again: a session opened hours ago on an unattended
+   screen is not evidence that the person now looking at it is the owner.
+   With no password set there is nothing to re-enter and the phrase is shown
+   directly, which is the consequence rule 1 accepts.
 
 Storage is unchanged from the previous spec: the encrypted account store
 (`internal/accounts`, AES-256-GCM, per-install `.keyring`), the same place
@@ -217,7 +220,8 @@ restart costs the current connection list, which repopulates in seconds.
 - Checksum rejects a single-word typo, and the error names *which* word.
 - Two instances with the same phrase see each other through a real relay
   process; two with different phrases do not.
-- Activation is refused with no password set, and the refusal explains why.
+- Activation with no password set warns before proceeding, and the warning
+  names the group-wide consequence rather than only this instance's.
 - Reveal requires the password; a valid session alone is not enough.
 - Rate limit: repeated bad handshakes from one address back off, and a
   legitimate handshake from another address is unaffected.
@@ -233,14 +237,29 @@ restart costs the current connection list, which repopulates in seconds.
    containers.
 6. `docs/connecting.md` rewritten around the phrase as the primary path.
 
-## Open questions for jdp
+## Decisions taken (2026-08-27)
 
-1. **Domain** — `relay.braethoria.com`, or a KnightLoader-specific domain
-   worth registering before the repo goes public?
-2. **Hard password gate** — agreed, or should it be a loud warning that can
-   be clicked past? (Recommendation: hard gate. The phrase reaches every
-   instance in the group, not only this one.)
-3. **Default for existing installs** — instances that already use Tailscale
-   or a self-hosted relay: leave them exactly as they are, or offer a
-   one-time "switch to the simpler way" prompt? (Recommendation: leave them;
-   a working setup should never be interrupted by a new option.)
+- **Password gate** — loud warning, not a hard block. Settled above.
+- **Existing installs** — not a question. KnightLoader is unpublished; the
+  only installs are jdp's own preview containers, and there is no migration
+  problem to design around. The one-time "switch to the simpler way" prompt
+  the draft proposed is dropped entirely rather than built for nobody.
+
+## Open question
+
+**The domain.** This is the one decision that cannot be revised later: the
+relay address is compiled into every released binary, so it must be a name
+that stays registered and pointed at a working relay for as long as any
+released copy of KnightLoader exists. Changing it breaks every install that
+already shipped.
+
+That rules out reusing `bottich.lol`: a `.lol` address in the source of a
+security-relevant service reads as a joke or a compromise to anyone who does
+not know whose it is, and it ties the product's permanent identity to jdp's
+personal homelab domain — the same coupling he wanted to avoid by not
+hosting the relay on his own server in the first place.
+
+Recommendation: register a KnightLoader-specific domain before deploying
+(e.g. `knightloader.app`, ~12-15 €/year, and `.app` is HSTS-preloaded so
+HTTPS is enforced at the browser level). It doubles as the eventual home for
+the site, docs and downloads, so it is not a cost carried by the relay alone.
