@@ -173,7 +173,7 @@ func pairingSelf(r *http.Request, a *app.App) (name, url, relayID string, ok boo
 	// all" - which is the question that was always really being asked.
 	if buildinfo.Deployment != "desktop" {
 		known := a.Settings.Get().KnownDomains
-		addrs := remoteAddresses(r, known)
+		addrs := remoteAddresses(r, known, tsnetFunnelURL(a))
 		if u, found := preferredAddress(addrs); found {
 			url = u
 		} else if len(addrs) > 0 {

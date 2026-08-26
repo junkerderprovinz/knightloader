@@ -2097,6 +2097,42 @@ export async function saveRelayConfig(relayUrl: string, key?: string, serve?: bo
   );
 }
 
+/** What GET /api/tsnet/status answers with - tsnetsrv.Info. */
+export interface TsnetInfo {
+  status: 'off' | 'connecting' | 'connected' | 'error';
+  /** Set only while status is "connecting" - the login link to open to
+   *  finish connecting. Empty once connected: there is nothing left to
+   *  click. */
+  authUrl?: string;
+  /** The public https:// address once Funnel is up - reachable by a phone,
+   *  the browser extension, or another KnightLoader, none of which need
+   *  Tailscale installed on their own side. */
+  funnelUrl?: string;
+  hostname?: string;
+  /** Up()'s or the funnel listener's failure message verbatim, most
+   *  commonly Funnel never having been turned on for this Tailscale
+   *  account - see settings.access.tsnet.funnelErrorHint. */
+  error?: string;
+}
+
+export async function fetchTsnetStatus(): Promise<TsnetInfo> {
+  return json<TsnetInfo>(await fetch('/api/tsnet/status'));
+}
+
+export async function startTsnet(hostname?: string): Promise<TsnetInfo> {
+  return json<TsnetInfo>(
+    await fetch('/api/tsnet/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ hostname: hostname ?? '' }),
+    }),
+  );
+}
+
+export async function stopTsnet(): Promise<TsnetInfo> {
+  return json<TsnetInfo>(await fetch('/api/tsnet/stop', { method: 'POST' }));
+}
+
 /**
  * connectWS opens the live task, queue and activity stream and
  * auto-reconnects. Returns a closer.

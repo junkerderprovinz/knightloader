@@ -52,6 +52,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/knightloader/internal/store"
 	"github.com/junkerderprovinz/knightloader/internal/throttle"
+	"github.com/junkerderprovinz/knightloader/internal/tsnetsrv"
 	"github.com/junkerderprovinz/knightloader/internal/watch"
 )
 
@@ -99,7 +100,17 @@ type App struct {
 	Accounts   *accounts.Store
 	Settings   *settings.Store
 	Federation *federation.Manager
-	Auth       *auth.Guard
+	// Tsnet is this instance's Tailscale/Funnel connection - see
+	// internal/tsnetsrv's own package doc for why it exists and
+	// internal/api/routes_tsnet.go for the login flow it exposes. A field
+	// here rather than a routes_tsnet.go-local variable (the shape
+	// registerRelay's own srv := relay.New() uses for ITS inbound side)
+	// because routes_remote.go, a different register* function, also needs
+	// to read its current funnel address for the QR/pairing address list -
+	// the same cross-file reachability Federation above already solves the
+	// same way.
+	Tsnet *tsnetsrv.Manager
+	Auth  *auth.Guard
 	// APITokens are named, individually revocable credentials that satisfy
 	// the same session guard a password does (see api.authenticated) without
 	// sharing its one secret. See internal/apitoken's own package comment
@@ -372,6 +383,12 @@ func New(dataDir string) (*App, error) {
 	// backend handles this link" despite torrent.Resolver.Match already
 	// recognising it.
 	a.Registry.Register(torrent.Resolver{})
+	// Read lazily by the closure, not captured now: SetSelfServeHandler is one
+	// of api.Handler's own LAST lines, well after this constructor returns -
+	// a nil captured this early would serve nothing on the funnel listener
+	// forever. By the time Funnel is actually up (after a real login
+	// round-trip, never before) this always has a real value.
+	a.Tsnet = tsnetsrv.New(filepath.Join(dataDir, "tsnet"), func() http.Handler { return a.SelfServeHandler() })
 
 	eng, err := engine.New(filepath.Join(dataDir, "downloads"), a.onUpdate)
 	if err != nil {
