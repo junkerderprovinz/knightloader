@@ -417,7 +417,7 @@ func putYtdlpFamily(t *testing.T, a *App, url string, subs map[ytdlp.Variant]str
 var testProbeFormats = []ytdlp.FormatEntry{
 	{FormatID: "160", Ext: "mp4", Vcodec: "avc1.4d400b", Acodec: "none", Height: 144, Filesize: 195278},
 	{FormatID: "137", Ext: "mp4", Vcodec: "avc1.640028", Acodec: "none", Height: 1080, FilesizeApprox: 52428800},
-	{FormatID: "140", Ext: "m4a", Vcodec: "none", Acodec: "mp4a.40.2", Filesize: 3145728},
+	{FormatID: "140", Ext: "m4a", Vcodec: "none", Acodec: "mp4a.40.2", Filesize: 3145728, Abr: 129},
 	{FormatID: "18", Ext: "mp4", Vcodec: "avc1.42001E", Acodec: "mp4a.40.2", Height: 360, Filesize: 8388608},
 }
 
@@ -519,6 +519,31 @@ func TestApplyProbeFormatsSetsAvailableAudioFormats(t *testing.T) {
 	live := snapshot(t, a, family[ytdlp.VariantAudio].ID)
 	if got := live.AvailableAudioFormats; len(got) != 2 || got[0] != "best" || got[1] != "m4a" {
 		t.Errorf("AvailableAudioFormats = %v, want exactly [best m4a]", got)
+	}
+}
+
+// TestApplyProbeFormatsSetsAvailableAudioBitrates is [87]/[88]'s own
+// bitrate case (jdp, 2026-08-26: "auch die audioqualitäten! bei allen
+// hostern!"): testProbeFormats' own audio-only entry reports abr=129, so
+// the bitrate menu keeps Auto/64/96/128 and drops 160 and above.
+func TestApplyProbeFormatsSetsAvailableAudioBitrates(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	const url = "https://youtube.com/watch?v=bitrates0001"
+	family := putYtdlpFamily(t, a, url, nil)
+
+	a.applyProbeFormats(url, testProbeFormats)
+
+	live := snapshot(t, a, family[ytdlp.VariantAudio].ID)
+	want := []string{"", "64", "96", "128"}
+	got := live.AvailableAudioBitrates
+	if len(got) != len(want) {
+		t.Fatalf("AvailableAudioBitrates = %v, want %v", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Errorf("AvailableAudioBitrates = %v, want %v", got, want)
+			break
+		}
 	}
 }
 

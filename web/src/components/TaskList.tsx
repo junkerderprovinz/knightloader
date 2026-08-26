@@ -170,6 +170,7 @@ function TaskRow({
   index,
   dnd,
   onSelect,
+  onOpenProperties,
 }: {
   task: Task;
   base: string;
@@ -185,6 +186,16 @@ function TaskRow({
    *  itself. Absent wherever selection is (Downloads.tsx renders no
    *  checkbox column and takes no selection prop today either). */
   onSelect?: (e: { ctrlKey: boolean; metaKey: boolean; shiftKey: boolean }) => void;
+  /** Opens the properties panel for whatever a single click just selected
+   *  (jdp, 2026-08-26: "wenn man einmal auf einen link oder einen ordner
+   *  klickt kommt sofort die eigenschaften card. die soll erst erscheinen
+   *  bei doppelklick" - a plain click used to open it immediately as a
+   *  side effect of selecting anything at all, which made a quick
+   *  multi-select impossible without the panel flashing open and shut on
+   *  every intermediate click). The double-click's own leading single
+   *  click already ran onSelect above by the time this fires - no
+   *  modifier keys to read here, only "show it now". */
+  onOpenProperties?: () => void;
 }) {
   const { t } = useT();
   const [options, setOptions] = useState(false);
@@ -245,6 +256,10 @@ function TaskRow({
         if (e.target instanceof Element && e.target.closest(CONTROL)) return;
         onSelect?.(e);
       }}
+      onDoubleClick={(e) => {
+        if (e.target instanceof Element && e.target.closest(CONTROL)) return;
+        onOpenProperties?.();
+      }}
       // select-none, only while a drag is actually possible: without it, a
       // real mouse press-and-drag that starts over the row's own text (the
       // name or URL column - the columns a hand naturally lands on) is read
@@ -255,14 +270,18 @@ function TaskRow({
       // guard) - this row was the one place it had been missed. Left
       // selectable when dnd is off (a sorted view) since nothing here
       // competes with it then.
+      // bg-accent/20, not the softer bg-accentSoft token this used at first
+      // (jdp, 2026-08-26: "wenn eine zeile ausgewählt ist erkennt man das
+      // nicht" - accentSoft is 14% alpha, chosen for a hover/drag hint that
+      // is meant to stay quiet, and a selected row wants the opposite: a
+      // mark somebody actually notices). A real background-color layered
+      // over glim-tint's own inset box-shadow rainbow wash rather than
+      // fighting it for the same CSS property, so both show at once.
       className={`glim-hue glim-tint ${dnd.enabled ? 'select-none' : ''} ${task.status === 'running' ? 'glim-active' : ''} ${dragging ? 'opacity-50' : ''} ${
-        selection?.ids.has(task.id) ? 'bg-accentSoft' : ''
+        selection?.ids.has(task.id) ? 'bg-accent/20' : ''
       } group relative grid
         items-center px-3 py-2 transition-colors hover:bg-carbon-hover/50`}
     >
-      {/* Grid alignment only - GUTTER_LEAD's own doc comment (columns.tsx). */}
-      <div />
-
       {columns.map((col) => {
         const node = col.render(task, ctx);
         return (
@@ -419,7 +438,6 @@ function PackageName({
 }) {
   const { t } = useT();
   const done = items.filter((x) => x.status === 'done').length;
-  const online = items.filter((x) => x.online === 'online').length;
   const label = t(collapsed ? 'task.expand' : 'task.collapse');
 
   const count = `${items.length} ${items.length === 1 ? t('task.file') : t('task.files')}${
@@ -463,16 +481,17 @@ function PackageName({
       >
         {name || t('task.ungrouped')}
       </span>
-      {/* Both counts hang on the name's title as well, so a column too narrow to
-          show them has not hidden anything that cannot be got at. */}
+      {/* The count hangs on the name's title as well, so a column too narrow to
+          show it has not hidden anything that cannot be got at. Its own online
+          ratio used to print here too ("5/5 online") - removed (jdp,
+          2026-08-26: "wenn der statuspunkt grün ist sind ja alle online" -
+          the package's own aggregate dot in the Status column, colours
+          it exactly that already; printing the same fact a second time in
+          words was the one column where a package read differently from
+          its own status cell). */}
       <span className="glim-num hidden shrink-0 whitespace-nowrap text-[11px] text-carbon-textSub @[13rem]:inline">
         {count}
       </span>
-      {online > 0 && (
-        <span className="glim-num hidden shrink-0 whitespace-nowrap text-[11px] text-carbon-textMuted @[17rem]:inline">
-          {t('task.onlineRatio', { online, total: items.length })}
-        </span>
-      )}
     </div>
   );
 }
@@ -647,6 +666,8 @@ function PackageGroup({
   dnd,
   onSelect,
   onSelectTask,
+  onOpenProperties,
+  onOpenPropertiesTask,
 }: {
   name: string;
   items: Task[];
@@ -666,6 +687,11 @@ function PackageGroup({
   /** The same selection engine, for one child row rather than the whole
    *  package - forwarded to each TaskRow below as its own onSelect. */
   onSelectTask?: (id: string, e: { ctrlKey: boolean; metaKey: boolean; shiftKey: boolean }) => void;
+  /** TaskRow's own onOpenProperties, for a double-click on the package
+   *  header itself. */
+  onOpenProperties?: () => void;
+  /** Forwarded to each child TaskRow as its own onOpenProperties. */
+  onOpenPropertiesTask?: (id: string) => void;
 }) {
   const allSelected = selection && items.every((x) => selection.ids.has(x.id));
   const dragging = dnd.draggingPackage === name;
@@ -687,6 +713,10 @@ function PackageGroup({
         onClick={(e) => {
           if (e.target instanceof Element && e.target.closest(CONTROL)) return;
           onSelect?.(e);
+        }}
+        onDoubleClick={(e) => {
+          if (e.target instanceof Element && e.target.closest(CONTROL)) return;
+          onOpenProperties?.();
         }}
         // Drags the whole package as one block — see TaskRow's own drag
         // handlers above for the identical pattern applied to one link.
@@ -711,11 +741,8 @@ function PackageGroup({
         // the links inside it sit on the card, which is the whole of the weight
         // difference between a container and its contents.
         className={`grid cursor-pointer select-none items-center bg-carbon-surface2/80 px-3 py-2.5
-          transition-colors hover:bg-carbon-surface2 ${dragging ? 'opacity-50' : ''} ${allSelected ? 'bg-accentSoft' : ''}`}
+          transition-colors hover:bg-carbon-surface2 ${dragging ? 'opacity-50' : ''} ${allSelected ? 'bg-accent/20' : ''}`}
       >
-        {/* Grid alignment only - GUTTER_LEAD's own doc comment (columns.tsx). */}
-        <div />
-
         {columns.map((col) => (
           <div
             key={col.id}
@@ -753,6 +780,7 @@ function PackageGroup({
               selection={selection}
               dnd={dnd}
               onSelect={onSelectTask ? (e) => onSelectTask(x.id, e) : undefined}
+              onOpenProperties={onOpenPropertiesTask ? () => onOpenPropertiesTask(x.id) : undefined}
             />
           ))}
         </div>
@@ -834,18 +862,6 @@ function Header({
       }}
       className="grid items-center border-b border-carbon-border/60 px-3 py-1 select-none"
     >
-      {/* One bubble for the whole row, not one per column (SelectionStrip's own
-          `<InfoBubble tip={t('remove.keys')} />` is the same call: a repeated
-          small control explained once rather than on every instance of it) —
-          a column header already carries its own visible label, so a native
-          `title` repeating "sort by this column" forty columns over was the
-          plain-tooltip case this app's own convention puts behind a bubble
-          instead. columns.headerHint now covers sorting too (see its own
-          text), and the per-column title is gone below. */}
-      <div className="flex items-center justify-center">
-        <InfoBubble tip={t('columns.headerHint')} />
-      </div>
-
       {layout.visible.map((col) => {
         const sorted = sort?.id === col.id ? sort.dir : null;
         const sortable = !!col.compare;
@@ -899,7 +915,27 @@ function Header({
         );
       })}
 
-      <span />
+      {/* One bubble for the whole row, not one per column (SelectionStrip's
+          own `<InfoBubble tip={t('remove.keys')} />` used to be the same
+          call: a repeated small control explained once rather than on every
+          instance of it) — a column header already carries its own visible
+          label, so a native `title` repeating "sort by this column" forty
+          columns over was the plain-tooltip case this app's own convention
+          puts behind a bubble instead. columns.headerHint covers sorting
+          too (see its own text), and the per-column title is gone above.
+          Lives in the trailing gutter now, not a leading one of its own
+          (jdp, 2026-08-26: "Die infobubble in der kopfzeile bitte ganz
+          nach rechts verschieben. in der liste fängt jetzt wo die
+          checkboxen fehlen alles zu weit rechts an. bitte weiter nach
+          links verschieben." - the leading gutter existed only to hold
+          this bubble in grid-alignment with GUTTER_LEAD below; removing
+          both here and from every row's own alignment placeholder is what
+          actually lets the whole table shift left into the space the
+          checkbox column used to own, not just moving the bubble alone
+          would have). */}
+      <div className="flex items-center justify-center">
+        <InfoBubble tip={t('columns.headerHint')} />
+      </div>
     </div>
   );
 }
@@ -1220,6 +1256,17 @@ export function TaskListCard({
   const [storedSort, setSort] = useUIState<SortState | null>(`list.sort.${profile}`, null);
   const { collapsed, toggle } = useCollapsedPackages(profile);
   const [menuAt, setMenuAt] = useState<{ x: number; y: number } | null>(null);
+  // The properties panel's own visibility (jdp, 2026-08-26: "wenn man
+  // einmal auf einen link oder einen ordner klickt kommt sofort die
+  // eigenschaften card. die soll erst erscheinen bei doppelklick") -
+  // decoupled from selection itself now: selecting something (single
+  // click, Ctrl-click, Shift-range) no longer opens the panel as a side
+  // effect, only a double-click does (TaskRow/PackageGroup's own
+  // onOpenProperties). Reset to closed on every NEW selection - selecting
+  // something else while the panel is open closes it again, so it always
+  // takes a fresh double-click to reopen it for whatever is selected now,
+  // the same way it takes a fresh one to open it the first time.
+  const [propertiesOpen, setPropertiesOpen] = useState(false);
 
   const tableRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ id: ColumnId; startX: number; startWidth: number; width: number } | null>(null);
@@ -1306,6 +1353,11 @@ export function TaskListCard({
     () => (chosenIds ? view.flatMap(([, items]) => items).filter((x) => chosenIds.has(x.id)) : []),
     [view, chosenIds],
   );
+  // Every new selection (selectUnit always hands `set()` a fresh Set, so
+  // this fires on a plain click, a Ctrl-click and a Shift-range alike, not
+  // only on a change in WHICH ids are in it) closes the panel again -
+  // propertiesOpen's own doc comment above has the full reasoning.
+  useEffect(() => setPropertiesOpen(false), [chosenIds]);
 
   // --- Row drag-to-reorder ---------------------------------------------
   //
@@ -1789,6 +1841,8 @@ export function TaskListCard({
                       dnd={dnd}
                       onSelect={(e) => selectUnit('package', name, items.map((x) => x.id), e)}
                       onSelectTask={(id, e) => selectUnit('task', id, [id], e)}
+                      onOpenProperties={() => setPropertiesOpen(true)}
+                      onOpenPropertiesTask={() => setPropertiesOpen(true)}
                     />
                   );
                 })}
@@ -1822,8 +1876,11 @@ export function TaskListCard({
       {/* Keyed on the selection, so picking different rows re-reads the boxes
           instead of carrying one selection's half-typed comment onto another.
           Nothing to edit means no panel: an empty properties panel is a card of
-          disabled controls, which is a page that reads as broken. */}
-      {chosenIds && chosen.length > 0 && (
+          disabled controls, which is a page that reads as broken. propertiesOpen
+          gates it on top of that (jdp, 2026-08-26 - see that state's own doc
+          comment): selecting something is no longer enough on its own, a
+          double-click is what actually opens it. */}
+      {propertiesOpen && chosenIds && chosen.length > 0 && (
         <TaskProperties key={[...chosenIds].join(',')} ids={[...chosenIds]} tasks={chosen} base={base} />
       )}
     </div>

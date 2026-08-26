@@ -819,6 +819,17 @@ export const VARIANT_KIND_LABEL_KEY: Record<string, TranslationKey> = {
  * isTorrentTask does, instead of widening what every OTHER cell's context
  * has to carry for a menu only this one column reads.
  */
+// RuleEditor.tsx's own <select> treatment (its SelectField, unexported)
+// rather than the bare bg-carbon-surface3/60 box this cell used at first
+// (jdp, 2026-08-26: "Die varianen dropdownlisten sind nicht im GlimStone
+// Style") - the same rounded-control/outline-none/focus-ring shape every
+// other select in the app already carries, just re-declared here rather
+// than exported from RuleEditor.tsx (a settings-page component this
+// row-level cell has no business importing from).
+const VARIANTE_SELECT_CLASS =
+  'min-w-0 rounded-[var(--radius-control)] bg-carbon-surface2 px-1.5 py-1 text-[11px] text-carbon-text ' +
+  'outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)] disabled:opacity-40';
+
 let ytdlpMenus: Promise<{ qualities: string[]; audioFormats: string[]; audioBitrates: string[] }> | null = null;
 function loadYtdlpMenus() {
   if (!ytdlpMenus) {
@@ -884,6 +895,10 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
           ? task.availableAudioFormats
           : menus.audioFormats
         : null;
+  // Same narrowing as the format select above, applied to the bitrate
+  // picker (jdp, 2026-08-26: "alle formate immer auf hosterangebot
+  // begrenzen. auch die audioqualitäten! bei allen hostern!").
+  const bitrateOptions = task.availableAudioBitrates?.length ? task.availableAudioBitrates : menus.audioBitrates;
 
   async function change(value: string) {
     setBusy(true);
@@ -916,7 +931,7 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
           disabled={busy}
           onChange={(e) => void change(e.target.value)}
           onClick={(e) => e.stopPropagation()}
-          className="min-w-0 rounded-[var(--radius-control)] bg-carbon-surface3/60 px-1 py-0.5 text-[11px] text-carbon-text disabled:opacity-40"
+          className={VARIANTE_SELECT_CLASS}
         >
           {options.map((o) => (
             <option key={o} value={o}>
@@ -929,15 +944,15 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
           of the format above, not a mode of it (jdp, 2026-08-26: "soll die
           Audioqualität also die kbit/s auswählbar sein"). Shown only on the
           audio row, alongside its format select rather than replacing it. */}
-      {kind === 'audio' && menus.audioBitrates.length > 0 && (
+      {kind === 'audio' && bitrateOptions.length > 0 && (
         <select
           value={task.audioBitrate || ''}
           disabled={busy}
           onChange={(e) => void changeBitrate(e.target.value)}
           onClick={(e) => e.stopPropagation()}
-          className="min-w-0 rounded-[var(--radius-control)] bg-carbon-surface3/60 px-1 py-0.5 text-[11px] text-carbon-text disabled:opacity-40"
+          className={VARIANTE_SELECT_CLASS}
         >
-          {menus.audioBitrates.map((b) => (
+          {bitrateOptions.map((b) => (
             <option key={b} value={b}>
               {b ? `${b} kbit/s` : ctx.t('columns.variant.bitrateAuto')}
             </option>
@@ -1455,15 +1470,16 @@ export function moveColumn(order: ColumnId[], id: ColumnId, target: ColumnId, af
   return without;
 }
 
-// The leading gutter is grid alignment for the header's own hint bubble
-// (Header, TaskList.tsx) - empty on every actual row now that a plain click
-// selects the row itself (jdp, 2026-08-26: "die checkbox spalte können wir
-// wegmachen"; TaskList.tsx's own click-to-select comment has the full
-// request) - and the trailing one the row's actions. Neither is a column:
-// they cannot be hidden, sorted by or dragged, and putting them in the
-// registry would only mean writing "except these two" everywhere the
-// registry is used.
-export const GUTTER_LEAD = '2.5rem';
+// The trailing gutter holds a row's own action badges, and the header's own
+// hint bubble now sits in that same track (jdp, 2026-08-26: "Die infobubble
+// in der kopfzeile bitte ganz nach rechts verschieben. in der liste fängt
+// jetzt wo die checkboxen fehlen alles zu weit rechts an. bitte weiter nach
+// links verschieben." - the leading gutter this used to share with the
+// bubble is gone entirely now that a plain click selects a row itself
+// rather than a checkbox living there; TaskList.tsx's own click-to-select
+// comment has the full request). Not a column: it cannot be hidden, sorted
+// by or dragged, and putting it in the registry would only mean writing
+// "except this one" everywhere the registry is used.
 export const GUTTER_ACTIONS = '9.5rem';
 
 /**
@@ -1496,7 +1512,7 @@ export function gridTemplate(visible: ColumnDef[], widthOf: (id: ColumnId) => nu
   const tracks = visible.map((c) =>
     c.id === FLEX_COLUMN ? `minmax(${c.minWidth}px, ${widthOf(c.id)}fr)` : `${widthOf(c.id)}px`,
   );
-  return [GUTTER_LEAD, ...tracks, GUTTER_ACTIONS].join(' ');
+  return [...tracks, GUTTER_ACTIONS].join(' ');
 }
 
 // --- Sorting, which is a view and nothing more -----------------------------
