@@ -1357,9 +1357,6 @@ export const eu: Dict = {
   'settings.access.tokens.done': 'Eginda',
   'settings.access.tokens.howToUse': 'Bidali goiburu gisa: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Ezin izan da token-a sortu: {error}',
-  'settings.access.remote.title': 'Urruneko sarbidea',
-  'settings.access.remote.desktopNote':
-    'Hau mahaigaineko build-a da. Ez du APIa sarean batere zerbitzatzen, beraz hemen ez dago aplikazio honetatik kanpo atzitzeko ezer.',
   'settings.access.remote.exposedWarning':
     'Instantzia honek makina honetatik kanpoko eskaera bati erantzun dio orain, eta ez du pasahitzik babesten. Iristen den edonork edozein deskarga ikusi eta kontrola dezake. Ezarri pasahitz bat goian orain.',
   'settings.access.remote.noRelayBody':
@@ -1369,7 +1366,6 @@ export const eu: Dict = {
   'settings.access.remote.loopback': 'makina hau bakarrik',
   'settings.access.remote.domain': 'domeinua',
   'settings.access.remote.scanHint': 'Instantzia honen sare berean bakarrik funtzionatzen du.',
-  'settings.access.remote.combinedHint': 'Instantzia hau zuk zeuk kudeatzen duzun beste KnightLoader batekin konektatzen du, biak elkarren Instantzien orrian ager daitezen. Parekatze-kodea da bide azkarra, elkar zuzenean lortu dezaketen bi instantziarentzat. Errelea ezin dutenentzat da - bakoitza bere NATaren atzean, sare desberdinetan.',
   'settings.access.network.scanHint': 'Instantzia honen sare berean bakarrik funtzionatzen du.',
   'settings.access.network.hideQr': 'Ezkutatu QR kodea',
   'settings.access.network.showQr': 'Erakutsi QR kodea',
@@ -1399,6 +1395,8 @@ export const eu: Dict = {
   'settings.access.tsnet.openLogin': 'Ireki saio-hasierako orria',
   'settings.access.tsnet.connectedLabel': 'Atzigarri hemen',
   'settings.access.tsnet.funnelErrorHint': 'Funnel behin aktibatu behar da zure Tailscale kontuarentzat: ireki administrazio-kontsola, joan sarbide-kontroletara, eta aktibatu Funnel - ondoren, sakatu berriro Konektatu.',
+  'settings.access.tsnet.peersTitle': 'Zure beste instantziak',
+  'settings.access.tsnet.advancedTitle': 'Konektatu Tailscale gabe',
   'settings.access.remote.installTitle': 'Lortu aplikazioa',
   'settings.access.remote.installBody': 'Jatorrizko aplikazioak mahaigainerako, Android eta iOS-erako - orri hau ere zure arakatzailetik zuzenean instala daiteke, bietako bat gabe.',
   'settings.access.remote.storeAndroid': 'Google Play',

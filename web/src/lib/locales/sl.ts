@@ -1358,9 +1358,6 @@ export const sl: Dict = {
   'settings.access.tokens.done': 'Končano',
   'settings.access.tokens.howToUse': 'Pošlji ga kot glavo: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Žetona ni bilo mogoče ustvariti: {error}',
-  'settings.access.remote.title': 'Oddaljeni dostop',
-  'settings.access.remote.desktopNote':
-    'To je namizna različica. API sploh ne ponuja prek omrežja, zato tu ni ničesar, kar bi bilo mogoče doseči zunaj te aplikacije.',
   'settings.access.remote.exposedWarning':
     'Ta primerek je pravkar odgovoril na zahtevo zunaj tega računalnika, in nobeno geslo ga ne ščiti. Vsakdo, ki ga lahko doseže, lahko vidi in nadzoruje vsak prenos. Zgoraj takoj nastavi geslo.',
   'settings.access.remote.noRelayBody':
@@ -1370,7 +1367,6 @@ export const sl: Dict = {
   'settings.access.remote.loopback': 'samo ta računalnik',
   'settings.access.remote.domain': 'domena',
   'settings.access.remote.scanHint': 'Deluje samo v istem omrežju kot ta primerek.',
-  'settings.access.remote.combinedHint': 'Poveže to instanco z drugim KnightLoaderjem, ki ga upravljaš sam, tako da se obe pokažeta na strani Instance druge. Koda za seznanjanje je hiter način za dve instanci, ki se že lahko dosežeta neposredno. Relej je za dve, ki ne moreta - vsaka za svojim NAT-om, v različnih omrežjih.',
   'settings.access.network.scanHint': 'Deluje samo v istem omrežju kot ta instanca.',
   'settings.access.network.hideQr': 'Skrij kodo QR',
   'settings.access.network.showQr': 'Prikaži kodo QR',
@@ -1400,6 +1396,8 @@ export const sl: Dict = {
   'settings.access.tsnet.openLogin': 'Odpri stran za prijavo',
   'settings.access.tsnet.connectedLabel': 'Dosegljivo na',
   'settings.access.tsnet.funnelErrorHint': 'Funnel je treba enkrat vklopiti za vaš račun Tailscale: odprite skrbniško konzolo, pojdite na nadzor dostopa in vklopite Funnel - nato znova pritisnite Poveži.',
+  'settings.access.tsnet.peersTitle': 'Vaše druge instance',
+  'settings.access.tsnet.advancedTitle': 'Poveži brez Tailscale',
   'settings.access.remote.installTitle': 'Prenesi aplikacijo',
   'settings.access.remote.installBody': 'Izvorne aplikacije za namizje, Android in iOS - to stran je mogoče namestiti tudi neposredno iz brskalnika, brez obojega.',
   'settings.access.remote.storeAndroid': 'Google Play',

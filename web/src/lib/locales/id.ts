@@ -1357,9 +1357,6 @@ export const id: Dict = {
   'settings.access.tokens.done': 'Selesai',
   'settings.access.tokens.howToUse': 'Kirim sebagai header: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Token tidak dapat dibuat: {error}',
-  'settings.access.remote.title': 'Akses jarak jauh',
-  'settings.access.remote.desktopNote':
-    'Ini adalah build desktop. Build ini sama sekali tidak menyajikan API lewat jaringan, jadi tidak ada yang bisa diakses di sini dari luar aplikasi ini.',
   'settings.access.remote.exposedWarning':
     'Instans ini baru saja menjawab permintaan dari luar mesin ini, dan tidak ada kata sandi yang melindunginya. Siapa pun yang bisa menjangkaunya dapat melihat dan mengendalikan setiap unduhan. Tetapkan kata sandi di atas sekarang.',
   'settings.access.remote.noRelayBody':
@@ -1369,7 +1366,6 @@ export const id: Dict = {
   'settings.access.remote.loopback': 'hanya mesin ini',
   'settings.access.remote.domain': 'domain',
   'settings.access.remote.scanHint': 'Hanya berfungsi pada jaringan yang sama dengan instans ini.',
-  'settings.access.remote.combinedHint': 'Menghubungkan instance ini dengan KnightLoader lain yang kamu jalankan sendiri, sehingga keduanya muncul di halaman Instance satu sama lain. Kode pemasangan adalah cara cepat, untuk dua instance yang sudah bisa saling menjangkau langsung. Relay untuk dua yang tidak bisa - masing-masing di belakang NAT sendiri, di jaringan berbeda.',
   'settings.access.network.scanHint': 'Hanya berfungsi pada jaringan yang sama dengan instance ini.',
   'settings.access.network.hideQr': 'Sembunyikan kode QR',
   'settings.access.network.showQr': 'Tampilkan kode QR',
@@ -1399,6 +1395,8 @@ export const id: Dict = {
   'settings.access.tsnet.openLogin': 'Buka halaman masuk',
   'settings.access.tsnet.connectedLabel': 'Dapat dijangkau di',
   'settings.access.tsnet.funnelErrorHint': 'Funnel perlu diaktifkan sekali untuk akun Tailscale Anda: buka konsol admin, buka kontrol akses, dan aktifkan Funnel - lalu tekan Hubungkan lagi.',
+  'settings.access.tsnet.peersTitle': 'Instance Anda yang lain',
+  'settings.access.tsnet.advancedTitle': 'Hubungkan tanpa Tailscale',
   'settings.access.remote.installTitle': 'Dapatkan aplikasinya',
   'settings.access.remote.installBody': 'Aplikasi native untuk desktop, Android, dan iOS - halaman ini juga bisa diinstal langsung dari browser Anda, tanpa keduanya.',
   'settings.access.remote.storeAndroid': 'Google Play',

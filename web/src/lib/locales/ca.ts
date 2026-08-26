@@ -1357,9 +1357,6 @@ export const ca: Dict = {
   'settings.access.tokens.done': 'Fet',
   'settings.access.tokens.howToUse': 'Envia’l com a capçalera: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'No s’ha pogut crear el token: {error}',
-  'settings.access.remote.title': 'Accés remot',
-  'settings.access.remote.desktopNote':
-    'Aquest és el build d’escriptori. No serveix l’API per xarxa en cap moment, així que aquí no hi ha res a què accedir des de fora d’aquesta aplicació.',
   'settings.access.remote.exposedWarning':
     'Aquesta instància acaba de respondre una sol·licitud de fora d’aquesta màquina, i cap contrasenya la protegeix. Qualsevol que hi pugui accedir pot veure i controlar cada baixada. Estableix una contrasenya a dalt ara mateix.',
   'settings.access.remote.noRelayBody':
@@ -1369,7 +1366,6 @@ export const ca: Dict = {
   'settings.access.remote.loopback': 'només aquesta màquina',
   'settings.access.remote.domain': 'domini',
   'settings.access.remote.scanHint': 'Només funciona a la mateixa xarxa que aquesta instància.',
-  'settings.access.remote.combinedHint': 'Connecta aquesta instància amb un altre KnightLoader que gestionis tu mateix, de manera que ambdues apareguin a la pàgina d\'instàncies de l\'altra. Un codi d\'aparellament és la via ràpida, per a dues instàncies que ja es poden assolir directament. Un relé és per a dues que no poden - cadascuna darrere del seu propi NAT, en xarxes diferents.',
   'settings.access.network.scanHint': 'Només funciona a la mateixa xarxa que aquesta instància.',
   'settings.access.network.hideQr': 'Amaga el codi QR',
   'settings.access.network.showQr': 'Mostra el codi QR',
@@ -1399,6 +1395,8 @@ export const ca: Dict = {
   'settings.access.tsnet.openLogin': 'Obre la pàgina d\'inici de sessió',
   'settings.access.tsnet.connectedLabel': 'Accessible a',
   'settings.access.tsnet.funnelErrorHint': 'Cal activar Funnel una vegada per al teu compte de Tailscale: obre la consola d\'administració, ves a Controls d\'accés i activa Funnel - després torna a prémer Connecta.',
+  'settings.access.tsnet.peersTitle': 'Les teves altres instàncies',
+  'settings.access.tsnet.advancedTitle': 'Connecta sense Tailscale',
   'settings.access.remote.installTitle': "Obtén l'aplicació",
   'settings.access.remote.installBody': 'Aplicacions natives per a escriptori, Android i iOS - aquesta pàgina també es pot instal·lar directament des del navegador, sense cap de les dues.',
   'settings.access.remote.storeAndroid': 'Google Play',

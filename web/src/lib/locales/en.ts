@@ -1564,9 +1564,6 @@ export const en = {
   'settings.access.tokens.done': 'Done',
   'settings.access.tokens.howToUse': 'Send it as a header: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Could not create the token: {error}',
-  'settings.access.remote.title': 'Remote access',
-  'settings.access.remote.desktopNote':
-    'This is the desktop build. It does not serve the API over the network at all, so there is nothing here to reach from outside this application.',
   'settings.access.remote.exposedWarning':
     'This instance just answered a request from outside this machine, and no password protects it. Anyone who can reach it can see and control every download. Set a password above now.',
   'settings.access.remote.noRelayBody':
@@ -1576,7 +1573,6 @@ export const en = {
   'settings.access.remote.loopback': 'this machine only',
   'settings.access.remote.domain': 'domain',
   'settings.access.remote.scanHint': 'Only works on the same network as this instance.',
-  'settings.access.remote.combinedHint': 'Connect this instance with another KnightLoader you run yourself, so the two show up on each other’s Instances page. A pairing code is the quick way, for two instances that can already reach each other directly. A relay is for two that cannot - each behind its own NAT, on different networks.',
   'settings.access.network.scanHint': 'Only works on the same network as this instance.',
   'settings.access.network.hideQr': 'Hide QR code',
   'settings.access.network.showQr': 'Show QR code',
@@ -1606,6 +1602,8 @@ export const en = {
   'settings.access.tsnet.openLogin': 'Open login page',
   'settings.access.tsnet.connectedLabel': 'Reachable at',
   'settings.access.tsnet.funnelErrorHint': 'Funnel needs to be turned on once for your Tailscale account: open the admin console, go to Access controls, and enable Funnel - then press Connect again.',
+  'settings.access.tsnet.peersTitle': 'Your other instances',
+  'settings.access.tsnet.advancedTitle': 'Connect without Tailscale',
   'settings.access.remote.installTitle': 'Get the app',
   'settings.access.remote.installBody': 'Native apps for desktop, Android and iOS - this page can also be installed straight from your browser, without either.',
   'settings.access.remote.storeAndroid': 'Google Play',

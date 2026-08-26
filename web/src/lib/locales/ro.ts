@@ -1357,9 +1357,6 @@ export const ro: Dict = {
   'settings.access.tokens.done': 'Gata',
   'settings.access.tokens.howToUse': 'Trimite-l ca antet: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Tokenul nu a putut fi creat: {error}',
-  'settings.access.remote.title': 'Acces la distanță',
-  'settings.access.remote.desktopNote':
-    'Acesta este build-ul de desktop. Nu servește deloc API-ul prin rețea, deci nu e nimic aici la care să se acceseze din afara acestei aplicații.',
   'settings.access.remote.exposedWarning':
     'Această instanță tocmai a răspuns unei cereri din afara acestui calculator, și nicio parolă nu o protejează. Oricine o poate accesa poate vedea și controla fiecare descărcare. Setează o parolă mai sus acum.',
   'settings.access.remote.noRelayBody':
@@ -1369,7 +1366,6 @@ export const ro: Dict = {
   'settings.access.remote.loopback': 'doar acest calculator',
   'settings.access.remote.domain': 'domeniu',
   'settings.access.remote.scanHint': 'Funcționează doar pe aceeași rețea ca această instanță.',
-  'settings.access.remote.combinedHint': 'Conectează această instanță cu o altă instanță KnightLoader pe care o administrezi chiar tu, astfel încât cele două să apară reciproc pe pagina Instanțe. Un cod de asociere este calea rapidă, pentru două instanțe care se pot deja accesa direct. Un releu este pentru două care nu pot - fiecare în spatele propriului NAT, în rețele diferite.',
   'settings.access.network.scanHint': 'Funcționează doar în aceeași rețea cu această instanță.',
   'settings.access.network.hideQr': 'Ascunde codul QR',
   'settings.access.network.showQr': 'Afișează codul QR',
@@ -1399,6 +1395,8 @@ export const ro: Dict = {
   'settings.access.tsnet.openLogin': 'Deschide pagina de autentificare',
   'settings.access.tsnet.connectedLabel': 'Accesibil la',
   'settings.access.tsnet.funnelErrorHint': 'Funnel trebuie activat o dată pentru contul tău Tailscale: deschide consola de administrare, mergi la controalele de acces, și activează Funnel - apoi apasă din nou Conectare.',
+  'settings.access.tsnet.peersTitle': 'Celelalte instanțe ale tale',
+  'settings.access.tsnet.advancedTitle': 'Conectare fără Tailscale',
   'settings.access.remote.installTitle': 'Obține aplicația',
   'settings.access.remote.installBody': 'Aplicații native pentru desktop, Android și iOS - această pagină poate fi de asemenea instalată direct din browser, fără niciuna dintre ele.',
   'settings.access.remote.storeAndroid': 'Google Play',

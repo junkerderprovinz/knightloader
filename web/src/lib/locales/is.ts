@@ -1357,9 +1357,6 @@ export const is: Dict = {
   'settings.access.tokens.done': 'Lokið',
   'settings.access.tokens.howToUse': 'Sendu hann sem haus: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Ekki tókst að búa til tókann: {error}',
-  'settings.access.remote.title': 'Fjaraðgangur',
-  'settings.access.remote.desktopNote':
-    'Þetta er skjáborðsútgáfan. Hún þjónar API-inu alls ekki yfir netið, svo það er ekkert hér til að ná í utan frá þessu forriti.',
   'settings.access.remote.exposedWarning':
     'Þetta tilvik svaraði rétt í þessu beiðni utan frá þessari vél, og ekkert lykilorð ver það. Hver sem getur náð til þess getur séð og stýrt hverju niðurhali. Settu lykilorð hér fyrir ofan núna.',
   'settings.access.remote.noRelayBody':
@@ -1369,7 +1366,6 @@ export const is: Dict = {
   'settings.access.remote.loopback': 'aðeins þessi vél',
   'settings.access.remote.domain': 'lén',
   'settings.access.remote.scanHint': 'Virkar aðeins á sama neti og þetta tilvik.',
-  'settings.access.remote.combinedHint': 'Tengir þetta tilvik við annað KnightLoader sem þú rekur sjálf(ur), svo bæði birtist á Tilvika-síðu hins. Pörunarkóði er hraða leiðin, fyrir tvö tilvik sem geta þegar náð beint hvort til annars. Endurvarpi er fyrir tvö sem geta það ekki - hvort á bak við sitt eigið NAT, á ólíkum netum.',
   'settings.access.network.scanHint': 'Virkar aðeins á sama neti og þetta tilvik.',
   'settings.access.network.hideQr': 'Fela QR-kóða',
   'settings.access.network.showQr': 'Sýna QR-kóða',
@@ -1399,6 +1395,8 @@ export const is: Dict = {
   'settings.access.tsnet.openLogin': 'Opna innskráningarsíðu',
   'settings.access.tsnet.connectedLabel': 'Aðgengilegt á',
   'settings.access.tsnet.funnelErrorHint': 'Kveikja þarf á Funnel einu sinni fyrir Tailscale-reikninginn þinn: opnaðu stjórnborðið, farðu í aðgangsstýringar, og kveiktu á Funnel - ýttu svo aftur á Tengjast.',
+  'settings.access.tsnet.peersTitle': 'Hin tilvikin þín',
+  'settings.access.tsnet.advancedTitle': 'Tengjast án Tailscale',
   'settings.access.remote.installTitle': 'Sæktu forritið',
   'settings.access.remote.installBody': 'Innfædd forrit fyrir borðtölvu, Android og iOS - einnig er hægt að setja þessa síðu upp beint úr vafranum þínum, án hvors tveggja.',
   'settings.access.remote.storeAndroid': 'Google Play',

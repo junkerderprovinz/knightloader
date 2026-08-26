@@ -1357,9 +1357,6 @@ export const hu: Dict = {
   'settings.access.tokens.done': 'Kész',
   'settings.access.tokens.howToUse': 'Küldje fejlécként: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Nem sikerült létrehozni a tokent: {error}',
-  'settings.access.remote.title': 'Távoli hozzáférés',
-  'settings.access.remote.desktopNote':
-    'Ez az asztali build. Egyáltalán nem szolgáltatja az API-t a hálózaton, tehát itt nincs mit elérni ezen az alkalmazáson kívülről.',
   'settings.access.remote.exposedWarning':
     'Ez a példány éppen most válaszolt egy kérésre ezen a gépen kívülről, és semmilyen jelszó nem védi. Bárki, aki eléri, láthat és irányíthat minden letöltést. Állítson be egy jelszót fent, most.',
   'settings.access.remote.noRelayBody':
@@ -1369,7 +1366,6 @@ export const hu: Dict = {
   'settings.access.remote.loopback': 'csak ez a gép',
   'settings.access.remote.domain': 'domain',
   'settings.access.remote.scanHint': 'Csak ugyanazon a hálózaton működik, mint ez a példány.',
-  'settings.access.remote.combinedHint': 'Összeköti ezt a példányt egy másik, saját magad üzemeltetett KnightLoaderrel, így a kettő megjelenik egymás Példányok oldalán. A párosítási kód a gyors út két olyan példányhoz, amelyek már közvetlenül elérik egymást. A relé olyan kettőhöz való, amelyek nem érik el - mindkettő a saját NAT-ja mögött, eltérő hálózaton.',
   'settings.access.network.scanHint': 'Csak ugyanazon a hálózaton működik, mint ez a példány.',
   'settings.access.network.hideQr': 'QR-kód elrejtése',
   'settings.access.network.showQr': 'QR-kód megjelenítése',
@@ -1399,6 +1395,8 @@ export const hu: Dict = {
   'settings.access.tsnet.openLogin': 'Bejelentkezési oldal megnyitása',
   'settings.access.tsnet.connectedLabel': 'Elérhető itt',
   'settings.access.tsnet.funnelErrorHint': 'A Funnelt egyszer be kell kapcsolni a Tailscale-fiókjához: nyissa meg az admin konzolt, menjen a hozzáférés-vezérlőkhöz, és kapcsolja be a Funnelt - majd nyomja meg újra a Kapcsolódás gombot.',
+  'settings.access.tsnet.peersTitle': 'A többi példányod',
+  'settings.access.tsnet.advancedTitle': 'Kapcsolódás Tailscale nélkül',
   'settings.access.remote.installTitle': 'App letöltése',
   'settings.access.remote.installBody': 'Natív alkalmazások asztali gépre, Androidra és iOS-re - ez az oldal közvetlenül a böngészőből is telepíthető, egyik nélkül is.',
   'settings.access.remote.storeAndroid': 'Google Play',

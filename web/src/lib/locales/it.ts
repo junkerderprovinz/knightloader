@@ -1350,9 +1350,6 @@ export const it: Dict = {
   'settings.access.tokens.done': 'Fatto',
   'settings.access.tokens.howToUse': 'Inviarlo come intestazione: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Impossibile creare il token: {error}',
-  'settings.access.remote.title': 'Accesso remoto',
-  'settings.access.remote.desktopNote':
-    'Questa è la build desktop. Non serve affatto l’API in rete, quindi qui non c’è nulla da raggiungere dall’esterno di questa applicazione.',
   'settings.access.remote.exposedWarning':
     'Questa istanza ha appena risposto a una richiesta proveniente dall’esterno di questa macchina, e nessuna password la protegge. Chiunque riesca a raggiungerla può vedere e controllare ogni download. Imposta subito una password qui sopra.',
   'settings.access.remote.noRelayBody':
@@ -1362,7 +1359,6 @@ export const it: Dict = {
   'settings.access.remote.loopback': 'solo questa macchina',
   'settings.access.remote.domain': 'dominio',
   'settings.access.remote.scanHint': 'Funziona solo sulla stessa rete di questa istanza.',
-  'settings.access.remote.combinedHint': 'Collega questa istanza a un altro KnightLoader gestito da te, in modo che entrambe compaiano nella pagina Istanze l\'una dell\'altra. Un codice di associazione è la via rapida, per due istanze che possono già raggiungersi direttamente. Un relay è per due che non possono - ciascuna dietro il proprio NAT, su reti diverse.',
   'settings.access.network.scanHint': 'Funziona solo sulla stessa rete di questa istanza.',
   'settings.access.network.hideQr': 'Nascondi codice QR',
   'settings.access.network.showQr': 'Mostra codice QR',
@@ -1392,6 +1388,8 @@ export const it: Dict = {
   'settings.access.tsnet.openLogin': 'Apri pagina di accesso',
   'settings.access.tsnet.connectedLabel': 'Raggiungibile a',
   'settings.access.tsnet.funnelErrorHint': 'Funnel deve essere attivato una volta per il tuo account Tailscale: apri la console di amministrazione, vai su controlli di accesso, e attiva Funnel - poi premi di nuovo Connetti.',
+  'settings.access.tsnet.peersTitle': 'Le tue altre istanze',
+  'settings.access.tsnet.advancedTitle': 'Connetti senza Tailscale',
   'settings.access.remote.installTitle': "Ottieni l'app",
   'settings.access.remote.installBody': 'App native per desktop, Android e iOS - questa pagina può anche essere installata direttamente dal browser, senza nessuna delle due.',
   'settings.access.remote.storeAndroid': 'Google Play',

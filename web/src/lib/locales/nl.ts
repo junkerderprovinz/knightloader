@@ -1350,9 +1350,6 @@ export const nl: Dict = {
   'settings.access.tokens.done': 'Klaar',
   'settings.access.tokens.howToUse': 'Stuur het als header: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Kon het token niet aanmaken: {error}',
-  'settings.access.remote.title': 'Toegang op afstand',
-  'settings.access.remote.desktopNote':
-    'Dit is de desktopbuild. Deze biedt de API helemaal niet aan over het netwerk, dus er is hier niets te bereiken van buiten deze toepassing.',
   'settings.access.remote.exposedWarning':
     'Deze instantie heeft zojuist een verzoek van buiten deze machine beantwoord, en geen wachtwoord beschermt haar. Iedereen die haar kan bereiken, kan elke download zien en beheren. Stel hierboven nu meteen een wachtwoord in.',
   'settings.access.remote.noRelayBody':
@@ -1362,7 +1359,6 @@ export const nl: Dict = {
   'settings.access.remote.loopback': 'alleen deze machine',
   'settings.access.remote.domain': 'domein',
   'settings.access.remote.scanHint': 'Werkt alleen op hetzelfde netwerk als deze instantie.',
-  'settings.access.remote.combinedHint': 'Verbindt deze instantie met een andere KnightLoader die je zelf beheert, zodat beide op elkaars Instanties-pagina verschijnen. Een koppelcode is de snelle weg, voor twee instanties die elkaar al rechtstreeks kunnen bereiken. Een relay is voor twee die dat niet kunnen - elk achter zijn eigen NAT, op verschillende netwerken.',
   'settings.access.network.scanHint': 'Werkt alleen op hetzelfde netwerk als deze instantie.',
   'settings.access.network.hideQr': 'QR-code verbergen',
   'settings.access.network.showQr': 'QR-code tonen',
@@ -1392,6 +1388,8 @@ export const nl: Dict = {
   'settings.access.tsnet.openLogin': 'Inlogpagina openen',
   'settings.access.tsnet.connectedLabel': 'Bereikbaar op',
   'settings.access.tsnet.funnelErrorHint': 'Funnel moet één keer worden ingeschakeld voor je Tailscale-account: open de beheerconsole, ga naar toegangsbeheer, en schakel Funnel in - druk daarna opnieuw op Verbinden.',
+  'settings.access.tsnet.peersTitle': 'Jouw andere instanties',
+  'settings.access.tsnet.advancedTitle': 'Verbinden zonder Tailscale',
   'settings.access.remote.installTitle': 'Haal de app',
   'settings.access.remote.installBody': 'Native apps voor desktop, Android en iOS - deze pagina kan ook rechtstreeks vanuit je browser worden geïnstalleerd, zonder een van beide.',
   'settings.access.remote.storeAndroid': 'Google Play',

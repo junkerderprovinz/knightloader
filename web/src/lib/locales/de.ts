@@ -1358,9 +1358,6 @@ export const de: Dict = {
   'settings.access.tokens.done': 'Fertig',
   'settings.access.tokens.howToUse': 'Als Header senden: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Der Token konnte nicht erstellt werden: {error}',
-  'settings.access.remote.title': 'Fernzugriff',
-  'settings.access.remote.desktopNote':
-    'Dies ist der Desktop-Build. Er stellt die API überhaupt nicht im Netzwerk bereit, es gibt hier also nichts, das von außerhalb dieser Anwendung erreichbar wäre.',
   'settings.access.remote.exposedWarning':
     'Diese Instanz hat gerade eine Anfrage von außerhalb dieses Rechners beantwortet, und kein Passwort schützt sie. Jeder, der sie erreichen kann, kann jeden Download sehen und steuern. Setze jetzt oben ein Passwort.',
   'settings.access.remote.noRelayBody':
@@ -1370,7 +1367,6 @@ export const de: Dict = {
   'settings.access.remote.loopback': 'nur dieser Rechner',
   'settings.access.remote.domain': 'Domain',
   'settings.access.remote.scanHint': 'Funktioniert nur im selben Netzwerk wie diese Instanz.',
-  'settings.access.remote.combinedHint': 'Verbindet diese Instanz mit einem anderen KnightLoader, den du selbst betreibst, sodass beide auf der Instanzen-Seite des jeweils anderen erscheinen. Ein Pairing-Code ist der schnelle Weg, für zwei Instanzen, die sich schon direkt erreichen können. Ein Relay ist für zwei, die das nicht können - jede hinter ihrem eigenen NAT, in unterschiedlichen Netzwerken.',
   'settings.access.network.scanHint': 'Funktioniert nur im selben Netzwerk wie diese Instanz.',
   'settings.access.network.hideQr': 'QR-Code ausblenden',
   'settings.access.network.showQr': 'QR-Code anzeigen',
@@ -1400,6 +1396,8 @@ export const de: Dict = {
   'settings.access.tsnet.openLogin': 'Anmeldeseite öffnen',
   'settings.access.tsnet.connectedLabel': 'Erreichbar unter',
   'settings.access.tsnet.funnelErrorHint': 'Funnel muss einmalig für das eigene Tailscale-Konto aktiviert werden: die Admin-Konsole öffnen, zu den Zugriffsregeln gehen und Funnel aktivieren - danach erneut auf Verbinden klicken.',
+  'settings.access.tsnet.peersTitle': 'Deine anderen Instanzen',
+  'settings.access.tsnet.advancedTitle': 'Ohne Tailscale verbinden',
   'settings.access.remote.installTitle': 'App holen',
   'settings.access.remote.installBody': 'Native Apps für Desktop, Android und iOS - diese Seite lässt sich außerdem direkt aus dem Browser installieren, ganz ohne beides.',
   'settings.access.remote.storeAndroid': 'Google Play',

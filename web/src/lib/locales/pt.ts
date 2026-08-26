@@ -1350,9 +1350,6 @@ export const pt: Dict = {
   'settings.access.tokens.done': 'Concluído',
   'settings.access.tokens.howToUse': 'Envie-o como cabeçalho: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Não foi possível criar o token: {error}',
-  'settings.access.remote.title': 'Acesso remoto',
-  'settings.access.remote.desktopNote':
-    'Este é o build de ambiente de trabalho. Não disponibiliza a API na rede de todo, por isso não há aqui nada para alcançar a partir do exterior desta aplicação.',
   'settings.access.remote.exposedWarning':
     'Esta instância acabou de responder a um pedido vindo de fora desta máquina, e nenhuma palavra-passe a protege. Quem a conseguir alcançar pode ver e controlar todas as transferências. Defina uma palavra-passe acima agora mesmo.',
   'settings.access.remote.noRelayBody':
@@ -1362,7 +1359,6 @@ export const pt: Dict = {
   'settings.access.remote.loopback': 'só esta máquina',
   'settings.access.remote.domain': 'domínio',
   'settings.access.remote.scanHint': 'Só funciona na mesma rede que esta instância.',
-  'settings.access.remote.combinedHint': 'Liga esta instância a outro KnightLoader que geres tu mesmo, para que ambas apareçam na página de Instâncias uma da outra. Um código de emparelhamento é a via rápida, para duas instâncias que já se conseguem alcançar diretamente. Um relay é para duas que não conseguem - cada uma atrás da sua própria NAT, em redes diferentes.',
   'settings.access.network.scanHint': 'Só funciona na mesma rede que esta instância.',
   'settings.access.network.hideQr': 'Ocultar código QR',
   'settings.access.network.showQr': 'Mostrar código QR',
@@ -1392,6 +1388,8 @@ export const pt: Dict = {
   'settings.access.tsnet.openLogin': 'Abrir página de início de sessão',
   'settings.access.tsnet.connectedLabel': 'Acessível em',
   'settings.access.tsnet.funnelErrorHint': 'O Funnel tem de ser ativado uma vez para a sua conta Tailscale: abra a consola de administração, vá a controlos de acesso, e ative o Funnel - depois volte a premir Ligar.',
+  'settings.access.tsnet.peersTitle': 'As suas outras instâncias',
+  'settings.access.tsnet.advancedTitle': 'Ligar sem Tailscale',
   'settings.access.remote.installTitle': 'Obter a aplicação',
   'settings.access.remote.installBody': 'Aplicações nativas para computador, Android e iOS - esta página também pode ser instalada diretamente a partir do seu navegador, sem nenhuma das duas.',
   'settings.access.remote.storeAndroid': 'Google Play',

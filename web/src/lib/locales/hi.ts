@@ -1357,9 +1357,6 @@ export const hi: Dict = {
   'settings.access.tokens.done': 'हो गया',
   'settings.access.tokens.howToUse': 'इसे हेडर के रूप में भेजें: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'टोकन नहीं बनाया जा सका: {error}',
-  'settings.access.remote.title': 'रिमोट एक्सेस',
-  'settings.access.remote.desktopNote':
-    'यह डेस्कटॉप बिल्ड है। यह नेटवर्क पर API को बिल्कुल भी सर्व नहीं करता, इसलिए इस ऐप के बाहर से यहाँ पहुँचने के लिए कुछ नहीं है।',
   'settings.access.remote.exposedWarning':
     'इस इंस्टेंस ने अभी इस मशीन के बाहर से आए अनुरोध का जवाब दिया, और कोई पासवर्ड इसकी सुरक्षा नहीं करता। जो कोई भी इस तक पहुँच सकता है वह हर डाउनलोड देख और नियंत्रित कर सकता है। अभी ऊपर पासवर्ड सेट करें।',
   'settings.access.remote.noRelayBody':
@@ -1369,7 +1366,6 @@ export const hi: Dict = {
   'settings.access.remote.loopback': 'केवल यह मशीन',
   'settings.access.remote.domain': 'डोमेन',
   'settings.access.remote.scanHint': 'केवल इस इंस्टेंस के समान नेटवर्क पर काम करता है।',
-  'settings.access.remote.combinedHint': 'इस इंस्टेंस को किसी दूसरे KnightLoader से जोड़ता है जिसे आप स्वयं चलाते हैं, ताकि दोनों एक-दूसरे के इंस्टेंस पेज पर दिखें। पेयरिंग कोड तेज़ तरीका है, उन दो इंस्टेंस के लिए जो पहले से सीधे एक-दूसरे तक पहुँच सकते हैं। रिले उन दो के लिए है जो नहीं पहुँच सकते - हर एक अपने NAT के पीछे, अलग-अलग नेटवर्क पर।',
   'settings.access.network.scanHint': 'केवल इस इंस्टेंस के समान नेटवर्क पर काम करता है।',
   'settings.access.network.hideQr': 'QR कोड छिपाएं',
   'settings.access.network.showQr': 'QR कोड दिखाएं',
@@ -1399,6 +1395,8 @@ export const hi: Dict = {
   'settings.access.tsnet.openLogin': 'लॉगिन पेज खोलें',
   'settings.access.tsnet.connectedLabel': 'यहाँ पहुँच योग्य',
   'settings.access.tsnet.funnelErrorHint': 'आपके Tailscale खाते के लिए Funnel को एक बार चालू करना होगा: एडमिन कंसोल खोलें, एक्सेस कंट्रोल्स पर जाएँ, और Funnel चालू करें - फिर दोबारा कनेक्ट पर क्लिक करें।',
+  'settings.access.tsnet.peersTitle': 'आपके अन्य इंस्टेंस',
+  'settings.access.tsnet.advancedTitle': 'Tailscale के बिना कनेक्ट करें',
   'settings.access.remote.installTitle': 'ऐप पाएं',
   'settings.access.remote.installBody': 'डेस्कटॉप, Android और iOS के लिए नेटिव ऐप्स - इस पेज को आपके ब्राउज़र से सीधे भी इंस्टॉल किया जा सकता है, दोनों के बिना।',
   'settings.access.remote.storeAndroid': 'Google Play',

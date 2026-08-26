@@ -1357,9 +1357,6 @@ export const el: Dict = {
   'settings.access.tokens.done': 'Τέλος',
   'settings.access.tokens.howToUse': 'Στείλτε το ως κεφαλίδα: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Δεν ήταν δυνατή η δημιουργία του διακριτικού: {error}',
-  'settings.access.remote.title': 'Απομακρυσμένη πρόσβαση',
-  'settings.access.remote.desktopNote':
-    'Αυτό είναι το desktop build. Δεν εξυπηρετεί καθόλου το API μέσω δικτύου, οπότε δεν υπάρχει τίποτα εδώ για πρόσβαση από έξω από αυτήν την εφαρμογή.',
   'settings.access.remote.exposedWarning':
     'Αυτή η περίπτωση μόλις απάντησε σε ένα αίτημα από έξω από αυτόν τον υπολογιστή, και κανένας κωδικός πρόσβασης δεν την προστατεύει. Οποιοσδήποτε μπορεί να τη φτάσει μπορεί να δει και να ελέγξει κάθε λήψη. Ορίστε έναν κωδικό πρόσβασης παραπάνω τώρα.',
   'settings.access.remote.noRelayBody':
@@ -1369,7 +1366,6 @@ export const el: Dict = {
   'settings.access.remote.loopback': 'μόνο αυτός ο υπολογιστής',
   'settings.access.remote.domain': 'τομέας',
   'settings.access.remote.scanHint': 'Λειτουργεί μόνο στο ίδιο δίκτυο με αυτήν την περίπτωση.',
-  'settings.access.remote.combinedHint': 'Συνδέει αυτή την παρουσία με μια άλλη KnightLoader που εκτελείς εσύ, ώστε οι δύο να εμφανίζονται η μία στη σελίδα Παρουσιών της άλλης. Ένας κωδικός σύζευξης είναι ο γρήγορος τρόπος, για δύο παρουσίες που μπορούν ήδη να φτάσουν η μία την άλλη απευθείας. Ένας αναμεταδότης είναι για δύο που δεν μπορούν - η καθεμία πίσω από το δικό της NAT, σε διαφορετικά δίκτυα.',
   'settings.access.network.scanHint': 'Λειτουργεί μόνο στο ίδιο δίκτυο με αυτή την παρουσία.',
   'settings.access.network.hideQr': 'Απόκρυψη κωδικού QR',
   'settings.access.network.showQr': 'Εμφάνιση κωδικού QR',
@@ -1399,6 +1395,8 @@ export const el: Dict = {
   'settings.access.tsnet.openLogin': 'Άνοιγμα σελίδας σύνδεσης',
   'settings.access.tsnet.connectedLabel': 'Προσβάσιμο στο',
   'settings.access.tsnet.funnelErrorHint': 'Το Funnel πρέπει να ενεργοποιηθεί μία φορά για τον λογαριασμό σας στο Tailscale: ανοίξτε την κονσόλα διαχείρισης, πηγαίνετε στους ελέγχους πρόσβασης και ενεργοποιήστε το Funnel - μετά πατήστε ξανά Σύνδεση.',
+  'settings.access.tsnet.peersTitle': 'Τα άλλα σας στιγμιότυπα',
+  'settings.access.tsnet.advancedTitle': 'Σύνδεση χωρίς Tailscale',
   'settings.access.remote.installTitle': 'Λήψη της εφαρμογής',
   'settings.access.remote.installBody': 'Εγγενείς εφαρμογές για desktop, Android και iOS - αυτή η σελίδα μπορεί επίσης να εγκατασταθεί απευθείας από τον περιηγητή σας, χωρίς κανένα από τα δύο.',
   'settings.access.remote.storeAndroid': 'Google Play',

@@ -1,7 +1,9 @@
 package tsnetsrv
 
 import (
+	"context"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 )
@@ -94,6 +96,63 @@ func TestAuthURLPatternExtractsLoginLink(t *testing.T) {
 func TestAuthURLPatternNoMatch(t *testing.T) {
 	if got := authURLPattern.FindString("Connected."); got != "" {
 		t.Fatalf("authURLPattern.FindString on an unrelated log line = %q, want \"\"", got)
+	}
+}
+
+// Peers() on a Manager that was never connected must read as "no
+// candidates yet", the same way an off Manager reads everywhere else in
+// this package - not an error, since there is nothing wrong, just nothing
+// to report.
+func TestPeersBeforeConnectedIsNilNotError(t *testing.T) {
+	m := newTestManager(t)
+	peers, err := m.Peers(context.Background())
+	if err != nil {
+		t.Fatalf("Peers() on a never-connected Manager returned %v, want nil", err)
+	}
+	if peers != nil {
+		t.Fatalf("Peers() on a never-connected Manager = %v, want nil", peers)
+	}
+}
+
+// looksLikeKnightLoader is the one thing standing between "list every
+// device on my tailnet" and "list every device on my tailnet that is
+// actually running KnightLoader" - a phone or a router answering something
+// else entirely on port 443 must not show up as an addable instance.
+func TestLooksLikeKnightLoader(t *testing.T) {
+	cases := []struct {
+		name string
+		body string
+		code int
+		want bool
+	}{
+		{"real health response", `{"status":"ok","version":"preview"}`, http.StatusOK, true},
+		{"wrong status value", `{"status":"degraded"}`, http.StatusOK, false},
+		{"not json at all", `<html>not knightloader</html>`, http.StatusOK, false},
+		{"wrong http status", `{"status":"ok"}`, http.StatusNotFound, false},
+		{"empty body", ``, http.StatusOK, false},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path != "/api/health" {
+					t.Errorf("probed path = %q, want /api/health", r.URL.Path)
+				}
+				w.WriteHeader(c.code)
+				_, _ = w.Write([]byte(c.body))
+			}))
+			defer srv.Close()
+
+			// looksLikeKnightLoader always dials https://<host>/api/health, so
+			// the test server's own client (which trusts its self-signed
+			// cert) stands in for srv.HTTPClient() - what actually reaches
+			// the peer over the tailnet in production is tsnet's own
+			// networking, not this test's concern.
+			host := srv.Listener.Addr().String()
+			got := looksLikeKnightLoader(context.Background(), srv.Client(), host)
+			if got != c.want {
+				t.Errorf("looksLikeKnightLoader() = %v, want %v", got, c.want)
+			}
+		})
 	}
 }
 

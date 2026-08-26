@@ -1359,9 +1359,6 @@ export const ar: Dict = {
   'settings.access.tokens.done': 'تم',
   'settings.access.tokens.howToUse': 'أرسله كترويسة: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'تعذّر إنشاء الرمز: {error}',
-  'settings.access.remote.title': 'الوصول عن بُعد',
-  'settings.access.remote.desktopNote':
-    'هذا بناء سطح المكتب. لا يقدّم الواجهة عبر الشبكة إطلاقًا، فلا يوجد هنا ما يمكن الوصول إليه من خارج هذا التطبيق.',
   'settings.access.remote.exposedWarning':
     'أجابت هذه النسخة للتو على طلب من خارج هذا الجهاز، ولا كلمة مرور تحميها. يمكن لأي شخص يستطيع الوصول إليها رؤية كل تنزيل والتحكم فيه. عيّن كلمة مرور أعلاه الآن.',
   'settings.access.remote.noRelayBody':
@@ -1371,7 +1368,6 @@ export const ar: Dict = {
   'settings.access.remote.loopback': 'هذا الجهاز فقط',
   'settings.access.remote.domain': 'نطاق',
   'settings.access.remote.scanHint': 'يعمل فقط على نفس شبكة هذه النسخة.',
-  'settings.access.remote.combinedHint': 'يربط هذه النسخة بنسخة KnightLoader أخرى تديرها بنفسك، بحيث تظهر كل منهما في صفحة النُّسخ الخاصة بالأخرى. رمز الإقران هو الطريقة السريعة، لنسختين تستطيعان بالفعل الوصول لبعضهما مباشرة. أما الترحيل فهو لنسختين لا تستطيعان ذلك - كل منهما خلف NAT خاص بها، في شبكات مختلفة.',
   'settings.access.network.scanHint': 'يعمل فقط في نفس شبكة هذه النسخة.',
   'settings.access.network.hideQr': 'إخفاء رمز QR',
   'settings.access.network.showQr': 'إظهار رمز QR',
@@ -1401,6 +1397,8 @@ export const ar: Dict = {
   'settings.access.tsnet.openLogin': 'فتح صفحة تسجيل الدخول',
   'settings.access.tsnet.connectedLabel': 'يمكن الوصول إليه عبر',
   'settings.access.tsnet.funnelErrorHint': 'يجب تفعيل Funnel مرة واحدة لحساب Tailscale الخاص بك: افتح وحدة التحكم الإدارية، وانتقل إلى ضوابط الوصول، وفعّل Funnel - ثم اضغط على اتصال مرة أخرى.',
+  'settings.access.tsnet.peersTitle': 'نسخك الأخرى',
+  'settings.access.tsnet.advancedTitle': 'الاتصال بدون Tailscale',
   'settings.access.remote.installTitle': 'احصل على التطبيق',
   'settings.access.remote.installBody': 'تطبيقات أصلية لسطح المكتب و Android و iOS - يمكن أيضًا تثبيت هذه الصفحة مباشرة من متصفحك، دون أي منهما.',
   'settings.access.remote.storeAndroid': 'Google Play',

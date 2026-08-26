@@ -1357,9 +1357,6 @@ export const lt: Dict = {
   'settings.access.tokens.done': 'Atlikta',
   'settings.access.tokens.howToUse': 'Siųskite jį kaip antraštę: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Nepavyko sukurti prieigos rakto: {error}',
-  'settings.access.remote.title': 'Nuotolinė prieiga',
-  'settings.access.remote.desktopNote':
-    'Tai darbalaukio versija. Ji visiškai neteikia API tinklu, todėl čia nėra prie ko prieiti iš už šios programos ribų.',
   'settings.access.remote.exposedWarning':
     'Ši instancija ką tik atsakė į užklausą iš už šio kompiuterio ribų, ir jos nesaugo joks slaptažodis. Kiekvienas, galintis ją pasiekti, gali matyti ir valdyti kiekvieną atsisiuntimą. Nustatykite slaptažodį aukščiau dabar.',
   'settings.access.remote.noRelayBody':
@@ -1369,7 +1366,6 @@ export const lt: Dict = {
   'settings.access.remote.loopback': 'tik šis kompiuteris',
   'settings.access.remote.domain': 'domenas',
   'settings.access.remote.scanHint': 'Veikia tik tame pačiame tinkle kaip ši instancija.',
-  'settings.access.remote.combinedHint': 'Sujungia šią instanciją su kita KnightLoader instancija, kurią valdai pats, kad abi rodytųsi vienos kitos Instancijų puslapyje. Susiejimo kodas yra greitas būdas dviem instancijoms, kurios jau gali tiesiogiai viena kitą pasiekti. Relė skirta dviem, kurios negali - kiekviena už savo NAT, skirtinguose tinkluose.',
   'settings.access.network.scanHint': 'Veikia tik tame pačiame tinkle kaip ši instancija.',
   'settings.access.network.hideQr': 'Slėpti QR kodą',
   'settings.access.network.showQr': 'Rodyti QR kodą',
@@ -1399,6 +1395,8 @@ export const lt: Dict = {
   'settings.access.tsnet.openLogin': 'Atidaryti prisijungimo puslapį',
   'settings.access.tsnet.connectedLabel': 'Pasiekiama adresu',
   'settings.access.tsnet.funnelErrorHint': 'Funnel reikia įjungti vieną kartą jūsų Tailscale paskyrai: atidarykite administravimo konsolę, eikite į prieigos valdiklius ir įjunkite Funnel - tada dar kartą paspauskite Prisijungti.',
+  'settings.access.tsnet.peersTitle': 'Jūsų kiti egzemplioriai',
+  'settings.access.tsnet.advancedTitle': 'Prisijungti be Tailscale',
   'settings.access.remote.installTitle': 'Gauti programėlę',
   'settings.access.remote.installBody': 'Vietinės programos darbalaukiui, Android ir iOS - šį puslapį taip pat galima įdiegti tiesiai iš naršyklės, be jokios iš jų.',
   'settings.access.remote.storeAndroid': 'Google Play',

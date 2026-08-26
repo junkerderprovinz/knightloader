@@ -1358,9 +1358,6 @@ export const uk: Dict = {
   'settings.access.tokens.done': 'Готово',
   'settings.access.tokens.howToUse': 'Надсилайте його як заголовок: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Не вдалося створити токен: {error}',
-  'settings.access.remote.title': 'Віддалений доступ',
-  'settings.access.remote.desktopNote':
-    'Це десктопна збірка. Вона взагалі не надає API через мережу, тож тут немає нічого, що можна досягти ззовні цього застосунку.',
   'settings.access.remote.exposedWarning':
     'Цей екземпляр щойно відповів на запит ззовні цього комп’ютера, і жоден пароль його не захищає. Будь-хто, хто може його досягти, може бачити й керувати кожним завантаженням. Встановіть пароль вище просто зараз.',
   'settings.access.remote.noRelayBody':
@@ -1370,7 +1367,6 @@ export const uk: Dict = {
   'settings.access.remote.loopback': 'лише цей комп’ютер',
   'settings.access.remote.domain': 'домен',
   'settings.access.remote.scanHint': 'Працює лише в тій самій мережі, що й цей екземпляр.',
-  'settings.access.remote.combinedHint': 'З\'єднує цей екземпляр з іншим KnightLoader, яким керуєш ти сам, щоб обидва з\'явилися на сторінці «Екземпляри» один в одного. Код спарювання - швидкий спосіб для двох екземплярів, які вже можуть напряму дістатися один до одного. Ретранслятор - для двох, які не можуть: кожен за своїм NAT, у різних мережах.',
   'settings.access.network.scanHint': 'Працює лише в тій самій мережі, що й цей екземпляр.',
   'settings.access.network.hideQr': 'Сховати QR-код',
   'settings.access.network.showQr': 'Показати QR-код',
@@ -1400,6 +1396,8 @@ export const uk: Dict = {
   'settings.access.tsnet.openLogin': 'Відкрити сторінку входу',
   'settings.access.tsnet.connectedLabel': 'Доступний за адресою',
   'settings.access.tsnet.funnelErrorHint': 'Funnel потрібно один раз увімкнути для вашого облікового запису Tailscale: відкрийте консоль адміністратора, перейдіть до керування доступом і увімкніть Funnel - потім знову натисніть Підключитися.',
+  'settings.access.tsnet.peersTitle': 'Ваші інші екземпляри',
+  'settings.access.tsnet.advancedTitle': 'Підключення без Tailscale',
   'settings.access.remote.installTitle': 'Отримати застосунок',
   'settings.access.remote.installBody': 'Нативні застосунки для настільного ПК, Android і iOS - цю сторінку також можна встановити прямо з браузера, без обох.',
   'settings.access.remote.storeAndroid': 'Google Play',

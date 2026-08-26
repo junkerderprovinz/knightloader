@@ -1357,9 +1357,6 @@ export const fa: Dict = {
   'settings.access.tokens.done': 'تمام',
   'settings.access.tokens.howToUse': 'آن را به‌صورت هدر بفرستید: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'توکن ایجاد نشد: {error}',
-  'settings.access.remote.title': 'دسترسی از راه دور',
-  'settings.access.remote.desktopNote':
-    'این بیلد دسکتاپ است. این اصلاً API را روی شبکه ارائه نمی‌دهد، پس این‌جا چیزی برای دسترسی از بیرون این برنامه نیست.',
   'settings.access.remote.exposedWarning':
     'این نمونه همین الان به درخواستی از بیرون این دستگاه پاسخ داد، و هیچ رمز عبوری از آن محافظت نمی‌کند. هر کسی که بتواند به آن برسد می‌تواند هر دانلودی را ببیند و کنترل کند. همین حالا در بالا رمز عبوری تنظیم کنید.',
   'settings.access.remote.noRelayBody':
@@ -1369,7 +1366,6 @@ export const fa: Dict = {
   'settings.access.remote.loopback': 'فقط همین دستگاه',
   'settings.access.remote.domain': 'دامنه',
   'settings.access.remote.scanHint': 'فقط در همان شبکهٔ این نمونه کار می‌کند.',
-  'settings.access.remote.combinedHint': 'این نمونه را به یک KnightLoader دیگر که خودت اجرا می‌کنی متصل می‌کند، به‌طوری‌که هر دو در صفحهٔ نمونه‌های یکدیگر ظاهر شوند. کد جفت‌سازی راه سریع است، برای دو نمونه‌ای که از قبل می‌توانند مستقیم به هم برسند. رله برای دو نمونه‌ای است که نمی‌توانند - هرکدام پشت NAT خودشان، در شبکه‌های متفاوت.',
   'settings.access.network.scanHint': 'فقط در همان شبکه‌ای که این نمونه در آن است کار می‌کند.',
   'settings.access.network.hideQr': 'پنهان کردن کد QR',
   'settings.access.network.showQr': 'نمایش کد QR',
@@ -1399,6 +1395,8 @@ export const fa: Dict = {
   'settings.access.tsnet.openLogin': 'باز کردن صفحه ورود',
   'settings.access.tsnet.connectedLabel': 'قابل دسترسی در',
   'settings.access.tsnet.funnelErrorHint': 'Funnel باید یک‌بار برای حساب Tailscale شما فعال شود: کنسول مدیریت را باز کنید، به بخش کنترل دسترسی بروید و Funnel را فعال کنید - سپس دوباره روی اتصال بزنید.',
+  'settings.access.tsnet.peersTitle': 'نمونه‌های دیگر شما',
+  'settings.access.tsnet.advancedTitle': 'اتصال بدون Tailscale',
   'settings.access.remote.installTitle': 'دریافت برنامه',
   'settings.access.remote.installBody': 'برنامه‌های بومی برای دسکتاپ، اندروید و iOS - این صفحه را هم می‌توان مستقیماً از مرورگرتان نصب کرد، بدون هیچ‌کدام از آن دو.',
   'settings.access.remote.storeAndroid': 'Google Play',

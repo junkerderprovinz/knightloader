@@ -1350,9 +1350,6 @@ export const ru: Dict = {
   'settings.access.tokens.done': 'Готово',
   'settings.access.tokens.howToUse': 'Отправляйте его как заголовок: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Не удалось создать токен: {error}',
-  'settings.access.remote.title': 'Удалённый доступ',
-  'settings.access.remote.desktopNote':
-    'Это настольная сборка. Она вообще не предоставляет API по сети, так что здесь нечего достигать извне этого приложения.',
   'settings.access.remote.exposedWarning':
     'Этот экземпляр только что ответил на запрос извне этого компьютера, и никакой пароль его не защищает. Любой, кто может до него достучаться, может видеть и управлять каждой загрузкой. Установите пароль выше прямо сейчас.',
   'settings.access.remote.noRelayBody':
@@ -1362,7 +1359,6 @@ export const ru: Dict = {
   'settings.access.remote.loopback': 'только этот компьютер',
   'settings.access.remote.domain': 'домен',
   'settings.access.remote.scanHint': 'Работает только в той же сети, что и этот экземпляр.',
-  'settings.access.remote.combinedHint': 'Соединяет этот экземпляр с другим KnightLoader, которым управляешь ты сам, чтобы оба появились на странице «Экземпляры» друг у друга. Код сопряжения - быстрый способ для двух экземпляров, которые уже могут достучаться друг до друга напрямую. Ретранслятор - для двух, которые не могут: каждый за своим NAT, в разных сетях.',
   'settings.access.network.scanHint': 'Работает только в той же сети, что и этот экземпляр.',
   'settings.access.network.hideQr': 'Скрыть QR-код',
   'settings.access.network.showQr': 'Показать QR-код',
@@ -1392,6 +1388,8 @@ export const ru: Dict = {
   'settings.access.tsnet.openLogin': 'Открыть страницу входа',
   'settings.access.tsnet.connectedLabel': 'Доступен по адресу',
   'settings.access.tsnet.funnelErrorHint': 'Funnel нужно один раз включить для вашей учётной записи Tailscale: откройте консоль администратора, перейдите в управление доступом и включите Funnel - затем снова нажмите Подключиться.',
+  'settings.access.tsnet.peersTitle': 'Другие ваши экземпляры',
+  'settings.access.tsnet.advancedTitle': 'Подключиться без Tailscale',
   'settings.access.remote.installTitle': 'Получить приложение',
   'settings.access.remote.installBody': 'Нативные приложения для настольных ПК, Android и iOS - эту страницу также можно установить прямо из браузера, без того и другого.',
   'settings.access.remote.storeAndroid': 'Google Play',

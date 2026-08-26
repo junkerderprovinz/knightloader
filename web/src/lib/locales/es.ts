@@ -1350,9 +1350,6 @@ export const es: Dict = {
   'settings.access.tokens.done': 'Listo',
   'settings.access.tokens.howToUse': 'Envíalo como encabezado: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'No se pudo crear el token: {error}',
-  'settings.access.remote.title': 'Acceso remoto',
-  'settings.access.remote.desktopNote':
-    'Este es el build de escritorio. No sirve la API por red en absoluto, así que aquí no hay nada que alcanzar desde fuera de esta aplicación.',
   'settings.access.remote.exposedWarning':
     'Esta instancia acaba de responder a una solicitud desde fuera de esta máquina, y ninguna contraseña la protege. Cualquiera que pueda alcanzarla puede ver y controlar cada descarga. Pon una contraseña arriba ahora mismo.',
   'settings.access.remote.noRelayBody':
@@ -1362,7 +1359,6 @@ export const es: Dict = {
   'settings.access.remote.loopback': 'solo esta máquina',
   'settings.access.remote.domain': 'dominio',
   'settings.access.remote.scanHint': 'Solo funciona en la misma red que esta instancia.',
-  'settings.access.remote.combinedHint': 'Conecta esta instancia con otro KnightLoader que gestiones tú mismo, de modo que ambas aparezcan en la página de instancias de la otra. Un código de emparejamiento es la vía rápida, para dos instancias que ya pueden alcanzarse directamente. Un relé es para dos que no pueden - cada una detrás de su propio NAT, en redes distintas.',
   'settings.access.network.scanHint': 'Solo funciona en la misma red que esta instancia.',
   'settings.access.network.hideQr': 'Ocultar código QR',
   'settings.access.network.showQr': 'Mostrar código QR',
@@ -1392,6 +1388,8 @@ export const es: Dict = {
   'settings.access.tsnet.openLogin': 'Abrir página de inicio de sesión',
   'settings.access.tsnet.connectedLabel': 'Accesible en',
   'settings.access.tsnet.funnelErrorHint': 'Funnel debe activarse una vez para tu cuenta de Tailscale: abre la consola de administración, ve a controles de acceso, y activa Funnel - luego pulsa Conectar de nuevo.',
+  'settings.access.tsnet.peersTitle': 'Tus otras instancias',
+  'settings.access.tsnet.advancedTitle': 'Conectar sin Tailscale',
   'settings.access.remote.installTitle': 'Consigue la app',
   'settings.access.remote.installBody': 'Apps nativas para escritorio, Android e iOS - esta página también se puede instalar directamente desde el navegador, sin ninguna de las dos.',
   'settings.access.remote.storeAndroid': 'Google Play',

@@ -1358,9 +1358,6 @@ export const hr: Dict = {
   'settings.access.tokens.done': 'Gotovo',
   'settings.access.tokens.howToUse': 'Pošalji ga kao zaglavlje: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Nije uspjelo stvoriti token: {error}',
-  'settings.access.remote.title': 'Udaljeni pristup',
-  'settings.access.remote.desktopNote':
-    'Ovo je desktop build. Uopće ne poslužuje API preko mreže, pa ovdje nema ničega dostupnog izvan ove aplikacije.',
   'settings.access.remote.exposedWarning':
     'Ova instanca upravo je odgovorila na zahtjev izvan ovog računala, a nijedna je lozinka ne štiti. Svatko tko je može doseći može vidjeti i upravljati svakim preuzimanjem. Odmah gore postavi lozinku.',
   'settings.access.remote.noRelayBody':
@@ -1370,7 +1367,6 @@ export const hr: Dict = {
   'settings.access.remote.loopback': 'samo ovo računalo',
   'settings.access.remote.domain': 'domena',
   'settings.access.remote.scanHint': 'Radi samo na istoj mreži kao ova instanca.',
-  'settings.access.remote.combinedHint': 'Povezuje ovu instancu s drugim KnightLoaderom koji sam pokrećeš, tako da se obje pojave na stranici Instance one druge. Kôd za uparivanje brz je način za dvije instance koje se već mogu izravno dosegnuti. Relej je za dvije koje ne mogu - svaka iza vlastitog NAT-a, na različitim mrežama.',
   'settings.access.network.scanHint': 'Radi samo na istoj mreži kao ova instanca.',
   'settings.access.network.hideQr': 'Sakrij QR kod',
   'settings.access.network.showQr': 'Prikaži QR kod',
@@ -1400,6 +1396,8 @@ export const hr: Dict = {
   'settings.access.tsnet.openLogin': 'Otvori stranicu za prijavu',
   'settings.access.tsnet.connectedLabel': 'Dostupno na',
   'settings.access.tsnet.funnelErrorHint': 'Funnel treba jednom uključiti za vaš Tailscale račun: otvorite administratorsku konzolu, idite na kontrole pristupa, i uključite Funnel - zatim ponovno pritisnite Poveži se.',
+  'settings.access.tsnet.peersTitle': 'Vaše druge instance',
+  'settings.access.tsnet.advancedTitle': 'Poveži se bez Tailscalea',
   'settings.access.remote.installTitle': 'Preuzmi aplikaciju',
   'settings.access.remote.installBody': 'Izvorne aplikacije za desktop, Android i iOS - ovu stranicu također možete instalirati izravno iz preglednika, bez ijednog od toga.',
   'settings.access.remote.storeAndroid': 'Google Play',

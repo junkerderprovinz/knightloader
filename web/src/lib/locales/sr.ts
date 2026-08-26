@@ -1358,9 +1358,6 @@ export const sr: Dict = {
   'settings.access.tokens.done': 'Готово',
   'settings.access.tokens.howToUse': 'Пошаљи га као заглавље: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Није успело прављење токена: {error}',
-  'settings.access.remote.title': 'Удаљени приступ',
-  'settings.access.remote.desktopNote':
-    'Ово је десктоп билд. Уопште не пружа API преко мреже, па овде нема ничега што би било доступно изван ове апликације.',
   'settings.access.remote.exposedWarning':
     'Ова инстанца управо је одговорила на захтев изван овог рачунара, а ниједна лозинка је не штити. Свако ко може да је досегне може да види и контролише свако преузимање. Одмах горе постави лозинку.',
   'settings.access.remote.noRelayBody':
@@ -1370,7 +1367,6 @@ export const sr: Dict = {
   'settings.access.remote.loopback': 'само овај рачунар',
   'settings.access.remote.domain': 'домен',
   'settings.access.remote.scanHint': 'Ради само на истој мрежи као ова инстанца.',
-  'settings.access.remote.combinedHint': 'Повезује ову инстанцу с другим KnightLoader-ом који сам управљаш, тако да се обе појаве на страници Инстанце оне друге. Код за упаривање је брз начин, за две инстанце које се већ могу директно досегнути. Релеј је за две које не могу - свака иза свог NAT-а, на различитим мрежама.',
   'settings.access.network.scanHint': 'Ради само у истој мрежи као и ова инстанца.',
   'settings.access.network.hideQr': 'Сакриј QR код',
   'settings.access.network.showQr': 'Прикажи QR код',
@@ -1400,6 +1396,8 @@ export const sr: Dict = {
   'settings.access.tsnet.openLogin': 'Отвори страницу за пријаву',
   'settings.access.tsnet.connectedLabel': 'Доступно на',
   'settings.access.tsnet.funnelErrorHint': 'Funnel треба једном укључити за ваш Tailscale налог: отворите админ конзолу, идите на контроле приступа, и укључите Funnel - затим поново притисните Повежи се.',
+  'settings.access.tsnet.peersTitle': 'Ваше друге инстанце',
+  'settings.access.tsnet.advancedTitle': 'Повежи се без Tailscale-а',
   'settings.access.remote.installTitle': 'Преузми апликацију',
   'settings.access.remote.installBody': 'Изворне апликације за десктоп, Android и iOS - ову страницу такође можете инсталирати директно из прегледача, без иједног од тога.',
   'settings.access.remote.storeAndroid': 'Google Play',
