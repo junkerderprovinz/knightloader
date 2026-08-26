@@ -45,6 +45,12 @@ func Handler(a *app.App) http.Handler {
 	// container-only or desktop-only line to keep in sync between them.
 	a.SetSelfServeHandler(h)
 	applyRelay(a)
+	// Same reasoning as applyRelay just above, and see applyTsnet's own doc
+	// comment for why THIS is where it runs rather than inside
+	// registerTsnet/registerAll: a.Tsnet's own async Start() goroutine reads
+	// a.SelfServeHandler() exactly once, and this call must not be able to
+	// race ahead of the line above that makes it real.
+	applyTsnet(a)
 	// Same reasoning as the two lines above: wired here, unconditionally, so a
 	// peer credential saved in an earlier run is in effect the moment either
 	// binary boots, with nothing for a caller to remember. See peertokens.go.

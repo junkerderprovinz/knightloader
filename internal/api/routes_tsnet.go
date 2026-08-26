@@ -13,9 +13,7 @@ package api
 // One *tsnetsrv.Manager for the process lifetime, held on app.App itself
 // (a.Tsnet - see that field's own comment for why this cannot be a local
 // variable the way registerRelay's own srv := relay.New() is for its
-// inbound side: routes_remote.go's address list needs to read it too). If
-// this instance was already connected in an earlier run, Start reconnects
-// immediately below, so a container restart does not mean logging in again.
+// inbound side: routes_remote.go's address list needs to read it too).
 
 import (
 	"encoding/json"
@@ -44,17 +42,24 @@ func registerTsnet(reg *Registry, a *app.App) {
 			// so a missing/empty/invalid body is read as "use the default"
 			// rather than rejected the way decodeJSON's callers elsewhere
 			// require a real body.
-			_ = json.NewDecoder(r.Body).Decode(&body)
+			_ = decodeBody(r, &body)
 			if err := mgr.Start(body.Hostname); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
+			info := mgr.Info()
 			enabled, err := json.Marshal(true)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			hostname, err := json.Marshal(body.Hostname)
+			// info.Hostname, not body.Hostname: Start applies the
+			// ""->"knightloader" default internally, and persisting the
+			// raw, pre-default value left Settings and the live connection
+			// disagreeing about this instance's own hostname whenever a
+			// caller submitted an empty one - caught in review before this
+			// fix.
+			hostname, err := json.Marshal(info.Hostname)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -66,7 +71,7 @@ func registerTsnet(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			writeJSON(w, mgr.Info())
+			writeJSON(w, info)
 		})
 
 	reg.Add(http.MethodPost, "/api/tsnet/stop",
@@ -87,12 +92,23 @@ func registerTsnet(reg *Registry, a *app.App) {
 			}
 			writeJSON(w, mgr.Info())
 		})
+}
 
-	// Reconnect automatically at boot, the same reasoning applyRelay's own
-	// doc comment gives for the relay client: a configuration from an
-	// earlier run must not need the settings page revisited before it
-	// takes effect again.
+// applyTsnet reconnects a previously-authorized instance at boot, the same
+// reasoning applyRelay's own doc comment gives for the relay client: a
+// configuration from an earlier run must not need the settings page
+// revisited before it takes effect again.
+//
+// Called from Handler AFTER a.SetSelfServeHandler, deliberately not from
+// registerTsnet (which runs inside registerAll, before that) - Start spawns
+// a goroutine that eventually calls a.SelfServeHandler() itself, exactly
+// once, to serve the funnel listener; calling it any earlier would risk that
+// one read happening before the real handler exists. In practice Start's own
+// network round trip to Tailscale is far slower than the handful of
+// register* calls this used to run ahead of, but this ordering removes the
+// assumption instead of relying on it.
+func applyTsnet(a *app.App) {
 	if a.Settings.Get().TsnetEnabled {
-		_ = mgr.Start(a.Settings.Get().TsnetHostname)
+		_ = a.Tsnet.Start(a.Settings.Get().TsnetHostname)
 	}
 }

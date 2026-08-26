@@ -1742,7 +1742,14 @@ export async function login(password: string): Promise<AuthState> {
   return json<AuthState>(r);
 }
 
-export const logout = () => fetch('/api/auth/logout', { method: 'POST' });
+// logout ends the current session. Throws on a non-2xx response the same
+// way login() above does, rather than only on a network-level failure - a
+// caller's try/catch (Sidebar.tsx, Access.tsx's PasswordCard) needs both to
+// actually mean "sign-out failed", not just the network case.
+export async function logout(): Promise<void> {
+  const r = await fetch('/api/auth/logout', { method: 'POST' });
+  if (!r.ok) throw new Error(await r.text());
+}
 
 // setPassword sets, changes or (with an empty next) removes the password lock.
 export async function setPassword(current: string, next: string): Promise<AuthState> {

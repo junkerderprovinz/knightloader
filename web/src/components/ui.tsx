@@ -5,7 +5,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { ButtonHTMLAttributes, CSSProperties, InputHTMLAttributes, ReactNode, RefObject } from 'react';
 import { hueVars, rainbowAt } from '../lib/appearance';
-import { IconClose } from '../lib/icons';
+import { IconClose, IconEye, IconEyeOff } from '../lib/icons';
 
 type ButtonKind = 'primary' | 'secondary' | 'ghost' | 'danger';
 
@@ -754,6 +754,67 @@ export function NumberInput({
         </button>
       </span>
     </span>
+  );
+}
+
+/**
+ * A password field with a reveal-eye toggle (jdp, 2026-08-26: "Im
+ * passwort-eingabefeld fehlt das reveal auge um das passwort anschauen zu
+ * können") - no such toggle existed anywhere in this codebase before this
+ * was added. Shares NumberInput's own `relative` wrapper + `absolute`
+ * overlay-button shape just above rather than reinventing it.
+ *
+ * `showLabel`/`hideLabel` are caller-supplied rather than resolved via
+ * useT() in here, the same reason InfoBubble's own `label` prop is
+ * caller-supplied: this file has no i18n dependency of its own, and every
+ * caller already has the translated strings (`common.showPassword`/
+ * `common.hidePassword`) at hand.
+ *
+ * `autoComplete` is required, not defaulted to "off" - see this component's
+ * history: an early version hardcoded "off", which suppresses a password
+ * manager's save/fill/strength prompts. Callers pass the real semantic
+ * token their field needs ("current-password", "new-password", ...).
+ */
+export function PasswordInput({
+  value,
+  onChange,
+  autoComplete,
+  showLabel,
+  hideLabel,
+  autoFocus,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  autoComplete: InputHTMLAttributes<HTMLInputElement>['autoComplete'];
+  showLabel: string;
+  hideLabel: string;
+  autoFocus?: boolean;
+}) {
+  const [reveal, setReveal] = useState(false);
+  return (
+    <div className="relative">
+      <TextInput
+        type={reveal ? 'text' : 'password'}
+        autoComplete={autoComplete}
+        autoFocus={autoFocus}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="pr-9"
+      />
+      <button
+        type="button"
+        // Stops the click from also refocusing/moving the caret through a
+        // <label>-wrapped Field the way a plain click would - the toggle is
+        // its own control, not a second way to focus the field.
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => setReveal((r) => !r)}
+        title={reveal ? hideLabel : showLabel}
+        aria-label={reveal ? hideLabel : showLabel}
+        className="absolute inset-y-0 right-0 flex w-9 items-center justify-center text-carbon-textMuted transition-colors hover:text-carbon-text"
+      >
+        {reveal ? <IconEyeOff width={16} height={16} /> : <IconEye width={16} height={16} />}
+      </button>
+    </div>
   );
 }
 

@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { type AuthState, fetchAuth, login } from '../lib/api';
 import { useT } from '../lib/i18n';
-import { Button, Card, Field, TextInput } from '../components/ui';
+import { Button, Card, Field, PasswordInput } from '../components/ui';
 import { LanguagePicker } from '../components/LanguagePicker';
 
 // AuthGate shows the app, or the sign-in screen when the instance is locked.
@@ -58,12 +58,13 @@ function SignIn({ onSignedIn }: { onSignedIn: (a: AuthState) => void }) {
           </div>
           <form className="flex flex-col gap-5" onSubmit={submit}>
             <Field label={t('auth.password')}>
-              <TextInput
-                type="password"
-                autoFocus
-                autoComplete="current-password"
+              <PasswordInput
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={setPassword}
+                autoComplete="current-password"
+                autoFocus
+                showLabel={t('common.showPassword')}
+                hideLabel={t('common.hidePassword')}
               />
             </Field>
             <div className="flex items-center gap-3">
