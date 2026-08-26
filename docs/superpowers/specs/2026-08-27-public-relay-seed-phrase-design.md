@@ -77,7 +77,7 @@ locked into operating it forever.
 // internal/relay: the address every instance dials unless the user
 // overrides it. A constant, not a setting, because a value nobody has to
 // type is the entire reason the seed phrase can carry only a secret.
-const DefaultRelayURL = "wss://relay.<domain>/relay/connect"
+const DefaultRelayURL = "wss://relay.knightloader.app/relay/connect"
 ```
 
 Overridable per instance for the self-hosted case (the existing relay-URL
@@ -198,13 +198,28 @@ What jdp actually runs:
 
 | | |
 |---|---|
-| Host | Hetzner Cloud CX22 — 2 vCPU, 4 GB RAM, 40 GB, 20 TB traffic, IPv4 included |
-| Cost | 3.79 €/month + domain |
+| Host | Hetzner **Cloud** (`console.hetzner.cloud`, not Robot/dedicated) |
+| Plan | Shared vCPU → Cost-Optimized → **CX23** (2 vCPU, 4 GB RAM, 40 GB, 20 TB traffic) |
+| Cost | 3.99 € + 0.50 € IPv4 = **4.49 €/month** |
 | Location | Nuremberg or Falkenstein |
-| OS | Debian 12 |
-| Exposed | 443 only, via Hetzner Cloud Firewall (free) |
+| OS | Debian, latest stable offered |
+| Exposed | 443 for the relay; 22 restricted to jdp's own address |
 | TLS | Let's Encrypt |
 | State | none — no database, no volume, no backup to keep |
+
+Plan naming checked against Hetzner's own site on 2026-08-27, after their
+April 2026 restructure: the old CX22 no longer exists, the current
+generation is CX23, and IPv4 is no longer bundled. CAX11 (ARM) is not the
+cheaper option any more either — 4.49 € against CX23's 3.99 € — so x86 wins
+on both price and not having to think about architecture.
+
+**Domain: `knightloader.app`, registered at Cloudflare (2026-08-27).** Its
+DNS records for the relay must be set to **"DNS only" (grey cloud), never
+"Proxied" (orange)**. Proxying would put Cloudflare back into the data path
+— reintroducing exactly the third party this whole design exists to remove,
+just at a different layer — and the free tier's 100-second WebSocket idle
+timeout works against a long-lived control connection. Cloudflare stays
+registrar and nameserver; it does not see traffic.
 
 Hetzner over the alternatives for one reason beyond price: operating this
 means processing other people's connection metadata, and a German company
@@ -245,21 +260,17 @@ restart costs the current connection list, which repopulates in seconds.
   problem to design around. The one-time "switch to the simpler way" prompt
   the draft proposed is dropped entirely rather than built for nobody.
 
-## Open question
+- **Domain** — `knightloader.app`, registered 2026-08-27 at Cloudflare.
+  Deliberately not `bottich.lol`: this address is compiled into every
+  released binary and can therefore never lapse or change without breaking
+  every install that already shipped, and a `.lol` in the source of a
+  security-relevant service reads as a joke or a compromise to anyone who
+  does not know whose it is. It also keeps the product's permanent identity
+  separate from jdp's personal homelab domain — the same separation that
+  motivated renting a VPS rather than hosting this at home.
 
-**The domain.** This is the one decision that cannot be revised later: the
-relay address is compiled into every released binary, so it must be a name
-that stays registered and pointed at a working relay for as long as any
-released copy of KnightLoader exists. Changing it breaks every install that
-already shipped.
+Nothing is open. The constant becomes:
 
-That rules out reusing `bottich.lol`: a `.lol` address in the source of a
-security-relevant service reads as a joke or a compromise to anyone who does
-not know whose it is, and it ties the product's permanent identity to jdp's
-personal homelab domain — the same coupling he wanted to avoid by not
-hosting the relay on his own server in the first place.
-
-Recommendation: register a KnightLoader-specific domain before deploying
-(e.g. `knightloader.app`, ~12-15 €/year, and `.app` is HSTS-preloaded so
-HTTPS is enforced at the browser level). It doubles as the eventual home for
-the site, docs and downloads, so it is not a cost carried by the relay alone.
+```go
+const DefaultRelayURL = "wss://relay.knightloader.app/relay/connect"
+```
