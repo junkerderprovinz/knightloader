@@ -25,6 +25,9 @@ const ACCENTS = [
   { name: 'Green', hex: '#6FDC8C' },
   { name: 'Red', hex: '#FF8389' },
   { name: 'Purple', hex: '#BE95FF' },
+  { name: 'Orange', hex: '#FF832B' },
+  { name: 'Teal', hex: '#3DDBD9' },
+  { name: 'Pink', hex: '#FF7EB6' },
 ];
 
 function validHex(hex) {

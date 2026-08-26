@@ -76,6 +76,16 @@ module.exports = function withReleaseSigning(config) {
                 storePassword System.getenv('KL_ANDROID_STORE_PASSWORD')
                 keyAlias System.getenv('KL_ANDROID_KEY_ALIAS')
                 keyPassword System.getenv('KL_ANDROID_KEY_PASSWORD')
+                // AGP enables v2 and leaves v3 off. v3 is what a modern APK
+                // carries, and it is the scheme that supports key ROTATION -
+                // the only mechanism by which a compromised or lost signing
+                // key could ever be replaced without every installed copy
+                // having to be uninstalled first. Turning it on costs nothing
+                // and is the difference between "no way out" and "a way out"
+                // on the one failure this project cannot otherwise recover
+                // from. v1 stays off: minSdk is 24, so nothing reads it.
+                enableV2Signing true
+                enableV3Signing true
             }
         }
 ${debugBlock}`,

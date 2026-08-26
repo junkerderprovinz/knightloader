@@ -39,9 +39,16 @@ let activeTab = null;
 
   const { instances, defaultName } = await readInstances();
   if (instances.length === 0) {
-    sendBtn.disabled = true;
+    // The popup used to open Options here and close itself, so a click on the
+    // toolbar icon never showed the popup at all - it hijacked the click and
+    // took you somewhere you had not asked to go (jdp: "wenn ich auf das
+    // erweiterungsicon im browser klicke öffnet es sofort die einstellungen.
+    // es soll aber nur das popupfenster öffnen"). The popup stays open and
+    // offers the way there instead: the same destination, reached on purpose.
+    sendBtn.textContent = t('popup.addInstance');
+    sendBtn.disabled = false;
+    sendBtn.onclick = () => chrome.runtime.openOptionsPage();
     statusEl.textContent = t('popup.noInstance');
-    chrome.runtime.openOptionsPage();
     return;
   }
   if (instances.length > 1) {

@@ -11,14 +11,23 @@
       "bundleIdentifier": "com.junkerderprovinz.knightloader"
     },
     "android": {
-      "versionCode": 1,
+      "versionCode": 2,
       "package": "com.junkerderprovinz.knightloader",
       "adaptiveIcon": {
         "backgroundImage": "./assets/android-icon-background.png",
         "backgroundColor": "#ffffff",
         "foregroundImage": "./assets/android-icon-foreground.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.VIBRATE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -36,7 +45,8 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Zum Scannen des QR-Codes einer KnightLoader-Instanz."
+          "cameraPermission": "Zum Scannen des QR-Codes einer KnightLoader-Instanz.",
+          "recordAudioAndroid": false
         }
       ],
       "expo-localization",
