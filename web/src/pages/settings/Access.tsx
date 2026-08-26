@@ -215,6 +215,15 @@ export function Access() {
 
   return (
     <div className="flex flex-col gap-10">
+      {/* Identity first, password second (jdp, 2026-08-26) - and pulled out of
+          RemoteAccessSection rather than left nested inside it: that section
+          returns null until its own fetch resolves, and skips this card
+          entirely on a desktop build (only NetworkAccessCard applies there,
+          since a desktop opens no address to show). A name is a plain
+          settings field with no such dependency - it belongs at the top
+          regardless of deployment, not hidden behind a fetch that has
+          nothing to do with it. */}
+      <IdentityCard cx={cx} />
       <PasswordCard />
 
       <RemoteAccessSection cx={cx} />
@@ -365,8 +374,6 @@ function RemoteAccessSection({ cx }: { cx: (k: PendingKey) => string }) {
 
       <NetworkAccessCard cx={cx} info={info} />
 
-      <IdentityCard cx={cx} />
-
       <Card className="flex flex-col gap-3">
         <SectionTitle hue={3} hint={cx('settings.access.remote.installBody')}>
           {cx('settings.access.remote.installTitle')}
@@ -460,13 +467,14 @@ function NetworkAccessCard({ cx, info }: { cx: (k: PendingKey) => string; info: 
 // reason to save it any differently.
 //
 // KnownDomains is shown here for the SAME reason a bare LAN IP still shows in
-// the addresses card above: this is a normal settings field, editable
-// independently of whatever request happened to load this page. The list
-// itself is otherwise populated automatically (routes_remote.go's own
-// rememberDomain, the moment a request actually arrives on a domain) - this
-// textarea only matters for a domain that is already configured but has not
-// been visited through yet, so pairingSelf and the QR code above have
-// something to prefer before that first visit happens.
+// NetworkAccessCard's own addresses list below: this is a normal settings
+// field, editable independently of whatever request happened to load this
+// page. The list itself is otherwise populated automatically
+// (routes_remote.go's own rememberDomain, the moment a request actually
+// arrives on a domain) - this textarea only matters for a domain that is
+// already configured but has not been visited through yet, so pairingSelf and
+// the QR code below have something to prefer before that first visit
+// happens.
 function IdentityCard({ cx }: { cx: (k: PendingKey) => string }) {
   const { cfg, patch } = useDraft();
 

@@ -8,42 +8,17 @@ import {
   fetchDiscovered,
   fetchInstances,
   fetchSettings,
-  redeemPairingCode,
   removeInstance,
 } from '../lib/api';
 import { useT } from '../lib/i18n';
-import { PageHeader, Card, Button, Field, IconBadge, TextInput, SectionTitle } from '../components/ui';
+import { PageHeader, Card, Button, SectionTitle } from '../components/ui';
 import { InstanceCard } from '../components/InstanceCard';
 import { FirstTouchHint } from '../components/FirstTouchHint';
-import { IconClipboard } from '../lib/icons';
-import { useToast } from '../lib/toast';
-
-// Reading the clipboard, unlike writing it (lib/clipboard.ts's copyToClipboard),
-// has no reliable fallback for an insecure origin - execCommand('copy') works
-// everywhere, but browsers refuse a script-driven execCommand('paste') outright
-// as a real security boundary, not merely an availability quirk. Feature-detected
-// once at module scope (the same check PasteFromClipboardButton.tsx already
-// established for exactly this API), then used to DISABLE the paste badge
-// below rather than hide it - a control that vanishes teaches nobody what the
-// mode can do (settings/Look.tsx's UpdateCard/SystemCards established that
-// pattern first). `disabled` carries the "why" in its own title instead of
-// pretending the option was never there, which is the honest response to a
-// real, unworkaroundable browser boundary - KnightLoader's most common real
-// deployment is plain http://<lan-ip>, an insecure context, where this is
-// always false.
-const CLIPBOARD_READABLE = typeof navigator !== 'undefined' && !!navigator.clipboard?.readText;
 
 export function Instances() {
   const { t } = useT();
-  const { toast } = useToast();
   const [peers, setPeers] = useState<Instance[]>([]);
-  const [name, setName] = useState('');
-  const [url, setUrl] = useState('');
   const [err, setErr] = useState('');
-  const [code, setCode] = useState('');
-  const [pairing, setPairing] = useState(false);
-  const [pairErr, setPairErr] = useState('');
-  const [pairOk, setPairOk] = useState('');
   // The configured name (settings/Access.tsx's own IdentityCard), so this
   // instance shows up on its own card the same way a peer does - not the
   // generic "this instance" placeholder (jdp: "unter instanz soll diese
@@ -86,68 +61,6 @@ export function Instances() {
       await loadFound();
     } catch (e: any) {
       setErr(String(e?.message ?? e));
-    }
-  }
-
-  async function onAdd() {
-    setErr('');
-    try {
-      const r = await addInstance(name.trim(), url.trim());
-      if (r.needsPairing) setErr(t('instances.needsPairing'));
-      else if (!r.online) setErr(t('instances.offlineWarning'));
-      setName('');
-      setUrl('');
-      await load();
-    } catch (e: any) {
-      setErr(String(e?.message ?? e));
-    }
-  }
-
-  // Redeem a code from the OTHER instance's own Access tab (settings/Access.tsx's
-  // own "Generate pairing code" card, backed by POST /api/instances/pairing-code)
-  // instead of typing that instance's name and address here by hand - one call
-  // registers both directions (internal/api/routes_pairing.go's own doc comment
-  // on why the redeem handler completes the other side before adding it locally).
-  async function onPair() {
-    setPairErr('');
-    setPairOk('');
-    setPairing(true);
-    try {
-      const r = await redeemPairingCode(code.trim());
-      // Two independent halves, reported separately because they fail
-      // separately: `online` is this instance reaching the peer, `reachedBack`
-      // is the peer reaching this one. Both are now measured - until issue #28
-      // the second was stored on the redeemer's word and never tried, so an
-      // asymmetric pairing reported a clean success with one half dead.
-      //
-      // Saying so matters more here than on the manual-add path above: that
-      // one only ever claimed one direction, while this one connects both and
-      // would otherwise imply both work.
-      //
-      // THREE cases, not two warnings concatenated. Stacking them produced a
-      // message that contradicted itself: the offline warning says the peer
-      // did not answer, and pairOneWay's closing clause says this instance can
-      // still reach it. Both true only if you read one of them as being about
-      // a different moment, which nobody does.
-      const warn = !r.online && !r.reachedBack
-        ? t('instances.pairNeitherWay')
-        : !r.online
-          ? t('instances.offlineWarning')
-          : !r.reachedBack
-            ? t('instances.pairOneWay')
-            : '';
-      // Said out loud, because it changes what the peer IS: a relay peer is
-      // live only while the relay sees it, and it is never written down. A
-      // pairing that quietly took a different road than the address suggested
-      // is worth one sentence.
-      const how = r.viaRelay ? ` ${t('instances.pairViaRelay')}` : '';
-      setPairOk(t('instances.pairSuccess', { name: r.name }) + how + (warn ? ` ${warn}` : ''));
-      setCode('');
-      await load();
-    } catch (e: any) {
-      setPairErr(String(e?.message ?? e));
-    } finally {
-      setPairing(false);
     }
   }
 
@@ -209,73 +122,27 @@ export function Instances() {
               )}
             </div>
           ))}
+          {/* Moved in from the now-removed manual-add card (jdp,
+              2026-08-26): this is the only remaining action in this file
+              that can set err (onAddFound), so it is the only remaining
+              place that needs to show it. */}
+          {err && <div className="text-statusFail text-sm">{err}</div>}
         </Card>
       )}
 
-      <Card className="flex flex-col gap-4">
-        <SectionTitle>{t('instances.add')}</SectionTitle>
-        <div className="grid grid-cols-1 sm:grid-cols-[1fr_2fr_auto] gap-3 items-end">
-          <Field label={t('instances.name')}>
-            <TextInput placeholder="cellar" value={name} onChange={(e) => setName(e.target.value)} />
-          </Field>
-          <Field label={t('instances.url')}>
-            <TextInput placeholder="http://host:8749" value={url} onChange={(e) => setUrl(e.target.value)} />
-          </Field>
-          <Button kind="secondary" onClick={onAdd} disabled={!name.trim() || !url.trim()}>
-            {t('instances.addButton')}
-          </Button>
-        </div>
-        {err && <div className="text-statusFail text-sm">{err}</div>}
-      </Card>
-
-      <Card className="flex flex-col gap-3">
-        <SectionTitle hint={t('instances.pairHint')}>{t('instances.pairTitle')}</SectionTitle>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          {/* Same TextInput the Name field above uses (jdp, 2026-08-25:
-              "das eingabefeld für den Pairing-code ... soll exakt gleich
-              hoch und formatiert sein wie ... das Eingabefeld für den
-              Namen") - a hand-built well (a div padded around a bare
-              <input>) LOOKS like it should match TextInput's own
-              px-3/py-2/text-sm, but a native <input>'s own box-model
-              quirks are exactly why that component exists instead of every
-              caller re-deriving the same three classes; dir="ltr" and a
-              monospace class are just props now, not a reason to opt out
-              of it. h-9 on all three controls below (the input, the paste
-              badge, the button) is the second half of the same request -
-              IconBadge's own square footprint is a fixed h-8 everywhere
-              else it is used, which reads a few px short beside a
-              text-sm/py-2 input and button once the three sit in one row. */}
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            <TextInput
-              dir="ltr"
-              placeholder={t('instances.pairPlaceholder')}
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              className="glim-num h-9 min-w-0 flex-1"
-            />
-            <IconBadge
-              icon={<IconClipboard width={14} height={14} />}
-              title={CLIPBOARD_READABLE ? t('instances.pairPaste') : t('instances.pairPasteUnavailable')}
-              aria-label={CLIPBOARD_READABLE ? t('instances.pairPaste') : t('instances.pairPasteUnavailable')}
-              disabled={!CLIPBOARD_READABLE}
-              className="h-9 w-9 shrink-0"
-              onClick={async () => {
-                try {
-                  const text = (await navigator.clipboard.readText()).trim();
-                  if (text) setCode(text);
-                } catch (e) {
-                  toast(t('list.failed', { error: String(e) }), 'fail');
-                }
-              }}
-            />
-          </div>
-          <Button kind="secondary" className="h-9" onClick={() => void onPair()} disabled={!code.trim() || pairing}>
-            {t('instances.pairButton')}
-          </Button>
-        </div>
-        {pairErr && <div className="text-statusFail text-sm">{pairErr}</div>}
-        {pairOk && <div className="text-statusOk text-sm">{pairOk}</div>}
-      </Card>
+      {/* Manual add and pairing-by-code used to be two cards here, duplicating
+          what settings/Access.tsx's own RemoteAccessCard already does more
+          completely (it also covers the relay, for two instances that cannot
+          reach each other directly at all) - jdp, 2026-08-26: "nur ein
+          button der auf den zugangstab in den einstellungen verweist soll in
+          dem tab sein". One button now, instead of two separate, narrower
+          forms for the same job in two places. */}
+      <div className="flex flex-wrap items-center gap-3">
+        <Button kind="secondary" onClick={() => navigate('/settings/access')}>
+          {t('instances.connectButton')}
+        </Button>
+        <span className="text-xs text-carbon-textMuted">{t('instances.connectHint')}</span>
+      </div>
     </div>
   );
 }
