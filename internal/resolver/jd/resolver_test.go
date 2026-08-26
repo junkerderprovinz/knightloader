@@ -1,6 +1,13 @@
 package jd
 
-import "testing"
+import (
+	"context"
+	"net/http/httptest"
+	"testing"
+	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/core"
+)
 
 // TestPriorityForDefaultsWithNoNativeLogin pins the DEFAULT answer: a host
 // nothing has activated must route exactly as it always has, at the same
@@ -52,5 +59,43 @@ func TestPriorityForUnrelatedHostUnaffected(t *testing.T) {
 	SetHostActive(activeHost, true)
 	if got := PriorityFor("https://" + otherHost + "/file/123"); got != basePrio {
 		t.Errorf("PriorityFor(%s) = %d, want the default %d - activating %s must not raise it", otherHost, got, basePrio, activeHost)
+	}
+}
+
+// TestCheckWithNoBackendIsUncheckable pins the same nil-safety
+// debrid.Resolver.Svc already established: a bare jd.Resolver{}, the shape
+// every routing test in this package constructs, must answer every link
+// uncheckable rather than panic on a nil Backend.
+func TestCheckWithNoBackendIsUncheckable(t *testing.T) {
+	r := Resolver{}
+	got, err := r.Check(context.Background(), []string{"https://host.example/a", "https://host.example/b"})
+	if err != nil {
+		t.Fatalf("Check returned an error with no backend: %v", err)
+	}
+	if len(got) != 2 || got[0] != core.AvailUncheckable || got[1] != core.AvailUncheckable {
+		t.Errorf("Check = %v, want two uncheckable verdicts", got)
+	}
+}
+
+// TestCheckDelegatesToBackend pins the other half: once a Backend is wired
+// in, Check hands the call straight through rather than adding its own
+// interpretation on top.
+func TestCheckDelegatesToBackend(t *testing.T) {
+	orig := pollInterval
+	pollInterval = 5 * time.Millisecond
+	defer func() { pollInterval = orig }()
+
+	const url = "https://host.example/a"
+	fake := newFakeJDCheck(t, map[string]string{url: "ONLINE"})
+	srv := httptest.NewServer(fake.handler())
+	defer srv.Close()
+
+	r := Resolver{Backend: NewBackend(srv.URL, func(string, core.Update) {})}
+	got, err := r.Check(context.Background(), []string{url})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != 1 || got[0] != core.AvailOnline {
+		t.Errorf("Check = %v, want [online]", got)
 	}
 }

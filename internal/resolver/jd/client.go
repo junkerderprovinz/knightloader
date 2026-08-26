@@ -211,6 +211,14 @@ type CrawledLink struct {
 	// for a second crawl, at download time, to learn what this one already
 	// knew.
 	Size int64 `json:"bytesTotal"`
+	// Availability is JD's own hoster-plugin verdict on this one link -
+	// "ONLINE", "OFFLINE", or absent/something else when the plugin has no
+	// opinion. Measured against a live JD (rev 48637): a real rapidgator.net
+	// link came back ONLINE and a fabricated one OFFLINE, both without any
+	// premium account configured, because a hoster plugin's job is exactly
+	// this - reading that host's own file-info signal, something a generic
+	// HTTP probe from outside can't do (see Backend.CheckLinks).
+	Availability string `json:"availability"`
 }
 
 // AddContainerLinks hands JD a container and pins the package it lands in.
@@ -228,6 +236,30 @@ type CrawledLink struct {
 func (c *Client) AddContainerLinks(url, packageName string) (int64, error) {
 	data, err := c.call("/linkgrabberv2/addLinks", map[string]any{
 		"links":                    url,
+		"packageName":              packageName,
+		"autostart":                false,
+		"overwritePackagizerRules": true,
+	})
+	if err != nil {
+		return 0, err
+	}
+	var res struct {
+		ID int64 `json:"id"`
+	}
+	_ = json.Unmarshal(data, &res)
+	return res.ID, nil
+}
+
+// AddPlainLinks stages a batch of already-known, plain (non-container) links
+// under one marker package - the same overwritePackagizerRules pinning
+// AddContainerLinks uses and for the identical reason, so a packagizer rule
+// the user has configured in JD cannot rename the package out from under the
+// marker this app looks it up by afterwards. autostart is always false: this
+// exists for Backend.CheckLinks, which only ever wants JD's crawl-time
+// verdict, never a download.
+func (c *Client) AddPlainLinks(links, packageName string) (int64, error) {
+	data, err := c.call("/linkgrabberv2/addLinks", map[string]any{
+		"links":                    links,
 		"packageName":              packageName,
 		"autostart":                false,
 		"overwritePackagizerRules": true,
@@ -322,6 +354,7 @@ func (c *Client) CrawledLinks(packageUUID int64) ([]CrawledLink, error) {
 		"name":         true,
 		"host":         true,
 		"bytesTotal":   true,
+		"availability": true,
 		"packageUUIDs": []int64{packageUUID},
 	})
 	if err != nil {

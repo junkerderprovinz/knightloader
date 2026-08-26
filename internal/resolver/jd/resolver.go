@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 )
 
@@ -22,7 +23,14 @@ import (
 // alone here rather than made to lie about what one number can say.
 const basePrio = 10
 
-type Resolver struct{}
+type Resolver struct {
+	// Backend is the running JD sidecar this resolver's Check reaches for a
+	// verdict - nil is allowed and means the same as a Checker with nothing to
+	// say: every link comes back uncheckable. It is nil in every test that
+	// only cares about which links this resolver claims (the pattern
+	// debrid.Resolver.Svc already established for the identical reason).
+	Backend *Backend
+}
 
 func (Resolver) Info() resolver.Info { return resolver.Info{ID: "jd", Prio: basePrio} }
 
@@ -38,16 +46,28 @@ func (Resolver) Resolve(_ context.Context, req resolver.Request) (resolver.Resul
 	return resolver.Result{DirectURL: req.URL, Name: req.URL}, nil
 }
 
-// No resolver.Checker here. JD does know whether a link is online - its
-// linkgrabber reports exactly that - but the only way to ask is to add the link
-// to the linkgrabber, wait for the crawl, read the availability and remove it
-// again. That is not a check, it is a write to somebody else's application: the
-// JD instance may be shared, the crawl is asynchronous, and a check that fails
-// halfway leaves packages behind in a list this app does not own.
-//
-// Links routed here therefore answer core.AvailUncheckable, which is the honest
-// version of what they said before this seam existed - they sat at "not checked"
-// forever, which reads as "nobody has looked" when somebody had.
+// Check asks JD's own hoster plugins about a batch of links via
+// Backend.CheckLinks: add them to the linkgrabber, wait for the crawl, read
+// the availability, remove them again. This was deliberately left unbuilt for
+// a long time - it is a write to somebody else's application, not a read, and
+// a check that fails halfway can leave packages behind in a list this app
+// does not own (Backend.CheckLinks's own removal is best-effort for exactly
+// that reason). It exists now because there is no lighter alternative that is
+// still honest: a generic HTTP probe cannot tell a premium hoster's "the file
+// is gone" from "here is a login page" (see app_tasks.go's analyze, never used
+// for a JD-routed link), and JD's ~1000 hoster plugins are the one thing that
+// already knows the difference, for every hoster JD covers, without
+// KnightLoader growing hoster-specific code of its own.
+func (r Resolver) Check(ctx context.Context, urls []string) ([]core.Availability, error) {
+	if r.Backend == nil {
+		return resolver.Answers(nil, len(urls)), nil
+	}
+	got, err := r.Backend.CheckLinks(ctx, urls)
+	if err != nil {
+		return nil, err
+	}
+	return resolver.Answers(got, len(urls)), nil
+}
 
 // activeHostPrio is one above resolver.Direct's 40 (internal/resolver/direct.go)
 // - the value PriorityFor answers for a host whose native login internal/hosterauth

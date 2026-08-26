@@ -1,7 +1,9 @@
 package jd
 
 import (
+	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -175,6 +177,109 @@ func (b *Backend) awaitContainerLinks(marker string, timeout time.Duration) ([]r
 	// reason to tell the user their container did not open.
 	_ = b.c.RemoveCrawledPackage(pkg)
 	return out, nil
+}
+
+// CheckLinks asks JD's own hoster plugins whether a batch of plain links is
+// still there, without downloading or unlocking anything: stages them under a
+// private marker package, waits for the crawl to settle the same way
+// awaitContainerLinks already does, reads back each entry's availability, then
+// removes the package again so JD's own link-grabber window is not left
+// holding what was only ever a question.
+//
+// This exists because a generic HTTP probe cannot answer the question for a
+// premium hoster - see app_tasks.go's analyze, which is deliberately never
+// used for a JD-routed link, because an anonymous response often looks the
+// same whether the file is there or not. JD's own plugin for that specific
+// host knows the difference (measured live against rapidgator.net: a real
+// link came back ONLINE, a fabricated one OFFLINE, neither needing a premium
+// account) - asking it is the only way to get a verdict that is not a guess
+// without KnightLoader growing hoster-specific code of its own.
+//
+// ctx bounds the wait instead of a fixed timeout constant: the caller
+// (app.runCheck) already sets one deadline for the whole batch, and a second,
+// independent one here could time this method out first while runCheck is
+// still willing to wait, or the reverse.
+func (b *Backend) CheckLinks(ctx context.Context, urls []string) ([]core.Availability, error) {
+	marker := fmt.Sprintf("KL-check-%d", time.Now().UnixNano())
+	if _, err := b.c.AddPlainLinks(strings.Join(urls, "\n"), marker); err != nil {
+		return nil, err
+	}
+
+	var pkg int64
+	var links []CrawledLink
+	settled := 0
+	const settledEnough = 3
+	tick := time.NewTicker(pollInterval)
+	defer tick.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			if pkg != 0 {
+				_ = b.c.RemoveCrawledPackage(pkg)
+			}
+			return nil, ctx.Err()
+		case <-tick.C:
+		}
+
+		if pkg == 0 {
+			var err error
+			if pkg, err = b.c.CrawledPackageUUID(marker); err != nil {
+				return nil, err
+			}
+		}
+		if pkg == 0 {
+			continue // the package appears only once the crawl has produced something
+		}
+
+		busy, err := b.c.Collecting()
+		if err != nil {
+			return nil, err
+		}
+		found, err := b.c.CrawledLinks(pkg)
+		if err != nil {
+			return nil, err
+		}
+		if busy || len(found) != len(urls) {
+			settled = 0
+		} else {
+			settled++
+		}
+		links = found
+		if settled >= settledEnough {
+			break
+		}
+	}
+	_ = b.c.RemoveCrawledPackage(pkg)
+
+	// Keyed by the URL JD echoed back rather than by position - the same
+	// defence AllDebrid's own CheckLinks already needs (see
+	// internal/resolver/debrid/alldebrid.go): a link this loop never hears
+	// about again must not silently shift every verdict after it onto the
+	// wrong link.
+	verdict := make(map[string]core.Availability, len(links))
+	for _, l := range links {
+		verdict[l.URL] = jdAvailability(l.Availability)
+	}
+	out := make([]core.Availability, len(urls))
+	for i, u := range urls {
+		out[i] = verdict[u]
+	}
+	return out, nil
+}
+
+// jdAvailability maps JD's own answer to this app's Availability. Anything
+// but the two verdicts JD actually states - TEMP_UNKNOWN, UNKNOWN, or simply
+// absent because the link never settled - stays uncheckable rather than
+// guessed at either way.
+func jdAvailability(jd string) core.Availability {
+	switch jd {
+	case "ONLINE":
+		return core.AvailOnline
+	case "OFFLINE":
+		return core.AvailOffline
+	default:
+		return core.AvailUncheckable
+	}
 }
 
 // Download hands the link to JD (auto-crawl + start) and polls its progress.
