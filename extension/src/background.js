@@ -6,7 +6,21 @@
 // on the server side rather than worked around here with a stripped Origin
 // header: this extension talks to KnightLoader exactly the way a person with
 // a browser tab open to it would, never around that boundary.
-importScripts('shared.js', 'i18n.js');
+// Chrome runs this file as a service worker, where importScripts is how a
+// worker pulls in its dependencies. Firefox ignores background.service_worker
+// entirely (web-ext lint says so out loud: BACKGROUND_SERVICE_WORKER_IGNORED)
+// and runs background.scripts as an EVENT PAGE instead - a document-like
+// context, where importScripts does not exist at all.
+//
+// Unguarded, that is a ReferenceError on the first line that runs, which kills
+// the background script before a single context menu is built: the extension
+// installs, shows up in the list, and does nothing whatsoever in Firefox. The
+// manifest lists shared.js and i18n.js in background.scripts for exactly this
+// reason, so Firefox has already loaded them by the time this line is reached
+// and there is nothing left to import.
+if (typeof importScripts === 'function') {
+  importScripts('shared.js', 'i18n.js');
+}
 
 const MENU_PAGE = 'knightloader-send-page';
 const MENU_LINK = 'knightloader-send-link';
