@@ -739,9 +739,14 @@ function PackageGroup({
         onDrop={(e) => dnd.dropOnPackage(name, e)}
         // A colour step, not a rule: the header sits on the quiet surface and
         // the links inside it sit on the card, which is the whole of the weight
-        // difference between a container and its contents.
-        className={`grid cursor-pointer select-none items-center bg-carbon-surface2/80 px-3 py-2.5
-          transition-colors hover:bg-carbon-surface2 ${dragging ? 'opacity-50' : ''} ${allSelected ? 'bg-accent/20' : ''}`}
+        // difference between a container and its contents. The selected-state
+        // background REPLACES the quiet one rather than sitting alongside it -
+        // two background-color utilities on one element race in Tailwind's
+        // generated stylesheet order (not class-string order), and the quiet
+        // one was silently winning, making a selected package invisible.
+        className={`grid cursor-pointer select-none items-center ${
+          allSelected ? 'bg-accent/20' : 'bg-carbon-surface2/80'
+        } px-3 py-2.5 transition-colors hover:bg-carbon-surface2 ${dragging ? 'opacity-50' : ''}`}
       >
         {columns.map((col) => (
           <div
