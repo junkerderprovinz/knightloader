@@ -155,7 +155,7 @@ func (a *App) rewireBackends() {
 			log.Printf("KL_JD set but JD unreachable (%v); skipping JD backend", err)
 		} else {
 			newJD = jb
-			a.Registry.Register(jd.Resolver{})
+			a.Registry.Register(jd.Resolver{Backend: jb})
 			log.Printf("headless JD backend enabled: %s", jdBase)
 		}
 	}
