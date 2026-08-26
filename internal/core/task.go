@@ -370,6 +370,12 @@ type Task struct {
 	// an audio row) falls back to AudioFormats()'s full static menu, same
 	// convention as AvailableQualities above.
 	AvailableAudioFormats []string `json:"availableAudioFormats,omitempty"`
+	// AvailableAudioBitrates narrows the "Variante" audio row's own bitrate
+	// picker to what the probed source's own best audio track can honestly
+	// support (jdp, 2026-08-26: "auch die audioqualitäten! bei allen
+	// hostern!") - same "empty means no opinion yet, fall back to the full
+	// static menu" convention as AvailableQualities/AvailableAudioFormats.
+	AvailableAudioBitrates []string `json:"availableAudioBitrates,omitempty"`
 	// AudioBitrate is the "Variante" audio row's own bitrate pick (yt-dlp's
 	// own --audio-quality, e.g. "192" for 192 kbit/s) - only meaningful once
 	// AudioFormat asks for an actual transcode (a "best" extract has no

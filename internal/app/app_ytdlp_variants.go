@@ -228,6 +228,7 @@ func (a *App) insertVariantSibling(t *core.Task) {
 //   - subtitle: Ext="srt" always, same reasoning.
 func (a *App) applyProbeFormats(rawurl string, formats []ytdlp.FormatEntry) {
 	var maxVideoHeight int
+	var maxAudioAbr float64
 	var bestAudio ytdlp.FormatEntry
 	hasBestAudio := false
 	hasVideoOnly := false
@@ -243,6 +244,9 @@ func (a *App) applyProbeFormats(rawurl string, formats []ytdlp.FormatEntry) {
 		}
 		if isAudio && !isVideo {
 			audioCodecs = append(audioCodecs, f.Acodec)
+			if f.Abr > maxAudioAbr {
+				maxAudioAbr = f.Abr
+			}
 			if !hasBestAudio || formatSize(f) > formatSize(bestAudio) {
 				bestAudio = f
 				hasBestAudio = true
@@ -255,6 +259,7 @@ func (a *App) applyProbeFormats(rawurl string, formats []ytdlp.FormatEntry) {
 		availableQualities[i] = string(q)
 	}
 	availableAudioFormats := ytdlp.AvailableAudioFormats(audioCodecs)
+	availableAudioBitrates := ytdlp.AvailableAudioBitrates(maxAudioAbr)
 
 	a.mu.Lock()
 	var touched []core.Task
@@ -281,6 +286,10 @@ func (a *App) applyProbeFormats(rawurl string, formats []ytdlp.FormatEntry) {
 		case ytdlp.VariantAudio:
 			if !stringSlicesEqual(t.AvailableAudioFormats, availableAudioFormats) {
 				t.AvailableAudioFormats = availableAudioFormats
+				changed = true
+			}
+			if !stringSlicesEqual(t.AvailableAudioBitrates, availableAudioBitrates) {
+				t.AvailableAudioBitrates = availableAudioBitrates
 				changed = true
 			}
 			if sub != "" && sub != "best" {

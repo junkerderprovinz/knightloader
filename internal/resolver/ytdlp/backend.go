@@ -192,6 +192,12 @@ type FormatEntry struct {
 	// Filesize first and fall back to FilesizeApprox.
 	Filesize       int64
 	FilesizeApprox int64
+	// Abr is yt-dlp's own "abr" field - the average audio bitrate in
+	// kbit/s this specific track carries, 0 when the source did not report
+	// one. Meaningful only for an audio track (Acodec set); a video-only
+	// entry's own Abr is always 0 by the same convention Height already
+	// follows the other way.
+	Abr float64
 }
 
 // ProbeResult is what a single -j extraction pass answers: the resolved
@@ -268,6 +274,7 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string) (ProbeResult, erro
 			Height         int     `json:"height"`
 			Filesize       int64   `json:"filesize"`
 			FilesizeApprox float64 `json:"filesize_approx"`
+			Abr            float64 `json:"abr"`
 		} `json:"formats"`
 	}
 	if err := json.Unmarshal([]byte(line), &raw); err != nil {
@@ -282,6 +289,7 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string) (ProbeResult, erro
 		res.Formats = append(res.Formats, FormatEntry{
 			FormatID: f.FormatID, Ext: f.Ext, Vcodec: f.Vcodec, Acodec: f.Acodec,
 			Height: f.Height, Filesize: f.Filesize, FilesizeApprox: int64(f.FilesizeApprox),
+			Abr: f.Abr,
 		})
 	}
 	return res, nil

@@ -4,7 +4,7 @@ import { useTasks } from '../lib/useTasks';
 import { useReportListView } from '../lib/listview';
 import { useToast } from '../lib/toast';
 import { useT } from '../lib/i18n';
-import { PageHeader, IconBadge, InfoBubble, Button } from '../components/ui';
+import { PageHeader, IconBadge, Button } from '../components/ui';
 import { Tabs } from '../components/Tabs';
 import {
   TaskListCard,
@@ -45,22 +45,12 @@ import { FirstTouchHint } from '../components/FirstTouchHint';
 import { usePublishCommandPageContext } from '../lib/commands/pageContext';
 import { IconCheck, IconClock, IconClose, IconPlay, IconRetry, IconSearch, IconTrash, IconWarning } from '../lib/icons';
 
-// Two glyphs lib/icons.tsx has no equivalent for yet, needed only by the
-// selection-mode half of the action row below. Both follow that file's own
+// One glyph lib/icons.tsx has no equivalent for yet, needed only by the
+// selection-mode half of the action row below. Follows that file's own
 // house style (solid fill, never a stroked outline) rather than
-// ListToolbar.tsx's local stroke-based twins of the same ideas (its own
-// unexported IconMore/IconTrashFiles), which this file cannot import without
+// ListToolbar.tsx's local stroke-based twin of the same idea (its own
+// unexported IconTrashFiles), which this file cannot import without
 // editing ListToolbar.tsx - not this file's lane this round.
-
-/** The selection strip's own "More" trigger: three dots, unchanged from
- *  ListToolbar.tsx's own local glyph for the same button. */
-const IconMore = (p: SVGProps<SVGSVGElement>) => (
-  <svg width={22} height={22} viewBox="0 0 20 20" fill="currentColor" className="shrink-0" aria-hidden {...p}>
-    <circle cx="5" cy="10" r="1.4" />
-    <circle cx="10" cy="10" r="1.4" />
-    <circle cx="15" cy="10" r="1.4" />
-  </svg>
-);
 
 /** "Remove and delete files": IconTrash's own body with two slits carved
  *  through it (fillRule="evenodd", the same technique IconWarning's "!" uses
@@ -435,10 +425,18 @@ export function Collector() {
           it does not depend on living in any particular position in the
           tree, only on living somewhere. */}
       <div className="flex min-h-0 flex-1 flex-col gap-3">
-        <div className="shrink-0 flex flex-col gap-3">
-          <FilteredLinks held={held} />
-          <SkippedLinks />
-        </div>
+        {/* No wrapper div of their own any more (jdp, 2026-08-26: "Alle
+            quadratischen badges weiter runter, näher an die card" - the
+            common case, neither a held nor a skipped link in this
+            session, had both components returning null while their OWN
+            now-empty wrapper still counted as a real flex child, costing
+            this cluster's own gap-3 on both sides of nothing. Rendered as
+            direct children of this flex-col instead - a null child
+            contributes no element at all, so the gap simply does not
+            apply when there is nothing to show, and collapses to the
+            identical gap-3 between them when there is.) */}
+        <FilteredLinks held={held} />
+        <SkippedLinks />
 
         {/* Search, the quick-filter strip, the selection actions and the
             four page-level actions all share ONE row now (bug #35
@@ -542,6 +540,31 @@ export function Collector() {
             </span>
           )}
 
+          {/* The selection count, next to the filter chips rather than on
+              the far side of every action badge (jdp, 2026-08-26,
+              screenshot: "die badges 'ausgewählt', 'online',
+              'ausgeschaltet' etc bitte links von allen quadratischen
+              badges anzeigen") - every informational readout now sits
+              together before the first actual action trigger, search
+              included. The clear-selection badge stays paired with the
+              count it clears rather than moving into the action cluster
+              below - it acts on this text, not on the selection's own
+              contents the way start/remove do. */}
+          {selected.size > 0 && (
+            <>
+              <span className="glim-num text-sm text-carbon-textSub">
+                {selected.size} {t('select.count')}
+              </span>
+              <IconBadge
+                hue={1}
+                icon={<IconClose width={16} height={16} />}
+                title={t('select.none')}
+                aria-label={t('select.none')}
+                onClick={clearSelection}
+              />
+            </>
+          )}
+
           <div ref={searchRef} className="relative">
             <IconBadge
               hue={0}
@@ -566,16 +589,6 @@ export function Collector() {
 
           {selected.size > 0 ? (
             <>
-              <span className="glim-num text-sm text-carbon-textSub">
-                {selected.size} {t('select.count')}
-              </span>
-              <IconBadge
-                hue={1}
-                icon={<IconClose width={16} height={16} />}
-                title={t('select.none')}
-                aria-label={t('select.none')}
-                onClick={clearSelection}
-              />
               <PackageActions
                 tasks={collected}
                 selected={selected}
@@ -594,16 +607,10 @@ export function Collector() {
                 aria-label={t('collector.startSelected')}
                 onClick={startSelected}
               />
-              <IconBadge
-                hue={3}
-                icon={<IconMore width={16} height={16} />}
-                title={t('menu.more')}
-                aria-label={t('menu.more')}
-                onClick={(e) => {
-                  setTarget({ kind: 'selection' });
-                  menu.openAt(anchorBelow(e.currentTarget));
-                }}
-              />
+              {/* The "Mehr" trigger is gone (jdp, 2026-08-26: "der badge
+                  'mehr' entfernen") - it opened the identical menu a
+                  right-click on the selection already does, so removing it
+                  loses no capability, only a redundant second way in. */}
               <IconBadge
                 hue={4}
                 icon={<IconTrash width={16} height={16} />}
@@ -621,7 +628,10 @@ export function Collector() {
                   onClick={() => removal.askWithFiles(selectedIds)}
                 />
               )}
-              <InfoBubble tip={t('remove.keys')} />
+              {/* The (i) keyboard-shortcut bubble is gone too (jdp,
+                  2026-08-26: "i infobubble entfernen") - the badges it was
+                  explaining are still self-explanatory via their own
+                  hover tooltips. */}
             </>
           ) : (
             <>

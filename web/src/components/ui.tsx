@@ -93,6 +93,7 @@ export function IconBadge({
   active,
   className = '',
   style,
+  title,
   ...rest
 }: {
   icon: ReactNode;
@@ -116,19 +117,41 @@ export function IconBadge({
   active?: boolean;
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
   const hued = hue !== undefined;
+  // A GlimStone bubble (useTooltip, InfoBubble's own sibling) rather than
+  // the native `title` attribute every call site here used to pass
+  // straight through to the DOM (jdp, 2026-08-26: "Alle hoover infobubbles
+  // sind nicht im Glimstone format!") - fixed once, at the root, so the
+  // dozens of existing IconBadge call sites across the app pick it up
+  // without themselves changing: they already pass `title`, which now
+  // becomes the bubble's own content instead of the browser's unstyled
+  // tooltip box. The hook always runs (Rules of Hooks), but its trigger
+  // props and its portal node are only wired up while there is a real
+  // title to show - a badge with none stays exactly as inert as before.
+  const tip = useTooltip<HTMLButtonElement>(title);
+  // role/tabIndex stripped back out: triggerProps was built for InfoBubble's
+  // own plain, otherwise-inert <div>, which needs both to become reachable
+  // and nameable at all. A button already has a real role and is already
+  // focusable - keeping triggerProps' "note" role here would tell a screen
+  // reader this is no longer a button, only a description, silently taking
+  // away every one of these badges' own click semantics.
+  const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   return (
-    <button
-      type="button"
-      aria-pressed={active}
-      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-control)]
-        transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
-        motion-safe:active:scale-[.98] ${hued ? 'glim-tint-badge' : ''} ${iconBadgeClass[kind]}
-        ${active ? 'shadow-[0_0_0_2px_var(--carbon-bg),0_0_0_2px_currentColor]' : ''} ${className}`}
-      style={hued ? { ...(hueVars(rainbowAt(hue)) as CSSProperties), ...style } : style}
-      {...rest}
-    >
-      {icon}
-    </button>
+    <>
+      <button
+        type="button"
+        aria-pressed={active}
+        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-control)]
+          transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
+          motion-safe:active:scale-[.98] ${hued ? 'glim-tint-badge' : ''} ${iconBadgeClass[kind]}
+          ${active ? 'shadow-[0_0_0_2px_var(--carbon-bg),0_0_0_2px_currentColor]' : ''} ${className}`}
+        style={hued ? { ...(hueVars(rainbowAt(hue)) as CSSProperties), ...style } : style}
+        {...(title ? tipHoverProps : undefined)}
+        {...rest}
+      >
+        {icon}
+      </button>
+      {title && tip.node}
+    </>
   );
 }
 

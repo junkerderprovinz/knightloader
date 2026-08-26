@@ -138,6 +138,36 @@ func validAudioBitrate(b string) bool {
 	return false
 }
 
+// AvailableAudioBitrates is AvailableQualities' own reasoning, applied to
+// the audio row's bitrate picker instead (jdp, 2026-08-26: "alle formate
+// immer auf hosterangebot begrenzen. auch die audioqualitäten! bei allen
+// hostern!"): a bitrate above what the source's own best audio track
+// actually carries is not wrong to pick - --audio-quality only sets a
+// ceiling ffmpeg encodes up to, never a guarantee of that many real bits -
+// but it is a menu entry that promises more than the source has to give,
+// the same discoverability wart AvailableQualities was already trimmed
+// for. maxAbr <= 0 (nothing probed yet, or no audio track reported one)
+// returns every bitrate unfiltered; "" (Auto) is always kept, since it
+// names no specific target to compare against.
+func AvailableAudioBitrates(maxAbr float64) []string {
+	all := AudioBitrates()
+	if maxAbr <= 0 {
+		return all
+	}
+	out := make([]string, 0, len(all))
+	for _, b := range all {
+		if b == "" {
+			out = append(out, b)
+			continue
+		}
+		n, err := strconv.Atoi(b)
+		if err == nil && float64(n) <= maxAbr {
+			out = append(out, b)
+		}
+	}
+	return out
+}
+
 // audioFormatForCodec maps one of yt-dlp's own reported audio codec ids
 // (FormatEntry.Acodec, e.g. "opus", "mp4a.40.2") onto the matching entry in
 // AudioFormats()'s own menu - the source's own NATIVE container, not a

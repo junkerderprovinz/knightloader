@@ -73,6 +73,36 @@ func TestAvailableAudioFormatsWithNoRecognisedCodecKeepsOnlyBest(t *testing.T) {
 	}
 }
 
+// TestAvailableAudioBitratesCapsAtTheSourceOwnBestTrack is [87]/[88]'s own
+// bitrate case (jdp, 2026-08-26: "alle formate immer auf hosterangebot
+// begrenzen. auch die audioqualitäten!"): a source whose best audio track
+// reports 130kbit/s keeps every menu entry at or under that (Auto/64/96/
+// 128) and drops the higher presets (160/192/256/320), which would only
+// ever promise more than the source has to give.
+func TestAvailableAudioBitratesCapsAtTheSourceOwnBestTrack(t *testing.T) {
+	got := AvailableAudioBitrates(130)
+	want := []string{"", "64", "96", "128"}
+	if len(got) != len(want) {
+		t.Fatalf("AvailableAudioBitrates(130) = %v, want %v", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Errorf("AvailableAudioBitrates(130) = %v, want %v", got, want)
+			break
+		}
+	}
+}
+
+// TestAvailableAudioBitratesUnfilteredWithNoData is the "nothing probed
+// yet" floor every AvailableX function in this package shares.
+func TestAvailableAudioBitratesUnfilteredWithNoData(t *testing.T) {
+	got := AvailableAudioBitrates(0)
+	want := AudioBitrates()
+	if len(got) != len(want) {
+		t.Fatalf("AvailableAudioBitrates(0) = %v, want the full menu %v", got, want)
+	}
+}
+
 func TestSanitizeTrimsFreeText(t *testing.T) {
 	got := Options{
 		CustomFormat:  "  bestvideo+bestaudio  ",

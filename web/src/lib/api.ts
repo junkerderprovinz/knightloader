@@ -134,6 +134,10 @@ export interface Task {
    *  falls back to the full static menu, same convention as
    *  availableQualities above. */
   availableAudioFormats?: string[];
+  /** For a yt-dlp "Variante" audio row, which of ApiOptions.ytdlpAudioBitrates
+   *  the probed source's own best audio track can honestly support — same
+   *  convention as availableAudioFormats above. */
+  availableAudioBitrates?: string[];
   /** The audio row's own bitrate pick (yt-dlp's --audio-quality, e.g. "192"
    *  for 192 kbit/s) — meaningful only once the row's own format asks for
    *  an actual transcode, not a "best" extract. */
