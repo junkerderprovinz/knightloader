@@ -219,6 +219,39 @@ jobs:
       - name: Locale parity
         run: node extension/check-locales.mjs
 
+      # Mozilla's own linter, run with --self-hosted so it checks the package
+      # rather than AMO listing metadata this repository does not have.
+      #
+      # It exists here because the failure class it catches is invisible to
+      # everything above and expensive everywhere else. The extension shipped
+      # for a day with background.js calling importScripts() while the manifest
+      # declared BOTH background.service_worker and background.scripts: Chrome
+      # takes the service worker and is fine, Firefox ignores service_worker
+      # (this linter says so, BACKGROUND_SERVICE_WORKER_IGNORED) and runs the
+      # scripts as an event page, where importScripts does not exist. That is a
+      # ReferenceError on the first line that runs, so the extension installed,
+      # appeared in the list, and did nothing at all in Firefox. Both a syntax
+      # check and a locale check pass on it happily.
+      #
+      # -W treats warnings as failures. The one warning that cannot be removed
+      # from a single cross-browser manifest is the service-worker notice
+      # itself, so it is filtered out by name rather than by turning the whole
+      # gate advisory - a linter nobody has to obey is a linter nobody reads.
+      - name: web-ext lint
+        run: |
+          cd extension/src
+          out=$(npx --yes web-ext lint --self-hosted --output=json 2>/dev/null || true)
+          printf '%s' "$out" | node -e '
+            let s = ""; process.stdin.on("data", c => s += c).on("end", () => {
+              let r; try { r = JSON.parse(s); } catch { console.error("web-ext lint produced no JSON"); process.exit(1); }
+              const skip = new Set(["BACKGROUND_SERVICE_WORKER_IGNORED"]);
+              const bad = [...(r.errors ?? []), ...(r.warnings ?? [])].filter(m => !skip.has(m.code));
+              for (const m of bad) console.error(`${m.code}: ${m.message} (${m.file ?? "manifest.json"})`);
+              if (bad.length) { console.error(`${bad.length} web-ext finding(s)`); process.exit(1); }
+              console.log("web-ext lint clean");
+            });
+          '
+
   mobile:
     needs: changes
     if: needs.changes.outputs.mobile == 'true'
