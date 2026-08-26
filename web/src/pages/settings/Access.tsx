@@ -8,7 +8,6 @@ import {
   type NewApiToken,
   type PairingCode,
   type RelayConfig,
-  type RemoteAccessInfo,
   createToken,
   fetchAuth,
   fetchDeploymentInfo,
@@ -26,7 +25,7 @@ import { copyToClipboard } from '../../lib/clipboard';
 import { fmtDate } from '../../lib/format';
 import { useInstallPrompt } from '../../lib/pwaInstall';
 import { useT, type TranslationKey } from '../../lib/i18n';
-import { IconCheck, IconClipboard, IconKey, IconPlus, IconTrash, IconWarning } from '../../lib/icons';
+import { IconCheck, IconClipboard, IconClose, IconKey, IconPlus, IconTrash, IconWarning } from '../../lib/icons';
 import { useToast } from '../../lib/toast';
 import { useDraft, useFeatures } from './context';
 import { NeutralSwitch } from './controls';
@@ -107,9 +106,20 @@ const PENDING = {
   'settings.access.identity.domainsHint':
     'Remembered automatically the first time a request actually arrives on one, so it stays listed here even when later requests come in over the LAN IP instead. Add one by hand for a domain that is already configured but has not been visited through yet - one full address per line, e.g. https://kl.example.com.',
 
-  'settings.access.remote.installTitle': 'Install as an app',
+  // Renamed from "Install as an app" and re-scoped (jdp, 2026-08-26: "die
+  // jetzige funktion die in der i infobubble beschrieben ist will ich
+  // nicht... dort sollen die Verlinkungen zum Play Store und App Store
+  // stehen") - the card now leads with the native apps KnightLoader
+  // actually ships (desktop, Android, iOS), with installing this page
+  // itself kept as the smaller, still-real third option rather than the
+  // card's whole premise.
+  'settings.access.remote.installTitle': 'Get the app',
   'settings.access.remote.installBody':
-    'Add KnightLoader to a home screen or app list for a faster launch, without the browser chrome.',
+    'Native apps for desktop, Android and iOS - this page can also be installed straight from your browser, without either.',
+  'settings.access.remote.storeAndroid': 'Google Play',
+  'settings.access.remote.storeIOS': 'App Store',
+  'settings.access.remote.storeComingSoon': 'Not published yet.',
+  'settings.access.remote.installPwaLabel': 'Or install this page as an app',
   'settings.access.remote.install': 'Install',
   'settings.access.remote.installIOS':
     'On iPhone or iPad: open this page in Safari, tap Share, then "Add to Home Screen".',
@@ -143,17 +153,30 @@ const PENDING = {
     'No relay key is stored, so nothing can connect to this relay yet. Set one below, and give the other instances the same one.',
 
   'settings.access.relay.title': 'Relay',
+  // Rewritten (jdp, 2026-08-26: "Das ist alles viel zu kompliziert! die
+  // infotexte sind verwirrend... Wo muss man die relayadresse in der
+  // anderen instanz eingeben? ... Muss die Relayadresse keine domain
+  // sein?") to state the two things a first-time relay user actually needs
+  // and never found stated outright: the SAME address+key goes into this
+  // same spot on every instance you connect, and a domain is not required.
+  // The card's shape (one merged pairing+relay card, folded relay section)
+  // stays - the problem measured out to be the copy, not the layout.
   'settings.access.relay.body':
-    'A relay is a small separate server that instances dial out to, so two KnightLoaders which cannot reach each other directly - each behind its own NAT, on different networks - still find each other. Every instance you give the same address and key to appears on the Instances page of the others by itself, with no pairing code to carry across.',
+    'A relay is a small server both instances dial out to, so two KnightLoaders that cannot reach each other directly - each behind its own router - still find each other through it. Set one relay up (self-host it, or run it on one of your own instances below), then enter that exact same address and key on every instance you want connected to it, including this one.',
   'settings.access.relay.selfHosted':
     'Nobody runs a relay for you. It is a separate binary you host yourself, the same way you already host KnightLoader, and it only routes messages between your own instances: no download and no file byte ever travels over it. Leaving this empty changes nothing about the rest of this page.',
   'settings.access.relay.urlLabel': 'Relay address',
-  'settings.access.relay.urlPlaceholder': 'https://relay.example.com',
+  'settings.access.relay.urlPlaceholder': 'https://relay.example.com or http://192.168.1.10:8443',
   'settings.access.relay.urlHint':
-    'The address your own relay answers on, behind TLS for anything beyond a LAN test. Clearing it disconnects from the relay and leaves every other way of reaching this instance untouched.',
+    "Where the relay itself answers. It does not have to be a domain - a plain IP address and port work fine as long as every connecting instance can reach it. Use https:// with a real domain once the relay needs to be reached from outside your own network; a bare IP with http:// is fine for a same-network test. Clearing it disconnects from the relay and leaves every other way of reaching this instance untouched.",
+  // Placed directly beside the address+key fields (not only in the body
+  // paragraph above) so it is read at the moment of the actual question,
+  // not buried above a scroll of unrelated toggles.
+  'settings.access.relay.bothSidesHint':
+    'Enter the same address and key here that you enter on this same page of every other instance you want to connect - a relay only introduces instances that were both told about it.',
   'settings.access.relay.keyLabel': 'Relay key',
   'settings.access.relay.keyHint':
-    'One shared secret is the whole of the authorisation, so every instance that should see the others gets the same one. It is stored encrypted here, like a debrid key, and is never shown again once saved - if it is lost, make a new one and enter that everywhere.',
+    'One shared secret is the whole of the authorisation, so every instance that should see the others gets the same one. It is stored encrypted here, like a debrid key, and is never shown again once saved - if it is lost, make a new one and enter that same key everywhere, on every instance.',
   'settings.access.relay.keyPlaceholderSet': 'Stored. Type a new key to replace it.',
   'settings.access.relay.keyPlaceholderUnset': 'Paste the relay key',
   'settings.access.relay.keySet': 'Key stored',
@@ -216,22 +239,27 @@ export function Access() {
   return (
     <div className="flex flex-col gap-10">
       {/* Identity first, password second (jdp, 2026-08-26) - and pulled out of
-          RemoteAccessSection rather than left nested inside it: that section
-          returns null until its own fetch resolves, and skips this card
-          entirely on a desktop build (only NetworkAccessCard applies there,
-          since a desktop opens no address to show). A name is a plain
-          settings field with no such dependency - it belongs at the top
-          regardless of deployment, not hidden behind a fetch that has
-          nothing to do with it. */}
+          the old RemoteAccessSection rather than left nested inside it: that
+          section returned null until its own fetch resolved and skipped this
+          card entirely on a desktop build. A name is a plain settings field
+          with no such dependency - it belongs at the top regardless of
+          deployment, not hidden behind a fetch that has nothing to do with
+          it. */}
       <IdentityCard cx={cx} />
       <PasswordCard />
 
-      <RemoteAccessSection cx={cx} />
-      {/* Outside RemoteAccessSection on purpose, even though it reads as the
-          card right after that section's own cards: that section renders
-          nothing but a note on the desktop build, and the desktop build is
-          the one that needs this card MOST - it opens no port at all, so a
-          relay is its only way to be paired with anything. */}
+      {/* Only the exposed-warning banner now (jdp, 2026-08-26: "Die
+          netzwerkzugriffcard entfernen wir. die ist völlig witzlos. auf der
+          desktop version funktioniert das eh nicht") - NetworkAccessCard
+          (this instance's own LAN address + QR) is gone, and with it the
+          whole reason this used to be deployment-gated: nothing left in
+          here depends on fetchRemoteAccess()'s deployment field at all. */}
+      <ExposedWarningBanner cx={cx} />
+      {/* GetTheAppCard is unconditional, unlike the old install card it
+          replaces (which lived inside the now-removed deployment-gated
+          section and never rendered on desktop) - which apps exist to
+          install has nothing to do with network-reachability fetch state. */}
+      <GetTheAppCard cx={cx} />
       <RemoteAccessCard cx={cx} />
       <TokensSection cx={cx} />
 
@@ -304,7 +332,16 @@ function PasswordCard() {
 
   return (
       <Card className="flex flex-col gap-5">
-        <SectionTitle hue={0}>{t('auth.password')}</SectionTitle>
+        {/* Status stays a visible, at-a-glance line rather than moving fully
+            into the bubble (jdp, 2026-08-26: "in eine i infobubble und
+            schöner beschreiben") - whether this instance is protected is
+            worth seeing without hovering anything. Only the WHY (what a
+            password actually guards against) moves into the title's own
+            hint bubble, with nicer wording than the old lockOff sentence it
+            replaces. */}
+        <SectionTitle hue={0} hint={t('settings.lockHint')}>
+          {t('auth.password')}
+        </SectionTitle>
         <p className={`text-sm ${locked ? 'text-statusOk' : 'text-carbon-textSub'}`}>
           {locked ? t('settings.lockOn') : t('settings.lockOff')}
         </p>
@@ -317,7 +354,7 @@ function PasswordCard() {
           <TextInput type="password" value={next} onChange={(e) => setNext(e.target.value)} />
         </Field>
         <div className="flex items-center gap-3">
-          <Button kind="secondary" onClick={onApply} disabled={locked ? current === '' : next === ''}>
+          <Button kind="secondary" hue={0} onClick={onApply} disabled={locked ? current === '' : next === ''}>
             {next === '' && locked ? t('settings.removePassword') : t('settings.setPassword')}
           </Button>
           {done && <span className="text-statusOk text-sm">{t('settings.passwordSaved')}</span>}
@@ -327,36 +364,63 @@ function PasswordCard() {
   );
 }
 
-// ---- Remote access ---------------------------------------------------------
+// ---- Exposed warning & getting the app --------------------------------------
 
-// RemoteAccessSection reads GET /api/remote-access once on mount. Nothing
-// here streams: the addresses and the exposure flag are a property of how
-// the process is deployed, not of anything that changes while this page is
-// open, so a poll would only cost requests for no benefit - reopening the
-// page is what a person actually does after changing KL_ADDR or a reverse
-// proxy rule.
-function RemoteAccessSection({ cx }: { cx: (k: PendingKey) => string }) {
-  const [info, setInfo] = useState<RemoteAccessInfo | null>(null);
-  const { available: canInstall, promptInstall } = useInstallPrompt();
+// ExposedWarningBanner reads GET /api/remote-access once on mount purely for
+// the `exposed` flag - whether this instance has ever answered a request
+// from outside this machine while unprotected. Dismissible per tab (jdp,
+// 2026-08-26: "Es steht die ganze zeit die meldung... kann man die nicht
+// mit einem x button versehen um sie zu entfernen?") rather than
+// permanently: the risk it names is real again on the next page load if
+// still unprotected, so a dismissal that survived a reload would silence a
+// warning about a problem that never actually got fixed.
+function ExposedWarningBanner({ cx }: { cx: (k: PendingKey) => string }) {
+  const { t } = useT();
+  const [exposed, setExposed] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
     fetchRemoteAccess()
-      .then(setInfo)
-      .catch(() => setInfo(null));
+      .then((info) => setExposed(info.exposed))
+      .catch(() => setExposed(false));
   }, []);
 
-  if (!info) return null;
+  if (!exposed || dismissed) return null;
 
-  if (info.deployment === 'desktop') {
-    return (
-        <Card>
-          <SectionTitle hue={1} hint={cx('settings.access.network.desktopNote')}>
-            {cx('settings.access.network.title')}
-          </SectionTitle>
-        </Card>
-    );
-  }
+  return (
+    <div className="flex items-start gap-3 rounded-[var(--radius-card)] bg-statusFailBg p-4">
+      <IconWarning width={20} height={20} className="mt-0.5 shrink-0 text-statusFail" />
+      <p className="min-w-0 flex-1 text-sm font-medium text-statusFail">
+        {cx('settings.access.remote.exposedWarning')}
+      </p>
+      {/* A plain button in the banner's own red, not an IconBadge tile - a
+          colourful square badge dropped onto a solid alert strip would read
+          as an unrelated control rather than part of the same message. */}
+      <button
+        type="button"
+        onClick={() => setDismissed(true)}
+        title={t('common.dismiss')}
+        aria-label={t('common.dismiss')}
+        className="shrink-0 rounded-[var(--radius-control)] p-1 text-statusFail/70 transition-colors hover:bg-statusFail/10 hover:text-statusFail"
+      >
+        <IconClose width={14} height={14} />
+      </button>
+    </div>
+  );
+}
 
+// GetTheAppCard leads with the native apps KnightLoader actually ships
+// (jdp, 2026-08-26: "wir veröffentlichen ja desktop versionen und auch
+// native Apps. Dort sollen die Verlinkungen zum Play Store und App Store
+// stehen"), with installing this page itself (the old card's whole
+// premise) kept as the smaller, still-real second option rather than the
+// headline. Unlike the old install card it replaces - nested inside the
+// now-removed RemoteAccessSection, gated by fetchRemoteAccess(), and
+// invisible on a desktop deployment - this one renders unconditionally:
+// which apps exist has nothing to do with network-reachability fetch
+// state.
+function GetTheAppCard({ cx }: { cx: (k: PendingKey) => string }) {
+  const { available: canInstall, promptInstall } = useInstallPrompt();
   // Safari (desktop and iOS) never fires beforeinstallprompt, so
   // useInstallPrompt's `available` is permanently false there - this is the
   // one place that still has something useful to say instead of nothing:
@@ -364,99 +428,60 @@ function RemoteAccessSection({ cx }: { cx: (k: PendingKey) => string }) {
   const iOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 
   return (
-    <>
-      {info.exposed && (
-        <div className="flex items-start gap-3 rounded-[var(--radius-card)] bg-statusFailBg p-4">
-          <IconWarning width={20} height={20} className="mt-0.5 shrink-0 text-statusFail" />
-          <p className="text-sm font-medium text-statusFail">{cx('settings.access.remote.exposedWarning')}</p>
-        </div>
-      )}
-
-      <NetworkAccessCard cx={cx} info={info} />
-
-      <Card className="flex flex-col gap-3">
-        <SectionTitle hue={3} hint={cx('settings.access.remote.installBody')}>
-          {cx('settings.access.remote.installTitle')}
-        </SectionTitle>
-        {canInstall && (
-          <div>
-            <Button kind="secondary" onClick={() => void promptInstall()}>
-              {cx('settings.access.remote.install')}
-            </Button>
-          </div>
-        )}
-        {!canInstall && iOS && (
-          <p className="text-[11px] text-carbon-textMuted">{cx('settings.access.remote.installIOS')}</p>
-        )}
-      </Card>
-    </>
-  );
-}
-
-// NetworkAccessCard is this instance's own address and a QR code to open its
-// interface on another device on the SAME network (a phone, another
-// browser) - not a way to connect two KnightLoaders together, which is
-// RemoteAccessCard below (jdp, 2026-08-25: "der jetztige Fernzugriff ist
-// kein Fernzugriff, das ist nur netzwerk intern").
-//
-// The QR is generated on request rather than drawn the moment this card
-// mounts (jdp: "Dern QR code im jetzigen Fernzugriff bitte nur per Button
-// anzeigen lassen, also ihn generieren wenn man es per button möchte") -
-// info.qr already carries the matrix from the one GET this section already
-// made, so "generating" it is just revealing what is already in memory, not
-// a second request.
-function NetworkAccessCard({ cx, info }: { cx: (k: PendingKey) => string; info: RemoteAccessInfo }) {
-  const [showQr, setShowQr] = useState(false);
-  const primary = info.addresses[0];
-
-  return (
-    <Card className="flex flex-col gap-4 sm:flex-row">
-      <SectionTitle hue={1} hint={cx('settings.access.network.hint')}>
-        {cx('settings.access.network.title')}
+    <Card className="flex flex-col gap-4">
+      <SectionTitle hue={3} hint={cx('settings.access.remote.installBody')}>
+        {cx('settings.access.remote.installTitle')}
       </SectionTitle>
-      <div className="flex min-w-0 flex-1 flex-col gap-3">
-        <div className="flex flex-col gap-1.5">
-          <span className="text-xs font-semibold text-carbon-textSub">
-            {cx('settings.access.network.addressesTitle')}
-          </span>
-          {info.addresses.length === 0 && (
-            <span className="text-[11px] text-carbon-textMuted">{cx('settings.access.network.noAddresses')}</span>
-          )}
-          {info.addresses.map((a) => (
-            <div key={a.url} className="flex items-center gap-2 text-sm">
-              <span className="glim-num min-w-0 flex-1 truncate text-carbon-text" dir="ltr">
-                {a.url}
-              </span>
-              {a.loopback && (
-                <span className="shrink-0 text-[11px] text-carbon-textMuted">
-                  {cx('settings.access.network.loopback')}
-                </span>
-              )}
-              {a.domain && (
-                <span className="shrink-0 rounded-full bg-carbon-surface2 px-2 py-0.5 text-[11px] text-carbon-textSub">
-                  {cx('settings.access.network.domain')}
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-        {info.qr && primary && (
-          <div>
-            <Button kind="secondary" hue={1} className="px-2.5 text-xs" onClick={() => setShowQr((v) => !v)}>
-              {cx(showQr ? 'settings.access.network.hideQr' : 'settings.access.network.showQr')}
-            </Button>
-          </div>
-        )}
+      <div className="flex flex-wrap gap-3">
+        <StoreButton store="android" cx={cx} />
+        <StoreButton store="ios" cx={cx} />
       </div>
-      {info.qr && primary && showQr && (
-        <div className="flex shrink-0 flex-col items-center gap-2 self-start">
-          <QRCode matrix={info.qr} label={primary.url} size={144} />
-          <span className="max-w-[144px] text-center text-[11px] text-carbon-textMuted">
-            {cx('settings.access.network.scanHint')}
+      {(canInstall || iOS) && (
+        <div className="flex flex-col gap-2 border-t border-carbon-border/40 pt-4">
+          <span className="text-xs font-semibold text-carbon-textSub">
+            {cx('settings.access.remote.installPwaLabel')}
           </span>
+          {canInstall && (
+            <div>
+              <Button kind="secondary" hue={3} onClick={() => void promptInstall()}>
+                {cx('settings.access.remote.install')}
+              </Button>
+            </div>
+          )}
+          {!canInstall && iOS && (
+            <p className="text-[11px] text-carbon-textMuted">{cx('settings.access.remote.installIOS')}</p>
+          )}
         </div>
       )}
     </Card>
+  );
+}
+
+// Filled in once a listing actually goes live in that store - empty for now
+// (mirrors BrowserTools.tsx's own STORE_URLS: submission needs a completed
+// store listing, not only the developer account, which is already the
+// state a native-app store submission is in). Until a URL is set here, the
+// button stays disabled with an explanatory tooltip rather than guessing at
+// a fallback destination: unlike the browser extension's packaged .zip/.xpi
+// (downloadable straight from this instance), there is no equivalent
+// direct-install file for a native mobile app to fall back to.
+const APP_STORE_URLS: Record<'android' | 'ios', string> = {
+  android: '',
+  ios: '',
+};
+
+function StoreButton({ store, cx }: { store: 'android' | 'ios'; cx: (k: PendingKey) => string }) {
+  const url = APP_STORE_URLS[store];
+  const label = cx(store === 'android' ? 'settings.access.remote.storeAndroid' : 'settings.access.remote.storeIOS');
+  return (
+    <Button
+      kind="secondary"
+      disabled={!url}
+      title={url ? undefined : cx('settings.access.remote.storeComingSoon')}
+      onClick={() => url && window.open(url, '_blank', 'noopener,noreferrer')}
+    >
+      {label}
+    </Button>
   );
 }
 
@@ -944,6 +969,13 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
               )}
             </div>
 
+            {/* Answers the two things a first-time relay user actually
+                needs and never found stated outright (jdp, 2026-08-26):
+                where the address on the OTHER instance goes, right beside
+                the fields it's about, rather than only in the body
+                paragraph above. */}
+            <p className="text-[11px] text-carbon-textMuted">{cx('settings.access.relay.bothSidesHint')}</p>
+
             <Field label={cx('settings.access.relay.urlLabel')} hint={cx('settings.access.relay.urlHint')}>
               <TextInput
                 dir="ltr"
@@ -977,7 +1009,7 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
               </span>
               {cfg.keySet && (
                 <IconBadge
-                  kind="danger"
+                  hue={4}
                   icon={<IconTrash width={15} height={15} />}
                   disabled={relayBusy}
                   title={cx('settings.access.relay.keyClear')}
@@ -1130,7 +1162,7 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
                   </div>
                 </div>
                 <IconBadge
-                  kind="danger"
+                  hue={5}
                   icon={<IconTrash width={15} height={15} />}
                   disabled={revoking === tok.id}
                   title={cx('settings.access.tokens.revoke')}
