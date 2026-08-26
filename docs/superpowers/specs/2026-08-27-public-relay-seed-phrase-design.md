@@ -199,8 +199,8 @@ What jdp actually runs:
 | | |
 |---|---|
 | Host | Hetzner **Cloud** (`console.hetzner.cloud`, not Robot/dedicated) |
-| Plan | Shared vCPU → Cost-Optimized → **CX23** (2 vCPU, 4 GB RAM, 40 GB, 20 TB traffic) |
-| Cost | 3.99 € + 0.50 € IPv4 = **4.49 €/month** |
+| Plan | Shared vCPU → Cost-Optimized → **CX23**, x86 (2 vCPU, 4 GB RAM, 40 GB, 20 TB traffic) |
+| Cost | **6.59 €/month** for the server, ~7.20 € with IPv4 — read off Hetzner's own configurator on 2026-08-27 |
 | Location | Nuremberg or Falkenstein |
 | OS | Debian, latest stable offered |
 | Exposed | 443 for the relay; 22 restricted to jdp's own address |
@@ -209,9 +209,21 @@ What jdp actually runs:
 
 Plan naming checked against Hetzner's own site on 2026-08-27, after their
 April 2026 restructure: the old CX22 no longer exists, the current
-generation is CX23, and IPv4 is no longer bundled. CAX11 (ARM) is not the
-cheaper option any more either — 4.49 € against CX23's 3.99 € — so x86 wins
-on both price and not having to think about architecture.
+generation is CX23, and IPv4 is no longer bundled. ARM is not the cheaper
+option any more either, so x86 wins on both price and on not having to think
+about architecture at all.
+
+**The price above is what Hetzner's configurator actually shows**, not what a
+third-party pricing article said. Two intermediate figures in this spec's own
+history (3.79 €, then 3.99 €) both came from blog posts and were both wrong
+by the time they were written down — a reminder that for a number somebody
+is about to spend money on, the vendor's own checkout is the only source
+worth quoting.
+
+Cost-Optimized carries a **"limited availability"** label. Not a risk worth
+paying to avoid here: the relay is stateless, so if the type ever stops being
+orderable, recreating it as Regular Performance is a few minutes of work and
+loses nothing. Worth knowing, not worth designing around.
 
 **Domain: `knightloader.app`, registered at Cloudflare (2026-08-27).** Its
 DNS records for the relay must be set to **"DNS only" (grey cloud), never
