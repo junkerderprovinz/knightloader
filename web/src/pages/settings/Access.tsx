@@ -11,21 +11,38 @@ import {
   createToken,
   fetchAuth,
   fetchDeploymentInfo,
+  type QRMatrix,
+  type TsnetInfo,
   fetchInstances,
   fetchRelayConfig,
   fetchRemoteAccess,
   fetchTokens,
+  fetchTsnetStatus,
   generatePairingCode,
+  logout,
   redeemPairingCode,
   revokeToken,
   saveRelayConfig,
   setPassword,
+  startTsnet,
+  stopTsnet,
 } from '../../lib/api';
 import { copyToClipboard } from '../../lib/clipboard';
 import { fmtDate } from '../../lib/format';
 import { useInstallPrompt } from '../../lib/pwaInstall';
 import { useT, type TranslationKey } from '../../lib/i18n';
-import { IconCheck, IconClipboard, IconClose, IconKey, IconPlus, IconTrash, IconWarning } from '../../lib/icons';
+import {
+  IconCheck,
+  IconClipboard,
+  IconClose,
+  IconEye,
+  IconEyeOff,
+  IconKey,
+  IconPlus,
+  IconSignOut,
+  IconTrash,
+  IconWarning,
+} from '../../lib/icons';
 import { useToast } from '../../lib/toast';
 import { useDraft, useFeatures } from './context';
 import { NeutralSwitch } from './controls';
@@ -248,6 +265,7 @@ export function Access() {
           section and never rendered on desktop) - which apps exist to
           install has nothing to do with network-reachability fetch state. */}
       <GetTheAppCard cx={cx} />
+      <TsnetCard cx={cx} />
       <RemoteAccessCard cx={cx} />
       <TokensSection cx={cx} />
 
@@ -335,20 +353,77 @@ function PasswordCard() {
         </p>
         {locked && (
           <Field label={t('settings.passwordCurrent')}>
-            <TextInput type="password" value={current} onChange={(e) => setCurrent(e.target.value)} />
+            <PasswordInput value={current} onChange={setCurrent} />
           </Field>
         )}
         <Field label={t('settings.passwordNew')} hint={t('settings.passwordHint')}>
-          <TextInput type="password" value={next} onChange={(e) => setNext(e.target.value)} />
+          <PasswordInput value={next} onChange={setNext} />
         </Field>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Button kind="secondary" hue={0} onClick={onApply} disabled={locked ? current === '' : next === ''}>
             {next === '' && locked ? t('settings.removePassword') : t('settings.setPassword')}
           </Button>
+          {/* Only once a password is actually protecting this instance -
+              seeing this page at all already means the current session is
+              authenticated, the same "locked" flag Sidebar.tsx's own sign-out
+              entry reads (jdp, 2026-08-26: "Wenn man ein passwort gesetzt hat
+              muss man sich doch auch auslogen können oder? dafür fehlt ein
+              button" - right here on the card that sets the password, not
+              only tucked into the sidebar). */}
+          {locked && (
+            <Button
+              kind="ghost"
+              icon={<IconSignOut width={15} height={15} />}
+              onClick={async () => {
+                await logout();
+                location.reload();
+              }}
+            >
+              {t('auth.signOut')}
+            </Button>
+          )}
           {done && <span className="text-statusOk text-sm">{t('settings.passwordSaved')}</span>}
           {error && <span className="text-statusFail text-sm">{error}</span>}
         </div>
       </Card>
+  );
+}
+
+// PasswordInput adds a reveal-eye toggle to an ordinary password field (jdp,
+// 2026-08-26: "Im passwort-eingabefeld fehlt das reveal auge um das passwort
+// anschauen zu können") - no such toggle existed anywhere in this codebase
+// before, so this is the one place it is built, local to this file since
+// Field's own two password fields are its only callers today. The toggle
+// button sits inside a `relative` wrapper (not the `<label>` Field itself
+// renders): `absolute` positions against the nearest positioned ancestor,
+// and that has to be THIS div, not the label two levels up, or the button
+// drifts to wherever the label's own box happens to end.
+function PasswordInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const { t } = useT();
+  const [reveal, setReveal] = useState(false);
+  return (
+    <div className="relative">
+      <TextInput
+        type={reveal ? 'text' : 'password'}
+        autoComplete="off"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="pr-9"
+      />
+      <button
+        type="button"
+        // Stops the click from also refocusing/moving the caret through
+        // Field's enclosing <label> the way a plain click would - the toggle
+        // is its own control, not a second way to focus the field.
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => setReveal((r) => !r)}
+        title={t(reveal ? 'common.hidePassword' : 'common.showPassword')}
+        aria-label={t(reveal ? 'common.hidePassword' : 'common.showPassword')}
+        className="absolute inset-y-0 right-0 flex w-9 items-center justify-center text-carbon-textMuted transition-colors hover:text-carbon-text"
+      >
+        {reveal ? <IconEyeOff width={16} height={16} /> : <IconEye width={16} height={16} />}
+      </button>
+    </div>
   );
 }
 
@@ -476,6 +551,203 @@ function StoreButton({ store }: { store: 'android' | 'ios' }) {
     >
       {label}
     </Button>
+  );
+}
+
+// ---- Connect from anywhere (Tailscale/Funnel) --------------------------------
+
+// How often TsnetCard re-polls GET /api/tsnet/status while "connecting":
+// authUrl and, later, funnelUrl both arrive from a goroutine this page's own
+// POST /api/tsnet/start already returned without waiting for (see
+// tsnetsrv.Manager.run) - there is no push channel for either, so the page
+// finds out the same way RemoteAccessCard's relay siblings list already
+// does, by asking again.
+const TSNET_POLL_MS = 2000;
+
+/**
+ * TsnetCard is the answer to a direct complaint about the pairing/relay card
+ * above (jdp, 2026-08-26: "das ist alles viel zu kompliziert für User...
+ * man soll einfach sich verbinden können" - and, once relay was floated as
+ * the fix, "man soll auf dem handy nicht auch noch tailscale installieren
+ * müssen. das muss alles super einfach sein und out of the box
+ * funktionieren"). One button, one login, and this instance gets a real
+ * public address - see internal/tsnetsrv's own package doc for the full
+ * reasoning and why nothing needs installing on a phone, the browser
+ * extension, or another KnightLoader to use it.
+ *
+ * ADDITIVE, not a replacement (jdp: opt-in "ZUSAETZLICH zum bestehenden
+ * Weg") - RemoteAccessCard right below still does its own job for two
+ * self-hosted instances that would rather not depend on a third party at
+ * all. Once connected, the funnel address also becomes what RemoteAccessCard
+ * offers into a pairing code and what its QR encodes (routes_remote.go's own
+ * remoteAddresses, tsnetFunnelURL) - this card does not need to duplicate
+ * that pairing machinery, only show the address on its own.
+ */
+function TsnetCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, string | number>) => string }) {
+  const { t } = useT();
+  const [info, setInfo] = useState<TsnetInfo | null>(null);
+  const [hostname, setHostname] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const [qr, setQr] = useState<QRMatrix | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const load = () => fetchTsnetStatus().then(setInfo).catch(() => {});
+  useEffect(() => {
+    void load();
+  }, []);
+
+  useEffect(() => {
+    if (info?.status !== 'connecting') return;
+    const timer = window.setInterval(() => void load(), TSNET_POLL_MS);
+    return () => window.clearInterval(timer);
+  }, [info?.status]);
+
+  // The QR is the same one RemoteAccessCard's own pairing flow would now
+  // compute (preferredAddress ranks a connected funnel address ahead of
+  // everything but the exact address this browser tab is already on) -
+  // fetched here rather than duplicated, so a person who never opens the
+  // pairing panel below still gets a scannable code the moment this card
+  // itself connects.
+  useEffect(() => {
+    if (info?.status !== 'connected') {
+      setQr(null);
+      return;
+    }
+    fetchRemoteAccess()
+      .then((r) => setQr(r.qr ?? null))
+      .catch(() => setQr(null));
+  }, [info?.status]);
+
+  async function onConnect() {
+    setErr('');
+    setBusy(true);
+    try {
+      setInfo(await startTsnet(hostname.trim()));
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onDisconnect() {
+    setBusy(true);
+    try {
+      setInfo(await stopTsnet());
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // A loading guard, the same reasoning RemoteAccessCard's own `if (!cfg)
+  // return null` gives: the route is always registered, this only lasts as
+  // long as the one fetch above takes.
+  if (!info) return null;
+
+  return (
+    <Card className="flex flex-col gap-4">
+      <SectionTitle hue={1} hint={t('settings.access.tsnet.body')}>
+        {t('settings.access.tsnet.title')}
+      </SectionTitle>
+
+      {info.status === 'off' && (
+        <div className="flex flex-col gap-3">
+          <Field label={t('settings.access.tsnet.hostnameLabel')} hint={t('settings.access.tsnet.hostnameHint')}>
+            <TextInput
+              dir="ltr"
+              spellCheck={false}
+              placeholder={t('settings.access.tsnet.hostnamePlaceholder')}
+              value={hostname}
+              onChange={(e) => setHostname(e.target.value)}
+            />
+          </Field>
+          <div>
+            <Button hue={1} disabled={busy} onClick={() => void onConnect()}>
+              {busy ? t('settings.access.tsnet.connecting') : t('settings.access.tsnet.connect')}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {info.status === 'connecting' && (
+        <div className="flex flex-col gap-2">
+          {info.authUrl ? (
+            <>
+              <p className="text-sm text-carbon-text">{t('settings.access.tsnet.loginPrompt')}</p>
+              <div>
+                <Button
+                  hue={1}
+                  onClick={() => window.open(info.authUrl, '_blank', 'noopener,noreferrer')}
+                >
+                  {t('settings.access.tsnet.openLogin')}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <p className="text-sm text-carbon-textMuted">{t('settings.access.tsnet.connecting')}</p>
+          )}
+        </div>
+      )}
+
+      {info.status === 'connected' && (
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex min-w-0 flex-1 flex-col gap-3">
+            <div className="flex flex-col gap-1">
+              <span className="text-xs font-semibold text-carbon-textSub">
+                {t('settings.access.tsnet.connectedLabel')}
+              </span>
+              <div className="flex items-center gap-2">
+                <code
+                  className="glim-num min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-xs text-carbon-text"
+                  dir="ltr"
+                >
+                  {info.funnelUrl}
+                </code>
+                <IconBadge
+                  hue={1}
+                  icon={copied ? <IconCheck width={14} height={14} /> : <IconClipboard width={14} height={14} />}
+                  title={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
+                  aria-label={copied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
+                  onClick={async () => {
+                    if (info.funnelUrl && (await copyToClipboard(info.funnelUrl))) {
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 1800);
+                    }
+                  }}
+                />
+              </div>
+            </div>
+            <div>
+              <Button kind="secondary" hue={1} disabled={busy} onClick={() => void onDisconnect()}>
+                {busy ? t('settings.access.tsnet.disconnecting') : t('settings.access.tsnet.disconnect')}
+              </Button>
+            </div>
+          </div>
+          {qr && info.funnelUrl && (
+            <div className="flex shrink-0 flex-col items-center gap-2 self-start">
+              <QRCode matrix={qr} label={info.funnelUrl} size={144} />
+            </div>
+          )}
+        </div>
+      )}
+
+      {info.status === 'error' && (
+        <div className="flex flex-col gap-2">
+          <p className="text-sm text-statusFail">{info.error}</p>
+          {info.error?.includes('Funnel') && (
+            <p className="text-[11px] text-carbon-textMuted">{t('settings.access.tsnet.funnelErrorHint')}</p>
+          )}
+          <div>
+            <Button hue={1} disabled={busy} onClick={() => void onConnect()}>
+              {busy ? t('settings.access.tsnet.connecting') : t('settings.access.tsnet.connect')}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {err && <p className="text-sm text-statusFail">{err}</p>}
+    </Card>
   );
 }
 

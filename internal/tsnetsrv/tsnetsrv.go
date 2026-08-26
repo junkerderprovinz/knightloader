@@ -1,0 +1,229 @@
+// Package tsnetsrv is KnightLoader's Tailscale integration: log in once per
+// instance, and this instance becomes reachable at a real, public
+// https://<name>.<tailnet>.ts.net address via Tailscale Funnel - no relay
+// address, no shared key, no manual field to type on any other device.
+//
+// This exists as the answer to a direct complaint (jdp, 2026-08-26): "das
+// ist alles viel zu kompliziert für User... ist das nur mit einem VPS
+// möglich?" and, once relay/pairing were floated as the fix, "man soll auf
+// dem handy nicht auch noch tailscale installieren müssen. das muss alles
+// super einfach sein und out of the box funktionieren". This package is
+// deliberately SERVER-SIDE ONLY: a phone, a browser, or the browser
+// extension never needs Tailscale installed at all, because Funnel turns
+// the connection into an ordinary https:// URL any client already knows
+// how to reach - see internal/api/routes_tsnet.go for the one-time login
+// flow this exposes over HTTP, and routes_remote.go for how the funnel
+// address joins the same address list pairing and the QR code already draw
+// from.
+package tsnetsrv
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"net"
+	"net/http"
+	"regexp"
+	"sync"
+
+	"tailscale.com/tsnet"
+)
+
+// Status is the coarse state CheckLinks-style callers (the settings page)
+// actually need to draw a UI from - not tsnet's own much finer internal
+// state machine, which this package deliberately does not expose.
+type Status string
+
+const (
+	StatusOff        Status = "off"        // never started, or Stop was called
+	StatusConnecting Status = "connecting" // Start called, waiting on login and/or the tailnet handshake
+	StatusConnected  Status = "connected"  // logged in, reachable on the tailnet
+	StatusError      Status = "error"      // Up() or the funnel listener failed
+)
+
+// authURLPattern pulls the interactive login link out of tsnet's own
+// UserLogf stream. tsnet does not hand this back as a return value or a
+// field anywhere - logging it to a caller-supplied function is documented
+// as the intended way to surface it to a human, so this is a regex over log
+// lines, not a workaround for a missing API.
+var authURLPattern = regexp.MustCompile(`https://login\.tailscale\.com/\S+`)
+
+// Info is what GET /api/tsnet/status answers with.
+type Info struct {
+	Status Status `json:"status"`
+	// AuthURL is set only while Status is "connecting" and tsnet has logged
+	// one - the link to open to complete login. Empty once connected: an
+	// already-authorized instance has nothing left to click.
+	AuthURL string `json:"authUrl,omitempty"`
+	// FunnelURL is the public https:// address other devices - a phone with
+	// no Tailscale installed at all, the browser extension, another
+	// KnightLoader instance - can just use like any other server address,
+	// once Funnel is up. Empty until the funnel listener actually starts.
+	FunnelURL string `json:"funnelUrl,omitempty"`
+	Hostname  string `json:"hostname,omitempty"`
+	// Error carries Up()'s or the funnel listener's failure message
+	// verbatim, most commonly "Funnel is not enabled for this tailnet" -
+	// which needs one manual, one-time click in the Tailscale admin
+	// console (see settings.access.tsnet.funnelHint), not a code fix here.
+	Error string `json:"error,omitempty"`
+}
+
+// Manager owns at most one *tsnet.Server for the process lifetime. Start is
+// idempotent - calling it while already connecting or connected does
+// nothing - and Stop tears down both the funnel listener and the node
+// itself, logging this instance out of Tailscale rather than merely pausing
+// it (TSNET_FORCE_LOGIN would be needed to log back in as a different
+// identity otherwise, which is not what a person pressing a "Trennen"
+// button is asking for).
+type Manager struct {
+	// dir is where tsnet persists this node's own Tailscale identity
+	// (WireGuard keys, the tailnet it belongs to) - stable across restarts
+	// on purpose, the same reason a.dataDir itself is: a fresh directory
+	// every boot would mean logging in again every time the process
+	// restarts, not once ever.
+	dir string
+	// handler is called lazily, once the tailnet connection is actually up,
+	// not captured at construction time - Manager is built before
+	// api.Handler(a) exists (see cmd/knightloader/main.go's own boot
+	// order), and a stale nil handler captured too early would silently
+	// serve nothing on the funnel listener forever.
+	handler func() http.Handler
+
+	mu        sync.Mutex
+	srv       *tsnet.Server
+	status    Status
+	authURL   string
+	err       error
+	funnelLn  net.Listener
+	funnelURL string
+	hostname  string
+}
+
+func New(stateDir string, handler func() http.Handler) *Manager {
+	return &Manager{dir: stateDir, handler: handler, status: StatusOff}
+}
+
+// Start begins (or resumes, if this instance already logged in during an
+// earlier run) the connection. hostname becomes both this node's Tailscale
+// name and the left-hand label of its funnel address
+// (<hostname>.<tailnet>.ts.net) - defaulted to "knightloader" rather than
+// left for tsnet to invent one from the binary name, so a person with
+// several instances is not left telling three identically-named nodes
+// apart in the Tailscale admin console.
+func (m *Manager) Start(hostname string) error {
+	m.mu.Lock()
+	if m.srv != nil {
+		m.mu.Unlock()
+		return nil // already running or connecting - Start is idempotent
+	}
+	if hostname == "" {
+		hostname = "knightloader"
+	}
+	srv := &tsnet.Server{
+		Dir:      m.dir,
+		Hostname: hostname,
+		UserLogf: func(format string, args ...any) {
+			msg := fmt.Sprintf(format, args...)
+			log.Printf("tsnet: %s", msg)
+			if u := authURLPattern.FindString(msg); u != "" {
+				m.mu.Lock()
+				m.authURL = u
+				m.mu.Unlock()
+			}
+		},
+	}
+	m.srv = srv
+	m.status = StatusConnecting
+	m.hostname = hostname
+	m.authURL = ""
+	m.err = nil
+	m.mu.Unlock()
+
+	go m.run(srv)
+	return nil
+}
+
+// run blocks on srv.Up (interactive login happens here, on the very first
+// connection - UserLogf above is how its URL escapes this goroutine to the
+// status endpoint), then opens the funnel listener and serves this
+// instance's own handler on it for as long as the connection lasts.
+func (m *Manager) run(srv *tsnet.Server) {
+	_, err := srv.Up(context.Background())
+	m.mu.Lock()
+	if err != nil {
+		m.status = StatusError
+		m.err = err
+		m.mu.Unlock()
+		return
+	}
+	m.status = StatusConnected
+	m.authURL = ""
+	m.mu.Unlock()
+
+	// Port 443 is Funnel's own HTTPS port - one of exactly three it will
+	// ever answer on (443/8443/10000, a tailnet-wide restriction, not this
+	// app's choice), and the one that needs no port number typed into a
+	// URL anywhere this instance's address is shown or scanned.
+	ln, err := srv.ListenFunnel("tcp", ":443")
+	if err != nil {
+		// The single most common cause: Funnel has never been turned on for
+		// this tailnet (a one-time click in the Tailscale admin console,
+		// off by default for every new account) - surfaced verbatim rather
+		// than reworded, since tsnet's own message already names this.
+		m.mu.Lock()
+		m.status = StatusError
+		m.err = fmt.Errorf("connected to Tailscale, but the public address could not be opened: %w", err)
+		m.mu.Unlock()
+		return
+	}
+	domains := srv.CertDomains()
+	funnelURL := ""
+	if len(domains) > 0 {
+		funnelURL = "https://" + domains[0]
+	}
+	m.mu.Lock()
+	m.funnelLn = ln
+	m.funnelURL = funnelURL
+	m.mu.Unlock()
+
+	// Blocks for the life of the listener; Stop() closing ln is what ends
+	// this, the same shutdown shape internal/relay.Server's own ServeHTTP
+	// loop already uses.
+	_ = http.Serve(ln, m.handler())
+}
+
+// Stop logs this instance out of Tailscale entirely, not merely pausing the
+// funnel listener - a person pressing "Trennen" is asking to leave the
+// tailnet, not to hide behind a closed door on it. A later Start reconnects
+// as the SAME node identity (the state directory is untouched), so this is
+// not the same as deleting the node from the Tailscale admin console.
+func (m *Manager) Stop() error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if m.funnelLn != nil {
+		_ = m.funnelLn.Close()
+		m.funnelLn = nil
+	}
+	if m.srv == nil {
+		m.status = StatusOff
+		return nil
+	}
+	err := m.srv.Close()
+	m.srv = nil
+	m.status = StatusOff
+	m.authURL = ""
+	m.funnelURL = ""
+	return err
+}
+
+// Info reports the current state for GET /api/tsnet/status to poll - see
+// that route's own comment for the polling cadence this is built for.
+func (m *Manager) Info() Info {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	info := Info{Status: m.status, AuthURL: m.authURL, FunnelURL: m.funnelURL, Hostname: m.hostname}
+	if m.err != nil {
+		info.Error = m.err.Error()
+	}
+	return info
+}

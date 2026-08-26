@@ -244,6 +244,33 @@ export const IconSignOut = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+// The password reveal toggle: a filled lens with its pupil cut out via
+// evenodd (two closed subpaths in one path, the same carved-gap technique
+// this file's own header comment describes), and its "off" counterpart adds
+// a diagonal filled bar rather than a stroked line - this house style draws
+// every glyph as solid shapes, never <path stroke>.
+export const IconEye = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M2.5 10C2.5 10 6 4.3 10 4.3C14 4.3 17.5 10 17.5 10C17.5 10 14 15.7 10 15.7C6 15.7 2.5 10 2.5 10Z M12.6 10a2.6 2.6 0 1 1 -5.2 0 2.6 2.6 0 0 1 5.2 0Z"
+    />
+  </svg>
+);
+
+export const IconEyeOff = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path
+      opacity=".55"
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M2.5 10C2.5 10 6 4.3 10 4.3C14 4.3 17.5 10 17.5 10C17.5 10 14 15.7 10 15.7C6 15.7 2.5 10 2.5 10Z M12.6 10a2.6 2.6 0 1 1 -5.2 0 2.6 2.6 0 0 1 5.2 0Z"
+    />
+    <rect x="9.1" y="1" width="1.8" height="20" rx="0.9" transform="rotate(45 10 10)" />
+  </svg>
+);
+
 /* ---------------------------------------------------------------------------
    The settings tab bar.
 
