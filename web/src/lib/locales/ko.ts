@@ -1357,9 +1357,6 @@ export const ko: Dict = {
   'settings.access.tokens.done': '완료',
   'settings.access.tokens.howToUse': '헤더로 보내세요: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': '토큰을 만들 수 없었습니다: {error}',
-  'settings.access.remote.title': '원격 접근',
-  'settings.access.remote.desktopNote':
-    '이것은 데스크톱 빌드입니다. 네트워크로 API를 전혀 제공하지 않으므로, 이 애플리케이션 밖에서 접근할 것이 여기에는 없습니다.',
   'settings.access.remote.exposedWarning':
     '이 인스턴스가 방금 이 기기 밖에서 온 요청에 응답했으며, 어떤 비밀번호도 보호하고 있지 않습니다. 접근할 수 있는 사람이라면 누구나 모든 다운로드를 보고 제어할 수 있습니다. 지금 위에서 비밀번호를 설정하세요.',
   'settings.access.remote.noRelayBody':
@@ -1369,7 +1366,6 @@ export const ko: Dict = {
   'settings.access.remote.loopback': '이 기기에서만',
   'settings.access.remote.domain': '도메인',
   'settings.access.remote.scanHint': '이 인스턴스와 같은 네트워크에서만 작동합니다.',
-  'settings.access.remote.combinedHint': '이 인스턴스를 사용자가 직접 운영하는 다른 KnightLoader와 연결하여, 서로의 인스턴스 페이지에 나타나게 합니다. 페어링 코드는 이미 서로 직접 연결할 수 있는 두 인스턴스를 위한 빠른 방법입니다. 릴레이는 그럴 수 없는 두 인스턴스 - 각각 다른 네트워크에서 자신의 NAT 뒤에 있는 경우 - 를 위한 것입니다.',
   'settings.access.network.scanHint': '이 인스턴스와 같은 네트워크에서만 작동합니다.',
   'settings.access.network.hideQr': 'QR 코드 숨기기',
   'settings.access.network.showQr': 'QR 코드 표시',
@@ -1399,6 +1395,8 @@ export const ko: Dict = {
   'settings.access.tsnet.openLogin': '로그인 페이지 열기',
   'settings.access.tsnet.connectedLabel': '접속 가능 주소',
   'settings.access.tsnet.funnelErrorHint': 'Tailscale 계정에서 Funnel을 한 번 켜야 합니다: 관리 콘솔을 열고, 액세스 제어로 이동하여 Funnel을 활성화한 다음 - 다시 연결을 누르세요.',
+  'settings.access.tsnet.peersTitle': '다른 인스턴스',
+  'settings.access.tsnet.advancedTitle': 'Tailscale 없이 연결',
   'settings.access.remote.installTitle': '앱 받기',
   'settings.access.remote.installBody': '데스크톱, Android, iOS용 네이티브 앱 - 이 페이지 자체도 브라우저에서 직접 설치할 수 있어 둘 다 필요 없습니다.',
   'settings.access.remote.storeAndroid': 'Google Play',

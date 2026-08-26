@@ -1357,9 +1357,6 @@ export const th: Dict = {
   'settings.access.tokens.done': 'เสร็จสิ้น',
   'settings.access.tokens.howToUse': 'ส่งเป็นเฮดเดอร์: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'สร้างโทเคนไม่สำเร็จ: {error}',
-  'settings.access.remote.title': 'การเข้าถึงระยะไกล',
-  'settings.access.remote.desktopNote':
-    'นี่คือบิลด์เดสก์ท็อป มันไม่ได้ให้บริการ API ผ่านเครือข่ายเลย ดังนั้นจึงไม่มีอะไรที่นี่ให้เข้าถึงจากภายนอกแอปนี้',
   'settings.access.remote.exposedWarning':
     'อินสแตนซ์นี้เพิ่งตอบคำขอจากภายนอกเครื่องนี้ และไม่มีรหัสผ่านปกป้องมันอยู่ ใครก็ตามที่เข้าถึงมันได้จะสามารถดูและควบคุมทุกการดาวน์โหลดได้ ตั้งรหัสผ่านด้านบนตอนนี้เลย',
   'settings.access.remote.noRelayBody':
@@ -1369,7 +1366,6 @@ export const th: Dict = {
   'settings.access.remote.loopback': 'เครื่องนี้เท่านั้น',
   'settings.access.remote.domain': 'โดเมน',
   'settings.access.remote.scanHint': 'ใช้งานได้เฉพาะบนเครือข่ายเดียวกับอินสแตนซ์นี้เท่านั้น',
-  'settings.access.remote.combinedHint': 'เชื่อมต่ออินสแตนซ์นี้กับ KnightLoader อีกตัวที่คุณดูแลเอง เพื่อให้ทั้งสองปรากฏในหน้าอินสแตนซ์ของกันและกัน รหัสจับคู่คือวิธีที่รวดเร็ว สำหรับสองอินสแตนซ์ที่เชื่อมถึงกันโดยตรงได้อยู่แล้ว รีเลย์มีไว้สำหรับสองอินสแตนซ์ที่ทำไม่ได้ - แต่ละตัวอยู่หลัง NAT ของตัวเอง บนเครือข่ายที่ต่างกัน',
   'settings.access.network.scanHint': 'ใช้ได้เฉพาะในเครือข่ายเดียวกับอินสแตนซ์นี้เท่านั้น',
   'settings.access.network.hideQr': 'ซ่อนคิวอาร์โค้ด',
   'settings.access.network.showQr': 'แสดงคิวอาร์โค้ด',
@@ -1399,6 +1395,8 @@ export const th: Dict = {
   'settings.access.tsnet.openLogin': 'เปิดหน้าเข้าสู่ระบบ',
   'settings.access.tsnet.connectedLabel': 'เข้าถึงได้ที่',
   'settings.access.tsnet.funnelErrorHint': 'ต้องเปิดใช้งาน Funnel ครั้งเดียวสำหรับบัญชี Tailscale ของคุณ: เปิดคอนโซลผู้ดูแลระบบ ไปที่การควบคุมการเข้าถึง แล้วเปิดใช้งาน Funnel - จากนั้นกดเชื่อมต่ออีกครั้ง',
+  'settings.access.tsnet.peersTitle': 'อินสแตนซ์อื่นของคุณ',
+  'settings.access.tsnet.advancedTitle': 'เชื่อมต่อโดยไม่ใช้ Tailscale',
   'settings.access.remote.installTitle': 'รับแอป',
   'settings.access.remote.installBody': 'แอปเนทีฟสำหรับเดสก์ท็อป Android และ iOS - หน้านี้ยังสามารถติดตั้งได้โดยตรงจากเบราว์เซอร์ของคุณ โดยไม่ต้องใช้ทั้งสองอย่าง',
   'settings.access.remote.storeAndroid': 'Google Play',

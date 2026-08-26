@@ -1359,9 +1359,6 @@ export const no: Dict = {
   'settings.access.tokens.done': 'Ferdig',
   'settings.access.tokens.howToUse': 'Send den som en header: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Kunne ikke opprette tokenen: {error}',
-  'settings.access.remote.title': 'Fjerntilgang',
-  'settings.access.remote.desktopNote':
-    'Dette er skrivebordsbuilden. Den tilbyr ikke API-et over nettverket i det hele tatt, så det er ingenting her å nå utenfra denne applikasjonen.',
   'settings.access.remote.exposedWarning':
     'Denne instansen svarte nettopp på en forespørsel utenfra denne maskinen, og ingen passord beskytter den. Alle som kan nå den kan se og styre hver nedlasting. Angi et passord ovenfor nå.',
   'settings.access.remote.noRelayBody':
@@ -1371,7 +1368,6 @@ export const no: Dict = {
   'settings.access.remote.loopback': 'kun denne maskinen',
   'settings.access.remote.domain': 'domene',
   'settings.access.remote.scanHint': 'Fungerer bare på samme nettverk som denne instansen.',
-  'settings.access.remote.combinedHint': 'Kobler denne instansen sammen med en annen KnightLoader du selv drifter, slik at de to vises på hverandres Instanser-side. En parkoblingskode er den raske veien, for to instanser som allerede kan nå hverandre direkte. En relé er for to som ikke kan - hver bak sin egen NAT, på forskjellige nettverk.',
   'settings.access.network.scanHint': 'Fungerer bare på samme nettverk som denne instansen.',
   'settings.access.network.hideQr': 'Skjul QR-kode',
   'settings.access.network.showQr': 'Vis QR-kode',
@@ -1401,6 +1397,8 @@ export const no: Dict = {
   'settings.access.tsnet.openLogin': 'Åpne innloggingsside',
   'settings.access.tsnet.connectedLabel': 'Tilgjengelig på',
   'settings.access.tsnet.funnelErrorHint': 'Funnel må slås på én gang for Tailscale-kontoen din: åpne admin-konsollen, gå til tilgangskontroller, og slå på Funnel - trykk deretter på Koble til igjen.',
+  'settings.access.tsnet.peersTitle': 'Dine andre instanser',
+  'settings.access.tsnet.advancedTitle': 'Koble til uten Tailscale',
   'settings.access.remote.installTitle': 'Hent appen',
   'settings.access.remote.installBody': 'Native apper for skrivebord, Android og iOS - denne siden kan også installeres direkte fra nettleseren din, uten noen av delene.',
   'settings.access.remote.storeAndroid': 'Google Play',

@@ -1358,9 +1358,6 @@ export const sv: Dict = {
   'settings.access.tokens.done': 'Klart',
   'settings.access.tokens.howToUse': 'Skicka det som en header: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Kunde inte skapa token: {error}',
-  'settings.access.remote.title': 'Fjärråtkomst',
-  'settings.access.remote.desktopNote':
-    'Detta är skrivbordsbuilden. Den erbjuder inte API:et över nätverket alls, så det finns inget här att nå utanför själva applikationen.',
   'settings.access.remote.exposedWarning':
     'Denna instans svarade just på en begäran utifrån den här datorn, och inget lösenord skyddar den. Vem som helst som kan nå den kan se och styra varje nedladdning. Ange ett lösenord ovan nu.',
   'settings.access.remote.noRelayBody':
@@ -1370,7 +1367,6 @@ export const sv: Dict = {
   'settings.access.remote.loopback': 'endast denna dator',
   'settings.access.remote.domain': 'domän',
   'settings.access.remote.scanHint': 'Fungerar bara på samma nätverk som denna instans.',
-  'settings.access.remote.combinedHint': 'Kopplar samman den här instansen med en annan KnightLoader som du själv driver, så att båda visas på varandras Instanser-sida. En parkopplingskod är den snabba vägen, för två instanser som redan kan nå varandra direkt. Ett relä är för två som inte kan - var och en bakom sin egen NAT, på olika nätverk.',
   'settings.access.network.scanHint': 'Fungerar bara på samma nätverk som den här instansen.',
   'settings.access.network.hideQr': 'Dölj QR-kod',
   'settings.access.network.showQr': 'Visa QR-kod',
@@ -1400,6 +1396,8 @@ export const sv: Dict = {
   'settings.access.tsnet.openLogin': 'Öppna inloggningssida',
   'settings.access.tsnet.connectedLabel': 'Nåbar på',
   'settings.access.tsnet.funnelErrorHint': 'Funnel måste slås på en gång för ditt Tailscale-konto: öppna adminkonsolen, gå till åtkomstkontroller, och slå på Funnel - tryck sedan på Anslut igen.',
+  'settings.access.tsnet.peersTitle': 'Dina andra instanser',
+  'settings.access.tsnet.advancedTitle': 'Anslut utan Tailscale',
   'settings.access.remote.installTitle': 'Skaffa appen',
   'settings.access.remote.installBody': 'Native appar för dator, Android och iOS - den här sidan kan också installeras direkt från din webbläsare, utan någon av delarna.',
   'settings.access.remote.storeAndroid': 'Google Play',

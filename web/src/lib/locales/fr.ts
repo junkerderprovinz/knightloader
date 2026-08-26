@@ -1350,9 +1350,6 @@ export const fr: Dict = {
   'settings.access.tokens.done': 'Terminé',
   'settings.access.tokens.howToUse': 'Envoyez-le comme en-tête : Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Impossible de créer le jeton : {error}',
-  'settings.access.remote.title': 'Accès distant',
-  'settings.access.remote.desktopNote':
-    'Ceci est le build de bureau. Il ne sert pas du tout l’API sur le réseau, il n’y a donc rien ici à atteindre depuis l’extérieur de cette application.',
   'settings.access.remote.exposedWarning':
     'Cette instance vient de répondre à une requête venant de l’extérieur de cette machine, et aucun mot de passe ne la protège. Quiconque peut l’atteindre peut voir et contrôler chaque téléchargement. Définissez un mot de passe ci-dessus maintenant.',
   'settings.access.remote.noRelayBody':
@@ -1362,7 +1359,6 @@ export const fr: Dict = {
   'settings.access.remote.loopback': 'cette machine uniquement',
   'settings.access.remote.domain': 'domaine',
   'settings.access.remote.scanHint': 'Fonctionne uniquement sur le même réseau que cette instance.',
-  'settings.access.remote.combinedHint': 'Connecte cette instance à une autre instance KnightLoader que vous gérez vous-même, afin que les deux apparaissent sur la page Instances de l\'autre. Un code d\'appairage est la voie rapide, pour deux instances qui peuvent déjà se joindre directement. Un relais est destiné à deux instances qui ne le peuvent pas - chacune derrière son propre NAT, sur des réseaux différents.',
   'settings.access.network.scanHint': 'Ne fonctionne que sur le même réseau que cette instance.',
   'settings.access.network.hideQr': 'Masquer le code QR',
   'settings.access.network.showQr': 'Afficher le code QR',
@@ -1392,6 +1388,8 @@ export const fr: Dict = {
   'settings.access.tsnet.openLogin': 'Ouvrir la page de connexion',
   'settings.access.tsnet.connectedLabel': 'Accessible à',
   'settings.access.tsnet.funnelErrorHint': 'Funnel doit être activé une fois pour votre compte Tailscale : ouvrez la console d\'administration, allez dans les contrôles d\'accès, et activez Funnel - puis appuyez de nouveau sur Connecter.',
+  'settings.access.tsnet.peersTitle': 'Vos autres instances',
+  'settings.access.tsnet.advancedTitle': 'Se connecter sans Tailscale',
   'settings.access.remote.installTitle': "Obtenir l'application",
   'settings.access.remote.installBody': "Applications natives pour ordinateur, Android et iOS - cette page peut aussi être installée directement depuis votre navigateur, sans l'un ni l'autre.",
   'settings.access.remote.storeAndroid': 'Google Play',

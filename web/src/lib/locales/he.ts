@@ -1359,9 +1359,6 @@ export const he: Dict = {
   'settings.access.tokens.done': 'סיום',
   'settings.access.tokens.howToUse': 'שלח אותו ככותרת: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'לא ניתן היה ליצור את הטוקן: {error}',
-  'settings.access.remote.title': 'גישה מרחוק',
-  'settings.access.remote.desktopNote':
-    'זהו בילד שולחן העבודה. הוא לא מגיש את ה-API ברשת בכלל, אז אין כאן שום דבר לגשת אליו מחוץ ליישום הזה.',
   'settings.access.remote.exposedWarning':
     'המופע הזה זה עתה ענה לבקשה מחוץ למחשב הזה, ואף סיסמה לא מגנה עליו. כל מי שיכול להגיע אליו יכול לראות ולשלוט בכל הורדה. הגדר סיסמה למעלה עכשיו.',
   'settings.access.remote.noRelayBody':
@@ -1371,7 +1368,6 @@ export const he: Dict = {
   'settings.access.remote.loopback': 'המחשב הזה בלבד',
   'settings.access.remote.domain': 'דומיין',
   'settings.access.remote.scanHint': 'עובד רק באותה רשת כמו המופע הזה.',
-  'settings.access.remote.combinedHint': 'מחבר את המופע הזה למופע KnightLoader אחר שאתה עצמך מפעיל, כך ששניהם מופיעים בעמוד המופעים זה של זה. קוד צימוד הוא הדרך המהירה, לשני מופעים שכבר יכולים להגיע זה לזה ישירות. ממסר מיועד לשני מופעים שלא יכולים - כל אחד מאחורי ה-NAT שלו, ברשתות שונות.',
   'settings.access.network.scanHint': 'עובד רק באותה רשת כמו המופע הזה.',
   'settings.access.network.hideQr': 'הסתר קוד QR',
   'settings.access.network.showQr': 'הצג קוד QR',
@@ -1401,6 +1397,8 @@ export const he: Dict = {
   'settings.access.tsnet.openLogin': 'פתח דף התחברות',
   'settings.access.tsnet.connectedLabel': 'נגיש בכתובת',
   'settings.access.tsnet.funnelErrorHint': 'יש להפעיל את Funnel פעם אחת עבור חשבון ה-Tailscale שלכם: פתחו את מסוף הניהול, עברו לבקרות הגישה, והפעילו את Funnel - ואז לחצו שוב על התחבר.',
+  'settings.access.tsnet.peersTitle': 'המופעים האחרים שלך',
+  'settings.access.tsnet.advancedTitle': 'התחברות בלי Tailscale',
   'settings.access.remote.installTitle': 'קבל את האפליקציה',
   'settings.access.remote.installBody': 'אפליקציות מקוריות לשולחן העבודה, Android ו-iOS - ניתן גם להתקין דף זה ישירות מהדפדפן, בלי אף אחת מהן.',
   'settings.access.remote.storeAndroid': 'Google Play',

@@ -1356,9 +1356,6 @@ export const zh: Dict = {
   'settings.access.tokens.done': '完成',
   'settings.access.tokens.howToUse': '以标头形式发送：Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': '无法创建令牌：{error}',
-  'settings.access.remote.title': '远程访问',
-  'settings.access.remote.desktopNote':
-    '这是桌面版构建。它完全不通过网络提供 API 服务，所以在这个应用之外没有什么可以访问的。',
   'settings.access.remote.exposedWarning':
     '此实例刚刚响应了一个来自本机之外的请求，而且没有任何密码保护它。任何能够访问它的人都可以查看和控制每一个下载。请立即在上方设置密码。',
   'settings.access.remote.noRelayBody':
@@ -1368,7 +1365,6 @@ export const zh: Dict = {
   'settings.access.remote.loopback': '仅限本机',
   'settings.access.remote.domain': '域名',
   'settings.access.remote.scanHint': '仅在与此实例相同的网络中有效。',
-  'settings.access.remote.combinedHint': '将此实例与你自己运行的另一个 KnightLoader 连接起来,让两者出现在彼此的实例页面上。配对码是快捷方式,适用于已经能够直接互相访问的两个实例。中继则适用于无法直接访问的两个实例 -  - 各自处于不同网络、各自的 NAT 之后。',
   'settings.access.network.scanHint': '仅在与此实例相同的网络中有效。',
   'settings.access.network.hideQr': '隐藏二维码',
   'settings.access.network.showQr': '显示二维码',
@@ -1398,6 +1394,8 @@ export const zh: Dict = {
   'settings.access.tsnet.openLogin': '打开登录页面',
   'settings.access.tsnet.connectedLabel': '可访问地址',
   'settings.access.tsnet.funnelErrorHint': '需要为你的 Tailscale 账户启用一次 Funnel：打开管理控制台，进入访问控制，并启用 Funnel - 然后再次点击连接。',
+  'settings.access.tsnet.peersTitle': '你的其他实例',
+  'settings.access.tsnet.advancedTitle': '不使用 Tailscale 连接',
   'settings.access.remote.installTitle': '获取应用',
   'settings.access.remote.installBody': '适用于桌面、Android 和 iOS 的原生应用 - 本页面也可以直接从浏览器安装，两者都不需要。',
   'settings.access.remote.storeAndroid': 'Google Play',

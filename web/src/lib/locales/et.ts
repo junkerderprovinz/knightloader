@@ -1357,9 +1357,6 @@ export const et: Dict = {
   'settings.access.tokens.done': 'Valmis',
   'settings.access.tokens.howToUse': 'Saada see päisena: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Tokeni loomine ebaõnnestus: {error}',
-  'settings.access.remote.title': 'Kaugjuurdepääs',
-  'settings.access.remote.desktopNote':
-    'See on desktop-build. See ei paku API-t üldse üle võrgu, seega pole siin midagi, mida sellest rakendusest väljastpoolt saaks kasutada.',
   'settings.access.remote.exposedWarning':
     'See isend vastas just päringule väljastpoolt seda masinat ja mitte ükski parool ei kaitse seda. Igaüks, kes seda saab kasutada, näeb ja juhib iga allalaadimist. Määra ülal parool kohe.',
   'settings.access.remote.noRelayBody':
@@ -1369,7 +1366,6 @@ export const et: Dict = {
   'settings.access.remote.loopback': 'ainult see masin',
   'settings.access.remote.domain': 'domeen',
   'settings.access.remote.scanHint': 'Töötab ainult samas võrgus, kus see isend.',
-  'settings.access.remote.combinedHint': 'Ühendab selle instantsi teise sinu enda hallatava KnightLoaderiga, nii et mõlemad kuvatakse teineteise Instantside lehel. Sidumiskood on kiire viis kahe instantsi jaoks, mis juba jõuavad üksteiseni otse. Relee on kahele, kes ei jõua - kumbki oma NAT-i taga, erinevates võrkudes.',
   'settings.access.network.scanHint': 'Toimib ainult samas võrgus, kus see instants.',
   'settings.access.network.hideQr': 'Peida QR-kood',
   'settings.access.network.showQr': 'Näita QR-koodi',
@@ -1399,6 +1395,8 @@ export const et: Dict = {
   'settings.access.tsnet.openLogin': 'Ava sisselogimisleht',
   'settings.access.tsnet.connectedLabel': 'Kättesaadav aadressil',
   'settings.access.tsnet.funnelErrorHint': 'Funnel tuleb sinu Tailscale\'i konto jaoks üks kord sisse lülitada: ava admiinikonsool, mine juurdepääsuseadete juurde ja lülita Funnel sisse - seejärel vajuta uuesti Ühenda.',
+  'settings.access.tsnet.peersTitle': 'Sinu teised eksemplarid',
+  'settings.access.tsnet.advancedTitle': 'Ühenda ilma Tailscaleta',
   'settings.access.remote.installTitle': 'Hangi rakendus',
   'settings.access.remote.installBody': 'Emakeelsed rakendused lauaarvutile, Androidile ja iOS-ile - selle lehe saab installida ka otse brauserist, ilma kummagita.',
   'settings.access.remote.storeAndroid': 'Google Play',

@@ -19,11 +19,14 @@ package tsnetsrv
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"net/http"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -330,4 +333,107 @@ func (m *Manager) Info() Info {
 		info.Error = m.err.Error()
 	}
 	return info
+}
+
+// PeerInstance is one other device on the same tailnet that answered a
+// KnightLoader health probe - a candidate for the existing "add a peer by
+// address" flow (POST /api/instances, internal/api/routes_federation.go),
+// reached with no pairing code and no relay key at all, because both
+// instances already share the one login that got each of them here (jdp,
+// 2026-08-27: "wie genau wird das jetzt umgesetzt?" - this is the answer:
+// once two of a person's own KnightLoader instances are both logged into
+// the same Tailscale account, tsnet's own LocalClient().Status() already
+// lists them to each other, so there is nothing left to hand-configure).
+type PeerInstance struct {
+	Hostname string `json:"hostname"`
+	URL      string `json:"url"`
+}
+
+// Peers lists every OTHER device in the SAME Tailscale account (never a
+// device merely shared into this tailnet by someone else - see the UserID
+// comparison below, the one thing that keeps this from surfacing a
+// housemate's laptop just because it is visible on the same tailnet) that
+// is online right now and answers like a KnightLoader instance. Nil,
+// without error, when not connected - the caller reads that exactly like
+// "no candidates yet", not a failure.
+//
+// The probe (looksLikeKnightLoader) is what keeps this from listing every
+// device the person owns - a phone, a router, anything else living in the
+// same tailnet - as if it were a KnightLoader instance to add.
+func (m *Manager) Peers(ctx context.Context) ([]PeerInstance, error) {
+	m.mu.Lock()
+	srv := m.srv
+	connected := m.status == StatusConnected
+	m.mu.Unlock()
+	if srv == nil || !connected {
+		return nil, nil
+	}
+
+	lc, err := srv.LocalClient()
+	if err != nil {
+		return nil, err
+	}
+	st, err := lc.Status(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if st.Self == nil {
+		return nil, nil
+	}
+
+	// Dialled through the embedded tailnet network stack, not the ordinary
+	// internet - the whole reason this needs no new port and no firewall
+	// rule on either side is that both instances already speak to each
+	// other over the same private mesh their Funnel address rides on top
+	// of.
+	client := srv.HTTPClient()
+	var out []PeerInstance
+	for _, p := range st.Peer {
+		if p == nil || !p.Online || p.UserID != st.Self.UserID {
+			continue
+		}
+		host := strings.TrimSuffix(p.DNSName, ".")
+		if host == "" {
+			continue
+		}
+		if !looksLikeKnightLoader(ctx, client, host) {
+			continue
+		}
+		out = append(out, PeerInstance{Hostname: p.HostName, URL: "https://" + host})
+	}
+	return out, nil
+}
+
+// looksLikeKnightLoader probes a candidate peer's own /api/health the same
+// way any KnightLoader client already does, entirely over the tailnet. A
+// short per-peer timeout keeps one slow or unreachable device from
+// stalling the whole list; a non-KnightLoader device failing this check is
+// the expected, silent case; it is skipped, not reported as an error.
+func looksLikeKnightLoader(ctx context.Context, client *http.Client, host string) bool {
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://"+host+"/api/health", nil)
+	if err != nil {
+		return false
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return false
+	}
+	var body struct {
+		Status string `json:"status"`
+	}
+	// Capped, not because a real /api/health response is ever large, but
+	// because this reads whatever the OTHER end of a probe this package
+	// initiated sends back - the same reasoning any response body read from
+	// a peer, not a request this instance itself validated, gets elsewhere
+	// in this codebase.
+	if err := json.NewDecoder(io.LimitReader(resp.Body, 4096)).Decode(&body); err != nil {
+		return false
+	}
+	return body.Status == "ok"
 }

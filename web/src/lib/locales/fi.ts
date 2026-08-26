@@ -1357,9 +1357,6 @@ export const fi: Dict = {
   'settings.access.tokens.done': 'Valmis',
   'settings.access.tokens.howToUse': 'Lähetä se otsakkeena: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Tokenia ei voitu luoda: {error}',
-  'settings.access.remote.title': 'Etäkäyttö',
-  'settings.access.remote.desktopNote':
-    'Tämä on työpöytäbuild. Se ei tarjoa API:a verkon yli lainkaan, joten täällä ei ole mitään tavoitettavaa tämän sovelluksen ulkopuolelta.',
   'settings.access.remote.exposedWarning':
     'Tämä instanssi vastasi juuri pyyntöön tämän koneen ulkopuolelta, eikä mikään salasana suojaa sitä. Kuka tahansa, joka pääsee siihen käsiksi, voi nähdä ja hallita jokaista latausta. Aseta salasana yllä nyt.',
   'settings.access.remote.noRelayBody':
@@ -1369,7 +1366,6 @@ export const fi: Dict = {
   'settings.access.remote.loopback': 'vain tämä kone',
   'settings.access.remote.domain': 'verkkotunnus',
   'settings.access.remote.scanHint': 'Toimii vain samassa verkossa kuin tämä instanssi.',
-  'settings.access.remote.combinedHint': 'Yhdistää tämän instanssin toiseen itse ylläpitämääsi KnightLoaderiin, jolloin molemmat näkyvät toistensa Instanssit-sivulla. Parituskoodi on nopea tapa kahdelle instanssille, jotka voivat jo tavoittaa toisensa suoraan. Rele on kahdelle, jotka eivät voi - kumpikin oman NAT:nsa takana, eri verkoissa.',
   'settings.access.network.scanHint': 'Toimii vain samassa verkossa kuin tämä instanssi.',
   'settings.access.network.hideQr': 'Piilota QR-koodi',
   'settings.access.network.showQr': 'Näytä QR-koodi',
@@ -1399,6 +1395,8 @@ export const fi: Dict = {
   'settings.access.tsnet.openLogin': 'Avaa kirjautumissivu',
   'settings.access.tsnet.connectedLabel': 'Tavoitettavissa osoitteessa',
   'settings.access.tsnet.funnelErrorHint': 'Funnel pitää kytkeä päälle kerran Tailscale-tilillesi: avaa hallintakonsoli, siirry käyttöoikeuksiin ja kytke Funnel päälle - paina sitten Yhdistä uudelleen.',
+  'settings.access.tsnet.peersTitle': 'Muut instanssisi',
+  'settings.access.tsnet.advancedTitle': 'Yhdistä ilman Tailscalea',
   'settings.access.remote.installTitle': 'Hanki sovellus',
   'settings.access.remote.installBody': 'Natiivisovellukset työpöydälle, Androidille ja iOS:lle - tämän sivun voi myös asentaa suoraan selaimesta, ilman kumpaakaan.',
   'settings.access.remote.storeAndroid': 'Google Play',

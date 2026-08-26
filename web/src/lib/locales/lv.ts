@@ -1357,9 +1357,6 @@ export const lv: Dict = {
   'settings.access.tokens.done': 'Gatavs',
   'settings.access.tokens.howToUse': 'Sūtiet to kā galveni: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Neizdevās izveidot pilnvaru: {error}',
-  'settings.access.remote.title': 'Attālā piekļuve',
-  'settings.access.remote.desktopNote':
-    'Šī ir darbvirsmas versija. Tā vispār nenodrošina API tīklā, tāpēc šeit nav nekā, kam piekļūt no ārpus šīs lietotnes.',
   'settings.access.remote.exposedWarning':
     'Šī instance tikko atbildēja uz pieprasījumu no ārpus šī datora, un to neaizsargā neviena parole. Ikviens, kas var to sasniegt, var redzēt un vadīt katru lejupielādi. Iestatiet paroli iepriekš tagad.',
   'settings.access.remote.noRelayBody':
@@ -1369,7 +1366,6 @@ export const lv: Dict = {
   'settings.access.remote.loopback': 'tikai šis dators',
   'settings.access.remote.domain': 'domēns',
   'settings.access.remote.scanHint': 'Darbojas tikai tajā pašā tīklā, kur šī instance.',
-  'settings.access.remote.combinedHint': 'Savieno šo instanci ar citu tavis paša pārvaldītu KnightLoader, lai abas parādītos vienai otras Instanču lapā. Sapārošanas kods ir ātrais veids diviem instancēm, kas jau var sasniegt viena otru tieši. Relejs paredzēts diviem, kas nevar - katra aiz sava NAT, dažādos tīklos.',
   'settings.access.network.scanHint': 'Darbojas tikai tajā pašā tīklā, kurā ir šī instance.',
   'settings.access.network.hideQr': 'Slēpt QR kodu',
   'settings.access.network.showQr': 'Rādīt QR kodu',
@@ -1399,6 +1395,8 @@ export const lv: Dict = {
   'settings.access.tsnet.openLogin': 'Atvērt pieteikšanās lapu',
   'settings.access.tsnet.connectedLabel': 'Sasniedzama adresē',
   'settings.access.tsnet.funnelErrorHint': 'Funnel jums jāieslēdz vienreiz savam Tailscale kontam: atveriet administrēšanas konsoli, dodieties uz piekļuves vadīklām un ieslēdziet Funnel - pēc tam vēlreiz nospiediet Pievienoties.',
+  'settings.access.tsnet.peersTitle': 'Jūsu citas instances',
+  'settings.access.tsnet.advancedTitle': 'Pievienoties bez Tailscale',
   'settings.access.remote.installTitle': 'Iegūt lietotni',
   'settings.access.remote.installBody': 'Vietējās lietotnes galddatoram, Android un iOS - šo lapu var arī instalēt tieši no pārlūkprogrammas, bez kāda no tiem.',
   'settings.access.remote.storeAndroid': 'Google Play',

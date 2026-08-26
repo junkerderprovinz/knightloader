@@ -1357,9 +1357,6 @@ export const tr: Dict = {
   'settings.access.tokens.done': 'Bitti',
   'settings.access.tokens.howToUse': 'Onu bir başlık olarak gönderin: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Token oluşturulamadı: {error}',
-  'settings.access.remote.title': 'Uzaktan erişim',
-  'settings.access.remote.desktopNote':
-    'Bu masaüstü yapısıdır. API\'yi ağ üzerinden hiç sunmaz, bu yüzden burada bu uygulamanın dışından erişilecek bir şey yoktur.',
   'settings.access.remote.exposedWarning':
     'Bu örnek az önce bu makinenin dışından gelen bir isteğe yanıt verdi ve hiçbir parola onu korumuyor. Ona erişebilen herkes her indirmeyi görebilir ve kontrol edebilir. Şimdi yukarıda bir parola belirleyin.',
   'settings.access.remote.noRelayBody':
@@ -1369,7 +1366,6 @@ export const tr: Dict = {
   'settings.access.remote.loopback': 'yalnızca bu makine',
   'settings.access.remote.domain': 'alan adı',
   'settings.access.remote.scanHint': 'Yalnızca bu örnekle aynı ağda çalışır.',
-  'settings.access.remote.combinedHint': 'Bu örneği, kendinizin çalıştırdığı başka bir KnightLoader ile bağlar; böylece ikisi birbirinin Örnekler sayfasında görünür. Eşleştirme kodu, birbirine zaten doğrudan ulaşabilen iki örnek için hızlı yoldur. Röle ise ulaşamayan iki örnek içindir - her biri kendi NAT\'ının arkasında, farklı ağlarda.',
   'settings.access.network.scanHint': 'Yalnızca bu örnekle aynı ağda çalışır.',
   'settings.access.network.hideQr': 'QR kodunu gizle',
   'settings.access.network.showQr': 'QR kodunu göster',
@@ -1399,6 +1395,8 @@ export const tr: Dict = {
   'settings.access.tsnet.openLogin': 'Giriş sayfasını aç',
   'settings.access.tsnet.connectedLabel': 'Şu adreste erişilebilir',
   'settings.access.tsnet.funnelErrorHint': 'Funnel, Tailscale hesabınız için bir kez açılmalıdır: yönetim konsolunu açın, erişim denetimlerine gidin ve Funnel\'ı açın - ardından tekrar Bağlan\'a basın.',
+  'settings.access.tsnet.peersTitle': 'Diğer örnekleriniz',
+  'settings.access.tsnet.advancedTitle': 'Tailscale olmadan bağlan',
   'settings.access.remote.installTitle': 'Uygulamayı edin',
   'settings.access.remote.installBody': 'Masaüstü, Android ve iOS için yerel uygulamalar - bu sayfa da tarayıcınızdan doğrudan yüklenebilir, ikisi de olmadan.',
   'settings.access.remote.storeAndroid': 'Google Play',

@@ -1357,9 +1357,6 @@ export const ja: Dict = {
   'settings.access.tokens.done': '完了',
   'settings.access.tokens.howToUse': 'ヘッダーとして送信してください: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'トークンを作成できませんでした: {error}',
-  'settings.access.remote.title': 'リモートアクセス',
-  'settings.access.remote.desktopNote':
-    'これはデスクトップビルドです。ネットワーク越しにAPIをまったく提供しないため、このアプリケーションの外部からアクセスできるものはここにはありません。',
   'settings.access.remote.exposedWarning':
     'このインスタンスはたった今、このマシンの外部からのリクエストに応答しましたが、パスワードによる保護がありません。到達できる人なら誰でも、すべてのダウンロードを見て操作できます。今すぐ上でパスワードを設定してください。',
   'settings.access.remote.noRelayBody':
@@ -1369,7 +1366,6 @@ export const ja: Dict = {
   'settings.access.remote.loopback': 'このマシンのみ',
   'settings.access.remote.domain': 'ドメイン',
   'settings.access.remote.scanHint': 'このインスタンスと同じネットワーク上でのみ機能します。',
-  'settings.access.remote.combinedHint': 'このインスタンスを、あなた自身が運用する別のKnightLoaderと接続し、両方が互いのインスタンス一覧に表示されるようにします。ペアリングコードは、すでに直接到達できる2つのインスタンス向けの手早い方法です。リレーは、それができない2つ ― それぞれ別のNATの内側、異なるネットワークにある場合 ― のためのものです。',
   'settings.access.network.scanHint': 'このインスタンスと同じネットワーク内でのみ機能します。',
   'settings.access.network.hideQr': 'QRコードを非表示',
   'settings.access.network.showQr': 'QRコードを表示',
@@ -1399,6 +1395,8 @@ export const ja: Dict = {
   'settings.access.tsnet.openLogin': 'ログインページを開く',
   'settings.access.tsnet.connectedLabel': '接続先',
   'settings.access.tsnet.funnelErrorHint': 'Funnelは自分のTailscaleアカウントで一度だけ有効にする必要があります: 管理コンソールを開き、アクセス制御に移動し、Funnelを有効にしてください - その後、もう一度「接続」を押してください。',
+  'settings.access.tsnet.peersTitle': '他のインスタンス',
+  'settings.access.tsnet.advancedTitle': 'Tailscaleを使わずに接続',
   'settings.access.remote.installTitle': 'アプリを入手',
   'settings.access.remote.installBody': 'デスクトップ、Android、iOS 向けのネイティブアプリ - このページ自体もブラウザから直接インストールでき、どちらも不要です。',
   'settings.access.remote.storeAndroid': 'Google Play',

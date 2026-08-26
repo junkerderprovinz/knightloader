@@ -1358,9 +1358,6 @@ export const bg: Dict = {
   'settings.access.tokens.done': 'Готово',
   'settings.access.tokens.howToUse': 'Изпрати го като заглавка: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Създаването на токена не успя: {error}',
-  'settings.access.remote.title': 'Отдалечен достъп',
-  'settings.access.remote.desktopNote':
-    'Това е настолното издание. То изобщо не предоставя API по мрежата, така че тук няма нищо, достижимо извън това приложение.',
   'settings.access.remote.exposedWarning':
     'Тази инстанция току-що отговори на заявка отвън тази машина, и никаква парола не я защитава. Всеки, който може да я достигне, може да вижда и управлява всяко изтегляне. Задай парола по-горе веднага.',
   'settings.access.remote.noRelayBody':
@@ -1370,7 +1367,6 @@ export const bg: Dict = {
   'settings.access.remote.loopback': 'само тази машина',
   'settings.access.remote.domain': 'домейн',
   'settings.access.remote.scanHint': 'Работи само в същата мрежа като тази инстанция.',
-  'settings.access.remote.combinedHint': 'Свързва тази инстанция с друг KnightLoader, който сам управляваш, така че двете да се появят една на друга в страницата „Инстанции“. Код за сдвояване е бързият начин, за две инстанции, които вече могат да се достигнат директно. Реле е за две, които не могат - всяка зад своя NAT, в различни мрежи.',
   'settings.access.network.scanHint': 'Работи само в същата мрежа като тази инстанция.',
   'settings.access.network.hideQr': 'Скриване на QR кода',
   'settings.access.network.showQr': 'Показване на QR код',
@@ -1400,6 +1396,8 @@ export const bg: Dict = {
   'settings.access.tsnet.openLogin': 'Отвори страницата за вход',
   'settings.access.tsnet.connectedLabel': 'Достъпен на',
   'settings.access.tsnet.funnelErrorHint': 'Funnel трябва да бъде включен веднъж за вашия акаунт в Tailscale: отворете администраторската конзола, отидете на контрола на достъпа и включете Funnel - после натиснете отново Свързване.',
+  'settings.access.tsnet.peersTitle': 'Твоите други инстанции',
+  'settings.access.tsnet.advancedTitle': 'Свързване без Tailscale',
   'settings.access.remote.installTitle': 'Изтегли приложението',
   'settings.access.remote.installBody': 'Собствени приложения за десктоп, Android и iOS - тази страница може също да се инсталира директно от браузъра, без нито едно от двете.',
   'settings.access.remote.storeAndroid': 'Google Play',

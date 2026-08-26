@@ -1358,9 +1358,6 @@ export const sk: Dict = {
   'settings.access.tokens.done': 'Hotovo',
   'settings.access.tokens.howToUse': 'Odošli ho ako hlavičku: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Token sa nepodarilo vytvoriť: {error}',
-  'settings.access.remote.title': 'Vzdialený prístup',
-  'settings.access.remote.desktopNote':
-    'Toto je desktopový build. Vôbec neposkytuje API cez sieť, takže odtiaľto nie je nič, čo by sa dalo dosiahnuť zvonku tejto aplikácie.',
   'settings.access.remote.exposedWarning':
     'Táto inštancia práve odpovedala na požiadavku zvonku tohto počítača a žiadne heslo ju nechráni. Ktokoľvek sa k nej dostane, môže vidieť a ovládať každé sťahovanie. Nastav vyššie hneď teraz heslo.',
   'settings.access.remote.noRelayBody':
@@ -1370,7 +1367,6 @@ export const sk: Dict = {
   'settings.access.remote.loopback': 'len tento počítač',
   'settings.access.remote.domain': 'doména',
   'settings.access.remote.scanHint': 'Funguje len v rovnakej sieti ako táto inštancia.',
-  'settings.access.remote.combinedHint': 'Prepojí túto inštanciu s inou inštanciou KnightLoader, ktorú prevádzkuješ sám, aby sa obe zobrazili na stránke Inštancie tej druhej. Párovací kód je rýchla cesta pre dve inštancie, ktoré sa už dokážu dosiahnuť priamo. Relé je pre dve, ktoré to nedokážu - každá za vlastným NAT-om, v iných sieťach.',
   'settings.access.network.scanHint': 'Funguje len v rovnakej sieti ako táto inštancia.',
   'settings.access.network.hideQr': 'Skryť QR kód',
   'settings.access.network.showQr': 'Zobraziť QR kód',
@@ -1400,6 +1396,8 @@ export const sk: Dict = {
   'settings.access.tsnet.openLogin': 'Otvoriť prihlasovaciu stránku',
   'settings.access.tsnet.connectedLabel': 'Dostupné na',
   'settings.access.tsnet.funnelErrorHint': 'Funnel je potrebné raz zapnúť pre váš účet Tailscale: otvorte admin konzolu, prejdite na ovládanie prístupu a zapnite Funnel - potom znova kliknite na Pripojiť.',
+  'settings.access.tsnet.peersTitle': 'Vaše ďalšie inštancie',
+  'settings.access.tsnet.advancedTitle': 'Pripojiť bez Tailscale',
   'settings.access.remote.installTitle': 'Získať aplikáciu',
   'settings.access.remote.installBody': 'Natívne aplikácie pre počítač, Android a iOS - túto stránku možno tiež nainštalovať priamo z prehliadača, bez oboch.',
   'settings.access.remote.storeAndroid': 'Google Play',

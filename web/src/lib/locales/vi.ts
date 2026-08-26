@@ -1357,9 +1357,6 @@ export const vi: Dict = {
   'settings.access.tokens.done': 'Xong',
   'settings.access.tokens.howToUse': 'Gửi nó dưới dạng tiêu đề: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Không thể tạo token: {error}',
-  'settings.access.remote.title': 'Truy cập từ xa',
-  'settings.access.remote.desktopNote':
-    'Đây là bản dựng máy tính để bàn. Nó hoàn toàn không phục vụ API qua mạng, vì vậy không có gì ở đây để truy cập từ bên ngoài ứng dụng này.',
   'settings.access.remote.exposedWarning':
     'Thực thể này vừa trả lời một yêu cầu từ bên ngoài máy này, và không có mật khẩu nào bảo vệ nó. Bất kỳ ai có thể tiếp cận nó đều có thể xem và điều khiển mọi lượt tải xuống. Hãy đặt mật khẩu ở trên ngay bây giờ.',
   'settings.access.remote.noRelayBody':
@@ -1369,7 +1366,6 @@ export const vi: Dict = {
   'settings.access.remote.loopback': 'chỉ máy này',
   'settings.access.remote.domain': 'miền',
   'settings.access.remote.scanHint': 'Chỉ hoạt động trên cùng mạng với thực thể này.',
-  'settings.access.remote.combinedHint': 'Kết nối phiên bản này với một KnightLoader khác mà bạn tự vận hành, để cả hai xuất hiện trên trang Phiên bản của nhau. Mã ghép nối là cách nhanh, dành cho hai phiên bản đã có thể tiếp cận nhau trực tiếp. Relay dành cho hai phiên bản không thể - mỗi bên sau NAT riêng, trên các mạng khác nhau.',
   'settings.access.network.scanHint': 'Chỉ hoạt động trên cùng mạng với phiên bản này.',
   'settings.access.network.hideQr': 'Ẩn mã QR',
   'settings.access.network.showQr': 'Hiện mã QR',
@@ -1399,6 +1395,8 @@ export const vi: Dict = {
   'settings.access.tsnet.openLogin': 'Mở trang đăng nhập',
   'settings.access.tsnet.connectedLabel': 'Có thể truy cập tại',
   'settings.access.tsnet.funnelErrorHint': 'Funnel cần được bật một lần cho tài khoản Tailscale của bạn: mở bảng điều khiển quản trị, vào phần kiểm soát truy cập, và bật Funnel - sau đó nhấn Kết nối lại.',
+  'settings.access.tsnet.peersTitle': 'Các phiên bản khác của bạn',
+  'settings.access.tsnet.advancedTitle': 'Kết nối không cần Tailscale',
   'settings.access.remote.installTitle': 'Tải ứng dụng',
   'settings.access.remote.installBody': 'Ứng dụng gốc cho máy tính để bàn, Android và iOS - trang này cũng có thể được cài đặt trực tiếp từ trình duyệt của bạn, không cần cả hai.',
   'settings.access.remote.storeAndroid': 'Google Play',

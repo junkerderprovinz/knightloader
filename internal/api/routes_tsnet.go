@@ -18,8 +18,10 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	neturl "net/url"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/tsnetsrv"
 )
 
 func registerTsnet(reg *Registry, a *app.App) {
@@ -74,6 +76,31 @@ func registerTsnet(reg *Registry, a *app.App) {
 			writeJSON(w, info)
 		})
 
+	reg.Add(http.MethodGet, "/api/tsnet/peers",
+		"other KnightLoader instances found on the same Tailscale account - no pairing code or relay key needed, since both sides already share the one login that got each of them here",
+		func(w http.ResponseWriter, r *http.Request) {
+			found, err := mgr.Peers(r.Context())
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			// Already-known peers (added by pairing code, by relay, or by a
+			// previous run of this same discovery) are dropped here rather
+			// than left for the frontend to notice - offering to "add" an
+			// instance that is already in the list would just be confusing,
+			// and the frontend has no independent way to tell "already
+			// added" apart from "not discovered yet" without this filter.
+			known := knownHosts(a)
+			out := make([]tsnetsrv.PeerInstance, 0, len(found))
+			for _, p := range found {
+				if u, err := neturl.Parse(p.URL); err == nil && known[u.Host] {
+					continue
+				}
+				out = append(out, p)
+			}
+			writeJSON(w, out)
+		})
+
 	reg.Add(http.MethodPost, "/api/tsnet/stop",
 		"log this instance out of Tailscale - a later start reconnects as the same node, this only ends the current session",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -111,4 +138,20 @@ func applyTsnet(a *app.App) {
 	if a.Settings.Get().TsnetEnabled {
 		_ = a.Tsnet.Start(a.Settings.Get().TsnetHostname)
 	}
+}
+
+// knownHosts is every peer instance's host, exactly the part GET
+// /api/tsnet/peers compares a discovered candidate's own host against - a
+// set rather than the full federation.Instance list because that host is
+// the only field this needs, and an instance can be known by an address
+// that differs from a rediscovered tsnet one in scheme or a trailing
+// detail a bare string comparison would miss.
+func knownHosts(a *app.App) map[string]bool {
+	out := map[string]bool{}
+	for _, in := range a.Federation.List() {
+		if u, err := neturl.Parse(in.URL); err == nil && u.Host != "" {
+			out[u.Host] = true
+		}
+	}
+	return out
 }

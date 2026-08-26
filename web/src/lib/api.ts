@@ -2141,6 +2141,23 @@ export async function stopTsnet(): Promise<TsnetInfo> {
 }
 
 /**
+ * One other device on the same Tailscale account that answered a
+ * KnightLoader health probe - tsnetsrv.PeerInstance. Never includes a
+ * device already known (paired, or found here on an earlier poll and
+ * already added) - the server drops those before this ever reaches the
+ * page, so unlike DiscoveredInstance above this has no `known` flag to
+ * check.
+ */
+export interface TsnetPeer {
+  hostname: string;
+  url: string;
+}
+
+export async function fetchTsnetPeers(): Promise<TsnetPeer[]> {
+  return (await json<TsnetPeer[]>(await fetch('/api/tsnet/peers'))) ?? [];
+}
+
+/**
  * connectWS opens the live task, queue and activity stream and
  * auto-reconnects. Returns a closer.
  *

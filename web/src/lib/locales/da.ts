@@ -1357,9 +1357,6 @@ export const da: Dict = {
   'settings.access.tokens.done': 'Færdig',
   'settings.access.tokens.howToUse': 'Send det som en header: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Kunne ikke oprette tokenet: {error}',
-  'settings.access.remote.title': 'Fjernadgang',
-  'settings.access.remote.desktopNote':
-    'Dette er desktop-buildet. Det udstiller slet ikke API’et over netværket, så der er intet her at nå udefra denne applikation.',
   'settings.access.remote.exposedWarning':
     'Denne instans besvarede lige en anmodning udefra denne maskine, og ingen adgangskode beskytter den. Alle, der kan nå den, kan se og styre hver download. Angiv en adgangskode ovenfor nu.',
   'settings.access.remote.noRelayBody':
@@ -1369,7 +1366,6 @@ export const da: Dict = {
   'settings.access.remote.loopback': 'kun denne maskine',
   'settings.access.remote.domain': 'domæne',
   'settings.access.remote.scanHint': 'Virker kun på samme netværk som denne instans.',
-  'settings.access.remote.combinedHint': 'Forbinder denne instans med en anden KnightLoader, du selv driver, så de to vises på hinandens Instanser-side. En parringskode er den hurtige vej, for to instanser der allerede kan nå hinanden direkte. En relæ er til to, der ikke kan - hver bag sin egen NAT, på forskellige netværk.',
   'settings.access.network.scanHint': 'Virker kun på samme netværk som denne instans.',
   'settings.access.network.hideQr': 'Skjul QR-kode',
   'settings.access.network.showQr': 'Vis QR-kode',
@@ -1399,6 +1395,8 @@ export const da: Dict = {
   'settings.access.tsnet.openLogin': 'Åbn login-side',
   'settings.access.tsnet.connectedLabel': 'Tilgængelig på',
   'settings.access.tsnet.funnelErrorHint': 'Funnel skal slås til én gang for din Tailscale-konto: åbn admin-konsollen, gå til adgangsstyring, og slå Funnel til - tryk derefter på Forbind igen.',
+  'settings.access.tsnet.peersTitle': 'Dine andre instanser',
+  'settings.access.tsnet.advancedTitle': 'Forbind uden Tailscale',
   'settings.access.remote.installTitle': 'Hent appen',
   'settings.access.remote.installBody': 'Native apps til desktop, Android og iOS - denne side kan også installeres direkte fra din browser, uden nogen af delene.',
   'settings.access.remote.storeAndroid': 'Google Play',

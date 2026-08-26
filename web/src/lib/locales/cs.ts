@@ -1358,9 +1358,6 @@ export const cs: Dict = {
   'settings.access.tokens.done': 'Hotovo',
   'settings.access.tokens.howToUse': 'Odešlete jej jako hlavičku: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Token se nepodařilo vytvořit: {error}',
-  'settings.access.remote.title': 'Vzdálený přístup',
-  'settings.access.remote.desktopNote':
-    'Toto je desktopový build. Vůbec neposkytuje API po síti, takže odsud není nic, co by šlo dosáhnout zvenčí této aplikace.',
   'settings.access.remote.exposedWarning':
     'Tato instance právě odpověděla na požadavek zvenčí tohoto počítače a žádné heslo ji nechrání. Kdokoli se k ní dostane, může vidět a ovládat každé stahování. Nastavte výše hned teď heslo.',
   'settings.access.remote.noRelayBody':
@@ -1370,7 +1367,6 @@ export const cs: Dict = {
   'settings.access.remote.loopback': 'jen tento počítač',
   'settings.access.remote.domain': 'doména',
   'settings.access.remote.scanHint': 'Funguje jen ve stejné síti jako tato instance.',
-  'settings.access.remote.combinedHint': 'Propojí tuto instanci s jinou instancí KnightLoaderu, kterou provozuješ sám, takže se obě objeví na stránce Instance té druhé. Párovací kód je rychlá cesta pro dvě instance, které se už dokážou dosáhnout přímo. Relay je pro dvě, které to nedokážou - každá za vlastním NATem, v jiných sítích.',
   'settings.access.network.scanHint': 'Funguje jen ve stejné síti jako tato instance.',
   'settings.access.network.hideQr': 'Skrýt QR kód',
   'settings.access.network.showQr': 'Zobrazit QR kód',
@@ -1400,6 +1396,8 @@ export const cs: Dict = {
   'settings.access.tsnet.openLogin': 'Otevřít přihlašovací stránku',
   'settings.access.tsnet.connectedLabel': 'Dostupné na',
   'settings.access.tsnet.funnelErrorHint': 'Funnel je nutné jednorázově zapnout pro váš účet Tailscale: otevřete administrační konzoli, přejděte na řízení přístupu a zapněte Funnel - poté znovu klikněte na Připojit.',
+  'settings.access.tsnet.peersTitle': 'Vaše další instance',
+  'settings.access.tsnet.advancedTitle': 'Připojit bez Tailscale',
   'settings.access.remote.installTitle': 'Získat aplikaci',
   'settings.access.remote.installBody': 'Nativní aplikace pro desktop, Android a iOS - tuto stránku lze také nainstalovat přímo z prohlížeče, bez obojího.',
   'settings.access.remote.storeAndroid': 'Google Play',

@@ -1350,9 +1350,6 @@ export const pl: Dict = {
   'settings.access.tokens.done': 'Gotowe',
   'settings.access.tokens.howToUse': 'Wyślij go jako nagłówek: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Nie udało się utworzyć tokenu: {error}',
-  'settings.access.remote.title': 'Dostęp zdalny',
-  'settings.access.remote.desktopNote':
-    'To jest build desktopowy. W ogóle nie udostępnia API przez sieć, więc nie ma tu nic do osiągnięcia spoza tej aplikacji.',
   'settings.access.remote.exposedWarning':
     'Ta instancja właśnie odpowiedziała na żądanie spoza tego komputera, a żadne hasło jej nie chroni. Każdy, kto może ją osiągnąć, może zobaczyć i kontrolować każde pobieranie. Ustaw hasło powyżej już teraz.',
   'settings.access.remote.noRelayBody':
@@ -1362,7 +1359,6 @@ export const pl: Dict = {
   'settings.access.remote.loopback': 'tylko ten komputer',
   'settings.access.remote.domain': 'domena',
   'settings.access.remote.scanHint': 'Działa tylko w tej samej sieci co ta instancja.',
-  'settings.access.remote.combinedHint': 'Łączy tę instancję z inną instancją KnightLoadera, którą prowadzisz samodzielnie, tak aby obie pojawiły się na stronie Instancje tej drugiej. Kod parowania to szybki sposób dla dwóch instancji, które już mogą się bezpośrednio osiągnąć. Przekaźnik jest dla dwóch, które nie mogą - każda za własnym NAT-em, w różnych sieciach.',
   'settings.access.network.scanHint': 'Działa tylko w tej samej sieci co ta instancja.',
   'settings.access.network.hideQr': 'Ukryj kod QR',
   'settings.access.network.showQr': 'Pokaż kod QR',
@@ -1392,6 +1388,8 @@ export const pl: Dict = {
   'settings.access.tsnet.openLogin': 'Otwórz stronę logowania',
   'settings.access.tsnet.connectedLabel': 'Dostępne pod',
   'settings.access.tsnet.funnelErrorHint': 'Funnel trzeba raz włączyć dla twojego konta Tailscale: otwórz konsolę administracyjną, przejdź do kontroli dostępu i włącz Funnel - następnie ponownie kliknij Połącz.',
+  'settings.access.tsnet.peersTitle': 'Twoje pozostałe instancje',
+  'settings.access.tsnet.advancedTitle': 'Połącz bez Tailscale',
   'settings.access.remote.installTitle': 'Pobierz aplikację',
   'settings.access.remote.installBody': 'Natywne aplikacje na pulpit, Androida i iOS - tę stronę można też zainstalować bezpośrednio z przeglądarki, bez żadnego z nich.',
   'settings.access.remote.storeAndroid': 'Google Play',
