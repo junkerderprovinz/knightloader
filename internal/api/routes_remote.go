@@ -120,6 +120,17 @@ func remoteAccessInfo(a *app.App, r *http.Request) RemoteAccessInfo {
 		if tsURL != "" {
 			info.Addresses = []ReachableAddress{{Label: "tailscale", URL: tsURL, Domain: true}}
 			info.QR = renderQR(tsURL)
+			// requestIsNonLoopback(r) is meaningless here - r is a Wails
+			// webview request, not a network peer, and its Host looks like
+			// "wails.localhost" (pairingSelf's own comment covers why that
+			// is not a signal to trust). A connected Funnel needs no such
+			// proof: Funnel does not come up at all unless this instance is
+			// genuinely reachable from the whole internet, so the mere
+			// presence of tsURL already IS the proof the container path
+			// gets from requestIsNonLoopback - caught live in review before
+			// this fix, a password-less desktop instance connected via
+			// Funnel never showed the exposure warning at all.
+			info.Exposed = !info.PasswordSet
 		}
 		return info
 	}

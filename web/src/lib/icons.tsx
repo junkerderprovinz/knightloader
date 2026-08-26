@@ -267,7 +267,7 @@ export const IconEyeOff = (p: SVGProps<SVGSVGElement>) => (
       clipRule="evenodd"
       d="M2.5 10C2.5 10 6 4.3 10 4.3C14 4.3 17.5 10 17.5 10C17.5 10 14 15.7 10 15.7C6 15.7 2.5 10 2.5 10Z M12.6 10a2.6 2.6 0 1 1 -5.2 0 2.6 2.6 0 0 1 5.2 0Z"
     />
-    <rect x="9.1" y="1" width="1.8" height="20" rx="0.9" transform="rotate(45 10 10)" />
+    <rect x="9.1" y="0" width="1.8" height="20" rx="0.9" transform="rotate(45 10 10)" />
   </svg>
 );
 

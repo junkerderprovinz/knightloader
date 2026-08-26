@@ -786,6 +786,18 @@ func (a *App) Close() error {
 	if a.Federation != nil {
 		a.Federation.SetRelay(nil)
 	}
+	// Same reasoning one line up, and the one place this matters most: on
+	// desktop, a connected Funnel is the ONLY way this instance has ever
+	// been reachable from another device at all (see tsnetsrv's own package
+	// doc), so leaving it running past a graceful Close would mean "quit"
+	// left the instance answering requests in the background - caught in
+	// review before this fix, nothing outside the HTTP handler ever called
+	// a.Tsnet.Stop() at all. Blocks until the tailnet connection and the
+	// funnel listener are actually torn down, the same as every other
+	// Close() call in this function.
+	if a.Tsnet != nil {
+		_ = a.Tsnet.Stop()
+	}
 	// Same reasoning one line up: stop telling the network this instance is
 	// available while it is shutting down.
 	a.smu.Lock()

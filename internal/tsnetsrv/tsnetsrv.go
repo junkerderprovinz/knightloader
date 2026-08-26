@@ -25,6 +25,7 @@ import (
 	"net/http"
 	"regexp"
 	"sync"
+	"time"
 
 	"tailscale.com/tsnet"
 )
@@ -35,10 +36,10 @@ import (
 type Status string
 
 const (
-	StatusOff        Status = "off"        // never started, or Stop was called
+	StatusOff        Status = "off"        // never started, Stop was called, or the last attempt failed
 	StatusConnecting Status = "connecting" // Start called, waiting on login and/or the tailnet handshake
 	StatusConnected  Status = "connected"  // logged in, reachable on the tailnet
-	StatusError      Status = "error"      // Up() or the funnel listener failed
+	StatusError      Status = "error"      // the last attempt's Up() or funnel listener failed
 )
 
 // authURLPattern pulls the interactive login link out of tsnet's own
@@ -61,20 +62,38 @@ type Info struct {
 	// once Funnel is up. Empty until the funnel listener actually starts.
 	FunnelURL string `json:"funnelUrl,omitempty"`
 	Hostname  string `json:"hostname,omitempty"`
-	// Error carries Up()'s or the funnel listener's failure message
-	// verbatim, most commonly "Funnel is not enabled for this tailnet" -
-	// which needs one manual, one-time click in the Tailscale admin
-	// console (see settings.access.tsnet.funnelHint), not a code fix here.
+	// Error carries the last attempt's Up() or funnel listener failure
+	// message verbatim, most commonly "Funnel is not enabled for this
+	// tailnet" - which needs one manual, one-time click in the Tailscale
+	// admin console (see settings.access.tsnet.funnelErrorHint), not a code
+	// fix here. Cleared the moment a new Start succeeds past the point that
+	// produced it, and always cleared by Stop.
 	Error string `json:"error,omitempty"`
 }
 
 // Manager owns at most one *tsnet.Server for the process lifetime. Start is
-// idempotent - calling it while already connecting or connected does
-// nothing - and Stop tears down both the funnel listener and the node
-// itself, logging this instance out of Tailscale rather than merely pausing
-// it (TSNET_FORCE_LOGIN would be needed to log back in as a different
-// identity otherwise, which is not what a person pressing a "Trennen"
-// button is asking for).
+// idempotent while a connection is live or connecting; a FAILED attempt does
+// not stay "running" - see run's own comment on why srv is cleared on error,
+// which is what lets a later Start actually retry rather than silently
+// no-op forever on the same dead server. Stop tears down both the funnel
+// listener and the node itself, logging this instance out of Tailscale
+// rather than merely pausing it (TSNET_FORCE_LOGIN would be needed to log
+// back in as a different identity otherwise, which is not what a person
+// pressing a "Trennen" button is asking for).
+//
+// Concurrency: every field below is guarded by mu. run's own goroutine is
+// matched to the *tsnet.Server it was launched for; if Stop (or a later
+// Start) has already moved m.srv on to something else - or to nil - by the
+// time run reacquires the lock, run treats itself as superseded and returns
+// without touching any field, so a slow or racing goroutine from an earlier
+// generation can never clobber a newer one's state. cancel/done are how Stop
+// gets a goroutine that is still blocked inside srv.Up to actually stop:
+// tsnet.Server.Close's own doc comment is explicit that it "must not be
+// called before or concurrently with Start" (Up calls Start internally), so
+// Stop cancels the context Up was given and waits for run to fully return
+// -  which Up is documented to honour promptly - before ever calling Close,
+// rather than racing the two the way calling Close directly from Stop while
+// Up is still in flight would.
 type Manager struct {
 	// dir is where tsnet persists this node's own Tailscale identity
 	// (WireGuard keys, the tailnet it belongs to) - stable across restarts
@@ -82,15 +101,29 @@ type Manager struct {
 	// every boot would mean logging in again every time the process
 	// restarts, not once ever.
 	dir string
+	// controlURL overrides tsnet's own default coordination server, set only
+	// by tests (same-package, so no exported setter exists) - it lets a test
+	// drive a real *tsnet.Server through a real, fast-failing Up() without
+	// reaching Tailscale's actual control plane or holding real credentials.
+	controlURL string
+	// startTimeout, set only by tests, bounds the context Up() is given -
+	// tsnet's local "needs interactive login" state blocks Up() forever
+	// against a fake control URL with no network error of its own ever
+	// occurring (verified empirically), so this is how a test forces Up() to
+	// return a real error quickly without needing a real Tailscale account.
+	startTimeout time.Duration
 	// handler is called lazily, once the tailnet connection is actually up,
 	// not captured at construction time - Manager is built before
-	// api.Handler(a) exists (see cmd/knightloader/main.go's own boot
-	// order), and a stale nil handler captured too early would silently
-	// serve nothing on the funnel listener forever.
+	// api.Handler(a) finishes wiring the real handler (see app.New's own
+	// comment on why), and a stale nil handler captured too early would
+	// silently serve nothing on the funnel listener forever.
 	handler func() http.Handler
 
-	mu        sync.Mutex
-	srv       *tsnet.Server
+	mu     sync.Mutex
+	srv    *tsnet.Server
+	cancel context.CancelFunc // cancels the in-flight Up() belonging to srv, if any
+	done   chan struct{}      // closed by run() when it returns for srv, however it ends
+
 	status    Status
 	authURL   string
 	err       error
@@ -119,27 +152,47 @@ func (m *Manager) Start(hostname string) error {
 	if hostname == "" {
 		hostname = "knightloader"
 	}
-	srv := &tsnet.Server{
-		Dir:      m.dir,
-		Hostname: hostname,
+	// Declared before assignment, not `srv := &tsnet.Server{...}`, so the
+	// UserLogf closure below can refer to srv at all - a struct literal
+	// cannot reference the variable it is itself being assigned to.
+	var srv *tsnet.Server
+	srv = &tsnet.Server{
+		Dir:        m.dir,
+		Hostname:   hostname,
+		ControlURL: m.controlURL,
 		UserLogf: func(format string, args ...any) {
 			msg := fmt.Sprintf(format, args...)
 			log.Printf("tsnet: %s", msg)
 			if u := authURLPattern.FindString(msg); u != "" {
 				m.mu.Lock()
-				m.authURL = u
+				// Only while this srv is still the current one - an auth URL
+				// logged by a generation Stop already moved past has nothing
+				// left to show it to.
+				if m.srv == srv {
+					m.authURL = u
+				}
 				m.mu.Unlock()
 			}
 		},
 	}
+	var ctx context.Context
+	var cancel context.CancelFunc
+	if m.startTimeout > 0 {
+		ctx, cancel = context.WithTimeout(context.Background(), m.startTimeout)
+	} else {
+		ctx, cancel = context.WithCancel(context.Background())
+	}
+	done := make(chan struct{})
 	m.srv = srv
+	m.cancel = cancel
+	m.done = done
 	m.status = StatusConnecting
 	m.hostname = hostname
 	m.authURL = ""
 	m.err = nil
 	m.mu.Unlock()
 
-	go m.run(srv)
+	go m.run(ctx, srv, done)
 	return nil
 }
 
@@ -147,12 +200,28 @@ func (m *Manager) Start(hostname string) error {
 // connection - UserLogf above is how its URL escapes this goroutine to the
 // status endpoint), then opens the funnel listener and serves this
 // instance's own handler on it for as long as the connection lasts.
-func (m *Manager) run(srv *tsnet.Server) {
-	_, err := srv.Up(context.Background())
+//
+// Every reacquisition of the lock below starts by checking m.srv == srv -
+// see the Manager doc comment for why. A failed Up or ListenFunnel also
+// clears m.srv (not just m.status), which is what lets Start actually retry
+// afterward instead of forever seeing a non-nil srv left over from the dead
+// attempt.
+func (m *Manager) run(ctx context.Context, srv *tsnet.Server, done chan struct{}) {
+	defer close(done)
+
+	_, err := srv.Up(ctx)
 	m.mu.Lock()
+	if m.srv != srv {
+		// Superseded by Stop (possibly followed by a new Start) while Up was
+		// still in flight - Stop already did or will do the real cleanup for
+		// this srv; nothing here belongs to the current generation anymore.
+		m.mu.Unlock()
+		return
+	}
 	if err != nil {
 		m.status = StatusError
 		m.err = err
+		m.srv = nil
 		m.mu.Unlock()
 		return
 	}
@@ -164,15 +233,23 @@ func (m *Manager) run(srv *tsnet.Server) {
 	// ever answer on (443/8443/10000, a tailnet-wide restriction, not this
 	// app's choice), and the one that needs no port number typed into a
 	// URL anywhere this instance's address is shown or scanned.
-	ln, err := srv.ListenFunnel("tcp", ":443")
-	if err != nil {
+	ln, lnErr := srv.ListenFunnel("tcp", ":443")
+	m.mu.Lock()
+	if m.srv != srv {
+		m.mu.Unlock()
+		if lnErr == nil {
+			_ = ln.Close()
+		}
+		return
+	}
+	if lnErr != nil {
 		// The single most common cause: Funnel has never been turned on for
 		// this tailnet (a one-time click in the Tailscale admin console,
 		// off by default for every new account) - surfaced verbatim rather
 		// than reworded, since tsnet's own message already names this.
-		m.mu.Lock()
 		m.status = StatusError
-		m.err = fmt.Errorf("connected to Tailscale, but the public address could not be opened: %w", err)
+		m.err = fmt.Errorf("connected to Tailscale, but the public address could not be opened: %w", lnErr)
+		m.srv = nil
 		m.mu.Unlock()
 		return
 	}
@@ -181,7 +258,6 @@ func (m *Manager) run(srv *tsnet.Server) {
 	if len(domains) > 0 {
 		funnelURL = "https://" + domains[0]
 	}
-	m.mu.Lock()
 	m.funnelLn = ln
 	m.funnelURL = funnelURL
 	m.mu.Unlock()
@@ -199,21 +275,49 @@ func (m *Manager) run(srv *tsnet.Server) {
 // not the same as deleting the node from the Tailscale admin console.
 func (m *Manager) Stop() error {
 	m.mu.Lock()
-	defer m.mu.Unlock()
-	if m.funnelLn != nil {
-		_ = m.funnelLn.Close()
-		m.funnelLn = nil
-	}
 	if m.srv == nil {
 		m.status = StatusOff
+		m.err = nil
+		m.mu.Unlock()
 		return nil
 	}
-	err := m.srv.Close()
+	srv := m.srv
+	cancel := m.cancel
+	done := m.done
+	ln := m.funnelLn
+	// Marked as no-longer-current before anything below runs, so a run()
+	// goroutine that reacquires the lock while this is in flight sees
+	// m.srv != srv and treats itself as superseded rather than writing state
+	// for a generation Stop already tore down.
 	m.srv = nil
+	m.cancel = nil
+	m.done = nil
+	m.funnelLn = nil
 	m.status = StatusOff
 	m.authURL = ""
 	m.funnelURL = ""
-	return err
+	m.err = nil
+	m.mu.Unlock()
+
+	// Aborts an in-flight Up() the way tsnet's own docs call for (cancelling
+	// its context), rather than calling srv.Close() while Up() might still be
+	// running - see the Manager doc comment for the exact contract this
+	// avoids violating. A no-op once Up() has already returned.
+	if cancel != nil {
+		cancel()
+	}
+	// Unblocks a run() goroutine sitting in http.Serve(ln, ...) the same way
+	// the pre-generation-tracking version of this method already did.
+	if ln != nil {
+		_ = ln.Close()
+	}
+	// Waits for run() to fully return - whichever branch it takes - before
+	// Close() below runs, so Close() is never concurrent with Up()/Start()
+	// for this srv.
+	if done != nil {
+		<-done
+	}
+	return srv.Close()
 }
 
 // Info reports the current state for GET /api/tsnet/status to poll - see

@@ -151,8 +151,15 @@ export function Sidebar() {
         {locked && (
           <button
             onClick={async () => {
-              await logout();
-              location.reload();
+              try {
+                await logout();
+                location.reload();
+              } catch {
+                // logout() now throws on a non-2xx response too, not only a
+                // network failure (api.ts) - caught here so that stays an
+                // inert click rather than an unhandled rejection; there is
+                // no error banner in the sidebar to show anything richer.
+              }
             }}
             className={`${navBase} ${navInactive} w-full`}
           >

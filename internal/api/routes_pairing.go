@@ -171,14 +171,29 @@ func pairingSelf(r *http.Request, a *app.App) (name, url, relayID string, ok boo
 	// its instance id, both ends dial out, and neither needs an address. So the
 	// gate below is no longer "is this a desktop" but "is there any way in at
 	// all" - which is the question that was always really being asked.
+	tsURL := tsnetFunnelURL(a)
 	if buildinfo.Deployment != "desktop" {
 		known := a.Settings.Get().KnownDomains
-		addrs := remoteAddresses(r, known, tsnetFunnelURL(a))
+		addrs := remoteAddresses(r, known, tsURL)
 		if u, found := preferredAddress(addrs); found {
 			url = u
 		} else if len(addrs) > 0 {
 			url = addrs[0].URL
 		}
+	} else if tsURL != "" {
+		// The one exception to the desktop address gate above: unlike
+		// remoteAddresses(r, ...), tsnetFunnelURL carries none of the risk
+		// this whole gate exists for - it reads only a.Tsnet.Info(), never
+		// r, so there is no Wails-webview-host address for it to mistake
+		// for a real one. A connected Funnel genuinely is "a way in" for a
+		// desktop build (see routes_remote.go's own comment: it is the ONLY
+		// one that has ever existed), so it is offered here directly rather
+		// than through remoteAddresses/preferredAddress's ranking, which a
+		// desktop build never safely runs at all - caught in review before
+		// this fix, a Funnel-connected desktop instance's pairing code
+		// silently ignored the very address its own Access page already
+		// showed working.
+		url = tsURL
 	}
 	// Offered alongside the URL rather than instead of it, so one code works
 	// for a redeemer that can dial directly AND for one that cannot. The

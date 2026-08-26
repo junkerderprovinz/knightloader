@@ -1,5 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, Field, IconBadge, InfoBubble, Modal, SectionTitle, TextArea, TextInput } from '../../components/ui';
+import {
+  Button,
+  Card,
+  Field,
+  IconBadge,
+  InfoBubble,
+  Modal,
+  PasswordInput,
+  SectionTitle,
+  TextArea,
+  TextInput,
+} from '../../components/ui';
 import { QRCode } from '../../components/QRCode';
 import {
   type ApiToken,
@@ -35,8 +46,6 @@ import {
   IconCheck,
   IconClipboard,
   IconClose,
-  IconEye,
-  IconEyeOff,
   IconKey,
   IconPlus,
   IconSignOut,
@@ -314,6 +323,7 @@ function PasswordCard() {
   const [next, setNext] = useState('');
   const [done, setDone] = useState(false);
   const [error, setError] = useState('');
+  const [signingOut, setSigningOut] = useState(false);
 
   useEffect(() => {
     fetchAuth()
@@ -353,11 +363,23 @@ function PasswordCard() {
         </p>
         {locked && (
           <Field label={t('settings.passwordCurrent')}>
-            <PasswordInput value={current} onChange={setCurrent} />
+            <PasswordInput
+              value={current}
+              onChange={setCurrent}
+              autoComplete="current-password"
+              showLabel={t('common.showPassword')}
+              hideLabel={t('common.hidePassword')}
+            />
           </Field>
         )}
         <Field label={t('settings.passwordNew')} hint={t('settings.passwordHint')}>
-          <PasswordInput value={next} onChange={setNext} />
+          <PasswordInput
+            value={next}
+            onChange={setNext}
+            autoComplete="new-password"
+            showLabel={t('common.showPassword')}
+            hideLabel={t('common.hidePassword')}
+          />
         </Field>
         <div className="flex flex-wrap items-center gap-3">
           <Button kind="secondary" hue={0} onClick={onApply} disabled={locked ? current === '' : next === ''}>
@@ -374,9 +396,20 @@ function PasswordCard() {
             <Button
               kind="ghost"
               icon={<IconSignOut width={15} height={15} />}
+              disabled={signingOut}
               onClick={async () => {
-                await logout();
-                location.reload();
+                setSigningOut(true);
+                try {
+                  await logout();
+                  location.reload();
+                } catch (e) {
+                  // A failed sign-out (offline, a server hiccup) must not
+                  // leave the button looking clicked-but-dead with no
+                  // explanation - the same gap Sidebar.tsx's own identical
+                  // call has, not repeated silently here a second time.
+                  setSigningOut(false);
+                  setError(e instanceof Error ? e.message : String(e));
+                }
               }}
             >
               {t('auth.signOut')}
@@ -386,44 +419,6 @@ function PasswordCard() {
           {error && <span className="text-statusFail text-sm">{error}</span>}
         </div>
       </Card>
-  );
-}
-
-// PasswordInput adds a reveal-eye toggle to an ordinary password field (jdp,
-// 2026-08-26: "Im passwort-eingabefeld fehlt das reveal auge um das passwort
-// anschauen zu können") - no such toggle existed anywhere in this codebase
-// before, so this is the one place it is built, local to this file since
-// Field's own two password fields are its only callers today. The toggle
-// button sits inside a `relative` wrapper (not the `<label>` Field itself
-// renders): `absolute` positions against the nearest positioned ancestor,
-// and that has to be THIS div, not the label two levels up, or the button
-// drifts to wherever the label's own box happens to end.
-function PasswordInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const { t } = useT();
-  const [reveal, setReveal] = useState(false);
-  return (
-    <div className="relative">
-      <TextInput
-        type={reveal ? 'text' : 'password'}
-        autoComplete="off"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="pr-9"
-      />
-      <button
-        type="button"
-        // Stops the click from also refocusing/moving the caret through
-        // Field's enclosing <label> the way a plain click would - the toggle
-        // is its own control, not a second way to focus the field.
-        onMouseDown={(e) => e.preventDefault()}
-        onClick={() => setReveal((r) => !r)}
-        title={t(reveal ? 'common.hidePassword' : 'common.showPassword')}
-        aria-label={t(reveal ? 'common.hidePassword' : 'common.showPassword')}
-        className="absolute inset-y-0 right-0 flex w-9 items-center justify-center text-carbon-textMuted transition-colors hover:text-carbon-text"
-      >
-        {reveal ? <IconEyeOff width={16} height={16} /> : <IconEye width={16} height={16} />}
-      </button>
-    </div>
   );
 }
 
