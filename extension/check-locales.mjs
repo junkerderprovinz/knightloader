@@ -9,7 +9,7 @@
 //
 // Run by CI and by hand: `node extension/check-locales.mjs`.
 
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -61,6 +61,30 @@ for (const loc of locales) {
         problems.push(`${loc}: ${k} is still the English text`);
       }
     }
+  }
+}
+
+// A key that exists in all 42 catalogues and is never read is exactly as broken
+// as a missing one, and this file could not see it: parity asks whether a key
+// EXISTS everywhere, not whether anything renders it. Found the hard way - the
+// appearance axes and the Problems heading were translated into every language
+// while options.html kept its English markup and nothing overwrote it, so the
+// page rendered half in the reader's language and half in English. It looked
+// fine in every check that existed.
+//
+// A crude substring search over the sources is enough here, because that is how
+// these keys are actually used: t('options.themeLabel'), spelled out. There is
+// no key assembled at runtime in this extension, and if one is ever added, this
+// will say so loudly rather than quietly stop covering it.
+const SRC = join(here, 'src');
+const sources = ['options.js', 'popup.js', 'picker.js', 'background.js', 'shared.js', 'appearance.js']
+  .map((f) => join(SRC, f))
+  .filter((f) => existsSync(f))
+  .map((f) => readFileSync(f, 'utf8'))
+  .join(String.fromCharCode(10));
+for (const k of english) {
+  if (!sources.includes(k)) {
+    problems.push(`${k} is in every catalogue and read by nothing - dead translation, or a label that never got wired up`);
   }
 }
 

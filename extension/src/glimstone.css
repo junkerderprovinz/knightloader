@@ -228,3 +228,128 @@
     --focus-ring: rgba(142, 106, 0, .5);
   }
 }
+
+/* ---- Card, section badge, well selector, swatches ------------------------
+ *
+ * Ported from KnightLoader's own web UI rather than re-invented, because the
+ * point of a shared design language is that a card here and a card there are
+ * the same object. The web UI builds these out of Tailwind utilities against
+ * the same tokens; the extension has no build step, so the same rules live
+ * here as plain classes.
+ */
+
+.glim-card {
+  position: relative;
+  padding: 26px 20px 20px;
+}
+
+/* The section badge sits ON the card's top edge, half outside it - that
+ * overhang is what makes it read as a label attached to the card rather than
+ * a heading inside it. It needs the card to be a positioning context, which
+ * is why .glim-card carries position: relative above.
+ */
+.glim-section-badge {
+  position: absolute;
+  top: -11px;
+  left: 16px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 22px;
+  padding: 2px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-size: var(--text-caption);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  white-space: nowrap;
+  box-shadow: var(--elevation);
+}
+
+/* One shared padded track with equal segments and no per-item glyph - the
+ * "well" variant of the web UI's own Tabs, which is what its Corners picker
+ * uses. A row of native <select>s in its place read as another application's
+ * controls sitting inside this one.
+ */
+.glim-seg {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--carbon-surface2);
+  border-radius: var(--radius-control);
+}
+
+.glim-seg button {
+  padding: 6px 14px;
+  border: 0;
+  border-radius: calc(var(--radius-control) - 3px);
+  background: transparent;
+  color: var(--carbon-text-sub);
+  font: inherit;
+  font-size: var(--text-dense);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color .12s ease, color .12s ease;
+}
+
+.glim-seg button:hover { color: var(--carbon-text); }
+
+.glim-seg button[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+/* A swatch marks the current colour with a RING rather than a tick: a glyph
+ * would have to stay legible on all eight, which means computing an ink
+ * colour for a decoration.
+ */
+.glim-swatches { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+.glim-swatch {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  box-shadow: var(--hairline);
+}
+
+.glim-swatch[aria-pressed="true"] {
+  box-shadow: 0 0 0 2px var(--carbon-surface), 0 0 0 4px var(--carbon-text);
+}
+
+/* The current/custom accent, with a native colour input as the invisible
+ * click target - same construction as the web UI's own trigger.
+ */
+.glim-accent-now {
+  position: relative;
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 0 0 2px var(--carbon-border);
+}
+
+.glim-accent-now input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.glim-axis { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.glim-axis > .glim-axis-label {
+  flex: 0 0 auto;
+  min-width: 96px;
+  font-size: var(--text-dense);
+  color: var(--carbon-text-muted);
+}
