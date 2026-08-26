@@ -538,18 +538,11 @@ async function renderAppearance() {
     b.addEventListener('click', () => pick(x.hex));
     accentSwatches.appendChild(b);
   }
-  // Offered only once the accent has actually moved off the default, so the
-  // row does not carry a control that would do nothing.
-  if (live !== DEFAULT_ACCENT.toLowerCase()) {
-    const reset = document.createElement('button');
-    reset.type = 'button';
-    reset.className = 'secondary';
-    reset.style.padding = '4px 10px';
-    reset.style.fontSize = 'var(--text-caption)';
-    reset.textContent = t('options.accentDefault');
-    reset.addEventListener('click', () => pick(''));
-    accentSwatches.appendChild(reset);
-  }
+  // No reset control here (jdp: "Der standard button der bei der akzentfarbe
+  // erschient in der erweiterung kannst du entfernen"). The way back is the
+  // first swatch: Sunflower IS the default, so picking it lands on the same
+  // colour, and a button that appears and disappears beside eight fixed
+  // circles was the only thing in the row that moved.
 }
 
 accentInput.addEventListener('change', async () => {
