@@ -28,7 +28,7 @@ ssh -p <ssh-port> root@<host> '
     --restart unless-stopped \
     --user 99:100 \
     --cpus 2 --memory 1g \
-    --network br0.20 --ip 192.168.20.46 \
+    --network br0.20 --ip <instance-ip> \
     -v /mnt/user/appdata/knightloader:/data \
     -v /mnt/user/downloads/knightloader:/data/downloads \
     -e TZ=Europe/Berlin \
@@ -43,9 +43,9 @@ under the wordmark in the sidebar.
 
 Every container on this box gets its own `br0.20` IP rather than a host port
 mapping — this is the standing convention for every self-hosted service here,
-not something specific to KnightLoader. `192.168.20.46` is this instance's
+not something specific to KnightLoader. `<instance-ip>` is this instance's
 fixed IP; a second instance used for testing the phrase group and federation runs the same
-way at `192.168.20.47` (same image, its own `/mnt/user/appdata/knightloader2`
+way at `<second-instance-ip>` (same image, its own `/mnt/user/appdata/knightloader2`
 and `/mnt/user/downloads/knightloader2` volumes, no `-p` either — each
 instance is reachable on its own IP at the container's own port 8749).
 

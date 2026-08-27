@@ -161,7 +161,7 @@ every other resolver path already in this app.
   reasonable follow-up, not required for v1.
 - **TLS**: the relay must run behind TLS (WSS) for anything beyond pure LAN
   testing. It can sit behind the same reverse proxy already fronting other
-  self-hosted services (Nginx Proxy Manager, `192.168.20.11` on the
+  self-hosted services (Nginx Proxy Manager, `<reverse-proxy-ip>` on the
   Bottich) — no new TLS-terminating infrastructure needed.
 - **Multiple instances reusing one relay**: out of scope for v1 — the relay
   is single-owner-oriented (one key, one person's own instances), not
