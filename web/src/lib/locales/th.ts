@@ -1397,6 +1397,8 @@ export const th: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'ต้องเปิดใช้งาน Funnel ครั้งเดียวสำหรับบัญชี Tailscale ของคุณ: เปิดคอนโซลผู้ดูแลระบบ ไปที่การควบคุมการเข้าถึง แล้วเปิดใช้งาน Funnel - จากนั้นกดเชื่อมต่ออีกครั้ง',
   'settings.access.tsnet.peersTitle': 'อินสแตนซ์อื่นของคุณ',
   'settings.access.tsnet.advancedTitle': 'เชื่อมต่อโดยไม่ใช้ Tailscale',
+  'settings.access.cardTitle': 'เชื่อมอินสแตนซ์และการเข้าถึงระยะไกล',
+  'settings.access.remoteTitle': 'การเข้าถึงระยะไกล',
   'settings.access.phrase.title': 'เชื่อมอินสแตนซ์ของคุณ',
   'settings.access.phrase.body': 'วลีเดียวเชื่อม KnightLoader ทุกตัวที่คุณใช้งาน สร้างที่นี่ แล้ววางในอินสแตนซ์อื่น - ไม่ต้องมีบัญชี ไม่ต้องเข้าสู่ระบบ ไม่ต้องตั้งค่าอะไร',
   'settings.access.phrase.noPasswordWarning': 'อินสแตนซ์นี้ไม่มีรหัสผ่าน วลีนี้เข้าถึงทุกอินสแตนซ์ที่คุณเชื่อมด้วย ดังนั้นใครก็ตามที่อ่านได้ที่นี่จะเข้าถึงได้ทั้งหมด ไม่ใช่แค่ตัวนี้ ควรตั้งรหัสผ่านด้านบนก่อน',

@@ -1397,6 +1397,8 @@ export const is: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'Kveikja þarf á Funnel einu sinni fyrir Tailscale-reikninginn þinn: opnaðu stjórnborðið, farðu í aðgangsstýringar, og kveiktu á Funnel - ýttu svo aftur á Tengjast.',
   'settings.access.tsnet.peersTitle': 'Hin tilvikin þín',
   'settings.access.tsnet.advancedTitle': 'Tengjast án Tailscale',
+  'settings.access.cardTitle': 'Tengja tilvik og fjaraðgangur',
+  'settings.access.remoteTitle': 'Fjaraðgangur',
   'settings.access.phrase.title': 'Tengdu tilvikin þín',
   'settings.access.phrase.body': 'Ein setning tengir öll KnightLoader-tilvikin þín. Búðu hana til hér og límdu í hin tilvikin - enginn reikningur, engin innskráning, ekkert að stilla.',
   'settings.access.phrase.noPasswordWarning': 'Þetta tilvik hefur ekkert lykilorð. Setningin nær til hvers tilviks sem þú tengir með henni, svo hver sem les hana hér nær til þeirra allra, ekki bara þessa. Betra að setja lykilorð hér að ofan fyrst.',

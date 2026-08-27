@@ -1397,6 +1397,8 @@ export const hu: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'A Funnelt egyszer be kell kapcsolni a Tailscale-fiókjához: nyissa meg az admin konzolt, menjen a hozzáférés-vezérlőkhöz, és kapcsolja be a Funnelt - majd nyomja meg újra a Kapcsolódás gombot.',
   'settings.access.tsnet.peersTitle': 'A többi példányod',
   'settings.access.tsnet.advancedTitle': 'Kapcsolódás Tailscale nélkül',
+  'settings.access.cardTitle': 'Példányok összekapcsolása és távoli elérés',
+  'settings.access.remoteTitle': 'Távoli elérés',
   'settings.access.phrase.title': 'Kösse össze a példányait',
   'settings.access.phrase.body': 'Egyetlen kifejezés összeköti az összes KnightLoaderét. Hozza létre itt, majd illessze be a többi példányba - fiók nélkül, bejelentkezés nélkül, nincs mit beállítani.',
   'settings.access.phrase.noPasswordWarning': 'Ennek a példánynak nincs jelszava. A kifejezés minden vele összekötött példányt megnyit, így aki itt elolvassa, mindegyikhez hozzáfér, nem csak ehhez. Jobb előbb fent jelszót beállítani.',

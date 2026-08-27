@@ -1397,6 +1397,8 @@ export const hi: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'आपके Tailscale खाते के लिए Funnel को एक बार चालू करना होगा: एडमिन कंसोल खोलें, एक्सेस कंट्रोल्स पर जाएँ, और Funnel चालू करें - फिर दोबारा कनेक्ट पर क्लिक करें।',
   'settings.access.tsnet.peersTitle': 'आपके अन्य इंस्टेंस',
   'settings.access.tsnet.advancedTitle': 'Tailscale के बिना कनेक्ट करें',
+  'settings.access.cardTitle': 'इंस्टेंस जोड़ना और दूरस्थ पहुँच',
+  'settings.access.remoteTitle': 'दूरस्थ पहुँच',
   'settings.access.phrase.title': 'अपने इंस्टेंस जोड़ें',
   'settings.access.phrase.body': 'एक वाक्यांश आपके सभी KnightLoader को जोड़ता है। इसे यहाँ बनाएँ और अपने दूसरे इंस्टेंस में चिपकाएँ - कोई खाता नहीं, कोई लॉगिन नहीं, कुछ भी सेट नहीं करना।',
   'settings.access.phrase.noPasswordWarning': 'इस इंस्टेंस पर पासवर्ड नहीं है। यह वाक्यांश हर उस इंस्टेंस तक पहुँचता है जिसे आप इससे जोड़ते हैं, इसलिए जो इसे यहाँ पढ़ सके वह सब तक पहुँचता है, सिर्फ़ इस तक नहीं। बेहतर होगा पहले ऊपर पासवर्ड सेट करें।',

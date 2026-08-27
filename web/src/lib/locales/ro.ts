@@ -1397,6 +1397,8 @@ export const ro: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'Funnel trebuie activat o dată pentru contul tău Tailscale: deschide consola de administrare, mergi la controalele de acces, și activează Funnel - apoi apasă din nou Conectare.',
   'settings.access.tsnet.peersTitle': 'Celelalte instanțe ale tale',
   'settings.access.tsnet.advancedTitle': 'Conectare fără Tailscale',
+  'settings.access.cardTitle': 'Conectarea instanțelor și acces la distanță',
+  'settings.access.remoteTitle': 'Acces la distanță',
   'settings.access.phrase.title': 'Conectează-ți instanțele',
   'settings.access.phrase.body': 'O singură frază leagă toate instanțele KnightLoader pe care le rulezi. Creeaz-o aici și lipește-o în celelalte instanțe - fără cont, fără autentificare, fără nimic de configurat.',
   'settings.access.phrase.noPasswordWarning': 'Această instanță nu are parolă. Fraza ajunge la fiecare instanță pe care o conectezi cu ea, deci oricine o poate citi aici ajunge la toate, nu doar la aceasta. Mai bine setează întâi o parolă mai sus.',

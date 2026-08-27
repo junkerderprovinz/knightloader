@@ -1397,6 +1397,8 @@ export const eu: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'Funnel behin aktibatu behar da zure Tailscale kontuarentzat: ireki administrazio-kontsola, joan sarbide-kontroletara, eta aktibatu Funnel - ondoren, sakatu berriro Konektatu.',
   'settings.access.tsnet.peersTitle': 'Zure beste instantziak',
   'settings.access.tsnet.advancedTitle': 'Konektatu Tailscale gabe',
+  'settings.access.cardTitle': 'Instantziak konektatzea eta urruneko sarbidea',
+  'settings.access.remoteTitle': 'Urruneko sarbidea',
   'settings.access.phrase.title': 'Konektatu zure instantziak',
   'settings.access.phrase.body': 'Esaldi bakar batek zure KnightLoader guztiak lotzen ditu. Sortu hemen eta itsatsi beste instantzietan - konturik gabe, saio-hasierarik gabe, ezer konfiguratu beharrik gabe.',
   'settings.access.phrase.noPasswordWarning': 'Instantzia honek ez du pasahitzik. Esaldiak harekin konektatzen duzun instantzia oro irekitzen du, beraz hemen irakur dezakeenak guztietara iristen da, ez honetara soilik. Hobe goian pasahitz bat jartzea lehenik.',

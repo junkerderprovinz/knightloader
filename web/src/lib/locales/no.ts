@@ -1399,6 +1399,8 @@ export const no: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'Funnel må slås på én gang for Tailscale-kontoen din: åpne admin-konsollen, gå til tilgangskontroller, og slå på Funnel - trykk deretter på Koble til igjen.',
   'settings.access.tsnet.peersTitle': 'Dine andre instanser',
   'settings.access.tsnet.advancedTitle': 'Koble til uten Tailscale',
+  'settings.access.cardTitle': 'Koble sammen instanser og fjerntilgang',
+  'settings.access.remoteTitle': 'Fjerntilgang',
   'settings.access.phrase.title': 'Koble sammen instansene dine',
   'settings.access.phrase.body': 'Én frase kobler sammen alle KnightLoader-instansene dine. Lag den her, og lim den inn i de andre instansene - ingen konto, ingen innlogging, ingenting å sette opp.',
   'settings.access.phrase.noPasswordWarning': 'Denne instansen har ikke passord. Frasen når hver instans du kobler til med den, så alle som kan lese den her når dem alle, ikke bare denne. Sett heller et passord ovenfor først.',

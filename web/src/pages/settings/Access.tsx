@@ -15,10 +15,7 @@ import { QRCode } from '../../components/QRCode';
 import {
   type ApiToken,
   type AuthState,
-  type Instance,
   type NewApiToken,
-  type PairingCode,
-  type RelayConfig,
   type ConnectInfo,
   type QRMatrix,
   type TsnetInfo,
@@ -28,22 +25,16 @@ import {
   createToken,
   fetchAuth,
   fetchConnect,
-  fetchDeploymentInfo,
-  fetchInstances,
   PhraseRejected,
   joinConnect,
   leaveConnect,
   revealConnect,
-  fetchRelayConfig,
   fetchRemoteAccess,
   fetchTokens,
   fetchTsnetPeers,
   fetchTsnetStatus,
-  generatePairingCode,
   logout,
-  redeemPairingCode,
   revokeToken,
-  saveRelayConfig,
   setPassword,
   startTsnet,
   stopTsnet,
@@ -594,12 +585,6 @@ function IdentityCard({ cx }: { cx: (k: PendingKey) => string }) {
 
 // ---- Remote access (Tailscale/Funnel, primary + pairing/relay, advanced) -----
 
-// How often the relay's sibling list is re-read while one is configured.
-// Slower than InstanceCard's own 3s stats poll, because this list only
-// changes when another instance is switched on or off or the relay
-// connection itself drops, not continuously the way a speed figure does.
-const RELAY_POLL_MS = 5000;
-
 // How often this card re-polls GET /api/tsnet/status while "connecting":
 // authUrl and, later, funnelUrl both arrive from a goroutine this page's own
 // POST /api/tsnet/start already returned without waiting for (see
@@ -867,193 +852,16 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
     }
   }
 
-  // --- Pairing + relay (advanced, no third party) ---
-  // null means nobody has clicked yet, so the row can decide for itself -
-  // the same convention openRelay/relayOpen below already uses for the
-  // nested relay disclosure.
-  const [openAdvanced, setOpenAdvanced] = useState<boolean | null>(null);
-  const [desktop, setDesktop] = useState(false);
-  useEffect(() => {
-    fetchDeploymentInfo()
-      .then((d) => setDesktop(d.deployment === 'desktop'))
-      .catch(() => {});
-  }, []);
-
-  // --- Connecting ---
-  //
-  // Both halves of it, in one place. Showing a code and entering one are the
-  // same act seen from the two ends, and splitting them across two pages made
-  // a person hold in their head which end they were at. Only one panel is open
-  // at a time: they are alternatives, never a sequence.
-  const [panel, setPanel] = useState<'' | 'show' | 'enter'>('');
-  const [code, setCode] = useState<PairingCode | null>(null);
-  const [pairBusy, setPairBusy] = useState(false);
-  const [pairCopied, setPairCopied] = useState(false);
-  const [pairErr, setPairErr] = useState('');
-
-  const [redeem, setRedeem] = useState('');
-  const [redeemBusy, setRedeemBusy] = useState(false);
-  const [redeemMsg, setRedeemMsg] = useState('');
-  const [redeemErr, setRedeemErr] = useState('');
-
-  async function onGenerate() {
-    setPairErr('');
-    setPairBusy(true);
-    setPanel('show');
-    try {
-      setCode(await generatePairingCode());
-      setPairCopied(false);
-    } catch (e: any) {
-      setPairErr(String(e?.message ?? e));
-    } finally {
-      setPairBusy(false);
-    }
-  }
-
-  async function onRedeem() {
-    setRedeemErr('');
-    setRedeemMsg('');
-    setRedeemBusy(true);
-    try {
-      const r = await redeemPairingCode(redeem.trim());
-      // The same three cases the Instances page tells apart, for the same
-      // reason: the two directions fail separately, and a pairing that works
-      // one way only is not a success with a footnote.
-      const warn = !r.online && !r.reachedBack
-        ? t('instances.pairNeitherWay')
-        : !r.online
-          ? t('instances.offlineWarning')
-          : !r.reachedBack
-            ? t('instances.pairOneWay')
-            : '';
-      const how = r.viaRelay ? ` ${t('instances.pairViaRelay')}` : '';
-      setRedeemMsg(t('instances.pairSuccess', { name: r.name }) + how + (warn ? ` ${warn}` : ''));
-      setRedeem('');
-    } catch (e: any) {
-      setRedeemErr(String(e?.message ?? e));
-    } finally {
-      setRedeemBusy(false);
-    }
-  }
-
-  // --- Relay ---
-  const [cfg, setCfg] = useState<RelayConfig | null>(null);
-  // Read by the pairing section above, which on a desktop build exists only
-  // while this is true.
-  const relayConnected = !!cfg?.connected;
-  const [url, setUrl] = useState('');
-  const [key, setKey] = useState('');
-  const [relayBusy, setRelayBusy] = useState(false);
-  const [relayDone, setRelayDone] = useState(false);
-  const [relayError, setRelayError] = useState('');
-  const [siblings, setSiblings] = useState<Instance[]>([]);
-  // null means nobody has clicked yet, so the row can decide for itself.
-  const [openRelay, setOpenRelay] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    fetchRelayConfig()
-      .then((c) => {
-        setCfg(c);
-        setUrl(c.relayUrl);
-      })
-      .catch(() => setCfg(null));
-  }, []);
-
-  // A relay peer arrives on the ordinary peer list (GET /api/instances,
-  // federation.Manager.List merges the stored peers and the relay-visible
-  // ones into the one list the Instances page already draws) and is told
-  // apart by carrying a relayId. Reading it here rather than inventing a
-  // second endpoint keeps one answer to "who can this instance see".
-  const relayLive = !!cfg && cfg.relayUrl !== '' && cfg.keySet;
-  useEffect(() => {
-    if (!relayLive) {
-      setSiblings([]);
-      return;
-    }
-    let alive = true;
-    const load = () =>
-      fetchInstances()
-        .then((list) => {
-          if (alive) setSiblings(list.filter((p) => !!p.relayId));
-        })
-        // A missed poll leaves the previous rows up rather than blanking a
-        // list that was right a moment ago - the relay dropping out is
-        // reported by the next successful read, not by a failed one.
-        .catch(() => {});
-    void load();
-    const timer = window.setInterval(() => void load(), RELAY_POLL_MS);
-    return () => {
-      alive = false;
-      window.clearInterval(timer);
-    };
-  }, [relayLive]);
-
-  // undefined leaves the stored key alone, '' clears it, anything else
-  // replaces it - the three cases PUT /api/relay/config tells apart by
-  // whether `key` is on the wire, which is why an untouched field must send
-  // nothing rather than the empty string it holds.
-  //
-  // nextServe is the switch, and passing it makes this a save of the switch
-  // ALONE: it sends the address that is already stored rather than whatever is
-  // in the field, and leaves the field alone afterwards. A toggle that quietly
-  // committed a half-typed address somebody was still editing, or that wiped
-  // that edit on the way back, would be a control doing two things.
-  async function saveRelay(nextKey?: string, nextServe?: boolean) {
-    const switchOnly = nextServe !== undefined;
-    setRelayError('');
-    setRelayBusy(true);
-    try {
-      const c = await saveRelayConfig(switchOnly ? (cfg?.relayUrl ?? '') : url.trim(), nextKey, nextServe);
-      setCfg(c);
-      if (!switchOnly) {
-        setUrl(c.relayUrl);
-        setKey('');
-      }
-      setRelayDone(true);
-      setTimeout(() => setRelayDone(false), 1800);
-    } catch (e) {
-      // The server's own sentence, unwrapped: json() throws an ApiError whose
-      // name would otherwise be printed in front of it (String(err) reads
-      // "ApiError: ..."), which is the route's message with noise on it.
-      setRelayError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setRelayBusy(false);
-    }
-  }
-
-  // Hidden entirely until both halves have answered: an empty form for a
-  // feature that cannot work is worse than no section at all. In practice
-  // this only lasts as long as the two fetches above take - both routes are
-  // always registered - so this is a loading guard, not a real capability
-  // check.
-  if (!cfg || !tsInfo) return null;
-
-  // What actually works right now, in one sentence. Which of the two roads
-  // carries it is this card's business, not the reader's: the question a
-  // person arrives with is whether another KnightLoader can reach this one.
-  const relayOk = relayLive && cfg.connected;
-  const relayBroken = relayLive && !cfg.connected;
-  const stateKey: PendingKey = desktop
-    ? relayOk
-      ? 'settings.access.remote.stateRelay'
-      : 'settings.access.remote.stateNone'
-    : relayOk
-      ? 'settings.access.remote.stateBoth'
-      : 'settings.access.remote.stateLan';
-  const reachable = !desktop || relayOk;
-  // Opens itself when a relay is already configured, because hiding the state
-  // of something you run is worse than one extra open row, and follows the
-  // click from the first one onwards.
-  const relayOpen = openRelay ?? relayLive;
-  // The whole "advanced" disclosure opens itself the same way, for the same
-  // reason: someone who already relies on pairing or a relay must not lose
-  // sight of it just because Tailscale is now the headline path.
-  const advancedOpen = openAdvanced ?? (relayLive || cfg.serve || !!code);
+  // Held until Tailscale has answered: an empty card for a feature that
+  // has not reported yet flickers into place a moment later, which reads as
+  // a bug. This is a loading guard, not a capability check - the route is
+  // always registered.
+  if (!tsInfo) return null;
 
   return (
     <Card className="flex flex-col gap-5">
       <SectionTitle hue={1} hint={t('settings.access.phrase.body')}>
-        {t('settings.access.phrase.title')}
+        {t('settings.access.cardTitle')}
       </SectionTitle>
 
       {/* Nothing set up yet: two ways in, and they are the two ends of the
@@ -1205,22 +1013,20 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
 
       {phraseErr && <p className="text-sm text-statusFail">{phraseErr}</p>}
 
-      {/* Tailscale, below the phrase and clearly its own thing: it answers
-          a different question (a public address a browser can open) rather
-          than being an alternative to the phrase above.
+      {/* Remote access, below the phrase and clearly its own thing: it
+          answers a different question (a public address a browser can open)
+          rather than being an alternative to the phrase above. The card's
+          own title names both halves, and these are them.
 
           A SUBDUED heading, not a second SectionTitle badge. Two filled
           badges in one card read as two cards glued together - which is the
           complaint that merged them in the first place - and SectionTitle's
           badge is absolutely positioned to straddle the CARD's edge, so a
-          second one lands on top of the first anyway. This is the same
-          treatment the nested "connect without Tailscale" disclosure below
-          already uses, which is what makes the hierarchy read: the phrase is
-          the card, these are ways of doing it. */}
+          second one lands on top of the first anyway. */}
       <div className="flex flex-col gap-4 border-t border-carbon-border/40 pt-4">
       <div className="flex items-center gap-2">
         <span className="text-xs font-semibold text-carbon-textSub">
-          {t('settings.access.tsnet.title')}
+          {t('settings.access.remoteTitle')}
         </span>
         <InfoBubble tip={t('settings.access.tsnet.body')} />
       </div>
@@ -1352,370 +1158,10 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
         </div>
       )}
       </div>
-
-      {/* Pairing and relay, folded away: the way to connect two instances
-          with no third party at all, for someone who specifically wants
-          that instead of the Tailscale path above (jdp: opt-in
-          "ZUSAETZLICH zum bestehenden Weg" - this never replaces it).
-          Opens itself the moment any of it is already in use, the same
-          "hiding the state of something you run is worse than one extra
-          open row" reasoning the nested relay disclosure below already
-          uses for itself. */}
-      <div className="flex flex-col gap-3 border-t border-carbon-border/40 pt-4">
-        <button
-          type="button"
-          className="flex items-center gap-2 text-left"
-          aria-expanded={advancedOpen}
-          onClick={() => setOpenAdvanced(!advancedOpen)}
-        >
-          <span className="text-xs font-semibold text-carbon-textSub">
-            {t('settings.access.tsnet.advancedTitle')}
-          </span>
-          <span className="flex-1" />
-          <span className="text-[11px] text-carbon-textMuted" aria-hidden="true">
-            {advancedOpen ? '−' : '+'}
-          </span>
-        </button>
-        {advancedOpen && (
-          <>
-            <div className="flex items-start gap-2.5">
-              <span
-                className={`mt-1.5 h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${
-                  reachable ? 'bg-statusOkSolid' : 'bg-carbon-textMuted'
-                }`}
-              />
-              <div className="flex min-w-0 flex-col gap-1">
-                <span className="text-sm text-carbon-text">{cx(stateKey)}</span>
-                {/* Configured but the socket is down: a typo in the address, a key
-                    the relay rejects, or a relay that is simply not running. Its own
-                    line even when the sentence above is a cheerful one, because
-                    something you set up is broken and that is worth saying whether
-                    or not another road happens to be open. */}
-                {relayBroken && <span className="text-[11px] text-statusFail">{cx('settings.access.relay.unreachable')}</span>}
-              </div>
-            </div>
-
-            {/* Not "is this a desktop": "is there a way for the other side to
-                complete the exchange back to here". On a container that is its own
-                address; on a desktop it is the relay, and only while the socket is
-                actually up - a stored address and key with nothing connected cannot
-                carry a pairing. Matches pairingSelf's own gate on the server, which
-                answers 409 in exactly the cases this hides the buttons for. */}
-            {(!desktop || relayConnected) && (
-              <div className="flex flex-col gap-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button
-                    kind="secondary"
-                    hue={4}
-                    icon={<IconPlus width={14} height={14} />}
-                    onClick={() => (panel === 'show' ? setPanel('') : void onGenerate())}
-                    disabled={pairBusy}
-                  >
-                    {cx(panel === 'show' ? 'settings.access.remote.hideCode' : 'settings.access.remote.showCode')}
-                  </Button>
-                  <Button
-                    kind="secondary"
-                    hue={4}
-                    icon={<IconClipboard width={14} height={14} />}
-                    onClick={() => {
-                      setPanel(panel === 'enter' ? '' : 'enter');
-                      setRedeemErr('');
-                      setRedeemMsg('');
-                    }}
-                  >
-                    {cx('settings.access.remote.enterCode')}
-                  </Button>
-                </div>
-
-                {panel === 'show' && (
-                  <div className="flex flex-col gap-3 sm:flex-row">
-                    <div className="flex min-w-0 flex-1 flex-col gap-3">
-                      {code && (
-                        <div className="flex flex-col gap-2">
-                          <div className="flex items-center gap-2">
-                            <div className="min-w-0 flex-1 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
-                              <code className="glim-num block overflow-x-auto whitespace-nowrap text-xs text-carbon-text" dir="ltr">
-                                {code.code}
-                              </code>
-                            </div>
-                            <IconBadge
-                              hue={4}
-                              icon={pairCopied ? <IconCheck width={14} height={14} /> : <IconClipboard width={14} height={14} />}
-                              title={pairCopied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
-                              aria-label={pairCopied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
-                              onClick={async () => {
-                                if (await copyToClipboard(code.code)) {
-                                  setPairCopied(true);
-                                  setTimeout(() => setPairCopied(false), 1800);
-                                }
-                              }}
-                            />
-                          </div>
-                          <p className="text-[11px] text-carbon-textMuted">{cx('settings.access.remote.pairWhere')}</p>
-                          <p className="text-[11px] text-carbon-textMuted">
-                            {cx('settings.access.remote.pairExpires', { min: Math.round(code.expiresIn / 60) })}
-                          </p>
-                        </div>
-                      )}
-                      {pairErr && <p className="text-sm text-statusFail">{pairErr}</p>}
-                    </div>
-                    {code?.qr && (
-                      <div className="flex shrink-0 flex-col items-center gap-2 self-start">
-                        <QRCode matrix={code.qr} label={code.code} size={144} />
-                        <span className="max-w-[144px] text-center text-[11px] text-carbon-textMuted">
-                          {cx('settings.access.remote.pairScan')}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {panel === 'enter' && (
-                  <div className="flex flex-col gap-2">
-                    <div className="flex flex-col gap-2 sm:flex-row">
-                      <TextInput
-                        dir="ltr"
-                        spellCheck={false}
-                        className="min-w-0 flex-1"
-                        placeholder={t('instances.pairPlaceholder')}
-                        value={redeem}
-                        onChange={(e) => setRedeem(e.target.value)}
-                      />
-                      <Button hue={4} disabled={redeemBusy || redeem.trim() === ''} onClick={() => void onRedeem()}>
-                        {t('instances.pairButton')}
-                      </Button>
-                    </div>
-                    {redeemMsg && <p className="text-sm text-statusOk">{redeemMsg}</p>}
-                    {redeemErr && <p className="text-sm text-statusFail">{redeemErr}</p>}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* The relay, demoted to what it is: the thing you set up so the two
-                buttons above keep working when the other instance is not on this
-                network. Named by what it is for rather than by what it is, and
-                folded away, because a person who has one already read the state
-                sentence at the top and a person who has none is not shopping for a
-                protocol. */}
-            <div className="flex flex-col gap-3 border-t border-carbon-border/40 pt-4">
-              {/* The bubble is a SIBLING of the button, not a child of it: it is
-                  interactive itself, and an interactive control inside a button is
-                  both an accessibility problem and a click the outer button would
-                  swallow. */}
-              <div className="flex items-center gap-2">
-              <button
-                type="button"
-                className="flex flex-1 items-center gap-2 text-left"
-                aria-expanded={relayOpen}
-                onClick={() => setOpenRelay(!relayOpen)}
-              >
-                <span className="text-xs font-semibold text-carbon-textSub">{cx('settings.access.remote.beyond')}</span>
-                {/* Two roles, and either one counts as set up: dialling somebody
-                    else's relay, or being the relay. An instance serving one while
-                    dialling none would otherwise have read "not set up" on the row
-                    summarising the thing it was doing. */}
-                <span
-                  className={`text-[11px] ${
-                    cfg.serve && !cfg.keySet
-                      ? 'text-statusFail'
-                      : relayOk || cfg.serve
-                        ? 'text-statusOk'
-                        : 'text-carbon-textMuted'
-                  }`}
-                >
-                  {relayOk
-                    ? t('instances.online')
-                    : cfg.serve
-                      ? // Switched on without a key is not "running": Admit refuses
-                        // every key, so the relay is up and admits nobody. Saying
-                        // "running here" there would be the row lying about the one
-                        // thing it exists to report.
-                        cx(cfg.keySet ? 'settings.access.relay.serveOn' : 'settings.access.relay.keyUnset')
-                      : cx('settings.access.remote.beyondOff')}
-                </span>
-                <span className="flex-1" />
-                <span className="text-[11px] text-carbon-textMuted" aria-hidden="true">
-                  {relayOpen ? '−' : '+'}
-                </span>
-              </button>
-              <InfoBubble tip={`${t('settings.access.relay.body')} ${cx('settings.access.relay.selfHosted')}`} />
-              </div>
-
-              {relayOpen && (
-                <>
-                  {/* jdp: "Können wir nicht das relay in KL integrieren? Also wenn
-                      jemand zb zwei desktop instanzen hat und die koppeln will, dass
-                      er dann in einer instanz das relay aktiveren kann?" It sits
-                      above the address field on purpose: an instance serving the
-                      relay is the answer to "which address do I put in the others",
-                      so finding it after filling that field in is finding it too
-                      late. */}
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-carbon-text">{cx('settings.access.relay.serveLabel')}</span>
-                      <InfoBubble tip={cx('settings.access.relay.serveHint')} />
-                      <span className="flex-1" />
-                      {cfg.serve && (
-                        <span className="text-[11px] text-carbon-textMuted">
-                          {cx('settings.access.relay.serveClients', { n: cfg.serveClients })}
-                        </span>
-                      )}
-                      <NeutralSwitch
-                        on={cfg.serve}
-                        disabled={relayBusy}
-                        name={cx('settings.access.relay.serveLabel')}
-                        onChange={(next) => void saveRelay(undefined, next)}
-                      />
-                    </div>
-                    {/* The switch alone does nothing without a key, because Admit
-                        compares against the stored one and there is nothing to
-                        compare with. Left unsaid, this is a feature that is on,
-                        reachable, and silently refuses everybody. */}
-                    {cfg.serve && !cfg.keySet && (
-                      <span className="text-[11px] text-statusFail">{cx('settings.access.relay.serveNeedsKey')}</span>
-                    )}
-                    {cfg.serve && (
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[11px] text-carbon-textSub">{cx('settings.access.relay.serveAddress')}</span>
-                        {/* The address this page was opened on, which is the one
-                            that actually reached this instance - not a guess
-                            assembled from a hostname, and not a stored field that
-                            goes stale the first time a domain changes.
-                      
-                            Marked when it is a loopback address, because then it is
-                            the one address that CANNOT be what the other instances
-                            dial: it reaches this machine only. Handing it over
-                            unmarked is the same blind spot that once put a loopback
-                            address into the pairing QR code - an admin looking at
-                            their own instance always sees 127.0.0.1, and the page
-                            has no other way to know. */}
-                        <div className="flex flex-wrap items-baseline gap-2">
-                          <code
-                            className="glim-num min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-xs text-carbon-text"
-                            dir="ltr"
-                          >
-                            {location.origin}
-                          </code>
-                          {isLoopbackHost(location.hostname) && (
-                            <span className="shrink-0 text-[11px] text-statusFail">
-                              {cx('settings.access.network.loopback')}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Answers the two things a first-time relay user actually
-                      needs and never found stated outright (jdp, 2026-08-26):
-                      where the address on the OTHER instance goes, right beside
-                      the fields it's about, rather than only in the body
-                      paragraph above. */}
-                  <p className="text-[11px] text-carbon-textMuted">{t('settings.access.relay.bothSidesHint')}</p>
-
-                  <Field label={cx('settings.access.relay.urlLabel')} hint={t('settings.access.relay.urlHint')}>
-                    <TextInput
-                      dir="ltr"
-                      spellCheck={false}
-                      placeholder={t('settings.access.relay.urlPlaceholder')}
-                      value={url}
-                      onChange={(e) => setUrl(e.target.value)}
-                    />
-                  </Field>
-
-                  <Field label={cx('settings.access.relay.keyLabel')} hint={t('settings.access.relay.keyHint')}>
-                    <TextInput
-                      type="password"
-                      dir="ltr"
-                      autoComplete="off"
-                      spellCheck={false}
-                      placeholder={cx(
-                        cfg.keySet ? 'settings.access.relay.keyPlaceholderSet' : 'settings.access.relay.keyPlaceholderUnset',
-                      )}
-                      value={key}
-                      onChange={(e) => setKey(e.target.value)}
-                    />
-                  </Field>
-
-                  <div className="flex items-center gap-3">
-                    <Button kind="secondary" disabled={relayBusy} onClick={() => void saveRelay(key === '' ? undefined : key)}>
-                      {relayBusy ? cx('settings.access.relay.saving') : cx('settings.access.relay.save')}
-                    </Button>
-                    <span className={`text-sm ${cfg.keySet ? 'text-statusOk' : 'text-carbon-textMuted'}`}>
-                      {cx(cfg.keySet ? 'settings.access.relay.keySet' : 'settings.access.relay.keyUnset')}
-                    </span>
-                    {cfg.keySet && (
-                      <IconBadge
-                        hue={4}
-                        icon={<IconTrash width={15} height={15} />}
-                        disabled={relayBusy}
-                        title={cx('settings.access.relay.keyClear')}
-                        aria-label={cx('settings.access.relay.keyClear')}
-                        onClick={() => void saveRelay('')}
-                      />
-                    )}
-                    <span className="flex-1" />
-                    {relayDone && <span className="text-sm text-statusOk">{cx('settings.access.relay.saved')}</span>}
-                    {relayError && <span className="text-sm text-statusFail">{relayError}</span>}
-                  </div>
-
-                  <div className="flex flex-col gap-1.5">
-                    <span className="text-xs font-semibold text-carbon-textSub">
-                      {cx('settings.access.relay.siblingsTitle')}
-                    </span>
-                    {!relayLive && (
-                      <span className="text-[11px] text-carbon-textMuted">{cx('settings.access.relay.siblingsOff')}</span>
-                    )}
-                    {relayOk && siblings.length === 0 && (
-                      <span className="text-[11px] text-carbon-textMuted">{cx('settings.access.relay.siblingsEmpty')}</span>
-                    )}
-                    {siblings.map((p) => (
-                      <div key={p.relayId} className="flex items-center gap-2 text-sm">
-                        {/* Always the online dot: a relay peer is on this list exactly as
-                            long as the relay reports it connected, so there is no offline
-                            state for one to be in - it is simply gone from the next poll. */}
-                        <span
-                          role="img"
-                          aria-label={t('instances.online')}
-                          title={t('instances.online')}
-                          className="h-2 w-2 shrink-0 rounded-[var(--radius-pill)] bg-statusOkSolid"
-                        />
-                        <span className="min-w-0 flex-1 truncate text-carbon-text">{p.displayName ?? p.name}</span>
-                        <span
-                          className="glim-num max-w-[10rem] shrink-0 truncate text-[11px] text-carbon-textMuted"
-                          dir="ltr"
-                          title={p.relayId}
-                        >
-                          {p.relayId}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          </>
-        )}
-      </div>
     </Card>
   );
 }
 
-/**
- * isLoopbackHost reports whether a hostname only ever reaches the machine it is
- * typed on. Used to mark the address this card offers to hand to other
- * instances: a relay nobody else can dial is the one failure this feature can
- * produce silently, and an admin browsing their own instance sees 127.0.0.1
- * every time.
- *
- * IPv6 hostnames arrive from location.hostname without their brackets, so ::1
- * is compared bare.
- */
-function isLoopbackHost(host: string): boolean {
-  const h = host.toLowerCase();
-  return h === 'localhost' || h === '::1' || h === '[::1]' || h.endsWith('.localhost') || /^127\./.test(h);
-}
 
 // ---- API tokens -------------------------------------------------------------
 

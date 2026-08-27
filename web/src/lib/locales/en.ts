@@ -1604,6 +1604,8 @@ export const en = {
   'settings.access.tsnet.funnelErrorHint': 'Funnel needs to be turned on once for your Tailscale account: open the admin console, go to Access controls, and enable Funnel - then press Connect again.',
   'settings.access.tsnet.peersTitle': 'Your other instances',
   'settings.access.tsnet.advancedTitle': 'Connect without Tailscale',
+  'settings.access.cardTitle': 'Connect instances and remote access',
+  'settings.access.remoteTitle': 'Remote access',
   'settings.access.phrase.title': 'Connect your instances',
   'settings.access.phrase.body': 'One phrase links every KnightLoader you run. Create it here, then paste it into your other instances - no account, no login, nothing to configure.',
   'settings.access.phrase.noPasswordWarning': 'This instance has no password. The phrase reaches every instance you connect with it, so anyone who can read it here reaches all of them, not just this one. Better to set a password above first.',

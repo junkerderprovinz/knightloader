@@ -1396,6 +1396,8 @@ export const zh: Dict = {
   'settings.access.tsnet.funnelErrorHint': '需要为你的 Tailscale 账户启用一次 Funnel：打开管理控制台，进入访问控制，并启用 Funnel - 然后再次点击连接。',
   'settings.access.tsnet.peersTitle': '你的其他实例',
   'settings.access.tsnet.advancedTitle': '不使用 Tailscale 连接',
+  'settings.access.cardTitle': '连接实例与远程访问',
+  'settings.access.remoteTitle': '远程访问',
   'settings.access.phrase.title': '连接你的实例',
   'settings.access.phrase.body': '一句短语就能把你运行的所有 KnightLoader 连在一起。在这里创建，然后粘贴到其他实例即可 - 无需账户、无需登录、无需任何配置。',
   'settings.access.phrase.noPasswordWarning': '此实例尚未设置密码。这句短语可以到达你用它连接的每一个实例，因此能在这里读到它的人可以访问全部实例，而不只是这一个。建议先在上方设置密码。',

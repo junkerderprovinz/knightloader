@@ -1398,6 +1398,8 @@ export const sl: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'Funnel je treba enkrat vklopiti za vaš račun Tailscale: odprite skrbniško konzolo, pojdite na nadzor dostopa in vklopite Funnel - nato znova pritisnite Poveži.',
   'settings.access.tsnet.peersTitle': 'Vaše druge instance',
   'settings.access.tsnet.advancedTitle': 'Poveži brez Tailscale',
+  'settings.access.cardTitle': 'Povezovanje instanc in oddaljeni dostop',
+  'settings.access.remoteTitle': 'Oddaljeni dostop',
   'settings.access.phrase.title': 'Povežite svoje instance',
   'settings.access.phrase.body': 'Ena fraza poveže vse vaše KnightLoaderje. Ustvarite jo tukaj in prilepite v druge instance - brez računa, brez prijave, brez nastavljanja.',
   'settings.access.phrase.noPasswordWarning': 'Ta instanca nima gesla. Fraza doseže vsako instanco, ki jo z njo povežete, zato kdor jo tu prebere, doseže vse, ne le te. Bolje je najprej zgoraj nastaviti geslo.',

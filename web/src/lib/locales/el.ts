@@ -1397,6 +1397,8 @@ export const el: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'Το Funnel πρέπει να ενεργοποιηθεί μία φορά για τον λογαριασμό σας στο Tailscale: ανοίξτε την κονσόλα διαχείρισης, πηγαίνετε στους ελέγχους πρόσβασης και ενεργοποιήστε το Funnel - μετά πατήστε ξανά Σύνδεση.',
   'settings.access.tsnet.peersTitle': 'Τα άλλα σας στιγμιότυπα',
   'settings.access.tsnet.advancedTitle': 'Σύνδεση χωρίς Tailscale',
+  'settings.access.cardTitle': 'Σύνδεση παρουσιών και απομακρυσμένη πρόσβαση',
+  'settings.access.remoteTitle': 'Απομακρυσμένη πρόσβαση',
   'settings.access.phrase.title': 'Συνδέστε τα στιγμιότυπά σας',
   'settings.access.phrase.body': 'Μία φράση συνδέει κάθε KnightLoader που τρέχετε. Δημιουργήστε την εδώ και επικολλήστε την στα άλλα στιγμιότυπα - χωρίς λογαριασμό, χωρίς σύνδεση, χωρίς ρυθμίσεις.',
   'settings.access.phrase.noPasswordWarning': 'Αυτό το στιγμιότυπο δεν έχει κωδικό. Η φράση φτάνει σε κάθε στιγμιότυπο που συνδέετε μαζί της, οπότε όποιος τη διαβάσει εδώ τα φτάνει όλα, όχι μόνο αυτό. Καλύτερα ορίστε πρώτα έναν κωδικό παραπάνω.',

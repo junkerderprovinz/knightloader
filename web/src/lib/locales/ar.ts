@@ -1399,6 +1399,8 @@ export const ar: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'يجب تفعيل Funnel مرة واحدة لحساب Tailscale الخاص بك: افتح وحدة التحكم الإدارية، وانتقل إلى ضوابط الوصول، وفعّل Funnel - ثم اضغط على اتصال مرة أخرى.',
   'settings.access.tsnet.peersTitle': 'نسخك الأخرى',
   'settings.access.tsnet.advancedTitle': 'الاتصال بدون Tailscale',
+  'settings.access.cardTitle': 'ربط النسخ والوصول عن بُعد',
+  'settings.access.remoteTitle': 'الوصول عن بُعد',
   'settings.access.phrase.title': 'اربط نسخك',
   'settings.access.phrase.body': 'عبارة واحدة تربط كل نسخة KnightLoader تشغّلها. أنشئها هنا، ثم الصقها في نسخك الأخرى - بلا حساب، بلا تسجيل دخول، بلا إعدادات.',
   'settings.access.phrase.noPasswordWarning': 'هذه النسخة بلا كلمة مرور. العبارة تصل إلى كل نسخة تربطها بها، فمن يقرأها هنا يصل إليها جميعًا وليس هذه فقط. يُفضّل تعيين كلمة مرور أعلاه أولًا.',

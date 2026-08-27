@@ -1397,6 +1397,8 @@ export const fa: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'Funnel باید یک‌بار برای حساب Tailscale شما فعال شود: کنسول مدیریت را باز کنید، به بخش کنترل دسترسی بروید و Funnel را فعال کنید - سپس دوباره روی اتصال بزنید.',
   'settings.access.tsnet.peersTitle': 'نمونه‌های دیگر شما',
   'settings.access.tsnet.advancedTitle': 'اتصال بدون Tailscale',
+  'settings.access.cardTitle': 'اتصال نمونه‌ها و دسترسی از راه دور',
+  'settings.access.remoteTitle': 'دسترسی از راه دور',
   'settings.access.phrase.title': 'نمونه‌های خود را متصل کنید',
   'settings.access.phrase.body': 'یک عبارت همه KnightLoaderهای شما را به هم وصل می‌کند. اینجا بسازید و در نمونه‌های دیگر بچسبانید - بدون حساب، بدون ورود، بدون تنظیمات.',
   'settings.access.phrase.noPasswordWarning': 'این نمونه رمز عبور ندارد. عبارت به هر نمونه‌ای که با آن وصل کنید می‌رسد، پس هرکس اینجا بتواند آن را بخواند به همه می‌رسد، نه فقط به این یکی. بهتر است اول بالا رمز بگذارید.',

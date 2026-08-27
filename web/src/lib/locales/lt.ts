@@ -1397,6 +1397,8 @@ export const lt: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'Funnel reikia įjungti vieną kartą jūsų Tailscale paskyrai: atidarykite administravimo konsolę, eikite į prieigos valdiklius ir įjunkite Funnel - tada dar kartą paspauskite Prisijungti.',
   'settings.access.tsnet.peersTitle': 'Jūsų kiti egzemplioriai',
   'settings.access.tsnet.advancedTitle': 'Prisijungti be Tailscale',
+  'settings.access.cardTitle': 'Sujungti egzempliorius ir nuotolinė prieiga',
+  'settings.access.remoteTitle': 'Nuotolinė prieiga',
   'settings.access.phrase.title': 'Sujunkite savo egzempliorius',
   'settings.access.phrase.body': 'Viena frazė sujungia visus jūsų KnightLoader. Sukurkite ją čia ir įklijuokite į kitus egzempliorius - be paskyros, be prisijungimo, nieko nereikia konfigūruoti.',
   'settings.access.phrase.noPasswordWarning': 'Šis egzempliorius neturi slaptažodžio. Frazė pasiekia kiekvieną su ja sujungtą egzempliorių, tad kas ją čia perskaitys, pasieks visus, ne tik šį. Geriau pirma nustatykite slaptažodį viršuje.',

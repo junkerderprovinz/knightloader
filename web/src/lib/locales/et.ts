@@ -1397,6 +1397,8 @@ export const et: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'Funnel tuleb sinu Tailscale\'i konto jaoks üks kord sisse lülitada: ava admiinikonsool, mine juurdepääsuseadete juurde ja lülita Funnel sisse - seejärel vajuta uuesti Ühenda.',
   'settings.access.tsnet.peersTitle': 'Sinu teised eksemplarid',
   'settings.access.tsnet.advancedTitle': 'Ühenda ilma Tailscaleta',
+  'settings.access.cardTitle': 'Ühenda eksemplarid ja kaugjuurdepääs',
+  'settings.access.remoteTitle': 'Kaugjuurdepääs',
   'settings.access.phrase.title': 'Ühenda oma eksemplarid',
   'settings.access.phrase.body': 'Üks fraas ühendab kõik sinu KnightLoaderid. Loo see siin ja kleebi teistesse eksemplaridesse - ilma kontota, ilma sisselogimiseta, midagi seadistada pole.',
   'settings.access.phrase.noPasswordWarning': 'Sellel eksemplaril pole parooli. Fraas avab iga eksemplari, mille sellega ühendad, nii et kes seda siin lugeda saab, jõuab kõigini, mitte ainult selleni. Parem sea kõigepealt ülal parool.',

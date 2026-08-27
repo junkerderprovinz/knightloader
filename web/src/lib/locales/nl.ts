@@ -1390,6 +1390,8 @@ export const nl: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'Funnel moet één keer worden ingeschakeld voor je Tailscale-account: open de beheerconsole, ga naar toegangsbeheer, en schakel Funnel in - druk daarna opnieuw op Verbinden.',
   'settings.access.tsnet.peersTitle': 'Jouw andere instanties',
   'settings.access.tsnet.advancedTitle': 'Verbinden zonder Tailscale',
+  'settings.access.cardTitle': 'Instanties verbinden en toegang op afstand',
+  'settings.access.remoteTitle': 'Toegang op afstand',
   'settings.access.phrase.title': 'Verbind je instanties',
   'settings.access.phrase.body': 'Eén zin verbindt alle KnightLoaders die je draait. Maak hem hier aan en plak hem in je andere instanties - geen account, geen inloggen, niets in te stellen.',
   'settings.access.phrase.noPasswordWarning': 'Deze instantie heeft geen wachtwoord. De zin bereikt elke instantie die je ermee verbindt, dus wie hem hier kan lezen bereikt ze allemaal, niet alleen deze. Stel hierboven liever eerst een wachtwoord in.',

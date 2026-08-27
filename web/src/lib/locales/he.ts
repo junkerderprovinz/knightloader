@@ -1399,6 +1399,8 @@ export const he: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'יש להפעיל את Funnel פעם אחת עבור חשבון ה-Tailscale שלכם: פתחו את מסוף הניהול, עברו לבקרות הגישה, והפעילו את Funnel - ואז לחצו שוב על התחבר.',
   'settings.access.tsnet.peersTitle': 'המופעים האחרים שלך',
   'settings.access.tsnet.advancedTitle': 'התחברות בלי Tailscale',
+  'settings.access.cardTitle': 'חיבור מופעים וגישה מרחוק',
+  'settings.access.remoteTitle': 'גישה מרחוק',
   'settings.access.phrase.title': 'חברו את המופעים שלכם',
   'settings.access.phrase.body': 'משפט אחד מחבר את כל מופעי KnightLoader שלכם. צרו אותו כאן והדביקו במופעים האחרים - בלי חשבון, בלי התחברות, בלי שום הגדרה.',
   'settings.access.phrase.noPasswordWarning': 'למופע הזה אין סיסמה. המשפט מגיע לכל מופע שתחברו איתו, כך שכל מי שיכול לקרוא אותו כאן מגיע לכולם, לא רק לזה. עדיף להגדיר סיסמה למעלה קודם.',
