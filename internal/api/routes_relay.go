@@ -206,8 +206,8 @@ func relayConfigOf(a *app.App, srv *relay.Server) relayConfig {
 // own operation, so a client left to keep retrying in the background is
 // exactly the right outcome, not an error surfaced to whoever just saved an
 // address.
-// relayTarget answers the two questions applyRelay needs: which relay to
-// dial, and with which key.
+// relayTarget answers the three questions applyRelay needs: which relay to
+// dial, with which key, and under which key its frames are sealed.
 //
 // The seed phrase comes first. Once somebody has activated remote access,
 // the secret their phrase decodes to is the whole configuration - the
@@ -215,11 +215,18 @@ func relayConfigOf(a *app.App, srv *relay.Server) relayConfig {
 // instance at their own relay, and the key is derived, never stored or sent
 // as the secret itself (see relay.DeriveKey).
 //
+// The frame key is derived from that same secret under a DIFFERENT domain
+// (relay.DeriveFrameKey), which is what lets the relay hold one and never
+// compute the other. It is the whole basis of the claim the connection card
+// makes about a relay not being able to read what passes through it.
+//
 // The hand-entered relay key remains as the second path, unchanged, for a
 // self-hosted relay somebody set up before the phrase existed or prefers to
 // keep configuring by hand. Neither path knows about the other: an instance
-// has a seed or it does not.
-func relayTarget(a *app.App) (url, key string) {
+// has a seed or it does not. That path has no secret to derive from, so its
+// frame key comes from the relay key itself - a weaker guarantee, spelled
+// out in full at relay.FrameKeyFromRelayKey, and one no UI text claims.
+func relayTarget(a *app.App) (url, key string, frameKey []byte) {
 	override := a.Settings.Get().RelayURL
 
 	if secretHex, err := a.Accounts.Get(relay.SeedAccountService); err == nil && secretHex != "" {
@@ -229,23 +236,26 @@ func relayTarget(a *app.App) (url, key string) {
 			// there looking configured while reaching nothing, and the fix
 			// (re-enter the phrase) is not one anybody guesses from silence.
 			log.Printf("relay: the stored connection secret is malformed, remote access is off until the phrase is entered again")
-			return "", ""
+			return "", "", nil
 		}
 		if override != "" {
-			return override, relay.DeriveKey(secret)
+			return override, relay.DeriveKey(secret), relay.DeriveFrameKey(secret)
 		}
-		return relay.DefaultRelayURL, relay.DeriveKey(secret)
+		return relay.DefaultRelayURL, relay.DeriveKey(secret), relay.DeriveFrameKey(secret)
 	}
 
 	manual, err := a.Accounts.Get(relay.AccountService)
 	if err != nil {
 		log.Printf("relay: the stored key could not be read, connecting without one: %v", err)
 	}
-	return override, manual
+	if manual == "" {
+		return override, "", nil
+	}
+	return override, manual, relay.FrameKeyFromRelayKey(manual)
 }
 
 func applyRelay(a *app.App) {
-	relayURL, key := relayTarget(a)
+	relayURL, key, frameKey := relayTarget(a)
 	serve := a.SelfServeHandler()
 	if relayURL == "" || key == "" || serve == nil {
 		a.Federation.SetRelay(nil)
@@ -254,8 +264,9 @@ func applyRelay(a *app.App) {
 
 	cfg := a.Settings.Get()
 	c, err := relay.NewClient(relay.ClientOptions{
-		URL: relayURL,
-		Key: key,
+		URL:      relayURL,
+		Key:      key,
+		FrameKey: frameKey,
 		Self: relay.Announce{
 			InstanceID: cfg.InstanceID,
 			Name:       instanceDisplayName(a),
@@ -298,8 +309,8 @@ func applyRelay(a *app.App) {
 // sibling cannot read this instance's accounts, change its password, mint an
 // API token or ask for the phrase back.
 func relayProxyHandler(serve http.Handler) relay.ProxyHandler {
-	return func(ctx context.Context, req relay.ProxyRequest) (int, []byte) {
-		if !relayForwardable(req.Method, req.Path) {
+	return func(ctx context.Context, call relay.ProxyCall) (int, []byte) {
+		if !relayForwardable(call.Method, call.Path) {
 			// Refused before the handler sees it, so a route added later is
 			// not silently exposed to peers by existing: this list is an
 			// allowlist and a new route is outside it until somebody says
@@ -307,15 +318,15 @@ func relayProxyHandler(serve http.Handler) relay.ProxyHandler {
 			return http.StatusForbidden, []byte("route not proxied")
 		}
 		var body io.Reader
-		if len(req.Body) > 0 {
-			body = bytes.NewReader(req.Body)
+		if len(call.Body) > 0 {
+			body = bytes.NewReader(call.Body)
 		}
-		httpReq, err := http.NewRequestWithContext(ctx, req.Method, req.Path, body)
+		httpReq, err := http.NewRequestWithContext(ctx, call.Method, call.Path, body)
 		if err != nil {
 			return http.StatusBadRequest, []byte(err.Error())
 		}
 		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), relayGroupKey, true))
-		if len(req.Body) > 0 {
+		if len(call.Body) > 0 {
 			httpReq.Header.Set("Content-Type", "application/json")
 		}
 		// Set, never appended to: the frame is the only source of this header,
@@ -323,8 +334,8 @@ func relayProxyHandler(serve http.Handler) relay.ProxyHandler {
 		// might otherwise have added. An empty field leaves the request
 		// unauthenticated, which is what every relay call was before the
 		// field existed and still is for instance-to-instance traffic.
-		if req.Authorization != "" {
-			httpReq.Header.Set("Authorization", req.Authorization)
+		if call.Authorization != "" {
+			httpReq.Header.Set("Authorization", call.Authorization)
 		}
 		rec := newRelayRecorder()
 		serve.ServeHTTP(rec, httpReq)

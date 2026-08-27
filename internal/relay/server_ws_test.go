@@ -93,31 +93,48 @@ func TestEndToEndOverRealWebSockets(t *testing.T) {
 		t.Errorf("alpha was told about %+v, want bravo", arrival)
 	}
 
-	// alpha calls bravo's REST API through the relay.
-	writeFrame(t, alpha, TypeProxyRequest, ProxyRequest{
-		RequestID: "r1", Target: "bravo", Method: "POST", Path: "/api/links",
+	// alpha calls bravo's REST API through the relay. Both payloads are
+	// really sealed here, unlike the in-process routing tests in
+	// server_test.go: this is the one test that runs the whole thing over a
+	// real socket, so it is the one worth proving the round trip survives
+	// base64 in the JSON envelope and comes back out as the same call.
+	call := ProxyCall{
+		Method: "POST", Path: "/api/links",
 		Body: []byte(`{"url":"https://example.invalid/file.bin"}`),
+	}
+	writeFrame(t, alpha, TypeProxyRequest, ProxyRequest{
+		RequestID: "r1", Target: "bravo",
+		Sealed: sealFor(t, "r1", "bravo", call),
 	})
 	var req ProxyRequest
 	if err := readFrame(t, bravo, TypeProxyRequest).Into(&req); err != nil {
 		t.Fatalf("proxy-request: %v", err)
 	}
-	if req.RequestID != "r1" || req.Method != "POST" || req.Path != "/api/links" {
+	if req.RequestID != "r1" || req.Target != "bravo" {
 		t.Fatalf("bravo received %+v, want alpha's request unchanged", req)
 	}
-	if string(req.Body) != `{"url":"https://example.invalid/file.bin"}` {
-		t.Errorf("body arrived as %s, want it byte for byte", req.Body)
+	got := openFrom(t, "r1", "bravo", req.Sealed)
+	if got.Method != "POST" || got.Path != "/api/links" {
+		t.Fatalf("bravo opened %+v, want alpha's request unchanged", got)
+	}
+	if string(got.Body) != `{"url":"https://example.invalid/file.bin"}` {
+		t.Errorf("body arrived as %s, want it byte for byte", got.Body)
 	}
 
 	writeFrame(t, bravo, TypeProxyResponse, ProxyResponse{
-		RequestID: req.RequestID, Status: 201, Body: []byte(`{"added":1}`),
+		RequestID: req.RequestID,
+		Sealed:    sealResultFor(t, req.RequestID, ProxyResult{Status: 201, Body: []byte(`{"added":1}`)}),
 	})
 	var resp ProxyResponse
 	if err := readFrame(t, alpha, TypeProxyResponse).Into(&resp); err != nil {
 		t.Fatalf("proxy-response: %v", err)
 	}
-	if resp.RequestID != "r1" || resp.Status != 201 || string(resp.Body) != `{"added":1}` {
-		t.Errorf("alpha received %+v, want bravo's own answer", resp)
+	if resp.RequestID != "r1" {
+		t.Fatalf("alpha received %+v, want bravo's own answer", resp)
+	}
+	res := openResultFrom(t, "r1", resp.Sealed)
+	if res.Status != 201 || string(res.Body) != `{"added":1}` {
+		t.Errorf("alpha opened %+v, want bravo's own answer", res)
 	}
 
 	// A real socket closing is what the Instances page's live status hangs

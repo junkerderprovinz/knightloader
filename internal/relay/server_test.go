@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -127,7 +126,7 @@ func TestKeysNeverSeeEachOther(t *testing.T) {
 	nothing(t, mine, "a connection on another key was announced")
 	nothing(t, theirs, "a connection on another key was announced")
 
-	send(t, s, mine, TypeProxyRequest, ProxyRequest{RequestID: "r1", Target: "bravo", Method: "GET", Path: "/api/tasks"})
+	send(t, s, mine, TypeProxyRequest, ProxyRequest{RequestID: "r1", Target: "bravo"})
 	nothing(t, theirs, "a proxy-request crossed a key boundary")
 
 	env := next(t, mine, "no answer for a target on another key")
@@ -167,7 +166,12 @@ func TestLeaveTellsSiblingsTheInstanceWentOffline(t *testing.T) {
 
 // TestProxyRoundTripRoutesByRequestID covers the forwarding path in both
 // directions, including that the frame reaches the target byte for byte - the
-// relay must not re-encode a body it never looked inside.
+// relay must not re-encode a payload it cannot look inside.
+//
+// The sealed blobs here are deliberately not real ciphertext. Whether they
+// open is the client's business (client_test.go covers that end to end); what
+// this test asserts is that the relay carries whatever it is handed, opaque
+// and unaltered, which is exactly the property the encryption rests on.
 func TestProxyRoundTripRoutesByRequestID(t *testing.T) {
 	s := New()
 	a := join(t, s, "key-1", "alpha")
@@ -175,9 +179,9 @@ func TestProxyRoundTripRoutesByRequestID(t *testing.T) {
 	next(t, a, "no arrival announce")
 	next(t, b, "no sibling announce")
 
-	body := []byte(`{"url":"https://example.invalid/file.bin"}`)
+	sealed := []byte("sealed-call-bytes-the-relay-cannot-read")
 	send(t, s, a, TypeProxyRequest, ProxyRequest{
-		RequestID: "r1", Target: "bravo", Method: "POST", Path: "/api/links", Body: body,
+		RequestID: "r1", Target: "bravo", Sealed: sealed,
 	})
 
 	env := next(t, b, "the target never received the proxy-request")
@@ -185,18 +189,19 @@ func TestProxyRoundTripRoutesByRequestID(t *testing.T) {
 	if env.Type != TypeProxyRequest || env.Into(&req) != nil {
 		t.Fatalf("got a %q frame, want a proxy-request", env.Type)
 	}
-	if req.RequestID != "r1" || req.Method != "POST" || req.Path != "/api/links" || string(req.Body) != string(body) {
+	if req.RequestID != "r1" || req.Target != "bravo" || string(req.Sealed) != string(sealed) {
 		t.Fatalf("target received %+v, want the request unchanged", req)
 	}
 
-	send(t, s, b, TypeProxyResponse, ProxyResponse{RequestID: "r1", Status: 200, Body: []byte(`{"ok":true}`)})
+	answer := []byte("sealed-result-bytes")
+	send(t, s, b, TypeProxyResponse, ProxyResponse{RequestID: "r1", Sealed: answer})
 
 	env = next(t, a, "the caller never received the proxy-response")
 	var resp ProxyResponse
 	if env.Type != TypeProxyResponse || env.Into(&resp) != nil {
 		t.Fatalf("got a %q frame, want a proxy-response", env.Type)
 	}
-	if resp.Status != 200 || string(resp.Body) != `{"ok":true}` || resp.Error != "" {
+	if string(resp.Sealed) != string(answer) || resp.Error != "" {
 		t.Errorf("caller received %+v, want the target's own answer", resp)
 	}
 	nothing(t, b, "the response was echoed back to the responder")
@@ -220,15 +225,18 @@ func TestUnroutableRequestAnswersImmediately(t *testing.T) {
 			a := join(t, s, "key-1", "alpha")
 			join(t, s, "key-2", "bravo")
 
-			send(t, s, a, TypeProxyRequest, ProxyRequest{RequestID: "r1", Target: tc.target, Method: "GET", Path: "/api/tasks"})
+			send(t, s, a, TypeProxyRequest, ProxyRequest{RequestID: "r1", Target: tc.target})
 
 			env := next(t, a, "no answer for an unroutable request")
 			var resp ProxyResponse
 			if env.Type != TypeProxyResponse || env.Into(&resp) != nil {
 				t.Fatalf("got a %q frame, want a proxy-response", env.Type)
 			}
-			if resp.RequestID != "r1" || resp.Status != 502 || resp.Error == "" {
-				t.Errorf("got %+v, want a 502 carrying an error", resp)
+			// Error and nothing else: a relay holds no frame key, so the
+			// only thing it can ever author is this field. A sealed blob on
+			// a relay-authored refusal would mean the relay could seal.
+			if resp.RequestID != "r1" || resp.Error == "" || len(resp.Sealed) != 0 {
+				t.Errorf("got %+v, want an unsealed refusal carrying an error", resp)
 			}
 		})
 	}
@@ -261,7 +269,7 @@ func TestFullQueueDropsOnlyThatConnection(t *testing.T) {
 		}
 		for j := 0; j < batch; j++ {
 			send(t, s, sender, TypeProxyRequest, ProxyRequest{
-				RequestID: fmt.Sprintf("r-%d-%d", i, j), Target: "stuck", Method: "GET", Path: "/api/tasks",
+				RequestID: fmt.Sprintf("r-%d-%d", i, j), Target: "stuck",
 			})
 		}
 		need -= batch
@@ -320,7 +328,7 @@ func TestReconnectReplacesTheDeadSocket(t *testing.T) {
 		t.Errorf("%d connections registered, want the dead socket replaced rather than joined beside", s.Len())
 	}
 
-	send(t, s, sib, TypeProxyRequest, ProxyRequest{RequestID: "r1", Target: "alpha", Method: "GET", Path: "/api/tasks"})
+	send(t, s, sib, TypeProxyRequest, ProxyRequest{RequestID: "r1", Target: "alpha"})
 	got := next(t, second, "the request was not routed to the live socket")
 	if got.Type != TypeProxyRequest {
 		t.Fatalf("live socket got a %q frame, want the proxy-request", got.Type)
@@ -342,7 +350,7 @@ func TestGarbageFramesAreIgnored(t *testing.T) {
 		[]byte(`{"type":"something-new","data":{"x":1}}`),
 		frameOf(TypeProxyRequest, ProxyRequest{Target: "bravo"}),            // no request id
 		frameOf(TypeProxyRequest, ProxyRequest{RequestID: "r1"}),            // no target
-		frameOf(TypeProxyResponse, ProxyResponse{Status: 200}),              // no request id
+		frameOf(TypeProxyResponse, ProxyResponse{Sealed: []byte("x")}),      // no request id
 		frameOf(TypeProxyResponse, ProxyResponse{RequestID: "unasked-for"}), // nobody is waiting
 	} {
 		s.Route(a, frame)
@@ -355,7 +363,7 @@ func TestGarbageFramesAreIgnored(t *testing.T) {
 	nothing(t, b, "a garbage frame was forwarded to a sibling")
 
 	// The connection still works afterwards, which is what "ignored" means.
-	send(t, s, a, TypeProxyRequest, ProxyRequest{RequestID: "r2", Target: "bravo", Method: "GET", Path: "/api/tasks"})
+	send(t, s, a, TypeProxyRequest, ProxyRequest{RequestID: "r2", Target: "bravo"})
 	if got := next(t, b, "the connection stopped working after a garbage frame"); got.Type != TypeProxyRequest {
 		t.Errorf("got a %q frame, want the proxy-request", got.Type)
 	}
@@ -380,21 +388,21 @@ func TestResponseFromWrongConnectionIsIgnored(t *testing.T) {
 	next(t, impostor, "no alpha sibling announce")
 	next(t, impostor, "no bravo sibling announce")
 
-	send(t, s, a, TypeProxyRequest, ProxyRequest{RequestID: "r1", Target: "bravo", Method: "GET", Path: "/api/tasks"})
+	send(t, s, a, TypeProxyRequest, ProxyRequest{RequestID: "r1", Target: "bravo"})
 	next(t, b, "the real target never received the request")
 
-	send(t, s, impostor, TypeProxyResponse, ProxyResponse{RequestID: "r1", Status: 200, Body: []byte("forged")})
-	send(t, s, outsider, TypeProxyResponse, ProxyResponse{RequestID: "r1", Status: 200, Body: []byte("forged")})
+	send(t, s, impostor, TypeProxyResponse, ProxyResponse{RequestID: "r1", Sealed: []byte("forged")})
+	send(t, s, outsider, TypeProxyResponse, ProxyResponse{RequestID: "r1", Sealed: []byte("forged")})
 	nothing(t, a, "a forged proxy-response was delivered to the requester")
 
-	send(t, s, b, TypeProxyResponse, ProxyResponse{RequestID: "r1", Status: 200, Body: []byte("real")})
+	send(t, s, b, TypeProxyResponse, ProxyResponse{RequestID: "r1", Sealed: []byte("real")})
 	env := next(t, a, "the real answer was never delivered")
 	var resp ProxyResponse
 	if env.Type != TypeProxyResponse || env.Into(&resp) != nil {
 		t.Fatalf("got a %q frame, want a proxy-response", env.Type)
 	}
-	if string(resp.Body) != "real" {
-		t.Errorf("requester received %q, want the real target's own answer", resp.Body)
+	if string(resp.Sealed) != "real" {
+		t.Errorf("requester received %q, want the real target's own answer", resp.Sealed)
 	}
 }
 
@@ -413,19 +421,19 @@ func TestTooManyInFlightRequestsAreRefused(t *testing.T) {
 
 	for i := 0; i < maxPendingPerSender; i++ {
 		send(t, s, a, TypeProxyRequest, ProxyRequest{
-			RequestID: fmt.Sprintf("r%d", i), Target: "bravo", Method: "GET", Path: "/api/tasks",
+			RequestID: fmt.Sprintf("r%d", i), Target: "bravo",
 		})
 		next(t, b, "a within-budget request was refused")
 	}
 
-	send(t, s, a, TypeProxyRequest, ProxyRequest{RequestID: "over-budget", Target: "bravo", Method: "GET", Path: "/api/tasks"})
+	send(t, s, a, TypeProxyRequest, ProxyRequest{RequestID: "over-budget", Target: "bravo"})
 	nothing(t, b, "an over-budget request reached the target anyway")
 	env := next(t, a, "the sender was never told it was refused")
 	var resp ProxyResponse
 	if env.Type != TypeProxyResponse || env.Into(&resp) != nil {
 		t.Fatalf("got a %q frame, want a proxy-response", env.Type)
 	}
-	if resp.RequestID != "over-budget" || resp.Status != http.StatusTooManyRequests || resp.Error == "" {
+	if resp.RequestID != "over-budget" || resp.Error == "" || len(resp.Sealed) != 0 {
 		t.Errorf("got %+v, want a 429 carrying an error", resp)
 	}
 }
@@ -460,7 +468,7 @@ func TestTargetDisconnectFailsThePendingRequestFast(t *testing.T) {
 	next(t, a, "no arrival announce")
 	next(t, b, "no sibling announce")
 
-	send(t, s, a, TypeProxyRequest, ProxyRequest{RequestID: "r1", Target: "bravo", Method: "GET", Path: "/api/tasks"})
+	send(t, s, a, TypeProxyRequest, ProxyRequest{RequestID: "r1", Target: "bravo"})
 	next(t, b, "the target never received the request")
 
 	s.Leave(b)
@@ -470,8 +478,8 @@ func TestTargetDisconnectFailsThePendingRequestFast(t *testing.T) {
 	if env.Type != TypeProxyResponse || env.Into(&resp) != nil {
 		t.Fatalf("got a %q frame first, want the failed proxy-response ahead of the presence frame", env.Type)
 	}
-	if resp.RequestID != "r1" || resp.Status != http.StatusBadGateway || resp.Error == "" {
-		t.Errorf("got %+v, want a 502 carrying an error", resp)
+	if resp.RequestID != "r1" || resp.Error == "" || len(resp.Sealed) != 0 {
+		t.Errorf("got %+v, want an unsealed refusal carrying an error", resp)
 	}
 
 	presenceEnv := next(t, a, "no presence frame after the disconnect")
@@ -491,7 +499,7 @@ func TestReconnectFailsThePendingRequestFast(t *testing.T) {
 	join(t, s, "key-1", "bravo")
 	next(t, a, "no arrival announce")
 
-	send(t, s, a, TypeProxyRequest, ProxyRequest{RequestID: "r1", Target: "bravo", Method: "GET", Path: "/api/tasks"})
+	send(t, s, a, TypeProxyRequest, ProxyRequest{RequestID: "r1", Target: "bravo"})
 
 	join(t, s, "key-1", "bravo") // reconnect, replaces the connection r1 was routed to
 
@@ -500,8 +508,8 @@ func TestReconnectFailsThePendingRequestFast(t *testing.T) {
 	if env.Type != TypeProxyResponse || env.Into(&resp) != nil {
 		t.Fatalf("got a %q frame, want the failed proxy-response", env.Type)
 	}
-	if resp.RequestID != "r1" || resp.Status != http.StatusBadGateway || resp.Error == "" {
-		t.Errorf("got %+v, want a 502 carrying an error", resp)
+	if resp.RequestID != "r1" || resp.Error == "" || len(resp.Sealed) != 0 {
+		t.Errorf("got %+v, want an unsealed refusal carrying an error", resp)
 	}
 }
 
@@ -538,14 +546,14 @@ func TestEnvelopeShapeIsStable(t *testing.T) {
 		{
 			"proxy-request",
 			TypeProxyRequest,
-			ProxyRequest{RequestID: "r1", Target: "bravo", Method: "GET", Path: "/api/tasks"},
-			`{"type":"proxy-request","data":{"requestId":"r1","target":"bravo","method":"GET","path":"/api/tasks"}}`,
+			ProxyRequest{RequestID: "r1", Target: "bravo", Sealed: []byte("hi")},
+			`{"type":"proxy-request","data":{"requestId":"r1","target":"bravo","sealed":"aGk="}}`,
 		},
 		{
 			"proxy-response",
 			TypeProxyResponse,
-			ProxyResponse{RequestID: "r1", Status: 200, Body: []byte("hi")},
-			`{"type":"proxy-response","data":{"requestId":"r1","status":200,"body":"aGk="}}`,
+			ProxyResponse{RequestID: "r1", Sealed: []byte("hi")},
+			`{"type":"proxy-response","data":{"requestId":"r1","sealed":"aGk="}}`,
 		},
 	}
 	for _, tc := range cases {

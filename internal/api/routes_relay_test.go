@@ -214,10 +214,11 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 	// answers every call with a fixed body, so the app's own outbound Proxy
 	// can be checked against something known rather than another real API.
 	sibling, err := relay.NewClient(relay.ClientOptions{
-		URL:  relaySrv.URL,
-		Key:  key,
-		Self: relay.Announce{InstanceID: "sibling-1", Name: "Sibling", Deployment: "container"},
-		Serve: func(ctx context.Context, req relay.ProxyRequest) (int, []byte) {
+		URL:      relaySrv.URL,
+		Key:      key,
+		FrameKey: relay.FrameKeyFromRelayKey(key),
+		Self:     relay.Announce{InstanceID: "sibling-1", Name: "Sibling", Deployment: "container"},
+		Serve: func(ctx context.Context, call relay.ProxyCall) (int, []byte) {
 			return http.StatusOK, []byte(`{"from":"sibling"}`)
 		},
 	})
@@ -299,9 +300,10 @@ func TestChangingInstanceNameReconnectsTheRelayClient(t *testing.T) {
 	}
 
 	observer, err := relay.NewClient(relay.ClientOptions{
-		URL:  relaySrv.URL,
-		Key:  key,
-		Self: relay.Announce{InstanceID: "observer-1", Name: "Observer", Deployment: "container"},
+		URL:      relaySrv.URL,
+		Key:      key,
+		FrameKey: relay.FrameKeyFromRelayKey(key),
+		Self:     relay.Announce{InstanceID: "observer-1", Name: "Observer", Deployment: "container"},
 	})
 	if err != nil {
 		t.Fatalf("build observer client: %v", err)
@@ -383,7 +385,7 @@ func TestRelayProxyHonoursTheAuthorizationField(t *testing.T) {
 	// Unprotected first: the pre-existing contract, and the baseline that
 	// makes the 401s below mean "the password did it", not "this route was
 	// broken all along".
-	if status, body := serve(context.Background(), relay.ProxyRequest{
+	if status, body := serve(context.Background(), relay.ProxyCall{
 		Method: http.MethodGet, Path: "/api/tasks",
 	}); status != http.StatusOK {
 		t.Fatalf("unprotected instance answered %d (%s), want 200 - relay calls have always worked without a credential here", status, body)
@@ -397,7 +399,7 @@ func TestRelayProxyHonoursTheAuthorizationField(t *testing.T) {
 	// already required presenting the group key. This is the case that used to
 	// answer 401 and broke a phrase group the moment one instance was given a
 	// password - proved live on two preview containers before it was fixed.
-	if status, body := serve(context.Background(), relay.ProxyRequest{
+	if status, body := serve(context.Background(), relay.ProxyCall{
 		Method: http.MethodGet, Path: "/api/tasks",
 	}); status != http.StatusOK {
 		t.Errorf("a group sibling with no token = %d (%s), want 200 - the relay socket IS the credential", status, body)
@@ -406,7 +408,7 @@ func TestRelayProxyHonoursTheAuthorizationField(t *testing.T) {
 	// A garbage token must not be worse than no token. It is not evidence of
 	// anything either way, and rejecting the request for carrying one would
 	// make a stale credential on a peer fail harder than an absent one.
-	if status, _ := serve(context.Background(), relay.ProxyRequest{
+	if status, _ := serve(context.Background(), relay.ProxyCall{
 		Method: http.MethodGet, Path: "/api/tasks",
 		Authorization: "Bearer not-a-real-token",
 	}); status != http.StatusOK {
@@ -417,7 +419,7 @@ func TestRelayProxyHonoursTheAuthorizationField(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	status, body := serve(context.Background(), relay.ProxyRequest{
+	status, body := serve(context.Background(), relay.ProxyCall{
 		Method: http.MethodGet, Path: "/api/tasks",
 		Authorization: "Bearer " + secret,
 	})
@@ -441,7 +443,7 @@ func TestRelayProxyRefusesEverythingButTasksAndLinks(t *testing.T) {
 		t.Fatal(err)
 	}
 	get := func(path string) int {
-		status, _ := serve(context.Background(), relay.ProxyRequest{Method: http.MethodGet, Path: path})
+		status, _ := serve(context.Background(), relay.ProxyCall{Method: http.MethodGet, Path: path})
 		return status
 	}
 
@@ -472,7 +474,7 @@ func TestRelayProxyRefusesEverythingButTasksAndLinks(t *testing.T) {
 	// and POST /api/auth/logout is somebody else's session; being in the group
 	// is permission to look at these, never to write them.
 	for _, path := range []string{"/api/auth", "/api/instances", "/api/appearance"} {
-		status, _ := serve(context.Background(), relay.ProxyRequest{Method: http.MethodPost, Path: path})
+		status, _ := serve(context.Background(), relay.ProxyCall{Method: http.MethodPost, Path: path})
 		if status != http.StatusForbidden {
 			t.Errorf("POST %s = %d, want 403 - these are readable, not writable", path, status)
 		}
@@ -487,10 +489,11 @@ func TestRelayProxyRefusesEverythingButTasksAndLinks(t *testing.T) {
 func fixedSibling(t *testing.T, url, key, id string) *relay.Client {
 	t.Helper()
 	c, err := relay.NewClient(relay.ClientOptions{
-		URL:  url,
-		Key:  key,
-		Self: relay.Announce{InstanceID: id, Name: "Sibling", Deployment: "desktop"},
-		Serve: func(ctx context.Context, req relay.ProxyRequest) (int, []byte) {
+		URL:      url,
+		Key:      key,
+		FrameKey: relay.FrameKeyFromRelayKey(key),
+		Self:     relay.Announce{InstanceID: id, Name: "Sibling", Deployment: "desktop"},
+		Serve: func(ctx context.Context, call relay.ProxyCall) (int, []byte) {
 			return http.StatusOK, []byte(`{"from":"sibling"}`)
 		},
 	})

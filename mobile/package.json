@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
+    "@noble/ciphers": "^2.4.0",
     "@react-native-async-storage/async-storage": "^3.1.1",
     "@react-navigation/native": "^7.3.17",
     "@react-navigation/native-stack": "^7.18.9",
@@ -10,6 +11,7 @@
     "expo-build-properties": "~57.0.14",
     "expo-camera": "~57.0.4",
     "expo-constants": "~57.0.14",
+    "expo-crypto": "^57.0.2",
     "expo-localization": "~57.0.1",
     "expo-network": "~57.0.1",
     "expo-secure-store": "^57.0.1",

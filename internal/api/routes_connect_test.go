@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -308,7 +309,7 @@ func TestRelayTargetDerivesRatherThanSendingTheSecret(t *testing.T) {
 	}
 	storedHex, _ := a.Accounts.Get(relay.SeedAccountService)
 
-	url, key := relayTarget(a)
+	url, key, frameKey := relayTarget(a)
 	if url != relay.DefaultRelayURL {
 		t.Errorf("url = %q, want %q", url, relay.DefaultRelayURL)
 	}
@@ -317,6 +318,22 @@ func TestRelayTargetDerivesRatherThanSendingTheSecret(t *testing.T) {
 	}
 	if len(key) < 32 {
 		t.Errorf("derived key is %d characters, below the relay's own minimum", len(key))
+	}
+
+	// The frame key is the second half of the same property. The relay is
+	// handed `key` in every hello frame, so a frame key equal to it, or
+	// derivable from it, would mean the operator could read what they route.
+	if len(frameKey) != 32 {
+		t.Fatalf("frame key is %d bytes, want 32", len(frameKey))
+	}
+	if hex.EncodeToString(frameKey) == key {
+		t.Error("the frame key IS the key handed to the relay")
+	}
+	if hex.EncodeToString(frameKey) == storedHex {
+		t.Error("the frame key IS the stored secret")
+	}
+	if bytes.Equal(frameKey, relay.FrameKeyFromRelayKey(key)) {
+		t.Error("the frame key is derivable from the key the relay is already given")
 	}
 }
 
@@ -335,11 +352,16 @@ func TestRelayTargetHonoursASelfHostedOverride(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	url, key := relayTarget(a)
+	url, key, frameKey := relayTarget(a)
 	if url != "wss://relay.example.com" {
 		t.Errorf("url = %q, want the override", url)
 	}
 	if key == "" {
 		t.Error("no key with an override set")
+	}
+	// Pointing at your own relay must not quietly cost you the sealing: the
+	// secret is the same secret, so the frame key is the same frame key.
+	if len(frameKey) != 32 {
+		t.Errorf("frame key is %d bytes with an override set, want 32", len(frameKey))
 	}
 }

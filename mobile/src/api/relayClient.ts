@@ -1,4 +1,5 @@
 import { decodeBody, encodeBody } from './base64';
+import { openCall, openResult, sealCall, sealResult } from './relayFrame';
 
 // This app's own client for internal/relay's wire protocol - the second way
 // it can reach an instance, for the case the direct one cannot cover at all:
@@ -76,6 +77,15 @@ interface Pending {
 export interface RelayClientOptions {
   url: string;
   key: string;
+  /**
+   * The 32-byte key every proxy frame is sealed under - seedphrase.ts's
+   * deriveFrameKey, mirroring relay.DeriveFrameKey.
+   *
+   * Separate from `key` and it has to stay that way: `key` is what this
+   * client hands the relay in its hello frame, so a frame key equal to it
+   * would be a key the relay already holds. See relayFrame.ts.
+   */
+  frameKey: Uint8Array;
   /** This device's stable id on the relay. See storage/relayIdentity.ts. */
   selfId: string;
   /** What siblings would call this device, if they listed it - they do not. */
@@ -181,13 +191,20 @@ export class RelayClient {
       this.pending.set(requestId, { resolve, reject, timer });
 
       try {
+        // Everything except the two routing fields goes inside the seal, so
+        // the relay carrying this frame sees which instance it is for and
+        // nothing about what is being asked - including, crucially, the
+        // bearer token below, which is the one thing here that keeps working
+        // for whoever reads it. See relayFrame.ts.
         this.send(T_PROXY_REQUEST, {
           requestId,
           target,
-          method,
-          path,
-          ...(body ? { body: encodeBody(body) } : {}),
-          ...(authorization ? { authorization } : {}),
+          sealed: sealCall(this.opts.frameKey, requestId, target, {
+            method,
+            path,
+            ...(body ? { body: encodeBody(body) } : {}),
+            ...(authorization ? { authorization } : {}),
+          }),
         });
       } catch (err) {
         clearTimeout(timer);
@@ -343,13 +360,30 @@ export class RelayClient {
         // Error is set only when the RELAY answered instead of the target
         // ("nobody is connected as that instance"). That is a transport
         // failure, not an answer, so it rejects.
+        //
+        // Checked BEFORE the sealed blob and it must stay that way: the relay
+        // writes this field in the clear because it holds no key, so it is
+        // the one field on a response a hostile relay can author. Answering
+        // it first, and never treating an unsealed response as a result, is
+        // what keeps that limited to denial of service.
         if (typeof data.error === 'string' && data.error) {
           p.reject(new Error(`relay: ${data.error}`));
           return;
         }
+        const result =
+          typeof data.sealed === 'string'
+            ? openResult(this.opts.frameKey, data.requestId, data.sealed)
+            : null;
+        if (!result) {
+          // On this key, but not holding this group's secret - or something
+          // rewrote the frame on the way. Neither is an answer, and neither
+          // may be allowed to look like one.
+          p.reject(new Error('relay: the instance answered unreadably'));
+          return;
+        }
         p.resolve({
-          status: typeof data.status === 'number' ? data.status : 0,
-          body: typeof data.body === 'string' && data.body ? decodeBody(data.body) : '',
+          status: typeof result.status === 'number' ? result.status : 0,
+          body: typeof result.body === 'string' && result.body ? decodeBody(result.body) : '',
         });
         return;
       }
@@ -358,11 +392,25 @@ export class RelayClient {
         // at once rather than letting the caller sit out its own timeout -
         // the same thing the Go client does when it has no Serve handler.
         if (typeof data.requestId !== 'string') return;
+        // But only for a caller that actually holds the group's secret. A
+        // frame that will not open came from somebody on this relay key who
+        // is not in this group, and it gets no reply at all - the same silence
+        // the Go client's answer() gives, and for the same reason: an error
+        // reply would confirm that their key was accepted while their secret
+        // was not.
+        if (
+          typeof data.sealed !== 'string' ||
+          !openCall(this.opts.frameKey, data.requestId, this.opts.selfId, data.sealed)
+        ) {
+          return;
+        }
         try {
           this.send(T_PROXY_RESPONSE, {
             requestId: data.requestId,
-            status: 501,
-            body: encodeBody('the mobile app serves no API of its own'),
+            sealed: sealResult(this.opts.frameKey, data.requestId, {
+              status: 501,
+              body: encodeBody('the mobile app serves no API of its own'),
+            }),
           });
         } catch {
           // The socket went away underneath the reply; the caller's own

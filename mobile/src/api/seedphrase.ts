@@ -118,3 +118,33 @@ export function deriveKey(secret: Uint8Array): string {
 export function keyFromPhrase(phrase: string): string {
   return deriveKey(decodePhrase(phrase));
 }
+
+/**
+ * FRAME_KEY_DOMAIN is the second domain over the same secret, mirroring
+ * internal/relay/key.go's frameDomain. Both strings must match byte for byte
+ * or this phone joins a group it cannot talk to.
+ */
+const FRAME_KEY_DOMAIN = 'knightloader/relay/frame-key/v1';
+
+/**
+ * deriveFrameKey returns the 32-byte key that seals proxy frames, mirroring
+ * relay.DeriveFrameKey.
+ *
+ * The separate domain is the entire point and is worth restating here, where
+ * somebody reading only the phone's half will see it: the relay is HANDED
+ * deriveKey's output in every hello frame. A frame key derived from that
+ * value, or under the same domain, would be a key the relay already holds,
+ * and the encryption would protect nothing from the one party it is aimed at.
+ */
+export function deriveFrameKey(secret: Uint8Array): Uint8Array {
+  const domain = utf8(FRAME_KEY_DOMAIN);
+  const buf = new Uint8Array(domain.length + secret.length);
+  buf.set(domain);
+  buf.set(secret, domain.length);
+  return sha256(buf);
+}
+
+/** frameKeyFromPhrase is deriveFrameKey's counterpart to keyFromPhrase. */
+export function frameKeyFromPhrase(phrase: string): Uint8Array {
+  return deriveFrameKey(decodePhrase(phrase));
+}

@@ -86,7 +86,12 @@ const pingTimeout = 10 * time.Second
 // It returns the status and body to send back, the same pair
 // federation.Manager.Proxy hands its own callers, so the app side can adapt
 // its existing HTTP handler without inventing a second result shape.
-type ProxyHandler func(ctx context.Context, req ProxyRequest) (status int, body []byte)
+//
+// It takes a ProxyCall, not a ProxyRequest: by the time a handler runs, the
+// frame has been opened and the routing fields it was addressed with have
+// done their job. A handler that cannot see the wire frame cannot
+// accidentally trust a field the relay was free to write.
+type ProxyHandler func(ctx context.Context, call ProxyCall) (status int, body []byte)
 
 // ClientOptions configures a Client. URL, Key and Self.InstanceID are
 // required; the rest is optional.
@@ -98,6 +103,12 @@ type ClientOptions struct {
 	// Key is the relay key: the only credential this protocol has, and the
 	// only thing that decides which instances see each other.
 	Key string
+	// FrameKey is the 32-byte key every proxy frame is sealed under. It must
+	// be the same on every instance in the group and must NOT be derivable
+	// from Key, or the relay could compute it from the hello frame it is
+	// already given - see key.go's DeriveFrameKey and FrameKeyFromRelayKey
+	// for the two ways it is produced and what each one is worth.
+	FrameKey []byte
 	// Self is what siblings will see on their Instances page.
 	Self Announce
 	// Serve answers calls siblings make to this instance. A nil Serve answers
@@ -123,8 +134,13 @@ type ClientOptions struct {
 // because an unreachable relay must not touch anything else the instance
 // does.
 type Client struct {
-	url      string
-	key      string
+	url string
+	key string
+	// frameKey seals and opens every proxy frame this client sends or
+	// receives. Distinct from key, and that separation is the point: key is
+	// handed to the relay in the hello frame, this one never leaves the
+	// process. See key.go's DeriveFrameKey.
+	frameKey []byte
 	self     Announce
 	serve    ProxyHandler
 	onChange func()
@@ -164,9 +180,18 @@ func NewClient(opts ClientOptions) (*Client, error) {
 	if opts.Self.InstanceID == "" {
 		return nil, errors.New("relay: no instance id to announce")
 	}
+	// A wrong-length frame key is refused here rather than at the first proxy
+	// call. Both are permanent misconfigurations of the same kind as the two
+	// above, and this one would otherwise present as "the relay connects, the
+	// siblings appear, and every call to them fails" - the most expensive
+	// possible place to discover it.
+	if len(opts.FrameKey) != 32 {
+		return nil, fmt.Errorf("relay: frame key is %d bytes, want 32", len(opts.FrameKey))
+	}
 	return &Client{
 		url:        connect,
 		key:        opts.Key,
+		frameKey:   opts.FrameKey,
 		self:       opts.Self,
 		serve:      opts.Serve,
 		onChange:   opts.OnChange,
@@ -278,10 +303,13 @@ func (c *Client) Proxy(ctx context.Context, target, method, path string, body []
 
 	ctx, cancel := context.WithTimeout(ctx, proxyTimeout)
 	defer cancel()
-	frame := frameOf(TypeProxyRequest, ProxyRequest{
-		RequestID: id, Target: target, Method: method, Path: path, Body: body,
-		Authorization: authorization,
+	sealed, err := SealCall(c.frameKey, id, target, ProxyCall{
+		Method: method, Path: path, Body: body, Authorization: authorization,
 	})
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+	frame := frameOf(TypeProxyRequest, ProxyRequest{RequestID: id, Target: target, Sealed: sealed})
 	if err := writeFrameTo(ctx, conn, frame); err != nil {
 		return nil, http.StatusBadGateway, fmt.Errorf("relay: %w", err)
 	}
@@ -294,10 +322,25 @@ func (c *Client) Proxy(ctx context.Context, target, method, path string, body []
 		// "nobody is connected as that instance", or the connection died
 		// under this call. Both are failures of the transport, not answers
 		// from the peer, so they come back as errors.
+		//
+		// Read before Sealed, and it must stay that way: the relay writes
+		// Error in the clear because it holds no key, so this is the one
+		// field on a response a hostile relay can author. Answering the
+		// error first, and never treating an unsealed response as a result,
+		// is what keeps that limited to denial of service - see
+		// ProxyResponse.Error's own comment.
 		if resp.Error != "" {
-			return nil, resp.Status, errors.New("relay: " + resp.Error)
+			return nil, http.StatusBadGateway, errors.New("relay: " + resp.Error)
 		}
-		return resp.Body, resp.Status, nil
+		result, err := OpenResult(c.frameKey, id, resp.Sealed)
+		if err != nil {
+			// The peer is on this key but its frames do not open under this
+			// secret, or something rewrote them in flight. Not a transport
+			// failure and not an answer, so it is neither reported as the
+			// peer being gone nor allowed to look like a reply.
+			return nil, http.StatusBadGateway, fmt.Errorf("relay: %s answered unreadably: %w", target, err)
+		}
+		return result.Body, result.Status, nil
 	}
 }
 
@@ -466,16 +509,32 @@ func (c *Client) handle(ctx context.Context, conn *websocket.Conn, frame []byte)
 }
 
 // answer runs one inbound call and sends the result back.
+//
+// A frame that will not open is dropped without a reply, deliberately. It
+// means the sender is on this relay key but does not hold this group's
+// secret, or something rewrote the frame in flight - neither is a peer owed
+// an answer, and an error reply would only confirm to whoever sent it that
+// their key was accepted while their secret was not.
 func (c *Client) answer(ctx context.Context, conn *websocket.Conn, req ProxyRequest) {
-	resp := ProxyResponse{RequestID: req.RequestID, Status: http.StatusNotImplemented}
+	call, err := OpenCall(c.frameKey, req.RequestID, c.self.InstanceID, req.Sealed)
+	if err != nil {
+		return
+	}
+	result := ProxyResult{Status: http.StatusNotImplemented}
 	if c.serve != nil {
 		serveCtx, cancel := context.WithTimeout(ctx, proxyTimeout)
-		resp.Status, resp.Body = c.serve(serveCtx, req)
+		result.Status, result.Body = c.serve(serveCtx, call)
 		cancel()
+	}
+	sealed, err := SealResult(c.frameKey, req.RequestID, result)
+	if err != nil {
+		return
 	}
 	writeCtx, cancel := context.WithTimeout(ctx, writeTimeout)
 	defer cancel()
-	_ = writeFrameTo(writeCtx, conn, frameOf(TypeProxyResponse, resp))
+	_ = writeFrameTo(writeCtx, conn, frameOf(TypeProxyResponse, ProxyResponse{
+		RequestID: req.RequestID, Sealed: sealed,
+	}))
 }
 
 // deliver hands a response to the Proxy call waiting on it. A response nobody
@@ -515,9 +574,11 @@ func (c *Client) disconnected() {
 	}
 	c.mu.Unlock()
 	for _, answer := range waiting {
+		// Error only, no sealed blob: Proxy reads Error first and never
+		// reaches OpenResult, and this is a local failure with no frame
+		// behind it to seal in the first place.
 		answer <- ProxyResponse{
-			Status: http.StatusBadGateway,
-			Error:  "the relay connection dropped before the answer arrived",
+			Error: "the relay connection dropped before the answer arrived",
 		}
 	}
 	c.changed()

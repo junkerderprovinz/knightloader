@@ -15,6 +15,54 @@ import (
 // loop's behaviour is identical either way, only the wait is not.
 const testBackoff = 20 * time.Millisecond
 
+// testFrameKey is the one frame key every client and every hand-rolled peer
+// in this file shares, standing in for "these two instances entered the same
+// connection phrase". Derived through the real DeriveFrameKey rather than
+// written out as 32 bytes, so a change to that derivation cannot leave the
+// tests passing against a key the product no longer produces.
+var testFrameKey = DeriveFrameKey([]byte("relay package tests"))
+
+// sealFor and openFrom are what a hand-rolled peer in these tests has to do
+// now that proxy payloads travel sealed. They exist as helpers rather than
+// inline calls because every peer below needs both, and a test that got the
+// additional-data argument subtly wrong would fail with "could not open"
+// rather than pointing at itself.
+func sealFor(t *testing.T, requestID, target string, call ProxyCall) []byte {
+	t.Helper()
+	sealed, err := SealCall(testFrameKey, requestID, target, call)
+	if err != nil {
+		t.Fatalf("seal call: %v", err)
+	}
+	return sealed
+}
+
+func sealResultFor(t *testing.T, requestID string, res ProxyResult) []byte {
+	t.Helper()
+	sealed, err := SealResult(testFrameKey, requestID, res)
+	if err != nil {
+		t.Fatalf("seal result: %v", err)
+	}
+	return sealed
+}
+
+func openFrom(t *testing.T, requestID, target string, sealed []byte) ProxyCall {
+	t.Helper()
+	call, err := OpenCall(testFrameKey, requestID, target, sealed)
+	if err != nil {
+		t.Fatalf("open call: %v", err)
+	}
+	return call
+}
+
+func openResultFrom(t *testing.T, requestID string, sealed []byte) ProxyResult {
+	t.Helper()
+	res, err := OpenResult(testFrameKey, requestID, sealed)
+	if err != nil {
+		t.Fatalf("open result: %v", err)
+	}
+	return res
+}
+
 // tracking remembers every connection it accepted so they can all be killed at
 // once. http.Server.Close cannot do it: a WebSocket connection is hijacked out
 // of the server's own bookkeeping the moment it is upgraded, so closing the
@@ -78,10 +126,11 @@ func relayOn(t *testing.T, addr string) (string, func()) {
 func startClient(t *testing.T, addr, key, id string, serve ProxyHandler) *Client {
 	t.Helper()
 	c, err := NewClient(ClientOptions{
-		URL:   "http://" + addr,
-		Key:   key,
-		Self:  Announce{InstanceID: id, Name: id, Deployment: "desktop"},
-		Serve: serve,
+		URL:      "http://" + addr,
+		Key:      key,
+		FrameKey: testFrameKey,
+		Self:     Announce{InstanceID: id, Name: id, Deployment: "desktop"},
+		Serve:    serve,
 	})
 	if err != nil {
 		t.Fatalf("new client %s: %v", id, err)
@@ -161,13 +210,20 @@ func TestClientProxiesToASibling(t *testing.T) {
 	if err := readFrame(t, bravo, TypeProxyRequest).Into(&req); err != nil {
 		t.Fatalf("proxy-request: %v", err)
 	}
-	if req.Target != "bravo" || req.Method != http.MethodPost || req.Path != "/api/links" {
+	if req.Target != "bravo" {
 		t.Fatalf("bravo received %+v, want alpha's call unchanged", req)
 	}
-	if string(req.Body) != `{"url":"x"}` {
-		t.Errorf("body arrived as %s, want it byte for byte", req.Body)
+	call := openFrom(t, req.RequestID, "bravo", req.Sealed)
+	if call.Method != http.MethodPost || call.Path != "/api/links" {
+		t.Fatalf("bravo opened %+v, want alpha's call unchanged", call)
 	}
-	writeFrame(t, bravo, TypeProxyResponse, ProxyResponse{RequestID: req.RequestID, Status: 201, Body: []byte(`{"added":1}`)})
+	if string(call.Body) != `{"url":"x"}` {
+		t.Errorf("body arrived as %s, want it byte for byte", call.Body)
+	}
+	writeFrame(t, bravo, TypeProxyResponse, ProxyResponse{
+		RequestID: req.RequestID,
+		Sealed:    sealResultFor(t, req.RequestID, ProxyResult{Status: 201, Body: []byte(`{"added":1}`)}),
+	})
 
 	got := <-done
 	if got.err != nil {
@@ -190,8 +246,8 @@ func TestClientAnswersASiblingsCall(t *testing.T) {
 	}{
 		{
 			name: "the handler answers",
-			serve: func(_ context.Context, req ProxyRequest) (int, []byte) {
-				return http.StatusOK, []byte(req.Method + " " + req.Path)
+			serve: func(_ context.Context, call ProxyCall) (int, []byte) {
+				return http.StatusOK, []byte(call.Method + " " + call.Path)
 			},
 			wantStatus: http.StatusOK,
 			wantBody:   "GET /api/tasks",
@@ -214,14 +270,19 @@ func TestClientAnswersASiblingsCall(t *testing.T) {
 			readFrame(t, bravo, TypeAnnounce)
 
 			writeFrame(t, bravo, TypeProxyRequest, ProxyRequest{
-				RequestID: "r1", Target: "alpha", Method: http.MethodGet, Path: "/api/tasks",
+				RequestID: "r1", Target: "alpha",
+				Sealed: sealFor(t, "r1", "alpha", ProxyCall{Method: http.MethodGet, Path: "/api/tasks"}),
 			})
 			var resp ProxyResponse
 			if err := readFrame(t, bravo, TypeProxyResponse).Into(&resp); err != nil {
 				t.Fatalf("proxy-response: %v", err)
 			}
-			if resp.RequestID != "r1" || resp.Status != tc.wantStatus || string(resp.Body) != tc.wantBody {
-				t.Errorf("got %+v, want status %d body %q", resp, tc.wantStatus, tc.wantBody)
+			if resp.RequestID != "r1" {
+				t.Fatalf("got %+v, want the answer to r1", resp)
+			}
+			res := openResultFrom(t, "r1", resp.Sealed)
+			if res.Status != tc.wantStatus || string(res.Body) != tc.wantBody {
+				t.Errorf("got %+v, want status %d body %q", res, tc.wantStatus, tc.wantBody)
 			}
 		})
 	}
@@ -397,11 +458,16 @@ func TestConnectURL(t *testing.T) {
 	}
 }
 
-// TestNewClientRejectsMisconfiguration: all three of these are permanent, and
+// TestNewClientRejectsMisconfiguration: all four of these are permanent, and
 // the settings page that produced them is the only place they can be fixed, so
 // none of them may turn into a connection that quietly never works.
 func TestNewClientRejectsMisconfiguration(t *testing.T) {
-	valid := ClientOptions{URL: "https://relay.example.com", Key: "shared-relay-test-key-0123456789ab", Self: Announce{InstanceID: "alpha"}}
+	valid := ClientOptions{
+		URL:      "https://relay.example.com",
+		Key:      "shared-relay-test-key-0123456789ab",
+		FrameKey: testFrameKey,
+		Self:     Announce{InstanceID: "alpha"},
+	}
 	tests := []struct {
 		name   string
 		mangle func(o *ClientOptions)
@@ -409,6 +475,10 @@ func TestNewClientRejectsMisconfiguration(t *testing.T) {
 		{"no address", func(o *ClientOptions) { o.URL = "" }},
 		{"no key", func(o *ClientOptions) { o.Key = "   " }},
 		{"no instance id", func(o *ClientOptions) { o.Self.InstanceID = "" }},
+		// The expensive one to discover late: the relay connects, the
+		// siblings appear, and every single call to them fails.
+		{"no frame key", func(o *ClientOptions) { o.FrameKey = nil }},
+		{"a frame key of the wrong length", func(o *ClientOptions) { o.FrameKey = []byte("too short") }},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {

@@ -67,6 +67,21 @@ export interface RelayConnection {
   name: string;
   relayUrl: string; // the relay's address, as typed - normalised when dialled
   relayKey: string; // the relay's only credential, shared with the instances
+  /**
+   * Hex of the 32-byte key this connection's proxy frames are sealed under -
+   * seedphrase.ts's deriveFrameKey of the same secret relayKey came from.
+   *
+   * Stored rather than re-derived on use because the phrase itself is not
+   * kept: it is typed once, both keys come out of it, and the words are then
+   * gone. Storing the frame key is storing exactly as much as relayKey
+   * already is, which is why the two sit beside each other.
+   *
+   * Optional so a connection saved before this existed still parses. Such a
+   * connection cannot talk to anything - its frames are unsealed and every
+   * instance now ignores those - so it is treated as needing to be added
+   * again rather than silently kept; see relayRequest in client.ts.
+   */
+  relayFrameKey?: string;
   instanceId: string; // WHICH sibling on that key this connection is for
   token: string; // API token for that instance; '' when it has no password
 }
