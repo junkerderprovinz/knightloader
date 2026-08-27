@@ -146,12 +146,12 @@ async function render() {
   }
 }
 
-// --- Sync from paired instances --------------------------------------------
+// --- Sync from known instances ---------------------------------------------
 //
 // jdp: "Wenn ich die Extension installiert habe und danach instanzen
 // verbinde, werden die dann automatisch auch in der extension angezeigt?" —
-// approved as "#3". Two app instances paired via a pairing code (Settings →
-// Access, internal/api/routes_pairing.go) each already know about the other
+// approved as "#3". Two app instances joined by the same connection phrase
+// (Settings → Access) each already know about the other
 // through GET /api/instances (internal/api/routes_federation.go) — a
 // federation registry this extension's own {name,url}[] list (readInstances,
 // shared.js) has never talked to. This section is what closes that gap: ask
@@ -170,7 +170,7 @@ async function render() {
 //    optional_host_permissions carries `<all_urls>` instead, and
 //    chrome.permissions.request() below asks for the exact origins this
 //    extension already has typed addresses for, nothing wider — and only
-//    ever from the "Sync paired instances" button's own click handler, since
+//    ever from the "Sync known instances" button's own click handler, since
 //    request() only works from a real user gesture (Chrome silently refuses
 //    it from a page-load handler, Firefox is stricter still).
 //
@@ -202,7 +202,7 @@ function peerOrigin(url) {
  * fetchPeers asks one already-configured instance's own GET /api/instances
  * for the peers IT is federated with — same host, same session cookie, just
  * a different path than the /quickadd popup.js's quickAddUrl builds. Never
- * throws: an unreachable instance, an old KnightLoader without the pairing
+ * throws: an unreachable instance, an old KnightLoader without the peer
  * feature, a non-JSON response, or a request that outlives the 8s timeout
  * all resolve to an empty list, exactly like a peer that offered nothing new.
  */

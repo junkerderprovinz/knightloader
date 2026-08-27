@@ -1972,8 +1972,9 @@ export async function fetchInstances(): Promise<Instance[]> {
  * Nothing here is paired or trusted - being on the same network is not
  * consent. This is the address, found without anyone typing it. Adding it is a
  * deliberate action, and it stores that address and nothing else: a peer with
- * a password set then needs a pairing code before it will accept anything,
- * which is the only path that exchanges credentials.
+ * a password set will still refuse it, because an address is not a
+ * credential. The connection phrase is what makes two instances trust each
+ * other, and it does so for every instance at once rather than per peer.
  */
 export interface DiscoveredInstance {
   id: string;
@@ -1990,16 +1991,16 @@ export async function fetchDiscovered(): Promise<DiscoveredInstance[]> {
 }
 
 /**
- * addInstance registers a peer BY ADDRESS. It exchanges no credential -
- * only a pairing code does that - so `needsPairing` is how a peer that was
- * reached and refused this instance's credentials is told apart from one
+ * addInstance registers a peer BY ADDRESS. It exchanges no credential, so
+ * `refused` is how a peer that was reached and said no is told apart from one
  * that could not be reached at all. Two problems with two different fixes
- * that used to share the word "offline".
+ * that used to share the word "offline" - and the fix for the first is the
+ * connection phrase, which both instances hold rather than trading a code.
  */
 export async function addInstance(
   name: string,
   url: string,
-): Promise<{ online: boolean; needsPairing: boolean }> {
+): Promise<{ online: boolean; refused: boolean }> {
   const r = await fetch('/api/instances', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -2011,40 +2012,6 @@ export async function addInstance(
 
 export const removeInstance = (name: string) =>
   fetch(`/api/instances/${encodeURIComponent(name)}`, { method: 'DELETE' });
-
-/**
- * A code POST /api/instances/pairing-code just issued - paste it into the
- * Instances tab of the OTHER instance instead of typing name+address by
- * hand. code is opaque (base64url of {name, url, token}); name/url are
- * shown alongside it purely so the person generating it can confirm which
- * instance they are about to hand out an address for.
- */
-export interface PairingCode {
-  code: string;
-  name: string;
-  url: string;
-  expiresIn: number;
-  qr?: QRMatrix;
-}
-
-export async function generatePairingCode(): Promise<PairingCode> {
-  const r = await fetch('/api/instances/pairing-code', { method: 'POST' });
-  if (!r.ok) throw new Error(await r.text());
-  return json(r);
-}
-
-/** redeemPairingCode both adds the peer behind `code` here AND registers this instance back with it - one action, both directions. */
-export async function redeemPairingCode(
-  code: string,
-): Promise<{ name: string; url: string; online: boolean; reachedBack: boolean; viaRelay: boolean }> {
-  const r = await fetch('/api/instances/pairing-code/redeem', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ code }),
-  });
-  if (!r.ok) throw new Error(await r.text());
-  return json(r);
-}
 
 /**
  * What GET and PUT /api/relay/config both answer with - api.relayConfig. The

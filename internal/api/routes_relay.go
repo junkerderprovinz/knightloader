@@ -299,7 +299,7 @@ func applyRelay(a *app.App) {
 // API token or ask for the phrase back.
 func relayProxyHandler(serve http.Handler) relay.ProxyHandler {
 	return func(ctx context.Context, req relay.ProxyRequest) (int, []byte) {
-		if !relayForwardable(req.Path) {
+		if !relayForwardable(req.Method, req.Path) {
 			// Refused before the handler sees it, so a route added later is
 			// not silently exposed to peers by existing: this list is an
 			// allowlist and a new route is outside it until somebody says
@@ -333,16 +333,24 @@ func relayProxyHandler(serve http.Handler) relay.ProxyHandler {
 }
 
 // relayForwardable is the one list of what a group sibling may reach on this
-// instance. It mirrors the outbound half's own filter deliberately and
-// literally: the two ends of the same conversation disagreeing about what is
-// forwardable is how a route ends up reachable in one direction only, which
-// is a bug nobody notices until a peer uses it.
+// instance.
 //
-// The queue travels with the task list because it is that list's master
-// switch - showing a sibling's downloads and then being unable to stop them
-// would be a half-connected instance. Settings, accounts, tokens and the
-// phrase are all outside it, on purpose.
-func relayForwardable(path string) bool {
+// It is deliberately NOT the same list as the outbound web-proxy filter on
+// /api/instances/{name}/{rest...}. That one is what a BROWSER may ask this
+// instance to relay onward, and it is narrower. This one is what any group
+// member may ask of us, and the phone app is a group member too: it needs to
+// know whether it reached something alive, which instances are in the group,
+// and what the instance looks like, none of which a browser ever asks a peer
+// for. The narrow list is a subset of this one, which is the direction that
+// is safe.
+//
+// The task, link and queue routes carry any method - the queue travels with
+// the task list because it is that list's master switch, and showing a
+// sibling's downloads while being unable to stop them is a half-connected
+// instance. Everything else here is GET only: a sibling may look, never
+// change. Settings, accounts, tokens, scripts and the phrase are outside the
+// list entirely.
+func relayForwardable(method, path string) bool {
 	// Query strings are part of a task listing's own vocabulary (filters,
 	// paging); the decision here is about the route, not its arguments.
 	if i := strings.IndexByte(path, '?'); i >= 0 {
@@ -353,8 +361,20 @@ func relayForwardable(path string) bool {
 		return false
 	}
 	rest := path[len(prefix):]
-	return rest == "links" || rest == "tasks" || rest == "queue" ||
-		strings.HasPrefix(rest, "tasks/") || strings.HasPrefix(rest, "queue/")
+
+	if rest == "links" || rest == "tasks" || rest == "queue" ||
+		strings.HasPrefix(rest, "tasks/") || strings.HasPrefix(rest, "queue/") {
+		return true
+	}
+	// Read-only, and each for a reason the phone app would otherwise have to
+	// do without: "did I reach something, and does it want a password",
+	// "which instances are in this group", and the seven cosmetic fields that
+	// let the app wear the instance's own accent. /api/appearance exists
+	// precisely so this last one is not a licence to read /api/settings.
+	if method == http.MethodGet {
+		return rest == "auth" || rest == "instances" || rest == "appearance"
+	}
+	return false
 }
 
 // relayRecorder buffers one handler's response in memory - the smallest

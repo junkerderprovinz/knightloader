@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { checkConnection } from '../api/client';
 import { scanLocalNetwork, type Found } from '../api/discover';
-import { decodePairingCode } from '../api/pairing';
 import { addConnection, setActiveConnectionId } from '../storage/connections';
 import type { ServerConnection } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
@@ -10,19 +9,16 @@ import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import QRScanner from '../components/QRScanner';
 
-// The Access tab carries two DIFFERENT QR codes, and this screen's scan
-// button has to tell them apart rather than assume: the plain
-// remote-access QR encodes just a bare address (routes_remote.go's own
-// remoteAccessInfo, renderQR(addr)), while the pairing-code QR
-// (routes_pairing.go) encodes base64 JSON carrying name+address+a one-time
-// token. Feeding the SECOND one's raw text straight into the address field,
-// as an earlier version of this screen did, put the pairing code itself
-// where the address belongs and left name/token untouched - decodePairingCode
-// (api/pairing.ts) is what tells the two apart. Either way the token itself
-// still needs pasting by hand: even a decoded pairing offer's token is a
-// short-lived federation handshake secret (routes_pairing.go's own doc
-// comment), not a bearer API token - a one-scan flow for THAT needs the
-// server to grow a QR that carries one, not built yet, see mobile/README.md.
+// The direct way in: an address this phone can actually reach, plus a token
+// if that instance has a password. The scan button reads the plain
+// remote-access QR, which encodes a bare address (routes_remote.go's own
+// remoteAccessInfo, renderQR(addr)).
+//
+// It used to have to tell that QR apart from a pairing-code QR, which encoded
+// base64 JSON and needed decoding before the address could be lifted out of
+// it. Pairing is gone, so there is one kind of QR here again and the scanned
+// text is the address. The OTHER way in - twelve words, every instance at
+// once, no address and no token - is RelayConnectScreen, one tap away.
 export default function ConnectScreen({
   onConnected,
   onUseRelay,
@@ -218,24 +214,8 @@ export default function ConnectScreen({
         hint={t('connect.qrHintAddress')}
         onScanned={(data) => {
           setScanning(false);
-          const offer = decodePairingCode(data);
-          if (offer && !offer.url) {
-            // A code that can only be redeemed over a relay. Recognised so it
-            // never falls through to "this is a plain address", but not usable
-            // here: redeeming it means registering the other instance as a
-            // federation peer, and this app is a client, not an instance. Said
-            // plainly instead of half-filling the form.
-            if (offer.name) setName(offer.name.trim());
-            setError(t('connect.qrRelayOnly'));
-            setNotice(null);
-          } else if (offer) {
-            setUrl(offer.url.trim());
-            if (offer.name) setName(offer.name.trim());
-            setNotice(t('connect.qrAutofillNotice'));
-          } else {
-            setUrl(data.trim());
-            setNotice(null);
-          }
+          setUrl(data.trim());
+          setNotice(null);
         }}
         onClose={() => setScanning(false)}
       />

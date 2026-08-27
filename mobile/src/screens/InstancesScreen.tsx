@@ -1,20 +1,21 @@
 import { useCallback, useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { addInstance, ApiError, fetchInstances, redeemPairingCode, removeInstance } from '../api/client';
+import { addInstance, ApiError, fetchInstances, removeInstance } from '../api/client';
 import type { Instance, ServerConnection } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
-import QRScanner from '../components/QRScanner';
 
 // The peers the CONNECTED server itself knows about (GET /api/instances) -
-// this app's equivalent of the web UI's Instances.tsx. Adding one either
-// takes name+address by hand (POST /api/instances) or a pairing code from
-// that peer's own Access tab, pasted or scanned: that code already carries
-// name+address+a one-time token and registers both directions in one call
-// (routes_pairing.go), so scanning it here is a genuine one-scan add - see
-// ConnectScreen's own doc comment on why adding a NEW direct connection to
-// THIS app can't do that yet.
+// this app's equivalent of the web UI's Instances.tsx. Adding one takes
+// name+address by hand (POST /api/instances), which registers an address and
+// nothing else: a peer with a password will still refuse it.
+//
+// There used to be a second card here for redeeming a pairing code, which was
+// the one path that exchanged credentials. The connection phrase replaced it -
+// join both instances to the same group and they authenticate each other by
+// holding the same key, with nothing to copy per peer. That is entered on
+// RelayConnectScreen, once, rather than here once per instance.
 export default function InstancesScreen({
   conn,
   onOpenInstance,
@@ -28,11 +29,6 @@ export default function InstancesScreen({
   const [name, setName] = useState('');
   const [url, setUrl] = useState('');
   const [addError, setAddError] = useState('');
-  const [code, setCode] = useState('');
-  const [pairing, setPairing] = useState(false);
-  const [pairError, setPairError] = useState('');
-  const [pairOk, setPairOk] = useState('');
-  const [scanning, setScanning] = useState(false);
 
   const reload = useCallback(() => {
     fetchInstances(conn).then(setPeers).catch(() => {});
@@ -55,21 +51,6 @@ export default function InstancesScreen({
     }
   };
 
-  const redeem = async (rawCode: string) => {
-    setPairError('');
-    setPairOk('');
-    setPairing(true);
-    try {
-      const r = await redeemPairingCode(conn, rawCode.trim());
-      setPairOk(t('instances.pairSuccess', { name: r.name }) + (r.online ? '' : t('instances.pairSuccessOffline')));
-      setCode('');
-      reload();
-    } catch (err) {
-      setPairError(err instanceof ApiError ? err.message : t('instances.pairError'));
-    } finally {
-      setPairing(false);
-    }
-  };
 
   const remove = async (peerName: string) => {
     await removeInstance(conn, peerName);
@@ -149,55 +130,6 @@ export default function InstancesScreen({
         {addError && <Text style={[styles.error, { color: c.statusFailSolid }]}>{addError}</Text>}
       </View>
 
-      <View style={[styles.card, cardStyle]}>
-        <Text style={[styles.cardTitle, { color: c.text }]}>{t('instances.pairingTitle')}</Text>
-        <Text style={[styles.cardHint, { color: c.textMuted }]}>{t('instances.pairingHint')}</Text>
-        <View style={styles.inputRow}>
-          <TextInput
-            style={[styles.input, inputStyle, styles.inputFlex]}
-            placeholder={t('instances.codePlaceholder')}
-            placeholderTextColor={c.textMuted}
-            value={code}
-            onChangeText={setCode}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-          <TouchableOpacity
-            style={[
-              styles.scanButton,
-              { backgroundColor: c.surface2, borderColor: c.border, borderRadius: radii.control },
-            ]}
-            onPress={() => setScanning(true)}
-          >
-            <Text style={[styles.scanButtonText, { color: accent }]}>{t('connect.qrButton')}</Text>
-          </TouchableOpacity>
-        </View>
-        <TouchableOpacity
-          style={[
-            styles.button,
-            { backgroundColor: accent, borderRadius: radii.control },
-            (pairing || !code.trim()) && styles.buttonDisabled,
-          ]}
-          onPress={() => void redeem(code)}
-          disabled={pairing || !code.trim()}
-        >
-          <Text style={[styles.buttonText, { color: accentContrast }]}>
-            {pairing ? t('instances.redeeming') : t('instances.redeemButton')}
-          </Text>
-        </TouchableOpacity>
-        {pairError && <Text style={[styles.error, { color: c.statusFailSolid }]}>{pairError}</Text>}
-        {pairOk && <Text style={[styles.success, { color: c.statusOkSolid }]}>{pairOk}</Text>}
-      </View>
-
-      <QRScanner
-        visible={scanning}
-        hint={t('instances.scanHint')}
-        onScanned={(data) => {
-          setScanning(false);
-          void redeem(data);
-        }}
-        onClose={() => setScanning(false)}
-      />
     </View>
   );
 }

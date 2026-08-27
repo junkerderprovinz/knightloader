@@ -11,6 +11,7 @@ package api
 
 import (
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
@@ -156,4 +157,23 @@ func startDiscovery(a *app.App) *discovery.Service {
 	svc := discovery.New(discoverySelf(a))
 	svc.Start()
 	return svc
+}
+
+// instanceDisplayName is InstanceName if the user set one, else os.Hostname,
+// else the fixed fallback "KnightLoader" for the rare host where even that
+// fails.
+//
+// One function rather than the same precedence written out wherever a name is
+// needed: this instance announces itself on the LAN (routes_discovery.go) and
+// on the relay (routes_relay.go's Announce), and a name resolved two
+// different ways in two places is a name that eventually disagrees with
+// itself. It lived in routes_pairing.go until the pairing code was removed.
+func instanceDisplayName(a *app.App) string {
+	if name := a.Settings.Get().InstanceName; name != "" {
+		return name
+	}
+	if host, err := os.Hostname(); err == nil && host != "" {
+		return host
+	}
+	return "KnightLoader"
 }

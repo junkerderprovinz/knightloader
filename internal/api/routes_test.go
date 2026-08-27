@@ -106,8 +106,6 @@ func TestOnlyTheseRoutesAreOpen(t *testing.T) {
 		"POST /api/auth/logout": "logging out of a session the server no longer honours must still work",
 		"GET /api/containers/relay/{token}": "the fetch comes from the JD backend on another host, " +
 			"with no session; the unguessable single-use token in the path is the credential",
-		"POST /api/instances/pairing-code/complete": "called by the other instance's own backend to " +
-			"finish a pairing, with no session; the token in the body is the credential",
 		"GET /relay/connect": "the relay socket, when this instance is serving one; every instance " +
 			"dialling in is a different machine with no session here, and the relay key in the first " +
 			"frame is the only credential there is. relay.Server.Admit lets in exactly the key this " +

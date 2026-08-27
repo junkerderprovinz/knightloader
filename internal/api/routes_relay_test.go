@@ -430,33 +430,51 @@ func TestRelayProxyHonoursTheAuthorizationField(t *testing.T) {
 	}
 }
 
-// Being in the group buys the task routes and nothing else. Without this the
-// mark relayProxyHandler attaches would be a password bypass for the whole
-// API, reachable by anyone holding the phrase - which is everyone in the
-// group, but not for THESE routes.
+// Being in the group buys a named list of routes and nothing else. Without
+// this the mark relayProxyHandler attaches would be a password bypass for the
+// whole API, reachable by anyone holding the phrase - which is everyone in
+// the group, but not for THESE routes.
 func TestRelayProxyRefusesEverythingButTasksAndLinks(t *testing.T) {
 	_, a := testServer(t)
 	serve := relayProxyHandler(Handler(a))
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
 		t.Fatal(err)
 	}
+	get := func(path string) int {
+		status, _ := serve(context.Background(), relay.ProxyRequest{Method: http.MethodGet, Path: path})
+		return status
+	}
 
-	for _, allowed := range []string{"/api/tasks", "/api/links", "/api/queue", "/api/tasks/7", "/api/queue/move", "/api/tasks?state=active"} {
-		if status, body := serve(context.Background(), relay.ProxyRequest{Method: http.MethodGet, Path: allowed}); status == http.StatusForbidden {
-			t.Errorf("%s = 403 (%s), but it is one of the routes federation forwards", allowed, body)
+	// The working surface: what a sibling or the phone app actually does.
+	for _, allowed := range []string{
+		"/api/tasks", "/api/links", "/api/queue", "/api/tasks/7", "/api/queue/move",
+		"/api/tasks?state=active", "/api/auth", "/api/instances", "/api/appearance",
+	} {
+		if status := get(allowed); status == http.StatusForbidden {
+			t.Errorf("%s = 403, but a group member needs it", allowed)
 		}
 	}
 
 	// Each of these would hand a sibling something the phrase is not supposed
-	// to buy: the stored hoster logins, the ability to lock this instance out
-	// from under its owner, a standing credential, and the phrase itself.
+	// to buy: the stored hoster logins and download paths, the ability to lock
+	// this instance out from under its owner, a standing credential, and the
+	// phrase itself.
 	for _, refused := range []string{
 		"/api/settings", "/api/accounts", "/api/auth/password", "/api/tokens",
-		"/api/connect", "/api/connect/reveal", "/api/instances", "/api/scripts",
+		"/api/connect", "/api/connect/reveal", "/api/scripts", "/api/relay/config",
 	} {
-		status, _ := serve(context.Background(), relay.ProxyRequest{Method: http.MethodGet, Path: refused})
-		if status != http.StatusForbidden {
+		if status := get(refused); status != http.StatusForbidden {
 			t.Errorf("%s = %d, want 403 - a group sibling must not reach this", refused, status)
+		}
+	}
+
+	// The read-only three are read-only. POST /api/instances registers a peer
+	// and POST /api/auth/logout is somebody else's session; being in the group
+	// is permission to look at these, never to write them.
+	for _, path := range []string{"/api/auth", "/api/instances", "/api/appearance"} {
+		status, _ := serve(context.Background(), relay.ProxyRequest{Method: http.MethodPost, Path: path})
+		if status != http.StatusForbidden {
+			t.Errorf("POST %s = %d, want 403 - these are readable, not writable", path, status)
 		}
 	}
 }

@@ -250,7 +250,7 @@ func TestAddingAPasswordProtectedPeerSaysWhy(t *testing.T) {
 	meSrv := httptest.NewServer(Handler(me))
 	defer meSrv.Close()
 
-	add := func(name, url string) (online, needsPairing bool) {
+	add := func(name, url string) (online, refused bool) {
 		t.Helper()
 		body, _ := json.Marshal(map[string]string{"name": name, "url": url})
 		resp, err := http.Post(meSrv.URL+"/api/instances", "application/json", bytes.NewReader(body))
@@ -259,31 +259,33 @@ func TestAddingAPasswordProtectedPeerSaysWhy(t *testing.T) {
 		}
 		defer resp.Body.Close()
 		var got struct {
-			Online       bool `json:"online"`
-			NeedsPairing bool `json:"needsPairing"`
+			Online  bool `json:"online"`
+			Refused bool `json:"refused"`
 		}
 		if err := json.NewDecoder(resp.Body).Decode(&got); err != nil {
 			t.Fatal(err)
 		}
-		return got.Online, got.NeedsPairing
+		return got.Online, got.Refused
 	}
 
-	// Reached, and refused: that is a pairing problem, not a reachability one.
-	online, needsPairing := add("locked", lockedSrv.URL)
+	// Reached, and refused: a credential problem, not a reachability one. The
+	// fix is to put both instances in the same phrase group; the fix for the
+	// case below is to switch a machine on. Two sentences, so they must be two
+	// answers.
+	online, refused := add("locked", lockedSrv.URL)
 	if online {
 		t.Error("online = true for a peer that answered 401")
 	}
-	if !needsPairing {
-		t.Error("needsPairing = false for a peer that was reached and refused us - the page can only say \"offline\", which points at the wrong fix")
+	if !refused {
+		t.Error("refused = false for a peer that was reached and refused us - the page can only say \"offline\", which points at the wrong fix")
 	}
 
-	// Not reached at all: a different problem, and it must not be reported as
-	// the pairing one.
-	online, needsPairing = add("gone", "http://127.0.0.1:1")
+	// Not reached at all, and it must not be reported as the other one.
+	online, refused = add("gone", "http://127.0.0.1:1")
 	if online {
 		t.Error("online = true for an address nothing listens on")
 	}
-	if needsPairing {
-		t.Error("needsPairing = true for an unreachable peer - that sends somebody to fetch a pairing code for a machine that is switched off")
+	if refused {
+		t.Error("refused = true for an unreachable peer - that sends somebody hunting a credential problem on a machine that is switched off")
 	}
 }

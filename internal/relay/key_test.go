@@ -55,3 +55,39 @@ func TestDeriveKeyClearsTheRelayMinimum(t *testing.T) {
 		t.Fatalf("derived key is not valid hex: %v", err)
 	}
 }
+
+// A pinned value, because every other test here only asks whether DeriveKey
+// is self-consistent - and it would stay self-consistent through a change to
+// keyDomain or the hash that silently orphaned every phrase in existence.
+// There is no migration for that: a phrase is not stored anywhere to be
+// re-derived, it is on a piece of paper or in somebody's head.
+//
+// The same numbers are what the phone's own port (mobile/src/api/seedphrase.ts)
+// was checked against. It cannot import this package, so this is the only
+// place the two can be held to the same answer.
+func TestDeriveKeyMatchesItsPinnedVectors(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		secret []byte
+		want   string
+	}{
+		{
+			name:   "the all-zero secret",
+			secret: make([]byte, 16),
+			want:   "293fa85653adb9e7195717c1a6f34e3f433f0a610cd247bb9ff73b8642e7fc15",
+		},
+		{
+			// Every byte different, so a derivation that dropped or reordered
+			// part of the secret shows up instead of cancelling out.
+			name:   "a walk over the byte range",
+			secret: []byte{0x00, 0x07, 0x0e, 0x15, 0x1c, 0x23, 0x2a, 0x31, 0x38, 0x3f, 0x46, 0x4d, 0x54, 0x5b, 0x62, 0x69},
+			want:   "57d28da6bdc93397c9a3a8355b9c3e322a7e134b9985ae7e76c3667d240b5b52",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := DeriveKey(tc.secret); got != tc.want {
+				t.Fatalf("DeriveKey = %s, want %s - if this changed on purpose, every existing phrase just stopped working", got, tc.want)
+			}
+		})
+	}
+}
