@@ -64,6 +64,94 @@ const iconBadgeClass: Record<IconBadgeKind, string> = {
 };
 
 /**
+ * IconTile is IconBadge's inert twin: the same square, the same `h-8 w-8`
+ * footprint, the same hue wash - but a `<span>`, because it marks a row
+ * rather than doing anything when pressed.
+ *
+ * It exists so a decorative glyph can still be a badge. A bare glyph beside
+ * a list row reads as an unfinished control (jdp, 2026-08-27, on the API
+ * token list: "Angelegte API Token haben ein ganz komisches icon. Können
+ * wir das ein schönes icon nehmen und es in ein quadratischen badge
+ * einpflegen?"), while an IconBadge there would be a button that ignores
+ * clicks - worse than either. Same size token as every other square badge
+ * in the app, deliberately: they share one size regardless of role.
+ */
+export function IconTile({
+  icon,
+  hue,
+  className = '',
+}: {
+  icon: ReactNode;
+  hue?: number;
+  className?: string;
+}) {
+  const hued = hue !== undefined;
+  return (
+    <span
+      aria-hidden
+      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-control)]
+        bg-carbon-surface2 text-carbon-textSub ${hued ? 'glim-tint-badge' : ''} ${className}`}
+      style={hued ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
+    >
+      {icon}
+    </span>
+  );
+}
+
+/**
+ * LabelBadge is the text-carrying member of the same family: one line of
+ * label, optionally an InfoBubble, at the shared badge height.
+ *
+ * Two colourings, and which one applies is a question about the content and
+ * not about taste. `hue` puts it in the rainbow engine like every other
+ * badge (jdp, 2026-08-27: "der 'wie funktioniert das' badge in die
+ * farbengine aufnehmen"). `tone` paints it in a status colour instead, for
+ * a badge whose whole job is to report a state - a connection that is up or
+ * down is green or red in every colour scheme, and running that through the
+ * rainbow would make the palette decide what "connected" looks like.
+ *
+ * The status variant carries no separate dot (jdp, same message: "Der
+ * Verbunden badge soll keinen runden punkt haben sondern selbst entweder
+ * grün oder rot eingefärbt sein") - the badge IS the indicator, and a dot
+ * inside a coloured badge says the same thing twice.
+ */
+export function LabelBadge({
+  label,
+  tip,
+  hue,
+  tone,
+  onClick,
+}: {
+  label: string;
+  tip?: ReactNode;
+  hue?: number;
+  tone?: 'ok' | 'fail';
+  onClick?: () => void;
+}) {
+  const hued = hue !== undefined && !tone;
+  const toneClass =
+    tone === 'ok'
+      ? 'bg-statusOkBg text-statusOk'
+      : tone === 'fail'
+        ? 'bg-statusFailBg text-statusFail'
+        : 'bg-carbon-surface2 text-carbon-textSub';
+  const Tag = onClick ? 'button' : 'span';
+  return (
+    <Tag
+      {...(onClick ? { type: 'button' as const, onClick } : {})}
+      className={`inline-flex h-8 shrink-0 items-center gap-1.5 rounded-[var(--radius-control)] px-3
+        text-[11px] font-medium transition duration-150
+        ${hued ? 'glim-tint-badge bg-carbon-surface2 text-carbon-textSub' : toneClass}
+        ${onClick ? 'motion-safe:active:scale-[.98] hover:brightness-110' : ''}`}
+      style={hued ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
+    >
+      <span className="whitespace-nowrap">{label}</span>
+      {tip && <InfoBubble tip={tip} label={label} />}
+    </Tag>
+  );
+}
+
+/**
  * A small square colour tile around one glyph - the shape a cluster of
  * icon-only actions (a row's hover controls, a header's small utility
  * buttons) reads as, distinct from `Button`'s own icon-only mode, which

@@ -440,10 +440,16 @@ export const IconWarning = (p: SVGProps<SVGSVGElement>) => (
  *  themselves keep. */
 export const IconKey = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
-    <circle cx="6.25" cy="13.75" r="3" />
-    <rect x="7.7" y="10.6" width="10.6" height="2" rx="1" transform="rotate(-45 13 11.6)" />
-    <rect x="14.6" y="4.3" width="1.8" height="2.6" transform="rotate(-45 15.5 5.6)" />
-    <rect x="16.3" y="2.6" width="1.8" height="2.6" transform="rotate(-45 17.2 3.9)" />
+    {/* Redrawn horizontal (jdp, 2026-08-27: "Angelegte API Token haben ein
+        ganz komisches icon"). The previous one was a diagonal key assembled
+        from three rotate(-45) rectangles, and rotated rectangles are what
+        made it look broken rather than stylised: at the sizes this renders
+        at, their corners land between pixels, so the shaft arrived visibly
+        wobbly and the two teeth as detached specks. Flat geometry on whole
+        coordinates instead - a ring, a straight shaft, two teeth pointing
+        down - which is also how every other glyph in this file is built. */}
+    <path d="M6.5 6a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm0 2.4a1.6 1.6 0 1 1 0 3.2 1.6 1.6 0 0 1 0-3.2Z" />
+    <path d="M10.2 9h7.3v2h-1.3v2.4h-2V11h-1.2v2.4h-2V11h-.8V9Z" />
   </svg>
 );
 
