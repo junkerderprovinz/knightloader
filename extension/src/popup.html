@@ -6,9 +6,15 @@
     <link rel="stylesheet" href="glimstone.css" />
     <style>
       body {
+        /* 360, up from 280 (jdp, 2026-08-27: "Das Popupfenster der
+           erweitterung soll größer sein"). A browser action popup may be up
+           to 800x600; this is not about reaching that, it is that the old
+           width made #target - a page title, which can be long - wrap to
+           three or four lines under a heading of its own. Wider, it usually
+           fits in one or two. */
         margin: 0;
-        width: 280px;
-        padding: 14px;
+        width: 360px;
+        padding: 16px;
         background: var(--carbon-bg);
         color: var(--carbon-text);
         font-family: -apple-system, "Segoe UI", sans-serif;
@@ -18,13 +24,27 @@
       .header {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-        margin-bottom: 10px;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      /* The app's own mark, at a size worth looking at (jdp, same message:
+         "auch das logo in schöner größe anzeigen") rather than the 16px
+         favicon the browser already shows in the toolbar - repeating that
+         here at that size would add nothing. The SVG, not one of the PNGs in
+         icons/: those exist at fixed sizes for the manifest, and this needs
+         to be crisp at a size none of them is. It is tall (559x897), so the
+         height is what is set and the width follows. */
+      .mark {
+        display: block;
+        height: 52px;
+        width: auto;
+        flex-shrink: 0;
       }
       h1 {
         margin: 0;
-        font-size: var(--text-body);
+        flex: 1;
+        min-width: 0;
+        font-size: var(--text-heading);
         font-weight: 600;
         color: var(--accent);
       }
@@ -84,21 +104,27 @@
       #instanceRow { margin-bottom: 12px; }
       #instanceRow label { display: block; font-size: var(--text-caption); color: var(--carbon-text-muted); margin-bottom: 4px; }
       /* Shaped like a text field rather than left native: it sits under a
-         label in the same 280px column as the Send button. */
+         label in the same column as the Send button. Same correction as
+         options.html's own selects - a filled surface2 and no border, which
+         is what the web UI's field actually is. */
       #instance {
         width: 100%;
         box-sizing: border-box;
         padding: 7px 8px;
-        border: 1px solid var(--carbon-border);
+        border: 0;
         border-radius: var(--radius-control);
-        background: var(--carbon-surface);
+        background: var(--carbon-surface2);
         color: var(--carbon-text);
         font: inherit;
+        outline: none;
+        transition: box-shadow 150ms ease;
       }
+      #instance:focus { box-shadow: 0 0 0 2px var(--focus-ring); }
     </style>
   </head>
   <body>
     <div class="header">
+      <img src="logo.svg" alt="" aria-hidden="true" class="mark" />
       <h1>KnightLoader</h1>
       <button id="openOptions" class="iconBadge" type="button" aria-label="Settings" title="Settings">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

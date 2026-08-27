@@ -19,7 +19,7 @@
 import { Accounts } from '../Accounts';
 import { Card, SectionTitle, ToggleRow } from '../../components/ui';
 import { useT } from '../../lib/i18n';
-import { setHideAccounts } from '../../lib/sidebarPrefs';
+import { setHidden } from '../../lib/sidebarPrefs';
 import { useDraft } from './context';
 
 export function AccountsTab() {
@@ -38,7 +38,7 @@ export function AccountsTab() {
             patch({ hideAccountsFromSidebar: !v });
             // Optimistic, ahead of the 600ms autosave - the sidebar reflects
             // the switch the moment it is flipped, not once the write lands.
-            setHideAccounts(!v);
+            setHidden('accounts', !v);
           }}
         />
       </Card>

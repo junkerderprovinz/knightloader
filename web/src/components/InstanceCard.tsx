@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import logoUrl from '../assets/logo.svg';
 import { ApiError, fetchTasks, type Task } from '../lib/api';
 import { fmtSpeed } from '../lib/format';
 import { useT } from '../lib/i18n';
@@ -126,43 +127,63 @@ export function InstanceCard({
   const dot = online ? 'bg-statusOkSolid' : refused ? 'bg-statusWarnSolid' : 'bg-statusFailSolid';
 
   return (
-    <Card hover={!!onOpen} className="group flex h-full flex-col gap-3">
-      <div className="flex items-center gap-2.5">
-        <span
-          role="img"
-          aria-label={state}
-          title={state}
-          className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${dot}`}
-        />
-        <span className="truncate font-semibold text-carbon-text">{name}</span>
-        <span className="flex-1" />
-        {onRemove && (
-          <span className="opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-            <IconBadge
-              kind="danger"
-              hue={hue}
-              icon={<IconTrash />}
-              title={t('instances.removeTitle', { name })}
-              aria-label={t('instances.removeTitle', { name })}
-              onClick={onRemove}
-            />
-          </span>
+    // padding="none" and a horizontal split, so the mark can sit flush
+    // against the card's own left edge and run its full height (jdp,
+    // 2026-08-27: "soll jede Instanz in deren card das logo ganz links in
+    // der card sein und die card in der höhe ausfüllen"). With Card's usual
+    // p-5 the mark would float inside a 20px margin instead, which is the
+    // one thing that was asked against. overflow-hidden clips it to the
+    // card's own corner radius; without it a square-edged image pokes out of
+    // a rounded card at both left corners.
+    //
+    // The right-hand column carries the padding the card gave up, and it is
+    // the side that decides the card's height - the mark is `self-stretch`
+    // and so takes whatever height it is handed rather than setting it,
+    // which is what keeps a row of cards the same height whatever their
+    // contents.
+    <Card padding="none" hover={!!onOpen} className="group flex h-full items-stretch overflow-hidden">
+      <div className="shrink-0 self-stretch bg-carbon-surface2/40">
+        <img src={logoUrl} alt="" aria-hidden className="h-full w-auto" />
+      </div>
+
+      <div className="flex min-w-0 flex-1 flex-col gap-3 p-5">
+        <div className="flex items-center gap-2.5">
+          <span
+            role="img"
+            aria-label={state}
+            title={state}
+            className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${dot}`}
+          />
+          <span className="truncate font-semibold text-carbon-text">{name}</span>
+          <span className="flex-1" />
+          {onRemove && (
+            <span className="opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+              <IconBadge
+                kind="danger"
+                hue={hue}
+                icon={<IconTrash />}
+                title={t('instances.removeTitle', { name })}
+                aria-label={t('instances.removeTitle', { name })}
+                onClick={onRemove}
+              />
+            </span>
+          )}
+        </div>
+
+        <div className="truncate text-xs text-carbon-textMuted">{relayId ? t('instances.viaRelay') : url}</div>
+
+        <div className="flex items-baseline gap-5">
+          <Metric value={stats?.active ?? '—'} label={t('instances.metricActive')} />
+          <Metric value={stats?.total ?? '—'} label={t('instances.metricTasks')} />
+          <Metric value={stats ? fmtSpeed(stats.speed) || '0' : '—'} label={t('instances.metricSpeed')} />
+        </div>
+
+        {onOpen && (
+          <Button kind="secondary" onClick={onOpen} className="mt-auto w-full justify-center">
+            {t('instances.open')}
+          </Button>
         )}
       </div>
-
-      <div className="truncate text-xs text-carbon-textMuted">{relayId ? t('instances.viaRelay') : url}</div>
-
-      <div className="flex items-baseline gap-5">
-        <Metric value={stats?.active ?? '—'} label={t('instances.metricActive')} />
-        <Metric value={stats?.total ?? '—'} label={t('instances.metricTasks')} />
-        <Metric value={stats ? fmtSpeed(stats.speed) || '0' : '—'} label={t('instances.metricSpeed')} />
-      </div>
-
-      {onOpen && (
-        <Button kind="secondary" onClick={onOpen} className="mt-auto w-full justify-center">
-          {t('instances.open')}
-        </Button>
-      )}
     </Card>
   );
 }

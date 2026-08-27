@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import logoUrl from '../assets/logo.svg';
 import { hueVars, rainbowAt } from '../lib/appearance';
 import { useRainbow } from '../lib/useRainbow';
-import { setHideAccounts as setHideAccountsStore, useHideAccounts } from '../lib/sidebarPrefs';
+import { setHidden, useHidden } from '../lib/sidebarPrefs';
 import { useT } from '../lib/i18n';
 import { fetchAuth, fetchSettings, logout } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
@@ -87,17 +87,21 @@ export function Sidebar() {
   }, []);
 
   // Live, not refetched on navigation: this is a persistent layout element
-  // that never remounts, and the Konten settings tab pushes into the same
-  // store the instant its toggle changes (see sidebarPrefs.ts), so the item
+  // that never remounts, and each settings tab pushes into the same store the
+  // instant its toggle changes (see sidebarPrefs.ts), so the item
   // appears/disappears while the user is still sitting on that tab, not only
   // on the next navigation (jdp, 2026-08-23: "Kontentab in der sidebar wird
   // nicht live ein und ausgeblendet"). Fetched once here purely to seed the
   // store with whatever the server last saved, for the first paint after a
-  // reload / before the Accounts tab has ever been visited this session.
-  const hideAccounts = useHideAccounts();
+  // reload / before either tab has ever been visited this session.
+  const hideAccounts = useHidden('accounts');
+  const hideInstances = useHidden('instances');
   useEffect(() => {
     fetchSettings()
-      .then((s) => setHideAccountsStore(s.hideAccountsFromSidebar))
+      .then((s) => {
+        setHidden('accounts', s.hideAccountsFromSidebar);
+        setHidden('instances', s.hideInstancesFromSidebar);
+      })
       .catch(() => {});
   }, []);
 
@@ -137,7 +141,7 @@ export function Sidebar() {
         <Item to="/" end hue={0} label={t('nav.overview')} icon={<IconDashboard />} />
         <Item to="/downloads" hue={1} label={t('nav.downloads')} icon={<IconDownloads />} badge={active} />
         <Item to="/collector" hue={2} label={t('nav.collector')} icon={<IconCollector />} badge={collected} />
-        <Item to="/instances" hue={3} label={t('nav.instances')} icon={<IconInstances />} />
+        {!hideInstances && <Item to="/instances" hue={3} label={t('nav.instances')} icon={<IconInstances />} />}
         {!hideAccounts && <Item to="/accounts" hue={4} label={t('nav.accounts')} icon={<IconAccounts />} />}
       </nav>
 

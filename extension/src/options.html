@@ -29,19 +29,29 @@
       p.fieldSub { color: var(--carbon-text-muted); margin: 0 0 12px; font-size: var(--text-dense); }
       label { display: block; font-size: var(--text-dense); color: var(--carbon-text-sub); margin-bottom: 6px; }
       /* Selects are shaped like the inputs deliberately: a native dropdown
-         standing next to a token-styled field reads as another app's control. */
+         standing next to a token-styled field reads as another app's control.
+         Both now match the web UI's own field exactly (ui.tsx's inputClass),
+         which is a FILLED surface and no border at all (jdp, 2026-08-27: "Das
+         Sprachdropdown ist in der Erweiterung nicht im GSS") - GlimStone
+         separates with surface steps, never with lines, and this sheet had
+         kept a 1px border plus a focus outline from before it followed that
+         rule. surface2 is the field colour; the focus ring is a box-shadow,
+         because an outline sits outside the radius and squares off the
+         corner it is drawn around. */
       input,
       select {
         box-sizing: border-box;
         padding: 9px 10px;
-        border: 1px solid var(--carbon-border);
+        border: 0;
         border-radius: var(--radius-control);
-        background: var(--carbon-surface);
+        background: var(--carbon-surface2);
         color: var(--carbon-text);
         font: inherit;
+        outline: none;
+        transition: box-shadow 150ms ease;
       }
       input:focus,
-      select:focus { outline: 2px solid var(--focus-ring); outline-offset: -1px; }
+      select:focus { box-shadow: 0 0 0 2px var(--focus-ring); }
       /* The "Report it" link has to be the same object as the button beside it,
          so the look lives here once and the anchor is only told to be a box. */
       button,
@@ -82,16 +92,23 @@
          looking like one. */
       .note a { color: var(--carbon-text-sub); }
       #list { display: flex; flex-direction: column; gap: 8px; }
+      /* A filled row, not an outlined one - same correction as the fields
+         above, and the same reason: GlimStone separates with surface steps,
+         not with lines. */
       .row {
         display: flex;
         align-items: center;
         gap: 10px;
         padding: 10px 12px;
-        border: 1px solid var(--carbon-border);
+        border: 0;
         border-radius: var(--radius-control);
-        background: var(--carbon-surface);
+        background: var(--carbon-surface2);
       }
-      .row.isDefault { border-color: var(--accent); }
+      /* "This is the default instance" as a ring rather than a recoloured
+         border, matching how the web UI marks a selected swatch (ui.tsx): an
+         inset gap in the page colour, then the accent, so the mark reads as
+         applied TO the row rather than as the row's own edge. */
+      .row.isDefault { box-shadow: 0 0 0 2px var(--carbon-bg), 0 0 0 4px var(--accent); }
       .row .info { flex: 1; min-width: 0; }
       .row .name { font-weight: 500; }
       .row .url { color: var(--carbon-text-muted); font-size: var(--text-dense); word-break: break-all; }

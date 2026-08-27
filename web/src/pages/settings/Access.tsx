@@ -34,12 +34,10 @@ import {
 } from '../../lib/api';
 import { copyToClipboard } from '../../lib/clipboard';
 import { fmtDate } from '../../lib/format';
-import { useInstallPrompt } from '../../lib/pwaInstall';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import {
   IconCheck,
   IconClipboard,
-  IconClose,
   IconKey,
   IconPlus,
   IconSignOut,
@@ -88,11 +86,12 @@ const PENDING = {
   'settings.access.tokens.createFailed': 'Could not create the token: {error}',
 
   // The one survivor of settings.access.remote.*: everything else there
-  // described a card that no longer exists. This warning does not - it fires
-  // whenever an unprotected instance answers a request from off this
-  // machine, whatever road that request took.
-  'settings.access.remote.exposedWarning':
-    'This instance just answered a request from outside this machine, and no password protects it. Anyone who can reach it can see and control every download. Set a password above now.',
+  // described cards that have since moved or gone. It says what being
+  // reachable-and-unprotected actually costs, as a quiet second line under
+  // the password card's own status - not as the red banner it used to be,
+  // see that card's own comment.
+  'settings.access.remote.exposedNote':
+    'This instance can be reached from other machines, so anyone who reaches it can see and control every download. A password is the only thing that changes that.',
 
   'settings.access.identity.title': "This instance's identity",
   'settings.access.identity.nameLabel': 'Name',
@@ -103,20 +102,9 @@ const PENDING = {
   'settings.access.identity.domainsHint':
     'Remembered automatically the first time a request actually arrives on one, so it stays listed here even when later requests come in over the LAN IP instead. Add one by hand for a domain that is already configured but has not been visited through yet - one full address per line, e.g. https://kl.example.com.',
 
-  // installTitle/installBody/storeAndroid/storeIOS/storeComingSoon/
-  // installPwaLabel are real, fully-translated locale keys now (jdp,
-  // 2026-08-26 rescope: "die jetzige funktion die in der i infobubble
-  // beschrieben ist will ich nicht... dort sollen die Verlinkungen zum Play
-  // Store und App Store stehen") - not listed here, because installTitle
-  // and installBody already existed in every locale file from an earlier
-  // wave, and a PENDING entry here would have been silently shadowed by
-  // that real value instead of overriding it (t(key) is checked before
-  // PENDING[key], never the other way around) - the exact bug this file's
-  // own comment about "not in en.ts yet" no longer describes for these six
-  // keys, and almost caused this rescope to ship invisibly.
-  'settings.access.remote.install': 'Install',
-  'settings.access.remote.installIOS':
-    'On iPhone or iPad: open this page in Safari, tap Share, then "Add to Home Screen".',
+  // The whole install/store family moved to BrowserTools.tsx with the card
+  // it belonged to (jdp, 2026-08-27) and is spelled settings.browsertools.*
+  // there - real, translated keys in every locale file, not PENDING ones.
 
   // One sentence for "can another KnightLoader reach this one", because which
   // road it takes is this card's business and not the reader's. The four cases
@@ -189,7 +177,7 @@ export function Access() {
           deployment, not hidden behind a fetch that has nothing to do with
           it. */}
       <IdentityCard cx={cx} />
-      <PasswordCard />
+      <PasswordCard cx={cx} />
 
       {/* Only the exposed-warning banner now (jdp, 2026-08-26: "Die
           netzwerkzugriffcard entfernen wir. die ist völlig witzlos. auf der
@@ -197,12 +185,9 @@ export function Access() {
           (this instance's own LAN address + QR) is gone, and with it the
           whole reason this used to be deployment-gated: nothing left in
           here depends on fetchRemoteAccess()'s deployment field at all. */}
-      <ExposedWarningBanner cx={cx} />
-      {/* GetTheAppCard is unconditional, unlike the old install card it
-          replaces (which lived inside the now-removed deployment-gated
-          section and never rendered on desktop) - which apps exist to
-          install has nothing to do with network-reachability fetch state. */}
-      <GetTheAppCard cx={cx} />
+      {/* The app card moved to the Browser & App tab (jdp, 2026-08-27) -
+          getting KnightLoader onto a phone is the same question as getting
+          it into a browser, and both now answer in one place. */}
       <RemoteAccessCard cx={cx} />
       <TokensSection cx={cx} />
 
@@ -244,7 +229,7 @@ export function Access() {
 // with the rest of the settings: a password is not a preference you change by
 // accident while adjusting the speed limit, and it does not go through
 // PUT /api/settings at all.
-function PasswordCard() {
+function PasswordCard({ cx }: { cx: (k: PendingKey) => string }) {
   const { t } = useT();
   const [auth, setAuth] = useState<AuthState | null>(null);
   const [current, setCurrent] = useState('');
@@ -252,11 +237,18 @@ function PasswordCard() {
   const [done, setDone] = useState(false);
   const [error, setError] = useState('');
   const [signingOut, setSigningOut] = useState(false);
+  // Whether this instance can actually be reached from off this machine -
+  // the one fact that turns "no password is set" from a preference into a
+  // problem. See routes_remote.go's own doc comment on Exposed.
+  const [exposed, setExposed] = useState(false);
 
   useEffect(() => {
     fetchAuth()
       .then(setAuth)
       .catch(() => setAuth(null));
+    fetchRemoteAccess()
+      .then((info) => setExposed(info.exposed))
+      .catch(() => setExposed(false));
   }, []);
 
   async function onApply() {
@@ -286,9 +278,27 @@ function PasswordCard() {
         <SectionTitle hue={0} hint={t('settings.lockHint')}>
           {t('auth.password')}
         </SectionTitle>
-        <p className={`text-sm ${locked ? 'text-statusOk' : 'text-carbon-textSub'}`}>
+        {/* Unprotected AND reachable is the case worth a colour. It used to
+            be its own red banner further down the page (jdp, 2026-08-27:
+            "Wieso wird ständig diese meldung angezeigt? Braucht es die?") -
+            which fired on every load of every container, because a container
+            binds every interface in its own namespace by design, so
+            ListensWidely is permanently true there. The warning was never
+            wrong; it was simply shouting a second time, three centimetres
+            below a card whose own status line already said "not protected",
+            at somebody looking straight at the field that fixes it. So the
+            two merged: one line, on the card that can act on it, in the
+            warning hue rather than the alarm one. */}
+        <p
+          className={`text-sm ${locked ? 'text-statusOk' : exposed ? 'text-statusWarn' : 'text-carbon-textSub'}`}
+        >
           {locked ? t('settings.lockOn') : t('settings.lockOff')}
         </p>
+        {!locked && exposed && (
+          <p className="-mt-3 text-[11px] leading-relaxed text-carbon-textSub">
+            {cx('settings.access.remote.exposedNote')}
+          </p>
+        )}
         {locked && (
           <Field label={t('settings.passwordCurrent')}>
             <PasswordInput
@@ -347,133 +357,6 @@ function PasswordCard() {
           {error && <span className="text-statusFail text-sm">{error}</span>}
         </div>
       </Card>
-  );
-}
-
-// ---- Exposed warning & getting the app --------------------------------------
-
-// ExposedWarningBanner reads GET /api/remote-access once on mount purely for
-// the `exposed` flag - whether this instance has ever answered a request
-// from outside this machine while unprotected. Dismissible per tab (jdp,
-// 2026-08-26: "Es steht die ganze zeit die meldung... kann man die nicht
-// mit einem x button versehen um sie zu entfernen?") rather than
-// permanently: the risk it names is real again on the next page load if
-// still unprotected, so a dismissal that survived a reload would silence a
-// warning about a problem that never actually got fixed.
-function ExposedWarningBanner({ cx }: { cx: (k: PendingKey) => string }) {
-  const { t } = useT();
-  const [exposed, setExposed] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
-
-  useEffect(() => {
-    fetchRemoteAccess()
-      .then((info) => setExposed(info.exposed))
-      .catch(() => setExposed(false));
-  }, []);
-
-  if (!exposed || dismissed) return null;
-
-  return (
-    <div className="flex items-start gap-3 rounded-[var(--radius-card)] bg-statusFailBg p-4">
-      <IconWarning width={20} height={20} className="mt-0.5 shrink-0 text-statusFail" />
-      <p className="min-w-0 flex-1 text-sm font-medium text-statusFail">
-        {cx('settings.access.remote.exposedWarning')}
-      </p>
-      {/* A plain button in the banner's own red, not an IconBadge tile - a
-          colourful square badge dropped onto a solid alert strip would read
-          as an unrelated control rather than part of the same message. */}
-      <button
-        type="button"
-        onClick={() => setDismissed(true)}
-        title={t('common.dismiss')}
-        aria-label={t('common.dismiss')}
-        className="shrink-0 rounded-[var(--radius-control)] p-1 text-statusFail/70 transition-colors hover:bg-statusFail/10 hover:text-statusFail"
-      >
-        <IconClose width={14} height={14} />
-      </button>
-    </div>
-  );
-}
-
-// GetTheAppCard leads with the native apps KnightLoader actually ships
-// (jdp, 2026-08-26: "wir veröffentlichen ja desktop versionen und auch
-// native Apps. Dort sollen die Verlinkungen zum Play Store und App Store
-// stehen"), with installing this page itself (the old card's whole
-// premise) kept as the smaller, still-real second option rather than the
-// headline. Unlike the old install card it replaces - nested inside the
-// now-removed RemoteAccessSection, gated by fetchRemoteAccess(), and
-// invisible on a desktop deployment - this one renders unconditionally:
-// which apps exist has nothing to do with network-reachability fetch
-// state.
-function GetTheAppCard({ cx }: { cx: (k: PendingKey) => string }) {
-  // installTitle/installBody/installPwaLabel are real, translated locale
-  // keys (see the PENDING map's own comment on why they are not listed
-  // there) - read via t(), not cx(), same as install/installIOS just below
-  // stay on cx() because those two are still PENDING-only.
-  const { t } = useT();
-  const { available: canInstall, promptInstall } = useInstallPrompt();
-  // Safari (desktop and iOS) never fires beforeinstallprompt, so
-  // useInstallPrompt's `available` is permanently false there - this is the
-  // one place that still has something useful to say instead of nothing:
-  // the manual Share-sheet route, iOS's only way to install any web app.
-  const iOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-
-  return (
-    <Card className="flex flex-col gap-4">
-      <SectionTitle hue={3} hint={t('settings.access.remote.installBody')}>
-        {t('settings.access.remote.installTitle')}
-      </SectionTitle>
-      <div className="flex flex-wrap gap-3">
-        <StoreButton store="android" />
-        <StoreButton store="ios" />
-      </div>
-      {(canInstall || iOS) && (
-        <div className="flex flex-col gap-2 border-t border-carbon-border/40 pt-4">
-          <span className="text-xs font-semibold text-carbon-textSub">
-            {t('settings.access.remote.installPwaLabel')}
-          </span>
-          {canInstall && (
-            <div>
-              <Button kind="secondary" hue={3} onClick={() => void promptInstall()}>
-                {cx('settings.access.remote.install')}
-              </Button>
-            </div>
-          )}
-          {!canInstall && iOS && (
-            <p className="text-[11px] text-carbon-textMuted">{cx('settings.access.remote.installIOS')}</p>
-          )}
-        </div>
-      )}
-    </Card>
-  );
-}
-
-// Filled in once a listing actually goes live in that store - empty for now
-// (mirrors BrowserTools.tsx's own STORE_URLS: submission needs a completed
-// store listing, not only the developer account, which is already the
-// state a native-app store submission is in). Until a URL is set here, the
-// button stays disabled with an explanatory tooltip rather than guessing at
-// a fallback destination: unlike the browser extension's packaged .zip/.xpi
-// (downloadable straight from this instance), there is no equivalent
-// direct-install file for a native mobile app to fall back to.
-const APP_STORE_URLS: Record<'android' | 'ios', string> = {
-  android: '',
-  ios: '',
-};
-
-function StoreButton({ store }: { store: 'android' | 'ios' }) {
-  const { t } = useT();
-  const url = APP_STORE_URLS[store];
-  const label = t(store === 'android' ? 'settings.access.remote.storeAndroid' : 'settings.access.remote.storeIOS');
-  return (
-    <Button
-      kind="secondary"
-      disabled={!url}
-      title={url ? undefined : t('settings.access.remote.storeComingSoon')}
-      onClick={() => url && window.open(url, '_blank', 'noopener,noreferrer')}
-    >
-      {label}
-    </Button>
   );
 }
 

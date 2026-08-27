@@ -1,22 +1,30 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Link } from 'react-router-dom';
 import logoUrl from '../../assets/logo.svg';
 import { buildBookmarklet } from '../../lib/browserTools';
 import { fetchExtensionVersion } from '../../lib/api';
+import { useInstallPrompt } from '../../lib/pwaInstall';
 import { useT } from '../../lib/i18n';
 import { Button, Card, InfoBubble, SectionTitle } from '../../components/ui';
+import { APP_STORE_BADGE_SVG, PLAY_BADGE_SVG } from '../../components/storeBadgeMarks';
 
 /**
- * Two ways to hand KnightLoader a link from outside the app itself
- * (build-plan.md's 11D): a bookmarklet and the MV3 browser extension
- * (extension/src, downloaded pre-filled with THIS instance's own address -
- * see internal/api/routes_browsertools.go). Installing this page as an app
- * lives on the Zugang tab, not here - see the note above the link at the
- * bottom of this component for why.
+ * Every way to reach KnightLoader from outside the app itself: a bookmarklet,
+ * the MV3 browser extension (extension/src, downloaded pre-filled with THIS
+ * instance's own address - see internal/api/routes_browsertools.go), and the
+ * native apps.
  *
- * Both land on the same place, /quickadd (pages/QuickAdd.tsx) - this page
- * only ever has to build the address and the drag-target, not the staging
- * logic.
+ * The app card moved here from the Zugang tab (jdp, 2026-08-27: "Die App card
+ * dann bitte in den Browser-Werkzeuge verschieben und den Tab Browser & App
+ * benennen"), and it took its keys with it: it lived under
+ * settings.access.remote.* while it sat on that page, and a key named after
+ * the page it used to be on is the kind of thing nobody dares delete two
+ * waves later. The rail label follows the same move - one tab that answers
+ * "how do I get at this from somewhere else", whether that somewhere is a
+ * browser or a phone.
+ *
+ * The browser routes all land on the same place, /quickadd (pages/
+ * QuickAdd.tsx) - this page only ever has to build the address and the
+ * drag-target, not the staging logic.
  */
 export function BrowserTools() {
   const { t } = useT();
@@ -121,20 +129,126 @@ export function BrowserTools() {
         </div>
       </Card>
 
-      {/* "Als App installieren" lives on the Zugang tab only now - jdp,
-          2026-08-23: "Im tab Zugang und Browsererweiterung ist eine Card
-          'Als app installieren'. warum zweimal?" That card is the more
-          complete one (it also covers the desktop build, where installing
-          as an app makes no sense, and Safari/iOS's manual share-sheet
-          path); this page just points at it instead of carrying a second,
-          thinner copy that could drift from it. */}
-      <Link
-        to="/settings/access"
-        className="self-start text-[11px] text-carbon-textMuted underline-offset-2 hover:text-carbon-text hover:underline"
-      >
-        {t('settings.browsertools.installedElsewhere')}
-      </Link>
+      <AppCard />
     </div>
+  );
+}
+
+/**
+ * The native apps, and installing this page itself as the smaller second
+ * option below them.
+ *
+ * The two store badges are jdp's own artwork rather than a text button
+ * (2026-08-27: "auf dem Desktop sind zwei svg dateien. die Buttons bitte in
+ * die card einpflegen") - see components/storeBadgeMarks.ts for the three
+ * mechanical edits made to let two of them share one page and one theme.
+ *
+ * No "not published yet" note anywhere on this card, deliberately (jdp, same
+ * message: "kein hinweis im UI. KL wird erst veröffentlicht wenn alles fertig
+ * ist"): by the time anybody who is not jdp sees this page, the listings
+ * exist and the URLs below are filled in. Until then a badge with no URL
+ * simply does not respond - it is the one state that needs no words, because
+ * the only person who can reach it already knows why.
+ */
+function AppCard() {
+  const { t } = useT();
+  const { available: canInstall, promptInstall } = useInstallPrompt();
+  // Safari (desktop and iOS) never fires beforeinstallprompt, so
+  // useInstallPrompt's `available` is permanently false there - this is the
+  // one place that still has something useful to say instead of nothing: the
+  // manual Share-sheet route, iOS's only way to install any web app.
+  const iOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+  return (
+    <Card className="flex flex-col gap-4">
+      <SectionTitle hue={3} hint={t('settings.browsertools.appBody')}>
+        {t('settings.browsertools.appTitle')}
+      </SectionTitle>
+      <div className="flex flex-wrap items-center gap-3">
+        <StoreBadge svg={PLAY_BADGE_SVG} name={t('settings.browsertools.storeAndroid')} url={APP_URLS.android} />
+        <StoreBadge svg={APP_STORE_BADGE_SVG} name={t('settings.browsertools.storeIOS')} url={APP_URLS.ios} />
+        {/* The one route that works today, and the only one of the three that
+            is ours to keep working - so it is a plain button in the app's own
+            language rather than a third pretend-badge beside two real brand
+            marks. */}
+        <Button
+          kind="secondary"
+          hue={3}
+          onClick={() => window.open(APP_URLS.apk, '_blank', 'noopener,noreferrer')}
+        >
+          {t('settings.browsertools.apkLabel')}
+        </Button>
+      </div>
+      {(canInstall || iOS) && (
+        <div className="flex flex-col gap-2 pt-1">
+          <span className="text-xs font-semibold text-carbon-textSub">
+            {t('settings.browsertools.installPwaLabel')}
+          </span>
+          {canInstall && (
+            <div>
+              <Button kind="secondary" hue={3} onClick={() => void promptInstall()}>
+                {t('settings.browsertools.install')}
+              </Button>
+            </div>
+          )}
+          {!canInstall && iOS && (
+            <p className="text-[11px] text-carbon-textMuted">{t('settings.browsertools.installIOS')}</p>
+          )}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+/**
+ * Where the three app buttons go. The two store URLs are empty until a
+ * listing actually goes live (jdp is filling them in once the apps are
+ * published) - same arrangement as STORE_URLS above for the extension, and
+ * the same reason it is a constant rather than a setting: which store a
+ * release exists in is a fact about the build, not about this instance.
+ *
+ * The APK link points at the releases INDEX rather than /releases/latest,
+ * which would be wrong the moment a server release outranks a mobile one -
+ * the mobile builds carry their own mobile/vX.Y.Z tags, and GitHub has no way
+ * to ask for "the newest release whose tag starts with mobile/".
+ */
+const APP_URLS = {
+  android: '',
+  ios: '',
+  apk: 'https://github.com/junkerderprovinz/knightloader/releases',
+};
+
+/**
+ * One store badge, sized by its own artwork rather than by a fixed box: both
+ * files share a 2350x711.94 viewBox, so pinning the height alone keeps the
+ * pair identically sized and lets each keep its own width.
+ *
+ * It renders the markup itself instead of reusing BrandMark, whose `w-full`
+ * is right for the square browser tiles above and wrong here: a 3.3:1 badge
+ * inside a shrink-to-fit button needs `h-full w-auto`, or the button computes
+ * a width of zero and the badge collapses. Same dangerouslySetInnerHTML
+ * reasoning as BrandMark's own doc comment.
+ *
+ * A <button> and not an <a>, for the empty-URL case: an anchor with no href
+ * is not focusable and announces as plain text, while a disabled button still
+ * says what it is to a screen reader.
+ */
+function StoreBadge({ svg, name, url }: { svg: string; name: string; url: string }) {
+  return (
+    <button
+      type="button"
+      disabled={!url}
+      title={name}
+      aria-label={name}
+      onClick={() => url && window.open(url, '_blank', 'noopener,noreferrer')}
+      className="h-11 transition-opacity enabled:hover:opacity-85 disabled:cursor-default"
+    >
+      <span
+        className="block h-11 [&>svg]:block [&>svg]:h-full [&>svg]:w-auto"
+        aria-hidden
+        dangerouslySetInnerHTML={{ __html: svg }}
+      />
+    </button>
   );
 }
 
