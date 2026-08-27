@@ -19,6 +19,7 @@ import {
   IconModules,
   IconRetry,
   IconSliders,
+  IconUpload,
 } from '../../lib/icons';
 import { Access } from './Access';
 import { AccountsTab } from './Accounts';
@@ -31,6 +32,7 @@ import { Diagnostics } from './Diagnostics';
 import { DownloadsSettings } from './DownloadsSettings';
 import { EmptyPage } from './Empty';
 import { Help } from './Help';
+import { InstancesTab } from './Instances';
 import { Look } from './Look';
 import { Modules } from './Modules';
 import { Reconnect } from './Reconnect';
@@ -85,6 +87,10 @@ const PAGES: Record<string, () => ReactNode> = {
   // toggle on top of the shared pages/Accounts.tsx) — see that file's own
   // doc comment for why it stayed absent from this map for a while.
   accounts: () => <AccountsTab />,
+  // Same arrangement as accounts directly above, for the same request: the
+  // settings tab and the sidebar's "Instanzen" nav item render one page, and
+  // this file adds only the toggle that hides the nav item.
+  instances: () => <InstancesTab />,
   diagnostics: () => <Diagnostics />,
   help: () => <Help />,
   // The bookmarklet, the extension download and the PWA install step
@@ -120,14 +126,21 @@ const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   connections: IconGlobe,
   reconnect: IconRetry,
   accounts: IconAccounts,
+  // The sidebar's own Instanzen glyph, for the tab that renders the sidebar's
+  // own Instanzen page - one idea, one drawing, and this is where that
+  // drawing was always going. See torrents below for what that displaced.
+  instances: IconInstances,
   // yt-dlp's format/subtitle/output-template config - a filled-in form, the
   // same idea IconClipboard already draws for "a template with fields".
   resolvers: IconClipboard,
-  // Reused rather than a fresh glyph: IconInstances already draws "another
-  // device on the network" (see its own use on Reconnect.tsx's UPnP method
-  // tab), which is as close as the existing set gets to a peer-swarm idea,
-  // and it is not spoken for anywhere else in this map.
-  torrents: IconInstances,
+  // Torrents borrowed IconInstances while nothing else in this map claimed
+  // it ("as close as the existing set gets to a peer-swarm idea"). The
+  // instances tab below is that glyph's home use, and two tabs in one rail
+  // wearing the same drawing is the exact lie this map's own doc comment
+  // warns about - so the loan came back. IconUpload in its place is not a
+  // consolation prize: uploading is the one thing torrents do that no other
+  // backend here does at all.
+  torrents: IconUpload,
   captcha: IconCaptcha,
   schedule: IconClock,
   look: IconLook,

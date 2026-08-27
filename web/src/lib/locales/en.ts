@@ -9,6 +9,13 @@ export const en = {
   'settings.accounts.setupTitle': 'Sidebar',
   'settings.accounts.showInSidebar': 'Show in the sidebar too',
   'settings.accounts.showInSidebarHint': 'This tab and the sidebar’s own Accounts destination show the same page - turn this off if having both feels redundant rather than convenient.',
+  // The same three, for the Instances tab (jdp, 2026-08-27: "Können wir den
+  // Instanzentab wie den konten-tab ein- und ausblendbar machen?"). Its own
+  // keys rather than a shared pair, because the hint names the destination.
+  'settings.nav.instances': 'Instances',
+  'settings.instances.setupTitle': 'Sidebar',
+  'settings.instances.showInSidebar': 'Show in the sidebar too',
+  'settings.instances.showInSidebarHint': 'This tab and the sidebar’s own Instances destination show the same page - turn this off if having both feels redundant rather than convenient, or if you only run the one instance.',
   'nav.settings': 'Settings',
   'nav.workingTitle': 'working title',
   'theme.dark': 'Dark',
@@ -1557,8 +1564,8 @@ export const en = {
   'settings.access.tokens.done': 'Done',
   'settings.access.tokens.howToUse': 'Send it as a header: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Could not create the token: {error}',
-  'settings.access.remote.exposedWarning':
-    'This instance just answered a request from outside this machine, and no password protects it. Anyone who can reach it can see and control every download. Set a password above now.',
+  'settings.access.remote.exposedNote':
+    'This instance can be reached from other machines, so anyone who reaches it can see and control every download. A password is the only thing that changes that.',
   'settings.access.network.scanHint': 'Only works on the same network as this instance.',
   'settings.access.network.hideQr': 'Hide QR code',
   'settings.access.network.showQr': 'Show QR code',
@@ -1584,8 +1591,8 @@ export const en = {
   'settings.access.phrase.howStep1': 'On this instance, press "{button}". Twelve words appear.',
   'settings.access.phrase.howStep2': 'Open KnightLoader on the other machine, come to this same page, press "{button}" and type the twelve words in.',
   'settings.access.phrase.howStep3': 'That is it. Each now shows up on the other\'s Instances page, and you can drive either one from either one.',
-  'settings.access.phrase.howWhat': 'What actually happens: the words are a secret, not an address. Both instances turn them into the same key and call out to the same meeting point on the internet, which introduces whoever presents the same key and passes their messages along. Neither has to be reachable from outside, because both dial out rather than waiting to be dialled. The meeting point only ever sees a scrambled version of the key, never your words - so it cannot work out your phrase or let itself into your group.',
-  'settings.access.phrase.joinButton': 'I already have one',
+  'settings.access.phrase.howWhat': 'What actually happens: the words are a secret, not an address. Both instances turn them into the same key and dial out to the same meeting point, so neither has to be reachable from outside. The meeting point only ever sees a scrambled version of the key, never your words. Everything sent through it is encrypted with a second key your words produce, which it never receives - so it can pass your messages along without being able to read them.',
+  'settings.access.phrase.joinButton': 'Enter phrase',
   'settings.access.phrase.joinPlaceholder': 'Paste the twelve words from your other instance',
   'settings.access.phrase.joinConfirm': 'Connect',
   'settings.access.phrase.errChecksum': 'That phrase is not valid - check for a mistyped or swapped word.',
@@ -1600,15 +1607,6 @@ export const en = {
   'settings.access.phrase.revealConfirm': 'Show',
   'settings.access.phrase.showAgain': 'Show the phrase',
   'settings.access.phrase.leave': 'Leave the group',
-  'settings.access.remote.installTitle': 'Get the app',
-  'settings.access.remote.installBody': 'Native apps for desktop, Android and iOS - this page can also be installed straight from your browser, without either.',
-  'settings.access.remote.storeAndroid': 'Google Play',
-  'settings.access.remote.storeIOS': 'App Store',
-  'settings.access.remote.storeComingSoon': 'Not published yet.',
-  'settings.access.remote.installPwaLabel': 'Or install this page as an app',
-  'settings.access.remote.install': 'Install',
-  'settings.access.remote.installIOS':
-    'On iPhone or iPad: open this page in Safari, tap Share, then "Add to Home Screen".',
   'settings.access.relay.title': 'Relay',
   'settings.access.relay.selfHosted': 'Nobody runs a relay for you. It is a separate binary you host yourself, the same way you already host KnightLoader, and it only routes messages between your own instances: no download and no file byte ever travels over it. Leaving this empty changes nothing about the rest of this page.',
   'settings.access.relay.urlLabel': 'Relay address',
@@ -1637,11 +1635,22 @@ export const en = {
   // MV3 browser extension and the PWA install step (pages/settings/
   // BrowserTools.tsx, Wave 11D). settings.nav.browsertools is this page's
   // rail label.
-  'settings.nav.browsertools': 'Browser tools',
+  'settings.nav.browsertools': 'Browser & App',
   'settings.browsertools.bookmarkletStep1': 'Drag the button below onto your browser’s bookmarks bar - it saves like any other bookmark, nothing installs.',
   'settings.browsertools.bookmarkletStep2': 'On any page, click it (select some text first if you only want that). A small KnightLoader tab opens with that page’s link, or the selected text, already filled in - review it and add it as a download from there.',
   'settings.browsertools.installLabel': 'How to install',
-  'settings.browsertools.installedElsewhere': 'Install as an app? See the Access tab.',
+  // The app card, moved here from the Access tab with its own keys (jdp,
+  // 2026-08-27). Deliberately not left under settings.access.remote.*: a key
+  // named after the page a card used to be on is one nobody dares delete.
+  'settings.browsertools.appTitle': 'App',
+  'settings.browsertools.appBody': 'Native apps for desktop, Android and iOS - this page can also be installed straight from your browser, without either.',
+  'settings.browsertools.storeAndroid': 'Google Play',
+  'settings.browsertools.storeIOS': 'App Store',
+  'settings.browsertools.apkLabel': 'Download the APK',
+  'settings.browsertools.installPwaLabel': 'Or install this page as an app',
+  'settings.browsertools.install': 'Install',
+  'settings.browsertools.installIOS':
+    'On iPhone or iPad: open this page in Safari, tap Share, then "Add to Home Screen".',
   'settings.browsertools.installChromiumStep1': 'Unzip the downloaded file.',
   'settings.browsertools.installChromiumStep2': 'Open chrome://extensions (or edge://extensions, brave://extensions).',
   'settings.browsertools.installChromiumStep3': 'Turn on Developer mode.',

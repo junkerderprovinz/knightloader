@@ -313,6 +313,9 @@ export interface Settings {
    *  nav item render the same page either way, so this only ever removes a
    *  second entry point to it, never the page itself. */
   hideAccountsFromSidebar: boolean;
+  /** The same for the "Instanzen" nav item, and the same relationship to its
+   *  settings tab - see the server field's own doc comment. */
+  hideInstancesFromSidebar: boolean;
   autoUpdateCheck: boolean;
   /** Meaningless without autoUpdateCheck also being on, and only ever acted
    *  on by the desktop build - see internal/settings/settings.go's own doc

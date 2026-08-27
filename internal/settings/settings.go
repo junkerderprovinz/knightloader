@@ -162,6 +162,17 @@ type Settings struct {
 	// page either way, so hiding one costs nothing but a click.
 	HideAccountsFromSidebar bool `json:"hideAccountsFromSidebar"`
 
+	// HideInstancesFromSidebar does the same for the "Instanzen" nav item
+	// (jdp, 2026-08-27: "Können wir den Instanzentab wie den konten-tab ein-
+	// und ausblendbar machen?"), and for the same reason: somebody running a
+	// single instance has a nav item that lists exactly itself, forever.
+	//
+	// A separate field rather than a shared "hidden nav items" list, matching
+	// HideAccountsFromSidebar above: a set of strings in settings.json is a
+	// set somebody can put a typo in, and neither of these is the start of a
+	// family big enough to be worth that.
+	HideInstancesFromSidebar bool `json:"hideInstancesFromSidebar"`
+
 	// AutoUpdateCheck asks the desktop build to call update.Check once at
 	// startup (and the Allgemein tab to do the same on load) instead of only
 	// on an explicit click of "Check for updates" - desktop only in

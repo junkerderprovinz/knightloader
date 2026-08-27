@@ -526,9 +526,13 @@ function HosterPresetButton({ host, base }: { host: string; base: string }) {
   );
 }
 
+// No useToast here, deliberately: this dialog reports a failed save inline
+// (setError, rendered in the footer) and reports a successful one by closing.
+// It held an unused `toast` for a while, found by a noUnusedLocals sweep -
+// worth stating rather than silently deleting, so the next reader does not
+// re-add it thinking the success path is missing its feedback.
 function HosterPresetDialog({ host, base, onClose }: { host: string; base: string; onClose: () => void }) {
   const { t } = useT();
-  const { toast } = useToast();
   const [preset, setPreset] = useState<YtdlpHosterPreset | null>(null);
   const [qualities, setQualities] = useState<string[]>([]);
   const [audioFormats, setAudioFormats] = useState<string[]>([]);

@@ -335,7 +335,7 @@ func featureList(a *app.App) []Feature {
 			Detail: cnlDetail(a),
 		},
 		{
-			ID: "federation", Verdict: VerdictShipped, Page: "",
+			ID: "federation", Verdict: VerdictShipped, Page: "instances",
 			Switch: SwitchNone, Enabled: len(a.Federation.List()) > 0,
 			Reason: "federation is a list of peers and holds nothing open; the list being empty is its off state",
 			Detail: countDetail(len(a.Federation.List()), "peer", "peers"),
@@ -460,6 +460,12 @@ func featurePages() []FeaturePage {
 		{ID: "connections", Modules: []string{"connections"}},
 		{ID: "reconnect", Modules: []string{"reconnect"}},
 		{ID: "accounts", Modules: []string{"jd"}},
+		// Files the existing "federation" module row, which had Page: ""
+		// and therefore reported live peer counts to nowhere - the module
+		// list showed it, no page ever claimed it. The tab itself is the
+		// Instanzen page plus its hide-from-sidebar toggle (jdp,
+		// 2026-08-27), the same arrangement accounts above has.
+		{ID: "instances", Modules: []string{"federation"}},
 		{ID: "resolvers", Modules: []string{"ytdlp"}},
 		{ID: "torrents", Modules: []string{"torrents"}},
 		{ID: "captcha", Modules: []string{"captcha"}},
