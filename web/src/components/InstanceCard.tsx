@@ -98,6 +98,7 @@ export function InstanceCard({
   onOpen,
   onRemove,
   hue,
+  isSelf = false,
 }: {
   /** The label shown - callers pass a peer's displayName (falling back to
    *  its name) here, never the raw relay address. */
@@ -114,6 +115,11 @@ export function InstanceCard({
    *  - "this instance"'s own card carries none, since it has no remove
    *  badge to colour and is not one of that set to begin with. */
   hue?: number;
+  /** Marks the card for the instance you are looking at right now. It gets
+   *  the same Open button as any peer (pointing at the local download list),
+   *  so the row does not have one card shaped differently from the rest, plus
+   *  a quiet label saying which one it is. */
+  isSelf?: boolean;
 }) {
   const { t } = useT();
   const stats = usePeerStats(base);
@@ -142,8 +148,14 @@ export function InstanceCard({
     // which is what keeps a row of cards the same height whatever their
     // contents.
     <Card padding="none" hover={!!onOpen} className="group flex h-full items-stretch overflow-hidden">
-      <div className="shrink-0 self-stretch bg-carbon-surface2/40">
-        <img src={logoUrl} alt="" aria-hidden className="h-full w-auto" />
+      {/* No plate behind the mark and no full-bleed height (jdp, 2026-08-27:
+          "das logo ist zu groß. es soll keinen hellen hintergrund haben") -
+          it sits on the card's own surface, vertically centred, at a size
+          that reads as an emblem rather than as the card's left third. The
+          column still stretches so the mark stays centred however tall the
+          card grows; only the image inside it is bounded. */}
+      <div className="flex shrink-0 items-center self-stretch pl-4">
+        <img src={logoUrl} alt="" aria-hidden className="h-14 w-auto" />
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col gap-3 p-5">
@@ -155,6 +167,9 @@ export function InstanceCard({
             className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${dot}`}
           />
           <span className="truncate font-semibold text-carbon-text">{name}</span>
+          {/* Which card is the machine you are on. An eyebrow rather than a
+              coloured pill: it is an orientation aid, not a status. */}
+          {isSelf && <span className="glim-eyebrow shrink-0">{t('instances.thisInstance')}</span>}
           <span className="flex-1" />
           {onRemove && (
             <span className="opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">

@@ -85,13 +85,13 @@ const PENDING = {
   'settings.access.tokens.howToUse': 'Send it as a header: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Could not create the token: {error}',
 
-  // The one survivor of settings.access.remote.*: everything else there
-  // described cards that have since moved or gone. It says what being
-  // reachable-and-unprotected actually costs, as a quiet second line under
-  // the password card's own status - not as the red banner it used to be,
-  // see that card's own comment.
-  'settings.access.remote.exposedNote':
-    'This instance can be reached from other machines, so anyone who reaches it can see and control every download. A password is the only thing that changes that.',
+  // Nothing from settings.access.remote.* survives here now. The install and
+  // store keys moved to settings.browsertools.* with their card; the
+  // exposed-instance sentence is gone entirely (jdp, 2026-08-27: "Den text
+  // hier entfernen") - the password card says "kein Passwort gesetzt" beside
+  // the button that fixes it, in the warning hue when this instance is
+  // actually reachable, and a paragraph restating that added length rather
+  // than information. The `exposed` flag still drives that colour.
 
   'settings.access.identity.title': "This instance's identity",
   'settings.access.identity.nameLabel': 'Name',
@@ -278,27 +278,6 @@ function PasswordCard({ cx }: { cx: (k: PendingKey) => string }) {
         <SectionTitle hue={0} hint={t('settings.lockHint')}>
           {t('auth.password')}
         </SectionTitle>
-        {/* Unprotected AND reachable is the case worth a colour. It used to
-            be its own red banner further down the page (jdp, 2026-08-27:
-            "Wieso wird ständig diese meldung angezeigt? Braucht es die?") -
-            which fired on every load of every container, because a container
-            binds every interface in its own namespace by design, so
-            ListensWidely is permanently true there. The warning was never
-            wrong; it was simply shouting a second time, three centimetres
-            below a card whose own status line already said "not protected",
-            at somebody looking straight at the field that fixes it. So the
-            two merged: one line, on the card that can act on it, in the
-            warning hue rather than the alarm one. */}
-        <p
-          className={`text-sm ${locked ? 'text-statusOk' : exposed ? 'text-statusWarn' : 'text-carbon-textSub'}`}
-        >
-          {locked ? t('settings.lockOn') : t('settings.lockOff')}
-        </p>
-        {!locked && exposed && (
-          <p className="-mt-3 text-[11px] leading-relaxed text-carbon-textSub">
-            {cx('settings.access.remote.exposedNote')}
-          </p>
-        )}
         {locked && (
           <Field label={t('settings.passwordCurrent')}>
             <PasswordInput
@@ -323,6 +302,19 @@ function PasswordCard({ cx }: { cx: (k: PendingKey) => string }) {
           <Button kind="secondary" hue={0} onClick={onApply} disabled={locked ? current === '' : next === ''}>
             {next === '' && locked ? t('settings.removePassword') : t('settings.setPassword')}
           </Button>
+          {/* Beside the button that changes it, not as a line of its own above
+              the fields (jdp, 2026-08-27: "Der Hinweis 'kein Passwort gesetzt'
+              soll rechts vom Button passwort setzten stehen"). The state and
+              the control that changes it read as one thing that way, and the
+              card loses a full-width sentence that said what four words say.
+              Warning hue only when this instance is actually reachable from
+              elsewhere - unprotected on a machine nothing can reach is a
+              preference, not a problem. */}
+          <span
+            className={`text-sm ${locked ? 'text-statusOk' : exposed ? 'text-statusWarn' : 'text-carbon-textSub'}`}
+          >
+            {locked ? t('settings.lockOn') : t('settings.lockOff')}
+          </span>
           {/* Only once a password is actually protecting this instance -
               seeing this page at all already means the current session is
               authenticated, the same "locked" flag Sidebar.tsx's own sign-out
@@ -533,7 +525,39 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
 
   return (
     <Card className="flex flex-col gap-5">
-      <SectionTitle hue={1} hint={t('settings.access.phrase.body')}>
+      {/* Two labelled bubbles in the title's own right slot, stacked (jdp,
+          2026-08-27: "Der button Soll heißen 'Wie funktioniert das?' und
+          rechts oben in der card sein. darunter soll noch ein button sein als
+          statusanzeige"). The long "what actually happens" paragraph used to
+          sit at the bottom of the how-to, where it was four lines of prose
+          under three numbered steps - true, and read by nobody who was not
+          already curious. Behind a bubble it is available to exactly the
+          person who wants it.
+
+          The second one is the connection state, which was a dot and a
+          sentence in the body. As a bubble-carrying pill it says the state in
+          one word and keeps the explanation one hover away. */}
+      <SectionTitle
+        hue={1}
+        hint={t('settings.access.phrase.body')}
+        right={
+          <div className="flex flex-col items-end gap-1.5">
+            <InfoPill
+              label={t('settings.access.phrase.howButton')}
+              tip={t('settings.access.phrase.howWhat')}
+            />
+            <InfoPill
+              label={
+                conn.connected
+                  ? t('settings.access.phrase.statusConnected')
+                  : t('settings.access.phrase.statusDisconnected')
+              }
+              tip={t('settings.access.phrase.statusHint')}
+              dot={conn.connected ? 'bg-statusOkSolid' : 'bg-carbon-textMuted'}
+            />
+          </div>
+        }
+      >
         {t('settings.access.cardTitle')}
       </SectionTitle>
 
@@ -557,9 +581,6 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
           <li>{t('settings.access.phrase.howStep2', { button: t('settings.access.phrase.joinButton') })}</li>
           <li>{t('settings.access.phrase.howStep3')}</li>
         </ol>
-        <p className="text-[11px] leading-relaxed text-carbon-textMuted">
-          {t('settings.access.phrase.howWhat')}
-        </p>
       </div>
 
       {/* Nothing set up yet: two ways in, and they are the two ends of the
@@ -612,24 +633,15 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
         </div>
       )}
 
-      {/* Set up: say whether it is actually working, offer the phrase, and
-          allow leaving. "Stored" and "connected" are shown separately
-          because a phrase with an unreachable relay is configured but not
-          working, and one word for both is what made the old relay card
-          unable to say which had gone wrong. */}
+      {/* Set up: offer the phrase and allow leaving. Whether it is actually
+          WORKING moved to the status pill in the title (jdp, 2026-08-27) -
+          "stored" and "connected" stay two separate facts, because a phrase
+          with an unreachable relay is configured but not working, and one
+          word for both is what made the old relay card unable to say which
+          had gone wrong. This block is now the "stored" half; the pill is the
+          "connected" half, and it is visible whether or not a phrase exists. */}
       {conn?.active && (
         <div className="flex flex-col gap-3">
-          <div className="flex items-start gap-2.5">
-            <span
-              className={`mt-1.5 h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${
-                conn.connected ? 'bg-statusOkSolid' : 'bg-carbon-textMuted'
-              }`}
-            />
-            <span className="min-w-0 flex-1 text-sm text-carbon-text">
-              {conn.connected ? t('settings.access.phrase.stateConnected') : t('settings.access.phrase.stateConnecting')}
-            </span>
-          </div>
-
           {phrase ? (
             <div className="flex flex-col gap-2">
               <span className="text-xs font-semibold text-carbon-textSub">
@@ -686,24 +698,41 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
               </div>
             </div>
           ) : (
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                kind="secondary"
-                hue={1}
-                onClick={() => {
-                  setPhraseErr('');
-                  // With no password there is nothing to re-enter, so this
-                  // goes straight to the answer instead of showing an empty
-                  // field somebody has to press past.
-                  if (conn.passwordSet) setRevealOpen(true);
-                  else void onReveal();
-                }}
-              >
-                {t('settings.access.phrase.showAgain')}
-              </Button>
-              <Button kind="ghost" disabled={phraseBusy} onClick={() => void onLeave()}>
-                {t('settings.access.phrase.leave')}
-              </Button>
+            <div className="flex flex-col gap-3">
+              {/* Warn, do not block (jdp, 2026-08-27: "zumindest den Hinweis
+                  setzen, dass man aus sicherheitsgründen ein passwort setzen
+                  soll") - the same call already made for creating a phrase,
+                  applied to the other door into the same secret. Showing the
+                  phrase on an unprotected instance means anyone who can reach
+                  this page can take the whole GROUP, not just this machine,
+                  and that is worth saying at the moment somebody reaches for
+                  the button. It is not worth refusing over: an instance
+                  nothing can reach has no problem here, and this page cannot
+                  prove which case it is looking at. */}
+              {!conn.passwordSet && (
+                <p className="text-[11px] leading-relaxed text-statusWarn">
+                  {t('settings.access.phrase.noPasswordWarning')}
+                </p>
+              )}
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  kind="secondary"
+                  hue={1}
+                  onClick={() => {
+                    setPhraseErr('');
+                    // With no password there is nothing to re-enter, so this
+                    // goes straight to the answer instead of showing an empty
+                    // field somebody has to press past.
+                    if (conn.passwordSet) setRevealOpen(true);
+                    else void onReveal();
+                  }}
+                >
+                  {t('settings.access.phrase.showAgain')}
+                </Button>
+                <Button kind="ghost" disabled={phraseBusy} onClick={() => void onLeave()}>
+                  {t('settings.access.phrase.leave')}
+                </Button>
+              </div>
             </div>
           )}
         </div>
@@ -712,6 +741,48 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
       {phraseErr && <p className="text-sm text-statusFail">{phraseErr}</p>}
 
     </Card>
+  );
+}
+
+/**
+ * A small labelled pill that carries an InfoBubble: the label says the short
+ * thing, the bubble holds the long one.
+ *
+ * The bubble is a SIBLING of the label rather than wrapped around it, the same
+ * arrangement BrowserTools.tsx's browser badges use and for the same reason:
+ * InfoBubble is its own focusable, hoverable trigger, and nesting it inside
+ * another interactive element makes one element's hover state answer for two.
+ *
+ * Not a <Button>: neither of these does anything when pressed, and a control
+ * shaped like a button that ignores clicks is worse than a label that never
+ * looked clickable. The surface is the same well the fields use, so it reads
+ * as a chip rather than as an action.
+ */
+function InfoPill({ label, tip, dot }: { label: string; tip: string; dot?: string }) {
+  // Blank-line-separated paragraphs become real ones. HTML collapses the
+  // newlines a translator wrote, so a three-paragraph explanation would
+  // otherwise arrive as one wall of text - and this bubble holds the longest
+  // piece of prose in the app.
+  const paragraphs = tip.split('\n\n').filter((p) => p.trim() !== '');
+  const body =
+    paragraphs.length > 1 ? (
+      <span className="flex flex-col gap-2">
+        {paragraphs.map((p, i) => (
+          <span key={i}>{p}</span>
+        ))}
+      </span>
+    ) : (
+      tip
+    );
+
+  return (
+    <span className="flex items-center gap-1.5 rounded-[var(--radius-pill)] bg-carbon-surface2 py-1 pl-2.5 pr-1.5 text-[11px] font-medium text-carbon-textSub">
+      {dot && <span aria-hidden className={`h-1.5 w-1.5 shrink-0 rounded-[var(--radius-pill)] ${dot}`} />}
+      <span className="whitespace-nowrap">{label}</span>
+      {/* label passed explicitly: with structured content as `tip`, the
+          bubble can no longer use it as its own accessible name. */}
+      <InfoBubble tip={body} label={label} />
+    </span>
   );
 }
 
