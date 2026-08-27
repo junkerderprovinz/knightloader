@@ -104,19 +104,6 @@ const PENDING = {
   'settings.access.remote.exposedWarning':
     'This instance just answered a request from outside this machine, and no password protects it. Anyone who can reach it can see and control every download. Set a password above now.',
 
-  'settings.access.network.title': 'Network access',
-  'settings.access.network.desktopNote':
-    'This is the desktop build. It does not serve the API over the network at all, so there is no address here to open on another device.',
-  'settings.access.network.hint':
-    "Open this instance's own interface on another device on the same network - a phone, another browser. This is not for connecting two KnightLoaders together; that is the Remote access card below.",
-  'settings.access.network.addressesTitle': 'Addresses this instance answers on',
-  'settings.access.network.noAddresses': 'No address could be determined for this request.',
-  'settings.access.network.loopback': 'this machine only',
-  'settings.access.network.domain': 'domain',
-  'settings.access.network.showQr': 'Show QR code',
-  'settings.access.network.hideQr': 'Hide QR code',
-  'settings.access.network.scanHint': 'Only works on the same network as this instance.',
-
   'settings.access.identity.title': "This instance's identity",
   'settings.access.identity.nameLabel': 'Name',
   'settings.access.identity.namePlaceholder': 'e.g. Home server',
@@ -140,36 +127,12 @@ const PENDING = {
   'settings.access.remote.install': 'Install',
   'settings.access.remote.installIOS':
     'On iPhone or iPad: open this page in Safari, tap Share, then "Add to Home Screen".',
-  'settings.access.remote.pairExpires': 'Valid for {min} minutes, then it expires unused.',
-  'settings.access.remote.pairWhere': 'Paste it into the other instance, using its own “Enter a code” button.',
-  'settings.access.remote.pairScan': 'Scan the QR code with the KnightLoader app.',
 
   // One sentence for "can another KnightLoader reach this one", because which
   // road it takes is this card's business and not the reader's. The four cases
   // are written out rather than assembled from clauses: a sentence stitched
   // together at runtime reads like one in every language it was written in.
-  'settings.access.remote.stateLan': 'Another KnightLoader on this network can reach this one.',
-  'settings.access.remote.stateBoth':
-    'Another KnightLoader can reach this one on this network, and from anywhere through your relay.',
-  'settings.access.remote.stateRelay': 'Another KnightLoader can reach this one from anywhere through your relay.',
-  'settings.access.remote.stateNone':
-    'Nothing can reach this one yet. This is the desktop build, which serves nothing over the network, so a relay is the way to connect it.',
-  'settings.access.remote.showCode': 'Show a code',
-  'settings.access.remote.hideCode': 'Hide the code',
-  'settings.access.remote.enterCode': 'Enter a code',
-  'settings.access.remote.beyond': 'Reaching instances outside this network',
-  'settings.access.remote.beyondOff': 'not set up',
 
-  'settings.access.relay.serveLabel': 'Run the relay on this instance',
-  'settings.access.relay.serveHint':
-    'Saves running a second program: the relay answers under /relay/connect on the address this instance already uses, behind the same reverse proxy and the same certificate, and the other instances point at that address. It admits only the key below, so nobody else can meet on it. What it cannot change is that a relay has to be reachable by both sides - turning this on inside an instance nothing can reach from outside gives the others nothing to dial.',
-  'settings.access.relay.serveAddress': 'Give the other instances this address',
-  'settings.access.relay.serveClients': 'connected right now: {n}',
-  'settings.access.relay.serveOn': 'running here',
-  'settings.access.relay.serveNeedsKey':
-    'No relay key is stored, so nothing can connect to this relay yet. Set one below, and give the other instances the same one.',
-
-  'settings.access.relay.title': 'Relay',
   // body/urlPlaceholder/urlHint/bothSidesHint/keyHint are real,
   // fully-translated locale keys now, rewritten (jdp, 2026-08-26: "Das ist
   // alles viel zu kompliziert! die infotexte sind verwirrend... Wo muss man
@@ -181,24 +144,6 @@ const PENDING = {
   // reason as the install keys above - see that comment. The card's shape
   // (one merged pairing+relay card, folded relay section) stays unchanged;
   // the problem measured out to be the copy, not the layout.
-  'settings.access.relay.selfHosted':
-    'Nobody runs a relay for you. It is a separate binary you host yourself, the same way you already host KnightLoader, and it only routes messages between your own instances: no download and no file byte ever travels over it. Leaving this empty changes nothing about the rest of this page.',
-  'settings.access.relay.urlLabel': 'Relay address',
-  'settings.access.relay.keyLabel': 'Relay key',
-  'settings.access.relay.keyPlaceholderSet': 'Stored. Type a new key to replace it.',
-  'settings.access.relay.keyPlaceholderUnset': 'Paste the relay key',
-  'settings.access.relay.keySet': 'Key stored',
-  'settings.access.relay.keyUnset': 'No key stored',
-  'settings.access.relay.keyClear': 'Remove the stored key',
-  'settings.access.relay.save': 'Save',
-  'settings.access.relay.saving': 'Saving…',
-  'settings.access.relay.saved': 'Saved',
-  'settings.access.relay.siblingsTitle': 'Visible through the relay',
-  'settings.access.relay.siblingsOff': 'Enter an address and a key to see the instances that share them.',
-  'settings.access.relay.siblingsEmpty':
-    'Nothing right now - the relay is reachable, no other instance is connected with this key.',
-  'settings.access.relay.unreachable':
-    'The relay cannot be reached with this address and key. Check both, and that the relay is running - nothing else on this instance is affected.',
 
   'settings.access.intakePortsHint':
     'Other ways this instance can be reached directly, outside the normal login - each with its own reachability shown here.',
@@ -837,7 +782,7 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
     setAddingPeer(p.url);
     try {
       const r = await addInstance(p.hostname, p.url);
-      if (r.needsPairing) setPeerErr(t('instances.needsPairing'));
+      if (r.refused) setPeerErr(t('instances.refused'));
       else if (!r.online) setPeerErr(t('instances.offlineWarning'));
       // Removed from the candidate list either way: a successful add has
       // nothing left to offer, and a refused/offline one is still "known"

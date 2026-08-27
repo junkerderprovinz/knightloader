@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { closeRelayClient, connectURL, relayClientFor, type RelaySibling } from '../api/relayClient';
+import { closeRelayClient, relayClientFor, type RelaySibling } from '../api/relayClient';
+import { DEFAULT_RELAY_URL, PhraseError, keyFromPhrase } from '../api/seedphrase';
 import { relayIdentity } from '../storage/relayIdentity';
 import { addConnection, listConnections, setActiveConnectionId } from '../storage/connections';
 import type { RelayConnection, ServerConnection } from '../api/types';
@@ -8,34 +9,38 @@ import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 
-// The second way in, for the one case the direct one cannot cover: no
-// instance is reachable from this network at all. Both ends dial out to a
-// relay instead, so this screen asks for the relay's address and key, shows
-// whatever instances are currently connected to it, and saves ONE of them as
-// a connection.
+// Joining the group, which is the whole of connecting this app now: twelve
+// words, and every instance the person runs appears.
 //
-// One instance per saved connection, deliberately, even though a relay key
-// normally has several behind it: everywhere else in the app a connection is
-// one KnightLoader you are looking at, and a relay connection that meant
-// "several" would be the one entry in that list that behaved differently.
-// Adding a second is this screen again, which by then already lists it.
+// It replaces a screen that asked for a relay address, a relay key and then a
+// per-instance API token, and saved exactly ONE instance per visit. All three
+// of those were things to go and look up somewhere else, which is precisely
+// what the phrase exists to abolish - and the one-at-a-time saving meant
+// three instances were three trips through the same form.
 //
-// The relay KEY is a credential shared by every instance on it, so a saved
-// relay connection is stored in the keychain exactly like a token is - see
-// storage/connections.ts.
-const MIN_KEY_LENGTH = 16; // relay.minKeyLength, server side
+// The phone is a full group member, not a client of one instance. It derives
+// the same key its siblings derive (api/seedphrase.ts, a port of
+// internal/seedphrase held to the Go side's own vectors), dials the same
+// relay, and is authenticated by that: the server accepts a relay-delivered
+// request from anything presenting the group key, so there is no token to
+// enter any more. See relayProxyHandler's own comment for what that admits
+// and what it does not.
+//
+// The phrase is a group credential, so a saved connection holds it in the
+// keychain exactly as a token was - see storage/connections.ts.
+
+// How long to keep the spinner up. Siblings arrive asynchronously and no
+// frame says "that is all of them", so this is a pause for the list to fill,
+// not a timeout: it keeps updating afterwards for as long as the screen is open.
+const SETTLE_MS = 3000;
 
 export default function RelayConnectScreen({ onConnected }: { onConnected: (conn: ServerConnection) => void }) {
   const { t } = useT();
   const { c, accent, accentContrast, radii } = useAppearance();
-  const [url, setUrl] = useState('');
-  const [key, setKey] = useState('');
+  const [phrase, setPhrase] = useState('');
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sibs, setSibs] = useState<RelaySibling[]>([]);
-  const [picked, setPicked] = useState<RelaySibling | null>(null);
-  const [name, setName] = useState('');
-  const [token, setToken] = useState('');
   // What the running client was opened with. State, not a ref: the instance
   // list below only renders once this is set, so the screen has to re-render
   // when it changes.
@@ -61,24 +66,24 @@ export default function RelayConnectScreen({ onConnected }: { onConnected: (conn
 
   useEffect(() => () => void releaseIfUnused(), [releaseIfUnused]);
 
-  const search = async () => {
+  // The checksum catches a mistyped or swapped word here, before anything is
+  // dialled, so the failure reads as "word 3 is not one of the words" instead
+  // of a socket that simply never finds anybody.
+  const join = async () => {
     setError(null);
-    setPicked(null);
-    const address = url.trim();
-    const relayKey = key.trim();
-    if (!address || !relayKey) {
-      setError(t('relay.errorMissing'));
-      return;
-    }
-    if (!connectURL(address)) {
-      setError(t('relay.errorBadUrl'));
-      return;
-    }
-    // Checked here rather than left to the relay: it answers a short key by
-    // closing the socket with a policy violation, which would surface as a
-    // generic "could not connect" and send someone hunting the wrong problem.
-    if (relayKey.length < MIN_KEY_LENGTH) {
-      setError(t('relay.errorKeyShort', { n: MIN_KEY_LENGTH }));
+    let key: string;
+    try {
+      key = keyFromPhrase(phrase);
+    } catch (e) {
+      setError(
+        e instanceof PhraseError
+          ? e.problem.reason === 'unknown_word'
+            ? t('phrase.errUnknownWord', { position: e.problem.position, word: e.problem.word })
+            : e.problem.reason === 'word_count'
+              ? t('phrase.errWordCount', { count: e.problem.count, need: 12 })
+              : t('phrase.errChecksum')
+          : String(e),
+      );
       return;
     }
 
@@ -86,8 +91,8 @@ export default function RelayConnectScreen({ onConnected }: { onConnected: (conn
     setSearching(true);
     setSibs([]);
     const client = relayClientFor({
-      url: address,
-      key: relayKey,
+      url: DEFAULT_RELAY_URL,
+      key,
       selfId: await relayIdentity(),
       selfName: 'KnightLoader app',
     });
@@ -95,38 +100,49 @@ export default function RelayConnectScreen({ onConnected }: { onConnected: (conn
     // exist for a saved connection, in which case constructor options are
     // never applied - see relayClientFor.
     unsubscribe.current = client.subscribe(() => setSibs(client.siblings()));
-    liveRef.current = { url: address, key: relayKey };
-    setLive({ url: address, key: relayKey });
+    liveRef.current = { url: DEFAULT_RELAY_URL, key };
+    setLive({ url: DEFAULT_RELAY_URL, key });
     setSibs(client.siblings());
-    // Siblings arrive asynchronously and there is no "that is all of them"
-    // frame - the list simply fills in. This only stops the spinner; the list
-    // below keeps updating from onChange for as long as the screen is open.
-    setTimeout(() => setSearching(false), 3000);
+    setTimeout(() => setSearching(false), SETTLE_MS);
   };
 
-  const pick = (s: RelaySibling) => {
-    setPicked(s);
-    setName(s.name || s.instanceId);
-    setError(null);
-  };
-
-  const save = async () => {
-    if (!picked || !live) return;
-    const conn: RelayConnection = {
-      kind: 'relay',
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      name: name.trim() || picked.name || picked.instanceId,
-      relayUrl: live.url,
-      relayKey: live.key,
-      instanceId: picked.instanceId,
-      token: token.trim(),
-    };
-    await addConnection(conn);
-    await setActiveConnectionId(conn.id);
-    // Deliberately NOT released on the way out now: the saved connection is
+  // Every instance at once, which is what "join the group" means. Picking one
+  // and coming back for the next was the old shape, and it made a person do
+  // the same form once per machine they own.
+  const saveAll = async () => {
+    if (!live || sibs.length === 0) return;
+    const existing = await listConnections();
+    let first: RelayConnection | null = null;
+    for (const s of sibs) {
+      // Re-joining with the same phrase must not double every row. An
+      // instance is the same instance if the group and its id match; its name
+      // is a label it may have changed since.
+      const already = existing.find(
+        (e) => e.kind === 'relay' && e.relayUrl === live.url && e.relayKey === live.key && e.instanceId === s.instanceId,
+      );
+      if (already) {
+        first = first ?? (already as RelayConnection);
+        continue;
+      }
+      const conn: RelayConnection = {
+        kind: 'relay',
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        name: s.name || s.instanceId,
+        relayUrl: live.url,
+        relayKey: live.key,
+        instanceId: s.instanceId,
+        // No token: being on this relay under this key IS the credential now.
+        token: '',
+      };
+      await addConnection(conn);
+      first = first ?? conn;
+    }
+    if (!first) return;
+    await setActiveConnectionId(first.id);
+    // Deliberately NOT released on the way out now: the saved connections are
     // about to use this very client.
     liveRef.current = null;
-    onConnected(conn);
+    onConnected(first);
   };
 
   const inputStyle = {
@@ -141,28 +157,17 @@ export default function RelayConnectScreen({ onConnected }: { onConnected: (conn
       <Text style={[styles.title, { color: c.text }]}>{t('relay.title')}</Text>
       <Text style={[styles.hint, { color: c.textMuted }]}>{t('relay.hint')}</Text>
 
-      <Text style={[styles.label, { color: c.textMuted }]}>{t('relay.urlLabel')}</Text>
+      <Text style={[styles.label, { color: c.textMuted }]}>{t('relay.phraseLabel')}</Text>
       <TextInput
-        style={[styles.input, inputStyle]}
-        placeholder="https://relay.example.com"
+        style={[styles.input, styles.phraseInput, inputStyle]}
+        placeholder={t('relay.phrasePlaceholder')}
         placeholderTextColor={c.textMuted}
-        value={url}
-        onChangeText={setUrl}
+        value={phrase}
+        onChangeText={setPhrase}
         autoCapitalize="none"
         autoCorrect={false}
-        keyboardType="url"
-      />
-
-      <Text style={[styles.label, { color: c.textMuted }]}>{t('relay.keyLabel')}</Text>
-      <TextInput
-        style={[styles.input, inputStyle]}
-        placeholder={t('relay.keyPlaceholder')}
-        placeholderTextColor={c.textMuted}
-        value={key}
-        onChangeText={setKey}
-        autoCapitalize="none"
-        autoCorrect={false}
-        secureTextEntry
+        autoComplete="off"
+        multiline
       />
 
       <TouchableOpacity
@@ -171,13 +176,13 @@ export default function RelayConnectScreen({ onConnected }: { onConnected: (conn
           { backgroundColor: accent, borderRadius: radii.control },
           searching && styles.buttonDisabled,
         ]}
-        onPress={search}
+        onPress={join}
         disabled={searching}
       >
         {searching ? (
           <ActivityIndicator color={accentContrast} />
         ) : (
-          <Text style={[styles.buttonText, { color: accentContrast }]}>{t('relay.searchButton')}</Text>
+          <Text style={[styles.buttonText, { color: accentContrast }]}>{t('relay.joinButton')}</Text>
         )}
       </TouchableOpacity>
 
@@ -191,60 +196,30 @@ export default function RelayConnectScreen({ onConnected }: { onConnected: (conn
             keyExtractor={(s) => s.instanceId}
             style={styles.list}
             renderItem={({ item }) => (
-              <TouchableOpacity
-                style={[
-                  styles.row,
-                  { backgroundColor: c.surface, borderRadius: radii.card },
-                  picked?.instanceId === item.instanceId && { borderWidth: 1, borderColor: accent },
-                ]}
-                onPress={() => pick(item)}
-              >
+              <View style={[styles.row, { backgroundColor: c.surface, borderRadius: radii.card }]}>
                 <View style={styles.rowText}>
                   <Text style={[styles.rowName, { color: c.text }]}>{item.name || item.instanceId}</Text>
                   <Text style={[styles.rowSub, { color: c.textMuted }]} numberOfLines={1}>
                     {item.deployment}
                   </Text>
                 </View>
-                {picked?.instanceId === item.instanceId && <Text style={[styles.check, { color: accent }]}>✓</Text>}
-              </TouchableOpacity>
+              </View>
             )}
             ListEmptyComponent={
               searching ? null : <Text style={[styles.empty, { color: c.textMuted }]}>{t('relay.noInstances')}</Text>
             }
           />
+          {sibs.length > 0 && (
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: accent, borderRadius: radii.control }]}
+              onPress={saveAll}
+            >
+              <Text style={[styles.buttonText, { color: accentContrast }]}>
+                {t('relay.saveAllButton', { count: sibs.length })}
+              </Text>
+            </TouchableOpacity>
+          )}
         </>
-      )}
-
-      {picked && (
-        <View style={styles.saveCard}>
-          <Text style={[styles.label, { color: c.textMuted }]}>{t('connect.nameLabel')}</Text>
-          <TextInput
-            style={[styles.input, inputStyle]}
-            placeholder={t('connect.namePlaceholder')}
-            placeholderTextColor={c.textMuted}
-            value={name}
-            onChangeText={setName}
-            autoCapitalize="none"
-          />
-          <Text style={[styles.label, { color: c.textMuted }]}>{t('connect.tokenLabel')}</Text>
-          <TextInput
-            style={[styles.input, inputStyle]}
-            placeholder={t('connect.tokenPlaceholder')}
-            placeholderTextColor={c.textMuted}
-            value={token}
-            onChangeText={setToken}
-            autoCapitalize="none"
-            autoCorrect={false}
-            secureTextEntry
-          />
-          <Text style={[styles.tokenHint, { color: c.textMuted }]}>{t('relay.tokenHint')}</Text>
-          <TouchableOpacity
-            style={[styles.button, { backgroundColor: accent, borderRadius: radii.control }]}
-            onPress={save}
-          >
-            <Text style={[styles.buttonText, { color: accentContrast }]}>{t('relay.saveButton')}</Text>
-          </TouchableOpacity>
-        </View>
       )}
     </View>
   );
@@ -263,6 +238,10 @@ const styles = StyleSheet.create({
     fontSize: 15,
     borderWidth: 1,
   },
+  // Twelve words do not fit on one phone line, and a field that scrolls
+  // sideways while somebody checks their typing is a field that hides the
+  // typo they are looking for.
+  phraseInput: { minHeight: 76, textAlignVertical: 'top' },
   button: {
     paddingVertical: 14,
     alignItems: 'center',
@@ -283,8 +262,5 @@ const styles = StyleSheet.create({
   rowText: { flex: 1, minWidth: 0 },
   rowName: { fontSize: 15, fontWeight: '600' },
   rowSub: { fontSize: TYPE.dense, marginTop: 2 },
-  check: { fontSize: 15, fontWeight: '700' },
   empty: { fontSize: 13, textAlign: 'center', marginTop: 12 },
-  saveCard: { marginTop: 8 },
-  tokenHint: { fontSize: TYPE.dense, marginTop: 6, lineHeight: 16 },
 });

@@ -155,17 +155,6 @@ export async function removeInstance(conn: ServerConnection, name: string): Prom
   await request(conn, '/api', `/instances/${encodeURIComponent(name)}`, { method: 'DELETE' });
 }
 
-// redeemPairingCode is the one-scan way to add a peer: the code (pasted, or
-// read off the peer's own Access-tab QR) already carries that peer's name,
-// address and a one-time token, so this single call registers it AND tells
-// it about the connected server back - see routes_pairing.go's own doc
-// comment on why it completes the other side before adding it locally.
-export async function redeemPairingCode(conn: ServerConnection, code: string): Promise<{ name: string; url: string; online: boolean }> {
-  return request(conn, '/api', '/instances/pairing-code/redeem', {
-    method: 'POST',
-    body: JSON.stringify({ code }),
-  });
-}
 
 // --- Live task stream -------------------------------------------------
 //
@@ -310,11 +299,13 @@ export function pollTasks(
  * the shape and the rainbow state - so the app can show the same product as
  * that instance's own web UI rather than a second opinion about it.
  *
- * Taken from GET /api/settings rather than from an endpoint of its own: those
- * fields already live there, redacted of every secret, and one more route for
- * four fields is surface nobody asked for. The whole document is larger than
- * what is used here, which is the price of not inventing an endpoint - paid
- * once per connection, not per screen.
+ * Taken from GET /api/appearance, which exists for this. It used to read the
+ * whole of GET /api/settings and pick seven fields out - a fair trade against
+ * inventing a route, right up until a phone joined the group over the relay
+ * and that call became "hand a sibling every download path and connection you
+ * have configured, so it can find out which shade of orange to paint a
+ * button". The narrow route is what keeps /api/settings off the relay
+ * allowlist entirely.
  *
  * Never throws. An instance too old to carry these fields, or one that cannot
  * be reached right now, means the app keeps GlimStone's own defaults, which is
@@ -322,7 +313,7 @@ export function pollTasks(
  */
 export async function fetchAppearance(conn: ServerConnection): Promise<InstanceAppearance | undefined> {
   try {
-    const s = await request<Record<string, unknown>>(conn, '/api', '/settings');
+    const s = await request<Record<string, unknown>>(conn, '/api', '/appearance');
     return {
       shape: typeof s.shape === 'string' ? s.shape : undefined,
       accent: typeof s.accent === 'string' ? s.accent : undefined,

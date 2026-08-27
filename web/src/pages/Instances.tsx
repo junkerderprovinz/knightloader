@@ -47,15 +47,16 @@ export function Instances() {
 
   // One click instead of typing an address. Deliberately the SAME add the
   // form below runs - discovery supplies the address, it does not grant any
-  // trust of its own, and a peer with a password still needs a pairing code
-  // to exchange credentials (see internal/api/peertokens.go).
+  // trust of its own, and a peer with a password will still refuse it. What
+  // makes two instances trust each other is the connection phrase, which they
+  // both hold rather than trade.
   async function onAddFound(f: DiscoveredInstance) {
     setErr('');
     try {
       const r = await addInstance(f.name, f.url);
       // "Refused us" and "could not be reached" have completely different
       // fixes, so they get different sentences. See addInstance's own doc.
-      if (r.needsPairing) setErr(t('instances.needsPairing'));
+      if (r.refused) setErr(t('instances.refused'));
       else if (!r.online) setErr(t('instances.offlineWarning'));
       await load();
       await loadFound();
@@ -132,11 +133,11 @@ export function Instances() {
 
       {/* Manual add and pairing-by-code used to be two cards here, duplicating
           what settings/Access.tsx's own RemoteAccessCard already does more
-          completely (it also covers the relay, for two instances that cannot
-          reach each other directly at all) - jdp, 2026-08-26: "nur ein
-          button der auf den zugangstab in den einstellungen verweist soll in
-          dem tab sein". One button now, instead of two separate, narrower
-          forms for the same job in two places. */}
+          completely - jdp, 2026-08-26: "nur ein button der auf den zugangstab
+          in den einstellungen verweist soll in dem tab sein". One button now,
+          instead of two separate, narrower forms for the same job in two
+          places. Pairing itself is gone entirely; the connection phrase over
+          there does what it did, for every instance at once. */}
       <div className="flex flex-wrap items-center gap-3">
         <Button kind="secondary" onClick={() => navigate('/settings/access')}>
           {t('instances.connectButton')}

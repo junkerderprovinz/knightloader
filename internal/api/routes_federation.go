@@ -30,15 +30,21 @@ func registerFederation(reg *Registry, a *app.App) {
 			}
 			// Three outcomes, not two. "Reached it and it refused this
 			// instance's credentials" needs a completely different fix from
-			// "could not reach it at all", and adding a peer by address never
-			// exchanges a credential - only a pairing code does. Collapsing
-			// them into one "offline" is exactly what made a password-locked
-			// peer look switched off.
+			// "could not reach it at all", and adding a peer by address
+			// exchanges no credential at all. Collapsing them into one
+			// "offline" is exactly what made a password-locked peer look
+			// switched off.
+			//
+			// The fix used to be a pairing code. It is now the connection
+			// phrase: join both instances to the same group and they
+			// authenticate each other by holding the same key, with nothing
+			// to copy per peer. `refused` says which of the two happened;
+			// the caller turns it into that sentence.
 			err := a.Federation.Ping(r.Context(), in.Name)
 			writeJSON(w, map[string]any{
 				"name": in.Name, "url": in.URL,
-				"online":       err == nil,
-				"needsPairing": errors.Is(err, federation.ErrUnauthorized),
+				"online":  err == nil,
+				"refused": errors.Is(err, federation.ErrUnauthorized),
 			})
 		})
 	reg.Add(http.MethodDelete, "/api/instances/{name}", "forget a peer instance",

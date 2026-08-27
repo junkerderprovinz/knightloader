@@ -21,6 +21,29 @@ func registerSystem(reg *Registry, a *app.App) {
 			serveWS(a, w, r)
 		})
 
+	// Just the cosmetics, so that wanting them is not a reason to hand over
+	// anything else. The phone app wears whatever accent and corner shape the
+	// instance it is looking at uses, and it used to get them by reading the
+	// WHOLE settings document and picking seven fields out - which was a fair
+	// trade against inventing an endpoint right up until a group sibling could
+	// make that call over the relay. Now the narrow thing exists, /api/settings
+	// stays off the relay allowlist, and nobody reads a download path to find
+	// out which shade of orange to paint a button.
+	reg.Add(http.MethodGet, "/api/appearance",
+		"the instance's own accent, corner shape and rainbow settings - what a client needs to match its look, and nothing else",
+		func(w http.ResponseWriter, r *http.Request) {
+			s := a.Settings.Get()
+			writeJSON(w, map[string]any{
+				"shape":           s.Shape,
+				"accent":          s.Accent,
+				"rainbow":         s.Rainbow,
+				"rainbowReactive": s.RainbowReactive,
+				"rainbowRotate":   s.RainbowRotate,
+				"rainbowSeed":     s.RainbowSeed,
+				"rainbowPalette":  s.RainbowPalette,
+			})
+		})
+
 	// The password lock. These routes stay reachable while locked out — they are
 	// how you get back in.
 	reg.AddOpen(http.MethodGet, "/api/auth",
