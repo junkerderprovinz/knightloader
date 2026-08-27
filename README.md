@@ -24,6 +24,30 @@ A self-hosted, cross-platform download manager: a clean-UI alternative to JDownl
 
 <br>
 
+<div align="center">
+
+> # ⚠️ Under development — please do not install this yet
+>
+> **KnightLoader has not had its first release.** This repository is public so
+> the work can be followed and the browser extension can go through store
+> review, not because it is ready for anyone to run.
+>
+> There is **no `v1.0.0` tag, no published container image, and no Community
+> Applications entry** — and that is deliberate. What is here changes daily,
+> including things that will break an existing setup without a migration path:
+> the storage format, the settings document, and the wire protocol instances
+> use to reach each other.
+>
+> **If you install it now, expect to lose your configuration and your queue.**
+> Nothing here is supported, and no upgrade path is promised until the first
+> release.
+>
+> Watch the repository if you want to know when that changes.
+
+</div>
+
+<br>
+
 <p align="center">
   <a href="https://buymeacoffee.com/junkerderprovinz">
     <img src=".github/assets/button-buy-me-a-coffee.svg" alt="Buy me a coffee" width="220">
