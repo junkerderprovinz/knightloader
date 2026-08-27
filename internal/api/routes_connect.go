@@ -18,6 +18,7 @@ package api
 
 import (
 	"encoding/hex"
+	"errors"
 	"net/http"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
@@ -89,10 +90,24 @@ func registerConnect(reg *Registry, a *app.App) {
 			}
 			secret, err := seedphrase.Decode(body.Phrase)
 			if err != nil {
-				// 400 with the package's own message, which names the
-				// offending word and its position - the caller shows it
-				// verbatim, because "word 7 (\"recieve\")" is fixable and
-				// "invalid phrase" is not.
+				// The reason and its specifics, not a sentence. Whoever
+				// mistyped a word is looking at a UI in their own language,
+				// and a sentence written in Go can only be in one - the
+				// browser has the translations, so it writes the sentence and
+				// this says what happened. `error` stays alongside for
+				// anything reading the body as plain text.
+				var de *seedphrase.DecodeError
+				if errors.As(err, &de) {
+					w.WriteHeader(http.StatusBadRequest)
+					writeJSON(w, map[string]any{
+						"error":    de.Error(),
+						"reason":   de.Reason,
+						"word":     de.Word,
+						"position": de.Position,
+						"count":    de.Count,
+					})
+					return
+				}
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}

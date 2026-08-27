@@ -2148,6 +2148,37 @@ export async function activateConnect(): Promise<{ phrase: string; info: Connect
   return json(r);
 }
 
+/**
+ * PhraseRejected is a phrase the server would not take, in the form this side
+ * needs to say so in the reader's own language.
+ *
+ * The server sends the reason and the specifics rather than a sentence,
+ * because a sentence it wrote could only ever be in one language. `word` and
+ * `position` name the offending word for 'unknown_word' - the difference
+ * between a message somebody can act on and "invalid phrase" - and `count`
+ * says how many words actually arrived for 'word_count'.
+ */
+export class PhraseRejected extends Error {
+  reason: 'word_count' | 'unknown_word' | 'checksum';
+  word: string;
+  position: number;
+  count: number;
+
+  constructor(body: { error?: string; reason?: string; word?: string; position?: number; count?: number }) {
+    super(body.error ?? 'phrase rejected');
+    this.name = 'PhraseRejected';
+    // Anything the server did not name falls back to the checksum case: it
+    // is the reason with no specifics to render, so an unknown code degrades
+    // into the one sentence that is true of every rejected phrase rather
+    // than into a blank message.
+    this.reason =
+      body.reason === 'word_count' || body.reason === 'unknown_word' ? body.reason : 'checksum';
+    this.word = body.word ?? '';
+    this.position = body.position ?? 0;
+    this.count = body.count ?? 0;
+  }
+}
+
 /** joinConnect is the other half: every instance after the first. */
 export async function joinConnect(phrase: string): Promise<ConnectInfo> {
   const r = await fetch('/api/connect/join', {
@@ -2155,10 +2186,18 @@ export async function joinConnect(phrase: string): Promise<ConnectInfo> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ phrase }),
   });
-  // The server's message names the offending word and its position, which
-  // is the whole reason it is shown verbatim rather than replaced with a
-  // generic "invalid phrase" this side could have written itself.
-  if (!r.ok) throw new Error(await r.text());
+  if (!r.ok) {
+    const raw = await r.text();
+    // A rejected phrase answers with JSON; anything else that can fail here
+    // (a session that expired, a proxy in the way) answers with text, so a
+    // parse failure is the signal to fall back rather than an error itself.
+    try {
+      throw new PhraseRejected(JSON.parse(raw));
+    } catch (e) {
+      if (e instanceof PhraseRejected) throw e;
+      throw new Error(raw.trim() || `${r.status}`);
+    }
+  }
   return json(r);
 }
 

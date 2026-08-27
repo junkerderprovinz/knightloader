@@ -119,6 +119,56 @@ func Encode(secret []byte) (string, error) {
 // another valid word, or of two words swapped.
 var ErrChecksum = errors.New("seedphrase: the phrase is not valid - check for a mistyped or swapped word")
 
+// Reason names what is wrong with a phrase in a form something other than a
+// Go program can act on.
+//
+// The sentences below are in English, and the person who mistyped a word is
+// reading a UI in their own language. A sentence chosen here could only ever
+// be in one language, so the API hands the browser the reason and the
+// specifics instead and the browser writes the sentence. The Error() strings
+// stay for logs and for Go callers.
+type Reason string
+
+const (
+	// ReasonWordCount: the wrong number of words. Count says how many.
+	ReasonWordCount Reason = "word_count"
+	// ReasonUnknownWord: a word that is not on the list. Word and Position
+	// say which - naming it is the difference between a fixable message and
+	// "invalid phrase".
+	ReasonUnknownWord Reason = "unknown_word"
+	// ReasonChecksum: every word is real, the phrase is not.
+	ReasonChecksum Reason = "checksum"
+)
+
+// DecodeError is every way Decode can reject a phrase, with the specifics a
+// caller needs to say something useful about it.
+type DecodeError struct {
+	Reason   Reason
+	Word     string // ReasonUnknownWord: the word that is not on the list
+	Position int    // ReasonUnknownWord: its 1-based position in the phrase
+	Count    int    // ReasonWordCount: how many words there actually were
+}
+
+func (e *DecodeError) Error() string {
+	switch e.Reason {
+	case ReasonWordCount:
+		return fmt.Sprintf("seedphrase: the phrase has %d words, it needs %d", e.Count, WordCount)
+	case ReasonUnknownWord:
+		return fmt.Sprintf("seedphrase: word %d (%q) is not one of the accepted words", e.Position, e.Word)
+	default:
+		return ErrChecksum.Error()
+	}
+}
+
+// Unwrap keeps errors.Is(err, ErrChecksum) working, which is how the checksum
+// case was matched before this type existed.
+func (e *DecodeError) Unwrap() error {
+	if e.Reason == ReasonChecksum {
+		return ErrChecksum
+	}
+	return nil
+}
+
 // Decode parses a phrase back into its secret.
 //
 // Input is normalised first, because this arrives from a paste or from
@@ -128,7 +178,7 @@ var ErrChecksum = errors.New("seedphrase: the phrase is not valid - check for a 
 func Decode(phrase string) ([]byte, error) {
 	got := strings.Fields(strings.ToLower(strings.TrimSpace(phrase)))
 	if len(got) != WordCount {
-		return nil, fmt.Errorf("seedphrase: the phrase has %d words, it needs %d", len(got), WordCount)
+		return nil, &DecodeError{Reason: ReasonWordCount, Count: len(got)}
 	}
 
 	full := make([]byte, SecretLen+1)
@@ -138,7 +188,7 @@ func Decode(phrase string) ([]byte, error) {
 			// Naming the word and its position is the whole point: "word 7
 			// (\"recieve\") is not in the list" is a fixable message,
 			// "invalid phrase" is not.
-			return nil, fmt.Errorf("seedphrase: word %d (%q) is not one of the accepted words", i+1, w)
+			return nil, &DecodeError{Reason: ReasonUnknownWord, Word: w, Position: i + 1}
 		}
 		setBits(full, i*bitsPerWord, bitsPerWord, idx)
 	}
@@ -151,7 +201,7 @@ func Decode(phrase string) ([]byte, error) {
 	want := bitsAt(sum[:1], 0, checksumBits)
 	have := bitsAt(full, SecretLen*8, checksumBits)
 	if want != have {
-		return nil, ErrChecksum
+		return nil, &DecodeError{Reason: ReasonChecksum}
 	}
 	return secret, nil
 }
