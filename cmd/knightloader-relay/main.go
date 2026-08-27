@@ -7,14 +7,27 @@
 // It is deliberately its own binary and not a mode of the main server: it
 // downloads nothing, stores nothing and never sees a file byte, so the thing
 // exposed to the public internet has almost no surface. Run one yourself, the
-// same way you run KnightLoader itself - see docs/superpowers/specs for why
-// this project does not operate one on anyone's behalf. Put it behind a
-// reverse proxy for TLS: the relay key is a credential, and WSS is what keeps
-// it off the wire in the clear.
+// same way you run KnightLoader itself - or use the one this project operates
+// (see docs/superpowers/specs/2026-08-27-public-relay-seed-phrase-design.md).
+//
+// # TLS
+//
+// Set KL_RELAY_DOMAIN and this binary terminates TLS itself on :443, getting
+// and renewing its own Let's Encrypt certificate. No reverse proxy, no
+// certbot, no cron entry, and - the reason it is done this way rather than
+// with the usual HTTP-01 challenge - no port 80. The firewall in front of
+// this only opens 443, and TLS-ALPN-01 completes the challenge inside a TLS
+// handshake on that same port, so the narrower firewall costs nothing.
+//
+// Leave KL_RELAY_DOMAIN unset and it serves plain HTTP on KL_RELAY_ADDR, for
+// a local test or for somebody who does want their own proxy in front. The
+// relay key is a credential, so anything reachable from outside a trusted
+// network needs one of the two.
 package main
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"log"
@@ -24,6 +37,9 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"golang.org/x/crypto/acme"
+	"golang.org/x/crypto/acme/autocert"
 
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/relay"
@@ -51,15 +67,47 @@ func main() {
 	})
 	mux.Handle("GET /relay/connect", r)
 
+	domain := os.Getenv("KL_RELAY_DOMAIN")
+	if domain != "" {
+		addr = env("KL_RELAY_ADDR", ":443")
+	}
+
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
 		log.Fatalf("listen: %v", err)
 	}
 	srv := &http.Server{Handler: mux}
 
+	if domain != "" {
+		m := &autocert.Manager{
+			Prompt: autocert.AcceptTOS,
+			// Pinned to the one name this relay answers on. Without it,
+			// autocert would ask Let's Encrypt for a certificate for
+			// whatever name any caller put in its handshake, which is a
+			// rate limit waiting to be hit by the first scanner that finds
+			// the port.
+			HostPolicy: autocert.HostWhitelist(domain),
+			Cache:      autocert.DirCache(env("KL_RELAY_CERT_DIR", "/var/lib/knightloader-relay/certs")),
+		}
+		tlsCfg := m.TLSConfig()
+		// TLS-ALPN-01 only. m.TLSConfig() already lists it, but being
+		// explicit is the point: this is what lets the challenge complete
+		// without port 80, and a future edit that drops it would otherwise
+		// fail at renewal time - months later, on a certificate nobody was
+		// watching.
+		tlsCfg.NextProtos = []string{"h2", "http/1.1", acme.ALPNProto}
+		tlsCfg.MinVersion = tls.VersionTLS12
+		srv.TLSConfig = tlsCfg
+		listener = tls.NewListener(listener, tlsCfg)
+	}
+
 	serveErr := make(chan error, 1)
 	go func() {
-		log.Printf("KnightLoader relay listening on %s (ws %s/relay/connect)", addr, addr)
+		scheme, ws := "http", "ws"
+		if domain != "" {
+			scheme, ws = "https", "wss"
+		}
+		log.Printf("KnightLoader relay listening on %s (%s, %s://%s/relay/connect)", addr, scheme, ws, hostOr(domain, addr))
 		err := srv.Serve(listener)
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			serveErr <- err
@@ -96,4 +144,15 @@ func env(k, def string) string {
 		return v
 	}
 	return def
+}
+
+// hostOr picks what the startup line should show as the reachable address:
+// the domain when TLS is on (the name clients actually dial, and the only
+// one the certificate is valid for), otherwise the bind address, which is
+// all a plain-HTTP run has.
+func hostOr(domain, addr string) string {
+	if domain != "" {
+		return domain
+	}
+	return addr
 }
