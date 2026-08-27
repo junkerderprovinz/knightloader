@@ -36,13 +36,6 @@ func sanitizeIdentity(n Settings) Settings {
 	if n.InstanceID == "" {
 		n.InstanceID = newInstanceID()
 	}
-	// Same normalization InstanceName gets, for the same reason: a stray
-	// leading/trailing space from a non-UI caller (a script, an API token)
-	// should not round-trip to disk and into tsnet.Server.Hostname
-	// unnormalized - every other free-typed identity string in this struct
-	// already gets this, and TsnetHostname had been left out.
-	n.TsnetHostname = strings.TrimSpace(n.TsnetHostname)
-
 	seen := make(map[string]bool, len(n.KnownDomains))
 	out := make([]string, 0, len(n.KnownDomains))
 	for _, d := range n.KnownDomains {

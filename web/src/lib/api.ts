@@ -2080,9 +2080,9 @@ export async function saveRelayConfig(relayUrl: string, key?: string, serve?: bo
  * address is compiled into the binary, so the phrase carries only the
  * secret.
  *
- * Note this is NOT the same job as the Tailscale/Funnel path below it. That
- * one gives this instance a public https:// address a phone's browser can
- * open; this one connects instances to each other. Both can be on.
+ * What it does NOT give you is a public https:// address a stranger's
+ * browser can open - that is a different job, and the answer to it is your
+ * own domain in front of a reverse proxy.
  */
 export interface ConnectInfo {
   /** Whether this instance holds a connection secret at all. */
@@ -2188,59 +2188,6 @@ export async function revealConnect(password: string): Promise<{ phrase: string;
 export async function leaveConnect(): Promise<void> {
   const r = await fetch('/api/connect', { method: 'DELETE' });
   if (!r.ok) throw new Error(await r.text());
-}
-
-/** What GET /api/tsnet/status answers with - tsnetsrv.Info. */
-export interface TsnetInfo {
-  status: 'off' | 'connecting' | 'connected' | 'error';
-  /** Set only while status is "connecting" - the login link to open to
-   *  finish connecting. Empty once connected: there is nothing left to
-   *  click. */
-  authUrl?: string;
-  /** The public https:// address once Funnel is up - reachable by a phone,
-   *  the browser extension, or another KnightLoader, none of which need
-   *  Tailscale installed on their own side. */
-  funnelUrl?: string;
-  hostname?: string;
-  /** Up()'s or the funnel listener's failure message verbatim, most
-   *  commonly Funnel never having been turned on for this Tailscale
-   *  account - see settings.access.tsnet.funnelErrorHint. */
-  error?: string;
-}
-
-export async function fetchTsnetStatus(): Promise<TsnetInfo> {
-  return json<TsnetInfo>(await fetch('/api/tsnet/status'));
-}
-
-export async function startTsnet(hostname?: string): Promise<TsnetInfo> {
-  return json<TsnetInfo>(
-    await fetch('/api/tsnet/start', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ hostname: hostname ?? '' }),
-    }),
-  );
-}
-
-export async function stopTsnet(): Promise<TsnetInfo> {
-  return json<TsnetInfo>(await fetch('/api/tsnet/stop', { method: 'POST' }));
-}
-
-/**
- * One other device on the same Tailscale account that answered a
- * KnightLoader health probe - tsnetsrv.PeerInstance. Never includes a
- * device already known (paired, or found here on an earlier poll and
- * already added) - the server drops those before this ever reaches the
- * page, so unlike DiscoveredInstance above this has no `known` flag to
- * check.
- */
-export interface TsnetPeer {
-  hostname: string;
-  url: string;
-}
-
-export async function fetchTsnetPeers(): Promise<TsnetPeer[]> {
-  return (await json<TsnetPeer[]>(await fetch('/api/tsnet/peers'))) ?? [];
 }
 
 /**

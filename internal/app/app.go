@@ -52,7 +52,6 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/knightloader/internal/store"
 	"github.com/junkerderprovinz/knightloader/internal/throttle"
-	"github.com/junkerderprovinz/knightloader/internal/tsnetsrv"
 	"github.com/junkerderprovinz/knightloader/internal/watch"
 )
 
@@ -100,17 +99,7 @@ type App struct {
 	Accounts   *accounts.Store
 	Settings   *settings.Store
 	Federation *federation.Manager
-	// Tsnet is this instance's Tailscale/Funnel connection - see
-	// internal/tsnetsrv's own package doc for why it exists and
-	// internal/api/routes_tsnet.go for the login flow it exposes. A field
-	// here rather than a routes_tsnet.go-local variable (the shape
-	// registerRelay's own srv := relay.New() uses for ITS inbound side)
-	// because routes_remote.go, a different register* function, also needs
-	// to read its current funnel address for the QR/pairing address list -
-	// the same cross-file reachability Federation above already solves the
-	// same way.
-	Tsnet *tsnetsrv.Manager
-	Auth  *auth.Guard
+	Auth       *auth.Guard
 	// APITokens are named, individually revocable credentials that satisfy
 	// the same session guard a password does (see api.authenticated) without
 	// sharing its one secret. See internal/apitoken's own package comment
@@ -383,12 +372,6 @@ func New(dataDir string) (*App, error) {
 	// backend handles this link" despite torrent.Resolver.Match already
 	// recognising it.
 	a.Registry.Register(torrent.Resolver{})
-	// Read lazily by the closure, not captured now: SetSelfServeHandler is one
-	// of api.Handler's own LAST lines, well after this constructor returns -
-	// a nil captured this early would serve nothing on the funnel listener
-	// forever. By the time Funnel is actually up (after a real login
-	// round-trip, never before) this always has a real value.
-	a.Tsnet = tsnetsrv.New(filepath.Join(dataDir, "tsnet"), func() http.Handler { return a.SelfServeHandler() })
 
 	eng, err := engine.New(filepath.Join(dataDir, "downloads"), a.onUpdate)
 	if err != nil {
@@ -785,18 +768,6 @@ func (a *App) Close() error {
 	// for.
 	if a.Federation != nil {
 		a.Federation.SetRelay(nil)
-	}
-	// Same reasoning one line up, and the one place this matters most: on
-	// desktop, a connected Funnel is the ONLY way this instance has ever
-	// been reachable from another device at all (see tsnetsrv's own package
-	// doc), so leaving it running past a graceful Close would mean "quit"
-	// left the instance answering requests in the background - caught in
-	// review before this fix, nothing outside the HTTP handler ever called
-	// a.Tsnet.Stop() at all. Blocks until the tailnet connection and the
-	// funnel listener are actually torn down, the same as every other
-	// Close() call in this function.
-	if a.Tsnet != nil {
-		_ = a.Tsnet.Stop()
 	}
 	// Same reasoning one line up: stop telling the network this instance is
 	// available while it is shutting down.

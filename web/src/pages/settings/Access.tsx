@@ -18,10 +18,7 @@ import {
   type NewApiToken,
   type ConnectInfo,
   type QRMatrix,
-  type TsnetInfo,
-  type TsnetPeer,
   activateConnect,
-  addInstance,
   createToken,
   fetchAuth,
   fetchConnect,
@@ -31,13 +28,9 @@ import {
   revealConnect,
   fetchRemoteAccess,
   fetchTokens,
-  fetchTsnetPeers,
-  fetchTsnetStatus,
   logout,
   revokeToken,
   setPassword,
-  startTsnet,
-  stopTsnet,
 } from '../../lib/api';
 import { copyToClipboard } from '../../lib/clipboard';
 import { fmtDate } from '../../lib/format';
@@ -94,13 +87,10 @@ const PENDING = {
   'settings.access.tokens.howToUse': 'Send it as a header: Authorization: Bearer <token>',
   'settings.access.tokens.createFailed': 'Could not create the token: {error}',
 
-  // settings.access.remote.title/combinedHint/desktopNote all retired
-  // (jdp, 2026-08-27: merging the Tailscale card into this one too made the
-  // section's own title and hint redundant with settings.access.tsnet.*
-  // above it, and desktopNote had already gone unused since an earlier
-  // redesign round - checked for real call sites before removing rather
-  // than assumed dead) - see settings.access.tsnet.advancedTitle for the
-  // disclosure label that replaces settings.access.remote.title's old job.
+  // The one survivor of settings.access.remote.*: everything else there
+  // described a card that no longer exists. This warning does not - it fires
+  // whenever an unprotected instance answers a request from off this
+  // machine, whatever road that request took.
   'settings.access.remote.exposedWarning':
     'This instance just answered a request from outside this machine, and no password protects it. Anyone who can reach it can see and control every download. Set a password above now.',
 
@@ -528,72 +518,37 @@ function IdentityCard({ cx }: { cx: (k: PendingKey) => string }) {
   );
 }
 
-// ---- Remote access (Tailscale/Funnel, primary + pairing/relay, advanced) -----
-
-// How often this card re-polls GET /api/tsnet/status while "connecting":
-// authUrl and, later, funnelUrl both arrive from a goroutine this page's own
-// POST /api/tsnet/start already returned without waiting for (see
-// tsnetsrv.Manager.run) - there is no push channel for either, so the page
-// finds out the same way the relay siblings list just above does, by
-// asking again.
-const TSNET_POLL_MS = 2000;
-
-// How often the discovered-peers list is re-read while connected - the same
-// cadence as the relay siblings list, for the same reason: this changes
-// only when another of the user's own instances logs into Tailscale or
-// drops offline, not continuously.
-const TSNET_PEERS_POLL_MS = 5000;
+// ---- Connecting instances (the phrase) --------------------------------------
 
 /**
- * RemoteAccessCard is the one place to connect this instance with another
- * KnightLoader you run yourself, or make it reachable from anywhere at all.
- * ONE card now, not three cards across two redesigns (jdp, 2026-08-25:
- * "das muss einfach ein Punkt sein nicht mehr" merged Pairing+Relay; jdp,
- * 2026-08-27, on finding a separate "Von überall erreichbar" card sitting
- * next to this one: "Wieso gibt es jetzt... zwei card? Es soll nur eine
- * geben?" merged that in too).
+ * RemoteAccessCard is the one place to connect this instance with the other
+ * KnightLoaders you run. ONE card, and one way into it - which took three
+ * redesigns to arrive at (jdp, 2026-08-25: "das muss einfach ein Punkt sein
+ * nicht mehr" merged pairing and relay; 2026-08-27, on finding a separate
+ * "Von überall erreichbar" card beside this one: "Wieso gibt es jetzt...
+ * zwei card? Es soll nur eine geben?" merged that in; then pairing and
+ * Tailscale were removed outright rather than folded away, because a fold
+ * is still a thing to wonder about).
  *
- * The Tailscale/Funnel login (internal/tsnetsrv) is the PRIMARY path: one
- * login gives this instance a real public address AND - the discovery
- * section below - automatically finds this same person's other instances
- * the moment they are logged into the same Tailscale account, with no
- * pairing code and no relay key at all (jdp: "wie genau wird das jetzt
- * umgesetzt?" - tsnet's own LocalClient().Status() already lists every
- * other device on the same account, so the "instance-to-instance" job the
- * pairing/relay mechanism used to be the ONLY way to do is now a side
- * effect of the one login this card already asks for).
+ * What is left is twelve words. They carry a secret, both ends derive the
+ * same key from it and meet on a relay neither has to be reachable from -
+ * see internal/seedphrase and internal/relay. No account, no login, no
+ * third-party site, no address to copy.
  *
- * Pairing and relay stay, folded into the "advanced" disclosure at the
- * bottom - the way to connect two instances WITHOUT any third party at
- * all, for someone who wants that specifically. Both still do very
- * different things under the hood - a pairing code is a direct, one-time
- * exchange between two instances that can already reach each other; a
- * relay is a self-hosted go-between for two that cannot - so they stay two
- * sections inside one disclosure rather than one merged form that would
- * have to paper over that difference.
- *
- * Pairing needs the other side to be able to complete the exchange back to
- * this instance (routes_pairing.go's own redeem handler calls back here). A
- * desktop build opens no port of its own, so for a long time that was
- * impossible there and the section was simply hidden - but the relay
- * carries the completion now, addressing this instance by identifier
- * rather than by address, so a desktop ON A RELAY can issue and redeem
- * codes like anything else. The section therefore follows the relay's
- * actual state rather than the deployment, which is the thing that was
- * really being asked about (fetchDeploymentInfo, not fetchRemoteAccess:
- * this card renders outside RemoteAccessSection specifically so it still
- * shows on desktop, see Access()'s own comment on why).
+ * The card opens with a numbered how-to rather than with its buttons. Twelve
+ * words is an odd enough thing to be handed that "what am I looking at"
+ * comes before "what do I press", the same reason BrowserTools.tsx explains
+ * dragging before it shows the bookmarklet link.
  */
 function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, string | number>) => string }) {
   const { t } = useT();
 
-  // --- Connection phrase (instance to instance) ---
+  // --- Connection phrase ---
   //
-  // Kept apart from the Tailscale state below on purpose: the two answer
-  // different questions and can both be on. This one connects a person's
-  // OWN instances to each other through the relay; Tailscale gives this
-  // instance a public address a phone's browser can open. Merging their
-  // state would make a card that cannot say which of the two is working.
+  // "Stored" and "connected" stay two separate fields on ConnectInfo, and
+  // are reported separately below: a phrase with an unreachable relay is
+  // configured but not working, and one word for both is exactly what made
+  // the card this replaced unable to say which had gone wrong.
   const [conn, setConn] = useState<ConnectInfo | null>(null);
   const [phrase, setPhrase] = useState('');
   // Kept beside the phrase rather than derived from it: the matrix is the
@@ -688,126 +643,41 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
     }
   }
 
-  // --- Tailscale/Funnel (a public address for browsers) ---
-  const [tsInfo, setTsInfo] = useState<TsnetInfo | null>(null);
-  const [tsHostname, setTsHostname] = useState('');
-  const [tsBusy, setTsBusy] = useState(false);
-  const [tsErr, setTsErr] = useState('');
-  const [tsQr, setTsQr] = useState<QRMatrix | null>(null);
-  const [tsCopied, setTsCopied] = useState(false);
-  const [peers, setPeers] = useState<TsnetPeer[]>([]);
-  // The URL currently being added, so only THAT row's button shows busy -
-  // adding one discovered peer must not disable every other row's button
-  // while its own request is in flight.
-  const [addingPeer, setAddingPeer] = useState('');
-  const [peerErr, setPeerErr] = useState('');
-
-  const loadTs = () => fetchTsnetStatus().then(setTsInfo).catch(() => {});
-  useEffect(() => {
-    void loadTs();
-  }, []);
-
-  useEffect(() => {
-    if (tsInfo?.status !== 'connecting') return;
-    const timer = window.setInterval(() => void loadTs(), TSNET_POLL_MS);
-    return () => window.clearInterval(timer);
-  }, [tsInfo?.status]);
-
-  // The QR is the same one the pairing flow below would now compute
-  // (preferredAddress ranks a connected funnel address ahead of everything
-  // but the exact address this browser tab is already on) - fetched here
-  // rather than duplicated, so a person who never opens "Code anzeigen"
-  // still gets a scannable code the moment this card itself connects.
-  useEffect(() => {
-    if (tsInfo?.status !== 'connected') {
-      setTsQr(null);
-      return;
-    }
-    fetchRemoteAccess()
-      .then((r) => setTsQr(r.qr ?? null))
-      .catch(() => setTsQr(null));
-  }, [tsInfo?.status]);
-
-  // Discovered peers: only while connected, and only this instance's own
-  // other devices (the server already filters to the same Tailscale
-  // account and to devices that answer like KnightLoader - see
-  // tsnetsrv.Manager.Peers' own doc comment).
-  useEffect(() => {
-    if (tsInfo?.status !== 'connected') {
-      setPeers([]);
-      return;
-    }
-    let alive = true;
-    const load = () =>
-      fetchTsnetPeers()
-        .then((p) => {
-          if (alive) setPeers(p);
-        })
-        .catch(() => {});
-    void load();
-    const timer = window.setInterval(() => void load(), TSNET_PEERS_POLL_MS);
-    return () => {
-      alive = false;
-      window.clearInterval(timer);
-    };
-  }, [tsInfo?.status]);
-
-  async function onTsConnect() {
-    setTsErr('');
-    setTsBusy(true);
-    try {
-      setTsInfo(await startTsnet(tsHostname.trim()));
-    } catch (e) {
-      setTsErr(e instanceof Error ? e.message : String(e));
-    } finally {
-      setTsBusy(false);
-    }
-  }
-
-  async function onTsDisconnect() {
-    setTsBusy(true);
-    try {
-      setTsInfo(await stopTsnet());
-    } finally {
-      setTsBusy(false);
-    }
-  }
-
-  // Same shape as Instances.tsx's own onAddFound for a discovered LAN
-  // instance - "refused us" (password set) and "could not be reached" get
-  // the same two distinct, already-translated sentences that page already
-  // uses, not new copy for what is the same underlying situation.
-  async function onAddPeer(p: TsnetPeer) {
-    setPeerErr('');
-    setAddingPeer(p.url);
-    try {
-      const r = await addInstance(p.hostname, p.url);
-      if (r.refused) setPeerErr(t('instances.refused'));
-      else if (!r.online) setPeerErr(t('instances.offlineWarning'));
-      // Removed from the candidate list either way: a successful add has
-      // nothing left to offer, and a refused/offline one is still "known"
-      // now (federation stores it regardless of whether it answered), so
-      // the next poll's own server-side filter would drop it anyway - this
-      // just does not wait for that poll to say so.
-      setPeers((cur) => cur.filter((x) => x.url !== p.url));
-    } catch (e) {
-      setPeerErr(e instanceof Error ? e.message : String(e));
-    } finally {
-      setAddingPeer('');
-    }
-  }
-
-  // Held until Tailscale has answered: an empty card for a feature that
-  // has not reported yet flickers into place a moment later, which reads as
-  // a bug. This is a loading guard, not a capability check - the route is
-  // always registered.
-  if (!tsInfo) return null;
+  // Held until the connection state has answered: an empty card for a
+  // feature that has not reported yet flickers into place a moment later,
+  // which reads as a bug. A loading guard, not a capability check.
+  if (!conn) return null;
 
   return (
     <Card className="flex flex-col gap-5">
       <SectionTitle hue={1} hint={t('settings.access.phrase.body')}>
         {t('settings.access.cardTitle')}
       </SectionTitle>
+
+      {/* What this actually is, before any button. Twelve words is an odd
+          enough thing to be handed that "what am I looking at" comes before
+          "what do I press" - the same reason the bookmarklet card explains
+          dragging before it shows the link. A numbered list rather than a
+          paragraph (jdp: "Bitte aufzählungen immer untereinander"), and it
+          stays visible after setup: somebody adding a fourth instance in six
+          months needs step 2, and hiding it once step 1 is done is exactly
+          when it stops being findable. */}
+      <div className="flex flex-col gap-2">
+        <p className="text-sm text-carbon-textSub">{t('settings.access.phrase.howLead')}</p>
+        <ol className="list-decimal space-y-1.5 pl-4 text-sm text-carbon-textSub">
+          {/* The button names are interpolated from the button's OWN key
+              rather than written into the sentence: a step that quotes a
+              label is a step that can disagree with the label, and across 42
+              languages that drift is invisible until somebody hunts for a
+              button that is called something else on their screen. */}
+          <li>{t('settings.access.phrase.howStep1', { button: t('settings.access.phrase.activate') })}</li>
+          <li>{t('settings.access.phrase.howStep2', { button: t('settings.access.phrase.joinButton') })}</li>
+          <li>{t('settings.access.phrase.howStep3')}</li>
+        </ol>
+        <p className="text-[11px] leading-relaxed text-carbon-textMuted">
+          {t('settings.access.phrase.howWhat')}
+        </p>
+      </div>
 
       {/* Nothing set up yet: two ways in, and they are the two ends of the
           same act - start a group, or join one somebody already started. */}
@@ -958,155 +828,9 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
 
       {phraseErr && <p className="text-sm text-statusFail">{phraseErr}</p>}
 
-      {/* Remote access, below the phrase and clearly its own thing: it
-          answers a different question (a public address a browser can open)
-          rather than being an alternative to the phrase above. The card's
-          own title names both halves, and these are them.
-
-          A SUBDUED heading, not a second SectionTitle badge. Two filled
-          badges in one card read as two cards glued together - which is the
-          complaint that merged them in the first place - and SectionTitle's
-          badge is absolutely positioned to straddle the CARD's edge, so a
-          second one lands on top of the first anyway. */}
-      <div className="flex flex-col gap-4 border-t border-carbon-border/40 pt-4">
-      <div className="flex items-center gap-2">
-        <span className="text-xs font-semibold text-carbon-textSub">
-          {t('settings.access.remoteTitle')}
-        </span>
-        <InfoBubble tip={t('settings.access.tsnet.body')} />
-      </div>
-
-      {tsInfo.status === 'off' && (
-        <div className="flex flex-col gap-3">
-          <Field label={t('settings.access.tsnet.hostnameLabel')} hint={t('settings.access.tsnet.hostnameHint')}>
-            <TextInput
-              dir="ltr"
-              spellCheck={false}
-              placeholder={t('settings.access.tsnet.hostnamePlaceholder')}
-              value={tsHostname}
-              onChange={(e) => setTsHostname(e.target.value)}
-            />
-          </Field>
-          <div>
-            <Button hue={1} disabled={tsBusy} onClick={() => void onTsConnect()}>
-              {tsBusy ? t('settings.access.tsnet.connecting') : t('settings.access.tsnet.connect')}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {tsInfo.status === 'connecting' && (
-        <div className="flex flex-col gap-2">
-          {tsInfo.authUrl ? (
-            <>
-              <p className="text-sm text-carbon-text">{t('settings.access.tsnet.loginPrompt')}</p>
-              <div>
-                <Button hue={1} onClick={() => window.open(tsInfo.authUrl, '_blank', 'noopener,noreferrer')}>
-                  {t('settings.access.tsnet.openLogin')}
-                </Button>
-              </div>
-            </>
-          ) : (
-            <p className="text-sm text-carbon-textMuted">{t('settings.access.tsnet.connecting')}</p>
-          )}
-        </div>
-      )}
-
-      {tsInfo.status === 'connected' && (
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <div className="flex min-w-0 flex-1 flex-col gap-3">
-            <div className="flex flex-col gap-1">
-              <span className="text-xs font-semibold text-carbon-textSub">
-                {t('settings.access.tsnet.connectedLabel')}
-              </span>
-              <div className="flex items-center gap-2">
-                <code
-                  className="glim-num min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-xs text-carbon-text"
-                  dir="ltr"
-                >
-                  {tsInfo.funnelUrl}
-                </code>
-                <IconBadge
-                  hue={1}
-                  icon={tsCopied ? <IconCheck width={14} height={14} /> : <IconClipboard width={14} height={14} />}
-                  title={tsCopied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
-                  aria-label={tsCopied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
-                  onClick={async () => {
-                    if (tsInfo.funnelUrl && (await copyToClipboard(tsInfo.funnelUrl))) {
-                      setTsCopied(true);
-                      setTimeout(() => setTsCopied(false), 1800);
-                    }
-                  }}
-                />
-              </div>
-            </div>
-            <div>
-              <Button kind="secondary" hue={1} disabled={tsBusy} onClick={() => void onTsDisconnect()}>
-                {tsBusy ? t('settings.access.tsnet.disconnecting') : t('settings.access.tsnet.disconnect')}
-              </Button>
-            </div>
-          </div>
-          {tsQr && tsInfo.funnelUrl && (
-            <div className="flex shrink-0 flex-col items-center gap-2 self-start">
-              <QRCode matrix={tsQr} label={tsInfo.funnelUrl} size={144} />
-            </div>
-          )}
-        </div>
-      )}
-
-      {tsInfo.status === 'error' && (
-        <div className="flex flex-col gap-2">
-          <p className="text-sm text-statusFail">{tsInfo.error}</p>
-          {tsInfo.error?.includes('Funnel') && (
-            <p className="text-[11px] text-carbon-textMuted">{t('settings.access.tsnet.funnelErrorHint')}</p>
-          )}
-          <div>
-            <Button hue={1} disabled={tsBusy} onClick={() => void onTsConnect()}>
-              {tsBusy ? t('settings.access.tsnet.connecting') : t('settings.access.tsnet.connect')}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {tsErr && <p className="text-sm text-statusFail">{tsErr}</p>}
-
-      {/* Automatic instance-to-instance discovery, the direct answer to "wie
-          genau wird das jetzt umgesetzt" - no pairing code, no relay key,
-          because both instances already share the one login above. Shown
-          only once there is something to offer: a person with no other
-          instance sees nothing here, not an empty list. */}
-      {tsInfo.status === 'connected' && peers.length > 0 && (
-        <div className="flex flex-col gap-2 border-t border-carbon-border/40 pt-4">
-          <span className="text-xs font-semibold text-carbon-textSub">
-            {t('settings.access.tsnet.peersTitle')}
-          </span>
-          {peers.map((p) => (
-            <div key={p.url} className="flex flex-wrap items-center gap-3">
-              <span className="min-w-0 flex-1">
-                <span className="text-sm text-carbon-text">{p.hostname}</span>
-                <span className="ml-2 text-xs text-carbon-textMuted" dir="ltr">
-                  {p.url}
-                </span>
-              </span>
-              <Button
-                kind="secondary"
-                hue={1}
-                className="px-2.5 text-xs"
-                disabled={addingPeer === p.url}
-                onClick={() => void onAddPeer(p)}
-              >
-                {t('instances.foundAdd')}
-              </Button>
-            </div>
-          ))}
-          {peerErr && <p className="text-sm text-statusFail">{peerErr}</p>}
-        </div>
-      )}
-      </div>
     </Card>
   );
 }
-
 
 // ---- API tokens -------------------------------------------------------------
 
