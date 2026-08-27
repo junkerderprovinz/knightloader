@@ -1411,6 +1411,7 @@ export const ms: Dict = {
   'settings.access.phrase.stateConnecting': 'Belum boleh dicapai - sedang menyambung.',
   'settings.access.phrase.yourPhrase': 'Frasa sambungan anda',
   'settings.access.phrase.pasteHint': 'Tampal dua belas perkataan ini ke setiap instans lain yang ingin anda sambungkan.',
+  'settings.access.phrase.qrHint': 'Atau imbas ini daripada peranti satu lagi dan bukannya menaip.',
   'settings.access.phrase.revealWhy': 'Masukkan kata laluan instans ini untuk menunjukkan frasa semula. Ia membuka setiap instans dalam kumpulan, bukan hanya yang ini.',
   'settings.access.phrase.revealConfirm': 'Tunjuk',
   'settings.access.phrase.showAgain': 'Tunjuk frasa',

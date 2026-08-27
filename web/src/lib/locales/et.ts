@@ -1411,6 +1411,7 @@ export const et: Dict = {
   'settings.access.phrase.stateConnecting': 'Veel kättesaamatu - ühendus luuakse.',
   'settings.access.phrase.yourPhrase': 'Sinu ühendusfraas',
   'settings.access.phrase.pasteHint': 'Kleebi need kaksteist sõna igasse teise eksemplari, mille soovid ühendada.',
+  'settings.access.phrase.qrHint': 'Või skanni see teise seadmega, selle asemel et sisestada.',
   'settings.access.phrase.revealWhy': 'Fraasi uuesti nägemiseks sisesta selle eksemplari parool. See avab kõik grupi eksemplarid, mitte ainult selle.',
   'settings.access.phrase.revealConfirm': 'Näita',
   'settings.access.phrase.showAgain': 'Näita fraasi',

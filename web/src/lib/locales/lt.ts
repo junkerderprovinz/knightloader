@@ -1411,6 +1411,7 @@ export const lt: Dict = {
   'settings.access.phrase.stateConnecting': 'Dar nepasiekiama - jungiamasi.',
   'settings.access.phrase.yourPhrase': 'Jūsų jungimosi frazė',
   'settings.access.phrase.pasteHint': 'Įklijuokite šiuos dvylika žodžių į kiekvieną kitą egzempliorių, kurį norite sujungti.',
+  'settings.access.phrase.qrHint': 'Arba nuskaityk tai kitu įrenginiu, užuot rinęs ranka.',
   'settings.access.phrase.revealWhy': 'Norėdami frazę pamatyti dar kartą, įveskite šio egzemplioriaus slaptažodį. Ji atveria kiekvieną grupės egzempliorių, ne tik šį.',
   'settings.access.phrase.revealConfirm': 'Rodyti',
   'settings.access.phrase.showAgain': 'Rodyti frazę',

@@ -1411,6 +1411,7 @@ export const vi: Dict = {
   'settings.access.phrase.stateConnecting': 'Chưa tới được - đang kết nối.',
   'settings.access.phrase.yourPhrase': 'Cụm từ kết nối của bạn',
   'settings.access.phrase.pasteHint': 'Dán mười hai từ này vào mọi phiên bản khác mà bạn muốn kết nối.',
+  'settings.access.phrase.qrHint': 'Hoặc quét mã này từ thiết bị kia thay vì gõ tay.',
   'settings.access.phrase.revealWhy': 'Nhập mật khẩu của phiên bản này để hiện lại cụm từ. Nó mở mọi phiên bản trong nhóm, không chỉ phiên bản này.',
   'settings.access.phrase.revealConfirm': 'Hiện',
   'settings.access.phrase.showAgain': 'Hiện cụm từ',

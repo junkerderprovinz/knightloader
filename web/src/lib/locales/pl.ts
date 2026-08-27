@@ -1404,6 +1404,7 @@ export const pl: Dict = {
   'settings.access.phrase.stateConnecting': 'Jeszcze nieosiągalne - trwa łączenie.',
   'settings.access.phrase.yourPhrase': 'Twoja fraza połączenia',
   'settings.access.phrase.pasteHint': 'Wklej te dwanaście słów w każdej innej instancji, którą chcesz połączyć.',
+  'settings.access.phrase.qrHint': 'Albo zeskanuj to drugim urządzeniem zamiast przepisywać.',
   'settings.access.phrase.revealWhy': 'Aby ponownie pokazać frazę, podaj hasło tej instancji. Fraza otwiera każdą instancję w grupie, nie tylko tę.',
   'settings.access.phrase.revealConfirm': 'Pokaż',
   'settings.access.phrase.showAgain': 'Pokaż frazę',

@@ -1411,6 +1411,7 @@ export const gl: Dict = {
   'settings.access.phrase.stateConnecting': 'Aínda non accesible - establecendo a conexión.',
   'settings.access.phrase.yourPhrase': 'A túa frase de conexión',
   'settings.access.phrase.pasteHint': 'Pega estas doce palabras en cada instancia que queiras conectar.',
+  'settings.access.phrase.qrHint': 'Ou escanea isto desde o outro dispositivo en vez de escribilo.',
   'settings.access.phrase.revealWhy': 'Introduce o contrasinal desta instancia para amosar a frase de novo. Abre todas as instancias do grupo, non só esta.',
   'settings.access.phrase.revealConfirm': 'Amosar',
   'settings.access.phrase.showAgain': 'Amosar a frase',

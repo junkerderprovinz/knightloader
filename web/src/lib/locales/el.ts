@@ -1411,6 +1411,7 @@ export const el: Dict = {
   'settings.access.phrase.stateConnecting': 'Μη προσβάσιμο ακόμη - γίνεται σύνδεση.',
   'settings.access.phrase.yourPhrase': 'Η φράση σύνδεσής σας',
   'settings.access.phrase.pasteHint': 'Επικολλήστε αυτές τις δώδεκα λέξεις σε κάθε άλλο στιγμιότυπο που θέλετε συνδεδεμένο.',
+  'settings.access.phrase.qrHint': 'Ή σάρωσε το από την άλλη συσκευή αντί να το πληκτρολογήσεις.',
   'settings.access.phrase.revealWhy': 'Εισαγάγετε τον κωδικό αυτού του στιγμιότυπου για να εμφανιστεί ξανά η φράση. Ανοίγει κάθε στιγμιότυπο της ομάδας, όχι μόνο αυτό.',
   'settings.access.phrase.revealConfirm': 'Εμφάνιση',
   'settings.access.phrase.showAgain': 'Εμφάνιση φράσης',

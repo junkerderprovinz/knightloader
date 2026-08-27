@@ -1412,6 +1412,7 @@ export const sv: Dict = {
   'settings.access.phrase.stateConnecting': 'Inte nåbar än - ansluter.',
   'settings.access.phrase.yourPhrase': 'Din kopplingsfras',
   'settings.access.phrase.pasteHint': 'Klistra in de här tolv orden i varje annan instans du vill koppla ihop.',
+  'settings.access.phrase.qrHint': 'Eller skanna det här från den andra enheten i stället för att skriva.',
   'settings.access.phrase.revealWhy': 'Ange den här instansens lösenord för att visa frasen igen. Den öppnar varje instans i gruppen, inte bara den här.',
   'settings.access.phrase.revealConfirm': 'Visa',
   'settings.access.phrase.showAgain': 'Visa frasen',

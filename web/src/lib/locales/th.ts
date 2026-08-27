@@ -1411,6 +1411,7 @@ export const th: Dict = {
   'settings.access.phrase.stateConnecting': 'ยังเข้าถึงไม่ได้ - กำลังเชื่อมต่อ',
   'settings.access.phrase.yourPhrase': 'วลีเชื่อมต่อของคุณ',
   'settings.access.phrase.pasteHint': 'วางสิบสองคำนี้ในทุกอินสแตนซ์อื่นที่คุณต้องการเชื่อม',
+  'settings.access.phrase.qrHint': 'หรือสแกนนี่จากอีกเครื่องแทนการพิมพ์',
   'settings.access.phrase.revealWhy': 'กรอกรหัสผ่านของอินสแตนซ์นี้เพื่อแสดงวลีอีกครั้ง วลีนี้เปิดทุกอินสแตนซ์ในกลุ่ม ไม่ใช่แค่ตัวนี้',
   'settings.access.phrase.revealConfirm': 'แสดง',
   'settings.access.phrase.showAgain': 'แสดงวลี',

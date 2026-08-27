@@ -1404,6 +1404,7 @@ export const es: Dict = {
   'settings.access.phrase.stateConnecting': 'Aún no accesible - estableciendo la conexión.',
   'settings.access.phrase.yourPhrase': 'Tu frase de conexión',
   'settings.access.phrase.pasteHint': 'Pega estas doce palabras en cada instancia que quieras conectar.',
+  'settings.access.phrase.qrHint': 'O escanea esto desde el otro dispositivo en lugar de escribirlo.',
   'settings.access.phrase.revealWhy': 'Introduce la contraseña de esta instancia para volver a mostrar la frase. Abre todas las instancias del grupo, no solo esta.',
   'settings.access.phrase.revealConfirm': 'Mostrar',
   'settings.access.phrase.showAgain': 'Mostrar la frase',

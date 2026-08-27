@@ -1411,6 +1411,7 @@ export const hi: Dict = {
   'settings.access.phrase.stateConnecting': 'अभी तक पहुँच योग्य नहीं - कनेक्ट हो रहा है।',
   'settings.access.phrase.yourPhrase': 'आपका कनेक्शन वाक्यांश',
   'settings.access.phrase.pasteHint': 'ये बारह शब्द हर उस इंस्टेंस में चिपकाएँ जिसे आप जोड़ना चाहते हैं।',
+  'settings.access.phrase.qrHint': 'या टाइप करने के बजाय इसे दूसरे डिवाइस से स्कैन करें।',
   'settings.access.phrase.revealWhy': 'वाक्यांश दोबारा देखने के लिए इस इंस्टेंस का पासवर्ड डालें। यह समूह के हर इंस्टेंस को खोलता है, सिर्फ़ इसे नहीं।',
   'settings.access.phrase.revealConfirm': 'दिखाएँ',
   'settings.access.phrase.showAgain': 'वाक्यांश दिखाएँ',

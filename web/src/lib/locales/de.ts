@@ -1412,6 +1412,7 @@ export const de: Dict = {
   'settings.access.phrase.stateConnecting': 'Noch nicht erreichbar - Verbindung wird aufgebaut.',
   'settings.access.phrase.yourPhrase': 'Deine Verbindungsphrase',
   'settings.access.phrase.pasteHint': 'Diese zwölf Wörter in jede andere Instanz einfügen, die verbunden werden soll.',
+  'settings.access.phrase.qrHint': 'Oder hier scannen, statt zu tippen.',
   'settings.access.phrase.revealWhy': 'Zum erneuten Anzeigen das Passwort dieser Instanz eingeben. Die Phrase öffnet jede Instanz der Gruppe, nicht nur diese.',
   'settings.access.phrase.revealConfirm': 'Anzeigen',
   'settings.access.phrase.showAgain': 'Phrase anzeigen',

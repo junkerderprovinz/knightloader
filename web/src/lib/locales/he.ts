@@ -1413,6 +1413,7 @@ export const he: Dict = {
   'settings.access.phrase.stateConnecting': 'עדיין לא זמין - מתחבר.',
   'settings.access.phrase.yourPhrase': 'משפט החיבור שלכם',
   'settings.access.phrase.pasteHint': 'הדביקו את שתים עשרה המילים האלה בכל מופע אחר שברצונכם לחבר.',
+  'settings.access.phrase.qrHint': 'או סרקו את זה מהמכשיר האחר במקום להקליד.',
   'settings.access.phrase.revealWhy': 'הזינו את סיסמת המופע הזה כדי להציג את המשפט שוב. הוא פותח כל מופע בקבוצה, לא רק את זה.',
   'settings.access.phrase.revealConfirm': 'הצג',
   'settings.access.phrase.showAgain': 'הצג את המשפט',

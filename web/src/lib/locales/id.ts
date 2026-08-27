@@ -1411,6 +1411,7 @@ export const id: Dict = {
   'settings.access.phrase.stateConnecting': 'Belum terjangkau - sedang menghubungkan.',
   'settings.access.phrase.yourPhrase': 'Frasa koneksi Anda',
   'settings.access.phrase.pasteHint': 'Tempel dua belas kata ini ke setiap instance lain yang ingin Anda hubungkan.',
+  'settings.access.phrase.qrHint': 'Atau pindai ini dari perangkat lain daripada mengetiknya.',
   'settings.access.phrase.revealWhy': 'Masukkan kata sandi instance ini untuk menampilkan frasa lagi. Frasa membuka setiap instance dalam grup, bukan hanya yang ini.',
   'settings.access.phrase.revealConfirm': 'Tampilkan',
   'settings.access.phrase.showAgain': 'Tampilkan frasa',

@@ -1412,6 +1412,7 @@ export const uk: Dict = {
   'settings.access.phrase.stateConnecting': 'Ще недоступно - триває підключення.',
   'settings.access.phrase.yourPhrase': 'Ваша фраза для підключення',
   'settings.access.phrase.pasteHint': 'Вставте ці дванадцять слів у кожен інший екземпляр, який хочете з\'єднати.',
+  'settings.access.phrase.qrHint': 'Або відскануйте це іншим пристроєм замість ручного введення.',
   'settings.access.phrase.revealWhy': 'Щоб показати фразу знову, введіть пароль цього екземпляра. Вона відкриває кожен екземпляр групи, а не лише цей.',
   'settings.access.phrase.revealConfirm': 'Показати',
   'settings.access.phrase.showAgain': 'Показати фразу',

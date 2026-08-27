@@ -1411,6 +1411,7 @@ export const lv: Dict = {
   'settings.access.phrase.stateConnecting': 'Vēl nav sasniedzams - notiek savienošana.',
   'settings.access.phrase.yourPhrase': 'Jūsu savienojuma frāze',
   'settings.access.phrase.pasteHint': 'Ielīmējiet šos divpadsmit vārdus katrā citā instancē, ko vēlaties savienot.',
+  'settings.access.phrase.qrHint': 'Vai arī noskenē to no otras ierīces, nevis raksti ar roku.',
   'settings.access.phrase.revealWhy': 'Lai frāzi parādītu vēlreiz, ievadiet šīs instances paroli. Tā atver katru grupas instanci, ne tikai šo.',
   'settings.access.phrase.revealConfirm': 'Rādīt',
   'settings.access.phrase.showAgain': 'Rādīt frāzi',

@@ -1411,6 +1411,7 @@ export const ko: Dict = {
   'settings.access.phrase.stateConnecting': '아직 연결되지 않음 - 연결 중입니다.',
   'settings.access.phrase.yourPhrase': '내 연결 문구',
   'settings.access.phrase.pasteHint': '연결하려는 다른 모든 인스턴스에 이 열두 단어를 붙여넣으세요.',
+  'settings.access.phrase.qrHint': '직접 입력하는 대신 다른 기기로 이것을 스캔해도 됩니다.',
   'settings.access.phrase.revealWhy': '문구를 다시 보려면 이 인스턴스의 비밀번호를 입력하세요. 이 문구는 그룹의 모든 인스턴스를 엽니다.',
   'settings.access.phrase.revealConfirm': '표시',
   'settings.access.phrase.showAgain': '문구 표시',
