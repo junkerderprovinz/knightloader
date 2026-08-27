@@ -1315,6 +1315,7 @@ export const ar: Dict = {
   'settings.access.phrase.revealWhy': 'أدخل كلمة مرور هذه النسخة لعرض العبارة مجددًا. إنها تفتح كل نسخة في المجموعة، لا هذه وحدها.',
   'settings.access.phrase.revealConfirm': 'عرض',
   'settings.access.phrase.showAgain': 'عرض العبارة',
+  'settings.access.phrase.hide': 'إخفاء العبارة',
   'settings.access.phrase.leave': 'مغادرة المجموعة',
   'settings.browsertools.appTitle': 'التطبيق',
   'settings.browsertools.appBody': 'تطبيقات أصلية لسطح المكتب و Android و iOS - يمكن أيضًا تثبيت هذه الصفحة مباشرة من متصفحك، دون أي منهما.',

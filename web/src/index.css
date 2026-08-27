@@ -152,14 +152,6 @@
   --hairline: inset 0 1px 0 rgba(255, 255, 255, .045);
   --focus-ring: rgba(252, 196, 25, .55);
 
-  /* The App Store / Google Play badges (components/storeBadgeMarks.ts). Both
-     stores publish the same badge on a light and a dark plate, and the choice
-     is theirs to make about contrast, not ours about accent - so these two are
-     deliberately outside the accent/rainbow system, like every other brand
-     mark in this app. On the dark ground: the light plate, the one both stores
-     show against dark. */
-  --store-badge-plate: #f4f4f4;
-  --store-badge-ink:   #161616;
 }
 
 /* System default (rule: theme defaults to system, not a hard-coded dark) —
@@ -215,11 +207,6 @@
     --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
     --focus-ring: rgba(142, 106, 0, .5);
 
-    /* Mirrored, so the badge stays a badge: a white plate on this theme's
-       near-white ground would read as floating lettering, not a store button.
-       See the dark block above for why these sit outside the accent system. */
-    --store-badge-plate: #161616;
-    --store-badge-ink:   #f4f4f4;
   }
 }
 
@@ -276,10 +263,6 @@
   --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
   --focus-ring: rgba(142, 106, 0, .5);
 
-  /* Same swap as the media-query block above, for an explicit light override
-     under a dark-preferring OS. */
-  --store-badge-plate: #161616;
-  --store-badge-ink:   #f4f4f4;
 }
 
 body {

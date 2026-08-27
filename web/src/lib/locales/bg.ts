@@ -1314,6 +1314,7 @@ export const bg: Dict = {
   'settings.access.phrase.revealWhy': 'Въведете паролата на тази инстанция, за да покажете фразата отново. Тя отваря всяка инстанция в групата, не само тази.',
   'settings.access.phrase.revealConfirm': 'Покажи',
   'settings.access.phrase.showAgain': 'Покажи фразата',
+  'settings.access.phrase.hide': 'Скриване на фразата',
   'settings.access.phrase.leave': 'Напусни групата',
   'settings.browsertools.appTitle': 'Приложение',
   'settings.browsertools.appBody': 'Собствени приложения за десктоп, Android и iOS - тази страница може също да се инсталира директно от браузъра, без нито едно от двете.',

@@ -1312,6 +1312,7 @@ export const zh: Dict = {
   'settings.access.phrase.revealWhy': '输入此实例的密码以再次显示短语。它会打开组内每一个实例，而不只是这一个。',
   'settings.access.phrase.revealConfirm': '显示',
   'settings.access.phrase.showAgain': '显示短语',
+  'settings.access.phrase.hide': '隐藏口令',
   'settings.access.phrase.leave': '离开群组',
   'settings.browsertools.appTitle': '应用',
   'settings.browsertools.appBody': '适用于桌面、Android 和 iOS 的原生应用 - 本页面也可以直接从浏览器安装，两者都不需要。',

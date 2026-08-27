@@ -164,20 +164,30 @@ function AppCard() {
       <SectionTitle hue={3} hint={t('settings.browsertools.appBody')}>
         {t('settings.browsertools.appTitle')}
       </SectionTitle>
+      {/* All three on the same tile as the browser downloads above (jdp,
+          2026-08-27: "Kannst du die App download buttons und die der
+          browsererweiterung gleich machen?"). The APK was a plain button
+          before, which made the one route that actually works today look like
+          a different KIND of thing from the two that do not.
+
+          There is deliberately no iOS equivalent of the APK beside the App
+          Store badge: Apple has no sideloading. Without a store listing, the
+          only routes are TestFlight (a beta programme, 90 days, needs its own
+          developer account) or the EU's alternative marketplaces, and neither
+          is a file somebody downloads from here. The card's own hint says
+          so rather than leaving a conspicuous gap unexplained. */}
       <div className="flex flex-wrap items-center gap-3">
-        <StoreBadge svg={PLAY_BADGE_SVG} name={t('settings.browsertools.storeAndroid')} url={APP_URLS.android} />
-        <StoreBadge svg={APP_STORE_BADGE_SVG} name={t('settings.browsertools.storeIOS')} url={APP_URLS.ios} />
-        {/* The one route that works today, and the only one of the three that
-            is ours to keep working - so it is a plain button in the app's own
-            language rather than a third pretend-badge beside two real brand
-            marks. */}
-        <Button
-          kind="secondary"
-          hue={3}
+        <DownloadTile
+          name={t('settings.browsertools.storeAndroid')}
+          url={APP_URLS.android}
+          mark={PLAY_BADGE_SVG}
+        />
+        <DownloadTile name={t('settings.browsertools.storeIOS')} url={APP_URLS.ios} mark={APP_STORE_BADGE_SVG} />
+        <DownloadTile
+          name={t('settings.browsertools.apkLabel')}
           onClick={() => window.open(APP_URLS.apk, '_blank', 'noopener,noreferrer')}
-        >
-          {t('settings.browsertools.apkLabel')}
-        </Button>
+          label={t('settings.browsertools.apkLabel')}
+        />
       </div>
       {(canInstall || iOS) && (
         <div className="flex flex-col gap-2 pt-1">
@@ -219,35 +229,62 @@ const APP_URLS = {
 };
 
 /**
- * One store badge, sized by its own artwork rather than by a fixed box: both
- * files share a 2350x711.94 viewBox, so pinning the height alone keeps the
- * pair identically sized and lets each keep its own width.
+ * One download target, in the shape every download on this card uses: a
+ * filled tile that turns white under the pointer.
  *
- * It renders the markup itself instead of reusing BrandMark, whose `w-full`
- * is right for the square browser tiles above and wrong here: a 3.3:1 badge
- * inside a shrink-to-fit button needs `h-full w-auto`, or the button computes
- * a width of zero and the badge collapses. Same dangerouslySetInnerHTML
- * reasoning as BrandMark's own doc comment.
+ * `tileClass` is shared with the browser badges below, which is the point -
+ * a store badge, an APK and a browser extension are the same act, and having
+ * one of them look like a plain button made it read as a different kind of
+ * thing (jdp, 2026-08-27).
+ *
+ * The white hover is why the store artwork no longer carries its own plate:
+ * the tile owns the surface, the mark inherits `currentColor`, so the
+ * lettering flips to dark along with the background instead of vanishing
+ * into it. See components/storeBadgeMarks.ts.
  *
  * A <button> and not an <a>, for the empty-URL case: an anchor with no href
  * is not focusable and announces as plain text, while a disabled button still
  * says what it is to a screen reader.
  */
-function StoreBadge({ svg, name, url }: { svg: string; name: string; url: string }) {
+const tileClass =
+  'flex items-center justify-center rounded-[var(--radius-control)] bg-carbon-surface2 ' +
+  'text-carbon-text transition-colors duration-150 enabled:hover:bg-white enabled:hover:text-[#161616] ' +
+  'disabled:cursor-default disabled:opacity-60';
+
+function DownloadTile({
+  name,
+  url,
+  mark,
+  label,
+  onClick,
+}: {
+  name: string;
+  url?: string;
+  /** Inline SVG for a store's own wordmark. */
+  mark?: string;
+  /** Plain text, for a target that has no brand artwork of its own. */
+  label?: string;
+  onClick?: () => void;
+}) {
+  const act = onClick ?? (() => url && window.open(url, '_blank', 'noopener,noreferrer'));
   return (
     <button
       type="button"
-      disabled={!url}
+      disabled={!url && !onClick}
       title={name}
       aria-label={name}
-      onClick={() => url && window.open(url, '_blank', 'noopener,noreferrer')}
-      className="h-11 transition-opacity enabled:hover:opacity-85 disabled:cursor-default"
+      onClick={act}
+      className={`${tileClass} h-14 px-4`}
     >
-      <span
-        className="block h-11 [&>svg]:block [&>svg]:h-full [&>svg]:w-auto"
-        aria-hidden
-        dangerouslySetInnerHTML={{ __html: svg }}
-      />
+      {mark ? (
+        <span
+          className="block h-8 [&>svg]:block [&>svg]:h-full [&>svg]:w-auto"
+          aria-hidden
+          dangerouslySetInnerHTML={{ __html: mark }}
+        />
+      ) : (
+        <span className="text-sm font-medium">{label}</span>
+      )}
     </button>
   );
 }
@@ -303,15 +340,19 @@ function BrowserBadge({
 }) {
   return (
     <div className="relative">
+      {/* Same tile as the app downloads (jdp, 2026-08-27) - same surface,
+          same white hover. It stays taller and square because a browser mark
+          is a round logo with a word under it rather than a wide wordmark,
+          but it is the same object. The vendor logos keep their own colours
+          through the hover; only the surface and the caption flip. */}
       <button
         type="button"
         onClick={onClick}
         title={name}
-        className="flex h-28 w-28 flex-col items-center justify-center gap-2 rounded-[var(--radius-control)]
-          bg-carbon-surface2 transition-colors hover:bg-carbon-surface3"
+        className={`${tileClass} h-28 w-28 flex-col gap-2`}
       >
         <span className="flex h-14 w-14 shrink-0 items-center justify-center">{logo}</span>
-        <span className="text-xs font-medium text-carbon-text">{name}</span>
+        <span className="text-xs font-medium">{name}</span>
       </button>
       {hint && (
         <span className="absolute right-1.5 top-1.5">

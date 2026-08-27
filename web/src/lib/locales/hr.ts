@@ -1314,6 +1314,7 @@ export const hr: Dict = {
   'settings.access.phrase.revealWhy': 'Za ponovni prikaz unesite lozinku ove instance. Fraza otvara svaku instancu u grupi, ne samo ovu.',
   'settings.access.phrase.revealConfirm': 'Prikaži',
   'settings.access.phrase.showAgain': 'Prikaži frazu',
+  'settings.access.phrase.hide': 'Sakrij frazu',
   'settings.access.phrase.leave': 'Napusti grupu',
   'settings.browsertools.appTitle': 'Aplikacija',
   'settings.browsertools.appBody': 'Izvorne aplikacije za desktop, Android i iOS - ovu stranicu također možete instalirati izravno iz preglednika, bez ijednog od toga.',

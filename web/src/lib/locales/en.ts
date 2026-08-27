@@ -1517,6 +1517,7 @@ export const en = {
   'settings.access.phrase.revealWhy': "Enter this instance's password to show the phrase again. It opens every instance in the group, not only this one.",
   'settings.access.phrase.revealConfirm': 'Show',
   'settings.access.phrase.showAgain': 'Show the phrase',
+  'settings.access.phrase.hide': 'Hide the phrase',
   'settings.access.phrase.leave': 'Leave the group',
   'settings.access.intakePortsHint': 'Other ways this instance can be reached directly, outside the normal login - each with its own reachability shown here.',
 
@@ -1532,7 +1533,7 @@ export const en = {
   // 2026-08-27). Deliberately not left under settings.access.remote.*: a key
   // named after the page a card used to be on is one nobody dares delete.
   'settings.browsertools.appTitle': 'App',
-  'settings.browsertools.appBody': 'Native apps for desktop, Android and iOS - this page can also be installed straight from your browser, without either.',
+  'settings.browsertools.appBody': 'The KnightLoader app for your phone. Android can also install the APK directly; on iPhone and iPad the App Store is the only way, which is why there is no download beside it.',
   'settings.browsertools.storeAndroid': 'Google Play',
   'settings.browsertools.storeIOS': 'App Store',
   'settings.browsertools.apkLabel': 'Download the APK',

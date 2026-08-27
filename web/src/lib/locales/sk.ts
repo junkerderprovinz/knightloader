@@ -1314,6 +1314,7 @@ export const sk: Dict = {
   'settings.access.phrase.revealWhy': 'Na opätovné zobrazenie zadajte heslo tejto inštancie. Fráza otvorí každú inštanciu v skupine, nielen túto.',
   'settings.access.phrase.revealConfirm': 'Zobraziť',
   'settings.access.phrase.showAgain': 'Zobraziť frázu',
+  'settings.access.phrase.hide': 'Skryť frázu',
   'settings.access.phrase.leave': 'Opustiť skupinu',
   'settings.browsertools.appTitle': 'Aplikácia',
   'settings.browsertools.appBody': 'Natívne aplikácie pre počítač, Android a iOS - túto stránku možno tiež nainštalovať priamo z prehliadača, bez oboch.',

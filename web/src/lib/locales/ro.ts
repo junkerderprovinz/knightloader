@@ -1313,6 +1313,7 @@ export const ro: Dict = {
   'settings.access.phrase.revealWhy': 'Introdu parola acestei instanțe pentru a afișa fraza din nou. Deschide fiecare instanță din grup, nu doar aceasta.',
   'settings.access.phrase.revealConfirm': 'Afișează',
   'settings.access.phrase.showAgain': 'Afișează fraza',
+  'settings.access.phrase.hide': 'Ascunde fraza',
   'settings.access.phrase.leave': 'Părăsește grupul',
   'settings.browsertools.appTitle': 'Aplicație',
   'settings.browsertools.appBody': 'Aplicații native pentru desktop, Android și iOS - această pagină poate fi de asemenea instalată direct din browser, fără niciuna dintre ele.',

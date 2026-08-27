@@ -1313,6 +1313,7 @@ export const eu: Dict = {
   'settings.access.phrase.revealWhy': 'Esaldia berriro erakusteko, sartu instantzia honen pasahitza. Taldeko instantzia guztiak irekitzen ditu, ez hau bakarrik.',
   'settings.access.phrase.revealConfirm': 'Erakutsi',
   'settings.access.phrase.showAgain': 'Erakutsi esaldia',
+  'settings.access.phrase.hide': 'Ezkutatu esaldia',
   'settings.access.phrase.leave': 'Utzi taldea',
   'settings.browsertools.appTitle': 'Aplikazioa',
   'settings.browsertools.appBody': 'Jatorrizko aplikazioak mahaigainerako, Android eta iOS-erako - orri hau ere zure arakatzailetik zuzenean instala daiteke, bietako bat gabe.',

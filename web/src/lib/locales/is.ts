@@ -1313,6 +1313,7 @@ export const is: Dict = {
   'settings.access.phrase.revealWhy': 'Sláðu inn lykilorð þessa tilviks til að sýna setninguna aftur. Hún opnar hvert tilvik í hópnum, ekki bara þetta.',
   'settings.access.phrase.revealConfirm': 'Sýna',
   'settings.access.phrase.showAgain': 'Sýna setninguna',
+  'settings.access.phrase.hide': 'Fela frasann',
   'settings.access.phrase.leave': 'Yfirgefa hópinn',
   'settings.browsertools.appTitle': 'Forrit',
   'settings.browsertools.appBody': 'Innfædd forrit fyrir borðtölvu, Android og iOS - einnig er hægt að setja þessa síðu upp beint úr vafranum þínum, án hvors tveggja.',

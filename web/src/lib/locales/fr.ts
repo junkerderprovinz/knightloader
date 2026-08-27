@@ -1306,6 +1306,7 @@ export const fr: Dict = {
   'settings.access.phrase.revealWhy': 'Saisissez le mot de passe de cette instance pour réafficher la phrase. Elle ouvre chaque instance du groupe, pas seulement celle-ci.',
   'settings.access.phrase.revealConfirm': 'Afficher',
   'settings.access.phrase.showAgain': 'Afficher la phrase',
+  'settings.access.phrase.hide': 'Masquer la phrase',
   'settings.access.phrase.leave': 'Quitter le groupe',
   'settings.browsertools.appTitle': 'Application',
   'settings.browsertools.appBody': "Applications natives pour ordinateur, Android et iOS - cette page peut aussi être installée directement depuis votre navigateur, sans l'un ni l'autre.",

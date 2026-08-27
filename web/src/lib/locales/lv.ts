@@ -1313,6 +1313,7 @@ export const lv: Dict = {
   'settings.access.phrase.revealWhy': 'Lai frāzi parādītu vēlreiz, ievadiet šīs instances paroli. Tā atver katru grupas instanci, ne tikai šo.',
   'settings.access.phrase.revealConfirm': 'Rādīt',
   'settings.access.phrase.showAgain': 'Rādīt frāzi',
+  'settings.access.phrase.hide': 'Paslēpt frāzi',
   'settings.access.phrase.leave': 'Pamest grupu',
   'settings.browsertools.appTitle': 'Lietotne',
   'settings.browsertools.appBody': 'Vietējās lietotnes galddatoram, Android un iOS - šo lapu var arī instalēt tieši no pārlūkprogrammas, bez kāda no tiem.',

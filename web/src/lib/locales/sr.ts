@@ -1314,6 +1314,7 @@ export const sr: Dict = {
   'settings.access.phrase.revealWhy': 'За поновни приказ унесите лозинку ове инстанце. Фраза отвара сваку инстанцу у групи, не само ову.',
   'settings.access.phrase.revealConfirm': 'Прикажи',
   'settings.access.phrase.showAgain': 'Прикажи фразу',
+  'settings.access.phrase.hide': 'Сакриј фразу',
   'settings.access.phrase.leave': 'Напусти групу',
   'settings.browsertools.appTitle': 'Апликација',
   'settings.browsertools.appBody': 'Изворне апликације за десктоп, Android и iOS - ову страницу такође можете инсталирати директно из прегледача, без иједног од тога.',

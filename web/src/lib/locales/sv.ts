@@ -1314,6 +1314,7 @@ export const sv: Dict = {
   'settings.access.phrase.revealWhy': 'Ange den här instansens lösenord för att visa frasen igen. Den öppnar varje instans i gruppen, inte bara den här.',
   'settings.access.phrase.revealConfirm': 'Visa',
   'settings.access.phrase.showAgain': 'Visa frasen',
+  'settings.access.phrase.hide': 'Dölj frasen',
   'settings.access.phrase.leave': 'Lämna gruppen',
   'settings.browsertools.appTitle': 'App',
   'settings.browsertools.appBody': 'Native appar för dator, Android och iOS - den här sidan kan också installeras direkt från din webbläsare, utan någon av delarna.',

@@ -1313,6 +1313,7 @@ export const ms: Dict = {
   'settings.access.phrase.revealWhy': 'Masukkan kata laluan instans ini untuk menunjukkan frasa semula. Ia membuka setiap instans dalam kumpulan, bukan hanya yang ini.',
   'settings.access.phrase.revealConfirm': 'Tunjuk',
   'settings.access.phrase.showAgain': 'Tunjuk frasa',
+  'settings.access.phrase.hide': 'Sembunyikan frasa',
   'settings.access.phrase.leave': 'Tinggalkan kumpulan',
   'settings.browsertools.appTitle': 'Aplikasi',
   'settings.browsertools.appBody': 'Aplikasi natif untuk desktop, Android dan iOS - halaman ini juga boleh dipasang terus daripada pelayar anda, tanpa kedua-duanya.',

@@ -1313,6 +1313,7 @@ export const hu: Dict = {
   'settings.access.phrase.revealWhy': 'A kifejezés újbóli megjelenítéséhez adja meg ennek a példánynak a jelszavát. A csoport minden példányát megnyitja, nem csak ezt.',
   'settings.access.phrase.revealConfirm': 'Megjelenítés',
   'settings.access.phrase.showAgain': 'Kifejezés megjelenítése',
+  'settings.access.phrase.hide': 'Kifejezés elrejtése',
   'settings.access.phrase.leave': 'Kilépés a csoportból',
   'settings.browsertools.appTitle': 'Alkalmazás',
   'settings.browsertools.appBody': 'Natív alkalmazások asztali gépre, Androidra és iOS-re - ez az oldal közvetlenül a böngészőből is telepíthető, egyik nélkül is.',

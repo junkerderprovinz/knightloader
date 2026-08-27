@@ -1314,6 +1314,7 @@ export const sl: Dict = {
   'settings.access.phrase.revealWhy': 'Za ponovni prikaz vnesite geslo te instance. Fraza odpre vsako instanco v skupini, ne le te.',
   'settings.access.phrase.revealConfirm': 'Pokaži',
   'settings.access.phrase.showAgain': 'Pokaži frazo',
+  'settings.access.phrase.hide': 'Skrij frazo',
   'settings.access.phrase.leave': 'Zapusti skupino',
   'settings.browsertools.appTitle': 'Aplikacija',
   'settings.browsertools.appBody': 'Izvorne aplikacije za namizje, Android in iOS - to stran je mogoče namestiti tudi neposredno iz brskalnika, brez obojega.',

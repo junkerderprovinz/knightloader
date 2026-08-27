@@ -1313,6 +1313,7 @@ export const ja: Dict = {
   'settings.access.phrase.revealWhy': 'フレーズを再表示するには、このインスタンスのパスワードを入力してください。グループ内のすべてのインスタンスが開きます。このインスタンスだけではありません。',
   'settings.access.phrase.revealConfirm': '表示',
   'settings.access.phrase.showAgain': 'フレーズを表示',
+  'settings.access.phrase.hide': 'フレーズを隠す',
   'settings.access.phrase.leave': 'グループから抜ける',
   'settings.browsertools.appTitle': 'アプリ',
   'settings.browsertools.appBody': 'デスクトップ、Android、iOS 向けのネイティブアプリ - このページ自体もブラウザから直接インストールでき、どちらも不要です。',

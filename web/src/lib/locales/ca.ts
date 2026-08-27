@@ -1313,6 +1313,7 @@ export const ca: Dict = {
   'settings.access.phrase.revealWhy': 'Introdueix la contrasenya d\'aquesta instància per tornar a mostrar la frase. Obre totes les instàncies del grup, no només aquesta.',
   'settings.access.phrase.revealConfirm': 'Mostra',
   'settings.access.phrase.showAgain': 'Mostra la frase',
+  'settings.access.phrase.hide': 'Amaga la frase',
   'settings.access.phrase.leave': 'Surt del grup',
   'settings.browsertools.appTitle': 'Aplicació',
   'settings.browsertools.appBody': 'Aplicacions natives per a escriptori, Android i iOS - aquesta pàgina també es pot instal·lar directament des del navegador, sense cap de les dues.',

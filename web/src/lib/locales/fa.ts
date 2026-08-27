@@ -1313,6 +1313,7 @@ export const fa: Dict = {
   'settings.access.phrase.revealWhy': 'برای نمایش دوباره عبارت، رمز این نمونه را وارد کنید. این عبارت هر نمونه گروه را باز می‌کند، نه فقط این یکی.',
   'settings.access.phrase.revealConfirm': 'نمایش',
   'settings.access.phrase.showAgain': 'نمایش عبارت',
+  'settings.access.phrase.hide': 'پنهان کردن عبارت',
   'settings.access.phrase.leave': 'ترک گروه',
   'settings.browsertools.appTitle': 'برنامه',
   'settings.browsertools.appBody': 'برنامه‌های بومی برای دسکتاپ، اندروید و iOS - این صفحه را هم می‌توان مستقیماً از مرورگرتان نصب کرد، بدون هیچ‌کدام از آن دو.',

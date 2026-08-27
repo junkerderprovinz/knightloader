@@ -1313,6 +1313,7 @@ export const lt: Dict = {
   'settings.access.phrase.revealWhy': 'Norėdami frazę pamatyti dar kartą, įveskite šio egzemplioriaus slaptažodį. Ji atveria kiekvieną grupės egzempliorių, ne tik šį.',
   'settings.access.phrase.revealConfirm': 'Rodyti',
   'settings.access.phrase.showAgain': 'Rodyti frazę',
+  'settings.access.phrase.hide': 'Slėpti frazę',
   'settings.access.phrase.leave': 'Palikti grupę',
   'settings.browsertools.appTitle': 'Programėlė',
   'settings.browsertools.appBody': 'Vietinės programos darbalaukiui, Android ir iOS - šį puslapį taip pat galima įdiegti tiesiai iš naršyklės, be jokios iš jų.',

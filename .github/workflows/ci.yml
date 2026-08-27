@@ -60,6 +60,13 @@ jobs:
             mobile:
               - 'mobile/**'
               - '.github/workflows/ci.yml'
+            # The desktop module is its own Go module that `replace`s the main
+            # one, so a change to either can break it - hence both paths.
+            desktop:
+              - 'desktop/**'
+              - '**/*.go'
+              - 'go.mod'
+              - '.github/workflows/ci.yml'
 
   server:
     needs: changes
@@ -278,3 +285,51 @@ jobs:
       # this catches the class of mistake that actually happens.
       - name: Type check
         run: npx tsc --noEmit
+
+  # The desktop bundle's own module, compiled and vetted but not packaged.
+  #
+  # It exists because desktop/ was a blind spot: desktop.yml only runs on a
+  # `v*.*.*` tag or by hand, this repo has no such tag yet, and nothing else
+  # touched the module - so between 2026-08-09 and 2026-08-27 it went through
+  # three waves, the relay rewrite and the frame-encryption change without
+  # once being compiled. It `replace`s the main module, so any signature change
+  # there can break it, and the first sign would have been the very first
+  # release failing.
+  #
+  # Compile-only on purpose. A real Wails build needs GTK/WebKit system
+  # packages and produces an artifact nobody consumes on a normal push; what
+  # actually goes wrong here is a type error against the main module, and
+  # `go build` catches that in seconds. desktop.yml still owns real packaging.
+  #
+  # webkit2_41 matches desktop.yml's own build tag: Wails binds
+  # webkit2gtk-4.0 by default and Ubuntu 24.04 only ships 4.1, which is the
+  # difference between this job compiling and it failing on the linker.
+  desktop:
+    needs: changes
+    if: needs.changes.outputs.desktop == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: desktop
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: desktop/go.mod
+          cache-dependency-path: desktop/go.sum
+
+      # Wails links against WebKitGTK even for a plain `go build`, so the
+      # headers have to be present or the compile fails on a missing pkg-config
+      # entry rather than on anything in this repo.
+      - name: System packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libgtk-3-dev libwebkit2gtk-4.1-dev
+
+      - name: Vet
+        run: go vet -tags webkit2_41 ./...
+
+      - name: Build
+        run: go build -tags webkit2_41 ./...

@@ -1314,6 +1314,7 @@ export const uk: Dict = {
   'settings.access.phrase.revealWhy': 'Щоб показати фразу знову, введіть пароль цього екземпляра. Вона відкриває кожен екземпляр групи, а не лише цей.',
   'settings.access.phrase.revealConfirm': 'Показати',
   'settings.access.phrase.showAgain': 'Показати фразу',
+  'settings.access.phrase.hide': 'Сховати фразу',
   'settings.access.phrase.leave': 'Покинути групу',
   'settings.browsertools.appTitle': 'Застосунок',
   'settings.browsertools.appBody': 'Нативні застосунки для настільного ПК, Android і iOS - цю сторінку також можна встановити прямо з браузера, без обох.',
