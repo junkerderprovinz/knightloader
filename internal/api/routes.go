@@ -55,7 +55,6 @@ func registerAll(reg *Registry, a *app.App) {
 	registerFederation(reg, a)
 	registerRelay(reg, a)
 	registerConnect(reg, a)
-	registerTsnet(reg, a)
 	registerDiscovery(reg, a)
 	registerFeatures(reg, a)
 	registerConnections(reg, a)

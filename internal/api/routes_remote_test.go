@@ -1,7 +1,6 @@
 package api
 
 import (
-	"crypto/tls"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -481,92 +480,6 @@ func TestRemoteAccessKnownDomainKeepsItsOwnScheme(t *testing.T) {
 	}
 	if !found.Domain || found.Loopback {
 		t.Errorf("known domain entry = %+v, want Domain=true Loopback=false", found)
-	}
-}
-
-// TestRemoteAddressesInsertsTsnetBetweenConnectionAndKnown pins the ordering
-// remoteAddresses' own doc comment promises: a connected Funnel address is
-// TLS-verified and reachable for as long as this instance stays logged into
-// Tailscale, so it outranks a merely-remembered known domain, but "this
-// connection" - proven by the request that just arrived, not inferred - still
-// goes first. Exercised directly against the pure function rather than
-// through the HTTP route, since nothing in this package can drive a.Tsnet
-// into a genuinely connected state without a real Tailscale account.
-func TestRemoteAddressesInsertsTsnetBetweenConnectionAndKnown(t *testing.T) {
-	req, err := http.NewRequest(http.MethodGet, "http://knightloader.lan:8749/api/remote-access", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	req.Host = "knightloader.lan:8749"
-
-	addrs := remoteAddresses(req, []string{"https://known.example.com"}, "https://myinstance.tailnet123.ts.net")
-	if len(addrs) < 3 {
-		t.Fatalf("addrs = %v, want at least 3 entries (this connection, tailscale, known)", addrs)
-	}
-	if addrs[0].Label != "this connection" {
-		t.Errorf("addrs[0].Label = %q, want %q", addrs[0].Label, "this connection")
-	}
-	if addrs[1].Label != "tailscale" || addrs[1].URL != "https://myinstance.tailnet123.ts.net" {
-		t.Errorf("addrs[1] = %+v, want the tailscale entry right after \"this connection\"", addrs[1])
-	}
-	if !addrs[1].Domain || addrs[1].Loopback {
-		t.Errorf("tailscale entry = %+v, want Domain=true Loopback=false", addrs[1])
-	}
-	if addrs[2].Label != "known" || addrs[2].URL != "https://known.example.com" {
-		t.Errorf("addrs[2] = %+v, want the known domain after tailscale", addrs[2])
-	}
-}
-
-// TestRemoteAddressesOmitsTsnetWhenNotConnected: an empty tsnetURL (the
-// ordinary case - off, connecting, or never set up) must add nothing to the
-// list, not an empty/zero-value entry.
-func TestRemoteAddressesOmitsTsnetWhenNotConnected(t *testing.T) {
-	req, _ := http.NewRequest(http.MethodGet, "http://knightloader.lan:8749/", nil)
-	req.Host = "knightloader.lan:8749"
-
-	addrs := remoteAddresses(req, nil, "")
-	for _, a := range addrs {
-		if a.Label == "tailscale" {
-			t.Fatalf("addrs = %v, want no tailscale entry when tsnetURL is empty", addrs)
-		}
-	}
-}
-
-// TestRemoteAddressesIgnoresMalformedTsnetURL: tsnetFunnelURL only ever
-// hands remoteAddresses a URL tsnetsrv itself built (routes_remote.go's own
-// "https://"+domains[0]), but this function's own guard against a garbage
-// value - neturl.Parse failing, or parsing to an empty Host - is worth
-// pinning down on its own rather than trusting call-site discipline alone.
-func TestRemoteAddressesIgnoresMalformedTsnetURL(t *testing.T) {
-	req, _ := http.NewRequest(http.MethodGet, "http://knightloader.lan:8749/", nil)
-	req.Host = "knightloader.lan:8749"
-
-	addrs := remoteAddresses(req, nil, "not a valid url")
-	for _, a := range addrs {
-		if a.Label == "tailscale" {
-			t.Fatalf("addrs = %v, want no tailscale entry for a malformed tsnetURL", addrs)
-		}
-	}
-}
-
-// TestRemoteAddressesDedupsTsnetAgainstThisConnection: if the funnel address
-// and the address this very request arrived on happen to share a host (the
-// admin viewing their own instance through its own Tailscale hostname), the
-// list must not list the same reachable address twice under two labels.
-func TestRemoteAddressesDedupsTsnetAgainstThisConnection(t *testing.T) {
-	req, _ := http.NewRequest(http.MethodGet, "https://myinstance.tailnet123.ts.net/", nil)
-	req.Host = "myinstance.tailnet123.ts.net"
-	req.TLS = &tls.ConnectionState{}
-
-	addrs := remoteAddresses(req, nil, "https://myinstance.tailnet123.ts.net")
-	count := 0
-	for _, a := range addrs {
-		if a.URL == "https://myinstance.tailnet123.ts.net" {
-			count++
-		}
-	}
-	if count != 1 {
-		t.Fatalf("addrs = %v, want the shared host listed exactly once, got %d", addrs, count)
 	}
 }
 

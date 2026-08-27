@@ -341,24 +341,6 @@ type Settings struct {
 	// under /relay/connect, for instances carrying the same relay key - see
 	// settings_relay.go for what that does and does not buy.
 	RelayServe bool `json:"relayServe"`
-
-	// TsnetEnabled is whether this instance should join Tailscale and expose
-	// itself via Funnel - see internal/tsnetsrv's own package doc for why
-	// this exists (jdp, 2026-08-26: the relay/pairing card was "viel zu
-	// kompliziert", and this is the "log in once, it just works, nothing to
-	// install on any other device" alternative). Read once at boot
-	// (registerTsnet, internal/api/routes_tsnet.go) to reconnect a
-	// previously-authorized instance automatically, and written by
-	// POST /api/tsnet/start|stop - never by the generic PATCH /api/settings,
-	// unlike RelayURL/RelayServe above, since nothing else needs to touch it
-	// in the same request a caller was already sending.
-	TsnetEnabled bool `json:"tsnetEnabled"`
-	// TsnetHostname is the short name this instance registers with Tailscale
-	// under - also the left-hand label of its funnel address
-	// (<name>.<tailnet>.ts.net). Empty means tsnetsrv.Manager picks its own
-	// default ("knightloader") rather than this field needing a fallback
-	// duplicated in two places.
-	TsnetHostname string `json:"tsnetHostname"`
 }
 
 // Defaults returns the settings a fresh install starts with.

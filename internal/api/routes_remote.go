@@ -19,7 +19,6 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
-	"github.com/junkerderprovinz/knightloader/internal/tsnetsrv"
 	"rsc.io/qr"
 )
 
@@ -60,10 +59,9 @@ type RemoteAccessInfo struct {
 // ReachableAddress is one URL this instance might answer on.
 type ReachableAddress struct {
 	// Label names where this address came from: "this connection" for the
-	// one the request itself arrived on, "tailscale" for a's own connected
-	// Funnel address (see tsnetFunnelURL below), "known" for one remembered
-	// or typed in by hand (see rememberDomain below), otherwise the
-	// interface's own IP.
+	// one the request itself arrived on, "known" for one remembered or typed
+	// in by hand (see rememberDomain below), otherwise the interface's own
+	// IP.
 	Label string `json:"label"`
 	URL   string `json:"url"`
 	// Loopback is true for 127.0.0.1/localhost/::1: reachable only from this
@@ -107,35 +105,16 @@ func remoteAccessInfo(a *app.App, r *http.Request) RemoteAccessInfo {
 		Deployment:  buildinfo.Deployment,
 		PasswordSet: a.Auth.Enabled(),
 	}
-	tsURL := tsnetFunnelURL(a)
 	// The desktop build serves api.Handler as a Wails AssetServer handler,
 	// never on a TCP port (desktop/main.go), so there is no request-derived
-	// address to report and no exposure to warn about there, the same as
-	// before this field existed. A connected Funnel is a real, independent
-	// net.Listener regardless of deployment though (see a.Tsnet's own doc
-	// comment), so it is still checked and reported here - for a desktop
-	// build this is the ONLY way it has ever been reachable from another
-	// device at all.
+	// address to report and no exposure to warn about. It has no listener of
+	// its own at all now that Tailscale is gone: a desktop install is
+	// reachable by its siblings over the relay, and by nothing else.
 	if buildinfo.Deployment == "desktop" {
-		if tsURL != "" {
-			info.Addresses = []ReachableAddress{{Label: "tailscale", URL: tsURL, Domain: true}}
-			info.QR = renderQR(tsURL)
-			// requestIsNonLoopback(r) is meaningless here - r is a Wails
-			// webview request, not a network peer, and its Host looks like
-			// "wails.localhost" (pairingSelf's own comment covers why that
-			// is not a signal to trust). A connected Funnel needs no such
-			// proof: Funnel does not come up at all unless this instance is
-			// genuinely reachable from the whole internet, so the mere
-			// presence of tsURL already IS the proof the container path
-			// gets from requestIsNonLoopback - caught live in review before
-			// this fix, a password-less desktop instance connected via
-			// Funnel never showed the exposure warning at all.
-			info.Exposed = !info.PasswordSet
-		}
 		return info
 	}
 	known := a.Settings.Get().KnownDomains
-	info.Addresses = remoteAddresses(r, known, tsURL)
+	info.Addresses = remoteAddresses(r, known)
 	info.Exposed = !info.PasswordSet && (requestIsNonLoopback(r) || buildinfo.ListensWidely)
 	rememberDomain(a, info.Addresses, known)
 	// The best NON-loopback address, never Addresses[0] unconditionally:
@@ -155,18 +134,6 @@ func remoteAccessInfo(a *app.App, r *http.Request) RemoteAccessInfo {
 		info.QR = renderQR(addr)
 	}
 	return info
-}
-
-// tsnetFunnelURL is a.Tsnet's current public address, or "" when this
-// instance is not connected to Tailscale, has not finished the handshake
-// yet, or Funnel has not opened - the same "off" reading a fresh, never-
-// started Manager already gives (tsnetsrv.Manager.Info's own zero value).
-func tsnetFunnelURL(a *app.App) string {
-	info := a.Tsnet.Info()
-	if info.Status != tsnetsrv.StatusConnected {
-		return ""
-	}
-	return info.FunnelURL
 }
 
 // preferredAddress is the one address worth encoding into a QR code or
@@ -192,14 +159,11 @@ func preferredAddress(addrs []ReachableAddress) (string, bool) {
 // remoteAddresses is every address this build can name for this instance,
 // most trustworthy first: the address THIS REQUEST actually arrived on is
 // always first when known, because it is not a guess, it just worked, then
-// tsnetURL (a's own connected Funnel address, when there is one) - a real,
-// TLS-verified, guaranteed-reachable-from-anywhere address, so it outranks
-// even a remembered domain that might not still be answering - then every
-// KNOWN domain (remembered or typed in by hand - settings.Settings.
+// every KNOWN domain (remembered or typed in by hand - settings.Settings.
 // KnownDomains, full base URLs), then every other non-loopback IPv4 address
 // bound to a local interface, sharing the request's own port and scheme,
 // deduplicated against everything already added.
-func remoteAddresses(r *http.Request, known []string, tsnetURL string) []ReachableAddress {
+func remoteAddresses(r *http.Request, known []string) []ReachableAddress {
 	scheme := "http"
 	if r.TLS != nil {
 		scheme = "https"
@@ -227,11 +191,6 @@ func remoteAddresses(r *http.Request, known []string, tsnetURL string) []Reachab
 
 	if r.Host != "" {
 		add("this connection", scheme, r.Host, isLoopbackHost(r.Host))
-	}
-	if tsnetURL != "" {
-		if u, err := neturl.Parse(tsnetURL); err == nil && u.Host != "" {
-			add("tailscale", u.Scheme, u.Host, false)
-		}
 	}
 	for _, d := range known {
 		// A known domain keeps ITS OWN scheme (u.Scheme, stored alongside the
