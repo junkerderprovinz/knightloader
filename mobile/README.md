@@ -46,32 +46,31 @@ token — and switch between them; onboarding a new one is still manual:
    (`POST /api/tokens` — see `internal/api/routes_tokens.go`). The secret is
    shown once.
 2. In the app's "add connection" screen, enter the server's address and
-   paste the token in — or scan a QR code and let it fill in what it can.
-   The Access tab carries two different QR codes, and the app's scanner
-   (`src/api/pairing.ts`'s `decodePairingCode`) tells them apart rather than
-   assuming: the plain remote-access QR encodes just a bare address, and the
-   pairing-code QR (see "Instances" below) encodes name + address + a
-   one-time token, so scanning THAT one here fills in both the name and the
-   address fields at once. Either way the token itself still needs pasting
-   by hand: even a decoded pairing offer's token is a short-lived federation
-   handshake secret, not a general-purpose bearer API token — see
-   `internal/api/routes_pairing.go`'s own doc comment on why. A single scan
-   that also carries a real, reusable token needs the server to grow a
-   dedicated QR payload for that, which does not exist yet.
+   paste the token in — or scan the Access tab's remote-access QR, which
+   encodes the address, and paste only the token.
+
+   Or skip all of that: **enter the connection phrase instead**. Twelve
+   words, and every instance in the group appears at once, with no address
+   and no token to look up. See "Joining a group" below. This numbered path
+   is the direct one, for a server this phone can reach on its own.
 3. The app stores every saved connection, tokens included, in the OS
    keychain (`expo-secure-store`), never in plain storage, and sends the
    active one's token as `Authorization: Bearer <token>` on every request —
    the same header a script or the browser extension would use.
 
-### When nothing here can reach it at all (relay)
+### Joining a group (the phrase)
 
 The flow above needs a network path from the phone to the instance. When there
 is none — every instance behind a NAT with no port forwarding and no reverse
-proxy — the app can dial a [relay](../docs/superpowers/specs/2026-08-25-self-hosted-relay-design.md)
-instead, the same self-hosted relay the instances themselves dial out to. The
-connect screen's "connect via a relay" link asks for the relay address and key,
-lists the instances currently connected to that key, and saves one of them as a
-connection.
+proxy — the phone joins the group instead. Twelve words, and every instance in
+it appears at once.
+
+The connect screen's link leads to one field. The words are decoded on the
+phone (`src/api/seedphrase.ts`), which derives the same group key the
+instances derive, and the app dials the same relay they dial. The relay's
+address is compiled in, which is what keeps a phrase to twelve words instead
+of a URL plus a key; a group on a self-hosted relay is the one case that still
+wants the address typed, and is not wired up here yet.
 
 From there a relay connection behaves like any other: the same screens, the same
 calls. `src/api/client.ts`'s `request()` is the only place that knows the
@@ -86,24 +85,24 @@ rather than choices:
   not a tunnelled WebSocket, so there is no `/api/ws` to attach to. `liveTasks()`
   picks streaming or polling per connection; a federation peer already had the
   same limitation for the same reason.
-- **A token is still needed if the instance has a password.** A relay-proxied
-  call is replayed against the target's own API and meets its normal auth guard.
-  The relay key gets the call *to* the instance; the token gets it *past the
-  door*. The token rides in the frame's own `authorization` field
-  (`relay.ProxyRequest`), because the frame is all there is — a header would have
-  nowhere to live.
-- **The relay key is shared, a token is not.** Every instance on a key can see
-  every other. A phone holding the key holds the whole federation's admission
-  ticket, which is worth knowing before putting one on a device that gets lost.
+- **No token, even for an instance with a password.** Being on the relay under
+  the group key IS the credential now: a request arriving that way came off a
+  socket the relay only joins to connections presenting the same key, so the
+  instance accepts it. This is what the phrase bought. What it admits is an
+  allowlist, not the whole API — tasks, links and the queue, plus reading the
+  auth state, the peer list and the instance's own accent. Not the settings,
+  not the accounts, not the phrase itself.
+- **The phrase is the whole federation's admission ticket.** Every instance in
+  the group is reachable by anything holding it, which is worth knowing before
+  putting one on a device that gets lost. Leaving the group on that phone does
+  not revoke it for anybody else — the phrase is a group, not a per-device
+  credential.
 
-Worth being explicit about, since this transport carries a credential the
-direct one keeps between the phone and the instance: **the relay operator can
-read what passes through their relay.** Frames are forwarded unencrypted, so the
-address, the paths, the bodies and now the token are all visible to whoever runs
-it. That is fine when you run it yourself, which is what this project ships it
-for. Pointing the app at someone else's relay means handing them a working
-token — use a named, revocable one from the Access tab, never the account
-password.
+Worth being explicit about: **the relay operator carries your frames**, so they
+see who is talking and when. What they never see is the phrase — the instances
+and the phone all send a hash of it, never the words. Frames themselves are
+forwarded as they are, so paths and bodies are visible to whoever runs the
+relay. Ours is at `relay.knightloader.app`; run your own if that matters.
 
 The app announces itself to the relay with `client: true` (`relay.Announce`), so
 it never appears as a browsable instance on anyone else's Instances page — it
@@ -121,15 +120,13 @@ proxy only forwards task/link/queue routes, and only plain REST, so a peer's
 own queue is polled every few seconds there rather than streamed over the
 WebSocket the connected server's own queue uses.
 
-Adding a peer works two ways: type its name and address by hand, or scan the
-pairing-code QR from the OTHER instance's own Access tab
-(`POST /api/instances/pairing-code`, `internal/api/routes_pairing.go`) —
-that code already carries the peer's name, address and a one-time token, so
-one scan registers both directions. This is a genuine one-scan flow, unlike
-onboarding a brand new saved connection above, because redeeming it happens
-on an already-authenticated request to the connected server, which can act
-on the token itself server-side — the app never needs to hold or reuse that
-token, only relay the scanned code to it.
+Adding a peer here means typing its name and address by hand, which
+registers an address and nothing else — a peer with a password will refuse
+it. There used to be a second way, a pairing-code QR that carried name,
+address and a one-time token, and it was removed along with pairing itself.
+What replaced it is the connection phrase: put both instances in the same
+group and they authenticate each other by holding the same key, with nothing
+to copy per peer.
 
 ## Language
 
@@ -171,18 +168,20 @@ header on the socket too, not a query parameter — see `src/api/client.ts`'s
   its polling equivalent for a peer.
 - `src/storage/connections.ts` — every saved connection plus which one is
   active, in the OS keychain.
-- `src/api/pairing.ts` — decodes a pairing-code string (pasted, or read off
-  a scanned QR) into the name/address/token it carries, entirely client-side
-  (mirrors `internal/api/routes_pairing.go`'s own encoding by hand, no
-  server round-trip needed just to tell what kind of code it is).
+- `src/api/seedphrase.ts` — twelve words to the group key, entirely on the
+  phone, because the whole point of a phrase is the case where there is no
+  server to ask yet. A port of `internal/seedphrase`, checked against that
+  package's own vectors; `src/api/wordlist.ts` is generated from its
+  `english.txt` so the two cannot disagree, and `src/api/sha256.ts` is
+  SHA-256 written out rather than a native module.
 - `src/api/relayClient.ts` — this app's own client for
   `internal/relay`'s wire protocol; see "When nothing here can reach it at
   all" above. One shared socket per (relay, key), because the relay treats a
   second connection under the same identity as the first one reconnecting.
 - `src/api/base64.ts` — base64 and UTF-8 in both directions, by hand rather
   than from the engine (`atob`/`TextEncoder` are not guaranteed present on
-  every Hermes build). Shared by the pairing decoder and the relay's frame
-  bodies, which Go marshals as base64 `[]byte`.
+  every Hermes build). Used for the relay's frame bodies, which Go marshals
+  as base64 `[]byte`.
 - `src/storage/relayIdentity.ts` — this device's stable id on a relay.
 - `src/components/QRScanner.tsx` — a full-screen camera modal
   (`expo-camera`) that hands back one decoded QR string; both scan buttons
@@ -325,10 +324,9 @@ project to point it at.
 
 ## Not done yet
 
-- A single scan that onboards a NEW connection with a real, reusable bearer
-  token — the initial "add connection" step still needs the token pasted by
-  hand even after scanning a pairing-code QR (its token is single-use and
-  federation-only); see "How it connects" above for the full reasoning.
+- Scanning the phrase QR. The web UI shows one next to the twelve words,
+  and the phone still wants them typed. The scanner and the decoder are both
+  already here, so this is wiring, not design.
 - No keepalive on the relay socket. The Go client pings every 30s to hold the
   connection open through a reverse proxy that drops idle upstreams; the
   WebSocket API React Native exposes cannot send a ping frame at all, so this

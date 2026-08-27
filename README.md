@@ -81,7 +81,7 @@ your own box.
 | **Intake** | Paste, drop, [Click'n'Load](docs/clicknload.md) from a site's own button, a container file, or a watched folder for `.txt` and `.crawljob` files. |
 | **Multi-instance** | Register other KnightLoaders and drive them all from one dashboard. Instances on the same network announce themselves and are one click to add - nothing to configure. |
 | **Twelve words** | Read a phrase off one instance, type it into the next, and they find each other across networks - no account, no login, no port forward, no domain. The words carry a secret; the relay only ever sees a hash of it, so nobody running one can reconstruct them. Use ours or run your own. See [connecting](docs/connecting.md). |
-| **Pairing** | One code, scanned or pasted, connects two instances in both directions and hands each side its own revocable credential. The longer way round, for anyone who wants to name the relay and the key themselves. |
+| **Your own relay** | Don't want to use ours? Point both ends at a relay you run and the same twelve words work against it. It terminates its own TLS over TLS-ALPN-01 - no proxy, no certbot, no cron, and only port 443 open. |
 | **Everywhere** | The web UI, a desktop build, an Android app and a browser extension all talk to the same instance, and to each other's. |
 | **Access** | An optional password lock, off by default. Same-origin API, origin-checked WebSocket. |
 | **Languages** | 42, each fetched only when chosen, right-to-left included. |

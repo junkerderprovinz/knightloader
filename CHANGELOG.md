@@ -98,19 +98,21 @@ see Versioning above.
   renewal cron, and no port 80, because the challenge completes inside a
   handshake on 443. Repeated failed handshakes from one address back off, so a
   relay on a public address is not a free guessing gallery.
-- **Pairing**: one code, scanned or pasted, connects two instances in both
-  directions and gives each side its own named, revocable credential for the
-  other. Neither has to be reachable from the internet. Reachability is
-  reported per direction, because it fails per direction.
-- **Pairing over a relay**: two instances with no address either can dial pair
-  through the relay they already share, which is the one case pairing could not
-  cover before - so a password-protected instance there refused every call
-  forever. That includes two containers behind separate NATs, each announcing a
-  LAN address the other cannot use: a code that carries an address tries it
-  first and falls back to the relay when it does not carry, and the credential
-  is filed under every key the peer can be addressed by rather than under a
-  guess about which one will be used. A desktop build can issue a code now for
-  the same reason.
+- **Being in the group is the credential.** A request arriving over the relay
+  came off a socket the relay only joins to connections presenting the same
+  group key, so the sender has already proved it holds the phrase - and a
+  password-protected instance accepts its own siblings instead of answering
+  401 to all of them. A pairing code used to be what closed that gap, one peer
+  at a time; it is gone, and nothing replaced it because nothing needs to.
+  What a sibling may reach is an allowlist rather than a property each route
+  happens to have: tasks, links and the queue, plus reading the auth state,
+  the peer list and the instance's own accent. Not the settings, not the
+  accounts, not the phrase.
+- **The phone joins the group too.** Twelve words, and every instance appears
+  at once - where it used to want a relay address, a relay key and then an API
+  token per instance, and saved one instance per visit. It decodes the phrase
+  itself, because the case the phrase exists for is the one where there is no
+  server to ask.
 - **The Android app asks for four fewer permissions**, and the four it dropped are the reason Play Protect blocked the install: `SYSTEM_ALERT_WINDOW` ("draw over other apps"), the microphone, biometrics and external storage. None of them came from this code. expo-camera brings the microphone along because it can also record video, React Native brings the overlay permission for its own developer overlay, and expo-secure-store brings biometrics for an option that is not used here. A download manager asking for the microphone and permission to draw over other apps looks like malware, and Play Protect was right to say so. What remains is camera, internet, and network and Wi-Fi state.
 - **One instance can be the relay**, from a switch on the Access tab, instead of
   a second program on a second address. It answers under `/relay/connect` on the
@@ -120,14 +122,13 @@ see Versioning above.
   finds it. Off, the route answers 404, exactly as a build without the feature
   does. What it cannot change is the one thing a relay needs: it is the third
   point both sides dial out to, so the instance hosting it has to be reachable.
-- **One card for remote access.** Pairing and the relay were two headed sections
-  of the same card, which showed the plumbing to somebody who came for an
-  answer. It now opens with the answer - one sentence saying whether another
-  KnightLoader can reach this one, and by which of the two roads - and both
-  halves of connecting are in one place, because showing a code and entering one
-  are the same act seen from the two ends and they lived on two different pages.
-  The relay is folded away under what it is for rather than what it is, and
-  unfolds by itself when one is already configured.
+- **One card for connecting.** It used to be several, each showing a different
+  piece of the plumbing to somebody who came for an answer. There is one now,
+  named for the two things it does - connect your instances, and reach this one
+  from anywhere - and it opens with the answer rather than the machinery: one
+  sentence saying whether the group is up, then the phrase. Everything that was
+  a third and fourth way to arrive at the same place is gone rather than folded
+  away, because a fold is still a thing to wonder about.
 - **The app and the extension follow GlimStone**, the design language the web
   UI already speaks: the same palette, the same corner shapes, the same
   Sunflower-gold accent before anyone touches a picker. The app takes its look
@@ -205,38 +206,16 @@ see Versioning above.
 
 ### Security
 
-- The relay identifier in a pairing completion is checked for shape before it is
-  used as a credential key. `/complete` accepts a pairing code without
-  authentication, so an unchecked field there was a free hand at the key space
-  every peer already lives in: naming an existing peer got a full-power token
-  minted and labelled after it, and then had that peer's real credential revoked
-  as a superseded duplicate - inbound federation from it dying silently, with
-  nothing visible on any page. An instance id is 40 hex characters and a pairing
-  name is capped at 32, so checking the shape separates the two key spaces
-  entirely.
-- A pairing completion must offer a way to be reached - an address, or a usable
-  relay identifier. A name alone is a label, not somewhere to call, and minting
-  a full-power token for one was work done on behalf of nobody.
-- A pairing code naming an instance you are ALREADY paired with can no longer
-  walk off with that peer's credential. Registering a peer overwrites by name
-  and a credential is filed by name, so re-pointing a name at a new address
-  left the old peer's token attached to it - and the reachability check that
-  runs next put that token in an Authorization header addressed to whoever now
-  owned the name.
 - Removing a peer now ends its credentials. It used to delete a line and
   nothing else, leaving that peer a live, full-power API token indefinitely,
   and leaving this instance's own credential for it to be inherited by whatever
   was registered under the same name next.
-- A peer credential is addressed by token ID rather than by name, so a pairing
-  attempt that fails can no longer revoke the credential from the pairing that
-  worked. Names are not unique, and "revoke what I just minted" was revoking
-  every token ever minted for that peer.
 - Nothing announced over multicast is trusted: fields are length-capped on
   arrival and the peer list is bounded, so a device on the network cannot grow
   it without limit.
 - Adding a discovered instance exchanges no credentials, and the interface now
   says so instead of claiming otherwise. A password-protected peer added that
-  way is reported as needing a pairing code rather than as offline.
+  way is reported as having refused, rather than as offline.
 - The API no longer sends a wildcard CORS header and the WebSocket no longer
   accepts any origin, which together stopped another website from driving an
   instance through the visitor's browser.
@@ -249,24 +228,18 @@ see Versioning above.
 ### Fixed
 
 - A peer that REFUSES this instance is no longer shown as simply offline. That
-  happens on its own whenever the other side sets or changes its password -
-  every credential it ever issued is revoked with it - and reported as offline
-  it reads as a machine somebody unplugged, so the pairing that would fix it is
-  the last thing anyone would try. The status dot has a third state now, and it
-  names the pairing code.
+  happens on its own whenever the other side sets or changes its password, and
+  reported as offline it reads as a machine somebody unplugged - so the thing
+  that would actually fix it is the last thing anyone would try. The status dot
+  has a third state now, and it names the connection phrase.
 - A YouTube link no longer lands in a folder called "watch" when its title
   arrives quickly. The name and the folder were decided by two things racing,
   and the one that lost left the guessed folder in place - so the fix worked
   only when the title took its time.
 - An instance whose name is not plain ASCII, or is longer than 32 characters,
-  can be paired at all. The name is folded into one that works as a URL path
+  can be addressed at all. The name is folded into one that works as a URL path
   segment ("Bürglers Keller" becomes "Burglers Keller"); before, the far side
-  refused it as invalid, about a name the person redeeming the code never typed
-  and could not see.
-- Pairing no longer reports plain success when only one of the two directions
-  works, and no longer hangs on a peer that accepts a connection and then says
-  nothing - a probe that outlived the other side's own budget could turn a
-  working pairing into a timeout.
+  refused it as invalid, about a name nobody had typed and nobody could see.
 - The browser extension keeps peers it cannot open a connection to, instead of
   dropping them silently and reporting "No new instances found" - the sentence
   it also showed for an empty list, a sign-in problem, an unreachable host and
