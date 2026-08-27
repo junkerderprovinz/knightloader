@@ -1404,6 +1404,7 @@ export const pt: Dict = {
   'settings.access.phrase.stateConnecting': 'Ainda não acessível - a estabelecer ligação.',
   'settings.access.phrase.yourPhrase': 'A sua frase de ligação',
   'settings.access.phrase.pasteHint': 'Cole estas doze palavras em cada outra instância que queira ligar.',
+  'settings.access.phrase.qrHint': 'Ou digitaliza isto no outro dispositivo em vez de escrever.',
   'settings.access.phrase.revealWhy': 'Introduza a palavra-passe desta instância para mostrar a frase novamente. Abre todas as instâncias do grupo, não só esta.',
   'settings.access.phrase.revealConfirm': 'Mostrar',
   'settings.access.phrase.showAgain': 'Mostrar a frase',

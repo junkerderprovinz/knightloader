@@ -1412,6 +1412,7 @@ export const sr: Dict = {
   'settings.access.phrase.stateConnecting': 'Још није доступно - повезује се.',
   'settings.access.phrase.yourPhrase': 'Ваша фраза за повезивање',
   'settings.access.phrase.pasteHint': 'Налепите ових дванаест речи у сваку другу инстанцу коју желите да повежете.',
+  'settings.access.phrase.qrHint': 'Или скенирај ово другим уређајем уместо куцања.',
   'settings.access.phrase.revealWhy': 'За поновни приказ унесите лозинку ове инстанце. Фраза отвара сваку инстанцу у групи, не само ову.',
   'settings.access.phrase.revealConfirm': 'Прикажи',
   'settings.access.phrase.showAgain': 'Прикажи фразу',

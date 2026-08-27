@@ -1404,6 +1404,7 @@ export const nl: Dict = {
   'settings.access.phrase.stateConnecting': 'Nog niet bereikbaar - bezig met verbinden.',
   'settings.access.phrase.yourPhrase': 'Jouw verbindingszin',
   'settings.access.phrase.pasteHint': 'Plak deze twaalf woorden in elke andere instantie die je wilt verbinden.',
+  'settings.access.phrase.qrHint': 'Of scan dit met het andere apparaat in plaats van te typen.',
   'settings.access.phrase.revealWhy': 'Voer het wachtwoord van deze instantie in om de zin opnieuw te tonen. Hij opent elke instantie in de groep, niet alleen deze.',
   'settings.access.phrase.revealConfirm': 'Tonen',
   'settings.access.phrase.showAgain': 'Zin tonen',

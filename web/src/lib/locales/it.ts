@@ -1404,6 +1404,7 @@ export const it: Dict = {
   'settings.access.phrase.stateConnecting': 'Non ancora raggiungibile - connessione in corso.',
   'settings.access.phrase.yourPhrase': 'La tua frase di collegamento',
   'settings.access.phrase.pasteHint': 'Incolla queste dodici parole in ogni altra istanza che vuoi collegare.',
+  'settings.access.phrase.qrHint': 'Oppure inquadra questo codice dall’altro dispositivo invece di digitare.',
   'settings.access.phrase.revealWhy': 'Inserisci la password di questa istanza per mostrare di nuovo la frase. Apre ogni istanza del gruppo, non solo questa.',
   'settings.access.phrase.revealConfirm': 'Mostra',
   'settings.access.phrase.showAgain': 'Mostra la frase',

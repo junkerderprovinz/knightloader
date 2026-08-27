@@ -1412,6 +1412,7 @@ export const hr: Dict = {
   'settings.access.phrase.stateConnecting': 'Još nije dostupno - povezuje se.',
   'settings.access.phrase.yourPhrase': 'Vaša fraza za povezivanje',
   'settings.access.phrase.pasteHint': 'Zalijepite ovih dvanaest riječi u svaku drugu instancu koju želite povezati.',
+  'settings.access.phrase.qrHint': 'Ili ovo skeniraj drugim uređajem umjesto da tipkaš.',
   'settings.access.phrase.revealWhy': 'Za ponovni prikaz unesite lozinku ove instance. Fraza otvara svaku instancu u grupi, ne samo ovu.',
   'settings.access.phrase.revealConfirm': 'Prikaži',
   'settings.access.phrase.showAgain': 'Prikaži frazu',

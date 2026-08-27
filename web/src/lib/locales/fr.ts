@@ -1404,6 +1404,7 @@ export const fr: Dict = {
   'settings.access.phrase.stateConnecting': 'Pas encore joignable - connexion en cours.',
   'settings.access.phrase.yourPhrase': 'Votre phrase de connexion',
   'settings.access.phrase.pasteHint': 'Collez ces douze mots dans chaque autre instance que vous voulez relier.',
+  'settings.access.phrase.qrHint': 'Ou scannez ceci depuis l’autre appareil au lieu de saisir les mots.',
   'settings.access.phrase.revealWhy': 'Saisissez le mot de passe de cette instance pour réafficher la phrase. Elle ouvre chaque instance du groupe, pas seulement celle-ci.',
   'settings.access.phrase.revealConfirm': 'Afficher',
   'settings.access.phrase.showAgain': 'Afficher la phrase',

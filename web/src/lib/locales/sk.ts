@@ -1412,6 +1412,7 @@ export const sk: Dict = {
   'settings.access.phrase.stateConnecting': 'Zatiaľ nedostupné - pripája sa.',
   'settings.access.phrase.yourPhrase': 'Vaša prepojovacia fráza',
   'settings.access.phrase.pasteHint': 'Vložte týchto dvanásť slov do každej ďalšej inštancie, ktorú chcete prepojiť.',
+  'settings.access.phrase.qrHint': 'Alebo to načítaj druhým zariadením namiesto prepisovania.',
   'settings.access.phrase.revealWhy': 'Na opätovné zobrazenie zadajte heslo tejto inštancie. Fráza otvorí každú inštanciu v skupine, nielen túto.',
   'settings.access.phrase.revealConfirm': 'Zobraziť',
   'settings.access.phrase.showAgain': 'Zobraziť frázu',

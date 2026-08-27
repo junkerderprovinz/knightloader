@@ -1411,6 +1411,7 @@ export const fi: Dict = {
   'settings.access.phrase.stateConnecting': 'Ei vielä tavoitettavissa - yhteyttä muodostetaan.',
   'settings.access.phrase.yourPhrase': 'Yhteyslauseesi',
   'settings.access.phrase.pasteHint': 'Liitä nämä kaksitoista sanaa jokaiseen muuhun instanssiin, jonka haluat yhdistää.',
+  'settings.access.phrase.qrHint': 'Tai skannaa tämä toisella laitteella kirjoittamisen sijaan.',
   'settings.access.phrase.revealWhy': 'Näytä lause uudelleen syöttämällä tämän instanssin salasana. Se avaa ryhmän jokaisen instanssin, ei vain tätä.',
   'settings.access.phrase.revealConfirm': 'Näytä',
   'settings.access.phrase.showAgain': 'Näytä lause',

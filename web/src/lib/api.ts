@@ -2142,7 +2142,7 @@ export async function fetchConnect(): Promise<ConnectInfo> {
  * only time it comes back without the password, because the person who just
  * pressed the button is by definition already looking at the screen.
  */
-export async function activateConnect(): Promise<{ phrase: string; info: ConnectInfo }> {
+export async function activateConnect(): Promise<{ phrase: string; qr?: QRMatrix; info: ConnectInfo }> {
   const r = await fetch('/api/connect/activate', { method: 'POST' });
   if (!r.ok) throw new Error(await r.text());
   return json(r);
@@ -2207,7 +2207,7 @@ export async function joinConnect(phrase: string): Promise<ConnectInfo> {
  * not this instance's own password but the key to every instance in the
  * group.
  */
-export async function revealConnect(password: string): Promise<{ phrase: string }> {
+export async function revealConnect(password: string): Promise<{ phrase: string; qr?: QRMatrix }> {
   const r = await fetch('/api/connect/reveal', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

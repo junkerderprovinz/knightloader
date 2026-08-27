@@ -1411,6 +1411,7 @@ export const ca: Dict = {
   'settings.access.phrase.stateConnecting': 'Encara no accessible - establint la connexió.',
   'settings.access.phrase.yourPhrase': 'La teva frase de connexió',
   'settings.access.phrase.pasteHint': 'Enganxa aquestes dotze paraules a cada altra instància que vulguis connectar.',
+  'settings.access.phrase.qrHint': 'O escaneja això des de l’altre dispositiu en comptes d’escriure-ho.',
   'settings.access.phrase.revealWhy': 'Introdueix la contrasenya d\'aquesta instància per tornar a mostrar la frase. Obre totes les instàncies del grup, no només aquesta.',
   'settings.access.phrase.revealConfirm': 'Mostra',
   'settings.access.phrase.showAgain': 'Mostra la frase',

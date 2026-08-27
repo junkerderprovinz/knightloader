@@ -1411,6 +1411,7 @@ export const da: Dict = {
   'settings.access.phrase.stateConnecting': 'Ikke tilgængelig endnu - forbinder.',
   'settings.access.phrase.yourPhrase': 'Din forbindelsessætning',
   'settings.access.phrase.pasteHint': 'Indsæt disse tolv ord i hver anden instans, du vil forbinde.',
+  'settings.access.phrase.qrHint': 'Eller scan dette fra den anden enhed i stedet for at taste.',
   'settings.access.phrase.revealWhy': 'Indtast denne instans adgangskode for at vise sætningen igen. Den åbner hver instans i gruppen, ikke kun denne.',
   'settings.access.phrase.revealConfirm': 'Vis',
   'settings.access.phrase.showAgain': 'Vis sætningen',

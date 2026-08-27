@@ -1410,6 +1410,7 @@ export const zh: Dict = {
   'settings.access.phrase.stateConnecting': '尚未可达 - 正在连接。',
   'settings.access.phrase.yourPhrase': '你的连接短语',
   'settings.access.phrase.pasteHint': '把这十二个单词粘贴到每一个你想连接的实例中。',
+  'settings.access.phrase.qrHint': '也可以用另一台设备扫描，不必手输。',
   'settings.access.phrase.revealWhy': '输入此实例的密码以再次显示短语。它会打开组内每一个实例，而不只是这一个。',
   'settings.access.phrase.revealConfirm': '显示',
   'settings.access.phrase.showAgain': '显示短语',

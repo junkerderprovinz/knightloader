@@ -1412,6 +1412,7 @@ export const bg: Dict = {
   'settings.access.phrase.stateConnecting': 'Още не е достъпно - установява се връзка.',
   'settings.access.phrase.yourPhrase': 'Вашата фраза за свързване',
   'settings.access.phrase.pasteHint': 'Поставете тези дванадесет думи във всяка друга инстанция, която искате да свържете.',
+  'settings.access.phrase.qrHint': 'Или сканирай това с другото устройство, вместо да го пишеш.',
   'settings.access.phrase.revealWhy': 'Въведете паролата на тази инстанция, за да покажете фразата отново. Тя отваря всяка инстанция в групата, не само тази.',
   'settings.access.phrase.revealConfirm': 'Покажи',
   'settings.access.phrase.showAgain': 'Покажи фразата',

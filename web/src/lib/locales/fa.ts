@@ -1411,6 +1411,7 @@ export const fa: Dict = {
   'settings.access.phrase.stateConnecting': 'هنوز در دسترس نیست - در حال اتصال.',
   'settings.access.phrase.yourPhrase': 'عبارت اتصال شما',
   'settings.access.phrase.pasteHint': 'این دوازده واژه را در هر نمونه دیگری که می‌خواهید وصل شود بچسبانید.',
+  'settings.access.phrase.qrHint': 'یا به‌جای تایپ کردن، این را با دستگاه دیگر اسکن کنید.',
   'settings.access.phrase.revealWhy': 'برای نمایش دوباره عبارت، رمز این نمونه را وارد کنید. این عبارت هر نمونه گروه را باز می‌کند، نه فقط این یکی.',
   'settings.access.phrase.revealConfirm': 'نمایش',
   'settings.access.phrase.showAgain': 'نمایش عبارت',

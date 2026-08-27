@@ -666,6 +666,10 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
   // state would make a card that cannot say which of the two is working.
   const [conn, setConn] = useState<ConnectInfo | null>(null);
   const [phrase, setPhrase] = useState('');
+  // Kept beside the phrase rather than derived from it: the matrix is the
+  // server's, and re-encoding it here would be a second implementation of
+  // the same code to keep in step with the pairing one.
+  const [phraseQr, setPhraseQr] = useState<QRMatrix | null>(null);
   const [phraseBusy, setPhraseBusy] = useState(false);
   const [phraseErr, setPhraseErr] = useState('');
   const [phraseCopied, setPhraseCopied] = useState(false);
@@ -685,6 +689,7 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
     try {
       const r = await activateConnect();
       setPhrase(r.phrase);
+      setPhraseQr(r.qr ?? null);
       setConn(r.info);
     } catch (e) {
       setPhraseErr(e instanceof Error ? e.message : String(e));
@@ -726,6 +731,7 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
     try {
       const r = await revealConnect(revealPw);
       setPhrase(r.phrase);
+      setPhraseQr(r.qr ?? null);
       setRevealPw('');
       setRevealOpen(false);
     } catch (e) {
@@ -743,6 +749,7 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
       // Cleared here rather than left for the reload: a phrase still on
       // screen after "leave" reads as though nothing happened.
       setPhrase('');
+      setPhraseQr(null);
       await loadConn();
     } catch (e) {
       setPhraseErr(e instanceof Error ? e.message : String(e));
@@ -1143,6 +1150,16 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
                 />
               </div>
               <p className="text-[11px] text-carbon-textMuted">{t('settings.access.phrase.pasteHint')}</p>
+              {/* The QR is for the case the words are worst at: typing twelve
+                  of them into a phone. Same component the pairing code uses,
+                  and it is absent rather than broken when the server could
+                  not encode one. */}
+              {phraseQr && (
+                <div className="flex flex-col items-center gap-1.5 pt-1">
+                  <QRCode matrix={phraseQr} label={phrase} size={144} />
+                  <span className="text-[11px] text-carbon-textMuted">{t('settings.access.phrase.qrHint')}</span>
+                </div>
+              )}
             </div>
           ) : revealOpen ? (
             <div className="flex flex-col gap-2">

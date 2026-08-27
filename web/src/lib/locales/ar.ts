@@ -1413,6 +1413,7 @@ export const ar: Dict = {
   'settings.access.phrase.stateConnecting': 'غير متاح بعد - جارٍ الاتصال.',
   'settings.access.phrase.yourPhrase': 'عبارة الاتصال الخاصة بك',
   'settings.access.phrase.pasteHint': 'الصق هذه الكلمات الاثنتي عشرة في كل نسخة أخرى تريد ربطها.',
+  'settings.access.phrase.qrHint': 'أو امسح هذا ضوئيًا من الجهاز الآخر بدلاً من كتابته.',
   'settings.access.phrase.revealWhy': 'أدخل كلمة مرور هذه النسخة لعرض العبارة مجددًا. إنها تفتح كل نسخة في المجموعة، لا هذه وحدها.',
   'settings.access.phrase.revealConfirm': 'عرض',
   'settings.access.phrase.showAgain': 'عرض العبارة',

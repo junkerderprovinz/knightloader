@@ -1411,6 +1411,7 @@ export const hu: Dict = {
   'settings.access.phrase.stateConnecting': 'Még nem érhető el - kapcsolódás folyamatban.',
   'settings.access.phrase.yourPhrase': 'Az Ön összekötő kifejezése',
   'settings.access.phrase.pasteHint': 'Illessze be ezt a tizenkét szót minden további példányba, amelyet össze akar kötni.',
+  'settings.access.phrase.qrHint': 'Vagy olvasd be ezt a másik eszközzel gépelés helyett.',
   'settings.access.phrase.revealWhy': 'A kifejezés újbóli megjelenítéséhez adja meg ennek a példánynak a jelszavát. A csoport minden példányát megnyitja, nem csak ezt.',
   'settings.access.phrase.revealConfirm': 'Megjelenítés',
   'settings.access.phrase.showAgain': 'Kifejezés megjelenítése',

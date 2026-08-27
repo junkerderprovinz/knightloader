@@ -1411,6 +1411,7 @@ export const ja: Dict = {
   'settings.access.phrase.stateConnecting': 'まだ到達できません - 接続中です。',
   'settings.access.phrase.yourPhrase': 'あなたの接続フレーズ',
   'settings.access.phrase.pasteHint': 'この12個の単語を、つなぎたい他のすべてのインスタンスに貼り付けてください。',
+  'settings.access.phrase.qrHint': '入力する代わりに、もう一方の端末でこれを読み取ってもかまいません。',
   'settings.access.phrase.revealWhy': 'フレーズを再表示するには、このインスタンスのパスワードを入力してください。グループ内のすべてのインスタンスが開きます。このインスタンスだけではありません。',
   'settings.access.phrase.revealConfirm': '表示',
   'settings.access.phrase.showAgain': 'フレーズを表示',

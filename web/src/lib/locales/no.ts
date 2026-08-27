@@ -1413,6 +1413,7 @@ export const no: Dict = {
   'settings.access.phrase.stateConnecting': 'Ikke tilgjengelig ennå - kobler til.',
   'settings.access.phrase.yourPhrase': 'Din tilkoblingsfrase',
   'settings.access.phrase.pasteHint': 'Lim inn disse tolv ordene i hver annen instans du vil koble sammen.',
+  'settings.access.phrase.qrHint': 'Eller skann dette fra den andre enheten i stedet for å skrive.',
   'settings.access.phrase.revealWhy': 'Skriv inn passordet til denne instansen for å vise frasen igjen. Den åpner hver instans i gruppen, ikke bare denne.',
   'settings.access.phrase.revealConfirm': 'Vis',
   'settings.access.phrase.showAgain': 'Vis frasen',

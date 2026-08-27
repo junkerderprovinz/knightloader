@@ -1404,6 +1404,7 @@ export const ru: Dict = {
   'settings.access.phrase.stateConnecting': 'Пока недоступно - идёт подключение.',
   'settings.access.phrase.yourPhrase': 'Ваша фраза связи',
   'settings.access.phrase.pasteHint': 'Вставьте эти двенадцать слов в каждый другой экземпляр, который хотите связать.',
+  'settings.access.phrase.qrHint': 'Или отсканируйте это другим устройством вместо ввода вручную.',
   'settings.access.phrase.revealWhy': 'Чтобы показать фразу снова, введите пароль этого экземпляра. Она открывает каждый экземпляр группы, а не только этот.',
   'settings.access.phrase.revealConfirm': 'Показать',
   'settings.access.phrase.showAgain': 'Показать фразу',

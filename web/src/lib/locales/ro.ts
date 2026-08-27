@@ -1411,6 +1411,7 @@ export const ro: Dict = {
   'settings.access.phrase.stateConnecting': 'Încă inaccesibil - se conectează.',
   'settings.access.phrase.yourPhrase': 'Fraza ta de conectare',
   'settings.access.phrase.pasteHint': 'Lipește aceste douăsprezece cuvinte în fiecare altă instanță pe care vrei să o conectezi.',
+  'settings.access.phrase.qrHint': 'Sau scanează acest cod de pe celălalt dispozitiv, în loc să scrii.',
   'settings.access.phrase.revealWhy': 'Introdu parola acestei instanțe pentru a afișa fraza din nou. Deschide fiecare instanță din grup, nu doar aceasta.',
   'settings.access.phrase.revealConfirm': 'Afișează',
   'settings.access.phrase.showAgain': 'Afișează fraza',

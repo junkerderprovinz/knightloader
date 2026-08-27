@@ -1618,6 +1618,7 @@ export const en = {
   'settings.access.phrase.stateConnecting': 'Not reachable yet - still trying to connect.',
   'settings.access.phrase.yourPhrase': 'Your connection phrase',
   'settings.access.phrase.pasteHint': 'Paste these twelve words into every other instance you want connected.',
+  'settings.access.phrase.qrHint': 'Or scan this from the other device instead of typing.',
   'settings.access.phrase.revealWhy': "Enter this instance's password to show the phrase again. It opens every instance in the group, not only this one.",
   'settings.access.phrase.revealConfirm': 'Show',
   'settings.access.phrase.showAgain': 'Show the phrase',

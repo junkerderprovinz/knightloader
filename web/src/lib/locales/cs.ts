@@ -1412,6 +1412,7 @@ export const cs: Dict = {
   'settings.access.phrase.stateConnecting': 'Zatím nedostupné - navazuje se spojení.',
   'settings.access.phrase.yourPhrase': 'Vaše propojovací fráze',
   'settings.access.phrase.pasteHint': 'Vložte těchto dvanáct slov do každé další instance, kterou chcete propojit.',
+  'settings.access.phrase.qrHint': 'Nebo to naščti druhým zařízením místo přepisování.',
   'settings.access.phrase.revealWhy': 'Pro opětovné zobrazení zadejte heslo této instance. Fráze otevře každou instanci ve skupině, nejen tuto.',
   'settings.access.phrase.revealConfirm': 'Zobrazit',
   'settings.access.phrase.showAgain': 'Zobrazit frázi',

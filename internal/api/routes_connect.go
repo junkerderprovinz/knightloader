@@ -76,7 +76,7 @@ func registerConnect(reg *Registry, a *app.App) {
 				return
 			}
 			applyRelay(a)
-			writeJSON(w, map[string]any{"phrase": phrase, "info": connectInfo(a)})
+			writeJSON(w, map[string]any{"phrase": phrase, "qr": renderQR(phrase), "info": connectInfo(a)})
 		})
 
 	reg.Add(http.MethodPost, "/api/connect/join",
@@ -153,7 +153,11 @@ func registerConnect(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			writeJSON(w, map[string]string{"phrase": phrase})
+			// The QR rides along here too, not only on activate: the second
+			// time somebody needs the phrase is exactly when a phone is the
+			// thing they are typing it into, and that is the case worth not
+			// making them type twelve words by hand.
+			writeJSON(w, map[string]any{"phrase": phrase, "qr": renderQR(phrase)})
 		})
 
 	reg.Add(http.MethodDelete, "/api/connect",

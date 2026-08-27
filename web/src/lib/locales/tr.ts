@@ -1411,6 +1411,7 @@ export const tr: Dict = {
   'settings.access.phrase.stateConnecting': 'Henüz erişilemiyor - bağlanılıyor.',
   'settings.access.phrase.yourPhrase': 'Bağlantı ifadeniz',
   'settings.access.phrase.pasteHint': 'Bu on iki kelimeyi bağlamak istediğiniz her örneğe yapıştırın.',
+  'settings.access.phrase.qrHint': 'Ya da yazmak yerine bunu diğer cihazla tarat.',
   'settings.access.phrase.revealWhy': 'İfadeyi yeniden göstermek için bu örneğin parolasını girin. İfade gruptaki her örneği açar, yalnızca bunu değil.',
   'settings.access.phrase.revealConfirm': 'Göster',
   'settings.access.phrase.showAgain': 'İfadeyi göster',

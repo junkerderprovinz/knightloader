@@ -1411,6 +1411,7 @@ export const is: Dict = {
   'settings.access.phrase.stateConnecting': 'Ekki náanlegt enn - tengist.',
   'settings.access.phrase.yourPhrase': 'Tengisetningin þín',
   'settings.access.phrase.pasteHint': 'Límdu þessi tólf orð í hvert annað tilvik sem þú vilt tengja.',
+  'settings.access.phrase.qrHint': 'Eða skannaðu þetta úr hinu tækinu í stað þess að slá inn.',
   'settings.access.phrase.revealWhy': 'Sláðu inn lykilorð þessa tilviks til að sýna setninguna aftur. Hún opnar hvert tilvik í hópnum, ekki bara þetta.',
   'settings.access.phrase.revealConfirm': 'Sýna',
   'settings.access.phrase.showAgain': 'Sýna setninguna',

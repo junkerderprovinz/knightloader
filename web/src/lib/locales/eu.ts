@@ -1411,6 +1411,7 @@ export const eu: Dict = {
   'settings.access.phrase.stateConnecting': 'Oraindik ez eskuragarri - konexioa ezartzen.',
   'settings.access.phrase.yourPhrase': 'Zure konexio-esaldia',
   'settings.access.phrase.pasteHint': 'Itsatsi hamabi hitz hauek konektatu nahi duzun beste instantzia bakoitzean.',
+  'settings.access.phrase.qrHint': 'Edo eskaneatu hau beste gailutik, idatzi beharrean.',
   'settings.access.phrase.revealWhy': 'Esaldia berriro erakusteko, sartu instantzia honen pasahitza. Taldeko instantzia guztiak irekitzen ditu, ez hau bakarrik.',
   'settings.access.phrase.revealConfirm': 'Erakutsi',
   'settings.access.phrase.showAgain': 'Erakutsi esaldia',
