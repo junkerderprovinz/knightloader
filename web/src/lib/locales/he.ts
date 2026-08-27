@@ -1315,6 +1315,7 @@ export const he: Dict = {
   'settings.access.phrase.revealWhy': 'הזינו את סיסמת המופע הזה כדי להציג את המשפט שוב. הוא פותח כל מופע בקבוצה, לא רק את זה.',
   'settings.access.phrase.revealConfirm': 'הצג',
   'settings.access.phrase.showAgain': 'הצג את המשפט',
+  'settings.access.phrase.hide': 'הסתרת הצירוף',
   'settings.access.phrase.leave': 'עזוב את הקבוצה',
   'settings.browsertools.appTitle': 'אפליקציה',
   'settings.browsertools.appBody': 'אפליקציות מקוריות לשולחן העבודה, Android ו-iOS - ניתן גם להתקין דף זה ישירות מהדפדפן, בלי אף אחת מהן.',

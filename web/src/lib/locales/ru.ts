@@ -1306,6 +1306,7 @@ export const ru: Dict = {
   'settings.access.phrase.revealWhy': 'Чтобы показать фразу снова, введите пароль этого экземпляра. Она открывает каждый экземпляр группы, а не только этот.',
   'settings.access.phrase.revealConfirm': 'Показать',
   'settings.access.phrase.showAgain': 'Показать фразу',
+  'settings.access.phrase.hide': 'Скрыть фразу',
   'settings.access.phrase.leave': 'Покинуть группу',
   'settings.browsertools.appTitle': 'Приложение',
   'settings.browsertools.appBody': 'Нативные приложения для настольных ПК, Android и iOS - эту страницу также можно установить прямо из браузера, без того и другого.',

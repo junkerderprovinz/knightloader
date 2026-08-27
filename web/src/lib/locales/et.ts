@@ -1313,6 +1313,7 @@ export const et: Dict = {
   'settings.access.phrase.revealWhy': 'Fraasi uuesti nägemiseks sisesta selle eksemplari parool. See avab kõik grupi eksemplarid, mitte ainult selle.',
   'settings.access.phrase.revealConfirm': 'Näita',
   'settings.access.phrase.showAgain': 'Näita fraasi',
+  'settings.access.phrase.hide': 'Peida fraas',
   'settings.access.phrase.leave': 'Lahku grupist',
   'settings.browsertools.appTitle': 'Rakendus',
   'settings.browsertools.appBody': 'Emakeelsed rakendused lauaarvutile, Androidile ja iOS-ile - selle lehe saab installida ka otse brauserist, ilma kummagita.',

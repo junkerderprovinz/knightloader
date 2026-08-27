@@ -538,36 +538,37 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
           The second one is the connection state, which was a dot and a
           sentence in the body. As a bubble-carrying pill it says the state in
           one word and keeps the explanation one hover away. */}
-      <SectionTitle
-        hue={1}
-        hint={t('settings.access.phrase.body')}
-        right={
-          // Side by side and pulled up level with the notch (jdp,
-          // 2026-08-27: "zwischen cardtitelbadge und anleitung ist sehr viel
-          // leerraum"). Three things stacked into that gap: the badges sat
-          // over each other, the title row's whole height came from them
-          // (SectionTitle's own title is absolutely positioned and
-          // contributes none), and the card's gap sat underneath all of it.
-          // Side by side, lifted, and a smaller card gap take it from 61px to
-          // about a third of that.
-          <div className="-my-2 flex items-center gap-2">
-            <LabelBadge
-              label={t('settings.access.phrase.howButton')}
-              tip={paragraphs(t('settings.access.phrase.howWhat'))}
-              hue={2}
-            />
-            <LabelBadge
-              label={
-                conn.connected
-                  ? t('settings.access.phrase.statusConnected')
-                  : t('settings.access.phrase.statusDisconnected')
-              }
-              tip={t('settings.access.phrase.statusHint')}
-              tone={conn.connected ? 'ok' : 'fail'}
-            />
-          </div>
-        }
-      >
+      {/* Absolutely positioned, level with the notch, so the title row
+          contributes NO height at all (jdp, twice: "zwischen cardtitelbadge
+          und anleitung ist sehr viel leerraum"). Measured, because the first
+          two attempts only shaved a few pixels off: card padding 20 + title
+          row 16 + card gap 16 = 52px to the first line of text, of which the
+          notch only covers the top 11. Side-by-side and negative margins got
+          that to 41. Taking the row out of the flow entirely - the same trick
+          SectionTitle's own title uses - leaves the text starting at the
+          card's own padding, about 9px under the notch.
+
+          The lead paragraph carries pr-72 so it cannot run under the badges
+          on a narrow card; the numbered list below sits low enough not to
+          need it. */}
+      <div className="absolute -top-2 right-5 z-10 flex items-center gap-2">
+        <LabelBadge
+          label={t('settings.access.phrase.howButton')}
+          tip={paragraphs(t('settings.access.phrase.howWhat'))}
+          hue={2}
+        />
+        <LabelBadge
+          label={
+            conn.connected
+              ? t('settings.access.phrase.statusConnected')
+              : t('settings.access.phrase.statusDisconnected')
+          }
+          tip={t('settings.access.phrase.statusHint')}
+          tone={conn.connected ? 'ok' : 'fail'}
+        />
+      </div>
+
+      <SectionTitle hue={1} hint={t('settings.access.phrase.body')}>
         {t('settings.access.cardTitle')}
       </SectionTitle>
 
@@ -580,7 +581,7 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
           months needs step 2, and hiding it once step 1 is done is exactly
           when it stops being findable. */}
       <div className="flex flex-col gap-2">
-        <p className="text-sm text-carbon-textSub">{t('settings.access.phrase.howLead')}</p>
+        <p className="pr-72 text-sm text-carbon-textSub">{t('settings.access.phrase.howLead')}</p>
         <ol className="list-decimal space-y-1.5 pl-4 text-sm text-carbon-textSub">
           {/* The button names are interpolated from the button's OWN key
               rather than written into the sentence: a step that quotes a
@@ -688,6 +689,20 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
                   <span className="text-[11px] text-carbon-textMuted">{t('settings.access.phrase.qrHint')}</span>
                 </div>
               )}
+              {/* A way back (jdp, 2026-08-27: "Wenn man die Phrase einblendet,
+                  kann man sie nicht wieder ausblenden"). Revealing was a
+                  one-way door: the only way to get the words off the screen
+                  was to reload the page. That matters more than a tidiness
+                  fix, because what is on screen is the key to the whole
+                  group - somebody who showed it to read it out should be able
+                  to put it away before the next person walks past, and having
+                  to reload to do that is the kind of friction that ends with
+                  people just leaving it up. */}
+              <div className="flex">
+                <Button hue={4} onClick={() => { setPhrase(''); setPhraseQr(null); }}>
+                  {t('settings.access.phrase.hide')}
+                </Button>
+              </div>
             </div>
           ) : revealOpen ? (
             <div className="flex flex-col gap-2">

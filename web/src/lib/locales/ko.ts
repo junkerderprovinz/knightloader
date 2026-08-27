@@ -1313,6 +1313,7 @@ export const ko: Dict = {
   'settings.access.phrase.revealWhy': '문구를 다시 보려면 이 인스턴스의 비밀번호를 입력하세요. 이 문구는 그룹의 모든 인스턴스를 엽니다.',
   'settings.access.phrase.revealConfirm': '표시',
   'settings.access.phrase.showAgain': '문구 표시',
+  'settings.access.phrase.hide': '구문 숨기기',
   'settings.access.phrase.leave': '그룹 나가기',
   'settings.browsertools.appTitle': '앱',
   'settings.browsertools.appBody': '데스크톱, Android, iOS용 네이티브 앱 - 이 페이지 자체도 브라우저에서 직접 설치할 수 있어 둘 다 필요 없습니다.',

@@ -3,7 +3,7 @@ import logoUrl from '../assets/logo.svg';
 import { ApiError, fetchTasks, type Task } from '../lib/api';
 import { fmtSpeed } from '../lib/format';
 import { useT } from '../lib/i18n';
-import { Card, Button, IconBadge } from './ui';
+import { Card, Button, IconBadge, LabelBadge } from './ui';
 import { IconTrash } from '../lib/icons';
 
 interface Stats {
@@ -125,12 +125,13 @@ export function InstanceCard({
   const stats = usePeerStats(base);
   const online = stats?.online ?? false;
   const refused = stats?.refused ?? false;
-  // Three states, one dot. Refused gets the warning colour rather than the
-  // failure one: the peer is there and answering, it just will not accept this
-  // instance - a different thing from a machine that is gone, and one a person
-  // fixes with a pairing code rather than by checking cables.
+  // Three states, one badge. "Refused" is deliberately neither green nor red:
+  // the peer is there and answering, it just will not accept this instance -
+  // a different thing from a machine that is gone, and one a person fixes by
+  // re-entering the phrase rather than by checking cables. It takes a rainbow
+  // hue instead of a status tone, which is exactly the "neither ok nor
+  // failed" the two status colours cannot express.
   const state = online ? t('instances.online') : refused ? t('instances.refused') : t('instances.offline');
-  const dot = online ? 'bg-statusOkSolid' : refused ? 'bg-statusWarnSolid' : 'bg-statusFailSolid';
 
   return (
     // padding="none" and a horizontal split, so the mark can sit flush
@@ -147,25 +148,27 @@ export function InstanceCard({
     // and so takes whatever height it is handed rather than setting it,
     // which is what keeps a row of cards the same height whatever their
     // contents.
-    <Card padding="none" hover={!!onOpen} className="group flex h-full items-stretch overflow-hidden">
-      {/* No plate behind the mark and no full-bleed height (jdp, 2026-08-27:
-          "das logo ist zu groß. es soll keinen hellen hintergrund haben") -
-          it sits on the card's own surface, vertically centred, at a size
-          that reads as an emblem rather than as the card's left third. The
-          column still stretches so the mark stays centred however tall the
-          card grows; only the image inside it is bounded. */}
+    <Card padding="none" hover={!!onOpen} className="group relative flex h-full items-stretch overflow-hidden">
+      {/* The mark, larger again (jdp, 2026-08-27: "Das logo in den
+          instanzencard bitte größer") but still on the card's own surface
+          with no plate behind it, which was the other half of that earlier
+          correction. */}
       <div className="flex shrink-0 items-center self-stretch pl-4">
-        <img src={logoUrl} alt="" aria-hidden className="h-14 w-auto" />
+        <img src={logoUrl} alt="" aria-hidden className="h-20 w-auto" />
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col gap-3 p-5">
+      {/* The state as a badge in the corner, the same shape the connection
+          card uses (jdp, 2026-08-27: "Der status-punkt soll wie in der
+          Fernzugriffcard ein badge in der rechten oberen ecke sein"). A 8px
+          dot beside the name said the same thing in a form that had to be
+          hovered to be read at all. Absolutely placed so it cannot push the
+          name around, and the name row reserves room for it. */}
+      <span className="absolute right-4 top-4 z-10">
+        <LabelBadge label={state} tone={online ? 'ok' : refused ? undefined : 'fail'} hue={refused ? 3 : undefined} />
+      </span>
+
+      <div className="flex min-w-0 flex-1 flex-col gap-3 p-5 pr-32">
         <div className="flex items-center gap-2.5">
-          <span
-            role="img"
-            aria-label={state}
-            title={state}
-            className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${dot}`}
-          />
           <span className="truncate font-semibold text-carbon-text">{name}</span>
           {/* Which card is the machine you are on. An eyebrow rather than a
               coloured pill: it is an orientation aid, not a status. */}

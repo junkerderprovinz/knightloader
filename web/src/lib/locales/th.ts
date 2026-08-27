@@ -1313,6 +1313,7 @@ export const th: Dict = {
   'settings.access.phrase.revealWhy': 'กรอกรหัสผ่านของอินสแตนซ์นี้เพื่อแสดงวลีอีกครั้ง วลีนี้เปิดทุกอินสแตนซ์ในกลุ่ม ไม่ใช่แค่ตัวนี้',
   'settings.access.phrase.revealConfirm': 'แสดง',
   'settings.access.phrase.showAgain': 'แสดงวลี',
+  'settings.access.phrase.hide': 'ซ่อนวลี',
   'settings.access.phrase.leave': 'ออกจากกลุ่ม',
   'settings.browsertools.appTitle': 'แอป',
   'settings.browsertools.appBody': 'แอปเนทีฟสำหรับเดสก์ท็อป Android และ iOS - หน้านี้ยังสามารถติดตั้งได้โดยตรงจากเบราว์เซอร์ของคุณ โดยไม่ต้องใช้ทั้งสองอย่าง',

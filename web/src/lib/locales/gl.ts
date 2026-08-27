@@ -1313,6 +1313,7 @@ export const gl: Dict = {
   'settings.access.phrase.revealWhy': 'Introduce o contrasinal desta instancia para amosar a frase de novo. Abre todas as instancias do grupo, non só esta.',
   'settings.access.phrase.revealConfirm': 'Amosar',
   'settings.access.phrase.showAgain': 'Amosar a frase',
+  'settings.access.phrase.hide': 'Agochar a frase',
   'settings.access.phrase.leave': 'Saír do grupo',
   'settings.browsertools.appTitle': 'Aplicación',
   'settings.browsertools.appBody': 'Aplicacións nativas para escritorio, Android e iOS - esta páxina tamén se pode instalar directamente desde o navegador, sen ningunha das dúas.',

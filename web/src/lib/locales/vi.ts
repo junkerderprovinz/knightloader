@@ -1313,6 +1313,7 @@ export const vi: Dict = {
   'settings.access.phrase.revealWhy': 'Nhập mật khẩu của phiên bản này để hiện lại cụm từ. Nó mở mọi phiên bản trong nhóm, không chỉ phiên bản này.',
   'settings.access.phrase.revealConfirm': 'Hiện',
   'settings.access.phrase.showAgain': 'Hiện cụm từ',
+  'settings.access.phrase.hide': 'Ẩn cụm từ',
   'settings.access.phrase.leave': 'Rời nhóm',
   'settings.browsertools.appTitle': 'Ứng dụng',
   'settings.browsertools.appBody': 'Ứng dụng gốc cho máy tính để bàn, Android và iOS - trang này cũng có thể được cài đặt trực tiếp từ trình duyệt của bạn, không cần cả hai.',

@@ -1313,6 +1313,7 @@ export const tr: Dict = {
   'settings.access.phrase.revealWhy': 'İfadeyi yeniden göstermek için bu örneğin parolasını girin. İfade gruptaki her örneği açar, yalnızca bunu değil.',
   'settings.access.phrase.revealConfirm': 'Göster',
   'settings.access.phrase.showAgain': 'İfadeyi göster',
+  'settings.access.phrase.hide': 'Cümleyi gizle',
   'settings.access.phrase.leave': 'Gruptan ayrıl',
   'settings.browsertools.appTitle': 'Uygulama',
   'settings.browsertools.appBody': 'Masaüstü, Android ve iOS için yerel uygulamalar - bu sayfa da tarayıcınızdan doğrudan yüklenebilir, ikisi de olmadan.',

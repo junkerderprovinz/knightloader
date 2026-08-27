@@ -1306,6 +1306,7 @@ export const pl: Dict = {
   'settings.access.phrase.revealWhy': 'Aby ponownie pokazać frazę, podaj hasło tej instancji. Fraza otwiera każdą instancję w grupie, nie tylko tę.',
   'settings.access.phrase.revealConfirm': 'Pokaż',
   'settings.access.phrase.showAgain': 'Pokaż frazę',
+  'settings.access.phrase.hide': 'Ukryj frazę',
   'settings.access.phrase.leave': 'Opuść grupę',
   'settings.browsertools.appTitle': 'Aplikacja',
   'settings.browsertools.appBody': 'Natywne aplikacje na pulpit, Androida i iOS - tę stronę można też zainstalować bezpośrednio z przeglądarki, bez żadnego z nich.',

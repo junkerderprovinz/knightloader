@@ -1313,6 +1313,7 @@ export const hi: Dict = {
   'settings.access.phrase.revealWhy': 'वाक्यांश दोबारा देखने के लिए इस इंस्टेंस का पासवर्ड डालें। यह समूह के हर इंस्टेंस को खोलता है, सिर्फ़ इसे नहीं।',
   'settings.access.phrase.revealConfirm': 'दिखाएँ',
   'settings.access.phrase.showAgain': 'वाक्यांश दिखाएँ',
+  'settings.access.phrase.hide': 'वाक्यांश छिपाएँ',
   'settings.access.phrase.leave': 'समूह छोड़ें',
   'settings.browsertools.appTitle': 'ऐप',
   'settings.browsertools.appBody': 'डेस्कटॉप, Android और iOS के लिए नेटिव ऐप्स - इस पेज को आपके ब्राउज़र से सीधे भी इंस्टॉल किया जा सकता है, दोनों के बिना।',

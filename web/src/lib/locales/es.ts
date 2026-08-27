@@ -1306,6 +1306,7 @@ export const es: Dict = {
   'settings.access.phrase.revealWhy': 'Introduce la contraseña de esta instancia para volver a mostrar la frase. Abre todas las instancias del grupo, no solo esta.',
   'settings.access.phrase.revealConfirm': 'Mostrar',
   'settings.access.phrase.showAgain': 'Mostrar la frase',
+  'settings.access.phrase.hide': 'Ocultar la frase',
   'settings.access.phrase.leave': 'Salir del grupo',
   'settings.browsertools.appTitle': 'Aplicación',
   'settings.browsertools.appBody': 'Apps nativas para escritorio, Android e iOS - esta página también se puede instalar directamente desde el navegador, sin ninguna de las dos.',

@@ -1313,6 +1313,7 @@ export const da: Dict = {
   'settings.access.phrase.revealWhy': 'Indtast denne instans adgangskode for at vise sætningen igen. Den åbner hver instans i gruppen, ikke kun denne.',
   'settings.access.phrase.revealConfirm': 'Vis',
   'settings.access.phrase.showAgain': 'Vis sætningen',
+  'settings.access.phrase.hide': 'Skjul frasen',
   'settings.access.phrase.leave': 'Forlad gruppen',
   'settings.browsertools.appTitle': 'App',
   'settings.browsertools.appBody': 'Native apps til desktop, Android og iOS - denne side kan også installeres direkte fra din browser, uden nogen af delene.',

@@ -1313,6 +1313,7 @@ export const fi: Dict = {
   'settings.access.phrase.revealWhy': 'Näytä lause uudelleen syöttämällä tämän instanssin salasana. Se avaa ryhmän jokaisen instanssin, ei vain tätä.',
   'settings.access.phrase.revealConfirm': 'Näytä',
   'settings.access.phrase.showAgain': 'Näytä lause',
+  'settings.access.phrase.hide': 'Piilota lause',
   'settings.access.phrase.leave': 'Poistu ryhmästä',
   'settings.browsertools.appTitle': 'Sovellus',
   'settings.browsertools.appBody': 'Natiivisovellukset työpöydälle, Androidille ja iOS:lle - tämän sivun voi myös asentaa suoraan selaimesta, ilman kumpaakaan.',

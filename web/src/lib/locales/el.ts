@@ -1313,6 +1313,7 @@ export const el: Dict = {
   'settings.access.phrase.revealWhy': 'Εισαγάγετε τον κωδικό αυτού του στιγμιότυπου για να εμφανιστεί ξανά η φράση. Ανοίγει κάθε στιγμιότυπο της ομάδας, όχι μόνο αυτό.',
   'settings.access.phrase.revealConfirm': 'Εμφάνιση',
   'settings.access.phrase.showAgain': 'Εμφάνιση φράσης',
+  'settings.access.phrase.hide': 'Απόκρυψη της φράσης',
   'settings.access.phrase.leave': 'Αποχώρηση από την ομάδα',
   'settings.browsertools.appTitle': 'Εφαρμογή',
   'settings.browsertools.appBody': 'Εγγενείς εφαρμογές για desktop, Android και iOS - αυτή η σελίδα μπορεί επίσης να εγκατασταθεί απευθείας από τον περιηγητή σας, χωρίς κανένα από τα δύο.',

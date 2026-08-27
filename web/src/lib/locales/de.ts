@@ -1314,6 +1314,7 @@ export const de: Dict = {
   'settings.access.phrase.revealWhy': 'Zum erneuten Anzeigen das Passwort dieser Instanz eingeben. Die Phrase öffnet jede Instanz der Gruppe, nicht nur diese.',
   'settings.access.phrase.revealConfirm': 'Anzeigen',
   'settings.access.phrase.showAgain': 'Phrase anzeigen',
+  'settings.access.phrase.hide': 'Phrase ausblenden',
   'settings.access.phrase.leave': 'Gruppe verlassen',
   'settings.browsertools.appTitle': 'App',
   'settings.browsertools.appBody': 'Native Apps für Desktop, Android und iOS - diese Seite lässt sich außerdem direkt aus dem Browser installieren, ganz ohne beides.',

@@ -1306,6 +1306,7 @@ export const nl: Dict = {
   'settings.access.phrase.revealWhy': 'Voer het wachtwoord van deze instantie in om de zin opnieuw te tonen. Hij opent elke instantie in de groep, niet alleen deze.',
   'settings.access.phrase.revealConfirm': 'Tonen',
   'settings.access.phrase.showAgain': 'Zin tonen',
+  'settings.access.phrase.hide': 'Zin verbergen',
   'settings.access.phrase.leave': 'Groep verlaten',
   'settings.browsertools.appTitle': 'App',
   'settings.browsertools.appBody': 'Native apps voor desktop, Android en iOS - deze pagina kan ook rechtstreeks vanuit je browser worden geïnstalleerd, zonder een van beide.',

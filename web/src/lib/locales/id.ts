@@ -1313,6 +1313,7 @@ export const id: Dict = {
   'settings.access.phrase.revealWhy': 'Masukkan kata sandi instance ini untuk menampilkan frasa lagi. Frasa membuka setiap instance dalam grup, bukan hanya yang ini.',
   'settings.access.phrase.revealConfirm': 'Tampilkan',
   'settings.access.phrase.showAgain': 'Tampilkan frasa',
+  'settings.access.phrase.hide': 'Sembunyikan frasa',
   'settings.access.phrase.leave': 'Keluar dari grup',
   'settings.browsertools.appTitle': 'Aplikasi',
   'settings.browsertools.appBody': 'Aplikasi native untuk desktop, Android, dan iOS - halaman ini juga bisa diinstal langsung dari browser Anda, tanpa keduanya.',

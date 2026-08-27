@@ -1315,6 +1315,7 @@ export const no: Dict = {
   'settings.access.phrase.revealWhy': 'Skriv inn passordet til denne instansen for å vise frasen igjen. Den åpner hver instans i gruppen, ikke bare denne.',
   'settings.access.phrase.revealConfirm': 'Vis',
   'settings.access.phrase.showAgain': 'Vis frasen',
+  'settings.access.phrase.hide': 'Skjul frasen',
   'settings.access.phrase.leave': 'Forlat gruppen',
   'settings.browsertools.appTitle': 'App',
   'settings.browsertools.appBody': 'Native apper for skrivebord, Android og iOS - denne siden kan også installeres direkte fra nettleseren din, uten noen av delene.',

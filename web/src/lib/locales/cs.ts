@@ -1314,6 +1314,7 @@ export const cs: Dict = {
   'settings.access.phrase.revealWhy': 'Pro opětovné zobrazení zadejte heslo této instance. Fráze otevře každou instanci ve skupině, nejen tuto.',
   'settings.access.phrase.revealConfirm': 'Zobrazit',
   'settings.access.phrase.showAgain': 'Zobrazit frázi',
+  'settings.access.phrase.hide': 'Skrýt frázi',
   'settings.access.phrase.leave': 'Opustit skupinu',
   'settings.browsertools.appTitle': 'Aplikace',
   'settings.browsertools.appBody': 'Nativní aplikace pro desktop, Android a iOS - tuto stránku lze také nainstalovat přímo z prohlížeče, bez obojího.',
