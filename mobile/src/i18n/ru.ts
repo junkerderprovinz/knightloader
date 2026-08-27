@@ -111,6 +111,8 @@ export const ru: Dict = {
   'relay.phraseLabel': 'Фраза подключения',
   'relay.phrasePlaceholder': 'двенадцать слов вашего экземпляра',
   'relay.joinButton': 'Подключиться',
+  'relay.qrHintPhrase': 'Отсканируйте QR-код рядом с фразой',
+  'relay.scanButton': 'Сканировать QR-код',
   'relay.saveAllButton': 'Добавить все ({count})',
   'phrase.errChecksum': 'Эта фраза недействительна — проверьте, нет ли опечатки или переставленных слов.',
   'phrase.errUnknownWord': 'Слово {position} («{word}») не входит в список допустимых слов.',

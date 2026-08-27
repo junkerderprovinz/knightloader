@@ -111,6 +111,8 @@ export const hu: Dict = {
   'relay.phraseLabel': 'Kapcsolódási kifejezés',
   'relay.phrasePlaceholder': 'a példányod tizenkét szava',
   'relay.joinButton': 'Csatlakozás',
+  'relay.qrHintPhrase': 'Olvasd be a kifejezés mellett látható QR-kódot',
+  'relay.scanButton': 'QR-kód beolvasása',
   'relay.saveAllButton': 'Mind a(z) {count} hozzáadása',
   'phrase.errChecksum': 'Ez a kifejezés érvénytelen - nézd meg, nem gépeltél-e el vagy cseréltél-e fel egy szót.',
   'phrase.errUnknownWord': 'A(z) {position}. szó („{word}”) nincs a megengedett szavak között.',

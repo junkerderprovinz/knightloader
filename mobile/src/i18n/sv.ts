@@ -111,6 +111,8 @@ export const sv: Dict = {
   'relay.phraseLabel': 'Anslutningsfras',
   'relay.phrasePlaceholder': 'de tolv orden från din instans',
   'relay.joinButton': 'Anslut',
+  'relay.qrHintPhrase': 'Skanna QR-koden bredvid frasen',
+  'relay.scanButton': 'Skanna QR-koden',
   'relay.saveAllButton': 'Lägg till alla {count}',
   'phrase.errChecksum': 'Den här frasen är inte giltig - leta efter ett felstavat eller omkastat ord.',
   'phrase.errUnknownWord': 'Ord {position} ("{word}") är inte ett av de tillåtna orden.',

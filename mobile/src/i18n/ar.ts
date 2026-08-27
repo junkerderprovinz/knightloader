@@ -111,6 +111,8 @@ export const ar: Dict = {
   'relay.phraseLabel': 'عبارة الاتصال',
   'relay.phrasePlaceholder': 'الكلمات الاثنتا عشرة الخاصة بنسختك',
   'relay.joinButton': 'اتصال',
+  'relay.qrHintPhrase': 'امسح رمز QR الظاهر بجانب العبارة',
+  'relay.scanButton': 'امسح رمز QR',
   'relay.saveAllButton': 'إضافة الكل ({count})',
   'phrase.errChecksum': 'هذه العبارة غير صالحة - تحقّق من وجود كلمة مكتوبة خطأً أو مُبدَّلة الموضع.',
   'phrase.errUnknownWord': 'الكلمة {position} («{word}») ليست من الكلمات المقبولة.',

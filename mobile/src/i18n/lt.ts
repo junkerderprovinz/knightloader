@@ -111,6 +111,8 @@ export const lt: Dict = {
   'relay.phraseLabel': 'Ryšio frazė',
   'relay.phrasePlaceholder': 'dvylika tavo egzemplioriaus žodžių',
   'relay.joinButton': 'Prisijungti',
+  'relay.qrHintPhrase': 'Nuskaityk QR kodą šalia frazės',
+  'relay.scanButton': 'Nuskaityti QR kodą',
   'relay.saveAllButton': 'Pridėti visus {count}',
   'phrase.errChecksum': 'Ši frazė netinkama - patikrink, ar koks žodis neįrašytas su klaida arba sukeistas vietomis.',
   'phrase.errUnknownWord': 'Žodis {position} („{word}“) nėra vienas iš leidžiamų žodžių.',

@@ -111,6 +111,8 @@ export const ms: Dict = {
   'relay.phraseLabel': 'Frasa sambungan',
   'relay.phrasePlaceholder': 'dua belas perkataan tika anda',
   'relay.joinButton': 'Sambung',
+  'relay.qrHintPhrase': 'Imbas kod QR di sebelah frasa',
+  'relay.scanButton': 'Imbas kod QR',
   'relay.saveAllButton': 'Tambah kesemua {count}',
   'phrase.errChecksum': 'Frasa ini tidak sah - periksa sama ada ada perkataan yang tersalah taip atau bertukar tempat.',
   'phrase.errUnknownWord': 'Perkataan ke-{position} ("{word}") bukan salah satu perkataan yang diterima.',

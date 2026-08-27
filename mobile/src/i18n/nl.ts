@@ -111,6 +111,8 @@ export const nl: Dict = {
   'relay.phraseLabel': 'Verbindingszin',
   'relay.phrasePlaceholder': 'de twaalf woorden van je instantie',
   'relay.joinButton': 'Verbinden',
+  'relay.qrHintPhrase': 'Scan de QR-code naast de zin',
+  'relay.scanButton': 'QR-code scannen',
   'relay.saveAllButton': 'Alle {count} toevoegen',
   'phrase.errChecksum': 'Deze zin klopt niet - kijk of een woord verkeerd getypt of verwisseld is.',
   'phrase.errUnknownWord': 'Woord {position} ("{word}") hoort niet bij de toegestane woorden.',

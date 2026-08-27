@@ -111,6 +111,8 @@ export const he: Dict = {
   'relay.phraseLabel': 'ביטוי חיבור',
   'relay.phrasePlaceholder': 'שתים־עשרה המילים של המופע שלכם',
   'relay.joinButton': 'התחבר',
+  'relay.qrHintPhrase': 'סרוק את קוד ה-QR שמוצג ליד הצירוף',
+  'relay.scanButton': 'סריקת קוד QR',
   'relay.saveAllButton': 'הוסיפו את כל {count}',
   'phrase.errChecksum': 'הביטוי הזה אינו תקין - בדקו אם מילה כלשהי הוקלדה בטעות או הוחלפה במקומה.',
   'phrase.errUnknownWord': 'המילה ה-{position} ("{word}") אינה אחת מהמילים המותרות.',

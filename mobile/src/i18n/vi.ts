@@ -111,6 +111,8 @@ export const vi: Dict = {
   'relay.phraseLabel': 'Cụm từ kết nối',
   'relay.phrasePlaceholder': 'mười hai từ của phiên bản của bạn',
   'relay.joinButton': 'Kết nối',
+  'relay.qrHintPhrase': 'Quét mã QR hiển thị bên cạnh cụm từ',
+  'relay.scanButton': 'Quét mã QR',
   'relay.saveAllButton': 'Thêm tất cả {count}',
   'phrase.errChecksum': 'Cụm từ này không hợp lệ - kiểm tra xem có từ nào gõ sai hoặc đảo chỗ không.',
   'phrase.errUnknownWord': 'Từ thứ {position} ("{word}") không nằm trong các từ được chấp nhận.',

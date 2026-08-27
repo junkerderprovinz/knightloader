@@ -111,6 +111,8 @@ export const da: Dict = {
   'relay.phraseLabel': 'Forbindelsessætning',
   'relay.phrasePlaceholder': 'de tolv ord fra din instans',
   'relay.joinButton': 'Forbind',
+  'relay.qrHintPhrase': 'Skan QR-koden ved siden af frasen',
+  'relay.scanButton': 'Skan QR-koden',
   'relay.saveAllButton': 'Tilføj alle {count}',
   'phrase.errChecksum': 'Denne sætning er ikke gyldig - se efter et forkert indtastet eller ombyttet ord.',
   'phrase.errUnknownWord': 'Ord {position} ("{word}") er ikke et af de tilladte ord.',

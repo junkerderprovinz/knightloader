@@ -111,6 +111,8 @@ export const fi: Dict = {
   'relay.phraseLabel': 'Yhteyslause',
   'relay.phrasePlaceholder': 'instanssisi kaksitoista sanaa',
   'relay.joinButton': 'Yhdistä',
+  'relay.qrHintPhrase': 'Skannaa lauseen vieressä näkyvä QR-koodi',
+  'relay.scanButton': 'Skannaa QR-koodi',
   'relay.saveAllButton': 'Lisää kaikki {count}',
   'phrase.errChecksum': 'Tämä lause ei kelpaa - tarkista, onko jokin sana kirjoitettu väärin tai vaihtunut paikkaa.',
   'phrase.errUnknownWord': 'Sana {position} ("{word}") ei ole hyväksyttyjen sanojen joukossa.',
