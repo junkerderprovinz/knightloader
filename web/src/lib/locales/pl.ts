@@ -237,6 +237,12 @@ export const pl: Dict = {
   'settings.motion.off': 'Wyłączone',
   'settings.motion.hint': 'Wyłączone wyłącza każdą zbędną animację; Subtelne skraca pojawienia się; Pełne to najbogatsze wrażenia.',
   'settings.motion.title': 'Ruch',
+  'settings.navLabels.title': 'Podpisy nawigacji',
+  'settings.navLabels.hint': 'Ile z każdej pozycji rysują panel boczny i kolumna ustawień. Po najechaniu kafelek zachowuje rozmiar, a nazwa pojawia się pod wskaźnikiem.',
+  'settings.navLabels.both': 'Ikona i tekst',
+  'settings.navLabels.glyph': 'Tylko ikona',
+  'settings.navLabels.text': 'Tylko tekst',
+  'settings.navLabels.hover': 'Po najechaniu',
   'queue.limitUnit': 'Jednostka',
 
   'common.show': 'Pokaż',

@@ -16,6 +16,7 @@ import {
 import { IconDownloads, IconMoon, IconRetry, IconSignOut, IconSun, IconUpload } from '../../lib/icons';
 import { QuietModeToggle, useToast } from '../../lib/toast';
 import { getTheme, onThemeChange, setTheme } from '../../lib/theme';
+import { asNavLabelMode, setNavLabels, useNavLabels } from '../../lib/navLabels';
 import { useT } from '../../lib/i18n';
 import { useResource } from '../../lib/useResource';
 import {
@@ -89,6 +90,12 @@ export function Look() {
   // further to do here. They live ONLY here now, not in the sidebar too.
   const [theme, setThemeState] = useState(getTheme);
   useEffect(() => onThemeChange(setThemeState), []);
+
+  // Read from the store rather than from `cfg`, so the selector always shows
+  // what the rails are actually drawing. The two agree, but only one of them
+  // is the thing on screen, and this is a card whose whole subject is what is
+  // on screen.
+  const navLabels = useNavLabels();
 
   // Motion intensity is client-only too, same reasoning as shape/accent/
   // rainbow just below: a single-operator tool has no second viewer who
@@ -196,6 +203,46 @@ export function Look() {
           active={cfg.shape}
           onSelect={(id) => patch({ shape: id as Shape })}
           items={SHAPES.map((s) => ({ id: s, label: t(`settings.shape.${s}` as never) }))}
+        />
+      </Card>
+
+      {/* How much of a navigation entry is drawn - the sidebar and the
+          settings rail together, from one control (jdp, 2026-08-27: "Man soll
+          per horizontalem Selektor wählen können ob bei den Tabs (Settings und
+          Sidebar) nur glyph, nur text oder text und glyph angezeigt werden
+          soll oder glyph und text nur bei mouseover").
+
+          One selector, not two, and here rather than in the rail it governs:
+          somebody who wants glyphs wants glyphs, and this is the card
+          collection every other look-of-the-app knob already lives in. hue=9
+          continues the sequence rather than displacing a card that has held
+          its palette position since wave 4.
+
+          Writes through the store as well as the draft (setNavLabels), which
+          is what makes the rail beside this card restyle itself under the
+          pointer instead of on the next navigation - the sidebar renders
+          outside this page's provider entirely and cannot see the draft at
+          all. See lib/navLabels.ts. */}
+      <Card className="flex flex-col gap-3">
+        <SectionTitle hue={9} hint={t('settings.navLabels.hint')}>
+          {t('settings.navLabels.title')}
+        </SectionTitle>
+        <Tabs
+          label={t('settings.navLabels.title')}
+          variant="well"
+          className="w-fit"
+          active={navLabels}
+          onSelect={(id) => {
+            const next = asNavLabelMode(id);
+            setNavLabels(next);
+            patch({ navLabels: next });
+          }}
+          items={[
+            { id: 'both', label: t('settings.navLabels.both') },
+            { id: 'glyph', label: t('settings.navLabels.glyph') },
+            { id: 'text', label: t('settings.navLabels.text') },
+            { id: 'hover', label: t('settings.navLabels.hover') },
+          ]}
         />
       </Card>
 

@@ -247,6 +247,12 @@ export const no: Dict = {
   'settings.motion.off': 'Av',
   'settings.motion.hint': 'Av slår av all ikke-essensiell animasjon; Diskret holder inntredener korte; Full er den rikeste opplevelsen.',
   'settings.motion.title': 'Bevegelse',
+  'settings.navLabels.title': 'Navigasjonsetiketter',
+  'settings.navLabels.hint': 'Hvor mye sidepanelet og innstillingskolonnen tegner av hver oppføring. Ved peking beholder feltet størrelsen sin, og navnet vises under pekeren.',
+  'settings.navLabels.both': 'Ikon og tekst',
+  'settings.navLabels.glyph': 'Bare ikon',
+  'settings.navLabels.text': 'Bare tekst',
+  'settings.navLabels.hover': 'Ved peking',
   'queue.limitUnit': 'Enhet',
 
   'common.show': 'Vis',

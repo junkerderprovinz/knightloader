@@ -245,6 +245,12 @@ export const lv: Dict = {
   'settings.motion.off': 'Izslēgts',
   'settings.motion.hint': 'Izslēgts izslēdz katru nevajadzīgo animāciju; Smalks notur ienākšanas īsas; Pilns ir bagātīgākā pieredze.',
   'settings.motion.title': 'Kustība',
+  'settings.navLabels.title': 'Navigācijas uzraksti',
+  'settings.navLabels.hint': 'Cik daudz no katra ieraksta zīmē sānjosla un iestatījumu kolonna. Uzvedot peli, elements paliek tikpat liels un nosaukums parādās zem rādītāja.',
+  'settings.navLabels.both': 'Ikona un teksts',
+  'settings.navLabels.glyph': 'Tikai ikona',
+  'settings.navLabels.text': 'Tikai teksts',
+  'settings.navLabels.hover': 'Uzvedot peli',
   'queue.limitUnit': 'Vienība',
 
   'common.show': 'Rādīt',

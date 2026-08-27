@@ -245,6 +245,12 @@ export const uk: Dict = {
   'settings.motion.off': 'Вимк.',
   'settings.motion.hint': "Вимк. вимикає кожну необов'язкову анімацію; Стримано робить появи короткими; Повно — найбагатший варіант.",
   'settings.motion.title': 'Рух',
+  'settings.navLabels.title': 'Підписи навігації',
+  'settings.navLabels.hint': 'Скільки з кожного пункту малюють бічна панель і стовпець налаштувань. Під час наведення плитка зберігає розмір, а назва зʼявляється під вказівником.',
+  'settings.navLabels.both': 'Значок і текст',
+  'settings.navLabels.glyph': 'Лише значок',
+  'settings.navLabels.text': 'Лише текст',
+  'settings.navLabels.hover': 'Під час наведення',
   'queue.limitUnit': 'Одиниця',
 
   'common.show': 'Показати',

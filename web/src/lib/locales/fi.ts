@@ -245,6 +245,12 @@ export const fi: Dict = {
   'settings.motion.off': 'Pois',
   'settings.motion.hint': 'Pois kytkee pois kaikki ei-välttämättömät animaatiot; Hienovarainen pitää saapumiset lyhyinä; Täysi on rikkain kokemus.',
   'settings.motion.title': 'Liike',
+  'settings.navLabels.title': 'Navigoinnin nimet',
+  'settings.navLabels.hint': 'Kuinka paljon sivupalkki ja asetussarake piirtävät kustakin kohteesta. Osoittimen alla ruutu pysyy samankokoisena ja nimi tulee näkyviin sen alle.',
+  'settings.navLabels.both': 'Kuvake ja teksti',
+  'settings.navLabels.glyph': 'Vain kuvake',
+  'settings.navLabels.text': 'Vain teksti',
+  'settings.navLabels.hover': 'Osoittimen alla',
   'queue.limitUnit': 'Yksikkö',
 
   'common.show': 'Näytä',

@@ -245,6 +245,12 @@ export const ms: Dict = {
   'settings.motion.off': 'Mati',
   'settings.motion.hint': 'Mati mematikan setiap animasi yang tidak penting; Halus mengekalkan kemunculan yang ringkas; Penuh ialah pengalaman paling kaya.',
   'settings.motion.title': 'Gerakan',
+  'settings.navLabels.title': 'Label navigasi',
+  'settings.navLabels.hint': 'Berapa banyak bar sisi dan lajur tetapan melukis setiap entri. Apabila dituding, jubin kekal sama besar dan namanya muncul di bawah penuding.',
+  'settings.navLabels.both': 'Ikon dan teks',
+  'settings.navLabels.glyph': 'Ikon sahaja',
+  'settings.navLabels.text': 'Teks sahaja',
+  'settings.navLabels.hover': 'Apabila dituding',
   'queue.limitUnit': 'Unit',
 
   'common.show': 'Tunjuk',

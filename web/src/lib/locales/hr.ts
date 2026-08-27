@@ -245,6 +245,12 @@ export const hr: Dict = {
   'settings.motion.off': 'Isključeno',
   'settings.motion.hint': 'Isključeno gasi svaku nebitnu animaciju; Suptilno drži ulaske kratkima; Puno je najbogatije iskustvo.',
   'settings.motion.title': 'Pokret',
+  'settings.navLabels.title': 'Oznake navigacije',
+  'settings.navLabels.hint': 'Koliko od svake stavke prikazuju bočna traka i stupac postavki. Pri prelasku mišem pločica zadržava veličinu, a ime se pojavi ispod pokazivača.',
+  'settings.navLabels.both': 'Ikona i tekst',
+  'settings.navLabels.glyph': 'Samo ikona',
+  'settings.navLabels.text': 'Samo tekst',
+  'settings.navLabels.hover': 'Pri prelasku mišem',
   'queue.limitUnit': 'Jedinica',
 
   'common.show': 'Prikaži',

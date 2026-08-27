@@ -237,6 +237,12 @@ export const it: Dict = {
   'settings.motion.off': 'Disattivato',
   'settings.motion.hint': "Disattivato spegne ogni animazione non essenziale; Sottile mantiene brevi gli ingressi; Completo è l'esperienza più ricca.",
   'settings.motion.title': 'Movimento',
+  'settings.navLabels.title': 'Etichette di navigazione',
+  'settings.navLabels.hint': 'Quanto disegnano di ogni voce la barra laterale e la colonna delle impostazioni. Al passaggio del puntatore il riquadro resta della stessa dimensione e il nome compare sotto.',
+  'settings.navLabels.both': 'Icona e testo',
+  'settings.navLabels.glyph': 'Solo icona',
+  'settings.navLabels.text': 'Solo testo',
+  'settings.navLabels.hover': 'Al passaggio del puntatore',
   'queue.limitUnit': 'Unità',
 
   'common.show': 'Mostra',

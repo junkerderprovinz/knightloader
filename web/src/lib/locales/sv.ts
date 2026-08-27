@@ -245,6 +245,12 @@ export const sv: Dict = {
   'settings.motion.off': 'Av',
   'settings.motion.hint': 'Av stänger av all icke väsentlig animation; Diskret håller entréer korta; Full är den rikaste upplevelsen.',
   'settings.motion.title': 'Rörelse',
+  'settings.navLabels.title': 'Etiketter i navigeringen',
+  'settings.navLabels.hint': 'Hur mycket sidopanelen och inställningskolumnen ritar av varje post. Vid pekning behåller rutan sin storlek och namnet visas under pekaren.',
+  'settings.navLabels.both': 'Ikon och text',
+  'settings.navLabels.glyph': 'Endast ikon',
+  'settings.navLabels.text': 'Endast text',
+  'settings.navLabels.hover': 'Vid pekning',
   'queue.limitUnit': 'Enhet',
 
   'common.show': 'Visa',

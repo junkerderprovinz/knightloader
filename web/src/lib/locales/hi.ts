@@ -245,6 +245,12 @@ export const hi: Dict = {
   'settings.motion.off': 'बंद',
   'settings.motion.hint': 'बंद हर गैर-ज़रूरी एनिमेशन को बंद कर देता है; सूक्ष्म प्रवेशों को संक्षिप्त रखता है; पूर्ण सबसे समृद्ध अनुभव है।',
   'settings.motion.title': 'गति',
+  'settings.navLabels.title': 'नेविगेशन लेबल',
+  'settings.navLabels.hint': 'साइडबार और सेटिंग्स कॉलम हर प्रविष्टि का कितना हिस्सा दिखाएँ। माउस ले जाने पर टाइल का आकार वही रहता है और नाम पॉइंटर के नीचे दिखता है।',
+  'settings.navLabels.both': 'चिह्न और पाठ',
+  'settings.navLabels.glyph': 'केवल चिह्न',
+  'settings.navLabels.text': 'केवल पाठ',
+  'settings.navLabels.hover': 'माउस ले जाने पर',
   'queue.limitUnit': 'इकाई',
 
   'common.show': 'दिखाएँ',

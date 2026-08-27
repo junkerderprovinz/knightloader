@@ -245,6 +245,12 @@ export const tr: Dict = {
   'settings.motion.off': 'Kapalı',
   'settings.motion.hint': 'Kapalı, gerekli olmayan tüm animasyonları kapatır; İnce, girişleri kısa tutar; Tam ise en zengin deneyimdir.',
   'settings.motion.title': 'Hareket',
+  'settings.navLabels.title': 'Gezinme etiketleri',
+  'settings.navLabels.hint': 'Kenar çubuğu ve ayarlar sütunu her girdinin ne kadarını çizsin. İmleç üzerine gelince kutu aynı boyutta kalır ve ad imlecin altında belirir.',
+  'settings.navLabels.both': 'Simge ve metin',
+  'settings.navLabels.glyph': 'Yalnızca simge',
+  'settings.navLabels.text': 'Yalnızca metin',
+  'settings.navLabels.hover': 'İmleç üzerindeyken',
   'queue.limitUnit': 'Birim',
 
   'common.show': 'Göster',

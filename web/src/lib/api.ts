@@ -1,3 +1,9 @@
+// The one import in this file, and type-only: the nav-label mode is owned by
+// the store that hands it out (lib/navLabels.ts), not by the wire shape, so
+// the Settings type below names that type rather than restating its four
+// strings and drifting from it.
+import type { NavLabelMode } from './navLabels';
+
 export type TaskStatus =
   | 'collected'
   | 'queued'
@@ -316,6 +322,11 @@ export interface Settings {
   /** The same for the "Instanzen" nav item, and the same relationship to its
    *  settings tab - see the server field's own doc comment. */
   hideInstancesFromSidebar: boolean;
+  /** How much of a navigation entry is drawn, in the sidebar AND the settings
+   *  rail at once - see lib/navLabels.ts for what each of the four means and
+   *  internal/settings/settings_appearance.go for why "hover" is not the
+   *  collapsing rail it sounds like. */
+  navLabels: NavLabelMode;
   autoUpdateCheck: boolean;
   /** Meaningless without autoUpdateCheck also being on, and only ever acted
    *  on by the desktop build - see internal/settings/settings.go's own doc

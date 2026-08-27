@@ -245,6 +245,12 @@ export const ko: Dict = {
   'settings.motion.off': '끄기',
   'settings.motion.hint': '끄기는 필수적이지 않은 모든 애니메이션을 끕니다. 은은하게는 등장을 짧게 유지합니다. 전체는 가장 풍부한 경험입니다.',
   'settings.motion.title': '모션',
+  'settings.navLabels.title': '탐색 라벨',
+  'settings.navLabels.hint': '사이드바와 설정 열이 각 항목을 얼마나 그릴지. 마우스를 올려도 타일 크기는 그대로이고 포인터 아래에 이름이 나타납니다.',
+  'settings.navLabels.both': '아이콘과 텍스트',
+  'settings.navLabels.glyph': '아이콘만',
+  'settings.navLabels.text': '텍스트만',
+  'settings.navLabels.hover': '마우스를 올렸을 때',
   'queue.limitUnit': '단위',
 
   'common.show': '보기',

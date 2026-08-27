@@ -22,6 +22,7 @@
 // selection with them.
 import { useEffect, useRef, useState, type KeyboardEvent, type MouseEvent, type PointerEvent, type ReactNode } from 'react';
 import { useRainbow } from '../lib/useRainbow';
+import type { NavLabelMode } from '../lib/navLabels';
 import { hueStyle, segBase, segOff, segOn } from './ui';
 
 export interface TabDef {
@@ -119,6 +120,33 @@ interface Common {
    * and Design pickers, not the repo/docs. Defaults to `'default'`.
    */
   variant?: 'default' | 'well';
+  /**
+   * Which way the strip runs. `'vertical'` is KnightLoader's settings rail
+   * and nothing else (jdp, 2026-08-27: "Alle Einstellungstabs werden rechts
+   * von der Sidebar vertikal in kacheln angezeigt", following JD
+   * Highlighter's own arrangement) - every other caller leaves this alone and
+   * is untouched by it.
+   *
+   * It is a mode of THIS component rather than a second one beside it for the
+   * reason this file opens with: there were two horizontal choosers once, and
+   * they drifted. A vertical copy would carry its own duplicate of the
+   * long-press reorder gesture, the roving tabindex and the rainbow wiring,
+   * and would drift from all three the same way.
+   */
+  orientation?: 'horizontal' | 'vertical';
+  /**
+   * Vertical only: the tabs share the strip's full height between them
+   * instead of each hugging its own content (jdp: "die kacheln sollen sich
+   * immer von ganz oben bis ganz nach unten in einer spalte anordnen"). Each
+   * keeps a floor height, so a long enough list scrolls rather than
+   * collapsing into a row of unreadable slivers.
+   */
+  fill?: boolean;
+  /**
+   * How much of each tab is drawn - see lib/navLabels.ts. Defaults to `both`,
+   * which is what every caller that does not pass it has always rendered.
+   */
+  display?: NavLabelMode;
 }
 
 export type TabsProps =
@@ -162,8 +190,26 @@ export function Tabs(props: TabsProps) {
     editMode = false,
     equalWidth = false,
     variant = 'default',
+    orientation = 'horizontal',
+    fill = false,
+    display = 'both',
   } = props;
   const isWell = variant === 'well';
+  const vertical = orientation === 'vertical';
+
+  // What each tab actually draws. `hover` renders BOTH, and hides the label
+  // with CSS rather than leaving it out - that is the whole mechanism: a
+  // label that is present but collapsed can grow back in place, and nothing
+  // around it has to be re-measured. See NavLabelMode's own doc comment for
+  // why "nothing resizes" is the requirement here rather than a nicety.
+  const showIcon = display !== 'text';
+  const labelOnHover = display === 'hover';
+  const showLabel = display === 'both' || display === 'text' || labelOnHover;
+  // Glyph-only draws nothing anybody can read, so the label becomes the
+  // accessible name and the tooltip instead of the visible text. The other
+  // three modes have the label right there in the markup and adding a second
+  // copy of it would only make a screen reader say it twice.
+  const nameOnly = display === 'glyph';
 
   // Subscribed, not read: the palette is resolved during render, so a strip
   // that only learned about a change on the next paint would keep the previous
@@ -310,9 +356,18 @@ export function Tabs(props: TabsProps) {
         const id = node.getAttribute('data-tab-id');
         if (!id || id === dragging) continue;
         const r = node.getBoundingClientRect();
-        // The +/-20 vertical fudge (CC's own figure) forgives a slightly
-        // sloppy hold on a strip that wraps to more than one line.
-        if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top - 20 || e.clientY > r.bottom + 20) continue;
+        // Tight across the strip's own axis, forgiving across the other: the
+        // +/-20 (CC's own figure) covers a slightly sloppy hold on a
+        // horizontal strip that has wrapped to a second line, and a pointer
+        // that has wandered out past the edge of a vertical one. Transposed
+        // with the orientation, so each axis keeps the job it was given.
+        const along = vertical
+          ? e.clientY >= r.top && e.clientY <= r.bottom
+          : e.clientX >= r.left && e.clientX <= r.right;
+        const across = vertical
+          ? e.clientX >= r.left - 20 && e.clientX <= r.right + 20
+          : e.clientY >= r.top - 20 && e.clientY <= r.bottom + 20;
+        if (!along || !across) continue;
         setLiveOrder((prev) => {
           if (!prev) return prev;
           const from = prev.indexOf(dragging);
@@ -363,8 +418,9 @@ export function Tabs(props: TabsProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the refs above
     // are read for their CURRENT value inside the listeners, not captured by
     // this effect's own closure; only `reorderable`/`onReorder` (identity)
+    // and `vertical` (captured by onMove's hit test, and cheap to re-bind on)
     // ever need this effect to re-bind.
-  }, [reorderable, onReorder]);
+  }, [reorderable, onReorder, vertical]);
 
   // Roving tabindex: the strip is ONE stop in the tab order and the arrows move
   // inside it. Tabbing through thirteen settings pages to reach the page is how
@@ -386,15 +442,22 @@ export function Tabs(props: TabsProps) {
       return;
     }
 
-    if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(e.key)) return;
+    // The pair of arrows that means "along the strip" is the pair that points
+    // the way the strip runs. A vertical rail answering Left/Right and
+    // ignoring Down is the sort of thing that reads as broken rather than as
+    // unsupported.
+    const [fwd, back] = vertical ? ['ArrowDown', 'ArrowUp'] : ['ArrowRight', 'ArrowLeft'];
+    if (![fwd, back, 'Home', 'End'].includes(e.key)) return;
     const nodes = tabNodes();
     if (nodes.length === 0) return;
 
     // Right means "further along the strip", which in Arabic and Hebrew is to
     // the left. Read the direction off the strip rather than assuming it, so
     // the same component behaves in an RTL locale the way that locale reads.
-    const rtl = strip.current ? getComputedStyle(strip.current).direction === 'rtl' : false;
-    const step = e.key === 'ArrowRight' ? (rtl ? -1 : 1) : e.key === 'ArrowLeft' ? (rtl ? 1 : -1) : 0;
+    // Down always means down: writing direction is horizontal in every script
+    // this app has a locale for.
+    const rtl = !vertical && strip.current ? getComputedStyle(strip.current).direction === 'rtl' : false;
+    const step = e.key === fwd ? (rtl ? -1 : 1) : e.key === back ? (rtl ? 1 : -1) : 0;
 
     const here = nodes.indexOf(document.activeElement as HTMLElement);
     const next =
@@ -444,7 +507,7 @@ export function Tabs(props: TabsProps) {
       ref={strip}
       role={many ? 'group' : 'tablist'}
       aria-label={label}
-      aria-orientation="horizontal"
+      aria-orientation={vertical ? 'vertical' : 'horizontal'}
       onKeyDown={onKeyDown}
       // No well behind the tabs, and no padding: the tabs are the furniture.
       // Wrapped in a surface they read as a toolbar sitting on the page, which
@@ -468,17 +531,54 @@ export function Tabs(props: TabsProps) {
       // a set that already fits its track in one row - it only ever
       // engages once a track would otherwise have overflowed into a
       // scrollbar, growing the track's height instead.
+      //
+      // Vertical never wraps and never hugs: it is a column, and with `fill`
+      // it is a column that owns its container's whole height. `min-h-0` is
+      // what lets it scroll instead of overflowing its parent once the tabs
+      // hit their floor height - a flex child's automatic minimum size is its
+      // content, so without it a twenty-tab rail simply grows past the
+      // window's bottom edge and takes the page's scrollbar with it.
       className={
-        isWell
-          ? `flex flex-wrap items-center gap-[0.2rem] rounded-[var(--radius-control)] bg-carbon-surface2 p-[0.2rem] ${className}`
-          : `flex flex-wrap items-center gap-1 ${className}`
+        vertical
+          ? `flex min-h-0 flex-col gap-1 overflow-y-auto ${fill ? 'h-full' : ''} ${className}`
+          : isWell
+            ? `flex flex-wrap items-center gap-[0.2rem] rounded-[var(--radius-control)] bg-carbon-surface2 p-[0.2rem] ${className}`
+            : `flex flex-wrap items-center gap-1 ${className}`
       }
     >
       {orderedItems.map((item, i) => {
         const on = isOn(item.id);
         const wiggling = (reordering || editMode) && item.id !== draggingId;
         const dragged = item.id === draggingId;
-        const cls = isWell
+        // A vertical tab is a tile, and its own layout follows the display
+        // mode rather than the other way round:
+        //
+        //   both/text   a row - glyph, then label, reading left to right like
+        //               any other list of named things. It is also the
+        //               shortest of the three, which is what lets twenty
+        //               tabs share one window's height without scrolling.
+        //   glyph       a centred glyph, and the rail is narrow to match:
+        //               with no label ever shown there is nothing to be wide
+        //               for.
+        //   hover       a centred glyph over a label that is collapsed to
+        //               nothing. See `inner` below for the actual mechanism.
+        //
+        // `group` is load-bearing in hover mode and inert in the others: it
+        // is what the label's own group-hover rules hang off.
+        const stacked = vertical && (display === 'glyph' || labelOnHover);
+        // A page the icon map has not met yet has no glyph, and glyph-only
+        // would render it as an empty box you can click but not identify. It
+        // keeps its label instead - a tab that looks out of place is a gap; a
+        // tab that looks like nothing at all is a trap.
+        const glyphless = nameOnly && !item.icon;
+        const cls = vertical
+          ? `${segBase} glim-hue glim-hue-icon group ${on ? `glim-active ${segOn}` : segOff}
+              flex w-full min-w-0 overflow-hidden text-[13px]
+              ${stacked ? 'flex-col items-center justify-center gap-0.5 px-2 py-1' : 'flex-row items-center gap-2.5 px-3 py-2'}
+              ${fill ? 'min-h-9 flex-1 shrink-0 basis-0' : ''}
+              ${!on && item.dim ? 'opacity-60' : ''}
+              ${wiggling ? 'glim-tab-wiggle' : ''} ${dragged ? 'glim-tab-dragging' : ''}`
+          : isWell
           ? // wellWidth (above) sets the actual width now, not a class here
             // - not flex-1/content-hugging either: see wellWidth's own doc
             // comment for why a plain content-hugging width was tried and
@@ -497,10 +597,39 @@ export function Tabs(props: TabsProps) {
             } flex min-w-0 max-w-full items-center ${!on && item.dim ? 'opacity-60' : ''}
               ${wiggling ? 'glim-tab-wiggle' : ''} ${dragged ? 'glim-tab-dragging' : ''}`;
 
+        // The label in `hover` mode is RENDERED and collapsed, never omitted,
+        // and that is the whole trick (jdp, 2026-08-27: "Kachel und Button in
+        // sidebar bleiben gleich groß. vor mouseover ist der glyph zentriert.
+        // bei mouseover: der glyph in der kachel rutscht nach oben und der
+        // text erscheint darunter").
+        //
+        // The tile is centred and, under `fill`, has a height it did not get
+        // from its contents. So: at rest the content is a glyph alone and
+        // centring puts it in the middle; on hover the label grows from zero
+        // and the same centring pushes the glyph up to make room. Nothing is
+        // measured, nothing is animated by hand, and the tile's own box never
+        // changes size - which is the requirement, and the reason a label
+        // that is simply absent at rest would not do: adding it back would
+        // reflow.
+        //
+        // Focus-visible gets the same reveal. A rail whose labels can only be
+        // read with a pointer is a rail a keyboard cannot read at all.
+        // `leading-4` and a 1rem ceiling rather than whatever line-height the
+        // page inherits, and the two figures are the same figure on purpose:
+        // the tile clips its overflow, so a label allowed to grow taller than
+        // the box it grows into would reveal itself with its descenders cut
+        // off. 16px glyph + 2px gap + 16px label + 8px padding is 42, which
+        // is what a twenty-tab rail has to spend per tile on a 1000px-high
+        // window - measured on the real thing, not assumed.
+        const hiddenLabel =
+          'leading-4 max-h-0 opacity-0 transition-all duration-200 group-hover:max-h-4 group-hover:opacity-100 ' +
+          'group-focus-visible:max-h-4 group-focus-visible:opacity-100';
         const inner = (
           <>
-            {item.icon}
-            <span className="truncate">{item.label}</span>
+            {showIcon && item.icon}
+            {(showLabel || glyphless) && (
+              <span className={`truncate ${labelOnHover ? hiddenLabel : ''}`}>{item.label}</span>
+            )}
             {item.badge !== undefined && item.badge !== null && (
               // Quiet beside an unselected tab; on the filled one it sits on the
               // accent itself, so it borrows the ink rather than keeping a
@@ -517,7 +646,8 @@ export function Tabs(props: TabsProps) {
 
         const shared = {
           'data-tab-id': item.id,
-          title: item.title,
+          title: item.title ?? (nameOnly ? item.label : undefined),
+          'aria-label': nameOnly && !glyphless ? item.label : undefined,
           tabIndex: i === roved ? 0 : -1,
           style: isWell
             ? { ...hueStyle(i), width: wellWidth, justifyContent: 'center' as const }

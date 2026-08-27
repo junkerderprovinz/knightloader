@@ -245,6 +245,12 @@ export const ja: Dict = {
   'settings.motion.off': 'オフ',
   'settings.motion.hint': 'オフはすべての不要なアニメーションを無効にします。控えめは登場を短く保ちます。フルは最も豊かな体験です。',
   'settings.motion.title': 'モーション',
+  'settings.navLabels.title': 'ナビゲーションの表示',
+  'settings.navLabels.hint': 'サイドバーと設定の列が各項目をどこまで描くか。ホバー時もタイルの大きさは変わらず、ポインターの下に名前が現れます。',
+  'settings.navLabels.both': 'アイコンと文字',
+  'settings.navLabels.glyph': 'アイコンのみ',
+  'settings.navLabels.text': '文字のみ',
+  'settings.navLabels.hover': 'ホバー時のみ',
   'queue.limitUnit': '単位',
 
   'common.show': '表示',

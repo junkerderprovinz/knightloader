@@ -245,6 +245,12 @@ export const id: Dict = {
   'settings.motion.off': 'Nonaktif',
   'settings.motion.hint': 'Nonaktif mematikan setiap animasi yang tidak penting; Halus membuat kemunculan tetap singkat; Penuh adalah pengalaman paling kaya.',
   'settings.motion.title': 'Gerakan',
+  'settings.navLabels.title': 'Label navigasi',
+  'settings.navLabels.hint': 'Seberapa banyak bilah sisi dan kolom pengaturan menggambar setiap entri. Saat disorot, ubin tetap seukuran dan namanya muncul di bawah penunjuk.',
+  'settings.navLabels.both': 'Ikon dan teks',
+  'settings.navLabels.glyph': 'Hanya ikon',
+  'settings.navLabels.text': 'Hanya teks',
+  'settings.navLabels.hover': 'Saat disorot',
   'queue.limitUnit': 'Satuan',
 
   'common.show': 'Tampilkan',

@@ -4,6 +4,7 @@ import { Navigate, Route, Routes, useMatch, useNavigate, useParams } from 'react
 import { ApiError, type Settings, fetchHealth, fetchSettings, patchSettings } from '../lib/api';
 import { useResource } from '../lib/useResource';
 import { readUIState, useUIState } from '../lib/uistate';
+import { useNavLabels } from '../lib/navLabels';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { ErrorCard, IconBadge, LoadingCard, PageHeader } from '../components/ui';
@@ -236,20 +237,36 @@ export function SettingsPage() {
       {/* The title is rendered for screen readers only — the rail entry beside
           it already says the same word. See PageHeader. */}
       <PageHeader title={t('settings.title')} />
-      {/* The sections run across the top, not down the side. BombVault puts
-          them there, JDownloader puts them there, and GlimStone is supposed to
-          be the same everywhere — a side rail here and a tab strip in the
-          sibling app is two answers to one question. It also gives the page its
-          full width back, which is what the wide tables on Advanced and Rules
-          were always short of. */}
-      <div className="mt-4 flex flex-col gap-10">
-        <SectionTabs pages={features.pages} />
+      {/* A column of tiles down the left, flush against the sidebar and
+          running the window's full height (jdp, 2026-08-27: "In KL machen wir
+          die einstellungen anders als sonst in GL-Anwendungen. Wir verfolgen
+          optisch den Ansatz aus JD Highlighter: Alle Einstellungstabs werden
+          rechts von der Sidebar vertikal in kacheln angezeigt. die kacheln
+          sollen sich immer von ganz oben bis ganz nach unten in einer spalte
+          anordnen").
+
+          This was a strip across the top, and before that a rail down the
+          side, and the argument for the strip was that GlimStone should be
+          the same everywhere. It still is - a KnightLoader-only exception is
+          exactly what jdp is asking for here, and it is recorded as one in
+          the project note rather than smuggled into the shared design
+          language. What it costs is the page's full width, which is what the
+          wide tables on Advanced and Rules were always short of; what it buys
+          is twenty destinations you can read at once instead of a strip that
+          wraps to three lines.
+
+          Only the content column scrolls. The rail is a fixed frame, so
+          moving between pages never moves the tabs - see app/Layout.tsx for
+          the one exception it makes to give this page a definite height to
+          fill. */}
+      <div className="flex min-h-0 flex-1">
+        <SettingsRail pages={features.pages} />
 
         {/* No sticky Save/Discard bar any more - every edit on every settings
             tab saves itself automatically (the debounced effect above),
             confirmed by the same toast Look.tsx's own auto-save already
             uses. */}
-        <div className="flex min-w-0 flex-1 flex-col gap-6">
+        <div className="flex min-w-0 flex-1 flex-col gap-6 overflow-y-auto p-6 md:p-8">
           <Routes>
             <Route index element={<RememberedPage pages={features.pages} />} />
             <Route path=":page" element={<SubPage pages={features.pages} />} />
@@ -310,18 +327,25 @@ function VersionFooter() {
 }
 
 /**
- * The section tabs, across the top.
+ * The section tiles, down the left.
  *
- * This was a left rail of hand-rolled NavLinks. It is now the app's one
- * horizontal chooser — the same component as the download list's quick filters
- * and the corner picker on Look — so the active section is FILLED exactly the
- * way an active filter and an active segment are, and in rainbow mode each tab
- * takes its own palette position. Nothing here restates how a tab looks; that
- * lives in Tabs.tsx once.
+ * Three shapes in three months: a left rail of hand-rolled NavLinks, then a
+ * strip across the top, and now a column of tiles beside the sidebar. Only the
+ * middle one was a design decision of mine; the first and third are jdp's, and
+ * this one is the one that sticks - see the block comment at the call site for
+ * what it is copying and what it costs.
  *
- * Every tab is also a real link. Ctrl-clicking Advanced to read it beside
+ * What did NOT change across all three is that this is the app's one chooser
+ * component (Tabs.tsx), the same one the download list's quick filters and the
+ * corner picker on Look use. The active section is FILLED exactly the way an
+ * active filter and an active segment are, and in rainbow mode each tile takes
+ * its own palette position. Nothing here restates how a tab looks - a vertical
+ * copy of that would have been a second answer to a question this codebase has
+ * already answered twice.
+ *
+ * Every tile is also a real link. Ctrl-clicking Advanced to read it beside
  * Downloads is a thing people do with something that looks like navigation, and
- * a strip of buttons quietly swallows the gesture.
+ * a column of buttons quietly swallows the gesture.
  */
 /**
  * orderPages applies a saved custom order, then appends anything the saved
@@ -338,10 +362,15 @@ function orderPages(pages: FeaturePage[], order: string[]): FeaturePage[] {
   return [...known, ...pages.filter((p) => !seen.has(p.id))];
 }
 
-function SectionTabs({ pages }: { pages: FeaturePage[] }) {
+function SettingsRail({ pages }: { pages: FeaturePage[] }) {
   const { tx } = useTx();
   const navigate = useNavigate();
   const here = useMatch('/settings/:page');
+  // Live, not read once: the selector that changes this sits on the Aussehen
+  // tab, inside this very rail's own content column, and a rail that only
+  // restyled itself on the next navigation would make that selector look
+  // broken. See lib/navLabels.ts.
+  const display = useNavLabels();
   // Persisted drag order (jdp: "die Tabs in den Einstellungen soll man nach
   // Belieben anordnen können") — same useUIState store as the remembered
   // last-open page below, a per-browser preference rather than a server
@@ -360,7 +389,21 @@ function SectionTabs({ pages }: { pages: FeaturePage[] }) {
   const reorderLabel = tx(editMode ? 'settings.railReorderDone' : 'settings.railReorderStart');
 
   return (
+    // The rail's own width follows the display mode, and glyph-only is the
+    // one mode that changes it: with no label ever drawn there is nothing to
+    // be wide for. Hover mode stays full width on purpose - its whole promise
+    // is that nothing moves when the pointer arrives, and a rail that had to
+    // widen to fit the label it reveals would break that on the first
+    // mouseover. shrink-0 so a wide table on Advanced pushes the page's own
+    // scrollbar rather than squeezing the navigation.
+    <div
+      className={`flex h-full shrink-0 flex-col gap-2 p-2 ${display === 'glyph' ? 'w-14' : 'w-52'}`}
+    >
     <Tabs
+      className="min-h-0 flex-1"
+      orientation="vertical"
+      fill
+      display={display}
       label={tx('settings.railLabel')}
       active={here?.params.page ?? null}
       onSelect={(id) => navigate(pagePath(id))}
@@ -372,11 +415,8 @@ function SectionTabs({ pages }: { pages: FeaturePage[] }) {
       reorderable
       onReorder={setOrder}
       editMode={editMode}
-      // Content-hugging, not equal-width - the actual BombVault test
-      // container's own Settings tab strip sizes each tab to its own label
-      // (jdp: "Bitte orientiere dich am Bombvault-Testcontainer!!!"), and a
-      // prior "gleich breit" pass here was matching GlimStone's docs, not
-      // what is actually deployed there.
+      // No equalWidth: every tile in a column is already the column's width,
+      // which is what the strip across the top needed that setting to fake.
       items={ordered.map((p) => ({
         id: p.id,
         label: label(tx, 'settings.nav.', p.id),
@@ -387,11 +427,18 @@ function SectionTabs({ pages }: { pages: FeaturePage[] }) {
         // click is cheaper than after it.
         dim: !hasContent(p.id),
       }))}
-      // The pencil is the one place that says reordering is possible at all
-      // - clicking it arms edit mode outright (every tab wiggles right
-      // away) rather than relying on the long-press's own, undiscoverable
-      // hold gesture.
-      after={
+    />
+      {/* The pencil is the one place that says reordering is possible at all
+          - clicking it arms edit mode outright (every tab wiggles right away)
+          rather than relying on the long-press's own, undiscoverable hold
+          gesture.
+
+          A sibling of the strip rather than its `after` slot, which is where
+          it sat while the strip was horizontal: the column scrolls once the
+          tiles hit their floor height, and anything inside it scrolls away
+          with them. Out here it is pinned to the foot of the rail and stays
+          reachable whatever the window is doing. */}
+      <div className="flex shrink-0 justify-center">
         <IconBadge
           icon={<IconEdit width={16} height={16} />}
           title={reorderLabel}
@@ -400,8 +447,8 @@ function SectionTabs({ pages }: { pages: FeaturePage[] }) {
           className={editMode ? 'bg-accent text-accentContrast hover:brightness-110' : undefined}
           onClick={() => setEditMode((v) => !v)}
         />
-      }
-    />
+      </div>
+    </div>
   );
 }
 

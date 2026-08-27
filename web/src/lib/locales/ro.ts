@@ -245,6 +245,12 @@ export const ro: Dict = {
   'settings.motion.off': 'Dezactivat',
   'settings.motion.hint': 'Dezactivat oprește orice animație neesențială; Discret păstrează intrările scurte; Complet este experiența cea mai bogată.',
   'settings.motion.title': 'Mișcare',
+  'settings.navLabels.title': 'Etichete de navigare',
+  'settings.navLabels.hint': 'Cât desenează din fiecare intrare bara laterală și coloana de setări. La trecerea cursorului, dala își păstrează mărimea, iar numele apare dedesubt.',
+  'settings.navLabels.both': 'Pictogramă și text',
+  'settings.navLabels.glyph': 'Doar pictogramă',
+  'settings.navLabels.text': 'Doar text',
+  'settings.navLabels.hover': 'La trecerea cursorului',
   'queue.limitUnit': 'Unitate',
 
   'common.show': 'Arată',

@@ -245,6 +245,12 @@ export const th: Dict = {
   'settings.motion.off': 'ปิด',
   'settings.motion.hint': 'ปิด จะปิดแอนิเมชันที่ไม่จำเป็นทั้งหมด นุ่มนวล จะทำให้การปรากฏสั้นลง เต็มรูปแบบ คือประสบการณ์ที่สมบูรณ์ที่สุด',
   'settings.motion.title': 'การเคลื่อนไหว',
+  'settings.navLabels.title': 'ป้ายกำกับการนำทาง',
+  'settings.navLabels.hint': 'แถบข้างและคอลัมน์การตั้งค่าจะแสดงแต่ละรายการมากน้อยเพียงใด เมื่อชี้เมาส์ ไทล์ยังคงขนาดเดิมและชื่อจะปรากฏใต้ตัวชี้',
+  'settings.navLabels.both': 'ไอคอนและข้อความ',
+  'settings.navLabels.glyph': 'ไอคอนเท่านั้น',
+  'settings.navLabels.text': 'ข้อความเท่านั้น',
+  'settings.navLabels.hover': 'เมื่อชี้เมาส์',
   'queue.limitUnit': 'หน่วย',
 
   'common.show': 'แสดง',

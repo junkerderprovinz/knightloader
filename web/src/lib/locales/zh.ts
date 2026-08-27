@@ -245,6 +245,12 @@ export const zh: Dict = {
   'settings.motion.off': '关闭',
   'settings.motion.hint': '关闭会关闭所有非必要动效;轻微让入场动效保持简短;完整则是最丰富的体验。',
   'settings.motion.title': '动效',
+  'settings.navLabels.title': '导航标签',
+  'settings.navLabels.hint': '侧边栏和设置栏各显示条目的多少。悬停时磁贴大小不变，名称出现在指针下方。',
+  'settings.navLabels.both': '图标和文字',
+  'settings.navLabels.glyph': '仅图标',
+  'settings.navLabels.text': '仅文字',
+  'settings.navLabels.hover': '悬停时',
   'queue.limitUnit': '单位',
 
   'common.show': '显示',

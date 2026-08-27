@@ -245,6 +245,12 @@ export const eu: Dict = {
   'settings.motion.off': 'Desaktibatuta',
   'settings.motion.hint': 'Desaktibatuak funtsezkoa ez den animazio oro itzaltzen du; Diskretuak sarrerak laburrak mantentzen ditu; Osoak eskaintzen du esperientziarik oparoena.',
   'settings.motion.title': 'Mugimendua',
+  'settings.navLabels.title': 'Nabigazioko etiketak',
+  'settings.navLabels.hint': 'Alboko barrak eta ezarpenen zutabeak sarrera bakoitzetik zenbat marrazten duten. Sagua gainean jartzean, lauzak tamaina berari eusten dio eta izena azpian agertzen da.',
+  'settings.navLabels.both': 'Ikonoa eta testua',
+  'settings.navLabels.glyph': 'Ikonoa soilik',
+  'settings.navLabels.text': 'Testua soilik',
+  'settings.navLabels.hover': 'Sagua gainean',
   'queue.limitUnit': 'Unitatea',
 
   'common.show': 'Erakutsi',
