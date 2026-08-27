@@ -74,8 +74,8 @@ func TestEndToEndOverRealWebSockets(t *testing.T) {
 	t.Cleanup(srv.Close)
 	url := "ws" + strings.TrimPrefix(srv.URL, "http") + "/relay/connect"
 
-	alpha := dialInstance(t, url, "shared-relay-test-key-0123", "alpha")
-	bravo := dialInstance(t, url, "shared-relay-test-key-0123", "bravo")
+	alpha := dialInstance(t, url, "shared-relay-test-key-0123456789ab", "alpha")
+	bravo := dialInstance(t, url, "shared-relay-test-key-0123456789ab", "bravo")
 
 	// bravo joined last, so it hears about alpha; alpha hears bravo arrive.
 	var sib Announce

@@ -2104,6 +2104,86 @@ export async function saveRelayConfig(relayUrl: string, key?: string, serve?: bo
   );
 }
 
+/**
+ * What GET /api/connect answers with - api.ConnectInfo.
+ *
+ * The connection phrase is how a person's own instances find each other:
+ * one instance mints a phrase, every other one is given it, and they meet
+ * on the relay. No account, no login, nothing to configure - the relay's
+ * address is compiled into the binary, so the phrase carries only the
+ * secret.
+ *
+ * Note this is NOT the same job as the Tailscale/Funnel path below it. That
+ * one gives this instance a public https:// address a phone's browser can
+ * open; this one connects instances to each other. Both can be on.
+ */
+export interface ConnectInfo {
+  /** Whether this instance holds a connection secret at all. */
+  active: boolean;
+  /** Whether the relay socket is actually up - a different question from
+   *  `active`, since a stored phrase with an unreachable relay is
+   *  configured but not working. */
+  connected: boolean;
+  /** Mirrors GET /api/auth, so the page can warn before minting a phrase
+   *  that reaches every instance in the group. */
+  passwordSet: boolean;
+  /** Which relay this instance is pointed at. */
+  relayUrl: string;
+  /** Whether that is somebody's own relay rather than the default one. */
+  selfHosted: boolean;
+}
+
+export async function fetchConnect(): Promise<ConnectInfo> {
+  return json<ConnectInfo>(await fetch('/api/connect'));
+}
+
+/**
+ * activateConnect mints this instance's phrase. Answers with it once - the
+ * only time it comes back without the password, because the person who just
+ * pressed the button is by definition already looking at the screen.
+ */
+export async function activateConnect(): Promise<{ phrase: string; info: ConnectInfo }> {
+  const r = await fetch('/api/connect/activate', { method: 'POST' });
+  if (!r.ok) throw new Error(await r.text());
+  return json(r);
+}
+
+/** joinConnect is the other half: every instance after the first. */
+export async function joinConnect(phrase: string): Promise<ConnectInfo> {
+  const r = await fetch('/api/connect/join', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phrase }),
+  });
+  // The server's message names the offending word and its position, which
+  // is the whole reason it is shown verbatim rather than replaced with a
+  // generic "invalid phrase" this side could have written itself.
+  if (!r.ok) throw new Error(await r.text());
+  return json(r);
+}
+
+/**
+ * revealConnect shows the phrase again. The password is required whenever
+ * one is set - a live session is not enough, because what is behind this is
+ * not this instance's own password but the key to every instance in the
+ * group.
+ */
+export async function revealConnect(password: string): Promise<{ phrase: string }> {
+  const r = await fetch('/api/connect/reveal', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password }),
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return json(r);
+}
+
+/** leaveConnect forgets the secret and stops dialling the relay. */
+export async function leaveConnect(): Promise<void> {
+  const r = await fetch('/api/connect', { method: 'DELETE' });
+  if (!r.ok) throw new Error(await r.text());
+}
+
 /** What GET /api/tsnet/status answers with - tsnetsrv.Info. */
 export interface TsnetInfo {
   status: 'off' | 'connecting' | 'connected' | 'error';

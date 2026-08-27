@@ -61,13 +61,20 @@ const readLimit = 8 << 20
 // accepts a request and then dies without replying.
 const pendingTTL = 2 * time.Minute
 
-// minKeyLength is the shortest relay key the relay accepts. This is not
-// entropy enforcement - the relay cannot tell "sixteen random characters"
-// from "sixteen predictable ones" - it only rules out the laziest keys
-// (single words, short PINs) at zero cost to a caller using a real one, the
-// same way a minimum password length rules out nothing sophisticated but
-// still removes the worst of the distribution.
-const minKeyLength = 16
+// minKeyLength is the shortest relay key the relay accepts. This is still
+// not entropy enforcement - the relay cannot tell "thirty-two random
+// characters" from "thirty-two predictable ones" - it only rules out the
+// laziest keys at zero cost to a caller using a real one, the same way a
+// minimum password length rules out nothing sophisticated but still removes
+// the worst of the distribution.
+//
+// Raised from 16 to 32 for public operation. KnightLoader's own key is the
+// hex of a SHA-256 derived from the 128-bit seed-phrase secret (see
+// internal/relay's DeriveKey), so it is 64 characters and clears this
+// comfortably; 32 is the floor a hand-made key for a self-hosted relay must
+// still meet. Nothing has shipped yet, so there is no shorter key in the
+// wild to keep working.
+const minKeyLength = 32
 
 // maxPendingPerSender caps how many of one connection's own proxy-requests
 // may be unanswered at once, per relay key. Without this, a connection that
@@ -169,6 +176,10 @@ type Server struct {
 	// replaced, and a relay that had to be rebuilt for either would keep
 	// serving the old answer to whoever was already connected.
 	Admit func(key string) bool
+
+	// limiter backs off addresses that keep failing the handshake. See
+	// ratelimit.go for what it is and is not for.
+	limiter *limiter
 }
 
 // New returns an empty relay that admits every key. Set Admit to narrow it.
@@ -177,6 +188,7 @@ func New() *Server {
 		clients: map[Conn]*client{},
 		keys:    map[string]map[Conn]*client{},
 		pending: map[string]map[string]pending{},
+		limiter: newLimiter(),
 	}
 }
 
@@ -575,6 +587,17 @@ func frameOf(typ string, data any) []byte {
 // ServeHTTP is the relay endpoint itself: one long-lived WebSocket per
 // instance, dialled outbound by both sides.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// Refused before the upgrade, on purpose: an address that has been
+	// failing repeatedly should cost this relay one cheap HTTP response,
+	// not a live WebSocket plus a goroutine parked for helloTimeout. 429
+	// rather than 403 because the caller is being asked to slow down, not
+	// told it will never be let in.
+	addr := clientAddr(r)
+	if s.limiter.blocked(addr) {
+		http.Error(w, "too many failed handshakes from this address", http.StatusTooManyRequests)
+		return
+	}
+
 	c, err := websocket.Accept(w, r, &websocket.AcceptOptions{
 		// No origin check, unlike internal/api's own socket. There it stops
 		// another website driving a logged-in instance through the visitor's
@@ -592,7 +615,8 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	hello, err := readHello(r.Context(), c)
 	if err != nil {
-		c.Close(websocket.StatusPolicyViolation, "the first frame must be a hello with a relay key of at least 16 characters and an instance id")
+		s.limiter.fail(addr)
+		c.Close(websocket.StatusPolicyViolation, "the first frame must be a hello with a relay key of at least 32 characters and an instance id")
 		return
 	}
 	// Checked before Join, so a key this relay does not serve costs one
@@ -601,9 +625,15 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// relay is picky about which ones: an instance whose own key stopped
 	// matching needs to know that is what happened.
 	if !s.admits(hello.Key) {
+		s.limiter.fail(addr)
 		c.Close(websocket.StatusPolicyViolation, "this relay does not serve that relay key")
 		return
 	}
+	// Past every check that can reject a caller, so this connection came
+	// from a real client - clear whatever failures preceded it (a mistyped
+	// phrase, a reconnect during a key change) rather than letting them
+	// follow a legitimate address around.
+	s.limiter.succeed(addr)
 	if !s.Join(hello.Key, c, hello.Announce) {
 		c.Close(websocket.StatusPolicyViolation, "too many instances are already connected with this relay key")
 		return

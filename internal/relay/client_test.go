@@ -113,10 +113,10 @@ func waitFor(t *testing.T, what string, cond func() bool) {
 // again when they go.
 func TestClientAnnouncesItselfAndTracksSiblings(t *testing.T) {
 	addr, _ := relayOn(t, "127.0.0.1:0")
-	alpha := startClient(t, addr, "shared-relay-test-key-0123", "alpha", nil)
+	alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", "alpha", nil)
 	waitFor(t, "alpha to connect", alpha.Connected)
 
-	bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123", "bravo")
+	bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", "bravo")
 
 	// bravo hears about alpha, which is only possible if the client's own
 	// hello carried its announce.
@@ -141,8 +141,8 @@ func TestClientAnnouncesItselfAndTracksSiblings(t *testing.T) {
 // answer comes back to the caller that made it, matched by request ID.
 func TestClientProxiesToASibling(t *testing.T) {
 	addr, _ := relayOn(t, "127.0.0.1:0")
-	alpha := startClient(t, addr, "shared-relay-test-key-0123", "alpha", nil)
-	bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123", "bravo")
+	alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", "alpha", nil)
+	bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", "bravo")
 	readFrame(t, bravo, TypeAnnounce)
 	waitFor(t, "alpha to see bravo", func() bool { return len(alpha.Siblings()) == 1 })
 
@@ -208,9 +208,9 @@ func TestClientAnswersASiblingsCall(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			addr, _ := relayOn(t, "127.0.0.1:0")
-			alpha := startClient(t, addr, "shared-relay-test-key-0123", "alpha", tc.serve)
+			alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", "alpha", tc.serve)
 			waitFor(t, "alpha to connect", alpha.Connected)
-			bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123", "bravo")
+			bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", "bravo")
 			readFrame(t, bravo, TypeAnnounce)
 
 			writeFrame(t, bravo, TypeProxyRequest, ProxyRequest{
@@ -263,7 +263,7 @@ func TestProxyFailsFastRatherThanWaiting(t *testing.T) {
 			if !tc.connect {
 				stop()
 			}
-			alpha := startClient(t, addr, "shared-relay-test-key-0123", "alpha", nil)
+			alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", "alpha", nil)
 			if tc.connect {
 				waitFor(t, "alpha to connect", alpha.Connected)
 			}
@@ -288,8 +288,8 @@ func TestProxyFailsFastRatherThanWaiting(t *testing.T) {
 // the peers come back on their own once the relay does.
 func TestReconnectsAfterTheRelayDrops(t *testing.T) {
 	addr, stop := relayOn(t, "127.0.0.1:0")
-	alpha := startClient(t, addr, "shared-relay-test-key-0123", "alpha", nil)
-	bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123", "bravo")
+	alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", "alpha", nil)
+	bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", "bravo")
 	waitFor(t, "alpha to see bravo", func() bool { return len(alpha.Siblings()) == 1 })
 
 	stop()
@@ -304,7 +304,7 @@ func TestReconnectsAfterTheRelayDrops(t *testing.T) {
 	relayOn(t, addr)
 	waitFor(t, "alpha to reconnect", alpha.Connected)
 
-	charlie := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123", "charlie")
+	charlie := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", "charlie")
 	var seen Announce
 	if err := readFrame(t, charlie, TypeAnnounce).Into(&seen); err != nil {
 		t.Fatalf("announce after reconnect: %v", err)
@@ -323,8 +323,8 @@ func TestReconnectsAfterTheRelayDrops(t *testing.T) {
 // carrying the answer is gone.
 func TestCallInFlightFailsWhenTheConnectionDies(t *testing.T) {
 	addr, stop := relayOn(t, "127.0.0.1:0")
-	alpha := startClient(t, addr, "shared-relay-test-key-0123", "alpha", nil)
-	bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123", "bravo")
+	alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", "alpha", nil)
+	bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", "bravo")
 	readFrame(t, bravo, TypeAnnounce)
 	waitFor(t, "alpha to see bravo", func() bool { return len(alpha.Siblings()) == 1 })
 
@@ -401,7 +401,7 @@ func TestConnectURL(t *testing.T) {
 // the settings page that produced them is the only place they can be fixed, so
 // none of them may turn into a connection that quietly never works.
 func TestNewClientRejectsMisconfiguration(t *testing.T) {
-	valid := ClientOptions{URL: "https://relay.example.com", Key: "shared-relay-test-key-0123", Self: Announce{InstanceID: "alpha"}}
+	valid := ClientOptions{URL: "https://relay.example.com", Key: "shared-relay-test-key-0123456789ab", Self: Announce{InstanceID: "alpha"}}
 	tests := []struct {
 		name   string
 		mangle func(o *ClientOptions)

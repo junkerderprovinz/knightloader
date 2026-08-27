@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/subtle"
+	"encoding/hex"
 	"encoding/json"
 	"io"
 	"log"
@@ -28,6 +29,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/relay"
+	"github.com/junkerderprovinz/knightloader/internal/seedphrase"
 )
 
 // relayConfig is what both GET and PUT /api/relay/config answer with: the
@@ -203,12 +205,46 @@ func relayConfigOf(a *app.App, srv *relay.Server) relayConfig {
 // own operation, so a client left to keep retrying in the background is
 // exactly the right outcome, not an error surfaced to whoever just saved an
 // address.
-func applyRelay(a *app.App) {
-	relayURL := a.Settings.Get().RelayURL
-	key, err := a.Accounts.Get(relay.AccountService)
+// relayTarget answers the two questions applyRelay needs: which relay to
+// dial, and with which key.
+//
+// The seed phrase comes first. Once somebody has activated remote access,
+// the secret their phrase decodes to is the whole configuration - the
+// address is relay.DefaultRelayURL unless they deliberately pointed this
+// instance at their own relay, and the key is derived, never stored or sent
+// as the secret itself (see relay.DeriveKey).
+//
+// The hand-entered relay key remains as the second path, unchanged, for a
+// self-hosted relay somebody set up before the phrase existed or prefers to
+// keep configuring by hand. Neither path knows about the other: an instance
+// has a seed or it does not.
+func relayTarget(a *app.App) (url, key string) {
+	override := a.Settings.Get().RelayURL
+
+	if secretHex, err := a.Accounts.Get(relay.SeedAccountService); err == nil && secretHex != "" {
+		secret, err := hex.DecodeString(secretHex)
+		if err != nil || len(secret) != seedphrase.SecretLen {
+			// Sealed but unusable. Loud, because the instance will now sit
+			// there looking configured while reaching nothing, and the fix
+			// (re-enter the phrase) is not one anybody guesses from silence.
+			log.Printf("relay: the stored connection secret is malformed, remote access is off until the phrase is entered again")
+			return "", ""
+		}
+		if override != "" {
+			return override, relay.DeriveKey(secret)
+		}
+		return relay.DefaultRelayURL, relay.DeriveKey(secret)
+	}
+
+	manual, err := a.Accounts.Get(relay.AccountService)
 	if err != nil {
 		log.Printf("relay: the stored key could not be read, connecting without one: %v", err)
 	}
+	return override, manual
+}
+
+func applyRelay(a *app.App) {
+	relayURL, key := relayTarget(a)
 	serve := a.SelfServeHandler()
 	if relayURL == "" || key == "" || serve == nil {
 		a.Federation.SetRelay(nil)

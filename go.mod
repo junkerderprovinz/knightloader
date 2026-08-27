@@ -21,7 +21,10 @@ require (
 	rsc.io/qr v0.2.0
 )
 
-require golang.org/x/text v0.41.0
+require (
+	golang.org/x/text v0.41.0
+	tailscale.com v1.102.3
+)
 
 require (
 	dario.cat/mergo v1.0.1 // indirect
@@ -139,7 +142,6 @@ require (
 	github.com/pires/go-proxyproto v0.8.1 // indirect
 	github.com/pjbgf/sha1cd v0.3.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/protolambda/ctxlock v0.1.0 // indirect
 	github.com/quic-go/qpack v0.5.1 // indirect
 	github.com/quic-go/quic-go v0.51.0 // indirect
@@ -189,6 +191,5 @@ require (
 	modernc.org/libc v1.74.4 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
-	tailscale.com v1.102.3 // indirect
 	zombiezen.com/go/sqlite v1.4.2 // indirect
 )

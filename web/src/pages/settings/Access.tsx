@@ -19,14 +19,20 @@ import {
   type NewApiToken,
   type PairingCode,
   type RelayConfig,
+  type ConnectInfo,
   type QRMatrix,
   type TsnetInfo,
   type TsnetPeer,
+  activateConnect,
   addInstance,
   createToken,
   fetchAuth,
+  fetchConnect,
   fetchDeploymentInfo,
   fetchInstances,
+  joinConnect,
+  leaveConnect,
+  revealConnect,
   fetchRelayConfig,
   fetchRemoteAccess,
   fetchTokens,
@@ -650,7 +656,88 @@ const TSNET_PEERS_POLL_MS = 5000;
 function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, string | number>) => string }) {
   const { t } = useT();
 
-  // --- Tailscale/Funnel (primary path) ---
+  // --- Connection phrase (instance to instance) ---
+  //
+  // Kept apart from the Tailscale state below on purpose: the two answer
+  // different questions and can both be on. This one connects a person's
+  // OWN instances to each other through the relay; Tailscale gives this
+  // instance a public address a phone's browser can open. Merging their
+  // state would make a card that cannot say which of the two is working.
+  const [conn, setConn] = useState<ConnectInfo | null>(null);
+  const [phrase, setPhrase] = useState('');
+  const [phraseBusy, setPhraseBusy] = useState(false);
+  const [phraseErr, setPhraseErr] = useState('');
+  const [phraseCopied, setPhraseCopied] = useState(false);
+  const [joinInput, setJoinInput] = useState('');
+  const [joinOpen, setJoinOpen] = useState(false);
+  const [revealPw, setRevealPw] = useState('');
+  const [revealOpen, setRevealOpen] = useState(false);
+
+  const loadConn = () => fetchConnect().then(setConn).catch(() => {});
+  useEffect(() => {
+    void loadConn();
+  }, []);
+
+  async function onActivate() {
+    setPhraseErr('');
+    setPhraseBusy(true);
+    try {
+      const r = await activateConnect();
+      setPhrase(r.phrase);
+      setConn(r.info);
+    } catch (e) {
+      setPhraseErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setPhraseBusy(false);
+    }
+  }
+
+  async function onJoin() {
+    setPhraseErr('');
+    setPhraseBusy(true);
+    try {
+      setConn(await joinConnect(joinInput));
+      setJoinInput('');
+      setJoinOpen(false);
+    } catch (e) {
+      setPhraseErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setPhraseBusy(false);
+    }
+  }
+
+  async function onReveal() {
+    setPhraseErr('');
+    setPhraseBusy(true);
+    try {
+      const r = await revealConnect(revealPw);
+      setPhrase(r.phrase);
+      setRevealPw('');
+      setRevealOpen(false);
+    } catch (e) {
+      setPhraseErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setPhraseBusy(false);
+    }
+  }
+
+  async function onLeave() {
+    setPhraseErr('');
+    setPhraseBusy(true);
+    try {
+      await leaveConnect();
+      // Cleared here rather than left for the reload: a phrase still on
+      // screen after "leave" reads as though nothing happened.
+      setPhrase('');
+      await loadConn();
+    } catch (e) {
+      setPhraseErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setPhraseBusy(false);
+    }
+  }
+
+  // --- Tailscale/Funnel (a public address for browsers) ---
   const [tsInfo, setTsInfo] = useState<TsnetInfo | null>(null);
   const [tsHostname, setTsHostname] = useState('');
   const [tsBusy, setTsBusy] = useState(false);
@@ -944,7 +1031,154 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
 
   return (
     <Card className="flex flex-col gap-5">
-      <SectionTitle hue={1} hint={t('settings.access.tsnet.body')}>
+      <SectionTitle hue={1} hint={t('settings.access.phrase.body')}>
+        {t('settings.access.phrase.title')}
+      </SectionTitle>
+
+      {/* Nothing set up yet: two ways in, and they are the two ends of the
+          same act - start a group, or join one somebody already started. */}
+      {conn && !conn.active && (
+        <div className="flex flex-col gap-3">
+          {/* jdp's call (2026-08-27): warn loudly, do not block. The
+              sentence has to carry the part that is not obvious - that this
+              phrase reaches every instance in the group, so an unprotected
+              instance puts the others at risk too, not only itself. */}
+          {!conn.passwordSet && (
+            <div className="flex items-start gap-3 rounded-[var(--radius-card)] bg-statusFailBg p-4">
+              <IconWarning width={20} height={20} className="mt-0.5 shrink-0 text-statusFail" />
+              <p className="min-w-0 flex-1 text-sm font-medium text-statusFail">
+                {t('settings.access.phrase.noPasswordWarning')}
+              </p>
+            </div>
+          )}
+          <div className="flex flex-wrap items-center gap-2">
+            <Button hue={1} disabled={phraseBusy} onClick={() => void onActivate()}>
+              {t('settings.access.phrase.activate')}
+            </Button>
+            <Button
+              kind="secondary"
+              hue={1}
+              icon={<IconClipboard width={14} height={14} />}
+              onClick={() => {
+                setJoinOpen(!joinOpen);
+                setPhraseErr('');
+              }}
+            >
+              {t('settings.access.phrase.joinButton')}
+            </Button>
+          </div>
+          {joinOpen && (
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <TextInput
+                dir="ltr"
+                spellCheck={false}
+                className="min-w-0 flex-1"
+                placeholder={t('settings.access.phrase.joinPlaceholder')}
+                value={joinInput}
+                onChange={(e) => setJoinInput(e.target.value)}
+              />
+              <Button hue={1} disabled={phraseBusy || joinInput.trim() === ''} onClick={() => void onJoin()}>
+                {t('settings.access.phrase.joinConfirm')}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Set up: say whether it is actually working, offer the phrase, and
+          allow leaving. "Stored" and "connected" are shown separately
+          because a phrase with an unreachable relay is configured but not
+          working, and one word for both is what made the old relay card
+          unable to say which had gone wrong. */}
+      {conn?.active && (
+        <div className="flex flex-col gap-3">
+          <div className="flex items-start gap-2.5">
+            <span
+              className={`mt-1.5 h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${
+                conn.connected ? 'bg-statusOkSolid' : 'bg-carbon-textMuted'
+              }`}
+            />
+            <span className="min-w-0 flex-1 text-sm text-carbon-text">
+              {conn.connected ? t('settings.access.phrase.stateConnected') : t('settings.access.phrase.stateConnecting')}
+            </span>
+          </div>
+
+          {phrase ? (
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-semibold text-carbon-textSub">
+                {t('settings.access.phrase.yourPhrase')}
+              </span>
+              <div className="flex items-start gap-2">
+                <code
+                  className="glim-num min-w-0 flex-1 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-xs leading-relaxed text-carbon-text"
+                  dir="ltr"
+                >
+                  {phrase}
+                </code>
+                <IconBadge
+                  hue={1}
+                  icon={phraseCopied ? <IconCheck width={14} height={14} /> : <IconClipboard width={14} height={14} />}
+                  title={phraseCopied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
+                  aria-label={phraseCopied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
+                  onClick={async () => {
+                    if (await copyToClipboard(phrase)) {
+                      setPhraseCopied(true);
+                      setTimeout(() => setPhraseCopied(false), 1800);
+                    }
+                  }}
+                />
+              </div>
+              <p className="text-[11px] text-carbon-textMuted">{t('settings.access.phrase.pasteHint')}</p>
+            </div>
+          ) : revealOpen ? (
+            <div className="flex flex-col gap-2">
+              <p className="text-[11px] text-carbon-textMuted">{t('settings.access.phrase.revealWhy')}</p>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <div className="min-w-0 flex-1">
+                  <PasswordInput
+                    value={revealPw}
+                    onChange={setRevealPw}
+                    autoComplete="current-password"
+                    showLabel={t('common.showPassword')}
+                    hideLabel={t('common.hidePassword')}
+                  />
+                </div>
+                <Button hue={1} disabled={phraseBusy} onClick={() => void onReveal()}>
+                  {t('settings.access.phrase.revealConfirm')}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                kind="secondary"
+                hue={1}
+                onClick={() => {
+                  setPhraseErr('');
+                  // With no password there is nothing to re-enter, so this
+                  // goes straight to the answer instead of showing an empty
+                  // field somebody has to press past.
+                  if (conn.passwordSet) setRevealOpen(true);
+                  else void onReveal();
+                }}
+              >
+                {t('settings.access.phrase.showAgain')}
+              </Button>
+              <Button kind="ghost" disabled={phraseBusy} onClick={() => void onLeave()}>
+                {t('settings.access.phrase.leave')}
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {phraseErr && <p className="text-sm text-statusFail">{phraseErr}</p>}
+
+      {/* Tailscale, below the phrase and clearly its own thing: it answers
+          a different question (a public address a browser can open) rather
+          than being an alternative to the phrase above. */}
+      <div className="flex flex-col gap-4 border-t border-carbon-border/40 pt-4">
+      <SectionTitle hue={2} hint={t('settings.access.tsnet.body')}>
         {t('settings.access.tsnet.title')}
       </SectionTitle>
 
@@ -1074,6 +1308,7 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
           {peerErr && <p className="text-sm text-statusFail">{peerErr}</p>}
         </div>
       )}
+      </div>
 
       {/* Pairing and relay, folded away: the way to connect two instances
           with no third party at all, for someone who specifically wants

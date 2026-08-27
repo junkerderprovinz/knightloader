@@ -85,7 +85,7 @@ func TestRelayConfigRoundTripsWithoutLeakingTheKey(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
 
-	const secret = "s3cret-relay-key-abc123"
+	const secret = "s3cret-relay-key-abc123-0123456789"
 	code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"https://relay.example.com/","key":"`+secret+`"}`)
 	if code != http.StatusOK {
 		t.Fatalf("PUT /api/relay/config answered %d", code)
@@ -131,7 +131,7 @@ func TestRelayConfigWithoutAKeyLeavesTheStoredOne(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
 
-	if code, _ := putRelayConfig(t, srv.URL, `{"relayUrl":"https://relay.example.com","key":"keep-me-relay-test-key"}`); code != http.StatusOK {
+	if code, _ := putRelayConfig(t, srv.URL, `{"relayUrl":"https://relay.example.com","key":"keep-me-relay-test-key-0123456789"}`); code != http.StatusOK {
 		t.Fatalf("first PUT answered %d", code)
 	}
 	code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"https://relay2.example.com"}`)
@@ -144,7 +144,7 @@ func TestRelayConfigWithoutAKeyLeavesTheStoredOne(t *testing.T) {
 	if !put.KeySet {
 		t.Error("keySet = false after a PUT that did not mention the key; the stored key was cleared")
 	}
-	if stored, _ := a.Accounts.Get(relay.AccountService); stored != "keep-me-relay-test-key" {
+	if stored, _ := a.Accounts.Get(relay.AccountService); stored != "keep-me-relay-test-key-0123456789" {
 		t.Errorf("stored key = %q, want it untouched by a PUT that did not name it", stored)
 	}
 }
@@ -205,7 +205,7 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 	srv, a := testServer(t)
 	defer srv.Close()
 
-	const key = "end-to-end-relay-test-key"
+	const key = "end-to-end-relay-test-key-0123456789"
 	if code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"`+relaySrv.URL+`","key":"`+key+`"}`); code != http.StatusOK || !put.KeySet {
 		t.Fatalf("PUT /api/relay/config = %d %+v", code, put)
 	}
@@ -515,11 +515,11 @@ func TestAServedRelayAdmitsOnlyTheKeyTheInstanceStores(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
 
-	if code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"","key":"the-key-this-instance-serves","serve":true}`); code != http.StatusOK || !put.Serve {
+	if code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"","key":"the-key-this-instance-serves-0123456789","serve":true}`); code != http.StatusOK || !put.Serve {
 		t.Fatalf("PUT /api/relay/config = %d %+v", code, put)
 	}
 
-	stranger := fixedSibling(t, srv.URL, "some-other-relay-key-entirely", "stranger-1")
+	stranger := fixedSibling(t, srv.URL, "some-other-relay-key-entirely-0123456789", "stranger-1")
 
 	// Long enough that a connection which was going to succeed has, and that
 	// the client has had time for a reconnect attempt or two after being
