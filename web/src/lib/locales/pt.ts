@@ -237,6 +237,12 @@ export const pt: Dict = {
   'settings.motion.off': 'Desativado',
   'settings.motion.hint': 'Desativado desliga toda a animação não essencial; Subtil mantém as entradas breves; Completo é a experiência mais rica.',
   'settings.motion.title': 'Movimento',
+  'settings.navLabels.title': 'Rótulos de navegação',
+  'settings.navLabels.hint': 'Quanto a barra lateral e a coluna de definições desenham de cada entrada. Ao passar o ponteiro, o bloco mantém o tamanho e o nome aparece por baixo.',
+  'settings.navLabels.both': 'Ícone e texto',
+  'settings.navLabels.glyph': 'Só ícone',
+  'settings.navLabels.text': 'Só texto',
+  'settings.navLabels.hover': 'Ao passar o ponteiro',
   'queue.limitUnit': 'Unidade',
 
   'common.show': 'Mostrar',

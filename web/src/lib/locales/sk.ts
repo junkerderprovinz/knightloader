@@ -245,6 +245,12 @@ export const sk: Dict = {
   'settings.motion.off': 'Vypnuté',
   'settings.motion.hint': 'Vypnuté vypne každú nepodstatnú animáciu; Jemné udržiava vstupy krátke; Plné je najbohatší zážitok.',
   'settings.motion.title': 'Pohyb',
+  'settings.navLabels.title': 'Popisy navigácie',
+  'settings.navLabels.hint': 'Koľko z každej položky vykreslí bočný panel a stĺpec nastavení. Pri prejdení myšou si dlaždica ponechá veľkosť a názov sa ukáže pod ukazovateľom.',
+  'settings.navLabels.both': 'Ikona a text',
+  'settings.navLabels.glyph': 'Len ikona',
+  'settings.navLabels.text': 'Len text',
+  'settings.navLabels.hover': 'Pri prejdení myšou',
   'queue.limitUnit': 'Jednotka',
 
   'common.show': 'Zobraziť',

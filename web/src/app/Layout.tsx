@@ -226,13 +226,24 @@ export function Layout() {
   // page reverting because somebody looked at another tab of it is the exact
   // failure the sub-page split exists to avoid.
   const section = location.pathname.split('/')[1] ?? '';
+  // Settings owns its own frame, and is the only page that does.
+  //
+  // Its tab rail is a full-height column flush against the sidebar (jdp,
+  // 2026-08-27: "Alle Einstellungstabs werden rechts von der Sidebar vertikal
+  // in kacheln angezeigt... von ganz oben bis ganz nach unten"), and neither
+  // half of that is reachable from inside the padded, page-scrolling wrapper
+  // below: the padding is what stops it being flush, and a wrapper that grows
+  // with its content is what stops `h-full` meaning the window. So this one
+  // section gets the frame without them and scrolls its own content column
+  // instead - see pages/Settings.tsx, which is where that column lives.
+  const ownsFrame = section === 'settings';
   return (
     // The provider wraps the bar AND the outlet, because the whole point is that
     // the two agree on which instance is being looked at.
     <InstanceProvider>
       <div className="flex h-screen overflow-hidden bg-carbon-background">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto min-w-0">
+        <main className={`flex-1 min-w-0 ${ownsFrame ? 'overflow-hidden' : 'overflow-y-auto'}`}>
           <ShellBar visible={section === 'downloads'} />
           {/* flex flex-col min-h-full: a no-op for every page that just
               renders its own natural content height - a flex container's
@@ -249,7 +260,14 @@ export function Layout() {
               align-items:stretch under h-screen, this file's own outer div),
               so min-h-full itself resolves correctly; flex-grow from there
               down is what makes a child reliably fill it. */}
-          <div key={section} className="glim-page-enter flex w-full min-h-full flex-col p-6 md:p-8">
+          <div
+            key={section}
+            className={
+              ownsFrame
+                ? 'glim-page-enter flex h-full w-full min-h-0 flex-col'
+                : 'glim-page-enter flex w-full min-h-full flex-col p-6 md:p-8'
+            }
+          >
             <Outlet />
           </div>
         </main>

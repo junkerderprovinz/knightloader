@@ -245,6 +245,12 @@ export const fa: Dict = {
   'settings.motion.off': 'خاموش',
   'settings.motion.hint': 'خاموش هر انیمیشن غیرضروری را خاموش می‌کند؛ ملایم ورودها را کوتاه نگه می‌دارد؛ کامل غنی‌ترین تجربه است.',
   'settings.motion.title': 'حرکت',
+  'settings.navLabels.title': 'برچسب‌های ناوبری',
+  'settings.navLabels.hint': 'نوار کناری و ستون تنظیمات چه مقدار از هر مورد را نمایش دهند. با بردن نشانگر، کاشی هم‌اندازه می‌ماند و نام زیر نشانگر نمایان می‌شود.',
+  'settings.navLabels.both': 'نماد و نوشته',
+  'settings.navLabels.glyph': 'فقط نماد',
+  'settings.navLabels.text': 'فقط نوشته',
+  'settings.navLabels.hover': 'با بردن نشانگر',
   'queue.limitUnit': 'واحد',
 
   'common.show': 'نمایش',

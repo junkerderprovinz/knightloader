@@ -149,12 +149,17 @@ export function InstanceCard({
     // which is what keeps a row of cards the same height whatever their
     // contents.
     <Card padding="none" hover={!!onOpen} className="group relative flex h-full items-stretch overflow-hidden">
-      {/* The mark, larger again (jdp, 2026-08-27: "Das logo in den
-          instanzencard bitte größer") but still on the card's own surface
-          with no plate behind it, which was the other half of that earlier
-          correction. */}
+      {/* The mark, larger again and then larger once more (jdp, 2026-08-27,
+          twice: "Das logo in den instanzencard bitte größer") but still on the
+          card's own surface with no plate behind it, which was the other half
+          of that earlier correction.
+          `max-h-full` rather than a bare height: the right-hand column decides
+          how tall the card is, and a mark taller than that column would start
+          setting the height itself - which is the one thing the split here
+          exists to prevent. It grows to 7rem where the card allows it and
+          stops at the card's own edge where it does not. */}
       <div className="flex shrink-0 items-center self-stretch pl-4">
-        <img src={logoUrl} alt="" aria-hidden className="h-20 w-auto" />
+        <img src={logoUrl} alt="" aria-hidden className="h-28 max-h-full w-auto" />
       </div>
 
       {/* The state as a badge in the corner, the same shape the connection

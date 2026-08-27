@@ -245,6 +245,12 @@ export const et: Dict = {
   'settings.motion.off': 'Väljas',
   'settings.motion.hint': 'Väljas lülitab välja iga mittevajaliku animatsiooni; Peen hoiab sisenemised lühikesed; Täielik on kõige rikkalikum kogemus.',
   'settings.motion.title': 'Liikumine',
+  'settings.navLabels.title': 'Navigeerimise sildid',
+  'settings.navLabels.hint': 'Kui palju külgriba ja seadete veerg igast kirjest joonistavad. Hiirega peale liikudes jääb plaat samasuguseks ja nimi ilmub kursori alla.',
+  'settings.navLabels.both': 'Ikoon ja tekst',
+  'settings.navLabels.glyph': 'Ainult ikoon',
+  'settings.navLabels.text': 'Ainult tekst',
+  'settings.navLabels.hover': 'Hiirega peal',
   'queue.limitUnit': 'Ühik',
 
   'common.show': 'Näita',

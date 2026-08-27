@@ -245,6 +245,12 @@ export const de: Dict = {
   'settings.motion.off': 'Aus',
   'settings.motion.hint': 'Aus schaltet jede nicht notwendige Animation ab; Dezent hält Einblendungen kurz; Voll ist die reichhaltigste Erfahrung.',
   'settings.motion.title': 'Bewegung',
+  'settings.navLabels.title': 'Beschriftung',
+  'settings.navLabels.hint': 'Wie viel die Seitenleiste und die Einstellungsspalte von jedem Eintrag zeichnen. Bei Mouseover bleibt die Kachel gleich groß und der Name erscheint unter dem Zeiger.',
+  'settings.navLabels.both': 'Symbol und Text',
+  'settings.navLabels.glyph': 'Nur Symbol',
+  'settings.navLabels.text': 'Nur Text',
+  'settings.navLabels.hover': 'Bei Mouseover',
   'queue.limitUnit': 'Einheit',
 
   'common.show': 'Anzeigen',

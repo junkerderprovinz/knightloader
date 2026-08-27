@@ -173,6 +173,18 @@ type Settings struct {
 	// family big enough to be worth that.
 	HideInstancesFromSidebar bool `json:"hideInstancesFromSidebar"`
 
+	// NavLabels is how much of a navigation entry is drawn - "both",
+	// "glyph", "text" or "hover". It governs the sidebar AND the settings
+	// rail together, from one control, because they are one idea wearing
+	// two shapes and a person who wants glyphs wants glyphs.
+	//
+	// Stored with the instance rather than in the browser, alongside Shape
+	// and Accent above and for the same reason: this is what the interface
+	// LOOKS like, and the look follows the instance from one machine to the
+	// next. See settings_appearance.go for the four values and for what
+	// "hover" actually does, which is not what the word suggests.
+	NavLabels string `json:"navLabels"`
+
 	// AutoUpdateCheck asks the desktop build to call update.Check once at
 	// startup (and the Allgemein tab to do the same on load) instead of only
 	// on an explicit click of "Check for updates" - desktop only in
@@ -377,6 +389,7 @@ func Defaults() Settings {
 		OnDupes:   string(confirm.DefaultPolicy),
 		OnOffline: string(confirm.DefaultPolicy),
 		Shape:     ShapeRound,
+		NavLabels: NavLabelsBoth,
 		// The three archive defaults all say "change nothing you did not ask
 		// for": keep the archive, unpack beside it, and write into the folder
 		// that is already there rather than starting a second one. The

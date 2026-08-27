@@ -247,6 +247,12 @@ export const he: Dict = {
   'settings.motion.off': 'כבוי',
   'settings.motion.hint': 'כבוי מכבה כל אנימציה לא חיונית; עדין שומר על כניסות קצרות; מלא הוא החוויה העשירה ביותר.',
   'settings.motion.title': 'תנועה',
+  'settings.navLabels.title': 'תוויות ניווט',
+  'settings.navLabels.hint': 'כמה מכל פריט מציגים סרגל הצד ועמודת ההגדרות. בריחוף העכבר האריח נשאר באותו גודל והשם מופיע תחת הסמן.',
+  'settings.navLabels.both': 'סמל וטקסט',
+  'settings.navLabels.glyph': 'סמל בלבד',
+  'settings.navLabels.text': 'טקסט בלבד',
+  'settings.navLabels.hover': 'בריחוף העכבר',
   'queue.limitUnit': 'יחידה',
 
   'common.show': 'הצג',

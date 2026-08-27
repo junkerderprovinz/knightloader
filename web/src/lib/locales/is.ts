@@ -245,6 +245,12 @@ export const is: Dict = {
   'settings.motion.off': 'Slökkt',
   'settings.motion.hint': 'Slökkt slekkur á allri ónauðsynlegri hreyfingu; Fíngert heldur innkomum stuttum; Fullt er ríkulegasta upplifunin.',
   'settings.motion.title': 'Hreyfing',
+  'settings.navLabels.title': 'Merkingar í yfirliti',
+  'settings.navLabels.hint': 'Hversu mikið hliðarstikan og stillingadálkurinn teikna af hverri færslu. Þegar bendillinn fer yfir helst reiturinn jafnstór og heitið birtist undir honum.',
+  'settings.navLabels.both': 'Tákn og texti',
+  'settings.navLabels.glyph': 'Aðeins tákn',
+  'settings.navLabels.text': 'Aðeins texti',
+  'settings.navLabels.hover': 'Þegar bendill fer yfir',
   'queue.limitUnit': 'Eining',
 
   'common.show': 'Sýna',

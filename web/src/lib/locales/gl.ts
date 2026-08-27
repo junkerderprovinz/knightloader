@@ -245,6 +245,12 @@ export const gl: Dict = {
   'settings.motion.off': 'Desactivado',
   'settings.motion.hint': 'Desactivado apaga toda animación non esencial; Sutil mantén as entradas breves; Completo é a experiencia máis rica.',
   'settings.motion.title': 'Movemento',
+  'settings.navLabels.title': 'Etiquetas de navegación',
+  'settings.navLabels.hint': 'Canto debuxan de cada entrada a barra lateral e a columna de axustes. Ao pasar o punteiro, a peza mantén o tamaño e o nome aparece debaixo.',
+  'settings.navLabels.both': 'Icona e texto',
+  'settings.navLabels.glyph': 'Só icona',
+  'settings.navLabels.text': 'Só texto',
+  'settings.navLabels.hover': 'Ao pasar o punteiro',
   'queue.limitUnit': 'Unidade',
 
   'common.show': 'Amosar',

@@ -245,6 +245,12 @@ export const vi: Dict = {
   'settings.motion.off': 'Tắt',
   'settings.motion.hint': 'Tắt sẽ tắt mọi hiệu ứng không cần thiết; Nhẹ nhàng giữ các hiệu ứng xuất hiện ngắn gọn; Đầy đủ là trải nghiệm phong phú nhất.',
   'settings.motion.title': 'Chuyển động',
+  'settings.navLabels.title': 'Nhãn điều hướng',
+  'settings.navLabels.hint': 'Thanh bên và cột cài đặt vẽ bao nhiêu phần của mỗi mục. Khi rê chuột, ô vẫn giữ nguyên kích thước và tên hiện ra dưới con trỏ.',
+  'settings.navLabels.both': 'Biểu tượng và chữ',
+  'settings.navLabels.glyph': 'Chỉ biểu tượng',
+  'settings.navLabels.text': 'Chỉ chữ',
+  'settings.navLabels.hover': 'Khi rê chuột',
   'queue.limitUnit': 'Đơn vị',
 
   'common.show': 'Hiện',

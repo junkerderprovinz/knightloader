@@ -245,6 +245,12 @@ export const da: Dict = {
   'settings.motion.off': 'Fra',
   'settings.motion.hint': 'Fra slukker for al ikke-væsentlig animation; Diskret holder indtog korte; Fuld er den rigeste oplevelse.',
   'settings.motion.title': 'Bevægelse',
+  'settings.navLabels.title': 'Navigationsetiketter',
+  'settings.navLabels.hint': 'Hvor meget sidepanelet og indstillingskolonnen tegner af hver post. Ved musover beholder feltet sin størrelse, og navnet vises under markøren.',
+  'settings.navLabels.both': 'Ikon og tekst',
+  'settings.navLabels.glyph': 'Kun ikon',
+  'settings.navLabels.text': 'Kun tekst',
+  'settings.navLabels.hover': 'Ved musover',
   'queue.limitUnit': 'Enhed',
 
   'common.show': 'Vis',

@@ -247,6 +247,12 @@ export const ar: Dict = {
   'settings.motion.off': 'إيقاف',
   'settings.motion.hint': 'إيقاف يعطّل كل حركة غير ضرورية؛ خفيف يجعل الظهور موجزاً؛ كامل هو التجربة الأغنى.',
   'settings.motion.title': 'الحركة',
+  'settings.navLabels.title': 'تسمية التنقل',
+  'settings.navLabels.hint': 'مقدار ما يرسمه الشريط الجانبي وعمود الإعدادات من كل عنصر. عند التمرير تبقى البطاقة بالحجم نفسه ويظهر الاسم تحت المؤشر.',
+  'settings.navLabels.both': 'أيقونة ونص',
+  'settings.navLabels.glyph': 'أيقونة فقط',
+  'settings.navLabels.text': 'نص فقط',
+  'settings.navLabels.hover': 'عند التمرير',
   'queue.limitUnit': 'الوحدة',
 
   'common.show': 'إظهار',

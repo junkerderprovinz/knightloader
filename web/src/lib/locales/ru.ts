@@ -237,6 +237,12 @@ export const ru: Dict = {
   'settings.motion.off': 'Выкл.',
   'settings.motion.hint': 'Выкл. отключает любую несущественную анимацию; Сдержанно делает появления короткими; Полно — самый насыщенный вариант.',
   'settings.motion.title': 'Движение',
+  'settings.navLabels.title': 'Подписи навигации',
+  'settings.navLabels.hint': 'Сколько от каждого пункта рисуют боковая панель и столбец настроек. При наведении плитка сохраняет размер, а название появляется под указателем.',
+  'settings.navLabels.both': 'Значок и текст',
+  'settings.navLabels.glyph': 'Только значок',
+  'settings.navLabels.text': 'Только текст',
+  'settings.navLabels.hover': 'При наведении',
   'queue.limitUnit': 'Единица',
 
   'common.show': 'Показать',

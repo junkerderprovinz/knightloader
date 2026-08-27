@@ -245,6 +245,12 @@ export const hu: Dict = {
   'settings.motion.off': 'Ki',
   'settings.motion.hint': 'A Ki minden nem lényeges animációt kikapcsol; a Visszafogott rövidre fogja a megjelenéseket; a Teljes a leggazdagabb élmény.',
   'settings.motion.title': 'Mozgás',
+  'settings.navLabels.title': 'Navigációs feliratok',
+  'settings.navLabels.hint': 'Mennyit rajzol ki az oldalsáv és a beállítások oszlopa minden bejegyzésből. Rámutatáskor a csempe mérete nem változik, a név a mutató alatt jelenik meg.',
+  'settings.navLabels.both': 'Ikon és szöveg',
+  'settings.navLabels.glyph': 'Csak ikon',
+  'settings.navLabels.text': 'Csak szöveg',
+  'settings.navLabels.hover': 'Rámutatáskor',
   'queue.limitUnit': 'Mértékegység',
 
   'common.show': 'Mutasd',

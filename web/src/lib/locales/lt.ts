@@ -245,6 +245,12 @@ export const lt: Dict = {
   'settings.motion.off': 'Išjungta',
   'settings.motion.hint': 'Išjungta išjungia kiekvieną nebūtiną animaciją; Subtilu palieka trumpus atsiradimus; Pilna yra turtingiausia patirtis.',
   'settings.motion.title': 'Judesys',
+  'settings.navLabels.title': 'Naršymo užrašai',
+  'settings.navLabels.hint': 'Kiek iš kiekvieno įrašo piešia šoninė juosta ir nustatymų stulpelis. Užvedus pelę plytelė lieka tokio pat dydžio, o pavadinimas pasirodo po žymekliu.',
+  'settings.navLabels.both': 'Piktograma ir tekstas',
+  'settings.navLabels.glyph': 'Tik piktograma',
+  'settings.navLabels.text': 'Tik tekstas',
+  'settings.navLabels.hover': 'Užvedus pelę',
   'queue.limitUnit': 'Vienetas',
 
   'common.show': 'Rodyti',

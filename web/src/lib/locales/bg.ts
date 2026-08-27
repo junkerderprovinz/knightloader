@@ -245,6 +245,12 @@ export const bg: Dict = {
   'settings.motion.off': 'Изкл.',
   'settings.motion.hint': 'Изкл. изключва всяка ненужна анимация; Дискретно прави появяванията кратки; Пълно е най-богатото изживяване.',
   'settings.motion.title': 'Движение',
+  'settings.navLabels.title': 'Надписи в навигацията',
+  'settings.navLabels.hint': 'Колко от всеки елемент показват страничната лента и колоната с настройки. При посочване плочката запазва размера си и името се показва под курсора.',
+  'settings.navLabels.both': 'Икона и текст',
+  'settings.navLabels.glyph': 'Само икона',
+  'settings.navLabels.text': 'Само текст',
+  'settings.navLabels.hover': 'При посочване',
   'queue.limitUnit': 'Единица',
 
   'common.show': 'Покажи',

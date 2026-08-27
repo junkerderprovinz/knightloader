@@ -245,6 +245,12 @@ export const el: Dict = {
   'settings.motion.off': 'Ανενεργό',
   'settings.motion.hint': 'Το Ανενεργό απενεργοποιεί κάθε μη απαραίτητη κίνηση· το Διακριτικό κρατά τις εμφανίσεις σύντομες· το Πλήρες είναι η πλουσιότερη εμπειρία.',
   'settings.motion.title': 'Κίνηση',
+  'settings.navLabels.title': 'Ετικέτες πλοήγησης',
+  'settings.navLabels.hint': 'Πόσο από κάθε καταχώριση σχεδιάζουν η πλαϊνή μπάρα και η στήλη ρυθμίσεων. Στο πέρασμα του δείκτη το πλακίδιο κρατά το μέγεθός του και το όνομα εμφανίζεται από κάτω.',
+  'settings.navLabels.both': 'Εικονίδιο και κείμενο',
+  'settings.navLabels.glyph': 'Μόνο εικονίδιο',
+  'settings.navLabels.text': 'Μόνο κείμενο',
+  'settings.navLabels.hover': 'Στο πέρασμα του δείκτη',
   'queue.limitUnit': 'Μονάδα',
 
   'common.show': 'Εμφάνιση',

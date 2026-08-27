@@ -245,6 +245,12 @@ export const sl: Dict = {
   'settings.motion.off': 'Izklopljeno',
   'settings.motion.hint': 'Izklopljeno izklopi vsako nebistveno animacijo; Subtilno ohranja vstope kratke; Polno je najbogatejša izkušnja.',
   'settings.motion.title': 'Gibanje',
+  'settings.navLabels.title': 'Napisi krmarjenja',
+  'settings.navLabels.hint': 'Koliko od vsakega vnosa izrišeta stranska vrstica in stolpec z nastavitvami. Ob prehodu s kazalcem ploščica ohrani velikost, ime pa se pokaže pod kazalcem.',
+  'settings.navLabels.both': 'Ikona in besedilo',
+  'settings.navLabels.glyph': 'Samo ikona',
+  'settings.navLabels.text': 'Samo besedilo',
+  'settings.navLabels.hover': 'Ob prehodu s kazalcem',
   'queue.limitUnit': 'Enota',
 
   'common.show': 'Pokaži',

@@ -245,6 +245,12 @@ export const ca: Dict = {
   'settings.motion.off': 'Desactivat',
   'settings.motion.hint': "Desactivat apaga tota animació no essencial; Subtil manté les entrades breus; Complet és l'experiència més rica.",
   'settings.motion.title': 'Moviment',
+  'settings.navLabels.title': 'Etiquetes de navegació',
+  'settings.navLabels.hint': 'Quant dibuixen de cada entrada la barra lateral i la columna de configuració. En passar-hi el punter, la peça manté la mida i el nom apareix sota el punter.',
+  'settings.navLabels.both': 'Icona i text',
+  'settings.navLabels.glyph': 'Només icona',
+  'settings.navLabels.text': 'Només text',
+  'settings.navLabels.hover': 'En passar-hi el punter',
   'queue.limitUnit': 'Unitat',
 
   'common.show': 'Mostra',

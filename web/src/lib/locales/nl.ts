@@ -237,6 +237,12 @@ export const nl: Dict = {
   'settings.motion.off': 'Uit',
   'settings.motion.hint': 'Uit schakelt elke niet-essentiële animatie uit; Subtiel houdt intredes kort; Volledig is de rijkste ervaring.',
   'settings.motion.title': 'Beweging',
+  'settings.navLabels.title': 'Navigatielabels',
+  'settings.navLabels.hint': 'Hoeveel de zijbalk en de instellingenkolom van elk item tekenen. Bij aanwijzen behoudt de tegel haar formaat en verschijnt de naam onder de aanwijzer.',
+  'settings.navLabels.both': 'Pictogram en tekst',
+  'settings.navLabels.glyph': 'Alleen pictogram',
+  'settings.navLabels.text': 'Alleen tekst',
+  'settings.navLabels.hover': 'Bij aanwijzen',
   'queue.limitUnit': 'Eenheid',
 
   'common.show': 'Tonen',

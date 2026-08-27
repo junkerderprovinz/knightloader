@@ -237,6 +237,12 @@ export const fr: Dict = {
   'settings.motion.off': 'Désactivé',
   'settings.motion.hint': "Désactivé coupe toute animation non essentielle ; Discret garde les entrées brèves ; Complet offre l'expérience la plus riche.",
   'settings.motion.title': 'Mouvement',
+  'settings.navLabels.title': 'Libellés de navigation',
+  'settings.navLabels.hint': 'Ce que la barre latérale et la colonne des réglages affichent de chaque entrée. Au survol, la tuile garde sa taille et le nom apparaît sous le pointeur.',
+  'settings.navLabels.both': 'Icône et texte',
+  'settings.navLabels.glyph': 'Icône seule',
+  'settings.navLabels.text': 'Texte seul',
+  'settings.navLabels.hover': 'Au survol',
   'queue.limitUnit': 'Unité',
 
   'common.show': 'Afficher',

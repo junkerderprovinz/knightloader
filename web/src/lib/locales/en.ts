@@ -262,6 +262,12 @@ export const en = {
   'settings.motion.off': 'Off',
   'settings.motion.hint': 'Off turns off every non-essential animation; Subtle keeps entrances brief; Full is the richest experience.',
   'settings.motion.title': 'Motion',
+  'settings.navLabels.title': 'Navigation labels',
+  'settings.navLabels.hint': 'How much of each entry the sidebar and the settings column draw. On hover the tile keeps its size and the name appears under the pointer.',
+  'settings.navLabels.both': 'Icon and text',
+  'settings.navLabels.glyph': 'Icon only',
+  'settings.navLabels.text': 'Text only',
+  'settings.navLabels.hover': 'On hover',
   'queue.limitUnit': 'Unit',
 
   'common.show': 'Show',
