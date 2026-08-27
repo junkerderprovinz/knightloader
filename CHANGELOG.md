@@ -93,6 +93,22 @@ see Versioning above.
   needs the instance password re-entered, because a session opened hours ago
   is not evidence anybody is still sitting there. Run the relay yourself and
   the same phrase works against it.
+- **The card explains itself before it asks anything.** Twelve words is an
+  odd enough thing to be handed that "what am I looking at" comes before
+  "what do I press", so connecting opens with three numbered steps and a
+  paragraph on what actually happens when you press them. The button names
+  inside the steps come from the buttons' own translation keys rather than
+  being written into the sentence, so a step cannot end up quoting a label
+  that says something else in that language.
+- **Tailscale is gone.** It had been in this card since before the relay
+  existed, when it was the only way in from outside, and merging the cards
+  moved it rather than removing it - so the page whose whole point is not
+  needing a third-party login kept offering one. Nobody ever had to use it;
+  the phrase never touched it. Its one unique job was handing out a public
+  address a stranger's browser could open, and the answer to that is now your
+  own domain in front of a reverse proxy. Self-hosting the relay moves to
+  Settings → Advanced (`relayUrl`, `relayServe`), which lists every setting
+  this instance has.
 - **The relay gets its own certificate.** Set `KL_RELAY_DOMAIN` and it
   terminates TLS itself over TLS-ALPN-01 - no reverse proxy, no certbot, no
   renewal cron, and no port 80, because the challenge completes inside a

@@ -43,7 +43,7 @@ still works.
 
 ## Across networks: the connection phrase
 
-**Settings → Access → Connect your instances → Create a phrase.** Twelve words
+**Settings → Access → Connect instances and remote access → Create a phrase.** Twelve words
 come back. Type them into every other KnightLoader you run, and they find each
 other - across networks, behind NAT, with no port forward, no domain, no
 account and nothing to log into.
@@ -72,8 +72,13 @@ them; it has no account list, no registration step and no database. So whoever
 runs it - us, at `relay.knightloader.app`, or you - cannot reconstruct
 anybody's words.
 
-To run your own, set the relay URL under **Connect without Tailscale** and the
-same phrase works against it. Both ends must point at the same relay.
+To run your own, put its address in `relayUrl` under **Settings → Advanced**
+on every instance in the group; the same phrase then works against it, because
+the phrase carries the secret and not the address. That page lists every
+setting this instance has, so the self-hosting knobs live there rather than on
+the card - the card is for the twelve words, which is what almost everybody
+needs. `relayServe` is on the same page, for the case where one instance IS
+the relay.
 
 **Showing the phrase again** needs the instance password re-entered, when one
 is set. A live session is not enough: it may have been opened hours ago on a
@@ -112,11 +117,11 @@ port.
 
 ### Or let one instance be the relay
 
-**Settings → Access → Remote access → Reaching instances outside this network →
-Run the relay on this instance.** The relay then answers under `/relay/connect`
-on the address that instance already uses, behind the same reverse proxy and the
-same certificate, and the other instances put that address in their own relay
-field. No second container, no second port, no second certificate.
+**Settings → Advanced → `relayServe`.** The relay then answers under
+`/relay/connect` on the address that instance already uses, behind the same
+reverse proxy and the same certificate, and the other instances put that
+address in their own `relayUrl`. No second container, no second port, no
+second certificate.
 
 It admits only the relay key that instance stores, so switching it on does not
 turn a published address into a meeting place for whoever finds it. With the
