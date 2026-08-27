@@ -41,7 +41,7 @@ Some peers have no address at all: a desktop build opens no API listener, and
 a relay-only peer is reachable purely through the relay. Neither can be opened
 in a browser tab.
 
-They are still usable here. **Sync paired instances** keeps such a peer and
+They are still usable here. **Sync known instances** keeps such a peer and
 records which instance told the extension about it; sending to it opens
 `<that instance>/quickadd?to=<peer>`, and that instance forwards over whichever
 transport it already has. So the extension needs no relay client, no second
