@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import {
   Button,
   Card,
   Field,
   IconBadge,
+  IconTile,
   InfoBubble,
+  LabelBadge,
   Modal,
   PasswordInput,
   SectionTitle,
@@ -42,7 +44,6 @@ import {
   IconPlus,
   IconSignOut,
   IconTrash,
-  IconWarning,
 } from '../../lib/icons';
 import { useToast } from '../../lib/toast';
 import { useDraft, useFeatures } from './context';
@@ -524,7 +525,7 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
   if (!conn) return null;
 
   return (
-    <Card className="flex flex-col gap-5">
+    <Card className="flex flex-col gap-4">
       {/* Two labelled bubbles in the title's own right slot, stacked (jdp,
           2026-08-27: "Der button Soll heißen 'Wie funktioniert das?' und
           rechts oben in der card sein. darunter soll noch ein button sein als
@@ -541,19 +542,28 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
         hue={1}
         hint={t('settings.access.phrase.body')}
         right={
-          <div className="flex flex-col items-end gap-1.5">
-            <InfoPill
+          // Side by side and pulled up level with the notch (jdp,
+          // 2026-08-27: "zwischen cardtitelbadge und anleitung ist sehr viel
+          // leerraum"). Three things stacked into that gap: the badges sat
+          // over each other, the title row's whole height came from them
+          // (SectionTitle's own title is absolutely positioned and
+          // contributes none), and the card's gap sat underneath all of it.
+          // Side by side, lifted, and a smaller card gap take it from 61px to
+          // about a third of that.
+          <div className="-my-2 flex items-center gap-2">
+            <LabelBadge
               label={t('settings.access.phrase.howButton')}
-              tip={t('settings.access.phrase.howWhat')}
+              tip={paragraphs(t('settings.access.phrase.howWhat'))}
+              hue={2}
             />
-            <InfoPill
+            <LabelBadge
               label={
                 conn.connected
                   ? t('settings.access.phrase.statusConnected')
                   : t('settings.access.phrase.statusDisconnected')
               }
               tip={t('settings.access.phrase.statusHint')}
-              dot={conn.connected ? 'bg-statusOkSolid' : 'bg-carbon-textMuted'}
+              tone={conn.connected ? 'ok' : 'fail'}
             />
           </div>
         }
@@ -587,25 +597,20 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
           same act - start a group, or join one somebody already started. */}
       {conn && !conn.active && (
         <div className="flex flex-col gap-3">
-          {/* jdp's call (2026-08-27): warn loudly, do not block. The
-              sentence has to carry the part that is not obvious - that this
-              phrase reaches every instance in the group, so an unprotected
-              instance puts the others at risk too, not only itself. */}
-          {!conn.passwordSet && (
-            <div className="flex items-start gap-3 rounded-[var(--radius-card)] bg-statusFailBg p-4">
-              <IconWarning width={20} height={20} className="mt-0.5 shrink-0 text-statusFail" />
-              <p className="min-w-0 flex-1 text-sm font-medium text-statusFail">
-                {t('settings.access.phrase.noPasswordWarning')}
-              </p>
-            </div>
-          )}
-          <div className="flex flex-wrap items-center gap-2">
+          {/* The warning sits BESIDE the buttons now (jdp, 2026-08-27: "Der
+              Passwort-hinweistext rechts neben den ... badge"), not as a
+              filled alert block above them. jdp's earlier call still holds -
+              warn loudly, do not block - and the sentence still carries the
+              part that is not obvious: this phrase reaches every instance in
+              the group, so an unprotected instance puts the others at risk
+              too, not only itself. What changed is that a full-width red
+              slab for one sentence outweighed the two controls it was about. */}
+          <div className="flex flex-wrap items-center gap-3">
             <Button hue={1} disabled={phraseBusy} onClick={() => void onActivate()}>
               {t('settings.access.phrase.activate')}
             </Button>
             <Button
-              kind="secondary"
-              hue={1}
+              hue={3}
               icon={<IconClipboard width={14} height={14} />}
               onClick={() => {
                 setJoinOpen(!joinOpen);
@@ -614,6 +619,11 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
             >
               {t('settings.access.phrase.joinButton')}
             </Button>
+            {!conn.passwordSet && (
+              <p className="min-w-[12rem] flex-1 text-[11px] leading-relaxed text-statusWarn">
+                {t('settings.access.phrase.noPasswordWarning')}
+              </p>
+            )}
           </div>
           {joinOpen && (
             <div className="flex flex-col gap-2 sm:flex-row">
@@ -698,41 +708,41 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
               </div>
             </div>
           ) : (
-            <div className="flex flex-col gap-3">
-              {/* Warn, do not block (jdp, 2026-08-27: "zumindest den Hinweis
-                  setzen, dass man aus sicherheitsgründen ein passwort setzen
-                  soll") - the same call already made for creating a phrase,
-                  applied to the other door into the same secret. Showing the
-                  phrase on an unprotected instance means anyone who can reach
-                  this page can take the whole GROUP, not just this machine,
-                  and that is worth saying at the moment somebody reaches for
-                  the button. It is not worth refusing over: an instance
-                  nothing can reach has no problem here, and this page cannot
-                  prove which case it is looking at. */}
+            // Same row shape as the not-yet-configured case above: two
+            // filled, hued controls and the warning beside them. "Gruppe
+            // verlassen" was a ghost button, invisible until hovered (jdp,
+            // 2026-08-27: "beide sollen auch im nicht ausgewähtlen zustand
+            // als badge erkennbar sein und in der farbengine sein") - a
+            // destructive action that only appears on hover is the one that
+            // most needs to be visible before the pointer arrives.
+            //
+            // Warn, do not block, on the reveal itself: showing the phrase on
+            // an unprotected instance hands over the whole GROUP, not just
+            // this machine. Not worth refusing over - an instance nothing can
+            // reach has no problem here, and this page cannot prove which
+            // case it is looking at.
+            <div className="flex flex-wrap items-center gap-3">
+              <Button
+                hue={1}
+                onClick={() => {
+                  setPhraseErr('');
+                  // With no password there is nothing to re-enter, so this
+                  // goes straight to the answer instead of showing an empty
+                  // field somebody has to press past.
+                  if (conn.passwordSet) setRevealOpen(true);
+                  else void onReveal();
+                }}
+              >
+                {t('settings.access.phrase.showAgain')}
+              </Button>
+              <Button hue={5} disabled={phraseBusy} onClick={() => void onLeave()}>
+                {t('settings.access.phrase.leave')}
+              </Button>
               {!conn.passwordSet && (
-                <p className="text-[11px] leading-relaxed text-statusWarn">
+                <p className="min-w-[12rem] flex-1 text-[11px] leading-relaxed text-statusWarn">
                   {t('settings.access.phrase.noPasswordWarning')}
                 </p>
               )}
-              <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  kind="secondary"
-                  hue={1}
-                  onClick={() => {
-                    setPhraseErr('');
-                    // With no password there is nothing to re-enter, so this
-                    // goes straight to the answer instead of showing an empty
-                    // field somebody has to press past.
-                    if (conn.passwordSet) setRevealOpen(true);
-                    else void onReveal();
-                  }}
-                >
-                  {t('settings.access.phrase.showAgain')}
-                </Button>
-                <Button kind="ghost" disabled={phraseBusy} onClick={() => void onLeave()}>
-                  {t('settings.access.phrase.leave')}
-                </Button>
-              </div>
             </div>
           )}
         </div>
@@ -745,43 +755,20 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
 }
 
 /**
- * A small labelled pill that carries an InfoBubble: the label says the short
- * thing, the bubble holds the long one.
+ * Turns blank-line-separated text into real paragraphs for a bubble.
  *
- * The bubble is a SIBLING of the label rather than wrapped around it, the same
- * arrangement BrowserTools.tsx's browser badges use and for the same reason:
- * InfoBubble is its own focusable, hoverable trigger, and nesting it inside
- * another interactive element makes one element's hover state answer for two.
- *
- * Not a <Button>: neither of these does anything when pressed, and a control
- * shaped like a button that ignores clicks is worse than a label that never
- * looked clickable. The surface is the same well the fields use, so it reads
- * as a chip rather than as an action.
+ * HTML collapses the newlines a translator wrote, so a three-paragraph
+ * explanation would otherwise arrive as one wall of text - and the phrase
+ * card's bubble holds the longest piece of prose in the app.
  */
-function InfoPill({ label, tip, dot }: { label: string; tip: string; dot?: string }) {
-  // Blank-line-separated paragraphs become real ones. HTML collapses the
-  // newlines a translator wrote, so a three-paragraph explanation would
-  // otherwise arrive as one wall of text - and this bubble holds the longest
-  // piece of prose in the app.
-  const paragraphs = tip.split('\n\n').filter((p) => p.trim() !== '');
-  const body =
-    paragraphs.length > 1 ? (
-      <span className="flex flex-col gap-2">
-        {paragraphs.map((p, i) => (
-          <span key={i}>{p}</span>
-        ))}
-      </span>
-    ) : (
-      tip
-    );
-
+function paragraphs(text: string): ReactNode {
+  const parts = text.split('\n\n').filter((p) => p.trim() !== '');
+  if (parts.length < 2) return text;
   return (
-    <span className="flex items-center gap-1.5 rounded-[var(--radius-pill)] bg-carbon-surface2 py-1 pl-2.5 pr-1.5 text-[11px] font-medium text-carbon-textSub">
-      {dot && <span aria-hidden className={`h-1.5 w-1.5 shrink-0 rounded-[var(--radius-pill)] ${dot}`} />}
-      <span className="whitespace-nowrap">{label}</span>
-      {/* label passed explicitly: with structured content as `tip`, the
-          bubble can no longer use it as its own accessible name. */}
-      <InfoBubble tip={body} label={label} />
+    <span className="flex flex-col gap-2">
+      {parts.map((p, i) => (
+        <span key={i}>{p}</span>
+      ))}
     </span>
   );
 }
@@ -838,21 +825,7 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
   return (
     <>
       <Card className="flex flex-col gap-3">
-        <SectionTitle
-          hue={5}
-          hint={cx('settings.access.tokens.intro')}
-          right={
-            <Button
-              kind="secondary"
-              hue={5}
-              className="px-2.5 text-xs"
-              icon={<IconPlus width={14} height={14} />}
-              onClick={() => setShowCreate(true)}
-            >
-              {cx('settings.access.tokens.new')}
-            </Button>
-          }
-        >
+        <SectionTitle hue={5} hint={cx('settings.access.tokens.intro')}>
           {cx('settings.access.tokens.title')}
         </SectionTitle>
         {tokens.length === 0 ? (
@@ -861,7 +834,11 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
           <div className="flex flex-col divide-y divide-carbon-border/40">
             {tokens.map((tok) => (
               <div key={tok.id} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
-                <IconKey width={16} height={16} className="shrink-0 text-carbon-textMuted" />
+                {/* The row's own square badge rather than a bare glyph (jdp,
+                    2026-08-27), at the one size every square badge in this
+                    app shares. Inert - it marks the row, it is not a control -
+                    which is what IconTile is for. */}
+                <IconTile icon={<IconKey width={16} height={16} />} hue={5} />
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm text-carbon-text">{tok.name}</div>
                   <div className="text-[11px] text-carbon-textMuted">
@@ -884,6 +861,21 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
             ))}
           </div>
         )}
+        {/* Back to a normal button on the left (jdp, 2026-08-27: "Der token
+            erstellen button wieder zurück auf normal. also ganz links
+            platzeiren"). It had been shrunk into the title row's right slot;
+            below the list and left-aligned it reads as "add another one to
+            what you just looked at" rather than as a header utility. */}
+        <div>
+          <Button
+            kind="secondary"
+            hue={5}
+            icon={<IconPlus width={14} height={14} />}
+            onClick={() => setShowCreate(true)}
+          >
+            {cx('settings.access.tokens.new')}
+          </Button>
+        </div>
       </Card>
 
       {showCreate && !created && (
