@@ -25,6 +25,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
@@ -275,15 +276,36 @@ func applyRelay(a *app.App) {
 // against serve - this instance's own fully-wired HTTP handler, the same one
 // a browser tab or an API token reaches. A relay-visible sibling therefore
 // sees exactly the same routes and behaviour a direct HTTP peer already
-// does, including the one limitation that comes with it: like
-// federation.Manager's own direct-HTTP transport, which has never attached a
-// credential of its own to an outgoing peer call, a relay-proxied request
-// carries no session cookie or API token either - only the relay key that
-// got it here at all. An instance with a password set already refuses an
-// unauthenticated direct-HTTP peer call today; this is the same fact over
-// the second transport, not a new one.
+// does.
+//
+// # Why a sibling is authenticated, and what that costs
+//
+// Anything arriving here came off a socket the relay only joins to other
+// connections presenting the SAME group key - the key derived from the
+// connection phrase. So the sender has already proved group membership
+// before this function runs, and the request is marked as such.
+//
+// That mark is what makes a password-protected instance usable from its own
+// siblings. It used to answer 401 to all of them, because the phrase and the
+// credential were unrelated things and only a separate pairing exchange
+// closed the gap. It is not a loosening: whoever holds the phrase can join
+// the group anyway, and every screen that hands one out says so.
+//
+// What it does mean is that the surface reachable this way has to be the
+// narrow one, which is enforced HERE rather than left to each route. The set
+// is exactly what the outbound half is willing to forward (see the
+// /api/instances/{name}/{rest...} route): tasks, links and the queue. A
+// sibling cannot read this instance's accounts, change its password, mint an
+// API token or ask for the phrase back.
 func relayProxyHandler(serve http.Handler) relay.ProxyHandler {
 	return func(ctx context.Context, req relay.ProxyRequest) (int, []byte) {
+		if !relayForwardable(req.Path) {
+			// Refused before the handler sees it, so a route added later is
+			// not silently exposed to peers by existing: this list is an
+			// allowlist and a new route is outside it until somebody says
+			// otherwise.
+			return http.StatusForbidden, []byte("route not proxied")
+		}
 		var body io.Reader
 		if len(req.Body) > 0 {
 			body = bytes.NewReader(req.Body)
@@ -292,6 +314,7 @@ func relayProxyHandler(serve http.Handler) relay.ProxyHandler {
 		if err != nil {
 			return http.StatusBadRequest, []byte(err.Error())
 		}
+		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), relayGroupKey, true))
 		if len(req.Body) > 0 {
 			httpReq.Header.Set("Content-Type", "application/json")
 		}
@@ -307,6 +330,31 @@ func relayProxyHandler(serve http.Handler) relay.ProxyHandler {
 		serve.ServeHTTP(rec, httpReq)
 		return rec.status, rec.body.Bytes()
 	}
+}
+
+// relayForwardable is the one list of what a group sibling may reach on this
+// instance. It mirrors the outbound half's own filter deliberately and
+// literally: the two ends of the same conversation disagreeing about what is
+// forwardable is how a route ends up reachable in one direction only, which
+// is a bug nobody notices until a peer uses it.
+//
+// The queue travels with the task list because it is that list's master
+// switch - showing a sibling's downloads and then being unable to stop them
+// would be a half-connected instance. Settings, accounts, tokens and the
+// phrase are all outside it, on purpose.
+func relayForwardable(path string) bool {
+	// Query strings are part of a task listing's own vocabulary (filters,
+	// paging); the decision here is about the route, not its arguments.
+	if i := strings.IndexByte(path, '?'); i >= 0 {
+		path = path[:i]
+	}
+	const prefix = "/api/"
+	if !strings.HasPrefix(path, prefix) {
+		return false
+	}
+	rest := path[len(prefix):]
+	return rest == "links" || rest == "tasks" || rest == "queue" ||
+		strings.HasPrefix(rest, "tasks/") || strings.HasPrefix(rest, "queue/")
 }
 
 // relayRecorder buffers one handler's response in memory - the smallest

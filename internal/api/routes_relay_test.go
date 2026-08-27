@@ -393,17 +393,24 @@ func TestRelayProxyHonoursTheAuthorizationField(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if status, _ := serve(context.Background(), relay.ProxyRequest{
+	// A sibling with no bearer token still gets through, because getting HERE
+	// already required presenting the group key. This is the case that used to
+	// answer 401 and broke a phrase group the moment one instance was given a
+	// password - proved live on two preview containers before it was fixed.
+	if status, body := serve(context.Background(), relay.ProxyRequest{
 		Method: http.MethodGet, Path: "/api/tasks",
-	}); status != http.StatusUnauthorized {
-		t.Errorf("no Authorization against a protected instance = %d, want 401", status)
+	}); status != http.StatusOK {
+		t.Errorf("a group sibling with no token = %d (%s), want 200 - the relay socket IS the credential", status, body)
 	}
 
+	// A garbage token must not be worse than no token. It is not evidence of
+	// anything either way, and rejecting the request for carrying one would
+	// make a stale credential on a peer fail harder than an absent one.
 	if status, _ := serve(context.Background(), relay.ProxyRequest{
 		Method: http.MethodGet, Path: "/api/tasks",
 		Authorization: "Bearer not-a-real-token",
-	}); status != http.StatusUnauthorized {
-		t.Errorf("a made-up bearer token = %d, want 401 - the header must be CHECKED, not merely present", status)
+	}); status != http.StatusOK {
+		t.Errorf("a group sibling with a stale token = %d, want 200", status)
 	}
 
 	_, secret, err := a.APITokens.Create("phone")
@@ -420,6 +427,37 @@ func TestRelayProxyHonoursTheAuthorizationField(t *testing.T) {
 	var tasks []any
 	if err := json.Unmarshal(body, &tasks); err != nil {
 		t.Errorf("authenticated relay call answered unparseable JSON: %v (%s)", err, body)
+	}
+}
+
+// Being in the group buys the task routes and nothing else. Without this the
+// mark relayProxyHandler attaches would be a password bypass for the whole
+// API, reachable by anyone holding the phrase - which is everyone in the
+// group, but not for THESE routes.
+func TestRelayProxyRefusesEverythingButTasksAndLinks(t *testing.T) {
+	_, a := testServer(t)
+	serve := relayProxyHandler(Handler(a))
+	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
+		t.Fatal(err)
+	}
+
+	for _, allowed := range []string{"/api/tasks", "/api/links", "/api/queue", "/api/tasks/7", "/api/queue/move", "/api/tasks?state=active"} {
+		if status, body := serve(context.Background(), relay.ProxyRequest{Method: http.MethodGet, Path: allowed}); status == http.StatusForbidden {
+			t.Errorf("%s = 403 (%s), but it is one of the routes federation forwards", allowed, body)
+		}
+	}
+
+	// Each of these would hand a sibling something the phrase is not supposed
+	// to buy: the stored hoster logins, the ability to lock this instance out
+	// from under its owner, a standing credential, and the phrase itself.
+	for _, refused := range []string{
+		"/api/settings", "/api/accounts", "/api/auth/password", "/api/tokens",
+		"/api/connect", "/api/connect/reveal", "/api/instances", "/api/scripts",
+	} {
+		status, _ := serve(context.Background(), relay.ProxyRequest{Method: http.MethodGet, Path: refused})
+		if status != http.StatusForbidden {
+			t.Errorf("%s = %d, want 403 - a group sibling must not reach this", refused, status)
+		}
 	}
 }
 
