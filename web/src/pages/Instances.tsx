@@ -80,7 +80,23 @@ export function Instances() {
       <FirstTouchHint id="instances" />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <InstanceCard name={ownName || t('instances.thisInstance')} url={location.host} base="/api" />
+        {/* Its own Open button, pointing at the local download list (jdp,
+            2026-08-27: "bei der eigenenn instanz soll der button öffnen
+            genauso da sien und in den downloadtab verweisen") - without an
+            ?instance= parameter, which is exactly what "the one you are on"
+            means to the Downloads page. One card shape for every instance;
+            which one you are looking at is said by the label, not by a
+            missing button. */}
+        <InstanceCard
+          name={ownName || t('instances.thisInstance')}
+          url={location.host}
+          base="/api"
+          // Only when the name says something else. With no configured name
+          // the card is already titled "Diese Instanz", and a label repeating
+          // the title verbatim reads as a rendering bug rather than as a hint.
+          isSelf={ownName !== ''}
+          onOpen={() => navigate('/downloads')}
+        />
         {peers.map((p, i) => (
           <InstanceCard
             key={p.name}
