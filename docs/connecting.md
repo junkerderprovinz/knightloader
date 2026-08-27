@@ -6,8 +6,9 @@ a *second* KnightLoader. This is how each of those connections is made, and what
 happens when one of them cannot be.
 
 The short version: on one network, nothing needs configuring. Across networks,
-one code connects two instances. When neither can reach the other, a relay you
-host yourself carries the traffic.
+twelve words connect every instance you run. Everything after that section is
+the older, more manual way to arrive at the same place, kept because some
+people want it.
 
 ## On one network
 
@@ -39,6 +40,54 @@ and why adding is a decision rather than a consequence.
 
 Multicast blocked, or no network at all, means an empty list. Everything below
 still works.
+
+## Across networks: the connection phrase
+
+**Settings → Access → Connect your instances → Create a phrase.** Twelve words
+come back. Type them into every other KnightLoader you run, and they find each
+other - across networks, behind NAT, with no port forward, no domain, no
+account and nothing to log into.
+
+There is no account because there is nothing to log in to. The words *are* the
+credential. Whoever has them reaches every instance in the group, which is the
+one thing to understand before reading them out over the phone.
+
+What the words carry is a 128-bit secret and nothing else - no address, no
+name. The relay's address is compiled into the binary, which is exactly what
+keeps this to twelve words instead of a URL plus a key.
+
+The list they are drawn from is BIP39's, the one hardware wallets use. Not for
+any cryptocurrency reason, and the UI never calls this a wallet seed: those
+2048 words were chosen so no two share their first four letters, none are
+near-homophones and none carry accents, which is what makes a phrase safe to
+read down a phone line and to type on a mobile keyboard. Four checksum bits
+ride along, so a mistyped or swapped word is refused on the spot, naming the
+word and its position, rather than becoming a connection that silently never
+finds its sibling.
+
+**The relay never learns the phrase.** What an instance sends is
+`SHA-256("knightloader/relay/group-key/v1" || secret)`. The relay matches
+connections that present the same derived key and forwards frames between
+them; it has no account list, no registration step and no database. So whoever
+runs it - us, at `relay.knightloader.app`, or you - cannot reconstruct
+anybody's words.
+
+To run your own, set the relay URL under **Connect without Tailscale** and the
+same phrase works against it. Both ends must point at the same relay.
+
+**Showing the phrase again** needs the instance password re-entered, when one
+is set. A live session is not enough: it may have been opened hours ago on a
+screen nobody is sitting at, and what is behind that button is not this
+instance's password but the key to every instance in the group.
+
+An instance with **no** password says so, loudly, before it mints anything -
+and then mints it anyway if you say so. The phrase reaches every instance you
+connect with it, so an unprotected one is a door into all of them, but that is
+a judgement about your own network rather than something to be refused on your
+behalf.
+
+**Leaving** forgets the secret and stops dialling. The other instances keep
+going without it; a phrase is a group, not a pairing.
 
 ## Between two instances: a pairing code
 
@@ -91,9 +140,20 @@ Both ends dial *out* to a relay and meet there, so neither needs a public
 address, a port forward or a domain. Traffic is JSON frames over one WebSocket
 each.
 
-The relay is self-hosted. There is no official one, and the design note that
-deferred that decision still stands. `docker compose` it anywhere both ends can
-reach, put the same key in both, done.
+This is the same machinery the connection phrase uses, reached the manual way:
+a URL and a key you choose and type into both ends, rather than twelve words
+that carry the key and already know the address. The phrase is the shorter
+road to the same place; this one exists for anyone who wants to name the relay
+and the key themselves.
+
+There is an official relay - `wss://relay.knightloader.app/relay/connect`,
+what a phrase points at unless you override it - and running your own is a
+first-class option, not a fallback. `docker compose` it anywhere both ends can
+reach, put the same key in both, done. Set `KL_RELAY_DOMAIN` and it terminates
+TLS itself, getting and renewing its own certificate over TLS-ALPN-01: no
+reverse proxy, no certbot, no renewal cron, and no port 80 - the challenge
+completes inside a handshake on 443, so the firewall in front of it opens one
+port.
 
 ### Or let one instance be the relay
 

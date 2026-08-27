@@ -79,6 +79,25 @@ see Versioning above.
   from one dashboard. Instances on the same network announce themselves over
   multicast and are one click to add, with nothing configured. Two that cannot
   reach each other directly meet through a relay you host yourself.
+- **A twelve-word connection phrase.** Read it off one instance, type it into
+  the next, and they find each other across networks - no account, no login,
+  no port forward, no domain, and no third-party site to visit. The words are
+  BIP39's, the list hardware wallets use, chosen there for the properties that
+  matter here too: no two words share their first four letters, none are
+  near-homophones, none carry accents. So a phrase survives being read down a
+  phone line and typed on a mobile keyboard, and its checksum refuses a
+  mistyped or swapped word on the spot - naming the word and its position -
+  instead of letting it become a connection that silently never finds its
+  sibling. The relay is told `SHA-256(domain || secret)`, never the secret, so
+  whoever runs one cannot reconstruct anybody's words; showing a phrase again
+  needs the instance password re-entered, because a session opened hours ago
+  is not evidence anybody is still sitting there. Run the relay yourself and
+  the same phrase works against it.
+- **The relay gets its own certificate.** Set `KL_RELAY_DOMAIN` and it
+  terminates TLS itself over TLS-ALPN-01 - no reverse proxy, no certbot, no
+  renewal cron, and no port 80, because the challenge completes inside a
+  handshake on 443. Repeated failed handshakes from one address back off, so a
+  relay on a public address is not a free guessing gallery.
 - **Pairing**: one code, scanned or pasted, connects two instances in both
   directions and gives each side its own named, revocable credential for the
   other. Neither has to be reachable from the internet. Reachability is
