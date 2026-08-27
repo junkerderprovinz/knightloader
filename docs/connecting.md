@@ -72,6 +72,30 @@ them; it has no account list, no registration step and no database. So whoever
 runs it - us, at `relay.knightloader.app`, or you - cannot reconstruct
 anybody's words.
 
+**And it cannot read what it forwards.** A *second* key comes out of the same
+secret under its own domain, `SHA-256("knightloader/relay/frame-key/v1" ||
+secret)`, and every proxy frame is sealed with AES-256-GCM under it. The relay
+sees which instance a frame is addressed to and which request it answers,
+because it routes on those, and nothing else: not the path, not the body, not
+the API token a phone attaches. The two domains are what makes this work - the
+relay is handed the group key in every hello frame, so a frame key derived
+from *that* would be one it already holds.
+
+The routing fields are bound into the seal as additional data, so a relay
+cannot take a frame addressed to one instance and deliver it as another's. The
+one field it does author is the error it returns when nobody is connected
+under a target id, which it has to, holding no key. That lets a hostile relay
+claim an instance is absent - a denial of service it could equally perform by
+dropping the frame - but not fabricate an answer: a response with no sealed
+payload is never mistaken for one.
+
+If you configure a relay by hand-entered key instead of by phrase, there is no
+secret to derive from and the frame key comes from the relay key itself. That
+still seals the traffic against anything sitting *between* you and the relay -
+a reverse proxy, a TLS terminator, a captured log - but not against the relay
+operator, who is handed that key. It is the right trade for the case it exists
+for, which is somebody hosting the relay themselves.
+
 To run your own, put its address in `relayUrl` under **Settings → Advanced**
 on every instance in the group; the same phrase then works against it, because
 the phrase carries the secret and not the address. That page lists every

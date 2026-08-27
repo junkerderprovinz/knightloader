@@ -32,7 +32,7 @@ instance is, never a credential of their own.
 
 ## Bookmarklet
 
-Settings > Browser tools shows a link built from `window.location.origin` —
+Settings > Browser & App shows a link built from `window.location.origin` —
 whatever address you are looking at the settings page on. Drag it to your
 bookmarks bar. Clicking it on any page opens `/quickadd` with that page's URL
 and title, plus whatever text you had selected (useful for a page listing
@@ -90,9 +90,11 @@ optimisation).
 Installing is what turns the share target on: an uninstalled tab has no
 Share-menu entry to offer. `web/src/lib/pwaInstall.ts` exports
 `useInstallPrompt()`, a small shared hook around the browser's
-`beforeinstallprompt` event — Settings > Browser tools uses it for its own
-"Install" button, and it is the same hook the Remote access page's install
-button (Wave 11C) is meant to use, so the event is only ever captured once.
+`beforeinstallprompt` event — Settings > Browser & App uses it for its own
+"Install" button. That tab is now the only caller: the app card moved there
+from the Zugang tab, so the two install buttons that used to sit on separate
+pages are one, and the event is captured once because there is only one place
+left that wants it.
 
 ## What this deliberately does not do
 

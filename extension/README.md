@@ -14,7 +14,7 @@ wrong in one direction or the other. See the Versioning section of the root
 `CHANGELOG.md`.
 
 The copy most people run does not come from that tag. The zip served by
-Settings > Browser tools is built from the copy embedded in whatever server
+Settings > Browser & App is built from the copy embedded in whatever server
 binary is running (`embed.go`), so that one tracks the server. The tag exists
 for a browser store submission and for anyone who wants a fixed download.
 

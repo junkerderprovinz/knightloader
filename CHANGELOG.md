@@ -35,7 +35,7 @@ order by it, and it must go up on every build you hand anybody, even when the
 version name is unchanged.
 
 The copy of the extension most people run does not come from its tag. Settings
-> Browser tools serves a zip built from the copy embedded in whatever server
+> Browser & App serves a zip built from the copy embedded in whatever server
 binary is running, so that one tracks the server. The tag exists for a store
 submission and for a fixed download.
 
@@ -93,6 +93,16 @@ see Versioning above.
   needs the instance password re-entered, because a session opened hours ago
   is not evidence anybody is still sitting there. Run the relay yourself and
   the same phrase works against it.
+- **The relay cannot read what it forwards.** A second key comes out of the
+  same secret under its own domain, and every proxy frame is sealed with
+  AES-256-GCM under it. A relay sees which instance a frame is for and which
+  request it answers, because it routes on those - not the path, not the body,
+  not the API token a phone attaches. The two domains are the point: a relay
+  is handed the group key in every hello frame, so a frame key derived from
+  that would be one it already holds. Routing fields are bound into the seal,
+  so a frame cannot be redirected and still open. A relay configured by
+  hand-entered key instead of by phrase seals against everything between the
+  instances and the relay, but not against its operator, who holds that key.
 - **The card explains itself before it asks anything.** Twelve words is an
   odd enough thing to be handed that "what am I looking at" comes before
   "what do I press", so connecting opens with three numbered steps and a
@@ -100,6 +110,21 @@ see Versioning above.
   inside the steps come from the buttons' own translation keys rather than
   being written into the sentence, so a step cannot end up quoting a label
   that says something else in that language.
+- **Getting the app lives with getting the extension.** Both answer the same
+  question - how do I reach this from somewhere that is not this browser tab -
+  so the app card moved onto the tab that already held the bookmarklet and the
+  extension, now called Browser & App. The store badges are the real artwork,
+  with a direct APK download beside them, which is the one of the three routes
+  that works before a store listing exists.
+- **Instances can be hidden from the sidebar** the way Accounts already could,
+  through a settings tab of the same shape - useful for anybody running the
+  one instance, whose Instances page lists exactly itself, forever. Each
+  instance's card now carries the app's mark down its left edge.
+- **The unprotected-instance warning stopped being a banner.** It fired on
+  every load of every container, because a container binds every interface in
+  its own namespace by design, and it was saying what the password card three
+  centimetres above it already said. It is now a second line on that card, in
+  the warning colour, next to the field that fixes it.
 - **Tailscale is gone.** It had been in this card since before the relay
   existed, when it was the only way in from outside, and merging the cards
   moved it rather than removing it - so the page whose whole point is not
