@@ -58,6 +58,25 @@ func Handler(a *app.App) http.Handler {
 	return h
 }
 
+// relayGroupKey marks a request as having arrived over this instance's own
+// relay socket, from a sibling that presented the same group key.
+//
+// A context value, deliberately, and not a header: a header can be written by
+// whoever composed the frame, so a peer could claim to be a group member by
+// setting one. This is attached by relayProxyHandler on THIS side, after the
+// relay client has already accepted the frame, so nothing on the wire can
+// forge it.
+type relayGroupKeyType struct{}
+
+var relayGroupKey relayGroupKeyType
+
+// fromRelayGroup reports whether this request came in over the relay from a
+// sibling holding the same connection phrase.
+func fromRelayGroup(r *http.Request) bool {
+	v, _ := r.Context().Value(relayGroupKey).(bool)
+	return v
+}
+
 // authenticated reports whether the request carries a valid session or a
 // valid API token, or whether no password is set at all.
 //
@@ -67,6 +86,22 @@ func Handler(a *app.App) http.Handler {
 // session out of the way.
 func authenticated(a *app.App, r *http.Request) bool {
 	if !a.Auth.Enabled() {
+		return true
+	}
+	// A sibling on the relay has already proved it holds the group key, which
+	// is derived from the connection phrase - and the phrase is stated
+	// everywhere as reaching every instance in the group. Requiring a second,
+	// separately-exchanged credential on top would protect nothing: anyone who
+	// can present the group key can join the group and be handed one. This is
+	// what lets a password-protected instance be usable from its own siblings
+	// instead of answering 401 to all of them, which is what it did while the
+	// phrase and the credential were two unrelated things.
+	//
+	// The blast radius is bounded on the way in, not here: relayProxyHandler
+	// admits only the task and link routes, the same set the outbound side is
+	// willing to forward. A sibling cannot read this instance's accounts,
+	// change its password or ask for its phrase.
+	if fromRelayGroup(r) {
 		return true
 	}
 	if c, err := r.Cookie(auth.CookieName); err == nil && a.Auth.Valid(c.Value) {
