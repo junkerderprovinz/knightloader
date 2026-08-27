@@ -1397,6 +1397,8 @@ export const id: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'Funnel perlu diaktifkan sekali untuk akun Tailscale Anda: buka konsol admin, buka kontrol akses, dan aktifkan Funnel - lalu tekan Hubungkan lagi.',
   'settings.access.tsnet.peersTitle': 'Instance Anda yang lain',
   'settings.access.tsnet.advancedTitle': 'Hubungkan tanpa Tailscale',
+  'settings.access.cardTitle': 'Menghubungkan instans dan akses jarak jauh',
+  'settings.access.remoteTitle': 'Akses jarak jauh',
   'settings.access.phrase.title': 'Hubungkan instance Anda',
   'settings.access.phrase.body': 'Satu frasa menghubungkan semua KnightLoader yang Anda jalankan. Buat di sini, lalu tempel ke instance lain - tanpa akun, tanpa login, tanpa yang perlu diatur.',
   'settings.access.phrase.noPasswordWarning': 'Instance ini tidak punya kata sandi. Frasa ini menjangkau setiap instance yang Anda hubungkan dengannya, jadi siapa pun yang bisa membacanya di sini menjangkau semuanya, bukan hanya yang ini. Sebaiknya atur kata sandi di atas dulu.',

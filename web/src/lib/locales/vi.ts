@@ -1397,6 +1397,8 @@ export const vi: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'Funnel cần được bật một lần cho tài khoản Tailscale của bạn: mở bảng điều khiển quản trị, vào phần kiểm soát truy cập, và bật Funnel - sau đó nhấn Kết nối lại.',
   'settings.access.tsnet.peersTitle': 'Các phiên bản khác của bạn',
   'settings.access.tsnet.advancedTitle': 'Kết nối không cần Tailscale',
+  'settings.access.cardTitle': 'Kết nối các phiên bản và truy cập từ xa',
+  'settings.access.remoteTitle': 'Truy cập từ xa',
   'settings.access.phrase.title': 'Kết nối các phiên bản của bạn',
   'settings.access.phrase.body': 'Một cụm từ kết nối mọi KnightLoader bạn đang chạy. Tạo tại đây, rồi dán vào các phiên bản khác - không tài khoản, không đăng nhập, không cần cấu hình gì.',
   'settings.access.phrase.noPasswordWarning': 'Phiên bản này chưa có mật khẩu. Cụm từ này chạm tới mọi phiên bản bạn kết nối bằng nó, nên ai đọc được ở đây sẽ tới được tất cả, không chỉ phiên bản này. Tốt hơn hãy đặt mật khẩu ở trên trước.',

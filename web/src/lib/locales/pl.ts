@@ -1390,6 +1390,8 @@ export const pl: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'Funnel trzeba raz włączyć dla twojego konta Tailscale: otwórz konsolę administracyjną, przejdź do kontroli dostępu i włącz Funnel - następnie ponownie kliknij Połącz.',
   'settings.access.tsnet.peersTitle': 'Twoje pozostałe instancje',
   'settings.access.tsnet.advancedTitle': 'Połącz bez Tailscale',
+  'settings.access.cardTitle': 'Łączenie instancji i dostęp zdalny',
+  'settings.access.remoteTitle': 'Dostęp zdalny',
   'settings.access.phrase.title': 'Połącz swoje instancje',
   'settings.access.phrase.body': 'Jedna fraza łączy wszystkie twoje KnightLoadery. Utwórz ją tutaj i wklej w pozostałych instancjach - bez konta, bez logowania, bez niczego do skonfigurowania.',
   'settings.access.phrase.noPasswordWarning': 'Ta instancja nie ma hasła. Fraza otwiera każdą instancję, którą nią połączysz, więc kto ją tu przeczyta, dotrze do wszystkich, nie tylko do tej. Lepiej najpierw ustawić hasło powyżej.',

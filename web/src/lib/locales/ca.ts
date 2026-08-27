@@ -1397,6 +1397,8 @@ export const ca: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'Cal activar Funnel una vegada per al teu compte de Tailscale: obre la consola d\'administració, ves a Controls d\'accés i activa Funnel - després torna a prémer Connecta.',
   'settings.access.tsnet.peersTitle': 'Les teves altres instàncies',
   'settings.access.tsnet.advancedTitle': 'Connecta sense Tailscale',
+  'settings.access.cardTitle': 'Connectar instàncies i accés remot',
+  'settings.access.remoteTitle': 'Accés remot',
   'settings.access.phrase.title': 'Connecta les teves instàncies',
   'settings.access.phrase.body': 'Una frase connecta tots els KnightLoader que fas servir. Crea-la aquí i enganxa-la a les altres instàncies - sense compte, sense inici de sessió, sense res a configurar.',
   'settings.access.phrase.noPasswordWarning': 'Aquesta instància no té contrasenya. La frase arriba a totes les instàncies que hi connectis, així que qui la pugui llegir aquí hi arriba a totes, no només a aquesta. Millor posar-hi una contrasenya a dalt primer.',

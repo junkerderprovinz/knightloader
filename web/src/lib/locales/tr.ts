@@ -1397,6 +1397,8 @@ export const tr: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'Funnel, Tailscale hesabınız için bir kez açılmalıdır: yönetim konsolunu açın, erişim denetimlerine gidin ve Funnel\'ı açın - ardından tekrar Bağlan\'a basın.',
   'settings.access.tsnet.peersTitle': 'Diğer örnekleriniz',
   'settings.access.tsnet.advancedTitle': 'Tailscale olmadan bağlan',
+  'settings.access.cardTitle': 'Örnekleri bağlama ve uzaktan erişim',
+  'settings.access.remoteTitle': 'Uzaktan erişim',
   'settings.access.phrase.title': 'Örneklerinizi bağlayın',
   'settings.access.phrase.body': 'Tek bir ifade, çalıştırdığınız tüm KnightLoader örneklerini birbirine bağlar. Burada oluşturun, sonra diğer örneklere yapıştırın - hesap yok, giriş yok, ayarlanacak bir şey yok.',
   'settings.access.phrase.noPasswordWarning': 'Bu örneğin parolası yok. İfade, onunla bağladığınız her örneğe ulaşır; dolayısıyla burada okuyabilen biri yalnızca buna değil, hepsine erişir. Önce yukarıdan bir parola belirlemek daha iyi olur.',

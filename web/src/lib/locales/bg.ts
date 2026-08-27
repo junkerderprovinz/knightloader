@@ -1398,6 +1398,8 @@ export const bg: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'Funnel трябва да бъде включен веднъж за вашия акаунт в Tailscale: отворете администраторската конзола, отидете на контрола на достъпа и включете Funnel - после натиснете отново Свързване.',
   'settings.access.tsnet.peersTitle': 'Твоите други инстанции',
   'settings.access.tsnet.advancedTitle': 'Свързване без Tailscale',
+  'settings.access.cardTitle': 'Свързване на инстанции и отдалечен достъп',
+  'settings.access.remoteTitle': 'Отдалечен достъп',
   'settings.access.phrase.title': 'Свържи инстанциите си',
   'settings.access.phrase.body': 'Една фраза свързва всички KnightLoader, които управлявате. Създайте я тук и я поставете в другите си инстанции - без акаунт, без вход, без настройки.',
   'settings.access.phrase.noPasswordWarning': 'Тази инстанция няма парола. Фразата достига всяка инстанция, която свържете с нея, така че всеки, който я прочете тук, стига до всички, не само до тази. По-добре първо задайте парола по-горе.',

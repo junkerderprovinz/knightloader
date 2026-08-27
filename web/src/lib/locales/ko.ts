@@ -1397,6 +1397,8 @@ export const ko: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'Tailscale 계정에서 Funnel을 한 번 켜야 합니다: 관리 콘솔을 열고, 액세스 제어로 이동하여 Funnel을 활성화한 다음 - 다시 연결을 누르세요.',
   'settings.access.tsnet.peersTitle': '다른 인스턴스',
   'settings.access.tsnet.advancedTitle': 'Tailscale 없이 연결',
+  'settings.access.cardTitle': '인스턴스 연결 및 원격 접속',
+  'settings.access.remoteTitle': '원격 접속',
   'settings.access.phrase.title': '인스턴스 연결',
   'settings.access.phrase.body': '문구 하나로 운영 중인 모든 KnightLoader가 연결됩니다. 여기서 만들어 다른 인스턴스에 붙여넣기만 하면 됩니다 - 계정도, 로그인도, 설정할 것도 없습니다.',
   'settings.access.phrase.noPasswordWarning': '이 인스턴스에는 비밀번호가 없습니다. 이 문구는 함께 연결한 모든 인스턴스에 닿으므로, 여기서 읽을 수 있는 사람은 이 인스턴스뿐 아니라 전부에 접근합니다. 위에서 비밀번호를 먼저 설정하는 편이 좋습니다.',

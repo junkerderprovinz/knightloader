@@ -1398,6 +1398,8 @@ export const uk: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'Funnel потрібно один раз увімкнути для вашого облікового запису Tailscale: відкрийте консоль адміністратора, перейдіть до керування доступом і увімкніть Funnel - потім знову натисніть Підключитися.',
   'settings.access.tsnet.peersTitle': 'Ваші інші екземпляри',
   'settings.access.tsnet.advancedTitle': 'Підключення без Tailscale',
+  'settings.access.cardTitle': 'Зв’язок екземплярів і віддалений доступ',
+  'settings.access.remoteTitle': 'Віддалений доступ',
   'settings.access.phrase.title': 'З\'єднайте свої екземпляри',
   'settings.access.phrase.body': 'Одна фраза з\'єднує всі ваші екземпляри KnightLoader. Створіть її тут і вставте в інші екземпляри - без облікового запису, без входу, без жодних налаштувань.',
   'settings.access.phrase.noPasswordWarning': 'Цей екземпляр не має пароля. Фраза відкриває кожен екземпляр, який ви нею з\'єднаєте, тож той, хто прочитає її тут, дістанеться до всіх, а не лише до цього. Краще спершу встановіть пароль вище.',

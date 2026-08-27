@@ -1390,6 +1390,8 @@ export const ru: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'Funnel нужно один раз включить для вашей учётной записи Tailscale: откройте консоль администратора, перейдите в управление доступом и включите Funnel - затем снова нажмите Подключиться.',
   'settings.access.tsnet.peersTitle': 'Другие ваши экземпляры',
   'settings.access.tsnet.advancedTitle': 'Подключиться без Tailscale',
+  'settings.access.cardTitle': 'Связь экземпляров и удалённый доступ',
+  'settings.access.remoteTitle': 'Удалённый доступ',
   'settings.access.phrase.title': 'Свяжите свои экземпляры',
   'settings.access.phrase.body': 'Одна фраза связывает все ваши экземпляры KnightLoader. Создайте её здесь и вставьте в остальные - без учётной записи, без входа, без настроек.',
   'settings.access.phrase.noPasswordWarning': 'У этого экземпляра нет пароля. Фраза открывает каждый экземпляр, который вы с ней свяжете, поэтому тот, кто прочитает её здесь, доберётся до всех, а не только до этого. Лучше сначала задайте пароль выше.',

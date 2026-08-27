@@ -1398,6 +1398,8 @@ export const cs: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'Funnel je nutné jednorázově zapnout pro váš účet Tailscale: otevřete administrační konzoli, přejděte na řízení přístupu a zapněte Funnel - poté znovu klikněte na Připojit.',
   'settings.access.tsnet.peersTitle': 'Vaše další instance',
   'settings.access.tsnet.advancedTitle': 'Připojit bez Tailscale',
+  'settings.access.cardTitle': 'Propojení instancí a vzdálený přístup',
+  'settings.access.remoteTitle': 'Vzdálený přístup',
   'settings.access.phrase.title': 'Propojte své instance',
   'settings.access.phrase.body': 'Jedna fráze propojí všechny KnightLoadery, které provozujete. Vytvořte ji zde a vložte do ostatních instancí - žádný účet, žádné přihlášení, nic k nastavení.',
   'settings.access.phrase.noPasswordWarning': 'Tato instance nemá heslo. Fráze otevře každou instanci, kterou s ní propojíte, takže kdo si ji zde přečte, dostane se ke všem, nejen k této. Raději nejprve nastavte heslo výše.',

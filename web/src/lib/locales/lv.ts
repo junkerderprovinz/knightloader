@@ -1397,6 +1397,8 @@ export const lv: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'Funnel jums jāieslēdz vienreiz savam Tailscale kontam: atveriet administrēšanas konsoli, dodieties uz piekļuves vadīklām un ieslēdziet Funnel - pēc tam vēlreiz nospiediet Pievienoties.',
   'settings.access.tsnet.peersTitle': 'Jūsu citas instances',
   'settings.access.tsnet.advancedTitle': 'Pievienoties bez Tailscale',
+  'settings.access.cardTitle': 'Savienot instances un attālā piekļuve',
+  'settings.access.remoteTitle': 'Attālā piekļuve',
   'settings.access.phrase.title': 'Savienojiet savas instances',
   'settings.access.phrase.body': 'Viena frāze savieno visus jūsu KnightLoader. Izveidojiet to šeit un ielīmējiet pārējās instancēs - bez konta, bez pieteikšanās, bez konfigurēšanas.',
   'settings.access.phrase.noPasswordWarning': 'Šai instancei nav paroles. Frāze sasniedz katru instanci, ko ar to savienojat, tāpēc ikviens, kas to šeit izlasa, sasniedz visas, ne tikai šo. Labāk vispirms iestatiet paroli augstāk.',

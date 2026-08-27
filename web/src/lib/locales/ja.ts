@@ -1397,6 +1397,8 @@ export const ja: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'Funnelは自分のTailscaleアカウントで一度だけ有効にする必要があります: 管理コンソールを開き、アクセス制御に移動し、Funnelを有効にしてください - その後、もう一度「接続」を押してください。',
   'settings.access.tsnet.peersTitle': '他のインスタンス',
   'settings.access.tsnet.advancedTitle': 'Tailscaleを使わずに接続',
+  'settings.access.cardTitle': 'インスタンスの接続とリモートアクセス',
+  'settings.access.remoteTitle': 'リモートアクセス',
   'settings.access.phrase.title': 'インスタンスをつなぐ',
   'settings.access.phrase.body': '一つのフレーズで、あなたが動かしているすべてのKnightLoaderがつながります。ここで作成し、他のインスタンスに貼り付けるだけ - アカウントもログインも設定も不要です。',
   'settings.access.phrase.noPasswordWarning': 'このインスタンスにはパスワードがありません。フレーズはこれでつないだすべてのインスタンスに届くため、ここで読めた人は、このインスタンスだけでなくすべてに到達できます。先に上でパスワードを設定することをおすすめします。',

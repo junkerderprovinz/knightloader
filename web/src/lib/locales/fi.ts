@@ -1397,6 +1397,8 @@ export const fi: Dict = {
   'settings.access.tsnet.funnelErrorHint': 'Funnel pitää kytkeä päälle kerran Tailscale-tilillesi: avaa hallintakonsoli, siirry käyttöoikeuksiin ja kytke Funnel päälle - paina sitten Yhdistä uudelleen.',
   'settings.access.tsnet.peersTitle': 'Muut instanssisi',
   'settings.access.tsnet.advancedTitle': 'Yhdistä ilman Tailscalea',
+  'settings.access.cardTitle': 'Yhdistä instanssit ja etäkäyttö',
+  'settings.access.remoteTitle': 'Etäkäyttö',
   'settings.access.phrase.title': 'Yhdistä instanssisi',
   'settings.access.phrase.body': 'Yksi lause yhdistää kaikki KnightLoaderisi. Luo se tässä ja liitä muihin instansseihin - ei tiliä, ei kirjautumista, ei mitään määritettävää.',
   'settings.access.phrase.noPasswordWarning': 'Tällä instanssilla ei ole salasanaa. Lause avaa jokaisen instanssin, jonka sillä yhdistät, joten kuka tahansa sen tässä lukeva pääsee kaikkiin, ei vain tähän. Aseta mieluummin ensin salasana yllä.',
