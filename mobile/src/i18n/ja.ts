@@ -111,6 +111,8 @@ export const ja: Dict = {
   'relay.phraseLabel': '接続フレーズ',
   'relay.phrasePlaceholder': 'インスタンスの12語',
   'relay.joinButton': '接続',
+  'relay.qrHintPhrase': 'フレーズの横に表示された QR コードをスキャンしてください',
+  'relay.scanButton': 'QR コードをスキャン',
   'relay.saveAllButton': '{count} 件すべて追加',
   'phrase.errChecksum': 'このフレーズは正しくありません。単語の打ち間違いや入れ替わりがないか確認してください。',
   'phrase.errUnknownWord': '{position} 番目の単語（「{word}」）は使える単語ではありません。',

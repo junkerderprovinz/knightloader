@@ -111,6 +111,8 @@ export const fr: Dict = {
   'relay.phraseLabel': 'Phrase de connexion',
   'relay.phrasePlaceholder': 'les douze mots de votre instance',
   'relay.joinButton': 'Se connecter',
+  'relay.qrHintPhrase': 'Scannez le QR code affiché à côté de la phrase',
+  'relay.scanButton': 'Scanner le QR code',
   'relay.saveAllButton': 'Ajouter les {count}',
   'phrase.errChecksum': 'Cette phrase n\'est pas valide - vérifiez si un mot est mal saisi ou inversé.',
   'phrase.errUnknownWord': 'Le mot {position} (« {word} ») ne fait pas partie des mots acceptés.',

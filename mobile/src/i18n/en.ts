@@ -39,6 +39,8 @@ export const en = {
   'relay.phraseLabel': 'Connection phrase',
   'relay.phrasePlaceholder': 'the twelve words from your instance',
   'relay.joinButton': 'Connect',
+  'relay.qrHintPhrase': 'Scan the QR code shown beside the phrase',
+  'relay.scanButton': 'Scan the QR code',
   'relay.saveAllButton': 'Add all {count}',
   'phrase.errChecksum': 'That phrase is not valid - check for a mistyped or swapped word.',
   'phrase.errUnknownWord': 'Word {position} ("{word}") is not one of the accepted words.',

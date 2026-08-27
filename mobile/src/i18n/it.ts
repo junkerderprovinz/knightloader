@@ -111,6 +111,8 @@ export const it: Dict = {
   'relay.phraseLabel': 'Frase di collegamento',
   'relay.phrasePlaceholder': 'le dodici parole della tua istanza',
   'relay.joinButton': 'Collega',
+  'relay.qrHintPhrase': 'Scansiona il codice QR mostrato accanto alla frase',
+  'relay.scanButton': 'Scansiona il codice QR',
   'relay.saveAllButton': 'Aggiungi tutte e {count}',
   'phrase.errChecksum': 'Questa frase non è valida - controlla se una parola è scritta male o invertita.',
   'phrase.errUnknownWord': 'La parola {position} («{word}») non è tra quelle ammesse.',

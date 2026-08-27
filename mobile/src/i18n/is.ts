@@ -111,6 +111,8 @@ export const is: Dict = {
   'relay.phraseLabel': 'Tengisetning',
   'relay.phrasePlaceholder': 'orðin tólf úr tilvikinu þínu',
   'relay.joinButton': 'Tengjast',
+  'relay.qrHintPhrase': 'Skannaðu QR-kóðann við hliðina á frasanum',
+  'relay.scanButton': 'Skanna QR-kóðann',
   'relay.saveAllButton': 'Bæta öllum {count} við',
   'phrase.errChecksum': 'Þessi setning stenst ekki - athugaðu hvort orð sé rangt slegið inn eða víxlað.',
   'phrase.errUnknownWord': 'Orð {position} ("{word}") er ekki eitt af leyfðu orðunum.',

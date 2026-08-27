@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import QRScanner from '../components/QRScanner';
 import { closeRelayClient, relayClientFor, type RelaySibling } from '../api/relayClient';
 import { DEFAULT_RELAY_URL, PhraseError, frameKeyFromPhrase, keyFromPhrase } from '../api/seedphrase';
 import { toHex } from '../api/sha256';
@@ -40,6 +41,7 @@ export default function RelayConnectScreen({ onConnected }: { onConnected: (conn
   const { c, accent, accentContrast, radii } = useAppearance();
   const [phrase, setPhrase] = useState('');
   const [searching, setSearching] = useState(false);
+  const [scanning, setScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sibs, setSibs] = useState<RelaySibling[]>([]);
   // What the running client was opened with. State, not a ref: the instance
@@ -71,8 +73,16 @@ export default function RelayConnectScreen({ onConnected }: { onConnected: (conn
 
   // The checksum catches a mistyped or swapped word here, before anything is
   // dialled, so the failure reads as "word 3 is not one of the words" instead
-  // of a socket that simply never finds anybody.
-  const join = async () => {
+  // of a socket that simply never finds anybody. That check earns its keep
+  // twice over for a scan: a QR code decodes to whatever it decodes to, and
+  // pointing the camera at some other code should say "that is not a phrase"
+  // rather than dial a group nobody is in.
+  //
+  // `entered` exists for the scan path. The caller has just set state that
+  // this render does not see yet, so it passes the scanned words in directly;
+  // the button path passes nothing and reads state as before.
+  const join = async (entered?: string) => {
+    const words = (entered ?? phrase).trim();
     setError(null);
     let key: string;
     // Both keys come out of the phrase here, in the one place it exists, and
@@ -81,8 +91,8 @@ export default function RelayConnectScreen({ onConnected }: { onConnected: (conn
     // nothing left to re-derive it from. See types.ts's relayFrameKey.
     let frameKey: Uint8Array;
     try {
-      key = keyFromPhrase(phrase);
-      frameKey = frameKeyFromPhrase(phrase);
+      key = keyFromPhrase(words);
+      frameKey = frameKeyFromPhrase(words);
     } catch (e) {
       setError(
         e instanceof PhraseError
@@ -187,7 +197,12 @@ export default function RelayConnectScreen({ onConnected }: { onConnected: (conn
           { backgroundColor: accent, borderRadius: radii.control },
           searching && styles.buttonDisabled,
         ]}
-        onPress={join}
+        // Wrapped, not passed directly: onPress hands its handler the touch
+        // event, which join() would now read as the scanned phrase. tsc
+        // caught it the moment join grew that parameter - untyped, it would
+        // have shipped as "the Connect button says your phrase is not twelve
+        // words" with no clue why.
+        onPress={() => void join()}
         disabled={searching}
       >
         {searching ? (
@@ -195,6 +210,23 @@ export default function RelayConnectScreen({ onConnected }: { onConnected: (conn
         ) : (
           <Text style={[styles.buttonText, { color: accentContrast }]}>{t('relay.joinButton')}</Text>
         )}
+      </TouchableOpacity>
+
+      {/* Scanning is the point of the QR the web UI has been showing all
+          along: twelve words is exactly the input a phone keyboard is worst
+          at, and the code was scannable by nothing until now (the scanner
+          existed, wired only to the old direct-address screen). Secondary
+          styling, because typing still has to work when the other machine's
+          screen is not in front of you. */}
+      <TouchableOpacity
+        style={[styles.scanButton, { borderColor: c.border, borderRadius: radii.control }]}
+        onPress={() => {
+          setError(null);
+          setScanning(true);
+        }}
+        disabled={searching}
+      >
+        <Text style={[styles.scanButtonText, { color: c.text }]}>{t('relay.scanButton')}</Text>
       </TouchableOpacity>
 
       {error && <Text style={[styles.error, { color: c.statusFailSolid }]}>{error}</Text>}
@@ -232,6 +264,26 @@ export default function RelayConnectScreen({ onConnected }: { onConnected: (conn
           )}
         </>
       )}
+
+      {/* A scanned phrase joins straight away rather than only filling the
+          field: the code carries exactly the twelve words the button below
+          would be pressed with, and stopping to ask for one more tap after
+          somebody has already aimed a camera at it is a step with nothing in
+          it. join() reads `phrase` from state, so the scanned value is put
+          there first and passed explicitly - React has not re-rendered yet
+          at this point, and joining off the stale state would use whatever
+          was typed before the scan. */}
+      <QRScanner
+        visible={scanning}
+        hint={t('relay.qrHintPhrase')}
+        onScanned={(data) => {
+          setScanning(false);
+          const scanned = data.trim();
+          setPhrase(scanned);
+          void join(scanned);
+        }}
+        onClose={() => setScanning(false)}
+      />
     </View>
   );
 }
@@ -260,6 +312,16 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { fontSize: 16, fontWeight: '600' },
+  // Outlined rather than filled: the same height and rhythm as the join
+  // button above, but clearly the second of the two ways in, so the screen
+  // does not present two equally loud primary actions.
+  scanButton: {
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 10,
+    borderWidth: 1,
+  },
+  scanButtonText: { fontSize: 16, fontWeight: '600' },
   error: { marginTop: 12, fontSize: TYPE.body },
   sectionTitle: { fontSize: TYPE.dense, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 20 },
   list: { flexGrow: 0, marginTop: 8 },

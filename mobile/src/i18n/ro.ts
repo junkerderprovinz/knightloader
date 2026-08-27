@@ -111,6 +111,8 @@ export const ro: Dict = {
   'relay.phraseLabel': 'Frază de conectare',
   'relay.phrasePlaceholder': 'cele douăsprezece cuvinte ale instanței tale',
   'relay.joinButton': 'Conectare',
+  'relay.qrHintPhrase': 'Scanează codul QR afișat lângă frază',
+  'relay.scanButton': 'Scanează codul QR',
   'relay.saveAllButton': 'Adaugă toate cele {count}',
   'phrase.errChecksum': 'Această frază nu este validă - verifică dacă vreun cuvânt este scris greșit sau inversat.',
   'phrase.errUnknownWord': 'Cuvântul {position} („{word}”) nu se află printre cuvintele acceptate.',

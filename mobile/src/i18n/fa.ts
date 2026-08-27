@@ -111,6 +111,8 @@ export const fa: Dict = {
   'relay.phraseLabel': 'عبارت اتصال',
   'relay.phrasePlaceholder': 'دوازده واژهٔ نمونهٔ شما',
   'relay.joinButton': 'اتصال',
+  'relay.qrHintPhrase': 'کد QR کنار عبارت را پویش کنید',
+  'relay.scanButton': 'پویش کد QR',
   'relay.saveAllButton': 'افزودن هر {count}',
   'phrase.errChecksum': 'این عبارت معتبر نیست - بررسی کنید که واژه‌ای اشتباه تایپ یا جابه‌جا نشده باشد.',
   'phrase.errUnknownWord': 'واژهٔ {position} («{word}») از واژه‌های مجاز نیست.',

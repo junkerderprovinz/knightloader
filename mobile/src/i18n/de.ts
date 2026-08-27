@@ -38,6 +38,8 @@ export const de: Dict = {
   'relay.phraseLabel': 'Verbindungsphrase',
   'relay.phrasePlaceholder': 'die zwölf Wörter deiner Instanz',
   'relay.joinButton': 'Verbinden',
+  'relay.qrHintPhrase': 'Den QR-Code neben der Phrase scannen',
+  'relay.scanButton': 'QR-Code scannen',
   'relay.saveAllButton': 'Alle {count} übernehmen',
   'phrase.errChecksum': 'Diese Phrase stimmt nicht - prüfe, ob ein Wort vertippt oder vertauscht ist.',
   'phrase.errUnknownWord': 'Wort {position} ("{word}") gehört nicht zu den erlaubten Wörtern.',
