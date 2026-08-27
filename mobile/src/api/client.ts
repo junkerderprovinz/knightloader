@@ -1,5 +1,6 @@
 import { isRelayConnection, type AuthState, type Instance, type QueueState, type ServerConnection, type Task } from './types';
 import { relayClientFor } from './relayClient';
+import { fromHex } from './sha256';
 import type { InstanceAppearance } from '../theme/appearance';
 import { relayIdentity } from '../storage/relayIdentity';
 
@@ -62,9 +63,17 @@ async function httpRequest(conn: ServerConnection, path: string, init?: RequestI
 // header, because the frame is all there is - see relay.ProxyRequest.
 async function relayRequest(conn: ServerConnection, path: string, init?: RequestInit): Promise<RawResponse> {
   if (!isRelayConnection(conn)) throw new Error('relayRequest called with a direct connection');
+  // A connection saved before frames were sealed has no frame key, and there
+  // is nothing to fall back to: an unsealed frame is one every instance now
+  // ignores, so the call would time out with no reason given. Said plainly
+  // instead, once, at the only place that can tell.
+  if (!conn.relayFrameKey) {
+    throw new Error('relay: this connection predates encrypted frames - add it again with your phrase');
+  }
   const client = relayClientFor({
     url: conn.relayUrl,
     key: conn.relayKey,
+    frameKey: fromHex(conn.relayFrameKey),
     selfId: await relayIdentity(),
     selfName: 'KnightLoader app',
   });

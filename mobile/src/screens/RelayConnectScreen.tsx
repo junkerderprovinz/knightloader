@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { closeRelayClient, relayClientFor, type RelaySibling } from '../api/relayClient';
-import { DEFAULT_RELAY_URL, PhraseError, keyFromPhrase } from '../api/seedphrase';
+import { DEFAULT_RELAY_URL, PhraseError, frameKeyFromPhrase, keyFromPhrase } from '../api/seedphrase';
+import { toHex } from '../api/sha256';
 import { relayIdentity } from '../storage/relayIdentity';
 import { addConnection, listConnections, setActiveConnectionId } from '../storage/connections';
 import type { RelayConnection, ServerConnection } from '../api/types';
@@ -44,7 +45,9 @@ export default function RelayConnectScreen({ onConnected }: { onConnected: (conn
   // What the running client was opened with. State, not a ref: the instance
   // list below only renders once this is set, so the screen has to re-render
   // when it changes.
-  const [live, setLive] = useState<{ url: string; key: string } | null>(null);
+  // frameKey rides along as hex because that is the form it is saved in - see
+  // types.ts's relayFrameKey for why it is stored rather than re-derived.
+  const [live, setLive] = useState<{ url: string; key: string; frameKey: string } | null>(null);
   // The ref mirrors it purely for the unmount cleanup, which must see the
   // latest value rather than the one captured when the effect was set up.
   const liveRef = useRef<{ url: string; key: string } | null>(null);
@@ -72,8 +75,14 @@ export default function RelayConnectScreen({ onConnected }: { onConnected: (conn
   const join = async () => {
     setError(null);
     let key: string;
+    // Both keys come out of the phrase here, in the one place it exists, and
+    // the words are then gone - the frame key is carried alongside the relay
+    // key from this point on rather than re-derived, because there would be
+    // nothing left to re-derive it from. See types.ts's relayFrameKey.
+    let frameKey: Uint8Array;
     try {
       key = keyFromPhrase(phrase);
+      frameKey = frameKeyFromPhrase(phrase);
     } catch (e) {
       setError(
         e instanceof PhraseError
@@ -93,6 +102,7 @@ export default function RelayConnectScreen({ onConnected }: { onConnected: (conn
     const client = relayClientFor({
       url: DEFAULT_RELAY_URL,
       key,
+      frameKey,
       selfId: await relayIdentity(),
       selfName: 'KnightLoader app',
     });
@@ -101,7 +111,7 @@ export default function RelayConnectScreen({ onConnected }: { onConnected: (conn
     // never applied - see relayClientFor.
     unsubscribe.current = client.subscribe(() => setSibs(client.siblings()));
     liveRef.current = { url: DEFAULT_RELAY_URL, key };
-    setLive({ url: DEFAULT_RELAY_URL, key });
+    setLive({ url: DEFAULT_RELAY_URL, key, frameKey: toHex(frameKey) });
     setSibs(client.siblings());
     setTimeout(() => setSearching(false), SETTLE_MS);
   };
@@ -130,6 +140,7 @@ export default function RelayConnectScreen({ onConnected }: { onConnected: (conn
         name: s.name || s.instanceId,
         relayUrl: live.url,
         relayKey: live.key,
+        relayFrameKey: live.frameKey,
         instanceId: s.instanceId,
         // No token: being on this relay under this key IS the credential now.
         token: '',

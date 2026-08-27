@@ -18,11 +18,11 @@ package relay
 // user's phrase" should be a property of the design and not of his good
 // behaviour.
 //
-// What this does NOT provide: the relay still forwards proxy frames in the
-// clear, so it can read the traffic it routes. Fixing that needs end-to-end
-// encryption keyed on the secret, which is a separate piece of work and is
-// noted as a non-goal in the current spec. Deriving the key is what makes
-// that work possible later without changing the phrase people already hold.
+// That later work is now done: see DeriveFrameKey below and seal.go. Proxy
+// frames are sealed with a SECOND key derived from the same secret under its
+// own domain, so a relay learns the group identifier and nothing else about
+// what travels through it. Deriving the relay key separately is exactly what
+// made that possible without changing a phrase anybody already holds.
 
 import (
 	"crypto/sha256"
@@ -70,4 +70,61 @@ func DeriveKey(secret []byte) string {
 	h.Write([]byte(keyDomain))
 	h.Write(secret)
 	return hex.EncodeToString(h.Sum(nil))
+}
+
+// frameDomain is keyDomain's counterpart for the key that ENCRYPTS proxy
+// frames. Two domains over one secret, and the separation is the entire
+// point: the relay is handed DeriveKey's output in every hello frame, so a
+// frame key derived from that value - or from the same domain - would be a
+// key the relay already holds. Deriving it from the secret under a different
+// domain means the relay can hold one and never compute the other.
+const frameDomain = "knightloader/relay/frame-key/v1"
+
+// DeriveFrameKey returns the 32-byte AES-256-GCM key that seals proxy frames
+// between instances that share a connection phrase.
+//
+// Raw bytes rather than DeriveKey's hex, because nothing ever writes this one
+// down: it is derived on both ends from a secret they already share, used,
+// and dropped. It never travels, never reaches settings.json, and is never
+// shown to anybody.
+//
+// This is the key the security claim in the UI rests on. A relay operator
+// sees the group key, the target instance id, a request id, and the size and
+// timing of what passes. They do not see the method, the path, the body, or
+// the bearer token a phone attaches - and holding the group key gets them no
+// closer to this one, because SHA-256 does not run backwards.
+func DeriveFrameKey(secret []byte) []byte {
+	h := sha256.New()
+	h.Write([]byte(frameDomain))
+	h.Write(secret)
+	return h.Sum(nil)
+}
+
+// manualFrameDomain is the third domain, for the one configuration that has
+// no secret to derive from: a hand-entered relay key (AccountService),
+// predating the phrase or preferred by somebody running their own relay.
+const manualFrameDomain = "knightloader/relay/frame-key-manual/v1"
+
+// FrameKeyFromRelayKey derives a frame key for the hand-entered-key path.
+//
+// WHAT THIS IS AND IS NOT, because the difference matters and is easy to
+// overstate: the input here is the very value that travels to the relay in
+// the hello frame, so an operator who wanted to read these frames could
+// derive this key themselves. This is NOT the end-to-end guarantee
+// DeriveFrameKey provides, and no UI text claims it is - the connection-phrase
+// card is the only place that makes a claim, and the phrase path never comes
+// through here.
+//
+// It is still worth having. It seals the traffic against everything BETWEEN
+// the two instances and the relay - a reverse proxy, a TLS-terminating load
+// balancer, a captured log - and this path exists specifically for somebody
+// running the relay themselves, where operator and owner are the same person.
+// The alternative was to leave one of the two paths in the clear, which would
+// mean the protocol had two shapes and every reader had to know which one
+// they were looking at.
+func FrameKeyFromRelayKey(key string) []byte {
+	h := sha256.New()
+	h.Write([]byte(manualFrameDomain))
+	h.Write([]byte(key))
+	return h.Sum(nil)
 }

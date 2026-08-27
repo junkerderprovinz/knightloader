@@ -121,11 +121,15 @@ type Presence struct {
 	Online     bool   `json:"online"`
 }
 
-// ProxyRequest wraps one call to the target instance's own REST API, the same
-// (method, path, body) shape federation.Manager.Proxy already speaks over
-// direct HTTP. The relay is a second transport for that call, not a second
-// API - it reads Target and RequestID to route the frame and forwards the
-// rest untouched.
+// ProxyRequest is the WIRE form of one call to a sibling: the two fields the
+// relay routes on, and a sealed blob holding everything else.
+//
+// The split is the whole security model of this channel. A relay needs to
+// know which connection a frame is for and which answer it belongs to; it has
+// never needed to know what was being asked. Everything it does not need is
+// in Sealed, encrypted under a key derived from the connection secret
+// (DeriveFrameKey) which the relay does not have - see ProxyCall for what
+// that covers and seal.go for how.
 type ProxyRequest struct {
 	// RequestID is chosen by the caller and matches the response back to it.
 	// The relay holds it only until the answer comes back.
@@ -135,6 +139,21 @@ type ProxyRequest struct {
 	// silently dropped, so a caller never waits out its own timeout for a
 	// peer that simply is not connected.
 	Target string `json:"target"`
+	// Sealed is a ProxyCall, JSON-encoded and then sealed under the frame key
+	// with RequestID and Target as additional data - so a relay cannot
+	// redirect a sealed call to a different instance and have it open.
+	Sealed []byte `json:"sealed,omitempty"`
+}
+
+// ProxyCall is what a ProxyRequest actually asks, once opened: the same
+// (method, path, body) shape federation.Manager.Proxy already speaks over
+// direct HTTP. The relay is a second transport for that call, not a second
+// API.
+//
+// This type never travels as itself. It is sealed into ProxyRequest.Sealed on
+// the way out and opened on the way in, so the only processes that ever see
+// these fields are the two instances that share the secret.
+type ProxyCall struct {
 	Method string `json:"method"`
 	Path   string `json:"path"`
 	Body   []byte `json:"body,omitempty"`
@@ -158,33 +177,110 @@ type ProxyRequest struct {
 	// target replays these calls against its real handler, so a map would let
 	// a caller set Host, X-Forwarded-For or a cookie and have the target
 	// believe them. One field that can only ever be one header cannot be
-	// turned into that. Optional in the JSON, so an older relay or an older
-	// target simply drops it and the call arrives unauthenticated - the exact
-	// behaviour of every relay call before this field existed.
+	// turned into that.
 	//
-	// WHAT THIS COSTS, stated plainly: the relay forwards frames without
-	// encrypting them, so a relay OPERATOR can read whatever travels through
-	// theirs - and this field is the first thing on this channel that is a
-	// reusable credential rather than data. The relay could already see every
-	// path and body (a task list, the links being added); a token is worse
-	// because it keeps working afterwards. That is tolerable because this
-	// project ships a relay people run THEMSELVES, so operator and owner are
-	// normally the same person - but pointing a phone at somebody else's
-	// relay means handing that somebody a token, and it should be a named,
-	// revocable one (internal/apitoken) rather than the account password.
+	// This field is why the sealing above was worth building. It is the one
+	// thing on this channel that is a reusable credential rather than data:
+	// a relay operator reading a task list learns what somebody downloaded,
+	// while a relay operator reading a token can keep using it afterwards.
+	// It is now inside the sealed blob like everything else, so pointing a
+	// phone at somebody else's relay no longer means handing that somebody a
+	// token. It should still be a named, revocable one (internal/apitoken)
+	// rather than the account password - a credential you can withdraw is
+	// worth having whether or not anybody can currently read it.
 	Authorization string `json:"authorization,omitempty"`
 }
 
-// ProxyResponse is the answer to exactly one ProxyRequest.
+// ProxyResponse is the WIRE form of the answer to exactly one ProxyRequest.
 type ProxyResponse struct {
 	RequestID string `json:"requestId"`
-	Status    int    `json:"status"`
-	Body      []byte `json:"body,omitempty"`
-	// Error is set only when the relay itself answers instead of the target
-	// (nobody is connected under that ID). A response the target produced
-	// leaves it empty, however bad its status code is: a 500 from the peer
-	// and "there is no peer" are different failures to the caller.
+	// Sealed is a ProxyResult, sealed under the frame key with RequestID as
+	// additional data. Empty when Error is set - see below.
+	Sealed []byte `json:"sealed,omitempty"`
+	// Error is set only when the RELAY itself answers instead of the target
+	// (nobody is connected under that ID, or the sender is over its pending
+	// budget). A response the target produced leaves it empty, however bad
+	// its status code is: a 500 from the peer and "there is no peer" are
+	// different failures to the caller.
+	//
+	// This one field stays in the clear, and it has to: the relay writes it,
+	// and the relay has no key. What that costs is bounded and worth stating
+	// - a hostile relay can fabricate "nobody is there" for a peer that is,
+	// which is a denial of service it could equally perform by dropping the
+	// frame. It cannot fabricate an ANSWER, because a response with no Sealed
+	// blob is never mistaken for one: see Client.Proxy, which reads Error
+	// first and never treats an unsealed response as a result.
 	Error string `json:"error,omitempty"`
+}
+
+// ProxyResult is what a ProxyResponse actually answers, once opened.
+type ProxyResult struct {
+	Status int    `json:"status"`
+	Body   []byte `json:"body,omitempty"`
+}
+
+// requestAAD and responseAAD are the additional data each direction binds its
+// sealed blob to: the routing fields that necessarily travel in the clear.
+//
+// Both ends compute these from the fields they can see, so a relay that
+// rewrites one of them produces a frame that fails its tag instead of one
+// that opens into something believable. The separator cannot occur in an
+// instance id (federation's own name validation) and the label differs per
+// direction, so a request's blob can never be replayed as a response.
+func requestAAD(requestID, target string) string {
+	return "proxy-request\x00" + requestID + "\x00" + target
+}
+
+func responseAAD(requestID string) string {
+	return "proxy-response\x00" + requestID
+}
+
+// SealCall seals one call for the wire. Exported because the mobile companion
+// app's own protocol tests check their TypeScript port against it.
+func SealCall(key []byte, requestID, target string, call ProxyCall) ([]byte, error) {
+	plain, err := json.Marshal(call)
+	if err != nil {
+		return nil, err
+	}
+	return seal(key, requestAAD(requestID, target), plain)
+}
+
+// OpenCall reverses SealCall.
+func OpenCall(key []byte, requestID, target string, sealed []byte) (ProxyCall, error) {
+	plain, err := open(key, requestAAD(requestID, target), sealed)
+	if err != nil {
+		return ProxyCall{}, err
+	}
+	var call ProxyCall
+	if err := json.Unmarshal(plain, &call); err != nil {
+		// An opened-but-unparseable blob means the key was right and the
+		// content was not - which no honest sender produces. Reported as the
+		// same ErrSealed, because the caller's move is identical.
+		return ProxyCall{}, ErrSealed
+	}
+	return call, nil
+}
+
+// SealResult seals one answer for the wire.
+func SealResult(key []byte, requestID string, result ProxyResult) ([]byte, error) {
+	plain, err := json.Marshal(result)
+	if err != nil {
+		return nil, err
+	}
+	return seal(key, responseAAD(requestID), plain)
+}
+
+// OpenResult reverses SealResult.
+func OpenResult(key []byte, requestID string, sealed []byte) (ProxyResult, error) {
+	plain, err := open(key, responseAAD(requestID), sealed)
+	if err != nil {
+		return ProxyResult{}, err
+	}
+	var res ProxyResult
+	if err := json.Unmarshal(plain, &res); err != nil {
+		return ProxyResult{}, ErrSealed
+	}
+	return res, nil
 }
 
 // Encode marshals one frame ready to be written to the socket.

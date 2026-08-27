@@ -375,18 +375,21 @@ func (s *Server) routeRequest(c Conn, req ProxyRequest, frame []byte) {
 	}
 	sweepPendingLocked(keyPending)
 
+	// Both refusals carry Error and no sealed blob, which is all a relay can
+	// write: proxy payloads are sealed under a key derived from the group's
+	// own secret (see key.go), and the relay holds no part of it. That is the
+	// intended shape, not a limitation worked around - a relay that could
+	// author an answer would be a relay worth not trusting.
 	var refusal *ProxyResponse
 	switch {
 	case target == nil:
 		refusal = &ProxyResponse{
 			RequestID: req.RequestID,
-			Status:    http.StatusBadGateway,
 			Error:     "no instance " + req.Target + " is connected with this relay key",
 		}
 	case inFlightFromLocked(keyPending, c) >= maxPendingPerSender:
 		refusal = &ProxyResponse{
 			RequestID: req.RequestID,
-			Status:    http.StatusTooManyRequests,
 			Error:     "too many requests from this instance are still waiting on an answer",
 		}
 	default:
@@ -488,7 +491,6 @@ func (s *Server) failPending(failures []pendingFailure, reason string) {
 		}
 		s.enqueue(from, frameOf(TypeProxyResponse, ProxyResponse{
 			RequestID: f.requestID,
-			Status:    http.StatusBadGateway,
 			Error:     reason,
 		}))
 	}

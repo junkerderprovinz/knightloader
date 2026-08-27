@@ -97,6 +97,22 @@ export function toHex(b: Uint8Array): string {
   return s;
 }
 
+/**
+ * fromHex reverses toHex, for the frame key a saved relay connection stores
+ * as hex (types.ts's relayFrameKey).
+ *
+ * Anything that is not an even run of hex digits returns empty rather than a
+ * half-decoded key: a short key is rejected outright by the seal, which is a
+ * clear failure, while a silently truncated one would be a valid-looking key
+ * that simply never opens anything.
+ */
+export function fromHex(s: string): Uint8Array {
+  if (s.length % 2 !== 0 || !/^[0-9a-fA-F]*$/.test(s)) return new Uint8Array(0);
+  const out = new Uint8Array(s.length / 2);
+  for (let i = 0; i < out.length; i++) out[i] = parseInt(s.slice(i * 2, i * 2 + 2), 16);
+  return out;
+}
+
 /** utf8 encodes a string as bytes, for the one ASCII domain string hashed here. */
 export function utf8(s: string): Uint8Array {
   const out = new Uint8Array(s.length * 4);
