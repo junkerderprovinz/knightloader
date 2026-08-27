@@ -30,6 +30,7 @@ import {
   fetchConnect,
   fetchDeploymentInfo,
   fetchInstances,
+  PhraseRejected,
   joinConnect,
   leaveConnect,
   revealConnect,
@@ -700,7 +701,20 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
       setJoinInput('');
       setJoinOpen(false);
     } catch (e) {
-      setPhraseErr(e instanceof Error ? e.message : String(e));
+      // A rejected phrase comes back as a reason plus its specifics, never
+      // as a sentence: the server cannot know which language to write in.
+      // Everything else here is already a message.
+      if (e instanceof PhraseRejected) {
+        setPhraseErr(
+          e.reason === 'unknown_word'
+            ? t('settings.access.phrase.errUnknownWord', { position: e.position, word: e.word })
+            : e.reason === 'word_count'
+              ? t('settings.access.phrase.errWordCount', { count: e.count, need: 12 })
+              : t('settings.access.phrase.errChecksum'),
+        );
+      } else {
+        setPhraseErr(e instanceof Error ? e.message : String(e));
+      }
     } finally {
       setPhraseBusy(false);
     }
@@ -1176,11 +1190,23 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
 
       {/* Tailscale, below the phrase and clearly its own thing: it answers
           a different question (a public address a browser can open) rather
-          than being an alternative to the phrase above. */}
+          than being an alternative to the phrase above.
+
+          A SUBDUED heading, not a second SectionTitle badge. Two filled
+          badges in one card read as two cards glued together - which is the
+          complaint that merged them in the first place - and SectionTitle's
+          badge is absolutely positioned to straddle the CARD's edge, so a
+          second one lands on top of the first anyway. This is the same
+          treatment the nested "connect without Tailscale" disclosure below
+          already uses, which is what makes the hierarchy read: the phrase is
+          the card, these are ways of doing it. */}
       <div className="flex flex-col gap-4 border-t border-carbon-border/40 pt-4">
-      <SectionTitle hue={2} hint={t('settings.access.tsnet.body')}>
-        {t('settings.access.tsnet.title')}
-      </SectionTitle>
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-semibold text-carbon-textSub">
+          {t('settings.access.tsnet.title')}
+        </span>
+        <InfoBubble tip={t('settings.access.tsnet.body')} />
+      </div>
 
       {tsInfo.status === 'off' && (
         <div className="flex flex-col gap-3">

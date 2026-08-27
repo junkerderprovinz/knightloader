@@ -109,20 +109,76 @@ func TestJoinAcceptsAPhraseFromElsewhere(t *testing.T) {
 	}
 }
 
-// A mistyped phrase must come back with the package's own message, which
-// names the offending word - the caller shows it verbatim.
+// A mistyped phrase must come back as a REASON plus its specifics, not as a
+// sentence. Whoever mistyped the word is reading a UI in their own language
+// and a sentence written in Go can only be in one, so the browser writes the
+// message and this only has to say precisely what was wrong.
 func TestJoinRejectsABadPhraseAndSaysWhy(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
 
-	code, body := postJSON(t, http.MethodPost, srv.URL+"/api/connect/join", map[string]string{
-		"phrase": "abandon abandon abandon abandon abandon abandon recieve abandon abandon abandon abandon about",
-	})
-	if code != http.StatusBadRequest {
-		t.Fatalf("join answered %d, want %d", code, http.StatusBadRequest)
-	}
-	if !strings.Contains(string(body), "recieve") {
-		t.Errorf("the error does not name the offending word: %s", body)
+	const valid = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+	for _, tc := range []struct {
+		name     string
+		phrase   string
+		reason   string
+		word     string
+		position int
+		count    int
+	}{
+		{
+			name:     "a word that is not on the list",
+			phrase:   "abandon abandon abandon abandon abandon abandon recieve abandon abandon abandon abandon about",
+			reason:   "unknown_word",
+			word:     "recieve",
+			position: 7,
+		},
+		{
+			// Every word real, the phrase not: what the checksum is for.
+			name:   "two words swapped",
+			phrase: "about abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon",
+			reason: "checksum",
+		},
+		{
+			name:   "one word short",
+			phrase: strings.Join(strings.Fields(valid)[:11], " "),
+			reason: "word_count",
+			count:  11,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			code, body := postJSON(t, http.MethodPost, srv.URL+"/api/connect/join", map[string]string{"phrase": tc.phrase})
+			if code != http.StatusBadRequest {
+				t.Fatalf("join answered %d, want %d: %s", code, http.StatusBadRequest, body)
+			}
+			var out struct {
+				Error    string `json:"error"`
+				Reason   string `json:"reason"`
+				Word     string `json:"word"`
+				Position int    `json:"position"`
+				Count    int    `json:"count"`
+			}
+			if err := json.Unmarshal(body, &out); err != nil {
+				t.Fatalf("the rejection is not JSON, so the browser cannot translate it: %v (%s)", err, body)
+			}
+			if out.Reason != tc.reason {
+				t.Errorf("reason = %q, want %q", out.Reason, tc.reason)
+			}
+			if out.Word != tc.word {
+				t.Errorf("word = %q, want %q", out.Word, tc.word)
+			}
+			if out.Position != tc.position {
+				t.Errorf("position = %d, want %d", out.Position, tc.position)
+			}
+			if out.Count != tc.count {
+				t.Errorf("count = %d, want %d", out.Count, tc.count)
+			}
+			// The English sentence rides along for logs and for anything
+			// reading the body as text; it must not be the only thing there.
+			if out.Error == "" {
+				t.Error("no error text alongside the reason")
+			}
+		})
 	}
 }
 

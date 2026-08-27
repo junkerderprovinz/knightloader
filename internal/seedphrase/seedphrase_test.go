@@ -80,26 +80,46 @@ func TestKnownVector(t *testing.T) {
 
 // A mistyped word that happens to land on another real word is the failure
 // the checksum exists for: every word is valid, the phrase is not.
+//
+// Four checksum bits catch fifteen of every sixteen such substitutions, not
+// all of them - so this walks EVERY alternative first word against one fixed
+// phrase instead of trying one substitution against a random phrase. Same
+// property, no coin flip. The version this replaces did the latter and duly
+// failed about one run in sixteen; it was caught by an unlucky run rather
+// than by reading it, which is the whole argument for not writing a
+// probabilistic assertion in the first place.
 func TestChecksumCatchesASwappedWord(t *testing.T) {
-	_, phrase, err := New()
+	// The all-zero secret, so the phrase under test never changes.
+	phrase, err := Encode(make([]byte, SecretLen))
 	if err != nil {
 		t.Fatal(err)
 	}
 	got := strings.Fields(phrase)
-	// Replace the first word with a different real word, keeping length and
-	// validity so only the checksum can object.
-	replacement := "zebra"
-	if got[0] == replacement {
-		replacement = "zoo"
-	}
-	got[0] = replacement
 
-	_, err = Decode(strings.Join(got, " "))
-	if err == nil {
-		t.Fatal("Decode accepted a phrase with a substituted word")
+	slipped := 0
+	for _, w := range words {
+		if w == got[0] {
+			continue
+		}
+		try := append([]string{w}, got[1:]...)
+		_, err := Decode(strings.Join(try, " "))
+		if err == nil {
+			slipped++
+			continue
+		}
+		if !errors.Is(err, ErrChecksum) {
+			t.Fatalf("substituting %q: Decode error = %v, want ErrChecksum", w, err)
+		}
 	}
-	if !errors.Is(err, ErrChecksum) {
-		t.Fatalf("Decode error = %v, want ErrChecksum", err)
+
+	// 2047 alternatives, four checksum bits: about one in sixteen survives by
+	// chance and there is nothing wrong with that. The band is wide because
+	// the exact figure is an accident of one phrase; what it has to catch is
+	// a checksum that stopped being applied (2047 would slip) or one that
+	// rejects everything (0 would slip).
+	const expect = 2047 / 16
+	if slipped < expect-40 || slipped > expect+40 {
+		t.Fatalf("%d of 2047 substitutions went undetected, expected about %d", slipped, expect)
 	}
 }
 

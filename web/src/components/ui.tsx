@@ -1102,6 +1102,14 @@ export function ErrorCard({
 // anchors to the CARD's own box, not wherever it would otherwise fall in
 // normal flow.
 //
+// Which means: the badge anchors to the NEAREST positioned ancestor, and a
+// Card is the nearest one by default. A second SectionTitle in the same Card
+// therefore lands on top of the first - same corner, same offset, the earlier
+// one painted over and gone. Where a card is genuinely divided into titled
+// sections, give each section's own wrapper `relative`; the badge then
+// straddles that section's divider the way a card's badge straddles the card
+// edge. Access.tsx's remote-access card is the worked example.
+//
 // `hint` renders INSIDE the filled badge itself (a child of the same
 // span), not as a sibling beside it - confirmed from the live container's
 // own DOM, and matching jdp's own words two rounds ago ("die infobubble
