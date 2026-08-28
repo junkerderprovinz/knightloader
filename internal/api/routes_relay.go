@@ -377,13 +377,28 @@ func relayForwardable(method, path string) bool {
 		strings.HasPrefix(rest, "tasks/") || strings.HasPrefix(rest, "queue/") {
 		return true
 	}
-	// Read-only, and each for a reason the phone app would otherwise have to
-	// do without: "did I reach something, and does it want a password",
-	// "which instances are in this group", and the seven cosmetic fields that
-	// let the app wear the instance's own accent. /api/appearance exists
-	// precisely so this last one is not a licence to read /api/settings.
+	// Read-only, and each for a reason a companion would otherwise have to do
+	// without: "did I reach something, and does it want a password", "which
+	// instances are in this group", the seven cosmetic fields that let a
+	// companion wear the instance's own accent, and the addresses this
+	// instance answers on. /api/appearance exists precisely so the third one
+	// is not a licence to read /api/settings.
+	//
+	// remote-access is the newest and the one worth justifying. The browser
+	// extension holds no addresses at all any more - the phrase replaced them
+	// - which also left it unable to offer "open this instance's interface",
+	// because it had no URL to open. Asking the instance itself is the answer
+	// that keeps the property that made the phrase model worth having: it
+	// travels inside the encrypted frame, so the RELAY still never learns
+	// where anybody's instance lives. The alternative, putting an address in
+	// the announce, would have handed exactly that to the relay operator.
+	//
+	// What it discloses is bounded by who can ask: holding the phrase already
+	// means being able to drive this instance's queue and read its task list.
+	// Somebody with that is not learning anything new from the address of a
+	// thing they are already operating.
 	if method == http.MethodGet {
-		return rest == "auth" || rest == "instances" || rest == "appearance"
+		return rest == "auth" || rest == "instances" || rest == "appearance" || rest == "remote-access"
 	}
 	return false
 }

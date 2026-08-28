@@ -54,6 +54,12 @@ let chosen = null;
 
 /** The same card the popup and the options page draw — see shared.js. */
 function render() {
+  // This window's own equal-member set: the heading and the two actions. The
+  // cards below carry their own run, which is why they are not in this list.
+  // Without it the rainbow was on and this window stayed gold throughout (jdp,
+  // 2026-08-29: "der Regenbogenmodus funktioniert erweiterungs-weit nicht
+  // überall").
+  setHues([headingEl, sendBtn, cancelBtn]);
   choicesEl.innerHTML = '';
   siblings.forEach((inst, i) => {
     choicesEl.appendChild(

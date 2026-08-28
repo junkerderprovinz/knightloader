@@ -16,6 +16,7 @@ import (
 	"net/http"
 	neturl "net/url"
 	"sort"
+	"strconv"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
@@ -204,7 +205,22 @@ func remoteAddresses(r *http.Request, known []string) []ReachableAddress {
 			add("known", u.Scheme, u.Host, isLoopbackHost(u.Host))
 		}
 	}
-	if port := portOf(r.Host); port != "" {
+	// The port normally comes off the request that is asking. A call arriving
+	// through the RELAY has no Host at all - it is built from a method and a
+	// path (routes_relay.go), because there is no HTTP connection behind it -
+	// so without a fallback this whole block was skipped and a relayed caller
+	// got back either a remembered domain or nothing.
+	//
+	// buildinfo.ListenPort exists for exactly this shape of question, and says
+	// so in its own doc comment: internal/discovery has to name a reachable
+	// address before any request has ever arrived. This is the same case one
+	// step later, and it is what lets the browser extension offer "open this
+	// instance" for a plain LAN container that no domain points at.
+	port := portOf(r.Host)
+	if port == "" && buildinfo.ListenPort > 0 {
+		port = strconv.Itoa(buildinfo.ListenPort)
+	}
+	if port != "" {
 		for _, ip := range localIPv4s() {
 			add(ip, scheme, ip+":"+port, false)
 		}

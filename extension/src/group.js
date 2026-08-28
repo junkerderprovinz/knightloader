@@ -127,6 +127,72 @@ async function groupInstances() {
   return withGroup(async ({ siblings }) => siblings);
 }
 
+/**
+ * groupStatus is the group plus what each instance is currently doing.
+ *
+ * One relay session for the lot, and every instance asked in parallel: three
+ * small reads each, all of them on the list a group member may reach
+ * (relayForwardable in internal/api/routes_relay.go). An instance that does
+ * not answer comes back as `status: null` rather than as a missing field, so
+ * the card can say "offline" instead of quietly showing nothing.
+ *
+ * The web address is asked for rather than announced, and that is the whole
+ * point: an address in the announce frame would be readable by the RELAY,
+ * which is the one thing this design keeps out of everyone's business. A
+ * proxied call travels inside the encrypted frame.
+ */
+async function groupStatus() {
+  return withGroup(async ({ siblings, call }) => {
+    const read = async (id, path) => {
+      const res = await call(id, 'GET', path).catch(() => null);
+      if (!res || res.status < 200 || res.status >= 300) return null;
+      try {
+        return JSON.parse(res.body);
+      } catch {
+        return null;
+      }
+    };
+    return Promise.all(
+      siblings.map(async (s) => {
+        const [queue, counters, remote] = await Promise.all([
+          read(s.instanceId, '/api/queue'),
+          read(s.instanceId, '/api/queue/counters'),
+          read(s.instanceId, '/api/remote-access'),
+        ]);
+        // Nothing answered at all: the instance is in the roster (the relay
+        // has a live socket for it) but is not serving. Distinct from "it
+        // answered and has nothing to do".
+        if (!queue && !counters) return { ...s, status: null };
+        return { ...s, status: { queue, counters, webUrl: bestWebUrl(remote) } };
+      }),
+    );
+  });
+}
+
+/**
+ * bestWebUrl picks the address most likely to work from THIS browser, out of
+ * the list an instance reports.
+ *
+ * A loopback address is dropped outright: 127.0.0.1 on the instance is this
+ * machine here, and offering it would open the wrong thing or nothing at all.
+ * A remembered domain beats a bare IP, because a domain is what somebody
+ * deliberately set up to reach the instance from outside.
+ */
+function bestWebUrl(remote) {
+  const list = Array.isArray(remote?.addresses) ? remote.addresses : [];
+  const usable = list.filter((a) => a && a.url && !a.loopback);
+  const domain = usable.find((a) => a.domain);
+  return (domain ?? usable[0])?.url ?? '';
+}
+
+/** Halt or release one instance's queue, through the relay. */
+async function setQueueHalted(instanceId, halted) {
+  return withGroup(async ({ call }) => {
+    const res = await call(instanceId, 'POST', '/api/queue', JSON.stringify({ halted }));
+    return !!res && res.status >= 200 && res.status < 300;
+  });
+}
+
 /** What one instance is called in a list. Falls back to the id's first octets
  *  so an instance that never set a name is still distinguishable from another
  *  that never set one either. */

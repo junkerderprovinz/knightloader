@@ -28,10 +28,25 @@ let activeTab = null;
 let group = [];
 let chosen = null;
 
+/**
+ * This window's own equal-member set: the header block (mark, name and the
+ * gear badge inside it) and the send button. The instance cards carry their
+ * own run, which is why they are not in this list.
+ *
+ * Called on every render AND once at startup, because a popup that never
+ * reaches a group still has a header and a button, and they should wear the
+ * mode too (jdp, 2026-08-29: "der Regenbogenmodus funktioniert erweiterungs-weit
+ * nicht überall").
+ */
+function paintHues() {
+  setHues([document.querySelector('.header'), sendBtn]);
+}
+
 (async () => {
   // Before anything is drawn: the look goes on <html> first, so no page is
   // ever painted in one look and repainted in another.
   await applyAppearance();
+  paintHues();
   await loadLanguage();
   wireTooltips();
   openOptionsBtn.setAttribute('aria-label', t('common.settings'));
@@ -88,6 +103,7 @@ let chosen = null;
  * popup that tells you least when you know least.
  */
 async function renderTargets() {
+  paintHues();
   const preferred = defaultOf(group, await readDefaultTarget());
   if (!chosen) chosen = preferred;
   instanceRow.hidden = false;

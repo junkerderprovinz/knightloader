@@ -212,7 +212,11 @@ async function renderGroup() {
 
   let siblings;
   try {
-    siblings = await groupInstances();
+    // The status version: the roster plus what each instance is doing, in one
+    // relay session (jdp, 2026-08-29: "können wir auf der card sinnvolle infos
+    // anzeigen?"). The popup deliberately still uses the plain roster - it has
+    // one job and should not wait on three reads per instance to do it.
+    siblings = await groupStatus();
   } catch {
     loading.textContent = t('options.groupUnreachable');
     return;
@@ -238,6 +242,7 @@ async function renderGroup() {
       instanceCard(inst, {
         index: i,
         isDefault: inst.instanceId === preferred,
+        status: inst.status,
         onSetDefault: async (picked) => {
           await writeDefaultTarget(picked.instanceId);
           await renderGroup();
@@ -245,6 +250,24 @@ async function renderGroup() {
           // the moment that changes - and a report that says "none" under a
           // card wearing the badge is worse than no report.
           void renderReport();
+        },
+        onQueue: async (picked, halted) => {
+          const ok = await setQueueHalted(picked.instanceId, halted).catch(() => false);
+          if (!ok) {
+            // The same sentence the adopt-the-look switch uses when an
+            // instance stays silent, because it is the same fact. A second,
+            // freshly written way of saying "it did not answer" would be a
+            // 42-language translation for no new information.
+            say(t('options.followFailed'), false);
+            return;
+          }
+          // Re-read rather than assume: the instance decides what its queue
+          // does, and a card that shows what we asked for instead of what
+          // happened is a card that lies on the one occasion it matters.
+          await renderGroup();
+        },
+        onOpen: (picked, url) => {
+          if (url) void chrome.tabs.create({ url });
         },
       }),
     );
@@ -417,12 +440,20 @@ followInstanceEl.addEventListener('click', async () => {
   const on = followInstanceEl.getAttribute('aria-checked') !== 'true';
   if (on) {
     followInstanceEl.setAttribute('aria-checked', 'true');
+    // Snapshot BEFORE adopting, so switching back off can put things where
+    // they were (jdp, 2026-08-29: "wenn ich den toggle aktiviere und
+    // deaktiviere ... die optionen resetten sich nicht"). Adopting overwrote
+    // the local look and there was nothing left to go back to: the switch was
+    // one-way in everything but appearance.
+    await stashLocalLook();
     const ok = await adoptFromInstance().catch(() => false);
     if (!ok) {
       followInstanceEl.setAttribute('aria-checked', 'false');
       say(t('options.followFailed'), false);
       return;
     }
+  } else {
+    await restoreLocalLook();
   }
   await writeAppearance({ followInstance: on });
   const next = await readAppearance();
@@ -431,6 +462,38 @@ followInstanceEl.addEventListener('click', async () => {
   applyRainbow(next.rainbow);
   await renderAppearance();
 });
+
+/** The six fields the instance is allowed to overwrite. Theme is not among
+ *  them and never was — see adoptFromInstance. */
+const ADOPTED_KEYS = ['accent', 'shape', 'rainbow', 'rainbowReactive', 'rainbowRotate', 'rainbowSeed', 'rainbowPalette'];
+
+async function stashLocalLook() {
+  const mine = await chrome.storage.local.get(ADOPTED_KEYS);
+  await chrome.storage.local.set({ lookBeforeFollow: mine });
+}
+
+/**
+ * restoreLocalLook puts back what was there before the instance's look was
+ * adopted, and then forgets the snapshot.
+ *
+ * A key that was ABSENT before has to be removed rather than written back as
+ * undefined: chrome.storage stores undefined as a value, and readAppearance
+ * would then see a present-but-meaningless field instead of falling through to
+ * its default.
+ */
+async function restoreLocalLook() {
+  const { lookBeforeFollow } = await chrome.storage.local.get('lookBeforeFollow');
+  if (!lookBeforeFollow) return;
+  const put = {};
+  const drop = [];
+  for (const k of ADOPTED_KEYS) {
+    if (k in lookBeforeFollow) put[k] = lookBeforeFollow[k];
+    else drop.push(k);
+  }
+  if (drop.length) await chrome.storage.local.remove(drop);
+  if (Object.keys(put).length) await chrome.storage.local.set(put);
+  await chrome.storage.local.remove('lookBeforeFollow');
+}
 
 const themeSeg = document.getElementById('themeSeg');
 const shapeSeg = document.getElementById('shapeSeg');
@@ -452,11 +515,14 @@ const accentNow = document.getElementById('accentNow');
  * which colour each position resolves to.
  */
 function paintHues() {
-  const badges = [...document.querySelectorAll('.glim-section-badge')];
-  badges.forEach((el, i) => setHue(el, i));
+  // The CARD, not its badge. Everything inside a card that reaches for
+  // --accent — the badge, the switch track, the buttons, the focus ring — then
+  // follows the card's position without anybody keeping a list of them.
+  setHues([...document.querySelectorAll('.glim-card')]);
   // Their own sequence, restarting at 0: this set of three rows is its own
-  // equal-member set, exactly as the web UI's Look page treats it.
-  [rainbowRow, rainbowReactiveRow, rainbowRotateRow].forEach((el, i) => setHue(el, i));
+  // equal-member set, exactly as the web UI's Look page treats it, and a
+  // nested position overrides the card's for its own subtree.
+  setHues([rainbowRow, rainbowReactiveRow, rainbowRotateRow]);
 }
 
 /**
@@ -612,13 +678,10 @@ async function renderAppearance() {
   rainbowOnEl.setAttribute('aria-checked', String(a.rainbow.on));
   rainbowReactiveEl.setAttribute('aria-checked', String(a.rainbow.reactive));
   rainbowRotateEl.setAttribute('aria-checked', String(a.rainbow.rotate));
-  // Reactive, rotation and the palette only mean anything while the mode is on.
-  // Dimmed rather than hidden: a control that disappears never teaches anyone
-  // what the mode does.
-  for (const el of [rainbowReactiveRow, rainbowRotateRow, paletteRow]) {
-    el.style.opacity = a.rainbow.on ? '1' : '.5';
-    el.style.pointerEvents = a.rainbow.on ? '' : 'none';
-  }
+  // Reactive, rotation and the palette only mean anything while the mode is on;
+  // the dimming for that, and for the follow switch, is applied together at the
+  // end of this function, because two loops setting the same property in turn
+  // is how the second one silently wins.
 
   paletteSwatches.innerHTML = '';
   a.rainbow.palette.forEach((hex, i) => {
@@ -661,9 +724,23 @@ async function renderAppearance() {
   // is on — an accent you can click that snaps back on the next refresh is
   // worse than one you cannot click. Theme is not in the list: it stays local
   // on purpose (see adoptFromInstance).
-  for (const el of [accentSwatches, accentNow, shapeSeg, rainbowRow, rainbowReactiveRow, rainbowRotateRow, paletteRow]) {
-    el.style.pointerEvents = a.followInstance ? 'none' : el.style.pointerEvents || '';
-    el.style.opacity = a.followInstance ? '.5' : el.style.opacity || '';
+  //
+  // The unlock used to read `el.style.pointerEvents || ''`, which is the bug
+  // jdp hit (2026-08-29: "bleiben viele Einstellungen gesperrt"): that reads
+  // back the 'none' this very loop wrote a moment ago and hands it straight to
+  // itself again, so the lock could be set and never cleared. A fallback that
+  // consults the value you are trying to clear is not a fallback.
+  //
+  // The rainbow sub-rows have a second reason to be dimmed - the mode being
+  // off - so they are restored to what that decided, not to blank.
+  const rainbowOff = a.rainbow.on ? '' : '.5';
+  for (const el of [accentSwatches, accentNow, shapeSeg, rainbowRow]) {
+    el.style.pointerEvents = a.followInstance ? 'none' : '';
+    el.style.opacity = a.followInstance ? '.5' : '';
+  }
+  for (const el of [rainbowReactiveRow, rainbowRotateRow, paletteRow]) {
+    el.style.pointerEvents = a.followInstance || !a.rainbow.on ? 'none' : '';
+    el.style.opacity = a.followInstance ? '.5' : rainbowOff;
   }
 
   // The hues last, because rotating or editing the palette changes what every
