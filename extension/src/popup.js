@@ -27,6 +27,10 @@ openOptionsBtn.addEventListener('click', () => chrome.runtime.openOptionsPage())
 let activeTab = null;
 let group = [];
 let chosen = null;
+/** A payload the service worker parked for this window: a Click'n'Load batch,
+ *  or a right-clicked link that needed a choice. Null on an ordinary click on
+ *  the toolbar button. */
+let pending = null;
 
 /**
  * This window's own equal-member set: the header block (mark, name and the
@@ -54,6 +58,34 @@ function paintHues() {
   instanceLabelEl.textContent = t('popup.sendToLabel');
   sendBtn.textContent = t('popup.send');
   targetEl.textContent = t('popup.loading');
+
+  // A send that is already waiting takes precedence over the current tab. This
+  // is how a Click'n'Load button or a right-click reaches a choice now: the
+  // service worker parks the payload and opens THIS window, rather than
+  // creating a second window with its own title bar and taskbar entry (jdp,
+  // 2026-08-29: "es soll sich das popupfenster der erweiterung öffnen").
+  //
+  // Read-once, exactly as picker.html does it: a stale entry from a popup
+  // somebody closed without choosing must never resurface and send the wrong
+  // links on the next toolbar click.
+  const { pendingSend } = await chrome.storage.session.get('pendingSend');
+  await chrome.storage.session.remove('pendingSend');
+  pending = pendingSend ?? null;
+
+  if (pending) {
+    // The roster came WITH the payload - the service worker had just listed
+    // the group to decide whether a choice was needed at all, and asking again
+    // here would be a second chance to get a different answer.
+    group = pending.siblings ?? [];
+    targetEl.textContent = pending.payload?.title || pending.payload?.url || pending.payload?.text || t('picker.untitled');
+    if (group.length === 0) {
+      statusEl.textContent = t('popup.noneOnline');
+      return;
+    }
+    await renderTargets(pending.defaultName);
+    void loadStatus();
+    return;
+  }
 
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   activeTab = tab;
@@ -135,9 +167,9 @@ async function loadStatus() {
  * about to go, and a popup that hides that until there is a choice to make is a
  * popup that tells you least when you know least.
  */
-async function renderTargets() {
+async function renderTargets(preferredFromPending) {
   paintHues();
-  const preferred = defaultOf(group, await readDefaultTarget());
+  const preferred = defaultOf(group, preferredFromPending ?? (await readDefaultTarget()));
   if (!chosen) chosen = preferred;
   instanceRow.hidden = false;
   instanceList.innerHTML = '';
@@ -170,16 +202,15 @@ async function renderTargets() {
 }
 
 sendBtn.addEventListener('click', async () => {
-  if (!activeTab?.url || !chosen) return;
+  // Either a payload the service worker parked here, or the tab this window
+  // opened over. Never both, and never neither.
+  const payload = pending ? pending.payload : activeTab?.url ? { url: activeTab.url, title: activeTab.title } : null;
+  if (!payload || !chosen) return;
   sendBtn.disabled = true;
   // No "sending…" line (jdp: "der Text 'Wird gesendet' kann weg"). This window
   // closes on the next line, so the sentence would flash for a frame and then
   // be gone — and the toolbar badge is what actually reports the outcome.
-  chrome.runtime.sendMessage({
-    type: 'knightloader-send-to',
-    target: chosen,
-    payload: { url: activeTab.url, title: activeTab.title },
-  });
+  chrome.runtime.sendMessage({ type: 'knightloader-send-to', target: chosen, payload });
   // Closed straight away rather than waiting for the answer: the send happens
   // in the service worker and outlives this window, and the toolbar badge is
   // what reports it either way (background.js's flashBadge). Waiting here would
