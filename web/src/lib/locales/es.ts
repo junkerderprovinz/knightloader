@@ -1346,7 +1346,7 @@ export const es: Dict = {
   'quickadd.add': 'Añadir',
   'quickadd.adding': 'Añadiendo…',
   'quickadd.emptyHint':
-    'No se compartió nada - pega un enlace a mano, o usa esta página desde el bookmarklet, la extensión de navegador o el menú Compartir de tu dispositivo.',
+    'No se compartió nada - pega un enlace a mano, o usa esta página desde el bookmarklet o el menú Compartir de tu dispositivo.',
   'quickadd.staged': 'Añadido al recolector.',
   'quickadd.stagedNamed': 'Se añadió «{name}» al recolector.',
   'quickadd.stagedCount': 'Se añadieron {n} enlaces al recolector.',

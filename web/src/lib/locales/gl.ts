@@ -1353,7 +1353,7 @@ export const gl: Dict = {
   'quickadd.add': 'Engadir',
   'quickadd.adding': 'Engadindo…',
   'quickadd.emptyHint':
-    'Non se compartiu nada - pega unha ligazón a man, ou usa esta páxina desde o bookmarklet, a extensión de navegador, ou o menú Compartir do teu dispositivo.',
+    'Non se compartiu nada - pega unha ligazón a man, ou usa esta páxina desde o bookmarklet ou o menú Compartir do teu dispositivo.',
   'quickadd.staged': 'Engadido ao colector.',
   'quickadd.stagedNamed': 'Engadiuse «{name}» ao colector.',
   'quickadd.stagedCount': 'Engadíronse {n} ligazóns ao colector.',

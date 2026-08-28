@@ -1568,7 +1568,7 @@ export const en = {
   'quickadd.add': 'Add',
   'quickadd.adding': 'Adding…',
   'quickadd.emptyHint':
-    'Nothing was shared - paste a link by hand, or use this page from the bookmarklet, the browser extension, or your device’s Share menu.',
+    'Nothing was shared - paste a link by hand, or use this page from the bookmarklet or your device’s Share menu.',
   'quickadd.staged': 'Added to the collector.',
   'quickadd.stagedNamed': 'Added “{name}” to the collector.',
   'quickadd.stagedCount': 'Added {n} links to the collector.',

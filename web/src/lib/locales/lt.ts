@@ -1353,7 +1353,7 @@ export const lt: Dict = {
   'quickadd.add': 'Pridėti',
   'quickadd.adding': 'Pridedama…',
   'quickadd.emptyHint':
-    'Niekas nebuvo bendrinta - įklijuokite nuorodą rankiniu būdu arba naudokite šį puslapį iš bookmarklet, naršyklės plėtinio ar jūsų įrenginio Bendrinimo meniu.',
+    'Niekas nebuvo bendrinta - įklijuokite nuorodą rankiniu būdu arba naudokite šį puslapį iš bookmarklet ar jūsų įrenginio Bendrinimo meniu.',
   'quickadd.staged': 'Pridėta prie rinktuvo.',
   'quickadd.stagedNamed': '„{name}“ pridėta prie rinktuvo.',
   'quickadd.stagedCount': 'Prie rinktuvo pridėta {n} nuorodų.',

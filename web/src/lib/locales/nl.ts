@@ -1346,7 +1346,7 @@ export const nl: Dict = {
   'quickadd.add': 'Toevoegen',
   'quickadd.adding': 'Bezig met toevoegen…',
   'quickadd.emptyHint':
-    'Er is niets gedeeld - plak handmatig een link, of gebruik deze pagina via het bookmarklet, de browserextensie, of het deelmenu van je apparaat.',
+    'Er is niets gedeeld - plak handmatig een link, of gebruik deze pagina via het bookmarklet of het deelmenu van je apparaat.',
   'quickadd.staged': 'Toegevoegd aan de verzamelaar.',
   'quickadd.stagedNamed': '“{name}” toegevoegd aan de verzamelaar.',
   'quickadd.stagedCount': '{n} links toegevoegd aan de verzamelaar.',

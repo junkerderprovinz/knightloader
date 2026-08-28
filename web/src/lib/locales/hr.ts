@@ -1354,7 +1354,7 @@ export const hr: Dict = {
   'quickadd.add': 'Dodaj',
   'quickadd.adding': 'Dodavanje…',
   'quickadd.emptyHint':
-    'Ništa nije podijeljeno - zalijepi poveznicu ručno ili upotrijebi ovu stranicu iz bookmarkleta, proširenja preglednika ili izbornika Podijeli tvog uređaja.',
+    'Ništa nije podijeljeno - zalijepi poveznicu ručno ili upotrijebi ovu stranicu iz bookmarkleta ili izbornika Podijeli tvog uređaja.',
   'quickadd.staged': 'Dodano u sakupljač.',
   'quickadd.stagedNamed': '„{name}“ dodano u sakupljač.',
   'quickadd.stagedCount': 'U sakupljač dodano poveznica: {n}.',

@@ -1346,7 +1346,7 @@ export const pt: Dict = {
   'quickadd.add': 'Adicionar',
   'quickadd.adding': 'A adicionar…',
   'quickadd.emptyHint':
-    'Nada foi partilhado - cole uma ligação à mão, ou use esta página a partir do bookmarklet, da extensão de navegador, ou do menu Partilhar do seu dispositivo.',
+    'Nada foi partilhado - cole uma ligação à mão, ou use esta página a partir do bookmarklet ou do menu Partilhar do seu dispositivo.',
   'quickadd.staged': 'Adicionado ao coletor.',
   'quickadd.stagedNamed': '«{name}» adicionado ao coletor.',
   'quickadd.stagedCount': '{n} ligações adicionadas ao coletor.',

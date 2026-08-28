@@ -8,9 +8,13 @@ import { Button, Card, InfoBubble, SectionTitle } from '../../components/ui';
 
 /**
  * Every way to reach KnightLoader from outside the app itself: a bookmarklet,
- * the MV3 browser extension (extension/src, downloaded pre-filled with THIS
- * instance's own address - see internal/api/routes_browsertools.go), and the
- * native apps.
+ * the MV3 browser extension (extension/src), and the native apps.
+ *
+ * The extension download used to be built per instance, with this instance's
+ * address baked into a config.default.json. It is now byte-identical to the
+ * source (internal/api/routes_browsertools.go), because the extension is set
+ * up with the connection phrase and holds no addresses at all - which is also
+ * what makes a store package reproducible from a checkout.
  *
  * The app card moved here from the Zugang tab (jdp, 2026-08-27: "Die App card
  * dann bitte in den Browser-Werkzeuge verschieben und den Tab Browser & App
@@ -21,9 +25,11 @@ import { Button, Card, InfoBubble, SectionTitle } from '../../components/ui';
  * "how do I get at this from somewhere else", whether that somewhere is a
  * browser or a phone.
  *
- * The browser routes all land on the same place, /quickadd (pages/
- * QuickAdd.tsx) - this page only ever has to build the address and the
- * drag-target, not the staging logic.
+ * The bookmarklet and the PWA share target land on /quickadd (pages/
+ * QuickAdd.tsx), so this page only ever has to build the address and the
+ * drag-target, not the staging logic. The extension no longer does: it carries
+ * its own relay client and posts to /api/links through the group, which is the
+ * only way to reach an instance that has no address to open a window at.
  */
 export function BrowserTools() {
   const { t } = useT();

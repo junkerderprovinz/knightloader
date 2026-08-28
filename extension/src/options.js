@@ -531,16 +531,26 @@ async function buildReport() {
     }
   }
   const { cnlEnabled } = await chrome.storage.local.get('cnlEnabled');
+  // The switch and the registered scripts are two different facts, and a report
+  // that only carries the switch cannot tell "he turned it off" apart from "the
+  // registration failed" — the two causes of the one complaint this feature
+  // ever produces.
+  let registered = '?';
+  try {
+    registered = String((await chrome.scripting.getRegisteredContentScripts()).length);
+  } catch {
+    /* no scripting permission: leave it unknown rather than claim zero */
+  }
   const a = await readAppearance();
   const m = chrome.runtime.getManifest();
   return [
     `extension: ${m.version}`,
     `browser:   ${navigator.userAgent}`,
     `language:  ${currentLanguage()} (browser: ${navigator.language})`,
-    `appearance: theme=${a.theme || 'system'} shape=${a.shape} accent=${a.accent || 'default'}`,
+    `appearance: theme=${a.theme || 'system'} shape=${a.shape} accent=${a.accent || 'default'} rainbow=${a.rainbow?.on ? 'on' : 'off'}`,
     `group:     ${joined ? 'joined' : 'no phrase stored'} (${reachable})`,
     `default:   ${(await readDefaultTarget()) ? 'chosen' : 'first in the group'}`,
-    `clicknload: ${cnlEnabled === true ? 'on' : 'off'}`,
+    `clicknload: ${cnlEnabled !== false ? 'on' : 'off'} (${registered} content scripts registered)`,
   ].join('\n');
 }
 

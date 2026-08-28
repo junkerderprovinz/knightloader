@@ -1,9 +1,27 @@
 # KnightLoader browser extension
 
-A Manifest V3 extension: right-click a link, a selection, or a page and send
-it to your own KnightLoader instance. See `docs/browser-tools.md` at the repo
-root for the full picture, including how this relates to the bookmarklet and
-the PWA share target.
+A Manifest V3 extension. Right-click a link, a selection, an image or a page
+and send it to one of your own KnightLoader instances — and catch the
+Click'n'Load buttons websites offer, so those reach an instance running
+anywhere rather than only a download manager on this machine.
+
+See `docs/browser-tools.md` at the repo root for the full picture, including
+how this relates to the bookmarklet and the PWA share target, and
+`docs/clicknload.md` for the protocol itself.
+
+## Setup is one connection phrase
+
+The options page asks for the twelve words your instances already share, and
+for nothing else — no name, no address, no password. `src/phrase.js` is a
+WebCrypto port of `internal/seedphrase`, so this browser derives the same two
+keys the instances do: one to join the relay group, one to encrypt the frames.
+The phrase itself never leaves the browser.
+
+Everything after that is live. `src/relay.js` is a relay client running in the
+extension: the roster is read when a window opens, so an instance that is
+switched off is not offered and one that came online a minute ago is. Sends go
+out as `POST /api/links` through the relay, admitted because membership in the
+group is the credential.
 
 ## Versions
 
@@ -18,49 +36,75 @@ Settings > Browser & App is built from the copy embedded in whatever server
 binary is running (`embed.go`), so that one tracks the server. The tag exists
 for a browser store submission and for anyone who wants a fixed download.
 
+Both are **byte-identical to `src/`**. The download used to bake the serving
+instance's address into a `config.default.json`; that file is gone, because the
+extension holds no addresses any more — which is also what makes a store build
+reproducible from a checkout.
+
 ## Loading it
 
-**From a running instance (recommended for most people):** Settings > Browser
-tools > Download extension. The zip is generated with this instance's own
-address already filled in, so there is nothing to configure afterwards.
+**From a running instance:** Settings > Browser & App > Download extension.
 
 **From this checkout (for development):**
 
 1. `chrome://extensions` (or the equivalent `about:addons` /
    `edge://extensions` page) → enable Developer mode.
 2. "Load unpacked" → pick `extension/src`.
-3. Open the extension's Options and add an instance. The form arrives
-   pre-filled with `http://localhost:8749`, which is right for a KnightLoader
-   running on the same machine — it is a suggestion, not a silent default:
-   `config.default.json` ships with `instanceUrl` empty on purpose, so a copy
-   loaded from a checkout never points at an address nobody looked at.
+3. Paste your connection phrase into the Remote access card on the options
+   page, which opens by itself on a fresh install.
 
-## Instances it cannot open a connection to
+Chrome writes a compiled rule cache into the source directory
+(`_metadata/generated_indexed_rulesets/`) the first time it loads an unpacked
+extension that ever declared `declarativeNetRequest`. It is in `.gitignore`,
+and it must never end up in a package.
 
-Some peers have no address at all: a desktop build opens no API listener, and
-a relay-only peer is reachable purely through the relay. Neither can be opened
-in a browser tab.
+## Click'n'Load
 
-They are still usable here. **Sync known instances** keeps such a peer and
-records which instance told the extension about it; sending to it opens
-`<that instance>/quickadd?to=<peer>`, and that instance forwards over whichever
-transport it already has. So the extension needs no relay client, no second
-copy of the relay key, and no persistent socket in a service worker the browser
-is free to kill.
+`cnl-main.js` runs in the page's MAIN world and takes over the four ways such a
+button submits — `fetch`, `XHR`, `HTMLFormElement.submit`, and a capture-phase
+`submit` listener — decodes the payload (`cnl.js`: AES-128-CBC, key equals IV,
+key from `jk`, and both zero and PKCS#7 padding, because both occur in the
+wild) and hands the links to the service worker, which relays them. The page
+gets `success\r\n` back, the same answer a local JDownloader gives. Sites find
+a downloader at all because `cnl-main.js` sets `window.jdownloader` at
+`document_start`, before their own `jdcheck.js` looks for it.
 
-Host permissions are asked for the exact origins already configured, from the
-sync button's own click, never wider. Opening Options prompts for nothing: the
-automatic check only touches origins an earlier click already granted.
+It is **on by default**: it is the reason most people install this, and a
+switch that reads "on" while waiting for someone to find a permission dialog
+would be a lie. That is what `<all_urls>` in the manifest is for, and it is
+used for nothing else — such a button can be on any site, so the set cannot be
+narrowed in advance.
 
-## Why it opens a window instead of calling the API directly
+Switching it off in the options unregisters both content scripts
+(`chrome.scripting.unregisterContentScripts`), which
+`chrome.scripting.getRegisteredContentScripts()` will confirm. Off means gone,
+not dormant — more than a static `content_scripts` entry could offer.
 
-KnightLoader's main API refuses any request carrying a foreign `Origin`
-header (`internal/api/api.go`'s `sameOrigin` middleware) and authenticates by
-session cookie only — there is no bearer token this extension could hold
-instead. So `background.js` never calls `/api/*` itself: every action opens
-a small window at `<instance>/quickadd?...`, same-origin, where the normal
-web session (and normal sign-in, if the instance is password-locked) applies
-exactly as it would if you had typed the address in yourself. That page is
-`web/src/pages/QuickAdd.tsx` — the bookmarklet and the PWA share target land
-on the identical page, so all three entrances share one implementation of
-"stage this and say what happened."
+## Why it no longer opens a window
+
+Every send used to open a small window at `<instance>/quickadd`, same-origin,
+so the session cookie carried it past `internal/api/api.go`'s `sameOrigin`
+guard. That needed an **address**, which is why the options page went on asking
+for a name and a URL long after the rest of the product had moved to the
+connection phrase — and it could never reach a peer that has no address at all,
+such as a desktop build or a relay-only instance.
+
+The relay path replaces it without weakening that guard: nothing here strips an
+`Origin` header. A relayed call arrives at the instance marked as coming from a
+group sibling and is admitted on that basis alone (`relayForwardable` in
+`internal/relay`). The bookmarklet and the PWA share target still open
+`/quickadd`, because they have no phrase and no relay client — see
+`docs/browser-tools.md`.
+
+## Surfaces
+
+`popup.html` (toolbar), `picker.html` (the send-to window), `options.html`.
+All three draw the same instance card and the same GlimStone
+(`glimstone.css`) — one implementation each in `shared.js`, because three pages
+of one product drawing their own version of the same card is how three pages
+become three slightly different products. Appearance, including the rainbow,
+follows the same engines as the web UI (`appearance.js`), and can be adopted
+from the default instance in one switch.
+
+42 languages in `i18n.js`, checked against the web UI's set by
+`check-locales.mjs`, which fails on both a missing key and an unused one.

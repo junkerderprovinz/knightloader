@@ -216,23 +216,24 @@ and cannot be explained.
 
 ## The browser extension
 
-A fresh install suggests `http://localhost:8749` - the ordinary case, one click
-to accept, and never a silent default pointed at an address nobody looked at.
+The same twelve words, and nothing else. There is no address field, no name
+field, no token field and no sync button on the options page any more - the
+extension carries its own relay client (`extension/src/relay.js`) and derives
+the group key from the phrase with a WebCrypto port of `internal/seedphrase`
+(`extension/src/phrase.js`), so it is a group member in its own right rather
+than a guest of one configured instance.
 
-**Sync known instances** asks every instance already configured what peers *it*
-knows about, and folds in what is new. Two things it now does that it did not:
+That replaces the whole previous shape and everything that hung off it:
 
-- A peer with no address of its own - a desktop build, or one reachable only
-  through a relay - is kept rather than dropped, and reached through the
-  instance that told the extension about it. That instance forwards on its
-  behalf, so the extension needs no relay client, no second copy of the relay
-  key, and no persistent socket in a service worker the browser is free to kill.
-- Every outcome says what actually happened. Not signed in, no answer in time,
-  unreachable, an error, nothing configured yet and genuinely nothing new used
-  to share one sentence: "No new instances found." Five problems, five different
-  fixes, and a message that pointed at none of them.
+- **The roster is read live**, when a window opens, instead of being stored and
+  synced. An instance that is switched off is not offered; one that came online
+  a minute ago is. Nothing tells this browser anything - it asks.
+- **A peer with no address of its own** - a desktop build, or one reachable
+  only through a relay - is now reached *directly* through the relay, not
+  forwarded on its behalf by a sibling that happens to have an address.
+- **Sends are `POST /api/links` over the relay**, admitted because membership
+  is the credential. No window opens, no session cookie is involved, and the
+  `sameOrigin` guard is not worked around - it is not on that path.
 
-Host permissions are requested for the exact origins already configured, from
-the button's own click, and never wider. Opening the options page can prompt for
-nothing - the automatic check only ever touches origins a previous click already
-granted.
+The site access the extension asks for at install time is for Click'n'Load and
+for nothing else; see `docs/browser-tools.md`.

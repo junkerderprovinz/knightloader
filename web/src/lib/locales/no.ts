@@ -1355,7 +1355,7 @@ export const no: Dict = {
   'quickadd.add': 'Legg til',
   'quickadd.adding': 'Legger til…',
   'quickadd.emptyHint':
-    'Ingenting ble delt - lim inn en lenke for hånd, eller bruk denne siden fra bookmarkleten, nettleserutvidelsen, eller enhetens Del-meny.',
+    'Ingenting ble delt - lim inn en lenke for hånd, eller bruk denne siden fra bookmarkleten eller enhetens Del-meny.',
   'quickadd.staged': 'Lagt til i samleren.',
   'quickadd.stagedNamed': '«{name}» lagt til i samleren.',
   'quickadd.stagedCount': '{n} lenker lagt til i samleren.',

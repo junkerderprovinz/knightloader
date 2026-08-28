@@ -1353,7 +1353,7 @@ export const da: Dict = {
   'quickadd.add': 'Tilføj',
   'quickadd.adding': 'Tilføjer…',
   'quickadd.emptyHint':
-    'Intet blev delt - indsæt et link manuelt, eller brug denne side fra bookmarklet’et, browserudvidelsen eller din enheds Del-menu.',
+    'Intet blev delt - indsæt et link manuelt, eller brug denne side fra bookmarklet’et eller din enheds Del-menu.',
   'quickadd.staged': 'Tilføjet til samleren.',
   'quickadd.stagedNamed': '„{name}“ tilføjet til samleren.',
   'quickadd.stagedCount': '{n} links tilføjet til samleren.',

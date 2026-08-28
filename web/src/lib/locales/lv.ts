@@ -1353,7 +1353,7 @@ export const lv: Dict = {
   'quickadd.add': 'Pievienot',
   'quickadd.adding': 'Pievieno…',
   'quickadd.emptyHint':
-    'Nekas netika kopīgots - ielīmējiet saiti manuāli, vai izmantojiet šo lapu no bookmarklet, pārlūka paplašinājuma vai jūsu ierīces Kopīgot izvēlnes.',
+    'Nekas netika kopīgots - ielīmējiet saiti manuāli, vai izmantojiet šo lapu no bookmarklet vai jūsu ierīces Kopīgot izvēlnes.',
   'quickadd.staged': 'Pievienots kolektoram.',
   'quickadd.stagedNamed': '„{name}“ pievienots kolektoram.',
   'quickadd.stagedCount': 'Kolektoram pievienotas {n} saites.',

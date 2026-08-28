@@ -1353,7 +1353,7 @@ export const ro: Dict = {
   'quickadd.add': 'Adaugă',
   'quickadd.adding': 'Se adaugă…',
   'quickadd.emptyHint':
-    'Nu s-a distribuit nimic - lipește un link manual, sau folosește această pagină din bookmarklet, extensia de browser, sau meniul Distribuie al dispozitivului tău.',
+    'Nu s-a distribuit nimic - lipește un link manual, sau folosește această pagină din bookmarklet sau meniul Distribuie al dispozitivului tău.',
   'quickadd.staged': 'Adăugat în colector.',
   'quickadd.stagedNamed': '„{name}” a fost adăugat în colector.',
   'quickadd.stagedCount': '{n} linkuri adăugate în colector.',

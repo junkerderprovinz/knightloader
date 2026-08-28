@@ -1353,7 +1353,7 @@ export const is: Dict = {
   'quickadd.add': 'Bæta við',
   'quickadd.adding': 'Bætir við…',
   'quickadd.emptyHint':
-    'Engu var deilt - límdu tengil handvirkt, eða notaðu þessa síðu úr bókamerkjaforritinu, vafraviðbótinni, eða Deila-valmynd tækisins þíns.',
+    'Engu var deilt - límdu tengil handvirkt, eða notaðu þessa síðu úr bókamerkjaforritinu eða Deila-valmynd tækisins þíns.',
   'quickadd.staged': 'Bætt við safnarann.',
   'quickadd.stagedNamed': '„{name}“ bætt við safnarann.',
   'quickadd.stagedCount': '{n} tenglum bætt við safnarann.',

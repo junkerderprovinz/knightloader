@@ -1353,7 +1353,7 @@ export const eu: Dict = {
   'quickadd.add': 'Gehitu',
   'quickadd.adding': 'Gehitzen…',
   'quickadd.emptyHint':
-    'Ez da ezer partekatu - itsatsi esteka bat eskuz, edo erabili orri hau bookmarklet-etik, nabigatzaile-hedapenetik edo zure gailuaren Partekatu menutik.',
+    'Ez da ezer partekatu - itsatsi esteka bat eskuz, edo erabili orri hau bookmarklet-etik edo zure gailuaren Partekatu menutik.',
   'quickadd.staged': 'Bildumagailura gehituta.',
   'quickadd.stagedNamed': '«{name}» bildumagailura gehituta.',
   'quickadd.stagedCount': '{n} esteka bildumagailura gehituta.',

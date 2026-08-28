@@ -1354,7 +1354,7 @@ export const sl: Dict = {
   'quickadd.add': 'Dodaj',
   'quickadd.adding': 'Dodajanje…',
   'quickadd.emptyHint':
-    'Nič ni bilo deljeno - prilepi povezavo ročno ali uporabi to stran iz bookmarkleta, razširitve brskalnika ali menija Deli svoje naprave.',
+    'Nič ni bilo deljeno - prilepi povezavo ročno ali uporabi to stran iz bookmarkleta ali menija Deli svoje naprave.',
   'quickadd.staged': 'Dodano v zbiralnik.',
   'quickadd.stagedNamed': '„{name}“ dodano v zbiralnik.',
   'quickadd.stagedCount': 'V zbiralnik dodanih povezav: {n}.',

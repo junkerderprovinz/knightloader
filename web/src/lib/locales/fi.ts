@@ -1353,7 +1353,7 @@ export const fi: Dict = {
   'quickadd.add': 'Lisää',
   'quickadd.adding': 'Lisätään…',
   'quickadd.emptyHint':
-    'Mitään ei jaettu - liitä linkki käsin, tai käytä tätä sivua bookmarkletista, selainlaajennuksesta tai laitteesi Jaa-valikosta.',
+    'Mitään ei jaettu - liitä linkki käsin, tai käytä tätä sivua bookmarkletista tai laitteesi Jaa-valikosta.',
   'quickadd.staged': 'Lisätty kokoajaan.',
   'quickadd.stagedNamed': '”{name}” lisätty kokoajaan.',
   'quickadd.stagedCount': '{n} linkkiä lisätty kokoajaan.',

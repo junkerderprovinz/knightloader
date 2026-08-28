@@ -1354,7 +1354,7 @@ export const de: Dict = {
   'quickadd.add': 'Hinzufügen',
   'quickadd.adding': 'Wird hinzugefügt…',
   'quickadd.emptyHint':
-    'Es wurde nichts geteilt - füge einen Link von Hand ein oder nutze diese Seite über das Bookmarklet, die Browsererweiterung oder das Teilen-Menü deines Geräts.',
+    'Es wurde nichts geteilt - füge einen Link von Hand ein oder nutze diese Seite über das Bookmarklet oder das Teilen-Menü deines Geräts.',
   'quickadd.staged': 'Zum Sammler hinzugefügt.',
   'quickadd.stagedNamed': '„{name}“ zum Sammler hinzugefügt.',
   'quickadd.stagedCount': '{n} Links zum Sammler hinzugefügt.',

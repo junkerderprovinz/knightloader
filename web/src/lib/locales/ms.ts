@@ -1353,7 +1353,7 @@ export const ms: Dict = {
   'quickadd.add': 'Tambah',
   'quickadd.adding': 'Menambah…',
   'quickadd.emptyHint':
-    'Tiada apa dikongsi - tampal pautan secara manual, atau gunakan halaman ini dari bookmarklet, sambungan pelayar, atau menu Kongsi peranti anda.',
+    'Tiada apa dikongsi - tampal pautan secara manual, atau gunakan halaman ini dari bookmarklet atau menu Kongsi peranti anda.',
   'quickadd.staged': 'Ditambah ke pengumpul.',
   'quickadd.stagedNamed': '«{name}» ditambah ke pengumpul.',
   'quickadd.stagedCount': '{n} pautan ditambah ke pengumpul.',
