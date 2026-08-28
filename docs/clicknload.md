@@ -99,11 +99,11 @@ JavaScript; it will never dial your NAS.
 
 There are two answers, and the browser extension is the one most people want.
 
-**The browser extension.** Switch on Click'n'Load in the extension's options
-(Settings → Click'n'Load) and it catches the submission *inside the page*,
-before it is ever sent, then hands the links to whichever instance you pick —
-the same chooser every other send from the extension uses. Nothing runs on your
-desktop, no port is owned, and it works wherever the instance is.
+**The browser extension.** It catches the submission *inside the page*, before
+it is ever sent, then hands the links to whichever instance you pick — the same
+chooser every other send from the extension uses. Nothing runs on your desktop,
+no port is owned, and it works wherever the instance is. It is on from the
+first second, because it is what most people install the extension for.
 
 How, because it looks impossible at first: an extension cannot listen on a TCP
 port, so it never receives the POST. It patches the page's own `fetch`, `XHR`
@@ -115,11 +115,19 @@ step is answered the same way: the interceptor declares `jdownloader = true`
 before any script the page brings, so the button appears.
 
 That means running code in every page you visit, which is a real permission and
-is treated as one: **nothing is registered until you switch the feature on.**
-The extension asks for site access at that moment, registers the two content
-scripts if you agree, and unregisters them the moment you switch it off. A
-fresh install has no access to any website at all. (JDownloader's own extension
-requires that access up front, for everybody; this does not.)
+is named as one at install time: the manifest declares `<all_urls>`, and the
+browser says so before anything is installed. It was optional once, requested
+only when the feature was switched on — a better story for a store reviewer and
+a worse product, because a switch that reads "on" while quietly waiting for a
+permission dialog is a lie about what the extension is doing.
+
+**Switching it off really switches it off**, which is the part a static
+`content_scripts` entry could never offer: the two scripts are unregistered
+through `chrome.scripting.unregisterContentScripts`, and
+`chrome.scripting.getRegisteredContentScripts()` returns `[]`. Nothing of this
+extension runs in any page until it is switched back on. (JDownloader's own
+extension requires the same access and registers eight content scripts fixed in
+its manifest, which cannot be switched off at all.)
 
 **The bridge.** For someone who wants no extension at all, or a browser without
 one. Run the same binary on your own machine in bridge mode. It
@@ -218,7 +226,8 @@ job, not CnL's: CnL only exists where a site chose to put a button. See
 `docs/browser-tools.md` for that extension, the bookmarklet, and the PWA
 share target.
 
-The extension now covers both — the right-click entries, which have nothing to
-do with this protocol, and Click'n'Load interception, which is entirely this
-protocol. They stay separate features with separate permissions: the first
-works on a fresh install, the second is off until switched on.
+The extension now covers both: the right-click entries, which have nothing to do
+with this protocol, and Click'n'Load interception, which is entirely this
+protocol. They remain separate features, and the site access belongs to the
+second one alone — the right-click entries and the toolbar button keep working
+with Click'n'Load switched off and its content scripts gone.
