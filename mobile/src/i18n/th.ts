@@ -72,13 +72,11 @@ export const th: Dict = {
 
   'settings.title': 'การตั้งค่า',
   'settings.language': 'ภาษา',
-  'settings.languageAutomatic': 'อัตโนมัติ (ตามอุปกรณ์)',
   'settings.appearance': 'รูปลักษณ์',
   'settings.appearanceFollows': 'ปรับตามอินสแตนซ์ที่คุณเชื่อมต่ออยู่ เพื่อให้แอปกับเว็บอินเทอร์เฟซของอินสแตนซ์ดูเป็นผลิตภัณฑ์เดียวกัน',
   'settings.appearanceOverridden': 'ตั้งค่าไว้ที่นี่ จึงไม่ปรับตามอินสแตนซ์อีกต่อไป',
   'settings.followInstance': 'กลับไปปรับตามอินสแตนซ์',
   'settings.theme': 'ธีม',
-  'settings.theme.system': 'ตามระบบ',
   'settings.theme.light': 'สว่าง',
   'settings.theme.dark': 'มืด',
   'settings.corners': 'มุม',

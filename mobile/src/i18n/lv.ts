@@ -72,13 +72,11 @@ export const lv: Dict = {
 
   'settings.title': 'Iestatījumi',
   'settings.language': 'Valoda',
-  'settings.languageAutomatic': 'Automātiski (pēc ierīces)',
   'settings.appearance': 'Izskats',
   'settings.appearanceFollows': 'Seko instancei, ar kuru esat savienots, lai lietotne un tās tīmekļa saskarne izskatītos kā viens produkts.',
   'settings.appearanceOverridden': 'Iestatīts šeit, tāpēc vairs neseko instancei.',
   'settings.followInstance': 'Atkal sekot instancei',
   'settings.theme': 'Motīvs',
-  'settings.theme.system': 'Sistēmas',
   'settings.theme.light': 'Gaišs',
   'settings.theme.dark': 'Tumšs',
   'settings.corners': 'Stūri',

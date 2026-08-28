@@ -7,14 +7,17 @@
     <link rel="stylesheet" href="flags.css" />
     <style>
       body {
-        /* 360, up from 280 (jdp, 2026-08-27: "Das Popupfenster der
-           erweitterung soll größer sein"). A browser action popup may be up
-           to 800x600; this is not about reaching that, it is that the old
-           width made #target - a page title, which can be long - wrap to
-           three or four lines under a heading of its own. Wider, it usually
-           fits in one or two. */
+        /* 420, up from 360, which was up from 280 (jdp, 2026-08-27: "Das
+           Popupfenster der erweitterung soll größer sein"; 2026-08-29: "die
+           instanzencards im popup auch größer"). A browser action popup may
+           be up to 800x600; this is not about reaching that. 280 made #target
+           - a page title, which can be long - wrap to three or four lines.
+           360 fixed that and was then too narrow for the card the instances
+           grew into: a 48px mark, a name, a status line and three 30px
+           controls do not share 360 without the line being ellipsised into
+           uselessness. */
         margin: 0;
-        width: 360px;
+        width: 420px;
         padding: 16px;
         background: var(--carbon-bg);
         color: var(--carbon-text);

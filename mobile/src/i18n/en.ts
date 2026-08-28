@@ -89,13 +89,11 @@ export const en = {
 
   'settings.title': 'Settings',
   'settings.language': 'Language',
-  'settings.languageAutomatic': 'Automatic (device)',
   'settings.appearance': 'Appearance',
   'settings.appearanceFollows': 'Following the instance you are connected to, so the app and its web interface look like one product.',
   'settings.appearanceOverridden': 'Set here, so it no longer follows the instance.',
   'settings.followInstance': 'Follow the instance again',
   'settings.theme': 'Theme',
-  'settings.theme.system': 'System',
   'settings.theme.light': 'Light',
   'settings.theme.dark': 'Dark',
   'settings.corners': 'Corners',

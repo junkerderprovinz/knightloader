@@ -72,13 +72,11 @@ export const sk: Dict = {
 
   'settings.title': 'Nastavenia',
   'settings.language': 'Jazyk',
-  'settings.languageAutomatic': 'Automaticky (podľa zariadenia)',
   'settings.appearance': 'Vzhľad',
   'settings.appearanceFollows': 'Riadi sa inštanciou, ku ktorej ste pripojení, aby aplikácia a jej webové rozhranie pôsobili ako jeden produkt.',
   'settings.appearanceOverridden': 'Nastavené tu, takže sa už neriadi inštanciou.',
   'settings.followInstance': 'Znova sa riadiť inštanciou',
   'settings.theme': 'Motív',
-  'settings.theme.system': 'Systém',
   'settings.theme.light': 'Svetlý',
   'settings.theme.dark': 'Tmavý',
   'settings.corners': 'Rohy',

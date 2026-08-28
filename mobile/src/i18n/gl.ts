@@ -72,13 +72,11 @@ export const gl: Dict = {
 
   'settings.title': 'Axustes',
   'settings.language': 'Idioma',
-  'settings.languageAutomatic': 'Automático (dispositivo)',
   'settings.appearance': 'Aparencia',
   'settings.appearanceFollows': 'Segue a instancia á que estás conectado, para que a aplicación e a súa interface web parezan un só produto.',
   'settings.appearanceOverridden': 'Definida aquí, así que xa non segue a instancia.',
   'settings.followInstance': 'Volver seguir a instancia',
   'settings.theme': 'Tema',
-  'settings.theme.system': 'Sistema',
   'settings.theme.light': 'Claro',
   'settings.theme.dark': 'Escuro',
   'settings.corners': 'Esquinas',

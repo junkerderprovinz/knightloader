@@ -72,13 +72,11 @@ export const tr: Dict = {
 
   'settings.title': 'Ayarlar',
   'settings.language': 'Dil',
-  'settings.languageAutomatic': 'Otomatik (cihaz)',
   'settings.appearance': 'Görünüm',
   'settings.appearanceFollows': 'Bağlı olduğunuz örneği izler, böylece uygulama ile onun web arayüzü tek bir ürün gibi görünür.',
   'settings.appearanceOverridden': 'Burada ayarlandı, dolayısıyla artık örneği izlemiyor.',
   'settings.followInstance': 'Yeniden örneği izle',
   'settings.theme': 'Tema',
-  'settings.theme.system': 'Sistem',
   'settings.theme.light': 'Açık',
   'settings.theme.dark': 'Koyu',
   'settings.corners': 'Köşeler',

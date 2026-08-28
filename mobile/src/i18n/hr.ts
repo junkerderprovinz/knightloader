@@ -72,13 +72,11 @@ export const hr: Dict = {
 
   'settings.title': 'Postavke',
   'settings.language': 'Jezik',
-  'settings.languageAutomatic': 'Automatski (prema uređaju)',
   'settings.appearance': 'Izgled',
   'settings.appearanceFollows': 'Prati instancu na koju ste povezani, kako bi aplikacija i njezino web sučelje djelovali kao jedan proizvod.',
   'settings.appearanceOverridden': 'Postavljeno ovdje, pa više ne prati instancu.',
   'settings.followInstance': 'Ponovno prati instancu',
   'settings.theme': 'Tema',
-  'settings.theme.system': 'Sustav',
   'settings.theme.light': 'Svijetla',
   'settings.theme.dark': 'Tamna',
   'settings.corners': 'Kutovi',

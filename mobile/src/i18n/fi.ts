@@ -72,13 +72,11 @@ export const fi: Dict = {
 
   'settings.title': 'Asetukset',
   'settings.language': 'Kieli',
-  'settings.languageAutomatic': 'Automaattinen (laite)',
   'settings.appearance': 'Ulkoasu',
   'settings.appearanceFollows': 'Seuraa instanssia, johon olet yhteydessä, jotta sovellus ja sen verkkokäyttöliittymä näyttävät yhdeltä tuotteelta.',
   'settings.appearanceOverridden': 'Asetettu täällä, joten se ei enää seuraa instanssia.',
   'settings.followInstance': 'Seuraa taas instanssia',
   'settings.theme': 'Teema',
-  'settings.theme.system': 'Järjestelmä',
   'settings.theme.light': 'Vaalea',
   'settings.theme.dark': 'Tumma',
   'settings.corners': 'Kulmat',

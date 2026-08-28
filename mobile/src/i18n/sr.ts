@@ -72,13 +72,11 @@ export const sr: Dict = {
 
   'settings.title': 'Podešavanja',
   'settings.language': 'Jezik',
-  'settings.languageAutomatic': 'Automatski (prema uređaju)',
   'settings.appearance': 'Izgled',
   'settings.appearanceFollows': 'Prati instancu na koju ste povezani, da bi aplikacija i njen veb interfejs delovali kao jedan proizvod.',
   'settings.appearanceOverridden': 'Podešeno ovde, pa više ne prati instancu.',
   'settings.followInstance': 'Ponovo prati instancu',
   'settings.theme': 'Tema',
-  'settings.theme.system': 'Sistem',
   'settings.theme.light': 'Svetla',
   'settings.theme.dark': 'Tamna',
   'settings.corners': 'Uglovi',

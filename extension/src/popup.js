@@ -87,7 +87,40 @@ function paintHues() {
   statusEl.textContent = '';
   sendBtn.disabled = false;
   await renderTargets();
+
+  // The queue readings come AFTER the cards are on screen, never before them
+  // (jdp asked for the controls here too, 2026-08-29: "auch ins popup"). Three
+  // reads per instance is six answers to wait on with two instances, and this
+  // window has one job that must not queue behind them. So the cards appear
+  // with their names, their badge and their controls immediately, and the
+  // status line fills itself in a moment later.
+  //
+  // Not awaited on purpose: a failure here leaves a popup that can still send,
+  // which is the whole point of splitting it out.
+  void loadStatus();
 })();
+
+/**
+ * loadStatus fetches what each instance is doing and redraws once.
+ *
+ * `status` stays undefined until this lands, and the card reads that as "the
+ * caller did not ask" rather than "asked and got nothing" - so the first paint
+ * carries no empty line and no wrong "offline".
+ */
+async function loadStatus() {
+  let rows;
+  try {
+    rows = await groupStatus();
+  } catch {
+    return;
+  }
+  const byId = new Map(rows.map((r) => [r.instanceId, r.status]));
+  // Only for instances that are still in the list this popup drew. A roster
+  // that changed underneath is not worth a second surprise redraw in a window
+  // somebody is already reading.
+  group = group.map((g) => (byId.has(g.instanceId) ? { ...g, status: byId.get(g.instanceId) } : g));
+  await renderTargets();
+}
 
 /**
  * The group as cards, the same object the options page and the send-to window
@@ -114,6 +147,7 @@ async function renderTargets() {
         index: i,
         isDefault: inst.instanceId === preferred,
         isChosen: inst.instanceId === chosen,
+        status: inst.status,
         onPick: (picked) => {
           chosen = picked.instanceId;
           void renderTargets();
@@ -121,6 +155,14 @@ async function renderTargets() {
         onSetDefault: async (picked) => {
           await writeDefaultTarget(picked.instanceId);
           await renderTargets();
+        },
+        onQueue: async (picked, halted) => {
+          const ok = await setQueueHalted(picked.instanceId, halted).catch(() => false);
+          statusEl.textContent = ok ? '' : t('options.followFailed');
+          if (ok) await loadStatus();
+        },
+        onOpen: (picked, url) => {
+          if (url) void chrome.tabs.create({ url });
         },
       }),
     );

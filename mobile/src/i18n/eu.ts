@@ -72,13 +72,11 @@ export const eu: Dict = {
 
   'settings.title': 'Ezarpenak',
   'settings.language': 'Hizkuntza',
-  'settings.languageAutomatic': 'Automatikoa (gailuaren arabera)',
   'settings.appearance': 'Itxura',
   'settings.appearanceFollows': 'Konektatuta zauden instantziaren itxurari jarraitzen dio, aplikazioa eta haren web-interfazea produktu bakarra irudi dezaten.',
   'settings.appearanceOverridden': 'Hemen ezarrita, beraz, jada ez dio instantziari jarraitzen.',
   'settings.followInstance': 'Jarraitu berriro instantziari',
   'settings.theme': 'Gaia',
-  'settings.theme.system': 'Sistema',
   'settings.theme.light': 'Argia',
   'settings.theme.dark': 'Iluna',
   'settings.corners': 'Izkinak',

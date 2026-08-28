@@ -15,18 +15,17 @@ export default function LanguagePickerScreen({ onBack }: { onBack: () => void })
     getLanguageOverride().then(setOverride);
   }, []);
 
-  // The "Automatic" row shows the flag of whatever the device actually
-  // resolved to, so following the device is not the one row that reads as a
-  // blank next to 42 flagged ones - and it doubles as the answer to "which
-  // language IS automatic picking for me right now?".
-  const rows: { code: string | null; label: string; flag: string }[] = [
-    {
-      code: null,
-      label: t('settings.languageAutomatic'),
-      flag: flagEmoji(LANGUAGES.find((l) => l.code === lang)?.flag ?? ''),
-    },
-    ...LANGUAGES.map((l) => ({ code: l.code as string | null, label: l.label, flag: flagEmoji(l.flag) })),
-  ];
+  // No "Automatic" row (jdp, 2026-08-28, now rule in GlimStone 1.4.0: "Im
+  // Sprachen-dropdown soll nicht stehen Automatisch. Es soll einfach die
+  // Sprache auswählen die im Browser eingestellt ist").
+  //
+  // The row existed and even carried the resolved flag, which made it look
+  // like the thoughtful version. It still could not answer the question
+  // somebody opens this screen to ask - WHICH language am I reading - because
+  // the answer sat on a row labelled after the act of resolving rather than
+  // after the language. `lang` already holds the resolved code, so selecting
+  // that row says it outright and the extra entry buys nothing.
+  const rows = LANGUAGES.map((l) => ({ code: l.code, label: l.label, flag: flagEmoji(l.flag) }));
 
   const pick = (code: string | null) => {
     setLanguage(code);
@@ -44,10 +43,14 @@ export default function LanguagePickerScreen({ onBack }: { onBack: () => void })
 
       <FlatList
         data={rows}
-        keyExtractor={(r) => r.code ?? 'auto'}
+        keyExtractor={(r) => r.code}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => {
-          const isSelected = override === item.code;
+          // Marked against the RESOLVED language, not against the stored
+          // override: with the "Automatic" row gone, a screen where nothing is
+          // ticked until somebody picks would leave the one question this list
+          // answers unanswered on first open.
+          const isSelected = (override ?? lang) === item.code;
           return (
             <TouchableOpacity
               style={[

@@ -72,13 +72,11 @@ export const hu: Dict = {
 
   'settings.title': 'Beállítások',
   'settings.language': 'Nyelv',
-  'settings.languageAutomatic': 'Automatikus (eszköz)',
   'settings.appearance': 'Megjelenés',
   'settings.appearanceFollows': 'Ahhoz a példányhoz igazodik, amelyhez kapcsolódtál, hogy az alkalmazás és a webes felülete egyetlen terméknek látsszon.',
   'settings.appearanceOverridden': 'Itt beállítva, így már nem igazodik a példányhoz.',
   'settings.followInstance': 'Igazodjon újra a példányhoz',
   'settings.theme': 'Téma',
-  'settings.theme.system': 'Rendszer',
   'settings.theme.light': 'Világos',
   'settings.theme.dark': 'Sötét',
   'settings.corners': 'Sarkok',

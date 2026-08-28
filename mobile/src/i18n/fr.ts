@@ -72,13 +72,11 @@ export const fr: Dict = {
 
   'settings.title': 'Paramètres',
   'settings.language': 'Langue',
-  'settings.languageAutomatic': 'Automatique (appareil)',
   'settings.appearance': 'Apparence',
   'settings.appearanceFollows': 'Suit l’instance à laquelle vous êtes connecté, pour que l’application et son interface web forment un seul produit.',
   'settings.appearanceOverridden': 'Défini ici, l’apparence ne suit donc plus l’instance.',
   'settings.followInstance': 'Suivre à nouveau l’instance',
   'settings.theme': 'Thème',
-  'settings.theme.system': 'Système',
   'settings.theme.light': 'Clair',
   'settings.theme.dark': 'Sombre',
   'settings.corners': 'Coins',

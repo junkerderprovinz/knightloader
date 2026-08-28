@@ -72,13 +72,11 @@ export const ca: Dict = {
 
   'settings.title': 'Configuració',
   'settings.language': 'Idioma',
-  'settings.languageAutomatic': 'Automàtic (dispositiu)',
   'settings.appearance': 'Aparença',
   'settings.appearanceFollows': "Segueix la instància a la qual estàs connectat, perquè l'aplicació i la seva interfície web semblin un sol producte.",
   'settings.appearanceOverridden': 'Definida aquí, així que ja no segueix la instància.',
   'settings.followInstance': 'Torna a seguir la instància',
   'settings.theme': 'Tema',
-  'settings.theme.system': 'Sistema',
   'settings.theme.light': 'Clar',
   'settings.theme.dark': 'Fosc',
   'settings.corners': 'Cantonades',

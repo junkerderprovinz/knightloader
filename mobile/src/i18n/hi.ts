@@ -72,13 +72,11 @@ export const hi: Dict = {
 
   'settings.title': 'सेटिंग्स',
   'settings.language': 'भाषा',
-  'settings.languageAutomatic': 'ऑटोमैटिक (डिवाइस के अनुसार)',
   'settings.appearance': 'दिखावट',
   'settings.appearanceFollows': 'जिस इंस्टेंस से आप जुड़े हैं, यह उसी के अनुसार चलता है, ताकि ऐप और उसका वेब यूज़र इंटरफ़ेस एक ही उत्पाद जैसे लगें।',
   'settings.appearanceOverridden': 'यहां सेट किया गया है, इसलिए अब यह इंस्टेंस के अनुसार नहीं चलता।',
   'settings.followInstance': 'फिर से इंस्टेंस के अनुसार चलाएं',
   'settings.theme': 'थीम',
-  'settings.theme.system': 'सिस्टम',
   'settings.theme.light': 'लाइट',
   'settings.theme.dark': 'डार्क',
   'settings.corners': 'कोने',

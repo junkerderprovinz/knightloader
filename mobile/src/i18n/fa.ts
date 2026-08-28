@@ -72,13 +72,11 @@ export const fa: Dict = {
 
   'settings.title': 'تنظیمات',
   'settings.language': 'زبان',
-  'settings.languageAutomatic': 'خودکار (بر اساس دستگاه)',
   'settings.appearance': 'ظاهر',
   'settings.appearanceFollows': 'از نمونه‌ای که به آن وصل هستید پیروی می‌کند تا برنامه و رابط وب آن مثل یک محصول واحد به نظر برسند.',
   'settings.appearanceOverridden': 'اینجا تنظیم شده، پس دیگر از نمونه پیروی نمی‌کند.',
   'settings.followInstance': 'پیروی دوباره از نمونه',
   'settings.theme': 'پوسته',
-  'settings.theme.system': 'سیستم',
   'settings.theme.light': 'روشن',
   'settings.theme.dark': 'تیره',
   'settings.corners': 'گوشه‌ها',

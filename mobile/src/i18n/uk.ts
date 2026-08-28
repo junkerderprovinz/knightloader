@@ -72,13 +72,11 @@ export const uk: Dict = {
 
   'settings.title': 'Налаштування',
   'settings.language': 'Мова',
-  'settings.languageAutomatic': 'Автоматично (пристрій)',
   'settings.appearance': 'Вигляд',
   'settings.appearanceFollows': 'Повторює вигляд екземпляра, до якого ви підключені, щоб застосунок і його вебінтерфейс виглядали як один продукт.',
   'settings.appearanceOverridden': 'Задано тут, тому вигляд більше не повторює екземпляр.',
   'settings.followInstance': 'Знову слідувати екземпляру',
   'settings.theme': 'Тема',
-  'settings.theme.system': 'Системна',
   'settings.theme.light': 'Світла',
   'settings.theme.dark': 'Темна',
   'settings.corners': 'Кути',

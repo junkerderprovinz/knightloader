@@ -72,13 +72,11 @@ export const id: Dict = {
 
   'settings.title': 'Pengaturan',
   'settings.language': 'Bahasa',
-  'settings.languageAutomatic': 'Otomatis (perangkat)',
   'settings.appearance': 'Tampilan',
   'settings.appearanceFollows': 'Mengikuti instansi yang Anda sambungkan, supaya aplikasi dan antarmuka webnya terlihat seperti satu produk.',
   'settings.appearanceOverridden': 'Diatur di sini, jadi tidak lagi mengikuti instansi.',
   'settings.followInstance': 'Ikuti instansi lagi',
   'settings.theme': 'Tema',
-  'settings.theme.system': 'Sistem',
   'settings.theme.light': 'Terang',
   'settings.theme.dark': 'Gelap',
   'settings.corners': 'Sudut',

@@ -72,13 +72,11 @@ export const ko: Dict = {
 
   'settings.title': '설정',
   'settings.language': '언어',
-  'settings.languageAutomatic': '자동(기기 설정)',
   'settings.appearance': '모양',
   'settings.appearanceFollows': '연결된 인스턴스를 따릅니다. 앱과 그 웹 UI가 하나의 제품처럼 보이게 하기 위해서입니다.',
   'settings.appearanceOverridden': '여기서 지정했기 때문에 더 이상 인스턴스를 따르지 않습니다.',
   'settings.followInstance': '다시 인스턴스 따르기',
   'settings.theme': '테마',
-  'settings.theme.system': '시스템',
   'settings.theme.light': '밝게',
   'settings.theme.dark': '어둡게',
   'settings.corners': '모서리',

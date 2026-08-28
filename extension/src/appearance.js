@@ -68,13 +68,29 @@ function contrastOn(hex) {
   return luminance(r, g, b) > 0.55 ? '#161616' : '#FFFFFF';
 }
 
+/**
+ * systemTheme is what the machine is set to, right now.
+ *
+ * It is what the picker SHOWS when nobody has chosen yet (jdp, 2026-08-29: "es
+ * soll nur hell und dunkel zur auswahl geben und es soll automatisch der im
+ * system eingestelle modus standardmäßig ausgewählt werden"). Exactly the rule
+ * the language picker already follows: resolve the machine's answer and select
+ * it, rather than offering a third entry that names the act of resolving.
+ * "Follow the browser" looked like a choice and was an excuse - it could not
+ * answer the only question anyone asks the control, which is which of the two
+ * is running.
+ */
+function systemTheme() {
+  return typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
 function applyTheme(theme) {
   const root = document.documentElement;
-  // Unset means follow the browser, which is the default and the only honest
-  // one: a page that opens dark on a light system has made a decision nobody
-  // asked for. tokens.css carries the matching prefers-color-scheme block.
-  if (theme === 'light' || theme === 'dark') root.setAttribute('data-theme', theme);
-  else root.removeAttribute('data-theme');
+  // Always one of the two now. Nothing stored still means "what the machine
+  // says", resolved at read time rather than written down - so a machine that
+  // switches to dark in the evening takes the extension with it, right up
+  // until somebody picks a side, and from then on their choice holds.
+  root.setAttribute('data-theme', theme === 'light' || theme === 'dark' ? theme : systemTheme());
 }
 
 function applyShape(shape) {
@@ -118,7 +134,10 @@ async function readAppearance() {
     'followInstance',
   ]);
   return {
-    theme: s.theme === 'light' || s.theme === 'dark' ? s.theme : '',
+    // Resolved, never blank: the picker offers two values and has to be able
+    // to show which one is in force. systemTheme() is the answer while nobody
+    // has chosen, and it is a live reading, so it follows the machine.
+    theme: s.theme === 'light' || s.theme === 'dark' ? s.theme : systemTheme(),
     accent: validHex(s.accent) ? s.accent : '',
     shape: SHAPES.includes(s.shape) ? s.shape : 'round',
     rainbow: {

@@ -72,13 +72,11 @@ export const ja: Dict = {
 
   'settings.title': '設定',
   'settings.language': '言語',
-  'settings.languageAutomatic': '自動(端末)',
   'settings.appearance': '外観',
   'settings.appearanceFollows': '接続中のインスタンスに合わせています。アプリとそのWeb UIが1つの製品に見えるようにするためです。',
   'settings.appearanceOverridden': 'ここで設定したため、インスタンスには合わせなくなりました。',
   'settings.followInstance': '再びインスタンスに合わせる',
   'settings.theme': 'テーマ',
-  'settings.theme.system': 'システム',
   'settings.theme.light': 'ライト',
   'settings.theme.dark': 'ダーク',
   'settings.corners': '角',
