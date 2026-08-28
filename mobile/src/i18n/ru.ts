@@ -72,13 +72,11 @@ export const ru: Dict = {
 
   'settings.title': 'Настройки',
   'settings.language': 'Язык',
-  'settings.languageAutomatic': 'Автоматически (устройство)',
   'settings.appearance': 'Внешний вид',
   'settings.appearanceFollows': 'Повторяет вид экземпляра, к которому вы подключены, чтобы приложение и его веб-интерфейс выглядели как один продукт.',
   'settings.appearanceOverridden': 'Задано здесь, поэтому вид больше не повторяет экземпляр.',
   'settings.followInstance': 'Снова следовать экземпляру',
   'settings.theme': 'Тема',
-  'settings.theme.system': 'Системная',
   'settings.theme.light': 'Светлая',
   'settings.theme.dark': 'Тёмная',
   'settings.corners': 'Углы',

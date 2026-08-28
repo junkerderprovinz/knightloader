@@ -72,13 +72,11 @@ export const cs: Dict = {
 
   'settings.title': 'Nastavení',
   'settings.language': 'Jazyk',
-  'settings.languageAutomatic': 'Automaticky (zařízení)',
   'settings.appearance': 'Vzhled',
   'settings.appearanceFollows': 'Řídí se instancí, ke které jste připojeni, aby aplikace a její webové rozhraní působily jako jeden produkt.',
   'settings.appearanceOverridden': 'Nastaveno zde, takže se už neřídí instancí.',
   'settings.followInstance': 'Znovu se řídit instancí',
   'settings.theme': 'Motiv',
-  'settings.theme.system': 'Systém',
   'settings.theme.light': 'Světlý',
   'settings.theme.dark': 'Tmavý',
   'settings.corners': 'Rohy',

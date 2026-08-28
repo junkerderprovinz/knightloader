@@ -72,13 +72,11 @@ export const is: Dict = {
 
   'settings.title': 'Stillingar',
   'settings.language': 'Tungumál',
-  'settings.languageAutomatic': 'Sjálfvirkt (tæki)',
   'settings.appearance': 'Útlit',
   'settings.appearanceFollows': 'Fylgir tilvikinu sem tengst er við, svo appið og vefviðmót þess líti út eins og ein vara.',
   'settings.appearanceOverridden': 'Stillt hér og fylgir því ekki lengur tilvikinu.',
   'settings.followInstance': 'Fylgja tilvikinu aftur',
   'settings.theme': 'Þema',
-  'settings.theme.system': 'Kerfið',
   'settings.theme.light': 'Ljóst',
   'settings.theme.dark': 'Dökkt',
   'settings.corners': 'Horn',

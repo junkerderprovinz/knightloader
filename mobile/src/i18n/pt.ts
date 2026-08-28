@@ -72,13 +72,11 @@ export const pt: Dict = {
 
   'settings.title': 'Configurações',
   'settings.language': 'Idioma',
-  'settings.languageAutomatic': 'Automático (dispositivo)',
   'settings.appearance': 'Aparência',
   'settings.appearanceFollows': 'Segue a instância à qual você está conectado, para o app e a interface web dela parecerem um só produto.',
   'settings.appearanceOverridden': 'Definida aqui, então não segue mais a instância.',
   'settings.followInstance': 'Voltar a seguir a instância',
   'settings.theme': 'Tema',
-  'settings.theme.system': 'Sistema',
   'settings.theme.light': 'Claro',
   'settings.theme.dark': 'Escuro',
   'settings.corners': 'Cantos',

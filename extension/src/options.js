@@ -586,12 +586,16 @@ function segment(host, options, current, onPick) {
 async function renderAppearance() {
   const a = await readAppearance();
 
-  // "" is the honest default for two of the three: follow the browser, and use
-  // the theme's own gold. Neither is a fourth value to invent.
+  // Two values, and the machine's own answer is already the selected one
+  // (jdp, 2026-08-29). The third entry, "follow the browser", is gone: it read
+  // as a choice and was an excuse, because it could not answer the only
+  // question anyone asks this control - which of the two am I looking at. Same
+  // ruling as the language picker's missing "Automatic", and the same fix:
+  // resolve it and select it. readAppearance does the resolving, live, so
+  // nothing is written down until somebody actually picks a side.
   segment(
     themeSeg,
     [
-      { value: '', label: t('options.themeSystem') },
       { value: 'light', label: t('options.themeLight') },
       { value: 'dark', label: t('options.themeDark') },
     ],

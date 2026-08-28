@@ -72,13 +72,11 @@ export const ar: Dict = {
 
   'settings.title': 'الإعدادات',
   'settings.language': 'اللغة',
-  'settings.languageAutomatic': 'تلقائي (حسب الجهاز)',
   'settings.appearance': 'المظهر',
   'settings.appearanceFollows': 'يتبع المثيل المتصل به، حتى يبدو التطبيق وواجهته على الويب منتجًا واحدًا.',
   'settings.appearanceOverridden': 'تم ضبطه هنا، لذا لم يعد يتبع المثيل.',
   'settings.followInstance': 'العودة إلى اتباع المثيل',
   'settings.theme': 'السمة',
-  'settings.theme.system': 'النظام',
   'settings.theme.light': 'فاتح',
   'settings.theme.dark': 'داكن',
   'settings.corners': 'الزوايا',

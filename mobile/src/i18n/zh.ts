@@ -72,13 +72,11 @@ export const zh: Dict = {
 
   'settings.title': '设置',
   'settings.language': '语言',
-  'settings.languageAutomatic': '自动（跟随设备）',
   'settings.appearance': '外观',
   'settings.appearanceFollows': '跟随当前连接的实例，让应用和它的网页界面看起来像同一个产品。',
   'settings.appearanceOverridden': '已在这里设置，因此不再跟随实例。',
   'settings.followInstance': '重新跟随实例',
   'settings.theme': '主题',
-  'settings.theme.system': '跟随系统',
   'settings.theme.light': '浅色',
   'settings.theme.dark': '深色',
   'settings.corners': '边角',

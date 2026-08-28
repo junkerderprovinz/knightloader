@@ -72,13 +72,11 @@ export const ms: Dict = {
 
   'settings.title': 'Tetapan',
   'settings.language': 'Bahasa',
-  'settings.languageAutomatic': 'Automatik (peranti)',
   'settings.appearance': 'Penampilan',
   'settings.appearanceFollows': 'Mengikut instans yang anda sambungkan, supaya aplikasi dan antara muka webnya kelihatan seperti satu produk.',
   'settings.appearanceOverridden': 'Ditetapkan di sini, jadi tidak lagi mengikut instans.',
   'settings.followInstance': 'Ikut instans semula',
   'settings.theme': 'Tema',
-  'settings.theme.system': 'Sistem',
   'settings.theme.light': 'Cerah',
   'settings.theme.dark': 'Gelap',
   'settings.corners': 'Sudut',

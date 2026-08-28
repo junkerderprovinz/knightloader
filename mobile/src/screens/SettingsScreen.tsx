@@ -58,7 +58,7 @@ export default function SettingsScreen({
     `app:      ${Constants.expoConfig?.version ?? '?'} (versionCode ${Constants.expoConfig?.android?.versionCode ?? '?'})`,
     `platform: ${Platform.OS} ${Platform.Version}`,
     `language: ${lang}`,
-    `look:     theme=${overridden.theme ? (dark ? 'dark' : 'light') : 'system'} accent=${anyOverride ? 'local' : 'instance'} rainbow=${rainbow.on ? 'on' : 'off'}`,
+    `look:     theme=${dark ? 'dark' : 'light'}${overridden.theme ? '' : ' (device)'} accent=${anyOverride ? 'local' : 'instance'} rainbow=${rainbow.on ? 'on' : 'off'}`,
   ].join(String.fromCharCode(10));
 
   // useFocusEffect, not a plain mount-only effect: this screen stays
@@ -71,11 +71,10 @@ export default function SettingsScreen({
     }, [])
   );
 
-  // The flag always tracks the language actually IN EFFECT (`lang`), even on
-  // "Automatic", where the label deliberately says "Automatic" rather than
-  // naming the language - so the row still answers which one that resolved
-  // to without spelling it out twice.
-  const currentLabel = override ? LANGUAGES.find((l) => l.code === override)?.label ?? override : t('settings.languageAutomatic');
+  // Named after the language actually in effect, never after the act of
+  // resolving one: the "Automatic" label is gone from the picker and from
+  // here, for the same reason (GlimStone 1.4.0).
+  const currentLabel = LANGUAGES.find((l) => l.code === (override ?? lang))?.label ?? (override ?? lang);
   const currentFlag = flagEmoji(LANGUAGES.find((l) => l.code === lang)?.flag ?? '');
 
   const confirmRemoveAll = () => {
@@ -123,14 +122,22 @@ export default function SettingsScreen({
           {anyOverride ? t('settings.appearanceOverridden') : t('settings.appearanceFollows')}
         </Text>
 
+        {/* Two chips, and the device's own mode is the one already marked
+            (jdp, 2026-08-29, now rule in GlimStone 1.4.0: "es soll nur hell und
+            dunkel zur auswahl geben und es soll automatisch der im system
+            eingestelle modus standardmässig ausgewählt werden"). The third chip
+            named the act of resolving rather than a result, so the control
+            could not answer the only question anyone asks it: which of the two
+            am I looking at. `dark` already holds the resolved answer, so the
+            chip that matches it is marked whether or not anything is stored. */}
         <Text style={[styles.axisLabel, { color: c.textSub }]}>{t('settings.theme')}</Text>
         <View style={styles.chips}>
-          {(['system', 'light', 'dark'] as const).map((k) => {
-            const on = k === 'system' ? !overridden.theme : overridden.theme && dark === (k === 'dark');
+          {(['light', 'dark'] as const).map((k) => {
+            const on = dark === (k === 'dark');
             return (
               <TouchableOpacity
                 key={k}
-                onPress={() => setTheme(k === 'system' ? undefined : k)}
+                onPress={() => setTheme(k)}
                 style={[
                   styles.chip,
                   { borderRadius: radii.control, backgroundColor: on ? accent : c.surface, borderColor: c.border },

@@ -72,13 +72,11 @@ export const no: Dict = {
 
   'settings.title': 'Innstillinger',
   'settings.language': 'Språk',
-  'settings.languageAutomatic': 'Automatisk (enhet)',
   'settings.appearance': 'Utseende',
   'settings.appearanceFollows': 'Følger instansen du er koblet til, slik at appen og nettgrensesnittet dens fremstår som ett produkt.',
   'settings.appearanceOverridden': 'Satt her, så det følger ikke lenger instansen.',
   'settings.followInstance': 'Følg instansen igjen',
   'settings.theme': 'Tema',
-  'settings.theme.system': 'System',
   'settings.theme.light': 'Lyst',
   'settings.theme.dark': 'Mørkt',
   'settings.corners': 'Hjørner',

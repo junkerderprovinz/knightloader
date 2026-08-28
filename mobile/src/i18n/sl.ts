@@ -72,13 +72,11 @@ export const sl: Dict = {
 
   'settings.title': 'Nastavitve',
   'settings.language': 'Jezik',
-  'settings.languageAutomatic': 'Samodejno (glede na napravo)',
   'settings.appearance': 'Videz',
   'settings.appearanceFollows': 'Sledi instanci, s katero ste povezani, da aplikacija in njen spletni vmesnik delujeta kot en izdelek.',
   'settings.appearanceOverridden': 'Nastavljeno tukaj, zato ne sledi več instanci.',
   'settings.followInstance': 'Znova sledi instanci',
   'settings.theme': 'Tema',
-  'settings.theme.system': 'Sistem',
   'settings.theme.light': 'Svetla',
   'settings.theme.dark': 'Temna',
   'settings.corners': 'Vogali',

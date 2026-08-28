@@ -72,13 +72,11 @@ export const et: Dict = {
 
   'settings.title': 'Seaded',
   'settings.language': 'Keel',
-  'settings.languageAutomatic': 'Automaatne (seadme järgi)',
   'settings.appearance': 'Välimus',
   'settings.appearanceFollows': 'Järgib eksemplari, millega olete ühendatud, et rakendus ja selle veebiliides näeksid välja nagu üks toode.',
   'settings.appearanceOverridden': 'Siin määratud, seega ei järgi enam eksemplari.',
   'settings.followInstance': 'Järgi taas eksemplari',
   'settings.theme': 'Teema',
-  'settings.theme.system': 'Süsteem',
   'settings.theme.light': 'Hele',
   'settings.theme.dark': 'Tume',
   'settings.corners': 'Nurgad',

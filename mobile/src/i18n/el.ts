@@ -72,13 +72,11 @@ export const el: Dict = {
 
   'settings.title': 'Ρυθμίσεις',
   'settings.language': 'Γλώσσα',
-  'settings.languageAutomatic': 'Αυτόματα (συσκευή)',
   'settings.appearance': 'Εμφάνιση',
   'settings.appearanceFollows': 'Ακολουθεί το στιγμιότυπο με το οποίο είστε συνδεδεμένοι, ώστε η εφαρμογή και η διεπαφή web του να μοιάζουν με ένα προϊόν.',
   'settings.appearanceOverridden': 'Ορίστηκε εδώ, οπότε δεν ακολουθεί πλέον το στιγμιότυπο.',
   'settings.followInstance': 'Να ακολουθεί ξανά το στιγμιότυπο',
   'settings.theme': 'Θέμα',
-  'settings.theme.system': 'Σύστημα',
   'settings.theme.light': 'Φωτεινό',
   'settings.theme.dark': 'Σκούρο',
   'settings.corners': 'Γωνίες',

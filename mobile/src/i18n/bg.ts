@@ -72,13 +72,11 @@ export const bg: Dict = {
 
   'settings.title': 'Настройки',
   'settings.language': 'Език',
-  'settings.languageAutomatic': 'Автоматично (според устройството)',
   'settings.appearance': 'Външен вид',
   'settings.appearanceFollows': 'Следва инстанцията, към която сте свързани, за да изглеждат приложението и нейният уеб интерфейс като един продукт.',
   'settings.appearanceOverridden': 'Зададено тук, затова вече не следва инстанцията.',
   'settings.followInstance': 'Следвай пак инстанцията',
   'settings.theme': 'Тема',
-  'settings.theme.system': 'Системна',
   'settings.theme.light': 'Светла',
   'settings.theme.dark': 'Тъмна',
   'settings.corners': 'Ъгли',

@@ -72,13 +72,11 @@ export const ro: Dict = {
 
   'settings.title': 'Setări',
   'settings.language': 'Limbă',
-  'settings.languageAutomatic': 'Automat (dispozitiv)',
   'settings.appearance': 'Aspect',
   'settings.appearanceFollows': 'Urmează instanța la care ești conectat, ca aplicația și interfața ei web să pară un singur produs.',
   'settings.appearanceOverridden': 'Setat aici, deci nu mai urmează instanța.',
   'settings.followInstance': 'Urmează din nou instanța',
   'settings.theme': 'Temă',
-  'settings.theme.system': 'Sistem',
   'settings.theme.light': 'Deschisă',
   'settings.theme.dark': 'Închisă',
   'settings.corners': 'Colțuri',

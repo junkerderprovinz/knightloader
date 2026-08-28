@@ -72,13 +72,11 @@ export const he: Dict = {
 
   'settings.title': 'הגדרות',
   'settings.language': 'שפה',
-  'settings.languageAutomatic': 'אוטומטי (לפי המכשיר)',
   'settings.appearance': 'מראה',
   'settings.appearanceFollows': 'עוקב אחרי המופע שאליו אתם מחוברים, כך שהאפליקציה וממשק האינטרנט שלו ייראו כמו מוצר אחד.',
   'settings.appearanceOverridden': 'נקבע כאן, ולכן כבר לא עוקב אחרי המופע.',
   'settings.followInstance': 'לעקוב שוב אחרי המופע',
   'settings.theme': 'ערכת נושא',
-  'settings.theme.system': 'מערכת',
   'settings.theme.light': 'בהיר',
   'settings.theme.dark': 'כהה',
   'settings.corners': 'פינות',

@@ -88,13 +88,11 @@ export const de: Dict = {
 
   'settings.title': 'Einstellungen',
   'settings.language': 'Sprache',
-  'settings.languageAutomatic': 'Automatisch (Gerät)',
   'settings.appearance': 'Aussehen',
   'settings.appearanceFollows': 'Richtet sich nach der Instanz, mit der du verbunden bist, damit App und Weboberfläche wie ein Produkt wirken.',
   'settings.appearanceOverridden': 'Hier eingestellt, richtet sich also nicht mehr nach der Instanz.',
   'settings.followInstance': 'Wieder der Instanz folgen',
   'settings.theme': 'Design',
-  'settings.theme.system': 'System',
   'settings.theme.light': 'Hell',
   'settings.theme.dark': 'Dunkel',
   'settings.corners': 'Ecken',

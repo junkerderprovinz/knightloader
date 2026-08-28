@@ -72,13 +72,11 @@ export const nl: Dict = {
 
   'settings.title': 'Instellingen',
   'settings.language': 'Taal',
-  'settings.languageAutomatic': 'Automatisch (apparaat)',
   'settings.appearance': 'Uiterlijk',
   'settings.appearanceFollows': 'Volgt de instantie waarmee je verbonden bent, zodat de app en de webinterface ervan als één product aanvoelen.',
   'settings.appearanceOverridden': 'Hier ingesteld, dus volgt de instantie niet meer.',
   'settings.followInstance': 'Weer de instantie volgen',
   'settings.theme': 'Thema',
-  'settings.theme.system': 'Systeem',
   'settings.theme.light': 'Licht',
   'settings.theme.dark': 'Donker',
   'settings.corners': 'Hoeken',

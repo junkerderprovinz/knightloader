@@ -72,13 +72,11 @@ export const vi: Dict = {
 
   'settings.title': 'Cài đặt',
   'settings.language': 'Ngôn ngữ',
-  'settings.languageAutomatic': 'Tự động (theo thiết bị)',
   'settings.appearance': 'Diện mạo',
   'settings.appearanceFollows': 'Theo thực thể mà bạn đang kết nối, để ứng dụng và giao diện web của nó trông như một sản phẩm duy nhất.',
   'settings.appearanceOverridden': 'Đã đặt ở đây, nên không còn theo thực thể nữa.',
   'settings.followInstance': 'Theo lại thực thể',
   'settings.theme': 'Chủ đề',
-  'settings.theme.system': 'Hệ thống',
   'settings.theme.light': 'Sáng',
   'settings.theme.dark': 'Tối',
   'settings.corners': 'Góc',

@@ -72,13 +72,11 @@ export const lt: Dict = {
 
   'settings.title': 'Nustatymai',
   'settings.language': 'Kalba',
-  'settings.languageAutomatic': 'Automatinė (pagal įrenginį)',
   'settings.appearance': 'Išvaizda',
   'settings.appearanceFollows': 'Seka egzemplioriumi, prie kurio esate prisijungę, kad programa ir jo žiniatinklio sąsaja atrodytų kaip vienas produktas.',
   'settings.appearanceOverridden': 'Nustatyta čia, todėl egzemplioriumi nebesekama.',
   'settings.followInstance': 'Vėl sekti egzemplioriumi',
   'settings.theme': 'Tema',
-  'settings.theme.system': 'Sistemos',
   'settings.theme.light': 'Šviesi',
   'settings.theme.dark': 'Tamsi',
   'settings.corners': 'Kampai',
