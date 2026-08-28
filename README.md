@@ -220,10 +220,12 @@ Everything is optional and has a working default.
 Pasting works, and so does dropping text onto the collector. Beyond that:
 
 - **[Click'n'Load](docs/clicknload.md)** — a site's own CnL button hands its links
-  straight over. When KnightLoader runs on a NAS the same binary doubles as a
-  bridge on your desktop, because every site addresses `127.0.0.1` and a
-  container's loopback is not the browser's:
-  `knightloader -bridge http://nas:8749`
+  straight over. Every site addresses `127.0.0.1`, and a container's loopback is
+  not the browser's, so when KnightLoader runs on a NAS there are two ways to
+  bridge that gap: the [browser extension](extension/README.md), which catches
+  the submission in the page itself and routes it through the relay to whichever
+  instance you pick, or the same binary run as a bridge on your desktop
+  (`knightloader -bridge http://nas:8749`) for a browser with no extension in it.
 - **Watched folder** — drop a `.txt` or a JDownloader `.crawljob` onto a share and
   the box picks it up, with its package name, destination and archive password.
   Point Settings at the folder to switch it on.
