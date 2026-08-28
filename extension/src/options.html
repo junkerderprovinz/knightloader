@@ -82,6 +82,10 @@
         padding: 6px 10px;
       }
       #syncPeers { margin-top: 12px; }
+      /* The one checkbox on this page. A row, so the label is part of the hit
+         target rather than a separate thing to aim at. */
+      .cnlRow { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+      .cnlRow input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
       /* Inside a card the list has the card's own padding around it already. */
       #list:not(:empty) { margin-bottom: 2px; }
       #syncPeers:disabled { opacity: 0.55; cursor: default; }
@@ -205,6 +209,20 @@
           </span>
           <div class="glim-swatches" id="accentSwatches"></div>
         </div>
+      </div>
+    </section>
+
+    <!-- Off until switched on, deliberately: interception changes what a
+         website's own button does, and starting to do that to somebody without
+         asking is not a default anyone should ship. -->
+    <section class="glim-card">
+      <h2 class="glim-section-badge" id="cnlHeading">Click'n'Load</h2>
+      <p class="fieldSub" id="cnlSub"></p>
+      <div class="fields">
+        <label class="cnlRow">
+          <input type="checkbox" id="cnlEnabled" />
+          <span id="cnlToggle"></span>
+        </label>
       </div>
     </section>
 

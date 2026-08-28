@@ -19,7 +19,7 @@
 // reason, so Firefox has already loaded them by the time this line is reached
 // and there is nothing left to import.
 if (typeof importScripts === 'function') {
-  importScripts('shared.js', 'i18n.js');
+  importScripts('shared.js', 'i18n.js', 'cnl.js');
 }
 
 const MENU_PAGE = 'knightloader-send-page';
@@ -162,4 +162,152 @@ chrome.runtime.onMessage.addListener((msg) => {
   if (msg?.type === 'knightloader-send-to' && msg.origin && msg.payload) {
     openQuickAdd(msg.origin, msg.payload);
   }
+  if (msg?.type === 'knightloader-cnl') {
+    void handleCnl(msg);
+  }
+  // The options page cannot register content scripts itself in a way that
+  // survives it being closed, so it asks here once the permission is granted.
+  if (msg?.type === 'knightloader-cnl-scripts') {
+    void syncCnlScripts(msg.on === true);
+  }
 });
+
+/**
+ * One Click'n'Load submission, caught in the page by cnl-main.js and relayed
+ * here by cnl-relay.js.
+ *
+ * The decoded links go through sendToInstance() — the same function the
+ * toolbar button and every context-menu entry use — so a CnL button behaves
+ * exactly like every other send: straight through when one instance is
+ * configured, and the picker when there are several. That is what jdp asked
+ * for twice, on 2026-08-23 ("wenn man auf einen click n load button klickt
+ * soll die erweiterung aufploppen wie die von JD") and again on 2026-08-28
+ * ("das CnL immer an die erweiterung gehen und die verteilt es dann"), and it
+ * costs nothing to honour because the machinery was already there.
+ *
+ * Off unless switched on: interception changes what a page's own button does,
+ * and that is not a thing to start doing to somebody without asking. See
+ * options.js.
+ */
+async function handleCnl(msg) {
+  const { cnlEnabled } = await chrome.storage.local.get('cnlEnabled');
+  if (cnlEnabled !== true) return;
+
+  const f = msg.fields || {};
+  let links = [];
+  try {
+    if (f.crypted && f.jk) {
+      links = await cnlDecrypt(f.jk, f.crypted);
+    } else if (f.urls) {
+      // The plain variant, /flash/add: older or simpler sites post an
+      // unencrypted list.
+      links = splitCnlLinks(f.urls);
+    } else if (f.crypted) {
+      // addcrypted v1: encrypted against JDownloader's own RSA key, which
+      // nobody else holds and KnightLoader deliberately never will (see
+      // docs/clicknload.md). Nothing to decode, and pretending otherwise
+      // would drop the links silently.
+      notifyCnl('cnl.containerUnsupported');
+      return;
+    }
+  } catch (e) {
+    notifyCnl('cnl.decodeFailed');
+    return;
+  }
+  if (links.length === 0) return;
+
+  // The site's own `source`/`package` field names the batch when it sends one;
+  // the page title is the fallback, and it is a better package name than the
+  // first link's filename, which is what the collector would fall back to.
+  const title = f.package || f.source || msg.pageTitle || '';
+  await sendToInstance({ text: links.join('\n'), title });
+}
+
+/**
+ * The two content scripts that catch a Click'n'Load submission, registered at
+ * runtime instead of declared in the manifest.
+ *
+ * This is the whole reason the extension can offer Click'n'Load without asking
+ * every installer for access to every website. Static content_scripts matching
+ * <all_urls> produce that permission warning at INSTALL time, for everybody,
+ * whether or not they ever want the feature. Registered from here they exist
+ * only once somebody switches it on and grants the permission themselves — and
+ * unregistering takes it away again.
+ *
+ * MAIN world for the interceptor, isolated for the relay: see cnl-main.js. The
+ * pair has to be registered together or neither half does anything.
+ */
+const CNL_SCRIPTS = [
+  {
+    id: 'cnl-main',
+    matches: ['<all_urls>'],
+    js: ['cnl-main.js'],
+    runAt: 'document_start',
+    allFrames: true,
+    world: 'MAIN',
+    persistAcrossSessions: true,
+  },
+  {
+    id: 'cnl-relay',
+    matches: ['<all_urls>'],
+    js: ['cnl-relay.js'],
+    runAt: 'document_start',
+    allFrames: true,
+    persistAcrossSessions: true,
+  },
+];
+
+/** Registers or removes the interception scripts to match the stored flag.
+ *  Idempotent: registering an id that already exists throws, so the existing
+ *  set is read first. */
+async function syncCnlScripts(on) {
+  try {
+    const have = await chrome.scripting.getRegisteredContentScripts();
+    const ids = have.filter((s) => s.id.startsWith('cnl-')).map((s) => s.id);
+    if (on) {
+      const missing = CNL_SCRIPTS.filter((s) => !ids.includes(s.id));
+      if (missing.length) await chrome.scripting.registerContentScripts(missing);
+    } else if (ids.length) {
+      await chrome.scripting.unregisterContentScripts({ ids });
+    }
+  } catch (e) {
+    // Without the host permission this throws, which is the correct outcome:
+    // the feature stays off rather than half-on. options.js asks for the
+    // permission before it ever gets here.
+  }
+}
+
+// On every startup, not only when a submission arrives. persistAcrossSessions
+// already survives a restart, but a permission revoked from the browser's own
+// settings page does not tell this extension about it - reasserting is what
+// keeps the switch and the reality in step.
+chrome.runtime.onStartup?.addListener(() => {
+  void chrome.storage.local.get('cnlEnabled').then(({ cnlEnabled }) => syncCnlScripts(cnlEnabled === true));
+});
+
+/**
+ * A mark on the toolbar icon for the two cases that end with nothing arriving,
+ * so a click that looked like it worked does not just vanish.
+ *
+ * The badge and not a notification: `notifications` would be a fourth
+ * permission at install time, asked for on every install so that two rare
+ * failures can announce themselves. The badge costs nothing, the tooltip
+ * carries the actual sentence, and both clear themselves.
+ */
+function notifyCnl(key) {
+  try {
+    chrome.action.setBadgeText({ text: '!' });
+    chrome.action.setBadgeBackgroundColor({ color: '#da1e28' });
+    chrome.action.setTitle({ title: `KnightLoader — ${t(key)}` });
+    // An empty title is not a blank tooltip: it puts the manifest's own
+    // default_title back, which is the one string that must not be duplicated
+    // into the locale catalogues to be restored.
+    setTimeout(() => {
+      chrome.action.setBadgeText({ text: '' });
+      chrome.action.setTitle({ title: '' });
+    }, 8000);
+  } catch {
+    // An action API that is not there yet during startup. The submission is
+    // already lost; losing the badge with it changes nothing.
+  }
+}
