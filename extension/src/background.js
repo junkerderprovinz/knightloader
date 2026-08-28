@@ -73,11 +73,22 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     contexts: ['selection'],
   });
 
-  // First install only, and only when there is nothing to work with: the
-  // options page is where the phrase goes in, and an extension that cannot
+  // Click'n'Load is ON from the first second (jdp, 2026-08-28: "Das ist ja das
+  // Hauptfeature warum man sich die Erweiterung installiert!"). The manifest
+  // already declares the site access it needs, so this can register the content
+  // scripts right here rather than waiting for somebody to find the switch.
+  //
+  // Only on a fresh install: an update must never switch back on something
+  // somebody deliberately switched off.
+  if (details.reason === 'install') {
+    await chrome.storage.local.set({ cnlEnabled: true });
+  }
+  await syncCnlScripts((await chrome.storage.local.get('cnlEnabled')).cnlEnabled !== false);
+
+  // The options page is where the phrase goes in, and an extension that cannot
   // reach anything is better off saying so immediately than on the first
-  // right-click. An update never opens it — somebody who already joined a
-  // group does not need the page again.
+  // right-click. An update never opens it — somebody who already joined a group
+  // does not need the page again.
   if (details.reason === 'install' && !(await readPhrase())) {
     chrome.runtime.openOptionsPage();
   }
@@ -221,7 +232,9 @@ chrome.runtime.onMessage.addListener((msg) => {
  */
 async function handleCnl(msg) {
   const { cnlEnabled } = await chrome.storage.local.get('cnlEnabled');
-  if (cnlEnabled !== true) return;
+  // Absent means on: the flag is written on install, and a storage read that
+  // lost it should not quietly turn off the feature the extension exists for.
+  if (cnlEnabled === false) return;
 
   const f = msg.fields || {};
   let links = [];

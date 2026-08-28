@@ -2,12 +2,16 @@
  *
  * Copied from the shared reference (github.com/junkerderprovinz/glimstone,
  * reference/tokens.css) rather than re-picked, because the point of a shared
- * design language is that this yellow is the same yellow everywhere. Only the
- * parts this extension actually uses are here - the colour picker, the info
- * bubble and the rainbow classes are left out, and the reason for the rainbow
- * is worth stating: it colours ACTIVITY in a list by position, and nothing in
- * these three small pages is a list of activity. Adding it would be a mode with
- * nothing to colour.
+ * design language is that this yellow is the same yellow everywhere.
+ *
+ * It once held only "the parts this extension actually uses", leaving out the
+ * info bubble, the switch and the rainbow - the last of those on the reasoning
+ * that it colours ACTIVITY in a list and none of these pages was a list of
+ * anything. All three came back within a day of somebody actually looking at
+ * the pages, and the pattern is worth recording rather than the individual
+ * omissions: a design language taken in parts is a design language the next
+ * person has to finish, and "this page is too small to need it" is the
+ * reasoning that leaves them to do it.
  *
  * Shared by options.html, popup.html and picker.html. One file rather than
  * three copies of the same block, which is how three pages of one product end
@@ -489,3 +493,204 @@
 .glim-switch[aria-checked='true'] .glim-switch-knob { translate: 16px 0; }
 .glim-switch-label { order: 1; }
 .glim-switch:focus-visible { outline: 2px solid var(--focus-ring, var(--accent)); outline-offset: 3px; }
+
+/* ---------------------------------------------------------------------------
+   The colour engine: the accent in the plural.
+
+   Left out of this file at first on the reasoning that none of these pages was
+   a list of anything. They are now - the group is drawn as instance cards in
+   three places - and jdp put it plainly (2026-08-28): "Der Regenbogenmodus
+   fehlt komplett in der Erweiterung!"
+
+   The mechanism is the web UI's, rule for rule: an element carrying a palette
+   position sets --item-hue* on itself and wears .glim-hue; these rules decide
+   whether that colour shows at rest or waits for a hover. The class and the
+   properties always travel together - setHue() in appearance.js hands out both,
+   so no caller can produce one without the other.
+   --------------------------------------------------------------------------- */
+[data-rainbow] .glim-hue {
+  --accent: var(--item-hue);
+  --accent-contrast: var(--item-hue-ink);
+  --accent-soft: var(--item-hue-soft);
+  /* The ring is part of the position, not of the theme: a gold ring around a
+     teal card is the single accent leaking back in at the one moment it is
+     most visible, because it is only ever drawn on what the keyboard is
+     standing on. */
+  --focus-ring: var(--item-hue-ring);
+}
+/* In rainbow mode a glyph carries its own element's hue too, so a row reads as
+   one coloured thing rather than a coloured box with a grey mark in it. */
+[data-rainbow] .glim-hue-icon svg { color: var(--item-hue); }
+
+/* Reactive: everything rests neutral and only what is hovered, focused or
+   active takes its colour. The restrained reading of the mode, and the one that
+   still obeys "colour marks activity" when a whole list would otherwise light
+   up at once. */
+[data-rainbow='reactive'] .glim-hue {
+  --accent: var(--carbon-text-muted);
+  --accent-contrast: var(--carbon-bg);
+  --accent-soft: transparent;
+}
+[data-rainbow='reactive'] .glim-hue:hover,
+[data-rainbow='reactive'] .glim-hue:focus-within,
+[data-rainbow='reactive'] .glim-hue.glim-active {
+  --accent: var(--item-hue);
+  --accent-contrast: var(--item-hue-ink);
+  --accent-soft: var(--item-hue-soft);
+}
+[data-rainbow='reactive'] .glim-hue-icon:not(.glim-active) svg { color: inherit; }
+[data-rainbow='reactive'] .glim-hue-icon:hover svg,
+[data-rainbow='reactive'] .glim-hue-icon:focus-within svg,
+[data-rainbow='reactive'] .glim-hue-icon.glim-active svg { color: var(--item-hue); }
+
+/* ---------------------------------------------------------------------------
+   The instance card.
+
+   The same object in all three places the group is drawn - the popup, the
+   send-to window and the options page (jdp: "Im erweiterungsfenster sollen die
+   Instanzen auch als cards erscheinen. Gleich wie im instanzentab.") - and
+   shaped after the web UI's own InstanceCard: the mark flush against the left
+   edge running the card's full height, the name, what it is, and a badge in the
+   corner.
+   --------------------------------------------------------------------------- */
+.glim-instance {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  border-radius: var(--radius-control);
+  background: var(--carbon-surface2);
+  color: var(--carbon-text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  position: relative;
+  transition: background-color 150ms ease;
+}
+.glim-instance:hover { background: var(--carbon-hover); }
+/* Chosen for THIS send: a ring, the same way a selected swatch is marked - an
+   inset gap in the page colour, then the accent, so the mark reads as applied
+   to the card rather than as the card's own edge. */
+.glim-instance[aria-checked='true'] {
+  box-shadow: 0 0 0 2px var(--carbon-bg), 0 0 0 4px var(--accent);
+}
+.glim-instance-mark {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  padding-inline-start: 10px;
+}
+.glim-instance-mark img { height: 40px; width: auto; display: block; }
+.glim-instance-body {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.glim-instance-name { font-weight: 500; }
+.glim-instance-what { color: var(--carbon-text-muted); font-size: var(--text-dense); }
+/* "Standard" - a real badge in the corner, not a word appended to the name. */
+.glim-instance-badge {
+  position: absolute;
+  inset-inline-end: 8px;
+  top: 8px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  font-weight: 600;
+  color: var(--accent-contrast);
+  background: var(--accent);
+  border-radius: var(--radius-pill);
+  padding: 2px 7px;
+}
+
+/* The right-click menu that reassigns the default. A menu rather than a button
+   on every card: the default is set once and then not thought about again, and
+   a permanent control for it would be louder than the thing it does. */
+.glim-menu {
+  position: fixed;
+  z-index: 2147483646;
+  min-width: 180px;
+  padding: 4px;
+  border-radius: var(--radius-control);
+  background: var(--carbon-surface);
+  box-shadow: var(--elevation), var(--hairline);
+}
+.glim-menu button {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: calc(var(--radius-control) - 2px);
+  background: transparent;
+  color: var(--carbon-text);
+  font: inherit;
+  font-weight: 400;
+  text-align: start;
+  cursor: pointer;
+}
+.glim-menu button:hover { background: var(--carbon-hover); }
+.glim-menu button:disabled { opacity: .5; cursor: default; background: transparent; }
+
+/* ---------------------------------------------------------------------------
+   The language listbox.
+
+   A native select can hold plain text and nothing else, so a flag beside a
+   language name is impossible in one - and a native dropdown standing next to
+   token-styled controls reads as another application's widget anyway (jdp:
+   "Das Sprachen-Dropdown ist nicht im GSS und hat keine Flaggen"). This is the
+   web UI's own pattern: a field-shaped button that opens a real list.
+   --------------------------------------------------------------------------- */
+.glim-listbox { position: relative; max-width: 320px; }
+.glim-listbox-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--carbon-surface2);
+  color: var(--carbon-text);
+  font: inherit;
+  font-weight: 400;
+  text-align: start;
+  cursor: pointer;
+}
+.glim-listbox-trigger:focus-visible { outline: 0; box-shadow: 0 0 0 2px var(--focus-ring); }
+.glim-listbox-caret { margin-inline-start: auto; opacity: .7; }
+.glim-listbox-menu {
+  position: absolute;
+  z-index: 40;
+  inset-inline: 0;
+  top: calc(100% + 6px);
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 4px;
+  border-radius: var(--radius-control);
+  background: var(--carbon-surface);
+  box-shadow: var(--elevation), var(--hairline);
+}
+.glim-listbox-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: calc(var(--radius-control) - 2px);
+  background: transparent;
+  color: var(--carbon-text);
+  font: inherit;
+  font-weight: 400;
+  text-align: start;
+  cursor: pointer;
+}
+.glim-listbox-option:hover { background: var(--carbon-hover); }
+.glim-listbox-option[aria-selected='true'] { background: var(--accent); color: var(--accent-contrast); }
+/* The flag: a fixed box so every label starts at the same x, whatever the
+   flag's own aspect ratio. */
+.glim-listbox .fi { width: 20px; height: 15px; flex: 0 0 auto; border-radius: 2px; }

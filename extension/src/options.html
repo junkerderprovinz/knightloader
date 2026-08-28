@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <title>KnightLoader — instances</title>
     <link rel="stylesheet" href="glimstone.css" />
+    <link rel="stylesheet" href="flags.css" />
     <style>
       body {
         margin: 0;
@@ -84,36 +85,6 @@
       #status { margin-top: 10px; font-size: var(--text-dense); min-height: 1.2em; }
       .ok { color: var(--status-ok-text); }
       #list { display: flex; flex-direction: column; gap: 8px; }
-      /* A filled row, not an outlined one - same correction as the fields
-         above, and the same reason: GlimStone separates with surface steps,
-         not with lines. */
-      .row {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 10px 12px;
-        border: 0;
-        border-radius: var(--radius-control);
-        background: var(--carbon-surface2);
-      }
-      /* "This is the default instance" as a ring rather than a recoloured
-         border, matching how the web UI marks a selected swatch (ui.tsx): an
-         inset gap in the page colour, then the accent, so the mark reads as
-         applied TO the row rather than as the row's own edge. */
-      .row.isDefault { box-shadow: 0 0 0 2px var(--carbon-bg), 0 0 0 4px var(--accent); }
-      .row .info { flex: 1; min-width: 0; }
-      .row .name { font-weight: 500; }
-      .row .url { color: var(--carbon-text-muted); font-size: var(--text-dense); word-break: break-all; }
-      .row .badge {
-        font-size: 10px;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: var(--accent-contrast);
-        background: var(--accent);
-        border-radius: var(--radius-pill);
-        padding: 2px 6px;
-        margin-left: 8px;
-      }
       .empty { color: var(--carbon-text-muted); font-size: var(--text-body); padding: 8px 0; }
       .fields { display: flex; gap: 8px; }
       /* The join form: the phrase field on its own line above its buttons.
@@ -126,7 +97,6 @@
       /* The info glyph sits INSIDE the heading badge, so it takes the badge's
          own ink rather than the muted page colour it defaults to. */
       .glim-section-badge .glim-info-icon { color: currentColor; }
-      select#languageSelect { width: 100%; max-width: 320px; }
       /* Three settings that differ only in what they set, stacked in one column
          so the eye compares the answers instead of the layout. The label rule
          above would otherwise shrink the selects along with their captions. */
@@ -175,7 +145,11 @@
 
     <section class="glim-card">
       <h2 class="glim-section-badge" id="languageHeading">Language</h2>
-      <select id="languageSelect"></select>
+      <!-- A listbox, not a native select: an <option> can hold plain text and
+           nothing else, so a flag beside a language name is impossible in one,
+           and a native dropdown among token-styled controls reads as another
+           application's widget. Built by options.js. -->
+      <div class="glim-listbox" id="languageBox"></div>
     </section>
 
     <section class="glim-card">
@@ -201,6 +175,32 @@
           </span>
           <div class="glim-swatches" id="accentSwatches"></div>
         </div>
+        <!-- The rainbow: the accent in the plural. Three switches and a
+             palette, exactly the axes the web UI's own Look page offers, so
+             somebody who set this up there recognises it here. -->
+        <button type="button" role="switch" aria-checked="false" id="rainbowOn" class="glim-switch">
+          <span class="glim-switch-label" id="rainbowLabel"></span>
+          <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
+        </button>
+        <button type="button" role="switch" aria-checked="false" id="rainbowReactive" class="glim-switch">
+          <span class="glim-switch-label" id="rainbowReactiveLabel"></span>
+          <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
+        </button>
+        <button type="button" role="switch" aria-checked="false" id="rainbowRotate" class="glim-switch">
+          <span class="glim-switch-label" id="rainbowRotateLabel"></span>
+          <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
+        </button>
+        <div class="glim-axis" id="paletteRow">
+          <span class="glim-axis-label" id="paletteLabel">Palette</span>
+          <div class="glim-swatches" id="paletteSwatches"></div>
+        </div>
+        <!-- Take the look from the instance instead of choosing it here. It
+             reads GET /api/appearance, which is on the list a group member may
+             reach through the relay - so it costs no permission at all. -->
+        <button type="button" role="switch" aria-checked="false" id="followInstance" class="glim-switch">
+          <span class="glim-switch-label" id="followInstanceLabel"></span>
+          <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
+        </button>
       </div>
     </section>
 

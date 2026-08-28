@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <title>KnightLoader</title>
     <link rel="stylesheet" href="glimstone.css" />
+    <link rel="stylesheet" href="flags.css" />
     <style>
       body {
         /* 360, up from 280 (jdp, 2026-08-27: "Das Popupfenster der
@@ -81,7 +82,6 @@
          eyebrow makes that second line self-explanatory regardless of what
          page it names. The eyebrow treatment itself is .glim-eyebrow on the
          element, so only its spacing is left here. */
-      #targetLabel { margin: 0 0 2px; }
       p {
         margin: 0 0 12px;
         color: var(--carbon-text-sub);
@@ -120,6 +120,8 @@
         transition: box-shadow 150ms ease;
       }
       #instance:focus { box-shadow: 0 0 0 2px var(--focus-ring); }
+      #instanceList { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+      #instanceLabel { margin: 0; }
     </style>
   </head>
   <body>
@@ -133,11 +135,10 @@
         </svg>
       </button>
     </div>
-    <p id="targetLabel" class="glim-eyebrow">Sending</p>
     <p id="target">Loading the current page…</p>
     <div id="instanceRow" hidden>
-      <label for="instance" id="instanceLabel">Send to</label>
-      <select id="instance"></select>
+      <p id="instanceLabel" class="glim-eyebrow">Send to</p>
+      <div id="instanceList"></div>
     </div>
     <button id="send" class="primary">Send this page</button>
     <div id="status"></div>

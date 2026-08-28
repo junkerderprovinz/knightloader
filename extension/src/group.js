@@ -50,6 +50,25 @@ async function readDefaultTarget() {
   return typeof stored.defaultInstance === 'string' ? stored.defaultInstance : '';
 }
 
+/**
+ * defaultOf resolves which instance in THIS group is the default, right now.
+ *
+ * There is always exactly one, and that is the point: nothing is stored until
+ * somebody chooses, so a fresh join would otherwise show a group of cards with
+ * no badge on any of them and no answer to "where does a send go". The first
+ * instance stands in until a choice is made — and a stored choice that has
+ * since left the group falls back the same way rather than pointing at
+ * something that is not there.
+ *
+ * Deliberately NOT written back. Storing the fallback would turn "whichever is
+ * first" into a decision somebody has to undo, and the order can change on its
+ * own as instances come and go.
+ */
+function defaultOf(siblings, stored) {
+  if (stored && siblings.some((s) => s.instanceId === stored)) return stored;
+  return siblings[0]?.instanceId ?? '';
+}
+
 async function writeDefaultTarget(instanceId) {
   await chrome.storage.local.set({ defaultInstance: String(instanceId || '') });
 }
