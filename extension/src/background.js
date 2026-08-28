@@ -1,11 +1,19 @@
 // The service worker: builds the four context-menu entries and does the one
-// thing every entrance in this extension needs — open a small window at this
-// instance's own /quickadd, same-origin, so the normal session cookie carries
-// it and nothing here ever has to hold a copy of the instance's password.
-// See internal/cnl/cnl.go's own withCORS comment for why that door is closed
-// on the server side rather than worked around here with a stripped Origin
-// header: this extension talks to KnightLoader exactly the way a person with
-// a browser tab open to it would, never around that boundary.
+// thing every entrance in this extension needs — put what you picked into one
+// of the instances in your group.
+//
+// It used to do that by opening a small window at the instance's own /quickadd,
+// same-origin, so the session cookie carried it. That needed an ADDRESS, which
+// is what made the options page ask for a name and a URL long after the rest of
+// the product had moved to the connection phrase. It now goes through the relay
+// instead (group.js, relay.js): the phrase is the only thing stored, membership
+// is the credential, and an instance that is only reachable through the relay
+// is reachable from here too — which the window never could be.
+//
+// The old boundary still holds, in a different place: this extension never
+// works around the API's same-origin guard with a stripped Origin header. It
+// does not have to, because a relayed call arrives at the instance marked as
+// coming from a group sibling and is admitted on that basis alone.
 // Chrome runs this file as a service worker, where importScripts is how a
 // worker pulls in its dependencies. Firefox ignores background.service_worker
 // entirely (web-ext lint says so out loud: BACKGROUND_SERVICE_WORKER_IGNORED)
@@ -19,7 +27,7 @@
 // reason, so Firefox has already loaded them by the time this line is reached
 // and there is nothing left to import.
 if (typeof importScripts === 'function') {
-  importScripts('shared.js', 'i18n.js', 'cnl.js');
+  importScripts('shared.js', 'i18n.js', 'wordlist.js', 'phrase.js', 'relay.js', 'group.js', 'cnl.js');
 }
 
 const MENU_PAGE = 'knightloader-send-page';
@@ -65,20 +73,13 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     contexts: ['selection'],
   });
 
-  // First install only: a reinstall or an update must never overwrite an
-  // instance list somebody already configured, and an unconfigured install
-  // has nothing to clobber, so this is a no-op the second time either way —
-  // the guard is about not undoing a later Options edit on an update, not
-  // about idempotency. readInstances() itself folds an old single-URL config
-  // (from before multi-instance support) into a one-entry list, so that path
-  // is covered here too, not just on the next popup/options open.
-  if (details.reason === 'install') {
-    const { instances } = await readInstances();
-    if (instances.length === 0) {
-      const baked = await readInstanceUrl();
-      if (baked) await writeInstances([{ name: 'Default', url: baked }], 'Default');
-      else chrome.runtime.openOptionsPage();
-    }
+  // First install only, and only when there is nothing to work with: the
+  // options page is where the phrase goes in, and an extension that cannot
+  // reach anything is better off saying so immediately than on the first
+  // right-click. An update never opens it — somebody who already joined a
+  // group does not need the page again.
+  if (details.reason === 'install' && !(await readPhrase())) {
+    chrome.runtime.openOptionsPage();
   }
 });
 
@@ -113,54 +114,83 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
  * not importScripts — see popup.html), so the toolbar button's "send this
  * page" action and every context-menu entry go through the identical choice.
  *
- * One configured instance sends straight through, same as before multi-
- * instance support existed — jdp: "es soll einfach immer zuverlässig
- * funktionieren ohne das man manuell was machen muss", and a picker nobody
- * needs is exactly the manual step that breaks that. More than one instance
- * opens the picker (jdp, 2026-08-23: "wenn man auf einen click n load
- * button klcikt soll die erweiterung aufploppen wie die von JD") so there is
- * always a real choice, defaulted to whichever instance is marked default.
+ * One instance in the group sends straight through — jdp: "es soll einfach
+ * immer zuverlässig funktionieren ohne das man manuell was machen muss", and a
+ * picker nobody needs is exactly the manual step that breaks that. More than
+ * one opens the picker (jdp, 2026-08-23: "wenn man auf einen click n load
+ * button klickt soll die erweiterung aufploppen wie die von JD"), defaulted to
+ * whichever instance was last chosen as the default.
+ *
+ * The group is read live from the relay rather than from storage, and that is
+ * the point of the whole rework: an instance that is offline is not offered,
+ * and one that joined five minutes ago is, without this browser being told
+ * anything. It costs one short connection per send.
  */
 async function sendToInstance(payload) {
-  const { instances, defaultName } = await readInstances();
-  if (instances.length === 0) {
-    chrome.runtime.openOptionsPage();
-    return;
-  }
-  if (instances.length === 1) {
-    const only = entryTarget(instances[0]);
-    // An entry with no address and no forwarder is one nothing can be sent
-    // to. Options is where that is fixed, and it is where the reason is
-    // shown - better than a window that opens on nothing.
-    if (!only) {
+  let siblings;
+  try {
+    siblings = await groupInstances();
+  } catch (e) {
+    // No phrase yet is the ordinary first-run case, and the options page is
+    // both where it is fixed and where the reason is written down.
+    if (e?.code === 'no-phrase') {
       chrome.runtime.openOptionsPage();
       return;
     }
-    openQuickAdd(only.origin, { ...payload, to: only.to });
+    notifyCnl('send.relayFailed');
     return;
   }
-  await chrome.storage.session.set({ pendingSend: { payload, defaultName } });
+  if (siblings.length === 0) {
+    notifyCnl('send.noneOnline');
+    return;
+  }
+  if (siblings.length === 1) {
+    await deliver(siblings[0].instanceId, payload);
+    return;
+  }
+  await chrome.storage.session.set({
+    pendingSend: { payload, defaultName: await readDefaultTarget(), siblings },
+  });
   chrome.windows.create({ url: chrome.runtime.getURL('picker.html'), type: 'popup', width: 400, height: 480 });
 }
 
 /**
- * openQuickAdd is exported for picker.js to call once a target is chosen —
- * that page runs as a normal extension page (a <script> tag, like popup.js),
- * not a service worker, so it reaches this through chrome.runtime.sendMessage
- * rather than a direct call.
+ * deliver puts one payload into one instance, through the relay.
+ *
+ * `text` carries a whole batch newline-separated; the server's own linkscan
+ * pulls every URL out of a blob, so a Click'n'Load batch and a single
+ * right-clicked link take the identical path. `origin: 'cnl'` is what tells
+ * the collector this arrived from a browser button rather than the paste box.
  */
-function openQuickAdd(origin, payload) {
-  const url = quickAddUrl(origin, payload);
-  // A small popup window, not a background tab: the confirmation
-  // (web/src/pages/QuickAdd.tsx) is the only thing anybody needs to see, and
-  // a background tab is a confirmation nobody looks at until they go hunting
-  // for it.
-  chrome.windows.create({ url, type: 'popup', width: 420, height: 560 });
+async function deliver(target, payload) {
+  const links = [payload.url, payload.text].filter(Boolean).join('\n\n');
+  if (!links) return;
+  try {
+    const res = await withGroup(({ call }) =>
+      call(
+        target,
+        'POST',
+        '/api/links',
+        JSON.stringify({
+          links,
+          package: payload.title || '',
+          origin: 'cnl',
+        }),
+      ),
+    );
+    if (res.status >= 200 && res.status < 300) {
+      flashBadge('✓', '#24a148', 'send.delivered');
+    } else {
+      notifyCnl('send.refused');
+    }
+  } catch {
+    notifyCnl('send.relayFailed');
+  }
 }
 
 chrome.runtime.onMessage.addListener((msg) => {
-  if (msg?.type === 'knightloader-send-to' && msg.origin && msg.payload) {
-    openQuickAdd(msg.origin, msg.payload);
+  if (msg?.type === 'knightloader-send-to' && msg.target && msg.payload) {
+    void deliver(msg.target, msg.payload);
   }
   if (msg?.type === 'knightloader-cnl') {
     void handleCnl(msg);
@@ -295,9 +325,25 @@ chrome.runtime.onStartup?.addListener(() => {
  * carries the actual sentence, and both clear themselves.
  */
 function notifyCnl(key) {
+  flashBadge('!', '#da1e28', key);
+}
+
+/**
+ * flashBadge is the extension's only feedback channel, used for both halves:
+ * a tick when something arrived and an exclamation mark when it did not.
+ *
+ * A badge and not a notification: `notifications` would be a permission asked
+ * of every installer so that a handful of moments can announce themselves. The
+ * badge costs nothing and the tooltip carries the actual sentence.
+ *
+ * It matters more since sending went through the relay: there is no longer a
+ * confirmation window opening on the instance, so this mark is the only thing
+ * that says a send worked.
+ */
+function flashBadge(mark, colour, key) {
   try {
-    chrome.action.setBadgeText({ text: '!' });
-    chrome.action.setBadgeBackgroundColor({ color: '#da1e28' });
+    chrome.action.setBadgeText({ text: mark });
+    chrome.action.setBadgeBackgroundColor({ color: colour });
     chrome.action.setTitle({ title: `KnightLoader — ${t(key)}` });
     // An empty title is not a blank tooltip: it puts the manifest's own
     // default_title back, which is the one string that must not be duplicated
@@ -305,9 +351,9 @@ function notifyCnl(key) {
     setTimeout(() => {
       chrome.action.setBadgeText({ text: '' });
       chrome.action.setTitle({ title: '' });
-    }, 8000);
+    }, 6000);
   } catch {
-    // An action API that is not there yet during startup. The submission is
-    // already lost; losing the badge with it changes nothing.
+    // An action API that is not there yet during startup. The send has already
+    // happened or already failed; losing the badge changes neither.
   }
 }

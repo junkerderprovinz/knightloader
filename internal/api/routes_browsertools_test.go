@@ -22,13 +22,18 @@ func browserToolsServer(t *testing.T) (*httptest.Server, string) {
 	return srv, srv.URL[len("http://"):]
 }
 
-// TestDownloadExtensionIsAValidZipWithTheRightOrigin is the .zip route end to
-// end: what a GET produces has to be a real zip a browser's "load unpacked"
-// (or the store's own packer) can read, carrying the extension's manifest,
-// and config.default.json inside it has to name the exact host that asked
-// for it — that substitution is the one thing that makes the download need
-// a server at all rather than being a static file.
-func TestDownloadExtensionIsAValidZipWithTheRightOrigin(t *testing.T) {
+// TestDownloadExtensionIsAValidZip is the .zip route end to end: what a GET
+// produces has to be a real zip a browser's "load unpacked" (or a store's own
+// packer) can read, carrying the extension's manifest and the scripts that
+// manifest names.
+//
+// It used to also assert that config.default.json inside the zip named the
+// exact host that asked for it — the substitution that was once the only reason
+// this download needed a server at all. The phrase rework removed both the file
+// and the substitution: the extension joins a group with the connection phrase
+// and never learns an address, so this archive is now byte-identical to a
+// checkout and to what goes into a store.
+func TestDownloadExtensionIsAValidZip(t *testing.T) {
 	testDownloadExtension(t, "/api/browser-extension.zip", "application/zip", "knightloader-extension.zip")
 }
 
@@ -44,7 +49,7 @@ func TestDownloadExtensionXpiForFirefox(t *testing.T) {
 
 func testDownloadExtension(t *testing.T, path, wantContentType, wantFilename string) {
 	t.Helper()
-	srv, host := browserToolsServer(t)
+	srv, _ := browserToolsServer(t)
 
 	resp, err := http.Get(srv.URL + path)
 	if err != nil {
@@ -78,9 +83,11 @@ func testDownloadExtension(t *testing.T, path, wantContentType, wantFilename str
 		files[f.Name] = f
 	}
 
-	// The three files a browser's extensions page reads before anything else:
-	// a manifest to parse and a service worker script it names.
-	for _, name := range []string{"manifest.json", "background.js", "config.default.json"} {
+	// The manifest a browser parses first, the worker it names, and the four
+	// files that worker imports to reach a group at all — a zip missing one of
+	// those installs cleanly and then does nothing, which is the failure worth
+	// catching here rather than in a browser.
+	for _, name := range []string{"manifest.json", "background.js", "group.js", "relay.js", "phrase.js", "wordlist.js"} {
 		if _, ok := files[name]; !ok {
 			t.Errorf("zip is missing %s", name)
 		}
@@ -104,17 +111,6 @@ func testDownloadExtension(t *testing.T, path, wantContentType, wantFilename str
 		t.Error("manifest.json has no name")
 	}
 
-	configBytes := readZipFile(t, files["config.default.json"])
-	var config struct {
-		InstanceURL string `json:"instanceUrl"`
-	}
-	if err := json.Unmarshal(configBytes, &config); err != nil {
-		t.Fatalf("config.default.json is not valid JSON: %v", err)
-	}
-	want := "http://" + host
-	if config.InstanceURL != want {
-		t.Errorf("config.default.json instanceUrl = %q, want %q (the host this request actually used)", config.InstanceURL, want)
-	}
 }
 
 // TestDownloadExtensionRequiresASession folds into the package-wide

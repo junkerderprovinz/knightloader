@@ -75,21 +75,23 @@ func extensionVersion(w http.ResponseWriter, r *http.Request) {
 	}{Version: manifest.Version})
 }
 
-// downloadExtension zips extension.Dist's src/ tree, substituting
-// config.default.json's content along the way, under whichever filename and
-// content-type the caller's own browser-family route asked for.
+// downloadExtension zips extension.Dist's src/ tree under whichever filename
+// and content-type the caller's own browser-family route asked for.
+//
+// It used to substitute config.default.json on the way through, baking this
+// instance's own address into the download so installing it took no
+// configuration step. That is gone with the phrase rework: the extension no
+// longer knows what an instance address is — it joins the group with the
+// connection phrase and asks the relay who is in it (extension/src/group.js).
+//
+// The download is therefore byte-identical to what a `git clone` checkout
+// contains, and to what goes into a browser store. One artefact, one thing to
+// reason about, and no per-instance flavour that has to be explained to a
+// store reviewer.
 func downloadExtension(w http.ResponseWriter, r *http.Request, filename, contentType string) {
 	sub, err := fs.Sub(extension.Dist, "src")
 	if err != nil {
 		http.Error(w, "extension source is not embedded in this build", http.StatusInternalServerError)
-		return
-	}
-
-	config, err := json.Marshal(struct {
-		InstanceURL string `json:"instanceUrl"`
-	}{InstanceURL: requestOrigin(r)})
-	if err != nil {
-		http.Error(w, "could not build the extension's default config", http.StatusInternalServerError)
 		return
 	}
 
@@ -105,9 +107,6 @@ func downloadExtension(w http.ResponseWriter, r *http.Request, filename, content
 		content, err := fs.ReadFile(sub, path)
 		if err != nil {
 			return err
-		}
-		if path == "config.default.json" {
-			content = config
 		}
 		fw, err := zw.Create(path)
 		if err != nil {

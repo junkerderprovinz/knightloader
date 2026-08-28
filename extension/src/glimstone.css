@@ -353,3 +353,139 @@
   font-size: var(--text-dense);
   color: var(--carbon-text-muted);
 }
+
+/* ---------------------------------------------------------------------------
+   The info bubble and the switch.
+   
+   Both were left out of this file on the reasoning at the top - that an options
+   page is small enough not to need the whole language. That reasoning produced
+   four grey sub-captions and a native checkbox on this very page, and jdp
+   reversed it flatly (2026-08-28): "Alle infotexte in i infobubbles! Nie
+   checkboxen sondern immer toggles!" Both rules are now in the GlimStone guide
+   itself, which also names the excuse: a surface with no component framework is
+   not an exemption, because both of these are markup plus CSS.
+   
+   Ported from glimstone/reference/tokens.css and reference/tooltip.ts rather
+   than approximated, so this page's bubble and the WebUI's are the same object.
+   --------------------------------------------------------------------------- */
+
+.glim-bubble {
+  position: fixed;
+  z-index: 2147483647;
+  transform: translateX(-50%);
+  width: max-content;          /* load-bearing: see the reference file. A fixed
+                                  box with only `left` set otherwise sizes
+                                  itself from `left`, invalidating the very
+                                  measurement the position was computed from. */
+  max-width: 280px;
+  pointer-events: none;
+  background-color: var(--carbon-surface);
+  color: var(--carbon-text);
+  border: none;
+  border-radius: var(--radius-control);
+  box-shadow: var(--elevation), var(--hairline);
+  padding: 7px 10px;
+  font-size: var(--text-caption);
+  line-height: 1.45;
+  letter-spacing: normal;
+  text-transform: none;
+  font-weight: 400;
+  text-align: start;
+  white-space: normal;
+  animation: glim-fade-in 110ms ease-out;
+}
+@keyframes glim-fade-in { from { opacity: 0; } to { opacity: 1; } }
+.glim-bubble::before {
+  content: '';
+  position: absolute;
+  left: var(--glim-tip-ax, 50%);
+  top: -6px;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-style: solid;
+  border-width: 0 6px 6px 6px;
+  border-color: transparent transparent var(--carbon-surface) transparent;
+}
+.glim-bubble--above::before {
+  top: auto;
+  bottom: -6px;
+  border-width: 6px 6px 0 6px;
+  border-color: var(--carbon-surface) transparent transparent transparent;
+}
+
+/* The "(i)" trigger: a bare stroke-only glyph, never a filled badge - a fill
+   would read as a control, and the accent means activity. Opacity carries the
+   hover state; :focus-visible is this language's one deliberate exception to
+   "never a border line", because a keyboard user has no other signal here. */
+.glim-info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px; height: 15px;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+  color: var(--carbon-text-muted);
+  opacity: .8;
+  cursor: help;
+  background: none;
+  border: none;
+  padding: 0;
+}
+.glim-info-icon svg { width: 15px; height: 15px; display: block; }
+.glim-info-icon:hover { opacity: 1; }
+.glim-info-icon:focus-visible {
+  opacity: 1;
+  outline: 2px solid var(--focus-ring, var(--accent));
+  outline-offset: 2px;
+}
+
+/* The switch. Geometry taken from the WebUI's own Toggle (web/src/components/
+   ui.tsx): 36x20 track, 16x16 knob, 2px inset off / 16px on. The knob is the
+   page's own BACKGROUND colour rather than a fixed white - the "opposite
+   ground" trick, so it reads dark in dark mode instead of a permanent white
+   dot. Track and knob both take --radius-pill, so the shape engine moves them
+   with everything else.
+
+   Note the token: this file calls it --carbon-bg, the WebUI's Tailwind theme
+   calls the same colour --carbon-background. Copying the WebUI's class name
+   verbatim gives a knob with no fill at all, which is invisible against the
+   track it sits on. */
+.glim-switch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--carbon-text);
+  text-align: start;
+  cursor: pointer;
+  user-select: none;
+}
+.glim-switch-track {
+  position: relative;
+  flex: 0 0 auto;
+  order: 2;                    /* switch flush RIGHT, caption flush left - the
+                                  ToggleRow shape, systemwide (jdp). */
+  margin-inline-start: auto;
+  width: 36px; height: 20px;
+  border-radius: var(--radius-pill);
+  background-color: var(--carbon-surface3);
+  transition: background-color 150ms ease;
+}
+.glim-switch[aria-checked='true'] .glim-switch-track { background-color: var(--accent); }
+.glim-switch-knob {
+  position: absolute;
+  left: 0; top: 2px;
+  width: 16px; height: 16px;
+  border-radius: var(--radius-pill);
+  background-color: var(--carbon-bg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .2);
+  translate: 2px 0;
+  transition: translate 150ms ease;
+}
+.glim-switch[aria-checked='true'] .glim-switch-knob { translate: 16px 0; }
+.glim-switch-label { order: 1; }
+.glim-switch:focus-visible { outline: 2px solid var(--focus-ring, var(--accent)); outline-offset: 3px; }
