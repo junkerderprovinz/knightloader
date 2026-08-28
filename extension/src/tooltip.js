@@ -159,7 +159,23 @@
     heading.appendChild(infoIcon(text));
   }
 
+  /**
+   * refreshTip re-reads a trigger's `data-tip` while its bubble is open.
+   *
+   * Needed by any control whose tip changes as a RESULT of clicking it - a
+   * reveal eye reading "show the phrase" one moment and "hide it" the next.
+   * The events fire in the order pointerdown, focusin, click: the press hides
+   * the bubble, focus immediately re-shows it, and only then does the click
+   * handler change the text - so without this the bubble sits there stating
+   * the opposite of what the button now does. Caught by looking at a
+   * screenshot, not by reading the code.
+   */
+  function refreshTip(el) {
+    if (currentTrigger === el) show(el);
+  }
+
   window.wireTooltips = wireTooltips;
   window.glimInfoIcon = infoIcon;
   window.glimSetInfo = setInfo;
+  window.glimRefreshTip = refreshTip;
 })();

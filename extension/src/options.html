@@ -8,11 +8,13 @@
     <style>
       body {
         margin: 0;
-        /* Wide enough that the accent row - label, current colour, the
-           "Presets" caption and all eight swatches - fits on one line, the
-           way KnightLoader's own Look page lays it out. At 480px it wrapped
-           and the caption started a line of its own. */
-        max-width: 560px;
+        /* 720, up from 560 (jdp, 2026-08-28: "Können wir die cards etwas
+           breiter machen?"). This is a full browser tab, not a popup, and at
+           560 the colour rows had the label at one edge and eight swatches
+           crowding the other with nothing between them. Wider is also what
+           lets a colour row keep its label, its swatches and its reset badge
+           on one line. */
+        max-width: 720px;
         padding: 28px;
         background: var(--carbon-bg);
         color: var(--carbon-text);
@@ -126,13 +128,21 @@
     <section class="glim-card">
       <h2 class="glim-section-badge" id="groupHeading">Group</h2>
       <form id="joinForm">
-        <input
-          id="phrase"
-          type="text"
-          placeholder="twelve words, separated by spaces"
-          autocomplete="off"
-          spellcheck="false"
-        />
+        <!-- Masked, with the eye inside the field (jdp, 2026-08-28: "Die
+             Phrase wird offen angezeigt in der erweiterung"). Twelve words
+             open every instance in the group, which makes them a credential
+             and not a setting - and an options page is exactly the surface
+             somebody opens while a colleague is looking at the screen. -->
+        <label class="glim-secret">
+          <input
+            id="phrase"
+            type="password"
+            placeholder="twelve words, separated by spaces"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button id="phraseEye" class="glim-eye" type="button"></button>
+        </label>
         <div class="fields">
           <button id="join" type="submit">Connect</button>
           <button id="leave" class="danger" type="button" hidden>Leave the group</button>
@@ -152,61 +162,79 @@
       <div class="glim-listbox" id="languageBox"></div>
     </section>
 
+    <!-- One card per axis (jdp, 2026-08-28: "Können wir die aussehen card
+         aufsplitten?"), which is also how KnightLoader's own Look page is
+         built: Corners, Colours and Theme are three cards there, not three
+         rows of one. The card heading carries the explanation as its bubble,
+         so a split costs no prose. -->
     <section class="glim-card">
-      <h2 class="glim-section-badge" id="appearanceHeading">Appearance</h2>
-      <!-- Three axes, each a row rather than a stacked label-over-control: the
-           eye compares the answers, not the layout. Theme and Corners are
-           segmented selectors (the web UI's own "well" Tabs variant), Accent
-           is the swatch row it uses on its own Look page - both built by
-           options.js, so the markup here is only the frame. -->
-      <div class="axes">
-        <div class="glim-axis">
-          <span class="glim-axis-label" id="themeLabel">Theme</span>
-          <div class="glim-seg" id="themeSeg" role="group"></div>
-        </div>
-        <div class="glim-axis">
-          <span class="glim-axis-label" id="shapeLabel">Corners</span>
-          <div class="glim-seg" id="shapeSeg" role="group"></div>
-        </div>
-        <div class="glim-axis">
-          <span class="glim-axis-label" id="accentLabel">Accent</span>
-          <span class="glim-accent-now" id="accentNow" title="Accent">
-            <input type="color" id="accentInput" />
-          </span>
-          <div class="glim-swatches" id="accentSwatches"></div>
-        </div>
-        <!-- The rainbow: the accent in the plural. Three switches and a
-             palette, exactly the axes the web UI's own Look page offers, so
-             somebody who set this up there recognises it here. -->
-        <button type="button" role="switch" aria-checked="false" id="rainbowOn" class="glim-switch">
-          <span class="glim-switch-label" id="rainbowLabel"></span>
-          <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
-        </button>
-        <button type="button" role="switch" aria-checked="false" id="rainbowReactive" class="glim-switch">
-          <span class="glim-switch-label" id="rainbowReactiveLabel"></span>
-          <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
-        </button>
-        <button type="button" role="switch" aria-checked="false" id="rainbowRotate" class="glim-switch">
-          <span class="glim-switch-label" id="rainbowRotateLabel"></span>
-          <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
-        </button>
-        <div class="glim-axis" id="paletteRow">
-          <span class="glim-axis-label" id="paletteLabel">Palette</span>
-          <div class="glim-swatches" id="paletteSwatches"></div>
-        </div>
-        <!-- Take the look from the instance instead of choosing it here. It
-             reads GET /api/appearance, which is on the list a group member may
-             reach through the relay - so it costs no permission at all. -->
+      <h2 class="glim-section-badge" id="appearanceHeading">Look</h2>
+      <!-- Take the look from the instance instead of choosing it here. It
+           reads GET /api/appearance, which is on the list a group member may
+           reach through the relay - so it costs no permission at all. First,
+           because it decides whether the three cards below it are yours to
+           set at all. -->
+      <div class="glim-row">
+        <span class="glim-row-label" id="followInstanceLabel"></span>
         <button type="button" role="switch" aria-checked="false" id="followInstance" class="glim-switch">
-          <span class="glim-switch-label" id="followInstanceLabel"></span>
           <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
         </button>
       </div>
     </section>
 
-    <!-- Off until switched on, deliberately: interception changes what a
-         website's own button does, and starting to do that to somebody without
-         asking is not a default anyone should ship. -->
+    <section class="glim-card">
+      <h2 class="glim-section-badge" id="themeHeading">Theme</h2>
+      <div class="glim-seg" id="themeSeg" role="group"></div>
+    </section>
+
+    <section class="glim-card">
+      <h2 class="glim-section-badge" id="shapeHeading">Corners</h2>
+      <div class="glim-seg" id="shapeSeg" role="group"></div>
+    </section>
+
+    <section class="glim-card">
+      <h2 class="glim-section-badge" id="coloursHeading">Colours</h2>
+      <div class="axes">
+        <!-- Label left, everything clickable right, exactly as the web UI's
+             own Colours card lays it out. The current colour opens the page's
+             own picker; the eight presets are the shortcut; the reset badge
+             appears only once the accent has actually moved. -->
+        <div class="glim-axis glim-axis--colours">
+          <span class="glim-axis-label" id="accentLabel">Accent</span>
+          <button type="button" class="glim-accent-now" id="accentNow"></button>
+          <div class="glim-swatches" id="accentSwatches"></div>
+        </div>
+        <!-- The rainbow: the accent in the plural. The same three switches and
+             the same palette the web UI's Look page offers, in the same order,
+             so somebody who set this up there recognises it here. -->
+        <div class="glim-row" id="rainbowRow">
+          <span class="glim-row-label" id="rainbowLabel"></span>
+          <button type="button" role="switch" aria-checked="false" id="rainbowOn" class="glim-switch">
+            <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
+          </button>
+        </div>
+        <div class="glim-row" id="rainbowReactiveRow">
+          <span class="glim-row-label" id="rainbowReactiveLabel"></span>
+          <button type="button" role="switch" aria-checked="false" id="rainbowReactive" class="glim-switch">
+            <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
+          </button>
+        </div>
+        <div class="glim-row" id="rainbowRotateRow">
+          <span class="glim-row-label" id="rainbowRotateLabel"></span>
+          <button type="button" role="switch" aria-checked="false" id="rainbowRotate" class="glim-switch">
+            <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
+          </button>
+        </div>
+        <div class="glim-axis glim-axis--colours" id="paletteRow">
+          <span class="glim-axis-label" id="paletteLabel">Palette</span>
+          <div class="glim-swatches" id="paletteSwatches"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- On from the first second: it is the reason most people install this,
+         and the manifest declares the site access it needs, so there is no
+         later prompt for a switch to be waiting on. -->
     <section class="glim-card">
       <h2 class="glim-section-badge" id="cnlHeading">Click'n'Load</h2>
       <button type="button" role="switch" aria-checked="false" id="cnlEnabled" class="glim-switch">
@@ -228,6 +256,7 @@
          drawn, so no page is ever painted in one look and repainted in
          another. -->
     <script src="appearance.js"></script>
+    <script src="colorpicker.js"></script>
     <script src="i18n.js"></script>
     <script src="shared.js"></script>
     <script src="wordlist.js"></script>

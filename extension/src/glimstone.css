@@ -326,29 +326,43 @@
   box-shadow: 0 0 0 2px var(--carbon-surface), 0 0 0 4px var(--carbon-text);
 }
 
-/* The current/custom accent, with a native colour input as the invisible
- * click target - same construction as the web UI's own trigger.
+/* The current/custom accent. It used to hide a native <input type="color">
+ * behind this circle; it now opens the page's own picker popover
+ * (colorpicker.js), which is what the design language asks for and the only
+ * version an automated check can actually see.
  */
 .glim-accent-now {
   position: relative;
   display: inline-flex;
   width: 24px;
   height: 24px;
-  overflow: hidden;
-  border-radius: var(--radius-pill);
-  box-shadow: 0 0 0 2px var(--carbon-border);
-}
-
-.glim-accent-now input {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
   padding: 0;
   border: 0;
-  opacity: 0;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--hairline);
   cursor: pointer;
 }
+
+/* A small round action beside a row of swatches: reset. An icon badge rather
+ * than a text link, and the same 22px circle as the swatches it sits next to,
+ * so the row stays one run of equal shapes. */
+.glim-reset {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--carbon-surface3);
+  color: var(--carbon-text-sub);
+  cursor: pointer;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+.glim-reset:hover { color: var(--carbon-text); background: var(--carbon-hover); }
+.glim-reset svg { display: block; }
 
 .glim-axis { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .glim-axis > .glim-axis-label {
@@ -357,6 +371,115 @@
   font-size: var(--text-dense);
   color: var(--carbon-text-muted);
 }
+/* A colour row reads right to left: the label holds the left edge, everything
+ * that can be clicked collects at the trailing edge, in line with every switch
+ * on the page (jdp, 2026-08-28: "Die Farbfelder sollen ganz rechts angeordnet
+ * sein"). The label's own auto margin does it, so the swatches keep their own
+ * spacing rather than being spread by a justify rule. */
+.glim-axis--colours > .glim-axis-label { margin-inline-end: auto; }
+.glim-axis--colours { row-gap: 12px; }
+
+/* ---------------------------------------------------------------------------
+   The colour picker: a saturation/value square, a hue bar, a hex field.
+
+   Ported from the shared reference (glimstone/reference/tokens.css) - see
+   colorpicker.js for the other half. One deliberate change: the SV square
+   carries no hairline. Surfaces here are separated by shade, never by a drawn
+   line.
+   --------------------------------------------------------------------------- */
+.glim-picker { width: 100%; min-width: 0; }
+.glim-picker-sv {
+  position: relative;
+  height: 7rem;
+  border-radius: var(--radius-control);
+  cursor: crosshair;
+}
+.glim-picker-dot {
+  position: absolute;
+  width: .75rem;
+  height: .75rem;
+  margin: -.375rem 0 0 -.375rem;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 3px rgba(0, 0, 0, .8);
+  pointer-events: none;
+}
+.glim-picker-hue {
+  position: relative;
+  height: .875rem;
+  margin-top: .5rem;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+  cursor: pointer;
+}
+.glim-picker-hdot {
+  position: absolute;
+  top: -.125rem;
+  width: .5rem;
+  height: 1.125rem;
+  margin-left: -.25rem;
+  background: #fff;
+  border-radius: calc(var(--radius-control) / 2);
+  box-shadow: 0 0 3px rgba(0, 0, 0, .8);
+  pointer-events: none;
+}
+.glim-picker-popover {
+  position: fixed;
+  z-index: 2147483647;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  padding: .75rem;
+  background-color: var(--carbon-surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--elevation);
+}
+.glim-picker-popover .glim-picker { width: 13.75rem; }
+.glim-picker-hex {
+  appearance: none;
+  width: 100%;
+  box-sizing: border-box;
+  padding: .4rem .6rem;
+  border: none;
+  border-radius: var(--radius-control);
+  background-color: var(--carbon-surface2);
+  color: var(--carbon-text);
+  font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+  font-size: var(--text-caption);
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+.glim-picker-hex:focus { outline: none; background-color: var(--carbon-hover); }
+
+/* ---------------------------------------------------------------------------
+   The reveal eye.
+
+   A connection phrase opens every instance in the group, so it is a secret and
+   is treated like one: masked until somebody asks for it, with the eye inside
+   the field rather than beside it, so the field stays one object.
+   --------------------------------------------------------------------------- */
+.glim-secret { position: relative; display: block; }
+.glim-secret > input { width: 100%; padding-inline-end: 40px; }
+.glim-eye {
+  position: absolute;
+  inset-inline-end: 6px;
+  top: 50%;
+  translate: 0 -50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--carbon-text-muted);
+  cursor: pointer;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+.glim-eye:hover { color: var(--carbon-text); background: var(--carbon-hover); }
+.glim-eye svg { display: block; }
 
 /* ---------------------------------------------------------------------------
    The info bubble and the switch.
@@ -493,6 +616,23 @@
 .glim-switch[aria-checked='true'] .glim-switch-knob { translate: 16px 0; }
 .glim-switch-label { order: 1; }
 .glim-switch:focus-visible { outline: 2px solid var(--focus-ring, var(--accent)); outline-offset: 3px; }
+
+/* A switch with its caption OUTSIDE it - the web UI's own ToggleRow. Needed
+ * wherever the caption carries an info bubble: an "(i)" is focusable, and a
+ * focusable thing inside a button is both invalid markup and a click that
+ * flips the switch when somebody only wanted to read.
+ *
+ * The row is also what owns the rainbow position, so the track takes the
+ * colour rather than the caption having to. */
+.glim-row { display: flex; align-items: center; gap: 12px; width: 100%; }
+.glim-row-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.glim-row > .glim-switch { flex: 0 0 auto; width: auto; }
 
 /* ---------------------------------------------------------------------------
    The colour engine: the accent in the plural.
