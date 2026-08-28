@@ -1355,7 +1355,7 @@ export const he: Dict = {
   'quickadd.add': 'הוסף',
   'quickadd.adding': 'מוסיף…',
   'quickadd.emptyHint':
-    'שום דבר לא שותף - הדבק קישור ידנית, או השתמש בעמוד הזה מה-Bookmarklet, מהרחבת הדפדפן, או מתפריט השיתוף של המכשיר שלך.',
+    'שום דבר לא שותף - הדבק קישור ידנית, או השתמש בעמוד הזה מה-Bookmarklet או מתפריט השיתוף של המכשיר שלך.',
   'quickadd.staged': 'נוסף לאספן.',
   'quickadd.stagedNamed': '„{name}” נוסף לאספן.',
   'quickadd.stagedCount': '{n} קישורים נוספו לאספן.',

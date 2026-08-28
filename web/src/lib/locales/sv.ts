@@ -1354,7 +1354,7 @@ export const sv: Dict = {
   'quickadd.add': 'Lägg till',
   'quickadd.adding': 'Lägger till…',
   'quickadd.emptyHint':
-    'Inget delades - klistra in en länk för hand, eller använd den här sidan från bookmarklet, webbläsartillägget eller enhetens delningsmeny.',
+    'Inget delades - klistra in en länk för hand, eller använd den här sidan från bookmarklet eller enhetens delningsmeny.',
   'quickadd.staged': 'Tillagd i samlaren.',
   'quickadd.stagedNamed': '”{name}” tillagd i samlaren.',
   'quickadd.stagedCount': '{n} länkar tillagda i samlaren.',

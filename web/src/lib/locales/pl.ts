@@ -1346,7 +1346,7 @@ export const pl: Dict = {
   'quickadd.add': 'Dodaj',
   'quickadd.adding': 'Dodawanie…',
   'quickadd.emptyHint':
-    'Nic nie zostało udostępnione - wklej link ręcznie albo użyj tej strony z bookmarkletu, rozszerzenia przeglądarki lub menu Udostępnij twojego urządzenia.',
+    'Nic nie zostało udostępnione - wklej link ręcznie albo użyj tej strony z bookmarkletu lub menu Udostępnij twojego urządzenia.',
   'quickadd.staged': 'Dodano do kolektora.',
   'quickadd.stagedNamed': 'Dodano „{name}” do kolektora.',
   'quickadd.stagedCount': 'Dodano {n} linków do kolektora.',

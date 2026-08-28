@@ -1353,7 +1353,7 @@ export const ko: Dict = {
   'quickadd.add': '추가',
   'quickadd.adding': '추가 중…',
   'quickadd.emptyHint':
-    '공유된 것이 없습니다 - 링크를 직접 붙여넣거나, 북마클릿, 브라우저 확장 프로그램, 또는 기기의 공유 메뉴에서 이 페이지를 사용하세요.',
+    '공유된 것이 없습니다 - 링크를 직접 붙여넣거나, 북마클릿 또는 기기의 공유 메뉴에서 이 페이지를 사용하세요.',
   'quickadd.staged': '수집함에 추가되었습니다.',
   'quickadd.stagedNamed': '"{name}"이(가) 수집함에 추가되었습니다.',
   'quickadd.stagedCount': '{n}개의 링크가 수집함에 추가되었습니다.',

@@ -1355,7 +1355,7 @@ export const ar: Dict = {
   'quickadd.add': 'إضافة',
   'quickadd.adding': 'جارٍ الإضافة…',
   'quickadd.emptyHint':
-    'لم تتم مشاركة شيء - الصق رابطًا يدويًا، أو استخدم هذه الصفحة من الـ Bookmarklet أو إضافة المتصفح أو قائمة المشاركة في جهازك.',
+    'لم تتم مشاركة شيء - الصق رابطًا يدويًا، أو استخدم هذه الصفحة من الـ Bookmarklet أو قائمة المشاركة في جهازك.',
   'quickadd.staged': 'أُضيف إلى المجمّع.',
   'quickadd.stagedNamed': 'أُضيف «{name}» إلى المجمّع.',
   'quickadd.stagedCount': 'أُضيف {n} رابطًا إلى المجمّع.',

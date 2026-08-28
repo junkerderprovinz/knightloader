@@ -1353,7 +1353,7 @@ export const hu: Dict = {
   'quickadd.add': 'Hozzáadás',
   'quickadd.adding': 'Hozzáadás…',
   'quickadd.emptyHint':
-    'Semmi nem lett megosztva - illesszen be egy linket kézzel, vagy használja ezt az oldalt a bookmarkletből, a böngészőbővítményből, vagy az eszköze Megosztás menüjéből.',
+    'Semmi nem lett megosztva - illesszen be egy linket kézzel, vagy használja ezt az oldalt a bookmarkletből vagy az eszköze Megosztás menüjéből.',
   'quickadd.staged': 'Hozzáadva a gyűjtőhöz.',
   'quickadd.stagedNamed': '„{name}” hozzáadva a gyűjtőhöz.',
   'quickadd.stagedCount': '{n} link hozzáadva a gyűjtőhöz.',

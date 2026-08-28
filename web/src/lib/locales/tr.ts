@@ -1353,7 +1353,7 @@ export const tr: Dict = {
   'quickadd.add': 'Ekle',
   'quickadd.adding': 'Ekleniyor…',
   'quickadd.emptyHint':
-    "Hiçbir şey paylaşılmadı - elle bir bağlantı yapıştırın veya bu sayfayı bookmarklet'ten, tarayıcı uzantısından veya cihazınızın Paylaş menüsünden kullanın.",
+    "Hiçbir şey paylaşılmadı - elle bir bağlantı yapıştırın veya bu sayfayı bookmarklet'ten veya cihazınızın Paylaş menüsünden kullanın.",
   'quickadd.staged': 'Toplayıcıya eklendi.',
   'quickadd.stagedNamed': '«{name}» toplayıcıya eklendi.',
   'quickadd.stagedCount': '{n} bağlantı toplayıcıya eklendi.',

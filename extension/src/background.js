@@ -324,8 +324,16 @@ async function syncCnlScripts(on) {
 // already survives a restart, but a permission revoked from the browser's own
 // settings page does not tell this extension about it - reasserting is what
 // keeps the switch and the reality in step.
+//
+// `!== false` and not `=== true`, the same test the install path and the
+// options page use: since Click'n'Load became on-by-default, "nothing stored"
+// means ON. Left as `=== true`, a browser start would silently unregister the
+// scripts for anybody whose storage never got the install-time write — profile
+// copied to another machine, storage cleared, extension side-loaded — while the
+// switch on the options page went on showing "on". A default expressed in three
+// places has to be expressed the same way in all three.
 chrome.runtime.onStartup?.addListener(() => {
-  void chrome.storage.local.get('cnlEnabled').then(({ cnlEnabled }) => syncCnlScripts(cnlEnabled === true));
+  void chrome.storage.local.get('cnlEnabled').then(({ cnlEnabled }) => syncCnlScripts(cnlEnabled !== false));
 });
 
 /**

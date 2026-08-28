@@ -1354,7 +1354,7 @@ export const cs: Dict = {
   'quickadd.add': 'Přidat',
   'quickadd.adding': 'Přidává se…',
   'quickadd.emptyHint':
-    'Nic nebylo sdíleno - vložte odkaz ručně, nebo použijte tuto stránku z bookmarkletu, rozšíření prohlížeče či nabídky Sdílet vašeho zařízení.',
+    'Nic nebylo sdíleno - vložte odkaz ručně, nebo použijte tuto stránku z bookmarkletu či nabídky Sdílet vašeho zařízení.',
   'quickadd.staged': 'Přidáno do sběrače.',
   'quickadd.stagedNamed': '„{name}“ přidáno do sběrače.',
   'quickadd.stagedCount': 'Do sběrače přidáno odkazů: {n}.',

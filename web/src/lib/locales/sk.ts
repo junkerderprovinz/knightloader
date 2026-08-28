@@ -1354,7 +1354,7 @@ export const sk: Dict = {
   'quickadd.add': 'Pridať',
   'quickadd.adding': 'Pridáva sa…',
   'quickadd.emptyHint':
-    'Nič sa nezdieľalo - vlož odkaz ručne, alebo použi túto stránku z bookmarkletu, rozšírenia prehliadača či ponuky Zdieľať tvojho zariadenia.',
+    'Nič sa nezdieľalo - vlož odkaz ručne, alebo použi túto stránku z bookmarkletu či ponuky Zdieľať tvojho zariadenia.',
   'quickadd.staged': 'Pridané do zberača.',
   'quickadd.stagedNamed': '„{name}“ pridané do zberača.',
   'quickadd.stagedCount': 'Do zberača pridaných odkazov: {n}.',

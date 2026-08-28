@@ -1351,7 +1351,7 @@ export const zh: Dict = {
   'quickadd.add': '添加',
   'quickadd.adding': '正在添加…',
   'quickadd.emptyHint':
-    '没有分享任何内容 - 手动粘贴链接，或从书签小工具、浏览器扩展、或你设备的分享菜单使用此页面。',
+    '没有分享任何内容 - 手动粘贴链接，或从书签小工具或你设备的分享菜单使用此页面。',
   'quickadd.staged': '已添加到收集器。',
   'quickadd.stagedNamed': '已将 "{name}" 添加到收集器。',
   'quickadd.stagedCount': '已将 {n} 个链接添加到收集器。',

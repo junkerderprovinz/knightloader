@@ -1346,7 +1346,7 @@ export const it: Dict = {
   'quickadd.add': 'Aggiungi',
   'quickadd.adding': 'Aggiunta…',
   'quickadd.emptyHint':
-    'Non è stato condiviso nulla - incolla un link a mano, oppure usa questa pagina dal bookmarklet, dall’estensione del browser, o dal menu Condividi del tuo dispositivo.',
+    'Non è stato condiviso nulla - incolla un link a mano, oppure usa questa pagina dal bookmarklet o dal menu Condividi del tuo dispositivo.',
   'quickadd.staged': 'Aggiunto al collettore.',
   'quickadd.stagedNamed': '«{name}» aggiunto al collettore.',
   'quickadd.stagedCount': '{n} link aggiunti al collettore.',

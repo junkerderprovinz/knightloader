@@ -1353,7 +1353,7 @@ export const et: Dict = {
   'quickadd.add': 'Lisa',
   'quickadd.adding': 'Lisamine…',
   'quickadd.emptyHint':
-    'Midagi ei jagatud - kleebi link käsitsi või kasuta seda lehte bookmarkletist, brauserilaiendusest või oma seadme Jaga-menüüst.',
+    'Midagi ei jagatud - kleebi link käsitsi või kasuta seda lehte bookmarkletist või oma seadme Jaga-menüüst.',
   'quickadd.staged': 'Lisatud kogujasse.',
   'quickadd.stagedNamed': '„{name}“ lisatud kogujasse.',
   'quickadd.stagedCount': '{n} linki lisatud kogujasse.',

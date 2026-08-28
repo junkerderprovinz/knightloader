@@ -1353,7 +1353,7 @@ export const id: Dict = {
   'quickadd.add': 'Tambah',
   'quickadd.adding': 'Menambahkan…',
   'quickadd.emptyHint':
-    'Tidak ada yang dibagikan - tempel tautan secara manual, atau gunakan halaman ini dari bookmarklet, ekstensi peramban, atau menu Bagikan perangkat Anda.',
+    'Tidak ada yang dibagikan - tempel tautan secara manual, atau gunakan halaman ini dari bookmarklet atau menu Bagikan perangkat Anda.',
   'quickadd.staged': 'Ditambahkan ke pengumpul.',
   'quickadd.stagedNamed': '«{name}» ditambahkan ke pengumpul.',
   'quickadd.stagedCount': '{n} tautan ditambahkan ke pengumpul.',

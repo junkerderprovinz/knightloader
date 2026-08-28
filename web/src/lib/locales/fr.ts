@@ -1346,7 +1346,7 @@ export const fr: Dict = {
   'quickadd.add': 'Ajouter',
   'quickadd.adding': 'Ajout…',
   'quickadd.emptyHint':
-    'Rien n’a été partagé - collez un lien à la main, ou utilisez cette page depuis le bookmarklet, l’extension de navigateur, ou le menu Partager de votre appareil.',
+    'Rien n’a été partagé - collez un lien à la main, ou utilisez cette page depuis le bookmarklet ou le menu Partager de votre appareil.',
   'quickadd.staged': 'Ajouté au collecteur.',
   'quickadd.stagedNamed': '« {name} » ajouté au collecteur.',
   'quickadd.stagedCount': '{n} liens ajoutés au collecteur.',

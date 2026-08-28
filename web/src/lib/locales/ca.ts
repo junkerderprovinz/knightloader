@@ -1353,7 +1353,7 @@ export const ca: Dict = {
   'quickadd.add': 'Afegeix',
   'quickadd.adding': 'Afegint…',
   'quickadd.emptyHint':
-    'No s’ha compartit res - enganxa un enllaç a mà, o fes servir aquesta pàgina des del bookmarklet, l’extensió de navegador o el menú Compartir del teu dispositiu.',
+    'No s’ha compartit res - enganxa un enllaç a mà, o fes servir aquesta pàgina des del bookmarklet o el menú Compartir del teu dispositiu.',
   'quickadd.staged': 'Afegit al col·lector.',
   'quickadd.stagedNamed': 'S’ha afegit «{name}» al col·lector.',
   'quickadd.stagedCount': 'S’han afegit {n} enllaços al col·lector.',

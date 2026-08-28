@@ -1353,7 +1353,7 @@ export const vi: Dict = {
   'quickadd.add': 'Thêm',
   'quickadd.adding': 'Đang thêm…',
   'quickadd.emptyHint':
-    'Không có gì được chia sẻ - dán một liên kết theo cách thủ công, hoặc dùng trang này từ bookmarklet, tiện ích mở rộng trình duyệt, hoặc menu Chia sẻ của thiết bị bạn.',
+    'Không có gì được chia sẻ - dán một liên kết theo cách thủ công, hoặc dùng trang này từ bookmarklet hoặc menu Chia sẻ của thiết bị bạn.',
   'quickadd.staged': 'Đã thêm vào bộ thu thập.',
   'quickadd.stagedNamed': 'Đã thêm «{name}» vào bộ thu thập.',
   'quickadd.stagedCount': 'Đã thêm {n} liên kết vào bộ thu thập.',
