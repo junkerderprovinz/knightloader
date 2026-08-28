@@ -16,6 +16,9 @@ const sendBtn = document.getElementById('send');
 const cancelBtn = document.getElementById('cancel');
 
 let payload = null;
+let siblings = [];
+let preferred = null;
+let chosen = null;
 
 (async () => {
   // Before anything is drawn: the look goes on <html> first, so no page is
@@ -40,46 +43,41 @@ let payload = null;
   payload = pendingSend.payload;
   targetEl.textContent = payload.title || payload.url || payload.text || t('picker.untitled');
 
-  for (const inst of pendingSend.siblings ?? []) {
-    const label = document.createElement('label');
-    label.className = 'choice';
-    const radio = document.createElement('input');
-    radio.type = 'radio';
-    radio.name = 'instance';
-    // Keyed by the relay instance id: a group whose members were renamed keeps
-    // pointing at the same machine.
-    radio.value = inst.instanceId;
-    radio.checked = inst.instanceId === pendingSend.defaultName;
-    const info = document.createElement('span');
-    const name = document.createElement('div');
-    name.className = 'name';
-    name.textContent = instanceLabel(inst);
-    const where = document.createElement('div');
-    where.className = 'url';
-    // Every instance here is reached the same way, so the second line says what
-    // it IS rather than repeating an address that no longer exists in this
-    // model. A container and a desktop build are worth telling apart.
-    where.textContent = deploymentLabel(inst.deployment);
-    info.append(name, where);
-    label.append(radio, info);
-    choicesEl.appendChild(label);
-  }
+  siblings = pendingSend.siblings ?? [];
+  preferred = defaultOf(siblings, pendingSend.defaultName);
   // A remembered default that is no longer in the group must not leave the
   // dialog with nothing selected and a Send button that quietly does nothing.
-  if (!choicesEl.querySelector('input[name="instance"]:checked')) {
-    const first = choicesEl.querySelector('input[name="instance"]');
-    if (first) first.checked = true;
-    else sendBtn.disabled = true;
-  }
+  chosen = preferred;
+  if (!chosen) sendBtn.disabled = true;
+  render();
 })();
 
+/** The same card the popup and the options page draw — see shared.js. */
+function render() {
+  choicesEl.innerHTML = '';
+  siblings.forEach((inst, i) => {
+    choicesEl.appendChild(
+      instanceCard(inst, {
+        index: i,
+        isDefault: inst.instanceId === preferred,
+        isChosen: inst.instanceId === chosen,
+        onPick: (picked) => {
+          chosen = picked.instanceId;
+          render();
+        },
+        onSetDefault: async (picked) => {
+          await writeDefaultTarget(picked.instanceId);
+          preferred = picked.instanceId;
+          render();
+        },
+      }),
+    );
+  });
+}
+
 sendBtn.addEventListener('click', async () => {
-  const chosen = choicesEl.querySelector('input[name="instance"]:checked');
   if (!chosen || !payload) return;
-  // Remembered, so the next send of several defaults to the same place. The
-  // picker is the only surface that knows a deliberate choice was just made.
-  await writeDefaultTarget(chosen.value);
-  chrome.runtime.sendMessage({ type: 'knightloader-send-to', target: chosen.value, payload });
+  chrome.runtime.sendMessage({ type: 'knightloader-send-to', target: chosen, payload });
   window.close();
 });
 

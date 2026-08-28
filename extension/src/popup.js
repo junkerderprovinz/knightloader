@@ -15,11 +15,10 @@
 // instance that is switched off is not offered, and one that came online a
 // minute ago is, without anybody telling this browser anything.
 
-const targetLabelEl = document.getElementById('targetLabel');
 const targetEl = document.getElementById('target');
 const instanceRow = document.getElementById('instanceRow');
 const instanceLabelEl = document.getElementById('instanceLabel');
-const instanceSelect = document.getElementById('instance');
+const instanceList = document.getElementById('instanceList');
 const sendBtn = document.getElementById('send');
 const statusEl = document.getElementById('status');
 const openOptionsBtn = document.getElementById('openOptions');
@@ -27,6 +26,7 @@ openOptionsBtn.addEventListener('click', () => chrome.runtime.openOptionsPage())
 
 let activeTab = null;
 let group = [];
+let chosen = null;
 
 (async () => {
   // Before anything is drawn: the look goes on <html> first, so no page is
@@ -38,7 +38,6 @@ let group = [];
   openOptionsBtn.setAttribute('data-tip', t('common.settings'));
   instanceLabelEl.textContent = t('popup.sendToLabel');
   sendBtn.textContent = t('popup.send');
-  targetLabelEl.textContent = t('popup.targetLabel');
   targetEl.textContent = t('popup.loading');
 
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -72,29 +71,55 @@ let group = [];
   }
   statusEl.textContent = '';
   sendBtn.disabled = false;
-  if (group.length > 1) {
-    instanceRow.hidden = false;
-    const preferred = await readDefaultTarget();
-    for (const inst of group) {
-      const opt = document.createElement('option');
-      // Keyed by the relay instance id, not the name: a group whose members
-      // were renamed keeps pointing at the same machine.
-      opt.value = inst.instanceId;
-      opt.textContent = instanceLabel(inst);
-      if (inst.instanceId === preferred) opt.selected = true;
-      instanceSelect.appendChild(opt);
-    }
-  }
+  await renderTargets();
 })();
 
+/**
+ * The group as cards, the same object the options page and the send-to window
+ * draw (jdp, 2026-08-28: "Im erweiterungsfenster sollen die Instanzen auch als
+ * cards erscheinen. Gleich wie im instanzentab.").
+ *
+ * A dropdown stood here before. It could not show the mark, could not carry a
+ * badge, and could not be right-clicked — three things this window now does,
+ * and none of them worth a bespoke control when the card already exists.
+ *
+ * Shown even for a single instance: the card is also what says WHERE this is
+ * about to go, and a popup that hides that until there is a choice to make is a
+ * popup that tells you least when you know least.
+ */
+async function renderTargets() {
+  const preferred = defaultOf(group, await readDefaultTarget());
+  if (!chosen) chosen = preferred;
+  instanceRow.hidden = false;
+  instanceList.innerHTML = '';
+  group.forEach((inst, i) => {
+    instanceList.appendChild(
+      instanceCard(inst, {
+        index: i,
+        isDefault: inst.instanceId === preferred,
+        isChosen: inst.instanceId === chosen,
+        onPick: (picked) => {
+          chosen = picked.instanceId;
+          void renderTargets();
+        },
+        onSetDefault: async (picked) => {
+          await writeDefaultTarget(picked.instanceId);
+          await renderTargets();
+        },
+      }),
+    );
+  });
+}
+
 sendBtn.addEventListener('click', async () => {
-  if (!activeTab?.url || group.length === 0) return;
+  if (!activeTab?.url || !chosen) return;
   sendBtn.disabled = true;
-  statusEl.textContent = t('popup.sending');
-  const target = group.length > 1 ? instanceSelect.value : group[0].instanceId;
+  // No "sending…" line (jdp: "der Text 'Wird gesendet' kann weg"). This window
+  // closes on the next line, so the sentence would flash for a frame and then
+  // be gone — and the toolbar badge is what actually reports the outcome.
   chrome.runtime.sendMessage({
     type: 'knightloader-send-to',
-    target,
+    target: chosen,
     payload: { url: activeTab.url, title: activeTab.title },
   });
   // Closed straight away rather than waiting for the answer: the send happens

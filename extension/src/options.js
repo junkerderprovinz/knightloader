@@ -24,11 +24,17 @@ const joinBtn = document.getElementById('join');
 const leaveBtn = document.getElementById('leave');
 const refreshBtn = document.getElementById('refreshGroup');
 const languageHeadingEl = document.getElementById('languageHeading');
-const languageSelect = document.getElementById('languageSelect');
+const languageBox = document.getElementById('languageBox');
 const cnlHeadingEl = document.getElementById('cnlHeading');
 const cnlToggleEl = document.getElementById('cnlToggle');
 const cnlEnabledEl = document.getElementById('cnlEnabled');
 const appearanceHeadingEl = document.getElementById('appearanceHeading');
+const rainbowOnEl = document.getElementById('rainbowOn');
+const rainbowReactiveEl = document.getElementById('rainbowReactive');
+const rainbowRotateEl = document.getElementById('rainbowRotate');
+const paletteRow = document.getElementById('paletteRow');
+const paletteSwatches = document.getElementById('paletteSwatches');
+const followInstanceEl = document.getElementById('followInstance');
 const themeLabelEl = document.getElementById('themeLabel');
 const shapeLabelEl = document.getElementById('shapeLabel');
 const accentLabelEl = document.getElementById('accentLabel');
@@ -68,6 +74,11 @@ function applyStaticText() {
   themeLabelEl.textContent = t('options.themeLabel');
   shapeLabelEl.textContent = t('options.shapeLabel');
   accentLabelEl.textContent = t('options.accentLabel');
+  document.getElementById('rainbowLabel').textContent = t('options.rainbow');
+  document.getElementById('rainbowReactiveLabel').textContent = t('options.rainbowReactive');
+  document.getElementById('rainbowRotateLabel').textContent = t('options.rainbowRotate');
+  document.getElementById('paletteLabel').textContent = t('options.paletteLabel');
+  document.getElementById('followInstanceLabel').textContent = t('options.followInstance');
 
   problemsHeadingEl.textContent = t('options.problemsHeading');
   glimSetInfo('problemsHeading', t('options.problemsSub'));
@@ -131,42 +142,29 @@ async function renderGroup() {
     return;
   }
 
-  const preferred = await readDefaultTarget();
-  for (const inst of siblings) {
-    const row = document.createElement('div');
-    row.className = 'row' + (inst.instanceId === preferred ? ' isDefault' : '');
-    const info = document.createElement('div');
-    info.className = 'info';
-    const name = document.createElement('div');
-    name.className = 'name';
-    name.textContent = instanceLabel(inst);
-    if (inst.instanceId === preferred) {
-      const badge = document.createElement('span');
-      badge.className = 'badge';
-      badge.textContent = t('options.defaultBadge');
-      name.appendChild(badge);
-    }
-    const where = document.createElement('div');
-    where.className = 'url';
-    // What it IS, not where it is: in this model there is no address to show,
-    // and a container and a desktop build are worth telling apart.
-    where.textContent = deploymentLabel(inst.deployment);
-    info.append(name, where);
-    row.appendChild(info);
-
-    if (inst.instanceId !== preferred) {
-      const makeDefault = document.createElement('button');
-      makeDefault.className = 'secondary';
-      makeDefault.type = 'button';
-      makeDefault.textContent = t('options.makeDefault');
-      makeDefault.addEventListener('click', async () => {
-        await writeDefaultTarget(inst.instanceId);
-        await renderGroup();
-      });
-      row.appendChild(makeDefault);
-    }
-    list.appendChild(row);
-  }
+  // The same card the popup and the send-to window draw (shared.js), so the
+  // group looks like one thing wherever it appears. The default carries a badge
+  // and is reassigned by right-clicking another card — there is no "set as
+  // default" button on every row any more, which was both a permanent control
+  // for a once-in-a-lifetime decision and, as jdp pointed out, not shaped like a
+  // button at all.
+  const preferred = defaultOf(siblings, await readDefaultTarget());
+  siblings.forEach((inst, i) => {
+    list.appendChild(
+      instanceCard(inst, {
+        index: i,
+        isDefault: inst.instanceId === preferred,
+        onSetDefault: async (picked) => {
+          await writeDefaultTarget(picked.instanceId);
+          await renderGroup();
+          // The report names which instance is the default, so it goes stale
+          // the moment that changes - and a report that says "none" under a
+          // card wearing the badge is worse than no report.
+          void renderReport();
+        },
+      }),
+    );
+  });
 }
 
 joinForm.addEventListener('submit', async (e) => {
@@ -214,82 +212,130 @@ refreshBtn.addEventListener('click', async () => {
 
 // --- Language --------------------------------------------------------------
 
-function buildLanguageSelect() {
-  languageSelect.innerHTML = '';
-  const auto = document.createElement('option');
-  auto.value = '';
-  languageSelect.appendChild(auto);
-  for (const lang of LANGUAGES) {
-    const opt = document.createElement('option');
-    opt.value = lang.code;
-    opt.textContent = lang.label;
-    languageSelect.appendChild(opt);
-  }
+/**
+ * The language picker: a listbox with flags, and no "Automatic" entry.
+ *
+ * jdp, 2026-08-28: "Im Sprachen-dropdown soll nicht stehen Automatisch. Es soll
+ * einfach die Sprache auswählen die im Browser eingestellt ist und diese quasi
+ * selbst im dropdown auswählen." He is right that "Automatic" was a worse
+ * answer than it looked: it is a fourth kind of value in a list of real
+ * languages, and it makes the control unable to answer the only question anyone
+ * asks it — which language am I actually reading? Resolving the browser's own
+ * language and SELECTING it says that outright, and changes nothing about what
+ * is displayed.
+ *
+ * currentLanguage() is the resolved code either way, so nothing here has to
+ * know whether it came from storage or from the browser.
+ */
+async function renderLanguagePicker() {
+  listbox(
+    languageBox,
+    LANGUAGES.map((l) => ({ value: l.code, label: l.label, flag: l.flag })),
+    currentLanguage(),
+    async (code) => {
+      await setLanguage(code);
+      await loadLanguage();
+      applyStaticText();
+      await renderLanguagePicker();
+      await renderAppearance();
+      await renderGroup();
+      void renderReport();
+    },
+  );
 }
-
-async function renderLanguageSelect() {
-  languageSelect.firstElementChild.textContent = t('options.languageAuto');
-  const stored = await chrome.storage.local.get('language');
-  languageSelect.value = typeof stored.language === 'string' ? stored.language : '';
-}
-
-languageSelect.addEventListener('change', async () => {
-  await setLanguage(languageSelect.value || null);
-  await loadLanguage();
-  applyStaticText();
-  await renderLanguageSelect();
-  await renderAppearance();
-  await renderGroup();
-  void renderReport();
-});
 
 // --- Click'n'Load ----------------------------------------------------------
 
 /**
- * Off unless switched on, and the switch is the one moment this extension asks
- * for access to websites.
+ * ON by default, because it is the reason most people install this at all
+ * (jdp, 2026-08-28: "Der CnL Toggle soll standardmäßig aktiviert sein! Das ist
+ * ja das Hauptfeature warum man sich die Erweiterung installiert!").
  *
- * Catching a Click'n'Load submission means running code inside the page that
- * makes it, and such a button can be on any site — there is no narrower way to
- * say which. Declaring that in the manifest would have charged it to every
- * installer, including everyone who only ever wanted the right-click entry. So
- * it is asked for here, by somebody who has just flipped the switch that needs
- * it — which is also the user gesture chrome.permissions.request requires.
+ * That decision is what moved <all_urls> into the manifest rather than behind a
+ * prompt, and the reasoning is worth keeping because the previous version's is
+ * still readable in the git history and looks equally sound: a feature that is
+ * on by default has to work on a fresh install, and asking for the permission
+ * later would leave a switch reading "on" while doing nothing. The install
+ * dialog names the access instead — the honest place for it, and what
+ * JDownloader's own extension does too.
  *
- * Refusing is a first-class answer: the switch goes back to off, nothing is
- * stored, and nothing is registered.
+ * Switching it OFF still unregisters the content scripts, so off is really off:
+ * no code in any page, and the site's own button goes back to reaching for
+ * 127.0.0.1:9666 the way it always did.
  */
 async function renderCnl() {
   const stored = await chrome.storage.local.get('cnlEnabled');
-  cnlEnabledEl.setAttribute('aria-checked', String(stored.cnlEnabled === true));
+  // Absent means on: background.js sets it on install, and a storage read that
+  // lost the flag should not silently turn the main feature off.
+  cnlEnabledEl.setAttribute('aria-checked', String(stored.cnlEnabled !== false));
 }
 
 cnlEnabledEl.addEventListener('click', async () => {
   const on = cnlEnabledEl.getAttribute('aria-checked') !== 'true';
-  if (on) {
-    const granted = await chrome.permissions.request({ origins: ['<all_urls>'] }).catch(() => false);
-    if (!granted) {
-      say(t('options.cnlDenied'), false);
-      return;
-    }
-  }
   cnlEnabledEl.setAttribute('aria-checked', String(on));
   await chrome.storage.local.set({ cnlEnabled: on });
   await chrome.runtime.sendMessage({ type: 'knightloader-cnl-scripts', on }).catch(() => {});
-  say(on ? t('options.cnlOn') : t('options.cnlOff'), true);
+  // Deliberately silent. The switch itself is the feedback, and say() writes
+  // into the group card's own status line — a sentence about Click'n'Load
+  // appearing under the phrase field is a message in the wrong room (jdp: "Die
+  // Meldung CnL ist an in der Gruppen-card kann weg").
 });
 
 // --- Appearance ------------------------------------------------------------
 //
-// The three axes GlimStone gives the user: theme, corners, accent. Applied at
-// the top of every page (appearance.js) rather than by the page that edits
-// them - a page that paints itself leaves every other page on the old value,
-// and this one is the last place anyone would notice.
+// The axes GlimStone gives the user: theme, corners, accent, and the rainbow.
+// Applied at the top of every page (appearance.js) rather than by the page that
+// edits them - a page that paints itself leaves every other page on the old
+// value, and this one is the last place anyone would notice.
 //
-// Local rather than read from a configured instance, and worth stating why:
-// fetching it would need a host permission for that origin, and this extension
-// asks for one only from a real click on the sync button. Paying a permission
-// prompt for a colour is a bad trade.
+// Local by default, and now optionally taken from the instance instead. The old
+// note here said reading it from a configured instance would cost a host
+// permission for that origin, so it was not worth it for a colour. Through the
+// relay it costs nothing: GET /api/appearance is on the list a group member may
+// reach, and that route exists precisely so this is not a licence to read
+// /api/settings. See adoptFromInstance() in appearance.js.
+
+/** The switches wired once. Each writes, re-applies and redraws, so the page
+ *  never shows a value that is not also on <html>. */
+function wireRainbowSwitch(el, key) {
+  el.addEventListener('click', async () => {
+    const on = el.getAttribute('aria-checked') !== 'true';
+    await writeAppearance({ [key]: on });
+    const next = await readAppearance();
+    applyRainbow(next.rainbow);
+    await renderAppearance();
+  });
+}
+wireRainbowSwitch(rainbowOnEl, 'rainbow');
+wireRainbowSwitch(rainbowReactiveEl, 'rainbowReactive');
+wireRainbowSwitch(rainbowRotateEl, 'rainbowRotate');
+
+/**
+ * Take the look from the default instance, or go back to choosing it here.
+ *
+ * Switching it on fetches once and stores the result, rather than fetching on
+ * every page load: a popup that opens a relay connection before it can paint
+ * itself is a popup that flashes. The Refresh button in the group card is the
+ * way to pick up a change made on the instance since.
+ */
+followInstanceEl.addEventListener('click', async () => {
+  const on = followInstanceEl.getAttribute('aria-checked') !== 'true';
+  if (on) {
+    followInstanceEl.setAttribute('aria-checked', 'true');
+    const ok = await adoptFromInstance().catch(() => false);
+    if (!ok) {
+      followInstanceEl.setAttribute('aria-checked', 'false');
+      say(t('options.followFailed'), false);
+      return;
+    }
+  }
+  await writeAppearance({ followInstance: on });
+  const next = await readAppearance();
+  applyShape(next.shape);
+  applyAccent(next.accent);
+  applyRainbow(next.rainbow);
+  await renderAppearance();
+});
 
 const themeSeg = document.getElementById('themeSeg');
 const shapeSeg = document.getElementById('shapeSeg');
@@ -396,6 +442,53 @@ async function renderAppearance() {
   // first swatch: Sunflower IS the default, so picking it lands on the same
   // colour, and a button that appears and disappears beside eight fixed
   // circles was the only thing in the row that moved.
+
+  // --- The rainbow ---------------------------------------------------------
+  // The same three axes the web UI's Look page offers, in the same order, so
+  // somebody who set this up there recognises it here.
+  rainbowOnEl.setAttribute('aria-checked', String(a.rainbow.on));
+  rainbowReactiveEl.setAttribute('aria-checked', String(a.rainbow.reactive));
+  rainbowRotateEl.setAttribute('aria-checked', String(a.rainbow.rotate));
+  // Reactive, rotation and the palette only mean anything while the mode is on.
+  // Dimmed rather than hidden: a control that disappears never teaches anyone
+  // what the mode does.
+  for (const el of [rainbowReactiveEl, rainbowRotateEl, paletteRow]) {
+    el.style.opacity = a.rainbow.on ? '1' : '.5';
+    el.style.pointerEvents = a.rainbow.on ? '' : 'none';
+  }
+
+  paletteSwatches.innerHTML = '';
+  a.rainbow.palette.forEach((hex, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'glim-swatch';
+    b.style.backgroundColor = hex;
+    b.setAttribute('aria-label', t('options.palettePosition', { position: i + 1 }));
+    // Each swatch also wears its own position, so in rainbow mode the row is
+    // the mode demonstrating itself rather than eight circles describing it.
+    setHue(b, i);
+    b.addEventListener('click', () => {
+      // The rotation is what a click on a position means: it moves the whole
+      // palette so this colour starts the run. Editing one entry would need a
+      // colour picker per position and a way back from a palette somebody has
+      // made unreadable; rotating is the same expressive power with neither.
+      void writeAppearance({ rainbowRotate: true, rainbowSeed: i }).then(async () => {
+        const next = await readAppearance();
+        applyRainbow(next.rainbow);
+        await renderAppearance();
+      });
+    });
+    paletteSwatches.appendChild(b);
+  });
+
+  followInstanceEl.setAttribute('aria-checked', String(a.followInstance));
+  // Everything above is the instance's when the switch is on, so it is shown
+  // but not editable — an accent you can click that snaps back on the next
+  // refresh is worse than one you cannot click.
+  for (const el of [accentSwatches, accentNow, shapeSeg, rainbowOnEl, rainbowReactiveEl, rainbowRotateEl, paletteRow]) {
+    el.style.pointerEvents = a.followInstance ? 'none' : el.style.pointerEvents || '';
+    if (a.followInstance) el.style.opacity = '.5';
+  }
 }
 
 accentInput.addEventListener('change', async () => {
@@ -446,7 +539,7 @@ async function buildReport() {
     `language:  ${currentLanguage()} (browser: ${navigator.language})`,
     `appearance: theme=${a.theme || 'system'} shape=${a.shape} accent=${a.accent || 'default'}`,
     `group:     ${joined ? 'joined' : 'no phrase stored'} (${reachable})`,
-    `default:   ${(await readDefaultTarget()) ? 'set' : 'none'}`,
+    `default:   ${(await readDefaultTarget()) ? 'chosen' : 'first in the group'}`,
     `clicknload: ${cnlEnabled === true ? 'on' : 'off'}`,
   ].join('\n');
 }
@@ -482,9 +575,8 @@ copyReportBtn.addEventListener('click', async () => {
   // Wired before anything writes a data-tip, so the very first hover already
   // finds a listener rather than the browser's own native balloon.
   wireTooltips();
-  buildLanguageSelect();
   applyStaticText();
-  await renderLanguageSelect();
+  await renderLanguagePicker();
   await renderCnl();
   await renderAppearance();
   void renderReport();
