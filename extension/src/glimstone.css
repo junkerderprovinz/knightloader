@@ -705,11 +705,14 @@
   color: var(--carbon-text);
   font: inherit;
   text-align: start;
-  cursor: pointer;
   position: relative;
   transition: background-color 150ms ease;
 }
-.glim-instance:hover { background: var(--carbon-hover); }
+/* Only a card you can actually pick offers to be pressed. On the options page
+   the card is a display object with three controls in it, and a pointer over
+   its whole surface would promise something that does not happen. */
+.glim-instance[role='radio'] { cursor: pointer; }
+.glim-instance[role='radio']:hover { background: var(--carbon-hover); }
 /* Chosen for THIS send: a ring, the same way a selected swatch is marked - an
    inset gap in the page colour, then the accent, so the mark reads as applied
    to the card rather than as the card's own edge. */
@@ -720,19 +723,64 @@
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  padding-inline-start: 10px;
+  padding-inline-start: 12px;
 }
-.glim-instance-mark img { height: 40px; width: auto; display: block; }
+/* 48 rather than 40: the card grew (jdp, 2026-08-29: "die instanzen card
+   dürfen etwas größer sein") and a mark that stays put in a taller card stops
+   holding its own edge. */
+.glim-instance-mark img { height: 48px; width: auto; display: block; }
 .glim-instance-body {
   flex: 1;
   min-width: 0;
-  padding: 10px 12px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
 }
 .glim-instance-name { font-weight: 500; }
 .glim-instance-what { color: var(--carbon-text-muted); font-size: var(--text-dense); }
+/* What the instance is doing. One line, ellipsised rather than wrapped: a card
+   that changes height as a download starts and stops makes the whole list
+   twitch. */
+.glim-instance-stats {
+  margin-top: 2px;
+  color: var(--carbon-text-sub);
+  font-size: var(--text-dense);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.glim-instance-stats--off { color: var(--carbon-text-muted); font-style: italic; }
+
+/* The actions sit at the BOTTOM of the trailing edge, not centred on it: the
+   "Standard" badge owns the top-right corner, and a centred row of 30px
+   buttons in a 72px card reaches up into it. Two things in one corner is the
+   kind of overlap that only shows up on the one card that has both. */
+.glim-instance-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 0 12px 12px 0;
+  padding-inline: 0 12px;
+}
+.glim-square {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--carbon-surface3);
+  color: var(--carbon-text);
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+.glim-square:hover:not(:disabled) { background: var(--accent); color: var(--accent-contrast); }
+.glim-square:disabled { opacity: .4; cursor: default; }
+.glim-square svg { display: block; }
 /* "Standard" - a real badge in the corner, not a word appended to the name. */
 .glim-instance-badge {
   position: absolute;

@@ -264,6 +264,26 @@ function setHue(el, i) {
   for (const [k, v] of Object.entries(vars)) el.style.setProperty(k, v);
 }
 
+/**
+ * setHues hands a whole set its positions, 0-based, in the order given.
+ *
+ * Every surface in this extension calls it once per render with the blocks
+ * that are an equal-member set on that surface — the cards on the options
+ * page, the header and the send button in the popup. Positions are assigned to
+ * the CONTAINER rather than to the one badge inside it, because
+ * `[data-rainbow] .glim-hue` rebinds --accent for the whole subtree: give a
+ * card its position and its badge, its switch track, its buttons and its focus
+ * ring all follow, with no list of exceptions to keep in step.
+ *
+ * That is what was missing (jdp, 2026-08-29: "der Regenbogenmodus funktioniert
+ * erweiterungs-weit nicht überall"). Only the badges and the instance cards
+ * owned a position, so the mode was on and three quarters of the extension went
+ * on wearing the single accent.
+ */
+function setHues(elements) {
+  elements.filter(Boolean).forEach((el, i) => setHue(el, i));
+}
+
 function applyRainbow(next) {
   const merged = { ...RAINBOW_OFF, ...next };
   merged.palette = usablePalette(merged.palette);

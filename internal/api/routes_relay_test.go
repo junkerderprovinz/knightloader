@@ -451,6 +451,7 @@ func TestRelayProxyRefusesEverythingButTasksAndLinks(t *testing.T) {
 	for _, allowed := range []string{
 		"/api/tasks", "/api/links", "/api/queue", "/api/tasks/7", "/api/queue/move",
 		"/api/tasks?state=active", "/api/auth", "/api/instances", "/api/appearance",
+		"/api/remote-access",
 	} {
 		if status := get(allowed); status == http.StatusForbidden {
 			t.Errorf("%s = 403, but a group member needs it", allowed)
@@ -473,7 +474,7 @@ func TestRelayProxyRefusesEverythingButTasksAndLinks(t *testing.T) {
 	// The read-only three are read-only. POST /api/instances registers a peer
 	// and POST /api/auth/logout is somebody else's session; being in the group
 	// is permission to look at these, never to write them.
-	for _, path := range []string{"/api/auth", "/api/instances", "/api/appearance"} {
+	for _, path := range []string{"/api/auth", "/api/instances", "/api/appearance", "/api/remote-access"} {
 		status, _ := serve(context.Background(), relay.ProxyCall{Method: http.MethodPost, Path: path})
 		if status != http.StatusForbidden {
 			t.Errorf("POST %s = %d, want 403 - these are readable, not writable", path, status)
