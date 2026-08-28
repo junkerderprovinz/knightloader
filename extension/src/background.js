@@ -162,7 +162,27 @@ async function sendToInstance(payload) {
   await chrome.storage.session.set({
     pendingSend: { payload, defaultName: await readDefaultTarget(), siblings },
   });
-  chrome.windows.create({ url: chrome.runtime.getURL('picker.html'), type: 'popup', width: 400, height: 480 });
+
+  // The extension's OWN popup, not a window of our own (jdp, 2026-08-29: "Wenn
+  // ich auf CnL klicke öffnet sich ein komplett neues fenster. das soll so
+  // nicht sein. es soll sich das popupfenster der erweiterung öffnen").
+  //
+  // He is right, and the old behaviour was worse than merely surprising: a
+  // separate popup window arrives with its own title bar, its own taskbar
+  // entry and its own scrollbars, so a decision that takes one click looked
+  // like an application had opened. The action popup hangs off the toolbar
+  // button the person already associates with this extension.
+  //
+  // openPopup() can legitimately fail - no focused window, or a browser that
+  // does not have it - and there is no version check worth writing here,
+  // because the honest fallback is the window that used to be the only path.
+  // The pending send is already stored either way, so both routes read the
+  // same thing.
+  try {
+    await chrome.action.openPopup();
+  } catch {
+    chrome.windows.create({ url: chrome.runtime.getURL('picker.html'), type: 'popup', width: 420, height: 520 });
+  }
 }
 
 /**

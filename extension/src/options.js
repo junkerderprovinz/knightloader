@@ -109,11 +109,12 @@ function applyStaticText() {
   cnlToggleEl.textContent = t('options.cnlToggle');
   glimSetInfo('cnlHeading', t('options.cnlSub'));
 
-  // The look, now one card per axis. Each heading carries what the card is
-  // for; each row label carries what that one control does. Two different
-  // facts, so neither bubble repeats the other.
+  // The look, one card per axis. A heading carries a bubble only where the
+  // card holds more than one control and the bubble has something to say that
+  // no single row does. Look and Colours have no bubble on purpose: their rows
+  // already explain themselves, and a second bubble repeating the first is the
+  // padding the rule exists to remove, not an application of it.
   appearanceHeadingEl.textContent = t('options.appearanceHeading');
-  glimSetInfo('appearanceHeading', t('options.appearanceSub'));
   themeHeadingEl.textContent = t('options.themeHeading');
   glimSetInfo('themeHeading', t('options.themeHint'));
   shapeHeadingEl.textContent = t('options.shapeHeading');

@@ -68,11 +68,28 @@
   /** Hands one submission to the isolated world. Fire and forget: the page must
    *  not be made to wait on an instance it cannot see. */
   const hand = (path, fields) => {
+    // "*", unconditionally, and this is the corrected version of a guard that
+    // was too clever. Posting to location.origin drops the message wherever
+    // that string is not what the receiving window actually matches: a file://
+    // page reports the origin as "file://" while the window's own origin is
+    // opaque, a sandboxed iframe and a data: URL report "null". The submission
+    // then vanished between the two halves while the page was still told
+    // "success" - exactly the silent failure the answer above exists to
+    // prevent, arriving through the one door that comment never looked at.
+    //
+    // Found by driving a real button on a local test page and watching nothing
+    // happen. The first fix special-cased "null" and missed "file://", which is
+    // the argument against special cases here at all: the set of origins a
+    // window does not match itself is not a list worth maintaining.
+    //
+    // "*" costs nothing that matters. window.postMessage on the window itself
+    // delivers to that window only, never to child frames; the receiver insists
+    // on event.source === window; and the payload IS the page's own submission,
+    // so there is nothing in it the page did not just write itself.
     try {
-      window.postMessage({ [TAG]: true, path, fields }, location.origin);
+      window.postMessage({ [TAG]: true, path, fields }, '*');
     } catch {
-      // A page with an exotic origin (sandboxed iframe, data: URL) can reject
-      // the post. Nothing to do, and nothing worth breaking the page over.
+      // Nothing left to try, and nothing worth breaking the page over.
     }
   };
 

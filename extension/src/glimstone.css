@@ -365,11 +365,19 @@
 .glim-reset svg { display: block; }
 
 .glim-axis { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+/* The same object as .glim-row-label, and that is the point (jdp, 2026-08-29:
+ * "der Text Akzentfarbe und Farbpalette gleich wie die anderen Punkte
+ * formatieren. die i infobubble ist bei den beiden punkten anders platziert
+ * wie bei den übrigen punkten"). It used to be smaller and muted, with the
+ * "(i)" jammed against the last letter because the label was not a flex box of
+ * its own - so two rows in the same card read as two different kinds of
+ * setting. They are the same kind of setting. */
 .glim-axis > .glim-axis-label {
   flex: 0 0 auto;
   min-width: 96px;
-  font-size: var(--text-dense);
-  color: var(--carbon-text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 /* A colour row reads right to left: the label holds the left edge, everything
  * that can be clicked collects at the trailing edge, in line with every switch
