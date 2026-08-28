@@ -3,7 +3,7 @@
   "name": "KnightLoader",
   "short_name": "KnightLoader",
   "description": "Send a link, a selection, or the current page straight to your own KnightLoader instance.",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -25,6 +25,7 @@
     "scripts": [
       "shared.js",
       "i18n.js",
+      "cnl.js",
       "background.js"
     ]
   },
@@ -35,7 +36,8 @@
   "permissions": [
     "contextMenus",
     "storage",
-    "activeTab"
+    "activeTab",
+    "scripting"
   ],
   "optional_host_permissions": [
     "<all_urls>"

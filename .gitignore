@@ -45,3 +45,11 @@ web/package.json.md5
 *.keystore
 *.p12
 *.pfx
+
+# Chrome writes a compiled copy of an extension's declarativeNetRequest
+# rulesets into the extension directory it loads, INSIDE the source tree, the
+# first time it indexes them. It is a cache, it is stale the moment the rules
+# change, and it cost an afternoon: two loads of what looked like the same
+# extension behaved differently because one of them was still answering from
+# this file. Never commit it, never ship it in the store package.
+extension/src/_metadata/

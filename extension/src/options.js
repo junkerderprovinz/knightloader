@@ -12,6 +12,9 @@ const addHeadingEl = document.getElementById('addHeading');
 const addButton = document.getElementById('add');
 const noteEl = document.getElementById('note');
 const syncPeersBtn = document.getElementById('syncPeers');
+const cnlSubEl = document.getElementById('cnlSub');
+const cnlToggleEl = document.getElementById('cnlToggle');
+const cnlEnabledEl = document.getElementById('cnlEnabled');
 const appearanceHeadingEl = document.getElementById('appearanceHeading');
 const appearanceSubEl = document.getElementById('appearanceSub');
 const themeLabelEl = document.getElementById('themeLabel');
@@ -43,6 +46,11 @@ function applyStaticText() {
   addButton.textContent = t('options.addButton');
   noteEl.textContent = t('options.note');
   syncPeersBtn.textContent = t('options.syncButton');
+  // Click'n'Load. The heading itself is the protocol's own name and stays
+  // untranslated in every language, so it is left in the markup rather than
+  // carried through 42 catalogues that would all say the same thing.
+  cnlSubEl.textContent = t('options.cnlSub');
+  cnlToggleEl.textContent = t('options.cnlToggle');
   // The appearance axes and the Problems heading. They were translated into
   // every language and then never read: the markup carried English text and
   // nothing overwrote it, so the page rendered half in the reader's language
@@ -75,6 +83,50 @@ async function renderLanguageSelect() {
   const stored = await chrome.storage.local.get('language');
   languageSelect.value = typeof stored.language === 'string' ? stored.language : '';
 }
+
+/**
+ * Click'n'Load interception, off unless it is switched on here.
+ *
+ * The content scripts that catch a submission are always loaded — a manifest
+ * cannot register them conditionally — but they hand everything to the
+ * background worker, which drops it unless this flag is set (background.js's
+ * handleCnl). So "off" really is off: nothing is sent anywhere, and the
+ * website's own button goes back to reaching for 127.0.0.1:9666 the way it
+ * always did.
+ */
+async function renderCnl() {
+  const stored = await chrome.storage.local.get('cnlEnabled');
+  cnlEnabledEl.checked = stored.cnlEnabled === true;
+}
+
+/**
+ * Switching Click'n'Load on is the moment the extension asks for access to
+ * every website, and it is the only moment it ever does.
+ *
+ * Catching a submission means running code inside the page that makes it, and
+ * there is no narrower way to say which pages those will be: a Click'n'Load
+ * button can be on any site. Declaring that access in the manifest would have
+ * charged it to every installer at install time, including everyone who only
+ * ever wanted the right-click entry. So it is asked for here, by somebody who
+ * has just ticked the box that needs it — a real user gesture, which is also
+ * what chrome.permissions.request requires.
+ *
+ * Refusing is a first-class answer: the box goes back to unticked, nothing is
+ * stored, and nothing is registered.
+ */
+cnlEnabledEl.addEventListener('change', async () => {
+  const on = cnlEnabledEl.checked;
+  if (on) {
+    const granted = await chrome.permissions.request({ origins: ['<all_urls>'] }).catch(() => false);
+    if (!granted) {
+      cnlEnabledEl.checked = false;
+      say(t('options.cnlDenied'), false);
+      return;
+    }
+  }
+  await chrome.storage.local.set({ cnlEnabled: on });
+  await chrome.runtime.sendMessage({ type: 'knightloader-cnl-scripts', on }).catch(() => {});
+});
 
 languageSelect.addEventListener('change', async () => {
   await setLanguage(languageSelect.value || null);
@@ -619,6 +671,7 @@ copyReportBtn.addEventListener('click', async () => {
   buildLanguageSelect();
   applyStaticText();
   await renderLanguageSelect();
+  await renderCnl();
   await renderAppearance();
   render();
   suggestLocalDefault();

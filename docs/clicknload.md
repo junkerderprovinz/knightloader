@@ -97,7 +97,32 @@ void.
 Publishing port 9666 does not help. The address is hard-coded in the site's
 JavaScript; it will never dial your NAS.
 
-**The bridge.** Run the same binary on your own machine in bridge mode. It
+There are two answers, and the browser extension is the one most people want.
+
+**The browser extension.** Switch on Click'n'Load in the extension's options
+(Settings → Click'n'Load) and it catches the submission *inside the page*,
+before it is ever sent, then hands the links to whichever instance you pick —
+the same chooser every other send from the extension uses. Nothing runs on your
+desktop, no port is owned, and it works wherever the instance is.
+
+How, because it looks impossible at first: an extension cannot listen on a TCP
+port, so it never receives the POST. It patches the page's own `fetch`, `XHR`
+and form submission at `document_start` and takes the payload before it leaves
+(`extension/src/cnl-main.js`), decodes it in the browser
+(`extension/src/cnl.js`, the same AES-128-CBC this file describes), and answers
+the site with the identical `success\r\n` a real listener would. The detection
+step is answered the same way: the interceptor declares `jdownloader = true`
+before any script the page brings, so the button appears.
+
+That means running code in every page you visit, which is a real permission and
+is treated as one: **nothing is registered until you switch the feature on.**
+The extension asks for site access at that moment, registers the two content
+scripts if you agree, and unregisters them the moment you switch it off. A
+fresh install has no access to any website at all. (JDownloader's own extension
+requires that access up front, for everybody; this does not.)
+
+**The bridge.** For someone who wants no extension at all, or a browser without
+one. Run the same binary on your own machine in bridge mode. It
 listens on `127.0.0.1:9666`, speaks CnL to the website, and forwards what it
 decodes to the remote instance over the normal REST API:
 
@@ -191,4 +216,9 @@ into the clipboard does not get read in as if it arrived from somewhere else.
 Right-click-send-to-KnightLoader on an arbitrary link is a browser extension's
 job, not CnL's: CnL only exists where a site chose to put a button. See
 `docs/browser-tools.md` for that extension, the bookmarklet, and the PWA
-share target — none of the three touch this port or this protocol.
+share target.
+
+The extension now covers both — the right-click entries, which have nothing to
+do with this protocol, and Click'n'Load interception, which is entirely this
+protocol. They stay separate features with separate permissions: the first
+works on a fresh install, the second is off until switched on.
