@@ -260,18 +260,37 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  min-height: 22px;
+  /* Measured against BombVault's own notch on the same evening in the same
+     browser, because two apps naming the same intention with different tokens
+     is exactly how they drift: 22px tall, 12px text, weight 500, 1.2px
+     tracking, 2px/12px padding, 15px line box.
+     This one was 26px tall with 11px text - a SMALLER label in a BIGGER box.
+     min-height was the cause: the info icon inside pushed the box past 22 and
+     nothing stopped it, while BombVault's fixed height simply held. A minimum
+     is not a size; it is a floor with no ceiling, and anything that lands
+     inside raises it. */
+  /* border-box, or the 22 is a lie: an <h2> measures content-box by default,
+     so height 22 plus 2px padding top and bottom rendered 26 - which is
+     exactly the four extra pixels this badge had over BombVault's, whose
+     Tailwind build sets border-box on everything. */
+  box-sizing: border-box;
+  height: 22px;
   padding: 2px 12px;
   border-radius: var(--radius-pill);
   background: var(--accent);
   color: var(--accent-contrast);
-  font-size: var(--text-caption);
+  font-size: var(--text-dense);
+  line-height: 15px;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 1.2px;
   white-space: nowrap;
   box-shadow: var(--elevation);
 }
+/* The icon rides inside the fixed box rather than setting it. Without this the
+   16px glyph is the tallest thing in the badge and takes the height with it. */
+.glim-section-badge .glim-info-icon { flex: 0 0 auto; width: 14px; height: 14px; }
+.glim-section-badge .glim-info-icon svg { width: 14px; height: 14px; display: block; }
 
 /* One shared padded track with equal segments and no per-item glyph - the
  * "well" variant of the web UI's own Tabs, which is what its Corners picker

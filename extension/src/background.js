@@ -173,15 +173,21 @@ async function sendToInstance(payload) {
   // like an application had opened. The action popup hangs off the toolbar
   // button the person already associates with this extension.
   //
-  // openPopup() can legitimately fail - no focused window, or a browser that
-  // does not have it - and there is no version check worth writing here,
-  // because the honest fallback is the window that used to be the only path.
-  // The pending send is already stored either way, so both routes read the
-  // same thing.
+  // NEVER a window of our own, not even as a fallback (jdp, 2026-08-29: "das
+  // fenster öffnet sich immer noch. das soll nie sein. es soll sich immer nur
+  // das popupfenster der erweiterung öffnen!"). The fallback was mine, it was
+  // meant kindly, and it produced the exact thing he had just asked me to
+  // remove - on whichever attempt openPopup() happened to refuse.
+  //
+  // When the popup cannot be opened, the send is NOT lost and NOT silently
+  // dropped: it stays parked, and the toolbar badge says there is something
+  // waiting. Opening the popup by hand then shows it, because the popup reads
+  // the same parked entry either way. A mark on the icon is the one piece of
+  // interface this extension owns unconditionally.
   try {
     await chrome.action.openPopup();
   } catch {
-    chrome.windows.create({ url: chrome.runtime.getURL('picker.html'), type: 'popup', width: 420, height: 520 });
+    flashBadge('…', '#f1c21b', 'send.waiting', true);
   }
 }
 
@@ -381,11 +387,16 @@ function notifyCnl(key) {
  * confirmation window opening on the instance, so this mark is the only thing
  * that says a send worked.
  */
-function flashBadge(mark, colour, key) {
+function flashBadge(mark, colour, key, sticky) {
   try {
     chrome.action.setBadgeText({ text: mark });
     chrome.action.setBadgeBackgroundColor({ color: colour });
     chrome.action.setTitle({ title: `KnightLoader — ${t(key)}` });
+    // `sticky` is for a mark that stands for something still WAITING - a send
+    // parked because the popup could not be opened. Clearing that after six
+    // seconds would hide the only sign that anything is pending; the popup
+    // clears it itself when it takes the parked entry.
+    if (sticky) return;
     // An empty title is not a blank tooltip: it puts the manifest's own
     // default_title back, which is the one string that must not be duplicated
     // into the locale catalogues to be restored.

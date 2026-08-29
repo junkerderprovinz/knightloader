@@ -58,6 +58,7 @@ function paintHues() {
   instanceLabelEl.textContent = t('popup.sendToLabel');
   sendBtn.textContent = t('popup.send');
   targetEl.textContent = t('popup.loading');
+  targetEl.hidden = false;
 
   // A send that is already waiting takes precedence over the current tab. This
   // is how a Click'n'Load button or a right-click reaches a choice now: the
@@ -65,14 +66,17 @@ function paintHues() {
   // creating a second window with its own title bar and taskbar entry (jdp,
   // 2026-08-29: "es soll sich das popupfenster der erweiterung öffnen").
   //
-  // Read-once, exactly as picker.html does it: a stale entry from a popup
-  // somebody closed without choosing must never resurface and send the wrong
-  // links on the next toolbar click.
+  // Read-once: a stale entry from a popup somebody closed without choosing
+  // must never resurface and send the wrong links on the next toolbar click.
   const { pendingSend } = await chrome.storage.session.get('pendingSend');
   await chrome.storage.session.remove('pendingSend');
   pending = pendingSend ?? null;
 
   if (pending) {
+    // The badge said "something is waiting" if the popup could not be opened
+    // by itself. This window IS that popup, so the mark has done its job.
+    chrome.action?.setBadgeText?.({ text: '' });
+    chrome.action?.setTitle?.({ title: '' });
     // The roster came WITH the payload - the service worker had just listed
     // the group to decide whether a choice was needed at all, and asking again
     // here would be a second chance to get a different answer.
@@ -87,9 +91,15 @@ function paintHues() {
     return;
   }
 
+  // No target line for an ordinary toolbar click (jdp, 2026-08-29: "im popup
+  // steht KnightLoader wieder zweimal. das zweite (untere) entfernen"). On the
+  // extension's own pages it repeated the heading word for word, and even
+  // elsewhere it only restated what the button underneath already says. Where
+  // it DOES carry something nothing else does - a parked Click'n'Load batch,
+  // a right-clicked link - it stays, above.
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   activeTab = tab;
-  targetEl.textContent = tab?.title || tab?.url || t('popup.noPage');
+  targetEl.hidden = true;
 
   if (!(await readPhrase())) {
     // The popup used to open Options here and close itself, so a click on the

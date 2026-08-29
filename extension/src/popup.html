@@ -75,18 +75,18 @@
       }
       .iconBadge:hover { background: var(--carbon-surface3); color: var(--carbon-text); }
       .iconBadge:active { transform: scale(0.97); }
-      /* jdp, 2026-08-24: "da steht es doppelt" - not actually a second
-         KnightLoader heading (there is only ever one <h1>), but #target
-         below shows the ACTIVE TAB's own title with no label of its own -
-         when that tab happens to be KnightLoader's own web app, its title
-         IS "KnightLoader" too, and two bare, identically-styled lines read
-         as a mistake even though they answer different questions ("this is
-         the extension" vs "this is the page you're about to send"). This
-         eyebrow makes that second line self-explanatory regardless of what
-         page it names. The eyebrow treatment itself is .glim-eyebrow on the
-         element, so only its spacing is left here. */
+      /* #target is the line naming what is about to be sent, and it is shown
+         only when it says something nothing else does: a parked Click'n'Load
+         batch, or a right-clicked link. For an ordinary toolbar click it is
+         hidden, because there it repeated the button underneath ("send this
+         page") and, on KnightLoader's own pages, the heading above it word
+         for word - reported twice, a year apart in feeling: 2026-08-24 "da
+         steht es doppelt", and 2026-08-29 "im popup steht KnightLoader wieder
+         zweimal. das zweite (untere) entfernen". An eyebrow label was the
+         first answer and it was the wrong one: it explained a line that did
+         not need to be there. */
       p {
-        margin: 0 0 12px;
+        margin: 0 0 16px;
         color: var(--carbon-text-sub);
         overflow-wrap: anywhere;
       }
@@ -94,7 +94,10 @@
         display: block;
         width: 100%;
         padding: 9px 12px;
-        margin-bottom: 8px;
+        /* No bottom margin: the send button is the last block, and its own
+           8px plus the window's 16px padding made the space below it half
+           again the space above it. */
+        margin-bottom: 0;
         border: 0;
         border-radius: var(--radius-control);
         font: inherit;
@@ -103,8 +106,18 @@
       }
       .primary { background: var(--accent); color: var(--accent-contrast); }
       .secondary { background: var(--carbon-surface2); color: var(--carbon-text); }
-      #status { min-height: 1.2em; color: var(--carbon-text-muted); font-size: var(--text-caption); }
-      #instanceRow { margin-bottom: 12px; }
+      /* One rhythm, 16px, the same value the window pads itself with (jdp,
+         2026-08-29: "die instanzencards und der untere button haben zu sich
+         und zum unteren fensterende unterschiedliche abstände"). The gap
+         between the last card and the button was 12 while the gap below the
+         button was 16 plus an always-present, always-empty status line worth
+         another 17 - so the bottom looked heavier than the top for a reason
+         that was not visible on screen. An empty status line now takes no
+         space at all; a real message still pushes the window taller, which is
+         honest, because a message appearing IS a change. */
+      #status { color: var(--carbon-text-muted); font-size: var(--text-caption); margin-top: 16px; }
+      #status:empty { display: none; }
+      #instanceRow { margin-bottom: 16px; }
       #instanceRow label { display: block; font-size: var(--text-caption); color: var(--carbon-text-muted); margin-bottom: 4px; }
       /* Shaped like a text field rather than left native: it sits under a
          label in the same column as the Send button. Same correction as
