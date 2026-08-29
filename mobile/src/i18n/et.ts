@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const et: Dict = {
-  'connect.title': 'Ühendumine rakendusega KnightLoader',
-  'connect.hint':
-    'Looge rakenduse KnightLoader veebiliidese vahekaardil Juurdepääs võti (token) ja kleepige see siia. Aadressi saab skannida sama lehe QR-koodilt.',
-  'connect.nameLabel': 'Nimi (valikuline)',
-  'connect.namePlaceholder': 'Minu KnightLoader',
-  'connect.addressLabel': 'Serveri aadress',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'Võti',
-  'connect.tokenPlaceholder': 'kleepige siia',
-  'connect.errorMissing': 'Sisestage serveri aadress ja võti.',
-  'connect.errorTokenRejected': 'Server vastas, kuid ei aktsepteerinud võtit.',
-  'connect.connectButton': 'Ühenda',
-  'connect.qrHintAddress': 'Skannige QR-kood vahekaardilt Juurdepääs',
-  'connect.findButton': 'Otsi sellest võrgust',
-  'connect.finding': 'Otsimine sellest võrgust…',
-  'connect.foundNone': 'Sellest võrgust ei leitud midagi. Sisestage aadress käsitsi või skannige QR-kood vahekaardilt Juurdepääs.',
-  'connect.foundOne': 'Leiti üks. Aadress on täidetud - kleepige võti ja ühendage.',
-  'connect.foundMany': 'Leiti {n}. Valige üks:',
-  'connect.foundPick': 'Kasuta seda',
 
   'qr.cancel': 'Tühista',
   'qr.cameraPermissionHint': 'QR-koodi skannimiseks on vaja kaamera juurdepääsu.',
@@ -102,7 +83,6 @@ export const et: Dict = {
   'settings.removeAllConfirmButton': 'Eemalda kõik',
   'settings.cancel': 'Tühista',
 
-  'connect.relayLink': 'Otse kättesaamatu? Ühenda fraasiga',
   'relay.title': 'Ühenda fraasiga',
   'relay.hint':
     'Loe kaksteist sõna mõnelt juba töötavalt KnightLoaderilt ja sisesta need siia. Iga selle rühma eksemplar ilmub allapoole - ei aadressi, ei võtit, ei kontot.',

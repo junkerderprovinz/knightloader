@@ -6,7 +6,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { loadActiveConnection, setActiveConnectionId } from './src/storage/connections';
 import type { Instance, ServerConnection } from './src/api/types';
 import ConnectionsScreen from './src/screens/ConnectionsScreen';
-import ConnectScreen from './src/screens/ConnectScreen';
 import RelayConnectScreen from './src/screens/RelayConnectScreen';
 import DownloadsScreen from './src/screens/DownloadsScreen';
 import InstancesScreen from './src/screens/InstancesScreen';
@@ -19,7 +18,6 @@ import { I18nProvider } from './src/i18n/I18nContext';
 
 type RootStackParamList = {
   Connections: undefined;
-  AddConnection: undefined;
   RelayConnect: undefined;
   Downloads: { peer?: Instance } | undefined;
   Instances: undefined;
@@ -123,24 +121,20 @@ function Shell() {
                   setConn(c);
                   navigation.navigate('Downloads', {});
                 }}
-                onAddPress={() => navigation.navigate('AddConnection')}
+                onAddPress={() => navigation.navigate('RelayConnect')}
                 onOpenSettings={() => navigation.navigate('Settings')}
               />
             )}
           </Stack.Screen>
 
-          <Stack.Screen name="AddConnection" options={{ presentation: 'modal' }}>
-            {({ navigation }) => (
-              <ConnectScreen
-                onConnected={(c) => {
-                  setConn(c);
-                  navigation.navigate('Downloads', {});
-                }}
-                onUseRelay={() => navigation.replace('RelayConnect')}
-              />
-            )}
-          </Stack.Screen>
-
+          {/* The name-and-address form is gone (jdp, 2026-08-29: "In der App
+              kann man sich immer noch mit Name+URL verbinden. das soll raus.
+              nur noch per Phrase!") - the phrase screen is the one way in,
+              exactly as it is in the browser extension. What the old form
+              uniquely carried and what dies with it, named rather than lost
+              silently: the remote-access QR (a bare address) and hand-typed
+              token entry. A connection saved back when that path existed
+              keeps working; there is just no way to create another one. */}
           <Stack.Screen name="RelayConnect" options={{ presentation: 'modal' }}>
             {({ navigation }) => (
               <RelayConnectScreen
@@ -195,6 +189,13 @@ function Shell() {
                 onRemovedAllConnections={() => {
                   setConn(null);
                   navigation.reset({ index: 0, routes: [{ name: 'Connections' }] });
+                }}
+                onRefreshAppearance={() => {
+                  // "Follow the instance" just cleared the local overrides;
+                  // what it must NOT show is the look fetched at startup (jdp:
+                  // "Einstellungen übernehmen funktionieren nicht") - so ask
+                  // the instance again, now.
+                  if (conn) void fetchAppearance(conn).then(setInstanceAppearance);
                 }}
               />
             )}

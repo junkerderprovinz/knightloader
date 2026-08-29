@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const tr: Dict = {
-  'connect.title': "KnightLoader'a bağlan",
-  'connect.hint':
-    "KnightLoader web arayüzünün Erişim sekmesinde bir token oluşturun ve buraya yapıştırın. Adres, aynı sayfadaki QR koddan taranabilir.",
-  'connect.nameLabel': 'Ad (isteğe bağlı)',
-  'connect.namePlaceholder': "KnightLoader'ım",
-  'connect.addressLabel': 'Sunucu adresi',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'Token',
-  'connect.tokenPlaceholder': 'buraya yapıştırın',
-  'connect.errorMissing': 'Bir sunucu adresi ve token girin.',
-  'connect.errorTokenRejected': 'Sunucuya ulaşıldı ama token kabul edilmedi.',
-  'connect.connectButton': 'Bağlan',
-  'connect.qrHintAddress': 'QR kodu Erişim sekmesinden tarayın',
-  'connect.findButton': 'Bu ağda ara',
-  'connect.finding': 'Bu ağda aranıyor…',
-  'connect.foundNone': 'Bu ağda hiçbir şey bulunamadı. Adresi elle girin ya da QR kodu Erişim sekmesinden tarayın.',
-  'connect.foundOne': 'Bir tane bulundu. Adres dolduruldu - bir token yapıştırıp bağlanın.',
-  'connect.foundMany': '{n} tane bulundu. Birini seçin:',
-  'connect.foundPick': 'Bunu kullan',
 
   'qr.cancel': 'İptal',
   'qr.cameraPermissionHint': 'QR kodu taramak için kamera erişimi gerekir.',
@@ -102,7 +83,6 @@ export const tr: Dict = {
   'settings.removeAllConfirmButton': 'Tümünü kaldır',
   'settings.cancel': 'İptal',
 
-  'connect.relayLink': 'Doğrudan erişilemiyor mu? İfadeyle bağlan',
   'relay.title': 'İfadeyle bağlan',
   'relay.hint':
     'Zaten çalıştırdığın herhangi bir KnightLoader’daki on iki kelimeyi oku ve buraya yaz. O gruptaki her örnek aşağıda görünür - adres yok, anahtar yok, hesap yok.',

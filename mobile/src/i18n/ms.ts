@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const ms: Dict = {
-  'connect.title': 'Sambung ke KnightLoader',
-  'connect.hint':
-    'Cipta token pada tab Akses antara muka web KnightLoader dan tampal di sini. Alamat boleh diimbas daripada kod QR pada halaman yang sama.',
-  'connect.nameLabel': 'Nama (pilihan)',
-  'connect.namePlaceholder': 'KnightLoader saya',
-  'connect.addressLabel': 'Alamat pelayan',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'Token',
-  'connect.tokenPlaceholder': 'tampal di sini',
-  'connect.errorMissing': 'Masukkan alamat pelayan dan token.',
-  'connect.errorTokenRejected': 'Berjaya menghubungi pelayan, tetapi token tidak diterima.',
-  'connect.connectButton': 'Sambung',
-  'connect.qrHintAddress': 'Imbas kod QR daripada tab Akses',
-  'connect.findButton': 'Cari pada rangkaian ini',
-  'connect.finding': 'Mencari pada rangkaian ini…',
-  'connect.foundNone': 'Tiada apa-apa ditemui pada rangkaian ini. Masukkan alamat secara manual, atau imbas kod QR daripada tab Akses.',
-  'connect.foundOne': 'Satu ditemui. Alamat sudah diisi - tampal token dan sambung.',
-  'connect.foundMany': '{n} ditemui. Pilih satu:',
-  'connect.foundPick': 'Guna yang ini',
 
   'qr.cancel': 'Batal',
   'qr.cameraPermissionHint': 'Akses kamera diperlukan untuk mengimbas kod QR.',
@@ -102,7 +83,6 @@ export const ms: Dict = {
   'settings.removeAllConfirmButton': 'Alih keluar semua',
   'settings.cancel': 'Batal',
 
-  'connect.relayLink': 'Tidak dapat dicapai terus? Sambung dengan frasa',
   'relay.title': 'Sambung dengan frasa',
   'relay.hint':
     'Baca dua belas perkataan pada mana-mana KnightLoader yang sudah anda jalankan dan taipkannya di sini. Setiap tika dalam kumpulan itu muncul di bawah - tiada alamat, tiada kunci, tiada akaun.',

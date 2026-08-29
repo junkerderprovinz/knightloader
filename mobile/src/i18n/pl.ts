@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const pl: Dict = {
-  'connect.title': 'Połącz z KnightLoader',
-  'connect.hint':
-    'Utwórz token w zakładce Dostęp interfejsu webowego KnightLoader i wklej go tutaj. Adres można zeskanować z kodu QR na tej samej stronie.',
-  'connect.nameLabel': 'Nazwa (opcjonalnie)',
-  'connect.namePlaceholder': 'Mój KnightLoader',
-  'connect.addressLabel': 'Adres serwera',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'Token',
-  'connect.tokenPlaceholder': 'wklej tutaj',
-  'connect.errorMissing': 'Podaj adres serwera i token.',
-  'connect.errorTokenRejected': 'Połączono z serwerem, ale token nie został zaakceptowany.',
-  'connect.connectButton': 'Połącz',
-  'connect.qrHintAddress': 'Zeskanuj kod QR z zakładki Dostęp',
-  'connect.findButton': 'Szukaj w tej sieci',
-  'connect.finding': 'Szukanie w tej sieci…',
-  'connect.foundNone': 'Nic nie znaleziono w tej sieci. Wpisz adres ręcznie lub zeskanuj kod QR z zakładki Dostęp.',
-  'connect.foundOne': 'Znaleziono jeden. Adres jest już wpisany - wklej token i połącz się.',
-  'connect.foundMany': 'Znaleziono {n}. Wybierz jeden:',
-  'connect.foundPick': 'Użyj tego',
 
   'qr.cancel': 'Anuluj',
   'qr.cameraPermissionHint': 'Do zeskanowania kodu QR potrzebny jest dostęp do aparatu.',
@@ -102,7 +83,6 @@ export const pl: Dict = {
   'settings.removeAllConfirmButton': 'Usuń wszystko',
   'settings.cancel': 'Anuluj',
 
-  'connect.relayLink': 'Nieosiągalny bezpośrednio? Połącz frazą',
   'relay.title': 'Połącz za pomocą frazy',
   'relay.hint':
     'Odczytaj dwanaście słów z dowolnego działającego KnightLoadera i wpisz je tutaj. Każda instancja z tej grupy pojawi się poniżej - bez adresu, bez klucza, bez konta.',

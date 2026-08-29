@@ -66,6 +66,11 @@ export interface Appearance {
   setTheme: (t: 'light' | 'dark' | undefined) => void;
   /** Drop every override and follow the instance again. */
   followInstance: () => void;
+  /** The opposite direction: write the RESOLVED look into the override layer,
+   *  so switching "follow the instance" off changes nothing on screen - the
+   *  values simply become yours to edit. The counterpart of the browser
+   *  extension's stash-before-adopt. */
+  snapshotAsLocal: () => void;
   /** Called by whatever knows the active connection. */
   setInstanceAppearance: (a: InstanceAppearance | undefined) => void;
 }
@@ -151,6 +156,7 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
       setShape: (s) => persist({ ...override, shape: s }),
       setTheme: (t) => persist({ ...override, theme: t }),
       followInstance: () => persist({}),
+      snapshotAsLocal: () => persist({ accent, shape, theme: dark ? 'dark' : 'light' }),
       setInstanceAppearance: setInstance,
     };
   }, [override, instance, system, persist]);

@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const de: Dict = {
-  'connect.title': 'Mit KnightLoader verbinden',
-  'connect.hint':
-    'Im Access-Tab der KnightLoader-Weboberfläche einen Token erzeugen und hier einfügen. Die Adresse lässt sich über den QR-Code auf derselben Seite einscannen.',
-  'connect.nameLabel': 'Name (optional)',
-  'connect.namePlaceholder': 'Mein KnightLoader',
-  'connect.addressLabel': 'Server-Adresse',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'Token',
-  'connect.tokenPlaceholder': 'einfügen',
-  'connect.errorMissing': 'Server-Adresse und Token angeben.',
-  'connect.errorTokenRejected': 'Verbindung ging durch, aber der Token wurde nicht akzeptiert.',
-  'connect.connectButton': 'Verbinden',
-  'connect.qrHintAddress': 'QR-Code aus dem Access-Tab scannen',
-  'connect.findButton': 'In diesem Netz suchen',
-  'connect.finding': 'Suche in diesem Netz…',
-  'connect.foundNone': 'In diesem Netz nichts gefunden. Adresse von Hand eingeben oder den QR-Code aus dem Access-Tab scannen.',
-  'connect.foundOne': 'Einen gefunden. Die Adresse steht schon drin - jetzt nur noch einen Token einfügen und verbinden.',
-  'connect.foundMany': '{n} gefunden. Such dir einen aus:',
-  'connect.foundPick': 'Diesen nehmen',
 
   'qr.cancel': 'Abbrechen',
   'qr.cameraPermissionHint': 'Kamera-Zugriff wird für den QR-Scan benötigt.',
@@ -31,7 +12,6 @@ export const de: Dict = {
   'connections.remove': 'Entfernen',
   'connections.viaRelay': 'über Relay {relay}',
 
-  'connect.relayLink': 'Nicht direkt erreichbar? Mit Phrase verbinden',
   'relay.title': 'Mit Phrase verbinden',
   'relay.hint':
     'Die zwölf Wörter aus einer KnightLoader-Instanz ablesen und hier eintippen. Jede Instanz dieser Gruppe taucht darunter auf - keine Adresse, kein Schlüssel, kein Konto.',

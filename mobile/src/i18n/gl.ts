@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const gl: Dict = {
-  'connect.title': 'Conectar con KnightLoader',
-  'connect.hint':
-    'Crea un token na pestana Acceso da interface web de KnightLoader e pégao aquí. O enderezo pódese escanear desde o código QR desa mesma páxina.',
-  'connect.nameLabel': 'Nome (opcional)',
-  'connect.namePlaceholder': 'O meu KnightLoader',
-  'connect.addressLabel': 'Enderezo do servidor',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'Token',
-  'connect.tokenPlaceholder': 'pégao aquí',
-  'connect.errorMissing': 'Indica un enderezo de servidor e un token.',
-  'connect.errorTokenRejected': 'Contactouse co servidor, pero non aceptou o token.',
-  'connect.connectButton': 'Conectar',
-  'connect.qrHintAddress': 'Escanea o código QR desde a pestana Acceso',
-  'connect.findButton': 'Buscar nesta rede',
-  'connect.finding': 'Buscando nesta rede…',
-  'connect.foundNone': 'Non se atopou nada nesta rede. Escribe o enderezo a man ou escanea o código QR desde a pestana Acceso.',
-  'connect.foundOne': 'Atopouse un. O enderezo xa está posto: pega un token e conecta.',
-  'connect.foundMany': 'Atopáronse {n}. Escolle un:',
-  'connect.foundPick': 'Usar este',
 
   'qr.cancel': 'Cancelar',
   'qr.cameraPermissionHint': 'Requírese acceso á cámara para escanear o código QR.',
@@ -102,7 +83,6 @@ export const gl: Dict = {
   'settings.removeAllConfirmButton': 'Eliminar todo',
   'settings.cancel': 'Cancelar',
 
-  'connect.relayLink': 'Non se alcanza directamente? Conecta cunha frase',
   'relay.title': 'Conectar cunha frase',
   'relay.hint':
     'Le as doce palabras en calquera KnightLoader que xa teñas e escríbeas aquí. Cada instancia dese grupo aparecerá abaixo: sen enderezo, sen clave, sen conta.',

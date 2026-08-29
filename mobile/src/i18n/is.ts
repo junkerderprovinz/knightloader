@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const is: Dict = {
-  'connect.title': 'Tengjast KnightLoader',
-  'connect.hint':
-    'Búðu til teikn (token) á flipanum Aðgangur í vefviðmóti KnightLoader og límdu það hér. Hægt er að skanna vistfangið af QR-kóðanum á sömu síðu.',
-  'connect.nameLabel': 'Nafn (valfrjálst)',
-  'connect.namePlaceholder': 'Mitt KnightLoader',
-  'connect.addressLabel': 'Vistfang netþjóns',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'Teikn',
-  'connect.tokenPlaceholder': 'límdu hér',
-  'connect.errorMissing': 'Sláðu inn vistfang netþjóns og teikn.',
-  'connect.errorTokenRejected': 'Netþjónninn svaraði en samþykkti ekki teiknið.',
-  'connect.connectButton': 'Tengjast',
-  'connect.qrHintAddress': 'Skannaðu QR-kóðann af flipanum Aðgangur',
-  'connect.findButton': 'Finna á þessu neti',
-  'connect.finding': 'Leita á þessu neti…',
-  'connect.foundNone': 'Ekkert fannst á þessu neti. Sláðu vistfangið inn handvirkt eða skannaðu QR-kóðann af flipanum Aðgangur.',
-  'connect.foundOne': 'Eitt fannst. Vistfangið er komið inn - límdu inn teikn og tengstu.',
-  'connect.foundMany': '{n} fundust. Veldu eitt:',
-  'connect.foundPick': 'Nota þetta',
 
   'qr.cancel': 'Hætta við',
   'qr.cameraPermissionHint': 'Aðgang að myndavél þarf til að skanna QR-kóðann.',
@@ -102,7 +83,6 @@ export const is: Dict = {
   'settings.removeAllConfirmButton': 'Fjarlægja allt',
   'settings.cancel': 'Hætta við',
 
-  'connect.relayLink': 'Næst ekki beint? Tengstu með setningu',
   'relay.title': 'Tengjast með setningu',
   'relay.hint':
     'Lestu orðin tólf af KnightLoader sem þú keyrir nú þegar og sláðu þau inn hér. Hvert tilvik í þeim hópi birtist fyrir neðan - ekkert vistfang, enginn lykill, enginn aðgangur.',

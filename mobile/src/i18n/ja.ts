@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const ja: Dict = {
-  'connect.title': 'KnightLoaderに接続',
-  'connect.hint':
-    'KnightLoaderのWeb UIのアクセスタブでトークンを作成し、ここに貼り付けてください。アドレスは同じページのQRコードから読み取れます。',
-  'connect.nameLabel': '名前(任意)',
-  'connect.namePlaceholder': '私のKnightLoader',
-  'connect.addressLabel': 'サーバーアドレス',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'トークン',
-  'connect.tokenPlaceholder': 'ここに貼り付け',
-  'connect.errorMissing': 'サーバーアドレスとトークンを入力してください。',
-  'connect.errorTokenRejected': 'サーバーに到達しましたが、トークンが拒否されました。',
-  'connect.connectButton': '接続',
-  'connect.qrHintAddress': 'アクセスタブのQRコードをスキャン',
-  'connect.findButton': 'このネットワークから探す',
-  'connect.finding': 'このネットワークを検索中…',
-  'connect.foundNone': 'このネットワークでは見つかりませんでした。アドレスを手動で入力するか、アクセスタブのQRコードをスキャンしてください。',
-  'connect.foundOne': '1台見つかりました。アドレスは入力済みです。あとはトークンを貼り付けて接続してください。',
-  'connect.foundMany': '{n}台見つかりました。1つ選んでください：',
-  'connect.foundPick': 'これを使う',
 
   'qr.cancel': 'キャンセル',
   'qr.cameraPermissionHint': 'QRコードのスキャンにはカメラへのアクセスが必要です。',
@@ -102,7 +83,6 @@ export const ja: Dict = {
   'settings.removeAllConfirmButton': 'すべて削除',
   'settings.cancel': 'キャンセル',
 
-  'connect.relayLink': '直接つながらない場合はフレーズで接続',
   'relay.title': 'フレーズで接続',
   'relay.hint':
     'すでに動かしている KnightLoader から12語を読み取って、ここに入力してください。そのグループのすべてのインスタンスが下に表示されます。アドレスも鍵もアカウントも不要です。',

@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const hu: Dict = {
-  'connect.title': 'Kapcsolódás a KnightLoader szerverhez',
-  'connect.hint':
-    'Hozz létre egy tokent a KnightLoader webes felületének Hozzáférés lapján, és illeszd be ide. A cím beolvasható az ugyanazon az oldalon található QR-kódról.',
-  'connect.nameLabel': 'Név (opcionális)',
-  'connect.namePlaceholder': 'KnightLoaderem',
-  'connect.addressLabel': 'Szerver címe',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'Token',
-  'connect.tokenPlaceholder': 'illeszd be ide',
-  'connect.errorMissing': 'Add meg a szerver címét és egy tokent.',
-  'connect.errorTokenRejected': 'A szerver válaszolt, de nem fogadta el a tokent.',
-  'connect.connectButton': 'Kapcsolódás',
-  'connect.qrHintAddress': 'Olvasd be a QR-kódot a Hozzáférés lapról',
-  'connect.findButton': 'Keresés ezen a hálózaton',
-  'connect.finding': 'Keresem ezen a hálózaton…',
-  'connect.foundNone': 'Ezen a hálózaton nem található semmi. Add meg a címet kézzel, vagy olvasd be a QR-kódot a Hozzáférés lapról.',
-  'connect.foundOne': 'Egyet találtam. A cím ki van töltve - illessz be egy tokent, és kapcsolódj.',
-  'connect.foundMany': '{n} találat. Válassz egyet:',
-  'connect.foundPick': 'Ezt használom',
 
   'qr.cancel': 'Mégse',
   'qr.cameraPermissionHint': 'A QR-kód beolvasásához kamera-hozzáférés szükséges.',
@@ -102,7 +83,6 @@ export const hu: Dict = {
   'settings.removeAllConfirmButton': 'Összes eltávolítása',
   'settings.cancel': 'Mégse',
 
-  'connect.relayLink': 'Közvetlenül nem érhető el? Csatlakozz kifejezéssel',
   'relay.title': 'Csatlakozás kifejezéssel',
   'relay.hint':
     'Olvasd le a tizenkét szót egy már futó KnightLoaderről, és írd be ide. A csoport minden példánya megjelenik alább - nincs cím, nincs kulcs, nincs fiók.',

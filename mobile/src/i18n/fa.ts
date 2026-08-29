@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const fa: Dict = {
-  'connect.title': 'اتصال به KnightLoader',
-  'connect.hint':
-    'یک توکن در تب «دسترسی» رابط وب KnightLoader بسازید و اینجا جای‌گذاری کنید. آدرس را می‌توان از کد QR همان صفحه اسکن کرد.',
-  'connect.nameLabel': 'نام (اختیاری)',
-  'connect.namePlaceholder': 'KnightLoader من',
-  'connect.addressLabel': 'آدرس سرور',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'توکن',
-  'connect.tokenPlaceholder': 'اینجا جای‌گذاری کنید',
-  'connect.errorMissing': 'آدرس سرور و توکن را وارد کنید.',
-  'connect.errorTokenRejected': 'به سرور متصل شد، اما توکن پذیرفته نشد.',
-  'connect.connectButton': 'اتصال',
-  'connect.qrHintAddress': 'کد QR را از تب «دسترسی» اسکن کنید',
-  'connect.findButton': 'یافتن در این شبکه',
-  'connect.finding': 'در حال جست‌وجو در این شبکه…',
-  'connect.foundNone': 'چیزی در این شبکه پیدا نشد. آدرس را دستی وارد کنید یا کد QR را از تب «دسترسی» اسکن کنید.',
-  'connect.foundOne': 'یکی پیدا شد. آدرس پر شد - یک توکن جای‌گذاری کنید و وصل شوید.',
-  'connect.foundMany': '{n} مورد پیدا شد. یکی را انتخاب کنید:',
-  'connect.foundPick': 'استفاده از این',
 
   'qr.cancel': 'لغو',
   'qr.cameraPermissionHint': 'برای اسکن کد QR به دسترسی دوربین نیاز است.',
@@ -102,7 +83,6 @@ export const fa: Dict = {
   'settings.removeAllConfirmButton': 'حذف همه',
   'settings.cancel': 'لغو',
 
-  'connect.relayLink': 'مستقیم در دسترس نیست؟ با عبارت وصل شوید',
   'relay.title': 'اتصال با عبارت',
   'relay.hint':
     'دوازده واژه را از هر KnightLoader که از پیش دارید بخوانید و اینجا بنویسید. هر نمونهٔ آن گروه در پایین ظاهر می‌شود - بدون نشانی، بدون کلید، بدون حساب.',

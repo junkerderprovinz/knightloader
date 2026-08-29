@@ -2,25 +2,6 @@
 // lib/locales/en.ts. Every other locale is typed as Dict, so a missing or
 // stray key is a compile error rather than a silent fallback.
 export const en = {
-  'connect.title': 'Connect to KnightLoader',
-  'connect.hint':
-    'Create a token on the Access tab of the KnightLoader web UI and paste it in here. The address can be scanned from the QR code on that same page.',
-  'connect.nameLabel': 'Name (optional)',
-  'connect.namePlaceholder': 'My KnightLoader',
-  'connect.addressLabel': 'Server address',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'Token',
-  'connect.tokenPlaceholder': 'paste it here',
-  'connect.errorMissing': 'Enter a server address and a token.',
-  'connect.errorTokenRejected': 'Reached the server, but it did not accept the token.',
-  'connect.connectButton': 'Connect',
-  'connect.qrHintAddress': 'Scan the QR code from the Access tab',
-  'connect.findButton': 'Find on this network',
-  'connect.finding': 'Looking on this network\u2026',
-  'connect.foundNone': 'Nothing found on this network. Enter the address by hand, or scan the QR code from the Access tab.',
-  'connect.foundOne': 'Found one. The address is filled in - paste a token in and connect.',
-  'connect.foundMany': 'Found {n}. Pick one:',
-  'connect.foundPick': 'Use this one',
 
   'qr.cancel': 'Cancel',
   'qr.cameraPermissionHint': 'Camera access is needed to scan the QR code.',
@@ -32,7 +13,6 @@ export const en = {
   'connections.remove': 'Remove',
   'connections.viaRelay': 'via relay {relay}',
 
-  'connect.relayLink': 'Not reachable directly? Connect with a phrase',
   'relay.title': 'Connect with a phrase',
   'relay.hint':
     'Read the twelve words off any KnightLoader you already run, and type them here. Every instance in that group appears below - no address, no key, no account.',

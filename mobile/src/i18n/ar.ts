@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const ar: Dict = {
-  'connect.title': 'الاتصال بـ KnightLoader',
-  'connect.hint':
-    'أنشئ رمزًا في تبويب "الوصول" بواجهة KnightLoader على الويب، والصقه هنا. يمكن مسح العنوان ضوئيًا من رمز QR في الصفحة نفسها.',
-  'connect.nameLabel': 'الاسم (اختياري)',
-  'connect.namePlaceholder': 'KnightLoader الخاص بي',
-  'connect.addressLabel': 'عنوان الخادم',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'الرمز',
-  'connect.tokenPlaceholder': 'الصقه هنا',
-  'connect.errorMissing': 'أدخل عنوان الخادم والرمز.',
-  'connect.errorTokenRejected': 'تم الوصول إلى الخادم، لكنه لم يقبل الرمز.',
-  'connect.connectButton': 'اتصال',
-  'connect.qrHintAddress': 'امسح رمز QR من تبويب "الوصول"',
-  'connect.findButton': 'البحث في هذه الشبكة',
-  'connect.finding': 'يجري البحث في هذه الشبكة…',
-  'connect.foundNone': 'لم يُعثر على شيء في هذه الشبكة. أدخل العنوان يدويًا، أو امسح رمز QR من تبويب "الوصول".',
-  'connect.foundOne': 'تم العثور على واحد. تم ملء العنوان - الصق رمز وصول ثم اتصل.',
-  'connect.foundMany': 'تم العثور على {n}. اختر واحدًا:',
-  'connect.foundPick': 'استخدام هذا',
 
   'qr.cancel': 'إلغاء',
   'qr.cameraPermissionHint': 'يلزم الوصول إلى الكاميرا لمسح رمز QR.',
@@ -102,7 +83,6 @@ export const ar: Dict = {
   'settings.removeAllConfirmButton': 'إزالة الكل',
   'settings.cancel': 'إلغاء',
 
-  'connect.relayLink': 'تعذّر الوصول مباشرةً؟ اتّصل بعبارة',
   'relay.title': 'الاتصال بعبارة',
   'relay.hint':
     'اقرأ الكلمات الاثنتي عشرة من أي KnightLoader يعمل لديك واكتبها هنا. ستظهر كل نسخة في تلك المجموعة بالأسفل - بلا عنوان ولا مفتاح ولا حساب.',

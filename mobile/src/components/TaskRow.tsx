@@ -89,8 +89,16 @@ export default function TaskRow({ task, index }: { task: Task; index: number }) 
         // "reactive" is the restrained reading: rest neutral, colour what is
         // running. There is no hover on a phone, so what is running is the
         // whole of it here.
+        // 16%, not the 7% this shipped with. GlimStone's own changelog names
+        // that exact number as the one that drew three independent "the mode
+        // does nothing when I turn it on" reports on the web: it applied
+        // correctly the whole time and sat under the threshold anyone
+        // registers as change. The running row gets the stronger 22% the web
+        // gives the selected row - a phone has no hover, so "running" is this
+        // list's active state (jdp, 2026-08-29: "Regenbogenmodus ...
+        // funktionieren nicht").
         hue && (!rainbow.reactive || task.status === 'running')
-          ? { backgroundColor: blend(c.surface, hue, 0.07) }
+          ? { backgroundColor: blend(c.surface, hue, task.status === 'running' ? 0.22 : 0.16) }
           : null,
       ]}
     >

@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const lt: Dict = {
-  'connect.title': 'Prisijungimas prie „KnightLoader“',
-  'connect.hint':
-    'Sukurkite prieigos raktą programos „KnightLoader“ žiniatinklio sąsajos skirtuke „Prieiga“ ir įklijuokite jį čia. Adresą galima nuskaityti iš QR kodo tame pačiame puslapyje.',
-  'connect.nameLabel': 'Pavadinimas (neprivalomas)',
-  'connect.namePlaceholder': 'Mano „KnightLoader“',
-  'connect.addressLabel': 'Serverio adresas',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'Prieigos raktas',
-  'connect.tokenPlaceholder': 'įklijuokite čia',
-  'connect.errorMissing': 'Įveskite serverio adresą ir prieigos raktą.',
-  'connect.errorTokenRejected': 'Serveris atsakė, bet prieigos rakto nepriėmė.',
-  'connect.connectButton': 'Prisijungti',
-  'connect.qrHintAddress': 'Nuskaitykite QR kodą iš skirtuko „Prieiga“',
-  'connect.findButton': 'Ieškoti šiame tinkle',
-  'connect.finding': 'Ieškoma šiame tinkle…',
-  'connect.foundNone': 'Šiame tinkle nieko nerasta. Įveskite adresą ranka arba nuskaitykite QR kodą iš skirtuko „Prieiga“.',
-  'connect.foundOne': 'Rastas vienas. Adresas įrašytas - įklijuokite prieigos raktą ir prisijunkite.',
-  'connect.foundMany': 'Rasta: {n}. Pasirinkite vieną:',
-  'connect.foundPick': 'Naudoti šį',
 
   'qr.cancel': 'Atšaukti',
   'qr.cameraPermissionHint': 'Norint nuskaityti QR kodą, reikalinga prieiga prie kameros.',
@@ -102,7 +83,6 @@ export const lt: Dict = {
   'settings.removeAllConfirmButton': 'Pašalinti viską',
   'settings.cancel': 'Atšaukti',
 
-  'connect.relayLink': 'Nepasiekiamas tiesiogiai? Prisijunk su fraze',
   'relay.title': 'Prisijungti su fraze',
   'relay.hint':
     'Nuskaityk dvylika žodžių iš bet kurio jau veikiančio KnightLoader ir įrašyk juos čia. Kiekvienas tos grupės egzempliorius pasirodys žemiau - jokio adreso, jokio rakto, jokios paskyros.',

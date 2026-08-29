@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const sl: Dict = {
-  'connect.title': 'Povezava z aplikacijo KnightLoader',
-  'connect.hint':
-    'Ustvarite žeton na zavihku Dostop spletnega vmesnika KnightLoader in ga prilepite sem. Naslov lahko preberete s kode QR na isti strani.',
-  'connect.nameLabel': 'Ime (neobvezno)',
-  'connect.namePlaceholder': 'Moj KnightLoader',
-  'connect.addressLabel': 'Naslov strežnika',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'Žeton',
-  'connect.tokenPlaceholder': 'prilepite sem',
-  'connect.errorMissing': 'Vnesite naslov strežnika in žeton.',
-  'connect.errorTokenRejected': 'Strežnik je odgovoril, vendar žetona ni sprejel.',
-  'connect.connectButton': 'Poveži se',
-  'connect.qrHintAddress': 'Skenirajte kodo QR z zavihka Dostop',
-  'connect.findButton': 'Poišči v tem omrežju',
-  'connect.finding': 'Iskanje v tem omrežju…',
-  'connect.foundNone': 'V tem omrežju ni bilo najdenega ničesar. Vnesite naslov ročno ali skenirajte kodo QR z zavihka Dostop.',
-  'connect.foundOne': 'Najden je eden. Naslov je izpolnjen - prilepite žeton in se povežite.',
-  'connect.foundMany': 'Najdenih: {n}. Izberite enega:',
-  'connect.foundPick': 'Uporabi tega',
 
   'qr.cancel': 'Prekliči',
   'qr.cameraPermissionHint': 'Za skeniranje kode QR je potreben dostop do kamere.',
@@ -102,7 +83,6 @@ export const sl: Dict = {
   'settings.removeAllConfirmButton': 'Odstrani vse',
   'settings.cancel': 'Prekliči',
 
-  'connect.relayLink': 'Ni neposredno dosegljiv? Poveži se s frazo',
   'relay.title': 'Poveži se s frazo',
   'relay.hint':
     'Preberi dvanajst besed s katerega koli KnightLoaderja, ki ga že poganjaš, in jih vpiši sem. Vsaka instanca te skupine se prikaže spodaj - brez naslova, brez ključa, brez računa.',

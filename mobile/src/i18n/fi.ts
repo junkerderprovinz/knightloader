@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const fi: Dict = {
-  'connect.title': 'Yhdistä KnightLoader-palvelimeen',
-  'connect.hint':
-    'Luo token KnightLoader-palvelimen verkkokäyttöliittymän Käyttöoikeus-välilehdellä ja liitä se tähän. Osoitteen voi lukea samalla sivulla olevasta QR-koodista.',
-  'connect.nameLabel': 'Nimi (valinnainen)',
-  'connect.namePlaceholder': 'Oma KnightLoader',
-  'connect.addressLabel': 'Palvelimen osoite',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'Token',
-  'connect.tokenPlaceholder': 'liitä tähän',
-  'connect.errorMissing': 'Anna palvelimen osoite ja token.',
-  'connect.errorTokenRejected': 'Palvelin vastasi, mutta ei hyväksynyt tokenia.',
-  'connect.connectButton': 'Yhdistä',
-  'connect.qrHintAddress': 'Skannaa QR-koodi Käyttöoikeus-välilehdeltä',
-  'connect.findButton': 'Etsi tästä verkosta',
-  'connect.finding': 'Etsitään tästä verkosta…',
-  'connect.foundNone': 'Tästä verkosta ei löytynyt mitään. Anna osoite käsin tai skannaa QR-koodi Käyttöoikeus-välilehdeltä.',
-  'connect.foundOne': 'Yksi löytyi. Osoite on täytetty - liitä token ja yhdistä.',
-  'connect.foundMany': 'Löytyi {n}. Valitse yksi:',
-  'connect.foundPick': 'Käytä tätä',
 
   'qr.cancel': 'Peruuta',
   'qr.cameraPermissionHint': 'QR-koodin skannaamiseen tarvitaan kameran käyttöoikeus.',
@@ -102,7 +83,6 @@ export const fi: Dict = {
   'settings.removeAllConfirmButton': 'Poista kaikki',
   'settings.cancel': 'Peruuta',
 
-  'connect.relayLink': 'Ei suoraan tavoitettavissa? Yhdistä lauseella',
   'relay.title': 'Yhdistä lauseella',
   'relay.hint':
     'Lue kaksitoista sanaa jostain jo käytössä olevasta KnightLoaderista ja kirjoita ne tähän. Jokainen ryhmän instanssi ilmestyy alle - ei osoitetta, ei avainta, ei tiliä.',

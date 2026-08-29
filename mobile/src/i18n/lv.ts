@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const lv: Dict = {
-  'connect.title': 'Savienojums ar „KnightLoader“',
-  'connect.hint':
-    'Izveidojiet piekļuves marķieri programmas „KnightLoader“ tīmekļa saskarnes cilnē Piekļuve un ielīmējiet to šeit. Adresi var noskenēt no QR koda tajā pašā lapā.',
-  'connect.nameLabel': 'Nosaukums (nav obligāts)',
-  'connect.namePlaceholder': 'Mans „KnightLoader“',
-  'connect.addressLabel': 'Servera adrese',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'Piekļuves marķieris',
-  'connect.tokenPlaceholder': 'ielīmējiet šeit',
-  'connect.errorMissing': 'Ievadiet servera adresi un piekļuves marķieri.',
-  'connect.errorTokenRejected': 'Serveris atbildēja, bet nepieņēma marķieri.',
-  'connect.connectButton': 'Savienot',
-  'connect.qrHintAddress': 'Noskenējiet QR kodu no cilnes Piekļuve',
-  'connect.findButton': 'Meklēt šajā tīklā',
-  'connect.finding': 'Meklē šajā tīklā…',
-  'connect.foundNone': 'Šajā tīklā nekas netika atrasts. Ievadiet adresi pašrocīgi vai noskenējiet QR kodu no cilnes Piekļuve.',
-  'connect.foundOne': 'Atrasts viens. Adrese ir aizpildīta - ielīmējiet piekļuves marķieri un savienojieties.',
-  'connect.foundMany': 'Atrasti {n}. Izvēlieties vienu:',
-  'connect.foundPick': 'Izmantot šo',
 
   'qr.cancel': 'Atcelt',
   'qr.cameraPermissionHint': 'Lai noskenētu QR kodu, nepieciešama piekļuve kamerai.',
@@ -102,7 +83,6 @@ export const lv: Dict = {
   'settings.removeAllConfirmButton': 'Noņemt visu',
   'settings.cancel': 'Atcelt',
 
-  'connect.relayLink': 'Nav tieši sasniedzams? Savieno ar frāzi',
   'relay.title': 'Savienot ar frāzi',
   'relay.hint':
     'Nolasi divpadsmit vārdus no jebkura jau darbojošās KnightLoader un ieraksti tos šeit. Katra šīs grupas instance parādīsies zemāk - bez adreses, bez atslēgas, bez konta.',

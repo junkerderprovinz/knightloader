@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const vi: Dict = {
-  'connect.title': 'Kết nối với KnightLoader',
-  'connect.hint':
-    'Tạo một token trong tab Truy cập của giao diện web KnightLoader và dán vào đây. Có thể quét địa chỉ từ mã QR trên cùng trang đó.',
-  'connect.nameLabel': 'Tên (không bắt buộc)',
-  'connect.namePlaceholder': 'KnightLoader của tôi',
-  'connect.addressLabel': 'Địa chỉ máy chủ',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'Token',
-  'connect.tokenPlaceholder': 'dán vào đây',
-  'connect.errorMissing': 'Nhập địa chỉ máy chủ và token.',
-  'connect.errorTokenRejected': 'Đã kết nối được với máy chủ, nhưng token không được chấp nhận.',
-  'connect.connectButton': 'Kết nối',
-  'connect.qrHintAddress': 'Quét mã QR từ tab Truy cập',
-  'connect.findButton': 'Tìm trong mạng này',
-  'connect.finding': 'Đang tìm trong mạng này…',
-  'connect.foundNone': 'Không tìm thấy gì trong mạng này. Hãy nhập địa chỉ theo cách thủ công, hoặc quét mã QR từ tab Truy cập.',
-  'connect.foundOne': 'Tìm thấy một. Địa chỉ đã được điền sẵn - hãy dán token vào rồi kết nối.',
-  'connect.foundMany': 'Tìm thấy {n}. Hãy chọn một:',
-  'connect.foundPick': 'Dùng cái này',
 
   'qr.cancel': 'Hủy',
   'qr.cameraPermissionHint': 'Cần quyền truy cập máy ảnh để quét mã QR.',
@@ -102,7 +83,6 @@ export const vi: Dict = {
   'settings.removeAllConfirmButton': 'Xóa tất cả',
   'settings.cancel': 'Hủy',
 
-  'connect.relayLink': 'Không truy cập được trực tiếp? Kết nối bằng cụm từ',
   'relay.title': 'Kết nối bằng cụm từ',
   'relay.hint':
     'Đọc mười hai từ trên bất kỳ KnightLoader nào bạn đang chạy và nhập vào đây. Mọi phiên bản trong nhóm đó sẽ hiện bên dưới - không địa chỉ, không khóa, không tài khoản.',

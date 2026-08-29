@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const da: Dict = {
-  'connect.title': 'Opret forbindelse til KnightLoader',
-  'connect.hint':
-    'Opret en token under fanen Adgang i KnightLoaders webgrænseflade, og indsæt den her. Adressen kan scannes fra QR-koden på samme side.',
-  'connect.nameLabel': 'Navn (valgfrit)',
-  'connect.namePlaceholder': 'Min KnightLoader',
-  'connect.addressLabel': 'Serveradresse',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'Token',
-  'connect.tokenPlaceholder': 'indsæt her',
-  'connect.errorMissing': 'Angiv en serveradresse og en token.',
-  'connect.errorTokenRejected': 'Serveren svarede, men accepterede ikke token.',
-  'connect.connectButton': 'Opret forbindelse',
-  'connect.qrHintAddress': 'Scan QR-koden fra fanen Adgang',
-  'connect.findButton': 'Find på dette netværk',
-  'connect.finding': 'Leder på dette netværk…',
-  'connect.foundNone': 'Intet fundet på dette netværk. Indtast adressen manuelt, eller scan QR-koden fra fanen Adgang.',
-  'connect.foundOne': 'Fandt én. Adressen er udfyldt - indsæt en token, og opret forbindelse.',
-  'connect.foundMany': 'Fandt {n}. Vælg én:',
-  'connect.foundPick': 'Brug denne',
 
   'qr.cancel': 'Annuller',
   'qr.cameraPermissionHint': 'Kameraadgang er nødvendig for at scanne QR-koden.',
@@ -102,7 +83,6 @@ export const da: Dict = {
   'settings.removeAllConfirmButton': 'Fjern alle',
   'settings.cancel': 'Annuller',
 
-  'connect.relayLink': 'Ikke direkte tilgængelig? Forbind med en sætning',
   'relay.title': 'Forbind med en sætning',
   'relay.hint':
     'Aflæs de tolv ord på en KnightLoader, du allerede kører, og skriv dem her. Hver instans i den gruppe dukker op nedenfor - ingen adresse, ingen nøgle, ingen konto.',

@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const th: Dict = {
-  'connect.title': 'เชื่อมต่อกับ KnightLoader',
-  'connect.hint':
-    'สร้างโทเคนในแท็บ "การเข้าถึง" ของเว็บอินเทอร์เฟซ KnightLoader แล้ววางไว้ที่นี่ ที่อยู่สามารถสแกนได้จากคิวอาร์โค้ดในหน้าเดียวกัน',
-  'connect.nameLabel': 'ชื่อ (ไม่บังคับ)',
-  'connect.namePlaceholder': 'KnightLoader ของฉัน',
-  'connect.addressLabel': 'ที่อยู่เซิร์ฟเวอร์',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'โทเคน',
-  'connect.tokenPlaceholder': 'วางที่นี่',
-  'connect.errorMissing': 'กรอกที่อยู่เซิร์ฟเวอร์และโทเคน',
-  'connect.errorTokenRejected': 'เชื่อมต่อกับเซิร์ฟเวอร์ได้ แต่โทเคนไม่ได้รับการยอมรับ',
-  'connect.connectButton': 'เชื่อมต่อ',
-  'connect.qrHintAddress': 'สแกนคิวอาร์โค้ดจากแท็บ "การเข้าถึง"',
-  'connect.findButton': 'ค้นหาในเครือข่ายนี้',
-  'connect.finding': 'กำลังค้นหาในเครือข่ายนี้…',
-  'connect.foundNone': 'ไม่พบอะไรในเครือข่ายนี้ กรอกที่อยู่ด้วยตนเอง หรือสแกนคิวอาร์โค้ดจากแท็บ "การเข้าถึง"',
-  'connect.foundOne': 'พบหนึ่งรายการ ที่อยู่ถูกกรอกให้แล้ว - วางโทเคนแล้วเชื่อมต่อได้เลย',
-  'connect.foundMany': 'พบ {n} รายการ เลือกหนึ่งรายการ:',
-  'connect.foundPick': 'ใช้รายการนี้',
 
   'qr.cancel': 'ยกเลิก',
   'qr.cameraPermissionHint': 'ต้องเข้าถึงกล้องเพื่อสแกนคิวอาร์โค้ด',
@@ -102,7 +83,6 @@ export const th: Dict = {
   'settings.removeAllConfirmButton': 'ลบทั้งหมด',
   'settings.cancel': 'ยกเลิก',
 
-  'connect.relayLink': 'เข้าถึงโดยตรงไม่ได้? เชื่อมต่อด้วยวลี',
   'relay.title': 'เชื่อมต่อด้วยวลี',
   'relay.hint':
     'อ่านสิบสองคำจาก KnightLoader ที่คุณใช้อยู่แล้ว แล้วพิมพ์ที่นี่ ทุกอินสแตนซ์ในกลุ่มนั้นจะปรากฏด้านล่าง ไม่ต้องใช้ที่อยู่ ไม่ต้องใช้กุญแจ ไม่ต้องมีบัญชี',

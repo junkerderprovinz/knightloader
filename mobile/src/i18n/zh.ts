@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const zh: Dict = {
-  'connect.title': '连接到 KnightLoader',
-  'connect.hint':
-    '在 KnightLoader 网页界面的"访问"标签页中创建一个令牌，然后粘贴到这里。地址可以通过同一页面上的二维码扫描获取。',
-  'connect.nameLabel': '名称（可选）',
-  'connect.namePlaceholder': '我的 KnightLoader',
-  'connect.addressLabel': '服务器地址',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': '令牌',
-  'connect.tokenPlaceholder': '粘贴到这里',
-  'connect.errorMissing': '请输入服务器地址和令牌。',
-  'connect.errorTokenRejected': '已连接到服务器，但令牌未被接受。',
-  'connect.connectButton': '连接',
-  'connect.qrHintAddress': '扫描"访问"标签页中的二维码',
-  'connect.findButton': '在本网络中查找',
-  'connect.finding': '正在本网络中查找…',
-  'connect.foundNone': '在本网络中没有找到任何服务器。请手动输入地址，或扫描"访问"标签页中的二维码。',
-  'connect.foundOne': '找到一个。地址已自动填好，粘贴令牌即可连接。',
-  'connect.foundMany': '找到 {n} 个。请选择一个：',
-  'connect.foundPick': '使用这个',
 
   'qr.cancel': '取消',
   'qr.cameraPermissionHint': '扫描二维码需要相机权限。',
@@ -102,7 +83,6 @@ export const zh: Dict = {
   'settings.removeAllConfirmButton': '全部移除',
   'settings.cancel': '取消',
 
-  'connect.relayLink': '无法直接连接？用词语连接',
   'relay.title': '用词语连接',
   'relay.hint':
     '从任意一台已在运行的 KnightLoader 上读出十二个词，输入到这里。该组的每台实例都会显示在下方，无需地址、密钥或账号。',

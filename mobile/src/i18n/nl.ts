@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const nl: Dict = {
-  'connect.title': 'Verbinden met KnightLoader',
-  'connect.hint':
-    'Maak een token aan op het tabblad Toegang van de KnightLoader-webinterface en plak dit hier. Het adres kan worden gescand via de QR-code op diezelfde pagina.',
-  'connect.nameLabel': 'Naam (optioneel)',
-  'connect.namePlaceholder': 'Mijn KnightLoader',
-  'connect.addressLabel': 'Serveradres',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'Token',
-  'connect.tokenPlaceholder': 'hier plakken',
-  'connect.errorMissing': 'Vul een serveradres en een token in.',
-  'connect.errorTokenRejected': 'Server bereikt, maar het token werd niet geaccepteerd.',
-  'connect.connectButton': 'Verbinden',
-  'connect.qrHintAddress': 'Scan de QR-code van het tabblad Toegang',
-  'connect.findButton': 'Zoeken op dit netwerk',
-  'connect.finding': 'Bezig met zoeken op dit netwerk…',
-  'connect.foundNone': 'Niets gevonden op dit netwerk. Vul het adres handmatig in of scan de QR-code van het tabblad Toegang.',
-  'connect.foundOne': 'Eén gevonden. Het adres is ingevuld - plak een token en verbind.',
-  'connect.foundMany': '{n} gevonden. Kies er een:',
-  'connect.foundPick': 'Deze gebruiken',
 
   'qr.cancel': 'Annuleren',
   'qr.cameraPermissionHint': 'Cameratoegang is nodig om de QR-code te scannen.',
@@ -102,7 +83,6 @@ export const nl: Dict = {
   'settings.removeAllConfirmButton': 'Alles verwijderen',
   'settings.cancel': 'Annuleren',
 
-  'connect.relayLink': 'Niet direct bereikbaar? Verbind met een zin',
   'relay.title': 'Verbinden met een zin',
   'relay.hint':
     'Lees de twaalf woorden af op een KnightLoader die je al draait en typ ze hier. Elke instantie uit die groep verschijnt hieronder - geen adres, geen sleutel, geen account.',

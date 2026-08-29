@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const cs: Dict = {
-  'connect.title': 'Připojit k aplikaci KnightLoader',
-  'connect.hint':
-    'Vytvořte token na kartě Přístup ve webovém rozhraní aplikace KnightLoader a vložte ho sem. Adresu lze načíst z QR kódu na téže stránce.',
-  'connect.nameLabel': 'Název (volitelné)',
-  'connect.namePlaceholder': 'Můj KnightLoader',
-  'connect.addressLabel': 'Adresa serveru',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'Token',
-  'connect.tokenPlaceholder': 'vložte sem',
-  'connect.errorMissing': 'Zadejte adresu serveru a token.',
-  'connect.errorTokenRejected': 'Server odpověděl, ale token nepřijal.',
-  'connect.connectButton': 'Připojit',
-  'connect.qrHintAddress': 'Naskenujte QR kód z karty Přístup',
-  'connect.findButton': 'Najít v této síti',
-  'connect.finding': 'Hledání v této síti…',
-  'connect.foundNone': 'V této síti se nic nenašlo. Zadejte adresu ručně, nebo naskenujte QR kód z karty Přístup.',
-  'connect.foundOne': 'Nalezen jeden. Adresa je vyplněná - vložte token a připojte se.',
-  'connect.foundMany': 'Nalezeno: {n}. Vyberte jeden:',
-  'connect.foundPick': 'Použít tento',
 
   'qr.cancel': 'Zrušit',
   'qr.cameraPermissionHint': 'Ke skenování QR kódu je potřeba přístup ke kameře.',
@@ -102,7 +83,6 @@ export const cs: Dict = {
   'settings.removeAllConfirmButton': 'Odebrat vše',
   'settings.cancel': 'Zrušit',
 
-  'connect.relayLink': 'Není přímo dostupný? Připoj se frází',
   'relay.title': 'Připojit pomocí fráze',
   'relay.hint':
     'Přečti dvanáct slov z libovolného KnightLoaderu, který už provozuješ, a napiš je sem. Každá instance té skupiny se objeví níže - žádná adresa, žádný klíč, žádný účet.',
