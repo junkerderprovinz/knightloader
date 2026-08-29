@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const he: Dict = {
-  'connect.title': 'התחברות ל-KnightLoader',
-  'connect.hint':
-    'צרו טוקן בלשונית "גישה" בממשק האינטרנט של KnightLoader והדביקו אותו כאן. ניתן לסרוק את הכתובת מקוד ה-QR באותו עמוד.',
-  'connect.nameLabel': 'שם (אופציונלי)',
-  'connect.namePlaceholder': 'ה-KnightLoader שלי',
-  'connect.addressLabel': 'כתובת השרת',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'טוקן',
-  'connect.tokenPlaceholder': 'הדביקו כאן',
-  'connect.errorMissing': 'הזינו כתובת שרת וטוקן.',
-  'connect.errorTokenRejected': 'התקבלה תגובה מהשרת, אך הטוקן לא התקבל.',
-  'connect.connectButton': 'התחברות',
-  'connect.qrHintAddress': 'סרקו את קוד ה-QR מלשונית "גישה"',
-  'connect.findButton': 'חיפוש ברשת הזו',
-  'connect.finding': 'מחפש ברשת הזו…',
-  'connect.foundNone': 'לא נמצא דבר ברשת הזו. הזינו את הכתובת ידנית, או סרקו את קוד ה-QR מלשונית "גישה".',
-  'connect.foundOne': 'נמצא אחד. הכתובת מולאה - הדביקו טוקן והתחברו.',
-  'connect.foundMany': 'נמצאו {n}. בחרו אחד:',
-  'connect.foundPick': 'להשתמש בזה',
 
   'qr.cancel': 'ביטול',
   'qr.cameraPermissionHint': 'נדרשת גישה למצלמה כדי לסרוק את קוד ה-QR.',
@@ -102,7 +83,6 @@ export const he: Dict = {
   'settings.removeAllConfirmButton': 'הסרת הכול',
   'settings.cancel': 'ביטול',
 
-  'connect.relayLink': 'לא נגיש ישירות? התחברו עם ביטוי',
   'relay.title': 'התחברות עם ביטוי',
   'relay.hint':
     'קראו את שתים־עשרה המילים מכל KnightLoader שכבר פועל אצלכם והקלידו אותן כאן. כל מופע בקבוצה יופיע למטה - בלי כתובת, בלי מפתח, בלי חשבון.',

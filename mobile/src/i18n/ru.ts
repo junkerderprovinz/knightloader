@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const ru: Dict = {
-  'connect.title': 'Подключение к KnightLoader',
-  'connect.hint':
-    'Создайте токен на вкладке «Доступ» веб-интерфейса KnightLoader и вставьте его сюда. Адрес можно отсканировать с QR-кода на той же странице.',
-  'connect.nameLabel': 'Название (необязательно)',
-  'connect.namePlaceholder': 'Мой KnightLoader',
-  'connect.addressLabel': 'Адрес сервера',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'Токен',
-  'connect.tokenPlaceholder': 'вставьте сюда',
-  'connect.errorMissing': 'Укажите адрес сервера и токен.',
-  'connect.errorTokenRejected': 'Сервер ответил, но не принял токен.',
-  'connect.connectButton': 'Подключиться',
-  'connect.qrHintAddress': 'Отсканируйте QR-код на вкладке «Доступ»',
-  'connect.findButton': 'Найти в этой сети',
-  'connect.finding': 'Поиск в этой сети…',
-  'connect.foundNone': 'В этой сети ничего не найдено. Введите адрес вручную или отсканируйте QR-код на вкладке «Доступ».',
-  'connect.foundOne': 'Найден один. Адрес заполнен - вставьте токен и подключитесь.',
-  'connect.foundMany': 'Найдено: {n}. Выберите один:',
-  'connect.foundPick': 'Использовать этот',
 
   'qr.cancel': 'Отмена',
   'qr.cameraPermissionHint': 'Для сканирования QR-кода нужен доступ к камере.',
@@ -102,7 +83,6 @@ export const ru: Dict = {
   'settings.removeAllConfirmButton': 'Удалить всё',
   'settings.cancel': 'Отмена',
 
-  'connect.relayLink': 'Недоступен напрямую? Подключитесь по фразе',
   'relay.title': 'Подключение по фразе',
   'relay.hint':
     'Прочитайте двенадцать слов на любом уже работающем KnightLoader и введите их здесь. Каждый экземпляр этой группы появится ниже — без адреса, без ключа, без учётной записи.',

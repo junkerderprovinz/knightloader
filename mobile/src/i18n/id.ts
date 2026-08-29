@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const id: Dict = {
-  'connect.title': 'Sambungkan ke KnightLoader',
-  'connect.hint':
-    'Buat token di tab Akses pada antarmuka web KnightLoader, lalu tempelkan di sini. Alamatnya bisa dipindai dari kode QR di halaman yang sama.',
-  'connect.nameLabel': 'Nama (opsional)',
-  'connect.namePlaceholder': 'KnightLoader saya',
-  'connect.addressLabel': 'Alamat server',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'Token',
-  'connect.tokenPlaceholder': 'tempelkan di sini',
-  'connect.errorMissing': 'Masukkan alamat server dan token.',
-  'connect.errorTokenRejected': 'Server berhasil dihubungi, tetapi token tidak diterima.',
-  'connect.connectButton': 'Sambungkan',
-  'connect.qrHintAddress': 'Pindai kode QR dari tab Akses',
-  'connect.findButton': 'Cari di jaringan ini',
-  'connect.finding': 'Mencari di jaringan ini…',
-  'connect.foundNone': 'Tidak ada yang ditemukan di jaringan ini. Masukkan alamat secara manual, atau pindai kode QR dari tab Akses.',
-  'connect.foundOne': 'Ditemukan satu. Alamat sudah terisi - tempelkan token lalu sambungkan.',
-  'connect.foundMany': 'Ditemukan {n}. Pilih salah satu:',
-  'connect.foundPick': 'Gunakan ini',
 
   'qr.cancel': 'Batal',
   'qr.cameraPermissionHint': 'Akses kamera diperlukan untuk memindai kode QR.',
@@ -102,7 +83,6 @@ export const id: Dict = {
   'settings.removeAllConfirmButton': 'Hapus semua',
   'settings.cancel': 'Batal',
 
-  'connect.relayLink': 'Tidak terjangkau langsung? Sambungkan dengan frasa',
   'relay.title': 'Sambungkan dengan frasa',
   'relay.hint':
     'Baca dua belas kata di KnightLoader mana pun yang sudah kamu jalankan, lalu ketik di sini. Setiap instans di grup itu muncul di bawah - tanpa alamat, tanpa kunci, tanpa akun.',

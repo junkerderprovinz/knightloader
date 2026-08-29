@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const hi: Dict = {
-  'connect.title': 'KnightLoader से कनेक्ट करें',
-  'connect.hint':
-    'KnightLoader के वेब यूज़र इंटरफ़ेस के "एक्सेस" टैब में एक टोकन बनाएं और उसे यहां पेस्ट करें। पता उसी पेज पर मौजूद QR कोड से स्कैन किया जा सकता है।',
-  'connect.nameLabel': 'नाम (वैकल्पिक)',
-  'connect.namePlaceholder': 'मेरा KnightLoader',
-  'connect.addressLabel': 'सर्वर पता',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'टोकन',
-  'connect.tokenPlaceholder': 'यहां पेस्ट करें',
-  'connect.errorMissing': 'सर्वर पता और टोकन दर्ज करें।',
-  'connect.errorTokenRejected': 'सर्वर तक पहुंच हो गई, लेकिन उसने टोकन स्वीकार नहीं किया।',
-  'connect.connectButton': 'कनेक्ट करें',
-  'connect.qrHintAddress': '"एक्सेस" टैब से QR कोड स्कैन करें',
-  'connect.findButton': 'इस नेटवर्क पर खोजें',
-  'connect.finding': 'इस नेटवर्क पर खोज रहे हैं…',
-  'connect.foundNone': 'इस नेटवर्क पर कुछ नहीं मिला। पता हाथ से दर्ज करें, या "एक्सेस" टैब से QR कोड स्कैन करें।',
-  'connect.foundOne': 'एक मिला। पता भर दिया गया है - अब बस टोकन पेस्ट करें और कनेक्ट करें।',
-  'connect.foundMany': '{n} मिले। इनमें से एक चुनें:',
-  'connect.foundPick': 'इसे इस्तेमाल करें',
 
   'qr.cancel': 'रद्द करें',
   'qr.cameraPermissionHint': 'QR कोड स्कैन करने के लिए कैमरे की अनुमति चाहिए।',
@@ -102,7 +83,6 @@ export const hi: Dict = {
   'settings.removeAllConfirmButton': 'सभी हटाएं',
   'settings.cancel': 'रद्द करें',
 
-  'connect.relayLink': 'सीधे नहीं पहुँच रहे? वाक्यांश से जोड़ें',
   'relay.title': 'वाक्यांश से जोड़ें',
   'relay.hint':
     'अपने किसी भी चालू KnightLoader से बारह शब्द पढ़ें और यहाँ लिखें। उस समूह का हर इंस्टेंस नीचे दिखेगा - न पता, न कुंजी, न खाता।',

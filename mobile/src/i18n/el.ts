@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const el: Dict = {
-  'connect.title': 'Σύνδεση με το KnightLoader',
-  'connect.hint':
-    'Δημιουργήστε ένα token στην καρτέλα Πρόσβαση της διεπαφής web του KnightLoader και επικολλήστε το εδώ. Η διεύθυνση μπορεί να σαρωθεί από τον κωδικό QR στην ίδια σελίδα.',
-  'connect.nameLabel': 'Όνομα (προαιρετικό)',
-  'connect.namePlaceholder': 'Το KnightLoader μου',
-  'connect.addressLabel': 'Διεύθυνση διακομιστή',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'Token',
-  'connect.tokenPlaceholder': 'επικολλήστε το εδώ',
-  'connect.errorMissing': 'Εισαγάγετε διεύθυνση διακομιστή και token.',
-  'connect.errorTokenRejected': 'Ο διακομιστής απάντησε, αλλά δεν αποδέχτηκε το token.',
-  'connect.connectButton': 'Σύνδεση',
-  'connect.qrHintAddress': 'Σαρώστε τον κωδικό QR από την καρτέλα Πρόσβαση',
-  'connect.findButton': 'Αναζήτηση σε αυτό το δίκτυο',
-  'connect.finding': 'Γίνεται αναζήτηση σε αυτό το δίκτυο…',
-  'connect.foundNone': 'Δεν βρέθηκε τίποτα σε αυτό το δίκτυο. Εισαγάγετε τη διεύθυνση με το χέρι ή σαρώστε τον κωδικό QR από την καρτέλα Πρόσβαση.',
-  'connect.foundOne': 'Βρέθηκε ένα. Η διεύθυνση συμπληρώθηκε - επικολλήστε ένα token και συνδεθείτε.',
-  'connect.foundMany': 'Βρέθηκαν {n}. Επιλέξτε ένα:',
-  'connect.foundPick': 'Χρήση αυτού',
 
   'qr.cancel': 'Ακύρωση',
   'qr.cameraPermissionHint': 'Απαιτείται πρόσβαση στην κάμερα για τη σάρωση του κωδικού QR.',
@@ -102,7 +83,6 @@ export const el: Dict = {
   'settings.removeAllConfirmButton': 'Αφαίρεση όλων',
   'settings.cancel': 'Ακύρωση',
 
-  'connect.relayLink': 'Δεν είναι άμεσα προσβάσιμο; Σύνδεση με φράση',
   'relay.title': 'Σύνδεση με φράση',
   'relay.hint':
     'Διάβασε τις δώδεκα λέξεις σε οποιοδήποτε KnightLoader έχεις ήδη και γράψ’ τες εδώ. Κάθε παρουσία της ομάδας εμφανίζεται παρακάτω - χωρίς διεύθυνση, χωρίς κλειδί, χωρίς λογαριασμό.',

@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const fr: Dict = {
-  'connect.title': 'Se connecter à KnightLoader',
-  'connect.hint':
-    'Créez un jeton dans l’onglet Accès de l’interface web de KnightLoader et collez-le ici. L’adresse peut être scannée depuis le code QR affiché sur cette même page.',
-  'connect.nameLabel': 'Nom (facultatif)',
-  'connect.namePlaceholder': 'Mon KnightLoader',
-  'connect.addressLabel': 'Adresse du serveur',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'Jeton',
-  'connect.tokenPlaceholder': 'collez-le ici',
-  'connect.errorMissing': 'Indiquez une adresse de serveur et un jeton.',
-  'connect.errorTokenRejected': 'Le serveur a répondu, mais a refusé le jeton.',
-  'connect.connectButton': 'Se connecter',
-  'connect.qrHintAddress': 'Scannez le code QR depuis l’onglet Accès',
-  'connect.findButton': 'Chercher sur ce réseau',
-  'connect.finding': 'Recherche sur ce réseau…',
-  'connect.foundNone': 'Rien trouvé sur ce réseau. Saisissez l’adresse à la main, ou scannez le code QR depuis l’onglet Accès.',
-  'connect.foundOne': 'Un serveur trouvé. L’adresse est remplie : collez un jeton et connectez-vous.',
-  'connect.foundMany': '{n} trouvés. Choisissez-en un :',
-  'connect.foundPick': 'Utiliser celui-ci',
 
   'qr.cancel': 'Annuler',
   'qr.cameraPermissionHint': 'L’accès à la caméra est nécessaire pour scanner le code QR.',
@@ -102,7 +83,6 @@ export const fr: Dict = {
   'settings.removeAllConfirmButton': 'Tout supprimer',
   'settings.cancel': 'Annuler',
 
-  'connect.relayLink': 'Pas joignable directement ? Se connecter avec une phrase',
   'relay.title': 'Se connecter avec une phrase',
   'relay.hint':
     'Relevez les douze mots sur un KnightLoader que vous utilisez déjà et saisissez-les ici. Chaque instance de ce groupe apparaît ci-dessous - pas d’adresse, pas de clé, pas de compte.',

@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const hr: Dict = {
-  'connect.title': 'Povezivanje s aplikacijom KnightLoader',
-  'connect.hint':
-    'Izradite token na kartici Pristup u web sučelju aplikacije KnightLoader i zalijepite ga ovdje. Adresu je moguće skenirati s QR koda na istoj stranici.',
-  'connect.nameLabel': 'Naziv (neobavezno)',
-  'connect.namePlaceholder': 'Moj KnightLoader',
-  'connect.addressLabel': 'Adresa poslužitelja',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'Token',
-  'connect.tokenPlaceholder': 'zalijepite ovdje',
-  'connect.errorMissing': 'Unesite adresu poslužitelja i token.',
-  'connect.errorTokenRejected': 'Poslužitelj je odgovorio, ali nije prihvatio token.',
-  'connect.connectButton': 'Poveži se',
-  'connect.qrHintAddress': 'Skenirajte QR kod s kartice Pristup',
-  'connect.findButton': 'Pronađi na ovoj mreži',
-  'connect.finding': 'Traženje na ovoj mreži…',
-  'connect.foundNone': 'Na ovoj mreži nije pronađeno ništa. Unesite adresu ručno ili skenirajte QR kod s kartice Pristup.',
-  'connect.foundOne': 'Pronađen je jedan. Adresa je popunjena - zalijepite token i povežite se.',
-  'connect.foundMany': 'Pronađeno: {n}. Odaberite jedan:',
-  'connect.foundPick': 'Koristi ovaj',
 
   'qr.cancel': 'Odustani',
   'qr.cameraPermissionHint': 'Za skeniranje QR koda potreban je pristup kameri.',
@@ -102,7 +83,6 @@ export const hr: Dict = {
   'settings.removeAllConfirmButton': 'Ukloni sve',
   'settings.cancel': 'Odustani',
 
-  'connect.relayLink': 'Nije izravno dostupan? Poveži se frazom',
   'relay.title': 'Poveži se frazom',
   'relay.hint':
     'Očitaj dvanaest riječi s bilo kojeg KnightLoadera koji već koristiš i upiši ih ovdje. Svaka instanca te grupe pojavit će se ispod - bez adrese, bez ključa, bez računa.',

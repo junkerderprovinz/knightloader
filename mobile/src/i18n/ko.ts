@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const ko: Dict = {
-  'connect.title': 'KnightLoader에 연결',
-  'connect.hint':
-    'KnightLoader 웹 UI의 접근 탭에서 토큰을 생성한 뒤 여기에 붙여넣으세요. 주소는 같은 페이지의 QR 코드로 스캔할 수 있습니다.',
-  'connect.nameLabel': '이름(선택 사항)',
-  'connect.namePlaceholder': '내 KnightLoader',
-  'connect.addressLabel': '서버 주소',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': '토큰',
-  'connect.tokenPlaceholder': '여기에 붙여넣기',
-  'connect.errorMissing': '서버 주소와 토큰을 입력하세요.',
-  'connect.errorTokenRejected': '서버에 연결되었지만 토큰이 거부되었습니다.',
-  'connect.connectButton': '연결',
-  'connect.qrHintAddress': '접근 탭의 QR 코드를 스캔하세요',
-  'connect.findButton': '이 네트워크에서 찾기',
-  'connect.finding': '이 네트워크에서 찾는 중…',
-  'connect.foundNone': '이 네트워크에서 아무것도 찾지 못했습니다. 주소를 직접 입력하거나 접근 탭의 QR 코드를 스캔하세요.',
-  'connect.foundOne': '하나 찾았습니다. 주소는 입력되었습니다. 토큰을 붙여넣고 연결하세요.',
-  'connect.foundMany': '{n}개를 찾았습니다. 하나를 선택하세요:',
-  'connect.foundPick': '이것 사용',
 
   'qr.cancel': '취소',
   'qr.cameraPermissionHint': 'QR 코드를 스캔하려면 카메라 접근 권한이 필요합니다.',
@@ -102,7 +83,6 @@ export const ko: Dict = {
   'settings.removeAllConfirmButton': '모두 제거',
   'settings.cancel': '취소',
 
-  'connect.relayLink': '직접 연결되지 않나요? 문구로 연결하세요',
   'relay.title': '문구로 연결',
   'relay.hint':
     '이미 사용 중인 KnightLoader에서 열두 단어를 읽어 여기에 입력하세요. 해당 그룹의 모든 인스턴스가 아래에 나타납니다. 주소도 키도 계정도 필요 없습니다.',

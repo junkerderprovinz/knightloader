@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const eu: Dict = {
-  'connect.title': 'KnightLoader zerbitzariarekin konektatu',
-  'connect.hint':
-    'Sortu token bat KnightLoader zerbitzariaren web-interfazeko Sarbidea fitxan eta itsatsi hemen. Helbidea orri bereko QR kodetik eskaneatu daiteke.',
-  'connect.nameLabel': 'Izena (aukerakoa)',
-  'connect.namePlaceholder': 'Nire KnightLoader',
-  'connect.addressLabel': 'Zerbitzariaren helbidea',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'Tokena',
-  'connect.tokenPlaceholder': 'itsatsi hemen',
-  'connect.errorMissing': 'Sartu zerbitzariaren helbidea eta token bat.',
-  'connect.errorTokenRejected': 'Zerbitzariarekin harremanetan jarri da, baina ez du tokena onartu.',
-  'connect.connectButton': 'Konektatu',
-  'connect.qrHintAddress': 'Eskaneatu QR kodea Sarbidea fitxatik',
-  'connect.findButton': 'Bilatu sare honetan',
-  'connect.finding': 'Sare honetan bilatzen…',
-  'connect.foundNone': 'Ez da ezer aurkitu sare honetan. Idatzi helbidea eskuz, edo eskaneatu QR kodea Sarbidea fitxatik.',
-  'connect.foundOne': 'Bat aurkitu da. Helbidea beteta dago - itsatsi token bat eta konektatu.',
-  'connect.foundMany': '{n} aurkitu dira. Aukeratu bat:',
-  'connect.foundPick': 'Erabili hau',
 
   'qr.cancel': 'Utzi',
   'qr.cameraPermissionHint': 'Kamerarako sarbidea behar da QR kodea eskaneatzeko.',
@@ -102,7 +83,6 @@ export const eu: Dict = {
   'settings.removeAllConfirmButton': 'Kendu guztiak',
   'settings.cancel': 'Utzi',
 
-  'connect.relayLink': 'Ez da zuzenean iristen? Konektatu esaldi batekin',
   'relay.title': 'Konektatu esaldi batekin',
   'relay.hint':
     'Irakurri hamabi hitzak dagoeneko darabilzun edozein KnightLoaderretan eta idatzi hemen. Talde horretako instantzia bakoitza behean agertuko da: helbiderik gabe, gakorik gabe, konturik gabe.',

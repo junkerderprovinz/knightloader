@@ -55,8 +55,10 @@ export default function LanguagePickerScreen({ onBack }: { onBack: () => void })
             <TouchableOpacity
               style={[
                 styles.row,
-                { backgroundColor: c.surface, borderRadius: radii.card },
-                isSelected && { borderWidth: 1, borderColor: accent },
+                // The chosen row is a deeper fill with accent ink, never an
+                // outline: this language separates by shade, and a ring here
+                // was its one drawn border on the whole screen.
+                { backgroundColor: isSelected ? c.surface2 : c.surface, borderRadius: radii.card },
               ]}
               onPress={() => pick(item.code)}
             >

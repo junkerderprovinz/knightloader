@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const ro: Dict = {
-  'connect.title': 'Conectează-te la KnightLoader',
-  'connect.hint':
-    'Creează un token în fila Acces din interfața web KnightLoader și lipește-l aici. Adresa poate fi scanată din codul QR de pe aceeași pagină.',
-  'connect.nameLabel': 'Nume (opțional)',
-  'connect.namePlaceholder': 'KnightLoader-ul meu',
-  'connect.addressLabel': 'Adresa serverului',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'Token',
-  'connect.tokenPlaceholder': 'lipește aici',
-  'connect.errorMissing': 'Introdu o adresă de server și un token.',
-  'connect.errorTokenRejected': 'Serverul a răspuns, dar nu a acceptat tokenul.',
-  'connect.connectButton': 'Conectare',
-  'connect.qrHintAddress': 'Scanează codul QR din fila Acces',
-  'connect.findButton': 'Caută în această rețea',
-  'connect.finding': 'Se caută în această rețea…',
-  'connect.foundNone': 'Nu s-a găsit nimic în această rețea. Introdu adresa manual sau scanează codul QR din fila Acces.',
-  'connect.foundOne': 'S-a găsit unul. Adresa este completată - lipește un token și conectează-te.',
-  'connect.foundMany': 'S-au găsit {n}. Alege unul:',
-  'connect.foundPick': 'Folosește-l pe acesta',
 
   'qr.cancel': 'Anulează',
   'qr.cameraPermissionHint': 'Este necesar accesul la cameră pentru a scana codul QR.',
@@ -102,7 +83,6 @@ export const ro: Dict = {
   'settings.removeAllConfirmButton': 'Elimină tot',
   'settings.cancel': 'Anulează',
 
-  'connect.relayLink': 'Nu e accesibil direct? Conectează-te cu o frază',
   'relay.title': 'Conectare cu o frază',
   'relay.hint':
     'Citește cele douăsprezece cuvinte de pe orice KnightLoader pe care îl rulezi deja și scrie-le aici. Fiecare instanță din grup apare mai jos - fără adresă, fără cheie, fără cont.',

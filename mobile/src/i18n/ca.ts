@@ -1,25 +1,6 @@
 import type { Dict } from './en';
 
 export const ca: Dict = {
-  'connect.title': 'Connecta amb KnightLoader',
-  'connect.hint':
-    "Crea un token a la pestanya Accés de la interfície web de KnightLoader i enganxa'l aquí. L'adreça es pot escanejar des del codi QR d'aquesta mateixa pàgina.",
-  'connect.nameLabel': 'Nom (opcional)',
-  'connect.namePlaceholder': 'El meu KnightLoader',
-  'connect.addressLabel': 'Adreça del servidor',
-  'connect.qrButton': 'QR',
-  'connect.tokenLabel': 'Token',
-  'connect.tokenPlaceholder': "enganxa'l aquí",
-  'connect.errorMissing': 'Indica una adreça de servidor i un token.',
-  'connect.errorTokenRejected': "S'ha contactat amb el servidor, però no ha acceptat el token.",
-  'connect.connectButton': 'Connecta',
-  'connect.qrHintAddress': 'Escaneja el codi QR des de la pestanya Accés',
-  'connect.findButton': 'Cerca en aquesta xarxa',
-  'connect.finding': 'Cercant en aquesta xarxa…',
-  'connect.foundNone': "No s'ha trobat res en aquesta xarxa. Escriu l'adreça a mà o escaneja el codi QR des de la pestanya Accés.",
-  'connect.foundOne': "S'ha trobat un. L'adreça ja està emplenada: enganxa un token i connecta.",
-  'connect.foundMany': "S'han trobat {n}. Tria'n un:",
-  'connect.foundPick': 'Fes servir aquest',
 
   'qr.cancel': 'Cancel·la',
   'qr.cameraPermissionHint': 'Cal accés a la càmera per escanejar el codi QR.',
@@ -102,7 +83,6 @@ export const ca: Dict = {
   'settings.removeAllConfirmButton': 'Elimina-ho tot',
   'settings.cancel': 'Cancel·la',
 
-  'connect.relayLink': 'No s’hi arriba directament? Connecta amb una frase',
   'relay.title': 'Connectar amb una frase',
   'relay.hint':
     'Llegeix les dotze paraules a qualsevol KnightLoader que ja tinguis i escriu-les aquí. Cada instància d’aquest grup apareixerà a sota: sense adreça, sense clau, sense compte.',
