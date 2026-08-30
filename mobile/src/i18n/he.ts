@@ -40,6 +40,7 @@ export const he: Dict = {
   'status.extracting': 'מחלץ',
 
   'settings.title': 'הגדרות',
+  'settings.back': 'חזרה',
   'settings.language': 'שפה',
   'settings.appearance': 'מראה',
   'settings.appearanceFollows': 'עוקב אחרי המופע שאליו אתם מחוברים, כך שהאפליקציה וממשק האינטרנט שלו ייראו כמו מוצר אחד.',

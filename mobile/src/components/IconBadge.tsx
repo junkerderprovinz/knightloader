@@ -94,6 +94,41 @@ export function Trash({ color, size = 15 }: { color: string; size?: number }) {
   );
 }
 
+/**
+ * A gear, filled, drawn from plain views.
+ *
+ * The settings badge carried the text glyph "⚙" (U+2699), which every system
+ * font draws as a thin OUTLINE - and a line-drawn glyph sitting among filled
+ * badges and filled switches is the one thing the design language's icon rule
+ * forbids outright (jdp, 2026-08-30: "Das Einstellungssybol soll ausgefüllt
+ * sein"). The browser extension had exactly this bug and fixed it by swapping
+ * in a filled path; there is no path to swap in here, so the shape is
+ * composed: a filled disc, six teeth as rotated bars around it, and the hole
+ * punched by a disc in the colour BEHIND the glyph.
+ *
+ * `hole` has to be passed rather than guessed: React Native cannot cut a shape
+ * out of another, so the centre is painted, and painting it the wrong colour
+ * is exactly the kind of lie that only shows up on the one surface it was not
+ * tested against. The badge knows what it is standing on, so it says.
+ */
+export function Gear({ color, hole, size = 17 }: { color: string; hole: string; size?: number }) {
+  const u = size / 17;
+  const zahn = { position: 'absolute' as const, width: 3.4 * u, height: 17 * u, backgroundColor: color };
+  return (
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      {[0, 60, 120].map((deg) => (
+        <View key={deg} style={[zahn, { borderRadius: 1 * u, transform: [{ rotate: `${deg}deg` }] }]} />
+      ))}
+      <View
+        style={{ position: 'absolute', width: 13 * u, height: 13 * u, borderRadius: 6.5 * u, backgroundColor: color }}
+      />
+      <View
+        style={{ position: 'absolute', width: 5 * u, height: 5 * u, borderRadius: 2.5 * u, backgroundColor: hole }}
+      />
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   badge: {
     width: 36,

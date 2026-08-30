@@ -40,6 +40,7 @@ export const uk: Dict = {
   'status.extracting': 'розпакування',
 
   'settings.title': 'Налаштування',
+  'settings.back': 'Назад',
   'settings.language': 'Мова',
   'settings.appearance': 'Вигляд',
   'settings.appearanceFollows': 'Повторює вигляд екземпляра, до якого ви підключені, щоб застосунок і його вебінтерфейс виглядали як один продукт.',

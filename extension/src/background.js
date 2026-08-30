@@ -142,10 +142,23 @@ async function sendToInstance(payload) {
   try {
     siblings = await groupInstances();
   } catch (e) {
-    // No phrase yet is the ordinary first-run case, and the options page is
-    // both where it is fixed and where the reason is written down.
+    // No phrase yet is the ordinary "not set up here" case - and it must NOT
+    // hijack the click that got us here (jdp, 2026-08-30: "jetzt wird beim
+    // klick auf den CnL button die einstellungen der erweiterung in einem
+    // neuen tab geöffnet"). This called openOptionsPage(), which with
+    // options_ui.open_in_tab opens a TAB, on a click somebody aimed at a
+    // download button. popup.js learned exactly this lesson already, in its
+    // own words: "it hijacked the click and took you somewhere you had not
+    // asked to go" - and the same mistake sat on in here, one function away,
+    // for as long as that comment has existed.
+    //
+    // The popup is the answer here too. Its own no-phrase branch already draws
+    // the right thing (an "add an instance" button that opens Options ON
+    // PURPOSE), so opening it shows the reason and offers the way there
+    // without deciding for anybody. Nothing is parked: with no phrase there is
+    // no group to send to, so there would be nothing to resume.
     if (e?.code === 'no-phrase') {
-      chrome.runtime.openOptionsPage();
+      await showPopupOrMark();
       return;
     }
     notifyCnl('send.relayFailed');
@@ -184,6 +197,17 @@ async function sendToInstance(payload) {
   // waiting. Opening the popup by hand then shows it, because the popup reads
   // the same parked entry either way. A mark on the icon is the one piece of
   // interface this extension owns unconditionally.
+  await showPopupOrMark();
+}
+
+/**
+ * The one way this extension asks for attention: its own popup, and a mark on
+ * the toolbar icon when the browser will not open it.
+ *
+ * Extracted because it is now needed twice, and the second caller is the one
+ * that got this wrong for weeks - see the no-phrase branch above.
+ */
+async function showPopupOrMark() {
   try {
     await chrome.action.openPopup();
   } catch {

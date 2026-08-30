@@ -40,6 +40,7 @@ export const ca: Dict = {
   'status.extracting': 'extraient',
 
   'settings.title': 'Configuració',
+  'settings.back': 'Enrere',
   'settings.language': 'Idioma',
   'settings.appearance': 'Aparença',
   'settings.appearanceFollows': "Segueix la instància a la qual estàs connectat, perquè l'aplicació i la seva interfície web semblin un sol producte.",

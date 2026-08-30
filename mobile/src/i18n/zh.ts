@@ -40,6 +40,7 @@ export const zh: Dict = {
   'status.extracting': '解压中',
 
   'settings.title': '设置',
+  'settings.back': '返回',
   'settings.language': '语言',
   'settings.appearance': '外观',
   'settings.appearanceFollows': '跟随当前连接的实例，让应用和它的网页界面看起来像同一个产品。',

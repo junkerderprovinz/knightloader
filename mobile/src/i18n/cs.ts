@@ -40,6 +40,7 @@ export const cs: Dict = {
   'status.extracting': 'rozbaluje se',
 
   'settings.title': 'Nastavení',
+  'settings.back': 'Zpět',
   'settings.language': 'Jazyk',
   'settings.appearance': 'Vzhled',
   'settings.appearanceFollows': 'Řídí se instancí, ke které jste připojeni, aby aplikace a její webové rozhraní působily jako jeden produkt.',

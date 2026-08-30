@@ -40,6 +40,7 @@ export const fi: Dict = {
   'status.extracting': 'puretaan',
 
   'settings.title': 'Asetukset',
+  'settings.back': 'Takaisin',
   'settings.language': 'Kieli',
   'settings.appearance': 'Ulkoasu',
   'settings.appearanceFollows': 'Seuraa instanssia, johon olet yhteydessä, jotta sovellus ja sen verkkokäyttöliittymä näyttävät yhdeltä tuotteelta.',

@@ -40,6 +40,7 @@ export const lv: Dict = {
   'status.extracting': 'atspiež',
 
   'settings.title': 'Iestatījumi',
+  'settings.back': 'Atpakaļ',
   'settings.language': 'Valoda',
   'settings.appearance': 'Izskats',
   'settings.appearanceFollows': 'Seko instancei, ar kuru esat savienots, lai lietotne un tās tīmekļa saskarne izskatītos kā viens produkts.',

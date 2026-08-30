@@ -40,6 +40,7 @@ export const nl: Dict = {
   'status.extracting': 'uitpakken',
 
   'settings.title': 'Instellingen',
+  'settings.back': 'Terug',
   'settings.language': 'Taal',
   'settings.appearance': 'Uiterlijk',
   'settings.appearanceFollows': 'Volgt de instantie waarmee je verbonden bent, zodat de app en de webinterface ervan als één product aanvoelen.',

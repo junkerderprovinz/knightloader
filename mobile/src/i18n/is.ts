@@ -40,6 +40,7 @@ export const is: Dict = {
   'status.extracting': 'afþjappar',
 
   'settings.title': 'Stillingar',
+  'settings.back': 'Til baka',
   'settings.language': 'Tungumál',
   'settings.appearance': 'Útlit',
   'settings.appearanceFollows': 'Fylgir tilvikinu sem tengst er við, svo appið og vefviðmót þess líti út eins og ein vara.',

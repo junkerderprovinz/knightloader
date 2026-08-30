@@ -40,6 +40,7 @@ export const ko: Dict = {
   'status.extracting': '압축 해제 중',
 
   'settings.title': '설정',
+  'settings.back': '뒤로',
   'settings.language': '언어',
   'settings.appearance': '모양',
   'settings.appearanceFollows': '연결된 인스턴스를 따릅니다. 앱과 그 웹 UI가 하나의 제품처럼 보이게 하기 위해서입니다.',

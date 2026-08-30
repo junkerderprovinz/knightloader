@@ -40,6 +40,7 @@ export const hu: Dict = {
   'status.extracting': 'kicsomagolás',
 
   'settings.title': 'Beállítások',
+  'settings.back': 'Vissza',
   'settings.language': 'Nyelv',
   'settings.appearance': 'Megjelenés',
   'settings.appearanceFollows': 'Ahhoz a példányhoz igazodik, amelyhez kapcsolódtál, hogy az alkalmazás és a webes felülete egyetlen terméknek látsszon.',

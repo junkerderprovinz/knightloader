@@ -40,6 +40,7 @@ export const et: Dict = {
   'status.extracting': 'pakitakse lahti',
 
   'settings.title': 'Seaded',
+  'settings.back': 'Tagasi',
   'settings.language': 'Keel',
   'settings.appearance': 'Välimus',
   'settings.appearanceFollows': 'Järgib eksemplari, millega olete ühendatud, et rakendus ja selle veebiliides näeksid välja nagu üks toode.',

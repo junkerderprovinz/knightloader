@@ -40,6 +40,7 @@ export const sv: Dict = {
   'status.extracting': 'packar upp',
 
   'settings.title': 'Inställningar',
+  'settings.back': 'Tillbaka',
   'settings.language': 'Språk',
   'settings.appearance': 'Utseende',
   'settings.appearanceFollows': 'Följer instansen du är ansluten till, så att appen och dess webbgränssnitt känns som en och samma produkt.',

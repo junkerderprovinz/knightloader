@@ -40,6 +40,7 @@ export const ja: Dict = {
   'status.extracting': '展開中',
 
   'settings.title': '設定',
+  'settings.back': '戻る',
   'settings.language': '言語',
   'settings.appearance': '外観',
   'settings.appearanceFollows': '接続中のインスタンスに合わせています。アプリとそのWeb UIが1つの製品に見えるようにするためです。',

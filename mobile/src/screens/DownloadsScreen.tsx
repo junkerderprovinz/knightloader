@@ -6,7 +6,7 @@ import TaskRow from '../components/TaskRow';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
-import IconBadge from '../components/IconBadge';
+import IconBadge, { Gear } from '../components/IconBadge';
 
 // peer, when set, means this screen is showing a FEDERATION PEER of conn
 // rather than conn's own queue: base becomes the proxy prefix
@@ -99,7 +99,11 @@ export default function DownloadsScreen({
               <Text style={[styles.link, { color: accentInk }]}>{t('downloads.overviewLink')}</Text>
             </TouchableOpacity>
           )}
-          {!peer && <IconBadge symbol="⚙" onPress={onOpenSettings} accessibilityLabel={t('settings.title')} />}
+          {!peer && <IconBadge
+            icon={<Gear color={c.textSub} hole={c.surface2} />}
+            onPress={onOpenSettings}
+            accessibilityLabel={t('settings.title')}
+          />}
         </View>
       </View>
 

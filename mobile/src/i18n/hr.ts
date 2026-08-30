@@ -40,6 +40,7 @@ export const hr: Dict = {
   'status.extracting': 'raspakiravanje',
 
   'settings.title': 'Postavke',
+  'settings.back': 'Natrag',
   'settings.language': 'Jezik',
   'settings.appearance': 'Izgled',
   'settings.appearanceFollows': 'Prati instancu na koju ste povezani, kako bi aplikacija i njezino web sučelje djelovali kao jedan proizvod.',

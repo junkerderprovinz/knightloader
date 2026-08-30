@@ -40,6 +40,7 @@ export const sl: Dict = {
   'status.extracting': 'razširjanje',
 
   'settings.title': 'Nastavitve',
+  'settings.back': 'Nazaj',
   'settings.language': 'Jezik',
   'settings.appearance': 'Videz',
   'settings.appearanceFollows': 'Sledi instanci, s katero ste povezani, da aplikacija in njen spletni vmesnik delujeta kot en izdelek.',

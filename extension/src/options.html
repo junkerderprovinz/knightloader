@@ -109,6 +109,21 @@
          so the eye compares the answers instead of the layout. The label rule
          above would otherwise shrink the selects along with their captions. */
       .axes { display: flex; flex-direction: column; gap: 14px; }
+      /* The version footer, the same quiet line the web UI puts at the bottom
+         of every settings tab (jdp, 2026-08-30: "in den setting der app und
+         der erweiterung sollen auch die versionen angezeigt werden"). It was
+         only ever visible inside the diagnostic report, which is a box you
+         have to open. Centred, half-muted, out of the way - this is a thing
+         you look for, not a thing that should compete for attention. */
+      #version {
+        margin: 26px 0 0;
+        text-align: center;
+        font-size: 10px;
+        color: var(--carbon-text-muted);
+        opacity: 0.55;
+        user-select: none;
+        font-variant-numeric: tabular-nums;
+      }
       pre.report {
         margin: 0 0 10px;
         padding: 12px;
@@ -261,6 +276,8 @@
     <!-- Appearance first: the look is put on <html> before anything is
          drawn, so no page is ever painted in one look and repainted in
          another. -->
+    <p id="version"></p>
+
     <script src="appearance.js"></script>
     <script src="colorpicker.js"></script>
     <script src="i18n.js"></script>

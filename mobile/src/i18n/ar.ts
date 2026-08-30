@@ -40,6 +40,7 @@ export const ar: Dict = {
   'status.extracting': 'جارٍ الاستخراج',
 
   'settings.title': 'الإعدادات',
+  'settings.back': 'رجوع',
   'settings.language': 'اللغة',
   'settings.appearance': 'المظهر',
   'settings.appearanceFollows': 'يتبع المثيل المتصل به، حتى يبدو التطبيق وواجهته على الويب منتجًا واحدًا.',

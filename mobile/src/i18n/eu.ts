@@ -40,6 +40,7 @@ export const eu: Dict = {
   'status.extracting': 'erauzten',
 
   'settings.title': 'Ezarpenak',
+  'settings.back': 'Atzera',
   'settings.language': 'Hizkuntza',
   'settings.appearance': 'Itxura',
   'settings.appearanceFollows': 'Konektatuta zauden instantziaren itxurari jarraitzen dio, aplikazioa eta haren web-interfazea produktu bakarra irudi dezaten.',
