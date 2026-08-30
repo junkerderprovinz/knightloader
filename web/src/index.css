@@ -1,5 +1,16 @@
 @import 'tailwindcss';
 
+/* dist/ is COMMITTED here (the Go binary embeds it, and CI checks the commit
+   matches a fresh build), and Tailwind v4 auto-detects its sources from the
+   project root minus whatever .gitignore excludes - so without this line it
+   scans its own previous output. That makes the build read what the last
+   build wrote: a run that adds a new utility emits a bundle whose class names
+   are then found by the NEXT run, so two consecutive builds of unchanged
+   sources produce different CSS. It surfaced as a red CI on the commit that
+   introduced text-accentInk - "web/dist does not match the sources" against a
+   dist that had just been built from exactly those sources. */
+@source not "../dist";
+
 @custom-variant dark (&:is([data-theme="dark"] *));
 
 /* ===========================================================================
