@@ -189,6 +189,99 @@
     return realSubmit.apply(this, arguments);
   };
 
+  // --- the four quieter ways a container reaches port 9666 ---------------
+  //
+  // fetch, XHR and forms are the paths a modern CnL button takes, and they
+  // were all this file knew. They are not all there are, and a site that uses
+  // one of the others is a site where the button reports success and nothing
+  // arrives (jdp, 2026-08-30, about a filecrypt container: "Da ploppt das
+  // fenster nicht auf").
+  //
+  // Added blind, and that is stated rather than hidden: the container in
+  // question sits behind a "confirm you are not a robot" gate, which is an
+  // access control on somebody else's site and not something to automate past.
+  // So the button itself was never reached from here. What CAN be done without
+  // guessing is to stop leaving whole mechanisms unpatched - each of these is
+  // a documented way CnL has been shipped, and each costs one wrapper.
+  //
+  // No MutationObserver for the element cases: watching the whole document for
+  // added nodes is a per-page cost on every page, and patching the property
+  // setter catches the assignment itself, which is both cheaper and earlier.
+
+  // window.open: the oldest shape of all, and the one whose failure looks
+  // exactly like jdp's report - a window that does not appear.
+  const realOpen2 = window.open;
+  if (typeof realOpen2 === 'function') {
+    window.open = function (url, ...rest) {
+      try {
+        if (url && aimedAtCnl(url)) {
+          const u = new URL(url, location.href);
+          hand(u.pathname, Object.fromEntries(u.searchParams));
+          // A window object is what the caller expects back. Returning null
+          // makes a site think the popup was blocked, which some of them
+          // answer with a "please allow popups" banner over a submission that
+          // actually worked.
+          return window;
+        }
+      } catch {
+        /* fall through to the real open */
+      }
+      return realOpen2.apply(this, arguments);
+    };
+  }
+
+  // sendBeacon: fire-and-forget by design, so a site using it never notices
+  // that nothing listened.
+  if (navigator.sendBeacon) {
+    const realBeacon = navigator.sendBeacon.bind(navigator);
+    navigator.sendBeacon = function (url, data) {
+      try {
+        if (url && aimedAtCnl(url)) {
+          hand(new URL(url, location.href).pathname, fieldsFromBody(data));
+          return true;
+        }
+      } catch {
+        /* fall through */
+      }
+      return realBeacon(url, data);
+    };
+  }
+
+  // An <iframe> or <img> pointed at the port: the GET-flavoured "/flash/add"
+  // ping, still in the wild. The property setter is patched rather than the
+  // attribute, because both spellings end up here.
+  for (const [Ctor, name] of [
+    [window.HTMLIFrameElement, 'HTMLIFrameElement'],
+    [window.HTMLImageElement, 'HTMLImageElement'],
+  ]) {
+    try {
+      const desc = Ctor && Object.getOwnPropertyDescriptor(Ctor.prototype, 'src');
+      if (!desc?.set) continue;
+      Object.defineProperty(Ctor.prototype, 'src', {
+        ...desc,
+        set(value) {
+          try {
+            if (value && aimedAtCnl(value)) {
+              const u = new URL(value, location.href);
+              hand(u.pathname, Object.fromEntries(u.searchParams));
+              // Left unset on purpose: pointing the element at a port nothing
+              // listens on only produces a console error for a submission that
+              // has already been handed over.
+              return;
+            }
+          } catch {
+            /* fall through to the real setter */
+          }
+          desc.set.call(this, value);
+        },
+      });
+    } catch {
+      // A browser that will not let this prototype be redefined. The other
+      // paths still stand; name is kept for the reader, not for a log.
+      void name;
+    }
+  }
+
   document.addEventListener(
     'submit',
     (e) => {
