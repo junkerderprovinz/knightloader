@@ -336,6 +336,20 @@ async function handleCnl(msg) {
  * MAIN world for the interceptor, isolated for the relay: see cnl-main.js. The
  * pair has to be registered together or neither half does anything.
  */
+// matchOriginAsFallback is the one that took a live look to find. A URL pattern
+// matches a URL, and `about:blank`, `data:` and `blob:` documents have none -
+// so <all_urls> does NOT reach them, and neither does allFrames, which is about
+// frames rather than about documents with no address. With it, such a document
+// is matched by the origin it INHERITED from whatever opened it.
+//
+// That is not a hypothetical (jdp, 2026-08-30, about a filecrypt container: "Da
+// ploppt das fenster nicht auf"). Watching the real page with the extension
+// loaded, a new page appeared with an EMPTY url the moment the container was
+// reached: window.open() onto a blank document, into which the site then writes
+// its own Click'n'Load form. Our interceptor was never in that document, so the
+// submission left the browser and nothing was caught - a button reporting
+// success while the links went nowhere, which is precisely the silent failure
+// cnl-main.js's own doc comment calls worse than no interception at all.
 const CNL_SCRIPTS = [
   {
     id: 'cnl-main',
@@ -343,6 +357,7 @@ const CNL_SCRIPTS = [
     js: ['cnl-main.js'],
     runAt: 'document_start',
     allFrames: true,
+    matchOriginAsFallback: true,
     world: 'MAIN',
     persistAcrossSessions: true,
   },
@@ -352,6 +367,7 @@ const CNL_SCRIPTS = [
     js: ['cnl-relay.js'],
     runAt: 'document_start',
     allFrames: true,
+    matchOriginAsFallback: true,
     persistAcrossSessions: true,
   },
 ];

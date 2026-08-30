@@ -55,9 +55,18 @@
       select:focus { box-shadow: 0 0 0 2px var(--focus-ring); }
       /* The "Report it" link has to be the same object as the button beside it,
          so the look lives here once and the anchor is only told to be a box. */
+      /* 36px, the same height the square icon badges are (jdp, 2026-08-30:
+         "der NEu verbinden button ist zu hoch, soll gleich hoch sein wie der
+         löschen button"). It was 9px of padding plus the body line-height,
+         which lands around 40 - close enough to look like a mistake rather
+         than a decision, and visibly wrong the moment a text button and a
+         badge stand in the same row. One height for every pressable thing on
+         this page: the size system decides, not each control's own padding. */
       button,
       a.btnlike {
-        padding: 9px 16px;
+        box-sizing: border-box;
+        height: 36px;
+        padding: 0 16px;
         border: 0;
         border-radius: var(--radius-control);
         background: var(--accent);
@@ -76,11 +85,6 @@
       a.btnlike.secondary {
         background: var(--carbon-surface2);
         color: var(--carbon-text);
-      }
-      button.danger {
-        background: transparent;
-        color: var(--status-fail-text);
-        padding: 6px 10px;
       }
       /* Inside a card the list has the card's own padding around it already. */
       #list:not(:empty) { margin-bottom: 2px; }
@@ -135,9 +139,36 @@
       .glim-row-label { font-size: var(--text-body); color: var(--carbon-text); }
       .glim-row-control { display: flex; align-items: center; gap: 8px; }
       .glim-row-unit { font-size: var(--text-dense); color: var(--carbon-text-muted); }
-      /* Wide enough for two digits and the spinner Chrome insists on drawing;
-         the field itself is the same filled surface as every other input. */
-      #cnlCountdown { width: 84px; text-align: end; }
+      /* The browser's own spinner is dropped, not styled (jdp, 2026-08-30: "die
+         beiden pfeiltasten im countdown eisntellungsfeld haben einen dunklen
+         hintergrund und der text ist zu nah an diesen pfeilen").
+
+         It cannot be made to follow the language: Chrome paints those two
+         arrows from the OS widget set, on their own background, and the only
+         property that reaches them is `accent-color` - which recolours part of
+         a control whose geometry, ground and spacing still ignore every token
+         here. That is the same reasoning the design language already applies
+         to the native checkbox, and it lands the same way: the native widget
+         goes.
+
+         appearance:none in the standard property AND the -moz/-webkit ones,
+         because Firefox draws its spinner through a different pseudo-element
+         than Chrome, and a rule that only names the WebKit one leaves Firefox
+         with the arrows still there. Typing and the arrow keys are untouched -
+         it is still <input type="number">, so min/max/step and the numeric
+         keypad on a phone all stay. */
+      #cnlCountdown {
+        width: 84px;
+        text-align: end;
+        appearance: textfield;
+        -moz-appearance: textfield;
+      }
+      #cnlCountdown::-webkit-outer-spin-button,
+      #cnlCountdown::-webkit-inner-spin-button {
+        appearance: none;
+        -webkit-appearance: none;
+        margin: 0;
+      }
       /* The version footer, the same quiet line the web UI puts at the bottom
          of every settings tab (jdp, 2026-08-30: "in den setting der app und
          der erweiterung sollen auch die versionen angezeigt werden"). It was
