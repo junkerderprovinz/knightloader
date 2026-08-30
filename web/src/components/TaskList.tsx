@@ -1791,9 +1791,18 @@ export function TaskListCard({
           user-scrolled all the way down, or a card too short to show that
           full spacer, still deserves the same rounded-bottom guarantee an
           unclipped square row would otherwise be able to break. */}
-      <div className="glim-card flex-1">
+      {/* A hand-rolled card rather than <Card>, so the palette position is set
+          here by hand - and on the card, not on its title, so everything the
+          card holds follows it. */}
+      {/* `hue` is optional here, and a card without one must NOT take the
+          class: `.glim-hue` with no --item-hue resolves --accent to nothing
+          and the badge inside disappears. */}
+      <div
+        className={`glim-card ${hue !== undefined ? 'glim-hue ' : ''}flex-1`}
+        style={hue !== undefined ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
+      >
         <div className="px-4 pt-4">
-          <SectionTitle hue={hue}>{title}</SectionTitle>
+          <SectionTitle>{title}</SectionTitle>
         </div>
         <div className="overflow-hidden rounded-b-[var(--radius-card)]">
           {/* Sorting is a view of the queue and not the queue. Saying so where the

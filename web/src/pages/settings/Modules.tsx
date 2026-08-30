@@ -40,8 +40,8 @@ export function Modules() {
 function Group({ hue, title, hint, rows }: { hue: number; title: string; hint?: string; rows: Feature[] }) {
   if (rows.length === 0) return null;
   return (
-    <Card className="flex flex-col gap-1 p-2">
-      <SectionTitle hue={hue} hint={hint}>
+    <Card hue={hue} className="flex flex-col gap-1 p-2">
+      <SectionTitle hint={hint}>
         {title}
       </SectionTitle>
       {rows.map((m, i) => (

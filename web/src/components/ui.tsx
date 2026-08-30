@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom';
 import type { ButtonHTMLAttributes, CSSProperties, InputHTMLAttributes, ReactNode, RefObject } from 'react';
 import { hueVars, rainbowAt } from '../lib/appearance';
 import { IconClose, IconEye, IconEyeOff } from '../lib/icons';
+import { openColorPickerPopover } from '../lib/colorPicker';
 
 type ButtonKind = 'primary' | 'secondary' | 'ghost' | 'danger';
 
@@ -668,9 +669,10 @@ export function hueStyle(index: number | undefined): CSSProperties {
  * They used to be two: the accent presets were coloured squares with a ring on
  * the chosen one, the palette was a row of raw `<input type="color">` boxes
  * with the browser's own chrome around them. Two controls, one job, sitting in
- * the same card four rows apart. Here the square IS the control in both cases;
- * when it is editable the native picker sits invisibly on top of it, so the
- * click lands where the colour is and the keyboard still reaches it.
+ * the same card four rows apart. Here the square IS the control in both cases:
+ * a real button either way, opening the app's own picker when it is editable.
+ * The native input that used to hide behind it is gone entirely - it handed
+ * its surface to the OS, which is the one thing the colour engine rules out.
  *
  * `onPick` alone makes a preset (choose this colour). `onColor` makes an
  * editable position (open a picker for it). Passing both is a preset that can
@@ -699,20 +701,25 @@ export function Swatch({
   const style: CSSProperties = { backgroundColor: color, color };
 
   if (onColor) {
+    // The app's own picker, floated under the swatch that opened it - never a
+    // native <input type="color">, which is the one thing the colour engine
+    // rules out by name. A native input hands its surface to the browser, and
+    // on Windows that is a separate top-level window: the exact "es soll sich
+    // kein komplett neues Fenster öffnen" the rule was written for. It is also
+    // unverifiable, because that window is not in the page and no automated
+    // check can see it.
     return (
-      <span className={shell} style={style} title={label}>
-        <input
-          type="color"
-          aria-label={label}
-          value={color}
-          onChange={(e) => onColor(e.target.value)}
-          onClick={onPick ? () => onPick() : undefined}
-          // Invisible, but full-size and focusable: the swatch under it is what
-          // is seen, the input is what is operated. `opacity-0` rather than
-          // `hidden`, or it stops being reachable by keyboard.
-          className="absolute inset-0 h-full w-full cursor-pointer appearance-none border-0 bg-transparent p-0 opacity-0"
-        />
-      </span>
+      <button
+        type="button"
+        title={label}
+        aria-label={label}
+        className={`${shell} cursor-pointer`}
+        style={style}
+        onClick={(e) => {
+          onPick?.();
+          openColorPickerPopover(e.currentTarget, color, onColor);
+        }}
+      />
     );
   }
 
@@ -1032,10 +1039,26 @@ export function Card({
   className = '',
   hover = false,
   padding = 'normal',
+  hue,
 }: {
   children: ReactNode;
   className?: string;
   hover?: boolean;
+  /**
+   * This card's place in the palette, and the reason it moved here from
+   * SectionTitle (GlimStone 1.4.0: "the position belongs on the CONTAINER,
+   * not on the one visible element inside it").
+   *
+   * `[data-rainbow] .glim-hue` rebinds --accent for a whole subtree, so a
+   * card that owns its position hands it to its badge, its buttons, its
+   * switch tracks and its focus ring at once. With the position on the badge
+   * instead, only the badge was ever coloured, and everything else in the
+   * card went on wearing the single accent while the mode was on - which is
+   * how this codebase ended up with a hand-written rule extending the badge's
+   * colour to a card hover. That rule was the missing container rule, written
+   * out one case at a time.
+   */
+  hue?: number;
   /**
    * 'none' drops the default p-5 outright rather than relying on a caller's
    * own `className="... p-0"` to beat it - it never can. Tailwind's compiled
@@ -1063,9 +1086,13 @@ export function Card({
 }) {
   return (
     <div
-      className={`glim-card ${padding === 'normal' ? 'p-5' : ''} ${
+      // The trailing space lives INSIDE the string, never after the
+      // interpolation: an expression glued to the class before it fuses into
+      // one nonsense name and silently drops both.
+      className={`glim-card ${hue !== undefined ? 'glim-hue ' : ''}${padding === 'normal' ? 'p-5' : ''} ${
         hover ? 'transition-transform duration-150 motion-safe:hover:-translate-y-0.5' : ''
       } ${className}`}
+      style={hue !== undefined ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
     >
       {children}
     </div>
@@ -1230,9 +1257,20 @@ export function SectionTitle({
     <div className="flex items-center gap-3">
       <h2 className="flex items-center">
         <span
-          className={`${hue !== undefined ? 'glim-hue glim-section-badge' : ''} absolute -top-[11px] z-10 inline-flex min-h-[22px]
-            items-center gap-1 whitespace-nowrap rounded-[var(--radius-pill)] bg-accent px-3 py-0.5 text-[12px]
-            font-medium uppercase tracking-[1.2px] text-accentContrast shadow-[var(--elevation)]`}
+          // The position lives on the Card now (GlimStone 1.4.0), so this
+          // badge carries only its marker class and inherits --item-hue* from
+          // there. `.glim-hue` is NOT added unconditionally: the class and the
+          // properties must travel together, and six cards in this app have no
+          // position at all - a badge wearing the class without them resolves
+          // --accent to nothing and disappears. index.css addresses the badge
+          // through `.glim-card.glim-hue .glim-section-badge` instead, which is
+          // true exactly when there is something to inherit.
+          //
+          // `hue` still exists for a title with no hued card above it; passing
+          // it sets the vars here, so the class it then adds has them.
+          className={`${hue !== undefined ? 'glim-hue ' : ''}glim-section-badge absolute -top-[11px] z-10 inline-flex h-[22px]
+            items-center gap-1 whitespace-nowrap rounded-[var(--radius-pill)] bg-accent px-3 text-[12px]
+            font-medium uppercase leading-[15px] tracking-[1.2px] text-accentContrast shadow-[var(--elevation)]`}
           style={hue !== undefined ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
         >
           {children}

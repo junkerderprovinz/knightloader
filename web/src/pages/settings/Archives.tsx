@@ -102,8 +102,8 @@ export function Archives() {
         </div>
       )}
 
-      <Card className="flex flex-col gap-5">
-        <SectionTitle hue={0}>{t('settings.archives.extractionTitle')}</SectionTitle>
+      <Card hue={0} className="flex flex-col gap-5">
+        <SectionTitle>{t('settings.archives.extractionTitle')}</SectionTitle>
         <ToggleRow hue={0} checked={cfg.extract} onChange={(v) => patch({ extract: v })} label={t('settings.extract')} />
 
         {/* Flush left, not indented under the switch (jdp: "In der Card von
@@ -164,8 +164,8 @@ export function Archives() {
         </div>
       </Card>
 
-      <Card className="flex flex-col gap-5">
-        <SectionTitle hue={1}>{t('settings.archives.afterwards')}</SectionTitle>
+      <Card hue={1} className="flex flex-col gap-5">
+        <SectionTitle>{t('settings.archives.afterwards')}</SectionTitle>
         <div className={`flex flex-col gap-5 ${unpacking ? '' : 'pointer-events-none opacity-40'}`}>
           {options && options.archiveDisposals.length > 0 && (
             <FieldGroup
@@ -230,8 +230,8 @@ export function Archives() {
         </div>
       </Card>
 
-      <Card className="flex flex-col gap-5">
-        <SectionTitle hue={2}>{t('settings.archivePasswords')}</SectionTitle>
+      <Card hue={2} className="flex flex-col gap-5">
+        <SectionTitle>{t('settings.archivePasswords')}</SectionTitle>
         <Field label={t('settings.archivePasswords')} hint={t('settings.archivePasswordsHint')}>
           <TextArea
             rows={4}

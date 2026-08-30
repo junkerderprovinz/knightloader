@@ -282,7 +282,18 @@ export function SettingsPage() {
 
 // GlimStone version this UI is built against — bump by hand whenever index.css /
 // appearance.ts are re-copied from a newer github.com/junkerderprovinz/glimstone release.
-const GLIMSTONE_VERSION = '1.2.0';
+//
+// 1.4.0 brought lib/colorPicker.ts and its stylesheet block over from the
+// reference, and moved the rainbow position from each SectionTitle onto its
+// Card, which is what 1.4.0 asks for: the container owns the position, so the
+// badge, the buttons, the switch tracks and the focus ring inside it all
+// follow one declaration instead of a growing list of exceptions.
+//
+// What this number does NOT claim is full conformance with every rule in that
+// release: 1.4.0 also says every explanatory text is an info bubble, and this
+// app still has explanatory paragraphs under controls. Sorting the real ones
+// from the empty states and dialog copy is a judgement pass, not a codemod.
+const GLIMSTONE_VERSION = '1.4.0';
 
 /**
  * The build/GlimStone version, quiet and centred at the very bottom of the

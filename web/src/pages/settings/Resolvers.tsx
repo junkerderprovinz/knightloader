@@ -72,15 +72,15 @@ export function Resolvers() {
   return (
     <div className="flex flex-col gap-10">
       {module && !module.enabled && (
-          <Card className="flex items-center gap-2 text-sm text-carbon-textSub">
-            <SectionTitle hue={0}>{t('settings.resolvers.moduleUnavailable')}</SectionTitle>
+          <Card hue={0} className="flex items-center gap-2 text-sm text-carbon-textSub">
+            <SectionTitle>{t('settings.resolvers.moduleUnavailable')}</SectionTitle>
             <span>{module.reason}</span>
             <InfoBubble tip={t('settings.resolvers.moduleUnavailableHint')} />
           </Card>
       )}
 
-      <Card className="flex flex-col gap-5">
-        <SectionTitle hue={1}>{t('settings.resolvers.quality')}</SectionTitle>
+      <Card hue={1} className="flex flex-col gap-5">
+        <SectionTitle>{t('settings.resolvers.quality')}</SectionTitle>
         <p className="text-sm text-carbon-textMuted">{t('settings.resolvers.intro')}</p>
 
         {qualities.length > 0 && (
@@ -120,8 +120,8 @@ export function Resolvers() {
           package row) - this card is only the two knobs that still apply
           instance-wide once a subtitle row is enabled: which languages and
           whether auto-generated captions count. */}
-      <Card className="flex flex-col gap-5">
-        <SectionTitle hue={3}>{t('settings.resolvers.subtitles')}</SectionTitle>
+      <Card hue={3} className="flex flex-col gap-5">
+        <SectionTitle>{t('settings.resolvers.subtitles')}</SectionTitle>
         <Field label={t('settings.resolvers.subtitleLangs')} hint={t('settings.resolvers.subtitleLangsHint')}>
           <TextInput
             dir="ltr"
@@ -138,8 +138,8 @@ export function Resolvers() {
         />
       </Card>
 
-      <Card className="flex flex-col gap-5">
-        <SectionTitle hue={4}>{t('settings.resolvers.outputTitle')}</SectionTitle>
+      <Card hue={4} className="flex flex-col gap-5">
+        <SectionTitle>{t('settings.resolvers.outputTitle')}</SectionTitle>
         <Field label={t('settings.resolvers.outputTitle')} hint={t('settings.resolvers.outputHint')}>
           <TextInput
             dir="ltr"

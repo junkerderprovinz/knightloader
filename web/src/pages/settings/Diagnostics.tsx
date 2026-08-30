@@ -118,8 +118,8 @@ export function Diagnostics() {
 
   return (
     <div className="flex flex-col gap-10">
-      <Card className="flex flex-col gap-5">
-        <SectionTitle hue={0}>{cx('settings.diagnostics.systemTitle')}</SectionTitle>
+      <Card hue={0} className="flex flex-col gap-5">
+        <SectionTitle>{cx('settings.diagnostics.systemTitle')}</SectionTitle>
         <p className="text-sm text-carbon-textSub">{cx('settings.diagnostics.subtitle')}</p>
 
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
@@ -139,10 +139,9 @@ export function Diagnostics() {
         {error && <span className="text-sm text-statusFail">{error}</span>}
       </Card>
 
-      <Card padding="none">
+      <Card hue={1} padding="none">
         <div className="p-5 pb-0">
           <SectionTitle
-            hue={1}
             hint={cx('settings.diagnostics.logHint', { n: data.logCapacity })}
             right={<Button kind="ghost" onClick={reload}>{cx('settings.diagnostics.refresh')}</Button>}
           >

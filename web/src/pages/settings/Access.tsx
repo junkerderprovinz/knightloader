@@ -193,8 +193,8 @@ export function Access() {
       <TokensSection cx={cx} />
 
       {listeners.length > 0 && (
-          <Card className="flex flex-col gap-4">
-            <SectionTitle hue={6} hint={cx('settings.access.intakePortsHint')}>
+          <Card hue={6} className="flex flex-col gap-4">
+            <SectionTitle hint={cx('settings.access.intakePortsHint')}>
               {tx('settings.sectionIntakePorts')}
             </SectionTitle>
             {listeners.map((m) => {
@@ -268,7 +268,7 @@ function PasswordCard({ cx }: { cx: (k: PendingKey) => string }) {
   const locked = auth?.enabled ?? false;
 
   return (
-      <Card className="flex flex-col gap-5">
+      <Card hue={0} className="flex flex-col gap-5">
         {/* Status stays a visible, at-a-glance line rather than moving fully
             into the bubble (jdp, 2026-08-26: "in eine i infobubble und
             schöner beschreiben") - whether this instance is protected is
@@ -276,7 +276,7 @@ function PasswordCard({ cx }: { cx: (k: PendingKey) => string }) {
             password actually guards against) moves into the title's own
             hint bubble, with nicer wording than the old lockOff sentence it
             replaces. */}
-        <SectionTitle hue={0} hint={t('settings.lockHint')}>
+        <SectionTitle hint={t('settings.lockHint')}>
           {t('auth.password')}
         </SectionTitle>
         {locked && (
@@ -372,8 +372,8 @@ function IdentityCard({ cx }: { cx: (k: PendingKey) => string }) {
   const { cfg, patch } = useDraft();
 
   return (
-    <Card className="flex flex-col gap-5">
-      <SectionTitle hue={2}>{cx('settings.access.identity.title')}</SectionTitle>
+    <Card hue={2} className="flex flex-col gap-5">
+      <SectionTitle>{cx('settings.access.identity.title')}</SectionTitle>
       <Field label={cx('settings.access.identity.nameLabel')} hint={cx('settings.access.identity.nameHint')}>
         <TextInput
           placeholder={cx('settings.access.identity.namePlaceholder')}
@@ -525,7 +525,7 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
   if (!conn) return null;
 
   return (
-    <Card className="flex flex-col gap-4">
+    <Card hue={1} className="flex flex-col gap-4">
       {/* Two labelled bubbles in the title's own right slot, stacked (jdp,
           2026-08-27: "Der button Soll heißen 'Wie funktioniert das?' und
           rechts oben in der card sein. darunter soll noch ein button sein als
@@ -568,7 +568,7 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
         />
       </div>
 
-      <SectionTitle hue={1} hint={t('settings.access.phrase.body')}>
+      <SectionTitle hint={t('settings.access.phrase.body')}>
         {t('settings.access.cardTitle')}
       </SectionTitle>
 
@@ -839,8 +839,8 @@ function TokensSection({ cx }: { cx: (k: PendingKey) => string }) {
 
   return (
     <>
-      <Card className="flex flex-col gap-3">
-        <SectionTitle hue={5} hint={cx('settings.access.tokens.intro')}>
+      <Card hue={5} className="flex flex-col gap-3">
+        <SectionTitle hint={cx('settings.access.tokens.intro')}>
           {cx('settings.access.tokens.title')}
         </SectionTitle>
         {tokens.length === 0 ? (

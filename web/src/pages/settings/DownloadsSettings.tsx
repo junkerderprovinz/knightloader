@@ -90,8 +90,8 @@ export function DownloadsSettings() {
           keinen Allgemein Tab: das alles in den Download Tab verschieben") -
           where files land and what happens to a link the moment it arrives,
           the pair a new install has to answer before anything else works. */}
-      <Card className="flex flex-col gap-5">
-        <SectionTitle hue={0}>{t('settings.downloads.locationTitle')}</SectionTitle>
+      <Card hue={0} className="flex flex-col gap-5">
+        <SectionTitle>{t('settings.downloads.locationTitle')}</SectionTitle>
         <Field
           label={t('settings.downloadDir')}
           hint={`${t('settings.downloadDirHint')} ${t('settings.pathVars')}`}
@@ -113,8 +113,8 @@ export function DownloadsSettings() {
         />
       </Card>
 
-      <Card className="flex flex-col gap-5">
-        <SectionTitle hue={1}>{tx('settings.sectionIntake')}</SectionTitle>
+      <Card hue={1} className="flex flex-col gap-5">
+        <SectionTitle>{tx('settings.sectionIntake')}</SectionTitle>
         {/* This toggle has always meant "skip the collector", which is
             autoConfirm's job since Wave 8 split the old single autoStart flag
             in three (settings.go's own doc comment). Binding it to the new,
@@ -125,8 +125,8 @@ export function DownloadsSettings() {
         <ToggleRow checked={cfg.autoConfirm} onChange={(v) => patch({ autoConfirm: v })} label={t('settings.autoStart')} />
       </Card>
 
-      <Card className="flex flex-col gap-5">
-        <SectionTitle hue={2}>{t('settings.downloads.limitsTitle')}</SectionTitle>
+      <Card hue={2} className="flex flex-col gap-5">
+        <SectionTitle>{t('settings.downloads.limitsTitle')}</SectionTitle>
         {/* The three counts that decide how much is open at once, together
             because they are read together: two downloads on one host, each
             pulled over eight sockets, is sixteen connections to that host and
@@ -207,8 +207,8 @@ export function DownloadsSettings() {
         </div>
       </Card>
 
-      <Card className="flex flex-col gap-5">
-        <SectionTitle hue={3}>{t('settings.downloads.watchTitle')}</SectionTitle>
+      <Card hue={3} className="flex flex-col gap-5">
+        <SectionTitle>{t('settings.downloads.watchTitle')}</SectionTitle>
         {/* Disabled rather than hidden: a field that vanishes teaches nobody
             that the folder watch exists, and the module page is where it is
             switched — which the info bubble says. */}
@@ -234,8 +234,8 @@ export function DownloadsSettings() {
       </Card>
 
       {idleActions.length > 0 && (
-          <Card className="flex flex-col gap-5">
-          <SectionTitle hue={4}>{t('settings.downloads.idleTitle')}</SectionTitle>
+          <Card hue={4} className="flex flex-col gap-5">
+          <SectionTitle>{t('settings.downloads.idleTitle')}</SectionTitle>
           {/* No useT() label on the group itself either - see this file's
               IDLE_ACTION_LABELS comment above for why. */}
           <FieldGroup

@@ -17,7 +17,8 @@
 // UNLESS "Overrule" is on - the destination always wins regardless, because a
 // folder picked by hand here is not a property the form and a rule are
 // contending over. See app.LinkBatchOptions's own comment for the mechanism.
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
+import { hueVars, rainbowAt } from '../lib/appearance';
 import {
   addLinksWithOptions,
   priorityChoices,
@@ -201,9 +202,12 @@ export function AddLinksForm({
           button row has its own px-4 pb-4 inset - none of them are flush
           against this card's own rounded edge the way a clip would exist
           to protect against. */}
-      <div className="glim-card flex flex-1 flex-col p-0">
+      {/* A hand-rolled card rather than <Card>, so the palette position is set
+          here by hand - same contract either way: the class and the properties
+          travel together, or `.glim-hue` resolves --accent to nothing. */}
+      <div className="glim-card glim-hue flex flex-1 flex-col p-0" style={hueVars(rainbowAt(0)) as CSSProperties}>
         <div className="px-4 pt-3">
-          <SectionTitle hue={0}>{t('collector.addTitle')}</SectionTitle>
+          <SectionTitle>{t('collector.addTitle')}</SectionTitle>
         </div>
         <div
           onDragOver={(e) => {

@@ -525,9 +525,8 @@ export function Schedule() {
 
       <StateBanner live={live} cx={cx} locale={locale} />
 
-      <Card className="flex flex-col gap-4">
+      <Card hue={1} className="flex flex-col gap-4">
         <SectionTitle
-          hue={1}
           right={
             <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
               {cx('settings.schedule.add')}
@@ -610,8 +609,8 @@ function StateBanner({
     : cx('settings.schedule.noNextChange');
   const active = state.paused || state.limit > 0;
   return (
-      <Card className="flex items-center gap-3">
-        <SectionTitle hue={0}>{cx('settings.schedule.statusTitle')}</SectionTitle>
+      <Card hue={0} className="flex items-center gap-3">
+        <SectionTitle>{cx('settings.schedule.statusTitle')}</SectionTitle>
         <span className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${active ? 'bg-accent' : 'bg-carbon-textMuted'}`} aria-hidden />
         <div className="flex min-w-0 flex-col gap-0.5">
           <span className="text-sm text-carbon-text">{nowText}</span>
