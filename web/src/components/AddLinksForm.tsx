@@ -233,7 +233,7 @@ export function AddLinksForm({
           />
           {dragOver && (
             <div className="pointer-events-none absolute inset-0 grid place-items-center rounded-[var(--radius-control)]">
-              <span className="flex items-center gap-2 text-sm font-medium text-accent">
+              <span className="flex items-center gap-2 text-sm font-medium text-accentInk">
                 <IconCollector width={18} height={18} />
                 {t('collector.add')}
               </span>

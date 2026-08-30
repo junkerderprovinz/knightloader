@@ -40,6 +40,11 @@
   --color-accent: var(--accent);
   --color-accentContrast: var(--accent-contrast);
   --color-accentSoft: var(--accent-soft);
+  /* text-accentInk: the accent where the colour is READ rather than filled
+     (GlimStone 1.5.0). Which one a place wants needs no thought: on a
+     `background` it is accent, on `color`/`fill`/`stroke` against the page it
+     is accentInk. */
+  --color-accentInk: var(--accent-ink);
 
   --color-statusOk: var(--status-ok-text);
   --color-statusOkBg: var(--status-ok-bg);
@@ -122,6 +127,18 @@
   --accent:            #FCC419;
   --accent-contrast:   #161616;
   --accent-soft:       rgba(252, 196, 25, 0.14);
+  /* The accent used AS INK — accent-coloured text, a line-drawn glyph on the
+     page's own ground — rather than a fill with computed ink on top
+     (GlimStone 1.5.0). On a dark ground both jobs want the same colour; the
+     light theme is where they part.
+
+     The theme sets only --ink-mix, and every --accent-ink in this file is the
+     same one-line mix over it. That is what keeps the rainbow blocks below
+     from each needing a light-theme twin: --ink-mix is inherited from <html>,
+     so one declaration is correct in both themes. 100% of a colour mixed with
+     black is that colour exactly. */
+  --ink-mix:           100%;
+  --accent-ink:        color-mix(in srgb, var(--accent) var(--ink-mix), black);
 
   /* Four state hues, Carbon's dark support tones — the same greens and reds the
      siblings use, so "finished" is one colour across the whole family.
@@ -179,9 +196,13 @@
     --carbon-text-muted: #6f6f6f;
     --sidebar-text:      #393939;
 
-    --accent:            #8E6A00;
-    --accent-contrast:   #ffffff;
-    --accent-soft:       rgba(142, 106, 0, 0.12);
+    /* The accent is the accent in both themes; only the INK is darkened
+       (GlimStone 1.5.0). See the [data-theme="light"] mirror below for the
+       full reasoning - the two blocks carry identical values on purpose. */
+    --accent:            #FCC419;
+    --accent-contrast:   #161616;
+    --accent-soft:       rgba(252, 196, 25, 0.14);
+    --ink-mix:           55%;
 
     --status-info-text:    #8E6A00;
     --status-info-bg:      rgba(142, 106, 0, 0.12);
@@ -232,12 +253,24 @@
   --carbon-text-muted: #6f6f6f;
   --sidebar-text:      #393939;
 
-  /* The dark accent is a yellow, and a yellow on white is unreadable at 11px.
-     Carbon's own answer is to darken the hue rather than pick another one, so
-     the accent stays recognisably the same colour across the two themes. */
-  --accent:            #8E6A00;
-  --accent-contrast:   #ffffff;
-  --accent-soft:       rgba(142, 106, 0, 0.12);
+  /* The accent is the accent in BOTH themes (GlimStone 1.5.0). It marks
+     activity, and a filled badge in Sunflower with computed near-black ink on
+     top reads perfectly well on a white page. What does not work on white is
+     that same yellow used as TEXT at 11px - and darkening the one token to fix
+     that painted every filled thing olive-brown instead (jdp, 2026-08-30: "Die
+     gelbe akzentfarbe ist im hellen modus ganz dunkel"). One token, two jobs.
+     The fill keeps the colour; the ink gets its own token, derived so it
+     follows a colour somebody picked as well as the default.
+
+     55% toward black, measured against white - the palest ground here:
+     Sunflower lands at 4.95:1 and every accent preset clears 4.5:1. It also
+     computes to #8B6C0E, within a shade of the #8E6A00 the single token used
+     to be, which is the check that this generalises the old rule rather than
+     replacing it. */
+  --accent:            #FCC419;
+  --accent-contrast:   #161616;
+  --accent-soft:       rgba(252, 196, 25, 0.14);
+  --ink-mix:           55%;
 
   --status-info-text:    #8E6A00;
   --status-info-bg:      rgba(142, 106, 0, 0.12);
@@ -439,6 +472,16 @@ body {
   --color-accent: var(--item-hue);
   --color-accentContrast: var(--item-hue-ink);
   --color-accentSoft: var(--item-hue-soft);
+  /* --accent-ink has the SAME problem for a second reason: a custom property
+     whose value contains var() is substituted where it is DECLARED, so the
+     one on :root already computed itself against :root's own accent. Without
+     these two lines a hued card would take its position on every fill and
+     keep the single accent on every piece of accent-coloured text - the
+     rainbow half applied, which is exactly what the position-on-the-container
+     rule exists to end. One line per token and no light-theme twin, because
+     --ink-mix is inherited from <html> and already says which theme this is. */
+  --accent-ink: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+  --color-accentInk: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
 }
 
 /* Opt-in: the element's glyph takes the hue too. Scoped to a second class
@@ -452,7 +495,7 @@ body {
    colour here on purpose — eight tinted labels beside eight tinted counts is a
    colour chart, not a filter. */
 [data-rainbow] .glim-hue-icon:not(.glim-active) svg {
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 /* The rule above stays unconditional in every mode by design — Reactive is
    the one exception, and it gets its own explicit rest/hover pair layered on
@@ -470,7 +513,7 @@ body {
 }
 [data-rainbow='reactive'] .glim-hue-icon:hover:not(.glim-active) svg,
 [data-rainbow='reactive'] .glim-hue-icon:focus-within:not(.glim-active) svg {
-  color: var(--accent);
+  color: var(--accent-ink);
 }
 
 /* Opt-in: the row is WASHED with its hue rather than ruled with a line at its
@@ -548,9 +591,11 @@ body {
   --accent: var(--carbon-text-muted);
   --accent-contrast: var(--carbon-bg);
   --accent-soft: transparent;
+  --accent-ink: var(--carbon-text-muted);
   --color-accent: var(--carbon-text-muted);
   --color-accentContrast: var(--carbon-bg);
   --color-accentSoft: transparent;
+  --color-accentInk: var(--carbon-text-muted);
 }
 [data-rainbow='reactive'] .glim-hue:hover,
 [data-rainbow='reactive'] .glim-hue:focus-within,
@@ -561,6 +606,13 @@ body {
   --color-accent: var(--item-hue);
   --color-accentContrast: var(--item-hue-ink);
   --color-accentSoft: var(--item-hue-soft);
+  /* Restated, and it has to be: the resting reactive rule above muted the ink
+     as well, and it matches at the same specificity as the plain
+     [data-rainbow] .glim-hue block while coming later in the file. Without
+     these two lines the fill would come back on hover and the accent-coloured
+     text inside it would stay grey. */
+  --accent-ink: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+  --color-accentInk: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
 }
 
 /* SectionTitle's own notch badge (ui.tsx), in reactive mode.

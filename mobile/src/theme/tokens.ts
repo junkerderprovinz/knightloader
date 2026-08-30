@@ -98,32 +98,31 @@ export const LIGHT: Palette = {
  * unreadable at 11px whichever yellow it is.
  *
  * So the accent stays the accent, and this is the second token: the same hue,
- * scaled toward black until it clears 4.5:1 against white - the worst light
- * ground in the palette. Sunflower comes out at very nearly the old constant,
- * which is the check that this generalises the rule rather than replacing it,
- * and it now applies to a colour somebody picked as well as to the default.
- * In dark mode there is nothing to solve and the accent is returned as given.
+ * 55% of the way to black. In dark mode there is nothing to solve and the
+ * accent is returned as given.
+ *
+ * The 55% is not a number picked here. It is GlimStone 1.5.0's own
+ * `color-mix(in srgb, var(--accent) var(--ink-mix), black)`, and this function
+ * exists only because React Native has no color-mix to read it from. A first
+ * cut darkened iteratively until the result cleared 4.5:1 against white,
+ * which sounds better and is worse: it agrees with the CSS on Sunflower and
+ * diverges on every other preset (Blue stops at #1D7CC5 where the CSS lands on
+ * #105486), so the app and its own web interface would show two different
+ * blues for one setting. One design language means one rule, even where the
+ * rule is arithmetically the cruder of the two.
+ *
+ * Measured against white, the palest ground in the palette: Sunflower lands at
+ * 4.95:1 and all five accent presets clear 4.5:1. Sunflower also comes out at
+ * #8B6C0E, within a shade of the #8E6A00 the single old token used to be.
  */
 export function inkFor(hex: string): string {
   const m = /^#([0-9a-fA-F]{6})$/.exec(hex);
   if (!m) return hex;
   const n = parseInt(m[1], 16);
-  let r = (n >> 16) & 255;
-  let g = (n >> 8) & 255;
-  let b = n & 255;
-  const lin = (v: number) => {
-    const x = v / 255;
-    return x <= 0.04045 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
-  };
-  const lum = () => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
-  // 1.05 / (L + 0.05) >= 4.5  =>  L <= 0.1833. The loop is bounded: forty
-  // steps of 8% reach black from anything, and a colour that is already dark
-  // enough leaves on the first check.
-  for (let i = 0; i < 40 && lum() > 0.1833; i++) {
-    r = Math.round(r * 0.92);
-    g = Math.round(g * 0.92);
-    b = Math.round(b * 0.92);
-  }
+  const mix = (c: number) => Math.round(c * 0.55);
+  const r = mix((n >> 16) & 255);
+  const g = mix((n >> 8) & 255);
+  const b = mix(n & 255);
   return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0').toUpperCase()}`;
 }
 

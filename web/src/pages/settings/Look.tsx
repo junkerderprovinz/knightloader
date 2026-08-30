@@ -864,7 +864,7 @@ function UpdateCard() {
           <span className="text-sm text-statusOk">{t('settings.look.updatesCurrent', { version: check.current })}</span>
         )}
         {check && check.checked && check.available && check.url && (
-          <a href={check.url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-accent hover:underline">
+          <a href={check.url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-accentInk hover:underline">
             {t(isDesktop ? 'settings.look.updatesAvailable' : 'settings.look.updatesAvailableContainer', { version: check.latest ?? '' })}
           </a>
         )}
