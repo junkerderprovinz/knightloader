@@ -23,8 +23,8 @@ export function InstancesTab() {
 
   return (
     <div className="flex flex-col">
-      <Card className="flex flex-col gap-3">
-        <SectionTitle hue={0}>{t('settings.instances.setupTitle')}</SectionTitle>
+      <Card hue={0} className="flex flex-col gap-3">
+        <SectionTitle>{t('settings.instances.setupTitle')}</SectionTitle>
         <ToggleRow
           label={t('settings.instances.showInSidebar')}
           hint={t('settings.instances.showInSidebarHint')}

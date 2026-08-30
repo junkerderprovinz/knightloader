@@ -200,8 +200,8 @@ export function Torrents() {
         {cx('settings.torrents.engineNote')}
       </div>
 
-      <Card className="flex flex-col gap-5">
-        <SectionTitle hue={0}>{cx('settings.torrents.seedingTitle')}</SectionTitle>
+      <Card hue={0} className="flex flex-col gap-5">
+        <SectionTitle>{cx('settings.torrents.seedingTitle')}</SectionTitle>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={cx('settings.torrents.seedRatio')} hint={cx('settings.torrents.seedRatioHint')}>
             <NumberInput
@@ -228,8 +228,8 @@ export function Torrents() {
         </div>
       </Card>
 
-      <Card className="flex flex-col gap-5">
-        <SectionTitle hue={1}>{cx('settings.torrents.transferTitle')}</SectionTitle>
+      <Card hue={1} className="flex flex-col gap-5">
+        <SectionTitle>{cx('settings.torrents.transferTitle')}</SectionTitle>
         <Field label={cx('settings.torrents.uploadLimit')} hint={cx('settings.torrents.uploadLimitHint')}>
           <div className="flex items-center gap-2">
             <NumberInput
@@ -244,8 +244,8 @@ export function Torrents() {
         </Field>
       </Card>
 
-      <Card className="flex flex-col gap-5">
-        <SectionTitle hue={2}>{cx('settings.torrents.portTitle')}</SectionTitle>
+      <Card hue={2} className="flex flex-col gap-5">
+        <SectionTitle>{cx('settings.torrents.portTitle')}</SectionTitle>
         <Field label={cx('settings.torrents.port')} hint={cx('settings.torrents.portHint')}>
           <NumberInput
             value={tr.port}
@@ -257,8 +257,8 @@ export function Torrents() {
         <PortMapPanel cx={cx} port={tr.port} />
       </Card>
 
-      <Card className="flex flex-col gap-4">
-        <SectionTitle hue={3}>{cx('settings.torrents.networkTitle')}</SectionTitle>
+      <Card hue={3} className="flex flex-col gap-4">
+        <SectionTitle>{cx('settings.torrents.networkTitle')}</SectionTitle>
         <ToggleRow
           checked={tr.dhtEnabled}
           onChange={(v) => write({ dhtEnabled: v })}

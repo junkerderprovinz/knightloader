@@ -222,8 +222,8 @@ export function Rules() {
 
   return (
     <div className="flex flex-col gap-10">
-      <Card className="flex flex-col gap-4">
-        <SectionTitle hue={0}>{rx('settings.rules.setupTitle')}</SectionTitle>
+      <Card hue={0} className="flex flex-col gap-4">
+        <SectionTitle>{rx('settings.rules.setupTitle')}</SectionTitle>
         <div className="flex flex-wrap items-center gap-4">
           <Segments
             label={rx('settings.rules.flavourLabel')}
@@ -271,9 +271,8 @@ export function Rules() {
         </div>
       </Card>
 
-      <Card className="flex flex-col gap-4">
+      <Card hue={1} className="flex flex-col gap-4">
         <SectionTitle
-          hue={1}
           right={
             <div className="flex items-center gap-2">
               {/* One InfoBubble per button rather than folding both into the
@@ -551,9 +550,8 @@ function TestBox({
     setSamples(samples.map((s, j) => (j === i ? { ...s, ...fields } : s)));
 
   return (
-    <Card className="flex flex-col gap-4">
+    <Card hue={2} className="flex flex-col gap-4">
       <SectionTitle
-        hue={2}
         right={
           <Button kind="secondary" icon={<IconPlus width={14} height={14} />} onClick={() => setSamples([...samples, emptySample()])}>
             {rx('settings.rules.testAdd')}

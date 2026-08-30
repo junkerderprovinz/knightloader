@@ -158,8 +158,8 @@ export function Accounts() {
     <div className="flex flex-col gap-10">
       <PageHeader title={t('accounts.title')} />
 
-      <Card className="flex flex-col gap-3">
-        <SectionTitle hue={0} hint={t('accounts.debrid.hint')}>
+      <Card hue={0} className="flex flex-col gap-3">
+        <SectionTitle hint={t('accounts.debrid.hint')}>
           {t('accounts.debrid.title')}
         </SectionTitle>
         {debridRows.length > 0 ? (
@@ -190,8 +190,8 @@ export function Accounts() {
         )}
       </Card>
 
-      <Card className="flex flex-col gap-3">
-        <SectionTitle hue={1} hint={t('accounts.hoster.hint')}>
+      <Card hue={1} className="flex flex-col gap-3">
+        <SectionTitle hint={t('accounts.hoster.hint')}>
           {t('accounts.hoster.title')}
         </SectionTitle>
         <HosterLoginSection />
@@ -748,8 +748,8 @@ function RoutingSection({ catalogue }: { catalogue: CatalogueService[] }) {
     // and 3 below so the whole page runs 0-1-2-3 with no skip, matching
     // every other multi-card settings page (Look.tsx, Access.tsx).
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      <Card className="flex flex-col gap-3">
-        <SectionTitle hue={2} hint={t('accounts.routing.priorityHint')}>{t('accounts.routing.priorityTitle')}</SectionTitle>
+      <Card hue={2} className="flex flex-col gap-3">
+        <SectionTitle hint={t('accounts.routing.priorityHint')}>{t('accounts.routing.priorityTitle')}</SectionTitle>
         {priority === null ? (
           <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>
         ) : priority.length === 0 ? (
@@ -766,8 +766,8 @@ function RoutingSection({ catalogue }: { catalogue: CatalogueService[] }) {
         )}
       </Card>
 
-      <Card className="flex flex-col gap-3">
-        <SectionTitle hue={3} hint={t('accounts.routing.jdHint')}>
+      <Card hue={3} className="flex flex-col gap-3">
+        <SectionTitle hint={t('accounts.routing.jdHint')}>
           {t('accounts.routing.jdTitle')}
         </SectionTitle>
         {jd === null ? (

@@ -287,9 +287,8 @@ export function CollectorFacetSidebar({
   const activeCount = facetActiveCount(selection);
 
   return (
-    <Card className="flex w-full shrink-0 flex-col gap-4 lg:w-64">
+    <Card hue={2} className="flex w-full shrink-0 flex-col gap-4 lg:w-64">
       <SectionTitle
-        hue={2}
         hint={cx('collector.facets.hint')}
         right={
           activeCount > 0 && (

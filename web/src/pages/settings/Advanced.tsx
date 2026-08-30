@@ -135,9 +135,9 @@ export function Advanced() {
         )}
       </div>
 
-      <Card padding="none">
+      <Card hue={0} padding="none">
         <div className="p-5 pb-0">
-          <SectionTitle hue={0}>{tx('settings.advanced.allSettings')}</SectionTitle>
+          <SectionTitle>{tx('settings.advanced.allSettings')}</SectionTitle>
         </div>
         {/* The table scrolls inside its own box. A key path plus a value editor
             is wider than a phone, and letting the page scroll sideways instead

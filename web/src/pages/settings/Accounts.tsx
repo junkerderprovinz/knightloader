@@ -28,8 +28,8 @@ export function AccountsTab() {
 
   return (
     <div className="flex flex-col">
-      <Card className="flex flex-col gap-3">
-        <SectionTitle hue={0}>{t('settings.accounts.setupTitle')}</SectionTitle>
+      <Card hue={0} className="flex flex-col gap-3">
+        <SectionTitle>{t('settings.accounts.setupTitle')}</SectionTitle>
         <ToggleRow
           label={t('settings.accounts.showInSidebar')}
           hint={t('settings.accounts.showInSidebarHint')}

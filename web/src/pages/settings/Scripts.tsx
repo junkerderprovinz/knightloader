@@ -257,9 +257,8 @@ export function Scripts() {
     <div className="flex flex-col gap-10">
       <PageHeader title={cx('settings.scripts.title')} subtitle={cx('settings.scripts.subtitle')} />
 
-      <Card className="flex flex-col gap-4">
+      <Card hue={0} className="flex flex-col gap-4">
         <SectionTitle
-          hue={0}
           right={
             <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
               {cx('settings.scripts.add')}

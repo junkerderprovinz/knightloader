@@ -231,9 +231,8 @@ export function Connections() {
 
   return (
     <div className="flex flex-col gap-10">
-      <Card className="flex flex-col gap-4">
+      <Card hue={0} className="flex flex-col gap-4">
         <SectionTitle
-          hue={0}
           right={
             <div className="flex items-center gap-2">
               <Button kind="secondary" onClick={() => setImporting(true)}>

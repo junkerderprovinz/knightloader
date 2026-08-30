@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Button, Card, ErrorCard, InfoBubble, Modal, SectionTitle, Toggle, ToggleRow } from '../../components/ui';
 import { Tabs } from '../../components/Tabs';
+import { openColorPickerPopover } from '../../lib/colorPicker';
 import { LanguagePicker } from '../../components/LanguagePicker';
 import {
   type DeploymentInfo,
@@ -187,8 +188,8 @@ export function Look() {
           Bombvault-Testcontainer!!!", then, when the WRONG container had
           been the reference all along: "Nein das ist falsch! Hier ist der
           Testcontainer erreichbar..."). */}
-      <Card className="flex flex-col gap-3">
-        <SectionTitle hue={0} hint={t('settings.shapeHint')}>
+      <Card hue={0} className="flex flex-col gap-3">
+        <SectionTitle hint={t('settings.shapeHint')}>
           {t('settings.shape')}
         </SectionTitle>
         {/* The well variant (Tabs.tsx) - one shared padded track, equal
@@ -223,8 +224,8 @@ export function Look() {
           pointer instead of on the next navigation - the sidebar renders
           outside this page's provider entirely and cannot see the draft at
           all. See lib/navLabels.ts. */}
-      <Card className="flex flex-col gap-3">
-        <SectionTitle hue={9} hint={t('settings.navLabels.hint')}>
+      <Card hue={9} className="flex flex-col gap-3">
+        <SectionTitle hint={t('settings.navLabels.hint')}>
           {t('settings.navLabels.title')}
         </SectionTitle>
         <Tabs
@@ -251,8 +252,8 @@ export function Look() {
           lib/appearance.ts). hue=8 reuses the slot the Backup/Restore merge
           below just freed, rather than renumbering every other card's own
           fixed position in the sequence for one new row. */}
-      <Card className="flex flex-col gap-3">
-        <SectionTitle hue={8} hint={t('settings.motion.hint')}>
+      <Card hue={8} className="flex flex-col gap-3">
+        <SectionTitle hint={t('settings.motion.hint')}>
           {t('settings.motion.title')}
         </SectionTitle>
         <Tabs
@@ -274,8 +275,8 @@ export function Look() {
         />
       </Card>
 
-      <Card className="flex flex-col gap-4">
-        <SectionTitle hue={1}>{t('settings.colours')}</SectionTitle>
+      <Card hue={1} className="flex flex-col gap-4">
+        <SectionTitle>{t('settings.colours')}</SectionTitle>
 
         {/* One row, not a label above a row of its own (jdp: "Akzentfarbe:
             die Farbfelder nicht in eine neue Zeile sondern rechts von dem
@@ -295,26 +296,20 @@ export function Look() {
             {t('settings.accent')}
             <InfoBubble tip={t('settings.accentHint')} />
           </span>
-          {/* The current/custom accent trigger - a plain circle, no
-              selection ring of its own (the real container doesn't give it
-              one either), a native colour input as the invisible click
-              target. Not GlimStone's documented popover picker
-              (reference/colorPicker.ts) - that has no KnightLoader port
-              yet, and building one is a separate, dedicated piece of work
-              rather than something to fold into a visual-parity pass. */}
-          <span
-            className="relative inline-flex h-6 w-6 shrink-0 overflow-hidden rounded-[var(--radius-pill)] border-2 border-carbon-border"
+          {/* The current/custom accent trigger - a plain circle, no selection
+              ring of its own, opening the app's own picker. It used to hide a
+              native colour input behind it, with a note saying the documented
+              popover had no port here yet. It has one now
+              (lib/colorPicker.ts), so the note and the native input are both
+              gone. */}
+          <button
+            type="button"
+            className="relative inline-flex h-6 w-6 shrink-0 cursor-pointer overflow-hidden rounded-[var(--radius-pill)]"
             title={t('settings.accent')}
-          >
-            <span aria-hidden className="pointer-events-none absolute inset-0" style={{ backgroundColor: accentLive }} />
-            <input
-              type="color"
-              value={accentLive}
-              onChange={(e) => patch({ accent: e.target.value })}
-              aria-label={t('settings.accent')}
-              className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-            />
-          </span>
+            aria-label={t('settings.accent')}
+            style={{ backgroundColor: accentLive }}
+            onClick={(e) => openColorPickerPopover(e.currentTarget, accentLive, (hex) => patch({ accent: hex }))}
+          />
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs text-carbon-textMuted">{t('settings.accentPresets')}:</span>
             {ACCENTS.map((a) => (
@@ -411,30 +406,28 @@ export function Look() {
                 <InfoBubble tip={t('settings.rainbowPaletteHint')} />
               </span>
               {palette.map((hex, i) => (
-                <label
+                // A real button carrying its own accessible name, opening the
+                // app's own picker. It used to be a label wrapping a native
+                // colour input, which meant the name had to sit on the input
+                // rather than on the thing being pressed - and the border-2
+                // hairline went with it, since surfaces here are separated by
+                // shade, never by a drawn line.
+                <button
                   key={i}
+                  type="button"
+                  disabled={!cfg.rainbow}
                   title={`${t('settings.rainbowPalette')} ${i + 1}`}
-                  className="relative h-7 w-7 shrink-0 overflow-hidden rounded-[var(--radius-pill)] border-2 border-carbon-border"
+                  aria-label={`${t('settings.rainbowPalette')} ${i + 1}`}
+                  className="relative h-7 w-7 shrink-0 cursor-pointer overflow-hidden rounded-[var(--radius-pill)] disabled:cursor-not-allowed"
                   style={{ backgroundColor: hex }}
-                >
-                  <input
-                    type="color"
-                    value={hex}
-                    disabled={!cfg.rainbow}
-                    // The label wrapping this input carries no text content
-                    // (its `title` is a hover-only tooltip), so without an
-                    // accessible name of its own the actually-focusable
-                    // element here - this input, not the label - announced
-                    // nothing to a screen reader.
-                    aria-label={`${t('settings.rainbowPalette')} ${i + 1}`}
-                    onChange={(e) => {
-                      const next = palette.slice();
-                      next[i] = e.target.value;
-                      patch({ rainbowPalette: next });
-                    }}
-                    className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
-                  />
-                </label>
+                  onClick={(e) =>
+                    openColorPickerPopover(e.currentTarget, hex, (next) => {
+                      const list = palette.slice();
+                      list[i] = next;
+                      patch({ rainbowPalette: list });
+                    })
+                  }
+                />
               ))}
               <button
                 type="button"
@@ -453,13 +446,13 @@ export function Look() {
         {saveError && <p className="text-xs text-statusFail">{t('settings.look.saveFailed', { error: saveError })}</p>}
       </Card>
 
-      <Card className="flex flex-col gap-3">
-        <SectionTitle hue={2}>{t('notifications.quiet')}</SectionTitle>
+      <Card hue={2} className="flex flex-col gap-3">
+        <SectionTitle>{t('notifications.quiet')}</SectionTitle>
         <QuietModeToggle />
       </Card>
 
-      <Card className="flex flex-col gap-3">
-        <SectionTitle hue={3}>{t('lang.label')}</SectionTitle>
+      <Card hue={3} className="flex flex-col gap-3">
+        <SectionTitle>{t('lang.label')}</SectionTitle>
         {/* standalone: OnboardingWizard.tsx mounts a second, simultaneous
             instance of this same component - see LanguagePicker.tsx's own
             doc comment for why that needs its own local open/closed state
@@ -471,8 +464,8 @@ export function Look() {
         />
       </Card>
 
-      <Card className="flex flex-col gap-3">
-        <SectionTitle hue={4}>{t('settings.theme')}</SectionTitle>
+      <Card hue={4} className="flex flex-col gap-3">
+        <SectionTitle>{t('settings.theme')}</SectionTitle>
         <Tabs
           label={t('settings.theme')}
           variant="well"
@@ -558,8 +551,8 @@ function SystemCards() {
 
   if (shuttingDown) {
     return (
-      <Card className="flex flex-col gap-3">
-        <SectionTitle hue={6}>{t('settings.system.shuttingDownTitle')}</SectionTitle>
+      <Card hue={6} className="flex flex-col gap-3">
+        <SectionTitle>{t('settings.system.shuttingDownTitle')}</SectionTitle>
         <p className="text-sm text-carbon-text">{t('settings.system.shuttingDown')}</p>
       </Card>
     );
@@ -573,7 +566,7 @@ function SystemCards() {
           the one fact worth keeping, what quit/restart actually do on THIS
           deployment, still shows right below, now as the card's own hint
           rather than data.note's raw English. */}
-      <Card className="flex flex-col gap-3">
+      <Card hue={6} className="flex flex-col gap-3">
         {/* What quit/restart actually do here used to print data.note
             straight from the wire - internal/api/routes_lifecycle.go's own
             deploymentInfo() hardcodes that sentence in English regardless of
@@ -583,7 +576,6 @@ function SystemCards() {
             the unavailable reason still wins when there is one, since a
             control that cannot be used at all is the more urgent fact. */}
         <SectionTitle
-          hue={6}
           hint={
             !data.canQuit || !data.canRestart
               ? t('settings.system.unavailable')
@@ -625,8 +617,8 @@ function SystemCards() {
           standalone Cards (hue 7 and hue 8) merged into hue 7 alone; nothing
           after this needed hue 8 any more than the Motion card above needed a
           fresh one of its own. */}
-      <Card className="flex flex-col gap-3">
-        <SectionTitle hue={7} hint={t('settings.system.backupRestoreHint')}>
+      <Card hue={7} className="flex flex-col gap-3">
+        <SectionTitle hint={t('settings.system.backupRestoreHint')}>
           {t('settings.system.backupRestoreTitle')}
         </SectionTitle>
         <input
@@ -826,8 +818,8 @@ function UpdateCard() {
   const canInstallNow = isDesktop && !installed && check?.checked && check.available;
 
   return (
-    <Card className="flex flex-col gap-3">
-      <SectionTitle hue={5} hint={t('settings.look.updatesHint')}>
+    <Card hue={5} className="flex flex-col gap-3">
+      <SectionTitle hint={t('settings.look.updatesHint')}>
         {t('settings.look.updatesTitle')}
       </SectionTitle>
       <div className="flex items-center justify-between gap-4">

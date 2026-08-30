@@ -62,8 +62,8 @@ export function BrowserTools() {
 
   return (
     <div className="flex flex-col gap-10">
-      <Card className="flex flex-col gap-3">
-        <SectionTitle hue={0}>{t('settings.browsertools.bookmarkletTitle')}</SectionTitle>
+      <Card hue={0} className="flex flex-col gap-3">
+        <SectionTitle>{t('settings.browsertools.bookmarkletTitle')}</SectionTitle>
         {/* A real numbered list, not a flowing paragraph - jdp: "Bitte
             aufzählungen immer untereinander", the same rule the install
             steps below now follow too. */}
@@ -103,9 +103,8 @@ export function BrowserTools() {
         </div>
       </Card>
 
-      <Card className="flex flex-col gap-4">
+      <Card hue={1} className="flex flex-col gap-4">
         <SectionTitle
-          hue={1}
           right={extensionVersion && <span className="glim-num text-[11px] text-carbon-textMuted">v{extensionVersion}</span>}
         >
           {t('settings.browsertools.extensionTitle')}
@@ -164,14 +163,13 @@ function AppCard() {
   const iOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 
   return (
-    <Card className="flex flex-col gap-4">
+    <Card hue={3} className="flex flex-col gap-4">
       {/* The app's own version, beside the title exactly as the extension card
           carries the extension's (jdp, 2026-08-27: "Die Versionsnummer bitte
           auch in der App card anzeigen"). Read from mobile/app.json at build
           time, never typed here - see vite.config.ts for why that distinction
           is load-bearing rather than tidy. */}
       <SectionTitle
-        hue={3}
         hint={t('settings.browsertools.appBody')}
         right={<span className="glim-num text-[11px] text-carbon-textMuted">v{__MOBILE_VERSION__}</span>}
       >

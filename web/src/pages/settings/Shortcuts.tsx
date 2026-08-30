@@ -91,9 +91,9 @@ export function Shortcuts() {
 
   return (
     <div className="flex flex-col gap-10">
-      <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <Card hue={0} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-1">
-          <SectionTitle hue={0}>{t('settings.nav.shortcuts')}</SectionTitle>
+          <SectionTitle>{t('settings.nav.shortcuts')}</SectionTitle>
           <p className="text-sm text-carbon-textSub">{t('settings.shortcuts.subtitle')}</p>
         </div>
         <Button kind="secondary" className="shrink-0" disabled={!hasOverrides} onClick={() => setConfirmResetAll(true)}>
@@ -116,9 +116,9 @@ export function Shortcuts() {
               wanted, right under the badge. The rows below still divide
               from EACH OTHER exactly as before - only the title-to-first-row
               seam lost its line. */}
-          <Card padding="none" className="flex flex-col">
+          <Card hue={i + 1} padding="none" className="flex flex-col">
             <div className="p-5 pb-0">
-              <SectionTitle hue={i + 1}>{groupLabel(t, group)}</SectionTitle>
+              <SectionTitle>{groupLabel(t, group)}</SectionTitle>
             </div>
             <div className="flex flex-col divide-y divide-carbon-border/60">
               {cmds.map((cmd) => (

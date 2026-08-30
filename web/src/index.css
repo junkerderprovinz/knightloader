@@ -563,28 +563,38 @@ body {
   --color-accentSoft: var(--item-hue-soft);
 }
 
-/* SectionTitle's own notch badge (ui.tsx) is a special case of the rest/hover
-   pair above: it is a small pill that sits HALF OVER its card's own top
-   edge, so the plain `.glim-hue:hover` target above is a sliver nobody can
-   aim at reliably - the hover has to land on that exact overlapping strip,
-   not the card it titles. `.glim-section-badge` is the marker SectionTitle
-   adds alongside `.glim-hue` for exactly this (never present alone), so the
-   widened hover target below only ever applies to a card's own title badge,
-   never to some other hued element (a list row, an icon) that merely
-   happens to share the same card - proximity to the card is not enough on
-   its own, the element has to be the title badge itself. `.glim-card` is
-   SectionTitle's required ancestor already (position: relative anchors the
-   badge, see .glim-card's own comment above), so hovering or focusing
-   anywhere in that card re-colours the badge the same way directly
-   hovering it already does. Composes with the rest/hover pair above rather
-   than replacing it: this is additional matches, not a narrower one -
-   source order puts it after that pair for readability, though the doubled
-   class on `.glim-section-badge.glim-hue` already outranks the bare
-   `.glim-hue:hover` selector regardless of order (jdp: "Die
-   cardabschnittbadges sollen im reaktiven modus immer farbig sein sobald
-   man in deren card ist. system weit! Alle checken!"). */
-[data-rainbow='reactive'] .glim-card:hover .glim-section-badge.glim-hue,
-[data-rainbow='reactive'] .glim-card:focus-within .glim-section-badge.glim-hue {
+/* SectionTitle's own notch badge (ui.tsx), in reactive mode.
+ *
+ * The card owns the palette position now (GlimStone 1.4.0), so in NORMAL
+ * rainbow mode the badge simply inherits it along with everything else the
+ * card holds - no rule needed. Reactive mode is the one case that still wants
+ * its own pair, because the badge must stay quiet at rest and light up when
+ * its card is touched: it is a small pill sitting HALF OVER the card's top
+ * edge, so the plain `.glim-hue:hover` target is a sliver nobody can aim at,
+ * and jdp asked for the wider target outright ("Die cardabschnittbadges
+ * sollen im reaktiven modus immer farbig sein sobald man in deren card ist.
+ * system weit! Alle checken!").
+ *
+ * Addressed as `.glim-card.glim-hue .glim-section-badge` rather than by a
+ * class on the badge itself: that selector is true exactly when there is an
+ * inherited position to use, so the six cards in this app that carry no
+ * position keep the plain accent instead of resolving --accent to nothing.
+ *
+ * This pair used to be one rule that only ADDED the hover colour, because the
+ * badge muted itself through its own `.glim-hue`. With the position on the
+ * card, the resting mute has to be stated here too - otherwise reactive mode
+ * would leave every badge fully coloured at rest, which is the one thing the
+ * mode exists not to do. */
+[data-rainbow='reactive'] .glim-card.glim-hue .glim-section-badge {
+  --accent: var(--carbon-text-muted);
+  --accent-contrast: var(--carbon-bg);
+  --accent-soft: transparent;
+  --color-accent: var(--carbon-text-muted);
+  --color-accentContrast: var(--carbon-bg);
+  --color-accentSoft: transparent;
+}
+[data-rainbow='reactive'] .glim-card.glim-hue:hover .glim-section-badge,
+[data-rainbow='reactive'] .glim-card.glim-hue:focus-within .glim-section-badge {
   --accent: var(--item-hue);
   --accent-contrast: var(--item-hue-ink);
   --accent-soft: var(--item-hue-soft);
@@ -1003,4 +1013,96 @@ body {
      so both genuinely share one rule's worth of declarations rather than
      data-motion="off" inventing a second, separately-maintained copy. */
   .glim-live { animation: none; opacity: 1; }
+}
+
+/* ---------------------------------------------------------------------------
+   The colour picker (lib/colorPicker.ts), copied from the shared reference
+   (glimstone/reference/tokens.css) so both halves stay one control. It
+   replaces the native <input type="color"> the Look page used to hide behind
+   a swatch: a native picker hands its surface to the OS, which on Windows is
+   a separate top-level window, and nothing automated can prove it opened.
+   One divergence from the reference: no hairline around the saturation
+   square. Surfaces here are separated by shade, never by a drawn line.
+   --------------------------------------------------------------------------- */
+.glim-picker {
+  width: 100%;
+  min-width: 0;
+}
+.glim-picker-sv {
+  position: relative;
+  height: 7rem;
+  border-radius: var(--radius-control);
+  cursor: crosshair;
+}
+.glim-picker-dot {
+  position: absolute;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin: -0.375rem 0 0 -0.375rem;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 3px rgba(0, 0, 0, .8);
+  pointer-events: none;
+}
+.glim-picker-hue {
+  position: relative;
+  height: 0.875rem;
+  margin-top: 0.5rem;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+  cursor: pointer;
+}
+.glim-picker-hdot {
+  position: absolute;
+  top: -0.125rem;
+  width: 0.5rem;
+  height: 1.125rem;
+  margin-left: -0.25rem;
+  background: #fff;
+  border-radius: calc(var(--radius-control) / 2);
+  box-shadow: 0 0 3px rgba(0, 0, 0, .8);
+  pointer-events: none;
+}
+
+/* The floating popover openColorPickerPopover() renders the picker into -
+   a fixed-position panel, own elevated surface (same recipe as .glim-card:
+   one raised level, one hairline, one shadow), sized to the picker's own
+   natural width rather than stretching to whatever's beneath it. Column
+   flex: the picker itself, then the hex field below it. */
+.glim-picker-popover {
+  position: fixed;
+  z-index: 2147483647;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background-color: var(--carbon-surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--elevation);
+}
+.glim-picker-popover .glim-picker {
+  width: 13.75rem;
+}
+
+/* The hex field beside the picker (CannonadeCommand's own cc-set-hexin) -
+   a plain borderless filled field (rule 14), monospace so every hex digit
+   lines up, uppercase-styled via letter-spacing/text-transform rather than
+   forcing the stored value's own case. */
+.glim-picker-hex {
+  appearance: none;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.4rem 0.6rem;
+  border: none;
+  border-radius: var(--radius-control);
+  background-color: var(--carbon-surface2);
+  color: var(--carbon-text);
+  font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+  font-size: var(--text-caption);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.glim-picker-hex:focus {
+  outline: none;
+  background-color: var(--carbon-hover);
 }

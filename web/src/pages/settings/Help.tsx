@@ -34,8 +34,8 @@ function Topic({
   hue?: number;
 }) {
   return (
-      <Card className="flex flex-col gap-3">
-        <SectionTitle hue={hue}>{title}</SectionTitle>
+      <Card hue={hue} className="flex flex-col gap-3">
+        <SectionTitle>{title}</SectionTitle>
         <div className="flex flex-col gap-2 text-sm text-carbon-textSub">{children}</div>
         {links && links.length > 0 && (
           <div className="flex flex-wrap gap-x-4 gap-y-1 pt-1">
