@@ -1041,6 +1041,7 @@ export const da: Dict = {
   'activity.linkcheck': 'Tjek af links',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Automatisk bekræftelse',
+  'activity.container': 'Containere',
   'activity.pending': '{n} venter',
   'activity.ofTotal': '{n} af {total}',
   'activity.tooltipHint': '{active} aktive af {total} i denne omgang',

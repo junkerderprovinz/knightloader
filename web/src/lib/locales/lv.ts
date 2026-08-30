@@ -1041,6 +1041,7 @@ export const lv: Dict = {
   'activity.linkcheck': 'Saišu pārbaude',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Automātisks apstiprinājums',
+  'activity.container': 'Konteineri',
   'activity.pending': '{n} gaida',
   'activity.ofTotal': '{n} no {total}',
   'activity.tooltipHint': '{active} aktīvi no {total} šajā reizē',

@@ -1041,6 +1041,7 @@ export const ro: Dict = {
   'activity.linkcheck': 'Verificare linkuri',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Confirmare automată',
+  'activity.container': 'Containere',
   'activity.pending': '{n} în așteptare',
   'activity.ofTotal': '{n} din {total}',
   'activity.tooltipHint': '{active} active din {total} în această rundă',

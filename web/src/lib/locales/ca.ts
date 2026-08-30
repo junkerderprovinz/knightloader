@@ -1041,6 +1041,7 @@ export const ca: Dict = {
   'activity.linkcheck': 'Comprovació d’enllaços',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Confirmació automàtica',
+  'activity.container': 'Contenidors',
   'activity.pending': '{n} esperant',
   'activity.ofTotal': '{n} de {total}',
   'activity.tooltipHint': '{active} actius de {total} en aquesta tanda',

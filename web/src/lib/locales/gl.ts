@@ -1041,6 +1041,7 @@ export const gl: Dict = {
   'activity.linkcheck': 'Comprobación de ligazóns',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Confirmación automática',
+  'activity.container': 'Contedores',
   'activity.pending': '{n} agardando',
   'activity.ofTotal': '{n} de {total}',
   'activity.tooltipHint': '{active} activas de {total} nesta quenda',

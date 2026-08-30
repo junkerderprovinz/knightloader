@@ -1041,6 +1041,7 @@ export const is: Dict = {
   'activity.linkcheck': 'Athugar tengla',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Sjálfvirk staðfesting',
+  'activity.container': 'Gámar',
   'activity.pending': '{n} bíða',
   'activity.ofTotal': '{n} af {total}',
   'activity.tooltipHint': '{active} virk af {total} í þessari lotu',

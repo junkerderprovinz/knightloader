@@ -1033,6 +1033,7 @@ export const pt: Dict = {
   'activity.linkcheck': 'A verificar ligações',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Confirmação automática',
+  'activity.container': 'Contentores',
   'activity.pending': '{n} em espera',
   'activity.ofTotal': '{n} de {total}',
   'activity.tooltipHint': '{active} ativas de {total} nesta sessão',

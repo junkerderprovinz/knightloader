@@ -1041,6 +1041,7 @@ export const id: Dict = {
   'activity.linkcheck': 'Memeriksa tautan',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Konfirmasi otomatis',
+  'activity.container': 'Kontainer',
   'activity.pending': '{n} menunggu',
   'activity.ofTotal': '{n} dari {total}',
   'activity.tooltipHint': '{active} aktif dari {total} pada sesi ini',

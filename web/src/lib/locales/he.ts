@@ -1043,6 +1043,7 @@ export const he: Dict = {
   'activity.linkcheck': 'בדיקת קישורים',
   'activity.captcha': 'קאפצ׳ה',
   'activity.autoconfirm': 'אישור אוטומטי',
+  'activity.container': 'מכולות',
   'activity.pending': '{n} ממתינות',
   'activity.ofTotal': '{n} מתוך {total}',
   'activity.tooltipHint': '{active} פעילות מתוך {total} בסבב הזה',

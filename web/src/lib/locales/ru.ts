@@ -1033,6 +1033,7 @@ export const ru: Dict = {
   'activity.linkcheck': 'Проверка ссылок',
   'activity.captcha': 'Капча',
   'activity.autoconfirm': 'Автоподтверждение',
+  'activity.container': 'Контейнеры',
   'activity.pending': '{n} в очереди',
   'activity.ofTotal': '{n} из {total}',
   'activity.tooltipHint': '{active} активно из {total} за этот запуск',

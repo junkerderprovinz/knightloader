@@ -1041,6 +1041,7 @@ export const sv: Dict = {
   'activity.linkcheck': 'Kontroll av länkar',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Automatisk bekräftelse',
+  'activity.container': 'Containrar',
   'activity.pending': '{n} väntar',
   'activity.ofTotal': '{n} av {total}',
   'activity.tooltipHint': '{active} aktiva av {total} den här omgången',

@@ -1041,6 +1041,7 @@ export const th: Dict = {
   'activity.linkcheck': 'กำลังตรวจสอบลิงก์',
   'activity.captcha': 'แคปช่า',
   'activity.autoconfirm': 'ยืนยันอัตโนมัติ',
+  'activity.container': 'คอนเทนเนอร์',
   'activity.pending': '{n} รอ',
   'activity.ofTotal': '{n} จาก {total}',
   'activity.tooltipHint': 'รอบนี้ทำงานอยู่ {active} จาก {total}',

@@ -1041,6 +1041,7 @@ export const zh: Dict = {
   'activity.linkcheck': '正在检查链接',
   'activity.captcha': '验证码',
   'activity.autoconfirm': '自动确认',
+  'activity.container': '容器',
   'activity.pending': '{n} 个等待中',
   'activity.ofTotal': '{total} 中的 {n} 个',
   'activity.tooltipHint': '本次共 {total} 个，{active} 个进行中',

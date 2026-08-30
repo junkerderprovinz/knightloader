@@ -1033,6 +1033,7 @@ export const nl: Dict = {
   'activity.linkcheck': 'Links controleren',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Automatisch bevestigen',
+  'activity.container': 'Containers',
   'activity.pending': '{n} wachten',
   'activity.ofTotal': '{n} van {total}',
   'activity.tooltipHint': '{active} actief van {total} in deze sessie',

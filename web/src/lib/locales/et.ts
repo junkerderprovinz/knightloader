@@ -1041,6 +1041,7 @@ export const et: Dict = {
   'activity.linkcheck': 'Linkide kontroll',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Automaatne kinnitamine',
+  'activity.container': 'Konteinerid',
   'activity.pending': '{n} ootab',
   'activity.ofTotal': '{n}/{total}',
   'activity.tooltipHint': '{active} aktiivset {total}-st selles ringis',

@@ -1041,6 +1041,7 @@ export const sk: Dict = {
   'activity.linkcheck': 'Kontrola odkazov',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Automatické potvrdzovanie',
+  'activity.container': 'Kontajnery',
   'activity.pending': '{n} čakajúcich',
   'activity.ofTotal': '{n} z {total}',
   'activity.tooltipHint': '{active} aktívnych z {total} v tomto behu',

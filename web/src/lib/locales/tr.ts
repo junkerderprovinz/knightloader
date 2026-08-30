@@ -1041,6 +1041,7 @@ export const tr: Dict = {
   'activity.linkcheck': 'Bağlantılar denetleniyor',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Otomatik onay',
+  'activity.container': 'Konteynerler',
   'activity.pending': '{n} bekliyor',
   'activity.ofTotal': '{total} içinden {n}',
   'activity.tooltipHint': 'Bu turda {total} içinden {active} etkin',

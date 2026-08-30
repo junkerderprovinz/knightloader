@@ -1041,6 +1041,7 @@ export const ko: Dict = {
   'activity.linkcheck': '링크 확인 중',
   'activity.captcha': '캡차',
   'activity.autoconfirm': '자동 확인',
+  'activity.container': '컨테이너',
   'activity.pending': '{n}개 대기 중',
   'activity.ofTotal': '{total}개 중 {n}개',
   'activity.tooltipHint': '이번 실행에서 {total}개 중 {active}개 활성',

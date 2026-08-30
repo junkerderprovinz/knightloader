@@ -1041,6 +1041,7 @@ export const el: Dict = {
   'activity.linkcheck': 'Έλεγχος συνδέσμων',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Αυτόματη επιβεβαίωση',
+  'activity.container': 'Κοντέινερ',
   'activity.pending': '{n} σε αναμονή',
   'activity.ofTotal': '{n} από {total}',
   'activity.tooltipHint': '{active} ενεργά από {total} σε αυτόν τον γύρο',

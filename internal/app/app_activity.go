@@ -38,6 +38,11 @@ const (
 	ActivityLinkCheck   ActivityKind = "linkcheck"
 	ActivityCaptcha     ActivityKind = "captcha"
 	ActivityAutoConfirm ActivityKind = "autoconfirm"
+	// ActivityContainer counts encrypted containers handed to the JD backend
+	// and not yet collected. Unlike the four above it is published from the
+	// api package (routes_containers.go owns the relay that knows the count),
+	// which is what SetContainerActivity below exists for.
+	ActivityContainer ActivityKind = "container"
 )
 
 // Activity is the hub's "activity" message: what one kind of ambient work is
@@ -151,6 +156,19 @@ func (a *App) setActivityGauge(kind ActivityKind, n int) {
 	a.Hub.Broadcast("activity", Activity{Kind: kind, Active: n, Total: n})
 }
 
+// SetContainerActivity publishes how many handed-over containers are still
+// waiting to be collected. Exported because the count lives in the api
+// package's own relay (routes_containers.go) rather than in this one - every
+// other kind is published by the app-package code that does the work, but a
+// container's whole lifetime is that relay's map, and duplicating it here
+// would mean two counts that can disagree.
+//
+// A gauge, not a burst: like captcha there is no fixed batch size for "how
+// many are outstanding right now" to be a fraction of.
+func (a *App) SetContainerActivity(n int) {
+	a.setActivityGauge(ActivityContainer, n)
+}
+
 // ActivitySnapshot reports every kind's current counters, including the ones
 // sitting idle at zero. Sent once to a client that just (re)connected - see
 // serveWS - so a browser that was disconnected mid-burst starts from the
@@ -173,4 +191,4 @@ func (a *App) ActivitySnapshot() []Activity {
 
 // activityOrder is every kind ActivitySnapshot reports, fixed so a snapshot
 // is never missing one just because it has never fired on this App yet.
-var activityOrder = []ActivityKind{ActivityCrawl, ActivityLinkCheck, ActivityCaptcha, ActivityAutoConfirm}
+var activityOrder = []ActivityKind{ActivityCrawl, ActivityLinkCheck, ActivityCaptcha, ActivityAutoConfirm, ActivityContainer}

@@ -1041,6 +1041,7 @@ export const ms: Dict = {
   'activity.linkcheck': 'Menyemak pautan',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Pengesahan automatik',
+  'activity.container': 'Kontena',
   'activity.pending': '{n} menunggu',
   'activity.ofTotal': '{n} daripada {total}',
   'activity.tooltipHint': '{active} aktif daripada {total} pada pusingan ini',

@@ -1181,6 +1181,7 @@ export const en = {
   'activity.linkcheck': 'Checking links',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Auto-confirming',
+  'activity.container': 'Containers',
   'activity.pending': '{n} pending',
   'activity.ofTotal': '{n} of {total}',
   'activity.tooltipHint': '{active} active of {total} this run',

@@ -1043,6 +1043,7 @@ export const no: Dict = {
   'activity.linkcheck': 'Sjekk av lenker',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Automatisk bekreftelse',
+  'activity.container': 'Containere',
   'activity.pending': '{n} venter',
   'activity.ofTotal': '{n} av {total}',
   'activity.tooltipHint': '{active} aktive av {total} denne runden',

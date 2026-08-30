@@ -1041,6 +1041,7 @@ export const ja: Dict = {
   'activity.linkcheck': 'リンクを確認中',
   'activity.captcha': 'キャプチャ',
   'activity.autoconfirm': '自動承認',
+  'activity.container': 'コンテナ',
   'activity.pending': '{n} 件待機中',
   'activity.ofTotal': '{total} 件中 {n} 件',
   'activity.tooltipHint': '今回 {total} 件中 {active} 件が処理中',

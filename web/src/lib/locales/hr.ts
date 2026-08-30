@@ -1041,6 +1041,7 @@ export const hr: Dict = {
   'activity.linkcheck': 'Provjera poveznica',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Automatska potvrda',
+  'activity.container': 'Spremnici',
   'activity.pending': '{n} na čekanju',
   'activity.ofTotal': '{n} od {total}',
   'activity.tooltipHint': '{active} aktivnih od {total} u ovom krugu',

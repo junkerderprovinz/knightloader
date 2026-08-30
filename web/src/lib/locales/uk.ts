@@ -1041,6 +1041,7 @@ export const uk: Dict = {
   'activity.linkcheck': 'Перевірка посилань',
   'activity.captcha': 'Капча',
   'activity.autoconfirm': 'Автопідтвердження',
+  'activity.container': 'Контейнери',
   'activity.pending': '{n} в очікуванні',
   'activity.ofTotal': '{n} з {total}',
   'activity.tooltipHint': '{active} активних з {total} за цей запуск',
