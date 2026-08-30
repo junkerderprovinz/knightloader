@@ -27,6 +27,10 @@ export const is: Dict = {
   'instance.offline': 'ótengt',
   'downloads.start': 'Byrja',
   'downloads.stop': 'Stöðva',
+  'downloads.tabDownloads': 'Niðurhal',
+  'downloads.tabCollector': 'Safnari',
+  'packages.loose': 'Án pakka',
+  'packages.start': 'Byrja þennan pakka',
 
   'addDownload.title': 'Bæta við tenglum',
   'addDownload.titlePeer': 'Bæta við tenglum – {name}',

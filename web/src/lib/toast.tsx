@@ -20,7 +20,7 @@
 // sitting in the queue, the account strip or the list that caused it, so
 // nothing is lost by swallowing the bubble.
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Button, Toggle } from '../components/ui';
+import { Button, InfoBubble, Toggle } from '../components/ui';
 import { IconClose } from './icons';
 import { useT, type TranslationKey } from './i18n';
 import { useUIState } from './uistate';
@@ -245,16 +245,21 @@ export function QuietModeToggle() {
   const nx = useNx();
   const [quiet, setQuiet] = useUIState(QUIET_KEY, false);
   return (
-    <div className="flex items-start justify-between gap-4">
-      {/* Normal body text, matching every other row's own caption (e.g.
-          Rainbow's "Regenbogen-Modus") - was text-xs/muted, which read as
-          a small secondary caption when it is actually this row's only
-          text (jdp: "bitte normal formatieren, wie die Schrift von zb
-          Regenbogen-Modus"). */}
-      <span className="text-sm text-carbon-text">{nx('notifications.quietHint')}</span>
-      <span className="mt-0.5">
-        <Toggle hideLabel checked={quiet} onChange={setQuiet} label={nx('notifications.quiet')} />
+    <div className="flex items-center justify-between gap-4">
+      {/* The row's NAME plus a bubble, not the explanation as the label
+          (GlimStone 1.4.0: every explanatory text is a bubble). This row used
+          to carry two lines of prose where a label belongs - true, read once,
+          and costing that vertical space forever. It was normal body text
+          rather than a small caption for a good reason at the time (jdp:
+          "bitte normal formatieren, wie die Schrift von zb Regenbogen-Modus"),
+          and that reason survives: the label IS normal body text now. The
+          sentence moved behind the "(i)", where it is available to exactly the
+          person who wants it. */}
+      <span className="flex items-center gap-1.5 text-sm text-carbon-text">
+        {nx('notifications.quiet')}
+        <InfoBubble tip={nx('notifications.quietHint')} />
       </span>
+      <Toggle hideLabel checked={quiet} onChange={setQuiet} label={nx('notifications.quiet')} />
     </div>
   );
 }

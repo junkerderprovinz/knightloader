@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { fetchQueue, liveTasks, setQueueHalted } from '../api/client';
 import type { Instance, QueueState, ServerConnection, Task } from '../api/types';
-import TaskRow from '../components/TaskRow';
+import PackageList from '../components/PackageList';
+import { WellSelector } from '../components/glim';
 import { useAppearance } from '../theme/AppearanceContext';
+import { contentMax, useWide } from '../theme/layout';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import IconBadge, { Gear, Trash } from '../components/IconBadge';
 import SpeedGraph from '../components/SpeedGraph';
 import { fmtBytes } from '../api/stats';
+import { startTasks } from '../api/client';
 
 // peer, when set, means this screen is showing a FEDERATION PEER of conn
 // rather than conn's own queue: base becomes the proxy prefix
@@ -39,14 +42,22 @@ export default function DownloadsScreen({
 }) {
   const { t } = useT();
   const { c, accent, accentInk, accentContrast, radii } = useAppearance();
+  const wide = useWide();
   const base = peer ? `/api/instances/${encodeURIComponent(peer.name)}` : '/api';
   const [tasks, setTasks] = useState<Task[]>([]);
   const [connected, setConnected] = useState(false);
   const [queue, setQueue] = useState<QueueState | null>(null);
   const [queueBusy, setQueueBusy] = useState(false);
+  // Which half of the instance is on screen (jdp, 2026-08-30: "Zwei tabs soll
+  // es geben: Dowload und Sammler"). The two are one task list with one status
+  // telling them apart - "collected" means staged and not started - so this is
+  // a filter over what already streams, not a second request.
+  const [tab, setTab] = useState<'downloads' | 'collector'>('downloads');
   // Summed from the task list this screen already streams: no second request,
   // and no second truth about the same number.
   const speed = tasks.reduce((n, t) => n + (t.speed || 0), 0);
+  const collected = tasks.filter((x) => x.status === 'collected');
+  const queued = tasks.filter((x) => x.status !== 'collected');
 
   useEffect(() => {
     setConnected(false);
@@ -143,7 +154,11 @@ export default function DownloadsScreen({
         </View>
       </View>
 
-      <View style={[styles.queueBar, { backgroundColor: c.surface, borderRadius: radii.card }]}>
+      {/* On a tablet the queue bar and the graph sit side by side: they are
+          two readings of the same thing, and stacking them on a screen with
+          room to spare pushes the list that matters further down. */}
+      <View style={wide ? styles.wideHeader : undefined}>
+      <View style={[styles.queueBar, { backgroundColor: c.surface, borderRadius: radii.card }, wide && styles.half]}>
         <Text style={[styles.queueLabel, { color: c.textMuted }]}>
           {queue ? (queue.halted ? t('downloads.queueHalted') : t('downloads.queueRunning')) : '—'}
           {queue && queue.running > 0 ? ` · ${t('downloads.queueActive', { n: queue.running })}` : ''}
@@ -171,20 +186,45 @@ export default function DownloadsScreen({
           die geschwindigkeit anzeigen wenn der download läuft"). An idle graph
           is a row of nothing that still costs the height of a graph. */}
       {speed > 0 && (
-        <View style={styles.graph}>
+        <View style={[styles.graph, wide && styles.half]}>
           <SpeedGraph speed={speed} />
         </View>
       )}
+      </View>
 
-      <FlatList
-        data={tasks}
-        keyExtractor={(t) => t.id}
-        renderItem={({ item, index }) => <TaskRow task={item} index={index} />}
-        contentContainerStyle={styles.list}
-        ListEmptyComponent={
-          <Text style={[styles.empty, { color: c.textMuted }]}>
-            {connected ? t('downloads.empty') : t('downloads.emptyConnecting')}
-          </Text>
+      {/* The strip only appears once there is something staged: a tab that is
+          always empty is a tab that teaches you to ignore the strip. */}
+      {collected.length > 0 && (
+        <View style={styles.tabs}>
+          <WellSelector
+            options={[
+              { value: 'downloads', label: t('downloads.tabDownloads') },
+              { value: 'collector', label: `${t('downloads.tabCollector')} (${collected.length})` },
+            ]}
+            value={tab}
+            onPick={(v) => setTab(v)}
+          />
+        </View>
+      )}
+
+      {/* Grouped into packages, not one row per link. A container is ONE thing
+          somebody added; a flat list of its hundred files says nothing about
+          what was added. Same reasoning as the web interface and JDownloader. */}
+      <PackageList
+        tasks={tab === 'collector' && collected.length > 0 ? collected : queued}
+        empty={connected ? t('downloads.empty') : t('downloads.emptyConnecting')}
+        onStartPackage={
+          tab === 'collector' && collected.length > 0
+            ? async (pkg) => {
+                // Straight into the queue and out of this tab (jdp: "der klick
+                // auf den playbutton verschiebt den order in den downloadtab
+                // und startet den download"). Switching tabs first would leave
+                // somebody looking at a collector that is one package emptier
+                // for no visible reason.
+                await startTasks(conn, pkg.tasks.map((x) => x.id), base).catch(() => {});
+                setTab('downloads');
+              }
+            : undefined
         }
       />
 
@@ -203,11 +243,11 @@ export default function DownloadsScreen({
 // One column stretched across a tablet is a card 900 points wide with its
 // text at one edge and its badge at the other. A cap plus centring costs a
 // phone nothing (640 is wider than every phone) and makes a tablet readable.
-const wide = { width: '100%' as const, maxWidth: 640, alignSelf: 'center' as const };
+const capped = { width: '100%' as const, maxWidth: 640, alignSelf: 'center' as const };
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  topBar: { ...wide,
+  topBar: { ...capped,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
@@ -220,7 +260,7 @@ const styles = StyleSheet.create({
   title: { fontSize: TYPE.heading, fontWeight: '600' },
   connState: { fontSize: TYPE.dense, marginTop: 2 },
   link: { fontSize: 13, fontWeight: '600' },
-  queueBar: { ...wide,
+  queueBar: { ...capped,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -230,10 +270,13 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   queueLabel: { fontSize: 13 },
-  graph: { ...wide, marginHorizontal: 16, marginBottom: 10 },
+  graph: { ...capped, marginHorizontal: 16, marginBottom: 10 },
+  tabs: { ...capped, marginHorizontal: 16, marginBottom: 10 },
+  wideHeader: { flexDirection: 'row', alignSelf: 'center', width: '100%', maxWidth: 980, paddingHorizontal: 0 },
+  half: { flex: 1, maxWidth: undefined },
   // The same height as the badges beside it, so the row reads as one set.
   linkButton: { height: 36, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center' },
-  list: { ...wide, paddingHorizontal: 16, paddingBottom: 96 },
+  list: { ...capped, paddingHorizontal: 16, paddingBottom: 96 },
   empty: { textAlign: 'center', marginTop: 48 },
   fab: {
     position: 'absolute',

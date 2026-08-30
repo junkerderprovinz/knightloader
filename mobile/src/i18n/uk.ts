@@ -27,6 +27,10 @@ export const uk: Dict = {
   'instance.offline': 'поза мережею',
   'downloads.start': 'Запустити',
   'downloads.stop': 'Зупинити',
+  'downloads.tabDownloads': 'Завантаження',
+  'downloads.tabCollector': 'Збирач',
+  'packages.loose': 'Без пакета',
+  'packages.start': 'Запустити цей пакет',
 
   'addDownload.title': 'Додати посилання',
   'addDownload.titlePeer': 'Додати посилання – {name}',

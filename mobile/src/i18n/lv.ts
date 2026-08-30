@@ -27,6 +27,10 @@ export const lv: Dict = {
   'instance.offline': 'bezsaistē',
   'downloads.start': 'Sākt',
   'downloads.stop': 'Apturēt',
+  'downloads.tabDownloads': 'Lejupielādes',
+  'downloads.tabCollector': 'Vācējs',
+  'packages.loose': 'Bez pakotnes',
+  'packages.start': 'Sākt šo pakotni',
 
   'addDownload.title': 'Pievienot saites',
   'addDownload.titlePeer': 'Pievienot saites – {name}',

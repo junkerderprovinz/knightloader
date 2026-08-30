@@ -27,6 +27,10 @@ export const th: Dict = {
   'instance.offline': 'ออฟไลน์',
   'downloads.start': 'เริ่ม',
   'downloads.stop': 'หยุด',
+  'downloads.tabDownloads': 'ดาวน์โหลด',
+  'downloads.tabCollector': 'ตัวเก็บ',
+  'packages.loose': 'ไม่มีแพ็กเกจ',
+  'packages.start': 'เริ่มแพ็กเกจนี้',
 
   'addDownload.title': 'เพิ่มลิงก์',
   'addDownload.titlePeer': 'เพิ่มลิงก์ – {name}',

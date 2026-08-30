@@ -27,6 +27,10 @@ export const cs: Dict = {
   'instance.offline': 'offline',
   'downloads.start': 'Spustit',
   'downloads.stop': 'Zastavit',
+  'downloads.tabDownloads': 'Stahování',
+  'downloads.tabCollector': 'Sběrač',
+  'packages.loose': 'Bez balíčku',
+  'packages.start': 'Spustit tento balíček',
 
   'addDownload.title': 'Přidat odkazy',
   'addDownload.titlePeer': 'Přidat odkazy – {name}',

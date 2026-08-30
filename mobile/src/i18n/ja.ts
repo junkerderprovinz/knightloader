@@ -27,6 +27,10 @@ export const ja: Dict = {
   'instance.offline': 'オフライン',
   'downloads.start': '開始',
   'downloads.stop': '停止',
+  'downloads.tabDownloads': 'ダウンロード',
+  'downloads.tabCollector': 'コレクター',
+  'packages.loose': 'パッケージなし',
+  'packages.start': 'このパッケージを開始',
 
   'addDownload.title': 'リンクを追加',
   'addDownload.titlePeer': 'リンクを追加 – {name}',

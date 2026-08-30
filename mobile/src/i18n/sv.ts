@@ -27,6 +27,10 @@ export const sv: Dict = {
   'instance.offline': 'offline',
   'downloads.start': 'Starta',
   'downloads.stop': 'Stoppa',
+  'downloads.tabDownloads': 'Nedladdningar',
+  'downloads.tabCollector': 'Insamlare',
+  'packages.loose': 'Utan paket',
+  'packages.start': 'Starta detta paket',
 
   'addDownload.title': 'Lägg till länkar',
   'addDownload.titlePeer': 'Lägg till länkar – {name}',

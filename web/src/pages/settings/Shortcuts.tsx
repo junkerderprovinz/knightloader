@@ -93,8 +93,7 @@ export function Shortcuts() {
     <div className="flex flex-col gap-10">
       <Card hue={0} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-1">
-          <SectionTitle>{t('settings.nav.shortcuts')}</SectionTitle>
-          <p className="text-sm text-carbon-textSub">{t('settings.shortcuts.subtitle')}</p>
+          <SectionTitle hint={t('settings.shortcuts.subtitle')}>{t('settings.nav.shortcuts')}</SectionTitle>
         </div>
         <Button kind="secondary" className="shrink-0" disabled={!hasOverrides} onClick={() => setConfirmResetAll(true)}>
           {t('settings.shortcuts.resetAll')}

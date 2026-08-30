@@ -136,6 +136,18 @@ export async function fetchQueue(conn: ServerConnection, base = '/api'): Promise
   return request<QueueState>(conn, base, '/queue');
 }
 
+/**
+ * Move collected links into the download queue.
+ *
+ * The collector is a staging area: a link that arrives from a container, a
+ * right-click or the watch folder lands there with status "collected" and does
+ * nothing until somebody says go. This is that "go", per package or for the
+ * whole collector - the same route the web UI's own Start button calls.
+ */
+export async function startTasks(conn: ServerConnection, ids: string[], base = '/api'): Promise<void> {
+  await request(conn, base, '/tasks/start', { method: 'POST', body: JSON.stringify({ ids }) });
+}
+
 export async function setQueueHalted(conn: ServerConnection, halted: boolean, base = '/api'): Promise<QueueState> {
   return request<QueueState>(conn, base, '/queue', {
     method: 'POST',

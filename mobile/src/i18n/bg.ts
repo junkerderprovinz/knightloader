@@ -27,6 +27,10 @@ export const bg: Dict = {
   'instance.offline': 'офлайн',
   'downloads.start': 'Старт',
   'downloads.stop': 'Спри',
+  'downloads.tabDownloads': 'Изтегляния',
+  'downloads.tabCollector': 'Събирач',
+  'packages.loose': 'Без пакет',
+  'packages.start': 'Стартирай пакета',
 
   'addDownload.title': 'Добавяне на връзки',
   'addDownload.titlePeer': 'Добавяне на връзки – {name}',

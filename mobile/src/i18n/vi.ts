@@ -27,6 +27,10 @@ export const vi: Dict = {
   'instance.offline': 'ngoại tuyến',
   'downloads.start': 'Bắt đầu',
   'downloads.stop': 'Dừng',
+  'downloads.tabDownloads': 'Tải xuống',
+  'downloads.tabCollector': 'Bộ thu thập',
+  'packages.loose': 'Không có gói',
+  'packages.start': 'Bắt đầu gói này',
 
   'addDownload.title': 'Thêm liên kết',
   'addDownload.titlePeer': 'Thêm liên kết – {name}',

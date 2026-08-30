@@ -27,6 +27,10 @@ export const id: Dict = {
   'instance.offline': 'luring',
   'downloads.start': 'Mulai',
   'downloads.stop': 'Hentikan',
+  'downloads.tabDownloads': 'Unduhan',
+  'downloads.tabCollector': 'Pengumpul',
+  'packages.loose': 'Tanpa paket',
+  'packages.start': 'Mulai paket ini',
 
   'addDownload.title': 'Tambahkan tautan',
   'addDownload.titlePeer': 'Tambahkan tautan – {name}',

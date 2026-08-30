@@ -27,6 +27,10 @@ export const fa: Dict = {
   'instance.offline': 'آفلاین',
   'downloads.start': 'شروع',
   'downloads.stop': 'توقف',
+  'downloads.tabDownloads': 'دانلودها',
+  'downloads.tabCollector': 'گردآورنده',
+  'packages.loose': 'بدون بسته',
+  'packages.start': 'شروع این بسته',
 
   'addDownload.title': 'افزودن لینک‌ها',
   'addDownload.titlePeer': 'افزودن لینک‌ها – {name}',

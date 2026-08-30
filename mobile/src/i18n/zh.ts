@@ -27,6 +27,10 @@ export const zh: Dict = {
   'instance.offline': '离线',
   'downloads.start': '开始',
   'downloads.stop': '停止',
+  'downloads.tabDownloads': '下载',
+  'downloads.tabCollector': '收集器',
+  'packages.loose': '无软件包',
+  'packages.start': '开始此软件包',
 
   'addDownload.title': '添加链接',
   'addDownload.titlePeer': '添加链接 – {name}',

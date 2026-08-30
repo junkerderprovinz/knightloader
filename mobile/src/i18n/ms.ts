@@ -27,6 +27,10 @@ export const ms: Dict = {
   'instance.offline': 'luar talian',
   'downloads.start': 'Mula',
   'downloads.stop': 'Henti',
+  'downloads.tabDownloads': 'Muat turun',
+  'downloads.tabCollector': 'Pengumpul',
+  'packages.loose': 'Tiada pakej',
+  'packages.start': 'Mulakan pakej ini',
 
   'addDownload.title': 'Tambah pautan',
   'addDownload.titlePeer': 'Tambah pautan – {name}',

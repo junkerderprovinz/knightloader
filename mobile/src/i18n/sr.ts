@@ -27,6 +27,10 @@ export const sr: Dict = {
   'instance.offline': 'ван мреже',
   'downloads.start': 'Покрени',
   'downloads.stop': 'Заустави',
+  'downloads.tabDownloads': 'Преузимања',
+  'downloads.tabCollector': 'Сакупљач',
+  'packages.loose': 'Без пакета',
+  'packages.start': 'Покрени овај пакет',
 
   'addDownload.title': 'Dodaj veze',
   'addDownload.titlePeer': 'Dodaj veze – {name}',

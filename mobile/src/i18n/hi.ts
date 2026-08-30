@@ -27,6 +27,10 @@ export const hi: Dict = {
   'instance.offline': 'ऑफ़लाइन',
   'downloads.start': 'शुरू करें',
   'downloads.stop': 'रोकें',
+  'downloads.tabDownloads': 'डाउनलोड',
+  'downloads.tabCollector': 'संग्राहक',
+  'packages.loose': 'बिना पैकेज',
+  'packages.start': 'यह पैकेज शुरू करें',
 
   'addDownload.title': 'लिंक जोड़ें',
   'addDownload.titlePeer': 'लिंक जोड़ें – {name}',

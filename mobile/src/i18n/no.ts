@@ -27,6 +27,10 @@ export const no: Dict = {
   'instance.offline': 'frakoblet',
   'downloads.start': 'Start',
   'downloads.stop': 'Stopp',
+  'downloads.tabDownloads': 'Nedlastinger',
+  'downloads.tabCollector': 'Samler',
+  'packages.loose': 'Uten pakke',
+  'packages.start': 'Start denne pakken',
 
   'addDownload.title': 'Legg til lenker',
   'addDownload.titlePeer': 'Legg til lenker – {name}',

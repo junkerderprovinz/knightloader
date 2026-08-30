@@ -27,6 +27,10 @@ export const ar: Dict = {
   'instance.offline': 'غير متصل',
   'downloads.start': 'ابدأ',
   'downloads.stop': 'أوقف',
+  'downloads.tabDownloads': 'التنزيلات',
+  'downloads.tabCollector': 'المُجمِّع',
+  'packages.loose': 'بدون حزمة',
+  'packages.start': 'ابدأ هذه الحزمة',
 
   'addDownload.title': 'إضافة روابط',
   'addDownload.titlePeer': 'إضافة روابط – {name}',

@@ -27,6 +27,10 @@ export const el: Dict = {
   'instance.offline': 'εκτός σύνδεσης',
   'downloads.start': 'Έναρξη',
   'downloads.stop': 'Διακοπή',
+  'downloads.tabDownloads': 'Λήψεις',
+  'downloads.tabCollector': 'Συλλέκτης',
+  'packages.loose': 'Χωρίς πακέτο',
+  'packages.start': 'Έναρξη αυτού του πακέτου',
 
   'addDownload.title': 'Προσθήκη συνδέσμων',
   'addDownload.titlePeer': 'Προσθήκη συνδέσμων – {name}',
