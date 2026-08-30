@@ -10,7 +10,6 @@ export const pl: Dict = {
   'connections.empty': 'Nie zapisano jeszcze żadnego połączenia.',
   'connections.emptyButton': 'Dodaj pierwsze połączenie',
   'connections.remove': 'Usuń',
-  'connections.viaRelay': 'przez przekaźnik {relay}',
 
 
   'downloads.connected': 'połączono',
@@ -21,6 +20,13 @@ export const pl: Dict = {
   'downloads.queueActive': '{n} aktywnych',
   'downloads.empty': 'Brak pobrań.',
   'downloads.emptyConnecting': 'Łączenie z serwerem…',
+  'overview.title': 'Wszystkie instancje',
+  'overview.online': '{n}/{total} online',
+  'instance.files': 'plików',
+  'instance.left': 'pozostało',
+  'instance.offline': 'offline',
+  'downloads.start': 'Uruchom',
+  'downloads.stop': 'Zatrzymaj',
 
   'addDownload.title': 'Dodaj linki',
   'addDownload.titlePeer': 'Dodaj linki – {name}',

@@ -11,7 +11,6 @@ export const en = {
   'connections.empty': 'No connection saved yet.',
   'connections.emptyButton': 'Add your first connection',
   'connections.remove': 'Remove',
-  'connections.viaRelay': 'via relay {relay}',
 
   'relay.title': 'Connect with a phrase',
   'relay.hint':
@@ -37,6 +36,13 @@ export const en = {
   'downloads.queueActive': '{n} active',
   'downloads.empty': 'No downloads.',
   'downloads.emptyConnecting': 'Connecting to the server…',
+  'overview.title': 'All instances',
+  'overview.online': '{n}/{total} online',
+  'instance.files': 'files',
+  'instance.left': 'left',
+  'instance.offline': 'offline',
+  'downloads.start': 'Start',
+  'downloads.stop': 'Stop',
 
   'addDownload.title': 'Add links',
   'addDownload.titlePeer': 'Add links – {name}',

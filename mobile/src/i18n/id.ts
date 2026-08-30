@@ -10,7 +10,6 @@ export const id: Dict = {
   'connections.empty': 'Belum ada koneksi yang tersimpan.',
   'connections.emptyButton': 'Tambahkan koneksi pertama Anda',
   'connections.remove': 'Hapus',
-  'connections.viaRelay': 'melalui relai {relay}',
 
 
   'downloads.connected': 'tersambung',
@@ -21,6 +20,13 @@ export const id: Dict = {
   'downloads.queueActive': '{n} aktif',
   'downloads.empty': 'Tidak ada unduhan.',
   'downloads.emptyConnecting': 'Menyambungkan ke server…',
+  'overview.title': 'Semua instans',
+  'overview.online': '{n}/{total} daring',
+  'instance.files': 'berkas',
+  'instance.left': 'tersisa',
+  'instance.offline': 'luring',
+  'downloads.start': 'Mulai',
+  'downloads.stop': 'Hentikan',
 
   'addDownload.title': 'Tambahkan tautan',
   'addDownload.titlePeer': 'Tambahkan tautan – {name}',

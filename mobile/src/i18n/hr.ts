@@ -10,7 +10,6 @@ export const hr: Dict = {
   'connections.empty': 'Još nije spremljena nijedna veza.',
   'connections.emptyButton': 'Dodajte svoju prvu vezu',
   'connections.remove': 'Ukloni',
-  'connections.viaRelay': 'putem releja {relay}',
 
 
   'downloads.connected': 'povezano',
@@ -21,6 +20,13 @@ export const hr: Dict = {
   'downloads.queueActive': '{n} aktivno',
   'downloads.empty': 'Nema preuzimanja.',
   'downloads.emptyConnecting': 'Povezivanje s poslužiteljem…',
+  'overview.title': 'Sve instance',
+  'overview.online': '{n}/{total} na mreži',
+  'instance.files': 'datoteka',
+  'instance.left': 'preostalo',
+  'instance.offline': 'izvan mreže',
+  'downloads.start': 'Pokreni',
+  'downloads.stop': 'Zaustavi',
 
   'addDownload.title': 'Dodaj veze',
   'addDownload.titlePeer': 'Dodaj veze – {name}',

@@ -10,7 +10,6 @@ export const lv: Dict = {
   'connections.empty': 'Vēl nav saglabāts neviens savienojums.',
   'connections.emptyButton': 'Pievienojiet savu pirmo savienojumu',
   'connections.remove': 'Noņemt',
-  'connections.viaRelay': 'caur releju {relay}',
 
 
   'downloads.connected': 'savienots',
@@ -21,6 +20,13 @@ export const lv: Dict = {
   'downloads.queueActive': '{n} aktīvi',
   'downloads.empty': 'Nav lejupielāžu.',
   'downloads.emptyConnecting': 'Savienojas ar serveri…',
+  'overview.title': 'Visi gadījumi',
+  'overview.online': '{n}/{total} tiešsaistē',
+  'instance.files': 'faili',
+  'instance.left': 'atlicis',
+  'instance.offline': 'bezsaistē',
+  'downloads.start': 'Sākt',
+  'downloads.stop': 'Apturēt',
 
   'addDownload.title': 'Pievienot saites',
   'addDownload.titlePeer': 'Pievienot saites – {name}',

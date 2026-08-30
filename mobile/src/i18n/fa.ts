@@ -10,7 +10,6 @@ export const fa: Dict = {
   'connections.empty': 'هنوز هیچ اتصالی ذخیره نشده است.',
   'connections.emptyButton': 'اولین اتصال خود را اضافه کنید',
   'connections.remove': 'حذف',
-  'connections.viaRelay': 'از طریق رله {relay}',
 
 
   'downloads.connected': 'متصل',
@@ -21,6 +20,13 @@ export const fa: Dict = {
   'downloads.queueActive': '{n} فعال',
   'downloads.empty': 'دانلودی وجود ندارد.',
   'downloads.emptyConnecting': 'در حال اتصال به سرور…',
+  'overview.title': 'همه نمونه‌ها',
+  'overview.online': '{n}/{total} آنلاین',
+  'instance.files': 'فایل',
+  'instance.left': 'باقی‌مانده',
+  'instance.offline': 'آفلاین',
+  'downloads.start': 'شروع',
+  'downloads.stop': 'توقف',
 
   'addDownload.title': 'افزودن لینک‌ها',
   'addDownload.titlePeer': 'افزودن لینک‌ها – {name}',

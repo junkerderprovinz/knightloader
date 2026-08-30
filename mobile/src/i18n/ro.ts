@@ -10,7 +10,6 @@ export const ro: Dict = {
   'connections.empty': 'Nicio conexiune salvată încă.',
   'connections.emptyButton': 'Adaugă prima ta conexiune',
   'connections.remove': 'Elimină',
-  'connections.viaRelay': 'prin releul {relay}',
 
 
   'downloads.connected': 'conectat',
@@ -21,6 +20,13 @@ export const ro: Dict = {
   'downloads.queueActive': '{n} active',
   'downloads.empty': 'Nicio descărcare.',
   'downloads.emptyConnecting': 'Se conectează la server…',
+  'overview.title': 'Toate instanțele',
+  'overview.online': '{n}/{total} online',
+  'instance.files': 'fișiere',
+  'instance.left': 'rămase',
+  'instance.offline': 'offline',
+  'downloads.start': 'Pornește',
+  'downloads.stop': 'Oprește',
 
   'addDownload.title': 'Adaugă linkuri',
   'addDownload.titlePeer': 'Adaugă linkuri – {name}',

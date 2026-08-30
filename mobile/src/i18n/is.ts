@@ -10,7 +10,6 @@ export const is: Dict = {
   'connections.empty': 'Engin tenging vistuð ennþá.',
   'connections.emptyButton': 'Bættu við fyrstu tengingunni þinni',
   'connections.remove': 'Fjarlægja',
-  'connections.viaRelay': 'um endurvarpa {relay}',
 
 
   'downloads.connected': 'tengt',
@@ -21,6 +20,13 @@ export const is: Dict = {
   'downloads.queueActive': '{n} virk',
   'downloads.empty': 'Engar niðurhalanir.',
   'downloads.emptyConnecting': 'Tengist netþjóni…',
+  'overview.title': 'Öll tilvik',
+  'overview.online': '{n}/{total} tengd',
+  'instance.files': 'skrár',
+  'instance.left': 'eftir',
+  'instance.offline': 'ótengt',
+  'downloads.start': 'Byrja',
+  'downloads.stop': 'Stöðva',
 
   'addDownload.title': 'Bæta við tenglum',
   'addDownload.titlePeer': 'Bæta við tenglum – {name}',

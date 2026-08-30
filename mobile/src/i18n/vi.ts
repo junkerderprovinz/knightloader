@@ -10,7 +10,6 @@ export const vi: Dict = {
   'connections.empty': 'Chưa có kết nối nào được lưu.',
   'connections.emptyButton': 'Thêm kết nối đầu tiên của bạn',
   'connections.remove': 'Xóa',
-  'connections.viaRelay': 'qua relay {relay}',
 
 
   'downloads.connected': 'đã kết nối',
@@ -21,6 +20,13 @@ export const vi: Dict = {
   'downloads.queueActive': '{n} đang hoạt động',
   'downloads.empty': 'Không có mục tải xuống nào.',
   'downloads.emptyConnecting': 'Đang kết nối với máy chủ…',
+  'overview.title': 'Tất cả phiên bản',
+  'overview.online': '{n}/{total} trực tuyến',
+  'instance.files': 'tệp',
+  'instance.left': 'còn lại',
+  'instance.offline': 'ngoại tuyến',
+  'downloads.start': 'Bắt đầu',
+  'downloads.stop': 'Dừng',
 
   'addDownload.title': 'Thêm liên kết',
   'addDownload.titlePeer': 'Thêm liên kết – {name}',

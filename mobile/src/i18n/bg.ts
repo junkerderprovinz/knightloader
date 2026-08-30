@@ -10,7 +10,6 @@ export const bg: Dict = {
   'connections.empty': 'Все още няма запазена връзка.',
   'connections.emptyButton': 'Добавете първата си връзка',
   'connections.remove': 'Премахни',
-  'connections.viaRelay': 'през реле {relay}',
 
 
   'downloads.connected': 'свързан',
@@ -21,6 +20,13 @@ export const bg: Dict = {
   'downloads.queueActive': '{n} активни',
   'downloads.empty': 'Няма изтегляния.',
   'downloads.emptyConnecting': 'Свързване със сървъра…',
+  'overview.title': 'Всички инстанции',
+  'overview.online': '{n}/{total} на линия',
+  'instance.files': 'файла',
+  'instance.left': 'остават',
+  'instance.offline': 'офлайн',
+  'downloads.start': 'Старт',
+  'downloads.stop': 'Спри',
 
   'addDownload.title': 'Добавяне на връзки',
   'addDownload.titlePeer': 'Добавяне на връзки – {name}',

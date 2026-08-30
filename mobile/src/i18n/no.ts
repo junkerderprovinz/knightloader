@@ -10,7 +10,6 @@ export const no: Dict = {
   'connections.empty': 'Ingen tilkobling lagret ennå.',
   'connections.emptyButton': 'Legg til din første tilkobling',
   'connections.remove': 'Fjern',
-  'connections.viaRelay': 'via relé {relay}',
 
 
   'downloads.connected': 'tilkoblet',
@@ -21,6 +20,13 @@ export const no: Dict = {
   'downloads.queueActive': '{n} aktive',
   'downloads.empty': 'Ingen nedlastinger.',
   'downloads.emptyConnecting': 'Kobler til serveren…',
+  'overview.title': 'Alle instanser',
+  'overview.online': '{n}/{total} tilkoblet',
+  'instance.files': 'filer',
+  'instance.left': 'igjen',
+  'instance.offline': 'frakoblet',
+  'downloads.start': 'Start',
+  'downloads.stop': 'Stopp',
 
   'addDownload.title': 'Legg til lenker',
   'addDownload.titlePeer': 'Legg til lenker – {name}',

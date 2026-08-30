@@ -10,7 +10,6 @@ export const tr: Dict = {
   'connections.empty': 'Henüz kaydedilmiş bir bağlantı yok.',
   'connections.emptyButton': 'İlk bağlantınızı ekleyin',
   'connections.remove': 'Kaldır',
-  'connections.viaRelay': '{relay} rölesi üzerinden',
 
 
   'downloads.connected': 'bağlandı',
@@ -21,6 +20,13 @@ export const tr: Dict = {
   'downloads.queueActive': '{n} etkin',
   'downloads.empty': 'İndirme yok.',
   'downloads.emptyConnecting': 'Sunucuya bağlanıyor…',
+  'overview.title': 'Tüm örnekler',
+  'overview.online': '{n}/{total} çevrimiçi',
+  'instance.files': 'dosya',
+  'instance.left': 'kaldı',
+  'instance.offline': 'çevrimdışı',
+  'downloads.start': 'Başlat',
+  'downloads.stop': 'Durdur',
 
   'addDownload.title': 'Bağlantı ekle',
   'addDownload.titlePeer': 'Bağlantı ekle – {name}',

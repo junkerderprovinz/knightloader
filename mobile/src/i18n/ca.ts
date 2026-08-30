@@ -10,7 +10,6 @@ export const ca: Dict = {
   'connections.empty': "Encara no s'ha desat cap connexió.",
   'connections.emptyButton': 'Afegeix la teva primera connexió',
   'connections.remove': 'Elimina',
-  'connections.viaRelay': 'mitjançant el relé {relay}',
 
 
   'downloads.connected': 'connectat',
@@ -21,6 +20,13 @@ export const ca: Dict = {
   'downloads.queueActive': '{n} actives',
   'downloads.empty': 'No hi ha baixades.',
   'downloads.emptyConnecting': 'Connectant amb el servidor…',
+  'overview.title': 'Totes les instàncies',
+  'overview.online': '{n}/{total} en línia',
+  'instance.files': 'fitxers',
+  'instance.left': 'restants',
+  'instance.offline': 'fora de línia',
+  'downloads.start': 'Inicia',
+  'downloads.stop': 'Atura',
 
   'addDownload.title': 'Afegeix enllaços',
   'addDownload.titlePeer': 'Afegeix enllaços – {name}',

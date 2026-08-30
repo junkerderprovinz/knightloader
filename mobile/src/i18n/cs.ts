@@ -10,7 +10,6 @@ export const cs: Dict = {
   'connections.empty': 'Zatím není uloženo žádné připojení.',
   'connections.emptyButton': 'Přidat první připojení',
   'connections.remove': 'Odebrat',
-  'connections.viaRelay': 'přes relé {relay}',
 
 
   'downloads.connected': 'připojeno',
@@ -21,6 +20,13 @@ export const cs: Dict = {
   'downloads.queueActive': '{n} aktivních',
   'downloads.empty': 'Žádná stahování.',
   'downloads.emptyConnecting': 'Připojování k serveru…',
+  'overview.title': 'Všechny instance',
+  'overview.online': '{n}/{total} online',
+  'instance.files': 'souborů',
+  'instance.left': 'zbývá',
+  'instance.offline': 'offline',
+  'downloads.start': 'Spustit',
+  'downloads.stop': 'Zastavit',
 
   'addDownload.title': 'Přidat odkazy',
   'addDownload.titlePeer': 'Přidat odkazy – {name}',

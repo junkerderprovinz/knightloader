@@ -10,7 +10,6 @@ export const sl: Dict = {
   'connections.empty': 'Še ni shranjene povezave.',
   'connections.emptyButton': 'Dodajte svojo prvo povezavo',
   'connections.remove': 'Odstrani',
-  'connections.viaRelay': 'prek releja {relay}',
 
 
   'downloads.connected': 'povezano',
@@ -21,6 +20,13 @@ export const sl: Dict = {
   'downloads.queueActive': '{n} aktivnih',
   'downloads.empty': 'Ni prenosov.',
   'downloads.emptyConnecting': 'Povezovanje s strežnikom…',
+  'overview.title': 'Vsi primerki',
+  'overview.online': '{n}/{total} povezanih',
+  'instance.files': 'datotek',
+  'instance.left': 'preostalo',
+  'instance.offline': 'brez povezave',
+  'downloads.start': 'Zaženi',
+  'downloads.stop': 'Ustavi',
 
   'addDownload.title': 'Dodaj povezave',
   'addDownload.titlePeer': 'Dodaj povezave – {name}',

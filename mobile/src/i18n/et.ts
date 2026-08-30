@@ -10,7 +10,6 @@ export const et: Dict = {
   'connections.empty': 'Ühtegi ühendust pole veel salvestatud.',
   'connections.emptyButton': 'Lisage oma esimene ühendus',
   'connections.remove': 'Eemalda',
-  'connections.viaRelay': 'relee {relay} kaudu',
 
 
   'downloads.connected': 'ühendatud',
@@ -21,6 +20,13 @@ export const et: Dict = {
   'downloads.queueActive': '{n} aktiivset',
   'downloads.empty': 'Allalaadimisi pole.',
   'downloads.emptyConnecting': 'Ühendumine serveriga…',
+  'overview.title': 'Kõik eksemplarid',
+  'overview.online': '{n}/{total} võrgus',
+  'instance.files': 'faili',
+  'instance.left': 'jäänud',
+  'instance.offline': 'võrguühenduseta',
+  'downloads.start': 'Alusta',
+  'downloads.stop': 'Peata',
 
   'addDownload.title': 'Lisa lingid',
   'addDownload.titlePeer': 'Lisa lingid – {name}',

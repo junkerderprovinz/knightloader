@@ -10,7 +10,6 @@ export const fi: Dict = {
   'connections.empty': 'Yhtään yhteyttä ei ole vielä tallennettu.',
   'connections.emptyButton': 'Lisää ensimmäinen yhteytesi',
   'connections.remove': 'Poista',
-  'connections.viaRelay': 'releen {relay} kautta',
 
 
   'downloads.connected': 'yhdistetty',
@@ -21,6 +20,13 @@ export const fi: Dict = {
   'downloads.queueActive': '{n} aktiivista',
   'downloads.empty': 'Ei latauksia.',
   'downloads.emptyConnecting': 'Yhdistetään palvelimeen…',
+  'overview.title': 'Kaikki instanssit',
+  'overview.online': '{n}/{total} verkossa',
+  'instance.files': 'tiedostoa',
+  'instance.left': 'jäljellä',
+  'instance.offline': 'ei yhteyttä',
+  'downloads.start': 'Aloita',
+  'downloads.stop': 'Pysäytä',
 
   'addDownload.title': 'Lisää linkkejä',
   'addDownload.titlePeer': 'Lisää linkkejä – {name}',

@@ -10,7 +10,6 @@ export const ko: Dict = {
   'connections.empty': '아직 저장된 연결이 없습니다.',
   'connections.emptyButton': '첫 연결 추가하기',
   'connections.remove': '제거',
-  'connections.viaRelay': '릴레이 {relay} 경유',
 
 
   'downloads.connected': '연결됨',
@@ -21,6 +20,13 @@ export const ko: Dict = {
   'downloads.queueActive': '{n}개 활성',
   'downloads.empty': '다운로드가 없습니다.',
   'downloads.emptyConnecting': '서버에 연결하는 중…',
+  'overview.title': '모든 인스턴스',
+  'overview.online': '{n}/{total} 온라인',
+  'instance.files': '개 파일',
+  'instance.left': '남음',
+  'instance.offline': '오프라인',
+  'downloads.start': '시작',
+  'downloads.stop': '중지',
 
   'addDownload.title': '링크 추가',
   'addDownload.titlePeer': '링크 추가 – {name}',

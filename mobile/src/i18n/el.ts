@@ -10,7 +10,6 @@ export const el: Dict = {
   'connections.empty': 'Δεν έχει αποθηκευτεί ακόμη καμία σύνδεση.',
   'connections.emptyButton': 'Προσθέστε την πρώτη σας σύνδεση',
   'connections.remove': 'Αφαίρεση',
-  'connections.viaRelay': 'μέσω αναμεταδότη {relay}',
 
 
   'downloads.connected': 'συνδεδεμένο',
@@ -21,6 +20,13 @@ export const el: Dict = {
   'downloads.queueActive': '{n} ενεργές',
   'downloads.empty': 'Δεν υπάρχουν λήψεις.',
   'downloads.emptyConnecting': 'Σύνδεση με τον διακομιστή…',
+  'overview.title': 'Όλες οι υπηρεσίες',
+  'overview.online': '{n}/{total} σε σύνδεση',
+  'instance.files': 'αρχεία',
+  'instance.left': 'απομένουν',
+  'instance.offline': 'εκτός σύνδεσης',
+  'downloads.start': 'Έναρξη',
+  'downloads.stop': 'Διακοπή',
 
   'addDownload.title': 'Προσθήκη συνδέσμων',
   'addDownload.titlePeer': 'Προσθήκη συνδέσμων – {name}',

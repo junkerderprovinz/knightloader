@@ -10,7 +10,6 @@ export const eu: Dict = {
   'connections.empty': 'Oraindik ez da konexiorik gorde.',
   'connections.emptyButton': 'Gehitu zure lehen konexioa',
   'connections.remove': 'Kendu',
-  'connections.viaRelay': '{relay} erlaiaren bidez',
 
 
   'downloads.connected': 'konektatuta',
@@ -21,6 +20,13 @@ export const eu: Dict = {
   'downloads.queueActive': '{n} aktibo',
   'downloads.empty': 'Ez dago deskargarik.',
   'downloads.emptyConnecting': 'Zerbitzariarekin konektatzen…',
+  'overview.title': 'Instantzia guztiak',
+  'overview.online': '{n}/{total} linean',
+  'instance.files': 'fitxategi',
+  'instance.left': 'falta',
+  'instance.offline': 'lineaz kanpo',
+  'downloads.start': 'Hasi',
+  'downloads.stop': 'Gelditu',
 
   'addDownload.title': 'Gehitu estekak',
   'addDownload.titlePeer': 'Gehitu estekak – {name}',

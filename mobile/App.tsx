@@ -3,7 +3,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { loadActiveConnection, setActiveConnectionId } from './src/storage/connections';
+import { loadActiveConnection, removeConnection, setActiveConnectionId } from './src/storage/connections';
 import type { Instance, ServerConnection } from './src/api/types';
 import ConnectionsScreen from './src/screens/ConnectionsScreen';
 import RelayConnectScreen from './src/screens/RelayConnectScreen';
@@ -160,6 +160,20 @@ function Shell() {
                   }}
                   onOpenSettings={() => navigation.navigate('Settings')}
                   onBackToOwn={route.params?.peer ? () => navigation.goBack() : undefined}
+                  // Removing the connection you are standing in has to leave
+                  // it as well - the screen's whole subject just stopped
+                  // existing. Back to the overview, which is where the list of
+                  // what is left lives.
+                  onRemoveConnection={
+                    route.params?.peer
+                      ? undefined
+                      : async () => {
+                          await removeConnection(conn.id);
+                          await setActiveConnectionId(null);
+                          setConn(null);
+                          navigation.reset({ index: 0, routes: [{ name: 'Connections' }] });
+                        }
+                  }
                 />
               ) : null
             }
