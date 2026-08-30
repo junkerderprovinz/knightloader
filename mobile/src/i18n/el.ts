@@ -31,6 +31,12 @@ export const el: Dict = {
   'downloads.tabCollector': 'Συλλέκτης',
   'packages.loose': 'Χωρίς πακέτο',
   'packages.start': 'Έναρξη αυτού του πακέτου',
+  'packages.expand': 'Άνοιγμα αυτού του πακέτου',
+  'packages.collapse': 'Κλείσιμο αυτού του πακέτου',
+  'packages.delete': 'Αφαίρεση αυτού του πακέτου',
+  'packages.deleteConfirmTitle': 'Αφαίρεση πακέτου;',
+  'packages.deleteConfirmMessage': '{n} σύνδεσμοι φεύγουν από τη λίστα. Τα ήδη κατεβασμένα αρχεία μένουν.',
+  'packages.deleteConfirmButton': 'Αφαίρεση',
 
   'addDownload.title': 'Προσθήκη συνδέσμων',
   'addDownload.titlePeer': 'Προσθήκη συνδέσμων – {name}',

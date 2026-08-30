@@ -31,6 +31,12 @@ export const id: Dict = {
   'downloads.tabCollector': 'Pengumpul',
   'packages.loose': 'Tanpa paket',
   'packages.start': 'Mulai paket ini',
+  'packages.expand': 'Buka paket ini',
+  'packages.collapse': 'Tutup paket ini',
+  'packages.delete': 'Hapus paket ini',
+  'packages.deleteConfirmTitle': 'Hapus paket?',
+  'packages.deleteConfirmMessage': '{n} tautan keluar dari daftar. Berkas yang sudah diunduh tetap ada.',
+  'packages.deleteConfirmButton': 'Hapus',
 
   'addDownload.title': 'Tambahkan tautan',
   'addDownload.titlePeer': 'Tambahkan tautan – {name}',

@@ -31,6 +31,12 @@ export const hu: Dict = {
   'downloads.tabCollector': 'Gyűjtő',
   'packages.loose': 'Csomag nélkül',
   'packages.start': 'Csomag indítása',
+  'packages.expand': 'Csomag kinyitása',
+  'packages.collapse': 'Csomag bezárása',
+  'packages.delete': 'Csomag eltávolítása',
+  'packages.deleteConfirmTitle': 'Eltávolítod a csomagot?',
+  'packages.deleteConfirmMessage': '{n} hivatkozás kikerül a listából. A már letöltött fájlok megmaradnak.',
+  'packages.deleteConfirmButton': 'Eltávolítás',
 
   'addDownload.title': 'Linkek hozzáadása',
   'addDownload.titlePeer': 'Linkek hozzáadása – {name}',

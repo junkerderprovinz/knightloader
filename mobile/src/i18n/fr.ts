@@ -31,6 +31,12 @@ export const fr: Dict = {
   'downloads.tabCollector': 'Collecteur',
   'packages.loose': 'Sans paquet',
   'packages.start': 'Démarrer ce paquet',
+  'packages.expand': 'Ouvrir ce paquet',
+  'packages.collapse': 'Fermer ce paquet',
+  'packages.delete': 'Retirer ce paquet',
+  'packages.deleteConfirmTitle': 'Retirer le paquet ?',
+  'packages.deleteConfirmMessage': '{n} liens quittent la liste. Les fichiers déjà téléchargés restent.',
+  'packages.deleteConfirmButton': 'Retirer',
 
   'addDownload.title': 'Ajouter des liens',
   'addDownload.titlePeer': 'Ajouter des liens – {name}',

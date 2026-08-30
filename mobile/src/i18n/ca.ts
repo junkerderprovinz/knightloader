@@ -31,6 +31,12 @@ export const ca: Dict = {
   'downloads.tabCollector': 'Col·lector',
   'packages.loose': 'Sense paquet',
   'packages.start': 'Inicia aquest paquet',
+  'packages.expand': 'Obre aquest paquet',
+  'packages.collapse': 'Tanca aquest paquet',
+  'packages.delete': 'Suprimeix aquest paquet',
+  'packages.deleteConfirmTitle': 'Voleu suprimir el paquet?',
+  'packages.deleteConfirmMessage': '{n} enllaços surten de la llista. Els fitxers ja baixats es mantenen.',
+  'packages.deleteConfirmButton': 'Suprimeix',
 
   'addDownload.title': 'Afegeix enllaços',
   'addDownload.titlePeer': 'Afegeix enllaços – {name}',

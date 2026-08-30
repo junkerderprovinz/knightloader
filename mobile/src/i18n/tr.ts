@@ -31,6 +31,12 @@ export const tr: Dict = {
   'downloads.tabCollector': 'Toplayıcı',
   'packages.loose': 'Paketsiz',
   'packages.start': 'Bu paketi başlat',
+  'packages.expand': 'Bu paketi aç',
+  'packages.collapse': 'Bu paketi kapat',
+  'packages.delete': 'Bu paketi kaldır',
+  'packages.deleteConfirmTitle': 'Paket kaldırılsın mı?',
+  'packages.deleteConfirmMessage': '{n} bağlantı listeden çıkar. İndirilmiş dosyalar kalır.',
+  'packages.deleteConfirmButton': 'Kaldır',
 
   'addDownload.title': 'Bağlantı ekle',
   'addDownload.titlePeer': 'Bağlantı ekle – {name}',

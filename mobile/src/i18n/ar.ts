@@ -31,6 +31,12 @@ export const ar: Dict = {
   'downloads.tabCollector': 'المُجمِّع',
   'packages.loose': 'بدون حزمة',
   'packages.start': 'ابدأ هذه الحزمة',
+  'packages.expand': 'فتح هذه الحزمة',
+  'packages.collapse': 'إغلاق هذه الحزمة',
+  'packages.delete': 'إزالة هذه الحزمة',
+  'packages.deleteConfirmTitle': 'إزالة الحزمة؟',
+  'packages.deleteConfirmMessage': 'سيتم حذف {n} رابط من القائمة. تبقى الملفات المُنزَّلة.',
+  'packages.deleteConfirmButton': 'إزالة',
 
   'addDownload.title': 'إضافة روابط',
   'addDownload.titlePeer': 'إضافة روابط – {name}',

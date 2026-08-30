@@ -31,6 +31,12 @@ export const lt: Dict = {
   'downloads.tabCollector': 'Rinktuvas',
   'packages.loose': 'Be paketo',
   'packages.start': 'Paleisti šį paketą',
+  'packages.expand': 'Atverti šį paketą',
+  'packages.collapse': 'Užverti šį paketą',
+  'packages.delete': 'Šalinti šį paketą',
+  'packages.deleteConfirmTitle': 'Šalinti paketą?',
+  'packages.deleteConfirmMessage': '{n} nuorodų dings iš sąrašo. Jau atsiųsti failai liks.',
+  'packages.deleteConfirmButton': 'Šalinti',
 
   'addDownload.title': 'Pridėti nuorodas',
   'addDownload.titlePeer': 'Pridėti nuorodas – {name}',

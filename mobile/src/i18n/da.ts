@@ -31,6 +31,12 @@ export const da: Dict = {
   'downloads.tabCollector': 'Samler',
   'packages.loose': 'Uden pakke',
   'packages.start': 'Start denne pakke',
+  'packages.expand': 'Åbn denne pakke',
+  'packages.collapse': 'Luk denne pakke',
+  'packages.delete': 'Fjern denne pakke',
+  'packages.deleteConfirmTitle': 'Fjern pakke?',
+  'packages.deleteConfirmMessage': '{n} links forsvinder fra listen. Allerede hentede filer bliver.',
+  'packages.deleteConfirmButton': 'Fjern',
 
   'addDownload.title': 'Tilføj links',
   'addDownload.titlePeer': 'Tilføj links – {name}',

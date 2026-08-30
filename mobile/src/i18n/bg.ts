@@ -31,6 +31,12 @@ export const bg: Dict = {
   'downloads.tabCollector': 'Събирач',
   'packages.loose': 'Без пакет',
   'packages.start': 'Стартирай пакета',
+  'packages.expand': 'Отваряне на пакета',
+  'packages.collapse': 'Затваряне на пакета',
+  'packages.delete': 'Премахване на пакета',
+  'packages.deleteConfirmTitle': 'Премахване на пакета?',
+  'packages.deleteConfirmMessage': '{n} връзки напускат списъка. Вече свалените файлове остават.',
+  'packages.deleteConfirmButton': 'Премахване',
 
   'addDownload.title': 'Добавяне на връзки',
   'addDownload.titlePeer': 'Добавяне на връзки – {name}',

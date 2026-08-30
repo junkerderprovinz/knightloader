@@ -31,6 +31,12 @@ export const gl: Dict = {
   'downloads.tabCollector': 'Colector',
   'packages.loose': 'Sen paquete',
   'packages.start': 'Iniciar este paquete',
+  'packages.expand': 'Abrir este paquete',
+  'packages.collapse': 'Pechar este paquete',
+  'packages.delete': 'Retirar este paquete',
+  'packages.deleteConfirmTitle': 'Retirar o paquete?',
+  'packages.deleteConfirmMessage': '{n} ligazóns saen da lista. Os ficheiros xa descargados quedan.',
+  'packages.deleteConfirmButton': 'Retirar',
 
   'addDownload.title': 'Engadir ligazóns',
   'addDownload.titlePeer': 'Engadir ligazóns – {name}',

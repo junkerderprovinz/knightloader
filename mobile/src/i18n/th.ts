@@ -31,6 +31,12 @@ export const th: Dict = {
   'downloads.tabCollector': 'ตัวเก็บ',
   'packages.loose': 'ไม่มีแพ็กเกจ',
   'packages.start': 'เริ่มแพ็กเกจนี้',
+  'packages.expand': 'เปิดแพ็กเกจนี้',
+  'packages.collapse': 'ปิดแพ็กเกจนี้',
+  'packages.delete': 'ลบแพ็กเกจนี้',
+  'packages.deleteConfirmTitle': 'ลบแพ็กเกจหรือไม่',
+  'packages.deleteConfirmMessage': 'ลิงก์ {n} รายการจะหายไปจากรายการ ไฟล์ที่ดาวน์โหลดแล้วยังอยู่',
+  'packages.deleteConfirmButton': 'ลบ',
 
   'addDownload.title': 'เพิ่มลิงก์',
   'addDownload.titlePeer': 'เพิ่มลิงก์ – {name}',

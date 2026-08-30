@@ -31,6 +31,12 @@ export const cs: Dict = {
   'downloads.tabCollector': 'Sběrač',
   'packages.loose': 'Bez balíčku',
   'packages.start': 'Spustit tento balíček',
+  'packages.expand': 'Otevřít tento balíček',
+  'packages.collapse': 'Zavřít tento balíček',
+  'packages.delete': 'Odebrat tento balíček',
+  'packages.deleteConfirmTitle': 'Odebrat balíček?',
+  'packages.deleteConfirmMessage': '{n} odkazů zmizí ze seznamu. Již stažené soubory zůstanou.',
+  'packages.deleteConfirmButton': 'Odebrat',
 
   'addDownload.title': 'Přidat odkazy',
   'addDownload.titlePeer': 'Přidat odkazy – {name}',

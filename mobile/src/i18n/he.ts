@@ -31,6 +31,12 @@ export const he: Dict = {
   'downloads.tabCollector': 'אספן',
   'packages.loose': 'ללא חבילה',
   'packages.start': 'התחל חבילה זו',
+  'packages.expand': 'פתיחת החבילה',
+  'packages.collapse': 'סגירת החבילה',
+  'packages.delete': 'הסרת החבילה',
+  'packages.deleteConfirmTitle': 'להסיר את החבילה?',
+  'packages.deleteConfirmMessage': '{n} קישורים ייצאו מהרשימה. קבצים שכבר הורדו יישארו.',
+  'packages.deleteConfirmButton': 'הסרה',
 
   'addDownload.title': 'הוספת קישורים',
   'addDownload.titlePeer': 'הוספת קישורים – {name}',
