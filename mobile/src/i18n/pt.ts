@@ -27,6 +27,10 @@ export const pt: Dict = {
   'instance.offline': 'offline',
   'downloads.start': 'Iniciar',
   'downloads.stop': 'Parar',
+  'downloads.tabDownloads': 'Transferências',
+  'downloads.tabCollector': 'Coletor',
+  'packages.loose': 'Sem pacote',
+  'packages.start': 'Iniciar este pacote',
 
   'addDownload.title': 'Adicionar links',
   'addDownload.titlePeer': 'Adicionar links – {name}',

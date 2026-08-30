@@ -27,6 +27,10 @@ export const eu: Dict = {
   'instance.offline': 'lineaz kanpo',
   'downloads.start': 'Hasi',
   'downloads.stop': 'Gelditu',
+  'downloads.tabDownloads': 'Deskargak',
+  'downloads.tabCollector': 'Biltzailea',
+  'packages.loose': 'Paketerik gabe',
+  'packages.start': 'Hasi pakete hau',
 
   'addDownload.title': 'Gehitu estekak',
   'addDownload.titlePeer': 'Gehitu estekak – {name}',

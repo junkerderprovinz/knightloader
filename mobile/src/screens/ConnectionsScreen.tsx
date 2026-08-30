@@ -4,6 +4,7 @@ import { checkConnection, setQueueHalted } from '../api/client';
 import { listConnections, setActiveConnectionId } from '../storage/connections';
 import type { ServerConnection } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
+import { contentMax, useWide } from '../theme/layout';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import IconBadge, { Gear } from '../components/IconBadge';
@@ -72,6 +73,7 @@ export default function ConnectionsScreen({
 }) {
   const { t } = useT();
   const { c, accent, accentContrast, radii } = useAppearance();
+  const wide = useWide();
   const [connections, setConnections] = useState<ServerConnection[]>([]);
   const [status, setStatus] = useState<Record<string, ConnStatus>>({});
   const [loaded, setLoaded] = useState(false);
@@ -233,8 +235,16 @@ export default function ConnectionsScreen({
 
       <FlatList
         data={connections}
+        // Two columns on a tablet, one on a phone. key is tied to the count
+        // because FlatList cannot change numColumns on an existing list - it
+        // throws rather than re-laying out - so the list is remounted on a
+        // rotation instead, which is cheap for a handful of cards and is the
+        // documented way to do this.
+        key={wide ? 'zwei' : 'eins'}
+        numColumns={wide ? 2 : 1}
+        columnWrapperStyle={wide ? styles.columns : undefined}
         keyExtractor={(conn) => conn.id}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, { maxWidth: contentMax(wide) }]}
         renderItem={({ item }) => {
           const s = status[item.id] ?? 'checking';
           return (
@@ -299,11 +309,11 @@ export default function ConnectionsScreen({
 // One column stretched across a tablet is a card 900 points wide with its
 // text at one edge and its badge at the other. A cap plus centring costs a
 // phone nothing (640 is wider than every phone) and makes a tablet readable.
-const wide = { width: '100%' as const, maxWidth: 640, alignSelf: 'center' as const };
+const capped = { width: '100%' as const, maxWidth: 640, alignSelf: 'center' as const };
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  topBar: { ...wide,
+  topBar: { ...capped,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -311,7 +321,7 @@ const styles = StyleSheet.create({
     paddingTop: 56,
   },
   summary: {
-    ...wide,
+    ...capped,
     // Same box as a row below it (jdp: "Übersichtscard soll genau so groß sein
     // wie die instanzencards"): same horizontal margin, same padding, same gap.
     // It had its own numbers and so stood visibly out of line with the list it
@@ -326,8 +336,8 @@ const styles = StyleSheet.create({
   summaryText: { flex: 1, minWidth: 0, gap: 2 },
   summaryTitle: { fontSize: 15, fontWeight: '600' },
   summaryLine: { fontSize: TYPE.dense },
-  queueError: { ...wide, marginHorizontal: 16, marginBottom: 8, fontSize: TYPE.caption },
-  summaryGraph: { ...wide, marginHorizontal: 16, marginBottom: 10 },
+  queueError: { ...capped, marginHorizontal: 16, marginBottom: 8, fontSize: TYPE.caption },
+  summaryGraph: { ...capped, marginHorizontal: 16, marginBottom: 10 },
   brand: { flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1, minWidth: 0 },
   // 32, so the mark reads as a mark beside a 22px title rather than as a
   // second heading. The asset is square, so both sides are set.
@@ -337,13 +347,17 @@ const styles = StyleSheet.create({
   mark: { width: 44, height: 44, marginLeft: -6 },
   title: { fontSize: 22, fontWeight: '700' },
   badgeRow: { flexDirection: 'row', gap: 10 },
-  list: { ...wide, paddingHorizontal: 16, paddingBottom: 32, gap: 8 },
+  list: { ...capped, paddingHorizontal: 16, paddingBottom: 32, gap: 8 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 14,
     gap: 12,
+    // flex only bites inside a column wrapper, where two siblings share a
+    // line; in a one-column list it is a no-op.
+    flex: 1,
   },
+  columns: { gap: 8 },
   dot: { width: 10, height: 10 },
   rowText: { flex: 1, minWidth: 0 },
   rowName: { fontSize: 15, fontWeight: '600' },

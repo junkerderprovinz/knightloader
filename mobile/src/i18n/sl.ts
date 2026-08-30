@@ -27,6 +27,10 @@ export const sl: Dict = {
   'instance.offline': 'brez povezave',
   'downloads.start': 'Zaženi',
   'downloads.stop': 'Ustavi',
+  'downloads.tabDownloads': 'Prenosi',
+  'downloads.tabCollector': 'Zbiralnik',
+  'packages.loose': 'Brez paketa',
+  'packages.start': 'Zaženi ta paket',
 
   'addDownload.title': 'Dodaj povezave',
   'addDownload.titlePeer': 'Dodaj povezave – {name}',

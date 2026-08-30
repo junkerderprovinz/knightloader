@@ -27,6 +27,10 @@ export const ko: Dict = {
   'instance.offline': '오프라인',
   'downloads.start': '시작',
   'downloads.stop': '중지',
+  'downloads.tabDownloads': '다운로드',
+  'downloads.tabCollector': '수집기',
+  'packages.loose': '패키지 없음',
+  'packages.start': '이 패키지 시작',
 
   'addDownload.title': '링크 추가',
   'addDownload.titlePeer': '링크 추가 – {name}',

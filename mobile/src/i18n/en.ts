@@ -43,6 +43,10 @@ export const en = {
   'instance.offline': 'offline',
   'downloads.start': 'Start',
   'downloads.stop': 'Stop',
+  'downloads.tabDownloads': 'Downloads',
+  'downloads.tabCollector': 'Collector',
+  'packages.loose': 'No package',
+  'packages.start': 'Start this package',
 
   'addDownload.title': 'Add links',
   'addDownload.titlePeer': 'Add links – {name}',

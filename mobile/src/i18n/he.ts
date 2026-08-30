@@ -27,6 +27,10 @@ export const he: Dict = {
   'instance.offline': 'לא מחובר',
   'downloads.start': 'התחל',
   'downloads.stop': 'עצור',
+  'downloads.tabDownloads': 'הורדות',
+  'downloads.tabCollector': 'אספן',
+  'packages.loose': 'ללא חבילה',
+  'packages.start': 'התחל חבילה זו',
 
   'addDownload.title': 'הוספת קישורים',
   'addDownload.titlePeer': 'הוספת קישורים – {name}',

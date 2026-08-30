@@ -27,6 +27,10 @@ export const ca: Dict = {
   'instance.offline': 'fora de línia',
   'downloads.start': 'Inicia',
   'downloads.stop': 'Atura',
+  'downloads.tabDownloads': 'Baixades',
+  'downloads.tabCollector': 'Col·lector',
+  'packages.loose': 'Sense paquet',
+  'packages.start': 'Inicia aquest paquet',
 
   'addDownload.title': 'Afegeix enllaços',
   'addDownload.titlePeer': 'Afegeix enllaços – {name}',

@@ -27,6 +27,10 @@ export const hr: Dict = {
   'instance.offline': 'izvan mreže',
   'downloads.start': 'Pokreni',
   'downloads.stop': 'Zaustavi',
+  'downloads.tabDownloads': 'Preuzimanja',
+  'downloads.tabCollector': 'Sakupljač',
+  'packages.loose': 'Bez paketa',
+  'packages.start': 'Pokreni ovaj paket',
 
   'addDownload.title': 'Dodaj veze',
   'addDownload.titlePeer': 'Dodaj veze – {name}',

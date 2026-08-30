@@ -27,6 +27,10 @@ export const lt: Dict = {
   'instance.offline': 'neprisijungę',
   'downloads.start': 'Pradėti',
   'downloads.stop': 'Stabdyti',
+  'downloads.tabDownloads': 'Atsisiuntimai',
+  'downloads.tabCollector': 'Rinktuvas',
+  'packages.loose': 'Be paketo',
+  'packages.start': 'Paleisti šį paketą',
 
   'addDownload.title': 'Pridėti nuorodas',
   'addDownload.titlePeer': 'Pridėti nuorodas – {name}',

@@ -27,6 +27,10 @@ export const da: Dict = {
   'instance.offline': 'offline',
   'downloads.start': 'Start',
   'downloads.stop': 'Stop',
+  'downloads.tabDownloads': 'Downloads',
+  'downloads.tabCollector': 'Samler',
+  'packages.loose': 'Uden pakke',
+  'packages.start': 'Start denne pakke',
 
   'addDownload.title': 'Tilføj links',
   'addDownload.titlePeer': 'Tilføj links – {name}',

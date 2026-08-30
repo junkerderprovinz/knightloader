@@ -27,6 +27,10 @@ export const hu: Dict = {
   'instance.offline': 'offline',
   'downloads.start': 'Indítás',
   'downloads.stop': 'Leállítás',
+  'downloads.tabDownloads': 'Letöltések',
+  'downloads.tabCollector': 'Gyűjtő',
+  'packages.loose': 'Csomag nélkül',
+  'packages.start': 'Csomag indítása',
 
   'addDownload.title': 'Linkek hozzáadása',
   'addDownload.titlePeer': 'Linkek hozzáadása – {name}',

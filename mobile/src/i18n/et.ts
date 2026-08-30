@@ -27,6 +27,10 @@ export const et: Dict = {
   'instance.offline': 'võrguühenduseta',
   'downloads.start': 'Alusta',
   'downloads.stop': 'Peata',
+  'downloads.tabDownloads': 'Allalaadimised',
+  'downloads.tabCollector': 'Koguja',
+  'packages.loose': 'Paketita',
+  'packages.start': 'Käivita see pakett',
 
   'addDownload.title': 'Lisa lingid',
   'addDownload.titlePeer': 'Lisa lingid – {name}',

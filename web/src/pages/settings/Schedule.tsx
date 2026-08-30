@@ -527,6 +527,7 @@ export function Schedule() {
 
       <Card hue={1} className="flex flex-col gap-4">
         <SectionTitle
+          hint={cx('settings.schedule.orderHint')}
           right={
             <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
               {cx('settings.schedule.add')}
@@ -535,8 +536,6 @@ export function Schedule() {
         >
           {cx('settings.schedule.listTitle')}
         </SectionTitle>
-
-        {rows.length > 1 && <p className="text-xs text-carbon-textMuted">{cx('settings.schedule.orderHint')}</p>}
 
         {rows.length === 0 ? (
           <p className="py-6 text-center text-sm text-carbon-textSub">

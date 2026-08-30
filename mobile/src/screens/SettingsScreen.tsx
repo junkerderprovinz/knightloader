@@ -297,10 +297,10 @@ export default function SettingsScreen({
 // One column stretched across a tablet is a card 900 points wide with its
 // text at one edge and its badge at the other. A cap plus centring costs a
 // phone nothing (640 is wider than every phone) and makes a tablet readable.
-const wide = { width: '100%' as const, maxWidth: 640, alignSelf: 'center' as const };
+const capped = { width: '100%' as const, maxWidth: 640, alignSelf: 'center' as const };
 
 const styles = StyleSheet.create({
-  container: { ...wide, paddingHorizontal: 16, paddingBottom: 32 },
+  container: { ...capped, paddingHorizontal: 16, paddingBottom: 32 },
   topBar: { paddingTop: 56, paddingBottom: 4, flexDirection: 'row', alignItems: 'center', gap: 12 },
   title: { fontSize: TYPE.heading, fontWeight: '600' },
   // Half-muted and centred: something you look for, not something that

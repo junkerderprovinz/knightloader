@@ -119,8 +119,7 @@ export function Diagnostics() {
   return (
     <div className="flex flex-col gap-10">
       <Card hue={0} className="flex flex-col gap-5">
-        <SectionTitle>{cx('settings.diagnostics.systemTitle')}</SectionTitle>
-        <p className="text-sm text-carbon-textSub">{cx('settings.diagnostics.subtitle')}</p>
+        <SectionTitle hint={cx('settings.diagnostics.subtitle')}>{cx('settings.diagnostics.systemTitle')}</SectionTitle>
 
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
           <Stat label={cx('settings.diagnostics.version')} value={data.version} />

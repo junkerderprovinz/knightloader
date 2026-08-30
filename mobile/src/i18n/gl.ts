@@ -27,6 +27,10 @@ export const gl: Dict = {
   'instance.offline': 'sen conexión',
   'downloads.start': 'Iniciar',
   'downloads.stop': 'Deter',
+  'downloads.tabDownloads': 'Descargas',
+  'downloads.tabCollector': 'Colector',
+  'packages.loose': 'Sen paquete',
+  'packages.start': 'Iniciar este paquete',
 
   'addDownload.title': 'Engadir ligazóns',
   'addDownload.titlePeer': 'Engadir ligazóns – {name}',

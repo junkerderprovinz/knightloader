@@ -80,8 +80,7 @@ export function Resolvers() {
       )}
 
       <Card hue={1} className="flex flex-col gap-5">
-        <SectionTitle>{t('settings.resolvers.quality')}</SectionTitle>
-        <p className="text-sm text-carbon-textMuted">{t('settings.resolvers.intro')}</p>
+        <SectionTitle hint={t('settings.resolvers.intro')}>{t('settings.resolvers.quality')}</SectionTitle>
 
         {qualities.length > 0 && (
           <FieldGroup label={t('settings.resolvers.quality')} hint={t('settings.resolvers.qualityHint')}>

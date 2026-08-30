@@ -27,6 +27,10 @@ export const fi: Dict = {
   'instance.offline': 'ei yhteyttä',
   'downloads.start': 'Aloita',
   'downloads.stop': 'Pysäytä',
+  'downloads.tabDownloads': 'Lataukset',
+  'downloads.tabCollector': 'Kerääjä',
+  'packages.loose': 'Ei pakettia',
+  'packages.start': 'Käynnistä tämä paketti',
 
   'addDownload.title': 'Lisää linkkejä',
   'addDownload.titlePeer': 'Lisää linkkejä – {name}',

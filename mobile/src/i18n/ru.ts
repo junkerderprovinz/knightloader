@@ -27,6 +27,10 @@ export const ru: Dict = {
   'instance.offline': 'не в сети',
   'downloads.start': 'Запустить',
   'downloads.stop': 'Остановить',
+  'downloads.tabDownloads': 'Загрузки',
+  'downloads.tabCollector': 'Сборщик',
+  'packages.loose': 'Без пакета',
+  'packages.start': 'Запустить этот пакет',
 
   'addDownload.title': 'Добавить ссылки',
   'addDownload.titlePeer': 'Добавить ссылки – {name}',

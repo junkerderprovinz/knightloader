@@ -27,6 +27,10 @@ export const ro: Dict = {
   'instance.offline': 'offline',
   'downloads.start': 'Pornește',
   'downloads.stop': 'Oprește',
+  'downloads.tabDownloads': 'Descărcări',
+  'downloads.tabCollector': 'Colector',
+  'packages.loose': 'Fără pachet',
+  'packages.start': 'Pornește acest pachet',
 
   'addDownload.title': 'Adaugă linkuri',
   'addDownload.titlePeer': 'Adaugă linkuri – {name}',

@@ -27,6 +27,10 @@ export const tr: Dict = {
   'instance.offline': 'çevrimdışı',
   'downloads.start': 'Başlat',
   'downloads.stop': 'Durdur',
+  'downloads.tabDownloads': 'İndirmeler',
+  'downloads.tabCollector': 'Toplayıcı',
+  'packages.loose': 'Paketsiz',
+  'packages.start': 'Bu paketi başlat',
 
   'addDownload.title': 'Bağlantı ekle',
   'addDownload.titlePeer': 'Bağlantı ekle – {name}',
