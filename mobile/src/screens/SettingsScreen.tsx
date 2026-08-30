@@ -198,7 +198,12 @@ export default function SettingsScreen({
             left-aligned row, which read as a heading over a group rather than
             as one setting with its answer beside it. */}
         <View style={styles.axisRow}>
-          <Text style={[styles.axisLabel, styles.axisLabelInline, { color: c.textSub }]}>{t('settings.accent')}</Text>
+          {/* Normal row text, not the small uppercase-ish axis caption (jdp,
+              2026-08-30: "Akzentfarbe Text normal formatieren"): once the label
+              sits BESIDE its control rather than above a group, it is a row
+              label, and every other row label on this page is 15px body text in
+              the ordinary ink. */}
+          <Text style={[styles.rowLabel, { color: c.text }]}>{t('settings.accent')}</Text>
           <View style={styles.swatches}>
             {ACCENTS.map((a) => (
               <Swatch
@@ -310,6 +315,8 @@ const styles = StyleSheet.create({
   // its control, not above it.
   axisRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 12, marginBottom: 2 },
   axisLabelInline: { marginTop: 0, marginBottom: 0, flexShrink: 0 },
+  // The same shape GlimRow gives every other label on this page.
+  rowLabel: { fontSize: 15, flexShrink: 0 },
   swatches: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, alignItems: 'center', justifyContent: 'flex-end', flexShrink: 1 },
   report: { padding: 12, marginBottom: 10 },
   reportText: { fontSize: TYPE.caption, lineHeight: 17, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' },

@@ -39,10 +39,17 @@ function statusLine(
 }
 
 // The app's own mark, beside the name it belongs to (jdp, 2026-08-30: "In der
-// Übersicht soll links von der Überschrift auch das Logo sein"). require() and
-// not a URI: this is the shipped asset, resolved by the bundler, so it is on
-// screen at first paint with nothing to fetch.
-const MARK = require('../../assets/icon.png');
+// Übersicht soll links von der Überschrift auch das Logo sein").
+//
+// The adaptive icon's FOREGROUND layer, not icon.png (jdp, same day: "Das logo
+// in der übersicht soll das ohne hintergrundkachel sein"): icon.png is the
+// finished launcher tile with mark and ground baked together, so on a card it
+// read as a little app icon pasted onto the page rather than as this product's
+// own mark. The foreground layer is the mark alone, on nothing.
+//
+// require() and not a URI: a shipped asset, resolved by the bundler, so it is
+// on screen at first paint with nothing to fetch.
+const MARK = require('../../assets/android-icon-foreground.png');
 
 type ConnStatus = 'checking' | 'online' | 'offline';
 
@@ -69,7 +76,12 @@ export default function ConnectionsScreen({
   const [status, setStatus] = useState<Record<string, ConnStatus>>({});
   const [loaded, setLoaded] = useState(false);
   const [stats, setStats] = useState<Record<string, InstanceStats | null>>({});
+  const [why, setWhy] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
+  /** What the last start/stop actually did, when it did not work. Shown rather
+   *  than swallowed: a control that reports nothing is indistinguishable from
+   *  a control that does nothing. */
+  const [queueError, setQueueError] = useState('');
 
   const reload = useCallback(async () => {
     const list = await listConnections();
@@ -88,14 +100,20 @@ export default function ConnectionsScreen({
   }, [reload]);
 
   // The numbers behind every card and behind the summary above them. Polled
-  // rather than streamed: each instance costs two REST calls (there is no
-  // counters endpoint, the figures are derived from the task list the same way
-  // the extension derives them), and a socket per instance for a list you
-  // glance at would be a lot of machinery for a five-second refresh.
+  // rather than streamed: a socket per instance, for a list you only glance at,
+  // would be a lot of machinery for a five-second refresh. Two calls each - the
+  // queue for "is it halted", /api/queue/counters for the figures.
   const load = useCallback(async () => {
     const list = await listConnections();
     const results = await Promise.all(list.map((conn) => fetchInstanceStats(conn)));
-    setStats(Object.fromEntries(list.map((conn, i) => [conn.id, results[i]])));
+    setStats(Object.fromEntries(list.map((conn, i) => [conn.id, results[i].ok ? results[i].stats : null])));
+    // The reason, kept rather than dropped. See stats.ts: swallowing these is
+    // what made "the buttons have no effect" impossible to explain.
+    setWhy(
+      Object.fromEntries(
+        list.map((conn, i) => [conn.id, results[i].ok ? '' : (results[i] as { reason: string }).reason]),
+      ),
+    );
   }, []);
 
   useEffect(() => {
@@ -114,10 +132,22 @@ export default function ConnectionsScreen({
   // else means "stop".
   const toggleAll = async () => {
     setBusy(true);
+    setQueueError('');
     try {
       const list = await listConnections();
-      await Promise.all(list.map((conn) => setQueueHalted(conn, !gesamt.halted).catch(() => {})));
+      // Settled, not all: one unreachable instance must not cancel the others,
+      // and every failure is COLLECTED rather than swallowed. The first cut
+      // wrote `.catch(() => {})` here, which is how a button that was failing
+      // every time looked exactly like a button that did nothing.
+      const results = await Promise.allSettled(list.map((conn) => setQueueHalted(conn, !gesamt.halted)));
+      const failed = results.filter((r) => r.status === 'rejected') as PromiseRejectedResult[];
+      if (failed.length > 0) {
+        const reason = failed[0].reason;
+        setQueueError(`${failed.length}/${list.length}: ${reason instanceof Error ? reason.message : String(reason)}`);
+      }
       await load();
+    } catch (e) {
+      setQueueError(e instanceof Error ? e.message : String(e));
     } finally {
       setBusy(false);
     }
@@ -133,7 +163,7 @@ export default function ConnectionsScreen({
     <View style={[styles.container, { backgroundColor: c.bg }]}>
       <View style={styles.topBar}>
         <View style={styles.brand}>
-          <Image source={MARK} style={[styles.mark, { borderRadius: radii.control }]} resizeMode="contain" />
+          <Image source={MARK} style={styles.mark} resizeMode="contain" />
           <Text style={[styles.title, { color: c.text }]}>KnightLoader</Text>
         </View>
         <View style={styles.badgeRow}>
@@ -185,6 +215,14 @@ export default function ConnectionsScreen({
         </View>
       )}
 
+      {/* Why the last start/stop did not take. One line, in the fail colour,
+          and only when there is something to say. */}
+      {queueError !== '' && (
+        <Text style={[styles.queueError, { color: c.statusFailSolid }]} numberOfLines={2}>
+          {queueError}
+        </Text>
+      )}
+
       {/* The graph belongs to the summary, not to a card: it is the group's
           speed. Mounted only while something is actually moving. */}
       {gesamt.speed > 0 && (
@@ -225,7 +263,7 @@ export default function ConnectionsScreen({
                     taking the one line that could have. Same four figures and
                     the same order as the extension's own card. */}
                 <Text style={[styles.rowUrl, { color: c.textMuted }]} numberOfLines={1}>
-                  {statusLine(t, stats[item.id], s)}
+                  {stats[item.id] === null && why[item.id] ? why[item.id] : statusLine(t, stats[item.id], s)}
                 </Text>
               </View>
               {/* No delete here any more (jdp, 2026-08-30: "der löschenbutton
@@ -272,22 +310,31 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 56,
   },
-  summary: { ...wide,
+  summary: {
+    ...wide,
+    // Same box as a row below it (jdp: "Übersichtscard soll genau so groß sein
+    // wie die instanzencards"): same horizontal margin, same padding, same gap.
+    // It had its own numbers and so stood visibly out of line with the list it
+    // summarises.
     marginHorizontal: 16,
-    marginBottom: 10,
+    marginBottom: 8,
     padding: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
   summaryText: { flex: 1, minWidth: 0, gap: 2 },
   summaryTitle: { fontSize: 15, fontWeight: '600' },
   summaryLine: { fontSize: TYPE.dense },
+  queueError: { ...wide, marginHorizontal: 16, marginBottom: 8, fontSize: TYPE.caption },
   summaryGraph: { ...wide, marginHorizontal: 16, marginBottom: 10 },
   brand: { flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1, minWidth: 0 },
   // 32, so the mark reads as a mark beside a 22px title rather than as a
   // second heading. The asset is square, so both sides are set.
-  mark: { width: 32, height: 32 },
+  // Drawn larger than the old tile: an adaptive icon's foreground layer carries
+  // the safe-zone padding every launcher crops into, so at 32 the mark itself
+  // would come out noticeably smaller than the tile it replaces.
+  mark: { width: 44, height: 44, marginLeft: -6 },
   title: { fontSize: 22, fontWeight: '700' },
   badgeRow: { flexDirection: 'row', gap: 10 },
   list: { ...wide, paddingHorizontal: 16, paddingBottom: 32, gap: 8 },

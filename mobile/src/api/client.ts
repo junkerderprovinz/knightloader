@@ -27,7 +27,7 @@ export class ApiError extends Error {
 // exactly the same routes with exactly the same code, including the federation
 // proxy prefix: a relay-reached instance's OWN peers stay browsable, because
 // that is just another path the target resolves for itself.
-async function request<T>(conn: ServerConnection, base: string, path: string, init?: RequestInit): Promise<T> {
+export async function request<T>(conn: ServerConnection, base: string, path: string, init?: RequestInit): Promise<T> {
   const { status, body, statusText } = isRelayConnection(conn)
     ? await relayRequest(conn, base + path, init)
     : await httpRequest(conn, base + path, init);
