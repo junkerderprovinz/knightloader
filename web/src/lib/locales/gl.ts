@@ -390,8 +390,6 @@ export const gl: Dict = {
   'settings.nav.advanced': 'Avanzado',
 
   'settings.railLabel': 'Seccións dos axustes',
-  'settings.railReorderStart': 'Reordenar as lapelas',
-  'settings.railReorderDone': 'Reordenación feita',
   'settings.empty': 'Aquí aínda non hai nada que configurar.',
   'settings.emptyHint': 'A páxina está rexistrada para que o seu enderezo siga a funcionar e para que os controis aterren aquí en canto exista o subsistema.',
 

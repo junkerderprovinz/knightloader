@@ -392,8 +392,6 @@ export const ar: Dict = {
   'settings.nav.advanced': 'متقدم',
 
   'settings.railLabel': 'أقسام الإعدادات',
-  'settings.railReorderStart': 'إعادة ترتيب التبويبات',
-  'settings.railReorderDone': 'تم إعادة الترتيب',
   'settings.empty': 'لا شيء لضبطه هنا بعد.',
   'settings.emptyHint': 'الصفحة مسجّلة كي يظل عنوانها يعمل وكي تحطّ عناصر التحكم هنا فور وجود النظام الفرعي.',
 

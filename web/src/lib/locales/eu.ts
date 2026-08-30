@@ -390,8 +390,6 @@ export const eu: Dict = {
   'settings.nav.advanced': 'Aurreratua',
 
   'settings.railLabel': 'Ezarpenen atalak',
-  'settings.railReorderStart': 'Fitxak berrantolatu',
-  'settings.railReorderDone': 'Berrantolaketa amaituta',
   'settings.empty': 'Hemen ez dago oraindik ezer ezartzeko.',
   'settings.emptyHint': 'Orria erregistratuta dago bere helbideak funtzionatzen jarrai dezan eta kontrolak hona iritsi daitezen azpisistema dagoen unean.',
 

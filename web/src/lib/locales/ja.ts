@@ -390,8 +390,6 @@ export const ja: Dict = {
   'settings.nav.advanced': '詳細',
 
   'settings.railLabel': '設定のセクション',
-  'settings.railReorderStart': 'タブを並べ替え',
-  'settings.railReorderDone': '並べ替え完了',
   'settings.empty': 'ここにはまだ設定するものがありません。',
   'settings.emptyHint': 'このページはアドレスが使えるままになるように、そしてサブシステムができたときに操作項目がここに収まるように登録されています。',
 

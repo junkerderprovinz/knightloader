@@ -390,8 +390,6 @@ export const fi: Dict = {
   'settings.nav.advanced': 'Lisäasetukset',
 
   'settings.railLabel': 'Asetusten osiot',
-  'settings.railReorderStart': 'Järjestä välilehdet uudelleen',
-  'settings.railReorderDone': 'Järjestely valmis',
   'settings.empty': 'Täällä ei ole vielä mitään säädettävää.',
   'settings.emptyHint': 'Sivu on rekisteröity, jotta sen osoite toimii edelleen ja jotta säätimet ilmestyvät tänne heti kun alijärjestelmä on olemassa.',
 

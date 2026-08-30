@@ -392,8 +392,6 @@ export const he: Dict = {
   'settings.nav.advanced': 'מתקדם',
 
   'settings.railLabel': 'מדורי ההגדרות',
-  'settings.railReorderStart': 'סידור מחדש של הלשוניות',
-  'settings.railReorderDone': 'הסידור מחדש הושלם',
   'settings.empty': 'אין כאן עדיין מה להגדיר.',
   'settings.emptyHint': 'הדף רשום כדי שהכתובת שלו תמשיך לעבוד וכדי שהפקדים ינחתו כאן ברגע שתת־המערכת תהיה קיימת.',
 

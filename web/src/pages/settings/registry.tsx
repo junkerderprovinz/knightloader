@@ -161,10 +161,16 @@ export function renderSettingsPage(id: string): ReactNode {
 /**
  * The page's glyph at the one size the tab bar uses. Undefined for a page this
  * side has not met yet, which `Tabs` renders as a label on its own.
+ *
+ * 22px, the size lib/icons.tsx already hands out by default and the size the
+ * main sidebar's own glyphs are drawn at (jdp: "Die Glyphen und texte der
+ * kacheln sind zu klein"). This rail stands directly beside that one; two
+ * navigation columns side by side drawing the same kind of glyph at two
+ * different sizes is the mismatch, not the absolute number.
  */
 export function pageIcon(id: string): ReactNode {
   const Icon = ICONS[id];
-  return Icon ? <Icon width={16} height={16} /> : undefined;
+  return Icon ? <Icon width={22} height={22} /> : undefined;
 }
 
 /** Whether a page has a component, which is what the tab bar dims. */

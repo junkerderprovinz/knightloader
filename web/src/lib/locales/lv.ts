@@ -390,8 +390,6 @@ export const lv: Dict = {
   'settings.nav.advanced': 'Papildu',
 
   'settings.railLabel': 'Iestatījumu sadaļas',
-  'settings.railReorderStart': 'Pārkārtot cilnes',
-  'settings.railReorderDone': 'Pārkārtošana pabeigta',
   'settings.empty': 'Šeit vēl nav ko iestatīt.',
   'settings.emptyHint': 'Lapa ir reģistrēta, lai tās adrese turpinātu darboties un lai vadīklas nolaistos šeit, tiklīdz apakšsistēma pastāv.',
 

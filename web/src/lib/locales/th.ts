@@ -390,8 +390,6 @@ export const th: Dict = {
   'settings.nav.advanced': 'ขั้นสูง',
 
   'settings.railLabel': 'ส่วนต่าง ๆ ของการตั้งค่า',
-  'settings.railReorderStart': 'จัดเรียงแท็บใหม่',
-  'settings.railReorderDone': 'จัดเรียงเสร็จแล้ว',
   'settings.empty': 'ที่นี่ยังไม่มีอะไรให้ตั้งค่า',
   'settings.emptyHint': 'หน้านี้ถูกลงทะเบียนไว้เพื่อให้ที่อยู่ของมันยังใช้ได้ และเพื่อให้ตัวควบคุมมาลงที่นี่เมื่อระบบย่อยพร้อม',
 

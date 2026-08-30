@@ -21,7 +21,6 @@ export default function DownloadsScreen({
   peer,
   onAddPress,
   onSwitchConnection,
-  onOpenInstances,
   onOpenSettings,
   onBackToOwn,
 }: {
@@ -29,12 +28,11 @@ export default function DownloadsScreen({
   peer?: Instance;
   onAddPress: () => void;
   onSwitchConnection: () => void;
-  onOpenInstances: () => void;
   onOpenSettings: () => void;
   onBackToOwn?: () => void;
 }) {
   const { t } = useT();
-  const { c, accent, accentContrast, radii } = useAppearance();
+  const { c, accent, accentInk, accentContrast, radii } = useAppearance();
   const base = peer ? `/api/instances/${encodeURIComponent(peer.name)}` : '/api';
   const [tasks, setTasks] = useState<Task[]>([]);
   const [connected, setConnected] = useState(false);
@@ -88,14 +86,17 @@ export default function DownloadsScreen({
           </Text>
         </View>
         <View style={styles.topBarRight}>
-          {!peer && (
-            <TouchableOpacity onPress={onOpenInstances}>
-              <Text style={[styles.link, { color: accent }]}>{t('downloads.instancesLink')}</Text>
-            </TouchableOpacity>
-          )}
+          {/* One way back, not two (jdp, 2026-08-30: "Wenn man in einer
+              instanz ist soll oben der button 'Instanzen' weg" / "Der button
+              Wechseln soll 'Übersicht' heißen"). Both used to lead to a list
+              of instances, and the Übersicht - the screen this app opens on -
+              is that list: every member of the group is a connection there.
+              What the removed link led to was the federation-peer view, which
+              still carried the name-and-address form the phrase replaced; see
+              App.tsx for what went with it. */}
           {!peer && (
             <TouchableOpacity onPress={onSwitchConnection}>
-              <Text style={[styles.link, { color: accent }]}>{t('downloads.switchLink')}</Text>
+              <Text style={[styles.link, { color: accentInk }]}>{t('downloads.overviewLink')}</Text>
             </TouchableOpacity>
           )}
           {!peer && <IconBadge symbol="⚙" onPress={onOpenSettings} accessibilityLabel={t('settings.title')} />}
@@ -108,7 +109,7 @@ export default function DownloadsScreen({
           {queue && queue.running > 0 ? ` · ${t('downloads.queueActive', { n: queue.running })}` : ''}
         </Text>
         {queueBusy ? (
-          <ActivityIndicator color={accent} size="small" />
+          <ActivityIndicator color={accentInk} size="small" />
         ) : (
           <Switch
             value={!!queue && !queue.halted}

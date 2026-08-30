@@ -390,8 +390,6 @@ export const ko: Dict = {
   'settings.nav.advanced': '고급',
 
   'settings.railLabel': '설정 구역',
-  'settings.railReorderStart': '탭 순서 변경',
-  'settings.railReorderDone': '순서 변경 완료',
   'settings.empty': '여기에는 아직 설정할 것이 없습니다.',
   'settings.emptyHint': '주소가 계속 동작하도록, 그리고 하위 시스템이 생기면 조작 항목이 여기에 놓이도록 페이지만 먼저 등록해 두었습니다.',
 

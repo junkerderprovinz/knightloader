@@ -3,7 +3,6 @@ import { useColorScheme } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   DEFAULT_ACCENT,
-  RAINBOW_OFF,
   asShape,
   contrastOn,
   rainbowColor,
@@ -14,7 +13,7 @@ import {
   type RainbowState,
   type Shape,
 } from './appearance';
-import { DARK, LIGHT, LIGHT_DEFAULT_ACCENT, RADII, TYPE, type Palette, type Radii } from './tokens';
+import { DARK, LIGHT, RADII, TYPE, inkFor, type Palette, type Radii } from './tokens';
 
 // Where the app's look comes from, and in which order.
 //
@@ -49,6 +48,9 @@ export interface Appearance {
   accent: string;
   /** Ink to put on the accent, computed rather than configured. */
   accentContrast: string;
+  /** The accent used AS ink, on the page's own ground. Same colour in dark
+   *  mode; darkened until it is readable in light mode. See tokens.inkFor. */
+  accentInk: string;
   /** The accent at low opacity, for a fill behind it. */
   accentSoft: string;
   radii: Radii;
@@ -60,10 +62,13 @@ export interface Appearance {
 
   // --- the override layer, for the settings screen ---
   /** True when a local override is in force for that axis. */
-  overridden: { accent: boolean; shape: boolean; theme: boolean };
+  overridden: { accent: boolean; shape: boolean; theme: boolean; rainbow: boolean };
   setAccent: (hex: string | undefined) => void;
   setShape: (s: Shape | undefined) => void;
   setTheme: (t: 'light' | 'dark' | undefined) => void;
+  /** Turn the rainbow on or off for THIS app; undefined follows the instance
+   *  again. The palette and the seed are never local - see below. */
+  setRainbow: (on: boolean | undefined) => void;
   /** Drop every override and follow the instance again. */
   followInstance: () => void;
   /** The opposite direction: write the RESOLVED look into the override layer,
@@ -79,6 +84,7 @@ interface Override {
   accent?: string;
   shape?: Shape;
   theme?: 'light' | 'dark';
+  rainbow?: boolean;
 }
 
 const STORE_KEY = 'glim-appearance-override';
@@ -102,6 +108,7 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
           accent: valid(p.accent) ? p.accent : undefined,
           shape: asShape(p.shape),
           theme: p.theme === 'light' || p.theme === 'dark' ? p.theme : undefined,
+          rainbow: typeof p.rainbow === 'boolean' ? p.rainbow : undefined,
         });
       })
       .catch(() => {
@@ -125,23 +132,39 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
     const dark = override.theme ? override.theme === 'dark' : system !== 'light';
     const c = dark ? DARK : LIGHT;
 
-    // The chosen accent is used as given. Only the DEFAULT is darkened for the
-    // light theme - second-guessing a colour somebody picked on purpose is how
-    // a picker stops meaning anything.
+    // The accent is used as given, in both themes. It used to be swapped for
+    // a fixed dark yellow in light mode, which painted every badge and switch
+    // olive-brown (jdp: "Die gelbe akzentfarbe ist im hellen modus ganz
+    // dunkel"); the darkening belongs to the INK, not to the colour - see
+    // accentInk just below, and tokens.inkFor for why one token could never
+    // do both jobs.
     const chosen = override.accent ?? (valid(instance?.accent) ? instance?.accent : undefined);
-    const accent = chosen ?? (dark ? DEFAULT_ACCENT : LIGHT_DEFAULT_ACCENT);
+    const accent = chosen ?? DEFAULT_ACCENT;
 
     const shape = override.shape ?? asShape(instance?.shape) ?? 'round';
-    // The rainbow is never overridden locally: its seed belongs to the
-    // instance by design, and a client that picked its own would be the exact
-    // disagreement that rule exists to prevent.
-    const rainbow = instance ? rainbowFromSettings(instance) : RAINBOW_OFF;
+
+    // The rainbow: on or off is a local choice like every other axis on this
+    // screen (jdp, 2026-08-30: "Regenbogenmodus hat kein toggle und kann
+    // nicht aktiviert werden"), but the PALETTE and the SEED are not, and
+    // that is the part of the old rule worth keeping - they belong to the
+    // instance so that two clients of one server cannot disagree about the
+    // colour of a download. Switching the mode on locally therefore asks the
+    // instance's own settings for its colours, as if it had the mode on
+    // itself; rainbowFromSettings only builds them in that case.
+    const instRainbow = rainbowFromSettings(instance);
+    const rainbow =
+      override.rainbow === undefined
+        ? instRainbow
+        : override.rainbow
+          ? rainbowFromSettings({ ...instance, rainbow: true })
+          : { ...instRainbow, on: false };
 
     return {
       dark,
       c,
       accent,
       accentContrast: contrastOn(accent),
+      accentInk: dark ? accent : inkFor(accent),
       accentSoft: softOn(accent),
       radii: RADII[shape] ?? RADII.round,
       type: TYPE,
@@ -151,12 +174,14 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
         accent: override.accent !== undefined,
         shape: override.shape !== undefined,
         theme: override.theme !== undefined,
+        rainbow: override.rainbow !== undefined,
       },
       setAccent: (hex) => persist({ ...override, accent: valid(hex) ? hex : undefined }),
       setShape: (s) => persist({ ...override, shape: s }),
       setTheme: (t) => persist({ ...override, theme: t }),
+      setRainbow: (on) => persist({ ...override, rainbow: on }),
       followInstance: () => persist({}),
-      snapshotAsLocal: () => persist({ accent, shape, theme: dark ? 'dark' : 'light' }),
+      snapshotAsLocal: () => persist({ accent, shape, theme: dark ? 'dark' : 'light', rainbow: rainbow.on }),
       setInstanceAppearance: setInstance,
     };
   }, [override, instance, system, persist]);

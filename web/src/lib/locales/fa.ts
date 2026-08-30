@@ -390,8 +390,6 @@ export const fa: Dict = {
   'settings.nav.advanced': 'پیشرفته',
 
   'settings.railLabel': 'بخش‌های تنظیمات',
-  'settings.railReorderStart': 'بازچینی برگه‌ها',
-  'settings.railReorderDone': 'بازچینی تمام شد',
   'settings.empty': 'اینجا هنوز چیزی برای تنظیم نیست.',
   'settings.emptyHint': 'این صفحه ثبت شده تا نشانی‌اش کار کند و تا به محض آنکه زیرسامانه آمد، کنترل‌ها همین‌جا بنشینند.',
 

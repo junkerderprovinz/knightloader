@@ -382,8 +382,6 @@ export const nl: Dict = {
   'settings.nav.advanced': 'Geavanceerd',
 
   'settings.railLabel': 'Instellingenonderdelen',
-  'settings.railReorderStart': 'Tabbladen herschikken',
-  'settings.railReorderDone': 'Herschikken klaar',
   'settings.empty': 'Hier valt nog niets in te stellen.',
   'settings.emptyHint': 'De pagina is geregistreerd zodat het adres blijft werken en de knoppen hier belanden zodra het subsysteem er is.',
 

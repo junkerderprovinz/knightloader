@@ -390,8 +390,6 @@ export const tr: Dict = {
   'settings.nav.advanced': 'Gelişmiş',
 
   'settings.railLabel': 'Ayar bölümleri',
-  'settings.railReorderStart': 'Sekmeleri yeniden sırala',
-  'settings.railReorderDone': 'Yeniden sıralama tamamlandı',
   'settings.empty': 'Burada henüz ayarlanacak bir şey yok.',
   'settings.emptyHint': 'Sayfa, adresi çalışmaya devam etsin ve alt sistem geldiğinde denetimler buraya insin diye kayıtlı.',
 

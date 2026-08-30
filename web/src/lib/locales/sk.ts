@@ -390,8 +390,6 @@ export const sk: Dict = {
   'settings.nav.advanced': 'Pokročilé',
 
   'settings.railLabel': 'Sekcie nastavení',
-  'settings.railReorderStart': 'Preusporiadať karty',
-  'settings.railReorderDone': 'Preusporiadanie dokončené',
   'settings.empty': 'Tu zatiaľ nie je čo nastavovať.',
   'settings.emptyHint': 'Stránka je zaregistrovaná, aby jej adresa ďalej fungovala a aby ovládacie prvky pristáli tu, len čo podsystém vznikne.',
 

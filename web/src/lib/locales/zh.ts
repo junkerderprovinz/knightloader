@@ -390,8 +390,6 @@ export const zh: Dict = {
   'settings.nav.advanced': '高级',
 
   'settings.railLabel': '设置分区',
-  'settings.railReorderStart': '重新排列标签页',
-  'settings.railReorderDone': '排序完成',
   'settings.empty': '这里还没有可设置的内容。',
   'settings.emptyHint': '这个页面先注册好，让它的地址一直可用，等子系统到位时控件就落在这里。',
 

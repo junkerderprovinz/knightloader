@@ -8,7 +8,6 @@ import type { Instance, ServerConnection } from './src/api/types';
 import ConnectionsScreen from './src/screens/ConnectionsScreen';
 import RelayConnectScreen from './src/screens/RelayConnectScreen';
 import DownloadsScreen from './src/screens/DownloadsScreen';
-import InstancesScreen from './src/screens/InstancesScreen';
 import AddDownloadScreen from './src/screens/AddDownloadScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import LanguagePickerScreen from './src/screens/LanguagePickerScreen';
@@ -20,7 +19,6 @@ type RootStackParamList = {
   Connections: undefined;
   RelayConnect: undefined;
   Downloads: { peer?: Instance } | undefined;
-  Instances: undefined;
   AddDownload: { peer?: Instance } | undefined;
   Settings: undefined;
   LanguagePicker: undefined;
@@ -43,7 +41,7 @@ export default function App() {
 }
 
 function Shell() {
-  const { c, accent, dark, setInstanceAppearance } = useAppearance();
+  const { c, accent, accentInk, dark, setInstanceAppearance } = useAppearance();
   const [conn, setConn] = useState<ServerConnection | null>(null);
   const [loading, setLoading] = useState(true);
   // The screen the navigator opens on: Downloads if a connection was left
@@ -89,7 +87,10 @@ function Shell() {
   if (loading) {
     return (
       <View style={[styles.loading, { backgroundColor: c.bg }]}>
-        <ActivityIndicator color={accent} size="large" />
+        {/* accentInk, not accent: a spinner is ink on the page's own ground,
+            and a bright Sunflower on the light theme's near-white is a shape
+            you cannot see. */}
+        <ActivityIndicator color={accentInk} size="large" />
       </View>
     );
   }
@@ -157,7 +158,6 @@ function Shell() {
                     await setActiveConnectionId(null);
                     navigation.navigate('Connections');
                   }}
-                  onOpenInstances={() => navigation.navigate('Instances')}
                   onOpenSettings={() => navigation.navigate('Settings')}
                   onBackToOwn={route.params?.peer ? () => navigation.goBack() : undefined}
                 />
@@ -165,13 +165,22 @@ function Shell() {
             }
           </Stack.Screen>
 
-          <Stack.Screen name="Instances">
-            {({ navigation }) =>
-              conn ? (
-                <InstancesScreen conn={conn} onOpenInstance={(peer) => navigation.push('Downloads', { peer })} />
-              ) : null
-            }
-          </Stack.Screen>
+          {/* There was an Instances screen here, listing the federation peers
+              of whichever instance was connected, reached from a link in the
+              Downloads top bar. jdp took that link out (2026-08-30: "Wenn man
+              in einer instanz ist soll oben der button 'Instanzen' weg") and
+              renamed the one beside it to Übersicht - which IS the list of
+              instances, since every member of the group is a connection
+              there. The screen went with the link rather than staying behind
+              as an address nothing leads to; it was also the last place in
+              the app that still took a name and an address by hand, which the
+              phrase replaced everywhere else.
+
+              What is still here: DownloadsScreen and AddDownloadScreen keep
+              their `peer` branch. Nothing sets it today - it is the proxy
+              path (/api/instances/{name}) a peer view would need, and it is a
+              few lines rather than a feature, so it waits rather than being
+              rebuilt from scratch if that view comes back. */}
 
           <Stack.Screen name="AddDownload" options={{ presentation: 'modal' }}>
             {({ navigation, route }) =>

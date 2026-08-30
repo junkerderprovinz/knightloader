@@ -550,8 +550,19 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
 
           The lead paragraph carries pr-72 so it cannot run under the badges
           on a narrow card; the numbered list below sits low enough not to
-          need it. */}
-      <div className="absolute -top-2 right-5 z-10 flex items-center gap-2">
+          need it.
+
+          top-4, not -top-2 (jdp, 2026-08-30: "die beiden buttons Wie
+          funktioniert das? und verbunden sitzen auf dem card rand und sind
+          halbtransparent. die sollen in die card"). At -top-2 they straddled
+          the card's own top edge, half on the card and half on the page
+          behind it, which is what read as half-transparent: a surface2 badge
+          has nothing to be a step above when half of it is standing on the
+          page ground. Inside the padding box they sit on the card, level with
+          the first line of the lead paragraph, in the room pr-72 was already
+          reserving for them - so this costs the card no height, which is the
+          reason the row was taken out of the flow in the first place. */}
+      <div className="absolute right-5 top-4 z-10 flex items-center gap-2">
         <LabelBadge
           label={t('settings.access.phrase.howButton')}
           tip={paragraphs(t('settings.access.phrase.howWhat'))}

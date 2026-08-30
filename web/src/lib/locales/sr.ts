@@ -390,8 +390,6 @@ export const sr: Dict = {
   'settings.nav.advanced': 'Напредно',
 
   'settings.railLabel': 'Одељци подешавања',
-  'settings.railReorderStart': 'Промени редослед картица',
-  'settings.railReorderDone': 'Промена редоследа завршена',
   'settings.empty': 'Овде још нема шта да се подеси.',
   'settings.emptyHint': 'Страница је регистрована да би њена адреса и даље радила и да би контроле слетеле овде чим подсистем постоји.',
 

@@ -382,8 +382,6 @@ export const ru: Dict = {
   'settings.nav.advanced': 'Дополнительно',
 
   'settings.railLabel': 'Разделы настроек',
-  'settings.railReorderStart': 'Изменить порядок вкладок',
-  'settings.railReorderDone': 'Изменение порядка завершено',
   'settings.empty': 'Здесь пока нечего настраивать.',
   'settings.emptyHint': 'Страница зарегистрирована, чтобы её адрес продолжал работать и чтобы элементы управления оказались здесь, как только появится подсистема.',
 

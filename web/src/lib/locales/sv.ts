@@ -390,8 +390,6 @@ export const sv: Dict = {
   'settings.nav.advanced': 'Avancerat',
 
   'settings.railLabel': 'Inställningsavsnitt',
-  'settings.railReorderStart': 'Ordna om flikar',
-  'settings.railReorderDone': 'Omordning klar',
   'settings.empty': 'Här finns inget att ställa in än.',
   'settings.emptyHint': 'Sidan är registrerad så att adressen fortsätter fungera och så att reglagen hamnar här när delsystemet finns.',
 

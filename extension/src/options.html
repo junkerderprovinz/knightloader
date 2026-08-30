@@ -86,7 +86,13 @@
       #list:not(:empty) { margin-bottom: 2px; }
       #status { margin-top: 10px; font-size: var(--text-dense); min-height: 1.2em; }
       .ok { color: var(--status-ok-text); }
-      #list { display: flex; flex-direction: column; gap: 8px; }
+      /* 16, and the refresh button below it sits 16 away too - the same
+         correction popup.html's own #instanceList just had. jdp reported the
+         popup ("Die abstaände zwischen den instanzen-cards und des buttons
+         darunter sind unterschiedlich"); this page draws the same cards with
+         the same defect, 8 between them and 12 under them, and fixing only
+         the page he happened to be looking at is how the two drift apart. */
+      #list { display: flex; flex-direction: column; gap: 16px; }
       .empty { color: var(--carbon-text-muted); font-size: var(--text-body); padding: 8px 0; }
       .fields { display: flex; gap: 8px; }
       /* The join form: the phrase field on its own line above its buttons.
@@ -94,7 +100,7 @@
          designing for. */
       #joinForm { display: flex; flex-direction: column; gap: 10px; margin: 0; }
       #phrase { width: 100%; }
-      #refreshGroup { margin-top: 12px; }
+      #refreshGroup { margin-top: 16px; }
       #refreshGroup:disabled { opacity: 0.55; cursor: default; }
       /* The info glyph sits INSIDE the heading badge, so it takes the badge's
          own ink rather than the muted page colour it defaults to. */

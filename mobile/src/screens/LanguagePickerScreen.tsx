@@ -8,7 +8,7 @@ import { TYPE } from '../theme/tokens';
 
 export default function LanguagePickerScreen({ onBack }: { onBack: () => void }) {
   const { t, lang, setLanguage } = useT();
-  const { c, accent, radii } = useAppearance();
+  const { c, accentInk, radii } = useAppearance();
   const [override, setOverride] = useState<string | null>(null);
 
   useEffect(() => {
@@ -64,7 +64,7 @@ export default function LanguagePickerScreen({ onBack }: { onBack: () => void })
             >
               <Text style={styles.flag}>{item.flag}</Text>
               <Text style={[styles.rowLabel, { color: c.text }]}>{item.label}</Text>
-              {isSelected && <Text style={[styles.check, { color: accent }]}>✓</Text>}
+              {isSelected && <Text style={[styles.check, { color: accentInk }]}>✓</Text>}
             </TouchableOpacity>
           );
         }}

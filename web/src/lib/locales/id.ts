@@ -390,8 +390,6 @@ export const id: Dict = {
   'settings.nav.advanced': 'Lanjutan',
 
   'settings.railLabel': 'Bagian pengaturan',
-  'settings.railReorderStart': 'Atur ulang tab',
-  'settings.railReorderDone': 'Selesai mengatur ulang',
   'settings.empty': 'Di sini belum ada yang bisa diatur.',
   'settings.emptyHint': 'Halaman ini didaftarkan supaya alamatnya tetap bekerja dan supaya kendalinya mendarat di sini begitu subsistemnya ada.',
 

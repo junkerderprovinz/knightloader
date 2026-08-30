@@ -390,8 +390,6 @@ export const de: Dict = {
   'settings.nav.advanced': 'Erweitert',
 
   'settings.railLabel': 'Einstellungsbereiche',
-  'settings.railReorderStart': 'Tabs neu anordnen',
-  'settings.railReorderDone': 'Neuanordnen fertig',
   'settings.empty': 'Hier gibt es noch nichts einzustellen.',
   'settings.emptyHint': 'Die Seite ist registriert, damit ihre Adresse weiter funktioniert und die Bedienelemente hier landen, sobald es das Teilsystem gibt.',
 

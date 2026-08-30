@@ -390,8 +390,6 @@ export const hr: Dict = {
   'settings.nav.advanced': 'Napredno',
 
   'settings.railLabel': 'Odjeljci postavki',
-  'settings.railReorderStart': 'Preuredi kartice',
-  'settings.railReorderDone': 'Preuređivanje gotovo',
   'settings.empty': 'Ovdje još nema što postaviti.',
   'settings.emptyHint': 'Stranica je registrirana da joj adresa i dalje radi i da kontrole slete ovamo čim podsustav postoji.',
 
