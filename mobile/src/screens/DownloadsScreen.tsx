@@ -48,6 +48,10 @@ export default function DownloadsScreen({
   const [connected, setConnected] = useState(false);
   const [queue, setQueue] = useState<QueueState | null>(null);
   const [queueBusy, setQueueBusy] = useState(false);
+  /** What the last start or stop actually did, when it did not work. Shown
+   *  rather than swallowed, the same line the overview carries: a control that
+   *  reports nothing is indistinguishable from a control that does nothing. */
+  const [startError, setStartError] = useState('');
   // Which half of the instance is on screen (jdp, 2026-08-30: "Zwei tabs soll
   // es geben: Dowload und Sammler"). The two are one task list with one status
   // telling them apart - "collected" means staged and not started - so this is
@@ -82,10 +86,16 @@ export default function DownloadsScreen({
     };
   }, [conn, base]);
 
+  // try/finally with no catch was the bug, not a style choice: the finally
+  // cleared the spinner and the rejection went nowhere, so a queue call the
+  // instance refused looked exactly like a button that was not wired up.
   const toggleHalted = async (nextHalted: boolean) => {
     setQueueBusy(true);
+    setStartError('');
     try {
       setQueue(await setQueueHalted(conn, nextHalted, base));
+    } catch (e) {
+      setStartError(e instanceof Error ? e.message : String(e));
     } finally {
       setQueueBusy(false);
     }
@@ -192,6 +202,16 @@ export default function DownloadsScreen({
       )}
       </View>
 
+      {/* Why the last start or stop did not take. One line, in the fail
+          colour, and only when there is something to say. Outside the wide
+          header on purpose: in there it would become a third flex column on a
+          tablet, squeezing the two readings it is meant to explain. */}
+      {startError !== '' && (
+        <Text style={[styles.queueError, { color: c.statusFailSolid }]} numberOfLines={2}>
+          {startError}
+        </Text>
+      )}
+
       {/* The strip only appears once there is something staged: a tab that is
           always empty is a tab that teaches you to ignore the strip. */}
       {collected.length > 0 && (
@@ -221,8 +241,21 @@ export default function DownloadsScreen({
                 // und startet den download"). Switching tabs first would leave
                 // somebody looking at a collector that is one package emptier
                 // for no visible reason.
-                await startTasks(conn, pkg.tasks.map((x) => x.id), base).catch(() => {});
-                setTab('downloads');
+                //
+                // And it says so when it fails. This call used to end in
+                // `.catch(() => {})`, which is the exact shape that made "die
+                // ganzen play/Stop buttons haben derzeit keine wirkung"
+                // unanswerable elsewhere in this app: the tab switched, the
+                // package stayed where it was, and nothing on screen knew why.
+                // A refused start is now a line, and the tab only changes when
+                // there is actually something to see in it.
+                setStartError('');
+                try {
+                  await startTasks(conn, pkg.tasks.map((x) => x.id), base);
+                  setTab('downloads');
+                } catch (e) {
+                  setStartError(e instanceof Error ? e.message : String(e));
+                }
               }
             : undefined
         }
@@ -270,6 +303,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   queueLabel: { fontSize: 13 },
+  queueError: { ...capped, marginHorizontal: 16, marginBottom: 8, fontSize: TYPE.caption },
   graph: { ...capped, marginHorizontal: 16, marginBottom: 10 },
   tabs: { ...capped, marginHorizontal: 16, marginBottom: 10 },
   wideHeader: { flexDirection: 'row', alignSelf: 'center', width: '100%', maxWidth: 980, paddingHorizontal: 0 },
