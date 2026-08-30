@@ -390,8 +390,6 @@ export const et: Dict = {
   'settings.nav.advanced': 'Täpsem',
 
   'settings.railLabel': 'Seadete jaotised',
-  'settings.railReorderStart': 'Korralda vahekaarte',
-  'settings.railReorderDone': 'Korraldamine valmis',
   'settings.empty': 'Siin pole veel midagi seadistada.',
   'settings.emptyHint': 'Leht on registreeritud, et selle aadress edasi töötaks ja et juhtelemendid maanduksid siia kohe, kui alamsüsteem olemas on.',
 

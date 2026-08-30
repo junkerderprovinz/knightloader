@@ -390,8 +390,6 @@ export const da: Dict = {
   'settings.nav.advanced': 'Avanceret',
 
   'settings.railLabel': 'Indstillingsafsnit',
-  'settings.railReorderStart': 'Omorganisér faner',
-  'settings.railReorderDone': 'Færdig med omorganisering',
   'settings.empty': 'Her er der ikke noget at indstille endnu.',
   'settings.emptyHint': 'Siden er registreret, så dens adresse bliver ved med at virke, og så knapperne lander her, når undersystemet er der.',
 

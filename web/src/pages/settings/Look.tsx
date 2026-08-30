@@ -283,58 +283,63 @@ export function Look() {
             Text Akzentfarbe verschieben") - exactly how the real BombVault
             test container lays this row out: "Akzentfarbe:" then the swatch
             then "Voreinstellungen:" then all eight presets, one flex-wrap
-            line. */}
-        <div className="flex flex-wrap items-center justify-end gap-3">
-          {/* me-2 on top of the row's own gap-3, not just a bigger gap-*:
-              the label needs more breathing room before the colour fields
-              start than the fields need between each other (jdp: "der
-              Abstand zwischen Akzentfarbe [...] zu den Farbfeldern
-              vergrößern") - widening the row's shared gap would also push
-              every swatch further apart from its neighbour, which nobody
-              asked for. */}
-          <span className="me-2 flex shrink-0 items-center gap-1.5 text-sm text-carbon-text">
+            line.
+
+            justify-between with the swatches in a group of their own, not
+            justify-end with everything in one flat row (jdp: "Text
+            Akzentfarbe und farbpalette linksbündig platzieren"): the label
+            belongs at the card's left edge like every other label on this
+            page, the colour fields stay at the right edge, and the space
+            between them is whatever the card is wide - which also retires
+            the hand-tuned me-2 that used to stand in for that gap. Every
+            other row in this card (Regenbogen-Modus, Reaktiver Modus,
+            Farbenrotation) is already built exactly this way. */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <span className="flex shrink-0 items-center gap-1.5 text-sm text-carbon-text">
             {t('settings.accent')}
             <InfoBubble tip={t('settings.accentHint')} />
           </span>
-          {/* The current/custom accent trigger - a plain circle, no selection
-              ring of its own, opening the app's own picker. It used to hide a
-              native colour input behind it, with a note saying the documented
-              popover had no port here yet. It has one now
-              (lib/colorPicker.ts), so the note and the native input are both
-              gone. */}
-          <button
-            type="button"
-            className="relative inline-flex h-6 w-6 shrink-0 cursor-pointer overflow-hidden rounded-[var(--radius-pill)]"
-            title={t('settings.accent')}
-            aria-label={t('settings.accent')}
-            style={{ backgroundColor: accentLive }}
-            onClick={(e) => openColorPickerPopover(e.currentTarget, accentLive, (hex) => patch({ accent: hex }))}
-          />
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-carbon-textMuted">{t('settings.accentPresets')}:</span>
-            {ACCENTS.map((a) => (
-              <RingSwatch
-                key={a.hex}
-                color={a.hex}
-                label={a.name}
-                selected={accentLive === a.hex.toLowerCase()}
-                onPick={() => patch({ accent: a.hex })}
-              />
-            ))}
-            {/* Icon badge, not a text link (rule 13: "a small, single-purpose
-                action badge carries an icon"). Only once the accent has
-                actually moved off the default. */}
-            {accentLive !== DEFAULT_ACCENT.toLowerCase() && (
-              <button
-                type="button"
-                title={t('settings.accentReset')}
-                aria-label={t('settings.accentReset')}
-                onClick={() => patch({ accent: '' })}
-                className="inline-flex h-6 w-6 items-center justify-center rounded-[var(--radius-pill)] bg-carbon-surface2 text-carbon-textSub transition-colors hover:text-carbon-text"
-              >
-                <IconRetry width={13} height={13} />
-              </button>
-            )}
+          <div className="flex flex-wrap items-center gap-3">
+            {/* The current/custom accent trigger - a plain circle, no selection
+                ring of its own, opening the app's own picker. It used to hide a
+                native colour input behind it, with a note saying the documented
+                popover had no port here yet. It has one now
+                (lib/colorPicker.ts), so the note and the native input are both
+                gone. */}
+            <button
+              type="button"
+              className="relative inline-flex h-6 w-6 shrink-0 cursor-pointer overflow-hidden rounded-[var(--radius-pill)]"
+              title={t('settings.accent')}
+              aria-label={t('settings.accent')}
+              style={{ backgroundColor: accentLive }}
+              onClick={(e) => openColorPickerPopover(e.currentTarget, accentLive, (hex) => patch({ accent: hex }))}
+            />
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs text-carbon-textMuted">{t('settings.accentPresets')}:</span>
+              {ACCENTS.map((a) => (
+                <RingSwatch
+                  key={a.hex}
+                  color={a.hex}
+                  label={a.name}
+                  selected={accentLive === a.hex.toLowerCase()}
+                  onPick={() => patch({ accent: a.hex })}
+                />
+              ))}
+              {/* Icon badge, not a text link (rule 13: "a small, single-purpose
+                  action badge carries an icon"). Only once the accent has
+                  actually moved off the default. */}
+              {accentLive !== DEFAULT_ACCENT.toLowerCase() && (
+                <button
+                  type="button"
+                  title={t('settings.accentReset')}
+                  aria-label={t('settings.accentReset')}
+                  onClick={() => patch({ accent: '' })}
+                  className="inline-flex h-6 w-6 items-center justify-center rounded-[var(--radius-pill)] bg-carbon-surface2 text-carbon-textSub transition-colors hover:text-carbon-text"
+                >
+                  <IconRetry width={13} height={13} />
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -398,47 +403,50 @@ export function Look() {
                 verschieben"): eight native colour inputs, plus an icon-only
                 reset badge - always rendered, disabled rather than hidden
                 along with the rest of this sub-section. */}
-            <div className="flex flex-wrap items-center justify-end gap-2">
-              {/* Same reasoning as the Akzentfarbe row above: extra room
-                  after the label specifically, not a bigger shared gap. */}
-              <span className="me-2 flex shrink-0 items-center gap-1.5 text-sm text-carbon-text">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              {/* Same treatment as the Akzentfarbe row above: label at the
+                  left edge, colour fields at the right, the card's own width
+                  as the gap between them. */}
+              <span className="flex shrink-0 items-center gap-1.5 text-sm text-carbon-text">
                 {t('settings.rainbowPaletteLabel')}
                 <InfoBubble tip={t('settings.rainbowPaletteHint')} />
               </span>
-              {palette.map((hex, i) => (
-                // A real button carrying its own accessible name, opening the
-                // app's own picker. It used to be a label wrapping a native
-                // colour input, which meant the name had to sit on the input
-                // rather than on the thing being pressed - and the border-2
-                // hairline went with it, since surfaces here are separated by
-                // shade, never by a drawn line.
+              <div className="flex flex-wrap items-center gap-2">
+                {palette.map((hex, i) => (
+                  // A real button carrying its own accessible name, opening the
+                  // app's own picker. It used to be a label wrapping a native
+                  // colour input, which meant the name had to sit on the input
+                  // rather than on the thing being pressed - and the border-2
+                  // hairline went with it, since surfaces here are separated by
+                  // shade, never by a drawn line.
+                  <button
+                    key={i}
+                    type="button"
+                    disabled={!cfg.rainbow}
+                    title={`${t('settings.rainbowPalette')} ${i + 1}`}
+                    aria-label={`${t('settings.rainbowPalette')} ${i + 1}`}
+                    className="relative h-7 w-7 shrink-0 cursor-pointer overflow-hidden rounded-[var(--radius-pill)] disabled:cursor-not-allowed"
+                    style={{ backgroundColor: hex }}
+                    onClick={(e) =>
+                      openColorPickerPopover(e.currentTarget, hex, (next) => {
+                        const list = palette.slice();
+                        list[i] = next;
+                        patch({ rainbowPalette: list });
+                      })
+                    }
+                  />
+                ))}
                 <button
-                  key={i}
                   type="button"
                   disabled={!cfg.rainbow}
-                  title={`${t('settings.rainbowPalette')} ${i + 1}`}
-                  aria-label={`${t('settings.rainbowPalette')} ${i + 1}`}
-                  className="relative h-7 w-7 shrink-0 cursor-pointer overflow-hidden rounded-[var(--radius-pill)] disabled:cursor-not-allowed"
-                  style={{ backgroundColor: hex }}
-                  onClick={(e) =>
-                    openColorPickerPopover(e.currentTarget, hex, (next) => {
-                      const list = palette.slice();
-                      list[i] = next;
-                      patch({ rainbowPalette: list });
-                    })
-                  }
-                />
-              ))}
-              <button
-                type="button"
-                disabled={!cfg.rainbow}
-                title={t('settings.accentReset')}
-                aria-label={t('settings.accentReset')}
-                onClick={() => patch({ rainbowPalette: null })}
-                className="inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-pill)] bg-carbon-surface2 text-carbon-textSub transition-colors hover:text-carbon-text"
-              >
-                <IconRetry width={14} height={14} />
-              </button>
+                  title={t('settings.accentReset')}
+                  aria-label={t('settings.accentReset')}
+                  onClick={() => patch({ rainbowPalette: null })}
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-pill)] bg-carbon-surface2 text-carbon-textSub transition-colors hover:text-carbon-text"
+                >
+                  <IconRetry width={14} height={14} />
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -382,8 +382,6 @@ export const pl: Dict = {
   'settings.nav.advanced': 'Zaawansowane',
 
   'settings.railLabel': 'Sekcje ustawień',
-  'settings.railReorderStart': 'Zmień kolejność kart',
-  'settings.railReorderDone': 'Zmiana kolejności zakończona',
   'settings.empty': 'Tu nie ma jeszcze czego ustawiać.',
   'settings.emptyHint': 'Strona jest zarejestrowana, żeby jej adres dalej działał i żeby elementy sterujące trafiły tutaj, gdy podsystem się pojawi.',
 

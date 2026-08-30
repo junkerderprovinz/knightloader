@@ -145,24 +145,12 @@ export async function setQueueHalted(conn: ServerConnection, halted: boolean, ba
 
 // --- Federation: the peer instances the connected server itself knows -----
 //
-// These always run against the connected server's OWN base ('/api'), never
-// a peer's - a peer's peers are not this app's concern, same as the web
-// UI's Instances.tsx only ever calls these against its own origin.
-
-export async function fetchInstances(conn: ServerConnection): Promise<Instance[]> {
-  return request<Instance[]>(conn, '/api', '/instances');
-}
-
-export async function addInstance(conn: ServerConnection, name: string, url: string): Promise<{ name: string; url: string; online: boolean }> {
-  return request(conn, '/api', '/instances', {
-    method: 'POST',
-    body: JSON.stringify({ name, url }),
-  });
-}
-
-export async function removeInstance(conn: ServerConnection, name: string): Promise<void> {
-  await request(conn, '/api', `/instances/${encodeURIComponent(name)}`, { method: 'DELETE' });
-}
+// Three calls lived here - list, add, remove - against the connected server's
+// own base. They went with InstancesScreen, the only caller (see App.tsx for
+// why that screen went). `addInstance` in particular took a name and an
+// address by hand, which is the path the connection phrase replaced
+// everywhere else in this app; leaving the call sitting here is how it finds
+// its way back into a screen.
 
 
 // --- Live task stream -------------------------------------------------

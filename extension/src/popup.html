@@ -136,7 +136,17 @@
         transition: box-shadow 150ms ease;
       }
       #instance:focus { box-shadow: 0 0 0 2px var(--focus-ring); }
-      #instanceList { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+      /* 16, the same number as every other vertical gap in this window (jdp,
+         2026-08-30: "Die abstaände zwischen den instanzen-cards und des
+         buttons darunter sind unterschiedlich"). It was 8 while the gap under
+         the last card was 16 - measured, not assumed: three cards rendered
+         8/8/16, so the button sat visibly further from the stack than the
+         cards sat from each other. The 1.9.0 pass that claimed "one rhythm"
+         only made the button's own two sides match and never touched the
+         list. Now: card to card, card to button and button to window edge are
+         one number. The label above the list keeps its tight 6px - that gap
+         belongs to the group it names, not to the rhythm between blocks. */
+      #instanceList { display: flex; flex-direction: column; gap: 16px; margin-top: 6px; }
       #instanceLabel { margin: 0; }
     </style>
   </head>

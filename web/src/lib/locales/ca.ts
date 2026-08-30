@@ -390,8 +390,6 @@ export const ca: Dict = {
   'settings.nav.advanced': 'Avançat',
 
   'settings.railLabel': 'Seccions de la configuració',
-  'settings.railReorderStart': 'Reordena les pestanyes',
-  'settings.railReorderDone': 'Reordenació feta',
   'settings.empty': 'Aquí encara no hi ha res per configurar.',
   'settings.emptyHint': 'La pàgina està registrada perquè la seva adreça continuï funcionant i perquè els controls hi aterrin quan el subsistema hi sigui.',
 

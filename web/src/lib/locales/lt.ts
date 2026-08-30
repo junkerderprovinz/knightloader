@@ -390,8 +390,6 @@ export const lt: Dict = {
   'settings.nav.advanced': 'Išplėstiniai',
 
   'settings.railLabel': 'Nustatymų skiltys',
-  'settings.railReorderStart': 'Pertvarkyti skirtukus',
-  'settings.railReorderDone': 'Pertvarkymas baigtas',
   'settings.empty': 'Čia dar nėra ko nustatyti.',
   'settings.emptyHint': 'Puslapis užregistruotas, kad jo adresas ir toliau veiktų ir kad valdikliai nusileistų čia, kai tik posistemė atsiras.',
 

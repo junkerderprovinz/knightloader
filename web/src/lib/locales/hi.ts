@@ -390,8 +390,6 @@ export const hi: Dict = {
   'settings.nav.advanced': 'उन्नत',
 
   'settings.railLabel': 'सेटिंग्स के अनुभाग',
-  'settings.railReorderStart': 'टैब पुनर्व्यवस्थित करें',
-  'settings.railReorderDone': 'पुनर्व्यवस्थापन पूर्ण',
   'settings.empty': 'यहाँ अभी कुछ भी तय करने को नहीं है।',
   'settings.emptyHint': 'पन्ना दर्ज है ताकि इसका पता चलता रहे और जैसे ही उपप्रणाली आए, नियंत्रण यहीं आ जाएँ।',
 

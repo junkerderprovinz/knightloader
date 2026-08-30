@@ -390,8 +390,6 @@ export const is: Dict = {
   'settings.nav.advanced': 'Ítarlegt',
 
   'settings.railLabel': 'Kaflar stillinga',
-  'settings.railReorderStart': 'Endurraða flipum',
-  'settings.railReorderDone': 'Endurröðun lokið',
   'settings.empty': 'Hér er enn ekkert að stilla.',
   'settings.emptyHint': 'Síðan er skráð svo að slóðin hennar haldi áfram að virka og svo að stýringarnar lendi hér um leið og undirkerfið er til.',
 

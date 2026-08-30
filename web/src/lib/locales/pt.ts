@@ -382,8 +382,6 @@ export const pt: Dict = {
   'settings.nav.advanced': 'Avançado',
 
   'settings.railLabel': 'Secções das definições',
-  'settings.railReorderStart': 'Reordenar abas',
-  'settings.railReorderDone': 'Reordenação concluída',
   'settings.empty': 'Ainda não há nada para configurar aqui.',
   'settings.emptyHint': 'A página está registada para que o seu endereço continue a funcionar e para que os controlos apareçam aqui assim que o subsistema existir.',
 

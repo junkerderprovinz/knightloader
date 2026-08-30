@@ -433,8 +433,6 @@ export const en = {
   'settings.nav.advanced': 'Advanced',
 
   'settings.railLabel': 'Settings sections',
-  'settings.railReorderStart': 'Reorder tabs',
-  'settings.railReorderDone': 'Done reordering',
   'settings.empty': 'Nothing to configure here yet.',
   'settings.emptyHint': 'The page is registered so its address keeps working and so the controls land here when the subsystem does.',
 

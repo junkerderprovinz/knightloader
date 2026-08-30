@@ -382,8 +382,6 @@ export const fr: Dict = {
   'settings.nav.advanced': 'Avancé',
 
   'settings.railLabel': 'Sections des paramètres',
-  'settings.railReorderStart': 'Réorganiser les onglets',
-  'settings.railReorderDone': 'Réorganisation terminée',
   'settings.empty': 'Rien à régler ici pour le moment.',
   'settings.emptyHint': 'La page est déclarée pour que son adresse continue de fonctionner et pour que les réglages atterrissent ici dès que le sous-système existe.',
 

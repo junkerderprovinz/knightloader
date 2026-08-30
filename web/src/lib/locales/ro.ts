@@ -390,8 +390,6 @@ export const ro: Dict = {
   'settings.nav.advanced': 'Avansat',
 
   'settings.railLabel': 'Secțiunile setărilor',
-  'settings.railReorderStart': 'Reordonează filele',
-  'settings.railReorderDone': 'Reordonare finalizată',
   'settings.empty': 'Aici nu e încă nimic de configurat.',
   'settings.emptyHint': 'Pagina este înregistrată ca adresa ei să funcționeze în continuare și ca elementele de control să ajungă aici de îndată ce subsistemul există.',
 

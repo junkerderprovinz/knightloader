@@ -382,8 +382,6 @@ export const it: Dict = {
   'settings.nav.advanced': 'Avanzate',
 
   'settings.railLabel': 'Sezioni delle impostazioni',
-  'settings.railReorderStart': 'Riordina le schede',
-  'settings.railReorderDone': 'Riordino completato',
   'settings.empty': 'Qui non c’è ancora niente da impostare.',
   'settings.emptyHint': 'La pagina è registrata perché il suo indirizzo continui a funzionare e perché i comandi finiscano qui non appena il sottosistema esiste.',
 

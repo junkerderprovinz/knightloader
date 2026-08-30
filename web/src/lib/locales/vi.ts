@@ -390,8 +390,6 @@ export const vi: Dict = {
   'settings.nav.advanced': 'Nâng cao',
 
   'settings.railLabel': 'Các mục cài đặt',
-  'settings.railReorderStart': 'Sắp xếp lại các tab',
-  'settings.railReorderDone': 'Đã sắp xếp xong',
   'settings.empty': 'Ở đây chưa có gì để đặt.',
   'settings.emptyHint': 'Trang được đăng ký sẵn để địa chỉ của nó vẫn dùng được và để các tuỳ chọn đáp xuống đây ngay khi hệ thống con có mặt.',
 

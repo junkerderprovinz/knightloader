@@ -7,9 +7,8 @@ import { readUIState, useUIState } from '../lib/uistate';
 import { useNavLabels } from '../lib/navLabels';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
-import { ErrorCard, IconBadge, LoadingCard, PageHeader } from '../components/ui';
+import { ErrorCard, LoadingCard, PageHeader } from '../components/ui';
 import { Tabs } from '../components/Tabs';
-import { IconEdit } from '../lib/icons';
 import { SettingsProvider, type FeatureAccess, type SettingsDraft } from './settings/context';
 import { fetchFeatures, setFeature, type FeaturePage, type FeatureState } from './settings/features';
 import { same } from './settings/paths';
@@ -389,15 +388,6 @@ function SettingsRail({ pages }: { pages: FeaturePage[] }) {
   // with what the instance itself is configured to do.
   const [order, setOrder] = useUIState<string[]>('settingsTabOrder', []);
   const ordered = orderPages(pages, order);
-  // Pencil replaces the old InfoBubble hint (jdp, 2026-08-23: "die ersetzten
-  // wir mit einem Stiftsymbol. wenn man draufklickt sollen alle tabs
-  // anfangen zu wackeln und man soll sie dann verschieben können") - a
-  // second click (or navigating elsewhere) turns it back off; see Tabs.tsx's
-  // own `editMode` prop for the wiggle/drag mechanics this drives.
-  const [editMode, setEditMode] = useState(false);
-  // Shared between the tooltip and the accessible name, so the two can never
-  // say something different about the same badge.
-  const reorderLabel = tx(editMode ? 'settings.railReorderDone' : 'settings.railReorderStart');
 
   return (
     // The rail's own width follows the display mode, and glyph-only is the
@@ -407,58 +397,51 @@ function SettingsRail({ pages }: { pages: FeaturePage[] }) {
     // widen to fit the label it reveals would break that on the first
     // mouseover. shrink-0 so a wide table on Advanced pushes the page's own
     // scrollbar rather than squeezing the navigation.
+    //
+    // pt-6 md:pt-8 rather than the p-2 that used to run all the way round
+    // (jdp: "Die settingstabs fangen weiter oben an als die cards"): the rail
+    // and the content column are siblings starting at the same y, so the
+    // column's own p-6 md:p-8 was pushing the first card down while the first
+    // tile stayed pinned near the window edge. The two top paddings are the
+    // same number now, and the first tile lines up with the first card's top
+    // edge. Only the top - the rail keeps its tight px-2/pb-2, since the
+    // bottom of a scrolling column has nothing to line up with.
     <div
-      className={`flex h-full shrink-0 flex-col gap-2 p-2 ${display === 'glyph' ? 'w-14' : 'w-52'}`}
+      className={`flex h-full shrink-0 flex-col gap-2 px-2 pb-2 pt-6 md:pt-8 ${display === 'glyph' ? 'w-14' : 'w-52'}`}
     >
-    <Tabs
-      className="min-h-0 flex-1"
-      orientation="vertical"
-      fill
-      display={display}
-      label={tx('settings.railLabel')}
-      active={here?.params.page ?? null}
-      onSelect={(id) => navigate(pagePath(id))}
-      // Arrow keys move focus without selecting. Selecting as they move is what
-      // a JTabbedPane does and what Tabs defaults to, but every selection here
-      // pushes a history entry — holding Right to reach Advanced would leave
-      // twelve of them behind and turn the Back button into a chore.
-      activateOnFocus={false}
-      reorderable
-      onReorder={setOrder}
-      editMode={editMode}
-      // No equalWidth: every tile in a column is already the column's width,
-      // which is what the strip across the top needed that setting to fake.
-      items={ordered.map((p) => ({
-        id: p.id,
-        label: label(tx, 'settings.nav.', p.id),
-        icon: pageIcon(p.id),
-        href: pagePath(p.id),
-        // A page with no controls yet is dimmed, not hidden or disabled: the
-        // address works, the page explains itself, and saying so before the
-        // click is cheaper than after it.
-        dim: !hasContent(p.id),
-      }))}
-    />
-      {/* The pencil is the one place that says reordering is possible at all
-          - clicking it arms edit mode outright (every tab wiggles right away)
-          rather than relying on the long-press's own, undiscoverable hold
-          gesture.
-
-          A sibling of the strip rather than its `after` slot, which is where
-          it sat while the strip was horizontal: the column scrolls once the
-          tiles hit their floor height, and anything inside it scrolls away
-          with them. Out here it is pinned to the foot of the rail and stays
-          reachable whatever the window is doing. */}
-      <div className="flex shrink-0 justify-center">
-        <IconBadge
-          icon={<IconEdit width={16} height={16} />}
-          title={reorderLabel}
-          aria-label={reorderLabel}
-          aria-pressed={editMode}
-          className={editMode ? 'bg-accent text-accentContrast hover:brightness-110' : undefined}
-          onClick={() => setEditMode((v) => !v)}
-        />
-      </div>
+      <Tabs
+        className="min-h-0 flex-1"
+        orientation="vertical"
+        fill
+        display={display}
+        label={tx('settings.railLabel')}
+        active={here?.params.page ?? null}
+        onSelect={(id) => navigate(pagePath(id))}
+        // Arrow keys move focus without selecting. Selecting as they move is what
+        // a JTabbedPane does and what Tabs defaults to, but every selection here
+        // pushes a history entry — holding Right to reach Advanced would leave
+        // twelve of them behind and turn the Back button into a chore.
+        activateOnFocus={false}
+        // The long hold is the whole gesture (jdp: "die sollen einfach mit
+        // langem klick per drag and drop verschoben werden können"). A pencil
+        // badge used to sit at the foot of this rail and arm the wiggle in one
+        // click; it is gone, along with Tabs' `editMode` prop that only it
+        // ever passed.
+        reorderable
+        onReorder={setOrder}
+        // No equalWidth: every tile in a column is already the column's width,
+        // which is what the strip across the top needed that setting to fake.
+        items={ordered.map((p) => ({
+          id: p.id,
+          label: label(tx, 'settings.nav.', p.id),
+          icon: pageIcon(p.id),
+          href: pagePath(p.id),
+          // A page with no controls yet is dimmed, not hidden or disabled: the
+          // address works, the page explains itself, and saying so before the
+          // click is cheaper than after it.
+          dim: !hasContent(p.id),
+        }))}
+      />
     </div>
   );
 }

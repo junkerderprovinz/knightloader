@@ -68,19 +68,49 @@ export function WellSelector<T extends string>({
   );
 }
 
-/** The switch: pill track, round knob, filled when on. The same object the
- *  web UI and the browser extension draw, so a person who flipped one there
- *  recognises this one. */
-export function GlimToggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
-  const { c, accent } = useAppearance();
+/**
+ * The switch: a track, a knob, filled when on. The same object the web UI and
+ * the browser extension draw, so a person who flipped one there recognises
+ * this one.
+ *
+ * Both radii come from the shape engine (jdp, 2026-08-30: "die toggles folgen
+ * nicht der form"). They were hard 999s, which is the one number that ignores
+ * the setting entirely: on Eckig every other control in the app squared off
+ * and the switches stayed pills. The web's own Toggle reads
+ * `var(--radius-pill)` for exactly this reason - "pill" is a token the shape
+ * engine sets, not a synonym for "fully round".
+ *
+ * `hue` is this switch's position in a set of switches sharing one card, the
+ * same 0-based sequence the cards themselves carry. Without it three switches
+ * in one card all light up in the single accent and stop reading as three
+ * distinct rows.
+ */
+export function GlimToggle({
+  value,
+  onChange,
+  hue,
+}: {
+  value: boolean;
+  onChange: (v: boolean) => void;
+  hue?: number;
+}) {
+  const { c, accent, radii, hueAt } = useAppearance();
+  const on = (hue !== undefined ? hueAt(hue) : undefined) ?? accent;
   return (
     <TouchableOpacity
       accessibilityRole="switch"
       accessibilityState={{ checked: value }}
       onPress={() => onChange(!value)}
-      style={[styles.track, { backgroundColor: value ? accent : c.surface3 }]}
+      style={[styles.track, { borderRadius: radii.pill, backgroundColor: value ? on : c.surface3 }]}
     >
-      <View style={[styles.knob, { backgroundColor: c.bg, alignSelf: value ? 'flex-end' : 'flex-start' }]} />
+      {/* The knob is the page's own ground sitting on the track, not a fixed
+          white: it reads dark in dark mode and light in light mode. */}
+      <View
+        style={[
+          styles.knob,
+          { borderRadius: radii.pill, backgroundColor: c.bg, alignSelf: value ? 'flex-end' : 'flex-start' },
+        ]}
+      />
     </TouchableOpacity>
   );
 }
@@ -150,8 +180,10 @@ const styles = StyleSheet.create({
   well: { flexDirection: 'row', padding: 3, gap: 2, alignSelf: 'flex-start' },
   segment: { minWidth: 84, paddingVertical: 7, paddingHorizontal: 14, alignItems: 'center' },
   segmentText: { fontSize: TYPE.dense, fontWeight: '500' },
-  track: { width: 36, height: 20, borderRadius: 999, padding: 2, justifyContent: 'center' },
-  knob: { width: 16, height: 16, borderRadius: 999 },
+  // No borderRadius here: it comes from the shape engine at render time, and
+  // a value baked into the stylesheet cannot follow a setting.
+  track: { width: 36, height: 20, padding: 2, justifyContent: 'center' },
+  knob: { width: 16, height: 16 },
   rowOuter: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8 },
   rowText: { flex: 1, minWidth: 0, gap: 2 },
   rowLabel: { fontSize: 15 },

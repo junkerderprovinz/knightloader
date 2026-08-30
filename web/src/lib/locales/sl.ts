@@ -390,8 +390,6 @@ export const sl: Dict = {
   'settings.nav.advanced': 'Napredno',
 
   'settings.railLabel': 'Razdelki nastavitev',
-  'settings.railReorderStart': 'Preuredi zavihke',
-  'settings.railReorderDone': 'Preurejanje končano',
   'settings.empty': 'Tu še ni ničesar za nastaviti.',
   'settings.emptyHint': 'Stran je registrirana, da njen naslov še naprej deluje in da kontrolniki pristanejo tukaj, takoj ko podsistem obstaja.',
 

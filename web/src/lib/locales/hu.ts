@@ -390,8 +390,6 @@ export const hu: Dict = {
   'settings.nav.advanced': 'Haladó',
 
   'settings.railLabel': 'Beállítási szakaszok',
-  'settings.railReorderStart': 'Fülek átrendezése',
-  'settings.railReorderDone': 'Átrendezés kész',
   'settings.empty': 'Itt még nincs mit beállítani.',
   'settings.emptyHint': 'Az oldal be van jegyezve, hogy a címe továbbra is működjön, és hogy a vezérlők ide kerüljenek, amint az alrendszer megvan.',
 

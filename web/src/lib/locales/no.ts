@@ -392,8 +392,6 @@ export const no: Dict = {
   'settings.nav.advanced': 'Avansert',
 
   'settings.railLabel': 'Innstillingsdeler',
-  'settings.railReorderStart': 'Omorganiser faner',
-  'settings.railReorderDone': 'Ferdig med omorganisering',
   'settings.empty': 'Her er det ikke noe å stille inn ennå.',
   'settings.emptyHint': 'Siden er registrert slik at adressen fortsatt virker, og slik at kontrollene havner her når delsystemet finnes.',
 

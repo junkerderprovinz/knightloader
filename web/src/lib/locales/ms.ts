@@ -390,8 +390,6 @@ export const ms: Dict = {
   'settings.nav.advanced': 'Lanjutan',
 
   'settings.railLabel': 'Bahagian tetapan',
-  'settings.railReorderStart': 'Susun semula tab',
-  'settings.railReorderDone': 'Selesai menyusun semula',
   'settings.empty': 'Belum ada apa-apa untuk ditetapkan di sini.',
   'settings.emptyHint': 'Halaman ini didaftarkan supaya alamatnya terus berfungsi dan supaya kawalannya mendarat di sini sebaik sahaja subsistem itu wujud.',
 

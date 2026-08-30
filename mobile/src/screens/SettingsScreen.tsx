@@ -49,6 +49,7 @@ export default function SettingsScreen({
   const {
     c,
     accent,
+    accentInk,
     radii,
     dark,
     rainbow,
@@ -56,11 +57,12 @@ export default function SettingsScreen({
     setAccent,
     setShape,
     setTheme,
+    setRainbow,
     followInstance,
     snapshotAsLocal,
   } = useAppearance();
   const [override, setOverride] = useState<string | null>(null);
-  const anyOverride = overridden.accent || overridden.shape || overridden.theme;
+  const anyOverride = overridden.accent || overridden.shape || overridden.theme || overridden.rainbow;
 
   // What a bug report actually needs, and nothing more. No address, no token:
   // an address is somebody's home network, and a token is a credential - both
@@ -140,6 +142,7 @@ export default function SettingsScreen({
           sub={anyOverride ? t('settings.appearanceOverridden') : t('settings.appearanceFollows')}
           control={
             <GlimToggle
+              hue={0}
               value={!anyOverride}
               onChange={(follow) => {
                 if (follow) {
@@ -183,17 +186,22 @@ export default function SettingsScreen({
           ))}
         </View>
 
-        {/* Rainbow is shown, never set: its seed belongs to the instance so
-            that two clients of one server cannot disagree about the colour of
-            a download. Saying where it is changed is more use than a switch
-            that would create exactly that disagreement. */}
+        {/* A switch, not a read-only line (jdp, 2026-08-30: "Regenbogenmodus
+            hat kein toggle und kann nicht aktiviert werden"). It used to say
+            where the mode was set instead of setting it, on the grounds that
+            the seed belongs to the instance - which is still true, and still
+            enforced: only ON/OFF is local here, the palette and the seed come
+            from the instance either way, so two clients never disagree about
+            which colour a position is. hue={1} puts this switch second in
+            this card's own set of switches, after "follow the instance".
+
+            No caption of its own: the switch at the top of this card already
+            says whether the look is following the instance or set here, and
+            flipping this one flips that one - a second sentence saying the
+            same thing per row is how a card stops being readable. */}
         <GlimRow
           label={t('settings.rainbow')}
-          control={
-            <Text style={[styles.value, { color: c.textMuted }]}>
-              {rainbow.on ? t('settings.rainbowOnFromInstance') : t('settings.rainbowOff')}
-            </Text>
-          }
+          control={<GlimToggle hue={1} value={rainbow.on} onChange={(on) => setRainbow(on)} />}
         />
       </NotchCard>
 
@@ -215,7 +223,7 @@ export default function SettingsScreen({
             style={[styles.button, { backgroundColor: c.surface2, borderRadius: radii.control }]}
             onPress={() => Linking.openURL(`${REPORT_URL}&report=${encodeURIComponent(report)}`)}
           >
-            <Text style={[styles.buttonText, { color: accent }]}>{t('settings.problemsReport')}</Text>
+            <Text style={[styles.buttonText, { color: accentInk }]}>{t('settings.problemsReport')}</Text>
           </TouchableOpacity>
         </View>
       </NotchCard>

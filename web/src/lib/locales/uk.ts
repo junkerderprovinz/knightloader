@@ -390,8 +390,6 @@ export const uk: Dict = {
   'settings.nav.advanced': 'Додатково',
 
   'settings.railLabel': 'Розділи налаштувань',
-  'settings.railReorderStart': 'Змінити порядок вкладок',
-  'settings.railReorderDone': 'Зміну порядку завершено',
   'settings.empty': 'Тут поки нема чого налаштовувати.',
   'settings.emptyHint': 'Сторінку зареєстровано, щоб її адреса й далі працювала і щоб елементи керування опинилися тут, щойно з’явиться підсистема.',
 

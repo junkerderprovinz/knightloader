@@ -390,8 +390,6 @@ export const bg: Dict = {
   'settings.nav.advanced': 'Разширени',
 
   'settings.railLabel': 'Раздели на настройките',
-  'settings.railReorderStart': 'Пренареждане на разделите',
-  'settings.railReorderDone': 'Готово с пренареждането',
   'settings.empty': 'Тук още няма какво да се настройва.',
   'settings.emptyHint': 'Страницата е регистрирана, за да продължи да работи адресът ѝ и за да се появят тук контролите, щом подсистемата я има.',
 

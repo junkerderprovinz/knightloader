@@ -1,12 +1,18 @@
 import { useCallback, useEffect, useState } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { checkConnection } from '../api/client';
 import { listConnections, removeConnection, setActiveConnectionId } from '../storage/connections';
 import { isRelayConnection, type ServerConnection } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
-import IconBadge from '../components/IconBadge';
+import IconBadge, { Trash } from '../components/IconBadge';
+
+// The app's own mark, beside the name it belongs to (jdp, 2026-08-30: "In der
+// Übersicht soll links von der Überschrift auch das Logo sein"). require() and
+// not a URI: this is the shipped asset, resolved by the bundler, so it is on
+// screen at first paint with nothing to fetch.
+const MARK = require('../../assets/icon.png');
 
 type ConnStatus = 'checking' | 'online' | 'offline';
 
@@ -62,7 +68,10 @@ export default function ConnectionsScreen({
   return (
     <View style={[styles.container, { backgroundColor: c.bg }]}>
       <View style={styles.topBar}>
-        <Text style={[styles.title, { color: c.text }]}>KnightLoader</Text>
+        <View style={styles.brand}>
+          <Image source={MARK} style={[styles.mark, { borderRadius: radii.control }]} resizeMode="contain" />
+          <Text style={[styles.title, { color: c.text }]}>KnightLoader</Text>
+        </View>
         <View style={styles.badgeRow}>
           <IconBadge symbol="+" accent onPress={onAddPress} accessibilityLabel={t('connections.addButton')} />
           <IconBadge symbol="⚙" onPress={onOpenSettings} accessibilityLabel={t('settings.title')} />
@@ -96,9 +105,16 @@ export default function ConnectionsScreen({
                   {isRelayConnection(item) ? t('connections.viaRelay', { relay: item.relayUrl }) : item.baseUrl}
                 </Text>
               </View>
-              <TouchableOpacity style={styles.removeButton} onPress={() => remove(item.id)}>
-                <Text style={[styles.removeText, { color: c.statusFailSolid }]}>{t('connections.remove')}</Text>
-              </TouchableOpacity>
+              {/* A square badge with a bin, not the word "Entfernen" (jdp,
+                  2026-08-30). It takes the ordinary badge ink, not the fail
+                  red it used to carry: a delete control is integrated into
+                  the colour modes like every other badge in the family, and
+                  the confirmation is what carries the weight of the action. */}
+              <IconBadge
+                icon={<Trash color={c.textSub} />}
+                onPress={() => remove(item.id)}
+                accessibilityLabel={t('connections.remove')}
+              />
             </TouchableOpacity>
           );
         }}
@@ -131,6 +147,10 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 56,
   },
+  brand: { flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1, minWidth: 0 },
+  // 32, so the mark reads as a mark beside a 22px title rather than as a
+  // second heading. The asset is square, so both sides are set.
+  mark: { width: 32, height: 32 },
   title: { fontSize: 22, fontWeight: '700' },
   badgeRow: { flexDirection: 'row', gap: 10 },
   list: { paddingHorizontal: 16, paddingBottom: 32, gap: 8 },
@@ -144,8 +164,6 @@ const styles = StyleSheet.create({
   rowText: { flex: 1, minWidth: 0 },
   rowName: { fontSize: 15, fontWeight: '600' },
   rowUrl: { fontSize: TYPE.dense, marginTop: 2 },
-  removeButton: { paddingHorizontal: 8, paddingVertical: 4 },
-  removeText: { fontSize: TYPE.dense },
   empty: { alignItems: 'center', marginTop: 64, gap: 16, paddingHorizontal: 32 },
   emptyText: { fontSize: TYPE.body, textAlign: 'center' },
   emptyButton: { paddingVertical: 12, paddingHorizontal: 20 },

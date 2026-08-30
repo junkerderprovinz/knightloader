@@ -85,12 +85,47 @@ export const LIGHT: Palette = {
   statusNeutralSolid: '#8d8d8d',
 };
 
-// The light accent is the SAME hue darkened, never a different colour: yellow
-// on white is unreadable at 11px, and Carbon's own answer to that is to darken
-// rather than to switch. Applied only to the default; a user-chosen accent is
-// used as given, because second-guessing a colour somebody picked on purpose is
-// how a picker stops meaning anything.
-export const LIGHT_DEFAULT_ACCENT = '#8E6A00';
+/**
+ * inkFor is the accent darkened until it can be READ on a light ground.
+ *
+ * The light theme used to swap the whole accent for a fixed dark yellow
+ * (#8E6A00, Carbon yellow 60), which made every filled thing on the page -
+ * notch badges, switches, the primary button - olive-brown in light mode.
+ * jdp, 2026-08-30: "Die gelbe akzentfarbe ist im hellen modus ganz dunkel."
+ * He is right, and the mistake was using ONE token for two jobs. A colour on
+ * a fill needs no darkening at all (the ink on top is computed, see
+ * contrastOn); a colour used AS ink does, because yellow text on white is
+ * unreadable at 11px whichever yellow it is.
+ *
+ * So the accent stays the accent, and this is the second token: the same hue,
+ * scaled toward black until it clears 4.5:1 against white - the worst light
+ * ground in the palette. Sunflower comes out at very nearly the old constant,
+ * which is the check that this generalises the rule rather than replacing it,
+ * and it now applies to a colour somebody picked as well as to the default.
+ * In dark mode there is nothing to solve and the accent is returned as given.
+ */
+export function inkFor(hex: string): string {
+  const m = /^#([0-9a-fA-F]{6})$/.exec(hex);
+  if (!m) return hex;
+  const n = parseInt(m[1], 16);
+  let r = (n >> 16) & 255;
+  let g = (n >> 8) & 255;
+  let b = n & 255;
+  const lin = (v: number) => {
+    const x = v / 255;
+    return x <= 0.04045 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
+  };
+  const lum = () => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+  // 1.05 / (L + 0.05) >= 4.5  =>  L <= 0.1833. The loop is bounded: forty
+  // steps of 8% reach black from anything, and a colour that is already dark
+  // enough leaves on the first check.
+  for (let i = 0; i < 40 && lum() > 0.1833; i++) {
+    r = Math.round(r * 0.92);
+    g = Math.round(g * 0.92);
+    b = Math.round(b * 0.92);
+  }
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0').toUpperCase()}`;
+}
 
 // The type scale: a fixed reference table, not an engine - nobody sets their
 // own type scale. `caption` covers three treatments of one size (a plain

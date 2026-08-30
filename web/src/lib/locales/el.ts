@@ -390,8 +390,6 @@ export const el: Dict = {
   'settings.nav.advanced': 'Για προχωρημένους',
 
   'settings.railLabel': 'Ενότητες ρυθμίσεων',
-  'settings.railReorderStart': 'Αναδιάταξη καρτελών',
-  'settings.railReorderDone': 'Ολοκλήρωση αναδιάταξης',
   'settings.empty': 'Εδώ δεν υπάρχει ακόμη κάτι να ρυθμιστεί.',
   'settings.emptyHint': 'Η σελίδα είναι δηλωμένη ώστε η διεύθυνσή της να συνεχίσει να δουλεύει και ώστε τα χειριστήρια να προσγειωθούν εδώ μόλις υπάρξει το υποσύστημα.',
 
