@@ -10,7 +10,6 @@ export const it: Dict = {
   'connections.empty': 'Nessuna connessione salvata finora.',
   'connections.emptyButton': 'Aggiungi la tua prima connessione',
   'connections.remove': 'Rimuovi',
-  'connections.viaRelay': 'tramite relay {relay}',
 
 
   'downloads.connected': 'connesso',
@@ -21,6 +20,13 @@ export const it: Dict = {
   'downloads.queueActive': '{n} attivi',
   'downloads.empty': 'Nessun download.',
   'downloads.emptyConnecting': 'Connessione al server…',
+  'overview.title': 'Tutte le istanze',
+  'overview.online': '{n}/{total} online',
+  'instance.files': 'file',
+  'instance.left': 'rimanenti',
+  'instance.offline': 'offline',
+  'downloads.start': 'Avvia',
+  'downloads.stop': 'Arresta',
 
   'addDownload.title': 'Aggiungi link',
   'addDownload.titlePeer': 'Aggiungi link – {name}',

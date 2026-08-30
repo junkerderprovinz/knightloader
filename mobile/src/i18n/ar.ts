@@ -10,7 +10,6 @@ export const ar: Dict = {
   'connections.empty': 'لا يوجد اتصال محفوظ بعد.',
   'connections.emptyButton': 'أضف أول اتصال لك',
   'connections.remove': 'إزالة',
-  'connections.viaRelay': 'عبر المُرحّل {relay}',
 
 
   'downloads.connected': 'متصل',
@@ -21,6 +20,13 @@ export const ar: Dict = {
   'downloads.queueActive': '{n} نشطة',
   'downloads.empty': 'لا توجد تنزيلات.',
   'downloads.emptyConnecting': 'جارٍ الاتصال بالخادم…',
+  'overview.title': 'كل النسخ',
+  'overview.online': '{n}/{total} متصل',
+  'instance.files': 'ملفات',
+  'instance.left': 'متبقٍ',
+  'instance.offline': 'غير متصل',
+  'downloads.start': 'ابدأ',
+  'downloads.stop': 'أوقف',
 
   'addDownload.title': 'إضافة روابط',
   'addDownload.titlePeer': 'إضافة روابط – {name}',

@@ -10,7 +10,6 @@ export const hi: Dict = {
   'connections.empty': 'अभी तक कोई कनेक्शन सेव नहीं किया गया है।',
   'connections.emptyButton': 'अपना पहला कनेक्शन जोड़ें',
   'connections.remove': 'हटाएं',
-  'connections.viaRelay': 'रिले {relay} के माध्यम से',
 
 
   'downloads.connected': 'कनेक्ट हो गया',
@@ -21,6 +20,13 @@ export const hi: Dict = {
   'downloads.queueActive': '{n} सक्रिय',
   'downloads.empty': 'कोई डाउनलोड नहीं है।',
   'downloads.emptyConnecting': 'सर्वर से कनेक्ट हो रहा है…',
+  'overview.title': 'सभी इंस्टेंस',
+  'overview.online': '{n}/{total} ऑनलाइन',
+  'instance.files': 'फ़ाइलें',
+  'instance.left': 'शेष',
+  'instance.offline': 'ऑफ़लाइन',
+  'downloads.start': 'शुरू करें',
+  'downloads.stop': 'रोकें',
 
   'addDownload.title': 'लिंक जोड़ें',
   'addDownload.titlePeer': 'लिंक जोड़ें – {name}',

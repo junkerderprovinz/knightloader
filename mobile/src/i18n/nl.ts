@@ -10,7 +10,6 @@ export const nl: Dict = {
   'connections.empty': 'Nog geen verbinding opgeslagen.',
   'connections.emptyButton': 'Voeg je eerste verbinding toe',
   'connections.remove': 'Verwijderen',
-  'connections.viaRelay': 'via relay {relay}',
 
 
   'downloads.connected': 'verbonden',
@@ -21,6 +20,13 @@ export const nl: Dict = {
   'downloads.queueActive': '{n} actief',
   'downloads.empty': 'Geen downloads.',
   'downloads.emptyConnecting': 'Verbinden met de server…',
+  'overview.title': 'Alle instanties',
+  'overview.online': '{n}/{total} online',
+  'instance.files': 'bestanden',
+  'instance.left': 'resterend',
+  'instance.offline': 'offline',
+  'downloads.start': 'Starten',
+  'downloads.stop': 'Stoppen',
 
   'addDownload.title': 'Links toevoegen',
   'addDownload.titlePeer': 'Links toevoegen – {name}',

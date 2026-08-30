@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { fetchQueue, liveTasks, setQueueHalted } from '../api/client';
 import type { Instance, QueueState, ServerConnection, Task } from '../api/types';
 import TaskRow from '../components/TaskRow';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
-import IconBadge, { Gear } from '../components/IconBadge';
+import IconBadge, { Gear, Trash } from '../components/IconBadge';
+import SpeedGraph from '../components/SpeedGraph';
+import { fmtBytes } from '../api/stats';
 
 // peer, when set, means this screen is showing a FEDERATION PEER of conn
 // rather than conn's own queue: base becomes the proxy prefix
@@ -23,6 +25,7 @@ export default function DownloadsScreen({
   onSwitchConnection,
   onOpenSettings,
   onBackToOwn,
+  onRemoveConnection,
 }: {
   conn: ServerConnection;
   peer?: Instance;
@@ -30,6 +33,9 @@ export default function DownloadsScreen({
   onSwitchConnection: () => void;
   onOpenSettings: () => void;
   onBackToOwn?: () => void;
+  /** Undefined for a federation peer: a peer is not a saved connection, so
+   *  there is nothing here to remove. */
+  onRemoveConnection?: () => void;
 }) {
   const { t } = useT();
   const { c, accent, accentInk, accentContrast, radii } = useAppearance();
@@ -38,6 +44,9 @@ export default function DownloadsScreen({
   const [connected, setConnected] = useState(false);
   const [queue, setQueue] = useState<QueueState | null>(null);
   const [queueBusy, setQueueBusy] = useState(false);
+  // Summed from the task list this screen already streams: no second request,
+  // and no second truth about the same number.
+  const speed = tasks.reduce((n, t) => n + (t.speed || 0), 0);
 
   useEffect(() => {
     setConnected(false);
@@ -99,6 +108,18 @@ export default function DownloadsScreen({
               <Text style={[styles.link, { color: accentInk }]}>{t('downloads.overviewLink')}</Text>
             </TouchableOpacity>
           )}
+          {/* Removing THIS connection belongs here, on the thing being removed
+              (jdp, 2026-08-30: "der löschenbutton soll nur in der instanz
+              drinnen zu sehen sein, nicht auf der card"). On the overview it
+              sat on every row of a list you tap to open, which is a mis-tap
+              waiting to happen. */}
+          {!peer && onRemoveConnection && (
+            <IconBadge
+              icon={<Trash color={c.textSub} />}
+              onPress={onRemoveConnection}
+              accessibilityLabel={t('connections.remove')}
+            />
+          )}
           {!peer && <IconBadge
             icon={<Gear color={c.textSub} hole={c.surface2} />}
             onPress={onOpenSettings}
@@ -111,19 +132,34 @@ export default function DownloadsScreen({
         <Text style={[styles.queueLabel, { color: c.textMuted }]}>
           {queue ? (queue.halted ? t('downloads.queueHalted') : t('downloads.queueRunning')) : '—'}
           {queue && queue.running > 0 ? ` · ${t('downloads.queueActive', { n: queue.running })}` : ''}
+          {speed > 0 ? ` · ${fmtBytes(speed)}/s` : ''}
         </Text>
+        {/* Two square badges, not a switch (jdp, 2026-08-30: "in der instanz
+            drinnen soll man die download starten und stoppen können"). A
+            switch says "on/off" about a thing whose verbs are start and stop,
+            and it is the same control the summary card above the overview
+            uses - one badge whose offer follows the state, so it can never
+            offer the thing that is already true. */}
         {queueBusy ? (
           <ActivityIndicator color={accentInk} size="small" />
         ) : (
-          <Switch
-            value={!!queue && !queue.halted}
-            onValueChange={(on) => toggleHalted(!on)}
-            disabled={!queue}
-            trackColor={{ false: c.border, true: accent }}
-            thumbColor={c.text}
+          <IconBadge
+            symbol={queue?.halted ? '▶' : '■'}
+            accent={queue?.halted === true}
+            onPress={() => queue && toggleHalted(!queue.halted)}
+            accessibilityLabel={t(queue?.halted ? 'downloads.start' : 'downloads.stop')}
           />
         )}
       </View>
+
+      {/* Only while something is actually moving (jdp: "ein downloadgraph soll
+          die geschwindigkeit anzeigen wenn der download läuft"). An idle graph
+          is a row of nothing that still costs the height of a graph. */}
+      {speed > 0 && (
+        <View style={styles.graph}>
+          <SpeedGraph speed={speed} />
+        </View>
+      )}
 
       <FlatList
         data={tasks}
@@ -149,9 +185,14 @@ export default function DownloadsScreen({
 
 // Colours and radii are applied inline from the resolved tokens, never baked
 // in here: a stylesheet is built once and cannot follow a theme change.
+// One column stretched across a tablet is a card 900 points wide with its
+// text at one edge and its badge at the other. A cap plus centring costs a
+// phone nothing (640 is wider than every phone) and makes a tablet readable.
+const wide = { width: '100%' as const, maxWidth: 640, alignSelf: 'center' as const };
+
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  topBar: {
+  topBar: { ...wide,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
@@ -164,7 +205,7 @@ const styles = StyleSheet.create({
   title: { fontSize: TYPE.heading, fontWeight: '600' },
   connState: { fontSize: TYPE.dense, marginTop: 2 },
   link: { fontSize: 13, fontWeight: '600' },
-  queueBar: {
+  queueBar: { ...wide,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -174,7 +215,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   queueLabel: { fontSize: 13 },
-  list: { paddingHorizontal: 16, paddingBottom: 96 },
+  graph: { ...wide, marginHorizontal: 16, marginBottom: 10 },
+  list: { ...wide, paddingHorizontal: 16, paddingBottom: 96 },
   empty: { textAlign: 'center', marginTop: 48 },
   fab: {
     position: 'absolute',

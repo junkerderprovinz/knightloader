@@ -10,7 +10,6 @@ export const sk: Dict = {
   'connections.empty': 'Zatiaľ nie je uložené žiadne pripojenie.',
   'connections.emptyButton': 'Pridať prvé pripojenie',
   'connections.remove': 'Odstrániť',
-  'connections.viaRelay': 'cez relé {relay}',
 
 
   'downloads.connected': 'pripojené',
@@ -21,6 +20,13 @@ export const sk: Dict = {
   'downloads.queueActive': '{n} aktívnych',
   'downloads.empty': 'Žiadne sťahovania.',
   'downloads.emptyConnecting': 'Pripája sa k serveru…',
+  'overview.title': 'Všetky inštancie',
+  'overview.online': '{n}/{total} online',
+  'instance.files': 'súborov',
+  'instance.left': 'zostáva',
+  'instance.offline': 'offline',
+  'downloads.start': 'Spustiť',
+  'downloads.stop': 'Zastaviť',
 
   'addDownload.title': 'Pridať odkazy',
   'addDownload.titlePeer': 'Pridať odkazy – {name}',

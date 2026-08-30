@@ -10,7 +10,6 @@ export const th: Dict = {
   'connections.empty': 'ยังไม่มีการเชื่อมต่อที่บันทึกไว้',
   'connections.emptyButton': 'เพิ่มการเชื่อมต่อแรกของคุณ',
   'connections.remove': 'ลบ',
-  'connections.viaRelay': 'ผ่านรีเลย์ {relay}',
 
 
   'downloads.connected': 'เชื่อมต่อแล้ว',
@@ -21,6 +20,13 @@ export const th: Dict = {
   'downloads.queueActive': 'กำลังทำงาน {n} รายการ',
   'downloads.empty': 'ไม่มีการดาวน์โหลด',
   'downloads.emptyConnecting': 'กำลังเชื่อมต่อกับเซิร์ฟเวอร์…',
+  'overview.title': 'ทุกอินสแตนซ์',
+  'overview.online': 'ออนไลน์ {n}/{total}',
+  'instance.files': 'ไฟล์',
+  'instance.left': 'เหลือ',
+  'instance.offline': 'ออฟไลน์',
+  'downloads.start': 'เริ่ม',
+  'downloads.stop': 'หยุด',
 
   'addDownload.title': 'เพิ่มลิงก์',
   'addDownload.titlePeer': 'เพิ่มลิงก์ – {name}',

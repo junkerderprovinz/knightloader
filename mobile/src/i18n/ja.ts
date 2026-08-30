@@ -10,7 +10,6 @@ export const ja: Dict = {
   'connections.empty': 'まだ接続が保存されていません。',
   'connections.emptyButton': '最初の接続を追加',
   'connections.remove': '削除',
-  'connections.viaRelay': 'リレー {relay} 経由',
 
 
   'downloads.connected': '接続済み',
@@ -21,6 +20,13 @@ export const ja: Dict = {
   'downloads.queueActive': '{n}件アクティブ',
   'downloads.empty': 'ダウンロードはありません。',
   'downloads.emptyConnecting': 'サーバーに接続中…',
+  'overview.title': 'すべてのインスタンス',
+  'overview.online': '{n}/{total} 接続中',
+  'instance.files': 'ファイル',
+  'instance.left': '残り',
+  'instance.offline': 'オフライン',
+  'downloads.start': '開始',
+  'downloads.stop': '停止',
 
   'addDownload.title': 'リンクを追加',
   'addDownload.titlePeer': 'リンクを追加 – {name}',

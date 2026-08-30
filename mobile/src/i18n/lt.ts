@@ -10,7 +10,6 @@ export const lt: Dict = {
   'connections.empty': 'Kol kas neišsaugotas nė vienas ryšys.',
   'connections.emptyButton': 'Pridėkite pirmąjį ryšį',
   'connections.remove': 'Pašalinti',
-  'connections.viaRelay': 'per relę {relay}',
 
 
   'downloads.connected': 'prisijungta',
@@ -21,6 +20,13 @@ export const lt: Dict = {
   'downloads.queueActive': 'Aktyvūs: {n}',
   'downloads.empty': 'Nėra atsisiuntimų.',
   'downloads.emptyConnecting': 'Jungiamasi prie serverio…',
+  'overview.title': 'Visi egzemplioriai',
+  'overview.online': '{n}/{total} prisijungę',
+  'instance.files': 'failų',
+  'instance.left': 'liko',
+  'instance.offline': 'neprisijungę',
+  'downloads.start': 'Pradėti',
+  'downloads.stop': 'Stabdyti',
 
   'addDownload.title': 'Pridėti nuorodas',
   'addDownload.titlePeer': 'Pridėti nuorodas – {name}',

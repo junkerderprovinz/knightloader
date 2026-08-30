@@ -10,7 +10,6 @@ export const ru: Dict = {
   'connections.empty': 'Пока нет сохранённых подключений.',
   'connections.emptyButton': 'Добавить первое подключение',
   'connections.remove': 'Удалить',
-  'connections.viaRelay': 'через ретранслятор {relay}',
 
 
   'downloads.connected': 'подключено',
@@ -21,6 +20,13 @@ export const ru: Dict = {
   'downloads.queueActive': '{n} активных',
   'downloads.empty': 'Нет загрузок.',
   'downloads.emptyConnecting': 'Подключение к серверу…',
+  'overview.title': 'Все экземпляры',
+  'overview.online': '{n}/{total} в сети',
+  'instance.files': 'файлов',
+  'instance.left': 'осталось',
+  'instance.offline': 'не в сети',
+  'downloads.start': 'Запустить',
+  'downloads.stop': 'Остановить',
 
   'addDownload.title': 'Добавить ссылки',
   'addDownload.titlePeer': 'Добавить ссылки – {name}',

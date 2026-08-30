@@ -10,7 +10,6 @@ export const ms: Dict = {
   'connections.empty': 'Belum ada sambungan disimpan.',
   'connections.emptyButton': 'Tambah sambungan pertama anda',
   'connections.remove': 'Alih keluar',
-  'connections.viaRelay': 'melalui geganti {relay}',
 
 
   'downloads.connected': 'disambungkan',
@@ -21,6 +20,13 @@ export const ms: Dict = {
   'downloads.queueActive': '{n} aktif',
   'downloads.empty': 'Tiada muat turun.',
   'downloads.emptyConnecting': 'Menyambung ke pelayan…',
+  'overview.title': 'Semua tika',
+  'overview.online': '{n}/{total} dalam talian',
+  'instance.files': 'fail',
+  'instance.left': 'baki',
+  'instance.offline': 'luar talian',
+  'downloads.start': 'Mula',
+  'downloads.stop': 'Henti',
 
   'addDownload.title': 'Tambah pautan',
   'addDownload.titlePeer': 'Tambah pautan – {name}',

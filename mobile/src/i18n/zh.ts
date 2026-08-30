@@ -10,7 +10,6 @@ export const zh: Dict = {
   'connections.empty': '尚未保存任何连接。',
   'connections.emptyButton': '添加你的第一个连接',
   'connections.remove': '移除',
-  'connections.viaRelay': '通过中继 {relay}',
 
 
   'downloads.connected': '已连接',
@@ -21,6 +20,13 @@ export const zh: Dict = {
   'downloads.queueActive': '{n} 个活动任务',
   'downloads.empty': '没有下载任务。',
   'downloads.emptyConnecting': '正在连接服务器…',
+  'overview.title': '所有实例',
+  'overview.online': '{n}/{total} 在线',
+  'instance.files': '个文件',
+  'instance.left': '剩余',
+  'instance.offline': '离线',
+  'downloads.start': '开始',
+  'downloads.stop': '停止',
 
   'addDownload.title': '添加链接',
   'addDownload.titlePeer': '添加链接 – {name}',

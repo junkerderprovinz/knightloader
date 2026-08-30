@@ -10,7 +10,6 @@ export const hu: Dict = {
   'connections.empty': 'Még nincs elmentett kapcsolat.',
   'connections.emptyButton': 'Add hozzá az első kapcsolatodat',
   'connections.remove': 'Eltávolítás',
-  'connections.viaRelay': '{relay} relén keresztül',
 
 
   'downloads.connected': 'kapcsolódva',
@@ -21,6 +20,13 @@ export const hu: Dict = {
   'downloads.queueActive': '{n} aktív',
   'downloads.empty': 'Nincsenek letöltések.',
   'downloads.emptyConnecting': 'Kapcsolódás a szerverhez…',
+  'overview.title': 'Összes példány',
+  'overview.online': '{n}/{total} online',
+  'instance.files': 'fájl',
+  'instance.left': 'van hátra',
+  'instance.offline': 'offline',
+  'downloads.start': 'Indítás',
+  'downloads.stop': 'Leállítás',
 
   'addDownload.title': 'Linkek hozzáadása',
   'addDownload.titlePeer': 'Linkek hozzáadása – {name}',

@@ -10,7 +10,6 @@ export const gl: Dict = {
   'connections.empty': 'Aínda non hai ningunha conexión gardada.',
   'connections.emptyButton': 'Engade a túa primeira conexión',
   'connections.remove': 'Eliminar',
-  'connections.viaRelay': 'a través do relé {relay}',
 
 
   'downloads.connected': 'conectado',
@@ -21,6 +20,13 @@ export const gl: Dict = {
   'downloads.queueActive': '{n} activas',
   'downloads.empty': 'Non hai descargas.',
   'downloads.emptyConnecting': 'Conectando co servidor…',
+  'overview.title': 'Todas as instancias',
+  'overview.online': '{n}/{total} en liña',
+  'instance.files': 'ficheiros',
+  'instance.left': 'restantes',
+  'instance.offline': 'sen conexión',
+  'downloads.start': 'Iniciar',
+  'downloads.stop': 'Deter',
 
   'addDownload.title': 'Engadir ligazóns',
   'addDownload.titlePeer': 'Engadir ligazóns – {name}',

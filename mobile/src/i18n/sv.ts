@@ -10,7 +10,6 @@ export const sv: Dict = {
   'connections.empty': 'Ingen anslutning sparad ännu.',
   'connections.emptyButton': 'Lägg till din första anslutning',
   'connections.remove': 'Ta bort',
-  'connections.viaRelay': 'via relä {relay}',
 
 
   'downloads.connected': 'ansluten',
@@ -21,6 +20,13 @@ export const sv: Dict = {
   'downloads.queueActive': '{n} aktiva',
   'downloads.empty': 'Inga nedladdningar.',
   'downloads.emptyConnecting': 'Ansluter till servern…',
+  'overview.title': 'Alla instanser',
+  'overview.online': '{n}/{total} online',
+  'instance.files': 'filer',
+  'instance.left': 'kvar',
+  'instance.offline': 'offline',
+  'downloads.start': 'Starta',
+  'downloads.stop': 'Stoppa',
 
   'addDownload.title': 'Lägg till länkar',
   'addDownload.titlePeer': 'Lägg till länkar – {name}',

@@ -10,7 +10,6 @@ export const he: Dict = {
   'connections.empty': 'עדיין לא נשמר אף חיבור.',
   'connections.emptyButton': 'הוסיפו את החיבור הראשון שלכם',
   'connections.remove': 'הסרה',
-  'connections.viaRelay': 'דרך הממסר {relay}',
 
 
   'downloads.connected': 'מחובר',
@@ -21,6 +20,13 @@ export const he: Dict = {
   'downloads.queueActive': '{n} פעילות',
   'downloads.empty': 'אין הורדות.',
   'downloads.emptyConnecting': 'מתחבר לשרת…',
+  'overview.title': 'כל המופעים',
+  'overview.online': '{n}/{total} מחוברים',
+  'instance.files': 'קבצים',
+  'instance.left': 'נותרו',
+  'instance.offline': 'לא מחובר',
+  'downloads.start': 'התחל',
+  'downloads.stop': 'עצור',
 
   'addDownload.title': 'הוספת קישורים',
   'addDownload.titlePeer': 'הוספת קישורים – {name}',
