@@ -77,19 +77,25 @@ export function Trash({ color, size = 15 }: { color: string; size?: number }) {
       <View style={{ width: 5 * u, height: 1.5 * u, backgroundColor: color, marginBottom: 0.5 * u }} />
       {/* lid */}
       <View style={{ width: 13 * u, height: 1.5 * u, backgroundColor: color }} />
-      {/* The body is BUILT from its bars rather than filled and cut: React
-          Native has no way to punch a hole in a view, and a "slot" drawn in
-          the background colour is a lie the moment the badge sits on a
-          different surface. Three uprights and a base, which is the same
-          shape a stroked bin glyph draws anyway. */}
-      <View style={{ width: 10 * u, height: 9.5 * u, marginTop: 1 * u }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', height: 7 * u }}>
-          <View style={{ width: 2 * u, backgroundColor: color }} />
-          <View style={{ width: 2 * u, backgroundColor: color }} />
-          <View style={{ width: 2 * u, backgroundColor: color }} />
-        </View>
-        <View style={{ width: 10 * u, height: 1.5 * u, marginTop: 1 * u, backgroundColor: color }} />
-      </View>
+      {/* A SOLID body (jdp, 2026-08-30: "Löschenicon soll ein gefülltes icon
+          sein"). It was three uprights and a base, which is what a STROKED bin
+          glyph draws - and a line-drawn glyph among filled badges is the one
+          thing the icon rule rules out, the same call the gear just had. One
+          filled block with rounded lower corners now; the slots are gone
+          rather than faked, because React Native cannot punch a hole and a
+          slot painted in the background colour is a lie the moment the badge
+          sits on a different surface. A bin at 15px reads from its silhouette
+          anyway. */}
+      <View
+        style={{
+          width: 10 * u,
+          height: 9.5 * u,
+          marginTop: 1 * u,
+          backgroundColor: color,
+          borderBottomLeftRadius: 1.5 * u,
+          borderBottomRightRadius: 1.5 * u,
+        }}
+      />
     </View>
   );
 }

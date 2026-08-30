@@ -90,9 +90,16 @@ export default function DownloadsScreen({
             </TouchableOpacity>
           ) : null}
           <Text style={[styles.title, { color: c.text }]}>{peer ? (peer.displayName ?? peer.name) : conn.name}</Text>
-          <Text style={[styles.connState, { color: connected ? c.statusOkSolid : c.statusWarnSolid }]}>
-            {connected ? t('downloads.connected') : t('downloads.connecting')}
-          </Text>
+          {/* Only while it is NOT connected (jdp, 2026-08-30: "der
+              verbundentext soll weg"). "verbunden" is the ordinary case, so it
+              said nothing on the screen it occupied - a label that is true
+              almost always is a label nobody reads. Still connecting, or
+              dropped, is worth saying, so that half stays. */}
+          {!connected && (
+            <Text style={[styles.connState, { color: c.statusWarnSolid }]}>
+              {t('downloads.connecting')}
+            </Text>
+          )}
         </View>
         <View style={styles.topBarRight}>
           {/* One way back, not two (jdp, 2026-08-30: "Wenn man in einer
@@ -103,9 +110,17 @@ export default function DownloadsScreen({
               What the removed link led to was the federation-peer view, which
               still carried the name-and-address form the phrase replaced; see
               App.tsx for what went with it. */}
+          {/* A real button, not a text link (jdp, 2026-08-30: "Übersicht
+              soll auch ein button sein"): it stands in a row of square badges,
+              and a bare word among them reads as a caption that happens to be
+              tappable. Text rather than a glyph, because "Übersicht" has no
+              symbol anybody would recognise. */}
           {!peer && (
-            <TouchableOpacity onPress={onSwitchConnection}>
-              <Text style={[styles.link, { color: accentInk }]}>{t('downloads.overviewLink')}</Text>
+            <TouchableOpacity
+              style={[styles.linkButton, { backgroundColor: c.surface2, borderRadius: radii.control }]}
+              onPress={onSwitchConnection}
+            >
+              <Text style={[styles.link, { color: c.text }]}>{t('downloads.overviewLink')}</Text>
             </TouchableOpacity>
           )}
           {/* Removing THIS connection belongs here, on the thing being removed
@@ -216,6 +231,8 @@ const styles = StyleSheet.create({
   },
   queueLabel: { fontSize: 13 },
   graph: { ...wide, marginHorizontal: 16, marginBottom: 10 },
+  // The same height as the badges beside it, so the row reads as one set.
+  linkButton: { height: 36, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center' },
   list: { ...wide, paddingHorizontal: 16, paddingBottom: 96 },
   empty: { textAlign: 'center', marginTop: 48 },
   fab: {
