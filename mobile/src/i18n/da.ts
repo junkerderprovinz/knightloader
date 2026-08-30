@@ -40,6 +40,7 @@ export const da: Dict = {
   'status.extracting': 'udpakker',
 
   'settings.title': 'Indstillinger',
+  'settings.back': 'Tilbage',
   'settings.language': 'Sprog',
   'settings.appearance': 'Udseende',
   'settings.appearanceFollows': 'Følger den instans, du er forbundet til, så appen og dens webgrænseflade fremstår som ét produkt.',

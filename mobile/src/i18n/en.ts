@@ -56,6 +56,7 @@ export const en = {
   'status.extracting': 'extracting',
 
   'settings.title': 'Settings',
+  'settings.back': 'Back',
   'settings.language': 'Language',
   'settings.appearance': 'Appearance',
   'settings.appearanceFollows': 'Following the instance you are connected to, so the app and its web interface look like one product.',

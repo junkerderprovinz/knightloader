@@ -40,6 +40,7 @@ export const sk: Dict = {
   'status.extracting': 'rozbaľuje sa',
 
   'settings.title': 'Nastavenia',
+  'settings.back': 'Späť',
   'settings.language': 'Jazyk',
   'settings.appearance': 'Vzhľad',
   'settings.appearanceFollows': 'Riadi sa inštanciou, ku ktorej ste pripojení, aby aplikácia a jej webové rozhranie pôsobili ako jeden produkt.',

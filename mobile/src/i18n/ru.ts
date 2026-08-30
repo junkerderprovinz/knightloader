@@ -40,6 +40,7 @@ export const ru: Dict = {
   'status.extracting': 'распаковка',
 
   'settings.title': 'Настройки',
+  'settings.back': 'Назад',
   'settings.language': 'Язык',
   'settings.appearance': 'Внешний вид',
   'settings.appearanceFollows': 'Повторяет вид экземпляра, к которому вы подключены, чтобы приложение и его веб-интерфейс выглядели как один продукт.',

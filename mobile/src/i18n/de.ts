@@ -55,6 +55,7 @@ export const de: Dict = {
   'status.extracting': 'entpackt',
 
   'settings.title': 'Einstellungen',
+  'settings.back': 'Zurück',
   'settings.language': 'Sprache',
   'settings.appearance': 'Aussehen',
   'settings.appearanceFollows': 'Richtet sich nach der Instanz, mit der du verbunden bist, damit App und Weboberfläche wie ein Produkt wirken.',

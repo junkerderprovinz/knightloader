@@ -40,6 +40,7 @@ export const ro: Dict = {
   'status.extracting': 'se extrage',
 
   'settings.title': 'Setări',
+  'settings.back': 'Înapoi',
   'settings.language': 'Limbă',
   'settings.appearance': 'Aspect',
   'settings.appearanceFollows': 'Urmează instanța la care ești conectat, ca aplicația și interfața ei web să pară un singur produs.',

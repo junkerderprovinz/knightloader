@@ -40,6 +40,7 @@ export const gl: Dict = {
   'status.extracting': 'extraendo',
 
   'settings.title': 'Axustes',
+  'settings.back': 'Atrás',
   'settings.language': 'Idioma',
   'settings.appearance': 'Aparencia',
   'settings.appearanceFollows': 'Segue a instancia á que estás conectado, para que a aplicación e a súa interface web parezan un só produto.',

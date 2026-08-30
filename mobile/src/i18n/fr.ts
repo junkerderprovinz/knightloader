@@ -40,6 +40,7 @@ export const fr: Dict = {
   'status.extracting': 'extraction',
 
   'settings.title': 'Paramètres',
+  'settings.back': 'Retour',
   'settings.language': 'Langue',
   'settings.appearance': 'Apparence',
   'settings.appearanceFollows': 'Suit l’instance à laquelle vous êtes connecté, pour que l’application et son interface web forment un seul produit.',

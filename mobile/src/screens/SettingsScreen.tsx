@@ -10,9 +10,19 @@ import { useAppearance } from '../theme/AppearanceContext';
 import { ACCENTS, SHAPES, type Shape } from '../theme/appearance';
 import { TYPE } from '../theme/tokens';
 import { GlimRow, GlimToggle, NotchCard, Swatch, WellSelector } from '../components/glim';
+import IconBadge from '../components/IconBadge';
 
 const GITHUB_URL = 'https://github.com/junkerderprovinz/knightloader/tree/main/mobile';
 const REPORT_URL = 'https://github.com/junkerderprovinz/knightloader/issues/new?template=app.yml';
+
+/**
+ * Which GlimStone this screen implements. A plain constant, kept in step by
+ * hand, because there is nothing to import it from: the design language is a
+ * document plus a reference, not a package. The same constant lives in the web
+ * UI's Settings.tsx and the extension's options.js, and the three are expected
+ * to agree.
+ */
+const GLIMSTONE_VERSION = '1.5.0';
 
 /** shapeOf reads the shape back out of the radii the context resolved.
  *
@@ -106,9 +116,16 @@ export default function SettingsScreen({
   return (
     <ScrollView style={{ backgroundColor: c.bg }} contentContainerStyle={styles.container}>
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={onBack}>
-          <Text style={[styles.back, { color: c.textMuted }]}>‹</Text>
-        </TouchableOpacity>
+        {/* A real 44x44 target, not a bare chevron (jdp, 2026-08-30: "Der
+            zurück button in den einstellungen ist schlecht bedienbar und kaum
+            zu treffen"). It was a single "‹" glyph, so the touchable was the
+            size of that character - about 12 by 22 points, against the 44 both
+            platforms' own guidelines call the minimum. hitSlop is deliberately
+            NOT the fix here: it would widen the target invisibly while the
+            thing on screen stayed a hairline, and the complaint is that it is
+            hard to HIT and hard to SEE. It is a proper square badge now, the
+            same one the overview's own top bar uses. */}
+        <IconBadge symbol="‹" onPress={onBack} accessibilityLabel={t('settings.back')} />
         <Text style={[styles.title, { color: c.text }]}>{t('settings.title')}</Text>
       </View>
 
@@ -173,17 +190,26 @@ export default function SettingsScreen({
           onPick={(v) => setShape(v)}
         />
 
-        <Text style={[styles.axisLabel, { color: c.textSub }]}>{t('settings.accent')}</Text>
-        <View style={styles.swatches}>
-          {ACCENTS.map((a) => (
-            <Swatch
-              key={a.hex}
-              hex={a.hex}
-              label={a.name}
-              selected={accent.toLowerCase() === a.hex.toLowerCase()}
-              onPress={() => setAccent(a.hex)}
-            />
-          ))}
+        {/* Label left, swatches right, one row (jdp, 2026-08-30: "Akzentfarbe
+            und die farbfelder sollen in eine zeile, text linksbündig,
+            farbfelder rechtsbündig") - the same shape the web interface's own
+            Farben card just took, and the same shape every GlimRow on this
+            page already has. The caption used to sit on its own line above a
+            left-aligned row, which read as a heading over a group rather than
+            as one setting with its answer beside it. */}
+        <View style={styles.axisRow}>
+          <Text style={[styles.axisLabel, styles.axisLabelInline, { color: c.textSub }]}>{t('settings.accent')}</Text>
+          <View style={styles.swatches}>
+            {ACCENTS.map((a) => (
+              <Swatch
+                key={a.hex}
+                hex={a.hex}
+                label={a.name}
+                selected={accent.toLowerCase() === a.hex.toLowerCase()}
+                onPress={() => setAccent(a.hex)}
+              />
+            ))}
+          </View>
         </View>
 
         {/* A switch, not a read-only line (jdp, 2026-08-30: "Regenbogenmodus
@@ -246,6 +272,17 @@ export default function SettingsScreen({
           <Text style={[styles.buttonText, { color: c.statusFailSolid }]}>{t('settings.removeAllConnections')}</Text>
         </TouchableOpacity>
       </NotchCard>
+
+      {/* The version footer, the same quiet line the web UI and the browser
+          extension put at the bottom of their own settings (jdp, 2026-08-30:
+          "in den setting der app und der erweiterung sollen auch die versionen
+          angezeigt werden"). The About card above already carried the app
+          version as a row - this adds the one it never named, which is which
+          GlimStone the screen is drawn to, and puts both where the family
+          already puts them. */}
+      <Text style={[styles.versionFooter, { color: c.textMuted }]} selectable={false}>
+        {`${Constants.expoConfig?.version ?? '—'} · GlimStone ${GLIMSTONE_VERSION}`}
+      </Text>
     </ScrollView>
   );
 }
@@ -255,14 +292,20 @@ export default function SettingsScreen({
 const styles = StyleSheet.create({
   container: { paddingHorizontal: 16, paddingBottom: 32 },
   topBar: { paddingTop: 56, paddingBottom: 4, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  back: { fontSize: 22 },
   title: { fontSize: TYPE.heading, fontWeight: '600' },
+  // Half-muted and centred: something you look for, not something that
+  // competes for attention.
+  versionFooter: { marginTop: 26, textAlign: 'center', fontSize: 10, opacity: 0.55 },
   valueGroup: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
   flag: { fontSize: 17 },
   value: { fontSize: TYPE.body },
   hint: { fontSize: TYPE.caption, lineHeight: 16, marginBottom: 8 },
   axisLabel: { fontSize: TYPE.caption, marginTop: 12, marginBottom: 6, letterSpacing: 0.6 },
-  swatches: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, alignItems: 'center' },
+  // The inline variant drops the stacked spacing: in a row the label is beside
+  // its control, not above it.
+  axisRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 12, marginBottom: 2 },
+  axisLabelInline: { marginTop: 0, marginBottom: 0, flexShrink: 0 },
+  swatches: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, alignItems: 'center', justifyContent: 'flex-end', flexShrink: 1 },
   report: { padding: 12, marginBottom: 10 },
   reportText: { fontSize: TYPE.caption, lineHeight: 17, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' },
   buttonRow: { flexDirection: 'row', gap: 8 },

@@ -40,6 +40,7 @@ export const vi: Dict = {
   'status.extracting': 'đang giải nén',
 
   'settings.title': 'Cài đặt',
+  'settings.back': 'Quay lại',
   'settings.language': 'Ngôn ngữ',
   'settings.appearance': 'Diện mạo',
   'settings.appearanceFollows': 'Theo thực thể mà bạn đang kết nối, để ứng dụng và giao diện web của nó trông như một sản phẩm duy nhất.',

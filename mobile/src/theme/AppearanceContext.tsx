@@ -89,6 +89,12 @@ interface Override {
 
 const STORE_KEY = 'glim-appearance-override';
 
+/** The light theme's accent before GlimStone 1.5.0 split fill from ink. It is
+ *  no longer produced anywhere, and it is not in the picker, so a stored copy
+ *  can only have come from a snapshot of the old resolved look. See the load
+ *  effect below for why that matters. */
+const RETIRED_LIGHT_ACCENT = '#8E6A00';
+
 const AppearanceCtx = createContext<Appearance | null>(null);
 
 export function AppearanceProvider({ children }: { children: ReactNode }) {
@@ -105,7 +111,17 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
         if (!raw) return;
         const p = JSON.parse(raw) as Override;
         setOverride({
-          accent: valid(p.accent) ? p.accent : undefined,
+          // RETIRED_LIGHT_ACCENT is dropped rather than honoured (jdp,
+          // 2026-08-30: "in der app ist noch die dunkle gelbe farbe
+          // standardmäßig eingestellt", after 1.6.1 had already stopped
+          // producing it). Nobody ever picked #8E6A00 from the swatch row -
+          // it was the light theme's own resolved accent back when ONE token
+          // did both jobs, and "Aussehen übernehmen" off snapshots the
+          // RESOLVED look into the override layer. So the retired default got
+          // frozen into storage as if it were a choice, and every later
+          // launch faithfully restored it. A stored value that the picker
+          // cannot produce is not a preference, it is a leftover.
+          accent: valid(p.accent) && p.accent.toUpperCase() !== RETIRED_LIGHT_ACCENT ? p.accent : undefined,
           shape: asShape(p.shape),
           theme: p.theme === 'light' || p.theme === 'dark' ? p.theme : undefined,
           rainbow: typeof p.rainbow === 'boolean' ? p.rainbow : undefined,

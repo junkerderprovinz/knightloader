@@ -40,6 +40,7 @@ export const tr: Dict = {
   'status.extracting': 'çıkartılıyor',
 
   'settings.title': 'Ayarlar',
+  'settings.back': 'Geri',
   'settings.language': 'Dil',
   'settings.appearance': 'Görünüm',
   'settings.appearanceFollows': 'Bağlı olduğunuz örneği izler, böylece uygulama ile onun web arayüzü tek bir ürün gibi görünür.',

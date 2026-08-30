@@ -771,6 +771,32 @@ async function renderAppearance() {
 
 const REPORT_URL = 'https://github.com/junkerderprovinz/knightloader/issues/new?template=extension.yml';
 
+/**
+ * Which GlimStone this page implements. A plain constant, kept in step by
+ * hand, because there is nothing to import it from: this extension has no
+ * build step, and the design language is a document plus a stylesheet rather
+ * than a package. The same constant exists in the web UI's Settings.tsx and
+ * the two are expected to agree.
+ */
+const GLIMSTONE_VERSION = '1.5.0';
+
+/**
+ * The version footer, the same quiet line the web UI puts at the bottom of
+ * every settings tab (jdp, 2026-08-30: "in den setting der app und der
+ * erweiterung sollen auch die versionen angezeigt werden"). The number was
+ * only ever reachable inside the diagnostic report, which is a box you have to
+ * open first - so from the page itself the extension appeared to have no
+ * version at all.
+ *
+ * Read from the manifest rather than typed here: a version written down twice
+ * is a version that disagrees with itself on the day one of them is bumped.
+ */
+function renderVersion() {
+  const el = document.getElementById('version');
+  if (!el) return;
+  el.textContent = `${chrome.runtime.getManifest().version} · GlimStone ${GLIMSTONE_VERSION}`;
+}
+
 const reportEl = document.getElementById('report');
 const copyReportBtn = document.getElementById('copyReport');
 const reportLink = document.getElementById('reportLink');
@@ -848,6 +874,7 @@ copyReportBtn.addEventListener('click', async () => {
   await renderLanguagePicker();
   await renderCnl();
   await renderAppearance();
+  renderVersion();
   void renderReport();
   // Last, and not awaited by the rest: it opens a relay connection, and the
   // page should be usable while that is in flight rather than blank.

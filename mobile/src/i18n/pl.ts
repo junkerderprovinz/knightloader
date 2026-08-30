@@ -40,6 +40,7 @@ export const pl: Dict = {
   'status.extracting': 'wypakowywanie',
 
   'settings.title': 'Ustawienia',
+  'settings.back': 'Wstecz',
   'settings.language': 'Język',
   'settings.appearance': 'Wygląd',
   'settings.appearanceFollows': 'Podąża za instancją, z którą masz połączenie, żeby aplikacja i jej interfejs webowy wyglądały jak jeden produkt.',

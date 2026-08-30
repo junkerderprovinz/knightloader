@@ -40,6 +40,7 @@ export const fa: Dict = {
   'status.extracting': 'در حال استخراج',
 
   'settings.title': 'تنظیمات',
+  'settings.back': 'بازگشت',
   'settings.language': 'زبان',
   'settings.appearance': 'ظاهر',
   'settings.appearanceFollows': 'از نمونه‌ای که به آن وصل هستید پیروی می‌کند تا برنامه و رابط وب آن مثل یک محصول واحد به نظر برسند.',

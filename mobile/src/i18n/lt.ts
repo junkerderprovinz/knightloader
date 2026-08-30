@@ -40,6 +40,7 @@ export const lt: Dict = {
   'status.extracting': 'išpakuojama',
 
   'settings.title': 'Nustatymai',
+  'settings.back': 'Atgal',
   'settings.language': 'Kalba',
   'settings.appearance': 'Išvaizda',
   'settings.appearanceFollows': 'Seka egzemplioriumi, prie kurio esate prisijungę, kad programa ir jo žiniatinklio sąsaja atrodytų kaip vienas produktas.',

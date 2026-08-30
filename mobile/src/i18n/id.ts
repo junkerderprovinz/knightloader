@@ -40,6 +40,7 @@ export const id: Dict = {
   'status.extracting': 'mengekstrak',
 
   'settings.title': 'Pengaturan',
+  'settings.back': 'Kembali',
   'settings.language': 'Bahasa',
   'settings.appearance': 'Tampilan',
   'settings.appearanceFollows': 'Mengikuti instansi yang Anda sambungkan, supaya aplikasi dan antarmuka webnya terlihat seperti satu produk.',

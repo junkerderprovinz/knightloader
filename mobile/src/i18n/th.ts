@@ -40,6 +40,7 @@ export const th: Dict = {
   'status.extracting': 'กำลังแตกไฟล์',
 
   'settings.title': 'การตั้งค่า',
+  'settings.back': 'ย้อนกลับ',
   'settings.language': 'ภาษา',
   'settings.appearance': 'รูปลักษณ์',
   'settings.appearanceFollows': 'ปรับตามอินสแตนซ์ที่คุณเชื่อมต่ออยู่ เพื่อให้แอปกับเว็บอินเทอร์เฟซของอินสแตนซ์ดูเป็นผลิตภัณฑ์เดียวกัน',

@@ -40,6 +40,7 @@ export const ms: Dict = {
   'status.extracting': 'mengekstrak',
 
   'settings.title': 'Tetapan',
+  'settings.back': 'Kembali',
   'settings.language': 'Bahasa',
   'settings.appearance': 'Penampilan',
   'settings.appearanceFollows': 'Mengikut instans yang anda sambungkan, supaya aplikasi dan antara muka webnya kelihatan seperti satu produk.',

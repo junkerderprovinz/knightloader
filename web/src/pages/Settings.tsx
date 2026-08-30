@@ -288,11 +288,18 @@ export function SettingsPage() {
 // badge, the buttons, the switch tracks and the focus ring inside it all
 // follow one declaration instead of a growing list of exceptions.
 //
+// 1.5.0 adds the second half of the accent: --accent is the fill, --accent-ink
+// is the same colour where it gets read, derived through --ink-mix so it
+// follows a colour somebody picked and follows --item-hue inside a rainbow
+// subtree. Every place this app used the accent AS ink now reads the ink token.
+//
 // What this number does NOT claim is full conformance with every rule in that
 // release: 1.4.0 also says every explanatory text is an info bubble, and this
 // app still has explanatory paragraphs under controls. Sorting the real ones
-// from the empty states and dialog copy is a judgement pass, not a codemod.
-const GLIMSTONE_VERSION = '1.4.0';
+// from the empty states and dialog copy is a judgement pass, not a codemod -
+// the list exists now (63 counted, 13 of them genuine explanations) and is
+// waiting on jdp rather than on me.
+const GLIMSTONE_VERSION = '1.5.0';
 
 /**
  * The build/GlimStone version, quiet and centred at the very bottom of the

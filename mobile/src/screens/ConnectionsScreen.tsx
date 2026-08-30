@@ -6,7 +6,7 @@ import { isRelayConnection, type ServerConnection } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
-import IconBadge, { Trash } from '../components/IconBadge';
+import IconBadge, { Gear, Trash } from '../components/IconBadge';
 
 // The app's own mark, beside the name it belongs to (jdp, 2026-08-30: "In der
 // Übersicht soll links von der Überschrift auch das Logo sein"). require() and
@@ -74,7 +74,11 @@ export default function ConnectionsScreen({
         </View>
         <View style={styles.badgeRow}>
           <IconBadge symbol="+" accent onPress={onAddPress} accessibilityLabel={t('connections.addButton')} />
-          <IconBadge symbol="⚙" onPress={onOpenSettings} accessibilityLabel={t('settings.title')} />
+          <IconBadge
+            icon={<Gear color={c.textSub} hole={c.surface2} />}
+            onPress={onOpenSettings}
+            accessibilityLabel={t('settings.title')}
+          />
         </View>
       </View>
 

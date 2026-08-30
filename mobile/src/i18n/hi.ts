@@ -40,6 +40,7 @@ export const hi: Dict = {
   'status.extracting': 'निकाला जा रहा है',
 
   'settings.title': 'सेटिंग्स',
+  'settings.back': 'वापस',
   'settings.language': 'भाषा',
   'settings.appearance': 'दिखावट',
   'settings.appearanceFollows': 'जिस इंस्टेंस से आप जुड़े हैं, यह उसी के अनुसार चलता है, ताकि ऐप और उसका वेब यूज़र इंटरफ़ेस एक ही उत्पाद जैसे लगें।',

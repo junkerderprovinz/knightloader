@@ -40,6 +40,7 @@ export const bg: Dict = {
   'status.extracting': 'разархивиране',
 
   'settings.title': 'Настройки',
+  'settings.back': 'Назад',
   'settings.language': 'Език',
   'settings.appearance': 'Външен вид',
   'settings.appearanceFollows': 'Следва инстанцията, към която сте свързани, за да изглеждат приложението и нейният уеб интерфейс като един продукт.',

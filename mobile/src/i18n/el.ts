@@ -40,6 +40,7 @@ export const el: Dict = {
   'status.extracting': 'εξαγωγή',
 
   'settings.title': 'Ρυθμίσεις',
+  'settings.back': 'Πίσω',
   'settings.language': 'Γλώσσα',
   'settings.appearance': 'Εμφάνιση',
   'settings.appearanceFollows': 'Ακολουθεί το στιγμιότυπο με το οποίο είστε συνδεδεμένοι, ώστε η εφαρμογή και η διεπαφή web του να μοιάζουν με ένα προϊόν.',
