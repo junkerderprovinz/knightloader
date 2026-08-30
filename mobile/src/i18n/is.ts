@@ -31,6 +31,12 @@ export const is: Dict = {
   'downloads.tabCollector': 'Safnari',
   'packages.loose': 'Án pakka',
   'packages.start': 'Byrja þennan pakka',
+  'packages.expand': 'Opna þennan pakka',
+  'packages.collapse': 'Loka þessum pakka',
+  'packages.delete': 'Fjarlægja þennan pakka',
+  'packages.deleteConfirmTitle': 'Fjarlægja pakka?',
+  'packages.deleteConfirmMessage': '{n} tenglar hverfa af listanum. Skrár sem þegar eru sóttar verða áfram.',
+  'packages.deleteConfirmButton': 'Fjarlægja',
 
   'addDownload.title': 'Bæta við tenglum',
   'addDownload.titlePeer': 'Bæta við tenglum – {name}',

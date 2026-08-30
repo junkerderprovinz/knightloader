@@ -47,6 +47,12 @@ export const en = {
   'downloads.tabCollector': 'Collector',
   'packages.loose': 'No package',
   'packages.start': 'Start this package',
+  'packages.expand': 'Open this package',
+  'packages.collapse': 'Close this package',
+  'packages.delete': 'Remove this package',
+  'packages.deleteConfirmTitle': 'Remove package?',
+  'packages.deleteConfirmMessage': '{n} links leave the list. Files already downloaded stay.',
+  'packages.deleteConfirmButton': 'Remove',
 
   'addDownload.title': 'Add links',
   'addDownload.titlePeer': 'Add links – {name}',

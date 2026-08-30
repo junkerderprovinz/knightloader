@@ -31,6 +31,12 @@ export const sl: Dict = {
   'downloads.tabCollector': 'Zbiralnik',
   'packages.loose': 'Brez paketa',
   'packages.start': 'Zaženi ta paket',
+  'packages.expand': 'Odpri ta paket',
+  'packages.collapse': 'Zapri ta paket',
+  'packages.delete': 'Odstrani ta paket',
+  'packages.deleteConfirmTitle': 'Odstranim paket?',
+  'packages.deleteConfirmMessage': '{n} povezav izgine s seznama. Že prenesene datoteke ostanejo.',
+  'packages.deleteConfirmButton': 'Odstrani',
 
   'addDownload.title': 'Dodaj povezave',
   'addDownload.titlePeer': 'Dodaj povezave – {name}',

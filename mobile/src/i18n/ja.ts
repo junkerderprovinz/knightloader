@@ -31,6 +31,12 @@ export const ja: Dict = {
   'downloads.tabCollector': 'コレクター',
   'packages.loose': 'パッケージなし',
   'packages.start': 'このパッケージを開始',
+  'packages.expand': 'このパッケージを開く',
+  'packages.collapse': 'このパッケージを閉じる',
+  'packages.delete': 'このパッケージを削除',
+  'packages.deleteConfirmTitle': 'パッケージを削除しますか？',
+  'packages.deleteConfirmMessage': '{n} 件のリンクが一覧から消えます。ダウンロード済みのファイルは残ります。',
+  'packages.deleteConfirmButton': '削除',
 
   'addDownload.title': 'リンクを追加',
   'addDownload.titlePeer': 'リンクを追加 – {name}',

@@ -31,6 +31,12 @@ export const ru: Dict = {
   'downloads.tabCollector': 'Сборщик',
   'packages.loose': 'Без пакета',
   'packages.start': 'Запустить этот пакет',
+  'packages.expand': 'Открыть этот пакет',
+  'packages.collapse': 'Закрыть этот пакет',
+  'packages.delete': 'Удалить этот пакет',
+  'packages.deleteConfirmTitle': 'Удалить пакет?',
+  'packages.deleteConfirmMessage': '{n} ссылок исчезнут из списка. Уже скачанные файлы останутся.',
+  'packages.deleteConfirmButton': 'Удалить',
 
   'addDownload.title': 'Добавить ссылки',
   'addDownload.titlePeer': 'Добавить ссылки – {name}',

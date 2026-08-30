@@ -31,6 +31,12 @@ export const nl: Dict = {
   'downloads.tabCollector': 'Verzamelaar',
   'packages.loose': 'Geen pakket',
   'packages.start': 'Dit pakket starten',
+  'packages.expand': 'Dit pakket openen',
+  'packages.collapse': 'Dit pakket sluiten',
+  'packages.delete': 'Dit pakket verwijderen',
+  'packages.deleteConfirmTitle': 'Pakket verwijderen?',
+  'packages.deleteConfirmMessage': '{n} links verdwijnen uit de lijst. Al gedownloade bestanden blijven.',
+  'packages.deleteConfirmButton': 'Verwijderen',
 
   'addDownload.title': 'Links toevoegen',
   'addDownload.titlePeer': 'Links toevoegen – {name}',

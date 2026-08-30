@@ -31,6 +31,12 @@ export const vi: Dict = {
   'downloads.tabCollector': 'Bộ thu thập',
   'packages.loose': 'Không có gói',
   'packages.start': 'Bắt đầu gói này',
+  'packages.expand': 'Mở gói này',
+  'packages.collapse': 'Đóng gói này',
+  'packages.delete': 'Xoá gói này',
+  'packages.deleteConfirmTitle': 'Xoá gói?',
+  'packages.deleteConfirmMessage': '{n} liên kết rời khỏi danh sách. Tệp đã tải về vẫn còn.',
+  'packages.deleteConfirmButton': 'Xoá',
 
   'addDownload.title': 'Thêm liên kết',
   'addDownload.titlePeer': 'Thêm liên kết – {name}',

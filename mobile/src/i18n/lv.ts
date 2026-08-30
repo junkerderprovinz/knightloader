@@ -31,6 +31,12 @@ export const lv: Dict = {
   'downloads.tabCollector': 'Vācējs',
   'packages.loose': 'Bez pakotnes',
   'packages.start': 'Sākt šo pakotni',
+  'packages.expand': 'Atvērt šo pakotni',
+  'packages.collapse': 'Aizvērt šo pakotni',
+  'packages.delete': 'Noņemt šo pakotni',
+  'packages.deleteConfirmTitle': 'Noņemt pakotni?',
+  'packages.deleteConfirmMessage': '{n} saites pazudīs no saraksta. Jau lejupielādētie faili paliks.',
+  'packages.deleteConfirmButton': 'Noņemt',
 
   'addDownload.title': 'Pievienot saites',
   'addDownload.titlePeer': 'Pievienot saites – {name}',

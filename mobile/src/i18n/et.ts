@@ -31,6 +31,12 @@ export const et: Dict = {
   'downloads.tabCollector': 'Koguja',
   'packages.loose': 'Paketita',
   'packages.start': 'Käivita see pakett',
+  'packages.expand': 'Ava see pakett',
+  'packages.collapse': 'Sulge see pakett',
+  'packages.delete': 'Eemalda see pakett',
+  'packages.deleteConfirmTitle': 'Kas eemaldada pakett?',
+  'packages.deleteConfirmMessage': '{n} linki kaob nimekirjast. Juba alla laaditud failid jäävad alles.',
+  'packages.deleteConfirmButton': 'Eemalda',
 
   'addDownload.title': 'Lisa lingid',
   'addDownload.titlePeer': 'Lisa lingid – {name}',

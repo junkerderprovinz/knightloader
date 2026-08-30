@@ -31,6 +31,12 @@ export const sk: Dict = {
   'downloads.tabCollector': 'Zberač',
   'packages.loose': 'Bez balíka',
   'packages.start': 'Spustiť tento balík',
+  'packages.expand': 'Otvoriť tento balík',
+  'packages.collapse': 'Zavrieť tento balík',
+  'packages.delete': 'Odstrániť tento balík',
+  'packages.deleteConfirmTitle': 'Odstrániť balík?',
+  'packages.deleteConfirmMessage': '{n} odkazov zmizne zo zoznamu. Už stiahnuté súbory zostanú.',
+  'packages.deleteConfirmButton': 'Odstrániť',
 
   'addDownload.title': 'Pridať odkazy',
   'addDownload.titlePeer': 'Pridať odkazy – {name}',

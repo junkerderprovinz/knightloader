@@ -31,6 +31,12 @@ export const hi: Dict = {
   'downloads.tabCollector': 'संग्राहक',
   'packages.loose': 'बिना पैकेज',
   'packages.start': 'यह पैकेज शुरू करें',
+  'packages.expand': 'यह पैकेज खोलें',
+  'packages.collapse': 'यह पैकेज बंद करें',
+  'packages.delete': 'यह पैकेज हटाएँ',
+  'packages.deleteConfirmTitle': 'पैकेज हटाएँ?',
+  'packages.deleteConfirmMessage': '{n} लिंक सूची से हट जाएँगे। पहले से डाउनलोड फ़ाइलें बनी रहेंगी।',
+  'packages.deleteConfirmButton': 'हटाएँ',
 
   'addDownload.title': 'लिंक जोड़ें',
   'addDownload.titlePeer': 'लिंक जोड़ें – {name}',

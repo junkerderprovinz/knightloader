@@ -31,6 +31,12 @@ export const ro: Dict = {
   'downloads.tabCollector': 'Colector',
   'packages.loose': 'Fără pachet',
   'packages.start': 'Pornește acest pachet',
+  'packages.expand': 'Deschide acest pachet',
+  'packages.collapse': 'Închide acest pachet',
+  'packages.delete': 'Elimină acest pachet',
+  'packages.deleteConfirmTitle': 'Eliminați pachetul?',
+  'packages.deleteConfirmMessage': '{n} linkuri ies din listă. Fișierele deja descărcate rămân.',
+  'packages.deleteConfirmButton': 'Elimină',
 
   'addDownload.title': 'Adaugă linkuri',
   'addDownload.titlePeer': 'Adaugă linkuri – {name}',

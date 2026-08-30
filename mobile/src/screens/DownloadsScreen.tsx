@@ -11,7 +11,7 @@ import { useT } from '../i18n/I18nContext';
 import IconBadge, { Gear, Trash } from '../components/IconBadge';
 import SpeedGraph from '../components/SpeedGraph';
 import { fmtBytes } from '../api/stats';
-import { startTasks } from '../api/client';
+import { deleteTasks, startTasks } from '../api/client';
 
 // peer, when set, means this screen is showing a FEDERATION PEER of conn
 // rather than conn's own queue: base becomes the proxy prefix
@@ -259,6 +259,22 @@ export default function DownloadsScreen({
               }
             : undefined
         }
+        // Both tabs, not only the collector (jdp, 2026-08-31: "man soll ordner
+        // auch löschen können"): a package in the queue is as likely to be the
+        // one somebody wants rid of. The list itself asks first, so this only
+        // ever runs on a yes.
+        //
+        // The files stay: this removes the entries, not what has already been
+        // downloaded. Erasing those is a second, differently dangerous
+        // decision, and a folder's bin badge is not the place to offer it.
+        onDeletePackage={async (pkg) => {
+          setStartError('');
+          try {
+            await deleteTasks(conn, pkg.tasks.map((x) => x.id), false, base);
+          } catch (e) {
+            setStartError(e instanceof Error ? e.message : String(e));
+          }
+        }}
       />
 
       <TouchableOpacity

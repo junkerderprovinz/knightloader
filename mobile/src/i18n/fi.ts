@@ -31,6 +31,12 @@ export const fi: Dict = {
   'downloads.tabCollector': 'Kerääjä',
   'packages.loose': 'Ei pakettia',
   'packages.start': 'Käynnistä tämä paketti',
+  'packages.expand': 'Avaa tämä paketti',
+  'packages.collapse': 'Sulje tämä paketti',
+  'packages.delete': 'Poista tämä paketti',
+  'packages.deleteConfirmTitle': 'Poistetaanko paketti?',
+  'packages.deleteConfirmMessage': '{n} linkkiä poistuu listalta. Jo ladatut tiedostot säilyvät.',
+  'packages.deleteConfirmButton': 'Poista',
 
   'addDownload.title': 'Lisää linkkejä',
   'addDownload.titlePeer': 'Lisää linkkejä – {name}',

@@ -31,6 +31,12 @@ export const ms: Dict = {
   'downloads.tabCollector': 'Pengumpul',
   'packages.loose': 'Tiada pakej',
   'packages.start': 'Mulakan pakej ini',
+  'packages.expand': 'Buka pakej ini',
+  'packages.collapse': 'Tutup pakej ini',
+  'packages.delete': 'Buang pakej ini',
+  'packages.deleteConfirmTitle': 'Buang pakej?',
+  'packages.deleteConfirmMessage': '{n} pautan keluar daripada senarai. Fail yang sudah dimuat turun kekal.',
+  'packages.deleteConfirmButton': 'Buang',
 
   'addDownload.title': 'Tambah pautan',
   'addDownload.titlePeer': 'Tambah pautan – {name}',

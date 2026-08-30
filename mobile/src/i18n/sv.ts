@@ -31,6 +31,12 @@ export const sv: Dict = {
   'downloads.tabCollector': 'Insamlare',
   'packages.loose': 'Utan paket',
   'packages.start': 'Starta detta paket',
+  'packages.expand': 'Öppna det här paketet',
+  'packages.collapse': 'Stäng det här paketet',
+  'packages.delete': 'Ta bort det här paketet',
+  'packages.deleteConfirmTitle': 'Ta bort paketet?',
+  'packages.deleteConfirmMessage': '{n} länkar försvinner från listan. Redan hämtade filer blir kvar.',
+  'packages.deleteConfirmButton': 'Ta bort',
 
   'addDownload.title': 'Lägg till länkar',
   'addDownload.titlePeer': 'Lägg till länkar – {name}',

@@ -31,6 +31,12 @@ export const fa: Dict = {
   'downloads.tabCollector': 'گردآورنده',
   'packages.loose': 'بدون بسته',
   'packages.start': 'شروع این بسته',
+  'packages.expand': 'باز کردن این بسته',
+  'packages.collapse': 'بستن این بسته',
+  'packages.delete': 'حذف این بسته',
+  'packages.deleteConfirmTitle': 'بسته حذف شود؟',
+  'packages.deleteConfirmMessage': '{n} پیوند از فهرست خارج می‌شود. فایل‌های دانلودشده باقی می‌مانند.',
+  'packages.deleteConfirmButton': 'حذف',
 
   'addDownload.title': 'افزودن لینک‌ها',
   'addDownload.titlePeer': 'افزودن لینک‌ها – {name}',

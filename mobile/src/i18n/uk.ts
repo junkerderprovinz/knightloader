@@ -31,6 +31,12 @@ export const uk: Dict = {
   'downloads.tabCollector': 'Збирач',
   'packages.loose': 'Без пакета',
   'packages.start': 'Запустити цей пакет',
+  'packages.expand': 'Відкрити цей пакунок',
+  'packages.collapse': 'Закрити цей пакунок',
+  'packages.delete': 'Вилучити цей пакунок',
+  'packages.deleteConfirmTitle': 'Вилучити пакунок?',
+  'packages.deleteConfirmMessage': '{n} посилань зникне зі списку. Уже завантажені файли залишаться.',
+  'packages.deleteConfirmButton': 'Вилучити',
 
   'addDownload.title': 'Додати посилання',
   'addDownload.titlePeer': 'Додати посилання – {name}',

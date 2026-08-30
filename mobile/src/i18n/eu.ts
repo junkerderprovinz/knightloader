@@ -31,6 +31,12 @@ export const eu: Dict = {
   'downloads.tabCollector': 'Biltzailea',
   'packages.loose': 'Paketerik gabe',
   'packages.start': 'Hasi pakete hau',
+  'packages.expand': 'Ireki pakete hau',
+  'packages.collapse': 'Itxi pakete hau',
+  'packages.delete': 'Kendu pakete hau',
+  'packages.deleteConfirmTitle': 'Paketea kendu?',
+  'packages.deleteConfirmMessage': '{n} esteka zerrendatik aterako dira. Deskargatutako fitxategiak geratzen dira.',
+  'packages.deleteConfirmButton': 'Kendu',
 
   'addDownload.title': 'Gehitu estekak',
   'addDownload.titlePeer': 'Gehitu estekak – {name}',

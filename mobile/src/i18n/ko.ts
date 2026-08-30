@@ -31,6 +31,12 @@ export const ko: Dict = {
   'downloads.tabCollector': '수집기',
   'packages.loose': '패키지 없음',
   'packages.start': '이 패키지 시작',
+  'packages.expand': '이 패키지 펼치기',
+  'packages.collapse': '이 패키지 접기',
+  'packages.delete': '이 패키지 삭제',
+  'packages.deleteConfirmTitle': '패키지를 삭제할까요?',
+  'packages.deleteConfirmMessage': '링크 {n}개가 목록에서 사라집니다. 이미 받은 파일은 남습니다.',
+  'packages.deleteConfirmButton': '삭제',
 
   'addDownload.title': '링크 추가',
   'addDownload.titlePeer': '링크 추가 – {name}',

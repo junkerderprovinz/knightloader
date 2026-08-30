@@ -31,6 +31,12 @@ export const zh: Dict = {
   'downloads.tabCollector': '收集器',
   'packages.loose': '无软件包',
   'packages.start': '开始此软件包',
+  'packages.expand': '展开此包',
+  'packages.collapse': '收起此包',
+  'packages.delete': '删除此包',
+  'packages.deleteConfirmTitle': '删除此包？',
+  'packages.deleteConfirmMessage': '{n} 个链接将从列表中消失。已下载的文件会保留。',
+  'packages.deleteConfirmButton': '删除',
 
   'addDownload.title': '添加链接',
   'addDownload.titlePeer': '添加链接 – {name}',
