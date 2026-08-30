@@ -148,6 +148,36 @@
          belongs to the group it names, not to the rhythm between blocks. */
       #instanceList { display: flex; flex-direction: column; gap: 16px; margin-top: 6px; }
       #instanceLabel { margin: 0; }
+      /* The collector, one 16px step below the send button like everything
+         else in this window. */
+      #collector { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+      #collectorLabel { margin: 0; }
+      /* The drop target IS the field, not a dashed rectangle around one: a
+         drawn outline is the one thing this language does not do, so the
+         "you may drop here" state is a change of SURFACE instead - the well
+         one step deeper, and a ring in the focus colour while something is
+         over it. */
+      .drop { border-radius: var(--radius-control); transition: box-shadow 150ms ease; }
+      .drop.over { box-shadow: 0 0 0 2px var(--focus-ring); }
+      #links {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px 10px;
+        border: 0;
+        border-radius: var(--radius-control);
+        background: var(--carbon-surface2);
+        color: var(--carbon-text);
+        font: inherit;
+        font-size: var(--text-dense);
+        resize: vertical;
+        outline: none;
+      }
+      #links:focus { box-shadow: 0 0 0 2px var(--focus-ring); }
+      /* Two buttons sharing a line, each half of it: neither is the primary
+         action of this window, so neither gets to be wider than the other. */
+      .collectorRow { display: flex; gap: 8px; }
+      .collectorRow button { flex: 1; }
     </style>
   </head>
   <body>
@@ -177,6 +207,28 @@
       <div id="instanceList"></div>
     </div>
     <button id="send" class="primary">Send this page</button>
+
+    <!-- The collector (jdp, 2026-08-30: "unter den instanzencards soll eine
+         linksammler cards sein mit dropzone für links und button um dateien
+         hinzuzufügen"). Everything above this point sends ONE thing that
+         something else chose - the current tab, a right-clicked link, a caught
+         container. This is the other direction: paste or drop whatever you
+         have. Below the send button on purpose, because that button is what
+         the window is usually opened for. -->
+    <div id="collector" hidden>
+      <p id="collectorLabel" class="glim-eyebrow"></p>
+      <div id="drop" class="drop">
+        <textarea id="links" rows="3" spellcheck="false"></textarea>
+      </div>
+      <div class="collectorRow">
+        <button id="pickFiles" class="secondary" type="button"></button>
+        <button id="addLinks" class="secondary" type="button"></button>
+      </div>
+      <!-- Hidden and clicked from the button beside it: a native file input
+           cannot be styled into this language, and a button that opens it can. -->
+      <input id="files" type="file" multiple hidden />
+    </div>
+
     <div id="status"></div>
     <!-- Appearance first: the look is put on <html> before anything is
          drawn, so no page is ever painted in one look and repainted in

@@ -137,7 +137,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
  * and one that joined five minutes ago is, without this browser being told
  * anything. It costs one short connection per send.
  */
-async function sendToInstance(payload) {
+async function sendToInstance(payload, origin) {
   let siblings;
   try {
     siblings = await groupInstances();
@@ -173,7 +173,13 @@ async function sendToInstance(payload) {
     return;
   }
   await chrome.storage.session.set({
-    pendingSend: { payload, defaultName: await readDefaultTarget(), siblings },
+    // origin travels with the payload because the popup treats a caught
+    // Click'n'Load batch differently from a right-clicked link: only the
+    // batch counts down and sends itself (jdp, 2026-08-30: "countdown zeigt
+    // es nicht an und man muss manuell auf den senden button klicken"). A
+    // link somebody right-clicked was a deliberate act aimed at ONE thing,
+    // and finishing it for them after five seconds would be the surprise.
+    pendingSend: { payload, defaultName: await readDefaultTarget(), siblings, origin: origin ?? '' },
   });
 
   // The extension's OWN popup, not a window of our own (jdp, 2026-08-29: "Wenn
@@ -313,7 +319,7 @@ async function handleCnl(msg) {
   // the page title is the fallback, and it is a better package name than the
   // first link's filename, which is what the collector would fall back to.
   const title = f.package || f.source || msg.pageTitle || '';
-  await sendToInstance({ text: links.join('\n'), title });
+  await sendToInstance({ text: links.join('\n'), title }, 'cnl');
 }
 
 /**

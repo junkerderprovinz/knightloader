@@ -88,6 +88,11 @@ function paintHues() {
     }
     await renderTargets(pending.defaultName);
     void loadStatus();
+    // Only a caught Click'n'Load batch counts itself down. A right-clicked
+    // link was a deliberate act aimed at one thing, and finishing it for
+    // somebody after five seconds would be the surprise, not the service.
+    showCollector();
+    if (pending.origin === 'cnl') await startCountdown();
     return;
   }
 
@@ -140,6 +145,7 @@ function paintHues() {
   // Not awaited on purpose: a failure here leaves a popup that can still send,
   // which is the whole point of splitting it out.
   void loadStatus();
+  showCollector();
 })();
 
 /**
@@ -191,6 +197,10 @@ async function renderTargets(preferredFromPending) {
         isChosen: inst.instanceId === chosen,
         status: inst.status,
         onPick: (picked) => {
+          // Taking hold of the window stops the clock: somebody choosing a
+          // different instance is the one case the countdown exists to leave
+          // room for, and finishing on a timer behind them would undo it.
+          cancelCountdown();
           chosen = picked.instanceId;
           void renderTargets();
         },
@@ -211,7 +221,53 @@ async function renderTargets(preferredFromPending) {
   });
 }
 
+/**
+ * The countdown a caught Click'n'Load batch runs before it sends itself.
+ *
+ * This is what JDownloader's own extension does, and what this one did not
+ * (jdp, 2026-08-30: "countdown zeigt es nicht an und man muss manuell auf den
+ * senden button klicken"). A container button is a decision somebody already
+ * made on the site; the popup exists to say WHERE it is going and to give a
+ * moment to change that, not to ask for the same decision a second time.
+ *
+ * Cancelled by touching anything: picking a different instance, or pressing
+ * the button, which sends immediately. Cancelled and not merely paused - once
+ * somebody has taken hold of this window, finishing on a timer behind them is
+ * exactly the surprise the timer is supposed to avoid.
+ */
+let countdownTimer = null;
+
+function cancelCountdown() {
+  if (countdownTimer === null) return;
+  clearInterval(countdownTimer);
+  countdownTimer = null;
+  sendBtn.textContent = t('popup.send');
+}
+
+async function startCountdown() {
+  const seconds = await readCnlCountdown();
+  // Zero is "ask me", the setting's own off position. Also skipped when there
+  // is nothing chosen to send to, which would make the timer a countdown to a
+  // no-op.
+  if (seconds <= 0 || !chosen) return;
+  let left = seconds;
+  const paint = () => {
+    sendBtn.textContent = t('popup.sendIn', { n: String(left) });
+  };
+  paint();
+  countdownTimer = setInterval(() => {
+    left -= 1;
+    if (left > 0) {
+      paint();
+      return;
+    }
+    cancelCountdown();
+    sendBtn.click();
+  }, 1000);
+}
+
 sendBtn.addEventListener('click', async () => {
+  cancelCountdown();
   // Either a payload the service worker parked here, or the tab this window
   // opened over. Never both, and never neither.
   const payload = pending ? pending.payload : activeTab?.url ? { url: activeTab.url, title: activeTab.title } : null;
@@ -226,5 +282,117 @@ sendBtn.addEventListener('click', async () => {
   // what reports it either way (background.js's flashBadge). Waiting here would
   // hold a popup open on a spinner for a result it is not the right place to
   // show.
+  window.close();
+});
+
+// --- The collector -----------------------------------------------------
+//
+// Everything above sends ONE thing that something else chose: the current tab,
+// a right-clicked link, a caught container. This is the other direction (jdp,
+// 2026-08-30: "unter den instanzencards soll eine linksammler cards sein mit
+// dropzone für links und button um dateien hinzuzufügen") - paste, drop, or
+// pick files, and it goes to whichever instance the cards above have selected.
+//
+// Files are read for their TEXT, not uploaded. A browser extension cannot hand
+// a file to an instance it reaches through an encrypted relay frame, and it
+// does not need to: what people drop here are .txt/.dlc/.crawljob lists, and
+// what the instance wants is the links inside them. A binary dropped by
+// mistake yields no http(s)/ftp lines and is reported as such rather than
+// posted as noise.
+const collectorEl = document.getElementById('collector');
+const collectorLabelEl = document.getElementById('collectorLabel');
+const dropEl = document.getElementById('drop');
+const linksEl = document.getElementById('links');
+const addLinksBtn = document.getElementById('addLinks');
+const pickFilesBtn = document.getElementById('pickFiles');
+const filesEl = document.getElementById('files');
+
+/** Every http(s)/ftp URL in a blob of text, in order, without duplicates. The
+ *  same shape splitCnlLinks uses, so a list pasted here and a list caught from
+ *  a container are read the same way. */
+function linksIn(text) {
+  const seen = new Set();
+  for (const raw of String(text).split(/[\r\n\s]+/)) {
+    const s = raw.trim();
+    if (/^(https?|ftp):\/\//i.test(s)) seen.add(s);
+  }
+  return [...seen];
+}
+
+function showCollector() {
+  collectorLabelEl.textContent = t('popup.collectorLabel');
+  linksEl.placeholder = t('popup.collectorPlaceholder');
+  addLinksBtn.textContent = t('popup.collectorAdd');
+  pickFilesBtn.textContent = t('popup.collectorFiles');
+  collectorEl.hidden = false;
+}
+
+// dragover must be prevented or the drop never fires - the browser's default
+// for a dragged link is to navigate to it, which would take the popup with it.
+for (const ev of ['dragenter', 'dragover']) {
+  dropEl.addEventListener(ev, (e) => {
+    e.preventDefault();
+    dropEl.classList.add('over');
+  });
+}
+for (const ev of ['dragleave', 'drop']) {
+  dropEl.addEventListener(ev, () => dropEl.classList.remove('over'));
+}
+
+dropEl.addEventListener('drop', async (e) => {
+  e.preventDefault();
+  cancelCountdown();
+  const parts = [];
+  // A dragged link arrives as text; a dragged file arrives as a file. Both are
+  // read, because both are things people drag onto a box like this.
+  const dropped = e.dataTransfer?.getData('text') ?? '';
+  if (dropped) parts.push(dropped);
+  for (const file of e.dataTransfer?.files ?? []) parts.push(await file.text().catch(() => ''));
+  appendToBox(parts.join('\n'));
+});
+
+pickFilesBtn.addEventListener('click', () => {
+  cancelCountdown();
+  filesEl.click();
+});
+
+filesEl.addEventListener('change', async () => {
+  const parts = [];
+  for (const file of filesEl.files ?? []) parts.push(await file.text().catch(() => ''));
+  // Cleared so picking the SAME file twice in a row fires 'change' again; a
+  // file input holds its value otherwise and the second pick does nothing.
+  filesEl.value = '';
+  appendToBox(parts.join('\n'));
+});
+
+/** Adds what was dropped or picked to whatever is already in the box, rather
+ *  than replacing it: two drops in a row are two batches, not a correction. */
+function appendToBox(text) {
+  const found = linksIn(text);
+  if (found.length === 0) {
+    statusEl.textContent = t('popup.collectorNoLinks');
+    return;
+  }
+  statusEl.textContent = '';
+  const have = linksEl.value.trim();
+  linksEl.value = (have ? have + '\n' : '') + found.join('\n');
+}
+
+addLinksBtn.addEventListener('click', () => {
+  cancelCountdown();
+  const found = linksIn(linksEl.value);
+  if (found.length === 0) {
+    statusEl.textContent = t('popup.collectorNoLinks');
+    return;
+  }
+  if (!chosen) return;
+  // The same message every other send in this window uses, so a batch pasted
+  // here takes the identical path through the service worker - including the
+  // badge that reports whether it arrived.
+  chrome.runtime.sendMessage({
+    type: 'knightloader-send-to',
+    target: chosen,
+    payload: { text: found.join('\n'), title: t('popup.collectorPackage') },
+  });
   window.close();
 });

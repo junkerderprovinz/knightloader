@@ -361,3 +361,36 @@ function listbox(host, options, current, onPick) {
   };
   trigger.addEventListener('click', open);
 }
+
+/**
+ * How long a caught Click'n'Load batch waits before it sends itself.
+ *
+ * Seconds; 0 means "ask me", which is what this extension did unconditionally
+ * before the setting existed. Five is the default because that is roughly what
+ * JDownloader's own extension gives you - long enough to read where it is
+ * going and reach for another instance, short enough that nobody waits.
+ *
+ * Clamped on the way OUT rather than only on the way in: a value written by an
+ * older build, or by hand in the storage inspector, must not be able to park a
+ * popup for an hour.
+ */
+const CNL_COUNTDOWN_DEFAULT = 5;
+const CNL_COUNTDOWN_MAX = 60;
+
+async function readCnlCountdown() {
+  try {
+    const { cnlCountdown } = await chrome.storage.local.get('cnlCountdown');
+    const n = Number(cnlCountdown);
+    if (!Number.isFinite(n) || n < 0) return CNL_COUNTDOWN_DEFAULT;
+    return Math.min(Math.round(n), CNL_COUNTDOWN_MAX);
+  } catch {
+    return CNL_COUNTDOWN_DEFAULT;
+  }
+}
+
+async function writeCnlCountdown(seconds) {
+  const n = Number(seconds);
+  const safe = !Number.isFinite(n) || n < 0 ? CNL_COUNTDOWN_DEFAULT : Math.min(Math.round(n), CNL_COUNTDOWN_MAX);
+  await chrome.storage.local.set({ cnlCountdown: safe });
+  return safe;
+}
