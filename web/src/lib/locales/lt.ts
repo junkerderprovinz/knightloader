@@ -1041,6 +1041,7 @@ export const lt: Dict = {
   'activity.linkcheck': 'Nuorodų tikrinimas',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Automatinis patvirtinimas',
+  'activity.container': 'Konteineriai',
   'activity.pending': '{n} laukia',
   'activity.ofTotal': '{n} iš {total}',
   'activity.tooltipHint': '{active} aktyvių iš {total} šiame etape',

@@ -1041,6 +1041,7 @@ export const eu: Dict = {
   'activity.linkcheck': 'Estekak egiaztatzen',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Berrespen automatikoa',
+  'activity.container': 'Edukiontziak',
   'activity.pending': '{n} itxaroten',
   'activity.ofTotal': '{total}(e)tik {n}',
   'activity.tooltipHint': '{total}(e)tik {active} aktibo saio honetan',

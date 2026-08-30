@@ -1041,6 +1041,7 @@ export const fa: Dict = {
   'activity.linkcheck': 'بررسی لینک‌ها',
   'activity.captcha': 'کپچا',
   'activity.autoconfirm': 'تأیید خودکار',
+  'activity.container': 'کانتینرها',
   'activity.pending': '{n} در انتظار',
   'activity.ofTotal': '{n} از {total}',
   'activity.tooltipHint': '{active} فعال از {total} در این دور',

@@ -1043,6 +1043,7 @@ export const ar: Dict = {
   'activity.linkcheck': 'التحقق من الروابط',
   'activity.captcha': 'كابتشا',
   'activity.autoconfirm': 'التأكيد التلقائي',
+  'activity.container': 'حاويات',
   'activity.pending': '{n} في الانتظار',
   'activity.ofTotal': '{n} من {total}',
   'activity.tooltipHint': '{active} نشطة من {total} في هذه الجولة',

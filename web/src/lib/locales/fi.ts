@@ -1041,6 +1041,7 @@ export const fi: Dict = {
   'activity.linkcheck': 'Linkkien tarkistus',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Automaattinen vahvistus',
+  'activity.container': 'Säiliöt',
   'activity.pending': '{n} odottaa',
   'activity.ofTotal': '{n}/{total}',
   'activity.tooltipHint': '{active}/{total} aktiivista tällä kierroksella',

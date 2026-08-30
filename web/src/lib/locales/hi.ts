@@ -1041,6 +1041,7 @@ export const hi: Dict = {
   'activity.linkcheck': 'लिंक जाँचे जा रहे हैं',
   'activity.captcha': 'कैप्चा',
   'activity.autoconfirm': 'स्वतः पुष्टि',
+  'activity.container': 'कंटेनर',
   'activity.pending': '{n} प्रतीक्षा में',
   'activity.ofTotal': '{total} में से {n}',
   'activity.tooltipHint': 'इस दौर में {total} में से {active} सक्रिय',

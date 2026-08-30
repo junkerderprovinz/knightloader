@@ -35,7 +35,20 @@ import (
 // relayTTL is how long a handed-over container stays fetchable. Long enough for
 // a busy JD to get to it, short enough that the window in which the address
 // exists at all is measured in minutes.
-const relayTTL = 2 * time.Minute
+//
+// A var rather than a const only so a test can shorten it: the expiry path is
+// worth covering (a container nobody collects has to stop being counted), and
+// covering it against two real minutes would mean a two-minute test. Never
+// reassigned outside relayTTLForTest.
+var relayTTL = 2 * time.Minute
+
+// relayTTLForTest shortens the TTL and returns the function that puts it back.
+// Test-only; production never calls it.
+func relayTTLForTest(d time.Duration) func() {
+	prev := relayTTL
+	relayTTL = d
+	return func() { relayTTL = prev }
+}
 
 // relayed is one container waiting to be collected.
 type relayed struct {
@@ -56,10 +69,23 @@ type relayed struct {
 type containerRelay struct {
 	mu    sync.Mutex
 	items map[string]relayed
+	// onCount, when set, is told how many containers are still waiting after
+	// every change. Injected rather than reaching for the App directly so the
+	// relay stays testable on its own, the way put/take already are.
+	onCount func(int)
 }
 
 func newContainerRelay() *containerRelay {
 	return &containerRelay{items: map[string]relayed{}}
+}
+
+// publish reports the current count. Deliberately called after the lock is
+// released: the relay's own mutex guards a map that every handover touches,
+// and a broadcast has no business holding it.
+func (cr *containerRelay) publish(n int) {
+	if cr.onCount != nil {
+		cr.onCount(n)
+	}
 }
 
 // put stores the bytes and returns the token to fetch them with. The token
@@ -75,9 +101,25 @@ func (cr *containerRelay) put(name string, data []byte) (string, error) {
 		token += "." + ext
 	}
 	cr.mu.Lock()
-	defer cr.mu.Unlock()
 	cr.sweepLocked()
 	cr.items[token] = relayed{name: name, data: data, expires: time.Now().Add(relayTTL)}
+	n := len(cr.items)
+	cr.mu.Unlock()
+	cr.publish(n)
+
+	// Nothing else would ever clear the count for a container nobody collects:
+	// sweepLocked only runs on the next put or take, so an instance that goes
+	// quiet after one failed handover would leave the strip reading "1 waiting"
+	// until something unrelated happened. One timer per handover, fired just
+	// past the TTL, is cheaper than a ticker that runs for the life of the
+	// process to catch a case that is usually empty.
+	time.AfterFunc(relayTTL+time.Second, func() {
+		cr.mu.Lock()
+		cr.sweepLocked()
+		left := len(cr.items)
+		cr.mu.Unlock()
+		cr.publish(left)
+	})
 	return token, nil
 }
 
@@ -85,13 +127,19 @@ func (cr *containerRelay) put(name string, data []byte) (string, error) {
 // an address that keeps working is an address that can be replayed.
 func (cr *containerRelay) take(token string) (relayed, bool) {
 	cr.mu.Lock()
-	defer cr.mu.Unlock()
 	cr.sweepLocked()
 	it, ok := cr.items[token]
+	if ok {
+		delete(cr.items, token)
+	}
+	n := len(cr.items)
+	cr.mu.Unlock()
+	// Published even on a miss: sweepLocked above may well have dropped an
+	// expired entry, and that is a change the strip has to hear about too.
+	cr.publish(n)
 	if !ok {
 		return relayed{}, false
 	}
-	delete(cr.items, token)
 	return it, true
 }
 
@@ -121,6 +169,7 @@ func containerExt(name string) string {
 
 func registerContainers(reg *Registry, a *app.App) {
 	relay := newContainerRelay()
+	relay.onCount = a.SetContainerActivity
 
 	reg.Add(http.MethodPost, "/api/containers", "upload a link container: a text list is staged, an encrypted one goes to the JD backend",
 		func(w http.ResponseWriter, r *http.Request) {

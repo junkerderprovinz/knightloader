@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactElement } from 'react';
 import { connectWS } from '../lib/api';
 import { useT } from '../lib/i18n';
-import { IconCaptcha, IconCheck, IconGlobe, IconSearch } from '../lib/icons';
+import { IconArchive, IconCaptcha, IconCheck, IconGlobe, IconSearch } from '../lib/icons';
 import { InfoBubble } from './ui';
 
 type Translate = ReturnType<typeof useT>['t'];
@@ -21,7 +21,7 @@ type Translate = ReturnType<typeof useT>['t'];
 // place is a reasonable follow-up, not a change to make by reaching into a
 // file this wave does not assign anyone.
 
-export type ActivityKind = 'crawl' | 'linkcheck' | 'captcha' | 'autoconfirm';
+export type ActivityKind = 'crawl' | 'linkcheck' | 'captcha' | 'autoconfirm' | 'container';
 
 /**
  * One kind's current counters - app.Activity (internal/app/app_activity.go)
@@ -62,13 +62,17 @@ export interface ActivitySignal {
 // Fixed, not the order kinds happen to arrive in over the wire - a strip
 // that reorders itself as bursts start and stop is one a person cannot
 // scan at a glance.
-const ORDER: ActivityKind[] = ['crawl', 'linkcheck', 'captcha', 'autoconfirm'];
+const ORDER: ActivityKind[] = ['crawl', 'linkcheck', 'captcha', 'autoconfirm', 'container'];
 
-const LABEL_KEY: Record<ActivityKind, 'activity.crawl' | 'activity.linkcheck' | 'activity.captcha' | 'activity.autoconfirm'> = {
+const LABEL_KEY: Record<
+  ActivityKind,
+  'activity.crawl' | 'activity.linkcheck' | 'activity.captcha' | 'activity.autoconfirm' | 'activity.container'
+> = {
   crawl: 'activity.crawl',
   linkcheck: 'activity.linkcheck',
   captcha: 'activity.captcha',
   autoconfirm: 'activity.autoconfirm',
+  container: 'activity.container',
 };
 
 function kindIcon(kind: ActivityKind): ReactElement {
@@ -82,6 +86,8 @@ function kindIcon(kind: ActivityKind): ReactElement {
       return <IconCaptcha {...p} />;
     case 'autoconfirm':
       return <IconCheck {...p} />;
+    case 'container':
+      return <IconArchive {...p} />;
   }
 }
 
@@ -93,7 +99,11 @@ function kindIcon(kind: ActivityKind): ReactElement {
 // opened by showing "5" and then switched to "1 of 5" the moment the first
 // one finished read as the number falling, not as the fraction filling in.
 function formatCount(t: Translate, kind: ActivityKind, s: ActivitySignal): string {
-  if (kind === 'captcha') {
+  // container is a gauge for the same reason captcha is: "how many were
+  // handed over and not yet collected" has no batch size to be a fraction
+  // of. It reuses activity.pending rather than minting a second key for the
+  // same sentence in 42 locales.
+  if (kind === 'captcha' || kind === 'container') {
     return t('activity.pending', { n: s.active });
   }
   return t('activity.ofTotal', { n: s.total - s.active, total: s.total });

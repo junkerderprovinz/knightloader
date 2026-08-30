@@ -1041,6 +1041,7 @@ export const sl: Dict = {
   'activity.linkcheck': 'Preverjanje povezav',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Samodejna potrditev',
+  'activity.container': 'Vsebniki',
   'activity.pending': '{n} čakajočih',
   'activity.ofTotal': '{n} od {total}',
   'activity.tooltipHint': '{active} aktivnih od {total} v tem teku',

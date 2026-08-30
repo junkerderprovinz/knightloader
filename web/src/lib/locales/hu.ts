@@ -1041,6 +1041,7 @@ export const hu: Dict = {
   'activity.linkcheck': 'Hivatkozások ellenőrzése',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Automatikus megerősítés',
+  'activity.container': 'Konténerek',
   'activity.pending': '{n} vár',
   'activity.ofTotal': '{total} közül {n}',
   'activity.tooltipHint': 'Ebben a menetben {total} közül {active} aktív',

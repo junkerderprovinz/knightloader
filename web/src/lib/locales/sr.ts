@@ -1041,6 +1041,7 @@ export const sr: Dict = {
   'activity.linkcheck': 'Провера линкова',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Аутоматска потврда',
+  'activity.container': 'Контејнери',
   'activity.pending': '{n} на чекању',
   'activity.ofTotal': '{n} од {total}',
   'activity.tooltipHint': '{active} активних од {total} у овом кругу',

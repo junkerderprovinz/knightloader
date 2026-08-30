@@ -1033,6 +1033,7 @@ export const fr: Dict = {
   'activity.linkcheck': 'Vérification des liens',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Confirmation automatique',
+  'activity.container': 'Conteneurs',
   'activity.pending': '{n} en attente',
   'activity.ofTotal': '{n} sur {total}',
   'activity.tooltipHint': '{active} en cours sur {total} pour cette session',

@@ -1041,6 +1041,7 @@ export const vi: Dict = {
   'activity.linkcheck': 'Đang kiểm tra liên kết',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Tự động xác nhận',
+  'activity.container': 'Container',
   'activity.pending': '{n} đang chờ',
   'activity.ofTotal': '{n} trên {total}',
   'activity.tooltipHint': '{active} đang hoạt động trên {total} trong lượt này',

@@ -1041,6 +1041,7 @@ export const de: Dict = {
   'activity.linkcheck': 'Links prüfen',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Automatisch bestätigen',
+  'activity.container': 'Container',
   'activity.pending': '{n} warten',
   'activity.ofTotal': '{n} von {total}',
   'activity.tooltipHint': '{active} aktiv von {total} in diesem Lauf',

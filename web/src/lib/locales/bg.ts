@@ -1041,6 +1041,7 @@ export const bg: Dict = {
   'activity.linkcheck': 'Проверка на връзки',
   'activity.captcha': 'Captcha',
   'activity.autoconfirm': 'Автоматично потвърждение',
+  'activity.container': 'Контейнери',
   'activity.pending': '{n} чакащи',
   'activity.ofTotal': '{n} от {total}',
   'activity.tooltipHint': '{active} активни от {total} в тази серия',
