@@ -28,6 +28,9 @@ const languageBox = document.getElementById('languageBox');
 const cnlHeadingEl = document.getElementById('cnlHeading');
 const cnlToggleEl = document.getElementById('cnlToggle');
 const cnlEnabledEl = document.getElementById('cnlEnabled');
+const cnlCountdownEl = document.getElementById('cnlCountdown');
+const cnlCountdownLabelEl = document.getElementById('cnlCountdownLabel');
+const cnlCountdownUnitEl = document.getElementById('cnlCountdownUnit');
 const appearanceHeadingEl = document.getElementById('appearanceHeading');
 const themeHeadingEl = document.getElementById('themeHeading');
 const shapeHeadingEl = document.getElementById('shapeHeading');
@@ -71,6 +74,12 @@ function glyph(d, size) {
   return svg;
 }
 const D_RETRY = 'M8 3V1L5 3.5 8 6V4a3.5 3.5 0 1 1-3.5 3.5H3A5 5 0 1 0 8 3z';
+// A filled bin: lid, handle, and a solid body with two slots carved by
+// fillRule rather than layered over - the same technique the icon rule names
+// for a gap inside a solid shape, and the reason this is one path and not three.
+const D_TRASH =
+  'M6.5 1h3a1 1 0 0 1 1 1v1H13v1.5H3V3h2.5V2a1 1 0 0 1 1-1zm.5 2h2v-.5H7V3z' +
+  'M4 5.5h8l-.6 8.1a1.4 1.4 0 0 1-1.4 1.4H6a1.4 1.4 0 0 1-1.4-1.4L4 5.5z';
 const D_EYE =
   'M8 3C4.4 3 1.5 6.1.7 7.6a.8.8 0 0 0 0 .8C1.5 9.9 4.4 13 8 13s6.5-3.1 7.3-4.6a.8.8 0 0 0 0-.8' +
   'C14.5 6.1 11.6 3 8 3zm0 8a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0-1.6a1.4 1.4 0 1 0 0-2.8 1.4 1.4 0 0 0 0 2.8z';
@@ -100,7 +109,12 @@ function applyStaticText() {
   phraseInput.placeholder = t('options.phrasePlaceholder');
   renderPhraseEye();
   joinBtn.textContent = t('options.join');
-  leaveBtn.textContent = t('options.leave');
+  // The badge carries no text: its name lives on the element for a screen
+  // reader and in the tooltip for everyone else.
+  leaveBtn.textContent = '';
+  leaveBtn.setAttribute('aria-label', t('options.leave'));
+  leaveBtn.setAttribute('data-tip', t('options.leave'));
+  leaveBtn.replaceChildren(glyph(D_TRASH, 16));
   refreshBtn.textContent = t('options.refresh');
 
   languageHeadingEl.textContent = t('options.languageHeading');
@@ -292,7 +306,12 @@ joinForm.addEventListener('submit', async (e) => {
   // their next send.
   try {
     const siblings = await groupInstances();
-    say(siblings.length ? t('options.joined', { count: siblings.length }) : t('options.joinedEmpty'), true);
+    // [282] No count line for a group that HAS members (jdp, 2026-08-30: "2
+    // Instanzen in der Gruppe. text kann weg"). The cards underneath are the
+    // count, one per instance, each with its name and what it is doing - a
+    // sentence saying "2" above two visible cards is the same fact twice. An
+    // EMPTY group still says so, because there are no cards to say it instead.
+    say(siblings.length ? '' : t('options.joinedEmpty'), true);
   } catch {
     say(t('options.groupUnreachable'), false);
   }
@@ -380,7 +399,20 @@ async function renderCnl() {
   // Absent means on: background.js sets it on install, and a storage read that
   // lost the flag should not silently turn the main feature off.
   cnlEnabledEl.setAttribute('aria-checked', String(stored.cnlEnabled !== false));
+
+  cnlCountdownLabelEl.textContent = t('options.cnlCountdown');
+  cnlCountdownUnitEl.textContent = t('options.seconds');
+  cnlCountdownEl.value = String(await readCnlCountdown());
 }
+
+// Written on 'change', not on every keystroke: a number field fires 'input' for
+// each digit, so typing "30" would pass through 3 on the way - and a value of 3
+// briefly saved is a value that survives if the field then loses focus. The
+// clamp lives in writeCnlCountdown so the stored value can never be a shape the
+// popup has to defend against.
+cnlCountdownEl.addEventListener('change', async () => {
+  cnlCountdownEl.value = String(await writeCnlCountdown(cnlCountdownEl.value));
+});
 
 cnlEnabledEl.addEventListener('click', async () => {
   const on = cnlEnabledEl.getAttribute('aria-checked') !== 'true';

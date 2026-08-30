@@ -109,6 +109,35 @@
          so the eye compares the answers instead of the layout. The label rule
          above would otherwise shrink the selects along with their captions. */
       .axes { display: flex; flex-direction: column; gap: 14px; }
+      /* The square icon badge, the same object popup.html draws in its own
+         header: one size for every one of them, no drawn border, and the ink
+         is the ordinary badge ink rather than a colour of its own. */
+      .iconBadge {
+        display: inline-flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        border: 0;
+        border-radius: var(--radius-control);
+        background: var(--carbon-surface2);
+        color: var(--carbon-text-sub);
+        cursor: pointer;
+        transition: background-color 150ms ease, color 150ms ease;
+      }
+      .iconBadge:hover { background: var(--carbon-surface3); color: var(--carbon-text); }
+      .iconBadge:active { transform: scale(0.97); }
+      /* Label left, control right - the row shape every setting in this family
+         uses, and the one the app's own settings just adopted. */
+      .glim-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
+      .glim-row-label { font-size: var(--text-body); color: var(--carbon-text); }
+      .glim-row-control { display: flex; align-items: center; gap: 8px; }
+      .glim-row-unit { font-size: var(--text-dense); color: var(--carbon-text-muted); }
+      /* Wide enough for two digits and the spinner Chrome insists on drawing;
+         the field itself is the same filled surface as every other input. */
+      #cnlCountdown { width: 84px; text-align: end; }
       /* The version footer, the same quiet line the web UI puts at the bottom
          of every settings tab (jdp, 2026-08-30: "in den setting der app und
          der erweiterung sollen auch die versionen angezeigt werden"). It was
@@ -166,7 +195,14 @@
         </label>
         <div class="fields">
           <button id="join" type="submit">Connect</button>
-          <button id="leave" class="danger" type="button" hidden>Leave the group</button>
+          <!-- [281] A square badge with a filled bin, not a red word (jdp,
+               2026-08-30: "Gruppe verlassen soll ein quadratischer button mit
+               solidem mülleimer icon sien"). Same size and same treatment as
+               every other icon badge in the family - a delete control is not
+               styled apart from its neighbours, its meaning is carried by its
+               glyph and by the confirmation behind it. The name survives as the
+               accessible name and the tooltip. -->
+          <button id="leave" class="iconBadge" type="button" hidden></button>
         </div>
       </form>
       <div id="status"></div>
@@ -262,6 +298,17 @@
         <span class="glim-switch-label" id="cnlToggle"></span>
         <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
       </button>
+      <!-- How long a caught batch waits before it sends itself. The row shape
+           is the label-left, control-right one every other setting here uses;
+           the explanation hangs off the heading badge's own bubble, like all
+           of them. -->
+      <div class="glim-row" id="cnlCountdownRow">
+        <span class="glim-row-label" id="cnlCountdownLabel"></span>
+        <span class="glim-row-control">
+          <input id="cnlCountdown" type="number" min="0" max="60" step="1" inputmode="numeric" />
+          <span class="glim-row-unit" id="cnlCountdownUnit"></span>
+        </span>
+      </div>
     </section>
 
     <section class="glim-card">
