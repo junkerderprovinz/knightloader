@@ -111,7 +111,7 @@ export function QuickAdd() {
     <div className="flex min-h-screen items-center justify-center bg-carbon-background p-6">
       <div className="flex w-full max-w-sm flex-col gap-4">
         <div className="flex items-center gap-2">
-          <IconDownloads width={20} height={20} className="text-accent" />
+          <IconDownloads width={20} height={20} className="text-accentInk" />
           <span className="text-[15px] font-semibold text-carbon-text">{t('quickadd.title')}</span>
         </div>
 
@@ -159,7 +159,7 @@ export function QuickAdd() {
                     {t('quickadd.close')}
                   </Button>
                 ) : (
-                  <a href="/collector" className="text-xs text-accent hover:underline">
+                  <a href="/collector" className="text-xs text-accentInk hover:underline">
                     {t('quickadd.openCollector')}
                   </a>
                 )}

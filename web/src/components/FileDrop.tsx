@@ -266,10 +266,10 @@ function TorrentTreeCard({
       </div>
 
       <div className="flex items-center gap-3 text-xs">
-        <button type="button" className="text-accent hover:underline" onClick={() => setAll(true)}>
+        <button type="button" className="text-accentInk hover:underline" onClick={() => setAll(true)}>
           {t('torrent.tree.selectAll')}
         </button>
-        <button type="button" className="text-accent hover:underline" onClick={() => setAll(false)}>
+        <button type="button" className="text-accentInk hover:underline" onClick={() => setAll(false)}>
           {t('torrent.tree.selectNone')}
         </button>
       </div>

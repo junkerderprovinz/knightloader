@@ -78,6 +78,12 @@
   --accent:            #FCC419;
   --accent-contrast:   #161616;
   --accent-soft:       rgba(252, 196, 25, 0.14);
+  /* The accent used AS INK - accent-coloured text, a glyph on the page's own
+     ground - rather than a fill with computed ink on top (GlimStone 1.5.0).
+     The theme sets only --ink-mix; 100% of a colour mixed with black is that
+     colour exactly, so on a dark ground the two jobs stay one colour. */
+  --ink-mix:           100%;
+  --accent-ink:        color-mix(in srgb, var(--accent) var(--ink-mix), black);
 
   /* Four state hues, Carbon's dark support tones. Paused reuses neutral
      on purpose — its label and its resume control carry the difference. */
@@ -125,12 +131,16 @@
   --carbon-text-muted: #6f6f6f;
   --sidebar-text:      #393939;
 
-  /* The dark accent is a yellow, and yellow on white is unreadable at 11px.
-     Carbon's own answer is to darken the hue rather than pick another one,
-     so the accent stays recognisably the same colour across both themes. */
-  --accent:            #8E6A00;
-  --accent-contrast:   #ffffff;
-  --accent-soft:       rgba(142, 106, 0, 0.12);
+  /* The accent is the accent in BOTH themes (GlimStone 1.5.0). A filled badge
+     in Sunflower with near-black ink on it reads perfectly well on a white
+     page; what does not read is that same yellow as TEXT at 11px. Darkening
+     the ONE token to fix the text made every filled thing olive-brown (jdp,
+     2026-08-30: "Die gelbe akzentfarbe ist im hellen modus ganz dunkel").
+     The fill keeps the colour, the ink gets --ink-mix. */
+  --accent:            #FCC419;
+  --accent-contrast:   #161616;
+  --accent-soft:       rgba(252, 196, 25, 0.14);
+  --ink-mix:           55%;
 
   --status-info-text:    #8E6A00;
   --status-info-bg:      rgba(142, 106, 0, 0.12);
@@ -203,9 +213,11 @@
     --carbon-text-muted: #6f6f6f;
     --sidebar-text:      #393939;
 
-    --accent:            #8E6A00;
-    --accent-contrast:   #ffffff;
-    --accent-soft:       rgba(142, 106, 0, 0.12);
+    /* Same values as the [data-theme="light"] block above, on purpose. */
+    --accent:            #FCC419;
+    --accent-contrast:   #161616;
+    --accent-soft:       rgba(252, 196, 25, 0.14);
+    --ink-mix:           55%;
 
     --status-info-text:    #8E6A00;
     --status-info-bg:      rgba(142, 106, 0, 0.12);
@@ -679,6 +691,13 @@
   --accent: var(--item-hue);
   --accent-contrast: var(--item-hue-ink);
   --accent-soft: var(--item-hue-soft);
+  /* One line and no light-theme twin: --ink-mix is inherited from <html> and
+     already says which theme this is. It has to be here at all because a
+     custom property containing var() is substituted where it is DECLARED - the
+     --accent-ink on :root already computed itself against :root's own accent,
+     so without this a hued subtree would colour every fill and keep the single
+     accent on every piece of accent-coloured text. */
+  --accent-ink: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
   /* The ring is part of the position, not of the theme: a gold ring around a
      teal card is the single accent leaking back in at the one moment it is
      most visible, because it is only ever drawn on what the keyboard is
@@ -686,8 +705,9 @@
   --focus-ring: var(--item-hue-ring);
 }
 /* In rainbow mode a glyph carries its own element's hue too, so a row reads as
-   one coloured thing rather than a coloured box with a grey mark in it. */
-[data-rainbow] .glim-hue-icon svg { color: var(--item-hue); }
+   one coloured thing rather than a coloured box with a grey mark in it. The
+   INK form of the hue: a glyph sits on the card's ground, not in a fill. */
+[data-rainbow] .glim-hue-icon svg { color: var(--accent-ink); }
 
 /* Reactive: everything rests neutral and only what is hovered, focused or
    active takes its colour. The restrained reading of the mode, and the one that
@@ -697,6 +717,7 @@
   --accent: var(--carbon-text-muted);
   --accent-contrast: var(--carbon-bg);
   --accent-soft: transparent;
+  --accent-ink: var(--carbon-text-muted);
 }
 [data-rainbow='reactive'] .glim-hue:hover,
 [data-rainbow='reactive'] .glim-hue:focus-within,
@@ -704,11 +725,15 @@
   --accent: var(--item-hue);
   --accent-contrast: var(--item-hue-ink);
   --accent-soft: var(--item-hue-soft);
+  /* Restated, and it has to be: the resting rule above muted the ink too, and
+     it matches [data-rainbow] .glim-hue at the same specificity while sitting
+     later in the file. */
+  --accent-ink: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
 }
 [data-rainbow='reactive'] .glim-hue-icon:not(.glim-active) svg { color: inherit; }
 [data-rainbow='reactive'] .glim-hue-icon:hover svg,
 [data-rainbow='reactive'] .glim-hue-icon:focus-within svg,
-[data-rainbow='reactive'] .glim-hue-icon.glim-active svg { color: var(--item-hue); }
+[data-rainbow='reactive'] .glim-hue-icon.glim-active svg { color: var(--accent-ink); }
 
 /* ---------------------------------------------------------------------------
    The instance card.
