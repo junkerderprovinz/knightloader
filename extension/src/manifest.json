@@ -3,7 +3,7 @@
   "name": "KnightLoader",
   "short_name": "KnightLoader",
   "description": "Send a link, a selection, or the current page straight to your own KnightLoader instance.",
-  "version": "1.12.2",
+  "version": "1.12.3",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -41,10 +41,30 @@
     "contextMenus",
     "storage",
     "activeTab",
-    "scripting"
+    "scripting",
+    "declarativeNetRequest"
   ],
   "host_permissions": [
     "<all_urls>"
+  ],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "cnl",
+        "enabled": true,
+        "path": "cnl-rules.json"
+      }
+    ]
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "jdcheck.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
   ],
   "browser_specific_settings": {
     "gecko": {
