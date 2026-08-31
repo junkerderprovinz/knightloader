@@ -99,6 +99,7 @@ export const no: Dict = {
   'relay.joinButton': 'Koble til',
   'relay.qrHintPhrase': 'Skann QR-koden ved siden av frasen',
   'relay.scanButton': 'Skann QR-koden',
+  'relay.pasteButton': 'Lim inn',
   'relay.saveAllButton': 'Legg til alle {count}',
   'phrase.errChecksum': 'Denne frasen er ikke gyldig - se etter et feilskrevet eller ombyttet ord.',
   'phrase.errUnknownWord': 'Ord {position} ("{word}") er ikke et av de tillatte ordene.',

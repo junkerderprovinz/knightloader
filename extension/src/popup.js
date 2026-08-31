@@ -23,6 +23,47 @@ const sendBtn = document.getElementById('send');
 const cancelBtn = document.getElementById('cancelCountdown');
 const tabsEl = document.getElementById('tabs');
 const paneSendEl = document.getElementById('paneSend');
+
+/**
+ * Every button in this window carries a glyph beside its label (jdp,
+ * 2026-09-01: "Alle buttons sollen einen Glyph bekommen. Steht das nicht
+ * bereits so in GS?").
+ *
+ * It does — "Icon glyphs" has said so all along, and this window simply was not
+ * following it. Filled shapes, never outlines, built with createElementNS
+ * rather than innerHTML: Mozilla's own linter fails a package on an innerHTML
+ * assignment from a variable, and that linter is a release gate here.
+ *
+ * `label()` sets both halves at once, so a label can never be updated without
+ * its glyph coming along - which is exactly how the two would drift apart.
+ */
+const NS = 'http://www.w3.org/2000/svg';
+function glyph(d, size = 15) {
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 16 16');
+  svg.setAttribute('width', String(size));
+  svg.setAttribute('height', String(size));
+  svg.setAttribute('aria-hidden', 'true');
+  const path = document.createElementNS(NS, 'path');
+  path.setAttribute('fill', 'currentColor');
+  path.setAttribute('d', d);
+  svg.appendChild(path);
+  return svg;
+}
+// Send: a paper plane. Add: a plus. Files: a document. Cancel: a cross, which
+// is the plus rotated - same drawing, so the pair cannot look like two
+// different icon sets.
+const G_SEND = 'M1.3 7.1 14.2 1.4c.6-.3 1.2.3.9.9L9.4 15.2c-.3.6-1.1.5-1.3-.1l-1.4-4.3-4.3-1.4c-.6-.2-.7-1-.1-1.3z';
+const G_PLUS = 'M7 2h2v5h5v2H9v5H7V9H2V7h5V2z';
+const G_CROSS =
+  'M4.2 2.8 8 6.6l3.8-3.8 1.4 1.4L9.4 8l3.8 3.8-1.4 1.4L8 9.4l-3.8 3.8-1.4-1.4L6.6 8 2.8 4.2z';
+const G_FILE = 'M4 1h5l4 4v9.2A.8.8 0 0 1 12.2 15H4a.8.8 0 0 1-.8-.8V1.8A.8.8 0 0 1 4 1zm5 1.4V5h2.6L9 2.4z';
+const G_ADD_INSTANCE = 'M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm1 6h3v2H9v3H7V9H4V7h3V4h2v3z';
+
+/** Label plus glyph, always together. */
+function label(btn, text, d) {
+  btn.replaceChildren(glyph(d), document.createTextNode(text));
+}
 const statusEl = document.getElementById('status');
 const openOptionsBtn = document.getElementById('openOptions');
 openOptionsBtn.addEventListener('click', () => chrome.runtime.openOptionsPage());
@@ -59,7 +100,7 @@ function paintHues() {
   openOptionsBtn.setAttribute('aria-label', t('common.settings'));
   openOptionsBtn.setAttribute('data-tip', t('common.settings'));
   instanceLabelEl.textContent = t('popup.sendToLabel');
-  sendBtn.textContent = t('popup.send');
+  label(sendBtn, t('popup.send'), G_SEND);
   targetEl.textContent = t('popup.loading');
   targetEl.hidden = false;
 
@@ -116,7 +157,7 @@ function paintHues() {
     // erweiterungsicon im browser klicke öffnet es sofort die einstellungen.
     // es soll aber nur das popupfenster öffnen"). The popup stays open and
     // offers the way there instead: the same destination, reached on purpose.
-    sendBtn.textContent = t('popup.addInstance');
+    label(sendBtn, t('popup.addInstance'), G_ADD_INSTANCE);
     sendBtn.onclick = () => chrome.runtime.openOptionsPage();
     statusEl.textContent = t('popup.noInstance');
     return;
@@ -244,7 +285,7 @@ function cancelCountdown() {
   if (countdownTimer === null) return;
   clearInterval(countdownTimer);
   countdownTimer = null;
-  sendBtn.textContent = t('popup.send');
+  label(sendBtn, t('popup.send'), G_SEND);
   // The cancel goes with the clock it stops. A button that stops something not
   // happening is a button that has to be explained.
   cancelBtn.hidden = true;
@@ -258,14 +299,14 @@ async function startCountdown() {
   if (seconds <= 0 || !chosen) return;
   let left = seconds;
   const paint = () => {
-    sendBtn.textContent = t('popup.sendIn', { n: String(left) });
+    label(sendBtn, t('popup.sendIn', { n: String(left) }), G_SEND);
   };
   paint();
   // Visible only while the clock runs (jdp, 2026-08-31: "Dort fehlt auch ein
   // Abbrechen button wenn ein links reingeladen wird und der countdown läuft").
   // Until now the only way to stop it was to pick a different instance, which
   // is a side effect of another action rather than a way to say no.
-  cancelBtn.textContent = t('popup.cancel');
+  label(cancelBtn, t('popup.cancel'), G_CROSS);
   cancelBtn.hidden = false;
   countdownTimer = setInterval(() => {
     left -= 1;
@@ -387,8 +428,8 @@ function linksIn(text) {
 function showCollector() {
   collectorLabelEl.textContent = t('popup.collectorLabel');
   linksEl.placeholder = t('popup.collectorPlaceholder');
-  addLinksBtn.textContent = t('popup.collectorAdd');
-  pickFilesBtn.textContent = t('popup.collectorFiles');
+  label(addLinksBtn, t('popup.collectorAdd'), G_PLUS);
+  label(pickFilesBtn, t('popup.collectorFiles'), G_FILE);
   showPane();
 }
 

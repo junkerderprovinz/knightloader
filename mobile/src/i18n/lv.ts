@@ -99,6 +99,7 @@ export const lv: Dict = {
   'relay.joinButton': 'Savienot',
   'relay.qrHintPhrase': 'Skenē QR kodu blakus frāzei',
   'relay.scanButton': 'Skenēt QR kodu',
+  'relay.pasteButton': 'Ielīmēt',
   'relay.saveAllButton': 'Pievienot visas {count}',
   'phrase.errChecksum': 'Šī frāze nav derīga - pārbaudi, vai kāds vārds nav nepareizi ierakstīts vai samainīts.',
   'phrase.errUnknownWord': 'Vārds {position} ("{word}") nav viens no pieļaujamajiem vārdiem.',

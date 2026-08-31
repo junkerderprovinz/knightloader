@@ -19,6 +19,7 @@ export const de: Dict = {
   'relay.joinButton': 'Verbinden',
   'relay.qrHintPhrase': 'Den QR-Code neben der Phrase scannen',
   'relay.scanButton': 'QR-Code scannen',
+  'relay.pasteButton': 'Einfügen',
   'relay.saveAllButton': 'Alle {count} übernehmen',
   'phrase.errChecksum': 'Diese Phrase stimmt nicht - prüfe, ob ein Wort vertippt oder vertauscht ist.',
   'phrase.errUnknownWord': 'Wort {position} ("{word}") gehört nicht zu den erlaubten Wörtern.',

@@ -243,26 +243,7 @@ export function Downloads() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title={t('downloads.title')}
-        right={
-          instances.length > 0 && (
-            <select
-              value={instance}
-              onChange={(e) => select(e.target.value)}
-              className="rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-sm text-carbon-text outline-none"
-              aria-label={t('nav.instances')}
-            >
-              <option value="">{t('downloads.thisInstance')}</option>
-              {instances.map((i) => (
-                <option key={i.name} value={i.name}>
-                  {i.name}
-                </option>
-              ))}
-            </select>
-          )
-        }
-      />
+      <PageHeader title={t('downloads.title')} />
 
       <FirstTouchHint id="downloads" />
 
@@ -325,7 +306,7 @@ export function Downloads() {
         </div>
       )}
 
-      {list.length > 0 && <SpeedGraph value={counts.speed} height={48} />}
+      {list.length > 0 && <SpeedGraph value={counts.speed} height={160} />}
 
       {list.length > 0 && searchOpen && (
         <div className="glim-card p-3">

@@ -99,6 +99,7 @@ export const eu: Dict = {
   'relay.joinButton': 'Konektatu',
   'relay.qrHintPhrase': 'Eskaneatu esaldiaren ondoan agertzen den QR kodea',
   'relay.scanButton': 'Eskaneatu QR kodea',
+  'relay.pasteButton': 'Itsatsi',
   'relay.saveAllButton': 'Gehitu {count}ak',
   'phrase.errChecksum': 'Esaldi hau ez da baliozkoa - begiratu hitzen bat gaizki idatzita edo lekuz aldatuta dagoen.',
   'phrase.errUnknownWord': '{position}. hitza ("{word}") ez dago onartutako hitzen artean.',

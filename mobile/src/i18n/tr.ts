@@ -99,6 +99,7 @@ export const tr: Dict = {
   'relay.joinButton': 'Bağlan',
   'relay.qrHintPhrase': 'Cümlenin yanındaki QR kodu tara',
   'relay.scanButton': 'QR kodu tara',
+  'relay.pasteButton': 'Yapıştır',
   'relay.saveAllButton': '{count} tanesini de ekle',
   'phrase.errChecksum': 'Bu ifade geçerli değil - bir kelime yanlış yazılmış ya da yer değiştirmiş olabilir.',
   'phrase.errUnknownWord': '{position}. kelime ("{word}") kabul edilen kelimelerden biri değil.',

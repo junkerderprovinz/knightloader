@@ -99,6 +99,7 @@ export const zh: Dict = {
   'relay.joinButton': '连接',
   'relay.qrHintPhrase': '扫描口令旁边显示的二维码',
   'relay.scanButton': '扫描二维码',
+  'relay.pasteButton': '粘贴',
   'relay.saveAllButton': '全部添加（{count} 台）',
   'phrase.errChecksum': '这组词语无效，请检查是否有拼错或顺序颠倒的词。',
   'phrase.errUnknownWord': '第 {position} 个词（“{word}”）不在可用词表中。',

@@ -99,6 +99,7 @@ export const fa: Dict = {
   'relay.joinButton': 'اتصال',
   'relay.qrHintPhrase': 'کد QR کنار عبارت را پویش کنید',
   'relay.scanButton': 'پویش کد QR',
+  'relay.pasteButton': 'چسباندن',
   'relay.saveAllButton': 'افزودن هر {count}',
   'phrase.errChecksum': 'این عبارت معتبر نیست - بررسی کنید که واژه‌ای اشتباه تایپ یا جابه‌جا نشده باشد.',
   'phrase.errUnknownWord': 'واژهٔ {position} («{word}») از واژه‌های مجاز نیست.',

@@ -99,6 +99,7 @@ export const fr: Dict = {
   'relay.joinButton': 'Se connecter',
   'relay.qrHintPhrase': 'Scannez le QR code affiché à côté de la phrase',
   'relay.scanButton': 'Scanner le QR code',
+  'relay.pasteButton': 'Coller',
   'relay.saveAllButton': 'Ajouter les {count}',
   'phrase.errChecksum': 'Cette phrase n\'est pas valide - vérifiez si un mot est mal saisi ou inversé.',
   'phrase.errUnknownWord': 'Le mot {position} (« {word} ») ne fait pas partie des mots acceptés.',

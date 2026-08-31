@@ -10,7 +10,8 @@ import type { RelayConnection, ServerConnection } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
-import IconBadge, { Back } from '../components/IconBadge';
+import IconBadge, { Back, Connect, Paste, Scan } from '../components/IconBadge';
+import * as Clipboard from 'expo-clipboard';
 
 // Joining the group, which is the whole of connecting this app now: twelve
 // words, and every instance the person runs appears.
@@ -193,8 +194,6 @@ export default function RelayConnectScreen({
         <IconBadge icon={<Back color={c.textSub} />} onPress={onBack} accessibilityLabel={t('settings.back')} />
         <Text style={[styles.title, { color: c.text }]}>{t('relay.title')}</Text>
       </View>
-      <Text style={[styles.hint, { color: c.textMuted }]}>{t('relay.hint')}</Text>
-
       <Text style={[styles.label, { color: c.textMuted }]}>{t('relay.phraseLabel')}</Text>
       <TextInput
         style={[styles.input, styles.phraseInput, inputStyle]}
@@ -207,6 +206,26 @@ export default function RelayConnectScreen({
         autoComplete="off"
         multiline
       />
+
+      {/* Paste, because twelve words is the one input a phone keyboard is worst
+          at and the phrase usually arrives in a message somebody already
+          copied (jdp, 2026-09-01: "ein einfügen button fehlt"). Between the
+          field and Connect, in the order the hands move: paste, then join.
+
+          Clipboard.getStringAsync rather than the TextInput's own long-press
+          menu: that menu exists, and finding it means knowing it is there. */}
+      <TouchableOpacity
+        style={[styles.pasteButton, { backgroundColor: c.surface2, borderRadius: radii.control }]}
+        onPress={async () => {
+          setError(null);
+          const text = await Clipboard.getStringAsync();
+          if (text.trim()) setPhrase(text.trim());
+        }}
+        disabled={searching}
+      >
+        <Paste color={c.text} />
+        <Text style={[styles.buttonText, { color: c.text }]}>{t('relay.pasteButton')}</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity
         style={[
@@ -225,9 +244,20 @@ export default function RelayConnectScreen({
         {searching ? (
           <ActivityIndicator color={accentContrast} />
         ) : (
-          <Text style={[styles.buttonText, { color: accentContrast }]}>{t('relay.joinButton')}</Text>
+          <>
+            <Connect color={accentContrast} />
+            <Text style={[styles.buttonText, { color: accentContrast }]}>{t('relay.joinButton')}</Text>
+          </>
         )}
       </TouchableOpacity>
+
+      {/* The explanation sits UNDER the controls now (jdp, 2026-09-01: "info
+          text weiter runter"). Above the field it pushed the one thing this
+          screen exists for further down, and it is a thing you read once while
+          the field and the buttons are what you come back to. Same reasoning as
+          the design language's "an explanation is a bubble": this one has no
+          control to hang off, so it goes last instead of first. */}
+      <Text style={[styles.hint, { color: c.textMuted }]}>{t('relay.hint')}</Text>
 
       {/* Scanning is the point of the QR the web UI has been showing all
           along: twelve words is exactly the input a phone keyboard is worst
@@ -243,6 +273,7 @@ export default function RelayConnectScreen({
         }}
         disabled={searching}
       >
+        <Scan color={c.text} />
         <Text style={[styles.scanButtonText, { color: c.text }]}>{t('relay.scanButton')}</Text>
       </TouchableOpacity>
 
@@ -310,6 +341,7 @@ export default function RelayConnectScreen({
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 24, paddingTop: 56 },
   topBar: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 4 },
+  pasteButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 44, marginTop: 8 },
   title: { fontSize: 22, fontWeight: '600', marginBottom: 8 },
   hint: { fontSize: TYPE.body, marginBottom: 16, lineHeight: 20 },
   label: { fontSize: 13, marginBottom: 6, marginTop: 12 },
@@ -323,9 +355,14 @@ const styles = StyleSheet.create({
   // sideways while somebody checks their typing is a field that hides the
   // typo they are looking for.
   phraseInput: { minHeight: 76, textAlignVertical: 'top' },
+  // A row, not a block: every button on this screen carries a glyph beside its
+  // label now (jdp, 2026-09-01: "alle buttons sollen einen glyph bekommen").
   button: {
+    flexDirection: 'row',
+    gap: 8,
     paddingVertical: 14,
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 16,
   },
   buttonDisabled: { opacity: 0.6 },
@@ -334,8 +371,11 @@ const styles = StyleSheet.create({
   // button above, but clearly the second of the two ways in, so the screen
   // does not present two equally loud primary actions.
   scanButton: {
+    flexDirection: 'row',
+    gap: 8,
     paddingVertical: 14,
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 10,
     borderWidth: 1,
   },

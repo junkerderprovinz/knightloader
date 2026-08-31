@@ -90,31 +90,154 @@ export function Back({ color, size = 15 }: { color: string; size?: number }) {
   const u = size / 15;
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      {/* Rewritten once already (jdp, 2026-09-01: "der glyph ist nicht als
+          zurücksymbol identifizierbar. es soll ein pfeil sein").
+
+          The first cut used a rotated SQUARE for the head with the shaft laid
+          over its right corner, which is the standard trick for drawing a
+          triangle without a polygon primitive - and it does not survive at 15
+          points: a square rotated 45 degrees still reads as a diamond, the
+          shaft covers only part of it, and the result is a lozenge with a tail.
+          What makes an arrowhead an arrowhead is the two visible edges meeting
+          at a POINT, and a rotated square gives four edges of equal length.
+
+          Two thin bars in a V do it properly. They are the two strokes anybody
+          actually draws when drawing an arrow, they meet at a real point, and
+          at this size they read from a metre away. Still a filled shape - a bar
+          is a filled rectangle - so the icon rule holds. */}
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        {/* The head: a rotated square whose right half the shaft covers, which
-            is how a filled triangle is drawn without a polygon primitive. */}
+        <View style={{ width: 6 * u, height: 9.5 * u, justifyContent: 'center' }}>
+          {/* Upper and lower halves of the V, each rotated the other way and
+              anchored at the shared point on the left. */}
+          <View
+            style={{
+              position: 'absolute',
+              left: 0,
+              top: 1.1 * u,
+              width: 2.2 * u,
+              height: 7 * u,
+              backgroundColor: color,
+              borderRadius: 1.1 * u,
+              transform: [{ rotate: '45deg' }],
+            }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              left: 0,
+              bottom: 1.1 * u,
+              width: 2.2 * u,
+              height: 7 * u,
+              backgroundColor: color,
+              borderRadius: 1.1 * u,
+              transform: [{ rotate: '-45deg' }],
+            }}
+          />
+        </View>
+        {/* The shaft, starting at the V's own point. */}
         <View
           style={{
-            width: 6.4 * u,
-            height: 6.4 * u,
+            width: 7 * u,
+            height: 2.2 * u,
+            marginStart: -3.4 * u,
             backgroundColor: color,
-            transform: [{ rotate: '45deg' }],
-            borderTopLeftRadius: 1 * u,
-          }}
-        />
-        {/* The shaft, pulled left far enough to bury the head's own right
-            corner. Same height as the head's waist, so the join is invisible. */}
-        <View
-          style={{
-            width: 6.5 * u,
-            height: 2.4 * u,
-            marginStart: -3.6 * u,
-            backgroundColor: color,
-            borderTopRightRadius: 1.2 * u,
-            borderBottomRightRadius: 1.2 * u,
+            borderRadius: 1.1 * u,
           }}
         />
       </View>
+    </View>
+  );
+}
+
+/** Paste: a clipboard with its clip. Two filled rectangles and a bar, which is
+ *  all a clipboard is at this size. */
+export function Paste({ color, size = 15 }: { color: string; size?: number }) {
+  const u = size / 15;
+  return (
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      {/* The clip, overlapping the board's top edge. */}
+      <View
+        style={{
+          width: 6 * u,
+          height: 2.6 * u,
+          backgroundColor: color,
+          borderRadius: 0.8 * u,
+          marginBottom: -1 * u,
+          zIndex: 1,
+        }}
+      />
+      <View
+        style={{
+          width: 11 * u,
+          height: 12 * u,
+          backgroundColor: color,
+          borderRadius: 1.6 * u,
+        }}
+      />
+    </View>
+  );
+}
+
+/** Connect: a plug, drawn as a body with two pins. The one glyph that says
+ *  "join something" without needing a word beside it. */
+export function Connect({ color, size = 15 }: { color: string; size?: number }) {
+  const u = size / 15;
+  return (
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ flexDirection: 'row', gap: 2 * u, marginBottom: -0.4 * u }}>
+        <View style={{ width: 2 * u, height: 3.5 * u, backgroundColor: color, borderRadius: 1 * u }} />
+        <View style={{ width: 2 * u, height: 3.5 * u, backgroundColor: color, borderRadius: 1 * u }} />
+      </View>
+      <View
+        style={{
+          width: 9 * u,
+          height: 7 * u,
+          backgroundColor: color,
+          borderBottomLeftRadius: 4.5 * u,
+          borderBottomRightRadius: 4.5 * u,
+          borderTopLeftRadius: 1 * u,
+          borderTopRightRadius: 1 * u,
+        }}
+      />
+    </View>
+  );
+}
+
+/** Scan: the four corner marks of a viewfinder. Nothing in the middle, because
+ *  what goes in the middle is the thing being scanned. */
+export function Scan({ color, size = 15 }: { color: string; size?: number }) {
+  const u = size / 15;
+  const arm = { position: 'absolute' as const, backgroundColor: color };
+  const ecke = (oben: boolean, links: boolean) => (
+    <>
+      <View
+        style={{
+          ...arm,
+          width: 5 * u,
+          height: 1.8 * u,
+          borderRadius: 0.9 * u,
+          [oben ? 'top' : 'bottom']: 0,
+          [links ? 'left' : 'right']: 0,
+        }}
+      />
+      <View
+        style={{
+          ...arm,
+          width: 1.8 * u,
+          height: 5 * u,
+          borderRadius: 0.9 * u,
+          [oben ? 'top' : 'bottom']: 0,
+          [links ? 'left' : 'right']: 0,
+        }}
+      />
+    </>
+  );
+  return (
+    <View style={{ width: size, height: size }}>
+      {ecke(true, true)}
+      {ecke(true, false)}
+      {ecke(false, true)}
+      {ecke(false, false)}
     </View>
   );
 }

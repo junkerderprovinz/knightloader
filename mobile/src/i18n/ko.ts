@@ -99,6 +99,7 @@ export const ko: Dict = {
   'relay.joinButton': '연결',
   'relay.qrHintPhrase': '구문 옆에 표시된 QR 코드를 스캔하세요',
   'relay.scanButton': 'QR 코드 스캔',
+  'relay.pasteButton': '붙여넣기',
   'relay.saveAllButton': '{count}개 모두 추가',
   'phrase.errChecksum': '이 문구는 올바르지 않습니다. 잘못 입력했거나 순서가 바뀐 단어가 없는지 확인하세요.',
   'phrase.errUnknownWord': '{position}번째 단어("{word}")는 허용된 단어가 아닙니다.',

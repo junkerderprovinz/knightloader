@@ -83,10 +83,6 @@ const D_RETRY = 'M8 3V1L5 3.5 8 6V4a3.5 3.5 0 1 1-3.5 3.5H3A5 5 0 1 0 8 3z';
 const D_TRASH =
   'M6.5 1h3a1 1 0 0 1 1 1v1H13v1.5H3V3h2.5V2a1 1 0 0 1 1-1zm.5 2h2v-.5H7V3z' +
   'M4 5.5h8l-.6 8.1a1.4 1.4 0 0 1-1.4 1.4H6a1.4 1.4 0 0 1-1.4-1.4L4 5.5z';
-// The eyedropper: the one glyph everybody reads as "pick a colour". Drawn as a
-// filled shape like every other glyph in this language, not an outline.
-const D_DROPPER =
-  'M11.4 1.2a2.7 2.7 0 0 1 3.8 3.8l-1.3 1.3-1-1-1.1 1.1 1 1-5.6 5.6a2 2 0 0 1-.9.5l-3 .8.8-3a2 2 0 0 1 .5-.9l5.6-5.6 1 1 1.1-1.1-1-1 1.1-1.5z';
 const D_EYE =
   'M8 3C4.4 3 1.5 6.1.7 7.6a.8.8 0 0 0 0 .8C1.5 9.9 4.4 13 8 13s6.5-3.1 7.3-4.6a.8.8 0 0 0 0-.8' +
   'C14.5 6.1 11.6 3 8 3zm0 8a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0-1.6a1.4 1.4 0 1 0 0-2.8 1.4 1.4 0 0 0 0 2.8z';
@@ -631,13 +627,6 @@ async function restoreLocalLook() {
 const themeSeg = document.getElementById('themeSeg');
 const shapeSeg = document.getElementById('shapeSeg');
 const accentSwatches = document.getElementById('accentSwatches');
-// Built here rather than declared in the markup, because it lives INSIDE the
-// swatch row now and that row is cleared and refilled on every redraw - an
-// element from the HTML would be wiped by the first `innerHTML = ''`. One node,
-// kept across redraws, re-appended each time.
-const accentNow = document.createElement('button');
-accentNow.type = 'button';
-accentNow.className = 'glim-accent-now';
 
 /**
  * paintHues hands every card heading its own palette position, and the three
@@ -762,47 +751,55 @@ async function renderAppearance() {
   );
 
   // The live accent, which is the stored one or the default when nothing is
-  // stored. The circle at the trailing edge opens the picker; the eight
-  // presets beside it are the shortcut.
+  // stored. It marks whichever swatch it matches; there is no separate circle
+  // for it any more (see below).
   const live = (a.accent || DEFAULT_ACCENT).toLowerCase();
-  accentNow.style.backgroundColor = live;
-  accentNow.setAttribute('data-tip', t('options.accentLabel'));
-  accentNow.setAttribute('aria-label', t('options.accentLabel'));
-  accentNow.onclick = () =>
-    openColorPickerPopover(
-      accentNow,
-      live,
-      async (hex) => {
-        await writeAppearance({ accent: hex });
-        applyAccent(hex);
-        accentNow.style.backgroundColor = hex;
-      },
-      // Only once it is closed: the row cannot be redrawn while the popover is
-      // open, because that would replace the very button the popover is
-      // anchored to. This is what brings the reset badge in and puts the new
-      // colour into the report.
-      () => void renderAppearance(),
-    );
 
   accentSwatches.innerHTML = '';
-  // The presets are a shortcut, not the whole choice, and KnightLoader's own
-  // row says so with this label, so this one does too.
-  const presets = document.createElement('span');
-  presets.className = 'glim-eyebrow';
-  presets.style.marginInlineEnd = '2px';
-  presets.textContent = t('options.accentPresets');
-  accentSwatches.appendChild(presets);
+  // No "Voreinstellungen" caption any more (jdp, 2026-09-01: "der text
+  // Voreinstellungen soll weg"). Eight colour circles in a row labelled
+  // "Accent" do not need a second word telling you they are colours to choose
+  // from, and it was the only thing making this row look different from the
+  // palette row four lines below it.
   const pick = async (v) => {
     await writeAppearance({ accent: v });
     applyAccent(v);
     await renderAppearance();
   };
   for (const x of ACCENTS) {
+    // Every swatch opens the picker, seeded with its own colour (jdp,
+    // 2026-09-01: "alle farbfelder sollen sich editieren lassen. links neben
+    // dem resetbutton ist ein farbfeld mit stift. das kann weg. dann sind die
+    // farbfelder der akzentfarbe genau gleihc viel wie die der farbpalette").
+    //
+    // The separate picker button is gone with it. It was a ninth circle that
+    // looked like a preset, and even with a glyph on it, it was a second way to
+    // do a thing the swatches could do themselves - the palette row two lines
+    // down has always worked exactly this way, and the two rows now match
+    // exactly: eight circles and a reset.
+    //
+    // A click still COSTS one click to choose the preset, because the popover
+    // applies live on open: the colour lands immediately and the picker is
+    // simply left standing in case you want to nudge it. That is the property
+    // that makes this replace both controls rather than trading one for the
+    // other.
+    //
     // A ring marks the current one, not a tick: a glyph would have to stay
     // legible on all eight, which means computing an ink colour for a
     // decoration.
     accentSwatches.appendChild(
-      swatch(x.hex, { label: x.name, pressed: x.hex.toLowerCase() === live, onPick: () => pick(x.hex) }),
+      swatch(x.hex, {
+        label: x.name,
+        pressed: x.hex.toLowerCase() === live,
+        onEdit: async (next) => {
+          await writeAppearance({ accent: next });
+          applyAccent(next);
+        },
+        // The row cannot be redrawn while the popover is open - that would
+        // replace the very button it is anchored to - so the redraw happens
+        // once, on close. See openColorPickerPopover's own doc comment.
+        onEditClose: () => void renderAppearance(),
+      }),
     );
   }
   // The way back, always rendered (jdp, 2026-08-31: "die akzentfarbe hat keinen
@@ -820,8 +817,6 @@ async function renderAppearance() {
   // them, so nothing said it opened anything - and with no way off the eight
   // presets the reset badge beside it had nothing to reset from, which is
   // exactly how jdp described it.
-  accentNow.replaceChildren(glyph(D_DROPPER, 13));
-  accentSwatches.appendChild(accentNow);
   accentSwatches.appendChild(resetBadge(() => pick('')));
 
   // --- The rainbow ---------------------------------------------------------
@@ -886,7 +881,7 @@ async function renderAppearance() {
   // The rainbow sub-rows have a second reason to be dimmed - the mode being
   // off - so they are restored to what that decided, not to blank.
   const rainbowOff = a.rainbow.on ? '' : '.5';
-  for (const el of [accentSwatches, accentNow, shapeSeg, rainbowRow]) {
+  for (const el of [accentSwatches, shapeSeg, rainbowRow]) {
     el.style.pointerEvents = a.followInstance ? 'none' : '';
     el.style.opacity = a.followInstance ? '.5' : '';
   }

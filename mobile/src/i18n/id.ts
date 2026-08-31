@@ -99,6 +99,7 @@ export const id: Dict = {
   'relay.joinButton': 'Sambungkan',
   'relay.qrHintPhrase': 'Pindai kode QR di samping frasa',
   'relay.scanButton': 'Pindai kode QR',
+  'relay.pasteButton': 'Tempel',
   'relay.saveAllButton': 'Tambahkan semua ({count})',
   'phrase.errChecksum': 'Frasa ini tidak valid - periksa apakah ada kata yang salah ketik atau tertukar.',
   'phrase.errUnknownWord': 'Kata ke-{position} ("{word}") bukan salah satu kata yang diterima.',

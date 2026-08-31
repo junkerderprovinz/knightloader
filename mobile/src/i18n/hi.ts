@@ -99,6 +99,7 @@ export const hi: Dict = {
   'relay.joinButton': 'जोड़ें',
   'relay.qrHintPhrase': 'वाक्यांश के बगल में दिख रहा QR कोड स्कैन करें',
   'relay.scanButton': 'QR कोड स्कैन करें',
+  'relay.pasteButton': 'चिपकाएँ',
   'relay.saveAllButton': 'सभी {count} जोड़ें',
   'phrase.errChecksum': 'यह वाक्यांश मान्य नहीं है - देखें कि कोई शब्द गलत लिखा या आपस में बदला तो नहीं गया।',
   'phrase.errUnknownWord': 'शब्द {position} ("{word}") स्वीकृत शब्दों में नहीं है।',

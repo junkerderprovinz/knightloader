@@ -100,13 +100,25 @@
         color: var(--carbon-text-sub);
         overflow-wrap: anywhere;
       }
+      /* One height for every pressable thing in this window, the same 36 the
+         options page settled on and the same the icon badges are (jdp,
+         2026-09-01 about Send and Cancel: "beide buttons gleich groß machen").
+         They were `display: block` with padding and no height, so each ended up
+         as tall as its own text - fine until two of them stand in one row.
+
+         A flex row rather than a block, because every button here now carries a
+         glyph beside its label (jdp: "Alle buttons sollen einen Glyph bekommen.
+         Steht das nicht bereits so in GS?" - it does, under "Icon glyphs", and
+         this window was the surface not following it). */
       button {
-        display: block;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        box-sizing: border-box;
         width: 100%;
-        padding: 9px 12px;
-        /* No bottom margin: the send button is the last block, and its own
-           8px plus the window's 16px padding made the space below it half
-           again the space above it. */
+        height: 36px;
+        padding: 0 12px;
         margin-bottom: 0;
         border: 0;
         border-radius: var(--radius-control);
@@ -114,6 +126,7 @@
         font-weight: 500;
         cursor: pointer;
       }
+      button svg { flex-shrink: 0; }
       .primary { background: var(--accent); color: var(--accent-contrast); }
       .secondary { background: var(--carbon-surface2); color: var(--carbon-text); }
       /* One rhythm, 16px, the same value the window pads itself with (jdp,
@@ -163,9 +176,20 @@
       .sendRow { display: flex; gap: 8px; }
       .sendRow #send { flex: 1; }
       #tabs { margin-bottom: 12px; }
-      /* The collector, one 16px step below the send button like everything
-         else in this window. */
-      #collector { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+      /* The two panes are the same height, so switching tabs does not resize
+         the window (jdp, 2026-09-01: "wenn man in den reiter linksaammler
+         wechselt soll das fenster gleich groß bleiben, die dropzone soll ihre
+         größe entprechend anpassen").
+
+         A browser action popup sizes itself to its content, so a shorter pane
+         made the whole window jump. The panes share a minimum height and the
+         collector's field takes whatever is left over - the dropzone adapts,
+         which is exactly what he asked for and also the only part of it that
+         CAN adapt: everything else in that pane is a fixed-height control. */
+      #paneSend,
+      #collector { min-height: 268px; }
+      #collector { margin-top: 0; display: flex; flex-direction: column; gap: 8px; }
+      #collector .drop { flex: 1; display: flex; }
       #collectorLabel { margin: 0; }
       /* The drop target IS the field, not a dashed rectangle around one: a
          drawn outline is the one thing this language does not do, so the
@@ -185,12 +209,19 @@
         color: var(--carbon-text);
         font: inherit;
         font-size: var(--text-dense);
-        resize: vertical;
+        /* No manual resize handle: the field grows with the pane now, and a
+           drag corner on a box that already sizes itself is a control fighting
+           the layout. */
+        resize: none;
         outline: none;
       }
       #links:focus { box-shadow: 0 0 0 2px var(--focus-ring); }
-      /* Two buttons sharing a line, each half of it: neither is the primary
-         action of this window, so neither gets to be wider than the other. */
+      /* Two buttons sharing a line, each half of it. Both ACCENT-filled (jdp,
+         2026-09-01: "die buttons sind nicht farbig"): "add these links" and
+         "pick files" are the two things this pane exists for, so neither is a
+         secondary action here - `secondary` was inherited from when they sat
+         under a Send button that outranked them, and in their own tab there is
+         nothing left for them to be secondary TO. */
       .collectorRow { display: flex; gap: 8px; }
       .collectorRow button { flex: 1; }
     </style>
@@ -255,8 +286,8 @@
         <textarea id="links" rows="3" spellcheck="false"></textarea>
       </div>
       <div class="collectorRow">
-        <button id="pickFiles" class="secondary" type="button"></button>
-        <button id="addLinks" class="secondary" type="button"></button>
+        <button id="pickFiles" class="primary" type="button"></button>
+        <button id="addLinks" class="primary" type="button"></button>
       </div>
       <!-- Hidden and clicked from the button beside it: a native file input
            cannot be styled into this language, and a button that opens it can. -->

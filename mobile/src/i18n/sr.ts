@@ -99,6 +99,7 @@ export const sr: Dict = {
   'relay.joinButton': 'Повежи',
   'relay.qrHintPhrase': 'Скенирај QR код приказан поред фразе',
   'relay.scanButton': 'Скенирај QR код',
+  'relay.pasteButton': 'Налепи',
   'relay.saveAllButton': 'Додај свих {count}',
   'phrase.errChecksum': 'Ова фраза није исправна — провери да ли је нека реч погрешно укуцана или замењена.',
   'phrase.errUnknownWord': 'Реч {position} („{word}”) није међу дозвољеним речима.',

@@ -113,9 +113,17 @@ export function SpeedGraph({
           </>
         )}
       </svg>
-      <span className="glim-eyebrow glim-num absolute right-0 top-0">
-        {idle ? t('overview.idle') : `${t('overview.peak')} ${fmtSpeed(peak)}`}
-      </span>
+      {/* The peak, and nothing when there is none (jdp, 2026-09-01: "der ruhig
+          text soll weg"). "ruhig" restated what an empty curve already shows,
+          in a corner of the very graph that was showing it - and a word for
+          "nothing is happening" is the one caption a graph never needs, because
+          a flat line at zero says it better and takes no words. The peak stays:
+          that is a number the picture cannot carry on its own. */}
+      {!idle && (
+        <span className="glim-eyebrow glim-num absolute right-0 top-0">
+          {`${t('overview.peak')} ${fmtSpeed(peak)}`}
+        </span>
+      )}
     </div>
   );
 }
