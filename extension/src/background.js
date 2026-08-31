@@ -372,23 +372,79 @@ const CNL_SCRIPTS = [
   },
 ];
 
-/** Registers or removes the interception scripts to match the stored flag.
- *  Idempotent: registering an id that already exists throws, so the existing
- *  set is read first. */
+/**
+ * Is a registration the browser is holding still the one we would write today?
+ *
+ * `persistAcrossSessions: true` means a registration OUTLIVES the code that
+ * made it, and Chrome hands the old one back on the next start regardless of
+ * what this file now says. Comparing only ids is therefore not enough - it
+ * answers "is something registered under that name", which is a different
+ * question from "is the registered thing correct".
+ *
+ * Only the fields that decide behaviour are compared. `matches` is joined
+ * rather than deep-compared because it is a short list of literals here, and
+ * an order change in it is a change worth re-registering for anyway.
+ */
+function cnlScriptMatches(have, want) {
+  return (
+    (have.matches || []).join('|') === want.matches.join('|') &&
+    (have.js || []).join('|') === want.js.join('|') &&
+    have.runAt === want.runAt &&
+    !!have.allFrames === !!want.allFrames &&
+    !!have.matchOriginAsFallback === !!want.matchOriginAsFallback &&
+    (have.world || 'ISOLATED') === (want.world || 'ISOLATED')
+  );
+}
+
+/**
+ * Registers, updates or removes the interception scripts to match the stored
+ * flag.
+ *
+ * It RECONCILES rather than fills gaps, and that distinction cost a whole
+ * debugging session. The first cut registered any id that was missing and left
+ * every id that was present alone - which is correct exactly once, on a fresh
+ * install. Add `matchOriginAsFallback` to the definitions afterwards and every
+ * existing installation keeps the old registration for ever: the ids are all
+ * present, so nothing is missing, so nothing is written, and Chrome goes on
+ * serving the persisted set from before the fix. Measured live against a real
+ * profile on 2026-08-31, with 1.12.1 loaded and the property in the source:
+ * `getRegisteredContentScripts()` still answered `matchOriginAsFallback:
+ * false` on both scripts.
+ *
+ * The general shape is worth keeping: **a change to a persisted registration
+ * is not delivered by shipping new code.** Whatever holds it - the browser
+ * here, but equally a database row or a cron entry - keeps serving the old one
+ * until something compares and rewrites it.
+ */
 async function syncCnlScripts(on) {
   try {
     const have = await chrome.scripting.getRegisteredContentScripts();
-    const ids = have.filter((s) => s.id.startsWith('cnl-')).map((s) => s.id);
-    if (on) {
-      const missing = CNL_SCRIPTS.filter((s) => !ids.includes(s.id));
-      if (missing.length) await chrome.scripting.registerContentScripts(missing);
-    } else if (ids.length) {
-      await chrome.scripting.unregisterContentScripts({ ids });
+    const mine = have.filter((s) => s.id.startsWith('cnl-'));
+    if (!on) {
+      if (mine.length) await chrome.scripting.unregisterContentScripts({ ids: mine.map((s) => s.id) });
+      return;
     }
+    const stale = mine.filter((s) => {
+      const want = CNL_SCRIPTS.find((w) => w.id === s.id);
+      // An id of ours the current code no longer defines is stale by
+      // definition, and leaving it registered would keep a script running that
+      // this version does not ship.
+      return !want || !cnlScriptMatches(s, want);
+    });
+    if (stale.length) await chrome.scripting.unregisterContentScripts({ ids: stale.map((s) => s.id) });
+    const drin = new Set(mine.filter((s) => !stale.includes(s)).map((s) => s.id));
+    const fehlt = CNL_SCRIPTS.filter((s) => !drin.has(s.id));
+    if (fehlt.length) await chrome.scripting.registerContentScripts(fehlt);
   } catch (e) {
     // Without the host permission this throws, which is the correct outcome:
     // the feature stays off rather than half-on. options.js asks for the
     // permission before it ever gets here.
+    //
+    // Logged rather than dropped, though: a silent catch here is why a failed
+    // registration and a working one looked identical from the outside, and
+    // the only way to tell them apart was to call the API again by hand in a
+    // throwaway profile.
+    console.warn('[KnightLoader] Click’n’Load scripts not registered:', e);
   }
 }
 
