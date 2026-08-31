@@ -194,50 +194,57 @@ export default function ConnectionsScreen({
         ListHeaderComponent={
           connections.length > 0 ? (
             <View style={styles.header}>
+              {/* A COLUMN now, not a row: the figures and the badge share the
+                  top line, and the graph sits under them inside the same card
+                  (jdp, 2026-09-01: "der graph soll in die 'Alle instanzen' card
+                  integriert sein"). It used to be a sibling below the card,
+                  which made the group's own numbers and the group's own curve
+                  two objects saying one thing. */}
               <View style={[styles.summary, { backgroundColor: c.surface, borderRadius: radii.card }]}>
-                <View style={styles.summaryText}>
-                  <Text style={[styles.summaryTitle, { color: c.text }]}>{t('overview.title')}</Text>
-                  <Text style={[styles.summaryLine, { color: c.textMuted }]} numberOfLines={1}>
-                    {[
-                      t('overview.online', { n: gesamt.online, total: gesamt.total }),
-                      `${gesamt.files} ${t('instance.files')}`,
-                      gesamt.remaining > 0 ? `${fmtBytes(gesamt.remaining)} ${t('instance.left')}` : null,
-                      gesamt.speed > 0 ? `${fmtBytes(gesamt.speed)}/s` : null,
-                    ]
-                      .filter(Boolean)
-                      .join(' · ')}
-                  </Text>
+                <View style={styles.summaryTop}>
+                  <View style={styles.summaryText}>
+                    <Text style={[styles.summaryTitle, { color: c.text }]}>{t('overview.title')}</Text>
+                    <Text style={[styles.summaryLine, { color: c.textMuted }]} numberOfLines={1}>
+                      {[
+                        t('overview.online', { n: gesamt.online, total: gesamt.total }),
+                        `${gesamt.files} ${t('instance.files')}`,
+                        gesamt.remaining > 0 ? `${fmtBytes(gesamt.remaining)} ${t('instance.left')}` : null,
+                        gesamt.speed > 0 ? `${fmtBytes(gesamt.speed)}/s` : null,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </Text>
+                  </View>
+                  {/* Only offered when at least one instance answered: a start
+                      button over a group that is entirely unreachable promises
+                      something it cannot do. */}
+                  {gesamt.online > 0 && (
+                    <IconBadge
+                      symbol={gesamt.halted ? '▶' : '■'}
+                      accent={gesamt.halted}
+                      onPress={busy ? () => {} : toggleAll}
+                      accessibilityLabel={t(gesamt.halted ? 'downloads.start' : 'downloads.stop')}
+                    />
+                  )}
                 </View>
-                {/* Only offered when at least one instance answered: a start
-                    button over a group that is entirely unreachable promises
-                    something it cannot do. */}
-                {gesamt.online > 0 && (
-                  <IconBadge
-                    symbol={gesamt.halted ? '▶' : '■'}
-                    accent={gesamt.halted}
-                    onPress={busy ? () => {} : toggleAll}
-                    accessibilityLabel={t(gesamt.halted ? 'downloads.start' : 'downloads.stop')}
-                  />
+
+                {/* Shown whenever the group has anything queued, not only while
+                    bytes move: a line flat at zero beside a queue that says
+                    "running" is the answer, not an empty row. */}
+                {(gesamt.speed > 0 || gesamt.files > 0) && (
+                  <View style={styles.summaryGraph}>
+                    <SpeedGraph speed={gesamt.speed} />
+                  </View>
                 )}
               </View>
 
               {/* Why the last start/stop did not take. One line, in the fail
-                  colour, and only when there is something to say. */}
+                  colour, and only when there is something to say. Outside the
+                  card: it is about the last click, not about the group. */}
               {queueError !== '' && (
                 <Text style={[styles.queueError, { color: c.statusFailSolid }]} numberOfLines={2}>
                   {queueError}
                 </Text>
-              )}
-
-              {/* The graph belongs to the summary, not to a card: it is the
-                  group's speed. Shown whenever the group has anything queued,
-                  not only while bytes move (jdp, 2026-08-31: "Wo ist der
-                  downloadgraph in der übericht"): a line flat at zero beside a
-                  queue that says "running" is the answer, not an empty row. */}
-              {(gesamt.speed > 0 || gesamt.files > 0) && (
-                <View style={styles.summaryGraph}>
-                  <SpeedGraph speed={gesamt.speed} />
-                </View>
               )}
             </View>
           ) : null
@@ -334,17 +341,17 @@ const styles = StyleSheet.create({
   summary: {
     // Same box as a row below it (jdp: "Übersichtscard soll genau so groß sein
     // wie die instanzencards"): same padding, same radius, same width - the
-    // last one now by construction rather than by matching numbers.
+    // last one by construction rather than by matching numbers. A column, so
+    // the graph can live under the figures inside the same card.
     padding: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+    gap: 10,
   },
+  summaryTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   summaryText: { flex: 1, minWidth: 0, gap: 2 },
   summaryTitle: { fontSize: 15, fontWeight: '600' },
   summaryLine: { fontSize: TYPE.dense },
   queueError: { marginTop: 8, fontSize: TYPE.caption },
-  summaryGraph: { marginTop: 10 },
+  summaryGraph: {},
   brand: { flexDirection: 'row', alignItems: 'center', gap: 0, flexShrink: 1, minWidth: 0 },
   // 44, and both margins are negative, which looks like a hack and is not (jdp,
   // 2026-08-31: "der abstand von name und logo ist zu groß in der übersicht").

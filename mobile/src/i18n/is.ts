@@ -99,6 +99,7 @@ export const is: Dict = {
   'relay.joinButton': 'Tengjast',
   'relay.qrHintPhrase': 'Skannaðu QR-kóðann við hliðina á frasanum',
   'relay.scanButton': 'Skanna QR-kóðann',
+  'relay.pasteButton': 'Líma',
   'relay.saveAllButton': 'Bæta öllum {count} við',
   'phrase.errChecksum': 'Þessi setning stenst ekki - athugaðu hvort orð sé rangt slegið inn eða víxlað.',
   'phrase.errUnknownWord': 'Orð {position} ("{word}") er ekki eitt af leyfðu orðunum.',

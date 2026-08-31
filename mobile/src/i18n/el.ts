@@ -99,6 +99,7 @@ export const el: Dict = {
   'relay.joinButton': 'Σύνδεση',
   'relay.qrHintPhrase': 'Σάρωσε τον κωδικό QR δίπλα στη φράση',
   'relay.scanButton': 'Σάρωση του κωδικού QR',
+  'relay.pasteButton': 'Επικόλληση',
   'relay.saveAllButton': 'Προσθήκη και των {count}',
   'phrase.errChecksum': 'Αυτή η φράση δεν είναι έγκυρη - έλεγξε μήπως κάποια λέξη γράφτηκε λάθος ή μπερδεύτηκε η σειρά.',
   'phrase.errUnknownWord': 'Η λέξη {position} («{word}») δεν ανήκει στις αποδεκτές λέξεις.',

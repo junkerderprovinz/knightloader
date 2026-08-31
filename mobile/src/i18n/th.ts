@@ -99,6 +99,7 @@ export const th: Dict = {
   'relay.joinButton': 'เชื่อมต่อ',
   'relay.qrHintPhrase': 'สแกนรหัส QR ที่แสดงข้างวลี',
   'relay.scanButton': 'สแกนรหัส QR',
+  'relay.pasteButton': 'วาง',
   'relay.saveAllButton': 'เพิ่มทั้งหมด {count} รายการ',
   'phrase.errChecksum': 'วลีนี้ไม่ถูกต้อง - ลองตรวจว่ามีคำใดพิมพ์ผิดหรือสลับที่กันหรือไม่',
   'phrase.errUnknownWord': 'คำที่ {position} ("{word}") ไม่ใช่คำที่ยอมรับได้',

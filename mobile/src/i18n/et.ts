@@ -99,6 +99,7 @@ export const et: Dict = {
   'relay.joinButton': 'Ühenda',
   'relay.qrHintPhrase': 'Skanni fraasi kõrval olev QR-kood',
   'relay.scanButton': 'Skanni QR-kood',
+  'relay.pasteButton': 'Kleebi',
   'relay.saveAllButton': 'Lisa kõik {count}',
   'phrase.errChecksum': 'See fraas ei ole kehtiv - kontrolli, kas mõni sõna on valesti kirjutatud või vahetuses.',
   'phrase.errUnknownWord': 'Sõna {position} ("{word}") ei ole lubatud sõnade hulgas.',

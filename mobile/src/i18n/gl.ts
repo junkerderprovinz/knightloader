@@ -99,6 +99,7 @@ export const gl: Dict = {
   'relay.joinButton': 'Conectar',
   'relay.qrHintPhrase': 'Escanea o código QR que aparece xunto á frase',
   'relay.scanButton': 'Escanear o código QR',
+  'relay.pasteButton': 'Pegar',
   'relay.saveAllButton': 'Engadilas todas ({count})',
   'phrase.errChecksum': 'Esta frase non é válida - comproba se hai algunha palabra mal escrita ou cambiada de sitio.',
   'phrase.errUnknownWord': 'A palabra {position} («{word}») non é unha das palabras admitidas.',

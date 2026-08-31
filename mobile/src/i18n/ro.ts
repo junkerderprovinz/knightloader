@@ -99,6 +99,7 @@ export const ro: Dict = {
   'relay.joinButton': 'Conectare',
   'relay.qrHintPhrase': 'Scanează codul QR afișat lângă frază',
   'relay.scanButton': 'Scanează codul QR',
+  'relay.pasteButton': 'Lipește',
   'relay.saveAllButton': 'Adaugă toate cele {count}',
   'phrase.errChecksum': 'Această frază nu este validă - verifică dacă vreun cuvânt este scris greșit sau inversat.',
   'phrase.errUnknownWord': 'Cuvântul {position} („{word}”) nu se află printre cuvintele acceptate.',

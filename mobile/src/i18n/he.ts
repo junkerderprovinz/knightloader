@@ -99,6 +99,7 @@ export const he: Dict = {
   'relay.joinButton': 'התחבר',
   'relay.qrHintPhrase': 'סרוק את קוד ה-QR שמוצג ליד הצירוף',
   'relay.scanButton': 'סריקת קוד QR',
+  'relay.pasteButton': 'הדבקה',
   'relay.saveAllButton': 'הוסיפו את כל {count}',
   'phrase.errChecksum': 'הביטוי הזה אינו תקין - בדקו אם מילה כלשהי הוקלדה בטעות או הוחלפה במקומה.',
   'phrase.errUnknownWord': 'המילה ה-{position} ("{word}") אינה אחת מהמילים המותרות.',

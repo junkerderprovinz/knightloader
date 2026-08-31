@@ -99,6 +99,7 @@ export const sk: Dict = {
   'relay.joinButton': 'Pripojiť',
   'relay.qrHintPhrase': 'Naskenuj QR kód zobrazený vedľa frázy',
   'relay.scanButton': 'Naskenovať QR kód',
+  'relay.pasteButton': 'Vložiť',
   'relay.saveAllButton': 'Pridať všetkých {count}',
   'phrase.errChecksum': 'Táto fráza neplatí - skontroluj, či nie je niektoré slovo preklepnuté alebo prehodené.',
   'phrase.errUnknownWord': 'Slovo {position} („{word}“) nepatrí medzi povolené slová.',
