@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   Animated,
   Easing,
@@ -111,6 +111,10 @@ export default function DragList({
     lift.setValue(0);
     setDrag(null);
   }, [lift, stopWiggle]);
+  // Through a ref, so the one long-lived PanResponder never captures a stale
+  // copy of it.
+  const beendenRef = useRef(beenden);
+  beendenRef.current = beenden;
 
   /** Which row a finger at this y is over, within one band. */
   const indexAt = useCallback(
@@ -130,42 +134,65 @@ export default function DragList({
     [rows],
   );
 
-  const responders = useMemo(
-    () =>
-      rows.map((row, index) =>
-        PanResponder.create({
-          // Never on a plain touch: that would take every scroll away from the
-          // list. Only once this row is the armed one, and in the capture phase
-          // because the row's own Pressable is holding the responder by then.
-          onStartShouldSetPanResponderCapture: () => false,
-          onMoveShouldSetPanResponderCapture: () => dragRef.current?.from === index,
-          onPanResponderGrant: () => lift.setValue(0),
-          onPanResponderMove: (_e, g) => {
-            const d = dragRef.current;
-            if (!d || d.from !== index) return;
-            lift.setValue(g.dy);
-            const b = boxes.current[index];
-            if (!b) return;
-            const to = indexAt(b.y + b.h / 2 + g.dy, row.band, index);
-            if (to !== d.to) setDrag({ from: d.from, to });
-          },
-          onPanResponderRelease: () => {
-            const d = dragRef.current;
-            beenden();
-            if (!d || d.to === d.from) return;
-            const keys = rows.filter((r) => r.band === row.band).map((r) => r.key);
-            const von = keys.indexOf(rows[d.from].key);
-            const nach = keys.indexOf(rows[d.to].key);
-            if (von < 0 || nach < 0) return;
-            const neu = keys.slice();
-            neu.splice(nach, 0, ...neu.splice(von, 1));
-            onReorder(neu, row.band);
-          },
-          onPanResponderTerminate: beenden,
-        }),
-      ),
-    [rows, indexAt, lift, onReorder, beenden],
-  );
+  /**
+   * ONE PanResponder for the whole list, created once, reading everything it
+   * needs out of refs.
+   *
+   * The first cut built one responder PER ROW inside a useMemo keyed on `rows`.
+   * `rows` is derived from the task list on every render, so it is a new array
+   * every time - the memo recomputed, every `panHandlers` object was replaced,
+   * and the gesture in flight was left holding handlers that no longer belonged
+   * to any mounted view. The long press armed the drag, the drag re-rendered the
+   * list, and the moves went nowhere: exactly "wenn ich lange tippe kann ich es
+   * nicht verschieben" (jdp, 2026-08-31).
+   *
+   * The general shape is worth keeping: **a gesture handler must not be rebuilt
+   * by the state changes the gesture itself causes.** Anything a handler needs
+   * that changes during the gesture goes in a ref, not in a dependency array.
+   */
+  const daten = useRef({ rows, indexAt, onReorder });
+  daten.current = { rows, indexAt, onReorder };
+
+  const responder = useRef(
+    PanResponder.create({
+      // Never on a plain touch: that would take every scroll away from the
+      // list. Only once a row is armed, and in the CAPTURE phase, because the
+      // row's own Pressable is holding the responder by then and a polite ask
+      // would be declined.
+      onStartShouldSetPanResponderCapture: () => false,
+      onMoveShouldSetPanResponderCapture: () => dragRef.current !== null,
+      onPanResponderGrant: () => lift.setValue(0),
+      onPanResponderMove: (_e, g) => {
+        const d = dragRef.current;
+        if (!d) return;
+        lift.setValue(g.dy);
+        const b = boxes.current[d.from];
+        if (!b) return;
+        const { rows: r, indexAt: finde } = daten.current;
+        const zeile = r[d.from];
+        if (!zeile) return;
+        const to = finde(b.y + b.h / 2 + g.dy, zeile.band, d.from);
+        if (to !== d.to) setDrag({ from: d.from, to });
+      },
+      onPanResponderRelease: () => {
+        const d = dragRef.current;
+        const { rows: r, onReorder: melde } = daten.current;
+        beendenRef.current();
+        if (!d || d.to === d.from) return;
+        const zeile = r[d.from];
+        const ziel = r[d.to];
+        if (!zeile || !ziel || zeile.band !== ziel.band) return;
+        const keys = r.filter((x) => x.band === zeile.band).map((x) => x.key);
+        const von = keys.indexOf(zeile.key);
+        const nach = keys.indexOf(ziel.key);
+        if (von < 0 || nach < 0) return;
+        const neu = keys.slice();
+        neu.splice(nach, 0, ...neu.splice(von, 1));
+        melde(neu, zeile.band);
+      },
+      onPanResponderTerminate: () => beendenRef.current(),
+    }),
+  ).current;
 
   const gezogeneHoehe = drag ? (boxes.current[drag.from]?.h ?? 0) : 0;
 
@@ -209,7 +236,7 @@ export default function DragList({
                 ],
               },
             ]}
-            {...responders[index].panHandlers}
+            {...responder.panHandlers}
           >
             {/* delayLongPress rather than a timer of our own: the platform
                 already cancels it on movement and on lift, which is three edge
