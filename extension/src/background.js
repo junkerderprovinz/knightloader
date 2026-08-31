@@ -168,7 +168,24 @@ async function sendToInstance(payload, origin) {
     notifyCnl('send.noneOnline');
     return;
   }
-  if (siblings.length === 1) {
+  // A Click'n'Load batch ALWAYS goes through the popup, even with one instance
+  // in the group (jdp, 2026-08-31: "der link auch in die erweiterung
+  // weitergegeben aber das popupfenster der erweiterung öffnet sich nicht" and,
+  // in the same message, "Dort fehlt auch ein Abbrechen button wenn ein links
+  // reingeladen wird und der countdown läuft").
+  //
+  // Both of those are one cause. Straight-through delivery for a single
+  // instance was written for the toolbar button and every context-menu entry -
+  // a deliberate act aimed at one thing, where a picker nobody needs is the
+  // manual step that breaks "es soll einfach immer zuverlässig funktionieren".
+  // A caught container is not that: it is the PAGE acting, and the countdown
+  // and its cancel exist precisely so somebody can catch it before it lands.
+  // With one instance the window never opened, so there was nothing to count
+  // down and nothing to cancel - and from outside, the extension looked dead
+  // even though the links had already arrived.
+  //
+  // Anything else keeps the old rule: one instance sends straight through.
+  if (siblings.length === 1 && origin !== 'cnl') {
     await deliver(siblings[0].instanceId, payload);
     return;
   }

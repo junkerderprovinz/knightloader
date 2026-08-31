@@ -1221,7 +1221,7 @@ export const tr: Dict = {
     'Bu build’in her ayarı, Gelişmiş sayfasında ham adıyla okunabilir ve değiştirilebilir, zaten indirilmiş bir dosyanın yansısının nasıl ele alındığı, bir indirmenin zaten kullanılan bir ada denk gelmesi durumunda ne olacağı gibi henüz başka bir yerde özel bir kontrolü olmayan birkaçı dahil.',
   'settings.help.advanced.link': 'Gelişmiş ayarlarını aç',
   'settings.about.title': 'KnightLoader hakkında',
-  'settings.about.body': 'Bozuk bir şey, eksik bir şey ya da daha iyi olabilecek bir şey mi var? GitHub üzerinde konu aç ya da e-posta gönder.',
+  'settings.about.body': 'Sorun, istek ya da öneri mi var? GitHub üzerinde konu aç ya da e-posta gönder.',
   'settings.about.version': 'Sürüm',
   'settings.about.github': 'GitHub üzerinde',
   'settings.about.mail': 'E-posta gönder',

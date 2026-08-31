@@ -1221,7 +1221,7 @@ export const sl: Dict = {
     'Vsako nastavitev tega builda je mogoče prebrati in spremeniti prek njenega surovega imena na strani Napredno, vključno z nekaterimi - kako se obravnava zrcalo že prenesene datoteke, kaj se zgodi, ko bi prenos pristal na že uporabljenem imenu - ki še nimajo lastnega nadzora drugje.',
   'settings.help.advanced.link': 'Odpri nastavitve Napredno',
   'settings.about.title': 'O KnightLoaderju',
-  'settings.about.body': 'Nekaj ne deluje, nekaj manjka ali bi lahko bilo bolje? Odpri težavo na GitHubu ali pošlji e-pošto.',
+  'settings.about.body': 'Težave, želje ali predlogi? Odpri težavo na GitHubu ali pošlji e-pošto.',
   'settings.about.version': 'Različica',
   'settings.about.github': 'Na GitHubu',
   'settings.about.mail': 'Pošlji e-pošto',

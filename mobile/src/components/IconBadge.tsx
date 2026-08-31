@@ -69,6 +69,56 @@ export default function IconBadge({
  * sake of twelve pixels. Views compose it exactly and take the colour they
  * are given, which is all this needs to do.
  */
+/**
+ * Back: a solid left arrow, not the "‹" character (jdp, 2026-08-31: "alls
+ * zurückbutton sollen einen schöneren Glyph bekommen, in GS gibt es einen Glyph
+ * abschnitt").
+ *
+ * GlimStone's assortment names `IconBack` for this and points at Streamline's
+ * `move-left` - a filled arrow with a shaft, which is the whole difference. The
+ * character this replaced is a typographic quotation mark borrowed as an icon:
+ * it renders at the font's weight rather than the badge's, it has no shaft, and
+ * it is not part of any icon set. Every glyph in this language is a filled solid
+ * shape, and "‹" is a stroke.
+ *
+ * Composed from Views for the same reason Trash and Gear are: react-native-svg
+ * is a NATIVE module, and pulling one in for three glyphs would mean a new
+ * prebuild and a new .apk story. The head is a square rotated 45 degrees with
+ * two sides clipped away by the shaft drawn over it.
+ */
+export function Back({ color, size = 15 }: { color: string; size?: number }) {
+  const u = size / 15;
+  return (
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        {/* The head: a rotated square whose right half the shaft covers, which
+            is how a filled triangle is drawn without a polygon primitive. */}
+        <View
+          style={{
+            width: 6.4 * u,
+            height: 6.4 * u,
+            backgroundColor: color,
+            transform: [{ rotate: '45deg' }],
+            borderTopLeftRadius: 1 * u,
+          }}
+        />
+        {/* The shaft, pulled left far enough to bury the head's own right
+            corner. Same height as the head's waist, so the join is invisible. */}
+        <View
+          style={{
+            width: 6.5 * u,
+            height: 2.4 * u,
+            marginStart: -3.6 * u,
+            backgroundColor: color,
+            borderTopRightRadius: 1.2 * u,
+            borderBottomRightRadius: 1.2 * u,
+          }}
+        />
+      </View>
+    </View>
+  );
+}
+
 export function Trash({ color, size = 15 }: { color: string; size?: number }) {
   const u = size / 15; // every number below is in fifteenths of the glyph box
   return (

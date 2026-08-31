@@ -8,7 +8,7 @@ import { useAppearance } from '../theme/AppearanceContext';
 import { useWide } from '../theme/layout';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
-import IconBadge, { Trash } from '../components/IconBadge';
+import IconBadge, { Back, Trash } from '../components/IconBadge';
 import SpeedGraph from '../components/SpeedGraph';
 import { fmtBytes } from '../api/stats';
 import { deleteTasks, reorderTasks, startTasks } from '../api/client';
@@ -120,7 +120,7 @@ export default function DownloadsScreen({
             gesture for "back to where I came from", drawn one way, on the
             settings screen. Two shapes for one meaning is the thing worth
             fixing here, not the wording. */}
-        <IconBadge symbol="‹" onPress={peer && onBackToOwn ? onBackToOwn : onSwitchConnection} accessibilityLabel={t('settings.back')} />
+        <IconBadge icon={<Back color={c.textSub} />} onPress={peer && onBackToOwn ? onBackToOwn : onSwitchConnection} accessibilityLabel={t('settings.back')} />
         <View style={styles.topBarLeft}>
           <Text style={[styles.title, { color: c.text }]}>{peer ? (peer.displayName ?? peer.name) : conn.name}</Text>
           {/* Only while it is NOT connected (jdp, 2026-08-30: "der
@@ -199,11 +199,18 @@ export default function DownloadsScreen({
                 )}
               </View>
 
-              {/* Only while something is actually moving (jdp: "ein
-                  downloadgraph soll die geschwindigkeit anzeigen wenn der
-                  download läuft"). An idle graph is a row of nothing that still
-                  costs the height of a graph. */}
-              {speed > 0 && (
+              {/* Shown whenever something is IN the queue, not only while bytes
+                  are moving (jdp, 2026-08-31: "Wo ist der downloadgraph in der
+                  übericht und in der instanz ansicht?").
+
+                  The old test was `speed > 0`, on the reasoning that an idle
+                  graph is a row of nothing costing the height of a graph. That
+                  is right for an empty instance and wrong for exactly the case
+                  he was looking at: a queue that says "running" while nothing
+                  moves. There, a line flat at zero is not nothing - it is the
+                  answer. So: something queued, graph; nothing queued, no
+                  graph. */}
+              {(speed > 0 || queued.length > 0) && (
                 <View style={[styles.graph, wide && styles.half]}>
                   <SpeedGraph speed={speed} />
                 </View>

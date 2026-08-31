@@ -1221,7 +1221,7 @@ export const cs: Dict = {
     'Každé nastavení tohoto buildu lze přečíst a změnit podle jeho syrového názvu na stránce Pokročilé, včetně několika - jak se zachází se zrcadlem už staženého souboru, co se stane, když by stahování skončilo na už použitém názvu - které zatím nemají vlastní ovládání nikde jinde.',
   'settings.help.advanced.link': 'Otevřít nastavení Pokročilé',
   'settings.about.title': 'O KnightLoaderu',
-  'settings.about.body': 'Něco nefunguje, něco chybí, nebo by to šlo lépe? Založ issue na GitHubu, nebo pošli e-mail.',
+  'settings.about.body': 'Problémy, přání nebo návrhy? Založ issue na GitHubu, nebo pošli e-mail.',
   'settings.about.version': 'Verze',
   'settings.about.github': 'Na GitHubu',
   'settings.about.mail': 'Poslat e-mail',

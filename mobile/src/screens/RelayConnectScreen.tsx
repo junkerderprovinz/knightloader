@@ -10,6 +10,7 @@ import type { RelayConnection, ServerConnection } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
+import IconBadge, { Back } from '../components/IconBadge';
 
 // Joining the group, which is the whole of connecting this app now: twelve
 // words, and every instance the person runs appears.
@@ -36,7 +37,19 @@ import { useT } from '../i18n/I18nContext';
 // not a timeout: it keeps updating afterwards for as long as the screen is open.
 const SETTLE_MS = 3000;
 
-export default function RelayConnectScreen({ onConnected }: { onConnected: (conn: ServerConnection) => void }) {
+export default function RelayConnectScreen({
+  onConnected,
+  onBack,
+}: {
+  onConnected: (conn: ServerConnection) => void;
+  /** The way out (jdp, 2026-08-31: "die mit phrase verbinden seite hat keinen
+   *  zurückbutton"). This screen is reached from the overview's "+" and from
+   *  the empty state, and on Android the hardware back key worked while nothing
+   *  on screen did - which is a way out only if you already know it is there.
+   *  Every other screen in this app has the badge; this one was the exception
+   *  nobody meant to make. */
+  onBack: () => void;
+}) {
   const { t } = useT();
   const { c, accent, accentContrast, radii } = useAppearance();
   const [phrase, setPhrase] = useState('');
@@ -175,7 +188,11 @@ export default function RelayConnectScreen({ onConnected }: { onConnected: (conn
 
   return (
     <View style={[styles.container, { backgroundColor: c.bg }]}>
-      <Text style={[styles.title, { color: c.text }]}>{t('relay.title')}</Text>
+      {/* Same badge, same place as every other screen: left of the heading. */}
+      <View style={styles.topBar}>
+        <IconBadge icon={<Back color={c.textSub} />} onPress={onBack} accessibilityLabel={t('settings.back')} />
+        <Text style={[styles.title, { color: c.text }]}>{t('relay.title')}</Text>
+      </View>
       <Text style={[styles.hint, { color: c.textMuted }]}>{t('relay.hint')}</Text>
 
       <Text style={[styles.label, { color: c.textMuted }]}>{t('relay.phraseLabel')}</Text>
@@ -292,6 +309,7 @@ export default function RelayConnectScreen({ onConnected }: { onConnected: (conn
 // in here: a stylesheet is built once and cannot follow a theme change.
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 24, paddingTop: 56 },
+  topBar: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 4 },
   title: { fontSize: 22, fontWeight: '600', marginBottom: 8 },
   hint: { fontSize: TYPE.body, marginBottom: 16, lineHeight: 20 },
   label: { fontSize: 13, marginBottom: 6, marginTop: 12 },

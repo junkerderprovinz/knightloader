@@ -190,6 +190,19 @@ export function Help() {
 
 const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
 const CONTACT_MAIL = 'hello@knightloader.app';
+const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
+
+/** A version number that goes where a version number should go. New tab: leaving
+ *  Settings to read a changelog is not what anybody meant by clicking a number.
+ *  Underlined on hover only - a permanent line under every number turns a quiet
+ *  fact into two links shouting at each other. */
+function VersionLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <a href={href} target="_blank" rel="noreferrer noopener" className="text-accentInk hover:underline">
+      {children}
+    </a>
+  );
+}
 
 /**
  * Which GlimStone this app is built against. Kept in step by hand, because the
@@ -197,7 +210,7 @@ const CONTACT_MAIL = 'hello@knightloader.app';
  * same constant lives in the extension's options.js and the app's
  * SettingsScreen, and the three are expected to agree.
  */
-const GLIMSTONE_VERSION = '1.7.0';
+const GLIMSTONE_VERSION = '1.6.0';
 
 /**
  * The About card (jdp, 2026-08-31: "in der App und der Erweiterung und im KL
@@ -228,10 +241,24 @@ function About({ hue }: { hue: number }) {
     <Card hue={hue} className="flex flex-col gap-3">
       <SectionTitle>{t('settings.about.title')}</SectionTitle>
       <p className="text-sm text-carbon-textSub">{t('settings.about.body')}</p>
+      {/* Both numbers are LINKS to their own release page (jdp, 2026-08-31:
+          "Die Versionsnummer (auch von Glimstone) soll immer auf deren release
+          auf github zeigen ... Das soll immmer und überall gelten"). A version
+          answers "which build is this"; the question straight after it is
+          always "and what changed". GlimStone 1.6.0 makes it the family rule.
+
+          Built from the version, never a hand-kept list of links. A dev build
+          has no release to point at, so it stays plain text rather than
+          offering a link into a 404. */}
       <p className="glim-num text-xs text-carbon-textMuted">
-        {t('settings.about.version')} {version && version !== 'dev' ? version : t('nav.workingTitle')}
+        {t('settings.about.version')}{' '}
+        {version && version !== 'dev' ? (
+          <VersionLink href={`${REPO_URL}/releases/tag/v${version}`}>{version}</VersionLink>
+        ) : (
+          t('nav.workingTitle')
+        )}
         {' · GlimStone '}
-        {GLIMSTONE_VERSION}
+        <VersionLink href={`${GLIMSTONE_URL}/releases/tag/v${GLIMSTONE_VERSION}`}>{GLIMSTONE_VERSION}</VersionLink>
       </p>
       <div className="flex flex-wrap gap-2">
         {/* Anchors dressed as buttons rather than buttons that navigate: one

@@ -1223,7 +1223,7 @@ export const no: Dict = {
     'Hver innstilling i denne builden kan leses og endres via sitt rå navn på siden Avansert, inkludert noen få - hvordan et speil av en allerede nedlastet fil behandles, hva som skjer når en nedlasting ville havnet på et allerede brukt navn - som ennå ikke har en egen kontroll noe annet sted.',
   'settings.help.advanced.link': 'Åpne innstillinger for Avansert',
   'settings.about.title': 'Om KnightLoader',
-  'settings.about.body': 'Noe ødelagt, noe som mangler, eller noe som kunne vært bedre? Opprett en sak på GitHub, eller send en e-post.',
+  'settings.about.body': 'Problemer, ønsker eller forslag? Opprett en sak på GitHub, eller send en e-post.',
   'settings.about.version': 'Versjon',
   'settings.about.github': 'På GitHub',
   'settings.about.mail': 'Send en e-post',

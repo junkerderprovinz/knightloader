@@ -83,6 +83,10 @@ const D_RETRY = 'M8 3V1L5 3.5 8 6V4a3.5 3.5 0 1 1-3.5 3.5H3A5 5 0 1 0 8 3z';
 const D_TRASH =
   'M6.5 1h3a1 1 0 0 1 1 1v1H13v1.5H3V3h2.5V2a1 1 0 0 1 1-1zm.5 2h2v-.5H7V3z' +
   'M4 5.5h8l-.6 8.1a1.4 1.4 0 0 1-1.4 1.4H6a1.4 1.4 0 0 1-1.4-1.4L4 5.5z';
+// The eyedropper: the one glyph everybody reads as "pick a colour". Drawn as a
+// filled shape like every other glyph in this language, not an outline.
+const D_DROPPER =
+  'M11.4 1.2a2.7 2.7 0 0 1 3.8 3.8l-1.3 1.3-1-1-1.1 1.1 1 1-5.6 5.6a2 2 0 0 1-.9.5l-3 .8.8-3a2 2 0 0 1 .5-.9l5.6-5.6 1 1 1.1-1.1-1-1 1.1-1.5z';
 const D_EYE =
   'M8 3C4.4 3 1.5 6.1.7 7.6a.8.8 0 0 0 0 .8C1.5 9.9 4.4 13 8 13s6.5-3.1 7.3-4.6a.8.8 0 0 0 0-.8' +
   'C14.5 6.1 11.6 3 8 3zm0 8a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0-1.6a1.4 1.4 0 1 0 0-2.8 1.4 1.4 0 0 0 0 2.8z';
@@ -627,7 +631,13 @@ async function restoreLocalLook() {
 const themeSeg = document.getElementById('themeSeg');
 const shapeSeg = document.getElementById('shapeSeg');
 const accentSwatches = document.getElementById('accentSwatches');
-const accentNow = document.getElementById('accentNow');
+// Built here rather than declared in the markup, because it lives INSIDE the
+// swatch row now and that row is cleared and refilled on every redraw - an
+// element from the HTML would be wiped by the first `innerHTML = ''`. One node,
+// kept across redraws, re-appended each time.
+const accentNow = document.createElement('button');
+accentNow.type = 'button';
+accentNow.className = 'glim-accent-now';
 
 /**
  * paintHues hands every card heading its own palette position, and the three
@@ -804,6 +814,14 @@ async function renderAppearance() {
   // they check whether a reset exists BEFORE deciding to experiment, not after.
   // Consistency inside one card decides it too: two colour rows, one reset each,
   // both always in the same place.
+  // "Any colour at all", at the end of the row and looking like a button (jdp,
+  // 2026-08-31: "der farbpicker bei den akzentfarbe-voreinstellungen fehlt").
+  // It was a plain filled circle before the presets, indistinguishable from
+  // them, so nothing said it opened anything - and with no way off the eight
+  // presets the reset badge beside it had nothing to reset from, which is
+  // exactly how jdp described it.
+  accentNow.replaceChildren(glyph(D_DROPPER, 13));
+  accentSwatches.appendChild(accentNow);
   accentSwatches.appendChild(resetBadge(() => pick('')));
 
   // --- The rainbow ---------------------------------------------------------
@@ -898,7 +916,6 @@ async function renderAppearance() {
 // of the configuration - how many instances, and how many of them are reached
 // through a forwarder rather than directly.
 
-const REPORT_URL = 'https://github.com/junkerderprovinz/knightloader/issues/new?template=extension.yml';
 
 /**
  * Which GlimStone this page implements. A plain constant, kept in step by
@@ -907,10 +924,24 @@ const REPORT_URL = 'https://github.com/junkerderprovinz/knightloader/issues/new?
  * than a package. The same constant exists in the web UI's Settings.tsx and
  * the two are expected to agree.
  */
-const GLIMSTONE_VERSION = '1.7.0';
+const GLIMSTONE_VERSION = '1.6.0';
 
 const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
+const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
 const CONTACT_MAIL = 'hello@knightloader.app';
+
+/** A version number that goes where the version number should go. New tab, so
+ *  reading a changelog does not cost somebody the settings page they were in
+ *  the middle of. */
+function versionLink(href, label) {
+  const a = document.createElement('a');
+  a.href = href;
+  a.target = '_blank';
+  a.rel = 'noreferrer noopener';
+  a.className = 'versionLink';
+  a.textContent = label;
+  return a;
+}
 
 /**
  * The About card (jdp, 2026-08-31), replacing the quiet centred line that used
@@ -933,7 +964,22 @@ function renderAbout() {
   const gh = document.getElementById('aboutGithub');
   const mail = document.getElementById('aboutMail');
   if (!versions) return;
-  versions.textContent = `${t('options.aboutVersion')} ${chrome.runtime.getManifest().version} · GlimStone ${GLIMSTONE_VERSION}`;
+  // Both numbers are LINKS to their own release page (jdp, 2026-08-31: "Die
+  // Versionsnummer (auch von Glimstone) soll immer auf deren release auf github
+  // zeigen ... Das soll immmer und überall gelten"). A version answers "which
+  // build is this"; the question straight after is always "and what changed",
+  // and a number nobody can follow makes somebody search a repository for a tag
+  // they then retype by hand. Now GlimStone 1.6.0 for the whole family.
+  //
+  // Built from the version, never a hand-kept list: that list is wrong the first
+  // time somebody forgets it. The tag shape is the repository's own - this one
+  // ships three artefacts, so the extension's tag carries a prefix.
+  versions.replaceChildren(
+    document.createTextNode(`${t('options.aboutVersion')} `),
+    versionLink(`${REPO_URL}/releases/tag/extension/v${chrome.runtime.getManifest().version}`, chrome.runtime.getManifest().version),
+    document.createTextNode(' · GlimStone '),
+    versionLink(`${GLIMSTONE_URL}/releases/tag/v${GLIMSTONE_VERSION}`, GLIMSTONE_VERSION),
+  );
   text.textContent = t('options.aboutText');
   gh.href = REPO_URL;
   gh.textContent = t('options.aboutGithub');
@@ -946,7 +992,6 @@ function renderAbout() {
 
 const reportEl = document.getElementById('report');
 const copyReportBtn = document.getElementById('copyReport');
-const reportLink = document.getElementById('reportLink');
 
 async function buildReport() {
   // The group is asked for rather than read from storage, which makes this
@@ -1013,8 +1058,6 @@ async function renderReport() {
   reportEl.textContent = text;
   // Prefilled, so the form opens with the report already in it rather than
   // asking somebody to paste something they have to go back for.
-  reportLink.href = `${REPORT_URL}&report=${encodeURIComponent(text)}`;
-  reportLink.textContent = t('options.problemsReport');
   copyReportBtn.textContent = t('options.problemsCopy');
 }
 

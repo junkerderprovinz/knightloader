@@ -1213,7 +1213,7 @@ export const pl: Dict = {
     'Każde ustawienie tego builda można odczytać i zmienić po jego surowej nazwie na stronie Zaawansowane, w tym kilka - jak traktowane jest lustro już pobranego pliku, co się dzieje, gdy pobranie miałoby trafić na już zajętą nazwę - które nie mają jeszcze dedykowanej kontrolki nigdzie indziej.',
   'settings.help.advanced.link': 'Otwórz ustawienia Zaawansowane',
   'settings.about.title': 'O KnightLoaderze',
-  'settings.about.body': 'Coś nie działa, czegoś brakuje, coś dałoby się zrobić lepiej? Zgłoś to na GitHubie albo napisz e-mail.',
+  'settings.about.body': 'Problemy, życzenia albo propozycje? Zgłoś to na GitHubie albo napisz e-mail.',
   'settings.about.version': 'Wersja',
   'settings.about.github': 'Na GitHubie',
   'settings.about.mail': 'Napisz e-mail',

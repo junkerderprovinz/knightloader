@@ -1213,7 +1213,7 @@ export const nl: Dict = {
     'Elke instelling van deze build kan op de pagina Geavanceerd worden gelezen en gewijzigd via zijn ruwe naam, inclusief enkele - hoe een spiegel van een al gedownload bestand wordt behandeld, wat er gebeurt als een download op een al gebruikte naam zou uitkomen - die nog geen eigen bediening ergens anders hebben.',
   'settings.help.advanced.link': 'Geavanceerd-instellingen openen',
   'settings.about.title': 'Over KnightLoader',
-  'settings.about.body': 'Iets kapot, iets dat ontbreekt, of iets dat beter kan? Open een issue op GitHub, of stuur een e-mail.',
+  'settings.about.body': 'Problemen, wensen of suggesties? Open een issue op GitHub, of stuur een e-mail.',
   'settings.about.version': 'Versie',
   'settings.about.github': 'Op GitHub',
   'settings.about.mail': 'E-mail sturen',

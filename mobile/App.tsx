@@ -148,6 +148,10 @@ function Shell() {
                   setConn(c);
                   navigation.navigate('Downloads', {});
                 }}
+                // goBack, not navigate('Connections'): this screen is reached
+                // from the overview and from its empty state, and "back" means
+                // whichever of those it was, not a fixed destination.
+                onBack={() => navigation.goBack()}
               />
             )}
           </Stack.Screen>

@@ -1213,7 +1213,7 @@ export const pt: Dict = {
     'Cada definição deste build pode ser lida e alterada pelo seu nome em bruto na página Avançado, incluindo algumas - como um mirror de um ficheiro já transferido é tratado, o que acontece quando uma transferência ia parar a um nome já usado - que ainda não têm um controlo dedicado em mais lado nenhum.',
   'settings.help.advanced.link': 'Abrir definições de Avançado',
   'settings.about.title': 'Sobre o KnightLoader',
-  'settings.about.body': 'Algo partido, algo em falta, ou algo que podia ser melhor? Abre uma questão no GitHub, ou envia um e-mail.',
+  'settings.about.body': 'Problemas, desejos ou sugestões? Abre uma questão no GitHub, ou envia um e-mail.',
   'settings.about.version': 'Versão',
   'settings.about.github': 'No GitHub',
   'settings.about.mail': 'Enviar um e-mail',

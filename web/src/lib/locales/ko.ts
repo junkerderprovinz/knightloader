@@ -1221,7 +1221,7 @@ export const ko: Dict = {
     '이 빌드의 모든 설정은 고급 페이지에서 원래 이름으로 읽고 바꿀 수 있으며, 이미 다운로드된 파일의 미러를 어떻게 처리하는지, 다운로드가 이미 사용 중인 이름에 놓이게 되면 어떻게 되는지 등 아직 다른 곳에 전용 컨트롤이 없는 몇 가지도 포함됩니다.',
   'settings.help.advanced.link': '고급 설정 열기',
   'settings.about.title': 'KnightLoader 정보',
-  'settings.about.body': '고장난 것, 빠진 것, 더 좋아질 수 있는 것이 있나요? GitHub에 이슈를 남기거나 메일을 보내 주세요.',
+  'settings.about.body': '문제, 바라는 점, 개선 아이디어가 있나요? GitHub에 이슈를 남기거나 메일을 보내 주세요.',
   'settings.about.version': '버전',
   'settings.about.github': 'GitHub에서',
   'settings.about.mail': '메일 보내기',

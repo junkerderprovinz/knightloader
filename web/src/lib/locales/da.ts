@@ -1221,7 +1221,7 @@ export const da: Dict = {
     'Enhver indstilling i dette build kan læses og ændres via dens rå navn på siden Avanceret, herunder nogle få - hvordan et spejl af en allerede downloadet fil behandles, hvad der sker, når en download ville havne på et allerede brugt navn - der endnu ikke har en dedikeret kontrol andetsteds.',
   'settings.help.advanced.link': 'Åbn indstillinger for Avanceret',
   'settings.about.title': 'Om KnightLoader',
-  'settings.about.body': 'Noget i stykker, noget der mangler, eller noget der kunne være bedre? Opret et issue på GitHub, eller send en mail.',
+  'settings.about.body': 'Problemer, ønsker eller forslag? Opret et issue på GitHub, eller send en mail.',
   'settings.about.version': 'Version',
   'settings.about.github': 'På GitHub',
   'settings.about.mail': 'Send en mail',

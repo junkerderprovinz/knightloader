@@ -180,8 +180,25 @@
          with the arrows still there. Typing and the arrow keys are untouched -
          it is still <input type="number">, so min/max/step and the numeric
          keypad on a phone all stay. */
+      /* The arrows sit INSIDE the field, where the browser's own put them, and
+         carry no ground of their own (jdp, 2026-08-31: "sie sollen im
+         eingabefeld sein wie ursprünglich aber keinen zusätzlichen dunklen
+         hintergrund").
+
+         The 1.13.0 version put them beside the field as two filled squares,
+         which turned one control into three objects standing in a row - and
+         the whole complaint about the native spinner was never "there are
+         arrows", it was "they arrive on their own dark background". Copying
+         that ground onto our own arrows reproduced the defect in our tokens
+         instead of the OS's. A stepper is part of the field, so it takes the
+         field's own surface and only its INK changes on hover.
+
+         The field carries the padding for them, so the digits never run
+         underneath. */
+      .numberField { position: relative; display: inline-flex; align-items: center; }
       #cnlCountdown {
-        width: 64px;
+        width: 84px;
+        padding-inline-end: 26px;
         text-align: center;
         appearance: textfield;
         -moz-appearance: textfield;
@@ -192,38 +209,37 @@
         -webkit-appearance: none;
         margin: 0;
       }
-      /* And the arrows come BACK, drawn here (jdp, 2026-08-31: "#297 jetzt sind
-         keine pfeiltasten mehr da"). Dropping the OS widget was right and
-         dropping the affordance with it was not: a number field wants a way to
-         step it without typing, and on a touch screen that is the only
-         comfortable way. So the control keeps its two steppers, they are just
-         ours now - the same 28px square, the same surface, the same radius
-         token as every other control on the page, and they respect min/max
-         because they go through the input's own stepUp/stepDown. */
+      .steppers {
+        position: absolute;
+        inset-inline-end: 6px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+      }
       .stepper {
-        display: inline-flex;
-        flex-shrink: 0;
-        align-items: center;
-        justify-content: center;
-        width: 28px;
-        height: 28px;
+        display: block;
+        width: 16px;
+        height: 13px;
         padding: 0;
         border: 0;
-        border-radius: var(--radius-control);
-        background: var(--carbon-surface2);
-        color: var(--carbon-text-sub);
+        border-radius: 0;
+        /* No ground at all: it is part of the field it sits in. */
+        background: none;
+        color: var(--carbon-text-muted);
         font: inherit;
-        font-size: 16px;
-        line-height: 1;
+        font-size: 9px;
+        line-height: 13px;
+        text-align: center;
         cursor: pointer;
-        transition: background-color 150ms ease, color 150ms ease;
+        transition: color 150ms ease;
       }
-      .stepper:hover { background: var(--carbon-surface3); color: var(--carbon-text); }
-      .stepper:active { transform: scale(0.94); }
+      .stepper:hover { background: none; color: var(--carbon-text); }
       /* At the end of the range there is nothing to step to, and a control that
          looks pressable and does nothing is worse than one that says so. */
-      .stepper:disabled { opacity: 0.4; cursor: default; }
-      .stepper:disabled:hover { background: var(--carbon-surface2); color: var(--carbon-text-sub); }
+      .stepper:disabled { opacity: 0.35; cursor: default; }
+      .stepper:disabled:hover { color: var(--carbon-text-muted); }
       /* The About card's own two lines. The sentence reads as body text
          because it IS the card's content; the versions sit under it, quieter,
          because they are the thing you look up rather than the thing you
@@ -235,6 +251,11 @@
         color: var(--carbon-text-muted);
         font-variant-numeric: tabular-nums;
       }
+      /* Underlined only on hover: a line under every version number turns a
+         quiet fact into two links shouting at each other. It still has to LOOK
+         reachable, so it takes the accent ink. */
+      .versionLink { color: var(--accent-ink); text-decoration: none; }
+      .versionLink:hover { text-decoration: underline; }
       pre.report {
         margin: 0 0 10px;
         padding: 12px;
@@ -338,9 +359,13 @@
              own Colours card lays it out. The current colour opens the page's
              own picker; the eight presets are the shortcut; the reset badge
              appears only once the accent has actually moved. -->
+        <!-- The picker button lives INSIDE the swatch row now, at its end, next
+             to the reset badge: "pick any colour" and "back to the default" are
+             the two ways out of the eight presets, and they belong together.
+             options.js moves it there and puts a glyph on it, so it is no
+             longer a ninth circle nobody could tell was a button. -->
         <div class="glim-axis glim-axis--colours">
           <span class="glim-axis-label" id="accentLabel">Accent</span>
-          <button type="button" class="glim-accent-now" id="accentNow"></button>
           <div class="glim-swatches" id="accentSwatches"></div>
         </div>
         <!-- The rainbow: the accent in the plural. The same three switches and
@@ -387,9 +412,13 @@
       <div class="glim-row" id="cnlCountdownRow">
         <span class="glim-row-label" id="cnlCountdownLabel"></span>
         <span class="glim-row-control">
-          <button type="button" class="stepper" id="cnlCountdownDown">−</button>
-          <input id="cnlCountdown" type="number" min="0" max="60" step="1" inputmode="numeric" />
-          <button type="button" class="stepper" id="cnlCountdownUp">+</button>
+          <span class="numberField">
+            <input id="cnlCountdown" type="number" min="0" max="60" step="1" inputmode="numeric" />
+            <span class="steppers">
+              <button type="button" class="stepper" id="cnlCountdownUp">▲</button>
+              <button type="button" class="stepper" id="cnlCountdownDown">▼</button>
+            </span>
+          </span>
           <span class="glim-row-unit" id="cnlCountdownUnit"></span>
         </span>
       </div>
@@ -398,9 +427,14 @@
     <section class="glim-card">
       <h2 class="glim-section-badge" id="problemsHeading">Problems?</h2>
       <pre id="report" class="report glim-well glim-num"></pre>
+      <!-- Copy only (jdp, 2026-08-31: "In der Probleme-card den Problem melden
+           button weg. auch in der App"). The About card below now carries both
+           routes to reporting, and a third door here - one that prefills a
+           GitHub form - made this card a second, differently-shaped answer to a
+           question the About card answers once. What this card is FOR is the
+           report itself: copy it, then use whichever route you prefer. -->
       <div class="fields">
         <button id="copyReport" class="secondary" type="button">Copy report</button>
-        <a id="reportLink" class="secondary btnlike" target="_blank" rel="noreferrer noopener">Report it</a>
       </div>
     </section>
 

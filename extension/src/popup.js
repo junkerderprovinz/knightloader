@@ -20,6 +20,9 @@ const instanceRow = document.getElementById('instanceRow');
 const instanceLabelEl = document.getElementById('instanceLabel');
 const instanceList = document.getElementById('instanceList');
 const sendBtn = document.getElementById('send');
+const cancelBtn = document.getElementById('cancelCountdown');
+const tabsEl = document.getElementById('tabs');
+const paneSendEl = document.getElementById('paneSend');
 const statusEl = document.getElementById('status');
 const openOptionsBtn = document.getElementById('openOptions');
 openOptionsBtn.addEventListener('click', () => chrome.runtime.openOptionsPage());
@@ -242,6 +245,9 @@ function cancelCountdown() {
   clearInterval(countdownTimer);
   countdownTimer = null;
   sendBtn.textContent = t('popup.send');
+  // The cancel goes with the clock it stops. A button that stops something not
+  // happening is a button that has to be explained.
+  cancelBtn.hidden = true;
 }
 
 async function startCountdown() {
@@ -255,6 +261,12 @@ async function startCountdown() {
     sendBtn.textContent = t('popup.sendIn', { n: String(left) });
   };
   paint();
+  // Visible only while the clock runs (jdp, 2026-08-31: "Dort fehlt auch ein
+  // Abbrechen button wenn ein links reingeladen wird und der countdown läuft").
+  // Until now the only way to stop it was to pick a different instance, which
+  // is a side effect of another action rather than a way to say no.
+  cancelBtn.textContent = t('popup.cancel');
+  cancelBtn.hidden = false;
   countdownTimer = setInterval(() => {
     left -= 1;
     if (left > 0) {
@@ -264,6 +276,56 @@ async function startCountdown() {
     cancelCountdown();
     sendBtn.click();
   }, 1000);
+}
+
+cancelBtn.addEventListener('click', () => cancelCountdown());
+
+/**
+ * The two halves of this window, one visible at a time (jdp, 2026-08-31:
+ * "Können wir im popupfenster zwei tabs machen wie inder app? Instanzen und
+ * Linksammler?").
+ *
+ * It was one column: instances, send, and then a collector far enough down that
+ * a window opened for one of them buried the other. The same well selector the
+ * options page and the app both use, so the three surfaces agree on what a
+ * chooser looks like.
+ *
+ * The strip appears only once there IS a group. With nothing to send to, two
+ * labels over an empty page are a choice between two kinds of nothing.
+ */
+let pane = 'send';
+
+function renderTabs() {
+  if (group.length === 0) {
+    tabsEl.hidden = true;
+    return;
+  }
+  tabsEl.hidden = false;
+  tabsEl.innerHTML = '';
+  for (const [value, label] of [
+    ['send', t('popup.tabInstances')],
+    ['collector', t('popup.tabCollector')],
+  ]) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = label;
+    b.setAttribute('aria-pressed', String(value === pane));
+    b.addEventListener('click', () => {
+      // Switching away from a running clock stops it, for the same reason
+      // picking a different instance does: taking hold of the window is the one
+      // case the countdown exists to leave room for.
+      cancelCountdown();
+      pane = value;
+      showPane();
+    });
+    tabsEl.appendChild(b);
+  }
+}
+
+function showPane() {
+  paneSendEl.hidden = pane !== 'send';
+  collectorEl.hidden = pane !== 'collector' || group.length === 0;
+  renderTabs();
 }
 
 sendBtn.addEventListener('click', async () => {
@@ -319,12 +381,15 @@ function linksIn(text) {
   return [...seen];
 }
 
+// Fills the collector's own labels. Whether it is ON SCREEN is showPane's
+// decision now, not this function's: two places setting `hidden` on the same
+// element is how one of them silently wins.
 function showCollector() {
   collectorLabelEl.textContent = t('popup.collectorLabel');
   linksEl.placeholder = t('popup.collectorPlaceholder');
   addLinksBtn.textContent = t('popup.collectorAdd');
   pickFilesBtn.textContent = t('popup.collectorFiles');
-  collectorEl.hidden = false;
+  showPane();
 }
 
 // dragover must be prevented or the drop never fires - the browser's default
