@@ -1220,6 +1220,12 @@ export const sk: Dict = {
   'settings.help.advanced.body':
     'Každé nastavenie tohto buildu je možné prečítať a zmeniť podľa jeho surového názvu na stránke Pokročilé, vrátane niekoľkých - ako sa zaobchádza so zrkadlom už stiahnutého súboru, čo sa stane, keď by sťahovanie skončilo na už použitom názve - ktoré ešte nemajú vlastný ovládací prvok inde.',
   'settings.help.advanced.link': 'Otvoriť nastavenia Pokročilé',
+  'settings.about.title': 'O KnightLoaderi',
+  'settings.about.body': 'Niečo nefunguje, niečo chýba, alebo by to šlo lepšie? Založ issue na GitHube, alebo pošli e-mail.',
+  'settings.about.version': 'Verzia',
+  'settings.about.github': 'Na GitHube',
+  'settings.about.mail': 'Poslať e-mail',
+  'settings.about.mailSubject': 'Spätná väzba',
 
   'settings.nav.scripts': 'Skripty',
   'settings.scripts.title': 'Skripty',

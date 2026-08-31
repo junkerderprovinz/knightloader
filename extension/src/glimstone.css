@@ -561,6 +561,39 @@
   animation: glim-fade-in 110ms ease-out;
 }
 @keyframes glim-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* The refusal signal, straight out of GlimStone's motion engine (jdp,
+   2026-08-31: "wenn man drauf klickt und man kenie Phrase eingegeben hat, also
+   es nicht klappt, soll er button kurz zittern. Ist das standardverhalten für
+   ein fehlschlagen von buttons. steht in GS.").
+
+   It does: 360ms ease-in-out translateX, decaying ±4 → ±4 → ±2 → ±2 through
+   the middle four keyframes, and it is deliberately named for the GESTURE
+   rather than for the first control it shipped on, so the next failable thing
+   on this page reuses it instead of inventing a second one.
+
+   Replay needs a FRESH element, not a re-toggled class: an animation already at
+   rest does not restart because its class left and came back in the same frame.
+   options.js clones the node, which is this page's equivalent of the key-on-a-
+   counter remount the language describes for a component framework.
+
+   Reduced motion gets a brief opacity pulse rather than nothing - the refusal
+   still has to be visible to somebody who turned animation off. */
+@keyframes glim-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+@keyframes glim-shake-quiet {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+.glim-shake { animation: glim-shake 360ms ease-in-out; }
+@media (prefers-reduced-motion: reduce) {
+  .glim-shake { animation: glim-shake-quiet 300ms ease-in-out; }
+}
 .glim-bubble::before {
   content: '';
   position: absolute;

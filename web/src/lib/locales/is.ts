@@ -1220,6 +1220,12 @@ export const is: Dict = {
   'settings.help.advanced.body':
     'Sérhver stilling þessarar útgáfu er hægt að lesa og breyta eftir hráu heiti hennar á Ítarlegt-síðunni, þar á meðal nokkrar - hvernig speglun skráar sem þegar hefur verið sótt er meðhöndluð, hvað gerist þegar niðurhal myndi lenda á heiti sem þegar er í notkun - sem hafa ekki enn sérstaka stjórn annars staðar.',
   'settings.help.advanced.link': 'Opna stillingar fyrir Ítarlegt',
+  'settings.about.title': 'Um KnightLoader',
+  'settings.about.body': 'Eitthvað bilað, eitthvað vantar, eða eitthvað sem mætti vera betra? Opnaðu mál á GitHub, eða sendu tölvupóst.',
+  'settings.about.version': 'Útgáfa',
+  'settings.about.github': 'Á GitHub',
+  'settings.about.mail': 'Senda tölvupóst',
+  'settings.about.mailSubject': 'Ábendingar',
   'settings.nav.scripts': 'Skriftur',
   'settings.scripts.title': 'Skriftur',
   'settings.scripts.subtitle': 'Sjálfvirknivæddu KnightLoader með þínu eigin JavaScript, keyrt við atburð eða eftir beiðni.',

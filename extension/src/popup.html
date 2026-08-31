@@ -6,6 +6,16 @@
     <link rel="stylesheet" href="glimstone.css" />
     <link rel="stylesheet" href="flags.css" />
     <style>
+      /* First, and !important, because an id rule that sets `display` outranks
+         the browser's own `[hidden] { display: none }` - and then the attribute
+         is a comment. `#collector { display: flex }` did exactly that, so the
+         link collector was on screen from the first paint whether or not there
+         was an instance to send to (jdp, 2026-08-31: "solange keine Instanz
+         hinzugefügt wurde soll der linksammler ausgeblendet sein"). The code
+         hiding it was correct the whole time; the stylesheet quietly refused.
+         The same defect sat on the options page's own leave button. One rule
+         per page in this family, so `hidden` means hidden everywhere. */
+      [hidden] { display: none !important; }
       body {
         /* 420, up from 360, which was up from 280 (jdp, 2026-08-27: "Das
            Popupfenster der erweitterung soll größer sein"; 2026-08-29: "die

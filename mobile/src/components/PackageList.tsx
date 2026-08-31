@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { Task } from '../api/types';
 import TaskRow from './TaskRow';
+import DragList, { type DragRow } from './DragList';
 import IconBadge, { Trash } from './IconBadge';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
@@ -58,9 +59,21 @@ export default function PackageList({
   tasks,
   onStartPackage,
   onDeletePackage,
+  onReorder,
   empty,
+  header,
 }: {
   tasks: Task[];
+  /** Everything that belongs ABOVE the list and has to line up with it: the
+   *  queue bar, the speed graph, the Downloads/Collector strip. They used to be
+   *  siblings of this list with their own copy of its width and margins, which
+   *  is how the strip ended up narrower than the cards and hard against the left
+   *  edge (jdp, 2026-08-31: "Der download/Sammler selektor soll bündig mit den
+   *  cards sien, jetzt ist er am rand links und er soll so breit sein wie die
+   *  cards"). Inside the list's own content container they cannot disagree with
+   *  it: same padding, same cap, same centring, by construction rather than by
+   *  two numbers somebody keeps in step. */
+  header?: React.ReactNode;
   /** Only the collector passes this: a package there is a staged batch, and
    *  the badge is what promotes it. Undefined in the download tab, where the
    *  queue's own controls already decide what runs. */
@@ -69,6 +82,11 @@ export default function PackageList({
    *  können"). Confirmed here rather than at the call site, so every caller
    *  gets the same dialog and none of them can forget it. */
   onDeletePackage?: (pkg: Pkg) => void;
+  /** The flat task order after a drag, ready for POST /api/tasks/reorder.
+   *  Undefined leaves the list un-draggable, which is what the collector tab
+   *  wants: nothing there is in the wait queue yet, so there is no order to
+   *  write. */
+  onReorder?: (ids: string[]) => void;
   empty: string;
 }) {
   const { t } = useT();
@@ -108,14 +126,44 @@ export default function PackageList({
     );
   };
 
-  return (
-    <FlatList
-      data={rows}
-      keyExtractor={(r) => (r.kind === 'header' ? `p:${r.pkg.name}` : r.task.id)}
-      contentContainerStyle={styles.list}
-      renderItem={({ item }) => {
-        if (item.kind === 'task') return <TaskRow task={item.task} index={item.index} />;
-        const { pkg } = item;
+  // One flat list of draggable rows. The BAND is what keeps a drag honest: a
+  // package header may only move among other package headers, and a link only
+  // within its own package. Without it a link could be dropped between two
+  // packages, where the list has no way to render it and the server has no way
+  // to store it.
+  const dragRows: DragRow[] = rows.map((r) =>
+    r.kind === 'header'
+      ? { key: `p:${r.pkg.name}`, band: 'packages', render: () => renderHeader(r.pkg) }
+      : { key: r.task.id, band: `pkg:${r.task.package || ''}`, render: () => <TaskRow task={r.task} index={r.index} /> },
+  );
+
+  /** A drop, turned into the flat task order the instance stores.
+   *
+   *  POST /api/tasks/reorder takes "one whole band of the wait queue in the
+   *  exact order given, as a drag would" - the same call the web interface's own
+   *  drag-and-drop makes - so both surfaces write the same shape and neither has
+   *  a private idea of what an order is. Reordering PACKAGES is expressed the
+   *  same way: the packages move, and the ids of their tasks are emitted in the
+   *  new package order. */
+  const applyOrder = (keys: string[], band: string) => {
+    if (!onReorder) return;
+    if (band === 'packages') {
+      const nachName = new Map(packages.map((p) => [`p:${p.name}`, p]));
+      const neu = keys.map((k) => nachName.get(k)).filter((p): p is Pkg => !!p);
+      onReorder(neu.flatMap((p) => p.tasks.map((x) => x.id)));
+      return;
+    }
+    // Within one package: that package's own tasks in the new order, and every
+    // other package left exactly where it was.
+    const name = band.slice('pkg:'.length);
+    onReorder(
+      packages.flatMap((p) =>
+        p.name === name ? keys.filter((k) => p.tasks.some((x) => x.id === k)) : p.tasks.map((x) => x.id),
+      ),
+    );
+  };
+
+  const renderHeader = (pkg: Pkg) => {
         const auf = open[pkg.name] === true;
         return (
           <View style={[styles.header, { backgroundColor: c.surface2, borderRadius: radii.control }]}>
@@ -166,16 +214,30 @@ export default function PackageList({
             )}
           </View>
         );
-      }}
-      ListEmptyComponent={<Text style={[styles.empty, { color: c.textMuted }]}>{empty}</Text>}
+  };
+
+  return (
+    <DragList
+      rows={dragRows}
+      onReorder={applyOrder}
+      contentContainerStyle={styles.list}
+      header={header}
+      empty={<Text style={[styles.empty, { color: c.textMuted }]}>{empty}</Text>}
     />
   );
 }
 
 // Colours and radii are applied inline from the resolved tokens, never baked
 // in here: a stylesheet is built once and cannot follow a theme change.
+// One column stretched across a tablet is a card 900 points wide with its text
+// at one edge and its badge at the other. A cap plus centring costs a phone
+// nothing (640 is wider than every phone) and makes a tablet readable. The same
+// helper the screens use, here so the header this list carries and the rows
+// under it are measured by ONE rule.
+const capped = { width: '100%' as const, maxWidth: 640, alignSelf: 'center' as const };
+
 const styles = StyleSheet.create({
-  list: { paddingHorizontal: 16, paddingBottom: 96, gap: 8 },
+  list: { ...capped, paddingHorizontal: 16, paddingBottom: 96, gap: 8 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

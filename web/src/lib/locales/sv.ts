@@ -1220,6 +1220,12 @@ export const sv: Dict = {
   'settings.help.advanced.body':
     'Varje inställning i detta bygge kan läsas och ändras via sitt råa namn på sidan Avancerat, inklusive några få - hur en spegling av en redan nedladdad fil hanteras, vad som händer när en nedladdning skulle hamna på ett redan använt namn - som ännu inte har en egen kontroll någon annanstans.',
   'settings.help.advanced.link': 'Öppna inställningar för Avancerat',
+  'settings.about.title': 'Om KnightLoader',
+  'settings.about.body': 'Något trasigt, något som saknas, eller något som kunde vara bättre? Öppna ett ärende på GitHub, eller skicka ett mejl.',
+  'settings.about.version': 'Version',
+  'settings.about.github': 'På GitHub',
+  'settings.about.mail': 'Skicka ett mejl',
+  'settings.about.mailSubject': 'Synpunkter',
 
   'settings.nav.scripts': 'Skript',
   'settings.scripts.title': 'Skript',

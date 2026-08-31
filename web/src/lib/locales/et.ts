@@ -1220,6 +1220,12 @@ export const et: Dict = {
   'settings.help.advanced.body':
     'Iga selle buildi seadet saab lugeda ja muuta selle toornime kaudu lehel Täpsem, sealhulgas mõnda - kuidas juba allalaaditud faili peeglit käsitletakse, mis juhtub, kui allalaadimine satuks juba kasutuses olevale nimele - millel pole veel oma eraldi juhtelementi kusagil mujal.',
   'settings.help.advanced.link': 'Ava täpsemad seaded',
+  'settings.about.title': 'Teave KnightLoaderi kohta',
+  'settings.about.body': 'Midagi katki, midagi puudu või midagi võiks parem olla? Ava GitHubis teema või saada e-kiri.',
+  'settings.about.version': 'Versioon',
+  'settings.about.github': 'GitHubis',
+  'settings.about.mail': 'Saada e-kiri',
+  'settings.about.mailSubject': 'Tagasiside',
   'settings.nav.scripts': 'Skriptid',
   'settings.scripts.title': 'Skriptid',
   'settings.scripts.subtitle': 'Automatiseeri KnightLoaderit oma JavaScriptiga, mis käivitub sündmusel või nõudmisel.',

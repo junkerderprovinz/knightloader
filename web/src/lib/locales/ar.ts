@@ -1222,6 +1222,12 @@ export const ar: Dict = {
   'settings.help.advanced.body':
     'يمكن قراءة كل إعداد في هذا البناء وتغييره باسمه الخام في صفحة متقدم، بما في ذلك بعضها - كيفية التعامل مع نسخة مطابقة لملف تم تنزيله بالفعل، وما يحدث عندما ينتهي تنزيل باسم مستخدَم بالفعل - التي ليس لها بعد عنصر تحكم مخصص في مكان آخر.',
   'settings.help.advanced.link': 'فتح إعدادات متقدم',
+  'settings.about.title': 'حول KnightLoader',
+  'settings.about.body': 'شيء معطّل أو ناقص أو يمكن تحسينه؟ افتح مسألة على GitHub أو أرسل بريدًا.',
+  'settings.about.version': 'الإصدار',
+  'settings.about.github': 'على GitHub',
+  'settings.about.mail': 'إرسال بريد',
+  'settings.about.mailSubject': 'ملاحظات',
   'settings.nav.scripts': 'السكربتات',
   'settings.scripts.title': 'السكربتات',
   'settings.scripts.subtitle': 'أتمتة KnightLoader بجافاسكربت خاص بك، يعمل عند حدث أو عند الطلب.',

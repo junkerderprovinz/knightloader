@@ -1220,6 +1220,12 @@ export const lv: Dict = {
   'settings.help.advanced.body':
     'Katru šīs versijas iestatījumu var nolasīt un mainīt pēc tā neapstrādātā nosaukuma lapā Papildu, ieskaitot dažus - kā tiek apstrādāts jau lejupielādēta faila spogulis, kas notiek, kad lejupielāde nonāktu uz jau izmantota nosaukuma - kuriem vēl nav savas atsevišķas vadīklas citur.',
   'settings.help.advanced.link': 'Atvērt Papildu iestatījumus',
+  'settings.about.title': 'Par KnightLoader',
+  'settings.about.body': 'Kaut kas salūzis, kaut kā trūkst vai varētu būt labāk? Atver problēmu GitHub vai sūti e-pastu.',
+  'settings.about.version': 'Versija',
+  'settings.about.github': 'GitHub',
+  'settings.about.mail': 'Sūtīt e-pastu',
+  'settings.about.mailSubject': 'Atsauksme',
   'settings.nav.scripts': 'Skripti',
   'settings.scripts.title': 'Skripti',
   'settings.scripts.subtitle': 'Automatizējiet KnightLoader ar savu JavaScript, kas darbojas notikumā vai pēc pieprasījuma.',

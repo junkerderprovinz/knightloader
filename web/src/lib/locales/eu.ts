@@ -1220,6 +1220,12 @@ export const eu: Dict = {
   'settings.help.advanced.body':
     'Build honen ezarpen bakoitza bere izen gordinaren bidez irakur eta alda daiteke Aurreratua orrian, jada deskargatutako fitxategi baten ispilua nola tratatzen den, deskarga bat jada erabiltzen ari den izen batean amaituko balitz zer gertatuko litzatekeen bezalako batzuk barne, oraindik beste inon kontrol berezirik ez dutenak.',
   'settings.help.advanced.link': 'Ireki Aurreratuaren ezarpenak',
+  'settings.about.title': 'KnightLoader-i buruz',
+  'settings.about.body': 'Zerbait hautsita, zerbait falta, edo hobeto egon litekeen zerbait? Ireki gai bat GitHuben, edo bidali mezu bat.',
+  'settings.about.version': 'Bertsioa',
+  'settings.about.github': 'GitHuben',
+  'settings.about.mail': 'Bidali mezu bat',
+  'settings.about.mailSubject': 'Iritzia',
   'settings.nav.scripts': 'Script-ak',
   'settings.scripts.title': 'Script-ak',
   'settings.scripts.subtitle': 'Automatizatu KnightLoader zure JavaScript propioarekin, gertaera batean edo eskariz exekutatuta.',

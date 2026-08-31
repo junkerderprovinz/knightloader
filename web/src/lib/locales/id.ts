@@ -1220,6 +1220,12 @@ export const id: Dict = {
   'settings.help.advanced.body':
     'Setiap pengaturan build ini dapat dibaca dan diubah melalui nama mentahnya di halaman Lanjutan, termasuk beberapa - bagaimana mirror dari file yang sudah diunduh diperlakukan, apa yang terjadi ketika unduhan akan mendarat di nama yang sudah digunakan - yang belum memiliki kontrol khusus di tempat lain.',
   'settings.help.advanced.link': 'Buka pengaturan Lanjutan',
+  'settings.about.title': 'Tentang KnightLoader',
+  'settings.about.body': 'Ada yang rusak, ada yang kurang, atau ada yang bisa lebih baik? Buka isu di GitHub, atau kirim surel.',
+  'settings.about.version': 'Versi',
+  'settings.about.github': 'Di GitHub',
+  'settings.about.mail': 'Kirim surel',
+  'settings.about.mailSubject': 'Masukan',
   'settings.nav.scripts': 'Skrip',
   'settings.scripts.title': 'Skrip',
   'settings.scripts.subtitle': 'Otomatiskan KnightLoader dengan JavaScript Anda sendiri, dijalankan pada suatu peristiwa atau sesuai permintaan.',

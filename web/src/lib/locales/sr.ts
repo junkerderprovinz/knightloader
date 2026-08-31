@@ -1220,6 +1220,12 @@ export const sr: Dict = {
   'settings.help.advanced.body':
     'Свако подешавање овог билда може да се прочита и промени према његовом сировом називу на страници Напредно, укључујући неколико - како се поступа са огледалом већ преузете датотеке, шта се дешава када би преузимање завршило на већ коришћеном називу - који још немају сопствену контролу другде.',
   'settings.help.advanced.link': 'Отвори подешавања Напредно',
+  'settings.about.title': 'О KnightLoader-у',
+  'settings.about.body': 'Нешто не ради, нешто недостаје или би могло боље? Отвори проблем на GitHub-у или пошаљи е-пошту.',
+  'settings.about.version': 'Верзија',
+  'settings.about.github': 'На GitHub-у',
+  'settings.about.mail': 'Пошаљи е-пошту',
+  'settings.about.mailSubject': 'Повратна информација',
 
   'settings.nav.scripts': 'Скрипте',
   'settings.scripts.title': 'Скрипте',

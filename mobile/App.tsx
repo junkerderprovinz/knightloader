@@ -123,6 +123,11 @@ function Shell() {
                   navigation.navigate('Downloads', {});
                 }}
                 onAddPress={() => navigation.navigate('RelayConnect')}
+                // The one door to Settings in the whole app (jdp, 2026-08-31:
+                // "Der Eisntellungsbutton soll in der instanzansicht weg. den
+                // soll es nur in der übersicht geben"). Settings are not a
+                // property of one instance, and a gear inside one suggested
+                // they were.
                 onOpenSettings={() => navigation.navigate('Settings')}
               />
             )}
@@ -158,8 +163,7 @@ function Shell() {
                     await setActiveConnectionId(null);
                     navigation.navigate('Connections');
                   }}
-                  onOpenSettings={() => navigation.navigate('Settings')}
-                  onBackToOwn={route.params?.peer ? () => navigation.goBack() : undefined}
+                    onBackToOwn={route.params?.peer ? () => navigation.goBack() : undefined}
                   // Removing the connection you are standing in has to leave
                   // it as well - the screen's whole subject just stopped
                   // existing. Back to the overview, which is where the list of

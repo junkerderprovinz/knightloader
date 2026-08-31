@@ -1220,6 +1220,12 @@ export const uk: Dict = {
   'settings.help.advanced.body':
     'Кожне налаштування цієї збірки можна прочитати й змінити за його необробленою назвою на сторінці Додатково, зокрема кілька - як обробляється дзеркало вже завантаженого файлу, що відбувається, коли завантаження опинилося б на вже використаній назві - які ще не мають окремого елемента керування деінде.',
   'settings.help.advanced.link': 'Відкрити налаштування Додатково',
+  'settings.about.title': 'Про KnightLoader',
+  'settings.about.body': 'Щось зламалося, чогось бракує або можна краще? Створіть задачу на GitHub або напишіть листа.',
+  'settings.about.version': 'Версія',
+  'settings.about.github': 'На GitHub',
+  'settings.about.mail': 'Написати листа',
+  'settings.about.mailSubject': 'Відгук',
 
   'settings.nav.scripts': 'Скрипти',
   'settings.scripts.title': 'Скрипти',

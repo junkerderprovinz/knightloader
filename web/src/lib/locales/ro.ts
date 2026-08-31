@@ -1220,6 +1220,12 @@ export const ro: Dict = {
   'settings.help.advanced.body':
     'Fiecare setare a acestui build poate fi citită și schimbată după numele ei brut pe pagina Avansat, inclusiv câteva - cum e tratată o oglindă a unui fișier deja descărcat, ce se întâmplă când o descărcare ar ajunge pe un nume deja folosit - care încă nu au un control dedicat nicăieri altundeva.',
   'settings.help.advanced.link': 'Deschide setările Avansat',
+  'settings.about.title': 'Despre KnightLoader',
+  'settings.about.body': 'Ceva stricat, ceva lipsă sau ceva ce ar putea fi mai bun? Deschide o problemă pe GitHub sau trimite un e-mail.',
+  'settings.about.version': 'Versiune',
+  'settings.about.github': 'Pe GitHub',
+  'settings.about.mail': 'Trimite un e-mail',
+  'settings.about.mailSubject': 'Feedback',
   'settings.nav.scripts': 'Scripturi',
   'settings.scripts.title': 'Scripturi',
   'settings.scripts.subtitle': 'Automatizează KnightLoader cu propriul tău JavaScript, rulat la un eveniment sau la cerere.',

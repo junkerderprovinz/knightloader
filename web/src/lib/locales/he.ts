@@ -1222,6 +1222,12 @@ export const he: Dict = {
   'settings.help.advanced.body':
     'כל הגדרה בבילד הזה אפשר לקרוא ולשנות לפי השם הגולמי שלה בעמוד המתקדם, כולל כמה - איך מטפלים במראה של קובץ שכבר הורד, מה קורה כשהורדה הייתה נוחתת על שם שכבר בשימוש - שעדיין אין להן פקד ייעודי במקום אחר.',
   'settings.help.advanced.link': 'פתח הגדרות מתקדמות',
+  'settings.about.title': 'על KnightLoader',
+  'settings.about.body': 'משהו שבור, משהו חסר, או משהו שיכול להיות טוב יותר? פתחו נושא ב-GitHub או שלחו מייל.',
+  'settings.about.version': 'גרסה',
+  'settings.about.github': 'ב-GitHub',
+  'settings.about.mail': 'שליחת מייל',
+  'settings.about.mailSubject': 'משוב',
   'settings.nav.scripts': 'סקריפטים',
   'settings.scripts.title': 'סקריפטים',
   'settings.scripts.subtitle': 'הפוך את KnightLoader לאוטומטי עם ה-JavaScript שלך, שרץ באירוע או לפי דרישה.',

@@ -1220,6 +1220,12 @@ export const th: Dict = {
   'settings.help.advanced.body':
     'การตั้งค่าทุกอย่างของบิลด์นี้สามารถอ่านและเปลี่ยนได้ผ่านชื่อดิบของมันในหน้าขั้นสูง รวมถึงบางอย่าง - เช่นวิธีจัดการกับ mirror ของไฟล์ที่ดาวน์โหลดไปแล้ว จะเกิดอะไรขึ้นเมื่อการดาวน์โหลดจะลงเอยที่ชื่อที่ถูกใช้ไปแล้ว - ที่ยังไม่มีตัวควบคุมเฉพาะที่อื่นเลย',
   'settings.help.advanced.link': 'เปิดการตั้งค่าขั้นสูง',
+  'settings.about.title': 'เกี่ยวกับ KnightLoader',
+  'settings.about.body': 'มีอะไรพัง ขาดหาย หรือทำให้ดีกว่านี้ได้ไหม เปิด issue บน GitHub หรือส่งอีเมล',
+  'settings.about.version': 'รุ่น',
+  'settings.about.github': 'บน GitHub',
+  'settings.about.mail': 'ส่งอีเมล',
+  'settings.about.mailSubject': 'ความเห็น',
   'settings.nav.scripts': 'สคริปต์',
   'settings.scripts.title': 'สคริปต์',
   'settings.scripts.subtitle': 'ทำให้ KnightLoader ทำงานอัตโนมัติด้วย JavaScript ของคุณเอง ทำงานเมื่อมีเหตุการณ์หรือตามคำขอ',

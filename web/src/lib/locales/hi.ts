@@ -1220,6 +1220,12 @@ export const hi: Dict = {
   'settings.help.advanced.body':
     'इस बिल्ड की हर सेटिंग को उन्नत पेज पर उसके कच्चे नाम से पढ़ा और बदला जा सकता है, कुछ ऐसी सेटिंग्स सहित - जैसे पहले से डाउनलोड की गई फ़ाइल के मिरर के साथ कैसा व्यवहार किया जाता है, पहले से इस्तेमाल हो रहे नाम पर डाउनलोड आ जाने पर क्या होता है - जिनका अभी कहीं और कोई समर्पित नियंत्रण नहीं है।',
   'settings.help.advanced.link': 'उन्नत सेटिंग्स खोलें',
+  'settings.about.title': 'KnightLoader के बारे में',
+  'settings.about.body': 'कुछ टूटा है, कुछ कम है, या कुछ बेहतर हो सकता है? GitHub पर issue खोलें या ईमेल भेजें।',
+  'settings.about.version': 'संस्करण',
+  'settings.about.github': 'GitHub पर',
+  'settings.about.mail': 'ईमेल भेजें',
+  'settings.about.mailSubject': 'प्रतिक्रिया',
   'settings.nav.scripts': 'स्क्रिप्ट',
   'settings.scripts.title': 'स्क्रिप्ट',
   'settings.scripts.subtitle': 'KnightLoader को अपनी JavaScript से स्वचालित करें, जो किसी घटना पर या माँग पर चलती है।',

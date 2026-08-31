@@ -148,11 +148,50 @@ export async function startTasks(conn: ServerConnection, ids: string[], base = '
   await request(conn, base, '/tasks/start', { method: 'POST', body: JSON.stringify({ ids }) });
 }
 
+/**
+ * The new order after a drag (jdp, 2026-08-31: "Das drag and drop für links und
+ * linkordner fehlt").
+ *
+ * The same call the web interface's own drag-and-drop makes, against the same
+ * route: "put one whole band of the wait queue in the exact order given, as a
+ * drag would". Both surfaces therefore write the same shape and neither has a
+ * private idea of what an order is - which matters here more than usual,
+ * because a phone and a browser can be looking at the same queue at the same
+ * moment.
+ */
+export async function reorderTasks(conn: ServerConnection, ids: string[], base = '/api'): Promise<void> {
+  await request(conn, base, '/tasks/reorder', { method: 'POST', body: JSON.stringify({ ids }) });
+}
+
 export async function setQueueHalted(conn: ServerConnection, halted: boolean, base = '/api'): Promise<QueueState> {
   return request<QueueState>(conn, base, '/queue', {
     method: 'POST',
     body: JSON.stringify({ halted }),
   });
+}
+
+/**
+ * The HARD stop, and the difference is the whole point (jdp, 2026-08-31: "wenn
+ * man auf den stopp button drückt werden sie nicht gestoppt").
+ *
+ * POST /api/queue with `halted: true` stops the DISPATCHER: nothing new starts,
+ * and whatever is already downloading runs to the end. That is deliberate on
+ * the server (`SetHalted`'s own doc comment: "killing a transfer mid-file
+ * throws away work the user did not ask to lose") and it is the wrong verb for
+ * a button labelled stop, because the thing somebody is watching move keeps
+ * moving. POST /api/queue/stop is `StopAll`: every transfer in flight is
+ * stopped where it is AND the queue is halted behind them, which is what the
+ * web interface's own stop button has always called.
+ *
+ * Relay-forwardable like every other queue route (`queue/` prefix, see
+ * routes_relay.go), so this works from the phone over the relay too.
+ */
+export async function stopAll(conn: ServerConnection, base = '/api'): Promise<QueueState> {
+  const res = await request<{ queue: QueueState }>(conn, base, '/queue/stop', {
+    method: 'POST',
+    body: JSON.stringify({}),
+  });
+  return res.queue;
 }
 
 // --- Federation: the peer instances the connected server itself knows -----

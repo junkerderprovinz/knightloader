@@ -1213,6 +1213,12 @@ export const fr: Dict = {
   'settings.help.advanced.body':
     'Chaque paramètre de ce build peut être lu et modifié par son nom brut sur la page Avancé, y compris quelques-uns - comment un miroir d’un fichier déjà téléchargé est traité, ce qui se passe quand un téléchargement atterrirait sur un nom déjà pris - qui n’ont pas encore de contrôle dédié ailleurs.',
   'settings.help.advanced.link': 'Ouvrir les paramètres Avancé',
+  'settings.about.title': 'À propos de KnightLoader',
+  'settings.about.body': 'Quelque chose est cassé, manque, ou pourrait être mieux ? Ouvre un ticket sur GitHub, ou envoie un e-mail.',
+  'settings.about.version': 'Version',
+  'settings.about.github': 'Sur GitHub',
+  'settings.about.mail': 'Envoyer un e-mail',
+  'settings.about.mailSubject': 'Retour',
   'settings.nav.scripts': 'Scripts',
   'settings.scripts.title': 'Scripts',
   'settings.scripts.subtitle': 'Automatisez KnightLoader avec votre propre JavaScript, exécuté sur un événement ou à la demande.',

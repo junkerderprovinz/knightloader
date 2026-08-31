@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { fetchQueue, liveTasks, setQueueHalted } from '../api/client';
+import { fetchQueue, liveTasks, setQueueHalted, stopAll } from '../api/client';
 import type { Instance, QueueState, ServerConnection, Task } from '../api/types';
 import PackageList from '../components/PackageList';
 import { WellSelector } from '../components/glim';
 import { useAppearance } from '../theme/AppearanceContext';
-import { contentMax, useWide } from '../theme/layout';
+import { useWide } from '../theme/layout';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
-import IconBadge, { Gear, Trash } from '../components/IconBadge';
+import IconBadge, { Trash } from '../components/IconBadge';
 import SpeedGraph from '../components/SpeedGraph';
 import { fmtBytes } from '../api/stats';
-import { deleteTasks, startTasks } from '../api/client';
+import { deleteTasks, reorderTasks, startTasks } from '../api/client';
 
 // peer, when set, means this screen is showing a FEDERATION PEER of conn
 // rather than conn's own queue: base becomes the proxy prefix
@@ -26,7 +26,6 @@ export default function DownloadsScreen({
   peer,
   onAddPress,
   onSwitchConnection,
-  onOpenSettings,
   onBackToOwn,
   onRemoveConnection,
 }: {
@@ -34,7 +33,6 @@ export default function DownloadsScreen({
   peer?: Instance;
   onAddPress: () => void;
   onSwitchConnection: () => void;
-  onOpenSettings: () => void;
   onBackToOwn?: () => void;
   /** Undefined for a federation peer: a peer is not a saved connection, so
    *  there is nothing here to remove. */
@@ -89,11 +87,19 @@ export default function DownloadsScreen({
   // try/finally with no catch was the bug, not a style choice: the finally
   // cleared the spinner and the rejection went nowhere, so a queue call the
   // instance refused looked exactly like a button that was not wired up.
+  //
+  // Stopping calls /api/queue/stop, not /api/queue with halted:true (jdp,
+  // 2026-08-31: "wenn man auf den stopp button drückt werden sie nicht
+  // gestoppt"). Halting stops the DISPATCHER and lets whatever is already
+  // downloading run to the end - which is the right default for the server and
+  // the wrong verb for this button, because the bar somebody is watching keeps
+  // moving. See stopAll() in api/client.ts. Starting is still the plain
+  // release, because there is no second kind of start.
   const toggleHalted = async (nextHalted: boolean) => {
     setQueueBusy(true);
     setStartError('');
     try {
-      setQueue(await setQueueHalted(conn, nextHalted, base));
+      setQueue(nextHalted ? await stopAll(conn, base) : await setQueueHalted(conn, false, base));
     } catch (e) {
       setStartError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -104,12 +110,18 @@ export default function DownloadsScreen({
   return (
     <View style={[styles.container, { backgroundColor: c.bg }]}>
       <View style={styles.topBar}>
+        {/* The way out is a badge on the LEFT of the name, exactly like the one
+            in Settings (jdp, 2026-08-31: "wenn ich eine instanz öffne soll
+            statt dem übersichtsbutton ein zurückbutton links neben dem namen
+            sein (Wie in den einstellungen)").
+
+            It was a text button called "Übersicht" over on the right, which is
+            a destination rather than a direction - and this app already has one
+            gesture for "back to where I came from", drawn one way, on the
+            settings screen. Two shapes for one meaning is the thing worth
+            fixing here, not the wording. */}
+        <IconBadge symbol="‹" onPress={peer && onBackToOwn ? onBackToOwn : onSwitchConnection} accessibilityLabel={t('settings.back')} />
         <View style={styles.topBarLeft}>
-          {peer && onBackToOwn ? (
-            <TouchableOpacity onPress={onBackToOwn}>
-              <Text style={[styles.back, { color: c.textMuted }]}>‹ {conn.name}</Text>
-            </TouchableOpacity>
-          ) : null}
           <Text style={[styles.title, { color: c.text }]}>{peer ? (peer.displayName ?? peer.name) : conn.name}</Text>
           {/* Only while it is NOT connected (jdp, 2026-08-30: "der
               verbundentext soll weg"). "verbunden" is the ordinary case, so it
@@ -123,32 +135,17 @@ export default function DownloadsScreen({
           )}
         </View>
         <View style={styles.topBarRight}>
-          {/* One way back, not two (jdp, 2026-08-30: "Wenn man in einer
-              instanz ist soll oben der button 'Instanzen' weg" / "Der button
-              Wechseln soll 'Übersicht' heißen"). Both used to lead to a list
-              of instances, and the Übersicht - the screen this app opens on -
-              is that list: every member of the group is a connection there.
-              What the removed link led to was the federation-peer view, which
-              still carried the name-and-address form the phrase replaced; see
-              App.tsx for what went with it. */}
-          {/* A real button, not a text link (jdp, 2026-08-30: "Übersicht
-              soll auch ein button sein"): it stands in a row of square badges,
-              and a bare word among them reads as a caption that happens to be
-              tappable. Text rather than a glyph, because "Übersicht" has no
-              symbol anybody would recognise. */}
-          {!peer && (
-            <TouchableOpacity
-              style={[styles.linkButton, { backgroundColor: c.surface2, borderRadius: radii.control }]}
-              onPress={onSwitchConnection}
-            >
-              <Text style={[styles.link, { color: c.text }]}>{t('downloads.overviewLink')}</Text>
-            </TouchableOpacity>
-          )}
           {/* Removing THIS connection belongs here, on the thing being removed
               (jdp, 2026-08-30: "der löschenbutton soll nur in der instanz
               drinnen zu sehen sein, nicht auf der card"). On the overview it
               sat on every row of a list you tap to open, which is a mis-tap
-              waiting to happen. */}
+              waiting to happen.
+
+              It is the only badge left on this side. The gear went (jdp,
+              2026-08-31: "Der Eisntellungsbutton soll in der instanzansicht
+              weg. den soll es nur in der übersicht geben"): settings are not a
+              property of one instance, and offering them from inside one
+              suggests they are. One door, on the screen that owns them. */}
           {!peer && onRemoveConnection && (
             <IconBadge
               icon={<Trash color={c.textSub} />}
@@ -156,83 +153,90 @@ export default function DownloadsScreen({
               accessibilityLabel={t('connections.remove')}
             />
           )}
-          {!peer && <IconBadge
-            icon={<Gear color={c.textSub} hole={c.surface2} />}
-            onPress={onOpenSettings}
-            accessibilityLabel={t('settings.title')}
-          />}
         </View>
       </View>
-
-      {/* On a tablet the queue bar and the graph sit side by side: they are
-          two readings of the same thing, and stacking them on a screen with
-          room to spare pushes the list that matters further down. */}
-      <View style={wide ? styles.wideHeader : undefined}>
-      <View style={[styles.queueBar, { backgroundColor: c.surface, borderRadius: radii.card }, wide && styles.half]}>
-        <Text style={[styles.queueLabel, { color: c.textMuted }]}>
-          {queue ? (queue.halted ? t('downloads.queueHalted') : t('downloads.queueRunning')) : '—'}
-          {queue && queue.running > 0 ? ` · ${t('downloads.queueActive', { n: queue.running })}` : ''}
-          {speed > 0 ? ` · ${fmtBytes(speed)}/s` : ''}
-        </Text>
-        {/* Two square badges, not a switch (jdp, 2026-08-30: "in der instanz
-            drinnen soll man die download starten und stoppen können"). A
-            switch says "on/off" about a thing whose verbs are start and stop,
-            and it is the same control the summary card above the overview
-            uses - one badge whose offer follows the state, so it can never
-            offer the thing that is already true. */}
-        {queueBusy ? (
-          <ActivityIndicator color={accentInk} size="small" />
-        ) : (
-          <IconBadge
-            symbol={queue?.halted ? '▶' : '■'}
-            accent={queue?.halted === true}
-            onPress={() => queue && toggleHalted(!queue.halted)}
-            accessibilityLabel={t(queue?.halted ? 'downloads.start' : 'downloads.stop')}
-          />
-        )}
-      </View>
-
-      {/* Only while something is actually moving (jdp: "ein downloadgraph soll
-          die geschwindigkeit anzeigen wenn der download läuft"). An idle graph
-          is a row of nothing that still costs the height of a graph. */}
-      {speed > 0 && (
-        <View style={[styles.graph, wide && styles.half]}>
-          <SpeedGraph speed={speed} />
-        </View>
-      )}
-      </View>
-
-      {/* Why the last start or stop did not take. One line, in the fail
-          colour, and only when there is something to say. Outside the wide
-          header on purpose: in there it would become a third flex column on a
-          tablet, squeezing the two readings it is meant to explain. */}
-      {startError !== '' && (
-        <Text style={[styles.queueError, { color: c.statusFailSolid }]} numberOfLines={2}>
-          {startError}
-        </Text>
-      )}
-
-      {/* The strip only appears once there is something staged: a tab that is
-          always empty is a tab that teaches you to ignore the strip. */}
-      {collected.length > 0 && (
-        <View style={styles.tabs}>
-          <WellSelector
-            options={[
-              { value: 'downloads', label: t('downloads.tabDownloads') },
-              { value: 'collector', label: `${t('downloads.tabCollector')} (${collected.length})` },
-            ]}
-            value={tab}
-            onPick={(v) => setTab(v)}
-          />
-        </View>
-      )}
 
       {/* Grouped into packages, not one row per link. A container is ONE thing
           somebody added; a flat list of its hundred files says nothing about
-          what was added. Same reasoning as the web interface and JDownloader. */}
+          what was added. Same reasoning as the web interface and JDownloader.
+
+          Everything above the rows travels as this list's HEADER rather than as
+          its siblings, and that is the fix for the strip sitting narrower than
+          the cards and hard against the left edge (jdp, 2026-08-31: "Der
+          download/Sammler selektor soll bündig mit den cards sien"). As
+          siblings, each piece carried its own copy of the list's width cap,
+          centring and margins - four places to keep in step, and they were not.
+          Inside the content container there is nothing to keep in step. */}
       <PackageList
         tasks={tab === 'collector' && collected.length > 0 ? collected : queued}
         empty={connected ? t('downloads.empty') : t('downloads.emptyConnecting')}
+        header={
+          <>
+            {/* On a tablet the queue bar and the graph sit side by side: they
+                are two readings of the same thing, and stacking them on a
+                screen with room to spare pushes the list that matters further
+                down. */}
+            <View style={wide ? styles.wideHeader : undefined}>
+              <View style={[styles.queueBar, { backgroundColor: c.surface, borderRadius: radii.card }, wide && styles.half]}>
+                <Text style={[styles.queueLabel, { color: c.textMuted }]}>
+                  {queue ? (queue.halted ? t('downloads.queueHalted') : t('downloads.queueRunning')) : '—'}
+                  {queue && queue.running > 0 ? ` · ${t('downloads.queueActive', { n: queue.running })}` : ''}
+                  {speed > 0 ? ` · ${fmtBytes(speed)}/s` : ''}
+                </Text>
+                {/* One badge whose offer follows the state, so it can never
+                    offer the thing that is already true - the same control the
+                    overview's own summary card uses. Stopping is the HARD stop
+                    now: see toggleHalted. */}
+                {queueBusy ? (
+                  <ActivityIndicator color={accentInk} size="small" />
+                ) : (
+                  <IconBadge
+                    symbol={queue?.halted ? '▶' : '■'}
+                    accent={queue?.halted === true}
+                    onPress={() => queue && toggleHalted(!queue.halted)}
+                    accessibilityLabel={t(queue?.halted ? 'downloads.start' : 'downloads.stop')}
+                  />
+                )}
+              </View>
+
+              {/* Only while something is actually moving (jdp: "ein
+                  downloadgraph soll die geschwindigkeit anzeigen wenn der
+                  download läuft"). An idle graph is a row of nothing that still
+                  costs the height of a graph. */}
+              {speed > 0 && (
+                <View style={[styles.graph, wide && styles.half]}>
+                  <SpeedGraph speed={speed} />
+                </View>
+              )}
+            </View>
+
+            {/* Why the last start or stop did not take. One line, in the fail
+                colour, and only when there is something to say. Outside the
+                wide header on purpose: in there it would become a third flex
+                column on a tablet, squeezing the two readings it explains. */}
+            {startError !== '' && (
+              <Text style={[styles.queueError, { color: c.statusFailSolid }]} numberOfLines={2}>
+                {startError}
+              </Text>
+            )}
+
+            {/* The strip only appears once there is something staged: a tab
+                that is always empty is a tab that teaches you to ignore the
+                strip. */}
+            {collected.length > 0 && (
+              <View style={styles.tabs}>
+                <WellSelector
+                  options={[
+                    { value: 'downloads', label: t('downloads.tabDownloads') },
+                    { value: 'collector', label: `${t('downloads.tabCollector')} (${collected.length})` },
+                  ]}
+                  value={tab}
+                  onPick={(v) => setTab(v)}
+                />
+              </View>
+            )}
+          </>
+        }
         onStartPackage={
           tab === 'collector' && collected.length > 0
             ? async (pkg) => {
@@ -275,6 +279,22 @@ export default function DownloadsScreen({
             setStartError(e instanceof Error ? e.message : String(e));
           }
         }}
+        // Only the download tab reorders. Nothing in the collector is in the
+        // wait queue yet, so there is no order there to write - the play badge
+        // is what puts a package INTO one, and until it does, an order somebody
+        // dragged would be written against a band the server has no row for.
+        onReorder={
+          tab === 'collector' && collected.length > 0
+            ? undefined
+            : async (ids) => {
+                setStartError('');
+                try {
+                  await reorderTasks(conn, ids, base);
+                } catch (e) {
+                  setStartError(e instanceof Error ? e.message : String(e));
+                }
+              }
+        }
       />
 
       <TouchableOpacity
@@ -299,34 +319,34 @@ const styles = StyleSheet.create({
   topBar: { ...capped,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    // Centre, not flex-start: the back badge and the title now share this row,
+    // and a 36px badge top-aligned against a 20px line reads as a mistake.
+    alignItems: 'center',
+    gap: 12,
     padding: 16,
     paddingTop: 56,
   },
-  topBarLeft: { minWidth: 0, flexShrink: 1 },
-  topBarRight: { flexDirection: 'row', gap: 16, alignItems: 'center' },
-  back: { fontSize: 13, marginBottom: 4 },
+  topBarLeft: { flex: 1, minWidth: 0 },
+  topBarRight: { flexDirection: 'row', gap: 12, alignItems: 'center' },
   title: { fontSize: TYPE.heading, fontWeight: '600' },
   connState: { fontSize: TYPE.dense, marginTop: 2 },
-  link: { fontSize: 13, fontWeight: '600' },
-  queueBar: { ...capped,
+  // No horizontal margin any more: these live inside the list's own content
+  // container, which already carries the padding, the cap and the centring.
+  // Keeping a margin here would inset them from the cards by another 16.
+  queueBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginHorizontal: 16,
     marginBottom: 12,
     paddingHorizontal: 14,
     paddingVertical: 10,
   },
   queueLabel: { fontSize: 13 },
-  queueError: { ...capped, marginHorizontal: 16, marginBottom: 8, fontSize: TYPE.caption },
-  graph: { ...capped, marginHorizontal: 16, marginBottom: 10 },
-  tabs: { ...capped, marginHorizontal: 16, marginBottom: 10 },
-  wideHeader: { flexDirection: 'row', alignSelf: 'center', width: '100%', maxWidth: 980, paddingHorizontal: 0 },
+  queueError: { marginBottom: 8, fontSize: TYPE.caption },
+  graph: { marginBottom: 10 },
+  tabs: { marginBottom: 10 },
+  wideHeader: { flexDirection: 'row', gap: 12 },
   half: { flex: 1, maxWidth: undefined },
-  // The same height as the badges beside it, so the row reads as one set.
-  linkButton: { height: 36, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center' },
-  list: { ...capped, paddingHorizontal: 16, paddingBottom: 96 },
   empty: { textAlign: 'center', marginTop: 48 },
   fab: {
     position: 'absolute',

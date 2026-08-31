@@ -178,63 +178,67 @@ export default function ConnectionsScreen({
         </View>
       </View>
 
-      {/* The summary above the list (jdp, 2026-08-30: "in der instanz übersicht
-          soll über den cards eine übersichtscard sein die die
-          downloadgeschwindigkeit, links etc aller instanzen anzeigt und
-          anzeigt welche instanz läuft"). It answers the question the list
-          cannot: the cards each say what ONE box is doing, and nothing said
-          what the group was doing. Hidden while there is nothing to summarise
-          - a total over zero instances is a row of zeroes taking up the top of
-          the screen. */}
-      {connections.length > 0 && (
-        <View style={[styles.summary, { backgroundColor: c.surface, borderRadius: radii.card }]}>
-          <View style={styles.summaryText}>
-            <Text style={[styles.summaryTitle, { color: c.text }]}>
-              {t('overview.title')}
-            </Text>
-            <Text style={[styles.summaryLine, { color: c.textMuted }]} numberOfLines={1}>
-              {[
-                t('overview.online', { n: gesamt.online, total: gesamt.total }),
-                `${gesamt.files} ${t('instance.files')}`,
-                gesamt.remaining > 0 ? `${fmtBytes(gesamt.remaining)} ${t('instance.left')}` : null,
-                gesamt.speed > 0 ? `${fmtBytes(gesamt.speed)}/s` : null,
-              ]
-                .filter(Boolean)
-                .join(' · ')}
-            </Text>
-          </View>
-          {/* Only offered when at least one instance answered: a start button
-              over a group that is entirely unreachable promises something it
-              cannot do. */}
-          {gesamt.online > 0 && (
-            <IconBadge
-              symbol={gesamt.halted ? '▶' : '■'}
-              accent={gesamt.halted}
-              onPress={busy ? () => {} : toggleAll}
-              accessibilityLabel={t(gesamt.halted ? 'downloads.start' : 'downloads.stop')}
-            />
-          )}
-        </View>
-      )}
-
-      {/* Why the last start/stop did not take. One line, in the fail colour,
-          and only when there is something to say. */}
-      {queueError !== '' && (
-        <Text style={[styles.queueError, { color: c.statusFailSolid }]} numberOfLines={2}>
-          {queueError}
-        </Text>
-      )}
-
-      {/* The graph belongs to the summary, not to a card: it is the group's
-          speed. Mounted only while something is actually moving. */}
-      {gesamt.speed > 0 && (
-        <View style={styles.summaryGraph}>
-          <SpeedGraph speed={gesamt.speed} />
-        </View>
-      )}
-
       <FlatList
         data={connections}
+        // The summary, the failure line and the graph travel as the list's own
+        // HEADER rather than as siblings above it (jdp, 2026-08-31: "in der
+        // Übesicht soll die alle instanzen card genauso groß sein wie die
+        // instanzen card"). As a sibling the card carried its own copy of the
+        // list's width cap plus a horizontal margin, and `width: '100%'` with a
+        // margin does not shrink the way padding inside a container does - so it
+        // came out wider than the cards it summarises. Inside the content
+        // container there is no second copy to disagree.
+        //
+        // On a tablet the header spans BOTH columns, which is right: it is the
+        // group's own line, not a third card competing for a slot.
+        ListHeaderComponent={
+          connections.length > 0 ? (
+            <View style={styles.header}>
+              <View style={[styles.summary, { backgroundColor: c.surface, borderRadius: radii.card }]}>
+                <View style={styles.summaryText}>
+                  <Text style={[styles.summaryTitle, { color: c.text }]}>{t('overview.title')}</Text>
+                  <Text style={[styles.summaryLine, { color: c.textMuted }]} numberOfLines={1}>
+                    {[
+                      t('overview.online', { n: gesamt.online, total: gesamt.total }),
+                      `${gesamt.files} ${t('instance.files')}`,
+                      gesamt.remaining > 0 ? `${fmtBytes(gesamt.remaining)} ${t('instance.left')}` : null,
+                      gesamt.speed > 0 ? `${fmtBytes(gesamt.speed)}/s` : null,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </Text>
+                </View>
+                {/* Only offered when at least one instance answered: a start
+                    button over a group that is entirely unreachable promises
+                    something it cannot do. */}
+                {gesamt.online > 0 && (
+                  <IconBadge
+                    symbol={gesamt.halted ? '▶' : '■'}
+                    accent={gesamt.halted}
+                    onPress={busy ? () => {} : toggleAll}
+                    accessibilityLabel={t(gesamt.halted ? 'downloads.start' : 'downloads.stop')}
+                  />
+                )}
+              </View>
+
+              {/* Why the last start/stop did not take. One line, in the fail
+                  colour, and only when there is something to say. */}
+              {queueError !== '' && (
+                <Text style={[styles.queueError, { color: c.statusFailSolid }]} numberOfLines={2}>
+                  {queueError}
+                </Text>
+              )}
+
+              {/* The graph belongs to the summary, not to a card: it is the
+                  group's speed. Mounted only while something is moving. */}
+              {gesamt.speed > 0 && (
+                <View style={styles.summaryGraph}>
+                  <SpeedGraph speed={gesamt.speed} />
+                </View>
+              )}
+            </View>
+          ) : null
+        }
         // Two columns on a tablet, one on a phone. key is tied to the count
         // because FlatList cannot change numColumns on an existing list - it
         // throws rather than re-laying out - so the list is remounted on a
@@ -320,24 +324,24 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 56,
   },
+  // The list's header block. No width, no cap, no horizontal margin: it lives
+  // inside the list's own content container, which already carries all three.
+  // Every one of those it used to repeat was a chance to disagree, and it did.
+  header: { marginBottom: 8 },
   summary: {
-    ...capped,
     // Same box as a row below it (jdp: "Übersichtscard soll genau so groß sein
-    // wie die instanzencards"): same horizontal margin, same padding, same gap.
-    // It had its own numbers and so stood visibly out of line with the list it
-    // summarises.
-    marginHorizontal: 16,
-    marginBottom: 8,
+    // wie die instanzencards"): same padding, same radius, same width - the
+    // last one now by construction rather than by matching numbers.
     padding: 14,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
   },
   summaryText: { flex: 1, minWidth: 0, gap: 2 },
   summaryTitle: { fontSize: 15, fontWeight: '600' },
   summaryLine: { fontSize: TYPE.dense },
-  queueError: { ...capped, marginHorizontal: 16, marginBottom: 8, fontSize: TYPE.caption },
-  summaryGraph: { ...capped, marginHorizontal: 16, marginBottom: 10 },
+  queueError: { marginTop: 8, fontSize: TYPE.caption },
+  summaryGraph: { marginTop: 10 },
   brand: { flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1, minWidth: 0 },
   // 32, so the mark reads as a mark beside a 22px title rather than as a
   // second heading. The asset is square, so both sides are set.

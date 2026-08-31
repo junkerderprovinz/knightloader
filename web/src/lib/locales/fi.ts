@@ -1220,6 +1220,12 @@ export const fi: Dict = {
   'settings.help.advanced.body':
     'Jokainen tämän buildin asetus voidaan lukea ja muuttaa raa’alla nimellään Lisäasetukset-sivulla, mukaan lukien muutama - miten jo ladatun tiedoston peili käsitellään, mitä tapahtuu, kun lataus päätyisi jo käytössä olevaan nimeen - joilla ei vielä ole omaa hallintaa muualla.',
   'settings.help.advanced.link': 'Avaa Lisäasetukset',
+  'settings.about.title': 'Tietoja KnightLoaderista',
+  'settings.about.body': 'Jokin rikki, jokin puuttuu, tai jokin voisi olla parempi? Avaa issue GitHubissa tai lähetä sähköpostia.',
+  'settings.about.version': 'Versio',
+  'settings.about.github': 'GitHubissa',
+  'settings.about.mail': 'Lähetä sähköpostia',
+  'settings.about.mailSubject': 'Palautetta',
   'settings.nav.scripts': 'Skriptit',
   'settings.scripts.title': 'Skriptit',
   'settings.scripts.subtitle': 'Automatisoi KnightLoader omalla JavaScriptilläsi, joka suoritetaan tapahtumassa tai pyynnöstä.',

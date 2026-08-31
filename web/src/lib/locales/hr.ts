@@ -1220,6 +1220,12 @@ export const hr: Dict = {
   'settings.help.advanced.body':
     'Svaku postavku ovog builda moguće je pročitati i promijeniti prema njezinom sirovom nazivu na stranici Napredno, uključujući nekoliko - kako se postupa sa zrcalom već preuzete datoteke, što se događa kad bi preuzimanje završilo na već korištenom nazivu - koje još nemaju vlastitu kontrolu drugdje.',
   'settings.help.advanced.link': 'Otvori postavke Napredno',
+  'settings.about.title': 'O KnightLoaderu',
+  'settings.about.body': 'Nešto ne radi, nešto nedostaje ili bi moglo bolje? Otvori problem na GitHubu ili pošalji e-poruku.',
+  'settings.about.version': 'Verzija',
+  'settings.about.github': 'Na GitHubu',
+  'settings.about.mail': 'Pošalji e-poruku',
+  'settings.about.mailSubject': 'Povratna informacija',
 
   'settings.nav.scripts': 'Skripte',
   'settings.scripts.title': 'Skripte',

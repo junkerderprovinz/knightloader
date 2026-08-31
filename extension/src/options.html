@@ -22,6 +22,20 @@
         font-size: var(--text-body);
         line-height: 1.5;
       }
+      /* An id or class rule that sets `display` OUTRANKS the browser's own
+         `[hidden] { display: none }`, so an element with the attribute stays on
+         screen and nothing in the markup says why. It bit two controls on this
+         page and one in the popup at the same time - #leave is `hidden` in the
+         HTML and `.iconBadge` sets `display: inline-flex`, so the bin next to
+         Connect was visible with no group to leave; the popup's own collector
+         was `hidden` under `#collector { display: flex }` and therefore always
+         open (jdp, 2026-08-31: "solange keine Instanz hinzugefügt wurde soll der
+         linksammler ausgeblendet sein").
+         One rule, first, with !important, because that is the only weight that
+         beats an arbitrary future id selector - and the attribute has to mean
+         what it says on every page in this family, not on the ones somebody
+         remembered. */
+      [hidden] { display: none !important; }
       h1 { font-size: 18px; margin: 0 0 6px; color: var(--accent-ink); }
       /* The cards carry the rhythm now. 26px between them is enough that the
          badge overhanging each top edge never crowds the card above it. */
@@ -112,7 +126,16 @@
       /* Three settings that differ only in what they set, stacked in one column
          so the eye compares the answers instead of the layout. The label rule
          above would otherwise shrink the selects along with their captions. */
-      .axes { display: flex; flex-direction: column; gap: 14px; }
+      .axes { display: flex; flex-direction: column; gap: 12px; }
+      /* Two spacings were being applied to the same gap: the column's own 14px
+         gap AND .glim-row's 14px margin-top, which lands at 28 between Accent,
+         Rainbow, Reactive, Rotation and Palette (jdp, 2026-08-31: "Die zeilen
+         wie Akzentfarbe, Regenbogenmodus, etc sind zu weit auseinander"). A
+         flex gap and a child margin do not merge the way two vertical margins
+         collapse - they add. Inside a gapped column the row keeps no margin of
+         its own; outside one it still needs it, so the rule is scoped rather
+         than the margin deleted. */
+      .axes > .glim-row { margin-top: 0; }
       /* The square icon badge, the same object popup.html draws in its own
          header: one size for every one of them, no drawn border, and the ink
          is the ordinary badge ink rather than a colour of its own. */
@@ -158,8 +181,8 @@
          it is still <input type="number">, so min/max/step and the numeric
          keypad on a phone all stay. */
       #cnlCountdown {
-        width: 84px;
-        text-align: end;
+        width: 64px;
+        text-align: center;
         appearance: textfield;
         -moz-appearance: textfield;
       }
@@ -169,19 +192,47 @@
         -webkit-appearance: none;
         margin: 0;
       }
-      /* The version footer, the same quiet line the web UI puts at the bottom
-         of every settings tab (jdp, 2026-08-30: "in den setting der app und
-         der erweiterung sollen auch die versionen angezeigt werden"). It was
-         only ever visible inside the diagnostic report, which is a box you
-         have to open. Centred, half-muted, out of the way - this is a thing
-         you look for, not a thing that should compete for attention. */
-      #version {
-        margin: 26px 0 0;
-        text-align: center;
-        font-size: 10px;
+      /* And the arrows come BACK, drawn here (jdp, 2026-08-31: "#297 jetzt sind
+         keine pfeiltasten mehr da"). Dropping the OS widget was right and
+         dropping the affordance with it was not: a number field wants a way to
+         step it without typing, and on a touch screen that is the only
+         comfortable way. So the control keeps its two steppers, they are just
+         ours now - the same 28px square, the same surface, the same radius
+         token as every other control on the page, and they respect min/max
+         because they go through the input's own stepUp/stepDown. */
+      .stepper {
+        display: inline-flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        border: 0;
+        border-radius: var(--radius-control);
+        background: var(--carbon-surface2);
+        color: var(--carbon-text-sub);
+        font: inherit;
+        font-size: 16px;
+        line-height: 1;
+        cursor: pointer;
+        transition: background-color 150ms ease, color 150ms ease;
+      }
+      .stepper:hover { background: var(--carbon-surface3); color: var(--carbon-text); }
+      .stepper:active { transform: scale(0.94); }
+      /* At the end of the range there is nothing to step to, and a control that
+         looks pressable and does nothing is worse than one that says so. */
+      .stepper:disabled { opacity: 0.4; cursor: default; }
+      .stepper:disabled:hover { background: var(--carbon-surface2); color: var(--carbon-text-sub); }
+      /* The About card's own two lines. The sentence reads as body text
+         because it IS the card's content; the versions sit under it, quieter,
+         because they are the thing you look up rather than the thing you
+         read. */
+      .aboutText { margin: 0 0 8px; font-size: var(--text-body); color: var(--carbon-text-sub); }
+      .aboutVersions {
+        margin: 0 0 12px;
+        font-size: var(--text-dense);
         color: var(--carbon-text-muted);
-        opacity: 0.55;
-        user-select: none;
         font-variant-numeric: tabular-nums;
       }
       pre.report {
@@ -336,7 +387,9 @@
       <div class="glim-row" id="cnlCountdownRow">
         <span class="glim-row-label" id="cnlCountdownLabel"></span>
         <span class="glim-row-control">
+          <button type="button" class="stepper" id="cnlCountdownDown">−</button>
           <input id="cnlCountdown" type="number" min="0" max="60" step="1" inputmode="numeric" />
+          <button type="button" class="stepper" id="cnlCountdownUp">+</button>
           <span class="glim-row-unit" id="cnlCountdownUnit"></span>
         </span>
       </div>
@@ -351,10 +404,31 @@
       </div>
     </section>
 
-    <!-- Appearance first: the look is put on <html> before anything is
-         drawn, so no page is ever painted in one look and repainted in
-         another. -->
-    <p id="version"></p>
+    <!-- The About card (jdp, 2026-08-31: "in der App und der Erweiterung und im
+         KL soll eine neue Card rein ... darin sollen die versionsnummern stehen
+         und ein text ... Die vversionsnummer sollen dann nicht nochmal unter
+         den card im hintergrund angeziegt werden").
+
+         It replaces the quiet centred version line that used to sit under the
+         last card. That line was the design language's own answer for a while,
+         and it had a real weakness: it is page chrome, so it looks like a
+         footer nobody put there on purpose, and there is nowhere to hang the
+         one thing somebody reading a version number usually wants next, which
+         is how to report what they found. A card can carry both.
+
+         This is also the ONE card in the family whose body is prose rather than
+         an info bubble - it has no control to explain, the sentence IS the
+         content. Written down as such in GlimStone 1.7.0 rather than left as a
+         quiet exception somebody else has to guess at. -->
+    <section class="glim-card">
+      <h2 class="glim-section-badge" id="aboutHeading">About</h2>
+      <p id="aboutText" class="aboutText"></p>
+      <p id="aboutVersions" class="aboutVersions glim-num"></p>
+      <div class="fields">
+        <a id="aboutGithub" class="secondary btnlike" target="_blank" rel="noreferrer noopener"></a>
+        <a id="aboutMail" class="secondary btnlike"></a>
+      </div>
+    </section>
 
     <script src="appearance.js"></script>
     <script src="colorpicker.js"></script>

@@ -1220,6 +1220,12 @@ export const ca: Dict = {
   'settings.help.advanced.body':
     'Cada configuració d’aquest build es pot llegir i canviar pel seu nom en brut a la pàgina Avançat, incloses algunes - com es tracta un mirall d’un fitxer ja baixat, què passa quan una baixada acabaria en un nom ja utilitzat - que encara no tenen un control dedicat enlloc més.',
   'settings.help.advanced.link': 'Obre la configuració d’Avançat',
+  'settings.about.title': 'Quant a KnightLoader',
+  'settings.about.body': 'Alguna cosa trencada, alguna cosa que falta, o alguna cosa que podria anar millor? Obre una incidència a GitHub, o envia un correu.',
+  'settings.about.version': 'Versió',
+  'settings.about.github': 'A GitHub',
+  'settings.about.mail': 'Envia un correu',
+  'settings.about.mailSubject': 'Comentaris',
   'settings.nav.scripts': 'Scripts',
   'settings.scripts.title': 'Scripts',
   'settings.scripts.subtitle': 'Automatitza KnightLoader amb el teu propi JavaScript, executat en un esdeveniment o a petició.',
