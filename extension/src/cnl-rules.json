@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "priority": 1,
+    "action": { "type": "redirect", "redirect": { "extensionPath": "/jdcheck.js" } },
+    "condition": {
+      "urlFilter": "|http://127.0.0.1:9666/jdcheck.js",
+      "resourceTypes": ["script", "xmlhttprequest"]
+    }
+  },
+  {
+    "id": 2,
+    "priority": 1,
+    "action": { "type": "redirect", "redirect": { "extensionPath": "/jdcheck.js" } },
+    "condition": {
+      "urlFilter": "|http://localhost:9666/jdcheck.js",
+      "resourceTypes": ["script", "xmlhttprequest"]
+    }
+  }
+]

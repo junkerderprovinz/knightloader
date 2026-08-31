@@ -32,20 +32,26 @@
   // global came out true. With nothing on that port the script fails and the
   // button never appears, so there would be no submission to catch.
   //
-  // Answering it from here rather than by redirecting that request is worth a
-  // paragraph, because the redirect was built first and then thrown away.
-  // A declarativeNetRequest redirect needs host permission for the INITIATOR -
-  // the website - not merely for the address being requested. Measured, not
-  // read: with permission for 127.0.0.1:9666 alone the rule never fired and
-  // the request went to the network; with <all_urls> it fired immediately.
-  // That is why JDownloader's own extension declares <all_urls>.
+  // BOTH halves are needed, and finding that out took a live container.
   //
-  // This file already runs in the page at document_start, before any script
-  // the page brings. Declaring the global here costs no permission at all, so
-  // the extension does not have to ask for access to every website in order to
-  // answer one probe. The failed request still appears in the console; that is
-  // the whole price, and it is a line of console noise rather than a
-  // permission prompt on every install.
+  // This half declares the globals in the page at document_start, before any
+  // script the page brings, and it costs no permission at all. It answers every
+  // site that simply READS `jdownloader`.
+  //
+  // It does not answer a site that hangs its decision on the script element's
+  // own onload/onerror, because with nothing listening on that port the request
+  // fails and `onerror` fires whatever the globals say. filecrypt is such a
+  // site: watched live on 2026-08-31, it opened helper.html, asked for
+  // jdcheck.js three times, got a network error each time and stopped. The
+  // globals were already set. It never looked at them.
+  //
+  // So the request itself is answered too, by a declarativeNetRequest rule
+  // pointing at our own jdcheck.js (see cnl-rules.json). That redirect was
+  // built once before and thrown away, for a reason that no longer holds: a DNR
+  // redirect needs host permission for the INITIATOR - the website - not merely
+  // for the address being requested, and back then this extension asked only
+  // for 127.0.0.1:9666. It declares <all_urls> now, for the interception
+  // itself, so the rule costs nothing extra.
   try {
     if (typeof window.jdownloader === 'undefined') {
       window.jdownloader = true;
