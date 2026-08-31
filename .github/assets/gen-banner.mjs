@@ -47,7 +47,11 @@ const LOGO_FILE = "logo.svg";
 // height that gives it real presence next to the two-line text block rather
 // than the house 400x400 square used for ring-style coin logos.
 const { vbW: LOGO_VB_W, vbH: LOGO_VB_H } = readViewBox(LOGO_FILE);
-const LH = 340, LW = LH * (LOGO_VB_W / LOGO_VB_H);
+// 420 of the 500px canvas, leaving 40px of air above and below. The crest is
+// TALL and narrow (559x897), so at the earlier 340 it measured only 212px across
+// and read as small beside a 132px wordmark - height is the only dimension it has
+// to hold its own with.
+const LH = 420, LW = LH * (LOGO_VB_W / LOGO_VB_H);
 // House banner standard: name 132 / claim 44, logo-to-text gap 70, name-to-claim gap 8.
 const nameSize = 132, claimSize = 44, gap = 70, lineGap = 8;
 
