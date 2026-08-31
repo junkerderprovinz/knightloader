@@ -1222,7 +1222,7 @@ export const de: Dict = {
     'Jede Einstellung dieses Builds lässt sich auf der Erweitert-Seite über ihren Rohnamen lesen und ändern, einschließlich einiger - wie ein Spiegel einer bereits geladenen Datei behandelt wird, was passiert, wenn ein Download auf einem bereits vergebenen Namen landen würde - die noch keine eigene Steuerung woanders haben.',
   'settings.help.advanced.link': 'Erweitert-Einstellungen öffnen',
   'settings.about.title': 'Über KnightLoader',
-  'settings.about.body': 'Etwas kaputt, etwas fehlt, oder etwas ginge besser? Schreib es auf GitHub als Issue, oder schick eine E-Mail.',
+  'settings.about.body': 'Probleme, Wünsche oder Verbesserungsvorschläge? Schreib es auf GitHub als Issue, oder schick eine E-Mail.',
   'settings.about.version': 'Version',
   'settings.about.github': 'Auf GitHub',
   'settings.about.mail': 'E-Mail schreiben',

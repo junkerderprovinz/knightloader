@@ -10,11 +10,12 @@ import { useAppearance } from '../theme/AppearanceContext';
 import { ACCENTS, SHAPES, type Shape } from '../theme/appearance';
 import { TYPE } from '../theme/tokens';
 import { GlimRow, GlimToggle, NotchCard, Swatch, WellSelector } from '../components/glim';
-import IconBadge from '../components/IconBadge';
+import IconBadge, { Back } from '../components/IconBadge';
 
-const GITHUB_URL = 'https://github.com/junkerderprovinz/knightloader/tree/main/mobile';
+const GITHUB_URL = 'https://github.com/junkerderprovinz/knightloader';
+const REPO_URL = GITHUB_URL;
+const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
 const CONTACT_MAIL = 'hello@knightloader.app';
-const REPORT_URL = 'https://github.com/junkerderprovinz/knightloader/issues/new?template=app.yml';
 
 /**
  * Which GlimStone this screen implements. A plain constant, kept in step by
@@ -23,7 +24,7 @@ const REPORT_URL = 'https://github.com/junkerderprovinz/knightloader/issues/new?
  * UI's Settings.tsx and the extension's options.js, and the three are expected
  * to agree.
  */
-const GLIMSTONE_VERSION = '1.7.0';
+const GLIMSTONE_VERSION = '1.6.0';
 
 /** shapeOf reads the shape back out of the radii the context resolved.
  *
@@ -126,7 +127,7 @@ export default function SettingsScreen({
             thing on screen stayed a hairline, and the complaint is that it is
             hard to HIT and hard to SEE. It is a proper square badge now, the
             same one the overview's own top bar uses. */}
-        <IconBadge symbol="‹" onPress={onBack} accessibilityLabel={t('settings.back')} />
+        <IconBadge icon={<Back color={c.textSub} />} onPress={onBack} accessibilityLabel={t('settings.back')} />
         <Text style={[styles.title, { color: c.text }]}>{t('settings.title')}</Text>
       </View>
 
@@ -244,18 +245,18 @@ export default function SettingsScreen({
             {report}
           </Text>
         </View>
+        {/* Share only (jdp, 2026-08-31: "In der Probleme-card den Problem
+            melden button weg. auch in der App"). The About card below carries
+            both routes to reporting; a third door here, differently shaped and
+            hard-wired to one of them, made this card a second answer to a
+            question that card already answers. What this card is FOR is the
+            report: take it, then use whichever route you prefer. */}
         <View style={styles.buttonRow}>
           <TouchableOpacity
             style={[styles.button, { backgroundColor: c.surface2, borderRadius: radii.control }]}
             onPress={() => Share.share({ message: report })}
           >
             <Text style={[styles.buttonText, { color: c.text }]}>{t('settings.problemsCopy')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.button, { backgroundColor: c.surface2, borderRadius: radii.control }]}
-            onPress={() => Linking.openURL(`${REPORT_URL}&report=${encodeURIComponent(report)}`)}
-          >
-            <Text style={[styles.buttonText, { color: accentInk }]}>{t('settings.problemsReport')}</Text>
           </TouchableOpacity>
         </View>
       </NotchCard>
@@ -271,8 +272,29 @@ export default function SettingsScreen({
           left for somebody to trip over. */}
       <NotchCard title={t('settings.about')} hue={3}>
         <Text style={[styles.aboutText, { color: c.textSub }]}>{t('settings.aboutBody')}</Text>
+        {/* Both numbers are LINKS to their own release page (jdp, 2026-08-31:
+            "Die Versionsnummer (auch von Glimstone) soll immer auf deren
+            release auf github zeigen ... Das soll immmer und überall gelten").
+            A version answers "which build is this"; the question straight after
+            it is always "and what changed". Now GlimStone 1.6.0 for the family.
+
+            Built from the version, never a hand-kept list of links: that list
+            is wrong the first time somebody forgets it. */}
         <Text style={[styles.aboutVersions, { color: c.textMuted }]}>
-          {`${t('settings.aboutVersion')} ${Constants.expoConfig?.version ?? '—'} · GlimStone ${GLIMSTONE_VERSION}`}
+          {`${t('settings.aboutVersion')} `}
+          <Text
+            style={{ color: accentInk }}
+            onPress={() => Linking.openURL(`${REPO_URL}/releases/tag/mobile/v${Constants.expoConfig?.version ?? ''}`)}
+          >
+            {Constants.expoConfig?.version ?? '—'}
+          </Text>
+          {' · GlimStone '}
+          <Text
+            style={{ color: accentInk }}
+            onPress={() => Linking.openURL(`${GLIMSTONE_URL}/releases/tag/v${GLIMSTONE_VERSION}`)}
+          >
+            {GLIMSTONE_VERSION}
+          </Text>
         </Text>
         <View style={styles.buttonRow}>
           <TouchableOpacity

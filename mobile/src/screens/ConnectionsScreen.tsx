@@ -230,8 +230,11 @@ export default function ConnectionsScreen({
               )}
 
               {/* The graph belongs to the summary, not to a card: it is the
-                  group's speed. Mounted only while something is moving. */}
-              {gesamt.speed > 0 && (
+                  group's speed. Shown whenever the group has anything queued,
+                  not only while bytes move (jdp, 2026-08-31: "Wo ist der
+                  downloadgraph in der übericht"): a line flat at zero beside a
+                  queue that says "running" is the answer, not an empty row. */}
+              {(gesamt.speed > 0 || gesamt.files > 0) && (
                 <View style={styles.summaryGraph}>
                   <SpeedGraph speed={gesamt.speed} />
                 </View>
@@ -342,13 +345,21 @@ const styles = StyleSheet.create({
   summaryLine: { fontSize: TYPE.dense },
   queueError: { marginTop: 8, fontSize: TYPE.caption },
   summaryGraph: { marginTop: 10 },
-  brand: { flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1, minWidth: 0 },
-  // 32, so the mark reads as a mark beside a 22px title rather than as a
-  // second heading. The asset is square, so both sides are set.
-  // Drawn larger than the old tile: an adaptive icon's foreground layer carries
-  // the safe-zone padding every launcher crops into, so at 32 the mark itself
-  // would come out noticeably smaller than the tile it replaces.
-  mark: { width: 44, height: 44, marginLeft: -6 },
+  brand: { flexDirection: 'row', alignItems: 'center', gap: 0, flexShrink: 1, minWidth: 0 },
+  // 44, and both margins are negative, which looks like a hack and is not (jdp,
+  // 2026-08-31: "der abstand von name und logo ist zu groß in der übersicht").
+  //
+  // The asset is the adaptive icon's FOREGROUND layer, and an adaptive icon
+  // carries a safe zone: roughly a quarter of the box on each side is
+  // transparent by specification, because every launcher crops into it. So the
+  // mark is drawn at 44 to come out the right visual size, and then about
+  // eleven points of that 44 are nothing at all on each side. A `gap` measures
+  // the BOX, not the ink, so a gap of 10 read as 21 and the name looked adrift.
+  //
+  // The negative margins take back what the safe zone padded out. The gap is 0
+  // for the same reason: there are already eleven invisible points between the
+  // mark and the name.
+  mark: { width: 44, height: 44, marginLeft: -10, marginRight: -6 },
   title: { fontSize: 22, fontWeight: '700' },
   badgeRow: { flexDirection: 'row', gap: 10 },
   list: { ...capped, paddingHorizontal: 16, paddingBottom: 32, gap: 8 },

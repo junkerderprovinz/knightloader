@@ -1221,7 +1221,7 @@ export const ms: Dict = {
     'Setiap tetapan build ini boleh dibaca dan diubah melalui nama mentahnya pada halaman Lanjutan, termasuk beberapa - cara cermin fail yang sudah dimuat turun dikendalikan, apa yang berlaku apabila muat turun akan mendarat pada nama yang sudah digunakan - yang masih belum mempunyai kawalan khusus di tempat lain.',
   'settings.help.advanced.link': 'Buka tetapan Lanjutan',
   'settings.about.title': 'Perihal KnightLoader',
-  'settings.about.body': 'Ada yang rosak, ada yang kurang, atau ada yang boleh lebih baik? Buka isu di GitHub, atau hantar e-mel.',
+  'settings.about.body': 'Masalah, kehendak atau cadangan? Buka isu di GitHub, atau hantar e-mel.',
   'settings.about.version': 'Versi',
   'settings.about.github': 'Di GitHub',
   'settings.about.mail': 'Hantar e-mel',

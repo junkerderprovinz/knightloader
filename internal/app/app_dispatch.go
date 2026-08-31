@@ -517,11 +517,30 @@ func (a *App) Pause(id string) {
 	wasActive := a.active[id]
 	delete(a.active, id)
 	a.dequeueLocked(id)
+	// The status is written HERE, for a waiting task and a running one alike,
+	// and that symmetry is the fix rather than a tidy-up.
+	//
+	// The running branch used to write nothing and call the backend, on the
+	// assumption that the backend would report the new state. Some do. The
+	// engine's own pause does not emit one, so a task the engine was driving
+	// stayed StatusRunning for ever: the transfer really had stopped, the bar
+	// really had frozen, and the row still said "running" (jdp, 2026-08-31:
+	// "auch in der container instanz funktioniert der stopp button nicht. der
+	// status zeigt weiterhin läuft an"). It reached TorBox because a TorBox task
+	// hands its direct URL to the engine and then delegates Pause to it, so it
+	// inherits exactly that gap - but the defect was never TorBox's, it was in
+	// every path that ends at the engine.
+	//
+	// **A state the app COMMANDED is the app's to record.** Waiting for a
+	// backend to volunteer it makes correctness depend on every backend
+	// remembering, and a backend that forgets fails silently and looks like a
+	// dead button. A later event from the backend still wins, which is what
+	// makes writing it here safe: this is the optimistic value, not a claim
+	// about the network.
+	t.Status = core.StatusPaused
+	t.Speed = 0
+	c := *t
 	if !wasActive {
-		// Still waiting in the queue: just mark it paused.
-		t.Status = core.StatusPaused
-		t.Speed = 0
-		c := *t
 		a.mu.Unlock()
 		_ = a.Store.Save(&c)
 		a.Hub.Broadcast("task", &c)
@@ -529,6 +548,8 @@ func (a *App) Pause(id string) {
 	}
 	a.dispatchLocked()
 	a.mu.Unlock()
+	_ = a.Store.Save(&c)
+	a.Hub.Broadcast("task", &c)
 	a.backendFor(t.Resolver).Pause(id)
 }
 

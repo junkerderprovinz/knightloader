@@ -362,9 +362,25 @@
  * (colorpicker.js), which is what the design language asks for and the only
  * version an automated check can actually see.
  */
+/* The "any colour at all" control, and it has to LOOK like one (jdp,
+   2026-08-31: "der farbpicker bei den akzentfarbe-voreinstellungen fehlt.
+   sonst macht der resetbutton ja kein sinn").
+
+   It was a plain filled circle standing among eight other filled circles, so it
+   was on screen the whole time and read as a ninth preset - the one showing the
+   current colour. Nothing said it opened anything. That is also why the reset
+   badge looked pointless: with no way to leave the eight presets, there is
+   nothing to reset FROM.
+
+   Same size as the presets, the current colour underneath, and a glyph on top
+   so it is the one circle in the row that is obviously a button. It sits at the
+   END of the row now, beside the reset badge: "pick anything" and "go back" are
+   the two escapes from the presets, and they belong together. */
 .glim-accent-now {
   position: relative;
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 24px;
   height: 24px;
   padding: 0;
@@ -373,6 +389,13 @@
   border-radius: var(--radius-pill);
   box-shadow: var(--hairline);
   cursor: pointer;
+}
+/* The glyph reads on any colour the user can land on, light or dark, without
+   computing an ink: a white mark with a dark halo is legible on both. */
+.glim-accent-now svg {
+  display: block;
+  color: #fff;
+  filter: drop-shadow(0 0 1.5px rgba(0, 0, 0, 0.85));
 }
 
 /* A small round action beside a row of swatches: reset. An icon badge rather

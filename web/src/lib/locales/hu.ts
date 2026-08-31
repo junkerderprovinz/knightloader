@@ -1221,7 +1221,7 @@ export const hu: Dict = {
     'Ennek a buildnek minden beállítása kiolvasható és módosítható a nyers nevén a Haladó oldalon, néhányat is beleértve - hogy egy már letöltött fájl tükre hogyan kezelendő, mi történik, ha egy letöltés egy már használt névre kerülne - amelyeknek még nincs dedikált kezelőfelülete máshol.',
   'settings.help.advanced.link': 'Haladó beállítások megnyitása',
   'settings.about.title': 'A KnightLoaderről',
-  'settings.about.body': 'Valami elromlott, valami hiányzik, vagy lehetne jobb? Nyiss egy hibajegyet a GitHubon, vagy írj egy e-mailt.',
+  'settings.about.body': 'Probléma, kívánság vagy javaslat? Nyiss egy hibajegyet a GitHubon, vagy írj egy e-mailt.',
   'settings.about.version': 'Verzió',
   'settings.about.github': 'A GitHubon',
   'settings.about.mail': 'E-mail írása',

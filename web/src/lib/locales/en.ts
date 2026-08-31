@@ -1408,7 +1408,7 @@ export const en = {
     'Every setting this build has can be read and changed by its raw name on the Advanced page, including a few - how a mirror of an already-downloaded file is treated, what happens when a download would land on a name already taken - that do not have a dedicated control anywhere else yet.',
   'settings.help.advanced.link': 'Open Advanced settings',
   'settings.about.title': 'About KnightLoader',
-  'settings.about.body': 'Something broken, something missing, or something that could be better? Open an issue on GitHub, or send an email.',
+  'settings.about.body': 'Problems, wishes or suggestions? Open an issue on GitHub, or send an email.',
   'settings.about.version': 'Version',
   'settings.about.github': 'On GitHub',
   'settings.about.mail': 'Send an email',

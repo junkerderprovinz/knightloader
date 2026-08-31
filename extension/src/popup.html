@@ -158,6 +158,11 @@
          belongs to the group it names, not to the rhythm between blocks. */
       #instanceList { display: flex; flex-direction: column; gap: 16px; margin-top: 6px; }
       #instanceLabel { margin: 0; }
+      /* Send and its cancel share a row; cancel is only there while a clock is
+         running, so the send button is full width the rest of the time. */
+      .sendRow { display: flex; gap: 8px; }
+      .sendRow #send { flex: 1; }
+      #tabs { margin-bottom: 12px; }
       /* The collector, one 16px step below the send button like everything
          else in this window. */
       #collector { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
@@ -211,12 +216,31 @@
         </svg>
       </button>
     </div>
-    <p id="target">Loading the current page…</p>
-    <div id="instanceRow" hidden>
-      <p id="instanceLabel" class="glim-eyebrow">Send to</p>
-      <div id="instanceList"></div>
+    <!-- Two tabs, the same shape the app's instance view uses (jdp,
+         2026-08-31: "Können wir im popupfenster zwei tabs machen wie inder app?
+         Instanzen und Linksammler?"). The window was one long column: the
+         instances, the send button, and then a collector nobody scrolled to.
+         Two halves, one visible at a time, and the strip only appears once
+         there is a group - with nothing to send to, a tab strip is two labels
+         over an empty page. -->
+    <div id="tabs" class="glim-seg" role="group" hidden></div>
+
+    <div id="paneSend">
+      <p id="target">Loading the current page…</p>
+      <div id="instanceRow" hidden>
+        <p id="instanceLabel" class="glim-eyebrow">Send to</p>
+        <div id="instanceList"></div>
+      </div>
+      <!-- Send and cancel share a row while a countdown is running (jdp,
+           2026-08-31: "Dort fehlt auch ein Abbrechen button wenn ein links
+           reingeladen wird und der countdown läuft"). Cancel only exists while
+           the clock does: a button that stops something not happening is a
+           button that has to be explained. -->
+      <div class="sendRow">
+        <button id="send" class="primary">Send this page</button>
+        <button id="cancelCountdown" class="secondary" type="button" hidden></button>
+      </div>
     </div>
-    <button id="send" class="primary">Send this page</button>
 
     <!-- The collector (jdp, 2026-08-30: "unter den instanzencards soll eine
          linksammler cards sein mit dropzone für links und button um dateien

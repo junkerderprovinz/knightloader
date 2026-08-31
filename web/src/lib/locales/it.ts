@@ -1213,7 +1213,7 @@ export const it: Dict = {
     'Ogni impostazione di questo build può essere letta e modificata tramite il suo nome grezzo nella pagina Avanzate, comprese alcune - come viene trattato un mirror di un file già scaricato, cosa succede quando un download finirebbe su un nome già usato - che non hanno ancora un controllo dedicato altrove.',
   'settings.help.advanced.link': 'Apri le impostazioni Avanzate',
   'settings.about.title': 'Informazioni su KnightLoader',
-  'settings.about.body': 'Qualcosa non va, manca qualcosa, o si può fare meglio? Apri una segnalazione su GitHub, oppure scrivi una e-mail.',
+  'settings.about.body': 'Problemi, desideri o suggerimenti? Apri una segnalazione su GitHub, oppure scrivi una e-mail.',
   'settings.about.version': 'Versione',
   'settings.about.github': 'Su GitHub',
   'settings.about.mail': 'Scrivi una e-mail',

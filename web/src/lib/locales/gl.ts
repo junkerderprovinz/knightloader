@@ -1221,7 +1221,7 @@ export const gl: Dict = {
     'Cada configuración deste build pódese ler e cambiar polo seu nome en bruto na páxina Avanzado, incluídas algunhas - como se trata un espello dun ficheiro xa descargado, que pasa cando unha descarga acabaría nun nome xa usado - que aínda non teñen un control dedicado noutro sitio.',
   'settings.help.advanced.link': 'Abrir configuración de Avanzado',
   'settings.about.title': 'Sobre KnightLoader',
-  'settings.about.body': 'Algo roto, algo que falta, ou algo que podería ser mellor? Abre unha incidencia en GitHub, ou envía un correo.',
+  'settings.about.body': 'Problemas, desexos ou suxestións? Abre unha incidencia en GitHub, ou envía un correo.',
   'settings.about.version': 'Versión',
   'settings.about.github': 'En GitHub',
   'settings.about.mail': 'Enviar un correo',
