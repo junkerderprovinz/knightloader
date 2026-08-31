@@ -31,6 +31,8 @@ const cnlEnabledEl = document.getElementById('cnlEnabled');
 const cnlCountdownEl = document.getElementById('cnlCountdown');
 const cnlCountdownLabelEl = document.getElementById('cnlCountdownLabel');
 const cnlCountdownUnitEl = document.getElementById('cnlCountdownUnit');
+const cnlCountdownUpEl = document.getElementById('cnlCountdownUp');
+const cnlCountdownDownEl = document.getElementById('cnlCountdownDown');
 const appearanceHeadingEl = document.getElementById('appearanceHeading');
 const themeHeadingEl = document.getElementById('themeHeading');
 const shapeHeadingEl = document.getElementById('shapeHeading');
@@ -47,6 +49,7 @@ const followInstanceEl = document.getElementById('followInstance');
 const followInstanceRow = followInstanceEl.closest('.glim-row');
 const accentLabelEl = document.getElementById('accentLabel');
 const problemsHeadingEl = document.getElementById('problemsHeading');
+const aboutHeadingEl = document.getElementById('aboutHeading');
 const phraseEye = document.getElementById('phraseEye');
 
 /**
@@ -91,6 +94,40 @@ const D_EYE_OFF =
 function say(text, ok) {
   status.textContent = text;
   status.className = ok ? 'ok' : '';
+}
+
+/**
+ * The refusal signal (jdp, 2026-08-31: "wenn man drauf klickt und man kenie
+ * Phrase eingegeben hat, also es nicht klappt, soll er button kurz zittern. Ist
+ * das standardverhalten für ein fehlschlagen von buttons. steht in GS. Die
+ * Text-Fehlermeldung die darunter erscheint soll weg").
+ *
+ * He is right that it is already the standard: GlimStone's "Failure feedback"
+ * says every failable action reports through the same two channels, the control
+ * plays `glim-shake`, and the permanent inline sentence is REMOVED rather than
+ * kept alongside. This page had only the sentence, which has the property the
+ * language objects to - it never clears itself, so a failure from ten minutes
+ * ago looks exactly as current as one from a second ago.
+ *
+ * Replay is the part that is easy to get wrong: an animation already at rest
+ * does NOT restart because its class left and came back in the same frame, so a
+ * second identical refusal would sit still. A component framework solves it by
+ * keying the element on a counter, which mints a fresh DOM node. This page has
+ * no framework, and cloning the node would be the literal translation of that -
+ * but it would also drop every listener bound to the element, which on this
+ * page includes the ones that make the button work at all. Forcing a reflow
+ * between the remove and the add restarts the animation with the same effect
+ * and leaves the node, and its listeners, exactly where they were.
+ */
+function shake(el) {
+  if (!el) return;
+  el.classList.remove('glim-shake');
+  // Reading a layout property flushes the pending style change, which is what
+  // makes the class removal a real "animation ended" rather than a no-op the
+  // browser coalesces away. Deliberately not assigned to anything.
+  void el.offsetWidth;
+  el.classList.add('glim-shake');
+  el.addEventListener('animationend', () => el.classList.remove('glim-shake'), { once: true });
 }
 
 /**
@@ -152,6 +189,8 @@ function applyStaticText() {
   label('followInstanceLabel', t('options.followInstance'), t('options.followInstanceHint'));
 
   problemsHeadingEl.textContent = t('options.problemsHeading');
+  aboutHeadingEl.textContent = t('options.aboutHeading');
+  renderAbout();
   glimSetInfo('problemsHeading', t('options.problemsSub'));
   // The button and the link get their text from renderReport(), which also
   // fills the report itself and the prefilled issue URL — setting them here as
@@ -297,7 +336,14 @@ joinForm.addEventListener('submit', async (e) => {
     await writePhrase(phraseInput.value);
   } catch (err) {
     joinBtn.disabled = false;
-    say(phraseProblemText(err), false);
+    // The button says it, not a sentence under it. The reason still exists -
+    // it is the button's tooltip now, so it is one hover away for anybody who
+    // wants it - but nothing permanent is left on the page (GlimStone,
+    // "Failure feedback": the inline sentence is removed outright, because
+    // unlike a transient it never clears itself).
+    joinBtn.setAttribute('data-tip', phraseProblemText(err));
+    say('', false);
+    shake(joinBtn);
     return;
   }
   // Checked against the relay before it is called a success: a phrase that
@@ -312,8 +358,13 @@ joinForm.addEventListener('submit', async (e) => {
     // sentence saying "2" above two visible cards is the same fact twice. An
     // EMPTY group still says so, because there are no cards to say it instead.
     say(siblings.length ? '' : t('options.joinedEmpty'), true);
+    joinBtn.removeAttribute('data-tip');
   } catch {
-    say(t('options.groupUnreachable'), false);
+    // Same treatment as a rejected phrase: the control says so, the page keeps
+    // no sentence.
+    joinBtn.setAttribute('data-tip', t('options.groupUnreachable'));
+    say('', false);
+    shake(joinBtn);
   }
   joinBtn.disabled = false;
   await renderGroup();
@@ -403,7 +454,51 @@ async function renderCnl() {
   cnlCountdownLabelEl.textContent = t('options.cnlCountdown');
   cnlCountdownUnitEl.textContent = t('options.seconds');
   cnlCountdownEl.value = String(await readCnlCountdown());
+  cnlCountdownUpEl.setAttribute('aria-label', t('options.cnlCountdownUp'));
+  cnlCountdownUpEl.setAttribute('data-tip', t('options.cnlCountdownUp'));
+  cnlCountdownDownEl.setAttribute('aria-label', t('options.cnlCountdownDown'));
+  cnlCountdownDownEl.setAttribute('data-tip', t('options.cnlCountdownDown'));
+  markCountdownEnds();
 }
+
+/** Greys out whichever stepper has nowhere left to go. min and max are read
+ *  from the input rather than repeated here: two places holding the same range
+ *  is one place holding it wrong. */
+function markCountdownEnds() {
+  const v = Number(cnlCountdownEl.value);
+  cnlCountdownDownEl.disabled = v <= Number(cnlCountdownEl.min);
+  cnlCountdownUpEl.disabled = v >= Number(cnlCountdownEl.max);
+}
+
+/**
+ * The two steppers, drawn by us (jdp, 2026-08-31: "#297 jetzt sind keine
+ * pfeiltasten mehr da").
+ *
+ * Dropping the OS widget was right; dropping the AFFORDANCE with it was not. A
+ * number field wants a way to nudge it without typing, and on a touch screen
+ * that is the only comfortable way to reach 5 from 4. So the control keeps its
+ * two arrows - ours now, in the page's own tokens - and the design language
+ * gains the second half of the rule it was missing (GlimStone 1.7.0).
+ *
+ * stepUp/stepDown rather than arithmetic: they already honour min, max and step
+ * from the element, so the range lives in exactly one place, and they fire the
+ * same 'change' the keyboard and typing do - which is what persists the value,
+ * so nothing here has to know how the value is stored.
+ */
+function stepCountdown(by) {
+  try {
+    if (by > 0) cnlCountdownEl.stepUp();
+    else cnlCountdownEl.stepDown();
+  } catch {
+    // stepUp throws when the field is empty or out of range. Land somewhere
+    // valid rather than doing nothing.
+    cnlCountdownEl.value = String(CNL_COUNTDOWN_DEFAULT);
+  }
+  cnlCountdownEl.dispatchEvent(new Event('change'));
+}
+
+cnlCountdownUpEl.addEventListener('click', () => stepCountdown(1));
+cnlCountdownDownEl.addEventListener('click', () => stepCountdown(-1));
 
 // Written on 'change', not on every keystroke: a number field fires 'input' for
 // each digit, so typing "30" would pass through 3 on the way - and a value of 3
@@ -412,6 +507,7 @@ async function renderCnl() {
 // popup has to defend against.
 cnlCountdownEl.addEventListener('change', async () => {
   cnlCountdownEl.value = String(await writeCnlCountdown(cnlCountdownEl.value));
+  markCountdownEnds();
 });
 
 cnlEnabledEl.addEventListener('click', async () => {
@@ -699,15 +795,16 @@ async function renderAppearance() {
       swatch(x.hex, { label: x.name, pressed: x.hex.toLowerCase() === live, onPick: () => pick(x.hex) }),
     );
   }
-  // The way back, and only once there is something to go back from (jdp,
-  // 2026-08-28: "Die resetbuttons fehlen bei den farben"). It was dropped in
-  // an earlier round for appearing and disappearing beside eight fixed
-  // circles; what brings it back is that the accent is now editable to any
-  // colour at all, so "pick Sunflower again" is no longer a complete way home
-  // - a custom colour has no swatch to return to.
-  if (live !== DEFAULT_ACCENT.toLowerCase()) {
-    accentSwatches.appendChild(resetBadge(() => pick('')));
-  }
+  // The way back, always rendered (jdp, 2026-08-31: "die akzentfarbe hat keinen
+  // resetbutton"). It used to appear only once the accent had actually moved,
+  // which is defensible and turned out to be wrong for the same reason the
+  // palette's own reset was already unconditional two rows below: a control
+  // that is sometimes there is a control nobody learns the position of, and the
+  // moment somebody goes looking for it is exactly the moment it is missing -
+  // they check whether a reset exists BEFORE deciding to experiment, not after.
+  // Consistency inside one card decides it too: two colour rows, one reset each,
+  // both always in the same place.
+  accentSwatches.appendChild(resetBadge(() => pick('')));
 
   // --- The rainbow ---------------------------------------------------------
   // The same three axes the web UI's Look page offers, in the same order, so
@@ -810,23 +907,41 @@ const REPORT_URL = 'https://github.com/junkerderprovinz/knightloader/issues/new?
  * than a package. The same constant exists in the web UI's Settings.tsx and
  * the two are expected to agree.
  */
-const GLIMSTONE_VERSION = '1.5.0';
+const GLIMSTONE_VERSION = '1.7.0';
+
+const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
+const CONTACT_MAIL = 'hello@knightloader.app';
 
 /**
- * The version footer, the same quiet line the web UI puts at the bottom of
- * every settings tab (jdp, 2026-08-30: "in den setting der app und der
- * erweiterung sollen auch die versionen angezeigt werden"). The number was
- * only ever reachable inside the diagnostic report, which is a box you have to
- * open first - so from the page itself the extension appeared to have no
- * version at all.
+ * The About card (jdp, 2026-08-31), replacing the quiet centred line that used
+ * to sit under the last card: "in der App und der Erweiterung und im KL soll
+ * eine neue Card rein ... Die vversionsnummer sollen dann nicht nochmal unter
+ * den card im hintergrund angeziegt werden".
  *
- * Read from the manifest rather than typed here: a version written down twice
- * is a version that disagrees with itself on the day one of them is bumped.
+ * The footer was the design language's own answer for a while and it had a real
+ * weakness: page chrome reads as something nobody put there on purpose, and it
+ * has nowhere to hang the thing a person reading a version number usually wants
+ * next, which is how to report what they just found. A card carries both, and
+ * the two buttons make "report it" a click rather than a search.
+ *
+ * Versions read from the manifest, never typed here: a number written down
+ * twice is a number that disagrees with itself the day one of them is bumped.
  */
-function renderVersion() {
-  const el = document.getElementById('version');
-  if (!el) return;
-  el.textContent = `${chrome.runtime.getManifest().version} · GlimStone ${GLIMSTONE_VERSION}`;
+function renderAbout() {
+  const versions = document.getElementById('aboutVersions');
+  const text = document.getElementById('aboutText');
+  const gh = document.getElementById('aboutGithub');
+  const mail = document.getElementById('aboutMail');
+  if (!versions) return;
+  versions.textContent = `${t('options.aboutVersion')} ${chrome.runtime.getManifest().version} · GlimStone ${GLIMSTONE_VERSION}`;
+  text.textContent = t('options.aboutText');
+  gh.href = REPO_URL;
+  gh.textContent = t('options.aboutGithub');
+  // A plain mailto, with the subject prefilled so a mail that arrives already
+  // says which product it is about. No body: a prefilled body reads as a form
+  // to fill in, and this is meant to be a message somebody writes.
+  mail.href = `mailto:${CONTACT_MAIL}?subject=${encodeURIComponent('KnightLoader ' + t('options.aboutMailSubject'))}`;
+  mail.textContent = t('options.aboutMail');
 }
 
 const reportEl = document.getElementById('report');
@@ -852,11 +967,31 @@ async function buildReport() {
   // that only carries the switch cannot tell "he turned it off" apart from "the
   // registration failed" — the two causes of the one complaint this feature
   // ever produces.
+  //
+  // The DETAIL matters, not just the count, and that is a lesson from a live
+  // failure rather than a preference. jdp reported Click'n'Load dead in Brave
+  // with "gar nichts sichtbar"; every candidate cause - the switch off, the
+  // scripts unregistered, the registration stale from before a fix, the
+  // redirect ruleset not loaded - produces that exact same nothing, and a
+  // report saying "on (2 content scripts registered)" tells the four apart not
+  // at all. So the report names each script with the two properties that have
+  // actually gone wrong (which world, and whether the blank-document fallback
+  // is on), plus which rulesets the browser has enabled.
   let registered = '?';
   try {
-    registered = String((await chrome.scripting.getRegisteredContentScripts()).length);
-  } catch {
-    /* no scripting permission: leave it unknown rather than claim zero */
+    const s = await chrome.scripting.getRegisteredContentScripts();
+    registered = s.length
+      ? s.map((x) => `${x.id}/${x.world || 'ISOLATED'}${x.matchOriginAsFallback ? '+fallback' : ''}`).join(' ')
+      : 'none';
+  } catch (e) {
+    registered = `unreadable (${e instanceof Error ? e.message : String(e)})`;
+  }
+  let rules = '?';
+  try {
+    const en = await chrome.declarativeNetRequest.getEnabledRulesets();
+    rules = en.length ? en.join(' ') : 'none';
+  } catch (e) {
+    rules = `unavailable (${e instanceof Error ? e.message : String(e)})`;
   }
   const a = await readAppearance();
   const m = chrome.runtime.getManifest();
@@ -867,7 +1002,9 @@ async function buildReport() {
     `appearance: theme=${a.theme || 'system'} shape=${a.shape} accent=${a.accent || 'default'} rainbow=${a.rainbow?.on ? 'on' : 'off'}`,
     `group:     ${joined ? 'joined' : 'no phrase stored'} (${reachable})`,
     `default:   ${(await readDefaultTarget()) ? 'chosen' : 'first in the group'}`,
-    `clicknload: ${cnlEnabled !== false ? 'on' : 'off'} (${registered} content scripts registered)`,
+    `clicknload: ${cnlEnabled !== false ? 'on' : 'off'}`,
+    `  scripts: ${registered}`,
+    `  rules:   ${rules}`,
   ].join('\n');
 }
 
@@ -906,7 +1043,7 @@ copyReportBtn.addEventListener('click', async () => {
   await renderLanguagePicker();
   await renderCnl();
   await renderAppearance();
-  renderVersion();
+  renderAbout();
   void renderReport();
   // Last, and not awaited by the rest: it opens a relay connection, and the
   // page should be usable while that is in flight rather than blank.

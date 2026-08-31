@@ -1220,6 +1220,12 @@ export const ja: Dict = {
   'settings.help.advanced.body':
     'このビルドのすべての設定は、詳細ページでその生の名前によって読み書きできます。すでにダウンロードされたファイルのミラーがどう扱われるか、ダウンロードがすでに使われている名前に行き着いた場合どうなるかなど、まだ他に専用のコントロールがないものもいくつか含まれます。',
   'settings.help.advanced.link': '詳細設定を開く',
+  'settings.about.title': 'KnightLoader について',
+  'settings.about.body': '壊れているもの、足りないもの、もっと良くできるものはありますか。GitHub で issue を立てるか、メールを送ってください。',
+  'settings.about.version': 'バージョン',
+  'settings.about.github': 'GitHub で',
+  'settings.about.mail': 'メールを送る',
+  'settings.about.mailSubject': 'ご意見',
   'settings.nav.scripts': 'スクリプト',
   'settings.scripts.title': 'スクリプト',
   'settings.scripts.subtitle': '独自のJavaScriptでKnightLoaderを自動化し、イベント時またはオンデマンドで実行します。',

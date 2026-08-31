@@ -1220,6 +1220,12 @@ export const fa: Dict = {
   'settings.help.advanced.body':
     'هر تنظیمی از این بیلد را می‌توان از طریق نام خام آن در صفحهٔ پیشرفته خواند و تغییر داد، از جمله چند مورد - مانند اینکه چگونه با یک آینه از فایلی که قبلاً دانلود شده رفتار می‌شود، چه اتفاقی می‌افتد وقتی دانلودی روی نامی که قبلاً استفاده شده فرود بیاید - که هنوز کنترل اختصاصی جای دیگری ندارند.',
   'settings.help.advanced.link': 'باز کردن تنظیمات پیشرفته',
+  'settings.about.title': 'درباره KnightLoader',
+  'settings.about.body': 'چیزی خراب است، چیزی کم است یا می‌شود بهتر شود؟ در GitHub مسئله‌ای باز کنید یا ایمیل بفرستید.',
+  'settings.about.version': 'نسخه',
+  'settings.about.github': 'در GitHub',
+  'settings.about.mail': 'ارسال ایمیل',
+  'settings.about.mailSubject': 'بازخورد',
   'settings.nav.scripts': 'اسکریپت‌ها',
   'settings.scripts.title': 'اسکریپت‌ها',
   'settings.scripts.subtitle': 'KnightLoader را با جاوااسکریپت خودتان خودکار کنید، که با رویدادی یا به‌درخواست اجرا می‌شود.',

@@ -1220,6 +1220,12 @@ export const vi: Dict = {
   'settings.help.advanced.body':
     'Mỗi cài đặt của build này có thể được đọc và thay đổi qua tên thô của nó trên trang Nâng cao, bao gồm một vài cài đặt - cách xử lý bản sao của một tệp đã tải xuống, điều gì xảy ra khi một lượt tải xuống sẽ rơi vào một tên đã được sử dụng - vẫn chưa có điều khiển riêng ở nơi khác.',
   'settings.help.advanced.link': 'Mở cài đặt Nâng cao',
+  'settings.about.title': 'Giới thiệu về KnightLoader',
+  'settings.about.body': 'Có gì hỏng, thiếu, hay có thể tốt hơn? Mở một issue trên GitHub, hoặc gửi email.',
+  'settings.about.version': 'Phiên bản',
+  'settings.about.github': 'Trên GitHub',
+  'settings.about.mail': 'Gửi email',
+  'settings.about.mailSubject': 'Góp ý',
   'settings.nav.scripts': 'Tập lệnh',
   'settings.scripts.title': 'Tập lệnh',
   'settings.scripts.subtitle': 'Tự động hóa KnightLoader bằng JavaScript của riêng bạn, chạy khi có sự kiện hoặc theo yêu cầu.',

@@ -13,6 +13,7 @@ import { GlimRow, GlimToggle, NotchCard, Swatch, WellSelector } from '../compone
 import IconBadge from '../components/IconBadge';
 
 const GITHUB_URL = 'https://github.com/junkerderprovinz/knightloader/tree/main/mobile';
+const CONTACT_MAIL = 'hello@knightloader.app';
 const REPORT_URL = 'https://github.com/junkerderprovinz/knightloader/issues/new?template=app.yml';
 
 /**
@@ -22,7 +23,7 @@ const REPORT_URL = 'https://github.com/junkerderprovinz/knightloader/issues/new?
  * UI's Settings.tsx and the extension's options.js, and the three are expected
  * to agree.
  */
-const GLIMSTONE_VERSION = '1.5.0';
+const GLIMSTONE_VERSION = '1.7.0';
 
 /** shapeOf reads the shape back out of the radii the context resolved.
  *
@@ -259,11 +260,42 @@ export default function SettingsScreen({
         </View>
       </NotchCard>
 
+      {/* The About card carries the versions AND the way to report something
+          (jdp, 2026-08-31: "darin sollen die versionsnummern stehen und ein
+          text ... Dann soll da ein button sein der zu Github führt ... und ein
+          Button der die email app öffnet").
+
+          This is the one card in the family whose body is prose rather than an
+          info bubble: it has no control to explain, the sentence IS the
+          content. Written into GlimStone 1.7.0 as a named exception rather than
+          left for somebody to trip over. */}
       <NotchCard title={t('settings.about')} hue={3}>
-        <GlimRow label={t('settings.version', { version: Constants.expoConfig?.version ?? '—' })} />
-        <TouchableOpacity onPress={() => Linking.openURL(GITHUB_URL)}>
-          <GlimRow label={t('settings.githubLink')} />
-        </TouchableOpacity>
+        <Text style={[styles.aboutText, { color: c.textSub }]}>{t('settings.aboutBody')}</Text>
+        <Text style={[styles.aboutVersions, { color: c.textMuted }]}>
+          {`${t('settings.aboutVersion')} ${Constants.expoConfig?.version ?? '—'} · GlimStone ${GLIMSTONE_VERSION}`}
+        </Text>
+        <View style={styles.buttonRow}>
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: c.surface2, borderRadius: radii.control }]}
+            onPress={() => Linking.openURL(GITHUB_URL)}
+          >
+            <Text style={[styles.buttonText, { color: c.text }]}>{t('settings.aboutGithub')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: c.surface2, borderRadius: radii.control }]}
+            // A plain mailto, subject prefilled so a mail arrives already saying
+            // which product it is about. No body: a prefilled body reads as a
+            // form to fill in, and this is meant to be a message somebody
+            // writes.
+            onPress={() =>
+              Linking.openURL(
+                `mailto:${CONTACT_MAIL}?subject=${encodeURIComponent(`KnightLoader ${t('settings.aboutMailSubject')}`)}`,
+              )
+            }
+          >
+            <Text style={[styles.buttonText, { color: c.text }]}>{t('settings.aboutMail')}</Text>
+          </TouchableOpacity>
+        </View>
       </NotchCard>
 
       <NotchCard title={t('settings.dangerZone')} hue={4}>
@@ -278,16 +310,12 @@ export default function SettingsScreen({
         </TouchableOpacity>
       </NotchCard>
 
-      {/* The version footer, the same quiet line the web UI and the browser
-          extension put at the bottom of their own settings (jdp, 2026-08-30:
-          "in den setting der app und der erweiterung sollen auch die versionen
-          angezeigt werden"). The About card above already carried the app
-          version as a row - this adds the one it never named, which is which
-          GlimStone the screen is drawn to, and puts both where the family
-          already puts them. */}
-      <Text style={[styles.versionFooter, { color: c.textMuted }]} selectable={false}>
-        {`${Constants.expoConfig?.version ?? '—'} · GlimStone ${GLIMSTONE_VERSION}`}
-      </Text>
+      {/* No version footer any more (jdp, 2026-08-31: "Die vversionsnummer
+          sollen dann nicht nochmal unter den card im hintergrund angeziegt
+          werden"). It said the same thing the About card above now says, in
+          smaller type and outside every card - and page chrome reads as
+          something nobody put there on purpose. GlimStone 1.7.0 replaces its
+          own version-footer rule with the About card for the whole family. */}
     </ScrollView>
   );
 }
@@ -305,7 +333,8 @@ const styles = StyleSheet.create({
   title: { fontSize: TYPE.heading, fontWeight: '600' },
   // Half-muted and centred: something you look for, not something that
   // competes for attention.
-  versionFooter: { marginTop: 26, textAlign: 'center', fontSize: 10, opacity: 0.55 },
+  aboutText: { fontSize: TYPE.body, lineHeight: 20, marginBottom: 6 },
+  aboutVersions: { fontSize: TYPE.caption, marginBottom: 10 },
   valueGroup: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
   flag: { fontSize: 17 },
   value: { fontSize: TYPE.body },

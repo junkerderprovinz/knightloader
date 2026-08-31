@@ -1219,6 +1219,12 @@ export const zh: Dict = {
   'settings.help.advanced.body':
     '此构建版本的每个设置都可以在高级页面通过其原始名称读取和更改，包括一些设置 - 比如已下载文件的镜像如何处理、下载最终落在已使用的名称上会发生什么 - 这些目前还没有专门的控件。',
   'settings.help.advanced.link': '打开高级设置',
+  'settings.about.title': '关于 KnightLoader',
+  'settings.about.body': '有东西坏了、少了，或者可以更好？在 GitHub 上开一个 issue，或者发一封邮件。',
+  'settings.about.version': '版本',
+  'settings.about.github': '在 GitHub 上',
+  'settings.about.mail': '发邮件',
+  'settings.about.mailSubject': '反馈',
   'settings.nav.scripts': '脚本',
   'settings.scripts.title': '脚本',
   'settings.scripts.subtitle': '用你自己的 JavaScript 让 KnightLoader 自动化，在某个事件发生时或按需运行。',

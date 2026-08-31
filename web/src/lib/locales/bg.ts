@@ -1220,6 +1220,12 @@ export const bg: Dict = {
   'settings.help.advanced.body':
     'Всяка настройка на тази компилация може да се чете и променя по нейното сурово име на страницата Разширени, включително няколко - как се третира огледало на вече изтеглен файл, какво се случва, когато изтегляне би кацнало на вече използвано име - които все още нямат собствен контрол другаде.',
   'settings.help.advanced.link': 'Отвори настройките на Разширени',
+  'settings.about.title': 'За KnightLoader',
+  'settings.about.body': 'Нещо счупено, нещо липсва или нещо може да е по-добро? Отвори задача в GitHub или прати имейл.',
+  'settings.about.version': 'Версия',
+  'settings.about.github': 'В GitHub',
+  'settings.about.mail': 'Прати имейл',
+  'settings.about.mailSubject': 'Обратна връзка',
 
   'settings.nav.scripts': 'Скриптове',
   'settings.scripts.title': 'Скриптове',

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { Navigate, Route, Routes, useMatch, useNavigate, useParams } from 'react-router-dom';
-import { ApiError, type Settings, fetchHealth, fetchSettings, patchSettings } from '../lib/api';
+import { ApiError, type Settings, fetchSettings, patchSettings } from '../lib/api';
 import { useResource } from '../lib/useResource';
 import { readUIState, useUIState } from '../lib/uistate';
 import { useNavLabels } from '../lib/navLabels';
@@ -274,72 +273,13 @@ export function SettingsPage() {
           </Routes>
         </div>
       </div>
-      <VersionFooter />
+      {/* The version footer is gone (jdp, 2026-08-31: "Die vversionsnummer
+          sollen dann nicht nochmal unter den card im hintergrund angeziegt
+          werden"). It lives in the About card on the Help page now, beside the
+          two things somebody who just read a version number usually wants
+          next - see settings/Help.tsx. GlimStone 1.7.0 makes that the rule for
+          the whole family rather than this app's own preference. */}
     </SettingsProvider>
-  );
-}
-
-// GlimStone version this UI is built against — bump by hand whenever index.css /
-// appearance.ts are re-copied from a newer github.com/junkerderprovinz/glimstone release.
-//
-// 1.4.0 brought lib/colorPicker.ts and its stylesheet block over from the
-// reference, and moved the rainbow position from each SectionTitle onto its
-// Card, which is what 1.4.0 asks for: the container owns the position, so the
-// badge, the buttons, the switch tracks and the focus ring inside it all
-// follow one declaration instead of a growing list of exceptions.
-//
-// 1.5.0 adds the second half of the accent: --accent is the fill, --accent-ink
-// is the same colour where it gets read, derived through --ink-mix so it
-// follows a colour somebody picked and follows --item-hue inside a rainbow
-// subtree. Every place this app used the accent AS ink now reads the ink token.
-//
-// What this number does NOT claim is full conformance with every rule in that
-// release: 1.4.0 also says every explanatory text is an info bubble, and this
-// app still has explanatory paragraphs under controls. Sorting the real ones
-// from the empty states and dialog copy is a judgement pass, not a codemod -
-// the list exists now (63 counted, 13 of them genuine explanations) and is
-// waiting on jdp rather than on me.
-const GLIMSTONE_VERSION = '1.5.0';
-
-/**
- * The build/GlimStone version, quiet and centred at the very bottom of the
- * window on every settings tab (jdp: "Die versionsnummern sollen in den
- * Einstellungen in jedem Tab quasi im Hintergrund immer ganz unten im
- * Fenster stehen, nicht direkt unter der untersten karte") - moved here from
- * a single card on the System tab, which only showed it on that one page.
- * `fixed`, not `sticky`: it pins to the actual browser window rather than to
- * the settings content's own scroll container, so it neither scrolls away
- * nor competes with the unsaved-changes bar above for the same sticky-bottom
- * slot - the two are visually and positionally independent.
- * `pointer-events-none` keeps it out of the way of anything real underneath.
- *
- * Rendered through a portal straight onto document.body rather than in
- * place: every routed page is wrapped in `.glim-page-enter`, whose entry
- * animation runs on `transform` (index.css's own glim-page-in keyframes) -
- * an ancestor animating `transform` establishes a new containing block for
- * ANY `position: fixed` descendant, which is exactly why this footer used to
- * end up pinned to that wrapper's own bottom edge (right under the last
- * card) instead of the actual browser window. A portal escapes the DOM
- * ancestor chain entirely, so this stays immune to that regardless of what
- * other animated wrapper a page gains later.
- */
-function VersionFooter() {
-  const { t } = useT();
-  const [version, setVersion] = useState('');
-  useEffect(() => {
-    fetchHealth()
-      .then((h) => setVersion(h.version))
-      .catch(() => {});
-  }, []);
-  return createPortal(
-    <div className="pointer-events-none fixed inset-x-0 bottom-1.5 z-0 flex justify-center select-none" aria-hidden>
-      <span className="glim-num text-[10px] text-carbon-textMuted/50">
-        {version && version !== 'dev' ? version : t('nav.workingTitle')}
-        {' · GlimStone '}
-        {GLIMSTONE_VERSION}
-      </span>
-    </div>,
-    document.body,
   );
 }
 

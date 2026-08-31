@@ -1,7 +1,8 @@
-﻿import { type ReactNode } from 'react';
+﻿import { type ReactNode, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useT } from '../../lib/i18n';
 import { Card, SectionTitle } from '../../components/ui';
+import { fetchHealth } from '../../lib/api';
 
 /**
  * The help page: what this build actually does, organised by the question a
@@ -181,6 +182,76 @@ export function Help() {
       >
         <p>{t('settings.help.advanced.body')}</p>
       </Topic>
+
+      <About hue={11} />
     </div>
+  );
+}
+
+const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
+const CONTACT_MAIL = 'hello@knightloader.app';
+
+/**
+ * Which GlimStone this app is built against. Kept in step by hand, because the
+ * design language is a document plus a stylesheet rather than a package - the
+ * same constant lives in the extension's options.js and the app's
+ * SettingsScreen, and the three are expected to agree.
+ */
+const GLIMSTONE_VERSION = '1.7.0';
+
+/**
+ * The About card (jdp, 2026-08-31: "in der App und der Erweiterung und im KL
+ * soll eine neue Card rein ... darin sollen die versionsnummern stehen und ein
+ * text ... Die vversionsnummer sollen dann nicht nochmal unter den card im
+ * hintergrund angeziegt werden").
+ *
+ * It replaces the fixed, centred version line that used to sit at the bottom of
+ * every settings tab. That line was GlimStone's own answer until now, and its
+ * weakness only shows once you ask what somebody does NEXT with a version
+ * number: they report something. Page chrome has nowhere to put that, a card
+ * does, and the two buttons turn "report it" from a search into a click.
+ *
+ * On the Help page rather than a page of its own, because this is already the
+ * destination for "something is not working and I do not know where to look",
+ * and one more entry in the settings rail for two sentences and two links would
+ * be a tile nobody visits on purpose. hue 11 continues this page's own run.
+ */
+function About({ hue }: { hue: number }) {
+  const { t } = useT();
+  const [version, setVersion] = useState('');
+  useEffect(() => {
+    fetchHealth()
+      .then((h) => setVersion(h.version))
+      .catch(() => {});
+  }, []);
+  return (
+    <Card hue={hue} className="flex flex-col gap-3">
+      <SectionTitle>{t('settings.about.title')}</SectionTitle>
+      <p className="text-sm text-carbon-textSub">{t('settings.about.body')}</p>
+      <p className="glim-num text-xs text-carbon-textMuted">
+        {t('settings.about.version')} {version && version !== 'dev' ? version : t('nav.workingTitle')}
+        {' · GlimStone '}
+        {GLIMSTONE_VERSION}
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {/* Anchors dressed as buttons rather than buttons that navigate: one
+            opens a site and one hands off to a mail client, and both want the
+            browser's own middle-click, copy-link and open-in-new-tab. */}
+        <a
+          href={REPO_URL}
+          target="_blank"
+          rel="noreferrer noopener"
+          className="inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 px-3.5 py-2 text-sm font-medium text-carbon-text transition duration-150 select-none hover:bg-carbon-surface3 motion-safe:active:scale-[.98]"
+        >
+          {t('settings.about.github')}
+        </a>
+        <a
+          href={`mailto:${CONTACT_MAIL}?subject=${encodeURIComponent(`KnightLoader ${t('settings.about.mailSubject')}`)}`}
+          className="inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 px-3.5 py-2 text-sm font-medium text-carbon-text transition duration-150 select-none hover:bg-carbon-surface3 motion-safe:active:scale-[.98]"
+        >
+          {t('settings.about.mail')}
+        </a>
+      </div>
+    </Card>
   );
 }

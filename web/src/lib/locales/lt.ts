@@ -1220,6 +1220,12 @@ export const lt: Dict = {
   'settings.help.advanced.body':
     'Kiekvieną šios versijos nustatymą galima perskaityti ir pakeisti pagal jo neapdorotą pavadinimą Išplėstinių nustatymų puslapyje, įskaitant kai kuriuos - kaip tvarkomas jau atsisiųsto failo veidrodis, kas nutinka, kai atsisiuntimas atsidurtų ant jau naudojamo pavadinimo - kurie dar neturi specialaus valdiklio kitur.',
   'settings.help.advanced.link': 'Atverti Išplėstinius nustatymus',
+  'settings.about.title': 'Apie KnightLoader',
+  'settings.about.body': 'Kažkas sugedo, kažko trūksta ar galėtų būti geriau? Sukurk problemą GitHub arba parašyk el. laišką.',
+  'settings.about.version': 'Versija',
+  'settings.about.github': 'GitHub',
+  'settings.about.mail': 'Rašyti el. laišką',
+  'settings.about.mailSubject': 'Atsiliepimas',
   'settings.nav.scripts': 'Skriptai',
   'settings.scripts.title': 'Skriptai',
   'settings.scripts.subtitle': 'Automatizuokite KnightLoader su savo JavaScript, vykdomu įvykio metu arba pagal poreikį.',

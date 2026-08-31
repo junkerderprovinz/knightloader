@@ -1212,6 +1212,12 @@ export const es: Dict = {
   'settings.help.advanced.body':
     'Cada ajuste de este build se puede leer y cambiar por su nombre en bruto en la página Avanzado, incluidos algunos - cómo se trata un espejo de un archivo ya descargado, qué pasa cuando una descarga acabaría con un nombre ya usado - que todavía no tienen un control propio en ningún otro sitio.',
   'settings.help.advanced.link': 'Abrir ajustes de Avanzado',
+  'settings.about.title': 'Acerca de KnightLoader',
+  'settings.about.body': '¿Algo roto, algo que falta, o algo que podría estar mejor? Abre una incidencia en GitHub, o envía un correo.',
+  'settings.about.version': 'Versión',
+  'settings.about.github': 'En GitHub',
+  'settings.about.mail': 'Enviar un correo',
+  'settings.about.mailSubject': 'Comentarios',
 
   'settings.nav.scripts': 'Scripts',
   'settings.scripts.title': 'Scripts',

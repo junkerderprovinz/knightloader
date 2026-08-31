@@ -1212,6 +1212,12 @@ export const ru: Dict = {
   'settings.help.advanced.body':
     'Каждую настройку этой сборки можно прочитать и изменить по её необработанному имени на странице Дополнительно, включая некоторые - как обрабатывается зеркало уже загруженного файла, что происходит, когда загрузка должна получить уже занятое имя - у которых пока нет отдельного элемента управления больше нигде.',
   'settings.help.advanced.link': 'Открыть настройки Дополнительно',
+  'settings.about.title': 'О KnightLoader',
+  'settings.about.body': 'Что-то сломалось, чего-то не хватает или можно сделать лучше? Заведите задачу на GitHub или напишите письмо.',
+  'settings.about.version': 'Версия',
+  'settings.about.github': 'На GitHub',
+  'settings.about.mail': 'Написать письмо',
+  'settings.about.mailSubject': 'Отзыв',
 
   'settings.nav.scripts': 'Скрипты',
   'settings.scripts.title': 'Скрипты',
