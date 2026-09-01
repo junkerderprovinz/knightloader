@@ -534,13 +534,28 @@ func (a *App) StopBack(id string) { a.stop(id, true) }
 
 func (a *App) stop(id string, requeue bool) {
 	a.mu.Lock()
+	// The SLOT is freed first, before anything can decide there is nothing to do.
+	//
+	// The nil check below used to come first and return, which leaks a
+	// concurrency slot for ever if the task disappears between a caller reading
+	// a.active and reaching here - and StopAll does exactly that: it copies the
+	// ids under the lock, lets go, and stops them one at a time, because Pause
+	// takes the lock itself. Anything in that window (housekeeping removing an
+	// old row, a delete arriving from a browser) leaves an id in a.active with
+	// no task behind it, holding a place nothing will ever give back.
+	//
+	// Caught by CI under -race, which is the only place it has ever appeared:
+	// "1 downloads are still active after the hard stop". Whatever else is true
+	// of a task being stopped, it is not running.
+	wasActive := a.active[id]
+	delete(a.active, id)
 	t := a.tasks[id]
 	if t == nil {
+		// Nothing left to write a status onto, and nothing to requeue - but the
+		// slot is gone, so the dispatcher can use it.
 		a.mu.Unlock()
 		return
 	}
-	wasActive := a.active[id]
-	delete(a.active, id)
 	if requeue {
 		// Put back IN, not merely "left alone".
 		//
