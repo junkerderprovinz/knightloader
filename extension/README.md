@@ -50,8 +50,24 @@ reproducible from a checkout.
 1. `chrome://extensions` (or the equivalent `about:addons` /
    `edge://extensions` page) → enable Developer mode.
 2. "Load unpacked" → pick `extension/src`.
-3. Paste your connection phrase into the Remote access card on the options
+3. **Pin it.** Chrome does not put a newly loaded extension in the toolbar; it
+   sits behind the puzzle-piece button at the right of the address bar until
+   you click the pin beside it there. Chrome says "extension loaded" and then
+   deliberately shows no icon, which reads exactly like a failed install and has
+   been reported as one. Measured rather than assumed: on Chrome 151 the
+   extension reports `state: ENABLED`, `installWarnings: []`, `manifestErrors:
+   []` and `chrome.action.getUserSettings() → {isOnToolbar: false}` — loaded and
+   working, simply not on the toolbar. A fresh Brave profile does the same
+   thing; a Brave that shows it has been pinned at some point.
+4. Paste your connection phrase into the Remote access card on the options
    page, which opens by itself on a fresh install.
+
+**`--load-extension` no longer works.** Chrome 137 and later ignore the command
+line flag silently: no error, no entry in the profile, no rule cache written.
+Anything that loads the extension for a test has to go through the DevTools
+protocol (`Extensions.loadUnpacked`) instead, which is what a Playwright run
+needs too. Worth knowing before spending an afternoon concluding the package is
+broken.
 
 Chrome writes a compiled rule cache into the source directory
 (`_metadata/generated_indexed_rulesets/`) the first time it loads an unpacked

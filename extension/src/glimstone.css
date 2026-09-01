@@ -860,6 +860,36 @@
 }
 .glim-instance-stats--off { color: var(--carbon-text-muted); font-style: italic; }
 
+/* The status badge: the WORD, on a ground in that status's own colour.
+ *
+ * It replaces a bare coloured dot on the app's own card and arrives here in the
+ * same round so the two surfaces draw one object (jdp, 2026-09-01: "der
+ * statuspunkt soll ein kleiner badge mit online/offlin text sein und auch dem
+ * status entsprechend eingefaerbt sein ... den badge auch in der erweiterung
+ * implementieren"). A dot asks the reader to know the colour code, and to
+ * anybody who cannot tell this green from this red it says nothing at all.
+ *
+ * The ground is the status colour at low opacity and the ink is the solid: a
+ * fully filled badge in the fail colour reads as an alarm, and "offline" on an
+ * instance nobody has switched on is not an alarm. */
+.glim-status {
+  flex-shrink: 0;
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .2px;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+.glim-status--on   { color: var(--status-ok-solid);   background: color-mix(in srgb, var(--status-ok-solid) 15%, transparent); }
+.glim-status--off  { color: var(--status-fail-solid); background: color-mix(in srgb, var(--status-fail-solid) 15%, transparent); }
+.glim-status--wait { color: var(--status-warn-solid); background: color-mix(in srgb, var(--status-warn-solid) 15%, transparent); }
+
+/* The name and its badge share a line, so the badge sits beside the instance
+   rather than under it where the figures live. */
+.glim-instance-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+
 /* The actions sit at the BOTTOM of the trailing edge, not centred on it: the
    "Standard" badge owns the top-right corner, and a centred row of 30px
    buttons in a 72px card reaches up into it. Two things in one corner is the

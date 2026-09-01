@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
+import { useT } from '../i18n/I18nContext';
 
 /**
  * The GlimStone controls, as React Native.
@@ -161,6 +162,28 @@ export function Swatch({ hex, selected, onPress, label }: { hex: string; selecte
   );
 }
 
+/**
+ * The way back for a row of swatches: an icon, not a text link (rule 13), and
+ * the same circle as the swatches it stands beside.
+ *
+ * Sized by the row like they are, so nine things across one line stay nine
+ * equal things - the extension's own row has looked exactly like this since
+ * GlimStone 1.6.0, and the app was the surface still missing it entirely.
+ */
+export function SwatchReset({ onPress, label }: { onPress: () => void; label: string }) {
+  const { c, radii } = useAppearance();
+  return (
+    <TouchableOpacity accessibilityLabel={label} onPress={onPress} style={styles.swatchRing}>
+      <View style={[styles.swatchGap, { borderRadius: radii.pill, backgroundColor: c.surface2 }]}>
+        {/* A counter-clockwise arrow, drawn as an open ring with a head, in the
+            same filled register as every other glyph. */}
+        <View style={[styles.resetRing, { borderColor: c.textSub, borderRadius: radii.pill }]} />
+        <View style={[styles.resetHead, { borderBottomColor: c.textSub }]} />
+      </View>
+    </TouchableOpacity>
+  );
+}
+
 /** Ink on a fill, mirroring the web's luminance rule closely enough for the
  *  eight palette colours; the resolved accent contrast is the fallback for
  *  the plain-accent case. */
@@ -205,7 +228,64 @@ const styles = StyleSheet.create({
   rowText: { flex: 1, minWidth: 0, gap: 2 },
   rowLabel: { fontSize: 15 },
   rowSub: { fontSize: TYPE.caption, lineHeight: 16 },
-  swatchRing: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
-  swatchGap: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
-  swatchFill: { width: 24, height: 24 },
+  // Sized by the ROW, not by a number here (jdp, 2026-09-01: "Die farbfelder
+  // bitte enger zusammen rücken, dass sie in einer zeile platz haben").
+  //
+  // Eight swatches at a fixed 32 plus a reset plus a label do not fit across a
+  // phone, so the row wrapped - and picking a smaller fixed number just moves
+  // the wrap to a narrower phone. `flex: 1` with a square aspect divides
+  // whatever the row has between nine equal things, and `maxWidth` keeps them
+  // from growing into saucers on a tablet. The ring and the gap follow as
+  // percentages so the selection ring stays proportional at every size.
+  swatchRing: { flex: 1, maxWidth: 32, aspectRatio: 1, alignItems: 'center', justifyContent: 'center' },
+  swatchGap: { width: '88%', height: '88%', alignItems: 'center', justifyContent: 'center' },
+  swatchFill: { width: '86%', height: '86%' },
+  // The reset glyph: three quarters of a ring, plus a head on the open end.
+  resetRing: { width: '58%', height: '58%', borderWidth: 1.5, borderRightColor: 'transparent' },
+  statusBadge: { paddingHorizontal: 7, paddingVertical: 2, flexShrink: 0 },
+  statusText: { fontSize: 11, fontWeight: '600', letterSpacing: 0.2 },
+  resetHead: {
+    position: 'absolute',
+    right: '18%',
+    top: '20%',
+    width: 0,
+    height: 0,
+    borderStyle: 'solid',
+    borderLeftWidth: 2.4,
+    borderRightWidth: 2.4,
+    borderBottomWidth: 4,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+  },
 });
+
+/**
+ * A status badge: the word, on a ground in that status's own colour.
+ *
+ * It replaces a 10-point coloured dot (jdp, 2026-09-01: "der statuspunkt soll
+ * ein kleiner badge mit online/offlin text sein und auch dem status entsprechend
+ * eingefärbt sein"). A dot asks the reader to know the colour code, and to
+ * anybody who cannot tell this green from this red it says nothing at all -
+ * which is the whole of what a status indicator is for. The word carries the
+ * meaning and the colour carries the urgency, the pairing every other status in
+ * this family already uses.
+ *
+ * The ground is the status colour at low opacity rather than the solid, and the
+ * ink is the solid: a fully filled badge in the fail colour on a card reads as
+ * an alarm, and "offline" on an instance somebody has not switched on is not an
+ * alarm. The extension's own `.glim-status` follows the identical rule, so the
+ * two surfaces draw one object.
+ */
+export function StatusBadge({ status }: { status: 'checking' | 'online' | 'offline' }) {
+  const { c, radii } = useAppearance();
+  const { t } = useT();
+  const ink =
+    status === 'online' ? c.statusOkSolid : status === 'checking' ? c.statusWarnSolid : c.statusFailSolid;
+  const label =
+    status === 'online' ? t('instance.online') : status === 'checking' ? t('instance.checking') : t('instance.offline');
+  return (
+    <View style={[styles.statusBadge, { backgroundColor: ink + '26', borderRadius: radii.pill }]}>
+      <Text style={[styles.statusText, { color: ink }]}>{label}</Text>
+    </View>
+  );
+}

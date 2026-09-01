@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Animated, Easing, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import QRScanner from '../components/QRScanner';
 import { closeRelayClient, relayClientFor, type RelaySibling } from '../api/relayClient';
 import { DEFAULT_RELAY_URL, PhraseError, frameKeyFromPhrase, keyFromPhrase } from '../api/seedphrase';
@@ -57,6 +57,33 @@ export default function RelayConnectScreen({
   const [searching, setSearching] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  /**
+   * The refusal signal: the button shakes, and no sentence appears under it
+   * (jdp, 2026-09-01: "wenn keine phrasse eingegeben wurde soll der button kurz
+   * zittern, keine fehlermeldung in textform").
+   *
+   * It is the design language's standing rule for a failed action, and the
+   * browser extension has followed it since its own round of this. The written
+   * message has the property the rule objects to: it never clears itself, so a
+   * refusal from ten minutes ago looks exactly as current as one from a second
+   * ago. A shake is over when it is over.
+   *
+   * Kept for the failures a shake cannot express - a word that is not in the
+   * list, a checksum that does not add up - because "which of your twelve words
+   * is wrong" is information, and losing it to make the rule tidy would be the
+   * rule eating the product. An EMPTY field carries no such information, and
+   * that is the case he is describing.
+   */
+  const wackeln = useRef(new Animated.Value(0)).current;
+  const zittern = useCallback(() => {
+    wackeln.setValue(0);
+    Animated.sequence(
+      [1, -1, 0.6, -0.6, 0].map((zu) =>
+        Animated.timing(wackeln, { toValue: zu, duration: 55, easing: Easing.linear, useNativeDriver: true }),
+      ),
+    ).start();
+  }, [wackeln]);
   const [sibs, setSibs] = useState<RelaySibling[]>([]);
   // What the running client was opened with. State, not a ref: the instance
   // list below only renders once this is set, so the screen has to re-render
@@ -98,6 +125,13 @@ export default function RelayConnectScreen({
   const join = async (entered?: string) => {
     const words = (entered ?? phrase).trim();
     setError(null);
+    // An empty field is the one refusal that carries no information beyond
+    // "not yet", so it gets the shake and nothing else. Anything below this
+    // line has something to SAY, and saying it is worth a line of text.
+    if (words === '') {
+      zittern();
+      return;
+    }
     let key: string;
     // Both keys come out of the phrase here, in the one place it exists, and
     // the words are then gone - the frame key is carried alongside the relay
@@ -238,6 +272,11 @@ export default function RelayConnectScreen({
         <Text style={[styles.buttonText, { color: accentContrast }]}>{t('relay.pasteButton')}</Text>
       </TouchableOpacity>
 
+      <Animated.View
+        style={{
+          transform: [{ translateX: wackeln.interpolate({ inputRange: [-1, 1], outputRange: [-7, 7] }) }],
+        }}
+      >
       <TouchableOpacity
         style={[
           styles.button,
@@ -261,6 +300,7 @@ export default function RelayConnectScreen({
           </>
         )}
       </TouchableOpacity>
+      </Animated.View>
 
       {/* Scanning is the point of the QR the web UI has been showing all
           along: twelve words is exactly the input a phone keyboard is worst

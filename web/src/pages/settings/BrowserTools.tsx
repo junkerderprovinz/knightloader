@@ -49,6 +49,14 @@ export function BrowserTools() {
       <li>{t('settings.browsertools.installChromiumStep2')}</li>
       <li>{t('settings.browsertools.installChromiumStep3')}</li>
       <li>{t('settings.browsertools.installChromiumStep4')}</li>
+      {/* The step that was missing, and it is the one that reads as a failed
+          install without it (jdp, three rounds, most recently 2026-09-01: "es
+          kommt die meldung erweiterung geladen aber es zeigt sie nicht an").
+          Chrome loads the extension, reports it as enabled with no warnings and
+          no errors, and deliberately keeps it off the toolbar until somebody
+          pins it. Measured on Chrome 151: state ENABLED, installWarnings [],
+          manifestErrors [], isOnToolbar false. */}
+      <li>{t('settings.browsertools.installChromiumStep5')}</li>
     </ol>
   );
   const firefoxHint = (

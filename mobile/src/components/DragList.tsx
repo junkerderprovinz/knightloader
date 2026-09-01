@@ -61,7 +61,7 @@ export interface DragRow {
 }
 
 export default function DragList({
-  rows,
+  rows: liveRows,
   onReorder,
   style,
   contentContainerStyle,
@@ -78,6 +78,32 @@ export default function DragList({
   empty?: React.ReactNode;
 }) {
   const [drag, setDrag] = useState<{ from: number; to: number } | null>(null);
+
+  /**
+   * The list is FROZEN for as long as a drag is armed.
+   *
+   * This is the fix for the one that survived every other one, and it is only
+   * visible on video: the task list keeps streaming while a finger is down, so
+   * the rows are rebuilt and re-sorted under the gesture. In jdp's recording
+   * (2026-09-01, 17:44) the top row changes identity between second 3 and second
+   * 5 - "The.Jungle.Book" becomes "Avanti ragazzi di Buda" - with the finger
+   * still on it. Everything downstream is indexed: `drag.from` points at a row
+   * that is now a different package, `boxes` holds the measurements of the old
+   * order, and the neighbours never move because the arithmetic is about rows
+   * that have moved on. What it looks like from outside is a row lying on top of
+   * the others doing nothing, which is exactly what he reported.
+   *
+   * Freezing is the honest answer rather than making the indices cleverer: while
+   * somebody is moving a row, the order they are looking at IS the subject of
+   * the gesture, and letting a poll rewrite it mid-move is the bug however well
+   * the code follows it. The live list is picked up again the moment the drag
+   * ends, and a reorder writes the whole band anyway, so nothing is lost - a
+   * change that arrived during the drag lands one render later.
+   */
+  const gefroren = useRef<DragRow[] | null>(null);
+  if (drag === null) gefroren.current = null;
+  else if (gefroren.current === null) gefroren.current = liveRows;
+  const rows = gefroren.current ?? liveRows;
   // The gesture reads this, and a gesture must not wait for a render to know
   // where it is.
   //
@@ -114,7 +140,7 @@ export default function DragList({
 
   /** The touch that might become a hold: where it began, and the timer that
    *  turns it into one. */
-  const touch = useRef<{ y: number; timer: ReturnType<typeof setTimeout> } | null>(null);
+  const touch = useRef<{ y: number; key: string; timer: ReturnType<typeof setTimeout> } | null>(null);
   /** Whether the pan responder actually took the gesture over. It decides who
    *  ends the drag on a lift - see onTouchEnd. */
   const panning = useRef(false);
@@ -125,14 +151,24 @@ export default function DragList({
     touch.current = null;
   }, []);
 
-  const arm = useCallback(
-    (index: number) => {
-      touch.current = null;
-      setDrag({ from: index, to: index });
-      startWiggle();
-    },
-    [startWiggle],
-  );
+  /**
+   * Arm by KEY, not by the index the touch started on.
+   *
+   * Four hundred milliseconds pass between the touch and the hold, and the list
+   * streams the whole time - so the row at that index may be a different package
+   * by the time the timer fires, and the drag would pick up something the finger
+   * was never on. The freeze above starts only once a drag exists, which is
+   * exactly one moment too late to cover this gap; looking the key up here
+   * closes it. A key that has gone in the meantime arms nothing at all, which is
+   * the right answer: the row somebody pressed is no longer there.
+   */
+  const arm = useCallback((key: string) => {
+    touch.current = null;
+    const index = daten.current.rows.findIndex((r) => r.key === key);
+    if (index < 0) return;
+    setDrag({ from: index, to: index });
+    startWiggle();
+  }, [startWiggle]);
 
   /**
    * End the drag, from wherever notices first.
@@ -341,7 +377,7 @@ export default function DragList({
                 return;
               }
               const y = e.nativeEvent.pageY;
-              touch.current = { y, timer: setTimeout(() => arm(index), 400) };
+              touch.current = { y, key: item.key, timer: setTimeout(() => arm(item.key), 400) };
             }}
             onTouchMove={(e) => {
               // Moved before the timer fired: that was a scroll, not a hold.

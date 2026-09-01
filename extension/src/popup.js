@@ -189,8 +189,46 @@ function paintHues() {
   // Not awaited on purpose: a failure here leaves a popup that can still send,
   // which is the whole point of splitting it out.
   void loadStatus();
+  watchStatus();
   showCollector();
 })();
+
+/**
+ * Keep the status line live for as long as this window is open.
+ *
+ * It was fetched exactly once, when the popup opened, and never again - so a
+ * card said "waiting, 19 files" and went on saying it while a download ran
+ * behind it. jdp, 2026-09-01: "Ich seh nach wie vor auch keine
+ * downloadaktivitaet im browser wenn ich den download starte. wir sehen wol
+ * nicht das gleiche." He is right, and the reason is not that there is nothing
+ * to show: the line the extension draws is correct, it is just a photograph.
+ *
+ * A timer in the POPUP, deliberately not an alarm in the service worker: a
+ * timer here lives and dies with the window, costs no new permission (chrome
+ * would demand "alarms" for the other one, which means a fresh permission
+ * dialog on every install) and asks nothing at all while nobody is looking.
+ *
+ * Two seconds, and it does not stack: a fetch that has not answered yet is not
+ * joined by the next tick, because a slow relay would otherwise pile up
+ * requests for as long as the window stays open.
+ */
+function watchStatus() {
+  let laeuft = false;
+  const iv = setInterval(async () => {
+    if (laeuft || document.hidden) return;
+    laeuft = true;
+    try {
+      await loadStatus();
+    } finally {
+      laeuft = false;
+    }
+  }, 2000);
+  // Cleared on the way out. A popup is torn down without ceremony, so this is
+  // belt and braces rather than the mechanism - but an interval left running
+  // against a closing document is the kind of thing that only shows up as a
+  // console full of errors somebody else has to read.
+  addEventListener('pagehide', () => clearInterval(iv), { once: true });
+}
 
 /**
  * loadStatus fetches what each instance is doing and redraws once.
