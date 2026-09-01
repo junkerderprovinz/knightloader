@@ -136,16 +136,27 @@ func (c *jdClient) call(ctx context.Context, path string, params ...any) (json.R
 }
 
 // queryAccounts asks JD for every configured account, with username, enabled
-// and valid included - valid is what tells a queued login from a rejected
-// one apart (see plan in reconcile.go). maxResults/startAt -1 means "all of
-// them", per APIQuery.getMaxResults/getStartAt's documented defaults.
+// and valid included - valid is what tells a queued login from a rejected one
+// apart (see plan in reconcile.go).
+//
+// NO maxResults and NO startAt, and that is the whole of a fix measured against
+// a live JD rather than reasoned from the sources. The pair was here because
+// APIQuery documents -1 as "all of them" - true of APIQuery, and AccountQuery
+// is not one. JD answers HTTP 500 to the mere PRESENCE of either field,
+// whatever its value: probed against the bundled JDownloader 48637 with -1, 0
+// and both, all five hundreds, while the identical call without them returns
+// `{"data":[]}` and the empty object does too.
+//
+// This is the first time this package has run against a real JD, and the
+// file's own header said so: "this package has never been run against a live
+// JD". The cost of that was a reconcile loop failing every thirty seconds since
+// the day it shipped, and 408 identical lines in the log of an instance that
+// otherwise looked healthy.
 func (c *jdClient) queryAccounts(ctx context.Context) ([]jdAccount, error) {
 	data, err := c.call(ctx, "/accounts/queryAccounts", map[string]any{
-		"username":   true,
-		"enabled":    true,
-		"valid":      true,
-		"maxResults": -1,
-		"startAt":    -1,
+		"username": true,
+		"enabled":  true,
+		"valid":    true,
 	})
 	if err != nil {
 		return nil, err
