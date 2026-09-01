@@ -199,14 +199,22 @@ export interface InstanceAppearance {
  * server's validation is a client that breaks when the server changes.
  */
 export function rainbowFromSettings(s: InstanceAppearance | undefined): RainbowState {
-  if (!s || !s.rainbow) return RAINBOW_OFF;
-  const p = s.rainbowPalette;
+  const p = s?.rainbowPalette;
   const palette = Array.isArray(p) && p.length === RAINBOW.length && p.every(valid) ? p : RAINBOW;
+  // The palette travels even when the mode is OFF, and that is not tidiness.
+  //
+  // Returning RAINBOW_OFF wholesale threw the instance's own eight colours away
+  // and handed back the defaults, which was invisible for as long as nothing
+  // drew them - the mode being off makes rainbowColor answer undefined either
+  // way. The settings screen now shows the palette as a dimmed row, so an
+  // instance with a custom palette would display the DEFAULT eight while the
+  // mode was off and eight different ones the moment it went on. `on` is what
+  // switches the mode; the palette is only ever data.
   return {
-    on: true,
-    reactive: !!s.rainbowReactive,
-    rotate: !!s.rainbowRotate,
-    seed: Number.isFinite(s.rainbowSeed) ? Math.trunc(s.rainbowSeed as number) : 0,
+    on: !!s?.rainbow,
+    reactive: !!s?.rainbowReactive,
+    rotate: !!s?.rainbowRotate,
+    seed: Number.isFinite(s?.rainbowSeed) ? Math.trunc(s?.rainbowSeed as number) : 0,
     palette,
   };
 }
