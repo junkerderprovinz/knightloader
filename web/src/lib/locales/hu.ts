@@ -88,6 +88,8 @@ export const hu: Dict = {
   'collector.toastSkipped': '{n} hivatkozás előkészítve, {skipped} már ismert volt',
   'collector.toastNone': 'Nem található érvényes hivatkozás',
   'collector.toastStarted': '{n} letöltés elindítva',
+  'collector.toastStartSkipped': 'A hivatkozásszűrő {n} hivatkozást tart vissza.',
+  'collector.toastStartBlocked': 'Egy ütemezés tartja szünetben a sort.',
   'collector.selectAll': 'Összes kijelölése',
   'collector.movePrompt': 'Melyik csomagba kerüljenek a kijelölt hivatkozások?',
 
@@ -210,7 +212,6 @@ export const hu: Dict = {
   'settings.accent': 'Kiemelőszín',
   'settings.accentHint': 'Az egyetlen szín a tevékenységhez. A rajta lévő szöveget a kontraszt dönti el.',
   'settings.colours': 'Színek',
-  'settings.accentPresets': 'Előbeállítások',
   'settings.accentReset': 'Alapérték',
   'queue.stop': 'Sor leállítása',
   'queue.start': 'Sor indítása',

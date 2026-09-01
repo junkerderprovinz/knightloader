@@ -88,6 +88,8 @@ export const el: Dict = {
   'collector.toastSkipped': 'Ετοιμάστηκαν {n} σύνδεσμοι, {skipped} ήταν ήδη γνωστοί',
   'collector.toastNone': 'Δεν βρέθηκαν έγκυροι σύνδεσμοι',
   'collector.toastStarted': 'Ξεκίνησαν {n} λήψεις',
+  'collector.toastStartSkipped': 'Το φίλτρο συνδέσμων κράτησε πίσω {n} συνδέσμους.',
+  'collector.toastStartBlocked': 'Η ουρά είναι σε παύση λόγω χρονοδιαγράμματος.',
   'collector.selectAll': 'Επιλογή όλων',
   'collector.movePrompt': 'Σε ποιο πακέτο να μετακινηθούν οι επιλεγμένοι σύνδεσμοι;',
 
@@ -210,7 +212,6 @@ export const el: Dict = {
   'settings.accent': 'Χρώμα τονισμού',
   'settings.accentHint': 'Το μοναδικό χρώμα δραστηριότητας. Το κείμενο πάνω επιλέγεται με βάση την αντίθεση.',
   'settings.colours': 'Χρώματα',
-  'settings.accentPresets': 'Προεπιλογές',
   'settings.accentReset': 'Προεπιλογή',
   'queue.stop': 'Διακοπή ουράς',
   'queue.start': 'Έναρξη ουράς',

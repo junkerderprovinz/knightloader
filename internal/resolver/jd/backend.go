@@ -397,7 +397,34 @@ func aggregate(links []DownloadLink) core.Update {
 	return u
 }
 
-func (b *Backend) Pause(taskID string)  { b.setEnabled(taskID, false) }
+// Pause disables the links in JD and stops watching them, and the second half
+// is not housekeeping.
+//
+// Left running, the poller keeps reporting whatever JD's list says every 750 ms
+// - and a link JD has merely been asked to disable is still in that list. Every
+// tick therefore sent "running" for a task the user had just stopped. It also
+// runs into the wrong end: `stallLimit` turns a watched download that stops
+// moving into an error after 45 minutes, so a task somebody paused deliberately
+// would report "jd: no progress for 45m0s" three quarters of an hour later,
+// with nothing on screen connecting it to a button pressed before lunch.
+//
+// The app guards against the first half too (see onUpdate's `stale`), and it
+// has to: that guard covers every backend, including ones written later. This
+// is the other half of the same fix - not polling at all beats reporting into a
+// guard - and it is the half that stops the false error.
+//
+// Resume needs no counterpart. The app's own Resume re-queues the task and lets
+// the dispatcher hand it to Start again, which is what creates a poller.
+func (b *Backend) Pause(taskID string) {
+	b.mu.Lock()
+	if s, ok := b.stop[taskID]; ok {
+		close(s)
+		delete(b.stop, taskID)
+	}
+	b.mu.Unlock()
+	b.setEnabled(taskID, false)
+}
+
 func (b *Backend) Resume(taskID string) { b.setEnabled(taskID, true) }
 
 func (b *Backend) setEnabled(taskID string, enabled bool) {

@@ -27,6 +27,8 @@ export const pt: Dict = {
   'instance.offline': 'offline',
   'downloads.start': 'Iniciar',
   'downloads.stop': 'Parar',
+  'downloads.startSkipped': 'O filtro de ligações retém {n} ligações.',
+  'downloads.startBlocked': 'Um agendamento mantém a fila em pausa.',
   'downloads.tabDownloads': 'Transferências',
   'downloads.tabCollector': 'Coletor',
   'packages.loose': 'Sem pacote',
@@ -90,6 +92,9 @@ export const pt: Dict = {
     'Remove deste dispositivo cada conexão salva e o token correspondente. Nada muda nos servidores em si.',
   'settings.removeAllConfirmButton': 'Remover tudo',
   'settings.cancel': 'Cancelar',
+  'settings.rainbowPalettePosition': 'Posição {position} da paleta',
+  'settings.rainbowPalette': 'Paleta de cores',
+  'settings.pickerDone': 'Concluído',
 
   'relay.title': 'Ligar com uma frase',
   'relay.hint':

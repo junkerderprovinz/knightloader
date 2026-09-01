@@ -27,6 +27,8 @@ export const fi: Dict = {
   'instance.offline': 'ei yhteyttä',
   'downloads.start': 'Aloita',
   'downloads.stop': 'Pysäytä',
+  'downloads.startSkipped': 'Linkkisuodatin pidätti {n} linkkiä.',
+  'downloads.startBlocked': 'Aikataulu pitää jonon pysäytettynä.',
   'downloads.tabDownloads': 'Lataukset',
   'downloads.tabCollector': 'Kerääjä',
   'packages.loose': 'Ei pakettia',
@@ -90,6 +92,9 @@ export const fi: Dict = {
     'Poistaa tästä laitteesta jokaisen tallennetun yhteyden ja sen tokenin. Palvelimilla itsellään ei muutu mikään.',
   'settings.removeAllConfirmButton': 'Poista kaikki',
   'settings.cancel': 'Peruuta',
+  'settings.rainbowPalettePosition': 'Paletin kohta {position}',
+  'settings.rainbowPalette': 'Väripaletti',
+  'settings.pickerDone': 'Valmis',
 
   'relay.title': 'Yhdistä lauseella',
   'relay.hint':

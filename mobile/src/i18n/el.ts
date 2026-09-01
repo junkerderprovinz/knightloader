@@ -27,6 +27,8 @@ export const el: Dict = {
   'instance.offline': 'εκτός σύνδεσης',
   'downloads.start': 'Έναρξη',
   'downloads.stop': 'Διακοπή',
+  'downloads.startSkipped': 'Το φίλτρο συνδέσμων κράτησε πίσω {n} συνδέσμους.',
+  'downloads.startBlocked': 'Η ουρά είναι σε παύση λόγω χρονοδιαγράμματος.',
   'downloads.tabDownloads': 'Λήψεις',
   'downloads.tabCollector': 'Συλλέκτης',
   'packages.loose': 'Χωρίς πακέτο',
@@ -90,6 +92,9 @@ export const el: Dict = {
     'Αφαιρεί από αυτή τη συσκευή κάθε αποθηκευμένη σύνδεση μαζί με το token της. Στους ίδιους τους διακομιστές δεν αλλάζει τίποτα.',
   'settings.removeAllConfirmButton': 'Αφαίρεση όλων',
   'settings.cancel': 'Ακύρωση',
+  'settings.rainbowPalettePosition': 'Θέση παλέτας {position}',
+  'settings.rainbowPalette': 'Παλέτα χρωμάτων',
+  'settings.pickerDone': 'Έτοιμο',
 
   'relay.title': 'Σύνδεση με φράση',
   'relay.hint':

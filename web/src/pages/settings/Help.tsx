@@ -210,7 +210,7 @@ function VersionLink({ href, children }: { href: string; children: ReactNode }) 
  * same constant lives in the extension's options.js and the app's
  * SettingsScreen, and the three are expected to agree.
  */
-const GLIMSTONE_VERSION = '1.6.0';
+const GLIMSTONE_VERSION = '1.7.3';
 
 /**
  * The About card (jdp, 2026-08-31: "in der App und der Erweiterung und im KL

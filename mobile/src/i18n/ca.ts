@@ -27,6 +27,8 @@ export const ca: Dict = {
   'instance.offline': 'fora de línia',
   'downloads.start': 'Inicia',
   'downloads.stop': 'Atura',
+  'downloads.startSkipped': 'El filtre d’enllaços ha retingut {n} enllaços.',
+  'downloads.startBlocked': 'La cua està aturada per una programació.',
   'downloads.tabDownloads': 'Baixades',
   'downloads.tabCollector': 'Col·lector',
   'packages.loose': 'Sense paquet',
@@ -90,6 +92,9 @@ export const ca: Dict = {
     "Elimina d'aquest dispositiu cada connexió desada juntament amb el seu token. Als servidors mateixos no hi canvia res.",
   'settings.removeAllConfirmButton': 'Elimina-ho tot',
   'settings.cancel': 'Cancel·la',
+  'settings.rainbowPalettePosition': 'Posició {position} de la paleta',
+  'settings.rainbowPalette': 'Paleta de colors',
+  'settings.pickerDone': 'Fet',
 
   'relay.title': 'Connectar amb una frase',
   'relay.hint':

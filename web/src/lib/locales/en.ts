@@ -102,6 +102,8 @@ export const en = {
   'collector.toastSkipped': 'Staged {n} link(s), {skipped} already known',
   'collector.toastNone': 'No valid links found',
   'collector.toastStarted': 'Started {n} download(s)',
+  'collector.toastStartSkipped': 'A link filter is holding {n} links back.',
+  'collector.toastStartBlocked': 'A schedule is holding the queue.',
   'collector.selectAll': 'Select all',
   'collector.movePrompt': 'Move the selected links to which package?',
 
@@ -227,7 +229,6 @@ export const en = {
   'settings.accent': 'Accent colour',
   'settings.accentHint': 'The one colour used for activity. Text on it is picked for contrast.',
   'settings.colours': 'Colours',
-  'settings.accentPresets': 'Presets',
   'settings.accentReset': 'Default',
   'queue.stop': 'Stop queue',
   'queue.start': 'Start queue',

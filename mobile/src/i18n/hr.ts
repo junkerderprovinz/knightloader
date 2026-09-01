@@ -27,6 +27,8 @@ export const hr: Dict = {
   'instance.offline': 'izvan mreže',
   'downloads.start': 'Pokreni',
   'downloads.stop': 'Zaustavi',
+  'downloads.startSkipped': 'Filtar poveznica zadržao je {n} poveznica.',
+  'downloads.startBlocked': 'Raspored zadržava red zaustavljenim.',
   'downloads.tabDownloads': 'Preuzimanja',
   'downloads.tabCollector': 'Sakupljač',
   'packages.loose': 'Bez paketa',
@@ -90,6 +92,9 @@ export const hr: Dict = {
     'Ovo uklanja svaku spremljenu vezu i njezin token s ovog uređaja. Na samim poslužiteljima ništa se ne mijenja.',
   'settings.removeAllConfirmButton': 'Ukloni sve',
   'settings.cancel': 'Odustani',
+  'settings.rainbowPalettePosition': 'Položaj palete {position}',
+  'settings.rainbowPalette': 'Paleta boja',
+  'settings.pickerDone': 'Gotovo',
 
   'relay.title': 'Poveži se frazom',
   'relay.hint':

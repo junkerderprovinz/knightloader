@@ -88,6 +88,8 @@ export const vi: Dict = {
   'collector.toastSkipped': 'Đã chuẩn bị {n} liên kết, {skipped} liên kết đã có',
   'collector.toastNone': 'Không tìm thấy liên kết hợp lệ',
   'collector.toastStarted': 'Đã bắt đầu {n} lượt tải',
+  'collector.toastStartSkipped': 'Bộ lọc liên kết đang giữ lại {n} liên kết.',
+  'collector.toastStartBlocked': 'Một lịch trình đang giữ hàng đợi tạm dừng.',
   'collector.selectAll': 'Chọn tất cả',
   'collector.movePrompt': 'Chuyển các liên kết đã chọn sang gói nào?',
 
@@ -210,7 +212,6 @@ export const vi: Dict = {
   'settings.accent': 'Màu nhấn',
   'settings.accentHint': 'Màu duy nhất cho hoạt động. Chữ trên nền đó được chọn theo độ tương phản.',
   'settings.colours': 'Màu sắc',
-  'settings.accentPresets': 'Cài đặt sẵn',
   'settings.accentReset': 'Mặc định',
   'queue.stop': 'Dừng hàng đợi',
   'queue.start': 'Chạy hàng đợi',

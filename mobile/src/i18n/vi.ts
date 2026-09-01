@@ -27,6 +27,8 @@ export const vi: Dict = {
   'instance.offline': 'ngoại tuyến',
   'downloads.start': 'Bắt đầu',
   'downloads.stop': 'Dừng',
+  'downloads.startSkipped': 'Bộ lọc liên kết đang giữ lại {n} liên kết.',
+  'downloads.startBlocked': 'Một lịch trình đang giữ hàng đợi tạm dừng.',
   'downloads.tabDownloads': 'Tải xuống',
   'downloads.tabCollector': 'Bộ thu thập',
   'packages.loose': 'Không có gói',
@@ -90,6 +92,9 @@ export const vi: Dict = {
     'Thao tác này xóa khỏi thiết bị mọi kết nối đã lưu cùng token của nó. Không có gì thay đổi trên bản thân các máy chủ.',
   'settings.removeAllConfirmButton': 'Xóa tất cả',
   'settings.cancel': 'Hủy',
+  'settings.rainbowPalettePosition': 'Vị trí {position} của bảng màu',
+  'settings.rainbowPalette': 'Bảng màu',
+  'settings.pickerDone': 'Xong',
 
   'relay.title': 'Kết nối bằng cụm từ',
   'relay.hint':

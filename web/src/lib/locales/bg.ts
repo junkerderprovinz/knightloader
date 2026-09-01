@@ -88,6 +88,8 @@ export const bg: Dict = {
   'collector.toastSkipped': 'Добавени връзки: {n}, вече познати: {skipped}',
   'collector.toastNone': 'Няма валидни връзки',
   'collector.toastStarted': 'Стартирани изтегляния: {n}',
+  'collector.toastStartSkipped': '{n} връзки са задържани от филтъра за връзки.',
+  'collector.toastStartBlocked': 'Опашката е спряна от график.',
   'collector.selectAll': 'Избери всички',
   'collector.movePrompt': 'В кой пакет да отидат избраните връзки?',
 
@@ -210,7 +212,6 @@ export const bg: Dict = {
   'settings.accent': 'Акцентен цвят',
   'settings.accentHint': 'Единственият цвят за активност. Текстът върху него се избира по контраст.',
   'settings.colours': 'Цветове',
-  'settings.accentPresets': 'Пресети',
   'settings.accentReset': 'По подразбиране',
   'queue.stop': 'Спри опашката',
   'queue.start': 'Пусни опашката',

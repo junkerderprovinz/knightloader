@@ -3,11 +3,20 @@ package api
 // Liveness, the event stream, and the password lock.
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 )
+
+// appearanceFields is the allowlist BOTH halves of /api/appearance are built
+// from - one list, so a field can never be readable and not writable, or worse,
+// writable and not readable. Anything not named here is not an appearance
+// field, whatever a caller puts in the body.
+var appearanceFields = []string{
+	"shape", "accent", "rainbow", "rainbowReactive", "rainbowRotate", "rainbowSeed", "rainbowPalette",
+}
 
 func registerSystem(reg *Registry, a *app.App) {
 	reg.AddOpen(http.MethodGet, "/api/health",
@@ -41,6 +50,55 @@ func registerSystem(reg *Registry, a *app.App) {
 				"rainbowRotate":   s.RainbowRotate,
 				"rainbowSeed":     s.RainbowSeed,
 				"rainbowPalette":  s.RainbowPalette,
+			})
+		})
+
+	// The same seven fields, written.
+	//
+	// It exists because the app could show the instance's palette and not touch
+	// it (jdp, 2026-09-01: "wo sind die farbfelder für den regenbogenmodus?",
+	// and before that "alle farbfelder lassen sich nicht bearbeiten"). The
+	// alternative was a palette kept locally on the phone, which breaks the one
+	// property that makes a palette worth having: colours are handed out by
+	// POSITION, so two clients looking at the same instance have to agree on
+	// which colour position three is, or the same card is teal in a browser and
+	// pink on a phone.
+	//
+	// A named list of seven, never a settings patch: this is deliberately not a
+	// second door into /api/settings, which stays off the relay allowlist. A
+	// caller reaching this route can repaint the instance and can do nothing
+	// else - and repainting is already less than what the same caller can do
+	// through the queue routes it has had all along.
+	reg.Add(http.MethodPost, "/api/appearance",
+		"set the instance's accent, corner shape and rainbow settings - the same seven fields GET answers with, and nothing else",
+		func(w http.ResponseWriter, r *http.Request) {
+			var body map[string]json.RawMessage
+			if !decodeJSON(w, r, &body) {
+				return
+			}
+			patch := map[string]json.RawMessage{}
+			for _, f := range appearanceFields {
+				if v, ok := body[f]; ok {
+					patch[f] = v
+				}
+			}
+			if len(patch) == 0 {
+				http.Error(w, "no appearance field named", http.StatusBadRequest)
+				return
+			}
+			applied, err := a.PatchSettings(patch)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			writeJSON(w, map[string]any{
+				"shape":           applied.Shape,
+				"accent":          applied.Accent,
+				"rainbow":         applied.Rainbow,
+				"rainbowReactive": applied.RainbowReactive,
+				"rainbowRotate":   applied.RainbowRotate,
+				"rainbowSeed":     applied.RainbowSeed,
+				"rainbowPalette":  applied.RainbowPalette,
 			})
 		})
 

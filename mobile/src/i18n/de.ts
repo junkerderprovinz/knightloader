@@ -43,6 +43,8 @@ export const de: Dict = {
   'instance.offline': 'offline',
   'downloads.start': 'Starten',
   'downloads.stop': 'Anhalten',
+  'downloads.startSkipped': '{n} Links hält der Linkfilter zurück.',
+  'downloads.startBlocked': 'Ein Zeitplan hält die Warteschlange an.',
   'downloads.tabDownloads': 'Downloads',
   'downloads.tabCollector': 'Sammler',
   'packages.loose': 'Ohne Paket',
@@ -106,4 +108,7 @@ export const de: Dict = {
     'Entfernt jede gespeicherte Verbindung samt Token von diesem Gerät. Auf den Servern selbst ändert sich dadurch nichts.',
   'settings.removeAllConfirmButton': 'Alle entfernen',
   'settings.cancel': 'Abbrechen',
+  'settings.rainbowPalettePosition': 'Palettenposition {position}',
+  'settings.rainbowPalette': 'Farbpalette',
+  'settings.pickerDone': 'Fertig',
 };

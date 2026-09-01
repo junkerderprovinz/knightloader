@@ -27,6 +27,8 @@ export const id: Dict = {
   'instance.offline': 'luring',
   'downloads.start': 'Mulai',
   'downloads.stop': 'Hentikan',
+  'downloads.startSkipped': 'Filter tautan menahan {n} tautan.',
+  'downloads.startBlocked': 'Jadwal sedang menahan antrean.',
   'downloads.tabDownloads': 'Unduhan',
   'downloads.tabCollector': 'Pengumpul',
   'packages.loose': 'Tanpa paket',
@@ -90,6 +92,9 @@ export const id: Dict = {
     'Tindakan ini menghapus setiap koneksi tersimpan beserta tokennya dari perangkat ini. Tidak ada yang berubah di server itu sendiri.',
   'settings.removeAllConfirmButton': 'Hapus semua',
   'settings.cancel': 'Batal',
+  'settings.rainbowPalettePosition': 'Posisi palet {position}',
+  'settings.rainbowPalette': 'Palet warna',
+  'settings.pickerDone': 'Selesai',
 
   'relay.title': 'Sambungkan dengan frasa',
   'relay.hint':

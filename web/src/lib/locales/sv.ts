@@ -88,6 +88,8 @@ export const sv: Dict = {
   'collector.toastSkipped': '{n} länk(ar) förberedda, {skipped} redan kända',
   'collector.toastNone': 'Inga giltiga länkar hittades',
   'collector.toastStarted': '{n} nedladdning(ar) startade',
+  'collector.toastStartSkipped': 'Länkfiltret håller tillbaka {n} länkar.',
+  'collector.toastStartBlocked': 'Ett schema håller kön pausad.',
   'collector.selectAll': 'Välj alla',
   'collector.movePrompt': 'Till vilket paket ska de valda länkarna flyttas?',
 
@@ -210,7 +212,6 @@ export const sv: Dict = {
   'settings.accent': 'Accentfärg',
   'settings.accentHint': 'Den enda färgen för aktivitet. Texten på den väljs efter kontrast.',
   'settings.colours': 'Färger',
-  'settings.accentPresets': 'Förinställningar',
   'settings.accentReset': 'Standard',
   'queue.stop': 'Stoppa kön',
   'queue.start': 'Starta kön',

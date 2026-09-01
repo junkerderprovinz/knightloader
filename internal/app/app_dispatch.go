@@ -653,19 +653,50 @@ func (a *App) onUpdate(id string, u core.Update) {
 		a.mu.Unlock()
 		return
 	}
+	// A status the app did not ask for cannot undo one it did.
+	//
+	// Pause writes "paused" under the lock and then tells the backend, and the
+	// comment there calls a later backend event "the thing that makes writing it
+	// here safe". For a POLLING backend that is exactly backwards. JD's poller
+	// ticks every 750 ms and reports whatever JD's own list says; the link is
+	// still in that list a moment after the pause, so the very next tick wrote
+	// "running" straight over the pause. Measured on the live instance: stop
+	// answers `running: 0, halted: true`, and the two rows are back to "running"
+	// before the answer is on screen. That is the stop button jdp reported four
+	// times, and no amount of writing the status in Pause could ever have fixed
+	// it, because the overwrite happens afterwards.
+	//
+	// Terminal states are exempt, and that exemption is the whole rule rather
+	// than a loophole: done and error are facts about the file, true whatever
+	// anybody intended, and one arriving a moment after a pause is still true.
+	// Running and queued are claims about INTENT, and on intent the app is the
+	// authority - it is the only party that heard the user.
+	//
+	// Anchored on `!a.active[id]` and not on the status alone: a task the
+	// dispatcher is genuinely driving is in a.active, so a real restart is never
+	// mistaken for a stale echo.
+	stale := u.Status != core.StatusDone && u.Status != core.StatusError &&
+		t.Status == core.StatusPaused && !a.active[id]
 	if u.Name != "" {
 		t.Name = u.Name
 	}
 	if u.Size > 0 {
 		t.Size = u.Size
 	}
-	if u.Status != "" {
+	if u.Status != "" && !stale {
 		t.Status = u.Status
 	}
 	if u.Loaded > 0 {
 		t.Loaded = u.Loaded
 	}
-	t.Speed = u.Speed
+	// Zeroed rather than carried for a stopped task: the bytes already written
+	// are a fact worth keeping, the speed they were arriving at is not, and a
+	// paused row showing 4 MB/s is the same lie in a smaller font.
+	if stale {
+		t.Speed = 0
+	} else {
+		t.Speed = u.Speed
+	}
 	if u.Torrent != nil {
 		u.Torrent.ApplyTo(t)
 	}

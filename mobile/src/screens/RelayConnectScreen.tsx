@@ -194,6 +194,17 @@ export default function RelayConnectScreen({
         <IconBadge icon={<Back color={c.textSub} />} onPress={onBack} accessibilityLabel={t('settings.back')} />
         <Text style={[styles.title, { color: c.text }]}>{t('relay.title')}</Text>
       </View>
+      {/* Heading, explanation, field, buttons - in that order (jdp, 2026-09-01:
+          "infotext unter die überschrift, dann das eingabefeld, dann die
+          buttons").
+
+          It sat below the controls for one round, on my reading of his "info
+          text weiter runter" as "out of the way of the field". He meant lower
+          than where it was in the heading, not last: a screen whose whole job
+          is one unfamiliar input explains it BEFORE asking for it, and an
+          explanation you reach after the buttons is one you read after
+          guessing. */}
+      <Text style={[styles.hint, { color: c.textMuted }]}>{t('relay.hint')}</Text>
       <Text style={[styles.label, { color: c.textMuted }]}>{t('relay.phraseLabel')}</Text>
       <TextInput
         style={[styles.input, styles.phraseInput, inputStyle]}
@@ -250,14 +261,6 @@ export default function RelayConnectScreen({
           </>
         )}
       </TouchableOpacity>
-
-      {/* The explanation sits UNDER the controls now (jdp, 2026-09-01: "info
-          text weiter runter"). Above the field it pushed the one thing this
-          screen exists for further down, and it is a thing you read once while
-          the field and the buttons are what you come back to. Same reasoning as
-          the design language's "an explanation is a bubble": this one has no
-          control to hang off, so it goes last instead of first. */}
-      <Text style={[styles.hint, { color: c.textMuted }]}>{t('relay.hint')}</Text>
 
       {/* Scanning is the point of the QR the web UI has been showing all
           along: twelve words is exactly the input a phone keyboard is worst

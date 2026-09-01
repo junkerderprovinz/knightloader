@@ -88,6 +88,8 @@ export const lv: Dict = {
   'collector.toastSkipped': 'Sagatavotas {n} saites, {skipped} jau zināmas',
   'collector.toastNone': 'Nav atrasta neviena derīga saite',
   'collector.toastStarted': 'Palaistas {n} lejupielādes',
+  'collector.toastStartSkipped': 'Saišu filtrs aizturēja {n} saites.',
+  'collector.toastStartBlocked': 'Grafiks tur rindu apturētu.',
   'collector.selectAll': 'Atlasīt visas',
   'collector.movePrompt': 'Uz kuru paku pārvietot atlasītās saites?',
 
@@ -210,7 +212,6 @@ export const lv: Dict = {
   'settings.accent': 'Akcenta krāsa',
   'settings.accentHint': 'Vienīgā krāsa aktivitātei. Teksts uz tās tiek izvēlēts pēc kontrasta.',
   'settings.colours': 'Krāsas',
-  'settings.accentPresets': 'Priekšiestatījumi',
   'settings.accentReset': 'Noklusējums',
   'queue.stop': 'Apturēt rindu',
   'queue.start': 'Palaist rindu',

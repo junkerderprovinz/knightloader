@@ -90,6 +90,8 @@ export const no: Dict = {
   'collector.toastSkipped': '{n} lenke(r) klargjort, {skipped} allerede kjent',
   'collector.toastNone': 'Fant ingen gyldige lenker',
   'collector.toastStarted': '{n} nedlasting(er) startet',
+  'collector.toastStartSkipped': 'Lenkefilteret holder tilbake {n} lenker.',
+  'collector.toastStartBlocked': 'En tidsplan holder køen pauset.',
   'collector.selectAll': 'Velg alle',
   'collector.movePrompt': 'Hvilken pakke skal de valgte lenkene flyttes til?',
 
@@ -212,7 +214,6 @@ export const no: Dict = {
   'settings.accent': 'Aksentfarge',
   'settings.accentHint': 'Den ene fargen for aktivitet. Teksten oppå velges etter kontrast.',
   'settings.colours': 'Farger',
-  'settings.accentPresets': 'Forhåndsinnstillinger',
   'settings.accentReset': 'Standard',
   'queue.stop': 'Stopp køen',
   'queue.start': 'Start køen',

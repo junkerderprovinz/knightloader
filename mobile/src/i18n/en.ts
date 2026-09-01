@@ -44,6 +44,8 @@ export const en = {
   'instance.offline': 'offline',
   'downloads.start': 'Start',
   'downloads.stop': 'Stop',
+  'downloads.startSkipped': 'A link filter is holding {n} links back.',
+  'downloads.startBlocked': 'A schedule is holding the queue.',
   'downloads.tabDownloads': 'Downloads',
   'downloads.tabCollector': 'Collector',
   'packages.loose': 'No package',
@@ -107,6 +109,9 @@ export const en = {
     'This removes every saved connection and its token from this device. It does not change anything on the servers themselves.',
   'settings.removeAllConfirmButton': 'Remove all',
   'settings.cancel': 'Cancel',
+  'settings.rainbowPalettePosition': 'Palette position {position}',
+  'settings.rainbowPalette': 'Colour palette',
+  'settings.pickerDone': 'Done',
 } as const;
 
 export type Dict = { [K in keyof typeof en]: string };

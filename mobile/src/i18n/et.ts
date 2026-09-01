@@ -27,6 +27,8 @@ export const et: Dict = {
   'instance.offline': 'võrguühenduseta',
   'downloads.start': 'Alusta',
   'downloads.stop': 'Peata',
+  'downloads.startSkipped': 'Lingifilter peatas {n} linki.',
+  'downloads.startBlocked': 'Ajakava hoiab järjekorda peatatuna.',
   'downloads.tabDownloads': 'Allalaadimised',
   'downloads.tabCollector': 'Koguja',
   'packages.loose': 'Paketita',
@@ -90,6 +92,9 @@ export const et: Dict = {
     'See eemaldab sellest seadmest iga salvestatud ühenduse koos selle võtmega. Serverites endis ei muutu midagi.',
   'settings.removeAllConfirmButton': 'Eemalda kõik',
   'settings.cancel': 'Tühista',
+  'settings.rainbowPalettePosition': 'Paleti koht {position}',
+  'settings.rainbowPalette': 'Värvipalett',
+  'settings.pickerDone': 'Valmis',
 
   'relay.title': 'Ühenda fraasiga',
   'relay.hint':

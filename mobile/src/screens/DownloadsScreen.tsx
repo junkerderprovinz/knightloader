@@ -5,7 +5,6 @@ import type { Instance, QueueState, ServerConnection, Task } from '../api/types'
 import PackageList from '../components/PackageList';
 import { WellSelector } from '../components/glim';
 import { useAppearance } from '../theme/AppearanceContext';
-import { useWide } from '../theme/layout';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import IconBadge, { Back, Trash } from '../components/IconBadge';
@@ -40,7 +39,6 @@ export default function DownloadsScreen({
 }) {
   const { t } = useT();
   const { c, accent, accentInk, accentContrast, radii } = useAppearance();
-  const wide = useWide();
   const base = peer ? `/api/instances/${encodeURIComponent(peer.name)}` : '/api';
   const [tasks, setTasks] = useState<Task[]>([]);
   const [connected, setConnected] = useState(false);
@@ -172,12 +170,19 @@ export default function DownloadsScreen({
         empty={connected ? t('downloads.empty') : t('downloads.emptyConnecting')}
         header={
           <>
-            {/* On a tablet the queue bar and the graph sit side by side: they
-                are two readings of the same thing, and stacking them on a
-                screen with room to spare pushes the list that matters further
-                down. */}
-            <View style={wide ? styles.wideHeader : undefined}>
-              <View style={[styles.queueBar, { backgroundColor: c.surface, borderRadius: radii.card }, wide && styles.half]}>
+            {/* One card, figures and curve together (jdp, 2026-09-01: "in der
+                instanzansicht ist er wieder eine eigene card. es soll auch mit
+                der card darüber veschmolzen werden").
+
+                They were two objects: a queue bar card, and the graph as a
+                sibling below it wearing a surface and a radius of its own,
+                which is a card by every property that makes something look like
+                one. Side by side on a tablet, they were two cards even more
+                plainly. The overview's summary card has held both in one box
+                since [358]'s first half; this is the same reading of the same
+                instance, so it is the same box. */}
+            <View style={[styles.queueCard, { backgroundColor: c.surface, borderRadius: radii.card }]}>
+              <View style={styles.queueBar}>
                 <Text style={[styles.queueLabel, { color: c.textMuted }]}>
                   {queue ? (queue.halted ? t('downloads.queueHalted') : t('downloads.queueRunning')) : '—'}
                   {queue && queue.running > 0 ? ` · ${t('downloads.queueActive', { n: queue.running })}` : ''}
@@ -210,17 +215,13 @@ export default function DownloadsScreen({
                   moves. There, a line flat at zero is not nothing - it is the
                   answer. So: something queued, graph; nothing queued, no
                   graph. */}
-              {(speed > 0 || queued.length > 0) && (
-                <View style={[styles.graph, wide && styles.half]}>
-                  <SpeedGraph speed={speed} />
-                </View>
-              )}
+              {(speed > 0 || queued.length > 0) && <SpeedGraph speed={speed} />}
             </View>
 
             {/* Why the last start or stop did not take. One line, in the fail
                 colour, and only when there is something to say. Outside the
-                wide header on purpose: in there it would become a third flex
-                column on a tablet, squeezing the two readings it explains. */}
+                card on purpose: it is about the last press, not about the
+                queue - the same placement the overview gives its own. */}
             {startError !== '' && (
               <Text style={[styles.queueError, { color: c.statusFailSolid }]} numberOfLines={2}>
                 {startError}
@@ -262,8 +263,17 @@ export default function DownloadsScreen({
                 // there is actually something to see in it.
                 setStartError('');
                 try {
-                  await startTasks(conn, pkg.tasks.map((x) => x.id), base);
-                  setTab('downloads');
+                  const r = await startTasks(conn, pkg.tasks.map((x) => x.id), base);
+                  // The three ways a start can do nothing, each said out loud
+                  // (jdp, four rounds of "es lädt nicht herunter"). The server
+                  // now reports which one it was; leaving that unread here
+                  // would put the silence back one layer down.
+                  if (r.blocked) setStartError(t('downloads.startBlocked'));
+                  else if (r.started === 0 && r.skipped > 0) setStartError(t('downloads.startSkipped', { n: r.skipped }));
+                  // The switch flipped on the server, so show it now rather
+                  // than at the next five-second poll.
+                  if (r.released) setQueue((q) => (q ? { ...q, halted: false } : q));
+                  if (r.started > 0) setTab('downloads');
                 } catch (e) {
                   setStartError(e instanceof Error ? e.message : String(e));
                 }
@@ -340,20 +350,14 @@ const styles = StyleSheet.create({
   // No horizontal margin any more: these live inside the list's own content
   // container, which already carries the padding, the cap and the centring.
   // Keeping a margin here would inset them from the cards by another 16.
-  queueBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
+  // The card. Same padding and gap as the overview's summary card, so the two
+  // readings of one instance are drawn in one box on both screens.
+  queueCard: { padding: 14, gap: 10, marginBottom: 12 },
+  // The top line inside it: state on the left, the one badge on the right.
+  queueBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   queueLabel: { fontSize: 13 },
   queueError: { marginBottom: 8, fontSize: TYPE.caption },
-  graph: { marginBottom: 10 },
   tabs: { marginBottom: 10 },
-  wideHeader: { flexDirection: 'row', gap: 12 },
-  half: { flex: 1, maxWidth: undefined },
   empty: { textAlign: 'center', marginTop: 48 },
   fab: {
     position: 'absolute',

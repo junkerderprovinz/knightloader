@@ -51,31 +51,81 @@ import { useDraft } from './context';
  * something else now and this one is deliberately local to this page
  * rather than a third variant bolted onto the shared one.
  */
+/**
+ * accentSlot is which of the eight preset positions a colour belongs to.
+ *
+ * An exact preset answers with itself; anything else answers with the nearest,
+ * and that is what gives a hand-mixed accent a home. The row shows the eight
+ * presets and marks the one in force - so a colour that is no preset used to be
+ * in force and shown nowhere. The separate "current colour" circle that used to
+ * cover that case is gone (jdp, 2026-09-01: "links neben dem resetbutton ist
+ * ein farbfeld mit stift. das kann weg"), so the slot it was nudged out of
+ * keeps it, wears it, and re-opens the picker on it.
+ *
+ * Plain squared RGB distance, deliberately not a perceptual metric: it only has
+ * to be stable and unsurprising for eight widely separated hues, and every
+ * fancier answer here is a colour-science argument nobody can check by looking.
+ * Kept byte-identical with the extension's own accentSlot (src/appearance.js)
+ * so the same colour lands in the same slot in both.
+ */
+function accentSlot(hex: string): number {
+  const p = (h: string) => {
+    const n = parseInt(h.slice(1), 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  };
+  if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return 0;
+  const [r, g, b] = p(hex);
+  let best = 0;
+  let bestD = Infinity;
+  ACCENTS.forEach((a, i) => {
+    const [pr, pg, pb] = p(a.hex);
+    const d = (r - pr) ** 2 + (g - pg) ** 2 + (b - pb) ** 2;
+    if (d < bestD) {
+      bestD = d;
+      best = i;
+    }
+  });
+  return best;
+}
+
+/**
+ * One round colour button, doing both jobs.
+ *
+ * Not selected, a click SELECTS it. Already selected, a click opens the picker
+ * on it. That pairing is what let the ninth circle go: every colour in the row
+ * is editable, and reaching the editor costs the click that selects it - a
+ * click somebody about to change a colour was going to make anyway.
+ *
+ * No drawn ring around the circle any more: surfaces here are separated by
+ * shade, never by a line, and the selected state is a shadow standing off the
+ * card's own ground. Same rule and same numbers as the extension's
+ * .glim-swatch, so the two rows look identical side by side.
+ */
 function RingSwatch({
   color,
   label,
   selected,
   onPick,
+  onEdit,
 }: {
   color: string;
   label: string;
   selected: boolean;
   onPick: () => void;
+  onEdit?: (el: HTMLElement) => void;
 }) {
   return (
-    <span
-      className="inline-flex rounded-[var(--radius-pill)] border-2 transition-transform hover:scale-110"
-      style={{ borderColor: selected ? 'var(--carbon-text)' : 'var(--carbon-border)' }}
-    >
-      <button
-        type="button"
-        title={label}
-        aria-label={label}
-        onClick={onPick}
-        className="h-6 w-6 rounded-[var(--radius-pill)]"
-        style={{ backgroundColor: color }}
-      />
-    </span>
+    <button
+      type="button"
+      title={label}
+      aria-label={label}
+      aria-pressed={selected}
+      onClick={(e) => (selected && onEdit ? onEdit(e.currentTarget) : onPick())}
+      className={`h-6 w-6 shrink-0 cursor-pointer rounded-[var(--radius-pill)] transition-transform hover:scale-110 ${
+        selected ? 'shadow-[0_0_0_2px_var(--carbon-surface),0_0_0_4px_var(--carbon-text)]' : ''
+      }`}
+      style={{ backgroundColor: color }}
+    />
   );
 }
 
@@ -299,47 +349,53 @@ export function Look() {
             {t('settings.accent')}
             <InfoBubble tip={t('settings.accentHint')} />
           </span>
-          <div className="flex flex-wrap items-center gap-3">
-            {/* The current/custom accent trigger - a plain circle, no selection
-                ring of its own, opening the app's own picker. It used to hide a
-                native colour input behind it, with a note saying the documented
-                popover had no port here yet. It has one now
-                (lib/colorPicker.ts), so the note and the native input are both
-                gone. */}
-            <button
-              type="button"
-              className="relative inline-flex h-6 w-6 shrink-0 cursor-pointer overflow-hidden rounded-[var(--radius-pill)]"
-              title={t('settings.accent')}
-              aria-label={t('settings.accent')}
-              style={{ backgroundColor: accentLive }}
-              onClick={(e) => openColorPickerPopover(e.currentTarget, accentLive, (hex) => patch({ accent: hex }))}
-            />
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs text-carbon-textMuted">{t('settings.accentPresets')}:</span>
-              {ACCENTS.map((a) => (
+          {/* Eight circles and a reset, exactly like the palette row further
+              down, and nothing else (jdp, 2026-09-01: "der text Voreinstellungen
+              soll weg ... dann sind die farbfelder der akzentfarbe genau
+              gleihc viel wie die der farbpalette").
+
+              Three controls went to get there: the caption, because eight
+              colour circles in a row labelled "Accent" do not need a second
+              word saying they are colours to choose from; and the separate
+              current/custom circle, which read as a ninth preset and was the
+              only reason the row was longer than the palette's. What it did -
+              open the picker on any colour - every circle now does. */}
+          <div className="flex flex-wrap items-center gap-2">
+            {ACCENTS.map((a, i) => {
+              // The slot in force wears the LIVE colour, which is the preset's
+              // own unless the picker has nudged it. That is what keeps a
+              // hand-mixed accent visible now that it has no circle of its own.
+              const mine = i === accentSlot(accentLive);
+              const shown = mine ? accentLive : a.hex;
+              return (
                 <RingSwatch
                   key={a.hex}
-                  color={a.hex}
-                  label={a.name}
-                  selected={accentLive === a.hex.toLowerCase()}
+                  color={shown}
+                  // Named while it wears its preset; its own value once it does
+                  // not, because "Sunflower" on a circle that is no longer
+                  // Sunflower is the one label worse than no label.
+                  label={mine && shown.toLowerCase() !== a.hex.toLowerCase() ? shown.toUpperCase() : a.name}
+                  selected={mine}
                   onPick={() => patch({ accent: a.hex })}
+                  onEdit={(el) => openColorPickerPopover(el, shown, (hex) => patch({ accent: hex }))}
                 />
-              ))}
-              {/* Icon badge, not a text link (rule 13: "a small, single-purpose
-                  action badge carries an icon"). Only once the accent has
-                  actually moved off the default. */}
-              {accentLive !== DEFAULT_ACCENT.toLowerCase() && (
-                <button
-                  type="button"
-                  title={t('settings.accentReset')}
-                  aria-label={t('settings.accentReset')}
-                  onClick={() => patch({ accent: '' })}
-                  className="inline-flex h-6 w-6 items-center justify-center rounded-[var(--radius-pill)] bg-carbon-surface2 text-carbon-textSub transition-colors hover:text-carbon-text"
-                >
-                  <IconRetry width={13} height={13} />
-                </button>
-              )}
-            </div>
+              );
+            })}
+            {/* Always rendered, where it used to appear only once the accent had
+                moved off the default. A control that is sometimes there is a
+                control nobody learns the position of, and the moment somebody
+                goes looking for it is exactly the moment it is missing - they
+                check whether a reset exists BEFORE deciding to experiment. The
+                palette's own reset two rows down was already unconditional. */}
+            <button
+              type="button"
+              title={t('settings.accentReset')}
+              aria-label={t('settings.accentReset')}
+              onClick={() => patch({ accent: '' })}
+              className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--radius-pill)] bg-carbon-surface2 text-carbon-textSub transition-colors hover:text-carbon-text"
+            >
+              <IconRetry width={13} height={13} />
+            </button>
           </div>
         </div>
 

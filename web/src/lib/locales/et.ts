@@ -88,6 +88,8 @@ export const et: Dict = {
   'collector.toastSkipped': 'Ootele pandud {n} linki, {skipped} juba teada',
   'collector.toastNone': 'Kehtivaid linke ei leitud',
   'collector.toastStarted': 'Käivitatud {n} allalaadimist',
+  'collector.toastStartSkipped': 'Lingifilter peatas {n} linki.',
+  'collector.toastStartBlocked': 'Ajakava hoiab järjekorda peatatuna.',
   'collector.selectAll': 'Vali kõik',
   'collector.movePrompt': 'Millisesse pakki valitud lingid liigutada?',
 
@@ -210,7 +212,6 @@ export const et: Dict = {
   'settings.accent': 'Rõhuvärv',
   'settings.accentHint': 'Ainus värv tegevuse jaoks. Tekst sellel valitakse kontrasti järgi.',
   'settings.colours': 'Värvid',
-  'settings.accentPresets': 'Eelseaded',
   'settings.accentReset': 'Vaikimisi',
   'queue.stop': 'Peata järjekord',
   'queue.start': 'Käivita järjekord',

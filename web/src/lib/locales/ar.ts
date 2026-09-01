@@ -90,6 +90,8 @@ export const ar: Dict = {
   'collector.toastSkipped': 'تم تحضير {n} رابط، و{skipped} كانت معروفة',
   'collector.toastNone': 'لم يُعثر على روابط صالحة',
   'collector.toastStarted': 'تم بدء {n} تنزيل',
+  'collector.toastStartSkipped': 'تم استبعاد {n} من الروابط بواسطة مرشّح الروابط.',
+  'collector.toastStartBlocked': 'قائمة الانتظار متوقفة بموجب جدول زمني.',
   'collector.selectAll': 'تحديد الكل',
   'collector.movePrompt': 'إلى أي حزمة تُنقل الروابط المحددة؟',
 
@@ -212,7 +214,6 @@ export const ar: Dict = {
   'settings.accent': 'لون التمييز',
   'settings.accentHint': 'اللون الوحيد للنشاط. يُختار لون النص فوقه حسب التباين.',
   'settings.colours': 'الألوان',
-  'settings.accentPresets': 'إعدادات مسبقة',
   'settings.accentReset': 'الافتراضي',
   'queue.stop': 'إيقاف الطابور',
   'queue.start': 'بدء الطابور',

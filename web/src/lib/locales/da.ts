@@ -88,6 +88,8 @@ export const da: Dict = {
   'collector.toastSkipped': '{n} link(s) klargjort, {skipped} kendt i forvejen',
   'collector.toastNone': 'Ingen gyldige links fundet',
   'collector.toastStarted': '{n} download(s) startet',
+  'collector.toastStartSkipped': 'Linkfilteret holdt {n} links tilbage.',
+  'collector.toastStartBlocked': 'Køen er sat på pause af en tidsplan.',
   'collector.selectAll': 'Vælg alle',
   'collector.movePrompt': 'Hvilken pakke skal de valgte links flyttes til?',
 
@@ -210,7 +212,6 @@ export const da: Dict = {
   'settings.accent': 'Accentfarve',
   'settings.accentHint': 'Den ene farve for aktivitet. Teksten ovenpå vælges efter kontrast.',
   'settings.colours': 'Farver',
-  'settings.accentPresets': 'Forudindstillinger',
   'settings.accentReset': 'Standard',
   'queue.stop': 'Stop køen',
   'queue.start': 'Start køen',

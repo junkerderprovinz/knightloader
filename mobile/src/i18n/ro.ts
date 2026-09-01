@@ -27,6 +27,8 @@ export const ro: Dict = {
   'instance.offline': 'offline',
   'downloads.start': 'Pornește',
   'downloads.stop': 'Oprește',
+  'downloads.startSkipped': 'Filtrul de linkuri reține {n} linkuri.',
+  'downloads.startBlocked': 'O programare ține coada pe pauză.',
   'downloads.tabDownloads': 'Descărcări',
   'downloads.tabCollector': 'Colector',
   'packages.loose': 'Fără pachet',
@@ -90,6 +92,9 @@ export const ro: Dict = {
     'Elimină de pe acest dispozitiv fiecare conexiune salvată împreună cu tokenul ei. Pe servere în sine nu se schimbă nimic.',
   'settings.removeAllConfirmButton': 'Elimină tot',
   'settings.cancel': 'Anulează',
+  'settings.rainbowPalettePosition': 'Poziția {position} din paletă',
+  'settings.rainbowPalette': 'Paletă de culori',
+  'settings.pickerDone': 'Gata',
 
   'relay.title': 'Conectare cu o frază',
   'relay.hint':

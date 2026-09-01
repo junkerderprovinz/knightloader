@@ -88,6 +88,8 @@ export const ca: Dict = {
   'collector.toastSkipped': '{n} enllaç(os) preparat(s), {skipped} ja coneguts',
   'collector.toastNone': "No s'ha trobat cap enllaç vàlid",
   'collector.toastStarted': '{n} baixada(es) iniciada(es)',
+  'collector.toastStartSkipped': 'El filtre d’enllaços ha retingut {n} enllaços.',
+  'collector.toastStartBlocked': 'La cua està aturada per una programació.',
   'collector.selectAll': 'Selecciona-ho tot',
   'collector.movePrompt': 'A quin paquet vols moure els enllaços seleccionats?',
 
@@ -210,7 +212,6 @@ export const ca: Dict = {
   'settings.accent': "Color d'accent",
   'settings.accentHint': "L'únic color per a l'activitat. El text a sobre es tria per contrast.",
   'settings.colours': 'Colors',
-  'settings.accentPresets': 'Predefinicions',
   'settings.accentReset': 'Per defecte',
   'queue.stop': 'Atura la cua',
   'queue.start': 'Inicia la cua',

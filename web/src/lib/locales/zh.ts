@@ -88,6 +88,8 @@ export const zh: Dict = {
   'collector.toastSkipped': '已准备 {n} 个链接，{skipped} 个已存在',
   'collector.toastNone': '没有找到有效链接',
   'collector.toastStarted': '已开始 {n} 个下载',
+  'collector.toastStartSkipped': '链接过滤器保留了 {n} 个链接。',
+  'collector.toastStartBlocked': '计划任务正暂停队列。',
   'collector.selectAll': '全选',
   'collector.movePrompt': '把所选链接移到哪个包？',
 
@@ -210,7 +212,6 @@ export const zh: Dict = {
   'settings.accent': '强调色',
   'settings.accentHint': '表示活动的唯一颜色。其上的文字按对比度自动选取。',
   'settings.colours': '颜色',
-  'settings.accentPresets': '预设',
   'settings.accentReset': '默认',
   'queue.stop': '停止队列',
   'queue.start': '启动队列',

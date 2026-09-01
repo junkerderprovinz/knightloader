@@ -88,6 +88,8 @@ export const ms: Dict = {
   'collector.toastSkipped': '{n} pautan disediakan, {skipped} sudah ada',
   'collector.toastNone': 'Tiada pautan sah dijumpai',
   'collector.toastStarted': '{n} muat turun dimulakan',
+  'collector.toastStartSkipped': 'Penapis pautan menahan {n} pautan.',
+  'collector.toastStartBlocked': 'Jadual sedang menahan baris gilir.',
   'collector.selectAll': 'Pilih semua',
   'collector.movePrompt': 'Pindahkan pautan terpilih ke pakej mana?',
 
@@ -210,7 +212,6 @@ export const ms: Dict = {
   'settings.accent': 'Warna aksen',
   'settings.accentHint': 'Satu warna untuk aktiviti. Teks di atasnya dipilih ikut kontras.',
   'settings.colours': 'Warna',
-  'settings.accentPresets': 'Praset',
   'settings.accentReset': 'Lalai',
   'queue.stop': 'Henti baris gilir',
   'queue.start': 'Mula baris gilir',

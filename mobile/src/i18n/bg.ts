@@ -27,6 +27,8 @@ export const bg: Dict = {
   'instance.offline': 'офлайн',
   'downloads.start': 'Старт',
   'downloads.stop': 'Спри',
+  'downloads.startSkipped': '{n} връзки са задържани от филтъра за връзки.',
+  'downloads.startBlocked': 'Опашката е спряна от график.',
   'downloads.tabDownloads': 'Изтегляния',
   'downloads.tabCollector': 'Събирач',
   'packages.loose': 'Без пакет',
@@ -90,6 +92,9 @@ export const bg: Dict = {
     'Това премахва от това устройство всяка запазена връзка заедно с нейния токен. На самите сървъри нищо не се променя.',
   'settings.removeAllConfirmButton': 'Премахни всички',
   'settings.cancel': 'Отказ',
+  'settings.rainbowPalettePosition': 'Позиция {position} в палитрата',
+  'settings.rainbowPalette': 'Цветова палитра',
+  'settings.pickerDone': 'Готово',
 
   'relay.title': 'Свързване с фраза',
   'relay.hint':

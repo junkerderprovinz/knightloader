@@ -88,6 +88,8 @@ export const de: Dict = {
   'collector.toastSkipped': '{n} Link(s) gesammelt, {skipped} bereits bekannt',
   'collector.toastNone': 'Keine gültigen Links gefunden',
   'collector.toastStarted': '{n} Download(s) gestartet',
+  'collector.toastStartSkipped': '{n} Links hält der Linkfilter zurück.',
+  'collector.toastStartBlocked': 'Ein Zeitplan hält die Warteschlange an.',
   'collector.selectAll': 'Alle auswählen',
   'collector.movePrompt': 'In welches Paket sollen die ausgewählten Links?',
 
@@ -210,7 +212,6 @@ export const de: Dict = {
   'settings.accent': 'Akzentfarbe',
   'settings.accentHint': 'Die eine Farbe für Aktivität. Die Schrift darauf wird nach Kontrast gewählt.',
   'settings.colours': 'Farben',
-  'settings.accentPresets': 'Voreinstellungen',
   'settings.accentReset': 'Standard',
   'queue.stop': 'Warteschlange stoppen',
   'queue.start': 'Warteschlange starten',

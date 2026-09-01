@@ -27,6 +27,8 @@ export const fa: Dict = {
   'instance.offline': 'آفلاین',
   'downloads.start': 'شروع',
   'downloads.stop': 'توقف',
+  'downloads.startSkipped': 'فیلتر پیوند {n} پیوند را نگه داشته است.',
+  'downloads.startBlocked': 'یک زمان‌بندی صف را متوقف نگه داشته است.',
   'downloads.tabDownloads': 'دانلودها',
   'downloads.tabCollector': 'گردآورنده',
   'packages.loose': 'بدون بسته',
@@ -90,6 +92,9 @@ export const fa: Dict = {
     'این کار هر اتصال ذخیره‌شده را همراه با توکن آن از این دستگاه حذف می‌کند. در خود سرورها چیزی تغییر نمی‌کند.',
   'settings.removeAllConfirmButton': 'حذف همه',
   'settings.cancel': 'لغو',
+  'settings.rainbowPalettePosition': 'جایگاه {position} پالت',
+  'settings.rainbowPalette': 'پالت رنگ',
+  'settings.pickerDone': 'انجام شد',
 
   'relay.title': 'اتصال با عبارت',
   'relay.hint':

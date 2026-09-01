@@ -27,6 +27,8 @@ export const sl: Dict = {
   'instance.offline': 'brez povezave',
   'downloads.start': 'Zaženi',
   'downloads.stop': 'Ustavi',
+  'downloads.startSkipped': 'Filter povezav zadržuje {n} povezav.',
+  'downloads.startBlocked': 'Urnik zadržuje čakalno vrsto.',
   'downloads.tabDownloads': 'Prenosi',
   'downloads.tabCollector': 'Zbiralnik',
   'packages.loose': 'Brez paketa',
@@ -90,6 +92,9 @@ export const sl: Dict = {
     'S te naprave odstrani vsako shranjeno povezavo skupaj z njenim žetonom. Na samih strežnikih se ne spremeni nič.',
   'settings.removeAllConfirmButton': 'Odstrani vse',
   'settings.cancel': 'Prekliči',
+  'settings.rainbowPalettePosition': 'Mesto palete {position}',
+  'settings.rainbowPalette': 'Barvna paleta',
+  'settings.pickerDone': 'Končano',
 
   'relay.title': 'Poveži se s frazo',
   'relay.hint':

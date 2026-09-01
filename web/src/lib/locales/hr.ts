@@ -88,6 +88,8 @@ export const hr: Dict = {
   'collector.toastSkipped': 'Dodano poveznica: {n}, već poznatih: {skipped}',
   'collector.toastNone': 'Nema valjanih poveznica',
   'collector.toastStarted': 'Pokrenuto preuzimanja: {n}',
+  'collector.toastStartSkipped': 'Filtar poveznica zadržao je {n} poveznica.',
+  'collector.toastStartBlocked': 'Raspored zadržava red zaustavljenim.',
   'collector.selectAll': 'Odaberi sve',
   'collector.movePrompt': 'U koji paket premjestiti odabrane poveznice?',
 
@@ -210,7 +212,6 @@ export const hr: Dict = {
   'settings.accent': 'Boja naglaska',
   'settings.accentHint': 'Jedina boja za aktivnost. Tekst na njoj bira se prema kontrastu.',
   'settings.colours': 'Boje',
-  'settings.accentPresets': 'Predefinirane postavke',
   'settings.accentReset': 'Zadano',
   'queue.stop': 'Zaustavi red',
   'queue.start': 'Pokreni red',

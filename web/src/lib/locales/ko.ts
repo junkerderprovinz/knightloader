@@ -88,6 +88,8 @@ export const ko: Dict = {
   'collector.toastSkipped': '링크 {n}개를 준비했습니다. {skipped}개는 이미 있었습니다',
   'collector.toastNone': '유효한 링크를 찾지 못했습니다',
   'collector.toastStarted': '다운로드 {n}개를 시작했습니다',
+  'collector.toastStartSkipped': '링크 필터가 링크 {n}개를 보류하고 있습니다.',
+  'collector.toastStartBlocked': '일정이 대기열을 멈춰 두고 있습니다.',
   'collector.selectAll': '전체 선택',
   'collector.movePrompt': '선택한 링크를 어느 패키지로 옮길까요?',
 
@@ -210,7 +212,6 @@ export const ko: Dict = {
   'settings.accent': '강조 색',
   'settings.accentHint': '활동을 나타내는 단 하나의 색입니다. 위에 올라가는 글자는 대비에 맞춰 정해집니다.',
   'settings.colours': '색상',
-  'settings.accentPresets': '프리셋',
   'settings.accentReset': '기본값',
   'queue.stop': '대기열 정지',
   'queue.start': '대기열 시작',

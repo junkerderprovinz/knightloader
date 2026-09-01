@@ -90,6 +90,8 @@ export const he: Dict = {
   'collector.toastSkipped': 'הוכנו {n} קישורים, {skipped} כבר היו מוכרים',
   'collector.toastNone': 'לא נמצאו קישורים תקינים',
   'collector.toastStarted': 'הותחלו {n} הורדות',
+  'collector.toastStartSkipped': 'מסנן הקישורים עוצר {n} קישורים.',
+  'collector.toastStartBlocked': 'תזמון מחזיק את התור בהשהיה.',
   'collector.selectAll': 'בחר הכול',
   'collector.movePrompt': 'לאיזו חבילה להעביר את הקישורים הנבחרים?',
 
@@ -212,7 +214,6 @@ export const he: Dict = {
   'settings.accent': 'צבע הדגשה',
   'settings.accentHint': 'הצבע היחיד לפעילות. הטקסט מעליו נבחר לפי ניגודיות.',
   'settings.colours': 'צבעים',
-  'settings.accentPresets': 'פריסטים',
   'settings.accentReset': 'ברירת מחדל',
   'queue.stop': 'עצירת התור',
   'queue.start': 'הפעלת התור',

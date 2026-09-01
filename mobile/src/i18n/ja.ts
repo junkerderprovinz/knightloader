@@ -27,6 +27,8 @@ export const ja: Dict = {
   'instance.offline': 'オフライン',
   'downloads.start': '開始',
   'downloads.stop': '停止',
+  'downloads.startSkipped': 'リンクフィルターが {n} 件のリンクを保留しています。',
+  'downloads.startBlocked': 'スケジュールによりキューが停止しています。',
   'downloads.tabDownloads': 'ダウンロード',
   'downloads.tabCollector': 'コレクター',
   'packages.loose': 'パッケージなし',
@@ -90,6 +92,9 @@ export const ja: Dict = {
     'この端末に保存されているすべての接続とそのトークンを削除します。サーバー側は何も変わりません。',
   'settings.removeAllConfirmButton': 'すべて削除',
   'settings.cancel': 'キャンセル',
+  'settings.rainbowPalettePosition': 'パレット位置 {position}',
+  'settings.rainbowPalette': 'カラーパレット',
+  'settings.pickerDone': '完了',
 
   'relay.title': 'フレーズで接続',
   'relay.hint':

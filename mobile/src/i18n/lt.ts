@@ -27,6 +27,8 @@ export const lt: Dict = {
   'instance.offline': 'neprisijungę',
   'downloads.start': 'Pradėti',
   'downloads.stop': 'Stabdyti',
+  'downloads.startSkipped': 'Nuorodų filtras sulaikė {n} nuorodų.',
+  'downloads.startBlocked': 'Tvarkaraštis laiko eilę sustabdytą.',
   'downloads.tabDownloads': 'Atsisiuntimai',
   'downloads.tabCollector': 'Rinktuvas',
   'packages.loose': 'Be paketo',
@@ -90,6 +92,9 @@ export const lt: Dict = {
     'Iš šio įrenginio pašalinamas kiekvienas išsaugotas ryšys kartu su jo prieigos raktu. Pačiuose serveriuose niekas nepakinta.',
   'settings.removeAllConfirmButton': 'Pašalinti viską',
   'settings.cancel': 'Atšaukti',
+  'settings.rainbowPalettePosition': 'Paletės vieta {position}',
+  'settings.rainbowPalette': 'Spalvų paletė',
+  'settings.pickerDone': 'Atlikta',
 
   'relay.title': 'Prisijungti su fraze',
   'relay.hint':

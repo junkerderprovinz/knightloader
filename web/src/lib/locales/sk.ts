@@ -88,6 +88,8 @@ export const sk: Dict = {
   'collector.toastSkipped': 'Odložených odkazov: {n}, už známych: {skipped}',
   'collector.toastNone': 'Žiadne platné odkazy',
   'collector.toastStarted': 'Spustených sťahovaní: {n}',
+  'collector.toastStartSkipped': 'Filter odkazov zadržal {n} odkazov.',
+  'collector.toastStartBlocked': 'Plán pozastavuje front.',
   'collector.selectAll': 'Vybrať všetko',
   'collector.movePrompt': 'Do ktorého balíka presunúť vybrané odkazy?',
 
@@ -210,7 +212,6 @@ export const sk: Dict = {
   'settings.accent': 'Farba zvýraznenia',
   'settings.accentHint': 'Jediná farba pre aktivitu. Text na nej sa volí podľa kontrastu.',
   'settings.colours': 'Farby',
-  'settings.accentPresets': 'Predvoľby',
   'settings.accentReset': 'Predvolené',
   'queue.stop': 'Zastaviť front',
   'queue.start': 'Spustiť front',

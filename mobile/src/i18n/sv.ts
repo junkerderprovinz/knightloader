@@ -27,6 +27,8 @@ export const sv: Dict = {
   'instance.offline': 'offline',
   'downloads.start': 'Starta',
   'downloads.stop': 'Stoppa',
+  'downloads.startSkipped': 'Länkfiltret håller tillbaka {n} länkar.',
+  'downloads.startBlocked': 'Ett schema håller kön pausad.',
   'downloads.tabDownloads': 'Nedladdningar',
   'downloads.tabCollector': 'Insamlare',
   'packages.loose': 'Utan paket',
@@ -90,6 +92,9 @@ export const sv: Dict = {
     'Tar bort varje sparad anslutning och dess token från den här enheten. Det ändrar ingenting på själva servrarna.',
   'settings.removeAllConfirmButton': 'Ta bort alla',
   'settings.cancel': 'Avbryt',
+  'settings.rainbowPalettePosition': 'Palettposition {position}',
+  'settings.rainbowPalette': 'Färgpalett',
+  'settings.pickerDone': 'Klar',
 
   'relay.title': 'Anslut med en fras',
   'relay.hint':

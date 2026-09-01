@@ -88,6 +88,8 @@ export const fa: Dict = {
   'collector.toastSkipped': '{n} لینک آماده شد، {skipped} از قبل موجود بود',
   'collector.toastNone': 'لینک معتبری پیدا نشد',
   'collector.toastStarted': '{n} دانلود شروع شد',
+  'collector.toastStartSkipped': 'فیلتر پیوند {n} پیوند را نگه داشته است.',
+  'collector.toastStartBlocked': 'یک زمان‌بندی صف را متوقف نگه داشته است.',
   'collector.selectAll': 'انتخاب همه',
   'collector.movePrompt': 'لینک‌های انتخاب‌شده به کدام بسته بروند؟',
 
@@ -210,7 +212,6 @@ export const fa: Dict = {
   'settings.accent': 'رنگ تأکید',
   'settings.accentHint': 'تنها رنگ فعالیت. متن روی آن بر اساس کنتراست انتخاب می‌شود.',
   'settings.colours': 'رنگ‌ها',
-  'settings.accentPresets': 'پیش‌تنظیم‌ها',
   'settings.accentReset': 'پیش‌فرض',
   'queue.stop': 'توقف صف',
   'queue.start': 'شروع صف',

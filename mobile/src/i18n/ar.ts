@@ -27,6 +27,8 @@ export const ar: Dict = {
   'instance.offline': 'غير متصل',
   'downloads.start': 'ابدأ',
   'downloads.stop': 'أوقف',
+  'downloads.startSkipped': 'تم استبعاد {n} من الروابط بواسطة مرشّح الروابط.',
+  'downloads.startBlocked': 'قائمة الانتظار متوقفة بموجب جدول زمني.',
   'downloads.tabDownloads': 'التنزيلات',
   'downloads.tabCollector': 'المُجمِّع',
   'packages.loose': 'بدون حزمة',
@@ -90,6 +92,9 @@ export const ar: Dict = {
     'يؤدي هذا إلى إزالة كل اتصال محفوظ ورمزه من هذا الجهاز. لن يتغيّر شيء على الخوادم نفسها.',
   'settings.removeAllConfirmButton': 'إزالة الكل',
   'settings.cancel': 'إلغاء',
+  'settings.rainbowPalettePosition': 'موضع اللوحة {position}',
+  'settings.rainbowPalette': 'لوحة الألوان',
+  'settings.pickerDone': 'تم',
 
   'relay.title': 'الاتصال بعبارة',
   'relay.hint':

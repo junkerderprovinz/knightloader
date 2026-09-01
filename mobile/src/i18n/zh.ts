@@ -27,6 +27,8 @@ export const zh: Dict = {
   'instance.offline': '离线',
   'downloads.start': '开始',
   'downloads.stop': '停止',
+  'downloads.startSkipped': '链接过滤器保留了 {n} 个链接。',
+  'downloads.startBlocked': '计划任务正暂停队列。',
   'downloads.tabDownloads': '下载',
   'downloads.tabCollector': '收集器',
   'packages.loose': '无软件包',
@@ -90,6 +92,9 @@ export const zh: Dict = {
     '这会从此设备移除每一个已保存的连接及其令牌，服务器本身不会有任何变化。',
   'settings.removeAllConfirmButton': '全部移除',
   'settings.cancel': '取消',
+  'settings.rainbowPalettePosition': '调色板位置 {position}',
+  'settings.rainbowPalette': '调色板',
+  'settings.pickerDone': '完成',
 
   'relay.title': '用词语连接',
   'relay.hint':

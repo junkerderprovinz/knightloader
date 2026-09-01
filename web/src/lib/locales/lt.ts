@@ -88,6 +88,8 @@ export const lt: Dict = {
   'collector.toastSkipped': 'Paruošta nuorodų: {n}, jau žinomų: {skipped}',
   'collector.toastNone': 'Tinkamų nuorodų nerasta',
   'collector.toastStarted': 'Paleista atsisiuntimų: {n}',
+  'collector.toastStartSkipped': 'Nuorodų filtras sulaikė {n} nuorodų.',
+  'collector.toastStartBlocked': 'Tvarkaraštis laiko eilę sustabdytą.',
   'collector.selectAll': 'Žymėti visus',
   'collector.movePrompt': 'Į kurį paketą perkelti pažymėtas nuorodas?',
 
@@ -210,7 +212,6 @@ export const lt: Dict = {
   'settings.accent': 'Akcento spalva',
   'settings.accentHint': 'Viena spalva veiklai. Tekstas ant jos parenkamas pagal kontrastą.',
   'settings.colours': 'Spalvos',
-  'settings.accentPresets': 'Išankstiniai nustatymai',
   'settings.accentReset': 'Numatytoji',
   'queue.stop': 'Stabdyti eilę',
   'queue.start': 'Paleisti eilę',

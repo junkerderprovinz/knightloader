@@ -23,13 +23,55 @@ export const SHAPES: Shape[] = ['round', 'soft', 'square'];
  */
 export const DEFAULT_ACCENT = '#FCC419';
 
+// All eight, where this list carried five. The web UI and the extension have
+// offered Orange, Teal and Pink the whole time, so an accent chosen in a
+// browser had no swatch to be marked on here - it simply appeared as "none of
+// these are selected". Found while giving the row its picker; jdp did not
+// report it, and it is the same drift as the palette row missing entirely.
 export const ACCENTS: { name: string; hex: string }[] = [
   { name: 'Sunflower', hex: '#FCC419' },
   { name: 'Blue', hex: '#1D99F3' },
   { name: 'Green', hex: '#6FDC8C' },
   { name: 'Red', hex: '#FF8389' },
   { name: 'Purple', hex: '#BE95FF' },
+  { name: 'Orange', hex: '#FF832B' },
+  { name: 'Teal', hex: '#3DDBD9' },
+  { name: 'Pink', hex: '#FF7EB6' },
 ];
+
+/**
+ * accentSlot is which of the eight preset positions a colour belongs to.
+ *
+ * An exact preset answers with itself; anything else answers with the nearest,
+ * and that is what gives a hand-mixed accent a home: the row marks one slot
+ * whatever the colour is, and that slot wears the live value and re-opens the
+ * picker on it. Without it, a colour off the presets is in force everywhere and
+ * drawn nowhere.
+ *
+ * Plain squared RGB distance, deliberately not a perceptual metric: it only has
+ * to be stable and unsurprising for eight widely separated hues. Kept identical
+ * to the extension's accentSlot (src/appearance.js) and the web's (Look.tsx) so
+ * one colour lands in one slot on all three.
+ */
+export function accentSlot(hex: string): number {
+  const rgb = (h: string) => {
+    const n = parseInt(h.slice(1), 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  };
+  if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return 0;
+  const [r, g, b] = rgb(hex);
+  let best = 0;
+  let bestD = Infinity;
+  ACCENTS.forEach((a, i) => {
+    const [pr, pg, pb] = rgb(a.hex);
+    const d = (r - pr) ** 2 + (g - pg) ** 2 + (b - pb) ** 2;
+    if (d < bestD) {
+      bestD = d;
+      best = i;
+    }
+  });
+  return best;
+}
 
 /**
  * RAINBOW is the default palette: a full turn of the wheel, but tuned to the
