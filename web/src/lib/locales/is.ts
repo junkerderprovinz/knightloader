@@ -88,6 +88,8 @@ export const is: Dict = {
   'collector.toastSkipped': 'Geymdi {n} tengla, {skipped} þegar þekktir',
   'collector.toastNone': 'Engir gildir tenglar fundust',
   'collector.toastStarted': 'Ræsti {n} niðurhal',
+  'collector.toastStartSkipped': 'Tenglasían heldur {n} tenglum eftir.',
+  'collector.toastStartBlocked': 'Áætlun heldur biðröðinni stöðvaðri.',
   'collector.selectAll': 'Velja allt',
   'collector.movePrompt': 'Í hvaða pakka á að færa valda tengla?',
 
@@ -210,7 +212,6 @@ export const is: Dict = {
   'settings.accent': 'Áherslulitur',
   'settings.accentHint': 'Eini liturinn fyrir virkni. Textinn ofan á er valinn eftir birtuskilum.',
   'settings.colours': 'Litir',
-  'settings.accentPresets': 'Forstillingar',
   'settings.accentReset': 'Sjálfgefið',
   'queue.stop': 'Stöðva biðröð',
   'queue.start': 'Ræsa biðröð',

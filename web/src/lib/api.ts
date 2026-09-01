@@ -809,13 +809,38 @@ export async function addLinksWithOptions(
   return (await json<Task[]>(r)) ?? [];
 }
 
+/**
+ * What a start actually did.
+ *
+ * The route answered 204 to everything, and "nothing happened" had three
+ * different causes behind it: the queue was halted, a link filter was holding
+ * the named tasks, or the ids matched nothing. The shape is the server's - see
+ * App.StartTasks in internal/app/app_queue.go - named the same on both sides so
+ * a field cannot mean one thing there and another here.
+ */
+export interface StartResult {
+  started: number;
+  skipped: number;
+  /** The queue was taken off a halt the user had set by hand. */
+  released: boolean;
+  /** A schedule window is holding the queue; the tasks are queued and waiting. */
+  blocked: boolean;
+}
+
 // startTasks moves collected tasks into the download queue (empty = start all).
-export const startTasks = (ids: string[], base = '/api') =>
-  fetch(`${base}/tasks/start`, {
+export const startTasks = async (ids: string[], base = '/api'): Promise<StartResult> => {
+  const r = await fetch(`${base}/tasks/start`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ ids }),
   });
+  // An instance older than this answer replies 204 with no body. Read as "it
+  // started something and had nothing to report", which is what a 204 meant
+  // here before there was anything to say.
+  return (
+    (await json<StartResult>(r)) ?? { started: ids.length, skipped: 0, released: false, blocked: false }
+  );
+};
 
 // setPackage moves tasks into a package (empty name = ungrouped).
 export const setPackage = (ids: string[], pkg: string, base = '/api') =>

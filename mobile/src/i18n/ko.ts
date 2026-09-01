@@ -27,6 +27,8 @@ export const ko: Dict = {
   'instance.offline': '오프라인',
   'downloads.start': '시작',
   'downloads.stop': '중지',
+  'downloads.startSkipped': '링크 필터가 링크 {n}개를 보류하고 있습니다.',
+  'downloads.startBlocked': '일정이 대기열을 멈춰 두고 있습니다.',
   'downloads.tabDownloads': '다운로드',
   'downloads.tabCollector': '수집기',
   'packages.loose': '패키지 없음',
@@ -90,6 +92,9 @@ export const ko: Dict = {
     '이 기기에 저장된 모든 연결과 해당 토큰을 제거합니다. 서버 자체는 변경되지 않습니다.',
   'settings.removeAllConfirmButton': '모두 제거',
   'settings.cancel': '취소',
+  'settings.rainbowPalettePosition': '팔레트 위치 {position}',
+  'settings.rainbowPalette': '색상 팔레트',
+  'settings.pickerDone': '완료',
 
   'relay.title': '문구로 연결',
   'relay.hint':

@@ -44,6 +44,36 @@ function parseHex(hex) {
 }
 
 /**
+ * accentSlot is which of the eight preset positions a colour belongs to.
+ *
+ * An exact preset answers with itself; anything else answers with the nearest,
+ * and that is what gives a hand-mixed accent a home. The row shows the eight
+ * presets and marks the one in force - so a colour that is no preset used to be
+ * in force and shown nowhere, with no way back to the picker that made it. Now
+ * the slot it was nudged out of keeps it, wears it, and re-opens the picker on
+ * it. Eight circles, no ninth, and nothing invisible.
+ *
+ * Plain squared RGB distance, deliberately not a perceptual metric: it only has
+ * to be stable and unsurprising for eight widely separated hues, and every
+ * fancier answer here is a colour-science argument nobody can check by looking.
+ */
+function accentSlot(hex) {
+  if (!validHex(hex)) return -1;
+  const c = parseHex(hex);
+  let best = 0;
+  let bestD = Infinity;
+  for (let i = 0; i < ACCENTS.length; i++) {
+    const p = parseHex(ACCENTS[i].hex);
+    const d = (c.r - p.r) ** 2 + (c.g - p.g) ** 2 + (c.b - p.b) ** 2;
+    if (d < bestD) {
+      bestD = d;
+      best = i;
+    }
+  }
+  return best;
+}
+
+/**
  * luminance is the perceptual brightness used to decide black or white on top.
  * The sRGB channels are linearised first, because the raw values overstate how
  * bright blue is and understate green - which is exactly the case that

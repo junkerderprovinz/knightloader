@@ -27,6 +27,8 @@ export const th: Dict = {
   'instance.offline': 'ออฟไลน์',
   'downloads.start': 'เริ่ม',
   'downloads.stop': 'หยุด',
+  'downloads.startSkipped': 'ตัวกรองลิงก์กำลังกัน {n} ลิงก์ไว้',
+  'downloads.startBlocked': 'กำหนดการกำลังหยุดคิวไว้',
   'downloads.tabDownloads': 'ดาวน์โหลด',
   'downloads.tabCollector': 'ตัวเก็บ',
   'packages.loose': 'ไม่มีแพ็กเกจ',
@@ -90,6 +92,9 @@ export const th: Dict = {
     'การดำเนินการนี้จะลบการเชื่อมต่อที่บันทึกไว้ทั้งหมดพร้อมโทเคนออกจากอุปกรณ์นี้ โดยไม่มีผลต่อตัวเซิร์ฟเวอร์เอง',
   'settings.removeAllConfirmButton': 'ลบทั้งหมด',
   'settings.cancel': 'ยกเลิก',
+  'settings.rainbowPalettePosition': 'ตำแหน่งจานสีที่ {position}',
+  'settings.rainbowPalette': 'จานสี',
+  'settings.pickerDone': 'เสร็จสิ้น',
 
   'relay.title': 'เชื่อมต่อด้วยวลี',
   'relay.hint':

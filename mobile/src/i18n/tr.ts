@@ -27,6 +27,8 @@ export const tr: Dict = {
   'instance.offline': 'çevrimdışı',
   'downloads.start': 'Başlat',
   'downloads.stop': 'Durdur',
+  'downloads.startSkipped': 'Bağlantı filtresi {n} bağlantıyı tutuyor.',
+  'downloads.startBlocked': 'Bir zamanlama kuyruğu duraklatıyor.',
   'downloads.tabDownloads': 'İndirmeler',
   'downloads.tabCollector': 'Toplayıcı',
   'packages.loose': 'Paketsiz',
@@ -90,6 +92,9 @@ export const tr: Dict = {
     'Bu cihazdaki her kayıtlı bağlantıyı ve tokenini kaldırır. Sunucuların kendisinde hiçbir şey değişmez.',
   'settings.removeAllConfirmButton': 'Tümünü kaldır',
   'settings.cancel': 'İptal',
+  'settings.rainbowPalettePosition': 'Palet konumu {position}',
+  'settings.rainbowPalette': 'Renk paleti',
+  'settings.pickerDone': 'Bitti',
 
   'relay.title': 'İfadeyle bağlan',
   'relay.hint':

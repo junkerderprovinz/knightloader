@@ -88,6 +88,8 @@ export const eu: Dict = {
   'collector.toastSkipped': '{n} esteka gordeta, {skipped} jada ezagunak',
   'collector.toastNone': 'Ez da baliozko estekarik aurkitu',
   'collector.toastStarted': '{n} deskarga hasita',
+  'collector.toastStartSkipped': 'Esteka-iragazkiak {n} esteka atxiki ditu.',
+  'collector.toastStartBlocked': 'Ordutegi batek ilara geldirik dauka.',
   'collector.selectAll': 'Hautatu dena',
   'collector.movePrompt': 'Zein paketetara eraman hautatutako estekak?',
 
@@ -210,7 +212,6 @@ export const eu: Dict = {
   'settings.accent': 'Azentu kolorea',
   'settings.accentHint': 'Jarduerarako kolore bakarra. Gaineko testua kontrastearen arabera aukeratzen da.',
   'settings.colours': 'Koloreak',
-  'settings.accentPresets': 'Aurrezarpenak',
   'settings.accentReset': 'Lehenetsia',
   'queue.stop': 'Gelditu ilara',
   'queue.start': 'Abiarazi ilara',

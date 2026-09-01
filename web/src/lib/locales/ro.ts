@@ -88,6 +88,8 @@ export const ro: Dict = {
   'collector.toastSkipped': '{n} link(uri) pregătite, {skipped} deja cunoscute',
   'collector.toastNone': 'Niciun link valid găsit',
   'collector.toastStarted': '{n} descărcare(i) pornite',
+  'collector.toastStartSkipped': 'Filtrul de linkuri reține {n} linkuri.',
+  'collector.toastStartBlocked': 'O programare ține coada pe pauză.',
   'collector.selectAll': 'Selectează tot',
   'collector.movePrompt': 'În ce pachet să fie mutate linkurile selectate?',
 
@@ -210,7 +212,6 @@ export const ro: Dict = {
   'settings.accent': 'Culoare de accent',
   'settings.accentHint': 'Singura culoare pentru activitate. Textul de pe ea e ales după contrast.',
   'settings.colours': 'Culori',
-  'settings.accentPresets': 'Presetări',
   'settings.accentReset': 'Implicit',
   'queue.stop': 'Oprește coada',
   'queue.start': 'Pornește coada',

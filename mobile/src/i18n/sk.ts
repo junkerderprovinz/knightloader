@@ -27,6 +27,8 @@ export const sk: Dict = {
   'instance.offline': 'offline',
   'downloads.start': 'Spustiť',
   'downloads.stop': 'Zastaviť',
+  'downloads.startSkipped': 'Filter odkazov zadržal {n} odkazov.',
+  'downloads.startBlocked': 'Plán pozastavuje front.',
   'downloads.tabDownloads': 'Sťahovania',
   'downloads.tabCollector': 'Zberač',
   'packages.loose': 'Bez balíka',
@@ -90,6 +92,9 @@ export const sk: Dict = {
     'Odstráni z tohto zariadenia každé uložené pripojenie spolu s jeho tokenom. Na samotných serveroch sa nič nezmení.',
   'settings.removeAllConfirmButton': 'Odstrániť všetko',
   'settings.cancel': 'Zrušiť',
+  'settings.rainbowPalettePosition': 'Pozícia palety {position}',
+  'settings.rainbowPalette': 'Farebná paleta',
+  'settings.pickerDone': 'Hotovo',
 
   'relay.title': 'Pripojiť pomocou frázy',
   'relay.hint':

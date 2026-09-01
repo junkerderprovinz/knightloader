@@ -27,6 +27,8 @@ export const hu: Dict = {
   'instance.offline': 'offline',
   'downloads.start': 'Indítás',
   'downloads.stop': 'Leállítás',
+  'downloads.startSkipped': 'A hivatkozásszűrő {n} hivatkozást tart vissza.',
+  'downloads.startBlocked': 'Egy ütemezés tartja szünetben a sort.',
   'downloads.tabDownloads': 'Letöltések',
   'downloads.tabCollector': 'Gyűjtő',
   'packages.loose': 'Csomag nélkül',
@@ -90,6 +92,9 @@ export const hu: Dict = {
     'Eltávolít erről az eszközről minden elmentett kapcsolatot a hozzá tartozó tokennel együtt. Magukon a szervereken semmi nem változik.',
   'settings.removeAllConfirmButton': 'Összes eltávolítása',
   'settings.cancel': 'Mégse',
+  'settings.rainbowPalettePosition': '{position}. palettahely',
+  'settings.rainbowPalette': 'Színpaletta',
+  'settings.pickerDone': 'Kész',
 
   'relay.title': 'Csatlakozás kifejezéssel',
   'relay.hint':

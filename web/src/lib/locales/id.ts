@@ -88,6 +88,8 @@ export const id: Dict = {
   'collector.toastSkipped': '{n} tautan disiapkan, {skipped} sudah ada',
   'collector.toastNone': 'Tidak ada tautan valid',
   'collector.toastStarted': '{n} unduhan dimulai',
+  'collector.toastStartSkipped': 'Filter tautan menahan {n} tautan.',
+  'collector.toastStartBlocked': 'Jadwal sedang menahan antrean.',
   'collector.selectAll': 'Pilih semua',
   'collector.movePrompt': 'Pindahkan tautan terpilih ke paket mana?',
 
@@ -210,7 +212,6 @@ export const id: Dict = {
   'settings.accent': 'Warna aksen',
   'settings.accentHint': 'Satu warna untuk aktivitas. Teks di atasnya dipilih menurut kontras.',
   'settings.colours': 'Warna',
-  'settings.accentPresets': 'Preset',
   'settings.accentReset': 'Bawaan',
   'queue.stop': 'Hentikan antrean',
   'queue.start': 'Mulai antrean',

@@ -11,6 +11,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"io"
 	"io/fs"
 	"mime"
 	"net/http"
@@ -337,11 +338,31 @@ func writeJSONStatus(w http.ResponseWriter, code int, v any) {
 // so that a handler's happy path is not three lines of the same error handling.
 // It reports whether the body was usable.
 func decodeJSON(w http.ResponseWriter, r *http.Request, v any) bool {
-	if err := json.NewDecoder(r.Body).Decode(v); err != nil {
+	if err := json.NewDecoder(body(r)).Decode(v); err != nil {
 		http.Error(w, "bad json", http.StatusBadRequest)
 		return false
 	}
 	return true
+}
+
+// body is r.Body, or an empty one when there is none.
+//
+// The server always gives a handler a non-nil Body, so this looks like belt and
+// braces and is not: the relay builds its own *http.Request from a frame, and
+// http.NewRequest with no payload leaves Body nil. Every route that decodes a
+// body would therefore panic on a bodyless relay call - json.Decoder reads
+// straight through the nil interface - and the relay calls ServeHTTP directly,
+// with no server around it to recover. The first POST ever added to the relay
+// allowlist found it immediately.
+//
+// Fixed here rather than at that one route on purpose. The hole is in the
+// helper every route shares, and patching the caller that happened to reach it
+// leaves the same crash armed behind every route added later.
+func body(r *http.Request) io.Reader {
+	if r.Body == nil {
+		return strings.NewReader("")
+	}
+	return r.Body
 }
 
 // decodeBody is decodeJSON for the routes where an absent body is a valid
@@ -349,7 +370,7 @@ func decodeJSON(w http.ResponseWriter, r *http.Request, v any) bool {
 // than acted on: those handlers treat an unreadable body the same as an empty
 // one, which is what makes a bare POST work.
 func decodeBody(r *http.Request, v any) error {
-	return json.NewDecoder(r.Body).Decode(v)
+	return json.NewDecoder(body(r)).Decode(v)
 }
 
 // requireIDs refuses a request that names no tasks, for the routes where "none"

@@ -27,6 +27,8 @@ export const he: Dict = {
   'instance.offline': 'לא מחובר',
   'downloads.start': 'התחל',
   'downloads.stop': 'עצור',
+  'downloads.startSkipped': 'מסנן הקישורים עוצר {n} קישורים.',
+  'downloads.startBlocked': 'תזמון מחזיק את התור בהשהיה.',
   'downloads.tabDownloads': 'הורדות',
   'downloads.tabCollector': 'אספן',
   'packages.loose': 'ללא חבילה',
@@ -90,6 +92,9 @@ export const he: Dict = {
     'פעולה זו מסירה ממכשיר זה כל חיבור שנשמר יחד עם הטוקן שלו. בשרתים עצמם שום דבר לא משתנה.',
   'settings.removeAllConfirmButton': 'הסרת הכול',
   'settings.cancel': 'ביטול',
+  'settings.rainbowPalettePosition': 'מיקום {position} בלוח',
+  'settings.rainbowPalette': 'פלטת צבעים',
+  'settings.pickerDone': 'סיום',
 
   'relay.title': 'התחברות עם ביטוי',
   'relay.hint':

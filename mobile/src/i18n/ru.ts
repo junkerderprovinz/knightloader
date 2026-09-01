@@ -27,6 +27,8 @@ export const ru: Dict = {
   'instance.offline': 'не в сети',
   'downloads.start': 'Запустить',
   'downloads.stop': 'Остановить',
+  'downloads.startSkipped': 'Фильтр ссылок удерживает {n} ссылок.',
+  'downloads.startBlocked': 'Расписание удерживает очередь остановленной.',
   'downloads.tabDownloads': 'Загрузки',
   'downloads.tabCollector': 'Сборщик',
   'packages.loose': 'Без пакета',
@@ -90,6 +92,9 @@ export const ru: Dict = {
     'Удаляет с этого устройства каждое сохранённое подключение вместе с его токеном. На самих серверах ничего не изменится.',
   'settings.removeAllConfirmButton': 'Удалить всё',
   'settings.cancel': 'Отмена',
+  'settings.rainbowPalettePosition': 'Позиция палитры {position}',
+  'settings.rainbowPalette': 'Цветовая палитра',
+  'settings.pickerDone': 'Готово',
 
   'relay.title': 'Подключение по фразе',
   'relay.hint':

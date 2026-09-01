@@ -88,6 +88,8 @@ export const ja: Dict = {
   'collector.toastSkipped': '{n} 件のリンクを準備しました（{skipped} 件は既知）',
   'collector.toastNone': '有効なリンクが見つかりません',
   'collector.toastStarted': '{n} 件のダウンロードを開始しました',
+  'collector.toastStartSkipped': 'リンクフィルターが {n} 件のリンクを保留しています。',
+  'collector.toastStartBlocked': 'スケジュールによりキューが停止しています。',
   'collector.selectAll': 'すべて選択',
   'collector.movePrompt': '選択したリンクをどのパッケージに移しますか。',
 
@@ -210,7 +212,6 @@ export const ja: Dict = {
   'settings.accent': 'アクセントカラー',
   'settings.accentHint': '動きを示す唯一の色です。上に載る文字は読みやすさで自動的に決まります。',
   'settings.colours': '色',
-  'settings.accentPresets': 'プリセット',
   'settings.accentReset': '既定',
   'queue.stop': 'キューを停止',
   'queue.start': 'キューを開始',

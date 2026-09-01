@@ -27,6 +27,8 @@ export const ms: Dict = {
   'instance.offline': 'luar talian',
   'downloads.start': 'Mula',
   'downloads.stop': 'Henti',
+  'downloads.startSkipped': 'Penapis pautan menahan {n} pautan.',
+  'downloads.startBlocked': 'Jadual sedang menahan baris gilir.',
   'downloads.tabDownloads': 'Muat turun',
   'downloads.tabCollector': 'Pengumpul',
   'packages.loose': 'Tiada pakej',
@@ -90,6 +92,9 @@ export const ms: Dict = {
     'Ini mengalih keluar setiap sambungan yang disimpan berserta tokennya daripada peranti ini. Tiada apa yang berubah pada pelayan itu sendiri.',
   'settings.removeAllConfirmButton': 'Alih keluar semua',
   'settings.cancel': 'Batal',
+  'settings.rainbowPalettePosition': 'Kedudukan palet {position}',
+  'settings.rainbowPalette': 'Palet warna',
+  'settings.pickerDone': 'Selesai',
 
   'relay.title': 'Sambung dengan frasa',
   'relay.hint':

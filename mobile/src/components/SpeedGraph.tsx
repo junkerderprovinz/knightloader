@@ -24,6 +24,10 @@ import { fmtBytes } from '../api/stats';
  * used to live outside the component in a line of text that could disappear.
  * Now the peak is printed on the vertical axis in the unit it deserves and the
  * window length on the horizontal one, so the picture carries its own meaning.
+ *
+ * Both labels sit ABOVE and BELOW the plot rather than beside it, so the bars
+ * span the full width of whatever holds them - see the comment on the ordinate
+ * for why a label column was the wrong price to pay for an axis.
  */
 const SAMPLES = 40;
 const INTERVALL_MS = 1500;
@@ -51,37 +55,41 @@ export default function SpeedGraph({ speed, height = 44 }: { speed: number; heig
 
   return (
     <View style={styles.wrap}>
-      <View style={styles.plotRow}>
-        {/* The ordinate: the window's own peak at the top, zero at the bottom.
-            fmtBytes gives kB or MB by size, which is what makes the number
-            readable on a slow line and on a fast one. */}
-        <View style={[styles.yAxis, { height }]}>
-          <Text style={[styles.tick, { color: c.textMuted }]} numberOfLines={1}>
-            {`${fmtBytes(peak)}/s`}
-          </Text>
-          <Text style={[styles.tick, { color: c.textMuted }]} numberOfLines={1}>
-            0
-          </Text>
-        </View>
-        <View style={[styles.frame, { height, backgroundColor: c.surface2, borderRadius: radii.control }]}>
-          {history.map((v, i) => (
-            <View
-              key={i}
-              style={{
-                flex: 1,
-                // A floor of 2 so a live-but-slow moment is still a mark rather
-                // than a gap indistinguishable from "no sample yet".
-                height: Math.max(v > 0 ? 2 : 0, Math.round((v / peak) * (height - 8))),
-                backgroundColor: accent,
-                borderRadius: 1,
-              }}
-            />
-          ))}
-        </View>
+      {/* The ordinate, printed ABOVE the plot instead of in a column beside it
+          (jdp, 2026-09-01: "der graph ist nicht so breit wie die card").
+
+          A label column is the ordinary way to draw an axis and it was costing
+          52 points of width - so the bars started half an inch to the right of
+          the heading over them, and the graph read as narrower than everything
+          else in the card. Above the plot it costs one line of height, which
+          the card has, instead of a fifth of the width, which it does not.
+
+          Only the maximum is printed. The other end of this axis is the
+          baseline of a bar chart, which is zero by definition; a "0" under it
+          was a whole label saying what the picture already says. */}
+      <View style={styles.yAxis}>
+        <Text style={[styles.tick, { color: c.textMuted }]} numberOfLines={1}>
+          {`${fmtBytes(peak)}/s`}
+        </Text>
       </View>
-      {/* The abscissa: oldest on the left, now on the right. Indented by the
-          y-axis's own width so the two ends line up with the plot, not with the
-          labels beside it. */}
+      <View style={[styles.frame, { height, backgroundColor: c.surface2, borderRadius: radii.control }]}>
+        {history.map((v, i) => (
+          <View
+            key={i}
+            style={{
+              flex: 1,
+              // A floor of 2 so a live-but-slow moment is still a mark rather
+              // than a gap indistinguishable from "no sample yet".
+              height: Math.max(v > 0 ? 2 : 0, Math.round((v / peak) * (height - 8))),
+              backgroundColor: accent,
+              borderRadius: 1,
+            }}
+          />
+        ))}
+      </View>
+      {/* The abscissa: oldest on the left, now on the right. Flush with the
+          plot at both ends, which it now can be - there is nothing beside the
+          plot to indent past. */}
       <View style={styles.xAxis}>
         <Text style={[styles.tick, { color: c.textMuted }]}>{`-${fenster}s`}</Text>
         <Text style={[styles.tick, { color: c.textMuted }]}>0s</Text>
@@ -90,16 +98,13 @@ export default function SpeedGraph({ speed, height = 44 }: { speed: number; heig
   );
 }
 
-const Y_BREITE = 46;
-
 const styles = StyleSheet.create({
   wrap: { gap: 2 },
-  plotRow: { flexDirection: 'row', alignItems: 'stretch', gap: 6 },
-  yAxis: { width: Y_BREITE, justifyContent: 'space-between', alignItems: 'flex-end' },
-  xAxis: { flexDirection: 'row', justifyContent: 'space-between', marginStart: Y_BREITE + 6 },
+  yAxis: { alignItems: 'flex-end' },
+  xAxis: { flexDirection: 'row', justifyContent: 'space-between' },
   tick: { fontSize: TYPE.caption, fontVariant: ['tabular-nums'] },
   frame: {
-    flex: 1,
+    // No flex: the plot is as wide as whatever holds it, which is the card.
     flexDirection: 'row',
     alignItems: 'flex-end',
     gap: 2,

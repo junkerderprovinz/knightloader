@@ -4,9 +4,7 @@ import {
   Easing,
   FlatList,
   PanResponder,
-  Pressable,
   StyleSheet,
-  View,
   type ViewStyle,
 } from 'react-native';
 
@@ -40,13 +38,16 @@ import {
  *
  * Two mechanics are worth knowing before editing this:
  *
- *   - **The pan is claimed in the CAPTURE phase.** By the time a drag starts,
- *     the row's own Pressable already holds the responder (that is how the long
- *     press was detected at all), and a plain `onMoveShouldSetPanResponder`
- *     asks politely for something a child is holding. The capture variant takes
- *     it. This is also why the long press lives on a real Pressable rather than
- *     a transparent overlay: an overlay claiming touches would swallow every
- *     badge inside the row, which is exactly what these rows are full of.
+ *   - **The hold is timed off raw touch events, not a Pressable.** These rows
+ *     are full of their own buttons, and a child that takes the responder on
+ *     touch-down is a child a wrapping Pressable's onLongPress never hears
+ *     about - so the gesture only worked where no button happened to be. See
+ *     onTouchStart below.
+ *   - **The pan is claimed in the CAPTURE phase.** Once armed, a child may
+ *     still be holding the responder, and a plain `onMoveShouldSetPanResponder`
+ *     asks politely for something somebody else has. The capture variant takes
+ *     it - which also cancels the child's press, so a drag that starts on a
+ *     badge never also presses it.
  *   - **Rows are different heights** (a package header against a link), so each
  *     one reports its own layout and the drop target is computed against those
  *     real boxes rather than one assumed row height.
@@ -106,28 +107,69 @@ export default function DragList({
     wiggle.setValue(0);
   }, [wiggle]);
 
+  /** The touch that might become a hold: where it began, and the timer that
+   *  turns it into one. */
+  const touch = useRef<{ y: number; timer: ReturnType<typeof setTimeout> } | null>(null);
+  /** Whether the pan responder actually took the gesture over. It decides who
+   *  ends the drag on a lift - see onTouchEnd. */
+  const panning = useRef(false);
+
+  const cancelArm = useCallback(() => {
+    if (!touch.current) return;
+    clearTimeout(touch.current.timer);
+    touch.current = null;
+  }, []);
+
+  const arm = useCallback(
+    (index: number) => {
+      touch.current = null;
+      setDrag({ from: index, to: index });
+      startWiggle();
+    },
+    [startWiggle],
+  );
+
   const beenden = useCallback(() => {
+    cancelArm();
     stopWiggle();
     lift.setValue(0);
     setDrag(null);
-  }, [lift, stopWiggle]);
+  }, [cancelArm, lift, stopWiggle]);
   // Through a ref, so the one long-lived PanResponder never captures a stale
   // copy of it.
   const beendenRef = useRef(beenden);
   beendenRef.current = beenden;
 
-  /** Which row a finger at this y is over, within one band. */
+  /**
+   * Which row a finger at this y belongs to, within one band: the one whose
+   * CENTRE is nearest.
+   *
+   * It used to ask "is the finger inside this row's box", and fall back to the
+   * last row that began above it. Two things that reads badly, and together
+   * they are most of "das verschieben funktioniert gar nicht gut" (jdp,
+   * 2026-09-01): these rows are cards with margins, so between any two of them
+   * there is a gap that is inside no box at all and the answer came from the
+   * fallback; and inside a TALL row - a package header - the target only
+   * changed once the finger had crossed the whole of it, so the gap lagged the
+   * hand by most of a card.
+   *
+   * Nearest centre has neither problem. It always answers, it answers the same
+   * thing on both sides of a margin, and the gap moves when the finger passes
+   * the halfway point, which is where a hand expects it to move.
+   */
   const indexAt = useCallback(
     (y: number, band: string, from: number) => {
       let best = from;
+      let bestD = Infinity;
       for (let i = 0; i < rows.length; i++) {
         if (rows[i].band !== band) continue;
         const b = boxes.current[i];
         if (!b) continue;
-        if (y >= b.y && y <= b.y + b.h) return i;
-        // Past the end of the band the last row wins, so dragging below
-        // everything drops at the bottom rather than doing nothing.
-        if (y > b.y) best = i;
+        const d = Math.abs(y - (b.y + b.h / 2));
+        if (d < bestD) {
+          bestD = d;
+          best = i;
+        }
       }
       return best;
     },
@@ -157,11 +199,20 @@ export default function DragList({
     PanResponder.create({
       // Never on a plain touch: that would take every scroll away from the
       // list. Only once a row is armed, and in the CAPTURE phase, because the
-      // row's own Pressable is holding the responder by then and a polite ask
+      // row's own button may be holding the responder by then and a polite ask
       // would be declined.
-      onStartShouldSetPanResponderCapture: () => false,
+      // Once armed, every touch is the drag's - including one that starts on a
+      // badge inside a row. Before it is armed this stays out of the way
+      // entirely, so a tap reaches whatever it landed on and a swipe scrolls
+      // the list.
+      onStartShouldSetPanResponderCapture: () => dragRef.current !== null,
       onMoveShouldSetPanResponderCapture: () => dragRef.current !== null,
-      onPanResponderGrant: () => lift.setValue(0),
+      // The list must not be able to take the gesture back mid-drag.
+      onPanResponderTerminationRequest: () => false,
+      onPanResponderGrant: () => {
+        panning.current = true;
+        lift.setValue(0);
+      },
       onPanResponderMove: (_e, g) => {
         const d = dragRef.current;
         if (!d) return;
@@ -175,6 +226,7 @@ export default function DragList({
         if (to !== d.to) setDrag({ from: d.from, to });
       },
       onPanResponderRelease: () => {
+        panning.current = false;
         const d = dragRef.current;
         const { rows: r, onReorder: melde } = daten.current;
         beendenRef.current();
@@ -190,7 +242,10 @@ export default function DragList({
         neu.splice(nach, 0, ...neu.splice(von, 1));
         melde(neu, zeile.band);
       },
-      onPanResponderTerminate: () => beendenRef.current(),
+      onPanResponderTerminate: () => {
+        panning.current = false;
+        beendenRef.current();
+      },
     }),
   ).current;
 
@@ -237,20 +292,60 @@ export default function DragList({
               },
             ]}
             {...responder.panHandlers}
+            /* The long press is timed here, off the raw touch events, and NOT
+               with a Pressable wrapped around the row (jdp, 2026-09-01: "man
+               muss den ordner an einer leren stelle antippen und halten damit
+               es geht").
+
+               He is describing exactly what a wrapping Pressable does. These
+               rows are full of their own touchables - a fold chevron, a start
+               badge, a bin - and a child that takes the responder on touch-down
+               is a child the parent's onLongPress never hears about. So the
+               gesture worked on the parts of the card that happened to have no
+               button on them, which is not a rule anybody could guess.
+
+               onTouchStart/onTouchEnd are not the responder system: React
+               Native dispatches them by bubbling, so they reach this view for a
+               touch anywhere inside it, whoever ends up holding the responder.
+               That is the whole fix - the timer starts on any touch on the row,
+               and the row's own buttons keep working untouched. */
+            onTouchStart={(e) => {
+              if (dragRef.current) return;
+              const y = e.nativeEvent.pageY;
+              touch.current = { y, timer: setTimeout(() => arm(index), 400) };
+            }}
+            onTouchMove={(e) => {
+              // Moved before the timer fired: that was a scroll, not a hold.
+              // 10 points rather than 0, because a finger resting on glass is
+              // never completely still.
+              const s = touch.current;
+              if (s && Math.abs(e.nativeEvent.pageY - s.y) > 10) cancelArm();
+            }}
+            /* Lifting ends it, armed or not: the drag lives exactly as long as
+               the touch that started it. A mode that outlives the finger would
+               mean the next touch anywhere in the list moves the row that was
+               armed minutes ago, which is a worse surprise than having to hold
+               again. */
+            /* Lifting ends it, armed or not: the drag lives exactly as long as
+               the touch that started it. A mode that outlives the finger would
+               mean the next touch anywhere in the list moves the row that was
+               armed minutes ago, which is a worse surprise than having to hold
+               again.
+
+               Only when the pan never took over, though. Once it has, the drop
+               is onPanResponderRelease's to perform - and both handlers fire for
+               the same lift, so ending here as well would be a race over which
+               one sees the drag first. */
+            onTouchEnd={() => {
+              cancelArm();
+              if (!panning.current && dragRef.current) beendenRef.current();
+            }}
+            onTouchCancel={() => {
+              cancelArm();
+              if (!panning.current && dragRef.current) beendenRef.current();
+            }}
           >
-            {/* delayLongPress rather than a timer of our own: the platform
-                already cancels it on movement and on lift, which is three edge
-                cases nobody has to reimplement. A tap passes straight through
-                to whatever the row renders. */}
-            <Pressable
-              delayLongPress={400}
-              onLongPress={() => {
-                setDrag({ from: index, to: index });
-                startWiggle();
-              }}
-            >
-              {item.render(gezogen, armed)}
-            </Pressable>
+            {item.render(gezogen, armed)}
           </Animated.View>
         );
       }}

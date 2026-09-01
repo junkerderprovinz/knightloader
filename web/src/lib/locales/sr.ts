@@ -88,6 +88,8 @@ export const sr: Dict = {
   'collector.toastSkipped': 'Припремљено {n} линк(ова), {skipped} већ познато',
   'collector.toastNone': 'Нема исправних линкова',
   'collector.toastStarted': 'Покренуто {n} преузимања',
+  'collector.toastStartSkipped': 'Филтер веза задржава {n} веза.',
+  'collector.toastStartBlocked': 'Распоред држи ред заустављеним.',
   'collector.selectAll': 'Изабери све',
   'collector.movePrompt': 'У који пакет преместити изабране линкове?',
 
@@ -210,7 +212,6 @@ export const sr: Dict = {
   'settings.accent': 'Боја нагласка',
   'settings.accentHint': 'Једина боја за активност. Текст на њој се бира по контрасту.',
   'settings.colours': 'Боје',
-  'settings.accentPresets': 'Пресети',
   'settings.accentReset': 'Подразумевано',
   'queue.stop': 'Заустави ред',
   'queue.start': 'Покрени ред',

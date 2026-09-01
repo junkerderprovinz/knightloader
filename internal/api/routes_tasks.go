@@ -21,8 +21,15 @@ func registerTasks(reg *Registry, a *app.App) {
 				Ids []string `json:"ids"`
 			}
 			_ = decodeBody(r, &body) // empty/absent = start all collected
-			a.StartTasks(body.Ids)
-			w.WriteHeader(http.StatusNoContent)
+			// Answers with what it did, where it used to answer 204 to
+			// everything. "Nothing started" had three causes here - a halted
+			// queue, a link filter holding the named tasks, or ids matching
+			// nothing - and an empty answer told them apart from success not at
+			// all.
+			// ByHand: this route IS the button. It is the only entry that
+			// releases a halt somebody set themselves - the automatic callers
+			// go through StartTasks and leave the switch where it was.
+			writeJSON(w, a.StartTasksByHand(body.Ids))
 		})
 	reg.Add(http.MethodPost, "/api/tasks/package", "move tasks into a package (an empty name ungroups them)",
 		func(w http.ResponseWriter, r *http.Request) {

@@ -60,99 +60,114 @@ export default function IconBadge({
   );
 }
 
+/* ---------------------------------------------------------------------------
+   The glyphs.
+
+   Drawn from plain Views. Not emoji (🗑 renders in colour, and differently on
+   every platform) and not an icon library: react-native-svg is a NATIVE module,
+   so pulling one in for a handful of shapes would mean a new prebuild and a new
+   .apk story for the sake of twelve pixels.
+
+   ONE OPTICAL SIZE FOR ALL OF THEM. A glyph is asked for at `size` and draws to
+   GLYPH_EXTENT of it, whatever shape it is. That is a rule, not housekeeping:
+   the same `size` used to mean 15 of 15 for the viewfinder, 13.6 for the
+   clipboard and 10.1 for the plug, so three buttons in a column wore three
+   visibly different icons (jdp, 2026-09-01: "Die buttons haben glyphen mit
+   unterschiedlicher größe"). Nothing was wrong with any one of them; what was
+   missing was a shared measure.
+
+   Each glyph declares the extent of the shape it draws in its OWN units, and
+   `unit()` scales those units so the result lands on GLYPH_EXTENT. So the
+   numbers inside a glyph stay readable as proportions of that glyph - the bin
+   is still "13 wide, lid 1.5 tall" - and the drawn size stops being an accident
+   of how each one happened to be laid out.
+   --------------------------------------------------------------------------- */
+
+/** The box a glyph is given, in points, when nothing else is said. */
+const GLYPH_BOX = 15;
+
 /**
- * A waste bin, drawn from plain views.
- *
- * Not an emoji (🗑 renders in colour, and differently on every platform) and
- * not an icon library: react-native-svg is a NATIVE module, so pulling one in
- * for a single glyph would mean a new prebuild and a new .apk story for the
- * sake of twelve pixels. Views compose it exactly and take the colour they
- * are given, which is all this needs to do.
+ * How much of that box the drawn shape fills, on its longest side. Below the
+ * box so a round shape and a square one look equally big beside each other, and
+ * so a glyph never touches the edge of the badge it sits in.
  */
+const GLYPH_EXTENT = 12;
+
 /**
- * Back: a solid left arrow, not the "‹" character (jdp, 2026-08-31: "alls
- * zurückbutton sollen einen schöneren Glyph bekommen, in GS gibt es einen Glyph
- * abschnitt").
+ * The drawing unit for a glyph whose own longest side is `natural` units.
  *
- * GlimStone's assortment names `IconBack` for this and points at Streamline's
- * `move-left` - a filled arrow with a shaft, which is the whole difference. The
- * character this replaced is a typographic quotation mark borrowed as an icon:
- * it renders at the font's weight rather than the badge's, it has no shaft, and
- * it is not part of any icon set. Every glyph in this language is a filled solid
- * shape, and "‹" is a stroke.
- *
- * Composed from Views for the same reason Trash and Gear are: react-native-svg
- * is a NATIVE module, and pulling one in for three glyphs would mean a new
- * prebuild and a new .apk story. The head is a square rotated 45 degrees with
- * two sides clipped away by the shaft drawn over it.
+ * `unit(size, 15)` for a shape laid out across a full 15-unit grid, `unit(size,
+ * 11)` for one that only ever reaches 11 - both come out drawn at the same
+ * height. Callers still pass a `size` in points and get a glyph that fits it.
  */
-export function Back({ color, size = 15 }: { color: string; size?: number }) {
-  const u = size / 15;
+function unit(size: number, natural: number): number {
+  return (size * GLYPH_EXTENT) / (GLYPH_BOX * natural);
+}
+
+/**
+ * Back: a solid triangle pointing left (jdp, 2026-09-01: "es soll einfach ein
+ * dreieck sein das nach links zeigt").
+ *
+ * It replaced the "‹" character, which is a typographic quotation mark borrowed
+ * as an icon: it renders at the font's weight rather than the badge's and is
+ * part of no icon set. Every glyph in this language is a filled solid shape,
+ * and "‹" is a stroke.
+ *
+ * Two arrow shapes came between the two and neither survived contact - see the
+ * comment inside for what each of them got wrong and why a triangle does not
+ * have the same problem.
+ */
+export function Back({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  // The triangle stands 11 units tall in its own numbers below.
+  const u = unit(size, 11);
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      {/* Rewritten once already (jdp, 2026-09-01: "der glyph ist nicht als
-          zurücksymbol identifizierbar. es soll ein pfeil sein").
+      {/* Third cut, and this one is a triangle and nothing else (jdp,
+          2026-09-01: "Der zurück glyph ist immer noch ein komischer pfeil. es
+          soll einfach ein dreieck sein das nach links zeigt").
 
-          The first cut used a rotated SQUARE for the head with the shaft laid
-          over its right corner, which is the standard trick for drawing a
-          triangle without a polygon primitive - and it does not survive at 15
-          points: a square rotated 45 degrees still reads as a diamond, the
-          shaft covers only part of it, and the result is a lozenge with a tail.
-          What makes an arrowhead an arrowhead is the two visible edges meeting
-          at a POINT, and a rotated square gives four edges of equal length.
+          The two before it were both arrows made of parts: a rotated square for
+          the head, then two bars meeting in a V with a shaft laid on. Both read
+          as an assembly at 15 points, because that is what they were - the eye
+          sees the seams before it sees the arrow. A triangle has no seams.
 
-          Two thin bars in a V do it properly. They are the two strokes anybody
-          actually draws when drawing an arrow, they meet at a real point, and
-          at this size they read from a metre away. Still a filled shape - a bar
-          is a filled rectangle - so the icon rule holds. */}
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <View style={{ width: 6 * u, height: 9.5 * u, justifyContent: 'center' }}>
-          {/* Upper and lower halves of the V, each rotated the other way and
-              anchored at the shared point on the left. */}
-          <View
-            style={{
-              position: 'absolute',
-              left: 0,
-              top: 1.1 * u,
-              width: 2.2 * u,
-              height: 7 * u,
-              backgroundColor: color,
-              borderRadius: 1.1 * u,
-              transform: [{ rotate: '45deg' }],
-            }}
-          />
-          <View
-            style={{
-              position: 'absolute',
-              left: 0,
-              bottom: 1.1 * u,
-              width: 2.2 * u,
-              height: 7 * u,
-              backgroundColor: color,
-              borderRadius: 1.1 * u,
-              transform: [{ rotate: '-45deg' }],
-            }}
-          />
-        </View>
-        {/* The shaft, starting at the V's own point. */}
-        <View
-          style={{
-            width: 7 * u,
-            height: 2.2 * u,
-            marginStart: -3.4 * u,
-            backgroundColor: color,
-            borderRadius: 1.1 * u,
-          }}
-        />
-      </View>
+          Drawn with the zero-size box and three borders, which is how a solid
+          polygon is made without a polygon primitive: a View with no width or
+          height, transparent top and bottom borders, and one coloured right
+          border. The RESULT is a filled triangle, not a drawn line - worth
+          saying because "no borders" is a rule in this project, and it is a
+          rule about visible edges between surfaces, not about the layout engine
+          used to fill a shape.
+
+          Still no react-native-svg: it is a NATIVE module, and pulling one in
+          for a handful of glyphs means a new prebuild and a new .apk story. */}
+      <View
+        style={{
+          width: 0,
+          height: 0,
+          borderStyle: 'solid',
+          borderTopWidth: 5.5 * u,
+          borderBottomWidth: 5.5 * u,
+          borderRightWidth: 8 * u,
+          borderTopColor: 'transparent',
+          borderBottomColor: 'transparent',
+          borderRightColor: color,
+          // The shape is 8 wide against a 15 box, so it sits 3.5 from either
+          // edge on its own. Nudged half a unit left so the POINT is centred
+          // rather than the bounding box - a triangle centred by its box always
+          // looks pushed towards its flat side.
+          marginEnd: 1 * u,
+        }}
+      />
     </View>
   );
 }
 
 /** Paste: a clipboard with its clip. Two filled rectangles and a bar, which is
  *  all a clipboard is at this size. */
-export function Paste({ color, size = 15 }: { color: string; size?: number }) {
-  const u = size / 15;
+export function Paste({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  // Clip (2.6) plus board (12) less their overlap (1) = 13.6 units tall.
+  const u = unit(size, 13.6);
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
       {/* The clip, overlapping the board's top edge. */}
@@ -180,8 +195,9 @@ export function Paste({ color, size = 15 }: { color: string; size?: number }) {
 
 /** Connect: a plug, drawn as a body with two pins. The one glyph that says
  *  "join something" without needing a word beside it. */
-export function Connect({ color, size = 15 }: { color: string; size?: number }) {
-  const u = size / 15;
+export function Connect({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  // Pins (3.5) plus body (7) less their overlap (0.4) = 10.1 units tall.
+  const u = unit(size, 10.1);
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
       <View style={{ flexDirection: 'row', gap: 2 * u, marginBottom: -0.4 * u }}>
@@ -205,8 +221,14 @@ export function Connect({ color, size = 15 }: { color: string; size?: number }) 
 
 /** Scan: the four corner marks of a viewfinder. Nothing in the middle, because
  *  what goes in the middle is the thing being scanned. */
-export function Scan({ color, size = 15 }: { color: string; size?: number }) {
-  const u = size / 15;
+export function Scan({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  // The corner marks are pinned to the edges of their frame, so this one is
+  // sized by shrinking the FRAME rather than by scaling numbers inside it - the
+  // same GLYPH_EXTENT either way, reached the only way an edge-anchored shape
+  // can reach it. It was the widest of the family before: a full 15 of 15 where
+  // the plug beside it drew 10.1.
+  const frame = (size * GLYPH_EXTENT) / GLYPH_BOX;
+  const u = frame / 15;
   const arm = { position: 'absolute' as const, backgroundColor: color };
   const ecke = (oben: boolean, links: boolean) => (
     <>
@@ -233,17 +255,23 @@ export function Scan({ color, size = 15 }: { color: string; size?: number }) {
     </>
   );
   return (
-    <View style={{ width: size, height: size }}>
-      {ecke(true, true)}
-      {ecke(true, false)}
-      {ecke(false, true)}
-      {ecke(false, false)}
+    // Outer box keeps the asked-for size so this glyph aligns with the others
+    // in a row; the inner frame is what the marks are pinned to.
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ width: frame, height: frame }}>
+        {ecke(true, true)}
+        {ecke(true, false)}
+        {ecke(false, true)}
+        {ecke(false, false)}
+      </View>
     </View>
   );
 }
 
-export function Trash({ color, size = 15 }: { color: string; size?: number }) {
-  const u = size / 15; // every number below is in fifteenths of the glyph box
+/** A waste bin: handle, lid and a solid body. */
+export function Trash({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  // Handle (1.5+0.5), lid (1.5), gap (1) and body (9.5) = 14 units tall.
+  const u = unit(size, 14);
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
       {/* handle */}
@@ -290,8 +318,9 @@ export function Trash({ color, size = 15 }: { color: string; size?: number }) {
  * is exactly the kind of lie that only shows up on the one surface it was not
  * tested against. The badge knows what it is standing on, so it says.
  */
-export function Gear({ color, hole, size = 17 }: { color: string; hole: string; size?: number }) {
-  const u = size / 17;
+export function Gear({ color, hole, size = GLYPH_BOX }: { color: string; hole: string; size?: number }) {
+  // The teeth span the full 17 units of this glyph's own grid.
+  const u = unit(size, 17);
   const zahn = { position: 'absolute' as const, width: 3.4 * u, height: 17 * u, backgroundColor: color };
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>

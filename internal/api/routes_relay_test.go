@@ -471,13 +471,42 @@ func TestRelayProxyRefusesEverythingButTasksAndLinks(t *testing.T) {
 		}
 	}
 
-	// The read-only three are read-only. POST /api/instances registers a peer
-	// and POST /api/auth/logout is somebody else's session; being in the group
-	// is permission to look at these, never to write them.
-	for _, path := range []string{"/api/auth", "/api/instances", "/api/appearance", "/api/remote-access"} {
+	// Read-only means read-only. POST /api/instances registers a peer and POST
+	// /api/auth/logout is somebody else's session; being in the group is
+	// permission to look at these, never to write them.
+	//
+	// /api/appearance is NOT in this list any more, and it is the one exception
+	// in the allowlist: the phone has to be able to edit the rainbow palette,
+	// which lives on the instance because colours are handed out by position
+	// and two clients cannot be allowed to disagree about position three. What
+	// it grants is seven cosmetic fields and nothing else - strictly less than
+	// the queue control the same caller has always had.
+	for _, path := range []string{"/api/auth", "/api/instances", "/api/remote-access"} {
 		status, _ := serve(context.Background(), relay.ProxyCall{Method: http.MethodPost, Path: path})
 		if status != http.StatusForbidden {
 			t.Errorf("POST %s = %d, want 403 - these are readable, not writable", path, status)
+		}
+	}
+
+	// The exception, proved as one: forwarded rather than refused, and reaching
+	// a handler rather than a 403. A bodyless call on purpose - that is what the
+	// relay builds when a frame carries no payload, and it panicked the whole
+	// instance the first time this route existed (see api.go's own `body`).
+	if status, _ := serve(context.Background(), relay.ProxyCall{Method: http.MethodPost, Path: "/api/appearance"}); status == http.StatusForbidden {
+		t.Error("POST /api/appearance = 403, but the app has to be able to set the palette")
+	} else if status == http.StatusInternalServerError {
+		t.Errorf("POST /api/appearance = 500 - a bodyless relay call must not reach a panic")
+	}
+
+	// And it stays an exception: nothing else under a write verb gets in with
+	// it. /api/settings is the one that matters - the whole point of the narrow
+	// route is that the broad one stays out.
+	for _, path := range []string{"/api/settings", "/api/accounts", "/api/relay/config"} {
+		for _, method := range []string{http.MethodPost, http.MethodPatch, http.MethodPut, http.MethodDelete} {
+			status, _ := serve(context.Background(), relay.ProxyCall{Method: method, Path: path})
+			if status != http.StatusForbidden {
+				t.Errorf("%s %s = %d, want 403", method, path, status)
+			}
 		}
 	}
 }

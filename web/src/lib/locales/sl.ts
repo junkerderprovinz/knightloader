@@ -88,6 +88,8 @@ export const sl: Dict = {
   'collector.toastSkipped': 'Dodanih povezav: {n}, že znanih: {skipped}',
   'collector.toastNone': 'Ni veljavnih povezav',
   'collector.toastStarted': 'Zagnanih prenosov: {n}',
+  'collector.toastStartSkipped': 'Filter povezav zadržuje {n} povezav.',
+  'collector.toastStartBlocked': 'Urnik zadržuje čakalno vrsto.',
   'collector.selectAll': 'Izberi vse',
   'collector.movePrompt': 'V kateri paket naj gredo izbrane povezave?',
 
@@ -210,7 +212,6 @@ export const sl: Dict = {
   'settings.accent': 'Poudarna barva',
   'settings.accentHint': 'Edina barva za dejavnost. Besedilo na njej se izbere po kontrastu.',
   'settings.colours': 'Barve',
-  'settings.accentPresets': 'Prednastavitve',
   'settings.accentReset': 'Privzeto',
   'queue.stop': 'Ustavi vrsto',
   'queue.start': 'Zaženi vrsto',

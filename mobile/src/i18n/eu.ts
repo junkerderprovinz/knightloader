@@ -27,6 +27,8 @@ export const eu: Dict = {
   'instance.offline': 'lineaz kanpo',
   'downloads.start': 'Hasi',
   'downloads.stop': 'Gelditu',
+  'downloads.startSkipped': 'Esteka-iragazkiak {n} esteka atxiki ditu.',
+  'downloads.startBlocked': 'Ordutegi batek ilara geldirik dauka.',
   'downloads.tabDownloads': 'Deskargak',
   'downloads.tabCollector': 'Biltzailea',
   'packages.loose': 'Paketerik gabe',
@@ -90,6 +92,9 @@ export const eu: Dict = {
     'Honek gailu honetatik kentzen du gordetako konexio bakoitza, bere tokenarekin batera. Zerbitzarietan bertan ez da ezer aldatzen.',
   'settings.removeAllConfirmButton': 'Kendu guztiak',
   'settings.cancel': 'Utzi',
+  'settings.rainbowPalettePosition': 'Paletaren {position}. kokapena',
+  'settings.rainbowPalette': 'Kolore-paleta',
+  'settings.pickerDone': 'Eginda',
 
   'relay.title': 'Konektatu esaldi batekin',
   'relay.hint':

@@ -27,6 +27,8 @@ export const gl: Dict = {
   'instance.offline': 'sen conexión',
   'downloads.start': 'Iniciar',
   'downloads.stop': 'Deter',
+  'downloads.startSkipped': 'O filtro de ligazóns retivo {n} ligazóns.',
+  'downloads.startBlocked': 'Unha programación mantén a cola en pausa.',
   'downloads.tabDownloads': 'Descargas',
   'downloads.tabCollector': 'Colector',
   'packages.loose': 'Sen paquete',
@@ -90,6 +92,9 @@ export const gl: Dict = {
     'Elimina deste dispositivo cada conexión gardada xunto co seu token. Nos propios servidores non cambia nada.',
   'settings.removeAllConfirmButton': 'Eliminar todo',
   'settings.cancel': 'Cancelar',
+  'settings.rainbowPalettePosition': 'Posición {position} da paleta',
+  'settings.rainbowPalette': 'Paleta de cores',
+  'settings.pickerDone': 'Feito',
 
   'relay.title': 'Conectar cunha frase',
   'relay.hint':

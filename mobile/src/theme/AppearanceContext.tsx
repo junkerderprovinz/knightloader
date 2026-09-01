@@ -89,17 +89,65 @@ interface Override {
 
 const STORE_KEY = 'glim-appearance-override';
 
+/**
+ * Where a local look waits while the instance's own is being worn.
+ *
+ * "Follow the instance" used to be destructive in one direction only, which is
+ * the worst shape for a switch: turning it ON discarded the override, and
+ * turning it back OFF snapshotted whatever the INSTANCE happened to look like -
+ * so a round trip through the switch quietly replaced the user's own colour and
+ * corner shape with the server's (jdp, 2026-09-01: "wenn man den toggle von
+ * standardinstanz folgen aktiviert und wieder deaktiverit stellt es die davor
+ * einstellten einstellungen nicht wieder her").
+ *
+ * A switch has to be reversible, and reversible means the thing it put away
+ * comes back - not something that resembles it. Persisted rather than kept in
+ * memory, because the app being closed while following is the ordinary case,
+ * not an edge one.
+ */
+const SHELF_KEY = 'glim-appearance-shelf';
+
 /** The light theme's accent before GlimStone 1.5.0 split fill from ink. It is
  *  no longer produced anywhere, and it is not in the picker, so a stored copy
  *  can only have come from a snapshot of the old resolved look. See the load
  *  effect below for why that matters. */
 const RETIRED_LIGHT_ACCENT = '#8E6A00';
 
+/**
+ * What a stored override is allowed to say. Read on the way IN, so nothing
+ * downstream has to defend itself against a value the picker cannot produce.
+ *
+ * RETIRED_LIGHT_ACCENT is dropped rather than honoured (jdp, 2026-08-30: "in
+ * der app ist noch die dunkle gelbe farbe standardmäßig eingestellt", after
+ * 1.6.1 had already stopped producing it). Nobody ever picked #8E6A00 from the
+ * swatch row - it was the light theme's own resolved accent back when ONE token
+ * did both jobs, and turning "follow the instance" off snapshots the RESOLVED
+ * look into the override layer. So the retired default got frozen into storage
+ * as if it were a choice, and every later launch faithfully restored it. A
+ * stored value that the picker cannot produce is not a preference, it is a
+ * leftover.
+ */
+function sanitise(p: Override): Override {
+  return {
+    accent: valid(p.accent) && p.accent.toUpperCase() !== RETIRED_LIGHT_ACCENT ? p.accent : undefined,
+    shape: asShape(p.shape),
+    theme: p.theme === 'light' || p.theme === 'dark' ? p.theme : undefined,
+    rainbow: typeof p.rainbow === 'boolean' ? p.rainbow : undefined,
+  };
+}
+
+/** Whether an override says anything at all. An empty one IS "follow the
+ *  instance", so there is nothing to put away when the switch goes on. */
+function isEmpty(o: Override): boolean {
+  return o.accent === undefined && o.shape === undefined && o.theme === undefined && o.rainbow === undefined;
+}
+
 const AppearanceCtx = createContext<Appearance | null>(null);
 
 export function AppearanceProvider({ children }: { children: ReactNode }) {
   const system = useColorScheme();
   const [override, setOverride] = useState<Override>({});
+  const [shelf, setShelf] = useState<Override | null>(null);
   const [instance, setInstance] = useState<InstanceAppearance | undefined>(undefined);
 
   // Read once at start. Not awaited before the first paint: the defaults are
@@ -109,26 +157,18 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
     AsyncStorage.getItem(STORE_KEY)
       .then((raw) => {
         if (!raw) return;
-        const p = JSON.parse(raw) as Override;
-        setOverride({
-          // RETIRED_LIGHT_ACCENT is dropped rather than honoured (jdp,
-          // 2026-08-30: "in der app ist noch die dunkle gelbe farbe
-          // standardmäßig eingestellt", after 1.6.1 had already stopped
-          // producing it). Nobody ever picked #8E6A00 from the swatch row -
-          // it was the light theme's own resolved accent back when ONE token
-          // did both jobs, and "Aussehen übernehmen" off snapshots the
-          // RESOLVED look into the override layer. So the retired default got
-          // frozen into storage as if it were a choice, and every later
-          // launch faithfully restored it. A stored value that the picker
-          // cannot produce is not a preference, it is a leftover.
-          accent: valid(p.accent) && p.accent.toUpperCase() !== RETIRED_LIGHT_ACCENT ? p.accent : undefined,
-          shape: asShape(p.shape),
-          theme: p.theme === 'light' || p.theme === 'dark' ? p.theme : undefined,
-          rainbow: typeof p.rainbow === 'boolean' ? p.rainbow : undefined,
-        });
+        setOverride(sanitise(JSON.parse(raw) as Override));
       })
       .catch(() => {
         /* an unreadable override is no override, never a crash */
+      });
+    // The shelf reads through the SAME sanitiser as the live override, because
+    // it is the same thing one switch-flip earlier: a value the picker cannot
+    // produce is no more a preference for having been put away.
+    AsyncStorage.getItem(SHELF_KEY)
+      .then((raw) => raw && setShelf(sanitise(JSON.parse(raw) as Override)))
+      .catch(() => {
+        /* an unreadable shelf is an empty shelf */
       });
   }, []);
 
@@ -137,6 +177,12 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
     // Fire and forget: the value is already in state and on screen, and a
     // failed write costs the choice at next launch, not now.
     void AsyncStorage.setItem(STORE_KEY, JSON.stringify(next)).catch(() => {});
+  }, []);
+
+  const shelve = useCallback((next: Override | null) => {
+    setShelf(next);
+    if (next === null) void AsyncStorage.removeItem(SHELF_KEY).catch(() => {});
+    else void AsyncStorage.setItem(SHELF_KEY, JSON.stringify(next)).catch(() => {});
   }, []);
 
   const value = useMemo<Appearance>(() => {
@@ -196,11 +242,33 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
       setShape: (s) => persist({ ...override, shape: s }),
       setTheme: (t) => persist({ ...override, theme: t }),
       setRainbow: (on) => persist({ ...override, rainbow: on }),
-      followInstance: () => persist({}),
-      snapshotAsLocal: () => persist({ accent, shape, theme: dark ? 'dark' : 'light', rainbow: rainbow.on }),
+      // The two ends of one switch, and they are written as a pair on purpose:
+      // whatever going ON puts away, going OFF has to bring back.
+      followInstance: () => {
+        // An empty override is already "following", so there would be nothing
+        // to put away - and shelving it would overwrite a real look that is
+        // waiting there from an earlier flip.
+        if (!isEmpty(override)) shelve(override);
+        persist({});
+      },
+      snapshotAsLocal: () => {
+        if (shelf && !isEmpty(shelf)) {
+          persist(shelf);
+          // Taken off the shelf, not copied off it: leaving it there would make
+          // the NEXT round trip restore this same look instead of whatever the
+          // user has chosen since.
+          shelve(null);
+          return;
+        }
+        // Nothing was ever put away - first time off, or the shelf was cleared.
+        // Snapshotting the resolved look is right here: it hands over exactly
+        // what is on screen, so turning the switch off changes nothing visible
+        // and leaves something to edit from.
+        persist({ accent, shape, theme: dark ? 'dark' : 'light', rainbow: rainbow.on });
+      },
       setInstanceAppearance: setInstance,
     };
-  }, [override, instance, system, persist]);
+  }, [override, shelf, instance, system, persist, shelve]);
 
   return <AppearanceCtx.Provider value={value}>{children}</AppearanceCtx.Provider>;
 }

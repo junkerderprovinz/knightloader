@@ -27,6 +27,8 @@ export const hi: Dict = {
   'instance.offline': 'ऑफ़लाइन',
   'downloads.start': 'शुरू करें',
   'downloads.stop': 'रोकें',
+  'downloads.startSkipped': 'लिंक फ़िल्टर ने {n} लिंक रोके हैं।',
+  'downloads.startBlocked': 'एक शेड्यूल कतार को रोके हुए है।',
   'downloads.tabDownloads': 'डाउनलोड',
   'downloads.tabCollector': 'संग्राहक',
   'packages.loose': 'बिना पैकेज',
@@ -90,6 +92,9 @@ export const hi: Dict = {
     'यह इस डिवाइस से हर सेव किया गया कनेक्शन और उसका टोकन हटा देता है। सर्वर पर खुद कुछ भी नहीं बदलता।',
   'settings.removeAllConfirmButton': 'सभी हटाएं',
   'settings.cancel': 'रद्द करें',
+  'settings.rainbowPalettePosition': 'रंगपटल स्थिति {position}',
+  'settings.rainbowPalette': 'रंग पैलेट',
+  'settings.pickerDone': 'हो गया',
 
   'relay.title': 'वाक्यांश से जोड़ें',
   'relay.hint':

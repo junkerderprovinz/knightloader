@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Alert, Linking, Platform, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Constants from 'expo-constants';
@@ -7,10 +7,11 @@ import { LANGUAGES, flagEmoji } from '../i18n/catalogue';
 import { getLanguageOverride } from '../storage/languagePreference';
 import { removeAllConnections } from '../storage/connections';
 import { useAppearance } from '../theme/AppearanceContext';
-import { ACCENTS, SHAPES, type Shape } from '../theme/appearance';
+import { ACCENTS, SHAPES, accentSlot, type Shape } from '../theme/appearance';
 import { TYPE } from '../theme/tokens';
 import { GlimRow, GlimToggle, NotchCard, Swatch, WellSelector } from '../components/glim';
 import IconBadge, { Back } from '../components/IconBadge';
+import ColorPicker from '../components/ColorPicker';
 
 const GITHUB_URL = 'https://github.com/junkerderprovinz/knightloader';
 const REPO_URL = GITHUB_URL;
@@ -24,7 +25,7 @@ const CONTACT_MAIL = 'hello@knightloader.app';
  * UI's Settings.tsx and the extension's options.js, and the three are expected
  * to agree.
  */
-const GLIMSTONE_VERSION = '1.6.0';
+const GLIMSTONE_VERSION = '1.7.3';
 
 /** shapeOf reads the shape back out of the radii the context resolved.
  *
@@ -51,11 +52,16 @@ export default function SettingsScreen({
   onOpenLanguagePicker,
   onRemovedAllConnections,
   onRefreshAppearance,
+  onSetPalette,
 }: {
   onBack: () => void;
   onOpenLanguagePicker: () => void;
   onRemovedAllConnections: () => void;
   onRefreshAppearance?: () => void;
+  /** Write the rainbow palette back to the connected instance. Absent when
+   *  there is no connection to write to, which is what makes the row inert
+   *  rather than a button that fails. */
+  onSetPalette?: (palette: string[] | null) => Promise<void>;
 }) {
   const { t, lang } = useT();
   const {
@@ -75,6 +81,17 @@ export default function SettingsScreen({
   } = useAppearance();
   const [override, setOverride] = useState<string | null>(null);
   const anyOverride = overridden.accent || overridden.shape || overridden.theme || overridden.rainbow;
+  /** Which colour the picker is open on, or null. One piece of state for both
+   *  rows: only one picker can be open, so only one of them can be the subject
+   *  of it. */
+  const [picking, setPicking] = useState<{ kind: 'accent' } | { kind: 'palette'; index: number } | null>(null);
+  /** Why a palette edit did not reach the instance. Shown rather than
+   *  swallowed: this is the one control on the page that goes over the wire. */
+  const [paletteError, setPaletteError] = useState('');
+  /** The colour a palette drag has arrived at, held until the picker closes -
+   *  a ref and not state, because nothing renders from it and re-rendering the
+   *  whole page on every frame of a drag would be the point of holding it. */
+  const draft = useRef<string | null>(null);
 
   // What a bug report actually needs, and nothing more. No address, no token:
   // an address is somebody's home network, and a token is a credential - both
@@ -205,17 +222,41 @@ export default function SettingsScreen({
               sits BESIDE its control rather than above a group, it is a row
               label, and every other row label on this page is 15px body text in
               the ordinary ink. */}
-          <Text style={[styles.rowLabel, { color: c.text }]}>{t('settings.accent')}</Text>
-          <View style={styles.swatches}>
-            {ACCENTS.map((a) => (
-              <Swatch
-                key={a.hex}
-                hex={a.hex}
-                label={a.name}
-                selected={accent.toLowerCase() === a.hex.toLowerCase()}
-                onPress={() => setAccent(a.hex)}
-              />
-            ))}
+          <Text style={[styles.rowLabel, { color: rainbow.on ? c.textMuted : c.text }]}>{t('settings.accent')}</Text>
+          {/* Dimmed and inert while the rainbow is on (jdp, 2026-09-01: "Wenn
+              man den regenbogenmodus aktiviert soll man die akzentfarben nicht
+              wählen können, mach ja kein sinn").
+
+              Worth being straight about what this costs, because it is not
+              nothing: the rainbow replaces the accent only for things that are
+              one member of a SET - cards, rows, tabs. Anything that is the only
+              one of its kind keeps the single accent, so the button at the
+              bottom of Add, the floating action button and the speed curve are
+              still painted with it while the mode is on. Locking the row means
+              those keep whatever accent was last chosen until the mode goes off
+              again. He asked for it plainly and it is one word to reverse. */}
+          <View style={[styles.swatches, rainbow.on && styles.dimmed]} pointerEvents={rainbow.on ? 'none' : 'auto'}>
+            {ACCENTS.map((a, i) => {
+              // The slot in force wears the LIVE colour, so an accent mixed in
+              // the picker is visible in the row rather than only in the app
+              // around it. Same rule, same nearest-preset arithmetic as the
+              // extension's accentSlot and the web's.
+              const mine = i === accentSlot(accent);
+              const shown = mine ? accent : a.hex;
+              return (
+                <Swatch
+                  key={a.hex}
+                  hex={shown}
+                  label={mine && shown.toLowerCase() !== a.hex.toLowerCase() ? shown.toUpperCase() : a.name}
+                  selected={mine}
+                  // One press chooses; a second press on the one already chosen
+                  // opens the picker on it. The pairing is what lets every
+                  // colour be editable without a ninth control beside the eight
+                  // - identical to the extension's own row.
+                  onPress={() => (mine ? setPicking({ kind: 'accent' }) : setAccent(a.hex))}
+                />
+              );
+            })}
           </View>
         </View>
 
@@ -236,6 +277,48 @@ export default function SettingsScreen({
           label={t('settings.rainbow')}
           control={<GlimToggle hue={1} value={rainbow.on} onChange={(on) => setRainbow(on)} />}
         />
+
+        {/* The eight colours the mode hands out by position (jdp, 2026-09-01:
+            "wo sind die farbfelder für den regenbogenmodus?"). They were on the
+            web UI's Look page and in the extension's options and nowhere here,
+            so the accent row above was the only colour control on the screen -
+            which is most of why turning the rainbow on and then reaching for
+            the accent looked like the thing to do.
+
+            They belong to the INSTANCE, not to this phone, and editing one
+            writes it back there (POST /api/appearance). That is deliberate:
+            colours are handed out by POSITION, so a palette kept locally would
+            make the same card teal in a browser and pink here. It is also why
+            this row is the one place in this card that needs a connection.
+
+            Same treatment as the accent row - label left, swatches right,
+            dimmed while the mode is off, since eight colours that are not
+            being used are worth showing and not worth pressing. */}
+        <View style={styles.axisRow}>
+          <Text style={[styles.rowLabel, { color: rainbow.on ? c.text : c.textMuted }]}>
+            {t('settings.rainbowPalette')}
+          </Text>
+          <View
+            style={[styles.swatches, !rainbow.on && styles.dimmed]}
+            pointerEvents={rainbow.on && onSetPalette ? 'auto' : 'none'}
+          >
+            {rainbow.palette.map((hex, i) => (
+              <Swatch
+                key={i}
+                hex={hex}
+                // Every position is editable and none of them is "selected":
+                // all eight are in force at once, so a press here can only
+                // mean "change this one".
+                selected={false}
+                label={t('settings.rainbowPalettePosition', { position: i + 1 })}
+                onPress={() => setPicking({ kind: 'palette', index: i })}
+              />
+            ))}
+          </View>
+        </View>
+        {paletteError !== '' && (
+          <Text style={[styles.hint, { color: c.statusFailSolid }]}>{paletteError}</Text>
+        )}
       </NotchCard>
 
       <NotchCard title={t('settings.problems')} hue={2}>
@@ -338,6 +421,41 @@ export default function SettingsScreen({
           smaller type and outside every card - and page chrome reads as
           something nobody put there on purpose. GlimStone 1.7.0 replaces its
           own version-footer rule with the About card for the whole family. */}
+
+      {/* One picker for both colour rows. Mounted here rather than inside
+          either row: a Modal is a whole-screen thing, and hanging it off a row
+          would make its lifetime depend on that row still being rendered. */}
+      <ColorPicker
+        visible={picking !== null}
+        initial={picking?.kind === 'palette' ? (rainbow.palette[picking.index] ?? accent) : accent}
+        onPick={(hex) => {
+          if (!picking) return;
+          if (picking.kind === 'accent') {
+            // Local and immediate: the accent is this app's own choice, so
+            // there is nothing to wait for and the whole page follows the drag.
+            setAccent(hex);
+            return;
+          }
+          // A palette position goes to the INSTANCE, so it is held rather than
+          // sent on every frame of a drag - that would be one request per
+          // pixel. The picker shows the colour live in its own preview; the
+          // write happens once, when it closes.
+          draft.current = hex;
+        }}
+        onClose={() => {
+          const open = picking;
+          const hex = draft.current;
+          draft.current = null;
+          setPicking(null);
+          if (!open || open.kind !== 'palette' || !onSetPalette || !hex) return;
+          const next = rainbow.palette.slice();
+          next[open.index] = hex;
+          setPaletteError('');
+          void onSetPalette(next).catch((e: unknown) =>
+            setPaletteError(e instanceof Error ? e.message : String(e)),
+          );
+        }}
+      />
     </ScrollView>
   );
 }
@@ -369,6 +487,10 @@ const styles = StyleSheet.create({
   // The same shape GlimRow gives every other label on this page.
   rowLabel: { fontSize: 15, flexShrink: 0 },
   swatches: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, alignItems: 'center', justifyContent: 'flex-end', flexShrink: 1 },
+  // A row that is shown and not offered. Dimmed rather than hidden: eight
+  // colours that are not in use are still the answer to "which eight", and a
+  // control that disappears teaches nobody why.
+  dimmed: { opacity: 0.4 },
   report: { padding: 12, marginBottom: 10 },
   reportText: { fontSize: TYPE.caption, lineHeight: 17, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' },
   buttonRow: { flexDirection: 'row', gap: 8 },

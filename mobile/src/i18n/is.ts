@@ -27,6 +27,8 @@ export const is: Dict = {
   'instance.offline': 'ótengt',
   'downloads.start': 'Byrja',
   'downloads.stop': 'Stöðva',
+  'downloads.startSkipped': 'Tenglasían heldur {n} tenglum eftir.',
+  'downloads.startBlocked': 'Áætlun heldur biðröðinni stöðvaðri.',
   'downloads.tabDownloads': 'Niðurhal',
   'downloads.tabCollector': 'Safnari',
   'packages.loose': 'Án pakka',
@@ -90,6 +92,9 @@ export const is: Dict = {
     'Þetta fjarlægir hverja vistaða tengingu og teikn hennar af þessu tæki. Ekkert breytist á netþjónunum sjálfum.',
   'settings.removeAllConfirmButton': 'Fjarlægja allt',
   'settings.cancel': 'Hætta við',
+  'settings.rainbowPalettePosition': 'Staða {position} á litaspjaldi',
+  'settings.rainbowPalette': 'Litapallet',
+  'settings.pickerDone': 'Lokið',
 
   'relay.title': 'Tengjast með setningu',
   'relay.hint':

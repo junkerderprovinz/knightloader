@@ -11,7 +11,7 @@ import DownloadsScreen from './src/screens/DownloadsScreen';
 import AddDownloadScreen from './src/screens/AddDownloadScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import LanguagePickerScreen from './src/screens/LanguagePickerScreen';
-import { fetchAppearance } from './src/api/client';
+import { fetchAppearance, setRainbowPalette } from './src/api/client';
 import { AppearanceProvider, useAppearance } from './src/theme/AppearanceContext';
 import { I18nProvider } from './src/i18n/I18nContext';
 
@@ -228,6 +228,15 @@ function Shell() {
                   // the instance again, now.
                   if (conn) void fetchAppearance(conn).then(setInstanceAppearance);
                 }}
+                // The rainbow palette belongs to the instance, so editing one
+                // is a write over the wire rather than a local preference - see
+                // setRainbowPalette. Passed only when there IS a connection, so
+                // the row is inert instead of a control that fails.
+                onSetPalette={
+                  conn
+                    ? async (palette) => setInstanceAppearance(await setRainbowPalette(conn, palette))
+                    : undefined
+                }
               />
             )}
           </Stack.Screen>

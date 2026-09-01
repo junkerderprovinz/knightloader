@@ -27,6 +27,8 @@ export const fr: Dict = {
   'instance.offline': 'hors ligne',
   'downloads.start': 'Démarrer',
   'downloads.stop': 'Arrêter',
+  'downloads.startSkipped': 'Le filtre de liens retient {n} liens.',
+  'downloads.startBlocked': 'Une planification maintient la file en pause.',
   'downloads.tabDownloads': 'Téléchargements',
   'downloads.tabCollector': 'Collecteur',
   'packages.loose': 'Sans paquet',
@@ -90,6 +92,9 @@ export const fr: Dict = {
     'Supprime chaque connexion enregistrée et son jeton de cet appareil. Cela ne change rien sur les serveurs eux-mêmes.',
   'settings.removeAllConfirmButton': 'Tout supprimer',
   'settings.cancel': 'Annuler',
+  'settings.rainbowPalettePosition': 'Position {position} de la palette',
+  'settings.rainbowPalette': 'Palette de couleurs',
+  'settings.pickerDone': 'Terminé',
 
   'relay.title': 'Se connecter avec une phrase',
   'relay.hint':

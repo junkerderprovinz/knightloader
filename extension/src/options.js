@@ -654,11 +654,24 @@ function paintHues() {
 }
 
 /**
- * swatch builds one round colour button. `onPick` is a plain click (a preset);
- * `onEdit` opens the page's own picker popover for a colour that can be
- * changed - the design language rules out a native <input type="color">, and
- * jdp asked for these to be editable (2026-08-28: "Die Farbfelder sollen ganz
- * rechts angeordnet sein und bearbeitbar sein").
+ * swatch builds one round colour button.
+ *
+ * Both jobs on one control, decided by whether this swatch is the one in force:
+ *
+ *   - not selected -> a click SELECTS it (`onPick`), and nothing else happens;
+ *   - already selected -> a click opens the picker on it (`onEdit`);
+ *   - no `onPick` at all -> a click always edits. That is the palette row,
+ *     where all eight colours are in force at once and "select" means nothing.
+ *
+ * The previous version opened the picker on every click, on the stated grounds
+ * that "the popover applies live on open, so the colour lands immediately". It
+ * does not: colorPicker only calls back on interaction, so choosing a preset
+ * set nothing at all and left a picker standing over the row instead (jdp,
+ * 2026-09-01: "es nimmt die neu eingestellte farb nicht an und ich kann die
+ * farbfelder nicht auswählen. es kommt immer der farbpicker"). The claim was
+ * mine and it was wrong; this is the shape that actually delivers what it was
+ * meant to - one click to choose any of the eight, and every one of them
+ * editable, with no ninth control to do it.
  */
 function swatch(hex, { label: name, pressed, onPick, onEdit, onEditClose }) {
   const b = document.createElement('button');
@@ -669,6 +682,10 @@ function swatch(hex, { label: name, pressed, onPick, onEdit, onEditClose }) {
   b.setAttribute('aria-label', name);
   if (pressed !== undefined) b.setAttribute('aria-pressed', String(pressed));
   b.addEventListener('click', () => {
+    if (onPick && !pressed) {
+      onPick();
+      return;
+    }
     if (onEdit) openColorPickerPopover(b, hex, onEdit, onEditClose);
     else onPick?.();
   });
@@ -754,6 +771,9 @@ async function renderAppearance() {
   // stored. It marks whichever swatch it matches; there is no separate circle
   // for it any more (see below).
   const live = (a.accent || DEFAULT_ACCENT).toLowerCase();
+  // Which of the eight the live accent belongs to. Exactly one slot is always
+  // marked, whether or not the colour is a preset - see accentSlot.
+  const liveSlot = accentSlot(live);
 
   accentSwatches.innerHTML = '';
   // No "Voreinstellungen" caption any more (jdp, 2026-09-01: "der text
@@ -766,31 +786,37 @@ async function renderAppearance() {
     applyAccent(v);
     await renderAppearance();
   };
-  for (const x of ACCENTS) {
-    // Every swatch opens the picker, seeded with its own colour (jdp,
-    // 2026-09-01: "alle farbfelder sollen sich editieren lassen. links neben
-    // dem resetbutton ist ein farbfeld mit stift. das kann weg. dann sind die
-    // farbfelder der akzentfarbe genau gleihc viel wie die der farbpalette").
+  ACCENTS.forEach((x, i) => {
+    // The slot in force wears the LIVE colour, which is the preset's own unless
+    // the picker has nudged it. That is what keeps a hand-mixed accent visible:
+    // it used to be stored, applied everywhere, and drawn nowhere in the row
+    // that is supposed to be showing it.
+    const mine = i === liveSlot;
+    const shown = mine ? live : x.hex;
+    // One click chooses; a second click on the one already chosen edits it
+    // (jdp, 2026-09-01: "alle farbfelder sollen sich editieren lassen ... es
+    // kommt immer der farbpicker"). Both of his asks land on the same control,
+    // which is why the ninth circle with the pencil on it could go: every
+    // colour here is editable, and reaching the editor costs the click that
+    // selects it - which is a click somebody about to change a colour was
+    // always going to make.
     //
-    // The separate picker button is gone with it. It was a ninth circle that
-    // looked like a preset, and even with a glyph on it, it was a second way to
-    // do a thing the swatches could do themselves - the palette row two lines
-    // down has always worked exactly this way, and the two rows now match
-    // exactly: eight circles and a reset.
-    //
-    // A click still COSTS one click to choose the preset, because the popover
-    // applies live on open: the colour lands immediately and the picker is
-    // simply left standing in case you want to nudge it. That is the property
-    // that makes this replace both controls rather than trading one for the
-    // other.
+    // The palette row two lines down keeps click-to-edit, and the difference is
+    // in what the rows MEAN rather than an inconsistency: this is a choice
+    // among eight, and there all eight are in force at once, so there is no
+    // "the selected one" to click twice.
     //
     // A ring marks the current one, not a tick: a glyph would have to stay
     // legible on all eight, which means computing an ink colour for a
     // decoration.
     accentSwatches.appendChild(
-      swatch(x.hex, {
-        label: x.name,
-        pressed: x.hex.toLowerCase() === live,
+      swatch(shown, {
+        // Named while it wears its preset; its own value once it does not,
+        // because "Sunflower" on a circle that is no longer Sunflower is the
+        // one label worse than no label.
+        label: mine && shown !== x.hex.toLowerCase() ? shown.toUpperCase() : x.name,
+        pressed: mine,
+        onPick: () => void pick(x.hex),
         onEdit: async (next) => {
           await writeAppearance({ accent: next });
           applyAccent(next);
@@ -801,7 +827,7 @@ async function renderAppearance() {
         onEditClose: () => void renderAppearance(),
       }),
     );
-  }
+  });
   // The way back, always rendered (jdp, 2026-08-31: "die akzentfarbe hat keinen
   // resetbutton"). It used to appear only once the accent had actually moved,
   // which is defensible and turned out to be wrong for the same reason the
@@ -919,7 +945,7 @@ async function renderAppearance() {
  * than a package. The same constant exists in the web UI's Settings.tsx and
  * the two are expected to agree.
  */
-const GLIMSTONE_VERSION = '1.6.0';
+const GLIMSTONE_VERSION = '1.7.3';
 
 const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
 const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';

@@ -27,6 +27,8 @@ export const uk: Dict = {
   'instance.offline': 'поза мережею',
   'downloads.start': 'Запустити',
   'downloads.stop': 'Зупинити',
+  'downloads.startSkipped': 'Фільтр посилань утримує {n} посилань.',
+  'downloads.startBlocked': 'Розклад утримує чергу зупиненою.',
   'downloads.tabDownloads': 'Завантаження',
   'downloads.tabCollector': 'Збирач',
   'packages.loose': 'Без пакета',
@@ -90,6 +92,9 @@ export const uk: Dict = {
     'Видаляє з цього пристрою кожне збережене підключення разом із його токеном. На самих серверах нічого не зміниться.',
   'settings.removeAllConfirmButton': 'Видалити все',
   'settings.cancel': 'Скасувати',
+  'settings.rainbowPalettePosition': 'Позиція палітри {position}',
+  'settings.rainbowPalette': 'Кольорова палітра',
+  'settings.pickerDone': 'Готово',
 
   'relay.title': 'Підключення за фразою',
   'relay.hint':

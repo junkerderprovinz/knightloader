@@ -144,8 +144,33 @@ export async function fetchQueue(conn: ServerConnection, base = '/api'): Promise
  * nothing until somebody says go. This is that "go", per package or for the
  * whole collector - the same route the web UI's own Start button calls.
  */
-export async function startTasks(conn: ServerConnection, ids: string[], base = '/api'): Promise<void> {
-  await request(conn, base, '/tasks/start', { method: 'POST', body: JSON.stringify({ ids }) });
+export async function startTasks(conn: ServerConnection, ids: string[], base = '/api'): Promise<StartResult> {
+  const r = await request<StartResult | undefined>(conn, base, '/tasks/start', {
+    method: 'POST',
+    body: JSON.stringify({ ids }),
+  });
+  // An instance older than this answer replies 204 with no body, which request
+  // turns into undefined. Read as "it started something and had nothing to
+  // report", which is exactly what a 204 used to mean here.
+  return r ?? { started: ids.length, skipped: 0, released: false, blocked: false };
+}
+
+/**
+ * What a start actually did.
+ *
+ * It exists because "nothing happened" had three causes and the route answered
+ * 204 to all of them: a halted queue, a link filter holding the named tasks, or
+ * ids matching nothing. See App.StartTasks in internal/app/app_queue.go - the
+ * shape is the server's, named the same on both sides so a field cannot mean
+ * one thing there and another here.
+ */
+export interface StartResult {
+  started: number;
+  skipped: number;
+  /** The queue was taken off a halt the user had set by hand. */
+  released: boolean;
+  /** A schedule window is holding the queue; the tasks are queued and waiting. */
+  blocked: boolean;
 }
 
 /**
@@ -374,4 +399,41 @@ export async function fetchAppearance(conn: ServerConnection): Promise<InstanceA
   } catch {
     return undefined;
   }
+}
+
+/**
+ * Write the rainbow palette back to the instance.
+ *
+ * The palette is the one part of the look that is deliberately NOT a local
+ * choice: colours are handed out by POSITION, so a palette kept on the phone
+ * would make the same card teal in a browser and pink here. Editing it
+ * therefore means editing the instance's, which is why this posts rather than
+ * storing anything (jdp, 2026-09-01: "wo sind die farbfelder für den
+ * regenbogenmodus?", and before that "alle farbfelder lassen sich nicht
+ * bearbeiten").
+ *
+ * `null` is the reset: it clears the stored list so the instance falls back to
+ * GlimStone's own eight, which is the same shape the web UI's reset badge
+ * sends.
+ *
+ * Answers with the instance's new look, so the caller can apply exactly what
+ * was stored rather than what it hoped would be.
+ */
+export async function setRainbowPalette(
+  conn: ServerConnection,
+  palette: string[] | null,
+): Promise<InstanceAppearance> {
+  const s = await request<Record<string, unknown>>(conn, '/api', '/appearance', {
+    method: 'POST',
+    body: JSON.stringify({ rainbowPalette: palette }),
+  });
+  return {
+    shape: typeof s.shape === 'string' ? s.shape : undefined,
+    accent: typeof s.accent === 'string' ? s.accent : undefined,
+    rainbow: !!s.rainbow,
+    rainbowReactive: !!s.rainbowReactive,
+    rainbowRotate: !!s.rainbowRotate,
+    rainbowSeed: typeof s.rainbowSeed === 'number' ? s.rainbowSeed : 0,
+    rainbowPalette: Array.isArray(s.rainbowPalette) ? (s.rainbowPalette as string[]) : undefined,
+  };
 }

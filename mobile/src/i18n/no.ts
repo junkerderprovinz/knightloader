@@ -27,6 +27,8 @@ export const no: Dict = {
   'instance.offline': 'frakoblet',
   'downloads.start': 'Start',
   'downloads.stop': 'Stopp',
+  'downloads.startSkipped': 'Lenkefilteret holder tilbake {n} lenker.',
+  'downloads.startBlocked': 'En tidsplan holder køen pauset.',
   'downloads.tabDownloads': 'Nedlastinger',
   'downloads.tabCollector': 'Samler',
   'packages.loose': 'Uten pakke',
@@ -90,6 +92,9 @@ export const no: Dict = {
     'Fjerner hver lagrede tilkobling og tilhørende token fra denne enheten. Det endrer ingenting på selve serverne.',
   'settings.removeAllConfirmButton': 'Fjern alle',
   'settings.cancel': 'Avbryt',
+  'settings.rainbowPalettePosition': 'Palettposisjon {position}',
+  'settings.rainbowPalette': 'Fargepalett',
+  'settings.pickerDone': 'Ferdig',
 
   'relay.title': 'Koble til med en frase',
   'relay.hint':

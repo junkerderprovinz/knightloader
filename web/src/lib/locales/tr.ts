@@ -88,6 +88,8 @@ export const tr: Dict = {
   'collector.toastSkipped': '{n} bağlantı hazırlandı, {skipped} tanesi zaten biliniyordu',
   'collector.toastNone': 'Geçerli bağlantı bulunamadı',
   'collector.toastStarted': '{n} indirme başlatıldı',
+  'collector.toastStartSkipped': 'Bağlantı filtresi {n} bağlantıyı tutuyor.',
+  'collector.toastStartBlocked': 'Bir zamanlama kuyruğu duraklatıyor.',
   'collector.selectAll': 'Tümünü seç',
   'collector.movePrompt': 'Seçili bağlantılar hangi pakete taşınsın?',
 
@@ -210,7 +212,6 @@ export const tr: Dict = {
   'settings.accent': 'Vurgu rengi',
   'settings.accentHint': 'Etkinlik için tek renk. Üzerindeki yazı karşıtlığa göre seçilir.',
   'settings.colours': 'Renkler',
-  'settings.accentPresets': 'Ön ayarlar',
   'settings.accentReset': 'Varsayılan',
   'queue.stop': 'Kuyruğu durdur',
   'queue.start': 'Kuyruğu başlat',

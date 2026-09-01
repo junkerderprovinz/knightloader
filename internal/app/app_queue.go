@@ -14,9 +14,58 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/schedule"
 )
 
+// StartResult is what a start actually did. It exists because "nothing
+// happened" had three different causes here and the route answered 204 to all
+// of them: the queue was halted, every named task was held back by a link
+// filter, or the ids matched nothing. A control that reports none of that is
+// indistinguishable from a control that is not wired up - which is exactly what
+// it was reported as, repeatedly.
+type StartResult struct {
+	// Started is how many tasks left the collector for the queue.
+	Started int `json:"started"`
+	// Skipped is how many named tasks a link-filter rule is holding back. They
+	// are not started and never silently: only Restore takes a link out of that
+	// holding area, and somebody who pressed start on one deserves to be told
+	// that rather than watching the row not move.
+	Skipped int `json:"skipped"`
+	// Released reports that this start took the queue off a halt the user had
+	// set by hand, so the interface can show the master switch flipping without
+	// waiting for its next poll.
+	Released bool `json:"released"`
+	// Blocked reports the opposite: a schedule window is pausing the queue, the
+	// tasks are queued, and nothing will move until that window ends. Deliberately
+	// not merged with Released into one tri-state - they are two different
+	// sentences, and the interface says one or the other, never a code.
+	Blocked bool `json:"blocked"`
+}
+
 // StartTasks moves collected tasks into the download queue and dispatches them.
 // An empty id list starts every collected task.
-func (a *App) StartTasks(ids []string) {
+//
+// This is AUTOMATION's way in - auto-confirm, a watch folder, a forced
+// selection - and it never touches the master switch. StartTasksByHand is the
+// one that does, and the split is the whole point rather than a convenience:
+// releasing a halt because somebody pressed play is right, and releasing it
+// because a link happened to arrive from the browser extension would mean a
+// stopped queue starts itself the moment anybody clicks a download link.
+func (a *App) StartTasks(ids []string) StartResult {
+	return a.startTasks(ids, false)
+}
+
+// StartTasksByHand is StartTasks for a start somebody actually pressed: it also
+// releases a halt they set by hand.
+//
+// Without it, play after stop was a no-op that said nothing - the tasks went to
+// "queued", the dispatcher returned at its first line because the queue was
+// halted, and nothing moved (jdp, four rounds of "es lädt nicht herunter"). A
+// person who presses start on a queue they stopped earlier is asking for the
+// thing they stopped; a schedule window is a different matter and is never
+// overridden here, only reported.
+func (a *App) StartTasksByHand(ids []string) StartResult {
+	return a.startTasks(ids, true)
+}
+
+func (a *App) startTasks(ids []string, byHand bool) StartResult {
 	want := map[string]bool{}
 	for _, id := range ids {
 		want[id] = true
@@ -25,7 +74,13 @@ func (a *App) StartTasks(ids []string) {
 	// Settings has its own lock, independent of a.mu either way - read
 	// before taking a.mu purely so the critical section below stays about
 	// a.tasks and nothing else.
-	addAtTop := a.Settings.Get().AddAtTop
+	cfg := a.Settings.Get()
+	addAtTop := cfg.AddAtTop
+	// What the timetable says with the manual switch left out of it. That is the
+	// one question the release below turns on: is the halt this start is about to
+	// hit the user's own, or a window they configured?
+	scheduledPause := schedule.Compile(cfg.Schedule).At(time.Now(), schedule.State{Limit: cfg.SpeedLimit}).Paused
+	var out StartResult
 	a.mu.Lock()
 	var toStart []*core.Task
 	for id, t := range a.tasks {
@@ -33,9 +88,19 @@ func (a *App) StartTasks(ids []string) {
 		// rather than a note kept somewhere else: "start everything" reaches every
 		// collected link, and a filtered one has to be out of that reach without
 		// being out of the record. Restore is the only way it starts.
-		if t.Status == core.StatusCollected && !t.Skipped && (all || want[id]) {
-			toStart = append(toStart, t)
+		if t.Status != core.StatusCollected || !(all || want[id]) {
+			continue
 		}
+		if t.Skipped {
+			// Counted, not started. "Start everything" reaching a filtered link
+			// would defeat the filter, but a start aimed AT one by id used to
+			// return 204 and leave the row exactly as it was, with the reason
+			// sitting on the task where nothing had asked for it. Counting it
+			// here is what lets the answer say so.
+			out.Skipped++
+			continue
+		}
+		toStart = append(toStart, t)
 	}
 	sort.Slice(toStart, func(i, j int) bool { return toStart[i].CreatedAt.Before(toStart[j].CreatedAt) })
 	for _, t := range toStart {
@@ -47,6 +112,36 @@ func (a *App) StartTasks(ids []string) {
 		t.Reason = core.ReasonUnknown
 		t.Speed = 0
 		a.queue = append(a.queue, t.ID)
+	}
+	out.Started = len(toStart)
+	// Starting something releases a halt the user set by hand.
+	//
+	// Without this, start is a no-op that says nothing. The tasks become
+	// "queued", dispatchLocked returns at its first line because a.halted is
+	// set, and nothing moves - and pressing stop afterwards does nothing either,
+	// because the queue is already halted. It takes no exotic state to reach:
+	// press stop once, then press play on a package. That is jdp's "wenn ich in
+	// der app starte, startet es nicht in der container instanz" and his "es
+	// lädt nicht herunter", and it is the same shape of defect as the one in
+	// Pause - a state the user COMMANDED that the app declined to record.
+	//
+	// Only the manual halt, never a scheduled one. A pause window is a standing
+	// instruction with a visible reason and an end, and overriding it here would
+	// mean overriding it again every night. That case leaves through Blocked
+	// instead, so the interface can give the reason rather than replacing one
+	// silence with another.
+	if len(toStart) > 0 && a.halted {
+		if byHand && a.manualHalt && !scheduledPause {
+			a.manualHalt = false
+			a.halted = false
+			// Same reasoning as SetHalted's own release: the mark has served its
+			// purpose, and left armed it would halt the queue again at the next
+			// finished download for a reason nobody could connect to a click.
+			a.stopMark = ""
+			out.Released = true
+		} else {
+			out.Blocked = true
+		}
 	}
 	// AddAtTop: a batch leaving the collector plays next rather than joining
 	// the back of its band. renumberLocked is the same mechanism MoveIn and
@@ -89,6 +184,17 @@ func (a *App) StartTasks(ids []string) {
 		_ = a.Store.Save(&c)
 		a.Hub.Broadcast("task", &c)
 	}
+	// The master switch moved, so everything watching it hears about it - a
+	// second browser, the extension, the phone (jdp, 2026-09-01: "diese buttons
+	// müssen quasi alle miteinander verknüpft sein über alle plattformen hinweg,
+	// so das es auf allen plattformen live umschaltet"). Broadcast outside the
+	// lock like every other queue event, and only when it actually changed:
+	// a "queue" frame on every start would redraw the switch on every surface
+	// several times a minute for nothing.
+	if out.Released {
+		a.Hub.Broadcast("queue", a.Queue())
+	}
+	return out
 }
 
 // RestartTasks re-runs finished or errored tasks from scratch: their backend

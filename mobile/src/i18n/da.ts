@@ -27,6 +27,8 @@ export const da: Dict = {
   'instance.offline': 'offline',
   'downloads.start': 'Start',
   'downloads.stop': 'Stop',
+  'downloads.startSkipped': 'Linkfilteret holdt {n} links tilbage.',
+  'downloads.startBlocked': 'Køen er sat på pause af en tidsplan.',
   'downloads.tabDownloads': 'Downloads',
   'downloads.tabCollector': 'Samler',
   'packages.loose': 'Uden pakke',
@@ -90,6 +92,9 @@ export const da: Dict = {
     'Fjerner hver gemte forbindelse og dens token fra denne enhed. Det ændrer ikke noget på selve serverne.',
   'settings.removeAllConfirmButton': 'Fjern alle',
   'settings.cancel': 'Annuller',
+  'settings.rainbowPalettePosition': 'Paletposition {position}',
+  'settings.rainbowPalette': 'Farvepalet',
+  'settings.pickerDone': 'Færdig',
 
   'relay.title': 'Forbind med en sætning',
   'relay.hint':

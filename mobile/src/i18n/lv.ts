@@ -27,6 +27,8 @@ export const lv: Dict = {
   'instance.offline': 'bezsaistē',
   'downloads.start': 'Sākt',
   'downloads.stop': 'Apturēt',
+  'downloads.startSkipped': 'Saišu filtrs aizturēja {n} saites.',
+  'downloads.startBlocked': 'Grafiks tur rindu apturētu.',
   'downloads.tabDownloads': 'Lejupielādes',
   'downloads.tabCollector': 'Vācējs',
   'packages.loose': 'Bez pakotnes',
@@ -90,6 +92,9 @@ export const lv: Dict = {
     'Šī darbība no ierīces noņem katru saglabāto savienojumu kopā ar tā piekļuves marķieri. Pašos serveros nekas nemainās.',
   'settings.removeAllConfirmButton': 'Noņemt visu',
   'settings.cancel': 'Atcelt',
+  'settings.rainbowPalettePosition': 'Paletes vieta {position}',
+  'settings.rainbowPalette': 'Krāsu palete',
+  'settings.pickerDone': 'Gatavs',
 
   'relay.title': 'Savienot ar frāzi',
   'relay.hint':

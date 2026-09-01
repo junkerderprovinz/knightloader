@@ -88,6 +88,8 @@ export const gl: Dict = {
   'collector.toastSkipped': '{n} ligazón(s) preparada(s), {skipped} xa coñecidas',
   'collector.toastNone': 'Non se atoparon ligazóns válidas',
   'collector.toastStarted': '{n} descarga(s) iniciada(s)',
+  'collector.toastStartSkipped': 'O filtro de ligazóns retivo {n} ligazóns.',
+  'collector.toastStartBlocked': 'Unha programación mantén a cola en pausa.',
   'collector.selectAll': 'Seleccionar todo',
   'collector.movePrompt': 'A que paquete queres mover as ligazóns seleccionadas?',
 
@@ -210,7 +212,6 @@ export const gl: Dict = {
   'settings.accent': 'Cor de acento',
   'settings.accentHint': 'A única cor para a actividade. O texto enriba escóllese por contraste.',
   'settings.colours': 'Cores',
-  'settings.accentPresets': 'Predefinicións',
   'settings.accentReset': 'Por defecto',
   'queue.stop': 'Deter a cola',
   'queue.start': 'Iniciar a cola',

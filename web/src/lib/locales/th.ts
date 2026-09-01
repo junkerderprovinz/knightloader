@@ -88,6 +88,8 @@ export const th: Dict = {
   'collector.toastSkipped': 'เตรียมลิงก์ {n} รายการ อีก {skipped} รายการมีอยู่แล้ว',
   'collector.toastNone': 'ไม่พบลิงก์ที่ใช้ได้',
   'collector.toastStarted': 'เริ่มดาวน์โหลด {n} รายการแล้ว',
+  'collector.toastStartSkipped': 'ตัวกรองลิงก์กำลังกัน {n} ลิงก์ไว้',
+  'collector.toastStartBlocked': 'กำหนดการกำลังหยุดคิวไว้',
   'collector.selectAll': 'เลือกทั้งหมด',
   'collector.movePrompt': 'ย้ายลิงก์ที่เลือกไปแพ็กเกจใด',
 
@@ -210,7 +212,6 @@ export const th: Dict = {
   'settings.accent': 'สีเน้น',
   'settings.accentHint': 'สีเดียวที่ใช้แสดงการทำงาน ตัวอักษรบนสีนี้เลือกตามความต่างของสี',
   'settings.colours': 'สี',
-  'settings.accentPresets': 'พรีเซ็ต',
   'settings.accentReset': 'ค่าเริ่มต้น',
   'queue.stop': 'หยุดคิว',
   'queue.start': 'เริ่มคิว',

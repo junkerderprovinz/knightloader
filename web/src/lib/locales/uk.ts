@@ -88,6 +88,8 @@ export const uk: Dict = {
   'collector.toastSkipped': 'Підготовлено посилань: {n}, вже відомих: {skipped}',
   'collector.toastNone': 'Дійсних посилань не знайдено',
   'collector.toastStarted': 'Запущено завантажень: {n}',
+  'collector.toastStartSkipped': 'Фільтр посилань утримує {n} посилань.',
+  'collector.toastStartBlocked': 'Розклад утримує чергу зупиненою.',
   'collector.selectAll': 'Вибрати все',
   'collector.movePrompt': 'До якого пакета перемістити вибрані посилання?',
 
@@ -210,7 +212,6 @@ export const uk: Dict = {
   'settings.accent': 'Акцентний колір',
   'settings.accentHint': 'Єдиний колір активності. Текст на ньому добирається за контрастом.',
   'settings.colours': 'Кольори',
-  'settings.accentPresets': 'Пресети',
   'settings.accentReset': 'За замовчуванням',
   'queue.stop': 'Зупинити чергу',
   'queue.start': 'Запустити чергу',

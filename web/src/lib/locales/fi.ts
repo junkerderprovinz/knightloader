@@ -88,6 +88,8 @@ export const fi: Dict = {
   'collector.toastSkipped': 'Valmisteltu {n} linkkiä, {skipped} jo tiedossa',
   'collector.toastNone': 'Kelvollisia linkkejä ei löytynyt',
   'collector.toastStarted': 'Käynnistetty {n} latausta',
+  'collector.toastStartSkipped': 'Linkkisuodatin pidätti {n} linkkiä.',
+  'collector.toastStartBlocked': 'Aikataulu pitää jonon pysäytettynä.',
   'collector.selectAll': 'Valitse kaikki',
   'collector.movePrompt': 'Mihin pakettiin valitut linkit siirretään?',
 
@@ -210,7 +212,6 @@ export const fi: Dict = {
   'settings.accent': 'Korostusväri',
   'settings.accentHint': 'Ainoa väri toiminnalle. Sen päällä oleva teksti valitaan kontrastin mukaan.',
   'settings.colours': 'Värit',
-  'settings.accentPresets': 'Esiasetukset',
   'settings.accentReset': 'Oletus',
   'queue.stop': 'Pysäytä jono',
   'queue.start': 'Käynnistä jono',

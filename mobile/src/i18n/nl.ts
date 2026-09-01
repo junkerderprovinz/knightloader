@@ -27,6 +27,8 @@ export const nl: Dict = {
   'instance.offline': 'offline',
   'downloads.start': 'Starten',
   'downloads.stop': 'Stoppen',
+  'downloads.startSkipped': 'Het linkfilter houdt {n} links tegen.',
+  'downloads.startBlocked': 'Een schema houdt de wachtrij gepauzeerd.',
   'downloads.tabDownloads': 'Downloads',
   'downloads.tabCollector': 'Verzamelaar',
   'packages.loose': 'Geen pakket',
@@ -90,6 +92,9 @@ export const nl: Dict = {
     'Verwijdert elke opgeslagen verbinding en het bijbehorende token van dit apparaat. Op de servers zelf verandert er niets.',
   'settings.removeAllConfirmButton': 'Alles verwijderen',
   'settings.cancel': 'Annuleren',
+  'settings.rainbowPalettePosition': 'Paletpositie {position}',
+  'settings.rainbowPalette': 'Kleurenpalet',
+  'settings.pickerDone': 'Klaar',
 
   'relay.title': 'Verbinden met een zin',
   'relay.hint':

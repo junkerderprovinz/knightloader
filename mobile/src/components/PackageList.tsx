@@ -133,7 +133,7 @@ export default function PackageList({
   // to store it.
   const dragRows: DragRow[] = rows.map((r) =>
     r.kind === 'header'
-      ? { key: `p:${r.pkg.name}`, band: 'packages', render: () => renderHeader(r.pkg) }
+      ? { key: `p:${r.pkg.name}`, band: 'packages', render: (_ziehend, scharf) => renderHeader(r.pkg, scharf) }
       : { key: r.task.id, band: `pkg:${r.task.package || ''}`, render: () => <TaskRow task={r.task} index={r.index} /> },
   );
 
@@ -163,7 +163,16 @@ export default function PackageList({
     );
   };
 
-  const renderHeader = (pkg: Pkg) => {
+  /**
+   * `scharf` is the list's reorder mode, handed down by DragList.
+   *
+   * While it is on, the controls inside a row stop responding. A hold that
+   * arms the drag lands ON one of them as often as not - these headers are
+   * caption, start and bin edge to edge - and without this, letting go without
+   * moving would arm the drag AND press whatever was under the finger. Which,
+   * for the bin, means a confirmation dialog nobody asked for.
+   */
+  const renderHeader = (pkg: Pkg, scharf: boolean) => {
         const auf = open[pkg.name] === true;
         return (
           <View style={[styles.header, { backgroundColor: c.surface2, borderRadius: radii.control }]}>
@@ -171,6 +180,7 @@ export default function PackageList({
                 you open by hitting a 12-point glyph is a folder you miss. */}
             <TouchableOpacity
               style={styles.headerText}
+              disabled={scharf}
               onPress={() => setOpen((o) => ({ ...o, [pkg.name]: !auf }))}
               accessibilityRole="button"
               accessibilityState={{ expanded: auf }}
@@ -201,14 +211,14 @@ export default function PackageList({
               <IconBadge
                 symbol="▶"
                 accent
-                onPress={() => onStartPackage(pkg)}
+                onPress={() => scharf || onStartPackage(pkg)}
                 accessibilityLabel={t('packages.start')}
               />
             )}
             {onDeletePackage && (
               <IconBadge
                 icon={<Trash color={c.textSub} />}
-                onPress={() => confirmDelete(pkg)}
+                onPress={() => scharf || confirmDelete(pkg)}
                 accessibilityLabel={t('packages.delete')}
               />
             )}

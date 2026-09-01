@@ -88,6 +88,8 @@ export const hi: Dict = {
   'collector.toastSkipped': '{n} लिंक तैयार, {skipped} पहले से मौजूद',
   'collector.toastNone': 'कोई वैध लिंक नहीं मिला',
   'collector.toastStarted': '{n} डाउनलोड शुरू',
+  'collector.toastStartSkipped': 'लिंक फ़िल्टर ने {n} लिंक रोके हैं।',
+  'collector.toastStartBlocked': 'एक शेड्यूल कतार को रोके हुए है।',
   'collector.selectAll': 'सभी चुनें',
   'collector.movePrompt': 'चुने हुए लिंक किस पैकेज में ले जाएँ?',
 
@@ -210,7 +212,6 @@ export const hi: Dict = {
   'settings.accent': 'एक्सेंट रंग',
   'settings.accentHint': 'गतिविधि का एक ही रंग। उस पर का टेक्स्ट कंट्रास्ट से चुना जाता है।',
   'settings.colours': 'रंग',
-  'settings.accentPresets': 'प्रीसेट',
   'settings.accentReset': 'डिफ़ॉल्ट',
   'queue.stop': 'कतार रोकें',
   'queue.start': 'कतार शुरू करें',

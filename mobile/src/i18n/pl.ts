@@ -27,6 +27,8 @@ export const pl: Dict = {
   'instance.offline': 'offline',
   'downloads.start': 'Uruchom',
   'downloads.stop': 'Zatrzymaj',
+  'downloads.startSkipped': 'Filtr odnośników wstrzymuje {n} odnośników.',
+  'downloads.startBlocked': 'Harmonogram wstrzymuje kolejkę.',
   'downloads.tabDownloads': 'Pobierania',
   'downloads.tabCollector': 'Kolektor',
   'packages.loose': 'Bez paczki',
@@ -90,6 +92,9 @@ export const pl: Dict = {
     'Usuwa z tego urządzenia każde zapisane połączenie razem z jego tokenem. Na samych serwerach nic się nie zmienia.',
   'settings.removeAllConfirmButton': 'Usuń wszystko',
   'settings.cancel': 'Anuluj',
+  'settings.rainbowPalettePosition': 'Pozycja palety {position}',
+  'settings.rainbowPalette': 'Paleta kolorów',
+  'settings.pickerDone': 'Gotowe',
 
   'relay.title': 'Połącz za pomocą frazy',
   'relay.hint':

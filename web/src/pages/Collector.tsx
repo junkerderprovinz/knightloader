@@ -292,15 +292,31 @@ export function Collector() {
     );
   }
 
+  /**
+   * One toast, telling the truth about what the start did.
+   *
+   * It used to announce "n started" from the number of rows selected, before
+   * the request had answered - so a start that moved nothing still said it had
+   * moved everything. The route now reports what it did, and the three ways it
+   * can come to nothing each get their own sentence: a schedule holding the
+   * queue, a link filter holding the links, or nothing matching at all.
+   */
+  const runStart = async (ids: string[]) => {
+    try {
+      const r = await startTasks(ids);
+      if (r.blocked) return toast(t('collector.toastStartBlocked'), 'fail');
+      if (r.started === 0 && r.skipped > 0) return toast(t('collector.toastStartSkipped', { n: r.skipped }), 'fail');
+      if (r.started === 0) return;
+      toast(t('collector.toastStarted', { n: r.started }), 'info');
+    } catch {
+      toast(t('list.optionsFailed'), 'fail');
+    }
+  };
   const startSelected = () => {
     if (!selected.size) return;
-    startTasks([...selected]);
-    toast(t('collector.toastStarted', { n: selected.size }), 'info');
+    void runStart([...selected]);
   };
-  const startAll = () => {
-    startTasks([]);
-    toast(t('collector.toastStarted', { n: collected.length }), 'info');
-  };
+  const startAll = () => void runStart([]);
 
   async function openCleanup(el: HTMLButtonElement | null): Promise<void> {
     try {

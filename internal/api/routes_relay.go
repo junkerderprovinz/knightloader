@@ -338,8 +338,26 @@ func relayProxyHandler(serve http.Handler) relay.ProxyHandler {
 			httpReq.Header.Set("Authorization", call.Authorization)
 		}
 		rec := newRelayRecorder()
-		serve.ServeHTTP(rec, httpReq)
-		return rec.status, rec.body.Bytes()
+		// Recovered, because there is no server here to do it.
+		//
+		// An ordinary request is served by net/http, which wraps every handler
+		// in a recover and turns a panic into a dropped connection. This one is
+		// dispatched by hand from the goroutine reading relay frames, so a
+		// handler that panics takes the whole instance down - reachable by
+		// anybody who can send a frame. Found by a bodyless POST panicking in
+		// decodeJSON (see api.go's own `body`); that particular hole is closed,
+		// and this is the reason a second one would not cost the process.
+		status, out := func() (s int, b []byte) {
+			defer func() {
+				if r := recover(); r != nil {
+					log.Printf("relay: handler panicked serving %s %s: %v", call.Method, call.Path, r)
+					s, b = http.StatusInternalServerError, []byte("internal error")
+				}
+			}()
+			serve.ServeHTTP(rec, httpReq)
+			return rec.status, rec.body.Bytes()
+		}()
+		return status, out
 	}
 }
 
@@ -397,6 +415,21 @@ func relayForwardable(method, path string) bool {
 	// means being able to drive this instance's queue and read its task list.
 	// Somebody with that is not learning anything new from the address of a
 	// thing they are already operating.
+	// The one writable exception, and it is narrow on purpose: POST
+	// /api/appearance sets seven cosmetic fields and reaches nothing else (see
+	// appearanceFields in routes_system.go). It is here because the phone could
+	// wear the instance's palette and not change it, which made the palette a
+	// thing you can only edit from a browser - and the palette has to live on
+	// the instance, because colours are handed out by POSITION and two clients
+	// that disagree about position three disagree about every card.
+	//
+	// What it grants is bounded by who can ask, the same argument the GET list
+	// below rests on: holding the phrase already means being able to drive this
+	// instance's queue and read its task list. Being able to repaint it as well
+	// is strictly less than that. /api/settings stays outside the list.
+	if method == http.MethodPost && rest == "appearance" {
+		return true
+	}
 	if method == http.MethodGet {
 		return rest == "auth" || rest == "instances" || rest == "appearance" || rest == "remote-access"
 	}
