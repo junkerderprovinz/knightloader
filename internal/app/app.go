@@ -537,6 +537,16 @@ func New(dataDir string) (*App, error) {
 	// through it.
 	a.mu.Lock()
 	a.queue = append(a.queue, requeue...)
+	// The queue comes up STOPPED when the resume policy says nothing should
+	// start by itself, rather than coming up live over a queue nobody may run.
+	// manualHalt as well as halted, and that is not a detail: the schedule
+	// runner's first pass reads manualHalt as "what the user wants when no
+	// window applies", so a halt written only to `halted` would be lifted again
+	// a second later by a timetable that knows nothing about the boot.
+	if len(requeue) > 0 && holdOnBoot(resume, queueWasLive) {
+		a.halted = true
+		a.manualHalt = true
+	}
 	a.mu.Unlock()
 	// Started only now that the task list is whole. The runner's first pass halts
 	// or throttles the queue immediately, and doing that to a queue still being

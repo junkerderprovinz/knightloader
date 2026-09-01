@@ -8,6 +8,7 @@ import (
 	"context"
 	"log"
 	"path/filepath"
+	"slices"
 	"sort"
 	"time"
 
@@ -507,7 +508,31 @@ func connsFor(t *core.Task, cfg settings.Settings, ceilings ...int) int {
 	return conns
 }
 
-func (a *App) Pause(id string) {
+// Pause takes one task out of the running set AND out of the wait queue: it is
+// a per-task instruction, and the task stays out until somebody resumes it.
+func (a *App) Pause(id string) { a.stop(id, false) }
+
+// StopBack is the hard stop's per-task half: the transfer is stopped, but the
+// task goes BACK INTO the wait queue rather than out of it.
+//
+// The difference decides whether the play button works at all. StopAll pauses
+// everything in flight and halts the queue behind it - two effects from one
+// press. Releasing the halt undid only the second, so the tasks the stop had
+// paused were sitting outside the queue with nothing left that would ever hand
+// them to a backend again. Measured on the live instance: play answers
+// `halted: false`, and four seconds later it is still 19 paused, 0 running,
+// 0 B/s. That is jdp's "Die Start und Stopp buttons funktionieren einfach
+// nirgends! Es lädt auch nirgends was runter", and no amount of pressing play
+// could have fixed it.
+//
+// Keeping them queued needs no record of "what the stop stopped" and no second
+// state to keep in step: the halt is the thing that is off, and lifting it is
+// the whole of turning it back on. A task somebody paused BY HAND stays paused
+// through all of this, which is the distinction worth preserving - that is a
+// per-task decision, and the master switch has no business undoing it.
+func (a *App) StopBack(id string) { a.stop(id, true) }
+
+func (a *App) stop(id string, requeue bool) {
 	a.mu.Lock()
 	t := a.tasks[id]
 	if t == nil {
@@ -516,7 +541,24 @@ func (a *App) Pause(id string) {
 	}
 	wasActive := a.active[id]
 	delete(a.active, id)
-	a.dequeueLocked(id)
+	if requeue {
+		// Put back IN, not merely "left alone".
+		//
+		// The first cut of this only skipped the dequeue, on the reading that a
+		// task being stopped is in the queue and should stay there. It is not:
+		// dispatchLocked keeps the ones it could NOT hand out and writes that
+		// back as the whole queue (`a.queue = rest`), so a task it dispatched
+		// left the queue at that moment. Skipping the dequeue therefore did
+		// nothing at all - the row said "queued", the dispatcher never saw it
+		// again, and the play button was as dead as before. Caught on the live
+		// instance and not by the test, because the test had put the id in the
+		// queue by hand and running tasks are never there.
+		if !slices.Contains(a.queue, id) {
+			a.queue = append(a.queue, id)
+		}
+	} else {
+		a.dequeueLocked(id)
+	}
 	// The status is written HERE, for a waiting task and a running one alike,
 	// and that symmetry is the fix rather than a tidy-up.
 	//
@@ -537,7 +579,15 @@ func (a *App) Pause(id string) {
 	// dead button. A later event from the backend still wins, which is what
 	// makes writing it here safe: this is the optimistic value, not a claim
 	// about the network.
-	t.Status = core.StatusPaused
+	// "Waiting" for the hard stop, "paused" for a per-task pause. Both are
+	// honest about the transfer having stopped, which is what was wrong before
+	// either existed; they differ in what it takes to start again, and the row
+	// should say which.
+	if requeue {
+		t.Status = core.StatusQueued
+	} else {
+		t.Status = core.StatusPaused
+	}
 	t.Speed = 0
 	c := *t
 	if !wasActive {
@@ -672,11 +722,18 @@ func (a *App) onUpdate(id string, u core.Update) {
 	// Running and queued are claims about INTENT, and on intent the app is the
 	// authority - it is the only party that heard the user.
 	//
-	// Anchored on `!a.active[id]` and not on the status alone: a task the
-	// dispatcher is genuinely driving is in a.active, so a real restart is never
-	// mistaken for a stale echo.
-	stale := u.Status != core.StatusDone && u.Status != core.StatusError &&
-		t.Status == core.StatusPaused && !a.active[id]
+	// Anchored on `a.active` alone, and NOT on the task's current status. The
+	// first cut also required the task to be "paused", which was right for as
+	// long as the hard stop left tasks paused - and stopped being right the
+	// moment it started returning them to the wait queue instead (see StopBack).
+	// A stopped-but-queued task would have been dragged back to "running" by the
+	// very next poll, which is the original defect wearing a different status.
+	//
+	// The rule underneath is simpler than either version: **the dispatcher
+	// decides what is running.** A task it is not driving is not in a.active,
+	// and a backend that says otherwise is describing something the app has
+	// already ended.
+	stale := u.Status != core.StatusDone && u.Status != core.StatusError && !a.active[id]
 	if u.Name != "" {
 		t.Name = u.Name
 	}

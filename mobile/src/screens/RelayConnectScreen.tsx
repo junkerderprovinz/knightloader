@@ -226,7 +226,7 @@ export default function RelayConnectScreen({
           Clipboard.getStringAsync rather than the TextInput's own long-press
           menu: that menu exists, and finding it means knowing it is there. */}
       <TouchableOpacity
-        style={[styles.pasteButton, { backgroundColor: c.surface2, borderRadius: radii.control }]}
+        style={[styles.button, { backgroundColor: accent, borderRadius: radii.control }]}
         onPress={async () => {
           setError(null);
           const text = await Clipboard.getStringAsync();
@@ -234,8 +234,8 @@ export default function RelayConnectScreen({
         }}
         disabled={searching}
       >
-        <Paste color={c.text} />
-        <Text style={[styles.buttonText, { color: c.text }]}>{t('relay.pasteButton')}</Text>
+        <Paste color={accentContrast} />
+        <Text style={[styles.buttonText, { color: accentContrast }]}>{t('relay.pasteButton')}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -265,19 +265,17 @@ export default function RelayConnectScreen({
       {/* Scanning is the point of the QR the web UI has been showing all
           along: twelve words is exactly the input a phone keyboard is worst
           at, and the code was scannable by nothing until now (the scanner
-          existed, wired only to the old direct-address screen). Secondary
-          styling, because typing still has to work when the other machine's
-          screen is not in front of you. */}
+          existed, wired only to the old direct-address screen). */}
       <TouchableOpacity
-        style={[styles.scanButton, { borderColor: c.border, borderRadius: radii.control }]}
+        style={[styles.button, { backgroundColor: accent, borderRadius: radii.control }]}
         onPress={() => {
           setError(null);
           setScanning(true);
         }}
         disabled={searching}
       >
-        <Scan color={c.text} />
-        <Text style={[styles.scanButtonText, { color: c.text }]}>{t('relay.scanButton')}</Text>
+        <Scan color={accentContrast} />
+        <Text style={[styles.buttonText, { color: accentContrast }]}>{t('relay.scanButton')}</Text>
       </TouchableOpacity>
 
       {error && <Text style={[styles.error, { color: c.statusFailSolid }]}>{error}</Text>}
@@ -344,7 +342,6 @@ export default function RelayConnectScreen({
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 24, paddingTop: 56 },
   topBar: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 4 },
-  pasteButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 44, marginTop: 8 },
   title: { fontSize: 22, fontWeight: '600', marginBottom: 8 },
   hint: { fontSize: TYPE.body, marginBottom: 16, lineHeight: 20 },
   label: { fontSize: 13, marginBottom: 6, marginTop: 12 },
@@ -360,29 +357,30 @@ const styles = StyleSheet.create({
   phraseInput: { minHeight: 76, textAlignVertical: 'top' },
   // A row, not a block: every button on this screen carries a glyph beside its
   // label now (jdp, 2026-09-01: "alle buttons sollen einen glyph bekommen").
+  // ONE button style for all three, and one gap between them (jdp,
+  // 2026-09-01: "alle buttons gleicher abstand und alle farbig!").
+  //
+  // They were three: Paste at a fixed height of 44 on the plain surface, Join
+  // at 14 of vertical padding in the accent, and Scan the same padding again
+  // with a DRAWN BORDER around it. Three heights, three grounds, three
+  // different margins - which reads as three kinds of control rather than
+  // three things you can do on one screen.
+  //
+  // The border went for its own reason as well: this language separates
+  // surfaces by shade and never by a line, so an outlined button was the one
+  // element on the page breaking that rule. "Secondary" was the argument for
+  // it, and it does not survive the screen actually having three equal ways
+  // forward: paste the phrase, scan it, or type it and join.
   button: {
     flexDirection: 'row',
     gap: 8,
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 16,
+    marginTop: 10,
   },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { fontSize: 16, fontWeight: '600' },
-  // Outlined rather than filled: the same height and rhythm as the join
-  // button above, but clearly the second of the two ways in, so the screen
-  // does not present two equally loud primary actions.
-  scanButton: {
-    flexDirection: 'row',
-    gap: 8,
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 10,
-    borderWidth: 1,
-  },
-  scanButtonText: { fontSize: 16, fontWeight: '600' },
   error: { marginTop: 12, fontSize: TYPE.body },
   sectionTitle: { fontSize: TYPE.dense, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 20 },
   list: { flexGrow: 0, marginTop: 8 },

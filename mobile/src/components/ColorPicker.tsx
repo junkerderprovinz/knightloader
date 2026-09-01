@@ -116,29 +116,67 @@ export default function ColorPicker({
   // documents at length.
   const live = useRef(hsv);
   live.current = hsv;
-  const size = useRef(1);
+  /** The pad's own box in SCREEN coordinates, measured rather than assumed. */
+  const box = useRef({ x: 0, y: 0, w: 1 });
+  const padRef = useRef<View>(null);
 
   const responder = useMemo(
     () =>
       PanResponder.create({
         onStartShouldSetPanResponder: () => true,
         onMoveShouldSetPanResponder: () => true,
-        onPanResponderGrant: (e) => move(e.nativeEvent.locationX, e.nativeEvent.locationY),
-        onPanResponderMove: (e) => move(e.nativeEvent.locationX, e.nativeEvent.locationY),
+        // moveX/moveY, never nativeEvent.locationX (jdp, 2026-09-01: "Der
+        // farbpicker spinnt. ich kann nur sehr helle oder sehr schwarze farbe
+        // auswähle").
+        //
+        // locationX is relative to the touch's TARGET, and the target is the
+        // deepest view under the finger - which here is one of the pad's own
+        // grid cells, not the pad. So x ran 0..19 instead of 0..288 and was
+        // then divided by the pad's width: saturation never left the first few
+        // per cent, and value never left the top few. Almost white, or black
+        // once the hue collapsed. The pad held the responder the whole time,
+        // which is exactly what makes this one hard to see - the handler was
+        // firing correctly and reading the wrong number.
+        //
+        // gestureState's moveX/moveY are screen coordinates and belong to no
+        // view at all, so they cannot pick up a child's origin.
+        onPanResponderGrant: (_e, g) => move(g.x0, g.y0),
+        onPanResponderMove: (_e, g) => move(g.moveX, g.moveY),
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 
-  function move(x: number, y: number) {
-    const w = size.current || 1;
-    const next = { h: live.current.h, s: CLAMP(x / w), v: CLAMP(1 - y / w) };
+  function move(pageX: number, pageY: number) {
+    const b = box.current;
+    const w = b.w || 1;
+    const next = { h: live.current.h, s: CLAMP((pageX - b.x) / w), v: CLAMP(1 - (pageY - b.y) / w) };
     live.current = next;
     setHsv(next);
     onPick(hsvToHex(next.h, next.s, next.v));
   }
 
   const current = hsvToHex(hsv.h, hsv.s, hsv.v);
+
+  // The grid is rebuilt only when the HUE changes, never while dragging.
+  //
+  // Without this the drag was rebuilding 225 cells and running 225 colour
+  // conversions on every frame, which is the other half of "es hängt". Only
+  // the marker actually moves during a drag, and a marker is one view.
+  const cells = useMemo(
+    () =>
+      Array.from({ length: PAD }, (_, row) => (
+        <View key={row} style={styles.padRow}>
+          {Array.from({ length: PAD }, (_, col) => (
+            <View
+              key={col}
+              style={{ flex: 1, backgroundColor: hsvToHex(hsv.h, (col + 0.5) / PAD, 1 - (row + 0.5) / PAD) }}
+            />
+          ))}
+        </View>
+      )),
+    [hsv.h],
+  );
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -153,25 +191,20 @@ export default function ColorPicker({
               hue chosen on the rail below. A grid of flat cells - see the file
               comment for why that is not a compromise. */}
           <View
+            ref={padRef}
             style={[styles.pad, { borderRadius: radii.control }]}
-            onLayout={(e) => {
-              size.current = e.nativeEvent.layout.width;
+            // measureInWindow, not the layout event's own x/y: those are
+            // relative to the parent, and the gesture reports screen
+            // coordinates. Re-measured on every layout because the panel is
+            // inside a Modal that lays out after it mounts.
+            onLayout={() => {
+              padRef.current?.measureInWindow((x, y, w) => {
+                box.current = { x, y, w };
+              });
             }}
             {...responder.panHandlers}
           >
-            {Array.from({ length: PAD }, (_, row) => (
-              <View key={row} style={styles.padRow}>
-                {Array.from({ length: PAD }, (_, col) => (
-                  <View
-                    key={col}
-                    style={{
-                      flex: 1,
-                      backgroundColor: hsvToHex(hsv.h, (col + 0.5) / PAD, 1 - (row + 0.5) / PAD),
-                    }}
-                  />
-                ))}
-              </View>
-            ))}
+            {cells}
             {/* Where you are. Two nested views, not a border: this language
                 separates surfaces by shade and never by a drawn line, and the
                 Swatch beside it draws its own selection ring exactly this way.

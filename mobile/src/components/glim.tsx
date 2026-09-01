@@ -49,18 +49,35 @@ export function WellSelector<T extends string>({
   value: T;
   onPick: (v: T) => void;
 }) {
-  const { c, accent, accentContrast, radii } = useAppearance();
+  const { c, accent, accentContrast, radii, hueAt } = useAppearance();
   return (
     <View style={[styles.well, { backgroundColor: c.surface2, borderRadius: radii.control }]}>
-      {options.map((o) => {
+      {options.map((o, i) => {
         const on = o.value === value;
+        // Each SEGMENT owns a palette position (jdp, 2026-09-01: "die design und
+        // ecken selektoren sind nicht im rainbowmode in der app").
+        //
+        // The design language names a segmented control's segments as one of
+        // the things that may own a position, for the same reason a tab strip
+        // does: they are members of one set, all equal. NotchCard and
+        // GlimToggle in this very file already read hueAt; this control was the
+        // one that did not, so the Theme and Corners rows stayed flat gold on a
+        // screen where every card around them had gone plural. Positions are
+        // this control's OWN 0-based sequence, not the page's.
+        const fill = (hueAt(i) ?? accent) as string;
         return (
           <TouchableOpacity
             key={o.value}
             onPress={() => onPick(o.value)}
-            style={[styles.segment, { borderRadius: radii.control }, on && { backgroundColor: accent }]}
+            style={[styles.segment, { borderRadius: radii.control }, on && { backgroundColor: fill }]}
           >
-            <Text style={[styles.segmentText, { color: on ? accentContrast : c.textSub }]}>{o.label}</Text>
+            {/* Computed against the fill it actually landed on, never the flat
+                accent's contrast: a palette position can be far lighter or
+                darker than the accent, and reusing accentContrast is how white
+                text ends up on a pale mint segment. */}
+            <Text style={[styles.segmentText, { color: on ? contrastFor(fill, accentContrast) : c.textSub }]}>
+              {o.label}
+            </Text>
           </TouchableOpacity>
         );
       })}

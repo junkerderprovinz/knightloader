@@ -80,8 +80,13 @@ export default function DragList({
   const [drag, setDrag] = useState<{ from: number; to: number } | null>(null);
   // The gesture reads this, and a gesture must not wait for a render to know
   // where it is.
+  //
+  // Assigned only while there IS a drag: beenden() clears the ref itself, and a
+  // render already in flight still carries the old state - so an unconditional
+  // assignment here would put an ended drag straight back and leave the row
+  // lifted with nothing able to move.
   const dragRef = useRef<{ from: number; to: number } | null>(null);
-  dragRef.current = drag;
+  if (drag !== null) dragRef.current = drag;
 
   const boxes = useRef<Record<number, { y: number; h: number }>>({});
   const lift = useRef(new Animated.Value(0)).current;
@@ -129,10 +134,24 @@ export default function DragList({
     [startWiggle],
   );
 
+  /**
+   * End the drag, from wherever notices first.
+   *
+   * `dragRef` is cleared HERE rather than left to the next render, and that is
+   * what makes this safe to call twice. Two handlers fire for one lift - the
+   * pan's own release and the row's onTouchEnd - and React Native does not
+   * promise which runs first. Waiting for the re-render to clear the ref meant
+   * whichever ran second still saw a live drag, so the two had to be ordered by
+   * a flag; getting that ordering wrong is how the row ended up "über anderen
+   * Einträgen liegen" with nothing able to move afterwards (jdp, 2026-09-01).
+   * Clearing it synchronously makes the second call a no-op instead of a race.
+   */
   const beenden = useCallback(() => {
     cancelArm();
     stopWiggle();
     lift.setValue(0);
+    panning.current = false;
+    dragRef.current = null;
     setDrag(null);
   }, [cancelArm, lift, stopWiggle]);
   // Through a ref, so the one long-lived PanResponder never captures a stale
@@ -310,7 +329,17 @@ export default function DragList({
                That is the whole fix - the timer starts on any touch on the row,
                and the row's own buttons keep working untouched. */
             onTouchStart={(e) => {
-              if (dragRef.current) return;
+              // The rip-cord. A new touch while a drag is still live means the
+              // last one never ended - a row unmounted mid-gesture, a responder
+              // force-terminated, anything. Rather than work out every way that
+              // can happen, the next touch cleans up after it, so the list can
+              // never be left in a state where nothing moves any more (jdp,
+              // 2026-09-01: "es lassen sich dann plötzlich keine einträge mehr
+              // verschieben").
+              if (dragRef.current) {
+                beendenRef.current();
+                return;
+              }
               const y = e.nativeEvent.pageY;
               touch.current = { y, timer: setTimeout(() => arm(index), 400) };
             }}

@@ -945,7 +945,7 @@ async function renderAppearance() {
  * than a package. The same constant exists in the web UI's Settings.tsx and
  * the two are expected to agree.
  */
-const GLIMSTONE_VERSION = '1.7.3';
+const GLIMSTONE_VERSION = '1.6.0';
 
 const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
 const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
