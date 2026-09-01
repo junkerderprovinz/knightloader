@@ -77,6 +77,22 @@ function glyph(d, size) {
   return svg;
 }
 const D_RETRY = 'M8 3V1L5 3.5 8 6V4a3.5 3.5 0 1 1-3.5 3.5H3A5 5 0 1 0 8 3z';
+// A cup with a handle and a saucer, for the thank-you in the About card.
+const D_COFFEE =
+  'M2.5 3h8.2v5.2a3.6 3.6 0 0 1-3.6 3.6H6.1A3.6 3.6 0 0 1 2.5 8.2V3z' +
+  'M11.6 4.1h1.2a2.1 2.1 0 0 1 0 4.2h-1.2V6.9h1.2a.8.8 0 0 0 0-1.6h-1.2V4.1z' +
+  'M1.6 13h10.8v1.5H1.6z';
+// A bug: body, head and three legs a side. What "report a problem" looks like
+// everywhere else, so nobody learns a second vocabulary for it.
+const D_BUG =
+  'M8 1.6a2.2 2.2 0 0 1 2.2 2.2v.3H5.8v-.3A2.2 2.2 0 0 1 8 1.6z' +
+  'M4.6 5.4h6.8v4.3a3.4 3.4 0 0 1-6.8 0V5.4z' +
+  'M1.4 6.2h2.4v1.4H1.4zM1.4 9h2.4v1.4H1.4zM1.4 11.8h2.4v1.4H1.4z' +
+  'M12.2 6.2h2.4v1.4h-2.4zM12.2 9h2.4v1.4h-2.4zM12.2 11.8h2.4v1.4h-2.4z';
+// An envelope: the body, with the flap cut out of it by fillRule so the V is
+// the ground showing through rather than a shape painted in a guessed colour.
+const D_MAIL =
+  'M1.5 3.5h13v9h-13v-9zm1.6 1.4L8 8.4l4.9-3.5H3.1z';
 // A filled bin: lid, handle, and a solid body with two slots carved by
 // fillRule rather than layered over - the same technique the icon rule names
 // for a gap inside a solid shape, and the reason this is one path and not three.
@@ -950,6 +966,8 @@ const GLIMSTONE_VERSION = '1.6.0';
 const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
 const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
 const CONTACT_MAIL = 'hello@knightloader.app';
+// The handle from .github/FUNDING.yml, so there is one place that knows it.
+const COFFEE_URL = 'https://buymeacoffee.com/junkerderprovinz';
 
 /** A version number that goes where the version number should go. New tab, so
  *  reading a changelog does not cost somebody the settings page they were in
@@ -1002,13 +1020,24 @@ function renderAbout() {
     versionLink(`${GLIMSTONE_URL}/releases/tag/v${GLIMSTONE_VERSION}`, GLIMSTONE_VERSION),
   );
   text.textContent = t('options.aboutText');
+  // The coffee, with its own sentence and its own button. The handle comes from
+  // .github/FUNDING.yml, so one place knows it.
+  const kaffee = document.getElementById('aboutCoffee');
+  const kaffeeBtn = document.getElementById('aboutCoffeeBtn');
+  if (kaffee) kaffee.textContent = t('options.aboutCoffee');
+  if (kaffeeBtn) {
+    kaffeeBtn.href = COFFEE_URL;
+    kaffeeBtn.replaceChildren(glyph(D_COFFEE, 14), document.createTextNode(t('options.aboutCoffeeButton')));
+  }
+  const melden = document.getElementById('aboutReport');
+  if (melden) melden.textContent = t('options.aboutReport');
   gh.href = REPO_URL;
-  gh.textContent = t('options.aboutGithub');
+  gh.replaceChildren(glyph(D_BUG, 14), document.createTextNode(t('options.aboutGithub')));
   // A plain mailto, with the subject prefilled so a mail that arrives already
   // says which product it is about. No body: a prefilled body reads as a form
   // to fill in, and this is meant to be a message somebody writes.
   mail.href = `mailto:${CONTACT_MAIL}?subject=${encodeURIComponent('KnightLoader ' + t('options.aboutMailSubject'))}`;
-  mail.textContent = t('options.aboutMail');
+  mail.replaceChildren(glyph(D_MAIL, 14), document.createTextNode(t('options.aboutMail')));
 }
 
 const reportEl = document.getElementById('report');

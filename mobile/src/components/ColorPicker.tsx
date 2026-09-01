@@ -116,6 +116,33 @@ export default function ColorPicker({
   // documents at length.
   const live = useRef(hsv);
   live.current = hsv;
+
+  /**
+   * Re-seed from `initial` every time this opens.
+   *
+   * `useState(start)` runs ONCE, at mount - and this component never unmounts,
+   * because a Modal is toggled by its `visible` prop rather than by being taken
+   * out of the tree. So the second time it opened it was still holding the
+   * colour from the first time, and the first frame of the next drag wrote that
+   * old colour into whichever swatch had just been pressed. From outside:
+   * "wenn man ein Farbfeld bearbeitet setzt es die farbe wieder zurück, sobald
+   * man ein anderes farbfeld auswählt" (jdp, 2026-09-01) - the edit appeared to
+   * jump to another swatch and the first one to revert.
+   *
+   * Keyed on `visible` rather than on `initial`: `initial` changes as the drag
+   * moves (the caller applies the accent live), so re-seeding on it would fight
+   * the gesture on every frame.
+   */
+  const warSichtbar = useRef(false);
+  if (visible && !warSichtbar.current) {
+    warSichtbar.current = true;
+    if (start.h !== hsv.h || start.s !== hsv.s || start.v !== hsv.v) {
+      live.current = start;
+      setHsv(start);
+    }
+  } else if (!visible && warSichtbar.current) {
+    warSichtbar.current = false;
+  }
   /** The pad's own box in SCREEN coordinates, measured rather than assumed. */
   const box = useRef({ x: 0, y: 0, w: 1 });
   const padRef = useRef<View>(null);

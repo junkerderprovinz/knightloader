@@ -413,8 +413,8 @@ func aggregate(links []DownloadLink) core.Update {
 // is the other half of the same fix - not polling at all beats reporting into a
 // guard - and it is the half that stops the false error.
 //
-// Resume needs no counterpart. The app's own Resume re-queues the task and lets
-// the dispatcher hand it to Start again, which is what creates a poller.
+// Resume DOES need a counterpart, and getting that wrong here cost a day. See
+// Resume's own comment below.
 func (b *Backend) Pause(taskID string) {
 	b.mu.Lock()
 	if s, ok := b.stop[taskID]; ok {
@@ -425,7 +425,37 @@ func (b *Backend) Pause(taskID string) {
 	b.setEnabled(taskID, false)
 }
 
-func (b *Backend) Resume(taskID string) { b.setEnabled(taskID, true) }
+// Resume re-enables the links in JD AND starts watching them again.
+//
+// The second half is a regression of my own making, found the same day it
+// shipped. Pause used to leave the poller running; closing it there was right
+// for the reasons its own comment gives, and it took away something the code
+// was quietly relying on somewhere else: dispatchLocked does NOT hand an
+// already-started task back to Start. It puts it straight into a.active and
+// calls Resume (app_dispatch.go, the `a.started[id]` branch), on the assumption
+// that whatever was watching it still is.
+//
+// So after the change, a JD task that was stopped and started again took a
+// slot, told JD to carry on, and had nothing left to report on it. It sat at
+// "running" with zero bytes for ever, holding a place in the concurrency limit
+// that nothing would ever free. Two of exactly those were sitting on the live
+// instance while this was written.
+//
+// The lesson is the one worth keeping: **when a fix removes something, ask what
+// else was carrying it.** The poller was not only reporting progress; it was
+// also the thing that made the resume path work at all.
+func (b *Backend) Resume(taskID string) {
+	b.setEnabled(taskID, true)
+	b.mu.Lock()
+	_, watched := b.stop[taskID]
+	b.mu.Unlock()
+	// Only when nobody is watching. Resume is also reachable while a poller is
+	// still alive - a plain unpause that never went through the dispatcher - and
+	// a second goroutine on the same task would double every reported byte.
+	if !watched {
+		go b.poll(taskID)
+	}
+}
 
 func (b *Backend) setEnabled(taskID string, enabled bool) {
 	ids := b.linkIDs(taskID)

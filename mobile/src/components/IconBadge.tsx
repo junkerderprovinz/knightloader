@@ -346,3 +346,79 @@ const styles = StyleSheet.create({
   },
   symbol: { fontSize: 16, fontWeight: '700', lineHeight: 18 },
 });
+
+/** Coffee: a cup with a handle. The About card's thank-you, and the one glyph
+ *  here that is a joke and a control at the same time. */
+export function Coffee({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  // Cup (9) plus saucer (1.5) plus the gap between them (0.5) = 11 units tall.
+  const u = unit(size, 11);
+  return (
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+        <View
+          style={{
+            width: 8 * u,
+            height: 9 * u,
+            backgroundColor: color,
+            borderBottomLeftRadius: 3 * u,
+            borderBottomRightRadius: 3 * u,
+            borderTopLeftRadius: 0.8 * u,
+            borderTopRightRadius: 0.8 * u,
+          }}
+        />
+        {/* The handle: a ring with its inner disc punched by the badge's own
+            ground would be a lie on a different surface, so it is drawn as an
+            open square-ish bracket instead - three filled bars. */}
+        <View style={{ width: 3.2 * u, height: 5 * u, marginTop: 1.2 * u, marginStart: -0.4 * u }}>
+          <View style={{ height: 1.4 * u, backgroundColor: color, borderTopRightRadius: 0.7 * u }} />
+          <View style={{ flex: 1, alignItems: 'flex-end' }}>
+            <View style={{ width: 1.4 * u, flex: 1, backgroundColor: color }} />
+          </View>
+          <View style={{ height: 1.4 * u, backgroundColor: color, borderBottomRightRadius: 0.7 * u }} />
+        </View>
+      </View>
+      <View style={{ width: 11 * u, height: 1.5 * u, marginTop: 0.5 * u, backgroundColor: color, borderRadius: 0.75 * u }} />
+    </View>
+  );
+}
+
+/** Bug: a body with legs. What "report a problem" looks like everywhere else,
+ *  so nobody has to learn a second vocabulary for it. */
+export function Bug({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  // Head (3) plus body (8) less their overlap (0.6) = 10.4 units tall.
+  const u = unit(size, 10.4);
+  const bein = { position: 'absolute' as const, width: 3 * u, height: 1.3 * u, backgroundColor: color, borderRadius: 0.65 * u };
+  return (
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ alignItems: 'center' }}>
+        <View style={{ width: 4.4 * u, height: 3 * u, backgroundColor: color, borderRadius: 2.2 * u, marginBottom: -0.6 * u }} />
+        <View style={{ width: 7 * u, height: 8 * u, backgroundColor: color, borderRadius: 3.5 * u }} />
+        {/* Three legs a side, mirrored. Absolute so they hang off the body
+            rather than widening the box the body is centred in. */}
+        {[0, 1, 2].map((i) => (
+          <View key={`l${i}`} style={[bein, { left: -2.4 * u, top: (3.4 + i * 2.4) * u }]} />
+        ))}
+        {[0, 1, 2].map((i) => (
+          <View key={`r${i}`} style={[bein, { right: -2.4 * u, top: (3.4 + i * 2.4) * u }]} />
+        ))}
+      </View>
+    </View>
+  );
+}
+
+/** Mail: an envelope, drawn as a body with the flap laid over its top. */
+export function Mail({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  // The envelope is wider than it is tall, so the WIDTH is what fills the box.
+  const u = unit(size, 13);
+  return (
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ width: 13 * u, height: 9.5 * u, backgroundColor: color, borderRadius: 1.4 * u, overflow: 'hidden' }}>
+        {/* The flap: a square rotated 45 degrees, cropped by the body's own
+            overflow so only the V of it shows. Filled in the badge's ground
+            would be a lie on another surface, so it is the CUT that draws it -
+            two bars meeting at the point, in the surface behind. */}
+        <View style={{ position: 'absolute', top: -6.6 * u, left: 1.4 * u, width: 10.2 * u, height: 10.2 * u, transform: [{ rotate: '45deg' }] }} />
+      </View>
+    </View>
+  );
+}

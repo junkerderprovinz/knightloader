@@ -508,3 +508,44 @@ export const IconBrowser = (p: SVGProps<SVGSVGElement>) => (
     <circle cx="9" cy="5" r=".6" />
   </svg>
 );
+
+/** A coffee cup with a handle and a saucer: the About card's thank-you. */
+export const IconCoffee = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M3 4h10.3v6.6a4.5 4.5 0 0 1-4.5 4.5H7.5A4.5 4.5 0 0 1 3 10.6V4Z" />
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M14.4 5.4h1.5a2.6 2.6 0 0 1 0 5.2h-1.5V8.7h1.5a1 1 0 0 0 0-2h-1.5V5.4Z"
+    />
+    <rect x="1.9" y="16.2" width="13.5" height="1.9" rx=".95" />
+  </svg>
+);
+
+/** A bug: body, head and three legs a side. What "report a problem" looks like
+ *  everywhere else, so nobody has to learn a second vocabulary for it. */
+export const IconBug = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M10 2a2.8 2.8 0 0 1 2.8 2.8v.4H7.2v-.4A2.8 2.8 0 0 1 10 2Z" />
+    <path d="M5.8 6.8h8.4v5.4a4.2 4.2 0 0 1-8.4 0V6.8Z" />
+    <rect x="1.7" y="7.8" width="3" height="1.7" rx=".85" />
+    <rect x="1.7" y="11.2" width="3" height="1.7" rx=".85" />
+    <rect x="1.7" y="14.6" width="3" height="1.7" rx=".85" />
+    <rect x="15.3" y="7.8" width="3" height="1.7" rx=".85" />
+    <rect x="15.3" y="11.2" width="3" height="1.7" rx=".85" />
+    <rect x="15.3" y="14.6" width="3" height="1.7" rx=".85" />
+  </svg>
+);
+
+/** An envelope. The flap is CUT out of the body with fillRule rather than
+ *  painted over it: a shape drawn in a guessed background colour is a lie on
+ *  every surface it was not guessed against. */
+export const IconMail = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M1.8 4.4h16.4v11.2H1.8V4.4Zm2.1 1.8L10 10.6l6.1-4.4H3.9Z"
+    />
+  </svg>
+);

@@ -9,14 +9,16 @@ import { removeAllConnections } from '../storage/connections';
 import { useAppearance } from '../theme/AppearanceContext';
 import { ACCENTS, SHAPES, accentSlot, type Shape } from '../theme/appearance';
 import { TYPE } from '../theme/tokens';
-import { GlimRow, GlimToggle, NotchCard, Swatch, WellSelector } from '../components/glim';
-import IconBadge, { Back } from '../components/IconBadge';
+import { GlimRow, GlimToggle, NotchCard, Swatch, SwatchReset, WellSelector } from '../components/glim';
+import IconBadge, { Back, Bug, Coffee, Mail } from '../components/IconBadge';
 import ColorPicker from '../components/ColorPicker';
 
 const GITHUB_URL = 'https://github.com/junkerderprovinz/knightloader';
 const REPO_URL = GITHUB_URL;
 const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
 const CONTACT_MAIL = 'hello@knightloader.app';
+// From .github/FUNDING.yml, so there is one place that knows the handle.
+const COFFEE_URL = 'https://buymeacoffee.com/junkerderprovinz';
 
 /**
  * Which GlimStone this screen implements. A plain constant, kept in step by
@@ -257,6 +259,13 @@ export default function SettingsScreen({
                 />
               );
             })}
+            {/* Always rendered, never only once the accent has moved. A control
+                that is sometimes there is a control nobody learns the position
+                of, and the moment somebody goes looking for it is exactly the
+                moment it is missing - they check whether a reset exists BEFORE
+                deciding to experiment. Same rule, same place, as the extension's
+                own row. */}
+            <SwatchReset onPress={() => setAccent('')} label={t('settings.accentReset')} />
           </View>
         </View>
 
@@ -314,6 +323,20 @@ export default function SettingsScreen({
                 onPress={() => setPicking({ kind: 'palette', index: i })}
               />
             ))}
+            {/* Back to the eight the language ships with. `null` is the reset the
+                instance understands - it clears the stored list rather than
+                writing the defaults as if somebody had chosen them. */}
+            <SwatchReset
+              onPress={() => {
+                setPaletteError('');
+                if (onSetPalette) {
+                  void onSetPalette(null).catch((e: unknown) =>
+                    setPaletteError(e instanceof Error ? e.message : String(e)),
+                  );
+                }
+              }}
+              label={t('settings.accentReset')}
+            />
           </View>
         </View>
         {paletteError !== '' && (
@@ -379,11 +402,28 @@ export default function SettingsScreen({
             {GLIMSTONE_VERSION}
           </Text>
         </Text>
+        {/* Three sentences, each with the thing it asks for right under it
+            (jdp, 2026-09-01). The order is his: what this is, then the coffee,
+            then the way to report something. A sentence with its own button
+            beneath it reads as one offer; three sentences over one row of
+            buttons reads as a form. */}
+        <Text style={[styles.aboutText, { color: c.textSub }]}>{t('settings.aboutCoffee')}</Text>
+        <View style={styles.buttonRow}>
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: c.surface2, borderRadius: radii.control }]}
+            onPress={() => Linking.openURL(COFFEE_URL)}
+          >
+            <Coffee color={c.text} />
+            <Text style={[styles.buttonText, { color: c.text }]}>{t('settings.aboutCoffeeButton')}</Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={[styles.aboutText, { color: c.textSub }]}>{t('settings.aboutReport')}</Text>
         <View style={styles.buttonRow}>
           <TouchableOpacity
             style={[styles.button, { backgroundColor: c.surface2, borderRadius: radii.control }]}
             onPress={() => Linking.openURL(GITHUB_URL)}
           >
+            <Bug color={c.text} />
             <Text style={[styles.buttonText, { color: c.text }]}>{t('settings.aboutGithub')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -398,6 +438,7 @@ export default function SettingsScreen({
               )
             }
           >
+            <Mail color={c.text} />
             <Text style={[styles.buttonText, { color: c.text }]}>{t('settings.aboutMail')}</Text>
           </TouchableOpacity>
         </View>
@@ -473,7 +514,7 @@ const styles = StyleSheet.create({
   title: { fontSize: TYPE.heading, fontWeight: '600' },
   // Half-muted and centred: something you look for, not something that
   // competes for attention.
-  aboutText: { fontSize: TYPE.body, lineHeight: 20, marginBottom: 6 },
+  aboutText: { fontSize: TYPE.body, lineHeight: 20, marginBottom: 8 },
   aboutVersions: { fontSize: TYPE.caption, marginBottom: 10 },
   valueGroup: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
   flag: { fontSize: 17 },
@@ -486,14 +527,19 @@ const styles = StyleSheet.create({
   axisLabelInline: { marginTop: 0, marginBottom: 0, flexShrink: 0 },
   // The same shape GlimRow gives every other label on this page.
   rowLabel: { fontSize: 15, flexShrink: 0 },
-  swatches: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, alignItems: 'center', justifyContent: 'flex-end', flexShrink: 1 },
+  // One line, always. No wrapping: the children divide what the row has (see
+  // Swatch's own note), so nine of them fit whatever the phone is. `flex: 1`
+  // here rather than flexShrink, because the row has to CLAIM the space left
+  // over by the label instead of only agreeing to give some back.
+  swatches: { flexDirection: 'row', gap: 4, alignItems: 'center', justifyContent: 'flex-end', flex: 1 },
   // A row that is shown and not offered. Dimmed rather than hidden: eight
   // colours that are not in use are still the answer to "which eight", and a
   // control that disappears teaches nobody why.
   dimmed: { opacity: 0.4 },
   report: { padding: 12, marginBottom: 10 },
   reportText: { fontSize: TYPE.caption, lineHeight: 17, fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' },
-  buttonRow: { flexDirection: 'row', gap: 8 },
-  button: { paddingVertical: 11, paddingHorizontal: 16, alignItems: 'center', flexShrink: 1 },
+  buttonRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
+  // A row, so the glyph and the label sit together rather than stacking.
+  button: { flexDirection: 'row', gap: 8, paddingVertical: 11, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center', flexShrink: 1 },
   buttonText: { fontSize: TYPE.dense, fontWeight: '500' },
 });

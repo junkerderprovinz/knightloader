@@ -74,7 +74,23 @@ function instanceCard(inst, { index, isDefault, isChosen, onPick, onSetDefault, 
   const what = document.createElement('span');
   what.className = 'glim-instance-what';
   what.textContent = deploymentLabel(inst.deployment);
-  body.append(name, what);
+
+  // The name and its status badge share a line (jdp, 2026-09-01: "der
+  // statuspunkt soll ein kleiner badge mit online/offlin text sein"). Only where
+  // the caller actually ASKED about the status: `undefined` means it did not,
+  // and inventing "online" for a card that never checked would be the worst
+  // possible thing for a status to do.
+  if (status !== undefined) {
+    const top = document.createElement('span');
+    top.className = 'glim-instance-top';
+    const badge = document.createElement('span');
+    badge.className = status === null ? 'glim-status glim-status--off' : 'glim-status glim-status--on';
+    badge.textContent = t(status === null ? 'instance.offline' : 'instance.online');
+    top.append(name, badge);
+    body.append(top, what);
+  } else {
+    body.append(name, what);
+  }
 
   // What the instance is DOING, when somebody asked for it. Undefined means
   // the caller did not ask (the popup does not, so it stays fast); null means

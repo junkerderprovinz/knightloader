@@ -9,6 +9,7 @@ import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import IconBadge, { Gear } from '../components/IconBadge';
 import SpeedGraph from '../components/SpeedGraph';
+import { StatusBadge } from '../components/glim';
 import { aggregate, fetchInstanceStats, fmtBytes, type InstanceStats } from '../api/stats';
 
 /**
@@ -266,18 +267,31 @@ export default function ConnectionsScreen({
               style={[styles.row, { backgroundColor: c.surface, borderRadius: radii.card }]}
               onPress={() => activate(item)}
             >
-              <View
-                style={[
-                  styles.dot,
-                  {
-                    borderRadius: radii.pill,
-                    backgroundColor:
-                      s === 'online' ? c.statusOkSolid : s === 'checking' ? c.statusWarnSolid : c.statusFailSolid,
-                  },
-                ]}
-              />
+              {/* The same card the extension draws: logo, name, what it is
+                  doing (jdp, 2026-09-01: "Die Instanzencard sollen gleich
+                  aussehen wie in der erweiterung: mit Logo"). Two surfaces
+                  showing one group had two different objects for it, and the
+                  one thing that says "this is a KnightLoader" at a glance was
+                  the one the app left out. */}
+              <View style={[styles.rowMark, { backgroundColor: c.surface2, borderRadius: radii.control }]}>
+                <Image source={MARK} style={styles.rowMarkImg} resizeMode="contain" />
+              </View>
               <View style={styles.rowText}>
-                <Text style={[styles.rowName, { color: c.text }]}>{item.name}</Text>
+                <View style={styles.rowTop}>
+                  <Text style={[styles.rowName, { color: c.text }]} numberOfLines={1}>
+                    {item.name}
+                  </Text>
+                  {/* A badge with the word on it, not a coloured dot (jdp, same
+                      message: "der statuspunkt soll ein kleiner badge mit
+                      online/offlin text sein und auch dem status entsprechend
+                      eingefärbt sein").
+                      A 10-point dot asks the reader to know the colour code,
+                      and it says nothing at all to somebody who cannot tell the
+                      green from the red. The word carries the meaning and the
+                      colour carries the urgency, which is the pairing every
+                      other status in this family already uses. */}
+                  <StatusBadge status={s} />
+                </View>
                 {/* What the instance is DOING, not where the connection goes
                     (jdp, 2026-08-30: "über relay text soll nicht dort stehen.
                     dort sollen die gleichen infos in der card stehen wie in
@@ -380,9 +394,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   columns: { gap: 8 },
-  dot: { width: 10, height: 10 },
-  rowText: { flex: 1, minWidth: 0 },
-  rowName: { fontSize: 15, fontWeight: '600' },
+  // The logo tile, the same shape the extension's own card gives it: a
+  // surface-2 square with the mark inside, so the card reads as an object
+  // rather than as a line of text with a colour in front of it.
+  rowMark: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' },
+  rowMarkImg: { width: 34, height: 34 },
+  rowText: { flex: 1, minWidth: 0, gap: 2 },
+  rowTop: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  rowName: { fontSize: 15, fontWeight: '600', flexShrink: 1 },
   rowUrl: { fontSize: TYPE.dense, marginTop: 2 },
   empty: { alignItems: 'center', marginTop: 64, gap: 16, paddingHorizontal: 32 },
   emptyText: { fontSize: TYPE.body, textAlign: 'center' },

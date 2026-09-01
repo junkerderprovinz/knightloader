@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useT } from '../../lib/i18n';
 import { Card, SectionTitle } from '../../components/ui';
 import { fetchHealth } from '../../lib/api';
+import { IconBug, IconCoffee, IconMail } from '../../lib/icons';
 
 /**
  * The help page: what this build actually does, organised by the question a
@@ -191,6 +192,16 @@ export function Help() {
 const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
 const CONTACT_MAIL = 'hello@knightloader.app';
 const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
+// The handle from .github/FUNDING.yml, so one place knows it.
+const COFFEE_URL = 'https://buymeacoffee.com/junkerderprovinz';
+
+/** The About card's three anchors, dressed identically. One constant rather
+ *  than the same forty characters repeated per link: three buttons that are
+ *  supposed to be one object should not be three chances to drift. */
+const ABOUT_BTN =
+  'inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2' +
+  ' px-3.5 py-2 text-sm font-medium text-carbon-text transition duration-150 select-none' +
+  ' hover:bg-carbon-surface3 motion-safe:active:scale-[.98]';
 
 /** A version number that goes where a version number should go. New tab: leaving
  *  Settings to read a changelog is not what anybody meant by clicking a number.
@@ -260,6 +271,24 @@ function About({ hue }: { hue: number }) {
         {' · GlimStone '}
         <VersionLink href={`${GLIMSTONE_URL}/releases/tag/v${GLIMSTONE_VERSION}`}>{GLIMSTONE_VERSION}</VersionLink>
       </p>
+      {/* Three sentences, each with the thing it asks for directly under it
+          (jdp, 2026-09-01). The order is his: what this is, then the coffee,
+          then the way to report something. A sentence with its own button under
+          it reads as one offer; three sentences stacked over one row of buttons
+          reads as a form. */}
+      <p className="text-sm text-carbon-textSub">{t('settings.about.coffee')}</p>
+      <div className="flex flex-wrap gap-2">
+        <a
+          href={COFFEE_URL}
+          target="_blank"
+          rel="noreferrer noopener"
+          className={ABOUT_BTN}
+        >
+          <IconCoffee width={15} height={15} />
+          {t('settings.about.coffeeButton')}
+        </a>
+      </div>
+      <p className="text-sm text-carbon-textSub">{t('settings.about.report')}</p>
       <div className="flex flex-wrap gap-2">
         {/* Anchors dressed as buttons rather than buttons that navigate: one
             opens a site and one hands off to a mail client, and both want the
@@ -268,14 +297,16 @@ function About({ hue }: { hue: number }) {
           href={REPO_URL}
           target="_blank"
           rel="noreferrer noopener"
-          className="inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 px-3.5 py-2 text-sm font-medium text-carbon-text transition duration-150 select-none hover:bg-carbon-surface3 motion-safe:active:scale-[.98]"
+          className={ABOUT_BTN}
         >
+          <IconBug width={15} height={15} />
           {t('settings.about.github')}
         </a>
         <a
           href={`mailto:${CONTACT_MAIL}?subject=${encodeURIComponent(`KnightLoader ${t('settings.about.mailSubject')}`)}`}
-          className="inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 px-3.5 py-2 text-sm font-medium text-carbon-text transition duration-150 select-none hover:bg-carbon-surface3 motion-safe:active:scale-[.98]"
+          className={ABOUT_BTN}
         >
+          <IconMail width={15} height={15} />
           {t('settings.about.mail')}
         </a>
       </div>
