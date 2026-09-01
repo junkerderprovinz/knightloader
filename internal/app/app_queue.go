@@ -850,7 +850,10 @@ func (a *App) StopAll() []string {
 	// stops report their work in two different orders.
 	sort.Strings(ids)
 	for _, id := range ids {
-		a.Pause(id)
+		// StopBack, not Pause: the transfer stops, and the task goes back into
+		// the wait queue rather than out of it. Pausing them out was what made
+		// the play button do nothing afterwards - see StopBack's own comment.
+		a.StopBack(id)
 	}
 	a.Hub.Broadcast("queue", a.Queue())
 	return ids

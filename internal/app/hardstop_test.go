@@ -52,8 +52,15 @@ func TestStopAllHaltsBeforeItFreesASlot(t *testing.T) {
 	if active != 0 {
 		t.Errorf("%d downloads are still active after the hard stop", active)
 	}
-	if queued != len(waiting) {
-		t.Errorf("%d tasks left waiting, want %d: the freed slots were refilled", queued, len(waiting))
+	// The stopped transfers join the ones that were already waiting - they were
+	// stopped, not removed - so the queue holds both sets. What must NOT have
+	// happened is a REFILL, and `active == 0` above is what says so: had the halt
+	// been written after the pauses instead of before them, each freed slot would
+	// have been handed to the next waiting task and the list would have settled
+	// with the same number running, only different ones.
+	if queued != len(waiting)+len(running) {
+		t.Errorf("%d tasks left waiting, want %d: every stopped transfer waits with the ones already queued",
+			queued, len(waiting)+len(running))
 	}
 	if !halted {
 		t.Error("the queue is not halted, so the next finished download starts another one")

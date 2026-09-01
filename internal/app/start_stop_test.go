@@ -49,6 +49,88 @@ func TestABackendPollCannotResurrectAPausedTask(t *testing.T) {
 	}
 }
 
+// Stop, then play. The whole of jdp's "Die Start und Stopp buttons funktionieren
+// einfach nirgends! Es lädt auch nirgends was runter", measured on his own
+// instance before the fix: play answers `halted: false`, and four seconds later
+// it is still 19 paused, 0 running, 0 B/s.
+//
+// The hard stop had two effects - pause everything in flight, halt the queue -
+// and releasing the halt undid only the second. The paused tasks were outside
+// the queue, so the dispatcher had nothing left to hand out and no button
+// anywhere would ever have given them back.
+func TestReleasingTheHaltStartsWhatTheHardStopStopped(t *testing.T) {
+	a := newCaptchaTestApp(t)
+	task := putTask(t, a, core.Task{
+		URL: "https://host.example/big.bin", Name: "big.bin",
+		Status: core.StatusRunning, Enabled: true,
+	})
+	id := task.ID
+	// A RUNNING task is deliberately not put in a.queue here, because a running
+	// task is never in it: dispatchLocked keeps only what it could not hand out
+	// and writes that back as the whole queue. The first version of this test
+	// seeded the queue by hand, which made it pass against a fix that did
+	// nothing on the live instance - the status changed and the dispatcher
+	// still never saw the task again. A test that sets up a state the program
+	// cannot reach proves the program does something it does not do.
+	a.mu.Lock()
+	a.active[id] = true
+	a.mu.Unlock()
+
+	a.StopAll()
+
+	a.mu.Lock()
+	status, inQueue := a.tasks[id].Status, false
+	for _, q := range a.queue {
+		if q == id {
+			inQueue = true
+		}
+	}
+	a.mu.Unlock()
+
+	if status != core.StatusQueued {
+		t.Errorf("status after the hard stop = %q, want %q - it stopped, and it is waiting", status, core.StatusQueued)
+	}
+	if !inQueue {
+		t.Fatal("the task left the wait queue, so releasing the halt can never bring it back")
+	}
+}
+
+// A task somebody paused BY HAND is a different instruction, and the master
+// switch has no business undoing it. Without this the fix above would trade one
+// complaint for its opposite: press pause on one row, stop and start the queue,
+// and the row you paused is downloading again.
+func TestAPerTaskPauseSurvivesTheMasterSwitch(t *testing.T) {
+	a := newCaptchaTestApp(t)
+	task := putTask(t, a, core.Task{
+		URL: "https://host.example/one.bin", Name: "one.bin",
+		Status: core.StatusRunning, Enabled: true,
+	})
+	id := task.ID
+	a.mu.Lock()
+	a.active[id] = true
+	a.mu.Unlock()
+
+	a.Pause(id)
+	a.StopAll()
+	a.SetHalted(false)
+
+	a.mu.Lock()
+	status, inQueue := a.tasks[id].Status, false
+	for _, q := range a.queue {
+		if q == id {
+			inQueue = true
+		}
+	}
+	a.mu.Unlock()
+
+	if status != core.StatusPaused {
+		t.Errorf("status = %q, want %q - a hand pause outlives the master switch", status, core.StatusPaused)
+	}
+	if inQueue {
+		t.Error("a hand-paused task is back in the wait queue")
+	}
+}
+
 // The exemption is the other half of the rule, and it has to hold or a download
 // that genuinely finishes in the moment between the pause and the backend
 // hearing about it would be stuck at "paused" for ever.

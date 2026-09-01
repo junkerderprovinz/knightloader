@@ -55,19 +55,44 @@ func (a *App) reviveOnBoot(t *core.Task, resume string, queueWasLive bool) (chan
 	if !a.keptItsProgress(t) {
 		t.Loaded = 0
 	}
-	switch {
-	case resume == settings.ResumeAll,
-		// "Only if it was running" is a statement about the QUEUE, not about one
-		// row: if anything was in flight the queue was live, and everything that
-		// was in it goes back into it. A task that was waiting for a slot when the
-		// power went is not a task somebody paused.
-		resume == settings.ResumeRunning && queueWasLive:
-		t.Status = core.StatusQueued
-		enqueue = true
-	default:
-		t.Status = core.StatusPaused
-	}
+	// Back into the wait queue either way, and the RESUME POLICY decides whether
+	// the queue is running behind it - not whether the task is in it.
+	//
+	// "Never" used to scatter every task out of the queue as "paused", and the
+	// queue then came up NOT halted: nothing was running, nothing could run, and
+	// the master switch said the queue was live. Pressing play released a halt
+	// that was not set and dispatched a queue that was empty, so the button did
+	// nothing at all - on jdp's own instance, 19 paused rows and a switch
+	// insisting everything was fine ("Die Start und Stopp buttons funktionieren
+	// einfach nirgends! Es lädt auch nirgends was runter").
+	//
+	// Queued plus halted says the same thing honestly and is reversible in one
+	// press: the rows wait, the switch says the queue is stopped, and play
+	// starts them. "Never" still means nothing downloads until somebody says so,
+	// which is the whole of what the setting promises. See holdOnBoot for the
+	// halt itself, and StopBack for the same distinction under the stop button.
+	t.Status = core.StatusQueued
+	enqueue = true
 	return t.Status != was || t.Loaded != loaded || t.Speed != speed, enqueue
+}
+
+// holdOnBoot reports whether the queue should come up stopped, given the resume
+// policy and whether anything was actually in flight when the process ended.
+//
+// It is the other half of reviveOnBoot: that one puts the tasks back in the
+// queue whatever the policy says, and this one decides whether the queue behind
+// them is running. Splitting it that way is what makes the state reversible -
+// a halted queue full of waiting rows takes one press to start, where rows
+// scattered out of the queue took one press per row and no button offered it.
+func holdOnBoot(resume string, queueWasLive bool) bool {
+	if resume == settings.ResumeAll {
+		return false
+	}
+	// "Only if it was running" is a statement about the QUEUE, not about one
+	// row: if anything was in flight the queue was live, and everything that was
+	// in it goes back into it. A task that was waiting for a slot when the power
+	// went is not a task somebody paused.
+	return !(resume == settings.ResumeRunning && queueWasLive)
 }
 
 // keptItsProgress reports whether the byte count a stored task carries still

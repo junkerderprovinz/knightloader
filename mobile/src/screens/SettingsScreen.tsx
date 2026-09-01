@@ -25,7 +25,7 @@ const CONTACT_MAIL = 'hello@knightloader.app';
  * UI's Settings.tsx and the extension's options.js, and the three are expected
  * to agree.
  */
-const GLIMSTONE_VERSION = '1.7.3';
+const GLIMSTONE_VERSION = '1.6.0';
 
 /** shapeOf reads the shape back out of the radii the context resolved.
  *

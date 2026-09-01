@@ -98,8 +98,20 @@ func TestABootedTaskSaysSomethingTrue(t *testing.T) {
 
 	a := f.boot(t)
 	got := taskOf(t, a, "was-running")
-	if got.Status != core.StatusPaused {
-		t.Errorf("status = %q, want paused: nothing is running after a restart", got.Status)
+	// Waiting, in a queue that is stopped - not scattered out of the queue.
+	// Both say "nothing is running"; only one of them can be undone by pressing
+	// play, and the other is why that button did nothing after every restart.
+	if got.Status != core.StatusQueued {
+		t.Errorf("status = %q, want queued: it waits, and the queue behind it is stopped", got.Status)
+	}
+	a.mu.Lock()
+	halted, running := a.halted, len(a.active)
+	a.mu.Unlock()
+	if !halted {
+		t.Error("the queue came up live with nothing able to run in it")
+	}
+	if running != 0 {
+		t.Errorf("%d tasks dispatched on boot, want 0 under the default policy", running)
 	}
 	if got.Speed != 0 {
 		t.Errorf("speed = %d, want 0: a stopped transfer cannot have a rate", got.Speed)
@@ -122,8 +134,8 @@ func TestProgressWithoutBytesIsNotClaimed(t *testing.T) {
 
 	a := f.boot(t)
 	got := taskOf(t, a, "no-file")
-	if got.Status != core.StatusPaused {
-		t.Errorf("status = %q, want paused", got.Status)
+	if got.Status != core.StatusQueued {
+		t.Errorf("status = %q, want queued behind a stopped queue", got.Status)
 	}
 	if got.Loaded != 0 {
 		t.Errorf("loaded = %d, want 0: the partial file is not there", got.Loaded)
@@ -141,14 +153,22 @@ func TestTheDefaultStartsNothing(t *testing.T) {
 	})
 
 	a := f.boot(t)
-	if got := taskOf(t, a, "r"); got.Status != core.StatusPaused {
-		t.Errorf("status = %q, want paused under the default resume policy", got.Status)
+	if got := taskOf(t, a, "r"); got.Status != core.StatusQueued {
+		t.Errorf("status = %q, want queued behind a stopped queue", got.Status)
 	}
 	a.mu.Lock()
-	queued := len(a.queue)
+	active, halted := len(a.active), a.halted
 	a.mu.Unlock()
-	if queued != 0 {
-		t.Errorf("%d tasks were put back in the queue by a policy that says never", queued)
+	// "Starts nothing" is about what RUNS, and that is what is asserted. The
+	// task being back in the queue is not a start: the queue it is in is
+	// stopped, and it takes a press to change that. Asserting an EMPTY queue
+	// asserted the mechanism rather than the promise, and the mechanism it
+	// happened to pin was the one that made the play button useless.
+	if active != 0 {
+		t.Errorf("%d downloads started under a policy that says never", active)
+	}
+	if !halted {
+		t.Error("the queue came up live, so the next thing to touch it would start everything")
 	}
 }
 
@@ -189,8 +209,17 @@ func TestResumeRunningStaysPutWhenNothingWas(t *testing.T) {
 	)
 
 	a := f.boot(t)
-	if got := taskOf(t, a, "waiting"); got.Status != core.StatusPaused {
-		t.Errorf("status = %q, want paused: nothing was running when the process stopped", got.Status)
+	if got := taskOf(t, a, "waiting"); got.Status != core.StatusQueued {
+		t.Errorf("status = %q, want queued: it waits behind a stopped queue", got.Status)
+	}
+	a.mu.Lock()
+	halted, running := a.halted, len(a.active)
+	a.mu.Unlock()
+	if !halted {
+		t.Error("the queue came up live, which is the ALWAYS policy wearing this one's label")
+	}
+	if running != 0 {
+		t.Errorf("%d tasks dispatched, want 0 - nothing was running when the process stopped", running)
 	}
 }
 
