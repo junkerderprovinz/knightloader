@@ -9,7 +9,7 @@ import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import IconBadge, { Gear } from '../components/IconBadge';
 import SpeedGraph from '../components/SpeedGraph';
-import { StatusBadge } from '../components/glim';
+import { GlimButton, StatusBadge } from '../components/glim';
 import { aggregate, fetchInstanceStats, fmtBytes, type InstanceStats } from '../api/stats';
 
 /**
@@ -73,7 +73,7 @@ export default function ConnectionsScreen({
   onOpenSettings: () => void;
 }) {
   const { t } = useT();
-  const { c, accent, accentContrast, radii } = useAppearance();
+  const { c, accent, radii } = useAppearance();
   const wide = useWide();
   const [connections, setConnections] = useState<ServerConnection[]>([]);
   const [status, setStatus] = useState<Record<string, ConnStatus>>({});
@@ -324,12 +324,7 @@ export default function ConnectionsScreen({
           loaded ? (
             <View style={styles.empty}>
               <Text style={[styles.emptyText, { color: c.textMuted }]}>{t('connections.empty')}</Text>
-              <TouchableOpacity
-                style={[styles.emptyButton, { backgroundColor: accent, borderRadius: radii.control }]}
-                onPress={onAddPress}
-              >
-                <Text style={[styles.emptyButtonText, { color: accentContrast }]}>{t('connections.emptyButton')}</Text>
-              </TouchableOpacity>
+              <GlimButton hue={0} label={t('connections.emptyButton')} onPress={onAddPress} />
             </View>
           ) : null
         }
@@ -410,5 +405,4 @@ const styles = StyleSheet.create({
   empty: { alignItems: 'center', marginTop: 64, gap: 16, paddingHorizontal: 32 },
   emptyText: { fontSize: TYPE.body, textAlign: 'center' },
   emptyButton: { paddingVertical: 12, paddingHorizontal: 20 },
-  emptyButtonText: { fontSize: TYPE.body, fontWeight: '600' },
 });
