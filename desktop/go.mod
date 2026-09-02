@@ -131,7 +131,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/protolambda/ctxlock v0.1.0 // indirect
 	github.com/quic-go/qpack v0.5.1 // indirect
-	github.com/quic-go/quic-go v0.51.0 // indirect
+	github.com/quic-go/quic-go v0.59.1 // indirect
 	github.com/refraction-networking/utls v1.8.2 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
