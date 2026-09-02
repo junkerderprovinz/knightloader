@@ -19,7 +19,7 @@ not contain, or not bumping it for changes it does.
 | Browser extension | `extension/src/manifest.json` | `extension/vX.Y.Z` |
 
 Both are released at `mobile/v1.0.0` and `extension/v1.0.0`. KnightLoader
-itself has no tag yet - see [Unreleased] below.
+itself is released at `v1.0.0`.
 
 The extension's earlier 1.1 and 1.2 were numbers in `manifest.json` that were
 never tagged or published, so its first release folds them in rather than
@@ -39,11 +39,11 @@ The copy of the extension most people run does not come from its tag. Settings
 binary is running, so that one tracks the server. The tag exists for a store
 submission and for a fixed download.
 
-## [Unreleased]
+## [1.0.0] - 2026-09-02
 
-This section is KnightLoader itself, which has no tag yet: the name and the
-first release are still open. The app and the extension are tagged already -
-see Versioning above.
+The first release of KnightLoader itself: server, web interface and desktop
+build. The app and the extension are versioned separately, see Versioning
+above.
 
 ### Added
 
