@@ -522,24 +522,26 @@ export const IconCoffee = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-/** A bug: body, head and three legs a side. What "report a problem" looks like
- *  everywhere else, so nobody has to learn a second vocabulary for it. */
-export const IconBug = (p: SVGProps<SVGSVGElement>) => (
+/** GitHub's own mark, for the button that goes there.
+ *
+ *  The one third-party logo in this set, and deliberately so: a logo is
+ *  recognised or it is not, and the drawn-here bug it replaced was a picture of
+ *  "a problem" standing in for a picture of "GitHub" (jdp, 2026-09-01). The
+ *  button says GitHub and nothing else, so the mark is doing the work the verb
+ *  used to.
+ *
+ *  Scaled rather than redrawn: GitHub publish the mark on a 16 viewBox and this
+ *  set draws on 20, so the group carries the 1.25 instead of every coordinate
+ *  being multiplied by hand into numbers nobody could check against the
+ *  original. */
+export const IconGithub = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
-    <path d="M10 2a2.8 2.8 0 0 1 2.8 2.8v.4H7.2v-.4A2.8 2.8 0 0 1 10 2Z" />
-    <path d="M5.8 6.8h8.4v5.4a4.2 4.2 0 0 1-8.4 0V6.8Z" />
-    <rect x="1.7" y="7.8" width="3" height="1.7" rx=".85" />
-    <rect x="1.7" y="11.2" width="3" height="1.7" rx=".85" />
-    <rect x="1.7" y="14.6" width="3" height="1.7" rx=".85" />
-    <rect x="15.3" y="7.8" width="3" height="1.7" rx=".85" />
-    <rect x="15.3" y="11.2" width="3" height="1.7" rx=".85" />
-    <rect x="15.3" y="14.6" width="3" height="1.7" rx=".85" />
+    <g transform="scale(1.25)">
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8Z" />
+    </g>
   </svg>
 );
 
-/** An envelope. The flap is CUT out of the body with fillRule rather than
- *  painted over it: a shape drawn in a guessed background colour is a lie on
- *  every surface it was not guessed against. */
 export const IconMail = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path

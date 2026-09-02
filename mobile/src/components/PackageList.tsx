@@ -145,22 +145,48 @@ export default function PackageList({
    *  a private idea of what an order is. Reordering PACKAGES is expressed the
    *  same way: the packages move, and the ids of their tasks are emitted in the
    *  new package order. */
+  /** What the server will actually accept in one reorder.
+   *
+   *  Two rules, and both were learned the hard way (jdp, five rounds of "das
+   *  drag and drop funktioniert nicht"):
+   *
+   *  - A finished or failed task is not in the wait queue, so naming one
+   *    refuses the WHOLE request, and this list happily shows both.
+   *  - Priority is what the server groups a band by. A list mixing two
+   *    priorities is refused for spanning bands, and nothing on this screen
+   *    shows a priority, so it would look like the drag simply did nothing.
+   *
+   *  Filtering here rather than letting the request fail is right because
+   *  neither is a mistake anybody made: they are rows this list is meant to
+   *  show and the queue is not meant to move. */
+  const sortierbar = (t: Task) => t.status !== 'done' && t.status !== 'error';
+  const bandVon = (t: Task) => t.priority ?? 0;
+
   const applyOrder = (keys: string[], band: string) => {
     if (!onReorder) return;
     if (band === 'packages') {
       const nachName = new Map(packages.map((p) => [`p:${p.name}`, p]));
       const neu = keys.map((k) => nachName.get(k)).filter((p): p is Pkg => !!p);
-      onReorder(neu.flatMap((p) => p.tasks.map((x) => x.id)));
+      const alle = neu.flatMap((p) => p.tasks).filter(sortierbar);
+      // One priority only: the dragged rows' own. Everything else in the list
+      // belongs to another band and is left to a drag made inside it.
+      const gezogen = nachName.get(keys[0]);
+      const prio = gezogen ? bandVon(gezogen.tasks[0]) : 0;
+      const ids = alle.filter((x) => bandVon(x) === prio).map((x) => x.id);
+      if (ids.length > 0) onReorder(ids);
       return;
     }
-    // Within one package: that package's own tasks in the new order, and every
-    // other package left exactly where it was.
+    // Within one package: that package's own tasks in the new order. Only that
+    // package's ids travel - every other task in the band is left where it is,
+    // which is exactly what a partial reorder now means to the server.
     const name = band.slice('pkg:'.length);
-    onReorder(
-      packages.flatMap((p) =>
-        p.name === name ? keys.filter((k) => p.tasks.some((x) => x.id === k)) : p.tasks.map((x) => x.id),
-      ),
-    );
+    const pkg = packages.find((p) => p.name === name);
+    if (!pkg) return;
+    const nachId = new Map(pkg.tasks.map((x) => [x.id, x]));
+    const geordnet = keys.map((k) => nachId.get(k)).filter((x): x is Task => !!x && sortierbar(x));
+    const prio = geordnet.length > 0 ? bandVon(geordnet[0]) : 0;
+    const ids = geordnet.filter((x) => bandVon(x) === prio).map((x) => x.id);
+    if (ids.length > 0) onReorder(ids);
   };
 
   /**

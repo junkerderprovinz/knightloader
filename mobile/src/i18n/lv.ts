@@ -82,7 +82,7 @@ export const lv: Dict = {
   'settings.version': 'Versija {version}',
   'settings.githubLink': 'Skatīt GitHub',
   'settings.aboutTitle': 'Par KnightLoader',
-  'settings.aboutBody': 'Rakstīts vakaros un nedēļas nogalēs, ar vairāk kafijas, nekā ieteicams, jo katrs cits lejupielāžu pārvaldnieks gribēja divus klikšķus tur, kur pietika ar vienu.',
+  'settings.aboutBody': 'Rakstīts vakaros un nedēļas nogalēs, viena cilvēka, jo katrs cits lejupielāžu pārvaldnieks gribēja divus klikšķus tur, kur pietika ar vienu.',
   'settings.accentReset': 'Noklusējums',
   'settings.aboutCoffeeButton': 'Uzsauc kafiju',
   'settings.aboutCoffee': 'Vai KnightLoader patīk? Kafija uzlabotu manu dienu.',

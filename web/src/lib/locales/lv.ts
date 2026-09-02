@@ -1222,7 +1222,7 @@ export const lv: Dict = {
     'Katru šīs versijas iestatījumu var nolasīt un mainīt pēc tā neapstrādātā nosaukuma lapā Papildu, ieskaitot dažus - kā tiek apstrādāts jau lejupielādēta faila spogulis, kas notiek, kad lejupielāde nonāktu uz jau izmantota nosaukuma - kuriem vēl nav savas atsevišķas vadīklas citur.',
   'settings.help.advanced.link': 'Atvērt Papildu iestatījumus',
   'settings.about.title': 'Par KnightLoader',
-  'settings.about.body': 'Rakstīts vakaros un nedēļas nogalēs, ar vairāk kafijas, nekā ieteicams, jo katrs cits lejupielāžu pārvaldnieks gribēja divus klikšķus tur, kur pietika ar vienu.',
+  'settings.about.body': 'Rakstīts vakaros un nedēļas nogalēs, viena cilvēka, jo katrs cits lejupielāžu pārvaldnieks gribēja divus klikšķus tur, kur pietika ar vienu.',
   'settings.about.coffeeButton': 'Uzsauc kafiju',
   'settings.about.coffee': 'Vai KnightLoader patīk? Kafija uzlabotu manu dienu.',
   'settings.about.report': 'Problēmas, vēlmes vai ieteikumi? Atver problēmu GitHub vai sūti e-pastu.',

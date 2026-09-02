@@ -102,7 +102,6 @@ export default function DragList({
    */
   const gefroren = useRef<DragRow[] | null>(null);
   if (drag === null) gefroren.current = null;
-  else if (gefroren.current === null) gefroren.current = liveRows;
   const rows = gefroren.current ?? liveRows;
   // The gesture reads this, and a gesture must not wait for a render to know
   // where it is.
@@ -164,8 +163,20 @@ export default function DragList({
    */
   const arm = useCallback((key: string) => {
     touch.current = null;
-    const index = daten.current.rows.findIndex((r) => r.key === key);
+    const liste = daten.current.rows;
+    const index = liste.findIndex((r) => r.key === key);
     if (index < 0) return;
+    // Frozen HERE, against the very list the index was just found in - not one
+    // render later.
+    //
+    // The freeze used to happen in the render that follows setDrag, which reads
+    // whatever the list has become by then. That is a whole poll interval of
+    // daylight: `from` was an index into one array and everything afterwards -
+    // the boxes, the neighbours' offsets, the drop - measured against another.
+    // Freezing on the same array that answered findIndex closes it, and the
+    // two lines are next to each other so nobody can put a render between them
+    // again.
+    gefroren.current = liste;
     setDrag({ from: index, to: index });
     startWiggle();
   }, [startWiggle]);

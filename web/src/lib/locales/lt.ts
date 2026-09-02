@@ -1222,7 +1222,7 @@ export const lt: Dict = {
     'Kiekvieną šios versijos nustatymą galima perskaityti ir pakeisti pagal jo neapdorotą pavadinimą Išplėstinių nustatymų puslapyje, įskaitant kai kuriuos - kaip tvarkomas jau atsisiųsto failo veidrodis, kas nutinka, kai atsisiuntimas atsidurtų ant jau naudojamo pavadinimo - kurie dar neturi specialaus valdiklio kitur.',
   'settings.help.advanced.link': 'Atverti Išplėstinius nustatymus',
   'settings.about.title': 'Apie KnightLoader',
-  'settings.about.body': 'Rašyta vakarais ir savaitgaliais, su daugiau kavos, nei patartina, nes kiekvienas kitas atsisiuntimų tvarkytuvas norėjo dviejų spustelėjimų ten, kur užteko vieno.',
+  'settings.about.body': 'Parašyta vakarais ir savaitgaliais, vieno žmogaus, nes kiekviena kita atsisiuntimų tvarkyklė norėjo dviejų spustelėjimų ten, kur užteko vieno.',
   'settings.about.coffeeButton': 'Pavaišinti kava',
   'settings.about.coffee': 'Patinka „KnightLoader“? Puodelis kavos nudžiugintų.',
   'settings.about.report': 'Problemos, pageidavimai ar pasiūlymai? Sukurk problemą GitHub arba parašyk el. laišką.',

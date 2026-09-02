@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { useColorScheme } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
+  ACCENTS,
   DEFAULT_ACCENT,
   asShape,
   contrastOn,
@@ -64,6 +65,15 @@ export interface Appearance {
   /** True when a local override is in force for that axis. */
   overridden: { accent: boolean; shape: boolean; theme: boolean; rainbow: boolean };
   setAccent: (hex: string | undefined) => void;
+  /** What each preset slot has been mixed to, empty for the ones nobody
+   *  touched. The accent row reads this so an edited swatch keeps its colour
+   *  when another one is chosen. */
+  accentCustoms: Record<string, string>;
+  /** Remember `hex` against preset slot `i`, and wear it. Passing undefined
+   *  gives that one slot its preset back. */
+  setAccentCustom: (i: number, hex: string | undefined) => void;
+  /** Every mixed colour forgotten, and the accent with them: the row's reset. */
+  clearAccentCustoms: () => void;
   setShape: (s: Shape | undefined) => void;
   setTheme: (t: 'light' | 'dark' | undefined) => void;
   /** Turn the rainbow on or off for THIS app; undefined follows the instance
@@ -85,6 +95,18 @@ interface Override {
   shape?: Shape;
   theme?: 'light' | 'dark';
   rainbow?: boolean;
+  /**
+   * A colour somebody mixed, remembered against the PRESET SLOT they mixed it
+   * in. Keyed by slot index as a string, because that is what JSON gives back.
+   *
+   * Without this the row could hold exactly ONE mixed colour - the accent
+   * itself, drawn over whichever preset it sits nearest - so choosing any other
+   * swatch threw the mixed one away and coming back showed the preset again
+   * (jdp, 2026-09-01: "wenn man ein Farbfeld bearbeitet setzt es die farbe
+   * wieder zurück, sobald man ein anderes farbfeld auswählt"). Eight slots that
+   * can each hold a colour is what the row has always looked like it did.
+   */
+  customs?: Record<string, string>;
 }
 
 const STORE_KEY = 'glim-appearance-override';
@@ -133,13 +155,34 @@ function sanitise(p: Override): Override {
     shape: asShape(p.shape),
     theme: p.theme === 'light' || p.theme === 'dark' ? p.theme : undefined,
     rainbow: typeof p.rainbow === 'boolean' ? p.rainbow : undefined,
+    customs: sanitiseCustoms(p.customs),
   };
+}
+
+/** Only real hex against a real slot number survives a read. Anything else is
+ *  a stored value the picker could not have produced, and the row must not have
+ *  to defend itself against one. */
+function sanitiseCustoms(raw: unknown): Record<string, string> | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    const i = Number(k);
+    if (!Number.isInteger(i) || i < 0 || i >= ACCENTS.length) continue;
+    if (typeof v === 'string' && valid(v)) out[String(i)] = v;
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
 }
 
 /** Whether an override says anything at all. An empty one IS "follow the
  *  instance", so there is nothing to put away when the switch goes on. */
 function isEmpty(o: Override): boolean {
-  return o.accent === undefined && o.shape === undefined && o.theme === undefined && o.rainbow === undefined;
+  return (
+    o.accent === undefined &&
+    o.shape === undefined &&
+    o.theme === undefined &&
+    o.rainbow === undefined &&
+    o.customs === undefined
+  );
 }
 
 const AppearanceCtx = createContext<Appearance | null>(null);
@@ -239,6 +282,18 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
         rainbow: override.rainbow !== undefined,
       },
       setAccent: (hex) => persist({ ...override, accent: valid(hex) ? hex : undefined }),
+      accentCustoms: override.customs ?? {},
+      setAccentCustom: (i, hex) => {
+        const next = { ...(override.customs ?? {}) };
+        if (valid(hex)) next[String(i)] = hex;
+        else delete next[String(i)];
+        persist({
+          ...override,
+          accent: valid(hex) ? hex : override.accent,
+          customs: Object.keys(next).length > 0 ? next : undefined,
+        });
+      },
+      clearAccentCustoms: () => persist({ ...override, accent: undefined, customs: undefined }),
       setShape: (s) => persist({ ...override, shape: s }),
       setTheme: (t) => persist({ ...override, theme: t }),
       setRainbow: (on) => persist({ ...override, rainbow: on }),

@@ -19,6 +19,17 @@ type Backend struct {
 	c        *Client
 	onUpdate func(taskID string, u core.Update)
 
+	// Dir answers "where must this task's file land". Nil, or an empty answer,
+	// leaves the folder to JD - which is only ever right for a JD somebody else
+	// runs and configured themselves.
+	//
+	// A callback rather than a parameter on Download, because the app's shared
+	// backend interface has no destination in it and the two other delegated
+	// backends do not need one. This is the same shape ytdlp.Backend.Dir already
+	// uses, deliberately: one pattern for "a backend that writes files needs to
+	// be told where", not two.
+	Dir func(taskID string) string
+
 	mu   sync.Mutex
 	stop map[string]chan struct{} // taskID -> poll stopper
 }
@@ -29,6 +40,17 @@ func NewBackend(base string, onUpdate func(taskID string, u core.Update)) *Backe
 		onUpdate: onUpdate,
 		stop:     map[string]chan struct{}{},
 	}
+}
+
+// SetDownloadFolder points the JD behind this backend at path. See
+// Client.SetDownloadFolder for why this is not optional.
+func (b *Backend) SetDownloadFolder(path string) error { return b.c.SetDownloadFolder(path) }
+
+func (b *Backend) dirFor(taskID string) string {
+	if b.Dir == nil {
+		return ""
+	}
+	return b.Dir(taskID)
 }
 
 // Reachable reports whether the configured JD instance answers.
@@ -285,12 +307,42 @@ func jdAvailability(jd string) core.Availability {
 // Download hands the link to JD (auto-crawl + start) and polls its progress.
 func (b *Backend) Download(taskID, url string, _ map[string]string, _ int) {
 	go func() {
-		if _, err := b.c.AddLinks(url, b.pkgName(taskID), true); err != nil {
+		if _, err := b.c.AddLinks(url, b.pkgName(taskID), b.dirFor(taskID), true); err != nil {
 			b.onUpdate(taskID, core.Update{Status: core.StatusError, Err: "jd: " + err.Error()})
 			return
 		}
 		b.poll(taskID)
 	}()
+}
+
+// fatalPackageStatus reports whether JD's package status is a standing refusal
+// rather than a passing condition - something no amount of waiting fixes.
+//
+// It matters because of the shape of the failure it was written for. JD reports
+// "Invalid download directory" as a PACKAGE status and nowhere else: the links
+// underneath look ordinary, so the poller aggregated them into a perfectly
+// healthy "running at 0 bytes" and sat there. The task held a concurrency slot,
+// the row said nothing was wrong, and after forty-five minutes the only thing
+// anybody was told was "no progress for 45m0s" - a sentence about the symptom
+// that names neither the cause nor anything to do about it.
+//
+// Matched on the substring rather than the whole string because JD appends
+// detail to some of these, and case-insensitively because it is a display
+// string, not an enum. Deliberately a SHORT list of conditions that are
+// certainly permanent: anything not on it keeps the old patient behaviour,
+// since being wrong here fails a download that would have worked.
+func fatalPackageStatus(status string) bool {
+	s := strings.ToLower(status)
+	for _, fatal := range []string{
+		"invalid download directory",
+		"no write permission",
+		"not enough space",
+	} {
+		if strings.Contains(s, fatal) {
+			return true
+		}
+	}
+	return false
 }
 
 func (b *Backend) poll(taskID string) {
@@ -315,6 +367,7 @@ func (b *Backend) poll(taskID string) {
 	// and killed healthy multi-hour downloads at the thirty-minute mark.
 	appearBy := time.Now().Add(appearLimit)
 	var seen bool
+	var pinned bool
 	var lastBytes int64
 	lastMoved := time.Now()
 
@@ -338,9 +391,27 @@ func (b *Backend) poll(taskID string) {
 				return
 			}
 
-			puuid, err := b.c.PackageUUID(pkg)
-			if err != nil || puuid == 0 {
+			p, err := b.c.Package(pkg)
+			if err != nil || p == nil || p.UUID == 0 {
 				continue // still crawling / not in the download list yet
+			}
+			puuid := p.UUID
+			// Said out loud the moment JD says it, instead of being waited out.
+			if fatalPackageStatus(p.Status) {
+				b.onUpdate(taskID, core.Update{Status: core.StatusError, Err: "jd: " + p.Status})
+				return
+			}
+			// The folder is pinned ONCE, on the tick the package first appears.
+			// addLinks' own destinationFolder is only the parent JD hangs the
+			// package name under, so without this the file lands in a folder named
+			// after a task id that means nothing to anybody.
+			if !pinned {
+				pinned = true
+				if dir := b.dirFor(taskID); dir != "" {
+					// Best effort: a folder JD refuses to move to is a worse reason to
+					// abandon a download than to let it finish where JD put it.
+					_ = b.c.SetPackageDirectory(dir, []int64{puuid})
+				}
 			}
 			links, err := b.c.QueryDownloads(puuid)
 			if err != nil || len(links) == 0 {

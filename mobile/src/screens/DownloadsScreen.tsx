@@ -296,22 +296,28 @@ export default function DownloadsScreen({
             setStartError(e instanceof Error ? e.message : String(e));
           }
         }}
-        // Only the download tab reorders. Nothing in the collector is in the
-        // wait queue yet, so there is no order there to write - the play badge
-        // is what puts a package INTO one, and until it does, an order somebody
-        // dragged would be written against a band the server has no row for.
-        onReorder={
-          tab === 'collector' && collected.length > 0
-            ? undefined
-            : async (ids) => {
-                setStartError('');
-                try {
-                  await reorderTasks(conn, ids, base);
-                } catch (e) {
-                  setStartError(e instanceof Error ? e.message : String(e));
-                }
-              }
-        }
+        /* BOTH tabs reorder, and the belief that the collector could not is
+           what made drag and drop look broken for five rounds.
+
+           The reasoning here used to be "nothing in the collector is in the
+           wait queue yet, so there is no order to write". The server disagrees
+           and always did: a band is every task that is neither done nor failed
+           (movable, app_queue.go), a staged one included, and it carries a
+           position like any other. So the gesture armed, the row lifted, the
+           neighbours moved aside - and the drop was dropped on the floor by the
+           `undefined` that used to be here, with nothing on screen to say so.
+
+           jdp's video of 2026-09-01 is entirely of this: three packages, the
+           play badge on each of them, which only the collector draws. Every
+           drag in it was discarded before it reached the network. */
+        onReorder={async (ids) => {
+          setStartError('');
+          try {
+            await reorderTasks(conn, ids, base);
+          } catch (e) {
+            setStartError(e instanceof Error ? e.message : String(e));
+          }
+        }}
       />
 
       <TouchableOpacity

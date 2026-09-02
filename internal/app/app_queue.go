@@ -685,13 +685,29 @@ func reorder(band []*core.Task, want map[string]bool, where string) bool {
 // complete ordered list, every id currently in the band, and is applied in a
 // single pass under the lock, the same as a click already is.
 //
-// ids has to be the band's entire membership: every id has to exist, all of
-// them have to share one priority and one forced flag — the same pairing
-// bandsLocked already groups by — and none of that band's own tasks may be
-// left out of the list, nor any id from outside it included. Anything else is
-// refused with a reason rather than reconciled quietly: applying a partial
-// list as given would scramble the tasks left out of it, and an unknown id
-// would have nothing to renumber.
+// ids may be a SUBSET of the band, and that is the whole of a fix measured
+// against a live instance rather than reasoned about (jdp, 2026-09-01: "das drag
+// and drop funktioniert überhaupt nicht. fixe es endlich!").
+//
+// It used to demand the band's entire membership, and the reasoning for that was
+// sound in the abstract and wrong in practice. A band is (forced, priority) over
+// EVERY task the app holds - measured on the live instance: 38 tasks, one single
+// band, 24 of them staged in the collector and 14 in the queue. No screen shows
+// a band. The app shows the download tab or the collector tab, each of which is
+// half of one, so every drag either surface could make was refused for naming
+// only half the ids. Nothing in the interface could have known that, and the
+// error never reached anybody: the collector's list was not even wired to send
+// one.
+//
+// So a subset now means "put THESE tasks in THIS order, in the slots they
+// already occupy, and leave every other task in the band exactly where it is".
+// That is unambiguous, it is what a drag inside one visible list means, and it
+// composes: two clients dragging in different halves of a band do not scramble
+// each other's half.
+//
+// Still refused, with a reason: an id that does not exist, one listed twice, one
+// that is not movable at all, and a set that spans more than one band. Those are
+// not partial information, they are contradictions.
 func (a *App) ReorderBand(ids []string) ([]string, error) {
 	// The route layer already refuses an empty list before this is ever
 	// reached (requireIDs, routes_queue.go) - guarded again here too, since
@@ -740,22 +756,34 @@ func (a *App) ReorderBand(ids []string) ([]string, error) {
 			break
 		}
 	}
-	if len(band) != len(tasks) {
-		var missing string
-		for _, t := range band {
-			if !seen[t.ID] {
-				missing = t.ID
-				break
-			}
+	// The caller's order, dropped into the slots those same tasks already hold.
+	//
+	// Walking the band once and consuming the caller's list at each slot it owns
+	// is what makes a partial list mean something exact: the tasks nobody
+	// mentioned never move, and the ones that were mentioned end up among
+	// themselves in the order given. Handed the whole band, this is the identity
+	// it always was, so the complete-list case is unchanged rather than
+	// re-implemented.
+	ordered := make([]*core.Task, 0, len(band))
+	next := 0
+	for _, t := range band {
+		if seen[t.ID] {
+			ordered = append(ordered, tasks[next])
+			next++
+			continue
 		}
+		ordered = append(ordered, t)
+	}
+	if next != len(tasks) {
+		// Unreachable by construction - every id checked out against a.tasks and
+		// against this band's own membership above - but a renumber that silently
+		// dropped a task would write positions for a band that is missing one, so
+		// it fails rather than trusts.
 		a.mu.Unlock()
-		return nil, fmt.Errorf("task %s belongs to this band and is missing from ids", missing)
+		return nil, fmt.Errorf("only %d of %d ids belong to this band", next, len(tasks))
 	}
 
-	// tasks is already the caller's order and exactly the band's membership, so
-	// there is nothing left to rearrange - only to renumber, the same helper a
-	// relative move ends with.
-	copies := renumberBand(tasks)
+	copies := renumberBand(ordered)
 	a.dispatchLocked()
 	a.mu.Unlock()
 	a.saveAndBroadcast(copies)
