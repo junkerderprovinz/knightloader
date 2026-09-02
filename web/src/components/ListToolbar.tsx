@@ -53,103 +53,48 @@ import { SearchField, type SearchQuery } from './SearchField';
 import {
   IconArrowDown,
   IconArrowUp,
+  IconBolt,
   IconBottom,
   IconCheck,
+  IconChevronDown,
+  IconChevronUp,
+  IconClose,
   IconFolder,
+  IconKey,
   IconPause,
+  IconPin,
   IconPlay,
+  IconPower,
+  IconPriority,
   IconRetry,
   IconSearch,
+  IconStopMark,
   IconTop,
   IconTrash,
+  IconTrashFiles,
 } from '../lib/icons';
 
-// A handful of glyphs the shared set does not carry yet. They live here rather
-// than in lib/icons.tsx because that file belongs to another lane this wave;
-// they follow its geometry so they can be lifted across unchanged.
-const glyph = (p: SVGProps<SVGSVGElement>) => ({
-  width: 16,
-  height: 16,
-  viewBox: '0 0 20 20',
-  fill: 'none',
-  className: 'shrink-0',
-  'aria-hidden': true,
-  ...p,
-});
-
-const IconChevronDown = (p: SVGProps<SVGSVGElement>) => (
-  <svg {...glyph(p)} stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
-    <path d="M6 8l4 4 4-4" />
-  </svg>
-);
-
-const IconChevronUp = (p: SVGProps<SVGSVGElement>) => (
-  <svg {...glyph(p)} stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" strokeLinejoin="round">
-    <path d="M6 12l4-4 4 4" />
-  </svg>
-);
-
+// The nine glyphs this file used to draw for itself are gone: seven of them now
+// live in lib/icons.tsx with the rest of the set, and two (the key and the power
+// symbol) turned out to be second, stroked drawings of ones that were already
+// there. Eight of the nine were stroked outlines, which is what that file's
+// header forbids and what jdp's report was pointing at ("Rechtsklick menü soll
+// auch glyphen bekommen (siehe GS)"): one menu row could carry a hairline
+// chevron while the row under it carried a solid trash can. Only the More
+// button's glyph stays here, because it is toolbar furniture, not a menu entry.
 const IconMore = (p: SVGProps<SVGSVGElement>) => (
-  <svg {...glyph(p)} fill="currentColor">
+  <svg
+    width={16}
+    height={16}
+    viewBox="0 0 20 20"
+    fill="currentColor"
+    className="shrink-0"
+    aria-hidden
+    {...p}
+  >
     <circle cx="5" cy="10" r="1.4" />
     <circle cx="10" cy="10" r="1.4" />
     <circle cx="15" cy="10" r="1.4" />
-  </svg>
-);
-
-// Removing the rows and erasing the files are different acts with very different
-// regret profiles, so they never share a glyph. This is the trash with the
-// contents struck out.
-const IconTrashFiles = (p: SVGProps<SVGSVGElement>) => (
-  <svg {...glyph(p)} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 5.5h12M8 5.5V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1.5M6 5.5l.7 10a1 1 0 0 0 1 .9h4.6a1 1 0 0 0 1-.9l.7-10" />
-    <path d="M8.4 9l3.2 4M11.6 9l-3.2 4" />
-  </svg>
-);
-
-const IconPower = (p: SVGProps<SVGSVGElement>) => (
-  <svg {...glyph(p)} stroke="currentColor" strokeWidth={1.6} strokeLinecap="round">
-    <path d="M10 3v6" />
-    <path d="M6.1 5.7a5 5 0 1 0 7.8 0" />
-  </svg>
-);
-
-const IconPin = (p: SVGProps<SVGSVGElement>) => (
-  <svg {...glyph(p)} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-    <path d="M8 3h4l-.7 4.2 2.7 2.4H6l2.7-2.4z" />
-    <path d="M10 9.6V17" />
-  </svg>
-);
-
-const IconBolt = (p: SVGProps<SVGSVGElement>) => (
-  <svg {...glyph(p)} fill="currentColor">
-    <path d="M11.3 2.4 4.8 11.2h3.6L7.6 17.6 15.2 8.8h-3.7z" />
-  </svg>
-);
-
-// The archive password, which is a key held against a lock — deliberately not
-// the same glyph as the folder beside it in the menu.
-const IconKey = (p: SVGProps<SVGSVGElement>) => (
-  <svg {...glyph(p)} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="7" cy="7" r="3.2" />
-    <path d="M9.3 9.3 16 16M13.4 13.4l-1.6 1.6M15 11.8l-1.6 1.6" />
-  </svg>
-);
-
-// Three descending bars: the wait order seen side-on, which is all a priority
-// is. Deliberately not an arrow — the two one-step moves beside it in the menu
-// already own the arrows, and priority is not a step.
-const IconPriority = (p: SVGProps<SVGSVGElement>) => (
-  <svg {...glyph(p)} stroke="currentColor" strokeWidth={1.8} strokeLinecap="round">
-    <path d="M4 5.5h12M4 10h8M4 14.5h4" />
-  </svg>
-);
-
-// A flag planted in the list: the queue runs up to here and stops.
-const IconStopMark = (p: SVGProps<SVGSVGElement>) => (
-  <svg {...glyph(p)} stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round">
-    <path d="M6 3v14" />
-    <path d="M6 4h8l-1.6 2.8L14 9.6H6z" />
   </svg>
 );
 
@@ -370,7 +315,12 @@ function ConfirmRemove({
             {t('remove.fromList')}
           </Button>
           {files && (
-            <Button kind="danger" className="bg-statusFailBg" icon={<IconTrashFiles />} onClick={() => onConfirm(true)}>
+            <Button
+              kind="danger"
+              className="bg-statusFailBg"
+              icon={<IconTrashFiles width={16} height={16} />}
+              onClick={() => onConfirm(true)}
+            >
               {t('remove.withFiles')}
             </Button>
           )}
@@ -1139,6 +1089,11 @@ export function ListMenu({
           id: 'selectNone',
           label: t('select.none'),
           detail: String(selected.size),
+          // The cross that clears a thing, the same one every dismissable
+          // surface in the app uses, against the tick that sets one directly
+          // above it. Not a second tick with a slash through it: the two rows
+          // are opposites and must be told apart at a glance, not read.
+          icon: <IconClose />,
           onSelect: list.onSelectNone,
         });
       groups.push({ id: 'select', items: whole });
@@ -1385,7 +1340,7 @@ export function SelectionStrip({
         <Button
           kind="danger"
           className="bg-statusFailBg px-2.5 text-xs"
-          icon={<IconTrashFiles />}
+          icon={<IconTrashFiles width={16} height={16} />}
           onClick={() => removal.askWithFiles(ids)}
         >
           {t('task.removeWithFiles')}
@@ -1459,7 +1414,7 @@ export function ListActionBar({
         onClick={(e) => void openCleanup(e.currentTarget)}
       >
         {t('cleanup.menu')}
-        <IconChevronDown />
+        <IconChevronDown width={16} height={16} />
       </Button>
       {!local && <InfoBubble tip={t('cleanup.localOnly')} />}
 

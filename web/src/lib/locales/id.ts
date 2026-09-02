@@ -1221,8 +1221,10 @@ export const id: Dict = {
   'settings.help.advanced.body':
     'Setiap pengaturan build ini dapat dibaca dan diubah melalui nama mentahnya di halaman Lanjutan, termasuk beberapa - bagaimana mirror dari file yang sudah diunduh diperlakukan, apa yang terjadi ketika unduhan akan mendarat di nama yang sudah digunakan - yang belum memiliki kontrol khusus di tempat lain.',
   'settings.help.advanced.link': 'Buka pengaturan Lanjutan',
+  'task.mode.free': 'Gratis',
+  'task.mode.premium': 'Premium',
   'settings.about.title': 'Tentang KnightLoader',
-  'settings.about.body': 'Ditulis pada malam hari dan akhir pekan, oleh satu orang, karena setiap pengelola unduhan lain meminta dua klik di tempat satu saja sudah cukup.',
+  'settings.about.body': 'Pengelola unduhan yang di-hosting sendiri dengan antarmuka yang rapi, sebagai alternatif JDownloader. Mesin, API, dan antarmuka berada dalam satu program, tak ada lagi yang perlu dipasang di sampingnya. Ditulis pada malam hari dan akhir pekan, karena setiap yang lain meminta dua klik di tempat satu saja sudah cukup.',
   'settings.about.coffeeButton': 'Traktir saya kopi',
   'settings.about.coffee': 'Suka dengan KnightLoader? Secangkir kopi akan membuat hari saya.',
   'settings.about.report': 'Masalah, keinginan, atau saran? Buka isu di GitHub, atau kirim surel.',

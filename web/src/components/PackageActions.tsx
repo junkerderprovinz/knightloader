@@ -4,14 +4,18 @@ import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { Button, Field, IconBadge, Modal, TextInput } from './ui';
 import { ContextMenu, anchorBelow, useContextMenu } from './ContextMenu';
-import { IconArrowDown, IconArrowUp, IconBottom, IconFolder, IconTop } from '../lib/icons';
+import { IconArrowDown, IconArrowUp, IconBottom, IconFolder, IconPriority, IconTop } from '../lib/icons';
 
-// Two glyphs lib/icons.tsx has no equivalent for yet. Both follow that
-// file's own house style (solid fill, never a stroked outline) rather than
-// ListToolbar.tsx's local stroke-based glyphs, so a badge built from either
-// one sits at the same visual weight as the four page-level badges beside it
-// (jdp, 2026-08-24: "die sollen in der gleichen zeile wie die quadratischen
-// badges erscheinen").
+// One glyph lib/icons.tsx has no equivalent for yet. It follows that file's
+// own house style (solid fill, never a stroked outline), so a badge built
+// from it sits at the same visual weight as the four page-level badges beside
+// it (jdp, 2026-08-24: "die sollen in der gleichen zeile wie die
+// quadratischen badges erscheinen").
+//
+// The queue-order glyph that used to sit beside it here was the filled twin of
+// ListToolbar.tsx's own stroke-based one. Both are gone: the filled drawing is
+// now lib/icons.tsx's IconPriority, imported above, so the badge and the menu
+// entry that mean the same thing are one drawing again.
 
 /** Split by hoster: one package's box forking into three per-host boxes. */
 const IconSplitHost = (p: SVGProps<SVGSVGElement>) => (
@@ -25,17 +29,6 @@ const IconSplitHost = (p: SVGProps<SVGSVGElement>) => (
     <rect x="2" y="11.4" width="5" height="4" rx="1" />
     <rect x="7.5" y="11.4" width="5" height="4" rx="1" />
     <rect x="13" y="11.4" width="5" height="4" rx="1" />
-  </svg>
-);
-
-/** Queue order: three descending bars, the wait order seen side-on - the
- *  filled twin of ListToolbar.tsx's own local (unexported, stroke-based)
- *  IconPriority, which draws the same idea for the same reason. */
-const IconQueueOrder = (p: SVGProps<SVGSVGElement>) => (
-  <svg width={22} height={22} viewBox="0 0 20 20" fill="currentColor" className="shrink-0" aria-hidden {...p}>
-    <rect x="4" y="4.7" width="12" height="1.6" rx=".8" />
-    <rect x="4" y="9.2" width="8" height="1.6" rx=".8" />
-    <rect x="4" y="13.7" width="4" height="1.6" rx=".8" />
   </svg>
 );
 
@@ -142,7 +135,7 @@ export function PackageActions({
           tooltip. */}
       {packages.length === 1 && (
         <IconBadge
-          icon={<IconQueueOrder width={16} height={16} />}
+          icon={<IconPriority width={16} height={16} />}
           title={t('pkg.queueOrder')}
           aria-label={t('pkg.queueOrder')}
           onClick={(e) => order.openAt(anchorBelow(e.currentTarget))}

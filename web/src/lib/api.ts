@@ -46,6 +46,9 @@ export interface Task {
   name: string;
   package: string;
   resolver: string;
+  /** Whether this goes out on an account or anonymously. Only set for a link a
+   *  hoster is on the other end of; absent means the question does not apply. */
+  mode?: 'free' | 'premium';
   size: number;
   loaded: number;
   speed: number;
@@ -1287,7 +1290,7 @@ export const queueMove = async (sel: QueueSelection, where: QueueMove, base = '/
  * task sharing both `priority` and `forced`, which is as far as a single
  * request reaches: the server groups the queue the same way and refuses a
  * list that mixes bands rather than guessing which one the drop belongs to.
- * `ids` is the COMPLETE new order of that band, top to bottom, not a diff -
+ * `ids` may be a SUBSET of the band - the server reads it as "these tasks, in this order, in the slots they already hold", top to bottom, not a diff -
  * see TaskList.tsx's own row drag for how that list is built and why a drag
  * that would leave its band is never sent at all.
  */

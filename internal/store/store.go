@@ -150,6 +150,12 @@ var migrations = []string{
 	//     single hex string and needs none of that.
 	`ALTER TABLE tasks ADD COLUMN info_hash TEXT NOT NULL DEFAULT ''`,
 	`ALTER TABLE tasks ADD COLUMN trackers TEXT NOT NULL DEFAULT ''`,
+	//   - mode: whether a transfer goes out on an account or anonymously. A
+	//     DISPLAY fact, so it is stored rather than re-derived on load: the
+	//     hoster lists it depends on arrive from the JD sidecar a few seconds
+	//     after boot, and a task whose row said nothing for those seconds would
+	//     read as "no answer" rather than "not asked yet".
+	`ALTER TABLE tasks ADD COLUMN mode TEXT NOT NULL DEFAULT ''`,
 }
 
 func Open(path string) (*Store, error) {
@@ -218,7 +224,7 @@ const columns = `id,url,name,package,resolver,size,loaded,speed,status,error,cre
 	comment,chunks,auto_extract,matched_rules,
 	finished_at,enabled,skipped,skip_reason,hold,forced,download_password,expected_hash,
 	connection,host,source,mirror_of,resumable,filename,variant,manual_package,
-	reason,origin,changed_at,archive_part,torrent_files,info_hash,trackers`
+	reason,origin,changed_at,archive_part,torrent_files,info_hash,trackers,mode`
 
 // placeholders is one ? per column, built from the list itself. Written out by
 // hand it is a row of forty-three question marks that has to be recounted every
@@ -298,7 +304,7 @@ func (s *Store) Save(t *core.Task) error {
 		t.DownloadPassword, t.ExpectedHash, t.Connection, t.Host, t.Source, t.MirrorOf,
 		resumable, t.Filename, t.Variant, t.ManualPackage,
 		string(t.Reason), string(t.Origin), changedAt, t.ArchivePart, torrentFiles,
-		t.InfoHash, trackers)
+		t.InfoHash, trackers, string(t.Mode))
 	if err != nil {
 		return err
 	}
@@ -326,7 +332,7 @@ func (s *Store) All() ([]*core.Task, error) {
 	var out []*core.Task
 	for rows.Next() {
 		t := &core.Task{}
-		var status, online, matched, reason, origin, torrentFiles, trackers string
+		var status, online, matched, reason, origin, torrentFiles, trackers, mode string
 		var created, nextTry, finishedAt, changedAt int64
 		var autoExtract, resumable sql.NullBool
 		if err := rows.Scan(&t.ID, &t.URL, &t.Name, &t.Package, &t.Resolver,
@@ -337,12 +343,13 @@ func (s *Store) All() ([]*core.Task, error) {
 			&t.DownloadPassword, &t.ExpectedHash, &t.Connection, &t.Host, &t.Source, &t.MirrorOf,
 			&resumable, &t.Filename, &t.Variant, &t.ManualPackage,
 			&reason, &origin, &changedAt, &t.ArchivePart, &torrentFiles,
-			&t.InfoHash, &trackers); err != nil {
+			&t.InfoHash, &trackers, &mode); err != nil {
 			return nil, err
 		}
 		t.Status = core.Status(status)
 		t.Online = core.Availability(online)
 		t.Reason = core.Reason(reason)
+		t.Mode = core.DownloadMode(mode)
 		t.Origin = core.Origin(origin)
 		t.CreatedAt = time.UnixMilli(created)
 		if nextTry > 0 {

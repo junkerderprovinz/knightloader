@@ -713,6 +713,7 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 		return a.finishStaging(t, cand)
 	}
 	t.Resolver = res.Info().ID
+	t.Mode = a.modeForLocked(t, t.Resolver)
 	result, err := res.Resolve(context.Background(), resolver.Request{URL: u})
 	if err != nil {
 		t.Error = err.Error()

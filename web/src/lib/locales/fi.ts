@@ -1221,8 +1221,10 @@ export const fi: Dict = {
   'settings.help.advanced.body':
     'Jokainen tämän buildin asetus voidaan lukea ja muuttaa raa’alla nimellään Lisäasetukset-sivulla, mukaan lukien muutama - miten jo ladatun tiedoston peili käsitellään, mitä tapahtuu, kun lataus päätyisi jo käytössä olevaan nimeen - joilla ei vielä ole omaa hallintaa muualla.',
   'settings.help.advanced.link': 'Avaa Lisäasetukset',
+  'task.mode.free': 'Ilmainen',
+  'task.mode.premium': 'Premium',
   'settings.about.title': 'Tietoja KnightLoaderista',
-  'settings.about.body': 'Kirjoitettu iltaisin ja viikonloppuisin, yhden ihmisen voimin, koska jokainen muu lataustenhallinta halusi kaksi klikkausta siinä missä yksi olisi riittänyt.',
+  'settings.about.body': 'Itse ylläpidetty lataustenhallinta siistillä käyttöliittymällä, vaihtoehtona JDownloaderille. Moottori, rajapinta ja käyttöliittymä mahtuvat yhteen ohjelmaan, eikä viereen tarvitse asentaa mitään. Kirjoitettu iltaisin ja viikonloppuisin, koska jokainen muu halusi kaksi klikkausta siinä missä yksi olisi riittänyt.',
   'settings.about.coffeeButton': 'Tarjoa kahvi',
   'settings.about.coffee': 'Pidätkö KnightLoaderista? Kahvi tekisi päiväni.',
   'settings.about.report': 'Ongelmia, toiveita tai ehdotuksia? Avaa issue GitHubissa tai lähetä sähköpostia.',

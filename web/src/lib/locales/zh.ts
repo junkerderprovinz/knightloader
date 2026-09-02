@@ -1220,8 +1220,10 @@ export const zh: Dict = {
   'settings.help.advanced.body':
     '此构建版本的每个设置都可以在高级页面通过其原始名称读取和更改，包括一些设置 - 比如已下载文件的镜像如何处理、下载最终落在已使用的名称上会发生什么 - 这些目前还没有专门的控件。',
   'settings.help.advanced.link': '打开高级设置',
+  'task.mode.free': '免费',
+  'task.mode.premium': '会员',
   'settings.about.title': '关于 KnightLoader',
-  'settings.about.body': '在夜晚和周末写成，由一个人完成，因为其他每一个下载管理器都要点两次，而一次就够了。',
+  'settings.about.body': '一个自托管的下载管理器，界面清爽，可以替代 JDownloader。引擎、接口和界面都在同一个程序里，旁边没有别的要装。它写在夜晚和周末，因为别的每一个都要点两次，而一次就够了。',
   'settings.about.coffeeButton': '请我喝杯咖啡',
   'settings.about.coffee': '喜欢 KnightLoader 吗？请我喝杯咖啡，我这一天就值了。',
   'settings.about.report': '有问题、需求或改进建议？在 GitHub 上开一个 issue，或者发一封邮件。',

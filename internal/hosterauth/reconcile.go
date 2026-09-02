@@ -273,6 +273,21 @@ func (r *Reconciler) Reconcile(ctx context.Context) (Plan, error) {
 	for host, st := range p.States {
 		jdresolver.SetHostActive(host, st.Status == StatusActive)
 	}
+
+	// The hosts JD has a PLUGIN for, pushed on the same pass and for a related
+	// but different purpose: a host in this list is one JD can fetch from in
+	// free mode - the wait, the countdown, the captcha - and so beats an
+	// anonymous GET even when nobody has a login for it. See
+	// jd.PriorityFor for what that ranking prevents.
+	//
+	// Failure here is quiet and non-fatal: the accounts half of this pass has
+	// already been applied by the time we get here, and a routing hint that did
+	// not refresh is a worse reason to discard it than to keep the last one.
+	if hosts, err := jd.listPremiumHosters(ctx); err != nil {
+		log.Printf("hosterauth: could not read JD's hoster list (%v); keeping the last routing hints", err)
+	} else {
+		jdresolver.SetKnownHosts(hosts)
+	}
 	return p, nil
 }
 

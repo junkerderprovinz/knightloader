@@ -27,7 +27,7 @@ import { useToast } from '../lib/toast';
 import { Button, Card, SectionTitle } from './ui';
 import { ProgressBar } from './ProgressBar';
 import { type MenuGroup } from './ContextMenu';
-import { IconArchive, IconClose } from '../lib/icons';
+import { IconArchive, IconClose, IconPlay, IconStop } from '../lib/icons';
 
 /** live is a job that is still going to do something. */
 const live = (j: ExtractJob) => j.status === 'queued' || j.status === 'running';
@@ -95,12 +95,16 @@ export function useArchiveMenu({
   const running = jobs.filter((j) => live(j) && chosen.some((x) => x.id === j.taskId));
   if (finished.length === 0 && running.length === 0) return [];
 
+  // Start and stop as a transport pair, the same two glyphs the list's own
+  // menu uses one group above for a download: unpacking is a job that runs and
+  // can be called off, and it is the same act to a reader either way.
   const items = [];
   if (finished.length > 0) {
     items.push({
       id: 'unpack',
       label: t('archive.unpackNow'),
       detail: finished.length > 1 ? String(finished.length) : undefined,
+      icon: <IconPlay />,
       onSelect: () => {
         void startExtraction(
           finished.map((x) => x.id),
@@ -113,6 +117,7 @@ export function useArchiveMenu({
     items.push({
       id: 'abort',
       label: t('archive.stop'),
+      icon: <IconStop />,
       danger: true,
       onSelect: () => {
         for (const j of running) {

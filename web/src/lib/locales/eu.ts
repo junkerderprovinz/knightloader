@@ -1221,8 +1221,10 @@ export const eu: Dict = {
   'settings.help.advanced.body':
     'Build honen ezarpen bakoitza bere izen gordinaren bidez irakur eta alda daiteke Aurreratua orrian, jada deskargatutako fitxategi baten ispilua nola tratatzen den, deskarga bat jada erabiltzen ari den izen batean amaituko balitz zer gertatuko litzatekeen bezalako batzuk barne, oraindik beste inon kontrol berezirik ez dutenak.',
   'settings.help.advanced.link': 'Ireki Aurreratuaren ezarpenak',
+  'task.mode.free': 'Doan',
+  'task.mode.premium': 'Premium',
   'settings.about.title': 'KnightLoader-i buruz',
-  'settings.about.body': 'Arratsaldeetan eta asteburuetan idatzia, pertsona bakar batek, beste deskarga-kudeatzaile orok bi klik eskatzen zituelako bat nahikoa zen tokian.',
+  'settings.about.body': 'Norberak ostatatutako deskarga-kudeatzailea, interfaze txukunarekin, JDownloader-en alternatiba gisa. Motorra, APIa eta interfazea programa bakar batean daude, eta alboan ez dago ezer instalatzeko. Arratsaldeetan eta asteburuetan idatzia, beste edozeinek bi klik eskatzen zituelako bat nahikoa zen tokian.',
   'settings.about.coffeeButton': 'Erosi kafe bat',
   'settings.about.coffee': 'Gustuko duzu KnightLoader? Kafe batek eguna alaituko lidake.',
   'settings.about.report': 'Arazoak, nahiak edo iradokizunak? Ireki gai bat GitHuben, edo bidali mezu bat.',

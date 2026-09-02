@@ -24,6 +24,47 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
+// modeForLocked answers "is this going out on an account, or anonymously" for
+// the resolver a task has just been routed to.
+//
+// It is a DISPLAY fact and nothing routes on it (jdp, 2026-09-02: "Wenn man
+// links runterladen möchte für die kein premium account hinterlegt ist muss das
+// angezeigt werden un der link im free modus heruntergeladen werden. wie in
+// JD"). The routing half of that sentence is jd.PriorityFor's, which now puts a
+// host JD has a plugin for above a blind anonymous GET; this is the half that
+// says so on screen.
+//
+// Three answers, and the empty one is the common case on purpose. A plain file
+// on an ordinary web server is neither free nor premium, and putting either word
+// on it would answer a question nobody asked - so only a link a HOSTER is on the
+// other end of gets a label at all. Caller holds a.mu.
+func (a *App) modeForLocked(t *core.Task, resolverID string) core.DownloadMode {
+	if t == nil {
+		return core.ModeUnknown
+	}
+	host := hostOf(t.URL)
+	if host == "" {
+		return core.ModeUnknown
+	}
+	// A debrid service IS the account, so anything routed to one is premium by
+	// construction - accountForResolverLocked is already this app's oracle for
+	// "does this resolver have a tracked account".
+	if _, _, ok := a.accountForResolverLocked(resolverID); ok {
+		return core.ModePremium
+	}
+	if resolverID == "jd" {
+		// A confirmed-active native login on the sidecar is premium; JD knowing
+		// the host without one is exactly what free mode means here.
+		if jd.HostActive(host) {
+			return core.ModePremium
+		}
+		if jd.HostKnown(host) {
+			return core.ModeFree
+		}
+	}
+	return core.ModeUnknown
+}
+
 // dynamicPrio is what res's priority actually is for this specific url -
 // ordinarily just Info().Prio, frozen at Registry.Register time and blind to
 // the URL entirely, except for JD. A confirmed-active native hoster login
@@ -351,6 +392,7 @@ func (a *App) dispatchLocked() {
 			continue
 		}
 		t.Resolver = res.Info().ID
+		t.Mode = a.modeForLocked(t, t.Resolver)
 		// The shutdown context, because this call is made with mu held: a resolver
 		// that hangs would otherwise keep the lock â€” and with it the whole app â€”
 		// until its own timeout, and Close would wait behind a hoster.
@@ -840,6 +882,7 @@ func (a *App) onUpdate(id string, u core.Update) {
 			fallbackTo = a.backendFor(t.Resolver)
 			log.Printf("task %s: %s could not fetch the link, trying %s", id, t.Resolver, next)
 			t.Resolver = next
+			t.Mode = a.modeForLocked(t, next)
 			t.Status = core.StatusQueued
 			t.Error = ""
 			// Always cleared with the sentence it belongs to. A task back in the
@@ -878,6 +921,7 @@ func (a *App) onUpdate(id string, u core.Update) {
 			log.Printf("task %s: the account behind %s is unavailable, holding for it to recover", id, t.Resolver)
 		}
 		t.Resolver = next
+		t.Mode = a.modeForLocked(t, next)
 		t.Status = core.StatusQueued
 		t.Error = ""
 		t.Reason = core.ReasonUnknown

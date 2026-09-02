@@ -41,17 +41,6 @@ import {
 import { useDraft } from './context';
 
 /**
- * A pill-shaped colour swatch wrapped in its own selection ring — a second
- * span whose border-colour is the only thing that changes between picked
- * and idle. Ported verbatim from the real BombVault test container's own
- * accent/palette widget (read off its live DOM, not the repo or the docs —
- * jdp: "Nein das ist falsch! Hier ist der Testcontainer erreichbar..."),
- * which is a different visual language than ui.tsx's own `Swatch`
- * (control-radius, halo-shadow selection) — that component styles
- * something else now and this one is deliberately local to this page
- * rather than a third variant bolted onto the shared one.
- */
-/**
  * accentSlot is which of the eight preset positions a colour belongs to.
  *
  * An exact preset answers with itself; anything else answers with the nearest,
@@ -89,6 +78,99 @@ function accentSlot(hex: string): number {
 }
 
 /**
+ * What the accent row remembers about itself: which circle was pressed, and
+ * what each circle has been mixed to.
+ *
+ * Neither fact is in the settings document. The server carries one `accent`
+ * string and nothing else about this row (see Settings.accent in lib/api.ts),
+ * and that is the right shape for it: `accent` is the colour in FORCE, the one
+ * value every other surface reads. These two are row state, so they stay in
+ * this browser, in localStorage beside the appearance cache
+ * (lib/appearance.ts). The app does the same thing for the same reason - it
+ * keeps them in its local override layer rather than sending them to the
+ * instance (mobile/src/theme/AppearanceContext.tsx). The cost is that the seven
+ * colours NOT in force do not travel to a second browser: the colour in force
+ * does, because that one is a server setting, and the row there adopts it into
+ * its nearest circle (see the seeding effect in Look) rather than showing eight
+ * untouched presets. Carrying all eight between browsers would mean two more
+ * fields in the settings document, which is a server change and not one this
+ * row is worth on its own.
+ */
+const SLOTS_KEY = 'kl-accent-slots';
+
+interface SlotMemory {
+  /**
+   * WHICH slot is chosen, as its own stored fact rather than arithmetic on the
+   * colour (jdp, 2026-09-02: "wenn ich zb. alle farbfelder rot machen will geht
+   * das nicht. nicht alle farbfelder speichern dann die farbe").
+   *
+   * Deriving the choice through accentSlot works only while every circle holds
+   * a different colour. Mix two of them to the same red and both answer with
+   * themselves: two circles are marked at once, and a press on either opens the
+   * picker instead of choosing, so the row stops behaving like a row. A choice
+   * is not recoverable from a value once two values are equal.
+   *
+   * undefined means nobody has pressed a circle in this browser yet, and the
+   * arithmetic is still the right answer.
+   */
+  slot?: number;
+  /**
+   * A colour somebody mixed, remembered against the PRESET SLOT they mixed it
+   * in. Keyed by slot index as a string, because that is what JSON gives back.
+   *
+   * Without this the row could hold exactly ONE mixed colour - the accent
+   * itself, painted over whichever preset it sits nearest - so choosing any
+   * other circle threw the mixed one away and coming back showed the preset
+   * again (jdp, 2026-09-01: "wenn man ein Farbfeld bearbeitet setzt es die
+   * farbe wieder zurück, sobald man ein anderes farbfeld auswählt"). Eight
+   * circles that can each hold a colour is what the row has always looked like
+   * it did.
+   */
+  customs: Record<string, string>;
+}
+
+/**
+ * Read on the way IN, so the row never has to defend itself against a stored
+ * value the picker could not have produced: only real six-digit hex against a
+ * real slot number survives. localStorage is shared with everything else on
+ * this origin and outlives any one build of this page, so a key of this name
+ * holding something else entirely is an ordinary case, not a hostile one.
+ */
+function readSlotMemory(): SlotMemory {
+  try {
+    const raw = localStorage.getItem(SLOTS_KEY);
+    if (!raw) return { customs: {} };
+    const parsed = JSON.parse(raw) as { slot?: unknown; customs?: unknown };
+    const customs: Record<string, string> = {};
+    if (parsed.customs && typeof parsed.customs === 'object') {
+      for (const [k, v] of Object.entries(parsed.customs as Record<string, unknown>)) {
+        const i = Number(k);
+        if (!Number.isInteger(i) || i < 0 || i >= ACCENTS.length) continue;
+        if (typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v)) customs[String(i)] = v;
+      }
+    }
+    const slot = parsed.slot;
+    const chosen =
+      typeof slot === 'number' && Number.isInteger(slot) && slot >= 0 && slot < ACCENTS.length ? slot : undefined;
+    return { slot: chosen, customs };
+  } catch {
+    // An unreadable memory is no memory: the row falls back to the presets and
+    // the nearest-preset arithmetic, which is exactly a fresh browser.
+    return { customs: {} };
+  }
+}
+
+function writeSlotMemory(m: SlotMemory): void {
+  try {
+    localStorage.setItem(SLOTS_KEY, JSON.stringify(m));
+  } catch {
+    // Private mode, a full quota, storage switched off: the colour is already
+    // applied and already on its way to the instance, so a failed write costs
+    // the row's memory at the next load, not anything now.
+  }
+}
+
+/**
  * One round colour button, doing both jobs.
  *
  * Not selected, a click SELECTS it. Already selected, a click opens the picker
@@ -100,6 +182,12 @@ function accentSlot(hex: string): number {
  * shade, never by a line, and the selected state is a shadow standing off the
  * card's own ground. Same rule and same numbers as the extension's
  * .glim-swatch, so the two rows look identical side by side.
+ *
+ * It stays local to this page rather than becoming a third variant of ui.tsx's
+ * own `Swatch` (control-radius, halo-shadow selection), which styles something
+ * else now. The proportions came off the real BombVault test container's own
+ * accent widget, read from its live DOM rather than from the repo or the docs
+ * (jdp: "Nein das ist falsch! Hier ist der Testcontainer erreichbar...").
  */
 function RingSwatch({
   color,
@@ -225,6 +313,88 @@ export function Look() {
   ]);
 
   const accentLive = live(cfg.accent);
+
+  // The accent row's own memory, mirrored into a ref so a writer never has to
+  // wait for a render to see what the last writer did. That matters here more
+  // than anywhere else on this page: the picker's onChange fires on every drag
+  // frame, so a handler spreading the map its closure was built with would
+  // write the frame before it back out of existence.
+  const [slots, setSlots] = useState<SlotMemory>(readSlotMemory);
+  const liveSlots = useRef(slots);
+  liveSlots.current = slots;
+  const persistSlots = useCallback((update: (prev: SlotMemory) => SlotMemory) => {
+    const next = update(liveSlots.current);
+    // Into the ref FIRST, so a second call in the same tick builds on this one
+    // rather than on the render that has not happened yet.
+    liveSlots.current = next;
+    setSlots(next);
+    writeSlotMemory(next);
+  }, []);
+
+  /** What circle `i` shows: its own mixed colour, or the preset under it. */
+  const shownAt = (i: number) => slots.customs[String(i)] ?? ACCENTS[i].hex;
+  const wearsAccent = (i: number) => shownAt(i).toLowerCase() === accentLive;
+
+  // A colour arriving from the instance that no circle holds is adopted by the
+  // nearest one, so the row can keep it.
+  //
+  // The accent is an INSTANCE setting and this memory is per-browser, so a
+  // colour mixed in another browser (or in the app) reaches this row with no
+  // memory behind it. Without this it would be shown nowhere and the very first
+  // press on any circle would overwrite it, which is the original defect wearing
+  // different clothes. An empty slot is filled and a mixed one is never
+  // overwritten: a remembered colour is somebody's choice, and the accent is
+  // only the current one.
+  useEffect(() => {
+    if (!cfg.accent) return;
+    // Read through the ref, so this does not re-run for every memory change of
+    // its own making, and does not fight a drag frame that has already stored
+    // the colour.
+    const memory = liveSlots.current;
+    const held = (i: number) => memory.customs[String(i)] ?? ACCENTS[i].hex;
+    if (ACCENTS.some((_, i) => held(i).toLowerCase() === accentLive)) return;
+    const i = accentSlot(accentLive);
+    if (memory.customs[String(i)] !== undefined) return;
+    persistSlots((p) => ({ slot: i, customs: { ...p.customs, [String(i)]: accentLive } }));
+  }, [cfg.accent, accentLive, persistSlots]);
+
+  // Which circle is marked, in three tiers, most authoritative first.
+  //
+  // 1. The stored choice, while it still agrees with the colour in force. This
+  //    is the fix itself: two circles mixed to the same red both ANSWER to that
+  //    red, so only a stored choice can say which of them was pressed.
+  // 2. Otherwise any circle that wears the accent exactly. The stored choice has
+  //    gone stale - somebody moved the accent from another browser or from the
+  //    app - and a circle showing the live colour is a better answer than
+  //    arithmetic.
+  // 3. Otherwise the nearest preset, which is what a browser that has never
+  //    touched this row gets, and what this page did for every case before.
+  //    One corner survives here on purpose: an accent that drifted to a colour
+  //    no circle holds, whose nearest circle is already mixed to something
+  //    else, marks a circle that is not wearing the accent. The alternative is
+  //    overwriting a colour somebody mixed on purpose, and a mark in the wrong
+  //    place is cheaper than a memory destroyed.
+  const worn = ACCENTS.findIndex((_, i) => wearsAccent(i));
+  const markedSlot =
+    slots.slot !== undefined && wearsAccent(slots.slot)
+      ? slots.slot
+      : worn >= 0
+        ? worn
+        : accentSlot(accentLive);
+
+  /** Press an unchosen circle: it becomes the chosen one, and the app wears
+   *  what that circle SHOWS - its own mixed colour, not the preset under it. */
+  const chooseSlot = (i: number, hex: string) => {
+    persistSlots((p) => ({ ...p, slot: i }));
+    patch({ accent: hex });
+  };
+
+  /** A drag in the picker: the colour belongs to that slot from now on, and is
+   *  worn at once, so the circle recolours under the open popover. */
+  const mixSlot = (i: number, hex: string) => {
+    persistSlots((p) => ({ ...p, slot: i, customs: { ...p.customs, [String(i)]: hex } }));
+    patch({ accent: hex });
+  };
 
   return (
     <div className="flex flex-col gap-10">
@@ -362,22 +532,36 @@ export function Look() {
               open the picker on any colour - every circle now does. */}
           <div className="flex flex-wrap items-center gap-2">
             {ACCENTS.map((a, i) => {
-              // The slot in force wears the LIVE colour, which is the preset's
-              // own unless the picker has nudged it. That is what keeps a
-              // hand-mixed accent visible now that it has no circle of its own.
-              const mine = i === accentSlot(accentLive);
-              const shown = mine ? accentLive : a.hex;
+              // Each circle wears whatever it was last mixed to, and keeps it.
+              //
+              // It used to wear the live accent painted over its nearest preset,
+              // which meant the row could hold exactly one mixed colour: press
+              // any other circle and the mixed one was simply gone. Now the
+              // remembered colour comes from the slot's own memory, so pressing
+              // a neighbour cannot touch it - see SlotMemory above.
+              const shown = shownAt(i);
+              const mine = i === markedSlot;
               return (
                 <RingSwatch
+                  // Keyed by the PRESET, never by `shown`. A key that moves with
+                  // the colour would give this button a new DOM node on the
+                  // first drag frame, and the open picker's outside-click
+                  // handler is bound to the old one - the exact trap
+                  // openColorPickerPopover documents in lib/colorPicker.ts.
                   key={a.hex}
                   color={shown}
                   // Named while it wears its preset; its own value once it does
                   // not, because "Sunflower" on a circle that is no longer
-                  // Sunflower is the one label worse than no label.
-                  label={mine && shown.toLowerCase() !== a.hex.toLowerCase() ? shown.toUpperCase() : a.name}
+                  // Sunflower is the one label worse than no label. Not limited
+                  // to the chosen circle any more: every circle can hold a mixed
+                  // colour now, so every one of them can need its hex.
+                  label={shown.toLowerCase() !== a.hex.toLowerCase() ? shown.toUpperCase() : a.name}
                   selected={mine}
-                  onPick={() => patch({ accent: a.hex })}
-                  onEdit={(el) => openColorPickerPopover(el, shown, (hex) => patch({ accent: hex }))}
+                  onPick={() => chooseSlot(i, shown)}
+                  // Opens on the pressed circle's OWN colour, which is what
+                  // makes editing a second custom swatch start where that
+                  // swatch is rather than at the accent.
+                  onEdit={(el) => openColorPickerPopover(el, shown, (hex) => mixSlot(i, hex))}
                 />
               );
             })}
@@ -391,7 +575,14 @@ export function Look() {
               type="button"
               title={t('settings.accentReset')}
               aria-label={t('settings.accentReset')}
-              onClick={() => patch({ accent: '' })}
+              // Every mixed colour forgotten, and the accent with them. Both
+              // halves, because a reset that put the accent back but left eight
+              // hand-mixed circles on screen would have reset nothing anybody
+              // can see.
+              onClick={() => {
+                persistSlots(() => ({ customs: {} }));
+                patch({ accent: '' });
+              }}
               className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--radius-pill)] bg-carbon-surface2 text-carbon-textSub transition-colors hover:text-carbon-text"
             >
               <IconRetry width={13} height={13} />
@@ -550,7 +741,7 @@ export function Look() {
 }
 
 /**
- * Overview, quit/restart, backup and restore — formerly their own "System"
+ * Overview, quit/restart, backup and restore, formerly their own "System"
  * tab (build-plan.md's Wave 10/10D), merged in here (jdp, 2026-08-24: "Alles
  * was im Systemtab ist in den Allgemein-Tab mergen") since none of the four
  * needed a dedicated tab of their own any more than Updates above already
@@ -934,8 +1125,12 @@ function UpdateCard() {
 /**
  * The accent actually in force, lower-cased for comparison. An empty setting
  * means the built-in one, so "nothing chosen" and "the default chosen by hand"
- * put the ring on the same swatch — which is the truth, and the alternative is
- * a row where the live colour is unmarked until you click it.
+ * mark the same swatch, which is the truth: the alternative is a row where the
+ * live colour is unmarked until you click it.
+ *
+ * Still the fallback marker, not the marker. Which circle is chosen is a stored
+ * fact now (see SlotMemory), and this answers only while nothing is stored or
+ * what is stored has gone stale against the instance.
  */
 function live(accent: string | undefined): string {
   return (accent || DEFAULT_ACCENT).toLowerCase();

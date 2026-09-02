@@ -260,6 +260,13 @@ export default function RelayConnectScreen({
 
           Clipboard.getStringAsync rather than the TextInput's own long-press
           menu: that menu exists, and finding it means knowing it is there. */}
+      {/* ONE stack, and the stack owns the spacing (jdp, 2026-09-02: "mit
+          phrase verbinden seite: die buttons kleben alle aneinander").
+          The gap used to live in this screen's own `styles.button` as a
+          marginTop, and moving the three buttons onto the shared GlimButton
+          took it away with the style - a component must not carry an outside
+          margin, so the gap belongs to whatever stacks them. */}
+      <View style={styles.buttonStack}>
       <GlimButton
         hue={0}
         label={t('relay.pasteButton')}
@@ -304,6 +311,7 @@ export default function RelayConnectScreen({
           setScanning(true);
         }}
       />
+      </View>
 
       {error && <Text style={[styles.error, { color: c.statusFailSolid }]}>{error}</Text>}
 
@@ -391,14 +399,7 @@ const styles = StyleSheet.create({
   // element on the page breaking that rule. "Secondary" was the argument for
   // it, and it does not survive the screen actually having three equal ways
   // forward: paste the phrase, scan it, or type it and join.
-  button: {
-    flexDirection: 'row',
-    gap: 8,
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 10,
-  },
+  buttonStack: { gap: 12, marginTop: 16 },
   error: { marginTop: 12, fontSize: TYPE.body },
   sectionTitle: { fontSize: TYPE.dense, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 20 },
   list: { flexGrow: 0, marginTop: 8 },

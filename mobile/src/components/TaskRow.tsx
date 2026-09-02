@@ -124,6 +124,19 @@ export default function TaskRow({ task, index }: { task: Task; index: number }) 
           {pct !== null ? ` · ${pct}%` : ''}
         </Text>
         {task.speed > 0 && <Text style={[styles.meta, { color: c.textMuted }]}>{formatBytes(task.speed)}/s</Text>}
+        {/* Whether this goes out on an account, in the same muted metadata ink
+            as the byte count beside it (jdp, 2026-09-02: "Wenn man links
+            runterladen möchte für die kein premium account hinterlegt ist muss
+            das angezeigt werden"). A word, not a badge and not a colour: "free"
+            is an answer, not a warning, and a link with no account behind it
+            looked exactly like one with an account behind it right up until it
+            was slow or asking for a captcha. Nothing at all for an ordinary
+            file, which is neither. */}
+        {task.mode ? (
+          <Text style={[styles.meta, { color: c.textMuted }]}>
+            {t(task.mode === 'premium' ? 'task.mode.premium' : 'task.mode.free')}
+          </Text>
+        ) : null}
       </View>
 
       {task.error ? (

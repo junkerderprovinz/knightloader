@@ -1221,8 +1221,10 @@ export const sv: Dict = {
   'settings.help.advanced.body':
     'Varje inställning i detta bygge kan läsas och ändras via sitt råa namn på sidan Avancerat, inklusive några få - hur en spegling av en redan nedladdad fil hanteras, vad som händer när en nedladdning skulle hamna på ett redan använt namn - som ännu inte har en egen kontroll någon annanstans.',
   'settings.help.advanced.link': 'Öppna inställningar för Avancerat',
+  'task.mode.free': 'Gratis',
+  'task.mode.premium': 'Premium',
   'settings.about.title': 'Om KnightLoader',
-  'settings.about.body': 'Skrivet på kvällar och helger, av en enda person, eftersom alla andra nedladdningshanterare ville ha två klick där ett hade räckt.',
+  'settings.about.body': 'En egenhostad nedladdningshanterare med ett städat gränssnitt, som alternativ till JDownloader. Motorn, API:et och gränssnittet ryms i ett enda program, det finns inget att installera bredvid. Skrivet på kvällar och helger, eftersom alla andra ville ha två klick där ett hade räckt.',
   'settings.about.coffeeButton': 'Bjud på en kaffe',
   'settings.about.coffee': 'Gillar du KnightLoader? En kaffe skulle göra min dag.',
   'settings.about.report': 'Problem, önskemål eller förslag? Öppna ett ärende på GitHub, eller skicka ett mejl.',

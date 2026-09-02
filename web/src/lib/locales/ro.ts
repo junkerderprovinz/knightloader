@@ -1221,8 +1221,10 @@ export const ro: Dict = {
   'settings.help.advanced.body':
     'Fiecare setare a acestui build poate fi citită și schimbată după numele ei brut pe pagina Avansat, inclusiv câteva - cum e tratată o oglindă a unui fișier deja descărcat, ce se întâmplă când o descărcare ar ajunge pe un nume deja folosit - care încă nu au un control dedicat nicăieri altundeva.',
   'settings.help.advanced.link': 'Deschide setările Avansat',
+  'task.mode.free': 'Gratuit',
+  'task.mode.premium': 'Premium',
   'settings.about.title': 'Despre KnightLoader',
-  'settings.about.body': 'Scris seara și în weekend, de o singură persoană, pentru că orice alt manager de descărcări cerea două clicuri acolo unde ajungea unul.',
+  'settings.about.body': 'Un manager de descărcări găzduit de tine, cu o interfață curată, ca alternativă la JDownloader. Motorul, API-ul și interfața încap într-un singur program, iar alături nu ai ce instala. Scris seara și în weekend, pentru că oricare altul cerea două clicuri acolo unde ajungea unul.',
   'settings.about.coffeeButton': 'Fă-mi cinste cu o cafea',
   'settings.about.coffee': 'Îți place KnightLoader? O cafea mi-ar face ziua.',
   'settings.about.report': 'Probleme, dorințe sau sugestii? Deschide o problemă pe GitHub sau trimite un e-mail.',

@@ -1221,8 +1221,10 @@ export const hu: Dict = {
   'settings.help.advanced.body':
     'Ennek a buildnek minden beállítása kiolvasható és módosítható a nyers nevén a Haladó oldalon, néhányat is beleértve - hogy egy már letöltött fájl tükre hogyan kezelendő, mi történik, ha egy letöltés egy már használt névre kerülne - amelyeknek még nincs dedikált kezelőfelülete máshol.',
   'settings.help.advanced.link': 'Haladó beállítások megnyitása',
+  'task.mode.free': 'Ingyenes',
+  'task.mode.premium': 'Prémium',
   'settings.about.title': 'A KnightLoaderről',
-  'settings.about.body': 'Estéken és hétvégeken írva, egyetlen ember által, mert minden más letöltéskezelő két kattintást kért ott, ahol egy is elég lett volna.',
+  'settings.about.body': 'Saját üzemeltetésű letöltéskezelő rendezett felülettel, a JDownloader alternatívájaként. A motor, az API és a felület egyetlen programban lakik, mellé nincs mit telepíteni. Estéken és hétvégeken írva, mert minden más kettő kattintást kért ott, ahol egy is elég lett volna.',
   'settings.about.coffeeButton': 'Hívj meg egy kávéra',
   'settings.about.coffee': 'Tetszik a KnightLoader? Egy kávé megédesítené a napomat.',
   'settings.about.report': 'Probléma, kívánság vagy javaslat? Nyiss egy hibajegyet a GitHubon, vagy írj egy e-mailt.',

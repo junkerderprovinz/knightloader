@@ -1221,8 +1221,10 @@ export const hr: Dict = {
   'settings.help.advanced.body':
     'Svaku postavku ovog builda moguće je pročitati i promijeniti prema njezinom sirovom nazivu na stranici Napredno, uključujući nekoliko - kako se postupa sa zrcalom već preuzete datoteke, što se događa kad bi preuzimanje završilo na već korištenom nazivu - koje još nemaju vlastitu kontrolu drugdje.',
   'settings.help.advanced.link': 'Otvori postavke Napredno',
+  'task.mode.free': 'Besplatno',
+  'task.mode.premium': 'Premium',
   'settings.about.title': 'O KnightLoaderu',
-  'settings.about.body': 'Napisano navečer i vikendom, od strane jedne osobe, jer je svaki drugi upravitelj preuzimanja tražio dva klika ondje gdje je bio dovoljan jedan.',
+  'settings.about.body': 'Samostalno hostirani upravitelj preuzimanja s urednim sučeljem, kao alternativa JDownloaderu. Pogon, API i sučelje stanu u jedan program, a uz njega nema što instalirati. Napisano navečer i vikendom, jer je svaki drugi tražio dva klika ondje gdje je bio dovoljan jedan.',
   'settings.about.coffeeButton': 'Počasti me kavom',
   'settings.about.coffee': 'Sviđa li vam se KnightLoader? Kava bi mi uljepšala dan.',
   'settings.about.report': 'Problemi, želje ili prijedlozi? Otvori problem na GitHubu ili pošalji e-poruku.',

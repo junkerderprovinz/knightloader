@@ -1221,8 +1221,10 @@ export const vi: Dict = {
   'settings.help.advanced.body':
     'Mỗi cài đặt của build này có thể được đọc và thay đổi qua tên thô của nó trên trang Nâng cao, bao gồm một vài cài đặt - cách xử lý bản sao của một tệp đã tải xuống, điều gì xảy ra khi một lượt tải xuống sẽ rơi vào một tên đã được sử dụng - vẫn chưa có điều khiển riêng ở nơi khác.',
   'settings.help.advanced.link': 'Mở cài đặt Nâng cao',
+  'task.mode.free': 'Miễn phí',
+  'task.mode.premium': 'Premium',
   'settings.about.title': 'Giới thiệu về KnightLoader',
-  'settings.about.body': 'Được viết vào các buổi tối và cuối tuần, bởi một người, vì mọi trình quản lý tải xuống khác đều đòi hai cú nhấp ở nơi một cú là đủ.',
+  'settings.about.body': 'Một trình quản lý tải xuống tự lưu trữ với giao diện gọn gàng, thay cho JDownloader. Bộ máy, API và giao diện nằm trong cùng một chương trình, bên cạnh không có gì phải cài thêm. Được viết vào các buổi tối và cuối tuần, vì mọi lựa chọn khác đều đòi hai cú nhấp ở nơi một cú là đủ.',
   'settings.about.coffeeButton': 'Mời tôi ly cà phê',
   'settings.about.coffee': 'Bạn thích KnightLoader chứ? Một ly cà phê sẽ làm ngày của tôi tươi hơn.',
   'settings.about.report': 'Vấn đề, mong muốn hay góp ý? Mở một issue trên GitHub, hoặc gửi email.',

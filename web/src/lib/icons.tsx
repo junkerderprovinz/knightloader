@@ -551,3 +551,90 @@ export const IconMail = (p: SVGProps<SVGSVGElement>) => (
     />
   </svg>
 );
+
+// --- The right-click menu's own glyphs -------------------------------------
+//
+// The seven below arrive here from ListToolbar.tsx, which drew its own private
+// copies while this file "belonged to another lane" (its own comment said so)
+// and drew most of them as <path stroke> outlines. That is the one thing this
+// file forbids, and it showed: a line-drawn chevron beside the filled trash and
+// the filled play arrow in the same menu reads as a different weight of icon,
+// which is exactly what jdp asked to have fixed ("Rechtsklick menü soll auch
+// glyphen bekommen (siehe GS)"). Redrawn as solid shapes and moved here so
+// there is one copy per idea rather than one per file: PackageActions.tsx and
+// Collector.tsx had grown their own filled twins of two of them in the
+// meantime, and three drawings of one glyph drift apart the first time one of
+// them is touched.
+
+/** Force start: a lightning bolt, "now" rather than "sooner". */
+export const IconBolt = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M11.3 2.4 4.8 11.2h3.6L7.6 17.6 15.2 8.8h-3.7z" />
+  </svg>
+);
+
+/** The fold twisty, as a solid wedge rather than a stroked V: at the 14px the
+ *  menu renders glyphs at, a 1.7px stroke is thinner than every other mark in
+ *  the same column and the row reads as if its icon were missing. */
+export const IconChevronDown = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M10 13.4 3.6 7l1.7-1.7L10 10l4.7-4.7L16.4 7 10 13.4Z" />
+  </svg>
+);
+
+export const IconChevronUp = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M10 6.6 16.4 13l-1.7 1.7L10 10l-4.7 4.7L3.6 13 10 6.6Z" />
+  </svg>
+);
+
+/** Hold/release: a pushpin, drawn upright rather than at the usual 45 degrees.
+ *  A rotated pin lands its corners between pixels at this size, the same
+ *  failure IconKey's own comment above records for its old diagonal shaft. */
+export const IconPin = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M6 2.5h8v2h-1.8v4.5l2.8 2v1.6h-4.3v3.9L10 18l-.7-1.5v-3.9H5V11l2.8-2V4.5H6Z" />
+  </svg>
+);
+
+/** Queue priority: three descending bars, the wait order seen side-on, which is
+ *  all a priority is. Deliberately not an arrow - the two one-step moves beside
+ *  it in the menu already own the arrows, and priority is not a step. The bars
+ *  are thin FILLED rects, the way this file's header asks a line-like detail to
+ *  be drawn. */
+export const IconPriority = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <rect x="4" y="4.7" width="12" height="1.6" rx=".8" />
+    <rect x="4" y="9.2" width="8" height="1.6" rx=".8" />
+    <rect x="4" y="13.7" width="4" height="1.6" rx=".8" />
+  </svg>
+);
+
+/** The stop mark: a flag planted in the list, meaning the queue runs up to here
+ *  and stops. A pennant rather than a rectangle so it is not mistaken for
+ *  IconStop's square at a glance. */
+export const IconStopMark = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <rect x="4.4" y="2.5" width="1.8" height="15" rx=".9" />
+    <path d="M6.8 3.2h8.8l-2.1 3.4 2.1 3.4H6.8Z" />
+  </svg>
+);
+
+/** "Remove and delete the files": IconTrash's own body with two slits carved
+ *  through it (fillRule="evenodd", the technique IconWarning's "!" uses), a bin
+ *  whose contents are visibly gone. Removing the rows and erasing the bytes are
+ *  different acts with very different regret profiles, so they never share a
+ *  glyph. */
+export const IconTrashFiles = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <rect x="8" y="2" width="4" height="2" rx="1" />
+    <rect x="3.5" y="4.5" width="13" height="2.2" rx="1.1" />
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M5.3 7.5h9.4l-.9 9.1a1.5 1.5 0 0 1-1.5 1.4H7.7a1.5 1.5 0 0 1-1.5-1.4L5.3 7.5Z
+         M7 9.6h6v1.3H7Z
+         M7 12.4h6v1.3H7Z"
+    />
+  </svg>
+);

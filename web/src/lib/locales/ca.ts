@@ -1221,8 +1221,10 @@ export const ca: Dict = {
   'settings.help.advanced.body':
     'Cada configuració d’aquest build es pot llegir i canviar pel seu nom en brut a la pàgina Avançat, incloses algunes - com es tracta un mirall d’un fitxer ja baixat, què passa quan una baixada acabaria en un nom ja utilitzat - que encara no tenen un control dedicat enlloc més.',
   'settings.help.advanced.link': 'Obre la configuració d’Avançat',
+  'task.mode.free': 'Gratuït',
+  'task.mode.premium': 'Premium',
   'settings.about.title': 'Quant a KnightLoader',
-  'settings.about.body': 'Escrit als vespres i els caps de setmana, per una sola persona, perquè qualsevol altre gestor de baixades demanava dos clics on n\'hi hauria prou amb un.',
+  'settings.about.body': 'Un gestor de baixades autoallotjat amb una interfície endreçada, com a alternativa al JDownloader. El motor, l\'API i la interfície caben en un sol programa, i al costat no hi ha res a instal·lar. Escrit als vespres i els caps de setmana, perquè qualsevol altre demanava dos clics on n\'hi hauria prou amb un.',
   'settings.about.coffeeButton': 'Convida’m a un cafè',
   'settings.about.coffee': 'T’agrada KnightLoader? Un cafè m’alegraria el dia.',
   'settings.about.report': 'Problemes, desitjos o suggeriments? Obre una incidència a GitHub, o envia un correu.',

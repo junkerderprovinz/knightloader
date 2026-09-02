@@ -36,16 +36,32 @@
          what it says on every page in this family, not on the ones somebody
          remembered. */
       [hidden] { display: none !important; }
-      h1 { font-size: 18px; margin: 0 0 6px; color: var(--accent-ink); }
       /* The cards carry the rhythm, and the number has to be read against the
          BADGE, not against the card (jdp, 2026-09-01: "In der erweiterung sind
          alle abschnitte zu eng beieinander").
          26 looked generous in the stylesheet and did not on the page: the
          section badge hangs 11px above its own card's top edge, so 26 of margin
          is 15 of actual daylight between one card's bottom and the next card's
-         label. 38 puts that back at the 26 the rule always meant. */
+         label. 38 puts that back at the 26 the rule always meant.
+
+         The FIRST card gets none of it. There is no page heading any more (jdp,
+         2026-09-02: "in den einstellungen die überschrift weg") - the tab strip
+         already says KnightLoader and every card names itself with its own
+         badge - so the top margin has nothing left to separate the first card
+         FROM, and the body's own 28px of padding is the whole gap. Left at 26
+         or 38 it would read as the heading's empty seat rather than as spacing.
+
+         Two selectors, because :first-of-type is #pinHint, which is `hidden`
+         (and therefore display:none) whenever the toolbar button is pinned,
+         which is the normal case: in that state the first card the reader
+         actually SEES is the next one, and it would otherwise take the 38px
+         sibling rule above. The second selector is (0,3,2) against that rule's
+         (0,2,2), so it wins on specificity whatever the source order. It is
+         exact for exactly one conditionally hidden card at the top of the page:
+         a second one added above Group has to be added here too. */
       section.glim-card + section.glim-card { margin-top: 38px; }
-      section.glim-card:first-of-type { margin-top: 26px; }
+      section.glim-card:first-of-type { margin-top: 0; }
+      section.glim-card[hidden] + section.glim-card { margin-top: 0; }
       h2 { margin: 0; font-size: var(--text-caption); font-weight: 500; }
       label { display: block; font-size: var(--text-dense); color: var(--carbon-text-sub); margin-bottom: 6px; }
       /* Selects are shaped like the inputs deliberately: a native dropdown
@@ -94,18 +110,23 @@
         font-weight: 500;
         cursor: pointer;
       }
-      a.btnlike {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        text-decoration: none;
-      }
+      a.btnlike { text-decoration: none; }
       /* The glyph needs air between itself and the word (jdp, 2026-09-01: "die
          glyphen der buttons sind zu nah am text"). An inline-flex row with no
          gap sets an icon hard against the first letter, which reads as one
          smudged shape rather than a mark and a label. 8 is the same step the
-         rest of this page uses between a control and its neighbour. */
-      a.btnlike { gap: 8px; }
+         rest of this page uses between a control and its neighbour.
+         BOTH elements, not just the anchor: the report button is a real
+         <button> and now carries a glyph too, and a <button> is not a flex
+         container by default, so `gap` alone would have done nothing there. */
+      button,
+      a.btnlike {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      button > svg,
       a.btnlike > svg { flex: 0 0 auto; }
       button.secondary,
       a.btnlike.secondary {
@@ -288,8 +309,6 @@
     </style>
   </head>
   <body>
-    <h1>KnightLoader</h1>
-
     <!-- Shown only when the browser itself says the toolbar button is hidden -
          see background.js's nichtInDerLeiste. It is the answer to the one
          sentence jdp repeated three evenings running ("es kommt die meldung

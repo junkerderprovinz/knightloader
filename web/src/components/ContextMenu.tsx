@@ -139,17 +139,28 @@ function submenuSpot(el: HTMLElement): Spot {
     : { x: r.right - 2, y: r.top - 4, flipAt: r.left + 2 };
 }
 
+/**
+ * The "there is more behind this one" mark, as a solid triangle.
+ *
+ * It was a stroked chevron, which is the one thing GlimStone's icon rule
+ * forbids (see lib/icons.tsx's own header): a hairline outline beside the
+ * filled glyphs in the same row reads as a lighter class of mark, and this is
+ * the most-rendered glyph in the whole menu. A triangle rather than a filled
+ * chevron so it stays distinct from the fold entries' own chevrons, which point
+ * up and down two rows away.
+ */
 function Caret({ rtl }: { rtl: boolean }) {
   return (
     <svg
       viewBox="0 0 16 16"
       width={12}
       height={12}
+      fill="currentColor"
       aria-hidden
       focusable="false"
       style={rtl ? { transform: 'scaleX(-1)' } : undefined}
     >
-      <path d="M6 3.5l5 4.5-5 4.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M6 3.6 10.6 8 6 12.4Z" />
     </svg>
   );
 }
@@ -368,7 +379,18 @@ function Panel({
                              }`
                       }`}
                   >
-                    <span className="grid h-4 w-4 shrink-0 place-items-center">{item.icon}</span>
+                    {/* The gutter sizes the glyph rather than the call site: a
+                        CSS height/width beats the width/height attributes an
+                        icon component sets, so every entry lands at exactly
+                        14px whatever its author passed. Before this the same
+                        panel could hold a 14px folder next to a 16px key, and
+                        the alternative was ~30 call sites each repeating the
+                        same two numbers. It stays rendered when there is no
+                        icon: the priority submenu leaves the slot empty on
+                        purpose, so that column reads as a tick column. */}
+                    <span className="grid h-4 w-4 shrink-0 place-items-center [&_svg]:h-3.5 [&_svg]:w-3.5">
+                      {item.icon}
+                    </span>
                     <span className="min-w-0 flex-1 truncate">{item.label}</span>
                     {item.detail && (
                       <span className="glim-num shrink-0 text-[11px] text-carbon-textMuted">{item.detail}</span>

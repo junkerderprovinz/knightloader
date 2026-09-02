@@ -2,7 +2,7 @@
   "expo": {
     "name": "KnightLoader",
     "slug": "knightloader-mobile",
-    "version": "1.15.0",
+    "version": "1.16.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -11,7 +11,7 @@
       "bundleIdentifier": "com.junkerderprovinz.knightloader"
     },
     "android": {
-      "versionCode": 21,
+      "versionCode": 22,
       "package": "com.junkerderprovinz.knightloader",
       "adaptiveIcon": {
         "backgroundImage": "./assets/android-icon-background.png",

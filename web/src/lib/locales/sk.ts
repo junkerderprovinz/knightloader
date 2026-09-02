@@ -1221,8 +1221,10 @@ export const sk: Dict = {
   'settings.help.advanced.body':
     'Každé nastavenie tohto buildu je možné prečítať a zmeniť podľa jeho surového názvu na stránke Pokročilé, vrátane niekoľkých - ako sa zaobchádza so zrkadlom už stiahnutého súboru, čo sa stane, keď by sťahovanie skončilo na už použitom názve - ktoré ešte nemajú vlastný ovládací prvok inde.',
   'settings.help.advanced.link': 'Otvoriť nastavenia Pokročilé',
+  'task.mode.free': 'Zdarma',
+  'task.mode.premium': 'Premium',
   'settings.about.title': 'O KnightLoaderi',
-  'settings.about.body': 'Napísané po večeroch a cez víkendy, jedným človekom, pretože každý iný správca sťahovania chcel dve kliknutia tam, kde stačilo jedno.',
+  'settings.about.body': 'Vlastný správca sťahovania s upratým rozhraním, ako alternatíva k JDownloaderu. Jadro, API aj rozhranie sa zmestia do jedného programu, vedľa nie je čo inštalovať. Napísané po večeroch a cez víkendy, pretože každý iný chcel dve kliknutia tam, kde stačilo jedno.',
   'settings.about.coffeeButton': 'Kúp mi kávu',
   'settings.about.coffee': 'Páči sa vám KnightLoader? Káva by mi spravila deň.',
   'settings.about.report': 'Problémy, želania alebo návrhy? Založ issue na GitHube, alebo pošli e-mail.',

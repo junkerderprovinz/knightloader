@@ -1221,8 +1221,10 @@ export const is: Dict = {
   'settings.help.advanced.body':
     'Sérhver stilling þessarar útgáfu er hægt að lesa og breyta eftir hráu heiti hennar á Ítarlegt-síðunni, þar á meðal nokkrar - hvernig speglun skráar sem þegar hefur verið sótt er meðhöndluð, hvað gerist þegar niðurhal myndi lenda á heiti sem þegar er í notkun - sem hafa ekki enn sérstaka stjórn annars staðar.',
   'settings.help.advanced.link': 'Opna stillingar fyrir Ítarlegt',
+  'task.mode.free': 'Ókeypis',
+  'task.mode.premium': 'Premium',
   'settings.about.title': 'Um KnightLoader',
-  'settings.about.body': 'Skrifað á kvöldin og um helgar, af einni manneskju, því allir aðrir niðurhalsstjórar vildu tvo smelli þar sem einn hefði dugað.',
+  'settings.about.body': 'Sjálfhýstur niðurhalsstjóri með snyrtilegu viðmóti, sem valkostur við JDownloader. Vélin, API-ið og viðmótið rúmast í einu forriti og ekkert er að setja upp við hliðina. Skrifað á kvöldin og um helgar, því allir aðrir vildu tvo smelli þar sem einn hefði dugað.',
   'settings.about.coffeeButton': 'Bjóddu mér kaffi',
   'settings.about.coffee': 'Líkar þér við KnightLoader? Kaffibolli myndi gleðja mig.',
   'settings.about.report': 'Vandamál, óskir eða ábendingar? Opnaðu mál á GitHub, eða sendu tölvupóst.',

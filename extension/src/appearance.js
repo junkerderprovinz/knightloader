@@ -74,6 +74,31 @@ function accentSlot(hex) {
 }
 
 /**
+ * sanitiseCustoms is what a stored map of hand-mixed slot colours is allowed to
+ * say: a real hex against a real slot index, and nothing else.
+ *
+ * Read on the way IN, so nothing downstream has to defend itself against a
+ * value the picker could not have produced. Keyed by slot index as a string,
+ * because that is what an object round-tripped through storage gives back, and
+ * because the app stores the identical shape (mobile/src/theme/
+ * AppearanceContext.tsx sanitiseCustoms): one defect, one fix, one shape in
+ * both clients.
+ *
+ * An empty map rather than a missing one, because "no slot has been mixed" and
+ * "nothing valid was stored" are the same answer to every caller here.
+ */
+function sanitiseCustoms(raw) {
+  if (!raw || typeof raw !== 'object') return {};
+  const out = {};
+  for (const [k, v] of Object.entries(raw)) {
+    const i = Number(k);
+    if (!Number.isInteger(i) || i < 0 || i >= ACCENTS.length) continue;
+    if (validHex(v)) out[String(i)] = v;
+  }
+  return out;
+}
+
+/**
  * luminance is the perceptual brightness used to decide black or white on top.
  * The sRGB channels are linearised first, because the raw values overstate how
  * bright blue is and understate green - which is exactly the case that
@@ -160,15 +185,62 @@ function applyAccent(hex) {
 async function readAppearance() {
   const s = await chrome.storage.local.get([
     'theme', 'accent', 'shape',
+    'accentSlotChosen', 'accentCustoms',
     'rainbow', 'rainbowReactive', 'rainbowRotate', 'rainbowSeed', 'rainbowPalette',
     'followInstance',
   ]);
+
+  const accent = validHex(s.accent) ? s.accent : '';
+
+  /* Two facts about the swatch row are STORED here rather than worked out from
+     the accent, because neither one is recoverable from a colour.
+
+     jdp, 2026-09-02: "Der farbpicker funktionniert nicht bzw. speichert das
+     farbfeld die ausgewählte farbe nicht", and on the app a day earlier, the
+     same defect stated from the other side: "wenn ich zb. alle farbfelder rot
+     machen will geht das nicht. nicht alle farbfelder speichern dann die
+     farbe".
+
+     The whole custom-colour state used to be the single `accent` string. WHICH
+     slot was chosen came from accentSlot(), and WHAT a slot had been mixed to
+     was never kept at all: the one live colour was simply painted over its
+     nearest preset. So the row could hold exactly one hand-mixed colour, and
+     choosing any other swatch overwrote it out of existence (jdp, 2026-09-01:
+     "wenn man ein Farbfeld bearbeitet setzt es die farbe wieder zurück, sobald
+     man ein anderes farbfeld auswählt"). Deriving the choice fails the moment
+     two slots hold the same colour, which is exactly what mixing them all to
+     one red does: the arithmetic marks one slot and the other seven fall back
+     to their factory hex.
+
+     Note the key is accentSlotChosen and not accentSlot: options.html loads
+     these files as plain scripts into one shared global (this extension has no
+     build step), so a constant named accentSlot would shadow the function. */
+  const accentChosen =
+    Number.isInteger(s.accentSlotChosen) && s.accentSlotChosen >= 0 && s.accentSlotChosen < ACCENTS.length
+      ? s.accentSlotChosen
+      : undefined;
+  const accentCustoms = sanitiseCustoms(s.accentCustoms);
+  // One-time migration for an install that predates the map: a colour already
+  // mixed lives only in `accent`, so hand it to the slot that was wearing it.
+  // Without this, shipping the fix would snap somebody's hand-mixed accent back
+  // to a factory preset, which is the very complaint being fixed.
+  if (Object.keys(accentCustoms).length === 0 && accent) {
+    const slot = accentChosen !== undefined ? accentChosen : accentSlot(accent);
+    if (slot >= 0) accentCustoms[String(slot)] = accent;
+  }
+
   return {
     // Resolved, never blank: the picker offers two values and has to be able
     // to show which one is in force. systemTheme() is the answer while nobody
     // has chosen, and it is a live reading, so it follows the machine.
     theme: s.theme === 'light' || s.theme === 'dark' ? s.theme : systemTheme(),
-    accent: validHex(s.accent) ? s.accent : '',
+    accent,
+    // What each of the eight preset slots was last mixed to, by slot index.
+    accentCustoms,
+    // Which slot is chosen, or undefined on a fresh install where nobody has
+    // chosen yet. The caller falls back to accentSlot() there, which is still
+    // the right answer while every slot wears a different colour.
+    accentChosen,
     shape: SHAPES.includes(s.shape) ? s.shape : 'round',
     rainbow: {
       on: s.rainbow === true,
@@ -230,6 +302,16 @@ async function adoptFromInstance() {
   } catch {
     return false;
   }
+  // The row's own two facts are dropped, not overwritten: the instance sends a
+  // single accent and has no opinion about which of the eight slots it belongs
+  // to or what the other seven were mixed to. Leaving them would paint the
+  // local mixes over a colour that came from the server, so the row would
+  // disagree with the look actually in force. They are REMOVED rather than set
+  // to undefined, because chrome.storage keeps an undefined as a present value
+  // and readAppearance would then read it instead of falling through. The
+  // stashed copy in options.js (ADOPTED_KEYS) is what brings them back when the
+  // follow switch goes off again.
+  await chrome.storage.local.remove(['accentSlotChosen', 'accentCustoms']);
   await writeAppearance({
     accent: validHex(a.accent) ? a.accent : '',
     shape: SHAPES.includes(a.shape) ? a.shape : 'round',

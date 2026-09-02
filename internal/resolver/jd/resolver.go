@@ -117,6 +117,40 @@ func HostActive(host string) bool {
 	return activeHosts.set[normalizeHost(host)]
 }
 
+// knownHosts is every host JD has a hoster plugin for, whether or not anybody
+// has a login for it - JD's own listPremiumHoster, pushed here by
+// internal/hosterauth's reconciler on the same pass that pushes SetHostActive.
+//
+// It is a SEPARATE fact from activeHosts and answers a different question.
+// activeHosts asks "does a login for this host work"; this asks "does JD know
+// how to fetch from this host at all".
+var knownHosts = struct {
+	mu  sync.RWMutex
+	set map[string]bool
+}{set: map[string]bool{}}
+
+// SetKnownHosts replaces the list of hosts JD has a plugin for. Replaced whole
+// rather than added to, so a host JD stops supporting stops outranking Direct
+// on the very next pass instead of lingering until a restart.
+func SetKnownHosts(hosts []string) {
+	set := make(map[string]bool, len(hosts))
+	for _, h := range hosts {
+		if n := normalizeHost(h); n != "" {
+			set[n] = true
+		}
+	}
+	knownHosts.mu.Lock()
+	defer knownHosts.mu.Unlock()
+	knownHosts.set = set
+}
+
+// HostKnown reports whether JD has a hoster plugin for host.
+func HostKnown(host string) bool {
+	knownHosts.mu.RLock()
+	defer knownHosts.mu.RUnlock()
+	return knownHosts.set[normalizeHost(host)]
+}
+
 // PriorityFor is the per-host priority nudge requirement 3 of the hoster-login
 // design asks for: activeHostPrio, above resolver.Direct's 40, once rawURL's
 // host has a confirmed-active native login; basePrio otherwise - the same
@@ -136,7 +170,26 @@ func PriorityFor(rawURL string) int {
 	if err != nil || u.Hostname() == "" {
 		return basePrio
 	}
-	if HostActive(u.Hostname()) {
+	// A host JD has a PLUGIN for outranks Direct even with no login at all, and
+	// that is the whole of "free mode, like JDownloader" (jdp, 2026-09-02: "Wenn
+	// man links runterladen möchte für die kein premium account hinterlegt ist
+	// muss das angezeigt werden un der link im free modus heruntergeladen
+	// werden. wie in JD").
+	//
+	// Without it, such a link went to resolver.Direct, whose "fetch" is a plain
+	// HTTP GET with no idea a hoster is on the other end: for most premium
+	// hosters that saves the landing PAGE under the real file name and reports a
+	// successful download. That is worse than a failure, because nothing on
+	// screen is wrong. JD's own plugin for that host is the only thing in this
+	// app that knows the free-mode dance - the wait, the countdown, the captcha,
+	// the per-IP limit - so an anonymous fetch of a known hoster belongs there.
+	//
+	// Same number as the active case on purpose: both mean "JD beats a blind
+	// GET", and only one resolver is being ranked, so a second value below it
+	// would express a difference nothing can act on. What the two cases DO
+	// differ in is what the user is told, which is core.Task.Mode's job, not
+	// this one's.
+	if HostActive(u.Hostname()) || HostKnown(u.Hostname()) {
 		return activeHostPrio
 	}
 	return basePrio

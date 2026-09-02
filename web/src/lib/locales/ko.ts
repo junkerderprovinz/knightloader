@@ -1221,8 +1221,10 @@ export const ko: Dict = {
   'settings.help.advanced.body':
     '이 빌드의 모든 설정은 고급 페이지에서 원래 이름으로 읽고 바꿀 수 있으며, 이미 다운로드된 파일의 미러를 어떻게 처리하는지, 다운로드가 이미 사용 중인 이름에 놓이게 되면 어떻게 되는지 등 아직 다른 곳에 전용 컨트롤이 없는 몇 가지도 포함됩니다.',
   'settings.help.advanced.link': '고급 설정 열기',
+  'task.mode.free': '무료',
+  'task.mode.premium': '프리미엄',
   'settings.about.title': 'KnightLoader 정보',
-  'settings.about.body': '저녁과 주말에, 한 사람이 만들었습니다. 다른 다운로드 관리자들은 한 번이면 충분한 곳에서 두 번의 클릭을 요구했기 때문입니다.',
+  'settings.about.body': '직접 호스팅하는, 화면이 정돈된 다운로드 관리자입니다. JDownloader의 대안이 됩니다. 엔진과 API와 화면이 한 프로그램 안에 들어 있어 곁에 설치할 것이 없습니다. 저녁과 주말에 만들었습니다. 다른 것들은 하나면 충분한 곳에서 두 번의 클릭을 요구했기 때문입니다.',
   'settings.about.coffeeButton': '커피 사주기',
   'settings.about.coffee': 'KnightLoader가 마음에 드시나요? 커피 한 잔이면 하루가 즐거워집니다.',
   'settings.about.report': '문제, 바라는 점, 개선 아이디어가 있나요? GitHub에 이슈를 남기거나 메일을 보내 주세요.',

@@ -1257,6 +1257,10 @@ export function TaskListCard({
   hue?: number;
 }) {
   const { t } = useT();
+  // Only the row reorder reports through this so far (see dropRow): the queue
+  // refuses a reorder with a sentence, and a drag that is refused in silence
+  // reads as a drag the app never received.
+  const { toast } = useToast();
   // One subscription for the whole table rather than one per row: the palette
   // changes for every row at once anyway.
   useRainbow();
@@ -1430,25 +1434,54 @@ export function TaskListCard({
 
   // A "band" mirrors the reorder endpoint's own grouping: same priority AND
   // same forced. Each band's own ids, in the order they are drawn right now,
-  // is exactly what "the complete new order of every task in this band" —
-  // POST /api/tasks/reorder's own contract — means client-side.
+  // is what POST /api/tasks/reorder is sent. That list is deliberately only
+  // the part of the band this screen actually shows and can actually move
+  // (see `movable` below): a band spans every task the app holds, across the
+  // collector tab and the downloads tab and the settled rows alike, and no
+  // single list has ever been able to name all of it.
   const bandOf = (x: Task): string => `${x.priority}:${x.forced ? 1 : 0}`;
+
+  // Which rows the wait queue can actually be told to move, and the reason
+  // folder drags looked completely dead (jdp, 2026-09-01: "das drag and drop
+  // funktioniert überhaupt nicht. fixe es endlich!" and, for this list
+  // specifically, "Ich kann ordner nicht per drag and drop verschieben").
+  //
+  // A finished or failed task is not in the wait queue at all, so naming one
+  // in a reorder refuses the WHOLE request (App.ReorderBand, app_queue.go:
+  // "task %s is not in the wait queue") - and this list is meant to show
+  // both. Every band built below therefore carries only the rows the server
+  // will accept. That is not a workaround for the endpoint: it now takes a
+  // SUBSET of a band and reads it as "these tasks, in this order, in the
+  // slots they already hold", which is exactly what a drag inside one
+  // visible list means. Mobile learned the same thing first, see
+  // mobile/src/components/PackageList.tsx's `sortierbar`.
+  const movable = (x: Task): boolean => x.status !== 'done' && x.status !== 'error';
+
   const bandOrder = useMemo(() => {
     const m = new Map<string, string[]>();
     for (const x of flatTasks) {
+      if (!movable(x)) continue;
       const key = bandOf(x);
       const arr = m.get(key);
       if (arr) arr.push(x.id);
       else m.set(key, [x.id]);
     }
     return m;
+    // movable and bandOf are pure module-level-style helpers over their own
+    // argument, so flatTasks is genuinely the only input this varies with.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flatTasks]);
 
   // A package's own band, or null when its links disagree — a mixed package
   // has no one band to move it into, so a drop against it is refused rather
   // than guessing which of its tasks the drag should follow.
+  //
+  // Judged over the movable links only, so a folder holding one finished file
+  // beside three queued ones is still a folder you can drag; before, that one
+  // settled row was enough to make the whole folder immovable for no reason
+  // the person dragging it could see.
   function packageBand(name: string): string | null {
-    const items = view.find(([n]) => n === name)?.[1] ?? [];
+    const items = (view.find(([n]) => n === name)?.[1] ?? []).filter(movable);
     if (items.length === 0) return null;
     const first = bandOf(items[0]);
     return items.every((x) => bandOf(x) === first) ? first : null;
@@ -1457,14 +1490,17 @@ export function TaskListCard({
   function unitBand(u: RowDragKey): string | null {
     if (u.kind === 'task') {
       const t = taskById.get(u.id);
-      return t ? bandOf(t) : null;
+      return t && movable(t) ? bandOf(t) : null;
     }
     return packageBand(u.name);
   }
 
   function unitIds(u: RowDragKey): string[] {
-    if (u.kind === 'task') return [u.id];
-    return (view.find(([n]) => n === u.name)?.[1] ?? []).map((x) => x.id);
+    if (u.kind === 'task') {
+      const t = taskById.get(u.id);
+      return t && movable(t) ? [u.id] : [];
+    }
+    return (view.find(([n]) => n === u.name)?.[1] ?? []).filter(movable).map((x) => x.id);
   }
 
   // The splice math behind both a live preview and the eventual drop: the
@@ -1510,23 +1546,53 @@ export function TaskListCard({
     // support a list that crosses a band.
     const without = reorderedBand(dragged, target, after);
     if (!without) return;
-    // Fired and forgotten, like every other queue action on this row: there
-    // is no local override of the task order to unwind if this fails, so
-    // the next poll/WS tick is what settles rows back where the server
-    // actually put them.
-    void reorderTasks(without, base);
+    // There is still no local override of the task order to unwind if this
+    // fails - the next poll/WS tick is what settles rows back where the
+    // server actually put them - but a refusal has to SAY something. This
+    // used to be a bare `void reorderTasks(...)`, and reorderTasks throws
+    // with the server's own sentence (api.ts, ok()); swallowing that meant a
+    // rejected drag was indistinguishable from a drag the app never noticed,
+    // which is precisely how it was reported ("funktioniert überhaupt
+    // nicht"). One toast turns a silent nothing into a reason.
+    reorderTasks(without, base).catch((err) =>
+      toast(t('list.failed', { error: err instanceof Error ? err.message : String(err) }), 'fail'),
+    );
+  }
+
+  // The shared tail of both drop handlers: commit the drag against `target`,
+  // using whichever half of it the pointer is on.
+  //
+  // A FOLDER drag is committed where the live preview has been showing it
+  // (dragOver) rather than against the element the pointer happens to be
+  // over. previewOver below deliberately aims a folder at other folder
+  // HEADERS only, so reading the drop off a link row instead would commit it
+  // against a different unit than the one the preview just slid it next to -
+  // the drag would land somewhere nobody aimed at.
+  function dropAt(target: RowDragKey, e: DragEvent<HTMLElement>): void {
+    e.preventDefault();
+    if (rowDrag?.kind === 'package' && dragOver) {
+      dropRow(dragOver.target, dragOver.after);
+      return;
+    }
+    const r = e.currentTarget.getBoundingClientRect();
+    dropRow(target, e.clientY > r.top + r.height / 2);
   }
 
   function dropOnTask(id: string, e: DragEvent<HTMLElement>): void {
-    e.preventDefault();
-    const r = e.currentTarget.getBoundingClientRect();
-    dropRow({ kind: 'task', id }, e.clientY > r.top + r.height / 2);
+    // A folder dropped onto one of ANOTHER folder's links means "next to that
+    // folder", never "into the middle of it": groupByPackage below re-merges
+    // every row of a package at the package's first appearance, so a folder
+    // spliced between another's links does not stay there - it silently
+    // relocates. Redirecting to the link's own package is the outcome that
+    // actually exists. (Only reached when no preview ran; dropAt normally
+    // commits the folder against dragOver.)
+    const target: RowDragKey =
+      rowDrag?.kind === 'package' ? { kind: 'package', name: taskById.get(id)?.package ?? '' } : { kind: 'task', id };
+    dropAt(target, e);
   }
 
   function dropOnPackage(name: string, e: DragEvent<HTMLElement>): void {
-    e.preventDefault();
-    const r = e.currentTarget.getBoundingClientRect();
-    dropRow({ kind: 'package', name }, e.clientY > r.top + r.height / 2);
+    dropAt({ kind: 'package', name }, e);
   }
 
   // dragOver's own hit test, shared by every row's and package header's own
@@ -1548,6 +1614,13 @@ export function TaskListCard({
     let best: { unit: RowDragKey; top: number; bottom: number } | null = null;
     let bestDist = Infinity;
     for (const slot of rowSlotsRef.current) {
+      // A whole folder only ever aims at another folder's header. Its links
+      // are not landing slots for it: groupByPackage re-merges a package at
+      // its first appearance, so "between two links of folder B" is not a
+      // place a folder can come to rest, and offering it as a target meant
+      // the folder appeared to land there and then turned up somewhere else.
+      // A link dragged on its own still aims at anything, unchanged.
+      if (rowDrag.kind === 'package' && slot.unit.kind !== 'package') continue;
       if (unitBand(slot.unit) !== band) continue;
       const dist = y < slot.top ? slot.top - y : y > slot.bottom ? y - slot.bottom : 0;
       if (dist < bestDist) {
@@ -1588,24 +1661,54 @@ export function TaskListCard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rowDrag, dragOver, bandOrder]);
 
-  // The live-preview order applied to what actually renders: each group's
-  // own tasks, re-sorted by where liveBandOrder above says they now sit -
-  // groupByPackage's own contract (render order follows array order) means
-  // this is the one place that has to change for every row below to move,
-  // not each row deciding for itself where it is.
+  // The live-preview order applied to what actually renders.
+  //
+  // This used to re-sort each group's own tasks in place, which moved LINKS
+  // and could never move a FOLDER: the list of groups itself kept its order,
+  // and since reorderedBand keeps a package's ids contiguous, dragging a
+  // folder rearranged nothing at all on screen ("Ich kann ordner nicht per
+  // drag and drop verschieben", jdp). The preview is now built the way the
+  // real list is - one flat run of tasks handed to groupByPackage - so a
+  // folder that moved past another folder genuinely comes out in the new
+  // place, and so does the answer the server will send back. That is the
+  // point of reusing groupByPackage rather than re-deriving a group order
+  // here: the preview cannot promise an arrangement the committed order
+  // would not produce, because both come out of the same function.
+  //
+  // Only the dragged band's own slots are refilled, in liveBandOrder's new
+  // order, and every other row keeps the slot it holds: the same rule the
+  // server applies to a partial band ("put THESE tasks in THIS order, in the
+  // slots they already occupy", App.ReorderBand). That is what keeps a
+  // second band on screen, and the finished/failed rows that are in no band
+  // at all, from being dragged around by a move they have nothing to do
+  // with.
   const liveView = useMemo(() => {
     if (!rowDrag || !dragOver) return view;
-    const indexOf = new Map<string, number>();
-    for (const ids of liveBandOrder.values()) ids.forEach((id, i) => indexOf.set(id, i));
-    return view.map(([name, items]) => {
-      const reordered = [...items].sort((a, b) => {
-        const ia = indexOf.get(a.id);
-        const ib = indexOf.get(b.id);
-        if (ia === undefined || ib === undefined) return 0;
-        return ia - ib;
-      });
-      return [name, reordered] as [string, Task[]];
+    const band = unitBand(rowDrag);
+    if (!band) return view;
+    const reordered = liveBandOrder.get(band);
+    if (!reordered) return view;
+    const member = new Set(reordered);
+    const flat = view.flatMap(([, items]) => items);
+    const byId = new Map(flat.map((x) => [x.id, x] as const));
+    const slots: number[] = [];
+    flat.forEach((x, i) => {
+      if (member.has(x.id)) slots.push(i);
     });
+    // One slot per id or the two lists describe different things and there is
+    // nothing honest to preview - a mismatch would place one task into two
+    // slots, which React would then render as two rows with the same key.
+    if (slots.length !== reordered.length) return view;
+    const shuffled = [...flat];
+    slots.forEach((at, i) => {
+      const t = byId.get(reordered[i]);
+      if (t) shuffled[at] = t;
+    });
+    return groupByPackage(shuffled);
+    // unitBand reads view and taskById, both of which liveBandOrder already
+    // varies with; listing them again would only re-run this on renders that
+    // cannot change its result.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, rowDrag, dragOver, liveBandOrder]);
 
   // FLIP (First-Last-Invert-Play): a reorder driven by liveView above moves

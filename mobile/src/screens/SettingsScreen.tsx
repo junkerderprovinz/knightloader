@@ -1,7 +1,8 @@
-import { useCallback, useRef, useState } from 'react';
-import { Alert, Linking, Platform, ScrollView, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert, Linking, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Constants from 'expo-constants';
+import * as Clipboard from 'expo-clipboard';
 import { useT } from '../i18n/I18nContext';
 import { LANGUAGES, flagEmoji } from '../i18n/catalogue';
 import { getLanguageOverride } from '../storage/languagePreference';
@@ -10,7 +11,7 @@ import { useAppearance } from '../theme/AppearanceContext';
 import { ACCENTS, SHAPES, accentSlot, type Shape } from '../theme/appearance';
 import { TYPE } from '../theme/tokens';
 import { GlimButton, GlimRow, GlimToggle, NotchCard, Swatch, SwatchReset, WellSelector } from '../components/glim';
-import IconBadge, { Back, Coffee, Github, Mail } from '../components/IconBadge';
+import IconBadge, { Back, Coffee, Github, Mail, Paste } from '../components/IconBadge';
 import ColorPicker from '../components/ColorPicker';
 
 const GITHUB_URL = 'https://github.com/junkerderprovinz/knightloader';
@@ -76,6 +77,8 @@ export default function SettingsScreen({
     overridden,
     setAccent,
     accentCustoms,
+    accentSlotChosen,
+    chooseAccentSlot,
     setAccentCustom,
     clearAccentCustoms,
     setShape,
@@ -89,7 +92,13 @@ export default function SettingsScreen({
   /** Which colour the picker is open on, or null. One piece of state for both
    *  rows: only one picker can be open, so only one of them can be the subject
    *  of it. */
-  const [picking, setPicking] = useState<{ kind: 'accent'; slot: number } | { kind: 'palette'; index: number } | null>(null);
+  // `hex` rides along so the picker opens on the colour of the swatch that was
+  // pressed. Reading the accent instead showed a DIFFERENT slot's colour as soon
+  // as two of them differed, and the first drag then wrote that foreign colour
+  // into this slot.
+  const [picking, setPicking] = useState<
+    { kind: 'accent'; slot: number; hex: string } | { kind: 'palette'; index: number } | null
+  >(null);
   /** Why a palette edit did not reach the instance. Shown rather than
    *  swallowed: this is the one control on the page that goes over the wire. */
   const [paletteError, setPaletteError] = useState('');
@@ -97,6 +106,26 @@ export default function SettingsScreen({
    *  a ref and not state, because nothing renders from it and re-rendering the
    *  whole page on every frame of a drag would be the point of holding it. */
   const draft = useRef<string | null>(null);
+  /** True for a moment after the report reached the clipboard, so the button
+   *  can say so in its own label.
+   *
+   *  A clipboard write is invisible, and this screen has no toast, no
+   *  snackbar and no status line of its own (paletteError is the one message
+   *  it owns, and it belongs to the colour rows). Without the label swap the
+   *  button would look dead on every press, which is exactly how the old
+   *  share sheet did NOT look: that one opened a whole system panel, so it
+   *  carried its own confirmation. Copying has to bring its own. */
+  const [copied, setCopied] = useState(false);
+  const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // The timer has to die with the screen: its callback calls setCopied, and a
+  // press followed straight away by a back tap would otherwise land that call
+  // on a component that is gone.
+  useEffect(
+    () => () => {
+      if (copiedTimer.current) clearTimeout(copiedTimer.current);
+    },
+    [],
+  );
 
   // What a bug report actually needs, and nothing more. No address, no token:
   // an address is somebody's home network, and a token is a credential - both
@@ -252,15 +281,22 @@ export default function SettingsScreen({
               // remembered colour lives in the override layer, so it survives
               // the app being closed as well as the next swatch being pressed.
               const shown = accentCustoms[String(i)] ?? a.hex;
-              // Selected is an EXACT match first, and only then the nearest
-              // preset: two slots mixed to nearby colours must not both light
-              // up, and the accent has to be able to sit on the slot it was
-              // actually mixed in rather than the one it drifted closest to.
-              const exact = accentCustoms[String(i)]?.toLowerCase() === accent.toLowerCase();
-              const mine =
-                exact ||
-                (!Object.values(accentCustoms).some((h) => h.toLowerCase() === accent.toLowerCase()) &&
-                  i === accentSlot(accent));
+              // WHICH slot is chosen is a STORED fact, not arithmetic on the
+              // colour (jdp, 2026-09-02: "wenn ich zb. alle farbfelder rot
+              // machen will geht das nicht. nicht alle farbfelder speichern dann
+              // die farbe").
+              //
+              // Deriving the choice by nearest preset works only while every
+              // swatch holds a different colour. Mix two of them to the same red
+              // and both match: two swatches light up at once, and a press on
+              // either opens the picker instead of choosing, so the row stops
+              // behaving like a row. A choice is not recoverable from a value
+              // once two values are equal.
+              //
+              // The arithmetic stays as the fallback for a fresh install, where
+              // nobody has chosen anything yet and the nearest preset is the
+              // right answer.
+              const mine = accentSlotChosen !== undefined ? accentSlotChosen === i : i === accentSlot(accent);
               return (
                 <Swatch
                   key={a.hex}
@@ -271,7 +307,9 @@ export default function SettingsScreen({
                   // opens the picker on it. The pairing is what lets every
                   // colour be editable without a ninth control beside the eight
                   // - identical to the extension's own row.
-                  onPress={() => (mine ? setPicking({ kind: 'accent', slot: i }) : setAccent(shown))}
+                  onPress={() =>
+                    mine ? setPicking({ kind: 'accent', slot: i, hex: shown }) : chooseAccentSlot(i, shown)
+                  }
                 />
               );
             })}
@@ -367,14 +405,52 @@ export default function SettingsScreen({
             {report}
           </Text>
         </View>
-        {/* Share only (jdp, 2026-08-31: "In der Probleme-card den Problem
-            melden button weg. auch in der App"). The About card below carries
-            both routes to reporting; a third door here, differently shaped and
-            hard-wired to one of them, made this card a second answer to a
-            question that card already answers. What this card is FOR is the
-            report: take it, then use whichever route you prefer. */}
+        {/* One button, and it COPIES (jdp, 2026-09-02: "Der Bericht teilen
+            button soll bericht kopieren button heißen (mit glyph), in allen
+            instanzen"). It used to hand the text to Share.share, which opens
+            the system share sheet and then asks the person to pick a target
+            app for a block of plain text they are about to paste into a GitHub
+            issue or a mail anyway. The clipboard is that target, so the sheet
+            was a step between the report and the place it was going. The
+            extension has copied since it shipped; this makes the three
+            surfaces agree on the verb, the label and the glyph.
+
+            The About card below carries both routes to reporting; a third
+            door here, differently shaped and hard-wired to one of them, made
+            this card a second answer to a question that card already answers
+            (jdp, 2026-08-31: "In der Probleme-card den Problem melden button
+            weg. auch in der App"). What this card is FOR is the report: take
+            it, then use whichever route you prefer.
+
+            Paste, the clipboard glyph, and not a pair of offset sheets: this
+            family already draws the clipboard for the relay screen's paste
+            button, and a second, near-identical mark for the opposite
+            direction would be two glyphs where the person only ever needs to
+            recognise one idea, "this is about the clipboard". */}
         <View style={styles.buttonRow}>
-          <GlimButton hue={0} tone="quiet" label={t('settings.problemsCopy')} onPress={() => Share.share({ message: report })} />
+          <GlimButton
+            hue={0}
+            label={copied ? t('settings.problemsCopied') : t('settings.problemsCopy')}
+            icon={(ink) => <Paste color={ink} />}
+            onPress={() => {
+              // Confirm only once the write has actually landed, so the label
+              // never claims a copy that did not happen.
+              void Clipboard.setStringAsync(report)
+                .then(() => {
+                  setCopied(true);
+                  if (copiedTimer.current) clearTimeout(copiedTimer.current);
+                  copiedTimer.current = setTimeout(() => setCopied(false), 2000);
+                })
+                // Swallowed, and the label simply stays as it was: the report
+                // sits selectable in the box right above this button, so a
+                // failed clipboard write leaves the person exactly where an
+                // error message would have sent them anyway. Left unhandled
+                // this would be a red unhandled-rejection warning over the
+                // screen, which is a worse answer than a button that did
+                // nothing visible.
+                .catch(() => undefined);
+            }}
+          />
         </View>
       </NotchCard>
 
@@ -422,8 +498,7 @@ export default function SettingsScreen({
         <View style={styles.buttonRow}>
           <GlimButton
             hue={1}
-            tone="quiet"
-            label={t('settings.aboutCoffeeButton')}
+                        label={t('settings.aboutCoffeeButton')}
             icon={(ink) => <Coffee color={ink} />}
             onPress={() => Linking.openURL(COFFEE_URL)}
           />
@@ -432,16 +507,14 @@ export default function SettingsScreen({
         <View style={styles.buttonRow}>
           <GlimButton
             hue={2}
-            tone="quiet"
-            grow
+                        grow
             label={t('settings.aboutGithub')}
             icon={(ink) => <Github color={ink} />}
             onPress={() => Linking.openURL(GITHUB_URL)}
           />
           <GlimButton
             hue={3}
-            tone="quiet"
-            grow
+                        grow
             label={t('settings.aboutMail')}
             icon={(ink) => <Mail color={ink} />}
             // A plain mailto, subject prefilled so a mail arrives already saying
@@ -476,7 +549,11 @@ export default function SettingsScreen({
           would make its lifetime depend on that row still being rendered. */}
       <ColorPicker
         visible={picking !== null}
-        initial={picking?.kind === 'palette' ? (rainbow.palette[picking.index] ?? accent) : accent}
+        /* The colour of the swatch that was pressed, never the accent. Opening
+           on the accent showed the colour of a DIFFERENT slot the moment two of
+           them differed, and the first drag then wrote that foreign colour into
+           this slot. */
+        initial={picking?.kind === 'palette' ? (rainbow.palette[picking.index] ?? accent) : (picking?.hex ?? accent)}
         onPick={(hex) => {
           if (!picking) return;
           if (picking.kind === 'accent') {

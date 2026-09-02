@@ -1,4 +1,4 @@
-import type { TaskStatus } from '../lib/api';
+import type { Task, TaskStatus } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
 
 // Four state hues only: gold = running, green = settled, red = fault,
@@ -54,7 +54,26 @@ const resolverLabel: Record<string, string> = {
   http: 'HTTP',
 };
 
-// Which backend carries a task — quiet by design, it is metadata, not status.
-export function ResolverBadge({ resolver }: { resolver: string }) {
-  return <span className="text-[11px] text-carbon-textMuted">{resolverLabel[resolver] ?? resolver}</span>;
+/**
+ * Which backend carries a task, and whether it goes out on an account.
+ *
+ * Quiet by design, both halves: this is metadata, not status, so it takes the
+ * muted ink and no ground of its own. The mode is a second word rather than a
+ * colour or a badge for the same reason - "free" is not a warning, it is an
+ * answer to a question that previously had none (jdp, 2026-09-02: "Wenn man
+ * links runterladen möchte für die kein premium account hinterlegt ist muss das
+ * angezeigt werden"). A link with no account behind it looked exactly like one
+ * with an account behind it, right up until it was slow or asking for a captcha.
+ *
+ * Nothing is drawn for a plain file: an ordinary download is neither free nor
+ * premium, and a word there would answer a question nobody asked.
+ */
+export function ResolverBadge({ resolver, mode }: { resolver: string; mode?: Task['mode'] }) {
+  const { t } = useT();
+  return (
+    <span className="text-[11px] text-carbon-textMuted">
+      {resolverLabel[resolver] ?? resolver}
+      {mode ? ` · ${t(mode === 'premium' ? 'task.mode.premium' : 'task.mode.free')}` : ''}
+    </span>
+  );
 }

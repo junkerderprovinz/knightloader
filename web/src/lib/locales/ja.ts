@@ -1221,8 +1221,10 @@ export const ja: Dict = {
   'settings.help.advanced.body':
     'このビルドのすべての設定は、詳細ページでその生の名前によって読み書きできます。すでにダウンロードされたファイルのミラーがどう扱われるか、ダウンロードがすでに使われている名前に行き着いた場合どうなるかなど、まだ他に専用のコントロールがないものもいくつか含まれます。',
   'settings.help.advanced.link': '詳細設定を開く',
+  'task.mode.free': '無料',
+  'task.mode.premium': 'プレミアム',
   'settings.about.title': 'KnightLoader について',
-  'settings.about.body': '平日の夜と週末に、ひとりで書きました。ほかのダウンロードマネージャーはどれも、一度で足りるところに二度のクリックを求めてきたからです。',
+  'settings.about.body': '自分のサーバーで動く、すっきりした画面のダウンロードマネージャー。JDownloader の代わりになります。エンジンも API も画面もひとつのプログラムに収まっていて、ほかに入れるものはありません。平日の夜と週末に書きました。ほかのどれもが、一度で足りるところに二度のクリックを求めてきたからです。',
   'settings.about.coffeeButton': 'コーヒーをおごる',
   'settings.about.coffee': 'KnightLoader を気に入っていただけましたか。コーヒー一杯で一日が明るくなります。',
   'settings.about.report': '問題、要望、改善案はありますか。GitHub で issue を立てるか、メールを送ってください。',

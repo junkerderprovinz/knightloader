@@ -322,6 +322,30 @@ export default function DragList({
       style={style}
       data={rows}
       keyExtractor={(r) => r.key}
+      /**
+       * THE ONE LINE THE WHOLE GESTURE HANGS ON, and its absence is why drag
+       * and drop looked broken for four rounds (jdp, 2026-09-02: "das drag and
+       * drop funktioniert nicht richtig. Was ist das problem? Warum bekommst du
+       * es nicht hin?").
+       *
+       * VirtualizedList re-renders a cell only when `data` changes by REFERENCE
+       * or when `extraData` does. `renderItem` below reads `drag` out of the
+       * closure - a value the list knows nothing about - so without this line a
+       * drag can change nothing on screen: the neighbours never step aside and
+       * the lifted row never lifts.
+       *
+       * It survived this long by accident. `rows` used to be rebuilt on every
+       * render (PackageList maps the task list into fresh objects), so the
+       * reference changed constantly and the cells were redrawn for the wrong
+       * reason. Freezing the list during a drag - correct, and the fix for the
+       * list re-sorting under the finger - made that reference STABLE, which
+       * silently switched off the only thing that had been redrawing the rows.
+       *
+       * **The lesson worth keeping: making a reference stable also switches off
+       * everything that was depending on it changing.** The freeze did not break
+       * the drag; it removed the accident that had been hiding this.
+       */
+      extraData={drag}
       // A list that scrolls under a finger dragging a row is a list fighting the
       // gesture.
       scrollEnabled={drag === null}
@@ -332,7 +356,11 @@ export default function DragList({
         const gezogen = drag?.from === index;
         const armed = drag !== null;
         let versatz = 0;
-        if (drag && !gezogen && rows[index].band === rows[drag.from].band) {
+        // Guarded, because a row render that throws takes the whole list with
+        // it. drag.from is an index into the FROZEN list and cannot normally be
+        // out of range, but "cannot normally" is not a reason to crash the
+        // screen if it ever is.
+        if (drag && !gezogen && rows[drag.from] && rows[index].band === rows[drag.from].band) {
           if (drag.from < drag.to && index > drag.from && index <= drag.to) versatz = -gezogeneHoehe;
           if (drag.from > drag.to && index >= drag.to && index < drag.from) versatz = gezogeneHoehe;
         }
