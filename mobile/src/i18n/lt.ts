@@ -82,7 +82,7 @@ export const lt: Dict = {
   'settings.version': 'Versija {version}',
   'settings.githubLink': 'Žiūrėti „GitHub“',
   'settings.aboutTitle': 'Apie KnightLoader',
-  'settings.aboutBody': 'Rašyta vakarais ir savaitgaliais, su daugiau kavos, nei patartina, nes kiekvienas kitas atsisiuntimų tvarkytuvas norėjo dviejų spustelėjimų ten, kur užteko vieno.',
+  'settings.aboutBody': 'Parašyta vakarais ir savaitgaliais, vieno žmogaus, nes kiekviena kita atsisiuntimų tvarkyklė norėjo dviejų spustelėjimų ten, kur užteko vieno.',
   'settings.accentReset': 'Numatytoji',
   'settings.aboutCoffeeButton': 'Pavaišinti kava',
   'settings.aboutCoffee': 'Patinka „KnightLoader“? Puodelis kavos nudžiugintų.',

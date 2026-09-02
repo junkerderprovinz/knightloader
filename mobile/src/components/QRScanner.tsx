@@ -4,6 +4,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
+import { GlimButton } from './glim';
 
 // A full-screen modal scanner, not a screen of its own: every place that
 // wants a QR code (the address card on ConnectScreen, a pairing code on
@@ -11,7 +12,7 @@ import { useT } from '../i18n/I18nContext';
 // in the navigation stack.
 export default function QRScanner({ visible, onScanned, onClose, hint }: { visible: boolean; onScanned: (data: string) => void; onClose: () => void; hint: string }) {
   const { t } = useT();
-  const { c, accent, accentContrast, radii } = useAppearance();
+  const { c, accent, radii } = useAppearance();
   const [permission, requestPermission] = useCameraPermissions();
   const [locked, setLocked] = useState(false);
 
@@ -39,12 +40,7 @@ export default function QRScanner({ visible, onScanned, onClose, hint }: { visib
         ) : !permission.granted ? (
           <View style={styles.center}>
             <Text style={[styles.hint, { color: c.text }]}>{t('qr.cameraPermissionHint')}</Text>
-            <TouchableOpacity
-              style={[styles.button, { backgroundColor: accent, borderRadius: radii.control }]}
-              onPress={requestPermission}
-            >
-              <Text style={[styles.buttonText, { color: accentContrast }]}>{t('qr.grantAccess')}</Text>
-            </TouchableOpacity>
+            <GlimButton hue={0} label={t('qr.grantAccess')} onPress={requestPermission} />
           </View>
         ) : (
           <>
@@ -83,8 +79,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   hint: { fontSize: TYPE.body, textAlign: 'center', paddingHorizontal: 32 },
-  button: { paddingVertical: 12, paddingHorizontal: 20 },
-  buttonText: { fontSize: 15, fontWeight: '600' },
   close: {
     position: 'absolute',
     top: 56,

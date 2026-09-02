@@ -9,8 +9,8 @@ import { removeAllConnections } from '../storage/connections';
 import { useAppearance } from '../theme/AppearanceContext';
 import { ACCENTS, SHAPES, accentSlot, type Shape } from '../theme/appearance';
 import { TYPE } from '../theme/tokens';
-import { GlimRow, GlimToggle, NotchCard, Swatch, SwatchReset, WellSelector } from '../components/glim';
-import IconBadge, { Back, Bug, Coffee, Mail } from '../components/IconBadge';
+import { GlimButton, GlimRow, GlimToggle, NotchCard, Swatch, SwatchReset, WellSelector } from '../components/glim';
+import IconBadge, { Back, Coffee, Github, Mail } from '../components/IconBadge';
 import ColorPicker from '../components/ColorPicker';
 
 const GITHUB_URL = 'https://github.com/junkerderprovinz/knightloader';
@@ -75,6 +75,9 @@ export default function SettingsScreen({
     rainbow,
     overridden,
     setAccent,
+    accentCustoms,
+    setAccentCustom,
+    clearAccentCustoms,
     setShape,
     setTheme,
     setRainbow,
@@ -86,7 +89,7 @@ export default function SettingsScreen({
   /** Which colour the picker is open on, or null. One piece of state for both
    *  rows: only one picker can be open, so only one of them can be the subject
    *  of it. */
-  const [picking, setPicking] = useState<{ kind: 'accent' } | { kind: 'palette'; index: number } | null>(null);
+  const [picking, setPicking] = useState<{ kind: 'accent'; slot: number } | { kind: 'palette'; index: number } | null>(null);
   /** Why a palette edit did not reach the instance. Shown rather than
    *  swallowed: this is the one control on the page that goes over the wire. */
   const [paletteError, setPaletteError] = useState('');
@@ -239,23 +242,36 @@ export default function SettingsScreen({
               again. He asked for it plainly and it is one word to reverse. */}
           <View style={[styles.swatches, rainbow.on && styles.dimmed]} pointerEvents={rainbow.on ? 'none' : 'auto'}>
             {ACCENTS.map((a, i) => {
-              // The slot in force wears the LIVE colour, so an accent mixed in
-              // the picker is visible in the row rather than only in the app
-              // around it. Same rule, same nearest-preset arithmetic as the
-              // extension's accentSlot and the web's.
-              const mine = i === accentSlot(accent);
-              const shown = mine ? accent : a.hex;
+              // Each slot wears whatever it was last mixed to, and keeps it.
+              //
+              // It used to wear the live accent drawn over its nearest preset,
+              // which meant the row could hold exactly one mixed colour: choose
+              // any other swatch and the mixed one was simply gone (jdp,
+              // 2026-09-01: "wenn man ein Farbfeld bearbeitet setzt es die farbe
+              // wieder zurück, sobald man ein anderes farbfeld auswählt"). The
+              // remembered colour lives in the override layer, so it survives
+              // the app being closed as well as the next swatch being pressed.
+              const shown = accentCustoms[String(i)] ?? a.hex;
+              // Selected is an EXACT match first, and only then the nearest
+              // preset: two slots mixed to nearby colours must not both light
+              // up, and the accent has to be able to sit on the slot it was
+              // actually mixed in rather than the one it drifted closest to.
+              const exact = accentCustoms[String(i)]?.toLowerCase() === accent.toLowerCase();
+              const mine =
+                exact ||
+                (!Object.values(accentCustoms).some((h) => h.toLowerCase() === accent.toLowerCase()) &&
+                  i === accentSlot(accent));
               return (
                 <Swatch
                   key={a.hex}
                   hex={shown}
-                  label={mine && shown.toLowerCase() !== a.hex.toLowerCase() ? shown.toUpperCase() : a.name}
+                  label={shown.toLowerCase() !== a.hex.toLowerCase() ? shown.toUpperCase() : a.name}
                   selected={mine}
                   // One press chooses; a second press on the one already chosen
                   // opens the picker on it. The pairing is what lets every
                   // colour be editable without a ninth control beside the eight
                   // - identical to the extension's own row.
-                  onPress={() => (mine ? setPicking({ kind: 'accent' }) : setAccent(a.hex))}
+                  onPress={() => (mine ? setPicking({ kind: 'accent', slot: i }) : setAccent(shown))}
                 />
               );
             })}
@@ -265,7 +281,7 @@ export default function SettingsScreen({
                 moment it is missing - they check whether a reset exists BEFORE
                 deciding to experiment. Same rule, same place, as the extension's
                 own row. */}
-            <SwatchReset onPress={() => setAccent('')} label={t('settings.accentReset')} />
+            <SwatchReset onPress={clearAccentCustoms} label={t('settings.accentReset')} />
           </View>
         </View>
 
@@ -358,12 +374,7 @@ export default function SettingsScreen({
             question that card already answers. What this card is FOR is the
             report: take it, then use whichever route you prefer. */}
         <View style={styles.buttonRow}>
-          <TouchableOpacity
-            style={[styles.button, { backgroundColor: c.surface2, borderRadius: radii.control }]}
-            onPress={() => Share.share({ message: report })}
-          >
-            <Text style={[styles.buttonText, { color: c.text }]}>{t('settings.problemsCopy')}</Text>
-          </TouchableOpacity>
+          <GlimButton hue={0} tone="quiet" label={t('settings.problemsCopy')} onPress={() => Share.share({ message: report })} />
         </View>
       </NotchCard>
 
@@ -409,25 +420,30 @@ export default function SettingsScreen({
             buttons reads as a form. */}
         <Text style={[styles.aboutText, { color: c.textSub }]}>{t('settings.aboutCoffee')}</Text>
         <View style={styles.buttonRow}>
-          <TouchableOpacity
-            style={[styles.button, { backgroundColor: c.surface2, borderRadius: radii.control }]}
+          <GlimButton
+            hue={1}
+            tone="quiet"
+            label={t('settings.aboutCoffeeButton')}
+            icon={(ink) => <Coffee color={ink} />}
             onPress={() => Linking.openURL(COFFEE_URL)}
-          >
-            <Coffee color={c.text} />
-            <Text style={[styles.buttonText, { color: c.text }]}>{t('settings.aboutCoffeeButton')}</Text>
-          </TouchableOpacity>
+          />
         </View>
         <Text style={[styles.aboutText, { color: c.textSub }]}>{t('settings.aboutReport')}</Text>
         <View style={styles.buttonRow}>
-          <TouchableOpacity
-            style={[styles.button, { backgroundColor: c.surface2, borderRadius: radii.control }]}
+          <GlimButton
+            hue={2}
+            tone="quiet"
+            grow
+            label={t('settings.aboutGithub')}
+            icon={(ink) => <Github color={ink} />}
             onPress={() => Linking.openURL(GITHUB_URL)}
-          >
-            <Bug color={c.text} />
-            <Text style={[styles.buttonText, { color: c.text }]}>{t('settings.aboutGithub')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.button, { backgroundColor: c.surface2, borderRadius: radii.control }]}
+          />
+          <GlimButton
+            hue={3}
+            tone="quiet"
+            grow
+            label={t('settings.aboutMail')}
+            icon={(ink) => <Mail color={ink} />}
             // A plain mailto, subject prefilled so a mail arrives already saying
             // which product it is about. No body: a prefilled body reads as a
             // form to fill in, and this is meant to be a message somebody
@@ -437,10 +453,7 @@ export default function SettingsScreen({
                 `mailto:${CONTACT_MAIL}?subject=${encodeURIComponent(`KnightLoader ${t('settings.aboutMailSubject')}`)}`,
               )
             }
-          >
-            <Mail color={c.text} />
-            <Text style={[styles.buttonText, { color: c.text }]}>{t('settings.aboutMail')}</Text>
-          </TouchableOpacity>
+          />
         </View>
       </NotchCard>
 
@@ -448,12 +461,7 @@ export default function SettingsScreen({
         {/* A surface with red INK, not a red outline: the fail colour carries
             the meaning, and this language draws no outlines. The confirmation
             dialog is where the actually destructive control lives. */}
-        <TouchableOpacity
-          style={[styles.button, { backgroundColor: c.surface2, borderRadius: radii.control }]}
-          onPress={confirmRemoveAll}
-        >
-          <Text style={[styles.buttonText, { color: c.statusFailSolid }]}>{t('settings.removeAllConnections')}</Text>
-        </TouchableOpacity>
+        <GlimButton tone="danger" label={t('settings.removeAllConnections')} onPress={confirmRemoveAll} />
       </NotchCard>
 
       {/* No version footer any more (jdp, 2026-08-31: "Die vversionsnummer
@@ -474,7 +482,9 @@ export default function SettingsScreen({
           if (picking.kind === 'accent') {
             // Local and immediate: the accent is this app's own choice, so
             // there is nothing to wait for and the whole page follows the drag.
-            setAccent(hex);
+            // Written against the SLOT it was opened on, so the mixed colour is
+            // still there after another swatch has been chosen.
+            setAccentCustom(picking.slot, hex);
             return;
           }
           // A palette position goes to the INSTANCE, so it is held rather than
@@ -531,7 +541,12 @@ const styles = StyleSheet.create({
   // Swatch's own note), so nine of them fit whatever the phone is. `flex: 1`
   // here rather than flexShrink, because the row has to CLAIM the space left
   // over by the label instead of only agreeing to give some back.
-  swatches: { flexDirection: 'row', gap: 4, alignItems: 'center', justifyContent: 'flex-end', flex: 1 },
+  /* 2, not 4 (jdp, 2026-09-01: "die farbfelder können näher zusammen"). Nine
+     circles and eight gaps share whatever the label leaves of one line, so the
+     gap is the only number that decides whether they read as one row of colours
+     or as nine separate controls. Halving it also hands each circle two more
+     points of its own, which is where the size actually went. */
+  swatches: { flexDirection: 'row', gap: 2, alignItems: 'center', justifyContent: 'flex-end', flex: 1 },
   // A row that is shown and not offered. Dimmed rather than hidden: eight
   // colours that are not in use are still the answer to "which eight", and a
   // control that disappears teaches nobody why.
@@ -541,5 +556,4 @@ const styles = StyleSheet.create({
   buttonRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
   // A row, so the glyph and the label sit together rather than stacking.
   button: { flexDirection: 'row', gap: 8, paddingVertical: 11, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center', flexShrink: 1 },
-  buttonText: { fontSize: TYPE.dense, fontWeight: '500' },
 });

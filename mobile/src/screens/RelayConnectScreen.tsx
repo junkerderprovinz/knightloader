@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, Easing, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Animated, Easing, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
 import QRScanner from '../components/QRScanner';
 import { closeRelayClient, relayClientFor, type RelaySibling } from '../api/relayClient';
 import { DEFAULT_RELAY_URL, PhraseError, frameKeyFromPhrase, keyFromPhrase } from '../api/seedphrase';
@@ -10,6 +10,7 @@ import type { RelayConnection, ServerConnection } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
+import { GlimButton } from '../components/glim';
 import IconBadge, { Back, Connect, Paste, Scan } from '../components/IconBadge';
 import * as Clipboard from 'expo-clipboard';
 
@@ -52,7 +53,7 @@ export default function RelayConnectScreen({
   onBack: () => void;
 }) {
   const { t } = useT();
-  const { c, accent, accentContrast, radii } = useAppearance();
+  const { c, accent, radii } = useAppearance();
   const [phrase, setPhrase] = useState('');
   const [searching, setSearching] = useState(false);
   const [scanning, setScanning] = useState(false);
@@ -259,64 +260,50 @@ export default function RelayConnectScreen({
 
           Clipboard.getStringAsync rather than the TextInput's own long-press
           menu: that menu exists, and finding it means knowing it is there. */}
-      <TouchableOpacity
-        style={[styles.button, { backgroundColor: accent, borderRadius: radii.control }]}
+      <GlimButton
+        hue={0}
+        label={t('relay.pasteButton')}
+        icon={(ink) => <Paste color={ink} />}
+        disabled={searching}
         onPress={async () => {
           setError(null);
           const text = await Clipboard.getStringAsync();
           if (text.trim()) setPhrase(text.trim());
         }}
-        disabled={searching}
-      >
-        <Paste color={accentContrast} />
-        <Text style={[styles.buttonText, { color: accentContrast }]}>{t('relay.pasteButton')}</Text>
-      </TouchableOpacity>
+      />
 
       <Animated.View
         style={{
           transform: [{ translateX: wackeln.interpolate({ inputRange: [-1, 1], outputRange: [-7, 7] }) }],
         }}
       >
-      <TouchableOpacity
-        style={[
-          styles.button,
-          { backgroundColor: accent, borderRadius: radii.control },
-          searching && styles.buttonDisabled,
-        ]}
+      <GlimButton
+        hue={1}
+        label={t('relay.joinButton')}
+        icon={(ink) => <Connect color={ink} />}
+        busy={searching}
         // Wrapped, not passed directly: onPress hands its handler the touch
         // event, which join() would now read as the scanned phrase. tsc
         // caught it the moment join grew that parameter - untyped, it would
         // have shipped as "the Connect button says your phrase is not twelve
         // words" with no clue why.
         onPress={() => void join()}
-        disabled={searching}
-      >
-        {searching ? (
-          <ActivityIndicator color={accentContrast} />
-        ) : (
-          <>
-            <Connect color={accentContrast} />
-            <Text style={[styles.buttonText, { color: accentContrast }]}>{t('relay.joinButton')}</Text>
-          </>
-        )}
-      </TouchableOpacity>
+      />
       </Animated.View>
 
       {/* Scanning is the point of the QR the web UI has been showing all
           along: twelve words is exactly the input a phone keyboard is worst
           at, and the code was scannable by nothing until now (the scanner
           existed, wired only to the old direct-address screen). */}
-      <TouchableOpacity
-        style={[styles.button, { backgroundColor: accent, borderRadius: radii.control }]}
+      <GlimButton
+        hue={2}
+        label={t('relay.scanButton')}
+        icon={(ink) => <Scan color={ink} />}
         onPress={() => {
           setError(null);
           setScanning(true);
         }}
-        disabled={searching}
-      >
-        <Scan color={accentContrast} />
-        <Text style={[styles.buttonText, { color: accentContrast }]}>{t('relay.scanButton')}</Text>
-      </TouchableOpacity>
+      />
 
       {error && <Text style={[styles.error, { color: c.statusFailSolid }]}>{error}</Text>}
 
@@ -342,14 +329,7 @@ export default function RelayConnectScreen({
             }
           />
           {sibs.length > 0 && (
-            <TouchableOpacity
-              style={[styles.button, { backgroundColor: accent, borderRadius: radii.control }]}
-              onPress={saveAll}
-            >
-              <Text style={[styles.buttonText, { color: accentContrast }]}>
-                {t('relay.saveAllButton', { count: sibs.length })}
-              </Text>
-            </TouchableOpacity>
+            <GlimButton hue={3} label={t('relay.saveAllButton', { count: sibs.length })} onPress={saveAll} />
           )}
         </>
       )}
@@ -419,8 +399,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 10,
   },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: { fontSize: 16, fontWeight: '600' },
   error: { marginTop: 12, fontSize: TYPE.body },
   sectionTitle: { fontSize: TYPE.dense, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 20 },
   list: { flexGrow: 0, marginTop: 8 },

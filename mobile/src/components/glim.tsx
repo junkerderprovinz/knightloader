@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View, type ViewStyle } from 'react-native';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
@@ -200,6 +200,24 @@ function contrastFor(hex: string, fallback: string): string {
 }
 
 const styles = StyleSheet.create({
+  /* ONE height and ONE gap for every labelled button in the app.
+   *
+   * The gap is what jdp reported on the extension the same evening ("die
+   * glyphen der buttons sind zu nah am text") and it was true here too: a row
+   * with no gap sets the glyph against the first letter and the two read as one
+   * smudge. 8 is the step this family uses between a control and its
+   * neighbour. */
+  button: {
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  buttonLabel: { fontSize: TYPE.body, fontWeight: '600', flexShrink: 1 },
+  buttonOff: { opacity: 0.45 },
   // Room for the notch above: the badge is 22 tall and overlaps by 11.
   cardWrap: { marginTop: 24 },
   card: { paddingTop: 24, paddingBottom: 14, paddingHorizontal: 16, gap: 4 },
@@ -287,5 +305,92 @@ export function StatusBadge({ status }: { status: 'checking' | 'online' | 'offli
     <View style={[styles.statusBadge, { backgroundColor: ink + '26', borderRadius: radii.pill }]}>
       <Text style={[styles.statusText, { color: ink }]}>{label}</Text>
     </View>
+  );
+}
+
+/**
+ * Every labelled button in this app, and the reason it exists is that they
+ * were not one thing before.
+ *
+ * jdp, 2026-09-01: "die ganzen buttons sind nicht in die farbmodi integriert"
+ * and "BItte ALLE buttons in die farbengine aufnehmen! mit phrase verbinde
+ * seite fehlt komplett". Both are the same defect seen twice. Buttons were
+ * being dressed at each call site: some took `accent` directly, some took
+ * `c.surface2`, and NONE of them asked for a rainbow hue - so with the mode on,
+ * the cards and switches around them cycled through the palette and the buttons
+ * sat there in one colour, which is exactly what "not in the colour modes"
+ * looks like.
+ *
+ * A component rather than a shared style object, because a style object is
+ * something the next new button can forget to import and a component is not.
+ * Anything with a label goes through here; icon-only actions are IconBadge's.
+ *
+ * `hue` is this button's position in the palette, the same index NotchCard and
+ * GlimToggle already take. Without the rainbow it resolves to the accent, so
+ * one number serves both modes and nothing has to branch at the call site.
+ *
+ * `tone`:
+ *   - "solid" (the default) fills with the hue and takes contrasting ink.
+ *   - "quiet" keeps the neutral surface and puts the HUE in the ink, for a row
+ *     of buttons where filling every one of them would shout.
+ *   - "danger" is quiet with the FAIL colour in the ink, and it deliberately
+ *     ignores `hue`: the status colours mean what they mean, and a delete
+ *     button that turns teal because it is third in a palette is a delete
+ *     button that has stopped warning anybody.
+ *
+ * The contrast is computed FROM THE FILL, through the same contrastFor this
+ * file's other controls use, never from the flat accent: a palette position can
+ * be far lighter or darker than the accent, and reusing accentContrast is how
+ * white text ends up on a pale mint button.
+ */
+export function GlimButton({
+  label,
+  icon,
+  onPress,
+  hue,
+  tone = 'solid',
+  disabled,
+  busy,
+  grow,
+  style,
+}: {
+  label: string;
+  /** Given the resolved ink colour, so a glyph never has to guess it. */
+  icon?: (ink: string) => ReactNode;
+  onPress: () => void;
+  hue?: number;
+  tone?: 'solid' | 'quiet' | 'danger';
+  disabled?: boolean;
+  /** Replaces the icon with a spinner and blocks the press. */
+  busy?: boolean;
+  /** Share a row equally with its siblings. */
+  grow?: boolean;
+  style?: ViewStyle;
+}) {
+  const { c, accent, accentContrast, radii, hueAt, rainbow } = useAppearance();
+  const fill = (rainbow.on && hue !== undefined ? hueAt(hue) : undefined) ?? accent;
+  const ground = tone === 'solid' ? fill : c.surface2;
+  const ink =
+    tone === 'solid' ? contrastFor(fill, accentContrast) : tone === 'danger' ? c.statusFailSolid : fill;
+  return (
+    <TouchableOpacity
+      style={[
+        styles.button,
+        { backgroundColor: ground, borderRadius: radii.control },
+        grow ? { flex: 1 } : null,
+        disabled || busy ? styles.buttonOff : null,
+        style,
+      ]}
+      onPress={onPress}
+      disabled={disabled || busy}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: !!(disabled || busy) }}
+      accessibilityLabel={label}
+    >
+      {busy ? <ActivityIndicator color={ink} /> : icon?.(ink)}
+      <Text style={[styles.buttonLabel, { color: ink }]} numberOfLines={1}>
+        {label}
+      </Text>
+    </TouchableOpacity>
   );
 }

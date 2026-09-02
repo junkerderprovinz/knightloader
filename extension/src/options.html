@@ -37,10 +37,15 @@
          remembered. */
       [hidden] { display: none !important; }
       h1 { font-size: 18px; margin: 0 0 6px; color: var(--accent-ink); }
-      /* The cards carry the rhythm now. 26px between them is enough that the
-         badge overhanging each top edge never crowds the card above it. */
-      section.glim-card + section.glim-card { margin-top: 26px; }
-      section.glim-card:first-of-type { margin-top: 22px; }
+      /* The cards carry the rhythm, and the number has to be read against the
+         BADGE, not against the card (jdp, 2026-09-01: "In der erweiterung sind
+         alle abschnitte zu eng beieinander").
+         26 looked generous in the stylesheet and did not on the page: the
+         section badge hangs 11px above its own card's top edge, so 26 of margin
+         is 15 of actual daylight between one card's bottom and the next card's
+         label. 38 puts that back at the 26 the rule always meant. */
+      section.glim-card + section.glim-card { margin-top: 38px; }
+      section.glim-card:first-of-type { margin-top: 26px; }
       h2 { margin: 0; font-size: var(--text-caption); font-weight: 500; }
       label { display: block; font-size: var(--text-dense); color: var(--carbon-text-sub); margin-bottom: 6px; }
       /* Selects are shaped like the inputs deliberately: a native dropdown
@@ -95,6 +100,13 @@
         justify-content: center;
         text-decoration: none;
       }
+      /* The glyph needs air between itself and the word (jdp, 2026-09-01: "die
+         glyphen der buttons sind zu nah am text"). An inline-flex row with no
+         gap sets an icon hard against the first letter, which reads as one
+         smudged shape rather than a mark and a label. 8 is the same step the
+         rest of this page uses between a control and its neighbour. */
+      a.btnlike { gap: 8px; }
+      a.btnlike > svg { flex: 0 0 auto; }
       button.secondary,
       a.btnlike.secondary {
         background: var(--carbon-surface2);
@@ -245,6 +257,13 @@
          because they are the thing you look up rather than the thing you
          read. */
       .aboutText { margin: 0 0 8px; font-size: var(--text-body); color: var(--carbon-text-sub); }
+      /* Each offer in the About card is a sentence with its button under it, and
+         the two have to sit closer to each other than to the next offer or all
+         three read as one list (jdp, 2026-09-01: "alle abschnitte zu eng
+         beieinander"). 20 after a button row, 8 under its own sentence: the
+         grouping is done by the spacing, which is the only thing doing it here
+         since the card draws no lines between them. */
+      .glim-card .fields + .aboutText { margin-top: 20px; }
       .aboutVersions {
         margin: 0 0 12px;
         font-size: var(--text-dense);
@@ -270,6 +289,20 @@
   </head>
   <body>
     <h1>KnightLoader</h1>
+
+    <!-- Shown only when the browser itself says the toolbar button is hidden -
+         see background.js's nichtInDerLeiste. It is the answer to the one
+         sentence jdp repeated three evenings running ("es kommt die meldung
+         erweiterung geladen aber es zeigt sie nicht an"): the extension was
+         installed every time and Chromium had put it behind the puzzle piece,
+         which looks exactly like a failed install and says nothing. -->
+    <section class="glim-card pinHint" id="pinHint" hidden>
+      <h2 class="glim-section-badge" id="pinHeading">Almost there</h2>
+      <p id="pinBody" class="aboutText"></p>
+      <div class="fields">
+        <button id="pinDismiss" class="secondary" type="button"></button>
+      </div>
+    </section>
 
     <!-- No prose under any of these headings. Every explanation is an info
          bubble on the heading badge itself, set by options.js so it follows the

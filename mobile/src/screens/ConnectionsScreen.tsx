@@ -273,7 +273,13 @@ export default function ConnectionsScreen({
                   showing one group had two different objects for it, and the
                   one thing that says "this is a KnightLoader" at a glance was
                   the one the app left out. */}
-              <View style={[styles.rowMark, { backgroundColor: c.surface2, borderRadius: radii.control }]}>
+              {/* The mark, bare (jdp, 2026-09-01: "das logo auf den instanzen
+                  cards ohne hintergrund"). The tile behind it was borrowed from
+                  the extension's own card, where it sits on a page ground and
+                  needs a surface to sit on; here it is already inside a card, so
+                  the tile was a second surface on top of a first one, and what
+                  it drew was a grey square around a logo rather than a logo. */}
+              <View style={styles.rowMark}>
                 <Image source={MARK} style={styles.rowMarkImg} resizeMode="contain" />
               </View>
               <View style={styles.rowText}>
@@ -394,11 +400,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   columns: { gap: 8 },
-  // The logo tile, the same shape the extension's own card gives it: a
-  // surface-2 square with the mark inside, so the card reads as an object
-  // rather than as a line of text with a colour in front of it.
+  // The logo's box. No ground of its own: see the comment at the call site.
   rowMark: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' },
-  rowMarkImg: { width: 34, height: 34 },
+  rowMarkImg: { width: 38, height: 38 },
   rowText: { flex: 1, minWidth: 0, gap: 2 },
   rowTop: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   rowName: { fontSize: 15, fontWeight: '600', flexShrink: 1 },

@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { addLinks, ApiError } from '../api/client';
 import type { Instance, ServerConnection } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
+import { GlimButton } from '../components/glim';
 
 export default function AddDownloadScreen({
   conn,
@@ -16,7 +17,7 @@ export default function AddDownloadScreen({
   onDone: () => void;
 }) {
   const { t } = useT();
-  const { c, accent, accentContrast, radii } = useAppearance();
+  const { c, accent, radii } = useAppearance();
   const base = peer ? `/api/instances/${encodeURIComponent(peer.name)}` : '/api';
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
@@ -77,17 +78,7 @@ export default function AddDownloadScreen({
         >
           <Text style={[styles.secondaryButtonText, { color: c.textMuted }]}>{t('addDownload.cancel')}</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, { backgroundColor: accent, borderRadius: radii.control }, busy && styles.buttonDisabled]}
-          onPress={submit}
-          disabled={busy}
-        >
-          {busy ? (
-            <ActivityIndicator color={accentContrast} />
-          ) : (
-            <Text style={[styles.buttonText, { color: accentContrast }]}>{t('addDownload.button')}</Text>
-          )}
-        </TouchableOpacity>
+        <GlimButton hue={1} grow label={t('addDownload.button')} busy={busy} onPress={submit} />
       </View>
     </View>
   );
@@ -112,8 +103,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
   },
-  buttonDisabled: { opacity: 0.6 },
-  buttonText: { fontSize: 16, fontWeight: '600' },
   secondaryButton: {
     flex: 1,
     paddingVertical: 14,

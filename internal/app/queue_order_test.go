@@ -162,17 +162,46 @@ func TestReorderRefusesIdsFromTwoBands(t *testing.T) {
 	wantOrder(t, a, "high n1 n2")
 }
 
-// TestReorderRefusesAPartialBand: a list that leaves one of the band's own
-// tasks out would have to renumber around a gap nobody named, silently
-// changing where that task waits without it ever appearing in the request.
-func TestReorderRefusesAPartialBand(t *testing.T) {
+// TestReorderAppliesAPartialBandInItsOwnSlots is the fix for the reason drag
+// and drop never worked on any surface at all.
+//
+// This used to be TestReorderRefusesAPartialBand, and it was pinning a rule
+// nothing could satisfy. A band is (forced, priority) over EVERY task the app
+// holds, and no screen shows one: the app has a download tab and a collector
+// tab, which on the live instance were 14 and 24 tasks of the same single band.
+// Every drag either tab could make therefore named half a band and was refused.
+//
+// A partial list now means what a drag inside one visible list means: these
+// tasks, in this order, in the slots they already occupy. "c" is not named, so
+// "c" does not move - the two that were named simply swap around it.
+func TestReorderAppliesAPartialBandInItsOwnSlots(t *testing.T) {
 	a := newOrderApp(t)
-	stage(a, "a", "b", "c")
+	stage(a, "a", "b", "c", "d")
 
-	if _, err := a.ReorderBand([]string{"a", "b"}); err == nil {
-		t.Error("ReorderBand accepted a list missing one of the band's own tasks")
+	if _, err := a.ReorderBand([]string{"d", "a"}); err != nil {
+		t.Fatalf("ReorderBand refused a partial band: %v", err)
 	}
-	wantOrder(t, a, "a b c")
+	// a and d held slots 1 and 4; they come back in the order given, and b and c
+	// have not been touched.
+	wantOrder(t, a, "d b c a")
+}
+
+// TestReorderLeavesUnnamedTasksAlone is the promise the partial form has to
+// keep to be safe at all: two surfaces dragging in different halves of one band
+// must not scramble each other. Reordering the collector's half must leave the
+// queue's half in exactly the order the queue is running it.
+func TestReorderLeavesUnnamedTasksAlone(t *testing.T) {
+	a := newOrderApp(t)
+	stage(a, "q1", "q2", "c1", "c2")
+	a.mu.Lock()
+	a.tasks["c1"].Status = core.StatusCollected
+	a.tasks["c2"].Status = core.StatusCollected
+	a.mu.Unlock()
+
+	if _, err := a.ReorderBand([]string{"c2", "c1"}); err != nil {
+		t.Fatalf("ReorderBand refused the collector's own half: %v", err)
+	}
+	wantOrder(t, a, "q1 q2 c2 c1")
 }
 
 // TestReorderRefusesAnUnknownId: an id nobody recognizes has nothing to

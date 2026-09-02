@@ -119,14 +119,57 @@ func (c *Client) Version() (int64, error) {
 	return v, nil
 }
 
+// SetDownloadFolder points JD's own default download directory at path.
+//
+// This is not a nicety, and the cost of not having it was five rounds of "es
+// lädt nirgends was runter" (jdp, 2026-08-27 to 2026-09-01). A headless JD
+// nobody has told otherwise downloads into its own default, which resolves
+// against the JVM's home directory: measured on the two live instances, one had
+// "/root/Downloads" and the other "/Downloads". The container runs as uid 99 and
+// can write to neither, so JD answered every single package with the status
+// "Invalid download directory" - fourteen out of fourteen when this was found -
+// and downloaded nothing, for ever, without ever reporting a failure to anyone.
+//
+// KnightLoader provisions that JD itself (internal/provision), so its download
+// folder is KnightLoader's to set. Applied at every start rather than only at
+// provisioning time, because an instance that has already been provisioned has
+// the wrong value written into its config file and would otherwise stay broken
+// through any number of updates.
+func (c *Client) SetDownloadFolder(path string) error {
+	_, err := c.call("/config/set", generalSettings, nil, "DefaultDownloadFolder", path)
+	return err
+}
+
+// SetPackageDirectory moves one or more download-list packages to dir.
+//
+// Unlike addLinks' destinationFolder, which JD treats as a PARENT and appends
+// the package name to (measured: "/data/download/zielA" with package "KL-probeA"
+// became "/data/download/zielA/KL-probeA"), this sets the folder verbatim. That
+// is what lets a JD-fetched file land exactly where every other backend puts
+// one, instead of inside a folder named after an internal task id.
+func (c *Client) SetPackageDirectory(dir string, pkgUUIDs []int64) error {
+	if dir == "" || len(pkgUUIDs) == 0 {
+		return nil
+	}
+	_, err := c.call("/downloadsV2/setDownloadDirectory", dir, pkgUUIDs)
+	return err
+}
+
 // AddLinks pushes links into JD. autostart=true makes JD crawl, move to the
-// download list and start automatically. Returns the collecting job id.
-func (c *Client) AddLinks(links, packageName string, autostart bool) (int64, error) {
-	data, err := c.call("/linkgrabberv2/addLinks", map[string]any{
+// download list and start automatically. destination, when set, is the folder
+// JD files the package under - see SetPackageDirectory for why the final folder
+// is corrected afterwards rather than relied on here. Returns the collecting
+// job id.
+func (c *Client) AddLinks(links, packageName, destination string, autostart bool) (int64, error) {
+	q := map[string]any{
 		"links":       links,
 		"packageName": packageName,
 		"autostart":   autostart,
-	})
+	}
+	if destination != "" {
+		q["destinationFolder"] = destination
+	}
+	data, err := c.call("/linkgrabberv2/addLinks", q)
 	if err != nil {
 		return 0, err
 	}
@@ -173,27 +216,45 @@ func (c *Client) QueryDownloads(packageUUID int64) ([]DownloadLink, error) {
 }
 
 // downloadPackage is one entry in JD's download package list.
+//
+// Status is asked for because JD says things there that it says NOWHERE else:
+// a package it cannot write is reported as a package status, never as a link
+// error, so a poller reading only the links sees a healthy package sitting at
+// zero bytes. See Backend.poll's fatalPackageStatus.
 type downloadPackage struct {
-	UUID int64  `json:"uuid"`
-	Name string `json:"name"`
+	UUID   int64  `json:"uuid"`
+	Name   string `json:"name"`
+	Status string `json:"status"`
 }
 
 // PackageUUID returns the download-list package whose name matches, or 0.
 func (c *Client) PackageUUID(name string) (int64, error) {
-	data, err := c.call("/downloadsV2/queryPackages", map[string]any{"packageUUIDs": []int64{}})
-	if err != nil {
+	p, err := c.Package(name)
+	if err != nil || p == nil {
 		return 0, err
+	}
+	return p.UUID, nil
+}
+
+// Package returns the download-list package whose name matches, or nil.
+func (c *Client) Package(name string) (*downloadPackage, error) {
+	data, err := c.call("/downloadsV2/queryPackages", map[string]any{
+		"packageUUIDs": []int64{},
+		"status":       true,
+	})
+	if err != nil {
+		return nil, err
 	}
 	var pkgs []downloadPackage
 	if err := json.Unmarshal(data, &pkgs); err != nil {
-		return 0, err
+		return nil, err
 	}
-	for _, p := range pkgs {
-		if p.Name == name {
-			return p.UUID, nil
+	for i := range pkgs {
+		if pkgs[i].Name == name {
+			return &pkgs[i], nil
 		}
 	}
-	return 0, nil
+	return nil, nil
 }
 
 // CrawledLink is one entry in JD's link grabber — the staging list a container

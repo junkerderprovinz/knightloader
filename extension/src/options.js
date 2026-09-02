@@ -82,13 +82,24 @@ const D_COFFEE =
   'M2.5 3h8.2v5.2a3.6 3.6 0 0 1-3.6 3.6H6.1A3.6 3.6 0 0 1 2.5 8.2V3z' +
   'M11.6 4.1h1.2a2.1 2.1 0 0 1 0 4.2h-1.2V6.9h1.2a.8.8 0 0 0 0-1.6h-1.2V4.1z' +
   'M1.6 13h10.8v1.5H1.6z';
-// A bug: body, head and three legs a side. What "report a problem" looks like
-// everywhere else, so nobody learns a second vocabulary for it.
-const D_BUG =
-  'M8 1.6a2.2 2.2 0 0 1 2.2 2.2v.3H5.8v-.3A2.2 2.2 0 0 1 8 1.6z' +
-  'M4.6 5.4h6.8v4.3a3.4 3.4 0 0 1-6.8 0V5.4z' +
-  'M1.4 6.2h2.4v1.4H1.4zM1.4 9h2.4v1.4H1.4zM1.4 11.8h2.4v1.4H1.4z' +
-  'M12.2 6.2h2.4v1.4h-2.4zM12.2 9h2.4v1.4h-2.4zM12.2 11.8h2.4v1.4h-2.4z';
+// GitHub's own mark, on a 16-viewBox, for the button that goes there (jdp,
+// 2026-09-01: "der Githubutton soll das github logo als glyph bekomen und nut
+// GitHub heißen"). A button that carries a site's own logo and its own name
+// needs no verb: it is obvious where it goes, and the sentence above it already
+// said why.
+//
+// This is the ONE place in this family where a third party's mark is drawn
+// rather than a glyph of our own, and it is deliberate: a logo is recognised or
+// it is not, and an approximation of one is worse than the drawn-here glyph it
+// replaced. Reproduced from GitHub's published Octicon "mark-github", which
+// they offer for exactly this use.
+const D_GITHUB =
+  'M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49' +
+  '-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82' +
+  '.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15' +
+  '-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27' +
+  '1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95' +
+  '.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z';
 // An envelope: the body, with the flap cut out of it by fillRule so the V is
 // the ground showing through rather than a shape painted in a guessed colour.
 const D_MAIL =
@@ -204,6 +215,13 @@ function applyStaticText() {
   label('paletteLabel', t('options.paletteLabel'), t('options.paletteHint'));
   label('followInstanceLabel', t('options.followInstance'), t('options.followInstanceHint'));
 
+  const pinHeading = document.getElementById('pinHeading');
+  const pinBody = document.getElementById('pinBody');
+  const pinDismiss = document.getElementById('pinDismiss');
+  if (pinHeading) pinHeading.textContent = t('options.pinHeading');
+  if (pinBody) pinBody.textContent = t('options.pinBody');
+  if (pinDismiss) pinDismiss.textContent = t('options.pinDismiss');
+
   problemsHeadingEl.textContent = t('options.problemsHeading');
   aboutHeadingEl.textContent = t('options.aboutHeading');
   renderAbout();
@@ -212,6 +230,37 @@ function applyStaticText() {
   // fills the report itself and the prefilled issue URL — setting them here as
   // well would be two places saying the same thing, and the second one to run
   // would silently win.
+}
+
+/**
+ * The "it IS installed, it is behind the puzzle piece" card.
+ *
+ * Two conditions, both required: background.js saw an unpinned toolbar at
+ * install time AND the toolbar is STILL unpinned now. The second check is what
+ * keeps this honest across a reload - somebody who pinned it and then reopened
+ * this page must not be told again about something they have already done.
+ */
+async function renderPinHint() {
+  const card = document.getElementById('pinHint');
+  if (!card) return;
+  const { showPinHint } = await chrome.storage.local.get('showPinHint');
+  if (!showPinHint) return;
+  let hidden = false;
+  try {
+    const s = await chrome.action?.getUserSettings?.();
+    hidden = s?.isOnToolbar === false;
+  } catch {
+    hidden = false;
+  }
+  if (!hidden) {
+    await chrome.storage.local.remove('showPinHint');
+    return;
+  }
+  card.hidden = false;
+  document.getElementById('pinDismiss')?.addEventListener('click', async () => {
+    await chrome.storage.local.remove('showPinHint');
+    card.hidden = true;
+  });
 }
 
 // --- The group -------------------------------------------------------------
@@ -1032,7 +1081,7 @@ function renderAbout() {
   const melden = document.getElementById('aboutReport');
   if (melden) melden.textContent = t('options.aboutReport');
   gh.href = REPO_URL;
-  gh.replaceChildren(glyph(D_BUG, 14), document.createTextNode(t('options.aboutGithub')));
+  gh.replaceChildren(glyph(D_GITHUB, 15), document.createTextNode(t('options.aboutGithub')));
   // A plain mailto, with the subject prefilled so a mail that arrives already
   // says which product it is about. No body: a prefilled body reads as a form
   // to fill in, and this is meant to be a message somebody writes.
@@ -1137,6 +1186,7 @@ copyReportBtn.addEventListener('click', async () => {
   await renderCnl();
   await renderAppearance();
   renderAbout();
+  await renderPinHint();
   void renderReport();
   // Last, and not awaited by the rest: it opens a relay connection, and the
   // page should be usable while that is in flight rather than blank.

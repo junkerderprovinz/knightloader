@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useT } from '../../lib/i18n';
 import { Card, SectionTitle } from '../../components/ui';
 import { fetchHealth } from '../../lib/api';
-import { IconBug, IconCoffee, IconMail } from '../../lib/icons';
+import { IconCoffee, IconGithub, IconMail } from '../../lib/icons';
 
 /**
  * The help page: what this build actually does, organised by the question a
@@ -299,7 +299,7 @@ function About({ hue }: { hue: number }) {
           rel="noreferrer noopener"
           className={ABOUT_BTN}
         >
-          <IconBug width={15} height={15} />
+          <IconGithub width={15} height={15} />
           {t('settings.about.github')}
         </a>
         <a

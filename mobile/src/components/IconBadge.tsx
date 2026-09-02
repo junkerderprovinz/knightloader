@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useAppearance } from '../theme/AppearanceContext';
 
 // A small square glyph button - the "+" that opens Connect, the gear that
@@ -382,26 +382,31 @@ export function Coffee({ color, size = GLYPH_BOX }: { color: string; size?: numb
   );
 }
 
-/** Bug: a body with legs. What "report a problem" looks like everywhere else,
- *  so nobody has to learn a second vocabulary for it. */
-export function Bug({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
-  // Head (3) plus body (8) less their overlap (0.6) = 10.4 units tall.
-  const u = unit(size, 10.4);
-  const bein = { position: 'absolute' as const, width: 3 * u, height: 1.3 * u, backgroundColor: color, borderRadius: 0.65 * u };
+/**
+ * GitHub's own mark, for the button that goes there.
+ *
+ * The ONE glyph in this file that is a bitmap rather than a shape built out of
+ * Views, and the reason is the same one the file's own header gives for having
+ * no icon library at all: react-native-svg is a native module, and this app's
+ * Android build has already cost a day to a linker problem once. A logo,
+ * though, is recognised or it is not - an approximation drawn out of rounded
+ * rectangles would be worse than no logo - so this is a 96px mark tinted with
+ * the same colour every other glyph takes, which is the one thing an Image can
+ * do that keeps it in the theme.
+ *
+ * jdp, 2026-09-01: "der Githubutton soll das github logo als glyph bekomen und
+ * nut GitHub heißen".
+ */
+export function Github({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <View style={{ alignItems: 'center' }}>
-        <View style={{ width: 4.4 * u, height: 3 * u, backgroundColor: color, borderRadius: 2.2 * u, marginBottom: -0.6 * u }} />
-        <View style={{ width: 7 * u, height: 8 * u, backgroundColor: color, borderRadius: 3.5 * u }} />
-        {/* Three legs a side, mirrored. Absolute so they hang off the body
-            rather than widening the box the body is centred in. */}
-        {[0, 1, 2].map((i) => (
-          <View key={`l${i}`} style={[bein, { left: -2.4 * u, top: (3.4 + i * 2.4) * u }]} />
-        ))}
-        {[0, 1, 2].map((i) => (
-          <View key={`r${i}`} style={[bein, { right: -2.4 * u, top: (3.4 + i * 2.4) * u }]} />
-        ))}
-      </View>
+      <Image
+        source={require('../../assets/github-mark.png')}
+        style={{ width: size, height: size }}
+        tintColor={color}
+        resizeMode="contain"
+        accessibilityIgnoresInvertColors
+      />
     </View>
   );
 }

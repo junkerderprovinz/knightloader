@@ -151,12 +151,25 @@ func (a *App) rewireBackends() {
 	var newJD backend
 	if jdBase != "" {
 		jb := jd.NewBackend(jdBase, a.onUpdate)
+		// The same closure yt-dlp gets, for the same reason: a backend that writes
+		// files has to be told where, and reading it live means a settings change
+		// takes effect on the next download rather than at the next restart.
+		jb.Dir = a.taskDir
 		if err := jb.Reachable(); err != nil {
 			log.Printf("KL_JD set but JD unreachable (%v); skipping JD backend", err)
 		} else {
+			// Before anything is handed to it. A JD pointed at a folder it cannot
+			// write answers every package with "Invalid download directory" and
+			// downloads nothing at all, silently - see Client.SetDownloadFolder for
+			// what that cost. Logged rather than fatal: a JD somebody else runs may
+			// refuse to be reconfigured, and a catch-all backend that only works for
+			// containers still beats no catch-all backend.
+			if err := jb.SetDownloadFolder(a.defaultDir()); err != nil {
+				log.Printf("could not set JD's download folder to %s (%v); JD downloads may fail", a.defaultDir(), err)
+			}
 			newJD = jb
 			a.Registry.Register(jd.Resolver{Backend: jb})
-			log.Printf("headless JD backend enabled: %s", jdBase)
+			log.Printf("headless JD backend enabled: %s (downloads to %s)", jdBase, a.defaultDir())
 		}
 	}
 

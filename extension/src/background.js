@@ -89,10 +89,48 @@ chrome.runtime.onInstalled.addListener(async (details) => {
   // reach anything is better off saying so immediately than on the first
   // right-click. An update never opens it — somebody who already joined a group
   // does not need the page again.
-  if (details.reason === 'install' && !(await readPhrase())) {
+  //
+  // The SECOND reason is the one that took four rounds to find, and it is not
+  // about the phrase at all (jdp, 2026-08-30 to 2026-09-01, three times: "Ich
+  // kann die erweiterung nach wie vor nicht in chrome installieren! es kommt
+  // die meldung erweiterung geladen aber es zeigt sie nicht an").
+  //
+  // It was installed every single time. Measured off his own browser profile:
+  // location 4 (unpacked), service worker started, registration version 1.17.0,
+  // every permission granted - and `pinned_extensions: null`. Chromium hides a
+  // newly loaded extension behind the puzzle piece and pins nothing by default,
+  // so "loaded" and "nowhere to be seen" are both true at once, and an
+  // extension that opens no window on install has told the person nothing.
+  //
+  // An extension cannot pin itself; that is deliberate and not worth trying to
+  // work around. What it CAN do is stop being invisible: if the toolbar does not
+  // have it, open the page that explains where it went. Gated on the actual
+  // answer from getUserSettings rather than shown to everybody, so somebody who
+  // pinned it last time is never told about it again.
+  const versteckt = await nichtInDerLeiste();
+  if (details.reason === 'install' && (!(await readPhrase()) || versteckt)) {
+    if (versteckt) await chrome.storage.local.set({ showPinHint: true });
     chrome.runtime.openOptionsPage();
   }
 });
+
+/**
+ * Whether the toolbar button is hidden behind the puzzle piece.
+ *
+ * `false` on anything that cannot answer - an older Chromium, a Firefox, an API
+ * that throws - because the hint exists to explain a specific Chromium
+ * behaviour, and showing it where it may not apply would be an extension
+ * lecturing somebody about a menu their browser does not have.
+ */
+async function nichtInDerLeiste() {
+  try {
+    if (!chrome.action?.getUserSettings) return false;
+    const s = await chrome.action.getUserSettings();
+    return s?.isOnToolbar === false;
+  } catch {
+    return false;
+  }
+}
 
 // The context-menu titles are set once at creation time — Chrome has no
 // "re-read this on every open" hook — so a language change made in Options
