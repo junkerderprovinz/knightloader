@@ -198,8 +198,8 @@ func (a *App) startTasks(ids []string, byHand bool) StartResult {
 }
 
 // RestartTasks re-runs finished or errored tasks from scratch: their backend
-// state is cleared and they re-enter the download queue. Empty ids = every
-// errored task.
+// state is cleared, THEIR RESOLVER IS CLEARED, and they re-enter the download
+// queue to be routed again from nothing. Empty ids = every errored task.
 func (a *App) RestartTasks(ids []string) {
 	want := map[string]bool{}
 	for _, id := range ids {
@@ -221,6 +221,30 @@ func (a *App) RestartTasks(ids []string) {
 			t.Reason = core.ReasonUnknown
 			t.Loaded = 0
 			t.Speed = 0
+			// THE ROUTING IS DECIDED AGAIN TOO, and that is what "from scratch"
+			// has to mean to be worth pressing.
+			//
+			// It used to keep whichever backend had just failed, which is the one
+			// choice guaranteed to fail the same way: a task frozen on "jd" went
+			// back to a JDownloader with no account for that hoster however many
+			// times it was restarted. Meanwhile everything that could have changed
+			// in between - a key entered, an account added, a debrid service coming
+			// back off its cool-down - is exactly a change to the ROUTING, and was
+			// the only thing a restart could not pick up.
+			//
+			// Measured on the live instance (jdp, 2026-09-01/02): fourteen
+			// rapidgator links added before a TorBox key existed carried
+			// `resolver: "jd"` from the moment they were staged, and no restart ever
+			// moved them, because accountRoutableLocked("jd") answers true - JD has
+			// no tracked account to be unroutable. The standing advice was "delete
+			// them and paste them again", which is a person doing by hand what this
+			// one line does.
+			//
+			// Nothing is lost by clearing it: an empty resolver sends the next
+			// dispatch through resolverForTaskLocked's own search, which is where
+			// the resolver came from in the first place, and no surface lets
+			// anybody pin one by hand.
+			t.Resolver = ""
 			delete(a.active, id)
 			delete(a.started, id) // dispatch will hand it to the backend fresh
 		}
