@@ -180,6 +180,15 @@ jobs:
       - name: Type check
         run: npx tsc --noEmit
 
+      # The gate for the defect class that cost four rounds of "drag and drop
+      # does not work": a FlatList redraws a cell only when `data` changes by
+      # reference or `extraData` does, so a row that closes over component state
+      # silently stops updating. It usually works by accident, because most
+      # `data` props are rebuilt every render - and it breaks the moment
+      # somebody makes that reference stable, which is normally an optimisation.
+      - name: FlatList extraData
+        run: node check-extradata.mjs
+
       - name: Build UI
         run: npm run build
 

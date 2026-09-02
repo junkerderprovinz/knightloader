@@ -331,8 +331,11 @@ export function StatusBadge({ status }: { status: 'checking' | 'online' | 'offli
  *
  * `tone`:
  *   - "solid" (the default) fills with the hue and takes contrasting ink.
- *   - "quiet" keeps the neutral surface and puts the HUE in the ink, for a row
- *     of buttons where filling every one of them would shout.
+ *   - "quiet" keeps the neutral surface and takes ordinary text ink. It does
+ *     NOT put the hue in the ink: jdp, 2026-09-02, "Die buttons sind falsch
+ *     farbig, der button soll farbig sein, nicht der TExt". A coloured word on a
+ *     grey ground reads as a link, not as a button, and the whole point of the
+ *     colour engine is that the pressable THING carries the colour.
  *   - "danger" is quiet with the FAIL colour in the ink, and it deliberately
  *     ignores `hue`: the status colours mean what they mean, and a delete
  *     button that turns teal because it is third in a palette is a delete
@@ -370,8 +373,7 @@ export function GlimButton({
   const { c, accent, accentContrast, radii, hueAt, rainbow } = useAppearance();
   const fill = (rainbow.on && hue !== undefined ? hueAt(hue) : undefined) ?? accent;
   const ground = tone === 'solid' ? fill : c.surface2;
-  const ink =
-    tone === 'solid' ? contrastFor(fill, accentContrast) : tone === 'danger' ? c.statusFailSolid : fill;
+  const ink = tone === 'solid' ? contrastFor(fill, accentContrast) : tone === 'danger' ? c.statusFailSolid : c.text;
   return (
     <TouchableOpacity
       style={[

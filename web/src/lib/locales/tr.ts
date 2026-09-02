@@ -1221,8 +1221,10 @@ export const tr: Dict = {
   'settings.help.advanced.body':
     'Bu build’in her ayarı, Gelişmiş sayfasında ham adıyla okunabilir ve değiştirilebilir, zaten indirilmiş bir dosyanın yansısının nasıl ele alındığı, bir indirmenin zaten kullanılan bir ada denk gelmesi durumunda ne olacağı gibi henüz başka bir yerde özel bir kontrolü olmayan birkaçı dahil.',
   'settings.help.advanced.link': 'Gelişmiş ayarlarını aç',
+  'task.mode.free': 'Ücretsiz',
+  'task.mode.premium': 'Premium',
   'settings.about.title': 'KnightLoader hakkında',
-  'settings.about.body': 'Akşamları ve hafta sonları, tek bir kişi tarafından yazıldı; çünkü diğer bütün indirme yöneticileri, birinin yeteceği yerde iki tıklama istiyordu.',
+  'settings.about.body': 'Kendi sunucunuzda çalışan, derli toplu arayüzlü bir indirme yöneticisi; JDownloader\'a alternatif. Motor, API ve arayüz tek bir programda durur, yanına kurulacak bir şey yoktur. Akşamları ve hafta sonları yazıldı; çünkü diğerlerinin hepsi, birinin yeteceği yerde iki tıklama istiyordu.',
   'settings.about.coffeeButton': 'Bana bir kahve ısmarla',
   'settings.about.coffee': 'KnightLoader hoşunuza gitti mi? Bir kahve günümü güzelleştirir.',
   'settings.about.report': 'Sorun, istek ya da öneri mi var? GitHub üzerinde konu aç ya da e-posta gönder.',

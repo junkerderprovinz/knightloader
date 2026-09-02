@@ -1214,8 +1214,10 @@ export const fr: Dict = {
   'settings.help.advanced.body':
     'Chaque paramètre de ce build peut être lu et modifié par son nom brut sur la page Avancé, y compris quelques-uns - comment un miroir d’un fichier déjà téléchargé est traité, ce qui se passe quand un téléchargement atterrirait sur un nom déjà pris - qui n’ont pas encore de contrôle dédié ailleurs.',
   'settings.help.advanced.link': 'Ouvrir les paramètres Avancé',
+  'task.mode.free': 'Gratuit',
+  'task.mode.premium': 'Premium',
   'settings.about.title': 'À propos de KnightLoader',
-  'settings.about.body': 'Écrit le soir et le week-end, par une seule personne, parce que tous les autres gestionnaires de téléchargement demandaient deux clics là où un seul suffisait.',
+  'settings.about.body': 'Un gestionnaire de téléchargement auto-hébergé à l\'interface épurée, en alternative à JDownloader. Le moteur, l\'API et l\'interface tiennent dans un seul programme, sans rien à installer à côté. Écrit le soir et le week-end, parce que tous les autres demandaient deux clics là où un seul suffisait.',
   'settings.about.coffeeButton': 'Offrir un café',
   'settings.about.coffee': 'KnightLoader vous plaît ? Un café me ferait plaisir.',
   'settings.about.report': 'Problèmes, souhaits ou suggestions ? Ouvre un ticket sur GitHub, ou envoie un e-mail.',

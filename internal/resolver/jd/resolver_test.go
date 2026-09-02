@@ -99,3 +99,49 @@ func TestCheckDelegatesToBackend(t *testing.T) {
 		t.Errorf("Check = %v, want [online]", got)
 	}
 }
+
+// TestPriorityForRisesForAHostJDKnowsWithNoLogin is the "free mode, like
+// JDownloader" requirement, and it is a genuine change of behaviour rather than
+// a tidy-up (jdp, 2026-09-02: "Wenn man links runterladen möchte für die kein
+// premium account hinterlegt ist muss das angezeigt werden un der link im free
+// modus heruntergeladen werden. wie in JD").
+//
+// Before this, a hoster link with no login went to resolver.Direct, whose fetch
+// is a plain HTTP GET that knows nothing about hosters: for most of them that
+// saves the landing PAGE under the real file name and calls it a successful
+// download. JD's own plugin for that host is the only thing in this app that can
+// do the free-mode dance, so it has to outrank a blind GET.
+func TestPriorityForRisesForAHostJDKnowsWithNoLogin(t *testing.T) {
+	t.Cleanup(func() { SetKnownHosts(nil) })
+	SetKnownHosts([]string{"Rapidgator.NET", "www.example-hoster.com"})
+
+	for _, raw := range []string{
+		"https://rapidgator.net/file/abc",
+		"https://www.rapidgator.net/file/abc",
+		"https://example-hoster.com/f/1",
+	} {
+		if got := PriorityFor(raw); got != activeHostPrio {
+			t.Errorf("PriorityFor(%q) = %d, want %d - a host JD has a plugin for must outrank a blind GET", raw, got, activeHostPrio)
+		}
+	}
+	// A host JD does not know is unchanged: nothing here may quietly promote
+	// every link to the catch-all.
+	if got := PriorityFor("https://not-a-hoster.example/file"); got != basePrio {
+		t.Errorf("PriorityFor(unknown host) = %d, want the unchanged default %d", got, basePrio)
+	}
+}
+
+// TestSetKnownHostsReplacesRatherThanAccumulates: a host JD stops supporting has
+// to stop outranking Direct on the very next pass, not linger until a restart.
+func TestSetKnownHostsReplacesRatherThanAccumulates(t *testing.T) {
+	t.Cleanup(func() { SetKnownHosts(nil) })
+	SetKnownHosts([]string{"one.example"})
+	SetKnownHosts([]string{"two.example"})
+
+	if HostKnown("one.example") {
+		t.Error("a host dropped from JD's list is still known; SetKnownHosts accumulated instead of replacing")
+	}
+	if !HostKnown("two.example") {
+		t.Error("the host JD still lists is not known")
+	}
+}

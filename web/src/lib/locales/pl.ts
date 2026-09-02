@@ -1213,8 +1213,10 @@ export const pl: Dict = {
   'settings.help.advanced.body':
     'Każde ustawienie tego builda można odczytać i zmienić po jego surowej nazwie na stronie Zaawansowane, w tym kilka - jak traktowane jest lustro już pobranego pliku, co się dzieje, gdy pobranie miałoby trafić na już zajętą nazwę - które nie mają jeszcze dedykowanej kontrolki nigdzie indziej.',
   'settings.help.advanced.link': 'Otwórz ustawienia Zaawansowane',
+  'task.mode.free': 'Darmowy',
+  'task.mode.premium': 'Premium',
   'settings.about.title': 'O KnightLoaderze',
-  'settings.about.body': 'Napisane wieczorami i w weekendy, przez jedną osobę, bo każdy inny menedżer pobierania chciał dwóch kliknięć tam, gdzie wystarczyło jedno.',
+  'settings.about.body': 'Samodzielnie hostowany menedżer pobierania z uporządkowanym interfejsem, jako alternatywa dla JDownloadera. Silnik, API i interfejs mieszczą się w jednym programie, obok nie ma nic do instalowania. Napisane wieczorami i w weekendy, bo każdy inny chciał dwóch kliknięć tam, gdzie wystarczyło jedno.',
   'settings.about.coffeeButton': 'Postaw mi kawę',
   'settings.about.coffee': 'Podoba Ci się KnightLoader? Kawa umili mi dzień.',
   'settings.about.report': 'Problemy, życzenia albo propozycje? Zgłoś to na GitHubie albo napisz e-mail.',

@@ -100,6 +100,13 @@ const D_GITHUB =
   '-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27' +
   '1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95' +
   '.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z';
+// Two offset sheets: the "copy" mark everywhere else, so nobody has to learn a
+// second vocabulary for it. The back sheet is drawn first and the front one over
+// it, and they are separate subpaths rather than one shape so the overlap reads
+// as depth at 14px instead of as a blob.
+const D_COPY =
+  'M4 1.5h6.5a1 1 0 0 1 1 1V4H6a1.5 1.5 0 0 0-1.5 1.5V11H3a1 1 0 0 1-1-1V2.5a1 1 0 0 1 1-1z' +
+  'M6.5 5.5h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1z';
 // An envelope: the body, with the flap cut out of it by fillRule so the V is
 // the ground showing through rather than a shape painted in a guessed colour.
 const D_MAIL =
@@ -160,8 +167,7 @@ function shake(el) {
 /**
  * applyStaticText fills in every fixed label from the current language — called
  * once on load and again whenever the language picker changes it, so nothing
- * needs a page reload to update. "KnightLoader" itself (the <h1>) is left
- * alone: a product name, not translated.
+ * needs a page reload to update.
  *
  * The four glimSetInfo() calls are where this page's explanations live now.
  * They are idempotent, which matters precisely because this function re-runs on
@@ -657,9 +663,20 @@ followInstanceEl.addEventListener('click', async () => {
   await renderAppearance();
 });
 
-/** The six fields the instance is allowed to overwrite. Theme is not among
- *  them and never was — see adoptFromInstance. */
-const ADOPTED_KEYS = ['accent', 'shape', 'rainbow', 'rainbowReactive', 'rainbowRotate', 'rainbowSeed', 'rainbowPalette'];
+/**
+ * Everything adopting the instance's look replaces, so everything the stash has
+ * to carry. Theme is not among them and never was (see adoptFromInstance).
+ *
+ * accentSlotChosen and accentCustoms are on the list for the second reason
+ * rather than the first: the instance sends neither, and adoptFromInstance
+ * CLEARS them (an accent from the server with the local mixes still painted
+ * over it is a row that disagrees with itself). A switch has to be reversible,
+ * so what following puts away has to be what un-following brings back.
+ */
+const ADOPTED_KEYS = [
+  'accent', 'accentSlotChosen', 'accentCustoms',
+  'shape', 'rainbow', 'rainbowReactive', 'rainbowRotate', 'rainbowSeed', 'rainbowPalette',
+];
 
 async function stashLocalLook() {
   const mine = await chrome.storage.local.get(ADOPTED_KEYS);
@@ -793,8 +810,28 @@ function segment(host, options, current, onPick) {
   }
 }
 
+/**
+ * What each slot is mixed to, mirrored in a variable that is updated the moment
+ * a drag frame writes it.
+ *
+ * This is the extension's copy of the app's liveOverride ref (mobile/src/theme/
+ * AppearanceContext.tsx): the picker calls back on EVERY drag frame, so a
+ * handler that read the map back out of storage each time would be building on
+ * a read that had not returned when the previous frame wrote. Two mixes in
+ * quick succession are exactly that case, and the second one would write the
+ * first back out of existence with nothing looking wrong until you returned to
+ * the earlier swatch and found the preset there (jdp, 2026-09-02: "nicht alle
+ * farbfelder speichern dann die farbe").
+ *
+ * renderAppearance re-seeds it from storage on every render, and every path
+ * that changes the map from outside the row (reset, follow the instance) ends
+ * in a render, so it cannot drift.
+ */
+let liveAccentCustoms = {};
+
 async function renderAppearance() {
   const a = await readAppearance();
+  liveAccentCustoms = { ...a.accentCustoms };
 
   // Two values, and the machine's own answer is already the selected one
   // (jdp, 2026-08-29). The third entry, "follow the browser", is gone: it read
@@ -832,13 +869,26 @@ async function renderAppearance() {
     },
   );
 
-  // The live accent, which is the stored one or the default when nothing is
-  // stored. It marks whichever swatch it matches; there is no separate circle
-  // for it any more (see below).
+  // The applied accent, which is the stored one or the default when nothing is
+  // stored. It no longer decides what any circle LOOKS like; there is no
+  // separate circle for it either (see below). Its one remaining job here is to
+  // seed the fallback on a fresh install.
   const live = (a.accent || DEFAULT_ACCENT).toLowerCase();
-  // Which of the eight the live accent belongs to. Exactly one slot is always
-  // marked, whether or not the colour is a preset - see accentSlot.
-  const liveSlot = accentSlot(live);
+  // Which of the eight is chosen: the STORED fact first, the arithmetic only as
+  // the fresh-install fallback.
+  //
+  // It used to be accentSlot(live) and nothing else, which works only while
+  // every swatch holds a different colour. Mix two of them to the same red and
+  // the nearest-preset match marks one slot and abandons the other, so the
+  // seven that are not marked fall back to their factory hex and the row looks
+  // like it forgot them (jdp, 2026-09-02: "Der farbpicker funktionniert nicht
+  // bzw. speichert das farbfeld die ausgewählte farbe nicht"). A choice is not
+  // recoverable from a value once two values are equal. Same fix, same shape,
+  // as the app's own (mobile/src/screens/SettingsScreen.tsx).
+  const liveSlot = a.accentChosen !== undefined ? a.accentChosen : accentSlot(live);
+  // What each slot was last mixed to. A slot nobody has touched answers with
+  // its preset.
+  const customs = a.accentCustoms;
 
   accentSwatches.innerHTML = '';
   // No "Voreinstellungen" caption any more (jdp, 2026-09-01: "der text
@@ -851,13 +901,32 @@ async function renderAppearance() {
     applyAccent(v);
     await renderAppearance();
   };
+  /**
+   * chooseSlot puts one slot in force: its remembered colour becomes the
+   * accent, and the slot itself is written down as the chosen one. Both facts
+   * get stored, because a colour cannot say which of eight circles was clicked
+   * once two of them hold it.
+   */
+  const chooseSlot = async (i, hex) => {
+    await writeAppearance({ accent: hex, accentSlotChosen: i });
+    applyAccent(hex);
+    await renderAppearance();
+  };
   ACCENTS.forEach((x, i) => {
-    // The slot in force wears the LIVE colour, which is the preset's own unless
-    // the picker has nudged it. That is what keeps a hand-mixed accent visible:
-    // it used to be stored, applied everywhere, and drawn nowhere in the row
-    // that is supposed to be showing it.
+    // Each slot wears whatever IT was last mixed to, and keeps it.
+    //
+    // The slot in force used to wear the LIVE accent, drawn over whichever
+    // preset it sat nearest, and no other slot remembered anything. So the row
+    // could hold exactly one hand-mixed colour: choosing any other swatch
+    // overwrote `accent`, the mix was stored nowhere else, and the circle fell
+    // back to its factory hex (jdp, 2026-09-01: "wenn man ein Farbfeld
+    // bearbeitet setzt es die farbe wieder zurück, sobald man ein anderes
+    // farbfeld auswählt"). The same derivation also made an edit JUMP slots
+    // when a drag crossed a nearest-preset boundary: nudge Red towards orange
+    // and the ORANGE circle ended up wearing it while Red snapped back. Slot
+    // memory ends both, because a colour no longer has to imply where it lives.
+    const shown = (customs[String(i)] ?? x.hex).toLowerCase();
     const mine = i === liveSlot;
-    const shown = mine ? live : x.hex;
     // One click chooses; a second click on the one already chosen edits it
     // (jdp, 2026-09-01: "alle farbfelder sollen sich editieren lassen ... es
     // kommt immer der farbpicker"). Both of his asks land on the same control,
@@ -874,24 +943,40 @@ async function renderAppearance() {
     // A ring marks the current one, not a tick: a glyph would have to stay
     // legible on all eight, which means computing an ink colour for a
     // decoration.
-    accentSwatches.appendChild(
-      swatch(shown, {
-        // Named while it wears its preset; its own value once it does not,
-        // because "Sunflower" on a circle that is no longer Sunflower is the
-        // one label worse than no label.
-        label: mine && shown !== x.hex.toLowerCase() ? shown.toUpperCase() : x.name,
-        pressed: mine,
-        onPick: () => void pick(x.hex),
-        onEdit: async (next) => {
-          await writeAppearance({ accent: next });
-          applyAccent(next);
-        },
-        // The row cannot be redrawn while the popover is open - that would
-        // replace the very button it is anchored to - so the redraw happens
-        // once, on close. See openColorPickerPopover's own doc comment.
-        onEditClose: () => void renderAppearance(),
-      }),
-    );
+    const b = swatch(shown, {
+      // Named while it wears its preset; its own value once it does not,
+      // because "Sunflower" on a circle that is no longer Sunflower is the
+      // one label worse than no label. No longer conditional on being the
+      // chosen one: a slot holding a mix is holding it whether or not it is in
+      // force, so it has to say so.
+      label: shown !== x.hex.toLowerCase() ? shown.toUpperCase() : x.name,
+      pressed: mine,
+      // One click chooses THIS slot and wears what it remembers, which is why
+      // the mix survives a trip round the other seven.
+      onPick: () => void chooseSlot(i, shown),
+      onEdit: async (next) => {
+        // Three facts per drag frame: the colour that is applied, the slot's
+        // own memory of it, and the fact that this slot is now the chosen one.
+        // Editing a swatch is also choosing it, which is what a picker standing
+        // open over it already means.
+        const cust = { ...liveAccentCustoms, [String(i)]: next };
+        liveAccentCustoms = cust;
+        await writeAppearance({ accent: next, accentSlotChosen: i, accentCustoms: cust });
+        applyAccent(next);
+        // The circle being edited has to change colour DURING the drag, the way
+        // the palette row four blocks down already does. It did not, so the one
+        // control the eye is on while dragging was the only thing on the page
+        // not following the picker. The row cannot be redrawn here (that would
+        // replace the very button the popover is anchored to), so this is a
+        // direct mutation of the live element, not a render.
+        b.style.backgroundColor = next;
+      },
+      // The row cannot be redrawn while the popover is open - that would
+      // replace the very button it is anchored to - so the redraw happens
+      // once, on close. See openColorPickerPopover's own doc comment.
+      onEditClose: () => void renderAppearance(),
+    });
+    accentSwatches.appendChild(b);
   });
   // The way back, always rendered (jdp, 2026-08-31: "die akzentfarbe hat keinen
   // resetbutton"). It used to appear only once the accent had actually moved,
@@ -908,7 +993,17 @@ async function renderAppearance() {
   // them, so nothing said it opened anything - and with no way off the eight
   // presets the reset badge beside it had nothing to reset from, which is
   // exactly how jdp described it.
-  accentSwatches.appendChild(resetBadge(() => pick('')));
+  accentSwatches.appendChild(
+    resetBadge(async () => {
+      // The two row facts are REMOVED, never set to undefined: chrome.storage
+      // keeps an undefined as a present value, so readAppearance would find a
+      // present-but-meaningless field instead of falling through to the factory
+      // presets, and the reset would silently do nothing. Same trap as the one
+      // restoreLocalLook documents above.
+      await chrome.storage.local.remove(['accentSlotChosen', 'accentCustoms']);
+      await pick('');
+    }),
+  );
 
   // --- The rainbow ---------------------------------------------------------
   // The same three axes the web UI's Look page offers, in the same order, so
@@ -1157,7 +1252,12 @@ async function renderReport() {
   reportEl.textContent = text;
   // Prefilled, so the form opens with the report already in it rather than
   // asking somebody to paste something they have to go back for.
-  copyReportBtn.textContent = t('options.problemsCopy');
+  // replaceChildren, not textContent: textContent wipes every child node, which
+  // is the reason this button carried no glyph while its two neighbours in the
+  // About card did (jdp, 2026-09-02: "Der Bericht teilen button soll bericht
+  // kopieren button heißen (mit glyph), in allen instanzen"). It already copied
+  // and already said so; the mark was the missing half.
+  copyReportBtn.replaceChildren(glyph(D_COPY, 14), document.createTextNode(t('options.problemsCopy')));
 }
 
 copyReportBtn.addEventListener('click', async () => {

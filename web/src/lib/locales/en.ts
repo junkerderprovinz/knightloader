@@ -1408,8 +1408,10 @@ export const en = {
   'settings.help.advanced.body':
     'Every setting this build has can be read and changed by its raw name on the Advanced page, including a few - how a mirror of an already-downloaded file is treated, what happens when a download would land on a name already taken - that do not have a dedicated control anywhere else yet.',
   'settings.help.advanced.link': 'Open Advanced settings',
+  'task.mode.free': 'Free',
+  'task.mode.premium': 'Premium',
   'settings.about.title': 'About KnightLoader',
-  'settings.about.body': 'Written on evenings and weekends, by one person, because every other download manager wanted two clicks where one would have done.',
+  'settings.about.body': 'A self-hosted download manager with a clean interface, as an alternative to JDownloader. The engine, the API and the interface live in one program, with nothing to install beside it. Written on evenings and weekends, because every other one wanted two clicks where one would have done.',
   'settings.about.coffeeButton': 'Buy me a coffee',
   'settings.about.coffee': 'Enjoying KnightLoader? A coffee would make my day.',
   'settings.about.report': 'Problems, wishes or suggestions? Open an issue on GitHub, or send an email.',

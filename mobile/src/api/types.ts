@@ -16,6 +16,9 @@ export interface Task {
   name: string;
   package: string;
   resolver: string;
+  /** Whether this goes out on an account or anonymously. Only set for a link a
+   *  hoster is on the other end of; absent means the question does not apply. */
+  mode?: 'free' | 'premium';
   size: number;
   loaded: number;
   speed: number;

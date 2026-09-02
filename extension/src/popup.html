@@ -124,6 +124,16 @@
         border-radius: var(--radius-control);
         font: inherit;
         font-weight: 500;
+        /* A label may never break over two lines. The height above is a fixed
+           36, so a second line does not make the button taller, it pushes the
+           text out through the top and bottom of its own surface and the
+           button beside it stops looking like the same object (jdp,
+           2026-09-02: "Buttons wieder nicht gleich groß"). `overflow: hidden`
+           is the companion half: with wrapping off, a translation longer than
+           its half of the row would otherwise paint across the neighbouring
+           button's surface instead of staying inside its own. */
+        white-space: nowrap;
+        overflow: hidden;
         cursor: pointer;
       }
       button svg { flex-shrink: 0; }
@@ -172,9 +182,28 @@
       #instanceList { display: flex; flex-direction: column; gap: 16px; margin-top: 6px; }
       #instanceLabel { margin: 0; }
       /* Send and its cancel share a row; cancel is only there while a clock is
-         running, so the send button is full width the rest of the time. */
+         running, so the send button is full width the rest of the time.
+
+         BOTH buttons need the flex rule, not just the sending one (jdp,
+         2026-09-02: "Buttons wieder nicht gleich groß", with a shot of a
+         narrow two-line "Jetzt senden (11)" next to a wide "Abbrechen"). It
+         used to be `.sendRow #send { flex: 1 }` alone, which left cancel on
+         the base rule's `width: 100%`: cancel therefore asked for the whole
+         420px row as its flex basis, send asked for 0, the two together
+         overflowed, and the algorithm froze send at its automatic min-content
+         width - the width of its longest WORD - and handed the rest of the
+         line to cancel. That is why the label broke over two lines and spilled
+         out of its fixed 36px box, which is what made the heights look unequal
+         as well.
+
+         `flex-basis: 0` on both means the split is (420 - 8) / 2 regardless of
+         how long either label is, and `min-width: 0` switches off the
+         automatic min-content floor that did the squeezing. Same pattern as
+         .collectorRow below, which is the row this one had drifted away from.
+         The `> button` child selector rather than an id, so a third control
+         added to this row cannot silently opt out of the split. */
       .sendRow { display: flex; gap: 8px; }
-      .sendRow #send { flex: 1; }
+      .sendRow > button { flex: 1 1 0; min-width: 0; }
       #tabs { margin-bottom: 12px; }
       /* The two panes are the same height, so switching tabs does not resize
          the window (jdp, 2026-09-01: "wenn man in den reiter linksaammler
@@ -223,7 +252,11 @@
          under a Send button that outranked them, and in their own tab there is
          nothing left for them to be secondary TO. */
       .collectorRow { display: flex; gap: 8px; }
-      .collectorRow button { flex: 1; }
+      /* `min-width: 0` for the same reason it is on .sendRow above: with
+         wrapping switched off in the base rule, a button's automatic minimum
+         is the width of its WHOLE label, so a long translation would push this
+         row wider than the 420px window instead of staying in its half. */
+      .collectorRow button { flex: 1; min-width: 0; }
     </style>
   </head>
   <body>

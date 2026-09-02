@@ -1221,8 +1221,10 @@ export const ms: Dict = {
   'settings.help.advanced.body':
     'Setiap tetapan build ini boleh dibaca dan diubah melalui nama mentahnya pada halaman Lanjutan, termasuk beberapa - cara cermin fail yang sudah dimuat turun dikendalikan, apa yang berlaku apabila muat turun akan mendarat pada nama yang sudah digunakan - yang masih belum mempunyai kawalan khusus di tempat lain.',
   'settings.help.advanced.link': 'Buka tetapan Lanjutan',
+  'task.mode.free': 'Percuma',
+  'task.mode.premium': 'Premium',
   'settings.about.title': 'Perihal KnightLoader',
-  'settings.about.body': 'Ditulis pada waktu malam dan hujung minggu, oleh seorang sahaja, kerana setiap pengurus muat turun lain mahukan dua klik di tempat satu sudah memadai.',
+  'settings.about.body': 'Pengurus muat turun yang dihoskan sendiri dengan antara muka yang kemas, sebagai alternatif kepada JDownloader. Enjin, API dan antara muka berada dalam satu program, tiada apa-apa lagi untuk dipasang di sebelahnya. Ditulis pada waktu malam dan hujung minggu, kerana setiap yang lain mahukan dua klik di tempat satu sudah memadai.',
   'settings.about.coffeeButton': 'Belanja saya kopi',
   'settings.about.coffee': 'Suka KnightLoader? Secawan kopi akan menceriakan hari saya.',
   'settings.about.report': 'Masalah, kehendak atau cadangan? Buka isu di GitHub, atau hantar e-mel.',

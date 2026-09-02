@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type SVGProps } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { recheckTasks, startTasks, type Task } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import { useReportListView } from '../lib/listview';
@@ -43,33 +43,23 @@ import { CollectorStats } from '../components/CollectorStats';
 import { useScriptMenu } from '../components/ScriptActions';
 import { FirstTouchHint } from '../components/FirstTouchHint';
 import { usePublishCommandPageContext } from '../lib/commands/pageContext';
-import { IconCheck, IconClock, IconClose, IconPlay, IconRetry, IconSearch, IconTrash, IconWarning } from '../lib/icons';
+import {
+  IconCheck,
+  IconClock,
+  IconClose,
+  IconPlay,
+  IconRetry,
+  IconSearch,
+  IconTrash,
+  IconTrashFiles,
+  IconWarning,
+} from '../lib/icons';
 
-// One glyph lib/icons.tsx has no equivalent for yet, needed only by the
-// selection-mode half of the action row below. Follows that file's own
-// house style (solid fill, never a stroked outline) rather than
-// ListToolbar.tsx's local stroke-based twin of the same idea (its own
-// unexported IconTrashFiles), which this file cannot import without
-// editing ListToolbar.tsx - not this file's lane this round.
-
-/** "Remove and delete files": IconTrash's own body with two slits carved
- *  through it (fillRule="evenodd", the same technique IconWarning's "!" uses
- *  in lib/icons.tsx) - a trash can whose contents are visibly gone, distinct
- *  from the plain IconTrash beside it so the two danger badges are told
- *  apart without hovering for a tooltip. */
-const IconTrashFiles = (p: SVGProps<SVGSVGElement>) => (
-  <svg width={22} height={22} viewBox="0 0 20 20" fill="currentColor" className="shrink-0" aria-hidden {...p}>
-    <rect x="8" y="2" width="4" height="2" rx="1" />
-    <rect x="3.5" y="4.5" width="13" height="2.2" rx="1.1" />
-    <path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M5.3 7.5h9.4l-.9 9.1a1.5 1.5 0 0 1-1.5 1.4H7.7a1.5 1.5 0 0 1-1.5-1.4L5.3 7.5Z
-         M7 9.6h6v1.3H7Z
-         M7 12.4h6v1.3H7Z"
-    />
-  </svg>
-);
+// The "remove and delete files" glyph this file used to draw for itself is now
+// lib/icons.tsx's IconTrashFiles, imported above: the drawing was already the
+// right one (solid fill), it just could not be shared while ListToolbar.tsx
+// held a third, stroke-based copy of the same idea. One drawing now, so the
+// badge here and the menu entry there cannot drift apart.
 
 /** COLLECTOR_FILTERS minus the two now rendered as their own square badges
  *  in the action row instead (see the "Nicht prüfbar" / "Ungeprüft"

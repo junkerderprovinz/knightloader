@@ -441,7 +441,7 @@ function RowTooltipContent({ task, t, base }: { task: Task; t: Translate; base: 
           </TooltipField>
         )}
         <TooltipField label={t('columns.resolver')}>
-          <ResolverBadge resolver={task.resolver} />
+          <ResolverBadge resolver={task.resolver} mode={task.mode} />
         </TooltipField>
         {/* Peers/Seeds/Ratio also have their own columns (hidden by default,
             like six other low-traffic ones already are - see DEFAULT_HIDDEN
@@ -1170,10 +1170,10 @@ export const COLUMNS: ColumnDef[] = [
     align: 'start',
     hideable: true,
     compare: (a, b) => cmpText(a.resolver, b.resolver),
-    render: (task) => <ResolverBadge resolver={task.resolver} />,
+    render: (task) => <ResolverBadge resolver={task.resolver} mode={task.mode} />,
     aggregate: (items) => {
       const one = new Set(items.map((x) => x.resolver));
-      return one.size === 1 ? <ResolverBadge resolver={items[0].resolver} /> : null;
+      return one.size === 1 ? <ResolverBadge resolver={items[0].resolver} mode={items[0].mode} /> : null;
     },
   },
   {

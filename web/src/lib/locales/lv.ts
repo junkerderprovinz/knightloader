@@ -1221,8 +1221,10 @@ export const lv: Dict = {
   'settings.help.advanced.body':
     'Katru šīs versijas iestatījumu var nolasīt un mainīt pēc tā neapstrādātā nosaukuma lapā Papildu, ieskaitot dažus - kā tiek apstrādāts jau lejupielādēta faila spogulis, kas notiek, kad lejupielāde nonāktu uz jau izmantota nosaukuma - kuriem vēl nav savas atsevišķas vadīklas citur.',
   'settings.help.advanced.link': 'Atvērt Papildu iestatījumus',
+  'task.mode.free': 'Bez maksas',
+  'task.mode.premium': 'Premium',
   'settings.about.title': 'Par KnightLoader',
-  'settings.about.body': 'Rakstīts vakaros un nedēļas nogalēs, viena cilvēka, jo katrs cits lejupielāžu pārvaldnieks gribēja divus klikšķus tur, kur pietika ar vienu.',
+  'settings.about.body': 'Pašmitināts lejupielāžu pārvaldnieks ar sakoptu saskarni, kā alternatīva JDownloader. Dzinējs, API un saskarne ietilpst vienā programmā, un blakus nav ko instalēt. Rakstīts vakaros un nedēļas nogalēs, jo katrs cits gribēja divus klikšķus tur, kur pietika ar vienu.',
   'settings.about.coffeeButton': 'Uzsauc kafiju',
   'settings.about.coffee': 'Vai KnightLoader patīk? Kafija uzlabotu manu dienu.',
   'settings.about.report': 'Problēmas, vēlmes vai ieteikumi? Atver problēmu GitHub vai sūti e-pastu.',

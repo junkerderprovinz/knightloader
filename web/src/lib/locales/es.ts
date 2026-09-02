@@ -1213,8 +1213,10 @@ export const es: Dict = {
   'settings.help.advanced.body':
     'Cada ajuste de este build se puede leer y cambiar por su nombre en bruto en la página Avanzado, incluidos algunos - cómo se trata un espejo de un archivo ya descargado, qué pasa cuando una descarga acabaría con un nombre ya usado - que todavía no tienen un control propio en ningún otro sitio.',
   'settings.help.advanced.link': 'Abrir ajustes de Avanzado',
+  'task.mode.free': 'Gratis',
+  'task.mode.premium': 'Premium',
   'settings.about.title': 'Acerca de KnightLoader',
-  'settings.about.body': 'Escrito por las tardes y los fines de semana, por una sola persona, porque cualquier otro gestor de descargas pedía dos clics donde bastaba con uno.',
+  'settings.about.body': 'Un gestor de descargas autoalojado con una interfaz despejada, como alternativa a JDownloader. El motor, la API y la interfaz viven en un solo programa, sin nada más que instalar al lado. Escrito por las tardes y los fines de semana, porque cualquier otro pedía dos clics donde bastaba con uno.',
   'settings.about.coffeeButton': 'Invítame a un café',
   'settings.about.coffee': '¿Te gusta KnightLoader? Un café me alegraría el día.',
   'settings.about.report': '¿Problemas, deseos o sugerencias? Abre una incidencia en GitHub, o envía un correo.',

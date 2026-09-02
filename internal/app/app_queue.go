@@ -245,6 +245,7 @@ func (a *App) RestartTasks(ids []string) {
 			// the resolver came from in the first place, and no surface lets
 			// anybody pin one by hand.
 			t.Resolver = ""
+			t.Mode = core.ModeUnknown
 			delete(a.active, id)
 			delete(a.started, id) // dispatch will hand it to the backend fresh
 		}

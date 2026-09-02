@@ -1221,8 +1221,10 @@ export const et: Dict = {
   'settings.help.advanced.body':
     'Iga selle buildi seadet saab lugeda ja muuta selle toornime kaudu lehel Täpsem, sealhulgas mõnda - kuidas juba allalaaditud faili peeglit käsitletakse, mis juhtub, kui allalaadimine satuks juba kasutuses olevale nimele - millel pole veel oma eraldi juhtelementi kusagil mujal.',
   'settings.help.advanced.link': 'Ava täpsemad seaded',
+  'task.mode.free': 'Tasuta',
+  'task.mode.premium': 'Premium',
   'settings.about.title': 'Teave KnightLoaderi kohta',
-  'settings.about.body': 'Kirjutatud õhtuti ja nädalavahetustel, ühe inimese poolt, sest iga teine allalaadimishaldur tahtis kaht klõpsu seal, kus piisanuks ühest.',
+  'settings.about.body': 'Isemajutatav allalaadimishaldur korras kasutajaliidesega, alternatiivina JDownloaderile. Mootor, liides ja kasutajaliides mahuvad ühte programmi, kõrvale pole midagi paigaldada. Kirjutatud õhtuti ja nädalavahetustel, sest iga teine tahtis kaht klõpsu seal, kus piisanuks ühest.',
   'settings.about.coffeeButton': 'Osta mulle kohv',
   'settings.about.coffee': 'Kas KnightLoader meeldib? Üks kohv teeks mu päeva.',
   'settings.about.report': 'Probleeme, soove või ettepanekuid? Ava GitHubis teema või saada e-kiri.',

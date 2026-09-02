@@ -125,6 +125,11 @@ export function useScriptMenu({ chosen, base: _base }: { chosen: Task[]; base: s
               items: runnable.map((s) => ({
                 id: s.id,
                 label: nameOf(s),
+                // The parent's own glyph, repeated on its children: every
+                // script is the same kind of thing, so a different glyph per
+                // row would be inventing a distinction the list does not have.
+                // The queue's "Move" submenu does the same with IconTop.
+                icon: <IconCode />,
                 onSelect: () => {
                   void runScript(s.id, task.id).then(
                     (result) => {

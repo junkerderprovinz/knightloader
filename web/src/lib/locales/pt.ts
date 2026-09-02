@@ -1213,8 +1213,10 @@ export const pt: Dict = {
   'settings.help.advanced.body':
     'Cada definição deste build pode ser lida e alterada pelo seu nome em bruto na página Avançado, incluindo algumas - como um mirror de um ficheiro já transferido é tratado, o que acontece quando uma transferência ia parar a um nome já usado - que ainda não têm um controlo dedicado em mais lado nenhum.',
   'settings.help.advanced.link': 'Abrir definições de Avançado',
+  'task.mode.free': 'Grátis',
+  'task.mode.premium': 'Premium',
   'settings.about.title': 'Sobre o KnightLoader',
-  'settings.about.body': 'Escrito à noite e aos fins de semana, por uma só pessoa, porque todos os outros gestores de transferências pediam dois cliques onde bastava um.',
+  'settings.about.body': 'Um gestor de transferências self-hosted com uma interface limpa, como alternativa ao JDownloader. O motor, a API e a interface vivem num só programa, sem mais nada para instalar ao lado. Escrito à noite e aos fins de semana, porque todos os outros pediam dois cliques onde bastava um.',
   'settings.about.coffeeButton': 'Paga-me um café',
   'settings.about.coffee': 'Gostas do KnightLoader? Um café alegrava-me o dia.',
   'settings.about.report': 'Problemas, desejos ou sugestões? Abre uma questão no GitHub, ou envia um e-mail.',

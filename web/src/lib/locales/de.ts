@@ -1222,8 +1222,10 @@ export const de: Dict = {
   'settings.help.advanced.body':
     'Jede Einstellung dieses Builds lässt sich auf der Erweitert-Seite über ihren Rohnamen lesen und ändern, einschließlich einiger - wie ein Spiegel einer bereits geladenen Datei behandelt wird, was passiert, wenn ein Download auf einem bereits vergebenen Namen landen würde - die noch keine eigene Steuerung woanders haben.',
   'settings.help.advanced.link': 'Erweitert-Einstellungen öffnen',
+  'task.mode.free': 'Free',
+  'task.mode.premium': 'Premium',
   'settings.about.title': 'Über KnightLoader',
-  'settings.about.body': 'An Abenden und Wochenenden geschrieben, von einer Person, weil jeder andere Downloadmanager zwei Klicks wollte, wo einer gereicht hätte.',
+  'settings.about.body': 'Ein selbstgehosteter Downloadmanager mit aufgeräumter Oberfläche, als Alternative zu JDownloader. Engine, Schnittstelle und Oberfläche stecken in einem Programm, daneben ist nichts zu installieren. An Abenden und Wochenenden geschrieben, weil jeder andere zwei Klicks wollte, wo einer gereicht hätte.',
   'settings.about.coffeeButton': 'Kaffee spendieren',
   'settings.about.coffee': 'Gefällt dir KnightLoader? Dann freue ich mich über einen Kaffee.',
   'settings.about.report': 'Probleme, Wünsche oder Verbesserungsvorschläge? Schreib es auf GitHub als Issue, oder schick eine E-Mail.',

@@ -38,6 +38,27 @@ const (
 // 404. An error nothing recognises stays ReasonUnknown rather than being guessed
 // at: a generic failure that reboots the router is worse than no reason at all.
 // The taxonomy itself is filled in where failures are classified.
+// DownloadMode is whether a transfer goes out on a paid account or anonymously.
+//
+// Only meaningful for a link a hoster is on the other end of: an ordinary file
+// on an ordinary web server is neither free nor premium, it is just a file, and
+// labelling it either way would put a word on screen that answers a question
+// nobody asked. That case is ModeUnknown, and the interface shows nothing.
+type DownloadMode string
+
+const (
+	// ModeUnknown is "the question does not apply here", which is the common
+	// case: a plain HTTP file, a torrent, a media page.
+	ModeUnknown DownloadMode = ""
+	// ModeFree is a hoster this app knows, with no account behind it. The
+	// download still happens - JD's own plugin does the waiting and the captcha,
+	// see jd.PriorityFor - but it happens under the hoster's free limits.
+	ModeFree DownloadMode = "free"
+	// ModePremium is a hoster reached through an account: a debrid service, or a
+	// native login JD has confirmed active.
+	ModePremium DownloadMode = "premium"
+)
+
 type Reason string
 
 // ReasonUnknown is an error nothing has classified.
@@ -389,6 +410,21 @@ type Task struct {
 	// Reason is the typed cause of the current failure; Error is the sentence
 	// beside it.
 	Reason Reason `json:"reason,omitempty"`
+	// Mode is whether this download goes out on a paid account or anonymously,
+	// and it is a DISPLAY fact rather than a routing one - the routing itself is
+	// jd.PriorityFor's job.
+	//
+	// It exists because the answer was previously invisible (jdp, 2026-09-02:
+	// "Wenn man links runterladen möchte für die kein premium account hinterlegt
+	// ist muss das angezeigt werden"). A hoster link with no account behind it
+	// looks exactly like one with an account behind it, right up until it is
+	// slow, queued behind a countdown, or asks for a captcha - and there was
+	// nothing on screen to say which of the two you were looking at.
+	//
+	// Deliberately NOT folded into Reason: Reason is failure-only and is cleared
+	// on every requeue, and "this is a free-mode download" is neither a failure
+	// nor something that stops being true when the task is retried.
+	Mode DownloadMode `json:"mode,omitempty"`
 	// Origin is the intake path this link arrived by.
 	Origin Origin `json:"origin,omitempty"`
 	// ChangedAt is when this task last changed, which is what JD's "Geändert am"

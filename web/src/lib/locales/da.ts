@@ -1221,8 +1221,10 @@ export const da: Dict = {
   'settings.help.advanced.body':
     'Enhver indstilling i dette build kan læses og ændres via dens rå navn på siden Avanceret, herunder nogle få - hvordan et spejl af en allerede downloadet fil behandles, hvad der sker, når en download ville havne på et allerede brugt navn - der endnu ikke har en dedikeret kontrol andetsteds.',
   'settings.help.advanced.link': 'Åbn indstillinger for Avanceret',
+  'task.mode.free': 'Gratis',
+  'task.mode.premium': 'Premium',
   'settings.about.title': 'Om KnightLoader',
-  'settings.about.body': 'Skrevet om aftenen og i weekenden, af én person, fordi alle andre downloadprogrammer ville have to klik, hvor ét havde været nok.',
+  'settings.about.body': 'En selvhostet downloadmanager med en ryddelig grænseflade, som alternativ til JDownloader. Motoren, API\'et og grænsefladen ligger i ét program, og der er intet at installere ved siden af. Skrevet om aftenen og i weekenden, fordi alle andre ville have to klik, hvor ét havde været nok.',
   'settings.about.coffeeButton': 'Køb mig en kaffe',
   'settings.about.coffee': 'Kan du lide KnightLoader? En kop kaffe ville gøre min dag.',
   'settings.about.report': 'Problemer, ønsker eller forslag? Opret et issue på GitHub, eller send en mail.',

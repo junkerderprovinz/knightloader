@@ -232,9 +232,127 @@
       } catch {
         /* fall through to the real open */
       }
-      return realOpen2.apply(this, arguments);
+      const opened = realOpen2.apply(this, arguments);
+      // The window is patched on the way out, not only when its URL is a CnL
+      // address: a helper window submits from its own realm, and that realm is
+      // created here or nowhere. Also on load, because a window opened blank
+      // and then navigated gets a fresh set of prototypes with it.
+      try {
+        installInOpened(opened);
+        opened?.addEventListener?.('load', () => installInOpened(opened), { once: false });
+      } catch {
+        /* cross-origin; nothing reachable to patch */
+      }
+      return opened;
     };
   }
+
+  /**
+   * Patch a window the page just opened.
+   *
+   * This is the gap that most likely explains jdp's report (2026-09-02: "wenn
+   * ich bei filecrypt auf CnL klicke kommt ein neues JD Browserfenster und das
+   * Erweiterungs-popupfenster geht nicht auf").
+   *
+   * The window.open wrapper above only steps in when the OPENED URL is itself a
+   * Click'n'Load address. A site that opens a helper window on its own domain,
+   * or an about:blank one, and submits from INSIDE it, goes through that
+   * window's own untouched `fetch`, `XMLHttpRequest` and `HTMLFormElement` - a
+   * different realm, with a different set of prototypes, that this file never
+   * ran in. The request then leaves the browser for real, and a JDownloader
+   * listening on the port answers it and raises its own window: exactly what he
+   * describes, and from the extension's side completely silent.
+   *
+   * Only the three paths a helper window realistically uses. The element-src
+   * shapes are for a page building markup, which a submission window does not
+   * do, and duplicating every wrapper here would double a file whose whole job
+   * is to be surgical.
+   *
+   * Everything is wrapped: reaching into another window throws the moment it is
+   * cross-origin, and a throw here would take the page's own window.open with
+   * it. `hand` deliberately posts to OUR window, which is where the relay in the
+   * isolated world is listening; the opened window has no relay of its own.
+   */
+  const installInOpened = (win) => {
+    if (!win || win === window) return;
+    try {
+      // Stamped, because 'load' can fire more than once for one window and a
+      // second patch would wrap our own wrapper.
+      if (win.__klCnlPatched) return;
+      win.__klCnlPatched = true;
+
+      const theirFetch = win.fetch;
+      if (typeof theirFetch === 'function') {
+        win.fetch = function (input, init) {
+          try {
+            const url = typeof input === 'string' ? input : input?.url;
+            if (url && aimedAtCnl(url)) {
+              hand(new URL(url, location.href).pathname, fieldsFromBody(init?.body));
+              return Promise.resolve(ok());
+            }
+          } catch {
+            /* fall through to their own fetch */
+          }
+          return theirFetch.apply(this, arguments);
+        };
+      }
+
+      const theirOpen = win.XMLHttpRequest?.prototype?.open;
+      const theirSend = win.XMLHttpRequest?.prototype?.send;
+      if (theirOpen && theirSend) {
+        win.XMLHttpRequest.prototype.open = function (method, url) {
+          try {
+            if (url && aimedAtCnl(url)) this.__klCnl = new URL(url, location.href).pathname;
+          } catch {
+            /* see above */
+          }
+          return theirOpen.apply(this, arguments);
+        };
+        win.XMLHttpRequest.prototype.send = function (body) {
+          if (this.__klCnl) {
+            hand(this.__klCnl, fieldsFromBody(body));
+            return;
+          }
+          return theirSend.apply(this, arguments);
+        };
+      }
+
+      const theirSubmit = win.HTMLFormElement?.prototype?.submit;
+      if (theirSubmit) {
+        win.HTMLFormElement.prototype.submit = function () {
+          try {
+            if (this.action && aimedAtCnl(this.action)) {
+              hand(new URL(this.action, location.href).pathname, fieldsFromForm(this));
+              return;
+            }
+          } catch {
+            /* fall through */
+          }
+          return theirSubmit.apply(this, arguments);
+        };
+      }
+
+      win.addEventListener(
+        'submit',
+        (e) => {
+          try {
+            const form = e.target;
+            if (form?.action && aimedAtCnl(form.action)) {
+              e.preventDefault();
+              e.stopPropagation();
+              hand(new URL(form.action, location.href).pathname, fieldsFromForm(form));
+            }
+          } catch {
+            /* fall through */
+          }
+        },
+        true,
+      );
+    } catch {
+      // Cross-origin, or a window that closed between opening and this line.
+      // Nothing to do and nothing worth breaking the page over.
+    }
+  };
 
   // sendBeacon: fire-and-forget by design, so a site using it never notices
   // that nothing listened.
@@ -259,6 +377,10 @@
   for (const [Ctor, name] of [
     [window.HTMLIFrameElement, 'HTMLIFrameElement'],
     [window.HTMLImageElement, 'HTMLImageElement'],
+    // A <script src> aimed at the port is the same GET-flavoured ping, and it
+    // was the one element path missing from this list. Sites that use it were
+    // invisible to the whole interceptor.
+    [window.HTMLScriptElement, 'HTMLScriptElement'],
   ]) {
     try {
       const desc = Ctor && Object.getOwnPropertyDescriptor(Ctor.prototype, 'src');
@@ -287,6 +409,26 @@
       void name;
     }
   }
+
+  // A plain <a href="http://127.0.0.1:9666/flash/add?...">: no script, no form,
+  // just a link. Capture phase so the page's own handler cannot stop it first,
+  // and preventDefault only once the submission has actually been handed over.
+  document.addEventListener(
+    'click',
+    (e) => {
+      try {
+        const a = e.target?.closest?.('a[href]');
+        if (!a || !aimedAtCnl(a.href)) return;
+        const u = new URL(a.href, location.href);
+        hand(u.pathname, Object.fromEntries(u.searchParams));
+        e.preventDefault();
+        e.stopPropagation();
+      } catch {
+        /* let the click through rather than swallow it */
+      }
+    },
+    true,
+  );
 
   document.addEventListener(
     'submit',

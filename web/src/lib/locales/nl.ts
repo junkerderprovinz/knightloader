@@ -1213,8 +1213,10 @@ export const nl: Dict = {
   'settings.help.advanced.body':
     'Elke instelling van deze build kan op de pagina Geavanceerd worden gelezen en gewijzigd via zijn ruwe naam, inclusief enkele - hoe een spiegel van een al gedownload bestand wordt behandeld, wat er gebeurt als een download op een al gebruikte naam zou uitkomen - die nog geen eigen bediening ergens anders hebben.',
   'settings.help.advanced.link': 'Geavanceerd-instellingen openen',
+  'task.mode.free': 'Gratis',
+  'task.mode.premium': 'Premium',
   'settings.about.title': 'Over KnightLoader',
-  'settings.about.body': '\'s Avonds en in het weekend geschreven, door één persoon, omdat elke andere downloadmanager twee klikken wilde waar er één genoeg was.',
+  'settings.about.body': 'Een zelfgehoste downloadmanager met een opgeruimde interface, als alternatief voor JDownloader. De engine, de API en de interface zitten in één programma, er is niets naast te installeren. \'s Avonds en in het weekend geschreven, omdat elke andere twee klikken wilde waar er één genoeg was.',
   'settings.about.coffeeButton': 'Trakteer op koffie',
   'settings.about.coffee': 'Bevalt KnightLoader? Een kopje koffie maakt mijn dag goed.',
   'settings.about.report': 'Problemen, wensen of suggesties? Open een issue op GitHub, of stuur een e-mail.',

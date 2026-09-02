@@ -181,6 +181,14 @@ export default function ConnectionsScreen({
 
       <FlatList
         data={connections}
+        /* The rows read `status`, `stats` and `why` - three pieces of state the
+           list knows nothing about - while `connections` is set once and never
+           again. Without this, VirtualizedList never redraws a cell, so every
+           status badge and every figure freezes at whatever it said on the first
+           paint while the five-second poll updates state nobody redraws.
+           Found while fixing the same defect in DragList; the rule is the same
+           one both times: a cell that reads state outside `data` must say so. */
+        extraData={[status, stats, why]}
         // The summary, the failure line and the graph travel as the list's own
         // HEADER rather than as siblings above it (jdp, 2026-08-31: "in der
         // Übesicht soll die alle instanzen card genauso groß sein wie die
