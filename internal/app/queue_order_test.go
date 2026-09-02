@@ -321,3 +321,39 @@ func TestForcedPoolIsBounded(t *testing.T) {
 		t.Errorf("%d forced tasks started, want the pool bound of %d", running, maxForcedDownloads)
 	}
 }
+
+// TestRestartRoutesFromScratch is the difference between a restart that can
+// help and one that cannot.
+//
+// A restart used to keep the resolver that had just failed, which is the one
+// choice guaranteed to fail the same way. On the live instance that showed up as
+// fourteen rapidgator links frozen on "jd" - staged before a TorBox key existed,
+// and unmoved by any number of restarts, because JD has no tracked account and
+// so never counts as unroutable. The standing advice was "delete them and paste
+// them again", which is a person doing by hand what clearing one field does.
+func TestRestartRoutesFromScratch(t *testing.T) {
+	a := newOrderApp(t)
+	stage(a, "a")
+	a.mu.Lock()
+	a.tasks["a"].Status = core.StatusError
+	a.tasks["a"].Resolver = "jd"
+	a.tasks["a"].Error = "jd: the link never reached JDownloader's download list"
+	a.mu.Unlock()
+
+	a.RestartTasks(nil)
+
+	a.mu.Lock()
+	got := a.tasks["a"]
+	resolver, status, errText := got.Resolver, got.Status, got.Error
+	a.mu.Unlock()
+
+	if resolver != "" {
+		t.Errorf("resolver = %q after a restart, want it cleared so the task is routed again", resolver)
+	}
+	if status != core.StatusQueued {
+		t.Errorf("status = %q, want %q", status, core.StatusQueued)
+	}
+	if errText != "" {
+		t.Errorf("error = %q, want the previous failure cleared", errText)
+	}
+}
