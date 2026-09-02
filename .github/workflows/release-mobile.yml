@@ -216,4 +216,12 @@ jobs:
           # full tag beside the title.
           name: App ${{ steps.version.outputs.bare }}
           body_path: .github/release-notes/${{ github.ref_name }}.md
+          # NOT the repository's "Latest" release. That badge belongs to the
+          # PRODUCT's own tag (v1.0.0 and up), and a surface release is a
+          # component of it: a visitor who lands on the releases page and sees
+          # "Latest: Browser Extension 1.19.0" reads it as the version of
+          # KnightLoader, which it is not. GitHub marks whatever was published
+          # most recently unless told otherwise, so this has to be said out loud
+          # in every workflow that is not the product's own.
+          make_latest: false
           files: ${{ steps.apk.outputs.path }}
