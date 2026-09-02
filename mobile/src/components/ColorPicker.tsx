@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { Modal, PanResponder, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useAppearance } from '../theme/AppearanceContext';
 import { useT } from '../i18n/I18nContext';
+import { GlimButton } from './glim';
 import { TYPE } from '../theme/tokens';
 
 /**
@@ -106,7 +107,7 @@ export default function ColorPicker({
   onPick: (hex: string) => void;
   onClose: () => void;
 }) {
-  const { c, radii, accent, accentContrast } = useAppearance();
+  const { c, radii, accent } = useAppearance();
   const { t } = useT();
   const start = hexToHsv(initial) ?? { h: 45, s: 1, v: 1 };
   const [hsv, setHsv] = useState(start);
@@ -292,12 +293,14 @@ export default function ColorPicker({
                 onPick(n);
               }}
             />
-            <Pressable
-              style={[styles.done, { backgroundColor: accent, borderRadius: radii.control }]}
-              onPress={onClose}
-            >
-              <Text style={[styles.doneText, { color: accentContrast }]}>{t('settings.pickerDone')}</Text>
-            </Pressable>
+            {/* No hue on purpose, and this is the one deliberate exception in
+                the app: without one GlimButton resolves to the accent, which is
+                exactly what this button should wear. It closes a dialog whose
+                whole subject is a colour, and giving it a palette POSITION would
+                paint it in a colour that has nothing to do with the one being
+                mixed. It is still in the engine - same component, same height,
+                same gap - just not in the rotation. */}
+            <GlimButton label={t('settings.pickerDone')} onPress={onClose} />
           </View>
         </Pressable>
       </Pressable>
@@ -325,6 +328,4 @@ const styles = StyleSheet.create({
   foot: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   preview: { width: 32, height: 32 },
   hex: { flex: 1, height: 36, paddingHorizontal: 10, fontSize: TYPE.dense, fontVariant: ['tabular-nums'] },
-  done: { height: 36, paddingHorizontal: 14, alignItems: 'center', justifyContent: 'center' },
-  doneText: { fontSize: TYPE.dense, fontWeight: '600' },
 });
