@@ -50,10 +50,12 @@ func optionsFromJSON(t *testing.T, body string) TaskOptions {
 func TestUntouchedFieldsSurviveAnEditToTheSelection(t *testing.T) {
 	a, base := newQuietApp(t)
 	for _, id := range []string{"1", "2", "3"} {
-		task := finishedTask(t, a, base, id, "file"+id+".bin")
-		task.Comment = "note " + id
-		task.Password = "secret " + id
-		task.Dir = base
+		finishedTask(t, a, base, id, "file"+id+".bin")
+		editTask(a, id, func(t *core.Task) {
+			t.Comment = "note " + id
+			t.Password = "secret " + id
+			t.Dir = base
+		})
 	}
 	ids := []string{"1", "2", "3"}
 
@@ -123,8 +125,8 @@ func TestRenameFollowsTheStatus(t *testing.T) {
 
 	t.Run("a running download keeps the file the backend has open", func(t *testing.T) {
 		a, base := newQuietApp(t)
-		task := finishedTask(t, a, base, "1", "original.bin")
-		task.Status = core.StatusRunning
+		finishedTask(t, a, base, "1", "original.bin")
+		editTask(a, "1", func(t *core.Task) { t.Status = core.StatusRunning })
 
 		want := "renamed.bin"
 		if err := a.SetTaskOptions([]string{"1"}, TaskOptions{Name: &want}); err != nil {

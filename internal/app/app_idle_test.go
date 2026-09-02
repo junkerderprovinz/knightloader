@@ -26,6 +26,19 @@ import (
 // pollUntil polls cond every 100ms for up to timeout, so a test does not sleep
 // the full worst case when the answer arrives sooner - the idle poll interval
 // (2s) plus the countdown (5s) is already the slow part.
+// armWindow is how long a test waits for the controller to notice an idle
+// queue, and it is deliberately far longer than the mechanism needs.
+//
+// The controller re-checks every two seconds (idleaction.defaultPoll), so
+// arming is a sub-second event in any healthy run. The number here is not about
+// the mechanism, it is about the machine: this whole package runs under -race on
+// a shared CI runner, and TestIdleActionCanBeCancelled failed there at 15.37s
+// having never armed - while the very same log showed the controller pausing the
+// queue correctly three times right afterwards. A wall-clock assertion that a
+// starved scheduler can break is a gate that goes red for no reason, and a gate
+// nobody trusts is worse than no gate.
+const armWindow = 60 * time.Second
+
 func pollUntil(t *testing.T, timeout time.Duration, cond func() bool) bool {
 	t.Helper()
 	deadline := time.Now().Add(timeout)
@@ -49,7 +62,7 @@ func TestIdleActionPausesTheQueueAfterItsCountdown(t *testing.T) {
 
 	// Nothing was ever added: the app starts idle, so this should arm within
 	// one poll interval and fire once the countdown elapses.
-	if !pollUntil(t, 15*time.Second, func() bool { return a.IdleActionState().Armed }) {
+	if !pollUntil(t, armWindow, func() bool { return a.IdleActionState().Armed }) {
 		t.Fatal("did not arm within the expected window")
 	}
 	if !pollUntil(t, 10*time.Second, func() bool { return a.Queue().Halted }) {
@@ -66,7 +79,7 @@ func TestIdleActionCanBeCancelled(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !pollUntil(t, 15*time.Second, func() bool { return a.IdleActionState().Armed }) {
+	if !pollUntil(t, armWindow, func() bool { return a.IdleActionState().Armed }) {
 		t.Fatal("did not arm within the expected window")
 	}
 	a.CancelIdleAction()

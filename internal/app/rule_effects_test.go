@@ -34,6 +34,23 @@ func finishedTask(t *testing.T, a *App, dir, id, name string) *core.Task {
 	return task
 }
 
+// editTask changes a live task under the SAME lock the app holds, which is the
+// only safe way for a test to touch one.
+//
+// finishedTask hands back the very pointer it put into a.tasks, and writing
+// through it afterwards is a data race against everything that reads the list
+// on its own goroutine - the idle-action controller, the schedule runner, a
+// broadcast. CI caught exactly that: a test setting `task.Status` raced
+// App.Counters(), which reads Status under a.mu from the idle controller's
+// tick. The product's locking was right; the test was reaching past it.
+func editTask(a *App, id string, edit func(*core.Task)) {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if t := a.tasks[id]; t != nil {
+		edit(t)
+	}
+}
+
 // liveTask reads a task out of the list the way the rest of the app sees it.
 func liveTask(a *App, id string) core.Task {
 	a.mu.Lock()
