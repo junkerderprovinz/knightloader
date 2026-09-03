@@ -792,7 +792,7 @@ export const nl: Dict = {
   'task.moveDown': 'Omlaag',
   'menu.priority': 'Prioriteit',
   'menu.move': 'Verplaatsen',
-  'menu.forceStart': 'Nu starten',
+  'menu.forceStart': 'Vooraan forceren',
   'menu.queueStopped': 'Wachtrij gestopt',
   'pkg.queueOrder': 'Hele pakket verplaatsen',
 

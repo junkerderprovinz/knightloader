@@ -800,7 +800,7 @@ export const eu: Dict = {
   'task.moveDown': 'Behera',
   'menu.priority': 'Lehentasuna',
   'menu.move': 'Mugitu',
-  'menu.forceStart': 'Hasi orain',
+  'menu.forceStart': 'Behartu lehen postura',
   'menu.queueStopped': 'Ilara geldituta',
   'pkg.queueOrder': 'Mugitu pakete osoa',
 

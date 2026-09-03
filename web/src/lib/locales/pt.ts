@@ -792,7 +792,7 @@ export const pt: Dict = {
   'task.moveDown': 'Descer',
   'menu.priority': 'Prioridade',
   'menu.move': 'Mover',
-  'menu.forceStart': 'Começar agora',
+  'menu.forceStart': 'Forçar para o início',
   'menu.queueStopped': 'Fila parada',
   'pkg.queueOrder': 'Mover o pacote inteiro',
 

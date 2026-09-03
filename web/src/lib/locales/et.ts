@@ -800,7 +800,7 @@ export const et: Dict = {
   'task.moveDown': 'Alla',
   'menu.priority': 'Tähtsus',
   'menu.move': 'Liiguta',
-  'menu.forceStart': 'Alusta kohe',
+  'menu.forceStart': 'Sunni ette',
   'menu.queueStopped': 'Järjekord peatatud',
   'pkg.queueOrder': 'Liiguta kogu pakk',
 

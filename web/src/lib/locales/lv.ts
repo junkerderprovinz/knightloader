@@ -800,7 +800,7 @@ export const lv: Dict = {
   'task.moveDown': 'Uz leju',
   'menu.priority': 'Prioritāte',
   'menu.move': 'Pārvietot',
-  'menu.forceStart': 'Sākt tagad',
+  'menu.forceStart': 'Piespiedu kārtā uz priekšu',
   'menu.queueStopped': 'Rinda apturēta',
   'pkg.queueOrder': 'Pārvietot visu paku',
 

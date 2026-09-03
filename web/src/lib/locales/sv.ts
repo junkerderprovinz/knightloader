@@ -800,7 +800,7 @@ export const sv: Dict = {
   'task.moveDown': 'Flytta ner',
   'menu.priority': 'Prioritet',
   'menu.move': 'Flytta',
-  'menu.forceStart': 'Starta nu',
+  'menu.forceStart': 'Tvinga främst',
   'menu.queueStopped': 'Kön stoppad',
   'pkg.queueOrder': 'Flytta hela paketet',
 

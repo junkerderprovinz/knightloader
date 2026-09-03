@@ -800,7 +800,7 @@ export const ro: Dict = {
   'task.moveDown': 'Mută mai jos',
   'menu.priority': 'Prioritate',
   'menu.move': 'Mută',
-  'menu.forceStart': 'Pornește acum',
+  'menu.forceStart': 'Forțează în față',
   'menu.queueStopped': 'Coadă oprită',
   'pkg.queueOrder': 'Mută tot pachetul',
 

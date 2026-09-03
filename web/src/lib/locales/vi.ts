@@ -800,7 +800,7 @@ export const vi: Dict = {
   'task.moveDown': 'Chuyển xuống',
   'menu.priority': 'Độ ưu tiên',
   'menu.move': 'Di chuyển',
-  'menu.forceStart': 'Bắt đầu ngay',
+  'menu.forceStart': 'Buộc lên đầu hàng đợi',
   'menu.queueStopped': 'Hàng đợi đã dừng',
   'pkg.queueOrder': 'Chuyển cả gói',
 

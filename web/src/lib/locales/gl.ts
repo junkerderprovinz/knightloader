@@ -800,7 +800,7 @@ export const gl: Dict = {
   'task.moveDown': 'Baixar',
   'menu.priority': 'Prioridade',
   'menu.move': 'Mover',
-  'menu.forceStart': 'Comezar agora',
+  'menu.forceStart': 'Forzar ao principio',
   'menu.queueStopped': 'Cola detida',
   'pkg.queueOrder': 'Mover todo o paquete',
 

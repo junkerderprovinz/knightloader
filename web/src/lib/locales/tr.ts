@@ -800,7 +800,7 @@ export const tr: Dict = {
   'task.moveDown': 'Aşağı taşı',
   'menu.priority': 'Öncelik',
   'menu.move': 'Taşı',
-  'menu.forceStart': 'Şimdi başlat',
+  'menu.forceStart': 'Zorla öne al',
   'menu.queueStopped': 'Kuyruk durduruldu',
   'pkg.queueOrder': 'Paketin tamamını taşı',
 

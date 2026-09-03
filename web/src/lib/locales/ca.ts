@@ -800,7 +800,7 @@ export const ca: Dict = {
   'task.moveDown': 'Baixa',
   'menu.priority': 'Prioritat',
   'menu.move': 'Mou',
-  'menu.forceStart': 'Comença ara',
+  'menu.forceStart': 'Força al capdavant',
   'menu.queueStopped': 'Cua aturada',
   'pkg.queueOrder': 'Mou tot el paquet',
 

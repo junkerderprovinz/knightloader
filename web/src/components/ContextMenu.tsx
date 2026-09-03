@@ -23,6 +23,7 @@ import {
   type ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { IconCheck } from '../lib/icons';
 
 /** Where the menu was asked for, in viewport coordinates. */
 export interface MenuAnchor {
@@ -39,6 +40,18 @@ export interface MenuItem {
   /** Painted as a fault. For entries that destroy something, and only those. */
   danger?: boolean;
   disabled?: boolean;
+  /**
+   * Marks the one row of a submenu that is a set of CHOICES rather than a list
+   * of verbs: the value the selection is already at.
+   *
+   * It is its own mark rather than a tick the caller passes as `icon`, because
+   * the two answer different questions and a row needs both at once - the
+   * gutter glyph says what the row is, this says which row is in force. Setting
+   * it at all, true or false, turns the group into a radio set for a screen
+   * reader, so a choice with nothing selected still announces as a choice
+   * rather than as seven unrelated commands.
+   */
+  checked?: boolean;
   /** What choosing it does. Absent on an item whose whole job is its submenu. */
   onSelect?: () => void;
   /**
@@ -65,6 +78,26 @@ export interface MenuGroup {
 
 /** The gap kept between the menu and the edge of the window. */
 const MARGIN = 8;
+
+/**
+ * How long an open submenu, and the highlight on the row that opened it,
+ * survive the pointer moving off that row. In milliseconds.
+ *
+ * jdp: "Der hoverbalken bleibt immer an aufräumen, priorität und verschieben
+ * hängen." Those three are the submenu parents, and nothing ever let go of
+ * them: the panel and the lit row were only ever replaced by hovering another
+ * parent, so once one had been touched the menu carried a second highlight
+ * around for the rest of its life.
+ *
+ * Letting go the instant the pointer leaves is the other broken menu. The
+ * nested panel is a sibling at body level, not a child of the row, so reaching
+ * it means leaving the row first, and a submenu that closes mid-crossing can
+ * never be entered at all. So the release is delayed by about the length of
+ * that crossing, and entering the panel cancels it. Anything much shorter
+ * clips a slow diagonal; anything much longer and the highlight reads as stuck
+ * again, which is the complaint.
+ */
+const SUBMENU_GRACE = 200;
 
 /** useContextMenu holds the open/closed state of one menu. */
 export function useContextMenu() {
@@ -178,6 +211,8 @@ function Panel({
   label,
   onClose,
   onDismiss,
+  onPointerIn,
+  onPointerOut,
 }: {
   spot: Spot;
   groups: MenuGroup[];
@@ -186,6 +221,16 @@ function Panel({
   onClose: () => void;
   /** Close only this panel and hand focus back. Absent on the outermost one. */
   onDismiss?: () => void;
+  /**
+   * Told when the pointer arrives in or leaves this panel, so the panel that
+   * opened it can hold off its own SUBMENU_GRACE timer. Both are chained up the
+   * whole stack rather than handled one level deep: moving from a submenu into
+   * a submenu of its own leaves every panel above it, and without the chain the
+   * outermost one would time out and take the branch the pointer is standing in
+   * with it.
+   */
+  onPointerIn?: () => void;
+  onPointerOut?: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -202,6 +247,37 @@ function Panel({
     flat.findIndex((i) => !i.disabled),
   );
   const [active, setActive] = useState(firstEnabled);
+
+  // The grace timer behind SUBMENU_GRACE. It lives on the panel that OPENED the
+  // submenu, because that is the panel holding both things the pointer leaving
+  // has to release: the nested panel and the highlight on the row it belongs
+  // to. `openHere` paints that highlight, so dropping `sub` drops both at once.
+  const closeTimer = useRef<number | null>(null);
+  const cancelClose = useCallback(() => {
+    if (closeTimer.current === null) return;
+    window.clearTimeout(closeTimer.current);
+    closeTimer.current = null;
+  }, []);
+  const scheduleClose = useCallback(() => {
+    cancelClose();
+    closeTimer.current = window.setTimeout(() => {
+      closeTimer.current = null;
+      setSub(null);
+    }, SUBMENU_GRACE);
+  }, [cancelClose]);
+  // Choosing an entry closes the whole tree at once, so a panel can go away
+  // with its timer still armed and fire into a component that is no longer
+  // there.
+  useEffect(() => cancelClose, [cancelClose]);
+
+  const pointerIn = useCallback(() => {
+    cancelClose();
+    onPointerIn?.();
+  }, [cancelClose, onPointerIn]);
+  const pointerOut = useCallback(() => {
+    scheduleClose();
+    onPointerOut?.();
+  }, [scheduleClose, onPointerOut]);
 
   // Every panel joins the tree's registry, which is what tells the outermost
   // panel that a mousedown landed inside the menu and not outside it.
@@ -261,11 +337,13 @@ function Panel({
 
   function openSub(item: MenuItem, el: HTMLElement | null): void {
     if (!item.submenu || !el) return;
+    cancelClose();
     setSub({ id: item.id, spot: submenuSpot(el), groups: item.submenu, label: item.label });
   }
 
   function closeSub(refocus: boolean): void {
     const id = sub?.id;
+    cancelClose();
     setSub(null);
     if (!refocus || !id) return;
     const i = flat.findIndex((x) => x.id === id);
@@ -321,6 +399,8 @@ function Panel({
           aria-label={label}
           tabIndex={-1}
           onKeyDown={onKeyDown}
+          onMouseEnter={pointerIn}
+          onMouseLeave={pointerOut}
           onContextMenu={(e) => e.preventDefault()}
           style={{
             position: 'fixed',
@@ -346,7 +426,8 @@ function Panel({
                     ref={(el) => {
                       itemRefs.current[i] = el;
                     }}
-                    role="menuitem"
+                    role={item.checked === undefined ? 'menuitem' : 'menuitemradio'}
+                    aria-checked={item.checked}
                     type="button"
                     tabIndex={-1}
                     disabled={item.disabled}
@@ -354,10 +435,14 @@ function Panel({
                     aria-expanded={nested ? openHere : undefined}
                     onMouseEnter={(e) => {
                       setActive(i);
-                      // Hovering a submenu parent swaps the open panel; hovering
-                      // a plain entry leaves it alone, so travelling diagonally
-                      // to reach a submenu does not close it on the way.
+                      // Hovering a submenu parent swaps the open panel. Hovering
+                      // a plain entry no longer leaves the open one alone - it
+                      // starts the grace timer, which is what finally lets go of
+                      // a parent the pointer has walked away from. Travelling
+                      // diagonally across a row or two to reach the panel takes
+                      // a fraction of SUBMENU_GRACE, so the crossing survives.
                       if (nested) openSub(item, e.currentTarget);
+                      else if (sub) scheduleClose();
                     }}
                     onClick={(e) => {
                       if (nested) {
@@ -373,7 +458,8 @@ function Panel({
                       transition-colors outline-none disabled:opacity-35 disabled:pointer-events-none ${
                         item.danger
                           ? 'text-statusFail hover:bg-statusFailBg focus-visible:bg-statusFailBg'
-                          : `text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text
+                          : `${item.checked ? 'text-carbon-text' : 'text-carbon-textSub'}
+                             hover:bg-carbon-hover hover:text-carbon-text
                              focus-visible:bg-carbon-hover focus-visible:text-carbon-text ${
                                openHere ? 'bg-carbon-hover text-carbon-text' : ''
                              }`
@@ -386,14 +472,27 @@ function Panel({
                         panel could hold a 14px folder next to a 16px key, and
                         the alternative was ~30 call sites each repeating the
                         same two numbers. It stays rendered when there is no
-                        icon: the priority submenu leaves the slot empty on
-                        purpose, so that column reads as a tick column. */}
+                        icon, so a group where only some entries carry one still
+                        lines its labels up. The column is glyphs only: what is
+                        SELECTED is marked at the other end of the row (see
+                        MenuItem.checked), because a row can need to say what it
+                        is and that it is the one in force at the same time. */}
                     <span className="grid h-4 w-4 shrink-0 place-items-center [&_svg]:h-3.5 [&_svg]:w-3.5">
                       {item.icon}
                     </span>
                     <span className="min-w-0 flex-1 truncate">{item.label}</span>
                     {item.detail && (
                       <span className="glim-num shrink-0 text-[11px] text-carbon-textMuted">{item.detail}</span>
+                    )}
+                    {/* The "this is the one in force" mark, at the trailing end
+                        where the caret would be on a parent row - the two never
+                        occur together, a choice has no submenu. Accent ink and a
+                        smaller box than the gutter, so it reads as a mark on the
+                        row rather than a second glyph competing with the first. */}
+                    {item.checked && (
+                      <span className="shrink-0 text-accentInk [&_svg]:h-3 [&_svg]:w-3">
+                        <IconCheck />
+                      </span>
                     )}
                     {nested && (
                       <span className="shrink-0 text-carbon-textMuted">
@@ -417,6 +516,8 @@ function Panel({
           label={sub.label}
           onClose={onClose}
           onDismiss={() => closeSub(true)}
+          onPointerIn={pointerIn}
+          onPointerOut={pointerOut}
         />
       )}
     </>

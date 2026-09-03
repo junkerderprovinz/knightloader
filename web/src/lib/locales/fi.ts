@@ -800,7 +800,7 @@ export const fi: Dict = {
   'task.moveDown': 'Siirrä alas',
   'menu.priority': 'Prioriteetti',
   'menu.move': 'Siirrä',
-  'menu.forceStart': 'Aloita heti',
+  'menu.forceStart': 'Pakota kärkeen',
   'menu.queueStopped': 'Jono pysäytetty',
   'pkg.queueOrder': 'Siirrä koko paketti',
 

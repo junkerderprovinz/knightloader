@@ -792,7 +792,7 @@ export const ru: Dict = {
   'task.moveDown': 'Вниз',
   'menu.priority': 'Приоритет',
   'menu.move': 'Переместить',
-  'menu.forceStart': 'Запустить сейчас',
+  'menu.forceStart': 'Принудительно в начало',
   'menu.queueStopped': 'Очередь остановлена',
   'pkg.queueOrder': 'Переместить весь пакет',
 

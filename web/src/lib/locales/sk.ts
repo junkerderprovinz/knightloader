@@ -800,7 +800,7 @@ export const sk: Dict = {
   'task.moveDown': 'Nadol',
   'menu.priority': 'Priorita',
   'menu.move': 'Presunúť',
-  'menu.forceStart': 'Spustiť hneď',
+  'menu.forceStart': 'Vynútiť na začiatok',
   'menu.queueStopped': 'Front zastavený',
   'pkg.queueOrder': 'Presunúť celý balík',
 

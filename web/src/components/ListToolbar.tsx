@@ -730,6 +730,55 @@ export interface ListContext {
 }
 
 /**
+ * PriorityGlyph draws one rung of the queue's priority ladder: filled triangles
+ * pointing the way that rung moves a download, one per step away from default,
+ * and a single flat bar for default itself.
+ *
+ * jdp: "im priorität menü fehlen glyphen." The gutter was left empty there on
+ * purpose, because that column was carrying the tick for the priority the
+ * selection already sits at, and a glyph in it would have buried the one thing
+ * the submenu has to answer. Both fit once they stop sharing a column: the
+ * glyph names what the row IS, on the left, and which row is IN FORCE is said
+ * at the other end of the row instead - full ink plus a trailing tick, which is
+ * what MenuItem.checked paints. Neither has to be given up.
+ *
+ * Triangles rather than arrows, and the count rather than the size, for the
+ * same reason IconPriority is not an arrow: the four entries one submenu away
+ * own the arrows, and those move a task one place, while this puts it on a
+ * rung. Three stacked wedges read as "as far as it goes" at 14px where three
+ * lengths of one arrow do not. The rung is read off the server's own value
+ * (-3..3, clamped), not off the id, so a ladder that renames its steps or
+ * offers fewer of them still draws.
+ */
+function PriorityGlyph({ steps }: { steps: number }) {
+  const n = Math.min(3, Math.abs(steps));
+  const up = steps > 0;
+  // 5 tall per wedge, 1 of air between them, centred in the 20-unit box the
+  // rest of the icon set is drawn in.
+  const top = (20 - (n * 6 - 1)) / 2;
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      width={14}
+      height={14}
+      fill="currentColor"
+      className="shrink-0"
+      aria-hidden
+      focusable="false"
+    >
+      {n === 0 ? (
+        <rect x="4.5" y="9.1" width="11" height="1.8" rx=".9" />
+      ) : (
+        Array.from({ length: n }, (_, i) => {
+          const y = top + i * 6;
+          return <path key={i} d={up ? `M10 ${y}L15 ${y + 5}H5Z` : `M5 ${y}H15L10 ${y + 5}Z`} />;
+        })
+      )}
+    </svg>
+  );
+}
+
+/**
  * taskMenuGroups builds the verbs for a selection — the same ones whether the
  * selection is one link, a package, or forty rows picked by hand.
  *
@@ -768,6 +817,45 @@ function taskMenuGroups({
       label: t('task.start'),
       icon: <IconPlay width={14} height={14} />,
       onSelect: () => void startTasks(ids, base),
+    });
+  // Start and force are a pair and now sit as one, because read apart they look
+  // like two clocks. jdp: "was ist der unterschied zwischen starten und jetzt
+  // starten? Soll es nicht besser die Option Auswahl starten und Alle starten
+  // geben?"
+  //
+  // They are not two clocks, they are a verb and an override. Start admits
+  // links that are only staged into the queue, and it is the one entry here
+  // that can lift a halt somebody set by hand. Forcing admits nothing: it takes
+  // a selection the queue has ALREADY accepted and puts it in front of
+  // everything else waiting, switching it on and un-parking it on the way, and
+  // it refuses outright while the queue is stopped, because a per-link button
+  // is not where a decision about the whole box gets undone. So the override is
+  // named after the order it overrides rather than after the clock, and it is
+  // put next to the start it overrides instead of three groups down among the
+  // on/off flags, where the contrast was impossible to see.
+  //
+  // His two proposed labels are not free: "Auswahl starten" and "Alle starten"
+  // are already collector.startSelected / collector.startAll, which answer how
+  // MUCH of the collector goes in, not where in the order it lands.
+  //
+  // Forcing is offered even on links that are already forced, because pressing
+  // it again is how you claim the front a second time after somebody else's
+  // links have been pushed ahead.
+  if (some((x) => x.status !== 'done'))
+    transport.items.push({
+      id: 'force',
+      label: t('menu.forceStart'),
+      icon: <IconBolt />,
+      detail: queue.halted ? t('menu.queueStopped') : undefined,
+      disabled: queue.halted,
+      onSelect: guard(() => queueForce({ ids }, base)),
+    });
+  if (some((x) => !!x.forced))
+    transport.items.push({
+      id: 'unforce',
+      label: t('menu.unforce'),
+      icon: <IconBolt />,
+      onSelect: guard(() => setForced(ids, false, base)),
     });
   // Stopping is per task on the wire — there is no bulk pause route — so this
   // pauses exactly the ones that are running rather than asking the server to
@@ -835,7 +923,9 @@ function taskMenuGroups({
     // Behind one word, the way JDownloader keeps it: seven more entries in a
     // menu that already has a dozen would bury everything under them. The tick
     // marks the value the whole selection is already at — a selection that
-    // disagrees gets no tick rather than the first row's answer.
+    // disagrees gets no tick rather than the first row's answer. `checked`
+    // rather than a tick in the icon slot, so every rung can carry its own
+    // glyph as well; see PriorityGlyph for why both are needed at once.
     if (queue.choices.length > 0) {
       const agreed = chosen.every((x) => x.priority === chosen[0].priority)
         ? chosen[0].priority
@@ -850,7 +940,8 @@ function taskMenuGroups({
             items: queue.choices.map((p) => ({
               id: p.id,
               label: t(`priority.${p.id}` as TranslationKey),
-              icon: p.value === agreed ? <IconCheck width={14} height={14} /> : undefined,
+              icon: <PriorityGlyph steps={p.value} />,
+              checked: p.value === agreed,
               onSelect: guard(() => queuePriority({ ids }, p.value, base)),
             })),
           },
@@ -902,31 +993,6 @@ function taskMenuGroups({
       label: t('menu.release'),
       icon: <IconPin />,
       onSelect: guard(() => setHold(ids, false, base)),
-    });
-  // Forcing is a start, not a flag: it puts the links at the front of the wait
-  // order, switches them on and lets them go, all in one. It is offered even
-  // when they are already forced, because pressing it again is how you say
-  // "now" a second time.
-  //
-  // With the master switch off it is spelled out rather than left to fail
-  // quietly. A per-link button is not where a decision about the whole box gets
-  // undone, and "start now" that starts nothing and says nothing is the worst
-  // of the three available behaviours.
-  if (some((x) => x.status !== 'done'))
-    state.items.push({
-      id: 'force',
-      label: t('menu.forceStart'),
-      icon: <IconBolt />,
-      detail: queue.halted ? t('menu.queueStopped') : undefined,
-      disabled: queue.halted,
-      onSelect: guard(() => queueForce({ ids }, base)),
-    });
-  if (some((x) => !!x.forced))
-    state.items.push({
-      id: 'unforce',
-      label: t('menu.unforce'),
-      icon: <IconBolt />,
-      onSelect: guard(() => setForced(ids, false, base)),
     });
 
   // Where the files go and what unlocks the archive: the two overrides a link
