@@ -66,6 +66,11 @@ const relayFromUtf8 = (b) => new TextDecoder().decode(b);
  */
 const relayRequestAAD = (requestId, target) => relayUtf8(`proxy-request\x00${requestId}\x00${target}`);
 const relayResponseAAD = (requestId) => relayUtf8(`proxy-response\x00${requestId}`);
+/** An announce keeps exactly one field in the clear — the instance id the
+ *  relay routes on — and binds its seal to it, so a relay cannot attach one
+ *  instance's sealed identity to another connection. Mirrors
+ *  relay.announceAAD. */
+const relayAnnounceAAD = (instanceId) => relayUtf8(`announce\x00${instanceId}`);
 
 /** Base64 of raw bytes, the shape encoding/json gives a Go []byte. */
 function relayToBase64(bytes) {
@@ -192,13 +197,32 @@ async function relaySession({ url, key, frameKey, selfId, selfName }, work) {
     switch (frame?.type) {
       case RELAY_ANNOUNCE: {
         if (typeof d.instanceId !== 'string' || !d.instanceId) return;
+        // The identity arrives sealed — see relay.Identity. Three cases, the
+        // same three the Go and mobile ports handle: a seal that opens is
+        // used; no seal at all is an instance still on a version from before
+        // this and its plaintext is read as it always was; a seal that will
+        // NOT open is a peer on another frame key, kept in the roster under
+        // its id with no name rather than hidden, so a key mismatch shows up
+        // as an unnamed instance instead of as nothing at all.
+        let id = d;
+        if (typeof d.sealed === 'string' && d.sealed) {
+          const plain = await relayOpen(frameKey, relayAnnounceAAD(d.instanceId), d.sealed);
+          id = {};
+          if (plain) {
+            try {
+              id = JSON.parse(relayFromUtf8(plain));
+            } catch {
+              id = {};
+            }
+          }
+        }
         // An announce for an id already known is that instance reconnecting,
         // not a second one — replace rather than append.
         siblings.set(d.instanceId, {
           instanceId: d.instanceId,
-          name: typeof d.name === 'string' ? d.name : '',
-          deployment: typeof d.deployment === 'string' ? d.deployment : '',
-          client: d.client === true,
+          name: typeof id.name === 'string' ? id.name : '',
+          deployment: typeof id.deployment === 'string' ? id.deployment : '',
+          client: id.client === true,
         });
         onRosterFrame?.();
         return;
@@ -249,13 +273,17 @@ async function relaySession({ url, key, frameKey, selfId, selfName }, work) {
       key,
       announce: {
         instanceId: selfId,
-        name: selfName,
-        deployment: 'extension',
-        // "Route to me, but do not list me as somewhere to go" — see
-        // relay.Announce.Client. Without it this browser would appear as a
-        // browsable instance on every other instance's Instances page and
-        // answer 501 to everything asked of it.
-        client: true,
+        // Everything except the id the relay routes on goes into the seal:
+        // the name, the 'extension' marker, and the client flag that says
+        // "route to me, but do not list me as somewhere to go" (without which
+        // this browser would appear as a browsable instance on every other
+        // instance's Instances page and answer 501 to everything asked of
+        // it). All three are for siblings; none of them is for the relay.
+        sealed: await relaySeal(
+          frameKey,
+          relayAnnounceAAD(selfId),
+          relayUtf8(JSON.stringify({ name: selfName, deployment: 'extension', client: true })),
+        ),
       },
     });
 

@@ -227,6 +227,17 @@ jobs:
       - name: Locale parity
         run: node extension/check-locales.mjs
 
+      # Three implementations speak the relay frame format - Go, the phone's
+      # TypeScript and this extension's plain JavaScript - and this was the
+      # only one with no test at all. It checks the shipped src/relay.js
+      # against the same fixed vector internal/relay pins, and then drives a
+      # real session against a fake socket to read what the hello frame
+      # actually puts on the wire. Proven red against a version that sealed
+      # the identity AND went on announcing it in the clear beside the seal:
+      # the one broken shape every format-level check passes.
+      - name: Relay frame parity
+        run: node extension/check-relay-seal.mjs
+
       # Mozilla's own linter, run with --self-hosted so it checks the package
       # rather than AMO listing metadata this repository does not have.
       #

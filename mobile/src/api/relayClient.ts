@@ -1,5 +1,5 @@
 import { decodeBody, encodeBody } from './base64';
-import { openCall, openResult, sealCall, sealResult } from './relayFrame';
+import { openCall, openIdentity, openResult, sealCall, sealIdentity, sealResult } from './relayFrame';
 
 // This app's own client for internal/relay's wire protocol - the second way
 // it can reach an instance, for the case the direct one cannot cover at all:
@@ -269,13 +269,18 @@ export class RelayClient {
           key: this.opts.key,
           announce: {
             instanceId: this.opts.selfId,
-            name: this.opts.selfName,
-            deployment: 'mobile',
-            // Says "route to me, but do not list me as somewhere to go" - see
-            // relay.Announce.Client. Without it this phone would appear as a
-            // browsable instance on every other instance's Instances page and
-            // answer 501 to everything asked of it.
-            client: true,
+            // Everything but the id goes into the seal, under the frame key
+            // the relay does not hold - see relay.Identity. The name, the
+            // 'mobile' marker, and the client flag that says "route to me,
+            // but do not list me as somewhere to go" (without which this
+            // phone would appear as a browsable instance on every other
+            // instance's Instances page and answer 501 to everything asked
+            // of it) are all things siblings need and the relay does not.
+            sealed: sealIdentity(this.opts.frameKey, this.opts.selfId, {
+              name: this.opts.selfName,
+              deployment: 'mobile',
+              client: true,
+            }),
           },
         });
       } catch {
@@ -331,11 +336,22 @@ export class RelayClient {
     switch (env.type) {
       case T_ANNOUNCE: {
         if (typeof data.instanceId !== 'string' || !data.instanceId) return;
+        // Three cases, the same three relay.openAnnounce handles: a sealed
+        // identity that opens is used; an announce with no seal is an
+        // instance still on a version from before the seal and its plaintext
+        // is read as before; a seal that will NOT open is a peer on another
+        // frame key, listed under its id with no name rather than hidden,
+        // because a roster that silently disagrees with the relay hides the
+        // one symptom that would let anybody diagnose a key mismatch.
+        const id =
+          typeof data.sealed === 'string' && data.sealed
+            ? (openIdentity(this.opts.frameKey, data.instanceId, data.sealed) ?? {})
+            : data;
         const sib: RelaySibling = {
           instanceId: data.instanceId,
-          name: typeof data.name === 'string' ? data.name : '',
-          deployment: typeof data.deployment === 'string' ? data.deployment : '',
-          client: data.client === true,
+          name: typeof id.name === 'string' ? id.name : '',
+          deployment: typeof id.deployment === 'string' ? id.deployment : '',
+          client: id.client === true,
         };
         // An announce for an id already known is that instance reconnecting,
         // not a second one - replace rather than append.

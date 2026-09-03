@@ -93,17 +93,47 @@ type Hello struct {
 // Receiving it means that instance is online right now - there is no separate
 // presence(online) frame, because an arrival that needed two messages could
 // be observed half-applied.
+//
+// This is the IN-MEMORY shape, with every field readable. On the wire the
+// identity fields travel inside Sealed and the plaintext ones are empty; the
+// two conversions live at the socket boundary in client.go, so nothing
+// outside this package ever handles a half-opened announce. See Identity for
+// why the split falls exactly where it does.
 type Announce struct {
 	// InstanceID is the address a proxy-request is routed to. It is the
 	// instance's own stable identifier, not the relay's: the relay assigns
 	// nothing and remembers nothing across a restart.
+	//
+	// It is the ONE field that cannot be sealed. The relay matches it against
+	// ProxyRequest.Target to pick a socket, and a router that cannot read the
+	// address cannot route. Everything else here can be, and now is.
 	InstanceID string `json:"instanceId"`
+	// Sealed carries this instance's Identity, encrypted under the frame key
+	// with InstanceID as additional data. Empty in an announce written by a
+	// version from before this existed, and empty in the in-memory form.
+	//
+	// Binding to InstanceID is what stops a relay lifting one instance's
+	// sealed identity and presenting it as another's: the receiver computes
+	// the same additional data from the id it can see, and a swap fails the
+	// tag rather than opening into a believable lie.
+	Sealed []byte `json:"sealed,omitempty"`
+
+	// The three fields below are the identity. In the in-memory form they are
+	// filled; on the wire a current version leaves them empty and puts them
+	// in Sealed. They keep their json tags because an instance running a
+	// version from before the seal still sends them that way, and reading
+	// that peer is worth more than a tidier struct - see openAnnounce.
+
 	// Name is what the Instances page shows - InstanceName if the user set
 	// one, else the hostname, the same precedence pairingSelf already uses.
-	Name string `json:"name"`
+	//
+	// The hostname fallback is the reason this field is sealed and not merely
+	// tidied. A machine named after the person who owns it introduced that
+	// person to the relay operator by name, every time it connected.
+	Name string `json:"name,omitempty"`
 	// Deployment is "container" or "desktop" (buildinfo.Deployment), so the
 	// UI can tell a NAS install from a laptop without a second round trip.
-	Deployment string `json:"deployment"`
+	Deployment string `json:"deployment,omitempty"`
 	// Client marks a connection that USES the relay without being an instance
 	// on it: the mobile companion app, which calls its siblings but serves no
 	// API of its own for them to call back.
@@ -118,6 +148,110 @@ type Announce struct {
 	// omitempty, and read as false when absent, so an instance keeps
 	// announcing exactly the frame it announced before this existed.
 	Client bool `json:"client,omitempty"`
+}
+
+// Identity is the part of an announce the relay never needed and no longer
+// gets: who this instance is, what kind of machine it runs on, and whether it
+// is an instance at all or only something calling one.
+//
+// The test for what belongs here is short, and every field was checked
+// against it rather than assumed: does internal/relay's SERVER read it? It
+// reads InstanceID, in exactly three places - matching a reconnect to the
+// connection it replaces, addressing a presence frame, and picking the target
+// of a proxy request. It has never read a name, a deployment or the client
+// flag; those were forwarded verbatim to siblings and were in the clear only
+// because nothing had encrypted them yet. That is the same sentence seal.go
+// opens with, and this is the same fix applied one layer up.
+//
+// What that leaves visible to a relay operator is worth stating plainly,
+// because it is not nothing: the group key, the public IP each member dials
+// in from, an instance id, and the timing of arrivals and departures. The id
+// is a pseudonym rather than a name, which is the difference this change
+// buys. It does not make a relay blind, and no UI text should say it does.
+type Identity struct {
+	Name       string `json:"name,omitempty"`
+	Deployment string `json:"deployment,omitempty"`
+	Client     bool   `json:"client,omitempty"`
+}
+
+// announceAAD is the additional data an announce's seal is bound to: the one
+// routing field that necessarily stays in the clear. Same construction, same
+// separator and a distinct label from requestAAD and responseAAD next door,
+// so a blob from one frame type can never be opened as another.
+func announceAAD(instanceID string) string {
+	return "announce\x00" + instanceID
+}
+
+// SealIdentity seals the identity half of an announce. Exported for the same
+// reason SealCall is: the mobile app and the extension carry their own ports
+// of this protocol, and their tests check them against this one.
+func SealIdentity(key []byte, instanceID string, id Identity) ([]byte, error) {
+	plain, err := json.Marshal(id)
+	if err != nil {
+		return nil, err
+	}
+	return seal(key, announceAAD(instanceID), plain)
+}
+
+// OpenIdentity reverses SealIdentity.
+func OpenIdentity(key []byte, instanceID string, sealed []byte) (Identity, error) {
+	plain, err := open(key, announceAAD(instanceID), sealed)
+	if err != nil {
+		return Identity{}, err
+	}
+	var id Identity
+	if err := json.Unmarshal(plain, &id); err != nil {
+		return Identity{}, ErrSealed
+	}
+	return id, nil
+}
+
+// sealAnnounce converts an in-memory announce to its wire form: the identity
+// fields move into Sealed and are blanked where they used to travel.
+//
+// Blanking them is the entire point and is worth being explicit about,
+// because the compatible-looking alternative - send both, let old peers read
+// the plaintext - would have left the hostname on the wire and produced a
+// change that reads as a fix while fixing nothing. A peer too old to open the
+// seal shows an unnamed instance until it is updated, which is a cosmetic
+// regression that ends by itself. A leak that stayed for compatibility would
+// not have.
+func sealAnnounce(frameKey []byte, a Announce) (Announce, error) {
+	sealed, err := SealIdentity(frameKey, a.InstanceID, Identity{
+		Name:       a.Name,
+		Deployment: a.Deployment,
+		Client:     a.Client,
+	})
+	if err != nil {
+		return Announce{}, err
+	}
+	return Announce{InstanceID: a.InstanceID, Sealed: sealed}, nil
+}
+
+// openAnnounce converts a wire announce back to the in-memory form.
+//
+// Three cases, and the third is why this returns no error. A frame with a
+// seal that opens is filled from it. A frame with no seal is a peer running a
+// version from before this change, and its plaintext fields are used as they
+// always were. A frame whose seal does NOT open is a peer on a different
+// frame key - already unable to exchange a single proxy call with this one -
+// and it is listed under its id with no name rather than dropped, because the
+// relay says it is there and pretending otherwise would hide a real peer
+// behind a key mismatch nobody could then diagnose.
+func openAnnounce(frameKey []byte, a Announce) Announce {
+	if len(a.Sealed) == 0 {
+		return a
+	}
+	id, err := OpenIdentity(frameKey, a.InstanceID, a.Sealed)
+	if err != nil {
+		return Announce{InstanceID: a.InstanceID}
+	}
+	return Announce{
+		InstanceID: a.InstanceID,
+		Name:       id.Name,
+		Deployment: id.Deployment,
+		Client:     id.Client,
+	}
 }
 
 // Presence reports that a sibling's connection state changed. The relay only
