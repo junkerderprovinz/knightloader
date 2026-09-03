@@ -200,8 +200,7 @@ export function Access() {
           see. The reason it holds up: the card above is about the twelve
           words, which everybody uses; these two are about WHICH relay carries
           them, which is a separate question most people never open. */}
-      <RelayCard />
-      <OwnRelayCard />
+      <RelaySection />
       <TokensSection cx={cx} />
 
       {listeners.length > 0 && (
@@ -795,6 +794,40 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
 // ---- Which relay carries the words ------------------------------------------
 
 /**
+ * RelaySection owns the two reads both cards below draw from, and exists for
+ * one reason: they describe the SAME fact from two sides.
+ *
+ * Written first as two independent cards, each fetching for itself, which had
+ * a defect a screenshot would never show. Saving an address in the lower card
+ * left the upper one's badge still reading "the project's" until the page was
+ * reloaded - a settings page disagreeing with the setting somebody had just
+ * made in it, which is the one thing this pair exists to prevent. Both reads
+ * live here and both are redone after a save.
+ */
+function RelaySection() {
+  const [conn, setConn] = useState<ConnectInfo | null>(null);
+  const [cfg, setCfg] = useState<RelayConfig | null>(null);
+
+  // Deliberately reloads BOTH: /api/connect answers "which relay is this
+  // instance actually dialling", /api/relay/config answers "what is stored".
+  // They are different questions with different failure modes, and after a
+  // save only the pair is trustworthy.
+  const reload = () => {
+    fetchConnect().then(setConn).catch(() => {});
+    fetchRelayConfig().then(setCfg).catch(() => {});
+  };
+  useEffect(reload, []);
+
+  if (!conn || !cfg) return null;
+  return (
+    <>
+      <RelayCard conn={conn} />
+      <OwnRelayCard cfg={cfg} setCfg={setCfg} onSaved={reload} />
+    </>
+  );
+}
+
+/**
  * RelayCard says which relay this instance is on and, without softening it,
  * what that relay's operator can see.
  *
@@ -812,15 +845,8 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
  * bubble, in the same words the privacy document uses - because a promise a
  * person cannot check is worth less than a plain description they can.
  */
-function RelayCard() {
+function RelayCard({ conn }: { conn: ConnectInfo }) {
   const { t } = useT();
-  const [conn, setConn] = useState<ConnectInfo | null>(null);
-
-  useEffect(() => {
-    fetchConnect().then(setConn).catch(() => {});
-  }, []);
-
-  if (!conn) return null;
 
   return (
     <Card hue={2} className="flex flex-col gap-4">
@@ -886,25 +912,23 @@ function RelayCard() {
  * a relay and forgetting the others leaves a group that quietly cannot see
  * itself.
  */
-function OwnRelayCard() {
+function OwnRelayCard({
+  cfg,
+  setCfg,
+  onSaved,
+}: {
+  cfg: RelayConfig;
+  setCfg: (c: RelayConfig) => void;
+  onSaved: () => void;
+}) {
   const { t } = useT();
-  const [cfg, setCfg] = useState<RelayConfig | null>(null);
-  const [addr, setAddr] = useState('');
+  // Seeded from the stored value and then owned by the field, so typing is not
+  // fought by a poll landing mid-edit.
+  const [addr, setAddr] = useState(cfg.relayUrl);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const [copied, setCopied] = useState('');
   const { toast } = useToast();
-
-  const load = () =>
-    fetchRelayConfig()
-      .then((c) => {
-        setCfg(c);
-        setAddr(c.relayUrl);
-      })
-      .catch(() => {});
-  useEffect(() => {
-    void load();
-  }, []);
 
   async function save(relayUrl: string, serve?: boolean) {
     setErr('');
@@ -913,6 +937,10 @@ function OwnRelayCard() {
       const c = await saveRelayConfig(relayUrl, undefined, serve);
       setCfg(c);
       setAddr(c.relayUrl);
+      // The badge in the card ABOVE is drawn from /api/connect, which this
+      // save has just changed the answer to. Without this it would go on
+      // saying "the project's" over an address that is no longer theirs.
+      onSaved();
       toast(t('settings.access.ownRelay.saved'));
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -927,8 +955,6 @@ function OwnRelayCard() {
       setTimeout(() => setCopied(''), 1800);
     }
   }
-
-  if (!cfg) return null;
 
   return (
     <Card hue={3} className="flex flex-col gap-4">
