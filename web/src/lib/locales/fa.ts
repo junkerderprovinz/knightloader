@@ -800,7 +800,7 @@ export const fa: Dict = {
   'task.moveDown': 'انتقال به پایین',
   'menu.priority': 'اولویت',
   'menu.move': 'انتقال',
-  'menu.forceStart': 'همین حالا شروع کن',
+  'menu.forceStart': 'اجبار به ابتدای صف',
   'menu.queueStopped': 'صف متوقف است',
   'pkg.queueOrder': 'انتقال کل بسته',
 

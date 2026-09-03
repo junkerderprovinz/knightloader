@@ -800,7 +800,7 @@ export const zh: Dict = {
   'task.moveDown': '下移',
   'menu.priority': '优先级',
   'menu.move': '移动',
-  'menu.forceStart': '立即开始',
+  'menu.forceStart': '强制排到最前',
   'menu.queueStopped': '队列已停止',
   'pkg.queueOrder': '整包移动',
 

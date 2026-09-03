@@ -800,7 +800,7 @@ export const de: Dict = {
   'task.moveDown': 'Nach unten',
   'menu.priority': 'Priorität',
   'menu.move': 'Verschieben',
-  'menu.forceStart': 'Jetzt starten',
+  'menu.forceStart': 'Nach vorn erzwingen',
   'menu.queueStopped': 'Warteschlange gestoppt',
   'pkg.queueOrder': 'Ganzes Paket verschieben',
 

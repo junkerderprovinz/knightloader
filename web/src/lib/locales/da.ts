@@ -800,7 +800,7 @@ export const da: Dict = {
   'task.moveDown': 'Flyt ned',
   'menu.priority': 'Prioritet',
   'menu.move': 'Flyt',
-  'menu.forceStart': 'Start nu',
+  'menu.forceStart': 'Tving forrest',
   'menu.queueStopped': 'Køen er stoppet',
   'pkg.queueOrder': 'Flyt hele pakken',
 

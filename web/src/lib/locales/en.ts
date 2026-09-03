@@ -868,7 +868,7 @@ export const en = {
   'task.moveDown': 'Move down',
   'menu.priority': 'Priority',
   'menu.move': 'Move',
-  'menu.forceStart': 'Start now',
+  'menu.forceStart': 'Force to the front',
   'menu.queueStopped': 'Queue stopped',
   'pkg.queueOrder': 'Move whole package',
 

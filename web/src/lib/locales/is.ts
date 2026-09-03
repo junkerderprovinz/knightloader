@@ -800,7 +800,7 @@ export const is: Dict = {
   'task.moveDown': 'Færa niður',
   'menu.priority': 'Forgangur',
   'menu.move': 'Færa',
-  'menu.forceStart': 'Byrja núna',
+  'menu.forceStart': 'Þvinga fremst',
   'menu.queueStopped': 'Biðröð stöðvuð',
   'pkg.queueOrder': 'Færa allan pakkann',
 

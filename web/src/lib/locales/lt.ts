@@ -800,7 +800,7 @@ export const lt: Dict = {
   'task.moveDown': 'Žemyn',
   'menu.priority': 'Pirmenybė',
   'menu.move': 'Perkelti',
-  'menu.forceStart': 'Pradėti dabar',
+  'menu.forceStart': 'Priverstinai į priekį',
   'menu.queueStopped': 'Eilė sustabdyta',
   'pkg.queueOrder': 'Perkelti visą paketą',
 

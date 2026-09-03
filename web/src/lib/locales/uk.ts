@@ -800,7 +800,7 @@ export const uk: Dict = {
   'task.moveDown': 'Вниз',
   'menu.priority': 'Пріоритет',
   'menu.move': 'Перемістити',
-  'menu.forceStart': 'Запустити зараз',
+  'menu.forceStart': 'Примусово на початок',
   'menu.queueStopped': 'Чергу зупинено',
   'pkg.queueOrder': 'Перемістити весь пакет',
 

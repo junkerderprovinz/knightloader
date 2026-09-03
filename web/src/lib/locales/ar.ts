@@ -802,7 +802,7 @@ export const ar: Dict = {
   'task.moveDown': 'تحريك لأسفل',
   'menu.priority': 'الأولوية',
   'menu.move': 'نقل',
-  'menu.forceStart': 'ابدأ الآن',
+  'menu.forceStart': 'فرض إلى المقدمة',
   'menu.queueStopped': 'الطابور متوقف',
   'pkg.queueOrder': 'نقل الحزمة كاملة',
 

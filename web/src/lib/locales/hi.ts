@@ -800,7 +800,7 @@ export const hi: Dict = {
   'task.moveDown': 'नीचे ले जाएँ',
   'menu.priority': 'प्राथमिकता',
   'menu.move': 'ले जाएं',
-  'menu.forceStart': 'अभी शुरू करें',
+  'menu.forceStart': 'जबरन सबसे आगे',
   'menu.queueStopped': 'कतार रुकी',
   'pkg.queueOrder': 'पूरा पैकेज खिसकाएँ',
 

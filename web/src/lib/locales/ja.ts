@@ -800,7 +800,7 @@ export const ja: Dict = {
   'task.moveDown': '下へ移動',
   'menu.priority': '優先度',
   'menu.move': '移動',
-  'menu.forceStart': 'すぐ開始',
+  'menu.forceStart': '強制的に先頭へ',
   'menu.queueStopped': 'キュー停止中',
   'pkg.queueOrder': 'パッケージごと移動',
 

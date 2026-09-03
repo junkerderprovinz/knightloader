@@ -800,7 +800,7 @@ export const bg: Dict = {
   'task.moveDown': 'Надолу',
   'menu.priority': 'Приоритет',
   'menu.move': 'Премести',
-  'menu.forceStart': 'Започни сега',
+  'menu.forceStart': 'Принудително най-отпред',
   'menu.queueStopped': 'Опашката е спряна',
   'pkg.queueOrder': 'Премести целия пакет',
 

@@ -800,7 +800,7 @@ export const cs: Dict = {
   'task.moveDown': 'Dolů',
   'menu.priority': 'Priorita',
   'menu.move': 'Přesunout',
-  'menu.forceStart': 'Spustit hned',
+  'menu.forceStart': 'Vynutit na začátek',
   'menu.queueStopped': 'Fronta zastavena',
   'pkg.queueOrder': 'Přesunout celý balíček',
 

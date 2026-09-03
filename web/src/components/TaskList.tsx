@@ -1,7 +1,6 @@
 import {
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -83,6 +82,17 @@ const NO_COLLAPSED: string[] = [];
 // property set on the table. That is what lets a column drag repaint by touching
 // a single element instead of re-rendering several hundred rows per pointer move.
 const ROW_GRID: CSSProperties = { gridTemplateColumns: 'var(--kl-cols)' };
+
+// What a row's drag style is when no drag is in flight: nothing at all.
+//
+// EMPTY rather than `{ transform: 'none', transition: 'none' }`, because React
+// clears an inline style property by seeing it DISAPPEAR from the style object;
+// spelling out 'none' would leave both properties on the element for the rest of
+// the session and quietly override whatever the stylesheet has to say about
+// them. Shared constants so that neither the empty style nor the empty map is
+// rebuilt for every row on every render of a list several hundred rows long.
+const NO_SLIDE: CSSProperties = {};
+const NO_OFFSETS = new Map<string, number>();
 
 /**
  * useCollapsedPackages is the folded set, and the only thing that knows where it
@@ -219,7 +229,14 @@ function TaskRow({
       // whatever happened to be selected already, which is how the wrong
       // download gets deleted.
       data-task-id={task.id}
-      style={{ ...hueVars(rainbowAt(index)), ...ROW_GRID } as CSSProperties}
+      // The live drag preview moves this row by SLIDING it (a transform), not by
+      // rendering it somewhere else in the list - see TaskListCard's own
+      // previewOffsets. While a drag is in flight this carries a translateY and a
+      // transform transition; with no drag the two properties are simply absent
+      // again and the row sits where the document flow puts it.
+      style={
+        { ...hueVars(rainbowAt(index)), ...ROW_GRID, ...dnd.slide({ kind: 'task', id: task.id }) } as CSSProperties
+      }
       // Drag-to-reorder, on the same native HTML5 machinery the column
       // headers already use above (Header's own dragId/onDragStart/onDrop).
       // Only offered in queue-order view — see dndEnabled in TaskListCard.
@@ -708,7 +725,13 @@ function PackageGroup({
         // legitimately empty for the ungrouped one — so the attribute is present
         // and empty rather than absent, and the page tells the two apart.
         data-package-row={name}
-        style={ROW_GRID}
+        // Slid out of the way by a drag in flight exactly like a link row - see
+        // TaskRow's own identical style above, and previewOffsets for the
+        // arithmetic. This is the half jdp was missing (2026-09-03: "die ordner
+        // über die man drüber hoovert müssen live verrutschen"): a folder header
+        // is a row like any other here, so the folders a drag passes step aside
+        // while the pointer is still down.
+        style={{ ...ROW_GRID, ...dnd.slide({ kind: 'package', name }) }}
         // Click-to-select (jdp, 2026-08-26 - see TaskRow's own identical
         // comment for the full request): a plain click on the header now
         // selects the whole package instead of folding it - the twisty
@@ -805,6 +828,20 @@ function PackageGroup({
  */
 type RowDragKey = { kind: 'task'; id: string } | { kind: 'package'; name: string };
 
+/**
+ * The one string a row is known by across the whole drag: the geometry snapshot,
+ * the previewed arrangement and the per-row offset all key on this.
+ *
+ * A package name and a task id live in the same map, so the kind has to be part
+ * of the key - a folder called after one of its own links would otherwise share
+ * a slot with it. `pkg:` for the unnamed package is a real key, not a missing
+ * one, which is the same reason data-package-row is present-and-empty rather
+ * than absent.
+ */
+function rowKey(u: RowDragKey): string {
+  return u.kind === 'task' ? `task:${u.id}` : `pkg:${u.name}`;
+}
+
 /** The bundle TaskRow and PackageGroup share, built once per render in TaskListCard. */
 interface RowDnD {
   /** False in a sorted view — see dndEnabled in TaskListCard for why. */
@@ -822,6 +859,11 @@ interface RowDnD {
    *  list move out of the way live instead of only on release. */
   previewOverTask: (id: string, e: DragEvent<HTMLElement>) => void;
   previewOverPackage: (name: string, e: DragEvent<HTMLElement>) => void;
+  /** How far this row has to slide to show where the drag in flight would put
+   *  it, as the inline style that does it - an empty object when no drag is
+   *  running. Every link row and every folder header spreads this into its own
+   *  style; see TaskListCard's previewOffsets for where the numbers come from. */
+  slide: (unit: RowDragKey) => CSSProperties;
 }
 
 /**
@@ -1404,6 +1446,16 @@ export function TaskListCard({
   // it, feeding its own output back in as its next input (jdp, 2026-08-25:
   // "jetzt springen die einzelnen elemente... die ganze zeit hin und her").
   // A snapshot the reorder itself never touches breaks that loop.
+  //
+  // It is now the ONE geometry the whole drag runs on: the list keeps rendering
+  // its resting order for as long as the pointer is down and every row is slid
+  // to its previewed place by a transform (previewOffsets below), so the
+  // document flow the snapshot measured is still the true one at every moment
+  // of the drag. The hit test and what the eye sees can no longer drift apart,
+  // because the second of them is computed FROM the first.
+  //
+  // In DOM order, and that matters: previewOffsets stacks rows back up in this
+  // order and needs the gap between each pair, not only their own boxes.
   const rowSlotsRef = useRef<{ unit: RowDragKey; top: number; bottom: number }[]>([]);
 
   function snapshotSlots(): void {
@@ -1559,18 +1611,28 @@ export function TaskListCard({
     );
   }
 
-  // The shared tail of both drop handlers: commit the drag against `target`,
-  // using whichever half of it the pointer is on.
+  // The shared tail of both drop handlers: commit the drag where the live
+  // preview has been showing it.
   //
-  // A FOLDER drag is committed where the live preview has been showing it
-  // (dragOver) rather than against the element the pointer happens to be
-  // over. previewOver below deliberately aims a folder at other folder
-  // HEADERS only, so reading the drop off a link row instead would commit it
-  // against a different unit than the one the preview just slid it next to -
-  // the drag would land somewhere nobody aimed at.
+  // dragOver, never the rect of the element the pointer happens to be over.
+  // Two independent reasons, and the second one is new:
+  //
+  //   - previewOver below deliberately aims a FOLDER at other folder HEADERS
+  //     only, so reading the drop off a link row would commit it against a
+  //     different unit than the one the preview just slid it next to - the drag
+  //     would land somewhere nobody aimed at.
+  //   - Every row is now displaced by a transform for as long as the pointer is
+  //     down (previewOffsets), so getBoundingClientRect no longer answers "which
+  //     row is this, and which half of it" the way the pointer sees it - it
+  //     answers where the row has SLID to. The frozen snapshot previewOver reads
+  //     is the only geometry that still describes the list the person is
+  //     dragging over, and dragOver is its answer.
+  //
+  // The rect is still the fallback for a drop that somehow arrives with no
+  // preview behind it at all, which is a drop with nothing better to go on.
   function dropAt(target: RowDragKey, e: DragEvent<HTMLElement>): void {
     e.preventDefault();
-    if (rowDrag?.kind === 'package' && dragOver) {
+    if (dragOver) {
       dropRow(dragOver.target, dragOver.after);
       return;
     }
@@ -1584,8 +1646,8 @@ export function TaskListCard({
     // every row of a package at the package's first appearance, so a folder
     // spliced between another's links does not stay there - it silently
     // relocates. Redirecting to the link's own package is the outcome that
-    // actually exists. (Only reached when no preview ran; dropAt normally
-    // commits the folder against dragOver.)
+    // actually exists. (Only reached by a drop that somehow arrives with no
+    // preview behind it - dropAt otherwise commits against dragOver.)
     const target: RowDragKey =
       rowDrag?.kind === 'package' ? { kind: 'package', name: taskById.get(id)?.package ?? '' } : { kind: 'task', id };
     dropAt(target, e);
@@ -1599,13 +1661,19 @@ export function TaskListCard({
   // onDragOver rather than duplicated. Deliberately NOT `e.currentTarget`'s
   // own rect: once the live preview starts moving rows, the element the
   // browser delivers the NEXT dragover to is itself a consequence of the
-  // LAST reorder this function produced — under a stationary pointer that
-  // sits right on the boundary between two rows, that is a closed loop (this
+  // LAST answer this function gave: under a stationary pointer that sits
+  // right on the boundary between two rows, that is a closed loop (this
   // function's own output changes what its next input will be), and the
   // symptom is rows endlessly swapping back and forth rather than settling.
   // Reading against rowSlotsRef's frozen, pre-drag snapshot instead means
   // "which row, which half" is a pure function of the pointer's own Y
   // position and never of whatever this function itself just rendered.
+  //
+  // Still true now that rows are slid rather than reordered, and for the same
+  // reason: the browser hit-tests a transformed element where it is PAINTED, so
+  // e.currentTarget is the row the preview has moved under the pointer, not the
+  // row that lives at that height in the list. Which element the event arrives
+  // on is never read here - only e.clientY is.
   function previewOver(e: DragEvent<HTMLElement>): void {
     if (!rowDrag) return;
     const band = unitBand(rowDrag);
@@ -1661,7 +1729,22 @@ export function TaskListCard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rowDrag, dragOver, bandOrder]);
 
-  // The live-preview order applied to what actually renders.
+  // The arrangement the drag in flight is promising: the same groups the table
+  // is showing, in the order they would be in if the pointer were released now.
+  //
+  // NOT what gets rendered. It used to be, and that is the gap jdp was looking
+  // at (2026-09-03: "#784 funktioniert nicht gut. die ordner über die man
+  // drüber hoovert müssen live verrutschen"). Rendering this reordered the real
+  // rows, which meant the only way to make the move look like a move was to
+  // measure every row after the fact and animate it back (a FLIP effect, now
+  // gone) - and that measurement is taken WHILE the previous slide is still
+  // running, so from the second folder onwards it read a mid-animation box as
+  // the row's resting place, computed a nonsense distance from it, and the
+  // folders being hovered over snapped or twitched instead of stepping aside.
+  //
+  // So this is now a description, and previewOffsets below turns it into one
+  // translateY per row. The list itself never reorders while the pointer is
+  // down; it slides.
   //
   // This used to re-sort each group's own tasks in place, which moved LINKS
   // and could never move a FOLDER: the list of groups itself kept its order,
@@ -1711,67 +1794,63 @@ export function TaskListCard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, rowDrag, dragOver, liveBandOrder]);
 
-  // FLIP (First-Last-Invert-Play): a reorder driven by liveView above moves
-  // real DOM rows to a new position, but React and the browser never animate
-  // a row simply changing its place in the document flow — without this it
-  // is an instant snap (jdp, 2026-08-25: "das zur seite rutschen soll sehr
-  // smooth sein"). This layout effect runs after every commit, reads each
-  // row's now-current rect ("Last"), compares it against the rect the SAME
-  // row had after the previous commit ("First", from flipRectsRef), and for
-  // any row whose position actually changed, jumps it back there with a
-  // transform (no transition — instant, invisible) and then, one frame
-  // later, clears the transform WITH a transition so the browser animates
-  // the row sliding from its old spot to its real new one.
-  //
-  // Gated to only animate while a live drag preview is actually running
-  // (rowDrag && dragOver): the same effect also fires on an ordinary poll
-  // update that happens to reorder something for an unrelated reason (a
-  // priority change from elsewhere, a task settling), where a surprise
-  // slide animation would read as a glitch rather than a response to
-  // something the person watching just did. Ending a drag lets liveView
-  // fall back to the server's own order in the same render that dragOver
-  // clears, so that snap-back is deliberately left un-animated too — it
-  // reads as "this is where the server actually put it", not a slide.
-  const flipRectsRef = useRef<Map<string, DOMRect>>(new Map());
-  useLayoutEffect(() => {
-    const root = tableRef.current;
-    const prev = flipRectsRef.current;
-    const next = new Map<string, DOMRect>();
-    const animate = rowDrag !== null && dragOver !== null;
-    root?.querySelectorAll<HTMLElement>('[data-task-id],[data-package-row]').forEach((el) => {
-      const key = el.dataset.taskId !== undefined ? `task:${el.dataset.taskId}` : `pkg:${el.dataset.packageRow}`;
-      // A drag can end (drop, or the drag simply leaving the list) WHILE a
-      // row is still mid-slide from the last preview update — without this,
-      // that row's own translateY never gets cleared (the code below that
-      // clears it only runs while animate is true) and it would sit
-      // visibly offset from where it belongs from then on. Cleared BEFORE
-      // measuring the rect below, so `next`'s own snapshot reflects the
-      // row's true flow position and not a still-transformed one.
-      if (!animate && el.style.transform) {
-        el.style.transition = 'none';
-        el.style.transform = '';
-      }
-      const rect = el.getBoundingClientRect();
-      next.set(key, rect);
-      if (!animate) return;
-      const before = prev.get(key);
-      if (!before) return;
-      const dy = before.top - rect.top;
-      if (Math.abs(dy) < 1) return;
-      el.style.transition = 'none';
-      el.style.transform = `translateY(${dy}px)`;
-      // Forces the browser to apply the transform above before the next
-      // line changes it again — without this read, the two style writes
-      // would be batched together and only the final (no-transform) state
-      // would ever paint, and there would be nothing to animate FROM.
-      void el.offsetHeight;
-      requestAnimationFrame(() => {
-        el.style.transition = 'transform 180ms ease';
-        el.style.transform = '';
-      });
-    });
-    flipRectsRef.current = next;
-  }, [liveView, rowDrag, dragOver]);
+  /**
+   * How far every row and every folder header has to slide, right now, to show
+   * the arrangement liveView above describes: row key -> pixels, and empty when
+   * there is nothing to preview.
+   *
+   * This is the whole animation, and it is the mobile list's own answer rather
+   * than a second invention: DragList keeps its rows exactly where they are and
+   * gives the ones the drag has passed a translate offset (`versatz`), which is
+   * what makes them "sich sofort verschieben wenn man drüberhovert" (jdp,
+   * 2026-08-31, about that list). The web list can do the same thing with more
+   * precision, because rows here are not one uniform height: a folder header, a
+   * folded folder and a link are three different boxes, so the offsets are
+   * computed from the real measured ones instead of from a single row height.
+   *
+   * The arithmetic, all of it off the pre-drag snapshot:
+   *
+   *   - `wanted` is the previewed arrangement flattened to the rows that are
+   *     actually ON SCREEN - a folded folder contributes its header and none of
+   *     its links, exactly like the table's own render below.
+   *   - Those rows are stacked back up from the first slot's top, each taking
+   *     its own measured height, and each keeping the GAP that belongs to its
+   *     new position rather than to itself. The gap is a property of the seam
+   *     between two rows (the divider between two folder sections), not of the
+   *     row that happens to sit above it.
+   *   - The offset is then simply "where this row would be" minus "where it
+   *     is", and that is a number a CSS transition can animate on its own.
+   *
+   * Bails out whole rather than in part. A poll that adds or removes a task
+   * mid-drag leaves the snapshot describing a list that no longer exists, and
+   * half-correct offsets would leave rows lying on top of each other; no
+   * preview at all is the honest state, and the drop itself still commits
+   * against dragOver, which never depended on this.
+   */
+  function previewOffsets(): Map<string, number> {
+    if (!rowDrag || !dragOver) return NO_OFFSETS;
+    const slots = rowSlotsRef.current;
+    if (slots.length === 0) return NO_OFFSETS;
+    const wanted: string[] = [];
+    for (const [name, items] of liveView) {
+      wanted.push(rowKey({ kind: 'package', name }));
+      if (!collapsed.has(name)) for (const x of items) wanted.push(rowKey({ kind: 'task', id: x.id }));
+    }
+    if (wanted.length !== slots.length) return NO_OFFSETS;
+    const geom = new Map(slots.map((s) => [rowKey(s.unit), s] as const));
+    const out = new Map<string, number>();
+    let y = slots[0].top;
+    for (let i = 0; i < wanted.length; i++) {
+      const g = geom.get(wanted[i]);
+      if (!g) return NO_OFFSETS;
+      out.set(wanted[i], y - g.top);
+      const nextSlot = slots[i + 1];
+      y += g.bottom - g.top + (nextSlot ? nextSlot.top - slots[i].bottom : 0);
+    }
+    return out;
+  }
+
+  const rowOffsets = previewOffsets();
 
   const dnd: RowDnD = {
     enabled: dndEnabled,
@@ -1797,6 +1876,31 @@ export function TaskListCard({
     dropOnPackage,
     previewOverTask: (_id, e) => previewOver(e),
     previewOverPackage: (_name, e) => previewOver(e),
+    // Every row in the table gets one of these, including the ones that are not
+    // moving: the transition has to already be on a row before its offset
+    // changes, or the first step aside it makes is a jump. A row with nothing to
+    // do simply carries translateY(0).
+    //
+    // The whole style DISAPPEARS the moment the drag ends, which is what puts
+    // the list back in one frame with no animation - deliberately, and for the
+    // same reason as before: what lands after a drop is the server's own order,
+    // and sliding into it would read as the app moving something on its own
+    // rather than as the answer to what was just dropped.
+    //
+    // 180ms is the same slide the old FLIP effect used, kept because jdp had
+    // already judged that speed ("das zur seite rutschen soll sehr smooth sein",
+    // 2026-08-25); only the machinery underneath it is different.
+    //
+    // No will-change here on purpose. It is the usual reflex next to a transform
+    // and it would be wrong at this scale: this runs on every row of a list that
+    // can be several hundred long, and a promise of "this will move" on all of
+    // them at once buys layers for rows that never move. A transform transition
+    // is composited while it runs without being told in advance.
+    slide: (unit) => {
+      const dy = rowOffsets.get(rowKey(unit));
+      if (dy === undefined) return NO_SLIDE;
+      return { transform: `translateY(${dy}px)`, transition: 'transform 180ms ease' };
+    },
   };
 
   const template = gridTemplate(layout.visible, layout.widthOf);
@@ -1942,8 +2046,17 @@ export function TaskListCard({
                 onMenu={setMenuAt}
               />
 
+              {/* `view`, not liveView, and that is the point: the rows stay in
+                  the order the server last gave for the whole of a drag, and
+                  each one is SLID to where the drag would put it (previewOffsets
+                  above, applied by dnd.slide). Reordering them here instead is
+                  what the preview used to do, and it left the move with nothing
+                  to animate but an after-the-fact measurement. It also kept the
+                  rainbow hues walking a moving list, so colours shuffled under
+                  the pointer as a side effect of a reorder nobody had committed
+                  yet - `index` below counts the resting order now. */}
               <div className="divide-y divide-carbon-border/60">
-                {liveView.map(([name, items]) => {
+                {view.map(([name, items]) => {
                   const folded = collapsed.has(name);
                   const offset = index;
                   if (!folded) index += items.length;

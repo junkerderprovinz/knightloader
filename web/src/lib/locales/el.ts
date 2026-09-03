@@ -800,7 +800,7 @@ export const el: Dict = {
   'task.moveDown': 'Μετακίνηση κάτω',
   'menu.priority': 'Προτεραιότητα',
   'menu.move': 'Μετακίνηση',
-  'menu.forceStart': 'Έναρξη τώρα',
+  'menu.forceStart': 'Εξαναγκασμός στην αρχή',
   'menu.queueStopped': 'Η ουρά σταμάτησε',
   'pkg.queueOrder': 'Μετακίνηση όλου του πακέτου',
 

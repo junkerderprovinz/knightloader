@@ -800,7 +800,7 @@ export const sl: Dict = {
   'task.moveDown': 'Navzdol',
   'menu.priority': 'Prednost',
   'menu.move': 'Premakni',
-  'menu.forceStart': 'Zaženi zdaj',
+  'menu.forceStart': 'Vsili na začetek',
   'menu.queueStopped': 'Vrsta je ustavljena',
   'pkg.queueOrder': 'Premakni cel paket',
 

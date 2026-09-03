@@ -802,7 +802,7 @@ export const he: Dict = {
   'task.moveDown': 'העבר למטה',
   'menu.priority': 'עדיפות',
   'menu.move': 'העבר',
-  'menu.forceStart': 'התחל עכשיו',
+  'menu.forceStart': 'אילוץ לראש התור',
   'menu.queueStopped': 'התור נעצר',
   'pkg.queueOrder': 'העבר את כל החבילה',
 

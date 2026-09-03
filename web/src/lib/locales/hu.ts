@@ -800,7 +800,7 @@ export const hu: Dict = {
   'task.moveDown': 'Lejjebb',
   'menu.priority': 'Prioritás',
   'menu.move': 'Áthelyezés',
-  'menu.forceStart': 'Indítás most',
+  'menu.forceStart': 'Sor elejére kényszerítés',
   'menu.queueStopped': 'A sor leállt',
   'pkg.queueOrder': 'Az egész csomag mozgatása',
 

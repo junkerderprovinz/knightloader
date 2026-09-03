@@ -800,7 +800,7 @@ export const ko: Dict = {
   'task.moveDown': '아래로',
   'menu.priority': '우선순위',
   'menu.move': '이동',
-  'menu.forceStart': '지금 시작',
+  'menu.forceStart': '강제로 맨 앞으로',
   'menu.queueStopped': '대기열 멈춤',
   'pkg.queueOrder': '패키지째 옮기기',
 

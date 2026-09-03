@@ -800,7 +800,7 @@ export const id: Dict = {
   'task.moveDown': 'Turunkan',
   'menu.priority': 'Prioritas',
   'menu.move': 'Pindahkan',
-  'menu.forceStart': 'Mulai sekarang',
+  'menu.forceStart': 'Paksa ke depan',
   'menu.queueStopped': 'Antrean berhenti',
   'pkg.queueOrder': 'Pindahkan seluruh paket',
 

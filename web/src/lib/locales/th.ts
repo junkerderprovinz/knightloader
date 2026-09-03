@@ -800,7 +800,7 @@ export const th: Dict = {
   'task.moveDown': 'เลื่อนลง',
   'menu.priority': 'ลำดับความสำคัญ',
   'menu.move': 'ย้าย',
-  'menu.forceStart': 'เริ่มเดี๋ยวนี้',
+  'menu.forceStart': 'บังคับไปหน้าสุด',
   'menu.queueStopped': 'คิวหยุดอยู่',
   'pkg.queueOrder': 'ย้ายทั้งแพ็กเกจ',
 

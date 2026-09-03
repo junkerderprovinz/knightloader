@@ -800,7 +800,7 @@ export const sr: Dict = {
   'task.moveDown': 'Доле',
   'menu.priority': 'Приоритет',
   'menu.move': 'Премести',
-  'menu.forceStart': 'Покрени сада',
+  'menu.forceStart': 'Принудно на почетак',
   'menu.queueStopped': 'Ред је заустављен',
   'pkg.queueOrder': 'Помери цео пакет',
 
