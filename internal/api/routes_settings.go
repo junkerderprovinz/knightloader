@@ -48,6 +48,10 @@ func registerSettings(reg *Registry, a *app.App) {
 				return
 			}
 			before := a.Settings.Get().InstanceName
+			// The relay address too: a PUT replaces the whole document, so a
+			// changed relay has to reconnect the client exactly as a changed
+			// name does. See the PATCH branch below for why that matters.
+			beforeRelay := a.Settings.Get().RelayURL
 			applied, err := a.ApplySettings(s)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -57,7 +61,7 @@ func registerSettings(reg *Registry, a *app.App) {
 			// this instance's display name once, at connect time, so a
 			// changed name has to reconnect the relay client to actually
 			// reach any sibling.
-			if applied.InstanceName != before {
+			if applied.InstanceName != before || applied.RelayURL != beforeRelay {
 				applyRelay(a)
 				// The LAN announce carries the same name and goes just as
 				// stale (internal/discovery.SetSelf) - one rename, both
@@ -122,9 +126,22 @@ func registerSettings(reg *Registry, a *app.App) {
 			// unrelated settings save would be wasteful; this only fires when
 			// the patch actually touched the one field the relay announce is
 			// built from.
+			// The relay client is rebuilt for BOTH of the things it is built
+			// from: the name it announces, and the relay it dials.
+			//
+			// relayUrl was missing, and the gap was worse than it sounds. The
+			// whole "point it at a relay you run" promise (docs/connecting.md,
+			// and the About card's "nothing ever leaves your own walls") rests
+			// on being able to change this address - and saving it the way the
+			// documentation describes left the live client dialling the default
+			// relay until the process happened to restart. Somebody who moved
+			// to their own relay would have had every reason to believe they
+			// had, and been wrong until the next reboot.
 			if _, ok := patch["instanceName"]; ok {
 				applyRelay(a)
 				discoveryRefresh()
+			} else if _, ok := patch["relayUrl"]; ok {
+				applyRelay(a)
 			}
 			writeJSON(w, settingsBody(a, applied))
 		})

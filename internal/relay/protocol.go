@@ -10,9 +10,16 @@ package relay
 // paid deliberately: the relay forwards a proxy frame verbatim without ever
 // looking inside it, and one JSON frame per message keeps a client that can
 // only speak plain WebSocket text (the mobile companion app) able to speak
-// this protocol with a JSON parser and nothing else. File bytes never travel
-// this channel at all - see the design spec - so the base64 overhead only
-// ever applies to REST-sized payloads.
+// this protocol with a JSON parser and nothing else.
+//
+// File bytes DO travel this channel, and the comment here used to say they
+// never did. GET /api/tasks/{id}/file (internal/api/routes_files.go) is a
+// route like any other, and the relay allowlist admits it under its blanket
+// "tasks/" prefix (routes_relay.go's relayForwardable). The bytes are sealed
+// like every other payload, so the relay cannot read them - but they are
+// base64 in a JSON frame, the relay sees their exact length, and a large file
+// is a large frame rather than a stream. Worth knowing before anybody sizes a
+// buffer or repeats the old claim in a privacy statement.
 
 import "encoding/json"
 

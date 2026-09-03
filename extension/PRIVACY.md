@@ -4,9 +4,16 @@ Last updated: 28 August 2026
 
 ## The short version
 
-This extension has no server. It sends nothing to us, because there is no "us" for
-it to send anything to. Everything it stores stays in your browser, and everything
-it sends goes to a KnightLoader instance you run yourself.
+This extension has no server of its own, and nothing it stores leaves your browser.
+What it sends goes to a KnightLoader instance you run yourself.
+
+One honest footnote, because the sentence above used to stop here and that was not
+the whole truth: to reach an instance your browser has no direct route to, the
+message travels through a RELAY, and unless you have pointed the extension at one
+of your own, that relay is operated by this project. It cannot read what it
+carries - see below - but it is a third party in the path, and it sees that you
+are there. If that matters to you, run your own relay; the same twelve words work
+against it.
 
 ## What is stored, and where
 
