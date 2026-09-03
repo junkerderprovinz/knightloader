@@ -5,8 +5,13 @@ import {
   FlatList,
   PanResponder,
   StyleSheet,
+  View,
   type ViewStyle,
 } from 'react-native';
+// The cell wrapper's own prop shape, taken from the list rather than
+// re-declared: a hand-written copy is a copy that can drift from the version
+// installed, and this component is only correct if it matches exactly.
+import type { CellRendererProps } from '@react-native/virtualized-lists';
 
 /**
  * Long-press to pick a row up, drag to move it, let go to drop.
@@ -114,6 +119,67 @@ export default function DragList({
   if (drag !== null) dragRef.current = drag;
 
   const boxes = useRef<Record<number, { y: number; h: number }>>({});
+
+  /**
+   * Where each row actually IS, measured on the CELL and not on the row.
+   *
+   * This is the fifth cause of "drag and drop does not work", and the one all
+   * four earlier fixes were built on top of without ever reaching.
+   *
+   * A layout event's `y` is relative to the PARENT. VirtualizedList wraps
+   * whatever renderItem returns in a cell View of its own
+   * (VirtualizedListCellRenderer), and for a plain vertical list that wrapper
+   * carries no style at all - so our row was the sole child of a box it
+   * exactly filled, and every single row reported y = 0. `boxes` held heights
+   * and NO positions.
+   *
+   * What that did to the gesture is worth spelling out, because the symptom
+   * looks nothing like a measurement bug. indexAt scores a candidate by
+   * |probe - (b.y + b.h/2)|, and the probe is b.y + b.h/2 + dy. With every
+   * b.y = 0 the position cancels out of both sides and the score collapses to
+   * |dy + h_from/2 - h_i/2| - a comparison of ROW HEIGHTS. In the package list
+   * every row in a band is the same height, so every candidate scores exactly
+   * the same, they all tie, and `d < bestD` keeps the first. Drag any package
+   * and the target snaps to the top of its band on the first move event and
+   * never follows the finger again; drag the TOP package - the first thing
+   * anyone tries - and to === from on every event, so onPanResponderRelease
+   * returns early and literally nothing happens.
+   *
+   * The cell is a direct child of the list's content view, which is the space
+   * the gesture's dy is a delta in. So measuring here puts the ruler and the
+   * finger in the same coordinate system, which they were never in before.
+   *
+   * useRef(...).current, not an inline component: a fresh component type on
+   * every render remounts every cell, including the one under the finger.
+   *
+   * The warning that would have prevented this is in this repository already,
+   * one file over - ColorPicker.tsx says "measureInWindow, not the layout
+   * event's own x/y: those are relative to the parent". This did the thing
+   * that comment warns against.
+   */
+  const Zelle = useRef(function DragCell({
+    index,
+    style,
+    onLayout,
+    children,
+  }: CellRendererProps<DragRow>) {
+    return (
+      <View
+        style={style}
+        onLayout={(e) => {
+          const { y, height } = e.nativeEvent.layout;
+          boxes.current[index] = { y, h: height };
+          // Passed on rather than swallowed: the list keeps its own cell
+          // metrics through this handler whenever getItemLayout is absent,
+          // which it is here.
+          onLayout?.(e);
+        }}
+      >
+        {children}
+      </View>
+    );
+  }).current;
+
   const lift = useRef(new Animated.Value(0)).current;
   const wiggle = useRef(new Animated.Value(0)).current;
   const wiggleLoop = useRef<Animated.CompositeAnimation | null>(null);
@@ -346,6 +412,9 @@ export default function DragList({
        * the drag; it removed the accident that had been hiding this.
        */
       extraData={drag}
+      // Measured on the cell, not on the row - see Zelle above for the
+      // whole reason, and for why every row used to report y = 0.
+      CellRendererComponent={Zelle}
       // A list that scrolls under a finger dragging a row is a list fighting the
       // gesture.
       scrollEnabled={drag === null}
@@ -365,11 +434,11 @@ export default function DragList({
           if (drag.from > drag.to && index >= drag.to && index < drag.from) versatz = gezogeneHoehe;
         }
         return (
+          // No onLayout here any more. It measured against the cell wrapper
+          // this row exactly fills, so it reported y = 0 for every row - see
+          // Zelle above, which measures the cell instead. Putting it back
+          // would overwrite the good box on the next re-layout.
           <Animated.View
-            onLayout={(e) => {
-              const { y, height } = e.nativeEvent.layout;
-              boxes.current[index] = { y, h: height };
-            }}
             style={[
               gezogen ? styles.lifted : null,
               {
