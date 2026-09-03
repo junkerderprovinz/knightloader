@@ -132,6 +132,13 @@ export default function TaskRow({ task, index }: { task: Task; index: number }) 
             looked exactly like one with an account behind it right up until it
             was slow or asking for a captcha. Nothing at all for an ordinary
             file, which is neither. */}
+        {/* The backend's own word for what is happening, when "running" is not
+            the whole truth. Same reasoning as the web list's own note column. */}
+        {task.note ? (
+          <Text style={[styles.meta, { color: c.textMuted }]} numberOfLines={1}>
+            {task.note}
+          </Text>
+        ) : null}
         {task.mode ? (
           <Text style={[styles.meta, { color: c.textMuted }]}>
             {t(task.mode === 'premium' ? 'task.mode.premium' : 'task.mode.free')}

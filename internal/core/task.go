@@ -122,6 +122,21 @@ type Update struct {
 	// do this" and "this did not work", and only the former should hand the
 	// task to the next backend in the chain.
 	Unsupported bool
+	// Note is what the backend is doing RIGHT NOW, in its own words, for a task
+	// that is running but not moving bytes.
+	//
+	// It exists because "running at 0 bytes" was the only thing the interface
+	// could say while JD sat on "Captcha recognition (rapidgator.net)" and then
+	// "Skipped - Captcha is required" (measured on the live instance,
+	// 2026-09-03). jdp: "es zeigt wieder nur 'lädt' an ... bei free downloads
+	// müsste doch eine captcha abfrage kommen". He was right that a captcha was
+	// happening; nothing carried the fact out of the backend.
+	//
+	// Deliberately NOT Err: this is not a failure, the download is still alive,
+	// and putting it in the error field would make every row that is merely
+	// waiting look broken. An empty Note means "nothing to add", which is the
+	// normal case for a transfer that is simply moving.
+	Note string
 	// Torrent carries the swarm numbers when the backend has any, and nil when
 	// it does not - which is every update from every non-torrent backend, so
 	// nothing else pays for this field.
@@ -410,6 +425,11 @@ type Task struct {
 	// Reason is the typed cause of the current failure; Error is the sentence
 	// beside it.
 	Reason Reason `json:"reason,omitempty"`
+	// Note is the backend's own word for what is happening right now: "Captcha
+	// recognition", "Waiting for reconnect", "Skipped - Captcha is required".
+	// A live detail, not a failure - see core.Update.Note for why it is separate
+	// from Error.
+	Note string `json:"note,omitempty"`
 	// Mode is whether this download goes out on a paid account or anonymously,
 	// and it is a DISPLAY fact rather than a routing one - the routing itself is
 	// jd.PriorityFor's job.

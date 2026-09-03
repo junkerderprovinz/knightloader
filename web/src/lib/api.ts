@@ -49,6 +49,10 @@ export interface Task {
   /** Whether this goes out on an account or anonymously. Only set for a link a
    *  hoster is on the other end of; absent means the question does not apply. */
   mode?: 'free' | 'premium';
+  /** What the backend is doing right now, in its own words, for a task that is
+   *  running but not moving bytes: "Captcha recognition", "Waiting for
+   *  reconnect". Not a failure - see core.Update.Note. */
+  note?: string;
   size: number;
   loaded: number;
   speed: number;

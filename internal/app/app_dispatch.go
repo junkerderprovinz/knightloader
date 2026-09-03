@@ -811,6 +811,14 @@ func (a *App) onUpdate(id string, u core.Update) {
 	} else {
 		t.Speed = u.Speed
 	}
+	// The live detail follows the same staleness rule the status does: a poll
+	// that arrives for a task nobody is running any more must not put a note on
+	// it, and a task that has stopped has nothing to be doing.
+	if stale {
+		t.Note = ""
+	} else {
+		t.Note = u.Note
+	}
 	if u.Torrent != nil {
 		u.Torrent.ApplyTo(t)
 	}
@@ -962,6 +970,14 @@ func (a *App) onUpdate(id string, u core.Update) {
 	if u.Status == core.StatusError && fallbackTo == nil {
 		cfg := a.Settings.Get()
 		switch {
+		case t.Reason == core.ReasonCaptcha:
+			// Nothing about the next ten minutes answers a captcha. Retrying
+			// only spends the queue's slots and buries the one line that told
+			// somebody what to do, exactly as with a full disk below - and on a
+			// headless JD with no MyJDownloader session the challenge is never
+			// offered over the API at all (see internal/captcha/jdsource.go's
+			// own note), so the retry cannot succeed even in principle.
+			t.NextTry = time.Time{}
 		case t.Reason == core.ReasonDiskFull:
 			// Cleared as well as not armed: the list reads a pending retry off this
 			// field, and a task that will never be tried again must not show the

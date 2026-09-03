@@ -248,12 +248,23 @@ export async function stopAll(conn: ServerConnection, base = '/api'): Promise<Qu
 // kept current" without knowing which transport it ended up with.
 export type UnsubscribeFn = () => void;
 
+/**
+ * An unsubscribe that can also be asked to pull once, now.
+ *
+ * A plain function with a property, so every existing caller keeps working: it
+ * is still a valid React effect cleanup and still assignable to `() => void`.
+ * `refresh` is optional because the streaming path does not need one - a direct
+ * connection is told about the change before the request that caused it has
+ * even answered.
+ */
+export type LiveTasks = UnsubscribeFn & { refresh?: () => Promise<void> };
+
 export function liveTasks(
   conn: ServerConnection,
   base: string,
   onSnapshot: (tasks: Task[]) => void,
   onError?: (err: unknown) => void
-): UnsubscribeFn {
+): LiveTasks {
   const streamable = !isRelayConnection(conn) && base === '/api';
   return streamable
     ? subscribeTasks(conn, onSnapshot, onError)
@@ -346,25 +357,42 @@ export function pollTasks(
 ): UnsubscribeFn {
   let stopped = false;
   let timer: ReturnType<typeof setTimeout> | null = null;
+  // Which request is the newest. Two fetches can be in flight at once the
+  // moment anything asks for an immediate refresh on top of the running cycle,
+  // and over a relay the older one can land last - which would put the state
+  // from BEFORE the action back on screen, a fraction of a second after the
+  // action worked. A counter is the whole defence: an answer that is not the
+  // newest is dropped rather than applied.
+  let issued = 0;
 
   const tick = async () => {
     if (stopped) return;
+    const mine = ++issued;
     try {
       const tasks = await fetchTasks(conn, base);
-      if (!stopped) onSnapshot(tasks.slice().sort((a, b) => a.position - b.position));
+      if (!stopped && mine === issued) onSnapshot(tasks.slice().sort((a, b) => a.position - b.position));
     } catch (err) {
-      if (!stopped) onError?.(err);
+      if (!stopped && mine === issued) onError?.(err);
     } finally {
-      if (!stopped) timer = setTimeout(tick, intervalMs);
+      if (!stopped && mine === issued) timer = setTimeout(tick, intervalMs);
     }
   };
 
   tick();
 
-  return () => {
+  const stop = () => {
     stopped = true;
     if (timer) clearTimeout(timer);
   };
+  // Pull now, and restart the cycle from now rather than letting the pending
+  // timer fire straight after. Handed out so a screen that has just changed
+  // something on the server does not have to sit out the interval to see it.
+  stop.refresh = async () => {
+    if (stopped) return;
+    if (timer) clearTimeout(timer);
+    await tick();
+  };
+  return stop;
 }
 
 /**
