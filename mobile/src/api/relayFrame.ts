@@ -41,6 +41,18 @@ export interface ProxyResult {
   body?: string;
 }
 
+/**
+ * Mirrors relay.Identity: the part of an announce the relay never reads and
+ * no longer receives. See that type's comment for how the split was decided -
+ * by reading which fields the relay server actually touches, which is the
+ * instance id and nothing else.
+ */
+export interface Identity {
+  name?: string;
+  deployment?: string;
+  client?: boolean;
+}
+
 /** relay.nonceLen. AES-GCM's standard nonce size. */
 const NONCE_LEN = 12;
 
@@ -93,6 +105,14 @@ const requestAAD = (requestId: string, target: string): Uint8Array =>
   utf8(`proxy-request\x00${requestId}\x00${target}`);
 
 const responseAAD = (requestId: string): Uint8Array => utf8(`proxy-response\x00${requestId}`);
+
+/**
+ * announceAAD mirrors the function of the same name in protocol.go. The one
+ * routing field an announce keeps in the clear is the instance id, and
+ * binding to it is what stops a relay attaching one instance's sealed
+ * identity to another connection.
+ */
+const announceAAD = (instanceId: string): Uint8Array => utf8(`announce\x00${instanceId}`);
 
 /** Base64 of the raw bytes, the shape encoding/json gives a Go []byte. */
 function toBase64(bytes: Uint8Array): string {
@@ -200,6 +220,41 @@ export function openResult(key: Uint8Array, requestId: string, sealedB64: string
   }
 }
 
+/** sealIdentity seals the identity half of this client's announce. Mirrors
+ *  relay.SealIdentity.
+ *
+ *  The phone's own announce is the least sensitive of the three ports - it
+ *  sends the constant 'mobile' and a name the person chose - but it seals it
+ *  anyway, because a relay able to tell a phone's announce from an instance's
+ *  by shape alone learns which member of a group is the phone, and that is a
+ *  fact about a household rather than about a protocol. */
+export function sealIdentity(key: Uint8Array, instanceId: string, id: Identity): string {
+  return seal(key, announceAAD(instanceId), utf8(JSON.stringify(id)));
+}
+
+/** openIdentity opens a sibling's sealed identity. Mirrors relay.OpenIdentity.
+ *  Returns null for a blob that will not open, which the caller reads as "list
+ *  this peer under its id, unnamed" - never as "this peer is not there". */
+export function openIdentity(key: Uint8Array, instanceId: string, sealedB64: string): Identity | null {
+  const plain = open(key, announceAAD(instanceId), sealedB64);
+  if (!plain) return null;
+  try {
+    return JSON.parse(fromUtf8(plain)) as Identity;
+  } catch {
+    return null;
+  }
+}
+
 /** Exported for the cross-implementation test, which needs a fixed nonce to
  *  compare against a fixed Go vector rather than a fresh random one. */
-export const __testing = { seal, open, requestAAD, responseAAD, toBase64, fromBase64, utf8, NONCE_LEN };
+export const __testing = {
+  seal,
+  open,
+  requestAAD,
+  responseAAD,
+  announceAAD,
+  toBase64,
+  fromBase64,
+  utf8,
+  NONCE_LEN,
+};

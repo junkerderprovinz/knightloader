@@ -23,6 +23,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"sort"
@@ -412,8 +413,20 @@ func (c *Client) session() {
 	// key - see Hello's own doc comment. It goes out before the connection is
 	// published below, so nothing can try to proxy over a socket the relay
 	// has not yet accepted.
+	//
+	// c.self is the in-memory announce, with the name and deployment filled
+	// in; sealAnnounce is what decides which of it the relay is allowed to
+	// see, and this is the only place an announce leaves this process. A
+	// seal that fails is a broken frame key, which NewClient already refuses,
+	// so it can only mean the cipher itself failed - not something to paper
+	// over by falling back to the plaintext frame this change exists to stop.
+	self, err := sealAnnounce(c.frameKey, c.self)
+	if err != nil {
+		log.Printf("relay: this instance's announce could not be sealed, not connecting: %v", err)
+		return
+	}
 	helloCtx, helloCancel := context.WithTimeout(ctx, writeTimeout)
-	err = writeFrameTo(helloCtx, conn, frameOf(TypeHello, Hello{Key: c.key, Announce: c.self}))
+	err = writeFrameTo(helloCtx, conn, frameOf(TypeHello, Hello{Key: c.key, Announce: self}))
 	helloCancel()
 	if err != nil {
 		return
@@ -473,8 +486,12 @@ func (c *Client) handle(ctx context.Context, conn *websocket.Conn, frame []byte)
 		if env.Into(&a) != nil || a.InstanceID == "" {
 			return
 		}
+		// Opened here, at the boundary, so everything above Siblings() reads
+		// an announce with its fields filled and never has to know one of
+		// them arrived sealed. openAnnounce cannot fail - see its comment for
+		// the three cases and why an unopenable one is still listed.
 		c.mu.Lock()
-		c.siblings[a.InstanceID] = a
+		c.siblings[a.InstanceID] = openAnnounce(c.frameKey, a)
 		c.mu.Unlock()
 		c.changed()
 	case TypePresence:

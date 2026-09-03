@@ -12,6 +12,7 @@ import {
   SectionTitle,
   TextArea,
   TextInput,
+  ToggleRow,
 } from '../../components/ui';
 import { QRCode } from '../../components/QRCode';
 import {
@@ -20,10 +21,13 @@ import {
   type NewApiToken,
   type ConnectInfo,
   type QRMatrix,
+  type RelayConfig,
   activateConnect,
   createToken,
   fetchAuth,
   fetchConnect,
+  fetchRelayConfig,
+  saveRelayConfig,
   PhraseRejected,
   joinConnect,
   leaveConnect,
@@ -190,6 +194,14 @@ export function Access() {
           getting KnightLoader onto a phone is the same question as getting
           it into a browser, and both now answer in one place. */}
       <RemoteAccessCard cx={cx} />
+      {/* Two cards rather than one, and this is the one place on the page
+          where jdp's own "es soll nur eine geben" does not apply - he asked
+          for the split himself (2026-09-03) after asking what the relay can
+          see. The reason it holds up: the card above is about the twelve
+          words, which everybody uses; these two are about WHICH relay carries
+          them, which is a separate question most people never open. */}
+      <RelayCard />
+      <OwnRelayCard />
       <TokensSection cx={cx} />
 
       {listeners.length > 0 && (
@@ -779,6 +791,237 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
     </Card>
   );
 }
+
+// ---- Which relay carries the words ------------------------------------------
+
+/**
+ * RelayCard says which relay this instance is on and, without softening it,
+ * what that relay's operator can see.
+ *
+ * It exists because of a question jdp asked on 2026-09-03, having read the
+ * About text he had just chosen: "nichts verlässt deine eigenen Mauern... KL
+ * kommuniziert aber über ein Relay. Ist das kein Bruch des Versprechens?" It
+ * was. The frames are sealed - the path, the body, the task list, the mobile
+ * app's bearer token, and since that day the instance NAME as well, which
+ * used to fall back to os.Hostname() and introduced a person to the relay
+ * operator by name on every connection (see relay.Identity).
+ *
+ * What no amount of sealing removes is the outside of an envelope: the group
+ * key the relay routes on, the public IP each member dials in from, and the
+ * timing and size of what passes. That is what this card states, in the
+ * bubble, in the same words the privacy document uses - because a promise a
+ * person cannot check is worth less than a plain description they can.
+ */
+function RelayCard() {
+  const { t } = useT();
+  const [conn, setConn] = useState<ConnectInfo | null>(null);
+
+  useEffect(() => {
+    fetchConnect().then(setConn).catch(() => {});
+  }, []);
+
+  if (!conn) return null;
+
+  return (
+    <Card hue={2} className="flex flex-col gap-4">
+      <div className="absolute right-5 top-4 z-10 flex items-center gap-2">
+        <LabelBadge
+          label={t('settings.access.relay.seesButton')}
+          tip={paragraphs(t('settings.access.relay.seesTip'))}
+          hue={3}
+        />
+        <LabelBadge
+          label={conn.selfHosted ? t('settings.access.relay.own') : t('settings.access.relay.project')}
+          tip={t('settings.access.relay.whichHint')}
+          tone={conn.selfHosted ? 'ok' : undefined}
+        />
+      </div>
+
+      <SectionTitle hint={t('settings.access.relay.body')}>{t('settings.access.relay.title')}</SectionTitle>
+
+      <p className="pr-72 text-sm text-carbon-textSub">
+        {conn.selfHosted ? t('settings.access.relay.leadOwn') : t('settings.access.relay.leadProject')}
+      </p>
+
+      {/* The address, always shown and always the REAL one - conn.relayUrl is
+          what the client dials, not what a field on this page hoped it would.
+          A card that claims a relay while the process talks to another is the
+          precise failure this page exists to make impossible. */}
+      <div className="flex flex-col gap-1">
+        <span className="text-xs font-semibold text-carbon-textSub">{t('settings.access.relay.address')}</span>
+        <code
+          className="glim-num min-w-0 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-xs leading-relaxed text-carbon-text"
+          dir="ltr"
+        >
+          {conn.relayUrl}
+        </code>
+      </div>
+    </Card>
+  );
+}
+
+/**
+ * OwnRelayCard is the escape hatch, and it is here because the hatch existed
+ * in the API and in the settings file and in NO user interface at all - the
+ * privacy document and the design spec both told people to run their own
+ * relay, and there was no field anywhere to say so. A documented way out that
+ * cannot be taken is not a way out.
+ *
+ * Three ways, in order of how much a person has to build:
+ *
+ *  1. This instance BECOMES the relay, on the address it already answers on,
+ *     behind the reverse proxy and the certificate it already has. One
+ *     switch, no second container, nothing to list anywhere. jdp asked for a
+ *     press-a-button container install "wie beim widget in BV, dann müssen
+ *     wir das relay nicht extra auf CA listen" - this reaches that goal
+ *     without the container, and so without the docker socket or the SSH
+ *     credentials such a button would need.
+ *  2. An address you already run - a relay on a VPS, or another KnightLoader
+ *     with the switch above turned on.
+ *  3. The container, for the case the other two cannot serve: nobody's box is
+ *     reachable, so the relay has to live somewhere that is.
+ *
+ * The order is deliberate and so is the warning at the bottom: the address is
+ * per-instance and is NOT carried by the phrase, so pointing one instance at
+ * a relay and forgetting the others leaves a group that quietly cannot see
+ * itself.
+ */
+function OwnRelayCard() {
+  const { t } = useT();
+  const [cfg, setCfg] = useState<RelayConfig | null>(null);
+  const [addr, setAddr] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const [copied, setCopied] = useState('');
+  const { toast } = useToast();
+
+  const load = () =>
+    fetchRelayConfig()
+      .then((c) => {
+        setCfg(c);
+        setAddr(c.relayUrl);
+      })
+      .catch(() => {});
+  useEffect(() => {
+    void load();
+  }, []);
+
+  async function save(relayUrl: string, serve?: boolean) {
+    setErr('');
+    setBusy(true);
+    try {
+      const c = await saveRelayConfig(relayUrl, undefined, serve);
+      setCfg(c);
+      setAddr(c.relayUrl);
+      toast(t('settings.access.ownRelay.saved'));
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function copy(what: string, text: string) {
+    if (await copyToClipboard(text)) {
+      setCopied(what);
+      setTimeout(() => setCopied(''), 1800);
+    }
+  }
+
+  if (!cfg) return null;
+
+  return (
+    <Card hue={3} className="flex flex-col gap-4">
+      <SectionTitle hint={t('settings.access.ownRelay.body')}>{t('settings.access.ownRelay.title')}</SectionTitle>
+
+      <p className="text-sm text-carbon-textSub">{t('settings.access.ownRelay.lead')}</p>
+
+      {/* Way one. A switch rather than a button, because it is a state this
+          instance is in and not an action it performs once. */}
+      <div className="flex flex-col gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 p-3">
+        <ToggleRow
+          hue={1}
+          label={t('settings.access.ownRelay.serveLabel')}
+          hint={t('settings.access.ownRelay.serveHint')}
+          checked={cfg.serve}
+          disabled={busy}
+          onChange={(v) => void save(cfg.relayUrl, v)}
+        />
+        {cfg.serve && (
+          <p className="text-[11px] text-carbon-textMuted">
+            {t('settings.access.ownRelay.serveClients', { count: cfg.serveClients })}
+          </p>
+        )}
+      </div>
+
+      {/* Way two. */}
+      <div className="flex flex-col gap-2">
+        <span className="text-xs font-semibold text-carbon-textSub">
+          {t('settings.access.ownRelay.addressLabel')}
+        </span>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <TextInput
+            dir="ltr"
+            spellCheck={false}
+            className="min-w-0 flex-1"
+            placeholder={t('settings.access.ownRelay.addressPlaceholder')}
+            value={addr}
+            onChange={(e) => setAddr(e.target.value)}
+          />
+          <Button hue={1} disabled={busy || addr.trim() === cfg.relayUrl} onClick={() => void save(addr.trim())}>
+            {t('settings.access.ownRelay.save')}
+          </Button>
+          {cfg.relayUrl !== '' && (
+            <Button hue={5} disabled={busy} onClick={() => void save('')}>
+              {t('settings.access.ownRelay.reset')}
+            </Button>
+          )}
+        </div>
+        <p className="text-[11px] leading-relaxed text-statusWarn">{t('settings.access.ownRelay.everyInstance')}</p>
+      </div>
+
+      {/* Way three. Copyable rather than clickable: the machine that needs a
+          relay is by definition not the machine that can host one for it, so
+          a button here would run the container on the wrong box. */}
+      <div className="flex flex-col gap-2">
+        <span className="flex items-center gap-1.5 text-xs font-semibold text-carbon-textSub">
+          {t('settings.access.ownRelay.containerLabel')}
+          <InfoBubble tip={paragraphs(t('settings.access.ownRelay.containerHint'))} />
+        </span>
+        <div className="flex items-start gap-2">
+          <code
+            className="glim-num min-w-0 flex-1 overflow-x-auto rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-xs leading-relaxed text-carbon-text"
+            dir="ltr"
+          >
+            {RELAY_RUN_COMMAND}
+          </code>
+          <IconBadge
+            hue={1}
+            icon={
+              copied === 'run' ? <IconCheck width={14} height={14} /> : <IconClipboard width={14} height={14} />
+            }
+            title={t('settings.access.tokens.copy')}
+            aria-label={t('settings.access.tokens.copy')}
+            onClick={() => void copy('run', RELAY_RUN_COMMAND)}
+          />
+        </div>
+      </div>
+
+      {err && <p className="text-sm text-statusFail">{err}</p>}
+    </Card>
+  );
+}
+
+/**
+ * The one command that starts a relay, kept beside the card that offers it.
+ *
+ * No volume and no environment beyond the port: the relay holds nothing
+ * across a restart except the list of who is currently connected, which is
+ * why Dockerfile.relay declares no VOLUME either. Anyone reading this should
+ * be able to see at a glance that there is nothing here to back up.
+ */
+const RELAY_RUN_COMMAND =
+  'docker run -d --name knightloader-relay -p 8760:8760 --restart unless-stopped ghcr.io/junkerderprovinz/knightloader-relay:latest';
 
 /**
  * Turns blank-line-separated text into real paragraphs for a bubble.

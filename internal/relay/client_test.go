@@ -169,12 +169,29 @@ func TestClientAnnouncesItselfAndTracksSiblings(t *testing.T) {
 
 	// bravo hears about alpha, which is only possible if the client's own
 	// hello carried its announce.
+	//
+	// bravo is a raw socket rather than a Client, so what it reads here is
+	// the WIRE form - exactly what a relay operator sees. The name and the
+	// deployment must not be in it, and the id must be, because the relay
+	// routes on that one and on nothing else.
 	var seen Announce
 	if err := readFrame(t, bravo, TypeAnnounce).Into(&seen); err != nil {
 		t.Fatalf("announce: %v", err)
 	}
-	if seen.InstanceID != "alpha" || seen.Deployment != "desktop" {
-		t.Errorf("bravo was introduced to %+v, want the client's own announce", seen)
+	if seen.InstanceID != "alpha" {
+		t.Errorf("bravo was introduced to %+v, want alpha's id in the clear", seen)
+	}
+	if seen.Name != "" || seen.Deployment != "" {
+		t.Errorf("the wire announce still carries identity in the clear: %+v", seen)
+	}
+	// And it is not merely absent: it is present, sealed, and opens with the
+	// key the relay does not hold into exactly what was announced.
+	id, err := OpenIdentity(testFrameKey, seen.InstanceID, seen.Sealed)
+	if err != nil {
+		t.Fatalf("the sealed identity did not open: %v", err)
+	}
+	if id.Name != "alpha" || id.Deployment != "desktop" {
+		t.Errorf("sealed identity = %+v, want alpha/desktop", id)
 	}
 
 	waitFor(t, "alpha to see bravo", func() bool {
