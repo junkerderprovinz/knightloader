@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { fetchQueue, liveTasks, setQueueHalted, stopAll } from '../api/client';
+import { fetchQueue, liveTasks, setQueueHalted, stopAll, type LiveTasks } from '../api/client';
 import type { Instance, QueueState, ServerConnection, Task } from '../api/types';
 import PackageList from '../components/PackageList';
 import { WellSelector } from '../components/glim';
@@ -59,6 +59,11 @@ export default function DownloadsScreen({
   const collected = tasks.filter((x) => x.status === 'collected');
   const queued = tasks.filter((x) => x.status !== 'collected');
 
+  /** The live handle, kept so an action that just changed something on the
+   *  server can ask for the truth immediately instead of waiting out the
+   *  polling cycle. */
+  const live = useRef<LiveTasks | null>(null);
+
   useEffect(() => {
     setConnected(false);
     setTasks([]);
@@ -67,7 +72,12 @@ export default function DownloadsScreen({
       setTasks(snapshot);
     };
     const onError = () => setConnected(false);
-    return liveTasks(conn, base, onSnapshot, onError);
+    const handle = liveTasks(conn, base, onSnapshot, onError);
+    live.current = handle;
+    return () => {
+      live.current = null;
+      handle();
+    };
   }, [conn, base, peer]);
 
   useEffect(() => {
@@ -273,7 +283,24 @@ export default function DownloadsScreen({
                   // The switch flipped on the server, so show it now rather
                   // than at the next five-second poll.
                   if (r.released) setQueue((q) => (q ? { ...q, halted: false } : q));
-                  if (r.started > 0) setTab('downloads');
+                  if (r.started > 0) {
+                    // Pull once before switching, so the package is THERE when
+                    // the tab arrives (jdp, 2026-09-03: "wenn ich bei einem
+                    // ordner im sammler auf play drücke dauert es lange bis er
+                    // im downloadtab erscheint").
+                    //
+                    // Nothing optimistic is invented here: this asks the server
+                    // and shows what it answers. On a direct connection the
+                    // socket has usually delivered it already and this costs one
+                    // extra request; over the relay it is the difference between
+                    // seeing the move now and waiting out the three-second
+                    // polling cycle plus a round trip.
+                    await live.current?.refresh?.().catch(() => {
+                      /* the next tick will get it; a failed refresh is not a
+                         reason to leave somebody on the wrong tab */
+                    });
+                    setTab('downloads');
+                  }
                 } catch (e) {
                   setStartError(e instanceof Error ? e.message : String(e));
                 }

@@ -19,6 +19,9 @@ export interface Task {
   /** Whether this goes out on an account or anonymously. Only set for a link a
    *  hoster is on the other end of; absent means the question does not apply. */
   mode?: 'free' | 'premium';
+  /** What the backend is doing right now for a task that is running but not
+   *  moving bytes: "Captcha recognition", "Waiting for reconnect". */
+  note?: string;
   size: number;
   loaded: number;
   speed: number;

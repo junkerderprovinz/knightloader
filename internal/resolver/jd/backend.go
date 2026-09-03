@@ -345,6 +345,26 @@ func fatalPackageStatus(status string) bool {
 	return false
 }
 
+// captchaSkipped reports whether JD has GIVEN UP on a challenge rather than
+// merely being busy with one.
+//
+// "Captcha recognition (rapidgator.net)" is work in progress and must be left
+// alone. "Skipped - Captcha is required" is JD's own full stop: the link is not
+// coming, and nothing about waiting changes that. Told apart because the wrong
+// answer either way is expensive - treating the first as terminal kills a
+// download JD was about to finish, and treating the second as running is what
+// made a dead task sit at "running, 0 bytes" for forty-five minutes and then
+// report "no progress for 45m0s", a sentence about the symptom that names
+// neither the cause nor anything to do about it.
+//
+// Measured on the live instance, 2026-09-03: both strings above came back from
+// a real free-mode rapidgator download while KnightLoader's own row said
+// nothing but "running".
+func captchaSkipped(status string) bool {
+	s := strings.ToLower(status)
+	return strings.Contains(s, "skipped") && strings.Contains(s, "captcha")
+}
+
 func (b *Backend) poll(taskID string) {
 	stop := make(chan struct{})
 	b.mu.Lock()
@@ -401,6 +421,13 @@ func (b *Backend) poll(taskID string) {
 				b.onUpdate(taskID, core.Update{Status: core.StatusError, Err: "jd: " + p.Status})
 				return
 			}
+			// A captcha JD has given up on settles NOW, with JD's own sentence.
+			// Waiting out stallLimit would replace the one useful fact with a
+			// meaningless one three quarters of an hour later.
+			if captchaSkipped(p.Status) {
+				b.onUpdate(taskID, core.Update{Status: core.StatusError, Err: "jd: " + p.Status, Note: p.Status})
+				return
+			}
 			// The folder is pinned ONCE, on the tick the package first appears.
 			// addLinks' own destinationFolder is only the parent JD hangs the
 			// package name under, so without this the file lands in a folder named
@@ -418,12 +445,20 @@ func (b *Backend) poll(taskID string) {
 				continue
 			}
 			seen = true
+			// JD's own word for what it is doing, carried out of the backend.
+			//
+			// This is the half that was missing while a free-mode download sat on
+			// "Captcha recognition (rapidgator.net)" and the row said "running"
+			// with no bytes: aggregate() below reads the LINKS, and JD reports
+			// this on the PACKAGE. Everything the poller could see looked healthy.
+			note := strings.TrimSpace(p.Status)
 
 			// JD may have crawled one link into several files. Reporting only
 			// the first would show a fraction of the real size and call the
 			// task done while the rest is still downloading, so the whole
 			// package is summed instead.
 			u := aggregate(links)
+			u.Note = note
 			if u.Loaded != lastBytes {
 				lastBytes = u.Loaded
 				lastMoved = time.Now()

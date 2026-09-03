@@ -1,5 +1,30 @@
 package captcha
 
+// MEASURED 2026-09-03, AND IT CHANGES WHAT THIS FILE CAN DELIVER: on the
+// bundled headless JD with no MyJDownloader session, /captcha/list is
+// PERMANENTLY EMPTY, however many challenges JD is actually sitting on.
+//
+// Confirmed on the live instance while a real rapidgator download reported the
+// package status "Captcha recognition (rapidgator.net)" and then "Skipped -
+// Captcha is required": three consecutive calls to /captcha/list answered
+// {"data":[]}. Nothing here is broken; the gate is inside JD.
+//
+// CaptchaAPISolver.enqueue() reads
+//     if (!isMyJDownloaderActive()) { job.setSolverDone(this); }
+// so the job is marked done at the instant it is created, and list() only ever
+// emits jobs that are not done. isMyJDownloaderActive() needs a live
+// MyJDownloader connect thread, which means a cloud account this app
+// deliberately does not have. The dialog-based solvers that would otherwise
+// hold the job are all guarded by !Application.isHeadless(), and the image
+// installs a headless JRE.
+//
+// So everything below is correct and will see nothing until one of these is
+// true: a solver key is pushed into JD's OWN solver config, JD runs non-headless
+// with a display, or somebody logs the sidecar into MyJDownloader. The third is
+// out of the question here. Until then, what the interface CAN honestly say is
+// carried by core.Task.Note, straight off JD's package status - see
+// internal/resolver/jd/backend.go's poll.
+
 // The JD-backed Source: KnightLoader's arm's-length JD sidecar talking over
 // its local "Deprecated API" (plain HTTP JSON, no cloud, no crypto), the same
 // namespace/method/{"data":...} envelope convention

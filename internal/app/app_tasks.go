@@ -37,6 +37,19 @@ func (a *App) Tasks() []*core.Task {
 	out := make([]*core.Task, 0, len(a.tasks))
 	for _, t := range a.tasks {
 		c := *t
+		// A task that has never been dispatched has no mode yet, and the answer
+		// is wanted BEFORE it runs: "is this going out free or premium" is
+		// precisely the question somebody asks while a link is still waiting.
+		//
+		// Derived on the copy, not written back, because the inputs move under
+		// it: the hoster list arrives from the JD sidecar a few seconds after
+		// boot and is refreshed every thirty. Storing a first, ignorant answer
+		// would freeze "no idea" onto every task the reconciler had not reached
+		// yet. Once a task is actually dispatched, modeForLocked writes the
+		// value for real - see app_dispatch.go.
+		if c.Mode == core.ModeUnknown {
+			c.Mode = a.modeForLocked(&c, c.Resolver)
+		}
 		out = append(out, &c)
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].CreatedAt.Before(out[j].CreatedAt) })

@@ -192,3 +192,43 @@ func TestAPassingPackageStatusIsNotTreatedAsFatal(t *testing.T) {
 		}
 	}
 }
+
+// TestCaptchaSkippedIsToldApartFromCaptchaInProgress is the distinction the
+// whole helper exists for, and getting it backwards is expensive either way.
+//
+// Measured on the live instance (2026-09-03) during a real free-mode rapidgator
+// download: JD reported "Captcha recognition (rapidgator.net)" while it was
+// working, then "Skipped - Captcha is required" when it gave up. The first must
+// be left alone - killing it would abandon a download JD was about to finish -
+// and the second must settle at once, because waiting it out replaced the one
+// useful sentence with "no progress for 45m0s" three quarters of an hour later.
+func TestCaptchaSkippedIsToldApartFromCaptchaInProgress(t *testing.T) {
+	working := []string{
+		"Captcha recognition (rapidgator.net)",
+		"Waiting for user input",
+		"",
+		"Downloading",
+	}
+	for _, s := range working {
+		if captchaSkipped(s) {
+			t.Errorf("captchaSkipped(%q) = true, want false - JD is still working on it", s)
+		}
+	}
+	givenUp := []string{
+		"Skipped - Captcha is required",
+		"skipped: captcha required",
+	}
+	for _, s := range givenUp {
+		if !captchaSkipped(s) {
+			t.Errorf("captchaSkipped(%q) = false, want true - JD has given up", s)
+		}
+	}
+	// And it must not collide with the folder verdict, which is a different
+	// full stop with a different remedy.
+	if captchaSkipped("Invalid download directory") {
+		t.Error("a folder problem was read as a skipped captcha")
+	}
+	if fatalPackageStatus("Skipped - Captcha is required") {
+		t.Error("a skipped captcha was read as a folder problem")
+	}
+}

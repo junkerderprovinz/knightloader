@@ -656,6 +656,22 @@ function StatusCell({ task, t }: { task: Task; t: Translate }) {
   return (
     <span className="inline-flex min-w-0 items-center gap-2">
       <StatusPill status={task.status} />
+      {/* What the backend is actually doing, when "running" is not the whole
+          truth (jdp, 2026-09-03: "es zeigt wieder nur 'lädt' an ... bei free
+          downloads müsste doch eine captcha abfrage kommen"). He was right that
+          a captcha was happening: measured on the live instance, JD reported
+          "Captcha recognition (rapidgator.net)" on the package while this column
+          said "running" with no bytes, because nothing carried the backend's own
+          word out of it.
+          Beside the status rather than in the metadata line: it is the answer to
+          "why is nothing moving", and that is the question somebody asks while
+          looking at the status. Muted and truncating, because it is a sentence
+          from somebody else's program and may be long. */}
+      {task.note && (
+        <span className="min-w-0 truncate text-[11px] text-carbon-textMuted" title={task.note}>
+          {task.note}
+        </span>
+      )}
       {/* Only a real verdict is shown. An unverified download stays unmarked,
           because a tick that also means "not checked" is worse than none. */}
       {task.checksum === 'ok' && (
