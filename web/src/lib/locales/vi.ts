@@ -400,6 +400,12 @@ export const vi: Dict = {
   'settings.downloads.limitsTitle': 'Giới hạn & hành vi',
   'settings.downloads.watchTitle': 'Theo dõi thư mục',
   'settings.downloads.idleTitle': 'Rảnh',
+  'settings.downloads.idleAction': 'Hành động khi hết hàng đợi',
+  'settings.downloads.idleActionNone': 'Không làm gì',
+  'settings.downloads.idleActionPause': 'Tạm dừng hàng đợi',
+  'settings.downloads.idleActionHint': 'Điều xảy ra khi không còn gì đang chạy, đang xếp hàng hay đang chờ bắt đầu. Một liên kết bạn đã tắt thì không tính: nó không bao giờ được xem là việc còn lại, nên không thể trì hoãn điều này mãi. Một liên kết tạm dừng bằng tay vẫn được tính, cả hai đều có nghĩa "chờ một chút", không phải "không bao giờ".',
+  'settings.downloads.idleCountdown': 'Đếm ngược (giây)',
+  'settings.downloads.idleCountdownHint': 'Bạn có bao nhiêu thời gian để hủy trước khi hành động chạy, khi hàng đợi thực sự rảnh.',
 
   'settings.modules.fixedAtBuild': 'Tập mô-đun được chốt khi biên dịch tệp nhị phân. Không thể cài thêm gì vào một thực thể đang chạy, nên danh sách này là toàn bộ.',
   'settings.modules.sectionShipped': 'Có trong bản dựng này',

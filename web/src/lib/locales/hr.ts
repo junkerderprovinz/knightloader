@@ -400,6 +400,12 @@ export const hr: Dict = {
   'settings.downloads.limitsTitle': 'Ograničenja i ponašanje',
   'settings.downloads.watchTitle': 'Praćenje mape',
   'settings.downloads.idleTitle': 'Mirovanje',
+  'settings.downloads.idleAction': 'Radnja na kraju reda',
+  'settings.downloads.idleActionNone': 'Ne radi ništa',
+  'settings.downloads.idleActionPause': 'Pauziraj red',
+  'settings.downloads.idleActionHint': 'Što se događa kad više ništa ne radi, ne čeka u redu ni ne čeka pokretanje. Isključena poveznica se ne broji: nikad se ne smatra preostalim poslom, pa ovo ne može odgađati zauvijek. Ručno pauzirana poveznica se i dalje broji, oboje znači "pričekaj malo", a ne "nikad".',
+  'settings.downloads.idleCountdown': 'Odbrojavanje (sekunde)',
+  'settings.downloads.idleCountdownHint': 'Koliko vremena imaš za odustajanje prije nego se radnja izvrši, kad red doista miruje.',
 
   'settings.modules.fixedAtBuild': 'Skup modula određuje se pri gradnji binarne datoteke. U pokrenutu instancu ne može se ništa doinstalirati, pa je ovaj popis sve.',
   'settings.modules.sectionShipped': 'U ovoj gradnji',

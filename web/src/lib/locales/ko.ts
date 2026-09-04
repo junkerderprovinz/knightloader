@@ -400,6 +400,12 @@ export const ko: Dict = {
   'settings.downloads.limitsTitle': '제한 및 동작',
   'settings.downloads.watchTitle': '폴더 감시',
   'settings.downloads.idleTitle': '유휴',
+  'settings.downloads.idleAction': '대기열이 비었을 때의 동작',
+  'settings.downloads.idleActionNone': '아무것도 하지 않음',
+  'settings.downloads.idleActionPause': '대기열 일시 중지',
+  'settings.downloads.idleActionHint': '실행 중이거나 대기열에 있거나 시작을 기다리는 것이 모두 없어졌을 때의 동작입니다. 꺼 둔 링크는 세지 않습니다. 남은 작업으로 치지 않으므로 이것을 영원히 미룰 수 없습니다. 손으로 일시 중지한 링크는 여전히 셉니다. 둘 다 "잠시 기다려"라는 뜻이지 "절대 안 함"이 아니기 때문입니다.',
+  'settings.downloads.idleCountdown': '카운트다운(초)',
+  'settings.downloads.idleCountdownHint': '대기열이 실제로 비었을 때, 동작이 실행되기 전까지 취소할 수 있는 시간입니다.',
 
   'settings.modules.fixedAtBuild': '모듈 구성은 바이너리를 빌드할 때 정해집니다. 실행 중인 인스턴스에는 아무것도 설치할 수 없으므로 이 목록이 전부입니다.',
   'settings.modules.sectionShipped': '이 빌드에 포함',

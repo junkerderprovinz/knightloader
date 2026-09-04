@@ -392,6 +392,12 @@ export const ru: Dict = {
   'settings.downloads.limitsTitle': 'Лимиты и поведение',
   'settings.downloads.watchTitle': 'Слежение за папкой',
   'settings.downloads.idleTitle': 'Простой',
+  'settings.downloads.idleAction': 'Действие в конце очереди',
+  'settings.downloads.idleActionNone': 'Ничего не делать',
+  'settings.downloads.idleActionPause': 'Приостановить очередь',
+  'settings.downloads.idleActionHint': 'Что происходит, когда ничего больше не выполняется, не стоит в очереди и не ждёт запуска. Отключённая ссылка не считается: она никогда не идёт в счёт оставшейся работы, поэтому не может откладывать это вечно. Приостановленная вручную ссылка считается, и то и другое значит «подожди немного», а не «никогда».',
+  'settings.downloads.idleCountdown': 'Обратный отсчёт (секунды)',
+  'settings.downloads.idleCountdownHint': 'Сколько у вас есть времени на отмену, прежде чем действие выполнится, когда очередь действительно опустеет.',
 
   'settings.modules.fixedAtBuild': 'Набор модулей задаётся при сборке двоичного файла. В работающий экземпляр ничего доустановить нельзя, так что этот список — всё, что есть.',
   'settings.modules.sectionShipped': 'В этой сборке',

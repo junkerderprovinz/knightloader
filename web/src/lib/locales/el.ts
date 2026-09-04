@@ -400,6 +400,12 @@ export const el: Dict = {
   'settings.downloads.limitsTitle': 'Όρια & συμπεριφορά',
   'settings.downloads.watchTitle': 'Παρακολούθηση φακέλου',
   'settings.downloads.idleTitle': 'Αδράνεια',
+  'settings.downloads.idleAction': 'Ενέργεια στο τέλος της ουράς',
+  'settings.downloads.idleActionNone': 'Καμία ενέργεια',
+  'settings.downloads.idleActionPause': 'Παύση της ουράς',
+  'settings.downloads.idleActionHint': 'Τι γίνεται μόλις δεν μένει τίποτα σε εξέλιξη, στην ουρά ή σε αναμονή εκκίνησης. Ένας σύνδεσμος που έχεις απενεργοποιήσει δεν μετράει: δεν λογαριάζεται ποτέ ως δουλειά που απομένει, οπότε δεν μπορεί να το καθυστερεί για πάντα. Ένας σύνδεσμος σε χειροκίνητη παύση μετράει ακόμα, και τα δύο σημαίνουν «περίμενε λίγο» και όχι «ποτέ».',
+  'settings.downloads.idleCountdown': 'Αντίστροφη μέτρηση (δευτερόλεπτα)',
+  'settings.downloads.idleCountdownHint': 'Πόσο χρόνο έχεις για ακύρωση πριν εκτελεστεί η ενέργεια, μόλις η ουρά αδειάσει πραγματικά.',
 
   'settings.modules.fixedAtBuild': 'Το σύνολο των μονάδων καθορίζεται όταν χτίζεται το εκτελέσιμο. Σε ένα στιγμιότυπο που τρέχει δεν εγκαθίσταται τίποτα, άρα αυτή η λίστα είναι όλο κι όλο.',
   'settings.modules.sectionShipped': 'Σε αυτή την έκδοση',

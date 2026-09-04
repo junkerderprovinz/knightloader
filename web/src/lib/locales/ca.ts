@@ -400,6 +400,12 @@ export const ca: Dict = {
   'settings.downloads.limitsTitle': 'Límits i comportament',
   'settings.downloads.watchTitle': 'Vigilància de carpeta',
   'settings.downloads.idleTitle': 'Inactiu',
+  'settings.downloads.idleAction': 'Acció en acabar la cua',
+  'settings.downloads.idleActionNone': 'No facis res',
+  'settings.downloads.idleActionPause': 'Posa la cua en pausa',
+  'settings.downloads.idleActionHint': 'Què passa un cop no queda res en marxa, a la cua ni esperant per començar. Un enllaç que has desactivat no compta: mai no es considera feina pendent, així que no pot ajornar això per sempre. Un enllaç pausat o retingut a mà sí que compta, tots dos volen dir «espera una mica» i no «mai».',
+  'settings.downloads.idleCountdown': 'Compte enrere (segons)',
+  'settings.downloads.idleCountdownHint': 'Quant de temps tens per cancel·lar abans que l\'acció s\'executi, un cop la cua queda realment aturada.',
 
   'settings.modules.fixedAtBuild': 'El conjunt de mòduls queda fixat quan es compila el binari. En una instància en marxa no s’hi pot instal·lar res, així que aquesta llista és tot el que hi ha.',
   'settings.modules.sectionShipped': 'En aquesta compilació',

@@ -443,6 +443,12 @@ export const en = {
   'settings.downloads.limitsTitle': 'Limits & behaviour',
   'settings.downloads.watchTitle': 'Folder watch',
   'settings.downloads.idleTitle': 'Idle',
+  'settings.downloads.idleAction': 'End-of-queue action',
+  'settings.downloads.idleActionNone': 'Do nothing',
+  'settings.downloads.idleActionPause': 'Pause the queue',
+  'settings.downloads.idleActionHint': 'What happens once nothing is left running, queued or waiting to start. A link you have switched off does not count - it is never counted as work left to do, so it cannot hold this off forever. A manually paused or held link still counts - both mean "wait a bit", not "never".',
+  'settings.downloads.idleCountdown': 'Countdown (seconds)',
+  'settings.downloads.idleCountdownHint': 'How long you have to cancel before the action runs, once the queue actually goes idle.',
 
   'settings.modules.fixedAtBuild': 'The set of modules is fixed when the binary is built. Nothing can be installed into a running instance, so this list is the whole of it.',
   'settings.modules.sectionShipped': 'In this build',

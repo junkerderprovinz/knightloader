@@ -400,6 +400,12 @@ export const gl: Dict = {
   'settings.downloads.limitsTitle': 'Límites e comportamento',
   'settings.downloads.watchTitle': 'Vixilancia de cartafol',
   'settings.downloads.idleTitle': 'Inactivo',
+  'settings.downloads.idleAction': 'Acción ao rematar a cola',
+  'settings.downloads.idleActionNone': 'Non facer nada',
+  'settings.downloads.idleActionPause': 'Pausar a cola',
+  'settings.downloads.idleActionHint': 'Que pasa cando xa non queda nada en marcha, na cola nin agardando para comezar. Unha ligazón que desactivaches non conta: nunca se toma como traballo pendente, así que non pode adiar isto para sempre. Unha ligazón pausada ou retida a man si conta, ambas queren dicir «agarda un pouco» e non «nunca».',
+  'settings.downloads.idleCountdown': 'Conta atrás (segundos)',
+  'settings.downloads.idleCountdownHint': 'Canto tempo tes para cancelar antes de que a acción se execute, unha vez que a cola queda realmente parada.',
 
   'settings.modules.fixedAtBuild': 'O conxunto de módulos queda fixado ao compilar o binario. Nunha instancia en marcha non se pode instalar nada, así que esta lista é todo o que hai.',
   'settings.modules.sectionShipped': 'Nesta compilación',

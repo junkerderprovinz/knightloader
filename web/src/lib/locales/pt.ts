@@ -392,6 +392,12 @@ export const pt: Dict = {
   'settings.downloads.limitsTitle': 'Limites e comportamento',
   'settings.downloads.watchTitle': 'Monitorização de pasta',
   'settings.downloads.idleTitle': 'Inativo',
+  'settings.downloads.idleAction': 'Ação no fim da fila',
+  'settings.downloads.idleActionNone': 'Não fazer nada',
+  'settings.downloads.idleActionPause': 'Pausar a fila',
+  'settings.downloads.idleActionHint': 'O que acontece quando já não resta nada a correr, em fila ou à espera de começar. Uma ligação que desligaste não conta: nunca é vista como trabalho por fazer, por isso não pode adiar isto para sempre. Uma ligação pausada ou retida à mão continua a contar, ambas querem dizer «espera um pouco» e não «nunca».',
+  'settings.downloads.idleCountdown': 'Contagem decrescente (segundos)',
+  'settings.downloads.idleCountdownHint': 'Quanto tempo tens para cancelar antes de a ação correr, assim que a fila fica mesmo parada.',
 
   'settings.modules.fixedAtBuild': 'O conjunto de módulos fica fixado quando o binário é compilado. Numa instância em funcionamento não se instala nada, por isso esta lista é tudo o que há.',
   'settings.modules.sectionShipped': 'Nesta compilação',

@@ -392,6 +392,12 @@ export const es: Dict = {
   'settings.downloads.limitsTitle': 'Límites y comportamiento',
   'settings.downloads.watchTitle': 'Vigilancia de carpeta',
   'settings.downloads.idleTitle': 'Inactivo',
+  'settings.downloads.idleAction': 'Acción al final de la cola',
+  'settings.downloads.idleActionNone': 'No hacer nada',
+  'settings.downloads.idleActionPause': 'Pausar la cola',
+  'settings.downloads.idleActionHint': 'Qué ocurre cuando ya no queda nada en marcha, en cola o esperando para empezar. Un enlace que has desactivado no cuenta: nunca se considera trabajo pendiente, así que no puede retrasar esto para siempre. Un enlace pausado o retenido a mano sí cuenta, ambos significan «espera un poco» y no «nunca».',
+  'settings.downloads.idleCountdown': 'Cuenta atrás (segundos)',
+  'settings.downloads.idleCountdownHint': 'Cuánto tiempo tienes para cancelar antes de que se ejecute la acción, una vez que la cola queda realmente inactiva.',
 
   'settings.modules.fixedAtBuild': 'El conjunto de módulos queda fijado al compilar el binario. En una instancia en marcha no se puede instalar nada, así que esta lista es todo lo que hay.',
   'settings.modules.sectionShipped': 'En esta compilación',

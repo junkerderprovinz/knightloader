@@ -400,6 +400,12 @@ export const zh: Dict = {
   'settings.downloads.limitsTitle': '限制与行为',
   'settings.downloads.watchTitle': '文件夹监视',
   'settings.downloads.idleTitle': '空闲',
+  'settings.downloads.idleAction': '队列结束后的操作',
+  'settings.downloads.idleActionNone': '什么都不做',
+  'settings.downloads.idleActionPause': '暂停队列',
+  'settings.downloads.idleActionHint': '当没有任何任务在运行、排队或等待开始时会发生什么。你关掉的链接不算：它从不被视为剩余的工作，所以无法把这件事一直拖下去。手动暂停或搁置的链接仍然算数，两者的意思都是"稍等一下"，而不是"永远不做"。',
+  'settings.downloads.idleCountdown': '倒计时（秒）',
+  'settings.downloads.idleCountdownHint': '队列真正空闲后，在操作执行之前你有多长时间可以取消。',
 
   'settings.modules.fixedAtBuild': '模块集合在编译二进制时就定死了。运行中的实例装不进任何东西，所以这份清单就是全部。',
   'settings.modules.sectionShipped': '本构建包含',

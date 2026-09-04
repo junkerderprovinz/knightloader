@@ -400,6 +400,12 @@ export const ro: Dict = {
   'settings.downloads.limitsTitle': 'Limite și comportament',
   'settings.downloads.watchTitle': 'Monitorizare folder',
   'settings.downloads.idleTitle': 'Inactiv',
+  'settings.downloads.idleAction': 'Acțiune la finalul cozii',
+  'settings.downloads.idleActionNone': 'Nu face nimic',
+  'settings.downloads.idleActionPause': 'Pune coada pe pauză',
+  'settings.downloads.idleActionHint': 'Ce se întâmplă când nu mai rulează nimic, nu mai așteaptă nimic în coadă și nimic nu mai așteaptă să pornească. Un link pe care l-ai oprit nu contează: nu este niciodată socotit muncă rămasă, deci nu poate amâna asta la nesfârșit. Un link pus pe pauză manual contează în continuare, ambele înseamnă „mai așteaptă puțin", nu „niciodată".',
+  'settings.downloads.idleCountdown': 'Numărătoare inversă (secunde)',
+  'settings.downloads.idleCountdownHint': 'Cât timp ai la dispoziție ca să anulezi înainte ca acțiunea să ruleze, odată ce coada chiar se golește.',
 
   'settings.modules.fixedAtBuild': 'Setul de module se fixează la compilarea binarului. Într-o instanță pornită nu se poate instala nimic, așa că lista aceasta este tot.',
   'settings.modules.sectionShipped': 'În această compilare',

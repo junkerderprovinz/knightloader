@@ -400,6 +400,12 @@ export const de: Dict = {
   'settings.downloads.limitsTitle': 'Grenzwerte & Verhalten',
   'settings.downloads.watchTitle': 'Ordnerüberwachung',
   'settings.downloads.idleTitle': 'Leerlauf',
+  'settings.downloads.idleAction': 'Aktion am Ende der Warteschlange',
+  'settings.downloads.idleActionNone': 'Nichts tun',
+  'settings.downloads.idleActionPause': 'Warteschlange pausieren',
+  'settings.downloads.idleActionHint': 'Was passiert, sobald nichts mehr läuft, wartet oder auf den Start ansteht. Ein Link, den du abgeschaltet hast, zählt nicht mit: er gilt nie als offene Arbeit und kann das hier also nicht ewig aufhalten. Ein von Hand pausierter oder zurückgestellter Link zählt weiter mit, beides heißt „warte kurz" und nicht „nie".',
+  'settings.downloads.idleCountdown': 'Countdown (Sekunden)',
+  'settings.downloads.idleCountdownHint': 'Wie lange du Zeit hast abzubrechen, bevor die Aktion läuft, sobald die Warteschlange wirklich leer läuft.',
 
   'settings.modules.fixedAtBuild': 'Welche Module es gibt, steht beim Bauen der Binärdatei fest. In eine laufende Instanz lässt sich nichts nachinstallieren, diese Liste ist also vollständig.',
   'settings.modules.sectionShipped': 'In diesem Build',

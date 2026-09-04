@@ -400,6 +400,12 @@ export const hi: Dict = {
   'settings.downloads.limitsTitle': 'सीमाएँ और व्यवहार',
   'settings.downloads.watchTitle': 'फ़ोल्डर निगरानी',
   'settings.downloads.idleTitle': 'निष्क्रिय',
+  'settings.downloads.idleAction': 'कतार खत्म होने पर कार्रवाई',
+  'settings.downloads.idleActionNone': 'कुछ न करें',
+  'settings.downloads.idleActionPause': 'कतार रोकें',
+  'settings.downloads.idleActionHint': 'जब कुछ भी चल न रहा हो, कतार में न हो और शुरू होने का इंतज़ार न कर रहा हो, तब क्या होगा। आपने जो लिंक बंद कर दिया है वह नहीं गिना जाता: उसे कभी बचा हुआ काम नहीं माना जाता, इसलिए वह इसे हमेशा के लिए नहीं टाल सकता। हाथ से रोका गया लिंक फिर भी गिना जाता है, दोनों का मतलब है "थोड़ा रुको", "कभी नहीं" नहीं।',
+  'settings.downloads.idleCountdown': 'उलटी गिनती (सेकंड)',
+  'settings.downloads.idleCountdownHint': 'कतार के सचमुच खाली होने पर, कार्रवाई चलने से पहले रद्द करने के लिए आपके पास कितना समय है।',
 
   'settings.modules.fixedAtBuild': 'मॉड्यूल का समूह बाइनरी बनाते समय ही तय हो जाता है। चालू इंस्टेंस में कुछ भी स्थापित नहीं किया जा सकता, इसलिए यही पूरी सूची है।',
   'settings.modules.sectionShipped': 'इस बिल्ड में',

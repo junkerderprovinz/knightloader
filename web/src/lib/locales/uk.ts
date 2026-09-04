@@ -400,6 +400,12 @@ export const uk: Dict = {
   'settings.downloads.limitsTitle': 'Ліміти та поведінка',
   'settings.downloads.watchTitle': 'Стеження за папкою',
   'settings.downloads.idleTitle': 'Простій',
+  'settings.downloads.idleAction': 'Дія в кінці черги',
+  'settings.downloads.idleActionNone': 'Нічого не робити',
+  'settings.downloads.idleActionPause': 'Призупинити чергу',
+  'settings.downloads.idleActionHint': 'Що відбувається, коли більше нічого не виконується, не стоїть у черзі й не чекає на запуск. Вимкнене посилання не рахується: воно ніколи не вважається залишковою роботою, тож не може відкладати це вічно. Призупинене вручну посилання рахується, обидва варіанти означають «зачекай трохи», а не «ніколи».',
+  'settings.downloads.idleCountdown': 'Зворотний відлік (секунди)',
+  'settings.downloads.idleCountdownHint': 'Скільки у вас є часу на скасування, перш ніж дія виконається, коли черга справді спорожніє.',
 
   'settings.modules.fixedAtBuild': 'Набір модулів визначається під час збирання двійкового файлу. У запущений примірник нічого доставити не можна, тож цей список — це все.',
   'settings.modules.sectionShipped': 'У цій збірці',

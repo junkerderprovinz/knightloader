@@ -392,6 +392,12 @@ export const pl: Dict = {
   'settings.downloads.limitsTitle': 'Limity i zachowanie',
   'settings.downloads.watchTitle': 'Obserwacja folderu',
   'settings.downloads.idleTitle': 'Bezczynność',
+  'settings.downloads.idleAction': 'Działanie na koniec kolejki',
+  'settings.downloads.idleActionNone': 'Nic nie rób',
+  'settings.downloads.idleActionPause': 'Wstrzymaj kolejkę',
+  'settings.downloads.idleActionHint': 'Co się dzieje, gdy nic już nie działa, nie czeka w kolejce ani nie czeka na start. Link, który wyłączyłeś, się nie liczy: nigdy nie jest traktowany jako praca do wykonania, więc nie może tego wstrzymywać w nieskończoność. Link wstrzymany ręcznie nadal się liczy, oba znaczą „zaczekaj chwilę", a nie „nigdy".',
+  'settings.downloads.idleCountdown': 'Odliczanie (sekundy)',
+  'settings.downloads.idleCountdownHint': 'Ile masz czasu na anulowanie, zanim akcja zadziała, gdy kolejka naprawdę opustoszeje.',
 
   'settings.modules.fixedAtBuild': 'Zestaw modułów jest ustalany przy budowaniu pliku wykonywalnego. Do działającej instancji nie da się nic doinstalować, więc ta lista to całość.',
   'settings.modules.sectionShipped': 'W tej kompilacji',

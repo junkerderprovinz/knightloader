@@ -400,6 +400,12 @@ export const lt: Dict = {
   'settings.downloads.limitsTitle': 'Apribojimai ir elgsena',
   'settings.downloads.watchTitle': 'Aplanko stebėjimas',
   'settings.downloads.idleTitle': 'Neveikimas',
+  'settings.downloads.idleAction': 'Veiksmas eilės pabaigoje',
+  'settings.downloads.idleActionNone': 'Nieko nedaryti',
+  'settings.downloads.idleActionPause': 'Pristabdyti eilę',
+  'settings.downloads.idleActionHint': 'Kas nutinka, kai nieko nebelieka vykdomo, eilėje ar laukiančio paleidimo. Išjungta nuoroda neįskaitoma: ji niekada nelaikoma likusiu darbu, tad negali to atidėlioti be galo. Ranka pristabdyta nuoroda vis dar įskaitoma, abu variantai reiškia „truputį palauk", o ne „niekada".',
+  'settings.downloads.idleCountdown': 'Atgalinis skaičiavimas (sekundėmis)',
+  'settings.downloads.idleCountdownHint': 'Kiek laiko turi atšaukti, kol veiksmas įvyks, kai eilė iš tikrųjų ištuštėja.',
 
   'settings.modules.fixedAtBuild': 'Modulių rinkinys nustatomas kuriant vykdomąjį failą. Į veikiantį egzempliorių nieko įdiegti negalima, tad šis sąrašas yra viskas.',
   'settings.modules.sectionShipped': 'Šioje laidoje',

@@ -400,6 +400,12 @@ export const sv: Dict = {
   'settings.downloads.limitsTitle': 'Gränser & beteende',
   'settings.downloads.watchTitle': 'Mappövervakning',
   'settings.downloads.idleTitle': 'Inaktiv',
+  'settings.downloads.idleAction': 'Åtgärd när kön är tom',
+  'settings.downloads.idleActionNone': 'Gör ingenting',
+  'settings.downloads.idleActionPause': 'Pausa kön',
+  'settings.downloads.idleActionHint': 'Vad som händer när inget längre pågår, står i kö eller väntar på att starta. En länk du har stängt av räknas inte: den ses aldrig som återstående arbete och kan alltså inte skjuta upp det här för alltid. En länk du pausat för hand räknas fortfarande, båda betyder "vänta lite" och inte "aldrig".',
+  'settings.downloads.idleCountdown': 'Nedräkning (sekunder)',
+  'settings.downloads.idleCountdownHint': 'Hur lång tid du har på dig att avbryta innan åtgärden körs, när kön verkligen står stilla.',
 
   'settings.modules.fixedAtBuild': 'Vilka moduler som finns avgörs när binären byggs. Inget kan installeras i en körande instans, så den här listan är alltihop.',
   'settings.modules.sectionShipped': 'I det här bygget',
