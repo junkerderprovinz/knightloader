@@ -400,6 +400,12 @@ export const ms: Dict = {
   'settings.downloads.limitsTitle': 'Had & kelakuan',
   'settings.downloads.watchTitle': 'Pemantauan folder',
   'settings.downloads.idleTitle': 'Melahu',
+  'settings.downloads.idleAction': 'Tindakan di hujung baris gilir',
+  'settings.downloads.idleActionNone': 'Jangan buat apa-apa',
+  'settings.downloads.idleActionPause': 'Jeda baris gilir',
+  'settings.downloads.idleActionHint': 'Apa yang berlaku sebaik sahaja tiada lagi yang berjalan, menunggu dalam baris gilir atau menunggu untuk bermula. Pautan yang kamu matikan tidak dikira: ia tidak pernah dianggap kerja yang tinggal, jadi ia tidak boleh menangguhkan ini selamanya. Pautan yang dijeda secara manual masih dikira, kedua-duanya bermaksud "tunggu sekejap", bukan "tidak sekali-kali".',
+  'settings.downloads.idleCountdown': 'Kira detik (saat)',
+  'settings.downloads.idleCountdownHint': 'Berapa lama kamu ada untuk membatalkan sebelum tindakan berjalan, sebaik sahaja baris gilir benar-benar kosong.',
 
   'settings.modules.fixedAtBuild': 'Set modul ditetapkan semasa binari dibina. Tiada apa-apa boleh dipasang ke dalam tika yang sedang berjalan, jadi senarai ini ialah keseluruhannya.',
   'settings.modules.sectionShipped': 'Dalam binaan ini',

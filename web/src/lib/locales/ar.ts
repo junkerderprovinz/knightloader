@@ -402,6 +402,12 @@ export const ar: Dict = {
   'settings.downloads.limitsTitle': 'الحدود والسلوك',
   'settings.downloads.watchTitle': 'مراقبة المجلد',
   'settings.downloads.idleTitle': 'خمول',
+  'settings.downloads.idleAction': 'الإجراء عند انتهاء الطابور',
+  'settings.downloads.idleActionNone': 'لا تفعل شيئًا',
+  'settings.downloads.idleActionPause': 'إيقاف الطابور مؤقتًا',
+  'settings.downloads.idleActionHint': 'ما يحدث عندما لا يبقى شيء قيد التشغيل أو في الطابور أو في انتظار البدء. الرابط الذي أوقفته لا يُحتسب: لا يُعدّ أبدًا عملًا متبقيًا، لذا لا يمكنه تأجيل هذا إلى الأبد. الرابط المُوقَف مؤقتًا يدويًا ما زال يُحتسب، وكلاهما يعني «انتظر قليلًا» لا «أبدًا».',
+  'settings.downloads.idleCountdown': 'العد التنازلي (ثوانٍ)',
+  'settings.downloads.idleCountdownHint': 'كم من الوقت لديك للإلغاء قبل تنفيذ الإجراء، حالما يصبح الطابور خاليًا فعلًا.',
 
   'settings.modules.fixedAtBuild': 'مجموعة الوحدات تُثبَّت عند بناء الملف التنفيذي. لا يمكن تركيب أي شيء في نسخة قيد التشغيل، فهذه القائمة هي كل ما هناك.',
   'settings.modules.sectionShipped': 'في هذه البنية',

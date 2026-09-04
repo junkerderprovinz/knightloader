@@ -402,6 +402,12 @@ export const he: Dict = {
   'settings.downloads.limitsTitle': 'מגבלות והתנהגות',
   'settings.downloads.watchTitle': 'מעקב אחר תיקייה',
   'settings.downloads.idleTitle': 'סרק',
+  'settings.downloads.idleAction': 'פעולה בסיום התור',
+  'settings.downloads.idleActionNone': 'לא לעשות דבר',
+  'settings.downloads.idleActionPause': 'השהיית התור',
+  'settings.downloads.idleActionHint': 'מה קורה כשלא נשאר דבר שרץ, ממתין בתור או מחכה להתחיל. קישור שכיבית אינו נספר: הוא לעולם אינו נחשב עבודה שנותרה, ולכן אינו יכול לדחות את זה לנצח. קישור שהושהה ידנית עדיין נספר, שניהם אומרים "חכה רגע" ולא "לעולם לא".',
+  'settings.downloads.idleCountdown': 'ספירה לאחור (שניות)',
+  'settings.downloads.idleCountdownHint': 'כמה זמן יש לך לבטל לפני שהפעולה תרוץ, ברגע שהתור באמת מתרוקן.',
 
   'settings.modules.fixedAtBuild': 'אוסף המודולים נקבע כשהקובץ הבינארי נבנה. אי אפשר להתקין דבר במופע פועל, ולכן הרשימה הזאת היא הכול.',
   'settings.modules.sectionShipped': 'בבנייה הזאת',

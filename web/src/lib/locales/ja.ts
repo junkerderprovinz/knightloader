@@ -400,6 +400,12 @@ export const ja: Dict = {
   'settings.downloads.limitsTitle': '制限と動作',
   'settings.downloads.watchTitle': 'フォルダ監視',
   'settings.downloads.idleTitle': 'アイドル',
+  'settings.downloads.idleAction': 'キューが空になったときの動作',
+  'settings.downloads.idleActionNone': '何もしない',
+  'settings.downloads.idleActionPause': 'キューを一時停止',
+  'settings.downloads.idleActionHint': '実行中のもの、待機列のもの、開始待ちのものがすべてなくなったときの動作です。オフにしたリンクは数えません。残りの作業とはみなされないので、これをいつまでも先送りにはできません。手動で一時停止したリンクは数えます。どちらも「少し待って」であって「もうしない」ではないからです。',
+  'settings.downloads.idleCountdown': 'カウントダウン（秒）',
+  'settings.downloads.idleCountdownHint': 'キューが実際に空になってから、動作が実行されるまでに取り消せる時間です。',
 
   'settings.modules.fixedAtBuild': 'モジュールの構成はバイナリをビルドした時点で決まります。動いているインスタンスに後から入れることはできないので、この一覧がすべてです。',
   'settings.modules.sectionShipped': 'このビルドに含まれる',

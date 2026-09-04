@@ -400,6 +400,12 @@ export const is: Dict = {
   'settings.downloads.limitsTitle': 'Mörk og hegðun',
   'settings.downloads.watchTitle': 'Möppueftirlit',
   'settings.downloads.idleTitle': 'Aðgerðarlaus',
+  'settings.downloads.idleAction': 'Aðgerð í lok biðraðar',
+  'settings.downloads.idleActionNone': 'Gera ekkert',
+  'settings.downloads.idleActionPause': 'Setja biðröðina í bið',
+  'settings.downloads.idleActionHint': 'Hvað gerist þegar ekkert er lengur í gangi, í biðröð eða á leið af stað. Tengill sem þú hefur slökkt á telst ekki með: hann er aldrei talinn eftirstandandi vinna og getur því ekki frestað þessu endalaust. Tengill sem þú settir í bið handvirkt telst enn með, hvort tveggja þýðir "bíddu aðeins" en ekki "aldrei".',
+  'settings.downloads.idleCountdown': 'Niðurtalning (sekúndur)',
+  'settings.downloads.idleCountdownHint': 'Hversu langan tíma þú hefur til að hætta við áður en aðgerðin keyrir, þegar biðröðin er í raun tóm.',
 
   'settings.modules.fixedAtBuild': 'Safn eininganna er fastsett þegar keyrsluskráin er smíðuð. Ekkert er hægt að setja upp í keyrandi tilviki, svo þessi listi er allt sem til er.',
   'settings.modules.sectionShipped': 'Í þessari smíð',

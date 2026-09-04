@@ -392,6 +392,12 @@ export const it: Dict = {
   'settings.downloads.limitsTitle': 'Limiti e comportamento',
   'settings.downloads.watchTitle': 'Controllo cartella',
   'settings.downloads.idleTitle': 'Inattivo',
+  'settings.downloads.idleAction': 'Azione a fine coda',
+  'settings.downloads.idleActionNone': 'Non fare nulla',
+  'settings.downloads.idleActionPause': 'Metti in pausa la coda',
+  'settings.downloads.idleActionHint': 'Che cosa succede quando non resta più niente in corso, in coda o in attesa di partire. Un link che hai disattivato non conta: non viene mai considerato lavoro rimasto, quindi non può rimandare questo all\'infinito. Un link messo in pausa o trattenuto a mano conta ancora, entrambi vogliono dire «aspetta un attimo» e non «mai».',
+  'settings.downloads.idleCountdown': 'Conto alla rovescia (secondi)',
+  'settings.downloads.idleCountdownHint': 'Quanto tempo hai per annullare prima che l\'azione parta, una volta che la coda è davvero ferma.',
 
   'settings.modules.fixedAtBuild': 'L’insieme dei moduli è fissato quando il binario viene compilato. In un’istanza in esecuzione non si può installare nulla, quindi questo elenco è tutto.',
   'settings.modules.sectionShipped': 'In questa build',

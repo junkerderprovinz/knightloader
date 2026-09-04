@@ -400,6 +400,12 @@ export const sl: Dict = {
   'settings.downloads.limitsTitle': 'Omejitve in vedenje',
   'settings.downloads.watchTitle': 'Nadzor mape',
   'settings.downloads.idleTitle': 'Nedejavnost',
+  'settings.downloads.idleAction': 'Dejanje ob koncu vrste',
+  'settings.downloads.idleActionNone': 'Ne stori ničesar',
+  'settings.downloads.idleActionPause': 'Začasno ustavi vrsto',
+  'settings.downloads.idleActionHint': 'Kaj se zgodi, ko nič več ne teče, ne čaka v vrsti in ne čaka na zagon. Izklopljena povezava se ne šteje: nikoli ne velja za preostalo delo, zato tega ne more odlagati v nedogled. Ročno zaustavljena povezava se še vedno šteje, oboje pomeni "malo počakaj" in ne "nikoli".',
+  'settings.downloads.idleCountdown': 'Odštevanje (sekunde)',
+  'settings.downloads.idleCountdownHint': 'Koliko časa imaš za preklic, preden se dejanje izvede, ko vrsta res obmiruje.',
 
   'settings.modules.fixedAtBuild': 'Nabor modulov se določi ob izgradnji binarne datoteke. V delujoč primerek ni mogoče nič namestiti, zato je ta seznam vse.',
   'settings.modules.sectionShipped': 'V tej izgradnji',

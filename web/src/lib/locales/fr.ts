@@ -392,6 +392,12 @@ export const fr: Dict = {
   'settings.downloads.limitsTitle': 'Limites et comportement',
   'settings.downloads.watchTitle': 'Surveillance de dossier',
   'settings.downloads.idleTitle': 'Inactif',
+  'settings.downloads.idleAction': 'Action en fin de file',
+  'settings.downloads.idleActionNone': 'Ne rien faire',
+  'settings.downloads.idleActionPause': 'Mettre la file en pause',
+  'settings.downloads.idleActionHint': 'Ce qui se passe une fois que plus rien ne tourne, n\'attend dans la file ou ne doit démarrer. Un lien que vous avez désactivé ne compte pas : il n\'est jamais considéré comme du travail restant, il ne peut donc pas retarder ceci indéfiniment. Un lien mis en pause ou retenu à la main compte toujours, les deux veulent dire « attends un peu » et non « jamais ».',
+  'settings.downloads.idleCountdown': 'Compte à rebours (secondes)',
+  'settings.downloads.idleCountdownHint': 'Le temps dont vous disposez pour annuler avant que l\'action ne s\'exécute, une fois la file réellement au repos.',
 
   'settings.modules.fixedAtBuild': 'L’ensemble des modules est figé à la compilation du binaire. Rien ne s’installe dans une instance en marche : cette liste est donc complète.',
   'settings.modules.sectionShipped': 'Dans cette version',

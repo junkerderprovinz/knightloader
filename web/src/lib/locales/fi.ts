@@ -400,6 +400,12 @@ export const fi: Dict = {
   'settings.downloads.limitsTitle': 'Rajat ja käyttäytyminen',
   'settings.downloads.watchTitle': 'Kansion tarkkailu',
   'settings.downloads.idleTitle': 'Jouten',
+  'settings.downloads.idleAction': 'Toiminto jonon lopussa',
+  'settings.downloads.idleActionNone': 'Älä tee mitään',
+  'settings.downloads.idleActionPause': 'Keskeytä jono',
+  'settings.downloads.idleActionHint': 'Mitä tapahtuu, kun mikään ei enää ole käynnissä, jonossa tai odota käynnistymistä. Pois kytketty linkki ei laske mukaan: sitä ei koskaan pidetä jäljellä olevana työnä, joten se ei voi lykätä tätä ikuisesti. Käsin keskeytetty linkki laskee yhä mukaan, molemmat tarkoittavat "odota hetki" eikä "ei koskaan".',
+  'settings.downloads.idleCountdown': 'Ajastin (sekuntia)',
+  'settings.downloads.idleCountdownHint': 'Kuinka kauan sinulla on aikaa perua ennen kuin toiminto suoritetaan, kun jono todella hiljenee.',
 
   'settings.modules.fixedAtBuild': 'Moduulijoukko lyödään lukkoon binääriä käännettäessä. Käynnissä olevaan instanssiin ei voi asentaa mitään, joten tämä lista on koko totuus.',
   'settings.modules.sectionShipped': 'Tässä käännöksessä',

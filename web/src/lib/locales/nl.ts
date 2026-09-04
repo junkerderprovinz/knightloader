@@ -392,6 +392,12 @@ export const nl: Dict = {
   'settings.downloads.limitsTitle': 'Limieten & gedrag',
   'settings.downloads.watchTitle': 'Mapbewaking',
   'settings.downloads.idleTitle': 'Inactief',
+  'settings.downloads.idleAction': 'Actie aan het eind van de wachtrij',
+  'settings.downloads.idleActionNone': 'Niets doen',
+  'settings.downloads.idleActionPause': 'Wachtrij pauzeren',
+  'settings.downloads.idleActionHint': 'Wat er gebeurt zodra er niets meer loopt, in de wachtrij staat of op starten wacht. Een link die je hebt uitgezet telt niet mee: die geldt nooit als openstaand werk en kan dit dus niet eeuwig tegenhouden. Een met de hand gepauzeerde of vastgehouden link telt wel mee, beide betekenen "wacht even" en niet "nooit".',
+  'settings.downloads.idleCountdown': 'Aftelling (seconden)',
+  'settings.downloads.idleCountdownHint': 'Hoe lang je hebt om te annuleren voordat de actie loopt, zodra de wachtrij echt stil ligt.',
 
   'settings.modules.fixedAtBuild': 'Welke modules er zijn, ligt vast zodra het binaire bestand wordt gebouwd. In een draaiende instantie valt niets bij te installeren, dus deze lijst is het geheel.',
   'settings.modules.sectionShipped': 'In deze build',

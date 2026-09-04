@@ -7,18 +7,20 @@ import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft, useFeatures } from './context';
 import { useTx } from './tx';
 
-// The end-of-queue action's menu labels - internal/idleaction.Actions() is
-// the source of truth for WHICH ids exist (fetched below), this is only what
-// each one reads as. Hardcoded English rather than useT(): the keys this
-// needs are not in any locale file yet, including en.ts, which is the
-// compile-time source of truth every real translation key is checked against
-// - see IdleActionBanner.tsx's own doc comment for the full reasoning and why
-// this is the same trade Wave 9's StatusStrip made first. An id this map has
-// no entry for (a future build's action, or one this build's own author
-// forgot to add here) still renders - as the raw id - rather than a blank tab.
-const IDLE_ACTION_LABELS: Record<string, string> = {
-  none: 'Do nothing',
-  pause: 'Pause the queue',
+// The end-of-queue action's menu labels - internal/idleaction.Actions() is the
+// source of truth for WHICH ids exist (fetched below), this is only what each
+// one reads as.
+//
+// These were hardcoded English until now, on the reasoning that the keys did
+// not exist in en.ts. That reasoning kept a whole card in English on 41 of the
+// 42 languages, which is a worse outcome than the work it saved: the keys are
+// in every catalogue now. Only the two ids this build knows get a translated
+// label; anything else (a newer backend's action) still renders as its raw id
+// rather than as a blank tab, which is the same fallback IdleActionBanner
+// makes for the same reason.
+const IDLE_ACTION_KEYS: Record<string, TranslationKey> = {
+  none: 'settings.downloads.idleActionNone',
+  pause: 'settings.downloads.idleActionPause',
 };
 
 // Named DownloadsSettings and not Downloads: there is already a pages/Downloads
@@ -50,6 +52,13 @@ export function DownloadsSettings() {
       live = false;
     };
   }, []);
+
+  // An id this build has a key for reads in the user's language; anything else
+  // reads as itself, which is still better than an empty tab.
+  const idleActionLabel = (id: string) => {
+    const key = IDLE_ACTION_KEYS[id];
+    return key ? t(key) : id;
+  };
 
   // Same shape, same reason, for the end-of-queue action's own menu - built
   // from the server's list (internal/idleaction.Actions) rather than
@@ -236,26 +245,24 @@ export function DownloadsSettings() {
       {idleActions.length > 0 && (
           <Card hue={4} className="flex flex-col gap-5">
           <SectionTitle>{t('settings.downloads.idleTitle')}</SectionTitle>
-          {/* No useT() label on the group itself either - see this file's
-              IDLE_ACTION_LABELS comment above for why. */}
           <FieldGroup
             layout="row"
-            label="End-of-queue action"
-            hint="What happens once nothing is left running, queued or waiting to start. A link you have switched off does not count - it is never counted as work left to do, so it cannot hold this off forever. A manually paused or held link still counts - both mean 'wait a bit', not 'never'."
+            label={t('settings.downloads.idleAction')}
+            hint={t('settings.downloads.idleActionHint')}
           >
             <Tabs
               variant="well"
-              label="End-of-queue action"
+              label={t('settings.downloads.idleAction')}
               active={cfg.idleAction.action}
               onSelect={(id) => patch({ idleAction: { ...cfg.idleAction, action: id } })}
-              items={idleActions.map((id) => ({ id, label: IDLE_ACTION_LABELS[id] ?? id }))}
+              items={idleActions.map((id) => ({ id, label: idleActionLabel(id) }))}
             />
           </FieldGroup>
 
           {cfg.idleAction.action !== 'none' && (
             <Field
-              label="Countdown (seconds)"
-              hint="How long you have to cancel before the action runs, once the queue actually goes idle."
+              label={t('settings.downloads.idleCountdown')}
+              hint={t('settings.downloads.idleCountdownHint')}
             >
               <NumberInput
                 value={cfg.idleAction.delaySeconds}

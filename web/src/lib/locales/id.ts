@@ -400,6 +400,12 @@ export const id: Dict = {
   'settings.downloads.limitsTitle': 'Batas & perilaku',
   'settings.downloads.watchTitle': 'Pengawasan folder',
   'settings.downloads.idleTitle': 'Menganggur',
+  'settings.downloads.idleAction': 'Tindakan di akhir antrean',
+  'settings.downloads.idleActionNone': 'Tidak melakukan apa pun',
+  'settings.downloads.idleActionPause': 'Jeda antrean',
+  'settings.downloads.idleActionHint': 'Apa yang terjadi begitu tidak ada lagi yang berjalan, mengantre, atau menunggu untuk mulai. Tautan yang kamu matikan tidak dihitung: ia tidak pernah dianggap pekerjaan yang tersisa, jadi tidak bisa menunda ini selamanya. Tautan yang dijeda secara manual tetap dihitung, keduanya berarti "tunggu sebentar", bukan "tidak pernah".',
+  'settings.downloads.idleCountdown': 'Hitung mundur (detik)',
+  'settings.downloads.idleCountdownHint': 'Berapa lama kamu bisa membatalkan sebelum tindakan berjalan, begitu antrean benar-benar kosong.',
 
   'settings.modules.fixedAtBuild': 'Kumpulan modul ditetapkan saat binernya dibangun. Tidak ada yang bisa dipasang ke instans yang sedang berjalan, jadi daftar ini adalah seluruhnya.',
   'settings.modules.sectionShipped': 'Ada di build ini',

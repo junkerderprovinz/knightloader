@@ -402,6 +402,12 @@ export const no: Dict = {
   'settings.downloads.limitsTitle': 'Grenser og oppførsel',
   'settings.downloads.watchTitle': 'Mappeovervåking',
   'settings.downloads.idleTitle': 'Inaktiv',
+  'settings.downloads.idleAction': 'Handling når køen er tom',
+  'settings.downloads.idleActionNone': 'Ikke gjør noe',
+  'settings.downloads.idleActionPause': 'Sett køen på pause',
+  'settings.downloads.idleActionHint': 'Hva som skjer når ingenting lenger kjører, står i kø eller venter på å starte. En lenke du har slått av teller ikke med: den regnes aldri som gjenstående arbeid og kan derfor ikke utsette dette for alltid. En lenke du har satt på pause for hånd teller fortsatt, begge betyr "vent litt" og ikke "aldri".',
+  'settings.downloads.idleCountdown': 'Nedtelling (sekunder)',
+  'settings.downloads.idleCountdownHint': 'Hvor lang tid du har på å avbryte før handlingen kjører, når køen faktisk står stille.',
 
   'settings.modules.fixedAtBuild': 'Settet av moduler er låst når binæren bygges. Ingenting kan installeres i en kjørende instans, så denne lista er alt som finnes.',
   'settings.modules.sectionShipped': 'I dette bygget',

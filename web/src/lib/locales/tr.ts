@@ -400,6 +400,12 @@ export const tr: Dict = {
   'settings.downloads.limitsTitle': 'Sınırlar ve davranış',
   'settings.downloads.watchTitle': 'Klasör izleme',
   'settings.downloads.idleTitle': 'Boşta',
+  'settings.downloads.idleAction': 'Kuyruk bitince yapılacak',
+  'settings.downloads.idleActionNone': 'Hiçbir şey yapma',
+  'settings.downloads.idleActionPause': 'Kuyruğu duraklat',
+  'settings.downloads.idleActionHint': 'Çalışan, kuyrukta bekleyen ya da başlamayı bekleyen hiçbir şey kalmadığında ne olacağı. Kapattığın bir bağlantı sayılmaz: hiçbir zaman kalan iş olarak görülmez, yani bunu sonsuza dek erteleyemez. Elle duraklatılmış bir bağlantı yine sayılır, ikisi de "biraz bekle" demektir, "asla" değil.',
+  'settings.downloads.idleCountdown': 'Geri sayım (saniye)',
+  'settings.downloads.idleCountdownHint': 'Kuyruk gerçekten boşaldığında, işlem çalışmadan önce iptal etmek için ne kadar vaktin olduğu.',
 
   'settings.modules.fixedAtBuild': 'Modül kümesi, ikili dosya derlenirken sabitlenir. Çalışan bir örneğe hiçbir şey kurulamaz, dolayısıyla bu liste her şeydir.',
   'settings.modules.sectionShipped': 'Bu yapıda',

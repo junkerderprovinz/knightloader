@@ -400,6 +400,12 @@ export const eu: Dict = {
   'settings.downloads.limitsTitle': 'Mugak eta portaera',
   'settings.downloads.watchTitle': 'Karpeta-zaintza',
   'settings.downloads.idleTitle': 'Geldi',
+  'settings.downloads.idleAction': 'Ilararen amaierako ekintza',
+  'settings.downloads.idleActionNone': 'Ez egin ezer',
+  'settings.downloads.idleActionPause': 'Pausatu ilara',
+  'settings.downloads.idleActionHint': 'Zer gertatzen den ezer martxan, ilaran edo hasteko zain geratzen ez denean. Itzali duzun esteka batek ez du kontatzen: ez da inoiz geratzen den lantzat hartzen, beraz ezin du hau betiko atzeratu. Eskuz pausatutako esteka batek kontatzen jarraitzen du, biek "itxaron pixka bat" esan nahi dute, ez "inoiz ez".',
+  'settings.downloads.idleCountdown': 'Atzera-kontaketa (segundo)',
+  'settings.downloads.idleCountdownHint': 'Zenbat denbora duzun bertan behera uzteko ekintza abiatu aurretik, ilara benetan geldi geratzen denean.',
 
   'settings.modules.fixedAtBuild': 'Moduluen multzoa binarioa eraikitzean finkatzen da. Martxan dagoen instantzia batean ezin da ezer instalatu, beraz zerrenda hau da dagoen guztia.',
   'settings.modules.sectionShipped': 'Eraikuntza honetan',

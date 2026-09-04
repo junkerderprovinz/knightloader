@@ -400,6 +400,12 @@ export const lv: Dict = {
   'settings.downloads.limitsTitle': 'Ierobežojumi un uzvedība',
   'settings.downloads.watchTitle': 'Mapes uzraudzība',
   'settings.downloads.idleTitle': 'Dīkstāve',
+  'settings.downloads.idleAction': 'Darbība rindas beigās',
+  'settings.downloads.idleActionNone': 'Nedarīt neko',
+  'settings.downloads.idleActionPause': 'Apturēt rindu',
+  'settings.downloads.idleActionHint': 'Kas notiek, kad vairs nekas nedarbojas, negaida rindā un negaida sākumu. Izslēgta saite netiek skaitīta: tā nekad netiek uzskatīta par atlikušo darbu, tāpēc nevar šo atlikt bezgalīgi. Ar roku apturēta saite joprojām tiek skaitīta, abi nozīmē "mazliet pagaidi", nevis "nekad".',
+  'settings.downloads.idleCountdown': 'Atskaite (sekundes)',
+  'settings.downloads.idleCountdownHint': 'Cik ilgi tev ir laika atcelt, pirms darbība tiek izpildīta, kad rinda tiešām paliek tukša.',
 
   'settings.modules.fixedAtBuild': 'Moduļu kopa tiek noteikta, būvējot bināro failu. Strādājošā instancē neko nevar uzstādīt, tāpēc šis saraksts ir viss.',
   'settings.modules.sectionShipped': 'Šajā būvējumā',

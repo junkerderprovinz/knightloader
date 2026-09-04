@@ -400,6 +400,12 @@ export const fa: Dict = {
   'settings.downloads.limitsTitle': 'محدودیت‌ها و رفتار',
   'settings.downloads.watchTitle': 'نظارت بر پوشه',
   'settings.downloads.idleTitle': 'بیکار',
+  'settings.downloads.idleAction': 'کار پس از پایان صف',
+  'settings.downloads.idleActionNone': 'هیچ کاری نکن',
+  'settings.downloads.idleActionPause': 'توقف موقت صف',
+  'settings.downloads.idleActionHint': 'وقتی دیگر چیزی در حال اجرا، در صف یا در انتظار شروع نماند چه می‌شود. پیوندی که خاموش کرده‌ای به حساب نمی‌آید: هرگز کار باقی‌مانده شمرده نمی‌شود، پس نمی‌تواند این را برای همیشه عقب بیندازد. پیوندی که دستی متوقف شده هنوز به حساب می‌آید، هر دو یعنی «کمی صبر کن»، نه «هرگز».',
+  'settings.downloads.idleCountdown': 'شمارش معکوس (ثانیه)',
+  'settings.downloads.idleCountdownHint': 'چقدر وقت داری لغو کنی پیش از آنکه کار اجرا شود، همین که صف واقعاً خالی شد.',
 
   'settings.modules.fixedAtBuild': 'مجموعهٔ پودمان‌ها هنگام ساخت فایل اجرایی تثبیت می‌شود. در نمونه‌ای که در حال اجراست چیزی نصب نمی‌شود، پس همین فهرست همهٔ آن است.',
   'settings.modules.sectionShipped': 'در این ساخت',

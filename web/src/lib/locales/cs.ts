@@ -400,6 +400,12 @@ export const cs: Dict = {
   'settings.downloads.limitsTitle': 'Limity a chování',
   'settings.downloads.watchTitle': 'Sledování složky',
   'settings.downloads.idleTitle': 'Nečinnost',
+  'settings.downloads.idleAction': 'Akce na konci fronty',
+  'settings.downloads.idleActionNone': 'Nedělat nic',
+  'settings.downloads.idleActionPause': 'Pozastavit frontu',
+  'settings.downloads.idleActionHint': 'Co se stane, jakmile už nic neběží, nečeká ve frontě ani nečeká na start. Odkaz, který jsi vypnul, se nepočítá: nikdy se nebere jako zbývající práce, takže tohle nemůže odkládat donekonečna. Ručně pozastavený odkaz se počítá dál, obojí znamená „chvíli počkej", ne „nikdy".',
+  'settings.downloads.idleCountdown': 'Odpočet (sekundy)',
+  'settings.downloads.idleCountdownHint': 'Kolik času máš na zrušení, než se akce spustí, jakmile fronta opravdu zahálí.',
 
   'settings.modules.fixedAtBuild': 'Sada modulů je dána při sestavení binárky. Do běžící instance nejde nic doinstalovat, takže tenhle seznam je všechno.',
   'settings.modules.sectionShipped': 'V tomto buildu',

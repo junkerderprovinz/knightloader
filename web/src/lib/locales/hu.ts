@@ -400,6 +400,12 @@ export const hu: Dict = {
   'settings.downloads.limitsTitle': 'Korlátok és viselkedés',
   'settings.downloads.watchTitle': 'Mappafigyelés',
   'settings.downloads.idleTitle': 'Üresjárat',
+  'settings.downloads.idleAction': 'Művelet a sor végén',
+  'settings.downloads.idleActionNone': 'Ne tegyen semmit',
+  'settings.downloads.idleActionPause': 'Sor szüneteltetése',
+  'settings.downloads.idleActionHint': 'Mi történik, ha már semmi sem fut, nem áll sorban és nem vár indulásra. A kikapcsolt hivatkozás nem számít bele: sosem minősül hátralévő munkának, így ezt nem odázhatja el örökre. A kézzel szüneteltetett hivatkozás továbbra is beleszámít, mindkettő azt jelenti, hogy „várj egy kicsit", nem azt, hogy „soha".',
+  'settings.downloads.idleCountdown': 'Visszaszámlálás (másodperc)',
+  'settings.downloads.idleCountdownHint': 'Mennyi időd van a megszakításra, mielőtt a művelet lefut, ha a sor tényleg kiürül.',
 
   'settings.modules.fixedAtBuild': 'A modulok köre a bináris fordításakor dől el. Futó példányba semmit sem lehet telepíteni, tehát ez a lista a teljes készlet.',
   'settings.modules.sectionShipped': 'Ebben a buildben',

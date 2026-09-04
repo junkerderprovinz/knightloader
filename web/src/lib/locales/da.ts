@@ -400,6 +400,12 @@ export const da: Dict = {
   'settings.downloads.limitsTitle': 'Grænser & adfærd',
   'settings.downloads.watchTitle': 'Mappeovervågning',
   'settings.downloads.idleTitle': 'Inaktiv',
+  'settings.downloads.idleAction': 'Handling når køen er tom',
+  'settings.downloads.idleActionNone': 'Gør ingenting',
+  'settings.downloads.idleActionPause': 'Sæt køen på pause',
+  'settings.downloads.idleActionHint': 'Hvad der sker, når der ikke er mere i gang, i kø eller på vej til at starte. Et link, du har slået fra, tæller ikke med: det ses aldrig som resterende arbejde og kan derfor ikke udskyde det her for evigt. Et link, du har sat på pause i hånden, tæller stadig med, begge dele betyder "vent lidt" og ikke "aldrig".',
+  'settings.downloads.idleCountdown': 'Nedtælling (sekunder)',
+  'settings.downloads.idleCountdownHint': 'Hvor lang tid du har til at annullere, før handlingen kører, når køen faktisk står stille.',
 
   'settings.modules.fixedAtBuild': 'Sættet af moduler ligger fast, når binæren bygges. Der kan ikke installeres noget i en kørende instans, så denne liste er det hele.',
   'settings.modules.sectionShipped': 'I denne build',

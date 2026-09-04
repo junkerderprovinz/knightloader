@@ -400,6 +400,12 @@ export const et: Dict = {
   'settings.downloads.limitsTitle': 'Piirid ja käitumine',
   'settings.downloads.watchTitle': 'Kausta jälgimine',
   'settings.downloads.idleTitle': 'Jõude',
+  'settings.downloads.idleAction': 'Toiming järjekorra lõpus',
+  'settings.downloads.idleActionNone': 'Ära tee midagi',
+  'settings.downloads.idleActionPause': 'Peata järjekord',
+  'settings.downloads.idleActionHint': 'Mis juhtub, kui enam midagi ei tööta, ei oota järjekorras ega oota käivitamist. Väljalülitatud link ei lähe arvesse: seda ei loeta kunagi järelejäänud tööks, seega ei saa see seda igavesti edasi lükata. Käsitsi peatatud link läheb endiselt arvesse, mõlemad tähendavad "oota veidi", mitte "mitte kunagi".',
+  'settings.downloads.idleCountdown': 'Loendus (sekundites)',
+  'settings.downloads.idleCountdownHint': 'Kui palju aega sul on tühistamiseks, enne kui toiming käivitub, kui järjekord tõesti tühjeneb.',
 
   'settings.modules.fixedAtBuild': 'Moodulite kogum pannakse paika binaari ehitamisel. Töötavasse eksemplari ei saa midagi paigaldada, nii et see nimekiri on kõik.',
   'settings.modules.sectionShipped': 'Selles järgus',

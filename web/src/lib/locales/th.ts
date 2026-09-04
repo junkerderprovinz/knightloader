@@ -400,6 +400,12 @@ export const th: Dict = {
   'settings.downloads.limitsTitle': 'ขีดจำกัดและพฤติกรรม',
   'settings.downloads.watchTitle': 'การเฝ้าดูโฟลเดอร์',
   'settings.downloads.idleTitle': 'ว่าง',
+  'settings.downloads.idleAction': 'การกระทำเมื่อคิวว่าง',
+  'settings.downloads.idleActionNone': 'ไม่ทำอะไร',
+  'settings.downloads.idleActionPause': 'หยุดคิวชั่วคราว',
+  'settings.downloads.idleActionHint': 'สิ่งที่จะเกิดขึ้นเมื่อไม่มีอะไรกำลังทำงาน รออยู่ในคิว หรือรอเริ่มอีกแล้ว ลิงก์ที่คุณปิดไว้ไม่นับ เพราะไม่ถือเป็นงานที่ค้างอยู่ จึงถ่วงเรื่องนี้ไว้ตลอดไปไม่ได้ ลิงก์ที่หยุดชั่วคราวด้วยมือยังนับอยู่ ทั้งสองอย่างหมายถึง "รอสักครู่" ไม่ใช่ "ไม่เลย"',
+  'settings.downloads.idleCountdown': 'นับถอยหลัง (วินาที)',
+  'settings.downloads.idleCountdownHint': 'คุณมีเวลาเท่าใดในการยกเลิกก่อนที่การกระทำจะทำงาน เมื่อคิวว่างลงจริง',
 
   'settings.modules.fixedAtBuild': 'ชุดโมดูลถูกกำหนดตายตัวตอนคอมไพล์ไฟล์ไบนารี ติดตั้งเพิ่มเข้าไปในอินสแตนซ์ที่กำลังทำงานไม่ได้ รายการนี้จึงคือทั้งหมดที่มี',
   'settings.modules.sectionShipped': 'อยู่ในบิลด์นี้',

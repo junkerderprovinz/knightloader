@@ -400,6 +400,12 @@ export const bg: Dict = {
   'settings.downloads.limitsTitle': 'Ограничения и поведение',
   'settings.downloads.watchTitle': 'Наблюдение на папка',
   'settings.downloads.idleTitle': 'Бездействие',
+  'settings.downloads.idleAction': 'Действие в края на опашката',
+  'settings.downloads.idleActionNone': 'Не прави нищо',
+  'settings.downloads.idleActionPause': 'Пауза на опашката',
+  'settings.downloads.idleActionHint': 'Какво се случва, когато вече нищо не работи, не чака на опашката и не чака да започне. Изключена връзка не се брои: тя никога не се смята за оставаща работа, така че не може да отлага това вечно. Ръчно поставена на пауза връзка все още се брои, и двете значат „почакай малко", а не „никога".',
+  'settings.downloads.idleCountdown': 'Отброяване (секунди)',
+  'settings.downloads.idleCountdownHint': 'Колко време имаш да откажеш, преди действието да се изпълни, щом опашката наистина се изпразни.',
 
   'settings.modules.fixedAtBuild': 'Наборът от модули се определя при компилирането на изпълнимия файл. В работещ екземпляр не може да се инсталира нищо, така че този списък е всичко.',
   'settings.modules.sectionShipped': 'В тази компилация',
