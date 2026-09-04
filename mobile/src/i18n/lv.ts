@@ -85,7 +85,7 @@ export const lv: Dict = {
   'task.mode.free': 'Bez maksas',
   'task.mode.premium': 'Premium',
   'settings.aboutTitle': 'Par KnightLoader',
-  'settings.aboutBody': 'Pašmitināts lejupielāžu pārvaldnieks ar sakoptu saskarni, kā alternatīva JDownloader. Dzinējs, API un saskarne ietilpst vienā programmā, un blakus nav ko instalēt. Rakstīts vakaros un nedēļas nogalēs, jo katrs cits gribēja divus klikšķus tur, kur pietika ar vienu.',
+  'settings.aboutBody': 'Karagājiens vienās vienīgās bruņās: brīvi, atvērtā pirmkoda rīki, kādu tādā veidā nebija. Nekādu kontu, nekādas telemetrijas, un nekas lasāms nekad nepamet tavus paša mūrus. Kalts vakaros un nedēļas nogalēs ar sirdi, jo gaidīt nebija variants.',
   'settings.accentReset': 'Noklusējums',
   'settings.aboutCoffeeButton': 'Uzsauc kafiju',
   'settings.aboutCoffee': 'Vai KnightLoader patīk? Kafija uzlabotu manu dienu.',

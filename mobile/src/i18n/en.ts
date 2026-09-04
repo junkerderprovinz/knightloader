@@ -102,7 +102,7 @@ export const en = {
   'task.mode.free': 'Free',
   'task.mode.premium': 'Premium',
   'settings.aboutTitle': 'About KnightLoader',
-  'settings.aboutBody': 'A self-hosted download manager with a clean interface, as an alternative to JDownloader. The engine, the API and the interface live in one program, with nothing to install beside it. Written on evenings and weekends, because every other one wanted two clicks where one would have done.',
+  'settings.aboutBody': 'A campaign fought in a single suit of armour: free, open-source tools that did not exist in this shape. No accounts, no telemetry, and nothing readable ever leaves your own walls. Forged on evenings and weekends with a lot of heart, because waiting was not an option.',
   'settings.accentReset': 'Default',
   'settings.aboutCoffeeButton': 'Buy me a coffee',
   'settings.aboutCoffee': 'Enjoying KnightLoader? A coffee would make my day.',

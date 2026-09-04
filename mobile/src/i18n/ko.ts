@@ -85,7 +85,7 @@ export const ko: Dict = {
   'task.mode.free': '무료',
   'task.mode.premium': '프리미엄',
   'settings.aboutTitle': 'KnightLoader 정보',
-  'settings.aboutBody': '직접 호스팅하는, 화면이 정돈된 다운로드 관리자입니다. JDownloader의 대안이 됩니다. 엔진과 API와 화면이 한 프로그램 안에 들어 있어 곁에 설치할 것이 없습니다. 저녁과 주말에 만들었습니다. 다른 것들은 하나면 충분한 곳에서 두 번의 클릭을 요구했기 때문입니다.',
+  'settings.aboutBody': '갑옷 한 벌로 치른 원정. 이런 모습으로는 없던 자유롭고 오픈 소스인 도구입니다. 계정도 없고 텔레메트리도 없으며, 읽을 수 있는 것은 결코 당신의 성벽 밖으로 나가지 않습니다. 기다리는 것은 선택지가 아니었기에 저녁과 주말에 마음을 담아 벼렸습니다.',
   'settings.accentReset': '기본값',
   'settings.aboutCoffeeButton': '커피 사주기',
   'settings.aboutCoffee': 'KnightLoader가 마음에 드시나요? 커피 한 잔이면 하루가 즐거워집니다.',

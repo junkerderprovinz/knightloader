@@ -85,7 +85,7 @@ export const ro: Dict = {
   'task.mode.free': 'Gratuit',
   'task.mode.premium': 'Premium',
   'settings.aboutTitle': 'Despre KnightLoader',
-  'settings.aboutBody': 'Un manager de descărcări găzduit de tine, cu o interfață curată, ca alternativă la JDownloader. Motorul, API-ul și interfața încap într-un singur program, iar alături nu ai ce instala. Scris seara și în weekend, pentru că oricare altul cerea două clicuri acolo unde ajungea unul.',
+  'settings.aboutBody': 'O campanie purtată într-o singură armură: unelte libere, open source, care nu existau așa. Fără conturi, fără telemetrie și nimic lizibil nu îți părăsește vreodată zidurile. Făurit seara și în weekend cu multă inimă, pentru că așteptarea nu era o opțiune.',
   'settings.accentReset': 'Implicit',
   'settings.aboutCoffeeButton': 'Fă-mi cinste cu o cafea',
   'settings.aboutCoffee': 'Îți place KnightLoader? O cafea mi-ar face ziua.',

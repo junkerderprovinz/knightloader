@@ -51,6 +51,7 @@ const accentLabelEl = document.getElementById('accentLabel');
 const problemsHeadingEl = document.getElementById('problemsHeading');
 const aboutHeadingEl = document.getElementById('aboutHeading');
 const phraseEye = document.getElementById('phraseEye');
+const phrasePaste = document.getElementById('phrasePaste');
 
 /**
  * The three glyphs this page draws itself. Filled shapes, not outlines, like
@@ -117,6 +118,14 @@ const D_MAIL =
 const D_TRASH =
   'M6.5 1h3a1 1 0 0 1 1 1v1H13v1.5H3V3h2.5V2a1 1 0 0 1 1-1zm.5 2h2v-.5H7V3z' +
   'M4 5.5h8l-.6 8.1a1.4 1.4 0 0 1-1.4 1.4H6a1.4 1.4 0 0 1-1.4-1.4L4 5.5z';
+// A clipboard: the board, with the clip overlapping its top edge. Two filled
+// subpaths in one path, the same shape the app draws from boxes on its own
+// paste button, so the family has one mark for "the clipboard" and nobody has
+// to learn a second. The board is solid rather than a frame, because an
+// outlined mark among filled ones reads as borrowed from another icon set.
+const D_PASTE =
+  'M4.1 2.8h7.8a1.6 1.6 0 0 1 1.6 1.6v8.8a1.6 1.6 0 0 1-1.6 1.6H4.1a1.6 1.6 0 0 1-1.6-1.6V4.4a1.6 1.6 0 0 1 1.6-1.6z' +
+  'M5.8 1.2h4.4a.8.8 0 0 1 .8.8v1a.8.8 0 0 1-.8.8H5.8a.8.8 0 0 1-.8-.8V2a.8.8 0 0 1 .8-.8z';
 const D_EYE =
   'M8 3C4.4 3 1.5 6.1.7 7.6a.8.8 0 0 0 0 .8C1.5 9.9 4.4 13 8 13s6.5-3.1 7.3-4.6a.8.8 0 0 0 0-.8' +
   'C14.5 6.1 11.6 3 8 3zm0 8a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0-1.6a1.4 1.4 0 1 0 0-2.8 1.4 1.4 0 0 0 0 2.8z';
@@ -178,6 +187,7 @@ function applyStaticText() {
   glimSetInfo('groupHeading', t('options.groupInfo'));
   phraseInput.placeholder = t('options.phrasePlaceholder');
   renderPhraseEye();
+  renderPhrasePaste();
   joinBtn.textContent = t('options.join');
   // The badge carries no text: its name lives on the element for a screen
   // reader and in the tooltip for everyone else.
@@ -297,6 +307,62 @@ function renderPhraseEye() {
 phraseEye.addEventListener('click', () => {
   phraseInput.type = phraseInput.type === 'password' ? 'text' : 'password';
   renderPhraseEye();
+});
+
+/** Same treatment as the eye: glyph and accessible name drawn together, so a
+ *  language change cannot leave one of them behind. */
+function renderPhrasePaste() {
+  phrasePaste.replaceChildren(glyph(D_PASTE, 16));
+  const name = t('options.phrasePaste');
+  phrasePaste.setAttribute('aria-label', name);
+  phrasePaste.setAttribute('data-tip', name);
+  glimRefreshTip(phrasePaste);
+}
+
+/**
+ * Paste, then normalise, then let the ordinary validation say the rest.
+ *
+ * clipboardRead is OPTIONAL rather than required, and the request goes first
+ * in the handler: a permission added to the manifest of an extension somebody
+ * already runs disables it until they approve it again, which is a heavy price
+ * for a convenience button - and asking at the moment of the click is also the
+ * honest place to ask. permissions.request resolves true without a prompt once
+ * it has been granted, so this costs one dialogue in the lifetime of an
+ * install. It also has to be the FIRST await in the handler: both browsers
+ * require a user gesture, and an await before it spends the gesture.
+ *
+ * The words are lowercased and their whitespace collapsed here rather than in
+ * writePhrase alone, because a phrase copied out of a chat window arrives with
+ * a capital first word and sometimes a line break in the middle, and a field
+ * that shows a phrase it will silently repair reads as a field that rejected it.
+ */
+phrasePaste.addEventListener('click', async () => {
+  let erlaubt = false;
+  try {
+    erlaubt = await chrome.permissions.request({ permissions: ['clipboardRead'] });
+  } catch {
+    // Firefox rejects the request outright when the page has lost the gesture,
+    // and Chrome throws when the permission is not listed as optional. Both
+    // land in the same place as a refusal: try the read anyway, because a
+    // browser that already granted it needs no request at all.
+  }
+  let text = '';
+  try {
+    text = await navigator.clipboard.readText();
+  } catch {
+    if (!erlaubt) {
+      say(t('options.phrasePasteBlocked'), false);
+      return;
+    }
+  }
+  const worte = String(text).trim().toLowerCase().split(/\s+/).filter(Boolean).join(' ');
+  if (!worte) return;
+  phraseInput.value = worte;
+  // Masked it was and masked it stays: the mask is there because an options
+  // page gets opened while somebody else is looking at the screen, and a paste
+  // is not a reason to overrule that. The eye is right beside it for the one
+  // person who does want to check what landed.
+  phraseInput.focus();
 });
 
 /**

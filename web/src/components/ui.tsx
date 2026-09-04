@@ -779,14 +779,47 @@ export function TextArea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement
 }
 
 /**
+ * A stepper is part of the field, not a control beside it (GlimStone 1.6.0): no
+ * ground of its own, only the ink changing on hover, and greyed out at its own
+ * end of the range. A hover background here would re-import the exact property
+ * that got the native spinner removed in the first place, one layer down.
+ */
+const STEPPER =
+  'flex h-3.5 w-4 items-center justify-center text-carbon-textMuted transition-colors ' +
+  'hover:text-carbon-text disabled:opacity-35 disabled:hover:text-carbon-textMuted';
+
+/**
+ * Solid triangles with rounded corners, not two-stroke chevrons (GlimStone
+ * 1.6.0). An icon set made of filled shapes gets one outlined mark and it reads
+ * as borrowed from somewhere else, at exactly the size where that is hardest to
+ * miss. The rounding is a matched stroke plus stroke-linejoin rather than arcs
+ * in the path: three corners, three radii, and the shape stays one triangle
+ * anybody can read. The base path is inset by the stroke's half-width, so the
+ * painted result lands where the sharp version did instead of growing.
+ */
+function Stepper({ up = false }: { up?: boolean }) {
+  return (
+    <svg viewBox="0 0 10 6" width={10} height={6} aria-hidden>
+      <path
+        d={up ? 'M5 1.7 L8.6 4.6 L1.4 4.6 Z' : 'M5 4.3 L1.4 1.4 L8.6 1.4 Z'}
+        fill="currentColor"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/**
  * The browser's own up/down spinner paints as one native widget under
  * `color-scheme: dark` (see :root in index.css) - a themed rounded box
  * behind the arrows that `background-color` on `::-webkit-inner-spin-button`
  * cannot strip, because Chromium renders that widget as a single image, not
  * a styleable box plus glyphs (jdp: "diese hoch und runterzähler haben einen
  * kleinen dunklen hintergrund ... bitte den entfernen"). The native spinner
- * is hidden outright (glim-num-hide-spin in index.css) and replaced with two
- * plain chevrons in the same muted ink as everything else in this file, so
+ * is hidden outright (glim-num-hide-spin in index.css) and replaced with our
+ * own two arrows in the same muted ink as everything else in this file, so
  * "no visible box" actually means no box, not a differently-coloured one.
  */
 export function NumberInput({
@@ -827,25 +860,21 @@ export function NumberInput({
           type="button"
           tabIndex={-1}
           aria-hidden
+          disabled={max !== undefined && value >= max}
           onClick={() => onValue(clamp(value + step))}
-          className="flex h-3.5 w-4 items-center justify-center rounded-[var(--radius-control)] text-carbon-textMuted
-            hover:bg-carbon-surface3 hover:text-carbon-text"
+          className={STEPPER}
         >
-          <svg viewBox="0 0 10 6" width={9} height={5} aria-hidden>
-            <path d="M1 5 5 1 9 5" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          <Stepper up />
         </button>
         <button
           type="button"
           tabIndex={-1}
           aria-hidden
+          disabled={min !== undefined && value <= min}
           onClick={() => onValue(clamp(value - step))}
-          className="flex h-3.5 w-4 items-center justify-center rounded-[var(--radius-control)] text-carbon-textMuted
-            hover:bg-carbon-surface3 hover:text-carbon-text"
+          className={STEPPER}
         >
-          <svg viewBox="0 0 10 6" width={9} height={5} aria-hidden>
-            <path d="M1 1 5 5 9 1" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          <Stepper />
         </button>
       </span>
     </span>

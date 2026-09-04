@@ -85,7 +85,7 @@ export const zh: Dict = {
   'task.mode.free': '免费',
   'task.mode.premium': '会员',
   'settings.aboutTitle': '关于 KnightLoader',
-  'settings.aboutBody': '一个自托管的下载管理器，界面清爽，可以替代 JDownloader。引擎、接口和界面都在同一个程序里，旁边没有别的要装。它写在夜晚和周末，因为别的每一个都要点两次，而一次就够了。',
+  'settings.aboutBody': '一副铠甲的远征：这样的自由开源工具此前并不存在。没有账户，没有遥测，任何可读的东西都不会离开你自己的城墙。在夜晚和周末用心锻造，因为等待不是选项。',
   'settings.accentReset': '默认',
   'settings.aboutCoffeeButton': '请我喝杯咖啡',
   'settings.aboutCoffee': '喜欢 KnightLoader 吗？请我喝杯咖啡，我这一天就值了。',

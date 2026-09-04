@@ -85,7 +85,7 @@ export const lt: Dict = {
   'task.mode.free': 'Nemokamai',
   'task.mode.premium': 'Premium',
   'settings.aboutTitle': 'Apie KnightLoader',
-  'settings.aboutBody': 'Savo serveryje veikianti atsisiuntimų tvarkyklė su tvarkinga sąsaja, kaip alternatyva JDownloader. Variklis, API ir sąsaja telpa į vieną programą, šalia nėra ko diegti. Parašyta vakarais ir savaitgaliais, nes kiekviena kita norėjo dviejų spustelėjimų ten, kur užteko vieno.',
+  'settings.aboutBody': 'Žygis vienais šarvais: laisvi, atvirojo kodo įrankiai, kokių tokių nebuvo. Jokių paskyrų, jokios telemetrijos, ir niekas skaitomo niekada nepalieka tavo paties sienų. Kalta vakarais ir savaitgaliais iš širdies, nes laukti nebuvo išeitis.',
   'settings.accentReset': 'Numatytoji',
   'settings.aboutCoffeeButton': 'Pavaišinti kava',
   'settings.aboutCoffee': 'Patinka „KnightLoader“? Puodelis kavos nudžiugintų.',
