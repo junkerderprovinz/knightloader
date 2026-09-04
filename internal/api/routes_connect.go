@@ -24,6 +24,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/relay"
 	"github.com/junkerderprovinz/knightloader/internal/seedphrase"
+	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
 // ConnectInfo is what GET /api/connect answers with. Deliberately never the
@@ -46,6 +47,12 @@ type ConnectInfo struct {
 	// SelfHosted is whether that is an override rather than the default -
 	// the one bit of the address a person actually needs to see.
 	SelfHosted bool `json:"selfHosted"`
+	// RelayMode is the same three-way answer relayConfig carries: "project",
+	// "own" or "off". SelfHosted stays beside it rather than being replaced,
+	// because it is a different question with a different answer - an
+	// instance in "off" mode is not self-hosting anything, and a boolean has
+	// nowhere to say so.
+	RelayMode string `json:"relayMode"`
 }
 
 func registerConnect(reg *Registry, a *app.App) {
@@ -185,10 +192,21 @@ func connectInfo(a *app.App) ConnectInfo {
 	// has to be answerable before anything is activated, because the page
 	// says "you will be connecting through here" while the button is still
 	// unpressed.
-	url := a.Settings.Get().RelayURL
-	selfHosted := url != ""
+	cfg := a.Settings.Get()
+	mode := cfg.RelayModeOf()
+	url := cfg.RelayURL
+	// Read from the MODE now, not from "is the address field non-empty". The
+	// old inference could not tell "I switched back to the project's relay"
+	// from "I still have my own address typed in the box", and the badge this
+	// feeds would have gone on naming a relay nobody was dialling.
+	selfHosted := mode == settings.RelayModeOwn
 	if !selfHosted {
 		url = relay.DefaultRelayURL
+	}
+	// Nothing is dialled at all in this mode, so there is no address to show
+	// and an old one would be a lie the page tells at a glance.
+	if mode == settings.RelayModeOff {
+		url = ""
 	}
 	return ConnectInfo{
 		Active:      secretHex != "",
@@ -196,5 +214,6 @@ func connectInfo(a *app.App) ConnectInfo {
 		PasswordSet: a.Auth.Enabled(),
 		RelayURL:    url,
 		SelfHosted:  selfHosted,
+		RelayMode:   mode,
 	}
 }
