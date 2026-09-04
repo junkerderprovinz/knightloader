@@ -85,7 +85,7 @@ export const is: Dict = {
   'task.mode.free': 'Ókeypis',
   'task.mode.premium': 'Premium',
   'settings.aboutTitle': 'Um KnightLoader',
-  'settings.aboutBody': 'Sjálfhýstur niðurhalsstjóri með snyrtilegu viðmóti, sem valkostur við JDownloader. Vélin, API-ið og viðmótið rúmast í einu forriti og ekkert er að setja upp við hliðina. Skrifað á kvöldin og um helgar, því allir aðrir vildu tvo smelli þar sem einn hefði dugað.',
+  'settings.aboutBody': 'Herferð í einni brynju: frjáls verkfæri með opnum kóða sem voru ekki til svona. Engir reikningar, engin fjarmæling og ekkert læsilegt fer nokkurn tíma út fyrir þína eigin múra. Smíðað á kvöldin og um helgar af heilum hug, því að bíða var ekki valkostur.',
   'settings.accentReset': 'Sjálfgefið',
   'settings.aboutCoffeeButton': 'Bjóddu mér kaffi',
   'settings.aboutCoffee': 'Líkar þér við KnightLoader? Kaffibolli myndi gleðja mig.',

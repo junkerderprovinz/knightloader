@@ -522,6 +522,12 @@
    --------------------------------------------------------------------------- */
 .glim-secret { position: relative; display: block; }
 .glim-secret > input { width: 100%; padding-inline-end: 40px; }
+/* A second in-field control sits beside the first, and the field's own padding
+   grows with it: the rule that keeps digits out from under a number field's
+   steppers is the same rule here, and it is the field that has to yield, not
+   the text. */
+.glim-secret--two > input { padding-inline-end: 72px; }
+.glim-eye--second { inset-inline-end: 38px; }
 .glim-eye {
   position: absolute;
   inset-inline-end: 6px;

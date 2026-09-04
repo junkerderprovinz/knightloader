@@ -85,7 +85,7 @@ export const sl: Dict = {
   'task.mode.free': 'Brezplačno',
   'task.mode.premium': 'Premium',
   'settings.aboutTitle': 'O KnightLoaderju',
-  'settings.aboutBody': 'Samogostovani upravitelj prenosov z urejenim vmesnikom, kot alternativa JDownloaderju. Pogon, API in vmesnik so v enem samem programu, ob njem ni ničesar za namestiti. Napisano zvečer in ob koncih tedna, ker je vsak drug hotel dva klika tam, kjer je zadostoval en.',
+  'settings.aboutBody': 'Pohod v enem samem oklepu: prosta odprtokodna orodja, kakršnih ni bilo. Nobenih računov, nobene telemetrije in nič berljivega nikoli ne zapusti tvojih zidov. Kovano ob večerih in koncih tedna s srcem, ker čakanje ni bilo možnost.',
   'settings.accentReset': 'Privzeto',
   'settings.aboutCoffeeButton': 'Časti kavo',
   'settings.aboutCoffee': 'Vam je KnightLoader všeč? Kava bi mi polepšala dan.',

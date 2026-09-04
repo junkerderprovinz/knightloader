@@ -85,7 +85,7 @@ export const he: Dict = {
   'task.mode.free': 'חינם',
   'task.mode.premium': 'פרימיום',
   'settings.aboutTitle': 'על KnightLoader',
-  'settings.aboutBody': 'מנהל הורדות באחסון עצמי עם ממשק מסודר, כחלופה ל-JDownloader. המנוע, הממשק התכנותי וממשק המשתמש נמצאים בתוכנית אחת, ואין מה להתקין לצידה. נכתב בערבים ובסופי שבוע, כי כל אחד אחר דרש שתי לחיצות במקום שאחת הספיקה.',
+  'settings.aboutBody': 'מערכה בשריון יחיד: כלים חופשיים בקוד פתוח שלא היו קיימים כך. בלי חשבונות, בלי טלמטריה, ושום דבר קריא לא יוצא לעולם מהחומות שלך. נחשל בערבים ובסופי שבוע בהרבה לב, כי לחכות לא היה אופציה.',
   'settings.accentReset': 'ברירת מחדל',
   'settings.aboutCoffeeButton': 'קנו לי קפה',
   'settings.aboutCoffee': 'נהנים מ‑KnightLoader? קפה יעשה לי את היום.',

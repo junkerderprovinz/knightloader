@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { fmtSpeed } from '../lib/format';
-import { useT } from '../lib/i18n';
 
 /**
  * useSpeedSamples is the rolling window both readings share: the live value
@@ -12,12 +11,14 @@ import { useT } from '../lib/i18n';
  * traffic happened to arrive instead of at a steady tick, and the curve would
  * bunch and stretch with the very thing it is measuring.
  */
+const SAMPLE_MS = 1000;
+
 function useSpeedSamples(value: number, points: number): number[] {
   const [samples, setSamples] = useState<number[]>(() => Array(points).fill(0));
   const valRef = useRef(value);
   valRef.current = value;
   useEffect(() => {
-    const iv = setInterval(() => setSamples((s) => [...s.slice(1), valRef.current]), 1000);
+    const iv = setInterval(() => setSamples((s) => [...s.slice(1), valRef.current]), SAMPLE_MS);
     return () => clearInterval(iv);
   }, []);
   return samples;
@@ -66,7 +67,6 @@ export function SpeedGraph({
   height?: number;
   points?: number;
 }) {
-  const { t } = useT();
   const samples = useSpeedSamples(value, points);
   const ceilingRef = useRef(0);
 
@@ -79,8 +79,28 @@ export function SpeedGraph({
   const idle = peak === 0;
   const { d, last } = smoothPath(samples, W, H, pad, ceilingRef.current);
 
+  // The window in whole seconds, derived from the sample count and the one-second
+  // tick rather than a third number somebody has to keep in step.
+  const fenster = Math.round(points * (SAMPLE_MS / 1000));
+
   return (
     <div className="relative">
+      {/* The ordinate, printed ABOVE the plot rather than in a column beside it
+          (GlimStone 1.6.0). A vertical scale that follows its own window means
+          "tall for you" and nothing else, so the height carries no meaning
+          without a number on it - and the number this graph used to show was a
+          peak caption that disappeared at idle, which is exactly the case the
+          rule was written from: a number a state can remove is not part of the
+          chart. It is the ceiling, not the peak, because the ceiling is what
+          the top edge of the box actually means.
+
+          Above the plot it costs one line of height, which the card has,
+          instead of a fifth of the width, which it does not. */}
+      <div className="flex justify-end">
+        <span className="glim-num text-[11px] leading-none text-carbon-textMuted">
+          {fmtSpeed(ceilingRef.current)}
+        </span>
+      </div>
       <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="block w-full" style={{ height }} aria-hidden>
         {idle ? (
           <line
@@ -113,17 +133,21 @@ export function SpeedGraph({
           </>
         )}
       </svg>
-      {/* The peak, and nothing when there is none (jdp, 2026-09-01: "der ruhig
-          text soll weg"). "ruhig" restated what an empty curve already shows,
-          in a corner of the very graph that was showing it - and a word for
-          "nothing is happening" is the one caption a graph never needs, because
-          a flat line at zero says it better and takes no words. The peak stays:
-          that is a number the picture cannot carry on its own. */}
-      {!idle && (
-        <span className="glim-eyebrow glim-num absolute right-0 top-0">
-          {`${t('overview.peak')} ${fmtSpeed(peak)}`}
-        </span>
-      )}
+      {/* The abscissa: oldest on the left, now on the right, flush with the plot
+          at both ends because there is nothing beside the plot to indent past.
+          Both ends are printed here, unlike the ordinate: the bottom of the
+          vertical axis is zero by definition, while neither end of a time
+          window is.
+
+          What used to sit here was a peak in the top-right corner, shown only
+          while something was downloading. The idle caption before it was
+          removed for restating what a flat line already says (jdp, 2026-09-01:
+          "der ruhig text soll weg"), and that stays right - the axis is a
+          number, not a sentence. */}
+      <div className="flex justify-between">
+        <span className="glim-num text-[11px] leading-none text-carbon-textMuted">{`-${fenster}s`}</span>
+        <span className="glim-num text-[11px] leading-none text-carbon-textMuted">0s</span>
+      </div>
     </div>
   );
 }

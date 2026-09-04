@@ -85,7 +85,7 @@ export const tr: Dict = {
   'task.mode.free': 'Ücretsiz',
   'task.mode.premium': 'Premium',
   'settings.aboutTitle': 'KnightLoader hakkında',
-  'settings.aboutBody': 'Kendi sunucunuzda çalışan, derli toplu arayüzlü bir indirme yöneticisi; JDownloader\'a alternatif. Motor, API ve arayüz tek bir programda durur, yanına kurulacak bir şey yoktur. Akşamları ve hafta sonları yazıldı; çünkü diğerlerinin hepsi, birinin yeteceği yerde iki tıklama istiyordu.',
+  'settings.aboutBody': 'Tek bir zırhla sürdürülen bir sefer: böylesi olmayan özgür, açık kaynaklı araçlar. Hesap yok, telemetri yok ve okunabilir hiçbir şey kendi surlarının dışına çıkmıyor. Akşamları ve hafta sonları gönülden dövüldü, çünkü beklemek bir seçenek değildi.',
   'settings.accentReset': 'Varsayılan',
   'settings.aboutCoffeeButton': 'Bana bir kahve ısmarla',
   'settings.aboutCoffee': 'KnightLoader hoşunuza gitti mi? Bir kahve günümü güzelleştirir.',

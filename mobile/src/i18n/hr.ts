@@ -85,7 +85,7 @@ export const hr: Dict = {
   'task.mode.free': 'Besplatno',
   'task.mode.premium': 'Premium',
   'settings.aboutTitle': 'O KnightLoaderu',
-  'settings.aboutBody': 'Samostalno hostirani upravitelj preuzimanja s urednim sučeljem, kao alternativa JDownloaderu. Pogon, API i sučelje stanu u jedan program, a uz njega nema što instalirati. Napisano navečer i vikendom, jer je svaki drugi tražio dva klika ondje gdje je bio dovoljan jedan.',
+  'settings.aboutBody': 'Pohod u jednom jedinom oklopu: slobodni alati otvorenog koda kakvih nije bilo. Nikakvih računa, nikakve telemetrije i ništa čitljivo nikada ne napušta tvoje zidine. Kovano večerima i vikendima sa srcem, jer čekanje nije bilo opcija.',
   'settings.accentReset': 'Zadano',
   'settings.aboutCoffeeButton': 'Počasti me kavom',
   'settings.aboutCoffee': 'Sviđa li vam se KnightLoader? Kava bi mi uljepšala dan.',

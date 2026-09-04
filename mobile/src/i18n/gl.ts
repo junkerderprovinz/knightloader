@@ -85,7 +85,7 @@ export const gl: Dict = {
   'task.mode.free': 'Gratuíto',
   'task.mode.premium': 'Premium',
   'settings.aboutTitle': 'Sobre KnightLoader',
-  'settings.aboutBody': 'Un xestor de descargas autoaloxado cunha interface ordenada, como alternativa a JDownloader. O motor, a API e a interface caben nun só programa, e ao seu carón non hai nada que instalar. Escrito polas noites e as fins de semana, porque calquera outro pedía dous clics onde abondaba un.',
+  'settings.aboutBody': 'Unha campaña cunha soa armadura: ferramentas libres e de código aberto que non existían así. Sen contas, sen telemetría, e nada lexible sae nunca dos teus propios muros. Forxado polas noites e as fins de semana con moito corazón, porque agardar non era unha opción.',
   'settings.accentReset': 'Por defecto',
   'settings.aboutCoffeeButton': 'Convídame a un café',
   'settings.aboutCoffee': 'Góstache KnightLoader? Un café alegraríame o día.',

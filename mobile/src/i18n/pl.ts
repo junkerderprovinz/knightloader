@@ -85,7 +85,7 @@ export const pl: Dict = {
   'task.mode.free': 'Darmowy',
   'task.mode.premium': 'Premium',
   'settings.aboutTitle': 'O KnightLoaderze',
-  'settings.aboutBody': 'Samodzielnie hostowany menedżer pobierania z uporządkowanym interfejsem, jako alternatywa dla JDownloadera. Silnik, API i interfejs mieszczą się w jednym programie, obok nie ma nic do instalowania. Napisane wieczorami i w weekendy, bo każdy inny chciał dwóch kliknięć tam, gdzie wystarczyło jedno.',
+  'settings.aboutBody': 'Wyprawa w pojedynczej zbroi: wolne, otwartoźródłowe narzędzia, których w tej postaci nie było. Żadnych kont, żadnej telemetrii i nic czytelnego nigdy nie opuszcza twoich murów. Kute wieczorami i w weekendy z sercem, bo czekanie nie wchodziło w grę.',
   'settings.accentReset': 'Domyślny',
   'settings.aboutCoffeeButton': 'Postaw mi kawę',
   'settings.aboutCoffee': 'Podoba Ci się KnightLoader? Kawa umili mi dzień.',

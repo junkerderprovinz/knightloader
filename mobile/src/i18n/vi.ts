@@ -85,7 +85,7 @@ export const vi: Dict = {
   'task.mode.free': 'Miễn phí',
   'task.mode.premium': 'Premium',
   'settings.aboutTitle': 'Giới thiệu về KnightLoader',
-  'settings.aboutBody': 'Một trình quản lý tải xuống tự lưu trữ với giao diện gọn gàng, thay cho JDownloader. Bộ máy, API và giao diện nằm trong cùng một chương trình, bên cạnh không có gì phải cài thêm. Được viết vào các buổi tối và cuối tuần, vì mọi lựa chọn khác đều đòi hai cú nhấp ở nơi một cú là đủ.',
+  'settings.aboutBody': 'Một chiến dịch trong duy nhất một bộ giáp: những công cụ tự do, mã nguồn mở mà trước đó chưa từng có. Không tài khoản, không đo từ xa, và không có gì đọc được rời khỏi những bức tường của bạn. Được rèn vào buổi tối và cuối tuần bằng cả trái tim, vì chờ đợi không phải là một lựa chọn.',
   'settings.accentReset': 'Mặc định',
   'settings.aboutCoffeeButton': 'Mời tôi ly cà phê',
   'settings.aboutCoffee': 'Bạn thích KnightLoader chứ? Một ly cà phê sẽ làm ngày của tôi tươi hơn.',

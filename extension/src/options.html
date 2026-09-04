@@ -252,7 +252,9 @@
         gap: 1px;
       }
       .stepper {
-        display: block;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         width: 16px;
         height: 13px;
         padding: 0;
@@ -261,13 +263,10 @@
         /* No ground at all: it is part of the field it sits in. */
         background: none;
         color: var(--carbon-text-muted);
-        font: inherit;
-        font-size: 9px;
-        line-height: 13px;
-        text-align: center;
         cursor: pointer;
         transition: color 150ms ease;
       }
+      .stepper svg { display: block; }
       .stepper:hover { background: none; color: var(--carbon-text); }
       /* At the end of the range there is nothing to step to, and a control that
          looks pressable and does nothing is worse than one that says so. */
@@ -338,7 +337,13 @@
              open every instance in the group, which makes them a credential
              and not a setting - and an options page is exactly the surface
              somebody opens while a colleague is looking at the screen. -->
-        <label class="glim-secret">
+        <!-- Two controls inside the field, in the order the hands move: paste
+             first, then check what landed. Twelve words arrive from somewhere
+             else by definition - the WebUI generated them and the phone
+             already has this button - so the extension was the one surface
+             that made people retype a credential or hunt for Ctrl+V in a
+             field they had not focused yet. -->
+        <label class="glim-secret glim-secret--two">
           <input
             id="phrase"
             type="password"
@@ -346,6 +351,7 @@
             autocomplete="off"
             spellcheck="false"
           />
+          <button id="phrasePaste" class="glim-eye glim-eye--second" type="button"></button>
           <button id="phraseEye" class="glim-eye" type="button"></button>
         </label>
         <div class="fields">
@@ -467,8 +473,22 @@
           <span class="numberField">
             <input id="cnlCountdown" type="number" min="0" max="60" step="1" inputmode="numeric" />
             <span class="steppers">
-              <button type="button" class="stepper" id="cnlCountdownUp">▲</button>
-              <button type="button" class="stepper" id="cnlCountdownDown">▼</button>
+              <!-- Drawn, not typed. A font's own ▲ is a sharp glyph at whatever
+                   weight the family happens to give it; GlimStone 1.6.0 asks for
+                   a solid triangle with ROUNDED corners, done with a matched
+                   stroke and stroke-linejoin rather than arcs in the path, and
+                   the base path inset by the stroke's half-width so the painted
+                   shape lands where the sharp one did instead of growing. -->
+              <button type="button" class="stepper" id="cnlCountdownUp">
+                <svg viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
+                  <path d="M5 1.7 L8.6 4.6 L1.4 4.6 Z" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+                </svg>
+              </button>
+              <button type="button" class="stepper" id="cnlCountdownDown">
+                <svg viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
+                  <path d="M5 4.3 L1.4 1.4 L8.6 1.4 Z" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+                </svg>
+              </button>
             </span>
           </span>
           <span class="glim-row-unit" id="cnlCountdownUnit"></span>

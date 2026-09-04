@@ -85,7 +85,7 @@ export const da: Dict = {
   'task.mode.free': 'Gratis',
   'task.mode.premium': 'Premium',
   'settings.aboutTitle': 'Om KnightLoader',
-  'settings.aboutBody': 'En selvhostet downloadmanager med en ryddelig grænseflade, som alternativ til JDownloader. Motoren, API\'et og grænsefladen ligger i ét program, og der er intet at installere ved siden af. Skrevet om aftenen og i weekenden, fordi alle andre ville have to klik, hvor ét havde været nok.',
+  'settings.aboutBody': 'Et felttog i én enkelt rustning: frie open source-værktøjer, der ikke fandtes på den måde. Ingen konti, ingen telemetri, og intet læsbart forlader nogensinde dine egne mure. Smedet om aftenen og i weekenden med masser af hjerte, fordi det ikke var en mulighed at vente.',
   'settings.accentReset': 'Standard',
   'settings.aboutCoffeeButton': 'Køb mig en kaffe',
   'settings.aboutCoffee': 'Kan du lide KnightLoader? En kop kaffe ville gøre min dag.',

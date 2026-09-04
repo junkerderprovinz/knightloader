@@ -85,7 +85,7 @@ export const eu: Dict = {
   'task.mode.free': 'Doan',
   'task.mode.premium': 'Premium',
   'settings.aboutTitle': 'KnightLoader-i buruz',
-  'settings.aboutBody': 'Norberak ostatatutako deskarga-kudeatzailea, interfaze txukunarekin, JDownloader-en alternatiba gisa. Motorra, APIa eta interfazea programa bakar batean daude, eta alboan ez dago ezer instalatzeko. Arratsaldeetan eta asteburuetan idatzia, beste edozeinek bi klik eskatzen zituelako bat nahikoa zen tokian.',
+  'settings.aboutBody': 'Armadura bakar batekin egindako kanpaina: horrela existitzen ez ziren tresna libre eta kode irekikoak. Konturik ez, telemetriarik ez, eta irakur daitekeen ezerk ez ditu inoiz zure harresiak uzten. Arratsaldeetan eta asteburuetan bihotzez forjatua, itxarotea aukera ez zelako.',
   'settings.accentReset': 'Lehenetsia',
   'settings.aboutCoffeeButton': 'Erosi kafe bat',
   'settings.aboutCoffee': 'Gustuko duzu KnightLoader? Kafe batek eguna alaituko lidake.',

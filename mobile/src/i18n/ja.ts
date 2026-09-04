@@ -85,7 +85,7 @@ export const ja: Dict = {
   'task.mode.free': '無料',
   'task.mode.premium': 'プレミアム',
   'settings.aboutTitle': 'KnightLoader について',
-  'settings.aboutBody': '自分のサーバーで動く、すっきりした画面のダウンロードマネージャー。JDownloader の代わりになります。エンジンも API も画面もひとつのプログラムに収まっていて、ほかに入れるものはありません。平日の夜と週末に書きました。ほかのどれもが、一度で足りるところに二度のクリックを求めてきたからです。',
+  'settings.aboutBody': '鎧ひと揃いだけで挑んだ遠征。こんな形では存在しなかった、自由でオープンソースな道具です。アカウントもテレメトリもなく、読めるものが自分の城壁の外へ出ることはありません。待つという選択肢がなかったので、夜と週末に心を込めて鍛えました。',
   'settings.accentReset': '既定',
   'settings.aboutCoffeeButton': 'コーヒーをおごる',
   'settings.aboutCoffee': 'KnightLoader を気に入っていただけましたか。コーヒー一杯で一日が明るくなります。',

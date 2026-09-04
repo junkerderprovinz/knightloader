@@ -85,7 +85,7 @@ export const et: Dict = {
   'task.mode.free': 'Tasuta',
   'task.mode.premium': 'Premium',
   'settings.aboutTitle': 'Teave KnightLoaderi kohta',
-  'settings.aboutBody': 'Isemajutatav allalaadimishaldur korras kasutajaliidesega, alternatiivina JDownloaderile. Mootor, liides ja kasutajaliides mahuvad ühte programmi, kõrvale pole midagi paigaldada. Kirjutatud õhtuti ja nädalavahetustel, sest iga teine tahtis kaht klõpsu seal, kus piisanuks ühest.',
+  'settings.aboutBody': 'Sõjaretk ühesainsas raudrüüs: vabad, avatud lähtekoodiga tööriistad, mida sellisel kujul polnud. Ei ühtki kontot, ei mingit telemeetriat ja miski loetav ei lahku kunagi sinu enda müüride vahelt. Sepistatud õhtuti ja nädalavahetustel südamega, sest ootamine polnud valik.',
   'settings.accentReset': 'Vaikimisi',
   'settings.aboutCoffeeButton': 'Osta mulle kohv',
   'settings.aboutCoffee': 'Kas KnightLoader meeldib? Üks kohv teeks mu päeva.',

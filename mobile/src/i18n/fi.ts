@@ -85,7 +85,7 @@ export const fi: Dict = {
   'task.mode.free': 'Ilmainen',
   'task.mode.premium': 'Premium',
   'settings.aboutTitle': 'Tietoja KnightLoaderista',
-  'settings.aboutBody': 'Itse ylläpidetty lataustenhallinta siistillä käyttöliittymällä, vaihtoehtona JDownloaderille. Moottori, rajapinta ja käyttöliittymä mahtuvat yhteen ohjelmaan, eikä viereen tarvitse asentaa mitään. Kirjoitettu iltaisin ja viikonloppuisin, koska jokainen muu halusi kaksi klikkausta siinä missä yksi olisi riittänyt.',
+  'settings.aboutBody': 'Sotaretki yhdessä ainoassa haarniskassa: vapaita, avoimen lähdekoodin työkaluja, joita ei tällaisina ollut. Ei tilejä, ei telemetriaa, eikä mikään luettava poistu koskaan omien muuriesi sisältä. Taottu iltaisin ja viikonloppuisin sydämellä, koska odottaminen ei ollut vaihtoehto.',
   'settings.accentReset': 'Oletus',
   'settings.aboutCoffeeButton': 'Tarjoa kahvi',
   'settings.aboutCoffee': 'Pidätkö KnightLoaderista? Kahvi tekisi päiväni.',

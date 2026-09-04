@@ -85,7 +85,7 @@ export const nl: Dict = {
   'task.mode.free': 'Gratis',
   'task.mode.premium': 'Premium',
   'settings.aboutTitle': 'Over KnightLoader',
-  'settings.aboutBody': 'Een zelfgehoste downloadmanager met een opgeruimde interface, als alternatief voor JDownloader. De engine, de API en de interface zitten in één programma, er is niets naast te installeren. \'s Avonds en in het weekend geschreven, omdat elke andere twee klikken wilde waar er één genoeg was.',
+  'settings.aboutBody': 'Een veldtocht in één enkel harnas: vrije, opensource gereedschappen die zo niet bestonden. Geen accounts, geen telemetrie, en niets leesbaars verlaat ooit je eigen muren. In avonden en weekenden gesmeed met veel hart, omdat wachten geen optie was.',
   'settings.accentReset': 'Standaard',
   'settings.aboutCoffeeButton': 'Trakteer op koffie',
   'settings.aboutCoffee': 'Bevalt KnightLoader? Een kopje koffie maakt mijn dag goed.',

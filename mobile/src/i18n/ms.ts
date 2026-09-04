@@ -85,7 +85,7 @@ export const ms: Dict = {
   'task.mode.free': 'Percuma',
   'task.mode.premium': 'Premium',
   'settings.aboutTitle': 'Perihal KnightLoader',
-  'settings.aboutBody': 'Pengurus muat turun yang dihoskan sendiri dengan antara muka yang kemas, sebagai alternatif kepada JDownloader. Enjin, API dan antara muka berada dalam satu program, tiada apa-apa lagi untuk dipasang di sebelahnya. Ditulis pada waktu malam dan hujung minggu, kerana setiap yang lain mahukan dua klik di tempat satu sudah memadai.',
+  'settings.aboutBody': 'Satu kempen dengan sebuah perisai tunggal: alat bebas sumber terbuka yang tidak pernah wujud begini. Tiada akaun, tiada telemetri, dan tiada apa pun yang boleh dibaca meninggalkan tembokmu sendiri. Ditempa pada waktu malam dan hujung minggu dengan sepenuh hati, kerana menunggu bukan pilihan.',
   'settings.accentReset': 'Lalai',
   'settings.aboutCoffeeButton': 'Belanja saya kopi',
   'settings.aboutCoffee': 'Suka KnightLoader? Secawan kopi akan menceriakan hari saya.',

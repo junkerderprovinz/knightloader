@@ -85,7 +85,7 @@ export const sv: Dict = {
   'task.mode.free': 'Gratis',
   'task.mode.premium': 'Premium',
   'settings.aboutTitle': 'Om KnightLoader',
-  'settings.aboutBody': 'En egenhostad nedladdningshanterare med ett städat gränssnitt, som alternativ till JDownloader. Motorn, API:et och gränssnittet ryms i ett enda program, det finns inget att installera bredvid. Skrivet på kvällar och helger, eftersom alla andra ville ha två klick där ett hade räckt.',
+  'settings.aboutBody': 'Ett fälttåg i en enda rustning: fria verktyg med öppen källkod som inte fanns i den här formen. Inga konton, ingen telemetri, och inget läsbart lämnar någonsin dina egna murar. Smitt på kvällar och helger med mycket hjärta, för att vänta var inget alternativ.',
   'settings.accentReset': 'Standard',
   'settings.aboutCoffeeButton': 'Bjud på en kaffe',
   'settings.aboutCoffee': 'Gillar du KnightLoader? En kaffe skulle göra min dag.',

@@ -85,7 +85,7 @@ export const hu: Dict = {
   'task.mode.free': 'Ingyenes',
   'task.mode.premium': 'Prémium',
   'settings.aboutTitle': 'A KnightLoaderről',
-  'settings.aboutBody': 'Saját üzemeltetésű letöltéskezelő rendezett felülettel, a JDownloader alternatívájaként. A motor, az API és a felület egyetlen programban lakik, mellé nincs mit telepíteni. Estéken és hétvégeken írva, mert minden más kettő kattintást kért ott, ahol egy is elég lett volna.',
+  'settings.aboutBody': 'Hadjárat egyetlen páncélban: szabad, nyílt forráskódú eszközök, amelyek így nem léteztek. Semmi fiók, semmi telemetria, és semmi olvasható nem hagyja el a saját falaidat. Estéken és hétvégéken kovácsolva, sok szívvel, mert a várakozás nem volt opció.',
   'settings.accentReset': 'Alapérték',
   'settings.aboutCoffeeButton': 'Hívj meg egy kávéra',
   'settings.aboutCoffee': 'Tetszik a KnightLoader? Egy kávé megédesítené a napomat.',
