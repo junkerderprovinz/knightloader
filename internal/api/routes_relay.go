@@ -31,6 +31,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/relay"
 	"github.com/junkerderprovinz/knightloader/internal/seedphrase"
+	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
 // relayConfig is what both GET and PUT /api/relay/config answer with: the
@@ -53,6 +54,10 @@ type relayConfig struct {
 	// ServeClients is how many instances are connected to it right now, this
 	// one included if it dials its own relay. Zero while Serve is false.
 	ServeClients int `json:"serveClients"`
+	// Mode is which relay this instance uses: "project", "own" or "off".
+	// Always one of the three - settings.RelayModeOf resolves the empty
+	// value an older install stores, so no caller has to know that history.
+	Mode string `json:"mode"`
 }
 
 func registerRelay(reg *Registry, a *app.App) {
@@ -120,6 +125,10 @@ func registerRelay(reg *Registry, a *app.App) {
 				// only edited the address must not carry the switch back to
 				// whatever it happened to be when that form was drawn.
 				Serve *bool `json:"serve"`
+				// Mode likewise: the address field and the mode switches are
+				// separate controls on the page, and a save from one must not
+				// carry the other back.
+				Mode *string `json:"mode"`
 			}
 			if !decodeJSON(w, r, &body) {
 				return
@@ -143,6 +152,25 @@ func registerRelay(reg *Registry, a *app.App) {
 					return
 				}
 				fields["relayServe"] = serve
+			}
+			if body.Mode != nil {
+				// Refused rather than coerced. An unrecognised mode would be
+				// stored, read back by RelayModeOf as "not one of the three",
+				// and fall through to the legacy inference - so a typo in a
+				// client would present as a setting that saves and then
+				// quietly does something else.
+				switch *body.Mode {
+				case settings.RelayModeProject, settings.RelayModeOwn, settings.RelayModeOff:
+				default:
+					http.Error(w, "relay mode must be project, own or off", http.StatusBadRequest)
+					return
+				}
+				mode, err := json.Marshal(*body.Mode)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+				fields["relayMode"] = mode
 			}
 			if _, err := a.Settings.SetPartial(fields); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -178,6 +206,7 @@ func relayConfigOf(a *app.App, srv *relay.Server) relayConfig {
 		clients = srv.Len()
 	}
 	return relayConfig{
+		Mode:         cfg.RelayModeOf(),
 		RelayURL:     cfg.RelayURL,
 		KeySet:       err == nil && key != "",
 		Connected:    a.Federation.RelayConnected(),
@@ -227,7 +256,24 @@ func relayConfigOf(a *app.App, srv *relay.Server) relayConfig {
 // frame key comes from the relay key itself - a weaker guarantee, spelled
 // out in full at relay.FrameKeyFromRelayKey, and one no UI text claims.
 func relayTarget(a *app.App) (url, key string, frameKey []byte) {
-	override := a.Settings.Get().RelayURL
+	cfg := a.Settings.Get()
+	// "No relay" is answered here, before any credential is read, because it
+	// is the one answer that needs no address and no key: an instance with
+	// the relay switched off is not misconfigured, it is configured. Reading
+	// the seed first and only then noticing would log a stored-secret warning
+	// at somebody who deliberately turned the feature off.
+	if cfg.RelayModeOf() == settings.RelayModeOff {
+		return "", "", nil
+	}
+	// Only "own" honours the stored address. In project mode the address
+	// field may still hold a value somebody typed and then switched away
+	// from, and dialling it because it happens to be non-empty would make the
+	// mode switch do nothing - the exact shape of bug the mode field was
+	// added to remove.
+	override := ""
+	if cfg.RelayModeOf() == settings.RelayModeOwn {
+		override = cfg.RelayURL
+	}
 
 	if secretHex, err := a.Accounts.Get(relay.SeedAccountService); err == nil && secretHex != "" {
 		secret, err := hex.DecodeString(secretHex)

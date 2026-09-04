@@ -22,6 +22,7 @@ import {
   type ConnectInfo,
   type QRMatrix,
   type RelayConfig,
+  type RelayMode,
   activateConnect,
   createToken,
   fetchAuth,
@@ -149,6 +150,18 @@ export function Access() {
   const { features, toggle } = useFeatures();
   const { toast } = useToast();
   const [busyId, setBusyId] = useState<string | null>(null);
+  /**
+   * Bumped whenever the relay cards change which relay is in force, so the
+   * connect card above them re-reads /api/connect and its badge follows.
+   *
+   * The same defect fixed one level down a day earlier, found again here:
+   * every component that shows the relay was fetching for itself, so a switch
+   * in one card left a badge in another still naming the relay that had just
+   * been switched off. A counter rather than a shared object, because the
+   * connect card already owns everything else it displays and needs only to
+   * be told WHEN to look again.
+   */
+  const [relayVersion, setRelayVersion] = useState(0);
 
   // The listeners this instance answers on are a property of the build and the
   // environment, not of settings.json, so they are read out of the module
@@ -193,14 +206,14 @@ export function Access() {
       {/* The app card moved to the Browser & App tab (jdp, 2026-08-27) -
           getting KnightLoader onto a phone is the same question as getting
           it into a browser, and both now answer in one place. */}
-      <RemoteAccessCard cx={cx} />
+      <RemoteAccessCard cx={cx} relayVersion={relayVersion} />
       {/* Two cards rather than one, and this is the one place on the page
           where jdp's own "es soll nur eine geben" does not apply - he asked
           for the split himself (2026-09-03) after asking what the relay can
           see. The reason it holds up: the card above is about the twelve
           words, which everybody uses; these two are about WHICH relay carries
           them, which is a separate question most people never open. */}
-      <RelaySection />
+      <RelaySection onRelayChanged={() => setRelayVersion((n) => n + 1)} />
       <TokensSection cx={cx} />
 
       {listeners.length > 0 && (
@@ -427,7 +440,14 @@ function IdentityCard({ cx }: { cx: (k: PendingKey) => string }) {
  * comes before "what do I press", the same reason BrowserTools.tsx explains
  * dragging before it shows the bookmarklet link.
  */
-function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, string | number>) => string }) {
+function RemoteAccessCard({
+  cx,
+  relayVersion,
+}: {
+  cx: (k: PendingKey, vars?: Record<string, string | number>) => string;
+  /** Changes when the relay cards below switch relays - see Access. */
+  relayVersion: number;
+}) {
   const { t } = useT();
 
   // --- Connection phrase ---
@@ -453,7 +473,8 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
   const loadConn = () => fetchConnect().then(setConn).catch(() => {});
   useEffect(() => {
     void loadConn();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [relayVersion]);
 
   async function onActivate() {
     setPhraseErr('');
@@ -587,6 +608,31 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
           }
           tip={t('settings.access.phrase.statusHint')}
           tone={conn.connected ? 'ok' : 'fail'}
+        />
+        {/* Which relay carries the words, as an ANSWER and not a control.
+            jdp asked whether this should be a switch instead (2026-09-04) and
+            chose the badge: with the two switches now living in the relay
+            cards below, a third control here would be a third place to change
+            one setting, and three places that can disagree. One place to
+            change it, several places to see it.
+
+            Its address is the tip rather than the label, because "Projekt-
+            Relay" is what somebody needs at a glance and "wss://..." is what
+            they need once, while checking. */}
+        <LabelBadge
+          label={
+            conn.relayMode === 'off'
+              ? t('settings.access.relay.none')
+              : conn.relayMode === 'own'
+                ? t('settings.access.relay.own')
+                : t('settings.access.relay.project')
+          }
+          tip={
+            conn.relayMode === 'off'
+              ? t('settings.access.relay.noneHint')
+              : t('settings.access.relay.whichHint', { address: conn.relayUrl })
+          }
+          tone={conn.relayMode === 'own' ? 'ok' : undefined}
         />
       </div>
 
@@ -794,19 +840,39 @@ function RemoteAccessCard({ cx }: { cx: (k: PendingKey, vars?: Record<string, st
 // ---- Which relay carries the words ------------------------------------------
 
 /**
- * RelaySection owns the two reads both cards below draw from, and exists for
- * one reason: they describe the SAME fact from two sides.
+ * RelaySection is the pair of relay cards, side by side, and it owns
+ * everything both of them read and write.
  *
- * Written first as two independent cards, each fetching for itself, which had
- * a defect a screenshot would never show. Saving an address in the lower card
- * left the upper one's badge still reading "the project's" until the page was
- * reloaded - a settings page disagreeing with the setting somebody had just
- * made in it, which is the one thing this pair exists to prevent. Both reads
- * live here and both are redone after a save.
+ * WHY ONE COMPONENT FOR TWO CARDS. They are two halves of ONE choice, and the
+ * first cut got that wrong twice over. Written as two independent cards each
+ * fetching for itself, saving an address in one left the other's badge reading
+ * "the project's" until the page was reloaded - a settings page disagreeing
+ * with a setting somebody had just made in it. And the two switches are
+ * mutually exclusive (jdp, 2026-09-04: "wenn man das eigene Relay aktiviert
+ * soll das Provider relay deaktiviert werden. und umgekehrt"), which is not
+ * something two components can enforce between them without one of them
+ * lying for a frame.
+ *
+ * THREE STATES, NOT TWO. Both switches off is deliberate and is its own
+ * answer: no relay at all. jdp chose it over "the last switch cannot be turned
+ * off" and over "off falls back to the project's relay", and he was right on
+ * both counts - a switch that refuses to go off reads as broken, and one that
+ * turns something else on does visibly not what it says.
+ *
+ * WHAT THIS PAGE IS AND IS NOT ABOUT, because it is easy to read it as more
+ * than it is: instances on the SAME network find each other with none of this,
+ * over UDP multicast (internal/discovery), with no phrase and no relay. The
+ * whole relay story is only the other case - instances on different networks -
+ * so switching it off costs a home setup nothing at all. The card texts say
+ * exactly that, and they say it in that order.
  */
-function RelaySection() {
+function RelaySection({ onRelayChanged }: { onRelayChanged: () => void }) {
+  const { t } = useT();
   const [conn, setConn] = useState<ConnectInfo | null>(null);
   const [cfg, setCfg] = useState<RelayConfig | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const { toast } = useToast();
 
   // Deliberately reloads BOTH: /api/connect answers "which relay is this
   // instance actually dialling", /api/relay/config answers "what is stored".
@@ -818,35 +884,92 @@ function RelaySection() {
   };
   useEffect(reload, []);
 
+  /**
+   * One save for both cards, because the mode is one field and two switches
+   * are two views of it. Passing the mode explicitly - rather than letting
+   * each switch toggle its own boolean - is what makes "exactly one of these,
+   * or neither" true by construction instead of by two handlers agreeing.
+   */
+  async function saveMode(mode: RelayMode, relayUrl?: string, serve?: boolean) {
+    setErr('');
+    setBusy(true);
+    try {
+      const c = await saveRelayConfig(relayUrl ?? cfg?.relayUrl ?? '', undefined, serve, mode);
+      setCfg(c);
+      reload();
+      // The connect card above draws its own badge from /api/connect, which
+      // this save has just changed the answer to.
+      onRelayChanged();
+      toast(t2(mode));
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // The confirmation names the state the switch just reached, not "saved".
+  // "Gespeichert" after switching a relay off tells you a write happened and
+  // nothing about what is now true.
+  const t2 = (mode: RelayMode) =>
+    mode === 'off'
+      ? t('settings.access.relay.savedOff')
+      : mode === 'own'
+        ? t('settings.access.relay.savedOwn')
+        : t('settings.access.relay.savedProject');
+
   if (!conn || !cfg) return null;
+
   return (
-    <>
-      <RelayCard conn={conn} />
-      <OwnRelayCard cfg={cfg} setCfg={setCfg} onSaved={reload} />
-    </>
+    <div className="grid gap-6 md:grid-cols-2">
+      <ProjectRelayCard
+        cfg={cfg}
+        conn={conn}
+        busy={busy}
+        onPick={(on) => void saveMode(on ? 'project' : 'off')}
+      />
+      <OwnRelayCard
+        cfg={cfg}
+        busy={busy}
+        err={err}
+        onPick={(on) => void saveMode(on ? 'own' : 'off')}
+        onSaveAddress={(url) => void saveMode('own', url)}
+        onServe={(v) => void saveMode('own', cfg.relayUrl, v)}
+      />
+    </div>
   );
 }
 
 /**
- * RelayCard says which relay this instance is on and, without softening it,
- * what that relay's operator can see.
+ * ProjectRelayCard: the relay this project runs, and - without softening it -
+ * what its operator can see.
  *
  * It exists because of a question jdp asked on 2026-09-03, having read the
  * About text he had just chosen: "nichts verlässt deine eigenen Mauern... KL
  * kommuniziert aber über ein Relay. Ist das kein Bruch des Versprechens?" It
  * was. The frames are sealed - the path, the body, the task list, the mobile
- * app's bearer token, and since that day the instance NAME as well, which
- * used to fall back to os.Hostname() and introduced a person to the relay
- * operator by name on every connection (see relay.Identity).
+ * app's bearer token, and since that day the instance NAME as well, which used
+ * to fall back to os.Hostname() and introduced a person to the relay operator
+ * by name on every connection (see relay.Identity).
  *
- * What no amount of sealing removes is the outside of an envelope: the group
- * key the relay routes on, the public IP each member dials in from, and the
- * timing and size of what passes. That is what this card states, in the
- * bubble, in the same words the privacy document uses - because a promise a
- * person cannot check is worth less than a plain description they can.
+ * What no amount of sealing removes is the outside of an envelope. That is
+ * what the bubble states, in the same words the privacy document uses, because
+ * a promise a person cannot check is worth less than a plain description they
+ * can.
  */
-function RelayCard({ conn }: { conn: ConnectInfo }) {
+function ProjectRelayCard({
+  cfg,
+  conn,
+  busy,
+  onPick,
+}: {
+  cfg: RelayConfig;
+  conn: ConnectInfo;
+  busy: boolean;
+  onPick: (on: boolean) => void;
+}) {
   const { t } = useT();
+  const active = cfg.mode === 'project';
 
   return (
     <Card hue={2} className="flex flex-col gap-4">
@@ -856,182 +979,185 @@ function RelayCard({ conn }: { conn: ConnectInfo }) {
           tip={paragraphs(t('settings.access.relay.seesTip'))}
           hue={3}
         />
-        <LabelBadge
-          label={conn.selfHosted ? t('settings.access.relay.own') : t('settings.access.relay.project')}
-          tip={t('settings.access.relay.whichHint')}
-          tone={conn.selfHosted ? 'ok' : undefined}
-        />
       </div>
 
       <SectionTitle hint={t('settings.access.relay.body')}>{t('settings.access.relay.title')}</SectionTitle>
 
-      <p className="pr-72 text-sm text-carbon-textSub">
-        {conn.selfHosted ? t('settings.access.relay.leadOwn') : t('settings.access.relay.leadProject')}
-      </p>
-
-      {/* The address, always shown and always the REAL one - conn.relayUrl is
-          what the client dials, not what a field on this page hoped it would.
-          A card that claims a relay while the process talks to another is the
-          precise failure this page exists to make impossible. */}
-      <div className="flex flex-col gap-1">
-        <span className="text-xs font-semibold text-carbon-textSub">{t('settings.access.relay.address')}</span>
-        <code
-          className="glim-num min-w-0 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-xs leading-relaxed text-carbon-text"
-          dir="ltr"
-        >
-          {conn.relayUrl}
-        </code>
+      {/* pt-7 clears the absolutely positioned badge above, which sits at the
+          right edge exactly where the switch does and covered it. The own-relay
+          card carries the same padding although it has no badge, so the two
+          switches stay level with each other across the pair. */}
+      <div className="pt-7">
+        <ToggleRow
+          hue={2}
+          label={t('settings.access.relay.use')}
+          checked={active}
+          disabled={busy}
+          onChange={onPick}
+        />
       </div>
+
+      <p className="text-sm text-carbon-textSub">{t('settings.access.relay.leadProject')}</p>
+
+      {/* The address, and only while this card is the one in force. Showing it
+          under a switch that is off would be a card describing a connection
+          that is not happening. conn.relayUrl is what the client really dials,
+          not what a field on this page hoped it would. */}
+      {active && (
+        <div className="mt-auto flex flex-col gap-1">
+          <span className="text-xs font-semibold text-carbon-textSub">{t('settings.access.relay.address')}</span>
+          <code
+            className="glim-num min-w-0 overflow-x-auto rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-xs leading-relaxed text-carbon-text"
+            dir="ltr"
+          >
+            {conn.relayUrl}
+          </code>
+        </div>
+      )}
+
+      {/* The third state, said out loud in the card it is most likely to be
+          reached from. Without this, switching both off leaves two grey cards
+          and no statement of what now happens - which reads as a bug rather
+          than as the choice it is. */}
+      {cfg.mode === 'off' && (
+        <p className="mt-auto text-[11px] leading-relaxed text-carbon-textMuted">
+          {t('settings.access.relay.offNote')}
+        </p>
+      )}
     </Card>
   );
 }
 
 /**
- * OwnRelayCard is the escape hatch, and it is here because the hatch existed
- * in the API and in the settings file and in NO user interface at all - the
- * privacy document and the design spec both told people to run their own
- * relay, and there was no field anywhere to say so. A documented way out that
- * cannot be taken is not a way out.
+ * OwnRelayCard: a relay you run, in the two shapes that actually exist.
  *
- * Three ways, in order of how much a person has to build:
+ *  1. THIS INSTANCE serves it, on the address it already answers on, behind
+ *     the reverse proxy and certificate it already has. One switch, no second
+ *     container, nothing to list anywhere. jdp asked for a press-a-button
+ *     container install "wie beim widget in BV, dann müssen wir das relay
+ *     nicht extra auf CA listen" - this reaches that goal without the
+ *     container, and so without the docker socket or SSH credentials such a
+ *     button would need, and without pointing at the wrong machine.
+ *  2. An address somewhere else - another KnightLoader with that switch on,
+ *     or the container on a small VPS, for the case no machine of yours is
+ *     reachable from outside.
  *
- *  1. This instance BECOMES the relay, on the address it already answers on,
- *     behind the reverse proxy and the certificate it already has. One
- *     switch, no second container, nothing to list anywhere. jdp asked for a
- *     press-a-button container install "wie beim widget in BV, dann müssen
- *     wir das relay nicht extra auf CA listen" - this reaches that goal
- *     without the container, and so without the docker socket or the SSH
- *     credentials such a button would need.
- *  2. An address you already run - a relay on a VPS, or another KnightLoader
- *     with the switch above turned on.
- *  3. The container, for the case the other two cannot serve: nobody's box is
- *     reachable, so the relay has to live somewhere that is.
- *
- * The order is deliberate and so is the warning at the bottom: the address is
- * per-instance and is NOT carried by the phrase, so pointing one instance at
- * a relay and forgetting the others leaves a group that quietly cannot see
- * itself.
+ * The warning at the bottom is the one thing people get wrong: the address is
+ * stored PER INSTANCE and is not carried by the phrase, so setting it on one
+ * and forgetting the others leaves a group that quietly cannot see itself.
  */
 function OwnRelayCard({
   cfg,
-  setCfg,
-  onSaved,
+  busy,
+  err,
+  onPick,
+  onSaveAddress,
+  onServe,
 }: {
   cfg: RelayConfig;
-  setCfg: (c: RelayConfig) => void;
-  onSaved: () => void;
+  busy: boolean;
+  err: string;
+  onPick: (on: boolean) => void;
+  onSaveAddress: (url: string) => void;
+  onServe: (v: boolean) => void;
 }) {
   const { t } = useT();
   // Seeded from the stored value and then owned by the field, so typing is not
   // fought by a poll landing mid-edit.
   const [addr, setAddr] = useState(cfg.relayUrl);
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState('');
-  const [copied, setCopied] = useState('');
-  const { toast } = useToast();
-
-  async function save(relayUrl: string, serve?: boolean) {
-    setErr('');
-    setBusy(true);
-    try {
-      const c = await saveRelayConfig(relayUrl, undefined, serve);
-      setCfg(c);
-      setAddr(c.relayUrl);
-      // The badge in the card ABOVE is drawn from /api/connect, which this
-      // save has just changed the answer to. Without this it would go on
-      // saying "the project's" over an address that is no longer theirs.
-      onSaved();
-      toast(t('settings.access.ownRelay.saved'));
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : String(e));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function copy(what: string, text: string) {
-    if (await copyToClipboard(text)) {
-      setCopied(what);
-      setTimeout(() => setCopied(''), 1800);
-    }
-  }
+  const [copied, setCopied] = useState(false);
+  const active = cfg.mode === 'own';
 
   return (
     <Card hue={3} className="flex flex-col gap-4">
       <SectionTitle hint={t('settings.access.ownRelay.body')}>{t('settings.access.ownRelay.title')}</SectionTitle>
 
+      {/* Same clearance as the card beside it - see that one's comment. */}
+      <div className="pt-7">
+        <ToggleRow
+          hue={3}
+          label={t('settings.access.ownRelay.use')}
+          checked={active}
+          disabled={busy}
+          onChange={onPick}
+        />
+      </div>
+
       <p className="text-sm text-carbon-textSub">{t('settings.access.ownRelay.lead')}</p>
 
-      {/* Way one. A switch rather than a button, because it is a state this
-          instance is in and not an action it performs once. */}
-      <div className="flex flex-col gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 p-3">
-        <ToggleRow
-          hue={1}
-          label={t('settings.access.ownRelay.serveLabel')}
-          hint={t('settings.access.ownRelay.serveHint')}
-          checked={cfg.serve}
-          disabled={busy}
-          onChange={(v) => void save(cfg.relayUrl, v)}
-        />
-        {cfg.serve && (
-          <p className="text-[11px] text-carbon-textMuted">
-            {t('settings.access.ownRelay.serveClients', { count: cfg.serveClients })}
-          </p>
-        )}
-      </div>
+      {/* Everything below is the configuration OF that choice, so it appears
+          only once the choice is made. A form for a mode that is switched off
+          is a form whose Save button does something the card does not admit
+          to. */}
+      {active && (
+        <>
+          <div className="flex flex-col gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 p-3">
+            <ToggleRow
+              hue={1}
+              label={t('settings.access.ownRelay.serveLabel')}
+              hint={t('settings.access.ownRelay.serveHint')}
+              checked={cfg.serve}
+              disabled={busy}
+              onChange={onServe}
+            />
+            {cfg.serve && (
+              <p className="text-[11px] text-carbon-textMuted">
+                {t('settings.access.ownRelay.serveClients', { count: cfg.serveClients })}
+              </p>
+            )}
+          </div>
 
-      {/* Way two. */}
-      <div className="flex flex-col gap-2">
-        <span className="text-xs font-semibold text-carbon-textSub">
-          {t('settings.access.ownRelay.addressLabel')}
-        </span>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <TextInput
-            dir="ltr"
-            spellCheck={false}
-            className="min-w-0 flex-1"
-            placeholder={t('settings.access.ownRelay.addressPlaceholder')}
-            value={addr}
-            onChange={(e) => setAddr(e.target.value)}
-          />
-          <Button hue={1} disabled={busy || addr.trim() === cfg.relayUrl} onClick={() => void save(addr.trim())}>
-            {t('settings.access.ownRelay.save')}
-          </Button>
-          {cfg.relayUrl !== '' && (
-            <Button hue={5} disabled={busy} onClick={() => void save('')}>
-              {t('settings.access.ownRelay.reset')}
-            </Button>
-          )}
-        </div>
-        <p className="text-[11px] leading-relaxed text-statusWarn">{t('settings.access.ownRelay.everyInstance')}</p>
-      </div>
+          <div className="flex flex-col gap-2">
+            <span className="text-xs font-semibold text-carbon-textSub">
+              {t('settings.access.ownRelay.addressLabel')}
+            </span>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <TextInput
+                dir="ltr"
+                spellCheck={false}
+                className="min-w-0 flex-1"
+                placeholder={t('settings.access.ownRelay.addressPlaceholder')}
+                value={addr}
+                onChange={(e) => setAddr(e.target.value)}
+              />
+              <Button hue={1} disabled={busy || addr.trim() === cfg.relayUrl} onClick={() => onSaveAddress(addr.trim())}>
+                {t('settings.access.ownRelay.save')}
+              </Button>
+            </div>
+            <p className="text-[11px] leading-relaxed text-statusWarn">{t('settings.access.ownRelay.everyInstance')}</p>
+          </div>
 
-      {/* Way three. Copyable rather than clickable: the machine that needs a
-          relay is by definition not the machine that can host one for it, so
-          a button here would run the container on the wrong box. */}
-      <div className="flex flex-col gap-2">
-        <span className="flex items-center gap-1.5 text-xs font-semibold text-carbon-textSub">
-          {t('settings.access.ownRelay.containerLabel')}
-          <InfoBubble tip={paragraphs(t('settings.access.ownRelay.containerHint'))} />
-        </span>
-        <div className="flex items-start gap-2">
-          <code
-            className="glim-num min-w-0 flex-1 overflow-x-auto rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-xs leading-relaxed text-carbon-text"
-            dir="ltr"
-          >
-            {RELAY_RUN_COMMAND}
-          </code>
-          <IconBadge
-            hue={1}
-            icon={
-              copied === 'run' ? <IconCheck width={14} height={14} /> : <IconClipboard width={14} height={14} />
-            }
-            title={t('settings.access.tokens.copy')}
-            aria-label={t('settings.access.tokens.copy')}
-            onClick={() => void copy('run', RELAY_RUN_COMMAND)}
-          />
-        </div>
-      </div>
+          {/* Copyable rather than clickable: the machine that needs a relay is
+              by definition not the machine that can host one for it, so an
+              install button here would start the container on the wrong box. */}
+          <div className="mt-auto flex flex-col gap-2">
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-carbon-textSub">
+              {t('settings.access.ownRelay.containerLabel')}
+              <InfoBubble tip={paragraphs(t('settings.access.ownRelay.containerHint'))} />
+            </span>
+            <div className="flex items-start gap-2">
+              <code
+                className="glim-num min-w-0 flex-1 overflow-x-auto rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-xs leading-relaxed text-carbon-text"
+                dir="ltr"
+              >
+                {RELAY_RUN_COMMAND}
+              </code>
+              <IconBadge
+                hue={1}
+                icon={copied ? <IconCheck width={14} height={14} /> : <IconClipboard width={14} height={14} />}
+                title={t('settings.access.tokens.copy')}
+                aria-label={t('settings.access.tokens.copy')}
+                onClick={async () => {
+                  if (await copyToClipboard(RELAY_RUN_COMMAND)) {
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 1800);
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </>
+      )}
 
       {err && <p className="text-sm text-statusFail">{err}</p>}
     </Card>
@@ -1041,10 +1167,10 @@ function OwnRelayCard({
 /**
  * The one command that starts a relay, kept beside the card that offers it.
  *
- * No volume and no environment beyond the port: the relay holds nothing
- * across a restart except the list of who is currently connected, which is
- * why Dockerfile.relay declares no VOLUME either. Anyone reading this should
- * be able to see at a glance that there is nothing here to back up.
+ * No volume and no environment beyond the port: the relay holds nothing across
+ * a restart except the list of who is currently connected, which is why
+ * Dockerfile.relay declares no VOLUME either. Anyone reading this should be
+ * able to see at a glance that there is nothing here to back up.
  */
 const RELAY_RUN_COMMAND =
   'docker run -d --name knightloader-relay -p 8760:8760 --restart unless-stopped ghcr.io/junkerderprovinz/knightloader-relay:latest';

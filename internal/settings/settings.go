@@ -364,6 +364,53 @@ type Settings struct {
 	// under /relay/connect, for instances carrying the same relay key - see
 	// settings_relay.go for what that does and does not buy.
 	RelayServe bool `json:"relayServe"`
+
+	// RelayMode is WHICH relay this instance uses, and it exists because
+	// "none at all" was not previously expressible.
+	//
+	// Before this, the answer was inferred from RelayURL: empty meant the
+	// project's relay, set meant your own. That inference has no room for the
+	// third answer, and the third answer is a real one - somebody whose
+	// instances all sit on the same network needs no relay and should not be
+	// dialling one (jdp, 2026-09-04, choosing it deliberately over the two
+	// alternatives: "Kein Relay, Instanzen finden sich nur im LAN").
+	//
+	// RelayModeProject, RelayModeOwn or RelayModeOff. An EMPTY value is not a
+	// fourth state: it is an install from before this field existed, and
+	// RelayModeOf below reads it exactly the way that install behaved.
+	RelayMode string `json:"relayMode"`
+}
+
+// The three answers to "which relay does this instance use".
+const (
+	// RelayModeProject: the address compiled into the binary
+	// (relay.DefaultRelayURL), run by the project.
+	RelayModeProject = "project"
+	// RelayModeOwn: an address the user gave, or this instance itself when
+	// RelayServe is on.
+	RelayModeOwn = "own"
+	// RelayModeOff: no relay at all. Instances find each other only on the
+	// local network or through an address entered by hand.
+	RelayModeOff = "off"
+)
+
+// RelayModeOf answers which relay these settings mean, including for the
+// installs that predate the field.
+//
+// The migration is a read rather than a write, deliberately: nothing rewrites
+// settings.json on upgrade, so an install that never touches this page keeps
+// behaving exactly as it did, and downgrading to an older build leaves it
+// working too. The old inference was "RelayURL set means your own", and that
+// is what an empty RelayMode still means here.
+func (s Settings) RelayModeOf() string {
+	switch s.RelayMode {
+	case RelayModeProject, RelayModeOwn, RelayModeOff:
+		return s.RelayMode
+	}
+	if strings.TrimSpace(s.RelayURL) != "" {
+		return RelayModeOwn
+	}
+	return RelayModeProject
 }
 
 // Defaults returns the settings a fresh install starts with.

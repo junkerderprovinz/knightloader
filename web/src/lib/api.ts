@@ -2066,7 +2066,18 @@ export const removeInstance = (name: string) =>
  * back is whether one is there at all, the same shape GET /api/tokens and
  * GET /api/accounts already report a credential in.
  */
+/**
+ * Which relay an instance uses. Three answers, not two, and the third is the
+ * one the old shape could not express: 'off' means no relay at all, which is
+ * exactly right for somebody whose instances all sit on one network and find
+ * each other over local discovery.
+ */
+export type RelayMode = 'project' | 'own' | 'off';
+
 export interface RelayConfig {
+  /** Which relay is in force. Always one of the three - the server resolves
+   *  the empty value an install from before this field stores. */
+  mode: RelayMode;
   relayUrl: string;
   keySet: boolean;
   /** Whether the socket to the relay is actually up right now - NOT merely
@@ -2101,13 +2112,22 @@ export async function fetchRelayConfig(): Promise<RelayConfig> {
  * either way and the client keeps dialling it - an outage of an optional,
  * self-hosted relay must never read as "your settings were rejected".
  */
-export async function saveRelayConfig(relayUrl: string, key?: string, serve?: boolean): Promise<RelayConfig> {
+export async function saveRelayConfig(
+  relayUrl: string,
+  key?: string,
+  serve?: boolean,
+  mode?: RelayMode,
+): Promise<RelayConfig> {
   // `serve` is omitted the same way `key` is, and for the same reason: a save
   // from the address form must not carry the switch back to whatever it was
   // when that form was drawn.
   const body: Record<string, unknown> = { relayUrl };
   if (key !== undefined) body.key = key;
   if (serve !== undefined) body.serve = serve;
+  // Omitted the same way, and for the same reason: the address form and the
+  // two mode switches are separate controls, and a save from one must not
+  // carry the other back to whatever it was when that form was drawn.
+  if (mode !== undefined) body.mode = mode;
   return json<RelayConfig>(
     await fetch('/api/relay/config', {
       method: 'PUT',
@@ -2144,6 +2164,9 @@ export interface ConnectInfo {
   relayUrl: string;
   /** Whether that is somebody's own relay rather than the default one. */
   selfHosted: boolean;
+  /** The same three-way answer RelayConfig carries. `selfHosted` cannot
+   *  express 'off', which is why both are here. */
+  relayMode: RelayMode;
 }
 
 export async function fetchConnect(): Promise<ConnectInfo> {
