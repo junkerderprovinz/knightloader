@@ -263,17 +263,11 @@ export function Downloads() {
       <PageHeader title={t('downloads.title')} />
 
       {/* Still no big hero card here — Overview owns that, and the list stays
-          this page's weight. The speed and counters ride as one quiet
-          uncarded line, with a slim live curve underneath it (jdp: "Wo ist
-          der Downloadspeedmeter im Download Tab? ... dieser schöne Verlauf
-          wie in JD") - shorter than Overview's own, since this page is not
-          trying to be a second hero, just to answer the question at a
-          glance. The search/filter toggle and the bulk transport verbs live
-          at the far end of the stats line, so nothing about narrowing the
-          list takes a row of its own until somebody actually asks for it
-          (jdp: "das suchfeld kommt als quadratischer badge... auf höhe von
-          0 B/s / Aktiv / Wartet / Fertig / Fehler hin und soll beim klick
-          das suchfeld aufklappen"). */}
+          this page's weight. The speed and the counters are one quiet uncarded
+          line and nothing else now: the live curve moved up into the head card
+          and grew there, and every control moved down into the badge row above
+          the list (jdp, 2026-09-05). What is left is the reading, with nothing
+          to press in it. */}
       {list.length > 0 && (
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
           <span className="glim-num text-xl font-semibold leading-none text-carbon-text">
@@ -281,25 +275,6 @@ export function Downloads() {
           </span>
           <Counters counts={counts} />
           <span className="flex-1" />
-          {/* Bulk actions appear only when they can do something, so the row
-              stays short instead of showing three greyed-out verbs. */}
-          <div className="flex items-center gap-0.5">
-            {counts.running > 0 && (
-              <Button kind="ghost" className="px-2.5 text-xs" onClick={pauseAll}>
-                {t('downloads.pauseAll')}
-              </Button>
-            )}
-            {list.some((x) => x.status === 'paused') && (
-              <Button kind="ghost" className="px-2.5 text-xs" onClick={resumeAll}>
-                {t('downloads.resumeAll')}
-              </Button>
-            )}
-            {counts.error > 0 && (
-              <Button kind="ghost" className="px-2.5 text-xs" onClick={retryFailed}>
-                {t('downloads.retryFailed')}
-              </Button>
-            )}
-          </div>
         </div>
       )}
 
@@ -328,6 +303,27 @@ export function Downloads() {
       {list.length > 0 && (
         <div className="flex shrink-0 flex-wrap items-center gap-2" role="group" aria-label={t('list.actions')}>
           <span className="flex-1" />
+          {/* The bulk verbs share this row rather than floating on the counters
+              line above it - one row of controls, not two (jdp, 2026-09-05:
+              "Die ganzen optionen ... sollen wie im linktab alle rechts
+              oberhalb der warteschlangecard sein"). Each appears only when it
+              can do something, so the row stays short instead of showing three
+              greyed-out verbs. */}
+          {counts.running > 0 && (
+            <Button kind="ghost" className="px-2.5 text-xs" onClick={pauseAll}>
+              {t('downloads.pauseAll')}
+            </Button>
+          )}
+          {list.some((x) => x.status === 'paused') && (
+            <Button kind="ghost" className="px-2.5 text-xs" onClick={resumeAll}>
+              {t('downloads.resumeAll')}
+            </Button>
+          )}
+          {counts.error > 0 && (
+            <Button kind="ghost" className="px-2.5 text-xs" onClick={retryFailed}>
+              {t('downloads.retryFailed')}
+            </Button>
+          )}
           <div className="relative">
             <IconBadge
               hue={0}
