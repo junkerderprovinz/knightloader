@@ -40,8 +40,11 @@ import {
   moveColumn,
   nextSort,
   resolveLayout,
+  sharedPriority,
   toStored,
+  usePriorityNames,
   variantKindOf,
+  PriorityTag,
   type CellContext,
   type ColumnDef,
   type ColumnId,
@@ -444,6 +447,7 @@ function PackageName({
   onToggle: () => void;
 }) {
   const { t } = useT();
+  const priorityNames = usePriorityNames();
   const done = items.filter((x) => x.status === 'done').length;
   const label = t(collapsed ? 'task.expand' : 'task.collapse');
 
@@ -478,6 +482,14 @@ function PackageName({
         height={FOLDER_GLYPH}
         className="shrink-0 text-carbon-textMuted"
       />
+      {/* The package wears the mark when every link in it agrees, the same
+          rule the Enabled column's own aggregate follows ("a package is on
+          when every link in it is"). Without this the mark exists only on
+          expanded rows, and a collapsed package - which is how a list of six
+          packages is normally read - would hide the very thing it is there to
+          announce. Rows that disagree show nothing here and keep their own
+          marks inside. */}
+      <PriorityTag value={sharedPriority(items)} names={priorityNames} t={t} />
       {/* The name wins the room. Everything after it is shrinkable and the name
           is not, below its own floor: with the counts pinned instead, a package
           called "Season One" in a 200px column rendered as "S · 3 files", which

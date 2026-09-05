@@ -518,7 +518,7 @@ function RowTooltipContent({ task, t, base }: { task: Task; t: Translate; base: 
  * exactly this - see its own doc comment on what happened the last time a
  * second consumer built a ladder of its own instead.
  */
-function usePriorityNames(): Map<number, string> {
+export function usePriorityNames(): Map<number, string> {
   const [names, setNames] = useState<Map<number, string>>(new Map());
   useEffect(() => {
     let live = true;
@@ -552,7 +552,18 @@ function usePriorityNames(): Map<number, string> {
  * Nothing is drawn at the default. A tag on every row is furniture, and the
  * whole point is that this row is not like the others.
  */
-function PriorityTag({ value, names, t }: { value: number; names: Map<number, string>; t: Translate }) {
+/**
+ * sharedPriority is the priority a whole package carries, or 0 when its links
+ * do not agree. Same shape as the Enabled column's own aggregate: a package
+ * says something about itself only when every row in it says the same thing.
+ */
+export function sharedPriority(items: Task[]): number {
+  if (items.length === 0) return 0;
+  const first = items[0].priority;
+  return items.every((x) => x.priority === first) ? first : 0;
+}
+
+export function PriorityTag({ value, names, t }: { value: number; names: Map<number, string>; t: Translate }) {
   if (!value) return null;
   const id = names.get(value);
   const label = id ? t(`priority.${id}` as TranslationKey) : String(value);
