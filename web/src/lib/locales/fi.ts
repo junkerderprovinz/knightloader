@@ -93,7 +93,7 @@ export const fi: Dict = {
   'collector.movePrompt': 'Mihin pakettiin valitut linkit siirretään?',
 
   'downloads.title': 'Lataukset',
-  'downloads.listTitle': 'Jono',
+  'downloads.listTitle': 'Latauslista',
   'downloads.thisInstance': 'Tämä instanssi',
   'downloads.pauseAll': 'Keskeytä kaikki',
   'downloads.resumeAll': 'Jatka kaikkia',

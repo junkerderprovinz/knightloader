@@ -93,7 +93,7 @@ export const ca: Dict = {
   'collector.movePrompt': 'A quin paquet vols moure els enllaços seleccionats?',
 
   'downloads.title': 'Baixades',
-  'downloads.listTitle': 'Cua',
+  'downloads.listTitle': 'Llista de baixades',
   'downloads.thisInstance': 'Aquesta instància',
   'downloads.pauseAll': 'Pausa-ho tot',
   'downloads.resumeAll': 'Reprèn-ho tot',

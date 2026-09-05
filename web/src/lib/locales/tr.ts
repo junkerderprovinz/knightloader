@@ -93,7 +93,7 @@ export const tr: Dict = {
   'collector.movePrompt': 'Seçili bağlantılar hangi pakete taşınsın?',
 
   'downloads.title': 'İndirmeler',
-  'downloads.listTitle': 'Sıra',
+  'downloads.listTitle': 'İndirme listesi',
   'downloads.thisInstance': 'Bu örnek',
   'downloads.pauseAll': 'Hepsini duraklat',
   'downloads.resumeAll': 'Hepsini sürdür',

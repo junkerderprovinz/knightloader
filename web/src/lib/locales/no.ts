@@ -95,7 +95,7 @@ export const no: Dict = {
   'collector.movePrompt': 'Hvilken pakke skal de valgte lenkene flyttes til?',
 
   'downloads.title': 'Nedlastinger',
-  'downloads.listTitle': 'Kø',
+  'downloads.listTitle': 'Nedlastingsliste',
   'downloads.thisInstance': 'Denne instansen',
   'downloads.pauseAll': 'Sett alle på pause',
   'downloads.resumeAll': 'Fortsett alle',

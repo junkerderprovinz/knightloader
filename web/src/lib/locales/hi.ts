@@ -93,7 +93,7 @@ export const hi: Dict = {
   'collector.movePrompt': 'चुने हुए लिंक किस पैकेज में ले जाएँ?',
 
   'downloads.title': 'डाउनलोड',
-  'downloads.listTitle': 'कतार',
+  'downloads.listTitle': 'डाउनलोड सूची',
   'downloads.thisInstance': 'यह इंस्टेंस',
   'downloads.pauseAll': 'सभी रोकें',
   'downloads.resumeAll': 'सभी जारी रखें',

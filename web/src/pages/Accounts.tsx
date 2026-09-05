@@ -314,7 +314,10 @@ function AccountsTable({ rows, catalogue, refreshing, onRefresh, onToggle, onRen
                     </button>
                   )}
                 </td>
-                <td className="glim-num px-2 py-3 text-carbon-textSub">{a.expiry || '—'}</td>
+                {/* fmtDate, not the raw field: the server sends RFC 3339, and
+                    a cell reading 2026-10-06T00:28:59Z is a timestamp somebody
+                    has to decode rather than a date they can read. */}
+                <td className="glim-num px-2 py-3 text-carbon-textSub">{fmtDate(a.expiry) || '—'}</td>
                 <td className="glim-num px-2 py-3 text-carbon-textSub">{a.trafficLeft || '—'}</td>
                 <td className="px-2 py-3 text-end">
                   <IconBadge

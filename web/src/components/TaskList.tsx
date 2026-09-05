@@ -1264,6 +1264,7 @@ export function TaskListCard({
   selection,
   profile = 'downloads',
   title,
+  hint,
   hue,
 }: {
   groups: [string, Task[]][];
@@ -1282,6 +1283,11 @@ export function TaskListCard({
    *  want a name distinct from their own page heading, not this file
    *  guessing which page it is from `profile`. */
   title: string;
+  /** What this list IS, for the bubble on the title badge. Optional: the
+   *  collector's own card explains itself from AddLinksForm's badge, so only
+   *  the downloads list passes one (jdp, 2026-09-05, for the second of the
+   *  two first-touch strips). */
+  hint?: string;
   /** This card's own rainbow position, independent of whatever hues the
    *  caller's own hero row or badge row already used - see Collector.tsx's
    *  and Downloads.tsx's own call sites for why each picks a different
@@ -1999,7 +2005,7 @@ export function TaskListCard({
         style={hue !== undefined ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
       >
         <div className="px-4 pt-4">
-          <SectionTitle>{title}</SectionTitle>
+          <SectionTitle hint={hint}>{title}</SectionTitle>
         </div>
         <div className="overflow-hidden rounded-b-[var(--radius-card)]">
           {/* Sorting is a view of the queue and not the queue. Saying so where the

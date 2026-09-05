@@ -93,7 +93,7 @@ export const ko: Dict = {
   'collector.movePrompt': '선택한 링크를 어느 패키지로 옮길까요?',
 
   'downloads.title': '다운로드',
-  'downloads.listTitle': '대기열',
+  'downloads.listTitle': '다운로드 목록',
   'downloads.thisInstance': '이 인스턴스',
   'downloads.pauseAll': '전체 일시 중지',
   'downloads.resumeAll': '전체 이어서',

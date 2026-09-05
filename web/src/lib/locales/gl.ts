@@ -93,7 +93,7 @@ export const gl: Dict = {
   'collector.movePrompt': 'A que paquete queres mover as ligazóns seleccionadas?',
 
   'downloads.title': 'Descargas',
-  'downloads.listTitle': 'Cola',
+  'downloads.listTitle': 'Lista de descargas',
   'downloads.thisInstance': 'Esta instancia',
   'downloads.pauseAll': 'Pausar todo',
   'downloads.resumeAll': 'Retomar todo',

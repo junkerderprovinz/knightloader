@@ -93,7 +93,7 @@ export const vi: Dict = {
   'collector.movePrompt': 'Chuyển các liên kết đã chọn sang gói nào?',
 
   'downloads.title': 'Tải xuống',
-  'downloads.listTitle': 'Hàng đợi',
+  'downloads.listTitle': 'Danh sách tải xuống',
   'downloads.thisInstance': 'Phiên bản này',
   'downloads.pauseAll': 'Tạm dừng tất cả',
   'downloads.resumeAll': 'Tiếp tục tất cả',

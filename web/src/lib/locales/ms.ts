@@ -93,7 +93,7 @@ export const ms: Dict = {
   'collector.movePrompt': 'Pindahkan pautan terpilih ke pakej mana?',
 
   'downloads.title': 'Muat turun',
-  'downloads.listTitle': 'Baris gilir',
+  'downloads.listTitle': 'Senarai muat turun',
   'downloads.thisInstance': 'Instance ini',
   'downloads.pauseAll': 'Jeda semua',
   'downloads.resumeAll': 'Sambung semua',

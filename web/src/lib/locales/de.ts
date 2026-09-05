@@ -93,7 +93,7 @@ export const de: Dict = {
   'collector.movePrompt': 'In welches Paket sollen die ausgewählten Links?',
 
   'downloads.title': 'Downloads',
-  'downloads.listTitle': 'Warteschlange',
+  'downloads.listTitle': 'Downloadliste',
   'downloads.thisInstance': 'Diese Instanz',
   'downloads.pauseAll': 'Pausieren',
   'downloads.resumeAll': 'Fortsetzen',

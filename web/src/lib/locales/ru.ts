@@ -88,7 +88,7 @@ export const ru: Dict = {
   'collector.selectAll': 'Выбрать все',
   'collector.movePrompt': 'В какой пакет перенести выбранные ссылки?',
   'downloads.title': 'Загрузки',
-  'downloads.listTitle': 'Очередь',
+  'downloads.listTitle': 'Список загрузок',
   'downloads.thisInstance': 'Этот экземпляр',
   'downloads.pauseAll': 'Пауза для всех',
   'downloads.resumeAll': 'Продолжить все',

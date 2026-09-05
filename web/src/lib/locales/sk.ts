@@ -93,7 +93,7 @@ export const sk: Dict = {
   'collector.movePrompt': 'Do ktorého balíka presunúť vybrané odkazy?',
 
   'downloads.title': 'Sťahovanie',
-  'downloads.listTitle': 'Fronta',
+  'downloads.listTitle': 'Zoznam sťahovaní',
   'downloads.thisInstance': 'Táto inštancia',
   'downloads.pauseAll': 'Pozastaviť',
   'downloads.resumeAll': 'Pokračovať',

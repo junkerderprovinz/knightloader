@@ -93,7 +93,7 @@ export const sv: Dict = {
   'collector.movePrompt': 'Till vilket paket ska de valda länkarna flyttas?',
 
   'downloads.title': 'Nedladdningar',
-  'downloads.listTitle': 'Kö',
+  'downloads.listTitle': 'Nedladdningslista',
   'downloads.thisInstance': 'Den här instansen',
   'downloads.pauseAll': 'Pausa alla',
   'downloads.resumeAll': 'Fortsätt alla',

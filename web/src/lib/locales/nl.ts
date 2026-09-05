@@ -88,7 +88,7 @@ export const nl: Dict = {
   'collector.selectAll': 'Alles selecteren',
   'collector.movePrompt': 'Naar welk pakket moeten de geselecteerde links?',
   'downloads.title': 'Downloads',
-  'downloads.listTitle': 'Wachtrij',
+  'downloads.listTitle': 'Downloadlijst',
   'downloads.thisInstance': 'Deze instantie',
   'downloads.pauseAll': 'Alles pauzeren',
   'downloads.resumeAll': 'Alles hervatten',

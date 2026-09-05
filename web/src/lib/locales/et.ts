@@ -93,7 +93,7 @@ export const et: Dict = {
   'collector.movePrompt': 'Millisesse pakki valitud lingid liigutada?',
 
   'downloads.title': 'Allalaadimised',
-  'downloads.listTitle': 'Järjekord',
+  'downloads.listTitle': 'Allalaadimiste loend',
   'downloads.thisInstance': 'See eksemplar',
   'downloads.pauseAll': 'Peata kõik',
   'downloads.resumeAll': 'Jätka kõiki',

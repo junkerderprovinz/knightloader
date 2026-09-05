@@ -93,7 +93,7 @@ export const th: Dict = {
   'collector.movePrompt': 'ย้ายลิงก์ที่เลือกไปแพ็กเกจใด',
 
   'downloads.title': 'การดาวน์โหลด',
-  'downloads.listTitle': 'คิว',
+  'downloads.listTitle': 'รายการดาวน์โหลด',
   'downloads.thisInstance': 'อินสแตนซ์นี้',
   'downloads.pauseAll': 'หยุดทั้งหมดชั่วคราว',
   'downloads.resumeAll': 'ทำต่อทั้งหมด',

@@ -815,6 +815,24 @@ const accountHealthTimeout = 15 * time.Second
 // finishes. Waiting for the first tick instead means the interval above would
 // have to be shorter than a test's own lifetime for that to happen, which it
 // never is by five orders of magnitude.
+// StartAccountHealthNow runs one sweep straight away, off the ticker's own
+// schedule.
+//
+// The loop below does nothing until its first tick, fifteen minutes in, and
+// that wait is right for the reason its own comment gives. It is wrong for a
+// container somebody just started: until that first tick the accounts page
+// says "not checked" with an empty expiry and an empty traffic figure for a
+// credential that is perfectly good. Measured on a test instance restarted
+// several times in one afternoon (2026-09-05) - the table was blank every
+// single time, and the data was there the moment a tick finally landed.
+//
+// Called from main, never from New, for exactly the reason the loop waits:
+// New is what every test in this package builds an App with, and a sweep is a
+// real HTTP request to a real debrid API.
+func (a *App) StartAccountHealthNow() {
+	a.spawn(a.refreshAccountHealth)
+}
+
 func (a *App) accountHealthLoop() {
 	defer func() {
 		accountHealthMu.Lock()

@@ -13,9 +13,8 @@ import { useReportListView } from '../lib/listview';
 import { fmtSpeed } from '../lib/format';
 import { useT } from '../lib/i18n';
 import { useInstanceScope } from '../lib/instance';
-import { PageHeader, Button, EmptyState, IconBadge } from '../components/ui';
+import { PageHeader, Button, EmptyState, IconBadge, InfoBubble } from '../components/ui';
 import { Counters } from '../components/Counters';
-import { SpeedGraph } from '../components/SpeedGraph';
 import {
   TaskListCard,
   groupByPackage,
@@ -25,13 +24,13 @@ import {
 import { PackageActions } from '../components/PackageActions';
 import {
   DOWNLOAD_FILTERS,
-  ListActionBar,
   ListMenu,
   ListToolbar,
   SelectionStrip,
   matchesQuickFilters,
   targetPackage,
   targetTaskId,
+  cleanupItems,
   useCleanup,
   useRemoval,
   type ListContext,
@@ -42,10 +41,10 @@ import { EMPTY_SEARCH, matchesSearch, type SearchQuery } from '../components/Sea
 import { ArchiveJobs, useArchiveMenu, useExtractJobs } from '../components/Archives';
 import { useFileMenu } from '../components/FileActions';
 import { useScriptMenu } from '../components/ScriptActions';
-import { anchorFromEvent, useContextMenu } from '../components/ContextMenu';
-import { FirstTouchHint } from '../components/FirstTouchHint';
+import { ContextMenu, anchorBelow, anchorFromEvent, useContextMenu } from '../components/ContextMenu';
+import { useToast } from '../lib/toast';
 import { usePublishCommandPageContext } from '../lib/commands/pageContext';
-import { IconSearch, IconDownloads, IconArrowUp, IconArrowDown, IconTop, IconBottom } from '../lib/icons';
+import { IconSearch, IconDownloads, IconArrowUp, IconArrowDown, IconTop, IconBottom, IconCheck, IconTrashFiles } from '../lib/icons';
 
 export function Downloads() {
   const { t } = useT();
@@ -62,7 +61,11 @@ export function Downloads() {
   // while somebody is actually narrowing the list.
   const [searchOpen, setSearchOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const { toast } = useToast();
   const menu = useContextMenu();
+  // A second anchor of its own: the clean-up menu opens under a badge, while
+  // `menu` above is the row/selection context menu opened at a pointer.
+  const cleanupMenu = useContextMenu();
   // What the pointer landed on. A link, a package header and the empty space
   // below the rows each offer a different menu.
   const [target, setTarget] = useState<MenuTarget>({ kind: 'selection' });
@@ -132,9 +135,23 @@ export function Downloads() {
   const cleanup = useCleanup(all);
   useEffect(() => {
     void cleanup.load().catch(() => {
-      /* the "Clean up" bar under the list already reports this; a command does not nag twice */
+      /* the badge row above the list reports this on click; a command does not nag twice */
     });
   }, [cleanup.load]);
+
+  // "Select all" means the rows on screen, never the whole queue: with a
+  // filter on, the two are different sets and only one of them is the one
+  // somebody is looking at.
+  const allChosen = filtered.length > 0 && filtered.every((x) => selected.has(x.id));
+
+  async function openCleanup(el: HTMLButtonElement | null): Promise<void> {
+    try {
+      await cleanup.load();
+      cleanupMenu.openAt(anchorBelow(el));
+    } catch {
+      toast(t('list.optionsFailed'), 'fail');
+    }
+  }
 
   // The shell's overview strip offers Total / Visible / Selected, and "visible"
   // is the one it cannot work out for itself: the search text and the quick
@@ -245,8 +262,6 @@ export function Downloads() {
     <div className="flex flex-col gap-6">
       <PageHeader title={t('downloads.title')} />
 
-      <FirstTouchHint id="downloads" />
-
       {/* Still no big hero card here — Overview owns that, and the list stays
           this page's weight. The speed and counters ride as one quiet
           uncarded line, with a slim live curve underneath it (jdp: "Wo ist
@@ -285,10 +300,40 @@ export function Downloads() {
               </Button>
             )}
           </div>
+        </div>
+      )}
+
+      {list.length > 0 && searchOpen && (
+        <div className="glim-card p-3">
+          <ListToolbar
+            search={search}
+            onSearch={setSearch}
+            filters={DOWNLOAD_FILTERS}
+            active={filters}
+            onActive={setFilters}
+            tasks={list}
+            shown={filtered.length}
+          />
+        </div>
+      )}
+
+      {/* Every page-level action in one right-hugging row directly above the
+          list, the way the collector's own badge row already works (jdp,
+          2026-09-05: "Die ganzen optionen wie alle auswählen, aufräumen suche,
+          die anderen quadratischen buttons sollen wie im linktab alle rechts
+          oberhalb der warteschlangecard sein"). "Alle auswählen" and
+          "Aufräumen" used to sit UNDER the list as two text buttons, which put
+          the two things a person reaches for most at the bottom of whatever
+          the list happened to be. */}
+      {list.length > 0 && (
+        <div className="flex shrink-0 flex-wrap items-center gap-2" role="group" aria-label={t('list.actions')}>
+          <span className="flex-1" />
           <div className="relative">
-            <Button
-              kind={searchOpen ? 'primary' : 'secondary'}
+            <IconBadge
+              hue={0}
+              active={searchOpen}
               icon={<IconSearch width={16} height={16} />}
+              title={t('search.placeholder')}
               aria-label={t('search.placeholder')}
               aria-expanded={searchOpen}
               onClick={() => setSearchOpen((v) => !v)}
@@ -303,22 +348,23 @@ export function Downloads() {
               />
             )}
           </div>
-        </div>
-      )}
-
-      {list.length > 0 && <SpeedGraph value={counts.speed} height={160} />}
-
-      {list.length > 0 && searchOpen && (
-        <div className="glim-card p-3">
-          <ListToolbar
-            search={search}
-            onSearch={setSearch}
-            filters={DOWNLOAD_FILTERS}
-            active={filters}
-            onActive={setFilters}
-            tasks={list}
-            shown={filtered.length}
+          <IconBadge
+            hue={1}
+            icon={<IconCheck width={16} height={16} />}
+            title={allChosen ? t('select.none') : t('select.all')}
+            aria-label={allChosen ? t('select.none') : t('select.all')}
+            disabled={filtered.length === 0}
+            onClick={() => setSelected(allChosen ? new Set() : new Set(filtered.map((x) => x.id)))}
           />
+          <IconBadge
+            hue={2}
+            icon={<IconTrashFiles width={16} height={16} />}
+            title={t('cleanup.menu')}
+            aria-label={t('cleanup.menu')}
+            disabled={instance !== ''}
+            onClick={(e) => void openCleanup(e.currentTarget)}
+          />
+          {instance !== '' && <InfoBubble tip={t('cleanup.localOnly')} />}
         </div>
       )}
 
@@ -381,7 +427,19 @@ export function Downloads() {
         ) : filtered.length === 0 ? (
           <EmptyState icon={<IconSearch width={26} height={26} />} title={t('downloads.noMatch')} />
         ) : (
-          <TaskListCard groups={groups} base={base} selection={selection} title={t('downloads.listTitle')} hue={0} />
+          <TaskListCard
+            groups={groups}
+            base={base}
+            selection={selection}
+            title={t('downloads.listTitle')}
+            // What this list is, in the bubble on its own badge (jdp,
+            // 2026-09-05). It was a dismissible strip at the top of the page,
+            // with the same problem the collector's had: the sentence that
+            // tells the two lists apart was also the one thing a person could
+            // delete for good.
+            hint={`${t('hint.downloads.title')}. ${t('hint.downloads.body')}`}
+            hue={0}
+          />
         )}
       </div>
 
@@ -389,16 +447,15 @@ export function Downloads() {
           finished, and only while there is one to look at. */}
       <ArchiveJobs jobs={jobs} base={base} />
 
-      {/* Under the list and always there, including when the list is empty —
-          which is the one moment somebody is looking for the way to add
-          something. */}
-      <ListActionBar
-        all={all}
-        selected={selected}
-        onSelected={setSelected}
-        visible={filtered}
-        local={instance === ''}
-      />
+      {/* The clean-up badge's own menu, anchored under it. */}
+      {cleanupMenu.anchor && cleanup.classes && (
+        <ContextMenu
+          anchor={cleanupMenu.anchor}
+          label={t('cleanup.menuLabel')}
+          onClose={cleanupMenu.close}
+          groups={[{ id: 'cleanup', items: cleanupItems(cleanup.classes, t, (cls) => void cleanup.preview(cls)) }]}
+        />
+      )}
 
       {/* `all`, not `list`: a removal has to weigh bytes that belong to rows this
           page never shows, and a clean-up class picks its own. */}

@@ -95,7 +95,7 @@ export const ar: Dict = {
   'collector.movePrompt': 'إلى أي حزمة تُنقل الروابط المحددة؟',
 
   'downloads.title': 'التنزيلات',
-  'downloads.listTitle': 'قائمة الانتظار',
+  'downloads.listTitle': 'قائمة التنزيلات',
   'downloads.thisInstance': 'هذه النسخة',
   'downloads.pauseAll': 'إيقاف الكل مؤقتًا',
   'downloads.resumeAll': 'متابعة الكل',

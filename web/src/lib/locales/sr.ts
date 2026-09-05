@@ -93,7 +93,7 @@ export const sr: Dict = {
   'collector.movePrompt': 'У који пакет преместити изабране линкове?',
 
   'downloads.title': 'Преузимања',
-  'downloads.listTitle': 'Ред чекања',
+  'downloads.listTitle': 'Списак преузимања',
   'downloads.thisInstance': 'Ова инстанца',
   'downloads.pauseAll': 'Паузирај све',
   'downloads.resumeAll': 'Настави све',

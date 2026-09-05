@@ -93,7 +93,7 @@ export const lv: Dict = {
   'collector.movePrompt': 'Uz kuru paku pārvietot atlasītās saites?',
 
   'downloads.title': 'Lejupielādes',
-  'downloads.listTitle': 'Rinda',
+  'downloads.listTitle': 'Lejupielāžu saraksts',
   'downloads.thisInstance': 'Šī instance',
   'downloads.pauseAll': 'Pauzēt visas',
   'downloads.resumeAll': 'Turpināt visas',

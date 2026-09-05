@@ -93,7 +93,7 @@ export const fa: Dict = {
   'collector.movePrompt': 'لینک‌های انتخاب‌شده به کدام بسته بروند؟',
 
   'downloads.title': 'دانلودها',
-  'downloads.listTitle': 'صف',
+  'downloads.listTitle': 'فهرست دانلودها',
   'downloads.thisInstance': 'این نمونه',
   'downloads.pauseAll': 'مکث همه',
   'downloads.resumeAll': 'ادامه همه',

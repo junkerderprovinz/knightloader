@@ -21,6 +21,7 @@ import { type Account, type CatalogueService, fetchAccountCatalogue, fetchAccoun
 import { fmtBytes, fmtDate } from '../lib/format';
 import { useT } from '../lib/i18n';
 import { InfoBubble } from './ui';
+import { HosterIcon } from './HosterIcon';
 
 // Mirrors Accounts.tsx's own HEALTH_POLL_MS: both read the same server-side
 // cache, so there is no reason for this to look more often than that page
@@ -73,13 +74,18 @@ export function AccountStrip() {
   return (
     <div className="flex items-center gap-3" role="group" aria-label={t('accountStrip.label')}>
       {rows.map((a) => (
-        <AccountChip key={a.id} account={a} label={byId.get(a.service)?.label ?? a.service} />
+        <AccountChip
+          key={a.id}
+          account={a}
+          label={byId.get(a.service)?.label ?? a.service}
+          site={byId.get(a.service)?.whereUrl ?? ''}
+        />
       ))}
     </div>
   );
 }
 
-function AccountChip({ account, label }: { account: Account; label: string }) {
+function AccountChip({ account, label, site }: { account: Account; label: string; site: string }) {
   const { t } = useT();
   const traffic = account.traffic;
   // Unlimited is checked FIRST, always - see app.TrafficState's own doc
@@ -100,7 +106,13 @@ function AccountChip({ account, label }: { account: Account; label: string }) {
       {expiresSoon && (
         <span className="h-1.5 w-1.5 shrink-0 rounded-[var(--radius-pill)] bg-statusWarnSolid" aria-hidden="true" />
       )}
-      <span className="text-[11px] text-carbon-textMuted">{label}</span>
+      {/* The logo where the name used to be (jdp, 2026-09-05: "in der kopfcard
+          im downloadtab soll der Hostername weg"). The name is not lost: it
+          leads the bubble beside it now, so the one place that spells it out
+          is the one a person opens to ask what this chip is about. A chip
+          showing only a traffic figure would have been anonymous. */}
+      <HosterIcon host={site} size={14} />
+      <span className="sr-only">{label}</span>
       {traffic.unlimited ? (
         // The unlimited symbol this app already uses unlocalized elsewhere
         // (QueueBar.tsx's speed-limit placeholder) - never a percentage, and
@@ -112,7 +124,7 @@ function AccountChip({ account, label }: { account: Account; label: string }) {
       ) : (
         <span className="text-[11px] text-carbon-textMuted">—</span>
       )}
-      <InfoBubble tip={chipTip(t, account)} />
+      <InfoBubble tip={`${label} · ${chipTip(t, account)}`} />
     </span>
   );
 }
