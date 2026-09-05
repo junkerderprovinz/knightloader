@@ -17,10 +17,33 @@ import { hosterIconURL } from '../lib/api';
  * keeps the failed state of the element, not of the URL - so one host without
  * an icon would make every host after it draw a monogram too.
  */
+/**
+ * hostOf reduces whatever a row happens to carry to a bare hostname.
+ *
+ * The server normalises this too, and has to: the string reaches it from
+ * stored settings, and it ends up in a URL and a filename. This is not that
+ * check. It is here because a caller passes a full URL (a catalogue service's
+ * own "where do I get a key" link) and two things on this side read the value
+ * directly: the monogram, which would otherwise print "h" from "https" for
+ * every host without an icon, and the request URL, which would otherwise carry
+ * a different query string per row for the same host and lose the browser's
+ * own cache along with it.
+ */
+function hostOf(raw: string): string {
+  return raw
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, '')
+    .replace(/^[^@/]*@/, '')
+    .split(/[/?#]/)[0]
+    .split(':')[0]
+    .replace(/^www\./, '');
+}
+
 export function HosterIcon({ host, size = 18 }: { host: string; size?: number }) {
   const [failed, setFailed] = useState(false);
   const box = { width: size, height: size };
-  const clean = host.replace(/^www\./, '');
+  const clean = hostOf(host);
 
   if (failed || !clean) {
     return (
