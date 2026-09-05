@@ -161,21 +161,43 @@ func normaliseIconHost(s string) string {
 	return s
 }
 
-// fetchFavicon asks one host for /favicon.ico and reads the answer only if it
-// is an image this build is willing to serve.
-//
-// Only the well-known path, no HTML parsing for <link rel="icon">: that means
-// fetching and parsing a hoster's front page, which is a much larger request
-// against a site that did not ask for it, for a decoration. A host with no
-// favicon.ico gets a monogram in the list and nothing is lost.
+// iconPaths are the two well-known places a site keeps its icon, tried in
+// order. No HTML parsing for <link rel="icon">: that means fetching and
+// parsing a hoster's front page, which is a much larger request against a site
+// that did not ask for it, for a decoration. Two known paths cover most of
+// what one page of a hoster list shows; a host with neither gets a monogram
+// and nothing is lost.
+var iconPaths = [...]string{"/favicon.ico", "/apple-touch-icon.png"}
+
+// iconUserAgent is a browser's, because a good number of hosters answer 403 to
+// anything else and this request is doing exactly what a browser would do with
+// the same URL. Measured 2026-09-05: alldebrid.com among others refused the
+// default Go agent and served the icon happily to this one.
+const iconUserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36"
+
+// fetchFavicon asks one host for its icon and reads the answer only if it is
+// an image this build is willing to serve.
 func fetchFavicon(ctx context.Context, host string) ([]byte, string, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://"+host+"/favicon.ico", nil)
+	var letzter error
+	for _, pfad := range iconPaths {
+		body, ct, err := fetchIconAt(ctx, host, pfad)
+		if err == nil {
+			return body, ct, nil
+		}
+		letzter = err
+	}
+	return nil, "", letzter
+}
+
+func fetchIconAt(ctx context.Context, host, pfad string) ([]byte, string, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "https://"+host+pfad, nil)
 	if err != nil {
 		return nil, "", err
 	}
-	req.Header.Set("Accept", "image/*")
+	req.Header.Set("Accept", "image/*,*/*;q=0.8")
+	req.Header.Set("User-Agent", iconUserAgent)
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, "", err
