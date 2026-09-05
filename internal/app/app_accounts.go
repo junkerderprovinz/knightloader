@@ -723,6 +723,10 @@ func (a *App) healthState() *accountHealthState {
 // nothing has completed a read for this account yet - answers Tier "unknown"
 // rather than a zero-value AccountHealth, so a caller can tell "not checked"
 // from "checked, free" without inspecting FetchedAt itself.
+// tierUnknown is the tier of an account nothing has read yet - the one value
+// that means "no reading", as opposed to a plan name a provider chose.
+const tierUnknown = "unknown"
+
 func (a *App) accountHealth(service, account string) AccountHealth {
 	st := a.healthState()
 	st.mu.RLock()
@@ -730,7 +734,7 @@ func (a *App) accountHealth(service, account string) AccountHealth {
 	if h, ok := st.rows[metaKey(service, account)]; ok {
 		return h
 	}
-	return AccountHealth{Tier: "unknown"}
+	return AccountHealth{Tier: tierUnknown}
 }
 
 // fillHealth stamps a row with the cached reading: Tier, Traffic, and the two
@@ -745,6 +749,20 @@ func (a *App) fillHealth(st *AccountState) {
 	st.Traffic = h.Traffic
 	st.Expiry = h.Expiry
 	st.TrafficLeft = fmtTrafficLeft(h.Traffic)
+	// A reading IS a check. The ticker asks the provider for this account and
+	// gets back a tier, an expiry and a traffic figure - which is the same
+	// question the manual Refresh asks - but only Refresh used to write OK and
+	// Detail, so the page printed "not checked" in the status column beside
+	// the very numbers that check had just produced (measured live,
+	// 2026-09-05). A row saying two contradictory things about itself is
+	// worse than a row saying nothing.
+	//
+	// Detail is left alone once something has written one: Refresh calls this
+	// before its own live check and overwrites it afterwards, so an error from
+	// that check still wins.
+	if h.Tier != "" && h.Tier != tierUnknown && st.Detail == "" {
+		st.OK, st.Detail = true, "credential accepted"
+	}
 }
 
 // fmtTrafficLeft is TrafficLeft's value: a plain-text column the accounts
