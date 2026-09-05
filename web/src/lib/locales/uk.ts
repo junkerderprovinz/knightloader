@@ -93,7 +93,7 @@ export const uk: Dict = {
   'collector.movePrompt': 'До якого пакета перемістити вибрані посилання?',
 
   'downloads.title': 'Завантаження',
-  'downloads.listTitle': 'Черга',
+  'downloads.listTitle': 'Список завантажень',
   'downloads.thisInstance': 'Цей екземпляр',
   'downloads.pauseAll': 'Призупинити все',
   'downloads.resumeAll': 'Продовжити все',

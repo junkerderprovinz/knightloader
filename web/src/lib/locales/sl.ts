@@ -93,7 +93,7 @@ export const sl: Dict = {
   'collector.movePrompt': 'V kateri paket naj gredo izbrane povezave?',
 
   'downloads.title': 'Prenosi',
-  'downloads.listTitle': 'Vrsta',
+  'downloads.listTitle': 'Seznam prenosov',
   'downloads.thisInstance': 'Ta instanca',
   'downloads.pauseAll': 'Zaustavi vse',
   'downloads.resumeAll': 'Nadaljuj vse',

@@ -273,6 +273,14 @@ function HosterLoginDialog({
                 onClick={() => setPicked(h)}
                 className="flex items-center gap-3 rounded-[var(--radius-control)] px-3 py-2 text-start hover:bg-carbon-hover"
               >
+                {/* The icon here as well as in the list of configured logins
+                    (jdp, 2026-09-05: "die logos der hoster werden nicht
+                    angezeigt" - this picker is where he was looking). The
+                    catalogue is hundreds of hosts long, so it costs what it
+                    looks like it costs: HosterIcon's <img> is lazy, so only
+                    the rows a person has actually scrolled to are ever
+                    fetched, and the server keeps each one after the first. */}
+                <HosterIcon host={h.id} />
                 <span className="text-sm text-carbon-text">{h.label}</span>
               </button>
             ))}

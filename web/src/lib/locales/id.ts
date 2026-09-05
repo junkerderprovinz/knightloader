@@ -93,7 +93,7 @@ export const id: Dict = {
   'collector.movePrompt': 'Pindahkan tautan terpilih ke paket mana?',
 
   'downloads.title': 'Unduhan',
-  'downloads.listTitle': 'Antrean',
+  'downloads.listTitle': 'Daftar unduhan',
   'downloads.thisInstance': 'Instance ini',
   'downloads.pauseAll': 'Jeda semua',
   'downloads.resumeAll': 'Lanjutkan semua',

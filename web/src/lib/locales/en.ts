@@ -107,7 +107,7 @@ export const en = {
   'collector.movePrompt': 'Move the selected links to which package?',
 
   'downloads.title': 'Downloads',
-  'downloads.listTitle': 'Queue',
+  'downloads.listTitle': 'Download list',
   'downloads.thisInstance': 'This instance',
   'downloads.pauseAll': 'Pause all',
   'downloads.resumeAll': 'Resume all',

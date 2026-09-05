@@ -93,7 +93,7 @@ export const cs: Dict = {
   'collector.movePrompt': 'Do kterého balíčku vybrané odkazy přesunout?',
 
   'downloads.title': 'Stahování',
-  'downloads.listTitle': 'Fronta',
+  'downloads.listTitle': 'Seznam stahování',
   'downloads.thisInstance': 'Tato instance',
   'downloads.pauseAll': 'Pozastavit vše',
   'downloads.resumeAll': 'Pokračovat ve všem',

@@ -93,7 +93,7 @@ export const zh: Dict = {
   'collector.movePrompt': '把所选链接移到哪个包？',
 
   'downloads.title': '下载',
-  'downloads.listTitle': '队列',
+  'downloads.listTitle': '下载列表',
   'downloads.thisInstance': '本实例',
   'downloads.pauseAll': '全部暂停',
   'downloads.resumeAll': '全部继续',

@@ -93,7 +93,7 @@ export const da: Dict = {
   'collector.movePrompt': 'Hvilken pakke skal de valgte links flyttes til?',
 
   'downloads.title': 'Downloads',
-  'downloads.listTitle': 'Kø',
+  'downloads.listTitle': 'Downloadliste',
   'downloads.thisInstance': 'Denne instans',
   'downloads.pauseAll': 'Sæt alle på pause',
   'downloads.resumeAll': 'Fortsæt alle',

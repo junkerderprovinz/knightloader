@@ -93,7 +93,7 @@ export const ja: Dict = {
   'collector.movePrompt': '選択したリンクをどのパッケージに移しますか。',
 
   'downloads.title': 'ダウンロード',
-  'downloads.listTitle': 'キュー',
+  'downloads.listTitle': 'ダウンロード一覧',
   'downloads.thisInstance': 'このインスタンス',
   'downloads.pauseAll': 'すべて一時停止',
   'downloads.resumeAll': 'すべて再開',

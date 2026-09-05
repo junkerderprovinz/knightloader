@@ -93,7 +93,7 @@ export const el: Dict = {
   'collector.movePrompt': 'Σε ποιο πακέτο να μετακινηθούν οι επιλεγμένοι σύνδεσμοι;',
 
   'downloads.title': 'Λήψεις',
-  'downloads.listTitle': 'Ουρά',
+  'downloads.listTitle': 'Λίστα λήψεων',
   'downloads.thisInstance': 'Αυτό το στιγμιότυπο',
   'downloads.pauseAll': 'Παύση όλων',
   'downloads.resumeAll': 'Συνέχιση όλων',

@@ -93,7 +93,7 @@ export const lt: Dict = {
   'collector.movePrompt': 'Į kurį paketą perkelti pažymėtas nuorodas?',
 
   'downloads.title': 'Atsisiuntimai',
-  'downloads.listTitle': 'Eilė',
+  'downloads.listTitle': 'Atsisiuntimų sąrašas',
   'downloads.thisInstance': 'Šis egzempliorius',
   'downloads.pauseAll': 'Pristabdyti visus',
   'downloads.resumeAll': 'Tęsti visus',

@@ -120,6 +120,12 @@ func main() {
 	// Click'n'Load below, not part of app.New's own lifecycle.
 	a.StartHosterAuth()
 
+	// One account-health sweep now, rather than leaving the accounts page
+	// blank until the ticker's first tick a quarter of an hour later. Same
+	// reasoning as the line above: an optional bit of startup that belongs to
+	// the server binary, not to app.New, which every test calls.
+	a.StartAccountHealthNow()
+
 	// Click'n'Load listener on the standard port 9666 (KL_CNL=0 disables, any
 	// other value overrides the port). A taken port (e.g. a running JD) is not
 	// fatal — CnL is simply unavailable then.

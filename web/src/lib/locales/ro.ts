@@ -93,7 +93,7 @@ export const ro: Dict = {
   'collector.movePrompt': 'În ce pachet să fie mutate linkurile selectate?',
 
   'downloads.title': 'Descărcări',
-  'downloads.listTitle': 'Coadă',
+  'downloads.listTitle': 'Lista de descărcări',
   'downloads.thisInstance': 'Această instanță',
   'downloads.pauseAll': 'Pune tot pe pauză',
   'downloads.resumeAll': 'Continuă tot',

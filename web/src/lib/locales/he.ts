@@ -95,7 +95,7 @@ export const he: Dict = {
   'collector.movePrompt': 'לאיזו חבילה להעביר את הקישורים הנבחרים?',
 
   'downloads.title': 'הורדות',
-  'downloads.listTitle': 'תור',
+  'downloads.listTitle': 'רשימת ההורדות',
   'downloads.thisInstance': 'המופע הזה',
   'downloads.pauseAll': 'השהה הכול',
   'downloads.resumeAll': 'המשך הכול',

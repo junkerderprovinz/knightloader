@@ -11,7 +11,7 @@
 // it cannot draw, which is the drift the registry exists to prevent.
 
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import { fetchOptions, setEnabled, setTaskOptions, type Availability, type Task } from '../lib/api';
+import { fetchOptions, priorityChoices, setEnabled, setTaskOptions, type Availability, type Task } from '../lib/api';
 import { DIRECT_ID, endpointOf, useConnections } from '../lib/connections';
 import { fmtBytes, fmtDate, fmtEta, fmtSpeed, pct } from '../lib/format';
 import type { TranslationKey } from '../lib/i18n';
@@ -509,6 +509,66 @@ function RowTooltipContent({ task, t, base }: { task: Task; t: Translate; base: 
   );
 }
 
+/**
+ * The priority ladder, once per session, shared by every row on screen.
+ *
+ * Module-scoped promise and a hook over it, the same arrangement the variant
+ * cell's own menus use two hundred lines down: forty rows must not be forty
+ * requests for one short list, and priorityChoices() is already memoised for
+ * exactly this - see its own doc comment on what happened the last time a
+ * second consumer built a ladder of its own instead.
+ */
+function usePriorityNames(): Map<number, string> {
+  const [names, setNames] = useState<Map<number, string>>(new Map());
+  useEffect(() => {
+    let live = true;
+    void priorityChoices().then(
+      (choices) => {
+        if (live) setNames(new Map(choices.map((c) => [c.value, c.id])));
+      },
+      () => {
+        /* no ladder, no name - the badge falls back to the raw number */
+      },
+    );
+    return () => {
+      live = false;
+    };
+  }, []);
+  return names;
+}
+
+/**
+ * PriorityTag is the mark on a link whose priority somebody changed (jdp,
+ * 2026-09-05: "Wenn man die Priorität erhöht muss das in der linkliste bzw im
+ * downloadtab angezeigt werden. auf den links selbst").
+ *
+ * There was nothing at all before this: the queue sorts by priority, four
+ * toolbar badges set it, and the row it was set on looked exactly like the row
+ * beside it. A column would have been the ordinary answer and the wrong one
+ * here - it would be hidden by default like the other low-traffic ones, so the
+ * feature would still be invisible until somebody went looking for a column
+ * they had no reason to suspect existed.
+ *
+ * Nothing is drawn at the default. A tag on every row is furniture, and the
+ * whole point is that this row is not like the others.
+ */
+function PriorityTag({ value, names, t }: { value: number; names: Map<number, string>; t: Translate }) {
+  if (!value) return null;
+  const id = names.get(value);
+  const label = id ? t(`priority.${id}` as TranslationKey) : String(value);
+  return (
+    <span
+      className="glim-eyebrow shrink-0 rounded-[var(--radius-pill)] bg-carbon-surface3 px-1.5 leading-[17px] text-carbon-textSub"
+      title={label}
+    >
+      {/* The arrow says which way without needing the word to be read: a
+          raised link and a lowered one must be tellable apart at a glance,
+          and at this size the label alone is a shape, not a sentence. */}
+      {value > 0 ? '▲' : '▼'} {label}
+    </span>
+  );
+}
+
 function NameCell({ task, t, base }: { task: Task; t: Translate; base: string }) {
   // A pending automatic retry is not the same as a dead task, and saying so
   // stops people restarting something that is already about to restart.
@@ -523,9 +583,11 @@ function NameCell({ task, t, base }: { task: Task; t: Translate; base: string })
   // - the two would be hovering the exact same box, and the browser's own
   // delayed tooltip would eventually stack on top of this one.
   const tip = useTooltip<HTMLDivElement>(<RowTooltipContent task={task} t={t} base={base} />);
+  const priorityNames = usePriorityNames();
   return (
     <div className="min-w-0">
       <div className="flex min-w-0 items-center gap-1.5">
+        <PriorityTag value={task.priority} names={priorityNames} t={t} />
         <div dir="ltr" {...tip.triggerProps} className="min-w-0 truncate text-start text-[13.5px] text-carbon-text">
           {/* task.ext is a display-only best-effort hint (core.Task.Ext's
               own doc comment), never appended to task.name itself - Name

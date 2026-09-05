@@ -93,7 +93,7 @@ export const bg: Dict = {
   'collector.movePrompt': 'В кой пакет да отидат избраните връзки?',
 
   'downloads.title': 'Изтегляния',
-  'downloads.listTitle': 'Опашка',
+  'downloads.listTitle': 'Списък с изтегляния',
   'downloads.thisInstance': 'Тази инстанция',
   'downloads.pauseAll': 'Пауза на всички',
   'downloads.resumeAll': 'Продължи всички',

@@ -93,7 +93,7 @@ export const hu: Dict = {
   'collector.movePrompt': 'Melyik csomagba kerüljenek a kijelölt hivatkozások?',
 
   'downloads.title': 'Letöltések',
-  'downloads.listTitle': 'Várólista',
+  'downloads.listTitle': 'Letöltési lista',
   'downloads.thisInstance': 'Ez a példány',
   'downloads.pauseAll': 'Összes szüneteltetése',
   'downloads.resumeAll': 'Összes folytatása',

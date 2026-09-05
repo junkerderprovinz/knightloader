@@ -183,45 +183,65 @@ export function SpeedMeter({
   const samples = useSpeedSamples(value, points);
   const ceilingRef = useRef(0);
 
-  const W = 72;
-  const H = 18;
+  // Bigger than the hairline this used to be, and with both axes, because it
+  // is the only speed curve left on the page: the second, much larger one
+  // below the counters is gone (jdp, 2026-09-05: "der große downloadgraph der
+  // weiter unten nochmal ist, kann weg", and "Der Downloadgraph soll in der
+  // card größer sein und auch im leeren zustand die Abszisse und ordinate
+  // zeigen (wie in der app)"). It costs the shell bar a line of height above
+  // and below the plot and gives the page back a 160px band.
+  const W = 148;
+  const H = 30;
   const peak = Math.max(...samples);
   ceilingRef.current = ceilingFor(ceilingRef.current, peak);
   const idle = peak === 0;
   const { d } = smoothPath(samples, W, H, 2, ceilingRef.current);
+  const fenster = Math.round(points * (SAMPLE_MS / 1000));
 
   const inner = (
     <>
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        preserveAspectRatio="none"
-        width={W}
-        height={H}
-        className="shrink-0"
-        aria-hidden
-        focusable="false"
-      >
-        {idle ? (
-          <line
-            x1="0"
-            y1={H - 2}
-            x2={W}
-            y2={H - 2}
-            stroke="var(--carbon-border)"
-            strokeWidth="1"
-            vectorEffect="non-scaling-stroke"
-          />
-        ) : (
-          <path
-            d={d}
-            fill="none"
-            stroke="var(--accent)"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            vectorEffect="non-scaling-stroke"
-          />
-        )}
-      </svg>
+      {/* Both axes, always, idle included - the case the rule was written from
+          is exactly a number that a state can take away. The ordinate is the
+          ceiling, because that is what the top edge of this box means. */}
+      <span className="flex shrink-0 flex-col gap-0.5">
+        <span className="glim-num self-end text-[10px] leading-none text-carbon-textMuted">
+          {fmtSpeed(ceilingRef.current)}
+        </span>
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          preserveAspectRatio="none"
+          width={W}
+          height={H}
+          className="shrink-0"
+          aria-hidden
+          focusable="false"
+        >
+          {idle ? (
+            <line
+              x1="0"
+              y1={H - 2}
+              x2={W}
+              y2={H - 2}
+              stroke="var(--carbon-border)"
+              strokeWidth="1"
+              vectorEffect="non-scaling-stroke"
+            />
+          ) : (
+            <path
+              d={d}
+              fill="none"
+              stroke="var(--accent)"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              vectorEffect="non-scaling-stroke"
+            />
+          )}
+        </svg>
+        <span className="flex justify-between text-[10px] leading-none text-carbon-textMuted">
+          <span className="glim-num">{`-${fenster}s`}</span>
+          <span className="glim-num">0s</span>
+        </span>
+      </span>
       {/* dir="ltr": the number and its unit are one token and must not be
           reordered into "s/BiM 4.2" in an Arabic or Hebrew locale. */}
       <span dir="ltr" className="glim-num text-[13px] font-semibold leading-none text-carbon-text">

@@ -93,7 +93,7 @@ export const eu: Dict = {
   'collector.movePrompt': 'Zein paketetara eraman hautatutako estekak?',
 
   'downloads.title': 'Deskargak',
-  'downloads.listTitle': 'Ilara',
+  'downloads.listTitle': 'Deskargen zerrenda',
   'downloads.thisInstance': 'Instantzia hau',
   'downloads.pauseAll': 'Pausatu dena',
   'downloads.resumeAll': 'Jarraitu dena',

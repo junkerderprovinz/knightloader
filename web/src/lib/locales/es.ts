@@ -88,7 +88,7 @@ export const es: Dict = {
   'collector.selectAll': 'Seleccionar todo',
   'collector.movePrompt': '¿A qué paquete mover los enlaces seleccionados?',
   'downloads.title': 'Descargas',
-  'downloads.listTitle': 'Cola',
+  'downloads.listTitle': 'Lista de descargas',
   'downloads.thisInstance': 'Esta instancia',
   'downloads.pauseAll': 'Pausar todo',
   'downloads.resumeAll': 'Reanudar todo',

@@ -93,7 +93,7 @@ export const is: Dict = {
   'collector.movePrompt': 'Í hvaða pakka á að færa valda tengla?',
 
   'downloads.title': 'Niðurhal',
-  'downloads.listTitle': 'Biðröð',
+  'downloads.listTitle': 'Niðurhalslisti',
   'downloads.thisInstance': 'Þetta tilvik',
   'downloads.pauseAll': 'Gera hlé á öllu',
   'downloads.resumeAll': 'Halda öllu áfram',
