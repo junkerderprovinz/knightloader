@@ -465,30 +465,6 @@ export default function SettingsScreen({
           left for somebody to trip over. */}
       <NotchCard title={t('settings.about')} hue={3}>
         <Text style={[styles.aboutText, { color: c.textSub }]}>{t('settings.aboutBody')}</Text>
-        {/* Both numbers are LINKS to their own release page (jdp, 2026-08-31:
-            "Die Versionsnummer (auch von Glimstone) soll immer auf deren
-            release auf github zeigen ... Das soll immmer und überall gelten").
-            A version answers "which build is this"; the question straight after
-            it is always "and what changed". Now GlimStone 1.6.0 for the family.
-
-            Built from the version, never a hand-kept list of links: that list
-            is wrong the first time somebody forgets it. */}
-        <Text style={[styles.aboutVersions, { color: c.textMuted }]}>
-          {`${t('settings.aboutVersion')} `}
-          <Text
-            style={{ color: accentInk }}
-            onPress={() => Linking.openURL(`${REPO_URL}/releases/tag/mobile/v${Constants.expoConfig?.version ?? ''}`)}
-          >
-            {Constants.expoConfig?.version ?? '—'}
-          </Text>
-          {' · GlimStone '}
-          <Text
-            style={{ color: accentInk }}
-            onPress={() => Linking.openURL(`${GLIMSTONE_URL}/releases/tag/v${GLIMSTONE_VERSION}`)}
-          >
-            {GLIMSTONE_VERSION}
-          </Text>
-        </Text>
         {/* Three sentences, each with the thing it asks for right under it
             (jdp, 2026-09-01). The order is his: what this is, then the coffee,
             then the way to report something. A sentence with its own button
@@ -528,6 +504,36 @@ export default function SettingsScreen({
             }
           />
         </View>
+        {/* Last line in the card, under the buttons (jdp, 2026-09-05), same as
+            the web interface and the extension. It reads as a footer, which is
+            what it is: each sentence above has its own button under it, and a
+            build number sat between the body and the coffee line cut that
+            pairing in half.
+
+            Both numbers are LINKS to their own release page (jdp, 2026-08-31:
+            "Die Versionsnummer (auch von Glimstone) soll immer auf deren
+            release auf github zeigen ... Das soll immmer und überall gelten").
+            A version answers "which build is this"; the question straight after
+            it is always "and what changed". Now GlimStone 1.6.0 for the family.
+
+            Built from the version, never a hand-kept list of links: that list
+            is wrong the first time somebody forgets it. */}
+        <Text style={[styles.aboutVersions, { color: c.textMuted }]}>
+          {`${t('settings.aboutVersion')} `}
+          <Text
+            style={{ color: accentInk }}
+            onPress={() => Linking.openURL(`${REPO_URL}/releases/tag/mobile/v${Constants.expoConfig?.version ?? ''}`)}
+          >
+            {Constants.expoConfig?.version ?? '—'}
+          </Text>
+          {' · GlimStone '}
+          <Text
+            style={{ color: accentInk }}
+            onPress={() => Linking.openURL(`${GLIMSTONE_URL}/releases/tag/v${GLIMSTONE_VERSION}`)}
+          >
+            {GLIMSTONE_VERSION}
+          </Text>
+        </Text>
       </NotchCard>
 
       <NotchCard title={t('settings.dangerZone')} hue={4}>
@@ -602,7 +608,10 @@ const styles = StyleSheet.create({
   // Half-muted and centred: something you look for, not something that
   // competes for attention.
   aboutText: { fontSize: TYPE.body, lineHeight: 20, marginBottom: 8 },
-  aboutVersions: { fontSize: TYPE.caption, marginBottom: 10 },
+  // It closes the card now, so it takes a top gap and none underneath: the
+  // button row above already carries its own 10, and the card's padding is the
+  // space below the last line.
+  aboutVersions: { fontSize: TYPE.caption, marginTop: 2 },
   valueGroup: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
   flag: { fontSize: 17 },
   value: { fontSize: TYPE.body },

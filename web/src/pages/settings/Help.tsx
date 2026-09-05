@@ -252,25 +252,6 @@ function About({ hue }: { hue: number }) {
     <Card hue={hue} className="flex flex-col gap-3">
       <SectionTitle>{t('settings.about.title')}</SectionTitle>
       <p className="text-sm text-carbon-textSub">{t('settings.about.body')}</p>
-      {/* Both numbers are LINKS to their own release page (jdp, 2026-08-31:
-          "Die Versionsnummer (auch von Glimstone) soll immer auf deren release
-          auf github zeigen ... Das soll immmer und überall gelten"). A version
-          answers "which build is this"; the question straight after it is
-          always "and what changed". GlimStone 1.6.0 makes it the family rule.
-
-          Built from the version, never a hand-kept list of links. A dev build
-          has no release to point at, so it stays plain text rather than
-          offering a link into a 404. */}
-      <p className="glim-num text-xs text-carbon-textMuted">
-        {t('settings.about.version')}{' '}
-        {version && version !== 'dev' ? (
-          <VersionLink href={`${REPO_URL}/releases/tag/v${version}`}>{version}</VersionLink>
-        ) : (
-          t('nav.workingTitle')
-        )}
-        {' · GlimStone '}
-        <VersionLink href={`${GLIMSTONE_URL}/releases/tag/v${GLIMSTONE_VERSION}`}>{GLIMSTONE_VERSION}</VersionLink>
-      </p>
       {/* Three sentences, each with the thing it asks for directly under it
           (jdp, 2026-09-01). The order is his: what this is, then the coffee,
           then the way to report something. A sentence with its own button under
@@ -310,6 +291,31 @@ function About({ hue }: { hue: number }) {
           {t('settings.about.mail')}
         </a>
       </div>
+      {/* Last line in the card, under the buttons (jdp, 2026-09-05). It reads
+          as a footer, which is what it is: the sentences above are what the
+          card wants to say and each has its own button under it, while a build
+          number is what somebody looks up afterwards. Between the body and the
+          coffee line it cut that pairing in half.
+
+          Both numbers are LINKS to their own release page (jdp, 2026-08-31:
+          "Die Versionsnummer (auch von Glimstone) soll immer auf deren release
+          auf github zeigen ... Das soll immmer und überall gelten"). A version
+          answers "which build is this"; the question straight after it is
+          always "and what changed". GlimStone 1.6.0 makes it the family rule.
+
+          Built from the version, never a hand-kept list of links. A dev build
+          has no release to point at, so it stays plain text rather than
+          offering a link into a 404. */}
+      <p className="glim-num text-xs text-carbon-textMuted">
+        {t('settings.about.version')}{' '}
+        {version && version !== 'dev' ? (
+          <VersionLink href={`${REPO_URL}/releases/tag/v${version}`}>{version}</VersionLink>
+        ) : (
+          t('nav.workingTitle')
+        )}
+        {' · GlimStone '}
+        <VersionLink href={`${GLIMSTONE_URL}/releases/tag/v${GLIMSTONE_VERSION}`}>{GLIMSTONE_VERSION}</VersionLink>
+      </p>
     </Card>
   );
 }

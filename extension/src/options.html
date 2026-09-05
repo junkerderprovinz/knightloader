@@ -272,10 +272,10 @@
          looks pressable and does nothing is worse than one that says so. */
       .stepper:disabled { opacity: 0.35; cursor: default; }
       .stepper:disabled:hover { color: var(--carbon-text-muted); }
-      /* The About card's own two lines. The sentence reads as body text
-         because it IS the card's content; the versions sit under it, quieter,
-         because they are the thing you look up rather than the thing you
-         read. */
+      /* The About card's own two kinds of line. The sentences read as body text
+         because they ARE the card's content; the versions close the card,
+         quieter, because they are the thing you look up rather than the thing
+         you read. */
       .aboutText { margin: 0 0 8px; font-size: var(--text-body); color: var(--carbon-text-sub); }
       /* Each offer in the About card is a sentence with its button under it, and
          the two have to sit closer to each other than to the next offer or all
@@ -285,11 +285,15 @@
          since the card draws no lines between them. */
       .glim-card .fields + .aboutText { margin-top: 20px; }
       .aboutVersions {
-        margin: 0 0 12px;
+        margin: 0;
         font-size: var(--text-dense);
         color: var(--carbon-text-muted);
         font-variant-numeric: tabular-nums;
       }
+      /* It closes the card now, so it takes the same 20 after a button row that
+         a new sentence takes, and no bottom margin of its own: the card's own
+         padding is the space under the last line. */
+      .glim-card .fields + .aboutVersions { margin-top: 20px; }
       /* Underlined only on hover: a line under every version number turns a
          quiet fact into two links shouting at each other. It still has to LOOK
          reachable, so it takes the accent ink. */
@@ -534,7 +538,6 @@
            button under it reads as one offer; three sentences stacked over one
            row of buttons reads as a form. -->
       <p id="aboutText" class="aboutText"></p>
-      <p id="aboutVersions" class="aboutVersions glim-num"></p>
       <p id="aboutCoffee" class="aboutText"></p>
       <div class="fields">
         <a id="aboutCoffeeBtn" class="secondary btnlike" target="_blank" rel="noreferrer noopener"></a>
@@ -544,6 +547,12 @@
         <a id="aboutGithub" class="secondary btnlike" target="_blank" rel="noreferrer noopener"></a>
         <a id="aboutMail" class="secondary btnlike"></a>
       </div>
+      <!-- Last line in the card, under the buttons (jdp, 2026-09-05), same as
+           the web interface and the app. It reads as a footer, which is what it
+           is: each sentence above has its button directly under it, and a build
+           number between the body and the coffee line cut that pairing in
+           half. -->
+      <p id="aboutVersions" class="aboutVersions glim-num"></p>
     </section>
 
     <script src="appearance.js"></script>
