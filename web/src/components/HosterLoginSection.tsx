@@ -24,6 +24,7 @@ import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { Button, EmptyState, Field, IconBadge, InfoBubble, Modal, TextInput } from './ui';
 import { IconAccounts, IconPlus, IconSearch, IconTrash } from '../lib/icons';
+import { HosterIcon } from './HosterIcon';
 
 // Faster than ACCOUNTS.HEALTH_POLL_MS (30s): a login this reconciler just
 // added moves through queued -> active/rejected in seconds to a couple of
@@ -91,7 +92,12 @@ export function HosterLoginSection() {
             <tbody className="divide-y divide-carbon-border/40">
               {logins?.map((row, i) => (
                 <tr key={row.host} className="group transition-colors hover:bg-carbon-hover">
-                  <td className="px-4 py-3 font-medium text-carbon-text">{row.host}</td>
+                  <td className="px-4 py-3 font-medium text-carbon-text">
+                    <span className="inline-flex items-center gap-2">
+                      <HosterIcon host={row.host} />
+                      {row.host}
+                    </span>
+                  </td>
                   <td className="px-2 py-3">
                     <HosterLoginStatusBadge login={row} />
                   </td>

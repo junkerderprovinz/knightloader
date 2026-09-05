@@ -46,6 +46,7 @@ func registerAll(reg *Registry, a *app.App) {
 	registerSettings(reg, a)
 	registerAccounts(reg, a)
 	registerHosterAuth(reg, a)
+	registerHosterIcons(reg, a)
 	registerResolvers(reg, a)
 	registerSchedule(reg, a)
 	registerReconnect(reg, a)

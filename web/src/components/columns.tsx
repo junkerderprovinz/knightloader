@@ -842,9 +842,25 @@ export const VARIANT_KIND_LABEL_KEY: Record<string, TranslationKey> = {
 // other select in the app already carries, just re-declared here rather
 // than exported from RuleEditor.tsx (a settings-page component this
 // row-level cell has no business importing from).
+// Readable as a control, not as a word that happens to be clickable (jdp,
+// 2026-09-05: "die varianten dropdown buttons viel zu klein und kaum
+// sichtbar"). Three things were wrong and each of them alone was enough: the
+// ground was surface2 on rows that are themselves surface2, so the box had no
+// edge; 11px is the caption size, below everything else on the row; and there
+// was no chevron, which is the one mark that says "this opens".
+//
+// The chevron is drawn here rather than left to the browser, because
+// `appearance: none` is what stops a native select from painting its own
+// widget chrome on a dark ground - and once it is off, the arrow has to come
+// back from somewhere. An inline SVG in a background image keeps it one
+// element: a wrapper span would need its own pointer-events dance to stay
+// clickable, for a mark that is already just paint.
 const VARIANTE_SELECT_CLASS =
-  'min-w-0 rounded-[var(--radius-control)] bg-carbon-surface2 px-1.5 py-1 text-[11px] text-carbon-text ' +
-  'outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)] disabled:opacity-40';
+  'min-w-0 cursor-pointer appearance-none rounded-[var(--radius-control)] bg-carbon-surface3 py-1 ps-2 pe-6 ' +
+  'text-xs text-carbon-text outline-none transition-shadow hover:bg-carbon-hover ' +
+  'focus:shadow-[0_0_0_2px_var(--focus-ring)] disabled:opacity-40 ' +
+  "bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 10 6%22><path d=%22M5 4.3 L1.4 1.4 L8.6 1.4 Z%22 fill=%22%23a8a8a8%22 stroke=%22%23a8a8a8%22 stroke-width=%221.4%22 stroke-linejoin=%22round%22/></svg>')] " +
+  'bg-[length:10px_6px] bg-[right_0.5rem_center] bg-no-repeat';
 
 let ytdlpMenus: Promise<{ qualities: string[]; audioFormats: string[]; audioBitrates: string[] }> | null = null;
 function loadYtdlpMenus() {

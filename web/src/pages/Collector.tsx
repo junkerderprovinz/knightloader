@@ -41,7 +41,6 @@ import {
 } from '../components/CollectorFacets';
 import { CollectorStats } from '../components/CollectorStats';
 import { useScriptMenu } from '../components/ScriptActions';
-import { FirstTouchHint } from '../components/FirstTouchHint';
 import { usePublishCommandPageContext } from '../lib/commands/pageContext';
 import {
   IconCheck,
@@ -367,10 +366,6 @@ export function Collector() {
     <div className="flex min-h-0 flex-1 flex-col gap-6">
       <div className="shrink-0">
         <PageHeader title={t('collector.title')} />
-      </div>
-
-      <div className="shrink-0">
-        <FirstTouchHint id="collector" />
       </div>
 
       {/* Three equal-height columns (jdp, 2026-08-24: "erst soll die

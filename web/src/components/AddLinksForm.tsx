@@ -207,7 +207,16 @@ export function AddLinksForm({
           travel together, or `.glim-hue` resolves --accent to nothing. */}
       <div className="glim-card glim-hue flex flex-1 flex-col p-0" style={hueVars(rainbowAt(0)) as CSSProperties}>
         <div className="px-4 pt-3">
-          <SectionTitle>{t('collector.addTitle')}</SectionTitle>
+          {/* What the collector IS, in the bubble on this card's own badge
+              (jdp, 2026-09-05). It used to be a dismissible strip above the
+              three cards, which meant the one sentence explaining the page was
+              also the one thing a person could make disappear forever with a
+              single click - and after that click the page never explained
+              itself again. An explanation belongs where the thing it explains
+              is, and it belongs in a bubble that is always there. */}
+          <SectionTitle hint={`${t('hint.collector.title')}. ${t('hint.collector.body')}`}>
+            {t('collector.addTitle')}
+          </SectionTitle>
         </div>
         <div
           onDragOver={(e) => {

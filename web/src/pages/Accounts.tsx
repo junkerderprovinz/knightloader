@@ -49,6 +49,7 @@ import {
 import { ContextMenu, anchorBelow, useContextMenu } from '../components/ContextMenu';
 import { HosterLoginSection } from '../components/HosterLoginSection';
 import { IconAccounts, IconEdit, IconExternalLink, IconPlus, IconRetry, IconSearch, IconSettings, IconTrash } from '../lib/icons';
+import { HosterIcon } from '../components/HosterIcon';
 
 // Passive poll for whatever the account-health refresher (agent 6B) writes in
 // the background - this page never runs that check itself, only reads its
@@ -272,9 +273,15 @@ function AccountsTable({ rows, catalogue, refreshing, onRefresh, onToggle, onRen
                   />
                 </td>
                 <td className="px-2 py-3 font-medium text-carbon-text">
-                  <span className="inline-flex items-center gap-1">
-                    {svc?.label ?? a.service}
-                    {a.hostsFetchedAt && <InfoBubble tip={t('accounts.hostsRefreshed', { when: fmtDate(a.hostsFetchedAt) })} />}
+                  {/* The service's own icon, taken from the site its "where do
+                      I get a key" link already points at - the one host string
+                      the catalogue carries for a debrid service. */}
+                  <span className="inline-flex items-center gap-2">
+                    <HosterIcon host={svc?.whereUrl ?? ''} />
+                    <span className="inline-flex items-center gap-1">
+                      {svc?.label ?? a.service}
+                      {a.hostsFetchedAt && <InfoBubble tip={t('accounts.hostsRefreshed', { when: fmtDate(a.hostsFetchedAt) })} />}
+                    </span>
                   </span>
                 </td>
                 <td className="px-2 py-3">
