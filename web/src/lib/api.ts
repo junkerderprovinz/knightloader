@@ -765,6 +765,16 @@ export async function fetchTasks(base = '/api'): Promise<Task[]> {
  */
 export const taskFileURL = (id: string, base = '/api'): string => `${base}/tasks/${encodeURIComponent(id)}/file`;
 
+/**
+ * hosterIconURL is one host's own site icon, fetched and cached by the server
+ * (internal/app/app_hostericons.go). Opened as an <img src>, not through this
+ * client: a 404 is the ordinary answer for a host with no favicon, and an
+ * <img> already has the right way to say so - its onError, which the component
+ * turns into a monogram.
+ */
+export const hosterIconURL = (host: string, base = '/api'): string =>
+  `${base}/hosters/icon?host=${encodeURIComponent(host)}`;
+
 export async function addLinks(links: string, pkg: string, base = '/api'): Promise<Task[]> {
   const r = await fetch(`${base}/links`, {
     method: 'POST',

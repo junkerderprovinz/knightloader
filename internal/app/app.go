@@ -318,6 +318,11 @@ type App struct {
 	// one goroutine that runs them. Built on first use rather than in New, so
 	// unpacking stays a subject of app_extract.go alone - see unpackLocked.
 	unpack *unpackState
+	// The hoster-icon cache, embedded so its two fields stay in the file that
+	// owns them (app_hostericons.go) instead of being two more lines here that
+	// nothing in this file touches. Its map is built on first use, same as
+	// unpack above, so it needs nothing in New.
+	iconCache
 }
 
 func New(dataDir string) (*App, error) {
@@ -579,6 +584,10 @@ func New(dataDir string) (*App, error) {
 	// window where this could read a half-assembled queue as idle - see
 	// watchQueueIdleForScripts' own doc comment.
 	a.spawn(a.watchQueueIdleForScripts)
+	// Same "the list is whole by now" ordering as the three above. It reads
+	// a.tasks once, then spends its time in yt-dlp calls, so it is spawned
+	// rather than run here: a boot must not wait on somebody else's network.
+	a.spawn(a.backfillYtdlpProbes)
 	return a, nil
 }
 

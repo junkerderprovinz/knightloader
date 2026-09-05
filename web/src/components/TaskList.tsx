@@ -28,7 +28,6 @@ import { useToast } from '../lib/toast';
 import { useUIState } from '../lib/uistate';
 import { Button, Card, Field, FieldGroup, IconBadge, InfoBubble, Modal, SectionTitle, TextArea, TextInput } from './ui';
 import { Tabs } from './Tabs';
-import { TaskOptionsDialog } from './ListToolbar';
 import { ColumnMenu } from './ColumnMenu';
 import {
   COLUMN_BY_ID,
@@ -208,7 +207,6 @@ function TaskRow({
   onOpenProperties?: () => void;
 }) {
   const { t } = useT();
-  const [options, setOptions] = useState(false);
   const collected = task.status === 'collected';
   const settled = task.status === 'done' || task.status === 'error';
   const dragging = dnd.draggingTask === task.id;
@@ -396,13 +394,12 @@ function TaskRow({
               onClick={() => recheckTasks([task.id], base)}
             />
           )}
-          <IconBadge
-            hue={2}
-            icon={<IconFolder width={16} height={16} />}
-            title={t('task.folder')}
-            aria-label={t('task.folder')}
-            onClick={() => setOptions(true)}
-          />
+          {/* No folder badge here any more (jdp, 2026-09-05). The dialog it
+              opened is still one right-click away on every row, and the row's
+              own hover strip is the wrong place for a setting: the other
+              badges here DO something to this link, while that one only opened
+              a form about it. The dialog itself is unchanged and still reached
+              from the row menu (taskMenuGroups' own onOptions). */}
           {settled && (
             <IconBadge
               hue={3}
@@ -422,13 +419,6 @@ function TaskRow({
         </div>
       </div>
 
-      {/* Into <body>, because the table is a horizontal scroll container now and
-          a dialog that belongs to a row must not be laid out inside one. */}
-      {options &&
-        createPortal(
-          <TaskOptionsDialog tasks={[task]} base={base} onClose={() => setOptions(false)} />,
-          document.body,
-        )}
     </div>
   );
 }

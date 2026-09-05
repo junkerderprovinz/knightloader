@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 
@@ -158,9 +159,40 @@ func (a *App) expandYtdlpVariants(primary *core.Task) {
 			Host:      pc.Host,
 			Resolver:  pc.Resolver,
 			Variant:   variantEncode(v, sub),
+			Ext:       fixedVariantExt(v, sub),
 			CreatedAt: pc.CreatedAt,
 		})
 	}
+}
+
+// fixedVariantExt is the extension a variant row already knows about itself
+// the moment it is created, without asking the source anything (jdp,
+// 2026-09-05: "Bei allen links in der dateiliste soll es die Dateiendung
+// immer anzeigen").
+//
+// Three of the five kinds land in a format buildArgs pins outright
+// (--convert-thumbnails jpg, --sub-format srt, and a description that IS a
+// text file), and an audio row with an explicit format was told its own
+// extension by the preset that created it. Only "best" audio and video depend
+// on what the source actually has, and those two wait for the probe.
+//
+// Set here rather than left to applyProbeFormats alone, which is where all
+// five used to be decided: a probe that never answers left a row with no
+// extension at all, for four cases whose answer was never in doubt.
+func fixedVariantExt(v ytdlp.Variant, sub string) string {
+	switch v {
+	case ytdlp.VariantThumbnail:
+		return "jpg"
+	case ytdlp.VariantSubtitle:
+		return "srt"
+	case ytdlp.VariantDescription:
+		return "description"
+	case ytdlp.VariantAudio:
+		if sub != "" && sub != "best" {
+			return sub
+		}
+	}
+	return ""
 }
 
 // insertVariantSibling is put's own shape (fresh ID, insert, save,
@@ -359,6 +391,114 @@ func (a *App) applyProbeFormats(rawurl string, formats []ytdlp.FormatEntry) {
 		if changed {
 			touched = append(touched, *t)
 		}
+	}
+	a.mu.Unlock()
+	for i := range touched {
+		_ = a.Store.Save(&touched[i])
+		a.Hub.Broadcast("task", &touched[i])
+	}
+}
+
+// backfillYtdlpProbes probes the variant rows already sitting in the collector
+// whose menus have nothing to narrow them.
+//
+// Every one of the five rows a yt-dlp link expands into is created at stage
+// time, and the probe that fills AvailableQualities/AvailableAudioFormats/
+// AvailableAudioBitrates (and the real Ext) is fired at that same moment. A row
+// staged before that probe existed, or one whose probe never answered, keeps
+// those fields empty forever - and empty means "no opinion", so the picker
+// falls back to the full static menu. Measured on the live instance
+// (2026-09-05): five YouTube rows from August, all five with no probe data, so
+// the audio row offered flac for a source that has never had a lossless track
+// (jdp: "z.b. flac wir gar nicht von Youtube angeboten"). The narrowing was
+// built and correct; there was simply nothing to narrow WITH.
+//
+// Deliberately not gated on the row's current resolver. Those same five rows
+// now read resolver "torbox", because routing is re-decided per attempt while
+// the variant family is fixed at stage time - but the question this answers is
+// "what does the SOURCE offer", and yt-dlp is what can answer it whichever
+// backend ends up doing the fetching.
+//
+// One probe per distinct URL, because applyProbeFormats already updates every
+// URL-sharing sibling, and one at a time: this is a spawn of yt-dlp per link
+// against somebody's collector, and a boot that starts forty of them at once
+// is a boot that looks like a hang.
+func (a *App) backfillYtdlpProbes() {
+	// The four extensions that never needed a probe, first and without a
+	// network call, so a box with no yt-dlp binary at all still stops showing
+	// four of the five rows with no extension.
+	a.applyFixedVariantExts()
+	tp, ok := a.ytdlpTitleProber()
+	if !ok {
+		return
+	}
+	a.mu.Lock()
+	var urls []string
+	seen := make(map[string]bool)
+	for _, t := range a.tasks {
+		if t.Status != core.StatusCollected || t.URL == "" || seen[t.URL] {
+			continue
+		}
+		kind, _ := variantDecode(t.Variant)
+		switch kind {
+		case ytdlp.VariantVideo:
+			if len(t.AvailableQualities) > 0 {
+				continue
+			}
+		case ytdlp.VariantAudio:
+			if len(t.AvailableAudioFormats) > 0 {
+				continue
+			}
+		default:
+			// A row with no variant is not a yt-dlp family member, and the
+			// three fixed-extension kinds have nothing to probe for.
+			continue
+		}
+		seen[t.URL] = true
+		urls = append(urls, t.URL)
+	}
+	a.mu.Unlock()
+
+	for _, u := range urls {
+		select {
+		case <-a.ctx.Done():
+			return
+		default:
+		}
+		ctx, cancel := context.WithTimeout(a.ctx, ytdlpProbeTimeout)
+		res, err := tp.ProbeTitle(ctx, u)
+		cancel()
+		if err != nil {
+			// Same silence as the stage-time probe: a source that cannot be
+			// reached right now leaves the menu as wide as it was, which is
+			// exactly the state this function found it in.
+			continue
+		}
+		a.applyProbeFormats(u, res.Formats)
+	}
+}
+
+// applyFixedVariantExts gives every existing variant row the extension
+// fixedVariantExt already knows for its kind. Rows created from now on get it
+// at expansion time; this is for the ones already sitting in a collector.
+//
+// Only fills a blank. A row whose extension a probe has since resolved (an
+// audio row that came back "m4a" for a "best" preset) knows better than a
+// table does, and this must never overwrite that.
+func (a *App) applyFixedVariantExts() {
+	a.mu.Lock()
+	var touched []core.Task
+	for _, t := range a.tasks {
+		if t.Ext != "" || t.Variant == "" {
+			continue
+		}
+		kind, sub := variantDecode(t.Variant)
+		ext := fixedVariantExt(kind, sub)
+		if ext == "" {
+			continue
+		}
+		t.Ext = ext
+		touched = append(touched, *t)
 	}
 	a.mu.Unlock()
 	for i := range touched {
