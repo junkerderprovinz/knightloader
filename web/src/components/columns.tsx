@@ -856,7 +856,7 @@ export const VARIANT_KIND_LABEL_KEY: Record<string, TranslationKey> = {
 // element: a wrapper span would need its own pointer-events dance to stay
 // clickable, for a mark that is already just paint.
 const VARIANTE_SELECT_CLASS =
-  'glim-select min-w-0 cursor-pointer appearance-none rounded-[var(--radius-control)] bg-carbon-surface3 py-1 ps-2 pe-6 ' +
+  'glim-select shrink-0 cursor-pointer appearance-none rounded-[var(--radius-control)] bg-carbon-surface3 py-1 ps-2 pe-6 ' +
   'text-xs text-carbon-text outline-none transition-shadow hover:bg-carbon-hover ' +
   'focus:shadow-[0_0_0_2px_var(--focus-ring)] disabled:opacity-40';
 
@@ -953,7 +953,10 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
   }
 
   return (
-    <span className="flex min-w-0 items-center gap-1.5 text-[11px] text-carbon-textMuted">
+    // Wrapping rather than shrinking: somebody who narrows this column past
+    // what two pickers need gets them on two lines, which is readable, instead
+    // of two boxes with one letter in each, which is not.
+    <span className="flex min-w-0 flex-wrap items-center gap-1.5 text-[11px] text-carbon-textMuted">
       <span className="shrink-0">{label}</span>
       {options && options.length > 0 && (
         <select
@@ -1209,8 +1212,14 @@ export const COLUMNS: ColumnDef[] = [
   {
     id: 'variant',
     labelKey: 'columns.variant',
-    width: 132,
-    minWidth: 90,
+    // Wide enough for the row that carries the most: the audio row's kind
+    // label plus its format picker plus its bitrate picker. At the old 132 the
+    // two selects were shaved to a single letter each - measured on the live
+    // instance, where "opus" and "128 kbit/s" rendered as "c" and "A" (jdp,
+    // 2026-09-05: "viel zu klein und kaum sichtbar"). A control narrower than
+    // its own shortest value is not a small control, it is a broken one.
+    width: 236,
+    minWidth: 132,
     align: 'start',
     hideable: true,
     compare: (a, b) => cmpText(variantKindOf(a), variantKindOf(b)),
