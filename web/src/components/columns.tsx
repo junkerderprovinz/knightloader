@@ -856,11 +856,9 @@ export const VARIANT_KIND_LABEL_KEY: Record<string, TranslationKey> = {
 // element: a wrapper span would need its own pointer-events dance to stay
 // clickable, for a mark that is already just paint.
 const VARIANTE_SELECT_CLASS =
-  'min-w-0 cursor-pointer appearance-none rounded-[var(--radius-control)] bg-carbon-surface3 py-1 ps-2 pe-6 ' +
+  'glim-select min-w-0 cursor-pointer appearance-none rounded-[var(--radius-control)] bg-carbon-surface3 py-1 ps-2 pe-6 ' +
   'text-xs text-carbon-text outline-none transition-shadow hover:bg-carbon-hover ' +
-  'focus:shadow-[0_0_0_2px_var(--focus-ring)] disabled:opacity-40 ' +
-  "bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 10 6%22><path d=%22M5 4.3 L1.4 1.4 L8.6 1.4 Z%22 fill=%22%23a8a8a8%22 stroke=%22%23a8a8a8%22 stroke-width=%221.4%22 stroke-linejoin=%22round%22/></svg>')] " +
-  'bg-[length:10px_6px] bg-[right_0.5rem_center] bg-no-repeat';
+  'focus:shadow-[0_0_0_2px_var(--focus-ring)] disabled:opacity-40';
 
 let ytdlpMenus: Promise<{ qualities: string[]; audioFormats: string[]; audioBitrates: string[] }> | null = null;
 function loadYtdlpMenus() {

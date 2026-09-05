@@ -405,6 +405,33 @@ body {
   -moz-appearance: textfield;
 }
 
+/* A select that reads as a control. `appearance: none` is what lets the box
+   take our own tokens instead of the platform's widget chrome - and it takes
+   the platform's own arrow with it, so the arrow has to come back from here.
+
+   The mark is the same solid, round-cornered triangle the number field's own
+   steppers use (GlimStone 1.6.0), drawn as a data URI rather than an extra
+   element: a wrapper around a <select> needs pointer-events juggling to stay
+   clickable, for something that is only paint.
+
+   Written as a class rather than a Tailwind arbitrary value: the same declara-
+   tion as an inline `bg-[url('data:…')]` was silently dropped, because the URI
+   carries spaces and quotes that the class parser will not keep intact - and a
+   class that produces nothing looks exactly like a class that was never added.
+
+   The padding that keeps the text off the arrow belongs to the caller
+   (`pe-6`), which is a logical property; the arrow's own side is set here for
+   both directions, since background-position has no logical form. */
+.glim-select {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M5 4.3 L1.4 1.4 L8.6 1.4 Z' fill='%23a8a8a8' stroke='%23a8a8a8' stroke-width='1.4' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 10px 6px;
+}
+[dir='rtl'] .glim-select {
+  background-position: left 0.5rem center;
+}
+
 /* The info bubble. Rendered at body level (see InfoBubble in components/ui.tsx)
    so no scroll container, card or table can clip it. It is translated back by
    half its own width, which centres it under the icon without anyone having to
