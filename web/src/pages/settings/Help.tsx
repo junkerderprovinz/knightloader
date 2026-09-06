@@ -190,7 +190,7 @@ export function Help() {
 }
 
 const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
-const CONTACT_MAIL = 'hello@knightloader.app';
+const CONTACT_MAIL = 'hello@halleluja.design';
 const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
 // The handle from .github/FUNDING.yml, so one place knows it.
 const COFFEE_URL = 'https://buymeacoffee.com/junkerderprovinz';

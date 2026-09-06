@@ -20,7 +20,7 @@ const CHECKSUM_BITS = (SECRET_LEN * 8) / 32; // BIP39's own rule
 // relay.DefaultRelayURL, compiled in on the server side for the same reason
 // it is a constant here: it is what keeps a phrase twelve words instead of a
 // URL plus a key.
-export const DEFAULT_RELAY_URL = 'wss://relay.knightloader.app/relay/connect';
+export const DEFAULT_RELAY_URL = 'wss://relay.halleluja.design/relay/connect';
 
 // relay.keyDomain. Changing this string orphans every phrase in existence.
 const KEY_DOMAIN = 'knightloader/relay/group-key/v1';

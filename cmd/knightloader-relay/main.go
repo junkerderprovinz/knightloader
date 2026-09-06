@@ -35,6 +35,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -67,8 +68,18 @@ func main() {
 	})
 	mux.Handle("GET /relay/connect", r)
 
-	domain := os.Getenv("KL_RELAY_DOMAIN")
-	if domain != "" {
+	// KL_RELAY_DOMAIN takes a COMMA-SEPARATED list, and the reason is a move
+	// rather than a preference. The relay's address is compiled into every
+	// released binary, so when that address changes, the old name has to keep
+	// working until nothing dials it any more. A single-name whitelist makes
+	// that impossible: the moment the new name is configured, the old one can
+	// no longer be issued a certificate, and an older build does not fall back,
+	// it fails in the TLS handshake. Two names for the length of the overlap,
+	// one name afterwards.
+	domains := splitNames(os.Getenv("KL_RELAY_DOMAIN"))
+	domain := ""
+	if len(domains) > 0 {
+		domain = domains[0]
 		addr = env("KL_RELAY_ADDR", ":443")
 	}
 
@@ -81,12 +92,13 @@ func main() {
 	if domain != "" {
 		m := &autocert.Manager{
 			Prompt: autocert.AcceptTOS,
-			// Pinned to the one name this relay answers on. Without it,
+			// Pinned to the names this relay answers on. Without it,
 			// autocert would ask Let's Encrypt for a certificate for
 			// whatever name any caller put in its handshake, which is a
 			// rate limit waiting to be hit by the first scanner that finds
-			// the port.
-			HostPolicy: autocert.HostWhitelist(domain),
+			// the port. A list rather than one name so a change of address
+			// can overlap; see the comment where the list is read.
+			HostPolicy: autocert.HostWhitelist(domains...),
 			Cache:      autocert.DirCache(env("KL_RELAY_CERT_DIR", "/var/lib/knightloader-relay/certs")),
 		}
 		tlsCfg := m.TLSConfig()
@@ -137,6 +149,20 @@ func main() {
 		log.Printf("shutdown: not every connection closed within %s: %v", shutdownGrace, err)
 	}
 	cancel()
+}
+
+// splitNames turns the comma-separated KL_RELAY_DOMAIN into the names the
+// certificate may cover. Empty entries are dropped rather than passed on: an
+// empty string in the whitelist would let a handshake with no server name
+// through, which is the one caller autocert must not answer.
+func splitNames(v string) []string {
+	var out []string
+	for _, part := range strings.Split(v, ",") {
+		if name := strings.TrimSpace(part); name != "" {
+			out = append(out, name)
+		}
+	}
+	return out
 }
 
 func env(k, def string) string {
