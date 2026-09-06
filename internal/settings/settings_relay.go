@@ -50,5 +50,17 @@ import "strings"
 // others simply 404.
 func sanitizeRelay(n Settings) Settings {
 	n.RelayURL = strings.TrimRight(strings.TrimSpace(n.RelayURL), "/")
+	// A bare host gets https:// put in front of it. The relay client refuses an
+	// address with no scheme outright (relay.connectURL), and a person who types
+	// the domain they gave their reverse proxy - which is what somebody reads
+	// "Adresse" as - would otherwise get a field that saved fine and a relay
+	// that never dialled, with nothing on screen connecting the two (jdp,
+	// 2026-09-06, on the placeholder: "soll da dann nicht besser stehen
+	// knightloader.mydomain.tld?"). https rather than http: a relay carries a
+	// credential, and guessing the insecure one would be guessing wrong in the
+	// direction that costs something.
+	if n.RelayURL != "" && !strings.Contains(n.RelayURL, "://") {
+		n.RelayURL = "https://" + n.RelayURL
+	}
 	return n
 }

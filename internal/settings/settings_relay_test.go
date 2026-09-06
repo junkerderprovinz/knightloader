@@ -15,6 +15,14 @@ func TestSanitizeRelayNormalisesTheURL(t *testing.T) {
 		{"trims then drops", "  ws://192.168.20.11:8760/  ", "ws://192.168.20.11:8760"},
 		{"empty stays empty", "   ", ""},
 		{"a path is kept, only its trailing slash goes", "https://relay.example.com/kl/", "https://relay.example.com/kl"},
+		// A bare host is what somebody types when the field says "Adresse" and
+		// they are thinking of the domain they gave their proxy. The relay
+		// client refuses a scheme-less address outright, so without this the
+		// save succeeds and the dial never happens.
+		{"a bare host takes https", "relay.example.com", "https://relay.example.com"},
+		{"a bare host and port too", "relay.example.com:8760", "https://relay.example.com:8760"},
+		{"an explicit scheme is never rewritten", "ws://relay.example.com", "ws://relay.example.com"},
+		{"http stays http", "http://192.168.20.11:8760", "http://192.168.20.11:8760"},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {

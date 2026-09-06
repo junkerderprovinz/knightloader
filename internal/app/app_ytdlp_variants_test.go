@@ -508,9 +508,13 @@ func TestApplyProbeFormatsSetsBestAudioExtAndSize(t *testing.T) {
 // extension to the audio row (jdp, 2026-08-26: "bei der audio spur sollen
 // nur die formate angezeigt werden die wirklich von hoster angeboten
 // werden. Youtube bietet zb keine flac audio"): testProbeFormats' own
-// audio-only entry is mp4a.40.2 (AAC), which maps to "m4a" - "best" is
-// always kept alongside it, and the fixed transcode targets nothing in the
-// source actually offers (mp3/opus/wav/flac) do not appear.
+// audio-only entry is mp4a.40.2 (AAC), which maps to BOTH native readings of
+// that stream - "m4a", the container it already sits in, and "aac", the raw
+// stream, neither of which re-encodes anything (jdp, 2026-09-06: "bei youtube
+// links gibt es zb das audioformat aac nicht im dropdown als auswahl obwohl es
+// JD anbietet"). "best" is always kept alongside them, and the transcode
+// targets nothing in the source actually offers (mp3/opus/wav/flac/vorbis/alac)
+// still do not appear.
 func TestApplyProbeFormatsSetsAvailableAudioFormats(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
 	const url = "https://youtube.com/watch?v=formats0001"
@@ -519,8 +523,16 @@ func TestApplyProbeFormatsSetsAvailableAudioFormats(t *testing.T) {
 	a.applyProbeFormats(url, testProbeFormats)
 
 	live := snapshot(t, a, family[ytdlp.VariantAudio].ID)
-	if got := live.AvailableAudioFormats; len(got) != 2 || got[0] != "best" || got[1] != "m4a" {
-		t.Errorf("AvailableAudioFormats = %v, want exactly [best m4a]", got)
+	want := []string{"best", "aac", "m4a"}
+	got := live.AvailableAudioFormats
+	if len(got) != len(want) {
+		t.Fatalf("AvailableAudioFormats = %v, want %v", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Errorf("AvailableAudioFormats = %v, want %v", got, want)
+			break
+		}
 	}
 }
 

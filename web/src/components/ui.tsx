@@ -5,6 +5,8 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { ButtonHTMLAttributes, CSSProperties, InputHTMLAttributes, ReactNode, RefObject } from 'react';
 import { hueVars, rainbowAt } from '../lib/appearance';
+import { useDialogMute, type DialogId } from '../lib/dialogmute';
+import { useT } from '../lib/i18n';
 import { IconClose, IconEye, IconEyeOff } from '../lib/icons';
 import { openColorPickerPopover } from '../lib/colorPicker';
 
@@ -1323,12 +1325,22 @@ export function Modal({
   onClose,
   children,
   footer,
+  mute,
 }: {
   title: string;
   onClose: () => void;
   children: ReactNode;
   footer?: ReactNode;
+  /**
+   * Turns this dialog into one somebody can silence - see lib/dialogmute.ts.
+   * The switch writes the preference the moment it is flipped rather than on
+   * confirm: it is a preference about this dialog, not part of the action, and
+   * a person who flips it and then cancels still meant it.
+   */
+  mute?: DialogId;
 }) {
+  const { t } = useT();
+  const dialogs = useDialogMute();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -1351,6 +1363,18 @@ export function Modal({
           <Button kind="ghost" icon={<IconClose width={16} height={16} />} onClick={onClose} aria-label={title} />
         </div>
         {children}
+        {/* Above the buttons, not among them: it decides whether this window
+            appears again, which is a different kind of thing from the two
+            answers it is asking for right now. */}
+        {mute && (
+          <ToggleRow
+            hue={0}
+            label={t('dialog.dontShowAgain')}
+            hint={t('dialog.dontShowAgainHint')}
+            checked={dialogs.isMuted(mute)}
+            onChange={(v) => dialogs.setMuted(mute, v)}
+          />
+        )}
         {footer && <div className="flex items-center gap-3">{footer}</div>}
       </div>
     </div>

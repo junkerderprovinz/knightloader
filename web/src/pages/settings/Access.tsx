@@ -349,7 +349,11 @@ function PasswordCard({ cx }: { cx: (k: PendingKey) => string }) {
               only tucked into the sidebar). */}
           {locked && (
             <Button
-              kind="ghost"
+              // A real button, not a ghost (jdp, 2026-09-06: "der abmelden
+              // button daneben soll auch ein button sien"). Ghost carries no
+              // ground at all, so beside a plain sentence it read as a second
+              // piece of that sentence rather than as the control it is.
+              kind="secondary"
               icon={<IconSignOut width={15} height={15} />}
               disabled={signingOut}
               onClick={async () => {
@@ -440,6 +444,9 @@ function IdentityCard({ cx }: { cx: (k: PendingKey) => string }) {
  * comes before "what do I press", the same reason BrowserTools.tsx explains
  * dragging before it shows the bookmarklet link.
  */
+/** How often the card re-reads whether the relay link is up. */
+const CONN_POLL_MS = 4000;
+
 function RemoteAccessCard({
   cx,
   relayVersion,
@@ -471,8 +478,18 @@ function RemoteAccessCard({
   const [revealOpen, setRevealOpen] = useState(false);
 
   const loadConn = () => fetchConnect().then(setConn).catch(() => {});
+  // Polled, not fetched once (jdp, 2026-09-06: "wenn man den tab neu lädt zeigt
+  // es verbunden an. es schaltet also nicht live um"). Switching a relay on
+  // starts a dial that takes a moment, so the one read this used to do landed
+  // while the socket was still opening and then never asked again - the card
+  // said "getrennt" about a relay that had been connected for minutes, and
+  // reloading the page was the only way to find out. CONN_POLL_MS is short
+  // because this is a settings page somebody is looking straight at, and the
+  // route answers from cached state.
   useEffect(() => {
     void loadConn();
+    const timer = window.setInterval(loadConn, CONN_POLL_MS);
+    return () => window.clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [relayVersion]);
 
@@ -600,13 +617,26 @@ function RemoteAccessCard({
           tip={paragraphs(t('settings.access.phrase.howWhat'))}
           hue={2}
         />
+        {/* Four sentences, not one (jdp, 2026-09-06). "Getrennt" means two
+            completely different things - no relay configured at all, or a
+            relay configured and unreachable - and the single sentence this
+            carried described the first while being shown for both, so a
+            broken link read as a deliberate setup. */}
         <LabelBadge
           label={
             conn.connected
               ? t('settings.access.phrase.statusConnected')
               : t('settings.access.phrase.statusDisconnected')
           }
-          tip={t('settings.access.phrase.statusHint')}
+          tip={
+            conn.connected
+              ? conn.relayMode === 'own'
+                ? t('settings.access.phrase.statusHintOwn')
+                : t('settings.access.phrase.statusHintProject')
+              : conn.relayMode === 'off'
+                ? t('settings.access.phrase.statusHintOff')
+                : t('settings.access.phrase.statusHintLost')
+          }
           tone={conn.connected ? 'ok' : 'fail'}
         />
         {/* Which relay carries the words, as an ANSWER and not a control.
@@ -882,7 +912,16 @@ function RelaySection({ onRelayChanged }: { onRelayChanged: () => void }) {
     fetchConnect().then(setConn).catch(() => {});
     fetchRelayConfig().then(setCfg).catch(() => {});
   };
-  useEffect(reload, []);
+  // Polled for the same reason the card above it is: the relay address these
+  // cards show is what the client is DIALLING, and a dial that succeeds a
+  // second after the switch was flipped has to reach the screen without a
+  // reload.
+  useEffect(() => {
+    reload();
+    const timer = window.setInterval(reload, CONN_POLL_MS);
+    return () => window.clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /**
    * One save for both cards, because the mode is one field and two switches
@@ -1015,15 +1054,11 @@ function ProjectRelayCard({
         </div>
       )}
 
-      {/* The third state, said out loud in the card it is most likely to be
-          reached from. Without this, switching both off leaves two grey cards
-          and no statement of what now happens - which reads as a bug rather
-          than as the choice it is. */}
-      {cfg.mode === 'off' && (
-        <p className="mt-auto text-[11px] leading-relaxed text-carbon-textMuted">
-          {t('settings.access.relay.offNote')}
-        </p>
-      )}
+      {/* The "no relay at all" note used to be a paragraph here as well as the
+          tip on the badge above (jdp, 2026-09-06: "oder sollen wir nicht
+          einfach den text nehmen der in der Projekt-card erscheint? Und den
+          dafür dort entfernen?"). One place says it now, and it is the badge
+          that names the state. */}
     </Card>
   );
 }

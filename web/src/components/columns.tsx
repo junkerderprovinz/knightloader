@@ -18,6 +18,9 @@ import type { TranslationKey } from '../lib/i18n';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { IconCheck, IconRetry } from '../lib/icons';
+import { IconChevronDown } from '../lib/icons';
+import { ContextMenu, anchorBelow, useContextMenu } from './ContextMenu';
+import { HosterIcon } from './HosterIcon';
 import { ProgressBar } from './ProgressBar';
 import { ResolverBadge, StatusPill } from './StatusPill';
 import { useTooltip } from './ui';
@@ -100,11 +103,27 @@ export interface CellContext {
   t: Translate;
   /** The instance this list is showing, for the cells that can act on a row. */
   base: string;
+  /**
+   * Which of the two lists is drawing this cell.
+   *
+   * One column can honestly mean two different things in two lists, and the
+   * status column is exactly that case (jdp, 2026-09-06: "Wir machen es wi in
+   * JD. Im Linksammlertab soll die spalte Verfügbarkeit heißen ... Im
+   * downloadtab soll die statusspalte den zustand mit symbol und text
+   * anzeigen"). A staged link has no transfer state worth a word - every row
+   * says "collected" - while a running one has nothing to say about
+   * availability. Splitting them into two registry entries would mean two ids,
+   * two stored widths and a layout that forgets itself when a list changes
+   * which of them it uses.
+   */
+  profile: ListProfile;
 }
 
 export interface ColumnDef {
   id: ColumnId;
   labelKey: TranslationKey;
+  /** The header, where one list calls this column something else. */
+  labelByProfile?: Partial<Record<ListProfile, TranslationKey>>;
   /** Default width in CSS pixels; what the user drags overrides it. */
   width: number;
   minWidth: number;
@@ -568,14 +587,18 @@ export function PriorityTag({ value, names, t }: { value: number; names: Map<num
   const id = names.get(value);
   const label = id ? t(`priority.${id}` as TranslationKey) : String(value);
   return (
+    // The glyph alone (jdp, 2026-09-06: "das prioritätenicon in der liste soll
+    // nur das icon sein, kein text, kein bagdehintergrund"). The name is not
+    // lost - it is the tooltip and the accessible name - and the arrow already
+    // carries the only thing a glance needs: which way this row was moved.
+    // Up is the accent and down is muted rather than both being one colour: a
+    // raised link is the one somebody wants to spot in a long list.
     <span
-      className="glim-eyebrow shrink-0 rounded-[var(--radius-pill)] bg-carbon-surface3 px-1.5 leading-[17px] text-carbon-textSub"
       title={label}
+      aria-label={label}
+      className={`shrink-0 text-[11px] leading-none ${value > 0 ? 'text-accent' : 'text-carbon-textMuted'}`}
     >
-      {/* The arrow says which way without needing the word to be read: a
-          raised link and a lowered one must be tellable apart at a glance,
-          and at this size the label alone is a shape, not a sentence. */}
-      {value > 0 ? '▲' : '▼'} {label}
+      {value > 0 ? '▲' : '▼'}
     </span>
   );
 }
@@ -664,12 +687,27 @@ function NameCell({ task, t, base }: { task: Task; t: Translate; base: string })
   );
 }
 
-function ProgressCell({ loaded, size, done, active }: { loaded: number; size: number; done: boolean; active: boolean }) {
+function ProgressCell({
+  loaded,
+  size,
+  done,
+  active,
+  // Whether bytes are actually moving right now. A row waiting in a stopped
+  // queue has no size either, and looping a bar over it said "working" about a
+  // queue that was switched off.
+  live,
+}: {
+  loaded: number;
+  size: number;
+  done: boolean;
+  active: boolean;
+  live: boolean;
+}) {
   const p = pct(loaded, size, done);
   return (
     <div className="flex items-center gap-2">
       <div className="min-w-0 flex-1">
-        <ProgressBar percent={p} active={active} indeterminate={!done && size <= 0} tone={done ? 'ok' : 'accent'} />
+        <ProgressBar percent={p} active={active} indeterminate={live && !done && size <= 0} tone={done ? 'ok' : 'accent'} />
       </div>
       <span className="glim-num w-9 shrink-0 text-end text-[11px] text-carbon-textMuted">{p}%</span>
     </div>
@@ -681,12 +719,17 @@ function ProgressCell({ loaded, size, done, active }: { loaded: number; size: nu
 // ordner wird in der spalte immer noch gesammelt angezeigt") - can paint the
 // exact same shape over a whole package's aggregate verdict instead of one
 // task's.
-function AvailDot({ avail, title }: { avail: Availability | undefined; title?: string }) {
+function AvailDot({ avail, title, mixed }: { avail: Availability | undefined; title?: string; mixed?: boolean }) {
   return (
     <span
       title={title}
       className={`inline-block h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${
-        avail ? availDot[avail] : 'bg-carbon-textMuted/40'
+        // Mixed is the package's own third answer and it outranks the verdict
+        // below (jdp, 2026-09-06: "der punkt auf dem container kann gelb sein
+        // wenn manche links online sind und manche offline"). A folder with one
+        // dead link among nine good ones is neither green nor red, and painting
+        // it either way hides the one row somebody has to act on.
+        mixed ? 'bg-statusWarnSolid' : avail ? availDot[avail] : 'bg-carbon-textMuted/40'
       }`}
     />
   );
@@ -706,22 +749,34 @@ function packageAvailStatus(items: Task[]): Availability | undefined {
   return undefined;
 }
 
+/** True when a package holds both a working link and a dead one. */
+function packageAvailMixed(items: Task[]): boolean {
+  return items.some((x) => x.online === 'online') && items.some((x) => x.online === 'offline');
+}
+
+/**
+ * AvailCell is the collector's own column: is this link there or not.
+ *
+ * Just the dot, and only ever the availability verdict (jdp, 2026-09-06: "Im
+ * Linksammlertab soll die spalte Verfügbarkeit heißen und anzeigen ob ein link
+ * online oder oflfine ist. nur punkt"). Every staged row carries the identical
+ * task.status, so a state word there would read "gesammelt" on all of them.
+ */
+function AvailCell({ task, t }: { task: Task; t: Translate }) {
+  const why = task.reason ? reasonKey[task.reason] : undefined;
+  const avail = task.online;
+  return <AvailDot avail={avail} title={why ? t(why) : avail ? t(availChip[avail].key) : undefined} />;
+}
+
 function StatusCell({ task, t }: { task: Task; t: Translate }) {
   // The typed cause carries the detail, as a tooltip rather than a second word
   // on the line. "Host would not say" is the verdict and it is what the column
   // is for; whether the host was rate-limiting us or simply down is the next
   // question, and it belongs one hover away, not in the width of the cell.
   const why = task.reason ? reasonKey[task.reason] : undefined;
-  // Every row in the Collector carries the same task.status, so StatusPill's
-  // own dot+word here would always read "collected" in grey - the one thing
-  // that actually varies while a link is staged is the availability check,
-  // which this cell shows instead: just the dot, coloured by that verdict
-  // rather than by a status that never changes (jdp, 2026-08-25: "status-
-  // spalte soll nicht gesammelt text anzeigen sondern nur der status
-  // punkt... der soll grün wenn der link online ist... oder rot wenn
-  // offline"). Once a task leaves "collected" the availability question is
-  // moot - the transfer's own status IS the answer - so StatusPill's usual
-  // dot+word takes back over below, unchanged.
+  // A staged row can still turn up in the download list's own history views,
+  // and there the availability dot is the only honest reading - the transfer
+  // has not begun, so it has no state of its own yet.
   if (task.status === 'collected') {
     const avail = task.online;
     return <AvailDot avail={avail} title={why ? t(why) : avail ? t(availChip[avail].key) : undefined} />;
@@ -764,6 +819,17 @@ function StatusCell({ task, t }: { task: Task; t: Translate }) {
 // The column's own read of useConnectionLabel above - text truncated to the
 // cell, hint carried as a native title since this box, unlike the name
 // column, is not already sitting under the row's own rich tooltip.
+/** The host column: its logo, then its name. Blank rows draw neither. */
+function HostCell({ host }: { host: string }) {
+  if (!host) return null;
+  return (
+    <span className="flex min-w-0 items-center gap-1.5">
+      <HosterIcon host={host} size={16} />
+      <span className="truncate">{host}</span>
+    </span>
+  );
+}
+
 function ConnectionCell({ task, t, base }: { task: Task; t: Translate; base: string }) {
   const label = useConnectionLabel(task, t, base);
   if (!label) return null;
@@ -929,9 +995,79 @@ export const VARIANT_KIND_LABEL_KEY: Record<string, TranslationKey> = {
 // element: a wrapper span would need its own pointer-events dance to stay
 // clickable, for a mark that is already just paint.
 const VARIANTE_SELECT_CLASS =
-  'glim-select shrink-0 cursor-pointer appearance-none rounded-[var(--radius-control)] bg-carbon-surface3 py-1 ps-2 pe-6 ' +
+  'shrink-0 inline-flex items-center gap-1 cursor-pointer rounded-[var(--radius-control)] bg-carbon-surface3 py-1 ps-2 pe-1.5 ' +
   'text-xs text-carbon-text outline-none transition-shadow hover:bg-carbon-hover ' +
-  'focus:shadow-[0_0_0_2px_var(--focus-ring)] disabled:opacity-40';
+  'focus-visible:shadow-[0_0_0_2px_var(--focus-ring)] disabled:opacity-40';
+
+/**
+ * VariantPicker is the "Variante" cell's own dropdown - a button and a
+ * ContextMenu, never a native <select>.
+ *
+ * A <select> paints its OPEN list with the operating system's widget, which on
+ * Windows is a white panel with an orange focus frame that belongs to no theme
+ * this app has (jdp, 2026-09-06: "wenn ich bei youtube die varianten dropwdown
+ * öffne bekommen sie so orange begrenzungen. die dropdownlisten sind nicht im
+ * GSS"). `appearance: none` reaches the closed box only; the popup is the
+ * browser's and cannot be styled at all. ContextMenu is the app's own menu
+ * surface, already keyboard-navigable, already dismissed the same way every
+ * other menu here is, and it draws a checked mark for the value in force.
+ */
+function VariantPicker({
+  value,
+  options,
+  label,
+  disabled,
+  render,
+  onPick,
+}: {
+  value: string;
+  options: string[];
+  /** The menu's accessible name - what this picker is choosing. */
+  label: string;
+  disabled?: boolean;
+  /** How one option reads on screen; the raw value is what is sent. */
+  render: (option: string) => string;
+  onPick: (value: string) => void;
+}) {
+  const menu = useContextMenu();
+  return (
+    <>
+      <button
+        type="button"
+        disabled={disabled}
+        aria-label={label}
+        title={label}
+        aria-haspopup="menu"
+        onClick={(e) => {
+          e.stopPropagation();
+          menu.openAt(anchorBelow(e.currentTarget));
+        }}
+        className={VARIANTE_SELECT_CLASS}
+      >
+        <span className="truncate">{render(value)}</span>
+        <IconChevronDown width={12} height={12} className="shrink-0 opacity-70" />
+      </button>
+      {menu.anchor && (
+        <ContextMenu
+          anchor={menu.anchor}
+          label={label}
+          onClose={menu.close}
+          groups={[
+            {
+              id: 'variant',
+              items: options.map((o) => ({
+                id: o || 'auto',
+                label: render(o),
+                checked: o === value,
+                onSelect: () => onPick(o),
+              })),
+            },
+          ]}
+        />
+      )}
+    </>
+  );
+}
 
 let ytdlpMenus: Promise<{ qualities: string[]; audioFormats: string[]; audioBitrates: string[] }> | null = null;
 function loadYtdlpMenus() {
@@ -1032,38 +1168,28 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
     <span className="flex min-w-0 flex-wrap items-center gap-1.5 text-[11px] text-carbon-textMuted">
       <span className="shrink-0">{label}</span>
       {options && options.length > 0 && (
-        <select
+        <VariantPicker
           value={sub || options[0]}
+          options={options}
+          label={ctx.t('columns.variant.pick')}
           disabled={busy}
-          onChange={(e) => void change(e.target.value)}
-          onClick={(e) => e.stopPropagation()}
-          className={VARIANTE_SELECT_CLASS}
-        >
-          {options.map((o) => (
-            <option key={o} value={o}>
-              {o}
-            </option>
-          ))}
-        </select>
+          render={(o) => o}
+          onPick={(v) => void change(v)}
+        />
       )}
       {/* The audio row's own second, independent picker - a bitrate on top
           of the format above, not a mode of it (jdp, 2026-08-26: "soll die
           Audioqualität also die kbit/s auswählbar sein"). Shown only on the
           audio row, alongside its format select rather than replacing it. */}
       {kind === 'audio' && bitrateOptions.length > 0 && (
-        <select
+        <VariantPicker
           value={task.audioBitrate || ''}
+          options={bitrateOptions}
+          label={ctx.t('columns.variant.pickBitrate')}
           disabled={busy}
-          onChange={(e) => void changeBitrate(e.target.value)}
-          onClick={(e) => e.stopPropagation()}
-          className={VARIANTE_SELECT_CLASS}
-        >
-          {bitrateOptions.map((b) => (
-            <option key={b} value={b}>
-              {b ? `${b} kbit/s` : ctx.t('columns.variant.bitrateAuto')}
-            </option>
-          ))}
-        </select>
+          render={(b) => (b ? `${b} kbit/s` : ctx.t('columns.variant.bitrateAuto'))}
+          onPick={(v) => void changeBitrate(v)}
+        />
       )}
     </span>
   );
@@ -1125,6 +1251,7 @@ export const COLUMNS: ColumnDef[] = [
         size={task.size}
         done={task.status === 'done'}
         active={task.status !== 'error'}
+        live={task.status === 'running' || task.status === 'extracting'}
       />
     ),
     aggregate: (items) => {
@@ -1136,6 +1263,7 @@ export const COLUMNS: ColumnDef[] = [
           size={size}
           done={items.every((x) => x.status === 'done')}
           active={items.some((x) => x.status !== 'error')}
+          live={items.some((x) => x.status === 'running' || x.status === 'extracting')}
         />
       );
     },
@@ -1172,23 +1300,23 @@ export const COLUMNS: ColumnDef[] = [
   {
     id: 'status',
     labelKey: 'columns.status',
+    // Two lists, two honest meanings for one stored column - see CellContext's
+    // own `profile` doc comment.
+    labelByProfile: { collector: 'columns.availability' },
     width: 148,
     minWidth: 90,
     align: 'center',
     hideable: true,
     compare: (a, b) => STATUS_RANK[a.status] - STATUS_RANK[b.status],
-    render: (task, ctx) => <StatusCell task={task} t={ctx.t} />,
+    render: (task, ctx) =>
+      ctx.profile === 'collector' ? <AvailCell task={task} t={ctx.t} /> : <StatusCell task={task} t={ctx.t} />,
     // A package that shows nothing in the status column is a package that looks
     // like a spacer. It gets the same pill as a link, over the whole package -
-    // or, while every one of its links is still sitting in the collector, the
-    // same availability dot StatusCell's own row shows instead (jdp,
-    // 2026-08-25: "auf dem ordner wird in der spalte immer noch gesammelt
-    // angezeigt" - this aggregate branch was the one place still missed when
-    // StatusCell itself was fixed, since a folded package's own row never
-    // calls StatusCell at all).
-    aggregate: (items) =>
-      packageStatus(items) === 'collected' ? (
-        <AvailDot avail={packageAvailStatus(items)} />
+    // or, in the collector, the same availability dot its own rows show, with
+    // the mixed case as its own colour.
+    aggregate: (items, ctx) =>
+      ctx.profile === 'collector' || packageStatus(items) === 'collected' ? (
+        <AvailDot avail={packageAvailStatus(items)} mixed={packageAvailMixed(items)} />
       ) : (
         <StatusPill status={packageStatus(items)} />
       ),
@@ -1196,18 +1324,26 @@ export const COLUMNS: ColumnDef[] = [
   {
     id: 'host',
     labelKey: 'columns.host',
-    width: 150,
-    minWidth: 80,
+    // Wider than the bare name needed: the logo in front of it is 16px plus its
+    // gap, and taking that out of the name would truncate hosts that fitted
+    // yesterday.
+    width: 176,
+    minWidth: 96,
     align: 'start',
     ltr: true,
     hideable: true,
     compare: (a, b) => cmpText(hostOf(a), hostOf(b)),
-    render: (task) => hostOf(task),
+    // The host's own logo beside its name (jdp, 2026-09-06: "in der hoster
+    // spalte soll auch das logo des hosters zu sehen sein"), the same lazy,
+    // self-cached icon the account picker draws - the instance fetches it once
+    // and serves it from disk, so a list of five hundred rows over twenty hosts
+    // is twenty requests, not five hundred.
+    render: (task) => <HostCell host={hostOf(task)} />,
     // Only when the whole package came from one host. "3 hosts" in a column of
     // host names is a different kind of value in the same column.
     aggregate: (items) => {
       const one = new Set(items.map(hostOf));
-      return one.size === 1 ? hostOf(items[0]) : null;
+      return one.size === 1 ? <HostCell host={hostOf(items[0])} /> : null;
     },
   },
   {
@@ -1384,11 +1520,31 @@ export const COLUMN_BY_ID = new Map<ColumnId, ColumnDef>(COLUMNS.map((c) => [c.i
 export const DEFAULT_ORDER: ColumnId[] = COLUMNS.map((c) => c.id);
 
 /**
- * The one column that stretches. Its stored width becomes a flex ratio rather
- * than a pixel count, so dragging it still works and still persists — it just
- * competes for the leftover room instead of demanding an exact slice of it.
+ * Where the progress column sits, which is not the same answer in both lists.
+ *
+ * In the download list it is the last column (jdp, 2026-09-06: "in der
+ * downloadliste soll der fortschrittsspalte ganz rechts sein"), so the bar has
+ * the trailing edge of the row to itself and every fixed-width value column
+ * lines up before it. In the collector nothing has started, so the column ships
+ * hidden there and its position never comes up.
  */
-const FLEX_COLUMN: ColumnId = 'name';
+function defaultOrderFor(profile: ListProfile): ColumnId[] {
+  if (profile !== 'downloads') return [...DEFAULT_ORDER];
+  return [...DEFAULT_ORDER.filter((id) => id !== 'progress'), 'progress'];
+}
+
+/**
+ * The shape of a stored layout, bumped when a shipped DEFAULT changes in a way
+ * an existing layout would otherwise swallow.
+ *
+ * mergeOrder deliberately keeps whatever order somebody arranged, and that is
+ * right for a column somebody dragged - but it also means a new default order
+ * reaches nobody who has ever touched this table. A version stamp is the one
+ * way to say "this particular change is not a preference of theirs to keep":
+ * the order is re-seated once, and the widths and the hidden set, which ARE
+ * their preferences, survive it untouched.
+ */
+export const LAYOUT_VERSION = 2;
 
 /**
  * What each list starts with switched off. The collector holds links nobody has
@@ -1485,6 +1641,8 @@ export interface ColumnLayout {
   order: ColumnId[];
   hidden: ColumnId[];
   widths: Partial<Record<ColumnId, number>>;
+  /** Absent on every layout written before the stamp existed - see LAYOUT_VERSION. */
+  v?: number;
 }
 
 export interface ResolvedLayout {
@@ -1511,23 +1669,24 @@ const isKnown = (id: string): id is ColumnId => COLUMN_BY_ID.has(id as ColumnId)
  * arranging, and does not append the new column at the far right where nobody
  * scrolls to find it.
  */
-function mergeOrder(stored: ColumnId[] | undefined): ColumnId[] {
+function mergeOrder(profile: ListProfile, stored: ColumnId[] | undefined): ColumnId[] {
+  const base = defaultOrderFor(profile);
   const kept = (stored ?? []).filter(isKnown);
   // Nothing recognisable stored: either a first run or a layout from a build
   // that shares no column with this one. Either way the defaults are the answer.
-  if (kept.length === 0) return [...DEFAULT_ORDER];
+  if (kept.length === 0) return [...base];
 
   const out: ColumnId[] = [];
   for (const id of kept) if (!out.includes(id)) out.push(id);
 
-  for (let i = 0; i < DEFAULT_ORDER.length; i++) {
-    const id = DEFAULT_ORDER[i];
+  for (let i = 0; i < base.length; i++) {
+    const id = base[i];
     if (out.includes(id)) continue;
     // Seat it after the nearest default predecessor that is already placed, so
     // two new neighbouring columns also keep their order relative to each other.
     let at = 0;
     for (let k = i - 1; k >= 0; k--) {
-      const p = out.indexOf(DEFAULT_ORDER[k]);
+      const p = out.indexOf(base[k]);
       if (p >= 0) {
         at = p + 1;
         break;
@@ -1552,7 +1711,11 @@ function mergeHidden(profile: ListProfile, stored: ColumnLayout | null | undefin
 }
 
 export function resolveLayout(profile: ListProfile, stored: ColumnLayout | null | undefined): ResolvedLayout {
-  const order = mergeOrder(stored?.order).map((id) => COLUMN_BY_ID.get(id)!);
+  // A layout from before the stamp takes this build's order once; everything
+  // that is genuinely a preference (which columns are off, how wide they are)
+  // comes along unchanged. See LAYOUT_VERSION.
+  const current = (stored?.v ?? 0) >= LAYOUT_VERSION;
+  const order = mergeOrder(profile, current ? stored?.order : undefined).map((id) => COLUMN_BY_ID.get(id)!);
   const hidden = mergeHidden(profile, stored);
   const widths: Partial<Record<ColumnId, number>> = {};
   for (const [id, w] of Object.entries(stored?.widths ?? {})) {
@@ -1569,7 +1732,7 @@ export function resolveLayout(profile: ListProfile, stored: ColumnLayout | null 
 
 /** toStored is what resolveLayout resolved, in the shape the store keeps. */
 export function toStored(r: ResolvedLayout): ColumnLayout {
-  return { order: r.order.map((c) => c.id), hidden: [...r.hidden], widths: { ...r.widths } };
+  return { order: r.order.map((c) => c.id), hidden: [...r.hidden], widths: { ...r.widths }, v: LAYOUT_VERSION };
 }
 
 /** moveColumn puts `id` immediately before or after `target`. */
@@ -1582,17 +1745,6 @@ export function moveColumn(order: ColumnId[], id: ColumnId, target: ColumnId, af
   return without;
 }
 
-// The trailing gutter holds a row's own action badges, and the header's own
-// hint bubble now sits in that same track (jdp, 2026-08-26: "Die infobubble
-// in der kopfzeile bitte ganz nach rechts verschieben. in der liste fängt
-// jetzt wo die checkboxen fehlen alles zu weit rechts an. bitte weiter nach
-// links verschieben." - the leading gutter this used to share with the
-// bubble is gone entirely now that a plain click selects a row itself
-// rather than a checkbox living there; TaskList.tsx's own click-to-select
-// comment has the full request). Not a column: it cannot be hidden, sorted
-// by or dragged, and putting it in the registry would only mean writing
-// "except this one" everywhere the registry is used.
-export const GUTTER_ACTIONS = '9.5rem';
 
 /**
  * gridTemplate builds the track list every row shares.
@@ -1602,29 +1754,35 @@ export const GUTTER_ACTIONS = '9.5rem';
  * instead of re-rendering several hundred rows per pointer move.
  */
 /**
- * The track list. Every column is its stored pixel width except the FLEX one,
- * which takes whatever is left over.
+ * The track list. Every column is exactly the width somebody dragged it to,
+ * and the LAST one stretches into whatever room is left over.
  *
- * That column is the name, and making it flexible rather than fixed is what
- * stops the table opening scrolled off its own right edge: with all widths
- * fixed, a trailing spacer soaked up any surplus but nothing absorbed a
- * shortfall, so a window narrower than the sum simply cut the last columns off.
- * Measured at 1400px: 276px over, with a 340px name column sitting next to a
- * spacer doing nothing. The name is the right one to give: it is the column
- * people widen the window FOR, it truncates gracefully, and its own minimum
- * keeps it readable when the flex runs out and the table does start scrolling.
+ * It used to be the name column that stretched, and that cost two things at
+ * once (jdp, 2026-09-06). Dragging the name did nothing at all - its stored
+ * width became the numerator of a one-track `fr`, which is the same layout at
+ * any value - so "man kann nicht alle anpassen" was literally true of the one
+ * column people most want wider. And every other drag came out of the name,
+ * because the flexible track is what absorbs a change: "die verschieben sich
+ * gegenseitig".
+ *
+ * Giving the surplus to the last column instead fixes both and answers a third
+ * complaint with the same move: nothing sits between the final column and the
+ * right edge any more ("die spalte Hoster die jetzt rechts ist geht nicht ganz
+ * nach rechts"). Its own width is the floor of that stretch, so dragging it
+ * still means something once the table is wide enough to scroll.
  */
 export function gridTemplate(visible: ColumnDef[], widthOf: (id: ColumnId) => number): string {
   // Exactly one track per rendered cell, and no spare. The rows are a grid with
   // no explicit row count, so one track too few silently wraps the last cell
   // onto a second grid line — which does not look like a layout bug, it looks
   // like the rows are simply tall, and every row grew from 38px to 74px before
-  // anybody counted the tracks. The flexible column is never hideable, so there
-  // is no case where a spacer is needed to soak up the surplus.
-  const tracks = visible.map((c) =>
-    c.id === FLEX_COLUMN ? `minmax(${c.minWidth}px, ${widthOf(c.id)}fr)` : `${widthOf(c.id)}px`,
-  );
-  return [...tracks, GUTTER_ACTIONS].join(' ');
+  // anybody counted the tracks. The row's action badges are no longer a track
+  // of their own: they float over the row's trailing edge on hover instead.
+  return visible
+    .map((c, i) =>
+      i === visible.length - 1 ? `minmax(${widthOf(c.id)}px, 1fr)` : `${widthOf(c.id)}px`,
+    )
+    .join(' ');
 }
 
 // --- Sorting, which is a view and nothing more -----------------------------

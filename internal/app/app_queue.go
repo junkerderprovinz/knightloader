@@ -28,6 +28,16 @@ type StartResult struct {
 	// holding area, and somebody who pressed start on one deserves to be told
 	// that rather than watching the row not move.
 	Skipped int `json:"skipped"`
+	// Disabled is how many were passed over because their own switch is off.
+	//
+	// Its own field rather than more Skipped, because the two have different
+	// cures: a held link needs Restore, a disabled one needs its switch back on.
+	// Counted at all because it used to be counted nowhere - a link switched off
+	// in the collector went into the download list anyway on "start everything"
+	// (jdp, 2026-09-06: "wenn ich im sammlertab ein link auf inaktiv setzte und
+	// dann auf alle starten klicke verschiebt es ihn trotzdem in den
+	// downloadtab"), which made the switch decoration.
+	Disabled int `json:"disabled"`
 	// Released reports that this start took the queue off a halt the user had
 	// set by hand, so the interface can show the master switch flipping without
 	// waiting for its next poll.
@@ -98,6 +108,15 @@ func (a *App) startTasks(ids []string, byHand bool) StartResult {
 			// sitting on the task where nothing had asked for it. Counting it
 			// here is what lets the answer say so.
 			out.Skipped++
+			continue
+		}
+		// The user's own switch, and it holds here exactly as it holds in the
+		// dispatcher. It is checked for a start BY ID too, not only for "start
+		// everything": a switch that a direct start overrides is a switch that
+		// means "unless you ask twice", which is not what anybody reads it as.
+		// Turning the link back on is the one way to start it.
+		if !t.Enabled {
+			out.Disabled++
 			continue
 		}
 		toStart = append(toStart, t)

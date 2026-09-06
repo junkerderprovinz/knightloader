@@ -22,7 +22,17 @@ import {
 } from '../lib/api';
 import { hueVars, rainbowAt } from '../lib/appearance';
 import { useRainbow } from '../lib/useRainbow';
-import { pause, resume, remove, startTasks, restartTasks, recheckTasks, setTaskOptions, reorderTasks } from '../lib/api';
+import {
+  pause,
+  resume,
+  remove,
+  startTasks,
+  restartTasks,
+  recheckTasks,
+  setPackage,
+  setTaskOptions,
+  reorderTasks,
+} from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { useUIState } from '../lib/uistate';
@@ -296,7 +306,7 @@ function TaskRow({
       // over glim-tint's own inset box-shadow rainbow wash rather than
       // fighting it for the same CSS property, so both show at once.
       className={`glim-hue glim-tint ${dnd.enabled ? 'select-none' : ''} ${task.status === 'running' ? 'glim-active' : ''} ${dragging ? 'opacity-50' : ''} ${
-        selection?.ids.has(task.id) ? 'bg-accent/20' : ''
+        selection?.ids.has(task.id) ? 'glim-row-selected' : ''
       } group relative grid
         items-center px-3 py-2 transition-colors hover:bg-carbon-hover/50`}
     >
@@ -333,8 +343,13 @@ function TaskRow({
         );
       })}
 
-      {/* The primary action stays visible; the rest appears on hover or focus,
-          so a long list reads as content instead of a wall of buttons.
+      {/* The whole strip floats over the row's trailing edge on hover now, and
+          owns no grid track at all (jdp, 2026-09-06: "im downloadtab ist rechts
+          eine spalte die leer ist" - a fixed 152px gutter, empty on nearly every
+          row, was exactly that column). It carries the row's own ground so the
+          cells it covers do not read through it, and the context menu on the
+          same row offers every one of these verbs for anybody not using a
+          pointer.
           IconBadge, not a plain ghost icon (jdp, on the same pattern in
           Rules.tsx: "die icons ... sind nicht im Glimstone. das sollen
           farbige quadratischen badges mit icon sein") - this is the
@@ -359,7 +374,11 @@ function TaskRow({
           semantic red" choice: the badge that stood out in solid red next
           to its now-hued, at-rest-neutral siblings was read as the actual
           inconsistency, not the fix. */}
-      <div className="flex items-center justify-end gap-1">
+      <div
+        className="absolute inset-y-px end-2 z-10 flex items-center gap-1 rounded-[var(--radius-control)]
+          bg-carbon-surface px-1 opacity-0 shadow-[var(--elevation)] transition-opacity
+          group-hover:opacity-100 focus-within:opacity-100"
+      >
         {collected && (
           <IconBadge
             hue={0}
@@ -387,7 +406,9 @@ function TaskRow({
             onClick={() => resume(task.id, base)}
           />
         )}
-        <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+        {/* No second opacity layer inside the strip any more: the whole strip
+            already appears on hover, so this was a fade inside a fade. */}
+        <div className="flex items-center gap-1">
           {collected && (
             <IconBadge
               hue={1}
@@ -773,8 +794,8 @@ function PackageGroup({
         // two background-color utilities on one element race in Tailwind's
         // generated stylesheet order (not class-string order), and the quiet
         // one was silently winning, making a selected package invisible.
-        className={`grid cursor-pointer select-none items-center ${
-          allSelected ? 'bg-accent/20' : 'bg-carbon-surface2/80'
+        className={`relative grid cursor-pointer select-none items-center ${
+          allSelected ? 'glim-row-selected' : 'bg-carbon-surface2/80'
         } px-3 py-2.5 transition-colors hover:bg-carbon-surface2 ${dragging ? 'opacity-50' : ''}`}
       >
         {columns.map((col) => (
@@ -792,13 +813,18 @@ function PackageGroup({
           </div>
         ))}
 
-        {/* The actions gutter - empty for most packages, but the gear badge
-            for one whose own "Variante" rows share a host (variantKindOf is
-            '' for anything not yt-dlp-routed). One cell per track: a spare
-            one wraps the grid onto a second line. */}
-        <div className="flex items-center justify-end">
-          {ytdlpHost && <HosterPresetButton host={ytdlpHost} base={base} />}
-        </div>
+        {/* The gear badge for a package whose own "Variante" rows share a host
+            (variantKindOf is '' for anything not yt-dlp-routed), floating over
+            the trailing edge like a link row's own strip rather than owning a
+            track: there is no actions track any more. */}
+        {ytdlpHost && (
+          <div
+            className="absolute inset-y-px end-2 z-10 flex items-center rounded-[var(--radius-control)]
+              bg-carbon-surface px-1 shadow-[var(--elevation)]"
+          >
+            <HosterPresetButton host={ytdlpHost} base={base} />
+          </div>
+        )}
       </div>
 
       {!collapsed && (
@@ -877,6 +903,7 @@ interface RowDnD {
  */
 function Header({
   layout,
+  profile,
   sort,
   onSort,
   onReorder,
@@ -885,6 +912,7 @@ function Header({
   onMenu,
 }: {
   layout: ResolvedLayout;
+  profile: ListProfile;
   sort: SortState | null;
   onSort: (id: ColumnId) => void;
   onReorder: (id: ColumnId, target: ColumnId, after: boolean) => void;
@@ -913,7 +941,7 @@ function Header({
         e.preventDefault();
         onMenu({ x: e.clientX, y: e.clientY });
       }}
-      className="grid items-center border-b border-carbon-border/60 px-3 py-1 select-none"
+      className="relative grid items-center border-b border-carbon-border/60 px-3 py-1 select-none"
     >
       {layout.visible.map((col) => {
         const sorted = sort?.id === col.id ? sort.dir : null;
@@ -942,7 +970,10 @@ function Header({
                   col.align === 'end' ? 'justify-end' : col.align === 'center' ? 'justify-center' : 'justify-start'
                 } ${sorted ? 'text-carbon-text' : 'text-carbon-textMuted hover:text-carbon-textSub'}`}
             >
-              <span className="truncate">{t(col.labelKey)}</span>
+              {/* One list can call a column something else - see
+                  CellContext's own `profile` doc comment for why that is one
+                  column and not two. */}
+              <span className="truncate">{t(col.labelByProfile?.[profile] ?? col.labelKey)}</span>
               {sorted === 'asc' && <IconArrowUp width={11} height={11} className="shrink-0" />}
               {sorted === 'desc' && <IconArrowDown width={11} height={11} className="shrink-0" />}
             </button>
@@ -985,9 +1016,18 @@ function Header({
           both here and from every row's own alignment placeholder is what
           actually lets the whole table shift left into the space the
           checkbox column used to own, not just moving the bubble alone
-          would have). */}
-      <div className="flex items-center justify-center">
-        <InfoBubble tip={t('columns.headerHint')} />
+          would have).
+
+          Floating over the trailing edge rather than owning a track of its
+          own: the track it used to sit in is gone (jdp, 2026-09-06: "im
+          downloadtab ist rechts eine spalte die leer ist"), so the last
+          column now runs all the way to the right edge and this bubble sits
+          on top of its header label, where there is nothing but empty
+          header row anyway. */}
+      <div className="pointer-events-none absolute inset-y-0 end-1 flex items-center">
+        <span className="pointer-events-auto">
+          <InfoBubble tip={t('columns.headerHint')} />
+        </span>
       </div>
     </div>
   );
@@ -1335,7 +1375,7 @@ export function TaskListCard({
   const drag = useRef<{ id: ColumnId; startX: number; startWidth: number; width: number } | null>(null);
 
   const layout = useMemo(() => resolveLayout(profile, stored), [profile, stored]);
-  const ctx = useMemo<CellContext>(() => ({ t, base }), [t, base]);
+  const ctx = useMemo<CellContext>(() => ({ t, base, profile }), [t, base, profile]);
 
   // A sort on a column that is currently hidden is ignored rather than cleared,
   // so showing the column again brings the order back with it. Applying it while
@@ -1599,6 +1639,34 @@ export function TaskListCard({
     setRowDrag(null);
     setDragOver(null);
     if (!dragged) return;
+    // A link dropped inside a DIFFERENT package joins that package, the way it
+    // does in JDownloader (jdp, 2026-09-06: "drag and drop soll auch in der
+    // downloadliste funktionieren"). Reordering rows within one package always
+    // worked - verified live on the preview instance, the POST answers 200 and
+    // the rows re-sort - but a link dragged across a package boundary snapped
+    // straight back, because groupByPackage re-merges every row of a package at
+    // that package's first appearance. So the drag looked ignored, which is
+    // exactly the shape "does not work" takes.
+    //
+    // The move goes first and the reorder follows it: the row has to be IN the
+    // package before its position among that package's rows means anything.
+    if (dragged.kind === 'task') {
+      const from = taskById.get(dragged.id)?.package ?? '';
+      const to =
+        target.kind === 'package' ? target.name : (taskById.get(target.id)?.package ?? '');
+      if (from !== to) {
+        setPackage([dragged.id], to, base)
+          .then(() => {
+            const band = unitBand(dragged);
+            const order = band ? reorderedBand(dragged, target, after) : null;
+            if (order) return reorderTasks(order, base);
+          })
+          .catch((err) =>
+            toast(t('list.failed', { error: err instanceof Error ? err.message : String(err) }), 'fail'),
+          );
+        return;
+      }
+    }
     // A different band, the dragged unit dropped on itself, or a mixed
     // package on either end: a normal boundary, not a failure. Reverted
     // visually by the drag simply ending above, no request and no toast —
@@ -2044,6 +2112,7 @@ export function TaskListCard({
             <div ref={tableRef} className="min-w-min" style={{ ['--kl-cols' as string]: template } as CSSProperties}>
               <Header
                 layout={layout}
+                profile={profile}
                 sort={sort}
                 onSort={(id) => setSort(nextSort(storedSort, id))}
                 onReorder={(id, target, after) =>

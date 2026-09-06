@@ -11,9 +11,8 @@ import {
   removeInstance,
 } from '../lib/api';
 import { useT } from '../lib/i18n';
-import { PageHeader, Card, Button, SectionTitle } from '../components/ui';
+import { PageHeader, Card, Button, InfoBubble, SectionTitle } from '../components/ui';
 import { InstanceCard } from '../components/InstanceCard';
-import { FirstTouchHint } from '../components/FirstTouchHint';
 
 export function Instances() {
   const { t } = useT();
@@ -75,9 +74,12 @@ export function Instances() {
       {/* Subtitle removed (jdp, 2026-08-24: "text entfernen: Alle
           KnightLoader von einer Oberfläche aus sehen und steuern.") - the
           title alone already says what this page is. */}
+      {/* No explainer strip here any more (jdp, 2026-09-06: "im instanzentab
+          dieser hinweis weg: Ein Gegenstück, keine Kopie ... Diese art von
+          infotexten können überall weg"). The page's own cards say what they
+          are, and anything genuinely worth explaining belongs in the (i) on a
+          card badge, which is where the last two of these already went. */}
       <PageHeader title={t('instances.title')} />
-
-      <FirstTouchHint id="instances" />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Its own Open button, pointing at the local download list (jdp,
@@ -158,7 +160,11 @@ export function Instances() {
         <Button kind="secondary" onClick={() => navigate('/settings/access')}>
           {t('instances.connectButton')}
         </Button>
-        <span className="text-xs text-carbon-textMuted">{t('instances.connectHint')}</span>
+        {/* Behind the (i) rather than as grey prose beside the button (jdp,
+            2026-09-06: "Diese art von infotexten können überall weg") - the
+            same rule that put every other explanation in this app into a
+            bubble. */}
+        <InfoBubble tip={t('instances.connectHint')} />
       </div>
     </div>
   );

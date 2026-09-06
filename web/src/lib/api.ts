@@ -838,6 +838,8 @@ export async function addLinksWithOptions(
 export interface StartResult {
   started: number;
   skipped: number;
+  /** Passed over because their own switch is off - see app.StartResult. */
+  disabled?: number;
   /** The queue was taken off a halt the user had set by hand. */
   released: boolean;
   /** A schedule window is holding the queue; the tasks are queued and waiting. */

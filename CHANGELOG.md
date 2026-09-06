@@ -39,6 +39,58 @@ The copy of the extension most people run does not come from its tag. Settings
 binary is running, so that one tracks the server. The tag exists for a store
 submission and for a fixed download.
 
+## [Unreleased]
+
+### Added
+
+- **The download list is a table you can arrange.** Every column is resizable,
+  including the name; the last one stretches to the right edge, so no empty
+  strip sits beside it. Progress moved to the far right and its bar is thicker
+  and takes the shape setting's own corner.
+- **Hoster logos** in the list's own Hoster column, beside the name, from the
+  same self-cached icon the account picker draws.
+- **A "do not ask again" switch on every confirmation** that can carry one, with
+  a card under Settings > Appearance that lists what has been silenced and turns
+  it back on.
+- **Dragging a link into another package** moves it there instead of snapping
+  back. Reordering inside a package was already possible.
+
+### Changed
+
+- **The head card is a reading, not a page of prose**: the counters strip, the
+  account chip and both explanatory sentences are gone; the speed curve moved to
+  the trailing edge and is as tall as the card. Nothing on it is clickable any
+  more, which is what the hamburger beside it is for.
+- **One row for every list action**, the way the collector already worked - quick
+  filters, search, the selection verbs and the page-level badges, all above the
+  card instead of stacked in three rows around it. The search opens as a popover
+  under its badge.
+- **The status column says what it means in each list**: "Verfügbarkeit" with a
+  green or red dot in the collector (amber on a package whose links disagree),
+  and the transfer state with its own glyph in the download list.
+- **A selected row is visibly selected** - the mark is the theme accent and an
+  edge, and it survives the rainbow wash that used to paint over it.
+- **The quick settings read as sentences**: one field per row, each named after
+  what it counts, each with its own bubble.
+- **Relay and access texts rewritten**, including four distinct sentences for the
+  connection state (project relay, own relay, no relay at all, and no contact
+  with a relay that is configured).
+
+### Fixed
+
+- A link switched off in the collector is no longer started by "start
+  everything"; it stays where it is and the toast says how many were passed over.
+- Progress bars no longer animate while the queue is stopped. The looping bar
+  now means "bytes are moving", not "this row has no size yet".
+- A container's own crawl verdict is kept, so a freshly opened DLC shows online
+  or offline per link immediately instead of staying grey until a manual check.
+- The variant pickers are the app's own menu rather than the operating system's
+  widget, which no stylesheet could reach.
+- The audio menu offers AAC, ALAC and Vorbis where the source carries them, and
+  the video ladder covers 144p to 4320p.
+- The remote-access card follows the relay's state live instead of only after a
+  reload, and the address field accepts a bare host name.
+
 ## [1.0.0] - 2026-09-02
 
 The first release of KnightLoader itself: server, web interface and desktop

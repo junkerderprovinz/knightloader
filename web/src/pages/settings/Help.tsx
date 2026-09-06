@@ -269,7 +269,13 @@ function About({ hue }: { hue: number }) {
           {t('settings.about.coffeeButton')}
         </a>
       </div>
-      <p className="text-sm text-carbon-textSub">{t('settings.about.report')}</p>
+      {/* One extra step of space above this line, and only above this one
+          (jdp, 2026-09-06). The card holds two offers, and without the break
+          the coffee button sits as close to the next sentence as to the one it
+          belongs to, so the eye pairs it with the wrong text. A blank line is
+          what separates two paragraphs everywhere else, and that is all this
+          is. */}
+      <p className="mt-2 text-sm text-carbon-textSub">{t('settings.about.report')}</p>
       <div className="flex flex-wrap gap-2">
         {/* Anchors dressed as buttons rather than buttons that navigate: one
             opens a site and one hands off to a mail client, and both want the

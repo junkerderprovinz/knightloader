@@ -3,7 +3,6 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
 import { QueueBar } from '../components/QueueBar';
 import { ShellStrip } from '../components/QuickSettings';
-import { AccountStrip } from '../components/AccountStrip';
 import { CaptchaModal } from '../components/CaptchaModal';
 import { CommandDispatcher } from '../components/CommandDispatcher';
 import { CommandPalette } from '../components/CommandPalette';
@@ -111,8 +110,8 @@ function useAppearance() {
  * oben ist soll nur im Downloadfenster sichtbar sein") — hidden with `hidden`,
  * not left unmounted, for the exact reason this component exists at all:
  * unmounting on every navigation away from Downloads would throw away
- * QueueBar's queue-control state and ShellStrip/AccountStrip's own fetch
- * loops, remounting and refetching them the moment somebody navigates back.
+ * QueueBar's queue-control state and ShellStrip's own fetch loops, remounting
+ * and refetching them the moment somebody navigates back.
  *
  * A real card, not a bar pinned to the window edge (jdp: "Die Statuszeile
  * soll nicht oben am Fenster kleben sondern eine schöne eigene Card sein") —
@@ -127,7 +126,10 @@ function ShellBar({ visible }: { visible: boolean }) {
     <div
       role="region"
       aria-label={t('shell.bar')}
-      className={`glim-card mx-6 mt-6 flex-wrap items-center gap-x-4 gap-y-2 p-5 md:mx-8 md:mt-8
+      /* items-stretch, not items-center: the speed curve at the trailing edge
+         is meant to be as tall as the card itself (jdp, 2026-09-06), and a
+         centred row would give it only the height of its own content. */
+      className={`glim-card mx-6 mt-6 items-stretch gap-x-4 gap-y-2 p-5 md:mx-8 md:mt-8
         ${visible ? 'flex' : 'hidden'}`}
     >
       {/* Named only when it is not this machine. A tag on every screen would be
@@ -156,10 +158,10 @@ function ShellBar({ visible }: { visible: boolean }) {
           something they would have to delete first. Read the scope above with
           useInstanceScope(): nothing in this bar may assume '/api'. */}
       <ShellStrip />
-      {/* Wave 6 (6B): tier/traffic/expiry for every enabled debrid account,
-          reading a cached snapshot only - see AccountStrip's own doc comment
-          for why it never calls a live per-service check from here. */}
-      <AccountStrip />
+      {/* No account chip here any more (jdp, 2026-09-06: "Der Hinweis zum
+          premium accoount soll da ganz weg"). Tier, traffic and expiry live on
+          the Accounts page, which is where somebody goes to act on them; in the
+          head card they were a second copy nobody had asked a question of. */}
     </div>
   );
 }

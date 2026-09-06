@@ -40,17 +40,21 @@ func TestSanitizeKeepsEveryKnownAudioBitrate(t *testing.T) {
 // audio case (jdp, 2026-08-26: "bei der audio spur sollen nur die formate
 // angezeigt werden die wirklich von hoster angeboten werden. Youtube bietet
 // zb keine flac audio"): a source offering opus and AAC audio-only tracks
-// gets "opus"/"m4a" plus the always-kept "best" - mp3/wav/flac, none of
-// which the source actually has, do not appear even though ffmpeg could
-// technically transcode to any of them.
+// gets what those two codecs natively read as, plus the always-kept "best" -
+// mp3/wav/flac, none of which the source actually has, do not appear even
+// though ffmpeg could technically transcode to any of them.
+//
+// An AAC track contributes BOTH of its native readings, "m4a" (the container
+// it already sits in) and "aac" (the raw stream), because neither re-encodes
+// anything and JDownloader names that row AAC - which is the half people went
+// looking for and did not find (jdp, 2026-09-06).
 func TestAvailableAudioFormatsKeepsOnlyNativeCodecsPlusBest(t *testing.T) {
 	got := AvailableAudioFormats([]string{"opus", "mp4a.40.2", "opus"})
-	// AudioFormats()'s own menu order (best, mp3, m4a, opus, wav, flac), not
-	// the order the codecs were passed in - the point of filtering against
-	// that menu rather than building a fresh list is that the result reads
-	// like the ordinary, unfiltered menu with entries missing, not a
-	// differently-ordered one.
-	want := []string{"best", "m4a", "opus"}
+	// AudioFormats()'s own menu order, not the order the codecs were passed
+	// in - the point of filtering against that menu rather than building a
+	// fresh list is that the result reads like the ordinary, unfiltered menu
+	// with entries missing, not a differently-ordered one.
+	want := []string{"best", "aac", "m4a", "opus"}
 	if len(got) != len(want) {
 		t.Fatalf("AvailableAudioFormats = %v, want %v", got, want)
 	}
@@ -63,13 +67,18 @@ func TestAvailableAudioFormatsKeepsOnlyNativeCodecsPlusBest(t *testing.T) {
 }
 
 // TestAvailableAudioFormatsWithNoRecognisedCodecKeepsOnlyBest is the "no
-// data" floor: a codec audioFormatForCodec does not recognise (vorbis,
-// ac-3...) contributes nothing rather than a guess, so only "best" - which
-// names no codec of its own - survives.
+// data" floor: a codec audioFormatsForCodec does not recognise (ac-3, eac3...)
+// contributes nothing rather than a guess, so only "best" - which names no
+// codec of its own - survives.
 func TestAvailableAudioFormatsWithNoRecognisedCodecKeepsOnlyBest(t *testing.T) {
-	got := AvailableAudioFormats([]string{"vorbis", "ac-3"})
+	got := AvailableAudioFormats([]string{"ac-3", "eac3"})
 	if len(got) != 1 || got[0] != "best" {
 		t.Errorf("AvailableAudioFormats = %v, want [best]", got)
+	}
+	// Vorbis IS recognised now, and that is the point of the longer menu: a
+	// source that carries it can be asked for it.
+	if got := AvailableAudioFormats([]string{"vorbis"}); len(got) != 2 || got[1] != "vorbis" {
+		t.Errorf("AvailableAudioFormats(vorbis) = %v, want [best vorbis]", got)
 	}
 }
 

@@ -139,23 +139,34 @@ export function QuickSettings({ onClose }: { onClose: () => void }) {
           same controls this panel used to duplicate. What is left here is
           genuinely NOT available anywhere else: per-instance concurrency. */}
       {cfg && (
-        // Read together because they multiply: two downloads on one host, each
-        // pulled over eight sockets, is sixteen connections to that host and
-        // no one of the three numbers says so on its own.
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {/* No `max` on the two concurrency spinners, and that is not an
+        // One under the other (jdp, 2026-09-06: "Das Hmabugermenü sollen die
+        // einstellungen untereinander sein"). Side by side, the three labels
+        // were each squeezed into a third of the panel and wrapped mid-phrase,
+        // which is half of why they read as riddles; a full-width row lets each
+        // one say what it actually does.
+        <div className="flex flex-col gap-4">
+          {/* Every label now names its own unit of counting - downloads, hosts,
+              connections - instead of "Gleichzeitig max." and "Pro Host max.",
+              which said how many but never of what (jdp, same round: "die namen
+              der optionen sind nicht eindeutig und man weiß nicht genau was sie
+              machen"). The bubble carries the consequence, which is the part
+              that cannot fit in a label.
+
+              No `max` on the two concurrency spinners, and that is not an
               omission: their bound lives in settings.sanitizeQueue and is not
               served, so a number typed here would be a copy of it that drifts
               the day it moves. The save answers with what was stored, and the
               field adopts that instead. */}
           <Spin
             label={t('settings.maxConcurrent')}
+            hint={t('settings.maxConcurrentHint')}
             value={cfg.maxConcurrent}
             min={1}
             onCommit={(n) => patch({ maxConcurrent: n })}
           />
           <Spin
             label={t('settings.maxPerHost')}
+            hint={t('settings.maxPerHostHint')}
             value={cfg.maxPerHost}
             min={1}
             onCommit={(n) => patch({ maxPerHost: n })}
@@ -209,20 +220,27 @@ export function ShellStrip() {
 
   return (
     <>
-      <span className="flex items-center gap-1">
-        <SpeedMeter value={speed} label={t('quick.title')} onOpen={local ? () => setOpen(true) : undefined} />
+      {/* items-stretch, not items-center: the curve is meant to be as tall as
+          the card (jdp, 2026-09-06), and a centred row hands it only its own
+          content height - measured live at 16px inside a 104px card. */}
+      <span className="flex h-full items-stretch gap-1">
         {local && (
           // Always exactly three bars (GlimStone's own rule) - a
           // sliders/equalizer glyph read as "adjust a value", not "open a
           // menu", to anyone who had already seen either convention.
           <Button
             kind="ghost"
+            className="self-center"
             icon={<IconMenu width={16} height={16} />}
             aria-label={t('quick.title')}
             title={t('quick.title')}
             onClick={() => setOpen(true)}
           />
         )}
+        {/* Last in the row and stretched, so it is the card's trailing edge
+            (jdp, 2026-09-06). Nothing to press on it any more - the hamburger
+            beside it is the way into the panel. */}
+        <SpeedMeter value={speed} />
       </span>
 
       {open && <QuickSettings onClose={() => setOpen(false)} />}

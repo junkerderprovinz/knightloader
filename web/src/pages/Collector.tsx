@@ -295,7 +295,13 @@ export function Collector() {
       const r = await startTasks(ids);
       if (r.blocked) return toast(t('collector.toastStartBlocked'), 'fail');
       if (r.started === 0 && r.skipped > 0) return toast(t('collector.toastStartSkipped', { n: r.skipped }), 'fail');
+      // A link switched off is not started, and now says so instead of
+      // quietly moving to the download list anyway (jdp, 2026-09-06).
+      if (r.started === 0 && (r.disabled ?? 0) > 0)
+        return toast(t('collector.toastStartDisabled', { n: r.disabled ?? 0 }), 'fail');
       if (r.started === 0) return;
+      if ((r.disabled ?? 0) > 0)
+        return toast(t('collector.toastStartedSomeDisabled', { n: r.started, disabled: r.disabled ?? 0 }), 'info');
       toast(t('collector.toastStarted', { n: r.started }), 'info');
     } catch {
       toast(t('list.optionsFailed'), 'fail');

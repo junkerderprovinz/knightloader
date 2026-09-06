@@ -1,5 +1,15 @@
+import type { ComponentType, SVGProps } from 'react';
 import type { Task, TaskStatus } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
+import {
+  IconArchive,
+  IconCheck,
+  IconClock,
+  IconCollector,
+  IconDownloads,
+  IconPause,
+  IconWarning,
+} from '../lib/icons';
 
 // Four state hues only: gold = running, green = settled, red = fault,
 // neutral = waiting. Paused deliberately shares the neutral tone; the label and
@@ -22,24 +32,40 @@ const toneText: Record<Tone, string> = {
   info: 'text-statusInfo',
   neutral: 'text-statusNeutral',
 };
-const toneDot: Record<Tone, string> = {
-  ok: 'bg-statusOkSolid',
-  fail: 'bg-statusFailSolid',
-  info: 'bg-statusInfoSolid',
-  neutral: 'bg-statusNeutralSolid',
+
+/**
+ * One glyph per state, the way JDownloader's own status column reads (jdp,
+ * 2026-09-06: "für den jeweiligen zustand: läuft, download, entpacken, etc soll
+ * es ein entsprechenden glyph anzeigen").
+ *
+ * A glyph, not the dot this used to draw: a coloured dot distinguishes four
+ * tones, and there are seven states - queued and paused shared one tone, and so
+ * did running and extracting, so half the column was telling two states apart
+ * by their word alone. The glyph says which state; the tone still says how it
+ * feels.
+ */
+const statusGlyph: Record<TaskStatus, ComponentType<SVGProps<SVGSVGElement>>> = {
+  collected: IconCollector,
+  queued: IconClock,
+  running: IconDownloads,
+  paused: IconPause,
+  extracting: IconArchive,
+  done: IconCheck,
+  error: IconWarning,
 };
 
-// A dot plus a word: state reads at a glance and never relies on colour alone.
-// The dot never pulses here: one pulsing element per screen is plenty, and a
+// A glyph plus a word: state reads at a glance and never relies on colour
+// alone. Nothing pulses here: one pulsing element per screen is plenty, and a
 // list of blinking rows is the loudest thing an idle-heavy page can do. Rows
 // convey liveness through the moving progress fill instead.
 export function StatusPill({ status }: { status: TaskStatus }) {
   const { t } = useT();
   const s = statusTone[status] ?? statusTone.queued;
+  const Glyph = statusGlyph[status] ?? IconClock;
   return (
-    <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium ${toneText[s.tone]}`}>
-      <span className={`h-1.5 w-1.5 rounded-[var(--radius-pill)] ${toneDot[s.tone]}`} />
-      {t(s.key)}
+    <span className={`inline-flex min-w-0 items-center gap-1.5 text-[11px] font-medium ${toneText[s.tone]}`}>
+      <Glyph width={13} height={13} className="shrink-0" />
+      <span className="truncate">{t(s.key)}</span>
     </span>
   );
 }

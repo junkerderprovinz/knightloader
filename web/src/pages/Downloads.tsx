@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   type Instance,
   pause,
@@ -10,11 +10,10 @@ import {
 } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import { useReportListView } from '../lib/listview';
-import { fmtSpeed } from '../lib/format';
 import { useT } from '../lib/i18n';
 import { useInstanceScope } from '../lib/instance';
-import { PageHeader, Button, EmptyState, IconBadge, InfoBubble } from '../components/ui';
-import { Counters } from '../components/Counters';
+import { PageHeader, EmptyState, IconBadge, InfoBubble } from '../components/ui';
+import { Tabs } from '../components/Tabs';
 import {
   TaskListCard,
   groupByPackage,
@@ -25,9 +24,8 @@ import { PackageActions } from '../components/PackageActions';
 import {
   DOWNLOAD_FILTERS,
   ListMenu,
-  ListToolbar,
-  SelectionStrip,
   matchesQuickFilters,
+  offeredQuickFilters,
   targetPackage,
   targetTaskId,
   cleanupItems,
@@ -37,14 +35,28 @@ import {
   type MenuTarget,
   type QuickFilterId,
 } from '../components/ListToolbar';
-import { EMPTY_SEARCH, matchesSearch, type SearchQuery } from '../components/SearchField';
+import { EMPTY_SEARCH, matchesSearch, SearchField, type SearchQuery } from '../components/SearchField';
 import { ArchiveJobs, useArchiveMenu, useExtractJobs } from '../components/Archives';
 import { useFileMenu } from '../components/FileActions';
 import { useScriptMenu } from '../components/ScriptActions';
 import { ContextMenu, anchorBelow, anchorFromEvent, useContextMenu } from '../components/ContextMenu';
 import { useToast } from '../lib/toast';
 import { usePublishCommandPageContext } from '../lib/commands/pageContext';
-import { IconSearch, IconDownloads, IconArrowUp, IconArrowDown, IconTop, IconBottom, IconCheck, IconTrashFiles } from '../lib/icons';
+import {
+  IconSearch,
+  IconDownloads,
+  IconArrowUp,
+  IconArrowDown,
+  IconTop,
+  IconBottom,
+  IconCheck,
+  IconClose,
+  IconPause,
+  IconPlay,
+  IconRetry,
+  IconTrash,
+  IconTrashFiles,
+} from '../lib/icons';
 
 export function Downloads() {
   const { t } = useT();
@@ -60,6 +72,11 @@ export function Downloads() {
   // live behind the square badge on the stats line and only take up room
   // while somebody is actually narrowing the list.
   const [searchOpen, setSearchOpen] = useState(false);
+  // The popover's own anchor, so a click anywhere else closes it - the
+  // collector's own search badge already works exactly this way, and jdp asked
+  // for the two to be identical (2026-09-06: "die suche soll exakt wie im
+  // sammlertb nach unten aufploppen").
+  const searchRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const menu = useContextMenu();
@@ -122,6 +139,22 @@ export function Downloads() {
       return next.size === prev.size ? prev : next;
     });
   }, [list]);
+
+  // Closes the search popover on an outside click or Escape, the same handler
+  // the collector's own popover uses.
+  useEffect(() => {
+    if (!searchOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) setSearchOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setSearchOpen(false);
+    document.addEventListener('mousedown', onClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [searchOpen]);
 
   const clearSelection = useCallback(() => setSelected(new Set()), []);
   const removal = useRemoval({ all, selected, base, onDone: clearSelection });
@@ -209,6 +242,16 @@ export function Downloads() {
   }, [list]);
 
   const narrowed = filters.size > 0 || search.text.trim() !== '';
+  // The same chips the collector shows, over this list's own eight states.
+  // Shared logic rather than a second copy, so the two rows cannot drift.
+  const offeredFilters = useMemo(() => offeredQuickFilters(DOWNLOAD_FILTERS, list, filters), [list, filters]);
+
+  function toggleFilter(id: QuickFilterId): void {
+    const next = new Set(filters);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setFilters(next);
+  }
 
   const pauseAll = () => list.filter((x) => x.status === 'running').forEach((x) => pause(x.id, base));
   const resumeAll = () => list.filter((x) => x.status === 'paused').forEach((x) => resume(x.id, base));
@@ -258,73 +301,74 @@ export function Downloads() {
     local: instance === '',
   };
 
+  // What the selection-half of the action row needs twice each.
+  const selectedIds = chosen.map((x) => x.id);
+  const selectedOnDisk = chosen.some((x) => x.loaded > 0);
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title={t('downloads.title')} />
 
-      {/* Still no big hero card here — Overview owns that, and the list stays
-          this page's weight. The speed and the counters are one quiet uncarded
-          line and nothing else now: the live curve moved up into the head card
-          and grew there, and every control moved down into the badge row above
-          the list (jdp, 2026-09-05). What is left is the reading, with nothing
-          to press in it. */}
-      {list.length > 0 && (
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-          <span className="glim-num text-xl font-semibold leading-none text-carbon-text">
-            {fmtSpeed(counts.speed) || '0 B/s'}
-          </span>
-          <Counters counts={counts} />
-          <span className="flex-1" />
-        </div>
-      )}
-
-      {list.length > 0 && searchOpen && (
-        <div className="glim-card p-3">
-          <ListToolbar
-            search={search}
-            onSearch={setSearch}
-            filters={DOWNLOAD_FILTERS}
-            active={filters}
-            onActive={setFilters}
-            tasks={list}
-            shown={filtered.length}
-          />
-        </div>
-      )}
-
-      {/* Every page-level action in one right-hugging row directly above the
-          list, the way the collector's own badge row already works (jdp,
-          2026-09-05: "Die ganzen optionen wie alle auswählen, aufräumen suche,
-          die anderen quadratischen buttons sollen wie im linktab alle rechts
-          oberhalb der warteschlangecard sein"). "Alle auswählen" and
-          "Aufräumen" used to sit UNDER the list as two text buttons, which put
-          the two things a person reaches for most at the bottom of whatever
-          the list happened to be. */}
+      {/* ONE row for everything this page can do, right-hugging, directly above
+          the list - the collector's own row, down to the order of its parts
+          (jdp, 2026-09-06: "all diese sachen sollen als buttons in einer zeile
+          stehen"). It used to be three stacked rows: a speed-and-counters line,
+          a badge row, and a selection strip that appeared underneath and pushed
+          the list down every time somebody clicked a link.
+          The counters line is gone entirely (jdp, same round, screenshot of it:
+          "Was man im screenshot sieht bitte alles entfernen") - the speed is in
+          the head card's own curve and the four states are the filter chips
+          right here, each with its own count.
+          "Mehr" and the shortcut bubble are not carried over, for the same
+          reason the collector dropped them: the menu behind "Mehr" is the one a
+          right-click on the selection already opens. */}
       {list.length > 0 && (
         <div className="flex shrink-0 flex-wrap items-center gap-2" role="group" aria-label={t('list.actions')}>
           <span className="flex-1" />
-          {/* The bulk verbs share this row rather than floating on the counters
-              line above it - one row of controls, not two (jdp, 2026-09-05:
-              "Die ganzen optionen ... sollen wie im linktab alle rechts
-              oberhalb der warteschlangecard sein"). Each appears only when it
-              can do something, so the row stays short instead of showing three
-              greyed-out verbs. */}
-          {counts.running > 0 && (
-            <Button kind="ghost" className="px-2.5 text-xs" onClick={pauseAll}>
-              {t('downloads.pauseAll')}
-            </Button>
+
+          {offeredFilters.length > 0 && (
+            <Tabs
+              select="many"
+              size="sm"
+              label={t('filter.label')}
+              active={filters}
+              onSelect={(id) => toggleFilter(id as QuickFilterId)}
+              items={offeredFilters.map(({ f, n }) => ({ id: f.id, label: t(f.label), badge: n }))}
+              after={
+                filters.size > 0 && (
+                  <IconBadge
+                    hue={0}
+                    icon={<IconClose width={16} height={16} />}
+                    title={t('filter.clear')}
+                    aria-label={t('filter.clear')}
+                    onClick={() => setFilters(new Set())}
+                  />
+                )
+              }
+            />
           )}
-          {list.some((x) => x.status === 'paused') && (
-            <Button kind="ghost" className="px-2.5 text-xs" onClick={resumeAll}>
-              {t('downloads.resumeAll')}
-            </Button>
+          {narrowed && (
+            <span className="glim-num text-xs text-carbon-textMuted">
+              {t('search.shown', { n: filtered.length, total: list.length })}
+            </span>
           )}
-          {counts.error > 0 && (
-            <Button kind="ghost" className="px-2.5 text-xs" onClick={retryFailed}>
-              {t('downloads.retryFailed')}
-            </Button>
+
+          {selected.size > 0 && (
+            <>
+              <span className="glim-num text-sm text-carbon-textSub">
+                {selected.size} {t('select.count')}
+              </span>
+              <IconBadge
+                hue={1}
+                icon={<IconClose width={16} height={16} />}
+                title={t('select.none')}
+                aria-label={t('select.none')}
+                onClick={clearSelection}
+              />
+            </>
           )}
-          <div className="relative">
+
+          <div ref={searchRef} className="relative">
             <IconBadge
               hue={0}
               active={searchOpen}
@@ -343,75 +387,126 @@ export function Downloads() {
                 className="pointer-events-none absolute -right-1 -top-1 h-2 w-2 rounded-[var(--radius-pill)] bg-accent"
               />
             )}
+            {searchOpen && (
+              <div
+                className="absolute end-0 top-full z-20 mt-2 w-96 rounded-[var(--radius-control)]
+                  bg-carbon-surface p-2 shadow-[var(--elevation)]"
+              >
+                <SearchField value={search} onChange={setSearch} className="w-full" />
+              </div>
+            )}
           </div>
-          <IconBadge
-            hue={1}
-            icon={<IconCheck width={16} height={16} />}
-            title={allChosen ? t('select.none') : t('select.all')}
-            aria-label={allChosen ? t('select.none') : t('select.all')}
-            disabled={filtered.length === 0}
-            onClick={() => setSelected(allChosen ? new Set() : new Set(filtered.map((x) => x.id)))}
-          />
-          <IconBadge
-            hue={2}
-            icon={<IconTrashFiles width={16} height={16} />}
-            title={t('cleanup.menu')}
-            aria-label={t('cleanup.menu')}
-            disabled={instance !== ''}
-            onClick={(e) => void openCleanup(e.currentTarget)}
-          />
-          {instance !== '' && <InfoBubble tip={t('cleanup.localOnly')} />}
+
+          {selected.size > 0 ? (
+            <>
+              <PackageActions tasks={list} selected={selected} base={base} />
+              {/* Queue order only means something while something is waiting,
+                  so these ride with the selection rather than sitting on the
+                  page all the time. */}
+              <IconBadge
+                icon={<IconArrowUp width={16} height={16} />}
+                hue={0}
+                title={t('task.priorityUp')}
+                aria-label={t('task.priorityUp')}
+                onClick={() => setPriority(ids(), 1, base)}
+              />
+              <IconBadge
+                icon={<IconArrowDown width={16} height={16} />}
+                hue={1}
+                title={t('task.priorityDown')}
+                aria-label={t('task.priorityDown')}
+                onClick={() => setPriority(ids(), -1, base)}
+              />
+              <IconBadge
+                icon={<IconTop width={16} height={16} />}
+                hue={2}
+                title={t('task.moveTop')}
+                aria-label={t('task.moveTop')}
+                onClick={() => moveTasks(ids(), 'top', base)}
+              />
+              <IconBadge
+                icon={<IconBottom width={16} height={16} />}
+                hue={3}
+                title={t('task.moveBottom')}
+                aria-label={t('task.moveBottom')}
+                onClick={() => moveTasks(ids(), 'bottom', base)}
+              />
+              <IconBadge
+                hue={3}
+                icon={<IconRetry width={16} height={16} />}
+                title={t('task.restart')}
+                aria-label={t('task.restart')}
+                onClick={() => restartTasks(ids(), base)}
+              />
+              <IconBadge
+                hue={4}
+                icon={<IconTrash width={16} height={16} />}
+                title={t('task.remove')}
+                aria-label={t('task.remove')}
+                onClick={() => void removal.removeNow(selectedIds)}
+              />
+              {selectedOnDisk && (
+                <IconBadge
+                  hue={5}
+                  icon={<IconTrashFiles width={16} height={16} />}
+                  title={t('task.removeWithFiles')}
+                  aria-label={t('task.removeWithFiles')}
+                  onClick={() => removal.askWithFiles(selectedIds)}
+                />
+              )}
+            </>
+          ) : (
+            <>
+              {/* Each bulk verb appears only when it can do something, so the
+                  row stays short instead of showing three dead badges. */}
+              {counts.running > 0 && (
+                <IconBadge
+                  hue={2}
+                  icon={<IconPause width={16} height={16} />}
+                  title={t('downloads.pauseAll')}
+                  aria-label={t('downloads.pauseAll')}
+                  onClick={pauseAll}
+                />
+              )}
+              {list.some((x) => x.status === 'paused') && (
+                <IconBadge
+                  hue={3}
+                  icon={<IconPlay width={16} height={16} />}
+                  title={t('downloads.resumeAll')}
+                  aria-label={t('downloads.resumeAll')}
+                  onClick={resumeAll}
+                />
+              )}
+              {counts.error > 0 && (
+                <IconBadge
+                  hue={4}
+                  icon={<IconRetry width={16} height={16} />}
+                  title={t('downloads.retryFailed')}
+                  aria-label={t('downloads.retryFailed')}
+                  onClick={retryFailed}
+                />
+              )}
+              <IconBadge
+                hue={1}
+                icon={<IconCheck width={16} height={16} />}
+                title={allChosen ? t('select.none') : t('select.all')}
+                aria-label={allChosen ? t('select.none') : t('select.all')}
+                disabled={filtered.length === 0}
+                onClick={() => setSelected(allChosen ? new Set() : new Set(filtered.map((x) => x.id)))}
+              />
+              <IconBadge
+                hue={2}
+                icon={<IconTrashFiles width={16} height={16} />}
+                title={t('cleanup.menu')}
+                aria-label={t('cleanup.menu')}
+                disabled={instance !== ''}
+                onClick={(e) => void openCleanup(e.currentTarget)}
+              />
+              {instance !== '' && <InfoBubble tip={t('cleanup.localOnly')} />}
+            </>
+          )}
         </div>
       )}
-
-      <SelectionStrip
-        all={list}
-        selected={selected}
-        onSelected={setSelected}
-        removal={removal}
-        onMore={(at) => {
-          setTarget({ kind: 'selection' });
-          menu.openAt(at);
-        }}
-      >
-        <PackageActions tasks={list} selected={selected} base={base} />
-        {/* Queue order only means something while something is waiting, so these
-            sit with the selection rather than on the page all the time. Four
-            fixed, parallel actions in one toolbar - a set in its own right,
-            same as the row-action badges elsewhere - so each gets its own
-            position. */}
-        <IconBadge
-          icon={<IconArrowUp width={16} height={16} />}
-          hue={0}
-          title={t('task.priorityUp')}
-          aria-label={t('task.priorityUp')}
-          onClick={() => setPriority(ids(), 1, base)}
-        />
-        <IconBadge
-          icon={<IconArrowDown width={16} height={16} />}
-          hue={1}
-          title={t('task.priorityDown')}
-          aria-label={t('task.priorityDown')}
-          onClick={() => setPriority(ids(), -1, base)}
-        />
-        <IconBadge
-          icon={<IconTop width={16} height={16} />}
-          hue={2}
-          title={t('task.moveTop')}
-          aria-label={t('task.moveTop')}
-          onClick={() => moveTasks(ids(), 'top', base)}
-        />
-        <IconBadge
-          icon={<IconBottom width={16} height={16} />}
-          hue={3}
-          title={t('task.moveBottom')}
-          aria-label={t('task.moveBottom')}
-          onClick={() => moveTasks(ids(), 'bottom', base)}
-        />
-        <Button kind="secondary" className="px-2.5 text-xs" onClick={() => restartTasks(ids(), base)}>
-          {t('task.restart')}
-        </Button>
-      </SelectionStrip>
 
       <div onContextMenu={onContextMenu}>
         {list.length === 0 ? (
