@@ -911,7 +911,7 @@ export const th: Dict = {
   'accounts.col.traffic': 'ปริมาณที่เหลือ',
   'accounts.credentialFromEnv': 'กำหนดโดยตัวแปรสภาพแวดล้อม {env} ของคอนเทนเนอร์ ลบตัวแปรนั้นที่นั่นเพื่อเปลี่ยนค่านี้',
   'accounts.debrid.empty': 'ยังไม่มีบัญชี debrid',
-  'accounts.debrid.emptyHint': 'เพิ่มคีย์จาก TorBox, AllDebrid, Real-Debrid, Debrid-Link หรือ Premiumize.me เพื่อปลดล็อกลิงก์โฮสเตอร์อัตโนมัติ',
+  'accounts.debrid.emptyHint': 'เพิ่มคีย์จากบริการ debrid ที่รองรับสักบริการหนึ่ง เพื่อปลดล็อกลิงก์โฮสเตอร์อัตโนมัติ',
   'accounts.debrid.title': 'บัญชี Debrid',
   'accounts.debrid.hint': 'บริการ debrid คือบัญชีแบบเสียเงินบัญชีเดียวที่ปลดล็อกโฮสต์ไฟล์หลายแห่งพร้อมกัน KnightLoader ส่งลิงก์ไปให้และดาวน์โหลดลิงก์ตรงที่ได้กลับมา เต็มความเร็ว ไม่มีเวลารอ ไม่มีแคปช่า นี่คือวิธีที่แนะนำ เพราะไม่อย่างนั้นต้องมีบัญชีพรีเมียมแยกที่โฮสเตอร์ทุกแห่ง',
   'accounts.edit': 'แก้ไขข้อมูลรับรอง',

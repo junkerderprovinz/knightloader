@@ -911,7 +911,7 @@ export const zh: Dict = {
   'accounts.col.traffic': '剩余流量',
   'accounts.credentialFromEnv': '由容器的环境变量 {env} 设置。要更改此项，请在那里移除它。',
   'accounts.debrid.empty': '还没有 debrid 账户',
-  'accounts.debrid.emptyHint': '添加 TorBox、AllDebrid、Real-Debrid、Debrid-Link 或 Premiumize.me 的密钥，主机链接就会自动解锁。',
+  'accounts.debrid.emptyHint': '添加任意一个受支持的 Debrid 服务的密钥，主机链接就会自动解锁。',
   'accounts.debrid.title': 'Debrid 账户',
   'accounts.debrid.hint': 'Debrid 服务是一个付费账户，能一次解锁许多文件主机。KnightLoader 把链接交给它，再下载返回的直链：满速、无等待、无验证码。这是推荐的方式，否则每个主机都得单独买一个高级账户。',
   'accounts.edit': '编辑凭据',

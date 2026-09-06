@@ -911,7 +911,7 @@ export const tr: Dict = {
   'accounts.col.traffic': 'Kalan trafik',
   'accounts.credentialFromEnv': 'Konteynerin {env} ortam değişkeni tarafından ayarlandı. Bunu değiştirmek için orada kaldırın.',
   'accounts.debrid.empty': 'Henüz debrid hesabı yok',
-  'accounts.debrid.emptyHint': 'Hoster bağlantılarının otomatik açılması için TorBox, AllDebrid, Real-Debrid, Debrid-Link veya Premiumize.me anahtarı ekle.',
+  'accounts.debrid.emptyHint': 'Hoster bağlantılarının otomatik açılması için desteklenen debrid hizmetlerinden birinin anahtarını ekle.',
   'accounts.debrid.title': 'Debrid hesapları',
   'accounts.debrid.hint': 'Debrid hizmeti, birçok dosya barındırıcısını tek seferde açan tek bir ücretli hesaptır. KnightLoader bağlantıyı ona gönderir ve geri aldığı doğrudan bağlantıyı indirir: tam hız, bekleme yok, captcha yok. Önerilen yol budur, çünkü aksi halde her barındırıcıda ayrı bir premium hesap gerekir.',
   'accounts.edit': 'Kimlik bilgisini düzenle',

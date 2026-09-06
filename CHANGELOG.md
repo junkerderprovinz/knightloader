@@ -54,6 +54,12 @@ submission and for a fixed download.
   it back on.
 - **Dragging a link into another package** moves it there instead of snapping
   back. Reordering inside a package was already possible.
+- **Linksnappy and Offcloud** as debrid services too. Neither vendor publishes
+  an API reference any more, so these two rest on what their live endpoints
+  answer plus a working open-source client, and each file says so in place of a
+  documentation link. Both decode loosely: an answer they do not recognise
+  fails with a sentence, and Offcloud's undocumented site list simply claims no
+  hosts rather than claiming hosts it cannot unlock.
 - **Debrid-Link and Premiumize.me** as debrid services of their own, with the
   supported-host list, the direct link, the plan and the remaining allowance
   each of them publishes. Debrid-Link in particular could not be used through
@@ -104,7 +110,9 @@ submission and for a fixed download.
 - **The Debrid and Hoster cards say what they are for**, including what a debrid
   account is and why it is the recommended way; the notes on Comment and Unpack
   archives were rewritten in plain words.
-- **No explanation bubble on the collector and list card titles.**
+- **No explanation bubble on the collector and list card titles.** The one
+  explanation the table still needs, how to sort and where the column menu is,
+  moved from the header row onto the card's own title badge.
 - **No "Enabled" column in the download list.** It is the collector's own "take
   this along when I press start"; once a link is in the queue the switch that
   means something is pause.

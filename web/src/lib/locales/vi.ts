@@ -911,7 +911,7 @@ export const vi: Dict = {
   'accounts.col.traffic': 'Lưu lượng còn lại',
   'accounts.credentialFromEnv': 'Được đặt bởi biến môi trường {env} của container. Gỡ nó ở đó để thay đổi điều này.',
   'accounts.debrid.empty': 'Chưa có tài khoản debrid nào',
-  'accounts.debrid.emptyHint': 'Thêm khóa của TorBox, AllDebrid, Real-Debrid, Debrid-Link hoặc Premiumize.me để tự động mở khóa liên kết của hoster.',
+  'accounts.debrid.emptyHint': 'Thêm khóa của một trong các dịch vụ debrid được hỗ trợ để tự động mở khóa liên kết của hoster.',
   'accounts.debrid.title': 'Tài khoản debrid',
   'accounts.debrid.hint': 'Dịch vụ debrid là một tài khoản trả phí duy nhất mở khóa nhiều hoster cùng lúc. KnightLoader gửi liên kết cho nó và tải liên kết trực tiếp nhận về: tốc độ đầy đủ, không phải chờ, không captcha. Đây là cách được khuyến nghị, vì nếu không bạn cần một tài khoản premium riêng ở từng hoster.',
   'accounts.edit': 'Sửa thông tin đăng nhập',

@@ -911,7 +911,7 @@ export const da: Dict = {
   'accounts.col.traffic': 'Resterende trafik',
   'accounts.credentialFromEnv': 'Angivet af containerens miljøvariabel {env}. Fjern den der for at ændre dette.',
   'accounts.debrid.empty': 'Ingen debrid-konti endnu',
-  'accounts.debrid.emptyHint': 'Tilføj en nøgle fra TorBox, AllDebrid, Real-Debrid, Debrid-Link eller Premiumize.me for at låse hoster-links op automatisk.',
+  'accounts.debrid.emptyHint': 'Tilføj en nøgle fra en af de understøttede debrid-tjenester for at låse hoster-links op automatisk.',
   'accounts.debrid.title': 'Debrid-konti',
   'accounts.debrid.hint': 'En debrid-tjeneste er én betalt konto, der låser mange filhosts op på én gang. KnightLoader sender linket dertil og henter det direkte link, den får tilbage: fuld hastighed, ingen ventetid, ingen captcha. Det er den anbefalede vej, for alternativet er en premiumkonto hos hver enkelt hoster.',
   'accounts.edit': 'Rediger loginoplysning',

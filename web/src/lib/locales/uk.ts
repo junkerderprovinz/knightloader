@@ -911,7 +911,7 @@ export const uk: Dict = {
   'accounts.col.traffic': 'Залишок трафіку',
   'accounts.credentialFromEnv': 'Задано змінною середовища контейнера {env}. Приберіть її там, щоб змінити це.',
   'accounts.debrid.empty': 'Поки що немає акаунтів debrid',
-  'accounts.debrid.emptyHint': 'Додай ключ TorBox, AllDebrid, Real-Debrid, Debrid-Link або Premiumize.me, щоб посилання хостерів відкривалися автоматично.',
+  'accounts.debrid.emptyHint': 'Додай ключ одного з підтримуваних debrid-сервісів, щоб посилання хостерів відкривалися автоматично.',
   'accounts.debrid.title': 'Акаунти debrid',
   'accounts.debrid.hint': 'Debrid-сервіс — це один платний акаунт, який відкриває одразу багато файлових хостингів. KnightLoader надсилає йому посилання і завантажує пряме посилання, яке отримує назад: повна швидкість, без очікування, без капчі. Це рекомендований шлях, бо інакше потрібен окремий преміум-акаунт на кожному хостингу.',
   'accounts.edit': 'Змінити облікові дані',

@@ -913,7 +913,7 @@ export const he: Dict = {
   'accounts.col.traffic': 'תעבורה שנותרה',
   'accounts.credentialFromEnv': 'מוגדר על ידי משתנה הסביבה {env} של הקונטיינר. הסר אותו שם כדי לשנות זאת.',
   'accounts.debrid.empty': 'אין עדיין חשבונות debrid',
-  'accounts.debrid.emptyHint': 'הוסף מפתח של TorBox‏, AllDebrid‏, Real-Debrid‏, Debrid-Link או Premiumize.me כדי לפתוח קישורי אחסון אוטומטית.',
+  'accounts.debrid.emptyHint': 'הוסף מפתח של אחד משירותי ה‑Debrid הנתמכים כדי לפתוח קישורי אחסון אוטומטית.',
   'accounts.debrid.title': 'חשבונות Debrid',
   'accounts.debrid.hint': 'שירות Debrid הוא חשבון בתשלום אחד שפותח הרבה שרתי אחסון בבת אחת. KnightLoader שולח אליו את הקישור ומוריד את הקישור הישיר שהוא מקבל בחזרה: מהירות מלאה, בלי זמן המתנה ובלי קפצ׳ה. זו הדרך המומלצת, כי אחרת דרוש חשבון פרימיום נפרד אצל כל אחסון.',
   'accounts.edit': 'עריכת פרטי גישה',

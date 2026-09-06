@@ -903,7 +903,7 @@ export const nl: Dict = {
   'accounts.col.traffic': 'Resterend verkeer',
   'accounts.credentialFromEnv': 'Ingesteld via de omgevingsvariabele {env} van de container. Verwijder die daar om dit te wijzigen.',
   'accounts.debrid.empty': 'Nog geen debrid-accounts',
-  'accounts.debrid.emptyHint': 'Voeg een sleutel van TorBox, AllDebrid, Real-Debrid, Debrid-Link of Premiumize.me toe om hosterlinks automatisch te ontgrendelen.',
+  'accounts.debrid.emptyHint': 'Voeg een sleutel van een van de ondersteunde debrid-diensten toe om hosterlinks automatisch te ontgrendelen.',
   'accounts.debrid.title': 'Debrid-accounts',
   'accounts.debrid.hint': 'Een debrid-dienst is één betaald account dat veel filehosters tegelijk ontgrendelt. KnightLoader stuurt de link erheen en downloadt de directe link die terugkomt: volle snelheid, geen wachttijd, geen captcha. Dat is de aanbevolen weg, want anders heb je bij elke hoster een eigen premiumaccount nodig.',
   'accounts.edit': 'Inloggegevens bewerken',

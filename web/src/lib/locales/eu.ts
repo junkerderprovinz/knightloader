@@ -911,7 +911,7 @@ export const eu: Dict = {
   'accounts.col.traffic': 'Gainerako trafikoa',
   'accounts.credentialFromEnv': 'Edukiontziaren {env} ingurune-aldagaiak ezartzen du. Kendu hura hor hau aldatzeko.',
   'accounts.debrid.empty': 'Oraindik ez dago debrid konturik',
-  'accounts.debrid.emptyHint': 'Gehitu TorBox, AllDebrid, Real-Debrid, Debrid-Link edo Premiumize.me gako bat ostalarien estekak automatikoki desblokeatzeko.',
+  'accounts.debrid.emptyHint': 'Gehitu onartutako debrid zerbitzuetako baten gako bat ostalarien estekak automatikoki desblokeatzeko.',
   'accounts.debrid.title': 'Debrid kontuak',
   'accounts.debrid.hint': 'Debrid zerbitzu bat ordaindutako kontu bakarra da, fitxategi-ostalari asko batera desblokeatzen dituena. KnightLoaderrek esteka bidaltzen dio eta jasotzen duen esteka zuzena deskargatzen du: abiadura osoa, itxaronaldirik gabe, captcharik gabe. Hau da gomendatutako bidea, bestela ostalari bakoitzean premium kontu bat behar duzulako.',
   'accounts.edit': 'Editatu kredentziala',

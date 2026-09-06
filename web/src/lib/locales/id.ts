@@ -911,7 +911,7 @@ export const id: Dict = {
   'accounts.col.traffic': 'Sisa trafik',
   'accounts.credentialFromEnv': 'Diatur oleh variabel lingkungan {env} milik container. Hapus itu di sana untuk mengubah ini.',
   'accounts.debrid.empty': 'Belum ada akun debrid',
-  'accounts.debrid.emptyHint': 'Tambahkan kunci dari TorBox, AllDebrid, Real-Debrid, Debrid-Link atau Premiumize.me agar tautan hoster terbuka otomatis.',
+  'accounts.debrid.emptyHint': 'Tambahkan kunci dari salah satu layanan debrid yang didukung agar tautan hoster terbuka otomatis.',
   'accounts.debrid.title': 'Akun debrid',
   'accounts.debrid.hint': 'Layanan debrid adalah satu akun berbayar yang membuka banyak filehoster sekaligus. KnightLoader mengirimkan tautannya dan mengunduh tautan langsung yang diterima: kecepatan penuh, tanpa waktu tunggu, tanpa captcha. Ini cara yang disarankan, karena jika tidak kamu butuh akun premium terpisah di setiap hoster.',
   'accounts.edit': 'Edit kredensial',

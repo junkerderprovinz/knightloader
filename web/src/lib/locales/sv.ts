@@ -911,7 +911,7 @@ export const sv: Dict = {
   'accounts.col.traffic': 'Trafik kvar',
   'accounts.credentialFromEnv': 'Anges av containerns miljövariabel {env}. Ta bort den där för att ändra detta.',
   'accounts.debrid.empty': 'Inga debrid-konton än',
-  'accounts.debrid.emptyHint': 'Lägg till en nyckel från TorBox, AllDebrid, Real-Debrid, Debrid-Link eller Premiumize.me så låses hoster-länkar upp automatiskt.',
+  'accounts.debrid.emptyHint': 'Lägg till en nyckel från en av de debrid-tjänster som stöds, så låses hoster-länkar upp automatiskt.',
   'accounts.debrid.title': 'Debrid-konton',
   'accounts.debrid.hint': 'En debrid-tjänst är ett enda betalkonto som låser upp många filvärdar på en gång. KnightLoader skickar länken dit och laddar ner den direktlänk den får tillbaka: full hastighet, ingen väntetid, ingen captcha. Det är den rekommenderade vägen, för annars behövs ett eget premiumkonto hos varje värd.',
   'accounts.edit': 'Redigera inloggningsuppgift',

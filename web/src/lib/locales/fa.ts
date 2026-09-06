@@ -911,7 +911,7 @@ export const fa: Dict = {
   'accounts.col.traffic': 'ترافیک باقی‌مانده',
   'accounts.credentialFromEnv': 'با متغیر محیطی {env} کانتینر تنظیم شده است. برای تغییر آن، همان‌جا حذفش کنید.',
   'accounts.debrid.empty': 'هنوز حساب دبریدی وجود ندارد',
-  'accounts.debrid.emptyHint': 'یک کلید از TorBox، AllDebrid، Real-Debrid، Debrid-Link یا Premiumize.me اضافه کنید تا لینک‌های میزبان‌ها خودکار باز شوند.',
+  'accounts.debrid.emptyHint': 'یک کلید از یکی از سرویس‌های Debrid پشتیبانی‌شده اضافه کنید تا لینک‌های میزبان‌ها خودکار باز شوند.',
   'accounts.debrid.title': 'حساب‌های Debrid',
   'accounts.debrid.hint': 'سرویس Debrid یک حساب پولی است که چندین میزبان فایل را یکجا باز می‌کند. KnightLoader لینک را به آن می‌فرستد و لینک مستقیمی را که برمی‌گردد دانلود می‌کند: سرعت کامل، بدون انتظار، بدون کپچا. این راه توصیه‌شده است، چون در غیر این صورت برای هر میزبان به یک حساب ویژه جداگانه نیاز داری.',
   'accounts.edit': 'ویرایش اطلاعات ورود',

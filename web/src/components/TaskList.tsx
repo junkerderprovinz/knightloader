@@ -999,36 +999,20 @@ function Header({
         );
       })}
 
-      {/* One bubble for the whole row, not one per column (SelectionStrip's
-          own `<InfoBubble tip={t('remove.keys')} />` used to be the same
-          call: a repeated small control explained once rather than on every
-          instance of it) — a column header already carries its own visible
-          label, so a native `title` repeating "sort by this column" forty
-          columns over was the plain-tooltip case this app's own convention
-          puts behind a bubble instead. columns.headerHint covers sorting
-          too (see its own text), and the per-column title is gone above.
-          Lives in the trailing gutter now, not a leading one of its own
-          (jdp, 2026-08-26: "Die infobubble in der kopfzeile bitte ganz
-          nach rechts verschieben. in der liste fängt jetzt wo die
-          checkboxen fehlen alles zu weit rechts an. bitte weiter nach
-          links verschieben." - the leading gutter existed only to hold
-          this bubble in grid-alignment with GUTTER_LEAD below; removing
-          both here and from every row's own alignment placeholder is what
-          actually lets the whole table shift left into the space the
-          checkbox column used to own, not just moving the bubble alone
-          would have).
+      {/* No bubble in this row any more. It explained the whole header at once
+          - right-click for the column menu, click a label to sort - and it
+          moved to the card's own title badge (jdp, 2026-09-06: "die können wir
+          ja in den cardtitelbadge machen"), where TaskListCard renders it. The
+          header row now holds nothing but the column labels and their resize
+          handles, which is what a header row is.
 
-          Floating over the trailing edge rather than owning a track of its
-          own: the track it used to sit in is gone (jdp, 2026-09-06: "im
-          downloadtab ist rechts eine spalte die leer ist"), so the last
-          column now runs all the way to the right edge and this bubble sits
-          on top of its header label, where there is nothing but empty
-          header row anyway. */}
-      <div className="pointer-events-none absolute inset-y-0 end-1 flex items-center">
-        <span className="pointer-events-auto">
-          <InfoBubble tip={t('columns.headerHint')} />
-        </span>
-      </div>
+          Its history, kept because it is a record of two earlier corrections:
+          it was one bubble for the whole row rather than one per column, and it
+          was moved from a leading gutter to the trailing edge (jdp,
+          2026-08-26) so the table could shift left into the space the checkbox
+          column used to own. The gutter it lived in is gone either way, since
+          the last column now runs to the right edge (jdp, 2026-09-06: "im
+          downloadtab ist rechts eine spalte die leer ist"). */}
     </div>
   );
 }
@@ -2079,11 +2063,16 @@ export function TaskListCard({
         style={hue !== undefined ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
       >
         <div className="px-4 pt-4">
-          {/* No hint bubble on this badge either (jdp, 2026-09-06: "die i
+          {/* The bubble on this badge is the HEADER's, not the list's own
+              "what this is" text. That one is gone (jdp, 2026-09-06: "die i
               infobubble im kartentitel entfernen. auch in der linklisten
-              card") - the prop is gone rather than merely unpassed, so it
-              cannot come back by accident. */}
-          <SectionTitle>{title}</SectionTitle>
+              card") and its prop with it, so it cannot come back by accident.
+              What sits here instead is the one explanation the table still
+              needs and could not otherwise be found: right-click the header
+              for the column menu, click a label to sort (jdp, same day, on
+              where that one should live: "die können wir ja in den
+              cardtitelbadge machen"). */}
+          <SectionTitle hint={t('columns.headerHint')}>{title}</SectionTitle>
         </div>
         <div className="overflow-hidden rounded-b-[var(--radius-card)]">
           {/* Sorting is a view of the queue and not the queue. Saying so where the

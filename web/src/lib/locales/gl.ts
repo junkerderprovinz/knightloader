@@ -911,7 +911,7 @@ export const gl: Dict = {
   'accounts.col.traffic': 'Tráfico restante',
   'accounts.credentialFromEnv': 'Definido pola variable de contorno {env} do contedor. Elimínaa alí para cambiar isto.',
   'accounts.debrid.empty': 'Aínda non hai contas debrid',
-  'accounts.debrid.emptyHint': 'Engade unha chave de TorBox, AllDebrid, Real-Debrid, Debrid-Link ou Premiumize.me para desbloquear automaticamente as ligazóns dos aloxamentos.',
+  'accounts.debrid.emptyHint': 'Engade unha chave dun dos servizos debrid compatibles para desbloquear automaticamente as ligazóns dos aloxamentos.',
   'accounts.debrid.title': 'Contas de debrid',
   'accounts.debrid.hint': 'Un servizo debrid é unha única conta de pago que desbloquea moitos aloxamentos á vez. KnightLoader envíalle a ligazón e descarga a ligazón directa que recibe: velocidade completa, sen agardas nin captchas. É a vía recomendada, porque a alternativa é unha conta premium en cada aloxamento.',
   'accounts.edit': 'Editar credencial',

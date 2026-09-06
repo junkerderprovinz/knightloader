@@ -911,7 +911,7 @@ export const ko: Dict = {
   'accounts.col.traffic': '남은 트래픽',
   'accounts.credentialFromEnv': '컨테이너의 {env} 환경 변수로 설정되어 있습니다. 변경하려면 거기서 제거하세요.',
   'accounts.debrid.empty': '아직 debrid 계정이 없습니다',
-  'accounts.debrid.emptyHint': 'TorBox, AllDebrid, Real-Debrid, Debrid-Link 또는 Premiumize.me 키를 추가하면 호스터 링크가 자동으로 해제됩니다.',
+  'accounts.debrid.emptyHint': '지원되는 Debrid 서비스 중 하나의 키를 추가하면 호스터 링크가 자동으로 해제됩니다.',
   'accounts.debrid.title': 'Debrid 계정',
   'accounts.debrid.hint': 'Debrid 서비스는 여러 파일 호스터를 한 번에 열어주는 유료 계정 하나입니다. KnightLoader가 링크를 보내고 돌려받은 직접 링크를 내려받습니다. 전속력, 대기 시간 없음, 캡차 없음. 호스터마다 따로 프리미엄 계정을 두는 대신이므로 이 방법을 권합니다.',
   'accounts.edit': '자격 증명 편집',
