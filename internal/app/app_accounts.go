@@ -57,9 +57,15 @@ func (a *App) rewireBackends() {
 	// exact hosts it exists to serve to the JD catch-all's no-staging-name
 	// path (see this function's own doc comment on hosterSet's other uses).
 	var ytdlpExclude map[string]bool
+	// The same narrower set, kept as its own map because ytdlpExclude is added
+	// to below (every debrid service's own hosts join it) while this one must
+	// stay exactly "the hosts TorBox itself calls file hosters" - see the
+	// torbox.Resolver registration further down for what it decides.
+	var torboxFileHosts map[string]bool
 	if torboxKey != "" || jdBase != "" {
 		hosterSet = a.fetchTorboxHosters(torboxKey)
 		ytdlpExclude = a.fetchTorboxHosterOnlyHosts(torboxKey)
+		torboxFileHosts = a.fetchTorboxHosterOnlyHosts(torboxKey)
 	}
 
 	// One-shot debrid services (AllDebrid, Real-Debrid): a single unlock call
@@ -81,6 +87,16 @@ func (a *App) rewireBackends() {
 	}
 	if k := a.routedCredential("realdebrid").APIKey; k != "" {
 		configured = append(configured, debridSetup{debrid.NewRealDebrid(k), 33})
+	}
+	// Below the two that were here first, and in the order they were added -
+	// the priority number is what settles which service claims a link both of
+	// them support, and there is no reason to demote a working AllDebrid the
+	// day somebody adds a second key.
+	if k := a.routedCredential("debridlink").APIKey; k != "" {
+		configured = append(configured, debridSetup{debrid.NewDebridLink(k), 32})
+	}
+	if k := a.routedCredential("premiumize").APIKey; k != "" {
+		configured = append(configured, debridSetup{debrid.NewPremiumize(k), 31})
 	}
 	newDebrid := map[string]backend{}
 	for _, d := range configured {
@@ -142,8 +158,31 @@ func (a *App) rewireBackends() {
 	var newTorbox backend
 	if torboxKey != "" {
 		newTorbox = torbox.NewBackend(torbox.NewClient(torboxKey), eng, a.onUpdate)
-		a.Registry.Register(torbox.Resolver{Hosts: hosterSet})
-		log.Printf("TorBox debrid backend enabled (%d supported hosts)", len(hosterSet))
+		// The FULL list only when yt-dlp is not running. With yt-dlp there,
+		// TorBox claims the hosts TorBox itself calls file hosters and leaves
+		// the "stream" half - YouTube and its like - to yt-dlp.
+		//
+		// This is the actual cause of a complaint that looked like two others
+		// (jdp, 2026-09-06: "wenn ich ein youtube link im sammler hinzufüge
+		// heißt der ordner wieder watch und es wird nur ein link angezeigt,
+		// nicht alle dateien"). Measured on his own instance, which has a
+		// TorBox key, against the clean one, which does not: the same YouTube
+		// link routes to ytdlp on the second and to TORBOX on the first,
+		// because TorBox's host list covers streaming sites too and TorBox
+		// outranks yt-dlp in the priority order. A TorBox-routed media link
+		// gets no variant expansion (that is yt-dlp's, app_ytdlp_variants.go)
+		// and no title probe, so it stays one nameless row in a folder called
+		// "watch" - forever, not for fifteen seconds.
+		//
+		// TorBox genuinely CAN fetch those sites, which is why the full set was
+		// right before yt-dlp existed and is still right when it is missing.
+		// But it fetches one file, while yt-dlp is what turns the same link
+		// into the video/audio/thumbnail/subtitle/description rows with a
+		// quality to pick - the whole feature jdp asked for on 2026-08-25. For
+		// a media page the better tool has to win, not the higher-priority one.
+		torboxHosts := torboxRoutingHosts(hosterSet, torboxFileHosts, newYtdlp != nil)
+		a.Registry.Register(torbox.Resolver{Hosts: torboxHosts})
+		log.Printf("TorBox debrid backend enabled (%d supported hosts)", len(torboxHosts))
 	}
 
 	// Optional headless-JD backend: the lowest-priority catch-all for hoster
@@ -176,7 +215,7 @@ func (a *App) rewireBackends() {
 	// A credential that is gone - or an account that was switched off - must
 	// stop claiming links, or those links would route to a service that can no
 	// longer unlock them.
-	for _, id := range []string{"alldebrid", "realdebrid"} {
+	for _, id := range []string{"alldebrid", "realdebrid", "debridlink", "premiumize"} {
 		if _, ok := newDebrid[id]; !ok {
 			a.Registry.Unregister(id)
 		}
@@ -208,6 +247,24 @@ func (a *App) rewireBackends() {
 	hostRefreshMu.Lock()
 	hostRefreshAttempted[a] = time.Now()
 	hostRefreshMu.Unlock()
+}
+
+// torboxRoutingHosts is which hosts TorBox's resolver claims: every host it
+// supports when nothing better is running, and only the ones TorBox itself
+// calls file hosters once yt-dlp is there to take the rest. See the call site
+// for the measurement behind it.
+//
+// A pure function so the decision can be tested without a live TorBox list or
+// a spawned yt-dlp - see TestTorboxLeavesMediaSitesToYtdlp. fileOnly being
+// empty falls back to the full set rather than to nothing: an empty answer
+// there means the host list could not be read, not that TorBox supports no
+// file hosters, and claiming nothing would silently stop routing through a
+// working account.
+func torboxRoutingHosts(all, fileOnly map[string]bool, ytdlpRunning bool) map[string]bool {
+	if !ytdlpRunning || len(fileOnly) == 0 {
+		return all
+	}
+	return fileOnly
 }
 
 // credentialFor reads one account's secret: the catalogue's env var for the
@@ -655,9 +712,15 @@ type TrafficState struct {
 	Used      int64 `json:"used"`
 	Limit     int64 `json:"limit"`
 	Unlimited bool  `json:"unlimited"`
+	// UsedPercent is how much of the allowance is spent, 0-100, for a service
+	// that meters in a fraction instead of in bytes - Premiumize's fair-use
+	// limit_used and Debrid-Link's usagePercent. 0 means "not stated". Read
+	// only after Unlimited and Limit: bytes are the better answer wherever
+	// there are any, and a percentage is what is left when there are none.
+	UsedPercent float64 `json:"usedPercent,omitempty"`
 	// ResetsAt is RFC3339, or "" when the service does not say when the
-	// traffic figure above resets - true of every provider wired in today;
-	// the field exists for one that does.
+	// traffic figure above resets. Debrid-Link is the one provider that does
+	// (nextResetSeconds), which is what the field was originally reserved for.
 	ResetsAt string `json:"resetsAt,omitempty"`
 }
 
@@ -775,14 +838,28 @@ func fmtTrafficLeft(t TrafficState) string {
 	if t.Unlimited {
 		return "∞"
 	}
-	if t.Limit <= 0 {
-		return ""
+	if t.Limit > 0 {
+		remaining := t.Limit - t.Used
+		if remaining < 0 {
+			remaining = 0
+		}
+		return fmtBinaryBytes(remaining)
 	}
-	remaining := t.Limit - t.Used
-	if remaining < 0 {
-		remaining = 0
+	// A service that meters in a fraction rather than in bytes (jdp,
+	// 2026-09-06: "kann man bei debrid konten das verbleibende volume nicht
+	// anzeigen lassen?" - for two of the four providers there is no byte
+	// figure to show, and printing nothing at all was why the column looked
+	// broken rather than honest). Stated as what is LEFT, because that is what
+	// the column is headed, and rounded down so 99.6% spent reads "0 %" rather
+	// than a reassuring "1 %".
+	if t.UsedPercent > 0 {
+		left := 100 - t.UsedPercent
+		if left < 0 {
+			left = 0
+		}
+		return fmt.Sprintf("%d %%", int(left))
 	}
-	return fmtBinaryBytes(remaining)
+	return ""
 }
 
 // fmtBinaryBytes mirrors web/src/lib/format.ts's fmtBytes unit table exactly
@@ -960,18 +1037,36 @@ func fetchAccountInfoLive(ctx context.Context, service string, cred accounts.Cre
 			return AccountHealth{}, true, err
 		}
 		return healthFromDebrid(info), true, nil
+	case "debridlink":
+		info, err := debrid.NewDebridLink(cred.APIKey).Account(ctx)
+		if err != nil {
+			return AccountHealth{}, true, err
+		}
+		return healthFromDebrid(info), true, nil
+	case "premiumize":
+		info, err := debrid.NewPremiumize(cred.APIKey).Account(ctx)
+		if err != nil {
+			return AccountHealth{}, true, err
+		}
+		return healthFromDebrid(info), true, nil
 	default:
 		return AccountHealth{}, false, nil
 	}
 }
 
-// healthFromDebrid folds either AllDebrid's or Real-Debrid's answer into the
-// cache's own shape - both speak debrid.AccountInfo, so one function covers
-// both callers above.
+// healthFromDebrid folds any of the four one-shot debrid services' answers into
+// the cache's own shape - they all speak debrid.AccountInfo, so one function
+// covers every caller above.
 func healthFromDebrid(info debrid.AccountInfo) AccountHealth {
 	return AccountHealth{
-		Tier:      info.Tier,
-		Traffic:   TrafficState{Used: info.Traffic.UsedBytes, Limit: info.Traffic.LimitBytes, Unlimited: info.Traffic.Unlimited},
+		Tier: info.Tier,
+		Traffic: TrafficState{
+			Used:        info.Traffic.UsedBytes,
+			Limit:       info.Traffic.LimitBytes,
+			Unlimited:   info.Traffic.Unlimited,
+			UsedPercent: info.Traffic.UsedPercent,
+			ResetsAt:    formatExpiry(info.Traffic.ResetsAt),
+		},
 		Expiry:    formatExpiry(info.ExpiresAt),
 		FetchedAt: time.Now(),
 	}
@@ -1167,6 +1262,24 @@ func checkCredential(ctx context.Context, service string, cred accounts.Credenti
 		return true, len(hosts), nil
 	case "realdebrid":
 		hosts, err := debrid.NewRealDebrid(cred.APIKey).Hosts(ctx)
+		if err != nil {
+			return false, 0, err
+		}
+		return true, len(hosts), nil
+	case "debridlink":
+		// Deliberately the AUTHENTICATED host list rather than the account
+		// call: /downloader/hosts refuses a bad token the same way every other
+		// endpoint does, and it answers the second half of this function's
+		// contract (how many hosts this key actually buys) in the same round
+		// trip. /account/infos would confirm the key and say nothing about
+		// reach.
+		hosts, err := debrid.NewDebridLink(cred.APIKey).Hosts(ctx)
+		if err != nil {
+			return false, 0, err
+		}
+		return true, len(hosts), nil
+	case "premiumize":
+		hosts, err := debrid.NewPremiumize(cred.APIKey).Hosts(ctx)
 		if err != nil {
 			return false, 0, err
 		}

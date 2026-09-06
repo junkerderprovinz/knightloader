@@ -56,14 +56,28 @@ function fmtElapsed(totalSeconds: number): string {
  * only the file name stays, since a stack of these next to each other still
  * needs SOME way to tell which file is which, but the "ist verschlüsselt...
  * erscheint hier sobald..." explanation was the wordy part nobody wanted
- * repeated. And the bar now actually stops: it used to run forever even
- * once the container had long since resolved into real links elsewhere in
- * the collector, because nothing here ever heard about that. There is
- * still no reliable per-container "it landed" signal to wait for - the
- * backend's own handover answers once with expiresIn and nothing else - so
- * onExpire fires once elapsed reaches it and the caller drops this result
- * rather than this component guessing at success or failure either way;
- * the honest, bounded thing to say by then is nothing at all.
+ * repeated. And the bar stops on a timeout rather than running forever.
+ *
+ * The timeout was never the right end, though, and jdp said so again on
+ * 2026-09-06: "der ladebalken im linksammler läuft unbegrenzt weiter und
+ * verschwindet nicht, selbst wenn die links in der linkliste gelandet sind".
+ * The relay TTL is minutes; the links usually arrive in seconds. A bar that
+ * keeps sweeping over a list that already holds the answer is not "still
+ * waiting", it is wrong.
+ *
+ * The signal it waits on now is `landedAt`: when a link whose intake path was
+ * a CONTAINER (core.Task.Origin == "container", app_links.go's own
+ * OriginContainer) last arrived in the collector. That is exactly what this
+ * bar is waiting for and nothing else - a pasted link, a Click'n'Load push or
+ * a watch-folder pickup all carry their own origin and none of them ends this
+ * bar. The timeout stays as the floor under it, for the handover that never
+ * resolves at all.
+ *
+ * It is still not per-container: the backend's own handover answers once with
+ * expiresIn and no id to correlate against, so two container files dropped in
+ * the same second end both bars when the first one's links land. Ending a
+ * two-second-old bar a moment early is a much smaller wrong than running a
+ * finished one for ten minutes.
  *
  * startedAt is stamped client-side the moment the handover response
  * arrived (sendOne below) - the backend's own handover has no notion of a
@@ -75,11 +89,16 @@ function ContainerHandedProgress({
   file,
   expiresIn,
   startedAt,
+  landedAt,
   onExpire,
 }: {
   file: string;
   expiresIn: number;
   startedAt: number;
+  /** When a link from a container last landed in the collector, in epoch
+   *  milliseconds, or 0 when none ever has - see this component's own doc
+   *  comment for why that is the signal this waits on. */
+  landedAt: number;
   onExpire: () => void;
 }) {
   const [now, setNow] = useState(() => Date.now());
@@ -88,18 +107,25 @@ function ContainerHandedProgress({
     return () => clearInterval(id);
   }, []);
   const elapsed = Math.max(0, Math.round((now - startedAt) / 1000));
+  const landed = landedAt > startedAt;
   useEffect(() => {
-    if (elapsed >= expiresIn) onExpire();
-  }, [elapsed, expiresIn, onExpire]);
+    if (landed || elapsed >= expiresIn) onExpire();
+  }, [landed, elapsed, expiresIn, onExpire]);
   return (
     <div className="flex flex-col gap-1.5 px-4">
-      <p dir="ltr" className="truncate text-xs text-carbon-textSub" title={file}>
-        {file}
-      </p>
-      <div className="flex items-center gap-2">
-        <ProgressBar active percent={0} indeterminate />
+      {/* Name and elapsed time on one line, the bar on its own below it and
+          full width (jdp, 2026-09-06: "der balken fängt nicht rechts bündig
+          an"). The bar used to share a row with the duration, so it stopped
+          short of the card's own edge by exactly the width of "24s" - which
+          reads as a bar that does not reach the end rather than as a bar with
+          a label beside it. */}
+      <div className="flex items-baseline gap-2">
+        <p dir="ltr" className="min-w-0 flex-1 truncate text-xs text-carbon-textSub" title={file}>
+          {file}
+        </p>
         <span className="glim-num shrink-0 text-[11px] text-carbon-textMuted">{fmtElapsed(elapsed)}</span>
       </div>
+      <ProgressBar active percent={0} indeterminate />
     </div>
   );
 }
@@ -134,7 +160,7 @@ type Outcome =
   | { file: string; kind: 'torrent-duplicate' }
   | { file: string; kind: 'failed'; reason: string };
 
-function Result({ o, onExpire }: { o: Outcome; onExpire: () => void }) {
+function Result({ o, landedAt, onExpire }: { o: Outcome; landedAt: number; onExpire: () => void }) {
   const { t } = useT();
 
   if (o.kind === 'failed') {
@@ -154,7 +180,15 @@ function Result({ o, onExpire }: { o: Outcome; onExpire: () => void }) {
   // people upload the same file four times. The links arrive over the websocket
   // when the backend has fetched the handover.
   if (o.kind === 'container-handed') {
-    return <ContainerHandedProgress file={o.file} expiresIn={o.expiresIn} startedAt={o.startedAt} onExpire={onExpire} />;
+    return (
+      <ContainerHandedProgress
+        file={o.file}
+        expiresIn={o.expiresIn}
+        startedAt={o.startedAt}
+        landedAt={landedAt}
+        onExpire={onExpire}
+      />
+    );
   }
   // The container held links and none of them became a task: every one was
   // already in the list. Not a fault, and not silence either.
@@ -303,7 +337,10 @@ function TorrentTreeCard({
  * beside it). It still renders something the moment there is something to
  * show: the torrent file-tree review card, or a batch's outcome lines.
  */
-export const FileDrop = forwardRef<FileDropHandle, { pkg?: string }>(function FileDrop({ pkg = '' }, ref) {
+export const FileDrop = forwardRef<FileDropHandle, { pkg?: string; landedAt?: number }>(function FileDrop(
+  { pkg = '', landedAt = 0 },
+  ref,
+) {
   const { t } = useT();
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -443,7 +480,12 @@ export const FileDrop = forwardRef<FileDropHandle, { pkg?: string }>(function Fi
       )}
 
       {results.map((o, i) => (
-        <Result key={`${o.file}|${i}`} o={o} onExpire={() => setResults((r) => r.filter((x) => x !== o))} />
+        <Result
+          key={`${o.file}|${i}`}
+          o={o}
+          landedAt={landedAt}
+          onExpire={() => setResults((r) => r.filter((x) => x !== o))}
+        />
       ))}
     </div>
   );

@@ -16,11 +16,14 @@ package app
 
 import (
 	"context"
+	"errors"
 	"log"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/junkerderprovinz/knightloader/internal/hosterauth"
+	jdresolver "github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 )
 
 var (
@@ -41,6 +44,13 @@ func (a *App) hosterAuth() *hosterauth.Reconciler {
 	// container that changes KL_JD, or a headless JD that comes up after this
 	// App already started, must be picked up without a restart.
 	r := hosterauth.NewReconciler(hosterauth.NewStore(a.Accounts), func() string { return os.Getenv("KL_JD") })
+	// The on/off switch, read live from the same account_meta.json every other
+	// account's Enabled lives in (jdp, 2026-09-06: "bei den Hoster logins fehlt
+	// der aktiviert toggle"). hosterauth files its credentials under the
+	// pseudo-service "hosterauth" with the host as the account component, which
+	// is exactly the (service, account) pair accountEnabled is keyed by - so
+	// this is the same switch, not a parallel one that could disagree.
+	r.Enabled = func(host string) bool { return a.accountEnabled(hosterauth.Service, host) }
 	hostAuthReg[a] = r
 	return r
 }
@@ -88,6 +98,40 @@ func (a *App) SetHosterLogin(host, username, password string) error {
 	a.spawn(func() {
 		if _, err := r.Reconcile(a.ctx); err != nil {
 			log.Printf("hosterauth: reconcile after save failed: %v", err)
+		}
+	})
+	return nil
+}
+
+// SetHosterLoginEnabled switches one host's login on or off and reconciles
+// right away, so JD gains or loses the account within a second rather than at
+// the next periodic pass (jdp, 2026-09-06: "bei den Hoster logins fehlt der
+// aktiviert toggle").
+//
+// Off does NOT delete the credential: it is removed from JD's own account list
+// and stays sealed in this app's store, so switching it back on needs no
+// password retyped. That is the difference between this and the bin next to
+// it, and the reason both exist.
+func (a *App) SetHosterLoginEnabled(host string, enabled bool) error {
+	r := a.hosterAuth()
+	if host = strings.ToLower(strings.TrimSpace(host)); host == "" {
+		return errors.New("hosterauth: host is required")
+	}
+	host = strings.TrimPrefix(host, "www.")
+	// The same writer every other account's switch goes through, so one file
+	// holds one answer per (service, account) - see hosterAuth() above for why
+	// the key is the same one hosterauth.Store files the credential under.
+	a.SetAccountEnabled(hosterauth.Service, host, enabled)
+	if !enabled {
+		// Ahead of the reconcile, not instead of it: a switched-off host must
+		// stop outranking Direct in the routing table immediately, and
+		// Reconcile only pushes SetHostActive for hosts it still has a state
+		// for - which a disabled one, absent from `desired`, no longer is.
+		jdresolver.SetHostActive(host, false)
+	}
+	a.spawn(func() {
+		if _, err := r.Reconcile(a.ctx); err != nil {
+			log.Printf("hosterauth: reconcile after enable/disable failed: %v", err)
 		}
 	})
 	return nil

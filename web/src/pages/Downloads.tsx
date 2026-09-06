@@ -117,9 +117,36 @@ export function Downloads() {
       all
         .filter((x) => x.status !== 'collected')
         .sort((a, b) => {
-          const movableA = a.status !== 'done' && a.status !== 'error';
-          const movableB = b.status !== 'done' && b.status !== 'error';
-          if (movableA && movableB) return a.position - b.position;
+          // Queue rank first, and that ordering is the whole fix (jdp,
+          // 2026-09-06: "in der downloadliste kann ich ordner nach wie vor
+          // nicht per drag and drop verschieben").
+          //
+          // What stood here compared two DIFFERENT keys depending on the pair:
+          // position when both rows were still in the queue, createdAt as soon
+          // as either one was not. That is not a total order - a settled row
+          // could sort before a queued row that sorted before another settled
+          // row that sorted before the first - and a comparator that
+          // contradicts itself lets a sort produce any arrangement it likes.
+          //
+          // Measured live on the preview instance, dragging one folder above
+          // another: the server accepted the reorder and renumbered exactly as
+          // asked (the moved folder's links really did take the lower
+          // positions), and the list did not move. One link in the folder had
+          // failed, and that settled row - compared by createdAt against
+          // everything - kept sorting near the top; groupByPackage re-merges a
+          // package at its FIRST row, so the whole folder stayed anchored where
+          // its dead link sat. The drag looked ignored, which is exactly the
+          // shape "does not work" takes.
+          //
+          // So: everything still in the queue first, in the order the queue
+          // holds it, then everything settled, oldest first. Both halves are
+          // ordered by one key each, so the result is the same every time, and
+          // a folder's place in the list is decided by the links a reorder can
+          // actually move.
+          const settledA = a.status === 'done' || a.status === 'error' ? 1 : 0;
+          const settledB = b.status === 'done' || b.status === 'error' ? 1 : 0;
+          if (settledA !== settledB) return settledA - settledB;
+          if (settledA === 0) return a.position - b.position;
           return a.createdAt < b.createdAt ? -1 : 1;
         }),
     [all],
@@ -523,12 +550,12 @@ export function Downloads() {
             base={base}
             selection={selection}
             title={t('downloads.listTitle')}
-            // What this list is, in the bubble on its own badge (jdp,
-            // 2026-09-05). It was a dismissible strip at the top of the page,
-            // with the same problem the collector's had: the sentence that
-            // tells the two lists apart was also the one thing a person could
-            // delete for good.
-            hint={`${t('hint.downloads.title')}. ${t('hint.downloads.body')}`}
+            // No hint bubble on the badge (jdp, 2026-09-06: "die i infobubble
+            // im kartentitel entfernen. auch in der linklisten card"). It used
+            // to explain what this list is, which was worth saying once and is
+            // not worth a permanent (i) on the title of the page's main table:
+            // by the time somebody has links in here they know what the list
+            // is, and the bubble was in the way of the thing it described.
             hue={0}
           />
         )}

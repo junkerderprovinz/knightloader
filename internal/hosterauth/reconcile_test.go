@@ -275,3 +275,84 @@ func setHostActiveForTest(t *testing.T, host string, active bool) {
 	t.Helper()
 	jdresolver.SetHostActive(host, active)
 }
+
+// ---- the on/off switch (jdp, 2026-09-06) ----------------------------------
+
+// TestDisabledLoginIsRemovedFromJD is the whole mechanism in one test: a
+// switched-off login is not in `desired`, so plan() sees a JD account nobody
+// wants and asks for it to go. Anything less than that - leaving it in JD and
+// only greying the row - would be a switch that changes what the page says and
+// nothing about what actually downloads.
+func TestDisabledLoginIsRemovedFromJD(t *testing.T) {
+	fake := &fakeJD{accounts: []jdAccount{{UUID: 9, Hostname: "rapidgator.net", InfoMap: &jdAccountInfo{Valid: true}}}}
+	r, store := newTestReconciler(t, fake)
+	if err := store.Set("rapidgator.net", accounts.Credential{Username: "u", Password: "p"}); err != nil {
+		t.Fatalf("store.Set: %v", err)
+	}
+	off := map[string]bool{"rapidgator.net": true}
+	r.Enabled = func(host string) bool { return !off[host] }
+
+	if _, err := r.Reconcile(context.Background()); err != nil {
+		t.Fatalf("Reconcile: %v", err)
+	}
+	if len(fake.removedIDs) != 1 || fake.removedIDs[0] != 9 {
+		t.Fatalf("removed = %v, want [9] - a switched-off login must leave JD's account list", fake.removedIDs)
+	}
+	// And the credential is still there: off is not delete, which is the whole
+	// difference between the toggle and the bin beside it.
+	cred, err := store.Get("rapidgator.net")
+	if err != nil || cred.IsZero() {
+		t.Fatalf("credential after switching off = %+v (err %v), want it kept", cred, err)
+	}
+}
+
+// TestDisabledLoginReadsAsOffNotAsActive: States answers from the switch, not
+// from the last state a reconcile pass happened to leave behind. Reading the
+// cached one would show "active" for a login JD has just been told to drop.
+func TestDisabledLoginReadsAsOffNotAsActive(t *testing.T) {
+	fake := &fakeJD{accounts: []jdAccount{{UUID: 3, Hostname: "rapidgator.net", InfoMap: &jdAccountInfo{Valid: true}}}}
+	r, store := newTestReconciler(t, fake)
+	if err := store.Set("rapidgator.net", accounts.Credential{Username: "u", Password: "p"}); err != nil {
+		t.Fatalf("store.Set: %v", err)
+	}
+	// On first: this is what writes the "active" state the assertion below
+	// must not come back to.
+	if _, err := r.Reconcile(context.Background()); err != nil {
+		t.Fatalf("Reconcile: %v", err)
+	}
+	if got := r.States(); len(got) != 1 || got[0].Status != StatusActive || !got[0].Enabled {
+		t.Fatalf("state while on = %+v, want active and enabled", got)
+	}
+
+	r.Enabled = func(string) bool { return false }
+	got := r.States()
+	if len(got) != 1 {
+		t.Fatalf("States returned %d rows, want the one stored login", len(got))
+	}
+	if got[0].Status != StatusOff {
+		t.Errorf("status = %q, want %q", got[0].Status, StatusOff)
+	}
+	if got[0].Enabled {
+		t.Error("Enabled is true on a switched-off row")
+	}
+	if got[0].Username != "u" {
+		t.Errorf("username = %q, want it still shown while switched off", got[0].Username)
+	}
+}
+
+// TestEnabledNilMeansEverythingOn keeps the field optional: a caller that has
+// no opinion about switches gets exactly the behaviour this package had before
+// they existed.
+func TestEnabledNilMeansEverythingOn(t *testing.T) {
+	fake := &fakeJD{}
+	r, store := newTestReconciler(t, fake)
+	if err := store.Set("rapidgator.net", accounts.Credential{Username: "u", Password: "p"}); err != nil {
+		t.Fatalf("store.Set: %v", err)
+	}
+	if _, err := r.Reconcile(context.Background()); err != nil {
+		t.Fatalf("Reconcile: %v", err)
+	}
+	if len(fake.added) != 1 {
+		t.Fatalf("added = %+v, want the one login pushed to JD with no Enabled set", fake.added)
+	}
+}

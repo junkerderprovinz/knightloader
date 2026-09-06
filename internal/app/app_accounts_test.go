@@ -45,3 +45,47 @@ func TestTorboxHosterDomainsSeparatesStreamFromHoster(t *testing.T) {
 		}
 	}
 }
+
+// TestTorboxLeavesMediaSitesToYtdlp pins the routing decision behind a
+// complaint that looked like a naming bug (jdp, 2026-09-06: "wenn ich ein
+// youtube link im sammler hinzufüge heißt der ordner wieder watch und es wird
+// nur ein link angezeigt, nicht alle dateien").
+//
+// Measured on two live instances: the same YouTube link routes to ytdlp on the
+// one with no TorBox key and to TORBOX on the one with a key, because TorBox's
+// host list covers streaming sites and TorBox outranks yt-dlp. A TorBox-routed
+// media link gets no variant rows and no title probe, so it stays one nameless
+// row in a folder named after the URL's path - permanently.
+//
+// TorBox can genuinely fetch those sites, so it keeps them when yt-dlp is not
+// there at all. What it must not do is take them AWAY from the tool that turns
+// one link into five keepable rows with a quality to pick.
+func TestTorboxLeavesMediaSitesToYtdlp(t *testing.T) {
+	hosters := []torbox.Hoster{
+		{Name: "Rapidgator", Domain: "rapidgator.net", Type: "hoster"},
+		{Name: "YouTube", Domains: []string{"youtube.com", "youtu.be"}, Type: "stream"},
+	}
+	all := torboxHosterDomains(hosters, false)
+	fileOnly := torboxHosterDomains(hosters, true)
+
+	withYtdlp := torboxRoutingHosts(all, fileOnly, true)
+	if withYtdlp["youtube.com"] {
+		t.Error("TorBox still claims youtube.com while yt-dlp is running - the link never reaches the variant expansion")
+	}
+	if !withYtdlp["rapidgator.net"] {
+		t.Error("TorBox stopped claiming a real file hoster, which is the one thing it is for")
+	}
+
+	withoutYtdlp := torboxRoutingHosts(all, fileOnly, false)
+	for _, want := range []string{"youtube.com", "rapidgator.net"} {
+		if !withoutYtdlp[want] {
+			t.Errorf("without yt-dlp, TorBox must still claim %q - nothing else can fetch it", want)
+		}
+	}
+
+	// An unreadable host list must not be read as "TorBox supports nothing":
+	// that would silently stop routing through a working account.
+	if got := torboxRoutingHosts(all, nil, true); !got["rapidgator.net"] {
+		t.Error("an empty file-hoster list dropped the whole routing set instead of falling back to it")
+	}
+}

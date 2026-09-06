@@ -31,6 +31,7 @@ import {
   setEnabled,
   setForced,
   setHold,
+  setPackage,
   setQueue as armStopMark,
   setTaskOptions,
   startTasks,
@@ -40,6 +41,7 @@ import { useDialogMute, type DialogId } from '../lib/dialogmute';
 import { useToast } from '../lib/toast';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { Button, Field, Modal, NumberInput, TextInput } from './ui';
+import { PackageMoveDialog } from './PackageActions';
 import {
   ContextMenu,
   anchorBelow,
@@ -1105,8 +1107,18 @@ export function ListMenu({
   const cleanup = useCleanup(all);
   const queue = useQueueVerbs(base);
   const [options, setOptions] = useState<{ tasks: Task[]; focus: 'dir' | 'password' } | null>(null);
+  // The rows whose package is being renamed/merged right now - see the
+  // 'movePackage' entry below and PackageMoveDialog, which this shares with
+  // the selection row's own folder badge rather than reimplementing.
+  const [movePkg, setMovePkg] = useState<Task[] | null>(null);
 
   const chosen = useMemo(() => all.filter((x) => selected.has(x.id)), [all, selected]);
+  // Every package name on screen, for the dialogue's datalist: moving into a
+  // package that already exists should be a pick, not a re-typing exercise.
+  const knownPackages = useMemo(
+    () => [...new Set(all.map((x) => x.package).filter((p) => p !== ''))].sort(),
+    [all],
+  );
 
   // Fetched once when the page mounts, not when the menu opens: a right-click
   // that has to wait for a request before it can draw its entries is a menu
@@ -1197,6 +1209,24 @@ export function ListMenu({
 
   if (chosen.length > 0) {
     groups.push(
+      // Moving the selection into a package a person names themselves, first
+      // in the list of things to do with a selection because it is what
+      // JDownloader's own right-click opens with (jdp, 2026-09-06: "in der
+      // linkliste kann ich links nicht markieren und in ein Paket verschieben,
+      // welches ich frei bennnenn kann. wie in JD"). The capability already
+      // existed - a folder glyph in the selection row above the list - and
+      // nobody found it there, which is the same as it not existing.
+      {
+        id: 'organise',
+        items: [
+          {
+            id: 'movePackage',
+            label: t('pkg.moveTitle'),
+            icon: <IconFolder width={14} height={14} />,
+            onSelect: () => setMovePkg(chosen),
+          },
+        ],
+      },
       ...taskMenuGroups({
         chosen,
         ids: chosen.map((x) => x.id),
@@ -1243,6 +1273,18 @@ export function ListMenu({
           base={base}
           focus={options.focus}
           onClose={() => setOptions(null)}
+        />
+      )}
+      {movePkg && (
+        <PackageMoveDialog
+          count={movePkg.length}
+          suggestion={movePkg[0]?.package ?? ''}
+          known={knownPackages}
+          onClose={() => setMovePkg(null)}
+          onApply={(name) => {
+            setMovePkg(null);
+            setPackage(movePkg.map((x) => x.id), name, base).catch(fail);
+          }}
         />
       )}
       {cleanup.dialog}

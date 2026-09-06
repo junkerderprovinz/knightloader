@@ -84,6 +84,25 @@ export function Collector() {
   // handling (jdp, 2026-08-24: "können wir diesen text und card nicht
   // entfernen" - the paste box's own drop target hands files here too).
   const fileDrop = useRef<FileDropHandle>(null);
+  // When a link that arrived through a CONTAINER file last landed, in epoch
+  // milliseconds. It is the signal that ends the "handed to JDownloader" bar
+  // FileDrop shows (jdp, 2026-09-06: "der ladebalken im linksammler läuft
+  // unbegrenzt weiter und verschwindet nicht, selbst wenn die links in der
+  // linkliste gelandet sind") - see ContainerHandedProgress's own doc comment
+  // for why the origin is what makes this precise rather than "any new task".
+  //
+  // Derived here rather than subscribed to inside FileDrop: this page already
+  // holds the whole task list, and a second websocket subscription for one
+  // number would be a second stream to keep in step with the first.
+  const lastContainerAt = useMemo(() => {
+    let newest = 0;
+    for (const x of Object.values(tasks)) {
+      if (x.origin !== 'container') continue;
+      const at = Date.parse(x.createdAt);
+      if (Number.isFinite(at) && at > newest) newest = at;
+    }
+    return newest;
+  }, [tasks]);
   const [search, setSearch] = useState<SearchQuery>(EMPTY_SEARCH);
   // The search field's own open/closed state (jdp, 2026-08-24: "das
   // suchfeld soll auch als quadratischer badge neben die andren vier
@@ -398,7 +417,7 @@ export function Collector() {
             // where its OUTPUT renders (AddLinksForm's folder-icon badge
             // opens the picker through it), which is why the component
             // itself is instantiated once, here, rather than twice.
-            footer={<FileDrop ref={fileDrop} pkg={pkg} />}
+            footer={<FileDrop ref={fileDrop} pkg={pkg} landedAt={lastContainerAt} />}
           />
         </div>
         {collected.length > 0 && <CollectorStats all={collected} visible={filtered} selected={selectedTasks} />}

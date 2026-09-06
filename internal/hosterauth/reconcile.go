@@ -39,6 +39,13 @@ const (
 	// StatusRejected is present on JD and has stayed invalid past rejectGrace -
 	// see plan's comment for why that grace window exists at all.
 	StatusRejected LoginStatus = "rejected"
+	// StatusOff is a login the user switched off (jdp, 2026-09-06: "bei den
+	// Hoster logins fehlt der aktiviert toggle"). It is its own status rather
+	// than a flag on top of the other three because a switched-off login is
+	// not in any of them: it is not active, it is not waiting for JD, and it
+	// certainly was not rejected - JD does not have it at all, which is the
+	// whole point of the switch.
+	StatusOff LoginStatus = "off"
 )
 
 // LoginState is one row the accounts page shows - never the password. It has
@@ -50,6 +57,11 @@ type LoginState struct {
 	Username string      `json:"username"`
 	Status   LoginStatus `json:"status"`
 	Detail   string      `json:"detail,omitempty"`
+	// Enabled is the user's own switch, kept beside Status rather than folded
+	// into it: Status says what JD currently thinks, Enabled says whether JD
+	// was ever asked. The row needs both to draw a toggle in the right
+	// position AND a truthful status beside it.
+	Enabled bool `json:"enabled"`
 }
 
 // DesiredLogin is one row Store wants JD to have - the plain half of a
@@ -108,6 +120,15 @@ type Reconciler struct {
 	// than a bare call to newJDClient so a test can inject a fake without
 	// hitting a real JD - see reconcile_test.go.
 	newJD func(base string) jdAccounts
+	// Enabled answers the user's own on/off switch for one host. nil means
+	// every stored login is on, which is what this package did before the
+	// switch existed and what a caller that does not care still gets.
+	//
+	// A function rather than a flag stored here: the switch lives in the app's
+	// own account_meta.json beside every other account's Enabled (see
+	// App.accountEnabled), and a second copy in this package would be a second
+	// thing to keep in step with the first.
+	Enabled func(host string) bool
 
 	mu        sync.Mutex
 	states    map[string]LoginState
@@ -221,7 +242,15 @@ func plan(desired []DesiredLogin, actual []jdAccount, firstFail map[string]time.
 
 // desired reads Store into the plain-credential rows plan needs, skipping
 // anything that no longer carries a secret (Store.Remove leaves a zero
-// Credential behind exactly as accounts.Store always has for a cleared one).
+// Credential behind exactly as accounts.Store always has for a cleared one)
+// and anything the user has switched off.
+//
+// A switched-off login being absent from `desired` is the whole mechanism, not
+// a shortcut: plan() then sees a JD account nobody wants and puts it in
+// Remove, so JD stops using that hoster within one pass while the credential
+// stays sealed in the store for whenever the switch goes back on. That is
+// exactly what an off switch has to mean for a login that does its work inside
+// somebody else's process.
 func (r *Reconciler) desired() []DesiredLogin {
 	var out []DesiredLogin
 	for _, h := range r.store.Hosts() {
@@ -229,9 +258,21 @@ func (r *Reconciler) desired() []DesiredLogin {
 		if err != nil || cred.IsZero() {
 			continue
 		}
+		if !r.enabled(h) {
+			continue
+		}
 		out = append(out, DesiredLogin{Host: h, Username: cred.Username, Password: cred.Password})
 	}
 	return out
+}
+
+// enabled is Enabled with its nil case folded in, so no call site has to
+// remember that an unset predicate means "everything is on".
+func (r *Reconciler) enabled(host string) bool {
+	if r.Enabled == nil {
+		return true
+	}
+	return r.Enabled(host)
 }
 
 // Reconcile runs one pass: read Store, ask JD, add what is missing, remove
@@ -322,18 +363,29 @@ func updateFirstFail(firstFail map[string]time.Time, p Plan, now time.Time) {
 // has run) as queued rather than leaving it out - the row exists, so it has
 // to show something, and "queued, waiting for the next check" is what it
 // actually is.
+// A switched-off login is answered from here alone: it is not in `desired`, so
+// no reconcile pass ever writes a state for it, and reading the last state it
+// had before being switched off would show "active" for a login JD has since
+// been told to drop.
 func (r *Reconciler) States() []LoginState {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	hosts := r.store.Hosts()
 	out := make([]LoginState, 0, len(hosts))
 	for _, h := range hosts {
+		cred, _ := r.store.Get(h)
+		if !r.enabled(h) {
+			out = append(out, LoginState{Host: h, Username: cred.Username, Status: StatusOff,
+				Detail: "switched off - JDownloader is not using this login"})
+			continue
+		}
 		if st, ok := r.states[h]; ok {
+			st.Enabled = true
 			out = append(out, st)
 			continue
 		}
-		cred, _ := r.store.Get(h)
-		out = append(out, LoginState{Host: h, Username: cred.Username, Status: StatusQueued, Detail: "waiting for the next check"})
+		out = append(out, LoginState{Host: h, Username: cred.Username, Status: StatusQueued,
+			Detail: "waiting for the next check", Enabled: true})
 	}
 	return out
 }

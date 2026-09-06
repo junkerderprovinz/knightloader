@@ -21,7 +21,7 @@ package hosterauth
 
 import "github.com/junkerderprovinz/knightloader/internal/accounts"
 
-// service is the pseudo catalogue id native hoster logins are filed under in
+// Service is the pseudo catalogue id native hoster logins are filed under in
 // the shared accounts.Store, with the host as the "account" component of the
 // (service, account) key accounts.Store already indexes by. It is
 // deliberately not an entry in accounts.Catalogue: the catalogue is a short,
@@ -29,7 +29,11 @@ import "github.com/junkerderprovinz/knightloader/internal/accounts"
 // hoster login is one row per host from a list that can run into the
 // hundreds and changes with what JD itself reports - a different shape of
 // list entirely, which is why this package keeps its own.
-const service = "hosterauth"
+// Exported because the app keys its own per-account metadata
+// (account_meta.json: the Enabled switch, the display label) by the same
+// (service, account) pair - so the two files address one row with one string
+// instead of two copies of a literal that could drift apart silently.
+const Service = "hosterauth"
 
 // Store persists native hoster logins, one per host, in the store every other
 // credential in this app already trusts.
@@ -50,20 +54,20 @@ func NewStore(accounts *accounts.Store) *Store {
 
 // Hosts lists every host with a stored login, sorted.
 func (s *Store) Hosts() []string {
-	return s.accounts.AccountIDs(service)
+	return s.accounts.AccountIDs(Service)
 }
 
 // Get returns the stored login for host, or a zero Credential if none is set.
 func (s *Store) Get(host string) (accounts.Credential, error) {
-	return s.accounts.GetCredential(service, host)
+	return s.accounts.GetCredential(Service, host)
 }
 
 // Set stores (or, with a zero Credential, clears) host's login.
 func (s *Store) Set(host string, cred accounts.Credential) error {
-	return s.accounts.SetCredential(service, host, cred)
+	return s.accounts.SetCredential(Service, host, cred)
 }
 
 // Remove clears host's stored login.
 func (s *Store) Remove(host string) error {
-	return s.accounts.SetCredential(service, host, accounts.Credential{})
+	return s.accounts.SetCredential(Service, host, accounts.Credential{})
 }

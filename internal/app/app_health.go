@@ -73,13 +73,17 @@ func (a *App) acctHealthTracker() *accounts.Tracker {
 // http-fallback resolvers never touch internal/accounts, so nothing about
 // their failures belongs at this level.
 //
-// Only the three one-shot debrid services are listed, and only their
+// Only the credential-backed debrid services are listed, and only their
 // default account: rewireBackends' own comment explains why - "only a
 // service's default account is ever wired into routing" - so (resolver id,
 // "") is the whole mapping until a later wave routes named accounts too.
+//
+// The resolver id and the catalogue id are the same string by construction
+// (accounts.Service.ID's own doc comment), which is why this can return
+// resolverID unchanged rather than keeping a second table to drift.
 func (a *App) accountForResolverLocked(resolverID string) (service, account string, ok bool) {
 	switch resolverID {
-	case "alldebrid", "realdebrid", "torbox":
+	case "alldebrid", "realdebrid", "torbox", "debridlink", "premiumize":
 		return resolverID, "", true
 	default:
 		return "", "", false

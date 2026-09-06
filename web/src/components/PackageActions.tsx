@@ -160,7 +160,7 @@ export function PackageActions({
         />
       )}
       {dialog && (
-        <PackageDialog
+        <PackageMoveDialog
           count={chosen.length}
           suggestion={chosen[0]?.package ?? ''}
           known={known}
@@ -176,7 +176,19 @@ export function PackageActions({
   );
 }
 
-function PackageDialog({
+/**
+ * The move/merge dialogue: one free-typed name, with the packages already on
+ * screen offered as a datalist.
+ *
+ * Exported since 2026-09-06, because the badge above it turned out not to be
+ * how anybody looks for this (jdp: "in der linkliste kann ich links nicht
+ * markieren und in ein Paket verschieben, welches ich frei bennnenn kann. wie
+ * in JD" - the capability was there, behind a folder glyph in the selection
+ * row, and JDownloader puts it in the right-click menu). ListMenu now opens
+ * this same dialogue from there, rather than growing a second one that could
+ * drift from this one's behaviour.
+ */
+export function PackageMoveDialog({
   count,
   suggestion,
   known,

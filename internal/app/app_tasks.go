@@ -223,11 +223,38 @@ func (a *App) setTaskName(id, name string) {
 //
 // Callers must already hold a.mu.
 func reguessPackageLocked(tasks map[string]*core.Task, t *core.Task, name string) []core.Task {
-	guess := packageURLGuess(t)
-	if guess == "" || t.Package != guess || !noSiblingHasARealNameYet(tasks, t) {
+	if !packageIsStillAGuess(t) || !noSiblingHasARealNameYet(tasks, t) {
 		return nil
 	}
 	return setPackageLocked(tasks, t, sanitizeSegment(name), nil, nil)
+}
+
+// packageIsStillAGuess reports whether t's package is something this app made
+// up rather than something anybody chose, and may therefore be replaced by a
+// real name that has just arrived.
+//
+// Two shapes qualify, and the second is new (jdp, 2026-09-06: "wenn ich ein
+// youtube link im sammler hinzufüge heißt der ordner wieder watch"):
+//
+//   - The URL-path guess itself, the case this function was extracted for.
+//   - No package at all, which is what a link waiting on a yt-dlp title probe
+//     now looks like: nameBucket deliberately leaves such a link out of the
+//     naming pass rather than filing it under a path segment (see
+//     awaitingMediaProbe, app_links.go), so the folder called "watch" never
+//     appears in the first place. Without this branch that link would simply
+//     stay ungrouped forever, which trades one wrong answer for a different one.
+//
+// ManualPackage is the line neither branch crosses: an empty package a PERSON
+// chose is a deliberate "leave this ungrouped", not a gap to fill in.
+func packageIsStillAGuess(t *core.Task) bool {
+	if t.ManualPackage {
+		return false
+	}
+	if strings.TrimSpace(t.Package) == "" {
+		return true
+	}
+	guess := packageURLGuess(t)
+	return guess != "" && t.Package == guess
 }
 
 // setPackageLocked files t in pkg, and with it every task sharing t's EXACT
@@ -580,12 +607,46 @@ func (a *App) probeYtdlpTitle(id, rawurl string) {
 	defer cancel()
 	res, err := tp.ProbeTitle(ctx, rawurl)
 	if err != nil {
+		a.fileUnprobedMedia(id)
 		return
 	}
-	if title := strings.TrimSpace(res.Title); title != "" {
+	title := strings.TrimSpace(res.Title)
+	if title == "" {
+		a.fileUnprobedMedia(id)
+	} else {
 		a.setTaskName(id, title)
 	}
 	a.applyProbeFormats(rawurl, res.Formats)
+}
+
+// fileUnprobedMedia gives a media link a package after its title probe came
+// back with nothing.
+//
+// It exists because the naming passes now SKIP such a link while its probe
+// runs (awaitingMediaProbe, app_links.go), so a probe that never answers would
+// otherwise leave it ungrouped for good - trading the fifteen seconds in a
+// folder called "watch" that jdp reported for a permanent nothing, which is
+// the worse of the two. The guess it applies is exactly the one those passes
+// would have applied: the URL path's own last segment.
+//
+// A link that has since been named, filed or moved by hand is left alone. All
+// three are checked, not just the package: a probe can lose the race to a
+// crawl, to a Packagizer rule, or to a person who typed a folder name while it
+// was still running.
+func (a *App) fileUnprobedMedia(id string) {
+	a.mu.Lock()
+	t := a.tasks[id]
+	if t == nil || t.Name != t.URL || t.ManualPackage || strings.TrimSpace(t.Package) != "" {
+		a.mu.Unlock()
+		return
+	}
+	guess := packageURLGuess(t)
+	if guess == "" {
+		guess = catchAllPackage
+	}
+	changed := setPackageLocked(a.tasks, t, sanitizeSegment(guess), nil, nil)
+	a.mu.Unlock()
+	a.publishTasks(changed)
 }
 
 // availabilityFor reads a HEAD's status code as a statement about the link.

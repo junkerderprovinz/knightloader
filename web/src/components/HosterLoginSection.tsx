@@ -19,10 +19,11 @@ import {
   fetchHosterLogins,
   removeHosterLogin,
   saveHosterLogin,
+  setHosterLoginEnabled,
 } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
-import { Button, EmptyState, Field, IconBadge, InfoBubble, Modal, TextInput } from './ui';
+import { Button, EmptyState, Field, IconBadge, InfoBubble, Modal, TextInput, Toggle } from './ui';
 import { IconAccounts, IconPlus, IconSearch, IconTrash } from '../lib/icons';
 import { HosterIcon } from './HosterIcon';
 
@@ -62,6 +63,21 @@ export function HosterLoginSection() {
       .catch(() => {});
   }, []);
 
+  async function onToggle(row: HosterLogin, enabled: boolean) {
+    // Optimistic, the same way the debrid table's own switch is (Accounts.tsx):
+    // the toggle is the row's only feedback, and a spinner over one reads as
+    // broken rather than as busy. The reconcile behind it takes a moment - JD
+    // has to accept or drop the account - and the poll above corrects the row
+    // when it lands.
+    setLogins((cur) => cur?.map((x) => (x.host === row.host ? { ...x, enabled } : x)) ?? cur);
+    try {
+      await setHosterLoginEnabled(row.host, enabled);
+    } catch {
+      toast(t('common.loadFailed'), 'fail');
+    }
+    await load();
+  }
+
   async function onRemove(host: string) {
     try {
       await removeHosterLogin(host);
@@ -81,7 +97,14 @@ export function HosterLoginSection() {
           <table className="w-full min-w-[32rem] border-collapse text-sm">
             <thead>
               <tr className="text-start text-xs text-carbon-textMuted">
-                <th className="px-4 py-3 text-start font-medium">{t('accounts.hoster.col.host')}</th>
+                {/* The same first column the debrid table above has, and in the
+                    same place (jdp, 2026-09-06: "bei den Hoster logins fehlt
+                    der aktiviert toggle"). Off means the login stays stored
+                    here and is taken out of JDownloader's own account list, so
+                    that hoster is fetched anonymously again until it is
+                    switched back on - see App.SetHosterLoginEnabled. */}
+                <th className="w-12 px-4 py-3 text-start font-medium">{t('accounts.col.enabled')}</th>
+                <th className="px-2 py-3 text-start font-medium">{t('accounts.hoster.col.host')}</th>
                 <th className="px-2 py-3 text-start font-medium">{t('accounts.col.status')}</th>
                 <th className="px-2 py-3 text-start font-medium">{t('accounts.hoster.col.username')}</th>
                 <th className="w-10 px-2 py-3">
@@ -92,7 +115,15 @@ export function HosterLoginSection() {
             <tbody className="divide-y divide-carbon-border/40">
               {logins?.map((row, i) => (
                 <tr key={row.host} className="group transition-colors hover:bg-carbon-hover">
-                  <td className="px-4 py-3 font-medium text-carbon-text">
+                  <td className="px-4 py-3">
+                    <Toggle
+                      checked={row.enabled}
+                      onChange={(v) => void onToggle(row, v)}
+                      label={t('accounts.hoster.enableLogin', { host: row.host })}
+                      hideLabel
+                    />
+                  </td>
+                  <td className="px-2 py-3 font-medium text-carbon-text">
                     <span className="inline-flex items-center gap-2">
                       <HosterIcon host={row.host} />
                       {row.host}
@@ -153,6 +184,15 @@ export function HosterLoginSection() {
 function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
   const { t } = useT();
   switch (login.status) {
+    case 'off':
+      // Its own reading, not a greyed-out "queued": a switched-off login is
+      // not waiting for anything. JD does not have it at all.
+      return (
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-carbon-textMuted">
+          <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-carbon-textMuted" />
+          {t('accounts.hoster.status.off')}
+        </span>
+      );
     case 'active':
       return (
         <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusOk">

@@ -277,3 +277,81 @@ func TestAQuickProbeStillFixesTheGuessedPackage(t *testing.T) {
 		}
 	}
 }
+
+// TestAPendingMediaLinkIsNotFiledUnderItsURLPath is the 2026-09-06 half of the
+// same complaint jdp has now reported three times ("wenn ich ein youtube link
+// im sammler hinzufüge heißt der ordner wieder watch und es wird nur ein link
+// angezeigt, nicht alle dateien").
+//
+// Measured on the preview instance before changing anything: the machinery
+// that renames such a package to the video's title works, and takes about
+// fifteen seconds, because yt-dlp's -j probe reads every format before it
+// answers. For those fifteen seconds the folder really was called "watch" -
+// the last path segment of every YouTube video URL, and all there is to guess
+// from before the probe lands.
+//
+// So the guess is not made at all any more. This asserts the state DURING the
+// probe, which is the only state jdp was ever looking at, and it needs the
+// blocking backend to get there at all: with a fake that answers instantly the
+// window it is about has already closed by the time AddLinks returns.
+func TestAPendingMediaLinkIsNotFiledUnderItsURLPath(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	release := make(chan struct{})
+	wireYtdlp(a, blockingYtdlpBackend{title: "Never Gonna Give You Up", release: release})
+
+	const url = "https://youtube.com/watch?v=dQw4w9WgXcQ"
+	created := a.AddLinks([]string{url}, "")
+	if len(created) != 1 {
+		t.Fatalf("AddLinks created %d tasks, want 1", len(created))
+	}
+
+	// Every row of the family, not just the primary: the four variant siblings
+	// are created inside stage() and appear in no id list of their own, which
+	// is exactly how a previous fix left the video row named correctly and its
+	// siblings behind in the old folder.
+	for _, row := range a.Tasks() {
+		if row.URL != url {
+			continue
+		}
+		if row.Package != "" {
+			t.Errorf("a link waiting on its title probe was filed under %q, want no package yet (variant %q)", row.Package, row.Variant)
+		}
+	}
+
+	close(release)
+	waitFor(t, "the probe to file the family under the video's own title", func() bool {
+		return snapshot(t, a, created[0].ID).Package == "Never Gonna Give You Up"
+	})
+	// And the siblings came with it - one folder for the five rows of one
+	// video, which is what makes them read as one thing.
+	for _, row := range a.Tasks() {
+		if row.URL == url && row.Package != "Never Gonna Give You Up" {
+			t.Errorf("variant %q stayed in %q, want the whole family in one folder", row.Variant, row.Package)
+		}
+	}
+}
+
+// TestAFailedProbeStillFilesTheLink is the other end of that change, and the
+// thing it would otherwise have broken: the naming passes now skip a link
+// while its probe runs, so a probe that never answers would leave it ungrouped
+// for good - trading fifteen seconds of a wrong folder name for a permanent
+// missing one, which is the worse of the two.
+func TestAFailedProbeStillFilesTheLink(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	done := make(chan struct{})
+	wireYtdlp(a, fakeYtdlpBackend{err: errors.New("yt-dlp: unsupported url"), done: done})
+
+	const url = "https://youtube.com/watch?v=dQw4w9WgXcQ"
+	created := a.AddLinks([]string{url}, "")
+	if len(created) != 1 {
+		t.Fatalf("AddLinks created %d tasks, want 1", len(created))
+	}
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("the probe never ran")
+	}
+	waitFor(t, "the failed probe to fall back to the URL-path guess", func() bool {
+		return snapshot(t, a, created[0].ID).Package == "watch"
+	})
+}

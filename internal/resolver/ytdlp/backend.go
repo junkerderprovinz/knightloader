@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -48,6 +49,18 @@ type Backend struct {
 	cancel map[string]context.CancelFunc
 	url    map[string]string // for resume
 }
+
+// concurrentFragments is how many fragments of one video yt-dlp fetches at
+// once, and httpChunkSize how large a single range request is. Four is the
+// number yt-dlp's own documentation uses in its examples; ten mebibytes is the
+// value its throttling advice quotes. Neither is a knob on the settings page
+// on purpose: both are properties of how a fragmented download behaves, not
+// preferences, and a person who wants a slower download already has the speed
+// limit for that.
+const (
+	concurrentFragments = 4
+	httpChunkSize       = 10 << 20
+)
 
 func NewBackend(bin, dir string, onUpdate func(taskID string, u core.Update)) *Backend {
 	return &Backend{
@@ -97,8 +110,19 @@ func (b *Backend) run(taskID, url string) {
 	args := buildArgs(dir, opts)
 	if b.RateLimit != nil {
 		if lim := b.RateLimit(); lim > 0 {
-			// --limit-rate is per fragment connection; fragments default to 1.
-			args = append(args, "--limit-rate", fmt.Sprint(lim))
+			// --limit-rate is per fragment connection, and buildArgs now asks
+			// for concurrentFragments of them (see its own comment on why).
+			// Passing the whole limit here would therefore let a throttled
+			// download run at concurrentFragments TIMES the speed the user
+			// set - a speed limit that silently is not one, on the one code
+			// path a nightly window exists to enforce. Divided, with a floor
+			// so a very low limit cannot round down to zero, which yt-dlp
+			// reads as "no limit at all".
+			per := lim / concurrentFragments
+			if per < 1 {
+				per = 1
+			}
+			args = append(args, "--limit-rate", fmt.Sprint(per))
 		}
 	}
 	cmd := exec.CommandContext(ctx, b.bin, append(args, url)...)
@@ -342,6 +366,29 @@ func buildArgs(dir string, o Options) []string {
 	args := []string{
 		"--newline", "--no-warnings", "--no-color",
 		"--progress-template", "KLP:%(progress)j",
+		// Speed (jdp, 2026-09-06: "Youtube lädt super langsam herunter. das
+		// geht in jd viel schneller"). Two flags, two different reasons, and
+		// neither is tuning for its own sake:
+		//
+		//   --concurrent-fragments: a DASH or HLS video is thousands of small
+		//   fragments, and yt-dlp fetches them ONE AT A TIME by default. Every
+		//   fragment pays a fresh round trip, so on a link with any latency at
+		//   all the connection sits idle most of the time. JDownloader opens
+		//   several connections per file as a matter of course; this is the
+		//   same idea with the number yt-dlp's own documentation uses in its
+		//   examples.
+		//
+		//   --http-chunk-size: the documented answer to a server that throttles
+		//   a single long-running response ("may be useful for bypassing
+		//   bandwidth throttling imposed by a webserver"). YouTube is the
+		//   textbook case - one open range for a whole file gets metered down
+		//   to a trickle, while the same bytes fetched in chunks do not.
+		//
+		// Both are safe where they do not apply: a non-fragmented download
+		// ignores the first, and a server without range support makes yt-dlp
+		// fall back to a single request for the second.
+		"--concurrent-fragments", strconv.Itoa(concurrentFragments),
+		"--http-chunk-size", strconv.Itoa(httpChunkSize),
 	}
 	if !o.Playlist {
 		args = append(args, "--no-playlist")

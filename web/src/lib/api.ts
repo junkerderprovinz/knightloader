@@ -1613,7 +1613,7 @@ export interface HosterHost {
  * password" - collapsing the two is how a user gives up on a login seconds
  * from working.
  */
-export type HosterLoginStatus = 'queued' | 'active' | 'rejected';
+export type HosterLoginStatus = 'queued' | 'active' | 'rejected' | 'off';
 
 /** One stored native hoster login and its status - hosterauth.LoginState. Never the password. */
 export interface HosterLogin {
@@ -1621,6 +1621,10 @@ export interface HosterLogin {
   username: string;
   status: HosterLoginStatus;
   detail?: string;
+  /** The user's own switch, beside rather than inside `status`: status is what
+   *  JDownloader currently thinks of the login, enabled is whether JD was ever
+   *  given it. The row needs both - one draws the toggle, the other the badge. */
+  enabled: boolean;
 }
 
 /** fetchHosterHosts is the "add a login" picker's host list. */
@@ -1636,6 +1640,14 @@ export async function fetchHosterLogins(): Promise<HosterLogin[]> {
 /** saveHosterLogin stores (or updates) one host's native login. */
 export async function saveHosterLogin(host: string, username: string, password: string): Promise<void> {
   await ok(await post('/api/hosterauth/logins', { host, username, password }));
+}
+
+/** setHosterLoginEnabled switches one host's stored login on or off without
+ *  deleting it - off takes the account out of JDownloader's own list and
+ *  leaves the credential sealed here, so switching it back on needs no
+ *  password retyped. */
+export async function setHosterLoginEnabled(host: string, enabled: boolean): Promise<void> {
+  await ok(await post('/api/hosterauth/logins/enabled', { host, enabled }));
 }
 
 /** removeHosterLogin clears one host's stored native login. */
