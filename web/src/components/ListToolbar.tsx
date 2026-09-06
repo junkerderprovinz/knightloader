@@ -6,7 +6,6 @@
 // same feature built twice and badly; here it is built once and the pages pass
 // in which quick filters make sense for the rows they hold.
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { SVGProps } from 'react';
 import {
   type ApiOptions,
   type BulkResult,
@@ -40,8 +39,7 @@ import { fmtBytes } from '../lib/format';
 import { useDialogMute, type DialogId } from '../lib/dialogmute';
 import { useToast } from '../lib/toast';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { Button, Field, InfoBubble, Modal, NumberInput, TextInput } from './ui';
-import { Tabs } from './Tabs';
+import { Button, Field, Modal, NumberInput, TextInput } from './ui';
 import {
   ContextMenu,
   anchorBelow,
@@ -50,7 +48,6 @@ import {
   type MenuGroup,
   type MenuItem,
 } from './ContextMenu';
-import { SearchField, type SearchQuery } from './SearchField';
 import {
   IconArrowDown,
   IconArrowUp,
@@ -75,29 +72,6 @@ import {
   IconTrashFiles,
 } from '../lib/icons';
 
-// The nine glyphs this file used to draw for itself are gone: seven of them now
-// live in lib/icons.tsx with the rest of the set, and two (the key and the power
-// symbol) turned out to be second, stroked drawings of ones that were already
-// there. Eight of the nine were stroked outlines, which is what that file's
-// header forbids and what jdp's report was pointing at ("Rechtsklick menü soll
-// auch glyphen bekommen (siehe GS)"): one menu row could carry a hairline
-// chevron while the row under it carried a solid trash can. Only the More
-// button's glyph stays here, because it is toolbar furniture, not a menu entry.
-const IconMore = (p: SVGProps<SVGSVGElement>) => (
-  <svg
-    width={16}
-    height={16}
-    viewBox="0 0 20 20"
-    fill="currentColor"
-    className="shrink-0"
-    aria-hidden
-    {...p}
-  >
-    <circle cx="5" cy="10" r="1.4" />
-    <circle cx="10" cy="10" r="1.4" />
-    <circle cx="15" cy="10" r="1.4" />
-  </svg>
-);
 
 // --- The queue's own state ------------------------------------------------
 
