@@ -903,7 +903,7 @@ export const it: Dict = {
   'accounts.col.traffic': 'Traffico rimanente',
   'accounts.credentialFromEnv': 'Impostato dalla variabile d’ambiente {env} del container. Rimuovila lì per cambiare questo.',
   'accounts.debrid.empty': 'Ancora nessun account debrid',
-  'accounts.debrid.emptyHint': 'Aggiungi una chiave di TorBox, AllDebrid, Real-Debrid, Debrid-Link o Premiumize.me per sbloccare automaticamente i link degli hoster.',
+  'accounts.debrid.emptyHint': 'Aggiungi una chiave di uno dei servizi debrid supportati per sbloccare automaticamente i link degli hoster.',
   'accounts.debrid.title': 'Account debrid',
   'accounts.debrid.hint': 'Un servizio debrid è un unico account a pagamento che sblocca molti hoster in una volta sola. KnightLoader gli manda il link e scarica il link diretto che riceve: piena velocità, nessuna attesa, nessun captcha. È la via consigliata, perché altrimenti serve un account premium su ogni singolo hoster.',
   'accounts.edit': 'Modifica credenziale',

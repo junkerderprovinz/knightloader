@@ -911,7 +911,7 @@ export const ro: Dict = {
   'accounts.col.traffic': 'Trafic rămas',
   'accounts.credentialFromEnv': 'Setat de variabila de mediu {env} a containerului. Elimin-o de acolo pentru a schimba asta.',
   'accounts.debrid.empty': 'Încă niciun cont debrid',
-  'accounts.debrid.emptyHint': 'Adaugă o cheie de la TorBox, AllDebrid, Real-Debrid, Debrid-Link sau Premiumize.me ca să deblochezi automat linkurile hosterilor.',
+  'accounts.debrid.emptyHint': 'Adaugă o cheie de la unul dintre serviciile debrid acceptate ca să deblochezi automat linkurile hosterilor.',
   'accounts.debrid.title': 'Conturi debrid',
   'accounts.debrid.hint': 'Un serviciu debrid este un singur cont plătit care deblochează multe hostere deodată. KnightLoader îi trimite linkul și descarcă linkul direct primit înapoi: viteză completă, fără timp de așteptare, fără captcha. Este calea recomandată, fiindcă altfel ai nevoie de un cont premium la fiecare hoster în parte.',
   'accounts.edit': 'Editează credențiala',

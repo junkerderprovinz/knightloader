@@ -911,7 +911,7 @@ export const et: Dict = {
   'accounts.col.traffic': 'Järelejäänud maht',
   'accounts.credentialFromEnv': 'Määratud konteineri keskkonnamuutujaga {env}. Eemalda see sealt, et seda muuta.',
   'accounts.debrid.empty': 'Debrid-kontosid pole veel',
-  'accounts.debrid.emptyHint': 'Lisa võti TorBoxist, AllDebridist, Real-Debridist, Debrid-Linkist või Premiumize.me-st, et hostide lingid avataks automaatselt.',
+  'accounts.debrid.emptyHint': 'Lisa võti mõnest toetatud debridi teenusest, et hostide lingid avataks automaatselt.',
   'accounts.debrid.title': 'Debridi kontod',
   'accounts.debrid.hint': 'Debridi teenus on üks tasuline konto, mis avab korraga palju failihoste. KnightLoader saadab sellele lingi ja laadib alla otselingi, mille tagasi saab: täiskiirus, ootamiseta, captchata. See on soovitatud tee, sest muidu on vaja eraldi premium-kontot igas hostis.',
   'accounts.edit': 'Muuda mandaati',

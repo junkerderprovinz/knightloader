@@ -1017,8 +1017,7 @@ export const en = {
   'accounts.credentialFromEnv':
     'Set by the container’s {env} environment variable. Remove it there to change this.',
   'accounts.debrid.empty': 'No debrid accounts yet',
-  'accounts.debrid.emptyHint':
-    'Add a key from TorBox, AllDebrid, Real-Debrid, Debrid-Link or Premiumize.me to unlock hoster links automatically.',
+  'accounts.debrid.emptyHint': 'Add a key from one of the supported debrid services to unlock hoster links automatically.',
   'accounts.debrid.title': 'Debrid accounts',
   'accounts.debrid.hint':
     'A debrid service is one paid account that unlocks many file hosters at once. KnightLoader sends it the link and downloads the direct link it gets back: full speed, no waiting time, no captcha. It is the recommended way, because the alternative is a separate premium account at every single hoster.',

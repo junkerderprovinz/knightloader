@@ -911,7 +911,7 @@ export const hr: Dict = {
   'accounts.col.traffic': 'Preostali promet',
   'accounts.credentialFromEnv': 'Postavljeno varijablom okruženja spremnika {env}. Ukloni je ondje da to promijeniš.',
   'accounts.debrid.empty': 'Još nema debrid računa',
-  'accounts.debrid.emptyHint': 'Dodaj ključ od TorBoxa, AllDebrida, Real-Debrida, Debrid-Linka ili Premiumize.me da se poveznice hostera automatski otključavaju.',
+  'accounts.debrid.emptyHint': 'Dodaj ključ od jedne od podržanih debrid usluga da se poveznice hostera automatski otključavaju.',
   'accounts.debrid.title': 'Debrid računi',
   'accounts.debrid.hint': 'Debrid usluga je jedan plaćeni račun koji odjednom otključava mnogo filehostera. KnightLoader joj pošalje poveznicu i preuzme izravnu poveznicu koju dobije natrag: puna brzina, bez čekanja, bez captche. To je preporučeni put, jer inače trebaš vlastiti premium račun kod svakog hostera.',
   'accounts.edit': 'Uredi vjerodajnicu',

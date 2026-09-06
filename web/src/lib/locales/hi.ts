@@ -911,7 +911,7 @@ export const hi: Dict = {
   'accounts.col.traffic': 'शेष ट्रैफ़िक',
   'accounts.credentialFromEnv': 'कंटेनर के {env} एनवायरनमेंट वेरिएबल द्वारा सेट किया गया है। इसे बदलने के लिए वहाँ से हटाएँ।',
   'accounts.debrid.empty': 'अभी तक कोई debrid खाता नहीं',
-  'accounts.debrid.emptyHint': 'होस्टर लिंक अपने आप अनलॉक करने के लिए TorBox, AllDebrid, Real-Debrid, Debrid-Link या Premiumize.me की कुंजी जोड़ें।',
+  'accounts.debrid.emptyHint': 'होस्टर लिंक अपने आप अनलॉक करने के लिए किसी समर्थित Debrid सेवा की कुंजी जोड़ें।',
   'accounts.debrid.title': 'Debrid खाते',
   'accounts.debrid.hint': 'Debrid सेवा एक भुगतान वाला खाता है जो एक साथ कई फ़ाइल होस्टर खोल देता है। KnightLoader उसे लिंक भेजता है और जो सीधा लिंक वापस मिलता है उसे डाउनलोड करता है: पूरी गति, कोई प्रतीक्षा नहीं, कोई कैप्चा नहीं। यही अनुशंसित रास्ता है, क्योंकि वरना हर होस्टर पर अलग प्रीमियम खाता चाहिए।',
   'accounts.edit': 'क्रेडेंशियल संपादित करें',

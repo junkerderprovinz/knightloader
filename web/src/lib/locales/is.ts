@@ -911,7 +911,7 @@ export const is: Dict = {
   'accounts.col.traffic': 'Gagnamagn eftir',
   'accounts.credentialFromEnv': 'Stillt af umhverfisbreytu gámsins {env}. Fjarlægðu hana þar til að breyta þessu.',
   'accounts.debrid.empty': 'Engir debrid-reikningar ennþá',
-  'accounts.debrid.emptyHint': 'Bættu við lykli frá TorBox, AllDebrid, Real-Debrid, Debrid-Link eða Premiumize.me til að opna hlekki hýsinga sjálfkrafa.',
+  'accounts.debrid.emptyHint': 'Bættu við lykli frá einni af studdu debrid-þjónustunum til að opna hlekki hýsinga sjálfkrafa.',
   'accounts.debrid.title': 'Debrid-reikningar',
   'accounts.debrid.hint': 'Debrid-þjónusta er einn greiddur reikningur sem opnar marga skráahýsingaraðila í einu. KnightLoader sendir henni hlekkinn og sækir beina hlekkinn sem kemur til baka: fullur hraði, engin bið, engin captcha. Þetta er ráðlagða leiðin, því annars þarf sérstakan premium-reikning hjá hverjum einasta hýsingaraðila.',
   'accounts.edit': 'Breyta innskráningargögnum',

@@ -911,7 +911,7 @@ export const fi: Dict = {
   'accounts.col.traffic': 'Liikennettä jäljellä',
   'accounts.credentialFromEnv': 'Asetettu kontin ympäristömuuttujalla {env}. Poista se sieltä muuttaaksesi tätä.',
   'accounts.debrid.empty': 'Ei vielä debrid-tilejä',
-  'accounts.debrid.emptyHint': 'Lisää avain palvelusta TorBox, AllDebrid, Real-Debrid, Debrid-Link tai Premiumize.me, niin hosterien linkit avataan automaattisesti.',
+  'accounts.debrid.emptyHint': 'Lisää avain jostakin tuetusta debrid-palvelusta, niin hosterien linkit avataan automaattisesti.',
   'accounts.debrid.title': 'Debrid-tilit',
   'accounts.debrid.hint': 'Debrid-palvelu on yksi maksullinen tili, joka avaa monta tiedostopalvelua kerralla. KnightLoader lähettää sille linkin ja lataa saamansa suoran linkin: täysi nopeus, ei odotusaikaa, ei captchaa. Tämä on suositeltu tapa, koska muuten tarvitset oman premium-tilin joka ikiselle hosterille.',
   'accounts.edit': 'Muokkaa kirjautumistietoa',

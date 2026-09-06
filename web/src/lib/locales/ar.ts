@@ -913,7 +913,7 @@ export const ar: Dict = {
   'accounts.col.traffic': 'الرصيد المتبقي',
   'accounts.credentialFromEnv': 'مضبوط عبر متغيّر البيئة {env} في الحاوية. أزله هناك لتغيير هذا.',
   'accounts.debrid.empty': 'لا توجد حسابات debrid بعد',
-  'accounts.debrid.emptyHint': 'أضف مفتاحاً من TorBox أو AllDebrid أو Real-Debrid أو Debrid-Link أو Premiumize.me لفتح روابط المستضيفين تلقائياً.',
+  'accounts.debrid.emptyHint': 'أضف مفتاحاً من أحد خدمات Debrid المدعومة لفتح روابط المستضيفين تلقائياً.',
   'accounts.debrid.title': 'حسابات Debrid',
   'accounts.debrid.hint': 'خدمة Debrid هي حساب مدفوع واحد يفتح العديد من مواقع الاستضافة دفعةً واحدة. يرسل KnightLoader الرابط إليها ويحمّل الرابط المباشر الذي يعود منها: سرعة كاملة، بلا انتظار، وبلا كابتشا. هذا هو الطريق المُوصى به، لأن البديل هو حساب مميّز منفصل لدى كل مستضيف على حدة.',
   'accounts.edit': 'تعديل بيانات الاعتماد',

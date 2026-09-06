@@ -83,7 +83,7 @@ func (a *App) acctHealthTracker() *accounts.Tracker {
 // resolverID unchanged rather than keeping a second table to drift.
 func (a *App) accountForResolverLocked(resolverID string) (service, account string, ok bool) {
 	switch resolverID {
-	case "alldebrid", "realdebrid", "torbox", "debridlink", "premiumize":
+	case "alldebrid", "realdebrid", "torbox", "debridlink", "premiumize", "linksnappy", "offcloud":
 		return resolverID, "", true
 	default:
 		return "", "", false

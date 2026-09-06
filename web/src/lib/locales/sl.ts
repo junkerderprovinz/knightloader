@@ -911,7 +911,7 @@ export const sl: Dict = {
   'accounts.col.traffic': 'Preostali promet',
   'accounts.credentialFromEnv': 'Nastavljeno s spremenljivko okolja vsebnika {env}. Odstrani jo tam, da to spremeniš.',
   'accounts.debrid.empty': 'Še ni računov debrid',
-  'accounts.debrid.emptyHint': 'Dodaj ključ od TorBoxa, AllDebrida, Real-Debrida, Debrid-Linka ali Premiumize.me, da se povezave gostiteljev samodejno odklenejo.',
+  'accounts.debrid.emptyHint': 'Dodaj ključ ene od podprtih storitev debrid, da se povezave gostiteljev samodejno odklenejo.',
   'accounts.debrid.title': 'Računi debrid',
   'accounts.debrid.hint': 'Storitev debrid je en plačljiv račun, ki naenkrat odklene veliko gostiteljev datotek. KnightLoader ji pošlje povezavo in prenese neposredno povezavo, ki jo dobi nazaj: polna hitrost, brez čakanja, brez captche. To je priporočena pot, saj drugače potrebuješ svoj premium račun pri vsakem gostitelju.',
   'accounts.edit': 'Uredi poverilnico',

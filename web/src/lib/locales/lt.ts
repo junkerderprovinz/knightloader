@@ -911,7 +911,7 @@ export const lt: Dict = {
   'accounts.col.traffic': 'Likęs srautas',
   'accounts.credentialFromEnv': 'Nustatyta konteinerio aplinkos kintamuoju {env}. Pašalink jį ten, kad tai pakeistum.',
   'accounts.debrid.empty': 'Kol kas nėra debrid paskyrų',
-  'accounts.debrid.emptyHint': 'Pridėk TorBox, AllDebrid, Real-Debrid, Debrid-Link arba Premiumize.me raktą, kad hosterių nuorodos būtų atrakinamos automatiškai.',
+  'accounts.debrid.emptyHint': 'Pridėk rakto iš vienos iš palaikomų debrid paslaugų, kad hosterių nuorodos būtų atrakinamos automatiškai.',
   'accounts.debrid.title': 'Debrid paskyros',
   'accounts.debrid.hint': 'Debrid paslauga yra viena mokama paskyra, atrakinanti daug failų talpyklų iš karto. KnightLoader nusiunčia jai nuorodą ir atsisiunčia gautą tiesioginę nuorodą: visas greitis, be laukimo, be captcha. Tai rekomenduojamas kelias, nes kitaip reikia atskiros premium paskyros pas kiekvieną hosterį.',
   'accounts.edit': 'Redaguoti prisijungimo duomenis',

@@ -911,7 +911,7 @@ export const ja: Dict = {
   'accounts.col.traffic': '残りトラフィック',
   'accounts.credentialFromEnv': 'コンテナの環境変数 {env} によって設定されています。これを変更するにはそちらで削除してください。',
   'accounts.debrid.empty': 'debrid アカウントはまだありません',
-  'accounts.debrid.emptyHint': 'TorBox、AllDebrid、Real-Debrid、Debrid-Link、Premiumize.me のいずれかのキーを追加すると、ホスターのリンクが自動で解除されます。',
+  'accounts.debrid.emptyHint': '対応している Debrid サービスのいずれかのキーを追加すると、ホスターのリンクが自動で解除されます。',
   'accounts.debrid.title': 'Debrid アカウント',
   'accounts.debrid.hint': 'Debrid サービスとは、多数のファイルホスターを一度に解除する有料アカウントです。KnightLoader がリンクを渡し、返ってきた直リンクをダウンロードします。全速度、待ち時間なし、キャプチャなし。ホスターごとに個別の有料アカウントを持つ代わりになるので、こちらが推奨です。',
   'accounts.edit': '認証情報を編集',

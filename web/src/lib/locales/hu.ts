@@ -911,7 +911,7 @@ export const hu: Dict = {
   'accounts.col.traffic': 'Hátralévő forgalom',
   'accounts.credentialFromEnv': 'A konténer {env} környezeti változója állítja be. Ott távolítsd el, hogy ezt megváltoztasd.',
   'accounts.debrid.empty': 'Még nincs debrid fiók',
-  'accounts.debrid.emptyHint': 'Adj hozzá egy kulcsot a TorBoxtól, AllDebridtől, Real-Debridtől, Debrid-Linktől vagy a Premiumize.me-től, hogy a tárhelyek linkjei automatikusan feloldódjanak.',
+  'accounts.debrid.emptyHint': 'Adj hozzá egy kulcsot valamelyik támogatott debrid szolgáltatástól, hogy a tárhelyek linkjei automatikusan feloldódjanak.',
   'accounts.debrid.title': 'Debrid-fiókok',
   'accounts.debrid.hint': 'A debrid szolgáltatás egyetlen fizetős fiók, ami egyszerre sok tárhelyet old fel. A KnightLoader elküldi neki a linket, és letölti a visszakapott közvetlen linket: teljes sebesség, várakozás és captcha nélkül. Ez az ajánlott út, mert különben minden egyes tárhelyhez külön prémium fiók kell.',
   'accounts.edit': 'Hitelesítő adat szerkesztése',

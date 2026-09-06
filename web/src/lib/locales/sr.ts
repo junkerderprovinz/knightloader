@@ -911,7 +911,7 @@ export const sr: Dict = {
   'accounts.col.traffic': 'Преостали саобраћај',
   'accounts.credentialFromEnv': 'Постављено променљивом окружења контејнера {env}. Уклони је тамо да ово промениш.',
   'accounts.debrid.empty': 'Још нема дебрид налога',
-  'accounts.debrid.emptyHint': 'Додај кључ од TorBox, AllDebrid, Real-Debrid, Debrid-Link или Premiumize.me да би се везе хостера аутоматски откључавале.',
+  'accounts.debrid.emptyHint': 'Додај кључ неке од подржаних debrid услуга да би се везе хостера аутоматски откључавале.',
   'accounts.debrid.title': 'Debrid налози',
   'accounts.debrid.hint': 'Debrid услуга је један плаћени налог који одједном откључава много фајлхостера. KnightLoader јој шаље везу и преузима директну везу коју добије назад: пуна брзина, без чекања, без captcha. То је препоручени пут, јер иначе треба посебан премијум налог код сваког хостера.',
   'accounts.edit': 'Измени акредитив',

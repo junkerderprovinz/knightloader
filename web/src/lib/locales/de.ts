@@ -911,7 +911,7 @@ export const de: Dict = {
   'accounts.col.traffic': 'Verbleibendes Volumen',
   'accounts.credentialFromEnv': 'Wird über die Umgebungsvariable {env} des Containers gesetzt. Dort entfernen, um dies zu ändern.',
   'accounts.debrid.empty': 'Noch keine Debrid-Konten',
-  'accounts.debrid.emptyHint': 'Füge einen Schlüssel von TorBox, AllDebrid, Real-Debrid, Debrid-Link oder Premiumize.me hinzu, um Hoster-Links automatisch freizuschalten.',
+  'accounts.debrid.emptyHint': 'Füge einen Schlüssel von einem der unterstützten Debrid-Dienste hinzu, um Hoster-Links automatisch freizuschalten.',
   'accounts.debrid.title': 'Debrid-Konten',
   'accounts.debrid.hint':
     'Ein Debrid-Dienst ist ein bezahltes Konto, das viele Filehoster auf einmal freischaltet. KnightLoader schickt ihm den Link und lädt den direkten Link, den er zurückbekommt: volle Geschwindigkeit, keine Wartezeit, kein Captcha. Das ist der empfohlene Weg, denn sonst brauchst du bei jedem einzelnen Hoster ein eigenes Premium-Konto.',

@@ -911,7 +911,7 @@ export const cs: Dict = {
   'accounts.col.traffic': 'Zbývající přenos',
   'accounts.credentialFromEnv': 'Nastaveno proměnnou prostředí kontejneru {env}. Odeberte ji tam, chcete-li to změnit.',
   'accounts.debrid.empty': 'Zatím žádné účty debrid',
-  'accounts.debrid.emptyHint': 'Přidej klíč od TorBoxu, AllDebridu, Real-Debridu, Debrid-Linku nebo Premiumize.me, aby se odkazy hosterů odemykaly automaticky.',
+  'accounts.debrid.emptyHint': 'Přidej klíč od některé z podporovaných debrid služeb, aby se odkazy hosterů odemykaly automaticky.',
   'accounts.debrid.title': 'Účty debrid',
   'accounts.debrid.hint': 'Debrid je jeden placený účet, který odemyká spoustu filehosterů najednou. KnightLoader mu pošle odkaz a stáhne přímý odkaz, který dostane zpět: plná rychlost, žádné čekání, žádná captcha. Je to doporučená cesta, protože jinak potřebuješ vlastní prémiový účet u každého hosteru zvlášť.',
   'accounts.edit': 'Upravit přihlašovací údaje',

@@ -911,7 +911,7 @@ export const lv: Dict = {
   'accounts.col.traffic': 'Atlikušais trafiks',
   'accounts.credentialFromEnv': 'Iestatīts ar konteinera vides mainīgo {env}. Noņem to tur, lai to mainītu.',
   'accounts.debrid.empty': 'Vēl nav debrid kontu',
-  'accounts.debrid.emptyHint': 'Pievieno TorBox, AllDebrid, Real-Debrid, Debrid-Link vai Premiumize.me atslēgu, lai hosteru saites tiktu atslēgtas automātiski.',
+  'accounts.debrid.emptyHint': 'Pievieno atslēgu no kāda atbalstītā debrid pakalpojuma, lai hosteru saites tiktu atslēgtas automātiski.',
   'accounts.debrid.title': 'Debrid konti',
   'accounts.debrid.hint': 'Debrid pakalpojums ir viens maksas konts, kas uzreiz atslēdz daudzus failu hosterus. KnightLoader nosūta tam saiti un lejupielādē atpakaļ saņemto tiešo saiti: pilns ātrums, bez gaidīšanas, bez captcha. Tas ir ieteicamais ceļš, jo citādi vajag atsevišķu premium kontu pie katra hostera.',
   'accounts.edit': 'Rediģēt akreditācijas datus',

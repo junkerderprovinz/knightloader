@@ -911,7 +911,7 @@ export const el: Dict = {
   'accounts.col.traffic': 'Απομένουσα κίνηση',
   'accounts.credentialFromEnv': 'Ορίζεται από τη μεταβλητή περιβάλλοντος {env} του container. Αφαιρέστε τη εκεί για να το αλλάξετε.',
   'accounts.debrid.empty': 'Δεν υπάρχουν ακόμη λογαριασμοί debrid',
-  'accounts.debrid.emptyHint': 'Πρόσθεσε ένα κλειδί από TorBox, AllDebrid, Real-Debrid, Debrid-Link ή Premiumize.me για να ξεκλειδώνονται αυτόματα οι σύνδεσμοι των hoster.',
+  'accounts.debrid.emptyHint': 'Πρόσθεσε ένα κλειδί από μία από τις υποστηριζόμενες υπηρεσίες debrid για να ξεκλειδώνονται αυτόματα οι σύνδεσμοι των hoster.',
   'accounts.debrid.title': 'Λογαριασμοί debrid',
   'accounts.debrid.hint': 'Μια υπηρεσία debrid είναι ένας πληρωμένος λογαριασμός που ξεκλειδώνει πολλούς filehoster ταυτόχρονα. Το KnightLoader της στέλνει τον σύνδεσμο και κατεβάζει τον απευθείας σύνδεσμο που παίρνει πίσω: πλήρης ταχύτητα, χωρίς αναμονή, χωρίς captcha. Είναι ο προτεινόμενος δρόμος, γιατί αλλιώς χρειάζεσαι ξεχωριστό premium λογαριασμό σε κάθε hoster.',
   'accounts.edit': 'Επεξεργασία διαπιστευτηρίου',

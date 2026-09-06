@@ -98,6 +98,14 @@ func (a *App) rewireBackends() {
 	if k := a.routedCredential("premiumize").APIKey; k != "" {
 		configured = append(configured, debridSetup{debrid.NewPremiumize(k), 31})
 	}
+	// Linksnappy is the one service here with no API key: it authenticates with
+	// the website's own login, so it is read as a pair rather than a token.
+	if c := a.routedCredential("linksnappy"); c.Username != "" && c.Password != "" {
+		configured = append(configured, debridSetup{debrid.NewLinksnappy(c.Username, c.Password), 29})
+	}
+	if k := a.routedCredential("offcloud").APIKey; k != "" {
+		configured = append(configured, debridSetup{debrid.NewOffcloud(k), 28})
+	}
 	newDebrid := map[string]backend{}
 	for _, d := range configured {
 		hosts := a.fetchDebridHosts(d.svc)
@@ -215,7 +223,7 @@ func (a *App) rewireBackends() {
 	// A credential that is gone - or an account that was switched off - must
 	// stop claiming links, or those links would route to a service that can no
 	// longer unlock them.
-	for _, id := range []string{"alldebrid", "realdebrid", "debridlink", "premiumize"} {
+	for _, id := range []string{"alldebrid", "realdebrid", "debridlink", "premiumize", "linksnappy", "offcloud"} {
 		if _, ok := newDebrid[id]; !ok {
 			a.Registry.Unregister(id)
 		}
@@ -1049,7 +1057,18 @@ func fetchAccountInfoLive(ctx context.Context, service string, cred accounts.Cre
 			return AccountHealth{}, true, err
 		}
 		return healthFromDebrid(info), true, nil
+	case "linksnappy":
+		info, err := debrid.NewLinksnappy(cred.Username, cred.Password).Account(ctx)
+		if err != nil {
+			return AccountHealth{}, true, err
+		}
+		return healthFromDebrid(info), true, nil
 	default:
+		// Offcloud lands here on purpose: it documents no account or quota
+		// endpoint at all, so there is nothing to read. ok=false means "this
+		// account has no health reading to offer", which leaves the row saying
+		// nothing rather than saying something invented - and the manual
+		// Refresh still confirms the key through checkCredential.
 		return AccountHealth{}, false, nil
 	}
 }
@@ -1280,6 +1299,25 @@ func checkCredential(ctx context.Context, service string, cred accounts.Credenti
 		return true, len(hosts), nil
 	case "premiumize":
 		hosts, err := debrid.NewPremiumize(cred.APIKey).Hosts(ctx)
+		if err != nil {
+			return false, 0, err
+		}
+		return true, len(hosts), nil
+	case "linksnappy":
+		// The login FIRST, and that ordering is the whole point here:
+		// Linksnappy's host list needs no account at all, so checking only that
+		// would report a wrong password as a working credential.
+		ls := debrid.NewLinksnappy(cred.Username, cred.Password)
+		if err := ls.Authenticate(ctx); err != nil {
+			return false, 0, err
+		}
+		hosts, err := ls.Hosts(ctx)
+		if err != nil {
+			return false, 0, err
+		}
+		return true, len(hosts), nil
+	case "offcloud":
+		hosts, err := debrid.NewOffcloud(cred.APIKey).Hosts(ctx)
 		if err != nil {
 			return false, 0, err
 		}

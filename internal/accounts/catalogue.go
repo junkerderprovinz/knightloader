@@ -112,6 +112,19 @@ var Catalogue = []Service{
 	// theirs.
 	{ID: "debridlink", Label: "Debrid-Link", Kind: KindAPIKey, Group: GroupDebrid, Env: "KL_DEBRIDLINK", WhereURL: "https://debrid-link.com/webapp/apikey"},
 	{ID: "premiumize", Label: "Premiumize.me", Kind: KindAPIKey, Group: GroupDebrid, Env: "KL_PREMIUMIZE", WhereURL: "https://www.premiumize.me/account"},
+	// The two added on jdp's explicit call after being told what is different
+	// about them (2026-09-06: "Jetzt einbauen, Feldnamen aus fremden
+	// Bibliotheken"). Neither vendor publishes a full API reference any more,
+	// so their two files carry a "where this one's field names come from"
+	// section instead of the documentation link the four above rest on - see
+	// internal/resolver/debrid/linksnappy.go and offcloud.go.
+	//
+	// Linksnappy is the one KindUsernamePassword entry in this list: it has no
+	// API key at all, it authenticates with the same login as the website and
+	// keeps a session cookie. Offcloud's key is on its account page, which is
+	// also the URL its own README names.
+	{ID: "linksnappy", Label: "Linksnappy", Kind: KindUsernamePassword, Group: GroupDebrid, Env: "", WhereURL: "https://linksnappy.com/myaccount"},
+	{ID: "offcloud", Label: "Offcloud", Kind: KindAPIKey, Group: GroupDebrid, Env: "KL_OFFCLOUD", WhereURL: "https://offcloud.com/#/account"},
 	// No Env override for either solver: unlike the three debrid services
 	// above, no container build ships a well-known KL_ environment variable
 	// for a captcha-solver key. Env is optional (see Service.Env's own doc
