@@ -33,6 +33,20 @@ type Result struct {
 	Headers     map[string]string
 	Size        int64
 	Connections int
+	// Available is a verdict this resolution ALREADY produced, when it
+	// produced one. Empty means "nothing was learned", which is the normal
+	// case: resolving is not checking.
+	//
+	// It exists for the one path where the two genuinely happen together. A
+	// link container is opened by JD's crawler, and that crawl reports each
+	// link's availability in the same answer that carries its name and size -
+	// so throwing the verdict away meant a freshly opened DLC landed in the
+	// collector with a grey dot on every row and needed a full second crawl,
+	// by hand, to say what the first one had already said (jdp, 2026-09-06:
+	// "bei dlc links funktioniert die status anzeige immer noch nicht"). In
+	// JDownloader the same links show online or offline the moment the
+	// container opens, and they now do here.
+	Available core.Availability
 }
 
 // Resolver turns a link into a downloadable Result.

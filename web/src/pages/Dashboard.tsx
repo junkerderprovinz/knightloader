@@ -98,7 +98,7 @@ export function Dashboard() {
                       <ProgressBar
                         percent={pct(x.loaded, x.size, x.status === 'done')}
                         active={x.status !== 'error'}
-                        indeterminate={x.status === 'queued'}
+                        indeterminate={x.status === 'running' && x.size <= 0}
                         tone={x.status === 'done' ? 'ok' : 'accent'}
                       />
                     </div>

@@ -167,39 +167,30 @@ export function SpeedGraph({
  * Overview page's hero is mounted and unmounted by navigation while this is not
  * — so a shared window would empty itself whenever somebody left that page.
  */
-export function SpeedMeter({
-  value,
-  onOpen,
-  label,
-  points = 30,
-}: {
-  value: number;
-  /** Absent when the panel would act on a different machine than the list. */
-  onOpen?: () => void;
-  /** What pressing it does, for a screen reader. */
-  label: string;
-  points?: number;
-}) {
+export function SpeedMeter({ value, points = 30 }: { value: number; points?: number }) {
   const samples = useSpeedSamples(value, points);
   const ceilingRef = useRef(0);
 
-  // Bigger than the hairline this used to be, and with both axes, because it
-  // is the only speed curve left on the page: the second, much larger one
-  // below the counters is gone (jdp, 2026-09-05: "der große downloadgraph der
-  // weiter unten nochmal ist, kann weg", and "Der Downloadgraph soll in der
-  // card größer sein und auch im leeren zustand die Abszisse und ordinate
-  // zeigen (wie in der app)"). It costs the shell bar a line of height above
-  // and below the plot and gives the page back a 160px band.
+  // The plot fills whatever height the card gives it (jdp, 2026-09-06: "der
+  // downloadgraph soll in der kopfcard ganz rechts sein und auch in der höhe
+  // die ganze kopfcard ausfüllen"), so the viewBox is a coordinate system and
+  // not a size: preserveAspectRatio="none" plus a stretching svg lets one path
+  // describe a box of any height. The width stays a real number because the
+  // card is a row and nothing else would bound it.
   const W = 148;
-  const H = 30;
+  const H = 40;
   const peak = Math.max(...samples);
   ceilingRef.current = ceilingFor(ceilingRef.current, peak);
   const idle = peak === 0;
   const { d } = smoothPath(samples, W, H, 2, ceilingRef.current);
   const fenster = Math.round(points * (SAMPLE_MS / 1000));
 
-  const inner = (
-    <>
+  // Nothing to press (jdp, 2026-09-06: "klick auf den downloadgraph soll keine
+  // funktione haben"). It used to open the quick-settings panel, which the
+  // hamburger beside it still does - a reading that also acts is a reading
+  // somebody triggers while trying to look at it.
+  return (
+    <span className="flex h-full items-stretch gap-2 px-1.5">
       {/* Both axes, always, idle included - the case the rule was written from
           is exactly a number that a state can take away. The ordinate is the
           ceiling, because that is what the top edge of this box means. */}
@@ -211,8 +202,7 @@ export function SpeedMeter({
           viewBox={`0 0 ${W} ${H}`}
           preserveAspectRatio="none"
           width={W}
-          height={H}
-          className="shrink-0"
+          className="min-h-[26px] flex-1"
           aria-hidden
           focusable="false"
         >
@@ -244,26 +234,12 @@ export function SpeedMeter({
       </span>
       {/* dir="ltr": the number and its unit are one token and must not be
           reordered into "s/BiM 4.2" in an Arabic or Hebrew locale. */}
-      <span dir="ltr" className="glim-num text-[13px] font-semibold leading-none text-carbon-text">
+      <span
+        dir="ltr"
+        className="glim-num flex items-center text-[13px] font-semibold leading-none text-carbon-text"
+      >
         {fmtSpeed(value) || '0 B/s'}
       </span>
-    </>
-  );
-
-  const shell = 'flex items-center gap-2 rounded-[var(--radius-control)] px-1.5 py-1';
-
-  if (!onOpen) return <span className={shell}>{inner}</span>;
-
-  return (
-    <button
-      type="button"
-      onClick={onOpen}
-      aria-label={label}
-      title={label}
-      className={`${shell} transition-colors hover:bg-carbon-hover
-        outline-none focus-visible:shadow-[0_0_0_2px_var(--focus-ring)]`}
-    >
-      {inner}
-    </button>
+    </span>
   );
 }

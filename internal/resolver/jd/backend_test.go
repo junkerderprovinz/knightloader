@@ -106,7 +106,9 @@ func (f *fakeJDContainer) handler() http.Handler {
 		case "/linkgrabberv2/isCollecting":
 			_, _ = w.Write([]byte(`{"data":false}`))
 		case "/linkgrabberv2/queryLinks":
-			_, _ = w.Write([]byte(`{"data":[{"uuid":100,"url":"https://host.example/a","name":"a.bin","host":"host.example","bytesTotal":4096}]}`))
+			_, _ = w.Write([]byte(`{"data":[` +
+				`{"uuid":100,"url":"https://host.example/a","name":"a.bin","host":"host.example","bytesTotal":4096,"availability":"ONLINE"},` +
+				`{"uuid":101,"url":"https://host.example/b","name":"b.bin","host":"host.example","bytesTotal":8192,"availability":"TEMP_UNKNOWN"}]}`))
 		case "/linkgrabberv2/removeLinks":
 			f.mu.Lock()
 			f.removed = append(f.removed, 7)
@@ -139,14 +141,27 @@ func TestAddCryptedV1SubmitsHarvestsAndCleansUp(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(links) != 1 || links[0].DirectURL != "https://host.example/a" {
-		t.Fatalf("links = %+v, want the one harvested link", links)
+	if len(links) != 2 || links[0].DirectURL != "https://host.example/a" {
+		t.Fatalf("links = %+v, want the two harvested links", links)
 	}
 	if links[0].Name != "a.bin" {
 		t.Errorf("Name = %q, want the name the crawl already found, not a bare URL", links[0].Name)
 	}
 	if links[0].Size != 4096 {
 		t.Errorf("Size = %d, want the size the crawl already found", links[0].Size)
+	}
+	// The crawl's own verdict travels with the link, which is what makes a
+	// freshly opened container show online/offline immediately instead of a
+	// grey dot per row until somebody presses "Alle prüfen" (jdp, 2026-09-06:
+	// "bei dlc links funktioniert die status anzeige immer noch nicht").
+	if links[0].Available != core.AvailOnline {
+		t.Errorf("Available = %q, want the ONLINE the crawl already reported", links[0].Available)
+	}
+	// Only a STATED verdict travels. Anything else - TEMP_UNKNOWN here - is
+	// "nobody has looked", not "the host would not say", and staging it as the
+	// latter would put a permanent "uncheckable" on a link nothing has checked.
+	if links[1].Available != "" {
+		t.Errorf("Available = %q for TEMP_UNKNOWN, want it left empty", links[1].Available)
 	}
 
 	fake.mu.Lock()

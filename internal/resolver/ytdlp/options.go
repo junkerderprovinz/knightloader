@@ -107,8 +107,16 @@ func validVariant(v Variant) bool {
 // keyword for "whatever the source's own audio codec already is, do not
 // transcode" - the zero value, so an Options with no opinion re-encodes
 // nothing.
+// Every one of these is a value yt-dlp's own --audio-format accepts. It used
+// to be six, and the three that were missing are exactly the ones a person
+// coming from JDownloader looks for first: JD lists AAC by name, and a source
+// carrying a Vorbis or ALAC track had nothing on this menu that matched it
+// (jdp, 2026-09-06: "bei youtube links gibt es zb das audioformat aac nicht im
+// dropdown als auswahl obwohl es JD anbietet"). AvailableAudioFormats still
+// narrows this to what a probed source genuinely carries, so a longer menu
+// costs a real link nothing.
 func AudioFormats() []string {
-	return []string{"best", "mp3", "m4a", "opus", "wav", "flac"}
+	return []string{"best", "aac", "alac", "flac", "m4a", "mp3", "opus", "vorbis", "wav"}
 }
 
 func validAudioFormat(f string) bool {
@@ -175,18 +183,27 @@ func AvailableAudioBitrates(maxAbr float64) []string {
 // AvailableAudioFormats' own doc comment for why the distinction matters).
 // "" means the codec has no native match on that menu at all (vorbis, ac-3,
 // eac3, alac...) - not an error, simply nothing to offer for it.
-func audioFormatForCodec(acodec string) string {
+// It returns a LIST, because one codec can have more than one native reading
+// on that menu and picking a favourite would hide the other: an AAC stream is
+// "m4a" when you mean the container it already sits in and "aac" when you mean
+// the raw stream, and neither one re-encodes anything. JDownloader names that
+// row AAC, which is why the missing half was the half people looked for.
+func audioFormatsForCodec(acodec string) []string {
 	switch {
-	case strings.HasPrefix(acodec, "mp4a"):
-		return "m4a"
+	case strings.HasPrefix(acodec, "mp4a"), strings.HasPrefix(acodec, "aac"):
+		return []string{"m4a", "aac"}
 	case strings.HasPrefix(acodec, "opus"):
-		return "opus"
+		return []string{"opus"}
 	case strings.HasPrefix(acodec, "mp3"):
-		return "mp3"
+		return []string{"mp3"}
 	case strings.HasPrefix(acodec, "flac"):
-		return "flac"
+		return []string{"flac"}
+	case strings.HasPrefix(acodec, "vorbis"):
+		return []string{"vorbis"}
+	case strings.HasPrefix(acodec, "alac"):
+		return []string{"alac"}
 	default:
-		return ""
+		return nil
 	}
 }
 
@@ -200,7 +217,7 @@ func audioFormatForCodec(acodec string) string {
 func AvailableAudioFormats(codecs []string) []string {
 	present := make(map[string]bool, len(codecs))
 	for _, c := range codecs {
-		if f := audioFormatForCodec(c); f != "" {
+		for _, f := range audioFormatsForCodec(c) {
 			present[f] = true
 		}
 	}
@@ -282,13 +299,24 @@ const (
 	// default selection - named so the page has something to show selected
 	// on a fresh install, not so this package ever compares against it
 	// before Sanitize has run.
-	QualityBest  Quality = "best"
+	QualityBest Quality = "best"
+	// The ladder covers what the sites this resolver reaches actually
+	// publish, top and bottom (jdp, 2026-09-06: "Es soll bei solchen links
+	// immer generell alle dateiformate anbieten die der hoster ausgibt bzw
+	// anbietet. ebenso die qualitäten"). It used to stop at 2160p and at
+	// 360p, so a source with an 8K track offered nothing above 4K and one
+	// watched on a phone connection could not be asked for 240p at all -
+	// both are real YouTube heights, and AvailableQualities trims whatever
+	// a given source does not have anyway.
+	Quality4320p Quality = "4320p"
 	Quality2160p Quality = "2160p"
 	Quality1440p Quality = "1440p"
 	Quality1080p Quality = "1080p"
 	Quality720p  Quality = "720p"
 	Quality480p  Quality = "480p"
 	Quality360p  Quality = "360p"
+	Quality240p  Quality = "240p"
+	Quality144p  Quality = "144p"
 	// QualityAudioOnly is no longer offered on Qualities()'s own menu -
 	// superseded by the dedicated VariantAudio row (jdp, 2026-08-25: five
 	// independently keepable rows per link, JD-style, not a video-quality
@@ -314,8 +342,8 @@ const (
 // listed here.
 func Qualities() []Quality {
 	return []Quality{
-		QualityBest, Quality2160p, Quality1440p, Quality1080p,
-		Quality720p, Quality480p, Quality360p, QualityCustom,
+		QualityBest, Quality4320p, Quality2160p, Quality1440p, Quality1080p,
+		Quality720p, Quality480p, Quality360p, Quality240p, Quality144p, QualityCustom,
 	}
 }
 
@@ -334,8 +362,8 @@ func validQuality(q Quality) bool {
 // keeps it in the running - see yt-dlp's own format-selection docs on
 // "eager" comparisons.
 var heightCaps = map[Quality]string{
-	Quality2160p: "2160", Quality1440p: "1440", Quality1080p: "1080",
-	Quality720p: "720", Quality480p: "480", Quality360p: "360",
+	Quality4320p: "4320", Quality2160p: "2160", Quality1440p: "1440", Quality1080p: "1080",
+	Quality720p: "720", Quality480p: "480", Quality360p: "360", Quality240p: "240", Quality144p: "144",
 }
 
 // HeightCap is heightCaps's own mapping, parsed and exported - what a probed

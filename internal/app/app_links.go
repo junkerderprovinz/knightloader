@@ -139,8 +139,16 @@ func (a *App) AddResolvedLinksFrom(links []resolver.Result, pkg string, origin c
 	return a.detached(a.addResolvedLinksFrom(links, pkg, origin))
 }
 
+// verdict is one link's already-known availability, waiting to be written
+// through the locked path once the staging loop is done.
+type verdict struct {
+	id    string
+	avail core.Availability
+}
+
 func (a *App) addResolvedLinksFrom(links []resolver.Result, pkg string, origin core.Origin) []*core.Task {
 	var created []*core.Task
+	var verdicts []verdict
 	seen := map[string]bool{}
 	b := &bucket{}
 	for _, l := range links {
@@ -157,12 +165,25 @@ func (a *App) addResolvedLinksFrom(links []resolver.Result, pkg string, origin c
 			continue
 		}
 		if t := a.stage(u, l.Name, l.Size, intake{pkg: pkg, origin: origin}); t != nil {
+			// A verdict the resolution already produced is worth recording -
+			// see resolver.Result.Available. Collected here and written after
+			// the loop through setAvailability, never onto the task in hand: it
+			// is a shared task, and the one write path that takes a.mu and
+			// broadcasts is the only one allowed to touch it.
+			if l.Available != "" {
+				verdicts = append(verdicts, verdict{id: t.ID, avail: l.Available})
+			}
 			b.tasks = append(b.tasks, t)
 			created = append(created, t)
 		}
 	}
 	if strings.TrimSpace(pkg) == "" {
 		a.nameBucket(b)
+	}
+	// Before catchAll and before any auto-confirm: whatever happens to these
+	// rows next, the verdict the crawl already produced belongs on them.
+	for _, v := range verdicts {
+		a.setAvailability(v.id, v.avail, "", core.ReasonUnknown)
 	}
 	a.catchAll(created)
 	if len(created) > 0 && a.Settings.Get().AutoConfirm {

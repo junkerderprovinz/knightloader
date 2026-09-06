@@ -10,6 +10,7 @@ import {
   setQueue,
   stopAll,
 } from '../lib/api';
+import { useDialogMute } from '../lib/dialogmute';
 import { useT } from '../lib/i18n';
 import { useInstanceScope } from '../lib/instance';
 import { Button, Modal } from './ui';
@@ -123,6 +124,7 @@ export function QueueBar() {
   // once, right before the confirm dialog opens.
   const [stopCost, setStopCost] = useState<StopCost | null>(null);
   const [stopping, setStopping] = useState(false);
+  const dialogs = useDialogMute();
   // Held separately from cfg so typing a limit does not fight the field, and
   // held as text so a half-typed "1." survives the keystroke that follows it.
   const [limit, setLimit] = useState('');
@@ -233,28 +235,33 @@ export function QueueBar() {
       <Button
         kind="secondary"
         icon={<IconStop width={16} height={16} />}
-        onClick={() => void fetchStopCost(base).then(setStopCost)}
+        // Silenced, the stop happens on the press. The dialog exists to say
+        // what is about to be interrupted, and somebody who ticked "do not
+        // show this again" has answered that in advance - see dialogmute.ts.
+        onClick={() => {
+          if (dialogs.isMuted('hardStop')) {
+            void stop();
+            return;
+          }
+          void fetchStopCost(base).then(setStopCost);
+        }}
         disabled={queue.running === 0}
         title={t('queue.hardStop')}
         aria-label={t('queue.hardStop')}
       />
 
-      {queue.halted && (
-        <span className="text-statusInfo text-[11px]">
-          {t('queue.halted')}
-        </span>
-      )}
+      {/* No prose in this card any more (jdp, 2026-09-06: "die infotexte in der
+          kopfcard wie zb.: Warteschlange gestoppt. Laufende Downloads werden
+          fertig, es startet nichts Neues. sollen weg"). Both sentences that
+          used to sit here - the halted note and the peer's "the limit is this
+          machine's" note - said in a paragraph what the controls beside them
+          already say by their own state: Play lit means halted, and the limit
+          field is simply absent while a peer is in view. */}
 
       {/* Always the far-right item in this row (jdp: "das Speedlimit soll
           immer rechts drüben stehen") - ml-auto rather than a bare flex-1
           spacer, so it pushes itself right regardless of how many other
-          items (the play/pause/stop cluster, the halted note) sit before it
-          in the same flex-wrap row, without needing an empty spacer element
-          of its own. */}
-      {peer && (
-        <span className="ml-auto text-[11px] text-carbon-textMuted">{t('queue.peerLimitLocal')}</span>
-      )}
-
+          items sit before it in the same flex-wrap row. */}
       {!peer && (
       <label className="ml-auto flex items-center gap-2 text-[11px] text-carbon-textMuted">
         {t('queue.limit')}
@@ -303,6 +310,7 @@ export function QueueBar() {
       {stopCost && (
         <Modal
           title={t('queue.hardStopConfirmTitle')}
+          mute="hardStop"
           onClose={() => (stopping ? undefined : setStopCost(null))}
           footer={
             <>

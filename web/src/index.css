@@ -150,6 +150,16 @@
      black is that colour exactly. */
   --ink-mix:           100%;
   --accent-ink:        color-mix(in srgb, var(--accent) var(--ink-mix), black);
+  /* The theme's own accent, kept reachable from inside a rainbowed subtree.
+     `.glim-hue` redefines --accent to a row's own position colour, which is
+     exactly right for everything that belongs to that row - and exactly wrong
+     for a mark that means "this is the one you picked": every selected row
+     would be a different colour, and under a neutral palette they would all be
+     grey (measured on the live instance, where a selected row's mark came out
+     rgb(141,141,141)). A custom property is substituted where it is DECLARED,
+     so this resolves against :root's accent once and is inherited as that
+     literal colour, whatever a descendant does to --accent afterwards. */
+  --accent-fixed:      var(--accent);
 
   /* Four state hues, Carbon's dark support tones — the same greens and reds the
      siblings use, so "finished" is one colour across the whole family.
@@ -584,6 +594,37 @@ body {
 }
 [data-rainbow='reactive'] .glim-tint.glim-active {
   box-shadow: inset 0 0 0 999px var(--item-hue-soft);
+}
+
+/* .glim-row / .glim-row-selected: the mark on a list row somebody picked.
+
+   It is a class and not a utility because of the rule right above it. The
+   rainbow wash is an inset box-shadow, and an inset shadow paints ABOVE the
+   element's own background-color — so a `bg-accent/20` utility on a washed row
+   was underneath the wash, and "wenn eine zeile ausgewählt ist erkennt man das
+   nicht" came back a second time (jdp, 2026-09-06, about the download list).
+   Putting the mark in the same property, at a specificity that beats the plain
+   wash, is what makes it survive; the accent edge is the half that reads even
+   in a colour-blind palette and at any wash strength. */
+.glim-row-selected,
+/* The hover utility on the same row carries a pseudo-class and would otherwise
+   out-specify this, so a selected row lost its mark under the pointer - the one
+   moment somebody is looking straight at it. */
+.glim-row-selected:hover {
+  background-color: color-mix(in oklab, var(--accent-fixed) 22%, transparent);
+}
+[data-rainbow] .glim-tint.glim-row-selected,
+[data-rainbow='reactive'] .glim-tint.glim-row-selected {
+  box-shadow: inset 0 0 0 999px color-mix(in oklab, var(--accent-fixed) 22%, transparent);
+}
+.glim-row-selected::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 3px;
+  background: var(--accent-fixed);
+  pointer-events: none;
 }
 
 /* .glim-tint-hover: the same rest-quiet/hover-reveals behaviour as reactive

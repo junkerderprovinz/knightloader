@@ -16,6 +16,7 @@ import {
 } from '../../lib/api';
 import { IconDownloads, IconMoon, IconRetry, IconSignOut, IconSun, IconUpload } from '../../lib/icons';
 import { QuietModeToggle, useToast } from '../../lib/toast';
+import { MUTABLE_DIALOGS, useDialogMute } from '../../lib/dialogmute';
 import { getTheme, onThemeChange, setTheme } from '../../lib/theme';
 import { asNavLabelMode, setNavLabels, useNavLabels } from '../../lib/navLabels';
 import { useT } from '../../lib/i18n';
@@ -734,9 +735,42 @@ export function Look() {
         />
       </Card>
 
+      <MutedDialogsCard />
       <UpdateCard />
       <SystemCards />
     </div>
+  );
+}
+
+/**
+ * The way back from "do not show this again" (jdp, 2026-09-06: "in den
+ * einstellungen muss es aber einen bereich geben diese optoin wieder rückgängig
+ * zu machen").
+ *
+ * One switch per silenced dialog rather than a single "show everything again"
+ * button, because somebody who silenced three confirmations rarely regrets all
+ * three - and a list that shows WHICH ones are off is also the only place the
+ * decision is visible at all once it has been made. The card is absent while
+ * nothing is silenced: an empty list of things you have not done is furniture.
+ */
+function MutedDialogsCard() {
+  const { t } = useT();
+  const dialogs = useDialogMute();
+  if (dialogs.muted.length === 0) return null;
+
+  return (
+    <Card hue={5} className="flex flex-col gap-3">
+      <SectionTitle hint={t('settings.dialogs.hint')}>{t('settings.dialogs.title')}</SectionTitle>
+      {MUTABLE_DIALOGS.filter((d) => dialogs.isMuted(d.id)).map((d) => (
+        <ToggleRow
+          key={d.id}
+          hue={0}
+          label={t(d.label)}
+          checked={false}
+          onChange={() => dialogs.setMuted(d.id, false)}
+        />
+      ))}
+    </Card>
   );
 }
 

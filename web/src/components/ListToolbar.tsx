@@ -37,6 +37,7 @@ import {
   startTasks,
 } from '../lib/api';
 import { fmtBytes } from '../lib/format';
+import { useDialogMute, type DialogId } from '../lib/dialogmute';
 import { useToast } from '../lib/toast';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { Button, Field, InfoBubble, Modal, NumberInput, TextInput } from './ui';
@@ -289,6 +290,7 @@ function ConfirmRemove({
   weight,
   allowFiles,
   note,
+  mute,
   onCancel,
   onConfirm,
 }: {
@@ -299,6 +301,8 @@ function ConfirmRemove({
   allowFiles: boolean;
   /** Why the files cannot be deleted from here, when they cannot. */
   note?: string;
+  /** Which "do not show this again" switch this dialog carries, if any. */
+  mute?: DialogId;
   onCancel: () => void;
   onConfirm: (withFiles: boolean) => void;
 }) {
@@ -309,6 +313,7 @@ function ConfirmRemove({
     <Modal
       title={title}
       onClose={onCancel}
+      mute={mute}
       footer={
         <>
           <Button kind="secondary" onClick={() => onConfirm(false)}>
@@ -485,6 +490,7 @@ export function useRemoval({
 }) {
   const { t } = useT();
   const { toast } = useToast();
+  const dialogs = useDialogMute();
   const [ask, setAsk] = useState<string[] | null>(null);
 
   const removeNow = useCallback(
@@ -501,9 +507,20 @@ export function useRemoval({
     [base, onDone, t, toast],
   );
 
-  const askWithFiles = useCallback((ids: string[]) => {
-    if (ids.length > 0) setAsk(ids);
-  }, []);
+  // Silenced, this goes straight through to the delete WITH its files - which
+  // is what the dialog was asking permission for, and what somebody who ticked
+  // "do not show this again" was answering in advance. See lib/dialogmute.ts.
+  const askWithFiles = useCallback(
+    (ids: string[]) => {
+      if (ids.length === 0) return;
+      if (dialogs.isMuted('remove')) {
+        void removeNow(ids, true);
+        return;
+      }
+      setAsk(ids);
+    },
+    [dialogs, removeNow],
+  );
 
   // Del is only the download list's key while nothing is being typed into.
   // Without the guard, editing a search query deletes downloads.
@@ -527,6 +544,7 @@ export function useRemoval({
       title={t('remove.title')}
       weight={weigh(all, ask)}
       allowFiles
+      mute="remove"
       onCancel={() => setAsk(null)}
       onConfirm={(withFiles) => {
         setAsk(null);
@@ -601,6 +619,7 @@ const KEEPS_FILES = new Set<string>(['finished']);
 export function useCleanup(all: Task[]) {
   const { t } = useT();
   const { toast } = useToast();
+  const dialogs = useDialogMute();
   const [classes, setClasses] = useState<CleanupClass[] | null>(null);
   const [confirm, setConfirm] = useState<{ cls: CleanupClass; ids: string[] } | null>(null);
 
@@ -610,25 +629,9 @@ export function useCleanup(all: Task[]) {
     return list;
   }, []);
 
-  // The preview and the confirmation are one gesture: the class picks the rows,
-  // so the count is the only thing that can tell the user what they are about to
-  // agree to. Nothing is removed by opening this.
-  const preview = useCallback(
-    async (cls: CleanupClass): Promise<void> => {
-      try {
-        const r = await cleanupPreview(cls);
-        if (r.count === 0) {
-          toast(t('cleanup.nothing', { what: classLabel(cls, t) }), 'info');
-          return;
-        }
-        setConfirm({ cls, ids: r.ids });
-      } catch (e) {
-        toast(t('cleanup.failed', { error: message(e) }), 'fail');
-      }
-    },
-    [t, toast],
-  );
-
+  // Declared before preview() because preview() can call it directly when the
+  // confirmation has been silenced, and a useCallback dependency list cannot
+  // name a const that is declared further down.
   const run = useCallback(
     async (cls: CleanupClass, withFiles: boolean): Promise<void> => {
       setConfirm(null);
@@ -642,6 +645,31 @@ export function useCleanup(all: Task[]) {
     [t, toast],
   );
 
+  // The preview and the confirmation are one gesture: the class picks the rows,
+  // so the count is the only thing that can tell the user what they are about to
+  // agree to. Nothing is removed by opening this.
+  const preview = useCallback(
+    async (cls: CleanupClass): Promise<void> => {
+      try {
+        const r = await cleanupPreview(cls);
+        if (r.count === 0) {
+          toast(t('cleanup.nothing', { what: classLabel(cls, t) }), 'info');
+          return;
+        }
+        // Silenced, the preview becomes the run - without files, which is the
+        // conservative half of the dialog's own two answers. See dialogmute.ts.
+        if (dialogs.isMuted('cleanup')) {
+          void run(cls, false);
+          return;
+        }
+        setConfirm({ cls, ids: r.ids });
+      } catch (e) {
+        toast(t('cleanup.failed', { error: message(e) }), 'fail');
+      }
+    },
+    [dialogs, run, t, toast],
+  );
+
   const dialog = confirm && (
     <ConfirmRemove
       title={classLabel(confirm.cls, t)}
@@ -649,6 +677,7 @@ export function useCleanup(all: Task[]) {
       weight={weigh(all, confirm.ids)}
       allowFiles={!KEEPS_FILES.has(confirm.cls)}
       note={KEEPS_FILES.has(confirm.cls) ? t('cleanup.finishedKeepsFiles') : undefined}
+      mute="cleanup"
       onCancel={() => setConfirm(null)}
       onConfirm={(withFiles) => void run(confirm.cls, withFiles)}
     />
@@ -1247,175 +1276,6 @@ export function ListMenu({
   );
 }
 
-// --- The toolbar above the list -------------------------------------------
-
-/**
- * ListToolbar narrows what is on screen: the search field, the quick filters and
- * the readout that says how much of the list survived them.
- *
- * A filter nothing matches is not offered. Eight always-visible chips reading
- * zero are eight things to read past on the way to the two that mean something —
- * but one that is switched on stays, or turning a filter on could make its own
- * chip disappear.
- */
-export function ListToolbar({
-  search,
-  onSearch,
-  filters,
-  active,
-  onActive,
-  tasks,
-  shown,
-  right,
-  hideSearch = false,
-}: {
-  search: SearchQuery;
-  onSearch: (next: SearchQuery) => void;
-  /** Which quick filters this list offers, in order. */
-  filters: QuickFilterId[];
-  active: Set<QuickFilterId>;
-  onActive: (next: Set<QuickFilterId>) => void;
-  /** The list before search and filters — where the counts come from. */
-  tasks: Task[];
-  /** How many rows survived them. */
-  shown: number;
-  right?: ReactNode;
-  /**
-   * Skips the inline SearchField entirely. Collector.tsx moved its own search
-   * field into a badge-toggled row of its own (jdp, 2026-08-24: "das
-   * suchfeld soll auch als quadratischer badge neben die andren vier
-   * badges") — Downloads.tsx never passes this and keeps the field inline
-   * exactly as before.
-   */
-  hideSearch?: boolean;
-}) {
-  const { t } = useT();
-
-  const offered = useMemo(() => offeredQuickFilters(filters, tasks, active), [filters, tasks, active]);
-
-  const narrowed = active.size > 0 || search.text.trim() !== '';
-
-  function toggle(id: QuickFilterId): void {
-    const next = new Set(active);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    onActive(next);
-  }
-
-  return (
-    <div className="flex flex-wrap items-center gap-2" role="group" aria-label={t('list.controls')}>
-      {!hideSearch && <SearchField value={search} onChange={onSearch} className="max-w-md flex-1" />}
-
-      {/* The same strip as the settings tabs and the corner picker, in its
-          multi-select reading: two filters on means "show me both kinds". These
-          were hand-built buttons that happened to share three class names with
-          the settings rail, which is how the two drifted apart in the first
-          place — one keyboard-navigable, one not. */}
-      {offered.length > 0 && (
-        <Tabs
-          select="many"
-          size="sm"
-          label={t('filter.label')}
-          active={active}
-          onSelect={(id) => toggle(id as QuickFilterId)}
-          items={offered.map(({ f, n }) => ({ id: f.id, label: t(f.label), badge: n }))}
-          after={
-            active.size > 0 && (
-              <Button kind="ghost" className="px-2 py-1 text-xs" onClick={() => onActive(new Set())}>
-                {t('filter.clear')}
-              </Button>
-            )
-          }
-        />
-      )}
-
-      {narrowed && (
-        <span className="glim-num text-xs text-carbon-textMuted">
-          {t('search.shown', { n: shown, total: tasks.length })}
-        </span>
-      )}
-
-      <span className="flex-1" />
-      {right}
-    </div>
-  );
-}
-
-// --- The strip that appears with a selection ------------------------------
-
-/**
- * SelectionStrip is the bulk-action bar. Every verb on it can act on what is
- * selected right now; the rest are not greyed out, they are simply not there.
- *
- * The long tail lives behind More, which opens the very same menu as a
- * right-click — so the menu is discoverable by people who never right-click, and
- * the strip stays a strip instead of becoming a wall of buttons.
- */
-export function SelectionStrip({
-  all,
-  selected,
-  onSelected,
-  removal,
-  onMore,
-  children,
-}: {
-  all: Task[];
-  selected: Set<string>;
-  onSelected: (next: Set<string>) => void;
-  removal: Removal;
-  onMore: (at: MenuAnchor) => void;
-  /** Actions only one of the two lists has: queue order, start, package moves. */
-  children?: ReactNode;
-}) {
-  const { t } = useT();
-  const chosen = useMemo(() => all.filter((x) => selected.has(x.id)), [all, selected]);
-  if (chosen.length === 0) return null;
-
-  const ids = chosen.map((x) => x.id);
-  const onDisk = chosen.some((x) => x.loaded > 0);
-
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      <span className="glim-num text-sm text-carbon-textSub">
-        {chosen.length} {t('select.count')}
-      </span>
-      <Button kind="ghost" className="px-2.5 text-xs" onClick={() => onSelected(new Set())}>
-        {t('select.none')}
-      </Button>
-      {children}
-      <span className="flex-1" />
-      <Button
-        kind="ghost"
-        className="px-2.5 text-xs"
-        icon={<IconMore />}
-        onClick={(e) => onMore(anchorBelow(e.currentTarget))}
-      >
-        {t('menu.more')}
-      </Button>
-      <Button
-        kind="danger"
-        className="px-2.5 text-xs"
-        icon={<IconTrash width={15} height={15} />}
-        onClick={() => void removal.removeNow(ids)}
-      >
-        {t('task.remove')}
-      </Button>
-      {/* Only when there is something on disk to erase, and never with the same
-          treatment as the line above it. */}
-      {onDisk && (
-        <Button
-          kind="danger"
-          className="bg-statusFailBg px-2.5 text-xs"
-          icon={<IconTrashFiles width={16} height={16} />}
-          onClick={() => removal.askWithFiles(ids)}
-        >
-          {t('task.removeWithFiles')}
-        </Button>
-      )}
-      <InfoBubble tip={t('remove.keys')} />
-    </div>
-  );
-}
 
 // --- The bar under the list -----------------------------------------------
 

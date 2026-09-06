@@ -189,10 +189,27 @@ func (b *Backend) awaitContainerLinks(marker string, timeout time.Duration) ([]r
 	// only forces JD to crawl the identical links a second time to say the
 	// same thing again - which is exactly what left the collector showing the
 	// bare URL and no size until the download itself started.
+	//
+	// The crawl's own availability rides along for the same reason: JD reports
+	// it per link in this very answer, and dropping it left every row of a
+	// freshly opened container grey until somebody pressed "Alle prüfen", which
+	// then made JD crawl the identical links a second time to repeat what it
+	// had already said (jdp, 2026-09-06: "bei dlc links funktioniert die status
+	// anzeige immer noch nicht").
 	out := make([]resolver.Result, 0, len(links))
 	for _, l := range links {
 		if l.URL != "" {
-			out = append(out, resolver.Result{DirectURL: l.URL, Name: l.Name, Size: l.Size})
+			out = append(out, resolver.Result{
+				DirectURL: l.URL,
+				Name:      l.Name,
+				Size:      l.Size,
+				// Only a stated verdict travels. jdAvailability answers
+				// "uncheckable" for everything else, which is the right answer
+				// to a CHECK somebody asked for and the wrong one here: a crawl
+				// that simply did not mention this link has not looked at it,
+				// and "nobody has looked" is the empty value.
+				Available: statedAvailability(l.Availability),
+			})
 		}
 	}
 	// Best effort: we have the links, and failing to tidy JD's grabber is not a
@@ -301,6 +318,20 @@ func jdAvailability(jd string) core.Availability {
 		return core.AvailOffline
 	default:
 		return core.AvailUncheckable
+	}
+}
+
+// statedAvailability is jdAvailability for a crawl that was not a check: only
+// the two verdicts JD actually states travel, and anything else stays empty -
+// "nobody has looked" - rather than becoming "the host would not say".
+func statedAvailability(jd string) core.Availability {
+	switch jd {
+	case "ONLINE":
+		return core.AvailOnline
+	case "OFFLINE":
+		return core.AvailOffline
+	default:
+		return ""
 	}
 }
 

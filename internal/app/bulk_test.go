@@ -63,11 +63,25 @@ func TestDisabledAndHeldLinksAreNotDispatched(t *testing.T) {
 		if a.active[c.id] {
 			t.Errorf("%s was dispatched by \"start everything\"", c.why)
 		}
-		// Held in place rather than dropped: the flag is not a refusal, and the
-		// link has to go on its own when it is switched back on.
-		if !queued[c.id] {
-			t.Errorf("%s lost its place in the queue instead of waiting there", c.why)
-		}
+	}
+	// A held link waits IN the queue: the hold is not a refusal, and the link
+	// has to go on its own the moment it is released.
+	if !queued[held.ID] {
+		t.Error("a link on hold lost its place in the queue instead of waiting there")
+	}
+	// A link switched off never joins the queue at all, which is a deliberate
+	// change from "queued but never dispatched" (jdp, 2026-09-06: "wenn ich im
+	// sammlertab ein link auf inaktiv setzte und dann auf alle starten klicke
+	// verschiebt es ihn trotzdem in den downloadtab"). The old behaviour was
+	// invisible in a way the switch could not survive: the row left the
+	// collector, appeared in the download list, and sat there forever with
+	// nothing on it saying why - which reads as a queue that is stuck, not as a
+	// link somebody switched off.
+	if queued[off.ID] {
+		t.Error("a link switched off was moved into the download queue")
+	}
+	if a.tasks[off.ID].Status != core.StatusCollected {
+		t.Errorf("a link switched off left the collector: status %q", a.tasks[off.ID].Status)
 	}
 	// The enabled link was acted on: either it is running, or it was settled with
 	// a reason (there is no network in a test). Either way it left the queue,
