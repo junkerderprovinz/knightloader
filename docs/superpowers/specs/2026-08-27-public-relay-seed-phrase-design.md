@@ -225,6 +225,18 @@ paying to avoid here: the relay is stateless, so if the type ever stops being
 orderable, recreating it as Regular Performance is a few minutes of work and
 loses nothing. Worth knowing, not worth designing around.
 
+> **Amendment, 2026-09-06: the domain moved to `relay.halleluja.design`.**
+> Everything below about how the domain must be operated still holds word for
+> word, only the name changed. jdp consolidated mail, the relay and the future
+> product site onto one domain, and `knightloader.app` is being allowed to
+> expire (it runs until 2027-08-26). The move was affordable precisely because
+> nothing had shipped: private repository, no store listing, an installed base
+> of one. That window is closed now, and `halleluja.design` inherits the
+> promise this section makes. One thing the move revealed and fixed:
+> `autocert.HostWhitelist` took a single name, so switching the address would
+> have left the old name without a certificate and older builds failing in the
+> handshake rather than moving across. `KL_RELAY_DOMAIN` now takes a list.
+
 **Domain: `knightloader.app`, registered at Cloudflare (2026-08-27).** Its
 DNS records for the relay must be set to **"DNS only" (grey cloud), never
 "Proxied" (orange)**. Proxying would put Cloudflare back into the data path

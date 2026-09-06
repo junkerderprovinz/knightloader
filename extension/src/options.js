@@ -1175,7 +1175,7 @@ const GLIMSTONE_VERSION = '1.6.0';
 
 const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
 const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
-const CONTACT_MAIL = 'hello@knightloader.app';
+const CONTACT_MAIL = 'hello@halleluja.design';
 // The handle from .github/FUNDING.yml, so there is one place that knows it.
 const COFFEE_URL = 'https://buymeacoffee.com/junkerderprovinz';
 

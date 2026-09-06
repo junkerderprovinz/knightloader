@@ -36,12 +36,23 @@ import (
 // is what makes it twelve words instead of a URL plus a key, and what
 // removes the last thing there would otherwise be to log into.
 //
-// It follows that this value can never change and can never lapse. Every
-// released binary carries it, so a copy installed today must still find a
-// working relay here years from now - see the deployment spec for why the
-// domain was chosen with that in mind rather than reusing one that already
-// existed.
-const DefaultRelayURL = "wss://relay.knightloader.app/relay/connect"
+// It follows that this value can never lapse. Every released binary carries
+// it, so a copy installed today must still find a working relay here years
+// from now, and the domain behind it has to be one somebody intends to keep
+// for that long.
+//
+// It moved once, on 2026-09-06, from relay.knightloader.app to this name, and
+// the only reason that was affordable is that nothing had shipped yet: the
+// repository was private, the extension was in no store, and the installed
+// base was one person. That window is now closed. The rule this constant lives
+// under is the same as before, only the name under it changed, and
+// halleluja.design inherited the promise: it is the domain that must not be
+// allowed to expire.
+//
+// A move like that is not one edit. The relay has to answer on BOTH names
+// while old builds are still dialling the old one, which is why
+// KL_RELAY_DOMAIN takes a list; see cmd/knightloader-relay/main.go.
+const DefaultRelayURL = "wss://relay.halleluja.design/relay/connect"
 
 // SeedAccountService is where the seed-phrase SECRET is sealed, beside the
 // debrid keys in internal/accounts - not in settings.json, for the reason

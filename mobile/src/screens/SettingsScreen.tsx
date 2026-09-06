@@ -17,7 +17,7 @@ import ColorPicker from '../components/ColorPicker';
 const GITHUB_URL = 'https://github.com/junkerderprovinz/knightloader';
 const REPO_URL = GITHUB_URL;
 const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
-const CONTACT_MAIL = 'hello@knightloader.app';
+const CONTACT_MAIL = 'hello@halleluja.design';
 // From .github/FUNDING.yml, so there is one place that knows the handle.
 const COFFEE_URL = 'https://buymeacoffee.com/junkerderprovinz';
 

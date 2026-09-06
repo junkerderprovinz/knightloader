@@ -69,7 +69,7 @@ finds its sibling.
 `SHA-256("knightloader/relay/group-key/v1" || secret)`. The relay matches
 connections that present the same derived key and forwards frames between
 them; it has no account list, no registration step and no database. So whoever
-runs it - us, at `relay.knightloader.app`, or you - cannot reconstruct
+runs it - us, at `relay.halleluja.design`, or you - cannot reconstruct
 anybody's words.
 
 **And it cannot read what it forwards.** A *second* key comes out of the same
@@ -130,7 +130,7 @@ that carry the key and already know the address. The phrase is the shorter
 road to the same place; this one exists for anyone who wants to name the relay
 and the key themselves.
 
-There is an official relay - `wss://relay.knightloader.app/relay/connect`,
+There is an official relay - `wss://relay.halleluja.design/relay/connect`,
 what a phrase points at unless you override it - and running your own is a
 first-class option, not a fallback. `docker compose` it anywhere both ends can
 reach, put the same key in both, done. Set `KL_RELAY_DOMAIN` and it terminates
@@ -138,6 +138,13 @@ TLS itself, getting and renewing its own certificate over TLS-ALPN-01: no
 reverse proxy, no certbot, no renewal cron, and no port 80 - the challenge
 completes inside a handshake on 443, so the firewall in front of it opens one
 port.
+
+`KL_RELAY_DOMAIN` takes a comma-separated list, and the certificate covers
+every name in it. That is for one situation and it is worth knowing before you
+need it: moving a relay to a new address. Old clients keep dialling the old
+name, and a whitelist of one would stop issuing a certificate for it the moment
+you switch, so those clients fail in the handshake instead of moving across.
+Run both names for as long as anything still dials the old one, then drop it.
 
 ### Or let one instance be the relay
 

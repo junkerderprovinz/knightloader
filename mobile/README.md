@@ -102,7 +102,7 @@ Worth being explicit about: **the relay operator carries your frames**, so they
 see who is talking and when. What they never see is the phrase — the instances
 and the phone all send a hash of it, never the words. Frames themselves are
 forwarded as they are, so paths and bodies are visible to whoever runs the
-relay. Ours is at `relay.knightloader.app`; run your own if that matters.
+relay. Ours is at `relay.halleluja.design`; run your own if that matters.
 
 The app announces itself to the relay with `client: true` (`relay.Announce`), so
 it never appears as a browsable instance on anyone else's Instances page — it

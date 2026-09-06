@@ -107,4 +107,4 @@ https://github.com/junkerderprovinz/knightloader/tree/main/extension/src
 
 ## Contact
 
-privacy@knightloader.app
+privacy@halleluja.design
