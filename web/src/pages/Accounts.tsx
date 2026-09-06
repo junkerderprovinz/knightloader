@@ -475,7 +475,15 @@ function CredentialDialog({
 
   const fromEnv = editingRow?.fromEnv ?? false;
   const hasDefault = (id: string) => accounts.some((a) => a.service === id && a.account === '');
-  const filtered = catalogue.filter((s) => s.label.toLowerCase().includes(query.trim().toLowerCase()));
+  // Debrid only. The catalogue also carries the captcha solvers (see
+  // accounts.Group's own doc comment), and this page renders exactly one table
+  // of debrid rows - so offering 2Captcha here let somebody save a key that
+  // then appeared nowhere on the page they saved it from. Those two are
+  // configured on the Captcha settings page, beside the switches they belong
+  // to.
+  const filtered = catalogue.filter(
+    (s) => s.group === 'debrid' && s.label.toLowerCase().includes(query.trim().toLowerCase()),
+  );
 
   function credential(): AccountCredential {
     if (!picked) return {};
@@ -678,9 +686,12 @@ function ServicePicker({
             className="flex items-center gap-3 rounded-[var(--radius-control)] px-3 py-2 text-start hover:bg-carbon-hover"
           >
             <span className="min-w-0 flex-1">
-              <span className="block text-sm text-carbon-text">{s.label}</span>
-              <span className="block text-[11px] text-carbon-textMuted">
-                {s.group === 'debrid' ? t('accounts.debrid.title') : t('accounts.hoster.title')}
+              {/* The service's own icon here too, so the picker and the table
+                  it fills read as the same list (jdp, 2026-09-06: "Die
+                  debridaccount haben kein logo in der liste"). */}
+              <span className="flex items-center gap-2 text-sm text-carbon-text">
+                <HosterIcon host={s.whereUrl} />
+                {s.label}
               </span>
             </span>
             {hasDefault(s.id) && <span className="glim-eyebrow shrink-0">{t('accounts.connected')}</span>}

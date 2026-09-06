@@ -124,6 +124,19 @@ export interface ColumnDef {
   labelKey: TranslationKey;
   /** The header, where one list calls this column something else. */
   labelByProfile?: Partial<Record<ListProfile, TranslationKey>>;
+  /**
+   * The lists this column exists in at all. Absent means both.
+   *
+   * Stronger than DEFAULT_HIDDEN on purpose, and the difference is the point:
+   * hidden is a preference somebody can undo from the header menu, this is the
+   * column not being part of that list. Used for `enabled`, which jdp asked to
+   * have removed from the download list (2026-09-06: "Aktiv toggle in der
+   * downloadliste entfernen") - it is the collector's own "take this link along
+   * when I press start", and once a link IS in the queue the switch that means
+   * something is pause, not this one. Leaving it merely hidden would leave a
+   * menu entry that switches on a control with no honest meaning where it sits.
+   */
+  onlyIn?: ListProfile[];
   /** Default width in CSS pixels; what the user drags overrides it. */
   width: number;
   minWidth: number;
@@ -1201,6 +1214,8 @@ export const COLUMNS: ColumnDef[] = [
   {
     id: 'enabled',
     labelKey: 'columns.enabled',
+    // Collector only - see ColumnDef.onlyIn for why this is not a default-hidden.
+    onlyIn: ['collector'],
     width: 56,
     minWidth: 48,
     align: 'start',
@@ -1529,8 +1544,15 @@ export const DEFAULT_ORDER: ColumnId[] = COLUMNS.map((c) => c.id);
  * hidden there and its position never comes up.
  */
 function defaultOrderFor(profile: ListProfile): ColumnId[] {
-  if (profile !== 'downloads') return [...DEFAULT_ORDER];
-  return [...DEFAULT_ORDER.filter((id) => id !== 'progress'), 'progress'];
+  const own = DEFAULT_ORDER.filter((id) => belongsTo(id, profile));
+  if (profile !== 'downloads') return own;
+  return [...own.filter((id) => id !== 'progress'), 'progress'];
+}
+
+/** Whether a column exists in this list at all - see ColumnDef.onlyIn. */
+export function belongsTo(id: ColumnId, profile: ListProfile): boolean {
+  const only = COLUMN_BY_ID.get(id)?.onlyIn;
+  return !only || only.includes(profile);
 }
 
 /**
@@ -1671,7 +1693,10 @@ const isKnown = (id: string): id is ColumnId => COLUMN_BY_ID.has(id as ColumnId)
  */
 function mergeOrder(profile: ListProfile, stored: ColumnId[] | undefined): ColumnId[] {
   const base = defaultOrderFor(profile);
-  const kept = (stored ?? []).filter(isKnown);
+  // A column this list does not have is dropped from a stored layout the same
+  // way a column this BUILD no longer has is - an existing layout written
+  // before `enabled` became collector-only would otherwise keep drawing it.
+  const kept = (stored ?? []).filter(isKnown).filter((id) => belongsTo(id, profile));
   // Nothing recognisable stored: either a first run or a layout from a build
   // that shares no column with this one. Either way the defaults are the answer.
   if (kept.length === 0) return [...base];

@@ -100,6 +100,18 @@ var Catalogue = []Service{
 	{ID: "torbox", Label: "TorBox", Kind: KindAPIKey, Group: GroupDebrid, Env: "KL_TORBOX", WhereURL: "https://torbox.app/settings"},
 	{ID: "alldebrid", Label: "AllDebrid", Kind: KindAPIKey, Group: GroupDebrid, Env: "KL_ALLDEBRID", WhereURL: "https://alldebrid.com/apikeys"},
 	{ID: "realdebrid", Label: "Real-Debrid", Kind: KindAPIKey, Group: GroupDebrid, Env: "KL_REALDEBRID", WhereURL: "https://real-debrid.com/apitoken"},
+	// The two added 2026-09-06, after jdp asked whether the list was complete
+	// ("sind das alle gängigen debrid konten? debrid-link.com fehlt zb").
+	// Debrid-Link is the one that had actually been tried the other way round -
+	// as a hoster login through JDownloader, where its OAuth device
+	// confirmation can never be answered because KnightLoader never shows JD's
+	// interface (see internal/resolver/debrid/debridlink.go). Both WhereURLs
+	// are the vendors' own private-key pages, checked the same way as the three
+	// above: debrid-link.com/api_doc/v2/introduction names /webapp/apikey as
+	// where a user generates one, and premiumize.me/api names /account for
+	// theirs.
+	{ID: "debridlink", Label: "Debrid-Link", Kind: KindAPIKey, Group: GroupDebrid, Env: "KL_DEBRIDLINK", WhereURL: "https://debrid-link.com/webapp/apikey"},
+	{ID: "premiumize", Label: "Premiumize.me", Kind: KindAPIKey, Group: GroupDebrid, Env: "KL_PREMIUMIZE", WhereURL: "https://www.premiumize.me/account"},
 	// No Env override for either solver: unlike the three debrid services
 	// above, no container build ships a well-known KL_ environment variable
 	// for a captcha-solver key. Env is optional (see Service.Env's own doc

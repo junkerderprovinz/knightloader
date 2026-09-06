@@ -54,6 +54,19 @@ submission and for a fixed download.
   it back on.
 - **Dragging a link into another package** moves it there instead of snapping
   back. Reordering inside a package was already possible.
+- **Debrid-Link and Premiumize.me** as debrid services of their own, with the
+  supported-host list, the direct link, the plan and the remaining allowance
+  each of them publishes. Debrid-Link in particular could not be used through
+  the JDownloader sidecar at all: its login is an OAuth device confirmation
+  nobody can answer, because KnightLoader never shows JD's interface. A private
+  API key has no such step.
+- **An on/off switch on every hoster login**, beside the one the debrid rows
+  already had. Off takes the account out of JDownloader's own list and keeps the
+  credential sealed here, so switching it back on needs no password retyped.
+- **"Move to package" in the right-click menu**, where JDownloader keeps it. The
+  dialogue is the one the selection row's folder badge already opened.
+- **The remaining allowance for services that meter in a percentage** rather
+  than in bytes, so the column stops being blank for them.
 
 ### Changed
 
@@ -75,6 +88,26 @@ submission and for a fixed download.
 - **Relay and access texts rewritten**, including four distinct sentences for the
   connection state (project relay, own relay, no relay at all, and no contact
   with a relay that is configured).
+- **A media site goes to yt-dlp even when a debrid service also covers it.**
+  TorBox's host list includes streaming sites and TorBox outranks yt-dlp, so on
+  an instance with a TorBox key a YouTube link was fetched as one nameless file
+  instead of becoming the five rows with a quality to pick. TorBox keeps those
+  sites only when yt-dlp is not running at all.
+- **The site icon is looked for the way a browser looks for it**: the page's own
+  `<link rel="icon">` declarations first, including ones on a different host,
+  then the two well-known paths, and the largest image found wins. Sites whose
+  icon sits on a CDN had no logo at all before, and a 16-pixel favicon.ico was
+  taken over the 180-pixel icon beside it.
+- **yt-dlp downloads in parallel fragments and chunked ranges**, which is what
+  the speed difference against JDownloader on the same video was. A speed limit
+  is divided across the fragments, so the cap still means what it says.
+- **The Debrid and Hoster cards say what they are for**, including what a debrid
+  account is and why it is the recommended way; the notes on Comment and Unpack
+  archives were rewritten in plain words.
+- **No explanation bubble on the collector and list card titles.**
+- **No "Enabled" column in the download list.** It is the collector's own "take
+  this along when I press start"; once a link is in the queue the switch that
+  means something is pause.
 
 ### Fixed
 
@@ -90,6 +123,18 @@ submission and for a fixed download.
   the video ladder covers 144p to 4320p.
 - The remote-access card follows the relay's state live instead of only after a
   reload, and the address field accepts a bare host name.
+- Folders can be dragged in the download list. The queue accepted the move all
+  along; the list drew its own order with a comparator that contradicted itself
+  as soon as one link in a folder had failed, so the folder stayed anchored to
+  its dead link.
+- A media link no longer lands in a folder named after the URL's path while its
+  title is being fetched. It stays ungrouped for those few seconds and then
+  takes the video's own name, or the old guess if the probe fails.
+- The "handed to JDownloader" bar in the collector stops when the container's
+  links actually arrive, instead of sweeping until the handover expires, and it
+  runs the full width of the card.
+- The "new account" dialogue no longer offers the captcha solvers, which are
+  configured on their own settings page and never appeared on this one.
 
 ## [1.0.0] - 2026-09-02
 

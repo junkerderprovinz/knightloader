@@ -55,6 +55,30 @@ func registerHosterAuth(reg *Registry, a *app.App) {
 			w.WriteHeader(http.StatusNoContent)
 		})
 
+	// The on/off switch beside each stored login. Its own route rather than a
+	// field on the save above: saving is "here is a password", switching is
+	// "stop using the one you have", and folding the second into the first
+	// would mean the page had to re-send a credential to flip a toggle.
+	reg.Add(http.MethodPost, "/api/hosterauth/logins/enabled", "switch one host's stored login on or off without deleting it",
+		func(w http.ResponseWriter, r *http.Request) {
+			var body struct {
+				Host    string `json:"host"`
+				Enabled bool   `json:"enabled"`
+			}
+			if !decodeJSON(w, r, &body) {
+				return
+			}
+			if body.Host == "" {
+				http.Error(w, "which host?", http.StatusBadRequest)
+				return
+			}
+			if err := a.SetHosterLoginEnabled(body.Host, body.Enabled); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.WriteHeader(http.StatusNoContent)
+		})
+
 	reg.Add(http.MethodPost, "/api/hosterauth/logins/remove", "remove one host's stored native login",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {

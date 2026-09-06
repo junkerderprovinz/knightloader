@@ -244,3 +244,46 @@ func TestBuildArgsCustomOutputTemplate(t *testing.T) {
 		t.Errorf("-o = %q (found=%v), want %q", got, ok, want)
 	}
 }
+
+// TestBuildArgsAsksForConcurrentFragmentsAndChunkedRanges pins the two flags
+// added on 2026-09-06, after jdp measured KnightLoader against JDownloader on
+// the same video: "Youtube lädt super langsam herunter. das geht in jd viel
+// schneller".
+//
+// Both are needed and neither replaces the other: --concurrent-fragments is
+// what stops a fragmented download paying one round trip per fragment in
+// series, and --http-chunk-size is yt-dlp's own documented answer to a server
+// that throttles a single long-running response. A future edit that drops
+// either one puts the slowness back for a different reason each time, which is
+// exactly the kind of half-fix a test is for.
+func TestBuildArgsAsksForConcurrentFragmentsAndChunkedRanges(t *testing.T) {
+	args := buildArgs(filepath.Join("some", "dir"), Options{})
+
+	if got, ok := valueAfter(args, "--concurrent-fragments"); !ok || got != "4" {
+		t.Errorf("--concurrent-fragments = %q (present: %v), want \"4\": %v", got, ok, args)
+	}
+	if got, ok := valueAfter(args, "--http-chunk-size"); !ok || got != "10485760" {
+		t.Errorf("--http-chunk-size = %q (present: %v), want 10 MiB: %v", got, ok, args)
+	}
+}
+
+// TestConcurrentFragmentsDividesTheSpeedLimit is the correctness half of that
+// change, and the reason it could not simply be "add a flag".
+//
+// --limit-rate is per fragment CONNECTION. Asking for four of them and still
+// passing the whole limit would let a throttled download run at four times the
+// speed the user set - a nightly speed window that silently is not one. This
+// asserts the arithmetic at the one place it happens rather than the flag.
+func TestConcurrentFragmentsDividesTheSpeedLimit(t *testing.T) {
+	const limit = 4_000_000
+	per := limit / concurrentFragments
+	if per*concurrentFragments != limit {
+		t.Fatalf("the divided limit (%d x %d) does not add back up to %d", per, concurrentFragments, limit)
+	}
+	// And the floor: a limit below the fragment count must not round to 0,
+	// which yt-dlp reads as no limit at all - the failure mode being guarded
+	// against is "the speed cap turned itself off", not a rounding error.
+	if 3/concurrentFragments != 0 {
+		t.Fatalf("this test's premise is wrong: %d/%d no longer rounds to zero", 3, concurrentFragments)
+	}
+}

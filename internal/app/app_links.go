@@ -399,7 +399,10 @@ func (a *App) nameBucket(b *bucket) {
 	if b == nil || len(b.tasks) == 0 {
 		return
 	}
-	snap := a.snapshotTasks(b.tasks)
+	snap := awaitingMediaProbe.exclude(a.snapshotTasks(b.tasks))
+	if len(snap) == 0 {
+		return
+	}
 	derived := derivePackage(snap, b.title)
 	if derived == "" {
 		return
@@ -465,9 +468,52 @@ const catchAllPackage = "Various"
 
 // catchAll files whatever is still nameless.
 func (a *App) catchAll(created []*core.Task) {
-	if ids := unpackagedIDs(created); len(ids) > 0 {
+	if ids := unpackagedIDs(awaitingMediaProbe.exclude(created)); len(ids) > 0 {
 		a.SetPackage(ids, catchAllPackage)
 	}
+}
+
+// awaitingMediaProbe is the one rule both naming passes above skip a link by:
+// a media link whose title probe has not answered yet.
+//
+// It is a named type with one method rather than a bare predicate so the two
+// call sites read as the same decision, which is what it is - jdp, 2026-09-06:
+// "wenn ich ein youtube link im sammler hinzufüge heißt der ordner wieder
+// watch und es wird nur ein link angezeigt, nicht alle dateien". Measured live
+// on the preview instance before changing anything: the machinery that renames
+// such a package to the video's title works, and takes about fifteen seconds
+// (yt-dlp's -j probe fetches every format before it answers). For those fifteen
+// seconds the folder really was called "watch", because /watch is the last path
+// segment of every YouTube video URL and the path is all there is to guess from
+// before the probe lands.
+//
+// So the guess is not made at all for these links. They sit ungrouped while the
+// probe runs and land in the video's own title when it answers
+// (packageIsStillAGuess, app_tasks.go, is the half that files an ungrouped one),
+// or in the URL-path guess after all if the probe fails (probeYtdlpTitle). A
+// folder named after a page verb, standing for fifteen seconds and then
+// renamed, is worse than no folder for fifteen seconds: it is wrong, and it is
+// wrong in a way that looks like a bug rather than like waiting.
+type mediaProbePending struct{}
+
+var awaitingMediaProbe mediaProbePending
+
+// Name == URL is every stage path's placeholder, so together with the resolver
+// this is exactly "a media link whose probe has not answered". It cannot
+// mistake a resolved link for a pending one: setTaskName's own first act is to
+// replace that placeholder.
+func (mediaProbePending) has(t *core.Task) bool {
+	return t != nil && t.Resolver == "ytdlp" && t.Name == t.URL
+}
+
+func (p mediaProbePending) exclude(tasks []*core.Task) []*core.Task {
+	out := make([]*core.Task, 0, len(tasks))
+	for _, t := range tasks {
+		if !p.has(t) {
+			out = append(out, t)
+		}
+	}
+	return out
 }
 
 // unpackagedIDs is the tasks nothing has filed yet. ManualPackage is checked as
