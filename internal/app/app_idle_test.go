@@ -203,7 +203,16 @@ func TestApplySettingsRefreshesIdleActionWithoutWaitingForThePoll(t *testing.T) 
 	}); err != nil {
 		t.Fatal(err)
 	}
-	if !pollUntil(t, 1*time.Second, func() bool { return a.IdleActionState().Armed }) {
+	// The controller's own poll is two seconds, so a window shorter than that is
+	// what makes this test about Refresh rather than about waiting. One second
+	// was too fine a distinction to draw with a clock: under -race on a shared
+	// CI runner it failed while passing everywhere else, which is a test being
+	// wrong about its instrument rather than the code being wrong.
+	//
+	// 1500ms keeps the point - a pass here still cannot be the poll, because the
+	// poll has not come round yet - and stops the assertion from turning into a
+	// measurement of how loaded the machine is.
+	if !pollUntil(t, 1500*time.Millisecond, func() bool { return a.IdleActionState().Armed }) {
 		t.Fatal("ApplySettings did not nudge idleAction into arming promptly")
 	}
 }
