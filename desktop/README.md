@@ -10,6 +10,15 @@ This is a **separate Go module** on purpose: the Wails toolchain and its
 per-platform native dependencies never touch the server module, which stays a
 clean, pure-Go build.
 
+Its `go.sum` is committed, and must stay that way. It used to be in
+`.gitignore`, on the reading that anything the Wails build regenerates is
+output. It is not: `go.sum` is the module's integrity file, and while it was
+ignored, four Renovate security bumps landed as a changed `go.mod` with no
+matching hashes, the CI cache never resolved, and every desktop build trusted
+whatever the proxy happened to serve. `go.mod` also carries a `go` directive
+that must never fall behind the root module's, because the `replace` at its
+foot consumes the server sources from `../`.
+
 ## Building
 
 Desktop bundles are built **per platform in CI** (`.github/workflows/desktop.yml`)
