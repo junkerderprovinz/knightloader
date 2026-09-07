@@ -150,7 +150,7 @@ func TestHost_FireRunsMatchingEnabledScript(t *testing.T) {
 		t.Fatalf("SaveScript: %v", err)
 	}
 
-	h.Fire(TriggerTaskDone, &TaskView{ID: "t1"}, QueueView{})
+	h.Bus().Publish(Firing{Trigger: TriggerTaskDone, Task: &TaskView{ID: "t1"}})
 
 	ev := waitEvent(t, hub, func(e Event) bool { return e.Kind == "notify" })
 	if ev.Message != "done ran" {
@@ -169,7 +169,7 @@ func TestHost_FireIgnoresDisabledScript(t *testing.T) {
 		t.Fatalf("SaveScript: %v", err)
 	}
 
-	h.Fire(TriggerTaskDone, &TaskView{ID: "t1"}, QueueView{})
+	h.Bus().Publish(Firing{Trigger: TriggerTaskDone, Task: &TaskView{ID: "t1"}})
 
 	select {
 	case ev := <-hub.ch:
@@ -185,7 +185,7 @@ func TestHost_FireIgnoresNonMatchingTrigger(t *testing.T) {
 		t.Fatalf("SaveScript: %v", err)
 	}
 
-	h.Fire(TriggerTaskDone, &TaskView{ID: "t1"}, QueueView{})
+	h.Bus().Publish(Firing{Trigger: TriggerTaskDone, Task: &TaskView{ID: "t1"}})
 
 	select {
 	case ev := <-hub.ch:
@@ -204,7 +204,7 @@ func TestHost_QueueIdleFiresWithNoTask(t *testing.T) {
 		t.Fatalf("SaveScript: %v", err)
 	}
 
-	h.Fire(TriggerQueueIdle, nil, QueueView{Files: 2, Disabled: 2})
+	h.Bus().Publish(Firing{Trigger: TriggerQueueIdle, Queue: QueueView{Files: 2, Disabled: 2}})
 
 	ev := waitEvent(t, hub, func(e Event) bool { return e.Kind == "notify" })
 	if ev.Message != "idle:true:undefined" {
@@ -222,7 +222,7 @@ func TestHost_TaskActionsScopedToFiringTask(t *testing.T) {
 		t.Fatalf("SaveScript: %v", err)
 	}
 
-	h.Fire(TriggerTaskDone, &TaskView{ID: "task-42"}, QueueView{})
+	h.Bus().Publish(Firing{Trigger: TriggerTaskDone, Task: &TaskView{ID: "task-42"}})
 	waitEvent(t, hub, func(e Event) bool { return e.Kind == "notify" })
 	res := waitEvent(t, hub, func(e Event) bool { return e.Kind == "result" })
 	if !res.OK {
@@ -269,7 +269,7 @@ func TestHost_ScriptCannotNameAnotherTask(t *testing.T) {
 		t.Fatalf("SaveScript: %v", err)
 	}
 
-	h.Fire(TriggerTaskDone, &TaskView{ID: "own-task"}, QueueView{})
+	h.Bus().Publish(Firing{Trigger: TriggerTaskDone, Task: &TaskView{ID: "own-task"}})
 	ev := waitEvent(t, hub, func(e Event) bool { return e.Kind == "notify" })
 	if ev.Message != "contained" {
 		t.Fatalf("notify message = %q, want %q - a global ID-taking action function is reachable", ev.Message, "contained")
@@ -319,7 +319,7 @@ func TestHost_TimeoutInterruptsRunawayScript(t *testing.T) {
 	}
 
 	start := time.Now()
-	h.Fire(TriggerTaskDone, &TaskView{ID: "t1"}, QueueView{})
+	h.Bus().Publish(Firing{Trigger: TriggerTaskDone, Task: &TaskView{ID: "t1"}})
 	res := waitEvent(t, hub, func(e Event) bool { return e.Kind == "result" })
 	elapsed := time.Since(start)
 
@@ -341,7 +341,7 @@ func TestHost_ThrownExceptionReportsErrorNotTimeout(t *testing.T) {
 		t.Fatalf("SaveScript: %v", err)
 	}
 
-	h.Fire(TriggerTaskDone, &TaskView{ID: "t1"}, QueueView{})
+	h.Bus().Publish(Firing{Trigger: TriggerTaskDone, Task: &TaskView{ID: "t1"}})
 	res := waitEvent(t, hub, func(e Event) bool { return e.Kind == "result" })
 	if res.OK {
 		t.Fatal("a thrown exception should not report OK")
@@ -370,7 +370,7 @@ func TestHost_PanicInActionsIsRecovered(t *testing.T) {
 		t.Fatalf("SaveScript: %v", err)
 	}
 
-	h.Fire(TriggerTaskDone, &TaskView{ID: "t1"}, QueueView{})
+	h.Bus().Publish(Firing{Trigger: TriggerTaskDone, Task: &TaskView{ID: "t1"}})
 	res := waitEvent(t, hub, func(e Event) bool { return e.Kind == "result" })
 	if res.OK {
 		t.Fatal("a panicking action should not report OK")
@@ -448,7 +448,7 @@ func TestHost_CloseInterruptsRunningScript(t *testing.T) {
 		t.Fatalf("SaveScript: %v", err)
 	}
 
-	h.Fire(TriggerTaskDone, &TaskView{ID: "t1"}, QueueView{})
+	h.Bus().Publish(Firing{Trigger: TriggerTaskDone, Task: &TaskView{ID: "t1"}})
 	waitEvent(t, hub, func(e Event) bool { return e.Kind == "notify" && e.Message == "started" })
 
 	start := time.Now()
@@ -720,11 +720,11 @@ func TestHost_SpawnRacingCloseNeverMisusesTheWaitGroup(t *testing.T) {
 	}
 }
 
-// TestHost_FireNeverBlocksCaller fires far more jobs than the queue can
-// hold, into a trigger backed by a script that never returns on its own -
-// the worst case for a caller that blocked. Fire must still return quickly
-// every single time, the same guarantee Hub.Broadcast documents for
-// itself.
+// TestHost_FireNeverBlocksCaller publishes far more firings than the queue
+// can hold, into a trigger backed by a script that never returns on its own
+// - the worst case for a publisher that blocked. Publish must still return
+// quickly every single time, the same guarantee Hub.Broadcast documents for
+// itself and the contract Bus.Subscribe states for every subscriber.
 func TestHost_FireNeverBlocksCaller(t *testing.T) {
 	actions, hub := newFakeActions(), newFakeHub()
 	h := newTestHost(t, actions, hub)
@@ -739,14 +739,14 @@ func TestHost_FireNeverBlocksCaller(t *testing.T) {
 	done := make(chan struct{})
 	go func() {
 		for i := 0; i < attempts; i++ {
-			h.Fire(TriggerTaskDone, &TaskView{ID: "t1"}, QueueView{})
+			h.Bus().Publish(Firing{Trigger: TriggerTaskDone, Task: &TaskView{ID: "t1"}})
 		}
 		close(done)
 	}()
 	select {
 	case <-done:
 	case <-time.After(2 * time.Second):
-		t.Fatalf("%d Fire calls did not return within 2s; Fire must never block on worker throughput", attempts)
+		t.Fatalf("%d Publish calls did not return within 2s; a publisher must never block on worker throughput", attempts)
 	}
 }
 
@@ -798,7 +798,7 @@ func TestHost_RebuildIndexSkipsScriptsThatDoNotCompile(t *testing.T) {
 		t.Fatalf("SaveScript: %v", err)
 	}
 
-	h.Fire(TriggerTaskDone, &TaskView{ID: "t1"}, QueueView{})
+	h.Bus().Publish(Firing{Trigger: TriggerTaskDone, Task: &TaskView{ID: "t1"}})
 	ev := waitEvent(t, hub, func(e Event) bool { return e.Kind == "notify" })
 	if ev.Message != "good" {
 		t.Fatalf("notify message = %q, want %q - a broken sibling script must not take the trigger down", ev.Message, "good")

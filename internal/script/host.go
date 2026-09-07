@@ -16,10 +16,10 @@ import (
 // fixed: this is automation glue reacting to app events, not a compute
 // cluster, and a burst of task completions should not compete hard with
 // real download I/O for CPU. A fifth candidate simply waits its turn in the
-// queue (see Fire) rather than spawning an unbounded goroutine per firing.
+// queue (see fire) rather than spawning an unbounded goroutine per firing.
 const workerCount = 4
 
-// fireQueueDepth bounds how many pending executions Fire will hold before
+// fireQueueDepth bounds how many pending executions fire will hold before
 // it starts dropping the newest arrivals - generous next to workerCount
 // given MaxTimeout is 30s worst case, but still a hard number rather than
 // an unbounded channel, for the same reason internal/hub.queueDepth is a
@@ -49,6 +49,13 @@ type Options struct {
 	// Hub receives notify() calls and a "script" event after every
 	// completed run. *hub.Hub satisfies this with no changes on its side.
 	Hub Broadcaster
+	// Bus is where the app publishes its events; NewHost subscribes this
+	// Host to it and never touches it again. Optional: a Host given none
+	// builds its own (see Host.Bus), so a Host is never mute and a test
+	// does not have to construct one to fire a trigger. Whoever owns the app
+	// should still pass one in, because the whole point of the bus is that a
+	// SECOND reader can subscribe without going through this package.
+	Bus *Bus
 }
 
 // compiled pairs one stored Script with its parsed *goja.Program, built
@@ -60,12 +67,13 @@ type compiled struct {
 	prog *goja.Program
 }
 
-// fireJob is one queued automatic execution.
+// fireJob is one queued automatic execution: the compiled script, and the
+// whole Firing it is running for. The Firing is copied into the job rather
+// than pointed at, so a publisher that reuses its own struct after Publish
+// returns cannot change what a queued script is about to see.
 type fireJob struct {
-	c       *compiled
-	trigger Trigger
-	task    *TaskView
-	queue   QueueView
+	c *compiled
+	f Firing
 }
 
 // Host is the VM host: the script store, the trigger index built from it,
@@ -80,7 +88,7 @@ type Host struct {
 
 	// closeMu guards closing and nothing else, and is deliberately not the
 	// mu further down: that one is the trigger index's lock, and a single
-	// mutex holding two unrelated jobs is how a later change to Fire or
+	// mutex holding two unrelated jobs is how a later change to fire or
 	// rebuildIndex - either of which could one day want to reach a path
 	// that registers work - turns into a lifecycle deadlock nobody
 	// predicted. closing is what makes "is this host still accepting work?"
@@ -91,6 +99,7 @@ type Host struct {
 	st        *store
 	actions   Actions
 	hub       Broadcaster
+	bus       *Bus
 	notifyLim *rate.Limiter
 
 	queue chan fireJob
@@ -115,10 +124,15 @@ func NewHost(o Options) (*Host, error) {
 	if err != nil {
 		return nil, err
 	}
+	bus := o.Bus
+	if bus == nil {
+		bus = NewBus()
+	}
 	h := &Host{
 		st:        st,
 		actions:   o.Actions,
 		hub:       o.Hub,
+		bus:       bus,
 		notifyLim: rate.NewLimiter(rate.Limit(notifyPerSecond), notifyBurst),
 		queue:     make(chan fireJob, fireQueueDepth),
 	}
@@ -127,8 +141,21 @@ func NewHost(o Options) (*Host, error) {
 	for i := 0; i < workerCount; i++ {
 		h.spawn(h.worker)
 	}
+	// Subscribed after the workers exist, not before: the subscription is
+	// live the instant it is registered, and a Firing arriving from another
+	// goroutine in between would queue into a channel nothing was draining
+	// yet. The queue is buffered, so nothing would have been lost at this
+	// depth - but "it fits in the buffer" is a promise about how fast the
+	// loop above runs, and ordering costs nothing.
+	bus.Subscribe("scripts", h.fire)
 	return h, nil
 }
+
+// Bus is the bus this Host listens on - the one passed in Options, or the
+// one NewHost built when none was. Exposed so a caller that did not supply
+// one can still publish to it, and so a second consumer can Subscribe
+// without this package having to hand out anything else.
+func (h *Host) Bus() *Bus { return h.bus }
 
 // spawn runs f on its own goroutine and makes Close wait for it - this
 // package's own copy of the a.spawn convention (internal/app/app.go), not
@@ -204,7 +231,7 @@ func (h *Host) Close() error {
 // rebuildIndex replaces the trigger index wholesale from the current store
 // contents - the same "replaced wholesale, never edited in place" shape
 // internal/app's own pkgRules/filtRules use (app.go's applyRuleSets), kept
-// for the identical reason: a reader mid-Fire must see one consistent
+// for the identical reason: a reader mid-fire must see one consistent
 // index, never a partial edit of it. Disabled scripts and scripts that no
 // longer compile (a hand-edited scripts.json, or a future build changing
 // what compiles) are left out and logged once rather than allowed to break
@@ -256,31 +283,34 @@ func (h *Host) DeleteScript(id string) error {
 	return nil
 }
 
-// Fire is the trigger registry's one entry point for a real app event. It
-// never blocks its caller: every enabled script registered on trigger is
-// queued for the worker pool, and a full queue drops that one script's run
-// with a log line rather than making the caller - eventually a line right
-// next to an existing a.Hub.Broadcast("task", &c) or
-// a.Hub.Broadcast("queue", ...) call, per the package doc's wiring note -
-// wait on however long the slowest currently-running script takes. This is
-// the same promise Hub.Broadcast itself already makes, for the same
-// reason.
+// fire is this Host's subscription to the Bus (see NewHost) and the trigger
+// registry's one entry point for a real app event. It is unexported so that
+// there is exactly one door: internal/app publishes to the Bus, which is
+// what makes a second consumer a Subscribe call instead of a second call
+// beside every firing site. A caller that could reach this directly would
+// eventually be a caller that reaches it INSTEAD, and the events that caller
+// fires would then be invisible to everyone else on the bus.
 //
-// task is nil for TriggerQueueIdle and for any TriggerOnDemand firing not
-// bound to one task; queue is read at call time, so scripts bound to the
-// same trigger during one burst may legitimately see slightly different
-// counters, exactly as two browsers polling Counters() a moment apart
-// would.
-func (h *Host) Fire(trigger Trigger, task *TaskView, queue QueueView) {
+// It honours Subscribe's non-blocking contract the only way a worker pool
+// can: every enabled script registered on the trigger is queued, and a full
+// queue drops that one script's run with a log line rather than making the
+// publisher - a download's own update path - wait on however long the
+// slowest currently-running script takes. This is the same promise
+// Hub.Broadcast itself already makes, for the same reason.
+//
+// f.Task is nil for TriggerQueueIdle and for every event that is not about
+// one download; f.Queue was read by the publisher at publish time, so
+// scripts firing during one burst may legitimately see slightly different
+// counters, exactly as two browsers polling Counters() a moment apart would.
+func (h *Host) fire(f Firing) {
 	h.mu.RLock()
-	candidates := h.byTrigger[trigger]
+	candidates := h.byTrigger[f.Trigger]
 	h.mu.RUnlock()
 	for _, c := range candidates {
-		job := fireJob{c: c, trigger: trigger, task: task, queue: queue}
 		select {
-		case h.queue <- job:
+		case h.queue <- fireJob{c: c, f: f}:
 		default:
-			log.Printf("script: trigger queue full, dropping this %s run of %q", trigger, c.Name)
+			log.Printf("script: trigger queue full, dropping this %s run of %q", f.Trigger, c.Name)
 		}
 	}
 }
@@ -323,7 +353,13 @@ func (h *Host) RunNow(ctx context.Context, scriptID string, task *TaskView, queu
 	// timeout (up to MaxTimeout) instead of actually interrupting it.
 	runCtx, cancel := mergeContexts(ctx, h.ctx)
 	defer cancel()
-	return h.runOne(runCtx, &s, prog, TriggerOnDemand, task, queue), nil
+	// Not published to the bus. A test run is a person pressing a button in
+	// the editor, and the bus is the app telling everyone what HAPPENED - a
+	// notification channel subscribing later must not start announcing that
+	// a download finished because somebody test-ran a script bound to
+	// task.done. This is the same split the "run now" path has always been:
+	// it ignores Enabled and it ignores the script's own Trigger.
+	return h.runOne(runCtx, &s, prog, Firing{Trigger: TriggerOnDemand, At: time.Now(), Task: task, Queue: queue}), nil
 }
 
 // mergeContexts returns a context cancelled the moment either a or b is -
@@ -349,30 +385,33 @@ func (h *Host) worker() {
 		case <-h.ctx.Done():
 			return
 		case job := <-h.queue:
-			h.runOne(h.ctx, &job.c.Script, job.c.prog, job.trigger, job.task, job.queue)
+			h.runOne(h.ctx, &job.c.Script, job.c.prog, job.f)
 		}
 	}
 }
 
-// runOne is the one code path both Fire (via worker) and RunNow funnel
+// runOne is the one code path both fire (via worker) and RunNow funnel
 // through: resolve the timeout, build the execCtx, run it, turn the
 // outcome into a Result, and broadcast a "script" Event so a connected UI
 // can show a live run history without polling.
-func (h *Host) runOne(ctx context.Context, s *Script, prog *goja.Program, trigger Trigger, task *TaskView, queue QueueView) Result {
+func (h *Host) runOne(ctx context.Context, s *Script, prog *goja.Program, f Firing) Result {
 	timeout := clampTimeout(time.Duration(s.TimeoutMS) * time.Millisecond)
 
 	var taskID string
-	if task != nil {
-		taskID = task.ID
+	if f.Task != nil {
+		taskID = f.Task.ID
 	}
+	// firedAt is the Firing's own instant, not time.Now(). A script that ran
+	// after ten seconds in the fire queue should report when the download
+	// finished, not when a worker got round to it - the whole reason Firing
+	// carries At at all.
 	e := &execCtx{
 		actions: h.actions,
 		notify:  h.notify,
-		trigger: trigger,
-		firedAt: time.Now(),
+		trigger: f.Trigger,
+		firedAt: f.At,
 		taskID:  taskID,
-		task:    task,
-		queue:   queue,
+		firing:  f,
 	}
 
 	started := time.Now()
@@ -380,7 +419,7 @@ func (h *Host) runOne(ctx context.Context, s *Script, prog *goja.Program, trigge
 	res := Result{
 		ScriptID:   s.ID,
 		Name:       s.Name,
-		Trigger:    trigger,
+		Trigger:    f.Trigger,
 		TaskID:     taskID,
 		StartedAt:  started,
 		DurationMS: time.Since(started).Milliseconds(),

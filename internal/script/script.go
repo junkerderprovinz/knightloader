@@ -1,13 +1,26 @@
 // Package script is KnightLoader's answer to JDownloader's Event Scripter: a
 // goja (pure-Go ECMAScript 5.1(+)) VM host that runs a small, user-written
 // JavaScript snippet against one of a fixed set of app events - a task
-// finishing, a task settling as failed, the wait queue going idle, or a
-// person pressing "run now" on a saved script (see Trigger). See
+// finishing, a task settling as failed, the wait queue going idle, a link
+// arriving, a package finishing, an archive unpacking, a checksum
+// mismatching, a reconnect running, an account lapsing, a captcha waiting,
+// or a person pressing "run now" on a saved script (see Trigger). See
 // docs/build-plan.md section 3's Wave 11 line and section 5's XL-package
 // list ("internal/script host"), and docs/jd-feature-census.md's
 // "Automation, rules and scripting" rows - search for "Event Scripter" and
 // "Sandbox objects" - for what this replaces and for why the rest of JD's
 // scripting surface is deliberately not here.
+//
+// # Events arrive on a bus, not through a call to this package
+//
+// internal/app publishes a Firing to a Bus (bus.go); this Host subscribes to
+// that bus in NewHost and is the only subscriber this build wires. Nothing
+// outside this package can reach the trigger registry directly, which is the
+// point: the next consumer of "a package finished" - a notification channel,
+// a media library told to rescan, one merged event feed on the WebSocket -
+// subscribes, instead of being added as a second call beside every site in
+// internal/app that fires. See bus.go's own doc comment for the contract a
+// subscriber has to keep.
 //
 // # The sandbox boundary is the whole feature
 //
@@ -33,7 +46,8 @@
 //   - task (object, present only when the execution is about one download):
 //     read-only fields id, name, url, host, package, status, size, loaded,
 //     speed, progressPct, error, reason, retries, priority, comment,
-//     createdAt, taken from a TaskView the caller hands Fire or RunNow.
+//     createdAt, taken from the TaskView a Firing carries (or the one
+//     RunNow was handed).
 //     It is a snapshot copied at call time, never a live pointer into the
 //     app's own task map - a script cannot make it go stale on purpose and
 //     cannot reach the app's own copy by mutating this one, because the two
@@ -67,6 +81,16 @@
 //     bound to one trigger and test-run via RunNow can tell it apart from
 //     an ordinary firing, and a script not registered anywhere yet can
 //     still be test-run sensibly.
+//
+//   - pkg, extraction, reconnect, account, captcha (objects, each present
+//     only for the one trigger that carries it - see Firing): read-only
+//     snapshots of PackageView, ExtractView, ReconnectView, AccountView and
+//     CaptchaView, built the same field-copy way task is and with the same
+//     property: no closure in any of them takes an id from the script. None
+//     of them adds an ACTION; the five task verbs remain the whole of what
+//     a script can make the app do. "pkg" rather than "package" because
+//     goja compiles in strict mode, where `package` is a reserved word a
+//     script cannot even mention - see newRuntime.
 //
 //   - notify(message): posts a short string to every connected browser over
 //     the same Hub a captcha prompt or an extraction result already uses
@@ -176,7 +200,7 @@
 // internal/app at all (see below). Whoever constructs a Host is expected to
 // call its Close from the same App.Close that already closes sched and
 // idleAction, so a running script cannot outlive the app that started it. A
-// small fixed pool of worker goroutines drains a bounded queue; Fire never
+// small fixed pool of worker goroutines drains a bounded queue; fire never
 // blocks its caller, the same promise Hub.Broadcast already makes and for
 // the same reason - the cost of firing a trigger must not depend on how
 // long the slowest currently-running script takes.
@@ -191,11 +215,11 @@
 // app.QueueCounters - see internal/rules.Candidate for the identical
 // decoupling, done for the identical reason, already established elsewhere
 // in this tree. Nothing in this package touches internal/app, internal/api
-// or web/; the handful of lines that construct a Host, feed it Fire calls
-// at the existing task/queue broadcast sites, and Close it alongside sched
-// and idleAction belong to whoever wires this wave together next, and are
-// spelled out in full in this wave's own report rather than guessed at
-// here.
+// or web/; the handful of lines that construct a Host and a Bus, publish a
+// Firing at each site where the app already knows something happened, and
+// Close the Host alongside sched and idleAction live in
+// internal/app/app_script.go, the one file on that side that is allowed to
+// know both vocabularies.
 package script
 
 import (
@@ -234,12 +258,71 @@ const (
 	TriggerOnDemand Trigger = "manual"
 )
 
+// The events the bus adds (see bus.go). Each one exists because the four
+// above cannot express it: task.done fires PER FILE, so "do something once
+// the last part of this set has landed" - the commonest wish there is - had
+// no trigger at all, and everything below it here was a fact the app already
+// computed and then kept to itself.
+//
+// A script bound to one of the four original triggers is unaffected by any
+// of this. They fire at the same moments, from the same call sites, with the
+// same task and queue snapshots as before.
+const (
+	// TriggerLinkAdded fires once per link that actually entered the list,
+	// at the moment it is inserted (internal/app's put). A link the filter
+	// refused does NOT fire it: that link is in the holding area, not the
+	// collector, nothing will ever download it unless a person restores it,
+	// and a script that greeted it as an arrival would be acting on a task
+	// with no future. A link folded into one already in the list fires
+	// nothing either, for the plainer reason that no task was created.
+	TriggerLinkAdded Trigger = "link.added"
+	// TriggerPackageDone fires when a package has nothing left to wait for -
+	// see PackageView, which carries the counts, and packageComplete's own
+	// definition in internal/app for exactly which files count as pending.
+	// This is the trigger the whole bus exists for.
+	TriggerPackageDone Trigger = "package.done"
+	// TriggerExtractDone fires when one unpacking ends of its own accord,
+	// successfully or not - Extract.OK says which. Both outcomes go to the
+	// same trigger because there is no extract.failed in this build and the
+	// two want the same script anyway ("tell me what happened to that
+	// archive"); a script that only cares about successes starts with
+	// `if (!extraction.ok) return;`. An extraction a person called off does
+	// not fire it: they already know.
+	TriggerExtractDone Trigger = "extract.done"
+	// TriggerChecksumFailed fires when a finished file's hash did not match
+	// the one that came with it. Only a mismatch: a file with no checksum to
+	// check, and one whose checksum could not be read at all, are both
+	// "unverified" rather than "wrong", and the app deliberately does not
+	// mark them either way (see verifyTask's own comment on why a green tick
+	// meaning "not checked" is worse than no tick).
+	TriggerChecksumFailed Trigger = "checksum.failed"
+	// TriggerReconnectDone fires after every reconnect run, automatic or
+	// pressed by hand, whether or not the address moved - Reconnect.OK and
+	// Reconnect.Changed are separate answers, because a run that finished
+	// with the same address is a working setup that achieved nothing and a
+	// run that errored is a setup to go and fix.
+	TriggerReconnectDone Trigger = "reconnect.done"
+	// TriggerAccountExpired fires when the account-health sweep reads an
+	// expiry that has already passed, once per crossing rather than once per
+	// sweep - see fireAccountExpiry in internal/app for the edge detection,
+	// without which a lapsed account would fire this every fifteen minutes
+	// for as long as it stayed lapsed.
+	TriggerAccountExpired Trigger = "account.expired"
+	// TriggerCaptchaPending fires once per challenge the poller has not seen
+	// before. Not once per poll: the same challenge sits in the list for as
+	// long as nobody answers it, and re-firing on every two-second tick
+	// would be a notification script sending one message every two seconds.
+	TriggerCaptchaPending Trigger = "captcha.pending"
+)
+
 // Valid reports whether t is one of the triggers this build knows about.
 // Used by Store validation so a row saved by a later build - or hand-edited
 // - cannot silently register against a trigger this one never fires.
 func (t Trigger) Valid() bool {
 	switch t {
-	case TriggerTaskDone, TriggerTaskFailed, TriggerQueueIdle, TriggerOnDemand:
+	case TriggerTaskDone, TriggerTaskFailed, TriggerQueueIdle, TriggerOnDemand,
+		TriggerLinkAdded, TriggerPackageDone, TriggerExtractDone, TriggerChecksumFailed,
+		TriggerReconnectDone, TriggerAccountExpired, TriggerCaptchaPending:
 		return true
 	default:
 		return false
@@ -254,8 +337,17 @@ func (t Trigger) Valid() bool {
 // web/src/lib/scripts.ts's own fetchScriptTriggers already assumes of
 // whatever answers that route. Returns a fresh slice on every call, so a
 // caller is free to sort or mutate it.
+//
+// The original four stay at the front. The picker renders this list in the
+// order it arrives, and moving "a download finishes" down the menu is a
+// change to everyone's editor that nothing about the seven additions
+// actually requires.
 func AllTriggers() []Trigger {
-	return []Trigger{TriggerTaskDone, TriggerTaskFailed, TriggerQueueIdle, TriggerOnDemand}
+	return []Trigger{
+		TriggerTaskDone, TriggerTaskFailed, TriggerQueueIdle, TriggerOnDemand,
+		TriggerLinkAdded, TriggerPackageDone, TriggerExtractDone, TriggerChecksumFailed,
+		TriggerReconnectDone, TriggerAccountExpired, TriggerCaptchaPending,
+	}
 }
 
 // Timeout bounds, in one place so Store validation and the default a script

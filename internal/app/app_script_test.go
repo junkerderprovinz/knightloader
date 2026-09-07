@@ -13,13 +13,13 @@ import (
 
 // TestScriptFiresOnTaskDone proves the actual wiring point in
 // app_dispatch.go's onUpdate: a task settling as done reaches a real,
-// enabled task.done script through Scripts.Fire, and that script's
+// enabled task.done script through the event bus, and that script's
 // task.setComment(...) call reaches the real task through scriptActions -
 // not just that internal/script can run a script in isolation, which its
 // own package tests already cover. Polled through the package's own
-// waitFor (rules_wiring_test.go): Fire's own worker pool runs the script on
-// a different goroutine, so there is nothing to read synchronously right
-// after onUpdate returns.
+// waitFor (rules_wiring_test.go): the script host's worker pool runs the
+// script on a different goroutine, so there is nothing to read
+// synchronously right after onUpdate returns.
 func TestScriptFiresOnTaskDone(t *testing.T) {
 	a, err := New(t.TempDir())
 	if err != nil {
@@ -88,7 +88,7 @@ func TestScriptDoesNotFireOnTaskFailedWithRetryPending(t *testing.T) {
 	a.onUpdate(task.ID, core.Update{Status: core.StatusError, Err: "connection reset"})
 
 	// There is nothing to poll FOR here (the absence of a firing), so this
-	// waits out a window generous next to Fire's own worker pool picking a
+	// waits out a window generous next to the worker pool picking a
 	// job up, then asserts the comment never arrived - a real, if
 	// necessarily time-bounded, negative check.
 	time.Sleep(300 * time.Millisecond)
@@ -188,7 +188,7 @@ func TestScriptActionsRetryRefusesEmptyTaskID(t *testing.T) {
 // configured at all, the exact coupling this wiring has to avoid. Observed
 // through a fake Hub connection (activityFakeConn, app_activity_test.go's
 // own type - same package, so it is reused rather than redeclared) the same
-// way that file's own tests observe a broadcast, since Fire's own worker
+// way that file's own tests observe a broadcast, since the script host's worker
 // pool runs on its own goroutine with nothing else this test could block on.
 //
 // Polls with its own deadline rather than the package's shared waitFor:

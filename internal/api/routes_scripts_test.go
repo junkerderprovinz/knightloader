@@ -122,6 +122,12 @@ func TestScriptsLifecycleOverHTTP(t *testing.T) {
 // to ask the server rather than hard-code the list (lib/scripts.ts's own
 // doc comment): the registry answers with exactly what script.AllTriggers
 // reports, not a hand-copied guess.
+//
+// The expectation is READ FROM script.AllTriggers rather than spelled out
+// here, and that is this test's own lesson learnt: it used to name the four
+// triggers of the day, so the first build to add one failed this test for
+// having done exactly what the route promises. A copy of the list here is
+// the same drift the route exists to prevent, one layer up.
 func TestScriptTriggersListsKnownTriggers(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
@@ -135,13 +141,25 @@ func TestScriptTriggersListsKnownTriggers(t *testing.T) {
 	if err := json.NewDecoder(resp.Body).Decode(&got); err != nil {
 		t.Fatal(err)
 	}
-	want := map[string]bool{"task.done": true, "task.failed": true, "queue.idle": true, "manual": true}
+	want := map[string]bool{}
+	for _, tr := range script.AllTriggers() {
+		want[string(tr)] = true
+	}
 	if len(got) != len(want) {
 		t.Fatalf("GET /api/scripts/triggers = %v, want exactly %v", got, want)
 	}
 	for _, g := range got {
 		if !want[g] {
 			t.Errorf("unexpected trigger %q", g)
+		}
+	}
+	// The four the first build shipped have to still be there. AllTriggers
+	// is the source of truth for the LIST, but a rename or a deletion of one
+	// of these would silently take a saved script out of the index with the
+	// check above still passing.
+	for _, tr := range []string{"task.done", "task.failed", "queue.idle", "manual"} {
+		if !want[tr] {
+			t.Errorf("trigger %q is no longer offered; every script already bound to it stops firing", tr)
 		}
 	}
 }
