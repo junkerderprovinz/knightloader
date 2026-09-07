@@ -1240,8 +1240,7 @@ export const sk: Dict = {
   'settings.help.schedule.link': 'Otvoriť Plán',
 
   'settings.help.instances.title': 'Spustenie viac ako jednej inštancie',
-  'settings.help.instances.body':
-    'Pridajte ďalší KnightLoader ako partnera a jeho front sa zobrazí aj na tomto paneli - samostatne hosťované, bez akéhokoľvek relé: táto inštancia jednoducho volá API druhej inštancie, rovnako, ako by to urobil prehliadač.',
+  'settings.help.instances.body': 'Pridaj ďalší KnightLoader ako partnera a jeho fronta sa objaví aj na tomto prehľade. V rovnakej sieti je to priame volanie API druhej inštancie, tak ako by ho urobil prehliadač. Naprieč sieťami spojí obe dvanásť slov cez relay, ktorý si môžeš hostiť sám.',
   'settings.help.instances.link': 'Otvoriť Inštancie',
 
   'settings.help.access.title': 'Prístup a riešenie problémov',

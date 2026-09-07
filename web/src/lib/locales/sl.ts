@@ -1240,8 +1240,7 @@ export const sl: Dict = {
   'settings.help.schedule.link': 'Odpri Urnik',
 
   'settings.help.instances.title': 'Poganjanje več kot ene instance',
-  'settings.help.instances.body':
-    'Dodajte drug KnightLoader kot soležnika, in njegova vrsta se prikaže tudi na tej nadzorni plošči - samostojno gostovano, brez posrednika: ta instanca preprosto pokliče API druge instance, na enak način, kot bi to storil brskalnik.',
+  'settings.help.instances.body': 'Dodaj še en KnightLoader kot soseda in njegova vrsta se pokaže tudi na tej nadzorni plošči. V istem omrežju je to neposreden klic API druge instance, tako kot bi ga naredil brskalnik. Med omrežji dvanajst besed poveže obe prek releja, ki ga lahko gostiš sam.',
   'settings.help.instances.link': 'Odpri Instance',
 
   'settings.help.access.title': 'Dostop in odpravljanje težav',

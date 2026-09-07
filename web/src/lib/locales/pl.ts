@@ -1232,8 +1232,7 @@ export const pl: Dict = {
   'settings.help.schedule.link': 'Otwórz Harmonogram',
 
   'settings.help.instances.title': 'Uruchamianie więcej niż jednej instancji',
-  'settings.help.instances.body':
-    'Dodaj kolejny KnightLoader jako partnera, a jego kolejka pojawi się też na tym pulpicie - hostowane samodzielnie, bez żadnego pośrednika: ta instancja po prostu wywołuje API tamtej instancji, tak samo jak zrobiłaby to przeglądarka.',
+  'settings.help.instances.body': 'Dodaj kolejny KnightLoader jako partnera, a jego kolejka pojawi się także na tym pulpicie. W tej samej sieci to bezpośrednie wywołanie API drugiej instancji, tak jak zrobiłaby to przeglądarka. Między sieciami dwanaście słów łączy obie przez przekaźnik, który możesz hostować sam.',
   'settings.help.instances.link': 'Otwórz Instancje',
 
   'settings.help.access.title': 'Dostęp i rozwiązywanie problemów',

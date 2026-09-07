@@ -1240,8 +1240,7 @@ export const cs: Dict = {
   'settings.help.schedule.link': 'Otevřít Plán',
 
   'settings.help.instances.title': 'Provoz více než jedné instance',
-  'settings.help.instances.body':
-    'Přidejte další KnightLoader jako partnera a jeho fronta se objeví i na tomto panelu - vlastní hosting, žádné relé není zapojeno: tato instance prostě volá API té druhé instance, stejně jako by to udělal prohlížeč.',
+  'settings.help.instances.body': 'Přidej další KnightLoader jako protějšek a jeho fronta se objeví i na tomto přehledu. Ve stejné síti je to přímé volání API druhé instance, tak jak by ho udělal prohlížeč. Napříč sítěmi spojí obě dvanáct slov přes relay, který si můžeš hostovat sám.',
   'settings.help.instances.link': 'Otevřít Instance',
 
   'settings.help.access.title': 'Přístup a řešení problémů',

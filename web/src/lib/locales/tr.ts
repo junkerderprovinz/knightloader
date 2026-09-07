@@ -1240,8 +1240,7 @@ export const tr: Dict = {
   'settings.help.schedule.link': 'Zamanlamayı aç',
 
   'settings.help.instances.title': 'Birden fazla örnek çalıştırma',
-  'settings.help.instances.body':
-    'Başka bir KnightLoader’ı eş olarak ekleyin, ve kuyruğu da bu panoda görünür - kendi kendine barındırılan, hiçbir röle dahil olmadan: bu örnek, bir tarayıcının yapacağı gibi, diğer örneğin API’sini basitçe çağırır.',
+  'settings.help.instances.body': 'Başka bir KnightLoader\'ı eş olarak ekle, kuyruğu bu panoda da görünsün. Aynı ağdayken bu, tarayıcının yapacağı gibi diğer örneğin kendi API\'sine doğrudan bir çağrıdır. Ağlar arasında on iki kelime, kendin barındırabileceğin bir aktarıcı üzerinden ikisini eşler.',
   'settings.help.instances.link': 'Örnekleri aç',
 
   'settings.help.access.title': 'Erişim ve sorun giderme',

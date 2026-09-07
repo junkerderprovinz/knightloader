@@ -1240,8 +1240,7 @@ export const hu: Dict = {
   'settings.help.schedule.link': 'Időzítés megnyitása',
 
   'settings.help.instances.title': 'Több példány futtatása',
-  'settings.help.instances.body':
-    'Adjon hozzá egy másik KnightLoadert társként, és annak sora is megjelenik ezen az irányítópulton - önállóan üzemeltetve, semmilyen relé nélkül: ez a példány egyszerűen meghívja a másik példány API-ját, ugyanúgy, ahogy egy böngésző is tenné.',
+  'settings.help.instances.body': 'Adj hozzá egy másik KnightLoadert társként, és a sora ezen a vezérlőpulton is megjelenik. Ugyanazon a hálózaton ez közvetlen hívás a másik példány saját API-jára, ahogy egy böngésző is tenné. Hálózatok között tizenkét szó párosítja a kettőt egy relén keresztül, amelyet magad is üzemeltethetsz.',
   'settings.help.instances.link': 'Példányok megnyitása',
 
   'settings.help.access.title': 'Hozzáférés és hibaelhárítás',

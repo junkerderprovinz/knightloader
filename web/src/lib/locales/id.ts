@@ -1240,8 +1240,7 @@ export const id: Dict = {
   'settings.help.schedule.link': 'Buka Jadwal',
 
   'settings.help.instances.title': 'Menjalankan lebih dari satu instans',
-  'settings.help.instances.body':
-    'Tambahkan KnightLoader lain sebagai peer, dan antreannya juga muncul di dasbor ini - dihosting sendiri, tanpa relay yang terlibat: instans ini hanya memanggil API instans lain, dengan cara yang sama seperti yang akan dilakukan browser.',
+  'settings.help.instances.body': 'Tambahkan KnightLoader lain sebagai rekan dan antreannya muncul di dasbor ini juga. Di jaringan yang sama itu panggilan langsung ke API instansi lain, seperti yang dilakukan peramban. Lintas jaringan, dua belas kata memasangkan keduanya lewat relay yang bisa kamu inangi sendiri.',
   'settings.help.instances.link': 'Buka Instans',
 
   'settings.help.access.title': 'Akses dan pemecahan masalah',

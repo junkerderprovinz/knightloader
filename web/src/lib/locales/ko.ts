@@ -1240,8 +1240,7 @@ export const ko: Dict = {
   'settings.help.schedule.link': '일정 열기',
 
   'settings.help.instances.title': '둘 이상의 인스턴스 실행',
-  'settings.help.instances.body':
-    '다른 KnightLoader를 피어로 추가하면 그 대기열도 이 대시보드에 나타납니다 - 자체 호스팅이며 릴레이가 전혀 관여하지 않습니다: 이 인스턴스는 브라우저가 하는 것과 같은 방식으로 다른 인스턴스의 API를 그냥 호출할 뿐입니다.',
+  'settings.help.instances.body': '다른 KnightLoader를 피어로 추가하면 그 대기열이 이 대시보드에도 나타납니다. 같은 네트워크에서는 브라우저가 하듯 상대 인스턴스의 API를 직접 호출합니다. 네트워크를 넘어설 때는 열두 단어가 직접 운영할 수도 있는 릴레이를 통해 둘을 짝지어 줍니다.',
   'settings.help.instances.link': '인스턴스 열기',
 
   'settings.help.access.title': '접근 및 문제 해결',

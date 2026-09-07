@@ -1233,8 +1233,7 @@ export const fr: Dict = {
   'settings.help.schedule.link': 'Ouvrir Horaires',
 
   'settings.help.instances.title': 'Faire tourner plusieurs instances',
-  'settings.help.instances.body':
-    'Ajoutez un autre KnightLoader comme pair et sa file apparaît aussi sur ce tableau de bord-ci - autohébergé, sans relais impliqué : cette instance appelle simplement l’API de l’autre instance, de la même façon qu’un navigateur le ferait.',
+  'settings.help.instances.body': 'Ajoute un autre KnightLoader comme pair et sa file apparaît aussi sur ce tableau de bord. Sur le même réseau, c\'est un appel direct à l\'API de l\'autre instance, comme le ferait un navigateur. Entre réseaux, douze mots apparient les deux via un relais que tu peux héberger toi-même.',
   'settings.help.instances.link': 'Ouvrir Instances',
 
   'settings.help.access.title': 'Accès et dépannage',

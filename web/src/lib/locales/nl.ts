@@ -1232,8 +1232,7 @@ export const nl: Dict = {
   'settings.help.schedule.link': 'Tijdschema openen',
 
   'settings.help.instances.title': 'Meer dan één instantie draaien',
-  'settings.help.instances.body':
-    'Voeg een andere KnightLoader toe als peer en diens wachtrij verschijnt ook op dit dashboard - zelf gehost, geen relay bij betrokken: deze instantie roept gewoon de API van de andere instantie aan, op dezelfde manier als een browser zou doen.',
+  'settings.help.instances.body': 'Voeg een andere KnightLoader als peer toe en zijn wachtrij verschijnt ook op dit dashboard. Op hetzelfde netwerk is dat een directe aanroep van de API van de andere instantie, zoals een browser die zou doen. Over netwerken heen koppelen twaalf woorden de twee via een relay die je zelf kunt draaien.',
   'settings.help.instances.link': 'Instanties openen',
 
   'settings.help.access.title': 'Toegang en probleemoplossing',

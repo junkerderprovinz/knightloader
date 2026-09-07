@@ -1240,8 +1240,7 @@ export const ro: Dict = {
   'settings.help.schedule.link': 'Deschide Program',
 
   'settings.help.instances.title': 'Rularea a mai mult de o instanță',
-  'settings.help.instances.body':
-    'Adaugă un alt KnightLoader ca partener, iar coada lui apare și pe acest tablou de bord - găzduit propriu, fără niciun releu implicat: această instanță pur și simplu apelează API-ul celeilalte instanțe, la fel cum ar face-o un browser.',
+  'settings.help.instances.body': 'Adaugă un alt KnightLoader ca partener și coada lui apare și pe acest panou. În aceeași rețea e un apel direct la API-ul celeilalte instanțe, așa cum l-ar face un browser. Între rețele, douăsprezece cuvinte le împerechează prin releu pe care îl poți găzdui singur.',
   'settings.help.instances.link': 'Deschide Instanțe',
 
   'settings.help.access.title': 'Acces și depanare',

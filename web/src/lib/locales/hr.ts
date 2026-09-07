@@ -1240,8 +1240,7 @@ export const hr: Dict = {
   'settings.help.schedule.link': 'Otvori Raspored',
 
   'settings.help.instances.title': 'Pokretanje više od jedne instance',
-  'settings.help.instances.body':
-    'Dodajte drugi KnightLoader kao ravnopravnog partnera, i njegov red čekanja pojavljuje se i na ovoj nadzornoj ploči - samostalno hostano, bez ikakvog releja: ova instanca jednostavno poziva API druge instance, na isti način na koji bi to učinio preglednik.',
+  'settings.help.instances.body': 'Dodaj još jedan KnightLoader kao partnera i njegov red pojavit će se i na ovoj nadzornoj ploči. U istoj mreži to je izravan poziv API-ju druge instance, kao što bi ga napravio preglednik. Preko mreža, dvanaest riječi povezuje njih dvije putem relaya koji možeš sam hostati.',
   'settings.help.instances.link': 'Otvori Instance',
 
   'settings.help.access.title': 'Pristup i rješavanje problema',

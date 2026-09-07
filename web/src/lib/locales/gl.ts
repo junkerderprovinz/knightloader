@@ -1240,8 +1240,7 @@ export const gl: Dict = {
   'settings.help.schedule.link': 'Abrir Horario',
 
   'settings.help.instances.title': 'Executar máis dunha instancia',
-  'settings.help.instances.body':
-    'Engade outro KnightLoader coma par e a súa cola tamén aparece neste taboleiro - aloxado por ti mesmo, sen ningún relé implicado: esta instancia simplemente chama á API da outra instancia, do mesmo xeito que o faría un navegador.',
+  'settings.help.instances.body': 'Engade outro KnightLoader como par e a súa cola aparece tamén neste panel. Na mesma rede é unha chamada directa á API da outra instancia, igual que a faría un navegador. Entre redes, doce palabras emparellan as dúas a través dun relé que podes aloxar ti mesmo.',
   'settings.help.instances.link': 'Abrir Instancias',
 
   'settings.help.access.title': 'Acceso e resolución de problemas',

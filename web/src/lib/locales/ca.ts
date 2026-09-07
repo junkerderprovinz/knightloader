@@ -1240,8 +1240,7 @@ export const ca: Dict = {
   'settings.help.schedule.link': 'Obre Horari',
 
   'settings.help.instances.title': 'Executar més d’una instància',
-  'settings.help.instances.body':
-    'Afegeix un altre KnightLoader com a parell i la seva cua també apareix en aquest tauler - allotjat per tu mateix, sense cap relé implicat: aquesta instància simplement crida l’API de l’altra instància, de la mateixa manera que ho faria un navegador.',
+  'settings.help.instances.body': 'Afegeix un altre KnightLoader com a company i la seva cua apareix també en aquest tauler. A la mateixa xarxa és una crida directa a l\'API de l\'altra instància, com la faria un navegador. Entre xarxes, dotze paraules emparellen les dues a través d\'un relé que pots allotjar tu mateix.',
   'settings.help.instances.link': 'Obre Instàncies',
 
   'settings.help.access.title': 'Accés i resolució de problemes',
