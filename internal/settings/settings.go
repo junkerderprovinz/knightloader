@@ -261,13 +261,30 @@ type Settings struct {
 	// staged as a sibling of the download it mirrors, parked, and labelled with
 	// the task it is a copy of.
 	//
-	// Off by default, and the reason is that nothing fails over to a sibling on
-	// its own yet. What it buys today is that the alternative link survives - a
+	// Off by default. What it buys is that the alternative link survives - a
 	// dropped mirror lives on only in an in-memory trace that the next restart
 	// clears - and the price of it being on is a parked row per mirror in a list
 	// people already complain is long. On is a choice; off is what the list looks
-	// like now.
+	// like now. On its own it still starts nothing: the sibling sits on hold
+	// until somebody lifts it, or until MirrorFailover below does.
 	KeepMirrors bool `json:"keepMirrors"`
+	// MirrorFailover releases that parked sibling when the download it is a copy
+	// of has finished failing, and hands it the dead task's folder, package and
+	// priority. See app.handOverToMirrorLocked for when "finished failing" is,
+	// where the chain of copies ends, and why the failed row stays on the list.
+	//
+	// Off by default, and it is a SEPARATE switch from KeepMirrors rather than
+	// part of it because the two are not the same size of decision. Keeping a
+	// mirror costs a row in a list. Switching to one starts a transfer from a
+	// hoster the user did not pick - at whatever speed that hoster gives them,
+	// possibly from an account they do not have, possibly a re-encode rather than
+	// the release they were after - and nothing in this build can ask them first.
+	// That stays a decision, and a decision is made by the person, not by the
+	// queue at three in the morning.
+	//
+	// It does nothing without KeepMirrors: with mirrors dropped there is never a
+	// parked sibling to release.
+	MirrorFailover bool `json:"mirrorFailover"`
 
 	// CollisionPolicy is what happens when the destination file already exists.
 	CollisionPolicy string `json:"collisionPolicy"`
