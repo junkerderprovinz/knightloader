@@ -1178,6 +1178,17 @@ func (a *App) onUpdate(id string, u core.Update) {
 			t.NextTry = time.Time{}
 		}
 	}
+	// The spare copy takes over from here, when the user asked for that and the
+	// source has nothing left to try. It is placed after the switch above rather
+	// than inside it because it reads that switch's answer: retryIn is how the
+	// backoff says whether this failure was the last word. See
+	// handOverToMirrorLocked (app_mirror.go) for the whole of the policy - it can
+	// also take back a retry the switch just armed, which is why retryIn comes
+	// back out of it and why this sits above the reconnect that reads retryIn.
+	var mirrorCopy *core.Task
+	if u.Status == core.StatusError && fallbackTo == nil {
+		mirrorCopy, retryIn = a.handOverToMirrorLocked(t, retryIn)
+	}
 	// A hoster limit keyed to this box's address is the one failure a new address
 	// actually fixes, and a backend asking for another attempt after a delay
 	// (u.Retry) is how it says it hit one. Skipped while the queue is halted: a
@@ -1254,6 +1265,10 @@ func (a *App) onUpdate(id string, u core.Update) {
 	if extractCopy != nil {
 		_ = a.Store.Save(extractCopy)
 		a.Hub.Broadcast("task", extractCopy)
+	}
+	if mirrorCopy != nil {
+		_ = a.Store.Save(mirrorCopy)
+		a.Hub.Broadcast("task", mirrorCopy)
 	}
 	if retryIn > 0 {
 		a.retryAfter(id, retryIn)
