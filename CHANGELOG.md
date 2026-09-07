@@ -43,6 +43,19 @@ submission and for a fixed download.
 
 ### Added
 
+- **A playlist arrives as one row per video** instead of a single task. The
+  entries are read from the playlist page alone, without touching any of the
+  videos, so a fifty-video list costs one request rather than fifty; every video
+  is its own row, with its own progress, its own tick box and its own failure,
+  and they all land in one package named after the playlist. A video already in
+  the list is folded away with a reason, the same as a link pasted twice. The
+  switch is the one that was already there, "Download the whole playlist when a
+  link points into one" under Settings > Resolvers: off still means the link is
+  the one video it points at. At most 100 videos are staged from one playlist,
+  because each of them brings the five variant rows of its own family with it,
+  and a channel with ten thousand uploads would otherwise be fifty thousand rows;
+  a longer list is cut and says so, with both numbers, in the skipped-links
+  notice.
 - **A grip to drag the priority order by**, and the list moves under the pointer
   while you drag rather than jumping when you let go. The two arrow buttons are
   gone; the grip is a real button, so the arrow keys still move a row for anyone

@@ -48,6 +48,20 @@ func (a *App) ytdlpOptionsForTask(taskID string) ytdlp.Options {
 	if t == nil {
 		return base
 	}
+	// A link a listing pointed at is ONE item, whatever the instance-wide
+	// playlist setting says - and the setting must not be allowed to make it
+	// anything else. A playlist entry (stagePlaylistEntries,
+	// app_ytdlp_playlist.go) and a crawled page link both arrive with the page
+	// they came from on Source and OriginCrawl on Origin, and for both the
+	// list has already been expanded: this row IS one of its members. Leaving
+	// --no-playlist off here would ask yt-dlp to expand a list out of an entry
+	// that came from one - and a YouTube entry URL that still carries its own
+	// "&list=" parameter would then download the whole playlist again, once
+	// per row, which is a hundred copies of the same fifty videos rather than
+	// the fifty the person asked for.
+	if t.Origin == OriginCrawl {
+		base.Playlist = false
+	}
 	kind, sub := variantDecode(t.Variant)
 	if kind == "" {
 		kind = ytdlp.VariantVideo
@@ -149,8 +163,17 @@ func (a *App) expandYtdlpVariants(primary *core.Task) {
 			sub = preset.AudioFormat
 		}
 		a.insertVariantSibling(&core.Task{
-			URL:       pc.URL,
-			Name:      pc.URL,
+			URL: pc.URL,
+			// pc.Name, not pc.URL: for a bare pasted link the two are the same
+			// string anyway (stage's own placeholder), and for a link that
+			// already HAS a real name at expansion time they are not. A
+			// playlist entry is the second kind - the listing named it before
+			// it was ever staged (stagePlaylistEntries, app_ytdlp_playlist.go)
+			// - and its siblings would otherwise keep the URL as their name for
+			// good, because the one thing that renames them, setTaskName's own
+			// propagation loop, returns immediately for a primary that already
+			// has a name.
+			Name:      pc.Name,
 			Package:   pc.Package,
 			Status:    core.StatusCollected,
 			Enabled:   preset.HasVariant(v),

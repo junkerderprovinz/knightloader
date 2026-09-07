@@ -100,6 +100,16 @@ type intake struct {
 	priority    *int
 	autoExtract *bool
 	comment     string
+
+	// playlistEntry marks a link a --flat-playlist listing produced
+	// (stagePlaylistEntries, app_ytdlp_playlist.go). It answers one question
+	// stage() would otherwise get wrong at exactly the wrong scale: whether to
+	// spawn this link's own title probe. A pasted media link should - it is
+	// one process for one link. A playlist's entries must not, because there
+	// can be a hundred of them from a single line of input; the listing
+	// already named them all, and their format probes are run one at a time
+	// afterwards instead (probePlaylistEntries).
+	playlistEntry bool
 }
 
 // AddLinks stages links pasted into the collector. Every other entrance calls
@@ -129,12 +139,14 @@ func (a *App) AddLinksFrom(urls []string, pkg string, origin core.Origin) []*cor
 // collector to show the raw link and no size until the user starts the
 // download and JD crawls the very same links a second time.
 //
-// It skips crawl(): a link a container already named is a resolved file, not
-// a page that might point at more of them, which page-crawling that link
-// again would only risk mistaking it for. Everything else - the link filter,
-// the packagizer, the duplicate check, batch naming and auto-confirm - runs
-// exactly as it does for AddLinksFrom, because a container is a delivery
-// mechanism and none of those decisions is about how a link arrived.
+// It skips crawl(), and the playlist listing beside it (ytdlpPlaylist,
+// app_ytdlp_playlist.go): a link a container already named is a resolved file,
+// not a page or a listing that might point at more of them, which crawling or
+// listing that link again would only risk mistaking it for. Everything else -
+// the link filter, the packagizer, the duplicate check, batch naming and
+// auto-confirm - runs exactly as it does for AddLinksFrom, because a container
+// is a delivery mechanism and none of those decisions is about how a link
+// arrived.
 func (a *App) AddResolvedLinksFrom(links []resolver.Result, pkg string, origin core.Origin) []*core.Task {
 	return a.detached(a.addResolvedLinksFrom(links, pkg, origin))
 }
@@ -241,6 +253,28 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 			if t := a.hold(cand, v, origin, cand.Added); t != nil {
 				created = append(created, t)
 			}
+			continue
+		}
+		// A playlist link becomes the videos it lists, not one task for the
+		// playlist - the same sentence as the crawl just below, for the same
+		// reason: a link that points at many files can only ever be a single
+		// unusable download otherwise, with one progress bar for fifty videos,
+		// nothing to untick, and a failure on the thirtieth taking the other
+		// forty-nine with it.
+		//
+		// Asked BEFORE the crawl, although both can claim a yt-dlp link: the
+		// crawler claims one only by exclusion (see crawl's own comment on why
+		// "ytdlp" is in its set at all), while this is yt-dlp answering about
+		// its own site with the listing that site actually publishes. When the
+		// answer is "not a playlist" - which is every link on an install that
+		// leaves the setting off, and every ordinary video link on one that
+		// does not - nothing has been staged and the crawl runs exactly as it
+		// always did.
+		if pl, ok := a.ytdlpPlaylist(u); ok {
+			b := &bucket{title: pl.Title}
+			b.tasks = a.stagePlaylistEntries(u, pl, pkg, batch)
+			created = append(created, b.tasks...)
+			buckets = append(buckets, b)
 			continue
 		}
 		// A page that points at files becomes those files, not one task for the
@@ -845,7 +879,14 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 		// name instead of its own URL before anybody presses Start - see
 		// probeYtdlpTitle's own doc comment (app_tasks.go) for why this is
 		// silent on failure, the same as analyze's HEAD probe above.
-		a.spawn(func() { a.probeYtdlpTitle(t.ID, result.DirectURL) })
+		//
+		// Not for a playlist entry: the listing that produced it already
+		// carried its name, and a hundred entries spawning a hundred processes
+		// at one host from one pasted line is the stampede
+		// probePlaylistEntries (app_ytdlp_playlist.go) runs serially instead.
+		if !in.playlistEntry {
+			a.spawn(func() { a.probeYtdlpTitle(t.ID, result.DirectURL) })
+		}
 	}
 	return staged
 }
