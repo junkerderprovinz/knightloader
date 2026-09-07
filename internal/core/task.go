@@ -308,6 +308,52 @@ type Task struct {
 	Retries int `json:"retries,omitempty"`
 	// NextTry is when an automatic retry is due (zero = none pending).
 	NextTry time.Time `json:"nextTry,omitempty"`
+	// GaveUp is a failure the app will not try again ON PURPOSE, as opposed to
+	// one that has merely run out of attempts.
+	//
+	// The two look identical on a list today - both are red, both have no
+	// pending retry - and they are not the same thing to the person reading
+	// it. "Failed after three attempts" is mended by raising the retry count;
+	// "will not be tried again" is not, because nothing about the next ten
+	// minutes answers a captcha, frees a byte on a full disk, or overrules a
+	// retry rule somebody wrote to say "never for this host". Without the
+	// distinction the only way to tell them apart is to remember which reasons
+	// the dispatcher exempts, which is a thing nobody remembers.
+	//
+	// A FLAG BESIDE StatusError, never a Status of its own, for the reason
+	// Skipped, Hold and Seeding are flags: a new core.Status value breaks every
+	// exhaustive mapping of the seven, the store round trip and a rollback to
+	// the previous build.
+	//
+	// It is raised only where a failure settles and cleared by any dispatch
+	// pass that meets the task in the wait queue again (app.dispatchLocked),
+	// which is the one point every path back to "we are trying this" goes
+	// through - a hand restart included. Not persisted: a task loaded from the
+	// store has not failed yet in this process, and a restored flag would be a
+	// verdict about an attempt this build never made.
+	GaveUp bool `json:"gaveUp,omitempty"`
+	// StalledSince is when a running download last moved a byte, set once it
+	// has been standing still long enough to be marked (settings.StallTimeout)
+	// and zero at every other moment.
+	//
+	// THE MOMENT AND NOT A DURATION, deliberately. The interface has to show
+	// how long this has been going on - a connection that died four hours ago
+	// and one that paused a minute ago are not the same news - and a duration
+	// written into a field is stale the instant it is sent, so it would have to
+	// be rewritten and rebroadcast every second for every stalled row. A single
+	// instant is true until it changes and lets whoever renders it count up on
+	// its own.
+	//
+	// It says nothing about the transfer having failed: a stalled task is still
+	// running, still holds its slot, and may yet come back on its own. It is
+	// also not persisted - it is a reading of a live transfer, like Speed and
+	// Note, and a mark restored from the database would describe a connection
+	// that no longer exists.
+	StalledSince time.Time `json:"stalledSince,omitempty"`
+	// StallRestarts counts the automatic restarts the stall watcher has already
+	// spent on this task, against settings.StallMaxRestarts. It is what stops
+	// "restart when stalled" from being a loop against a host that is refusing.
+	StallRestarts int `json:"stallRestarts,omitempty"`
 	// Priority lifts a task in the wait queue; higher runs first.
 	Priority int `json:"priority"`
 	// Position orders tasks of equal priority.
