@@ -648,3 +648,75 @@ func TestUnterminatedPlaceholder(t *testing.T) {
 		}
 	}
 }
+
+// TestARuleCanNameWhereTheUnpackedFilesGo is the Packagizer's third folder, and
+// the test exists to hold the three apart. DownloadDir is where the archive is
+// fetched to, ExtractTo (a setting, not a rule) is where the unpacking writes,
+// and this is where the finished content is put afterwards. A rule that set the
+// wrong one of the three would look identical in the form and land the files
+// two folders away.
+func TestARuleCanNameWhereTheUnpackedFilesGo(t *testing.T) {
+	m, problems := Compile(Set{Rules: []Rule{{
+		Name: "series",
+		Conditions: []Condition{
+			{Field: FieldFilename, Op: OpMatches, Value: `^(.+)\.S(\d\d)E\d\d`},
+		},
+		Action: Action{
+			DownloadDir: "/downloads/<jd:packagename>",
+			ExtractDir:  "/serien/<jd:match:filename:1>/Staffel <jd:match:filename:2>",
+		},
+	}}})
+	if len(problems) != 0 {
+		t.Fatalf("Compile: %v", problems)
+	}
+	e := m.Apply(testCandidate())
+	if want := "/serien/The.Show/Staffel 01"; e.ExtractDir != want {
+		t.Errorf("ExtractDir = %q, want %q", e.ExtractDir, want)
+	}
+	if want := "/downloads/The Show"; e.Dir != want {
+		t.Errorf("Dir = %q, want %q; the two folders must not be reading one template", e.Dir, want)
+	}
+}
+
+// TestTheUnpackFolderIsValidatedLikeEveryOtherTemplate. A capture group that is
+// not there survives into the folder name and every release in the set lands
+// under a literal "<jd:match:hoster:1>" - which is the exact failure
+// matchTagProblems exists to catch, and a field left out of templates() is a
+// field it silently stops catching it for.
+func TestTheUnpackFolderIsValidatedLikeEveryOtherTemplate(t *testing.T) {
+	_, problems := Compile(Set{Rules: []Rule{{
+		Name:   "broken",
+		Action: Action{ExtractDir: "/serien/<jd:match:hoster:1>"},
+	}}})
+	if len(problems) != 1 {
+		t.Fatalf("problems = %v, want the unpack folder refused", problems)
+	}
+	if !strings.Contains(problems[0].Message, "unpack folder") {
+		t.Errorf("the problem reads %q, want the box the user has to fix named", problems[0].Message)
+	}
+
+	_, problems = Compile(Set{Rules: []Rule{{
+		Name:   "unclosed",
+		Action: Action{ExtractDir: "/serien/<jd:packagename"},
+	}}})
+	if len(problems) != 1 || !strings.Contains(problems[0].Message, "unpack folder") {
+		t.Fatalf("problems = %v, want the unterminated placeholder caught in the unpack folder", problems)
+	}
+}
+
+// TestAnEmptyUnpackFolderLeavesAnEarlierOneStanding. Every string on an action
+// means "no opinion" when empty and never "clear it", or a later rule that only
+// sets the priority would wipe the folder an earlier rule chose.
+func TestAnEmptyUnpackFolderLeavesAnEarlierOneStanding(t *testing.T) {
+	prio := 2
+	m, problems := Compile(Set{Rules: []Rule{
+		{Name: "folder", Action: Action{ExtractDir: "/serien/<jd:packagename>"}},
+		{Name: "priority", Action: Action{Priority: &prio}},
+	}})
+	if len(problems) != 0 {
+		t.Fatalf("Compile: %v", problems)
+	}
+	if got := m.Apply(testCandidate()).ExtractDir; got != "/serien/The Show" {
+		t.Errorf("ExtractDir = %q; a later rule with nothing to say cleared it", got)
+	}
+}

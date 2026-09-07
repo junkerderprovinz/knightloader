@@ -83,6 +83,28 @@ type Settings struct {
 	DownloadDir string `json:"downloadDir"`
 	// SubfolderByPackage puts each package in its own folder below DownloadDir.
 	SubfolderByPackage bool `json:"subfolderByPackage"`
+
+	// WorkDir is where a download's bytes are written while they are still
+	// arriving. The finished result is moved to DownloadDir once nothing is
+	// owed on it any more - after the checksum, and after the extraction when
+	// one is due.
+	//
+	// EMPTY MEANS WRITE STRAIGHT TO THE DESTINATION, which is what every
+	// install did before this field existed and is the only safe default. The
+	// alternative would hand somebody who merely installed an update a
+	// configuration that copies every download across a filesystem boundary,
+	// at gigabytes a time, for a problem they may not have.
+	//
+	// The problem it solves for the people who do have it: a .part file written
+	// straight to its destination is a half file in a folder other programs
+	// watch. Unraid's mover takes it off the cache and copies half a film onto
+	// the array, and a library scanner adds an unfinished mkv and then never
+	// looks at it again. See internal/workdir, which owns both the folder and
+	// the trip out of it, including what a cross-filesystem move does when the
+	// disk fills halfway through and what happens to leftovers after a crash.
+	//
+	// It is an absolute path and never a template - see sanitizeStaging.
+	WorkDir string `json:"workDir"`
 	// ArchivePasswords are tried in order when extracting an encrypted archive.
 	ArchivePasswords []string `json:"archivePasswords"`
 
@@ -94,6 +116,25 @@ type Settings struct {
 	// ExtractSubfolder puts each package in its own folder below ExtractTo. It
 	// does nothing without ExtractTo - see extract.Options.
 	ExtractSubfolder bool `json:"extractSubfolder"`
+	// ExtractMoveTo is where the CONTENT of a finished extraction is moved once
+	// it has finished unpacking. Empty leaves it where it unpacked, which is
+	// what every install did before this field existed. It may be a pathvars
+	// template, expanded per task exactly as DownloadDir and ExtractTo are.
+	//
+	// It is not a second spelling of ExtractTo, and the difference is the whole
+	// point of having both. ExtractTo is where the unpacking WRITES: the
+	// archive's own folder is created there and filled there, so the
+	// destination holds a growing, half-finished folder for as long as the
+	// extraction runs. This moves the finished files afterwards, which means
+	// nothing incomplete is ever visible at the target, and it moves the
+	// CONTENT rather than the folder - a release that unpacked as
+	// "Show.S01.COMPLETE.WEB/ep01.mkv" lands as "ep01.mkv" in the folder named
+	// here, without the release folder no library asked for.
+	//
+	// This is the instance-wide answer. The per-link one is a Packagizer rule
+	// (rules.Action.ExtractDir), which is read in front of this the same way
+	// Task.AutoExtract is read in front of Extract - see app.extractWanted.
+	ExtractMoveTo string `json:"extractMoveTo"`
 	// ExtractCollision is what an extraction does when its destination folder is
 	// already there: rename, skip or overwrite, decided per folder.
 	ExtractCollision string `json:"extractCollision"`
@@ -912,6 +953,7 @@ func sanitize(n Settings) Settings {
 	n = sanitizeStall(n)
 	n = sanitizeHostRules(n)
 	n = sanitizePaths(n)
+	n = sanitizeStaging(n)
 	n = sanitizeArchives(n)
 	n = sanitizeIntake(n)
 	n = sanitizeFeeds(n)

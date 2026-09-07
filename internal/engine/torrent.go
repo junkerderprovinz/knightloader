@@ -73,7 +73,7 @@ func (e *Engine) startTorrent(j Job) {
 		// network thirty seconds ago, and this is the first moment anything in
 		// this app has seen it. Run before Create, because Create is what starts
 		// writing.
-		if err := torrent.Contained(j.Dir, landingPaths(rr.Res)); err != nil {
+		if err := torrent.Contained(j.writeDir(), landingPaths(rr.Res)); err != nil {
 			e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: err.Error()})
 			return
 		}
@@ -112,7 +112,7 @@ func (e *Engine) resolveTorrent(j Job) (*download.ResolveResult, error) {
 		// torrent requests state theirs or state nothing.
 		req.Extra = &gbt.ReqExtra{Trackers: j.Trackers}
 	}
-	opts := &base.Options{Path: j.Dir, SelectFiles: j.TorrentSelect}
+	opts := &base.Options{Path: j.writeDir(), SelectFiles: j.TorrentSelect}
 
 	type answer struct {
 		rr  *download.ResolveResult
