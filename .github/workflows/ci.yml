@@ -32,6 +32,13 @@ jobs:
       web: ${{ steps.filter.outputs.web }}
       extension: ${{ steps.filter.outputs.extension }}
       mobile: ${{ steps.filter.outputs.mobile }}
+      # `desktop` was missing here while the desktop job below already read
+      # needs.changes.outputs.desktop. An undeclared output is the empty
+      # string, never 'true', so that job's `if` was false on every run since
+      # it was added and the module it exists to compile went unbuilt again -
+      # the exact blind spot its own comment describes.
+      desktop: ${{ steps.filter.outputs.desktop }}
+      docs: ${{ steps.filter.outputs.docs }}
     steps:
       # Only needed for the push-to-main case: paths-filter diffs against the
       # previous commit via git, which needs it to be present locally. On
@@ -67,6 +74,19 @@ jobs:
               - '**/*.go'
               - 'go.mod'
               - '.github/workflows/ci.yml'
+            # check-docs-claims.mjs reads the documents AND the sources it
+            # checks them against, so a Go or web change can falsify a claim
+            # without any Markdown being touched. Hence the wide net: the
+            # claims it settles are about the whole build, not about docs/.
+            docs:
+              - 'README.md'
+              - 'docs/**'
+              - 'check-docs-claims.mjs'
+              - '**/*.go'
+              - 'Dockerfile'
+              - 'web/src/lib/locales/**'
+              - 'web/src/pages/settings/Help.tsx'
+              - '.github/workflows/ci.yml'
 
   server:
     needs: changes
@@ -84,9 +104,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       # The toolchain is read from go.mod's go directive, not pinned here, so
-      # CI, the Dockerfile's golang:1.26-alpine stage and a developer's local
-      # build are always the same compiler. A second hard-coded copy of the
-      # version is how CI stays green while the release image fails to build.
+      # CI, the Dockerfile's golang build stage and a developer's local build
+      # all satisfy the same go directive. A second hard-coded copy of the
+      # version is how CI stays green while the release image fails to build,
+      # which is also why this comment no longer names the image's own tag.
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
         with:
           go-version-file: go.mod
@@ -276,6 +297,31 @@ jobs:
               console.log("web-ext lint clean");
             });
           '
+
+  # What the README, the Help page and docs/ claim about this build, checked
+  # against the build. Its own header lists what went wrong without it; the
+  # short version is that no compiler, test or type check has an opinion about
+  # a sentence, so the three documents describing the program to a new reader
+  # were the only part of the repository with no gate at all.
+  #
+  # Its own job rather than a step in `web`: half of what it reads is Go, and
+  # the web job is skipped on a Go-only change - which is precisely when a
+  # documented default stops being true.
+  docs:
+    needs: changes
+    if: needs.changes.outputs.docs == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: "24"
+
+      # No dependencies and nothing to install: node:fs against the tree.
+      - name: Documented claims
+        run: node check-docs-claims.mjs
 
   mobile:
     needs: changes
