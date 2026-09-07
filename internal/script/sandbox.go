@@ -91,14 +91,17 @@ type execCtx struct {
 	trigger Trigger
 	firedAt time.Time
 
-	// taskID is "" and task is nil together, always - see newRuntime, which
-	// is the one place that decides whether the "task" global exists at
-	// all. Never set taskID without task, or task without a non-empty
+	// taskID is "" and firing.Task is nil together, always - see newRuntime,
+	// which is the one place that decides whether the "task" global exists
+	// at all. Never set taskID without a task, or a task without a non-empty
 	// taskID: the empty-taskID hazard Actions' own doc comment describes is
 	// exactly what keeping these two in lockstep prevents.
 	taskID string
-	task   *TaskView
-	queue  QueueView
+	// firing is the whole event this execution is about, payloads included -
+	// see Firing (bus.go) for which payload each trigger carries. Held whole
+	// rather than unpacked into a field per event, so a trigger added to
+	// Firing needs one entry in newRuntime and nothing at all here.
+	firing Firing
 
 	output   []string
 	outBytes int
@@ -167,21 +170,133 @@ func newRuntime(e *execCtx) (*goja.Runtime, error) {
 	}
 
 	if err := rt.Set("queue", map[string]any{
-		"files":    e.queue.Files,
-		"disabled": e.queue.Disabled,
-		"running":  e.queue.Running,
-		"idle":     IsQueueIdle(e.queue),
+		"files":    e.firing.Queue.Files,
+		"disabled": e.firing.Queue.Disabled,
+		"running":  e.firing.Queue.Running,
+		"idle":     IsQueueIdle(e.firing.Queue),
 	}); err != nil {
 		return nil, err
 	}
 
-	if e.task != nil {
+	if e.firing.Task != nil {
 		if err := rt.Set("task", taskGlobal(rt, e)); err != nil {
 			return nil, err
 		}
 	}
 
+	// One global per event payload, bound only when this firing carries it.
+	// A payload the trigger does not carry stays undefined rather than being
+	// bound as an empty object, the same rule "task" has always followed:
+	// a script can ask `typeof pkg` and get a truthful answer, where a
+	// zero-valued object would have it act on a package of no files.
+	//
+	// NOT NAMED "package". goja compiles every script in strict mode
+	// (rebuildIndex and RunNow both pass strict=true to goja.Compile), where
+	// `package` is a FutureReservedWord and merely REFERENCING it is a
+	// SyntaxError - so a global by that name would be one no script could
+	// read, and every script bound to package.done would fail to compile
+	// with an error pointing at the user's own first line. "pkg" costs three
+	// characters and works.
+	for name, payload := range map[string]any{
+		"pkg":        packageGlobal(e.firing.Package),
+		"extraction": extractGlobal(e.firing.Extract),
+		"reconnect":  reconnectGlobal(e.firing.Reconnect),
+		"account":    accountGlobal(e.firing.Account),
+		"captcha":    captchaGlobal(e.firing.Captcha),
+	} {
+		if payload == nil {
+			continue
+		}
+		if err := rt.Set(name, payload); err != nil {
+			return nil, err
+		}
+	}
+
 	return rt, nil
+}
+
+// packageGlobal is the "pkg" global for TriggerPackageDone, or nil when this
+// firing carries no package. See PackageView's own doc comment for why these
+// are counts and not a verdict.
+func packageGlobal(v *PackageView) any {
+	if v == nil {
+		return nil
+	}
+	return map[string]any{
+		"name":     v.Name,
+		"files":    v.Files,
+		"done":     v.Done,
+		"failed":   v.Failed,
+		"skipped":  v.Skipped,
+		"disabled": v.Disabled,
+		"bytes":    v.Bytes,
+	}
+}
+
+// extractGlobal is the "extraction" global for TriggerExtractDone.
+func extractGlobal(v *ExtractView) any {
+	if v == nil {
+		return nil
+	}
+	return map[string]any{
+		"id":       v.JobID,
+		"taskId":   v.TaskID,
+		"name":     v.Name,
+		"dir":      v.Dir,
+		"package":  v.Package,
+		"ok":       v.OK,
+		"error":    v.Error,
+		"password": v.Password,
+		"files":    v.Files,
+		"bytes":    v.Bytes,
+		"nested":   v.Nested,
+	}
+}
+
+// reconnectGlobal is the "reconnect" global for TriggerReconnectDone.
+func reconnectGlobal(v *ReconnectView) any {
+	if v == nil {
+		return nil
+	}
+	return map[string]any{
+		"ok":      v.OK,
+		"changed": v.Changed,
+		"from":    v.From,
+		"to":      v.To,
+		"error":   v.Error,
+		"checks":  v.Checks,
+	}
+}
+
+// accountGlobal is the "account" global for TriggerAccountExpired.
+func accountGlobal(v *AccountView) any {
+	if v == nil {
+		return nil
+	}
+	return map[string]any{
+		"service": v.Service,
+		"account": v.Account,
+		"label":   v.Label,
+		"tier":    v.Tier,
+		"expiry":  v.Expiry,
+	}
+}
+
+// captchaGlobal is the "captcha" global for TriggerCaptchaPending. It is
+// everything CaptchaView carries and nothing else - see that type's own doc
+// comment for why the challenge material itself is not here.
+func captchaGlobal(v *CaptchaView) any {
+	if v == nil {
+		return nil
+	}
+	return map[string]any{
+		"id":        v.ID,
+		"taskId":    v.TaskID,
+		"host":      v.Host,
+		"kind":      v.Kind,
+		"prompt":    v.Prompt,
+		"expiresAt": v.ExpiresAt,
+	}
 }
 
 // taskGlobal builds the map[string]any bound as the "task" global: the
@@ -190,7 +305,7 @@ func newRuntime(e *execCtx) (*goja.Runtime, error) {
 // comment for why that binding, not an ID-taking function, is the whole of
 // the safety property.
 func taskGlobal(rt *goja.Runtime, e *execCtx) map[string]any {
-	t := e.task
+	t := e.firing.Task
 	taskID := e.taskID
 	actions := e.actions
 	return map[string]any{

@@ -636,6 +636,14 @@ func (a *App) settleExtraction(jobID string, opts extract.Options, siblings []st
 		a.saveAndBroadcast([]core.Task{*settled})
 	}
 	a.Hub.Broadcast("extract", snap)
+	// An extraction somebody called off does not fire: they are standing at
+	// the button, they already know, and a "your archive is finished"
+	// message for the thing they just stopped is noise. Both other endings
+	// do fire, on the one trigger, with ok saying which - see
+	// script.TriggerExtractDone. Off the lock, from the copy taken under it.
+	if !cancelled {
+		a.fireExtractDone(snap, snap.Status == ExtractFailed)
+	}
 }
 
 // extractErrorPrefix marks the sentences this package puts on a task, so a retry

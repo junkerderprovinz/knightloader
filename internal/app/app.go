@@ -106,13 +106,19 @@ type App struct {
 	// sharing its one secret. See internal/apitoken's own package comment
 	// for why that has to be a second store rather than a second password.
 	APITokens *apitoken.Store
-	// Scripts hosts the goja VM that runs a user's own automation snippets
-	// on a task finishing, failing, the queue going idle, or on demand - see
-	// internal/script's own package doc comment for the sandbox it enforces
-	// and app_script.go for the Actions adapter and the Fire call sites this
-	// field's own triggers are wired at (app_dispatch.go's onUpdate for the
-	// two task triggers, watchQueueIdleForScripts for queue.idle).
+	// Scripts hosts the goja VM that runs a user's own automation snippets -
+	// see internal/script's own package doc comment for the sandbox it
+	// enforces and app_script.go for the Actions adapter. It no longer has
+	// events fired INTO it: it subscribes to Events below, like anything
+	// else that wants to know what the app just did.
 	Scripts *script.Host
+	// Events is the app's event bus: everything that publishes an app event
+	// publishes here, and every reader of those events subscribes here. This
+	// build wires exactly one subscriber (the script Host, from
+	// script.NewHost) - see internal/script/bus.go for why the second one is
+	// a Subscribe call rather than another edit to every firing site, and
+	// app_script.go for where this app publishes.
+	Events *script.Bus
 	// Throttle is the shared bandwidth allowance for everything downloading
 	// through the loopback proxy.
 	Throttle *throttle.Limiter
@@ -505,11 +511,19 @@ func New(dataDir string) (*App, error) {
 	}
 	a.APITokens = tokens
 
+	// Built before the Host, and owned here rather than by the Host, because
+	// the bus outlives what happens to be listening on it: a future
+	// notification channel subscribes to a.Events without needing the script
+	// host to exist, and a Close of the script host must not take the app's
+	// event plumbing with it.
+	a.Events = script.NewBus()
 	// Actions and Hub are the whole of what internal/script needs from this
 	// package - see scriptActions' own doc comment for why that adapter
 	// exists rather than *App satisfying script.Actions on its own, and
-	// *hub.Hub already satisfies script.Broadcaster with no changes.
-	scripts, err := script.NewHost(script.Options{DataDir: dataDir, Actions: scriptActions{a}, Hub: a.Hub})
+	// *hub.Hub already satisfies script.Broadcaster with no changes. Bus is
+	// what NewHost subscribes the Host to; nothing here ever calls into the
+	// Host to fire an event.
+	scripts, err := script.NewHost(script.Options{DataDir: dataDir, Actions: scriptActions{a}, Hub: a.Hub, Bus: a.Events})
 	if err != nil {
 		st.Close()
 		return nil, err
@@ -635,6 +649,13 @@ func New(dataDir string) (*App, error) {
 	// window where this could read a half-assembled queue as idle - see
 	// watchQueueIdleForScripts' own doc comment.
 	a.spawn(a.watchQueueIdleForScripts)
+	// Same ordering reason again, and it matters more here than for any of
+	// the three above: this loop's FIRST pass records which packages are
+	// already complete without firing for any of them (see
+	// watchPackagesForScripts), and a pass over a half-loaded task list
+	// would record a package as finished that is only half-read, then fire
+	// package.done for it the moment the rest of its files appear.
+	a.spawn(a.watchPackagesForScripts)
 	// Same "the list is whole by now" ordering as the three above. It reads
 	// a.tasks once, then spends its time in yt-dlp calls, so it is spawned
 	// rather than run here: a boot must not wait on somebody else's network.
