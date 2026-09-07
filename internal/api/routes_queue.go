@@ -50,6 +50,7 @@ func registerQueue(reg *Registry, a *app.App) {
 			var body struct {
 				Halted   *bool   `json:"halted,omitempty"`
 				StopMark *string `json:"stopMark,omitempty"`
+				Quiet    *bool   `json:"quiet,omitempty"`
 			}
 			if !decodeJSON(w, r, &body) {
 				return
@@ -59,6 +60,13 @@ func registerQueue(reg *Registry, a *app.App) {
 			}
 			if body.StopMark != nil {
 				a.SetStopMark(*body.StopMark)
+			}
+			// Quiet mode rides the same route as the master switch because it is
+			// the same kind of thing: one grip that changes what the queue is
+			// allowed to do right now. GET needs nothing, QueueState already
+			// carries the flag out.
+			if body.Quiet != nil {
+				a.SetQuiet(*body.Quiet)
 			}
 			writeJSON(w, a.Queue())
 		})

@@ -617,7 +617,10 @@ func (a *App) dispatchLocked() {
 		a.setWaitingLocked(a.queue, core.WaitingHalted)
 		return
 	}
-	cfg := a.Settings.Get()
+	// The settings IN FORCE, not the saved ones: quiet mode overrides the slot
+	// counts, and reading the file directly here would move the speed and leave
+	// the slots alone, which is half a turtle button (see app_quiet.go).
+	cfg := a.cfgInForceLocked()
 	a.sortQueueLocked()
 	// settled collects what the dispatcher turns down. A task refused in here is
 	// refused under the lock, long after every caller took its copy, so the reason
@@ -889,7 +892,7 @@ func (a *App) dispatchLocked() {
 			// check above and engine.Job.Collision for the other half of that.
 			go a.Engine.Start(engine.Job{
 				TaskID: id, URL: result.DirectURL, Headers: result.Headers,
-				Conns: conns, Dir: dir, Route: route,
+				Conns: conns, Dir: dir, WorkDir: a.stagedDirFor(t), Route: route,
 				Collision: policy, MaxCollisionAttempts: cfg.CollisionMaxAttempts,
 				// nil for every non-torrent task (core.SelectedTorrentIndices(nil) is
 				// nil), and read by the engine only inside its own torrent.IsURI(j.URL)
@@ -1361,10 +1364,18 @@ func (a *App) onUpdate(id string, u core.Update) {
 			a.stopMark = ""
 			hitStopMark = true
 		}
-		if a.Settings.Get().VerifyChecksums {
-			path := filepath.Join(a.dirFor(t), t.Name)
-			a.spawn(func() { a.verifyTask(id, path) })
-		}
+		// The file is read where it was WRITTEN and leaves the working folder
+		// only once the checksum has had it - see app_deliver.go. Reading it at
+		// the destination would find nothing, because nothing has been delivered
+		// there yet.
+		path := filepath.Join(a.workDirFor(t), t.Name)
+		verify := a.Settings.Get().VerifyChecksums
+		a.spawn(func() {
+			if verify {
+				a.verifyTask(id, path)
+			}
+			a.deliverDownload(id)
+		})
 	}
 	// A backend that says the link is not its business hands the task to the
 	// next one in the chain instead of failing it. This is deliberately not a

@@ -283,6 +283,16 @@ func unpackRoot(dest string, t *core.Task, subfolder bool) string {
 // extractWanted uses to read Task.AutoExtract in front of Settings.Extract. It
 // needs a field on core.Task to travel on, which this wave did not add.
 func (a *App) extractMoveTarget(t *core.Task, cfg settings.Settings) string {
+	// A folder a Packagizer rule named for THIS task beats the instance-wide
+	// one, the same order dirFor uses for the download folder: a rule looked at
+	// this link, the setting applies to everything. Taken verbatim and only if
+	// absolute, because the rules package already expanded it and a relative
+	// path here would name a folder nobody can find afterwards.
+	if t != nil {
+		if own := strings.TrimSpace(t.ExtractDir); filepath.IsAbs(own) {
+			return own
+		}
+	}
 	return a.expandFolder(t, cfg.ExtractMoveTo)
 }
 

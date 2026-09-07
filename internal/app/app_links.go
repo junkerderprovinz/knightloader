@@ -1133,6 +1133,18 @@ func (a *App) packagize(t *core.Task, cand rules.Candidate) {
 		// the first pass deliberately left standing so the user could see them.
 		t.Dir = e.Dir
 	}
+	if e.ExtractDir != "" {
+		// Already expanded by the rules package, exactly like e.Dir above, and
+		// for the same reason left verbatim here.
+		t.ExtractDir = e.ExtractDir
+	}
+	if e.Category != "" {
+		// The drawer, by id. Set even when the category no longer exists: a
+		// rule naming a deleted one is a fact worth keeping visible rather than
+		// a value to silently drop, and settings.CategoryFor answers with the
+		// empty category for an unknown id, so nothing downstream breaks.
+		t.Category = e.Category
+	}
 	if e.Comment != "" {
 		t.Comment = e.Comment
 	}

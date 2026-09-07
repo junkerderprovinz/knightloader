@@ -156,6 +156,13 @@ var migrations = []string{
 	//     after boot, and a task whose row said nothing for those seconds would
 	//     read as "no answer" rather than "not asked yet".
 	`ALTER TABLE tasks ADD COLUMN mode TEXT NOT NULL DEFAULT ''`,
+	// The drawer a link is filed in, and the folder its extraction's content is
+	// moved to. Both are DECISIONS somebody made about this task, not readings
+	// taken from a running transfer, so unlike Speed or StalledSince they have to
+	// survive a restart: a category that evaporated overnight would send the next
+	// morning's downloads to the wrong folder without anything on screen changing.
+	`ALTER TABLE tasks ADD COLUMN category TEXT NOT NULL DEFAULT ''`,
+	`ALTER TABLE tasks ADD COLUMN extract_dir TEXT NOT NULL DEFAULT ''`,
 }
 
 func Open(path string) (*Store, error) {
@@ -224,7 +231,8 @@ const columns = `id,url,name,package,resolver,size,loaded,speed,status,error,cre
 	comment,chunks,auto_extract,matched_rules,
 	finished_at,enabled,skipped,skip_reason,hold,forced,download_password,expected_hash,
 	connection,host,source,mirror_of,resumable,filename,variant,manual_package,
-	reason,origin,changed_at,archive_part,torrent_files,info_hash,trackers,mode`
+	reason,origin,changed_at,archive_part,torrent_files,info_hash,trackers,mode,
+	category,extract_dir`
 
 // placeholders is one ? per column, built from the list itself. Written out by
 // hand it is a row of forty-three question marks that has to be recounted every
@@ -304,7 +312,8 @@ func (s *Store) Save(t *core.Task) error {
 		t.DownloadPassword, t.ExpectedHash, t.Connection, t.Host, t.Source, t.MirrorOf,
 		resumable, t.Filename, t.Variant, t.ManualPackage,
 		string(t.Reason), string(t.Origin), changedAt, t.ArchivePart, torrentFiles,
-		t.InfoHash, trackers, string(t.Mode))
+		t.InfoHash, trackers, string(t.Mode),
+		t.Category, t.ExtractDir)
 	if err != nil {
 		return err
 	}
@@ -343,7 +352,8 @@ func (s *Store) All() ([]*core.Task, error) {
 			&t.DownloadPassword, &t.ExpectedHash, &t.Connection, &t.Host, &t.Source, &t.MirrorOf,
 			&resumable, &t.Filename, &t.Variant, &t.ManualPackage,
 			&reason, &origin, &changedAt, &t.ArchivePart, &torrentFiles,
-			&t.InfoHash, &trackers, &mode); err != nil {
+			&t.InfoHash, &trackers, &mode,
+			&t.Category, &t.ExtractDir); err != nil {
 			return nil, err
 		}
 		t.Status = core.Status(status)
