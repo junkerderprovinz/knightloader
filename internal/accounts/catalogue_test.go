@@ -30,7 +30,7 @@ func TestCatalogueIntegrity(t *testing.T) {
 			t.Errorf("%s: unknown kind %q", svc.ID, svc.Kind)
 		}
 		switch svc.Group {
-		case GroupDebrid, GroupHoster, GroupCaptchaSolver:
+		case GroupDebrid, GroupHoster, GroupCaptchaSolver, GroupRemoteServer:
 		default:
 			t.Errorf("%s: unknown group %q", svc.ID, svc.Group)
 		}

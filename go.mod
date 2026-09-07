@@ -21,7 +21,11 @@ require (
 	rsc.io/qr v0.2.0
 )
 
-require golang.org/x/text v0.41.0
+require (
+	github.com/jlaffaye/ftp v0.2.4
+	github.com/pkg/sftp v1.13.11
+	golang.org/x/text v0.41.0
+)
 
 require (
 	dario.cat/mergo v1.0.1 // indirect
@@ -88,6 +92,7 @@ require (
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/klauspost/pgzip v1.2.6 // indirect
+	github.com/kr/fs v0.1.0 // indirect
 	github.com/matoous/go-nanoid/v2 v2.0.0 // indirect
 	github.com/mattn/go-colorable v0.1.15 // indirect
 	github.com/mattn/go-ieproxy v0.0.12 // indirect
@@ -122,7 +127,6 @@ require (
 	github.com/pion/webrtc/v4 v4.2.2-0.20260109001657-a5962f314db7 // indirect
 	github.com/pjbgf/sha1cd v0.6.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/protolambda/ctxlock v0.1.0 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
 	github.com/quic-go/quic-go v0.61.0 // indirect

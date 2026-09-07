@@ -247,6 +247,36 @@ Pasting works, and so does dropping text onto the collector. Beyond that:
   by default (`KL_PROVISION_JD`), so this normally works with nothing set. With
   no backend at all, a container is recognised and refused with that as the
   reason rather than a vague failure.
+- **Your own server** — see below.
+
+<br>
+
+### Own servers (FTP, SFTP, WebDAV)
+
+A seedbox, a NAS or your own Nextcloud is a source like any other. Paste
+`ftp://`, `ftps://`, `sftp://`, `webdav://` or `webdavs://` and the file is
+staged, named and sized before it starts.
+
+**Credentials live in Accounts, never in the link.** Add an account with the
+service *Own server (FTP, SFTP, WebDAV)* and give it the **hostname** as its
+account name, for example `seedbox.example.net`. That name is what a pasted link
+is looked up by, so a login stored under anything else is never found. A password
+written into a URL is refused rather than quietly stripped, because it would be
+saved to the task list in plain text.
+
+A plain `https://` link is claimed as WebDAV only when an account exists for that
+exact host, so no ordinary download is ever taken over. Public FTP archives need
+no account at all.
+
+A link to a **folder** stages one task per file inside it, subfolders included,
+the way a torrent's file list does. Paused downloads continue where they stopped:
+FTP restarts at an offset with `REST`, SFTP reads at an offset directly, and
+WebDAV uses HTTP byte ranges. A server that cannot do it says so and the download
+fails loudly instead of quietly writing a corrupt file.
+
+The first time an SFTP server is seen, its host key is written to
+`known_hosts` in the data directory and has to match on every connection after
+that, the same rule `ssh` follows once you have answered its prompt.
 
 <br>
 
