@@ -928,6 +928,7 @@ export const sl: Dict = {
   'accounts.editTitle': 'Račun {service}',
   'accounts.enableAccount': 'Omogoči {account}',
   'accounts.hoster.empty': 'Še ni računov hosterjev',
+  'accounts.hoster.multihoster': 'Multihoster',
   'accounts.hoster.title': 'Računi hosterjev',
   'accounts.hoster.hint': 'Tvoj lastni premium račun pri enem samem gostitelju. Podatki za prijavo gredo vgrajenemu JDownloaderju, ki prijavo opravi. Uporabi to za gostitelja, ki ga nobena tvoja storitev debrid ne pokriva. Izklopi vrstico, da prijava ostane shranjena in se ne uporablja več.',
   'accounts.newAccount': 'Dodaj račun',

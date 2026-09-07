@@ -928,6 +928,7 @@ export const et: Dict = {
   'accounts.editTitle': '{service} konto',
   'accounts.enableAccount': 'Luba {account}',
   'accounts.hoster.empty': 'Hosterite kontosid pole veel',
+  'accounts.hoster.multihoster': 'Multihoster',
   'accounts.hoster.title': 'Hosterite kontod',
   'accounts.hoster.hint': 'Sinu enda premium-konto ühes kindlas hostis. Sisselogimisandmed antakse sisseehitatud JDownloaderile, kes selle teeb. Kasuta seda hosti puhul, mida ükski su debridi teenus ei kata. Lülita rida välja, et sisselogimine jääks salvestatuks ja seda enam ei kasutata.',
   'accounts.newAccount': 'Lisa konto',

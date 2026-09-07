@@ -928,6 +928,7 @@ export const fa: Dict = {
   'accounts.editTitle': 'حساب {service}',
   'accounts.enableAccount': 'فعال‌سازی {account}',
   'accounts.hoster.empty': 'هنوز حساب میزبانی وجود ندارد',
+  'accounts.hoster.multihoster': 'چندمیزبان',
   'accounts.hoster.title': 'حساب‌های میزبان',
   'accounts.hoster.hint': 'حساب ویژه‌ی خودت در یک میزبان مشخص. اطلاعات ورود به JDownloader داخلی داده می‌شود و او ورود را انجام می‌دهد. این را برای میزبانی به کار ببر که هیچ‌کدام از سرویس‌های Debrid تو پوشش نمی‌دهند. یک ردیف را خاموش کن تا ورود ذخیره بماند و دیگر استفاده نشود.',
   'accounts.newAccount': 'افزودن حساب',

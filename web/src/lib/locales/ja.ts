@@ -928,6 +928,7 @@ export const ja: Dict = {
   'accounts.editTitle': '{service} アカウント',
   'accounts.enableAccount': '{account} を有効化',
   'accounts.hoster.empty': 'ホスターのアカウントはまだありません',
+  'accounts.hoster.multihoster': 'マルチホスター',
   'accounts.hoster.title': 'ホスターのアカウント',
   'accounts.hoster.hint': '特定のホスター 1 社での自分の有料アカウントです。ログイン情報は内蔵の JDownloader に渡され、実際のログインはそちらが行います。どの Debrid サービスもカバーしないホスターに使ってください。行をオフにすると、ログインは保存されたまま使われなくなります。',
   'accounts.newAccount': 'アカウントを追加',

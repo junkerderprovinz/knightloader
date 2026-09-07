@@ -928,6 +928,7 @@ export const cs: Dict = {
   'accounts.editTitle': 'Účet {service}',
   'accounts.enableAccount': 'Povolit {account}',
   'accounts.hoster.empty': 'Zatím žádné účty hosterů',
+  'accounts.hoster.multihoster': 'Multihoster',
   'accounts.hoster.title': 'Účty hosterů',
   'accounts.hoster.hint': 'Tvůj vlastní prémiový účet u jednoho konkrétního hosteru. Přihlašovací údaje dostane vestavěný JDownloader, který přihlášení provede. Použij to pro hoster, který žádná z tvých debrid služeb nepokrývá. Vypnutím řádku zůstane přihlášení uložené a přestane se používat.',
   'accounts.newAccount': 'Přidat účet',

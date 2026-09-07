@@ -928,6 +928,7 @@ export const vi: Dict = {
   'accounts.editTitle': 'Tài khoản {service}',
   'accounts.enableAccount': 'Bật {account}',
   'accounts.hoster.empty': 'Chưa có tài khoản nhà lưu trữ',
+  'accounts.hoster.multihoster': 'Multihoster',
   'accounts.hoster.title': 'Tài khoản nhà lưu trữ',
   'accounts.hoster.hint': 'Tài khoản premium của riêng bạn tại đúng một hoster. Thông tin đăng nhập được giao cho JDownloader tích hợp, nơi thực hiện việc đăng nhập. Dùng cách này cho hoster mà không dịch vụ debrid nào của bạn bao phủ. Tắt một dòng để giữ đăng nhập đã lưu và ngừng sử dụng nó.',
   'accounts.newAccount': 'Thêm tài khoản',

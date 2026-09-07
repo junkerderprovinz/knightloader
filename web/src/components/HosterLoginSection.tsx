@@ -317,6 +317,15 @@ function HosterLoginDialog({
                     fetched, and the server keeps each one after the first. */}
                 <HosterIcon host={h.id} />
                 <span className="text-sm text-carbon-text">{h.label}</span>
+                {/* Multihosters live in this list because JD is the only way to
+                    use them at all - KnightLoader has no backend of its own for
+                    them, so the Debrid card cannot hold them and removing them
+                    here would make them unreachable. Saying what they are is the
+                    honest middle: the list stays complete and stops looking like
+                    it has debrid services scattered through it by accident. */}
+                {h.multihoster && (
+                  <span className="glim-eyebrow ms-auto shrink-0">{t('accounts.hoster.multihoster')}</span>
+                )}
               </button>
             ))}
           </div>

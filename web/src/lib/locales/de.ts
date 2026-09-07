@@ -929,6 +929,7 @@ export const de: Dict = {
   'accounts.editTitle': '{service}-Konto',
   'accounts.enableAccount': '{account} aktivieren',
   'accounts.hoster.empty': 'Noch keine Hoster-Konten',
+  'accounts.hoster.multihoster': 'Multihoster',
   'accounts.hoster.title': 'Hoster-Konten',
   'accounts.hoster.hint':
     'Dein eigenes Premium-Konto bei genau einem Hoster. Die Anmeldung übernimmt der eingebaute JDownloader. Nimm das für einen Hoster, den keiner deiner Debrid-Dienste abdeckt. Schaltest du eine Zeile aus, bleibt die Anmeldung gespeichert und wird nicht mehr benutzt.',

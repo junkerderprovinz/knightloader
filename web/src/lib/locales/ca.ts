@@ -928,6 +928,7 @@ export const ca: Dict = {
   'accounts.editTitle': 'Compte de {service}',
   'accounts.enableAccount': 'Activa {account}',
   'accounts.hoster.empty': 'Encara no hi ha comptes d\'allotjadors',
+  'accounts.hoster.multihoster': 'Multihost',
   'accounts.hoster.title': 'Comptes d\'allotjadors',
   'accounts.hoster.hint': 'El teu compte premium en un únic allotjador. Les credencials es passen al JDownloader integrat, que fa l’accés. Fes servir això per a un allotjador que cap dels teus serveis debrid cobreix. Desactiva una fila per mantenir l’accés desat i deixar d’utilitzar-lo.',
   'accounts.newAccount': 'Afegeix un compte',

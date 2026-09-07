@@ -928,6 +928,7 @@ export const ro: Dict = {
   'accounts.editTitle': 'Cont {service}',
   'accounts.enableAccount': 'Activează {account}',
   'accounts.hoster.empty': 'Încă nu există conturi de hosteri',
+  'accounts.hoster.multihoster': 'Multihoster',
   'accounts.hoster.title': 'Conturi de hosteri',
   'accounts.hoster.hint': 'Contul tău premium la un singur hoster. Datele de autentificare ajung la JDownloaderul integrat, care face conectarea. Folosește asta pentru un hoster pe care niciun serviciu debrid al tău nu îl acoperă. Dezactivează un rând ca autentificarea să rămână salvată și să nu mai fie folosită.',
   'accounts.newAccount': 'Adaugă un cont',

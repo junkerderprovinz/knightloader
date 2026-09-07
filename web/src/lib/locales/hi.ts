@@ -928,6 +928,7 @@ export const hi: Dict = {
   'accounts.editTitle': '{service} खाता',
   'accounts.enableAccount': '{account} सक्षम करें',
   'accounts.hoster.empty': 'अभी कोई होस्टर खाता नहीं',
+  'accounts.hoster.multihoster': 'मल्टीहोस्टर',
   'accounts.hoster.title': 'होस्टर खाते',
   'accounts.hoster.hint': 'किसी एक होस्टर पर आपका अपना प्रीमियम खाता। लॉगिन अंतर्निहित JDownloader को दिया जाता है, जो असली लॉगिन करता है। इसे उस होस्टर के लिए इस्तेमाल करें जिसे आपकी कोई Debrid सेवा कवर नहीं करती। पंक्ति बंद करें तो लॉगिन सहेजा रहेगा और उपयोग नहीं होगा।',
   'accounts.newAccount': 'खाता जोड़ें',

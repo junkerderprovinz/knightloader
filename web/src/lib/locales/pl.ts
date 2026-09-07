@@ -920,6 +920,7 @@ export const pl: Dict = {
   'accounts.editTitle': 'Konto {service}',
   'accounts.enableAccount': 'Włącz {account}',
   'accounts.hoster.empty': 'Brak kont hosterów',
+  'accounts.hoster.multihoster': 'Multihoster',
   'accounts.hoster.title': 'Konta hosterów',
   'accounts.hoster.hint': 'Twoje własne konto premium u jednego konkretnego hostera. Dane logowania trafiają do wbudowanego JDownloadera, który się loguje. Użyj tego dla hostera, którego nie obsługuje żadna z twoich usług debrid. Wyłącz wiersz, aby logowanie pozostało zapisane i przestało być używane.',
   'accounts.newAccount': 'Dodaj konto',

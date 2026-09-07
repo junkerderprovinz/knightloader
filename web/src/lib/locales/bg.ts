@@ -928,6 +928,7 @@ export const bg: Dict = {
   'accounts.editTitle': 'Акаунт {service}',
   'accounts.enableAccount': 'Активиране на {account}',
   'accounts.hoster.empty': 'Още няма хостър акаунти',
+  'accounts.hoster.multihoster': 'Мултихостър',
   'accounts.hoster.title': 'Хостър акаунти',
   'accounts.hoster.hint': 'Твоят собствен премиум профил при един-единствен хостинг. Данните се подават на вградения JDownloader, който извършва влизането. Използвай това за хостинг, който никоя от твоите debrid услуги не покрива. Изключи реда, за да остане профилът запазен и да не се използва.',
   'accounts.newAccount': 'Добавяне на акаунт',

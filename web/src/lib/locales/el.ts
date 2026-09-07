@@ -928,6 +928,7 @@ export const el: Dict = {
   'accounts.editTitle': 'Λογαριασμός {service}',
   'accounts.enableAccount': 'Ενεργοποίηση {account}',
   'accounts.hoster.empty': 'Δεν υπάρχουν ακόμη λογαριασμοί hoster',
+  'accounts.hoster.multihoster': 'Multihoster',
   'accounts.hoster.title': 'Λογαριασμοί hoster',
   'accounts.hoster.hint': 'Ο δικός σου premium λογαριασμός σε έναν μόνο hoster. Τα στοιχεία δίνονται στον ενσωματωμένο JDownloader, που κάνει τη σύνδεση. Χρησιμοποίησέ το για hoster που δεν καλύπτει καμία από τις debrid υπηρεσίες σου. Απενεργοποίησε μια γραμμή για να μείνει η σύνδεση αποθηκευμένη και να μη χρησιμοποιείται.',
   'accounts.newAccount': 'Προσθήκη λογαριασμού',

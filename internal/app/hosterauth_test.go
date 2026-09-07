@@ -44,3 +44,33 @@ func TestDebridServicesAreFilteredDespiteWWW(t *testing.T) {
 		t.Error("ddownload.com is being filtered out as a debrid service")
 	}
 }
+
+// TestMultihosterListStillMatchesJD guards the one way a hand-kept list fails
+// silently: it stops matching anything and nobody notices, because a missing
+// mark looks exactly like a host that is not a multihoster.
+//
+// It does not assert an exact set. JD's plugin list moves, entries come and go,
+// and a test that pinned all nineteen would fail for the wrong reason on the
+// first change. What it pins is that the list still describes reality: the
+// services it names are spelled the way JD spells them, and the normalisation
+// around it works.
+func TestMultihosterListStillMatchesJD(t *testing.T) {
+	// The exact strings JD's own listPremiumHoster returned on the preview
+	// instance on 2026-09-07, plus two ordinary hosts as controls.
+	fromJD := []string{
+		"mega-debrid.eu", "zevera.com", "put.io", "simply-debrid.com", "deepbrid.com",
+		"ddownload.com", "rapidgator.net",
+	}
+	if got := multihosterCount(fromJD); got != 5 {
+		t.Errorf("%d of the sample marked as multihosters, want 5 - the list has drifted from the names JD uses", got)
+	}
+	if IsMultihoster("ddownload.com") || IsMultihoster("rapidgator.net") {
+		t.Error("an ordinary file host is being marked as a multihoster")
+	}
+	// The normalisation, which is the half that broke for the debrid filter.
+	for _, spelling := range []string{"www.zevera.com", "https://zevera.com/", "ZEVERA.COM"} {
+		if !IsMultihoster(spelling) {
+			t.Errorf("IsMultihoster(%q) is false - serviceKey is not normalising this spelling", spelling)
+		}
+	}
+}

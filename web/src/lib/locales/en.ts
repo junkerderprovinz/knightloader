@@ -1039,6 +1039,7 @@ export const en = {
   'accounts.editTitle': '{service} account',
   'accounts.enableAccount': 'Enable {account}',
   'accounts.hoster.empty': 'No hoster accounts yet',
+  'accounts.hoster.multihoster': 'Multihoster',
   'accounts.hoster.title': 'Hoster accounts',
   'accounts.hoster.hint':
     'Your own premium account at one single hoster. The login is handed to the built-in JDownloader, which performs it. Use this for a hoster none of your debrid services covers. Switch a row off to keep the login stored and stop using it.',

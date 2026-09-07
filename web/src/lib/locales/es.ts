@@ -920,6 +920,7 @@ export const es: Dict = {
   'accounts.editTitle': 'Cuenta de {service}',
   'accounts.enableAccount': 'Activar {account}',
   'accounts.hoster.empty': 'Aún no hay cuentas de hosters',
+  'accounts.hoster.multihoster': 'Multihost',
   'accounts.hoster.title': 'Cuentas de hosters',
   'accounts.hoster.hint': 'Tu propia cuenta premium en un único alojamiento. Las credenciales se entregan al JDownloader integrado, que hace el acceso. Úsalo para un alojamiento que ninguno de tus servicios debrid cubra. Desactiva una fila para conservar el acceso guardado y dejar de usarlo.',
   'accounts.newAccount': 'Añadir cuenta',

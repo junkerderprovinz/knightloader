@@ -928,6 +928,7 @@ export const hr: Dict = {
   'accounts.editTitle': 'Račun {service}',
   'accounts.enableAccount': 'Omogući {account}',
   'accounts.hoster.empty': 'Još nema računa hostera',
+  'accounts.hoster.multihoster': 'Multihoster',
   'accounts.hoster.title': 'Računi hostera',
   'accounts.hoster.hint': 'Tvoj vlastiti premium račun kod jednog jedinog hostera. Podaci za prijavu predaju se ugrađenom JDownloaderu, koji obavlja prijavu. Koristi to za hoster koji nijedna tvoja debrid usluga ne pokriva. Isključi redak da prijava ostane spremljena i da se više ne koristi.',
   'accounts.newAccount': 'Dodaj račun',

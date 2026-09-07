@@ -928,6 +928,7 @@ export const is: Dict = {
   'accounts.editTitle': '{service} reikningur',
   'accounts.enableAccount': 'Virkja {account}',
   'accounts.hoster.empty': 'Engir hýsingarreikningar enn',
+  'accounts.hoster.multihoster': 'Fjölhýsing',
   'accounts.hoster.title': 'Hýsingarreikningar',
   'accounts.hoster.hint': 'Þinn eigin premium-reikningur hjá einum tilteknum hýsingaraðila. Innskráningin er afhent innbyggða JDownloader, sem framkvæmir hana. Notaðu þetta fyrir hýsingaraðila sem engin debrid-þjónustan þín nær yfir. Slökktu á línu til að halda innskráningunni vistaðri og hætta að nota hana.',
   'accounts.newAccount': 'Bæta við reikningi',

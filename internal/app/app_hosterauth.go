@@ -91,6 +91,9 @@ func (a *App) HosterHosts(ctx context.Context) []hosterauth.Host {
 		if skip[serviceKey(h.ID)] {
 			continue
 		}
+		// Marked, never removed - see app_multihoster.go for why these stay in
+		// the picker although they are not ordinary file hosts.
+		h.Multihoster = IsMultihoster(h.ID)
 		out = append(out, h)
 	}
 	return out

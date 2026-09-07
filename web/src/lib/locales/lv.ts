@@ -928,6 +928,7 @@ export const lv: Dict = {
   'accounts.editTitle': '{service} konts',
   'accounts.enableAccount': 'Iespējot {account}',
   'accounts.hoster.empty': 'Vēl nav hosteru kontu',
+  'accounts.hoster.multihoster': 'Multihosteris',
   'accounts.hoster.title': 'Hosteru konti',
   'accounts.hoster.hint': 'Tavs paša premium konts pie viena konkrēta hostera. Pieteikšanās dati tiek nodoti iebūvētajam JDownloader, kas veic pieteikšanos. Izmanto to hosteram, ko nesedz neviens no taviem debrid pakalpojumiem. Izslēdz rindu, lai pieteikšanās paliktu saglabāta un vairs netiktu izmantota.',
   'accounts.newAccount': 'Pievienot kontu',

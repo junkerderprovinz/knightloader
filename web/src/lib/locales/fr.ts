@@ -920,6 +920,7 @@ export const fr: Dict = {
   'accounts.editTitle': 'Compte {service}',
   'accounts.enableAccount': 'Activer {account}',
   'accounts.hoster.empty': 'Aucun compte d\'hébergeur pour l\'instant',
+  'accounts.hoster.multihoster': 'Multihébergeur',
   'accounts.hoster.title': 'Comptes d\'hébergeurs',
   'accounts.hoster.hint': 'Ton propre compte premium chez un seul hébergeur. Les identifiants sont remis au JDownloader intégré, qui effectue la connexion. À utiliser pour un hébergeur qu’aucun de tes services debrid ne couvre. Désactive une ligne pour garder la connexion enregistrée et cesser de l’utiliser.',
   'accounts.newAccount': 'Ajouter un compte',

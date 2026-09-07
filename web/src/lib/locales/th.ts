@@ -928,6 +928,7 @@ export const th: Dict = {
   'accounts.editTitle': 'บัญชี {service}',
   'accounts.enableAccount': 'เปิดใช้งาน {account}',
   'accounts.hoster.empty': 'ยังไม่มีบัญชีโฮสเตอร์',
+  'accounts.hoster.multihoster': 'มัลติโฮสเตอร์',
   'accounts.hoster.title': 'บัญชีโฮสเตอร์',
   'accounts.hoster.hint': 'บัญชีพรีเมียมของคุณเองที่โฮสเตอร์รายเดียว ข้อมูลเข้าสู่ระบบจะถูกส่งให้ JDownloader ที่ฝังมาด้วย ซึ่งเป็นตัวที่เข้าสู่ระบบจริง ใช้สิ่งนี้กับโฮสเตอร์ที่ไม่มีบริการ debrid ของคุณครอบคลุม ปิดแถวไว้เพื่อเก็บข้อมูลเข้าสู่ระบบไว้และหยุดใช้งาน',
   'accounts.newAccount': 'เพิ่มบัญชี',

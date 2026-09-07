@@ -928,6 +928,7 @@ export const ko: Dict = {
   'accounts.editTitle': '{service} 계정',
   'accounts.enableAccount': '{account} 사용',
   'accounts.hoster.empty': '아직 호스터 계정이 없습니다',
+  'accounts.hoster.multihoster': '멀티호스터',
   'accounts.hoster.title': '호스터 계정',
   'accounts.hoster.hint': '특정 호스터 한 곳에서 쓰는 본인의 프리미엄 계정입니다. 로그인 정보는 내장 JDownloader에 전달되어 실제 로그인을 수행합니다. 보유한 Debrid 서비스가 다루지 않는 호스터에 사용하세요. 행을 끄면 로그인은 저장된 채로 남고 더는 쓰이지 않습니다.',
   'accounts.newAccount': '계정 추가',

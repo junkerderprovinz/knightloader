@@ -930,6 +930,7 @@ export const no: Dict = {
   'accounts.editTitle': '{service}-konto',
   'accounts.enableAccount': 'Aktiver {account}',
   'accounts.hoster.empty': 'Ingen hosterkontoer ennå',
+  'accounts.hoster.multihoster': 'Multihoster',
   'accounts.hoster.title': 'Hosterkontoer',
   'accounts.hoster.hint': 'Din egen premiumkonto hos én enkelt vert. Innloggingen overleveres til den innebygde JDownloader, som utfører den. Bruk dette for en vert ingen av debrid-tjenestene dine dekker. Slå av en rad for å beholde innloggingen lagret og slutte å bruke den.',
   'accounts.newAccount': 'Legg til konto',

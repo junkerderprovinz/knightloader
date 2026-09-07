@@ -928,6 +928,7 @@ export const da: Dict = {
   'accounts.editTitle': '{service}-konto',
   'accounts.enableAccount': 'Aktivér {account}',
   'accounts.hoster.empty': 'Ingen hosterkonti endnu',
+  'accounts.hoster.multihoster': 'Multihoster',
   'accounts.hoster.title': 'Hosterkonti',
   'accounts.hoster.hint': 'Din egen premiumkonto hos én enkelt hoster. Loginnet gives videre til den indbyggede JDownloader, som udfører det. Brug det til en hoster, som ingen af dine debrid-tjenester dækker. Slå en række fra for at beholde loginnet gemt og holde op med at bruge det.',
   'accounts.newAccount': 'Tilføj konto',
