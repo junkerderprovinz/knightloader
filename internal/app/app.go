@@ -334,6 +334,10 @@ type App struct {
 	// was computed before a hard stop from one that was computed after it - see
 	// applySchedule's own comment for the race, and the test beside it.
 	scheduleBaseHalt bool
+	// quiet is the second set of limits and the switch that puts them in force.
+	// One field rather than three, for the reason iconCache below is embedded:
+	// the fields stay in the file that owns them, app_quiet.go.
+	quiet quietState
 	// dupes answers "is this link already in the list". It is not safe for
 	// concurrent use, so every call to it happens under mu.
 	dupes *dedupe.Set
