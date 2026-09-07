@@ -106,6 +106,13 @@ func TestOnlyTheseRoutesAreOpen(t *testing.T) {
 		"POST /api/auth/logout": "logging out of a session the server no longer honours must still work",
 		"GET /api/containers/relay/{token}": "the fetch comes from the JD backend on another host, " +
 			"with no session; the unguessable single-use token in the path is the credential",
+		"GET /api/sabnzbd/api": "Sonarr and Radarr send their credential as ?apikey=, which the session " +
+			"guard knows nothing about, so a guarded route would answer 401 to every call. The route " +
+			"checks that key against this instance's own API tokens itself, on every request and on " +
+			"every instance including one with no password, and answers 404 while the downloadclient " +
+			"module is switched off - so an open route is not an open door",
+		"POST /api/sabnzbd/api": "the same door for mode=addfile, which is the one call the two apps " +
+			"make as a POST; same credential, same switch, same reasoning as the GET above",
 		"GET /relay/connect": "the relay socket, when this instance is serving one; every instance " +
 			"dialling in is a different machine with no session here, and the relay key in the first " +
 			"frame is the only credential there is. relay.Server.Admit lets in exactly the key this " +

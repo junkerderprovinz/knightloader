@@ -56,6 +56,18 @@ submission and for a fixed download.
   and a channel with ten thousand uploads would otherwise be fifty thousand rows;
   a longer list is cut and says so, with both numbers, in the skipped-links
   notice.
+- **Sonarr and Radarr can use KnightLoader as their download client.** It
+  answers at `/api/sabnzbd/api` in SABnzbd's own shape, because that is the one
+  download-client protocol of the four the *arr apps ship whose credential is an
+  API key rather than a session login, and it is six calls rather than fifteen.
+  The key is one of this instance's own API tokens; set the client's URL Base to
+  `api/sabnzbd`. **Off by default**, and switched on under Settings > Access: an
+  interface that can create downloads and delete files does not stand open
+  because a default said so, and it refuses every call without a token even on
+  an instance with no password. What the *arr apps upload is scanned for links
+  the way a paste is, so a DDL indexer works; a real `.nzb` is refused with that
+  reason rather than accepted into a download that could never start, because
+  there is no Usenet backend here to fetch articles with.
 - **A grip to drag the priority order by**, and the list moves under the pointer
   while you drag rather than jumping when you let go. The two arrow buttons are
   gone; the grip is a real button, so the arrow keys still move a row for anyone
