@@ -158,6 +158,19 @@ export interface Task {
   /** A package the user chose by hand; automatic re-packaging leaves it alone. */
   manualPackage?: boolean;
   reason?: Reason;
+  /**
+   * Why a QUEUED task has not started - the counterpart to `reason`, which says
+   * why a stopped one failed.
+   *
+   * Absent means nothing is holding it back: it is next, or it is not queued at
+   * all. The server recomputes it on every dispatch pass, so a limit somebody
+   * just raised stops being the answer by itself; nothing here has to clear it.
+   *
+   * Typed as a union but read defensively at the call site: a newer server may
+   * send a value this build has never heard of, and a row that prints a raw
+   * enum is worse than one that falls back.
+   */
+  waiting?: 'slot' | 'host' | 'forced' | 'disabled' | 'hold' | 'captcha' | 'account' | 'halted';
   origin?: Origin;
   /** When this task last changed. Zero-timestamp caveat as for finishedAt. */
   changedAt?: string;

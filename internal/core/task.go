@@ -99,6 +99,54 @@ const (
 	ReasonCancelled Reason = "cancelled"
 )
 
+// Waiting is why a queued task is not running, as a value rather than as
+// silence.
+//
+// The dispatcher already knows the answer every time it puts a task back: the
+// slot count is full, this host is at its own ceiling, the account behind the
+// only backend that claims the link is benched, the queue is halted. It knew and
+// threw the answer away, so a list of ten queued rows all said "Wartet" and the
+// only way to find out which of four completely different situations each one
+// was in was to reason about the settings page.
+//
+// It is not a Reason: a Reason says why something FAILED and belongs to a task
+// that has stopped. This says why one that is perfectly healthy has not started,
+// which is a different sentence and a different colour.
+//
+// Empty means "nothing is holding it back" - it is next, or it is not queued at
+// all. Every value here is set by dispatchLocked and by nothing else, which is
+// what keeps it from drifting: it is recomputed from scratch on every pass, so a
+// reason that stops applying disappears on its own rather than needing to be
+// cleared by whoever fixed it.
+type Waiting string
+
+const (
+	// WaitingNone is a task nothing is holding back.
+	WaitingNone Waiting = ""
+	// WaitingSlot is the global concurrency limit being full.
+	WaitingSlot Waiting = "slot"
+	// WaitingHost is this host's own limit being full while others are free.
+	WaitingHost Waiting = "host"
+	// WaitingForced is the separate, smaller pool for forced downloads being
+	// full - a different ceiling from WaitingSlot and worth saying apart,
+	// because raising MaxConcurrent does not move it.
+	WaitingForced Waiting = "forced"
+	// WaitingDisabled is the task's own switch being off.
+	WaitingDisabled Waiting = "disabled"
+	// WaitingHold is the task being parked by hand.
+	WaitingHold Waiting = "hold"
+	// WaitingCaptcha is a challenge waiting for a human.
+	WaitingCaptcha Waiting = "captcha"
+	// WaitingAccount is every backend that claims this link having a benched,
+	// invalid or expired account behind it. The link is fine and so is the app;
+	// the credential is not.
+	WaitingAccount Waiting = "account"
+	// WaitingHalted is the queue being stopped, by the button or by a timetable
+	// window. Every queued task carries it at once, which is the point: a list
+	// where nothing moves should say so on the rows, not only in the head card.
+	WaitingHalted Waiting = "halted"
+)
+
 // Origin is the intake path a link arrived by — the paste box, the watch folder,
 // Click'n'Load, a container upload. It exists so a rule can be written about it
 // and so the list can say where something came from; nothing about a download
@@ -425,6 +473,9 @@ type Task struct {
 	// Reason is the typed cause of the current failure; Error is the sentence
 	// beside it.
 	Reason Reason `json:"reason,omitempty"`
+	// Waiting is why a queued task has not started - see the type. Recomputed
+	// by every dispatch pass, never persisted as a decision.
+	Waiting Waiting `json:"waiting,omitempty"`
 	// Note is the backend's own word for what is happening right now: "Captcha
 	// recognition", "Waiting for reconnect", "Skipped - Captcha is required".
 	// A live detail, not a failure - see core.Update.Note for why it is separate

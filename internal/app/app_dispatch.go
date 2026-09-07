@@ -158,6 +158,44 @@ func (a *App) ResolverPriority(host string) []resolver.Info {
 	return out
 }
 
+// setWaitingLocked writes each queued task's reason for not running and clears
+// it everywhere else in the given set.
+//
+// `only` is the blanket answer (the halted case, where every queued task has the
+// same one); `per` is the per-task map the dispatch loop fills in. Passing both
+// is how one function serves the two callers without either of them having to
+// build a full map.
+//
+// It broadcasts only what CHANGED. A dispatch pass runs on nearly every event in
+// the app, and a queue of two hundred waiting downloads would otherwise put two
+// hundred identical task messages on every open browser several times a second.
+//
+// Caller holds a.mu.
+func (a *App) setWaitingLocked(ids []string, only core.Waiting, per ...map[string]core.Waiting) {
+	var changed []core.Task
+	for _, id := range ids {
+		t := a.tasks[id]
+		if t == nil {
+			continue
+		}
+		want := only
+		for _, m := range per {
+			if w, ok := m[id]; ok {
+				want = w
+			}
+		}
+		if t.Waiting == want {
+			continue
+		}
+		t.Waiting = want
+		changed = append(changed, *t)
+	}
+	if len(changed) > 0 {
+		// Off this goroutine for the same reason settled is - see there.
+		a.spawn(func() { a.publishTasks(changed) })
+	}
+}
+
 // hostCapFor is the per-host connection ceiling the resolver about to carry
 // this task has an opinion about, or 0 for one that does not - see
 // resolver.HostCapper. It is read here, once, at the exact point connsFor's
@@ -315,6 +353,11 @@ func (a *App) dispatchLocked() {
 	// challenge raised while it was halted.
 	a.ensureCaptchaPoller()
 	if a.halted {
+		// Every queued row says why nothing is moving, not only the head card.
+		// A stopped queue and a full one look identical on a list of rows that
+		// all say "waiting", and those are the two situations somebody opening
+		// this page is trying to tell apart.
+		a.setWaitingLocked(a.queue, core.WaitingHalted)
 		return
 	}
 	cfg := a.Settings.Get()
@@ -327,6 +370,10 @@ func (a *App) dispatchLocked() {
 	// is the silent disappearance the staging record exists to prevent, moved one
 	// button along.
 	var settled []core.Task
+	// Why each task that does NOT start is not starting, filled in as the loop
+	// turns them down and applied in one pass at the end - see setWaitingLocked
+	// for why it is applied rather than written as it goes.
+	waiting := map[string]core.Waiting{}
 	perHost := map[string]int{}
 	// Forced tasks are counted apart because they are about to be let past both
 	// limits, so counting them inside the ordinary total would have one forced
@@ -346,6 +393,12 @@ func (a *App) dispatchLocked() {
 		perHost[hostOf(t.URL)]++
 	}
 	var rest []string
+	// The queue as it stood when this pass began. Used at the end to give a
+	// reason to what is still waiting AND to clear it from what just got a slot:
+	// a dispatched task leaves `rest`, so applying the reasons to `rest` alone
+	// left last pass's answer sitting on a row that is now running. Found by the
+	// test, not by reading.
+	before := append([]string(nil), a.queue...)
 	for _, id := range a.queue {
 		t := a.tasks[id]
 		if t == nil {
@@ -368,6 +421,14 @@ func (a *App) dispatchLocked() {
 		// still mid-captcha, which is exactly the kind of duplicate submission
 		// Hold's own check exists to prevent for a link the user parked on purpose.
 		if !t.Enabled || t.Hold || a.captchaWaitingLocked(id) {
+			switch {
+			case !t.Enabled:
+				waiting[id] = core.WaitingDisabled
+			case t.Hold:
+				waiting[id] = core.WaitingHold
+			default:
+				waiting[id] = core.WaitingCaptcha
+			}
 			rest = append(rest, id)
 			continue
 		}
@@ -387,15 +448,21 @@ func (a *App) dispatchLocked() {
 		// not what makes this understandable.
 		if t.Forced {
 			if forcedActive >= maxForcedDownloads {
+				waiting[id] = core.WaitingForced
 				rest = append(rest, id)
 				continue
 			}
 		} else {
 			if normalActive >= cfg.MaxConcurrent {
+				waiting[id] = core.WaitingSlot
 				rest = append(rest, id)
 				continue
 			}
 			if perHost[h] >= cfg.MaxPerHost {
+				// Said apart from WaitingSlot because the fix is different:
+				// this one frees up when THIS host's transfers finish, and
+				// raising MaxConcurrent does nothing for it.
+				waiting[id] = core.WaitingHost
 				rest = append(rest, id)
 				continue
 			}
@@ -433,6 +500,7 @@ func (a *App) dispatchLocked() {
 		res := a.resolverForTaskLocked(t)
 		if res == nil {
 			if a.hasUnroutableMatchLocked(t.URL) {
+				waiting[id] = core.WaitingAccount
 				// Something DOES claim this link - it is just benched right
 				// now (app_health.go). Hold it exactly where it is instead
 				// of settling it as unsupported, which would be a lie about
@@ -539,6 +607,12 @@ func (a *App) dispatchLocked() {
 		}
 	}
 	a.queue = rest
+	// Applied in one pass, at the end, over everything that was queued when the
+	// pass began. Anything the loop did not name is cleared, which covers both
+	// the task that just got a slot and the one whose limit was raised - and it
+	// is what makes the value self-maintaining: nobody has to remember to erase
+	// a reason that has stopped applying.
+	a.setWaitingLocked(before, core.WaitingNone, waiting)
 	if len(settled) > 0 {
 		// Off this goroutine, because the caller still holds mu and the store write
 		// must not happen under it. A caller that snapshots after dispatching

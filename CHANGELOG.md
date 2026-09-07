@@ -51,6 +51,13 @@ submission and for a fixed download.
   the rail with a highlight running along its edge, and letting go swings it,
   with a wave that passes down the entries below. A short click still goes home.
   It follows the motion setting and falls back to a glint under reduced motion.
+- **A queued download says why it is not running.** The dispatcher always knew:
+  the slot count is full, this host is at its own ceiling, the account behind
+  the only backend that claims the link is benched, the queue is stopped. It
+  threw the answer away, so ten queued rows all read "waiting" and telling four
+  completely different situations apart meant reasoning about the settings page.
+  The reason is recomputed on every pass, so one that stops applying disappears
+  by itself.
 - **Multihosters are marked as such in the hoster picker.** Nineteen of the
   services JDownloader knows unlock other hosts rather than hosting files, and
   KnightLoader has no backend of its own for any of them, so JD is the only way
