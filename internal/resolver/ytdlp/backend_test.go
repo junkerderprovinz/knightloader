@@ -33,6 +33,13 @@ import (
 const probeHelperEnv = "KL_YTDLP_PROBE_HELPER"
 
 func TestMain(m *testing.M) {
+	// run_test.go's own helper gets first refusal, because a run() test needs
+	// this binary to stand in for TWO programs at once (yt-dlp and ffprobe)
+	// and therefore cannot share probeHelperEnv's one-mode-per-process
+	// switch - see runHelperMain for how it tells the two callers apart.
+	if mode := os.Getenv(runHelperEnv); mode != "" {
+		runHelperMain(mode)
+	}
 	switch os.Getenv(probeHelperEnv) {
 	case "":
 		os.Exit(m.Run())
@@ -56,6 +63,36 @@ func TestMain(m *testing.M) {
 			`{"format_id":"140","ext":"m4a","vcodec":"none","acodec":"mp4a.40.2","filesize":3145728},` +
 			`{"format_id":"18","ext":"mp4","vcodec":"avc1.42001E","acodec":"mp4a.40.2","height":360,"filesize":8388608}` +
 			`]}`)
+		os.Exit(0)
+	case "languages":
+		// A source with both kinds of subtitle track and with YouTube's own
+		// auto-dubbing: one hand-written German track, automatic captions in
+		// three languages (English among them, which the manual list does NOT
+		// have - the exact case a default of "en" downloads nothing for), and
+		// three audio formats whose language_preference says which one was
+		// actually spoken.
+		fmt.Println(`{"title":"Mehrsprachig","duration":2718.041,` +
+			`"subtitles":{"de":[{"ext":"vtt"}],"fr":[{"ext":"vtt"}]},` +
+			`"automatic_captions":{"en":[{"ext":"vtt"}],"de":[{"ext":"vtt"}],"es":[{"ext":"vtt"}]},` +
+			`"formats":[` +
+			`{"format_id":"140-0","ext":"m4a","vcodec":"none","acodec":"mp4a.40.2","language":"de","language_preference":10},` +
+			`{"format_id":"140-1","ext":"m4a","vcodec":"none","acodec":"mp4a.40.2","language":"en","language_preference":-1},` +
+			`{"format_id":"140-2","ext":"m4a","vcodec":"none","acodec":"mp4a.40.2","language":"en","language_preference":-1},` +
+			`{"format_id":"137","ext":"mp4","vcodec":"avc1.640028","acodec":"none","height":1080}` +
+			`]}`)
+		os.Exit(0)
+	case "live":
+		// A stream in progress. live_status carries it and the older boolean
+		// does not, which is the combination ProbeTitle has to read as live -
+		// and duration is absent, because a stream that has not ended has no
+		// length to announce.
+		fmt.Println(`{"title":"Weekend Stream","live_status":"is_live","formats":[]}`)
+		os.Exit(0)
+	case "waslive":
+		// The other half of that pair: a finished stream. It must NOT read as
+		// live - it is an ordinary recording with an ordinary length, and the
+		// recording caps have no business on it.
+		fmt.Println(`{"title":"Yesterday's Stream","was_live":true,"live_status":"was_live","duration":7200,"formats":[]}`)
 		os.Exit(0)
 	case "playlist":
 		// Stands in for the --flat-playlist gap ProbeTitle's own doc comment

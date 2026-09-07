@@ -16,6 +16,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
@@ -44,6 +45,30 @@ type Backend struct {
 	// value that reproduces this backend's pre-Options behaviour, matching
 	// RateLimit's own "nil means no opinion" contract.
 	Options func(taskID string) Options
+
+	// Cookies, when set, answers the stored cookies.txt text for a URL's
+	// host, or "" when nothing is stored for it - CookieStore.Text
+	// (cookies.go) is the implementation this expects, and that file's
+	// comment is where the handling rules live.
+	//
+	// A hook rather than a field on Options, and that is a security
+	// decision, not a style one: Options is a settings struct. It is
+	// marshalled into settings.json, returned by GET /api/settings, and
+	// serialised whole into the diagnostics bundle a person attaches to a
+	// public bug report. A live session must not travel in any of those, so
+	// it never enters the type that goes to all three - it is fetched here,
+	// at the moment of the spawn, written to a 0600 file and deleted again.
+	//
+	// Consulted only when this task's own Options.Cookies is on, so a
+	// wired-up store still sends nothing until somebody asks for it.
+	Cookies func(rawurl string) string
+
+	// FFprobe is the binary Options.Measure reads a finished file with.
+	// Empty means "ffprobe" on PATH, which is what the container image has -
+	// the Dockerfile installs ffmpeg for yt-dlp's own muxing and ffprobe
+	// ships in that same package. Settable so a test can point it at
+	// something that is not a real ffprobe.
+	FFprobe string
 
 	mu     sync.Mutex
 	cancel map[string]context.CancelFunc
@@ -107,7 +132,31 @@ func (b *Backend) run(taskID, url string) {
 	if b.Options != nil {
 		opts = b.Options(taskID)
 	}
+	opts = opts.Sanitize()
 	args := buildArgs(dir, opts)
+	// The cookie file exists for exactly as long as yt-dlp does. Written
+	// before the spawn because --cookies is read at start-up, removed by the
+	// deferred cleanup on every exit path from here on, including the ones
+	// that return before Wait - a live session left lying in the temp
+	// directory because a download failed early is the one outcome this whole
+	// feature must not have.
+	if opts.Cookies && b.Cookies != nil {
+		if text := b.Cookies(url); text != "" {
+			path, cleanup, err := writeCookieFile("", text)
+			defer cleanup()
+			if err != nil {
+				// The message carries the failure and nothing about the jar -
+				// see cookies.go's file comment on where an Err string ends
+				// up. Fatal rather than carrying on without the cookies:
+				// this task was configured to arrive logged in, and running
+				// it anonymously is how an account gets a site's rate limiter
+				// pointed at the address instead.
+				b.onUpdate(taskID, core.Update{Status: core.StatusError, Err: "yt-dlp: " + err.Error()})
+				return
+			}
+			args = append(args, "--cookies", path)
+		}
+	}
 	if b.RateLimit != nil {
 		if lim := b.RateLimit(); lim > 0 {
 			// --limit-rate is per fragment connection, and buildArgs now asks
@@ -127,6 +176,25 @@ func (b *Backend) run(taskID, url string) {
 	}
 	cmd := exec.CommandContext(ctx, b.bin, append(args, url)...)
 	cmd.Env = append(os.Environ(), "PYTHONIOENCODING=utf-8")
+	if opts.Live.Enabled {
+		// A live recording is the one download where HOW the process is
+		// stopped decides whether the file plays. exec.CommandContext kills
+		// outright by default, and a killed yt-dlp leaves the fragments it
+		// was writing unmerged and unfinalised - a recording somebody set a
+		// sixty-minute limit on would end as an unplayable .part, which is
+		// the limit destroying exactly what it was set to preserve. An
+		// interrupt is what yt-dlp handles: it stops fetching, finishes the
+		// fragment in hand and runs its post-processors.
+		//
+		// os.Interrupt is not implemented on Windows, where Signal answers an
+		// error; WaitDelay is what covers that, and any yt-dlp that ignores
+		// the interrupt on either platform - after it, the process is killed
+		// the old way. The container this ships in is Linux, so the graceful
+		// path is the one that runs in production and the fallback is for the
+		// desktop build.
+		cmd.Cancel = func() error { return cmd.Process.Signal(os.Interrupt) }
+		cmd.WaitDelay = liveStopGrace
+	}
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		b.onUpdate(taskID, core.Update{Status: core.StatusError, Err: err.Error()})
@@ -140,41 +208,67 @@ func (b *Backend) run(taskID, url string) {
 	}
 	b.onUpdate(taskID, core.Update{Status: core.StatusRunning})
 
+	// What the run leaves behind for the finish below to act on: the file
+	// yt-dlp says it actually produced, how many subtitle files it wrote, and
+	// whether a live limit ended the recording rather than the stream doing
+	// so on its own.
+	var (
+		final     string
+		subFiles  int
+		guard     = newLiveGuard(opts.Live)
+		stoppedBy string
+	)
 	sc := bufio.NewScanner(stdout)
 	sc.Buffer(make([]byte, 0, 64*1024), 4*1024*1024) // progress JSON lines can be long
 	for sc.Scan() {
 		line := sc.Text()
-		switch {
-		case strings.HasPrefix(line, "KLP:"):
-			var p struct {
-				Status     string  `json:"status"`
-				Downloaded int64   `json:"downloaded_bytes"`
-				Total      int64   `json:"total_bytes"`
-				TotalEst   float64 `json:"total_bytes_estimate"`
-				Speed      float64 `json:"speed"`
-				Filename   string  `json:"filename"`
-			}
-			if json.Unmarshal([]byte(line[4:]), &p) != nil {
-				continue
-			}
-			size := p.Total
-			if size == 0 {
-				size = int64(p.TotalEst)
-			}
-			u := core.Update{Status: core.StatusRunning, Loaded: p.Downloaded, Size: size, Speed: int64(p.Speed)}
+		if p, ok := parseProgress(line); ok {
+			u := core.Update{Status: core.StatusRunning, Loaded: p.Downloaded, Size: p.Total, Speed: p.Speed}
 			if p.Filename != "" {
 				u.Name = filepath.Base(p.Filename)
 			}
+			if opts.Live.Enabled && p.Live {
+				guard.begin(time.Now())
+				// A recording has no total, so the bar behind it is drawn
+				// from nothing. The note is what the row shows instead:
+				// how long this has been running and how much has landed,
+				// both of which are facts (see liveGuard.note).
+				u.Note = guard.note(p.Downloaded)
+				if stoppedBy == "" {
+					if reason := guard.exceeded(p.Downloaded); reason != "" {
+						stoppedBy = reason
+						// Stops the process the graceful way set up above.
+						// The loop keeps reading until the pipe closes, so
+						// yt-dlp's own post-processing still reports the file
+						// it finalised.
+						cancel()
+					}
+				}
+			}
 			b.onUpdate(taskID, u)
-		case strings.Contains(line, "[download] Destination:"):
-			name := strings.TrimSpace(line[strings.Index(line, "Destination:")+len("Destination:"):])
+			continue
+		}
+		if name, ok := finishedFile(line); ok {
+			final = name
 			b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Name: filepath.Base(name)})
+			continue
+		}
+		if wroteSubtitle(line) {
+			subFiles++
 		}
 	}
 	scanErr := sc.Err()
 	err = cmd.Wait()
-	if ctx.Err() != nil {
+	if ctx.Err() != nil && stoppedBy == "" {
 		return // cancelled by Pause/Remove
+	}
+	if stoppedBy != "" {
+		// A recording that hit its own limit is finished, not failed: the
+		// bytes up to the cap are the file that was asked for, and the reason
+		// it ends where it does is on the task rather than left to be guessed
+		// at from the runtime.
+		b.onUpdate(taskID, b.finish(opts, final, subFiles, stoppedBy))
+		return
 	}
 	if err == nil && scanErr != nil {
 		err = scanErr
@@ -188,13 +282,181 @@ func (b *Backend) run(taskID, url string) {
 			Status: core.StatusError,
 			Err:    "yt-dlp: " + msg,
 			// yt-dlp saying it has no extractor for this link is not a download
-			// failure — it means the link belongs to someone else. Saying so
+			// failure - it means the link belongs to someone else. Saying so
 			// lets a plain file whose URL carries no extension still be fetched.
 			Unsupported: notMine(msg),
 		})
 		return
 	}
-	b.onUpdate(taskID, core.Update{Status: core.StatusDone, Speed: 0})
+	b.onUpdate(taskID, b.finish(opts, final, subFiles, ""))
+}
+
+// liveStopGrace is how long a live recording gets to shut itself down after
+// the interrupt before the process is killed the old way. Long enough for
+// yt-dlp to close the fragment it is on and let ffmpeg finalise the container
+// it has been writing (both are local work on a file already on disk); short
+// enough that a yt-dlp which ignored the signal entirely does not hold a
+// finished task open for minutes.
+const liveStopGrace = 30 * time.Second
+
+// finish is everything that happens after yt-dlp has exited successfully, and
+// it is one function rather than three because all of it acts on the SAME
+// answer: the path yt-dlp said it produced. Nothing here can turn a
+// successful download into a failure except the two cases that are genuinely
+// failures dressed as successes - a subtitle row that wrote no subtitle, and
+// (when asked for) a file measurably shorter than the source announced.
+//
+// stoppedBy, when set, is a live limit's own sentence; it survives whatever
+// else this adds, because "why does this recording end here" is the first
+// question the row has to answer.
+//
+// It deliberately does NOT take run()'s own context. That context is already
+// cancelled on the one path that reaches here with stoppedBy set - the live
+// guard cancels it to stop the recording - and handing it to ffprobe would
+// mean the measurement silently never ran for exactly the downloads a cap was
+// put on. Everything here is local work on a file already written, and the
+// task has already survived; a pause or a remove returns above this instead.
+func (b *Backend) finish(o Options, final string, subFiles int, stoppedBy string) core.Update {
+	u := core.Update{Status: core.StatusDone, Speed: 0, Note: stoppedBy}
+	// The silent-empty-subtitle-task check, and it is deliberately not
+	// conditional on which languages were asked for: --no-warnings means the
+	// one process that knew the language was missing said so on a channel
+	// this backend mutes, so counting what it WROTE is the only evidence
+	// left here (see Options.SubtitleStrict).
+	if o.SubtitleStrict && o.Variant == VariantSubtitle && subFiles == 0 {
+		langs := o.SubtitleLangs
+		if langs == "" {
+			langs = DefaultSubtitleLangs
+		}
+		u.Status = core.StatusError
+		u.Err = "yt-dlp: no subtitles were written for " + langs
+		return u
+	}
+	if final == "" {
+		// Nothing named a finished file, so there is nothing to write an NFO
+		// beside or measure. That is the normal case for the thumbnail,
+		// subtitle and description rows, which produce files yt-dlp announces
+		// with different lines entirely, and it must stay silent rather than
+		// become a warning on three rows out of five.
+		return u
+	}
+	info, haveInfo := infoDict{}, false
+	if needsInfoJSON(o) {
+		path := infoJSONPath(final)
+		info, haveInfo = readInfoJSON(path)
+		if o.Embed.NFO && haveInfo {
+			// A failed write is not worth failing the download over - the
+			// media file is complete and correct, and the sidecar can be
+			// produced again by re-running the task.
+			_ = writeNFO(nfoPath(final), info)
+		}
+		// Removed either way: this backend asked for the json as scaffolding
+		// for the two features above, and leaving one .info.json per download
+		// behind would be a filesystem change nobody switched on.
+		_ = os.Remove(path)
+	}
+	if o.Measure.Enabled {
+		mctx, cancel := context.WithTimeout(context.Background(), measureTimeout)
+		defer cancel()
+		bin := b.FFprobe
+		if bin == "" {
+			bin = "ffprobe"
+		}
+		if m, err := probeMedia(mctx, bin, final); err == nil {
+			u.Note = joinNote(u.Note, m.Summary())
+			if haveInfo {
+				if pct, ok := gotPercent(info.Duration, m.Duration); ok && pct < o.Measure.ShortPercent {
+					warn := shortWarning(info.Duration, m.Duration)
+					if o.Measure.FailOnShort {
+						u.Status = core.StatusError
+						u.Err = "yt-dlp: " + warn
+						return u
+					}
+					// Loud, but still done: the bytes are real and often
+					// still worth having, and a person who would rather the
+					// row went red has Measure.FailOnShort for that.
+					u.Note = joinNote(warn, u.Note)
+				}
+			}
+		}
+		// A failed ffprobe says nothing at all. It means this build has no
+		// ffprobe, or the file is on a mount that went away - neither is a
+		// statement about whether the download worked, and putting "could not
+		// measure" on every finished task in an install without ffmpeg would
+		// be a permanent false alarm.
+	}
+	return u
+}
+
+// joinNote puts two sentences on one line, dropping whichever is empty. The
+// note column is narrow (see columns.tsx), so the order matters: a warning
+// goes first because a truncated line has to still carry the warning.
+func joinNote(first, second string) string {
+	switch {
+	case first == "":
+		return second
+	case second == "":
+		return first
+	}
+	return first + ", " + second
+}
+
+// needsInfoJSON reports whether this task has to ask yt-dlp for
+// --write-info-json. Two features read it: the NFO is built from it, and the
+// short-file check needs the duration the SOURCE announced, which exists
+// nowhere else by the time a download has finished.
+func needsInfoJSON(o Options) bool { return o.Embed.NFO || o.Measure.Enabled }
+
+// infoJSONPath is where yt-dlp put the info json for a finished file.
+//
+// yt-dlp builds it from the same output template with the extension replaced,
+// so "…/Some Title.mkv" is written beside "…/Some Title.info.json" - which is
+// why this replaces the extension rather than appending to the name.
+func infoJSONPath(final string) string {
+	return strings.TrimSuffix(final, filepath.Ext(final)) + ".info.json"
+}
+
+// nfoPath is the sidecar's own name, by the same rule: Jellyfin, Kodi and
+// Plex all look for "<the media file's name>.nfo" next to the file.
+func nfoPath(final string) string {
+	return strings.TrimSuffix(final, filepath.Ext(final)) + ".nfo"
+}
+
+// finishedFile picks the path of the file yt-dlp actually produced out of its
+// own stdout chatter, and the caller keeps the LAST one: these three lines
+// arrive in pipeline order, so a merged video's "[download] Destination:"
+// lines for the two half-streams are followed by the Merger's line naming the
+// file that survives them, and an audio extraction's by the ExtractAudio one.
+//
+// Read off stdout rather than asked for with --print, and that is not a
+// preference: --print implies --quiet, which would take the progress lines
+// this backend's entire download display is built on with it.
+func finishedFile(line string) (string, bool) {
+	if i := strings.Index(line, "[Merger] Merging formats into \""); i >= 0 {
+		rest := line[i+len("[Merger] Merging formats into \""):]
+		if j := strings.LastIndex(rest, "\""); j > 0 {
+			return rest[:j], true
+		}
+		return "", false
+	}
+	for _, marker := range []string{"[download] Destination:", "[ExtractAudio] Destination:"} {
+		if i := strings.Index(line, marker); i >= 0 {
+			name := strings.TrimSpace(line[i+len(marker):])
+			if name != "" {
+				return name, true
+			}
+		}
+	}
+	return "", false
+}
+
+// wroteSubtitle recognises yt-dlp announcing a subtitle file it has written -
+// the evidence Options.SubtitleStrict counts. It matches on the tail of the
+// sentence rather than the whole of it because yt-dlp says "Writing video
+// subtitles to:" for a manual track and prefixes the same line differently
+// for automatic captions, and both are a subtitle file landing on disk.
+func wroteSubtitle(line string) bool {
+	return strings.Contains(line, "subtitles to:")
 }
 
 // FormatEntry is one entry from yt-dlp's own "formats" array (-j/
@@ -222,6 +484,17 @@ type FormatEntry struct {
 	// entry's own Abr is always 0 by the same convention Height already
 	// follows the other way.
 	Abr float64
+	// Language is the spoken language of this track's audio, as the source
+	// reported it ("en", "de-DE"), and "" when it reported none - which is
+	// every site that ships one audio track and never had a second one to
+	// distinguish.
+	Language string
+	// LanguagePreference is yt-dlp's own ranking of that language against
+	// the others on the same video: above the default for the track the
+	// video was actually recorded in, below it for a machine dub. 0 is the
+	// field being absent - see AudioLang.Dubbed (languages.go) for why that
+	// reads as "original", not as "unknown".
+	LanguagePreference int
 }
 
 // ProbeResult is what a single -j extraction pass answers: the resolved
@@ -234,6 +507,22 @@ type FormatEntry struct {
 type ProbeResult struct {
 	Title   string
 	Formats []FormatEntry
+	// Subtitles and AutoCaptions are the language codes the source offers in
+	// each kind - the keys of yt-dlp's own "subtitles" and
+	// "automatic_captions" maps, unsorted, as they came out of the JSON.
+	// AvailableSubtitleLangs (languages.go) is what turns them into the two
+	// menus a picker shows, and why they are kept apart.
+	Subtitles    []string
+	AutoCaptions []string
+	// Duration is the runtime the source announced, in seconds, 0 when it
+	// announced none. A live stream reports none, which is one of the two
+	// ways the short-file check knows there is nothing to compare against.
+	Duration float64
+	// IsLive is the info dict's own is_live. It has been sitting in this
+	// document since this backend existed and was read by nothing: a link to
+	// a stream that has been running since Friday arrived as an ordinary
+	// task with an ordinary progress bar. See Options.Live.
+	IsLive bool
 }
 
 // ProbeTitle asks yt-dlp for a link's real title AND its real available
@@ -291,15 +580,29 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string) (ProbeResult, erro
 	var raw struct {
 		Title   string `json:"title"`
 		Formats []struct {
-			FormatID       string  `json:"format_id"`
-			Ext            string  `json:"ext"`
-			Vcodec         string  `json:"vcodec"`
-			Acodec         string  `json:"acodec"`
-			Height         int     `json:"height"`
-			Filesize       int64   `json:"filesize"`
-			FilesizeApprox float64 `json:"filesize_approx"`
-			Abr            float64 `json:"abr"`
+			FormatID           string  `json:"format_id"`
+			Ext                string  `json:"ext"`
+			Vcodec             string  `json:"vcodec"`
+			Acodec             string  `json:"acodec"`
+			Height             int     `json:"height"`
+			Filesize           int64   `json:"filesize"`
+			FilesizeApprox     float64 `json:"filesize_approx"`
+			Abr                float64 `json:"abr"`
+			Language           string  `json:"language"`
+			LanguagePreference int     `json:"language_preference"`
 		} `json:"formats"`
+		// Both maps are language code -> a list of that language's own
+		// downloadable formats. Only the keys are read: WHICH languages are
+		// on offer is the whole question, and the per-language format list is
+		// yt-dlp's own business once --sub-format has named a target.
+		// json.RawMessage rather than a typed value so an extractor with an
+		// unexpected shape inside costs the keys nothing.
+		Subtitles    map[string]json.RawMessage `json:"subtitles"`
+		AutoCaptions map[string]json.RawMessage `json:"automatic_captions"`
+		Duration     float64                    `json:"duration"`
+		IsLive       bool                       `json:"is_live"`
+		WasLive      bool                       `json:"was_live"`
+		LiveStatus   string                     `json:"live_status"`
 	}
 	if err := json.Unmarshal([]byte(line), &raw); err != nil {
 		return ProbeResult{}, fmt.Errorf("ytdlp: probe returned unparseable data: %w", err)
@@ -308,15 +611,42 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string) (ProbeResult, erro
 	if title == "" {
 		return ProbeResult{}, errors.New("ytdlp: probe returned no title")
 	}
-	res := ProbeResult{Title: title, Formats: make([]FormatEntry, 0, len(raw.Formats))}
+	res := ProbeResult{
+		Title:    title,
+		Formats:  make([]FormatEntry, 0, len(raw.Formats)),
+		Duration: raw.Duration,
+		// is_live OR live_status, because the two do not always agree: newer
+		// extractors set live_status ("is_live", "is_upcoming", "was_live",
+		// "not_live") and older ones only the boolean. was_live is
+		// deliberately NOT counted - a finished stream is an ordinary
+		// recording with an ordinary length, and treating it as live would
+		// put the recording caps on a normal download.
+		IsLive:       raw.IsLive || raw.LiveStatus == "is_live",
+		Subtitles:    keysOf(raw.Subtitles),
+		AutoCaptions: keysOf(raw.AutoCaptions),
+	}
 	for _, f := range raw.Formats {
 		res.Formats = append(res.Formats, FormatEntry{
 			FormatID: f.FormatID, Ext: f.Ext, Vcodec: f.Vcodec, Acodec: f.Acodec,
 			Height: f.Height, Filesize: f.Filesize, FilesizeApprox: int64(f.FilesizeApprox),
-			Abr: f.Abr,
+			Abr: f.Abr, Language: f.Language, LanguagePreference: f.LanguagePreference,
 		})
 	}
 	return res, nil
+}
+
+// keysOf is the language codes out of one of the two subtitle maps, in no
+// particular order - AvailableSubtitleLangs sorts them, once, where they are
+// turned into a menu.
+func keysOf(m map[string]json.RawMessage) []string {
+	if len(m) == 0 {
+		return nil
+	}
+	out := make([]string, 0, len(m))
+	for k := range m {
+		out = append(out, k)
+	}
+	return out
 }
 
 // firstLine is the first non-empty line of s. A single-video probe's -j
@@ -365,7 +695,10 @@ func buildArgs(dir string, o Options) []string {
 	o = o.Sanitize()
 	args := []string{
 		"--newline", "--no-warnings", "--no-color",
-		"--progress-template", "KLP:%(progress)j",
+		// The progress line carries is_live only when the live guard is on -
+		// see live.go on why the format an install without it runs must stay
+		// byte for byte the one it has always run.
+		"--progress-template", progressTemplateFor(o),
 		// Speed (jdp, 2026-09-06: "Youtube lädt super langsam herunter. das
 		// geht in jd viel schneller"). Two flags, two different reasons, and
 		// neither is tuning for its own sake:
@@ -403,9 +736,10 @@ func buildArgs(dir string, o Options) []string {
 	// here now, so each gets its own args and its own Enabled switch
 	// rather than a bundle of booleans on one task nobody could turn off
 	// individually).
+	tmpl := outputTemplate(o)
 	switch o.Variant {
 	case VariantAudio:
-		args = append(args, "-f", "bestaudio/best", "-x")
+		args = append(args, "-f", audioSelector(o.AudioLang), "-x")
 		if o.AudioFormat != "" && o.AudioFormat != "best" {
 			args = append(args, "--audio-format", o.AudioFormat)
 		}
@@ -416,6 +750,10 @@ func buildArgs(dir string, o Options) []string {
 		// rather than this function trying to duplicate that rule.
 		if o.AudioBitrate != "" {
 			args = append(args, "--audio-quality", o.AudioBitrate+"K")
+		}
+		args = append(args, embedArgs(o, false)...)
+		if o.Music {
+			args = append(args, musicArgs(dir, tmpl)...)
 		}
 	case VariantThumbnail:
 		// --skip-download: this task's own job is the cover image alone,
@@ -454,13 +792,160 @@ func buildArgs(dir string, o Options) []string {
 		// the real container a fact instead of a guess - Ext="mkv" below is
 		// this flag's own promise, not a prediction of yt-dlp's default.
 		args = append(args, "--merge-output-format", "mkv")
+		args = append(args, embedArgs(o, true)...)
 	}
-	tmpl := o.OutputTemplate
-	if tmpl == "" {
-		tmpl = defaultOutputTemplate
+	// Both of these belong to a download, not to the three rows that fetch a
+	// sidecar. An NFO beside a .srt describes nothing, and --live-from-start
+	// on a --skip-download row is a flag about bytes nobody is fetching.
+	if o.Variant == VariantVideo || o.Variant == VariantAudio {
+		if needsInfoJSON(o) {
+			args = append(args, "--write-info-json")
+		}
+		if o.Live.Enabled && o.Live.FromStart {
+			args = append(args, "--live-from-start")
+		}
 	}
 	args = append(args, "-o", filepath.Join(dir, tmpl))
 	return args
+}
+
+// outputTemplate is the -o template this task runs with.
+//
+// Music mode supplies its own only when nobody typed one. A person who filled
+// in the output template field meant it, and having a switch elsewhere on the
+// page silently overrule a field they can see is the kind of surprise that
+// gets reported as "the template setting does nothing". The cover image still
+// follows whatever template wins (see coverTemplate), so the two stay
+// together either way.
+func outputTemplate(o Options) string {
+	if o.OutputTemplate != "" {
+		return o.OutputTemplate
+	}
+	if o.Music && o.Variant == VariantAudio {
+		return musicOutputTemplate
+	}
+	return defaultOutputTemplate
+}
+
+// audioSelector is the audio row's own -f value, with a language filter when
+// one was asked for.
+//
+// The fallback chain is the point. "bestaudio[language^=de]" alone would make
+// a source that reports no language per track - which is most sites, since
+// per-track language is a thing YouTube's auto-dubbing brought - resolve to
+// nothing at all, and yt-dlp answers a selector that matches nothing with a
+// failed task. Falling through to the unfiltered selector means asking for
+// German gets German where German exists and the ordinary best track where
+// the source never had an opinion, instead of an error.
+//
+// `^=` rather than `=`: a track's language is a BCP 47 tag, so the German
+// track on a YouTube video is "de-DE" as often as "de", and an exact match
+// would miss exactly half of them.
+func audioSelector(lang string) string {
+	if lang == "" {
+		return "bestaudio/best"
+	}
+	return "bestaudio[language^=" + lang + "]/bestaudio/best"
+}
+
+// embedArgs is the container-level extras for a video (video=true) or an
+// extracted audio file. See Embed's own doc comment for what each one buys.
+func embedArgs(o Options, video bool) []string {
+	var args []string
+	// Music mode implies the metadata block, because --parse-metadata below
+	// only fills in fields and --embed-metadata is what actually writes them
+	// into the file. Without it the whole switch would rename files and tag
+	// nothing, which is the failure it exists to fix.
+	if o.Embed.Metadata || (o.Music && !video) {
+		args = append(args, "--embed-metadata")
+	}
+	if o.Embed.Thumbnail {
+		args = append(args, "--embed-thumbnail")
+	}
+	if o.Embed.Chapters {
+		args = append(args, "--embed-chapters")
+	}
+	if o.Embed.Subs && video {
+		// --embed-subs on its own embeds nothing: yt-dlp has to be told to
+		// FETCH the subtitles first, which is what --write-subs does, and
+		// which languages, which is --sub-langs. Video only - an extracted
+		// audio file has no subtitle stream to put them in.
+		langs := o.SubtitleLangs
+		if langs == "" {
+			langs = DefaultSubtitleLangs
+		}
+		args = append(args, "--write-subs", "--sub-langs", langs, "--embed-subs")
+		if o.SubtitleAuto {
+			args = append(args, "--write-auto-subs")
+		}
+	}
+	if o.Embed.SplitChapters {
+		args = append(args, "--split-chapters")
+	}
+	return args
+}
+
+// musicOutputTemplate is the naming scheme music mode uses: one folder per
+// artist, one per album inside it, tracks numbered so they sort in playing
+// order rather than alphabetically.
+//
+// Every field is an alternates chain rather than a single name, because the
+// fields a music library needs are the ones a video site is least reliable
+// about: "artist" and "album" come from a real music extractor or from
+// YouTube's own music metadata when it has any, and from the uploader and the
+// playlist otherwise. A chain that ends in something always present is what
+// keeps a track out of a folder literally called "NA".
+const musicOutputTemplate = "%(artist,album_artist,creator,uploader)s/" +
+	"%(album,playlist_title,title)s/" +
+	"%(track_number,playlist_index)s-%(track,title)s.%(ext)s"
+
+// musicArgs is the tagging half of music mode: the same four fields as the
+// naming scheme, mapped onto the meta_* fields yt-dlp's own metadata
+// post-processor writes into the file, plus a cover image beside the tracks.
+//
+// The mapping direction reads "FROM:TO" - --parse-metadata takes an output
+// template on the left and the field to fill on the right, and the meta_
+// prefix is what marks a field as one the embedder should write rather than
+// one yt-dlp merely knows. Without these four, an --embed-metadata mp3 gets
+// the VIDEO's title and uploader, which is why twelve tracks off one album
+// arrive in Navidrome as twelve singles by a channel name.
+func musicArgs(dir, tmpl string) []string {
+	return []string{
+		"--parse-metadata", "%(artist,album_artist,creator,uploader)s:%(meta_artist)s",
+		"--parse-metadata", "%(album,playlist_title,title)s:%(meta_album)s",
+		"--parse-metadata", "%(track,title)s:%(meta_title)s",
+		"--parse-metadata", "%(track_number,playlist_index)s:%(meta_track)s",
+		// The cover as a real file in the album folder, not only embedded:
+		// Navidrome, Jellyfin and Plex all read a cover.jpg beside the tracks,
+		// and one image per album is what a library wants where one embedded
+		// copy per track is what a player wants. --convert-thumbnails makes
+		// the extension a fact - the source's own is webp as often as jpg.
+		"--write-thumbnail", "--convert-thumbnails", "jpg",
+		"-o", "thumbnail:" + filepath.Join(dir, coverTemplate(tmpl)),
+	}
+}
+
+// coverTemplate puts the cover beside the tracks: the album folder is
+// whatever directory part the track template ends up with, so this follows a
+// hand-written output template exactly as it follows the music one, and a
+// template with no folders at all leaves the cover in the download directory
+// next to the files.
+func coverTemplate(tmpl string) string {
+	const name = "cover.%(ext)s"
+	if i := strings.LastIndexAny(tmpl, `/\`); i >= 0 {
+		return tmpl[:i+1] + name
+	}
+	return name
+}
+
+// progressTemplateFor picks between the plain progress template and the one
+// that also carries is_live - see live.go for both, and for why the plain one
+// has to stay exactly what it was.
+func progressTemplateFor(o Options) string {
+	if o.Live.Enabled {
+		return liveProgressTemplate
+	}
+	return progressTemplate
 }
 
 // formatSelector turns a resolution preset into yt-dlp's own -f value, or ""
