@@ -373,3 +373,38 @@ func TestTheAppCatchesUpWithItsOwnFinishTimes(t *testing.T) {
 		t.Errorf("a re-queued task still claims to have finished at %v", got.FinishedAt)
 	}
 }
+
+// TestAQueueStoppedByTheBootSaysSoOnEveryRow is the live gap this test exists
+// for. On jdp's own instance 59 queued rows read "waiting" and not one carried
+// a reason, on a queue that was halted - which is precisely the state the
+// reason was added to explain. The dispatch tests all built their queue by
+// adding links to a running app, so the boot path, where the halt and the queue
+// arrive together, was never asserted.
+func TestAQueueStoppedByTheBootSaysSoOnEveryRow(t *testing.T) {
+	f := newBootFixture(t, nil,
+		core.Task{ID: "a", URL: "https://host.example/a.bin", Name: "a.bin", Status: core.StatusQueued, Enabled: true},
+		core.Task{ID: "b", URL: "https://host.example/b.bin", Name: "b.bin", Status: core.StatusRunning, Enabled: true},
+	)
+
+	a := f.boot(t)
+	a.mu.Lock()
+	halted, queued := a.halted, len(a.queue)
+	a.mu.Unlock()
+	if !halted || queued != 2 {
+		t.Fatalf("boot left halted=%v with %d queued; this test needs a stopped queue holding both rows", halted, queued)
+	}
+
+	// Polled rather than read once: the reason is written by the schedule
+	// runner's first pass, which Start fires on its own goroutine. Reading
+	// straight after boot passes on an idle machine and fails under load, which
+	// is a test measuring the scheduler's head start and not the behaviour.
+	ok := pollUntil(t, 5*time.Second, func() bool {
+		return taskOf(t, a, "a").Waiting == core.WaitingHalted &&
+			taskOf(t, a, "b").Waiting == core.WaitingHalted
+	})
+	if !ok {
+		for _, id := range []string{"a", "b"} {
+			t.Errorf("task %s waits with reason %q behind a stopped queue, want %q", id, taskOf(t, a, id).Waiting, core.WaitingHalted)
+		}
+	}
+}
