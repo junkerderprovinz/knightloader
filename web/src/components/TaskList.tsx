@@ -1,12 +1,14 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
   type CSSProperties,
   type DragEvent,
   type PointerEvent,
+  type RefObject,
 } from 'react';
 import { createPortal } from 'react-dom';
 import {
@@ -245,6 +247,11 @@ function TaskRow({
       // whatever happened to be selected already, which is how the wrong
       // download gets deleted.
       data-task-id={task.id}
+      // What the window measures. Separate from data-task-id above because a
+      // folder header carries the same pair and has no task id to be found by -
+      // see useRowWindow's own measureRows.
+      data-row-key={rowKey({ kind: 'task', id: task.id })}
+      data-row-kind="task"
       // The live drag preview moves this row by SLIDING it (a transform), not by
       // rendering it somewhere else in the list - see TaskListCard's own
       // previewOffsets. While a drag is in flight this carries a translateY and a
@@ -698,11 +705,19 @@ function HosterPresetDialog({ host, base, onClose }: { host: string; base: strin
 // does.
 const CONTROL = 'button, a, input, select, textarea, [role="switch"], [role="checkbox"], .glim-info';
 
-// PackageGroup is a plain block inside the list card — not a nested card. Its
-// totals are over every link in the package, folded or not: a collapsed package
-// that stops counting turns the header into a number that changes when you click
-// a chevron.
-function PackageGroup({
+// PackageRow is the folder header: a plain block inside the list card, not a
+// nested card. Its totals are over every link in the package, folded or not: a
+// collapsed package that stops counting turns the header into a number that
+// changes when you click a chevron.
+//
+// It draws the header and nothing else. Its links are siblings of it in the
+// table rather than children (see ListRow and TaskListCard's own `rows`): the
+// table is one flat run of rows, because only a flat run can be windowed, and
+// windowing is what keeps a list of several thousand links usable at all -
+// measured, see useRowWindow. The tree is still a tree; it is drawn by the
+// indent on the name cell rather than by the nesting of the elements, which is
+// where it was already drawn from (see TREE_INDENT).
+function PackageRow({
   name,
   items,
   base,
@@ -711,12 +726,10 @@ function PackageGroup({
   selection,
   collapsed,
   onToggleCollapsed,
-  indexOffset,
+  divider,
   dnd,
   onSelect,
-  onSelectTask,
   onOpenProperties,
-  onOpenPropertiesTask,
 }: {
   name: string;
   items: Task[];
@@ -726,139 +739,382 @@ function PackageGroup({
   selection?: Selection;
   collapsed: boolean;
   onToggleCollapsed: () => void;
-  indexOffset: number;
+  /** The rule between one package and the next. It used to be `divide-y` on
+   *  the container of the <section> elements, which is not available to a
+   *  flat run of rows: a divider between every pair of ROWS would draw a line
+   *  under every link. So the seam is a property of the header that opens a
+   *  package, and the very first row of the table has none. */
+  divider: boolean;
   /** The row drag-to-reorder machinery — see TaskListCard, the one place it is built. */
   dnd: RowDnD;
   /** Click-to-select (TaskListCard's own selectUnit) - see TaskRow's own
    *  identical prop for why the modifier keys travel up rather than being
    *  read here. */
   onSelect?: (e: { ctrlKey: boolean; metaKey: boolean; shiftKey: boolean }) => void;
-  /** The same selection engine, for one child row rather than the whole
-   *  package - forwarded to each TaskRow below as its own onSelect. */
-  onSelectTask?: (id: string, e: { ctrlKey: boolean; metaKey: boolean; shiftKey: boolean }) => void;
   /** TaskRow's own onOpenProperties, for a double-click on the package
    *  header itself. */
   onOpenProperties?: () => void;
-  /** Forwarded to each child TaskRow as its own onOpenProperties. */
-  onOpenPropertiesTask?: (id: string) => void;
 }) {
   const allSelected = selection && items.every((x) => selection.ids.has(x.id));
   const dragging = dnd.draggingPackage === name;
   const ytdlpHost = items.find((x) => variantKindOf(x) && x.host)?.host;
 
   return (
-    <section>
-      <div
-        // The name is the only identity a package has on the wire, and it is
-        // legitimately empty for the ungrouped one — so the attribute is present
-        // and empty rather than absent, and the page tells the two apart.
-        data-package-row={name}
-        // Slid out of the way by a drag in flight exactly like a link row - see
-        // TaskRow's own identical style above, and previewOffsets for the
-        // arithmetic. This is the half jdp was missing (2026-09-03: "die ordner
-        // über die man drüber hoovert müssen live verrutschen"): a folder header
-        // is a row like any other here, so the folders a drag passes step aside
-        // while the pointer is still down.
-        style={{ ...ROW_GRID, ...dnd.slide({ kind: 'package', name }) }}
-        // Click-to-select (jdp, 2026-08-26 - see TaskRow's own identical
-        // comment for the full request): a plain click on the header now
-        // selects the whole package instead of folding it - the twisty
-        // button beside the name is CONTROL's own match, so it keeps
-        // folding/unfolding on its own click exactly as before.
-        onClick={(e) => {
-          if (e.target instanceof Element && e.target.closest(CONTROL)) return;
-          onSelect?.(e);
-        }}
-        onDoubleClick={(e) => {
-          if (e.target instanceof Element && e.target.closest(CONTROL)) return;
-          onOpenProperties?.();
-        }}
-        // Drags the whole package as one block — see TaskRow's own drag
-        // handlers above for the identical pattern applied to one link.
-        draggable={dnd.enabled}
-        onDragStart={(e) => {
-          if (!dnd.enabled || (e.target instanceof Element && e.target.closest(CONTROL))) {
-            e.preventDefault();
-            return;
-          }
-          dnd.startPackage(name);
-          e.dataTransfer.effectAllowed = 'move';
-          e.dataTransfer.setData('text/plain', name);
-        }}
-        onDragEnd={dnd.end}
-        onDragOver={(e) => {
-          if (!dnd.active) return;
+    <div
+      // The name is the only identity a package has on the wire, and it is
+      // legitimately empty for the ungrouped one — so the attribute is present
+      // and empty rather than absent, and the page tells the two apart.
+      data-package-row={name}
+      // See TaskRow's own pair: what useRowWindow measures this row by.
+      data-row-key={rowKey({ kind: 'package', name })}
+      data-row-kind="package"
+      // Slid out of the way by a drag in flight exactly like a link row - see
+      // TaskRow's own identical style above, and previewOffsets for the
+      // arithmetic. This is the half jdp was missing (2026-09-03: "die ordner
+      // über die man drüber hoovert müssen live verrutschen"): a folder header
+      // is a row like any other here, so the folders a drag passes step aside
+      // while the pointer is still down.
+      style={{ ...ROW_GRID, ...dnd.slide({ kind: 'package', name }) }}
+      // Click-to-select (jdp, 2026-08-26 - see TaskRow's own identical
+      // comment for the full request): a plain click on the header now
+      // selects the whole package instead of folding it - the twisty
+      // button beside the name is CONTROL's own match, so it keeps
+      // folding/unfolding on its own click exactly as before.
+      onClick={(e) => {
+        if (e.target instanceof Element && e.target.closest(CONTROL)) return;
+        onSelect?.(e);
+      }}
+      onDoubleClick={(e) => {
+        if (e.target instanceof Element && e.target.closest(CONTROL)) return;
+        onOpenProperties?.();
+      }}
+      // Drags the whole package as one block — see TaskRow's own drag
+      // handlers above for the identical pattern applied to one link.
+      draggable={dnd.enabled}
+      onDragStart={(e) => {
+        if (!dnd.enabled || (e.target instanceof Element && e.target.closest(CONTROL))) {
           e.preventDefault();
-          dnd.previewOverPackage(name, e);
-        }}
-        onDrop={(e) => dnd.dropOnPackage(name, e)}
-        // A colour step, not a rule: the header sits on the quiet surface and
-        // the links inside it sit on the card, which is the whole of the weight
-        // difference between a container and its contents. The selected-state
-        // background REPLACES the quiet one rather than sitting alongside it -
-        // two background-color utilities on one element race in Tailwind's
-        // generated stylesheet order (not class-string order), and the quiet
-        // one was silently winning, making a selected package invisible.
-        className={`relative grid cursor-pointer select-none items-center ${
-          allSelected ? 'glim-row-selected' : 'bg-carbon-surface2/80'
-        } px-3 py-2.5 transition-colors hover:bg-carbon-surface2 ${dragging ? 'opacity-50' : ''}`}
-      >
-        {columns.map((col) => (
-          <div
-            key={col.id}
-            className={`min-w-0 truncate px-2 text-[12px] text-carbon-textSub ${
-              col.align === 'end' ? 'text-end' : col.align === 'center' ? 'text-center' : 'text-start'
-            } ${col.numeric ? 'glim-num' : ''}`}
-          >
-            {col.id === 'name' ? (
-              <PackageName name={name} items={items} collapsed={collapsed} onToggle={onToggleCollapsed} />
-            ) : (
-              col.aggregate?.(items, ctx)
-            )}
-          </div>
-        ))}
+          return;
+        }
+        dnd.startPackage(name);
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', name);
+      }}
+      onDragEnd={dnd.end}
+      onDragOver={(e) => {
+        if (!dnd.active) return;
+        e.preventDefault();
+        dnd.previewOverPackage(name, e);
+      }}
+      onDrop={(e) => dnd.dropOnPackage(name, e)}
+      // A colour step, not a rule: the header sits on the quiet surface and
+      // the links inside it sit on the card, which is the whole of the weight
+      // difference between a container and its contents. The selected-state
+      // background REPLACES the quiet one rather than sitting alongside it -
+      // two background-color utilities on one element race in Tailwind's
+      // generated stylesheet order (not class-string order), and the quiet
+      // one was silently winning, making a selected package invisible.
+      className={`relative grid cursor-pointer select-none items-center ${
+        allSelected ? 'glim-row-selected' : 'bg-carbon-surface2/80'
+      } ${divider ? 'border-t border-carbon-border/60' : ''} px-3 py-2.5 transition-colors
+        hover:bg-carbon-surface2 ${dragging ? 'opacity-50' : ''}`}
+    >
+      {columns.map((col) => (
+        <div
+          key={col.id}
+          className={`min-w-0 truncate px-2 text-[12px] text-carbon-textSub ${
+            col.align === 'end' ? 'text-end' : col.align === 'center' ? 'text-center' : 'text-start'
+          } ${col.numeric ? 'glim-num' : ''}`}
+        >
+          {col.id === 'name' ? (
+            <PackageName name={name} items={items} collapsed={collapsed} onToggle={onToggleCollapsed} />
+          ) : (
+            col.aggregate?.(items, ctx)
+          )}
+        </div>
+      ))}
 
-        {/* The gear badge for a package whose own "Variante" rows share a host
-            (variantKindOf is '' for anything not yt-dlp-routed), floating over
-            the trailing edge like a link row's own strip rather than owning a
-            track: there is no actions track any more.
+      {/* The gear badge for a package whose own "Variante" rows share a host
+          (variantKindOf is '' for anything not yt-dlp-routed), floating over
+          the trailing edge like a link row's own strip rather than owning a
+          track: there is no actions track any more.
 
-            Collector only (jdp, 2026-09-07: "im downloadtab soll dieser
-            einstellungsbutten nicht erscheinen. das soll nur im sammlertab
-            sein"). What it opens is which variants to keep and at what quality,
-            and that is a decision about a link BEFORE it is fetched: once the
-            rows are in the queue the choice has already been made, and offering
-            it there is offering to change something that is on its way. */}
-        {ytdlpHost && ctx.profile === 'collector' && (
-          <div
-            className="absolute inset-y-px end-2 z-10 flex items-center rounded-[var(--radius-control)]
-              bg-carbon-surface px-1 shadow-[var(--elevation)]"
-          >
-            <HosterPresetButton host={ytdlpHost} base={base} />
-          </div>
-        )}
-      </div>
-
-      {!collapsed && (
-        <div className="flex flex-col">
-          {items.map((x, i) => (
-            <TaskRow
-              key={x.id}
-              task={x}
-              index={indexOffset + i}
-              base={base}
-              ctx={ctx}
-              columns={columns}
-              selection={selection}
-              dnd={dnd}
-              onSelect={onSelectTask ? (e) => onSelectTask(x.id, e) : undefined}
-              onOpenProperties={onOpenPropertiesTask ? () => onOpenPropertiesTask(x.id) : undefined}
-            />
-          ))}
+          Collector only (jdp, 2026-09-07: "im downloadtab soll dieser
+          einstellungsbutten nicht erscheinen. das soll nur im sammlertab
+          sein"). What it opens is which variants to keep and at what quality,
+          and that is a decision about a link BEFORE it is fetched: once the
+          rows are in the queue the choice has already been made, and offering
+          it there is offering to change something that is on its way. */}
+      {ytdlpHost && ctx.profile === 'collector' && (
+        <div
+          className="absolute inset-y-px end-2 z-10 flex items-center rounded-[var(--radius-control)]
+            bg-carbon-surface px-1 shadow-[var(--elevation)]"
+        >
+          <HosterPresetButton host={ytdlpHost} base={base} />
         </div>
       )}
-    </section>
+    </div>
   );
+}
+
+/**
+ * One line of the table: a folder header, or a link under one.
+ *
+ * The rows are a flat run and not a tree of sections, and that is the whole of
+ * what makes windowing possible - a window is a slice, and there is nothing to
+ * slice while the rows are buried one level down inside their packages. Built
+ * once per render from the same `view` and the same folded set the table draws
+ * from, so this list IS the on-screen order rather than a second opinion about
+ * it: the Shift-range walks it, the drag preview stacks it, and the window
+ * measures it.
+ */
+type ListRow =
+  | { kind: 'package'; key: string; name: string; items: Task[]; collapsed: boolean; divider: boolean }
+  | {
+      kind: 'task';
+      key: string;
+      task: Task;
+      /** Position among the drawn LINK rows, which is the rainbow palette
+       *  position. A folded package contributes none, exactly as before: the
+       *  colour walks what is on screen, not what the list holds. */
+      index: number;
+    };
+
+// --- Windowing -------------------------------------------------------------
+//
+// Below this many rows the table is drawn whole, spacers and all arithmetic
+// skipped. Measured, on a production build at 1600x1000 (web/bench.html, since
+// deleted): 200 rows redraw in 11ms and 500 in 26ms, so a list this size is
+// already inside a frame's budget for the two things that happen constantly - a
+// websocket task update and a click on a row - and windowing it would buy
+// nothing but a second code path through the drag preview.
+//
+// Above it, the same measurement is why this exists at all: 1000 rows cost 62ms
+// per websocket tick, 2000 cost 126ms and 5000 cost 357ms, and 99% of that is
+// React re-rendering every row (the same change with no changed VALUE costs the
+// same 355ms, and a plain selection click, which writes one class, costs 345ms -
+// so it is neither the DOM write nor the layout). One running download emits a
+// progress update roughly every second; on a five-thousand-link list that was a
+// third of a second of frozen interface, every second.
+const VIRTUALIZE_ABOVE = 150;
+
+// How many rows above and below the viewport are drawn anyway.
+//
+// Not only a scroll buffer. It is what keeps Tab working: the browser picks the
+// next focusable element out of the DOM as it is at the moment the key is
+// pressed, and only scrolls it into view afterwards - so the row after the last
+// visible one has to already exist, or focus leaves the table instead of walking
+// into it. Twelve rows is several presses' worth of head start in either
+// direction, and the scroll each of those presses causes has moved the window on
+// again long before the buffer runs out.
+const OVERSCAN = 12;
+
+// What a row is worth before anything has measured one. Only ever used for rows
+// that have not been on screen yet; every row that has is remembered at its own
+// measured height (see useRowWindow), so the scrollbar describes the real list
+// rather than an average of it.
+const ROW_ESTIMATE = { package: 45, task: 37 };
+
+/** The first index whose row ENDS after y, i.e. the first row still on screen. */
+function firstAfter(offsets: Float64Array, y: number): number {
+  let lo = 0;
+  let hi = offsets.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (offsets[mid + 1] <= y) lo = mid + 1;
+    else hi = mid;
+  }
+  return lo;
+}
+
+interface RowWindow {
+  /** The slice to render: [start, end). */
+  start: number;
+  end: number;
+  /** The height of everything before and after it, as two empty boxes. */
+  padTop: number;
+  padBottom: number;
+}
+
+/**
+ * Which slice of the table is worth putting in the DOM.
+ *
+ * The list card has no scroll box of its own (Downloads.tsx renders it in the
+ * page's own flow and Collector.tsx wraps it in an `overflow-y-auto` of its
+ * own), so the window is read off the VIEWPORT rather than off a container this
+ * component owns: `getBoundingClientRect` on the row strip says where the strip
+ * sits relative to the screen, whichever ancestor happens to be doing the
+ * scrolling, and a scroll listener in the capture phase hears that ancestor
+ * without having to know which one it is. Using the whole viewport height where
+ * a caller's own box is shorter only ever draws MORE rows than strictly needed,
+ * which is the safe direction to be wrong in.
+ *
+ * Heights are measured and remembered per row, not assumed: a package header is
+ * taller than a link row, and a link row that failed carries a second line with
+ * the reason on it. An average would leave the scrollbar promising a length the
+ * list does not have: off by a couple of pixels per row is off by thousands over
+ * a few thousand rows. So every row that has been drawn once keeps its own
+ * height, and only a row nobody has scrolled past yet uses the estimate.
+ */
+function useRowWindow(rows: ListRow[], stripRef: RefObject<HTMLDivElement | null>): RowWindow {
+  const heights = useRef(new Map<string, number>());
+  const estimate = useRef({ ...ROW_ESTIMATE });
+  // Bumped only when a measurement actually moved, which is what keeps the
+  // measure-then-render loop from running forever.
+  const [measured, setMeasured] = useState(0);
+  // Seeded rather than left at zero, and that is worth a paragraph: the layout
+  // effect below cannot run until AFTER a render, so a window that waits for it
+  // draws the whole table once and throws it away on the very next pass. Measured
+  // at 5000 rows, that one wasted pass cost 3.4s against 0.6s for a window that
+  // was right the first time - it built all 188k nodes, then tore them down.
+  //
+  // The list starts at the top of its own strip, which is where it is when a page
+  // has just been opened; anything else (a browser restoring a scroll position, a
+  // list re-mounted further down a scrolled page) is corrected by the effect
+  // before the frame is painted.
+  const [viewport, setViewport] = useState(() => ({
+    top: 0,
+    height: typeof window === 'undefined' ? 0 : window.innerHeight,
+  }));
+
+  const on = rows.length > VIRTUALIZE_ABOVE;
+
+  // Where every row starts, as a running total. Recomputed when the rows change
+  // or when a measurement corrects one of them, and deliberately NOT on scroll:
+  // scrolling only moves the window, it does not change what the rows are.
+  const offsets = useMemo(() => {
+    const known = heights.current;
+    // The cache is keyed by row, and rows come and go for as long as the app
+    // stays open - a clean-up removes a few hundred, a crawl adds a few
+    // thousand. Rebuilt from the rows that actually exist once it has grown to
+    // several times the list's own length, so an instance somebody leaves open
+    // for a week is not carrying the heights of every link it has ever shown.
+    if (known.size > rows.length * 4 + 64) {
+      const kept = new Map<string, number>();
+      for (const row of rows) {
+        const h = known.get(row.key);
+        if (h !== undefined) kept.set(row.key, h);
+      }
+      heights.current = kept;
+    }
+    const out = new Float64Array(rows.length + 1);
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const h = heights.current.get(row.key) ?? estimate.current[row.kind];
+      out[i + 1] = out[i] + h;
+    }
+    return out;
+    // heights and estimate are refs read at the moment this runs; `measured` is
+    // the signal that either of them has changed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows, measured]);
+
+  // Re-read after every commit, not only when something in here changed: the
+  // strip moves down the page when the toolbar above it grows a row, and it is
+  // this read - not a scroll - that notices.
+  useLayoutEffect(() => {
+    // Nothing here is worth a forced reflow on a list that is drawn whole: with
+    // no window there is no slice to place and no spacer to size, so a short
+    // list pays none of this.
+    if (!on) return;
+    const el = stripRef.current;
+    if (!el) return;
+    if (measureRows(el, heights.current, estimate.current)) setMeasured((n) => n + 1);
+    const r = el.getBoundingClientRect();
+    const top = Math.max(0, -r.top);
+    const height = window.innerHeight;
+    setViewport((p) => (Math.abs(p.top - top) < 1 && p.height === height ? p : { top, height }));
+  });
+
+  useEffect(() => {
+    let frame = 0;
+    const read = () => {
+      frame = 0;
+      const el = stripRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const top = Math.max(0, -r.top);
+      const height = window.innerHeight;
+      setViewport((p) => (Math.abs(p.top - top) < 1 && p.height === height ? p : { top, height }));
+    };
+    // One read per frame at most: a scroll fires far more often than the screen
+    // is repainted, and a window recomputed per event would re-render the table
+    // several times for one flick of a wheel.
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(read);
+    };
+    // Capture, because a scroll event does not bubble: the ancestor actually
+    // doing the scrolling is the page's own <main> for the downloads list and a
+    // wrapper of its own for the collector, and neither is reachable from here.
+    window.addEventListener('scroll', schedule, true);
+    window.addEventListener('resize', schedule);
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', schedule, true);
+      window.removeEventListener('resize', schedule);
+    };
+  }, [stripRef]);
+
+  if (!on || viewport.height === 0) return { start: 0, end: rows.length, padTop: 0, padBottom: 0 };
+  const start = Math.max(0, firstAfter(offsets, viewport.top) - OVERSCAN);
+  const end = Math.min(rows.length, firstAfter(offsets, viewport.top + viewport.height) + 1 + OVERSCAN);
+  return { start, end, padTop: offsets[start], padBottom: offsets[rows.length] - offsets[end] };
+}
+
+/**
+ * Reads back what the rows that are currently drawn actually measure, and says
+ * whether anything moved.
+ *
+ * getBoundingClientRect and not offsetHeight: offsetHeight is rounded to whole
+ * pixels, and half a pixel per row is a couple of thousand pixels of scrollbar
+ * over a list this long. A row mid-drag is translated rather than scaled, so its
+ * measured height is the same either way.
+ */
+function measureRows(
+  strip: HTMLElement,
+  heights: Map<string, number>,
+  estimate: { package: number; task: number },
+): boolean {
+  let changed = false;
+  let pkgSum = 0;
+  let pkgCount = 0;
+  let taskSum = 0;
+  let taskCount = 0;
+  strip.querySelectorAll<HTMLElement>('[data-row-key]').forEach((el) => {
+    const key = el.dataset.rowKey ?? '';
+    const h = el.getBoundingClientRect().height;
+    if (h <= 0) return;
+    if (el.dataset.rowKind === 'package') {
+      pkgSum += h;
+      pkgCount++;
+    } else {
+      taskSum += h;
+      taskCount++;
+    }
+    const known = heights.get(key);
+    if (known === undefined || Math.abs(known - h) >= 0.5) {
+      heights.set(key, h);
+      changed = true;
+    }
+  });
+  // The estimate follows what this list's own rows actually measure, so the
+  // rows nobody has scrolled to yet are guessed at from siblings rather than
+  // from a constant written months ago against a different font size.
+  if (pkgCount > 0) {
+    const avg = pkgSum / pkgCount;
+    if (Math.abs(estimate.package - avg) >= 0.5) {
+      estimate.package = avg;
+      changed = true;
+    }
+  }
+  if (taskCount > 0) {
+    const avg = taskSum / taskCount;
+    if (Math.abs(estimate.task - avg) >= 0.5) {
+      estimate.task = avg;
+      changed = true;
+    }
+  }
+  return changed;
 }
 
 /**
@@ -1379,6 +1635,11 @@ export function TaskListCard({
   const [propertiesOpen, setPropertiesOpen] = useState(false);
 
   const tableRef = useRef<HTMLDivElement>(null);
+  // The rows themselves, without the header row above them or the spacer below:
+  // what useRowWindow measures, and what a drag snapshot reads. Separate from
+  // tableRef because the header would otherwise count as part of the strip's own
+  // top edge, and the window's arithmetic is in the strip's coordinates.
+  const stripRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ id: ColumnId; startX: number; startWidth: number; width: number } | null>(null);
 
   const layout = useMemo(() => resolveLayout(profile, stored), [profile, stored]);
@@ -1391,28 +1652,56 @@ export function TaskListCard({
   const sort = storedSort && !layout.hidden.has(storedSort.id) ? storedSort : null;
   const view = useMemo(() => applySort(groups, sort), [groups, sort]);
 
+  // The table, flattened: every folder header, and - only while that folder is
+  // open - its own links, in the order they are drawn. Everything downstream
+  // reads this rather than walking the packages again for itself, so the window,
+  // the Shift-range and the rows on screen cannot describe three different
+  // lists. See ListRow.
+  const rows = useMemo<ListRow[]>(() => {
+    const out: ListRow[] = [];
+    let hue = 0;
+    for (const [name, items] of view) {
+      const folded = collapsed.has(name);
+      out.push({
+        kind: 'package',
+        key: rowKey({ kind: 'package', name }),
+        name,
+        items,
+        collapsed: folded,
+        divider: out.length > 0,
+      });
+      if (!folded) {
+        for (const x of items) out.push({ kind: 'task', key: rowKey({ kind: 'task', id: x.id }), task: x, index: hue++ });
+      }
+    }
+    return out;
+  }, [view, collapsed]);
+
   // --- Click-to-select (jdp, 2026-08-26: "in der linkliste soll man
   // links und ordner mit einem klick markieren können, nicht den ordner
   // aufklappen. die checkbox spalte können wir wegmachen. mehrere links
   // oder ordner soll man mit klick und strg oder umschalttaste auswählen
   // können. wie in windows") -------------------------------------------
   //
-  // selectableOrder is the flat, on-screen order a Shift-range walks: every
-  // package header first, then - only while that package is expanded - its
-  // own rows, exactly the order the table below actually renders them in. A
-  // collapsed package contributes only itself; Shift-clicking across one
-  // selects the whole folded package as a single step, the same as if its
-  // rows had never been individually visible to click between.
-  const selectableOrder = useMemo(() => {
-    const out: { kind: 'task' | 'package'; key: string; ids: string[] }[] = [];
-    for (const [name, items] of view) {
-      out.push({ kind: 'package', key: name, ids: items.map((x) => x.id) });
-      if (!collapsed.has(name)) {
-        for (const x of items) out.push({ kind: 'task', key: x.id, ids: [x.id] });
-      }
-    }
-    return out;
-  }, [view, collapsed]);
+  // selectableOrder is the flat, on-screen order a Shift-click's range walks,
+  // which is `rows` above with each entry's own ids attached. A collapsed
+  // package contributes only itself; Shift-clicking across one selects the whole
+  // folded package as a single step, the same as if its rows had never been
+  // individually visible to click between.
+  //
+  // Every row the list HOLDS, never only the ones the window has drawn: a range
+  // that stopped at the edge of the viewport would select a different set
+  // depending on how far somebody had scrolled, which is not a rule anybody
+  // could learn.
+  const selectableOrder = useMemo(
+    () =>
+      rows.map((r) =>
+        r.kind === 'package'
+          ? { kind: 'package' as const, key: r.name, ids: r.items.map((x) => x.id) }
+          : { kind: 'task' as const, key: r.task.id, ids: [r.task.id] },
+      ),
+    [rows],
+  );
 
   // The last unit clicked plain or with Ctrl/Cmd - what a Shift-click
   // measures its range from. An index into selectableOrder rather than a
@@ -1511,10 +1800,18 @@ export function TaskListCard({
   //
   // In DOM order, and that matters: previewOffsets stacks rows back up in this
   // order and needs the gap between each pair, not only their own boxes.
+  //
+  // On a long list this is the WINDOW's rows and not the whole table, because
+  // that is what the DOM holds (see useRowWindow) - and it is also exactly the
+  // right set. Every row a drag can aim at is a row somebody can see, so a hit
+  // test over the window answers the same question the full table would; and a
+  // row nobody can see has nothing to show by stepping aside. previewOffsets
+  // below is written against that: it previews the rows it measured, rather than
+  // insisting the two lists have the same length.
   const rowSlotsRef = useRef<{ unit: RowDragKey; top: number; bottom: number }[]>([]);
 
   function snapshotSlots(): void {
-    const root = tableRef.current;
+    const root = stripRef.current;
     if (!root) {
       rowSlotsRef.current = [];
       return;
@@ -1966,12 +2263,13 @@ export function TaskListCard({
    *
    *   - `wanted` is the previewed arrangement flattened to the rows that are
    *     actually ON SCREEN - a folded folder contributes its header and none of
-   *     its links, exactly like the table's own render below.
+   *     its links, and on a windowed list a row the window never drew
+   *     contributes nothing either, because it has no box to move.
    *   - Those rows are stacked back up from the first slot's top, each taking
    *     its own measured height, and each keeping the GAP that belongs to its
    *     new position rather than to itself. The gap is a property of the seam
-   *     between two rows (the divider between two folder sections), not of the
-   *     row that happens to sit above it.
+   *     between two rows (the rule above a folder header), not of the row that
+   *     happens to sit above it.
    *   - The offset is then simply "where this row would be" minus "where it
    *     is", and that is a number a CSS transition can animate on its own.
    *
@@ -1979,19 +2277,29 @@ export function TaskListCard({
    * mid-drag leaves the snapshot describing a list that no longer exists, and
    * half-correct offsets would leave rows lying on top of each other; no
    * preview at all is the honest state, and the drop itself still commits
-   * against dragOver, which never depended on this.
+   * against dragOver, which never depended on this. That check is a count of
+   * the rows the snapshot MEASURED against the rows the preview can place, so
+   * it means the same thing on a windowed list as on a whole one: a task the
+   * window drew and the preview cannot account for, or the other way round, is
+   * still a snapshot that has gone stale.
    */
   function previewOffsets(): Map<string, number> {
     if (!rowDrag || !dragOver) return NO_OFFSETS;
     const slots = rowSlotsRef.current;
     if (slots.length === 0) return NO_OFFSETS;
+    const geom = new Map(slots.map((s) => [rowKey(s.unit), s] as const));
     const wanted: string[] = [];
     for (const [name, items] of liveView) {
-      wanted.push(rowKey({ kind: 'package', name }));
-      if (!collapsed.has(name)) for (const x of items) wanted.push(rowKey({ kind: 'task', id: x.id }));
+      const header = rowKey({ kind: 'package', name });
+      if (geom.has(header)) wanted.push(header);
+      if (!collapsed.has(name)) {
+        for (const x of items) {
+          const key = rowKey({ kind: 'task', id: x.id });
+          if (geom.has(key)) wanted.push(key);
+        }
+      }
     }
     if (wanted.length !== slots.length) return NO_OFFSETS;
-    const geom = new Map(slots.map((s) => [rowKey(s.unit), s] as const));
     const out = new Map<string, number>();
     let y = slots[0].top;
     for (let i = 0; i < wanted.length; i++) {
@@ -2110,7 +2418,10 @@ export function TaskListCard({
     persist({ widths });
   }
 
-  let index = 0;
+  // Which slice of `rows` is worth drawing, and how much empty space stands in
+  // for the rest. Whole list, no spacers, for anything short enough not to need
+  // it (see VIRTUALIZE_ABOVE).
+  const win = useRowWindow(rows, stripRef);
 
   return (
     // Two surfaces side by side and never one inside the other: the panel is a
@@ -2210,40 +2521,57 @@ export function TaskListCard({
                 onMenu={setMenuAt}
               />
 
-              {/* `view`, not liveView, and that is the point: the rows stay in
-                  the order the server last gave for the whole of a drag, and
-                  each one is SLID to where the drag would put it (previewOffsets
-                  above, applied by dnd.slide). Reordering them here instead is
-                  what the preview used to do, and it left the move with nothing
-                  to animate but an after-the-fact measurement. It also kept the
-                  rainbow hues walking a moving list, so colours shuffled under
-                  the pointer as a side effect of a reorder nobody had committed
-                  yet - `index` below counts the resting order now. */}
-              <div className="divide-y divide-carbon-border/60">
-                {view.map(([name, items]) => {
-                  const folded = collapsed.has(name);
-                  const offset = index;
-                  if (!folded) index += items.length;
-                  return (
-                    <PackageGroup
-                      key={name || '__none'}
-                      name={name}
-                      items={items}
+              {/* `rows`, which is built from `view` and not from liveView, and
+                  that is the point: the rows stay in the order the server last
+                  gave for the whole of a drag, and each one is SLID to where the
+                  drag would put it (previewOffsets above, applied by dnd.slide).
+                  Reordering them here instead is what the preview used to do,
+                  and it left the move with nothing to animate but an
+                  after-the-fact measurement. It also kept the rainbow hues
+                  walking a moving list, so colours shuffled under the pointer as
+                  a side effect of a reorder nobody had committed yet - the
+                  `index` each row carries counts the resting order.
+
+                  The two boxes around the slice are the rest of the list, as
+                  height and nothing else (see useRowWindow). They carry no data
+                  attributes on purpose: the drag snapshot, the right-click and
+                  the selection all look rows up by those, and a spacer is not a
+                  row that any of them may find. */}
+              <div ref={stripRef}>
+                {win.padTop > 0 && <div aria-hidden style={{ height: win.padTop }} />}
+                {rows.slice(win.start, win.end).map((row) =>
+                  row.kind === 'package' ? (
+                    <PackageRow
+                      key={row.key}
+                      name={row.name}
+                      items={row.items}
                       base={base}
                       ctx={ctx}
                       columns={layout.visible}
                       selection={selection}
-                      collapsed={folded}
-                      onToggleCollapsed={() => toggle(name)}
-                      indexOffset={offset}
+                      collapsed={row.collapsed}
+                      divider={row.divider}
+                      onToggleCollapsed={() => toggle(row.name)}
                       dnd={dnd}
-                      onSelect={(e) => selectUnit('package', name, items.map((x) => x.id), e)}
-                      onSelectTask={(id, e) => selectUnit('task', id, [id], e)}
+                      onSelect={(e) => selectUnit('package', row.name, row.items.map((x) => x.id), e)}
                       onOpenProperties={() => setPropertiesOpen(true)}
-                      onOpenPropertiesTask={() => setPropertiesOpen(true)}
                     />
-                  );
-                })}
+                  ) : (
+                    <TaskRow
+                      key={row.key}
+                      task={row.task}
+                      index={row.index}
+                      base={base}
+                      ctx={ctx}
+                      columns={layout.visible}
+                      selection={selection}
+                      dnd={dnd}
+                      onSelect={(e) => selectUnit('task', row.task.id, [row.task.id], e)}
+                      onOpenProperties={() => setPropertiesOpen(true)}
+                    />
+                  ),
+                )}
+                {win.padBottom > 0 && <div aria-hidden style={{ height: win.padBottom }} />}
               </div>
 
               {/* The empty space under the rows, and it earns its keep twice: a
