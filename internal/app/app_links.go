@@ -24,6 +24,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
+	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
 // The six entrances a link can arrive by.
@@ -710,15 +711,21 @@ func (a *App) crawl(u string) []crawler.Result {
 			return nil
 		}
 	}
+	opt := crawlOptions(a.Settings.Get())
 	// Begun here, after the settings/registry gates above rather than at the
 	// top of the function: those two return instantly with no network call
 	// made, and counting them as "ambient activity" would flash the status
 	// strip on for zero-cost, zero-duration work.
-	a.beginActivity(ActivityCrawl, 1)
-	defer a.endActivity(ActivityCrawl, 1)
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), crawlBudget(opt))
 	defer cancel()
-	found, err := a.Crawler.Crawl(ctx, u)
+	// The same activity counters a crawl has always published, plus the handle
+	// that stops it - see startActivityRun. A deep crawl is minutes of
+	// somebody else's server being slow, and until now the only way out was to
+	// wait for the deadline.
+	done := a.startActivityRun(ActivityCrawl, cancel)
+	defer done()
+
+	found, err := a.crawlWith(ctx, u, opt)
 	if err != nil {
 		log.Printf("crawl %s: %v", u, err)
 		return nil
@@ -729,6 +736,66 @@ func (a *App) crawl(u string) []crawler.Result {
 		return nil
 	}
 	return found
+}
+
+// crawlWith runs the crawl through the deepest interface the configured crawler
+// actually implements.
+//
+// A site-specific crawler and every test stand-in satisfy crawler.Crawler and
+// nothing more, on purpose - see that interface's own comment - so the options
+// are offered rather than required. The fallback is not a degraded mode: a
+// crawler that knows one site knows what its own pages point at, and depth is a
+// question only the generic HTML one has to be told the answer to.
+func (a *App) crawlWith(ctx context.Context, u string, opt crawler.Options) ([]crawler.Result, error) {
+	if deep, ok := a.Crawler.(crawler.DeepCrawler); ok {
+		return deep.CrawlDeep(ctx, u, opt)
+	}
+	return a.Crawler.Crawl(ctx, u)
+}
+
+// crawlOptions is the crawl settings block as the crawler wants it.
+//
+// Every value is passed through as stored: the ranges are settled once, in
+// settings.sanitizeIntake, so that the number the user sees in the box is the
+// number that runs. Clamping a second time here would be a second opinion, and
+// the day the two disagree is the day a setting reads 3 and behaves like 1.
+func crawlOptions(cfg settings.Settings) crawler.Options {
+	return crawler.Options{
+		Depth:    cfg.CrawlDepth,
+		MaxPages: cfg.CrawlMaxPages,
+		SameHost: cfg.CrawlSameHost,
+		Include:  cfg.CrawlInclude,
+		Exclude:  cfg.CrawlExclude,
+	}
+}
+
+const (
+	// pageCrawlTimeout is the budget for a one-page crawl, unchanged from the
+	// day the crawler was written: the user is standing at the paste box.
+	pageCrawlTimeout = 30 * time.Second
+
+	// deepCrawlTimeout is the budget for a walk of several pages. It is not
+	// thirty seconds times the page cap, which for two hundred pages would be
+	// an hour of a paste request held open.
+	//
+	// Five minutes is what a walk that is going WELL never comes near - twenty
+	// pages answering in a second each is twenty seconds - and what a walk that
+	// is going badly is stopped at. It can be generous precisely because it is
+	// no longer the only way out: the run shows up in the status strip with a
+	// stop button on it from the moment it starts, so the deadline is the
+	// backstop for nobody watching, not the user's own escape hatch.
+	deepCrawlTimeout = 5 * time.Minute
+)
+
+// crawlBudget is how long the whole run may take. A single page keeps the
+// budget it always had; only a walk that was explicitly asked for gets the
+// longer one, so an install that never touches the setting cannot start
+// waiting minutes for something that used to give up after thirty seconds.
+func crawlBudget(opt crawler.Options) time.Duration {
+	if opt.Depth > 1 {
+		return deepCrawlTimeout
+	}
+	return pageCrawlTimeout
 }
 
 // remoteListTimeout bounds one directory expansion. Longer than the page
@@ -755,10 +822,16 @@ func (a *App) listRemoteDir(res resolver.Resolver, u string) []crawler.Result {
 	if !ok {
 		return nil
 	}
-	a.beginActivity(ActivityCrawl, 1)
-	defer a.endActivity(ActivityCrawl, 1)
 	ctx, cancel := context.WithTimeout(context.Background(), remoteListTimeout)
 	defer cancel()
+	// Registered as a cancellable run for the same reason the page crawl above
+	// is, and it matters MORE here: this walks a tree over FTP or SMB, where a
+	// server that has stopped answering costs a round trip per level before the
+	// deadline notices. A stop button on the crawl row of the strip that could
+	// only ever call off half the work published under that kind would be a
+	// button that sometimes does nothing.
+	done := a.startActivityRun(ActivityCrawl, cancel)
+	defer done()
 	found, err := r.List(ctx, u)
 	if err != nil {
 		log.Printf("list %s: %v", u, err)

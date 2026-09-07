@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Card, Field, FieldGroup, NumberInput, SectionTitle, TextInput, ToggleRow } from '../../components/ui';
+// TextInput went with the watch folder when that left this page and the import
+// stayed behind, which nothing catches: noUnusedLocals is off in web/tsconfig.
+import { Card, Field, FieldGroup, NumberInput, SectionTitle, TextArea, ToggleRow } from '../../components/ui';
 import { PathInput } from '../../components/FolderPicker';
 import { Tabs } from '../../components/Tabs';
 import { fetchIdleActions, fetchOptions } from '../../lib/api';
@@ -172,7 +174,11 @@ export function DownloadsSettings() {
         </div>
 
         <div className="flex flex-col gap-3">
-          <ToggleRow hue={0} checked={cfg.crawl} onChange={(v) => patch({ crawl: v })} label={t('settings.crawl')} />
+          {/* "Seiten crawlen" itself left this card for the crawl card below
+              (jdp, 2026-09-07): the switch and the four numbers that shape what
+              it does are one idea, and a master toggle sitting three controls
+              away from its own settings is the arrangement where somebody
+              raises the depth on an install that has crawling switched off. */}
           <ToggleRow
             hue={1}
             checked={cfg.verifyChecksums}
@@ -186,6 +192,72 @@ export function DownloadsSettings() {
             label={t('settings.preParser')}
             hint={t('settings.preParserHint')}
           />
+        </div>
+      </Card>
+
+      {/* The crawl, on its own, because it is the one thing on this page that
+          sends requests to a server nobody here runs. Everything below the
+          master switch is dimmed while it is off - a control that vanished
+          would teach nobody what the mode can do, and one that disagrees with
+          its own disabled siblings does. */}
+      <Card hue={3} className="flex flex-col gap-5">
+        <SectionTitle>{t('settings.crawl.title')}</SectionTitle>
+        <ToggleRow hue={0} checked={cfg.crawl} onChange={(v) => patch({ crawl: v })} label={t('settings.crawl')} />
+
+        <div className={`flex flex-col gap-5 ${cfg.crawl ? '' : 'pointer-events-none opacity-40'}`}>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {/* max is the crawler's own ceiling (internal/crawler.MaxDepth), not
+                a number picked here: a spinner that goes to 10 while the server
+                clamps at 3 is a control that lies about what saving it did. */}
+            <Field label={t('settings.crawl.depth')} hint={t('settings.crawl.depthHint')}>
+              <NumberInput
+                value={cfg.crawlDepth}
+                min={1}
+                max={3}
+                disabled={!cfg.crawl}
+                onValue={(v) => patch({ crawlDepth: v })}
+              />
+            </Field>
+            <Field label={t('settings.crawl.maxPages')} hint={t('settings.crawl.maxPagesHint')}>
+              <NumberInput
+                value={cfg.crawlMaxPages}
+                min={1}
+                max={200}
+                disabled={!cfg.crawl || cfg.crawlDepth < 2}
+                onValue={(v) => patch({ crawlMaxPages: v })}
+              />
+            </Field>
+          </div>
+
+          <ToggleRow
+            hue={1}
+            checked={cfg.crawlSameHost}
+            onChange={(v) => patch({ crawlSameHost: v })}
+            label={t('settings.crawl.sameHost')}
+            hint={t('settings.crawl.sameHostHint')}
+            disabled={!cfg.crawl || cfg.crawlDepth < 2}
+          />
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label={t('settings.crawl.include')} hint={t('settings.crawl.includeHint')}>
+              <TextArea
+                rows={3}
+                spellCheck={false}
+                disabled={!cfg.crawl}
+                value={(cfg.crawlInclude ?? []).join('\n')}
+                onChange={(e) => patch({ crawlInclude: e.target.value.split('\n').filter((p) => p.trim() !== '') })}
+              />
+            </Field>
+            <Field label={t('settings.crawl.exclude')} hint={t('settings.crawl.excludeHint')}>
+              <TextArea
+                rows={3}
+                spellCheck={false}
+                disabled={!cfg.crawl}
+                value={(cfg.crawlExclude ?? []).join('\n')}
+                onChange={(e) => patch({ crawlExclude: e.target.value.split('\n').filter((p) => p.trim() !== '') })}
+              />
+            </Field>
+          </div>
         </div>
       </Card>
 

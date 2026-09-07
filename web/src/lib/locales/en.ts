@@ -215,6 +215,17 @@ export const en = {
   'settings.watchDir': 'Watch folder',
   'settings.watchDirHint': 'Links dropped here as .txt or .crawljob files are picked up automatically.',
   'settings.crawl': 'Follow pages and collect the files they link to',
+  'settings.crawl.title': 'Page crawl',
+  'settings.crawl.depth': 'Crawl depth',
+  'settings.crawl.depthHint': 'How deep to go. 1 is the pasted page alone, 2 also opens the pages it links to, 3 opens theirs. A page is never opened twice, so links pointing back at each other end the run instead of looping.',
+  'settings.crawl.maxPages': 'Page limit',
+  'settings.crawl.maxPagesHint': 'The most pages one crawl may open. It counts pages requested, not links found. At depth 1 there is only one page, so it does nothing.',
+  'settings.crawl.sameHost': 'Stay on the same host',
+  'settings.crawl.sameHostHint': 'Only follow pages on the host you pasted. The host is compared exactly, so a subdomain counts as somewhere else. Files are never limited this way, because downloads often sit on a separate server.',
+  'settings.crawl.include': 'Only these links',
+  'settings.crawl.includeHint': 'One regular expression per line, matched against the whole address. A link must match one of them to be collected. Pages are not filtered, so this never stops the crawl going deeper.',
+  'settings.crawl.exclude': 'Never these links',
+  'settings.crawl.excludeHint': 'One regular expression per line, matched against the whole address. Anything matching is skipped, pages included, so an excluded address is never opened.',
   'task.checksumOk': 'Checksum verified',
   'task.checksumFail': 'Checksum does not match',
   'settings.verifyChecksums': 'Verify a finished download against a checksum, when one came with it',
@@ -1215,6 +1226,7 @@ export const en = {
   'activity.pending': '{n} pending',
   'activity.ofTotal': '{n} of {total}',
   'activity.tooltipHint': '{active} active of {total} this run',
+  'activity.stop': 'Stop this run',
 
   // The notification centre's quiet-mode row (lib/toast.tsx, Wave 9's 9B) -
   // landed here verbatim from that file's own PENDING table (see its doc
