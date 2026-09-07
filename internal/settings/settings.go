@@ -26,6 +26,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/feed"
 	"github.com/junkerderprovinz/knightloader/internal/idleaction"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
+	"github.com/junkerderprovinz/knightloader/internal/reclaim"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
@@ -422,6 +423,24 @@ type Settings struct {
 	// the process last stopped: never, only what was running, or everything
 	// unfinished. See the constants for what each one costs.
 	ResumeOnStart string `json:"resumeOnStart"`
+	// ReclaimTrust is how much the "already on the disk" pass is allowed to
+	// believe about a file it did not watch arrive: only a verified checksum,
+	// or also this instance's own record of what it finished, or also bare
+	// name plus length. See internal/reclaim's own Trust doc comment for what
+	// each tier costs, and in particular for why size on its own is not the
+	// default on a build whose download library creates the destination file
+	// at its full final length before the first byte arrives.
+	//
+	// It is a policy and NOT a switch: there is deliberately no "run this at
+	// boot" field beside it. The pass stats every unfinished task's folder and,
+	// wherever a checksum exists, reads a file that may be tens of gigabytes.
+	// On ten thousand tasks that is a disk run in front of a queue that does
+	// not exist yet, handed to somebody who installed an update rather than
+	// asked a question. Moving a box or restoring a backup is a one-off event
+	// and deserves a one-off press, not a scan on every boot for ever after;
+	// see App.Reclaim.
+	ReclaimTrust string `json:"reclaimTrust"`
+
 	// KeepFinishedDays is how long a finished download stays in the LIST. Zero
 	// keeps it forever.
 	//
@@ -666,6 +685,13 @@ func Defaults() Settings {
 		ResumeOnStart:    ResumeNever,
 		KeepFinishedDays: DefaultKeepFinishedDays,
 		HistoryMax:       DefaultHistoryMax,
+		// Written out rather than left at the zero value so a fresh
+		// settings.json says which tier it is on, the same way the three
+		// archive defaults above are written out even where one of them
+		// matches the zero value. sanitizeReclaim reads an empty string as
+		// this anyway, which is what keeps an install from before this key
+		// existed behaving identically to a fresh one.
+		ReclaimTrust: string(reclaim.DefaultTrust),
 	}
 }
 
@@ -893,6 +919,7 @@ func sanitize(n Settings) Settings {
 	n = sanitizeResolvers(n)
 	n = sanitizeRules(n)
 	n = sanitizeLifecycle(n)
+	n = sanitizeReclaim(n)
 	n = sanitizeIdleAction(n)
 	n = sanitizeCaptcha(n)
 	n = sanitizeConfirm(n)
