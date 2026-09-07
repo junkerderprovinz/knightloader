@@ -786,6 +786,26 @@ function AvailCell({ task, t }: { task: Task; t: Translate }) {
   return <AvailDot avail={avail} title={why ? t(why) : avail ? t(availChip[avail].key) : undefined} />;
 }
 
+/**
+ * waitingKey names each reason a queued task is not running.
+ *
+ * Typed as TranslationKey rather than plain string for the same reason
+ * reasonKey above is: a lookup through it stays something t() accepts, so a
+ * renamed key is a compile error and not a row that silently prints its own
+ * key. An unknown value falls back at the call site rather than here, because a
+ * newer server may send a reason this build has never heard of.
+ */
+const waitingKey: Partial<Record<NonNullable<Task['waiting']>, TranslationKey>> = {
+  slot: 'task.waiting.slot',
+  host: 'task.waiting.host',
+  forced: 'task.waiting.forced',
+  disabled: 'task.waiting.disabled',
+  hold: 'task.waiting.hold',
+  captcha: 'task.waiting.captcha',
+  account: 'task.waiting.account',
+  halted: 'task.waiting.halted',
+};
+
 function StatusCell({ task, t }: { task: Task; t: Translate }) {
   // The typed cause carries the detail, as a tooltip rather than a second word
   // on the line. "Host would not say" is the verdict and it is what the column
@@ -816,6 +836,22 @@ function StatusCell({ task, t }: { task: Task; t: Translate }) {
       {task.note && (
         <span className="min-w-0 truncate text-[11px] text-carbon-textMuted" title={task.note}>
           {task.note}
+        </span>
+      )}
+      {/* Why a queued row is not running (jdp's list, "Grund fürs Warten in der
+          Zeile"). The dispatcher has always known - the slot count is full, this
+          host is at its own ceiling, the account behind the only backend that
+          claims the link is benched - and it threw the answer away, so ten
+          queued rows all said "Wartet" and telling four completely different
+          situations apart meant reasoning about the settings page.
+
+          Only when there is no note: a backend's own sentence about what it is
+          doing right now is more specific than our reason for not having started
+          it, and two greys competing on one line is how a cell stops being
+          readable. */}
+      {!task.note && task.waiting && (
+        <span className="min-w-0 truncate text-[11px] text-carbon-textMuted">
+          {t(waitingKey[task.waiting] ?? 'task.waiting.slot')}
         </span>
       )}
       {/* Only a real verdict is shown. An unverified download stays unmarked,
