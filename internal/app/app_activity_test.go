@@ -237,11 +237,14 @@ func TestCrawlBroadcastsCrawlActivity(t *testing.T) {
 	}
 
 	got := activityMessages(t, fc, ActivityCrawl, 2)
-	if got[0] != (Activity{Kind: ActivityCrawl, Active: 1, Total: 1}) {
-		t.Errorf("first crawl activity = %+v, want {crawl 1 1}", got[0])
+	// Cancellable 1 while the crawl runs and 0 once it is over, which is what
+	// puts the stop button on the strip's crawl row for exactly as long as
+	// there is something to stop - see startActivityRun (app_activity.go).
+	if got[0] != (Activity{Kind: ActivityCrawl, Active: 1, Total: 1, Cancellable: 1}) {
+		t.Errorf("first crawl activity = %+v, want {crawl 1 1 cancellable 1}", got[0])
 	}
 	if got[1] != (Activity{Kind: ActivityCrawl, Active: 0, Total: 1}) {
-		t.Errorf("last crawl activity = %+v, want {crawl 0 1}", got[1])
+		t.Errorf("last crawl activity = %+v, want {crawl 0 1 cancellable 0}", got[1])
 	}
 }
 

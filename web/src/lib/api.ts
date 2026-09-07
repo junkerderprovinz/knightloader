@@ -318,6 +318,31 @@ export interface Settings {
   historyMax: number;
 
   crawl: boolean;
+  /**
+   * How many pages deep a crawl goes: 1 is the pasted page alone, 2 also
+   * follows the pages it links to, 3 follows theirs. Capped server-side at
+   * internal/crawler.MaxDepth.
+   *
+   * 1 by default and deliberately so - nobody may get a three-level crawl of
+   * somebody else's forum out of an update they did not read.
+   */
+  crawlDepth: number;
+  /** How many pages one crawl may FETCH. It counts requests, not links found. */
+  crawlMaxPages: number;
+  /**
+   * Keeps a deep crawl on the pasted page's own host. Host exactly, so a
+   * subdomain is a different site, and it never restricts the FILES that come
+   * back - see crawler.Options.SameHost for both halves of the reasoning.
+   */
+  crawlSameHost: boolean;
+  /**
+   * Regular expressions matched against the URLs a crawl meets. They are not
+   * symmetric: exclude keeps the crawl away from pages as well as files, while
+   * include only ever narrows what is staged. An include applied to pages too
+   * would cut the walk off at the first hop and make crawlDepth do nothing.
+   */
+  crawlInclude: string[];
+  crawlExclude: string[];
   watchDir: string;
   verifyChecksums: boolean;
   /**
@@ -1492,6 +1517,20 @@ export async function cancelIdleAction(): Promise<IdleActionState> {
  *  action this build does not implement. */
 export async function fetchIdleActions(): Promise<string[]> {
   return (await json<string[]>(await fetch('/api/idle-action/actions'))) ?? [];
+}
+
+/**
+ * abortActivity calls off the running background work of one kind and answers
+ * how many runs that was.
+ *
+ * Zero is a normal answer, not a failure: the run may have finished between the
+ * status strip drawing the button and somebody pressing it, which is the
+ * ordinary race for a control that only exists while work is in flight. The
+ * caller shows nothing for a zero - the row it was pressed on is already gone.
+ */
+export async function abortActivity(kind: string): Promise<number> {
+  const r = await ok(await post(`/api/activity/${encodeURIComponent(kind)}/abort`, {}));
+  return (await json<{ cancelled: number }>(r))?.cancelled ?? 0;
 }
 
 // ---- resolver routing facts (internal/resolver, GET /api/resolvers/*) -----
