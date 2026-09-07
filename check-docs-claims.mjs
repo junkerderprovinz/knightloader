@@ -262,6 +262,12 @@ if (/^ *(ENV +)?KL_CNL=/m.test(DOCKERFILE)) {
 const RESOLVER_NAMES = {
   debrid: 'debrid',
   jd: 'JDownloader',
+  // The package is named after the shape it needs (list a tree, ask a size,
+  // read from an offset), not after today's protocol list, so there is no one
+  // obvious word. SFTP is the token to check for: it is one of the four this
+  // resolver actually claims, and unlike "FTP" it cannot match by accident
+  // inside "FTPS" or a sentence about something else.
+  remotefs: 'SFTP',
   torbox: 'TorBox',
   torrent: 'torrent',
   ytdlp: 'yt-dlp',
