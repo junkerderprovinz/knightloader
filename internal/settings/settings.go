@@ -111,8 +111,43 @@ type Settings struct {
 	// DeleteInfoFiles sweeps the .nfo/.sfv/.diz/.url that came with the same
 	// package as the archive, using the same disposal.
 	DeleteInfoFiles bool `json:"deleteInfoFiles"`
-	// MaxRetries is how often a failed download is retried automatically.
+	// MaxRetries is how often a failed download is retried automatically. It
+	// is the count a RetryRule with no Tries of its own falls back to - see
+	// Retry below.
 	MaxRetries int `json:"maxRetries"`
+	// Retry is the backoff itself: how long the app waits before each of those
+	// attempts, per failure reason and per host, instead of one doubling
+	// sequence for every hoster on the internet. Empty - the default - is the
+	// fifteen-seconds-to-ten-minutes backoff this build has always had. See
+	// settings_hostrules.go.
+	Retry RetryPolicy `json:"retry"`
+
+	// StallTimeout is how long a RUNNING download may move no bytes before it
+	// is marked as standing still, in seconds. Zero - the default - never
+	// marks anything, which is this build's behaviour before the mark existed.
+	//
+	// It exists because a dead connection is indistinguishable from a slow one
+	// on a list: the row says "running", the speed says 0 B/s, and the slot it
+	// holds is gone until somebody notices, which overnight means until
+	// morning. Nothing about the mark stops the transfer - see
+	// StallRestart for the half that acts on it.
+	//
+	// Clamped up to MinStallTimeout when set at all: see settings_stall.go for
+	// why a timeout of a few seconds would mark healthy downloads rather than
+	// find dead ones.
+	StallTimeout int `json:"stallTimeout"`
+	// StallRestart hands a marked download back to the wait queue and starts
+	// it again from the top. Off by default, and deliberately a switch of its
+	// own rather than part of StallTimeout: the mark costs nothing and only
+	// says what is already true, while a restart THROWS AWAY the bytes the
+	// stalled attempt did fetch (app.restartStalled goes down the same path
+	// RestartTasks does, which clears the backend's partial file). Marking is
+	// information; restarting is a decision, and the two are not the same size.
+	StallRestart bool `json:"stallRestart"`
+	// StallMaxRestarts caps how many of those one task gets. Zero means
+	// DefaultStallRestarts rather than "unlimited" - see that constant for why
+	// an uncapped restart loop is the worse failure of the two.
+	StallMaxRestarts int `json:"stallMaxRestarts"`
 	// Crawl lets a pasted page URL be opened and the files it links to be
 	// staged, instead of the page itself becoming one task.
 	Crawl bool `json:"crawl"`
@@ -342,6 +377,21 @@ type Settings struct {
 	// dispatcher owns the fallback, and a copy of that number here is a second
 	// one to forget when the first is changed.
 	Chunks int `json:"chunks"`
+
+	// HostRules is what one host is allowed to differ in: its own
+	// simultaneous-download ceiling, its own chunk count, its own retry
+	// backoff. Keyed by host pattern - see HostRuleFor for what matches.
+	//
+	// It exists because MaxPerHost and Chunks are each ONE number for every
+	// hoster on the internet, and hosters do not agree: one tolerates eight
+	// connections, the next blocks from two. Tuning the global pair for the
+	// strictest host throttles every other download on the box.
+	//
+	// A host with no entry gets the global values, which is what makes an
+	// empty table a no-op: nobody's queue changes because they installed an
+	// update. Empty rather than nil on a fresh install for the reason
+	// YtdlpPresets is - see its own comment.
+	HostRules map[string]HostRule `json:"hostRules"`
 
 	// Reconnect gets the box a new public address when a hoster's free-user limit
 	// is keyed to the one it has. Off by default: it runs a program or talks to
@@ -601,6 +651,12 @@ func Defaults() Settings {
 		// fallback is applied by whoever looks a host up, not baked into
 		// every fresh install's own JSON.
 		YtdlpPresets: map[string]ytdlp.HosterPreset{},
+		// Both empty, and both are load-bearing zeroes rather than settings
+		// left unfinished: an empty host table means every host keeps the
+		// global numbers, and an empty reason table means every failure keeps
+		// the one backoff. See HostRules and Retry on the struct.
+		HostRules: map[string]HostRule{},
+		Retry:     RetryPolicy{ByReason: map[string]RetryRule{}},
 		// Unlike Ytdlp's, these are not the zero value - see defaultTorrent's
 		// own doc comment for where each number actually comes from.
 		Torrent: defaultTorrent(),
@@ -827,6 +883,8 @@ func ApplyPatch(base Settings, patch map[string]json.RawMessage) (Settings, erro
 func sanitize(n Settings) Settings {
 	n = sanitizeAppearance(n)
 	n = sanitizeQueue(n)
+	n = sanitizeStall(n)
+	n = sanitizeHostRules(n)
 	n = sanitizePaths(n)
 	n = sanitizeArchives(n)
 	n = sanitizeIntake(n)
