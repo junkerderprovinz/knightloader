@@ -867,8 +867,15 @@ func (a *App) SetHalted(halted bool) {
 		// it armed would halt the queue again at the next finished download for
 		// a reason nobody would connect to a click made minutes ago.
 		a.stopMark = ""
-		a.dispatchLocked()
 	}
+	// Dispatched either way, and the "either way" is the point. Halting used to
+	// skip this, on the reading that a stopped queue has nothing to dispatch -
+	// true until dispatchLocked was given something to do while halted, namely
+	// write "the queue is stopped" onto every waiting row. Skipped here, the
+	// stop button set the switch and left two hundred rows saying "waiting" with
+	// no reason, which is the one question the reason exists to answer.
+	// dispatchLocked reads a.halted itself and starts nothing behind a stop.
+	a.dispatchLocked()
 	a.mu.Unlock()
 	a.Hub.Broadcast("queue", a.Queue())
 }
@@ -1189,9 +1196,13 @@ func (a *App) applySchedule(st schedule.State) {
 		paused = a.manualHalt
 	}
 	a.halted = paused
-	if !paused {
-		a.dispatchLocked()
-	}
+	// Unconditional for the same reason SetHalted's is: a pause window is one of
+	// the two ways a row ends up waiting with nothing to show for it, and this is
+	// the pass that would have told it. It was the boot case that surfaced it -
+	// the halt and the queue arrive together there, and this runner's first pass
+	// is the only thing that dispatches afterwards, so a queue held at start-up
+	// said nothing at all.
+	a.dispatchLocked()
 	a.mu.Unlock()
 	// Not the raw limit onto the engine's throttle any more: the number belongs
 	// to all three meters together, and applyBudget shares it out (app_budget.go).
