@@ -33,6 +33,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
+	"github.com/junkerderprovinz/knightloader/internal/feed"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/schedule"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -287,6 +288,16 @@ func featureList(a *app.App) []Feature {
 			Parked: parked["watch"], Detail: watchDetail(s),
 		},
 		{
+			// Parked rather than a boolean, exactly like watch above and for the
+			// same reason: a subscription list is configured by its contents, so
+			// "off" means clearing it, and the app tears the runner down the way it
+			// applies any other save. Parking is what lets somebody switch feeds off
+			// for a week without retyping every address afterwards.
+			ID: "feeds", Verdict: VerdictShipped, Page: "downloads",
+			Switch: SwitchParked, Enabled: len(s.Feeds) > 0,
+			Parked: parked["feeds"], Detail: countDetail(len(s.Feeds), "subscription", "subscriptions"),
+		},
+		{
 			ID: "crawler", Verdict: VerdictShipped, Page: "downloads",
 			Switch: SwitchSetting, Enabled: s.Crawl,
 		},
@@ -467,7 +478,7 @@ func featurePages() []FeaturePage {
 		// reasoning shortcuts and diagnostics below already carry.
 		{ID: "appearance"},
 		{ID: "modules"},
-		{ID: "downloads", Modules: []string{"watch", "crawler", "checksums"}},
+		{ID: "downloads", Modules: []string{"watch", "feeds", "crawler", "checksums"}},
 		{ID: "archives", Modules: []string{"extraction"}},
 		{ID: "rules", Modules: []string{"packagizer", "linkfilter"}},
 		{ID: "connections", Modules: []string{"connections"}},
@@ -556,6 +567,20 @@ func setFeature(a *app.App, id string, on bool) error {
 			return errors.New("there is no watch folder to switch back on; set one on the Downloads page")
 		}
 		next.WatchDir = dir
+
+	case "feeds":
+		if !on {
+			if err := parkValue(a, id, next.Feeds); err != nil {
+				return err
+			}
+			next.Feeds = nil
+			break
+		}
+		var subs []feed.Subscription
+		if !unparkValue(a, id, &subs) || len(subs) == 0 {
+			return errors.New("there is no subscription to switch back on; add a feed on the Downloads page")
+		}
+		next.Feeds = subs
 
 	case "scheduler":
 		if !on {
