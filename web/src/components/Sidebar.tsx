@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import logoUrl from '../assets/logo.svg';
+import { LOGO_SCOPE_ID, logoInline } from '../lib/logoInline';
 import { hueVars, rainbowAt } from '../lib/appearance';
 import { useRainbow } from '../lib/useRainbow';
 import { setHidden, useHidden } from '../lib/sidebarPrefs';
@@ -309,10 +309,17 @@ export function Sidebar() {
       >
         {/* The easter egg wraps the mark and nothing else: a short click still
             navigates home, a long press draws the blade. See useDrawAndStrike. */}
-        <span className="kl-egg" data-egg={egg.state}>
-          <img src={logoUrl} alt="" aria-hidden className={`w-auto shrink-0 ${narrow ? 'h-10' : 'h-28'}`} />
-          <span className="kl-egg-sheen" aria-hidden />
-        </span>
+        {/* Inline rather than <img>, and only here: CSS cannot reach inside an
+            image, and this egg moves the SWORD while the shield stands still.
+            The other three places that show the mark keep <img>, which caches
+            and decodes off the main thread. See lib/logoInline for the one
+            trap inlining brings with it. */}
+        <span
+          className={`kl-egg shrink-0 ${narrow ? 'h-10' : 'h-28'}`}
+          id={LOGO_SCOPE_ID}
+          data-egg={egg.state}
+          dangerouslySetInnerHTML={{ __html: logoInline }}
+        />
         {!narrow && <span className="text-carbon-text font-bold text-xl tracking-tight">KnightLoader</span>}
       </NavLink>
 
