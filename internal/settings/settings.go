@@ -20,6 +20,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/confirm"
+	"github.com/junkerderprovinz/knightloader/internal/crawler"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/feed"
@@ -115,6 +116,41 @@ type Settings struct {
 	// Crawl lets a pasted page URL be opened and the files it links to be
 	// staged, instead of the page itself becoming one task.
 	Crawl bool `json:"crawl"`
+	// CrawlDepth is how many pages deep that crawl goes: 1 is the pasted page
+	// alone, 2 also follows the pages it links to, 3 follows theirs.
+	//
+	// It defaults to 1, and that is the whole point of the field existing
+	// rather than the crawler simply going deeper. Nobody may get a
+	// three-level crawl of somebody else's forum from an update they did not
+	// read: a deep crawl is dozens of requests to a stranger's server, and the
+	// only person entitled to ask for that is the one who typed the number.
+	//
+	// Clamped to internal/crawler.MaxDepth - see sanitizeIntake.
+	CrawlDepth int `json:"crawlDepth"`
+	// CrawlMaxPages caps how many pages one crawl FETCHES. It counts requests,
+	// not links found - see crawler.Options.MaxPages for why that is the unit.
+	// It does nothing at depth 1, where there is exactly one page.
+	CrawlMaxPages int `json:"crawlMaxPages"`
+	// CrawlSameHost keeps a deep crawl on the pasted page's own host. Host
+	// exactly, subdomains excluded, and it never restricts the FILES that come
+	// back - crawler.Options.SameHost carries the reasoning for both halves.
+	//
+	// True by default, unlike CrawlDepth's conservative 1: at depth 1 it does
+	// nothing at all, so the first person to raise the depth gets the safe
+	// answer to "and may it wander off this site" without having to know the
+	// question was asked.
+	CrawlSameHost bool `json:"crawlSameHost"`
+	// CrawlInclude and CrawlExclude are regular expressions matched against
+	// the URLs a crawl meets. Empty lists, the default, mean no filtering.
+	// Exclude keeps the crawl away from pages as well as files; include only
+	// ever narrows what is staged - see crawler.Options for why they are not
+	// symmetric.
+	//
+	// No omitempty, for the reason Feeds above gives: a nil slice with
+	// omitempty is dropped from the JSON entirely and the frontend has no way
+	// to type a field that is sometimes simply absent.
+	CrawlInclude []string `json:"crawlInclude"`
+	CrawlExclude []string `json:"crawlExclude"`
 	// WatchDir is a folder whose dropped .txt/.crawljob files are picked up.
 	// Empty disables the watcher.
 	WatchDir string `json:"watchDir"`
@@ -514,12 +550,18 @@ func (s Settings) RelayModeOf() string {
 // Defaults returns the settings a fresh install starts with.
 func Defaults() Settings {
 	return Settings{
-		MaxConcurrent:    4,
-		MaxPerHost:       2,
-		SpeedLimit:       0,
-		Extract:          true,
-		MaxRetries:       3,
-		Crawl:            true,
+		MaxConcurrent: 4,
+		MaxPerHost:    2,
+		SpeedLimit:    0,
+		Extract:       true,
+		MaxRetries:    3,
+		Crawl:         true,
+		// One page deep and staying on the host it was pasted from: today's
+		// behaviour, spelled out. See CrawlDepth and CrawlSameHost on the
+		// struct for why those two defaults are not the same shape.
+		CrawlDepth:       1,
+		CrawlMaxPages:    crawler.DefaultMaxPages,
+		CrawlSameHost:    true,
 		VerifyChecksums:  true,
 		PreParserEnabled: true,
 		// AutoConfirm and AddAtTop are usable at their zero value (false):
