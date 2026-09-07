@@ -380,6 +380,14 @@ func featureList(a *app.App) []Feature {
 			Detail: captchaDetail(a),
 		},
 		{
+			// Filed under "access", the tab that already holds the password,
+			// the connection phrase and the relay: this row is not about how
+			// downloads behave, it is about who may reach in and create them.
+			ID: "downloadclient", Verdict: VerdictShipped, Page: "access",
+			Switch: SwitchSetting, Enabled: s.DownloadClientAPI,
+			Detail: downloadClientDetail(a, s),
+		},
+		{
 			ID: "scripting", Verdict: VerdictShipped, Page: "scripts",
 			Switch: SwitchNone, Enabled: enabledScripts(a) > 0,
 			Reason: "a script is switched off by its own enabled field, edited on the Scripts page; there is no second flag here to disagree with it",
@@ -488,10 +496,12 @@ func featurePages() []FeaturePage {
 		// row filed under this id either - just a real, bookmarkable
 		// address in the rail (Wave 12).
 		{ID: "shortcuts"},
-		// No modules of its own since Click'n'Load moved to "look"
-		// (2026-09-07). The page stays: the password, the phrase and the
-		// relay all live here and none of them is a Feature{} row.
-		{ID: "access"},
+		// The password, the phrase and the relay all live here and none of
+		// them is a Feature{} row; the SABnzbd-shaped download client is the
+		// one module filed under this page, and it belongs here rather than
+		// under downloads because it is a door into the instance, not a
+		// setting about how downloads behave.
+		{ID: "access", Modules: []string{"downloadclient"}},
 		{ID: "scripts", Modules: []string{"scripting"}},
 		{ID: "advanced"},
 		// diagnostics and help carry no module row of their own, same as
@@ -542,6 +552,12 @@ func setFeature(a *app.App, id string, on bool) error {
 		next.Crawl = on
 	case "checksums":
 		next.VerifyChecksums = on
+	case "downloadclient":
+		// A plain setting rather than a parked value: the route re-reads this
+		// flag on every single request (see routes_downloadclient.go's serve),
+		// so clearing it closes the door on the next call with nothing left
+		// holding a socket open, which is exactly what SwitchSetting promises.
+		next.DownloadClientAPI = on
 
 	case "watch":
 		if !on {
@@ -697,6 +713,37 @@ func extractionDetail(s settings.Settings) string {
 		return "archives are moved to " + extract.TrashName + " after a successful extraction"
 	}
 	return "archives are kept after extraction"
+}
+
+// downloadClientDetail is the one live line the SABnzbd bridge row shows, and
+// it exists to say the two things somebody switching this on cannot find out
+// any other way.
+//
+// The first is that the switch alone opens nothing: the route refuses every
+// call without a valid API token, so an instance with no token is a bridge
+// nothing can talk to, and "on" with no explanation would look broken.
+//
+// The second is the folder. With subfolderByPackage off, every grab lands in
+// the same download folder, so the path this bridge reports to Sonarr as a
+// finished download's location is a folder holding everything else as well -
+// and Sonarr's importer then has several releases where it expects one. That is
+// not a bug in the bridge and it cannot be fixed from the bridge, so the row
+// says it out loud instead.
+func downloadClientDetail(a *app.App, s settings.Settings) string {
+	if !s.DownloadClientAPI {
+		return "off; Sonarr and Radarr get a 404 from it, the same as for an endpoint that does not exist"
+	}
+	var notes []string
+	if len(a.APITokens.List()) == 0 {
+		notes = append(notes, "no API token exists yet, so every call is refused; create one on this page")
+	}
+	if !s.SubfolderByPackage {
+		notes = append(notes, "per-package folders are off, so every grab lands in one folder and the importer cannot tell them apart")
+	}
+	if len(notes) == 0 {
+		return "reachable at /api/sabnzbd/api; set Sonarr's or Radarr's URL Base to \"api/sabnzbd\" and its API key to one of this instance's tokens"
+	}
+	return strings.Join(notes, "; ")
 }
 
 func watchDetail(s settings.Settings) string {
