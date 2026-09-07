@@ -344,6 +344,13 @@ cd web && npm ci && npx tsc --noEmit && npm run build
 node check-docs-claims.mjs    # the numbers this file and docs/ assert
 ```
 
+A handful of tests open a socket on a real network interface instead of on
+loopback: discovery joins its multicast group, and the torrent tests reach a
+real swarm. They are skipped unless `KNIGHTLOADER_NET_TESTS` is set, because
+Windows puts a firewall dialog in front of every new test binary that listens
+that widely and blocks the run until it is clicked away. CI sets the variable,
+so those tests still run on every push; set it yourself to run them locally.
+
 The UI is built into `web/dist`, which is committed and embedded into the
 binary, so a plain `go build` produces a working server. English is the source
 locale and every other one is typed against it, which makes `tsc` the gate that

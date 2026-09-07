@@ -125,9 +125,17 @@ jobs:
       # internal/app runs close enough to trip on a loaded machine. When it
       # does, the panic names whichever test happened to be running - which is
       # not the slow one, and has already sent someone chasing the wrong test.
+      # KNIGHTLOADER_NET_TESTS turns on the handful of tests that open a socket
+      # on a real interface rather than on loopback: discovery's multicast group
+      # and the live torrent runs. They are off by default because Windows puts
+      # a firewall dialog in front of every new test binary that listens widely,
+      # which stops a local `go test ./...` dead until it is clicked away. A
+      # Linux runner has no such dialog, so this is where those tests belong.
+      # See internal/testenv.
       - name: Test
         env:
           CGO_ENABLED: "0"
+          KNIGHTLOADER_NET_TESTS: "1"
         run: go test ./... -count=1 -timeout 25m
 
       # The race detector needs cgo and therefore cannot share the pure-Go pass
@@ -145,6 +153,8 @@ jobs:
       # remains, and it is still comfortably more than the ~12 min the whole
       # suite takes when it is healthy.
       - name: Test (race)
+        env:
+          KNIGHTLOADER_NET_TESTS: "1"
         run: go test -race ./... -count=1 -timeout 12m
 
       # Same flags as the Dockerfile, so a build that only fails when cgo is off
