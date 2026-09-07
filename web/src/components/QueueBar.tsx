@@ -13,6 +13,7 @@ import {
 import { useDialogMute } from '../lib/dialogmute';
 import { useT } from '../lib/i18n';
 import { useInstanceScope } from '../lib/instance';
+import { useNavLabels } from '../lib/navLabels';
 import { Button, Modal } from './ui';
 import { fmtBytes, RATE_UNITS, type RateUnit, fmtRateValue, joinRate, splitRate } from '../lib/format';
 import { IconPause, IconPlay, IconStop } from '../lib/icons';
@@ -126,10 +127,33 @@ export function useQueueControl(base: string, instance: string) {
  */
 const TRANSPORT_SIZE = 'h-12 w-12 p-0';
 
+/**
+ * TRANSPORT_SIZE_LABELLED is the same control once the labelling engine shows text.
+ *
+ * The square above is the icon-only shape, and it stayed square after these
+ * three were given `labelled`: measured on the preview instance, "Wiedergabe"
+ * needed 77px inside a 48px button whose overflow is visible, so the word hung
+ * out of its own box and across its neighbour. A fixed square cannot hold a
+ * word, and the words here are German more often than not.
+ *
+ * The width is the menu button's, which is what jdp asked for when the labels
+ * went on ("So breit wie der Menü-Button"). The HEIGHT stays 48: being bigger
+ * than everything around it is the whole point of these three, and that does
+ * not stop being true because they grew a caption.
+ */
+const TRANSPORT_SIZE_LABELLED = 'h-12 w-44 px-3.5';
+
 export function QueueBar() {
   const { t } = useT();
   const { instance, base } = useInstanceScope();
   const { queue, setHalted, stop } = useQueueControl(base, instance);
+  // Same read the Button makes for itself, made here too because the SIZE has
+  // to change with the label and only the caller owns the className. The
+  // condition MIRRORS Button's own `showText` (ui.tsx) exactly - 'glyph' and
+  // 'hover' draw no caption, so they keep the square, and any other reading
+  // here would size a button for a word it is not showing.
+  const labelMode = useNavLabels();
+  const transport = labelMode === 'text' || labelMode === 'both' ? TRANSPORT_SIZE_LABELLED : TRANSPORT_SIZE;
   const [cfg, setCfg] = useState<Settings | null>(null);
   // The hard-stop confirm step: null until the button is pressed, then the
   // cost this exact moment would pay (internal/app/app_queue.go's StopCost -
@@ -240,7 +264,7 @@ export function QueueBar() {
         kind={queue.halted ? 'primary' : 'secondary'}
         icon={<IconPlay width={22} height={22} />}
         labelled
-        className={TRANSPORT_SIZE}
+        className={transport}
         onClick={() => void setHalted(false)}
         disabled={!queue.halted}
         title={t('queue.play')}
@@ -250,7 +274,7 @@ export function QueueBar() {
         kind={!queue.halted ? 'primary' : 'secondary'}
         icon={<IconPause width={22} height={22} />}
         labelled
-        className={TRANSPORT_SIZE}
+        className={transport}
         onClick={() => void setHalted(true)}
         disabled={queue.halted}
         title={t('queue.pause')}
@@ -260,7 +284,7 @@ export function QueueBar() {
         kind="secondary"
         icon={<IconStop width={22} height={22} />}
         labelled
-        className={TRANSPORT_SIZE}
+        className={transport}
         // Silenced, the stop happens on the press. The dialog exists to say
         // what is about to be interrupted, and somebody who ticked "do not
         // show this again" has answered that in advance - see dialogmute.ts.

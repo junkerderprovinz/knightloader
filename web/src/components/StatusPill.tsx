@@ -63,7 +63,13 @@ export function StatusPill({ status }: { status: TaskStatus }) {
   const s = statusTone[status] ?? statusTone.queued;
   const Glyph = statusGlyph[status] ?? IconClock;
   return (
-    <span className={`inline-flex min-w-0 items-center gap-1.5 text-[11px] font-medium ${toneText[s.tone]}`}>
+    // shrink-0, because the pill is the ANSWER and whatever stands beside it is
+    // the footnote. Left shrinkable it lost the argument to a longer neighbour -
+    // measured on the preview instance, "Wartet" next to a waiting reason came
+    // out as "W…", so the one word the column exists for was the one word gone.
+    // min-w-0 stays for the truncate inside, which now only ever bites on a
+    // genuinely narrow column rather than on a crowded one.
+    <span className={`inline-flex min-w-0 shrink-0 items-center gap-1.5 text-[11px] font-medium ${toneText[s.tone]}`}>
       <Glyph width={13} height={13} className="shrink-0" />
       <span className="truncate">{t(s.key)}</span>
     </span>

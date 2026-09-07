@@ -820,7 +820,11 @@ function StatusCell({ task, t }: { task: Task; t: Translate }) {
     return <AvailDot avail={avail} title={why ? t(why) : avail ? t(availChip[avail].key) : undefined} />;
   }
   return (
-    <span className="inline-flex min-w-0 items-center gap-2">
+    // max-w-full is what makes the truncate below actually truncate. Without it
+    // this inline-flex takes its content's width - measured live at 175px inside
+    // a 148px column - and the CELL does the clipping instead, which cuts mid-word
+    // with no ellipsis and no way to read the rest ("Warteschlange g").
+    <span className="inline-flex min-w-0 max-w-full items-center gap-2">
       <StatusPill status={task.status} />
       {/* What the backend is actually doing, when "running" is not the whole
           truth (jdp, 2026-09-03: "es zeigt wieder nur 'lädt' an ... bei free
@@ -850,7 +854,13 @@ function StatusCell({ task, t }: { task: Task; t: Translate }) {
           it, and two greys competing on one line is how a cell stops being
           readable. */}
       {!task.note && task.waiting && (
-        <span className="min-w-0 truncate text-[11px] text-carbon-textMuted">
+        // title for the same reason task.note has one: this column is narrow by
+        // default and several of these reasons are longer in German than the
+        // space they get, so the ellipsis needs somewhere to lead.
+        <span
+          className="min-w-0 truncate text-[11px] text-carbon-textMuted"
+          title={t(waitingKey[task.waiting] ?? 'task.waiting.slot')}
+        >
           {t(waitingKey[task.waiting] ?? 'task.waiting.slot')}
         </span>
       )}
