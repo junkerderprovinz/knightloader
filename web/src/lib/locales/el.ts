@@ -48,6 +48,7 @@ export const el: Dict = {
   'task.reason.unsupported': 'Χωρίς μηχανή',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Ακυρώθηκε',
+  'task.reason.unknown': 'Χωρίς κατηγορία',
 
   'overview.title': 'Επισκόπηση',
   'overview.totalSpeed': 'Συνολική ταχύτητα λήψης',
@@ -98,6 +99,7 @@ export const el: Dict = {
   'downloads.pauseAll': 'Παύση όλων',
   'downloads.resumeAll': 'Συνέχιση όλων',
   'downloads.retryFailed': 'Επανάληψη αποτυχημένων',
+  'downloads.retryCause': 'Δοκιμή ξανά για τις {n} με αυτή την αιτία: {reason}',
   'downloads.clearFinished': 'Καθαρισμός ολοκληρωμένων',
   'downloads.noMatch': 'Τίποτα δεν ταιριάζει με το φίλτρο.',
   'downloads.finished': 'Το {name} ολοκληρώθηκε',
@@ -327,6 +329,7 @@ export const el: Dict = {
   'search.url': 'Σύνδεσμος',
   'search.clear': 'Καθαρισμός αναζήτησης',
   'search.hint': 'Διαλέξτε ένα πεδίο για αναζήτηση ή «Παντού» για να ψάξετε σε όλα μαζί.',
+  'search.syntax': 'Πολλές λέξεις πρέπει να ταιριάζουν όλες, ένα μείον μπροστά αποκλείει μία. Τα host:, package: και name: ψάχνουν σε ένα μόνο πεδίο, τα >500mb και older:7d ρωτούν για μέγεθος και ηλικία. Οτιδήποτε άλλο αναζητείται ως απλό κείμενο.',
   'search.shown': '{n} από {total} εμφανίζονται',
 
   'filter.label': 'Γρήγορα φίλτρα',
@@ -369,6 +372,9 @@ export const el: Dict = {
   'remove.noFiles': 'Δεν έχει γραφτεί ακόμη τίποτα στον δίσκο.',
   'remove.done': 'Αφαιρέθηκαν {n} λήψεις.',
   'remove.keys': 'Το Del βγάζει τις επιλεγμένες γραμμές από τη λίστα. Το Shift+Del σβήνει και τα αρχεία τους.',
+  'remove.undo': 'Αναίρεση',
+  'remove.undone': '{n} λήψεις πίσω στη λίστα.',
+  'remove.undoTooLate': 'Πολύ αργά, αυτές οι γραμμές χάθηκαν οριστικά.',
 
   'menu.label': 'Ενέργειες για τις επιλεγμένες λήψεις',
   'menu.packageLabel': 'Ενέργειες για αυτό το πακέτο',

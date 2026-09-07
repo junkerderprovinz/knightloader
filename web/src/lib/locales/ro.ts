@@ -48,6 +48,7 @@ export const ro: Dict = {
   'task.reason.unsupported': 'Fără motor',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Anulat',
+  'task.reason.unknown': 'Neclasificat',
 
   'overview.title': 'Prezentare',
   'overview.totalSpeed': 'Viteză totală de descărcare',
@@ -98,6 +99,7 @@ export const ro: Dict = {
   'downloads.pauseAll': 'Pune tot pe pauză',
   'downloads.resumeAll': 'Continuă tot',
   'downloads.retryFailed': 'Reîncearcă eșuatele',
+  'downloads.retryCause': 'Reia cele {n} care au eșuat: {reason}',
   'downloads.clearFinished': 'Curăță terminatele',
   'downloads.noMatch': 'Nimic nu corespunde filtrului.',
   'downloads.finished': '{name} s-a terminat',
@@ -327,6 +329,7 @@ export const ro: Dict = {
   'search.url': 'Link',
   'search.clear': 'Șterge căutarea',
   'search.hint': 'Alege un singur câmp în care să cauți, sau „Peste tot” ca să le cauți pe toate deodată.',
+  'search.syntax': 'Mai multe cuvinte trebuie să se potrivească toate, un minus în față exclude unul. host:, package: și name: caută într-un singur câmp, >500mb și older:7d întreabă de mărime și vechime. Restul se caută ca text obișnuit.',
   'search.shown': '{n} din {total} afișate',
 
   'filter.label': 'Filtre rapide',
@@ -369,6 +372,9 @@ export const ro: Dict = {
   'remove.noFiles': 'Pe disc nu s-a scris încă nimic.',
   'remove.done': '{n} descărcări eliminate.',
   'remove.keys': 'Del scoate rândurile selectate din listă. Shift+Del le șterge și fișierele.',
+  'remove.undo': 'Anulează',
+  'remove.undone': '{n} descărcări înapoi în listă.',
+  'remove.undoTooLate': 'Prea târziu, rândurile acelea au dispărut definitiv.',
 
   'menu.label': 'Acțiuni pentru descărcările selectate',
   'menu.packageLabel': 'Acțiuni pentru acest pachet',

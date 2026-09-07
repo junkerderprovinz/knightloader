@@ -46,6 +46,7 @@ export const pl: Dict = {
   'task.reason.unsupported': 'Brak silnika',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Anulowano',
+  'task.reason.unknown': 'Bez klasyfikacji',
   'overview.title': 'Przegląd',
   'overview.totalSpeed': 'Łączna prędkość',
   'overview.active': 'Aktywne',
@@ -93,6 +94,7 @@ export const pl: Dict = {
   'downloads.pauseAll': 'Wstrzymaj wszystko',
   'downloads.resumeAll': 'Wznów wszystko',
   'downloads.retryFailed': 'Ponów nieudane',
+  'downloads.retryCause': 'Ponów {n} z tą przyczyną: {reason}',
   'downloads.clearFinished': 'Uprzątnij',
   'downloads.noMatch': 'Nic nie pasuje do tego filtra.',
   'downloads.finished': '{name} - gotowe',
@@ -319,6 +321,7 @@ export const pl: Dict = {
   'search.url': 'Link',
   'search.clear': 'Wyczyść wyszukiwanie',
   'search.hint': 'Wybierz jedno pole do przeszukania albo „Wszędzie”, aby przeszukać wszystkie naraz.',
+  'search.syntax': 'Wiele słów musi pasować naraz, minus z przodu wyklucza jedno. host:, package: i name: przeszukują jedno pole, >500mb i older:7d pytają o rozmiar i wiek. Wszystko inne jest szukane jako zwykły tekst.',
   'search.shown': '{n} z {total} pokazanych',
 
   'filter.label': 'Szybkie filtry',
@@ -361,6 +364,9 @@ export const pl: Dict = {
   'remove.noFiles': 'Na dysk nie zapisano jeszcze nic.',
   'remove.done': 'Usunięto {n} pobierań.',
   'remove.keys': 'Delete zdejmuje zaznaczone wiersze z listy. Shift+Delete kasuje też ich pliki.',
+  'remove.undo': 'Cofnij',
+  'remove.undone': 'Z powrotem na liście: {n} pobierań.',
+  'remove.undoTooLate': 'Za późno, tych wierszy już nie ma.',
 
   'menu.label': 'Akcje dla zaznaczonych pobierań',
   'menu.packageLabel': 'Akcje dla tego pakietu',

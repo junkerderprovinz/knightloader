@@ -51,15 +51,37 @@ export type NotificationKind =
   | 'action-failed'
   | 'info';
 
+/**
+ * One thing a bubble can offer besides being read.
+ *
+ * It exists for the press somebody wants back. An action that only ever
+ * destroys - removing rows, clearing a list - is finished before the bubble
+ * appears, so the bubble is the only place left where taking it back is one
+ * click rather than a re-import; QuickAdd already proves the shape works, it
+ * simply had nowhere shared to live.
+ *
+ * `holdMs` is the caller's, because the caller is the only one who knows how
+ * long its offer is good for: the removal's own token expires on the server
+ * (app.UndoWindow), and a bubble that goes away before that token does throws
+ * away an undo that would have worked. Left out, a bubble lives the ordinary
+ * DURATION_MS.
+ */
+export interface ToastAction {
+  label: string;
+  run: () => void | Promise<void>;
+  holdMs?: number;
+}
+
 interface ToastMessage {
   id: number;
   message: string;
   tone: ToastTone;
   kind: NotificationKind;
+  action?: ToastAction;
 }
 
 interface ToastAPI {
-  toast: (message: string, tone?: ToastTone, kind?: NotificationKind) => void;
+  toast: (message: string, tone?: ToastTone, kind?: NotificationKind, action?: ToastAction) => void;
 }
 
 const Ctx = createContext<ToastAPI>({ toast: () => {} });
@@ -159,7 +181,7 @@ function useNx() {
  */
 function ToastBubble({ item, onDismiss }: { item: ToastMessage; onDismiss: (id: number) => void }) {
   const { t } = useT();
-  const remaining = useRef(DURATION_MS);
+  const remaining = useRef(item.action?.holdMs ?? DURATION_MS);
   const armedAt = useRef(0);
   // The initial value is explicit and the type carries undefined: React 19's
   // useRef no longer has an overload that takes no argument at all.
@@ -217,6 +239,23 @@ function ToastBubble({ item, onDismiss }: { item: ToastMessage; onDismiss: (id: 
       <span className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${dot[item.tone]}`} />
       <span className={toneClass[item.tone]}>{item.message}</span>
       <span className="flex-1" />
+      {item.action && (
+        // Dismissed before the work is started, not after it: the bubble was
+        // offering exactly one press, and leaving it up while the request is in
+        // flight invites a second one. What the action itself reports - it
+        // worked, it was too late - arrives as its own bubble.
+        <Button
+          kind="primary"
+          className="px-2.5 text-xs"
+          onClick={() => {
+            const run = item.action?.run;
+            onDismiss(item.id);
+            void run?.();
+          }}
+        >
+          {item.action.label}
+        </Button>
+      )}
       {/* secondary, not ghost: on a filled bubble a fill-less button reads as
           decoration rather than as the way out of it. */}
       <Button
@@ -292,12 +331,23 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const dismiss = useCallback((id: number) => setItems((s) => s.filter((m) => m.id !== id)), []);
 
-  const toast = useCallback((message: string, tone: ToastTone = 'info', kind?: NotificationKind) => {
-    const k = kind ?? KIND_BY_TONE[tone];
-    if (quietRef.current && !CRITICAL[k]) return;
-    const id = ++seq.current;
-    setItems((s) => [...s, { id, message, tone, kind: k }]);
-  }, []);
+  const toast = useCallback(
+    (message: string, tone: ToastTone = 'info', kind?: NotificationKind, action?: ToastAction) => {
+      const k = kind ?? KIND_BY_TONE[tone];
+      // A bubble carrying an action survives quiet mode whatever its kind says,
+      // and that follows from the rule CRITICAL already encodes rather than
+      // bending it: quiet mode swallows what is "already sitting in the queue,
+      // the account strip or the list that caused it", and an offer that expires
+      // is sitting nowhere. Swallow the removal bubble and the undo behind it is
+      // gone with it - the switch would be quietly turning a reversible action
+      // into an irreversible one, which is not what anybody reads "hide success
+      // notifications" as.
+      if (quietRef.current && !CRITICAL[k] && !action) return;
+      const id = ++seq.current;
+      setItems((s) => [...s, { id, message, tone, kind: k, action }]);
+    },
+    [],
+  );
 
   return (
     <Ctx.Provider value={{ toast }}>

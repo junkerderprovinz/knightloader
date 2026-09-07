@@ -18,6 +18,7 @@ import type { TranslationKey } from '../lib/i18n';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { IconCheck, IconChevronDown, IconRetry, PriorityGlyph } from '../lib/icons';
+import { hostOf } from '../lib/searchQuery';
 import { ContextMenu, anchorBelow, useContextMenu } from './ContextMenu';
 import { HosterIcon } from './HosterIcon';
 import { ProgressBar } from './ProgressBar';
@@ -259,7 +260,10 @@ export function EnabledSwitch({
 // interface has never heard of — and an unrecognised one gets no label rather
 // than the raw token: the whole worth of the label is that it is a word somebody
 // can act on, and "reason: hoster_soft_limit" is not one.
-const reasonKey: Record<string, TranslationKey> = {
+// Exported so the failure chips (ErrorCauses.tsx) name a cause with the exact
+// word the row beside them already uses. A second copy of this table is how a
+// chip ends up saying "Hoster limit" over rows labelled something else.
+export const reasonKey: Record<string, TranslationKey> = {
   gone: 'task.reason.gone',
   auth: 'task.reason.auth',
   limit: 'task.reason.limit',
@@ -908,34 +912,13 @@ function ConnectionCell({ task, t, base }: { task: Task; t: Translate; base: str
 
 const label = (t: Task): string => t.name || t.url;
 
-// A URL is parsed once per link and kept, because the host column parses it for
-// every row of every repaint otherwise. The cap is there so a session that has
-// seen a hundred thousand links does not keep them all.
-const hostCache = new Map<string, string>();
-
-/**
- * hostOf is the file host, which is not the resolver: through a debrid service
- * every row would otherwise claim the same origin.
- *
- * Until the server carries `host`, it comes from the URL that was pasted rather
- * than from wherever the bytes end up coming from — the same rule the server
- * side will follow, so the column does not change its answer when it lands.
- */
-export function hostOf(task: Task): string {
-  if (task.host) return task.host;
-  if (!task.url) return '';
-  let h = hostCache.get(task.url);
-  if (h === undefined) {
-    try {
-      h = new URL(task.url).hostname.replace(/^www\./, '');
-    } catch {
-      h = '';
-    }
-    if (hostCache.size > 5000) hostCache.clear();
-    hostCache.set(task.url, h);
-  }
-  return h;
-}
+// hostOf moved to lib/searchQuery.ts, cache and all, and is re-exported from
+// here because this is the module the collector's facets and stats already
+// import it from. It went because the search field kept a SECOND copy of the
+// same rule for as long as it has had a "Host" category to search: the column
+// and the `host:` term are one question, and two answers to it is how a row is
+// filed under one host and found under another.
+export { hostOf } from '../lib/searchQuery';
 
 // Sorting by status alphabetically tells nobody anything; sorting by where a
 // task is in its life does. Fault last, because that is what people sort to find.

@@ -50,6 +50,7 @@ export const ar: Dict = {
   'task.reason.unsupported': 'لا خلفية تدعمه',
   'task.reason.captcha': 'كابتشا',
   'task.reason.cancelled': 'أُلغي',
+  'task.reason.unknown': 'دون تصنيف',
 
   'overview.title': 'نظرة عامة',
   'overview.totalSpeed': 'إجمالي سرعة التنزيل',
@@ -100,6 +101,7 @@ export const ar: Dict = {
   'downloads.pauseAll': 'إيقاف الكل مؤقتًا',
   'downloads.resumeAll': 'متابعة الكل',
   'downloads.retryFailed': 'إعادة محاولة الفاشل',
+  'downloads.retryCause': 'إعادة محاولة {n} بهذا السبب: {reason}',
   'downloads.clearFinished': 'مسح المكتمل',
   'downloads.noMatch': 'لا شيء يطابق هذه التصفية.',
   'downloads.finished': 'اكتمل {name}',
@@ -329,6 +331,7 @@ export const ar: Dict = {
   'search.url': 'الرابط',
   'search.clear': 'مسح البحث',
   'search.hint': 'اختر حقلًا واحدًا للبحث فيه، أو «كل شيء» للبحث فيها جميعًا دفعة واحدة.',
+  'search.syntax': 'يجب أن تتطابق كل الكلمات، وعلامة الناقص أمام كلمة تستبعدها. تبحث host: و package: و name: في حقل واحد، بينما تسأل >500mb و older:7d عن الحجم والعمر. وكل ما عدا ذلك يُبحث عنه كنص عادي.',
   'search.shown': 'يظهر {n} من {total}',
 
   'filter.label': 'مرشّحات سريعة',
@@ -371,6 +374,9 @@ export const ar: Dict = {
   'remove.noFiles': 'لم يُكتب شيء على القرص بعد.',
   'remove.done': 'أُزيل {n} تنزيل.',
   'remove.keys': 'زر Del يرفع الصفوف المحدّدة من القائمة. وShift+Del يحذف ملفاتها كذلك.',
+  'remove.undo': 'تراجع',
+  'remove.undone': 'عاد {n} تنزيل إلى القائمة.',
+  'remove.undoTooLate': 'فات الأوان، هذه الصفوف اختفت نهائيًا.',
 
   'menu.label': 'إجراءات على التنزيلات المحدّدة',
   'menu.packageLabel': 'إجراءات على هذه الحزمة',

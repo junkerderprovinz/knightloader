@@ -48,6 +48,7 @@ export const ko: Dict = {
   'task.reason.unsupported': '백엔드 없음',
   'task.reason.captcha': '캡차',
   'task.reason.cancelled': '취소됨',
+  'task.reason.unknown': '분류 없음',
 
   'overview.title': '개요',
   'overview.totalSpeed': '전체 다운로드 속도',
@@ -98,6 +99,7 @@ export const ko: Dict = {
   'downloads.pauseAll': '전체 일시 중지',
   'downloads.resumeAll': '전체 이어서',
   'downloads.retryFailed': '실패 항목 재시도',
+  'downloads.retryCause': '이 원인으로 실패한 {n}개 다시 시도: {reason}',
   'downloads.clearFinished': '완료 항목 정리',
   'downloads.noMatch': '조건에 맞는 항목이 없습니다.',
   'downloads.finished': '{name} 완료',
@@ -327,6 +329,7 @@ export const ko: Dict = {
   'search.url': '링크',
   'search.clear': '검색 지우기',
   'search.hint': '검색할 항목을 하나 고르거나 “전체”를 골라 한 번에 모두 검색하세요.',
+  'search.syntax': '여러 단어는 모두 일치해야 하며, 앞의 빼기 기호는 하나를 제외합니다. host:, package:, name: 은 한 항목만 검색하고 >500mb 와 older:7d 는 크기와 경과 기간을 묻습니다. 그 밖의 모든 것은 일반 문자열로 검색됩니다.',
   'search.shown': '{total}개 중 {n}개 표시',
 
   'filter.label': '빠른 필터',
@@ -369,6 +372,9 @@ export const ko: Dict = {
   'remove.noFiles': '디스크에는 아직 아무것도 쓰이지 않았습니다.',
   'remove.done': '다운로드 {n}개를 지웠습니다.',
   'remove.keys': 'Del은 선택한 행을 목록에서 뺍니다. Shift+Del은 파일까지 지웁니다.',
+  'remove.undo': '실행 취소',
+  'remove.undone': '다운로드 {n}개가 목록으로 돌아왔습니다.',
+  'remove.undoTooLate': '너무 늦었습니다. 그 행들은 완전히 사라졌습니다.',
 
   'menu.label': '선택한 다운로드에 대한 작업',
   'menu.packageLabel': '이 패키지에 대한 작업',

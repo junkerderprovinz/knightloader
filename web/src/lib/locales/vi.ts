@@ -48,6 +48,7 @@ export const vi: Dict = {
   'task.reason.unsupported': 'Không có backend',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Đã hủy',
+  'task.reason.unknown': 'Chưa phân loại',
 
   'overview.title': 'Tổng quan',
   'overview.totalSpeed': 'Tổng tốc độ tải',
@@ -98,6 +99,7 @@ export const vi: Dict = {
   'downloads.pauseAll': 'Tạm dừng tất cả',
   'downloads.resumeAll': 'Tiếp tục tất cả',
   'downloads.retryFailed': 'Thử lại các mục lỗi',
+  'downloads.retryCause': 'Thử lại {n} mục thất bại vì: {reason}',
   'downloads.clearFinished': 'Dọn các mục đã xong',
   'downloads.noMatch': 'Không có mục nào khớp bộ lọc.',
   'downloads.finished': '{name} đã xong',
@@ -327,6 +329,7 @@ export const vi: Dict = {
   'search.url': 'Liên kết',
   'search.clear': 'Xóa tìm kiếm',
   'search.hint': 'Chọn một trường để tìm, hoặc “Mọi thứ” để tìm trong tất cả cùng lúc.',
+  'search.syntax': 'Nhiều từ đều phải khớp, dấu trừ phía trước sẽ loại một từ ra. host:, package: và name: chỉ tìm trong một trường, còn >500mb và older:7d hỏi về kích thước và tuổi. Mọi thứ khác được tìm như văn bản thường.',
   'search.shown': 'Hiện {n} trên {total}',
 
   'filter.label': 'Bộ lọc nhanh',
@@ -369,6 +372,9 @@ export const vi: Dict = {
   'remove.noFiles': 'Chưa có gì được ghi xuống đĩa.',
   'remove.done': 'Đã bỏ {n} tải xuống.',
   'remove.keys': 'Del bỏ các dòng đã chọn khỏi danh sách. Shift+Del xóa cả tệp của chúng.',
+  'remove.undo': 'Hoàn tác',
+  'remove.undone': '{n} tải xuống đã trở lại danh sách.',
+  'remove.undoTooLate': 'Quá muộn, những dòng đó đã mất hẳn.',
 
   'menu.label': 'Hành động cho các tải xuống đã chọn',
   'menu.packageLabel': 'Hành động cho gói này',

@@ -613,6 +613,21 @@ export interface Diagnostics {
 export interface BulkResult {
   ids: string[];
   count: number;
+  /**
+   * The token that puts a removal back, set by deleteTasks alone and only when
+   * the files were left where they are. Absent means there is nothing to undo -
+   * either nothing was removed, or the files went with it and the row alone is
+   * not what anybody would be restoring.
+   */
+  undo?: string;
+  /**
+   * How long that token stays good, in milliseconds.
+   *
+   * Read from the answer rather than assumed here: the server owns the window
+   * (app.UndoWindow), and an "Undo" button that outlives it is a button that
+   * answers "nothing to undo" to a press that looked perfectly in time.
+   */
+  undoMs?: number;
 }
 
 /**
@@ -915,12 +930,21 @@ export const setPackage = (ids: string[], pkg: string, base = '/api') =>
     body: JSON.stringify({ ids, package: pkg }),
   });
 
-// restartTasks re-runs finished/errored tasks (empty = all errored).
-export const restartTasks = (ids: string[], base = '/api') =>
+/**
+ * restartTasks re-runs finished/errored tasks (empty ids = all errored).
+ *
+ * `reasons` narrows that to the causes named, using core.Reason's own values -
+ * '' included, which is the group nothing classified. Left out, it means every
+ * cause, which is what this call has always meant. Given ids AND reasons, the
+ * server intersects them; see app.RestartTasksIn for why that, and not a union.
+ */
+export const restartTasks = (ids: string[], base = '/api', reasons?: Reason[]) =>
   fetch(`${base}/tasks/restart`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ids }),
+    // Omitted rather than sent as an empty array, so an older instance sees the
+    // exact body it saw before this field existed.
+    body: JSON.stringify(reasons && reasons.length > 0 ? { ids, reasons } : { ids }),
   });
 
 export const pause = (id: string, base = '/api') =>
@@ -1101,6 +1125,17 @@ export const setForced = async (ids: string[], forced: boolean, base = '/api') =
  */
 export const deleteTasks = async (ids: string[], withFiles = false, base = '/api') =>
   json<BulkResult>(await ok(await post(`${base}/tasks/delete`, { ids, files: withFiles })));
+
+/**
+ * undoDelete puts back the rows one removal took.
+ *
+ * A token that has expired, or one that was already spent, restores nothing and
+ * is NOT an error: the window closing is the ordinary end of a token's life, and
+ * the answer's own count is what the caller reports. Anything that throws here
+ * is a real failure - the instance is unreachable, or the request never arrived.
+ */
+export const undoDelete = async (token: string, base = '/api') =>
+  json<BulkResult>(await ok(await post(`${base}/tasks/undo-delete`, { token })));
 
 // --- Cleanup classes ------------------------------------------------------
 //

@@ -46,6 +46,7 @@ export const ru: Dict = {
   'task.reason.unsupported': 'Нет движка',
   'task.reason.captcha': 'Капча',
   'task.reason.cancelled': 'Отменено',
+  'task.reason.unknown': 'Без классификации',
   'overview.title': 'Обзор',
   'overview.totalSpeed': 'Общая скорость',
   'overview.active': 'Активные',
@@ -93,6 +94,7 @@ export const ru: Dict = {
   'downloads.pauseAll': 'Пауза для всех',
   'downloads.resumeAll': 'Продолжить все',
   'downloads.retryFailed': 'Повторить неудачные',
+  'downloads.retryCause': 'Повторить {n} с этой причиной: {reason}',
   'downloads.clearFinished': 'Очистить',
   'downloads.noMatch': 'Под этот фильтр ничего не подходит.',
   'downloads.finished': '{name} — готово',
@@ -319,6 +321,7 @@ export const ru: Dict = {
   'search.url': 'Ссылка',
   'search.clear': 'Очистить поиск',
   'search.hint': 'Выберите одно поле для поиска или «Везде», чтобы искать сразу по всем.',
+  'search.syntax': 'Все слова должны совпасть, минус перед словом исключает его. host:, package: и name: ищут в одном поле, >500mb и older:7d спрашивают о размере и возрасте. Всё остальное ищется как обычный текст.',
   'search.shown': 'показано {n} из {total}',
 
   'filter.label': 'Быстрые фильтры',
@@ -361,6 +364,9 @@ export const ru: Dict = {
   'remove.noFiles': 'На диск ещё ничего не записано.',
   'remove.done': 'Убрано загрузок: {n}.',
   'remove.keys': 'Del убирает выбранные строки из списка. Shift+Del удаляет и их файлы.',
+  'remove.undo': 'Отменить',
+  'remove.undone': 'Вернулось в список: {n}.',
+  'remove.undoTooLate': 'Слишком поздно, эти строки удалены окончательно.',
 
   'menu.label': 'Действия для выбранных загрузок',
   'menu.packageLabel': 'Действия для этого пакета',

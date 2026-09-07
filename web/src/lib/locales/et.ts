@@ -48,6 +48,7 @@ export const et: Dict = {
   'task.reason.unsupported': 'Mootorit pole',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Katkestatud',
+  'task.reason.unknown': 'Liigitamata',
 
   'overview.title': 'Ülevaade',
   'overview.totalSpeed': 'Allalaadimise kogukiirus',
@@ -98,6 +99,7 @@ export const et: Dict = {
   'downloads.pauseAll': 'Peata kõik',
   'downloads.resumeAll': 'Jätka kõiki',
   'downloads.retryFailed': 'Korda ebaõnnestunuid',
+  'downloads.retryCause': 'Proovi uuesti {n} selle põhjusega: {reason}',
   'downloads.clearFinished': 'Puhasta lõpetatud',
   'downloads.noMatch': 'Sellele filtrile ei vasta miski.',
   'downloads.finished': '{name} valmis',
@@ -327,6 +329,7 @@ export const et: Dict = {
   'search.url': 'Link',
   'search.clear': 'Tühjenda otsing',
   'search.hint': 'Vali üks väli, kust otsida, või „Kõikjalt“, et otsida neist kõigist korraga.',
+  'search.syntax': 'Kõik sõnad peavad sobima, ees olev miinus jätab ühe välja. host:, package: ja name: otsivad ühest väljast, >500mb ja older:7d aga küsivad suuruse ja vanuse kohta. Kõik muu otsitakse tavalise tekstina.',
   'search.shown': 'näidatud {n}/{total}',
 
   'filter.label': 'Kiirfiltrid',
@@ -369,6 +372,9 @@ export const et: Dict = {
   'remove.noFiles': 'Kettale pole veel midagi kirjutatud.',
   'remove.done': 'Eemaldati {n} allalaadimist.',
   'remove.keys': 'Delete võtab valitud read loendist maha. Shift+Delete kustutab ka nende failid.',
+  'remove.undo': 'Võta tagasi',
+  'remove.undone': 'Tagasi loendis: {n} allalaadimist.',
+  'remove.undoTooLate': 'Liiga hilja, need read on lõplikult kadunud.',
 
   'menu.label': 'Toimingud valitud allalaadimistega',
   'menu.packageLabel': 'Toimingud selle pakiga',

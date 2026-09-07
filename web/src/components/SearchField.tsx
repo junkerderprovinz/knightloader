@@ -5,20 +5,21 @@
 // list, and a query that happens to be a fragment of an unrelated link buries
 // the row that was actually being looked for. Naming the field turns the search
 // back into a question with an answer.
+//
+// This file is the control. What a query MEANS lives in lib/searchQuery.ts,
+// which imports nothing that survives compilation so that the parser can be
+// exercised on its own (web/check-search-query.mjs) rather than only through a
+// rendered component.
 import { useRef } from 'react';
-import { type Task } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { InfoBubble } from './ui';
 import { IconSearch, IconClose } from '../lib/icons';
+import { type SearchCategory, type SearchQuery } from '../lib/searchQuery';
 
-export type SearchCategory = 'any' | 'name' | 'host' | 'package' | 'comment' | 'url';
-
-export interface SearchQuery {
-  text: string;
-  category: SearchCategory;
-}
-
-export const EMPTY_SEARCH: SearchQuery = { text: '', category: 'any' };
+// Re-exported from here because this is where every page already imports the
+// search from, and moving the meaning into its own module is not a reason to
+// make four pages edit their import lines.
+export { EMPTY_SEARCH, matchesSearch, type SearchCategory, type SearchQuery } from '../lib/searchQuery';
 
 const CATEGORIES: { id: SearchCategory; label: TranslationKey }[] = [
   { id: 'any', label: 'search.any' },
@@ -28,53 +29,6 @@ const CATEGORIES: { id: SearchCategory; label: TranslationKey }[] = [
   { id: 'comment', label: 'search.comment' },
   { id: 'url', label: 'search.url' },
 ];
-
-/**
- * hostOf is the file host a row would be sorted by.
- *
- * Task.host is written by the wave that builds the host lookup and is empty
- * until then, so the URL's own hostname stands in. Through a debrid service the
- * two genuinely differ — the stored host is where the file lives, the URL is
- * where the bytes come from — and when the field is filled it must win.
- */
-function hostOf(t: Task): string {
-  if (t.host) return t.host;
-  try {
-    return new URL(t.url).hostname.replace(/^www\./, '');
-  } catch {
-    return '';
-  }
-}
-
-/**
- * fieldOf is what one category reads off a task.
- *
- * `name` falls back to the URL because that is what an unresolved link renders
- * as its name: a search that skipped it would claim no row matches while the
- * matching text is on screen.
- */
-function fieldOf(t: Task, c: Exclude<SearchCategory, 'any'>): string {
-  switch (c) {
-    case 'name':
-      return t.name || t.url;
-    case 'host':
-      return hostOf(t);
-    case 'package':
-      return t.package;
-    case 'comment':
-      return t.comment ?? '';
-    case 'url':
-      return t.url;
-  }
-}
-
-/** matchesSearch is the filter itself, so the pages cannot disagree about it. */
-export function matchesSearch(t: Task, q: SearchQuery): boolean {
-  const needle = q.text.trim().toLowerCase();
-  if (!needle) return true;
-  if (q.category !== 'any') return fieldOf(t, q.category).toLowerCase().includes(needle);
-  return CATEGORIES.some((c) => c.id !== 'any' && fieldOf(t, c.id).toLowerCase().includes(needle));
-}
 
 /**
  * SearchField is the input and its category picker as one control.
@@ -147,7 +101,11 @@ export function SearchField({
           </option>
         ))}
       </select>
-      <InfoBubble tip={t('search.hint')} className="me-1" />
+      {/* One bubble, two sentences: what the picker does, then what the box
+          itself understands. Two bubbles side by side would be two identical
+          "(i)" glyphs a hand's width apart with no way to tell which is which
+          before hovering both. */}
+      <InfoBubble tip={`${t('search.hint')} ${t('search.syntax')}`} className="me-1" />
     </div>
   );
 }

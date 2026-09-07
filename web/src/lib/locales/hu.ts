@@ -48,6 +48,7 @@ export const hu: Dict = {
   'task.reason.unsupported': 'Nincs backend',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Megszakítva',
+  'task.reason.unknown': 'Besorolatlan',
 
   'overview.title': 'Áttekintés',
   'overview.totalSpeed': 'Teljes letöltési sebesség',
@@ -98,6 +99,7 @@ export const hu: Dict = {
   'downloads.pauseAll': 'Összes szüneteltetése',
   'downloads.resumeAll': 'Összes folytatása',
   'downloads.retryFailed': 'Sikertelenek újrapróbálása',
+  'downloads.retryCause': 'A(z) {n} újrapróbálása ezzel az okkal: {reason}',
   'downloads.clearFinished': 'Befejezettek törlése',
   'downloads.noMatch': 'Semmi sem felel meg a szűrőnek.',
   'downloads.finished': '{name} elkészült',
@@ -327,6 +329,7 @@ export const hu: Dict = {
   'search.url': 'Link',
   'search.clear': 'Keresés törlése',
   'search.hint': 'Válassz egy mezőt a kereséshez, vagy a „Mindenhol” lehetőséget, hogy egyszerre mindben keressen.',
+  'search.syntax': 'Több szónak mindnek illeszkednie kell, az elé tett mínusz kizár egyet. A host:, package: és name: egyetlen mezőben keres, a >500mb és az older:7d a méretre és a korra kérdez rá. Minden más sima szövegként keresendő.',
   'search.shown': '{total} közül {n} látszik',
 
   'filter.label': 'Gyorsszűrők',
@@ -369,6 +372,9 @@ export const hu: Dict = {
   'remove.noFiles': 'A lemezre még semmi nem íródott.',
   'remove.done': '{n} letöltés eltávolítva.',
   'remove.keys': 'A Del leveszi a kijelölt sorokat a listáról. A Shift+Del a fájljaikat is törli.',
+  'remove.undo': 'Visszavonás',
+  'remove.undone': '{n} letöltés vissza a listán.',
+  'remove.undoTooLate': 'Túl késő, azok a sorok végleg elvesztek.',
 
   'menu.label': 'Műveletek a kijelölt letöltésekre',
   'menu.packageLabel': 'Műveletek ezen a csomagon',

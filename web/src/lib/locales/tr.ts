@@ -48,6 +48,7 @@ export const tr: Dict = {
   'task.reason.unsupported': 'Arka uç yok',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'İptal edildi',
+  'task.reason.unknown': 'Sınıflandırılmamış',
 
   'overview.title': 'Genel bakış',
   'overview.totalSpeed': 'Toplam indirme hızı',
@@ -98,6 +99,7 @@ export const tr: Dict = {
   'downloads.pauseAll': 'Hepsini duraklat',
   'downloads.resumeAll': 'Hepsini sürdür',
   'downloads.retryFailed': 'Başarısızları yeniden dene',
+  'downloads.retryCause': 'Bu nedenle başarısız olan {n} tanesini yeniden dene: {reason}',
   'downloads.clearFinished': 'Bitenleri temizle',
   'downloads.noMatch': 'Bu süzgece uyan bir şey yok.',
   'downloads.finished': '{name} tamamlandı',
@@ -327,6 +329,7 @@ export const tr: Dict = {
   'search.url': 'Bağlantı',
   'search.clear': 'Aramayı temizle',
   'search.hint': 'Aranacak tek bir alan seçin ya da hepsini birden aramak için “Her yerde” deyin.',
+  'search.syntax': 'Birden çok sözcüğün hepsi eşleşmeli, öndeki eksi birini dışarıda bırakır. host:, package: ve name: tek bir alanda arar, >500mb ve older:7d boyutu ve yaşı sorar. Geri kalan her şey düz metin olarak aranır.',
   'search.shown': '{total} içinden {n} gösteriliyor',
 
   'filter.label': 'Hızlı filtreler',
@@ -369,6 +372,9 @@ export const tr: Dict = {
   'remove.noFiles': 'Diske henüz hiçbir şey yazılmadı.',
   'remove.done': '{n} indirme kaldırıldı.',
   'remove.keys': 'Del seçili satırları listeden alır. Shift+Del dosyalarını da siler.',
+  'remove.undo': 'Geri al',
+  'remove.undone': '{n} indirme listeye geri döndü.',
+  'remove.undoTooLate': 'Çok geç, o satırlar temelli gitti.',
 
   'menu.label': 'Seçili indirmeler için işlemler',
   'menu.packageLabel': 'Bu paket için işlemler',

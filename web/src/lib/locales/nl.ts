@@ -46,6 +46,7 @@ export const nl: Dict = {
   'task.reason.unsupported': 'Geen backend',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Geannuleerd',
+  'task.reason.unknown': 'Niet ingedeeld',
   'overview.title': 'Overzicht',
   'overview.totalSpeed': 'Totale snelheid',
   'overview.active': 'Actief',
@@ -93,6 +94,7 @@ export const nl: Dict = {
   'downloads.pauseAll': 'Alles pauzeren',
   'downloads.resumeAll': 'Alles hervatten',
   'downloads.retryFailed': 'Mislukte opnieuw',
+  'downloads.retryCause': 'De {n} met deze oorzaak opnieuw proberen: {reason}',
   'downloads.clearFinished': 'Opruimen',
   'downloads.noMatch': 'Niets komt overeen met dit filter.',
   'downloads.finished': '{name} klaar',
@@ -319,6 +321,7 @@ export const nl: Dict = {
   'search.url': 'Link',
   'search.clear': 'Zoekopdracht wissen',
   'search.hint': 'Kies één veld om in te zoeken, of “Overal” om ze allemaal tegelijk te doorzoeken.',
+  'search.syntax': 'Meerdere woorden moeten allemaal passen; een min ervoor sluit er een uit. host:, package: en name: zoeken in één veld, >500mb en older:7d vragen naar grootte en leeftijd. Al het andere wordt als gewone tekst gezocht.',
   'search.shown': '{n} van {total} getoond',
 
   'filter.label': 'Snelfilters',
@@ -361,6 +364,9 @@ export const nl: Dict = {
   'remove.noFiles': 'Er is nog niets naar de schijf geschreven.',
   'remove.done': '{n} download(s) verwijderd.',
   'remove.keys': 'Del haalt de geselecteerde rijen van de lijst. Shift+Del wist ook hun bestanden.',
+  'remove.undo': 'Ongedaan maken',
+  'remove.undone': '{n} download(s) terug in de lijst.',
+  'remove.undoTooLate': 'Te laat, die regels zijn definitief weg.',
 
   'menu.label': 'Acties voor de geselecteerde downloads',
   'menu.packageLabel': 'Acties voor dit pakket',

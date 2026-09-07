@@ -48,6 +48,7 @@ export const zh: Dict = {
   'task.reason.unsupported': '没有后端',
   'task.reason.captcha': '验证码',
   'task.reason.cancelled': '已取消',
+  'task.reason.unknown': '未分类',
 
   'overview.title': '概览',
   'overview.totalSpeed': '总下载速度',
@@ -98,6 +99,7 @@ export const zh: Dict = {
   'downloads.pauseAll': '全部暂停',
   'downloads.resumeAll': '全部继续',
   'downloads.retryFailed': '重试失败项',
+  'downloads.retryCause': '重试因此原因失败的 {n} 个：{reason}',
   'downloads.clearFinished': '清理已完成',
   'downloads.noMatch': '没有符合筛选条件的项目。',
   'downloads.finished': '{name} 已完成',
@@ -327,6 +329,7 @@ export const zh: Dict = {
   'search.url': '链接',
   'search.clear': '清空搜索',
   'search.hint': '选一个字段来搜索，或选“全部”一次搜索所有字段。',
+  'search.syntax': '多个词必须全部匹配，前面加减号则排除。host:、package: 和 name: 只搜索一个字段，>500mb 和 older:7d 询问大小和时长。其余一切都按普通文本搜索。',
   'search.shown': '显示 {total} 中的 {n} 个',
 
   'filter.label': '快速筛选',
@@ -369,6 +372,9 @@ export const zh: Dict = {
   'remove.noFiles': '还没有任何东西写入磁盘。',
   'remove.done': '已移除 {n} 个下载。',
   'remove.keys': 'Del 把选中的行从列表移除。Shift+Del 连它们的文件一起删除。',
+  'remove.undo': '撤销',
+  'remove.undone': '{n} 个下载已回到列表。',
+  'remove.undoTooLate': '太晚了，那些行已彻底消失。',
 
   'menu.label': '对所选下载的操作',
   'menu.packageLabel': '对此包的操作',
