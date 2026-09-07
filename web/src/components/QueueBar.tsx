@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   type QueueState,
   type Settings,
@@ -212,7 +212,13 @@ export function QueueBar() {
   const peer = Boolean(instance);
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    // A COLUMN, not a row (jdp, 2026-09-07: "die drei button untereinander"),
+    // and the head card grows to fit it rather than the buttons shrinking to
+    // fit the card - his own call when the two pulled against each other ("die
+    // karte soll so hoch werden das die drei untereinander platz haben"). The
+    // three keep TRANSPORT_SIZE; see that constant for why they are the one
+    // size exception in the app.
+    <div className="flex w-fit flex-col items-start gap-2">
       {/* Three distinct transport buttons (jdp: "ein schöner Play, Pause,
           Stopp button wie in JD") rather than one that flips between two
           jobs. Play/Pause are the master switch (SetHalted) - running
@@ -233,6 +239,7 @@ export function QueueBar() {
       <Button
         kind={queue.halted ? 'primary' : 'secondary'}
         icon={<IconPlay width={22} height={22} />}
+        labelled
         className={TRANSPORT_SIZE}
         onClick={() => void setHalted(false)}
         disabled={!queue.halted}
@@ -242,6 +249,7 @@ export function QueueBar() {
       <Button
         kind={!queue.halted ? 'primary' : 'secondary'}
         icon={<IconPause width={22} height={22} />}
+        labelled
         className={TRANSPORT_SIZE}
         onClick={() => void setHalted(true)}
         disabled={queue.halted}
@@ -251,6 +259,7 @@ export function QueueBar() {
       <Button
         kind="secondary"
         icon={<IconStop width={22} height={22} />}
+        labelled
         className={TRANSPORT_SIZE}
         // Silenced, the stop happens on the press. The dialog exists to say
         // what is about to be interrupted, and somebody who ticked "do not
@@ -340,6 +349,7 @@ export function SpeedLimitField() {
   // Held as text so a half-typed "1." survives the keystroke that follows it.
   const [limit, setLimit] = useState('');
   const [unit, setUnit] = useState<RateUnit>('KiB/s');
+  const field = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchSettings()
@@ -353,6 +363,35 @@ export function SpeedLimitField() {
         setUnit(split.unit);
       })
       .catch(() => setCfg(null));
+  }, []);
+
+  /**
+   * The wheel changes the number (jdp, 2026-09-07: "man soll im eingabefeld die
+   * zahl per scrollen ändern können"), but ONLY while the field has focus.
+   *
+   * That condition is the whole design. A wheel handler that fires on hover
+   * turns a scroll down the page into an edit of whatever the pointer happened
+   * to pass over, and the page stops scrolling where the pointer rests. Focus
+   * first means the gesture is deliberate: click into the field, then spin.
+   *
+   * Attached natively rather than through React's onWheel, which is registered
+   * passive at the root - preventDefault there is ignored with a console
+   * warning, so the page would scroll AND the number would change.
+   */
+  useEffect(() => {
+    const el = field.current;
+    if (!el) return;
+    function onWheel(e: WheelEvent) {
+      if (document.activeElement !== el) return;
+      e.preventDefault();
+      const step = e.shiftKey ? 10 : 1;
+      setLimit((cur) => {
+        const n = Number(cur.replace(',', '.')) || 0;
+        return fmtRateValue(Math.max(0, n + (e.deltaY < 0 ? step : -step)));
+      });
+    }
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
   }, []);
 
   // Saved when the field is left or Enter is pressed, not on every keystroke:
@@ -376,9 +415,12 @@ export function SpeedLimitField() {
   }
 
   return (
-    <label className="flex shrink-0 items-center gap-2 self-center text-[11px] text-carbon-textMuted">
-      {t('queue.limit')}
-      <span className="flex items-center gap-1">
+    // w-full, not shrink-0: this sits in ShellStrip's fixed-width column under
+    // the menu button and takes that column's whole width, so the two controls
+    // share one edge instead of each hugging its own text.
+    <label className="flex w-full items-center gap-1.5 text-[11px] text-carbon-textMuted">
+      <span className="shrink-0">{t('queue.limit')}</span>
+      <span className="flex min-w-0 flex-1 items-center gap-1">
         <input
           type="text"
           inputMode="decimal"
@@ -391,7 +433,9 @@ export function SpeedLimitField() {
           onKeyDown={(e) => {
             if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
           }}
-          className="glim-num w-16 rounded-[var(--radius-control)] bg-carbon-surface2 px-2 py-1 text-right text-xs
+          ref={field}
+          title={t('queue.limitWheelHint')}
+          className="glim-num min-w-0 flex-1 rounded-[var(--radius-control)] bg-carbon-surface2 px-2 py-1 text-right text-xs
             text-carbon-text outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)]"
         />
         {/* The number is read in whichever unit is picked - type 5, choose
@@ -405,7 +449,7 @@ export function SpeedLimitField() {
             setUnit(u);
             void commit({ unit: u });
           }}
-          className="rounded-[var(--radius-control)] bg-carbon-surface2 px-1.5 py-1 text-xs text-carbon-text
+          className="glim-select shrink-0 appearance-none rounded-[var(--radius-control)] bg-carbon-surface2 ps-1.5 pe-6 py-1 text-xs text-carbon-text
             outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)]"
         >
           {RATE_UNITS.map((u) => (

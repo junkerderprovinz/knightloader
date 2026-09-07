@@ -1237,3 +1237,97 @@ body {
   outline: none;
   background-color: var(--carbon-hover);
 }
+
+/* =========================================================================
+   EASTER EGG: DRAW AND STRIKE
+   -------------------------------------------------------------------------
+   Press and hold the wordmark in the sidebar and the blade draws upward out
+   of the rail, a highlight running along its edge; let go and it swings down
+   with a light trail while a shockwave runs through the entries below (jdp,
+   2026-09-07: "Können wir für das logo ein easter-egg animnation einbauen wie
+   für BV?", then choosing "Ziehen und Schlagen" from six proposals).
+
+   BombVault's own egg is destruction - hold, wobble, shatter into 36 pieces
+   with a fire cloud - which fits a bomb. The counterpart for a sword is the
+   sword's own gesture, and it keeps the same rhythm: tension while held,
+   discharge on release.
+
+   Everything below is keyed off data-motion the same way every other
+   animation in this file is, so "off" leaves a single glint and no movement
+   at all. A viewer whose OS asks for reduced motion never reaches these rules
+   (see the prefers-reduced-motion block above).
+   ========================================================================= */
+@keyframes kl-egg-draw {
+  from { transform: translateY(0) rotate(0deg); }
+  to   { transform: translateY(calc(-1 * var(--egg-draw, 10px))) rotate(-4deg); }
+}
+
+@keyframes kl-egg-strike {
+  0%   { transform: translateY(calc(-1 * var(--egg-draw, 10px))) rotate(-4deg); }
+  35%  { transform: translateY(4px) rotate(26deg); }
+  60%  { transform: translateY(2px) rotate(-8deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+
+/* The reflex that runs along the edge while the blade is drawn. A moving
+   highlight rather than a glow: a sword catches light in a line. */
+@keyframes kl-egg-sheen {
+  from { background-position: 50% 140%; opacity: 0; }
+  25%  { opacity: .85; }
+  to   { background-position: 50% -40%; opacity: 0; }
+}
+
+/* The wave that passes down the rail after the blow lands. */
+@keyframes kl-egg-wave {
+  from { transform: translateX(0); }
+  40%  { transform: translateX(var(--egg-shove, 6px)); }
+  to   { transform: translateX(0); }
+}
+
+.kl-egg { position: relative; display: inline-flex; }
+
+.kl-egg[data-egg='draw'] img {
+  animation: kl-egg-draw var(--egg-draw-dur, 520ms) cubic-bezier(.2, .7, .3, 1) forwards;
+}
+.kl-egg[data-egg='strike'] img {
+  animation: kl-egg-strike var(--egg-strike-dur, 620ms) cubic-bezier(.3, 1.4, .4, 1) forwards;
+}
+
+/* Painted over the mark, never in place of it: the logo keeps drawing itself
+   underneath, so a sheen that fails to load or is switched off costs nothing. */
+.kl-egg-sheen {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(255, 255, 255, .05) 35%,
+    rgba(255, 255, 255, .75) 50%,
+    rgba(255, 255, 255, .05) 65%,
+    transparent 100%
+  );
+  background-size: 100% 220%;
+  background-repeat: no-repeat;
+  mix-blend-mode: screen;
+}
+.kl-egg[data-egg='draw'] .kl-egg-sheen,
+.kl-egg[data-egg='strike'] .kl-egg-sheen {
+  animation: kl-egg-sheen var(--egg-sheen-dur, 900ms) ease-out forwards;
+}
+
+.kl-egg-struck { animation: kl-egg-wave var(--egg-wave-dur, 380ms) ease-out; }
+
+/* Subtle keeps the gesture and halves the travel; off keeps only the sheen,
+   which is a change of light rather than of position. */
+[data-motion='subtle'] .kl-egg {
+  --egg-draw: 5px;
+  --egg-shove: 3px;
+  --egg-draw-dur: 380ms;
+  --egg-strike-dur: 440ms;
+  --egg-wave-dur: 260ms;
+}
+[data-motion='off'] .kl-egg[data-egg='draw'] img,
+[data-motion='off'] .kl-egg[data-egg='strike'] img { animation: none; }
+[data-motion='off'] .kl-egg-struck { animation: none; }

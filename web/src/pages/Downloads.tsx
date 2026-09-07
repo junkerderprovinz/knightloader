@@ -364,6 +364,7 @@ export function Downloads() {
               after={
                 filters.size > 0 && (
                   <IconBadge
+                    labelled
                     hue={0}
                     icon={<IconClose width={16} height={16} />}
                     title={t('filter.clear')}
@@ -386,6 +387,7 @@ export function Downloads() {
                 {selected.size} {t('select.count')}
               </span>
               <IconBadge
+                labelled
                 hue={1}
                 icon={<IconClose width={16} height={16} />}
                 title={t('select.none')}
@@ -397,6 +399,7 @@ export function Downloads() {
 
           <div ref={searchRef} className="relative">
             <IconBadge
+              labelled
               hue={0}
               active={searchOpen}
               icon={<IconSearch width={16} height={16} />}
@@ -431,6 +434,7 @@ export function Downloads() {
                   so these ride with the selection rather than sitting on the
                   page all the time. */}
               <IconBadge
+                labelled
                 icon={<IconArrowUp width={16} height={16} />}
                 hue={0}
                 title={t('task.priorityUp')}
@@ -438,6 +442,7 @@ export function Downloads() {
                 onClick={() => setPriority(ids(), 1, base)}
               />
               <IconBadge
+                labelled
                 icon={<IconArrowDown width={16} height={16} />}
                 hue={1}
                 title={t('task.priorityDown')}
@@ -445,6 +450,7 @@ export function Downloads() {
                 onClick={() => setPriority(ids(), -1, base)}
               />
               <IconBadge
+                labelled
                 icon={<IconTop width={16} height={16} />}
                 hue={2}
                 title={t('task.moveTop')}
@@ -452,6 +458,7 @@ export function Downloads() {
                 onClick={() => moveTasks(ids(), 'top', base)}
               />
               <IconBadge
+                labelled
                 icon={<IconBottom width={16} height={16} />}
                 hue={3}
                 title={t('task.moveBottom')}
@@ -459,6 +466,7 @@ export function Downloads() {
                 onClick={() => moveTasks(ids(), 'bottom', base)}
               />
               <IconBadge
+                labelled
                 hue={3}
                 icon={<IconRetry width={16} height={16} />}
                 title={t('task.restart')}
@@ -466,6 +474,7 @@ export function Downloads() {
                 onClick={() => restartTasks(ids(), base)}
               />
               <IconBadge
+                labelled
                 hue={4}
                 icon={<IconTrash width={16} height={16} />}
                 title={t('task.remove')}
@@ -474,6 +483,7 @@ export function Downloads() {
               />
               {selectedOnDisk && (
                 <IconBadge
+                  labelled
                   hue={5}
                   icon={<IconTrashFiles width={16} height={16} />}
                   title={t('task.removeWithFiles')}
@@ -488,6 +498,7 @@ export function Downloads() {
                   row stays short instead of showing three dead badges. */}
               {counts.running > 0 && (
                 <IconBadge
+                  labelled
                   hue={2}
                   icon={<IconPause width={16} height={16} />}
                   title={t('downloads.pauseAll')}
@@ -497,6 +508,7 @@ export function Downloads() {
               )}
               {list.some((x) => x.status === 'paused') && (
                 <IconBadge
+                  labelled
                   hue={3}
                   icon={<IconPlay width={16} height={16} />}
                   title={t('downloads.resumeAll')}
@@ -506,6 +518,7 @@ export function Downloads() {
               )}
               {counts.error > 0 && (
                 <IconBadge
+                  labelled
                   hue={4}
                   icon={<IconRetry width={16} height={16} />}
                   title={t('downloads.retryFailed')}
@@ -514,6 +527,7 @@ export function Downloads() {
                 />
               )}
               <IconBadge
+                labelled
                 hue={1}
                 icon={<IconCheck width={16} height={16} />}
                 title={allChosen ? t('select.none') : t('select.all')}
@@ -522,6 +536,7 @@ export function Downloads() {
                 onClick={() => setSelected(allChosen ? new Set() : new Set(filtered.map((x) => x.id)))}
               />
               <IconBadge
+                labelled
                 hue={2}
                 icon={<IconTrashFiles width={16} height={16} />}
                 title={t('cleanup.menu')}

@@ -43,6 +43,17 @@ submission and for a fixed download.
 
 ### Added
 
+- **A grip to drag the priority order by**, and the list moves under the pointer
+  while you drag rather than jumping when you let go. The two arrow buttons are
+  gone; the grip is a real button, so the arrow keys still move a row for anyone
+  without a pointer.
+- **An easter egg on the sidebar mark.** Press and hold: the blade draws out of
+  the rail with a highlight running along its edge, and letting go swings it,
+  with a wave that passes down the entries below. A short click still goes home.
+  It follows the motion setting and falls back to a glint under reduced motion.
+- **A parity check for the settings pages** (`web/check-settings-pages.mjs`, run
+  by CI). The rail and the command palette are two hand-kept lists of the same
+  page set, and three pages had quietly drifted out of the palette.
 - **The download list is a table you can arrange.** Every column is resizable,
   including the name; the last one stretches to the right edge, so no empty
   strip sits beside it. Progress moved to the far right and its bar is thicker
@@ -93,6 +104,28 @@ submission and for a fixed download.
 
 ### Changed
 
+- **The Beschriftung setting reaches the whole app.** It used to draw the sidebar
+  and the settings rail and nothing else, so it read as a sidebar option rather
+  than as a rule. The head card's buttons, both list toolbars and the collector's
+  own buttons now follow it too. Note that the default is "Symbol und Text", so
+  those controls show their labels out of the box; "Nur Symbol" restores the
+  square glyph badges everywhere.
+- **Every dropdown is a GlimStone control.** The `.glim-select` rule had been in
+  the stylesheet since the port and not one `<select>` in the app used it, so
+  eight of them were still drawing the platform's own widget chrome.
+- **The plan column is text, and the allowance is one line.** The plan was a
+  filled, uppercased chip in a column of ordinary words; the allowance stacked a
+  bar over its figure and cost every row in both tables a second line. Allowances
+  are quoted in GB throughout, the unit the vendors themselves advertise.
+- **A service on an unlimited plan says how much has gone through it** instead of
+  showing an infinity symbol and nothing else.
+- **The sign-out button is only in the sidebar now**, and above Settings rather
+  than under it. The copy on the password card is gone.
+- **"Skip the collector" and the watch folder moved to the Linkeingang card** on
+  the General tab, beside Click'n'Load and the clipboard watch. Four independent
+  proposals for restructuring the settings were weighed and this was the only one
+  that survived; everything else cost more in search words and bookmarks than it
+  bought.
 - **Names that say what a tab is.** "Sammler" is the "Linksammler", "Zugang" is
   "Passwort & Fernzugriff", "Hoster-Logins" are "Hoster-Konten", and everything
   about corners, colours and motion moved out of the General tab into a new
@@ -104,6 +137,16 @@ submission and for a fixed download.
   `KL_CNL=0`, which is why the switch read "off" on every container install with
   no way to tell a choice from a default. It still binds `127.0.0.1` only, and
   deliberately not the LAN: the protocol carries no authentication at all.
+- **A debrid service with `www.` in its catalogue link was still offered as a
+  hoster login.** The filter compared `www.premiumize.me` against JDownloader's
+  `premiumize.me` and never matched, so a service with its own card could be
+  configured twice, two different ways.
+- **A help link pointed at a settings page that never existed** (`/settings/general`),
+  and an unknown page id routes silently to Downloads, so the link had always
+  landed somewhere else with no error anywhere.
+- **The command palette could not reach three settings pages.** Accounts,
+  Instances and Appearance all had components and no command; the comment there
+  still explained why one of them had none.
 - **Dragging a folder onto a row of a different priority now moves it there.**
   It used to do nothing, silently, and only for that case - which on a real
   list, where folders rarely all share one priority, is indistinguishable from

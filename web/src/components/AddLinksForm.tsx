@@ -29,7 +29,7 @@ import { useT, type TranslationKey } from '../lib/i18n';
 import { useUIState } from '../lib/uistate';
 import { PathInput } from './FolderPicker';
 import { PasteFromClipboardButton } from './PasteFromClipboardButton';
-import { LinkIntakeBadges } from './LinkIntakeBadges';
+import { LinkIntakeButtons } from './LinkIntakeButtons';
 import { Tabs } from './Tabs';
 import { Button, Card, Field, FieldGroup, IconBadge, SectionTitle, TextArea, TextInput, ToggleRow } from './ui';
 import { IconCollector, IconFolder, IconPlus, IconSettings } from '../lib/icons';
@@ -256,6 +256,7 @@ export function AddLinksForm({
               always-visible - it is exactly the kind of per-batch detail the
               rest of that panel already groups. */}
           <IconBadge
+            labelled
             icon={<IconSettings width={16} height={16} />}
             hue={0}
             title={t('collector.options')}
@@ -269,13 +270,14 @@ export function AddLinksForm({
               of the spacer with Optionen rather than on the right with the
               add/choose actions, because they switch a MODE rather than doing
               something to what is in the box. */}
-          <LinkIntakeBadges />
+          <LinkIntakeButtons />
           <span className="flex-1" />
           <PasteFromClipboardButton pkg={pkg} />
           {/* Opens FileDrop's picker (jdp: "Dropzone mit Dateiwählen button
               neben dem Zum-Sammler-Button") - the file-intake trigger sits
               beside the link-intake one instead of in its own row below. */}
           <IconBadge
+            labelled
             icon={<IconFolder width={16} height={16} />}
             hue={1}
             title={t('container.choose')}
@@ -283,6 +285,7 @@ export function AddLinksForm({
             onClick={onChooseFile}
           />
           <IconBadge
+            labelled
             icon={<IconPlus width={16} height={16} />}
             hue={2}
             title={t('collector.add')}

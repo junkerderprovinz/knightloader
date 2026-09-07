@@ -138,7 +138,7 @@ export function SearchField({
         value={value.category}
         onChange={(e) => onChange({ ...value, category: e.target.value as SearchCategory })}
         aria-label={t('search.in')}
-        className="shrink-0 rounded-[var(--radius-control)] bg-carbon-surface3/70 px-2 py-1 text-xs
+        className="glim-select appearance-none pe-6 shrink-0 rounded-[var(--radius-control)] bg-carbon-surface3/70 px-2 py-1 text-xs
           text-carbon-textSub outline-none"
       >
         {CATEGORIES.map((c) => (

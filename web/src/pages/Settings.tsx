@@ -354,7 +354,12 @@ function SettingsRail({ pages }: { pages: FeaturePage[] }) {
     // edge. Only the top - the rail keeps its tight px-2/pb-2, since the
     // bottom of a scrolling column has nothing to line up with.
     <div
-      className={`flex h-full shrink-0 flex-col gap-2 px-2 pb-2 pt-6 md:pt-8 ${display === 'glyph' ? 'w-14' : 'w-52'}`}
+      // Top and bottom match (jdp, 2026-09-07: "Die kacheln in den einstellungen
+      // fangen oben weiter unten an als sie unten aufhören"). Measured on the
+      // preview instance before changing anything: 32px above the first tile,
+      // 8px below the last. The top value is the one to keep, because it is what
+      // lines the first tile up with the first card in the column beside it.
+      className={`flex h-full shrink-0 flex-col gap-2 px-2 pb-6 pt-6 md:pb-8 md:pt-8 ${display === 'glyph' ? 'w-14' : 'w-52'}`}
     >
       <Tabs
         className="min-h-0 flex-1"

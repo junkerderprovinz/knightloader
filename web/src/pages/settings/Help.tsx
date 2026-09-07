@@ -95,7 +95,12 @@ export function Help() {
       <Topic
         title={t('settings.help.collector.title')}
         hue={1}
-        links={[{ to: '/settings/general', label: t('settings.help.collector.link') }]}
+        // '/settings/general' was not a page id, it was a guess at one, and
+        // Settings.tsx routes an unknown id silently to Downloads - so this
+        // link had always landed on the wrong page with no error anywhere.
+        // The General tab's id is and stays 'look' (renaming it would break
+        // every bookmark and the stored settingsTabOrder).
+        links={[{ to: '/settings/look', label: t('settings.help.collector.link') }]}
       >
         <p>{t('settings.help.collector.body')}</p>
       </Topic>

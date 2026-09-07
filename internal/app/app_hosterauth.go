@@ -88,12 +88,31 @@ func (a *App) HosterHosts(ctx context.Context) []hosterauth.Host {
 	all := a.hosterAuth().Hosts(ctx)
 	out := make([]hosterauth.Host, 0, len(all))
 	for _, h := range all {
-		if skip[normaliseIconHost(h.ID)] {
+		if skip[serviceKey(h.ID)] {
 			continue
 		}
 		out = append(out, h)
 	}
 	return out
+}
+
+// serviceKey is the form a hostname is COMPARED in: normalised, then with a
+// leading "www." taken off.
+//
+// That second step is the whole point, and it was missing (jdp, 2026-09-07:
+// "hast du wirklich alle debrid konten aus der hoster liste in die debrid liste
+// verschoben? in der hoster liste sind nämlich noch einige?"). Premiumize's
+// catalogue entry links to https://www.premiumize.me/account, JD calls the same
+// service premiumize.me, and the two therefore never matched - so a service
+// with its own card went on being offered as a hoster login as well, which is
+// exactly the "configure it twice" the filter exists to prevent.
+//
+// Deliberately NOT folded into normaliseIconHost: that one produces the host an
+// icon is FETCHED from, and www.example.com and example.com can genuinely serve
+// different documents. Stripping there would change what gets requested; here
+// it only changes what counts as the same service.
+func serviceKey(s string) string {
+	return strings.TrimPrefix(normaliseIconHost(s), "www.")
 }
 
 // debridServiceDomains is each catalogue debrid service's own domain, taken
@@ -105,7 +124,7 @@ func debridServiceDomains() map[string]bool {
 		if svc.Group != accounts.GroupDebrid {
 			continue
 		}
-		if h := normaliseIconHost(svc.WhereURL); h != "" {
+		if h := serviceKey(svc.WhereURL); h != "" {
 			out[h] = true
 		}
 	}

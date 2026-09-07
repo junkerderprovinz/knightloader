@@ -525,6 +525,7 @@ export function Collector() {
               of filter chips sits on the side that does not push it around
               as chips appear and disappear. */}
           <IconBadge
+            labelled
             hue={0}
             active={filters.has('uncheckable')}
             icon={<IconWarning width={16} height={16} />}
@@ -534,6 +535,7 @@ export function Collector() {
             onClick={() => toggleFilter('uncheckable')}
           />
           <IconBadge
+            labelled
             hue={1}
             active={filters.has('unchecked')}
             icon={<IconClock width={16} height={16} />}
@@ -582,6 +584,7 @@ export function Collector() {
                 {selected.size} {t('select.count')}
               </span>
               <IconBadge
+                labelled
                 hue={1}
                 icon={<IconClose width={16} height={16} />}
                 title={t('select.none')}
@@ -593,6 +596,7 @@ export function Collector() {
 
           <div ref={searchRef} className="relative">
             <IconBadge
+              labelled
               hue={0}
               icon={<IconSearch width={16} height={16} />}
               title={t('collector.searchToggle')}
@@ -627,6 +631,7 @@ export function Collector() {
                   before, just a square badge instead of a labelled button
                   now. */}
               <IconBadge
+                labelled
                 hue={2}
                 icon={<IconPlay width={16} height={16} />}
                 title={t('collector.startSelected')}
@@ -638,6 +643,7 @@ export function Collector() {
                   right-click on the selection already does, so removing it
                   loses no capability, only a redundant second way in. */}
               <IconBadge
+                labelled
                 hue={4}
                 icon={<IconTrash width={16} height={16} />}
                 title={t('task.remove')}
@@ -647,6 +653,7 @@ export function Collector() {
               {/* Only when there is something on disk to erase. */}
               {selectedOnDisk && (
                 <IconBadge
+                  labelled
                   hue={5}
                   icon={<IconTrashFiles width={16} height={16} />}
                   title={t('task.removeWithFiles')}
@@ -662,6 +669,7 @@ export function Collector() {
           ) : (
             <>
               <IconBadge
+                labelled
                 hue={1}
                 icon={<IconCheck width={16} height={16} />}
                 title={allChosen ? t('select.none') : t('select.all')}
@@ -670,6 +678,7 @@ export function Collector() {
                 onClick={() => setSelected(allChosen ? new Set() : new Set(filtered.map((x) => x.id)))}
               />
               <IconBadge
+                labelled
                 hue={2}
                 icon={<IconTrash width={16} height={16} />}
                 title={t('cleanup.menu')}
@@ -677,6 +686,7 @@ export function Collector() {
                 onClick={(e) => void openCleanup(e.currentTarget)}
               />
               <IconBadge
+                labelled
                 hue={3}
                 icon={<IconRetry width={16} height={16} />}
                 title={t('collector.checkAll')}
@@ -691,6 +701,7 @@ export function Collector() {
                 }}
               />
               <IconBadge
+                labelled
                 hue={4}
                 icon={<IconPlay width={16} height={16} />}
                 title={t('collector.startAll')}

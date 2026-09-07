@@ -126,6 +126,11 @@ export function HosterLoginSection() {
         />
       )}
 
+      {/* accounts.newAccount, the same key the debrid card's own button reads
+          (jdp, 2026-09-07: "beie hinzufügen buttons sollen Konto hinzufügen
+          heißen"). One key rather than two with identical text: two keys that
+          have to agree across 42 catalogues are two keys that will one day
+          disagree in one of them. */}
       {hasRows ? (
         <Button
           kind="secondary"
@@ -134,7 +139,7 @@ export function HosterLoginSection() {
           className="self-start"
           onClick={() => setDialog({ mode: 'new' })}
         >
-          {t('accounts.hoster.add')}
+          {t('accounts.newAccount')}
         </Button>
       ) : (
         <EmptyState
@@ -143,7 +148,7 @@ export function HosterLoginSection() {
           title={t('accounts.hoster.empty')}
           action={
             <Button kind="secondary" hue={1} icon={<IconPlus width={16} height={16} />} onClick={() => setDialog({ mode: 'new' })}>
-              {t('accounts.hoster.add')}
+              {t('accounts.newAccount')}
             </Button>
           }
         />

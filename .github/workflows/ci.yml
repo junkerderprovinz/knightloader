@@ -171,7 +171,7 @@ jobs:
       - name: Install
         run: npm ci
 
-      # This is the key-parity gate for the 26 locale catalogues: every locale
+      # This is the key-parity gate for the 42 locale catalogues: every locale
       # is declared `: Dict`, and Dict is Record<TranslationKey, string> derived
       # from English, so a missing or misspelled key is a compile error. Vite
       # builds with esbuild, which strips types without checking them, so the
@@ -180,6 +180,12 @@ jobs:
       - name: Type check
         run: npx tsc --noEmit
 
+      # The settings rail and the command palette are two hand-kept lists of
+      # the same page set, and tsc cannot see that they disagree: both are
+      # well-typed while one of them is missing three pages. See the script's
+      # own header for the drift this caught.
+      - name: Settings pages parity
+        run: node check-settings-pages.mjs
 
       - name: Build UI
         run: npm run build

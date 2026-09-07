@@ -17,8 +17,7 @@ import { fmtBytes, fmtDate, fmtEta, fmtSpeed, pct } from '../lib/format';
 import type { TranslationKey } from '../lib/i18n';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
-import { IconCheck, IconRetry } from '../lib/icons';
-import { IconChevronDown } from '../lib/icons';
+import { IconCheck, IconChevronDown, IconRetry, PriorityGlyph } from '../lib/icons';
 import { ContextMenu, anchorBelow, useContextMenu } from './ContextMenu';
 import { HosterIcon } from './HosterIcon';
 import { ProgressBar } from './ProgressBar';
@@ -595,30 +594,6 @@ export function sharedPriority(items: Task[]): number {
   return items.every((x) => x.priority === first) ? first : 0;
 }
 
-/**
- * PRIORITY_GLYPH is one mark per level, and there are seven levels
- * (app_queue.go's Priorities: highest, higher, high, default, low, lower,
- * lowest).
- *
- * It used to be two: ▲ for anything above default and ▼ for anything below
- * (jdp, 2026-09-07: "auf den links wird nicht das richtige prioritätssymbol
- * angezeigt. es bleibt immer das gleiche"). Setting a link to "high" and then
- * to "highest" changed nothing on screen, so the mark said only WHETHER
- * somebody had touched the row, never how far - which is the one thing a
- * seven-step control exists to express.
- *
- * Stacked chevrons rather than digits: a glance has to read as "more" or
- * "less" without being counted, and the number itself is the tooltip.
- */
-const PRIORITY_GLYPH: Record<number, string> = {
-  3: '⏫',
-  2: '▲',
-  1: '︿',
-  [-1]: '﹀',
-  [-2]: '▼',
-  [-3]: '⏬',
-};
-
 export function PriorityTag({ value, names, t }: { value: number; names: Map<number, string>; t: Translate }) {
   if (!value) return null;
   const id = names.get(value);
@@ -626,19 +601,22 @@ export function PriorityTag({ value, names, t }: { value: number; names: Map<num
   // A value outside the enum still gets a mark rather than vanishing: the queue
   // orders any integer (clampPriority's own reasoning), so a row set by a rule
   // or by a newer client must not silently look like an ordinary one.
-  const glyph = PRIORITY_GLYPH[value] ?? (value > 0 ? '▲' : '▼');
   return (
     // The glyph alone (jdp, 2026-09-06: "das prioritätenicon in der liste soll
     // nur das icon sein, kein text, kein bagdehintergrund"). The name is not
     // lost - it is the tooltip and the accessible name.
+    // The same drawing the right-click menu uses (jdp, 2026-09-07: "die symbole
+    // sollen die gleichen sein wie im rechtsklickmenü"). It used to be a
+    // Unicode chevron here and an SVG there, so one control named a rung with
+    // wedges and the row beside it named the same rung with a different mark.
     // Up is the accent and down is muted rather than both being one colour: a
     // raised link is the one somebody wants to spot in a long list.
     <span
       title={label}
       aria-label={label}
-      className={`shrink-0 text-[11px] leading-none ${value > 0 ? 'text-accent' : 'text-carbon-textMuted'}`}
+      className={`inline-flex shrink-0 leading-none ${value > 0 ? 'text-accent' : 'text-carbon-textMuted'}`}
     >
-      {glyph}
+      <PriorityGlyph steps={value} />
     </span>
   );
 }
