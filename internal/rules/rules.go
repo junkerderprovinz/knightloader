@@ -163,6 +163,25 @@ type Action struct {
 	// headers at all.
 	Headers string `json:"headers,omitempty"`
 
+	// Category files the link in one of the named drawers settings.Categories
+	// holds, by its stable id. It is the third way into a category, beside the
+	// add-links form and the list itself.
+	//
+	// IT IS NOT rules.Category, the file-type shorthand this package has
+	// carried since it was written, and the collision of the word is the one
+	// thing to be careful of in this file. That one is a group of extensions
+	// that expands into an ordinary `filetype matches` condition; this is a
+	// bundle of DEFAULTS a task is filed under. Neither could be renamed
+	// without breaking a stored rule set or the grammar the editor is built
+	// from, so they share a word and are told apart by where they appear: a
+	// Category value is a condition, a Category action is a drawer. See
+	// categories.go and settings_categories.go respectively.
+	//
+	// Empty means "no rule had an opinion", like every other action field. What
+	// the id may look like, and why it is deliberately not a template, is in
+	// action_category.go.
+	Category string `json:"category,omitempty"`
+
 	// Reject drops the link instead of taking it. Reason is shown to the user
 	// alongside the rule's name; when it is empty Check writes one, because a
 	// rejection nobody can explain is the behaviour this package exists to
@@ -265,6 +284,10 @@ type Effect struct {
 	// Headers is the stored header profile a rule attached, by name. See
 	// Action.Headers for why a name and never the headers.
 	Headers string `json:"headers,omitempty"`
+	// Category is the drawer a rule filed the link in, by id. See
+	// Action.Category, and note that it is not the file-type Category this
+	// package also has a type called.
+	Category string `json:"category,omitempty"`
 	// Matched names the rules that fired, in the order they fired, so the
 	// interface can answer "why did this land here" without re-running anything.
 	Matched []string `json:"matched,omitempty"`
@@ -522,6 +545,11 @@ func (m *Matcher) Apply(c Candidate) Effect {
 		// a template, deliberately - see Action.Headers.
 		if a.Headers != "" {
 			e.Headers = a.Headers
+		}
+		// The drawer id is not a template either, and for a sharper reason -
+		// see action_category.go.
+		if a.Category != "" {
+			e.Category = a.Category
 		}
 		// The values are copied rather than the pointers. Handing the rule's own
 		// pointer to the caller would let anything that writes through the Effect
@@ -845,6 +873,9 @@ func actionProblems(a Action, conds []cond) []string {
 		}
 	}
 	if msg := headerProfileProblem(a.Headers); msg != "" {
+		msgs = append(msgs, msg)
+	}
+	if msg := categoryProblem(a.Category); msg != "" {
 		msgs = append(msgs, msg)
 	}
 	return msgs
