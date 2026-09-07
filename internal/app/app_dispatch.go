@@ -6,6 +6,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"path/filepath"
 	"slices"
@@ -299,6 +300,15 @@ func maxPerHostFor(cfg settings.Settings, host string) int {
 //
 // Caller holds a.mu.
 func (a *App) resolverForTaskLocked(t *core.Task) resolver.Resolver {
+	// A pin is checked first and it is the whole answer: neither the recorded
+	// backend below nor the ranked chain under it gets a say, because both of
+	// those are ways for the app to pick a backend and a pin is somebody
+	// having already picked one. It can still come back nil - see
+	// pinnedResolverLocked - and the caller has to say so out loud rather than
+	// fall through to the chain.
+	if t.ResolverPin != "" {
+		return a.pinnedResolverLocked(t)
+	}
 	if t.Resolver != "" && a.accountRoutableLocked(t.Resolver) {
 		for _, res := range a.Registry.All(t.URL) {
 			if res.Info().ID == t.Resolver {
@@ -314,6 +324,161 @@ func (a *App) resolverForTaskLocked(t *core.Task) resolver.Resolver {
 	return nil
 }
 
+// pinnedResolverLocked picks the backend a pinned task must go through, or nil.
+//
+// It walks the same ranked chain everything else does and takes the first
+// entry the pin names AND whose account is currently usable. Two things fall
+// out of that shape, and both are the point:
+//
+//   - A pin naming a SERVICE with two configured accounts is satisfied by
+//     either of them, in the order the chain already has them. That is what
+//     "pin this to AllDebrid" means to the person who typed it; making them
+//     name a slot to get their second key tried would be a pin that breaks the
+//     moment a key is added.
+//   - ACCOUNT HEALTH IS NOT BYPASSED. A benched, invalid or expired account is
+//     skipped here exactly as it is for an unpinned task, and if that leaves
+//     nothing the answer is nil rather than a quiet hop to another service.
+//     A pin that could be overruled by the app's own ranking whenever the
+//     named backend was inconvenient would not be a pin.
+//
+// Caller holds a.mu.
+func (a *App) pinnedResolverLocked(t *core.Task) resolver.Resolver {
+	for _, res := range rankedChain(a.Registry.All(t.URL), t.URL, a.Settings.Get().ResolverOrder) {
+		id := res.Info().ID
+		if !pinMatches(t.ResolverPin, id) {
+			continue
+		}
+		if a.accountRoutableLocked(id) {
+			return res
+		}
+	}
+	return nil
+}
+
+// pinFailureLocked is the sentence and the typed cause for a pinned task that
+// has nowhere to go, and it tells the two causes apart because the two fixes
+// are nothing alike.
+//
+// A pin naming a backend that does not claim this link at all is a mistake
+// somebody made and can undo: the pin is wrong, or the link is not the kind
+// that backend fetches. That is ReasonUnsupported and it will not mend itself.
+//
+// A pin naming a backend that DOES claim the link, whose account is not usable
+// right now, is the case this whole design turns on. It is reported as a
+// failure - visible, on the row, with the backend named - rather than being
+// held quietly the way an unpinned task with the same problem is
+// (WaitingAccount, see dispatchLocked). The unpinned task is held because the
+// app can still choose; a pinned one has been told not to choose, so silence
+// would leave somebody watching a row that says "waiting" for a bench that
+// might last six hours, with nothing on screen connecting it to the backend
+// they nailed it to. ReasonAuth rather than a bespoke value: the credential is
+// what is wrong, which is exactly what that reason already means, and the
+// ordinary retry backoff then applies - so an account that comes back within
+// the retry budget picks the task up again on its own.
+//
+// Caller holds a.mu.
+func (a *App) pinFailureLocked(t *core.Task) (string, core.Reason) {
+	for _, res := range a.Registry.All(t.URL) {
+		if pinMatches(t.ResolverPin, res.Info().ID) {
+			return "pinned to " + t.ResolverPin + ", and that backend's account is not usable right now", core.ReasonAuth
+		}
+	}
+	return "pinned to " + t.ResolverPin + ", which does not handle this link", core.ReasonUnsupported
+}
+
+// pinMatches reports whether a registered resolver id satisfies a pin.
+//
+// The pin may name the full slot ("alldebrid#work") or just the service
+// ("alldebrid"), which is deliberately the same rule settings.ResolverOrder is
+// matched by (see dynamicPrio). One vocabulary for "which backend do you mean"
+// across both features is worth more than either of them being individually
+// stricter, and a person who writes a service name into either one means all
+// of its accounts in both.
+func pinMatches(pin, resolverID string) bool {
+	if pin == resolverID {
+		return true
+	}
+	service, _ := resolver.SplitSlot(resolverID)
+	return pin == service
+}
+
+// ResolverPinnable reports whether resolverID could be pinned to a task at
+// all, so a request naming a backend this instance does not have is refused
+// where somebody can read the refusal rather than turning into a row that
+// fails on the next dispatch pass for reasons nothing on screen explains.
+//
+// An empty id is valid: that is how a pin is taken off again.
+//
+// Checked against the REGISTRY, which holds only the backends actually wired
+// up right now - a debrid service appears there once a key for it is stored
+// (rewireBackends), so this refuses "alldebrid" on an instance with no
+// AllDebrid key, which is the honest answer.
+func (a *App) ResolverPinnable(resolverID string) error {
+	id := strings.TrimSpace(resolverID)
+	if id == "" {
+		return nil
+	}
+	for _, registered := range a.Registry.IDs() {
+		if pinMatches(id, registered) {
+			return nil
+		}
+	}
+	return fmt.Errorf("%q is not a download backend this instance has", id)
+}
+
+// PinResolver nails each of these tasks to one backend, or takes the pin off
+// again when resolverID is empty.
+//
+// It dispatches straight afterwards, and that is the half that makes the
+// control feel like one: a queued task pinned to a working backend starts on
+// this very pass, and one pinned to a backend that cannot take it fails on it,
+// with the reason on the row. Waiting for the next unrelated event to reveal
+// which of the two happened would make a pin something you set and then watch.
+//
+// A RUNNING transfer is not moved. The bytes are already coming from the old
+// backend and nothing here can retarget them mid-flight; the pin decides where
+// the NEXT attempt goes, which is what a restart is for. Said here because the
+// alternative - quietly stopping a transfer because somebody changed a
+// dropdown - is a bigger act than the control looks like it is making.
+func (a *App) PinResolver(ids []string, resolverID string) error {
+	id := strings.TrimSpace(resolverID)
+	// Checked before a single task is touched, the same contract
+	// SetTaskOptions states: refusing halfway through leaves a selection with
+	// the first eight rows edited and an error that says nothing about which.
+	if err := a.ResolverPinnable(id); err != nil {
+		return err
+	}
+	a.mu.Lock()
+	var touched []string
+	for _, taskID := range ids {
+		t := a.tasks[taskID]
+		if t == nil || t.ResolverPin == id {
+			continue
+		}
+		t.ResolverPin = id
+		touched = append(touched, taskID)
+	}
+	if len(touched) > 0 {
+		a.dispatchLocked()
+	}
+	// The copies are taken AFTER the dispatch, never before it: the pass can
+	// settle one of these very tasks as failed, and a copy snapshotted a line
+	// earlier would be saved over that verdict a moment later with a row that
+	// still said "queued".
+	changed := make([]core.Task, 0, len(touched))
+	for _, taskID := range touched {
+		if t := a.tasks[taskID]; t != nil {
+			changed = append(changed, *t)
+		}
+	}
+	a.mu.Unlock()
+	for i := range changed {
+		_ = a.Store.Save(&changed[i])
+		a.Hub.Broadcast("task", &changed[i])
+	}
+	return nil
+}
+
 // nextResolverLocked returns the resolver that should try after the one the
 // task just used, or "" when the chain is exhausted. Walks rankedChain rather
 // than the registry's raw order for the same reason resolverForTaskLocked
@@ -321,6 +486,15 @@ func (a *App) resolverForTaskLocked(t *core.Task) resolver.Resolver {
 // whatever actually came next in THAT order, not the frozen one it never used.
 // Caller holds a.mu.
 func (a *App) nextResolverLocked(t *core.Task) string {
+	// A pinned task has no next: the chain is what the pin replaces. Answered
+	// here, at the one function every fallback path in this file asks, rather
+	// than at each of those paths - a pin honoured by the dispatcher and
+	// forgotten by the fallback would move the task to another backend the
+	// first time the pinned one said "not mine", which is the silent diversion
+	// the whole feature exists to make impossible.
+	if t.ResolverPin != "" {
+		return ""
+	}
 	chain := rankedChain(a.Registry.All(t.URL), t.URL, a.Settings.Get().ResolverOrder)
 	for i, res := range chain {
 		if res.Info().ID == t.Resolver {
@@ -429,6 +603,12 @@ func (a *App) dispatchLocked() {
 	// still overnight, and a watcher that only woke up once the queue was
 	// moving again would not be looking at it.
 	a.ensureStallWatcher()
+	// And the disk guard's own loop, with the same sync.Once shape and for the
+	// same reasons - see ensureDiskWatcher. Ahead of the halted check too: a
+	// volume filling up is a fact about the machine rather than about the
+	// queue, and the watcher has to be running before somebody resumes a queue
+	// onto a disk that ran out while it was stopped.
+	a.ensureDiskWatcher()
 	if a.halted {
 		// Every queued row says why nothing is moving, not only the head card.
 		// A stopped queue and a full one look identical on a list of rows that
@@ -470,6 +650,10 @@ func (a *App) dispatchLocked() {
 		perHost[hostOf(t.URL)]++
 	}
 	var rest []string
+	// One reading of the destination volumes for the whole pass - see
+	// spaceCheck for why it is per pass and why it is shared across the tasks
+	// in it.
+	space := newSpaceCheck(cfg)
 	// The queue as it stood when this pass began. Used at the end to give a
 	// reason to what is still waiting AND to clear it from what just got a slot:
 	// a dispatched task leaves `rest`, so applying the reasons to `rest` alone
@@ -520,6 +704,25 @@ func (a *App) dispatchLocked() {
 			continue
 		}
 		h := hostOf(t.URL)
+		// Where this task's bytes would land, worked out once for the two
+		// checks below that need it - dirFor expands a path template, so
+		// calling it twice per task per pass is work for nothing.
+		dir := a.dirFor(t)
+		// The room on that volume, asked BEFORE a slot is spent on this task
+		// and before the resolver is called - see app_diskguard.go.
+		//
+		// AHEAD OF THE SLOT AND HOST LIMITS ON PURPOSE, even though those are
+		// cheaper to evaluate. When a disk is full, "all slots busy" is a true
+		// sentence about the wrong problem: it sends the reader to raise
+		// MaxConcurrent, which changes nothing, and the one answer that would
+		// have told them to free some space is shown on none of the rows. The
+		// reading itself is taken once per destination folder per pass, so the
+		// extra cost of asking first is a map lookup.
+		if w := space.admit(dir, t); w != core.WaitingNone {
+			waiting[id] = w
+			rest = append(rest, id)
+			continue
+		}
 		// "Start now" is the whole point of the flag, and until this landed the
 		// dispatcher never read it: a forced task moved to the head of the queue
 		// and then waited for a slot exactly like every other task, so the menu
@@ -557,6 +760,7 @@ func (a *App) dispatchLocked() {
 		if a.started[id] {
 			a.active[id] = true
 			a.countStartLocked(t, h, perHost, &forcedActive, &normalActive)
+			space.commit(dir, t)
 			go a.backendFor(t.Resolver).Resume(id)
 			continue
 		}
@@ -586,6 +790,19 @@ func (a *App) dispatchLocked() {
 		// is deliberately not the highest-priority match any more.
 		res := a.resolverForTaskLocked(t)
 		if res == nil {
+			if t.ResolverPin != "" {
+				// A pinned task is settled here rather than held. The holding
+				// branch below exists because the app still has other backends
+				// to try once an account recovers; this task has been told not
+				// to use them, so "waiting" would be a row that never moves for
+				// a reason nothing on it names. See pinFailureLocked for the
+				// two sentences and for why one of them is ReasonAuth, which
+				// leaves the ordinary retry armed.
+				t.Status = core.StatusError
+				t.Error, t.Reason = a.pinFailureLocked(t)
+				settled = append(settled, *t)
+				continue
+			}
 			if a.hasUnroutableMatchLocked(t.URL) {
 				waiting[id] = core.WaitingAccount
 				// Something DOES claim this link - it is just benched right
@@ -618,7 +835,6 @@ func (a *App) dispatchLocked() {
 			settled = append(settled, *t)
 			continue
 		}
-		dir := a.dirFor(t)
 		be := a.backendFor(t.Resolver)
 		policy := collide.ParsePolicy(cfg.CollisionPolicy)
 		// A destination that is already taken is settled here instead of being
@@ -655,6 +871,7 @@ func (a *App) dispatchLocked() {
 		a.active[id] = true
 		a.started[id] = true
 		a.countStartLocked(t, h, perHost, &forcedActive, &normalActive)
+		space.commit(dir, t)
 		conns := connsFor(t, cfg, result.Connections, hostCapFor(res, h))
 		// Which outbound connection carries this one. Until this call existed,
 		// proxycfg.NewPicker had no caller anywhere in the tree: connections could
@@ -1178,6 +1395,15 @@ func (a *App) onUpdate(id string, u core.Update) {
 			// turn and said the link is not its business.
 			t.Reason = core.ReasonUnsupported
 		}
+	} else if u.Status == core.StatusError && accountUnroutable && t.ResolverPin != "" {
+		// Pinned, so the requeue below - which is a hop to the next backend
+		// in all but name - is exactly what must not happen. The failure the
+		// backend just reported stands, relabelled to name the pin, and the
+		// ordinary retry backoff further down does the rest: an account that
+		// recovers inside the retry budget picks the task up again, and one
+		// that does not leaves a row saying which backend it was nailed to and
+		// what was wrong with it.
+		t.Error, t.Reason = a.pinFailureLocked(t)
 	} else if u.Status == core.StatusError && accountUnroutable {
 		// The account this task was using is unavailable - benched, invalid,
 		// expired or in error (accountForResolverLocked/reportAccountFailure,
