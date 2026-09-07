@@ -48,6 +48,7 @@ export const hi: Dict = {
   'task.reason.unsupported': 'कोई बैकएंड नहीं',
   'task.reason.captcha': 'कैप्चा',
   'task.reason.cancelled': 'रद्द किया गया',
+  'task.reason.unknown': 'बिना वर्गीकरण',
 
   'overview.title': 'अवलोकन',
   'overview.totalSpeed': 'कुल डाउनलोड गति',
@@ -98,6 +99,7 @@ export const hi: Dict = {
   'downloads.pauseAll': 'सभी रोकें',
   'downloads.resumeAll': 'सभी जारी रखें',
   'downloads.retryFailed': 'विफल फिर से',
+  'downloads.retryCause': 'इस कारण विफल हुए {n} फिर से आज़माएँ: {reason}',
   'downloads.clearFinished': 'पूरे हटाएँ',
   'downloads.noMatch': 'इस फ़िल्टर से कुछ मेल नहीं खाता।',
   'downloads.finished': '{name} पूरा हुआ',
@@ -327,6 +329,7 @@ export const hi: Dict = {
   'search.url': 'लिंक',
   'search.clear': 'खोज मिटाएँ',
   'search.hint': 'खोजने के लिए एक फ़ील्ड चुनें, या सबमें एक साथ खोजने के लिए “सब कुछ” चुनें।',
+  'search.syntax': 'सभी शब्दों का मिलना ज़रूरी है, और आगे लगा माइनस एक को बाहर कर देता है। host:, package: और name: सिर्फ़ एक फ़ील्ड में खोजते हैं, जबकि >500mb और older:7d आकार और उम्र पूछते हैं। बाकी सब सामान्य पाठ की तरह खोजा जाता है।',
   'search.shown': '{total} में से {n} दिख रहे हैं',
 
   'filter.label': 'त्वरित फ़िल्टर',
@@ -369,6 +372,9 @@ export const hi: Dict = {
   'remove.noFiles': 'डिस्क पर अभी कुछ नहीं लिखा गया है।',
   'remove.done': '{n} डाउनलोड हटाए गए।',
   'remove.keys': 'Del चुनी हुई पंक्तियाँ सूची से हटाता है। Shift+Del उनकी फ़ाइलें भी मिटा देता है।',
+  'remove.undo': 'पूर्ववत करें',
+  'remove.undone': '{n} डाउनलोड सूची में वापस आ गए।',
+  'remove.undoTooLate': 'बहुत देर हो गई, वे पंक्तियाँ हमेशा के लिए चली गईं।',
 
   'menu.label': 'चुने हुए डाउनलोड के लिए क्रियाएँ',
   'menu.packageLabel': 'इस पैकेज के लिए क्रियाएँ',

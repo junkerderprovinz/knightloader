@@ -48,6 +48,7 @@ export const id: Dict = {
   'task.reason.unsupported': 'Tidak ada backend',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Dibatalkan',
+  'task.reason.unknown': 'Tanpa klasifikasi',
 
   'overview.title': 'Ringkasan',
   'overview.totalSpeed': 'Total kecepatan unduh',
@@ -98,6 +99,7 @@ export const id: Dict = {
   'downloads.pauseAll': 'Jeda semua',
   'downloads.resumeAll': 'Lanjutkan semua',
   'downloads.retryFailed': 'Ulangi yang gagal',
+  'downloads.retryCause': 'Coba lagi {n} yang gagal karena: {reason}',
   'downloads.clearFinished': 'Bersihkan yang selesai',
   'downloads.noMatch': 'Tidak ada yang cocok dengan saringan ini.',
   'downloads.finished': '{name} selesai',
@@ -327,6 +329,7 @@ export const id: Dict = {
   'search.url': 'Tautan',
   'search.clear': 'Bersihkan pencarian',
   'search.hint': 'Pilih satu bidang untuk dicari, atau “Semuanya” untuk mencari di semuanya sekaligus.',
+  'search.syntax': 'Semua kata harus cocok, dan minus di depan mengecualikan satu. host:, package:, dan name: mencari di satu bidang saja, sedangkan >500mb dan older:7d menanyakan ukuran dan usia. Selebihnya dicari sebagai teks biasa.',
   'search.shown': '{n} dari {total} tampil',
 
   'filter.label': 'Filter cepat',
@@ -369,6 +372,9 @@ export const id: Dict = {
   'remove.noFiles': 'Belum ada apa pun yang ditulis ke disk.',
   'remove.done': '{n} unduhan dihapus.',
   'remove.keys': 'Del mengangkat baris terpilih dari daftar. Shift+Del menghapus berkasnya juga.',
+  'remove.undo': 'Urungkan',
+  'remove.undone': '{n} unduhan kembali ke daftar.',
+  'remove.undoTooLate': 'Terlambat, baris-baris itu hilang untuk selamanya.',
 
   'menu.label': 'Tindakan untuk unduhan terpilih',
   'menu.packageLabel': 'Tindakan untuk paket ini',

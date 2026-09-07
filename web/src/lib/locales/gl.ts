@@ -48,6 +48,7 @@ export const gl: Dict = {
   'task.reason.unsupported': 'Sen motor',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Cancelado',
+  'task.reason.unknown': 'Sen clasificar',
 
   'overview.title': 'Resumo',
   'overview.totalSpeed': 'Velocidade total',
@@ -98,6 +99,7 @@ export const gl: Dict = {
   'downloads.pauseAll': 'Pausar todo',
   'downloads.resumeAll': 'Retomar todo',
   'downloads.retryFailed': 'Repetir os erros',
+  'downloads.retryCause': 'Reintentar as {n} que fallaron: {reason}',
   'downloads.clearFinished': 'Limpar as rematadas',
   'downloads.noMatch': 'Nada coincide con este filtro.',
   'downloads.finished': '{name} rematado',
@@ -327,6 +329,7 @@ export const gl: Dict = {
   'search.url': 'Ligazón',
   'search.clear': 'Limpar a busca',
   'search.hint': 'Escolle un campo onde buscar, ou «Todo» para buscar en todos á vez.',
+  'search.syntax': 'Todas as palabras teñen que coincidir, e un menos diante exclúe unha. host:, package: e name: buscan nun só campo, mentres que >500mb e older:7d preguntan polo tamaño e a antigüidade. Todo o demais búscase como texto normal.',
   'search.shown': '{n} de {total} amosados',
 
   'filter.label': 'Filtros rápidos',
@@ -369,6 +372,9 @@ export const gl: Dict = {
   'remove.noFiles': 'Aínda non se escribiu nada no disco.',
   'remove.done': 'Quitáronse {n} descargas.',
   'remove.keys': 'Supr quita as filas seleccionadas da lista. Maiús+Supr borra tamén os seus ficheiros.',
+  'remove.undo': 'Desfacer',
+  'remove.undone': '{n} descargas de volta na lista.',
+  'remove.undoTooLate': 'Tarde de máis, esas filas desapareceron para sempre.',
 
   'menu.label': 'Accións para as descargas seleccionadas',
   'menu.packageLabel': 'Accións para este paquete',

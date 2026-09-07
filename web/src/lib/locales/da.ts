@@ -48,6 +48,7 @@ export const da: Dict = {
   'task.reason.unsupported': 'Ingen backend',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Annulleret',
+  'task.reason.unknown': 'Uden kategori',
 
   'overview.title': 'Overblik',
   'overview.totalSpeed': 'Samlet downloadhastighed',
@@ -98,6 +99,7 @@ export const da: Dict = {
   'downloads.pauseAll': 'Sæt alle på pause',
   'downloads.resumeAll': 'Fortsæt alle',
   'downloads.retryFailed': 'Prøv fejlede igen',
+  'downloads.retryCause': 'Prøv de {n} med denne årsag igen: {reason}',
   'downloads.clearFinished': 'Ryd færdige',
   'downloads.noMatch': 'Intet passer til filteret.',
   'downloads.finished': '{name} færdig',
@@ -327,6 +329,7 @@ export const da: Dict = {
   'search.url': 'Link',
   'search.clear': 'Ryd søgningen',
   'search.hint': 'Vælg ét felt at søge i, eller “Overalt” for at søge i dem alle på én gang.',
+  'search.syntax': 'Flere ord skal alle passe, et minus foran udelukker et. host:, package: og name: søger i ét felt, >500mb og older:7d spørger om størrelse og alder. Alt andet søges som almindelig tekst.',
   'search.shown': '{n} af {total} vist',
 
   'filter.label': 'Hurtigfiltre',
@@ -369,6 +372,9 @@ export const da: Dict = {
   'remove.noFiles': 'Der er endnu ikke skrevet noget til disken.',
   'remove.done': 'Fjernede {n} download(s).',
   'remove.keys': 'Delete tager de valgte rækker af listen. Skift+Delete sletter også deres filer.',
+  'remove.undo': 'Fortryd',
+  'remove.undone': '{n} download(s) tilbage på listen.',
+  'remove.undoTooLate': 'For sent, de rækker er væk for altid.',
 
   'menu.label': 'Handlinger for de valgte downloads',
   'menu.packageLabel': 'Handlinger for denne pakke',

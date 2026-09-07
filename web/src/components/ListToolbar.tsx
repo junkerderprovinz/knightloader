@@ -36,6 +36,7 @@ import {
   setQueue as armStopMark,
   setTaskOptions,
   startTasks,
+  undoDelete,
 } from '../lib/api';
 import { fmtBytes } from '../lib/format';
 import { useDialogMute, type DialogId } from '../lib/dialogmute';
@@ -452,6 +453,16 @@ export function TaskOptionsDialog({
  * rows, and the files are untouched. Erasing the files always asks first, and
  * names the file count and the bytes while asking. A clean-up class is the other
  * way round again — see runClass below — because there the app picked the rows.
+ *
+ * "They named the rows" is the part that used to be less true than it sounds.
+ * The selection survives a filter, so the ids being sent can include rows that
+ * are not on screen at the moment the button is pressed: pick eleven, type a
+ * search, press Del, and forty go. The remedy is the press back rather than a
+ * fourth confirmation dialog — the server keeps the rows for half a minute and
+ * hands back a token (app.RemoveTasksUndoable), and the message that says how
+ * many went carries the button that fetches them. The count in that message is
+ * itself the warning: "40 removed" after selecting eleven is the sentence
+ * nobody can miss.
  */
 export function useRemoval({
   all,
@@ -470,18 +481,48 @@ export function useRemoval({
   const dialogs = useDialogMute();
   const [ask, setAsk] = useState<string[] | null>(null);
 
+  // Its own callback so the message that offers it can stay a one-liner, and so
+  // that "too late" is reported as the plain fact it is rather than as a
+  // failure: an expired token answers 200 with nothing restored (see
+  // api.undoDelete), and the only thing that throws here is a request that never
+  // arrived.
+  const undoRemoval = useCallback(
+    async (token: string) => {
+      try {
+        const r = await undoDelete(token, base);
+        if (r.count > 0) toast(t('remove.undone', { n: r.count }), 'ok');
+        else toast(t('remove.undoTooLate'), 'info');
+      } catch (e) {
+        toast(t('list.failed', { error: message(e) }), 'fail');
+      }
+    },
+    [base, t, toast],
+  );
+
   const removeNow = useCallback(
     async (ids: string[], withFiles = false) => {
       if (ids.length === 0) return;
       try {
         const r: BulkResult = await deleteTasks(ids, withFiles, base);
-        toast(t('remove.done', { n: r.count }), 'ok');
+        // The button rides on the token, never on "we removed something": a
+        // removal that erased the files gets no token, and offering an undo
+        // there would promise a restore that cannot include the bytes. The
+        // bubble is held open for exactly as long as the server holds the rows,
+        // which is why undoMs comes back with it instead of being a number in
+        // here that drifts from the one over there.
+        const token = r.undo;
+        toast(
+          t('remove.done', { n: r.count }),
+          'ok',
+          'action-done',
+          token ? { label: t('remove.undo'), run: () => undoRemoval(token), holdMs: r.undoMs } : undefined,
+        );
         onDone();
       } catch (e) {
         toast(t('list.failed', { error: message(e) }), 'fail');
       }
     },
-    [base, onDone, t, toast],
+    [base, onDone, t, toast, undoRemoval],
   );
 
   // Silenced, this goes straight through to the delete WITH its files - which

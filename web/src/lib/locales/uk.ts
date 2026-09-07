@@ -48,6 +48,7 @@ export const uk: Dict = {
   'task.reason.unsupported': 'Немає рушія',
   'task.reason.captcha': 'Капча',
   'task.reason.cancelled': 'Скасовано',
+  'task.reason.unknown': 'Без класифікації',
 
   'overview.title': 'Огляд',
   'overview.totalSpeed': 'Загальна швидкість завантаження',
@@ -98,6 +99,7 @@ export const uk: Dict = {
   'downloads.pauseAll': 'Призупинити все',
   'downloads.resumeAll': 'Продовжити все',
   'downloads.retryFailed': 'Повторити невдалі',
+  'downloads.retryCause': 'Повторити {n} з цією причиною: {reason}',
   'downloads.clearFinished': 'Прибрати завершені',
   'downloads.noMatch': 'Нічого не відповідає фільтру.',
   'downloads.finished': '{name} завершено',
@@ -327,6 +329,7 @@ export const uk: Dict = {
   'search.url': 'Посилання',
   'search.clear': 'Очистити пошук',
   'search.hint': 'Виберіть одне поле для пошуку або «Скрізь», щоб шукати в усіх одразу.',
+  'search.syntax': 'Усі слова мають збігтися, мінус перед словом виключає його. host:, package: та name: шукають в одному полі, >500mb і older:7d питають про розмір і вік. Усе інше шукається як звичайний текст.',
   'search.shown': 'показано {n} з {total}',
 
   'filter.label': 'Швидкі фільтри',
@@ -369,6 +372,9 @@ export const uk: Dict = {
   'remove.noFiles': 'На диск ще нічого не записано.',
   'remove.done': 'Знято завантажень: {n}.',
   'remove.keys': 'Del знімає вибрані рядки зі списку. Shift+Del видаляє й їхні файли.',
+  'remove.undo': 'Скасувати',
+  'remove.undone': 'Повернуто до списку: {n}.',
+  'remove.undoTooLate': 'Запізно, ці рядки зникли остаточно.',
 
   'menu.label': 'Дії для вибраних завантажень',
   'menu.packageLabel': 'Дії для цього пакета',

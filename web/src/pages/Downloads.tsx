@@ -36,6 +36,7 @@ import {
   type QuickFilterId,
 } from '../components/ListToolbar';
 import { EMPTY_SEARCH, matchesSearch, SearchField, type SearchQuery } from '../components/SearchField';
+import { ErrorCauses } from '../components/ErrorCauses';
 import { ArchiveJobs, useArchiveMenu, useExtractJobs } from '../components/Archives';
 import { useFileMenu } from '../components/FileActions';
 import { useScriptMenu } from '../components/ScriptActions';
@@ -549,6 +550,14 @@ export function Downloads() {
           )}
         </div>
       )}
+
+      {/* Directly above the rows, and only while the failures are actually
+          several different problems. It is not part of the action row above: a
+          chip here says what IS wrong rather than offering another verb, and it
+          would be the only entry in that row whose label changes with the state
+          of the list. ErrorCauses draws nothing at all below two groups, so the
+          ordinary evening keeps the page it had. */}
+      <ErrorCauses tasks={list} base={base} />
 
       <div onContextMenu={onContextMenu}>
         {list.length === 0 ? (

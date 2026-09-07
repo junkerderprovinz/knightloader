@@ -7,9 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"sync"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/schedule"
 )
@@ -219,11 +221,38 @@ func (a *App) startTasks(ids []string, byHand bool) StartResult {
 // RestartTasks re-runs finished or errored tasks from scratch: their backend
 // state is cleared, THEIR RESOLVER IS CLEARED, and they re-enter the download
 // queue to be routed again from nothing. Empty ids = every errored task.
-func (a *App) RestartTasks(ids []string) {
+func (a *App) RestartTasks(ids []string) { a.RestartTasksIn(ids, nil) }
+
+// RestartTasksIn is RestartTasks narrowed to the causes worth retrying again.
+//
+// A night of failures is never one problem. Forty errored rows are dead links,
+// a hoster allowance that is spent and a disk that filled up, all mixed
+// together, and the one "retry everything" button treats them as if they were
+// the same thing: it throws twenty-one dead links at the host to prove they are
+// still dead, spends an allowance that is already spent, and buries the seven
+// somebody could actually have fixed under the noise of the other thirty-three.
+// core.Reason is what tells them apart, and the app has been recording it on
+// every failure all along - it was simply never something a caller could aim at.
+//
+// An empty reason list means every cause, which is what RestartTasks has always
+// meant. core.ReasonUnknown ("") is a legitimate entry rather than a gap in the
+// list: "nothing classified this" is itself a group somebody can point at, and
+// dropping the empty string here would make that group the one the button
+// cannot reach.
+//
+// Given both, ids and reasons INTERSECT: the named rows that also failed for one
+// of those causes. A union would let picking a cause widen a selection somebody
+// had just narrowed by hand, which is the opposite of what the chip is for.
+func (a *App) RestartTasksIn(ids []string, reasons []core.Reason) {
 	want := map[string]bool{}
 	for _, id := range ids {
 		want[id] = true
 	}
+	wantReason := map[core.Reason]bool{}
+	for _, r := range reasons {
+		wantReason[r] = true
+	}
+	byReason := len(wantReason) > 0
 	all := len(ids) == 0
 	a.mu.Lock()
 	type reset struct {
@@ -233,6 +262,9 @@ func (a *App) RestartTasks(ids []string) {
 	var targets []reset
 	for id, t := range a.tasks {
 		restartable := t.Status == core.StatusError || (t.Status == core.StatusDone && !all)
+		if byReason && !wantReason[t.Reason] {
+			continue
+		}
 		if restartable && (all || want[id]) {
 			targets = append(targets, reset{id, a.backendFor(t.Resolver)})
 			t.Status = core.StatusQueued
@@ -300,6 +332,207 @@ func (a *App) RestartTasks(ids []string) {
 		_ = a.Store.Save(&c)
 		a.Hub.Broadcast("task", &c)
 	}
+}
+
+// --- Taking a removal back --------------------------------------------------
+
+// UndoWindow is how long a removed selection can still be brought back.
+//
+// Thirty seconds is the distance between "those were the wrong rows" and "I have
+// moved on": long enough to read the message, look at the list and press the
+// button, short enough that nothing anybody has called deleted is quietly still
+// sitting here when they next look. The number is reported to the client
+// alongside the token rather than restated in the browser, because a message
+// that outlives the bin behind it is a button that answers "nothing to undo" for
+// no reason the person pressing it can see.
+const UndoWindow = 30 * time.Second
+
+// binned is one removed task plus the one fact about it that does not live on
+// the task: whether it was still waiting for a slot. Status cannot answer that
+// once the task is out of a.tasks - queued and paused are both "not running" -
+// and a queued row put back without its place in a.queue is a download that
+// waits for ever.
+type binned struct {
+	task   core.Task
+	queued bool
+}
+
+// bin is one removal kept whole. Half an undo would be worse than none: a
+// selection that comes back missing three rows looks exactly like a selection
+// somebody removed on purpose.
+type bin struct {
+	app   *App
+	tasks []binned
+}
+
+// bins holds the removals that can still be taken back, keyed by the token the
+// client was handed.
+//
+// Package-level rather than a field on App because nothing else in this package
+// reads it and nothing outside this file may: an entry is written by
+// RemoveTasksUndoable, read once by UndoRemove, and dropped by whichever of the
+// clock and the shutdown reaches it first. It is empty at rest, so it holds a
+// task copy - and the App those copies belong to - for at most UndoWindow past
+// the removal that filled it.
+var bins sync.Map // token -> *bin
+
+// RemoveTasksUndoable is RemoveTasks for a removal somebody pressed a button
+// for: it takes the same rows off the list and keeps a copy for UndoWindow, so
+// the press can be taken back.
+//
+// THE FILES ARE WHY deleteFiles GETS NO TOKEN. A removal that left the downloads
+// alone is completely reversible: the bytes are still on disk under the same
+// name, and a restored row points at the same file it did a second earlier. A
+// removal that erased them is not, and an undo that could only bring the row
+// back would be a button lying about what it restores - somebody presses it,
+// sees the download reappear, and finds out what it did not restore when the
+// transfer starts over from zero. So the erasing form removes exactly as it
+// always did and answers with no token, and the interface offers nothing.
+//
+// The bin is deliberately process-local and is never written to the store. A
+// crash, a container update or a restart is not an undo, and a download somebody
+// deleted last week coming back from the dead after a `docker pull` is the worst
+// possible way to discover that this feature exists. It expires on its own clock
+// and again on shutdown, whichever comes first.
+func (a *App) RemoveTasksUndoable(ids []string, deleteFiles bool) (removed []string, token string) {
+	// Snapshotted BEFORE the removal, because Remove is what takes the task out
+	// of a.tasks: read afterwards there is nothing left to copy.
+	a.mu.Lock()
+	inQueue := make(map[string]bool, len(a.queue))
+	for _, id := range a.queue {
+		inQueue[id] = true
+	}
+	kept := make(map[string]binned, len(ids))
+	for _, id := range ids {
+		if t := a.tasks[id]; t != nil {
+			kept[id] = binned{task: *t, queued: inQueue[id]}
+		}
+	}
+	a.mu.Unlock()
+
+	removed = a.RemoveTasks(ids, deleteFiles)
+	if deleteFiles || len(removed) == 0 {
+		return removed, ""
+	}
+	// Only what the removal really took. The two lists agree on any ordinary
+	// call, and where they do not - a second caller removing the same row in
+	// between - the removal is the one that happened, so it is the one the bin
+	// has to describe.
+	b := &bin{app: a, tasks: make([]binned, 0, len(removed))}
+	for _, id := range removed {
+		if e, ok := kept[id]; ok {
+			b.tasks = append(b.tasks, e)
+		}
+	}
+	if len(b.tasks) == 0 {
+		return removed, ""
+	}
+	token = newID()
+	bins.Store(token, b)
+	// The bin's own clock and its own shutdown, in one goroutine that always
+	// ends within UndoWindow.
+	//
+	// Deliberately NOT a.spawn: that counts work Close has to wait for, and this
+	// goroutine writes nothing, touches nothing Close tears down, and only lets
+	// go of copies - while a bin whose spawn was refused because Close had
+	// already committed would be the one copy of a removed download that never
+	// expires at all. Waiting on a.ctx beside the timer is what makes "expires
+	// on shutdown" true without a hook in Close: cancel lands, the select falls
+	// through, and the copies are gone before the store is closed under them.
+	go func() {
+		timer := time.NewTimer(UndoWindow)
+		defer timer.Stop()
+		select {
+		case <-timer.C:
+		case <-a.ctx.Done():
+		}
+		bins.Delete(token)
+	}()
+	return removed, token
+}
+
+// UndoRemove puts back what one removal took and reports which rows came back.
+//
+// An unknown or expired token restores nothing and is not an error: the bin
+// emptying on its own clock is the normal end of a token's life, and a button
+// pressed a second too late has to say "there is nothing to undo", not "this
+// broke".
+func (a *App) UndoRemove(token string) []string {
+	v, ok := bins.Load(token)
+	b, _ := v.(*bin)
+	// The token belongs to the instance that issued it. One browser sits in
+	// front of several instances (see routes_federation.go's proxy), and
+	// restoring a peer's rows into this list would invent downloads nobody
+	// removed here - so a token from elsewhere is simply not found.
+	if !ok || b == nil || b.app != a {
+		return nil
+	}
+	bins.Delete(token)
+
+	a.mu.Lock()
+	var live []*core.Task
+	for i := range b.tasks {
+		e := b.tasks[i]
+		// Never two rows for one id. A restore that ran twice, or an id that has
+		// somehow been handed out again, must not replace a live download with a
+		// copy of a dead one.
+		if a.tasks[e.task.ID] != nil {
+			continue
+		}
+		t := e.task
+		enqueue := e.queued
+		if t.Status == core.StatusRunning || t.Status == core.StatusExtracting {
+			// Nothing is driving these any more. Remove told the backend to
+			// forget the task, and a backend cannot be told to remember one
+			// again, so "waiting to be fetched" is the honest state to come back
+			// in - a row showing a speed nobody is producing is the exact defect
+			// reviveOnBoot exists to prevent after a restart.
+			t.Status = core.StatusQueued
+			enqueue = true
+		}
+		// THE BYTE COUNT IS KEPT, and that is reviveOnBoot's rule rather than a
+		// second opinion about it: a stored Loaded is a claim about a FILE, so it
+		// stands exactly as long as the file does. This bin only ever holds a
+		// removal that left the downloads alone, so the partial is still on disk
+		// under the same name at the moment this runs - and zeroing a number
+		// that is true, because of what will happen next, is the dishonesty that
+		// comment names in so many words. The speed is the opposite case: it was
+		// a claim about a transfer, and there is no transfer.
+		t.Speed = 0
+		a.tasks[t.ID] = &t
+		// Filed again, but never over a link that is live now. The removal
+		// unfiled this URL, so anything pasted since owns the record; overwriting
+		// it would point the mirror set at the restored row and let a third copy
+		// of a download that is running right now past the check.
+		if m := a.dupes.Check(dedupe.Entry{URL: t.URL}); m.Verdict != dedupe.Duplicate {
+			a.dupes.Add(linkEntry(&t))
+		}
+		if enqueue {
+			a.queue = append(a.queue, t.ID)
+		}
+		live = append(live, &t)
+	}
+	// Back into the order it was in, not onto the end of the queue: priority and
+	// position travelled with the task copy, and appending without this would
+	// leave a restored row behind everything it used to be ahead of.
+	a.sortQueueLocked()
+	a.dispatchLocked()
+	// After dispatching, for the same reason as in StartTasks and RestartTasks:
+	// a copy taken before it would write "queued, no error" over a task dispatch
+	// has just refused.
+	copies := make([]core.Task, 0, len(live))
+	for _, t := range live {
+		copies = append(copies, *t)
+	}
+	a.mu.Unlock()
+	back := make([]string, 0, len(copies))
+	for i := range copies {
+		c := copies[i]
+		back = append(back, c.ID)
+		_ = a.Store.Save(&c)
+		a.Hub.Broadcast("task", &c)
+	}
+	return back
 }
 
 // --- Who an action is about -----------------------------------------------

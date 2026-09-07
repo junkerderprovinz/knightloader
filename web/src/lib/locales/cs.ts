@@ -48,6 +48,7 @@ export const cs: Dict = {
   'task.reason.unsupported': 'Chybí backend',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Zrušeno',
+  'task.reason.unknown': 'Bez zařazení',
 
   'overview.title': 'Přehled',
   'overview.totalSpeed': 'Celková rychlost stahování',
@@ -98,6 +99,7 @@ export const cs: Dict = {
   'downloads.pauseAll': 'Pozastavit vše',
   'downloads.resumeAll': 'Pokračovat ve všem',
   'downloads.retryFailed': 'Opakovat neúspěšné',
+  'downloads.retryCause': 'Zkusit znovu {n} s touto příčinou: {reason}',
   'downloads.clearFinished': 'Odebrat dokončené',
   'downloads.noMatch': 'Filtru nic neodpovídá.',
   'downloads.finished': '{name} dokončeno',
@@ -327,6 +329,7 @@ export const cs: Dict = {
   'search.url': 'Odkaz',
   'search.clear': 'Vymazat hledání',
   'search.hint': 'Vyberte jedno pole k prohledání, nebo „Všude“ a prohledají se všechna najednou.',
+  'search.syntax': 'Několik slov musí sedět všechno naráz, minus před slovem ho vyloučí. host:, package: a name: hledají v jednom poli, >500mb a older:7d se ptají na velikost a stáří. Vše ostatní se hledá jako běžný text.',
   'search.shown': 'zobrazeno {n} z {total}',
 
   'filter.label': 'Rychlé filtry',
@@ -369,6 +372,9 @@ export const cs: Dict = {
   'remove.noFiles': 'Na disk se zatím nic nezapsalo.',
   'remove.done': 'Odebráno {n} stahování.',
   'remove.keys': 'Delete odebere vybrané řádky ze seznamu. Shift+Delete smaže i jejich soubory.',
+  'remove.undo': 'Zpět',
+  'remove.undone': 'Zpět v seznamu: {n} stahování.',
+  'remove.undoTooLate': 'Příliš pozdě, tyto řádky jsou pryč nadobro.',
 
   'menu.label': 'Akce pro vybraná stahování',
   'menu.packageLabel': 'Akce pro tento balíček',

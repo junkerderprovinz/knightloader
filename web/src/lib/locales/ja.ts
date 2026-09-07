@@ -48,6 +48,7 @@ export const ja: Dict = {
   'task.reason.unsupported': 'バックエンドなし',
   'task.reason.captcha': 'キャプチャ',
   'task.reason.cancelled': '中止',
+  'task.reason.unknown': '分類なし',
 
   'overview.title': '概要',
   'overview.totalSpeed': '合計ダウンロード速度',
@@ -98,6 +99,7 @@ export const ja: Dict = {
   'downloads.pauseAll': 'すべて一時停止',
   'downloads.resumeAll': 'すべて再開',
   'downloads.retryFailed': '失敗した分を再試行',
+  'downloads.retryCause': 'この原因で失敗した {n} 件を再試行: {reason}',
   'downloads.clearFinished': '完了分を片付ける',
   'downloads.noMatch': '条件に一致するものはありません。',
   'downloads.finished': '{name} が完了しました',
@@ -327,6 +329,7 @@ export const ja: Dict = {
   'search.url': 'リンク',
   'search.clear': '検索をクリア',
   'search.hint': '検索する項目を 1 つ選ぶか、「すべて」を選ぶと全項目をまとめて検索します。',
+  'search.syntax': '複数の語はすべて一致する必要があり、先頭のマイナスは除外します。host:、package:、name: は単一の項目を検索し、>500mb や older:7d はサイズと経過日数を尋ねます。それ以外はすべて通常の文字列として検索されます。',
   'search.shown': '{total} 件中 {n} 件を表示',
 
   'filter.label': 'クイックフィルター',
@@ -369,6 +372,9 @@ export const ja: Dict = {
   'remove.noFiles': 'ディスクにはまだ何も書き込まれていません。',
   'remove.done': '{n} 件のダウンロードを削除しました。',
   'remove.keys': 'Del は選択した行をリストから外します。Shift+Del はファイルも削除します。',
+  'remove.undo': '元に戻す',
+  'remove.undone': '{n} 件のダウンロードがリストに戻りました。',
+  'remove.undoTooLate': '遅すぎました。その行は完全に失われています。',
 
   'menu.label': '選択したダウンロードへの操作',
   'menu.packageLabel': 'このパッケージへの操作',
