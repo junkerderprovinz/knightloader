@@ -1074,13 +1074,22 @@ type QueueState struct {
 	// Running is how many downloads are actually in flight, which is what makes
 	// "halted" legible: halted with three running means three still finishing.
 	Running int `json:"running"`
+	// Quiet is whether the second set of limits is in force (app_quiet.go).
+	//
+	// What is IN FORCE, not the switch that was last pressed - the same choice
+	// Halted above makes, and it matters for the same reason: a timetable window
+	// turns this mode on too, and an interface that drew the button from the
+	// switch alone would show it unlit through the whole nightly window it is
+	// describing. Which of the two put it on is answerable from
+	// ScheduleState.State.Quiet, which is the timetable's own answer.
+	Quiet bool `json:"quiet"`
 }
 
 // Queue reports the master switch.
 func (a *App) Queue() QueueState {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	return QueueState{Halted: a.halted, StopMark: a.stopMark, Running: len(a.active)}
+	return QueueState{Halted: a.halted, StopMark: a.stopMark, Running: len(a.active), Quiet: a.quiet.inForce}
 }
 
 // SetHalted stops or resumes handing queued tasks to a backend. Halting leaves
@@ -1397,8 +1406,14 @@ func (a *App) scheduleBase() schedule.State {
 	// Remembered so applySchedule can tell a stale answer from a fresh one -
 	// see its own comment for the race this closes.
 	a.scheduleBaseHalt = paused
+	// The turtle is a base exactly as the halt is, and for the same reason: a
+	// mode switched on by hand has to survive the end of a window that never
+	// mentioned it. Its marker is remembered for the same race - see
+	// applySchedule.
+	quiet := a.quiet.manual
+	a.quiet.baseSeen = quiet
 	a.mu.Unlock()
-	return schedule.State{Paused: paused, Limit: a.Settings.Get().SpeedLimit}
+	return schedule.State{Paused: paused, Limit: a.Settings.Get().SpeedLimit, Quiet: quiet}
 }
 
 // applySchedule puts the state the timetable arrived at into effect. It runs on
@@ -1409,6 +1424,11 @@ func (a *App) scheduleBase() schedule.State {
 // "finish this, then stop", and clearing it at the end of a nightly window would
 // throw away an instruction nobody could connect to anything they did.
 func (a *App) applySchedule(st schedule.State) {
+	// Read outside a.mu (Settings has its own lock) because the limit decision
+	// below needs the quiet figures, and taking one lock inside the other for a
+	// snapshot that never changes under us would be a lock ordering nobody else
+	// in this file has to respect.
+	cfg := a.Settings.Get()
 	a.mu.Lock()
 	// The runner reads the base under the lock, DROPS it, evaluates the
 	// timetable, and only then calls this - so anything that changes the halt in
@@ -1429,6 +1449,30 @@ func (a *App) applySchedule(st schedule.State) {
 		paused = a.manualHalt
 	}
 	a.halted = paused
+	// The same correction, on the same shape of flag, against the same race: the
+	// runner read the quiet base, dropped the lock, and a press could have landed
+	// in the gap. Only the case where the timetable did NOT change the base's own
+	// answer is corrected, so a window that genuinely says "quiet" still wins -
+	// see the precedence note in app_quiet.go for why that is the way round.
+	quiet := st.Quiet
+	if quiet == a.quiet.baseSeen && a.quiet.manual != a.quiet.baseSeen {
+		quiet = a.quiet.manual
+	}
+	a.quiet.inForce = quiet
+	// Written HERE, in the same critical section as the flag it depends on and
+	// ahead of the dispatch below, rather than in the second lock/unlock further
+	// down where it used to sit. That was harmless while this was st.Limit
+	// verbatim. It is not harmless now: how loud the box is is ONE decision in
+	// two halves, the slot count and the speed, and cfgInForceLocked
+	// (app_quiet.go) answers the dispatcher's half from the flag just set above.
+	// A dispatch taken between the two runs against half a quiet mode.
+	//
+	// speedInForce rather than st.Limit is the whole wiring of the speed half.
+	// a.limitInForce is the number applyBudget shares out between the three
+	// meters, so a quiet mode that wrote its limit anywhere else would be undone
+	// at the next window boundary, silently, by this very line.
+	limit := speedInForce(cfg, st.Limit, quiet)
+	a.limitInForce = limit
 	// Unconditional for the same reason SetHalted's is: a pause window is one of
 	// the two ways a row ends up waiting with nothing to show for it, and this is
 	// the pass that would have told it. It was the boot case that surfaced it -
@@ -1437,14 +1481,11 @@ func (a *App) applySchedule(st schedule.State) {
 	// said nothing at all.
 	a.dispatchLocked()
 	a.mu.Unlock()
-	// Not the raw limit onto the engine's throttle any more: the number belongs
-	// to all three meters together, and applyBudget shares it out (app_budget.go).
-	// The window's own limit is recorded first, because applyBudget reads it -
-	// a nightly 2 MB/s window read from settings instead would be shared out at
-	// the daytime figure.
-	a.mu.Lock()
-	a.limitInForce = st.Limit
-	a.mu.Unlock()
+	// Not the raw limit onto the engine's throttle: the number belongs to all
+	// three meters together, and applyBudget shares it out (app_budget.go). The
+	// limit in force is recorded above, before this call, because applyBudget
+	// reads it - a nightly 2 MB/s window read from settings instead would be
+	// shared out at the daytime figure.
 	a.applyBudget()
 	// JD lives on its own box and is told over the network, so it is pushed off
 	// this goroutine: a slow or unreachable JD must not delay the next boundary.
@@ -1457,7 +1498,13 @@ func (a *App) applySchedule(st schedule.State) {
 	// applySchedule itself non-blocking either way; the only change is that
 	// Close() now genuinely waits for this call before a test's next
 	// t.Cleanup-driven teardown can start the next one.
-	a.spawn(func() { a.pushJDSpeedLimit(st.Limit) })
+	//
+	// The limit IN FORCE, not st.Limit. JD meters in its own process and would
+	// otherwise be the one backend that ignored quiet mode until the next budget
+	// tick three seconds later, which is exactly long enough for somebody who
+	// pressed the turtle because the line was saturated to watch it stay
+	// saturated.
+	a.spawn(func() { a.pushJDSpeedLimit(limit) })
 	a.Hub.Broadcast("queue", a.Queue())
 }
 
