@@ -1154,6 +1154,9 @@ func (a *App) dequeueLocked(id string) {
 func (a *App) scheduleBase() schedule.State {
 	a.mu.Lock()
 	paused := a.manualHalt
+	// Remembered so applySchedule can tell a stale answer from a fresh one -
+	// see its own comment for the race this closes.
+	a.scheduleBaseHalt = paused
 	a.mu.Unlock()
 	return schedule.State{Paused: paused, Limit: a.Settings.Get().SpeedLimit}
 }
@@ -1167,8 +1170,26 @@ func (a *App) scheduleBase() schedule.State {
 // throw away an instruction nobody could connect to anything they did.
 func (a *App) applySchedule(st schedule.State) {
 	a.mu.Lock()
-	a.halted = st.Paused
-	if !st.Paused {
+	// The runner reads the base under the lock, DROPS it, evaluates the
+	// timetable, and only then calls this - so anything that changes the halt in
+	// that gap is about to be overwritten by an answer computed before it
+	// happened. StopAll lands there: it sets manualHalt and halted, the runner
+	// writes back the false it read a moment earlier, and dispatchLocked below
+	// hands a waiting task the slot the hard stop just emptied. The button reads
+	// as broken, which is precisely what
+	// TestStopAllHaltsBeforeItFreesASlot exists to prevent - and that test had
+	// been failing about one run in twenty since long before anyone looked.
+	//
+	// Only the case where the timetable did NOT change the base's answer is
+	// corrected. A window that genuinely says "pause" or "run" still wins, which
+	// is the whole point of a timetable and is what scheduleBase's own doc means
+	// by "what the queue does when no window applies".
+	paused := st.Paused
+	if paused == a.scheduleBaseHalt && a.manualHalt != a.scheduleBaseHalt {
+		paused = a.manualHalt
+	}
+	a.halted = paused
+	if !paused {
 		a.dispatchLocked()
 	}
 	a.mu.Unlock()

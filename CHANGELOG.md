@@ -137,6 +137,14 @@ submission and for a fixed download.
   `KL_CNL=0`, which is why the switch read "off" on every container install with
   no way to tell a choice from a default. It still binds `127.0.0.1` only, and
   deliberately not the LAN: the protocol carries no authentication at all.
+- **The schedule could undo a hard stop.** The timetable runner reads what the
+  queue should be doing, lets go of the lock, works out the answer and only then
+  applies it, so a "stop everything" that landed in that window was overwritten
+  by a reading taken before it happened, and a waiting download was handed the
+  slot the stop had just emptied. The button read as broken. It surfaced as a
+  test failing about one run in twenty, on this commit and on every one before
+  it; the test for it now writes the interleaving out by hand instead of racing
+  for it.
 - **A debrid service with `www.` in its catalogue link was still offered as a
   hoster login.** The filter compared `www.premiumize.me` against JDownloader's
   `premiumize.me` and never matched, so a service with its own card could be
