@@ -130,10 +130,10 @@ type Condition struct {
 // chunks and auto-extract off are all real settings, so "unset" needs to be
 // something other than the zero value.
 //
-// DownloadDir is the only field allowed to spell out path levels. Filename is
-// cut back to a single segment once it has been expanded, because a file name
-// containing a separator is not a name, it is a way out of the folder the
-// caller picked.
+// DownloadDir and ExtractDir are the only fields allowed to spell out path
+// levels, because naming a folder is what they are for. Filename is cut back to
+// a single segment once it has been expanded, because a file name containing a
+// separator is not a name, it is a way out of the folder the caller picked.
 type Action struct {
 	PackageName string `json:"packageName,omitempty"`
 	DownloadDir string `json:"downloadDir,omitempty"`
@@ -142,6 +142,34 @@ type Action struct {
 	Priority    *int   `json:"priority,omitempty"`
 	AutoExtract *bool  `json:"autoExtract,omitempty"`
 	Chunks      *int   `json:"chunks,omitempty"`
+
+	// ExtractDir is where the CONTENT of this link's finished extraction is
+	// moved once the unpacking is over. Empty means "no rule had an opinion",
+	// like every other string here, and the instance-wide setting then decides
+	// (settings.ExtractMoveTo).
+	//
+	// It is the third folder a rule can name and it is not a spelling of either
+	// of the other two. DownloadDir is where the archive is fetched to.
+	// ExtractTo, which is a setting rather than a rule, is where the unpacking
+	// WRITES - so the folder named there holds a growing, half-finished release
+	// for as long as the extraction runs, which for a folder a media server
+	// watches is exactly the problem a rule like this is being written to solve.
+	// This one names where the finished files are PUT, afterwards, by a move.
+	//
+	// It moves the content and not the folder around it: a release that
+	// unpacked as "Show.S01.COMPLETE.WEB/ep01.mkv" arrives as "ep01.mkv" in the
+	// folder this names. That is the whole reason somebody writes the rule -
+	// "everything matching Show.S01 goes in Serien/Show/Staffel 1" means the
+	// episodes go there, not a folder full of scene tags with the episodes
+	// inside it.
+	//
+	// It is a template like the rest, so the folder may be spelled out of the
+	// package name or the date, and it is the one action field besides
+	// DownloadDir allowed to name path levels - a file name may not, because a
+	// name with a separator in it is a way out of the folder somebody picked,
+	// while a folder that spells its own levels is the entire point of a folder
+	// template.
+	ExtractDir string `json:"extractDir,omitempty"`
 
 	// Headers NAMES a stored header profile (internal/resolver/hostheaders)
 	// and never holds a header itself. That is the point of the field, not an
@@ -262,6 +290,10 @@ type Effect struct {
 	Priority    *int   `json:"priority,omitempty"`
 	AutoExtract *bool  `json:"autoExtract,omitempty"`
 	Chunks      *int   `json:"chunks,omitempty"`
+	// ExtractDir is where the finished extraction's content is moved. See
+	// Action.ExtractDir for what it is and for why it is a third folder rather
+	// than a second spelling of one of the other two.
+	ExtractDir string `json:"extractDir,omitempty"`
 	// Headers is the stored header profile a rule attached, by name. See
 	// Action.Headers for why a name and never the headers.
 	Headers string `json:"headers,omitempty"`
@@ -500,7 +532,7 @@ func (m *Matcher) Apply(c Candidate) Effect {
 	// submatches of the rule that set it: <jd:match:...> in rule seven reads
 	// rule seven's own pattern, so the groups travel with the template rather
 	// than being collected globally.
-	var pkg, dir, name, comment tpl
+	var pkg, dir, name, comment, unpackDir tpl
 	m.walk(c, func(r compiled, g groups) bool {
 		e.Matched = append(e.Matched, r.name)
 		a := r.act
@@ -511,6 +543,9 @@ func (m *Matcher) Apply(c Candidate) Effect {
 		}
 		if a.DownloadDir != "" {
 			dir = tpl{a.DownloadDir, g}
+		}
+		if a.ExtractDir != "" {
+			unpackDir = tpl{a.ExtractDir, g}
 		}
 		if a.Filename != "" {
 			name = tpl{a.Filename, g}
@@ -550,6 +585,13 @@ func (m *Matcher) Apply(c Candidate) Effect {
 		// Windows and Linux, so a rule written on one would be rejected by the
 		// other. The caller validates the folder it is about to use.
 		e.Dir = m.expand(dir.text, "dir", c, dir.groups)
+	}
+	if unpackDir.text != "" {
+		// Keyed apart from the download folder above, so <jd:append> counts the
+		// two independently: a rule that sends the archive to one folder and its
+		// contents to another means one of each, not the second one numbered
+		// because the first already used the name.
+		e.ExtractDir = m.expand(unpackDir.text, "extractdir", c, unpackDir.groups)
 	}
 	if name.text != "" {
 		// Cut to one segment after expanding, not before: the append counter
@@ -809,6 +851,7 @@ func (a Action) templates() []struct{ Label, Text string } {
 	return []struct{ Label, Text string }{
 		{"package name", a.PackageName},
 		{"download folder", a.DownloadDir},
+		{"unpack folder", a.ExtractDir},
 		{"file name", a.Filename},
 		{"comment", a.Comment},
 		{"reason", a.Reason},

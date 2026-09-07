@@ -275,8 +275,30 @@ type Job struct {
 	Headers map[string]string
 	Conns   int
 	// Dir is where the file lands; empty means the engine's own folder.
-	Dir   string
-	Route proxycfg.Route
+	Dir string
+	// WorkDir is where the bytes are WRITTEN while they are still arriving, when
+	// the caller keeps that apart from where the file belongs. Empty - the
+	// default, and what every caller had before this field existed - writes
+	// straight into Dir.
+	//
+	// It changes two things here and nothing else. The download is created in
+	// this folder rather than in Dir, so a .part file never appears at the
+	// destination for a mover or a library scanner to trip over. And the
+	// collision policy below is NOT applied: a working folder is shared by the
+	// downloads heading for one destination and by nothing else, so a name
+	// decided against it would be decided against the wrong folder, and a
+	// counted name settled here would be carried to the destination and count
+	// again there. The policy travels with the file instead and is applied by
+	// whoever moves it into Dir, which is also the only moment the destination's
+	// contents are worth looking at - see internal/workdir.
+	//
+	// Getting the file the rest of the way is deliberately not this engine's
+	// job. It is the caller that knows whether a checksum is still owed on the
+	// download and whether an archive is about to be unpacked out of it, and a
+	// backend that delivered on its own would move the first volume of a
+	// five-part set out from under the four that are still arriving.
+	WorkDir string
+	Route   proxycfg.Route
 
 	// TorrentSelect names which files of a multi-file torrent to fetch, by
 	// index in the resolved file list. Nil fetches all of them, which is what
@@ -299,6 +321,22 @@ type Job struct {
 	// the collide package's own cap.
 	MaxCollisionAttempts int
 }
+
+// writeDir is the folder this job's bytes go into, which is the working folder
+// whenever the caller named one and the destination otherwise. Everything that
+// touches the disk on the way in reads this; Dir stays what it is, because it
+// is where the file ends up and that is a different question.
+func (j Job) writeDir() string {
+	if j.WorkDir != "" {
+		return j.WorkDir
+	}
+	return j.Dir
+}
+
+// placed reports whether this job's collision policy is decided here at all. A
+// job writing into a working folder carries its policy to the destination
+// instead - see Job.WorkDir.
+func (j Job) placed() bool { return j.Collision != "" && j.WorkDir == "" }
 
 // Start resolves the URL (to learn the name, the size and the shape of what is
 // on the other end), settles where the file lands, and then starts the task.
@@ -353,7 +391,7 @@ func (e *Engine) Start(j Job) {
 			Extra: &fhttp.ReqExtra{Method: "GET", Header: j.Headers},
 			Proxy: requestProxy(j.Route),
 		}
-		opts := &base.Options{Path: j.Dir, Extra: &fhttp.OptsExtra{Connections: j.Conns}}
+		opts := &base.Options{Path: j.writeDir(), Extra: &fhttp.OptsExtra{Connections: j.Conns}}
 		rr, err := e.d.Resolve(req, opts)
 		if err != nil {
 			e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: err.Error()})
@@ -390,6 +428,12 @@ func (e *Engine) Start(j Job) {
 // of the URL, and a collision decided on a guessed name is a decision about a
 // different file.
 //
+// IT DOES NOT RUN AT ALL for a job with a working folder. The folder being
+// written to is then not the folder the file ends up in, and a policy applied
+// to the wrong folder is worse than none: it would count up against whatever
+// the working folder happens to hold and then count up a second time at the
+// destination. See Job.WorkDir.
+//
 // opts is the very struct the download runs with: Downloader.Resolve keeps the
 // pointer it was given and Create is called with no options of its own, so a
 // name written here is the name the fetcher reads. It has also had the library's
@@ -398,7 +442,7 @@ func (e *Engine) Start(j Job) {
 // came back would reserve in a folder nothing is written to.
 func place(j Job, res *base.Resource, opts *base.Options) (string, error) {
 	name, _ := metaOf(res)
-	if j.Collision == "" || res == nil {
+	if !j.placed() || res == nil {
 		return name, nil
 	}
 	if res.Name != "" {
