@@ -250,6 +250,22 @@ func newStopApp(t *testing.T, concurrent int) *App {
 func TestScheduleCannotUndoAHardStop(t *testing.T) {
 	a := newStopApp(t, 2)
 
+	// The App's own schedule runner is stopped first, and that is the whole
+	// difference between a deterministic test and a coin toss.
+	//
+	// The correction below keys off the base reading the runner last took, and
+	// in production exactly one goroutine ever takes it: the runner reads and
+	// applies in sequence on its own loop. A test that calls scheduleBase and
+	// applySchedule by hand while that loop is also alive has TWO readers, and
+	// the runner's own first pass can land between them and overwrite the stale
+	// marker with a fresh one. Locally the runner had always finished before the
+	// test body started; on a loaded CI runner it had not, and this test failed
+	// there while passing here - which is the same class of mistake it was
+	// written to catch.
+	if err := a.sched.Close(); err != nil {
+		t.Fatal(err)
+	}
+
 	a.mu.Lock()
 	a.tasks["r1"] = &core.Task{ID: "r1", URL: "https://host.example/r1", Status: core.StatusRunning, Enabled: true}
 	a.active["r1"] = true
