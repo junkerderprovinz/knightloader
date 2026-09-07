@@ -49,6 +49,10 @@ func TestParseChromeCopyAsCurl(t *testing.T) {
 // TestParseCurlWithABasicLogin is the seedbox case: the whole credential is in
 // -u and nothing else in the line says anything.
 func TestParseCurlWithABasicLogin(t *testing.T) {
+	// gitleaks:allow - the invented pair is the fixture, not a credential: this
+	// test exists precisely because a person pastes a curl line WITH -u in it,
+	// so the shape has to stay literal or the parser under test is not the one
+	// being exercised.
 	set, err := Parse(`curl.exe -u "demo:s3cret" "https://box.example.net:8443/files/x.mkv" -o x.mkv`)
 	if err != nil {
 		t.Fatal(err)
