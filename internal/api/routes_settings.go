@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/collide"
@@ -250,7 +251,43 @@ func validateRows(s settings.Settings) error {
 			return fmt.Errorf("feed row %d: %w", i+1, err)
 		}
 	}
+	// The category table, and the references into it. Refused here rather than
+	// left to sanitize for the reason every other row on this list is: sanitize
+	// drops what it cannot use, so two categories sharing an id would become one
+	// category on the next load, with nothing on the page to say which drawer
+	// went and why the downloads filed there stopped landing where they used to.
+	// settings.ValidateCategories carries the full reasoning, including why a
+	// PACKAGIZER rule pointing at a category that does not exist is refused
+	// while a TASK pointing at one is left exactly as it is.
+	if err := s.ValidateCategories(); err != nil {
+		return err
+	}
+	// The folder each drawer names, on the same terms as DownloadDir above: a
+	// destination that cannot be written to is refused at the moment it is
+	// typed, not discovered later by a download that landed somewhere else.
+	// settings.Validate creates the fixed part of the path and probes it, so a
+	// category folder is real by the time the save returns - the same promise
+	// the global download folder already makes.
+	for i, c := range s.Categories {
+		if err := settings.Validate(c.Dir); err != nil {
+			return fmt.Errorf("category %d (%s): %w", i+1, categoryLabel(c, i), err)
+		}
+	}
 	return nil
+}
+
+// categoryLabel names a category in a message: its name when it has one, its id
+// when it does not, and its position when it has neither - the same
+// "an unnamed row still has to be findable" rule rules.ruleName follows. The
+// position alone would be useless on a page where the rows are dragged around.
+func categoryLabel(c settings.Category, index int) string {
+	if n := strings.TrimSpace(c.Name); n != "" {
+		return n
+	}
+	if id := strings.TrimSpace(c.ID); id != "" {
+		return id
+	}
+	return fmt.Sprintf("row %d", index+1)
 }
 
 // options is every fixed choice the settings form offers, taken from the
