@@ -345,6 +345,7 @@ export const ko: Dict = {
   'filter.unchecked': '미확인',
   'filter.disabled': '꺼짐',
   'filter.held': '보류',
+  'filter.stalled': '정체됨',
 
   'cleanup.menu': '정리…',
   'cleanup.menuLabel': '정리 항목',

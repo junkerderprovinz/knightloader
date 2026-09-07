@@ -345,6 +345,7 @@ export const hu: Dict = {
   'filter.unchecked': 'Nincs ellenőrizve',
   'filter.disabled': 'Kikapcsolva',
   'filter.held': 'Visszatartva',
+  'filter.stalled': 'Elakadt',
 
   'cleanup.menu': 'Takarítás…',
   'cleanup.menuLabel': 'Takarítási bejegyzések',

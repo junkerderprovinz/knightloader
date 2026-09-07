@@ -280,6 +280,23 @@ that, the same rule `ssh` follows once you have answered its prompt.
 
 <br>
 
+### Sites that want their own headers
+
+Some links only work with something extra on the request: a forum that checks
+the referrer, a private Nextcloud behind basic auth, a page that needs the
+cookie your browser already has. A **header profile** stores that per host, in
+the same encrypted store as the account credentials, and you can paste a cookie
+block or a whole `curl` line in and have the headers pulled out of it.
+
+Two rules make this safe to use, and both are enforced rather than promised. A
+stored header **never appears anywhere it could be read back** — not in a log,
+not in an error message, not in a diagnostic bundle, and not in
+`settings.json`, where a Packagizer rule only ever names the profile it wants.
+And a header **never follows a redirect off its own site**: a forum that hands
+you on to a CDN does not get to pass your session token along with you.
+
+<br>
+
 ## 6. Where files land
 
 The download folder may be a plain path or a template:

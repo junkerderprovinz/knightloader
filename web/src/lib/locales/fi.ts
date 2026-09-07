@@ -345,6 +345,7 @@ export const fi: Dict = {
   'filter.unchecked': 'Tarkistamatta',
   'filter.disabled': 'Pois kytketyt',
   'filter.held': 'Pidätetyt',
+  'filter.stalled': 'Pysähtynyt',
 
   'cleanup.menu': 'Siivoa…',
   'cleanup.menuLabel': 'Siivouskohteet',

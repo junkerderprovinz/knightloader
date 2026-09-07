@@ -347,6 +347,7 @@ export const no: Dict = {
   'filter.unchecked': 'Ikke sjekket',
   'filter.disabled': 'Slått av',
   'filter.held': 'Holdt tilbake',
+  'filter.stalled': 'Står stille',
 
   'cleanup.menu': 'Rydd opp…',
   'cleanup.menuLabel': 'Oppryddingspunkter',

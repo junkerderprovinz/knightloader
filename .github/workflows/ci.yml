@@ -218,6 +218,13 @@ jobs:
       - name: Settings pages parity
         run: node check-settings-pages.mjs
 
+      # The search box's own rule - an unrecognised prefix, a stray colon or a
+      # quote halfway through being typed stays ordinary text - has no compiler
+      # and no test runner behind it, and its failure mode is a list that simply
+      # comes back empty rather than an error anybody sees.
+      - name: Search query parser
+        run: node check-search-query.mjs
+
       - name: Build UI
         run: npm run build
 

@@ -267,6 +267,10 @@ const RESOLVER_NAMES = {
   // obvious word. SFTP is the token to check for: it is one of the four this
   // resolver actually claims, and unlike "FTP" it cannot match by accident
   // inside "FTPS" or a sentence about something else.
+  // "header profile" rather than "hostheaders": the README describes the thing
+  // by what a person calls it, and a check that demands the package name would
+  // force the documentation to speak Go.
+  hostheaders: 'header profile',
   remotefs: 'SFTP',
   torbox: 'TorBox',
   torrent: 'torrent',

@@ -27,6 +27,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
@@ -253,6 +254,24 @@ func (a *App) rewireBackends() {
 	// only thing that makes a nightly speed window true for an FTP transfer.
 	remoteBackend.RateLimit = a.Throttle.Limit
 	newRemoteFS := backend(remoteBackend)
+
+	// The stored header profiles, and this single line is what arms the whole
+	// feature: Registry.All walks only what Register has seen, so without it
+	// Match and Resolve are never called and every link goes to Direct exactly
+	// as before - the package would be complete, tested, and unreachable.
+	//
+	// Here rather than beside Direct and HTTPFallback in app.go, because
+	// a.Accounts does not exist yet at that point. Rebuilt on every rewire like
+	// the host lists above, so a profile saved for a new Nextcloud applies to
+	// the next paste rather than after a restart.
+	//
+	// No Client handed in, deliberately. The obvious move is to pass a.Probe so
+	// the outbound policy is shared, and it buys nothing: a.Probe is built with
+	// httpx.New(httpx.Options{Timeout: probeTimeout}) and so is this package's
+	// own fallback, the same call with the same options. The named connections
+	// live on a.picker, which is per-App and reaches neither client, so passing
+	// one would only look like it carried policy it does not have.
+	a.Registry.Register(hostheaders.Resolver{Profiles: hostheaders.NewStore(a.Accounts)})
 
 	// Optional yt-dlp media backend: when the yt-dlp binary is present, media
 	// pages (non-hoster, non-file links) route through it.

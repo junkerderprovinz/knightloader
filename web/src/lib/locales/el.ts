@@ -345,6 +345,7 @@ export const el: Dict = {
   'filter.unchecked': 'Χωρίς έλεγχο',
   'filter.disabled': 'Απενεργοποιημένα',
   'filter.held': 'Σε αναμονή',
+  'filter.stalled': 'Κολλημένο',
 
   'cleanup.menu': 'Εκκαθάριση…',
   'cleanup.menuLabel': 'Καταχωρίσεις εκκαθάρισης',

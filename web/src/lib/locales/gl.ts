@@ -345,6 +345,7 @@ export const gl: Dict = {
   'filter.unchecked': 'Sen comprobar',
   'filter.disabled': 'Desactivadas',
   'filter.held': 'Retidas',
+  'filter.stalled': 'Estancado',
 
   'cleanup.menu': 'Limpar…',
   'cleanup.menuLabel': 'Entradas de limpeza',

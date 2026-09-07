@@ -345,6 +345,7 @@ export const lv: Dict = {
   'filter.unchecked': 'Nepārbaudīti',
   'filter.disabled': 'Izslēgti',
   'filter.held': 'Aizturēti',
+  'filter.stalled': 'Apstājies',
 
   'cleanup.menu': 'Sakopt…',
   'cleanup.menuLabel': 'Sakopšanas ieraksti',

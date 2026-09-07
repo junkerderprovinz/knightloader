@@ -345,6 +345,7 @@ export const et: Dict = {
   'filter.unchecked': 'Kontrollimata',
   'filter.disabled': 'Välja lülitatud',
   'filter.held': 'Kinni hoitud',
+  'filter.stalled': 'Seisab',
 
   'cleanup.menu': 'Korista…',
   'cleanup.menuLabel': 'Koristuskirjed',

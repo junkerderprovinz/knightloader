@@ -345,6 +345,7 @@ export const cs: Dict = {
   'filter.unchecked': 'Neověřeno',
   'filter.disabled': 'Vypnuté',
   'filter.held': 'Zadržené',
+  'filter.stalled': 'Stojí',
 
   'cleanup.menu': 'Uklidit…',
   'cleanup.menuLabel': 'Položky úklidu',

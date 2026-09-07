@@ -337,6 +337,7 @@ export const pl: Dict = {
   'filter.unchecked': 'Niesprawdzone',
   'filter.disabled': 'Wyłączone',
   'filter.held': 'Wstrzymane ręcznie',
+  'filter.stalled': 'Utknęło',
 
   'cleanup.menu': 'Uporządkuj…',
   'cleanup.menuLabel': 'Wpisy porządkowania',

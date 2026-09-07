@@ -345,6 +345,7 @@ export const tr: Dict = {
   'filter.unchecked': 'Denetlenmedi',
   'filter.disabled': 'Kapalı',
   'filter.held': 'Bekletilen',
+  'filter.stalled': 'Durdu',
 
   'cleanup.menu': 'Temizle…',
   'cleanup.menuLabel': 'Temizlik girdileri',

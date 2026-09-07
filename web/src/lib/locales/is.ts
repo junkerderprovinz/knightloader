@@ -345,6 +345,7 @@ export const is: Dict = {
   'filter.unchecked': 'Óathugað',
   'filter.disabled': 'Slökkt',
   'filter.held': 'Haldið eftir',
+  'filter.stalled': 'Staðnað',
 
   'cleanup.menu': 'Taka til…',
   'cleanup.menuLabel': 'Tiltektarfærslur',

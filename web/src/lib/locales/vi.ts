@@ -345,6 +345,7 @@ export const vi: Dict = {
   'filter.unchecked': 'Chưa kiểm tra',
   'filter.disabled': 'Đã tắt',
   'filter.held': 'Đang giữ',
+  'filter.stalled': 'Đứng im',
 
   'cleanup.menu': 'Dọn dẹp…',
   'cleanup.menuLabel': 'Mục dọn dẹp',

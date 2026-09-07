@@ -345,6 +345,7 @@ export const hi: Dict = {
   'filter.unchecked': 'बिना जाँचे',
   'filter.disabled': 'बंद किए हुए',
   'filter.held': 'रोके हुए',
+  'filter.stalled': 'रुका हुआ',
 
   'cleanup.menu': 'सफ़ाई…',
   'cleanup.menuLabel': 'सफ़ाई की प्रविष्टियाँ',

@@ -149,7 +149,8 @@ export type QuickFilterId =
   | 'held'
   | 'online'
   | 'uncheckable'
-  | 'unchecked';
+  | 'unchecked'
+  | 'stalled';
 
 export interface QuickFilter {
   id: QuickFilterId;
@@ -174,6 +175,11 @@ export const QUICK_FILTERS: QuickFilter[] = [
   { id: 'unchecked', label: 'filter.unchecked', match: (t) => !t.online },
   { id: 'disabled', label: 'filter.disabled', match: (t) => !t.enabled },
   { id: 'held', label: 'filter.held', match: (t) => !!t.hold },
+  // Its own filter rather than a shade of "running", because a stalled row IS
+  // running as far as every other part of the app is concerned: it holds a slot
+  // and reports a status. Finding those is the whole point - a queue that looks
+  // busy at 0 B/s is the case somebody opens this list to explain.
+  { id: 'stalled', label: 'filter.stalled', match: (t) => !!t.stalledSince },
 ];
 
 /**
@@ -198,7 +204,7 @@ export function offeredQuickFilters(
     .filter(({ f, n }) => n > 0 || active.has(f.id));
 }
 
-/** The eight states a download list is actually filtered by. */
+/** The nine states a download list is actually filtered by. */
 export const DOWNLOAD_FILTERS: QuickFilterId[] = [
   'running',
   'queued',
@@ -208,6 +214,7 @@ export const DOWNLOAD_FILTERS: QuickFilterId[] = [
   'offline',
   'disabled',
   'held',
+  'stalled',
 ];
 
 /** The collector's, where every row is staged and the question is what a check said. */
