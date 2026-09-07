@@ -41,6 +41,13 @@ type Settings struct {
 	SpeedLimit    int64 `json:"speedLimit"`    // bytes/s, 0 = unlimited
 	Extract       bool  `json:"extract"`       // extract archives after download
 
+	// Quiet is the second set of the two numbers above: what the queue is
+	// allowed to do while quiet mode is on, switched in with one press or by a
+	// timetable window. See settings_quiet.go - a zero in there means "leave
+	// that one alone" and not "unlimited", which is the opposite of what zero
+	// means in SpeedLimit one line up.
+	Quiet QuietLimits `json:"quiet"`
+
 	// AutoConfirm, AutoConfirmDelay and AutoStart are the three fields a
 	// single AutoStart boolean used to be, and MUST be read together - see
 	// migrateAutoStart in settings_confirm.go for the migration this split
@@ -733,6 +740,15 @@ func Defaults() Settings {
 		// this anyway, which is what keeps an install from before this key
 		// existed behaving identically to a fresh one.
 		ReclaimTrust: string(reclaim.DefaultTrust),
+		// Quiet mode ships with a slot count and no speed. The speed cannot be
+		// guessed: the box has no idea how fast the line is, and any number
+		// invented here would be either no limit at all on a gigabit connection
+		// or a stall on a slow one. The slot count can be, and has to be - a
+		// button labelled "quiet mode" that does nothing at all on its first
+		// press is how people learn a feature is broken, and every install that
+		// upgrades into this key gets whatever stands here (Load unmarshals over
+		// Defaults, so a missing key keeps this value rather than the zero).
+		Quiet: QuietLimits{MaxConcurrent: 1},
 	}
 }
 
@@ -950,6 +966,7 @@ func ApplyPatch(base Settings, patch map[string]json.RawMessage) (Settings, erro
 func sanitize(n Settings) Settings {
 	n = sanitizeAppearance(n)
 	n = sanitizeQueue(n)
+	n = sanitizeQuiet(n)
 	n = sanitizeStall(n)
 	n = sanitizeHostRules(n)
 	n = sanitizePaths(n)

@@ -59,6 +59,22 @@ const (
 	// ActionLimit caps the combined download speed at Entry.Limit bytes per
 	// second.
 	ActionLimit Action = "limit"
+
+	// ActionQuiet turns quiet mode on for as long as the window is open: the
+	// second, slower set of limits (settings.QuietLimits) takes over from the
+	// ordinary ones.
+	//
+	// It carries no numbers of its own, and that is the point rather than an
+	// omission. The same mode is switched on by hand from the queue, so a window
+	// with its own figures would mean "how quiet is quiet" had two answers on one
+	// box, and the button would be unable to reach the one the window used.
+	//
+	// There is deliberately no counterpart that turns the mode back OFF the way
+	// ActionResume undoes ActionPause. That action would only be reachable as
+	// "quiet all evening EXCEPT between eight and nine", which nobody has asked
+	// for, and every action added here is another value a stored row can carry
+	// and every editor has to keep meaning.
+	ActionQuiet Action = "quiet"
 )
 
 // Entry is one row of the user's timetable.
@@ -95,10 +111,19 @@ type Entry struct {
 }
 
 // State is what the queue should be doing.
+//
+// Every field is comparable and the whole struct is compared with == by Runner
+// and by Next, which is what makes "has the answer changed" one line rather than
+// a list somebody has to remember to extend.
 type State struct {
 	Paused bool `json:"paused"`
 	// Limit is the total allowance in bytes per second; 0 means unlimited.
 	Limit int64 `json:"limit"`
+	// Quiet says the second set of limits is in force. The figures themselves
+	// are not here: they belong to the box (settings.QuietLimits), not to the
+	// row, so that the timetable and the switch beside the queue mean the same
+	// thing by "quiet". See ActionQuiet.
+	Quiet bool `json:"quiet"`
 }
 
 // rule is a validated entry in the shape the evaluator wants: a weekday bitmap
@@ -183,7 +208,7 @@ func (e Entry) compile() (rule, error) {
 		r.days[int(d)] = true
 	}
 	switch e.Action {
-	case ActionPause, ActionResume:
+	case ActionPause, ActionResume, ActionQuiet:
 	case ActionLimit:
 		if e.Limit < 0 {
 			return rule{}, errors.New("a speed limit cannot be negative (0 means unlimited)")
@@ -257,6 +282,8 @@ func (s Schedule) At(t time.Time, base State) State {
 			out.Paused = false
 		case ActionLimit:
 			out.Limit = r.limit
+		case ActionQuiet:
+			out.Quiet = true
 		}
 	}
 	return out
