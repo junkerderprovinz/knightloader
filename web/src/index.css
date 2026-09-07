@@ -1259,22 +1259,25 @@ body {
    ========================================================================= */
 @keyframes kl-egg-draw {
   from { transform: translateY(0) rotate(0deg); }
-  to   { transform: translateY(calc(-1 * var(--egg-draw, 10px))) rotate(-4deg); }
+  to   { transform: translateY(calc(-1 * var(--egg-draw, 7%))) rotate(-5deg); }
 }
 
 @keyframes kl-egg-strike {
-  0%   { transform: translateY(calc(-1 * var(--egg-draw, 10px))) rotate(-4deg); }
-  35%  { transform: translateY(4px) rotate(26deg); }
-  60%  { transform: translateY(2px) rotate(-8deg); }
+  0%   { transform: translateY(calc(-1 * var(--egg-draw, 7%))) rotate(-5deg); }
+  35%  { transform: translateY(1%) rotate(24deg); }
+  60%  { transform: translateY(0) rotate(-7deg); }
   100% { transform: translateY(0) rotate(0deg); }
 }
 
-/* The reflex that runs along the edge while the blade is drawn. A moving
-   highlight rather than a glow: a sword catches light in a line. */
+/* The light running up the steel while the blade is drawn. A brightness pulse
+   on the sword itself rather than a bright rectangle laid over the mark: the
+   overlay version could not know where the blade was, so it lit the shield and
+   the background with it. This one is shaped like the thing it is lighting,
+   for free, because it IS the thing. */
 @keyframes kl-egg-sheen {
-  from { background-position: 50% 140%; opacity: 0; }
-  25%  { opacity: .85; }
-  to   { background-position: 50% -40%; opacity: 0; }
+  0%   { filter: brightness(1); }
+  30%  { filter: brightness(1.45) saturate(.85); }
+  100% { filter: brightness(1); }
 }
 
 /* The wave that passes down the rail after the blow lands. */
@@ -1285,49 +1288,54 @@ body {
 }
 
 .kl-egg { position: relative; display: inline-flex; }
+/* The inline mark fills the box the sidebar gave the old <img>, so the two
+   display widths keep the sizes they had. */
+.kl-egg > svg { height: 100%; width: auto; display: block; }
 
-.kl-egg[data-egg='draw'] img {
-  animation: kl-egg-draw var(--egg-draw-dur, 520ms) cubic-bezier(.2, .7, .3, 1) forwards;
+/* THE POINT OF THE WHOLE REWRITE: the animation targets #kl-sword, not the
+   mark. Moving the <img> wobbled the shield along with the blade, which reads
+   as a shaking logo rather than as a sword being drawn (jdp, 2026-09-07: "da
+   wackelt einfach das ganze logo. kannst du es nicht zerlegen, so dass sich
+   nur das schwert bewegt?"). The two layers are named in logo.svg itself, so
+   the split survives a re-export of the artwork as long as the grouping does.
+
+   transform-box: fill-box makes the percentages below refer to the sword's own
+   bounding box instead of the whole SVG viewport, which is what lets one
+   origin work at both sidebar sizes. The pivot sits at 37% of the sword's
+   height: that is just under the crossguard, where a hand actually holds it.
+   Rotating about the centre swings the pommel and the point in opposite
+   directions, which looks like a propeller, not a strike. */
+#kl-sword {
+  transform-box: fill-box;
+  transform-origin: 50% 37%;
 }
-.kl-egg[data-egg='strike'] img {
+
+.kl-egg[data-egg='draw'] #kl-sword {
+  animation:
+    kl-egg-draw var(--egg-draw-dur, 520ms) cubic-bezier(.2, .7, .3, 1) forwards,
+    kl-egg-sheen var(--egg-sheen-dur, 900ms) ease-out forwards;
+}
+.kl-egg[data-egg='strike'] #kl-sword {
   animation: kl-egg-strike var(--egg-strike-dur, 620ms) cubic-bezier(.3, 1.4, .4, 1) forwards;
 }
 
-/* Painted over the mark, never in place of it: the logo keeps drawing itself
-   underneath, so a sheen that fails to load or is switched off costs nothing. */
-.kl-egg-sheen {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0;
-  background-image: linear-gradient(
-    to bottom,
-    transparent 0%,
-    rgba(255, 255, 255, .05) 35%,
-    rgba(255, 255, 255, .75) 50%,
-    rgba(255, 255, 255, .05) 65%,
-    transparent 100%
-  );
-  background-size: 100% 220%;
-  background-repeat: no-repeat;
-  mix-blend-mode: screen;
-}
-.kl-egg[data-egg='draw'] .kl-egg-sheen,
-.kl-egg[data-egg='strike'] .kl-egg-sheen {
-  animation: kl-egg-sheen var(--egg-sheen-dur, 900ms) ease-out forwards;
-}
+/* The shield never moves. Stated rather than left implicit, because the whole
+   reason this rewrite exists is that it used to. */
+#kl-shield { transform: none; }
 
 .kl-egg-struck { animation: kl-egg-wave var(--egg-wave-dur, 380ms) ease-out; }
 
-/* Subtle keeps the gesture and halves the travel; off keeps only the sheen,
-   which is a change of light rather than of position. */
+/* Subtle keeps the gesture and halves the travel; off keeps only the change of
+   light, which is the one part that moves nothing. */
 [data-motion='subtle'] .kl-egg {
-  --egg-draw: 5px;
+  --egg-draw: 3.5%;
   --egg-shove: 3px;
   --egg-draw-dur: 380ms;
   --egg-strike-dur: 440ms;
   --egg-wave-dur: 260ms;
 }
-[data-motion='off'] .kl-egg[data-egg='draw'] img,
-[data-motion='off'] .kl-egg[data-egg='strike'] img { animation: none; }
+[data-motion='off'] .kl-egg[data-egg='draw'] #kl-sword {
+  animation: kl-egg-sheen var(--egg-sheen-dur, 900ms) ease-out forwards;
+}
+[data-motion='off'] .kl-egg[data-egg='strike'] #kl-sword { animation: none; }
 [data-motion='off'] .kl-egg-struck { animation: none; }
