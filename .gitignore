@@ -31,7 +31,6 @@ web/node_modules/
 # exact path at build time), not a build output.
 desktop/build/*
 !desktop/build/appicon.png
-desktop/go.sum
 
 # `wails build`/`wails dev` also write generated JS bindings straight into
 # the shared web/ project - regenerated on every build, not source.

@@ -2,7 +2,12 @@
 // the Wails toolchain never affects the container/server build. Built in CI.
 module github.com/junkerderprovinz/knightloader/desktop
 
-go 1.26.4
+// Must never be older than the root module's go directive. The replace at the
+// bottom pulls the server sources in from ../, and a module cannot consume a
+// dependency asking for a newer language version than it declares - with CI's
+// GOTOOLCHAIN=local that reads "module ../ requires go >= 1.26.6" and the job
+// stops at vet. Bump this whenever ../go.mod moves.
+go 1.26.6
 
 require (
 	github.com/cardinalby/go-systray v1.0.2
@@ -12,7 +17,7 @@ require (
 )
 
 require (
-	dario.cat/mergo v1.0.0 // indirect
+	dario.cat/mergo v1.0.1 // indirect
 	git.sr.ht/~jackmordaunt/go-toast/v2 v2.0.3 // indirect
 	github.com/GopeedLab/gopeed v1.9.3 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
@@ -50,7 +55,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudflare/circl v1.6.3 // indirect
 	github.com/cyphar/filepath-securejoin v0.6.1 // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dlclark/regexp2/v2 v2.5.2 // indirect
 	github.com/dop251/goja v0.0.0-20260822123354-58e940e0d230 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20240728170619-29b559befffc // indirect
@@ -68,19 +73,17 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.4+incompatible // indirect
-	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
+	github.com/google/go-querystring v1.2.0 // indirect
 	github.com/google/pprof v0.0.0-20260802141513-ef3492d7dac3 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/gorilla/websocket v1.5.3 // indirect
-	github.com/hashicorp/errwrap v1.1.0 // indirect
-	github.com/hashicorp/go-multierror v1.1.1 // indirect
+	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/huandu/xstrings v1.5.0 // indirect
-	github.com/icholy/digest v1.1.0 // indirect
-	github.com/imroc/req/v3 v3.52.2 // indirect
+	github.com/icholy/digest v1.2.0 // indirect
+	github.com/imroc/req/v3 v3.61.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jchv/go-winloader v0.0.0-20210711035445-715c2860da7e // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
@@ -88,13 +91,13 @@ require (
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/klauspost/pgzip v1.2.6 // indirect
 	github.com/labstack/echo/v4 v4.15.3 // indirect
-	github.com/labstack/gommon v0.4.2 // indirect
+	github.com/labstack/gommon v0.5.0 // indirect
 	github.com/leaanthony/go-ansi-parser v1.6.1 // indirect
 	github.com/leaanthony/gosod v1.0.4 // indirect
 	github.com/leaanthony/slicer v1.6.0 // indirect
 	github.com/leaanthony/u v1.1.1 // indirect
 	github.com/matoous/go-nanoid/v2 v2.0.0 // indirect
-	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-colorable v0.1.15 // indirect
 	github.com/mattn/go-ieproxy v0.0.12 // indirect
 	github.com/mattn/go-isatty v0.0.24 // indirect
 	github.com/mholt/archives v0.1.5 // indirect
@@ -107,8 +110,7 @@ require (
 	github.com/multiformats/go-multihash v0.2.3 // indirect
 	github.com/multiformats/go-varint v0.1.0 // indirect
 	github.com/ncruces/go-strftime v1.0.0 // indirect
-	github.com/nwaples/rardecode/v2 v2.3.0 // indirect
-	github.com/onsi/ginkgo/v2 v2.23.4 // indirect
+	github.com/nwaples/rardecode/v2 v2.4.1 // indirect
 	github.com/pierrec/lz4/v4 v4.1.27 // indirect
 	github.com/pion/datachannel v1.6.0 // indirect
 	github.com/pion/dtls/v3 v3.1.4 // indirect
@@ -122,23 +124,23 @@ require (
 	github.com/pion/sctp v1.9.1 // indirect
 	github.com/pion/sdp/v3 v3.0.17 // indirect
 	github.com/pion/srtp/v3 v3.0.10 // indirect
-	github.com/pion/stun/v3 v3.1.1 // indirect
-	github.com/pion/transport/v4 v4.0.1 // indirect
+	github.com/pion/stun/v3 v3.1.5 // indirect
+	github.com/pion/transport/v4 v4.0.2 // indirect
 	github.com/pion/turn/v4 v4.1.4 // indirect
 	github.com/pion/webrtc/v4 v4.2.2-0.20260109001657-a5962f314db7 // indirect
 	github.com/pjbgf/sha1cd v0.6.0 // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/protolambda/ctxlock v0.1.0 // indirect
-	github.com/quic-go/qpack v0.5.1 // indirect
-	github.com/quic-go/quic-go v0.51.0 // indirect
+	github.com/quic-go/qpack v0.6.0 // indirect
+	github.com/quic-go/quic-go v0.61.0 // indirect
 	github.com/refraction-networking/utls v1.8.2 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rs/dnscache v0.0.0-20230804202142-fc85eb664529 // indirect
-	github.com/rs/zerolog v1.31.0 // indirect
+	github.com/rs/zerolog v1.34.0 // indirect
 	github.com/samber/lo v1.49.1 // indirect
-	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
+	github.com/sergi/go-diff v1.4.0 // indirect
 	github.com/skeema/knownhosts v1.3.1 // indirect
 	github.com/sorairolake/lzip-go v0.3.8 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
@@ -157,10 +159,8 @@ require (
 	go.etcd.io/bbolt v1.4.3 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.41.0 // indirect
-	go.opentelemetry.io/otel/metric v1.39.0 // indirect
-	go.opentelemetry.io/otel/trace v1.39.0 // indirect
-	go.uber.org/automaxprocs v1.6.0 // indirect
-	go.uber.org/mock v0.5.1 // indirect
+	go.opentelemetry.io/otel/metric v1.41.0 // indirect
+	go.opentelemetry.io/otel/trace v1.41.0 // indirect
 	go4.org v0.0.0-20260112195520-a5071408f32f // indirect
 	golang.org/x/crypto v0.55.0 // indirect
 	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f // indirect
@@ -170,7 +170,6 @@ require (
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.41.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
-	golang.org/x/tools v0.49.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	lukechampine.com/blake3 v1.4.1 // indirect
 	modernc.org/libc v1.74.4 // indirect
