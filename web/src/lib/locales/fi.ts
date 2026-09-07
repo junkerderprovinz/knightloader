@@ -48,6 +48,7 @@ export const fi: Dict = {
   'task.reason.unsupported': 'Ei taustaosaa',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Peruttu',
+  'task.reason.unknown': 'Luokittelematon',
 
   'overview.title': 'Yleiskatsaus',
   'overview.totalSpeed': 'Latausnopeus yhteensä',
@@ -98,6 +99,7 @@ export const fi: Dict = {
   'downloads.pauseAll': 'Keskeytä kaikki',
   'downloads.resumeAll': 'Jatka kaikkia',
   'downloads.retryFailed': 'Yritä epäonnistuneita uudelleen',
+  'downloads.retryCause': 'Yritä uudelleen {n} tällä syyllä: {reason}',
   'downloads.clearFinished': 'Tyhjennä valmiit',
   'downloads.noMatch': 'Mikään ei vastaa suodatinta.',
   'downloads.finished': '{name} valmis',
@@ -327,6 +329,7 @@ export const fi: Dict = {
   'search.url': 'Linkki',
   'search.clear': 'Tyhjennä haku',
   'search.hint': 'Valitse yksi kenttä haettavaksi, tai ”Kaikkialta” hakeaksesi niistä kaikista kerralla.',
+  'search.syntax': 'Useiden sanojen on osuttava kaikkien, edessä oleva miinus sulkee yhden pois. host:, package: ja name: hakevat yhdestä kentästä, >500mb ja older:7d kysyvät kokoa ja ikää. Kaikki muu haetaan tavallisena tekstinä.',
   'search.shown': '{n}/{total} näkyvissä',
 
   'filter.label': 'Pikasuodattimet',
@@ -369,6 +372,9 @@ export const fi: Dict = {
   'remove.noFiles': 'Levylle ei ole vielä kirjoitettu mitään.',
   'remove.done': 'Poistettiin {n} latausta.',
   'remove.keys': 'Delete ottaa valitut rivit pois listalta. Vaihto+Delete poistaa myös niiden tiedostot.',
+  'remove.undo': 'Kumoa',
+  'remove.undone': '{n} latausta takaisin luettelossa.',
+  'remove.undoTooLate': 'Liian myöhäistä, ne rivit ovat lopullisesti poissa.',
 
   'menu.label': 'Toiminnot valituille latauksille',
   'menu.packageLabel': 'Toiminnot tälle paketille',

@@ -48,6 +48,7 @@ export const de: Dict = {
   'task.reason.unsupported': 'Kein Backend',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Abgebrochen',
+  'task.reason.unknown': 'Ohne Einordnung',
 
   'overview.title': 'Übersicht',
   'overview.totalSpeed': 'Gesamtgeschwindigkeit',
@@ -98,6 +99,7 @@ export const de: Dict = {
   'downloads.pauseAll': 'Pausieren',
   'downloads.resumeAll': 'Fortsetzen',
   'downloads.retryFailed': 'Fehler erneut',
+  'downloads.retryCause': '{n} mit dieser Ursache erneut versuchen: {reason}',
   'downloads.clearFinished': 'Aufräumen',
   'downloads.noMatch': 'Nichts passt zu diesem Filter.',
   'downloads.finished': '{name} fertig',
@@ -327,6 +329,7 @@ export const de: Dict = {
   'search.url': 'Link',
   'search.clear': 'Suche löschen',
   'search.hint': 'Wähle ein Feld zum Durchsuchen oder „Überall“, um alle auf einmal zu durchsuchen.',
+  'search.syntax': 'Mehrere Wörter müssen alle passen, ein Minus davor schließt eines aus. Mit host:, paket: oder name: durchsuchst du ein einzelnes Feld, mit >500mb oder aelter:7t fragst du nach Größe und Alter. Alles andere wird als gewöhnlicher Text gesucht.',
   'search.shown': '{n} von {total} angezeigt',
 
   'filter.label': 'Schnellfilter',
@@ -369,6 +372,9 @@ export const de: Dict = {
   'remove.noFiles': 'Auf die Platte wurde noch nichts geschrieben.',
   'remove.done': '{n} Download(s) entfernt.',
   'remove.keys': 'Entf nimmt die gewählten Zeilen von der Liste. Umschalt+Entf löscht auch ihre Dateien.',
+  'remove.undo': 'Rückgängig',
+  'remove.undone': '{n} Download(s) wieder in der Liste.',
+  'remove.undoTooLate': 'Zu spät, diese Zeilen sind endgültig weg.',
 
   'menu.label': 'Aktionen für die gewählten Downloads',
   'menu.packageLabel': 'Aktionen für dieses Paket',

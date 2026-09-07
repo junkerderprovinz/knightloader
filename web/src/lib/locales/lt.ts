@@ -48,6 +48,7 @@ export const lt: Dict = {
   'task.reason.unsupported': 'Nėra variklio',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Atšaukta',
+  'task.reason.unknown': 'Be klasifikacijos',
 
   'overview.title': 'Apžvalga',
   'overview.totalSpeed': 'Bendras atsisiuntimo greitis',
@@ -98,6 +99,7 @@ export const lt: Dict = {
   'downloads.pauseAll': 'Pristabdyti visus',
   'downloads.resumeAll': 'Tęsti visus',
   'downloads.retryFailed': 'Kartoti nepavykusius',
+  'downloads.retryCause': 'Bandyti dar kartą {n} su šia priežastimi: {reason}',
   'downloads.clearFinished': 'Išvalyti baigtus',
   'downloads.noMatch': 'Šio filtro nieko neatitinka.',
   'downloads.finished': '{name} baigta',
@@ -327,6 +329,7 @@ export const lt: Dict = {
   'search.url': 'Nuoroda',
   'search.clear': 'Išvalyti paiešką',
   'search.hint': 'Pasirink vieną lauką paieškai arba „Visur“, kad ieškotų visuose iš karto.',
+  'search.syntax': 'Visi žodžiai turi sutapti, o minusas priekyje vieną pašalina. host:, package: ir name: ieško viename lauke, o >500mb ir older:7d klausia dydžio ir amžiaus. Visa kita ieškoma kaip paprastas tekstas.',
   'search.shown': 'rodoma {n} iš {total}',
 
   'filter.label': 'Greitieji filtrai',
@@ -369,6 +372,9 @@ export const lt: Dict = {
   'remove.noFiles': 'Į diską dar nieko neįrašyta.',
   'remove.done': 'Pašalinta {n} atsiuntimų.',
   'remove.keys': 'Delete nuima pažymėtas eilutes nuo sąrašo. Shift+Delete ištrina ir jų failus.',
+  'remove.undo': 'Anuliuoti',
+  'remove.undone': 'Grąžinta į sąrašą: {n} atsiuntimų.',
+  'remove.undoTooLate': 'Per vėlu, tos eilutės dingo visam laikui.',
 
   'menu.label': 'Veiksmai pažymėtiems atsiuntimams',
   'menu.packageLabel': 'Veiksmai šiam paketui',

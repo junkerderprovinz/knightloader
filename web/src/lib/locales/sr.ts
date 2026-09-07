@@ -48,6 +48,7 @@ export const sr: Dict = {
   'task.reason.unsupported': 'Нема позадине',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Отказано',
+  'task.reason.unknown': 'Без разврставања',
 
   'overview.title': 'Преглед',
   'overview.totalSpeed': 'Укупна брзина преузимања',
@@ -98,6 +99,7 @@ export const sr: Dict = {
   'downloads.pauseAll': 'Паузирај све',
   'downloads.resumeAll': 'Настави све',
   'downloads.retryFailed': 'Понови неуспела',
+  'downloads.retryCause': 'Понови {n} са овим узроком: {reason}',
   'downloads.clearFinished': 'Очисти завршена',
   'downloads.noMatch': 'Ништа не одговара овом филтеру.',
   'downloads.finished': '{name} завршено',
@@ -327,6 +329,7 @@ export const sr: Dict = {
   'search.url': 'Веза',
   'search.clear': 'Очисти претрагу',
   'search.hint': 'Изабери једно поље за претрагу или „Свуда“ да претражиш сва одједном.',
+  'search.syntax': 'Све речи морају да се поклопе, а минус испред речи је искључује. host:, package: и name: траже у једном пољу, а >500mb и older:7d питају за величину и старост. Све остало се тражи као обичан текст.',
   'search.shown': 'приказано {n} од {total}',
 
   'filter.label': 'Брзи филтери',
@@ -369,6 +372,9 @@ export const sr: Dict = {
   'remove.noFiles': 'На диск још ништа није уписано.',
   'remove.done': 'Уклоњено {n} преузимања.',
   'remove.keys': 'Del скида изабране редове са списка. Shift+Del брише и њихове датотеке.',
+  'remove.undo': 'Опозови',
+  'remove.undone': 'Назад на списку: {n} преузимања.',
+  'remove.undoTooLate': 'Прекасно, ти редови су нестали заувек.',
 
   'menu.label': 'Радње за изабрана преузимања',
   'menu.packageLabel': 'Радње за овај пакет',
