@@ -243,6 +243,12 @@ type App struct {
 	ytdlp  backend            // yt-dlp media backend, nil unless the yt-dlp binary is present
 	torbox backend            // TorBox debrid backend, nil unless a TorBox key is present
 	debrid map[string]backend // one-shot debrid backends by resolver id (alldebrid, realdebrid)
+	// remotefs fetches ftp/ftps/sftp links and hands WebDAV ones on to the
+	// engine. Unlike every other backend above it is NEVER nil once
+	// rewireBackends has run: the others exist only when a credential or a
+	// binary does, while an anonymous public FTP archive needs neither - see
+	// its registration for why the resolver is registered unconditionally too.
+	remotefs backend
 
 	dlDir string           // where engine + yt-dlp downloads land (extraction source)
 	proxy *netproxy.Server // loopback proxy the engine downloads through

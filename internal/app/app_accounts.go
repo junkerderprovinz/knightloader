@@ -28,6 +28,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 )
@@ -145,6 +146,34 @@ func (a *App) rewireBackends() {
 		}
 		log.Printf("%s debrid backend enabled (%d supported hosts)", d.svc.Label(), len(hosts))
 	}
+
+	// The user's own servers: FTP, FTPS, SFTP and WebDAV.
+	//
+	// REGISTERED UNCONDITIONALLY, which no other backend in this function is,
+	// and the reason is that this one is not gated on a credential existing.
+	// A public FTP archive is fetched anonymously and a public WebDAV share
+	// needs no login either, so a resolver that only appeared once somebody
+	// had stored an account would leave "ftp://..." claimed by nothing at all
+	// and settled as "no resolver matches". What the credentials decide here
+	// is narrower and lives inside the resolver: which https:// hosts it
+	// claims (remotefs.Resolver.Match) and which login each server gets.
+	//
+	// The snapshot is rebuilt on every call, like every host list above it, so
+	// adding a seedbox takes effect on the next paste rather than at the next
+	// restart - and it is a plain map rather than the store itself because
+	// Match is called with the app's own lock held and must not go near an
+	// encrypted file on disk.
+	remoteDialer := remotefs.Dialer{KnownHostsFile: a.knownHostsPath()}
+	remoteLogins := a.remotefsLogins()
+	a.Registry.Register(remotefs.Resolver{Accounts: remoteLogins, Dialer: remoteDialer})
+	remoteBackend := remotefs.NewBackend(remoteLogins, remoteDialer, eng, a.dlDir, a.onUpdate)
+	remoteBackend.Dir = a.taskDir
+	// The limit in force rather than the one in the settings file, for the
+	// same reason yt-dlp's below reads it live: these bytes never pass through
+	// the loopback proxy that meters everything else, so this closure is the
+	// only thing that makes a nightly speed window true for an FTP transfer.
+	remoteBackend.RateLimit = a.Throttle.Limit
+	newRemoteFS := backend(remoteBackend)
 
 	// Optional yt-dlp media backend: when the yt-dlp binary is present, media
 	// pages (non-hoster, non-file links) route through it.
@@ -271,6 +300,7 @@ func (a *App) rewireBackends() {
 
 	a.bmu.Lock()
 	a.debrid, a.ytdlp, a.torbox, a.jd = newDebrid, newYtdlp, newTorbox, newJD
+	a.remotefs = newRemoteFS
 	a.bmu.Unlock()
 
 	// Starts the account-health ticker the first time this ever runs (New
@@ -449,6 +479,54 @@ func (a *App) fetchTorboxHosterOnlyHosts(key string) map[string]bool {
 		log.Printf("TorBox hoster-only list unavailable (%v); keeping the last good list (%d hosts)", err, len(cache.Hosts()))
 	}
 	return cache.Hosts()
+}
+
+// remotefsLogins is the host-to-login snapshot the remote-server resolver and
+// its backend both read - see the registration in rewireBackends for why it is
+// a snapshot and not the store itself.
+//
+// KEYED BY THE ACCOUNT ID, WHICH IS THE HOSTNAME (see
+// accounts.GroupRemoteServer). Nothing enforces that at storage time, because
+// accounts.Store seals whatever it is given and validates nothing by design -
+// so a credential stored under a name that is not a host simply never matches
+// a link, which is a configuration mistake and not a state this function can
+// repair. It is lower-cased here rather than trusted, because a hostname is
+// case-insensitive and a person typing one into a form is not.
+//
+// A disabled account is skipped, exactly as routedCredential skips one for the
+// debrid services: switching a server off has to stop links routing to it, and
+// for this resolver "routing" also means whether an https:// link on that host
+// is claimed at all.
+func (a *App) remotefsLogins() remotefs.Logins {
+	out := remotefs.Logins{}
+	svc := "remotefs"
+	for _, host := range a.Accounts.AccountIDs(svc) {
+		if !a.accountEnabled(svc, host) {
+			continue
+		}
+		cred, err := a.Accounts.GetCredential(svc, host)
+		if err != nil || cred.IsZero() {
+			continue
+		}
+		out[strings.ToLower(strings.TrimSpace(host))] = remotefs.Login{
+			Username: cred.Username,
+			Password: cred.Password,
+		}
+	}
+	return out
+}
+
+// knownHostsPath is where SSH host keys this install has accepted are
+// remembered. Beside accounts.json and account_meta.json, derived from dlDir
+// the same way acctMetaPath is and for the same reason - accounts.Store keeps
+// its own directory private.
+//
+// Deliberately NOT the user's own ~/.ssh/known_hosts, which is what
+// remotefs.Dialer falls back to when this is empty: the container build runs
+// as a user with no home directory worth writing to, and an app that silently
+// edits a person's ssh configuration is doing something they did not ask for.
+func (a *App) knownHostsPath() string {
+	return filepath.Join(filepath.Dir(a.dlDir), "known_hosts")
 }
 
 // ---- routing host-list cache -----------------------------------------------
