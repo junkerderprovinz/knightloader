@@ -1078,6 +1078,12 @@ func (a *App) put(t *core.Task) (dedupe.Match, bool) {
 	a.mu.Unlock()
 	_ = a.Store.Save(&c)
 	a.Hub.Broadcast("task", &c)
+	// The one place a link enters the list, which is why link.added is fired
+	// from here and not from the four staging paths above it: a fifth
+	// entrance added later inherits the event by construction instead of by
+	// somebody remembering. Off the lock and after the broadcast, so a
+	// subscriber cannot hold a.mu and cannot beat the browser to the news.
+	a.fireLinkAdded(c)
 	return dedupe.Match{}, true
 }
 
@@ -1140,6 +1146,12 @@ func (a *App) verifyTask(id, path string) {
 	a.mu.Unlock()
 	_ = a.Store.Save(&c)
 	a.Hub.Broadcast("task", &c)
+	// Only the mismatch. A file with no checksum to check never reaches this
+	// far (the early returns above), and one whose hash could not be read is
+	// unverified rather than wrong - see script.TriggerChecksumFailed.
+	if !ok {
+		a.fireChecksumFailed(c)
+	}
 }
 
 // sumFromSiblingFile looks for a checksum listing that arrived with the batch

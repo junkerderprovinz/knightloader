@@ -918,9 +918,14 @@ func (a *App) reconnectConfigured() bool {
 	return a.Settings.Get().Reconnect.Validate() == nil
 }
 
-// Reconnect runs one reconnect now, on the caller's behalf.
+// Reconnect runs one reconnect now, on the caller's behalf. It is the one
+// place a run can end - reconnectThenRetry goes through here rather than
+// calling Reconnector.Do itself, so there is a single site that publishes
+// reconnect.done and no second one to forget.
 func (a *App) Reconnect(ctx context.Context) (reconnect.Result, error) {
-	return a.Reconnector.Do(ctx)
+	res, err := a.Reconnector.Do(ctx)
+	a.fireReconnectDone(res, err)
+	return res, err
 }
 
 // reconnectThenRetry asks the router for a new address and, if the address
@@ -930,7 +935,11 @@ func (a *App) Reconnect(ctx context.Context) (reconnect.Result, error) {
 // one means the address did not move, and retrying then is exactly the hammering
 // the reconnect exists to stop.
 func (a *App) reconnectThenRetry(id string) {
-	if _, err := a.Reconnector.Do(a.ctx); err != nil {
+	// Through Reconnect, not Reconnector.Do: that wrapper is what publishes
+	// reconnect.done, and an automatic run is exactly the one a script most
+	// wants to hear about - the user is not watching, nobody pressed
+	// anything, and the address either moved or it did not.
+	if _, err := a.Reconnect(a.ctx); err != nil {
 		log.Printf("reconnect after task %s hit a limit: %v", id, err)
 		return
 	}
@@ -1248,7 +1257,7 @@ func (a *App) onUpdate(id string, u core.Update) {
 		// per backoff attempt.
 		tv := scriptTaskView(c)
 		if trig, ok := script.ClassifyTaskUpdate(tv); ok {
-			a.Scripts.Fire(trig, &tv, a.ScriptQueue())
+			a.publishEvent(script.Firing{Trigger: trig, Task: &tv})
 		}
 	}
 	if extractCopy != nil {

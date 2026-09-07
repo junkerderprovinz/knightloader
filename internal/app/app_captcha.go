@@ -188,6 +188,13 @@ func (a *App) pollCaptchasOnce(st *captchaState) []captcha.Challenge {
 	added, changed, removed := st.store.Sync(list)
 	for _, c := range added {
 		a.Hub.Broadcast("captcha", c)
+		// Sync's added slice and nothing else, which is what keeps
+		// captcha.pending an event rather than a state: the same challenge
+		// sits in List() on every one of these two-second passes until
+		// somebody answers it, and firing on the list instead of on the
+		// arrival would be a notification script sending one message every
+		// two seconds for as long as nobody is at the keyboard.
+		a.fireCaptchaPending(c)
 		if c.Kind == captcha.KindImage || c.Kind == captcha.KindClick {
 			a.spawn(func() { a.trySolveCaptchaAutomatically(c) })
 		}
