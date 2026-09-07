@@ -52,6 +52,28 @@ const (
 	// instead, beside the enabled/order settings it has nothing to do with
 	// otherwise sharing a page with.
 	GroupCaptchaSolver Group = "captchaSolver"
+	// GroupRemoteServer is a login to a server the USER owns rather than to a
+	// service somebody sells: a seedbox over FTP, a NAS over SFTP, a Nextcloud
+	// over WebDAV (see internal/resolver/remotefs).
+	//
+	// It is its own group because every property the other three are grouped by
+	// is different here. Not GroupDebrid: a debrid credential is one key for a
+	// service with a published list of hosts it unlocks, and rewireBackends
+	// reads it as a routing fact about THOSE hosts - this one is a login for
+	// exactly one host, the account id itself, and it unlocks nothing on any
+	// other. Not GroupHoster: that section is not built from this catalogue at
+	// all (Accounts.tsx renders it from internal/hosterauth's own list). Not
+	// GroupCaptchaSolver for the obvious reason.
+	//
+	// The ACCOUNT ID IS THE HOSTNAME, and that is the one convention this
+	// group has that no other entry here does. accounts.Store already keeps
+	// several named accounts per service (see accountKey), and a person with a
+	// seedbox and a NAS has two servers, not two services - so the hostname is
+	// what tells the two credentials apart, and it is what
+	// remotefs.Resolver.Match looks a link's host up by. Storing one under a
+	// name that is not the host means the link is never claimed, which is the
+	// one mistake this comment exists to prevent.
+	GroupRemoteServer Group = "remoteServer"
 )
 
 // Service is one entry in the catalogue of credentials KnightLoader can
@@ -131,6 +153,22 @@ var Catalogue = []Service{
 	// comment) - a bare zero value, not an omission that needs a workaround.
 	{ID: "2captcha", Label: "2Captcha", Kind: KindAPIKey, Group: GroupCaptchaSolver, WhereURL: "https://2captcha.com/enterpage"},
 	{ID: "anticaptcha", Label: "Anti-Captcha", Kind: KindAPIKey, Group: GroupCaptchaSolver, WhereURL: "https://anti-captcha.com/clients/settings/apisetup"},
+	// The one entry whose credential belongs to nobody but the user: their own
+	// seedbox, NAS or Nextcloud (see GroupRemoteServer, and read its note on
+	// the account id being the hostname before storing one).
+	//
+	// WhereURL is this project's own documentation and not a vendor page,
+	// because there is no vendor: the answer to "where do I get this" is "it
+	// is the login you already use for your own server", and the field is
+	// rendered as a link, so pointing it at a page that explains the hostname
+	// convention is worth more than leaving it empty.
+	//
+	// No Env: a container can supply one debrid key per well-known variable
+	// because there is exactly one AllDebrid, but there is no single
+	// KL_REMOTEFS that could mean the right server on an install with three
+	// of them, and inventing a per-host variable name would be a second,
+	// unsearchable place credentials live.
+	{ID: "remotefs", Label: "Own server (FTP, SFTP, WebDAV)", Kind: KindUsernamePassword, Group: GroupRemoteServer, WhereURL: "https://github.com/junkerderprovinz/knightloader#own-servers-ftp-sftp-webdav"},
 }
 
 // Lookup returns the catalogue entry for a service id, or false if
