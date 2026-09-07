@@ -345,6 +345,7 @@ export const th: Dict = {
   'filter.unchecked': 'ยังไม่ได้ตรวจ',
   'filter.disabled': 'ปิดอยู่',
   'filter.held': 'ถูกหน่วงไว้',
+  'filter.stalled': 'ค้าง',
 
   'cleanup.menu': 'ทำความสะอาด…',
   'cleanup.menuLabel': 'รายการทำความสะอาด',

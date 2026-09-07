@@ -345,6 +345,7 @@ export const uk: Dict = {
   'filter.unchecked': 'Не перевірені',
   'filter.disabled': 'Вимкнені',
   'filter.held': 'Притримані',
+  'filter.stalled': 'Простоює',
 
   'cleanup.menu': 'Прибрати…',
   'cleanup.menuLabel': 'Пункти прибирання',

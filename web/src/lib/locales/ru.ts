@@ -337,6 +337,7 @@ export const ru: Dict = {
   'filter.unchecked': 'Не проверено',
   'filter.disabled': 'Выключено',
   'filter.held': 'Придержано',
+  'filter.stalled': 'Простаивает',
 
   'cleanup.menu': 'Прибраться…',
   'cleanup.menuLabel': 'Пункты очистки',

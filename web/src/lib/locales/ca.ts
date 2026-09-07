@@ -345,6 +345,7 @@ export const ca: Dict = {
   'filter.unchecked': 'Sense comprovar',
   'filter.disabled': 'Desactivats',
   'filter.held': 'Retinguts',
+  'filter.stalled': 'Aturat',
 
   'cleanup.menu': 'Neteja…',
   'cleanup.menuLabel': 'Entrades de neteja',

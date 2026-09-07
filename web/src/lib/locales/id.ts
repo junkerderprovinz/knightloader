@@ -345,6 +345,7 @@ export const id: Dict = {
   'filter.unchecked': 'Belum dicek',
   'filter.disabled': 'Dimatikan',
   'filter.held': 'Ditahan',
+  'filter.stalled': 'Macet',
 
   'cleanup.menu': 'Bersihkan…',
   'cleanup.menuLabel': 'Entri pembersihan',

@@ -345,6 +345,7 @@ export const hr: Dict = {
   'filter.unchecked': 'Neprovjereno',
   'filter.disabled': 'Isključeno',
   'filter.held': 'Zadržano',
+  'filter.stalled': 'Stoji',
 
   'cleanup.menu': 'Pospremi…',
   'cleanup.menuLabel': 'Stavke pospremanja',

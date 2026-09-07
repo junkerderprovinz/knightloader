@@ -345,6 +345,7 @@ export const bg: Dict = {
   'filter.unchecked': 'Непроверени',
   'filter.disabled': 'Изключени',
   'filter.held': 'Задържани',
+  'filter.stalled': 'Спрял',
 
   'cleanup.menu': 'Почисти…',
   'cleanup.menuLabel': 'Записи за почистване',

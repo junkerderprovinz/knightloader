@@ -171,6 +171,25 @@ export interface Task {
    * enum is worse than one that falls back.
    */
   waiting?: 'slot' | 'host' | 'forced' | 'disabled' | 'hold' | 'captcha' | 'account' | 'halted';
+  /**
+   * When the bytes STOPPED, not when the standstill was noticed - so the age of
+   * a download dead since midnight reads as hours in the morning rather than as
+   * the five seconds since the watcher last looked. The duration is computed
+   * from this on every render; a stored one is stale in the second it is sent.
+   *
+   * Not persisted, on purpose: it describes a connection this process is
+   * holding open, and a standstill restored from the database would describe
+   * one that no longer exists.
+   */
+  stalledSince?: string;
+  /** How often the watcher has restarted this task for standing still. */
+  stallRestarts?: number;
+  /**
+   * Set when nothing will be tried again by itself: a never rule, a captcha, a
+   * full disk. Deliberately NOT set for "attempts exhausted", which is curable
+   * by raising the retry count - a flag that is set everywhere says nothing.
+   */
+  gaveUp?: boolean;
   origin?: Origin;
   /** When this task last changed. Zero-timestamp caveat as for finishedAt. */
   changedAt?: string;

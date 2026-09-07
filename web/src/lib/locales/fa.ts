@@ -345,6 +345,7 @@ export const fa: Dict = {
   'filter.unchecked': 'بررسی‌نشده',
   'filter.disabled': 'خاموش',
   'filter.held': 'نگه‌داشته',
+  'filter.stalled': 'متوقف',
 
   'cleanup.menu': 'پاک‌سازی…',
   'cleanup.menuLabel': 'بندهای پاک‌سازی',

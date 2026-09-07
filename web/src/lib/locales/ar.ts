@@ -347,6 +347,7 @@ export const ar: Dict = {
   'filter.unchecked': 'لم يُفحص',
   'filter.disabled': 'معطّل',
   'filter.held': 'محجوز',
+  'filter.stalled': 'متوقف',
 
   'cleanup.menu': 'تنظيف…',
   'cleanup.menuLabel': 'بنود التنظيف',

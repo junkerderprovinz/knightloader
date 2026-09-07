@@ -345,6 +345,7 @@ export const lt: Dict = {
   'filter.unchecked': 'Nepatikrinta',
   'filter.disabled': 'Išjungti',
   'filter.held': 'Sulaikyti',
+  'filter.stalled': 'Sustojo',
 
   'cleanup.menu': 'Sutvarkyti…',
   'cleanup.menuLabel': 'Tvarkymo įrašai',

@@ -345,6 +345,7 @@ export const ro: Dict = {
   'filter.unchecked': 'Neverificate',
   'filter.disabled': 'Dezactivate',
   'filter.held': 'Reținute',
+  'filter.stalled': 'Blocat',
 
   'cleanup.menu': 'Curăță…',
   'cleanup.menuLabel': 'Intrări de curățare',

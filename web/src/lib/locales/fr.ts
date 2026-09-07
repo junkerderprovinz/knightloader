@@ -337,6 +337,7 @@ export const fr: Dict = {
   'filter.unchecked': 'Non vérifiés',
   'filter.disabled': 'Désactivés',
   'filter.held': 'Retenus',
+  'filter.stalled': 'À l’arrêt',
 
   'cleanup.menu': 'Nettoyer…',
   'cleanup.menuLabel': 'Entrées de nettoyage',

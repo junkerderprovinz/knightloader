@@ -347,6 +347,7 @@ export const he: Dict = {
   'filter.unchecked': 'לא נבדקו',
   'filter.disabled': 'כבויים',
   'filter.held': 'מוחזקים',
+  'filter.stalled': 'תקוע',
 
   'cleanup.menu': 'נקה…',
   'cleanup.menuLabel': 'פעולות ניקוי',

@@ -345,6 +345,7 @@ export const ja: Dict = {
   'filter.unchecked': '未確認',
   'filter.disabled': '無効',
   'filter.held': '保留中',
+  'filter.stalled': '停滞',
 
   'cleanup.menu': '整理…',
   'cleanup.menuLabel': '整理項目',

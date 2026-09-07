@@ -345,6 +345,7 @@ export const sv: Dict = {
   'filter.unchecked': 'Okontrollerade',
   'filter.disabled': 'Avstängda',
   'filter.held': 'Hållna',
+  'filter.stalled': 'Står stilla',
 
   'cleanup.menu': 'Rensa…',
   'cleanup.menuLabel': 'Rensningsposter',

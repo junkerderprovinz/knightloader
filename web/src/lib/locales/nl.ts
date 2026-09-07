@@ -337,6 +337,7 @@ export const nl: Dict = {
   'filter.unchecked': 'Niet gecontroleerd',
   'filter.disabled': 'Uitgezet',
   'filter.held': 'Vastgehouden',
+  'filter.stalled': 'Vastgelopen',
 
   'cleanup.menu': 'Opruimen…',
   'cleanup.menuLabel': 'Opruimacties',

@@ -345,6 +345,7 @@ export const sl: Dict = {
   'filter.unchecked': 'Nepreverjeno',
   'filter.disabled': 'Izklopljeno',
   'filter.held': 'Zadržano',
+  'filter.stalled': 'Stoji',
 
   'cleanup.menu': 'Pospravi…',
   'cleanup.menuLabel': 'Vnosi za pospravljanje',

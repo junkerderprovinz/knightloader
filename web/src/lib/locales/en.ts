@@ -376,6 +376,7 @@ export const en = {
   'filter.unchecked': 'Not checked',
   'filter.disabled': 'Switched off',
   'filter.held': 'Held',
+  'filter.stalled': 'Stalled',
 
   'cleanup.menu': 'Clean up…',
   'cleanup.menuLabel': 'Clean-up entries',

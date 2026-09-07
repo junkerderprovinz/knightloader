@@ -345,6 +345,7 @@ export const zh: Dict = {
   'filter.unchecked': '未检查',
   'filter.disabled': '已停用',
   'filter.held': '已扣住',
+  'filter.stalled': '停滞',
 
   'cleanup.menu': '清理…',
   'cleanup.menuLabel': '清理条目',

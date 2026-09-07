@@ -345,6 +345,7 @@ export const eu: Dict = {
   'filter.unchecked': 'Egiaztatu gabe',
   'filter.disabled': 'Itzalita',
   'filter.held': 'Atxikita',
+  'filter.stalled': 'Geldirik',
 
   'cleanup.menu': 'Garbitu…',
   'cleanup.menuLabel': 'Garbiketa-sarrerak',

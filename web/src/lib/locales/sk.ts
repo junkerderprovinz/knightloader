@@ -345,6 +345,7 @@ export const sk: Dict = {
   'filter.unchecked': 'Neoverené',
   'filter.disabled': 'Vypnuté',
   'filter.held': 'Zadržané',
+  'filter.stalled': 'Stojí',
 
   'cleanup.menu': 'Upratať…',
   'cleanup.menuLabel': 'Položky upratovania',

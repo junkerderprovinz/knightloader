@@ -345,6 +345,7 @@ export const ms: Dict = {
   'filter.unchecked': 'Belum disemak',
   'filter.disabled': 'Dimatikan',
   'filter.held': 'Ditahan',
+  'filter.stalled': 'Terhenti',
 
   'cleanup.menu': 'Bersihkan…',
   'cleanup.menuLabel': 'Entri pembersihan',

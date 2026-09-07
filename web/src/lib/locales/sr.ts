@@ -345,6 +345,7 @@ export const sr: Dict = {
   'filter.unchecked': 'Непроверено',
   'filter.disabled': 'Искључено',
   'filter.held': 'Задржано',
+  'filter.stalled': 'Стоји',
 
   'cleanup.menu': 'Поспреми…',
   'cleanup.menuLabel': 'Ставке поспремања',
