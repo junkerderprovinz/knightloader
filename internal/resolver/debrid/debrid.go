@@ -243,8 +243,16 @@ func (b *Backend) Remove(taskID string, deleteFiles bool) {
 // Resolver claims links whose host the service supports.
 type Resolver struct {
 	ServiceID string
-	Prio      int
-	Hosts     map[string]bool
+	// Account is which of the service's stored accounts this entry routes
+	// through: "" for the default one, the account id for a second login on
+	// the same service. It says nothing about which links are claimed - both
+	// of a person's AllDebrid keys unlock the same hosts - it is what makes
+	// the two SEPARATE entries in the routing table, so account health can
+	// bench one of them and dispatch falls through to the other before it
+	// moves on to the next service. See resolver.SlotID.
+	Account string
+	Prio    int
+	Hosts   map[string]bool
 	// Svc is the provider the routing table was built from, kept here so a check
 	// can reach it. Nil is allowed and means the same as a provider with no free
 	// check: every link comes back uncheckable. It is nil in every test that only
@@ -252,7 +260,9 @@ type Resolver struct {
 	Svc Service
 }
 
-func (r Resolver) Info() resolver.Info { return resolver.Info{ID: r.ServiceID, Prio: r.Prio} }
+func (r Resolver) Info() resolver.Info {
+	return resolver.Info{ID: resolver.SlotID(r.ServiceID, r.Account), Prio: r.Prio}
+}
 
 func (r Resolver) Match(raw string) bool {
 	u, err := url.Parse(raw)
