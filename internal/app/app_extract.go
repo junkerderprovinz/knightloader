@@ -20,7 +20,6 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
-	"github.com/junkerderprovinz/knightloader/internal/pathvars"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -69,8 +68,21 @@ type ExtractJob struct {
 	// of 5" instead of naming one part of an archive nobody downloaded singly.
 	Volumes int `json:"volumes"`
 	// Nested counts archives found inside the output and unpacked in turn.
-	Nested int    `json:"nested,omitempty"`
-	Error  string `json:"error,omitempty"`
+	Nested int `json:"nested,omitempty"`
+	// MovedTo is where the unpacked content was put once the extraction was
+	// over, when anything moved it: the folder a Packagizer rule or the
+	// instance-wide setting named, or the destination a working folder was
+	// standing in for. Empty means the content is where Dir says it unpacked,
+	// which is what every install had before either of those existed.
+	//
+	// It is a field on the job and not only a line in the log, because "where
+	// did my film end up" is the question the row exists to answer and the row
+	// outlives the log line by fifty jobs.
+	MovedTo string `json:"movedTo,omitempty"`
+	// Moved counts what was carried there: one for a whole folder, or one per
+	// file when the content was moved rather than the folder around it.
+	Moved int    `json:"moved,omitempty"`
+	Error string `json:"error,omitempty"`
 	// Password is the failure being a missing password rather than a broken
 	// archive. It is a flag as well as a sentence, because it is the one
 	// extraction failure with an obvious next step and the interface can offer
@@ -149,11 +161,17 @@ func (a *App) extractCandidateLocked(done *core.Task) (*core.Task, string) {
 	key, isVolume := setKey(done.Name)
 	if !isVolume {
 		if extract.Startable(done.Name) {
-			return done, filepath.Join(a.dirFor(done), done.Name)
+			return done, filepath.Join(a.workDirFor(done), done.Name)
 		}
 		return nil, ""
 	}
+	// The SET is identified by where its parts belong and the PATH is built
+	// from where they actually are, and the two are only the same folder while
+	// no working folder is configured. Identity has to stay the destination:
+	// workDirFor is a function of it, so both readings group the same parts,
+	// and the destination is the one a person can see in the interface.
 	dir := a.dirFor(done)
+	work := a.workDirFor(done)
 	set := a.membersLocked(key, dir)
 	var first *core.Task
 	for _, t := range set {
@@ -178,7 +196,7 @@ func (a *App) extractCandidateLocked(done *core.Task) (*core.Task, string) {
 		// under a shorter name for no reason.
 		return nil, ""
 	}
-	return first, filepath.Join(dir, first.Name)
+	return first, filepath.Join(work, first.Name)
 }
 
 // volumeBefore orders two parts of one set the way the archive is read.
@@ -323,31 +341,38 @@ func (a *App) extractOptionsFor(t *core.Task, cfg settings.Settings) extract.Opt
 		Passwords:   a.passwordsFor(t),
 		Collision:   extract.ParseCollision(cfg.ExtractCollision),
 		Disposal:    extract.ParseDisposal(cfg.ArchiveDisposal),
-		TrashRoot:   a.defaultDir(),
+		TrashRoot:   a.trashRootFor(t),
 		TrashMaxAge: time.Duration(cfg.TrashRetentionDays) * 24 * time.Hour,
 		InfoFiles:   cfg.DeleteInfoFiles,
-		Subfolder:   cfg.ExtractSubfolder,
 	}
 	if t != nil {
 		o.Package = t.Package
 	}
-	dest := strings.TrimSpace(cfg.ExtractTo)
-	if dest != "" && t != nil && pathvars.HasVars(dest) {
-		dest = pathvars.Expand(dest, pathvars.Vars{
-			Package: t.Package,
-			Host:    hostOf(t.URL),
-			Name:    t.Name,
-			Date:    t.CreatedAt,
-		})
-	}
+	// Where the unpacking WRITES, which is not always where its result ends up.
 	// A template that expanded to something relative is dropped rather than
 	// resolved against whatever the process's working directory happens to be:
 	// beside the archive is always somewhere real, and it is where every install
-	// unpacked before the setting existed.
-	if dest != "" && filepath.IsAbs(dest) {
-		o.Dest = dest
-	}
+	// unpacked before the setting existed. See unpackPlanFor for the second half
+	// and for what a working folder does to both.
+	plan := a.unpackPlanFor(t, cfg)
+	o.Dest, o.Subfolder = plan.Dest, plan.Subfolder
 	return o
+}
+
+// trashRootFor is the folder a trashed archive is moved into.
+//
+// It follows the archive rather than the download folder, which matters only
+// once a working folder is configured: the archive is then on the working
+// folder's filesystem, and internal/extract cannot rename it into a trash on
+// the destination's. It would fall back to a trash beside the archive, which is
+// the same folder this answers - the difference is that this way there is ONE
+// trash to look in and one for SweepTrash to age, instead of one per working
+// folder that nothing ever sweeps because the sweep is pointed elsewhere.
+func (a *App) trashRootFor(t *core.Task) string {
+	if root := a.workRoot(); root != "" && deliverable(t) {
+		return root
+	}
+	return a.defaultDir()
 }
 
 // packageFilesLocked is every finished file of one task's package that sits in
@@ -370,13 +395,17 @@ func (a *App) packageFilesLocked(t *core.Task) []string {
 		// notices; a sweep that takes the neighbours is not.
 		return nil
 	}
+	// Grouped by destination and listed by where the files actually are - the
+	// same split extractCandidateLocked makes, and for the same reason: the
+	// sweep has to open the files it is about to remove.
 	dir := a.dirFor(t)
+	work := a.workDirFor(t)
 	var out []string
 	for _, other := range a.tasks {
 		if other.Package != t.Package || other.Name == "" || a.dirFor(other) != dir {
 			continue
 		}
-		out = append(out, filepath.Join(dir, other.Name))
+		out = append(out, filepath.Join(work, other.Name))
 	}
 	sort.Strings(out)
 	return out
@@ -407,7 +436,12 @@ func (a *App) disposable(paths []string) []string {
 		if t.Name == "" {
 			continue
 		}
-		claims[filepath.Clean(filepath.Join(a.dirFor(t), t.Name))]++
+		// workDirFor and not dirFor: the paths being narrowed here came out of
+		// internal/extract, which was given the file where it was WRITTEN. A
+		// claim recorded at the destination would match none of them, and a
+		// mirror's shared file would then be deleted along with the archive that
+		// unpacked - the exact failure this function exists to prevent.
+		claims[filepath.Clean(filepath.Join(a.workDirFor(t), t.Name))]++
 	}
 	out := make([]string, 0, len(paths))
 	for _, p := range paths {
@@ -555,15 +589,23 @@ func (a *App) publishExtractProgress(jobID string, p extract.Progress) {
 	a.Hub.Broadcast("extract", snap)
 }
 
-// settleExtraction records how a job ended, hands the task back to done, and
-// disposes of the volumes the way the options say.
+// settleExtraction records how a job ended, hands the task back to done,
+// disposes of the volumes the way the options say, and moves the unpacked
+// content to wherever it was meant to end up.
 //
 // Disposal happens only on success, and only on success: the volumes are the one
 // copy of bytes the user paid for in bandwidth, and an extraction that failed is
 // exactly the case where they will be needed again. The info files beside them
 // go the same way as the archive, never a different one - see InfoFilesIn.
+//
+// THE MOVE HAPPENS AFTER THE DISPOSAL and before the job is settled. After,
+// because a "delete the archive" that ran against the destination would be
+// reaching into a folder the archive was never in; before, because the row the
+// user ends up looking at has to say where the files are rather than where they
+// were unpacked.
 func (a *App) settleExtraction(jobID string, opts extract.Options, siblings []string, out *extract.Outcome, err error) {
 	cancelled := errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded)
+	var moved delivery
 	if err == nil && out != nil {
 		if derr := opts.Dispose(a.disposable(out.Volumes)); derr != nil {
 			log.Printf("extraction finished but the archive could not be disposed of: %v", derr)
@@ -571,6 +613,7 @@ func (a *App) settleExtraction(jobID string, opts extract.Options, siblings []st
 		if derr := opts.Dispose(a.disposable(opts.InfoFilesIn(siblings))); derr != nil {
 			log.Printf("extraction finished but the info files could not be disposed of: %v", derr)
 		}
+		moved = a.deliverExtraction(jobID, out)
 	}
 	// Swept on every settle, not only after a disposal. A user who switches the
 	// disposal back to "delete" would otherwise leave whatever is already in the
@@ -607,6 +650,16 @@ func (a *App) settleExtraction(jobID string, opts extract.Options, siblings []st
 				j.Dir = out.Dir
 			}
 		}
+		// Done AND carrying a reason, which reads like a contradiction and is
+		// not: the archive opened and gave up its files, and the move that was
+		// meant to take them somewhere else did not. Calling the job failed
+		// instead would send somebody hunting a broken archive that is not
+		// broken; saying nothing would leave a folder nobody can find. Both
+		// halves are true, so both are recorded.
+		if moved.Err != nil {
+			j.Error = moved.Err.Error()
+		}
+		j.MovedTo, j.Moved = moved.Dir, moved.Entries
 		j.Archive = ""
 	}
 	snap := j.ExtractJob
@@ -626,6 +679,12 @@ func (a *App) settleExtraction(jobID string, opts extract.Options, siblings []st
 		}
 		if err != nil && !cancelled {
 			t.Error = extractErrorPrefix + err.Error()
+		} else if moved.Err != nil {
+			// Under this package's own prefix, not the mover's, because this
+			// sentence belongs to the extraction: what it says is that the
+			// unpacking finished and its output did not get where it was going,
+			// and the next extraction of the same archive is what clears it.
+			t.Error = extractErrorPrefix + moved.Err.Error()
 		}
 		c := *t
 		settled = &c
@@ -636,6 +695,15 @@ func (a *App) settleExtraction(jobID string, opts extract.Options, siblings []st
 		a.saveAndBroadcast([]core.Task{*settled})
 	}
 	a.Hub.Broadcast("extract", snap)
+	// Now, and not with the download that finished: the four sibling volumes had
+	// to still be beside the first one while it was being opened, and the
+	// unpacking is the moment that stops being true. Whatever the disposal left
+	// standing leaves the working folder here.
+	a.deliverVolumes(snap.TaskID)
+	// Swept on every settle for the reason the archive trash above is: nothing
+	// else in this build ever looks at the working folder, so an install where
+	// somebody removed a running download would keep that folder for good.
+	a.sweepWorkRoot()
 	// An extraction somebody called off does not fire: they are standing at
 	// the button, they already know, and a "your archive is finished"
 	// message for the thing they just stopped is noise. Both other endings

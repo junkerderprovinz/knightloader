@@ -271,6 +271,59 @@ func TestNoPolicyLeavesTheLibraryToNameTheFile(t *testing.T) {
 	}
 }
 
+// TestAWorkingFolderIsWhereTheBytesGo. Dir is where the file ends up and
+// WorkDir is where it is written, and the whole feature is worth nothing if the
+// download library is handed the first of those.
+func TestAWorkingFolderIsWhereTheBytesGo(t *testing.T) {
+	dest, work := t.TempDir(), t.TempDir()
+	j := Job{Dir: dest, WorkDir: work}
+	if got := j.writeDir(); got != work {
+		t.Fatalf("writeDir = %q, want the working folder %q", got, work)
+	}
+	// And with no working folder named, nothing about the old behaviour moves.
+	if got := (Job{Dir: dest}).writeDir(); got != dest {
+		t.Fatalf("writeDir = %q, want the destination %q", got, dest)
+	}
+}
+
+// TestAJobWithAWorkingFolderDecidesNoNameHere is the trap this pairing exists
+// to avoid, and both halves of it are silent.
+//
+// A working folder is shared by the downloads heading for one destination and
+// by nothing else, so a collision decided against it is a decision about the
+// wrong folder. Worse, it does not stop there: the counted name would be
+// carried to the destination by the mover, which applies the policy again, so
+// one collision would produce "film (2) (2).mkv" - the very shape
+// TestTheLibraryDoesNotRenameOnTopOfOurRename above exists to keep out of the
+// download folder.
+func TestAJobWithAWorkingFolderDecidesNoNameHere(t *testing.T) {
+	work := t.TempDir()
+	// A namesake sitting in the working folder, which is the ordinary case: it
+	// is the same file, half written, from the attempt before this one.
+	writeFile(t, filepath.Join(work, "movie.mkv"))
+
+	opts := optsIn(work)
+	name, err := place(Job{Dir: t.TempDir(), WorkDir: work, Collision: collide.Rename}, oneFile("movie.mkv"), opts)
+	if err != nil {
+		t.Fatalf("place: %v", err)
+	}
+	if opts.Name != "" {
+		t.Fatalf("Options.Name = %q; the policy belongs at the destination, not in the working folder", opts.Name)
+	}
+	if name != "movie.mkv" {
+		t.Fatalf("name = %q, want the resolved one", name)
+	}
+	// The same job without the working folder still decides a name, so this is
+	// the working folder doing it and not a policy that stopped working.
+	plain := optsIn(work)
+	if _, err := place(Job{Dir: work, Collision: collide.Rename}, oneFile("movie.mkv"), plain); err != nil {
+		t.Fatalf("place: %v", err)
+	}
+	if plain.Name != "movie (2).mkv" {
+		t.Fatalf("Options.Name = %q, want movie (2).mkv", plain.Name)
+	}
+}
+
 // TestStartAfterCloseAnswersInsteadOfPanicking is the guard at the top of
 // Start proven rather than merely present: every path through Start ends in
 // e.wg.Add(1), and by the time a caller can reach Start after Close has
