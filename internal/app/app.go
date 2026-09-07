@@ -947,23 +947,49 @@ func (a *App) dirFor(t *core.Task) string {
 		return t.Dir
 	}
 	cfg := a.Settings.Get()
+	vars := pathvars.Vars{
+		Package: t.Package,
+		Host:    hostOf(t.URL),
+		Name:    t.Name,
+		Date:    t.CreatedAt,
+	}
+	// The drawer this link is filed in, between the task's own folder above and
+	// the instance's own below. That order is the whole precedence question, and
+	// it falls out of the line above rather than being invented here: a
+	// Packagizer rule already writes its folder into t.Dir, so a rule beats a
+	// category because a rule looked at THIS link while a category is a label on
+	// a whole batch. A rule that sets both keeps its folder and lets its category
+	// decide the other fields.
+	//
+	// A category folder that spells out its own levels with placeholders does
+	// not also get the per-package level appended, the same rule a templated
+	// DownloadDir follows below.
+	if raw := cfg.CategoryFor(t.Category).Dir; raw != "" {
+		if d := cfg.CategoryDir(t.Category, vars); d != "" {
+			if pathvars.HasVars(raw) {
+				return d
+			}
+			return a.withPackageSubfolder(cfg, t, d)
+		}
+	}
 	// A configured folder may be a template. Expanding it here means the
 	// variables see the task they are being expanded for, which is the only
 	// point at which the package and hoster are known.
 	if pathvars.HasVars(cfg.DownloadDir) {
-		expanded := pathvars.Expand(cfg.DownloadDir, pathvars.Vars{
-			Package: t.Package,
-			Host:    hostOf(t.URL),
-			Name:    t.Name,
-			Date:    t.CreatedAt,
-		})
-		if filepath.IsAbs(expanded) {
+		if expanded := pathvars.Expand(cfg.DownloadDir, vars); filepath.IsAbs(expanded) {
 			return expanded
 		}
 	}
-	dir := a.defaultDir()
+	return a.withPackageSubfolder(cfg, t, a.defaultDir())
+}
+
+// withPackageSubfolder appends the per-package level when the setting asks for
+// one. Factored out because the category folder and the instance folder are two
+// bases that both take it, and the day they disagree is the day one of them was
+// edited and the other forgotten.
+func (a *App) withPackageSubfolder(cfg settings.Settings, t *core.Task, dir string) string {
 	if cfg.SubfolderByPackage && strings.TrimSpace(t.Package) != "" {
-		dir = filepath.Join(dir, sanitizeSegment(t.Package))
+		return filepath.Join(dir, sanitizeSegment(t.Package))
 	}
 	return dir
 }

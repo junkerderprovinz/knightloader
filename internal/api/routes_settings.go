@@ -39,6 +39,13 @@ func registerSettings(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
+			// The working folder gets the same treatment, and it matters more:
+			// every download writes there first, so a folder that cannot be
+			// written stops everything rather than misplacing one path.
+			if err := settings.Validate(s.WorkDir); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
 			// Rows that carry their own validator are refused here with the reason,
 			// rather than being dropped by sanitize on the way to disk. A connection or
 			// a schedule window that vanishes on save is the same class of bug as a
@@ -106,6 +113,12 @@ func registerSettings(reg *Registry, a *app.App) {
 				return
 			}
 			if err := settings.Validate(preview.DownloadDir); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			// Same check for the working folder, for the same reason as on PUT:
+			// every download writes there before it writes anywhere else.
+			if err := settings.Validate(preview.WorkDir); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}

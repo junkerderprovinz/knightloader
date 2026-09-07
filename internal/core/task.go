@@ -551,6 +551,16 @@ type Task struct {
 	// spans drawers, and with the category on the package, moving one link into
 	// a package would silently retag it.
 	Category string `json:"category,omitempty"`
+	// ExtractDir is where the CONTENT of this task's finished extraction is
+	// moved, when a Packagizer rule named a folder for it. Empty falls back to
+	// Settings.ExtractMoveTo, and an empty one of those means the content stays
+	// where it was unpacked - see app.extractMoveTarget for the ladder.
+	//
+	// Its own field beside Dir rather than folded into it, because the two
+	// answer different questions: Dir is where the ARCHIVE lands, ExtractDir is
+	// where what comes out of it goes, and a rule can reasonably set one and
+	// not the other.
+	ExtractDir string `json:"extractDir,omitempty"`
 	// ManualPackage marks a package the user chose by hand. Everything that
 	// re-packages links automatically has to leave those alone, or a catch-all
 	// rule quietly undoes the grouping somebody just did.
