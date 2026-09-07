@@ -54,6 +54,12 @@ export const en = {
   'task.reason.unsupported': 'No backend',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Cancelled',
+  // Not one of the server's values. It names the failure chip that collects the
+  // rows nothing classified, plus any cause a newer instance sent that this
+  // build has no word for - see ErrorCauses.tsx. The row itself still shows no
+  // label for those, deliberately (reasonKey in columns.tsx); a chip has to say
+  // something, and "unclassified" is the one honest thing to say.
+  'task.reason.unknown': 'Unclassified',
 
   'overview.title': 'Overview',
   'overview.totalSpeed': 'Total download speed',
@@ -111,6 +117,10 @@ export const en = {
   'downloads.pauseAll': 'Pause all',
   'downloads.resumeAll': 'Resume all',
   'downloads.retryFailed': 'Retry failed',
+  // The failure chips' tooltip. It names the count as well as the cause because
+  // the chip is a bulk action on rows a filter may be hiding, and "12" beside a
+  // list showing three of them is the number that has to be said out loud.
+  'downloads.retryCause': 'Retry the {n} that failed: {reason}',
   'downloads.clearFinished': 'Clear finished',
   'downloads.noMatch': 'Nothing matches this filter.',
   'downloads.finished': '{name} finished',
@@ -343,6 +353,14 @@ export const en = {
   'search.url': 'Link',
   'search.clear': 'Clear the search',
   'search.hint': 'Pick one field to search, or “Everything” to search all of them at once.',
+  // The second half of the search bubble. The tokens themselves are NOT
+  // translated in any catalogue - the parser accepts one set of prefixes, and a
+  // hint that named a localised one nobody could type would be worse than no
+  // hint. German is the exception, and only because lib/searchQuery.ts really
+  // does accept `paket:` and `aelter:` as aliases; see FIELD_PREFIX there.
+  // The last sentence is the load-bearing one: it is the promise that a colon or
+  // an angle bracket in a file name cannot break anybody's search.
+  'search.syntax': 'Several words all have to match; a leading minus excludes one. host:, package: and name: search a single field, >500mb and older:7d ask about size and age. Anything else is searched for as plain text.',
   'search.shown': '{n} of {total} shown',
 
   'filter.label': 'Quick filters',
@@ -385,6 +403,16 @@ export const en = {
   'remove.noFiles': 'Nothing has been written to disk yet.',
   'remove.done': 'Removed {n} download(s).',
   'remove.keys': 'Del takes the selected rows off the list. Shift+Del also deletes their files.',
+  // The press back. Its own key rather than quickadd.undo, although both say the
+  // same word today: they are two different buttons on two different surfaces,
+  // and a language that needs a different word for "undo removing" than for
+  // "undo adding" must be able to give one.
+  'remove.undo': 'Undo',
+  'remove.undone': '{n} download(s) back in the list.',
+  // The window closed. Deliberately not phrased as an error: the half minute
+  // running out is the ordinary end of the offer, and calling it a failure would
+  // send somebody looking for a broken button.
+  'remove.undoTooLate': 'Too late: those rows are gone for good.',
 
   'menu.label': 'Actions for the selected downloads',
   'menu.packageLabel': 'Actions for this package',

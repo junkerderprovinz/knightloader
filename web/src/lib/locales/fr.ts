@@ -46,6 +46,7 @@ export const fr: Dict = {
   'task.reason.unsupported': 'Aucun moteur',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Annulé',
+  'task.reason.unknown': 'Non classé',
   'overview.title': 'Vue d’ensemble',
   'overview.totalSpeed': 'Vitesse totale',
   'overview.active': 'Actifs',
@@ -93,6 +94,7 @@ export const fr: Dict = {
   'downloads.pauseAll': 'Tout mettre en pause',
   'downloads.resumeAll': 'Tout reprendre',
   'downloads.retryFailed': 'Relancer les échecs',
+  'downloads.retryCause': 'Relancer les {n} qui ont échoué : {reason}',
   'downloads.clearFinished': 'Nettoyer',
   'downloads.noMatch': 'Rien ne correspond à ce filtre.',
   'downloads.finished': '{name} terminé',
@@ -319,6 +321,7 @@ export const fr: Dict = {
   'search.url': 'Lien',
   'search.clear': 'Effacer la recherche',
   'search.hint': 'Choisissez un champ à fouiller, ou « Partout » pour les fouiller tous à la fois.',
+  'search.syntax': 'Plusieurs mots doivent tous correspondre, un moins devant en exclut un. host:, package: et name: fouillent un seul champ, >500mb et older:7d interrogent la taille et l’âge. Tout le reste est cherché comme du texte ordinaire.',
   'search.shown': '{n} sur {total} affichés',
 
   'filter.label': 'Filtres rapides',
@@ -361,6 +364,9 @@ export const fr: Dict = {
   'remove.noFiles': 'Rien n’a encore été écrit sur le disque.',
   'remove.done': '{n} téléchargement(s) retiré(s).',
   'remove.keys': 'Suppr retire les lignes sélectionnées de la liste. Maj+Suppr supprime aussi leurs fichiers.',
+  'remove.undo': 'Annuler',
+  'remove.undone': '{n} téléchargement(s) de retour dans la liste.',
+  'remove.undoTooLate': 'Trop tard, ces lignes ont définitivement disparu.',
 
   'menu.label': 'Actions pour les téléchargements sélectionnés',
   'menu.packageLabel': 'Actions pour ce paquet',

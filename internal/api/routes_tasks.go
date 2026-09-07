@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
 func registerTasks(reg *Registry, a *app.App) {
@@ -43,13 +44,20 @@ func registerTasks(reg *Registry, a *app.App) {
 			a.SetPackage(body.Ids, body.Package)
 			w.WriteHeader(http.StatusNoContent)
 		})
-	reg.Add(http.MethodPost, "/api/tasks/restart", "re-run finished or failed tasks from scratch (no ids = all errored)",
+	// `reasons` is what makes "retry" aimable. A list of forty failures is
+	// several different problems at once, and a button that restarts all of them
+	// spends a hoster allowance that is already spent to re-prove that
+	// twenty-one links are still dead. The values are core.Reason's own, the
+	// empty string included - "nothing classified this" is a group somebody can
+	// point at, and leaving it out would make it the one group unreachable.
+	reg.Add(http.MethodPost, "/api/tasks/restart", "re-run finished or failed tasks from scratch (no ids = all errored); reasons narrows it to those causes",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
-				Ids []string `json:"ids"`
+				Ids     []string      `json:"ids"`
+				Reasons []core.Reason `json:"reasons"`
 			}
 			_ = decodeBody(r, &body) // empty/absent = restart all errored
-			a.RestartTasks(body.Ids)
+			a.RestartTasksIn(body.Ids, body.Reasons)
 			w.WriteHeader(http.StatusNoContent)
 		})
 	reg.Add(http.MethodPost, "/api/tasks/recheck", "ask the hosts again whether these links are still there (no ids = the whole collector)",

@@ -50,6 +50,7 @@ export const no: Dict = {
   'task.reason.unsupported': 'Ingen backend',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Avbrutt',
+  'task.reason.unknown': 'Uten kategori',
 
   'overview.title': 'Oversikt',
   'overview.totalSpeed': 'Samlet nedlastingshastighet',
@@ -100,6 +101,7 @@ export const no: Dict = {
   'downloads.pauseAll': 'Sett alle på pause',
   'downloads.resumeAll': 'Fortsett alle',
   'downloads.retryFailed': 'Prøv mislykkede på nytt',
+  'downloads.retryCause': 'Prøv de {n} med denne årsaken på nytt: {reason}',
   'downloads.clearFinished': 'Fjern fullførte',
   'downloads.noMatch': 'Ingenting passer filteret.',
   'downloads.finished': '{name} ferdig',
@@ -329,6 +331,7 @@ export const no: Dict = {
   'search.url': 'Lenke',
   'search.clear': 'Tøm søket',
   'search.hint': 'Velg ett felt å søke i, eller «Overalt» for å søke i alle på én gang.',
+  'search.syntax': 'Flere ord må alle passe, et minus foran utelukker ett. host:, package: og name: søker i ett felt, >500mb og older:7d spør om størrelse og alder. Alt annet søkes som vanlig tekst.',
   'search.shown': '{n} av {total} vises',
 
   'filter.label': 'Hurtigfiltre',
@@ -371,6 +374,9 @@ export const no: Dict = {
   'remove.noFiles': 'Ingenting er skrevet til disken ennå.',
   'remove.done': 'Fjernet {n} nedlasting(er).',
   'remove.keys': 'Delete tar de valgte radene av listen. Skift+Delete sletter også filene deres.',
+  'remove.undo': 'Angre',
+  'remove.undone': '{n} nedlasting(er) tilbake i listen.',
+  'remove.undoTooLate': 'For sent, de radene er borte for godt.',
 
   'menu.label': 'Handlinger for de valgte nedlastingene',
   'menu.packageLabel': 'Handlinger for denne pakken',

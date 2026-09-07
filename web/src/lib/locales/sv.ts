@@ -48,6 +48,7 @@ export const sv: Dict = {
   'task.reason.unsupported': 'Ingen backend',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Avbruten',
+  'task.reason.unknown': 'Utan kategori',
 
   'overview.title': 'Översikt',
   'overview.totalSpeed': 'Total nedladdningshastighet',
@@ -98,6 +99,7 @@ export const sv: Dict = {
   'downloads.pauseAll': 'Pausa alla',
   'downloads.resumeAll': 'Fortsätt alla',
   'downloads.retryFailed': 'Försök igen med misslyckade',
+  'downloads.retryCause': 'Försök igen med de {n} som misslyckades: {reason}',
   'downloads.clearFinished': 'Rensa färdiga',
   'downloads.noMatch': 'Inget matchar filtret.',
   'downloads.finished': '{name} klar',
@@ -327,6 +329,7 @@ export const sv: Dict = {
   'search.url': 'Länk',
   'search.clear': 'Rensa sökningen',
   'search.hint': 'Välj ett fält att söka i, eller ”Överallt” för att söka i alla på en gång.',
+  'search.syntax': 'Flera ord måste alla stämma, ett minus framför utesluter ett. host:, package: och name: söker i ett enda fält, >500mb och older:7d frågar om storlek och ålder. Allt annat söks som vanlig text.',
   'search.shown': '{n} av {total} visas',
 
   'filter.label': 'Snabbfilter',
@@ -369,6 +372,9 @@ export const sv: Dict = {
   'remove.noFiles': 'Inget har skrivits till disken än.',
   'remove.done': 'Tog bort {n} nedladdning(ar).',
   'remove.keys': 'Del tar bort de markerade raderna från listan. Skift+Del raderar även deras filer.',
+  'remove.undo': 'Ångra',
+  'remove.undone': '{n} nedladdning(ar) tillbaka i listan.',
+  'remove.undoTooLate': 'För sent, de raderna är borta för gott.',
 
   'menu.label': 'Åtgärder för de markerade nedladdningarna',
   'menu.packageLabel': 'Åtgärder för det här paketet',

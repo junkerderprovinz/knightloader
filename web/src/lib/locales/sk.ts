@@ -48,6 +48,7 @@ export const sk: Dict = {
   'task.reason.unsupported': 'Chýba backend',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Zrušené',
+  'task.reason.unknown': 'Bez zaradenia',
 
   'overview.title': 'Prehľad',
   'overview.totalSpeed': 'Celková rýchlosť',
@@ -98,6 +99,7 @@ export const sk: Dict = {
   'downloads.pauseAll': 'Pozastaviť',
   'downloads.resumeAll': 'Pokračovať',
   'downloads.retryFailed': 'Zopakovať chyby',
+  'downloads.retryCause': 'Skúsiť znova {n} s touto príčinou: {reason}',
   'downloads.clearFinished': 'Vyčistiť hotové',
   'downloads.noMatch': 'Tomuto filtru nič nezodpovedá.',
   'downloads.finished': '{name} dokončené',
@@ -327,6 +329,7 @@ export const sk: Dict = {
   'search.url': 'Odkaz',
   'search.clear': 'Vymazať hľadanie',
   'search.hint': 'Vyberte jedno pole na prehľadanie, alebo „Všade“ a prehľadajú sa všetky naraz.',
+  'search.syntax': 'Všetky slová musia sedieť naraz, mínus pred slovom ho vylúči. host:, package: a name: hľadajú v jednom poli, >500mb a older:7d sa pýtajú na veľkosť a vek. Všetko ostatné sa hľadá ako bežný text.',
   'search.shown': 'zobrazené {n} z {total}',
 
   'filter.label': 'Rýchle filtre',
@@ -369,6 +372,9 @@ export const sk: Dict = {
   'remove.noFiles': 'Na disk sa zatiaľ nič nezapísalo.',
   'remove.done': 'Odstránených {n} sťahovaní.',
   'remove.keys': 'Delete odoberie vybrané riadky zo zoznamu. Shift+Delete zmaže aj ich súbory.',
+  'remove.undo': 'Späť',
+  'remove.undone': 'Späť v zozname: {n} sťahovaní.',
+  'remove.undoTooLate': 'Príliš neskoro, tieto riadky sú preč navždy.',
 
   'menu.label': 'Akcie pre vybrané sťahovania',
   'menu.packageLabel': 'Akcie pre tento balík',

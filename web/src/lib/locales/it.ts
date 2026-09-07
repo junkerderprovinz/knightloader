@@ -46,6 +46,7 @@ export const it: Dict = {
   'task.reason.unsupported': 'Nessun motore',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Annullato',
+  'task.reason.unknown': 'Non classificato',
   'overview.title': 'Panoramica',
   'overview.totalSpeed': 'Velocità totale',
   'overview.active': 'Attivi',
@@ -93,6 +94,7 @@ export const it: Dict = {
   'downloads.pauseAll': 'Pausa tutto',
   'downloads.resumeAll': 'Riprendi tutto',
   'downloads.retryFailed': 'Riprova i falliti',
+  'downloads.retryCause': 'Riprova i {n} falliti: {reason}',
   'downloads.clearFinished': 'Pulisci',
   'downloads.noMatch': 'Nessun risultato per questo filtro.',
   'downloads.finished': '{name} completato',
@@ -319,6 +321,7 @@ export const it: Dict = {
   'search.url': 'Link',
   'search.clear': 'Cancella la ricerca',
   'search.hint': 'Scegli un campo in cui cercare, oppure «Ovunque» per cercarli tutti insieme.',
+  'search.syntax': 'Più parole devono corrispondere tutte, un meno davanti ne esclude una. host:, package: e name: cercano in un solo campo, >500mb e older:7d chiedono dimensione ed età. Tutto il resto viene cercato come testo normale.',
   'search.shown': '{n} di {total} mostrati',
 
   'filter.label': 'Filtri rapidi',
@@ -361,6 +364,9 @@ export const it: Dict = {
   'remove.noFiles': 'Sul disco non è ancora stato scritto nulla.',
   'remove.done': 'Rimossi {n} download.',
   'remove.keys': "Canc toglie dall'elenco le righe selezionate. Maiusc+Canc ne cancella anche i file.",
+  'remove.undo': 'Annulla',
+  'remove.undone': '{n} download di nuovo nell’elenco.',
+  'remove.undoTooLate': 'Troppo tardi, quelle righe sono perse per sempre.',
 
   'menu.label': 'Azioni per i download selezionati',
   'menu.packageLabel': 'Azioni per questo pacchetto',

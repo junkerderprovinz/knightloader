@@ -48,6 +48,7 @@ export const th: Dict = {
   'task.reason.unsupported': 'ไม่มีแบ็กเอนด์',
   'task.reason.captcha': 'แคปช่า',
   'task.reason.cancelled': 'ยกเลิกแล้ว',
+  'task.reason.unknown': 'ไม่ได้จัดหมวด',
 
   'overview.title': 'ภาพรวม',
   'overview.totalSpeed': 'ความเร็วดาวน์โหลดรวม',
@@ -98,6 +99,7 @@ export const th: Dict = {
   'downloads.pauseAll': 'หยุดทั้งหมดชั่วคราว',
   'downloads.resumeAll': 'ทำต่อทั้งหมด',
   'downloads.retryFailed': 'ลองรายการที่ล้มเหลวอีกครั้ง',
+  'downloads.retryCause': 'ลองใหม่ {n} รายการที่ล้มเหลวด้วยสาเหตุนี้: {reason}',
   'downloads.clearFinished': 'ล้างรายการที่เสร็จแล้ว',
   'downloads.noMatch': 'ไม่มีรายการที่ตรงกับตัวกรองนี้',
   'downloads.finished': '{name} เสร็จแล้ว',
@@ -327,6 +329,7 @@ export const th: Dict = {
   'search.url': 'ลิงก์',
   'search.clear': 'ล้างการค้นหา',
   'search.hint': 'เลือกช่องเดียวที่จะค้น หรือเลือก “ทุกอย่าง” เพื่อค้นทุกช่องพร้อมกัน',
+  'search.syntax': 'ทุกคำต้องตรงทั้งหมด เครื่องหมายลบข้างหน้าจะตัดคำนั้นออก host:, package: และ name: ค้นเฉพาะช่องเดียว ส่วน >500mb และ older:7d ถามถึงขนาดและอายุ นอกจากนั้นจะค้นเป็นข้อความธรรมดา',
   'search.shown': 'แสดง {n} จาก {total}',
 
   'filter.label': 'ตัวกรองด่วน',
@@ -369,6 +372,9 @@ export const th: Dict = {
   'remove.noFiles': 'ยังไม่มีอะไรถูกเขียนลงดิสก์',
   'remove.done': 'เอาออกแล้ว {n} รายการ',
   'remove.keys': 'Del เอาแถวที่เลือกออกจากรายการ Shift+Del ลบไฟล์ของแถวนั้นด้วย',
+  'remove.undo': 'เลิกทำ',
+  'remove.undone': '{n} รายการกลับมาอยู่ในรายการแล้ว',
+  'remove.undoTooLate': 'สายเกินไป แถวเหล่านั้นหายไปถาวรแล้ว',
 
   'menu.label': 'การกระทำกับรายการที่เลือก',
   'menu.packageLabel': 'การกระทำกับแพ็กเกจนี้',

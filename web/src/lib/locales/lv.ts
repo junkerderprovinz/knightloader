@@ -48,6 +48,7 @@ export const lv: Dict = {
   'task.reason.unsupported': 'Nav dzinēja',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Atcelts',
+  'task.reason.unknown': 'Bez klasifikācijas',
 
   'overview.title': 'Pārskats',
   'overview.totalSpeed': 'Kopējais lejupielādes ātrums',
@@ -98,6 +99,7 @@ export const lv: Dict = {
   'downloads.pauseAll': 'Pauzēt visas',
   'downloads.resumeAll': 'Turpināt visas',
   'downloads.retryFailed': 'Atkārtot neizdevušās',
+  'downloads.retryCause': 'Mēģināt vēlreiz {n} ar šo iemeslu: {reason}',
   'downloads.clearFinished': 'Notīrīt pabeigtās',
   'downloads.noMatch': 'Šim filtram nekas neatbilst.',
   'downloads.finished': '{name} pabeigts',
@@ -327,6 +329,7 @@ export const lv: Dict = {
   'search.url': 'Saite',
   'search.clear': 'Notīrīt meklēšanu',
   'search.hint': 'Izvēlies vienu lauku, kurā meklēt, vai „Visur“, lai meklētu visos uzreiz.',
+  'search.syntax': 'Visiem vārdiem jāsakrīt, bet mīnuss priekšā vienu izslēdz. host:, package: un name: meklē vienā laukā, savukārt >500mb un older:7d jautā par izmēru un vecumu. Viss pārējais tiek meklēts kā parasts teksts.',
   'search.shown': 'rādīti {n} no {total}',
 
   'filter.label': 'Ātrie filtri',
@@ -369,6 +372,9 @@ export const lv: Dict = {
   'remove.noFiles': 'Diskā vēl nekas nav ierakstīts.',
   'remove.done': 'Noņemtas {n} lejupielādes.',
   'remove.keys': 'Delete noņem atzīmētās rindas no saraksta. Shift+Delete dzēš arī to failus.',
+  'remove.undo': 'Atsaukt',
+  'remove.undone': 'Atpakaļ sarakstā: {n} lejupielādes.',
+  'remove.undoTooLate': 'Par vēlu, tās rindas ir zudušas pavisam.',
 
   'menu.label': 'Darbības atzīmētajām lejupielādēm',
   'menu.packageLabel': 'Darbības ar šo pakotni',

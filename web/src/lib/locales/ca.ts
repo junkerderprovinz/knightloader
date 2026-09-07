@@ -48,6 +48,7 @@ export const ca: Dict = {
   'task.reason.unsupported': 'Sense motor',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Cancel·lat',
+  'task.reason.unknown': 'Sense classificar',
 
   'overview.title': 'Resum',
   'overview.totalSpeed': 'Velocitat total',
@@ -98,6 +99,7 @@ export const ca: Dict = {
   'downloads.pauseAll': 'Pausa-ho tot',
   'downloads.resumeAll': 'Reprèn-ho tot',
   'downloads.retryFailed': 'Reintenta els errors',
+  'downloads.retryCause': 'Torna a provar les {n} que han fallat: {reason}',
   'downloads.clearFinished': 'Neteja les acabades',
   'downloads.noMatch': 'Res no coincideix amb aquest filtre.',
   'downloads.finished': '{name} acabat',
@@ -327,6 +329,7 @@ export const ca: Dict = {
   'search.url': 'Enllaç',
   'search.clear': 'Neteja la cerca',
   'search.hint': 'Tria un camp on cercar, o «Tot» per cercar-los tots alhora.',
+  'search.syntax': 'Totes les paraules han de coincidir, i un menys al davant n’exclou una. host:, package: i name: cerquen en un sol camp, mentre que >500mb i older:7d pregunten per la mida i l’antiguitat. Tota la resta es cerca com a text normal.',
   'search.shown': '{n} de {total} mostrats',
 
   'filter.label': 'Filtres ràpids',
@@ -369,6 +372,9 @@ export const ca: Dict = {
   'remove.noFiles': "Encara no s'ha escrit res al disc.",
   'remove.done': "S'han tret {n} baixades.",
   'remove.keys': "Supr treu les files seleccionades de la llista. Maj+Supr n'esborra també els fitxers.",
+  'remove.undo': 'Desfés',
+  'remove.undone': '{n} baixades de tornada a la llista.',
+  'remove.undoTooLate': 'Massa tard, aquestes files han desaparegut per sempre.',
 
   'menu.label': 'Accions per a les baixades seleccionades',
   'menu.packageLabel': 'Accions per a aquest paquet',

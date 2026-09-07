@@ -48,6 +48,7 @@ export const is: Dict = {
   'task.reason.unsupported': 'Enginn bakendi',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Hætt við',
+  'task.reason.unknown': 'Óflokkað',
 
   'overview.title': 'Yfirlit',
   'overview.totalSpeed': 'Heildarhraði',
@@ -98,6 +99,7 @@ export const is: Dict = {
   'downloads.pauseAll': 'Gera hlé á öllu',
   'downloads.resumeAll': 'Halda öllu áfram',
   'downloads.retryFailed': 'Reyna villur aftur',
+  'downloads.retryCause': 'Reyna aftur {n} með þessari ástæðu: {reason}',
   'downloads.clearFinished': 'Hreinsa lokið',
   'downloads.noMatch': 'Ekkert passar við þessa síu.',
   'downloads.finished': '{name} lokið',
@@ -327,6 +329,7 @@ export const is: Dict = {
   'search.url': 'Hlekkur',
   'search.clear': 'Hreinsa leitina',
   'search.hint': 'Veldu einn reit til að leita í, eða „Alls staðar“ til að leita í þeim öllum í einu.',
+  'search.syntax': 'Öll orðin verða að passa og mínus fremst útilokar eitt. host:, package: og name: leita í einum reit, en >500mb og older:7d spyrja um stærð og aldur. Allt annað er leitað sem venjulegur texti.',
   'search.shown': '{n} af {total} sýnd',
 
   'filter.label': 'Flýtisíur',
@@ -369,6 +372,9 @@ export const is: Dict = {
   'remove.noFiles': 'Ekkert hefur enn verið skrifað á diskinn.',
   'remove.done': '{n} niðurhöl fjarlægð.',
   'remove.keys': 'Delete tekur valdar raðir af listanum. Shift+Delete eyðir líka skránum þeirra.',
+  'remove.undo': 'Afturkalla',
+  'remove.undone': 'Aftur á listanum: {n} niðurhöl.',
+  'remove.undoTooLate': 'Of seint, þessar línur eru farnar fyrir fullt og allt.',
 
   'menu.label': 'Aðgerðir fyrir valin niðurhöl',
   'menu.packageLabel': 'Aðgerðir fyrir þennan pakka',

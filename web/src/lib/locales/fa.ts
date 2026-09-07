@@ -48,6 +48,7 @@ export const fa: Dict = {
   'task.reason.unsupported': 'بدون موتور',
   'task.reason.captcha': 'کپچا',
   'task.reason.cancelled': 'لغو شد',
+  'task.reason.unknown': 'بدون دسته‌بندی',
 
   'overview.title': 'نمای کلی',
   'overview.totalSpeed': 'سرعت کل دانلود',
@@ -98,6 +99,7 @@ export const fa: Dict = {
   'downloads.pauseAll': 'مکث همه',
   'downloads.resumeAll': 'ادامه همه',
   'downloads.retryFailed': 'تلاش دوباره برای خطاها',
+  'downloads.retryCause': 'تلاش دوباره برای {n} با این علت: {reason}',
   'downloads.clearFinished': 'پاک کردن تمام‌شده‌ها',
   'downloads.noMatch': 'چیزی با این فیلتر جور نیست.',
   'downloads.finished': '{name} تمام شد',
@@ -327,6 +329,7 @@ export const fa: Dict = {
   'search.url': 'پیوند',
   'search.clear': 'پاک کردن جست‌وجو',
   'search.hint': 'یک زمینه برای جست‌وجو برگزینید، یا «همه‌جا» تا همه با هم جست‌وجو شوند.',
+  'search.syntax': 'همهٔ واژه‌ها باید بخوانند و منهای پیش از یک واژه آن را کنار می‌گذارد. host: و package: و name: تنها در یک میدان می‌گردند و >500mb و older:7d از اندازه و سن می‌پرسند. هر چیز دیگری همچون متن ساده جست‌وجو می‌شود.',
   'search.shown': '{n} از {total} نمایش داده می‌شود',
 
   'filter.label': 'پالایه‌های سریع',
@@ -369,6 +372,9 @@ export const fa: Dict = {
   'remove.noFiles': 'هنوز چیزی روی دیسک نوشته نشده است.',
   'remove.done': '{n} دانلود حذف شد.',
   'remove.keys': 'کلید Del سطرهای برگزیده را از فهرست برمی‌دارد. Shift+Del پرونده‌هایشان را هم پاک می‌کند.',
+  'remove.undo': 'واگرد',
+  'remove.undone': '{n} دانلود به فهرست بازگشت.',
+  'remove.undoTooLate': 'دیر شد، آن ردیف‌ها برای همیشه رفته‌اند.',
 
   'menu.label': 'کنش‌ها برای دانلودهای برگزیده',
   'menu.packageLabel': 'کنش‌ها برای این بسته',

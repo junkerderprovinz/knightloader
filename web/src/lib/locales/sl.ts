@@ -48,6 +48,7 @@ export const sl: Dict = {
   'task.reason.unsupported': 'Ni zaledja',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Preklicano',
+  'task.reason.unknown': 'Brez razvrstitve',
 
   'overview.title': 'Pregled',
   'overview.totalSpeed': 'Skupna hitrost',
@@ -98,6 +99,7 @@ export const sl: Dict = {
   'downloads.pauseAll': 'Zaustavi vse',
   'downloads.resumeAll': 'Nadaljuj vse',
   'downloads.retryFailed': 'Ponovi napake',
+  'downloads.retryCause': 'Znova poskusi {n} s tem vzrokom: {reason}',
   'downloads.clearFinished': 'Počisti končane',
   'downloads.noMatch': 'Temu filtru nič ne ustreza.',
   'downloads.finished': '{name} končano',
@@ -327,6 +329,7 @@ export const sl: Dict = {
   'search.url': 'Povezava',
   'search.clear': 'Počisti iskanje',
   'search.hint': 'Izberi eno polje za iskanje ali »Povsod« in išče po vseh hkrati.',
+  'search.syntax': 'Vse besede se morajo ujemati, minus pred besedo jo izloči. host:, package: in name: iščejo v enem polju, >500mb in older:7d pa sprašujeta po velikosti in starosti. Vse drugo se išče kot navadno besedilo.',
   'search.shown': 'prikazanih {n} od {total}',
 
   'filter.label': 'Hitri filtri',
@@ -369,6 +372,9 @@ export const sl: Dict = {
   'remove.noFiles': 'Na disk še ni bilo nič zapisano.',
   'remove.done': 'Odstranjenih {n} prenosov.',
   'remove.keys': 'Delete umakne izbrane vrstice s seznama. Shift+Delete izbriše tudi njihove datoteke.',
+  'remove.undo': 'Razveljavi',
+  'remove.undone': 'Nazaj na seznamu: {n} prenosov.',
+  'remove.undoTooLate': 'Prepozno, te vrstice so dokončno izginile.',
 
   'menu.label': 'Dejanja za izbrane prenose',
   'menu.packageLabel': 'Dejanja za ta paket',

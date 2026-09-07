@@ -48,6 +48,7 @@ export const eu: Dict = {
   'task.reason.unsupported': 'Motorrik ez',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Bertan behera utzia',
+  'task.reason.unknown': 'Sailkatu gabe',
 
   'overview.title': 'Laburpena',
   'overview.totalSpeed': 'Abiadura osoa',
@@ -98,6 +99,7 @@ export const eu: Dict = {
   'downloads.pauseAll': 'Pausatu dena',
   'downloads.resumeAll': 'Jarraitu dena',
   'downloads.retryFailed': 'Errepikatu erroreak',
+  'downloads.retryCause': 'Saiatu berriro arrazoi honekin huts egindako {n}: {reason}',
   'downloads.clearFinished': 'Garbitu amaituak',
   'downloads.noMatch': 'Ezerk ez du bat egiten iragazki honekin.',
   'downloads.finished': '{name} amaituta',
@@ -327,6 +329,7 @@ export const eu: Dict = {
   'search.url': 'Esteka',
   'search.clear': 'Garbitu bilaketa',
   'search.hint': 'Aukeratu eremu bat bilatzeko, edo «Dena» guztietan batera bilatzeko.',
+  'search.syntax': 'Hitz guztiek bat etorri behar dute, eta aurreko ken ikurrak bat baztertzen du. host:, package: eta name: eremu bakar batean bilatzen dute, eta >500mb eta older:7d tamainaz eta adinaz galdetzen dute. Gainerako guztia testu arrunt gisa bilatzen da.',
   'search.shown': '{total}(e)tik {n} erakusten',
 
   'filter.label': 'Iragazki azkarrak',
@@ -369,6 +372,9 @@ export const eu: Dict = {
   'remove.noFiles': 'Oraindik ez da ezer idatzi diskoan.',
   'remove.done': '{n} deskarga kendu dira.',
   'remove.keys': 'Ezab teklak hautatutako errenkadak zerrendatik kentzen ditu. Maius+Ezab haien fitxategiak ere ezabatzen ditu.',
+  'remove.undo': 'Desegin',
+  'remove.undone': '{n} deskarga zerrendara itzuli dira.',
+  'remove.undoTooLate': 'Berandu da, errenkada horiek betiko joan dira.',
 
   'menu.label': 'Hautatutako deskargen ekintzak',
   'menu.packageLabel': 'Pakete honen ekintzak',

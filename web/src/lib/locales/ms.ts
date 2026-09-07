@@ -48,6 +48,7 @@ export const ms: Dict = {
   'task.reason.unsupported': 'Tiada backend',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Dibatalkan',
+  'task.reason.unknown': 'Tanpa pengelasan',
 
   'overview.title': 'Gambaran',
   'overview.totalSpeed': 'Jumlah kelajuan muat turun',
@@ -98,6 +99,7 @@ export const ms: Dict = {
   'downloads.pauseAll': 'Jeda semua',
   'downloads.resumeAll': 'Sambung semua',
   'downloads.retryFailed': 'Cuba semula yang gagal',
+  'downloads.retryCause': 'Cuba semula {n} yang gagal kerana: {reason}',
   'downloads.clearFinished': 'Bersihkan yang siap',
   'downloads.noMatch': 'Tiada yang sepadan dengan tapisan ini.',
   'downloads.finished': '{name} siap',
@@ -327,6 +329,7 @@ export const ms: Dict = {
   'search.url': 'Pautan',
   'search.clear': 'Kosongkan carian',
   'search.hint': 'Pilih satu medan untuk dicari, atau “Semuanya” untuk mencari kesemuanya sekali gus.',
+  'search.syntax': 'Semua perkataan mesti sepadan, dan tanda tolak di hadapan mengecualikan satu. host:, package: dan name: mencari dalam satu medan sahaja, manakala >500mb dan older:7d bertanya tentang saiz dan usia. Selebihnya dicari sebagai teks biasa.',
   'search.shown': '{n} daripada {total} dipaparkan',
 
   'filter.label': 'Penapis pantas',
@@ -369,6 +372,9 @@ export const ms: Dict = {
   'remove.noFiles': 'Belum ada apa-apa ditulis ke cakera.',
   'remove.done': '{n} muat turun dibuang.',
   'remove.keys': 'Del mengangkat baris terpilih dari senarai. Shift+Del memadam failnya sekali.',
+  'remove.undo': 'Buat asal',
+  'remove.undone': '{n} muat turun kembali dalam senarai.',
+  'remove.undoTooLate': 'Sudah terlambat, baris itu hilang selama-lamanya.',
 
   'menu.label': 'Tindakan untuk muat turun terpilih',
   'menu.packageLabel': 'Tindakan untuk pakej ini',

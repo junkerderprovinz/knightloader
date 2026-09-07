@@ -48,6 +48,7 @@ export const bg: Dict = {
   'task.reason.unsupported': 'Няма ядро',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Отказано',
+  'task.reason.unknown': 'Без класификация',
 
   'overview.title': 'Общ преглед',
   'overview.totalSpeed': 'Обща скорост',
@@ -98,6 +99,7 @@ export const bg: Dict = {
   'downloads.pauseAll': 'Пауза на всички',
   'downloads.resumeAll': 'Продължи всички',
   'downloads.retryFailed': 'Повтори грешките',
+  'downloads.retryCause': 'Повторен опит за {n} с тази причина: {reason}',
   'downloads.clearFinished': 'Изчисти готовите',
   'downloads.noMatch': 'Нищо не съвпада с този филтър.',
   'downloads.finished': '{name} е готов',
@@ -327,6 +329,7 @@ export const bg: Dict = {
   'search.url': 'Връзка',
   'search.clear': 'Изчисти търсенето',
   'search.hint': 'Избери едно поле за търсене или „Навсякъде“, за да търсиш във всички наведнъж.',
+  'search.syntax': 'Всички думи трябва да съвпаднат, а минус отпред изключва една. host:, package: и name: търсят в едно поле, а >500mb и older:7d питат за размер и възраст. Всичко останало се търси като обикновен текст.',
   'search.shown': 'показани {n} от {total}',
 
   'filter.label': 'Бързи филтри',
@@ -369,6 +372,9 @@ export const bg: Dict = {
   'remove.noFiles': 'На диска още нищо не е записано.',
   'remove.done': 'Премахнати са {n} изтегляния.',
   'remove.keys': 'Del маха избраните редове от списъка. Shift+Del трие и файловете им.',
+  'remove.undo': 'Отмени',
+  'remove.undone': 'Обратно в списъка: {n} изтегляния.',
+  'remove.undoTooLate': 'Твърде късно, тези редове ги няма окончателно.',
 
   'menu.label': 'Действия за избраните изтегляния',
   'menu.packageLabel': 'Действия за този пакет',

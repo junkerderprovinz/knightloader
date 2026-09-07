@@ -50,6 +50,7 @@ export const he: Dict = {
   'task.reason.unsupported': 'אין מנוע',
   'task.reason.captcha': 'קאפצ׳ה',
   'task.reason.cancelled': 'בוטל',
+  'task.reason.unknown': 'ללא סיווג',
 
   'overview.title': 'סקירה',
   'overview.totalSpeed': 'מהירות הורדה כוללת',
@@ -100,6 +101,7 @@ export const he: Dict = {
   'downloads.pauseAll': 'השהה הכול',
   'downloads.resumeAll': 'המשך הכול',
   'downloads.retryFailed': 'נסה שוב את שנכשלו',
+  'downloads.retryCause': 'לנסות שוב את {n} עם הסיבה הזו: {reason}',
   'downloads.clearFinished': 'נקה מושלמות',
   'downloads.noMatch': 'שום דבר לא תואם לסינון.',
   'downloads.finished': '{name} הושלם',
@@ -329,6 +331,7 @@ export const he: Dict = {
   'search.url': 'קישור',
   'search.clear': 'נקה את החיפוש',
   'search.hint': 'בחר שדה אחד לחיפוש, או „הכול” כדי לחפש בכולם בבת אחת.',
+  'search.syntax': 'כל המילים צריכות להתאים, ומינוס לפני מילה מוציא אותה. host:‏, package: ו‑name: מחפשים בשדה אחד, ואילו >500mb ו‑older:7d שואלים על גודל וגיל. כל השאר מחופש כטקסט רגיל.',
   'search.shown': 'מוצגים {n} מתוך {total}',
 
   'filter.label': 'מסננים מהירים',
@@ -371,6 +374,9 @@ export const he: Dict = {
   'remove.noFiles': 'עוד לא נכתב שום דבר לדיסק.',
   'remove.done': 'הוסרו {n} הורדות.',
   'remove.keys': 'Del מוריד את השורות המסומנות מהרשימה. Shift+Del מוחק גם את הקבצים שלהן.',
+  'remove.undo': 'בטל',
+  'remove.undone': '{n} הורדות חזרו לרשימה.',
+  'remove.undoTooLate': 'מאוחר מדי, השורות האלה נעלמו לתמיד.',
 
   'menu.label': 'פעולות על ההורדות המסומנות',
   'menu.packageLabel': 'פעולות על החבילה הזו',

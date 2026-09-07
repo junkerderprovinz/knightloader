@@ -46,6 +46,7 @@ export const es: Dict = {
   'task.reason.unsupported': 'Sin motor',
   'task.reason.captcha': 'Captcha',
   'task.reason.cancelled': 'Cancelado',
+  'task.reason.unknown': 'Sin clasificar',
   'overview.title': 'Resumen',
   'overview.totalSpeed': 'Velocidad total',
   'overview.active': 'Activas',
@@ -93,6 +94,7 @@ export const es: Dict = {
   'downloads.pauseAll': 'Pausar todo',
   'downloads.resumeAll': 'Reanudar todo',
   'downloads.retryFailed': 'Reintentar fallidas',
+  'downloads.retryCause': 'Reintentar las {n} que fallaron: {reason}',
   'downloads.clearFinished': 'Limpiar',
   'downloads.noMatch': 'Nada coincide con este filtro.',
   'downloads.finished': '{name} finalizada',
@@ -319,6 +321,7 @@ export const es: Dict = {
   'search.url': 'Enlace',
   'search.clear': 'Borrar la búsqueda',
   'search.hint': 'Elige un campo donde buscar, o «Todo» para buscar en todos a la vez.',
+  'search.syntax': 'Varias palabras deben coincidir todas; un menos delante excluye una. host:, package: y name: buscan en un solo campo, >500mb y older:7d preguntan por el tamaño y la antigüedad. Todo lo demás se busca como texto normal.',
   'search.shown': '{n} de {total} mostrados',
 
   'filter.label': 'Filtros rápidos',
@@ -361,6 +364,9 @@ export const es: Dict = {
   'remove.noFiles': 'Todavía no se ha escrito nada en el disco.',
   'remove.done': 'Se quitaron {n} descarga(s).',
   'remove.keys': 'Supr quita las filas seleccionadas de la lista. Mayús+Supr borra además sus archivos.',
+  'remove.undo': 'Deshacer',
+  'remove.undone': '{n} descarga(s) de vuelta en la lista.',
+  'remove.undoTooLate': 'Demasiado tarde: esas filas se han ido para siempre.',
 
   'menu.label': 'Acciones para las descargas seleccionadas',
   'menu.packageLabel': 'Acciones para este paquete',
