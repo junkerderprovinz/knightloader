@@ -388,12 +388,26 @@ type Settings struct {
 	ResolverOrder []string `json:"resolverOrder"`
 
 	// Ytdlp is the yt-dlp backend's own configuration - format/quality
-	// selection, subtitles, the output filename template, whether a
-	// playlist URL fetches one video or the whole list. See
+	// selection, subtitles and their language, the output filename
+	// template, whether a playlist URL fetches one video or the whole list,
+	// and (all off by default) the library-facing extras: metadata, cover
+	// art, chapters and subtitles embedded into the container, a Kodi NFO
+	// beside it, music tagging for the audio row, an ffprobe pass over the
+	// finished file and the caps on a livestream recording. See
 	// internal/resolver/ytdlp's own doc comment on Options for why every
 	// field's zero value reproduces this backend's behaviour from before
 	// any of them existed - an install that never opens the settings page
 	// this backs downloads exactly as it always has.
+	//
+	// Note what is NOT here: the per-site cookies.txt that answers "Sign in
+	// to confirm you are not a bot". A jar is a live session, and this
+	// struct is marshalled into settings.json, returned by GET
+	// /api/settings and serialised whole into the diagnostics bundle
+	// somebody attaches to a public bug report - so it lives in the
+	// encrypted credential store instead, under
+	// ytdlp.CookieService, exactly as native hoster logins do
+	// (internal/hosterauth). The only field here is the switch that says
+	// whether a stored jar may be used at all.
 	Ytdlp ytdlp.Options `json:"ytdlp"`
 
 	// YtdlpPresets is per-host (e.g. "youtube.com") config for the
