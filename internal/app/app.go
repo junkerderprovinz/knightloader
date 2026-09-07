@@ -36,6 +36,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/engine"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
+	"github.com/junkerderprovinz/knightloader/internal/feed"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/hub"
 	"github.com/junkerderprovinz/knightloader/internal/idleaction"
@@ -250,6 +251,14 @@ type App struct {
 	// wmu guards watcher, which is replaced whenever the watched folder changes.
 	wmu     sync.Mutex
 	watcher *watch.Watcher
+
+	// fmu guards feeds, the RSS/Atom subscriptions, which is reconciled whenever
+	// the subscription list changes. Deliberately not wmu, although the two
+	// subsystems are siblings: applyWatchFolders probes shares and applyFeeds
+	// reads the store, so sharing one lock would make a save that touches
+	// neither of them wait on whichever was slower.
+	fmu   sync.Mutex
+	feeds *feed.Runner
 
 	// smu guards selfServe: this instance's own fully-wired HTTP handler
 	// (auth guard and all), the same one a browser or an API token reaches.
@@ -581,6 +590,15 @@ func New(dataDir string) (*App, error) {
 	// queue and arm a countdown for a "nothing to do" that is only true
 	// because the boot has not finished putting the list back together yet.
 	a.idleAction.Start()
+	// The subscriptions come up here and not beside applyWatchFolders above,
+	// which is the one place this intake is deliberately wired differently from
+	// its sibling. Every poller polls the moment it starts, and a.dupes is seeded
+	// from the store further up this function: an entry staged before that seeding
+	// would be checked against an empty duplicate set, so a link the list already
+	// holds would be added a second time. A drop folder can afford to be early
+	// because a file has to be dropped first; a feed hands something over on its
+	// own the moment it is switched on.
+	a.applyFeeds(cfg.Get())
 	// Last, so nothing can sweep a list that is still being assembled. Close
 	// waits for this goroutine, because everything it does writes to the store.
 	//
@@ -825,6 +843,17 @@ func (a *App) Close() error {
 		a.watcher = nil
 	}
 	a.wmu.Unlock()
+	// Same promise as the watcher one line up: Close waits for a poll in flight,
+	// so no feed entry is still on its way into the link list once this returns
+	// and the store below can be closed under it. cancel() above has already
+	// aborted whatever fetch was waiting on somebody else's server, so this wait
+	// is bounded by the handover and not by a publisher's timeout.
+	a.fmu.Lock()
+	if a.feeds != nil {
+		_ = a.feeds.Close()
+		a.feeds = nil
+	}
+	a.fmu.Unlock()
 	// Closed before the engine, because Close waits for an in-flight Apply to
 	// return: that is exactly the promise that lets everything Apply talks to be
 	// torn down next.
@@ -1004,6 +1033,7 @@ func (a *App) afterSettingsChange(applied settings.Settings) {
 	// effect immediately instead of up to a couple of seconds later.
 	a.idleAction.Refresh()
 	a.applyWatchFolders(applied)
+	a.applyFeeds(applied)
 	a.applyConnections(applied.Connections)
 	a.applyTorrentConfig(applied.Torrent)
 	a.mu.Lock()
