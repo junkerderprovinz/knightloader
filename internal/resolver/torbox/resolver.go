@@ -12,13 +12,26 @@ import (
 // backend unlocks them into a direct CDN URL for the engine.
 type Resolver struct {
 	Hosts map[string]bool // set of supported hoster domains
+	// Account is which stored TorBox account this entry routes through: ""
+	// for the default one, the account id for a second key on the same
+	// service. Two accounts unlock the same hosts, so this changes nothing
+	// about what is claimed - it is what puts both keys in the routing table
+	// at all, which is what lets a benched one fall through to the other. See
+	// resolver.SlotID and debrid.Resolver.Account, its exact sibling.
+	Account string
 }
 
 // 50, above resolver.Direct's 40 like every other debrid service since
 // 2026-09-07 - see the block over `configured` in internal/app/app_accounts.go
 // for the measurement that moved them all: a service that lists a host by name
 // outranks one that claimed the link because its path looked file-shaped.
-func (Resolver) Info() resolver.Info { return resolver.Info{ID: "torbox", Prio: 50} }
+//
+// Every account of the service carries the SAME number, so a second key sorts
+// directly behind the first (the registry's tie-break is registration order)
+// and still ahead of whichever service comes next.
+func (r Resolver) Info() resolver.Info {
+	return resolver.Info{ID: resolver.SlotID("torbox", r.Account), Prio: 50}
+}
 
 func (r Resolver) Match(raw string) bool {
 	u, err := url.Parse(raw)

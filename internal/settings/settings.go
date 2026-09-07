@@ -364,6 +364,13 @@ type Settings struct {
 	// somebody drags the Prioritätsreihenfolge card into a different one
 	// (jdp, 2026-09-07).
 	//
+	// An entry names a SERVICE and moves every account configured for it: a
+	// service with two stored keys is two entries in the routing table
+	// (resolver.SlotID) and one row on that card, and dispatch matches this
+	// list against the service half of a resolver id - see app.dynamicPrio.
+	// A full slot id ("alldebrid#work") written in here is honoured as
+	// written, which is somebody being deliberately more specific.
+	//
 	// Unlike CaptchaSolverOrder above there is no id whitelist here, and
 	// deliberately so: the set of resolvers is not fixed at compile time
 	// the way the two captcha solvers are - it grows with every debrid

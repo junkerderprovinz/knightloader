@@ -240,10 +240,18 @@ type App struct {
 	closeMu sync.Mutex
 	closing bool
 
-	jd     backend            // headless-JD backend, nil unless KL_JD is set and reachable
-	ytdlp  backend            // yt-dlp media backend, nil unless the yt-dlp binary is present
-	torbox backend            // TorBox debrid backend, nil unless a TorBox key is present
-	debrid map[string]backend // one-shot debrid backends by resolver id (alldebrid, realdebrid)
+	jd    backend // headless-JD backend, nil unless KL_JD is set and reachable
+	ytdlp backend // yt-dlp media backend, nil unless the yt-dlp binary is present
+	// torbox is the DEFAULT TorBox account's backend, nil unless one is
+	// configured. Every TorBox account, this one included, is also in debrid
+	// below under its slot id - which is what backendFor reads first, so this
+	// field only ever answers for a task recorded as the bare "torbox".
+	torbox backend
+	// debrid holds one backend per configured debrid ACCOUNT, keyed by the
+	// resolver slot id it routes under: "alldebrid" for a service's default
+	// account, "alldebrid#work" for a second login on the same service (see
+	// resolver.SlotID). TorBox's accounts live here too.
+	debrid map[string]backend
 	// remotefs fetches ftp/ftps/sftp links and hands WebDAV ones on to the
 	// engine. Unlike every other backend above it is NEVER nil once
 	// rewireBackends has run: the others exist only when a credential or a

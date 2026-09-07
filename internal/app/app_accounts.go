@@ -39,13 +39,42 @@ import (
 // effect immediately instead of on the next restart. Everything is assembled
 // into locals first and swapped in at the end, so a running download never
 // sees a half-built table.
+//
+// ONE SLOT PER ACCOUNT, not one per service (resolver.SlotID). Until
+// 2026-09-07 this file wired exactly one backend per service id and read only
+// that service's DEFAULT account, so a second TorBox or AllDebrid key could be
+// added, named and switched on from the accounts page and was then never asked
+// for a single link. Every account of a service is registered here at the same
+// priority, in routedAccounts' order, which is what makes the fallback chain
+// try a person's second key before it moves on to the next service.
 func (a *App) rewireBackends() {
 	eng := a.Engine
 
 	// Resolve which hoster backends are configured. Each debrid service brings
 	// its own supported-host list; their union tells file hosters (→ debrid/JD)
 	// from media pages (→ yt-dlp).
-	torboxKey := a.routedCredential("torbox").APIKey
+	//
+	// The FIRST routed TorBox account's key, and only to ask TorBox which hosts
+	// it supports: that list is the service's own answer and comes back the same
+	// whichever of a person's keys asks for it, so it is fetched once here
+	// rather than once per account. Deliberately no longer "the default
+	// account's key" - an install whose only TorBox account is a named one would
+	// otherwise fetch no host list at all and route nothing to a key that works.
+	var torboxAccounts []routedAccount
+	for _, acct := range a.routedAccounts("torbox") {
+		// TorBox is an API-key service (accounts.KindAPIKey), so an account
+		// whose stored credential carries no key can unlock nothing. Dropped
+		// here rather than given a slot that would claim links and fail every
+		// one of them, which is exactly what the one-shot services' own build
+		// funcs do further down.
+		if acct.cred.APIKey != "" {
+			torboxAccounts = append(torboxAccounts, acct)
+		}
+	}
+	torboxKey := ""
+	if len(torboxAccounts) > 0 {
+		torboxKey = torboxAccounts[0].cred.APIKey
+	}
 	jdBase := os.Getenv("KL_JD")
 
 	var hosterSet map[string]bool
@@ -70,17 +99,15 @@ func (a *App) rewireBackends() {
 	}
 
 	// One-shot debrid services (AllDebrid, Real-Debrid): a single unlock call
-	// yields a direct URL the engine downloads. Only a service's default
-	// account is ever wired into routing - a second, named account on the same
-	// service (AccountIDs) is representable and manageable on the page, but
-	// this app has exactly one debrid backend slot per service id, so it is
-	// not a routing choice yet. That is a limitation for a later wave (see
-	// docs/build-plan.md 6C, per-host limits and priority order), not a bug
-	// this file introduces silently: only the default account can ever appear
-	// here, named ones simply are never asked.
+	// yields a direct URL the engine downloads. One setup per (service,
+	// ACCOUNT): a service with two configured accounts contributes two, both
+	// carrying the same priority number, so they sort next to each other and
+	// ahead of the next service - see routedAccounts for the order and
+	// resolver.SlotID for the ids they register under.
 	type debridSetup struct {
-		svc  debrid.Service
-		prio int
+		svc     debrid.Service
+		account string
+		prio    int
 	}
 	//
 	// THE NUMBERS. Every debrid service sits ABOVE resolver.Direct's 40, and
@@ -101,39 +128,91 @@ func (a *App) rewireBackends() {
 	//
 	// Spread by one rather than by ten: the order among them is a preference,
 	// not a statement about capability, and the gaps say nothing.
+	//
+	// One entry per service, in that priority order. build answers nil for a
+	// credential this service cannot actually use (an empty key, a half-filled
+	// Linksnappy login), which is how such an account contributes no slot at
+	// all rather than a client that would fail on its first call.
+	services := []struct {
+		id    string
+		prio  int
+		build func(accounts.Credential) debrid.Service
+	}{
+		{"alldebrid", 49, func(c accounts.Credential) debrid.Service {
+			if c.APIKey == "" {
+				return nil
+			}
+			return debrid.NewAllDebrid(c.APIKey)
+		}},
+		{"realdebrid", 48, func(c accounts.Credential) debrid.Service {
+			if c.APIKey == "" {
+				return nil
+			}
+			return debrid.NewRealDebrid(c.APIKey)
+		}},
+		// Below the two that were here first, and in the order they were added -
+		// the priority number is what settles which service claims a link both of
+		// them support, and there is no reason to demote a working AllDebrid the
+		// day somebody adds a second key.
+		{"debridlink", 47, func(c accounts.Credential) debrid.Service {
+			if c.APIKey == "" {
+				return nil
+			}
+			return debrid.NewDebridLink(c.APIKey)
+		}},
+		{"premiumize", 46, func(c accounts.Credential) debrid.Service {
+			if c.APIKey == "" {
+				return nil
+			}
+			return debrid.NewPremiumize(c.APIKey)
+		}},
+		// Linksnappy is the one service here with no API key: it authenticates with
+		// the website's own login, so it is read as a pair rather than a token.
+		{"linksnappy", 45, func(c accounts.Credential) debrid.Service {
+			if c.Username == "" || c.Password == "" {
+				return nil
+			}
+			return debrid.NewLinksnappy(c.Username, c.Password)
+		}},
+		{"offcloud", 44, func(c accounts.Credential) debrid.Service {
+			if c.APIKey == "" {
+				return nil
+			}
+			return debrid.NewOffcloud(c.APIKey)
+		}},
+	}
 	var configured []debridSetup
-	if k := a.routedCredential("alldebrid").APIKey; k != "" {
-		configured = append(configured, debridSetup{debrid.NewAllDebrid(k), 49})
-	}
-	if k := a.routedCredential("realdebrid").APIKey; k != "" {
-		configured = append(configured, debridSetup{debrid.NewRealDebrid(k), 48})
-	}
-	// Below the two that were here first, and in the order they were added -
-	// the priority number is what settles which service claims a link both of
-	// them support, and there is no reason to demote a working AllDebrid the
-	// day somebody adds a second key.
-	if k := a.routedCredential("debridlink").APIKey; k != "" {
-		configured = append(configured, debridSetup{debrid.NewDebridLink(k), 47})
-	}
-	if k := a.routedCredential("premiumize").APIKey; k != "" {
-		configured = append(configured, debridSetup{debrid.NewPremiumize(k), 46})
-	}
-	// Linksnappy is the one service here with no API key: it authenticates with
-	// the website's own login, so it is read as a pair rather than a token.
-	if c := a.routedCredential("linksnappy"); c.Username != "" && c.Password != "" {
-		configured = append(configured, debridSetup{debrid.NewLinksnappy(c.Username, c.Password), 45})
-	}
-	if k := a.routedCredential("offcloud").APIKey; k != "" {
-		configured = append(configured, debridSetup{debrid.NewOffcloud(k), 44})
+	for _, s := range services {
+		for _, acct := range a.routedAccounts(s.id) {
+			if svc := s.build(acct.cred); svc != nil {
+				configured = append(configured, debridSetup{svc: svc, account: acct.account, prio: s.prio})
+			}
+		}
 	}
 	newDebrid := map[string]backend{}
+	// Every slot this pass wired, so the sweep at the end can tell a slot that
+	// is GONE from one that simply belongs to another service - see there.
+	wired := map[string]bool{}
+	// One host fetch per SERVICE rather than per account. What comes back is
+	// the service's own list of hosters it supports, identical for both of a
+	// person's two AllDebrid keys, and resolver.HostCache keeps exactly one set
+	// per service id - so asking once per account would spend a second live
+	// call to write the same answer into the same cache slot twice.
+	hostsByService := map[string]map[string]bool{}
 	for _, d := range configured {
-		hosts := a.fetchDebridHosts(d.svc)
-		newDebrid[d.svc.ID()] = debrid.NewBackend(d.svc, eng, a.onUpdate)
+		serviceID := d.svc.ID()
+		hosts, fetched := hostsByService[serviceID]
+		if !fetched {
+			hosts = debridRoutingHosts(a, d.svc)
+			hostsByService[serviceID] = hosts
+		}
+		slot := resolver.SlotID(serviceID, d.account)
+		newDebrid[slot] = debrid.NewBackend(d.svc, eng, a.onUpdate)
+		wired[slot] = true
 		// Svc rides along so the routing entry can also answer "is this link still
 		// there". Without it the resolver knows which links it claims and nothing
 		// about them, and every debrid link stays at "not checked" for good.
-		a.Registry.Register(debrid.Resolver{ServiceID: d.svc.ID(), Prio: d.prio, Hosts: hosts, Svc: d.svc})
+		a.Registry.Register(debrid.Resolver{ServiceID: serviceID, Account: d.account, Prio: d.prio, Hosts: hosts, Svc: d.svc})
 		for h := range hosts {
 			if hosterSet == nil {
 				hosterSet = map[string]bool{}
@@ -144,7 +223,7 @@ func (a *App) rewireBackends() {
 			}
 			ytdlpExclude[h] = true
 		}
-		log.Printf("%s debrid backend enabled (%d supported hosts)", d.svc.Label(), len(hosts))
+		log.Printf("%s%s debrid backend enabled (%d supported hosts)", d.svc.Label(), accountSuffix(d.account), len(hosts))
 	}
 
 	// The user's own servers: FTP, FTPS, SFTP and WebDAV.
@@ -226,10 +305,14 @@ func (a *App) rewireBackends() {
 	}
 
 	// Optional TorBox debrid backend: when a key is present, supported hoster
-	// links are unlocked into a direct CDN URL the engine then downloads.
+	// links are unlocked into a direct CDN URL the engine then downloads. One
+	// backend per configured TorBox account, exactly like the one-shot services
+	// above - newTorbox itself stays the DEFAULT account's, because that is the
+	// one backendFor's own "torbox" case answers with; every account, default
+	// included, is also in newDebrid under its slot id, which is what
+	// backendFor reads first.
 	var newTorbox backend
-	if torboxKey != "" {
-		newTorbox = torbox.NewBackend(torbox.NewClient(torboxKey), eng, a.onUpdate)
+	if len(torboxAccounts) > 0 {
 		// The FULL list only when yt-dlp is not running. With yt-dlp there,
 		// TorBox claims the hosts TorBox itself calls file hosters and leaves
 		// the "stream" half - YouTube and its like - to yt-dlp.
@@ -253,8 +336,17 @@ func (a *App) rewireBackends() {
 		// quality to pick - the whole feature jdp asked for on 2026-08-25. For
 		// a media page the better tool has to win, not the higher-priority one.
 		torboxHosts := torboxRoutingHosts(hosterSet, torboxFileHosts, newYtdlp != nil)
-		a.Registry.Register(torbox.Resolver{Hosts: torboxHosts})
-		log.Printf("TorBox debrid backend enabled (%d supported hosts)", len(torboxHosts))
+		for _, acct := range torboxAccounts {
+			be := torbox.NewBackend(torbox.NewClient(acct.cred.APIKey), eng, a.onUpdate)
+			slot := resolver.SlotID("torbox", acct.account)
+			newDebrid[slot] = be
+			wired[slot] = true
+			if acct.account == "" {
+				newTorbox = be
+			}
+			a.Registry.Register(torbox.Resolver{Account: acct.account, Hosts: torboxHosts})
+			log.Printf("TorBox%s debrid backend enabled (%d supported hosts)", accountSuffix(acct.account), len(torboxHosts))
+		}
 	}
 
 	// Optional headless-JD backend: the lowest-priority catch-all for hoster
@@ -287,13 +379,18 @@ func (a *App) rewireBackends() {
 	// A credential that is gone - or an account that was switched off - must
 	// stop claiming links, or those links would route to a service that can no
 	// longer unlock them.
-	for _, id := range []string{"alldebrid", "realdebrid", "debridlink", "premiumize", "linksnappy", "offcloud"} {
-		if _, ok := newDebrid[id]; !ok {
+	//
+	// Swept over what is actually registered rather than over a written-out
+	// list of service ids, because a slot can now disappear for a reason such a
+	// list could never name: a SECOND account was deleted while the service's
+	// first one is still perfectly fine. isDebridService is what keeps the
+	// sweep off jd/ytdlp/direct/http/torrent, which own their ids for reasons
+	// that have nothing to do with a stored credential.
+	for _, id := range a.Registry.IDs() {
+		service, _ := resolver.SplitSlot(id)
+		if isDebridService(service) && !wired[id] {
 			a.Registry.Unregister(id)
 		}
-	}
-	if newTorbox == nil {
-		a.Registry.Unregister("torbox")
 	}
 	if newJD == nil {
 		a.Registry.Unregister("jd")
@@ -371,6 +468,81 @@ func (a *App) routedCredential(service string) accounts.Credential {
 	}
 	return a.credentialFor(svc, "")
 }
+
+// routedAccount is one account rewireBackends may build a backend for: which
+// account of the service it is ("" for the default one) and the credential to
+// build that backend with.
+type routedAccount struct {
+	account string
+	cred    accounts.Credential
+}
+
+// routedAccounts lists every account of a service that may route right now, in
+// the order the fallback chain will try them: the default account first, then
+// each named one in AccountIDs' own sorted order. An account that is switched
+// off (accountEnabled) or has no credential at all is left out entirely - the
+// same thing routedCredential has always done for the default account, since
+// Enabled gates routing exactly as a missing key does.
+//
+// THE ORDER IS THE FEATURE. Every account of a service is registered at the
+// same priority, so the registry's tie-break - registration order (see
+// resolver.Registry.Register) - is the whole of "which of my two AllDebrid
+// keys is asked first", and it must not change between two restarts of the
+// same container. That rules out iterating the credential map directly, which
+// is why AccountIDs sorts.
+func (a *App) routedAccounts(service string) []routedAccount {
+	svc, ok := accounts.Lookup(service)
+	if !ok {
+		return nil
+	}
+	var out []routedAccount
+	if cred := a.routedCredential(service); !cred.IsZero() {
+		out = append(out, routedAccount{cred: cred})
+	}
+	for _, id := range a.Accounts.AccountIDs(service) {
+		if !a.accountEnabled(service, id) {
+			continue
+		}
+		if cred := a.credentialFor(svc, id); !cred.IsZero() {
+			out = append(out, routedAccount{account: id, cred: cred})
+		}
+	}
+	return out
+}
+
+// isDebridService reports whether a catalogue id is one of the services whose
+// credential is a ROUTING decision (accounts.GroupDebrid) - exactly the set
+// that owns slots in the resolver registry.
+//
+// Read off the catalogue rather than written out again here, so a service
+// added there is covered by the sweep in rewireBackends and by
+// accountForResolverLocked (app_health.go) without a second list to keep in
+// step. The hardcoded list this replaced already had to be edited four times
+// as services were added, and a sweep that forgets a service leaves its
+// resolver claiming links with a credential that is gone.
+func isDebridService(service string) bool {
+	svc, ok := accounts.Lookup(service)
+	return ok && svc.Group == accounts.GroupDebrid
+}
+
+// accountSuffix names a non-default account in a log line and says nothing at
+// all for the default one, so the message a single-account install has always
+// printed reads exactly as it did before slots existed.
+func accountSuffix(account string) string {
+	if account == "" {
+		return ""
+	}
+	return "/" + account
+}
+
+// debridRoutingHosts is the seam rewireBackends reads a service's routing host
+// list through, rather than calling fetchDebridHosts directly, so a test can
+// drive the real wiring - which accounts get a slot, in which order, and what
+// dispatch then does with them - without spending a live call against a real
+// debrid API. The identical reason accountInfoFetcher below and probeCredential
+// (app_health.go) exist. Swapped only by a test, and restored before it
+// returns.
+var debridRoutingHosts = (*App).fetchDebridHosts
 
 // fetchDebridHosts returns a service's supported-host set through its
 // resolver.HostCache (see hostCacheFor): the freshly fetched set on success,
