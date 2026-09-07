@@ -1193,7 +1193,15 @@ func (a *App) applySchedule(st schedule.State) {
 		a.dispatchLocked()
 	}
 	a.mu.Unlock()
-	a.Throttle.Set(st.Limit)
+	// Not the raw limit onto the engine's throttle any more: the number belongs
+	// to all three meters together, and applyBudget shares it out (app_budget.go).
+	// The window's own limit is recorded first, because applyBudget reads it -
+	// a nightly 2 MB/s window read from settings instead would be shared out at
+	// the daytime figure.
+	a.mu.Lock()
+	a.limitInForce = st.Limit
+	a.mu.Unlock()
+	a.applyBudget()
 	// JD lives on its own box and is told over the network, so it is pushed off
 	// this goroutine: a slow or unreachable JD must not delay the next boundary.
 	// a.spawn, not a bare go - this reads a.jd under a.bmu.RLock
