@@ -20,9 +20,14 @@ import { IconCoffee, IconGithub, IconMail } from '../../lib/icons';
  * page actually wants, so the two stay separate documents that happen to
  * agree today rather than one page pretending to be both.
  *
- * All 47 settings.help.* keys this page reads already live in en.ts (and are
- * typed TranslationKey, checked against every other locale) - read straight
- * through useT() below, same as any other page.
+ * Every settings.help.* key this page reads lives in en.ts (and is typed
+ * TranslationKey, checked against every other locale) - read straight through
+ * useT() below, same as any other page. The count is deliberately not written
+ * out here: it said 47 while the file read 46, which is what a hand-kept
+ * number does the first time a Topic gains or loses a bullet.
+ * check-docs-claims.mjs checks the relationship that actually matters instead,
+ * that the two sets are equal in both directions, so a key read here but absent
+ * from en.ts and a key sitting in en.ts that nothing renders both fail loudly.
  */
 function Topic({
   title,
