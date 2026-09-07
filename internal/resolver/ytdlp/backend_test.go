@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -61,6 +62,35 @@ func TestMain(m *testing.M) {
 		// names: multiple lines out, one per entry.
 		fmt.Println(`{"title":"Entry One","formats":[]}`)
 		fmt.Println(`{"title":"Entry Two","formats":[]}`)
+		os.Exit(0)
+	case "flatlisting":
+		// What --flat-playlist -J answers for a real playlist: ONE object for
+		// the whole listing, with the playlist's own title (what the package
+		// gets named after) and one flat entry per video. The last two entries
+		// are the two shapes parsePlaylist has to leave out rather than stage -
+		// a nested playlist (a channel tab) and an entry naming no URL at all
+		// (a removed video the listing still carries).
+		fmt.Println(`{"_type":"playlist","title":"Greatest Hits","entries":[` +
+			`{"_type":"url","url":"https://youtube.com/watch?v=aaa","title":"First Song"},` +
+			`{"_type":"url","url":"https://youtube.com/watch?v=bbb","title":"Second Song"},` +
+			`{"_type":"playlist","url":"https://youtube.com/playlist?list=inner","title":"A Playlist Inside"},` +
+			`{"_type":"url","url":"","title":"Deleted video"}` +
+			`]}`)
+		os.Exit(0)
+	case "singlevideo":
+		// The same call against an ordinary video URL: yt-dlp answers with the
+		// video's own info dict, which names no _type of "playlist" and carries
+		// no entries. ProbePlaylist must read that as "this link lists
+		// nothing", never as a failure - it is the answer every link on an
+		// install with the setting on gets, and the caller stages such a link
+		// exactly as it always did.
+		fmt.Println(`{"title":"Rick Astley - Never Gonna Give You Up (Official Video)","formats":[]}`)
+		os.Exit(0)
+	case "echoargs":
+		// The listing's title is this process's own argv, so a test can assert
+		// what ProbePlaylist actually asked yt-dlp for - above all that it
+		// asked for the LISTING (--flat-playlist) rather than for the videos.
+		fmt.Printf("{\"_type\":\"playlist\",\"title\":%q,\"entries\":[]}\n", strings.Join(os.Args[1:], " "))
 		os.Exit(0)
 	case "badjson":
 		fmt.Println("not json at all")
