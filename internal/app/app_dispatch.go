@@ -98,11 +98,29 @@ func (a *App) modeForLocked(t *core.Task, resolverID string) core.DownloadMode {
 // has already filtered to those. So "put yt-dlp above TorBox" cannot send a
 // rapidgator link to yt-dlp; it decides which of the ones that COULD take it
 // is asked first.
+//
+// A hand-arranged entry names a SERVICE and moves every account of it. The
+// order comes from the Prioritätsreihenfolge card, which shows one row per
+// service (see ResolverPriority), while the chain being ranked here holds one
+// entry per configured ACCOUNT (resolver.SlotID). Matching the full slot id
+// alone would leave a person's second AllDebrid key on its automatic number
+// while their first sat at the top of a hand-made list - the one thing this
+// must never do, because a service split in half by the order is a service
+// whose second key gets tried after everything else instead of right after
+// the first. An order that does name a slot in full is honoured as written:
+// that is somebody being deliberately more specific, not a mistake.
 func dynamicPrio(res resolver.Resolver, url string, order []string) int {
 	id := res.Info().ID
 	for i, want := range order {
 		if want == id {
 			return orderBase - i
+		}
+	}
+	if service, _ := resolver.SplitSlot(id); service != id {
+		for i, want := range order {
+			if want == service {
+				return orderBase - i
+			}
 		}
 	}
 	if id == "jd" {
@@ -143,6 +161,15 @@ func rankedChain(chain []resolver.Resolver, url string, order []string) []resolv
 //
 // host empty means the whole registered set, with no URL to match against;
 // given, it is narrowed to the chain that host would actually walk.
+//
+// ONE ROW PER SERVICE, not per account slot. A service with two configured
+// accounts has two entries in the chain (resolver.SlotID), and both answer
+// this card's question - "when is AllDebrid asked" - identically. A second row
+// would say the same thing twice under an id the card has no label for, and
+// worse, it would travel straight back into settings.ResolverOrder on the next
+// drag, because the ladder saves the ids it was handed. Which of a service's
+// accounts is tried first is not arranged here at all; it is the order they
+// are wired in (routedAccounts, app_accounts.go).
 func (a *App) ResolverPriority(host string) []resolver.Info {
 	host = strings.TrimSpace(host)
 	url := ""
@@ -153,8 +180,19 @@ func (a *App) ResolverPriority(host string) []resolver.Info {
 	}
 	ranked := rankedChain(chain, url, a.Settings.Get().ResolverOrder)
 	out := make([]resolver.Info, 0, len(ranked))
+	seen := map[string]bool{}
 	for _, res := range ranked {
-		out = append(out, res.Info())
+		info := res.Info()
+		service, _ := resolver.SplitSlot(info.ID)
+		if seen[service] {
+			continue
+		}
+		seen[service] = true
+		// The service's own id, so a service configured with nothing but a
+		// named account still reads as itself here and a drag writes an order
+		// dynamicPrio matches.
+		info.ID = service
+		out = append(out, info)
 	}
 	return out
 }
@@ -220,6 +258,14 @@ func hostCapFor(res resolver.Resolver, host string) int {
 // so a task recorded on a now-benched resolver falls through to the next one
 // in the chain instead of being stranded on a backend this function refuses
 // to return.
+//
+// A SECOND ACCOUNT ON THE SAME SERVICE IS JUST THE NEXT LINK IN THAT CHAIN,
+// and it needs no branch of its own here. rewireBackends registers one entry
+// per configured account at the same priority (resolver.SlotID,
+// routedAccounts), so a person's two AllDebrid keys sit next to each other in
+// rankedChain, ahead of whatever service comes next: the loop below skips the
+// benched one and lands on the other before it ever reaches Real-Debrid. The
+// same holds for nextResolverLocked, which walks the identical order.
 //
 // The fallback loop below is written out inline rather than delegated to a
 // helper in app_health.go: the one that used to make this identical decision

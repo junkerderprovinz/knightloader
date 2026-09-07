@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+	"strings"
 	"sync"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
@@ -18,6 +19,49 @@ import (
 type Info struct {
 	ID   string `json:"id"`
 	Prio int    `json:"prio"`
+}
+
+// AccountSep separates a service id from an account id inside a resolver id.
+//
+// A resolver id is one BACKEND SLOT, not one service. Most slots are a
+// service's only one and keep the bare catalogue id ("alldebrid") - which is
+// what every stored task, every hand-arranged order and every log line in
+// this app has always said, and what they all keep saying. A SECOND login on
+// the same service (accounts.Store.AccountIDs) gets a slot of its own behind
+// this separator, so the two are registered separately, benched separately by
+// account health, and reachable separately in the fallback chain. Before
+// slots existed the routing table had exactly one entry per service id, so a
+// person's second TorBox key could be added, listed and labelled on the
+// accounts page and was never once asked for a download.
+//
+// "#" is safe as the separator because service ids come from one place: the
+// fixed catalogue in internal/accounts, which contains none. Account ids may
+// be typed by a person, so the FIRST "#" is always the separator and anything
+// after it - "#" included - belongs to the account id.
+const AccountSep = "#"
+
+// SlotID is the resolver id one (service, account) pair registers under: the
+// bare service id for a service's default account, service + AccountSep +
+// account for a named one.
+func SlotID(service, account string) string {
+	if account == "" {
+		return service
+	}
+	return service + AccountSep + account
+}
+
+// SplitSlot reads a slot id back into the pair SlotID built it from.
+//
+// An id with no separator answers (id, "") - a service's default account,
+// which covers every id written before slots existed and every resolver that
+// has no account at all (jd, ytdlp, direct, http, torrent). So this is safe
+// to call on any resolver id whatever; whether the service part means
+// anything is the caller's own question to ask.
+func SplitSlot(id string) (service, account string) {
+	if i := strings.Index(id, AccountSep); i >= 0 {
+		return id[:i], id[i+len(AccountSep):]
+	}
+	return id, ""
 }
 
 // Request is what the resolver is asked to resolve.

@@ -38,6 +38,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/resolver"
 )
 
 var (
@@ -73,14 +74,20 @@ func (a *App) acctHealthTracker() *accounts.Tracker {
 // http-fallback resolvers never touch internal/accounts, so nothing about
 // their failures belongs at this level.
 //
-// Only the credential-backed debrid services are listed, and only their
-// default account: rewireBackends' own comment explains why - "only a
-// service's default account is ever wired into routing" - so (resolver id,
-// "") is the whole mapping until a later wave routes named accounts too.
+// THE ACCOUNT IS IN THE ID. A service's default account routes under the bare
+// catalogue id ("alldebrid"), a second login on the same service under
+// "alldebrid#<account>" - see resolver.SlotID. That is what lets one of a
+// person's two AllDebrid keys be benched while the other keeps taking links.
+// The previous version answered ("alldebrid", "") for every id it recognised,
+// which was correct only for as long as rewireBackends wired the default
+// account and nothing else: with two accounts routing, it would have benched
+// the first one on the second one's failure and left the failing key running.
 //
-// The resolver id and the catalogue id are the same string by construction
-// (accounts.Service.ID's own doc comment), which is why this can return
-// resolverID unchanged rather than keeping a second table to drift.
+// Membership is the catalogue's own GroupDebrid (isDebridService,
+// app_accounts.go) rather than a list of ids repeated here, so a service added
+// to the catalogue cannot be left behind by this file. The resolver id and the
+// catalogue id are the same string by construction (accounts.Service.ID's own
+// doc comment), which is why the service part needs no second table to drift.
 //
 // "remotefs" IS DELIBERATELY ABSENT, and adding it would be a bug rather than
 // an improvement. Every service above is one account for one provider, so
@@ -92,12 +99,11 @@ func (a *App) acctHealthTracker() *accounts.Tracker {
 // account" is the honest answer, and it costs nothing: a real failure still
 // fails its own task with the server's own reason.
 func (a *App) accountForResolverLocked(resolverID string) (service, account string, ok bool) {
-	switch resolverID {
-	case "alldebrid", "realdebrid", "torbox", "debridlink", "premiumize", "linksnappy", "offcloud":
-		return resolverID, "", true
-	default:
+	service, account = resolver.SplitSlot(resolverID)
+	if !isDebridService(service) {
 		return "", "", false
 	}
+	return service, account, true
 }
 
 // accountRoutableLocked reports whether resolverID should still be tried. A
