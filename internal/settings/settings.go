@@ -480,6 +480,30 @@ type Settings struct {
 	// YtdlpPresets is - see its own comment.
 	HostRules map[string]HostRule `json:"hostRules"`
 
+	// Categories are the named drawers a link can be filed in, each carrying a
+	// folder, a priority, an unpacking switch, a speed limit and a collision
+	// rule. Referred to by Task.Category, offered when links are thrown in,
+	// filterable as a facet, settable by a Packagizer rule. See
+	// settings_categories.go for the whole shape and, in particular, for the
+	// three questions the feature IS: which of three folders wins, what a
+	// change or a delete does to downloads already filed, and why the field
+	// hangs off the task rather than off the package.
+	//
+	// A SLICE and not a map keyed by ID, which is the one place this differs
+	// from HostRules just above. A host rule is looked up and never listed; a
+	// category is a MENU, and Go's map iteration would reshuffle that menu on
+	// every process start - a rendering fault as far as anybody reading it is
+	// concerned. The order here is the order it is offered in, and it is the
+	// user's to arrange.
+	//
+	// Empty - the default - is the whole feature switched off: nothing is
+	// filed anywhere, every task takes the global answers, and an install
+	// that never opens the page behaves exactly as it did before this key
+	// existed. No omitempty, for the reason CaptchaSolverOrder gives: a nil
+	// slice with omitempty is dropped from the JSON entirely and the frontend
+	// has no way to type a field that is sometimes simply absent.
+	Categories []Category `json:"categories"`
+
 	// Reconnect gets the box a new public address when a hoster's free-user limit
 	// is keyed to the one it has. Off by default: it runs a program or talks to
 	// the router, and neither should ever happen because a default said so.
@@ -1013,6 +1037,7 @@ func sanitize(n Settings) Settings {
 	n = sanitizeStall(n)
 	n = sanitizeDiskSpace(n)
 	n = sanitizeHostRules(n)
+	n = sanitizeCategories(n)
 	n = sanitizePaths(n)
 	n = sanitizeStaging(n)
 	n = sanitizeArchives(n)
