@@ -521,7 +521,8 @@ export function Schedule() {
 
   return (
     <div className="flex flex-col gap-10">
-      <PageHeader title={cx('settings.schedule.title')} subtitle={cx('settings.schedule.subtitle')} />
+      {/* No subtitle (jdp, 2026-09-07). */}
+      <PageHeader title={cx('settings.schedule.title')} />
 
       <StateBanner live={live} cx={cx} locale={locale} />
 

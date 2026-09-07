@@ -255,7 +255,8 @@ export function Scripts() {
 
   return (
     <div className="flex flex-col gap-10">
-      <PageHeader title={cx('settings.scripts.title')} subtitle={cx('settings.scripts.subtitle')} />
+      {/* No subtitle (jdp, 2026-09-07). */}
+      <PageHeader title={cx('settings.scripts.title')} />
 
       <Card hue={0} className="flex flex-col gap-4">
         <SectionTitle

@@ -180,7 +180,10 @@ export function Torrents() {
 
   return (
     <div className="flex flex-col gap-10">
-      <PageHeader title={cx('settings.torrents.title')} subtitle={cx('settings.torrents.subtitle')} />
+      {/* No subtitle (jdp, 2026-09-07: "dieser insfo text kann weg: Seed-Ziele,
+          Übertragungslimits, Portweiterleitung und DHT/PEX ..."). Every one of
+          the four things it listed is a card on this page with its own title. */}
+      <PageHeader title={cx('settings.torrents.title')} />
 
       {/* Verified while building this page, not a hedge: settings_torrent.go's
           own doc comments confirm SeedRatioTarget/SeedDurationSeconds/Port now

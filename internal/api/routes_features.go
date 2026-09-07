@@ -329,7 +329,13 @@ func featureList(a *app.App) []Feature {
 			Detail: countDetail(enabledConnections(s), "connection in use", "connections in use"),
 		},
 		{
-			ID: "cnl", Verdict: VerdictShipped, Page: "access",
+			// Filed under "look" - the Allgemein tab - and not under
+			// "access" any more (jdp, 2026-09-07: "können wir das nicht
+			// standardmäßig aktivieren und den Toggle nicht in einen
+			// anderen Tab verschieben?"). Click'n'Load is how links get
+			// IN; the Zugang tab is about who gets in, which is a
+			// different question that happened to share a port list.
+			ID: "cnl", Verdict: VerdictShipped, Page: "look",
 			Switch: cnlSwitch(a), Enabled: cnlEnabled(a),
 			Reason: cnlReason(a),
 			Detail: cnlDetail(a),
@@ -452,7 +458,14 @@ func featurePages() []FeaturePage {
 		// bookmarked /settings/look URL and the stored settingsTabOrder/
 		// settingsPage UI-state values for no visible benefit); only the
 		// displayed label (settings.nav.look) changed to "Allgemein".
-		{ID: "look", Modules: []string{"updater"}},
+		{ID: "look", Modules: []string{"updater", "cnl"}},
+		// Straight after General, because it is what General used to hold
+		// (jdp, 2026-09-07: "alle theming sachen schieben wir in einen neuen
+		// aussehen tab. sonst wir der allgemein tab zu unübersichtlich").
+		// No Feature{} row of its own: corners, colours and motion are
+		// preferences, not a subsystem with an on/off switch, the same
+		// reasoning shortcuts and diagnostics below already carry.
+		{ID: "appearance"},
 		{ID: "modules"},
 		{ID: "downloads", Modules: []string{"watch", "crawler", "checksums"}},
 		{ID: "archives", Modules: []string{"extraction"}},
@@ -475,7 +488,10 @@ func featurePages() []FeaturePage {
 		// row filed under this id either - just a real, bookmarkable
 		// address in the rail (Wave 12).
 		{ID: "shortcuts"},
-		{ID: "access", Modules: []string{"cnl"}},
+		// No modules of its own since Click'n'Load moved to "look"
+		// (2026-09-07). The page stays: the password, the phrase and the
+		// relay all live here and none of them is a Feature{} row.
+		{ID: "access"},
 		{ID: "scripts", Modules: []string{"scripting"}},
 		{ID: "advanced"},
 		// diagnostics and help carry no module row of their own, same as

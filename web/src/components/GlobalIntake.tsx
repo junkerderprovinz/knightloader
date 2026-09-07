@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { addLinks, uploadContainer } from '../lib/api';
 import { isEditableTarget, message } from '../lib/intake';
+import { useClipboardWatch } from '../lib/useClipboardWatch';
+import { startClipboardWatch } from '../lib/clipboardWatch';
 import { useToast } from '../lib/toast';
 import { useT } from '../lib/i18n';
 
@@ -32,6 +34,7 @@ import { useT } from '../lib/i18n';
 export function GlobalIntake() {
   const { toast } = useToast();
   const { t } = useT();
+  const [watch, setWatch] = useClipboardWatch();
 
   useEffect(() => {
     async function stageText(text: string) {
@@ -102,6 +105,38 @@ export function GlobalIntake() {
       window.removeEventListener('drop', onDrop);
     };
   }, [t, toast]);
+
+  // The clipboard watch rides along here rather than in a component of its own
+  // for exactly the reason the listeners above are here: this is the one place
+  // in the tree that is mounted once and stays mounted, and a poller that
+  // unmounted with the collector page would stop the moment somebody looked at
+  // the download list.
+  //
+  // Off unless switched on, and the switch is only offered where it can
+  // actually run - see clipboardWatch.ts on secure contexts and on why a
+  // refused permission ends the watch instead of re-asking forever.
+  useEffect(() => {
+    if (!watch) return;
+    return startClipboardWatch((o) => {
+      switch (o.kind) {
+        case 'staged':
+          toast(t('collector.toastStaged', { n: o.n }), 'ok');
+          break;
+        case 'none':
+          // Silent on purpose: the ordinary cause is copying a link that is
+          // already in the collector, and a toast for that would fire every
+          // time somebody re-copies something.
+          break;
+        case 'denied':
+          setWatch(false);
+          toast(t('intake.clipboardWatchDenied', { reason: o.reason }), 'fail');
+          break;
+        case 'failed':
+          toast(t('list.failed', { error: o.reason }), 'fail');
+          break;
+      }
+    });
+  }, [watch, setWatch, t, toast]);
 
   return null;
 }

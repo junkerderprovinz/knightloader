@@ -210,6 +210,20 @@ func (r *Registry) For(url string) Resolver {
 // was to read Info.Prio in the source of each resolver package - a deterministic
 // order nobody could see was, in every way that matters to the person who
 // configured it, the same as no order at all.
+// List is every registered resolver, in the registry's own frozen order.
+//
+// The unfiltered sibling of All, added for internal/app's ResolverPriority:
+// the Prioritätsreihenfolge card shows the whole ladder with no host in hand,
+// and re-ranking it the way dispatch does needs the Resolvers themselves, not
+// the Infos AllInfo flattens them to.
+func (r *Registry) List() []Resolver {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	out := make([]Resolver, len(r.list))
+	copy(out, r.list)
+	return out
+}
+
 func (r *Registry) AllInfo() []Info {
 	r.mu.RLock()
 	defer r.mu.RUnlock()

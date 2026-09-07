@@ -106,21 +106,42 @@ export function SkippedLinks() {
   const shown = showAll ? newest : newest.slice(0, 1);
 
   return (
-    <div className="fixed right-5 top-5 z-40 w-[min(92vw,26rem)]">
-      <div className="glim-toast overflow-hidden rounded-[var(--radius-control)] bg-carbon-surface shadow-[var(--elevation)]">
+    // Bottom right, where every other notice in this app already appears
+    // (jdp, 2026-09-07: "alle solcher popupfenster sollen recht unten im
+    // fenster erscheinen und sich besser vom hintergund abheben"). It sat top
+    // right, which is the one corner nothing else uses, so two notices about
+    // the same paste could appear at opposite ends of the window.
+    //
+    // bottom-20 rather than bottom-5: the toast stack owns bottom-5, and this
+    // panel is the taller of the two. Stacked above it they read as one column
+    // of messages instead of two overlapping ones.
+    <div className="fixed bottom-20 right-5 z-40 w-[min(92vw,26rem)]">
+      {/* Lifted off the page rather than blending into it: surface2 with a ring
+          and the strongest elevation, instead of the flat surface it had. A
+          notice that has to be noticed cannot be the same colour as the card
+          behind it. */}
+      <div
+        className="glim-toast overflow-hidden rounded-[var(--radius-control)] bg-carbon-surface2
+          shadow-[var(--elevation)] ring-1 ring-carbon-border"
+      >
         <div className="flex flex-wrap items-center gap-2 px-4 py-2.5">
           <span className="glim-num flex items-center text-xs text-carbon-textSub">
             {t('skipped.summary', { n: items.length })}
             <InfoBubble tip={t('skipped.info')} />
           </span>
           <span className="flex-1" />
+          {/* All three are real buttons now, and they LOOK it (jdp,
+              2026-09-07: "löschen, aneigen und x button sollen alle buttons
+              sein"). They were `ghost`, which is the kind with no fill at all,
+              so on a filled panel they read as three pieces of text that
+              happened to be clickable. */}
           {items.length > 1 && (
-            <Button kind="ghost" className="px-2.5 text-xs" onClick={() => setShowAll((v) => !v)}>
+            <Button kind="secondary" className="px-2.5 text-xs" onClick={() => setShowAll((v) => !v)}>
               {showAll ? t('common.hide') : t('common.show')}
             </Button>
           )}
           <Button
-            kind="ghost"
+            kind="secondary"
             className="px-2.5 text-xs"
             icon={<IconTrash width={14} height={14} />}
             onClick={onClear}
@@ -128,7 +149,7 @@ export function SkippedLinks() {
             {t('skipped.clear')}
           </Button>
           <Button
-            kind="ghost"
+            kind="secondary"
             icon={<IconClose width={14} height={14} />}
             aria-label={t('common.dismiss')}
             onClick={() => setDismissed(true)}

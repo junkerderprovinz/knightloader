@@ -2,7 +2,7 @@
 // missing or stray key is a compile error rather than a silent fallback.
 export const en = {
   'nav.overview': 'Overview',
-  'nav.collector': 'Collector',
+  'nav.collector': 'Link collector',
   'nav.downloads': 'Downloads',
   'nav.instances': 'Instances',
   'nav.accounts': 'Accounts',
@@ -303,6 +303,7 @@ export const en = {
   'list.controls': 'List controls',
   'list.actions': 'List actions',
   'list.failed': 'That did not work: {error}',
+  'list.dropChangedPriority': 'Moved: {n} download(s) took the priority of the row they were dropped on.',
   'list.optionsFailed': 'Could not load the clean-up entries from the server.',
 
   'task.enable': 'Enable',
@@ -419,6 +420,10 @@ export const en = {
   // collector.toastStaged/toastNone and list.failed rather than adding a
   // third phrasing of the same three states.
   'intake.pasteButton': 'Paste from clipboard',
+  'intake.clipboardWatch': 'Watch the clipboard',
+  'intake.clipboardWatchHint': 'Every link you copy anywhere goes straight into the collector, as long as this tab is open and in the foreground. Ctrl+V inside KnightLoader always works and needs none of this.',
+  'intake.clipboardWatchUnavailable': 'Not available here: your browser only lets a page read the clipboard over HTTPS or on localhost. Ctrl+V inside KnightLoader works either way.',
+  'intake.clipboardWatchDenied': 'Clipboard watch switched off: {reason}',
 
   'settings.nav.modules': 'Modules',
   'settings.nav.downloads': 'Downloads',
@@ -430,7 +435,8 @@ export const en = {
   'settings.nav.captcha': 'Captcha',
   'settings.nav.schedule': 'Schedule',
   'settings.nav.look': 'General',
-  'settings.nav.access': 'Access',
+  'settings.nav.appearance': 'Appearance',
+  'settings.nav.access': 'Password & remote access',
   'settings.nav.advanced': 'Advanced',
 
   'settings.railLabel': 'Settings sections',
@@ -516,6 +522,8 @@ export const en = {
   'settings.advanced.type.object': 'group',
 
   'settings.sectionIntakePorts': 'Ports and listeners',
+  'settings.sectionLinkIntake': 'Link intake',
+  'settings.linkIntakeHint': 'The ways a link can reach the collector on its own, without you pasting it here.',
 
   'settings.connections.add': 'Add connection',
   'settings.connections.import': 'Import list',
@@ -1013,7 +1021,12 @@ export const en = {
   'accounts.col.label': 'Label',
   'accounts.col.service': 'Service',
   'accounts.col.status': 'Status',
+  'accounts.col.tier': 'Plan',
   'accounts.col.traffic': 'Traffic left',
+  'accounts.tier.premium': 'Premium',
+  'accounts.tier.free': 'Free',
+  'accounts.trafficLeftOf': '{left} of {total} left',
+  'accounts.trafficLeftPercent': '{n}% left',
   'accounts.credentialFromEnv':
     'Set by the container’s {env} environment variable. Remove it there to change this.',
   'accounts.debrid.empty': 'No debrid accounts yet',
@@ -1025,8 +1038,8 @@ export const en = {
   'accounts.editTitle': '{service} account',
   'accounts.enableAccount': 'Enable {account}',
   'accounts.hoster.add': 'Add a hoster login',
-  'accounts.hoster.empty': 'No hoster logins yet',
-  'accounts.hoster.title': 'Hoster logins',
+  'accounts.hoster.empty': 'No hoster accounts yet',
+  'accounts.hoster.title': 'Hoster accounts',
   'accounts.hoster.hint':
     'Your own premium account at one single hoster. The login is handed to the built-in JDownloader, which performs it. Use this for a hoster none of your debrid services covers. Switch a row off to keep the login stored and stop using it.',
   'accounts.newAccount': 'New account',
@@ -1051,9 +1064,12 @@ export const en = {
   'accounts.whereToFind': 'Where do I get this?',
   'accounts.hostsRefreshed': 'Host list refreshed {when}',
   'accounts.routing.priorityTitle': 'Priority order',
-  'accounts.routing.priorityHint':
-    'When more than one configured service can fetch the same link, they are tried in this order.',
+  'accounts.routing.priorityHint': 'Which service is asked first when more than one can fetch the same link. Drag to rearrange.\n\nEverything that can fetch a link is here, not only the debrid accounts: TorBox, AllDebrid and the like, JDownloader for hundreds of hosters, yt-dlp for video sites, and the plain direct download for an ordinary link. That is why TorBox and yt-dlp sit in the same list - both are roads a link can take.\n\nThe order only decides between the services that can actually take the link in hand. Dragging yt-dlp to the top does not send a filehoster link to it.',
   'accounts.routing.priorityEmpty': 'No resolvers are registered yet.',
+  'accounts.routing.moveUp': 'Move up',
+  'accounts.routing.moveDown': 'Move down',
+  'accounts.routing.priorityAuto': 'Automatic',
+  'accounts.routing.priorityAutoHint': 'Throws your order away and goes back to the automatic one. The difference matters: the automatic order follows what changes - a new debrid key, an account going premium - while yours stays exactly as you left it.',
   'accounts.routing.jdTitle': 'JDownloader sidecar',
   'accounts.routing.jdHint': 'The embedded, invisible JDownloader that opens encrypted containers and covers hosters no other resolver does.',
   'accounts.routing.jdNotConfigured': 'Not configured',
@@ -1061,6 +1077,7 @@ export const en = {
   'accounts.routing.jdUnreachable': 'Unreachable',
   'accounts.routing.resolver.direct': 'Direct link',
   'accounts.routing.resolver.http': 'Plain HTTP fallback',
+  'accounts.routing.resolver.torrent': 'Torrent and magnet',
   'accounts.hoster.col.host': 'Host',
   'accounts.hoster.col.username': 'Username',
   'accounts.hoster.status.active': 'Active',
@@ -1492,7 +1509,7 @@ export const en = {
   'settings.access.relay.leadProject': 'Works with no setup. Everything your instances say to each other is encrypted, and only you hold the key.',
   'settings.access.relay.address': 'Address',
   'settings.access.relay.seesButton': 'What can it see?',
-  'settings.access.relay.seesTip': 'Not visible to the relay: your links, your downloads, your files and your access token. All of it is encrypted, and the key stays with you.\n\nVisible to the relay: the IP addresses of your instances and when they send something.\n\nThat cannot be encrypted away. If it bothers you, run a relay of your own.',
+  'settings.access.relay.seesTip': 'Not visible to the relay: your links, your downloads, your files and your access token.\n\nVisible to the relay: the IP addresses of your instances and when they send something.\n\nThat cannot be encrypted away. If it bothers you, run a relay of your own.',
   'settings.access.relay.none': 'No relay',
   'settings.access.relay.noneHint': 'No relay is active. On the same network, meaning your home network, your instances still find each other on their own. Across different networks they cannot reach each other, so there is no remote access.',
   'settings.access.relay.own': 'Own relay',
@@ -1548,7 +1565,7 @@ export const en = {
   'settings.access.phrase.howLead': 'Twelve words are all it takes. Here is what to do, and what happens when you do it:',
   'settings.access.phrase.howStep1': 'On this instance, press "{button}". Twelve words appear.',
   'settings.access.phrase.howStep2': 'Open KnightLoader on the other machine, come to this same page, press "{button}" and type the twelve words in.',
-  'settings.access.phrase.howStep3': 'That is it. Each now shows up on the other\'s Instances page, and you can drive either one from either one.',
+  'settings.access.phrase.howStep3': 'That is it. Each now shows up on the other\'s Instances page, and you can drive either one from either one. Remote access comes with it: the relay that carries the phrase is what makes them reachable from outside your network too.',
   'settings.access.phrase.howButton': 'How does this work?',
   'settings.access.phrase.howWhat': 'The words are a secret, not an address. Each instance works two keys out of them: one for finding the others, one for encrypting.\n\nTo find each other, every instance calls the same meeting point on the internet by itself. Whoever shows the same key is put through. That is why none of your instances has to be reachable from outside.\n\nThe meeting point cannot read along. It never sees your words, and everything passing through it is encrypted with the second key.',
   'settings.access.phrase.statusConnected': 'Connected',

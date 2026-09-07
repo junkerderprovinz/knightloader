@@ -147,9 +147,6 @@ function useCx() {
 export function Access() {
   const { tx } = useTx();
   const cx = useCx();
-  const { features, toggle } = useFeatures();
-  const { toast } = useToast();
-  const [busyId, setBusyId] = useState<string | null>(null);
   /**
    * Bumped whenever the relay cards change which relay is in force, so the
    * connect card above them re-reads /api/connect and its badge follows.
@@ -162,28 +159,6 @@ export function Access() {
    * be told WHEN to look again.
    */
   const [relayVersion, setRelayVersion] = useState(0);
-
-  // The listeners this instance answers on are a property of the build and the
-  // environment, not of settings.json, so they are read out of the module
-  // registry rather than described a second time here.
-  const listeners = features.modules.filter((m) => m.page === 'access');
-
-  // The same switch Modules.tsx's own row runs, reached from a second place
-  // on purpose (jdp, 2026-08-24: "im Zugang tab ist bei CnL kein Toggle ...
-  // für was brauchen wir das denn eigentlich" - the toggle belongs on the
-  // page where the port itself lives, not only on the module registry's own
-  // overview). Same failure handling as that row: the server refuses a
-  // switch it cannot honour and says why, shown rather than swallowed.
-  async function onToggle(id: string, next: boolean) {
-    setBusyId(id);
-    try {
-      await toggle(id, next);
-    } catch (e) {
-      toast(tx('settings.modules.switchFailed', { reason: String(e).replace(/^Error:\s*/, '') }), 'fail');
-    } finally {
-      setBusyId(null);
-    }
-  }
 
   return (
     <div className="flex flex-col gap-10">
@@ -216,36 +191,13 @@ export function Access() {
       <RelaySection onRelayChanged={() => setRelayVersion((n) => n + 1)} />
       <TokensSection cx={cx} />
 
-      {listeners.length > 0 && (
-          <Card hue={6} className="flex flex-col gap-4">
-            <SectionTitle hint={cx('settings.access.intakePortsHint')}>
-              {tx('settings.sectionIntakePorts')}
-            </SectionTitle>
-            {listeners.map((m) => {
-              const switchable = m.verdict === 'shipped' && m.switch !== 'none';
-              return (
-                <div key={m.id} className="flex items-baseline gap-3">
-                  <span className="flex items-center text-sm text-carbon-text">
-                    {label(tx, 'settings.module.', m.id)}
-                    {m.reason && <InfoBubble tip={m.reason} />}
-                  </span>
-                  <span className="flex-1" />
-                  <span className="text-[11px] text-carbon-textMuted" dir="ltr">
-                    {m.detail || tx(m.enabled ? 'settings.modules.on' : 'settings.modules.off')}
-                  </span>
-                  {switchable && (
-                    <NeutralSwitch
-                      on={m.enabled}
-                      disabled={busyId === m.id}
-                      name={label(tx, 'settings.module.', m.id)}
-                      onChange={(next) => void onToggle(m.id, next)}
-                    />
-                  )}
-                </div>
-              );
-            })}
-          </Card>
-      )}
+      {/* "Ports und Listener" is gone with the module that was the only thing
+          in it: Click'n'Load moved to the General tab's Linkeingang card
+          (jdp, 2026-09-07: "den Toggle nicht in einen anderen Tab
+          verschieben?"). Nothing else on this page is a module row, so the
+          card and the whole toggle path that fed it went with it rather than
+          staying as an empty frame waiting for a listener nobody has
+          proposed. */}
     </div>
   );
 }
@@ -756,37 +708,38 @@ function RemoteAccessCard({
               <span className="text-xs font-semibold text-carbon-textSub">
                 {t('settings.access.phrase.yourPhrase')}
               </span>
-              <div className="flex items-start gap-2">
-                <code
-                  className="glim-num min-w-0 flex-1 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2 text-xs leading-relaxed text-carbon-text"
-                  dir="ltr"
-                >
-                  {phrase}
-                </code>
-                <IconBadge
-                  hue={1}
-                  icon={phraseCopied ? <IconCheck width={14} height={14} /> : <IconClipboard width={14} height={14} />}
-                  title={phraseCopied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
-                  aria-label={phraseCopied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
-                  onClick={async () => {
-                    if (await copyToClipboard(phrase)) {
-                      setPhraseCopied(true);
-                      setTimeout(() => setPhraseCopied(false), 1800);
-                    }
-                  }}
-                />
-              </div>
-              <p className="text-[11px] text-carbon-textMuted">{t('settings.access.phrase.pasteHint')}</p>
-              {/* The QR is for the case the words are worst at: typing twelve
-                  of them into a phone. Same component the pairing code uses,
-                  and it is absent rather than broken when the server could
-                  not encode one. */}
-              {phraseQr && (
-                <div className="flex flex-col items-center gap-1.5 pt-1">
-                  <QRCode matrix={phraseQr} label={phrase} size={144} />
-                  <span className="text-[11px] text-carbon-textMuted">{t('settings.access.phrase.qrHint')}</span>
+              {/* The QR on the left, the words to its right (jdp, 2026-09-07:
+                  "sol der QR code linksbündig unter 'Deine Verbindungsphrase'
+                  angezeigt werden. das feld mit der Phrase soll rechts des QR
+                  Codes sein und der text der phrase soll viel größer sein").
+                  It used to be words on top and a CENTRED code underneath, so
+                  the two halves of one thing sat on different axes and the
+                  code was the only centred element on the page.
+
+                  The code is absent rather than broken when the server could
+                  not encode one, and the row then collapses to just the words. */}
+              <div className="flex flex-col items-start gap-3 sm:flex-row">
+                {phraseQr && (
+                  <div className="flex shrink-0 flex-col items-start gap-1.5">
+                    <QRCode matrix={phraseQr} label={phrase} size={144} />
+                    <span className="text-[11px] text-carbon-textMuted">{t('settings.access.phrase.qrHint')}</span>
+                  </div>
+                )}
+                <div className="flex min-w-0 flex-1 flex-col gap-2">
+                  {/* text-base rather than text-xs, and a deliberate exception
+                      to this page's own scale: these twelve words are read OUT
+                      LOUD or typed on a phone, which is the one case where the
+                      size of the type is the feature. */}
+                  <code
+                    className="glim-num min-w-0 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2.5
+                      text-base leading-relaxed text-carbon-text"
+                    dir="ltr"
+                  >
+                    {phrase}
+                  </code>
+                  <p className="text-[11px] text-carbon-textMuted">{t('settings.access.phrase.pasteHint')}</p>
                 </div>
-              )}
+              </div>
               {/* A way back (jdp, 2026-08-27: "Wenn man die Phrase einblendet,
                   kann man sie nicht wieder ausblenden"). Revealing was a
                   one-way door: the only way to get the words off the screen
@@ -796,9 +749,26 @@ function RemoteAccessCard({
                   to put it away before the next person walks past, and having
                   to reload to do that is the kind of friction that ends with
                   people just leaving it up. */}
-              <div className="flex">
+              {/* Copy sits beside Hide as a button of its own (jdp,
+                  2026-09-07: "Der button zum kopieren der Phrase soll als
+                  button neben dem 'Phrase ausbelnden' button sein"). It was an
+                  icon badge glued to the right edge of the words, where it read
+                  as part of the field rather than as something to press. */}
+              <div className="flex flex-wrap gap-2">
                 <Button hue={4} onClick={() => { setPhrase(''); setPhraseQr(null); }}>
                   {t('settings.access.phrase.hide')}
+                </Button>
+                <Button
+                  kind="secondary"
+                  icon={phraseCopied ? <IconCheck width={15} height={15} /> : <IconClipboard width={15} height={15} />}
+                  onClick={async () => {
+                    if (await copyToClipboard(phrase)) {
+                      setPhraseCopied(true);
+                      setTimeout(() => setPhraseCopied(false), 1800);
+                    }
+                  }}
+                >
+                  {phraseCopied ? cx('settings.access.tokens.copied') : cx('settings.access.tokens.copy')}
                 </Button>
               </div>
             </div>

@@ -81,30 +81,49 @@ func (a *App) rewireBackends() {
 		svc  debrid.Service
 		prio int
 	}
+	//
+	// THE NUMBERS. Every debrid service sits ABOVE resolver.Direct's 40, and
+	// that changed on 2026-09-07 after jdp measured his own instance: 54
+	// rapidgator links, 23 in JD's free mode, none through the Debrid-Link
+	// account he had added for rapidgator ("Es lädt rapidgator und youtube
+	// dateien nach wie vor nicht herunter obwohl ich premium accounts habe die
+	// rapidgator abdecken"). Two things stood in the way, and both are about
+	// how specifically a resolver claims a link:
+	//
+	//   - Direct claimed anything whose path ends in something file-shaped,
+	//     knowing nothing about the host. A service that lists the host BY NAME
+	//     knows more, so it now outranks a guess from the URL's shape.
+	//   - JD's per-host boost was a single 41 for both "there is a login for
+	//     this host" and "JD merely has a plugin", and the second case covers
+	//     practically every hoster - see jd.PriorityFor, which now answers
+	//     those two separately.
+	//
+	// Spread by one rather than by ten: the order among them is a preference,
+	// not a statement about capability, and the gaps say nothing.
 	var configured []debridSetup
 	if k := a.routedCredential("alldebrid").APIKey; k != "" {
-		configured = append(configured, debridSetup{debrid.NewAllDebrid(k), 34})
+		configured = append(configured, debridSetup{debrid.NewAllDebrid(k), 49})
 	}
 	if k := a.routedCredential("realdebrid").APIKey; k != "" {
-		configured = append(configured, debridSetup{debrid.NewRealDebrid(k), 33})
+		configured = append(configured, debridSetup{debrid.NewRealDebrid(k), 48})
 	}
 	// Below the two that were here first, and in the order they were added -
 	// the priority number is what settles which service claims a link both of
 	// them support, and there is no reason to demote a working AllDebrid the
 	// day somebody adds a second key.
 	if k := a.routedCredential("debridlink").APIKey; k != "" {
-		configured = append(configured, debridSetup{debrid.NewDebridLink(k), 32})
+		configured = append(configured, debridSetup{debrid.NewDebridLink(k), 47})
 	}
 	if k := a.routedCredential("premiumize").APIKey; k != "" {
-		configured = append(configured, debridSetup{debrid.NewPremiumize(k), 31})
+		configured = append(configured, debridSetup{debrid.NewPremiumize(k), 46})
 	}
 	// Linksnappy is the one service here with no API key: it authenticates with
 	// the website's own login, so it is read as a pair rather than a token.
 	if c := a.routedCredential("linksnappy"); c.Username != "" && c.Password != "" {
-		configured = append(configured, debridSetup{debrid.NewLinksnappy(c.Username, c.Password), 29})
+		configured = append(configured, debridSetup{debrid.NewLinksnappy(c.Username, c.Password), 45})
 	}
 	if k := a.routedCredential("offcloud").APIKey; k != "" {
-		configured = append(configured, debridSetup{debrid.NewOffcloud(k), 28})
+		configured = append(configured, debridSetup{debrid.NewOffcloud(k), 44})
 	}
 	newDebrid := map[string]backend{}
 	for _, d := range configured {
@@ -159,6 +178,18 @@ func (a *App) rewireBackends() {
 		newYtdlp = yb
 		a.Registry.Register(ytdlp.Resolver{ExcludeHosts: ytdlpExclude})
 		log.Printf("yt-dlp backend enabled: %s", ytbin)
+	}
+
+	// The same set, handed to the JD resolver as its own answer to "is this a
+	// file hoster or a media site". JD has a plugin for YouTube too, and its
+	// per-host boost would otherwise take a media link away from yt-dlp exactly
+	// the way TorBox's host list did until 2026-09-06 - see jd.SetFileHosts.
+	// Pushed even when yt-dlp is not running: an empty set means "nothing has
+	// classified anything", and that is the case this must NOT be confused with.
+	if newYtdlp != nil {
+		jd.SetFileHosts(ytdlpExclude)
+	} else {
+		jd.SetFileHosts(nil)
 	}
 
 	// Optional TorBox debrid backend: when a key is present, supported hoster
@@ -722,10 +753,16 @@ type TrafficState struct {
 	Unlimited bool  `json:"unlimited"`
 	// UsedPercent is how much of the allowance is spent, 0-100, for a service
 	// that meters in a fraction instead of in bytes - Premiumize's fair-use
-	// limit_used and Debrid-Link's usagePercent. 0 means "not stated". Read
-	// only after Unlimited and Limit: bytes are the better answer wherever
-	// there are any, and a percentage is what is left when there are none.
+	// limit_used and Debrid-Link's usagePercent. Read only after Unlimited and
+	// Limit (bytes are the better answer wherever there are any) and only
+	// together with PercentKnown: 0 is an ordinary reading, not an absent one.
 	UsedPercent float64 `json:"usedPercent,omitempty"`
+	// PercentKnown says whether UsedPercent came from the service at all. It is
+	// the field the "verbleibendes Volumen bleibt leer" report turned on: a
+	// fresh Debrid-Link account had used 0%, which omitempty then dropped from
+	// the answer entirely, and the column could not tell an intact allowance
+	// from a service that had said nothing.
+	PercentKnown bool `json:"percentKnown,omitempty"`
 	// ResetsAt is RFC3339, or "" when the service does not say when the
 	// traffic figure above resets. Debrid-Link is the one provider that does
 	// (nextResetSeconds), which is what the field was originally reserved for.
@@ -860,7 +897,7 @@ func fmtTrafficLeft(t TrafficState) string {
 	// broken rather than honest). Stated as what is LEFT, because that is what
 	// the column is headed, and rounded down so 99.6% spent reads "0 %" rather
 	// than a reassuring "1 %".
-	if t.UsedPercent > 0 {
+	if t.PercentKnown {
 		left := 100 - t.UsedPercent
 		if left < 0 {
 			left = 0
@@ -1080,11 +1117,12 @@ func healthFromDebrid(info debrid.AccountInfo) AccountHealth {
 	return AccountHealth{
 		Tier: info.Tier,
 		Traffic: TrafficState{
-			Used:        info.Traffic.UsedBytes,
-			Limit:       info.Traffic.LimitBytes,
-			Unlimited:   info.Traffic.Unlimited,
-			UsedPercent: info.Traffic.UsedPercent,
-			ResetsAt:    formatExpiry(info.Traffic.ResetsAt),
+			Used:         info.Traffic.UsedBytes,
+			Limit:        info.Traffic.LimitBytes,
+			Unlimited:    info.Traffic.Unlimited,
+			UsedPercent:  info.Traffic.UsedPercent,
+			PercentKnown: info.Traffic.PercentKnown,
+			ResetsAt:     formatExpiry(info.Traffic.ResetsAt),
 		},
 		Expiry:    formatExpiry(info.ExpiresAt),
 		FetchedAt: time.Now(),

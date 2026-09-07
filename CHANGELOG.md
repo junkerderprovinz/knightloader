@@ -73,9 +73,44 @@ submission and for a fixed download.
   dialogue is the one the selection row's folder badge already opened.
 - **The remaining allowance for services that meter in a percentage** rather
   than in bytes, so the column stops being blank for them.
+- **The priority order is arrangeable.** Drag the services on the Accounts page
+  into the order you want them asked in, or move a row with the two arrows
+  beside it. A hand-made order beats every automatic one, including the boost a
+  confirmed hoster login earns JDownloader; "Automatisch" throws it away again
+  and follows the automatic ladder as it changes. The card also explains what
+  the list IS - every road a link can take, which is why TorBox and yt-dlp are
+  in it together - and it now shows the order the downloader actually walks
+  rather than the registry's own registration-time one.
+- **A "Linkeingang" card** in Settings > General for the two ways a link arrives
+  without being pasted: Click'n'Load, and a clipboard watch that stages every
+  link you copy. Both are also two badges in the collector's own button row.
+  The clipboard watch is offered only where the browser will allow it - over
+  HTTPS or on localhost - and says so where it will not; Ctrl+V into
+  KnightLoader needs neither and works everywhere.
+- **A plan column and a remaining-allowance bar on both account cards.** Free
+  and premium are told apart from what JDownloader answers about the account
+  (`validUntil`, `trafficMax`), which it could always say and was never asked.
 
 ### Changed
 
+- **Names that say what a tab is.** "Sammler" is the "Linksammler", "Zugang" is
+  "Passwort & Fernzugriff", "Hoster-Logins" are "Hoster-Konten", and everything
+  about corners, colours and motion moved out of the General tab into a new
+  "Aussehen" tab of its own, with the About card taking the last place on
+  General.
+- **Debrid services no longer appear in the hoster list.** They have their own
+  card, and appearing in both made the same account look like two.
+- **Click'n'Load is on out of the box, in the container too.** The image set
+  `KL_CNL=0`, which is why the switch read "off" on every container install with
+  no way to tell a choice from a default. It still binds `127.0.0.1` only, and
+  deliberately not the LAN: the protocol carries no authentication at all.
+- **Dragging a folder onto a row of a different priority now moves it there.**
+  It used to do nothing, silently, and only for that case - which on a real
+  list, where folders rarely all share one priority, is indistinguishable from
+  drag-and-drop being broken. The dropped rows take the priority of the row they
+  land on, because a list ordered by priority cannot honour the drop otherwise,
+  and a message says so. The drag preview also stops snapping the aim onto the
+  nearest same-priority row several places away.
 - **The head card is a reading, not a page of prose**: the counters strip, the
   account chip and both explanatory sentences are gone; the speed curve moved to
   the trailing edge and is as tall as the card. Nothing on it is clickable any

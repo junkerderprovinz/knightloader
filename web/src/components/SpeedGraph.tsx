@@ -171,12 +171,17 @@ export function SpeedMeter({ value, points = 30 }: { value: number; points?: num
   const samples = useSpeedSamples(value, points);
   const ceilingRef = useRef(0);
 
-  // The plot fills whatever height the card gives it (jdp, 2026-09-06: "der
-  // downloadgraph soll in der kopfcard ganz rechts sein und auch in der höhe
-  // die ganze kopfcard ausfüllen"), so the viewBox is a coordinate system and
-  // not a size: preserveAspectRatio="none" plus a stretching svg lets one path
-  // describe a box of any height. The width stays a real number because the
-  // card is a row and nothing else would bound it.
+  // The plot fills whatever height AND width the card gives it (jdp,
+  // 2026-09-06: "der downloadgraph soll in der kopfcard ganz rechts sein und
+  // auch in der höhe die ganze kopfcard ausfüllen", and 2026-09-07: "der
+  // downloadgraph in der kopfzeile soll viel breiter sein"), so the viewBox is
+  // a coordinate system and not a size: preserveAspectRatio="none" plus a
+  // stretching svg lets one path describe a box of any shape.
+  //
+  // W is now only the resolution the path is drawn AT, not the width it is
+  // drawn at. The svg itself grows, so a wider card means a longer curve rather
+  // than a stretched one - and 148 stays as the number of horizontal units
+  // because the sample count has not changed.
   const W = 148;
   const H = 40;
   const peak = Math.max(...samples);
@@ -190,19 +195,18 @@ export function SpeedMeter({ value, points = 30 }: { value: number; points?: num
   // hamburger beside it still does - a reading that also acts is a reading
   // somebody triggers while trying to look at it.
   return (
-    <span className="flex h-full items-stretch gap-2 px-1.5">
+    <span className="flex h-full flex-1 items-stretch gap-2 px-1.5">
       {/* Both axes, always, idle included - the case the rule was written from
           is exactly a number that a state can take away. The ordinate is the
           ceiling, because that is what the top edge of this box means. */}
-      <span className="flex shrink-0 flex-col gap-0.5">
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="glim-num self-end text-[10px] leading-none text-carbon-textMuted">
           {fmtSpeed(ceilingRef.current)}
         </span>
         <svg
           viewBox={`0 0 ${W} ${H}`}
           preserveAspectRatio="none"
-          width={W}
-          className="min-h-[26px] flex-1"
+          className="min-h-[26px] w-full flex-1"
           aria-hidden
           focusable="false"
         >

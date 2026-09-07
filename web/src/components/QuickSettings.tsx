@@ -16,6 +16,7 @@ import { type Controls, type ControlsPatch, fetchControls, saveControls } from '
 import { useT } from '../lib/i18n';
 import { useInstanceScope } from '../lib/instance';
 import { useTasks } from '../lib/useTasks';
+import { SpeedLimitField } from './QueueBar';
 import { useToast } from '../lib/toast';
 import { Button, Field, Modal, NumberInput } from './ui';
 import { SpeedMeter } from './SpeedGraph';
@@ -223,24 +224,30 @@ export function ShellStrip() {
       {/* items-stretch, not items-center: the curve is meant to be as tall as
           the card (jdp, 2026-09-06), and a centred row hands it only its own
           content height - measured live at 16px inside a 104px card. */}
-      <span className="flex h-full items-stretch gap-1">
+      {/* flex-1 on the span AND on the meter inside it: this slot sits after
+          the head card's own flexible spacer, so without a grow of its own the
+          curve is only as wide as its content (jdp, 2026-09-07: "der
+          downloadgraph in der kopfzeile soll viel breiter sein"). */}
+      <span className="flex h-full flex-1 items-stretch gap-2">
+        {/* The curve comes FIRST now and takes the width; the two controls sit
+            past it (jdp, same message: "das hamburgermenü und die
+            geschwindigkeitsbegrenzung soll rechts davon sein"). Nothing to
+            press on it - the hamburger beside it is the way into the panel. */}
+        <SpeedMeter value={speed} />
+        {local && <SpeedLimitField />}
         {local && (
           // Always exactly three bars (GlimStone's own rule) - a
           // sliders/equalizer glyph read as "adjust a value", not "open a
           // menu", to anyone who had already seen either convention.
           <Button
             kind="ghost"
-            className="self-center"
+            className="shrink-0 self-center"
             icon={<IconMenu width={16} height={16} />}
             aria-label={t('quick.title')}
             title={t('quick.title')}
             onClick={() => setOpen(true)}
           />
         )}
-        {/* Last in the row and stretched, so it is the card's trailing edge
-            (jdp, 2026-09-06). Nothing to press on it any more - the hamburger
-            beside it is the way into the panel. */}
-        <SpeedMeter value={speed} />
       </span>
 
       {open && <QuickSettings onClose={() => setOpen(false)} />}

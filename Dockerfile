@@ -35,9 +35,21 @@ ENV KL_DATA=/data \
 VOLUME ["/data"]
 EXPOSE 8749
 
-# Click'n'Load binds 127.0.0.1 only, so it is off by default in a container;
-# set KL_CNL to a port and publish it if you want browser integration.
-ENV KL_CNL=0
+# Click'n'Load is ON by default here, as it is in the binary (jdp, 2026-09-07:
+# "Warum ist das CnL Modul standardmäßig deaktiviert? können wir das nicht
+# standardmäßig aktivieren"). The image used to set KL_CNL=0 and that was the
+# whole reason the switch looked off on every container install.
+#
+# It still binds 127.0.0.1 only, which is the part worth being precise about: a
+# browser on ANOTHER machine cannot reach it, because the "Click'n'Load" button
+# on a hoster page posts to localhost by definition. What it does serve is a
+# browser running on the same host as the container (and the bridge, see
+# docs/clicknload.md). For a browser elsewhere the extension is the path, and
+# the Linkeingang card says so.
+#
+# Not bound to 0.0.0.0 to "fix" that: the Click'n'Load protocol carries no
+# authentication of any kind, so a listener on the LAN is an open "add these
+# links to your downloader" endpoint for everyone on the network.
 
 USER knight
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \

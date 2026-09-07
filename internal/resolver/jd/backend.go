@@ -3,6 +3,7 @@ package jd
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 	"sync"
 	"time"
@@ -175,11 +176,28 @@ func (b *Backend) awaitContainerLinks(marker string, timeout time.Duration) ([]r
 		}
 
 		if time.Now().After(deadline) {
-			_ = b.c.RemoveCrawledPackage(pkg)
+			// What is there at the deadline is kept, rather than thrown away
+			// with an error (jdp, 2026-09-07: "Ich habe zwei Test-DLCs. einer
+			// lädt rein und der andere wird abgebrochen nachdem der ladebalken
+			// ewig gelaufen ist"). A crawl that never settles is not the same
+			// as a crawl that found nothing: a container whose links point at a
+			// hoster that answers slowly, or one link of forty that keeps the
+			// count moving, left the other thirty-nine on the floor. Three
+			// minutes of waiting followed by "nothing for you" is the worst of
+			// both.
+			//
+			// pkg == 0 is the genuinely empty case and stays an error: JD never
+			// even created a package, so there is nothing to salvage and the
+			// container really did not open.
 			if pkg == 0 {
 				return nil, fmt.Errorf("jd did not open the container within %s", timeout)
 			}
-			return nil, fmt.Errorf("jd opened the container but produced no links within %s", timeout)
+			if len(links) == 0 {
+				_ = b.c.RemoveCrawledPackage(pkg)
+				return nil, fmt.Errorf("jd opened the container but produced no links within %s", timeout)
+			}
+			log.Printf("jd: container crawl had not settled after %s, keeping the %d link(s) it had by then", timeout, len(links))
+			break
 		}
 	}
 

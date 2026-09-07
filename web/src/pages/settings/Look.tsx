@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Button, Card, ErrorCard, InfoBubble, Modal, SectionTitle, Toggle, ToggleRow } from '../../components/ui';
+import { About } from './Help';
 import { Tabs } from '../../components/Tabs';
 import { openColorPickerPopover } from '../../lib/colorPicker';
 import { LanguagePicker } from '../../components/LanguagePicker';
@@ -39,7 +40,9 @@ import {
   rainbowFromSettings,
   readCachedMotionIntensity,
 } from '../../lib/appearance';
-import { useDraft } from './context';
+import { useDraft, useFeatures } from './context';
+import { WATCH_SUPPORTED } from '../../lib/clipboardWatch';
+import { useClipboardWatch } from '../../lib/useClipboardWatch';
 
 /**
  * accentSlot is which of the eight preset positions a colour belongs to.
@@ -210,7 +213,13 @@ function RingSwatch({
       aria-label={label}
       aria-pressed={selected}
       onClick={(e) => (selected && onEdit ? onEdit(e.currentTarget) : onPick())}
-      className={`h-6 w-6 shrink-0 cursor-pointer rounded-[var(--radius-pill)] transition-transform hover:scale-110 ${
+      // h-7 w-7, the same square the palette row below uses (jdp, 2026-09-07:
+      // "die farbfelder in der Farben-card sind nicht gleich groß. die der
+      // akzentfarbe sind zu klein"). They were 24px against the palette's 28px,
+      // which is small enough to look like a mistake and large enough to see -
+      // two rows of circles in one card have to be one size or they read as two
+      // different kinds of thing.
+      className={`h-7 w-7 shrink-0 cursor-pointer rounded-[var(--radius-pill)] transition-transform hover:scale-110 ${
         selected ? 'shadow-[0_0_0_2px_var(--carbon-surface),0_0_0_4px_var(--carbon-text)]' : ''
       }`}
       style={{ backgroundColor: color }}
@@ -218,7 +227,23 @@ function RingSwatch({
   );
 }
 
-export function Look() {
+/**
+ * Which half of this page is being shown.
+ *
+ * The theming cards moved to a tab of their own (jdp, 2026-09-07: "alle theming
+ * sachen schieben wir in einen neuen aussehen tab. sonst wir der allgemein tab
+ * zu unübersichtlich"), and this component is what draws both. It is ONE
+ * component rather than two files because the five appearance cards and the
+ * general ones read the same draft, the same accent-slot memory, the same
+ * palette and the same save error - splitting the markup would have meant
+ * hoisting all of that into a third module both imported, which is a much
+ * larger change than the one asked for.
+ */
+type LookSection = 'general' | 'appearance';
+
+export function Look({ section = 'general' }: { section?: LookSection } = {}) {
+  const appearance = section === 'appearance';
+  const general = section === 'general';
   const { t } = useT();
   const { cfg, patch, patchNow } = useDraft();
   const { toast } = useToast();
@@ -409,6 +434,7 @@ export function Look() {
           Bombvault-Testcontainer!!!", then, when the WRONG container had
           been the reference all along: "Nein das ist falsch! Hier ist der
           Testcontainer erreichbar..."). */}
+      {appearance && (
       <Card hue={0} className="flex flex-col gap-3">
         <SectionTitle hint={t('settings.shapeHint')}>
           {t('settings.shape')}
@@ -427,6 +453,7 @@ export function Look() {
           items={SHAPES.map((s) => ({ id: s, label: t(`settings.shape.${s}` as never) }))}
         />
       </Card>
+      )}
 
       {/* How much of a navigation entry is drawn - the sidebar and the
           settings rail together, from one control (jdp, 2026-08-27: "Man soll
@@ -445,6 +472,7 @@ export function Look() {
           pointer instead of on the next navigation - the sidebar renders
           outside this page's provider entirely and cannot see the draft at
           all. See lib/navLabels.ts. */}
+      {appearance && (
       <Card hue={9} className="flex flex-col gap-3">
         <SectionTitle hint={t('settings.navLabels.hint')}>
           {t('settings.navLabels.title')}
@@ -467,12 +495,14 @@ export function Look() {
           ]}
         />
       </Card>
+      )}
 
       {/* Motion intensity - the settings-UI half of a separate parallel piece
           of work (the keyframes/data-motion mechanism lives in index.css and
           lib/appearance.ts). hue=8 reuses the slot the Backup/Restore merge
           below just freed, rather than renumbering every other card's own
           fixed position in the sequence for one new row. */}
+      {appearance && (
       <Card hue={8} className="flex flex-col gap-3">
         <SectionTitle hint={t('settings.motion.hint')}>
           {t('settings.motion.title')}
@@ -495,7 +525,9 @@ export function Look() {
           ]}
         />
       </Card>
+      )}
 
+      {appearance && (
       <Card hue={1} className="flex flex-col gap-4">
         <SectionTitle>{t('settings.colours')}</SectionTitle>
 
@@ -584,7 +616,9 @@ export function Look() {
                 persistSlots(() => ({ customs: {} }));
                 patch({ accent: '' });
               }}
-              className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-[var(--radius-pill)] bg-carbon-surface2 text-carbon-textSub transition-colors hover:text-carbon-text"
+              // Same square as the circles it sits beside, and as the
+              // palette's own reset two rows down.
+              className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-[var(--radius-pill)] bg-carbon-surface2 text-carbon-textSub transition-colors hover:text-carbon-text"
             >
               <IconRetry width={13} height={13} />
             </button>
@@ -701,12 +735,18 @@ export function Look() {
 
         {saveError && <p className="text-xs text-statusFail">{t('settings.look.saveFailed', { error: saveError })}</p>}
       </Card>
+      )}
 
+      {general && <LinkIntakeCard />}
+
+      {general && (
       <Card hue={2} className="flex flex-col gap-3">
         <SectionTitle>{t('notifications.quiet')}</SectionTitle>
         <QuietModeToggle />
       </Card>
+      )}
 
+      {general && (
       <Card hue={3} className="flex flex-col gap-3">
         <SectionTitle>{t('lang.label')}</SectionTitle>
         {/* standalone: OnboardingWizard.tsx mounts a second, simultaneous
@@ -719,7 +759,9 @@ export function Look() {
           className="glim-well flex w-fit min-w-[12rem] items-center gap-2.5 px-3 py-2 text-sm text-carbon-text"
         />
       </Card>
+      )}
 
+      {appearance && (
       <Card hue={4} className="flex flex-col gap-3">
         <SectionTitle>{t('settings.theme')}</SectionTitle>
         <Tabs
@@ -734,11 +776,109 @@ export function Look() {
           ]}
         />
       </Card>
+      )}
 
-      <MutedDialogsCard />
-      <UpdateCard />
-      <SystemCards />
+      {general && <MutedDialogsCard />}
+      {general && <UpdateCard />}
+      {general && <SystemCards />}
+      {/* Last on the General tab (jdp, 2026-09-07: "die Über-card soll in den
+          allgemein-tab ganz nach unten"). It is the one card nobody comes here
+          FOR, and the one everybody eventually looks for: a version and a way
+          to get in touch belong at the bottom of the first tab, not on a help
+          page somebody has to think of. */}
+      {general && <About hue={10} />}
     </div>
+  );
+}
+
+/**
+ * Linkeingang: the two ways a link can reach the collector WITHOUT anybody
+ * typing it here (jdp, 2026-09-07: "Neue Karte Linkeingang im Allgemein-Tab").
+ *
+ * On the General tab rather than under Zugang, where the Click'n'Load switch
+ * used to live filed among the listener ports. That grouping was about which
+ * doors this instance answers on; this one is about how links get in, which is
+ * the question somebody actually opens the settings with.
+ *
+ * The two rows are deliberately unlike each other, and the card says so:
+ *
+ *  - Click'n'Load is a real listener in the server process, switched over the
+ *    API, and it is the same state Modules.tsx's own row shows. It is on out
+ *    of the box now, in the binary and in the container alike.
+ *  - The clipboard watch runs in THIS browser tab and nowhere else, so it is a
+ *    remembered client field, and it is simply not offered where the browser
+ *    cannot read the clipboard at all - which is every plain-HTTP LAN address,
+ *    the ordinary way this app is reached. Rather than a switch that would
+ *    stand at "on" over something that never runs, the row explains itself and
+ *    points at the Ctrl+V that does work everywhere.
+ */
+function LinkIntakeCard() {
+  const { t } = useT();
+  const { features, toggle } = useFeatures();
+  const { toast } = useToast();
+  const [watch, setWatch] = useClipboardWatch();
+  const [busy, setBusy] = useState(false);
+
+  const cnl = features.modules.find((m) => m.id === 'cnl');
+  const cnlSwitchable = !!cnl && cnl.verdict === 'shipped' && cnl.switch !== 'none';
+
+  async function onCnl(next: boolean) {
+    setBusy(true);
+    try {
+      await toggle('cnl', next);
+    } catch (e) {
+      toast(t('settings.modules.switchFailed', { reason: String(e).replace(/^Error:\s*/, '') }), 'fail');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Card hue={11} className="flex flex-col gap-4">
+      <SectionTitle hint={t('settings.linkIntakeHint')}>{t('settings.sectionLinkIntake')}</SectionTitle>
+
+      {cnl && (
+        <div className="flex flex-col gap-1">
+          <ToggleRow
+            hue={0}
+            label={t('settings.module.cnl')}
+            hint={cnl.reason || undefined}
+            checked={cnl.enabled}
+            disabled={!cnlSwitchable || busy}
+            onChange={(next) => void onCnl(next)}
+          />
+          {/* The live reading, not a repeat of the switch: "listening on
+              127.0.0.1:9666" and "switched off" are different sentences from
+              "on" and "off", and the difference is the whole point on a box
+              where JDownloader may already hold the port. */}
+          {cnl.detail && (
+            <span className="text-[11px] text-carbon-textMuted" dir="ltr">
+              {cnl.detail}
+            </span>
+          )}
+        </div>
+      )}
+
+      {WATCH_SUPPORTED ? (
+        <ToggleRow
+          hue={1}
+          label={t('intake.clipboardWatch')}
+          hint={t('intake.clipboardWatchHint')}
+          checked={watch}
+          onChange={setWatch}
+        />
+      ) : (
+        <div className="flex flex-col gap-1">
+          <span className="flex items-center text-sm text-carbon-text">
+            {t('intake.clipboardWatch')}
+            <InfoBubble tip={t('intake.clipboardWatchHint')} />
+          </span>
+          <span className="text-[11px] text-carbon-textMuted">
+            {t('intake.clipboardWatchUnavailable')}
+          </span>
+        </div>
+      )}
+    </Card>
   );
 }
 

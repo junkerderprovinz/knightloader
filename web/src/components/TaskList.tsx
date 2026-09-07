@@ -32,6 +32,11 @@ import {
   setPackage,
   setTaskOptions,
   reorderTasks,
+  // Aliased: TaskProperties further down owns local useState setters called
+  // setPriority/setForced, and a module-scope import of the same two names
+  // would read as those inside it.
+  setPriority as setTaskPriority,
+  setForced as setTaskForced,
 } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { useToast } from '../lib/toast';
@@ -816,8 +821,15 @@ function PackageGroup({
         {/* The gear badge for a package whose own "Variante" rows share a host
             (variantKindOf is '' for anything not yt-dlp-routed), floating over
             the trailing edge like a link row's own strip rather than owning a
-            track: there is no actions track any more. */}
-        {ytdlpHost && (
+            track: there is no actions track any more.
+
+            Collector only (jdp, 2026-09-07: "im downloadtab soll dieser
+            einstellungsbutten nicht erscheinen. das soll nur im sammlertab
+            sein"). What it opens is which variants to keep and at what quality,
+            and that is a decision about a link BEFORE it is fetched: once the
+            rows are in the queue the choice has already been made, and offering
+            it there is offering to change something that is on its way. */}
+        {ytdlpHost && ctx.profile === 'collector' && (
           <div
             className="absolute inset-y-px end-2 z-10 flex items-center rounded-[var(--radius-control)]
               bg-carbon-surface px-1 shadow-[var(--elevation)]"
@@ -941,7 +953,13 @@ function Header({
         e.preventDefault();
         onMenu({ x: e.clientX, y: e.clientY });
       }}
-      className="relative grid items-center border-b border-carbon-border/60 px-3 py-1 select-none"
+      // group/header: hovering anywhere on the header lights up EVERY column
+      // boundary at once (jdp, 2026-09-07: "beim mouseover auf die kopfleiste
+      // sollen die spalten grenzen aufleuchten damit man sie besser sieht und
+      // nicht suchen muss"). Per-handle hover would not do: the handle is 8px
+      // wide and invisible, so you cannot hover what you are still looking for.
+      // The whole row is the target, and the answer is every line at once.
+      className="group/header relative grid items-center border-b border-carbon-border/60 px-3 py-1 select-none"
     >
       {layout.visible.map((col) => {
         const sorted = sort?.id === col.id ? sort.dir : null;
@@ -994,7 +1012,18 @@ function Header({
               onPointerCancel={(e) => onResize(col.id, 'end', e)}
               onDoubleClick={() => onResizeReset(col.id)}
               className="absolute inset-y-0 end-0 z-10 w-2 cursor-col-resize touch-none"
-            />
+            >
+              {/* The visible line, drawn inside the 8px grab area rather than
+                  as a border on the cell: a border would sit at the edge of the
+                  COLUMN, and the thing to aim at is the handle. Transparent
+                  until the header is hovered, the accent once it is, and always
+                  ignoring the pointer so it never eats the drag it advertises. */}
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-y-1 end-[3px] w-px bg-transparent
+                  transition-colors group-hover/header:bg-carbon-border"
+              />
+            </span>
           </div>
         );
       })}
@@ -1609,6 +1638,63 @@ export function TaskListCard({
     return without;
   }
 
+  // The same splice, but for a target in a DIFFERENT band - the case
+  // reorderedBand refuses and the one that made folder drag look dead on a
+  // real list (jdp, 2026-09-07: "Die Ordner im Downloadstab kann ich immer
+  // noch nicht per drag and drop verschieben", after two rounds of fixes
+  // that each worked in a list where every row happened to share a band).
+  //
+  // Measured on his own instance: five folders, two at priority 3 and three
+  // at priority 0. Every drag WITHIN either group already worked; every drag
+  // between them did nothing at all, with no message - which is the whole of
+  // what "still cannot" looks like from a chair.
+  //
+  // The move it does is the only one that can honour where the pointer let
+  // go: the list is ordered by priority before anything else, so a folder
+  // cannot come to rest among rows of another priority while keeping its own.
+  // It therefore takes the target's priority (and forced flag) and is then
+  // spliced into that band at the drop point - the same two-step
+  // move-then-reorder the cross-package link drop above already does, for the
+  // same reason. dropRow says so with a toast: a priority quietly changing
+  // under a drag would be worse than the drag doing nothing.
+  function crossBandOrder(dragged: RowDragKey, target: RowDragKey, after: boolean): string[] | null {
+    const band = unitBand(target);
+    if (!band || band === unitBand(dragged)) return null;
+    const movedIds = unitIds(dragged);
+    const targetIds = unitIds(target);
+    if (movedIds.length === 0 || targetIds.length === 0) return null;
+    if (movedIds.some((id) => targetIds.includes(id))) return null;
+
+    const order = (bandOrder.get(band) ?? []).filter((id) => !movedIds.includes(id));
+    const anchor = after ? targetIds[targetIds.length - 1] : targetIds[0];
+    const at = order.indexOf(anchor);
+    if (at < 0) return null;
+    order.splice(after ? at + 1 : at, 0, ...movedIds);
+    return order;
+  }
+
+  /** The cross-band drop itself: re-band the dragged rows, then place them. */
+  function dropAcrossBands(dragged: RowDragKey, target: RowDragKey, after: boolean): boolean {
+    const order = crossBandOrder(dragged, target, after);
+    if (!order) return false;
+    const movedIds = unitIds(dragged);
+    const src = taskById.get(movedIds[0]);
+    const dst = taskById.get(unitIds(target)[0]);
+    if (!src || !dst) return false;
+
+    void (async () => {
+      try {
+        if (src.priority !== dst.priority) await setTaskPriority(movedIds, dst.priority, base);
+        if (!!src.forced !== !!dst.forced) await setTaskForced(movedIds, !!dst.forced, base);
+        await reorderTasks(order, base);
+        toast(t('list.dropChangedPriority', { n: movedIds.length }), 'info');
+      } catch (err) {
+        toast(t('list.failed', { error: err instanceof Error ? err.message : String(err) }), 'fail');
+      }
+    })();
+    return true;
+  }
+
   // The one handler behind every row's and every package header's own
   // onDrop — see dropOnTask/dropOnPackage below, which only add the
   // rect-vs-pointer "before or after" read and then call this.
@@ -1651,7 +1737,14 @@ export function TaskListCard({
     // the reorder endpoint's own contract is that this backend does not
     // support a list that crosses a band.
     const without = reorderedBand(dragged, target, after);
-    if (!without) return;
+    if (!without) {
+      // Not a dead end any more: a drop aimed at another band moves the rows
+      // into it - see dropAcrossBands. Only a drop on the unit itself, or on
+      // a package whose own rows do not share one band, still ends here doing
+      // nothing, and those two are genuinely not moves.
+      dropAcrossBands(dragged, target, after);
+      return;
+    }
     // There is still no local override of the task order to unwind if this
     // fails - the next poll/WS tick is what settles rows back where the
     // server actually put them - but a refusal has to SAY something. This
@@ -1743,7 +1836,14 @@ export function TaskListCard({
       // the folder appeared to land there and then turned up somewhere else.
       // A link dragged on its own still aims at anything, unchanged.
       if (rowDrag.kind === 'package' && slot.unit.kind !== 'package') continue;
-      if (unitBand(slot.unit) !== band) continue;
+      // A row in ANOTHER band is a legal target now (dropAcrossBands), so it
+      // is offered as one. It used to be skipped here, and that is what made
+      // a cross-band folder drag look like it "went somewhere else": the
+      // nearest SAME-band row won by default, so the drop committed against a
+      // unit nobody had aimed at, several rows away from the pointer. What is
+      // still skipped is a row in no band at all - a finished or failed
+      // download the queue cannot be told to move.
+      if (unitBand(slot.unit) === null) continue;
       const dist = y < slot.top ? slot.top - y : y > slot.bottom ? y - slot.bottom : 0;
       if (dist < bestDist) {
         bestDist = dist;

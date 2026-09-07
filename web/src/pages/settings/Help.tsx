@@ -184,7 +184,12 @@ export function Help() {
         <p>{t('settings.help.advanced.body')}</p>
       </Topic>
 
-      <About hue={11} />
+      {/* The Über card is not here any more (jdp, 2026-09-07: "die Über-card
+          soll in den allgemein-tab ganz nach unten"). It is rendered at the
+          bottom of the General tab, which is the first thing in the rail and
+          the place somebody looks for a version number. Exported from this file
+          rather than moved, because the two buttons and the mail address it
+          carries belong with the help text that explains them. */}
     </div>
   );
 }
@@ -240,7 +245,7 @@ const GLIMSTONE_VERSION = '1.6.0';
  * and one more entry in the settings rail for two sentences and two links would
  * be a tile nobody visits on purpose. hue 11 continues this page's own run.
  */
-function About({ hue }: { hue: number }) {
+export function About({ hue }: { hue: number }) {
   const { t } = useT();
   const [version, setVersion] = useState('');
   useEffect(() => {

@@ -207,13 +207,20 @@ function ToastBubble({ item, onDismiss }: { item: ToastMessage; onDismiss: (id: 
       // that property is inherited. Without restoring it here, the dismiss
       // button underneath is unclickable no matter what its own styling
       // says - the second defect this file fixes.
-      className="glim-toast pointer-events-auto flex items-center gap-2.5 rounded-[var(--radius-control)] bg-carbon-surface px-4 py-2.5 text-sm text-carbon-text shadow-[var(--elevation)]"
+      // surface2 with a ring rather than the flat surface: a bubble the same
+      // colour as the card behind it is a bubble somebody misses (jdp,
+      // 2026-09-07: "sich besser vom hintergund abheben"). The ring is what
+      // carries it on a light theme, where a shadow alone barely reads.
+      className="glim-toast pointer-events-auto flex items-center gap-2.5 rounded-[var(--radius-control)]
+        bg-carbon-surface2 px-4 py-2.5 text-sm text-carbon-text shadow-[var(--elevation)] ring-1 ring-carbon-border"
     >
       <span className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${dot[item.tone]}`} />
       <span className={toneClass[item.tone]}>{item.message}</span>
       <span className="flex-1" />
+      {/* secondary, not ghost: on a filled bubble a fill-less button reads as
+          decoration rather than as the way out of it. */}
       <Button
-        kind="ghost"
+        kind="secondary"
         icon={<IconClose width={14} height={14} />}
         aria-label={t('common.dismiss')}
         onClick={() => onDismiss(item.id)}

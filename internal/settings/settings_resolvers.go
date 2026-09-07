@@ -28,5 +28,36 @@ func sanitizeResolvers(n Settings) Settings {
 		presets[host] = p.Sanitize()
 	}
 	n.YtdlpPresets = presets
+	n.ResolverOrder = cleanResolverOrder(n.ResolverOrder)
 	return n
+}
+
+// cleanResolverOrder keeps ResolverOrder a well-formed sequence: trimmed,
+// lower-cased, no blank, no repeat, and nil rather than an empty slice so an
+// empty order reads the same on disk however it got there.
+//
+// A repeat is the one thing that genuinely breaks the order rather than merely
+// looking untidy: dispatch walks it as "try these in turn", and a duplicate id
+// would hand the same resolver two different ranks, so which one a stable sort
+// used would depend on where the duplicate sat. Unknown ids are left alone on
+// purpose - see the field's own comment in settings.go for why this package
+// has no business deciding which resolver ids exist.
+func cleanResolverOrder(in []string) []string {
+	if len(in) == 0 {
+		return nil
+	}
+	seen := make(map[string]bool, len(in))
+	out := make([]string, 0, len(in))
+	for _, id := range in {
+		id = strings.TrimSpace(strings.ToLower(id))
+		if id == "" || seen[id] {
+			continue
+		}
+		seen[id] = true
+		out = append(out, id)
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
 }

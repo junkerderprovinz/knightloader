@@ -320,6 +320,29 @@ type Settings struct {
 	// the same pairing RainbowPalette already uses.
 	CaptchaSolverOrder []string `json:"captchaSolverOrder"`
 
+	// ResolverOrder is the hand-arranged order the download services are
+	// asked in, most-preferred first, by resolver id ("torbox",
+	// "alldebrid", "jd", "ytdlp", "direct", ...). Empty - the default -
+	// means the automatic order, which is what every install has until
+	// somebody drags the Prioritätsreihenfolge card into a different one
+	// (jdp, 2026-09-07).
+	//
+	// Unlike CaptchaSolverOrder above there is no id whitelist here, and
+	// deliberately so: the set of resolvers is not fixed at compile time
+	// the way the two captcha solvers are - it grows with every debrid
+	// service in the catalogue, and a service is only registered at all
+	// once a key for it is stored. A whitelist in this package would
+	// therefore have to be either a second copy of the catalogue or a
+	// dependency on the resolver registry, and both would turn "you
+	// removed the key for a service you had ordered" into a silent
+	// rewrite of the order you arranged. An id naming nothing is inert:
+	// dispatch only ever ranks resolvers that exist.
+	//
+	// No omitempty for the same reason CaptchaSolverOrder has none - see
+	// its comment: the frontend needs the field to be present as null
+	// rather than absent.
+	ResolverOrder []string `json:"resolverOrder"`
+
 	// Ytdlp is the yt-dlp backend's own configuration - format/quality
 	// selection, subtitles, the output filename template, whether a
 	// playlist URL fetches one video or the whole list. See
