@@ -292,6 +292,14 @@ type App struct {
 	// evaluated against, so a stop made at 03:00 is still in force when a window
 	// ends at 06:00 instead of being lifted by it.
 	manualHalt bool
+	// budget is the shared-out speed limit - see app_budget.go for why one
+	// limit had to become three numbers rather than three copies.
+	budget budget
+	// limitInForce is the limit the timetable last put in force, which is not
+	// always the one in settings: a window carries its own. Negative means no
+	// window has spoken yet and settings is the answer - not zero, because zero
+	// is a real value here and means "unlimited".
+	limitInForce int64
 	// scheduleBaseHalt is the manualHalt scheduleBase last handed to the
 	// schedule runner. It exists only so applySchedule can tell an answer that
 	// was computed before a hard stop from one that was computed after it - see
@@ -393,6 +401,7 @@ func New(dataDir string) (*App, error) {
 	// Between the two the timetable has not been consulted yet, and running
 	// unthrottled in that window would be a speed limit that does not apply until
 	// the first boundary.
+	a.limitInForce = -1
 	a.Throttle.Set(cfg.Get().SpeedLimit)
 
 	s := cfg.Get()
@@ -583,6 +592,11 @@ func New(dataDir string) (*App, error) {
 	// defer a.wg.Done() and spawn's wrapper would be a second one.
 	if a.track() {
 		go a.upkeep()
+	}
+	// Same registration, same reasoning: carries its own defer a.wg.Done(), so
+	// it is track plus a bare go rather than a.spawn.
+	if a.track() {
+		go a.budgetLoop()
 	}
 	// Same ordering reason as sched.Start/idleAction.Start just above:
 	// a.tasks is already whole by this point, so there is no boot-time

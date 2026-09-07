@@ -158,7 +158,11 @@ func (a *App) rewireBackends() {
 		// itself because its bytes never pass through our loopback proxy, and the
 		// limiter is what the timetable writes: reading the setting directly would
 		// leave yt-dlp running at the daytime speed right through a nightly window.
-		yb.RateLimit = a.Throttle.Limit
+		// The SHARE, not the whole limit (app_budget.go). This used to read the
+		// engine's own throttle, which is a different meter: with the engine and
+		// yt-dlp both working, each honoured the full limit and the two together
+		// went at twice it.
+		yb.RateLimit = a.budget.ytdlpLimit
 		yb.Dir = a.taskDir
 		// Read live rather than captured once: a settings save between two
 		// downloads - or between a pause and its resume - must take effect on

@@ -51,6 +51,13 @@ submission and for a fixed download.
   the rail with a highlight running along its edge, and letting go swings it,
   with a wave that passes down the entries below. A short click still goes home.
   It follows the motion setting and falls back to a glint under reduced motion.
+- **One speed limit instead of three.** The configured value used to be handed
+  whole to each of the three things that move bytes, so somebody who set 10 MB/s
+  and had the engine, JDownloader and yt-dlp all working got 30. It is now split
+  between the ones that are actually downloading, by what each is pulling, and
+  re-adjusted every few seconds; a meter using less than its share hands the rest
+  to the ones that are saturated. A single working backend still gets the whole
+  limit, and "unlimited" stays unlimited.
 - **A queued download says why it is not running.** The dispatcher always knew:
   the slot count is full, this host is at its own ceiling, the account behind
   the only backend that claims the link is benched, the queue is stopped. It
