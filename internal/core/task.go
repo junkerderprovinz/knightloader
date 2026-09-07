@@ -145,6 +145,19 @@ const (
 	// window. Every queued task carries it at once, which is the point: a list
 	// where nothing moves should say so on the rows, not only in the head card.
 	WaitingHalted Waiting = "halted"
+	// WaitingDisk is the destination volume not having the room: either it is
+	// under the configured floor, or this particular file's remaining bytes
+	// plus the reserve would not fit.
+	//
+	// ONE VALUE FOR BOTH, because the fix is the same sentence either way -
+	// free some space, or lower the threshold - and a row that said "this file
+	// does not fit" as opposed to "the disk is low" would be inviting a
+	// distinction nobody can act on differently. It is a Waiting and not a
+	// core.ReasonDiskFull: nothing has failed, no bytes were written, and the
+	// download starts on its own the moment the room is there. That difference
+	// is the whole point of checking before the transfer rather than after the
+	// write that ran out.
+	WaitingDisk Waiting = "disk"
 )
 
 // Origin is the intake path a link arrived by — the paste box, the watch folder,
@@ -542,6 +555,36 @@ type Task struct {
 	// on every requeue, and "this is a free-mode download" is neither a failure
 	// nor something that stops being true when the task is retried.
 	Mode DownloadMode `json:"mode,omitempty"`
+	// ResolverPin nails this one task to a backend. Empty - the ordinary case -
+	// leaves the choice to the dispatcher's own ranking.
+	//
+	// IT IS NOT Resolver ABOVE, and the two must never be merged. Resolver is
+	// where the task is right NOW, written by the dispatcher on every pass and
+	// rewritten by every fallback; this is what the PERSON said, and nothing in
+	// the app is allowed to change it. Kept in one field, a fallback would
+	// silently rewrite the instruction it was supposed to be obeying.
+	//
+	// It exists because a link stuck on one backend had exactly three ways out:
+	// delete it, switch the whole instance over and paste it again, or leave it
+	// failing. A per-task answer to "no, fetch this one through TorBox" is what
+	// that situation was missing.
+	//
+	// It may name a SERVICE ("alldebrid") or one account slot of it
+	// ("alldebrid#work"), matching what settings.ResolverOrder accepts and for
+	// the same reason - a person naming a service means all of its keys, and a
+	// person naming a slot is being deliberately more specific.
+	//
+	// A PIN DOES NOT OUTRANK ACCOUNT HEALTH. A backend whose account is benched
+	// stays benched, and a task pinned to it fails where it can be seen instead
+	// of quietly going out through a different one. See app.pinFailureLocked
+	// for that sentence and for why a silent diversion would make the pin mean
+	// nothing at all.
+	//
+	// NOT PERSISTED YET: internal/store has no column for it, so a pin is lost
+	// on restart and the task goes back to the ranked chain. The four lines
+	// that close that gap are named in this change's own handover note; they
+	// live in a file this change does not own.
+	ResolverPin string `json:"resolverPin,omitempty"`
 	// Origin is the intake path this link arrived by.
 	Origin Origin `json:"origin,omitempty"`
 	// ChangedAt is when this task last changed, which is what JD's "Geändert am"

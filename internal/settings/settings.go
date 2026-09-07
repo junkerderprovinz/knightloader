@@ -149,6 +149,44 @@ type Settings struct {
 	// DefaultStallRestarts rather than "unlimited" - see that constant for why
 	// an uncapped restart loop is the worse failure of the two.
 	StallMaxRestarts int `json:"stallMaxRestarts"`
+
+	// DiskReserve, DiskLowSpace and DiskCriticalSpace are the destination
+	// volume's three numbers, all in BYTES. See settings_diskspace.go for the
+	// defaults, the clamps and the one invariant between them; what each one
+	// MEANS is here, because that is what a reader of this struct is after.
+	//
+	// They exist because nothing in this build looked at free space until they
+	// did. core.ReasonDiskFull is classified from a write that has already
+	// failed, which is to say from the moment it is too late: the bytes are
+	// spent, the partial file is on the disk that had no room for it, and every
+	// other transfer aimed at the same volume is still running.
+	//
+	// DiskReserve is headroom kept free BEYOND what a download still needs,
+	// checked against that download's own remaining bytes. It is the only one
+	// of the three that is on by default, and it is on because it cannot
+	// surprise anybody: it refuses exactly the downloads that provably would
+	// not have fitted, which is the case that ends in ReasonDiskFull anyway.
+	DiskReserve int64 `json:"diskReserve"`
+	// DiskLowSpace is the floor under which NO new download starts, whatever
+	// its size and whether or not its size is even known. Zero is off.
+	//
+	// Off by default, unlike the reserve above, because a number of bytes is
+	// meaningless without knowing the volume: a gigabyte is nothing on a
+	// sixteen-terabyte array and a third of a memory card. Inventing one on
+	// somebody's behalf would either do nothing or stop their queue after an
+	// update they did not read, and this app does not change what an install
+	// does because a default said so.
+	DiskLowSpace int64 `json:"diskLowSpace"`
+	// DiskCriticalSpace is the floor under which everything already RUNNING is
+	// stopped and put back in the wait queue. Zero is off.
+	//
+	// It is a second threshold rather than a second reading of the first
+	// because the two acts are not the same size. Declining to start costs a
+	// download its place in the queue for a while; stopping one throws away
+	// whatever a non-resumable transfer had fetched. So the queue is allowed to
+	// keep filling a disk down to the low mark, and only a volume that is
+	// genuinely about to run out gets the transfers taken off it.
+	DiskCriticalSpace int64 `json:"diskCriticalSpace"`
 	// Crawl lets a pasted page URL be opened and the files it links to be
 	// staged, instead of the page itself becoming one task.
 	Crawl bool `json:"crawl"`
@@ -692,6 +730,11 @@ func Defaults() Settings {
 		// this anyway, which is what keeps an install from before this key
 		// existed behaving identically to a fresh one.
 		ReclaimTrust: string(reclaim.DefaultTrust),
+		// One of the volume's three numbers is on by default and two are
+		// not - see DefaultDiskReserve for why that split is the whole of
+		// the shipping decision, and the two threshold fields on the struct
+		// for what each one does.
+		DiskReserve: DefaultDiskReserve,
 	}
 }
 
@@ -910,6 +953,7 @@ func sanitize(n Settings) Settings {
 	n = sanitizeAppearance(n)
 	n = sanitizeQueue(n)
 	n = sanitizeStall(n)
+	n = sanitizeDiskSpace(n)
 	n = sanitizeHostRules(n)
 	n = sanitizePaths(n)
 	n = sanitizeArchives(n)

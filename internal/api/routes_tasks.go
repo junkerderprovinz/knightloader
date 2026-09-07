@@ -93,18 +93,48 @@ func registerTasks(reg *Registry, a *app.App) {
 			a.MoveTasks(body.Ids, body.Where)
 			w.WriteHeader(http.StatusNoContent)
 		})
-	reg.Add(http.MethodPost, "/api/tasks/options", "per-task overrides: name, destination folder, archive password, comment, priority, unpacking. A field left out of the body is left as it is",
+	reg.Add(http.MethodPost, "/api/tasks/options", "per-task overrides: name, destination folder, archive password, comment, priority, unpacking, and the backend this task is pinned to. A field left out of the body is left as it is",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
 				Ids []string `json:"ids"`
 				app.TaskOptions
+				// Resolver pins these tasks to one download backend, by
+				// resolver id ("torbox", "jd", "alldebrid#work"). An empty
+				// string takes the pin off again; a field left out of the body
+				// leaves it as it was, which is the same nil-means-untouched
+				// contract every field of TaskOptions above follows.
+				//
+				// It sits BESIDE the embedded struct rather than inside it
+				// because it is applied by a call of its own
+				// (app.PinResolver): the pin is not a property of the file
+				// being downloaded, it is an instruction to the dispatcher,
+				// and it dispatches on the spot so a bad pin fails where the
+				// person who typed it is looking.
+				Resolver *string `json:"resolver"`
 			}
 			if !decodeJSON(w, r, &body) || !requireIDs(w, body.Ids) {
 				return
 			}
+			// Both halves are validated before EITHER is applied, so a request
+			// carrying a good rename and a backend this instance does not have
+			// changes nothing at all. Written this way round rather than
+			// "apply, then apply" because the alternative leaves a selection
+			// half-edited behind a 400 that names only one of the two problems.
+			if body.Resolver != nil {
+				if err := a.ResolverPinnable(*body.Resolver); err != nil {
+					http.Error(w, err.Error(), http.StatusBadRequest)
+					return
+				}
+			}
 			if err := a.SetTaskOptions(body.Ids, body.TaskOptions); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
+			}
+			if body.Resolver != nil {
+				if err := a.PinResolver(body.Ids, *body.Resolver); err != nil {
+					http.Error(w, err.Error(), http.StatusBadRequest)
+					return
+				}
 			}
 			w.WriteHeader(http.StatusNoContent)
 		})
