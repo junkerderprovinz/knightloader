@@ -5,6 +5,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { ButtonHTMLAttributes, CSSProperties, InputHTMLAttributes, ReactNode, RefObject } from 'react';
 import { hueVars, rainbowAt } from '../lib/appearance';
+import { useNavLabels } from '../lib/navLabels';
 import { useDialogMute, type DialogId } from '../lib/dialogmute';
 import { useT } from '../lib/i18n';
 import { IconClose, IconEye, IconEyeOff } from '../lib/icons';
@@ -36,13 +37,30 @@ export function Button({
   children,
   className = '',
   hue,
+  labelled,
   ...rest
 }: {
   kind?: ButtonKind;
   icon?: ReactNode;
   hue?: number;
+  /**
+   * Opts a glyph-only button into the Beschriftung setting - see IconBadge's
+   * own `labelled` for the full reasoning. Used by the head card's transport
+   * buttons, which have a title and no children.
+   */
+  labelled?: boolean;
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
-  const iconOnly = icon && !children;
+  const labelMode = useNavLabels();
+  // Only ever fills in for a button that HAS no children of its own: a
+  // labelled button already says what it does, and appending its own tooltip
+  // to it would say it twice.
+  const fallback =
+    labelled && !children && rest.title && (labelMode === 'text' || labelMode === 'both')
+      ? rest.title
+      : undefined;
+  const body = children ?? fallback;
+  const hideIcon = labelled && labelMode === 'text' && !!fallback;
+  const iconOnly = icon && !body;
   const hued = hue !== undefined;
   return (
     <button
@@ -53,8 +71,8 @@ export function Button({
       style={hued ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
       {...rest}
     >
-      {icon}
-      {children}
+      {!hideIcon && icon}
+      {body}
     </button>
   );
 }
@@ -182,6 +200,7 @@ export function IconBadge({
   kind = 'neutral',
   hue,
   active,
+  labelled,
   className = '',
   style,
   title,
@@ -206,8 +225,32 @@ export function IconBadge({
    * out a plain border too.
    */
   active?: boolean;
+  /**
+   * Opts this badge into the Beschriftung setting (lib/navLabels.ts), the same
+   * one the sidebar and the settings rail already follow.
+   *
+   * The setting existed and reached exactly two places, which is why it read as
+   * a sidebar option rather than as a rule about the app (jdp, 2026-09-07: "die
+   * beschriftungsengine ist nicht vollständig. Das fehlen zwei kategoriern",
+   * and, asked which: the head bar, the list toolbars and the collector's own
+   * buttons). Those three now opt in.
+   *
+   * It is opt-IN rather than automatic for every badge with a title, because a
+   * badge in a table row cannot grow into a labelled button without setting the
+   * width of its column - a row action and a toolbar action look the same and
+   * are not the same thing.
+   *
+   * The label is `title`, which every one of these already carries as its
+   * tooltip: one string per control, not a second one that can disagree with it.
+   */
+  labelled?: boolean;
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
   const hued = hue !== undefined;
+  // Always called (Rules of Hooks); what it returns only matters where a
+  // caller opted in and gave a title to show.
+  const labelMode = useNavLabels();
+  const showText = labelled && !!title && (labelMode === 'text' || labelMode === 'both');
+  const showIcon = !labelled || labelMode !== 'text';
   // A GlimStone bubble (useTooltip, InfoBubble's own sibling) rather than
   // the native `title` attribute every call site here used to pass
   // straight through to the DOM (jdp, 2026-08-26: "Alle hoover infobubbles
@@ -231,15 +274,20 @@ export function IconBadge({
       <button
         type="button"
         aria-pressed={active}
-        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--radius-control)]
+        // A badge showing text is no longer square: it keeps its height and
+        // takes the width its words need. w-8 is therefore conditional, and the
+        // padding only appears with the text it is there to hold.
+        className={`flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-control)]
           transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
-          motion-safe:active:scale-[.98] ${hued ? 'glim-tint-badge' : ''} ${iconBadgeClass[kind]}
+          motion-safe:active:scale-[.98] ${showText ? 'px-2.5 text-xs font-medium' : 'w-8'}
+          ${hued ? 'glim-tint-badge' : ''} ${iconBadgeClass[kind]}
           ${active ? 'shadow-[0_0_0_2px_var(--carbon-bg),0_0_0_2px_currentColor]' : ''} ${className}`}
         style={hued ? { ...(hueVars(rainbowAt(hue)) as CSSProperties), ...style } : style}
         {...(title ? tipHoverProps : undefined)}
         {...rest}
       >
-        {icon}
+        {showIcon && icon}
+        {showText && <span className="whitespace-nowrap">{title}</span>}
       </button>
       {title && tip.node}
     </>

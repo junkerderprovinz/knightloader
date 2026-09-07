@@ -637,7 +637,7 @@ function Select<T extends string>({
       aria-label={label}
       value={value}
       onChange={(e) => onChange(e.target.value as T)}
-      className={`rounded-[var(--radius-control)] bg-carbon-surface2 px-2.5 py-2 text-sm text-carbon-text
+      className={`glim-select appearance-none pe-6 rounded-[var(--radius-control)] bg-carbon-surface2 px-2.5 py-2 text-sm text-carbon-text
         outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)] ${className}`}
     >
       {options.map((o) => (

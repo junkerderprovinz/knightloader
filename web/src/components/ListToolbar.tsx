@@ -6,6 +6,7 @@
 // same feature built twice and badly; here it is built once and the pages pass
 // in which quick filters make sense for the rows they hold.
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { PriorityGlyph } from '../lib/icons';
 import {
   type ApiOptions,
   type BulkResult,
@@ -732,55 +733,6 @@ export interface ListContext {
    * rather than quietly acting on the wrong machine.
    */
   local: boolean;
-}
-
-/**
- * PriorityGlyph draws one rung of the queue's priority ladder: filled triangles
- * pointing the way that rung moves a download, one per step away from default,
- * and a single flat bar for default itself.
- *
- * jdp: "im priorität menü fehlen glyphen." The gutter was left empty there on
- * purpose, because that column was carrying the tick for the priority the
- * selection already sits at, and a glyph in it would have buried the one thing
- * the submenu has to answer. Both fit once they stop sharing a column: the
- * glyph names what the row IS, on the left, and which row is IN FORCE is said
- * at the other end of the row instead - full ink plus a trailing tick, which is
- * what MenuItem.checked paints. Neither has to be given up.
- *
- * Triangles rather than arrows, and the count rather than the size, for the
- * same reason IconPriority is not an arrow: the four entries one submenu away
- * own the arrows, and those move a task one place, while this puts it on a
- * rung. Three stacked wedges read as "as far as it goes" at 14px where three
- * lengths of one arrow do not. The rung is read off the server's own value
- * (-3..3, clamped), not off the id, so a ladder that renames its steps or
- * offers fewer of them still draws.
- */
-function PriorityGlyph({ steps }: { steps: number }) {
-  const n = Math.min(3, Math.abs(steps));
-  const up = steps > 0;
-  // 5 tall per wedge, 1 of air between them, centred in the 20-unit box the
-  // rest of the icon set is drawn in.
-  const top = (20 - (n * 6 - 1)) / 2;
-  return (
-    <svg
-      viewBox="0 0 20 20"
-      width={14}
-      height={14}
-      fill="currentColor"
-      className="shrink-0"
-      aria-hidden
-      focusable="false"
-    >
-      {n === 0 ? (
-        <rect x="4.5" y="9.1" width="11" height="1.8" rx=".9" />
-      ) : (
-        Array.from({ length: n }, (_, i) => {
-          const y = top + i * 6;
-          return <path key={i} d={up ? `M10 ${y}L15 ${y + 5}H5Z` : `M5 ${y}H15L10 ${y + 5}Z`} />;
-        })
-      )}
-    </svg>
-  );
 }
 
 /**

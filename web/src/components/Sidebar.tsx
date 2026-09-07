@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import logoUrl from '../assets/logo.svg';
 import { hueVars, rainbowAt } from '../lib/appearance';
 import { useRainbow } from '../lib/useRainbow';
@@ -30,6 +30,93 @@ import {
 // to be zero, and two competing gap utilities on one element resolve by
 // stylesheet order rather than by which one was written last - a coin flip, not
 // an override. Each caller adds the gap it wants.
+/**
+ * useDrawAndStrike is the sidebar mark's easter egg: press and hold and the
+ * blade draws out of the rail, let go and it swings.
+ *
+ * It is the counterpart to BombVault's own, which shatters its logo into 36
+ * pieces with a fire cloud. That fits a bomb; a sword's own gesture is drawing
+ * and striking, and it keeps the same rhythm - tension while held, discharge on
+ * release.
+ *
+ * A SHORT press is still a click and still navigates home. That is what the
+ * suppress flag below is for: the browser fires click after pointerup either
+ * way, and an egg that ate the navigation would be a broken logo rather than a
+ * surprise.
+ *
+ * The whole thing is CSS (see .kl-egg in index.css), so it follows the motion
+ * setting and disappears under prefers-reduced-motion without knowing that it
+ * does. This hook only decides WHICH of the three states is on the element.
+ */
+function useDrawAndStrike(): {
+  state: 'idle' | 'draw' | 'strike';
+  onPointerDown: () => void;
+  onPointerUp: () => void;
+  onPointerCancel: () => void;
+  onClick: (e: React.MouseEvent) => void;
+} {
+  const [state, setState] = useState<'idle' | 'draw' | 'strike'>('idle');
+  const hold = useRef<number | undefined>(undefined);
+  const done = useRef<number | undefined>(undefined);
+  const suppress = useRef(false);
+
+  useEffect(
+    () => () => {
+      window.clearTimeout(hold.current);
+      window.clearTimeout(done.current);
+    },
+    [],
+  );
+
+  /** Runs the wave down the rail, one entry after the next. */
+  function shove() {
+    const rail = document.querySelector('[data-nav-rail]');
+    if (!rail) return;
+    [...rail.children].forEach((el, i) => {
+      window.setTimeout(() => {
+        el.classList.add('kl-egg-struck');
+        window.setTimeout(() => el.classList.remove('kl-egg-struck'), 400);
+      }, i * 45);
+    });
+  }
+
+  return {
+    state,
+    onPointerDown: () => {
+      suppress.current = false;
+      window.clearTimeout(hold.current);
+      // 320ms: long enough that an ordinary click never reaches it, short
+      // enough that somebody who meant to hold does not wonder whether it
+      // registered.
+      hold.current = window.setTimeout(() => {
+        suppress.current = true;
+        setState('draw');
+      }, 320);
+    },
+    onPointerUp: () => {
+      window.clearTimeout(hold.current);
+      setState((cur) => {
+        if (cur !== 'draw') return cur;
+        window.clearTimeout(done.current);
+        done.current = window.setTimeout(() => setState('idle'), 700);
+        shove();
+        return 'strike';
+      });
+    },
+    onPointerCancel: () => {
+      window.clearTimeout(hold.current);
+      setState((cur) => (cur === 'draw' ? 'idle' : cur));
+    },
+    onClick: (e) => {
+      // Only the click that ENDED a hold is swallowed; every other one is the
+      // ordinary "take me home".
+      if (!suppress.current) return;
+      suppress.current = false;
+      e.preventDefault();
+    },
+  };
+}
+
 const navBase =
   'relative flex items-center rounded-[var(--radius-control)] px-3 py-2.5 text-[15px] font-medium transition duration-150 select-none';
 const navActive = 'glim-active bg-accent text-accentContrast';
@@ -165,6 +252,7 @@ export function Sidebar() {
   // Seeded in the same breath and for the same reason - one settings read,
   // three things the rail cannot draw itself without. See lib/navLabels.ts.
   const mode = useNavLabels();
+  const egg = useDrawAndStrike();
   useEffect(() => {
     fetchSettings()
       .then((s) => {
@@ -213,12 +301,22 @@ export function Sidebar() {
         to="/"
         end
         className={`flex flex-col items-center gap-2 hover:opacity-90 transition-opacity ${narrow ? 'px-2 py-4' : 'px-4 py-6'}`}
+        onPointerDown={egg.onPointerDown}
+        onPointerUp={egg.onPointerUp}
+        onPointerLeave={egg.onPointerCancel}
+        onPointerCancel={egg.onPointerCancel}
+        onClick={egg.onClick}
       >
-        <img src={logoUrl} alt="" aria-hidden className={`w-auto shrink-0 ${narrow ? 'h-10' : 'h-28'}`} />
+        {/* The easter egg wraps the mark and nothing else: a short click still
+            navigates home, a long press draws the blade. See useDrawAndStrike. */}
+        <span className="kl-egg" data-egg={egg.state}>
+          <img src={logoUrl} alt="" aria-hidden className={`w-auto shrink-0 ${narrow ? 'h-10' : 'h-28'}`} />
+          <span className="kl-egg-sheen" aria-hidden />
+        </span>
         {!narrow && <span className="text-carbon-text font-bold text-xl tracking-tight">KnightLoader</span>}
       </NavLink>
 
-      <nav className={`flex flex-col gap-1 flex-1 ${narrow ? 'p-2' : 'p-3'}`}>
+      <nav data-nav-rail className={`flex flex-col gap-1 flex-1 ${narrow ? 'p-2' : 'p-3'}`}>
         {/* Downloads above the collector: the download list is what this app is
             open for, and the collector is the room links pass through on their
             way into it. JDownloader puts its download tab first for the same
@@ -236,7 +334,11 @@ export function Sidebar() {
           sidebar immer noch vorhanden"). Both still live on the Aussehen
           tab (pages/settings/Look.tsx). */}
       <div className={`flex flex-col gap-1 ${narrow ? 'p-2' : 'p-3'}`}>
-        <Item to="/settings" hue={5} mode={mode} label={t('nav.settings')} icon={<IconSettings />} />
+        {/* Sign out sits ABOVE Settings (jdp, 2026-09-07: "in der sidebar soll
+            der abmeldebutton über dem einstellungs button sein"). It is also
+            the only sign-out left in the app now - the copy on the password
+            card is gone - so it wants the position a sign-out is looked for
+            in, not the last row under the settings link. */}
         {locked && (
           <button
             title={mode === 'glyph' || mode === 'hover' ? t('auth.signOut') : undefined}
@@ -268,6 +370,7 @@ export function Sidebar() {
             <NavLabel label={t('auth.signOut')} mode={mode} />
           </button>
         )}
+        <Item to="/settings" hue={5} mode={mode} label={t('nav.settings')} icon={<IconSettings />} />
       </div>
     </aside>
   );

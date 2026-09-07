@@ -6,11 +6,15 @@ import type { Command } from './types';
  * One command per settings sub-page, so the palette can jump straight to
  * e.g. "Settings: Torrents" instead of a click through Settings' own rail.
  *
- * The id list and its order mirror registry.tsx's PAGES map exactly - same
- * set, same reasoning: 'accounts' is left out because registry.tsx leaves it
- * out too (its own comment there - registered on the server, no component
- * here yet), and a command that navigated to it would land on the "not
- * built yet" placeholder every other entry point already avoids.
+ * The id list and its order mirror registry.tsx's PAGES map exactly.
+ *
+ * "Exactly" is load-bearing and was not true for a while: accounts, instances
+ * and appearance all grew real components in registry.tsx and none of them was
+ * added here, so three settings pages were simply unreachable from the palette
+ * while this comment still explained why one of them had no component. A list
+ * that has to be kept in step by hand drifts, and the drift is invisible
+ * because a missing command looks exactly like a command nobody typed - hence
+ * web/check-settings-pages.mjs, which fails when the two sets part company.
  *
  * labelKey reuses each page's existing settings.nav.<id> key (tx.ts's own
  * `label()` helper, Tabs.tsx) rather than minting a second "Settings: X"
@@ -26,6 +30,9 @@ const SETTINGS_PAGES: { id: string; labelKey: Command['labelKey'] }[] = [
   { id: 'downloads', labelKey: 'settings.nav.downloads' },
   { id: 'archives', labelKey: 'settings.nav.archives' },
   { id: 'look', labelKey: 'settings.nav.look' },
+  { id: 'appearance', labelKey: 'settings.nav.appearance' },
+  { id: 'accounts', labelKey: 'settings.nav.accounts' },
+  { id: 'instances', labelKey: 'settings.nav.instances' },
   { id: 'access', labelKey: 'settings.nav.access' },
   { id: 'advanced', labelKey: 'settings.nav.advanced' },
   { id: 'rules', labelKey: 'settings.nav.rules' },

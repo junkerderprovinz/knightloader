@@ -638,3 +638,75 @@ export const IconTrashFiles = (p: SVGProps<SVGSVGElement>) => (
     />
   </svg>
 );
+
+/**
+ * PriorityGlyph draws one rung of the queue's priority ladder: filled triangles
+ * pointing the way that rung moves a download, one per step away from default,
+ * and a single flat bar for default itself.
+ *
+ * Lives here rather than in ListToolbar, where it was written, because the
+ * download list draws the SAME rung on every row (jdp, 2026-09-07: "die
+ * symbole sollen die gleichen sein wie im rechtsklickmenü") and two drawings
+ * of one ladder are two drawings that drift apart.
+ *
+ * jdp: "im priorität menü fehlen glyphen." The gutter was left empty there on
+ * purpose, because that column was carrying the tick for the priority the
+ * selection already sits at, and a glyph in it would have buried the one thing
+ * the submenu has to answer. Both fit once they stop sharing a column: the
+ * glyph names what the row IS, on the left, and which row is IN FORCE is said
+ * at the other end of the row instead - full ink plus a trailing tick, which is
+ * what MenuItem.checked paints. Neither has to be given up.
+ *
+ * Triangles rather than arrows, and the count rather than the size, for the
+ * same reason IconPriority is not an arrow: the four entries one submenu away
+ * own the arrows, and those move a task one place, while this puts it on a
+ * rung. Three stacked wedges read as "as far as it goes" at 14px where three
+ * lengths of one arrow do not. The rung is read off the server's own value
+ * (-3..3, clamped), not off the id, so a ladder that renames its steps or
+ * offers fewer of them still draws.
+ */
+export function PriorityGlyph({ steps }: { steps: number }) {
+  const n = Math.min(3, Math.abs(steps));
+  const up = steps > 0;
+  // 5 tall per wedge, 1 of air between them, centred in the 20-unit box the
+  // rest of the icon set is drawn in.
+  const top = (20 - (n * 6 - 1)) / 2;
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      width={14}
+      height={14}
+      fill="currentColor"
+      className="shrink-0"
+      aria-hidden
+      focusable="false"
+    >
+      {n === 0 ? (
+        <rect x="4.5" y="9.1" width="11" height="1.8" rx=".9" />
+      ) : (
+        Array.from({ length: n }, (_, i) => {
+          const y = top + i * 6;
+          return <path key={i} d={up ? `M10 ${y}L15 ${y + 5}H5Z` : `M5 ${y}H15L10 ${y + 5}Z`} />;
+        })
+      )}
+    </svg>
+  );
+}
+
+/**
+ * IconGrip is the handle you take hold of to drag a row.
+ *
+ * Two columns of dots, the convention every list-reordering handle uses, so it
+ * needs no label to be recognised as "pick this up". Drawn at 14x16 rather than
+ * the icon set's usual 20x20 square: a grip is taller than it is wide, because
+ * what it affords is vertical.
+ */
+export function IconGrip(p: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 8 12" fill="currentColor" aria-hidden focusable="false" {...p}>
+      {[1.5, 6, 10.5].map((cy) =>
+        [1.5, 6.5].map((cx) => <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r="1.2" />),
+      )}
+    </svg>
+  );
+}

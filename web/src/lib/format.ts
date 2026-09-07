@@ -12,6 +12,32 @@ export function fmtBytes(n: number): string {
   return `${v.toFixed(v < 10 && i > 0 ? 1 : 0)} ${u[i]}`;
 }
 
+/**
+ * An allowance in gigabytes, always, whatever its size (jdp, 2026-09-07:
+ * "kann man das Volumen nicht in GB angeben? bei allen").
+ *
+ * Two departures from fmtBytes above, both on purpose:
+ *
+ *  - The unit never changes. An account's allowance is a figure you compare
+ *    against another account's and against what the vendor's own page
+ *    advertises, and a column that says "980 MB" on one row and "1.2 TB" on the
+ *    next makes that comparison a mental arithmetic exercise.
+ *  - Decimal gigabytes, not gibibytes. Every debrid vendor advertises its
+ *    allowance in decimal ("400 GB"), so a binary reading would print 372 GB
+ *    for the plan the customer bought as 400.
+ */
+export function fmtGB(n: number): string {
+  if (!n || n < 0) return '0 GB';
+  const gb = n / 1e9;
+  if (gb >= 1000) return `${Math.round(gb).toLocaleString()} GB`;
+  // A real but tiny figure is worth saying as "less than", not as "0.0 GB":
+  // measured live on the preview instance, a TorBox account that had moved a
+  // few megabytes read "0.0 GB geladen", which looks like a broken column
+  // rather than like a small number.
+  if (gb > 0 && gb < 0.1) return '< 0,1 GB';
+  return `${gb.toFixed(gb < 10 ? 1 : 0)} GB`;
+}
+
 export const fmtSpeed = (n: number): string => (n > 0 ? `${fmtBytes(n)}/s` : '');
 
 export function fmtEta(loaded: number, size: number, speed: number): string {

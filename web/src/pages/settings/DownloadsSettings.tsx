@@ -4,8 +4,7 @@ import { PathInput } from '../../components/FolderPicker';
 import { Tabs } from '../../components/Tabs';
 import { fetchIdleActions, fetchOptions } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
-import { useDraft, useFeatures } from './context';
-import { useTx } from './tx';
+import { useDraft } from './context';
 
 // The end-of-queue action's menu labels - internal/idleaction.Actions() is the
 // source of truth for WHICH ids exist (fetched below), this is only what each
@@ -28,9 +27,7 @@ const IDLE_ACTION_KEYS: Record<string, TranslationKey> = {
 // that compiles.
 export function DownloadsSettings() {
   const { t } = useT();
-  const { tx } = useTx();
   const { cfg, patch } = useDraft();
-  const { features } = useFeatures();
 
   // The resume modes come from the server, like every other fixed choice on this
   // page's siblings. They were not offered at all until now: resumeOnStart was
@@ -80,18 +77,6 @@ export function DownloadsSettings() {
     };
   }, []);
 
-  // The registry, not the settings value, decides whether the folder field is
-  // live. Switching the folder-watch module off clears the folder and parks it;
-  // leaving the field editable here would let somebody type a folder back in and
-  // restart the watcher while the modules page still reads "off". The two would
-  // then disagree, which is exactly what a kill switch may not do.
-  //
-  // `parked` and not just `!enabled`: an empty folder on a fresh install is also
-  // "off", and locking the field for that reason would leave nowhere to type the
-  // first folder — the switch cannot turn on what was never set up either, so
-  // the two would deadlock and folder watch would be unreachable forever.
-  const watch = features.modules.find((m) => m.id === 'watch');
-  const watchOff = watch !== undefined && !watch.enabled && watch.parked;
 
   return (
     <div className="flex flex-col gap-10">
@@ -120,18 +105,6 @@ export function DownloadsSettings() {
           onChange={(v) => patch({ subfolderByPackage: v })}
           label={t('settings.subfolderByPackage')}
         />
-      </Card>
-
-      <Card hue={1} className="flex flex-col gap-5">
-        <SectionTitle>{tx('settings.sectionIntake')}</SectionTitle>
-        {/* This toggle has always meant "skip the collector", which is
-            autoConfirm's job since Wave 8 split the old single autoStart flag
-            in three (settings.go's own doc comment). Binding it to the new,
-            narrower autoStart field instead - an easy mistake once the old
-            name and the new name coexist - would leave the one visible
-            control on this page changing a field the label no longer
-            describes, silently. */}
-        <ToggleRow checked={cfg.autoConfirm} onChange={(v) => patch({ autoConfirm: v })} label={t('settings.autoStart')} />
       </Card>
 
       <Card hue={2} className="flex flex-col gap-5">
@@ -216,32 +189,13 @@ export function DownloadsSettings() {
         </div>
       </Card>
 
-      <Card hue={3} className="flex flex-col gap-5">
-        <SectionTitle>{t('settings.downloads.watchTitle')}</SectionTitle>
-        {/* Disabled rather than hidden: a field that vanishes teaches nobody
-            that the folder watch exists, and the module page is where it is
-            switched — which the info bubble says. */}
-        <div className={watchOff ? 'pointer-events-none opacity-40' : ''}>
-          <Field
-            label={t('settings.watchDir')}
-            hint={
-              watchOff
-                ? `${t('settings.watchDirHint')} ${tx('settings.downloads.watchOff')}`
-                : t('settings.watchDirHint')
-            }
-          >
-            <TextInput
-              dir="ltr"
-              value={cfg.watchDir}
-              placeholder="/watch"
-              spellCheck={false}
-              disabled={watchOff}
-              onChange={(e) => patch({ watchDir: e.target.value })}
-            />
-          </Field>
-        </div>
-      </Card>
-
+      {/* "Sammler überspringen" and the watch folder both left this page for
+          the Linkeingang card on the General tab (jdp, 2026-09-07, after four
+          independent proposals for restructuring the settings were weighed and
+          only this one survived). Both are ways a link gets IN, which is what
+          that card is about, and both were the only thing in a card of their
+          own here. Nothing else moved: the analysis found that every further
+          merge cost more in search words and bookmarks than it bought. */}
       {idleActions.length > 0 && (
           <Card hue={4} className="flex flex-col gap-5">
           <SectionTitle>{t('settings.downloads.idleTitle')}</SectionTitle>

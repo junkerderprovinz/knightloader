@@ -13,7 +13,7 @@
 // features, and the dash is the honest answer to "what does it say here".
 import { useState, type ReactNode } from 'react';
 import { useT } from '../lib/i18n';
-import { fmtBytes, fmtDate } from '../lib/format';
+import { fmtDate, fmtGB } from '../lib/format';
 import { IconBadge, Toggle } from './ui';
 import { ProgressBar } from './ProgressBar';
 import { HosterIcon } from './HosterIcon';
@@ -57,20 +57,26 @@ export interface AccountRow {
   onRemove?: () => void;
 }
 
-/** tierLabel keeps "premium" and "free" translated and anything else verbatim:
+/** TierCell keeps "premium" and "free" translated and anything else verbatim:
  *  a service's own plan name (TorBox's "essential") is a product name, not a
  *  word to translate, and inventing a category for it would be worse than
- *  printing what it calls itself. */
+ *  printing what it calls itself.
+ *
+ *  Plain text, no pill (jdp, 2026-09-07: "die texte in der spalte sollen normale
+ *  texte sein und kein hintergrund haben"). It used to be a .glim-eyebrow badge,
+ *  which put a filled, uppercased chip in a column of ordinary words and made the
+ *  plan read as a status rather than as a fact about the account. The one
+ *  distinction the colour was carrying is kept without a fill: a free plan is
+ *  drawn in the muted ink every other "nothing to report" cell uses. */
 function TierCell({ tier }: { tier?: string }) {
   const { t } = useT();
   if (!tier || tier === 'unknown') return <span className="text-carbon-textMuted">—</span>;
-  if (tier === 'premium') {
-    return <span className="glim-eyebrow bg-statusOkBg text-statusOk">{t('accounts.tier.premium')}</span>;
-  }
-  if (tier === 'free') {
-    return <span className="glim-eyebrow bg-carbon-surface3 text-carbon-textSub">{t('accounts.tier.free')}</span>;
-  }
-  return <span className="glim-eyebrow bg-carbon-surface3 text-carbon-textSub">{tier}</span>;
+  if (tier === 'premium') return <span className="text-carbon-text">{t('accounts.tier.premium')}</span>;
+  if (tier === 'free') return <span className="text-carbon-textMuted">{t('accounts.tier.free')}</span>;
+  // A vendor's own plan name, capitalised. The badge this used to be
+  // uppercased everything, so "essential" only started looking like a stray
+  // lower-case word once the fill came off (jdp, 2026-09-07, [2171]).
+  return <span className="text-carbon-text">{tier.charAt(0).toUpperCase() + tier.slice(1)}</span>;
 }
 
 /**
@@ -80,6 +86,15 @@ function TierCell({ tier }: { tier?: string }) {
  * The bar shows what is USED and the caption what is LEFT, which is the pairing
  * JDownloader's own account manager uses: a bar that fills as you spend, and a
  * number that answers "how much have I got".
+ *
+ * Bar and number sit on ONE line, side by side, not stacked (jdp, same day:
+ * "der text für das volumen und der balken sollen in einer zeile stehen. jetzt
+ * macht es die zeile unnötig hoch"). Stacking cost every row in both tables the
+ * height of two lines for a figure that is one line of information, and the
+ * tables are read by scanning down a column.
+ *
+ * Every byte figure goes through fmtGB, so an allowance is quoted in the same
+ * unit the vendor advertises it in and two accounts can be compared by eye.
  */
 function TrafficCell({ traffic }: { traffic?: AccountTraffic }) {
   const { t } = useT();
@@ -88,17 +103,37 @@ function TrafficCell({ traffic }: { traffic?: AccountTraffic }) {
   if (traffic.unlimited) {
     // No bar: a bar needs a full, and there is none. The symbol is the whole
     // statement, and it is the same one the speed-limit field uses for "off".
-    return <span className="glim-num text-carbon-textSub">∞</span>;
+    //
+    // But the symbol alone was the whole cell, and for TorBox that meant the
+    // column stood empty for a paid account (jdp, 2026-09-07: "TorBox hat keine
+    // angabe derzeit"). TorBox reports total_downloaded and no cap at all, so
+    // there is a real figure to show next to it - what has gone through the
+    // account - and "unlimited" plus that figure says more than either alone.
+    return (
+      <span className="flex items-center gap-2">
+        <span className="glim-num text-carbon-textSub">∞</span>
+        {(traffic.used ?? 0) > 0 && (
+          <span className="glim-num whitespace-nowrap text-[11px] text-carbon-textMuted">
+            {t('accounts.trafficUsedTotal', { used: fmtGB(traffic.used ?? 0) })}
+          </span>
+        )}
+      </span>
+    );
   }
 
   const limit = traffic.limit ?? 0;
   if (limit > 0) {
     const used = Math.min(traffic.used ?? 0, limit);
     return (
-      <span className="flex flex-col gap-1">
-        <ProgressBar active percent={(used / limit) * 100} />
-        <span className="glim-num text-[11px] text-carbon-textMuted">
-          {t('accounts.trafficLeftOf', { left: fmtBytes(limit - used), total: fmtBytes(limit) })}
+      <span className="flex items-center gap-2">
+        {/* The bar takes the room that is left over, the figure takes what it
+            needs: a fixed-width bar beside a variable-width number would leave
+            the numbers ragged down the column. */}
+        <span className="min-w-0 flex-1">
+          <ProgressBar active percent={(used / limit) * 100} />
+        </span>
+        <span className="glim-num shrink-0 whitespace-nowrap text-[11px] text-carbon-textMuted">
+          {t('accounts.trafficLeftOf', { left: fmtGB(limit - used), total: fmtGB(limit) })}
         </span>
       </span>
     );
@@ -107,15 +142,28 @@ function TrafficCell({ traffic }: { traffic?: AccountTraffic }) {
   if (traffic.percentKnown) {
     const usedPct = Math.max(0, Math.min(100, traffic.usedPercent ?? 0));
     return (
-      <span className="flex flex-col gap-1">
-        <ProgressBar active percent={usedPct} />
-        <span className="glim-num text-[11px] text-carbon-textMuted">
+      <span className="flex items-center gap-2">
+        <span className="min-w-0 flex-1">
+          <ProgressBar active percent={usedPct} />
+        </span>
+        <span className="glim-num shrink-0 whitespace-nowrap text-[11px] text-carbon-textMuted">
           {t('accounts.trafficLeftPercent', { n: Math.floor(100 - usedPct) })}
         </span>
       </span>
     );
   }
-  return <span className="text-carbon-textMuted">—</span>;
+  // Nothing to draw, and the dash says why on hover rather than leaving the
+  // reader to wonder whether the column is broken. A bar is deliberately NOT
+  // invented here: a free hoster account whose quota JDownloader does not
+  // report has no full for a bar to fill, and drawing an empty track would
+  // claim a limit of zero (jdp asked for a bar on free accounts too; where the
+  // service reports a quota it already gets one, and this is the honest
+  // remainder).
+  return (
+    <span className="text-carbon-textMuted" title={t('accounts.trafficUnknown')}>
+      —
+    </span>
+  );
 }
 
 export function AccountTable({ rows, label }: { rows: AccountRow[]; label: string }) {

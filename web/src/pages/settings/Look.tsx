@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
-import { Button, Card, ErrorCard, InfoBubble, Modal, SectionTitle, Toggle, ToggleRow } from '../../components/ui';
+import { Button, Card, ErrorCard, Field, InfoBubble, Modal, SectionTitle, TextInput, Toggle, ToggleRow } from '../../components/ui';
 import { About } from './Help';
 import { Tabs } from '../../components/Tabs';
 import { openColorPickerPopover } from '../../lib/colorPicker';
@@ -814,6 +814,7 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
  */
 function LinkIntakeCard() {
   const { t } = useT();
+  const { cfg, patch } = useDraft();
   const { features, toggle } = useFeatures();
   const { toast } = useToast();
   const [watch, setWatch] = useClipboardWatch();
@@ -821,6 +822,19 @@ function LinkIntakeCard() {
 
   const cnl = features.modules.find((m) => m.id === 'cnl');
   const cnlSwitchable = !!cnl && cnl.verdict === 'shipped' && cnl.switch !== 'none';
+
+  // The registry, not the settings value, decides whether the folder field is
+  // live. Switching the folder-watch module off clears the folder and parks it;
+  // leaving the field editable here would let somebody type a folder back in and
+  // restart the watcher while the modules page still reads "off". The two would
+  // then disagree, which is exactly what a kill switch may not do.
+  //
+  // `parked` and not just `!enabled`: an empty folder on a fresh install is also
+  // "off", and locking the field for that reason would leave nowhere to type the
+  // first folder - the switch cannot turn on what was never set up either, so
+  // the two would deadlock and folder watch would be unreachable forever.
+  const folderWatch = features.modules.find((m) => m.id === 'watch');
+  const folderWatchOff = folderWatch !== undefined && !folderWatch.enabled && folderWatch.parked;
 
   async function onCnl(next: boolean) {
     setBusy(true);
@@ -878,6 +892,41 @@ function LinkIntakeCard() {
           </span>
         </div>
       )}
+
+      {/* Both moved in from the Downloads tab (jdp, 2026-09-07, after weighing
+          four proposals for restructuring the settings and keeping only this
+          one). "Skip the collector" and the watch folder are ways a link gets
+          IN, the same question as the two switches above, and each was the only
+          thing in a card of its own over there. */}
+      <ToggleRow
+        hue={2}
+        checked={cfg.autoConfirm}
+        onChange={(v) => patch({ autoConfirm: v })}
+        label={t('settings.autoStart')}
+      />
+
+      {/* Disabled rather than hidden: a field that vanishes teaches nobody that
+          the folder watch exists, and the module page is where it is switched,
+          which the hint says. */}
+      <div className={folderWatchOff ? 'pointer-events-none opacity-40' : ''}>
+        <Field
+          label={t('settings.watchDir')}
+          hint={
+            folderWatchOff
+              ? `${t('settings.watchDirHint')} ${t('settings.downloads.watchOff')}`
+              : t('settings.watchDirHint')
+          }
+        >
+          <TextInput
+            dir="ltr"
+            value={cfg.watchDir}
+            placeholder="/watch"
+            spellCheck={false}
+            disabled={folderWatchOff}
+            onChange={(e) => patch({ watchDir: e.target.value })}
+          />
+        </Field>
+      </div>
     </Card>
   );
 }

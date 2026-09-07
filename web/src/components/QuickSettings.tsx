@@ -229,24 +229,34 @@ export function ShellStrip() {
           curve is only as wide as its content (jdp, 2026-09-07: "der
           downloadgraph in der kopfzeile soll viel breiter sein"). */}
       <span className="flex h-full flex-1 items-stretch gap-2">
-        {/* The curve comes FIRST now and takes the width; the two controls sit
-            past it (jdp, same message: "das hamburgermenü und die
+        {/* The curve comes FIRST and takes the width; the two controls sit past
+            it (jdp, 2026-09-07: "das hamburgermenü und die
             geschwindigkeitsbegrenzung soll rechts davon sein"). Nothing to
-            press on it - the hamburger beside it is the way into the panel. */}
+            press on the curve - the menu button beside it is the way in. */}
         <SpeedMeter value={speed} />
-        {local && <SpeedLimitField />}
         {local && (
-          // Always exactly three bars (GlimStone's own rule) - a
-          // sliders/equalizer glyph read as "adjust a value", not "open a
-          // menu", to anyone who had already seen either convention.
-          <Button
-            kind="ghost"
-            className="shrink-0 self-center"
-            icon={<IconMenu width={16} height={16} />}
-            aria-label={t('quick.title')}
-            title={t('quick.title')}
-            onClick={() => setOpen(true)}
-          />
+          // One column, fixed width, so the button and the limit under it share
+          // an edge (jdp, 2026-09-07: "die geschwindigkeitsbegrenzung darunter"
+          // and, asked how wide, "so breit wie der Menü-Button"). Fixed rather
+          // than content-sized: two stacked controls that each hug their own
+          // text are two ragged edges, and the number in the field changes
+          // width as it is typed.
+          <span className="flex w-44 shrink-0 flex-col justify-center gap-2">
+            <Button
+              // A labelled button, not a bare glyph (jdp, 2026-09-07:
+              // "hamburgermenü soll ein button mit text und glyph sein"). The
+              // three-bar mark alone was read as "adjust a value" as often as
+              // "open a menu", and this is the only way into the quick panel.
+              kind="secondary"
+              className="w-full justify-center"
+              icon={<IconMenu width={16} height={16} />}
+              title={t('quick.title')}
+              onClick={() => setOpen(true)}
+            >
+              {t('quick.title')}
+            </Button>
+            <SpeedLimitField />
+          </span>
         )}
       </span>
 

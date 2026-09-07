@@ -159,7 +159,7 @@ export function InstanceCard({
           exists to prevent. It grows to 7rem where the card allows it and
           stops at the card's own edge where it does not. */}
       <div className="flex shrink-0 items-center self-stretch pl-4">
-        <img src={logoUrl} alt="" aria-hidden className="h-28 max-h-full w-auto" />
+        <img src={logoUrl} alt="" aria-hidden className="h-36 max-h-full w-auto" />
       </div>
 
       {/* The state as a badge in the corner, the same shape the connection
@@ -177,7 +177,13 @@ export function InstanceCard({
           p-5 and gap-3: an instance card is the one card on its page and it
           holds four short readings, so it was a dense little tile in a lot of
           empty page. The reserved right-hand column grows with it. */}
-      <div className="flex min-w-0 flex-1 flex-col gap-4 p-7 pr-36">
+      <div className="flex min-w-0 flex-1 flex-col gap-4 p-7 pb-16 pr-36">
+        {/* Name and address are ONE block with a hairline gap, not two rows of
+            the card's own gap-4 (jdp, 2026-09-07: "die IP näher unter den
+            namen"). They answer one question together - which machine is this -
+            and four pixels of air said they were two separate readings, the
+            same weight as the counters below. */}
+        <div className="flex flex-col gap-0.5">
         <div className="flex items-center gap-2.5">
           <span className="truncate font-semibold text-carbon-text">{name}</span>
           {/* Which card is the machine you are on. An eyebrow rather than a
@@ -199,6 +205,7 @@ export function InstanceCard({
         </div>
 
         <div className="truncate text-xs text-carbon-textMuted">{relayId ? t('instances.viaRelay') : url}</div>
+        </div>
 
         <div className="flex items-baseline gap-7">
           <Metric value={stats?.active ?? '—'} label={t('instances.metricActive')} />
@@ -206,12 +213,27 @@ export function InstanceCard({
           <Metric value={stats ? fmtSpeed(stats.speed) || '0' : '—'} label={t('instances.metricSpeed')} />
         </div>
 
-        {onOpen && (
-          <Button kind="secondary" onClick={onOpen} className="mt-auto w-full justify-center">
-            {t('instances.open')}
-          </Button>
-        )}
       </div>
+
+      {/* The Open button leaves the padded column and spans the whole card
+          (jdp, 2026-09-07: "Der öffnen button weiter nach unten und soll bis
+          ganz nach rechts gehen"). Inside that column it stopped short of the
+          card's right edge, because the column reserves pr-36 for the status
+          badge - room the badge only needs at the TOP. A row of its own owes
+          that reservation nothing.
+
+          absolute rather than a third flex row: the card is a two-column
+          layout (logo, then content) and a full-width row is neither of those
+          columns. */}
+      {onOpen && (
+        <Button
+          kind="secondary"
+          onClick={onOpen}
+          className="absolute inset-x-5 bottom-5 justify-center"
+        >
+          {t('instances.open')}
+        </Button>
+      )}
     </Card>
   );
 }

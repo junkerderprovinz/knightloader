@@ -9,16 +9,18 @@
 // own Group field, never a hardcoded id list here - the same reason
 // AccountsTable is one component the two sections both call, filtered by
 // group at the call site instead of by an if/else on ids baked into it.
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   type Account,
   type AccountCredential,
   type CatalogueService,
+  type HosterLogin,
   type JDStatus,
   type ResolverInfo,
   type VerifyResult,
   fetchAccounts,
   fetchAccountCatalogue,
+  fetchHosterLogins,
   fetchJDStatus,
   fetchResolverPriority,
   removeAccountCredential,
@@ -50,8 +52,7 @@ import { AccountTable } from '../components/AccountTable';
 import { HosterLoginSection } from '../components/HosterLoginSection';
 import {
   IconAccounts,
-  IconArrowDown,
-  IconArrowUp,
+  IconGrip,
   IconEdit,
   IconExternalLink,
   IconPlus,
@@ -200,7 +201,13 @@ export function Accounts() {
         <HosterLoginSection />
       </Card>
 
-      <RoutingSection catalogue={catalogue} />
+      {/* The signature, not the array: RoutingSection only has to look again
+          when the SET of configured services changes, and the poll above hands
+          it a fresh array every few seconds. */}
+      <RoutingSection
+        catalogue={catalogue}
+        signature={(accounts ?? []).map((a) => a.service).sort().join(',')}
+      />
 
       {dialog && (
         <CredentialDialog
@@ -619,19 +626,29 @@ const RESOLVER_PROPER_NAMES: Record<string, string> = {
   jd: 'JDownloader',
 };
 
-function RoutingSection({ catalogue }: { catalogue: CatalogueService[] }) {
+function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[]; signature: string }) {
   const { t } = useT();
   const [priority, setPriority] = useState<ResolverInfo[] | null>(null);
   const [jd, setJd] = useState<JDStatus | null>(null);
+  const [logins, setLogins] = useState<HosterLogin[]>([]);
 
+  // Re-read whenever the configured services change, not only on mount (jdp,
+  // 2026-09-07: "Neu hinzugefügte accounts mussen dort sofort erscheinen").
+  // Saving a debrid key registers a new resolver on the server straight away,
+  // but this card had fetched its ladder once and never again, so the new
+  // service was missing from it until the page was reloaded - which looks
+  // exactly like a key that did not take.
   useEffect(() => {
     let live = true;
     void fetchResolverPriority().then((p) => live && setPriority(p));
     void fetchJDStatus().then((s) => live && setJd(s));
+    void fetchHosterLogins()
+      .then((l) => live && setLogins(l))
+      .catch(() => undefined);
     return () => {
       live = false;
     };
-  }, []);
+  }, [signature]);
 
   const byId = new Map(catalogue.map((s) => [s.id, s]));
   const labelFor = (id: string) => {
@@ -664,7 +681,7 @@ function RoutingSection({ catalogue }: { catalogue: CatalogueService[] }) {
         ) : priority.length === 0 ? (
           <p className="text-sm text-carbon-textMuted">{t('accounts.routing.priorityEmpty')}</p>
         ) : (
-          <PriorityLadder rows={priority} labelFor={labelFor} onSaved={setPriority} />
+          <PriorityLadder rows={priority} labelFor={labelFor} logins={logins} onSaved={setPriority} />
         )}
       </Card>
 
@@ -712,86 +729,176 @@ function RoutingSection({ catalogue }: { catalogue: CatalogueService[] }) {
 function PriorityLadder({
   rows,
   labelFor,
+  logins,
   onSaved,
 }: {
   rows: ResolverInfo[];
   labelFor: (id: string) => string;
+  logins: HosterLogin[];
   onSaved: (rows: ResolverInfo[]) => void;
 }) {
   const { t } = useT();
   const { toast } = useToast();
-  const [dragId, setDragId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  /** The arrangement being shown WHILE a drag is in flight; null at rest. */
+  const [live, setLive] = useState<string[] | null>(null);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const list = useRef<HTMLOListElement>(null);
 
-  async function store(order: string[]) {
+  const order = live ?? rows.map((r) => r.id);
+  const byId = new Map(rows.map((r) => [r.id, r] as const));
+  const shown = order.map((id) => byId.get(id)).filter((r): r is ResolverInfo => !!r);
+
+  async function store(next: string[]) {
     setBusy(true);
     try {
-      onSaved(await saveResolverPriority(order));
+      onSaved(await saveResolverPriority(next));
     } catch (e) {
       toast(t('list.failed', { error: e instanceof Error ? e.message : String(e) }), 'fail');
     } finally {
       setBusy(false);
+      setLive(null);
     }
   }
 
-  /** Moves `id` to the position `to`, clamped, and stores the result. */
-  function move(id: string, to: number) {
-    const ids = rows.map((r) => r.id);
+  /** Moves `id` to position `to`, clamped. Returns the new order, or null. */
+  function moved(id: string, to: number): string[] | null {
+    const ids = [...order];
     const from = ids.indexOf(id);
-    if (from < 0) return;
+    if (from < 0) return null;
     const at = Math.max(0, Math.min(ids.length - 1, to));
-    if (at === from) return;
+    if (at === from) return null;
     ids.splice(from, 1);
     ids.splice(at, 0, id);
-    void store(ids);
+    return ids;
   }
 
   return (
     <div className="flex flex-col gap-3">
-      <ol className="flex flex-col gap-1.5">
-        {rows.map((r, i) => (
+      <ol ref={list} className="flex flex-col gap-1.5">
+        {shown.map((r, i) => (
           <li
             key={r.id}
-            draggable={!busy}
-            onDragStart={(e) => {
-              setDragId(r.id);
-              e.dataTransfer.effectAllowed = 'move';
-              // Firefox refuses to start a drag at all without payload.
-              e.dataTransfer.setData('text/plain', r.id);
-            }}
-            onDragEnd={() => setDragId(null)}
-            // preventDefault on dragover, not only on drop: without it the
-            // browser's own default for an unhandled dragover refuses the
-            // drop outright and nothing ever fires.
-            onDragOver={(e) => dragId && e.preventDefault()}
-            onDrop={(e) => {
-              e.preventDefault();
-              if (dragId && dragId !== r.id) move(dragId, i);
-              setDragId(null);
-            }}
-            className={`flex items-center gap-2 rounded-[var(--radius-control)] px-1 py-0.5 text-sm text-carbon-textSub ${
-              dragId === r.id ? 'opacity-40' : ''
-            } ${busy ? '' : 'cursor-grab active:cursor-grabbing'}`}
+            className={`flex items-center gap-2 rounded-[var(--radius-control)] px-1 py-1 text-sm text-carbon-textSub transition-colors ${
+              dragId === r.id ? 'bg-carbon-surface2' : ''
+            }`}
           >
+            {/* The grip, and nothing but the grip, starts a drag (jdp,
+                2026-09-07: "bitte die Pfeilbuttons weg. dort soll ein griff
+                sein den man angreifen kann und verschieben kann"). A whole row
+                that is draggable cannot also be selected or read comfortably,
+                and there is no second gesture left for anything else the row
+                may want later.
+
+                Pointer events, not HTML5 drag-and-drop. HTML5 drag gives no
+                position between dragstart and drop, so the list could only
+                jump at the end - which is exactly what he saw ("drag and drop
+                verschiebt nicht live"). Pointer events report every move, so
+                the list can be re-rendered in the arrangement the pointer is
+                currently describing, and they work under a finger as well as
+                under a mouse.
+
+                It is a real <button> so the ladder stays operable without a
+                pointer at all: focus it and the arrow keys move the row. That
+                replaces the two arrow badges this row used to carry, which are
+                gone at his request. */}
+            <button
+              type="button"
+              disabled={busy}
+              title={t('accounts.routing.dragHandle', { name: labelFor(r.id) })}
+              aria-label={t('accounts.routing.dragHandle', { name: labelFor(r.id) })}
+              className="shrink-0 cursor-grab touch-none rounded-[var(--radius-control)] px-1 py-0.5 text-carbon-textMuted
+                outline-none transition-colors hover:text-carbon-text focus-visible:shadow-[0_0_0_2px_var(--focus-ring)]
+                active:cursor-grabbing disabled:cursor-default"
+              onKeyDown={(e) => {
+                if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+                e.preventDefault();
+                const next = moved(r.id, i + (e.key === 'ArrowUp' ? -1 : 1));
+                if (next) void store(next);
+              }}
+              onPointerDown={(e) => {
+                if (busy || e.button !== 0) return;
+                e.preventDefault();
+                // Frozen before the first move: once rows start swapping, the
+                // live geometry describes the preview rather than the list the
+                // pointer is being dragged across, and reading it would make
+                // the row's own position an input to where it goes next.
+                const items = [...(list.current?.children ?? [])] as HTMLElement[];
+                if (items.length < 2) return;
+                const first = items[0].getBoundingClientRect();
+                const second = items[1].getBoundingClientRect();
+                const top = first.top;
+                const height = second.top - first.top;
+                if (height <= 0) return;
+
+                // Listeners on the DOCUMENT, and deliberately no
+                // setPointerCapture. Tabs.tsx learned both the hard way and
+                // says so in its own comment: capturing the press target and
+                // then moving past its bounds produced a spurious
+                // pointercancel in Chromium. The grip is 14px wide, so the
+                // pointer leaves it on the first millimetre of the gesture -
+                // handlers bound to the button itself simply stop hearing
+                // anything, which is exactly how the first cut of this failed
+                // (measured live: nothing moved at all).
+                //
+                // The working arrangement lives here rather than in React
+                // state for the same reason: the drag has to read and write it
+                // between renders, and a re-render mid-gesture would otherwise
+                // hand the next move a stale copy.
+                let arrangement = order;
+                setDragId(r.id);
+                setLive(order);
+
+                const onMove = (ev: PointerEvent) => {
+                  const to = Math.round((ev.clientY - top) / height);
+                  const ids = [...arrangement];
+                  const from = ids.indexOf(r.id);
+                  const at = Math.max(0, Math.min(ids.length - 1, to));
+                  if (from < 0 || at === from) return;
+                  ids.splice(from, 1);
+                  ids.splice(at, 0, r.id);
+                  arrangement = ids;
+                  setLive(ids);
+                };
+                const done = () => {
+                  document.removeEventListener('pointermove', onMove);
+                  document.removeEventListener('pointerup', done);
+                  document.removeEventListener('pointercancel', cancel);
+                  setDragId(null);
+                  // Only a real change is worth a request. A grip pressed and
+                  // released without moving is a click, not a reorder.
+                  if (arrangement.join() !== rows.map((x) => x.id).join()) void store(arrangement);
+                  else setLive(null);
+                };
+                const cancel = () => {
+                  document.removeEventListener('pointermove', onMove);
+                  document.removeEventListener('pointerup', done);
+                  document.removeEventListener('pointercancel', cancel);
+                  setDragId(null);
+                  setLive(null);
+                };
+                document.addEventListener('pointermove', onMove);
+                document.addEventListener('pointerup', done);
+                document.addEventListener('pointercancel', cancel);
+              }}
+            >
+              <IconGrip width={14} height={16} />
+            </button>
             <span className="glim-num w-4 shrink-0 text-carbon-textMuted">{i + 1}</span>
-            <span className="text-carbon-text">{labelFor(r.id)}</span>
-            <span className="flex-1" />
-            <IconBadge
-              icon={<IconArrowUp width={14} height={14} />}
-              className="h-6 w-6"
-              title={t('accounts.routing.moveUp')}
-              aria-label={t('accounts.routing.moveUp')}
-              disabled={busy || i === 0}
-              onClick={() => move(r.id, i - 1)}
-            />
-            <IconBadge
-              icon={<IconArrowDown width={14} height={14} />}
-              className="h-6 w-6"
-              title={t('accounts.routing.moveDown')}
-              aria-label={t('accounts.routing.moveDown')}
-              disabled={busy || i === rows.length - 1}
-              onClick={() => move(r.id, i + 1)}
-            />
+            <span className="flex min-w-0 flex-col">
+              <span className="truncate text-carbon-text">{labelFor(r.id)}</span>
+              {/* A hoster login is not a rung of its own - it makes JDownloader
+                  better at one host rather than opening a new road - so it can
+                  never appear in this list as a row. It was still missing from
+                  the page as far as anybody reading it could tell (jdp,
+                  2026-09-07: "jetzt fehlt zb. ddownload"), so the row that
+                  actually uses those logins names them. */}
+              {r.id === 'jd' && logins.length > 0 && (
+                <span className="truncate text-[11px] text-carbon-textMuted">
+                  {logins.map((l) => l.host).join(', ')}
+                </span>
+              )}
+            </span>
           </li>
         ))}
       </ol>

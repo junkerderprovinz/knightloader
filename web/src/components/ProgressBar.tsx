@@ -8,7 +8,8 @@
 // "der download progressbar soll höher sein und sich der badge form anpassen" -
 // the corner was already right, the height was not).
 //
-// h-4, up from h-2.5 and from h-1.5 before that: it is the download list's own
+// h-5, up from h-4, h-2.5 and h-1.5 before those (jdp, 2026-09-07: "#2198 auf
+// h-5 stellen"): it is the download list's own
 // rightmost column and the one thing on the row somebody watches, so it is
 // drawn at the weight of a control rather than of a hairline. Deliberately
 // under the 32px of an IconBadge - it sits INSIDE a table row, and a bar as
@@ -38,7 +39,7 @@ export function ProgressBar({
   const fill = tone === 'ok' ? 'var(--status-ok-solid)' : 'var(--accent)';
   return (
     <div
-      className="relative h-4 w-full overflow-hidden rounded-[var(--radius-control)] bg-carbon-surface3/70"
+      className="relative h-5 w-full overflow-hidden rounded-[var(--radius-control)] bg-carbon-surface3/70"
       role="progressbar"
       aria-valuemin={0}
       aria-valuemax={100}

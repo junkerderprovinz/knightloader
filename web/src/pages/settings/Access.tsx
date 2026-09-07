@@ -35,7 +35,6 @@ import {
   revealConnect,
   fetchRemoteAccess,
   fetchTokens,
-  logout,
   revokeToken,
   setPassword,
 } from '../../lib/api';
@@ -47,7 +46,6 @@ import {
   IconClipboard,
   IconKey,
   IconPlus,
-  IconSignOut,
   IconTrash,
 } from '../../lib/icons';
 import { useToast } from '../../lib/toast';
@@ -213,7 +211,6 @@ function PasswordCard({ cx }: { cx: (k: PendingKey) => string }) {
   const [next, setNext] = useState('');
   const [done, setDone] = useState(false);
   const [error, setError] = useState('');
-  const [signingOut, setSigningOut] = useState(false);
   // Whether this instance can actually be reached from off this machine -
   // the one fact that turns "no password is set" from a preference into a
   // problem. See routes_remote.go's own doc comment on Exposed.
@@ -292,40 +289,13 @@ function PasswordCard({ cx }: { cx: (k: PendingKey) => string }) {
           >
             {locked ? t('settings.lockOn') : t('settings.lockOff')}
           </span>
-          {/* Only once a password is actually protecting this instance -
-              seeing this page at all already means the current session is
-              authenticated, the same "locked" flag Sidebar.tsx's own sign-out
-              entry reads (jdp, 2026-08-26: "Wenn man ein passwort gesetzt hat
-              muss man sich doch auch auslogen können oder? dafür fehlt ein
-              button" - right here on the card that sets the password, not
-              only tucked into the sidebar). */}
-          {locked && (
-            <Button
-              // A real button, not a ghost (jdp, 2026-09-06: "der abmelden
-              // button daneben soll auch ein button sien"). Ghost carries no
-              // ground at all, so beside a plain sentence it read as a second
-              // piece of that sentence rather than as the control it is.
-              kind="secondary"
-              icon={<IconSignOut width={15} height={15} />}
-              disabled={signingOut}
-              onClick={async () => {
-                setSigningOut(true);
-                try {
-                  await logout();
-                  location.reload();
-                } catch (e) {
-                  // A failed sign-out (offline, a server hiccup) must not
-                  // leave the button looking clicked-but-dead with no
-                  // explanation - the same gap Sidebar.tsx's own identical
-                  // call has, not repeated silently here a second time.
-                  setSigningOut(false);
-                  setError(e instanceof Error ? e.message : String(e));
-                }
-              }}
-            >
-              {t('auth.signOut')}
-            </Button>
-          )}
+          {/* The sign-out button that used to sit here is gone (jdp,
+              2026-09-07: "der abmelden button in der passwort card kann weg").
+              It arrived on 2026-08-26 because the sidebar's own entry was easy
+              to miss; it is not missed any more, and a second copy of one
+              action on the page that sets the password made the card read as
+              two features. The sidebar keeps it, moved above Settings so it
+              sits where a sign-out usually does. */}
           {done && <span className="text-statusOk text-sm">{t('settings.passwordSaved')}</span>}
           {error && <span className="text-statusFail text-sm">{error}</span>}
         </div>
@@ -982,21 +952,31 @@ function ProjectRelayCard({
 
   return (
     <Card hue={2} className="flex flex-col gap-4">
-      <div className="absolute right-5 top-4 z-10 flex items-center gap-2">
-        <LabelBadge
-          label={t('settings.access.relay.seesButton')}
-          tip={paragraphs(t('settings.access.relay.seesTip'))}
-          hue={3}
-        />
-      </div>
+      {/* The badge rides in the title row's own right-hand slot (jdp,
+          2026-09-07: "mich stört das der Was sieht es button den card inhalt
+          nach unten verschiebt"). It used to be absolutely positioned at the
+          card's top-right corner, which put it exactly where the switch below
+          sits - so the content underneath had to be pushed down by pt-7 to get
+          out of its way, and that push was the thing on screen. In the title
+          row it occupies space that already exists and moves nothing.
 
-      <SectionTitle hint={t('settings.access.relay.body')}>{t('settings.access.relay.title')}</SectionTitle>
+          The own-relay card beside it loses its matching pt-7 for the same
+          reason: it only ever carried that padding to stay level with this one,
+          and there is nothing left to be level with. */}
+      <SectionTitle
+        hint={t('settings.access.relay.body')}
+        right={
+          <LabelBadge
+            label={t('settings.access.relay.seesButton')}
+            tip={paragraphs(t('settings.access.relay.seesTip'))}
+            hue={3}
+          />
+        }
+      >
+        {t('settings.access.relay.title')}
+      </SectionTitle>
 
-      {/* pt-7 clears the absolutely positioned badge above, which sits at the
-          right edge exactly where the switch does and covered it. The own-relay
-          card carries the same padding although it has no badge, so the two
-          switches stay level with each other across the pair. */}
-      <div className="pt-7">
+      <div>
         <ToggleRow
           hue={2}
           label={t('settings.access.relay.use')}
@@ -1077,8 +1057,7 @@ function OwnRelayCard({
     <Card hue={3} className="flex flex-col gap-4">
       <SectionTitle hint={t('settings.access.ownRelay.body')}>{t('settings.access.ownRelay.title')}</SectionTitle>
 
-      {/* Same clearance as the card beside it - see that one's comment. */}
-      <div className="pt-7">
+      <div>
         <ToggleRow
           hue={3}
           label={t('settings.access.ownRelay.use')}
