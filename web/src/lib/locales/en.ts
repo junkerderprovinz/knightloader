@@ -1425,8 +1425,7 @@ export const en = {
   'settings.help.schedule.link': 'Open Schedule',
 
   'settings.help.instances.title': 'Running more than one instance',
-  'settings.help.instances.body':
-    'Add another KnightLoader as a peer and its queue shows up on this one’s dashboard too - self-hosted, no relay involved: this instance simply calls that instance’s own API, the same way a browser would.',
+  'settings.help.instances.body': 'Add another KnightLoader as a peer and its queue shows up on this one’s dashboard too. On the same network that is a direct call to the other instance’s own API, the way a browser would make it. Across networks, twelve words pair the two through a relay you can host yourself.',
   'settings.help.instances.link': 'Open Instances',
 
   'settings.help.access.title': 'Access and troubleshooting',

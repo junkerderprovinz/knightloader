@@ -1232,8 +1232,7 @@ export const it: Dict = {
   'settings.help.schedule.link': 'Apri Orari',
 
   'settings.help.instances.title': 'Eseguire più di un’istanza',
-  'settings.help.instances.body':
-    'Aggiungi un altro KnightLoader come pari e la sua coda appare anche su questa bacheca - autogestito, senza alcun relay coinvolto: questa istanza chiama semplicemente l’API dell’altra istanza, proprio come farebbe un browser.',
+  'settings.help.instances.body': 'Aggiungi un altro KnightLoader come pari e la sua coda compare anche su questo pannello. Sulla stessa rete è una chiamata diretta all\'API dell\'altra istanza, come la farebbe un browser. Tra reti diverse, dodici parole accoppiano le due tramite un relay che puoi ospitare tu.',
   'settings.help.instances.link': 'Apri Istanze',
 
   'settings.help.access.title': 'Accesso e risoluzione dei problemi',

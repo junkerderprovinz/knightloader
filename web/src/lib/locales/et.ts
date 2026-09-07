@@ -1240,8 +1240,7 @@ export const et: Dict = {
   'settings.help.schedule.link': 'Ava ajakava',
 
   'settings.help.instances.title': 'Rohkem kui ühe instantsi käitamine',
-  'settings.help.instances.body':
-    'Lisa teine KnightLoader partnerina ja selle järjekord ilmub ka sellele armatuurlauale - ise majutatud, ilma releeta: see instants lihtsalt kutsub teise instantsi API-t, samamoodi nagu brauser seda teeks.',
+  'settings.help.instances.body': 'Lisa teine KnightLoader partneriks ja tema järjekord ilmub ka sellele töölauale. Samas võrgus on see otsekutse teise instantsi enda API-le, nagu brauser seda teeks. Üle võrkude seob kaksteist sõna need kaks releega, mida saad ise majutada.',
   'settings.help.instances.link': 'Ava instantsid',
 
   'settings.help.access.title': 'Ligipääs ja tõrkeotsing',

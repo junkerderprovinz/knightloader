@@ -1240,8 +1240,7 @@ export const ja: Dict = {
   'settings.help.schedule.link': 'スケジュールを開く',
 
   'settings.help.instances.title': '複数のインスタンスを実行する',
-  'settings.help.instances.body':
-    '別のKnightLoaderをピアとして追加すると、そのキューもこのダッシュボードに表示されます。自己ホスト型で、リレーは一切関与しません。このインスタンスは、ブラウザーが行うのと同じ方法で、もう一方のインスタンスのAPIを単に呼び出すだけです。',
+  'settings.help.instances.body': '別の KnightLoader をピアとして追加すると、そのキューがこのダッシュボードにも並びます。同じネットワークなら、ブラウザーがするのと同じく相手のインスタンスの API を直接呼びます。ネットワークをまたぐ場合は、十二語が自分でも運用できるリレーを介して両者を結びます。',
   'settings.help.instances.link': 'インスタンスを開く',
 
   'settings.help.access.title': 'アクセスとトラブルシューティング',

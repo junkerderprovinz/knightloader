@@ -1232,8 +1232,7 @@ export const es: Dict = {
   'settings.help.schedule.link': 'Abrir Horario',
 
   'settings.help.instances.title': 'Ejecutar más de una instancia',
-  'settings.help.instances.body':
-    'Añade otro KnightLoader como par y su cola también aparece en este panel - autoalojado, sin ningún relé de por medio: esta instancia simplemente llama a la API de la otra instancia, igual que lo haría un navegador.',
+  'settings.help.instances.body': 'Añade otro KnightLoader como par y su cola aparece también en este panel. En la misma red es una llamada directa a la API de la otra instancia, igual que la haría un navegador. Entre redes, doce palabras emparejan las dos a través de un relé que puedes alojar tú mismo.',
   'settings.help.instances.link': 'Abrir Instancias',
 
   'settings.help.access.title': 'Acceso y solución de problemas',

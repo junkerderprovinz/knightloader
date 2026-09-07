@@ -1240,8 +1240,7 @@ export const is: Dict = {
   'settings.help.schedule.link': 'Opna Tímaáætlun',
 
   'settings.help.instances.title': 'Keyra fleiri en eitt tilvik',
-  'settings.help.instances.body':
-    'Bættu við öðru KnightLoader sem jafningja og biðröð þess birtist líka á þessu mælaborði - sjálfhýst, ekkert gengi með í för: þetta tilvik kallar einfaldlega á API hins tilviksins, á sama hátt og vafri myndi gera.',
+  'settings.help.instances.body': 'Bættu öðrum KnightLoader við sem jafningja og biðröð hans birtist líka á þessu mælaborði. Á sama neti er það beint kall í API hins tilviksins, eins og vafri myndi gera. Milli neta para tólf orð þau tvö saman gegnum endurvarpa sem þú getur hýst sjálfur.',
   'settings.help.instances.link': 'Opna Tilvik',
 
   'settings.help.access.title': 'Aðgangur og bilanaleit',

@@ -1240,8 +1240,7 @@ export const sv: Dict = {
   'settings.help.schedule.link': 'Öppna Schema',
 
   'settings.help.instances.title': 'Köra mer än en instans',
-  'settings.help.instances.body':
-    'Lägg till ytterligare en KnightLoader som peer, så dyker dess kö också upp på denna instrumentpanel - självhostat, ingen relä inblandad: den här instansen anropar helt enkelt den andra instansens egna API, på samma sätt som en webbläsare skulle göra.',
+  'settings.help.instances.body': 'Lägg till en annan KnightLoader som motpart, så dyker dess kö upp på den här panelen också. I samma nätverk är det ett direkt anrop till den andra instansens eget API, precis som en webbläsare skulle göra. Över nätverksgränser parar tolv ord ihop de två via ett relä du kan driva själv.',
   'settings.help.instances.link': 'Öppna Instanser',
 
   'settings.help.access.title': 'Åtkomst och felsökning',

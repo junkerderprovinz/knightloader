@@ -1243,8 +1243,7 @@ export const de: Dict = {
   'settings.help.schedule.link': 'Zeitplan öffnen',
 
   'settings.help.instances.title': 'Mehr als eine Instanz betreiben',
-  'settings.help.instances.body':
-    'Ein weiteres KnightLoader als Partner hinzufügen, und dessen Warteschlange erscheint auch auf diesem Dashboard hier - selbst gehostet, kein Relay beteiligt: Diese Instanz ruft einfach die API der anderen Instanz auf, genauso wie es ein Browser täte.',
+  'settings.help.instances.body': 'Ein weiteres KnightLoader als Partner hinzufügen, und dessen Warteschlange erscheint auch auf diesem Dashboard. Im selben Netz ist das ein direkter Aufruf der API der anderen Instanz, genauso wie es ein Browser täte. Über Netzgrenzen hinweg verbinden zwölf Wörter die beiden über ein Relay, das du selbst betreiben kannst.',
   'settings.help.instances.link': 'Instanzen öffnen',
 
   'settings.help.access.title': 'Zugriff und Fehlersuche',

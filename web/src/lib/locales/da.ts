@@ -1240,8 +1240,7 @@ export const da: Dict = {
   'settings.help.schedule.link': 'Åbn Tidsplan',
 
   'settings.help.instances.title': 'Køre mere end én instans',
-  'settings.help.instances.body':
-    'Tilføj en anden KnightLoader som peer, og dens kø dukker også op på dette dashboard - selv-hostet, ingen relæ involveret: denne instans kalder blot den anden instans’ egen API, på samme måde som en browser ville gøre.',
+  'settings.help.instances.body': 'Tilføj en anden KnightLoader som modpart, og dens kø dukker også op på dette dashboard. På samme netværk er det et direkte kald til den anden instans\' eget API, som en browser ville gøre det. På tværs af netværk parrer tolv ord de to gennem et relay, du kan hoste selv.',
   'settings.help.instances.link': 'Åbn Instanser',
 
   'settings.help.access.title': 'Adgang og fejlfinding',

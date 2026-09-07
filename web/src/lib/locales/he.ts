@@ -1242,8 +1242,7 @@ export const he: Dict = {
   'settings.help.schedule.link': 'פתח לוח זמנים',
 
   'settings.help.instances.title': 'הרצת יותר ממופע אחד',
-  'settings.help.instances.body':
-    'הוסף KnightLoader נוסף כעמית, והתור שלו יופיע גם בלוח הבקרה הזה - מתארח עצמאית, ללא שום ממסר מעורב: המופע הזה פשוט קורא ל-API של המופע האחר, באותו אופן שדפדפן היה עושה.',
+  'settings.help.instances.body': 'הוסף KnightLoader נוסף כעמית והתור שלו יופיע גם בלוח הזה. באותה רשת זו קריאה ישירה ל-API של המופע האחר, בדיוק כפי שדפדפן היה עושה. בין רשתות, שתים עשרה מילים מזווגות את השניים דרך ממסר שאפשר לארח בעצמך.',
   'settings.help.instances.link': 'פתח מופעים',
 
   'settings.help.access.title': 'גישה ופתרון תקלות',

@@ -1240,8 +1240,7 @@ export const lv: Dict = {
   'settings.help.schedule.link': 'Atvērt Grafiku',
 
   'settings.help.instances.title': 'Vairāk nekā vienas instances darbināšana',
-  'settings.help.instances.body':
-    'Pievienojiet citu KnightLoader kā vienaudzi, un tā rinda parādīsies arī šajā panelī - pašmitināts, bez retranslatora iesaistes: šī instance vienkārši izsauc otras instances API, tāpat kā to darītu pārlūkprogramma.',
+  'settings.help.instances.body': 'Pievieno vēl vienu KnightLoader kā partneri, un tā rinda parādīsies arī šajā panelī. Tajā pašā tīklā tas ir tiešs izsaukums otras instances API, tāpat kā to darītu pārlūks. Starp tīkliem divpadsmit vārdi savieno abas caur releju, ko vari mitināt pats.',
   'settings.help.instances.link': 'Atvērt Instances',
 
   'settings.help.access.title': 'Piekļuve un problēmu novēršana',

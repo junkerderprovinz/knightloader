@@ -1240,8 +1240,7 @@ export const lt: Dict = {
   'settings.help.schedule.link': 'Atverti Tvarkaraštį',
 
   'settings.help.instances.title': 'Daugiau nei vieno egzemplioriaus paleidimas',
-  'settings.help.instances.body':
-    'Pridėkite kitą KnightLoader kaip partnerį, ir jo eilė taip pat pasirodys šiame skydelyje - savarankiškai talpinama, be jokio retransliatoriaus: šis egzempliorius tiesiog iškviečia kito egzemplioriaus API, taip pat, kaip tai darytų naršyklė.',
+  'settings.help.instances.body': 'Pridėk kitą KnightLoader kaip partnerį ir jo eilė atsiras ir šioje skydelyje. Tame pačiame tinkle tai tiesioginis kreipimasis į kito egzemplioriaus API, kaip tai darytų naršyklė. Tarp tinklų dvylika žodžių suporuoja abu per relę, kurią gali priglobti pats.',
   'settings.help.instances.link': 'Atverti Egzempliorius',
 
   'settings.help.access.title': 'Prieiga ir trikčių šalinimas',

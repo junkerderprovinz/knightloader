@@ -1240,8 +1240,7 @@ export const fi: Dict = {
   'settings.help.schedule.link': 'Avaa Aikataulu',
 
   'settings.help.instances.title': 'Useamman kuin yhden instanssin ajaminen',
-  'settings.help.instances.body':
-    'Lisää toinen KnightLoader vertaisena, ja sen jono ilmestyy myös tähän kojelautaan - itse isännöity, ei välitystä mukana: tämä instanssi vain kutsuu toisen instanssin API:a, samalla tavalla kuin selain tekisi.',
+  'settings.help.instances.body': 'Lisää toinen KnightLoader vertaiseksi, ja sen jono näkyy myös tällä työpöydällä. Samassa verkossa se on suora kutsu toisen instanssin omaan rajapintaan, aivan kuten selain sen tekisi. Verkkojen välillä kaksitoista sanaa parittaa nämä kaksi välityspalvelimen kautta, jonka voit isännöidä itse.',
   'settings.help.instances.link': 'Avaa Instanssit',
 
   'settings.help.access.title': 'Pääsy ja vianmääritys',

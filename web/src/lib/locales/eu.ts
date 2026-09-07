@@ -1240,8 +1240,7 @@ export const eu: Dict = {
   'settings.help.schedule.link': 'Ireki Ordutegia',
 
   'settings.help.instances.title': 'Instantzia bat baino gehiago exekutatzea',
-  'settings.help.instances.body':
-    'Gehitu beste KnightLoader bat parekide gisa, eta bere ilara ere agertzen da panel honetan - norberak ostatatua, erreleirik gabe: instantzia honek bestearen APIa deitzen du besterik gabe, nabigatzaile batek egingo lukeen bezalaxe.',
+  'settings.help.instances.body': 'Gehitu beste KnightLoader bat kide gisa eta haren ilara aginte-mahai honetan ere agertuko da. Sare berean beste instantziaren APIrako zuzeneko deia da, nabigatzaile batek egingo lukeen bezala. Sareen artean, hamabi hitzek biak lotzen dituzte zeuk ostatatu dezakezun errele baten bidez.',
   'settings.help.instances.link': 'Ireki Instantziak',
 
   'settings.help.access.title': 'Sarbidea eta arazoen konponketa',

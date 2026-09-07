@@ -1240,8 +1240,7 @@ export const ms: Dict = {
   'settings.help.schedule.link': 'Buka Jadual',
 
   'settings.help.instances.title': 'Menjalankan lebih daripada satu instans',
-  'settings.help.instances.body':
-    'Tambah KnightLoader lain sebagai rakan sebaya, dan baris gilirnya turut muncul pada papan pemuka ini - dihoskan sendiri, tanpa geganti yang terlibat: instans ini hanya memanggil API instans lain, dengan cara yang sama seperti pelayar akan lakukan.',
+  'settings.help.instances.body': 'Tambah satu lagi KnightLoader sebagai rakan dan baris giliranya muncul pada papan pemuka ini juga. Dalam rangkaian yang sama ia panggilan terus ke API instans yang satu lagi, seperti yang dilakukan pelayar. Merentas rangkaian, dua belas patah perkataan memasangkan kedua-duanya melalui relay yang boleh kamu hos sendiri.',
   'settings.help.instances.link': 'Buka Instans',
 
   'settings.help.access.title': 'Akses dan penyelesaian masalah',

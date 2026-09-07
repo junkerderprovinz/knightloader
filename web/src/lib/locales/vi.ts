@@ -1240,8 +1240,7 @@ export const vi: Dict = {
   'settings.help.schedule.link': 'Mở Lịch',
 
   'settings.help.instances.title': 'Chạy nhiều hơn một thực thể',
-  'settings.help.instances.body':
-    'Thêm một KnightLoader khác làm đối tác, và hàng đợi của nó cũng xuất hiện trên bảng điều khiển này - tự lưu trữ, không có relay nào tham gia: thực thể này chỉ đơn giản gọi API của thực thể kia, theo cùng cách mà một trình duyệt sẽ làm.',
+  'settings.help.instances.body': 'Thêm một KnightLoader khác làm máy ngang hàng, hàng đợi của nó cũng hiện trên bảng điều khiển này. Trong cùng mạng, đó là lời gọi trực tiếp tới API của máy kia, đúng như trình duyệt vẫn làm. Qua các mạng khác nhau, mười hai từ ghép đôi hai máy qua một bộ tiếp sức mà bạn có thể tự vận hành.',
   'settings.help.instances.link': 'Mở Thực thể',
 
   'settings.help.access.title': 'Truy cập và khắc phục sự cố',

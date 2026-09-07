@@ -1239,8 +1239,7 @@ export const zh: Dict = {
   'settings.help.schedule.link': '打开计划',
 
   'settings.help.instances.title': '运行多个实例',
-  'settings.help.instances.body':
-    '添加另一个 KnightLoader 作为对等节点，它的队列也会出现在这个仪表盘上 - 自托管，不涉及任何中继：此实例只是像浏览器那样调用另一个实例的 API。',
+  'settings.help.instances.body': '把另一台 KnightLoader 添加为对端，它的队列也会出现在这块面板上。在同一网络里，这是直接调用对方实例自己的 API，和浏览器的做法一样。跨网络时，十二个词通过一个你可以自建的中继把两者配对。',
   'settings.help.instances.link': '打开实例',
 
   'settings.help.access.title': '访问与故障排除',
