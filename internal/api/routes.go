@@ -76,6 +76,7 @@ func registerAll(reg *Registry, a *app.App) {
 	registerHelp(reg, a)
 	registerTorrents(reg, a)
 	registerDownloadClient(reg, a)
+	registerActivity(reg, a)
 }
 
 // AnyMethod is the method of a route that answers whatever it is sent, because

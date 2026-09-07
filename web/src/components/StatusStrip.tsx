@@ -1,8 +1,8 @@
-import { useEffect, useState, type ReactElement } from 'react';
-import { connectWS } from '../lib/api';
+import { useCallback, useEffect, useState, type ReactElement } from 'react';
+import { abortActivity, connectWS } from '../lib/api';
 import { useT } from '../lib/i18n';
-import { IconArchive, IconCaptcha, IconCheck, IconGlobe, IconSearch } from '../lib/icons';
-import { InfoBubble } from './ui';
+import { IconArchive, IconCaptcha, IconCheck, IconClose, IconGlobe, IconSearch } from '../lib/icons';
+import { Button, InfoBubble } from './ui';
 
 type Translate = ReturnType<typeof useT>['t'];
 
@@ -33,6 +33,22 @@ export interface ActivitySignal {
   kind: ActivityKind;
   active: number;
   total: number;
+  /**
+   * How many of the active runs registered a stop handle, and therefore
+   * whether this row gets a stop button at all.
+   *
+   * A count and not a flag because that is what the server derives it from -
+   * the very map its abort route walks - so the button can never be offered
+   * for work that has nothing to call off. Not every kind can have one: a
+   * captcha poll is a timer nobody waits on and an auto-confirm pass is over
+   * before a button could be pressed, while a page crawl is minutes of
+   * somebody else's server not answering.
+   *
+   * Optional on the type because a server older than the field simply does not
+   * send it, and an absent count has to read as "nothing to stop" rather than
+   * as a button that answers 400.
+   */
+  cancellable?: number;
 }
 
 /**
@@ -113,6 +129,18 @@ export function StatusStrip() {
   const { t } = useT();
   const [signals, setSignals] = useState<Partial<Record<ActivityKind, ActivitySignal>>>({});
 
+  // Nothing is done with the answer, deliberately, and nothing is caught into
+  // a toast either. The row IS the feedback: the server broadcasts the new
+  // counters the moment the run unwinds, so a successful stop makes the row
+  // disappear on its own, and a stop that found nothing left to cancel was
+  // pressed on a run that had already finished - which is the same outcome the
+  // person wanted and not a failure to report.
+  const stop = useCallback((kind: ActivityKind) => {
+    void abortActivity(kind).catch(() => {
+      /* the row stays until the server says otherwise, which is the truth */
+    });
+  }, []);
+
   useEffect(() => {
     // 'activitySnapshot' is not in kinds below and still arrives every time:
     // the server sends it with Hub.SendTo, not Broadcast, which bypasses a
@@ -154,6 +182,19 @@ export function StatusStrip() {
                 the bubble adds the one thing they don't say: active vs. total
                 for the whole run, not just this instant's count. */}
             <InfoBubble tip={t('activity.tooltipHint', { active: s.active, total: s.total })} />
+            {/* Shown only while the server says there is something to call off,
+                which for a three-level crawl of a slow site is the difference
+                between waiting five minutes and not. A button on a row that
+                cannot be stopped would be one that does nothing when pressed. */}
+            {(s.cancellable ?? 0) > 0 && (
+              <Button
+                kind="ghost"
+                className="px-1"
+                title={t('activity.stop')}
+                icon={<IconClose width={12} height={12} />}
+                onClick={() => stop(s.kind)}
+              />
+            )}
           </div>
         ))}
       </div>
