@@ -655,6 +655,18 @@ func (a *App) taskDir(taskID string) string {
 	return a.dirFor(c)
 }
 
+// TaskFolder is taskDir for callers outside this package: the folder this
+// task's bytes land in, worked out the same way the backends work it out, so
+// nothing has to reproduce the DownloadDir/SubfolderByPackage/template rules a
+// second time and get one of them wrong.
+//
+// An empty id answers the default folder, because taskDir hands a nil task to
+// dirFor and dirFor's first line answers defaultDir() for one. That is the
+// honest reading of "where would a task with no folder of its own go", and it
+// is what the SABnzbd bridge reports as complete_dir - see
+// internal/api/routes_downloadclient.go.
+func (a *App) TaskFolder(id string) string { return a.taskDir(id) }
+
 // spawn runs f on its own goroutine and makes Close wait for it.
 //
 // The long-lived upkeep loop was counted on a.wg from the start; the short-lived

@@ -130,6 +130,25 @@ type Settings struct {
 	// meaning for off), not a spelling picked from the plan's prose.
 	PreParserEnabled bool `json:"preParserEnabled"`
 
+	// DownloadClientAPI opens the SABnzbd-shaped door Sonarr and Radarr can
+	// be pointed at - see internal/api/routes_downloadclient.go for what it
+	// speaks and why that protocol was chosen.
+	//
+	// OFF by default, and this is the one field in this struct where the
+	// default is a security decision rather than a "behave as you always
+	// have" decision. Everything else here changes how downloads this
+	// instance was already asked for are handled; this one lets a program on
+	// the network CREATE downloads and DELETE finished files. A fresh install
+	// must not have that door standing open because a default said so, in
+	// exactly the way Reconnect just below is off by default because it runs
+	// a program on the router.
+	//
+	// Switching it on is still not enough on its own: the route refuses every
+	// request that does not carry a valid API token (internal/apitoken), even
+	// on an instance with no password set at all, so turning this on and
+	// forgetting to hand out a token opens nothing.
+	DownloadClientAPI bool `json:"downloadClientApi"`
+
 	// Shape is how rounded the whole interface is: "round", "soft" or "square".
 	// One knob drives every corner, so the app never looks half-converted.
 	Shape string `json:"shape"`
