@@ -118,3 +118,131 @@ type QueueView struct {
 func IsQueueIdle(v QueueView) bool {
 	return v.Files == v.Disabled
 }
+
+// PackageView is what TriggerPackageDone carries: which package finished and
+// how it went. It is COUNTS AND NOT A VERDICT, and that is the whole design
+// decision behind this event.
+//
+// "The package is done" is not the same claim as "every file in it worked".
+// A package holding one dead link would never finish under the stricter
+// reading, so the trigger that exists to say "the last part has landed,
+// go and unpack it" would be exactly the trigger a broken link switches off
+// forever. So the event fires when there is nothing left to WAIT for, and
+// the counts below let the script decide what it thinks of that:
+//
+//	if (pkg.failed > 0) { notify(pkg.name + ": " + pkg.failed + " missing"); return; }
+//
+// Done + Failed + Skipped + Disabled does not have to add up to Files, and
+// reading it as a partition is the one mistake to avoid: Disabled overlaps
+// the other three (a file the user switched off after it had already
+// finished is both), and Files counts every task in the package including
+// ones in none of the four buckets, such as a link still sitting in the
+// collector at the moment a different package member settled.
+type PackageView struct {
+	Name  string `json:"name"`
+	Files int    `json:"files"`
+	Done  int    `json:"done"`
+	// Failed is files that settled as failed with no retry pending - the
+	// same "final word only" reading ClassifyTaskUpdate applies to
+	// task.failed, so a file merely between two backoff attempts counts as
+	// pending and holds the whole event off rather than being reported as
+	// lost.
+	Failed int `json:"failed"`
+	// Skipped is files the link filter is holding. They are counted so a
+	// script can say "and four links were filtered out", and they never hold
+	// the event off: a held link is not work in progress, it is a decision
+	// waiting for a person who may never make it.
+	Skipped int `json:"skipped"`
+	// Disabled is files the user switched off. Same treatment as Skipped and
+	// for the same reason app_idle.go's queueIdleForAction subtracts them:
+	// "not right now" from the person who owns the queue is not owed work.
+	Disabled int `json:"disabled"`
+	// Bytes is what the package actually pulled down, summed over every file
+	// in it - Loaded and not Size, so a package with a failed half-file
+	// reports what is on the disk rather than what was advertised.
+	Bytes int64 `json:"bytes"`
+}
+
+// ExtractView is what TriggerExtractDone carries: one finished unpacking, in
+// the shape app.ExtractJob already publishes to the browser, minus the
+// fields that only mean something while it is still running (Archive, Depth,
+// the timestamps). A script asking "what came out of that archive" wants
+// Files and Bytes; a script asking "why did it not work" wants Error and
+// Password, which is the one failure with an obvious next step.
+type ExtractView struct {
+	JobID   string `json:"jobId"`
+	TaskID  string `json:"taskId,omitempty"`
+	Name    string `json:"name"`
+	Dir     string `json:"dir"`
+	Package string `json:"package,omitempty"`
+	OK      bool   `json:"ok"`
+	Error   string `json:"error,omitempty"`
+	// Password is the failure being a missing or wrong archive password
+	// rather than a broken archive - the one case where typing something in
+	// and pressing start again fixes it.
+	Password bool  `json:"password,omitempty"`
+	Files    int   `json:"files"`
+	Bytes    int64 `json:"bytes"`
+	Nested   int   `json:"nested,omitempty"`
+}
+
+// ReconnectView is what TriggerReconnectDone carries. OK and Changed are two
+// separate answers on purpose: internal/reconnect's ErrUnchanged means the
+// run did everything it was told to and the address stayed put, which is a
+// working configuration that achieved nothing - a different problem from a
+// run that could not reach the router at all, and one a script should be
+// able to tell apart without parsing Error.
+//
+// From and To are plain strings rather than netip.Addr for the decoupling
+// reason TaskView's own doc comment gives, and empty when the run never got
+// far enough to read an address.
+type ReconnectView struct {
+	OK      bool   `json:"ok"`
+	Changed bool   `json:"changed"`
+	From    string `json:"from,omitempty"`
+	To      string `json:"to,omitempty"`
+	Error   string `json:"error,omitempty"`
+	// Checks is how many times the address was polled after the method ran,
+	// which is the one number that says whether a failed run gave up
+	// immediately or waited out its whole budget.
+	Checks int `json:"checks"`
+}
+
+// AccountView is what TriggerAccountExpired carries. Account is "" for a
+// service's default login and the account id for a second one on the same
+// service, which is the same distinction resolver.SlotID draws - a person
+// with two AllDebrid keys needs to know WHICH one lapsed, and "alldebrid"
+// alone does not say.
+type AccountView struct {
+	Service string `json:"service"`
+	Account string `json:"account,omitempty"`
+	// Label is the name the user gave this account, empty when they never
+	// gave one. It is what a notification should read out; Service and
+	// Account are what a script should branch on.
+	Label string `json:"label,omitempty"`
+	Tier  string `json:"tier,omitempty"`
+	// Expiry is RFC3339, matching app.AccountHealth.Expiry exactly - the
+	// same string the accounts page already shows, not a re-formatted one.
+	Expiry string `json:"expiry,omitempty"`
+}
+
+// CaptchaView is what TriggerCaptchaPending carries: enough to say what is
+// waiting and where, never the challenge payload itself. The image data, the
+// site key and the context URL are all deliberately absent - a script cannot
+// answer a captcha (there is no such Action, and the package doc comment's
+// "no HTTP API" entry says why one solved by a script's own outbound request
+// is not a thing this sandbox offers), so handing it the material to try
+// would only be an exfiltration route with no legitimate use behind it.
+type CaptchaView struct {
+	ID     string `json:"id"`
+	TaskID string `json:"taskId,omitempty"`
+	Host   string `json:"host"`
+	// Kind is captcha.Kind's own string ("image", "click", "widget",
+	// "unsupported"), copied rather than imported for the reason TaskView's
+	// doc comment gives.
+	Kind   string `json:"kind"`
+	Prompt string `json:"prompt,omitempty"`
+	// ExpiresAt is RFC3339, or "" when the challenge carries no deadline.
+	// It is the field a "you have two minutes" notification needs.
+	ExpiresAt string `json:"expiresAt,omitempty"`
+}

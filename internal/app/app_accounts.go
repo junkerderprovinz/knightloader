@@ -1294,8 +1294,16 @@ func (a *App) refreshOneAccountHealth(st *accountHealthState, svc accounts.Servi
 		return
 	}
 	st.mu.Lock()
+	prev, had := st.rows[metaKey(svc.ID, account)]
 	st.rows[metaKey(svc.ID, account)] = health
 	st.mu.Unlock()
+	// Both readings, so the decision to fire can be about the CROSSING and
+	// not about the state - see fireAccountExpiry (app_script.go) for why a
+	// sweep that runs every fifteen minutes for the life of the process
+	// cannot fire on "this account is expired". Outside st.mu: publishing
+	// delivers on this goroutine, and a subscriber must never inherit a lock
+	// the read path (accountHealth) takes on every accounts-page render.
+	a.fireAccountExpiry(svc.ID, account, prev, had, health)
 }
 
 // accountInfoFetcher is the seam refreshOneAccountHealth calls through rather
