@@ -54,8 +54,19 @@ func fixedPrefix(dir string) string {
 	if out := strings.Join(keep, sep); out != "" {
 		return out
 	}
-	// Everything after the root is a placeholder; the root is what is left.
-	return sep
+	// Everything after the root is a placeholder, so the root is what is left -
+	// but ONLY when there was a root. "<jd:packagename>/unpacked" has no fixed
+	// part at all and has to stay relative.
+	//
+	// Returning the bare separator for that case made the answer depend on the
+	// platform, which is the worst kind of wrong here: filepath.IsAbs("/") is
+	// true on Linux and filepath.IsAbs(`\`) is false on Windows, so the same
+	// template was accepted by the container and refused by the desktop build.
+	// Found by a settings test that was green on Windows and red in CI.
+	if strings.HasPrefix(normalised, sep) {
+		return sep
+	}
+	return ""
 }
 
 // Validate reports why a download directory cannot be used, so the API can
