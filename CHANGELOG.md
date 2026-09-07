@@ -43,6 +43,20 @@ submission and for a fixed download.
 
 ### Added
 
+- **Your own servers as a source: FTP, FTPS, SFTP and WebDAV.** A seedbox, a NAS
+  or your own Nextcloud is now a link like any other. `ftp://`, `ftps://`,
+  `sftp://`, `webdav://` and `webdavs://` are staged with the name and size
+  read off the server first, and a plain `https://` link is claimed as WebDAV
+  only when an account exists for that exact host, so nothing ordinary is taken
+  over. A link to a folder becomes one task per file inside it, subfolders
+  included, the way a torrent's file list already did. Paused downloads
+  continue where they stopped, by `REST` over FTP, by offset over SFTP and by
+  HTTP range over WebDAV; a server that cannot do it fails loudly rather than
+  quietly appending a second copy of the file to the first. Logins live in the
+  encrypted account store under the server's hostname, never in the link, and a
+  password written into a URL is refused rather than saved to the task list in
+  plain text. An SFTP host key is remembered on first use and has to match after
+  that.
 - **A grip to drag the priority order by**, and the list moves under the pointer
   while you drag rather than jumping when you let go. The two arrow buttons are
   gone; the grip is a real button, so the arrow keys still move a row for anyone

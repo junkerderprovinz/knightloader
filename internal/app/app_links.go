@@ -21,6 +21,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 )
@@ -257,7 +258,10 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 				// did. Which page it was is on Source right beside it, which is also
 				// the only place a rule keyed on "where did this link come from" can
 				// get it.
-				if t := a.stage(c.URL, c.Name, 0, intake{
+				// c.Size is 0 for a page crawl, which stage reads as "no hint"
+				// exactly as it did before the field existed; a remote
+				// directory listing states a real one - see crawler.Result.Size.
+				if t := a.stage(c.URL, c.Name, c.Size, intake{
 					pkg: pkg, origin: OriginCrawl, source: u,
 					priority: batch.Priority, autoExtract: batch.AutoExtract, comment: batch.Comment,
 				}); t != nil {
@@ -631,6 +635,20 @@ func commonStem(names []string) string {
 // crawling is off, when the link is already a file, or when the page yielded
 // nothing — in every one of those cases the link is staged as itself.
 func (a *App) crawl(u string) []crawler.Result {
+	// A folder on the user's own server is expanded BEFORE the Crawl setting
+	// is read, and that is not an oversight.
+	//
+	// "Seiten crawlen" answers one question: may this app fetch an arbitrary
+	// web page somebody pasted, and turn whatever it links to into downloads.
+	// Somebody who switched that off did so about the open internet. A link to
+	// a directory on a seedbox they configured an account for is the same kind
+	// of statement a .torrent's file list is - the link IS the folder, and a
+	// folder cannot be downloaded as one file - so gating it on that setting
+	// would make the feature silently do nothing on any install that has it
+	// off, and the row it left behind would fail later with "this is a folder".
+	if res := a.Registry.For(u); res != nil && res.Info().ID == remotefs.ResolverID {
+		return a.listRemoteDir(res, u)
+	}
 	if !a.Settings.Get().Crawl {
 		return nil
 	}
@@ -669,6 +687,53 @@ func (a *App) crawl(u string) []crawler.Result {
 		return nil
 	}
 	return found
+}
+
+// remoteListTimeout bounds one directory expansion. Longer than the page
+// crawl's own 30 seconds because this walks a tree rather than parsing one
+// document, and an FTP server answering a LIST for each of several nested
+// folders pays a round trip per level - but still bounded, because the user is
+// standing at the paste box while it runs.
+const remoteListTimeout = 60 * time.Second
+
+// listRemoteDir turns a link to a folder on the user's own server into one
+// entry per file inside it, which the caller then stages exactly the way it
+// stages the links a page crawl found.
+//
+// It reports nothing for a link to a single file, which is List's own "(nil,
+// nil) means this is not a folder" answer and the ordinary case: the link is
+// then staged as itself, one task, through the same path it always was.
+//
+// A failure is logged and swallowed, the same as a failed page crawl one
+// function below. The link is staged as itself instead, which for a folder
+// ends in a resolve error naming it as a folder - a row that says what
+// happened, rather than a paste that silently produced nothing at all.
+func (a *App) listRemoteDir(res resolver.Resolver, u string) []crawler.Result {
+	r, ok := res.(remotefs.Resolver)
+	if !ok {
+		return nil
+	}
+	a.beginActivity(ActivityCrawl, 1)
+	defer a.endActivity(ActivityCrawl, 1)
+	ctx, cancel := context.WithTimeout(context.Background(), remoteListTimeout)
+	defer cancel()
+	found, err := r.List(ctx, u)
+	if err != nil {
+		log.Printf("list %s: %v", u, err)
+		return nil
+	}
+	if len(found) == 0 {
+		return nil
+	}
+	// The folder's own name, carried on every entry as the bucket title, so
+	// nameBucket files the batch under it - see remotefs.PackageName for why
+	// the app's own file-name guesser cannot arrive at it.
+	title := remotefs.PackageName(u)
+	out := make([]crawler.Result, 0, len(found))
+	for _, f := range found {
+		out = append(out, crawler.Result{URL: f.URL, Name: f.Name, Size: f.Size, Title: title})
+	}
+	return out
 }
 
 // stage creates one collected task for a URL and is the only way a link enters

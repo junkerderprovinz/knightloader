@@ -457,8 +457,16 @@ export type ServiceKind = 'apiKey' | 'usernamePassword';
  * 'captchaSolver' (accounts.GroupCaptchaSolver) is deliberately not rendered
  * by Accounts.tsx at all - see that group's own Go doc comment - a solver's
  * credential is configured on settings/Captcha.tsx instead.
+ *
+ * 'remoteServer' (accounts.GroupRemoteServer) has no section on this page yet
+ * either, and unlike the solver group it has no other page to go to: a login
+ * for the user's own seedbox, NAS or Nextcloud is stored through
+ * POST /api/accounts today, with the SERVER'S HOSTNAME as the account id.
+ * The value is listed here so the type still matches what the server sends,
+ * which is the point of this union - a group missing from it makes every
+ * catalogue row a lie about its own type.
  */
-export type ServiceGroup = 'debrid' | 'hoster' | 'captchaSolver';
+export type ServiceGroup = 'debrid' | 'hoster' | 'captchaSolver' | 'remoteServer';
 
 /**
  * One entry in the service catalogue GET /api/accounts/catalogue returns -

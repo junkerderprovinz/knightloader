@@ -20,6 +20,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/script"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -757,6 +758,13 @@ func (a *App) backendFor(resolverID string) backend {
 		return b
 	}
 	switch {
+	case resolverID == remotefs.ResolverID && a.remotefs != nil:
+		// Not the engine, even though a WebDAV task's resolved URL is an
+		// ordinary https one the engine could take directly: the backend is
+		// what hands that link on (see remotefs.Backend.Download), and routing
+		// around it here would leave the ftp/sftp half with no backend and the
+		// WebDAV half pausing through a different object than it started on.
+		return a.remotefs
 	case resolverID == "jd" && a.jd != nil:
 		return a.jd
 	case resolverID == "torbox" && a.torbox != nil:

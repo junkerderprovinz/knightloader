@@ -81,6 +81,16 @@ func (a *App) acctHealthTracker() *accounts.Tracker {
 // The resolver id and the catalogue id are the same string by construction
 // (accounts.Service.ID's own doc comment), which is why this can return
 // resolverID unchanged rather than keeping a second table to drift.
+//
+// "remotefs" IS DELIBERATELY ABSENT, and adding it would be a bug rather than
+// an improvement. Every service above is one account for one provider, so
+// benching it is a statement about that provider. The remote-server resolver
+// holds one account PER HOST (accounts.GroupRemoteServer), and this mapping
+// has only "" to offer as an account id - so a seedbox that went down for an
+// hour would bench the resolver itself and take the user's NAS and their
+// Nextcloud with it. Until this function can name the host, "no tracked
+// account" is the honest answer, and it costs nothing: a real failure still
+// fails its own task with the server's own reason.
 func (a *App) accountForResolverLocked(resolverID string) (service, account string, ok bool) {
 	switch resolverID {
 	case "alldebrid", "realdebrid", "torbox", "debridlink", "premiumize", "linksnappy", "offcloud":

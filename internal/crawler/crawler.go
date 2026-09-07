@@ -45,6 +45,15 @@ type Result struct {
 	// page. The alternative is a URL segment, which on listing pages is "index",
 	// "download" or a bare number for a good half of the web.
 	Title string
+	// Size is the byte count the source already stated, 0 when it stated none.
+	//
+	// The HTML crawler never fills it - an anchor on a page says nothing
+	// trustworthy about how large the file behind it is - but a remote
+	// directory listing does (internal/resolver/remotefs), and it is the same
+	// answer the collector would otherwise have to make a second round trip to
+	// learn. 0 is "not stated", never "an empty file": the staging path applies
+	// it as a hint that a real resolve is still free to replace.
+	Size int64
 }
 
 // Crawler turns a page into the links it points at.
