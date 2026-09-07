@@ -1,0 +1,24 @@
+# Secret scanning for this repository.
+#
+# The default rule set does the work; this file exists only to carve out the one
+# fixture that IS a credential by shape and has to stay that way.
+#
+# Why a config file and not a `gitleaks:allow` comment at the line: the scanner
+# reads COMMITS, so an annotation added afterwards does not reach the commit
+# that already carries the line, and the push stays blocked forever. Why not
+# `--no-verify`: that switch turns off gofmt and hadolint along with the secret
+# scan, so a guard you can only disable wholesale is a guard that gets disabled
+# wholesale.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Invented credentials that are test fixtures for the parsers that read them"
+# Scoped to the exact invented pair rather than to the file, so a real secret
+# landing in the same test tomorrow is still caught. internal/resolver/hostheaders
+# parses a pasted `curl -u user:pass` line, which means the fixture has to look
+# exactly like the thing being parsed or the test exercises a parser nobody uses.
+regexes = [
+  '''demo:s3cret''',
+]
