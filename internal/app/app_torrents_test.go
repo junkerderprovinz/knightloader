@@ -14,6 +14,7 @@ import (
 	"github.com/anacrolix/torrent/metainfo"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
+	"github.com/junkerderprovinz/knightloader/internal/testenv"
 )
 
 // newTorrentTestApp mirrors every other file in this package's own test setup
@@ -247,16 +248,21 @@ func TestPastedMagnetGetsTheShortHostBucket(t *testing.T) {
 // that StartTasks -> the dispatch loop -> Engine.Start -> startTorrent ->
 // resolveTorrent is the intact chain this test exercises end to end.
 //
-// Gated on -short because reaching the engine's torrent branch is the same
-// thing as booting gopeed's shared torrent.Client for this process (see
-// Engine.SetTorrentConfig's own comment on initClient), and that client binds
-// a wildcard peer listener - verified here, 0.0.0.0 and [::] on the same port,
-// alongside the app's ordinary loopback proxy. Correct for the real app,
-// pointless for a unit test, and on Windows it is a firewall prompt every
-// single run: go test builds a fresh binary at a fresh temp path each time, so
-// no allow-rule can ever stick to it. Nothing about what this test asserts
-// changes; a plain go test ./... still runs it in full.
+// Reaching the engine's torrent branch is the same thing as booting gopeed's
+// shared torrent.Client for this process (see Engine.SetTorrentConfig's own
+// comment on initClient), and that client binds a wildcard peer listener -
+// verified here, 0.0.0.0 and [::] on the same port, alongside the app's
+// ordinary loopback proxy. Correct for the real app, pointless for a unit test,
+// and on Windows it is a firewall prompt every single run: go test builds a
+// fresh binary at a fresh temp path each time, so no allow-rule can ever stick
+// to it.
+//
+// -short alone did not stop that, because a plain `go test ./...` sets no such
+// flag, which is the command everyone actually runs. So this joins the other
+// wide listeners behind testenv.RequireWideListener and runs in CI, where the
+// dialog cannot exist. Nothing about what the test asserts changes.
 func TestStartTasksThreadsTheSelectionIntoTheEngineJob(t *testing.T) {
+	testenv.RequireWideListener(t)
 	if testing.Short() {
 		t.Skip("this starts a torrent client, which opens a network-facing listener")
 	}
