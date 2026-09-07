@@ -292,6 +292,11 @@ type App struct {
 	// evaluated against, so a stop made at 03:00 is still in force when a window
 	// ends at 06:00 instead of being lifted by it.
 	manualHalt bool
+	// scheduleBaseHalt is the manualHalt scheduleBase last handed to the
+	// schedule runner. It exists only so applySchedule can tell an answer that
+	// was computed before a hard stop from one that was computed after it - see
+	// applySchedule's own comment for the race, and the test beside it.
+	scheduleBaseHalt bool
 	// dupes answers "is this link already in the list". It is not safe for
 	// concurrent use, so every call to it happens under mu.
 	dupes *dedupe.Set

@@ -32,6 +32,32 @@ func serve(t *testing.T, handler func(net.Conn)) Entry {
 				defer func() { _ = c.Close() }()
 				_ = c.SetDeadline(time.Now().Add(5 * time.Second))
 				handler(c)
+				// Do not slam the door on the reply that was just written.
+				//
+				// A handler's last act is a Write, and the deferred Close used to
+				// follow it immediately. Closing a TCP socket with bytes still in
+				// the send buffer can send an RST instead of a FIN, and then the
+				// probe reads nothing and reports "it hung up" rather than the
+				// reply code it was handed - which is a fault in this fixture, not
+				// in the code under test: a real proxy leaves the connection open.
+				//
+				// It surfaced as roughly one failure in eighty runs of
+				// TestProbeSOCKS5ReportsWhyTheProxyWouldNotForward, and never when
+				// that test was run on its own, which is the shape that makes a
+				// flake look like noise.
+				//
+				// Reading until the client hangs up first puts the close on the
+				// right side of the exchange.
+				//
+				// Its OWN short deadline, not the 5s one above: several probes
+				// finish without closing (they have what they came for and let
+				// the connection go out of scope), so draining under the handler
+				// deadline made every one of those tests wait the full five
+				// seconds - measured, the package went from 11s to 310s. A
+				// quarter of a second is far longer than the loopback round trip
+				// this is waiting on and short enough to cost nothing.
+				_ = c.SetReadDeadline(time.Now().Add(250 * time.Millisecond))
+				_, _ = io.Copy(io.Discard, c)
 			}()
 		}
 	}()

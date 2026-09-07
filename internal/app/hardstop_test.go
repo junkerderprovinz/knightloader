@@ -232,3 +232,57 @@ func newStopApp(t *testing.T, concurrent int) *App {
 	}
 	return a
 }
+
+// TestScheduleCannotUndoAHardStop pins the gap the hard stop kept falling
+// through, deterministically rather than one run in twenty.
+//
+// The schedule runner reads its base under the lock, DROPS the lock, evaluates
+// the timetable, and only then applies the answer. Everything that changes the
+// halt in that window is about to be overwritten by a reading taken before it
+// happened - and StopAll lands there: the runner writes back the `false` it
+// read a moment earlier and dispatchLocked hands a waiting task the slot the
+// hard stop just emptied.
+//
+// The interleaving is written out by hand here instead of being raced for. The
+// bug was found as a flake (about 5% of runs of the test above, on this commit
+// and on the one before it), and a test that reproduces it by chance would go
+// on being a flake in the other direction.
+func TestScheduleCannotUndoAHardStop(t *testing.T) {
+	a := newStopApp(t, 2)
+
+	a.mu.Lock()
+	a.tasks["r1"] = &core.Task{ID: "r1", URL: "https://host.example/r1", Status: core.StatusRunning, Enabled: true}
+	a.active["r1"] = true
+	a.started["r1"] = true
+	a.tasks["w1"] = &core.Task{ID: "w1", URL: "https://host.example/w1", Status: core.StatusQueued, Enabled: true}
+	a.queue = append(a.queue, "w1")
+	a.mu.Unlock()
+
+	// 1. The runner reads the base. Nothing is halted yet, so it reads "running".
+	stale := a.scheduleBase()
+	if stale.Paused {
+		t.Fatal("fixture broken: the base should read as running before the stop")
+	}
+
+	// 2. The hard stop lands while the runner is between its read and its apply.
+	a.StopAll()
+
+	// 3. The runner applies the answer it computed from the stale base.
+	a.applySchedule(stale)
+
+	a.mu.Lock()
+	halted := a.halted
+	active := len(a.active)
+	queued := len(a.queue)
+	a.mu.Unlock()
+
+	if !halted {
+		t.Error("the schedule cleared a halt the user had just asked for by hand")
+	}
+	if active != 0 {
+		t.Errorf("%d downloads are running again after the hard stop - the freed slot was refilled", active)
+	}
+	if queued != 2 {
+		t.Errorf("%d tasks waiting, want 2: the stopped transfer and the one already queued", queued)
+	}
+}
