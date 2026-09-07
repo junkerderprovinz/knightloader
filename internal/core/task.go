@@ -512,6 +512,32 @@ type Task struct {
 	// bitrate to target, it copies the source's own). Empty leaves the
 	// bitrate to ffmpeg's own default.
 	AudioBitrate string `json:"audioBitrate,omitempty"`
+	// Category is the named drawer this link is filed in - a folder, a
+	// priority, an unpacking switch, a speed limit and a collision rule under
+	// one word - by the stable id settings.Category carries. Empty is the
+	// ordinary case and means the instance's own answers apply.
+	//
+	// A REFERENCE AND NOT A COPY. It holds the id and never the settings, so a
+	// category renamed, retagged or pointed at a different folder reaches every
+	// task that has not started yet, and one that is deleted leaves its tasks
+	// behaving exactly like untagged ones (settings.CategoryFor answers the
+	// zero category for an id it does not know). The dead id is deliberately
+	// left standing rather than cleared: it is the record that somebody filed
+	// this download under "Serien", it still reads on the list, and a category
+	// re-created under the same id picks its tasks back up. The one value that
+	// IS copied is the folder, written into Dir when the download starts,
+	// because from the first byte onwards that is not a preference any more but
+	// where the file actually is.
+	//
+	// ON THE TASK AND NOT ON THE PACKAGE, which was the question this field
+	// hung on. There is no package entity here - Package is a string, and a
+	// package is whatever set of tasks currently share it - so a field there
+	// would need a table and a lifecycle nothing else has, to hold a value that
+	// has to be resolved per task anyway. It would also make the normal case
+	// inexpressible: a package holding an episode, its subtitle and a sample
+	// spans drawers, and with the category on the package, moving one link into
+	// a package would silently retag it.
+	Category string `json:"category,omitempty"`
 	// ManualPackage marks a package the user chose by hand. Everything that
 	// re-packages links automatically has to leave those alone, or a catch-all
 	// rule quietly undoes the grouping somebody just did.
