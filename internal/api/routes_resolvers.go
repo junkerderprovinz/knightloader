@@ -6,6 +6,7 @@ package api
 // credential, both informational.
 
 import (
+	"encoding/json"
 	"net/http"
 	"strings"
 
@@ -23,12 +24,49 @@ func registerResolvers(reg *Registry, a *app.App) {
 	reg.Add(http.MethodGet, "/api/resolvers/priority",
 		"which configured service is asked first, optionally narrowed to one host (?host=)",
 		func(w http.ResponseWriter, r *http.Request) {
-			host := strings.TrimSpace(r.URL.Query().Get("host"))
-			if host == "" {
-				writeJSON(w, a.Registry.AllInfo())
+			// a.ResolverPriority, not a.Registry's own AllInfo/
+			// PriorityFor: the registry answers its frozen
+			// registration-time order, and dispatch stopped walking that
+			// order when dynamicPrio arrived - see ResolverPriority's own
+			// doc comment.
+			writeJSON(w, a.ResolverPriority(r.URL.Query().Get("host")))
+		})
+
+	// The drag-and-drop half of that same card (jdp, 2026-09-07: "Die
+	// Prioritätsreihenfolge soll per drag and drop anordenbar sein"). An
+	// empty list is not an error, it is the reset: it puts the ladder back
+	// to the automatic order, which is what every install starts with.
+	//
+	// Through PatchSettings rather than the Settings pages' shared draft,
+	// for the same reason the yt-dlp preset below is: this fires from a card
+	// on the Accounts page, which is not the settings shell and holds no
+	// draft, at a moment when a browser tab's own unrelated settings edits
+	// may still be unsaved. A whole-document PUT from here would save those
+	// too.
+	reg.Add(http.MethodPost, "/api/resolvers/priority",
+		"save the hand-arranged order services are asked in; an empty list restores the automatic order",
+		func(w http.ResponseWriter, r *http.Request) {
+			var body struct {
+				Order []string `json:"order"`
+			}
+			if !decodeJSON(w, r, &body) {
 				return
 			}
-			writeJSON(w, a.Registry.PriorityFor(host))
+			raw, err := json.Marshal(body.Order)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			if _, err := a.PatchSettings(map[string]json.RawMessage{"resolverOrder": raw}); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			// The registry's own view, re-read after the save rather than
+			// echoed from the request: sanitize drops blanks and repeats,
+			// so what was stored is not necessarily what was sent, and a
+			// card that redrew from the request would show an order the
+			// server is not using.
+			writeJSON(w, a.ResolverPriority(""))
 		})
 
 	reg.Add(http.MethodGet, "/api/resolvers/jd",

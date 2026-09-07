@@ -93,3 +93,100 @@ func TestNextResolverFallsBackThroughTheSameRankedOrder(t *testing.T) {
 		t.Errorf("nextResolverLocked after jd = %q, want %q (the next entry in the SAME promoted order jd was picked from)", next, "direct")
 	}
 }
+
+// TestHandArrangedOrderOutranksTheAutomaticOne pins the half added on
+// 2026-09-07: settings.ResolverOrder is not a hint the automatic ranking may
+// overrule, it is the answer. The fixture picks the hardest case on purpose -
+// a host with a CONFIRMED-ACTIVE native JD login, which is the one thing that
+// outranks Direct automatically - and puts JD last by hand. If the hand order
+// were merely folded in beside the automatic numbers, JD's activeLoginPrio
+// would still win here and this would fail.
+func TestHandArrangedOrderOutranksTheAutomaticOne(t *testing.T) {
+	a := newQueueApp(t)
+	a.Registry.Register(jd.Resolver{})
+	const host = "priority-app-test-handorder.example"
+	const url = "https://" + host + "/movie.mkv"
+	t.Cleanup(func() { jd.SetHostActive(host, false) })
+	jd.SetHostActive(host, true)
+
+	// Without an order, this host goes to JD - the state the next assertion
+	// is a change FROM, checked rather than assumed.
+	if got := a.resolverForTaskLocked(&core.Task{URL: url}); got == nil || got.Info().ID != "jd" {
+		t.Fatalf("fixture broken: an active native login should route to jd, got %+v", got)
+	}
+
+	cfg := a.Settings.Get()
+	cfg.ResolverOrder = []string{"direct", "jd"}
+	if _, err := a.ApplySettings(cfg); err != nil {
+		t.Fatal(err)
+	}
+
+	got := a.resolverForTaskLocked(&core.Task{URL: url})
+	if got == nil || got.Info().ID != "direct" {
+		t.Fatalf("resolverForTaskLocked = %+v, want direct - a hand-arranged order has to beat even an active native login", got)
+	}
+	if next := a.nextResolverLocked(&core.Task{URL: url, Resolver: "direct"}); next != "jd" {
+		t.Errorf("nextResolverLocked after direct = %q, want %q - the fallback walks the SAME hand-arranged order", next, "jd")
+	}
+}
+
+// TestEmptyHandOrderRestoresTheAutomaticOne is the reset the "Automatisch"
+// button sends: an empty order is not "put everything last", it is "there is
+// no hand order", and the automatic ranking must come back untouched.
+func TestEmptyHandOrderRestoresTheAutomaticOne(t *testing.T) {
+	a := newQueueApp(t)
+	a.Registry.Register(jd.Resolver{})
+	const host = "priority-app-test-handreset.example"
+	const url = "https://" + host + "/movie.mkv"
+	t.Cleanup(func() { jd.SetHostActive(host, false) })
+	jd.SetHostActive(host, true)
+
+	cfg := a.Settings.Get()
+	cfg.ResolverOrder = []string{"direct", "jd"}
+	if _, err := a.ApplySettings(cfg); err != nil {
+		t.Fatal(err)
+	}
+	if got := a.resolverForTaskLocked(&core.Task{URL: url}); got == nil || got.Info().ID != "direct" {
+		t.Fatalf("fixture broken: the hand order should route to direct first, got %+v", got)
+	}
+
+	cfg = a.Settings.Get()
+	cfg.ResolverOrder = nil
+	if _, err := a.ApplySettings(cfg); err != nil {
+		t.Fatal(err)
+	}
+	if got := a.resolverForTaskLocked(&core.Task{URL: url}); got == nil || got.Info().ID != "jd" {
+		t.Fatalf("resolverForTaskLocked = %+v, want jd - clearing the order has to bring the automatic ranking back", got)
+	}
+}
+
+// TestResolverPriorityReportsWhatDispatchWalks pins the card's own read path
+// against the routing it claims to describe. The two used to be different
+// functions answering different questions: /api/resolvers/priority read the
+// registry's frozen order while dispatch read the re-ranked one, so the
+// Prioritätsreihenfolge card could show a ladder the downloader did not use.
+func TestResolverPriorityReportsWhatDispatchWalks(t *testing.T) {
+	a := newQueueApp(t)
+	a.Registry.Register(jd.Resolver{})
+
+	cfg := a.Settings.Get()
+	cfg.ResolverOrder = []string{"jd", "direct"}
+	if _, err := a.ApplySettings(cfg); err != nil {
+		t.Fatal(err)
+	}
+
+	got := a.ResolverPriority("")
+	if len(got) < 2 {
+		t.Fatalf("ResolverPriority returned %d entries, want at least the two registered here", len(got))
+	}
+	if got[0].ID != "jd" || got[1].ID != "direct" {
+		t.Fatalf("ResolverPriority = %q, %q, want jd then direct - the card has to show the hand-arranged order, not the registry's own",
+			got[0].ID, got[1].ID)
+	}
+
+	// And the same answer for a concrete host, narrowed to what matches it.
+	perHost := a.ResolverPriority("priority-app-test-report.example")
+	if len(perHost) == 0 || perHost[0].ID != "jd" {
+		t.Fatalf("ResolverPriority(host) = %+v, want jd first for the same reason", perHost)
+	}
+}

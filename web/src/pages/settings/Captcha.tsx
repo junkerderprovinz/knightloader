@@ -175,7 +175,11 @@ export function Captcha() {
 
   return (
     <div className="flex flex-col gap-10">
-      <PageHeader title={cx('settings.captcha.title')} subtitle={cx('settings.captcha.subtitle')} />
+      {/* No subtitle (jdp, 2026-09-07: "Folgende Infotexte können weg"). The
+          card below is a numbered, drag-sortable list of solvers - a sentence
+          above it explaining that they are tried in order says what the list
+          already shows by being a list. */}
+      <PageHeader title={cx('settings.captcha.title')} />
 
       <Card hue={0} className="flex flex-col gap-1">
         <SectionTitle hint={cx('settings.captcha.orderHint')}>{cx('settings.captcha.orderTitle')}</SectionTitle>

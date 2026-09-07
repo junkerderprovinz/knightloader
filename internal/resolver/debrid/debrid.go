@@ -49,10 +49,9 @@ type TrafficInfo struct {
 	LimitBytes int64
 	Unlimited  bool
 	// UsedPercent is how much of the allowance is spent, 0-100, for a service
-	// that meters in a fraction rather than in bytes. 0 means "not stated" -
-	// the same "empty is unknown" rule LimitBytes already follows - so a
-	// service that quotes bytes leaves it alone and a reader prefers the byte
-	// figure whenever there is one.
+	// that meters in a fraction rather than in bytes. Read it only together
+	// with PercentKnown: 0 is a perfectly ordinary answer ("nothing used yet")
+	// and must not be confused with "the service said nothing".
 	//
 	// It exists because two of the four providers wired in today genuinely
 	// have no byte figure to give: Premiumize quotes limit_used as a fair-use
@@ -61,6 +60,15 @@ type TrafficInfo struct {
 	// made-up byte total for either would put a number on screen that their
 	// own dashboards never show.
 	UsedPercent float64
+	// PercentKnown is whether UsedPercent came from the service at all.
+	//
+	// It exists because of exactly one measurement (jdp, 2026-09-07:
+	// "Verbleibende Volumes werden immer noch nicht angezeigt"): his
+	// Debrid-Link account had used nothing that day, so usagePercent.current
+	// was 0, the reader could not tell that from "no figure at all", and the
+	// column stayed blank on an account whose allowance was completely intact.
+	// A zero that means zero needs a second field to say so.
+	PercentKnown bool
 	// ResetsAt is when the figure above rolls over, or the zero time when the
 	// service does not say. A daily allowance that is nearly spent means
 	// something quite different an hour before the reset than a day before it.

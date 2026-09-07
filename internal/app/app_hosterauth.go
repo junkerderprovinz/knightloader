@@ -22,6 +22,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/hosterauth"
 	jdresolver "github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 )
@@ -72,9 +73,43 @@ func (a *App) StartHosterAuth() {
 	a.spawn(func() { a.hosterAuth().Run(a.ctx) })
 }
 
-// HosterHosts lists the hosts the "add a login" picker offers.
+// HosterHosts lists the hosts the "add a login" picker offers, minus the
+// debrid services, which have a card of their own.
+//
+// JD's plugin list includes real-debrid.com, alldebrid.com and the rest,
+// because JD can indeed hold an account for them - but in KnightLoader they
+// are the OTHER card, with their own API keys, their own routing and their own
+// traffic figures (jdp, 2026-09-07: "Die Debrid konten sollen dann in der liste
+// der hoster nicht mehr angezeigt werden"). Offering the same service in both
+// places invites somebody to configure it twice, in two ways, one of which
+// then quietly loses to the other in the priority order.
 func (a *App) HosterHosts(ctx context.Context) []hosterauth.Host {
-	return a.hosterAuth().Hosts(ctx)
+	skip := debridServiceDomains()
+	all := a.hosterAuth().Hosts(ctx)
+	out := make([]hosterauth.Host, 0, len(all))
+	for _, h := range all {
+		if skip[normaliseIconHost(h.ID)] {
+			continue
+		}
+		out = append(out, h)
+	}
+	return out
+}
+
+// debridServiceDomains is each catalogue debrid service's own domain, taken
+// from the "where do I get a key" link it already carries rather than from a
+// second hand-kept list that could drift from the catalogue.
+func debridServiceDomains() map[string]bool {
+	out := map[string]bool{}
+	for _, svc := range accounts.Catalogue {
+		if svc.Group != accounts.GroupDebrid {
+			continue
+		}
+		if h := normaliseIconHost(svc.WhereURL); h != "" {
+			out[h] = true
+		}
+	}
+	return out
 }
 
 // HosterLogins lists every stored native hoster login and its current

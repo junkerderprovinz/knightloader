@@ -8,6 +8,12 @@
 // the same "JD's UI never shown, everything through JD's API" rule
 // internal/resolver/jd/client.go already follows for every other JD call.
 //
+// The table itself is AccountTable, shared with the debrid card (jdp,
+// 2026-09-07: "bei beiden Cards (Debrid, hoster) sollen die spalten gleich
+// sein"). What this file still owns is the two things that are genuinely
+// different here: the status badge, whose states are about JD accepting a
+// login rather than about a service answering, and the pick-a-host dialogue.
+//
 // Mounted from web/src/pages/Accounts.tsx's HosterLoginsSlot - see that
 // file's comment on the slot for why this is one import and one render call
 // there, not a rewrite of the page around it.
@@ -23,8 +29,9 @@ import {
 } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
-import { Button, EmptyState, Field, IconBadge, InfoBubble, Modal, TextInput, Toggle } from './ui';
-import { IconAccounts, IconPlus, IconSearch, IconTrash } from '../lib/icons';
+import { Button, EmptyState, Field, InfoBubble, Modal, TextInput } from './ui';
+import { AccountTable } from './AccountTable';
+import { IconAccounts, IconPlus, IconSearch } from '../lib/icons';
 import { HosterIcon } from './HosterIcon';
 
 // Faster than ACCOUNTS.HEALTH_POLL_MS (30s): a login this reconciler just
@@ -34,20 +41,26 @@ import { HosterIcon } from './HosterIcon';
 // freshly saved row looking stuck long after JD has already answered.
 const POLL_MS = 8000;
 
+/** What the dialogue is doing: adding a login for a host still to be picked,
+ *  or editing the one that exists for a host already chosen. The password box
+ *  starts on the redaction placeholder in the second case, which the server
+ *  reads as "not retyped" and leaves the stored secret alone. */
+type Dialog = { mode: 'new' } | { mode: 'edit'; login: HosterLogin };
+
 export function HosterLoginSection() {
   const { t } = useT();
   const { toast } = useToast();
   const [logins, setLogins] = useState<HosterLogin[] | null>(null);
   const [hosts, setHosts] = useState<HosterHost[]>([]);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialog, setDialog] = useState<Dialog | null>(null);
 
   const load = useCallback(async () => {
     try {
       setLogins(await fetchHosterLogins());
     } catch {
       // A missed poll leaves the previous rows on screen rather than blanking
-      // a working list - the same choice the debrid/apiKey table above makes
-      // by only flipping loadError on the very first load.
+      // a working list - the same choice the debrid table above makes by only
+      // flipping loadError on the very first load.
     }
   }, []);
 
@@ -64,11 +77,10 @@ export function HosterLoginSection() {
   }, []);
 
   async function onToggle(row: HosterLogin, enabled: boolean) {
-    // Optimistic, the same way the debrid table's own switch is (Accounts.tsx):
-    // the toggle is the row's only feedback, and a spinner over one reads as
-    // broken rather than as busy. The reconcile behind it takes a moment - JD
-    // has to accept or drop the account - and the poll above corrects the row
-    // when it lands.
+    // Optimistic, the same way the debrid table's own switch is: the toggle is
+    // the row's only feedback, and a spinner over one reads as broken rather
+    // than as busy. The reconcile behind it takes a moment - JD has to accept
+    // or drop the account - and the poll above corrects the row when it lands.
     setLogins((cur) => cur?.map((x) => (x.host === row.host ? { ...x, enabled } : x)) ?? cur);
     try {
       await setHosterLoginEnabled(row.host, enabled);
@@ -93,62 +105,25 @@ export function HosterLoginSection() {
   return (
     <div className="flex flex-col gap-3">
       {hasRows && (
-        <div className="glim-well overflow-x-auto p-0">
-          <table className="w-full min-w-[32rem] border-collapse text-sm">
-            <thead>
-              <tr className="text-start text-xs text-carbon-textMuted">
-                {/* The same first column the debrid table above has, and in the
-                    same place (jdp, 2026-09-06: "bei den Hoster logins fehlt
-                    der aktiviert toggle"). Off means the login stays stored
-                    here and is taken out of JDownloader's own account list, so
-                    that hoster is fetched anonymously again until it is
-                    switched back on - see App.SetHosterLoginEnabled. */}
-                <th className="w-12 px-4 py-3 text-start font-medium">{t('accounts.col.enabled')}</th>
-                <th className="px-2 py-3 text-start font-medium">{t('accounts.hoster.col.host')}</th>
-                <th className="px-2 py-3 text-start font-medium">{t('accounts.col.status')}</th>
-                <th className="px-2 py-3 text-start font-medium">{t('accounts.hoster.col.username')}</th>
-                <th className="w-10 px-2 py-3">
-                  <span className="sr-only">{t('accounts.rowActions')}</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-carbon-border/40">
-              {logins?.map((row, i) => (
-                <tr key={row.host} className="group transition-colors hover:bg-carbon-hover">
-                  <td className="px-4 py-3">
-                    <Toggle
-                      checked={row.enabled}
-                      onChange={(v) => void onToggle(row, v)}
-                      label={t('accounts.hoster.enableLogin', { host: row.host })}
-                      hideLabel
-                    />
-                  </td>
-                  <td className="px-2 py-3 font-medium text-carbon-text">
-                    <span className="inline-flex items-center gap-2">
-                      <HosterIcon host={row.host} />
-                      {row.host}
-                    </span>
-                  </td>
-                  <td className="px-2 py-3">
-                    <HosterLoginStatusBadge login={row} />
-                  </td>
-                  <td className="px-2 py-3 text-carbon-textSub">{row.username || '—'}</td>
-                  <td className="px-2 py-3 text-end">
-                    <IconBadge
-                      kind="danger"
-                      hue={i}
-                      className="opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
-                      icon={<IconTrash width={16} height={16} />}
-                      title={t('accounts.remove')}
-                      aria-label={t('accounts.remove')}
-                      onClick={() => void onRemove(row.host)}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <AccountTable
+          label={t('accounts.hoster.title')}
+          rows={(logins ?? []).map((row) => ({
+            key: row.host,
+            iconHost: row.host,
+            label: row.host,
+            enabled: row.enabled,
+            status: <HosterLoginStatusBadge login={row} />,
+            tier: row.tier,
+            expiry: row.expiry,
+            // Bytes or nothing: JD reports trafficLeft and trafficMax and no
+            // percentage at all, so a row whose hoster states no quota shows a
+            // dash rather than a bar with an invented full.
+            traffic: { used: Math.max(0, (row.trafficMax ?? 0) - (row.trafficLeft ?? 0)), limit: row.trafficMax ?? 0 },
+            onToggle: (v) => void onToggle(row, v),
+            onEdit: () => setDialog({ mode: 'edit', login: row }),
+            onRemove: () => void onRemove(row.host),
+          }))}
+        />
       )}
 
       {hasRows ? (
@@ -157,7 +132,7 @@ export function HosterLoginSection() {
           hue={1}
           icon={<IconPlus width={16} height={16} />}
           className="self-start"
-          onClick={() => setDialogOpen(true)}
+          onClick={() => setDialog({ mode: 'new' })}
         >
           {t('accounts.hoster.add')}
         </Button>
@@ -167,15 +142,21 @@ export function HosterLoginSection() {
           icon={<IconAccounts width={26} height={26} />}
           title={t('accounts.hoster.empty')}
           action={
-            <Button kind="secondary" hue={1} icon={<IconPlus width={16} height={16} />} onClick={() => setDialogOpen(true)}>
+            <Button kind="secondary" hue={1} icon={<IconPlus width={16} height={16} />} onClick={() => setDialog({ mode: 'new' })}>
               {t('accounts.hoster.add')}
             </Button>
           }
         />
       )}
 
-      {dialogOpen && (
-        <HosterLoginDialog hosts={hosts} existing={logins ?? []} onClose={() => setDialogOpen(false)} onSaved={load} />
+      {dialog && (
+        <HosterLoginDialog
+          hosts={hosts}
+          existing={logins ?? []}
+          editing={dialog.mode === 'edit' ? dialog.login : undefined}
+          onClose={() => setDialog(null)}
+          onSaved={load}
+        />
       )}
     </div>
   );
@@ -224,23 +205,32 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
   }
 }
 
+/** The placeholder the server reads as "the caller did not retype this"
+ *  (accounts.Redacted). Sent back unchanged, the stored password survives an
+ *  edit that only changed the username. */
+const REDACTED = '********';
+
 function HosterLoginDialog({
   hosts,
   existing,
+  editing,
   onClose,
   onSaved,
 }: {
   hosts: HosterHost[];
   existing: HosterLogin[];
+  editing?: HosterLogin;
   onClose: () => void;
   onSaved: () => Promise<void>;
 }) {
   const { t } = useT();
   const { toast } = useToast();
   const [query, setQuery] = useState('');
-  const [picked, setPicked] = useState<HosterHost | null>(null);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [picked, setPicked] = useState<HosterHost | null>(
+    editing ? { id: editing.host, label: editing.host } : null,
+  );
+  const [username, setUsername] = useState(editing?.username ?? '');
+  const [password, setPassword] = useState(editing ? REDACTED : '');
   const [saving, setSaving] = useState(false);
 
   const configured = new Set(existing.map((e) => e.host));
@@ -328,13 +318,18 @@ function HosterLoginDialog({
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          <button
-            type="button"
-            onClick={() => setPicked(null)}
-            className="self-start text-xs text-carbon-textMuted hover:text-carbon-text"
-          >
-            {t('accounts.changeService')}
-          </button>
+          {/* Only while adding: an edit is about THIS host's credentials, and
+              a "choose a different service" link there would turn a correction
+              into a second, differently-named login. */}
+          {!editing && (
+            <button
+              type="button"
+              onClick={() => setPicked(null)}
+              className="self-start text-xs text-carbon-textMuted hover:text-carbon-text"
+            >
+              {t('accounts.changeService')}
+            </button>
+          )}
 
           <Field label={t('accounts.usernameField')}>
             <TextInput autoComplete="off" value={username} onChange={(e) => setUsername(e.target.value)} />

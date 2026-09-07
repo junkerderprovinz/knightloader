@@ -62,6 +62,22 @@ type LoginState struct {
 	// was ever asked. The row needs both to draw a toggle in the right
 	// position AND a truthful status beside it.
 	Enabled bool `json:"enabled"`
+
+	// What JD knows about the account itself, so the hoster card can show the
+	// columns the debrid card already has (jdp, 2026-09-07: "bei beiden Cards
+	// (Debrid, hoster) sollen die spalten gleich sein"). Every one of them is
+	// optional: JD answers -1 or 0 for an account it has nothing to say about,
+	// and that has to reach the page as "nothing said" rather than as a zero.
+	//
+	// Tier is "premium" or "free", derived from validUntil and trafficMax
+	// because those are the only two things JD reports about a plan - see
+	// jdAccountInfo for the measurement. "" means JD has not answered yet.
+	Tier string `json:"tier,omitempty"`
+	// Expiry is RFC3339, or "" for an account with nothing to expire.
+	Expiry string `json:"expiry,omitempty"`
+	// TrafficLeft and TrafficMax are bytes, 0 when JD states neither.
+	TrafficLeft int64 `json:"trafficLeft,omitempty"`
+	TrafficMax  int64 `json:"trafficMax,omitempty"`
 }
 
 // DesiredLogin is one row Store wants JD to have - the plain half of a
@@ -215,7 +231,9 @@ func plan(desired []DesiredLogin, actual []jdAccount, firstFail map[string]time.
 			p.States[d.Host] = LoginState{Host: d.Host, Username: d.Username, Status: StatusQueued,
 				Detail: "waiting for JDownloader to accept this login"}
 		case acc.InfoMap != nil && acc.InfoMap.Valid:
-			p.States[d.Host] = LoginState{Host: d.Host, Username: d.Username, Status: StatusActive}
+			st := LoginState{Host: d.Host, Username: d.Username, Status: StatusActive}
+			describeAccount(&st, acc.InfoMap)
+			p.States[d.Host] = st
 		default:
 			// JD reports a freshly added account as invalid too, until its own
 			// account checker has had a turn - see rejectGrace's doc comment.
@@ -330,6 +348,35 @@ func (r *Reconciler) Reconcile(ctx context.Context) (Plan, error) {
 		jdresolver.SetKnownHosts(hosts)
 	}
 	return p, nil
+}
+
+// describeAccount folds what JD says about an account into the row: the plan,
+// when it runs out, and how much traffic is left.
+//
+// The plan is DERIVED, and this is the whole of the evidence for it. JD reports
+// six fields and none of them is called "premium" - asking for such a key
+// changes nothing in the answer, which was checked. What it does report is
+// validUntil, a real timestamp on a paid account and -1 on a free one, and
+// trafficMax, a quota that only a plan with one carries. Either of those means
+// premium; neither means free. Measured against jdp's own ddownload account,
+// which is free and answers exactly {validUntil:-1, trafficMax:0}.
+//
+// Milliseconds, not seconds: JD's API states every timestamp in milliseconds,
+// and reading validUntil as seconds would put a 2027 expiry somewhere in 1970 -
+// which the page would then draw as "expired" on a working account.
+func describeAccount(st *LoginState, info *jdAccountInfo) {
+	if info == nil {
+		return
+	}
+	st.TrafficLeft, st.TrafficMax = info.TrafficLeft, info.TrafficMax
+	if info.ValidUntil > 0 {
+		st.Expiry = time.UnixMilli(info.ValidUntil).UTC().Format(time.RFC3339)
+	}
+	if info.ValidUntil > 0 || info.TrafficMax > 0 {
+		st.Tier = "premium"
+	} else {
+		st.Tier = "free"
+	}
 }
 
 // updateFirstFail keeps firstFail in step with what this pass just saw: a

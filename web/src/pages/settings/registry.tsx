@@ -24,6 +24,7 @@ import {
 import { Access } from './Access';
 import { AccountsTab } from './Accounts';
 import { Advanced } from './Advanced';
+import { Appearance } from './Appearance';
 import { Archives } from './Archives';
 import { BrowserTools } from './BrowserTools';
 import { Captcha } from './Captcha';
@@ -58,6 +59,9 @@ const PAGES: Record<string, () => ReactNode> = {
   downloads: () => <DownloadsSettings />,
   archives: () => <Archives />,
   look: () => <Look />,
+  // The theming half of the old General tab, as its own page (jdp,
+  // 2026-09-07). Both are the same component with a different section.
+  appearance: () => <Appearance />,
   access: () => <Access />,
   advanced: () => <Advanced />,
   rules: () => <Rules />,
@@ -143,7 +147,10 @@ const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   torrents: IconUpload,
   captcha: IconCaptcha,
   schedule: IconClock,
-  look: IconLook,
+  look: IconSliders,
+  // The paint-roller-ish one for the tab that IS the look; General keeps a
+  // sliders glyph, which is what a page of mixed preferences is.
+  appearance: IconLook,
   access: IconLock,
   advanced: IconSliders,
   diagnostics: IconDiagnostics,

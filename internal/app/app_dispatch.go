@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"slices"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/collide"
@@ -81,24 +82,79 @@ func (a *App) modeForLocked(t *core.Task, resolverID string) core.DownloadMode {
 // one's to add a method to. Anything else answers the same number Info()
 // always has; if a second resolver ever needs the same per-URL treatment,
 // that is the point to grow this into an interface both can implement.
-func dynamicPrio(res resolver.Resolver, url string) int {
-	if res.Info().ID == "jd" {
+//
+// order is settings.Settings.ResolverOrder, the hand-arranged sequence from
+// the Prioritätsreihenfolge card (jdp, 2026-09-07: "Die Prioritätsreihenfolge
+// soll per drag and drop anordenbar sein"). It is checked FIRST and it wins
+// outright: a person who has dragged this list into an order meant it, and a
+// hand-made order silently overruled by an automatic boost would be the same
+// control-that-does-nothing this whole ranking exists to avoid. Anything the
+// order does not name keeps its automatic number, which puts it below every
+// named one - orderBase is far above the highest automatic priority
+// (jd.activeLoginPrio, 60) for exactly that reason.
+//
+// This ranks only among resolvers that can take the URL at all: Registry.All
+// has already filtered to those. So "put yt-dlp above TorBox" cannot send a
+// rapidgator link to yt-dlp; it decides which of the ones that COULD take it
+// is asked first.
+func dynamicPrio(res resolver.Resolver, url string, order []string) int {
+	id := res.Info().ID
+	for i, want := range order {
+		if want == id {
+			return orderBase - i
+		}
+	}
+	if id == "jd" {
 		return jd.PriorityFor(url)
 	}
 	return res.Info().Prio
 }
+
+// orderBase is the priority the first entry of a hand-arranged order gets;
+// each following entry gets one less. 1000 rather than something just above
+// 60, so that a long hand-made list cannot run down into the automatic band
+// and have its tail re-mixed with resolvers it deliberately outranks.
+const orderBase = 1000
 
 // rankedChain is chain, stably re-ordered by dynamicPrio rather than trusted
 // in the registry's own frozen order. Stable, so that two matches dynamicPrio
 // does not distinguish keep exactly the order Registry.All (and so the
 // registry's own Prio-at-Register-time sort) already gave them - the re-rank
 // only ever moves JD, and only for a host it has just earned a boost for.
-func rankedChain(chain []resolver.Resolver, url string) []resolver.Resolver {
+func rankedChain(chain []resolver.Resolver, url string, order []string) []resolver.Resolver {
 	out := make([]resolver.Resolver, len(chain))
 	copy(out, chain)
 	sort.SliceStable(out, func(i, j int) bool {
-		return dynamicPrio(out[i], url) > dynamicPrio(out[j], url)
+		return dynamicPrio(out[i], url, order) > dynamicPrio(out[j], url, order)
 	})
+	return out
+}
+
+// ResolverPriority is the order services are ACTUALLY asked in, which is what
+// the Prioritätsreihenfolge card on the Accounts page shows.
+//
+// It exists because Registry.AllInfo and Registry.PriorityFor answer the
+// registry's own frozen, registration-time order, and dispatch has not walked
+// that order since dynamicPrio arrived: a hand-arranged ResolverOrder and JD's
+// per-host boost both re-rank it. A card reading straight off the registry
+// therefore showed a ladder the downloader does not use - a list that is
+// merely plausible, which for a diagnostic display is worse than none.
+//
+// host empty means the whole registered set, with no URL to match against;
+// given, it is narrowed to the chain that host would actually walk.
+func (a *App) ResolverPriority(host string) []resolver.Info {
+	host = strings.TrimSpace(host)
+	url := ""
+	chain := a.Registry.List()
+	if host != "" {
+		url = "https://" + host + "/"
+		chain = a.Registry.All(url)
+	}
+	ranked := rankedChain(chain, url, a.Settings.Get().ResolverOrder)
+	out := make([]resolver.Info, 0, len(ranked))
+	for _, res := range ranked {
+		out = append(out, res.Info())
+	}
 	return out
 }
 
@@ -142,7 +198,7 @@ func (a *App) resolverForTaskLocked(t *core.Task) resolver.Resolver {
 			}
 		}
 	}
-	for _, res := range rankedChain(a.Registry.All(t.URL), t.URL) {
+	for _, res := range rankedChain(a.Registry.All(t.URL), t.URL, a.Settings.Get().ResolverOrder) {
 		if a.accountRoutableLocked(res.Info().ID) {
 			return res
 		}
@@ -157,7 +213,7 @@ func (a *App) resolverForTaskLocked(t *core.Task) resolver.Resolver {
 // whatever actually came next in THAT order, not the frozen one it never used.
 // Caller holds a.mu.
 func (a *App) nextResolverLocked(t *core.Task) string {
-	chain := rankedChain(a.Registry.All(t.URL), t.URL)
+	chain := rankedChain(a.Registry.All(t.URL), t.URL, a.Settings.Get().ResolverOrder)
 	for i, res := range chain {
 		if res.Info().ID == t.Resolver {
 			if i+1 < len(chain) {

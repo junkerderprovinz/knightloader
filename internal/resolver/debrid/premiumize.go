@@ -217,8 +217,10 @@ func (p *Premiumize) Account(ctx context.Context) (AccountInfo, error) {
 			info.Tier = "premium"
 		}
 	}
-	if data.LimitUsed > 0 {
-		info.Traffic.UsedPercent = data.LimitUsed * 100
-	}
+	// No "> 0" guard: limit_used is a documented field of this answer, and 0.0
+	// from it means the fair-use allowance is untouched, not that Premiumize
+	// declined to say - see TrafficInfo.PercentKnown.
+	info.Traffic.UsedPercent = data.LimitUsed * 100
+	info.Traffic.PercentKnown = true
 	return info, nil
 }

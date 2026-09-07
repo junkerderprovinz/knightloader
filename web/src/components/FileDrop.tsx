@@ -79,6 +79,14 @@ function fmtElapsed(totalSeconds: number): string {
  * two-second-old bar a moment early is a much smaller wrong than running a
  * finished one for ten minutes.
  *
+ * NO PADDING OF ITS OWN. Every row this component draws lands inside
+ * AddLinksForm's footer slot, which already insets them by px-4 - and this file
+ * added a second px-4 on top, so the bar started 32px from the card's edge
+ * while the button row above it started at 16px (jdp, 2026-09-07: "der
+ * ladebalken fängt nicht bündig mit dem darüberliegenden button an und hört zu
+ * weit rechts auf"). One inset, owned by the slot, is what makes the two line
+ * up.
+ *
  * startedAt is stamped client-side the moment the handover response
  * arrived (sendOne below) - the backend's own handover has no notion of a
  * "started at" timestamp of its own to read back (routes_containers.go's
@@ -112,7 +120,7 @@ function ContainerHandedProgress({
     if (landed || elapsed >= expiresIn) onExpire();
   }, [landed, elapsed, expiresIn, onExpire]);
   return (
-    <div className="flex flex-col gap-1.5 px-4">
+    <div className="flex flex-col gap-1.5">
       {/* Name and elapsed time on one line, the bar on its own below it and
           full width (jdp, 2026-09-06: "der balken fängt nicht rechts bündig
           an"). The bar used to share a row with the duration, so it stopped
@@ -164,14 +172,14 @@ function Result({ o, landedAt, onExpire }: { o: Outcome; landedAt: number; onExp
   const { t } = useT();
 
   if (o.kind === 'failed') {
-    return <p className="px-4 text-xs text-statusFail">{t('container.failed', { file: o.file, reason: o.reason })}</p>;
+    return <p className="text-xs text-statusFail">{t('container.failed', { file: o.file, reason: o.reason })}</p>;
   }
   if (o.kind === 'torrent-duplicate') {
-    return <p className="px-4 text-xs text-carbon-textSub">{t('torrent.duplicate', { file: o.file })}</p>;
+    return <p className="text-xs text-carbon-textSub">{t('torrent.duplicate', { file: o.file })}</p>;
   }
   if (o.kind === 'torrent-staged') {
     return (
-      <p className="px-4 text-xs text-statusOk">
+      <p className="text-xs text-statusOk">
         {o.task.package ? t('torrent.stagedIn', { file: o.file, pkg: o.task.package }) : t('torrent.staged', { file: o.file })}
       </p>
     );
@@ -193,11 +201,11 @@ function Result({ o, landedAt, onExpire }: { o: Outcome; landedAt: number; onExp
   // The container held links and none of them became a task: every one was
   // already in the list. Not a fault, and not silence either.
   if (o.created === 0) {
-    return <p className="px-4 text-xs text-carbon-textSub">{t('container.allKnown', { file: o.file, n: o.links })}</p>;
+    return <p className="text-xs text-carbon-textSub">{t('container.allKnown', { file: o.file, n: o.links })}</p>;
   }
   const known = o.links - o.created;
   return (
-    <p className="px-4 text-xs text-statusOk">
+    <p className="text-xs text-statusOk">
       {o.pkg ? t('container.stagedIn', { n: o.created, file: o.file, pkg: o.pkg }) : t('container.staged', { n: o.created, file: o.file })}
       {known > 0 && ` ${t('container.alsoKnown', { n: known })}`}
     </p>

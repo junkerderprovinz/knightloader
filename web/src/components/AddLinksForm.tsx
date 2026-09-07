@@ -29,6 +29,7 @@ import { useT, type TranslationKey } from '../lib/i18n';
 import { useUIState } from '../lib/uistate';
 import { PathInput } from './FolderPicker';
 import { PasteFromClipboardButton } from './PasteFromClipboardButton';
+import { LinkIntakeBadges } from './LinkIntakeBadges';
 import { Tabs } from './Tabs';
 import { Button, Card, Field, FieldGroup, IconBadge, SectionTitle, TextArea, TextInput, ToggleRow } from './ui';
 import { IconCollector, IconFolder, IconPlus, IconSettings } from '../lib/icons';
@@ -262,6 +263,13 @@ export function AddLinksForm({
             aria-expanded={optionsOpen}
             onClick={() => setOptionsOpen(!optionsOpen)}
           />
+          {/* The two automatic intakes, beside the manual ones (jdp,
+              2026-09-07: "Da könnten wir auch zwei schaltflächen für die
+              beiden optionen im Linksammler einfügen"). They sit on the left
+              of the spacer with Optionen rather than on the right with the
+              add/choose actions, because they switch a MODE rather than doing
+              something to what is in the box. */}
+          <LinkIntakeBadges />
           <span className="flex-1" />
           <PasteFromClipboardButton pkg={pkg} />
           {/* Opens FileDrop's picker (jdp: "Dropzone mit Dateiwählen button

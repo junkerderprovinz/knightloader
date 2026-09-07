@@ -10,6 +10,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/relay"
 	"github.com/junkerderprovinz/knightloader/internal/seedphrase"
+	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
 func TestConnectStartsInactive(t *testing.T) {
@@ -363,5 +364,48 @@ func TestRelayTargetHonoursASelfHostedOverride(t *testing.T) {
 	// secret is the same secret, so the frame key is the same frame key.
 	if len(frameKey) != 32 {
 		t.Errorf("frame key is %d bytes with an override set, want 32", len(frameKey))
+	}
+}
+
+// TestOwnRelayWithNoAddressDialsNothing is the fix for a report that arrived as
+// a badge complaint and turned out to be a routing one (jdp, 2026-09-07: "der
+// verbunden badge schaltet auf verbunden sobald das eigene relay ativiert wird
+// ohne, dass es eingerichtet ist").
+//
+// Choosing "my own relay" and leaving the address empty used to fall through to
+// relay.DefaultRelayURL - the PROJECT relay. The badge saying "connected" was
+// the visible half; the half that matters is that somebody who deliberately
+// moved off the project relay was connected to it anyway, and told they were
+// connected. An unconfigured choice is not a fallback.
+func TestOwnRelayWithNoAddressDialsNothing(t *testing.T) {
+	srv, a := testServer(t)
+	defer srv.Close()
+
+	if code, _ := postJSON(t, http.MethodPost, srv.URL+"/api/connect/activate", nil); code != http.StatusOK {
+		t.Fatal("activate failed")
+	}
+	cfg := a.Settings.Get()
+	cfg.RelayMode = settings.RelayModeOwn
+	cfg.RelayURL = ""
+	if _, err := a.Settings.Set(cfg); err != nil {
+		t.Fatal(err)
+	}
+
+	url, key, _ := relayTarget(a)
+	if url != "" {
+		t.Errorf("url = %q, want nothing dialled - own relay is selected with no address", url)
+	}
+	if key != "" {
+		t.Errorf("key = %q, want none: there is nowhere to send it", key)
+	}
+
+	// And the address, once given, is honoured as it always was: this must not
+	// have turned "own relay" into "no relay ever".
+	cfg.RelayURL = "wss://relay.example.com"
+	if _, err := a.Settings.Set(cfg); err != nil {
+		t.Fatal(err)
+	}
+	if url, _, _ := relayTarget(a); url != "wss://relay.example.com" {
+		t.Errorf("url = %q, want the address that was just set", url)
 	}
 }

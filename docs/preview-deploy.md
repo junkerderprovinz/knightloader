@@ -60,10 +60,11 @@ instance is reachable on its own IP at the container's own port 8749).
 
 Everything from the README applies. Two notes specific to the container:
 
-- `KL_CNL=0` by default — Click'n'Load binds `127.0.0.1`, which inside a
-  container is not the browser's localhost. To use it, run with
-  `-e KL_CNL=9666 -p 9666:9666` and `--network host` (or publish it and point
-  the extension at the server).
+- `KL_CNL=9666` by default since 2026-09-07 (it was `0`, and that override was
+  the whole reason the Click'n'Load switch read "off" on every container). It
+  binds `127.0.0.1`, which inside a container is not the browser's localhost, so
+  from a browser on another machine the extension is the path. It is not bound
+  to `0.0.0.0` on purpose: Click'n'Load carries no authentication.
 - `KL_TORBOX` / `KL_ALLDEBRID` / `KL_REALDEBRID` are optional: keys entered on
   the Accounts page are stored encrypted in the data volume and survive
   restarts, so the environment does not need them. A key saved there takes

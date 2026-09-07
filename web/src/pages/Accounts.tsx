@@ -23,8 +23,8 @@ import {
   fetchResolverPriority,
   removeAccountCredential,
   saveAccountCredential,
+  saveResolverPriority,
   setAccountEnabled,
-  setAccountLabel,
   testAccount,
   verifyAccountCredential,
 } from '../lib/api';
@@ -46,9 +46,20 @@ import {
   TextInput,
   Toggle,
 } from '../components/ui';
-import { ContextMenu, anchorBelow, useContextMenu } from '../components/ContextMenu';
+import { AccountTable } from '../components/AccountTable';
 import { HosterLoginSection } from '../components/HosterLoginSection';
-import { IconAccounts, IconEdit, IconExternalLink, IconPlus, IconRetry, IconSearch, IconSettings, IconTrash } from '../lib/icons';
+import {
+  IconAccounts,
+  IconArrowDown,
+  IconArrowUp,
+  IconEdit,
+  IconExternalLink,
+  IconPlus,
+  IconRetry,
+  IconSearch,
+  IconSettings,
+  IconTrash,
+} from '../lib/icons';
 import { HosterIcon } from '../components/HosterIcon';
 
 // Passive poll for whatever the account-health refresher (agent 6B) writes in
@@ -113,15 +124,6 @@ export function Accounts() {
     }
   }
 
-  async function onRename(a: Account, label: string) {
-    try {
-      await setAccountLabel(a.service, a.account, label);
-      setAccounts((cur) => cur?.map((x) => (x.id === a.id ? { ...x, label } : x)) ?? cur);
-    } catch {
-      toast(t('common.loadFailed'), 'fail');
-    }
-  }
-
   async function onRemove(a: Account) {
     try {
       await removeAccountCredential(a.service, a.account);
@@ -153,7 +155,7 @@ export function Accounts() {
   const debridIds = new Set(catalogue.filter((s) => s.group === 'debrid').map((s) => s.id));
   const debridRows = accounts.filter((a) => debridIds.has(a.service));
 
-  const tableProps = { catalogue: byId, refreshing, onRefresh, onToggle, onRename, onRemove, onEdit };
+  const tableProps = { catalogue: byId, refreshing, onRefresh, onToggle, onRemove, onEdit };
 
   return (
     <div className="flex flex-col gap-10">
@@ -221,129 +223,37 @@ interface TableActions {
   refreshing: ReadonlySet<string>;
   onRefresh: (a: Account) => void;
   onToggle: (a: Account, enabled: boolean) => void;
-  onRename: (a: Account, label: string) => void;
   onRemove: (a: Account) => void;
   onEdit: (a: Account) => void;
 }
 
-function AccountsTable({ rows, catalogue, refreshing, onRefresh, onToggle, onRename, onRemove, onEdit }: TableActions & { rows: Account[] }) {
+function AccountsTable({ rows, catalogue, refreshing, onRefresh, onToggle, onRemove, onEdit }: TableActions & { rows: Account[] }) {
   const { t } = useT();
-  const menu = useContextMenu();
-  const [menuRow, setMenuRow] = useState<Account | null>(null);
-  const [renaming, setRenaming] = useState<{ id: string; value: string } | null>(null);
-
-  function commitRename() {
-    if (!renaming) return;
-    const row = rows.find((r) => r.id === renaming.id);
-    const value = renaming.value.trim();
-    setRenaming(null);
-    if (row && value && value !== row.label) onRename(row, value);
-  }
-
   return (
-    <div className="glim-well overflow-x-auto p-0">
-      <table className="w-full min-w-[42rem] border-collapse text-sm">
-        <thead>
-          <tr className="text-start text-xs text-carbon-textMuted">
-            <th className="w-12 px-4 py-3 text-start font-medium">{t('accounts.col.enabled')}</th>
-            <th className="px-2 py-3 text-start font-medium">{t('accounts.col.service')}</th>
-            <th className="px-2 py-3 text-start font-medium">{t('accounts.col.status')}</th>
-            <th className="px-2 py-3 text-start font-medium">{t('accounts.col.label')}</th>
-            <th className="px-2 py-3 text-start font-medium">{t('accounts.col.expiry')}</th>
-            <th className="px-2 py-3 text-start font-medium">{t('accounts.col.traffic')}</th>
-            <th className="w-10 px-2 py-3">
-              <span className="sr-only">{t('accounts.rowActions')}</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-carbon-border/40">
-          {rows.map((a, i) => {
-            const svc = catalogue.get(a.service);
-            const busy = refreshing.has(a.id);
-            return (
-              <tr key={a.id} className="group transition-colors hover:bg-carbon-hover">
-                <td className="px-4 py-3">
-                  <Toggle
-                    checked={a.enabled}
-                    onChange={(v) => onToggle(a, v)}
-                    label={t('accounts.enableAccount', {
-                      account: a.label ? `${svc?.label ?? a.service} - ${a.label}` : (svc?.label ?? a.service),
-                    })}
-                    hideLabel
-                  />
-                </td>
-                <td className="px-2 py-3 font-medium text-carbon-text">
-                  {/* The service's own icon, taken from the site its "where do
-                      I get a key" link already points at - the one host string
-                      the catalogue carries for a debrid service. */}
-                  <span className="inline-flex items-center gap-2">
-                    <HosterIcon host={svc?.whereUrl ?? ''} />
-                    <span className="inline-flex items-center gap-1">
-                      {svc?.label ?? a.service}
-                      {a.hostsFetchedAt && <InfoBubble tip={t('accounts.hostsRefreshed', { when: fmtDate(a.hostsFetchedAt) })} />}
-                    </span>
-                  </span>
-                </td>
-                <td className="px-2 py-3">
-                  <AccountStatus account={a} busy={busy} />
-                </td>
-                <td className="px-2 py-3">
-                  {renaming?.id === a.id ? (
-                    <input
-                      autoFocus
-                      value={renaming.value}
-                      onChange={(e) => setRenaming({ id: a.id, value: e.target.value })}
-                      onBlur={commitRename}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') commitRename();
-                        if (e.key === 'Escape') setRenaming(null);
-                      }}
-                      className="w-full min-w-[8rem] rounded-[var(--radius-control)] bg-carbon-surface2 px-2 py-1
-                        text-sm text-carbon-text outline-none focus:shadow-[0_0_0_2px_var(--focus-ring)]"
-                    />
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setRenaming({ id: a.id, value: a.label })}
-                      title={t('accounts.rename')}
-                      aria-label={a.label ? undefined : t('accounts.rename')}
-                      className="rounded-[var(--radius-control)] px-1 py-0.5 text-start text-carbon-textSub
-                        hover:bg-carbon-surface2 hover:text-carbon-text"
-                    >
-                      {a.label || '—'}
-                    </button>
-                  )}
-                </td>
-                {/* fmtDate, not the raw field: the server sends RFC 3339, and
-                    a cell reading 2026-10-06T00:28:59Z is a timestamp somebody
-                    has to decode rather than a date they can read. */}
-                <td className="glim-num px-2 py-3 text-carbon-textSub">{fmtDate(a.expiry) || '—'}</td>
-                <td className="glim-num px-2 py-3 text-carbon-textSub">{a.trafficLeft || '—'}</td>
-                <td className="px-2 py-3 text-end">
-                  <IconBadge
-                    hue={i}
-                    className="opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
-                    icon={<IconSettings width={16} height={16} />}
-                    title={t('accounts.rowActions')}
-                    aria-label={t('accounts.rowActions')}
-                    onClick={(e) => {
-                      setMenuRow(a);
-                      menu.openAt(anchorBelow(e.currentTarget));
-                    }}
-                  />
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-
-      {menu.anchor && menuRow && (
-        <ContextMenu
-          anchor={menu.anchor}
-          label={t('accounts.rowActions')}
-          onClose={menu.close}
-          groups={[
+    <AccountTable
+      label={t('accounts.debrid.title')}
+      rows={rows.map((a) => {
+        const svc = catalogue.get(a.service);
+        return {
+          key: a.id,
+          // The service's own icon, taken from the site its "where do I get a
+          // key" link already points at - the one host string the catalogue
+          // carries for a debrid service.
+          iconHost: svc?.whereUrl ?? '',
+          label: svc?.label ?? a.service,
+          enabled: a.enabled,
+          status: <AccountStatus account={a} busy={refreshing.has(a.id)} />,
+          tier: a.tier,
+          expiry: a.expiry,
+          traffic: a.traffic,
+          onToggle: (v) => onToggle(a, v),
+          onEdit: () => onEdit(a),
+          // A credential the container supplies cannot be cleared from here -
+          // there is nothing in the encrypted store to remove, and an action
+          // that looks like it deletes the account but leaves it right back on
+          // the next reload is worse than no action.
+          onRemove: a.fromEnv ? undefined : () => onRemove(a),
+          menu: [
             {
               id: 'actions',
               items: [
@@ -351,51 +261,26 @@ function AccountsTable({ rows, catalogue, refreshing, onRefresh, onToggle, onRen
                   id: 'refresh',
                   label: t('accounts.refresh'),
                   icon: <IconRetry width={16} height={16} />,
-                  onSelect: () => onRefresh(menuRow),
-                },
-                {
-                  id: 'edit',
-                  label: t('accounts.edit'),
-                  icon: <IconEdit width={16} height={16} />,
-                  onSelect: () => onEdit(menuRow),
+                  onSelect: () => onRefresh(a),
                 },
                 {
                   id: 'renew',
-                  label: menuRow.expiry ? t('accounts.renew') : t('accounts.buyPremium'),
+                  label: a.expiry ? t('accounts.renew') : t('accounts.buyPremium'),
                   icon: <IconExternalLink width={16} height={16} />,
                   // Only ever actionable once there is something to renew - a
                   // link with nowhere useful to send someone must not pretend
                   // to be live.
-                  disabled: !menuRow.expiry || !catalogue.get(menuRow.service)?.whereUrl,
+                  disabled: !a.expiry || !svc?.whereUrl,
                   onSelect: () => {
-                    const url = catalogue.get(menuRow.service)?.whereUrl;
-                    if (url) window.open(url, '_blank', 'noopener,noreferrer');
+                    if (svc?.whereUrl) window.open(svc.whereUrl, '_blank', 'noopener,noreferrer');
                   },
                 },
               ],
             },
-            {
-              id: 'danger',
-              // A credential the container supplies cannot be cleared from
-              // here - there is nothing in the encrypted store to remove, and
-              // an action that looks like it deletes the account but leaves
-              // it right back on the next reload is worse than no action.
-              items: menuRow.fromEnv
-                ? []
-                : [
-                    {
-                      id: 'remove',
-                      label: t('accounts.remove'),
-                      icon: <IconTrash width={16} height={16} />,
-                      danger: true,
-                      onSelect: () => onRemove(menuRow),
-                    },
-                  ],
-            },
-          ]}
-        />
-      )}
-    </div>
+          ],
+        };
+      })}
+    />
   );
 }
 
@@ -719,6 +604,9 @@ function ServicePicker({
 const RESOLVER_LABEL_KEYS: Partial<Record<string, TranslationKey>> = {
   direct: 'accounts.routing.resolver.direct',
   http: 'accounts.routing.resolver.http',
+  // Was missing, and the ladder printed the bare id "torrent" for it - the
+  // one row in the list that read like a bug rather than a service.
+  torrent: 'accounts.routing.resolver.torrent',
 };
 
 /** RESOLVER_PROPER_NAMES is the other half: a resolver whose label is a
@@ -776,14 +664,7 @@ function RoutingSection({ catalogue }: { catalogue: CatalogueService[] }) {
         ) : priority.length === 0 ? (
           <p className="text-sm text-carbon-textMuted">{t('accounts.routing.priorityEmpty')}</p>
         ) : (
-          <ol className="flex flex-col gap-1.5">
-            {priority.map((r, i) => (
-              <li key={r.id} className="flex items-center gap-2 text-sm text-carbon-textSub">
-                <span className="glim-num w-4 shrink-0 text-carbon-textMuted">{i + 1}</span>
-                <span className="text-carbon-text">{labelFor(r.id)}</span>
-              </li>
-            ))}
-          </ol>
+          <PriorityLadder rows={priority} labelFor={labelFor} onSaved={setPriority} />
         )}
       </Card>
 
@@ -804,6 +685,122 @@ function RoutingSection({ catalogue }: { catalogue: CatalogueService[] }) {
           </span>
         )}
       </Card>
+    </div>
+  );
+}
+
+/**
+ * The priority ladder, hand-arrangeable (jdp, 2026-09-07: "Die
+ * Prioritätsreihenfolge soll per drag and drop anordenbar sein").
+ *
+ * Two ways to move a row, on purpose. Drag is the one that was asked for and
+ * the one that feels right for a short list; the two arrow badges beside each
+ * row are the same move without a pointer, which is what makes this reachable
+ * from a keyboard and on a touch screen, where an HTML5 drag does not fire at
+ * all. They are not a fallback bolted on - they run the identical `move`.
+ *
+ * Every drop saves immediately and redraws from the SERVER's answer rather
+ * than from the local array: what is stored is what the downloader will walk,
+ * and a list that kept showing the arrangement the drop produced would hide a
+ * rejected or de-duplicated entry.
+ *
+ * "Automatisch" clears the stored order rather than writing the current one
+ * out. Those are genuinely different: an empty order follows the ladder as it
+ * changes (a new debrid key, a login going premium), a written-out copy of
+ * today's order freezes it.
+ */
+function PriorityLadder({
+  rows,
+  labelFor,
+  onSaved,
+}: {
+  rows: ResolverInfo[];
+  labelFor: (id: string) => string;
+  onSaved: (rows: ResolverInfo[]) => void;
+}) {
+  const { t } = useT();
+  const { toast } = useToast();
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function store(order: string[]) {
+    setBusy(true);
+    try {
+      onSaved(await saveResolverPriority(order));
+    } catch (e) {
+      toast(t('list.failed', { error: e instanceof Error ? e.message : String(e) }), 'fail');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /** Moves `id` to the position `to`, clamped, and stores the result. */
+  function move(id: string, to: number) {
+    const ids = rows.map((r) => r.id);
+    const from = ids.indexOf(id);
+    if (from < 0) return;
+    const at = Math.max(0, Math.min(ids.length - 1, to));
+    if (at === from) return;
+    ids.splice(from, 1);
+    ids.splice(at, 0, id);
+    void store(ids);
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <ol className="flex flex-col gap-1.5">
+        {rows.map((r, i) => (
+          <li
+            key={r.id}
+            draggable={!busy}
+            onDragStart={(e) => {
+              setDragId(r.id);
+              e.dataTransfer.effectAllowed = 'move';
+              // Firefox refuses to start a drag at all without payload.
+              e.dataTransfer.setData('text/plain', r.id);
+            }}
+            onDragEnd={() => setDragId(null)}
+            // preventDefault on dragover, not only on drop: without it the
+            // browser's own default for an unhandled dragover refuses the
+            // drop outright and nothing ever fires.
+            onDragOver={(e) => dragId && e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              if (dragId && dragId !== r.id) move(dragId, i);
+              setDragId(null);
+            }}
+            className={`flex items-center gap-2 rounded-[var(--radius-control)] px-1 py-0.5 text-sm text-carbon-textSub ${
+              dragId === r.id ? 'opacity-40' : ''
+            } ${busy ? '' : 'cursor-grab active:cursor-grabbing'}`}
+          >
+            <span className="glim-num w-4 shrink-0 text-carbon-textMuted">{i + 1}</span>
+            <span className="text-carbon-text">{labelFor(r.id)}</span>
+            <span className="flex-1" />
+            <IconBadge
+              icon={<IconArrowUp width={14} height={14} />}
+              className="h-6 w-6"
+              title={t('accounts.routing.moveUp')}
+              aria-label={t('accounts.routing.moveUp')}
+              disabled={busy || i === 0}
+              onClick={() => move(r.id, i - 1)}
+            />
+            <IconBadge
+              icon={<IconArrowDown width={14} height={14} />}
+              className="h-6 w-6"
+              title={t('accounts.routing.moveDown')}
+              aria-label={t('accounts.routing.moveDown')}
+              disabled={busy || i === rows.length - 1}
+              onClick={() => move(r.id, i + 1)}
+            />
+          </li>
+        ))}
+      </ol>
+      <div className="flex items-center gap-2">
+        <Button kind="secondary" disabled={busy} onClick={() => void store([])}>
+          {t('accounts.routing.priorityAuto')}
+        </Button>
+        <InfoBubble tip={t('accounts.routing.priorityAutoHint')} />
+      </div>
     </div>
   );
 }

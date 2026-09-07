@@ -112,6 +112,20 @@ export function useQueueControl(base: string, instance: string) {
  * machine than the list on screen; the scope comes from lib/instance.tsx, which
  * is the same value the page is reading.
  */
+/**
+ * TRANSPORT_SIZE is the one deliberate exception to the app's button size
+ * (jdp, 2026-09-07: "der play, pause und stopp button in der Kopfleiste sollen
+ * viel größer sein. diese drei buttons sind größentechnisch eine ausnahme").
+ *
+ * Every other control here is 32px square because a page of same-sized things
+ * is a page you can scan. These three are not part of that page: they are the
+ * one control that starts and stops everything the app does, they sit alone in
+ * the head card, and they are what somebody reaches for without looking. A
+ * transport control is the one place where "bigger than its neighbours" is the
+ * information.
+ */
+const TRANSPORT_SIZE = 'h-12 w-12 p-0';
+
 export function QueueBar() {
   const { t } = useT();
   const { instance, base } = useInstanceScope();
@@ -218,7 +232,8 @@ export function QueueBar() {
           carries the real warning. */}
       <Button
         kind={queue.halted ? 'primary' : 'secondary'}
-        icon={<IconPlay width={16} height={16} />}
+        icon={<IconPlay width={22} height={22} />}
+        className={TRANSPORT_SIZE}
         onClick={() => void setHalted(false)}
         disabled={!queue.halted}
         title={t('queue.play')}
@@ -226,7 +241,8 @@ export function QueueBar() {
       />
       <Button
         kind={!queue.halted ? 'primary' : 'secondary'}
-        icon={<IconPause width={16} height={16} />}
+        icon={<IconPause width={22} height={22} />}
+        className={TRANSPORT_SIZE}
         onClick={() => void setHalted(true)}
         disabled={queue.halted}
         title={t('queue.pause')}
@@ -234,7 +250,8 @@ export function QueueBar() {
       />
       <Button
         kind="secondary"
-        icon={<IconStop width={16} height={16} />}
+        icon={<IconStop width={22} height={22} />}
+        className={TRANSPORT_SIZE}
         // Silenced, the stop happens on the press. The dialog exists to say
         // what is about to be interrupted, and somebody who ticked "do not
         // show this again" has answered that in advance - see dialogmute.ts.
@@ -258,54 +275,13 @@ export function QueueBar() {
           already say by their own state: Play lit means halted, and the limit
           field is simply absent while a peer is in view. */}
 
-      {/* Always the far-right item in this row (jdp: "das Speedlimit soll
-          immer rechts drüben stehen") - ml-auto rather than a bare flex-1
-          spacer, so it pushes itself right regardless of how many other
-          items sit before it in the same flex-wrap row. */}
-      {!peer && (
-      <label className="ml-auto flex items-center gap-2 text-[11px] text-carbon-textMuted">
-        {t('queue.limit')}
-        <span className="flex items-center gap-1">
-          <input
-            type="text"
-            inputMode="decimal"
-            dir="ltr"
-            value={limit}
-            placeholder="∞"
-            aria-label={t('queue.limit')}
-            onChange={(e) => setLimit(e.target.value)}
-            onBlur={() => commit()}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
-            }}
-            className="glim-num w-16 rounded-[var(--radius-control)] bg-carbon-surface2 px-2 py-1 text-right text-xs
-              text-carbon-text outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)]"
-          />
-          {/* The number is read in whichever unit is picked — type 5, choose
-              MiB/s, get 5 MiB/s. Converting instead would make that impossible,
-              because switching the unit would rewrite the number the user just
-              typed. After committing, the field settles into the largest unit
-              that keeps the number whole, so 2048 KiB/s comes back as 2 MiB/s. */}
-          <select
-            value={unit}
-            aria-label={t('queue.limitUnit')}
-            onChange={(e) => {
-              const u = e.target.value as RateUnit;
-              setUnit(u);
-              void commit({ unit: u });
-            }}
-            className="rounded-[var(--radius-control)] bg-carbon-surface2 px-1.5 py-1 text-xs text-carbon-text
-              outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)]"
-          >
-            {RATE_UNITS.map((u) => (
-              <option key={u.label} value={u.label}>
-                {u.label}
-              </option>
-            ))}
-          </select>
-        </span>
-      </label>
-      )}
+      {/* The speed limit no longer lives in this row. It moved to the far side
+          of the speed curve (jdp, 2026-09-07: "der downloadgraph in der
+          kopfzeile soll viel breiter sein. das hamburgermenü und die
+          geschwindigkeitsbegrenzung soll rechts davon sein"), so this card now
+          reads left to right as: what the queue is doing, what it is doing it
+          at, and the two controls that change that. See SpeedLimitField below,
+          which ShellStrip renders. */}
 
       {stopCost && (
         <Modal
@@ -339,5 +315,106 @@ export function QueueBar() {
         </Modal>
       )}
     </div>
+  );
+}
+
+/**
+ * SpeedLimitField is the global download limit, as its own control.
+ *
+ * It used to sit at the right-hand end of the transport row, pushed there by
+ * an ml-auto. Since 2026-09-07 the speed curve owns that space instead and
+ * this sits past it, together with the settings hamburger, so the head card
+ * reads left to right: what the queue is doing, what it is doing it at, and
+ * the two things that change that.
+ *
+ * It owns its own settings state rather than taking it as a prop. That is not
+ * duplication of QueueBar's own fetch: the limit is a setting of THIS instance
+ * whatever page is showing (there is no /api/settings on a peer), while
+ * QueueBar's queue state is scoped, so the two genuinely answer different
+ * questions and were only ever in one component because they were next to each
+ * other on screen.
+ */
+export function SpeedLimitField() {
+  const { t } = useT();
+  const [cfg, setCfg] = useState<Settings | null>(null);
+  // Held as text so a half-typed "1." survives the keystroke that follows it.
+  const [limit, setLimit] = useState('');
+  const [unit, setUnit] = useState<RateUnit>('KiB/s');
+
+  useEffect(() => {
+    fetchSettings()
+      .then((s) => {
+        setCfg(s);
+        // The unit follows the stored value rather than being remembered
+        // separately: somebody who set 5 MiB/s should not come back to "5120"
+        // in a KiB field and wonder whether it took.
+        const split = splitRate(s.speedLimit);
+        setLimit(fmtRateValue(split.value));
+        setUnit(split.unit);
+      })
+      .catch(() => setCfg(null));
+  }, []);
+
+  // Saved when the field is left or Enter is pressed, not on every keystroke:
+  // saving per character would send a request for "5", "51", "512".
+  async function commit(next: { value?: string; unit?: RateUnit } = {}) {
+    if (!cfg) return;
+    const raw = next.value ?? limit;
+    const u = next.unit ?? unit;
+    const bytes = joinRate(Math.max(0, Number(raw.replace(',', '.')) || 0), u);
+    // Re-derive the unit from what was actually stored, so typing 2048 KiB/s
+    // settles as "2 MiB/s" instead of leaving the field in a form the app would
+    // never have chosen itself.
+    const settled = splitRate(bytes);
+    setLimit(fmtRateValue(settled.value));
+    setUnit(settled.unit);
+    if (bytes === cfg.speedLimit) return;
+    // PATCH, not the whole document - see patchSettings' own doc comment: a PUT
+    // built from this component's snapshot would put every other setting back
+    // to what it last saw.
+    setCfg(await patchSettings({ speedLimit: bytes }));
+  }
+
+  return (
+    <label className="flex shrink-0 items-center gap-2 self-center text-[11px] text-carbon-textMuted">
+      {t('queue.limit')}
+      <span className="flex items-center gap-1">
+        <input
+          type="text"
+          inputMode="decimal"
+          dir="ltr"
+          value={limit}
+          placeholder="∞"
+          aria-label={t('queue.limit')}
+          onChange={(e) => setLimit(e.target.value)}
+          onBlur={() => void commit()}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+          }}
+          className="glim-num w-16 rounded-[var(--radius-control)] bg-carbon-surface2 px-2 py-1 text-right text-xs
+            text-carbon-text outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)]"
+        />
+        {/* The number is read in whichever unit is picked - type 5, choose
+            MiB/s, get 5 MiB/s. Converting instead would make that impossible,
+            because switching the unit would rewrite the number just typed. */}
+        <select
+          value={unit}
+          aria-label={t('queue.limitUnit')}
+          onChange={(e) => {
+            const u = e.target.value as RateUnit;
+            setUnit(u);
+            void commit({ unit: u });
+          }}
+          className="rounded-[var(--radius-control)] bg-carbon-surface2 px-1.5 py-1 text-xs text-carbon-text
+            outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)]"
+        >
+          {RATE_UNITS.map((u) => (
+            <option key={u.label} value={u.label}>
+              {u.label}
+            </option>
+          ))}
+        </select>
+      </span>
+    </label>
   );
 }

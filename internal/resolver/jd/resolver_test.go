@@ -22,23 +22,25 @@ func TestPriorityForDefaultsWithNoNativeLogin(t *testing.T) {
 // TestPriorityForRisesOnceHostIsActive pins the other half: once
 // internal/hosterauth's reconciler calls SetHostActive for a host, that
 // host's links must outrank resolver.Direct's fixed 40 - see the doc comment
-// on activeHostPrio for why.
+// on activeLoginPrio for why. Since 2026-09-07 it must outrank the debrid
+// services too: a premium account at the hoster itself is what a multihoster
+// unlock approximates, so it wins over one.
 func TestPriorityForRisesOnceHostIsActive(t *testing.T) {
 	const host = "priority-test-rapidgator.example"
 	t.Cleanup(func() { SetHostActive(host, false) })
 
 	SetHostActive(host, true)
-	if got := PriorityFor("https://" + host + "/file/123"); got != activeHostPrio {
-		t.Errorf("PriorityFor = %d, want %d (above resolver.Direct's 40) once the host is active", got, activeHostPrio)
+	if got := PriorityFor("https://" + host + "/file/123"); got != activeLoginPrio {
+		t.Errorf("PriorityFor = %d, want %d (above resolver.Direct's 40) once the host is active", got, activeLoginPrio)
 	}
-	if activeHostPrio <= 40 {
-		t.Errorf("activeHostPrio = %d must exceed resolver.Direct's Prio (40) or the nudge does nothing", activeHostPrio)
+	if activeLoginPrio <= 40 {
+		t.Errorf("activeLoginPrio = %d must exceed resolver.Direct's Prio (40) or the nudge does nothing", activeLoginPrio)
 	}
 
 	// www. and case must not matter - the same host arrives differently from a
 	// browser paste and from JD's own account list.
-	if got := PriorityFor("HTTPS://WWW." + host + "/x.zip"); got != activeHostPrio {
-		t.Errorf("PriorityFor = %d, want %d for a www./case variant of the same host", got, activeHostPrio)
+	if got := PriorityFor("HTTPS://WWW." + host + "/x.zip"); got != activeLoginPrio {
+		t.Errorf("PriorityFor = %d, want %d for a www./case variant of the same host", got, activeLoginPrio)
 	}
 
 	SetHostActive(host, false)
@@ -120,8 +122,8 @@ func TestPriorityForRisesForAHostJDKnowsWithNoLogin(t *testing.T) {
 		"https://www.rapidgator.net/file/abc",
 		"https://example-hoster.com/f/1",
 	} {
-		if got := PriorityFor(raw); got != activeHostPrio {
-			t.Errorf("PriorityFor(%q) = %d, want %d - a host JD has a plugin for must outrank a blind GET", raw, got, activeHostPrio)
+		if got := PriorityFor(raw); got != knownHostPrio {
+			t.Errorf("PriorityFor(%q) = %d, want %d - a host JD has a plugin for must outrank a blind GET", raw, got, knownHostPrio)
 		}
 	}
 	// A host JD does not know is unchanged: nothing here may quietly promote
@@ -143,5 +145,65 @@ func TestSetKnownHostsReplacesRatherThanAccumulates(t *testing.T) {
 	}
 	if !HostKnown("two.example") {
 		t.Error("the host JD still lists is not known")
+	}
+}
+
+// TestPriorityForLeavesMediaSitesToYtdlp is the 2026-09-07 half of a problem
+// that first arrived through TorBox on 2026-09-06 and came back through a
+// different door: JD has a plugin for YouTube too, its plugin list carries 714
+// entries on jdp's own instance, and the known-host boost would put a YouTube
+// link in JD's hands and past yt-dlp - the one backend that turns such a link
+// into the five keepable rows with a quality to pick.
+func TestPriorityForLeavesMediaSitesToYtdlp(t *testing.T) {
+	t.Cleanup(func() { SetKnownHosts(nil); SetFileHosts(nil) })
+	SetKnownHosts([]string{"rapidgator.net", "youtube.com"})
+	SetFileHosts(map[string]bool{"rapidgator.net": true})
+
+	if got := PriorityFor("https://rapidgator.net/file/abc"); got != knownHostPrio {
+		t.Errorf("PriorityFor(file hoster) = %d, want %d - JD is still what fetches from a hoster", got, knownHostPrio)
+	}
+	if got := PriorityFor("https://youtube.com/watch?v=x"); got != basePrio {
+		t.Errorf("PriorityFor(media site) = %d, want the unboosted %d so yt-dlp gets it", got, basePrio)
+	}
+	// A confirmed login still wins, media site or not: if somebody really has a
+	// premium account at that host, using it is not this rule's business.
+	SetHostActive("youtube.com", true)
+	t.Cleanup(func() { SetHostActive("youtube.com", false) })
+	if got := PriorityFor("https://youtube.com/watch?v=x"); got != activeLoginPrio {
+		t.Errorf("PriorityFor(media site with a login) = %d, want %d", got, activeLoginPrio)
+	}
+}
+
+// TestNoClassificationKeepsTheOldBoost is the degenerate case this must not
+// break: an install with no debrid account and no TorBox key has nothing that
+// could classify a host, and JD is then the only thing that can fetch from a
+// hoster at all. An empty set means "nobody has classified anything", never
+// "everything is a media site".
+func TestNoClassificationKeepsTheOldBoost(t *testing.T) {
+	t.Cleanup(func() { SetKnownHosts(nil); SetFileHosts(nil) })
+	SetKnownHosts([]string{"rapidgator.net"})
+	SetFileHosts(nil)
+
+	if got := PriorityFor("https://rapidgator.net/file/abc"); got != knownHostPrio {
+		t.Errorf("PriorityFor = %d, want %d with no classification available", got, knownHostPrio)
+	}
+}
+
+// TestTheLadderIsOrderedAsIntended states the whole ranking in one place, in
+// the terms it was decided in: a premium account at the hoster beats a
+// multihoster unlock, a multihoster beats JD's free mode, and JD's free mode
+// beats a blind GET. The numbers themselves are in three packages, so this is
+// the only place the ORDER between them is written down.
+func TestTheLadderIsOrderedAsIntended(t *testing.T) {
+	const directPrio = 40 // resolver.Direct's own Info().Prio
+	const lowestDebrid = 44
+	if !(activeLoginPrio > lowestDebrid) {
+		t.Errorf("a confirmed login (%d) must outrank every debrid service (lowest %d)", activeLoginPrio, lowestDebrid)
+	}
+	if !(lowestDebrid > knownHostPrio) {
+		t.Errorf("every debrid service (lowest %d) must outrank JD's free mode (%d)", lowestDebrid, knownHostPrio)
+	}
+	if !(knownHostPrio > directPrio) {
+		t.Errorf("JD's free mode (%d) must outrank a blind GET (%d)", knownHostPrio, directPrio)
 	}
 }

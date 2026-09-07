@@ -93,14 +93,12 @@ export function Archives() {
           promising one the build stopped reading, and nothing anywhere catches
           it. A well rather than a card, because the page's first raised surface
           should be the settings themselves. */}
-      {options && options.archiveFormats.length > 0 && (
-        <div className="glim-well flex flex-wrap items-baseline gap-x-3 gap-y-1 px-3 py-2">
-          <span className="glim-eyebrow shrink-0">{t('settings.archives.handles')}</span>
-          <code dir="ltr" className="text-xs text-carbon-textSub">
-            {options.archiveFormats.join('  ')}
-          </code>
-        </div>
-      )}
+      {/* The list of supported extensions is gone (jdp, 2026-09-07: "Öffnet
+          .tar .gz .bz2 .xz .zst .zip .rar .7z" among the info texts to remove).
+          It answered a question nobody on this page is asking: somebody here
+          has already got an archive and wants to know what happens to it, and
+          the two cards below say that. The formats still reach the interface
+          where they matter - the extraction card's own text names them. */}
 
       <Card hue={0} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.archives.extractionTitle')}</SectionTitle>

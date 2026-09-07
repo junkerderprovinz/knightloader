@@ -14,7 +14,11 @@ type Resolver struct {
 	Hosts map[string]bool // set of supported hoster domains
 }
 
-func (Resolver) Info() resolver.Info { return resolver.Info{ID: "torbox", Prio: 35} }
+// 50, above resolver.Direct's 40 like every other debrid service since
+// 2026-09-07 - see the block over `configured` in internal/app/app_accounts.go
+// for the measurement that moved them all: a service that lists a host by name
+// outranks one that claimed the link because its path looked file-shaped.
+func (Resolver) Info() resolver.Info { return resolver.Info{ID: "torbox", Prio: 50} }
 
 func (r Resolver) Match(raw string) bool {
 	u, err := url.Parse(raw)

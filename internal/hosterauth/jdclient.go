@@ -56,10 +56,28 @@ import (
 
 // jdAccountInfo is the subset of AccountAPIImpl.queryAccounts' infoMap this
 // package asks for - see the fieldRequested calls in that method.
+// Six fields, not three, since 2026-09-07: jdp asked for the same columns on
+// the hoster card that the debrid card has (traffic, expiry, premium or free),
+// and JD was already being asked for exactly the wrong half of what it can
+// answer. Measured against the live sidecar with his own ddownload account:
+//
+//	{"valid":true,"trafficMax":0,"validUntil":-1,"trafficLeft":0,
+//	 "enabled":true,"username":"…"}
+//
+// which is the shape of a FREE account - no expiry (-1, not 0) and no quota.
+// A premium one carries a real timestamp in validUntil. Those two are the only
+// evidence JD gives about the plan; it answers nothing at all for any key
+// outside the documented six, which was checked by asking for "premium",
+// "type" and "status" and getting an unchanged answer back.
 type jdAccountInfo struct {
 	Username string `json:"username,omitempty"`
 	Enabled  bool   `json:"enabled,omitempty"`
 	Valid    bool   `json:"valid,omitempty"`
+	// ValidUntil is a unix timestamp in MILLISECONDS (JD's own convention
+	// throughout its API), or -1 for an account with nothing to expire.
+	ValidUntil  int64 `json:"validUntil,omitempty"`
+	TrafficLeft int64 `json:"trafficLeft,omitempty"`
+	TrafficMax  int64 `json:"trafficMax,omitempty"`
 }
 
 // jdAccount is one row queryAccounts answers.
@@ -154,9 +172,12 @@ func (c *jdClient) call(ctx context.Context, path string, params ...any) (json.R
 // otherwise looked healthy.
 func (c *jdClient) queryAccounts(ctx context.Context) ([]jdAccount, error) {
 	data, err := c.call(ctx, "/accounts/queryAccounts", map[string]any{
-		"username": true,
-		"enabled":  true,
-		"valid":    true,
+		"username":    true,
+		"enabled":     true,
+		"valid":       true,
+		"validUntil":  true,
+		"trafficLeft": true,
+		"trafficMax":  true,
 	})
 	if err != nil {
 		return nil, err

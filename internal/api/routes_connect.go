@@ -82,7 +82,7 @@ func registerConnect(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			applyRelay(a)
+			armRelayForPhrase(a)
 			writeJSON(w, map[string]any{"phrase": phrase, "qr": renderQR(phrase), "info": connectInfo(a)})
 		})
 
@@ -122,7 +122,7 @@ func registerConnect(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			applyRelay(a)
+			armRelayForPhrase(a)
 			writeJSON(w, connectInfo(a))
 		})
 
@@ -216,4 +216,31 @@ func connectInfo(a *app.App) ConnectInfo {
 		SelfHosted:  selfHosted,
 		RelayMode:   mode,
 	}
+}
+
+// armRelayForPhrase is applyRelay under a name that says WHEN it is called, and
+// it deliberately writes no setting.
+//
+// jdp asked whether the project relay should simply be on out of the box
+// (2026-09-07) and chose "off, but on automatically when a phrase is created".
+// Reading the code afterwards: that is already exactly what happens, by two
+// separate mechanisms rather than by one flag.
+//
+//   - settings.RelayModeOf resolves a never-touched relayMode to "project", so
+//     nobody has to switch anything on.
+//   - relayTarget returns no address and no key until a seed phrase exists, so
+//     an instance standing alone dials nothing at all, whatever the mode says.
+//
+// A first draft of this function wrote "project" into the setting here, to make
+// that explicit. It was reverted, and the test that caught it is the reason
+// worth recording: RelayModeOf also INFERS "own" from a hand-typed address when
+// the mode has never been set, and writing the mode takes that inference away -
+// so somebody who types their own relay address without touching the mode
+// switch would silently stay on the project relay. An explicit value that
+// changes nothing is not worth breaking a fallback that does something.
+//
+// What it still does is call applyRelay, so a phrase created or entered right
+// now brings the connection up immediately rather than at the next restart.
+func armRelayForPhrase(a *app.App) {
+	applyRelay(a)
 }

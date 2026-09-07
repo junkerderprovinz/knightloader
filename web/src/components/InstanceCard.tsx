@@ -80,12 +80,12 @@ export function InstanceRow({ name, base, onOpen }: { name: string; base: string
   return onOpen ? (
     <button
       onClick={onOpen}
-      className="flex w-full items-center gap-3 px-5 py-3 text-left transition-colors hover:bg-carbon-hover/50"
+      className="flex w-full items-center gap-3 px-6 py-4 text-left transition-colors hover:bg-carbon-hover/50"
     >
       {body}
     </button>
   ) : (
-    <div className="flex items-center gap-3 px-5 py-3">{body}</div>
+    <div className="flex items-center gap-3 px-6 py-4">{body}</div>
   );
 }
 
@@ -168,11 +168,16 @@ export function InstanceCard({
           dot beside the name said the same thing in a form that had to be
           hovered to be read at all. Absolutely placed so it cannot push the
           name around, and the name row reserves room for it. */}
-      <span className="absolute right-4 top-4 z-10">
+      <span className="absolute right-5 top-5 z-10">
         <LabelBadge label={state} tone={online ? 'ok' : refused ? undefined : 'fail'} hue={refused ? 3 : undefined} />
       </span>
 
-      <div className="flex min-w-0 flex-1 flex-col gap-3 p-5 pr-32">
+      {/* Roomier, on request (jdp, 2026-09-07: "Im instanzentab kannst du die
+          instanzencards größer und luftiger machen"). p-7 and gap-4 rather than
+          p-5 and gap-3: an instance card is the one card on its page and it
+          holds four short readings, so it was a dense little tile in a lot of
+          empty page. The reserved right-hand column grows with it. */}
+      <div className="flex min-w-0 flex-1 flex-col gap-4 p-7 pr-36">
         <div className="flex items-center gap-2.5">
           <span className="truncate font-semibold text-carbon-text">{name}</span>
           {/* Which card is the machine you are on. An eyebrow rather than a
@@ -195,7 +200,7 @@ export function InstanceCard({
 
         <div className="truncate text-xs text-carbon-textMuted">{relayId ? t('instances.viaRelay') : url}</div>
 
-        <div className="flex items-baseline gap-5">
+        <div className="flex items-baseline gap-7">
           <Metric value={stats?.active ?? '—'} label={t('instances.metricActive')} />
           <Metric value={stats?.total ?? '—'} label={t('instances.metricTasks')} />
           <Metric value={stats ? fmtSpeed(stats.speed) || '0' : '—'} label={t('instances.metricSpeed')} />

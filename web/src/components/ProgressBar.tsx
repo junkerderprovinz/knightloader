@@ -1,12 +1,18 @@
 // A progress track. Determinate fills with the accent; indeterminate loops a
 // short segment - and ONLY while something is genuinely in flight.
 //
-// It is drawn at --radius-control rather than --radius-pill, so it takes the
-// same corner as every other control on the page and follows the shape setting
-// all the way to square (jdp, 2026-09-06: "der fortschrittsbalken soll
-// kräftiger sein und sich auch der eingestellten form anpassen"), and at h-2.5
-// rather than h-1.5: it is the download list's own rightmost column now and the
-// one thing on the row somebody watches.
+// It is drawn at --radius-control, which is the token every badge and button on
+// the page already uses, so it takes their corner and follows the shape setting
+// all the way to square (jdp, 2026-09-06: "der fortschrittsbalken soll kräftiger
+// sein und sich auch der eingestellten form anpassen", and again on 2026-09-07:
+// "der download progressbar soll höher sein und sich der badge form anpassen" -
+// the corner was already right, the height was not).
+//
+// h-4, up from h-2.5 and from h-1.5 before that: it is the download list's own
+// rightmost column and the one thing on the row somebody watches, so it is
+// drawn at the weight of a control rather than of a hairline. Deliberately
+// under the 32px of an IconBadge - it sits INSIDE a table row, and a bar as
+// tall as a button would set the row height for every list.
 export function ProgressBar({
   percent,
   active,
@@ -32,7 +38,7 @@ export function ProgressBar({
   const fill = tone === 'ok' ? 'var(--status-ok-solid)' : 'var(--accent)';
   return (
     <div
-      className="relative h-2.5 w-full overflow-hidden rounded-[var(--radius-control)] bg-carbon-surface3/70"
+      className="relative h-4 w-full overflow-hidden rounded-[var(--radius-control)] bg-carbon-surface3/70"
       role="progressbar"
       aria-valuemin={0}
       aria-valuemax={100}

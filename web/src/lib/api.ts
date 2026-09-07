@@ -1482,14 +1482,35 @@ export interface ResolverInfo {
 }
 
 /**
- * fetchResolverPriority is the deterministic order configured services are
- * tried in, highest priority first - resolver.Registry.AllInfo when host is
- * omitted, resolver.Registry.PriorityFor (narrowed to what actually matches
- * that host) when it is given.
+ * fetchResolverPriority is the order configured services are actually asked
+ * in, highest first - app.ResolverPriority, which is the registry's own order
+ * AFTER the hand-arranged settings.resolverOrder and JD's per-host boost have
+ * had their say. With `host` it is narrowed to the chain that host walks.
  */
 export async function fetchResolverPriority(host?: string): Promise<ResolverInfo[]> {
   const q = host ? `?host=${encodeURIComponent(host)}` : '';
   return (await json<ResolverInfo[]>(await fetch(`/api/resolvers/priority${q}`))) ?? [];
+}
+
+/**
+ * saveResolverPriority stores a hand-arranged order and answers with the
+ * order that is now in force. An empty list is the reset: it puts the ladder
+ * back to the automatic one.
+ *
+ * The answer is the server's own re-read, not an echo - blanks and repeats are
+ * dropped on the way in, so a card redrawing from what it SENT could show an
+ * order the downloader is not using.
+ */
+export async function saveResolverPriority(order: string[]): Promise<ResolverInfo[]> {
+  return (
+    (await json<ResolverInfo[]>(
+      await fetch('/api/resolvers/priority', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order }),
+      }),
+    )) ?? []
+  );
 }
 
 /** The headless-JD sidecar's own status - app.JDStatus (internal/app/app_accounts.go). */
@@ -1625,6 +1646,14 @@ export interface HosterLogin {
    *  JDownloader currently thinks of the login, enabled is whether JD was ever
    *  given it. The row needs both - one draws the toggle, the other the badge. */
   enabled: boolean;
+  /** What JD says about the account itself, so this card can show the same
+   *  columns the debrid card does. All optional: JD answers nothing at all for
+   *  an account it has nothing to say about, and that has to stay
+   *  distinguishable from a zero. */
+  tier?: string;
+  expiry?: string;
+  trafficLeft?: number;
+  trafficMax?: number;
 }
 
 /** fetchHosterHosts is the "add a login" picker's host list. */

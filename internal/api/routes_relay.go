@@ -273,6 +273,19 @@ func relayTarget(a *app.App) (url, key string, frameKey []byte) {
 	override := ""
 	if cfg.RelayModeOf() == settings.RelayModeOwn {
 		override = cfg.RelayURL
+		// "My own relay" with no address is NOT the project relay, and this
+		// used to dial it anyway (jdp, 2026-09-07: "der verbunden badge
+		// schaltet auf verbunden sobald das eigene relay ativiert wird ohne,
+		// dass es eingerichtet ist"). The badge was the visible half; the real
+		// half is that somebody who deliberately switched to their own relay
+		// was connected to somebody else's, and told they were connected.
+		//
+		// An unconfigured choice is not a fallback. Nothing is dialled until
+		// there is an address, and the card says so.
+		if strings.TrimSpace(override) == "" {
+			log.Printf("relay: own relay is selected but no address is set, nothing is dialled")
+			return "", "", nil
+		}
 	}
 
 	if secretHex, err := a.Accounts.Get(relay.SeedAccountService); err == nil && secretHex != "" {

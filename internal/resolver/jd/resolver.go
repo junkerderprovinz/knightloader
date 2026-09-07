@@ -69,14 +69,30 @@ func (r Resolver) Check(ctx context.Context, urls []string) ([]core.Availability
 	return resolver.Answers(got, len(urls)), nil
 }
 
-// activeHostPrio is one above resolver.Direct's 40 (internal/resolver/direct.go)
-// - the value PriorityFor answers for a host whose native login internal/hosterauth
-// has confirmed active on the JD sidecar. Direct claims a link whose path merely
-// looks like a file name, with no idea a hoster login exists for it; without a
-// value that outranks it, a premium account the user just entered would sit
-// unused every time that host's URLs happen to take that shape, and the link
-// would go out anonymously anyway.
-const activeHostPrio = 41
+// The two boosts PriorityFor can answer with, and the gap between them is the
+// whole point (jdp, 2026-09-07: "Es lädt rapidgator und youtube dateien nach
+// wie vor nicht herunter obwohl ich premium accounts habe die rapidgator
+// abdecken").
+//
+// There used to be ONE value, 41, for both cases, chosen only to sit above
+// resolver.Direct's 40. Measured on jdp's own instance: 54 rapidgator links,
+// 23 of them routed to JD in FREE mode and none to the Debrid-Link account he
+// had added precisely for rapidgator. The reason is that 41 outranks every
+// debrid service (they sat at 28 to 35), and JD has a plugin for practically
+// every hoster there is - so "JD knows this host" quietly beat "the user pays
+// for an account that unlocks this host", on every hoster, always. The free-mode
+// wait and captcha was the ONLY path a hoster link could ever take.
+//
+//   - activeLoginPrio: a native login at THIS host, confirmed active by JD's own
+//     account list. That is the user's own premium account at that hoster, which
+//     beats a multihoster unlock of the same file, so it sits above everything.
+//   - knownHostPrio: JD merely has a plugin. One above Direct, which claims a
+//     link because its path looks like a file name and knows nothing about the
+//     host - but BELOW every debrid service, which claims the host by name.
+const (
+	activeLoginPrio = 60
+	knownHostPrio   = 41
+)
 
 // activeHosts is this package's own small registry of hosts with a confirmed-
 // active native login - the "lookup consulted at match/priority time" the
@@ -151,11 +167,54 @@ func HostKnown(host string) bool {
 	return knownHosts.set[normalizeHost(host)]
 }
 
+// fileHosts is which of the hosts JD knows are FILE hosters rather than media
+// sites, as classified by TorBox's own per-host type and by every debrid
+// service's host list (internal/app/app_accounts.go builds it as
+// `ytdlpExclude`, the set yt-dlp is told to stay out of).
+//
+// It exists because JD's plugin list covers YouTube too - measured on jdp's
+// instance, listPremiumHoster has 714 entries and youtube.com is one of them -
+// so the knownHostPrio boost would put a YouTube link in JD's hands and past
+// yt-dlp, which is the one backend that turns such a link into the five
+// keepable rows with a quality to pick. Exactly the shape of the TorBox problem
+// fixed on 2026-09-06, arriving a second time through a different door.
+//
+// Empty means "nothing has classified anything yet", and then the boost applies
+// as it always did: an install with no debrid account and no TorBox key has no
+// classification to consult, and JD is the only thing that can fetch from a
+// hoster at all there.
+var fileHosts = struct {
+	mu  sync.RWMutex
+	set map[string]bool
+}{set: map[string]bool{}}
+
+// SetFileHosts replaces the set of hosts known to be file hosters.
+func SetFileHosts(hosts map[string]bool) {
+	set := make(map[string]bool, len(hosts))
+	for h := range hosts {
+		if n := normalizeHost(h); n != "" {
+			set[n] = true
+		}
+	}
+	fileHosts.mu.Lock()
+	defer fileHosts.mu.Unlock()
+	fileHosts.set = set
+}
+
+// mediaSiteForYtdlp reports whether host is one the media backend should own:
+// something has classified hosts, and this one is not among the file hosters.
+func mediaSiteForYtdlp(host string) bool {
+	fileHosts.mu.RLock()
+	defer fileHosts.mu.RUnlock()
+	return len(fileHosts.set) > 0 && !fileHosts.set[normalizeHost(host)]
+}
+
 // PriorityFor is the per-host priority nudge requirement 3 of the hoster-login
-// design asks for: activeHostPrio, above resolver.Direct's 40, once rawURL's
-// host has a confirmed-active native login; basePrio otherwise - the same
-// answer Info().Prio gives today, so a host nothing has activated is routed
-// exactly as before.
+// design asks for, in three steps rather than the two it started with: a
+// confirmed native login at this host outranks everything, a host JD merely has
+// a plugin for outranks Direct but not a debrid account, and everything else is
+// basePrio - the same answer Info().Prio gives, so a host nothing knows about
+// is routed exactly as before.
 //
 // WHY THIS FUNCTION EXISTS RATHER THAN A HIGHER Info().Prio: resolver.Registry
 // (internal/resolver/resolver.go) sorts its resolver list once, from
@@ -170,6 +229,13 @@ func PriorityFor(rawURL string) int {
 	if err != nil || u.Hostname() == "" {
 		return basePrio
 	}
+	// The user's own premium account at this hoster. Nothing outranks it: a
+	// direct premium download from the host itself is what every multihoster
+	// below is an approximation of.
+	if HostActive(u.Hostname()) {
+		return activeLoginPrio
+	}
+
 	// A host JD has a PLUGIN for outranks Direct even with no login at all, and
 	// that is the whole of "free mode, like JDownloader" (jdp, 2026-09-02: "Wenn
 	// man links runterladen möchte für die kein premium account hinterlegt ist
@@ -184,13 +250,11 @@ func PriorityFor(rawURL string) int {
 	// app that knows the free-mode dance - the wait, the countdown, the captcha,
 	// the per-IP limit - so an anonymous fetch of a known hoster belongs there.
 	//
-	// Same number as the active case on purpose: both mean "JD beats a blind
-	// GET", and only one resolver is being ranked, so a second value below it
-	// would express a difference nothing can act on. What the two cases DO
-	// differ in is what the user is told, which is core.Task.Mode's job, not
-	// this one's.
-	if HostActive(u.Hostname()) || HostKnown(u.Hostname()) {
-		return activeHostPrio
+	// But NOT for a media site. JD's plugin list covers YouTube as well, and a
+	// YouTube link in JD's hands is one file with no variants and no quality to
+	// pick - see fileHosts above for the measurement.
+	if HostKnown(u.Hostname()) && !mediaSiteForYtdlp(u.Hostname()) {
+		return knownHostPrio
 	}
 	return basePrio
 }

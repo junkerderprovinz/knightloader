@@ -150,13 +150,18 @@ function ShellBar({ visible }: { visible: boolean }) {
 
       <QueueBar />
 
-      <span className="flex-1" />
-      {/* WIDGET SLOT. Whatever has to be visible on every page goes after this
-          spacer and lands at the trailing edge: the overview strip and the
-          speed meter (4C), and what waves 6 and 9 add. Left as a place to
+      {/* WIDGET SLOT. Whatever has to be visible on every page goes here and
+          takes the rest of the row: the speed curve (4C), the limit and the
+          settings hamburger, and what waves 6 and 9 add. Left as a place to
           render into rather than a stub, because a guess at their markup is
           something they would have to delete first. Read the scope above with
-          useInstanceScope(): nothing in this bar may assume '/api'. */}
+          useInstanceScope(): nothing in this bar may assume '/api'.
+
+          No flex-1 spacer before it any more: the spacer used to push this to
+          the trailing edge and, in doing so, took every spare pixel the curve
+          could have had (jdp, 2026-09-07: "der downloadgraph in der kopfzeile
+          soll viel breiter sein"). The slot itself grows instead, so the width
+          lands where it is wanted. */}
       <ShellStrip />
       {/* No account chip here any more (jdp, 2026-09-06: "Der Hinweis zum
           premium accoount soll da ganz weg"). Tier, traffic and expiry live on

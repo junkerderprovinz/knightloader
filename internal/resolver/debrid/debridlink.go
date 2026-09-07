@@ -277,6 +277,7 @@ func (d *DebridLink) Account(ctx context.Context) (AccountInfo, error) {
 	}
 	if err := d.get(ctx, "/downloader/limits", &limits); err == nil && limits.UsagePercent.Value > 0 {
 		info.Traffic.UsedPercent = limits.UsagePercent.Current / limits.UsagePercent.Value * 100
+		info.Traffic.PercentKnown = true
 		if limits.NextResetSeconds.Value > 0 {
 			info.Traffic.ResetsAt = time.Now().Add(time.Duration(limits.NextResetSeconds.Value) * time.Second).UTC()
 		}
