@@ -928,6 +928,7 @@ export const lt: Dict = {
   'accounts.editTitle': '{service} paskyra',
   'accounts.enableAccount': 'Įjungti {account}',
   'accounts.hoster.empty': 'Kol kas nėra hosterių paskyrų',
+  'accounts.hoster.multihoster': 'Multihosteris',
   'accounts.hoster.title': 'Hosterių paskyros',
   'accounts.hoster.hint': 'Tavo paties premium paskyra pas vieną konkretų hosterį. Prisijungimo duomenys perduodami įtaisytam JDownloader, kuris ir prisijungia. Naudok tai hosteriui, kurio nedengia nė viena tavo debrid paslauga. Išjunk eilutę, kad prisijungimas liktų išsaugotas ir nebebūtų naudojamas.',
   'accounts.newAccount': 'Pridėti paskyrą',

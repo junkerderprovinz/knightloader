@@ -930,6 +930,7 @@ export const ar: Dict = {
   'accounts.editTitle': 'حساب {service}',
   'accounts.enableAccount': 'تفعيل {account}',
   'accounts.hoster.empty': 'لا توجد حسابات مستضيفين بعد',
+  'accounts.hoster.multihoster': 'مستضيف متعدد',
   'accounts.hoster.title': 'حسابات المستضيفين',
   'accounts.hoster.hint': 'حسابك المميّز لدى مستضيف واحد بعينه. تُسلَّم بيانات الدخول إلى JDownloader المدمج الذي يقوم بتسجيل الدخول. استخدم هذا لمستضيف لا تغطّيه أي من خدمات Debrid لديك. أطفئ صفاً لتُبقي بيانات الدخول محفوظة وتتوقّف عن استخدامها.',
   'accounts.newAccount': 'إضافة حساب',

@@ -928,6 +928,7 @@ export const tr: Dict = {
   'accounts.editTitle': '{service} hesabı',
   'accounts.enableAccount': '{account} hesabını etkinleştir',
   'accounts.hoster.empty': 'Henüz hoster hesabı yok',
+  'accounts.hoster.multihoster': 'Çoklu barındırıcı',
   'accounts.hoster.title': 'Hoster hesapları',
   'accounts.hoster.hint': 'Tek bir barındırıcıdaki kendi premium hesabın. Giriş bilgileri, girişi asıl yapan gömülü JDownloader’a verilir. Bunu, debrid hizmetlerinin hiçbirinin kapsamadığı bir barındırıcı için kullan. Bir satırı kapatırsan giriş kayıtlı kalır ve artık kullanılmaz.',
   'accounts.newAccount': 'Hesap ekle',

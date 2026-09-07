@@ -928,6 +928,7 @@ export const zh: Dict = {
   'accounts.editTitle': '{service} 账户',
   'accounts.enableAccount': '启用 {account}',
   'accounts.hoster.empty': '还没有网盘账号',
+  'accounts.hoster.multihoster': '多网盘服务',
   'accounts.hoster.title': '网盘账号',
   'accounts.hoster.hint': '你在某一个主机上的高级账户。登录信息交给内置的 JDownloader，由它完成登录。用于你的 Debrid 服务都不覆盖的主机。关掉某一行，登录信息仍会保存，只是不再使用。',
   'accounts.newAccount': '添加账号',

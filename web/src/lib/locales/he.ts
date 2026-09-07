@@ -930,6 +930,7 @@ export const he: Dict = {
   'accounts.editTitle': 'חשבון {service}',
   'accounts.enableAccount': 'הפעלת {account}',
   'accounts.hoster.empty': 'אין עדיין חשבונות מארחים',
+  'accounts.hoster.multihoster': 'מולטיהוסטר',
   'accounts.hoster.title': 'חשבונות מארחים',
   'accounts.hoster.hint': 'חשבון הפרימיום שלך אצל אחסון אחד בלבד. פרטי ההתחברות נמסרים ל‑JDownloader המובנה, שמבצע את ההתחברות. השתמש בזה לאחסון שאף אחד משירותי ה‑Debrid שלך לא מכסה. כבה שורה כדי שההתחברות תישאר שמורה ותפסיק לשמש.',
   'accounts.newAccount': 'הוספת חשבון',

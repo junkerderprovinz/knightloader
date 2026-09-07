@@ -125,6 +125,14 @@ var curatedHosts = []string{
 type Host struct {
 	ID    string `json:"id"`
 	Label string `json:"label"`
+	// Multihoster marks a service that unlocks OTHER hosts rather than hosting
+	// files itself. Filled in by internal/app from a list kept by hand - see
+	// app_multihoster.go, which explains why the list is not derived from JD.
+	//
+	// omitempty: the field is only ever true for a handful of the ~714 hosts,
+	// and an explicit `"multihoster":false` on every other row is noise on a
+	// response that is already long.
+	Multihoster bool `json:"multihoster,omitempty"`
 }
 
 // Reconciler owns one App's hoster-login state: the desired side (Store) and

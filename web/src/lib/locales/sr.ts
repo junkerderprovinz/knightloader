@@ -928,6 +928,7 @@ export const sr: Dict = {
   'accounts.editTitle': 'Налог {service}',
   'accounts.enableAccount': 'Омогући {account}',
   'accounts.hoster.empty': 'Још нема налога хостера',
+  'accounts.hoster.multihoster': 'Мултихостер',
   'accounts.hoster.title': 'Налози хостера',
   'accounts.hoster.hint': 'Твој сопствени премијум налог код једног јединог хостера. Подаци за пријаву предају се уграђеном JDownloader-у, који обавља пријаву. Користи ово за хостера који ниједна твоја debrid услуга не покрива. Искључи ред да пријава остане сачувана и да се више не користи.',
   'accounts.newAccount': 'Додај налог',

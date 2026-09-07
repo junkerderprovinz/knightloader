@@ -920,6 +920,7 @@ export const ru: Dict = {
   'accounts.editTitle': 'Аккаунт {service}',
   'accounts.enableAccount': 'Включить {account}',
   'accounts.hoster.empty': 'Пока нет аккаунтов хостеров',
+  'accounts.hoster.multihoster': 'Мультихостер',
   'accounts.hoster.title': 'Аккаунты хостеров',
   'accounts.hoster.hint': 'Твой собственный премиум-аккаунт у одного конкретного хостинга. Данные передаются встроенному JDownloader, который и выполняет вход. Используй это для хостинга, который не покрывает ни один твой debrid-сервис. Выключи строку, чтобы вход остался сохранённым и перестал использоваться.',
   'accounts.newAccount': 'Добавить аккаунт',

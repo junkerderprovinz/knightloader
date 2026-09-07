@@ -928,6 +928,7 @@ export const id: Dict = {
   'accounts.editTitle': 'Akun {service}',
   'accounts.enableAccount': 'Aktifkan {account}',
   'accounts.hoster.empty': 'Belum ada akun hoster',
+  'accounts.hoster.multihoster': 'Multihoster',
   'accounts.hoster.title': 'Akun hoster',
   'accounts.hoster.hint': 'Akun premium kamu sendiri di satu hoster saja. Data login diserahkan ke JDownloader bawaan, yang melakukan loginnya. Pakai ini untuk hoster yang tidak dicakup layanan debrid mana pun milikmu. Matikan satu baris agar loginnya tetap tersimpan dan berhenti dipakai.',
   'accounts.newAccount': 'Tambah akun',

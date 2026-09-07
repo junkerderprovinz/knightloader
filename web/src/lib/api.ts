@@ -1625,6 +1625,15 @@ export async function saveHosterPreset(host: string, preset: YtdlpHosterPreset, 
 export interface HosterHost {
   id: string;
   label: string;
+  /**
+   * A service that unlocks OTHER hosts rather than hosting files itself.
+   *
+   * Absent for the ordinary ones (the server omits a false), so read it as a
+   * flag and never as a tri-state. It comes from a list kept by hand on the
+   * server - JDownloader's own API cannot answer the question, which
+   * internal/app/app_multihoster.go explains at length.
+   */
+  multihoster?: boolean;
 }
 
 /**

@@ -928,6 +928,7 @@ export const eu: Dict = {
   'accounts.editTitle': '{service} kontua',
   'accounts.enableAccount': 'Gaitu {account}',
   'accounts.hoster.empty': 'Oraindik ez dago ostalarien konturik',
+  'accounts.hoster.multihoster': 'Multihoster',
   'accounts.hoster.title': 'Ostalarien kontuak',
   'accounts.hoster.hint': 'Ostalari bakar bateko zure premium kontua. Sarbide-datuak barneko JDownloaderri ematen zaizkio, eta hark egiten du saioa. Erabili hau zure debrid zerbitzuek estaltzen ez duten ostalari batentzat. Errenkada bat itzali sarbidea gordeta uzteko eta erabiltzeari uzteko.',
   'accounts.newAccount': 'Gehitu kontua',

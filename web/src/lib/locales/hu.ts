@@ -928,6 +928,7 @@ export const hu: Dict = {
   'accounts.editTitle': '{service} fiók',
   'accounts.enableAccount': '{account} engedélyezése',
   'accounts.hoster.empty': 'Még nincs tárhelyfiók',
+  'accounts.hoster.multihoster': 'Multihoster',
   'accounts.hoster.title': 'Tárhelyfiókok',
   'accounts.hoster.hint': 'A saját prémium fiókod egyetlen tárhelynél. A belépési adatokat a beépített JDownloader kapja meg, és ő jelentkezik be. Olyan tárhelyhez használd, amit egyik debrid szolgáltatásod sem fed le. Kapcsolj ki egy sort, és a belépés mentve marad, de nem lesz használva.',
   'accounts.newAccount': 'Fiók hozzáadása',

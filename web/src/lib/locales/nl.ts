@@ -920,6 +920,7 @@ export const nl: Dict = {
   'accounts.editTitle': '{service}-account',
   'accounts.enableAccount': '{account} inschakelen',
   'accounts.hoster.empty': 'Nog geen hosteraccounts',
+  'accounts.hoster.multihoster': 'Multihoster',
   'accounts.hoster.title': 'Hosteraccounts',
   'accounts.hoster.hint': 'Je eigen premiumaccount bij één enkele hoster. De login gaat naar de ingebouwde JDownloader, die hem uitvoert. Gebruik dit voor een hoster die geen van je debrid-diensten dekt. Zet een rij uit om de login opgeslagen te houden en niet meer te gebruiken.',
   'accounts.newAccount': 'Account toevoegen',

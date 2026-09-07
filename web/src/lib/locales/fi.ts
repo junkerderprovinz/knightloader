@@ -928,6 +928,7 @@ export const fi: Dict = {
   'accounts.editTitle': '{service}-tili',
   'accounts.enableAccount': 'Ota {account} käyttöön',
   'accounts.hoster.empty': 'Ei vielä isännöijätilejä',
+  'accounts.hoster.multihoster': 'Multihoster',
   'accounts.hoster.title': 'Isännöijätilit',
   'accounts.hoster.hint': 'Oma premium-tilisi yhdellä ainoalla hosterilla. Kirjautumistiedot annetaan sisäänrakennetulle JDownloaderille, joka tekee kirjautumisen. Käytä tätä hosteriin, jota mikään debrid-palvelusi ei kata. Kytke rivi pois, niin kirjautuminen säilyy tallennettuna eikä sitä enää käytetä.',
   'accounts.newAccount': 'Lisää tili',

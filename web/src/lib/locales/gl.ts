@@ -928,6 +928,7 @@ export const gl: Dict = {
   'accounts.editTitle': 'Conta de {service}',
   'accounts.enableAccount': 'Activar {account}',
   'accounts.hoster.empty': 'Aínda non hai contas de hosters',
+  'accounts.hoster.multihoster': 'Multihost',
   'accounts.hoster.title': 'Contas de hosters',
   'accounts.hoster.hint': 'A túa propia conta premium nun único aloxamento. As credenciais pásanse ao JDownloader integrado, que fai o acceso. Usa isto para un aloxamento que ningún dos teus servizos debrid cubra. Desactiva unha fila para manter o acceso gardado e deixar de usalo.',
   'accounts.newAccount': 'Engadir conta',

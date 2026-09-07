@@ -928,6 +928,7 @@ export const uk: Dict = {
   'accounts.editTitle': 'Акаунт {service}',
   'accounts.enableAccount': 'Увімкнути {account}',
   'accounts.hoster.empty': 'Ще немає облікових записів хостерів',
+  'accounts.hoster.multihoster': 'Мультихостер',
   'accounts.hoster.title': 'Облікові записи хостерів',
   'accounts.hoster.hint': 'Твій власний преміум-акаунт в одного конкретного хостингу. Дані передаються вбудованому JDownloader, який і виконує вхід. Використовуй це для хостингу, який не покриває жоден твій debrid-сервіс. Вимкни рядок, щоб вхід лишився збереженим і більше не використовувався.',
   'accounts.newAccount': 'Додати обліковий запис',

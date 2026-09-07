@@ -51,6 +51,13 @@ submission and for a fixed download.
   the rail with a highlight running along its edge, and letting go swings it,
   with a wave that passes down the entries below. A short click still goes home.
   It follows the motion setting and falls back to a glint under reduced motion.
+- **Multihosters are marked as such in the hoster picker.** Nineteen of the
+  services JDownloader knows unlock other hosts rather than hosting files, and
+  KnightLoader has no backend of its own for any of them, so JD is the only way
+  to use them and the picker is the only place they can be set up. They are
+  labelled rather than hidden. The list is kept by hand because JD's API cannot
+  answer the question: `getAccountInfo` returns an empty `infoMap`, and nothing
+  else distinguishes the two kinds.
 - **A parity check for the settings pages** (`web/check-settings-pages.mjs`, run
   by CI). The rail and the command palette are two hand-kept lists of the same
   page set, and three pages had quietly drifted out of the palette.
