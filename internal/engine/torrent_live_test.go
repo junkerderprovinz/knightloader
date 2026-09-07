@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/testenv"
 )
 
 // sintelMagnet is the Blender Foundation's Sintel: public domain, permanently
@@ -68,6 +69,7 @@ func (s *taskSink) snapshot() core.Task {
 // individually plausible and one of them - which field Seeding comes from - was
 // wrong in the obvious reading.
 func TestARealMagnetPutsRealSwarmNumbersOnTheTask(t *testing.T) {
+	testenv.RequireWideListener(t)
 	if testing.Short() {
 		t.Skip("this joins a real BitTorrent swarm")
 	}
@@ -168,6 +170,7 @@ func TestARealMagnetPutsRealSwarmNumbersOnTheTask(t *testing.T) {
 // magnet at the top of this file cannot ever name a different list of files
 // without becoming a different magnet.
 func TestAFinishedTorrentIsDoneWithASeedingFlagBesideIt(t *testing.T) {
+	testenv.RequireWideListener(t)
 	if testing.Short() {
 		t.Skip("this joins a real BitTorrent swarm")
 	}
@@ -240,6 +243,7 @@ func TestAFinishedTorrentIsDoneWithASeedingFlagBesideIt(t *testing.T) {
 // list forever. Downloader.Resolve takes no context and blocks inside the
 // torrent client, so this deadline is the only thing that ends the wait.
 func TestAMagnetNobodyIsSharingFailsWithAReason(t *testing.T) {
+	testenv.RequireWideListener(t)
 	if testing.Short() {
 		t.Skip("this starts a torrent client")
 	}
@@ -277,6 +281,7 @@ func TestAMagnetNobodyIsSharingFailsWithAReason(t *testing.T) {
 // goroutines, a magnet mid-resolve was still calling into the download library
 // while the library was being torn down underneath it.
 func TestCloseWaitsForTheTorrentGoroutinesItStarted(t *testing.T) {
+	testenv.RequireWideListener(t)
 	if testing.Short() {
 		t.Skip("this starts a torrent client")
 	}

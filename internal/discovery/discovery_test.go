@@ -6,6 +6,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/testenv"
 )
 
 // TestTwoInstancesFindEachOther is the whole point of the package, over real
@@ -17,6 +19,7 @@ import (
 // package's own contract is that discovery failing costs discovery and
 // nothing else.
 func TestTwoInstancesFindEachOther(t *testing.T) {
+	testenv.RequireWideListener(t)
 	a := New(Peer{ID: "id-a", Name: "Cellar", URL: "http://192.168.1.10:8749", Deployment: "container"})
 	b := New(Peer{ID: "id-b", Name: "Laptop", URL: "http://192.168.1.11:8749", Deployment: "desktop"})
 	a.Start()
@@ -52,6 +55,7 @@ func TestTwoInstancesFindEachOther(t *testing.T) {
 // sender by default, so without an explicit check every instance would list
 // itself as a peer - and then offer to pair with itself.
 func TestAnInstanceNeverSeesItself(t *testing.T) {
+	testenv.RequireWideListener(t)
 	s := New(Peer{ID: "id-solo", Name: "Solo", URL: "http://192.168.1.12:8749"})
 	s.Start()
 	defer s.Close()
@@ -151,6 +155,7 @@ func only(peers []Peer, ids ...string) []Peer {
 // So anything on the network could grow this map for as long as it liked,
 // with several kilobytes per entry, and nothing would ever sweep it.
 func TestAFloodCannotGrowTheMapWithoutBound(t *testing.T) {
+	testenv.RequireWideListener(t)
 	s := New(Peer{ID: "id-victim", Name: "Victim", URL: "http://192.168.1.30:8749"})
 	s.Start()
 	defer s.Close()
@@ -197,6 +202,7 @@ func TestAFloodCannotGrowTheMapWithoutBound(t *testing.T) {
 // the whole reason this lifecycle lives in one place is so it does not depend
 // on every future caller getting the order right.
 func TestCloseRacingStartLeavesNothingRunning(t *testing.T) {
+	testenv.RequireWideListener(t)
 	for i := 0; i < 40; i++ {
 		s := New(Peer{ID: fmt.Sprintf("id-race-%d", i), Name: "Racer", URL: "http://192.168.1.40:8749"})
 		var wg sync.WaitGroup
@@ -231,6 +237,7 @@ func TestCloseRacingStartLeavesNothingRunning(t *testing.T) {
 // applyRelay on an InstanceName change for exactly this reason); this is the
 // same fix for the other announce.
 func TestARenameReachesTheNetwork(t *testing.T) {
+	testenv.RequireWideListener(t)
 	a := New(Peer{ID: "id-before", Name: "Before", URL: "http://192.168.1.50:8749"})
 	a.Start()
 	defer a.Close()
