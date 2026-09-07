@@ -287,6 +287,16 @@ func (a *App) rewireBackends() {
 		yb.Options = func(taskID string) ytdlp.Options {
 			return a.ytdlpOptionsForTask(taskID)
 		}
+		// The stored cookie jars, and this line is the whole reason the feature
+		// is reachable at all: CookieStore is complete and tested on its own,
+		// but Backend.Cookies is nil until somebody hands it over, and a nil
+		// hook means "no opinion" - every download would behave exactly as
+		// before while the settings page cheerfully accepted jars nothing read.
+		//
+		// A closure over the store rather than the text, for the same reason
+		// RateLimit and Options above are closures: a jar saved between two
+		// downloads has to reach the next spawn without a restart.
+		yb.Cookies = ytdlp.NewCookieStore(a.Accounts).Text
 		newYtdlp = yb
 		a.Registry.Register(ytdlp.Resolver{ExcludeHosts: ytdlpExclude})
 		log.Printf("yt-dlp backend enabled: %s", ytbin)
