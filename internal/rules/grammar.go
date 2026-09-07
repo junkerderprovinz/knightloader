@@ -137,6 +137,25 @@ func Describe() Grammar {
 			MaxPattern:  maxPattern,
 		},
 	}
+	// "headers" is deliberately absent from Actions too, and for a sharper
+	// reason than Filename's. Action.Headers exists, Apply fills it in and
+	// Compile checks it, but the editor's action renderer switches on Kind and
+	// FALLS THROUGH to the reject control for a kind it does not know
+	// (web/src/components/RuleEditor.tsx) - so describing it as
+	// {ID: "headers", Kind: "profile"} today would not put a missing control on
+	// the Packagizer tab, it would put a working accept/reject switch there,
+	// wired to Action.Reject. A control that quietly edits the wrong field is
+	// worse than no control at all, which is the whole reason this file exists.
+	//
+	// The line to add, once the renderer has a "profile" branch that offers the
+	// stored profile list, is:
+	//
+	//	{ID: "headers", Kind: "profile", Flavour: "packagizer", Max: intPtr(MaxHeaderProfile)},
+	//
+	// "profile" and not "template" on purpose: the value is a key into the
+	// encrypted store, and a name assembled at match time out of <jd:hoster>
+	// would let the link decide which credential gets attached to it.
+	//
 	// "filename" is deliberately absent from Actions. Action.Filename exists and
 	// Apply fills it in, but nothing downstream can honour it — the engine is
 	// handed a folder and names the file itself — so a rename offered in the form

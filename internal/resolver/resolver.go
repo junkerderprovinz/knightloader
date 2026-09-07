@@ -67,6 +67,20 @@ func SplitSlot(id string) (service, account string) {
 // Request is what the resolver is asked to resolve.
 type Request struct {
 	URL string
+	// Headers names the stored header profile this task was given - by a
+	// Packagizer rule (rules.Action.Headers) or by hand on the row. Empty is
+	// the ordinary case and means "no profile was named", which every resolver
+	// but internal/resolver/hostheaders ignores and that one reads as "pick
+	// the profile stored for this link's own origin".
+	//
+	// IT IS A NAME AND NEVER THE HEADERS THEMSELVES, which is the whole
+	// security arrangement rather than a detail of it. The values are sealed
+	// in internal/accounts.Store; a Request travels through the dispatcher and
+	// is built from a core.Task that is persisted and serialised, so a header
+	// value carried here would be one copy of the secret too many - the same
+	// reason internal/resolver/remotefs looks its own login up again instead
+	// of being handed one.
+	Headers string
 	// Account and Captcha providers are added when premium/debrid land.
 }
 
