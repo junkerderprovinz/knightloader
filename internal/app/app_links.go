@@ -25,7 +25,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 )
 
-// The five entrances a link can arrive by.
+// The six entrances a link can arrive by.
 //
 // They are declared here rather than beside the type in core because core owns
 // the type and nothing else: every one of these names a funnel in this file, and
@@ -43,12 +43,20 @@ const (
 	OriginCnL core.Origin = "cnl"
 	// OriginWatch is a job file dropped into the watched folder.
 	OriginWatch core.Origin = "watch"
+	// OriginFeed is an entry an RSS or Atom subscription published. It is its
+	// own entrance rather than being filed under OriginWatch, although the two
+	// are the same kind of unattended intake and go down the same funnel: this
+	// is the column somebody opens the collector to read when they are asking
+	// "why is this here", and "a file was dropped in a folder" is not an answer
+	// anybody can act on for a link nobody dropped. The feed's address is what
+	// they actually need next, and it is in the log line beside it.
+	OriginFeed core.Origin = "feed"
 	// OriginContainer is a .dlc/.ccf/.rsdf/.txt container, whether it was read
 	// here or opened by the JD backend on our behalf.
 	OriginContainer core.Origin = "container"
 )
 
-// KnownOrigin turns an entrance a caller names into one of the five, and refuses
+// KnownOrigin turns an entrance a caller names into one of the six, and refuses
 // anything else.
 //
 // It exists for the relays. A Click'n'Load bridge decodes a submission on the
@@ -60,11 +68,11 @@ const (
 // opens the holding area to read.
 //
 // An unrecognised value is refused rather than stored, because a free-text
-// origin is a column that stops being answerable — which is the state the five
+// origin is a column that stops being answerable — which is the state the six
 // constants above exist to end.
 func KnownOrigin(s string) (core.Origin, bool) {
 	switch o := core.Origin(strings.ToLower(strings.TrimSpace(s))); o {
-	case OriginPaste, OriginCrawl, OriginCnL, OriginWatch, OriginContainer:
+	case OriginPaste, OriginCrawl, OriginCnL, OriginWatch, OriginFeed, OriginContainer:
 		return o, true
 	}
 	return "", false

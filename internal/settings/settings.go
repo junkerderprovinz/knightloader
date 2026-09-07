@@ -22,6 +22,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/confirm"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
+	"github.com/junkerderprovinz/knightloader/internal/feed"
 	"github.com/junkerderprovinz/knightloader/internal/idleaction"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
@@ -117,6 +118,23 @@ type Settings struct {
 	// WatchDir is a folder whose dropped .txt/.crawljob files are picked up.
 	// Empty disables the watcher.
 	WatchDir string `json:"watchDir"`
+	// Feeds are the RSS and Atom subscriptions this instance follows: an
+	// address, how often to look at it, and optionally a title pattern, a
+	// destination folder and a priority for what it finds. An empty list is
+	// the off state, the same way an empty Schedule is, and it is what a
+	// fresh install has.
+	//
+	// This is the sibling of WatchDir above and not of a resolver setting: a
+	// feed is an intake, so a subscription describes where links come FROM
+	// rather than what happens to them afterwards. What one may contain is
+	// internal/feed's business, see settings_feeds.go.
+	//
+	// No omitempty, deliberately, matching CaptchaSolverOrder further down
+	// rather than ArchivePasswords above: a nil slice with omitempty is
+	// DROPPED from the JSON entirely, and the frontend has no way to type a
+	// field that is sometimes simply absent. Without it a nil slice encodes
+	// as JSON null, so the key is always there.
+	Feeds []feed.Subscription `json:"feeds"`
 	// VerifyChecksums checks a finished download against a checksum file that
 	// came with it, when one did.
 	VerifyChecksums bool `json:"verifyChecksums"`
@@ -713,6 +731,7 @@ func sanitize(n Settings) Settings {
 	n = sanitizePaths(n)
 	n = sanitizeArchives(n)
 	n = sanitizeIntake(n)
+	n = sanitizeFeeds(n)
 	n = sanitizeNetwork(n)
 	n = sanitizeResolvers(n)
 	n = sanitizeRules(n)

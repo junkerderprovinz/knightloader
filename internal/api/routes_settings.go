@@ -239,6 +239,17 @@ func validateRows(s settings.Settings) error {
 			return fmt.Errorf("schedule row %d: %w", i+1, err)
 		}
 	}
+	// Refused at save rather than dropped by the sanitiser, which is what
+	// settings_feeds.go deliberately does not do. A subscription whose title
+	// filter will not compile is the case that matters: dropped, the row would go
+	// on being polled with no filter at all and stage the publisher's whole feed,
+	// so the only safe outcomes are "the user fixes it" or "it is never polled",
+	// and this is the one of the two they can see.
+	for i, e := range s.Feeds {
+		if err := e.Validate(); err != nil {
+			return fmt.Errorf("feed row %d: %w", i+1, err)
+		}
+	}
 	return nil
 }
 
