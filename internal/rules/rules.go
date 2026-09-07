@@ -143,6 +143,26 @@ type Action struct {
 	AutoExtract *bool  `json:"autoExtract,omitempty"`
 	Chunks      *int   `json:"chunks,omitempty"`
 
+	// Headers NAMES a stored header profile (internal/resolver/hostheaders)
+	// and never holds a header itself. That is the point of the field, not an
+	// implementation detail: a rule set lives in settings.json, and
+	// settings.json is what internal/api/routes_diagnostics.go serialises into
+	// the bundle a person attaches to a public bug report. A session cookie
+	// written here would be in every one of those forever. The values are
+	// sealed in the encrypted account store; this string is a key, and a key
+	// is not a secret.
+	//
+	// It is deliberately NOT one of the templates() below and is never
+	// expanded. A profile name assembled at match time out of <jd:hoster>
+	// would let a link's own host decide which credential gets attached to it,
+	// which is the one decision this feature must never hand to the far end.
+	//
+	// An empty string means "no rule had an opinion", the same as every other
+	// action field: the resolver then falls back to whatever profile is stored
+	// for the link's own origin, and a link on an unconfigured origin gets no
+	// headers at all.
+	Headers string `json:"headers,omitempty"`
+
 	// Reject drops the link instead of taking it. Reason is shown to the user
 	// alongside the rule's name; when it is empty Check writes one, because a
 	// rejection nobody can explain is the behaviour this package exists to
@@ -242,6 +262,9 @@ type Effect struct {
 	Priority    *int   `json:"priority,omitempty"`
 	AutoExtract *bool  `json:"autoExtract,omitempty"`
 	Chunks      *int   `json:"chunks,omitempty"`
+	// Headers is the stored header profile a rule attached, by name. See
+	// Action.Headers for why a name and never the headers.
+	Headers string `json:"headers,omitempty"`
 	// Matched names the rules that fired, in the order they fired, so the
 	// interface can answer "why did this land here" without re-running anything.
 	Matched []string `json:"matched,omitempty"`
@@ -494,6 +517,11 @@ func (m *Matcher) Apply(c Candidate) Effect {
 		}
 		if a.Comment != "" {
 			comment = tpl{a.Comment, g}
+		}
+		// Copied straight rather than through expand: the profile name is not
+		// a template, deliberately - see Action.Headers.
+		if a.Headers != "" {
+			e.Headers = a.Headers
 		}
 		// The values are copied rather than the pointers. Handing the rule's own
 		// pointer to the caller would let anything that writes through the Effect
@@ -815,6 +843,9 @@ func actionProblems(a Action, conds []cond) []string {
 		if unterminated(f.Text) {
 			msgs = append(msgs, fmt.Sprintf("the %s opens a <jd:...> it never closes", f.Label))
 		}
+	}
+	if msg := headerProfileProblem(a.Headers); msg != "" {
+		msgs = append(msgs, msg)
 	}
 	return msgs
 }
