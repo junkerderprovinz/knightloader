@@ -249,6 +249,29 @@ func hostCapFor(res resolver.Resolver, host string) int {
 	return hc.HostCap(host)
 }
 
+// maxPerHostFor is how many transfers this ONE host may have in flight: its
+// own entry in settings.HostRules when it has one, and the global MaxPerHost
+// when it does not.
+//
+// Read at the single point cfg.MaxPerHost was read before, which is what keeps
+// this an override rather than a second limit sitting beside the first. Hosters
+// do not agree with each other - one tolerates eight connections, the next
+// refuses from two - and with one number for all of them the only safe value is
+// the strictest host's, which throttles every other download on the box for the
+// sake of one hoster.
+//
+// A host with no entry answers exactly what it answered before this table
+// existed, and the entry can be larger as well as smaller than the global: the
+// per-host figure is what the PERSON says this host tolerates, and it is still
+// under the global concurrency limit, which is checked a few lines above this
+// one and can only ever be reached first.
+func maxPerHostFor(cfg settings.Settings, host string) int {
+	if r := cfg.HostRuleFor(host); r.MaxPerHost > 0 {
+		return r.MaxPerHost
+	}
+	return cfg.MaxPerHost
+}
+
 // resolverForTaskLocked picks the resolver a task should be dispatched
 // through: the one recorded on it if that still exists AND its account is
 // currently usable, else the best current match by rankedChain whose account
@@ -399,6 +422,13 @@ func (a *App) dispatchLocked() {
 	// only started once somebody resumed the queue would miss every
 	// challenge raised while it was halted.
 	a.ensureCaptchaPoller()
+	// Started from here for exactly the reasons the captcha poller above is,
+	// and with the same sync.Once shape - see ensureStallWatcher. Ahead of the
+	// halted check for the same reason as well: a transfer that was already
+	// running when somebody stopped the queue is precisely the one that stands
+	// still overnight, and a watcher that only woke up once the queue was
+	// moving again would not be looking at it.
+	a.ensureStallWatcher()
 	if a.halted {
 		// Every queued row says why nothing is moving, not only the head card.
 		// A stopped queue and a full one look identical on a list of rows that
@@ -451,6 +481,16 @@ func (a *App) dispatchLocked() {
 		if t == nil {
 			continue // removed while queued
 		}
+		// "We will not try this again" is untrue of anything sitting in the wait
+		// queue, whatever put it back there. Cleared HERE rather than at each of
+		// the places that requeue a task, because this loop is the one point all
+		// of them meet: the two fallback branches in onUpdate below, Resume, the
+		// boot requeue, and RestartTasks in app_queue.go, which appends to the
+		// queue and calls this function before it takes the copies it broadcasts.
+		// One clear that cannot be forgotten, on the same principle Waiting is
+		// recomputed from scratch on every pass rather than erased by whoever
+		// fixed the cause.
+		t.GaveUp = false
 		// The flags that mean "not this one", checked here because this is the
 		// only place bytes are ever set moving: StartTasks with no ids is "start
 		// everything", and without this a link the user switched off downloads
@@ -505,7 +545,7 @@ func (a *App) dispatchLocked() {
 				rest = append(rest, id)
 				continue
 			}
-			if perHost[h] >= cfg.MaxPerHost {
+			if perHost[h] >= maxPerHostFor(cfg, h) {
 				// Said apart from WaitingSlot because the fix is different:
 				// this one frees up when THIS host's transfers finish, and
 				// raising MaxConcurrent does nothing for it.
@@ -681,7 +721,7 @@ const defaultConns = 4
 //
 // ONE precedence, and this is it:
 //
-//	value = first of (per-task, matching rule, global setting, defaultConns)
+//	value = first of (per-task, matching rule, host table, global setting, defaultConns)
 //	conns = min(value, every ceiling that applies, rules.MaxChunks)
 //
 // The first two terms both arrive on t.Chunks, and that is not the two being
@@ -708,11 +748,29 @@ const defaultConns = 4
 // HTTP fetcher will not honour more, so a count that got past it - an older
 // build, a value written straight into the store - is cut here rather than
 // handed on as a promise nothing downstream keeps.
+//
+// THE HOST TABLE SITS BETWEEN THE TASK AND THE GLOBAL SETTING, and it is a
+// value in that chain rather than one more ceiling. Everything on the ceilings
+// list is a REPORT about the host, from a resolver that has been told what the
+// host permits, and a report may only ever lower the count. A HostRules entry
+// is a person writing down what they want for this hoster, so it has to be
+// able to say eight on an instance whose global is four - as a ceiling it
+// could only ever say "at most", which cannot express the case the table was
+// asked for ("ein Hoster vertraegt acht Verbindungen, der naechste sperrt ab
+// zwei"). It is still cut by every ceiling below, so a resolver that knows the
+// host permits two beats a hopeful eight, and by rules.MaxChunks like anything
+// else.
 func connsFor(t *core.Task, cfg settings.Settings, ceilings ...int) int {
 	conns := defaultConns
+	// hostOf(t.URL) and not t.Host, so this is keyed on exactly what the
+	// dispatcher counts transfers per host by a few lines up. The two agree
+	// today; keying one of them off the other field is how they stop agreeing.
+	hostChunks := cfg.HostRuleFor(hostOf(t.URL)).Chunks
 	switch {
 	case t.Chunks > 0:
 		conns = t.Chunks
+	case hostChunks > 0:
+		conns = hostChunks
 	case cfg.Chunks > 0:
 		conns = cfg.Chunks
 	}
@@ -823,6 +881,14 @@ func (a *App) stop(id string, requeue bool) {
 		t.Status = core.StatusPaused
 	}
 	t.Speed = 0
+	// And the stall mark with it, for the same reason the speed is zeroed: it
+	// is a reading of a transfer that was running, and this one is not any
+	// more. The watcher would take it back on its own within a tick (see
+	// markStallsLocked, which walks what it has marked precisely so a task that
+	// left the running set by a path it does not own still gets cleaned); doing
+	// it here means the row the user is looking at is right in the answer to
+	// the button they just pressed.
+	t.StalledSince = time.Time{}
 	c := *t
 	if !wasActive {
 		a.mu.Unlock()
@@ -1042,6 +1108,13 @@ func (a *App) onUpdate(id string, u core.Update) {
 	}
 	// Terminal states free the scheduling slot for the next queued task.
 	if u.Status == core.StatusDone || u.Status == core.StatusError {
+		// The stall mark is a reading of a transfer that is still going, so a
+		// settled row must not keep one - "standing still for 40 minutes" on a
+		// finished download is a sentence about something that is over. Cleared
+		// here rather than left to the watcher's next tick, which would leave it
+		// on screen for up to one interval and put it in the broadcast this very
+		// update sends.
+		t.StalledSince = time.Time{}
 		delete(a.active, id)
 		a.dispatchLocked()
 	}
@@ -1050,6 +1123,10 @@ func (a *App) onUpdate(id string, u core.Update) {
 		t.Online = core.AvailOnline
 		t.Retries = 0
 		t.NextTry = time.Time{}
+		// Reset with Retries above and for the same reason: both count what it
+		// took to get here, and a finished download that is started again later
+		// must not begin one restart short of its own ceiling.
+		t.StallRestarts = 0
 		// Renamed here, ahead of everything below that turns t.Name into a path:
 		// the checksum sweep, the extraction candidate, the copy the store and
 		// every browser get. Done afterwards, each of those would be about a file
@@ -1162,7 +1239,22 @@ func (a *App) onUpdate(id string, u core.Update) {
 	var retryIn time.Duration
 	if u.Status == core.StatusError && fallbackTo == nil {
 		cfg := a.Settings.Get()
+		// What this particular failure, on this particular host, is worth
+		// waiting for - see settings.RetryFor. With both tables empty it
+		// answers the fifteen-seconds-to-ten-minutes backoff and MaxRetries,
+		// which is what every branch below was hard-coded to before the tables
+		// existed, so an install that has configured nothing behaves as it did.
+		plan := cfg.RetryFor(string(t.Reason), hostOf(t.URL))
 		switch {
+		case plan.Never:
+			// Somebody wrote "never" against this host or this reason, and
+			// that is a decision, not an exhausted counter. It settles into
+			// the end state that says so - see core.Task.GaveUp - rather than
+			// looking identical to a download that ran out of attempts, which
+			// would send the next person to raise MaxRetries and wonder why
+			// nothing changed.
+			t.GaveUp = true
+			t.NextTry = time.Time{}
 		case t.Reason == core.ReasonCaptcha:
 			// Nothing about the next ten minutes answers a captcha. Retrying
 			// only spends the queue's slots and buries the one line that told
@@ -1170,20 +1262,30 @@ func (a *App) onUpdate(id string, u core.Update) {
 			// headless JD with no MyJDownloader session the challenge is never
 			// offered over the API at all (see internal/captcha/jdsource.go's
 			// own note), so the retry cannot succeed even in principle.
+			//
+			// Marked as given up rather than merely left unarmed: this app has
+			// decided, and raising the retry count will not change its mind.
+			t.GaveUp = true
 			t.NextTry = time.Time{}
 		case t.Reason == core.ReasonDiskFull:
 			// Cleared as well as not armed: the list reads a pending retry off this
 			// field, and a task that will never be tried again must not show the
-			// "retrying automatically" mark that stops people acting on it.
+			// "retrying automatically" mark that stops people acting on it. Same
+			// end state as the captcha above, and for the same reason: this is
+			// policy, not a counter running out.
+			t.GaveUp = true
 			t.NextTry = time.Time{}
-		case t.Retries < cfg.MaxRetries:
+		case t.Retries < plan.Tries:
 			t.Retries++
 			retryIn = u.Retry
 			if retryIn <= 0 {
-				retryIn = retryDelay(t.Retries)
+				retryIn = retryDelay(t.Retries, plan.Delay, plan.Max)
 			}
 			t.NextTry = time.Now().Add(retryIn)
 		default:
+			// Out of attempts, which is NOT the same end state as the three
+			// above: this one is mended by allowing more of them, so it stays
+			// a plain failure and GaveUp stays false.
 			t.NextTry = time.Time{}
 		}
 	}
@@ -1297,10 +1399,35 @@ func (a *App) onUpdate(id string, u core.Update) {
 
 // retryDelay grows with each attempt so a hoster cool-down has time to pass,
 // without making the last attempt feel abandoned.
-func retryDelay(attempt int) time.Duration {
-	d := time.Duration(1<<uint(attempt-1)) * 15 * time.Second
-	if d > 10*time.Minute {
-		d = 10 * time.Minute
+//
+// base and cap arrive from settings.Settings.RetryFor rather than being the two
+// numbers written in here, and that is the whole of what made this policy
+// configurable: the SHAPE of the backoff is still this one function, and the
+// values it doubles between are whatever this failure's host and reason say
+// they are. An install that has configured neither is handed
+// settings.DefaultRetryDelay and settings.DefaultRetryMax, which are the 15s
+// and 10min this function used to hold, so the curve is bit for bit the one it
+// always produced.
+//
+// The clamp on attempt is what benchDelay in app_health.go has for the same
+// reason: the shift is what overflows, and a configured attempt count arriving
+// from settings must not be able to turn a delay negative.
+func retryDelay(attempt int, base, ceiling time.Duration) time.Duration {
+	if attempt < 1 {
+		attempt = 1
+	}
+	if attempt > 32 {
+		attempt = 32
+	}
+	if base <= 0 {
+		base = settings.DefaultRetryDelay
+	}
+	if ceiling <= 0 {
+		ceiling = settings.DefaultRetryMax
+	}
+	d := base * time.Duration(uint64(1)<<uint(attempt-1))
+	if d <= 0 || d > ceiling {
+		d = ceiling
 	}
 	return d
 }
