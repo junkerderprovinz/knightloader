@@ -35,14 +35,14 @@ func registerSettings(reg *Registry, a *app.App) {
 			}
 			// Refuse a folder we cannot write to instead of accepting it and
 			// downloading somewhere else.
-			if err := settings.Validate(s.DownloadDir); err != nil {
+			if err := settings.Validate("the download folder", s.DownloadDir); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
 			// The working folder gets the same treatment, and it matters more:
 			// every download writes there first, so a folder that cannot be
 			// written stops everything rather than misplacing one path.
-			if err := settings.Validate(s.WorkDir); err != nil {
+			if err := settings.Validate("the working folder", s.WorkDir); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
@@ -112,13 +112,13 @@ func registerSettings(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			if err := settings.Validate(preview.DownloadDir); err != nil {
+			if err := settings.Validate("the download folder", preview.DownloadDir); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
 			// Same check for the working folder, for the same reason as on PUT:
 			// every download writes there before it writes anywhere else.
-			if err := settings.Validate(preview.WorkDir); err != nil {
+			if err := settings.Validate("the working folder", preview.WorkDir); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
@@ -282,7 +282,7 @@ func validateRows(s settings.Settings) error {
 	// category folder is real by the time the save returns - the same promise
 	// the global download folder already makes.
 	for i, c := range s.Categories {
-		if err := settings.Validate(c.Dir); err != nil {
+		if err := settings.Validate("the folder", c.Dir); err != nil {
 			return fmt.Errorf("category %d (%s): %w", i+1, categoryLabel(c, i), err)
 		}
 	}
@@ -333,6 +333,18 @@ func options() map[string]any {
 		// at all - resumeOnStart was honoured at boot with nothing anywhere to set
 		// it, which is a setting only somebody editing settings.json can reach.
 		"resumeModes": settings.ResumeModes(),
+		// The reclaim trust tiers, strictest first, which is the order the
+		// exported helper promises and the order a control has to offer them
+		// in. Same story as resumeModes directly above: the helper existed and
+		// carried a doc comment saying an interface would want it, and nothing
+		// ever called it, so the setting was reachable only by editing
+		// settings.json.
+		"reclaimTrustModes": settings.ReclaimTrustModes(),
+		// A number rather than a list, and the first one in this map. The
+		// category table's own ceiling belongs with the menus for the same
+		// reason they do: hardcoding 64 in the browser is a second copy of a
+		// Go constant, and the copy is the one that goes stale silently.
+		"maxCategories": settings.MaxCategories,
 		// The folder "trash" actually means, so the help text can name it
 		// instead of implying a recycle bin the container does not have. It
 		// travels with the menu rather than being spelled out in 42 locale

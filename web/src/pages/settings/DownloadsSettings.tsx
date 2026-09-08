@@ -1,12 +1,27 @@
 import { useEffect, useState } from 'react';
 // TextInput went with the watch folder when that left this page and the import
 // stayed behind, which nothing catches: noUnusedLocals is off in web/tsconfig.
-import { Card, Field, FieldGroup, NumberInput, SectionTitle, TextArea, ToggleRow } from '../../components/ui';
+// It is in use again since the working folder landed in the Speicherort card.
+import { Card, Field, FieldGroup, NumberInput, SectionTitle, TextArea, TextInput, ToggleRow } from '../../components/ui';
 import { PathInput } from '../../components/FolderPicker';
 import { Tabs } from '../../components/Tabs';
 import { fetchIdleActions, fetchOptions } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft } from './context';
+// Six cards that each own one subject, in their own files under ./downloads.
+// They live beside this page rather than inside it because this file was the
+// natural home for all six and would have been the wrong one: a page that
+// answers ten questions in one 1200-line component is a file nobody can edit
+// two things in at once. Each card reads and writes the same shared draft
+// through useDraft, so splitting them costs nothing at runtime, and each takes
+// its hue as a prop because the ORDER of the cards is this page's decision and
+// a jumbled badge sequence reads as a bug.
+import { CollisionCard } from './downloads/Collision';
+import { CollectorCard } from './downloads/Collector';
+import { DiskSpaceCard } from './downloads/DiskSpace';
+import { FeedsCard } from './downloads/Feeds';
+import { HostRulesCard } from './downloads/HostRules';
+import { StallCard } from './downloads/Stall';
 
 // The end-of-queue action's menu labels - internal/idleaction.Actions() is the
 // source of truth for WHICH ids exist (fetched below), this is only what each
@@ -107,7 +122,33 @@ export function DownloadsSettings() {
           onChange={(v) => patch({ subfolderByPackage: v })}
           label={t('settings.subfolderByPackage')}
         />
+        {/* Beside the download folder rather than on a page of its own,
+            because the two are one question asked twice: where the bytes are
+            written while they arrive, and where the finished file ends up.
+            Reading them apart is how somebody sets a working folder on the
+            same disk they were trying to keep clear.
+
+            A plain TextInput and NOT the PathInput above it. PathInput exists
+            to keep a <jd:…> tail when you browse, and this field may not have
+            one: several downloads heading for one destination share this
+            single folder, so a template would scatter the parts of a
+            multi-volume archive across four of them and no set would ever
+            unpack. sanitizeStaging drops a template here, and a chooser that
+            offered to build one would be offering to have it thrown away. */}
+        <Field label={t('settings.downloads.workDir')} hint={t('settings.downloads.workDirHint')}>
+          <TextInput
+            value={cfg.workDir}
+            placeholder="/downloads/.incoming"
+            spellCheck={false}
+            dir="ltr"
+            onChange={(e) => patch({ workDir: e.target.value })}
+          />
+        </Field>
       </Card>
+
+      {/* Directly under the folders, because it is the question those folders
+          raise: what happens when the name is already taken there. */}
+      <CollisionCard hue={1} />
 
       <Card hue={2} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.downloads.limitsTitle')}</SectionTitle>
@@ -195,12 +236,26 @@ export function DownloadsSettings() {
         </div>
       </Card>
 
+      {/* Immediately after the three counts it makes exceptions to. The card
+          above says what every hoster gets; this one says which hoster is
+          different, and reading them apart is how somebody throttles the whole
+          instance down to its most delicate hoster. */}
+      <HostRulesCard hue={3} />
+
+      {/* Then the two guards that stop a download rather than shape it: one
+          watches the clock, one watches the disk. */}
+      <StallCard hue={4} />
+      <DiskSpaceCard hue={5} />
+
+      {/* What happens to links on the way IN, before any of the above applies. */}
+      <CollectorCard hue={6} />
+
       {/* The crawl, on its own, because it is the one thing on this page that
           sends requests to a server nobody here runs. Everything below the
           master switch is dimmed while it is off - a control that vanished
           would teach nobody what the mode can do, and one that disagrees with
           its own disabled siblings does. */}
-      <Card hue={3} className="flex flex-col gap-5">
+      <Card hue={7} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.crawl.title')}</SectionTitle>
         <ToggleRow hue={0} checked={cfg.crawl} onChange={(v) => patch({ crawl: v })} label={t('settings.crawl')} />
 
@@ -268,8 +323,13 @@ export function DownloadsSettings() {
           that card is about, and both were the only thing in a card of their
           own here. Nothing else moved: the analysis found that every further
           merge cost more in search words and bookmarks than it bought. */}
+      {/* The other way links arrive without anybody pasting them, and the
+          server itself points people here for it: setFeature's refusal says
+          "add a feed on the Downloads page". */}
+      <FeedsCard hue={8} />
+
       {idleActions.length > 0 && (
-          <Card hue={4} className="flex flex-col gap-5">
+          <Card hue={9} className="flex flex-col gap-5">
           <SectionTitle>{t('settings.downloads.idleTitle')}</SectionTitle>
           <FieldGroup
             layout="row"

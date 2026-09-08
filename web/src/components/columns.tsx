@@ -808,6 +808,13 @@ const waitingKey: Partial<Record<NonNullable<Task['waiting']>, TranslationKey>> 
   captcha: 'task.waiting.captcha',
   account: 'task.waiting.account',
   halted: 'task.waiting.halted',
+  // The disk guard's own reason. It was the only one of the nine with no entry
+  // here, so a queue held back by the free-space floors read as "all slots
+  // busy" - the wrong explanation, and the one a person would act on by raising
+  // the concurrency limit. It only became reachable when the three thresholds
+  // got controls, which is exactly when the wrong word would have been the
+  // first thing anybody saw.
+  disk: 'task.waiting.disk',
 };
 
 function StatusCell({ task, t }: { task: Task; t: Translate }) {

@@ -793,7 +793,7 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 	// through would leave a selection with the first eight rows edited, the rest
 	// as they were, and an error message that says nothing about which is which.
 	if o.Dir != nil && *o.Dir != "" {
-		if err := settings.Validate(*o.Dir); err != nil {
+		if err := settings.Validate("the folder for this download", *o.Dir); err != nil {
 			return err
 		}
 	}

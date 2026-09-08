@@ -4,7 +4,6 @@ package settings
 // folder is watched for dropped jobs, and the archive passwords tried on them.
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -69,14 +68,27 @@ func fixedPrefix(dir string) string {
 	return ""
 }
 
-// Validate reports why a download directory cannot be used, so the API can
-// refuse a bad path instead of silently downloading somewhere else.
-func Validate(dir string) error {
+// Validate reports why a directory cannot be used, so the API can refuse a bad
+// path instead of silently downloading somewhere else.
+//
+// what names the field being checked, in the words the person typing into it
+// sees ("the download folder", "the working folder"). It is a parameter and not
+// a constant because five different fields are checked by this one function -
+// the download folder, the working folder, a category's folder, a batch's
+// folder and a single task's folder - and until this parameter existed every
+// one of them reported "the download folder must be an absolute path". So the
+// field that failed was the one field the message did not name, and the
+// working folder, added later, made that visible: somebody typing a relative
+// path into it was told to go and fix a download folder that was fine.
+//
+// Passing it in rather than hardcoding a label per call site is what makes the
+// fix stick: a sixth caller cannot compile without answering the question.
+func Validate(what, dir string) error {
 	if dir == "" {
 		return nil // the built-in default is always usable
 	}
 	if !filepath.IsAbs(dir) {
-		return errors.New("the download folder must be an absolute path")
+		return fmt.Errorf("%s must be an absolute path", what)
 	}
 	// A folder may be a template like /downloads/<jd:date>/<jd:packagename>.
 	// Only the part before the first placeholder is a real path: creating the
