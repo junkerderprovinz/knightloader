@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useT, type TranslationKey } from '../lib/i18n';
+// The DRAWER type, imported rather than redeclared, and aliased because this
+// file already has a Category of its own further down: those are the file-type
+// shorthands a CONDITION offers ("video", "audio", "archive"). The two share a
+// word and nothing else, and a picker built from the wrong one renders
+// plausibly and can never name a drawer.
+import type { Category as Drawer } from '../lib/api';
 import { en } from '../lib/locales/en';
 import { IconPlus, IconTrash } from '../lib/icons';
 import { Button, IconBadge, InfoBubble, TextInput, segBase, segOff, segOn } from './ui';
@@ -46,6 +52,16 @@ export interface RuleAction {
   priority?: number;
   autoExtract?: boolean;
   chunks?: number;
+  /**
+   * The drawer from the Categories page this rule files a link into, by id.
+   *
+   * An id and never a copy of the drawer's settings: renaming a category,
+   * editing its folder or retagging a task all reach every download that has
+   * not started yet, which is the whole reason settings.Category is a
+   * reference. Absent means this rule has no opinion, never "the default
+   * drawer" and never "clear it".
+   */
+  category?: string;
   reject?: boolean;
   reason?: string;
 }
@@ -87,7 +103,13 @@ export interface OpGrammar {
 
 export interface ActionGrammar {
   id: keyof RuleAction;
-  kind: 'template' | 'int' | 'bool' | 'reject';
+  // 'category' is a PICK and deliberately not a template, unlike every other
+  // string an action carries. A template here would let the link's own host
+  // choose its folder, priority and collision rule, and it would put the id out
+  // of reach of settings.ValidateCategories, which cannot weigh a value that
+  // does not exist until a link arrives. The Go side refuses a "<jd:" in this
+  // field at compile time to keep that check meaningful.
+  kind: 'template' | 'int' | 'bool' | 'category' | 'reject';
   flavour?: string;
   min?: number;
   max?: number;
@@ -110,6 +132,8 @@ export interface Grammar {
   operators: OpGrammar[];
   actions: ActionGrammar[];
   variables: Variable[];
+  // The file-type shorthands a CONDITION offers, and NOT the drawers from the
+  // Categories page. They share a word and nothing else.
   categories: Category[];
   limits: { priorityMin: number; priorityMax: number; maxChunks: number; maxPattern: number };
 }
@@ -279,6 +303,17 @@ export const RULE_STRINGS = {
   'settings.rules.action.priority': 'Priority',
   'settings.rules.action.autoExtract': 'Extract automatically',
   'settings.rules.action.chunks': 'Connections',
+  // Four entries for the drawer picker. They are dead weight the moment they
+  // land, exactly like every line around them: the catalogue answers first and
+  // all four are already in en.ts and in the 41 other locales. They are here
+  // because RuleKey is `keyof typeof RULE_STRINGS`, so a key this table does
+  // not carry cannot be passed to rx() at all.
+  'settings.rules.action.category': 'Category',
+  'settings.rules.action.categoryHint':
+    'Files matching links in one of the drawers from the Categories page, which brings its own folder, queue position, unpacking switch and collision rule with it.',
+  'settings.rules.action.categoryNone':
+    'No categories yet. Create one on the Categories page first, otherwise this rule would file links in a drawer that does not exist.',
+  'settings.rules.action.categoryMissing': '{id} (deleted)',
   'settings.rules.action.reject': 'Verdict',
   'settings.rules.action.reason': 'Reason',
   'settings.rules.action.reasonHint':
@@ -701,6 +736,7 @@ export function RuleEditor({
   flavour,
   grammar,
   problems,
+  categories,
   onChange,
 }: {
   rule: Rule;
@@ -708,6 +744,15 @@ export function RuleEditor({
   grammar: Grammar;
   /** This rule's own problems, from the dry run. */
   problems: Problem[];
+  /**
+   * The drawers the category action may pick from, read from the settings DRAFT
+   * and not from a fresh fetch. A drawer somebody just added on the Categories
+   * page and has not saved yet is part of the same document PUT /api/settings
+   * will validate, so the picker and the refusal have to be looking at one
+   * table or the page refuses a rule naming a category that is right there on
+   * the screen.
+   */
+  categories: Drawer[];
   onChange: (next: Rule) => void;
 }) {
   const rx = useRx();
@@ -791,7 +836,15 @@ export function RuleEditor({
         </h3>
         <div className="grid gap-3 sm:grid-cols-2">
           {actions.map((a) => (
-            <ActionField key={a.id} rx={rx} grammar={grammar} action={a} value={rule.action} onChange={setAction} />
+            <ActionField
+              key={a.id}
+              rx={rx}
+              grammar={grammar}
+              action={a}
+              value={rule.action}
+              categories={categories}
+              onChange={setAction}
+            />
           ))}
         </div>
       </section>
@@ -969,12 +1022,14 @@ function ActionField({
   grammar,
   action,
   value,
+  categories,
   onChange,
 }: {
   rx: Rx;
   grammar: Grammar;
   action: ActionGrammar;
   value: RuleAction;
+  categories: Drawer[];
   onChange: (fields: Partial<RuleAction>) => void;
 }) {
   const label = actionLabel(rx, action.id);
@@ -987,7 +1042,9 @@ function ActionField({
           ? rx('settings.rules.priorityHint')
           : action.id === 'chunks'
             ? rx('settings.rules.chunksHint')
-            : undefined;
+            : action.id === 'category'
+              ? rx('settings.rules.action.categoryHint')
+              : undefined;
 
   const head = (
     <span className="flex items-center text-xs text-carbon-textSub">
@@ -1058,8 +1115,42 @@ function ActionField({
     );
   }
 
+  if (action.kind === 'category') {
+    const current = value.category ?? '';
+    const known = categories.map((c) => ({ value: c.id, label: c.name || c.id }));
+    // A rule written before a drawer was deleted, or imported from another
+    // instance, can name a category this table no longer holds. A <select>
+    // whose value is not among its options renders the FIRST option, so
+    // leaving it out would show the rule as filing into some other drawer and
+    // then rewrite it to that drawer the next time anything on the form
+    // changed, without anybody touching this box.
+    const options =
+      current && !categories.some((c) => c.id === current)
+        ? [{ value: current, label: rx('settings.rules.action.categoryMissing', { id: current }) }, ...known]
+        : known;
+    return (
+      <div className="flex flex-col gap-1.5">
+        {head}
+        {categories.length === 0 && !current ? (
+          <span className="text-xs text-carbon-textSub">{rx('settings.rules.action.categoryNone')}</span>
+        ) : (
+          <Select
+            value={current}
+            // An empty pick is "this rule has no opinion", so it is sent as
+            // undefined and never as "". An empty string would be a real value
+            // the server would have to weigh, and settings.ValidateCategories
+            // would then refuse a rule for naming a drawer called "".
+            onChange={(next) => onChange({ category: next === '' ? undefined : next })}
+            options={[{ value: '', label: rx('settings.rules.unchanged') }, ...options]}
+            label={label}
+          />
+        )}
+      </div>
+    );
+  }
+
   // kind === 'reject': the filter's whole decision, and the one place a
-  // two-state control is not a switch — an accept is a deliberate choice that
+  // two-state control is not a switch. An accept is a deliberate choice that
   // protects a link, not the absence of a rejection.
   return (
     <div className="flex flex-col gap-1.5">

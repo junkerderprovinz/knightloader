@@ -69,6 +69,22 @@ type poller struct {
 	primed bool
 	loaded bool
 
+	// hmu guards the four values below, which are what this subscription can say
+	// about how it is actually doing (see Health).
+	//
+	// They are copies of facts the polling goroutine already holds, and copies
+	// rather than a reader reaching into seen, order and primed directly: those
+	// carry no lock precisely because one goroutine owns them, and putting a lock
+	// on the polling path to answer a question nobody is waiting on would be the
+	// wrong trade. Everything here is written by that goroutine and read by
+	// whoever asks the runner for the health of the set, which is a request
+	// handler on another one.
+	hmu        sync.Mutex
+	lastPolled time.Time
+	lastErr    string
+	seeded     bool
+	remembered int
+
 	// started says whether loop is running, and therefore whether close has a
 	// goroutine to wait for. It is written and read under the Runner's lock and
 	// nowhere else, which is why it carries no lock of its own.
@@ -198,12 +214,14 @@ func (p *poller) sleeping() bool {
 
 // poll fetches the feed once and hands over whatever is new.
 func (p *poller) poll() {
-	if !p.load() {
+	if err := p.load(); err != nil {
 		// The memory could not be read. Polling anyway would mean polling with an
 		// empty memory, and an empty memory is indistinguishable from a
 		// subscription that has never run: everything currently in the feed would
 		// be staged. Skipping the poll costs one interval; the alternative costs
 		// the user a collector full of links they already have.
+		log.Printf("feed %s was not polled: %v", p.url, err)
+		p.notePoll(err)
 		return
 	}
 	sub, filt := p.config()
@@ -214,6 +232,7 @@ func (p *poller) poll() {
 		// quietly produces nothing for a month looks exactly like one that is not
 		// running at all.
 		log.Printf("feed %s was not read: %v", p.url, err)
+		p.notePoll(err)
 		return
 	}
 
@@ -224,9 +243,54 @@ func (p *poller) poll() {
 	// rather lose one entry than re-stage the whole batch on every poll from here
 	// to eternity.
 	p.remember(f)
+	// Recorded after remember and before the handover, so the row reads as a poll
+	// that worked at the moment it worked. A sink that takes a minute over one
+	// entry is not a feed that is still being fetched.
+	p.notePoll(nil)
 
 	for _, j := range fresh {
 		p.onJob(j)
+	}
+}
+
+// notePoll records how the poll that has just run ended, and what the
+// subscription knows now that it has. A nil err is a poll that read a document.
+//
+// Called only from the polling goroutine, which is what makes reading primed and
+// order here safe: those carry no lock because that goroutine is the only one
+// that touches them, and this is where their values cross over to a reader.
+//
+// The sentence somebody reads is built here rather than wherever it is shown,
+// and it says what happens next on purpose: a feed that failed is not a feed
+// that has given up, and a row carrying nothing but "the server answered 503"
+// leaves somebody deciding whether to delete a subscription that will be fine in
+// an hour.
+func (p *poller) notePoll(err error) {
+	p.hmu.Lock()
+	defer p.hmu.Unlock()
+	// The time of the poll that RAN, not of the last one that worked. The two
+	// values travel together and are only readable together: a fresh time beside
+	// an error is a subscription that is still trying and still failing, which is
+	// a different thing from a time three days old and no error at all.
+	p.lastPolled = time.Now()
+	p.seeded, p.remembered = p.primed, len(p.order)
+	if err == nil {
+		p.lastErr = ""
+		return
+	}
+	p.lastErr = err.Error() + "; the next poll tries again"
+}
+
+// health is this poller's row of the diagnostic table.
+func (p *poller) health() Health {
+	p.hmu.Lock()
+	defer p.hmu.Unlock()
+	return Health{
+		URL:        p.url,
+		LastPolled: p.lastPolled,
+		LastError:  p.lastErr,
+		Seeded:     p.seeded,
+		Remembered: p.remembered,
 	}
 }
 
@@ -235,9 +299,14 @@ func (p *poller) poll() {
 // not something a settings save should wait on; doing it here also means a store
 // that was briefly unreadable is retried at the next tick instead of leaving the
 // subscription permanently blind.
-func (p *poller) load() bool {
+//
+// It returns the reason rather than logging it, so that the one caller can put
+// the same sentence in front of a person as well as in the log. A store this
+// process cannot read is otherwise a subscription that reports nothing forever
+// with nothing anywhere saying why.
+func (p *poller) load() error {
 	if p.loaded {
-		return true
+		return nil
 	}
 	if p.state == nil {
 		// No persistence configured. The memory then lives for as long as this
@@ -245,12 +314,11 @@ func (p *poller) load() bool {
 		// embedding the runner without a store: the first poll still seeds, so
 		// nothing is dumped into the collector either way.
 		p.loaded = true
-		return true
+		return nil
 	}
 	keys, known, err := p.state.Seen(p.url)
 	if err != nil {
-		log.Printf("feed %s was not polled: its record of what it has already added could not be read: %v", p.url, err)
-		return false
+		return fmt.Errorf("its record of what it has already added could not be read: %w", err)
 	}
 	for _, k := range keys {
 		p.seen[k] = true
@@ -258,7 +326,7 @@ func (p *poller) load() bool {
 	p.order = keys
 	p.primed = known
 	p.loaded = true
-	return true
+	return nil
 }
 
 // pick decides which of a document's entries are handed over.
@@ -377,11 +445,25 @@ func (p *poller) remember(f Feed) {
 	}
 }
 
-// fetch gets the feed document. The context is the app's own, so a shutdown
+// fetch gets the feed document. The context is the poller's own, so a shutdown
 // cancels a request that is still waiting on somebody else's server rather than
 // holding the process open for the client's whole timeout.
 func (p *poller) fetch() (Feed, error) {
-	req, err := http.NewRequestWithContext(p.ctx, http.MethodGet, p.url, nil)
+	return fetch(p.ctx, p.http, p.url)
+}
+
+// fetch is one GET of one feed document, and the only one this package makes.
+// The preview goes through it as well (preview.go), which is the point of it
+// being a function rather than staying inside the poller: what a test fetch
+// reports has to be what a poll would really get, down to the Accept header and
+// the refusal below, or the button answers about a request nothing else makes.
+//
+// The context belongs to whoever asked. For a poll that is the app's own, so a
+// shutdown ends a request waiting on a publisher; for a preview it is the
+// browser's, so a page somebody navigated away from does not leave a goroutine
+// sitting on somebody else's server.
+func fetch(ctx context.Context, hc *http.Client, rawurl string) (Feed, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, rawurl, nil)
 	if err != nil {
 		return Feed{}, err
 	}
@@ -389,7 +471,7 @@ func (p *poller) fetch() (Feed, error) {
 	// asks for anything, and the resulting parse error names XML rather than the
 	// content negotiation that caused it.
 	req.Header.Set("Accept", "application/rss+xml, application/atom+xml, application/xml;q=0.9, text/xml;q=0.9, */*;q=0.5")
-	resp, err := p.http.Do(req)
+	resp, err := hc.Do(req)
 	if err != nil {
 		return Feed{}, err
 	}
@@ -405,7 +487,7 @@ func (p *poller) fetch() (Feed, error) {
 		_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 4<<10))
 		return Feed{}, fmt.Errorf("the server answered %s", resp.Status)
 	}
-	return Parse(p.url, resp.Body)
+	return Parse(rawurl, resp.Body)
 }
 
 // packageName is what the staged link is filed under. The entry's own title is

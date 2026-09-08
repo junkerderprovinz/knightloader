@@ -621,6 +621,27 @@ func (a *App) dispatchLocked() {
 	// counts, and reading the file directly here would move the speed and leave
 	// the slots alone, which is half a turtle button (see app_quiet.go).
 	cfg := a.cfgInForceLocked()
+	// The order is Task.Priority and then Position, and a CATEGORY's priority is
+	// deliberately not read here or anywhere else in this pass.
+	//
+	// A category may set a priority at the moment a task is created and never
+	// again, which is what settings.Category.Priority already says it is: the
+	// position every task filed there STARTS at. Applied on each dispatch
+	// instead, it would be reapplied on the very next pass after somebody dragged
+	// a download up the list, their reordering would come undone, and nothing on
+	// screen would say why - the worst outcome available in this feature. There
+	// would be no guard to write against it either: Task.Priority is a plain int
+	// on which 0 is the middle priority and a real answer, so once a task exists,
+	// "somebody set this by hand" and "nobody ever touched it" are the same
+	// value.
+	//
+	// The one moment that knows a task is new is where it is made, which is
+	// app_links.go's packagize - it already writes a Packagizer rule's priority
+	// onto the task, and the category's line belongs directly under that one, for
+	// the reason dirFor puts the drawer under Task.Dir: a rule looked at this
+	// link, a drawer is a word somebody put on a whole batch. See
+	// settings.PriorityFor, whose second result is what tells a drawer asking for
+	// the middle priority apart from a drawer asking for nothing.
 	a.sortQueueLocked()
 	// settled collects what the dispatcher turns down. A task refused in here is
 	// refused under the lock, long after every caller took its copy, so the reason
@@ -839,7 +860,16 @@ func (a *App) dispatchLocked() {
 			continue
 		}
 		be := a.backendFor(t.Resolver)
-		policy := collide.ParsePolicy(cfg.CollisionPolicy)
+		// The drawer's own collision rule when it has one, the instance's when it
+		// has not - settings.CollisionFor picks. Parsed once, here, so the skip
+		// check below and the name the engine is told to write are governed by one
+		// answer rather than by two reads that could disagree about the same file.
+		//
+		// The empty string has to go through CollisionFor and not through
+		// ParsePolicy: ParsePolicy folds anything it does not know onto rename, so
+		// asking it about a drawer nobody set a collision rule on would give that
+		// drawer a rename and silently overrule an instance configured to skip.
+		policy := collide.ParsePolicy(cfg.CollisionFor(t.Category))
 		// A destination that is already taken is settled here instead of being
 		// downloaded over.
 		//

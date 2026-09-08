@@ -124,14 +124,25 @@ type unpackState struct {
 func filesAreLocal(t *core.Task) bool { return t.Resolver != "jd" }
 
 // extractWanted is the task's own unpacking switch when a Packagizer rule or
-// the user set one, and the global setting otherwise. A rule that says "do not
-// unpack this" has to survive a global that says otherwise, or the rule is a
-// setting that does nothing.
+// the user set one, the drawer it is filed in next, and the global setting
+// otherwise. A rule that says "do not unpack this" has to survive a global that
+// says otherwise, or the rule is a setting that does nothing.
+//
+// The category sits UNDER the task's own switch for the reason dirFor puts it
+// under Task.Dir: a rule looked at this one link, a category is a word somebody
+// put on a whole batch. It sits over the global because that is what filing a
+// download in a drawer is for.
+//
+// A drawer that says nothing about unpacking is not a drawer that says no. Its
+// Extract is nil, and settings.ExtractFor hands the global straight back - which
+// is why the field is a pointer at all: a music drawer where the archive IS the
+// delivery has to be able to say false against a global that says true, and a
+// plain bool cannot tell that apart from a drawer nobody filled in.
 func extractWanted(t *core.Task, cfg settings.Settings) bool {
 	if t.AutoExtract != nil {
 		return *t.AutoExtract
 	}
-	return cfg.Extract
+	return cfg.ExtractFor(t.Category)
 }
 
 // setKey identifies the set a file belongs to, and it is the archive families

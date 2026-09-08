@@ -19,6 +19,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
@@ -43,6 +44,49 @@ type Job struct {
 	// line names so that a link in the collector can be traced back to the
 	// subscription that put it there.
 	Source string
+}
+
+// Health is what one subscription can say about how it is actually doing.
+//
+// It is diagnostic and it lives in memory beside the poller. Nothing acts on it
+// and nothing stores it, deliberately: the one thing about a subscription worth
+// persisting is the memory of what it has already handed over, and a second
+// document beside that one would be a second thing written on every poll, a
+// second thing to keep inside the store's budget, and a second thing that can
+// come back corrupt. What it costs is that a restart starts every row of this
+// table blank while the memory itself survives, which is exactly what LastPolled
+// is there to make visible.
+type Health struct {
+	// URL is the subscription this row is about, the same address it is
+	// configured under and remembered under.
+	URL string
+	// LastPolled is when the last poll RAN, whether it read a document or failed,
+	// and is zero when none has run since this process started.
+	//
+	// Zero is "nothing to report yet" and never "this subscription is switched
+	// off": a row exists here only because the address is being polled. It is the
+	// value that says whether the three below mean anything yet.
+	LastPolled time.Time
+	// LastError is why the last poll produced nothing, empty when it produced a
+	// document. A poll that works clears it, so an error beside a recent
+	// LastPolled is a subscription that is still failing, which is a different
+	// thing from one that failed once last week.
+	LastError string
+	// Seeded says whether the first poll, the one that writes down everything the
+	// feed is already carrying and hands over none of it, is behind this
+	// subscription. See poller.seed. Until it is, nothing this feed publishes
+	// reaches the collector, and that is the first question anybody asks about a
+	// new subscription that has added nothing.
+	//
+	// False while LastPolled is zero means "not known yet" rather than "it has
+	// not seeded": the memory is read at the start of the first poll of this
+	// process, not when the poller is built.
+	Seeded bool
+	// Remembered is how many entries this subscription currently recognises,
+	// which is bounded by maxSeen. Zero while LastPolled is zero carries the same
+	// "not known yet" Seeded's does, and zero after a poll is a real answer: a
+	// feed that is serving nothing at all.
+	Remembered int
 }
 
 // State is where a runner keeps what each subscription has already handed over,
@@ -259,6 +303,28 @@ func (r *Runner) URLs() []string {
 		out = append(out, u)
 	}
 	sort.Strings(out)
+	return out
+}
+
+// Health reports how each subscription being polled is doing, sorted by address
+// like URLs and for the same reason: a diagnostic table that reorders itself
+// between two reloads is one nobody can read a change out of.
+//
+// It answers about what is actually being polled and nothing else, which is the
+// same promise URLs makes. A configured row missing from this list is therefore
+// a row the runner refused, and whoever shows the table has to say so rather
+// than drawing a healthy-looking blank for it.
+//
+// mu is held while each poller's own lock is taken, and that direction is the
+// only one there is: a poll takes its poller's lock and never the runner's.
+func (r *Runner) Health() []Health {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	out := make([]Health, 0, len(r.live))
+	for _, p := range r.live {
+		out = append(out, p.health())
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].URL < out[j].URL })
 	return out
 }
 

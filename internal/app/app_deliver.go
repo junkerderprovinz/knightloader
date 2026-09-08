@@ -117,9 +117,27 @@ func deliverable(t *core.Task) bool {
 // something is already at that name in the folder the file is going into. What
 // the move does about "ask" and about a folder under "overwrite" is
 // internal/workdir's business - see Options.Policy there.
-func moveOptions(cfg settings.Settings) workdir.Options {
+//
+// It takes the TASK and not the settings alone, because the answer stopped being
+// one number the moment drawers arrived: the category a download is filed in may
+// carry its own rule, and settings.CollisionFor is the one place that decides
+// between it and the instance's. The same read the dispatcher makes before any
+// bytes move, made again here - deliberately, rather than carried down from
+// there, because the last move happens minutes later and the drawer may have
+// been edited in between. A category is a reference and not a copy, so the
+// answer it gives is the one in force NOW.
+//
+// A nil task answers the instance's own policy, which is what every move
+// answered before drawers existed. That is not a defensive nil check for its own
+// sake: deliverExtraction runs after the archive is closed, and the row it
+// belongs to may have been removed by hand while it was open.
+func moveOptions(t *core.Task, cfg settings.Settings) workdir.Options {
+	category := ""
+	if t != nil {
+		category = t.Category
+	}
 	return workdir.Options{
-		Policy:      collide.ParsePolicy(cfg.CollisionPolicy),
+		Policy:      collide.ParsePolicy(cfg.CollisionFor(category)),
 		MaxAttempts: cfg.CollisionMaxAttempts,
 		// The working folder is emptied as it is drained. It is ours, it holds
 		// nothing but downloads in flight, and a folder per destination left
@@ -161,7 +179,7 @@ func (a *App) deliverDownload(id string) {
 	if _, err := os.Lstat(src); err != nil {
 		return
 	}
-	_, err := workdir.Move(a.ctx, src, dest, moveOptions(a.Settings.Get()))
+	_, err := workdir.Move(a.ctx, src, dest, moveOptions(&c, a.Settings.Get()))
 	a.recordDelivery(id, err)
 }
 
@@ -378,7 +396,7 @@ func (a *App) deliverExtraction(jobID string, out *extract.Outcome) delivery {
 	if sameDir(out.Dir, filepath.Dir(archive)) {
 		return delivery{Err: fmt.Errorf("%s unpacked beside its own archive rather than into a folder of its own, so its content was left there instead of being moved to %s", filepath.Base(archive), plan.Deliver)}
 	}
-	o := moveOptions(cfg)
+	o := moveOptions(t, cfg)
 	if plan.Contents {
 		rep, err := workdir.MoveContents(a.ctx, out.Dir, plan.Deliver, o)
 		d := delivery{Entries: rep.Moved, Err: err}

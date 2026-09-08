@@ -14,7 +14,15 @@ import { PathInput } from '../../../components/FolderPicker';
 import { Tabs } from '../../../components/Tabs';
 import { IconFilter, IconFolder, IconPlus, IconPriority, IconTrash } from '../../../lib/icons';
 import { useT, type TranslationKey } from '../../../lib/i18n';
-import { priorityChoices, type FeedSubscription, type PriorityChoice } from '../../../lib/api';
+import {
+  fetchFeeds,
+  priorityChoices,
+  testFeed,
+  type FeedStatus,
+  type FeedSubscription,
+  type FeedTest,
+  type PriorityChoice,
+} from '../../../lib/api';
 import { useDraft, useFeatures } from '../context';
 
 /**
@@ -37,13 +45,24 @@ import { useDraft, useFeatures } from '../context';
  * the Advanced page, which is the escape hatch for everything this card will not
  * express.
  *
- * NOTHING HERE REPORTS ON A FEED, because nothing on the server can. When a
- * subscription was last fetched, whether that fetch failed and what it found
- * live in the poller and reach the operator only as log lines; /api/features
- * carries a count and no more. So there is no status column, no "last checked"
- * and no test button: a row shows what was configured, and a subscription
- * pointed at a dead address looks exactly like one that simply has nothing new.
- * A marker that guessed would be worse than no marker at all.
+ * THE HEALTH IS THE SERVER'S, NOT A GUESS. When a subscription was last
+ * fetched, whether that fetch failed and how much it remembers come from
+ * GET /api/feeds, which is a table the poller keeps in memory beside itself and
+ * deliberately not part of the settings document: it is diagnostic, it is
+ * blanked by a restart, and it has no business in a file that is read back and
+ * diffed. The one thing that follows from that, and the one thing easy to draw
+ * wrongly: an absent lastPolledAt means "nothing to report YET", not "never
+ * checked". The subscription's own memory of what it has added survives a
+ * restart while this table does not, so a feed followed for months reads as
+ * unchecked for the few seconds after the server comes back, and drawing that
+ * as a problem would be a false alarm on every boot.
+ *
+ * THE TEST ONLY READS, and says so where it is pressed. It fetches the address
+ * once, reports the feed's name and its first entries, and stages nothing and
+ * remembers nothing. That is what makes it usable on an address nobody has
+ * saved, which is most of its value: a title filter is a regular expression
+ * typed blind against titles nobody has seen, and this is the only way to see
+ * them.
  *
  * THE AUTOSAVE TRAP is the reason a half-typed address never reaches the draft.
  * The settings shell saves 600 ms after any draft change and the server refuses
@@ -232,6 +251,37 @@ export function FeedsCard({ hue }: { hue: number }) {
   const [openRow, setOpenRow] = useState('');
   const [pending, setPending] = useState<PendingRow[]>([]);
 
+  /**
+   * The health table, keyed by address exactly as the server keys it.
+   *
+   * Fetched once on mount and NOT polled. It is a diagnostic read, the numbers
+   * in it change on the subscription's own timer (a quarter of an hour by
+   * default), and a card that re-fetched every few seconds would be asking a
+   * question whose answer cannot have changed, forever, on a settings page
+   * somebody has left open in a background tab.
+   *
+   * A failure leaves the map empty rather than showing anything: every row then
+   * reads as "nothing to report yet", which is exactly what is true.
+   */
+  const [health, setHealth] = useState<Record<string, FeedStatus>>({});
+  useEffect(() => {
+    let alive = true;
+    void fetchFeeds().then(
+      (list) => {
+        if (!alive) return;
+        const byURL: Record<string, FeedStatus> = {};
+        for (const s of list) byURL[s.url] = s;
+        setHealth(byURL);
+      },
+      () => {
+        /* No status is drawn, which is the honest state when nothing answered. */
+      },
+    );
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   // Never patch({ feeds: undefined }), which the diff in the settings shell would
   // send as a changed key with no value. An emptied list goes out as [] and comes
   // back as null, which is the same thing said the server's way.
@@ -302,6 +352,7 @@ export function FeedsCard({ hue }: { hue: number }) {
                 last={i === rowCount - 1}
                 stored
                 priorities={priorities}
+                status={health[row.url]}
                 open={openRow === storedId(row.url)}
                 onToggle={() => setOpenRow(openRow === storedId(row.url) ? '' : storedId(row.url))}
                 onCommitUrl={() => 'ok'}
@@ -361,6 +412,7 @@ function FeedRow({
   stored,
   open,
   priorities,
+  status,
   onToggle,
   onCommitUrl,
   onChange,
@@ -374,6 +426,8 @@ function FeedRow({
   open: boolean;
   priorities: { id: string; label: string }[];
   onToggle: () => void;
+  /** This row's health, when the server has anything to say about it yet. */
+  status?: FeedStatus;
   onCommitUrl: (typed: string) => Verdict;
   onChange: (next: FeedSubscription) => void;
   onRemove: () => void;
@@ -612,9 +666,186 @@ function FeedRow({
               />
             </FieldGroup>
           )}
+
+          {stored && <FeedHealth status={status} />}
+          <FeedProbe url={stored ? row.url : text} filter={filter} />
         </div>
       )}
     </li>
+  );
+}
+
+/**
+ * What the server knows about this subscription right now.
+ *
+ * Only ever drawn for a STORED row: a pending one has no address the poller has
+ * ever seen, so every line here would read as a fault on a subscription that
+ * does not exist yet.
+ *
+ * The absent-status case is the one that matters and it is deliberately quiet.
+ * A subscription with no lastPolledAt has not been looked at SINCE THE SERVER
+ * STARTED, which is a different statement from "never", because this table is
+ * in memory and the subscription's own record of what it has added is not. So
+ * seeded and remembered are withheld in that state rather than drawn as false
+ * and zero: printing "has not seeded, remembers nothing" a second after a
+ * restart would be a false alarm on a feed somebody has followed for a year.
+ */
+function FeedHealth({ status }: { status?: FeedStatus }) {
+  const { t } = useT();
+  const known = status?.lastPolledAt !== undefined;
+
+  return (
+    <FieldGroup label={t('settings.feeds.status')} hint={t('settings.feeds.lastPolledHint')}>
+      <div className="flex flex-col gap-1.5 text-xs">
+        <span className="text-carbon-textSub">
+          {!status
+            ? t('settings.feeds.statusUnknown')
+            : status.polling
+              ? t('settings.feeds.statusPolling')
+              : t('settings.feeds.statusNotPolling')}
+        </span>
+        <span className="text-carbon-textMuted">
+          {known ? `${t('settings.feeds.lastPolled')}: ${fmtWhen(status.lastPolledAt)}` : t('settings.feeds.lastPolledNever')}
+        </span>
+        {/* The reason a row is not being polled and the reason its last look
+            failed are two different sentences, and the server tells them apart
+            by `polling`. One string for both would report a refused row as a
+            transient network problem it will get over. */}
+        {status?.error && (
+          <span className="text-statusWarn">
+            {status.polling ? t('settings.feeds.pollFailed') : t('settings.feeds.notPolledReason')}: {status.error}
+          </span>
+        )}
+        {known && status && (
+          <>
+            <span className="text-carbon-textMuted">
+              {status.seeded ? t('settings.feeds.seededYes') : t('settings.feeds.seededNo')}
+            </span>
+            <span className="text-carbon-textMuted">
+              {t('settings.feeds.remembered', { n: status.remembered })}
+            </span>
+          </>
+        )}
+      </div>
+    </FieldGroup>
+  );
+}
+
+/** An RFC3339 stamp in the reader's own locale, or the raw string when the
+ *  server sends something this browser will not parse. Never a relative
+ *  "3 minutes ago": this value is refreshed once, on mount, so a relative time
+ *  would go on ageing on screen while the number behind it stood still. */
+function fmtWhen(iso?: string): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleString();
+}
+
+/**
+ * Fetch this feed once and show what is in it.
+ *
+ * It exists for the title filter. A filter is a regular expression matched
+ * against titles the person writing it has never seen, and every other way of
+ * finding out what a feed carries costs a saved subscription and a wait.
+ *
+ * THREE THINGS IT MUST NOT DO, and each is a promise the route already keeps:
+ * it stages nothing, it remembers nothing, and it works on an address that has
+ * not been saved. The last one is most of the value, so it is deliberately not
+ * gated on the row being stored.
+ *
+ * Two shapes of failure, drawn differently on purpose. A row that is itself
+ * wrong (an address that is not http or https, a pattern Go will not compile)
+ * throws with the server's own sentence, which names the field. A feed that
+ * simply could not be read comes back as a normal result with `error` set. The
+ * first is something to fix here; the second is something about somebody else's
+ * server, and showing them the same way would send people looking in the wrong
+ * place.
+ */
+function FeedProbe({ url, filter }: { url: string; filter: string }) {
+  const { t } = useT();
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<FeedTest | null>(null);
+  const [refused, setRefused] = useState('');
+
+  const run = async () => {
+    setBusy(true);
+    setRefused('');
+    setResult(null);
+    try {
+      setResult(await testFeed(url, filter));
+    } catch (e) {
+      setRefused(String(e).replace(/^(Error|ApiError):\s*/, ''));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <FieldGroup label={t('settings.feeds.testResult')} hint={t('settings.feeds.testHint')}>
+      <div className="flex flex-col gap-2">
+        <Button className="w-fit" disabled={busy || !usableAddress(url)} onClick={() => void run()}>
+          {busy ? t('settings.feeds.testBusy') : t('settings.feeds.test')}
+        </Button>
+
+        {refused && <p className="text-xs text-statusWarn">{refused}</p>}
+
+        {result && (
+          <div className="glim-well flex flex-col gap-2 p-3 text-xs">
+            {result.error ? (
+              <p className="text-statusWarn">
+                {t('settings.feeds.testFailed')}: {result.error}
+              </p>
+            ) : (
+              <>
+                <p className="text-carbon-textSub">
+                  {t('settings.feeds.testFeedName')}:{' '}
+                  {result.title || <span className="text-carbon-textMuted">{t('settings.feeds.testNoName')}</span>}
+                </p>
+                {result.total === 0 ? (
+                  <p className="text-statusWarn">{t('settings.feeds.testEmpty')}</p>
+                ) : (
+                  <>
+                    <p className="text-carbon-textMuted">
+                      {filter.trim() === ''
+                        ? t('settings.feeds.testNoFilter', { total: result.total })
+                        : t('settings.feeds.testMatched', { matched: result.matched, total: result.total })}
+                    </p>
+                    {filter.trim() !== '' && result.matched === 0 && (
+                      <p className="text-statusWarn">{t('settings.feeds.testNoneMatch')}</p>
+                    )}
+                    <ul className="flex flex-col gap-1">
+                      {result.entries.map((e) => (
+                        <li key={e.link || e.title} className="flex items-baseline gap-2">
+                          <span
+                            className={`shrink-0 text-[10px] uppercase tracking-wider ${
+                              e.matches ? 'text-carbon-textSub' : 'text-carbon-textMuted'
+                            }`}
+                          >
+                            {e.matches ? t('settings.feeds.testMatchYes') : t('settings.feeds.testMatchNo')}
+                          </span>
+                          <span className={`min-w-0 truncate ${e.matches ? 'text-carbon-text' : 'text-carbon-textMuted'}`}>
+                            {e.title}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                    {result.total > result.entries.length && (
+                      <p className="text-carbon-textMuted">
+                        {t('settings.feeds.testShowing', { n: result.entries.length })}
+                      </p>
+                    )}
+                  </>
+                )}
+              </>
+            )}
+            {/* Said at the result and not only in the bubble above: somebody
+                who has just pressed a button on a stranger's address wants to
+                read here, not hover there, that nothing was taken. */}
+            <p className="text-carbon-textMuted">{t('settings.feeds.testSafe')}</p>
+          </div>
+        )}
+      </div>
+    </FieldGroup>
   );
 }
 
