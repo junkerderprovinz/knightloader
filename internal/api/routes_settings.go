@@ -14,6 +14,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/confirm"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
+	"github.com/junkerderprovinz/knightloader/internal/mediahook"
+	"github.com/junkerderprovinz/knightloader/internal/notify"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
@@ -227,6 +229,29 @@ func writeValidationError(w http.ResponseWriter, err error) {
 			out["params"] = params
 		}
 	}
+	// The event targets speak in codes too, and the prefix is chosen so that
+	// Settings.tsx's own saveErrorText needs no change at all: it builds
+	// `settings.` + code, so "eventTargets.problem.badUrl" resolves to
+	// settings.eventTargets.problem.badUrl, which is a key every locale already
+	// carries because the page itself draws it beside the row. One code, one
+	// sentence, in whichever of the forty-two languages the reader is using.
+	var np *notify.Problem
+	if errors.As(err, &np) {
+		out["code"] = "eventTargets.problem." + np.Code
+		params := map[string]any{}
+		if np.N != 0 {
+			params["n"] = np.N
+		}
+		if np.Header != "" {
+			params["header"] = np.Header
+		}
+		if np.Value != "" {
+			params["value"] = np.Value
+		}
+		if len(params) > 0 {
+			out["params"] = params
+		}
+	}
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusBadRequest)
 	_ = json.NewEncoder(w).Encode(out)
@@ -264,6 +289,20 @@ func validateRows(s settings.Settings) error {
 			return fmt.Errorf("feed row %d: %w", i+1, err)
 		}
 	}
+	// The event targets, on the same terms as the feeds above and for a sharper
+	// version of the same reason. A target dropped by the sanitiser stops
+	// sending, and a target that has stopped sending is indistinguishable from
+	// one that simply has nothing to report - so the mistake would be found the
+	// week after the download that was meant to be announced.
+	//
+	// notify.Validate returns *Problem rather than error on purpose: assigning
+	// it to an `err` first is how a typed nil becomes a non-nil error interface
+	// and refuses every save on this page forever.
+	for i, e := range s.EventTargets {
+		if p := notify.Validate(e); p != nil {
+			return fmt.Errorf("event target %d: %w", i+1, p)
+		}
+	}
 	// The category table, and the references into it. Refused here rather than
 	// left to sanitize for the reason every other row on this list is: sanitize
 	// drops what it cannot use, so two categories sharing an id would become one
@@ -273,6 +312,16 @@ func validateRows(s settings.Settings) error {
 	// PACKAGIZER rule pointing at a category that does not exist is refused
 	// while a TASK pointing at one is left exactly as it is.
 	if err := s.ValidateCategories(); err != nil {
+		return err
+	}
+	// The stored addresses called after a package finishes, and the references
+	// into that table from the drawers. Refused here for the same reason the
+	// category table above is, with one extra edge to it: a drawer pointing at an
+	// address that is not stored is a drawer that calls NOTHING, silently, on
+	// every package ever filed in it - and the whole point of the feature is that
+	// somebody stops having to check whether their library noticed.
+	// settings.ValidateMediaHooks carries the full reasoning.
+	if err := s.ValidateMediaHooks(); err != nil {
 		return err
 	}
 	// The folder each drawer names, on the same terms as DownloadDir above: a
@@ -340,6 +389,12 @@ func options() map[string]any {
 		// ever called it, so the setting was reachable only by editing
 		// settings.json.
 		"reclaimTrustModes": settings.ReclaimTrustModes(),
+		// The two methods a media-library call can be sent with, from the package
+		// that sends them, same reasoning as every other list here: a verb this
+		// build cannot send must never be selectable. Two entries today, and it
+		// is still served rather than written into the interface, because the
+		// browser would then hold the second copy that goes stale.
+		"mediaHookMethods": mediahook.Methods(),
 		// A number rather than a list, and the first one in this map. The
 		// category table's own ceiling belongs with the menus for the same
 		// reason they do: hardcoding 64 in the browser is a second copy of a

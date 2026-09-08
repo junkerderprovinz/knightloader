@@ -25,6 +25,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/feed"
 	"github.com/junkerderprovinz/knightloader/internal/idleaction"
+	"github.com/junkerderprovinz/knightloader/internal/mediahook"
+	"github.com/junkerderprovinz/knightloader/internal/notify"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reclaim"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
@@ -329,6 +331,23 @@ type Settings struct {
 	// field that is sometimes simply absent. Without it a nil slice encodes
 	// as JSON null, so the key is always there.
 	Feeds []feed.Subscription `json:"feeds"`
+	// EventTargets are the addresses this instance reports to when one of
+	// the events internal/script publishes actually happens: a URL, a
+	// method, headers and a body template the operator wrote, per row. It
+	// is the outtake beside Feeds' intake, and what one may contain is
+	// internal/notify's business - see settings_notify.go.
+	//
+	// omitempty, UNLIKE Feeds above, and the difference is deliberate: an
+	// absent key has to keep decoding to nil so that every settings.json
+	// written before this field existed reads back as "nothing sends",
+	// which is what makes the whole feature upgrade-safe by construction.
+	// The frontend types the field as `EventTargetRow[] | null | undefined`
+	// for the same reason.
+	//
+	// EVERY HEADER VALUE IN HERE IS A SECRET - see settings_network.go's
+	// Redacted, and notify.Merge for why the carry-back on save is bound to
+	// the address and not only to the row id.
+	EventTargets []notify.Target `json:"eventTargets,omitempty"`
 	// VerifyChecksums checks a finished download against a checksum file that
 	// came with it, when one did.
 	VerifyChecksums bool `json:"verifyChecksums"`
@@ -360,6 +379,23 @@ type Settings struct {
 	// on an instance with no password set at all, so turning this on and
 	// forgetting to hand out a token opens nothing.
 	DownloadClientAPI bool `json:"downloadClientApi"`
+
+	// Metrics opens GET /api/metrics, which answers the health readout as
+	// Prometheus exposition text for a monitoring system to fetch. Nothing is
+	// ever sent anywhere: the address is only ever read from.
+	//
+	// OFF by default, and for exactly the reason DownloadClientAPI above is: it
+	// is a door, not a preference. The route is session-guarded like everything
+	// else under /api/, so switching it on does not make it public - but it
+	// carries the target folders' paths as label values, and an address that
+	// exists is an address somebody has to think about. While this is false the
+	// route answers 404, so the door does not exist until somebody opens it.
+	//
+	// No entry in Defaults(): false IS the default, and settings.Load
+	// unmarshals over Defaults(), so every settings.json written before this
+	// key existed keeps it false on upgrade. Nothing to sanitise either - a
+	// bool has no wrong value.
+	Metrics bool `json:"metrics"`
 
 	// Shape is how rounded the whole interface is: "round", "soft" or "square".
 	// One knob drives every corner, so the app never looks half-converted.
@@ -436,6 +472,22 @@ type Settings struct {
 	// running binary is a bigger step than an outbound version check, and
 	// opting into "check" does not imply opting into "also apply".
 	AutoUpdateInstall bool `json:"autoUpdateInstall"`
+
+	// YtdlpVersionCheck asks the Resolvers page to call GET
+	// /api/mediatools/ytdlp/latest once when it loads, instead of only when
+	// somebody presses "Ask GitHub". Off by default: it is an outbound call to
+	// api.github.com, and a machine somebody runs themselves should not call
+	// out on its own until it has been told it may - the same line
+	// AutoUpdateCheck above draws, for the same reason. It never downloads and
+	// never replaces anything.
+	//
+	// There is deliberately no companion switch that INSTALLS what it finds.
+	// AutoUpdateInstall exists for this app's own binary and was decided on its
+	// own merits; replacing the media extractor unattended silently changes
+	// what every download produces, and yt-dlp does ship regressions. Fetching
+	// a new yt-dlp happens because somebody pressed the button (jdp,
+	// 2026-09-08).
+	YtdlpVersionCheck bool `json:"ytdlpVersionCheck"`
 
 	// Packagizer names packages, picks folders and sets download options as
 	// links are staged. It is stored exactly as the user wrote it: rules.Compile
@@ -540,6 +592,27 @@ type Settings struct {
 	// has no way to type a field that is sometimes simply absent.
 	Categories []Category `json:"categories"`
 
+	// MediaHooks are the stored addresses a category drawer calls once a
+	// package filed in it has finished AND its files have been moved into
+	// place - a media library told to rescan, in practice. See
+	// settings_mediahooks.go for the shape and Category.Notify for the
+	// reference into this table.
+	//
+	// The one header VALUE such an address may carry is deliberately NOT a
+	// field on the row: this struct is what routes_diagnostics.go serialises
+	// into the bundle people attach to public bug reports, and what
+	// routes_features.go reflects over to build the Advanced key table's
+	// editable rows. The value is sealed in accounts.Store instead - see
+	// internal/mediahook's package comment.
+	//
+	// Empty - the default - is the whole feature switched off: nothing is
+	// called, and an install that never opens the page behaves exactly as it
+	// did before this key existed. No omitempty, for the reason Categories
+	// just above gives: a nil slice with omitempty is dropped from the JSON
+	// entirely and the frontend has no way to type a field that is sometimes
+	// simply absent.
+	MediaHooks []mediahook.Hook `json:"mediaHooks"`
+
 	// Reconnect gets the box a new public address when a hoster's free-user limit
 	// is keyed to the one it has. Off by default: it runs a program or talks to
 	// the router, and neither should ever happen because a default said so.
@@ -599,6 +672,38 @@ type Settings struct {
 	// HistoryMax caps the download history. Zero keeps every entry, which is a
 	// table that only grows on an instance that is never restarted.
 	HistoryMax int `json:"historyMax"`
+
+	// MaintenanceIntervalDays is how often the database looks after itself
+	// without being asked. Zero - the shipped value, and the value every
+	// existing install already has - means only when somebody presses the
+	// button on the diagnostics page.
+	//
+	// ZERO IS THE DEFAULT BECAUSE AN UPDATE MUST NOT START DOING SOMETHING.
+	// The work behind this holds every write in the process for as long as it
+	// runs (see internal/store/maintenance.go), and a version that quietly
+	// began doing that at four in the morning because somebody installed it
+	// would be a behaviour change nobody agreed to. Switching it on also does
+	// not run anything now: the first run is a whole interval away, and the
+	// button is right there for "now".
+	MaintenanceIntervalDays int `json:"maintenanceIntervalDays"`
+	// MaintenanceCompactOnSchedule decides whether the scheduled run also
+	// rewrites the file, or only reads it and reports.
+	//
+	// False, because compacting needs room for a full second copy of the
+	// database on the TEMPORARY volume, which on a container is not the data
+	// volume and is often not large. A read-only scheduled run can never fill
+	// a disk; this can, so it is a thing somebody switches on knowing their
+	// own box. The manual Compact button ignores this entirely - a person who
+	// presses it has decided.
+	MaintenanceCompactOnSchedule bool `json:"maintenanceCompactOnSchedule"`
+
+	// LogFile is the optional copy of this process's own log output on disk:
+	// whether it is written at all, how big one file may get, and how many
+	// renamed ones stay beside it. Off on every install that upgrades into
+	// this key - Load unmarshals over Defaults, so a document written before
+	// it existed reads as "off" and the instance behaves exactly as it did.
+	// See settings_logfile.go for why there is deliberately no path field.
+	LogFile LogFile `json:"logFile"`
 
 	// CaptchaSolverOrder is which automatic captcha-solving services
 	// (internal/accounts.Catalogue ids "2captcha"/"anticaptcha") to try, and
@@ -831,6 +936,19 @@ func Defaults() Settings {
 		ResumeOnStart:    ResumeNever,
 		KeepFinishedDays: DefaultKeepFinishedDays,
 		HistoryMax:       DefaultHistoryMax,
+		// Both written out at their zero value on purpose, the way
+		// VolumeCapResetDay below is: the advanced table serves Defaults()
+		// unsanitised, so a factory reading of "0 / off" that appears only
+		// because nobody typed anything is indistinguishable from a field
+		// somebody forgot. Written down, it is a decision on the page. See
+		// their own comments on the struct for why the decision is off.
+		MaintenanceIntervalDays:      DefaultMaintenanceIntervalDays,
+		MaintenanceCompactOnSchedule: false,
+		// Off, with the two numbers written out rather than left at zero, for
+		// the same reason ReclaimTrust below is written out: the Advanced key
+		// table serves Defaults() UNSANITISED, so "0 MB, keep 0" shown as the
+		// factory setting would be a value the app never actually uses.
+		LogFile: DefaultLogFile(),
 		// Written out rather than left at the zero value so a fresh
 		// settings.json says which tier it is on, the same way the three
 		// archive defaults above are written out even where one of them
@@ -884,6 +1002,18 @@ func Load(dir string) (*Store, error) {
 	s.cur = sanitize(s.cur)
 	return s, nil
 }
+
+// Path is the settings file this store reads and writes, verbatim.
+//
+// It exists so that the one page that reports how big settings.json has grown
+// does not have to spell "settings.json" a third time (Load above and
+// internal/backup/backup.go's settingsEntry already have one each), and so that
+// nothing outside this package has to know that the name is a constant here at
+// all. The file may well not exist: Load reads it and never writes it, so a
+// fresh install runs entirely on the built-in defaults until somebody saves a
+// settings page. A caller measuring it has to treat "not there" as an answer
+// rather than as an error - see StorageInfo.SettingsPresent.
+func (s *Store) Path() string { return s.path }
 
 // migrate maps keys an older build wrote onto the ones this build reads,
 // running each independent sub-migration against the same raw bytes in
@@ -1003,7 +1133,19 @@ func (s *Store) setLocked(n Settings) (Settings, error) {
 	// value, so the second one writes back a router password the first had
 	// already changed.
 	n.Reconnect = n.Reconnect.WithSecretsFrom(s.cur.Reconnect)
+	// Bound to the address and not only to the row id: a header value the
+	// client was shown as eight stars is put back only while the row still
+	// points at the host it was stored for, so a client that was never allowed
+	// to read the token cannot have this server post it somewhere else. It has
+	// to run BEFORE sanitize(n) below, because Merge matches on the ids the
+	// previous Sanitize handed out.
+	n.EventTargets = notify.Merge(n.EventTargets, s.cur.EventTargets)
 	n.Connections = proxycfg.Merge(n.Connections, s.cur.Connections)
+	// The end-of-queue command line is the third thing a client is never
+	// shown (see Settings.Redacted and idleaction.CommandSpec.Redacted), so
+	// it needs the same merge back or every save from the Downloads settings
+	// page would wipe the stored command with the placeholder it was sent.
+	n.IdleAction = n.IdleAction.WithSecretsFrom(s.cur.IdleAction)
 	n = sanitize(n)
 	b, err := json.MarshalIndent(n, "", "  ")
 	if err != nil {
@@ -1083,15 +1225,23 @@ func sanitize(n Settings) Settings {
 	n = sanitizeVolume(n)
 	n = sanitizeHostRules(n)
 	n = sanitizeCategories(n)
+	n = sanitizeMediaHooks(n)
 	n = sanitizePaths(n)
 	n = sanitizeStaging(n)
 	n = sanitizeArchives(n)
 	n = sanitizeIntake(n)
 	n = sanitizeFeeds(n)
+	n = sanitizeEventTargets(n)
 	n = sanitizeNetwork(n)
 	n = sanitizeResolvers(n)
 	n = sanitizeRules(n)
 	n = sanitizeLifecycle(n)
+	n = sanitizeMaintenance(n)
+	// A method on the LogFile type rather than a sanitizeLogFile(Settings)
+	// hook like its neighbours: the type compiles on its own, so the file that
+	// owns it did not have to wait on this struct field to land before
+	// internal/settings would build again. Same one line either way.
+	n.LogFile = n.LogFile.Sanitized()
 	n = sanitizeReclaim(n)
 	n = sanitizeIdleAction(n)
 	n = sanitizeCaptcha(n)

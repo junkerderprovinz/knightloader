@@ -1,6 +1,10 @@
 import type { ComponentType, SVGProps } from 'react';
 import type { Task, TaskStatus } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
+// The map this file used to keep to itself. It moved out the moment a second
+// reader appeared (the volume curve's legend): two copies of "which word does
+// this id get" is how one screen ends up calling the same backend two things.
+import { resolverLabel } from '../lib/resolverLabels';
 import {
   IconArchive,
   IconCheck,
@@ -76,16 +80,6 @@ export function StatusPill({ status }: { status: TaskStatus }) {
   );
 }
 
-const resolverLabel: Record<string, string> = {
-  direct: 'Direct',
-  torbox: 'TorBox',
-  alldebrid: 'AllDebrid',
-  realdebrid: 'Real-Debrid',
-  ytdlp: 'yt-dlp',
-  jd: 'JDownloader',
-  http: 'HTTP',
-};
-
 /**
  * Which backend carries a task, and whether it goes out on an account.
  *
@@ -104,7 +98,7 @@ export function ResolverBadge({ resolver, mode }: { resolver: string; mode?: Tas
   const { t } = useT();
   return (
     <span className="text-[11px] text-carbon-textMuted">
-      {resolverLabel[resolver] ?? resolver}
+      {resolverLabel(resolver)}
       {mode ? ` · ${t(mode === 'premium' ? 'task.mode.premium' : 'task.mode.free')}` : ''}
     </span>
   );

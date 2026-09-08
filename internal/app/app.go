@@ -40,7 +40,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/hub"
 	"github.com/junkerderprovinz/knightloader/internal/idleaction"
+	"github.com/junkerderprovinz/knightloader/internal/mediahook"
 	"github.com/junkerderprovinz/knightloader/internal/netproxy"
+	"github.com/junkerderprovinz/knightloader/internal/notify"
 	"github.com/junkerderprovinz/knightloader/internal/pathvars"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
@@ -119,6 +121,11 @@ type App struct {
 	// a Subscribe call rather than another edit to every firing site, and
 	// app_script.go for where this app publishes.
 	Events *script.Bus
+	// EventTargets is the second subscriber on that bus: it turns a firing
+	// into an HTTP request to an address the operator configured. It owns
+	// one goroutine per enabled target and must be closed - see
+	// app_notify.go for the seam and internal/notify for the rest.
+	EventTargets *notify.Dispatcher
 	// Throttle is the shared bandwidth allowance for everything downloading
 	// through the loopback proxy.
 	Throttle *throttle.Limiter
@@ -127,6 +134,15 @@ type App struct {
 	// Reconnector asks the router for a new public address, which is the only
 	// thing that lifts a hoster limit keyed to the one this box has.
 	Reconnector *reconnect.Reconnector
+
+	// MediaHooks calls the stored address a category drawer points at, once a
+	// package filed in that drawer has finished and its files have been moved
+	// into place. It is the bus's second subscriber, the one
+	// internal/script/bus.go named in advance ("a media library told to
+	// rescan"), and it is wired here as a Subscribe call rather than as an
+	// edit to any firing site - see app_mediahook.go, which owns everything
+	// about it except these four lines.
+	MediaHooks *mediahook.Runner
 
 	// Probe is the client the collector's HEAD requests go out on, to learn a
 	// staged link's size and whether it is still there.
@@ -183,6 +199,34 @@ type App struct {
 	// lifecycle of its own" reasoning as RequestExit just above.
 	RequestUpdateInstall func(ctx context.Context) error
 
+	// RequestSuspend, when set (desktop only, wired in desktop/main.go), asks
+	// the operating system to put THIS MACHINE to sleep - the end-of-queue
+	// "suspend" action, and nothing else calls it. Nil on the container build
+	// and nil in every test, read the same "not supported here" way the API
+	// layer already reads RequestExit==nil.
+	//
+	// App owns no power state of its own, exactly as it owns no *http.Server
+	// and no signal loop (RequestExit) and no process lifecycle
+	// (RequestUpdateInstall), so it cannot honour this itself: the actual
+	// per-OS call lives in desktop/power_windows.go, power_darwin.go and
+	// power_linux.go, and this field is only how the idle action reaches
+	// whatever embedded this App.
+	//
+	// It is deliberately a THIRD field rather than an overload of either of
+	// the two above. Sleeping is not quitting - the process stays, the
+	// downloads stay, and the machine comes back - and a container that can
+	// honour RequestExit would otherwise appear to be able to sleep a host it
+	// cannot even see. Whether an action is offered at all is decided by
+	// which of these fields is wired (internal/idleaction.Capabilities), never
+	// by buildinfo.Deployment, so a nil here is the whole of "this build
+	// cannot sleep this machine".
+	//
+	// The error is the operating system's own words and travels to the
+	// operator verbatim: on Linux a refusal from the policy manager reads
+	// "Interactive authentication required", which is the single string that
+	// says what to fix, and rewording it would throw that away.
+	RequestSuspend func() error
+
 	// CnLPort and CnLToggle are set by cmd/knightloader/main.go, the only
 	// embedding that starts a Click'n'Load listener today (see main.go's own
 	// comment on why desktop does not). Same shape and reasoning as
@@ -224,6 +268,18 @@ type App struct {
 	// and internal/idleaction. Owns one goroutine, started and stopped the
 	// same way sched just above is; the two are independent of each other.
 	idleAction *idleaction.Controller
+
+	// idleRuns is what the last end-of-queue action DID, plus the injection
+	// seam the command action runs through - see internal/app/app_idle_command.go,
+	// which owns the type and its own mutex. It is a plain value rather than
+	// a pointer because it is zero-valued ready to use: no runner assigned
+	// means idleaction.ExecRunner, and no run recorded means the settings
+	// page says so.
+	//
+	// Its lock is deliberately NOT a.mu. a.mu is held by dispatch paths that
+	// reach spawn on their way out (see closeMu just above), and this one is
+	// taken from inside a spawned goroutine.
+	idleRuns idleRunLog
 
 	// wg counts the goroutines this package starts and keeps for the life of the
 	// app - the housekeeping loop, and nothing else so far. Close waits on it,
@@ -369,6 +425,11 @@ type App struct {
 	// nothing in this file touches. Its map is built on first use, same as
 	// unpack above, so it needs nothing in New.
 	iconCache
+	// What yt-dlp and ffmpeg are on this machine, and the one operation that
+	// changes it. Embedded for the same reason iconCache above is: the fields
+	// stay in the file that owns them (app_mediatools.go), and its prober is
+	// built on first use, so it needs nothing in New either.
+	mediaToolsState
 }
 
 func New(dataDir string) (*App, error) {
@@ -521,6 +582,14 @@ func New(dataDir string) (*App, error) {
 	// host to exist, and a Close of the script host must not take the app's
 	// event plumbing with it.
 	a.Events = script.NewBus()
+	// The second subscriber the bus was built for (script/bus.go says so in
+	// its own doc comment). It subscribes rather than being fired at, which
+	// is the whole point of the bus existing: adding this consumer touched
+	// no firing site at all. The instance name is read at delivery time
+	// rather than captured, because it is a settings field somebody can
+	// rename while the app is running.
+	a.EventTargets = notify.New(notify.Options{InstanceName: func() string { return cfg.Get().InstanceName }})
+	a.Events.Subscribe("eventtargets", a.EventTargets.On)
 	// Actions and Hub are the whole of what internal/script needs from this
 	// package - see scriptActions' own doc comment for why that adapter
 	// exists rather than *App satisfying script.Actions on its own, and
@@ -534,8 +603,20 @@ func New(dataDir string) (*App, error) {
 	}
 	a.Scripts = scripts
 
+	// After the bus and after the credential store, because it needs both:
+	// it subscribes to a.Events and it reads its sealed header values out
+	// of a.Accounts. Everything it does lives in app_mediahook.go.
+	a.startMediaHooks()
+
 	a.rewireBackends()
 	a.applyWatchFolders(cfg.Get())
+	// Beside the drop folders, and the FIRST of this subsystem's two call
+	// sites: an instance that already had the log file switched on has to be
+	// writing it from the moment it starts, not from the next time somebody
+	// saves a settings page. The lines logged before this point are not lost -
+	// logring.OpenFile replays the ring into the file it opens, which is what
+	// makes a bad boot readable at all. See applyLogFile's own doc comment.
+	a.applyLogFile(cfg.Get().LogFile)
 
 	// Reload persisted tasks. What each one comes back as is reviveOnBoot's
 	// decision, and it is not a formality: every row in the store belonged to a
@@ -631,6 +712,12 @@ func New(dataDir string) (*App, error) {
 	// because a file has to be dropped first; a feed hands something over on its
 	// own the moment it is switched on.
 	a.applyFeeds(cfg.Get())
+	// Beside the subscriptions for the same reason they are here rather than
+	// beside applyWatchFolders: this starts a worker per enabled target, and
+	// a target may fire on queue.idle, which the poll loop reports within
+	// two seconds of a boot that has finished putting the list back
+	// together.
+	a.applyEventTargets(cfg.Get())
 	// Last, so nothing can sweep a list that is still being assembled. Close
 	// waits for this goroutine, because everything it does writes to the store.
 	//
@@ -660,6 +747,16 @@ func New(dataDir string) (*App, error) {
 	// would record a package as finished that is only half-read, then fire
 	// package.done for it the moment the rest of its files appear.
 	a.spawn(a.watchPackagesForScripts)
+	// The speed record (app_speedhistory.go): one reading a second into a pair
+	// of in-memory rings, so a browser opening the Overview page is handed a
+	// curve that already has a shape instead of a flat line it has to spend a
+	// minute filling in. Spawned here rather than lazily on the first request
+	// for the reason the feature exists: a ring that only starts recording once
+	// somebody looks at it has nothing to show the person who just looked.
+	// Reads a.tasks under a.mu once a second and writes nothing, so it has no
+	// ordering requirement of its own beyond being after New has a task list at
+	// all - an early tick over a half-loaded list costs one sample.
+	a.spawn(a.sampleSpeedLoop)
 	// Same "the list is whole by now" ordering as the three above. It reads
 	// a.tasks once, then spends its time in yt-dlp calls, so it is spawned
 	// rather than run here: a boot must not wait on somebody else's network.
@@ -926,6 +1023,18 @@ func (a *App) Close() error {
 	if a.Scripts != nil {
 		_ = a.Scripts.Close()
 	}
+	// Same promise as the script host just above: Close cancels whatever
+	// request is in flight and waits for every target's worker to stop
+	// before the store underneath them is torn down.
+	if a.EventTargets != nil {
+		_ = a.EventTargets.Close()
+	}
+	// Same promise again: Close waits for a call in flight, so nothing is
+	// still reading the credential store or the settings store once those are
+	// torn down further down this function. It flushes nothing - a call held
+	// back because its files have not landed yet would be told to scan a
+	// folder this shutdown just stopped moving files into.
+	a.stopMediaHooks()
 	if a.proxy != nil {
 		_ = a.proxy.Close()
 	}
@@ -1111,6 +1220,12 @@ func (a *App) afterSettingsChange(applied settings.Settings) {
 	a.idleAction.Refresh()
 	a.applyWatchFolders(applied)
 	a.applyFeeds(applied)
+	a.applyEventTargets(applied)
+	// The second of the two call sites, and missing it would mean the switch
+	// needed a restart to take effect - the one thing a diagnostics setting
+	// must never need, because whoever is flipping it is already trying to
+	// catch something.
+	a.applyLogFile(applied.LogFile)
 	a.applyConnections(applied.Connections)
 	a.applyTorrentConfig(applied.Torrent)
 	a.mu.Lock()

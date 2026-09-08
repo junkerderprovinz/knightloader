@@ -50,6 +50,37 @@ export function fmtEta(loaded: number, size: number, speed: number): string {
   return `${h}h ${m}m`;
 }
 
+/**
+ * How long something has been running, in fmtEta's own shape and with fmtEta's
+ * own untranslated units.
+ *
+ * NOT TRANSLATED, and that is a deliberate match rather than an oversight.
+ * `4d 6h` reads the same way in every one of the 42 locales the app ships, the
+ * task list already prints `6h 12m` beside every running download in all of
+ * them, and an uptime that said "Tage" while the row above it said "d" would be
+ * two conventions for one idea on one screen. Whatever draws it renders it
+ * dir="ltr", the same as every other number cell in settings.
+ *
+ * The units step rather than accumulate: days and hours, or hours and minutes,
+ * or minutes alone. A container that has been up for three weeks does not need
+ * its minutes, and printing them turns a figure somebody glances at into one
+ * they have to read.
+ *
+ * Seconds appear only below a minute, because that is the one case where
+ * rounding to `0m` would say the process is not running.
+ */
+export function fmtUptime(seconds: number): string {
+  const secs = Math.max(0, Math.floor(seconds));
+  if (secs < 60) return `${secs}s`;
+  if (secs < 3600) return `${Math.floor(secs / 60)}m`;
+  if (secs < 86400) {
+    const h = Math.floor(secs / 3600);
+    return `${h}h ${Math.floor((secs % 3600) / 60)}m`;
+  }
+  const d = Math.floor(secs / 86400);
+  return `${d}d ${Math.floor((secs % 86400) / 3600)}h`;
+}
+
 /** The units a speed limit may be entered in, smallest first. */
 export const RATE_UNITS = [
   { label: 'KiB/s', factor: 1024 },
@@ -142,4 +173,41 @@ export function fmtDate(iso: string | undefined, locale = uiLocale()): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime()) || d.getUTCFullYear() <= GO_ZERO_YEAR) return '';
   return dateFormat(locale).format(d);
+}
+
+// Its own cache beside dateFormats above, for the same reason that one exists:
+// constructing an Intl.DateTimeFormat per row per repaint is what turns a list
+// that scrolls into one that stutters.
+const clockFormats = new Map<string, Intl.DateTimeFormat>();
+
+function clockFormat(locale: string): Intl.DateTimeFormat {
+  let f = clockFormats.get(locale);
+  if (!f) {
+    // Seconds included. Two events a moment apart is the ordinary case in a
+    // notification log - a burst of finished downloads, a retry and its
+    // failure - and a column that prints the same "14:32" against both of them
+    // has stopped saying anything about their order.
+    f = new Intl.DateTimeFormat(locale || undefined, { timeStyle: 'medium' });
+    clockFormats.set(locale, f);
+  }
+  return f;
+}
+
+/**
+ * fmtClock prints a time of day, in the reader's own locale.
+ *
+ * Deliberately not fmtDate: the session event log starts when the page is
+ * loaded and cannot outlive the tab, so every row in it happened today, and
+ * fmtDate's own `dateStyle: 'short'` would stamp the same date on all three
+ * hundred of them.
+ *
+ * It takes epoch milliseconds rather than an ISO string because its caller
+ * holds Date.now(), not a server timestamp - there is no server in this path at
+ * all. Empty for anything that is not a moment, on the same reasoning fmtDate
+ * gives: a printed "Invalid Date" is a value, and a value is something people
+ * try to explain.
+ */
+export function fmtClock(ms: number, locale = uiLocale()): string {
+  if (!Number.isFinite(ms) || ms <= 0) return '';
+  return clockFormat(locale).format(new Date(ms));
 }

@@ -11,7 +11,15 @@ import {
 } from '../../components/ui';
 import { PathInput } from '../../components/FolderPicker';
 import { Tabs } from '../../components/Tabs';
-import { fetchOptions, priorityChoices, type ApiOptions, type Category, type PriorityChoice } from '../../lib/api';
+import {
+  fetchMediaHooks,
+  fetchOptions,
+  priorityChoices,
+  type ApiOptions,
+  type Category,
+  type MediaHook,
+  type PriorityChoice,
+} from '../../lib/api';
 import { fmtSpeed } from '../../lib/format';
 import { IconArrowDown, IconArrowUp, IconPlus, IconTrash } from '../../lib/icons';
 import { useT, type TranslationKey } from '../../lib/i18n';
@@ -215,6 +223,41 @@ function usePriorityTabs(): { id: string; label: string }[] {
  * that stayed enabled past the limit would let somebody write rows that vanish
  * on save.
  */
+/**
+ * The stored addresses a drawer can call once a package filed in it has
+ * finished.
+ *
+ * FETCHED HERE AND NOT READ OFF THE DRAFT, although settings.mediaHooks carries
+ * the same rows. The card that stores them (Downloads page) writes through its
+ * own route rather than through the shared draft, because half of what it saves
+ * is a sealed credential - so the draft this shell loaded at mount does not know
+ * about an address stored a minute ago, and a picker built from it would leave
+ * somebody unable to select the address they had just created until they
+ * reloaded the page.
+ *
+ * An empty list is not an error: it is the state every install is in until
+ * somebody stores one, and the row below says so in words rather than offering
+ * an empty menu.
+ */
+function useMediaHooks(): MediaHook[] {
+  const [hooks, setHooks] = useState<MediaHook[]>([]);
+  useEffect(() => {
+    let live = true;
+    void fetchMediaHooks().then(
+      (list) => {
+        if (live) setHooks(list);
+      },
+      () => {
+        /* No picker rather than a guessed one - see the note above. */
+      },
+    );
+    return () => {
+      live = false;
+    };
+  }, []);
+  return hooks;
+}
+
 function useCategoryOptions(): ApiOptions | null {
   const [options, setOptions] = useState<ApiOptions | null>(null);
   useEffect(() => {
@@ -237,6 +280,7 @@ export function Categories() {
   const { cfg, patch } = useDraft();
   const options = useCategoryOptions();
   const priorities = usePriorityTabs();
+  const hooks = useMediaHooks();
 
   const [openRow, setOpenRow] = useState(-1);
   // A row nobody has named yet lives HERE and not in the shared draft. See
@@ -394,6 +438,7 @@ export function Categories() {
                 duplicate={duplicates.has(i)}
                 priorities={priorities}
                 collisions={options?.collisionPolicies ?? []}
+                hooks={hooks}
                 onToggle={() => setOpenRow(openRow === i ? -1 : i)}
                 onChange={(next) => writeRow(i, next)}
                 onMove={(by) => move(i, by)}
@@ -413,6 +458,7 @@ export function Categories() {
                 duplicate={false}
                 priorities={priorities}
                 collisions={options?.collisionPolicies ?? []}
+                hooks={hooks}
                 onToggle={() => setOpenRow(openRow === cats.length ? -1 : cats.length)}
                 onChange={writePending}
                 onMove={() => {}}
@@ -471,6 +517,7 @@ function CategoryRow({
   duplicate,
   priorities,
   collisions,
+  hooks,
   onToggle,
   onChange,
   onMove,
@@ -483,6 +530,7 @@ function CategoryRow({
   duplicate: boolean;
   priorities: { id: string; label: string }[];
   collisions: string[];
+  hooks: MediaHook[];
   onToggle: () => void;
   onChange: (next: Category) => void;
   onMove: (by: number) => void;
@@ -717,8 +765,96 @@ function CategoryRow({
               </FieldGroup>
             )}
           </div>
+
+          {/* The one field on this row that reaches outside the download
+              folder: which stored address is called once a package filed here
+              has finished AND its files have been moved into place. It is a
+              REFERENCE by id, like everything else on a drawer, so an address
+              edited on the Downloads page reaches every drawer pointing at it.
+
+              A <select> and not a tab strip: the list is as long as somebody's
+              media servers, it is the only control on this row whose entries
+              come from another page, and a strip of five would wrap. */}
+          <FieldGroup label={t('settings.categories.notify')} hint={t('settings.categories.notifyHint')}>
+            {hooks.length === 0 && !cat.notify ? (
+              // A fact and a way out, not an empty menu. An empty <select>
+              // would look like a control that is broken rather than one with
+              // nothing to offer yet.
+              <p className="text-xs text-carbon-textSub">{t('settings.categories.notifyEmpty')}</p>
+            ) : (
+              <NotifySelect
+                value={cat.notify ?? ''}
+                hooks={hooks}
+                label={t('settings.categories.notify')}
+                missingLabel={(id) => t('settings.categories.notifyMissing', { id })}
+                noneLabel={t('settings.categories.notifyNone')}
+                onChange={(next) => {
+                  const patched = { ...cat };
+                  // Absent and never '': an empty string is a real value the
+                  // server would have to weigh, and ValidateMediaHooks would
+                  // refuse a drawer for calling an address named "".
+                  if (next === '') delete patched.notify;
+                  else patched.notify = next;
+                  onChange(patched);
+                }}
+              />
+            )}
+          </FieldGroup>
         </div>
       )}
     </li>
+  );
+}
+
+/**
+ * The drawer's own address picker.
+ *
+ * The one thing it has to get right is an id THIS TABLE NO LONGER HOLDS: a
+ * drawer written before an address was deleted, or a settings.json carried over
+ * from another instance. A <select> whose value is not among its options renders
+ * the FIRST option, so leaving that id out would show the drawer as calling some
+ * other address and then rewrite it to that address the next time anything on
+ * the form changed, without anybody touching this box. The same trap
+ * RuleEditor's category picker documents, solved the same way: the dead id is
+ * offered, marked as deleted.
+ */
+function NotifySelect({
+  value,
+  hooks,
+  label,
+  noneLabel,
+  missingLabel,
+  onChange,
+}: {
+  value: string;
+  hooks: MediaHook[];
+  label: string;
+  noneLabel: string;
+  missingLabel: (id: string) => string;
+  onChange: (next: string) => void;
+}) {
+  const known = hooks.map((h) => ({ value: h.id, label: h.name || h.id }));
+  const options =
+    value !== '' && !hooks.some((h) => h.id === value)
+      ? [{ value, label: missingLabel(value) }, ...known]
+      : known;
+  return (
+    <select
+      // aria-label and not a wrapping <label>: FieldGroup is a plain div for
+      // exactly this reason, and naming the control twice would announce the
+      // caption twice.
+      aria-label={label}
+      value={value}
+      dir="ltr"
+      onChange={(e) => onChange(e.target.value)}
+      className="glim-select w-fit appearance-none rounded-[var(--radius-control)] bg-carbon-surface2 px-2.5 py-2 pe-6
+        text-sm text-carbon-text outline-none transition-shadow focus:shadow-[0_0_0_2px_var(--focus-ring)]"
+    >
+      {[{ value: '', label: noneLabel }, ...options].map((o) => (
+        <option key={o.value} value={o.value}>
+          {o.label}
+        </option>
+      ))}
+    </select>
   );
 }

@@ -1,6 +1,9 @@
 package idleaction
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 func TestDefaultsAreOff(t *testing.T) {
 	d := Defaults()
@@ -10,8 +13,25 @@ func TestDefaultsAreOff(t *testing.T) {
 	if d.DelaySeconds != DefaultDelaySeconds {
 		t.Errorf("DelaySeconds = %d, want %d", d.DelaySeconds, DefaultDelaySeconds)
 	}
-	if got := d.Sanitize(); got != d {
+	// reflect.DeepEqual and not ==: Config stopped being comparable the
+	// moment it grew a CommandSpec, whose Args is a slice. That is the
+	// compiler catching this rather than a silent behaviour change, and the
+	// assertion it makes is unchanged.
+	if got := d.Sanitize(); !reflect.DeepEqual(got, d) {
 		t.Errorf("Defaults() must already be sane: Sanitize() changed it to %+v", got)
+	}
+}
+
+// TestDefaultsGiveTheCommandAWorkingTimeout: the command spec inside the
+// defaults has to be sane on its own, or the settings form opens on a zero
+// that sanitize would silently rewrite the first time anything is saved.
+func TestDefaultsGiveTheCommandAWorkingTimeout(t *testing.T) {
+	d := Defaults()
+	if d.Command.TimeoutSeconds != DefaultCommandTimeout {
+		t.Errorf("Command.TimeoutSeconds = %d, want %d", d.Command.TimeoutSeconds, DefaultCommandTimeout)
+	}
+	if d.Command.Configured() {
+		t.Error("a fresh install must not come with a program to run")
 	}
 }
 
@@ -68,6 +88,89 @@ func TestActionsIsNoneFirst(t *testing.T) {
 		// menu and the storage layer would disagree about what is valid.
 		if got := (Config{Action: x, DelaySeconds: DefaultDelaySeconds}).Sanitize(); got.Action != x {
 			t.Errorf("Actions() offers %q but Sanitize folds it to %q", x, got.Action)
+		}
+	}
+}
+
+// TestSanitizeKeepsAnActionThisBuildCannotOffer is trap 1 of this feature,
+// written down as a test because it is silent when it goes wrong.
+//
+// Actions() is the validation vocabulary and Offered() is the menu, and the
+// tempting simplification - one list, filtered by capability - costs an
+// operator their configuration with no message anywhere: settings.sanitize
+// runs Config.Sanitize on EVERY settings save, so a container holding
+// "suspend" (hand-edited, or restored from a backup taken on a desktop) would
+// have it rewritten to "none" the next time somebody changed the download
+// folder.
+func TestSanitizeKeepsAnActionThisBuildCannotOffer(t *testing.T) {
+	nothingWired := Capabilities{}
+	for _, a := range []Action{ActionQuit, ActionSuspend, ActionCommand} {
+		if offered(nothingWired, a) && a != ActionCommand {
+			t.Fatalf("Offered() lists %q on a build with nothing wired", a)
+		}
+		got := Config{Action: a, DelaySeconds: DefaultDelaySeconds}.Sanitize()
+		if got.Action != a {
+			t.Errorf("Sanitize rewrote a stored %q to %q; a save that touched something else entirely "+
+				"would silently take the operator's end-of-queue action away", a, got.Action)
+		}
+	}
+}
+
+func TestOfferedFollowsTheWiringAndNothingElse(t *testing.T) {
+	// Nothing wired: the two that need nothing but the running process, plus
+	// the command, which every deployment can exec. What it can USEFULLY exec
+	// is the preflight's question, not this one's.
+	bare := Offered(Capabilities{CanCommand: true})
+	want := []Action{ActionNone, ActionPause, ActionCommand}
+	if len(bare) != len(want) {
+		t.Fatalf("Offered() = %v, want %v", bare, want)
+	}
+	for i := range want {
+		if bare[i] != want[i] {
+			t.Fatalf("Offered() = %v, want %v", bare, want)
+		}
+	}
+
+	// The container: RequestExit is wired there and RequestSuspend is not,
+	// which is why quit is offered on the deployment where it reads least
+	// obvious and sleep is offered on the one where it reads most.
+	container := Offered(Capabilities{CanQuit: true, CanCommand: true})
+	if !offered(Capabilities{CanQuit: true, CanCommand: true}, ActionQuit) {
+		t.Errorf("Offered() = %v, want quit on a build whose RequestExit is wired", container)
+	}
+	if offered(Capabilities{CanQuit: true, CanCommand: true}, ActionSuspend) {
+		t.Errorf("Offered() = %v, want no suspend where nothing can carry one out", container)
+	}
+
+	// Everything wired keeps menu order, which is Actions' order.
+	full := Offered(Capabilities{CanQuit: true, CanCommand: true, CanSuspend: true})
+	all := Actions()
+	if len(full) != len(all) {
+		t.Fatalf("Offered() = %v, want the whole list %v", full, all)
+	}
+	for i := range all {
+		if full[i] != all[i] {
+			t.Fatalf("Offered() = %v, want %v in the same order", full, all)
+		}
+	}
+}
+
+func offered(c Capabilities, a Action) bool {
+	for _, x := range Offered(c) {
+		if x == a {
+			return true
+		}
+	}
+	return false
+}
+
+// TestEveryOfferedActionIsAlsoValid keeps the two lists from disagreeing in
+// the other direction: a menu entry Sanitize would fold to "none" is a control
+// that saves and then quietly does nothing.
+func TestEveryOfferedActionIsAlsoValid(t *testing.T) {
+	for _, a := range Offered(Capabilities{CanQuit: true, CanCommand: true, CanSuspend: true}) {
+		if !validAction(a) {
+			t.Errorf("Offered() lists %q, which Sanitize does not accept", a)
 		}
 	}
 }

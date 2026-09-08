@@ -34,6 +34,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/feed"
+	"github.com/junkerderprovinz/knightloader/internal/notify"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/schedule"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -298,6 +299,20 @@ func featureList(a *app.App) []Feature {
 			Parked: parked["feeds"], Detail: countDetail(len(s.Feeds), "subscription", "subscriptions"),
 		},
 		{
+			// Parked rather than a boolean, exactly like feeds above: a target
+			// list is configured by its contents, so "off" means clearing it,
+			// and parking is what lets somebody stop every message for a week
+			// without retyping an address, a token and a body template.
+			//
+			// Enabled counts the rows that would actually send rather than the
+			// rows that exist: a target being built, and one with no event
+			// ticked, are configuration and not activity.
+			ID: "eventtargets", Verdict: VerdictShipped, Page: "eventtargets",
+			Switch: SwitchParked, Enabled: enabledEventTargets(s) > 0,
+			Parked: parked["eventtargets"],
+			Detail: countDetail(enabledEventTargets(s), "target sending", "targets sending"),
+		},
+		{
 			ID: "crawler", Verdict: VerdictShipped, Page: "downloads",
 			Switch: SwitchSetting, Enabled: s.Crawl,
 		},
@@ -397,6 +412,17 @@ func featureList(a *app.App) []Feature {
 			ID: "downloadclient", Verdict: VerdictShipped, Page: "access",
 			Switch: SwitchSetting, Enabled: s.DownloadClientAPI,
 			Detail: downloadClientDetail(a, s),
+		},
+		{
+			// Filed under "health", the page that draws the same reading in
+			// words. A plain setting rather than a parked value, for the reason
+			// downloadclient above is one: the route re-reads the flag on every
+			// single request (routes_health.go), so clearing it closes the door
+			// on the next call with nothing left holding a socket open, which is
+			// exactly what SwitchSetting promises.
+			ID: "metrics", Verdict: VerdictShipped, Page: "health",
+			Switch: SwitchSetting, Enabled: s.Metrics,
+			Detail: metricsDetail(a, s),
 		},
 		{
 			ID: "scripting", Verdict: VerdictShipped, Page: "scripts",
@@ -512,6 +538,11 @@ func featurePages() []FeaturePage {
 		{ID: "torrents", Modules: []string{"torrents"}},
 		{ID: "captcha", Modules: []string{"captcha"}},
 		{ID: "schedule", Modules: []string{"scheduler"}},
+		// After the timetable, because the two are the same kind of page: a
+		// list of rows that make the instance act on its own without anybody
+		// watching. It is NOT filed under downloads - a target reports on
+		// eleven different events, only four of which are about a download.
+		{ID: "eventtargets", Modules: []string{"eventtargets"}},
 		// Same reasoning as look/diagnostics below: rebinding a keyboard
 		// shortcut has nothing to switch on or off, so there is no Feature{}
 		// row filed under this id either - just a real, bookmarkable
@@ -537,6 +568,14 @@ func featurePages() []FeaturePage {
 		// dedicated tab any more than Updates already didn't - not
 		// aliased, since nothing outside this repo could have bookmarked
 		// an address that never shipped past a preview deploy.
+		// Directly before diagnostics, because the two are the operator's pair
+		// and they are read in that order: this page says whether the instance
+		// is working right now, and the next one hands over a bundle for a bug
+		// report about why it was not. The one module filed under it is the
+		// metrics address, which belongs here rather than under access because
+		// it is not a way IN - it is the same reading this page draws, in a
+		// format a monitoring system fetches.
+		{ID: "health", Modules: []string{"metrics"}},
 		{ID: "diagnostics"},
 		{ID: "help"},
 		// Same reasoning as look/diagnostics above: the bookmarklet,
@@ -579,6 +618,11 @@ func setFeature(a *app.App, id string, on bool) error {
 		// so clearing it closes the door on the next call with nothing left
 		// holding a socket open, which is exactly what SwitchSetting promises.
 		next.DownloadClientAPI = on
+	case "metrics":
+		// Same shape and same reasoning as downloadclient directly above: the
+		// metrics route re-reads this flag on every request, so clearing it
+		// makes the address stop existing on the next call.
+		next.Metrics = on
 
 	case "watch":
 		if !on {
@@ -607,6 +651,20 @@ func setFeature(a *app.App, id string, on bool) error {
 			return errors.New("there is no subscription to switch back on; add a feed on the Downloads page")
 		}
 		next.Feeds = subs
+
+	case "eventtargets":
+		if !on {
+			if err := parkValue(a, id, next.EventTargets); err != nil {
+				return err
+			}
+			next.EventTargets = nil
+			break
+		}
+		var targets []notify.Target
+		if !unparkValue(a, id, &targets) || len(targets) == 0 {
+			return errors.New("there is no event target to switch back on; add one on the Event targets page")
+		}
+		next.EventTargets = targets
 
 	case "scheduler":
 		if !on {
@@ -823,10 +881,29 @@ func resolverRegistered(a *app.App, id string) bool {
 // not reachable at all, or a live one-line summary of what the next
 // download would actually do with the stored resolver options.
 func ytdlpDetail(a *app.App, s settings.Settings) string {
+	// The same cached snapshot the Resolvers page and the diagnostics bundle
+	// read, through the same call - never a probe of its own, which would be a
+	// second answer able to disagree with the first.
+	tools := a.MediaTools()
 	if !resolverRegistered(a, "ytdlp") {
-		return "yt-dlp binary not found (KL_YTDLP, or \"yt-dlp\" on PATH); media pages fail with the hoster's own error instead"
+		detail := "yt-dlp binary not found (a copy fetched on the Resolvers page, KL_YTDLP, or \"yt-dlp\" on PATH); media pages fail with the hoster's own error instead"
+		if tools.Ytdlp.Detail != "" {
+			// The concrete reason when there is one: "the fetched copy at
+			// /data/tools/yt-dlp does not start: ..." says considerably more
+			// than a list of the places that were looked in.
+			detail += " (" + tools.Ytdlp.Detail + ")"
+		}
+		return detail
 	}
-	return "quality: " + string(s.Ytdlp.Quality)
+	// The version and where it came from, ahead of the quality. This row used
+	// to say only "quality: best", which is a preference - while the question
+	// somebody arrives here with, after a media link stopped working, is which
+	// yt-dlp is running and how old it is.
+	out := "quality: " + string(s.Ytdlp.Quality)
+	if tools.Ytdlp.Version != "" {
+		out = "yt-dlp " + tools.Ytdlp.Version + " (" + string(tools.Ytdlp.Source) + "); " + out
+	}
+	return out
 }
 
 // torrentsDetail mirrors jdDetail/ytdlpDetail's own two-branch shape, read

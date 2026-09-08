@@ -19,6 +19,7 @@ import {
 import { same } from './paths';
 import { useResource } from '../../lib/useResource';
 import { useT, type TranslationKey } from '../../lib/i18n';
+import { useTriggerLabel } from '../../lib/triggers';
 import { IconCode, IconPlay, IconPlus, IconTrash } from '../../lib/icons';
 
 /**
@@ -175,19 +176,14 @@ function useCx(): Cx {
   );
 }
 
-// Keyed by internal/script.Trigger's real values (script.go) - see
-// lib/scripts.ts's ScriptTrigger for where "task.done" etc. come from.
-const KNOWN_TRIGGER_KEY: Record<string, PendingKey> = {
-  manual: 'settings.scripts.trigger.manual',
-  'task.done': 'settings.scripts.trigger.taskDone',
-  'task.failed': 'settings.scripts.trigger.taskFailed',
-  'queue.idle': 'settings.scripts.trigger.queueIdle',
-};
-
-function triggerLabel(cx: Cx, trigger: ScriptTrigger): string {
-  const key = KNOWN_TRIGGER_KEY[trigger];
-  return key ? cx(key) : trigger;
-}
+// The trigger-to-label map used to live here, with entries for FOUR of the
+// eleven triggers internal/script actually fires - so checksum.failed,
+// package.done and five others were drawn in this menu as their own raw dotted
+// ids among a list of sentences. It has moved to lib/triggers.ts, whole, because
+// the event targets page offers the same vocabulary and a second private copy
+// beside this one is exactly the drift AllTriggers' own doc comment argues
+// against one layer down. See useTriggerLabel there, including why an id this
+// build does not know still renders as itself.
 
 export function Scripts() {
   const { t } = useT();
@@ -415,6 +411,7 @@ function ScriptRow({
     }
   }
 
+  const triggerLabel = useTriggerLabel();
   const title = draft.name.trim() || cx('settings.scripts.unnamed', { n: index + 1 });
   const runDisabled = running || !row.saved || dirty;
   const runHint = !row.saved ? cx('settings.scripts.runNeedsSaveHint') : dirty ? cx('settings.scripts.runDirtyHint') : undefined;
@@ -439,7 +436,7 @@ function ScriptRow({
               )}
             </span>
             <span className="block truncate text-[11px] text-carbon-textMuted">
-              {triggerLabel(cx, draft.trigger)}
+              {triggerLabel(draft.trigger)}
               {/* No "last run" line: internal/script.Script (script.go) persists
                   no run history at all - Result only ever exists for the
                   duration of one Test Run, held below in this row's own
@@ -480,7 +477,7 @@ function ScriptRow({
               />
             </Field>
             <Field label={cx('settings.scripts.trigger')} hint={cx('settings.scripts.triggerHint')}>
-              <TriggerSelect value={draft.trigger} options={triggers} onChange={(t) => update({ trigger: t })} cx={cx} />
+              <TriggerSelect value={draft.trigger} options={triggers} onChange={(t) => update({ trigger: t })} />
             </Field>
             <Field label={cx('settings.scripts.timeout')} hint={cx('settings.scripts.timeoutHint')}>
               <div className="flex items-center gap-2">
@@ -549,13 +546,15 @@ function TriggerSelect({
   value,
   options,
   onChange,
-  cx,
 }: {
   value: ScriptTrigger;
   options: ScriptTrigger[];
   onChange: (t: ScriptTrigger) => void;
-  cx: Cx;
 }) {
+  // The labels come from lib/triggers.ts now rather than from a `cx` prop, so
+  // this picker and the event targets page cannot disagree about what
+  // package.done is called.
+  const triggerLabel = useTriggerLabel();
   // A value this build's registry does not currently list is kept as an
   // option of its own rather than silently swapped for the first known one -
   // matching Schedule.tsx's ActionSelect for the identical reason: switching
@@ -572,7 +571,7 @@ function TriggerSelect({
     >
       {shown.map((t) => (
         <option key={t} value={t}>
-          {triggerLabel(cx, t)}
+          {triggerLabel(t)}
         </option>
       ))}
     </select>

@@ -1,14 +1,14 @@
 // The settings search index and the settings pages have to name the same
 // strings.
 //
-// web/src/pages/settings/searchIndex.ts is a DECLARED index: 22 pages, their
+// web/src/pages/settings/searchIndex.ts is a DECLARED index: 24 pages, their
 // cards, and the caption plus (i) text of every row on them, written down as
 // translation keys. Declared rather than derived, and the reasons are the four
 // this script's own FILE_PAGES table exists to survive:
 //
 //   - a settings page reaches the catalogue through four helper names, not one
 //     (t, tx, cx, rx). A scanner that only knew `t(` would miss six of the
-//     twenty-two pages outright and they would still LOOK indexed, because
+//     twenty-four pages outright and they would still LOOK indexed, because
 //     their page name goes on matching.
 //   - a page's keys are not necessarily in that page's file. settings.rules.*
 //     mostly lives in components/RuleEditor.tsx, and the Downloads page is
@@ -104,13 +104,36 @@ const FILE_PAGES = [
   { file: 'src/pages/settings/Connections.tsx', pages: ['connections'] },
   { file: 'src/pages/settings/Reconnect.tsx', pages: ['reconnect'] },
   { file: 'src/pages/settings/Resolvers.tsx', pages: ['resolvers'] },
+  // A directory for the same reason downloads/ and look/ are: the cookie jars
+  // card moved out of Resolvers.tsx into one of its own, and the next card to
+  // follow it must be scanned without anybody remembering to come back here.
+  { file: 'src/pages/settings/resolvers/', pages: ['resolvers'] },
   { file: 'src/pages/settings/Torrents.tsx', pages: ['torrents'] },
   { file: 'src/pages/settings/Captcha.tsx', pages: ['captcha'] },
   { file: 'src/pages/settings/Schedule.tsx', pages: ['schedule'] },
+  // The health page is one card per file by construction (which is what makes
+  // "at most one SectionTitle per Card" structural there rather than
+  // remembered), so the shell and the folder are both mapped - the folder as a
+  // DIRECTORY, for the same reason downloads/ and diagnostics/ are one.
+  { file: 'src/pages/settings/Health.tsx', pages: ['health'] },
+  { file: 'src/pages/settings/health/', pages: ['health'] },
   { file: 'src/pages/settings/Diagnostics.tsx', pages: ['diagnostics'] },
+  // A directory for the same reason downloads/, look/, resolvers/ and
+  // shortcuts/ are: the database-maintenance card moved out into one of its
+  // own, and the next card to follow it must be scanned without anybody
+  // remembering to come back here.
+  { file: 'src/pages/settings/diagnostics/', pages: ['diagnostics'] },
   { file: 'src/pages/settings/BrowserTools.tsx', pages: ['browsertools'] },
   { file: 'src/pages/settings/Scripts.tsx', pages: ['scripts'] },
+  { file: 'src/pages/settings/EventTargets.tsx', pages: ['eventtargets'] },
+  // A DIRECTORY, for the same reason downloads/, look/, resolvers/,
+  // diagnostics/ and shortcuts/ are: the row editor, the events picker, the
+  // status block and the test panel are four files today, and the fifth card
+  // somebody adds beside them must be scanned without anybody remembering to
+  // come back here.
+  { file: 'src/pages/settings/eventtargets/', pages: ['eventtargets'] },
   { file: 'src/pages/settings/Shortcuts.tsx', pages: ['shortcuts'] },
+  { file: 'src/pages/settings/shortcuts/', pages: ['shortcuts'] },
 ];
 
 /**
@@ -121,32 +144,28 @@ const FILE_PAGES = [
 const EXCLUDED = new Map([
   // ---- absent from en.ts, which is worse than not being indexed ----
   // lib/i18n.tsx resolves `dict[key] ?? en[key]` with no final fallback, so
-  // either of these returns undefined despite its `string` type. Both are drawn
-  // as real card titles today. Add them to en.ts (and therefore to all 42
-  // locales, which the Type check step enforces) and move them into the index -
-  // the Diagnostics system card and the Schedule status banner are unfindable
-  // until somebody does.
+  // this one returns undefined despite its `string` type, and it is drawn as a
+  // real card title today. Add it to en.ts (and therefore to all 42 locales,
+  // which the Type check step enforces) and move it into the index - the
+  // Schedule status banner is unfindable until somebody does.
   //
   // An entry may name a key it is WAITING ON. The moment that key reaches en.ts
   // the exclusion fails, saying so - because at that point the reason for it is
   // gone, and an exclusion that outlives its reason is the silence this whole
   // script exists to prevent.
-  [
-    'settings.diagnostics.systemTitle',
-    { waitingOn: 'settings.diagnostics.systemTitle', reason: 'NOT IN en.ts, so it resolves to undefined. Drawn as the Diagnostics system card title' },
-  ],
+  //
+  // The Diagnostics system card used to sit here beside it, together with the
+  // six readings inside it. settings.diagnostics.systemTitle reached en.ts with
+  // this wave, so both exclusions expired exactly as designed and came out: the
+  // card is indexed by its own title now. Its two remaining strays,
+  // settings.diagnostics.speedSamples and .speedSamplesHint, went nowhere -
+  // they exist in all 42 locales and NO source draws them, so putting them in
+  // the index would fail the reverse check instead. Dropping them from here was
+  // the whole fix.
   [
     'settings.schedule.statusTitle',
     { waitingOn: 'settings.schedule.statusTitle', reason: 'NOT IN en.ts, so it resolves to undefined. Drawn as the Schedule status banner title' },
   ],
-  // The five readings and the subtitle inside that same untitled card. A card
-  // can only be indexed by its title, because the title is the handle the jump
-  // resolves in the DOM - so these go back in together with the key above, not
-  // before it.
-  ...['subtitle', 'version', 'deployment', 'goVersion', 'platform', 'goroutines'].map((n) => [
-    `settings.diagnostics.${n}`,
-    { waitingOn: 'settings.diagnostics.systemTitle', reason: 'inside the Diagnostics system card, which has no usable title key yet - see above' },
-  ]),
   // The notifications card was excluded here while it was being built, with its
   // own keys named as the condition. They landed in the same wave, this check
   // said so on the next run, and the exclusion came out: the card is indexed

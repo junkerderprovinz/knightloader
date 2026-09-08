@@ -52,6 +52,15 @@ const TEXT_KEY: Record<string, { fallback: string; i18nKey: string }> = {
   // universal label (the same reasoning `esc` above already applies to
   // "Esc" rather than translating it either), not a translatable UI string.
   shift: { fallback: 'Shift', i18nKey: '' },
+  // The three keycaps that are printed WORDS rather than glyphs, and whose
+  // words genuinely differ by locale: a German keyboard has Pos1, Ende and
+  // Entf on it. Without these three the generic branch at the bottom of
+  // label() capitalizes the token and prints "Home"/"End"/"Delete" in every
+  // language, i.e. a key nobody's keyboard has - the same complaint that put
+  // Ctrl/Strg here in the first place.
+  home: { fallback: 'Home', i18nKey: 'settings.shortcuts.key.home' },
+  end: { fallback: 'End', i18nKey: 'settings.shortcuts.key.end' },
+  delete: { fallback: 'Del', i18nKey: 'settings.shortcuts.key.delete' },
 };
 
 function tokens(shortcut: string): string[] {

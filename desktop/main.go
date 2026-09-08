@@ -19,6 +19,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/api"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
+	"github.com/junkerderprovinz/knightloader/internal/logring"
 	"github.com/junkerderprovinz/knightloader/internal/provision"
 	"github.com/junkerderprovinz/knightloader/internal/update"
 	"github.com/wailsapp/wails/v2"
@@ -60,6 +61,26 @@ func main() {
 	a, err := app.New(dataDir)
 	if err != nil {
 		log.Fatalf("start: %v", err)
+	}
+
+	// The start report (internal/startupcheck), the same call the server binary
+	// makes: Java, yt-dlp, ffmpeg and ffprobe with their versions, the data
+	// directory, every folder a download can land in, and which clock a
+	// schedule window is read against. It goes into the log and into the
+	// diagnostics bundle, and it holds nothing back while it runs.
+	//
+	// It is here rather than inside app.New for the reason app_preflight.go
+	// spells out: app.New is what several hundred tests call, and a pass that
+	// spawns four processes has no business in a constructor. There is no
+	// listener to wait for on this build, so this is the earliest honest place.
+	//
+	// os.Getenv rather than the server's envInt, because this file has no such
+	// helper and one line does not earn one. Any value other than "0" leaves it
+	// on, which matches "on by default" from the other side.
+	if os.Getenv("KL_STARTUP_CHECK") != "0" {
+		a.StartStartupCheck()
+	} else {
+		a.MarkStartupCheckOff()
 	}
 
 	// Desktop-local window/tray preferences: never settings.Settings, which
@@ -116,6 +137,18 @@ func main() {
 		return nil
 	}
 
+	// Wired here for the same reason RequestUpdateInstall just above is, and
+	// left nil everywhere else for the same reason RequestExit is: putting
+	// the MACHINE to sleep is a capability only this build has, and the
+	// container's process is PID 1 in a namespace with no reach onto the
+	// host's power state at all. It is the third of the three function
+	// fields on App rather than an overload of either existing one, because
+	// sleeping is not quitting - the process stays, the downloads stay, and
+	// the machine comes back - and internal/idleaction decides which
+	// end-of-queue actions to OFFER by asking which of these three are
+	// wired, never by asking which binary is running. See desktop/power.go.
+	a.RequestSuspend = requestSuspend
+
 	// Both Wails and the tray library want the real OS main thread on macOS,
 	// and systray.Run blocks in its own native loop until Quit() - so it is
 	// started in a goroutine before wails.Run, the established community
@@ -167,6 +200,12 @@ func main() {
 		OnShutdown: func(context.Context) {
 			tc.onShutdown()
 			_ = a.Close()
+			// After a.Close, so that anything the shutdown itself logs still
+			// reaches the file somebody switched on to read about shutdowns.
+			// Closing is tidiness rather than durability - every record is
+			// written unbuffered - but on Windows it is what releases the
+			// handle, and this build is mostly Windows.
+			_ = logring.CloseFile()
 		},
 	})
 	if err != nil {

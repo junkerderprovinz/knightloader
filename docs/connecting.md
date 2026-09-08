@@ -198,6 +198,24 @@ and cannot be explained.
   every address on the subnet for `/api/health` gets to the same place with the
   one thing the app already has.
 
+  That route is frozen because of this. It answers `{"status":"ok","version":…}`
+  on a 200 for as long as the process is up, whatever is actually wrong with the
+  instance, and the app compares that string literally - so an instance that
+  answered `degraded` would stop being findable by every phone already in
+  somebody's hand, and phones update on their own schedule rather than with the
+  container. The container's own `HEALTHCHECK` and the Click'n'Load bridge read
+  it the same way. New fields may be added to it; the two that are there may not
+  move, and the status may not stop being `ok`.
+
+  The real state is a second, session-guarded readout: `GET /api/health/detail`
+  answers every part of the instance with a state of its own, the queue by why
+  it is waiting and why it failed, room on the target folders and how long the
+  process has been up. `GET /api/metrics` is the same reading as Prometheus
+  exposition text and answers 404 until the switch on the Health settings page
+  is turned on. Neither is open, and neither is forwarded to a peer over the
+  federation or the relay: both describe THIS machine's disks and sidecar, and
+  a row of them drawn under a peer's name would name the wrong box.
+
   The addresses are probed by a pool of workers, not all at once. Android routes
   every `fetch` through OkHttp, which allows 64 concurrent requests and queues
   the rest - so firing all 253 off together meant the queued ones hit their own

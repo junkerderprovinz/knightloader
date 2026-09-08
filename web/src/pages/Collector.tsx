@@ -39,6 +39,8 @@ import { CollectorFacetSidebar, matchesFacets } from '../components/CollectorFac
 import { CollectorStats } from '../components/CollectorStats';
 import { useScriptMenu } from '../components/ScriptActions';
 import { usePublishCommandPageContext } from '../lib/commands/pageContext';
+import { selectionReach, useDrawnRows } from '../lib/selectionReach';
+import { SelectionReach } from '../components/SelectionReach';
 import {
   IconCheck,
   IconClock,
@@ -240,7 +242,24 @@ export function Collector() {
   }, [collected]);
 
   const clearSelection = useCallback(() => setSelected(new Set()), []);
-  const removal = useRemoval({ all, selected, base: '/api', onDone: clearSelection });
+
+  // What the list is actually DRAWING, narrower than the narrowed list by every
+  // folded package. See lib/selectionReach.ts. Built from `groups` and never
+  // from `all`: this page holds its skipped and held rows out of `collected`
+  // entirely, and they would otherwise start counting as selected-but-hidden on
+  // a list that never offered them.
+  const drawn = useDrawnRows(groups, folds.collapsed);
+  const reach = useMemo(() => selectionReach(selected, drawn), [selected, drawn]);
+  const reduceToShown = useCallback(() => {
+    const before = new Set(selected);
+    setSelected(new Set(reach.shown));
+    toast(t('select.reduced').replace('{n}', String(reach.hidden.length)), 'info', 'action-done', {
+      label: t('remove.undo'),
+      run: () => setSelected(before),
+    });
+  }, [selected, reach, toast, t]);
+
+  const removal = useRemoval({ all, selected, base: '/api', drawn, onDone: clearSelection });
   // This page's own useCleanup() instance, now driven by the badge row below
   // instead of ListActionBar's text-button trigger (which Downloads.tsx keeps
   // unchanged - this page stopped using that shared component so its own
@@ -619,9 +638,12 @@ export function Collector() {
               contents the way start/remove do. */}
           {selected.size > 0 && (
             <>
-              <span className="glim-num text-sm text-carbon-textSub">
-                {selected.size} {t('select.count')}
-              </span>
+              <SelectionReach
+                mode="select"
+                total={selected.size}
+                hidden={reach.hidden.length}
+                onReduce={reduceToShown}
+              />
               <IconBadge
                 labelled
                 hue={1}

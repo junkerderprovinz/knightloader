@@ -44,6 +44,7 @@ import { useDraft, useFeatures } from './context';
 import { WATCH_SUPPORTED } from '../../lib/clipboardWatch';
 import { useClipboardWatch } from '../../lib/useClipboardWatch';
 import { NotificationsCard } from './look/Notifications';
+import { SettingsTransfer } from './look/SettingsTransfer';
 
 /**
  * accentSlot is which of the eight preset positions a colour belongs to.
@@ -789,6 +790,13 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
       {general && <MutedDialogsCard />}
       {general && <UpdateCard />}
       {general && <SystemCards />}
+      {/* Directly under Backup & Restore (the last card SystemCards draws) and
+          not on a page of its own: the two answer neighbouring questions, and
+          the way somebody finds out that "settings only" exists is by coming
+          here looking for the archive. hue 13 wraps to palette position 5, so it
+          sits between its neighbours' 7 and About's 10 without repeating either.
+          See the card's own doc comment for what each of the two files carries. */}
+      {general && <SettingsTransfer hue={13} />}
       {/* Last on the General tab (jdp, 2026-09-07: "die Über-card soll in den
           allgemein-tab ganz nach unten"). It is the one card nobody comes here
           FOR, and the one everybody eventually looks for: a version and a way

@@ -104,6 +104,36 @@ export function SettingsPage() {
     });
   }, []);
 
+  /**
+   * reseed is patchNow's fold with the request taken out: a caller that has
+   * ALREADY written through some other route tells the shell what the server now
+   * holds, for exactly the keys it wrote.
+   *
+   * The settings import (POST /api/settings/import) is the caller this exists
+   * for, and without it the import undoes itself. The shell keeps `draft` and
+   * the `saved` baseline it was seeded from, and the debounced autosave above
+   * sends the DIFFERENCE between the two - so after an import that neither copy
+   * knows about, the reader's next unrelated edit anywhere in the settings sends
+   * the pre-import value of every imported key straight back over it. Silently,
+   * and with a success toast, which is what makes it invisible in testing unless
+   * somebody happens to save something else afterwards.
+   *
+   * Keys are taken as a list rather than derived from the applied document,
+   * because the server decides what it actually took over: a key that was asked
+   * for and skipped must not be folded in as though it had been.
+   */
+  const reseed = useCallback((applied: Settings, keys: string[]) => {
+    const appliedDoc = applied as unknown as Record<string, unknown>;
+    const fold = (doc: Settings | null): Settings | null => {
+      if (!doc) return doc;
+      const merged = { ...(doc as unknown as Record<string, unknown>) };
+      for (const k of keys) merged[k] = appliedDoc[k];
+      return merged as unknown as Settings;
+    };
+    setSaved(fold);
+    setDraft(fold);
+  }, [setSaved]);
+
   async function onSave() {
     if (!draft || !saved || saving) return;
     setSaving(true);
@@ -229,7 +259,7 @@ export function SettingsPage() {
   }
 
   const featureAccess: FeatureAccess = { features, toggle };
-  const settingsDraft: SettingsDraft = { cfg: draft, patch, replace, dirty, patchNow };
+  const settingsDraft: SettingsDraft = { cfg: draft, patch, replace, dirty, patchNow, reseed };
 
   return (
     <SettingsProvider draft={settingsDraft} features={featureAccess}>

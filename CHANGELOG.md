@@ -43,6 +43,31 @@ submission and for a fixed download.
 
 ### Added
 
+- **The log is readable, searchable and can be kept on disk.** The last 500
+  lines have gone into the diagnostics bundle for a while and could be read
+  nowhere else. The Diagnostics page now searches them, filters them by which
+  part of the app wrote them, and follows new ones as they arrive, with a cursor
+  rather than a refresh: a poll asks only for what is new, and when more lines
+  arrived than memory holds the view says so instead of joining the two halves
+  silently. Beside it, an optional log FILE on disk with a size cap and a few
+  older generations to download. It is off, it stays off through an update, and
+  switching it on writes the lines already in memory into the file first, so the
+  boot that went wrong is in there rather than only what happened after somebody
+  noticed. There is no path box, deliberately: the folder sits beside the
+  database and `KL_LOG_DIR` moves it, because a mistyped path is the one way to
+  stop a log with nothing on screen to say why.
+- **Every download's own log lines, in its detail panel.** Honest rather than
+  complete, and it says which: most of this app's log lines record no download
+  at all, so an empty card there is a fact about the logging and not about the
+  download. It reads a route under `/api/diagnostics`, which is forwarded to no
+  peer and to no relay - a log line can carry the address of a feed with its key
+  in it, which a task list never does.
+- **The filter is by SOURCE and not by severity, and the card says so.** Nothing
+  in this tree records a log level: every line is a bare `log.Printf`. A menu
+  offering Info, Warn and Error would have to guess one out of the wording, and a
+  guess dressed as a level hides lines from whoever trusted it. What the lines do
+  carry is the name of the part of the app that wrote them, so that is what the
+  picker offers, read off the server rather than copied into the browser.
 - **A download can be opened and read.** Double-clicking one has shown its
   folder, its password and its connection count for a long time; beside that
   card there is now a read-only panel with the address, the page it came from,

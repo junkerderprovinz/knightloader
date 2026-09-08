@@ -44,6 +44,8 @@ import { useToast } from '../lib/toast';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { Button, Field, Modal, NumberInput, TextInput } from './ui';
 import { PackageMoveDialog } from './PackageActions';
+import { retryPending } from './RetryCountdown';
+import { SelectionReach } from './SelectionReach';
 import {
   ContextMenu,
   anchorBelow,
@@ -276,6 +278,7 @@ function ConfirmRemove({
   allowFiles,
   note,
   mute,
+  reach,
   onCancel,
   onConfirm,
 }: {
@@ -288,6 +291,19 @@ function ConfirmRemove({
   note?: string;
   /** Which "do not show this again" switch this dialog carries, if any. */
   mute?: DialogId;
+  /**
+   * How many of the rows about to go are not on screen, and the press that
+   * narrows the removal to the ones that are.
+   *
+   * OPTIONAL, AND ONLY THE HAND-PICKED PATH MAY PASS IT. The clean-up flow
+   * renders this same dialog for a class whose ids came from the server's own
+   * preview and are almost never on screen: "12 of them not visible" there
+   * tells somebody off for a selection they never made, and the button would
+   * quietly turn "remove every finished download" into "remove the finished
+   * downloads that happen to be on screen", which is not the class the title
+   * above it names.
+   */
+  reach?: { hidden: number; onReduce: () => void };
   onCancel: () => void;
   onConfirm: (withFiles: boolean) => void;
 }) {
@@ -323,6 +339,12 @@ function ConfirmRemove({
     >
       <div className="flex flex-col gap-2 text-sm text-carbon-textSub">
         {what && <p>{what}</p>}
+        {/* Above the count rather than under it: it is the sentence that changes
+            what the count MEANS, and a warning under the number it qualifies is
+            a warning read second. */}
+        {reach && (
+          <SelectionReach mode="removal" total={weight.count} hidden={reach.hidden} onReduce={reach.onReduce} />
+        )}
         <p className="glim-num text-carbon-text">{t('remove.count', { n: weight.count })}</p>
         <p className="glim-num">
           {weight.files === 0
@@ -475,12 +497,20 @@ export function useRemoval({
   all,
   selected,
   base,
+  drawn,
   onDone,
 }: {
   /** Every task this instance holds, so the byte total covers rows the filters hid. */
   all: Task[];
   selected: Set<string>;
   base: string;
+  /**
+   * The ids the list is DRAWING, from lib/selectionReach.ts. Optional, because
+   * a caller that has no list on screen has no honest answer to give - and a
+   * missing set means the counts and the extra sentence below simply do not
+   * appear, never that nothing is hidden.
+   */
+  drawn?: ReadonlySet<string>;
   onDone: () => void;
 }) {
   const { t } = useT();
@@ -509,6 +539,10 @@ export function useRemoval({
   const removeNow = useCallback(
     async (ids: string[], withFiles = false) => {
       if (ids.length === 0) return;
+      // Counted BEFORE the request, off the ids actually being sent: by the time
+      // the answer comes back the rows are gone from the list and every one of
+      // them would count as not drawn.
+      const unseen = drawn ? ids.filter((id) => !drawn.has(id)).length : 0;
       try {
         const r: BulkResult = await deleteTasks(ids, withFiles, base);
         // The button rides on the token, never on "we removed something": a
@@ -518,8 +552,15 @@ export function useRemoval({
         // which is why undoMs comes back with it instead of being a number in
         // here that drifts from the one over there.
         const token = r.undo;
+        // The only warning that reaches somebody who ticked "do not show this
+        // again" on the dialog: their Shift+Del goes straight through, and a
+        // removal that erased the files gets no undo token at all. It arrives
+        // after the fact, which is not good enough on its own, but it is the
+        // sentence that says what to go looking for in the download folder.
         toast(
-          t('remove.done', { n: r.count }),
+          unseen > 0
+            ? t('remove.doneHidden', { n: r.count }).replace('{hidden}', String(unseen))
+            : t('remove.done', { n: r.count }),
           'ok',
           'action-done',
           token ? { label: t('remove.undo'), run: () => undoRemoval(token), holdMs: r.undoMs } : undefined,
@@ -529,7 +570,7 @@ export function useRemoval({
         toast(t('list.failed', { error: message(e) }), 'fail');
       }
     },
-    [base, onDone, t, toast, undoRemoval],
+    [base, drawn, onDone, t, toast, undoRemoval],
   );
 
   // Silenced, this goes straight through to the delete WITH its files - which
@@ -570,6 +611,18 @@ export function useRemoval({
       weight={weigh(all, ask)}
       allowFiles
       mute="remove"
+      reach={
+        drawn && {
+          hidden: ask.filter((id) => !drawn.has(id)).length,
+          // The dialog's own id list only, and never the page's selection: the
+          // context menu
+          // passes a package's ids or a single row's here, and pushing a
+          // reduced list back through setSelected would deselect rows for a
+          // removal that is then cancelled. onDone clears the selection on
+          // confirm anyway.
+          onReduce: () => setAsk(ask.filter((id) => drawn.has(id))),
+        }
+      }
       onCancel={() => setAsk(null)}
       onConfirm={(withFiles) => {
         setAsk(null);
@@ -882,6 +935,37 @@ function taskMenuGroups({
       onSelect: () => {
         for (const x of chosen) if (x.status === 'paused') void resume(x.id, base);
       },
+    });
+  // Skipping the wait, above the restart it is one word away from, because the
+  // two are not the same promise and the difference is the whole point of the
+  // pair. Restart is "run this again". This is "run the retry that is ALREADY
+  // scheduled, now instead of at the end of its backoff" - and it spends that
+  // retry rather than granting a new one, since app.RestartTasksIn leaves both
+  // Retries and NextTry alone. On a row waiting ten minutes that distinction is
+  // the difference between the entry people want and the entry they press
+  // because it is the only one that mentions retrying at all.
+  //
+  // Acts on the waiting rows only, never on `ids`. Every other entry here can
+  // afford to send the whole selection because the server ignores the rows the
+  // verb does not apply to; this one cannot, because restart applies to
+  // finished downloads perfectly well and would start them all over.
+  const waitingIds = chosen.filter(retryPending).map((x) => x.id);
+  if (waitingIds.length > 0)
+    transport.items.push({
+      id: 'retryNow',
+      label: t('task.retry.skip'),
+      // The same bolt as forceStart above, and for the same idea: past the
+      // wait, now. Told apart from it by the group it is in and by never
+      // appearing on a row that is not waiting.
+      icon: <IconBolt />,
+      // A count and not the explanation, which reads as the obvious thing to
+      // put here: `detail` is shrink-0 in ContextMenu, so a sentence in it
+      // pushes the label to nothing and runs out past the card's own maximum
+      // width. It says how many of the selected rows are actually waiting,
+      // which is the one thing the label cannot - and it is left off when that
+      // is all of them, since a number nobody can act on is noise.
+      detail: waitingIds.length < chosen.length ? String(waitingIds.length) : undefined,
+      onSelect: () => void restartTasks(waitingIds, base),
     });
   if (some((x) => x.status === 'done' || x.status === 'error'))
     transport.items.push({

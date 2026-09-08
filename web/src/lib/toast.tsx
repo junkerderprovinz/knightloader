@@ -16,6 +16,12 @@
 // something true to filter on everywhere today, not only at the few call
 // sites anyone bothers to type explicitly.
 //
+// The session event log (lib/eventLog.ts) hangs off the same fact, one line
+// further in: toast() is the only funnel, so the ring behind the sidebar's bell
+// is fed from here rather than from a second subscription that could disagree
+// with the bubbles. It is recorded ABOVE every early return in toast(), for the
+// reason spelled out at that line.
+//
 // Quiet mode does not suppress by tone. CRITICAL draws the line at "does
 // somebody lose something by never seeing this bubble" - a captcha nobody
 // answers blocks that download forever, a benched account silently stops
@@ -25,8 +31,9 @@
 // nothing is lost by swallowing the bubble.
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Button, InfoBubble, Toggle } from '../components/ui';
+import { recordEvent, type EventSubject } from './eventLog';
 import { IconClose } from './icons';
-import { useT, type TranslationKey } from './i18n';
+import { useT } from './i18n';
 import { NOTIFY_EVENTS, channelFor, showSystem } from './notify';
 import { useUIState } from './uistate';
 
@@ -86,7 +93,26 @@ interface ToastMessage {
 }
 
 interface ToastAPI {
-  toast: (message: string, tone?: ToastTone, kind?: NotificationKind, action?: ToastAction) => void;
+  /**
+   * `target` is the fifth POSITIONAL parameter rather than the fourth turned
+   * into an options bag, and that is a deliberate refusal to be tidy: there are
+   * a hundred and three call sites in this app, all but two of which have
+   * nothing to point at, and rewriting every one of them to gain a named
+   * argument at two would be a diff nobody could review for a change nobody
+   * asked for.
+   *
+   * It says which row the event is ABOUT, so the event log can offer a jump to
+   * it. Left out everywhere it would be a guess: a captcha, a benched account
+   * and a plain "saved" have no row, and inventing one for them would put a
+   * button in the panel that lands nowhere.
+   */
+  toast: (
+    message: string,
+    tone?: ToastTone,
+    kind?: NotificationKind,
+    action?: ToastAction,
+    target?: EventSubject,
+  ) => void;
 }
 
 const Ctx = createContext<ToastAPI>({ toast: () => {} });
@@ -98,7 +124,11 @@ const toneClass: Record<ToastTone, string> = {
   fail: 'text-statusFail',
   info: 'text-statusInfo',
 };
-const dot: Record<ToastTone, string> = {
+// Exported so the event panel's rows carry the same three dots the bubbles do.
+// A second, near-identical map over there would be the version that drifts the
+// first time one of these three tokens is retuned - and the whole promise of
+// the log is that it shows the same facts the bubble showed.
+export const TONE_DOT: Record<ToastTone, string> = {
   ok: 'bg-statusOkSolid',
   fail: 'bg-statusFailSolid',
   info: 'bg-statusInfoSolid',
@@ -139,36 +169,12 @@ const DURATION_MS = 4000;
 
 const QUIET_KEY = 'notifications.quiet';
 
-/**
- * The two strings this file needs, keyed by where they are going.
- *
- * Same arrangement as Connections.tsx (Wave 2's 2E) and Captcha.tsx (Wave
- * 7B): the locale files are one writer's lane per wave (9E, phase 3 of this
- * one), and the lookup asks the real catalogue first, so the day these keys
- * land in en.ts this table stops being consulted and can be deleted without
- * touching anything else here.
- */
-const PENDING = {
-  'notifications.quiet': 'Quiet mode',
-  'notifications.quietHint':
-    'Hides success and info notifications. A failure, a captcha waiting on you, or a benched account still shows.',
-} as const;
-
-type PendingKey = keyof typeof PENDING;
-
-function useNx() {
-  const { t } = useT();
-  return useCallback(
-    (key: PendingKey) => {
-      // The cast is the whole point: these keys are not in the union yet. It
-      // is narrow - only keys in PENDING can be passed - and it goes with
-      // the table.
-      const translated = t(key as unknown as TranslationKey) as string | undefined;
-      return translated ?? PENDING[key];
-    },
-    [t],
-  );
-}
+// The PENDING/useNx fallback table that used to stand here is gone. It existed
+// because notifications.quiet* had not landed in en.ts yet and t() could still
+// come back with nothing; they landed, so the `?? PENDING[key]` branch and the
+// cast that only ever served it were both unreachable. Deleted rather than left
+// as a pattern, which is how the next person ends up adding a second one beside
+// it for the next set of keys.
 
 /**
  * One bubble, owning its own auto-dismiss timer so pausing one on hover
@@ -241,7 +247,7 @@ function ToastBubble({ item, onDismiss }: { item: ToastMessage; onDismiss: (id: 
       className="glim-toast pointer-events-auto flex items-center gap-2.5 rounded-[var(--radius-control)]
         bg-carbon-surface2 px-4 py-2.5 text-sm text-carbon-text shadow-[var(--elevation)] ring-1 ring-carbon-border"
     >
-      <span className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${dot[item.tone]}`} />
+      <span className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${TONE_DOT[item.tone]}`} />
       <span className={toneClass[item.tone]}>{item.message}</span>
       <span className="flex-1" />
       {item.action && (
@@ -293,7 +299,7 @@ function ToastBubble({ item, onDismiss }: { item: ToastMessage; onDismiss: (id: 
  * label survives as the switch's accessible name either way.
  */
 export function QuietModeToggle() {
-  const nx = useNx();
+  const { t } = useT();
   const [quiet, setQuiet] = useUIState(QUIET_KEY, false);
   return (
     <div className="flex items-center justify-between gap-4">
@@ -307,10 +313,15 @@ export function QuietModeToggle() {
           sentence moved behind the "(i)", where it is available to exactly the
           person who wants it. */}
       <span className="flex items-center gap-1.5 text-sm text-carbon-text">
-        {nx('notifications.quiet')}
-        <InfoBubble tip={nx('notifications.quietHint')} />
+        {t('notifications.quiet')}
+        {/* The bubble's own sentence changed with the event log: quiet mode
+            used to mean a swallowed bubble was gone, and it does not any more,
+            so the text that describes the switch has to say where the swallowed
+            ones went. See lib/eventLog.ts's note on recording ABOVE the
+            quiet-mode return, which is what makes that sentence true. */}
+        <InfoBubble tip={t('notifications.quietHint')} />
       </span>
-      <Toggle hideLabel checked={quiet} onChange={setQuiet} label={nx('notifications.quiet')} />
+      <Toggle hideLabel checked={quiet} onChange={setQuiet} label={t('notifications.quiet')} />
     </div>
   );
 }
@@ -349,8 +360,35 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const dismiss = useCallback((id: number) => setItems((s) => s.filter((m) => m.id !== id)), []);
 
   const toast = useCallback(
-    (message: string, tone: ToastTone = 'info', kind?: NotificationKind, action?: ToastAction) => {
+    (
+      message: string,
+      tone: ToastTone = 'info',
+      kind?: NotificationKind,
+      action?: ToastAction,
+      target?: EventSubject,
+    ) => {
       const k = kind ?? KIND_BY_TONE[tone];
+
+      // ABOVE every return below, and the placement is the whole interlock.
+      //
+      // Three of the branches that follow end this function without a bubble:
+      // quiet mode swallowing a non-critical event, the matrix routing a kind
+      // to 'silent', and the matrix routing it to the operating system. Record
+      // beside setItems at the bottom, in the place it naturally wants to go,
+      // and the log holds only what was already on screen - so quiet mode, the
+      // one state somebody opens a bell in to find out what they missed, is
+      // exactly the state that empties it.
+      //
+      // Recorded before the channel switch for the same reason: an event the
+      // operating system raised is still an event this window knows about, and
+      // a notification somebody dismissed on a phone lock screen is precisely
+      // the one they come back to the panel to re-read.
+      //
+      // What this changes about quiet mode: it stops meaning "you never find
+      // out" and starts meaning "it does not interrupt you". The switch's own
+      // hint (notifications.quietHint) says so.
+      recordEvent({ message, tone, kind: k, target });
+
       // A bubble carrying an action survives quiet mode whatever its kind says,
       // and that follows from the rule CRITICAL already encodes rather than
       // bending it: quiet mode swallows what is "already sitting in the queue,

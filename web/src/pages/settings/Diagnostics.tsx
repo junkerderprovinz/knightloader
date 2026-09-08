@@ -4,14 +4,28 @@ import { useT, type TranslationKey } from '../../lib/i18n';
 import { useResource } from '../../lib/useResource';
 import { Button, Card, ErrorCard, LoadingCard, SectionTitle } from '../../components/ui';
 import { IconDownloads } from '../../lib/icons';
+import { LogFileCard } from './diagnostics/LogFileCard';
+import { LogViewerCard } from './diagnostics/LogViewerCard';
+import { MaintenanceCard } from './diagnostics/Maintenance';
+import { OwnershipCard } from './diagnostics/Ownership';
+import { ProxyCheckCard } from './diagnostics/ProxyCheck';
+import { SelfTestCard } from './diagnostics/SelfTest';
+import { StartupReportCard } from './diagnostics/StartupReport';
 
 /**
  * The diagnostics page: what this build is, what it is running on, and its
  * own recent log output - one live preview and one button that saves the same
  * document to a file, for attaching to a bug report.
  *
- * Nothing here is part of the settings draft (context.tsx's useDraft): there
- * is nothing to save, only something to read and, on demand, write to a file.
+ * The ONE card this component still draws is not part of the settings draft
+ * (context.tsx's useDraft): there is nothing to save on it, only something to
+ * read and, on demand, write to a file. The seven cards below it live in their
+ * own files under diagnostics/ and split three ways - the start report, the
+ * self-test, the reverse-proxy check and the ownership strip are readings and
+ * write nothing at all; the log viewer holds its own filters and cursor; and
+ * the log-file and maintenance cards are the exceptions that carry real
+ * settings fields and patch the draft like any other page. Each says which it
+ * is in its own file.
  * The two fetches - the preview on mount and the one right before a download -
  * are deliberately separate calls rather than one cached response, because the
  * whole point of the log lines and the goroutine count is that they keep
@@ -39,11 +53,8 @@ const PENDING = {
   'settings.diagnostics.downloadHint':
     'A JSON file with the fields above, your settings with every password removed, and the log lines below.',
   'settings.diagnostics.downloadFailed': 'Could not build the bundle: {error}',
-  'settings.diagnostics.logTitle': 'Recent log lines',
-  'settings.diagnostics.logHint': 'The last {n} lines this process has logged, oldest first. Nothing here is written to disk.',
-  'settings.diagnostics.logEmpty': 'Nothing logged yet.',
-  'settings.diagnostics.refresh': 'Refresh',
   'settings.diagnostics.loadFailed': 'Could not load diagnostics. Is the server reachable?',
+  'settings.diagnostics.toolsMissing': 'not found',
 } as const;
 
 type PendingKey = keyof typeof PENDING;
@@ -121,12 +132,19 @@ export function Diagnostics() {
       <Card hue={0} className="flex flex-col gap-5">
         <SectionTitle hint={cx('settings.diagnostics.subtitle')}>{cx('settings.diagnostics.systemTitle')}</SectionTitle>
 
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <Stat label={cx('settings.diagnostics.version')} value={data.version} />
           <Stat label={cx('settings.diagnostics.deployment')} value={deploymentLabel(cx, data.deployment)} />
           <Stat label={cx('settings.diagnostics.goVersion')} value={data.goVersion} />
           <Stat label={cx('settings.diagnostics.platform')} value={`${data.os}/${data.arch}`} />
           <Stat label={cx('settings.diagnostics.goroutines')} value={String(data.goroutines)} />
+          {/* Plain string literals, not catalogue keys, and deliberately:
+              "yt-dlp" and "ffmpeg" are program names, the same word in
+              every locale (Resolvers.tsx makes the same argument for codec
+              names). It also keeps them out of check-settings-search.mjs's
+              forward pass, which scans every label= in a settings page. */}
+          <Stat label="yt-dlp" value={data.mediaTools?.ytdlp?.version || cx('settings.diagnostics.toolsMissing')} />
+          <Stat label="ffmpeg" value={data.mediaTools?.ffmpeg?.version || cx('settings.diagnostics.toolsMissing')} />
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -138,30 +156,50 @@ export function Diagnostics() {
         {error && <span className="text-sm text-statusFail">{error}</span>}
       </Card>
 
-      <Card hue={1} padding="none">
-        <div className="p-5 pb-0">
-          <SectionTitle
-            hint={cx('settings.diagnostics.logHint', { n: data.logCapacity })}
-            right={<Button kind="ghost" onClick={reload}>{cx('settings.diagnostics.refresh')}</Button>}
-          >
-            {cx('settings.diagnostics.logTitle')}
-          </SectionTitle>
-        </div>
-        {data.logLines.length === 0 ? (
-          <div className="p-5 text-sm text-carbon-textMuted">{cx('settings.diagnostics.logEmpty')}</div>
-        ) : (
-          // ltr regardless of interface direction, the same convention every
-          // other path/URL/code cell in settings/ already uses (Access.tsx's
-          // port list, Advanced.tsx's key table): log lines mix paths, hosts
-          // and stack traces, none of which read correctly mirrored.
-          <pre
-            dir="ltr"
-            className="max-h-96 overflow-auto whitespace-pre-wrap break-all p-4 font-mono text-[11px] leading-relaxed text-carbon-textSub"
-          >
-            {data.logLines.join('\n')}
-          </pre>
-        )}
-      </Card>
+      {/* THE HUES BELOW ARE A SEQUENCE, 0..7 IN DRAW ORDER, AND NOTHING ELSE.
+          The palette position belongs to the page's card ORDER (ui.tsx's Card),
+          so a badge sequence that jumps reads as a bug. Five separate waves
+          added a card to this page at once, each numbering against the file as
+          it stood when they started; the rule that survives every one of those
+          merges is this one, so the whole page is renumbered here rather than
+          any single card's suggestion being taken literally. Add a card, and
+          renumber from the top again. */}
+
+      {/* Directly under the system card, because it answers the next question
+          that card raises: this is what the build it just named actually found
+          when it started. It reads the bundle the page already loaded rather
+          than fetching again - two ways of reading one document are two things
+          that can disagree. */}
+      <StartupReportCard hue={1} report={data.startup} />
+
+      {/* The two self-test cards sit between the system readout and the log,
+          because that is the order somebody debugging reads the page in: what
+          this build is, then what it can find wrong with itself, then the raw
+          lines. */}
+      <SelfTestCard hue={2} />
+      <ProxyCheckCard hue={3} />
+
+      {/* The reading first, then the setting that keeps it: somebody opens this
+          page to READ the log, and the file card is the "and you can keep these"
+          that follows. logHint's own wording says "the log file below", so the
+          order is part of the copy and not only of the layout.
+
+          `capacity` is handed down rather than fetched again: this component
+          already has it out of the diagnostics bundle, and a second copy of the
+          ring's own number is a second thing to keep in step. */}
+      <LogViewerCard hue={4} />
+      <LogFileCard hue={5} capacity={data.logCapacity} />
+
+      <MaintenanceCard hue={6} />
+
+      {/* Who this instance writes files as. It fetches its own document rather
+          than reading `data.ownership` from the bundle above, and the reason is
+          the same one the two fetches on this page already have: the bundle is
+          a snapshot taken on mount, and this card is the one somebody keeps
+          open while they change a run command in another window. It draws
+          nothing at all if its request fails, so a side reading can never
+          replace the diagnostics somebody came here for. */}
+      <OwnershipCard hue={7} />
     </div>
   );
 }

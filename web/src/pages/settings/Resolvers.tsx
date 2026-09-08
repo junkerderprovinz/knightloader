@@ -8,18 +8,16 @@ import {
   InfoBubble,
   NumberInput,
   SectionTitle,
-  TextArea,
   TextInput,
   Toggle,
   ToggleRow,
 } from '../../components/ui';
 import { Tabs } from '../../components/Tabs';
+import { CookieJarsCard } from './resolvers/CookieJars';
+import { MediaToolsCard } from './resolvers/MediaToolsCard';
 import { IconTrash } from '../../lib/icons';
 import {
   fetchOptions,
-  fetchYtdlpCookieHosts,
-  removeYtdlpCookieJar,
-  saveYtdlpCookieJar,
   YTDLP_VARIANT_KINDS,
   type YtdlpEmbed,
   type YtdlpHosterPreset,
@@ -302,7 +300,18 @@ export function Resolvers() {
           </Card>
       )}
 
-      <Card hue={1} className="flex flex-col gap-5">
+      {/* First, and above the options, because somebody who lands on this page
+          is usually here because a media link that worked last month stopped
+          working - and an out of date yt-dlp is by a wide margin the most
+          common reason for that. The quality strip below is a preference; this
+          is the fact. Its own file for the same reason CookieJars has one: the
+          card carries a fetch, a verification and a swap, and none of that
+          belongs in the middle of a page of option strips. hue 1 pushed the
+          quality card to 2, which fills the gap the palette sequence already
+          had rather than shifting eight cards. */}
+      <MediaToolsCard hue={1} />
+
+      <Card hue={2} className="flex flex-col gap-5">
         <SectionTitle hint={t('settings.resolvers.intro')}>{t('settings.resolvers.quality')}</SectionTitle>
 
         {qualities.length > 0 && (
@@ -606,27 +615,12 @@ export function Resolvers() {
         </div>
       </Card>
 
-      {/* The switch and the jars themselves. The jars live in the encrypted
-          credential store under the pseudo service "ytdlpcookies" and reach
-          this page through routes of their own, NOT through the settings
-          draft: a cookies.txt is a live sign-in session and has no business in
-          a document that is read back, diffed and echoed. So this card writes
-          immediately rather than through the shared Save, and everything below
-          the switch is dimmed while it is off, because storing a jar for a
-          feature that is switched off is a thing somebody would do once and
-          then spend an evening on. */}
-      <Card hue={9} className="flex flex-col gap-5">
-        <SectionTitle>{t('settings.resolvers.cookiesTitle')}</SectionTitle>
-        <ToggleRow
-          checked={ytdlp.cookies}
-          onChange={(v) => patchYtdlp({ cookies: v })}
-          label={t('settings.resolvers.cookies')}
-          hint={t('settings.resolvers.cookiesHint')}
-        />
-        <div className={`flex flex-col gap-4 ${ytdlp.cookies ? '' : 'pointer-events-none opacity-40'}`}>
-          <CookieJars enabled={ytdlp.cookies} />
-        </div>
-      </Card>
+      {/* Its own file, and not because this one is long: the window that pastes
+          a jar is also opened from a failed download, and a card that kept its
+          own copy of that form would be the copy that stops matching the
+          dialog. What lives there is the whole feature - the switch, the list
+          of sites with a jar, and the way in. */}
+      <CookieJarsCard hue={9} />
 
       <Card hue={10} className="flex flex-col gap-5">
         <SectionTitle hint={t('settings.resolvers.presetsHint')}>
@@ -754,153 +748,3 @@ export function Resolvers() {
   );
 }
 
-/**
- * The stored cookies.txt files, one per site.
- *
- * THREE PROPERTIES THIS COMPONENT EXISTS TO KEEP, and each of them decided
- * something about the shape:
- *
- * A JAR IS NEVER SHOWN AGAIN. It is a live sign-in session, so it travels one
- * way only, into this server. That is why there is no "edit" that pre-fills the
- * textarea, and why the list is host names and a marker word. Replacing a jar
- * means pasting the new file over it, which reads as a limitation and is the
- * feature: a page that could show a cookies.txt would be a page that hands one
- * to anybody who reaches this instance.
- *
- * THE SERVER OWNS THE KEY. It lower-cases the host, strips a leading "www." and
- * reduces a whole pasted address to its host, exactly the way every lookup
- * keys them, so what comes back can differ from what was typed. The list is
- * therefore always the server's answer and never the request: a jar typed as
- * "www.youtube.com" and rendered as typed would look stored under a name that
- * is never consulted.
- *
- * REMOVING IS NOT FREE. The server answers 404 on a host with nothing stored,
- * and that refusal is shown rather than swallowed. A green tick on a typo would
- * leave somebody believing a session is gone from this machine while it is
- * still sealed under the name they meant to type.
- */
-function CookieJars({ enabled }: { enabled: boolean }) {
-  const { t } = useT();
-  const [hosts, setHosts] = useState<string[]>([]);
-  const [host, setHost] = useState('');
-  const [text, setText] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    let alive = true;
-    void fetchYtdlpCookieHosts().then(
-      (list) => {
-        if (alive) setHosts(list);
-      },
-      () => {
-        /* The table stays empty rather than claiming nothing is stored: the
-           add form still works, and a save answers with the real list. */
-      },
-    );
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  const run = async (work: () => Promise<string[]>) => {
-    setBusy(true);
-    setError('');
-    try {
-      setHosts(await work());
-    } catch (e) {
-      // The server's own sentence, which names the field and says what to send.
-      // A key of our own here would be a second, vaguer copy of it.
-      setError(String(e).replace(/^(Error|ApiError):\s*/, ''));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const save = () =>
-    void run(async () => {
-      const list = await saveYtdlpCookieJar(host, text);
-      // Cleared only on success. A paste that was refused stays in the box:
-      // somebody who exported a jar and mistyped the host should not have to
-      // export it again.
-      setHost('');
-      setText('');
-      return list;
-    });
-
-  return (
-    <>
-      <FieldGroup label={t('settings.resolvers.cookieJars')} hint={t('settings.resolvers.cookieJarsHint')}>
-        <div className="glim-well p-0">
-          {hosts.length === 0 ? (
-            <p className="px-4 py-3 text-sm text-carbon-textMuted">{t('settings.resolvers.cookieEmpty')}</p>
-          ) : (
-            <ul className="flex flex-col">
-              {hosts.map((h, i) => (
-                <li
-                  key={h}
-                  className={`group flex items-center gap-3 px-4 py-2.5 ${
-                    i === hosts.length - 1 ? '' : 'border-b border-carbon-border/60'
-                  }`}
-                >
-                  <span className="text-sm text-carbon-text" dir="ltr">
-                    {h}
-                  </span>
-                  <span className="text-[11px] uppercase tracking-wider text-carbon-textMuted">
-                    {t('settings.resolvers.cookieStored')}
-                  </span>
-                  <IconBadge
-                    className="ms-auto opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
-                    icon={<IconTrash width={16} height={16} />}
-                    title={`${t('settings.resolvers.cookieRemove')} · ${h}`}
-                    aria-label={`${t('settings.resolvers.cookieRemove')} · ${h}`}
-                    disabled={busy || !enabled}
-                    onClick={() => void run(() => removeYtdlpCookieJar(h))}
-                  />
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </FieldGroup>
-
-      <div className="grid gap-4 sm:grid-cols-[minmax(0,18rem)_1fr]">
-        <Field label={t('settings.resolvers.cookieHost')}>
-          <TextInput
-            value={host}
-            dir="ltr"
-            spellCheck={false}
-            placeholder={t('settings.resolvers.cookieHostPlaceholder')}
-            disabled={busy || !enabled}
-            onChange={(e) => setHost(e.target.value)}
-          />
-        </Field>
-        <Field label={t('settings.resolvers.cookieText')}>
-          <TextArea
-            rows={4}
-            dir="ltr"
-            spellCheck={false}
-            value={text}
-            placeholder={t('settings.resolvers.cookieTextPlaceholder')}
-            disabled={busy || !enabled}
-            onChange={(e) => setText(e.target.value)}
-          />
-        </Field>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <Button
-          // Both fields are required and neither has a useful empty meaning: an
-          // empty textarea is the CLEAR gesture on the server, and offering it
-          // from a form whose host box is also empty would be a button that
-          // deletes something nobody named.
-          disabled={busy || !enabled || host.trim() === '' || text.trim() === ''}
-          onClick={save}
-        >
-          {t('settings.resolvers.cookieSave')}
-        </Button>
-        {error && <p className="text-xs text-statusWarn">{error}</p>}
-      </div>
-    </>
-  );
-}

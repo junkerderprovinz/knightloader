@@ -244,6 +244,16 @@ jobs:
       - name: Search query parser
         run: node check-search-query.mjs
 
+      # A key that is in en.ts and in no other catalogue is a compile error in 41
+      # files, so a wave whose translation pass has not run yet seeds the English
+      # text and writes down what it owes. That seeding has one failure mode: a
+      # seeded string looks exactly like a translated one, so without this the
+      # next sweep counts keys, finds parity, and forty languages keep a
+      # paragraph of English for good. This holds the ledger and the catalogues
+      # together in both directions.
+      - name: Untranslated ledger
+        run: node check-untranslated.mjs
+
       - name: Build UI
         run: npm run build
 

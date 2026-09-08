@@ -84,6 +84,15 @@ type Manifest struct {
 // backup route) is what is responsible for requiring the session that every
 // other route needs. See that route's own comment.
 //
+// "Secrets included" grew a fourth member with the event targets: every header
+// value on every row in Settings.EventTargets is in here in full, which means a
+// backup zip can now contain a push token or a Matrix access token as well as
+// the two passwords. That is correct - a restore that could not put them back
+// would leave an instance that silently stops reporting - and it is written
+// down here because the set is not obvious from this file. The copy on the
+// button already says the archive holds passwords and to keep it somewhere
+// private, which is the sentence this widens rather than a new promise.
+//
 // dbPath is expected to already be a consistent, standalone snapshot —
 // store.Store.BackupTo, which uses SQLite's VACUUM INTO — not a raw copy of
 // the live file, which could race whatever else is writing to it at the

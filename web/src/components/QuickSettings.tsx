@@ -17,9 +17,11 @@ import { useT } from '../lib/i18n';
 import { useInstanceScope } from '../lib/instance';
 import { useTasks } from '../lib/useTasks';
 import { SpeedLimitField } from './QueueBar';
+import { DiskSpaceStrip } from './DiskSpaceStrip';
 import { useToast } from '../lib/toast';
 import { Button, Field, Modal, NumberInput } from './ui';
 import { SpeedMeter } from './SpeedGraph';
+import { VolumeMeter } from './VolumeMeter';
 import { IconMenu } from '../lib/icons';
 
 /**
@@ -233,7 +235,12 @@ export function ShellStrip() {
             it (jdp, 2026-09-07: "das hamburgermenü und die
             geschwindigkeitsbegrenzung soll rechts davon sein"). Nothing to
             press on the curve - the menu button beside it is the way in. */}
-        <SpeedMeter value={speed} />
+        {/* The scope goes with the figure. The seeded window comes from
+            /api/stats/speed, which is on neither forwarding allowlist, so the
+            store seeds scope '' and only scope '': a peer keeps a live-only
+            window that starts empty, rather than being handed this machine's
+            last hour under a number describing the peer's. */}
+        <SpeedMeter value={speed} instance={instance} />
         {local && (
           // One column, fixed width, so the button and the limit under it share
           // an edge (jdp, 2026-09-07: "die geschwindigkeitsbegrenzung darunter"
@@ -256,6 +263,12 @@ export function ShellStrip() {
               {t('quick.title')}
             </Button>
             <SpeedLimitField />
+            <VolumeMeter />
+            {/* Inside the local branch and nowhere else: /api/diskspace is not
+                forwarded and not relay-allowed, so a row drawn over a peer's
+                list would describe the wrong machine's disks with complete
+                confidence. */}
+            <DiskSpaceStrip />
           </span>
         )}
       </span>
