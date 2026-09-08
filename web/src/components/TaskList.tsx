@@ -70,6 +70,7 @@ import {
   type ResolvedLayout,
   type SortState,
 } from './columns';
+import { TaskDetailPanel } from './taskdetail/TaskDetailPanel';
 import {
   IconPause,
   IconPlay,
@@ -2608,6 +2609,27 @@ export function TaskListCard({
           double-click is what actually opens it. */}
       {propertiesOpen && chosenIds && chosen.length > 0 && (
         <TaskProperties key={[...chosenIds].join(',')} ids={[...chosenIds]} tasks={chosen} base={base} />
+      )}
+      {/* The read-only detail, below the properties card and below the strip.
+          BELOW is load-bearing: useRowWindow measures stripRef after every
+          commit, so a card above it that grows when an error string arrives, or
+          a <video> that reserves space when it loads metadata, repaints the
+          whole windowed slice each time it does.
+
+          One row only. A folder header double-click selects a whole package,
+          which TaskProperties is built for and this is not: there is no honest
+          single answer for "the error", "the next attempt" or "the file" across
+          eleven links. chosenIds and chosen are deliberately different sets -
+          chosenIds is the whole selection, chosen only the rows this view can
+          see - so a quick filter hiding the selected row must not put a one-row
+          panel up for a different row.
+
+          No key, unlike TaskProperties above: that one snapshots its boxes at
+          mount, this one re-renders live off the task object the WebSocket
+          replaces on every tick, and a key derived from anything that moves
+          would tear the player down once a second. */}
+      {propertiesOpen && chosenIds?.size === 1 && chosen.length === 1 && (
+        <TaskDetailPanel task={chosen[0]} base={base} hue={hue === undefined ? undefined : hue + 1} />
       )}
     </div>
   );

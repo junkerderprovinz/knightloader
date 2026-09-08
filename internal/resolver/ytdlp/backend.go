@@ -274,13 +274,19 @@ func (b *Backend) run(taskID, url string) {
 		err = scanErr
 	}
 	if err != nil {
-		msg := tail(stderr.String())
+		raw := stderr.String()
+		msg := errorLine(raw)
 		if msg == "" {
 			msg = err.Error()
 		}
 		b.onUpdate(taskID, core.Update{
 			Status: core.StatusError,
 			Err:    "yt-dlp: " + msg,
+			// Read from the WHOLE buffer and before anything is cut down to
+			// one line, which is the point of doing it here at all: the words
+			// that tell a bot check from a dead link from a region block are
+			// the ones a truncated sentence loses first. See diagnose.go.
+			Reason: Diagnose(raw),
 			// yt-dlp saying it has no extractor for this link is not a download
 			// failure - it means the link belongs to someone else. Saying so
 			// lets a plain file whose URL carries no extension still be fetched.
@@ -994,13 +1000,71 @@ func (b *Backend) Remove(taskID string, _ bool) {
 	b.mu.Unlock()
 }
 
-func tail(s string) string {
-	s = strings.TrimSpace(s)
-	if i := strings.LastIndex(s, "\n"); i >= 0 {
-		s = s[i+1:]
+// errMsgRunes is how much of that line reaches a task. Counted in characters
+// rather than bytes, which is the whole reason this is not a slice expression.
+const errMsgRunes = 200
+
+// errorLine picks the one line of yt-dlp's stderr a task carries, and it is
+// deliberately neither the last line nor the last 200 bytes of one.
+//
+// It used to be both, and that threw away exactly the words that name the
+// failure. yt-dlp states its verdict on a line beginning "ERROR:" and then
+// keeps talking - a wiki link, a bug-report paragraph, a post-processor's
+// warning - so the last line of the buffer is routinely the least informative
+// one in it. And what identifies the failure stands at the FRONT of the ERROR
+// line: the bot check's own line runs to about four hundred characters, of
+// which the tail is a link to a wiki page, so what arrived on the task was
+// "...for tips on effectively exporting YouTube cookies" and "Sign in to
+// confirm you're not a bot" was gone before anything could read it.
+//
+// THIS WIDENS WHAT THE REST OF THE APP SEES, which is a behaviour change and
+// not only a nicer sentence. notMine now gets the front of an "Unsupported
+// URL: <long address>" line it used to lose behind the address, so links that
+// died here will start being handed to the next backend instead - which is
+// what core.Update.Unsupported was written for, arriving late. The shared
+// classifier gets a longer sentence too, and that is precisely why the six
+// causes are named in this package from the untouched buffer and sent as
+// core.Update.Reason rather than left to a regex over this string; see
+// diagnose.go, which says what goes wrong if they are not.
+//
+// Runes and not bytes, because a cut through the middle of a character reaches
+// the browser as U+FFFD, and a video title or a site's own localised message is
+// exactly where the non-ASCII in this buffer lives.
+func errorLine(s string) string {
+	var last string
+	for _, line := range strings.Split(s, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		// The FIRST such line. A run that prints several has said the
+		// interesting thing first and is reporting the consequences after it -
+		// a post-processor with nothing to work on, a merge that had no
+		// streams.
+		if strings.HasPrefix(line, "ERROR:") {
+			return clampRunes(line, errMsgRunes)
+		}
+		last = line
 	}
-	if len(s) > 200 {
-		return s[len(s)-200:]
+	// Nothing announced itself as an error: a tool that died on a signal, a
+	// binary that is not yt-dlp at all. The last non-empty line is what this
+	// function always answered for that shape, and it stays that.
+	return clampRunes(last, errMsgRunes)
+}
+
+// clampRunes keeps at most n characters from the FRONT of s.
+func clampRunes(s string, n int) string {
+	// One rune is at least one byte, so a string this short cannot need
+	// cutting - and the ordinary failure never walks the loop at all.
+	if len(s) <= n {
+		return s
+	}
+	count := 0
+	for i := range s {
+		if count == n {
+			return s[:i]
+		}
+		count++
 	}
 	return s
 }

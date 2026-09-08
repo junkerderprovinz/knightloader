@@ -68,6 +68,18 @@ func fixedPrefix(dir string) string {
 	return ""
 }
 
+// FixedPrefix is fixedPrefix for callers outside this package: the deepest part
+// of a configured folder that is a real path rather than a placeholder.
+//
+// Exported rather than copied, because there are already two of these - this
+// one and internal/api's splitTemplate, whose own comment carries the warning
+// about keeping the twins in step - and a third copy is a third thing to get
+// wrong in the same way. Anything that MEASURES a configured folder needs it:
+// stat-ing "/downloads/<jd:date>" asks about a directory that never exists, and
+// the answer comes from whatever the walk up lands on, which on a fresh install
+// is the volume root reported with total confidence as the download disk.
+func FixedPrefix(dir string) string { return fixedPrefix(dir) }
+
 // Validate reports why a directory cannot be used, so the API can refuse a bad
 // path instead of silently downloading somewhere else.
 //

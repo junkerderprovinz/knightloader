@@ -23,6 +23,7 @@ import {
 } from '../lib/appearance';
 import { InstanceProvider, useInstanceScope } from '../lib/instance';
 import { useToast } from '../lib/toast';
+import { useExtractionToasts } from '../lib/useExtractionToasts';
 import { useT } from '../lib/i18n';
 
 // Global completion toasts: watch the local task stream and notify when a
@@ -221,6 +222,11 @@ function useAutoUpdateToast() {
 export function Layout() {
   const location = useLocation();
   useCompletionToasts();
+  // Beside the download watcher above and for the identical reason: unpacking
+  // finishes whether or not the Downloads page happens to be open, and the
+  // per-page useExtractJobs stops watching the moment somebody navigates away.
+  // See lib/useExtractionToasts.ts.
+  useExtractionToasts();
   useAutoUpdateToast();
   useAppearance();
   // Keyed on the SECTION, not the whole path.

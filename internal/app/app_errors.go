@@ -188,13 +188,42 @@ var textReasons = []struct {
 // Rebooting the router for a file that is gone, a password that is not
 // accepted, or a disk with no room on it takes the connection away from
 // everyone in the house and fixes none of them.
+// The five backend-named causes are vetoed too, and the bot check is the one
+// worth arguing about: its flag IS on the address, so a new one could in
+// principle be clean. It is still a no. A reconnect takes the whole house off
+// the internet on the chance that the next address out of the same pool is not
+// flagged, when the answer this app can actually offer - a stored cookie jar,
+// see internal/resolver/ytdlp/cookies.go - works from the address it already
+// has. Geo-blocking is the flatter case of the same thing: a reconnect stays
+// in the country, which is the only thing being asked about.
 func addressMayHelp(r core.Reason) bool {
 	switch r {
 	case core.ReasonGone, core.ReasonAuth, core.ReasonDiskFull,
-		core.ReasonUnsupported, core.ReasonCaptcha, core.ReasonCancelled:
+		core.ReasonUnsupported, core.ReasonCaptcha, core.ReasonCancelled,
+		core.ReasonBotCheck, core.ReasonMembersOnly, core.ReasonGeoBlocked,
+		core.ReasonDRM, core.ReasonExtractorBroken:
 		return false
 	}
 	return true
+}
+
+// retryCannotHelp reports whether another attempt at this failure is spent
+// effort, for the five causes a backend named itself (core.Update.Reason).
+//
+// Its own function rather than five more arms on the switch in onUpdate,
+// because the same list has to be right in two places that are pages apart:
+// the retry policy reads it, and so does anything later that wants to know
+// whether a row is waiting or finished with. Written as a list of what IS
+// hopeless rather than what is not, so a reason added tomorrow keeps its
+// retries until somebody decides otherwise - the same direction of default
+// addressMayHelp above takes, and for the same reason.
+func retryCannotHelp(r core.Reason) bool {
+	switch r {
+	case core.ReasonBotCheck, core.ReasonMembersOnly, core.ReasonGeoBlocked,
+		core.ReasonDRM, core.ReasonExtractorBroken:
+		return true
+	}
+	return false
 }
 
 func classifyText(text string) core.Reason {

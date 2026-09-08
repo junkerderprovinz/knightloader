@@ -35,7 +35,9 @@ import {
   type MenuTarget,
   type QuickFilterId,
 } from '../components/ListToolbar';
-import { EMPTY_SEARCH, matchesSearch, SearchField, type SearchQuery } from '../components/SearchField';
+import { matchesSearch, SearchField } from '../components/SearchField';
+import { SavedViewChips } from '../components/SavedViewChips';
+import { useListNarrowing } from '../lib/listNarrowing';
 import { ErrorCauses } from '../components/ErrorCauses';
 import { ArchiveJobs, useArchiveMenu, useExtractJobs } from '../components/Archives';
 import { useFileMenu } from '../components/FileActions';
@@ -66,8 +68,17 @@ export function Downloads() {
   // instance this list is showing, and they cannot read a useState from in here.
   // See lib/instance.tsx.
   const { instance, base, select } = useInstanceScope();
-  const [search, setSearch] = useState<SearchQuery>(EMPTY_SEARCH);
-  const [filters, setFilters] = useState<Set<QuickFilterId>>(() => new Set());
+  // The search text and the quick filters are STORED, not page state: they used
+  // to be two useState calls, so walking to Settings and back put the whole
+  // list back and the query had to be typed again. They now live in the same
+  // interface-state document that already remembers this list's columns and its
+  // sort order. See lib/listNarrowing.ts, which also owns the sanitising every
+  // read out of that document has to go through.
+  //
+  // The page is the ONE owner: it calls this once and passes the pieces down.
+  // Two readers of the field would be fine, two writers in one commit are not.
+  const narrowing = useListNarrowing('downloads', DOWNLOAD_FILTERS);
+  const { search, filters } = narrowing;
   // The search field and its quick filters used to sit in a permanent row of
   // their own (jdp: "was jetzt neben dem Suchfeld steht soll weg") - now they
   // live behind the square badge on the stats line and only take up room
@@ -269,17 +280,12 @@ export function Downloads() {
     return { running, queued, done, error, speed };
   }, [list]);
 
-  const narrowed = filters.size > 0 || search.text.trim() !== '';
+  // Read off the stored narrowing rather than recomputed here, so the badge
+  // that clears it and the dot that reports it cannot disagree with it.
+  const narrowed = narrowing.active;
   // The same chips the collector shows, over this list's own eight states.
   // Shared logic rather than a second copy, so the two rows cannot drift.
   const offeredFilters = useMemo(() => offeredQuickFilters(DOWNLOAD_FILTERS, list, filters), [list, filters]);
-
-  function toggleFilter(id: QuickFilterId): void {
-    const next = new Set(filters);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    setFilters(next);
-  }
 
   const pauseAll = () => list.filter((x) => x.status === 'running').forEach((x) => pause(x.id, base));
   const resumeAll = () => list.filter((x) => x.status === 'paused').forEach((x) => resume(x.id, base));
@@ -352,6 +358,14 @@ export function Downloads() {
           right-click on the selection already opens. */}
       {list.length > 0 && (
         <div className="flex shrink-0 flex-wrap items-center gap-2" role="group" aria-label={t('list.actions')}>
+          {/* Left of the spacer, which nothing else on this row uses: the chips
+              cost no new line, and this row already wraps. */}
+          <SavedViewChips
+            profile="downloads"
+            allowed={DOWNLOAD_FILTERS}
+            narrowing={narrowing.narrowing}
+            onApply={narrowing.apply}
+          />
           <span className="flex-1" />
 
           {offeredFilters.length > 0 && (
@@ -360,7 +374,7 @@ export function Downloads() {
               size="sm"
               label={t('filter.label')}
               active={filters}
-              onSelect={(id) => toggleFilter(id as QuickFilterId)}
+              onSelect={(id) => narrowing.toggleFilter(id as QuickFilterId)}
               items={offeredFilters.map(({ f, n }) => ({ id: f.id, label: t(f.label), badge: n }))}
               after={
                 filters.size > 0 && (
@@ -370,7 +384,7 @@ export function Downloads() {
                     icon={<IconClose width={16} height={16} />}
                     title={t('filter.clear')}
                     aria-label={t('filter.clear')}
-                    onClick={() => setFilters(new Set())}
+                    onClick={narrowing.clearFilters}
                   />
                 )
               }
@@ -423,10 +437,30 @@ export function Downloads() {
                 className="absolute end-0 top-full z-20 mt-2 w-96 rounded-[var(--radius-control)]
                   bg-carbon-surface p-2 shadow-[var(--elevation)]"
               >
-                <SearchField value={search} onChange={setSearch} className="w-full" />
+                <SearchField value={search} onChange={narrowing.setSearch} className="w-full" />
               </div>
             )}
           </div>
+
+          {/* The one control that undoes ALL of it at once, beside the badge
+              whose dot reports it. The "Show everything" button inside the chip
+              strip still clears the quick filters and only those, so nothing
+              that already existed changed meaning; this is the reset for a list
+              that came back narrowed from last time, which is a state that could
+              not happen before the narrowing was stored. */}
+          {narrowed && (
+            <>
+              <IconBadge
+                labelled
+                hue={5}
+                icon={<IconClose width={16} height={16} />}
+                title={t('views.clearAll')}
+                aria-label={t('views.clearAll')}
+                onClick={narrowing.clearAll}
+              />
+              <InfoBubble tip={t('views.clearAllHint')} />
+            </>
+          )}
 
           {selected.size > 0 ? (
             <>

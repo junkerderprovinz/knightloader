@@ -4,7 +4,7 @@ import { useTasks } from '../lib/useTasks';
 import { useReportListView } from '../lib/listview';
 import { useToast } from '../lib/toast';
 import { useT } from '../lib/i18n';
-import { PageHeader, IconBadge, Button } from '../components/ui';
+import { PageHeader, IconBadge, Button, InfoBubble } from '../components/ui';
 import { Tabs } from '../components/Tabs';
 import {
   TaskListCard,
@@ -31,14 +31,11 @@ import {
   type MenuTarget,
   type QuickFilterId,
 } from '../components/ListToolbar';
-import { EMPTY_SEARCH, matchesSearch, SearchField, type SearchQuery } from '../components/SearchField';
+import { matchesSearch, SearchField } from '../components/SearchField';
+import { SavedViewChips } from '../components/SavedViewChips';
+import { useListNarrowing, type Narrowing } from '../lib/listNarrowing';
 import { anchorBelow, anchorFromEvent, useContextMenu, ContextMenu } from '../components/ContextMenu';
-import {
-  CollectorFacetSidebar,
-  EMPTY_FACETS,
-  matchesFacets,
-  type FacetSelection,
-} from '../components/CollectorFacets';
+import { CollectorFacetSidebar, matchesFacets } from '../components/CollectorFacets';
 import { CollectorStats } from '../components/CollectorStats';
 import { useScriptMenu } from '../components/ScriptActions';
 import { usePublishCommandPageContext } from '../lib/commands/pageContext';
@@ -103,7 +100,20 @@ export function Collector() {
     }
     return newest;
   }, [tasks]);
-  const [search, setSearch] = useState<SearchQuery>(EMPTY_SEARCH);
+  // The search text, the quick filters and the facet sidebar's own ticks are
+  // STORED, not page state: all three used to be useState calls here, so
+  // walking to the download list and back put every staged link on screen
+  // again. They now live in the same interface-state document that already
+  // remembers this list's columns and its sort order. See lib/listNarrowing.ts
+  // for the one-field-for-all-three reasoning and for the sanitising every read
+  // out of that document goes through.
+  //
+  // COLLECTOR_FILTERS, not COLLECTOR_BADGE_FILTERS: "Nicht prüfbar" and
+  // "Ungeprüft" are drawn as their own square badges below rather than as chips
+  // in the strip, but they toggle the same set, and handing the store the
+  // shorter list would make it drop those two on the way back in.
+  const narrowing = useListNarrowing('collector', COLLECTOR_FILTERS);
+  const { search, filters } = narrowing;
   // The search field's own open/closed state (jdp, 2026-08-24: "das
   // suchfeld soll auch als quadratischer badge neben die andren vier
   // badges. bei klick soll das suchfeld ausklappen") - the field itself
@@ -113,11 +123,15 @@ export function Collector() {
   // hoovern").
   const [searchOpen, setSearchOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-  const [filters, setFilters] = useState<Set<QuickFilterId>>(() => new Set());
+  // The scrolling box the list sits in. Applying a saved view can cut five
+  // thousand rows to twelve, and the box keeps whatever scroll position it had:
+  // without this the answer to a chip click is a blank panel under a list that
+  // has already redrawn.
+  const listScroll = useRef<HTMLDivElement>(null);
   // The facet groups the collector's own sidebar exposes (host, file type,
   // package) — see components/CollectorFacets.tsx for why availability is not a
   // fourth one: it is already the quick filters above.
-  const [facets, setFacets] = useState<FacetSelection>(EMPTY_FACETS);
+  const facets = narrowing.facets;
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const menu = useContextMenu();
   // The cleanup menu's own anchor, separate from `menu` above: this is the
@@ -178,13 +192,27 @@ export function Collector() {
   // reading knows nothing about - a facet-only narrowing would otherwise
   // show every row without ever explaining why fewer are visible.
   const narrowed = filtered.length !== collected.length;
+  // "Something is still set", which is not the same question as "fewer rows are
+  // showing". A filter that happens to match every staged link hides nothing and
+  // is still switched on, and now that it survives a reload it has to be
+  // reportable and undoable on its own, so the dot and the reset badge read
+  // this, while the "N von M angezeigt" line above keeps reading the counts.
+  const anyNarrowing = narrowing.active;
 
-  function toggleFilter(id: QuickFilterId): void {
-    const next = new Set(filters);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    setFilters(next);
-  }
+  /**
+   * Applying a saved view, with the list's own scroll box put back to the top.
+   *
+   * SavedViewChips pulls its own row into view for the pages whose list scrolls
+   * with the document; here the rows scroll inside a box of their own, which
+   * that gesture cannot reach.
+   */
+  const applyView = useCallback(
+    (next: Narrowing) => {
+      narrowing.apply(next);
+      listScroll.current?.scrollTo({ top: 0 });
+    },
+    [narrowing.apply],
+  );
 
   // Closes the search popover on an outside click or Escape - the same
   // pattern LanguagePicker.tsx's own dropdown already uses.
@@ -421,7 +449,9 @@ export function Collector() {
           />
         </div>
         {collected.length > 0 && <CollectorStats all={collected} visible={filtered} selected={selectedTasks} />}
-        {collected.length > 0 && <CollectorFacetSidebar tasks={collected} selection={facets} onChange={setFacets} />}
+        {collected.length > 0 && (
+          <CollectorFacetSidebar tasks={collected} selection={facets} onChange={narrowing.setFacets} />
+        )}
       </div>
 
       {/* The quick-filter toolbar, the one action-badge row (search, the
@@ -513,6 +543,15 @@ export function Collector() {
             than a horizontal scrollbar for a row this narrow a window can
             make. */}
         <div className="flex flex-wrap shrink-0 items-center gap-2" role="group" aria-label={t('list.actions')}>
+          {/* Left of the spacer, which nothing else on this row uses: the saved
+              views cost no new row above the list, which is what the two long
+              comments further up this file are about. */}
+          <SavedViewChips
+            profile="collector"
+            allowed={COLLECTOR_FILTERS}
+            narrowing={narrowing.narrowing}
+            onApply={applyView}
+          />
           <span className="flex-1" />
 
           {/* Filters, not actions — visible regardless of selection, the
@@ -532,7 +571,7 @@ export function Collector() {
             title={t('filter.uncheckable')}
             aria-label={t('filter.uncheckable')}
             disabled={uncheckableCount === 0 && !filters.has('uncheckable')}
-            onClick={() => toggleFilter('uncheckable')}
+            onClick={() => narrowing.toggleFilter('uncheckable')}
           />
           <IconBadge
             labelled
@@ -542,7 +581,7 @@ export function Collector() {
             title={t('filter.unchecked')}
             aria-label={t('filter.unchecked')}
             disabled={uncheckedCount === 0 && !filters.has('unchecked')}
-            onClick={() => toggleFilter('unchecked')}
+            onClick={() => narrowing.toggleFilter('unchecked')}
           />
 
           {offeredFilters.length > 0 && (
@@ -551,11 +590,11 @@ export function Collector() {
               size="sm"
               label={t('filter.label')}
               active={filters}
-              onSelect={(id) => toggleFilter(id as QuickFilterId)}
+              onSelect={(id) => narrowing.toggleFilter(id as QuickFilterId)}
               items={offeredFilters.map(({ f, n }) => ({ id: f.id, label: t(f.label), badge: n }))}
               after={
                 filters.size > 0 && (
-                  <Button kind="ghost" className="px-2 py-1 text-xs" onClick={() => setFilters(new Set())}>
+                  <Button kind="ghost" className="px-2 py-1 text-xs" onClick={narrowing.clearFilters}>
                     {t('filter.clear')}
                   </Button>
                 )
@@ -601,8 +640,21 @@ export function Collector() {
               icon={<IconSearch width={16} height={16} />}
               title={t('collector.searchToggle')}
               aria-label={t('collector.searchToggle')}
+              aria-expanded={searchOpen}
               onClick={() => setSearchOpen((v) => !v)}
             />
+            {/* The same accent dot the download list has carried for a while,
+                and now genuinely load-bearing here: with the narrowing stored,
+                this page can come back from a browser restart showing 3 of 240
+                links, and the panel that would explain it is shut. The dot is
+                the one sign that something is still narrowing the list without
+                reopening the panel to look. */}
+            {anyNarrowing && !searchOpen && (
+              <span
+                aria-hidden
+                className="pointer-events-none absolute -right-1 -top-1 h-2 w-2 rounded-[var(--radius-pill)] bg-accent"
+              />
+            )}
             {searchOpen && (
               <div
                 // w-96 (jdp, 2026-08-26: "suchfeld soll breiter sein"), up
@@ -612,10 +664,32 @@ export function Collector() {
                 className="absolute end-0 top-full z-20 mt-2 w-96 rounded-[var(--radius-control)]
                   bg-carbon-surface p-2 shadow-[var(--elevation)]"
               >
-                <SearchField value={search} onChange={setSearch} className="w-full" />
+                <SearchField value={search} onChange={narrowing.setSearch} className="w-full" />
               </div>
             )}
           </div>
+
+          {/* The one control that undoes all of it at once: the search, the
+              quick filters and the sidebar's ticks together. The sidebar has a
+              "Clear" of its own and the chip strip has "Show everything", and
+              both keep doing exactly what they did, each clearing its own
+              dimension. This is the reset for a list that came back narrowed
+              from last time, and it is also the only one that still works when
+              the collector is empty, since the sidebar is not drawn at all
+              then. */}
+          {anyNarrowing && (
+            <>
+              <IconBadge
+                labelled
+                hue={5}
+                icon={<IconClose width={16} height={16} />}
+                title={t('views.clearAll')}
+                aria-label={t('views.clearAll')}
+                onClick={narrowing.clearAll}
+              />
+              <InfoBubble tip={t('views.clearAllHint')} />
+            </>
+          )}
 
           {selected.size > 0 ? (
             <>
@@ -756,7 +830,7 @@ export function Collector() {
           // tighter than pt-4's 5px and still positive. Verified live rather
           // than assumed, again, after this correction: badge fully clear
           // of the boundary at pt-3, gap visibly tighter than pt-4 was.
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-3">
+          <div ref={listScroll} className="flex min-h-0 flex-1 flex-col overflow-y-auto pt-3">
             <TaskListCard
               groups={groups}
               base="/api"

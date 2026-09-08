@@ -308,7 +308,15 @@ const FIELD_SHELL_ROW = 'flex flex-wrap items-center gap-3';
 
 function Caption({ label, hint }: { label: string; hint?: string }) {
   return (
-    <span className="flex shrink-0 items-center text-xs text-carbon-textSub">
+    // data-glim-label is the settings search's anchor, and it is here rather
+    // than at the call sites because this one span is every Field and every
+    // FieldGroup in the app - roughly 190 rows tagged by one line instead of 190
+    // hand-written ids that would be wrong the first time somebody copied a row.
+    // The value is the TRANSLATED caption, which is what the search resolves and
+    // compares against; see pages/settings/jump.ts, which reads the property and
+    // never builds a `[data-glim-label="…"]` selector out of it, because a
+    // caption may contain a quote in any of 42 languages.
+    <span data-glim-label={label} className="flex shrink-0 items-center text-xs text-carbon-textSub">
       {label}
       {hint && <InfoBubble tip={hint} />}
     </span>
@@ -1103,7 +1111,11 @@ export function ToggleRow({
           WHY the row is disabled was exactly the thing the disabled state hid. The
           Toggle switch itself is a sibling, still under the row's pointer-events-none,
           so the check stays un-clickable either way. */}
-      <span className="pointer-events-auto flex items-center gap-1.5 text-sm text-carbon-text">
+      {/* data-glim-label for the same reason Caption above carries it: a
+          ToggleRow draws its own caption inline rather than through Caption, so
+          without this line every switch in the settings tree would be the one
+          shape the search could find but never scroll to. */}
+      <span data-glim-label={label} className="pointer-events-auto flex items-center gap-1.5 text-sm text-carbon-text">
         {label}
         {hint && <InfoBubble tip={hint} />}
       </span>

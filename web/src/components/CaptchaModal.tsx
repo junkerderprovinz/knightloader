@@ -15,6 +15,7 @@ import {
 import { Button, Modal, TextInput } from './ui';
 import { IconClock } from '../lib/icons';
 import { useT } from '../lib/i18n';
+import { captchaIsNew, forgetCaptcha, seedCaptchasSeen } from '../lib/notify';
 import { useToast } from '../lib/toast';
 
 // A hoster (or an account's own login gate) asking a human something before a
@@ -121,6 +122,14 @@ export function CaptchaModal() {
   useEffect(() => {
     let live = true;
     const applyList = (list: CaptchaChallenge[]) => {
+      // Seeded before anything is applied, and seeded on the reconnect refetch
+      // too: a challenge that was already waiting when this page opened must not
+      // announce itself as an arrival, and neither must the whole pending list a
+      // restarted server replays on every reconnect. Marking is unconditional
+      // rather than gated on `live` - the set lives at module scope precisely so
+      // that a mount coming and going (React.StrictMode does exactly that in
+      // development) cannot lose the baseline.
+      seedCaptchasSeen(list.map((c) => c.id));
       if (live) setChallenges(Object.fromEntries(list.map((c) => [c.id, c])));
     };
     fetchCaptchas().then(applyList);
@@ -134,8 +143,22 @@ export function CaptchaModal() {
         } else if (type === 'captcha') {
           const c = data as CaptchaChallenge;
           setChallenges((p) => ({ ...p, [c.id]: c }));
+          // The arrival itself, finally given a voice - the kind existed with
+          // no call site behind it, and the notification matrix
+          // (lib/notify.ts) offers a row for it. No second socket for this:
+          // this subscription is already here.
+          //
+          // captchaIsNew, never the bare event: app_captcha.go broadcasts
+          // "captcha" for merely CHANGED challenges as well as new ones, on a
+          // two-second poll, so trusting the event would notify in a loop for
+          // as long as the challenge stands. It answers true exactly once per
+          // challenge id and never before the pending list has been read once.
+          if (captchaIsNew(c.id)) toast(t('captcha.waiting', { host: c.host || '?' }), 'info', 'captcha-needs-answer');
         } else if (type === 'captchaResolved') {
           const r = data as CaptchaResolution;
+          // Pruned here so the dedupe set tracks what is actually pending
+          // rather than growing for the life of the tab.
+          forgetCaptcha(r.id);
           setChallenges((p) => {
             if (!(r.id in p)) return p;
             const n = { ...p };

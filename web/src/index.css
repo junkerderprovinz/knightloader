@@ -897,6 +897,50 @@ body {
          transform: scale(calc(1 + var(--motion-confirm-scale-mult) * 0.05)); }
   100% { box-shadow: 0 0 0 0 var(--accent-soft); transform: scale(1); }
 }
+/* "Here it is" - the row or card the settings search just jumped to.
+   .glim-locate below is the consumer; these are its two keyframes.
+
+   An OUTLINE and not a box-shadow, which is the one place this parts company
+   with glim-confirm-pulse directly above. That animation is the right shape for
+   this and was the obvious thing to reuse, and it cannot be: it animates
+   box-shadow, and everything this has to mark already owns one. .glim-card is
+   `box-shadow: var(--elevation), var(--hairline)`, so a card landing would lose
+   its own edge for the length of the animation and come back - which reads as a
+   rendering fault, not as a highlight. An outline composites on top of whatever
+   shadow the element already has, follows its border-radius, and takes no space
+   in layout, so it can be put on any element in the tree without asking what
+   that element is.
+
+   Colour, not width, is what moves. outline-width is animatable but it is the
+   one part of an outline that some engines snap rather than interpolate, and a
+   ring that flickers into place is worse than one that fades.
+
+   --accent, not --accent-soft: a 2px ring at 14% alpha is not a signal. Reading
+   --accent means a row inside a hued card rings in that card's own rainbow
+   position for free, exactly as the confirm-pulse gets from --accent-soft. */
+@keyframes glim-locate-ring {
+  0%, 100% { outline-color: transparent; }
+  15%, 60% { outline-color: var(--accent); }
+}
+/* The substitute for a reader who asked for no motion, either way round (the OS
+   preference, or the app's own Motion picker set to off): the same "still
+   arrives legibly, minus the motion" swap .glim-shake makes. The ring is simply
+   held and then let go, with nothing pulsing. A zero-duration animation would
+   leave a row scrolled to and never pointed at, which is the whole message
+   gone. */
+@keyframes glim-locate-reduced {
+  0%, 70% { outline-color: var(--accent); }
+  100%    { outline-color: transparent; }
+}
+/* The ring's resting state, and the one part of this that sits outside every
+   motion gate: both keyframes above animate outline-color, so the outline has to
+   already exist for either of them to have anything to work on - under
+   data-motion="off" and under OS reduced motion just as much as at full. It is
+   transparent, so an element can wear this class and show nothing at all. */
+.glim-locate {
+  outline: 2px solid transparent;
+  outline-offset: 3px;
+}
 @keyframes glim-checkmark-draw {
   from { stroke-dashoffset: 1; }
   to   { stroke-dashoffset: 0; }
@@ -1020,6 +1064,14 @@ body {
   :root[data-motion="off"] .glim-shake {
     animation: glim-shake-reduced 300ms ease-in-out;
   }
+  /* .glim-locate's own "off" state, and the same documented exception
+     .glim-shake and .glim-live already make: --motion-confirm-dur goes to 0
+     here, so the ring would appear and vanish inside the same frame - a search
+     that scrolls to a row and never points at it has done the hard half and
+     skipped the useful one. */
+  :root[data-motion="off"] .glim-locate {
+    animation: glim-locate-reduced 900ms ease-out;
+  }
 
   /* Shape-morph: transitions every --radius-card/-control/-pill-driven
      corner instead of snapping when the Shape picker changes. Scoped to
@@ -1076,6 +1128,30 @@ body {
      fresh id per call. */
   .glim-confirm {
     animation: glim-confirm-pulse var(--motion-confirm-dur) ease-out;
+  }
+
+  /* "Here it is" - the row or card the settings search just jumped to, marked
+     once it has been scrolled into the middle of the column. Keyframes and the
+     reason they are their own rather than glim-confirm-pulse's are above.
+
+     Borrows glim-confirm's duration token and doubles it, on purpose: a save
+     confirmation answers something the reader just did and is already looking
+     at, while this has to be FOUND on a screen they have not seen yet.
+
+     The transparent base outline is what the keyframes animate the colour of,
+     and it is why this class can sit on an element for its whole life without
+     showing anything. outline-offset holds the ring clear of the row's own
+     controls so it reads as around them rather than on them.
+
+     Replaying it on a second jump to the same row needs
+     classList.remove / void offsetWidth / classList.add - see jump.ts's mark().
+     .glim-confirm directly above is still waiting for a consumer of its own;
+     this is deliberately not it, because "this just saved" and "this is what you
+     were looking for" are two messages, and two messages sharing one class name
+     is how a rule gets changed for one of them and silently changed for the
+     other. */
+  .glim-locate {
+    animation: glim-locate-ring calc(var(--motion-confirm-dur) * 2) ease-out;
   }
 
   /* Staggered list fade-in: same-type rows fade/slide in with a small
@@ -1135,6 +1211,9 @@ body {
   .glim-page-enter { animation: glim-fade-in 180ms ease both; }
   .glim-toast { animation: glim-fade-in 160ms ease both; }
   .glim-shake { animation: glim-shake-reduced 300ms ease-in-out; }
+  /* Shares one rule's worth of declarations with data-motion="off" above rather
+     than inventing a second copy, the same arrangement .glim-live settled on. */
+  .glim-locate { animation: glim-locate-reduced 900ms ease-out; }
   /* Previously missing here despite being GlimStone's own documented
      requirement ("An infinite animation gets a true stop under reduced
      motion, not a slower version") — .glim-live simply had no matching

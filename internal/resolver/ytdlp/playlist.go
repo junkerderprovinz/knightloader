@@ -121,7 +121,7 @@ func (b *Backend) ProbePlaylist(ctx context.Context, rawurl string) (Playlist, e
 		err = readErr
 	}
 	if err != nil {
-		msg := tail(stderr.String())
+		msg := errorLine(stderr.String())
 		if msg == "" {
 			msg = err.Error()
 		}

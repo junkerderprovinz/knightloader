@@ -1,9 +1,13 @@
 // The notification centre: a typed event core under the same corner-bubble UI
 // this app has always had, plus one global quiet-mode switch (build-plan.md
-// section 8's Wave 9 note on 9B; the per-event settings grid it also
-// describes is deferred to the later sweep named in the "one straight swap"
-// note near the plan's "honest total" section - this file is scope-narrowed
-// to the typed core and the global toggle only).
+// section 8's Wave 9 note on 9B).
+//
+// The per-event grid this comment used to defer now exists, in lib/notify.ts,
+// and it lands INSIDE toast() below rather than beside it: this function is the
+// one place every notification in the app passes through, so routing a kind to
+// the operating system instead of to a bubble is a branch here and not a second
+// dispatcher somewhere else. Nothing about the vocabulary changed for it - the
+// kinds below and KIND_BY_TONE are what the matrix is keyed on.
 //
 // KIND is what makes an event typed instead of a free-text message. Every
 // caller may pass one from the real vocabulary below; the ~50 existing call
@@ -23,6 +27,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import { Button, InfoBubble, Toggle } from '../components/ui';
 import { IconClose } from './icons';
 import { useT, type TranslationKey } from './i18n';
+import { NOTIFY_EVENTS, channelFor, showSystem } from './notify';
 import { useUIState } from './uistate';
 
 export type ToastTone = 'ok' | 'fail' | 'info';
@@ -329,6 +334,18 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     quietRef.current = quiet;
   }, [quiet]);
 
+  // The same mirror, for the same reason, around t: a system notification needs
+  // a TITLE, and the title is the event's own row label out of the matrix. t
+  // changes identity whenever the chosen language's catalogue finishes loading,
+  // and putting it in toast()'s dependencies would recreate toast() at that
+  // moment - resubscribing every long-lived effect holding onto it, exactly the
+  // failure the quiet mirror above exists to avoid.
+  const { t } = useT();
+  const tRef = useRef(t);
+  useEffect(() => {
+    tRef.current = t;
+  }, [t]);
+
   const dismiss = useCallback((id: number) => setItems((s) => s.filter((m) => m.id !== id)), []);
 
   const toast = useCallback(
@@ -343,6 +360,36 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       // into an irreversible one, which is not what anybody reads "hide success
       // notifications" as.
       if (quietRef.current && !CRITICAL[k] && !action) return;
+
+      // The matrix comes AFTER the quiet-mode return above, and the order is the
+      // whole thing: quiet mode has to gate the system channel too. Switching
+      // the channel first would let every non-critical event escape the mute
+      // somebody just set, through a louder channel than the one they muted.
+      //
+      // A bubble carrying an action is never routed anywhere else, whatever its
+      // row says. A non-persistent Notification cannot carry a button at all
+      // (actions exist only through ServiceWorkerRegistration.showNotification,
+      // and public/sw.js deliberately handles nothing), so sending one to the
+      // operating system would drop the undo offer on the floor while its token
+      // is already expiring server-side - the matrix would be quietly turning a
+      // reversible action into an irreversible one, which is the same thing the
+      // quiet-mode escape one line above exists to prevent.
+      //
+      // channelFor reads the matrix out of the uistate bucket at call time
+      // rather than through a hook, so this callback keeps its empty dependency
+      // list and its stable identity. See lib/notify.ts.
+      const channel = action ? 'app' : channelFor(k);
+      if (channel === 'silent') return;
+      if (channel === 'system') {
+        // The row's own label is the title and the bubble's text is the body,
+        // so a notification reads the same as the bubble it replaced plus the
+        // heading a bubble never needed. The tag is the kind, which is what
+        // collapses a burst of two hundred finished downloads into one.
+        const ev = NOTIFY_EVENTS.find((e) => e.kind === k);
+        showSystem(ev ? tRef.current(ev.label) : message, message, k);
+        return;
+      }
+
       const id = ++seq.current;
       setItems((s) => [...s, { id, message, tone, kind: k, action }]);
     },

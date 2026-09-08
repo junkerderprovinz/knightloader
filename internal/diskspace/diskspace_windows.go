@@ -4,8 +4,8 @@ package diskspace
 
 import "golang.org/x/sys/windows"
 
-// supported says this build has a real implementation behind free - see the
-// unix file's own copy of this constant.
+// supported says this build has a real implementation behind free and usage -
+// see the unix file's own copy of this constant.
 const supported = true
 
 // free calls GetDiskFreeSpaceExW.
@@ -34,4 +34,24 @@ func free(path string) (uint64, bool) {
 		return 0, false
 	}
 	return availToCaller, true
+}
+
+// usage makes the same call and keeps all three outputs, which free discards
+// two of.
+//
+// The third output is what makes this honest: lpTotalNumberOfFreeBytes is what
+// the VOLUME has left, and the occupied figure is built from that. Subtracting
+// the first output instead would count another account's quota allowance as
+// files somebody had written, on the one kind of volume where quotas are set
+// precisely because it is shared.
+func usage(path string) (Space, bool) {
+	p, err := windows.UTF16PtrFromString(path)
+	if err != nil {
+		return Space{}, false
+	}
+	var availToCaller, total, totalFree uint64
+	if err := windows.GetDiskFreeSpaceEx(p, &availToCaller, &total, &totalFree); err != nil {
+		return Space{}, false
+	}
+	return spaceFrom(availToCaller, totalFree, total), true
 }

@@ -235,6 +235,42 @@ type Settings struct {
 	// keep filling a disk down to the low mark, and only a volume that is
 	// genuinely about to run out gets the transfers taken off it.
 	DiskCriticalSpace int64 `json:"diskCriticalSpace"`
+
+	// VolumeCap, VolumeCapResetDay, VolumeCapAction and VolumeCapThrottle are
+	// the allowance: how much may FINISH downloading in one period, and what
+	// happens once that much has. See settings_volume.go for the defaults and
+	// the clamps, and internal/app/app_volumecap.go for the arithmetic and the
+	// enforcement.
+	//
+	// They are the disk guard's opposite number and were written beside it on
+	// purpose: both hold a download back before it starts rather than shaping one
+	// that is running. The difference is what they are counting. Free space is a
+	// fact about this machine that anybody can measure; a volume allowance is a
+	// number in somebody's contract that nothing on this box can see, which is
+	// why the whole of it is typed in here.
+	//
+	// VolumeCap is BYTES, and 0 is no cap. That is a real answer and not an
+	// unset field: the counter keeps running, the chart keeps drawing, and
+	// nothing is ever held back.
+	VolumeCap int64 `json:"volumeCap"`
+	// VolumeCapResetDay is the day of the month the counter goes back to zero,
+	// 1..31, usually the day an allowance renews. In a month shorter than the
+	// chosen day the period restarts on that month's last day and never slips
+	// into the next one.
+	VolumeCapResetDay int `json:"volumeCapResetDay"`
+	// VolumeCapAction is what reaching the cap does: "report" (the default,
+	// which does nothing but count), "pause" (nothing NEW starts until the
+	// counter restarts) or "throttle" (everything keeps going at
+	// VolumeCapThrottle). There is deliberately no "off" - see
+	// settings_volume.go - and none of the three is read at all while VolumeCap
+	// is 0.
+	VolumeCapAction string `json:"volumeCapAction"`
+	// VolumeCapThrottle is bytes per second while capped, and it is meaningless
+	// unless the action is "throttle". It is a ceiling BESIDE the other limits
+	// and never instead of them: a schedule window or quiet mode asking for less
+	// still wins, because all of them meet in one place (app_budget.go).
+	VolumeCapThrottle int64 `json:"volumeCapThrottle"`
+
 	// Crawl lets a pasted page URL be opened and the files it links to be
 	// staged, instead of the page itself becoming one task.
 	Crawl bool `json:"crawl"`
@@ -816,6 +852,14 @@ func Defaults() Settings {
 		// the shipping decision, and the two threshold fields on the struct
 		// for what each one does.
 		DiskReserve: DefaultDiskReserve,
+		// The allowance ships switched off, with only the two answers that mean
+		// nothing on their own written out. A cap of 0 is what makes it off, so
+		// neither of these does anything until somebody types a number; they are
+		// here because the advanced table serves Defaults() unsanitised, and a
+		// reset day of 0 shown as the factory setting would be a value the app
+		// never actually uses.
+		VolumeCapResetDay: DefaultVolumeCapResetDay,
+		VolumeCapAction:   VolumeCapReport,
 	}
 }
 
@@ -1036,6 +1080,7 @@ func sanitize(n Settings) Settings {
 	n = sanitizeQuiet(n)
 	n = sanitizeStall(n)
 	n = sanitizeDiskSpace(n)
+	n = sanitizeVolume(n)
 	n = sanitizeHostRules(n)
 	n = sanitizeCategories(n)
 	n = sanitizePaths(n)
