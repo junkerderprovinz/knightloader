@@ -11,6 +11,7 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
@@ -411,7 +412,21 @@ func TestTheCounterIsPushedWhenItChanges(t *testing.T) {
 	fetched(t, a, "spent", 700)
 	a.volumeCapPass()
 
+	// Looking for the RIGHT message rather than judging the first one.
+	//
+	// This used to fail on the first "volume" frame it saw, which made it a race
+	// it lost on a slower machine: a counter push can already be in the queue
+	// from before this test's own settings and history landed, and it says
+	// "0 of 0" perfectly correctly. CI caught it under -race, where everything
+	// is slow enough for that earlier frame to still be sitting there; here it
+	// passed, because the buffer had drained first. A test that reads whichever
+	// frame happens to be first is not testing the push, it is testing the
+	// scheduler.
+	//
+	// The last frame seen is kept only so the failure at the end can say what
+	// did arrive instead of "nothing matched".
 	deadline := time.Now().Add(5 * time.Second)
+	var last string
 	for time.Now().Before(deadline) {
 		for _, raw := range fc.snapshot() {
 			var env struct {
@@ -421,12 +436,16 @@ func TestTheCounterIsPushedWhenItChanges(t *testing.T) {
 			if json.Unmarshal(raw, &env) != nil || env.Type != "volume" {
 				continue
 			}
-			if env.Data.Used != 700 || env.Data.Cap != 1000 {
-				t.Fatalf("the pushed counter says %+v, want 700 of 1000", env.Data)
+			last = fmt.Sprintf("%+v", env.Data)
+			if env.Data.Used == 700 && env.Data.Cap == 1000 {
+				return
 			}
-			return
 		}
 		time.Sleep(2 * time.Millisecond)
+	}
+	if last != "" {
+		t.Errorf("the counter was pushed, but never with the figures this test set: last was %s, want 700 of 1000", last)
+		return
 	}
 	t.Error("no volume message reached a connected client, so the counter only ever moves when something asks for it")
 }
