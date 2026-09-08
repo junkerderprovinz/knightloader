@@ -303,6 +303,12 @@ export const RULE_STRINGS = {
   'settings.rules.action.priority': 'Priority',
   'settings.rules.action.autoExtract': 'Extract automatically',
   'settings.rules.action.chunks': 'Connections',
+  // Answered when a rule chip in the task detail panel links here by a name no
+  // rule carries any more. Here for the same reason as the four below it:
+  // RuleKey is `keyof typeof RULE_STRINGS`, so a key this table does not carry
+  // cannot be passed to rx() at all.
+  'settings.rules.notFound':
+    'No rule here is called "{name}". It was renamed or deleted since the link that names it was added.',
   // Four entries for the drawer picker. They are dead weight the moment they
   // land, exactly like every line around them: the catalogue answers first and
   // all four are already in en.ts and in the 41 other locales. They are here

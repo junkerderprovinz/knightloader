@@ -23,7 +23,11 @@ import { IconApp, IconExternalLink, IconFolder } from '../lib/icons';
  * filesAreLocal here only to keep the menu from offering what the route
  * would refuse right back; the server's own check is the one that matters.
  */
-function reachable(t: Task): boolean {
+// Exported since the detail panel gates its player on the identical rule this
+// menu already uses. The rule is subtle (files must be local AND the name must
+// have stopped being the URL), and two copies of a subtle rule is one copy too
+// many.
+export function reachable(t: Task): boolean {
   return t.resolver !== 'jd' && t.name !== '' && t.name !== t.url;
 }
 

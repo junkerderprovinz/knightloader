@@ -48,8 +48,9 @@ func tasksSharingURL(a *App, url string) []core.Task {
 // them enabled (ytdlp.DefaultHosterPreset's own Variants() default).
 func TestExpandYtdlpVariantsCreatesAllFiveRowsWithDefaultPreset(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
-	done := make(chan struct{})
-	wireYtdlp(a, fakeYtdlpBackend{title: "Never Gonna Give You Up", done: done})
+	fake, _ := newFakeYtdlp()
+	fake.title = "Never Gonna Give You Up"
+	wireYtdlp(a, fake)
 
 	const url = "https://youtube.com/watch?v=dQw4w9WgXcQ"
 	created := a.AddLinks([]string{url}, "")
@@ -91,8 +92,9 @@ func TestExpandYtdlpVariantsCreatesAllFiveRowsWithDefaultPreset(t *testing.T) {
 // conditional on the preset), just not enabled by default.
 func TestExpandYtdlpVariantsRespectsASavedHosterPreset(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
-	done := make(chan struct{})
-	wireYtdlp(a, fakeYtdlpBackend{title: "Some Video", done: done})
+	fake, _ := newFakeYtdlp()
+	fake.title = "Some Video"
+	wireYtdlp(a, fake)
 
 	if err := a.SetHosterPreset("youtube.com", ytdlp.HosterPreset{
 		Variants:    []ytdlp.Variant{ytdlp.VariantVideo, ytdlp.VariantAudio, ytdlp.VariantSubtitle},
@@ -226,8 +228,9 @@ func TestSetTaskOptionsVariantQualityKeepsTheRowsOwnKind(t *testing.T) {
 // this test exists to catch before a live deploy does.
 func TestExpandYtdlpVariantsFamilyStillRenamesThePackageOnceNamed(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
-	done := make(chan struct{})
-	wireYtdlp(a, fakeYtdlpBackend{title: "Me at the zoo", done: done})
+	fake, _ := newFakeYtdlp()
+	fake.title = "Me at the zoo"
+	wireYtdlp(a, fake)
 
 	const url = "https://www.youtube.com/watch?v=jNQXAC9IVRw"
 	created := a.AddLinks([]string{url}, "")

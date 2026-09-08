@@ -215,6 +215,13 @@ func (a *App) applyBudget() {
 	speed, working := a.measureLocked()
 	a.mu.Unlock()
 
+	// And the volume cap's own ceiling, folded into the same number rather than
+	// written anywhere: this read is the only safe place for it, because
+	// a.limitInForce already has two writers and a third would be undone at the
+	// next window boundary. See volumeCapLimit, which takes the smaller of the
+	// two and treats 0 on either side as no limit at all.
+	limit = a.volumeCapLimit(limit)
+
 	share := shareOut(limit, speed, working)
 	a.budget.set(share[familyEngine], share[familyJD], share[familyYtdlp])
 

@@ -1,5 +1,6 @@
 import { fetchDeploymentInfo, fetchUpdateCheck } from '../api';
-import { IconRetry } from '../icons';
+import { IconRetry, IconSearch } from '../icons';
+import { requestSearchFocus } from '../../pages/settings/jump';
 import type { Command } from './types';
 
 /**
@@ -70,6 +71,30 @@ export const settingsCommands: Command[] = [
       run: (ctx) => ctx.navigate(`/settings/${id}`),
     }),
   ),
+  {
+    // Not a page entry, so it is not in SETTINGS_PAGES above and
+    // check-settings-pages.mjs's parity check (which reads `{ id: '<id>'` out of
+    // that array) is untouched by it.
+    //
+    // It navigates AND asks for focus, in that order, because those are two
+    // different things and only one of them can be done from here: the field is
+    // mounted three routes away and this function has no reference to it, so the
+    // ask goes through the same module-scope store the jump itself uses. Landing
+    // on Settings with the cursor already in the box is the whole point - a
+    // command that only navigated would leave somebody who typed "search
+    // settings" one more click away from searching settings.
+    id: 'settings.search',
+    labelKey: 'settings.search.command',
+    icon: IconSearch,
+    group: 'commands.group.settings',
+    surfaces: ['global'],
+    enabled: () => true,
+    visible: () => true,
+    run: (ctx) => {
+      ctx.navigate('/settings');
+      requestSearchFocus();
+    },
+  },
   {
     id: 'settings.checkForUpdates',
     labelKey: 'settings.look.updatesCheck',

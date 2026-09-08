@@ -119,6 +119,14 @@ func ytdlpHelper(mode string) {
 		_ = os.WriteFile(filepath.Join(dir, "A Video.info.json"),
 			[]byte(`{"id":"live1","title":"Weekend Stream","uploader":"Some Channel"}`), 0o644)
 		fmt.Println("[download] Destination: " + final)
+	case "botcheck":
+		// The one failing mode: yt-dlp's real bot-check line (the fixture lives
+		// in diagnose_test.go, beside the phrase table that reads it) followed
+		// by the chatter that used to be all a task ever saw, and then a
+		// non-zero exit so run() takes its error path.
+		fmt.Fprintln(os.Stderr, botCheckStderr)
+		fmt.Fprintln(os.Stderr, "WARNING: unable to obtain file audio codec with ffprobe")
+		os.Exit(1)
 	case "cookies":
 		// Records what run() actually handed over, so the test can check both
 		// that the jar arrived and that the file is gone afterwards.
@@ -470,6 +478,33 @@ func TestRunNeverPutsTheCookieTextInAnUpdate(t *testing.T) {
 		if strings.Contains(string(blob), secret) {
 			t.Fatalf("an update carried the cookie text: %s", blob)
 		}
+	}
+}
+
+// TestRunNamesTheCauseOnTheFailedUpdate is the wiring for the whole feature:
+// Diagnose can be as right as it likes in its own tests, and until run() puts
+// its answer on the Update nothing downstream has anything to act on.
+//
+// It asserts the Reason and not the Err on purpose. The sentence is what a
+// person reads; the reason is what the retry policy, the reconnect veto and
+// the interface's one useful button all key on.
+func TestRunNamesTheCauseOnTheFailedUpdate(t *testing.T) {
+	_, rec := runFake(t, "botcheck:full", Options{})
+
+	got := rec.last()
+	if got.Status != core.StatusError {
+		t.Fatalf("last update = %+v, want Error", got)
+	}
+	if got.Reason != core.ReasonBotCheck {
+		t.Errorf("Reason = %q, want %q - the diagnosis never reached the update", got.Reason, core.ReasonBotCheck)
+	}
+	// And the sentence beside it is the ERROR line rather than the warning
+	// that followed it, with the identifying words still in it.
+	if !strings.Contains(got.Err, "not a bot") {
+		t.Errorf("Err = %q, want the phrase that names the failure to reach the task as well", got.Err)
+	}
+	if got.Unsupported {
+		t.Error("a bot check was handed to the next backend as though yt-dlp did not claim the link")
 	}
 }
 

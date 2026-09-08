@@ -265,6 +265,56 @@ func TestAnInterruptedExtractionIsAFinishedDownload(t *testing.T) {
 	}
 }
 
+// TestADeadlineDoesNotOutliveTheProcessCountingToIt. NextTry is persisted and
+// the time.AfterFunc that was going to honour it is not, so after every container
+// update each failed row came back carrying a moment nothing would ever act on:
+// the "retrying automatically" mark, which is exactly what stops people acting on
+// a row, standing over a retry that is not coming. A countdown on that row would
+// have counted to zero and sat there.
+//
+// The spent count is asserted with it, because clearing that as well would be
+// the easy over-correction: the backoff ladder continues from it when somebody
+// presses restart, and those attempts really were made.
+func TestADeadlineDoesNotOutliveTheProcessCountingToIt(t *testing.T) {
+	f := newBootFixture(t, nil, core.Task{
+		ID: "failed", URL: "https://host.example/f.bin", Name: "f.bin",
+		Status: core.StatusError, Error: "the transfer broke", Enabled: true,
+		Retries: 2, NextTry: time.Now().Add(5 * time.Minute),
+	})
+
+	a := f.boot(t)
+	got := taskOf(t, a, "failed")
+	if !got.NextTry.IsZero() {
+		t.Errorf("a retry is still promised for %v, with nothing left alive to run it", got.NextTry)
+	}
+	if got.Status != core.StatusError {
+		t.Errorf("status = %q, want the failure left exactly where it is", got.Status)
+	}
+	if got.Retries != 2 {
+		t.Errorf("retries = %d, want the two spent attempts kept: the ladder continues from them", got.Retries)
+	}
+
+	// And it reached the STORE, not only the list. The next boot reads the row,
+	// so a fix that lives in this process's memory is the same bug one restart
+	// further on.
+	rows, err := a.Store.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var stored *core.Task
+	for _, r := range rows {
+		if r.ID == "failed" {
+			stored = r
+		}
+	}
+	if stored == nil {
+		t.Fatal("the failed task is not in the store after boot")
+	}
+	if !stored.NextTry.IsZero() {
+		t.Errorf("the row still holds %v, so the next boot reads the dead deadline back", stored.NextTry)
+	}
+}
+
 // TestRetentionTrimsTheListAndNothingElse is the row this whole feature has to
 // get right. Removing a row and deleting what was downloaded are two different
 // actions - conflating them destroyed finished downloads on the ordinary "clear

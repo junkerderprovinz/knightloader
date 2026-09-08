@@ -10,6 +10,8 @@ package app
 import (
 	"context"
 	"errors"
+	"log"
+	"sync"
 	"testing"
 	"time"
 
@@ -32,6 +34,47 @@ type fakeYtdlpBackend struct {
 	formats []ytdlp.FormatEntry
 	err     error
 	done    chan struct{}
+	// closeOnce is what stopped a SECOND probe from taking the whole package
+	// down with it.
+	//
+	// `defer close(f.done)` was right for the one-probe-per-staged-link case
+	// this fake was written for, and it is a panic the moment anything probes
+	// twice: not a test failure, a panic, which aborts every remaining test in
+	// internal/app and prints a stack that names neither the test nor the URL.
+	// That is exactly how it arrived - green on this machine through three full
+	// runs, red once on CI, with nothing in the output to say which test it was.
+	//
+	// A one-shot fake is still the right shape (a test that waits on `done`
+	// wants "the probe ran", not "a probe ran"), so the second call is recorded
+	// and reported rather than tolerated silently. Whatever is probing twice
+	// stays a finding; it just stops being a finding that destroys the evidence.
+	//
+	// A pointer field rather than a value, because the fake is passed around by
+	// value and a sync.Once copied mid-flight guards nothing.
+	closeOnce *sync.Once
+	probes    *probeLog
+}
+
+// probeLog is every URL a fake was asked about, in order. Shared by pointer for
+// the same reason closeOnce is.
+type probeLog struct {
+	mu   sync.Mutex
+	urls []string
+}
+
+func (p *probeLog) add(url string) int {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.urls = append(p.urls, url)
+	return len(p.urls)
+}
+
+// newFakeYtdlp builds the fake and its done channel together, so no call site
+// can construct one whose guards are nil. Every field a test cares about is set
+// on the returned value afterwards.
+func newFakeYtdlp() (fakeYtdlpBackend, chan struct{}) {
+	done := make(chan struct{})
+	return fakeYtdlpBackend{done: done, closeOnce: &sync.Once{}, probes: &probeLog{}}, done
 }
 
 func (fakeYtdlpBackend) Download(string, string, map[string]string, int) {}
@@ -39,8 +82,15 @@ func (fakeYtdlpBackend) Pause(string)                                    {}
 func (fakeYtdlpBackend) Resume(string)                                   {}
 func (fakeYtdlpBackend) Remove(string, bool)                             {}
 
-func (f fakeYtdlpBackend) ProbeTitle(_ context.Context, _ string) (ytdlp.ProbeResult, error) {
-	defer close(f.done)
+func (f fakeYtdlpBackend) ProbeTitle(_ context.Context, url string) (ytdlp.ProbeResult, error) {
+	if n := f.probes.add(url); n > 1 {
+		// Loud, and on the line that still knows the URL. It does not fail the
+		// test by itself: whatever the second probe writes will fail an
+		// assertion on its own if it matters, and a t.Fatal from a background
+		// goroutine is illegal anyway.
+		log.Printf("fakeYtdlpBackend: probe %d for %q; this fake is one-shot and something asked it twice", n, url)
+	}
+	f.closeOnce.Do(func() { close(f.done) })
 	if f.err != nil {
 		return ytdlp.ProbeResult{}, f.err
 	}
@@ -93,8 +143,9 @@ func wireYtdlp(a *App, b backend) {
 // the title the probe found once it answers.
 func TestStagingAYtdlpLinkProbesAndNamesTheTask(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
-	done := make(chan struct{})
-	wireYtdlp(a, fakeYtdlpBackend{title: "Never Gonna Give You Up", done: done})
+	fake, _ := newFakeYtdlp()
+	fake.title = "Never Gonna Give You Up"
+	wireYtdlp(a, fake)
 
 	const url = "https://youtube.com/watch?v=dQw4w9WgXcQ"
 	created := a.AddLinks([]string{url}, "")
@@ -124,8 +175,9 @@ func TestStagingAYtdlpLinkProbesAndNamesTheTask(t *testing.T) {
 // the rename, only an already-named one does).
 func TestNamingLatelyRenamesAnAutoDerivedSoloPackage(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
-	done := make(chan struct{})
-	wireYtdlp(a, fakeYtdlpBackend{title: "Never Gonna Give You Up", done: done})
+	fake, _ := newFakeYtdlp()
+	fake.title = "Never Gonna Give You Up"
+	wireYtdlp(a, fake)
 
 	const url = "https://youtube.com/watch?v=dQw4w9WgXcQ"
 	created := a.AddLinks([]string{url}, "")
@@ -209,8 +261,9 @@ func TestNamingNeverRenamesAPackageASiblingAlreadyNamedForReal(t *testing.T) {
 // progress stream would eventually rename it once a real download starts.
 func TestAFailedYtdlpProbeLeavesThePlaceholderNameAlone(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
-	done := make(chan struct{})
-	wireYtdlp(a, fakeYtdlpBackend{err: errors.New("yt-dlp: Video unavailable"), done: done})
+	fake, done := newFakeYtdlp()
+	fake.err = errors.New("yt-dlp: Video unavailable")
+	wireYtdlp(a, fake)
 
 	const url = "https://youtube.com/watch?v=gone000000"
 	created := a.AddLinks([]string{url}, "")
@@ -260,8 +313,9 @@ func TestAFailedYtdlpProbeLeavesThePlaceholderNameAlone(t *testing.T) {
 func TestAQuickProbeStillFixesTheGuessedPackage(t *testing.T) {
 	for i := 0; i < 25; i++ {
 		a, _ := newRuleApp(t, func(*settings.Settings, string) {})
-		done := make(chan struct{})
-		wireYtdlp(a, fakeYtdlpBackend{title: "Never Gonna Give You Up", done: done})
+		fake, _ := newFakeYtdlp()
+		fake.title = "Never Gonna Give You Up"
+		wireYtdlp(a, fake)
 
 		created := a.AddLinks([]string{"https://youtube.com/watch?v=dQw4w9WgXcQ"}, "")
 		if len(created) != 1 {
@@ -338,8 +392,9 @@ func TestAPendingMediaLinkIsNotFiledUnderItsURLPath(t *testing.T) {
 // missing one, which is the worse of the two.
 func TestAFailedProbeStillFilesTheLink(t *testing.T) {
 	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
-	done := make(chan struct{})
-	wireYtdlp(a, fakeYtdlpBackend{err: errors.New("yt-dlp: unsupported url"), done: done})
+	fake, done := newFakeYtdlp()
+	fake.err = errors.New("yt-dlp: unsupported url")
+	wireYtdlp(a, fake)
 
 	const url = "https://youtube.com/watch?v=dQw4w9WgXcQ"
 	created := a.AddLinks([]string{url}, "")

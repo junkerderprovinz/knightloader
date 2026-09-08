@@ -42,12 +42,36 @@ import (
 // the map: a task stuck at "extracting" would otherwise never be seen as
 // finished by the history or by retention.
 //
+// A failed task is not mid-flight and is left exactly where it is, with one
+// exception: the automatic retry it was waiting for died with the process. See
+// the StatusError case.
+//
 // changed reports whether any of that was a change worth persisting.
 func (a *App) reviveOnBoot(t *core.Task, resume string, queueWasLive bool) (changed, enqueue bool) {
 	switch t.Status {
 	case core.StatusExtracting:
 		t.Status = core.StatusDone
 		t.Speed = 0
+		return true, false
+	case core.StatusError:
+		// A DEADLINE MUST NOT OUTLIVE THE PROCESS THAT WAS COUNTING TO IT.
+		// NextTry is persisted; the time.AfterFunc that was going to honour it
+		// was not. So after every container update each failed row carries a
+		// moment that has usually already passed and that nothing will ever act
+		// on: the list shows the "retrying automatically" mark, which is what
+		// stops people acting on a row, for a retry that is never coming.
+		//
+		// Cleared rather than re-armed, and that is the whole decision. Re-arming
+		// would restart every failed row at once on a boot whose deadlines all
+		// went by while the box was off, against a resume policy the user chose
+		// precisely to keep the queue quiet. Nothing is pending, so the row stops
+		// claiming one. The spent count stays: it is what the backoff ladder
+		// continues from when somebody presses restart, and it is a fact about
+		// attempts that really were made.
+		if t.NextTry.IsZero() {
+			return false, false
+		}
+		t.NextTry = time.Time{}
 		return true, false
 	case core.StatusRunning, core.StatusQueued:
 	default:
@@ -520,6 +544,9 @@ func (a *App) applyReclaim(findings []reclaim.Finding) (changed []core.Task, set
 			t.Waiting = core.WaitingNone
 			t.Retries = 0
 			t.NextTry = time.Time{}
+			// With the two above, and for the same reason: the file is here, so
+			// the budget that was being spent looking for it describes nothing.
+			t.MaxTries = 0
 			t.Note = f.Detail
 			t.ChangedAt = now
 			if f.Basis == reclaim.BasisChecksum {

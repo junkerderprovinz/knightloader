@@ -97,6 +97,15 @@ func (a *App) putSibling(t *core.Task) {
 // - a shutdown, a task taken away underneath the attempt - and a shutdown that
 // starts a fresh transfer at a hoster nobody picked is the worst imaginable
 // moment to make that choice for them.
+//
+// The five backend-named causes (core.ReasonBotCheck and its neighbours) are
+// deliberately NOT vetoed here, which is the opposite of what addressMayHelp
+// and retryCannotHelp decided about the same five - so it is written down
+// rather than left to the fallthrough. A mirror is a different SITE, and not
+// one of the five is a fact about the file: another host has not decided this
+// address is a robot, does not put this video behind that channel's
+// membership, may serve this region, and may hand over something yt-dlp can
+// still read. Those are exactly the failures a second source exists for.
 func mirrorCanHelp(r core.Reason) bool {
 	switch r {
 	case core.ReasonDiskFull, core.ReasonCancelled:

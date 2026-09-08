@@ -29,6 +29,15 @@ import { formatShortcut } from '../lib/commands/shortcuts';
 import { setCommandPaletteOpen, useCommandPaletteOpen } from '../lib/commandPaletteOpen';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { IconSearch } from '../lib/icons';
+// score() used to live in this file, private to it. It moved to lib/rank.ts when
+// the settings search needed the identical ranking over a much larger corpus:
+// two scorers would be two ideas of "close enough" in one app, and the palette
+// ranking a word one way while the settings box ranks it another is the kind of
+// difference nobody reports and everybody notices. The call below did not
+// change; what changed is that ranking now folds accents and ß on both sides, so
+// "grosse" finds "Größe" here too - a fix this file was silently missing rather
+// than a new behaviour it opted into.
+import { score } from '../lib/rank';
 
 /** The route's first segment, the same split Layout.tsx already keys its enter animation on, mapped to the surface it corresponds to. */
 const SECTION_SURFACE: Record<string, CommandSurface> = {
@@ -38,32 +47,6 @@ const SECTION_SURFACE: Record<string, CommandSurface> = {
   accounts: 'accounts',
   settings: 'settings',
 };
-
-/**
- * score ranks a label against a query with no fuzzy-search dependency (this
- * app has none, and one small scorer does not justify adding one): a
- * literal substring match wins, ranked by how early it starts and whether it
- * starts on a word boundary, so "down" ranks "Downloads" above "Slow down".
- * Failing that, a subsequence match - every character of the query appears
- * in the label, in order, not necessarily together - still counts, ranked
- * behind every substring hit, so "cmdp" still finds "Command palette".
- * -1 means "does not match at all".
- */
-function score(label: string, query: string): number {
-  if (!query) return 0;
-  const l = label.toLowerCase();
-  const q = query.toLowerCase();
-  const i = l.indexOf(q);
-  if (i === 0) return 0;
-  if (i > 0) return l[i - 1] === ' ' ? 1 : 2 + i;
-  let cursor = 0;
-  for (const ch of q) {
-    cursor = l.indexOf(ch, cursor);
-    if (cursor === -1) return -1;
-    cursor++;
-  }
-  return 1000;
-}
 
 /**
  * groupLabel resolves a command's `group` to display text.

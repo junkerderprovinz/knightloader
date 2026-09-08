@@ -43,6 +43,40 @@ submission and for a fixed download.
 
 ### Added
 
+- **A download can be opened and read.** Double-clicking one has shown its
+  folder, its password and its connection count for a long time; beside that
+  card there is now a read-only panel with the address, the page it came from,
+  the hoster, the backend, every timestamp, how many attempts have been made,
+  the current failure with its cause, the rules that matched it as links
+  straight into the rule editor, and a small player for a finished file. Two
+  things it deliberately does not show, because the server cannot answer them:
+  a "started at" time, which is not stored anywhere, and a "2 of 5" retry
+  ceiling, which depends on the per-host rule, the per-failure rule and the
+  global maximum together and would be wrong the first time somebody adds a host
+  rule.
+- **A search over every settings page.** 22 pages whose set and order come from
+  the server, and no way to find anything in them. The index is built from the
+  page registry and the translation keys, so it is right in all 42 languages
+  with no extra work, and two CI checks keep it from rotting: one fails when a
+  page draws a caption the index does not carry, the other when the index points
+  at a row no page draws any more.
+- **Search, filters and facets survive leaving the page**, and can be saved
+  under a name. The column layout and the sort order have been remembered for
+  months while the search box was emptied by every trip to the settings. Named
+  views go in the same document, with no new table.
+- **Notifications, per event.** In the app, as a notification from your
+  operating system, or nothing at all, decided one event kind at a time. The
+  browser is asked for permission on the first switch somebody turns on and
+  never on page load. Quiet mode still applies on top.
+- **How much room is left on each target folder**, with three facts kept apart
+  that are easy to blur: a folder that does not exist yet is measured at the
+  nearest folder above it and says so, some systems cannot be asked at all and
+  then the numbers mean nothing rather than zero, and what the queue still has
+  to write is never subtracted from what is free.
+- **A volume curve and a monthly cap**, aggregated per host and per backend out
+  of the history table, which has carried the raw material since the first
+  release and had nothing able to add it up. The cap has its own reset day and
+  can report, pause the queue or throttle everything.
 - **Your own request headers for one site, and your own sign-in cookies for
   yt-dlp, can finally be managed.** Both were built, encrypted and completely
   unreachable: they are sealed in the credential store on purpose, so that a
@@ -323,6 +357,22 @@ submission and for a fixed download.
 
 ### Fixed
 
+- **yt-dlp's own explanation was being thrown away before anything read it.**
+  A failure kept the last line of its output and then the last 200 bytes of
+  that line, and the line that says "sign in to confirm you are not a bot" is
+  about 400 characters long. So the one piece of evidence worth having was
+  destroyed on the way in, and every such failure arrived as a truncated
+  fragment. The whole buffer is kept now and read for six causes that call for
+  six different answers: a bot check, members only, geo-blocked, deleted, DRM,
+  and an extractor that has stopped working.
+- **A test double could take the whole test suite down with it.** It closed its
+  channel on every call, so a second probe was not a failed test but a panic,
+  which aborted every remaining test in the package and printed a stack naming
+  neither the test nor the URL. It arrived exactly that way: green through three
+  full runs here, red once on CI, with nothing in the output to say what had
+  happened. The second call is now reported with its URL and the run continues.
+  Why anything probes twice is still open; the evidence just stops being
+  destroyed.
 - **A refused folder named the wrong field.** One validator checks five
   different folders (the download folder, the working folder, a category's, a
   batch's and a single download's) and every one of them reported "the download

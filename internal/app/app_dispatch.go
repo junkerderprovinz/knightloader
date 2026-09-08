@@ -609,12 +609,27 @@ func (a *App) dispatchLocked() {
 	// queue, and the watcher has to be running before somebody resumes a queue
 	// onto a disk that ran out while it was stopped.
 	a.ensureDiskWatcher()
+	// And the volume counter's loop, same shape again - see ensureVolumeWatcher.
+	// Ahead of the halted check because its answer is cached and read by the gate
+	// a few lines below: a watcher that only started once the queue was moving
+	// would have no opinion at the exact moment the first pass needs one.
+	a.ensureVolumeCapWatcher()
 	if a.halted {
 		// Every queued row says why nothing is moving, not only the head card.
 		// A stopped queue and a full one look identical on a list of rows that
 		// all say "waiting", and those are the two situations somebody opening
 		// this page is trying to tell apart.
 		a.setWaitingLocked(a.queue, core.WaitingHalted)
+		return
+	}
+	// The volume allowance, if somebody set one and asked for it to hold the
+	// queue rather than only to report. A gate here and not a halt flag: see
+	// app_volumecap.go for why writing a.halted would be undone by the next
+	// settings save with nothing on screen to say so. Running transfers are left
+	// alone on purpose - stopping one mid file throws away bytes that have
+	// already come off the allowance.
+	if a.volumeCapHolds() {
+		a.setWaitingLocked(a.queue, core.WaitingVolume)
 		return
 	}
 	// The settings IN FORCE, not the saved ones: quiet mode overrides the slot
@@ -1259,7 +1274,21 @@ func (a *App) reconnectThenRetry(id string) {
 		log.Printf("reconnect after task %s hit a limit: %v", id, err)
 		return
 	}
-	a.retryAfter(id, 0)
+	// Read now rather than remembered from the failure, because this call means
+	// "bring THE pending retry forward" and the router took its time: the task
+	// may have been restarted by hand and armed a different deadline while the
+	// line was down, and that one is not this reconnect's to pull in. A zero
+	// means there is no longer anything pending to bring forward.
+	a.mu.Lock()
+	var due time.Time
+	if t := a.tasks[id]; t != nil {
+		due = t.NextTry
+	}
+	a.mu.Unlock()
+	if due.IsZero() {
+		return
+	}
+	a.retryAfter(id, 0, due)
 }
 
 func (a *App) onUpdate(id string, u core.Update) {
@@ -1339,7 +1368,19 @@ func (a *App) onUpdate(id string, u core.Update) {
 		// pass through is the only way the same failure gets the same label whoever
 		// hit it. A backend that already knows better says so with u.Unsupported,
 		// which is handled below.
-		t.Reason = classify(failure{text: u.Err})
+		//
+		// And with u.Reason, which is that same idea a second time and takes
+		// precedence here for the reason core.Update.Reason states: what this
+		// line is handed is one truncated sentence, already run past a regex
+		// that reads an HTTP status out of any URL in it, so a backend that
+		// read the whole of its own tool's output knows something this cannot
+		// recover. Empty is no opinion, so nothing changes for the backends
+		// that set none.
+		if u.Reason != "" {
+			t.Reason = u.Reason
+		} else {
+			t.Reason = classify(failure{text: u.Err})
+		}
 	}
 	// Told to account health before anything below re-dispatches the slot this
 	// terminal status frees, so a queued task sharing this one's account sees
@@ -1366,6 +1407,14 @@ func (a *App) onUpdate(id string, u core.Update) {
 		// update sends.
 		t.StalledSince = time.Time{}
 		delete(a.active, id)
+		if u.Status == core.StatusDone {
+			// Counted BEFORE the pass below hands this slot to the next task.
+			// The history row this will be re-read from is written by the store
+			// once the lock is released, so a counter that waited for it would
+			// let the batch this very download paid for start anyway - which is
+			// the one moment a volume cap most needs to be right.
+			a.volumeCapRecordLocked(t)
+		}
 		a.dispatchLocked()
 	}
 	var hitStopMark bool
@@ -1373,6 +1422,10 @@ func (a *App) onUpdate(id string, u core.Update) {
 		t.Online = core.AvailOnline
 		t.Retries = 0
 		t.NextTry = time.Time{}
+		// The ceiling goes with the count it is the denominator of. On its own it
+		// is a budget with nothing spent against it, and a finished download has
+		// no failure left to describe.
+		t.MaxTries = 0
 		// Reset with Retries above and for the same reason: both count what it
 		// took to get here, and a finished download that is started again later
 		// must not begin one restart short of its own ceiling.
@@ -1542,8 +1595,32 @@ func (a *App) onUpdate(id string, u core.Update) {
 			// policy, not a counter running out.
 			t.GaveUp = true
 			t.NextTry = time.Time{}
+		case retryCannotHelp(t.Reason):
+			// The five causes a backend names for itself (core.Update.Reason),
+			// and none of them is a matter of time. The bot check is the sharp
+			// one and it is why this branch exists at all: every further
+			// request from an address a site has already flagged is more
+			// evidence for the flag, so retrying does not merely spend slots,
+			// it makes the situation worse. A membership nobody holds, a
+			// region the site does not serve, an encrypted stream and a page
+			// that moved are each just the same answer five more times.
+			//
+			// It matters that this is policy and not an exhausted counter,
+			// because the five appear as their own rows on the Advanced page's
+			// per-reason retry table the moment the interface knows their
+			// names. Somebody typing "5" against "Bot check" there would
+			// otherwise buy five more attempts against a site that is already
+			// blocking this address.
+			t.GaveUp = true
+			t.NextTry = time.Time{}
 		case t.Retries < plan.Tries:
 			t.Retries++
+			// The ceiling is written onto the task here because here is the only
+			// place it is ever known: plan goes out of scope one line later, and
+			// nothing outside this package can reproduce the merge that produced
+			// it. Without this the list can count attempts and never say what it
+			// is counting towards. See core.Task.MaxTries.
+			t.MaxTries = plan.Tries
 			retryIn = u.Retry
 			if retryIn <= 0 {
 				retryIn = retryDelay(t.Retries, plan.Delay, plan.Max)
@@ -1553,6 +1630,12 @@ func (a *App) onUpdate(id string, u core.Update) {
 			// Out of attempts, which is NOT the same end state as the three
 			// above: this one is mended by allowing more of them, so it stays
 			// a plain failure and GaveUp stays false.
+			//
+			// Which is exactly why the ceiling is recorded on this branch too:
+			// "no retries left" is only worth reading beside the number it ran
+			// out of, and this is the row somebody is about to raise that number
+			// for.
+			t.MaxTries = plan.Tries
 			t.NextTry = time.Time{}
 		}
 	}
@@ -1649,7 +1732,10 @@ func (a *App) onUpdate(id string, u core.Update) {
 		a.Hub.Broadcast("task", mirrorCopy)
 	}
 	if retryIn > 0 {
-		a.retryAfter(id, retryIn)
+		// c.NextTry is the deadline the switch above just wrote, taken from the
+		// same copy under the same lock. Passing it is what ties this timer to
+		// this failure - see retryAfter.
+		a.retryAfter(id, retryIn, c.NextTry)
 	}
 	if reconnectFor != "" {
 		// Off the lock and off this goroutine: Do blocks for up to the whole
@@ -1701,13 +1787,27 @@ func retryDelay(attempt int, base, ceiling time.Duration) time.Duration {
 
 // retryAfter re-runs a failed task once the delay has passed, unless the user
 // touched it in the meantime.
-func (a *App) retryAfter(id string, d time.Duration) {
+//
+// due is the deadline this timer was armed FOR, and it fires only while the task
+// is still carrying that same deadline. The check used to be "is SOME retry
+// pending", which is the wrong question the moment a wait can be cut short:
+// restart a task that is waiting five minutes, let it run and fail again onto a
+// ten-minute wait, and the abandoned first timer still wakes at its own
+// five-minute mark, finds an errored task with a deadline on it, and restarts
+// the download halfway through the wait the row is showing. It spends an attempt
+// out of turn and reaches the ceiling one failure early, and with a countdown on
+// screen it does both in front of the person watching it.
+//
+// Equal rather than "not before": every deadline this app writes comes from one
+// assignment (t.NextTry above), so the timer and the task hold the same instant
+// or they are talking about different retries.
+func (a *App) retryAfter(id string, d time.Duration, due time.Time) {
 	time.AfterFunc(d, func() {
 		a.mu.Lock()
 		t := a.tasks[id]
-		due := t != nil && t.Status == core.StatusError && !t.NextTry.IsZero()
+		mine := t != nil && t.Status == core.StatusError && !t.NextTry.IsZero() && t.NextTry.Equal(due)
 		a.mu.Unlock()
-		if due {
+		if mine {
 			a.RestartTasks([]string{id})
 		}
 	})

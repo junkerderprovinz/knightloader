@@ -53,6 +53,11 @@ func registerAll(reg *Registry, a *app.App) {
 	registerPortmap(reg, a)
 	registerUIState(reg, a)
 	registerHistory(reg, a)
+	// Day and month totals aggregated out of the history table above, which is
+	// where the raw material has been sitting since the first release: size,
+	// host, resolver and a finish time on every completed download, and nothing
+	// able to add them up.
+	registerStats(reg, a)
 	registerFederation(reg, a)
 	registerRelay(reg, a)
 	registerConnect(reg, a)
@@ -61,6 +66,13 @@ func registerAll(reg *Registry, a *app.App) {
 	registerConnections(reg, a)
 	registerRules(reg, a)
 	registerFolders(reg, a)
+	// Beside the folder chooser, because it answers the other half of the same
+	// question: the chooser says where a folder is, this says whether there is
+	// room in it. Deliberately NOT on the federation forwarder's list and not
+	// relay-forwardable - a peer's disks are not this machine's, and a row that
+	// looked local while describing somebody else's volume is the worst kind of
+	// wrong here.
+	registerDiskSpace(reg, a)
 	registerCaptcha(reg, a)
 	registerCaptchaSkip(reg, a)
 	registerCaptchaWidget(reg, a)

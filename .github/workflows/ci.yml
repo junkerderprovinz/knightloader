@@ -218,6 +218,25 @@ jobs:
       - name: Settings pages parity
         run: node check-settings-pages.mjs
 
+      # The settings search's index is a hand-written list of every card and
+      # every row on all 22 settings pages, and it cannot be derived (four
+      # catalogue helper names, one file drawing two rail entries, key prefixes
+      # that do not name their page - the script's own header has the full four).
+      # tsc cannot see it go stale: a row added to a page and not added there is
+      # well-typed on both sides, and the failure is a search result that simply
+      # never appears, which looks exactly like a word nobody typed.
+      - name: Settings search index
+        run: node check-settings-search.mjs
+
+      # The ranker behind both the command palette and the settings search. Its
+      # quiet half is folding: with it broken, "grosse" stops finding "Größe" and
+      # "baglanti" stops finding "Bağlantı" - six of the 42 shipped languages
+      # going quietly dead, reported as "search is broken" if at all. That fold
+      # already shipped wrong once (it handled ß and nothing else) and this
+      # script is what caught it.
+      - name: Ranking and folding
+        run: node check-rank.mjs
+
       # The search box's own rule - an unrecognised prefix, a stray colon or a
       # quote halfway through being typed stays ordinary text - has no compiler
       # and no test runner behind it, and its failure mode is a list that simply

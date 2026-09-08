@@ -192,6 +192,142 @@ func TestACaptchaSettlesAsGivenUp(t *testing.T) {
 	}
 }
 
+// TestTheCeilingLeavesTheServer. Retries has been on the wire since the field
+// existed and the number it counts towards never has, so a list can say "retry
+// 2" and nothing else. It cannot work the rest out either: the ceiling is a host
+// rule merged over the per-reason table merged over MaxRetries, and the obvious
+// shortcut - read settings.maxRetries in the browser - prints the global number
+// over a row the host table gave a different one, and on a page showing a peer
+// instance's queue it prints the wrong box's number entirely.
+//
+// The host rule here says seven against a global three precisely so that a
+// MaxTries of 3 fails this test: it is what a client-side shortcut would have
+// produced.
+func TestTheCeilingLeavesTheServer(t *testing.T) {
+	a := retryApp(t, func(s *settings.Settings) {
+		s.MaxRetries = 3
+		s.HostRules = map[string]settings.HostRule{
+			slowHost: {Retry: settings.RetryRule{Tries: 7}},
+		}
+	})
+	runningOn(a, "slow1", slowHost, slowResolverID)
+	runningOn(a, "plain1", plainHost, simpleResolverID)
+
+	a.onUpdate("slow1", core.Update{Status: core.StatusError, Err: "the transfer broke"})
+	a.onUpdate("plain1", core.Update{Status: core.StatusError, Err: "the transfer broke"})
+
+	slow := liveTask(a, "slow1")
+	if slow.Retries != 1 {
+		t.Fatalf("Retries = %d, want the attempt counted - this test cannot reach the branch it is about", slow.Retries)
+	}
+	if slow.MaxTries != 7 {
+		t.Errorf("MaxTries = %d, want the host rule's 7: the resolved ceiling never left the dispatcher", slow.MaxTries)
+	}
+	if plain := liveTask(a, "plain1"); plain.MaxTries != 3 {
+		t.Errorf("MaxTries = %d on a host with no entry, want the global 3", plain.MaxTries)
+	}
+}
+
+// TestTheLastFailureSaysWhatItRanOutOf covers the branch that most needs the
+// number and is the easiest one to forget, because it arms no retry: a row that
+// has spent its budget is the row somebody is about to raise "Automatic retries"
+// for, and "no retries left" is only worth reading beside the count it ran out
+// of.
+//
+// The task arrives already at its ceiling with nothing recorded on it, which is
+// not a contrivance: the spent count is persisted and the ceiling deliberately
+// is not, so after any restart the very next failure is an exhausted one with no
+// number on it yet. Driving two failures through instead proved nothing at all -
+// the first one takes the counting branch and leaves the ceiling behind, so the
+// assertion passed with this branch deleted.
+func TestTheLastFailureSaysWhatItRanOutOf(t *testing.T) {
+	a := retryApp(t, func(s *settings.Settings) { s.MaxRetries = 2 })
+	runningOn(a, "plain1", plainHost, simpleResolverID)
+	a.mu.Lock()
+	a.tasks["plain1"].Retries = 2
+	a.mu.Unlock()
+
+	a.onUpdate("plain1", core.Update{Status: core.StatusError, Err: "the transfer broke"})
+
+	got := liveTask(a, "plain1")
+	if !got.NextTry.IsZero() {
+		t.Fatalf("a retry is pending at %s, so this task has not run out of attempts and the test proves nothing", got.NextTry)
+	}
+	if got.GaveUp {
+		t.Fatal("out of attempts settled as a deliberate refusal, which is the other end state")
+	}
+	if got.MaxTries != 2 {
+		t.Errorf("MaxTries = %d, want 2: the exhausted row cannot say what it was out of", got.MaxTries)
+	}
+	if got.Retries != 2 {
+		t.Errorf("Retries = %d, want the two attempts that were allowed and spent", got.Retries)
+	}
+}
+
+// TestAFinishedDownloadKeepsNoCeiling is the clear that goes with the counter.
+// Retries is reset when a download finishes so a later restart does not begin
+// one attempt short of its own budget; a ceiling left behind on its own is a
+// denominator over nothing, describing a failure that is over.
+func TestAFinishedDownloadKeepsNoCeiling(t *testing.T) {
+	a := retryApp(t, func(*settings.Settings) {})
+	runningOn(a, "plain1", plainHost, simpleResolverID)
+
+	a.onUpdate("plain1", core.Update{Status: core.StatusError, Err: "the transfer broke"})
+	if got := liveTask(a, "plain1"); got.MaxTries == 0 {
+		t.Fatal("the failure recorded no ceiling, so there is nothing here for the finish to clear")
+	}
+	a.onUpdate("plain1", core.Update{Status: core.StatusDone})
+
+	got := liveTask(a, "plain1")
+	if got.MaxTries != 0 {
+		t.Errorf("MaxTries = %d on a finished download, want it cleared with Retries", got.MaxTries)
+	}
+	if got.Retries != 0 {
+		t.Errorf("Retries = %d, want the spent attempts cleared - the pre-existing half of this reset", got.Retries)
+	}
+}
+
+// TestAnAbandonedRetryTimerIsNotThisTasksRetry. Every armed retry leaves a
+// time.AfterFunc behind that nothing can cancel, and the check it woke up to
+// make used to be "is SOME retry pending". Cut a wait short - the restart button
+// already does exactly that - let the task run and fail again onto a longer
+// wait, and the abandoned first timer still fires at its own mark and restarts
+// the download in the middle of the wait the row is showing. It spends an
+// attempt out of turn, and a visible countdown is what turns that from invisible
+// into a contradiction on screen.
+//
+// The second half is the point of the first: a guard that never fires would pass
+// the stale case and switch the automatic retries off altogether.
+func TestAnAbandonedRetryTimerIsNotThisTasksRetry(t *testing.T) {
+	a := retryApp(t, func(*settings.Settings) {})
+	abandoned := time.Now().Add(-5 * time.Minute) // what the old timer was armed for
+	current := time.Now().Add(10 * time.Minute)   // what the row is counting down to now
+	a.mu.Lock()
+	a.tasks["p1"] = &core.Task{
+		ID: "p1", URL: "https://" + plainHost + "/p1.bin", Name: "p1.bin",
+		Resolver: simpleResolverID, Status: core.StatusError, Enabled: true,
+		Retries: 2, MaxTries: 3, NextTry: current,
+	}
+	a.mu.Unlock()
+
+	started := func() bool { return liveTask(a, "p1").Status != core.StatusError }
+
+	// Polled rather than read once: the timer runs on its own goroutine, and a
+	// restart that has not happened yet looks exactly like one that never will.
+	a.retryAfter("p1", 0, abandoned)
+	if pollUntil(t, time.Second, started) {
+		t.Error("a timer armed for a deadline the task no longer carries restarted it anyway")
+	}
+	if got := liveTask(a, "p1"); !got.NextTry.Equal(current) {
+		t.Errorf("NextTry = %v, want the deadline the row is showing left alone", got.NextTry)
+	}
+
+	a.retryAfter("p1", 0, current)
+	if !pollUntil(t, 5*time.Second, started) {
+		t.Error("the retry that IS pending never ran, so the guard has switched automatic retries off")
+	}
+}
+
 // TestGivingUpIsTakenBackWhenTheTaskIsQueuedAgain. The flag is raised where a
 // failure settles and cleared by any dispatch pass that meets the task in the
 // wait queue - which is the one point every path back to "we are trying this"

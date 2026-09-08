@@ -1140,6 +1140,59 @@ export async function fetchTasks(base = '/api'): Promise<Task[]> {
 export const taskFileURL = (id: string, base = '/api'): string => `${base}/tasks/${encodeURIComponent(id)}/file`;
 
 /**
+ * Whether a base points at THIS instance rather than at a federated peer.
+ *
+ * It exists because the peer path is not merely slower, it is wrong: the
+ * federation proxy forwards everything under "tasks/", reads at most 32 MB of
+ * the answer into memory, forwards no Range header at all, and relabels
+ * whatever comes back as application/json. A player pointed at that gets a
+ * truncated body with a lying content type. Anything that streams bytes asks
+ * this first.
+ */
+export const isLocalBase = (base: string): boolean => base === '/api';
+
+/**
+ * What GET /api/tasks/{id}/file would answer, asked with HEAD so nothing is
+ * transferred to find out.
+ *
+ * Go's ServeMux answers a "GET" pattern for HEAD as well, so this is the same
+ * handler, the same safety check and the same three refusals: 404 is "nothing
+ * on disk yet", 400 is "not this app's file to serve" (a task the JD sidecar
+ * fetched), 403 is a stored path that would leave its own folder. Kept as a
+ * number rather than folded into a boolean, because the three call for three
+ * different sentences.
+ *
+ * `bytes` is Content-Length, which http.ServeContent measures by seeking the
+ * open file, so it is what is on disk THIS second and not the total the hoster
+ * announced. A running download grows between two calls.
+ *
+ * `contentType` is the server's own answer from its extension allowlist. It is
+ * never sniffed from the file, so it is safe to reason about.
+ */
+export interface TaskFileHead {
+  ok: boolean;
+  status: number;
+  /** Bytes on disk right now; 0 when the server sent no length. */
+  bytes: number;
+  /** Lower-cased, parameters stripped: "video/mp4", not "text/plain; charset=utf-8". */
+  contentType: string;
+  /** Whether byte ranges were offered, which is what a player seeks with. */
+  ranges: boolean;
+}
+
+export async function taskFileHead(id: string, base = '/api'): Promise<TaskFileHead> {
+  const r = await fetch(taskFileURL(id, base), { method: 'HEAD' });
+  const len = Number(r.headers.get('Content-Length') ?? '');
+  return {
+    ok: r.ok,
+    status: r.status,
+    bytes: Number.isFinite(len) ? len : 0,
+    contentType: (r.headers.get('Content-Type') ?? '').split(';')[0].trim().toLowerCase(),
+    ranges: (r.headers.get('Accept-Ranges') ?? '').toLowerCase() === 'bytes',
+  };
+}
+
+/**
  * hosterIconURL is one host's own site icon, fetched and cached by the server
  * (internal/app/app_hostericons.go). Opened as an <img src>, not through this
  * client: a 404 is the ordinary answer for a host with no favicon, and an

@@ -32,12 +32,6 @@ const (
 	AvailUncheckable Availability = "uncheckable"
 )
 
-// Reason is why a task failed, as a value rather than as prose. The message on
-// Error is for the person reading the list; this is what the app itself acts on,
-// which is why a reconnect can fire on an address-keyed limit and never on a
-// 404. An error nothing recognises stays ReasonUnknown rather than being guessed
-// at: a generic failure that reboots the router is worse than no reason at all.
-// The taxonomy itself is filled in where failures are classified.
 // DownloadMode is whether a transfer goes out on a paid account or anonymously.
 //
 // Only meaningful for a link a hoster is on the other end of: an ordinary file
@@ -59,6 +53,12 @@ const (
 	ModePremium DownloadMode = "premium"
 )
 
+// Reason is why a task failed, as a value rather than as prose. The message on
+// Error is for the person reading the list; this is what the app itself acts on,
+// which is why a reconnect can fire on an address-keyed limit and never on a
+// 404. An error nothing recognises stays ReasonUnknown rather than being guessed
+// at: a generic failure that reboots the router is worse than no reason at all.
+// The taxonomy itself is filled in where failures are classified.
 type Reason string
 
 // ReasonUnknown is an error nothing has classified.
@@ -97,6 +97,36 @@ const (
 	// ReasonCancelled is the run being called off from this side rather than
 	// failing: a shutdown, a task taken away underneath the attempt.
 	ReasonCancelled Reason = "cancelled"
+
+	// The five below are named by the BACKEND that hit them and not by the
+	// shared classifier - see Update.Reason for the contract, and
+	// internal/resolver/ytdlp/diagnose.go for the one producer there is today.
+	// They earn their own words rather than settling as ReasonAuth or
+	// ReasonGone because each has a different remedy, and the remedy is the
+	// only thing a name in here is for.
+
+	// ReasonBotCheck is the site refusing an address it has decided is
+	// automated ("Sign in to confirm you're not a bot"). Waiting, a slower
+	// download and another attempt all leave it exactly where it was; arriving
+	// as a session that is already signed in is what clears it.
+	ReasonBotCheck Reason = "botCheck"
+	// ReasonMembersOnly is the video sitting behind a membership the session
+	// that asked for it does not hold. Signing in is necessary and, without
+	// the membership on that account, not sufficient.
+	ReasonMembersOnly Reason = "membersOnly"
+	// ReasonGeoBlocked is the site declining to serve this region. It is keyed
+	// to the address and not to the account, which is what makes it a
+	// different word from ReasonAuth: no credential mends it.
+	ReasonGeoBlocked Reason = "geoBlocked"
+	// ReasonDRM is the media arriving encrypted, with the key going only to a
+	// player the site trusts. Nothing in this app is configurable for it.
+	ReasonDRM Reason = "drm"
+	// ReasonExtractorBroken is the tool saying it could not read the page and
+	// asking for a bug report - almost always the site moved something. A
+	// newer yt-dlp usually has it working again within days, which for a
+	// container that installs yt-dlp from its package manager means a newer
+	// image and not a button.
+	ReasonExtractorBroken Reason = "extractorBroken"
 )
 
 // Waiting is why a queued task is not running, as a value rather than as
@@ -158,6 +188,15 @@ const (
 	// is the whole point of checking before the transfer rather than after the
 	// write that ran out.
 	WaitingDisk Waiting = "disk"
+	// WaitingVolume is the volume allowance for this period being used up, with
+	// the cap set to hold the queue back rather than only to report.
+	//
+	// Apart from WaitingHalted although both stop the whole queue, because they
+	// are undone by different acts: a halt ends when somebody presses play, and
+	// this ends when the counter starts over on a day they chose or when they
+	// raise the cap. A row that said "halted" would send the reader to the one
+	// button that changes nothing here.
+	WaitingVolume Waiting = "volumeCap"
 )
 
 // Origin is the intake path a link arrived by — the paste box, the watch folder,
@@ -183,6 +222,21 @@ type Update struct {
 	// do this" and "this did not work", and only the former should hand the
 	// task to the next backend in the chain.
 	Unsupported bool
+	// Reason is a cause the BACKEND itself recognised, and it wins over the
+	// shared classifier in internal/app.
+	//
+	// Same contract as Unsupported just above, and for the same kind of reason:
+	// only the process that read the whole of its own tool's output can tell
+	// "the site thinks we are a bot" from "the site said 403". What reaches the
+	// classifier is one sentence cut to fit Err, and the words that told those
+	// two apart are the first thing that cut takes away - see
+	// internal/resolver/ytdlp/diagnose.go, where today's only producer sets out
+	// what else goes wrong on the way.
+	//
+	// EMPTY IS "NO OPINION", NOT "UNCLASSIFIED". A backend that sets nothing
+	// here leaves the classifier to answer exactly as it always has, which is
+	// every backend but one.
+	Reason Reason
 	// Note is what the backend is doing RIGHT NOW, in its own words, for a task
 	// that is running but not moving bytes.
 	//
@@ -321,6 +375,40 @@ type Task struct {
 	Retries int `json:"retries,omitempty"`
 	// NextTry is when an automatic retry is due (zero = none pending).
 	NextTry time.Time `json:"nextTry,omitempty"`
+	// MaxTries is how many automatic retries THIS failure gets in total: what
+	// settings.RetryFor answered for its own reason and its own host at the
+	// moment the failure settled. It is the denominator Retries counts against,
+	// so a row is at "retry 2 of 3" and never at "attempt 2 of 3" - the first
+	// run is not a retry, and the setting these two numbers belong to is called
+	// "Automatic retries".
+	//
+	// ZERO IS "NOBODY HAS SAID", NOT "NO ATTEMPTS ALLOWED": nothing has failed
+	// yet, or the failure settled on one of the branches that DECIDE instead of
+	// counting (see GaveUp below), or the row was written by a build older than
+	// this field. Whoever renders it drops the denominator; inventing one is
+	// worse than showing none.
+	//
+	// IT IS HERE BECAUSE NOTHING OUTSIDE THIS PACKAGE CAN WORK IT OUT. The
+	// number is a host rule merged over the per-reason table merged over
+	// MaxRetries, field by field, with the host picked by the longest
+	// dot-boundary match and "never" OR-ed rather than fallen back - see
+	// settings.RetryFor and settings.HostRuleFor. A list that took the global
+	// count instead would be a second copy of that policy, and on a page showing
+	// a PEER instance's queue it would print this box's number over another
+	// box's downloads.
+	//
+	// A SNAPSHOT AND NOT A LIVE READING, which will be reported as a bug and is
+	// not one: raise "Automatic retries" from three to five and every row that
+	// has already failed keeps saying "of 3" until it fails again. The timer
+	// already armed was armed against the old ceiling, so the old ceiling is the
+	// true answer for that row.
+	//
+	// Not persisted, for the reason GaveUp below is not: it is a verdict about a
+	// failure that happened in a process which is gone, and the policy may have
+	// been rewritten while it was. A row that comes back from a restart carries
+	// its spent count and no ceiling, which is the app declining to make a claim
+	// about a budget this build never measured.
+	MaxTries int `json:"maxTries,omitempty"`
 	// GaveUp is a failure the app will not try again ON PURPOSE, as opposed to
 	// one that has merely run out of attempts.
 	//

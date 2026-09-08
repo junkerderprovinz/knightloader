@@ -12,6 +12,7 @@ import { SettingsProvider, type FeatureAccess, type SettingsDraft } from './sett
 import { fetchFeatures, setFeature, type FeaturePage, type FeatureState } from './settings/features';
 import { same } from './settings/paths';
 import { FALLBACK_PAGE, hasContent, pageIcon, renderSettingsPage } from './settings/registry';
+import { SettingsSearch } from './settings/SettingsSearch';
 import { label, useTx } from './settings/tx';
 
 /**
@@ -264,7 +265,20 @@ export function SettingsPage() {
             tab saves itself automatically (the debounced effect above),
             confirmed by the same toast Look.tsx's own auto-save already
             uses. */}
-        <div className="flex min-w-0 flex-1 flex-col gap-6 overflow-y-auto p-6 md:p-8">
+        {/* data-settings-content, so the search's own DOM lookups are scoped to
+            this column and can never pick up the rail (which draws the same page
+            names) or an InfoBubble tip portaled onto document.body (which
+            carries the same hint text a result was matched on). See
+            settings/jump.ts. */}
+        <div data-settings-content className="flex min-w-0 flex-1 flex-col gap-6 overflow-y-auto p-6 md:p-8">
+          {/* Top of the content column and not in PageHeader: that renders above
+              the rail-plus-column flex, so a field there would push the rail down
+              and stop it running from the top of the window to the bottom, which
+              is the single reason app/Layout.tsx gives this one page its own
+              frame. Outside the Routes below, so a search survives moving between
+              sections - and so the jump it started still has somewhere to run
+              once the new page has mounted. */}
+          <SettingsSearch pages={features.pages} />
           <Routes>
             <Route index element={<RememberedPage pages={features.pages} />} />
             <Route path=":page" element={<SubPage pages={features.pages} />} />
@@ -311,8 +325,13 @@ export function SettingsPage() {
  * silently vanishing because an old order array doesn't name it yet, and a
  * page removed from the registry since just drops out on its own (the
  * `.filter` below only keeps ids `pages` still has).
+ *
+ * Exported because the settings search groups its results in the same order the
+ * rail draws its tiles in, and a second copy of eight lines is a second place
+ * for "what happens to a page the stored order has never heard of" to be
+ * answered differently.
  */
-function orderPages(pages: FeaturePage[], order: string[]): FeaturePage[] {
+export function orderPages(pages: FeaturePage[], order: string[]): FeaturePage[] {
   const byId = new Map(pages.map((p) => [p.id, p]));
   const known = order.map((id) => byId.get(id)).filter((p): p is FeaturePage => p !== undefined);
   const seen = new Set(known.map((p) => p.id));

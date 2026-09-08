@@ -396,7 +396,11 @@ function fmtDateFull(iso: string | undefined): string {
  * drift apart. Null for an unrouted task - "nobody has decided yet" has no
  * text to show wherever it is asked from.
  */
-function useConnectionLabel(task: Task, t: Translate, base: string): { text: string; hint: string } | null {
+// Exported since the task detail panel resolves a connection to the same
+// words this column and the row tooltip already use. One lookup, one
+// vocabulary: a second copy in the panel would drift the first time a
+// connection kind is renamed.
+export function useConnectionLabel(task: Task, t: Translate, base: string): { text: string; hint: string } | null {
   const rows = useConnections(base);
   const id = task.connection ?? '';
   if (!id) return null;

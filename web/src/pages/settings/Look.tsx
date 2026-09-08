@@ -43,6 +43,7 @@ import {
 import { useDraft, useFeatures } from './context';
 import { WATCH_SUPPORTED } from '../../lib/clipboardWatch';
 import { useClipboardWatch } from '../../lib/useClipboardWatch';
+import { NotificationsCard } from './look/Notifications';
 
 /**
  * accentSlot is which of the eight preset positions a colour belongs to.
@@ -738,6 +739,13 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
       )}
 
       {general && <LinkIntakeCard />}
+
+      {/* Above Quiet mode, not merged into it: the reading order is "what each
+          event does" and then "and here is the one switch that mutes the
+          harmless ones". Hue 12 rather than the next free small number - it
+          wraps to palette position 4, which does not collide with the hue 2 of
+          the card immediately below it. */}
+      {general && <NotificationsCard hue={12} />}
 
       {general && (
       <Card hue={2} className="flex flex-col gap-3">

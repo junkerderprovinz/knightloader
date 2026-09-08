@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type { SVGProps } from 'react';
 import { Button, Card, ErrorCard, IconBadge, InfoBubble, LoadingCard, SectionTitle, TextInput, Toggle } from '../../components/ui';
 import {
@@ -112,6 +113,53 @@ export function Rules() {
       live = false;
     };
   }, []);
+
+  // A rule chip in the task detail panel links here by NAME, because there is
+  // no id to link by: rules.Rule carries Name, Disabled, Conditions and Action
+  // and nothing else. The panel therefore hands the name over and this page
+  // resolves it, rather than the panel fetching /api/settings to resolve it
+  // itself.
+  const [params, setParams] = useSearchParams();
+  const wanted = params.get('rule');
+  useEffect(() => {
+    if (!wanted) return;
+    // The English literal from internal/rules' own ruleName, NOT
+    // rx('settings.rules.unnamed'). The server writes `fmt.Sprintf("rule %d",
+    // index+1)` - lower case, English, unconditional - while the catalogue says
+    // "Rule {n}" / "Regel {n}", so comparing against the translated form misses
+    // in every language, English included, on the capital R alone.
+    const nameAt = (r: Rule, i: number) => r.name?.trim() || `rule ${i + 1}`;
+    let hit = false;
+    // Both sets, because the Packagizer and the link filter both write into the
+    // same matchedRules field.
+    for (const f of ['packagizer', 'filter'] as Flavour[]) {
+      const i = (readSet(cfg, f).rules ?? []).findIndex((r, j) => nameAt(r, j) === wanted);
+      if (i >= 0) {
+        setFlavour(f);
+        setOpenRule(i);
+        setReport(null);
+        hit = true;
+        break;
+      }
+    }
+    // Never silently nothing. A rule renamed since the link was staged is
+    // unfindable by design, and an unnamed one stored as "rule 3" points at
+    // whatever is third TODAY, which this page's own move, duplicate and remove
+    // reorder freely. Saying so is the whole difference between a dead link and
+    // an explained one.
+    if (!hit) setNotice(rx('settings.rules.notFound', { name: wanted }));
+    // A one-shot instruction, not state. Left in the address it would re-open
+    // the rule on every draft edit (cfg gets a fresh identity per patch) and
+    // fight anybody who then clicked a different rule.
+    setParams(
+      (p) => {
+        const n = new URLSearchParams(p);
+        n.delete('rule');
+        return n;
+      },
+      { replace: true },
+    );
+  }, [wanted, cfg, rx, setParams]);
 
   // The dry run, debounced, on every edit to either the set or the samples.
   //
