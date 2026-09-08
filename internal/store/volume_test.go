@@ -66,17 +66,30 @@ func bucketOf(t *testing.T, got []VolumeBucket, key string) VolumeBucket {
 }
 
 // TestVolumeBucketsCutTheDayOnTheServersOwnCalendar is the guard on the one
-// word that makes the curve mean anything: 'localtime'.
+// word that makes the curve mean anything: 'localtime'. A day here is a day on
+// the server's own clock, because the monthly cap is enforced against that day,
+// and a chart bucketing in UTC would disagree with the number holding somebody's
+// queue back.
 //
-// Both downloads below finish on 14 March by UTC and on two different days by
-// the server's clock. Bucketed in UTC they would be one bar; the cap is
-// enforced against the server's day, so a chart that drew them that way would
-// disagree with the number holding somebody's queue back.
+// THE INSTANTS ARE BUILT FROM THE LOCAL CALENDAR, and that is the fix rather
+// than the setup. The first version of this test hardcoded two UTC instants and
+// asserted they fall on two different local days, which is only true in some
+// zones: it wanted an offset of about +09, passed on this machine for an
+// unrelated reason (SQLite's 'localtime' and Go's time.Local do not resolve
+// identically on Windows), and failed on CI, where both are UTC and the two
+// instants are simply the same day. A test whose answer depends on where the
+// machine is standing proves nothing about the code.
+//
+// Local midday on two consecutive local days is the portable form: whatever the
+// offset, and even if SQLite and Go disagree about it by an hour or two, noon
+// cannot fall over a midnight. What is left is exactly the claim - two instants
+// on two different local days come back as two buckets, keyed by those days.
 func TestVolumeBucketsCutTheDayOnTheServersOwnCalendar(t *testing.T) {
 	s := volumeStore(t)
-	// 20:00Z is 05:00 on the 15th in +09; 05:00Z is 14:00 on the 14th.
-	finished(t, s, "late", "host.example", "direct", 1000, time.Date(2026, 3, 14, 20, 0, 0, 0, time.UTC))
-	finished(t, s, "early", "host.example", "direct", 2000, time.Date(2026, 3, 14, 5, 0, 0, 0, time.UTC))
+	first := time.Date(2026, 3, 14, 12, 0, 0, 0, time.Local)
+	second := time.Date(2026, 3, 15, 12, 0, 0, 0, time.Local)
+	finished(t, s, "early", "host.example", "direct", 2000, first)
+	finished(t, s, "late", "host.example", "direct", 1000, second)
 
 	got, err := s.VolumeBuckets(time.Date(2026, 3, 1, 0, 0, 0, 0, time.Local), VolumeDay)
 	if err != nil {
@@ -85,14 +98,15 @@ func TestVolumeBucketsCutTheDayOnTheServersOwnCalendar(t *testing.T) {
 	if len(got) != 2 {
 		t.Fatalf("%d buckets, want the two local days those instants fall on: %+v", len(got), got)
 	}
-	if b := bucketOf(t, got, "2026-03-14"); b.Bytes != 2000 {
-		t.Errorf("2026-03-14 holds %d bytes, want the 2000 that finished at 14:00 local", b.Bytes)
+	firstKey, secondKey := first.Format("2006-01-02"), second.Format("2006-01-02")
+	if b := bucketOf(t, got, firstKey); b.Bytes != 2000 {
+		t.Errorf("%s holds %d bytes, want the 2000 that finished at midday local", firstKey, b.Bytes)
 	}
-	if b := bucketOf(t, got, "2026-03-15"); b.Bytes != 1000 {
-		t.Errorf("2026-03-15 holds %d bytes, want the 1000 that finished at 05:00 local", b.Bytes)
+	if b := bucketOf(t, got, secondKey); b.Bytes != 1000 {
+		t.Errorf("%s holds %d bytes, want the 1000 that finished at midday local", secondKey, b.Bytes)
 	}
 	// Oldest first, so a chart can draw them in the order they arrive.
-	if got[0].Key != "2026-03-14" {
+	if got[0].Key != firstKey {
 		t.Errorf("first bucket is %q, want the oldest day", got[0].Key)
 	}
 }
