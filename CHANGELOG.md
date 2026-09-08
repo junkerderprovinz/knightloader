@@ -43,6 +43,36 @@ submission and for a fixed download.
 
 ### Added
 
+- **Your own request headers for one site, and your own sign-in cookies for
+  yt-dlp, can finally be managed.** Both were built, encrypted and completely
+  unreachable: they are sealed in the credential store on purpose, so that a
+  cookie or a token can never land in a diagnostics bundle, and sealing them was
+  the half that got done. Now there are routes and a page for each. **A stored
+  value is never shown again** in either: a profile is its site plus the header
+  names it holds, and a cookie jar is a site plus the word "stored". Editing a
+  profile you already have keeps every value you do not touch, which is the one
+  thing that had to be right, because an empty value means "delete this header".
+- **A feed subscription says how it is doing, and can be tested before it is
+  saved.** Whether it is being checked, when it was last checked, why the last
+  check failed, whether the first run has happened and how many entries it
+  recognises again. The test button fetches the address once and shows the
+  feed's name and its first entries, each marked taken or left by your title
+  filter. **It stages nothing and remembers nothing**, which is what makes it
+  usable on an address you have not saved: a title filter is a pattern typed
+  against titles nobody has seen, and this is the only way to see them.
+- **A Packagizer rule can file links into a category.** The drawers were
+  buildable last wave and nothing could put anything in one, because the rule
+  editor had no such action. The grammar and the control had to land together: a
+  grammar entry on its own would have put an accept/reject switch on the
+  Packagizer tab wearing the word "Category", and there is now a test that reads
+  the editor's source from Go and refuses to let that happen again.
+- **A category's unpacking switch, collision rule and queue position are read.**
+  Until now only its folder was. The queue position is written once, when the
+  link arrives, and never again, so a download you have dragged up the list
+  stays where you put it. The speed limit is still stored and still does
+  nothing, and its own hint says so: this build has one limiter for the whole
+  app, shared between the backends by measured demand, and there is no
+  per-download allowance to write a number into.
 - **Twelve features that were finished but unreachable now have controls.** Each
   of them worked, was tested and shipped, and could only be set by editing
   `settings.json` by hand or by calling the API, which is a feature nobody has.

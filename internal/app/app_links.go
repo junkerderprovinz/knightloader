@@ -1152,6 +1152,27 @@ func (a *App) packagize(t *core.Task, cand rules.Candidate) {
 		// Already clamped to the same range SetPriority uses, so a rule cannot
 		// hand a task a priority the interface has no way to undo.
 		t.Priority = *e.Priority
+	} else if p, ok := a.Settings.Get().PriorityFor(t.Category); ok {
+		// A category's priority is written HERE and nowhere else: at creation,
+		// once, and never again.
+		//
+		// It cannot go in the dispatcher, which is the tempting place, because
+		// dispatchLocked runs on nearly every event in the app - so the pass
+		// after somebody dragged a download up the list would silently put it
+		// back where the drawer says, with nothing on screen explaining why.
+		// And the exception cannot be written either: core.Task.Priority is a
+		// plain int on which 0 is the MIDDLE priority and a real answer, so once
+		// a task exists, "somebody set this by hand" and "nobody ever touched
+		// it" are the same value. That is exactly why settings.Category.Priority
+		// is a *int and PriorityFor answers with a second result.
+		//
+		// The `ok` is load-bearing and a `p != 0` would be wrong twice over: a
+		// drawer asking for the middle priority is asking for something, and a
+		// task a rule has already lifted must not be pushed back down by a
+		// drawer that said nothing. Hence the else, so a rule keeps beating the
+		// drawer, which is dirFor's order for the folder as well: more evidence
+		// wins, and a rule looked at THIS link.
+		t.Priority = p
 	}
 	if e.Chunks != nil {
 		t.Chunks = *e.Chunks

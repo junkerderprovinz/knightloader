@@ -146,26 +146,10 @@ func TestACategoryIsNotTheFiletypeCategory(t *testing.T) {
 	}
 }
 
-// TestTheGrammarStillDescribesNoCategoryAction is a guard rather than a
-// feature, and it is here so that adding the action to the editor is a
-// deliberate act.
-//
-// web/src/components/RuleEditor.tsx switches on ActionGrammar.Kind and FALLS
-// THROUGH to the reject control for a kind it does not know. Describing this
-// action today would therefore not put a missing control on the Packagizer tab,
-// it would put a working accept/reject switch there, wired to Action.Reject - a
-// control that quietly edits the wrong field, which is the exact failure
-// grammar.go exists to prevent and the same trap Action.Headers is already held
-// out of the list by.
-//
-// The line to add, once that renderer has a branch that offers the stored
-// category list, is:
-//
-//	{ID: "category", Kind: "category", Flavour: "packagizer", Max: intPtr(MaxCategoryRef)},
-func TestTheGrammarStillDescribesNoCategoryAction(t *testing.T) {
-	for _, a := range Describe().Actions {
-		if a.ID == "category" && a.Kind != "category" {
-			t.Fatalf("the category action is described as kind %q; the editor renders an unknown kind as a reject switch", a.Kind)
-		}
-	}
-}
+// The guard that used to stand here pinned the grammar's DELIBERATE silence
+// about this action, so that describing it would be an act somebody had to
+// take on purpose. It has been taken: the line it wrote out is in Describe now,
+// and the reason it gave for holding it back, that the editor renders an
+// unknown kind as a working accept/reject switch, is checked against the
+// editor's own source instead of being described in a comment. See
+// grammar_category_test.go.

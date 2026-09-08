@@ -17,6 +17,7 @@ import {
   type RuleSet,
 } from '../../components/RuleEditor';
 import { IconArrowDown, IconArrowUp, IconPlus, IconTrash } from '../../lib/icons';
+import type { Category as Drawer } from '../../lib/api';
 import { useDraft } from './context';
 import { NeutralSwitch } from './controls';
 
@@ -345,6 +346,7 @@ export function Rules() {
                 problems={problemsFor(i)}
                 matched={report?.rules.find((r) => r.index === i)?.matched ?? 0}
                 samples={report?.links.length ?? 0}
+                categories={cfg.categories ?? []}
                 onToggle={() => setOpenRule(openRule === i ? -1 : i)}
                 onChange={(next) => writeRules(rules.map((r, j) => (j === i ? next : r)))}
                 onMove={(by) => move(i, by)}
@@ -405,6 +407,7 @@ function RuleRow({
   problems,
   matched,
   samples,
+  categories,
   onToggle,
   onChange,
   onMove,
@@ -420,6 +423,8 @@ function RuleRow({
   problems: Problem[];
   matched: number;
   samples: number;
+  /** The drawers the category action picks from, straight from the draft. */
+  categories: Drawer[];
   onToggle: () => void;
   onChange: (next: Rule) => void;
   onMove: (by: number) => void;
@@ -516,7 +521,14 @@ function RuleRow({
       {open && (
         <div className="glim-well mb-3 flex flex-col gap-4 p-4">
           {broken && <p className="text-[11px] text-statusFail">{rx('settings.rules.notRunning')}</p>}
-          <RuleEditor rule={rule} flavour={flavour} grammar={grammar} problems={problems} onChange={onChange} />
+          <RuleEditor
+            rule={rule}
+            flavour={flavour}
+            grammar={grammar}
+            problems={problems}
+            categories={categories}
+            onChange={onChange}
+          />
         </div>
       )}
     </li>

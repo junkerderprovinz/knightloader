@@ -77,6 +77,19 @@ func registerAll(reg *Registry, a *app.App) {
 	registerTorrents(reg, a)
 	registerDownloadClient(reg, a)
 	registerActivity(reg, a)
+	// Three subsystems that were complete and unreachable. The two credential
+	// stores below were sealed on purpose, so that a header value or a cookie
+	// jar never lands in the diagnostics bundle, and the price was that nothing
+	// could list, create or delete one either: grepping this package for
+	// "hostheaders" returned nothing at all. Sealed is right; unreachable was
+	// not, and the answer is a route that reads the names and never the values.
+	registerHostHeaders(reg, a)
+	registerYtdlpCookies(reg, a)
+	// The feed poller knew when it last ran, whether it failed and what it
+	// remembered, and said all of it to the log. A subscription pointed at a
+	// dead address therefore looked exactly like one that works and has nothing
+	// new, which is the one distinction the settings card most needs to draw.
+	registerFeeds(reg, a)
 }
 
 // AnyMethod is the method of a route that answers whatever it is sent, because

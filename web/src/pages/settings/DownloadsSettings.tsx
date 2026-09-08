@@ -8,18 +8,25 @@ import { Tabs } from '../../components/Tabs';
 import { fetchIdleActions, fetchOptions } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft } from './context';
-// Six cards that each own one subject, in their own files under ./downloads.
+// Seven cards that each own one subject, in their own files under ./downloads.
 // They live beside this page rather than inside it because this file was the
-// natural home for all six and would have been the wrong one: a page that
-// answers ten questions in one 1200-line component is a file nobody can edit
-// two things in at once. Each card reads and writes the same shared draft
+// natural home for all seven and would have been the wrong one: a page that
+// answers eleven questions in one 1500-line component is a file nobody can edit
+// two things in at once. Six of them read and write the same shared draft
 // through useDraft, so splitting them costs nothing at runtime, and each takes
 // its hue as a prop because the ORDER of the cards is this page's decision and
 // a jumbled badge sequence reads as a bug.
+//
+// HeaderProfiles is the exception and the reason is worth knowing: its values
+// live in the encrypted credential store behind their own routes, never in
+// settings.json, so that a header value cannot reach the diagnostics bundle.
+// That card therefore saves itself and the bar at the bottom knows nothing
+// about it.
 import { CollisionCard } from './downloads/Collision';
 import { CollectorCard } from './downloads/Collector';
 import { DiskSpaceCard } from './downloads/DiskSpace';
 import { FeedsCard } from './downloads/Feeds';
+import { HeaderProfilesCard } from './downloads/HeaderProfiles';
 import { HostRulesCard } from './downloads/HostRules';
 import { StallCard } from './downloads/Stall';
 
@@ -242,20 +249,28 @@ export function DownloadsSettings() {
           instance down to its most delicate hoster. */}
       <HostRulesCard hue={3} />
 
+      {/* Beside the per-hoster numbers because it answers the same shape of
+          question, what THIS site needs that the others do not, and because a
+          site that wants its own headers usually wants its own connection
+          count too. Its values live in the credential store and not in the
+          settings document, so this card saves on its own rather than through
+          the bar at the bottom. */}
+      <HeaderProfilesCard hue={4} />
+
       {/* Then the two guards that stop a download rather than shape it: one
           watches the clock, one watches the disk. */}
-      <StallCard hue={4} />
-      <DiskSpaceCard hue={5} />
+      <StallCard hue={5} />
+      <DiskSpaceCard hue={6} />
 
       {/* What happens to links on the way IN, before any of the above applies. */}
-      <CollectorCard hue={6} />
+      <CollectorCard hue={7} />
 
       {/* The crawl, on its own, because it is the one thing on this page that
           sends requests to a server nobody here runs. Everything below the
           master switch is dimmed while it is off - a control that vanished
           would teach nobody what the mode can do, and one that disagrees with
           its own disabled siblings does. */}
-      <Card hue={7} className="flex flex-col gap-5">
+      <Card hue={8} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.crawl.title')}</SectionTitle>
         <ToggleRow hue={0} checked={cfg.crawl} onChange={(v) => patch({ crawl: v })} label={t('settings.crawl')} />
 
@@ -326,10 +341,10 @@ export function DownloadsSettings() {
       {/* The other way links arrive without anybody pasting them, and the
           server itself points people here for it: setFeature's refusal says
           "add a feed on the Downloads page". */}
-      <FeedsCard hue={8} />
+      <FeedsCard hue={9} />
 
       {idleActions.length > 0 && (
-          <Card hue={9} className="flex flex-col gap-5">
+          <Card hue={10} className="flex flex-col gap-5">
           <SectionTitle>{t('settings.downloads.idleTitle')}</SectionTitle>
           <FieldGroup
             layout="row"

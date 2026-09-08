@@ -24,24 +24,35 @@ import { useDraft } from './context';
  *
  * Four things here are decisions rather than layout.
  *
- * ONLY THE FOLDER IS LIVE IN THIS BUILD. dirFor calls CategoryDir when a task
- * carries a category, and that is the whole of it: ExtractFor, PriorityFor,
- * SpeedLimitFor and CollisionFor resolve correctly and have no callers outside
- * internal/settings, so a category that sets those four changes nothing today.
- * Four of the hints say so in as many words. That is deliberate and it is the Go
- * side's own standard - better than a settings page that quietly lies - and each
- * sentence has to come OUT of its hint in the same commit that wires its
- * resolver, or the page starts lying in the other direction.
+ * THE SPEED LIMIT IS THE ONE FIELD THAT STILL CHANGES NOTHING, and its hint
+ * says so. The folder, the unpacking switch, the collision rule and the queue
+ * position are all live: dirFor calls CategoryDir, extractWanted calls
+ * ExtractFor, the dispatcher and the last move both call CollisionFor, and
+ * packagize calls PriorityFor once, where the task is made.
  *
- * NOTHING CAN FILE A TASK INTO A CATEGORY FROM THE INTERFACE YET. The only
- * writer of Task.Category is a Packagizer rule effect, and the rule editor
- * cannot set that action: the grammar has no `category` entry, and ActionField
- * falls through to the reject control for a Kind it does not know, so adding the
- * grammar line alone would put an accept/reject switch on the Packagizer tab
- * wired to Action.Reject. There is no intake route that accepts a category
- * either. The table still has to exist first - nothing can point at a drawer
- * that is not there - but until at least the rule action lands, a person can
- * build drawers nothing files into.
+ * SpeedLimitFor still has no caller and cannot get one by wiring: internal/
+ * throttle is ONE limiter for the whole app, split between the engine, JD and
+ * yt-dlp by measured demand, and engine.Job has no rate field at all. Honouring
+ * a per-drawer limit means a bandwidth scheduler, not a line. The field goes on
+ * round-tripping so nobody's settings.json changes shape later.
+ *
+ * That sentence has to come OUT of its hint in the same commit that makes it
+ * false, in en.ts, de.ts and the other 40 locale files, or the page starts
+ * lying in the other direction. Three of these four sentences were removed that
+ * way when their resolvers were wired; this is the one that is still true.
+ *
+ * A PACKAGIZER RULE IS WHAT FILES A TASK INTO A DRAWER, and it is still the
+ * only writer of Task.Category. The rule editor can now set it: the grammar
+ * describes a `category` action and ActionField renders a picker for it. Both
+ * halves had to land together, because ActionField falls through to the
+ * accept/reject control for a Kind it does not know, so the grammar line alone
+ * would have put a reject switch on the Packagizer tab wired to Action.Reject.
+ * A Go test reads this file and refuses to let the grammar entry ship without
+ * that branch.
+ *
+ * What is still missing is a way to file a link by hand: no intake route
+ * accepts a category, so there is no picker at add-links time and no facet in
+ * the list.
  *
  * THE SERVER OWNS THE KEY. CategoryID derives an id from the name once, on save,
  * and never re-derives it, which is what makes renaming a category free. This

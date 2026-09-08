@@ -16,6 +16,7 @@ package app
 // of them having to learn that feeds exist.
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"strings"
@@ -23,6 +24,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/confirm"
 	"github.com/junkerderprovinz/knightloader/internal/feed"
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -180,6 +182,48 @@ func (a *App) applyFeeds(s settings.Settings) {
 		return
 	}
 	log.Printf("following %s", strings.Join(urls, ", "))
+}
+
+// FeedHealth reports how each subscription being polled is doing.
+//
+// A nil answer is a real one and not an empty instance: it means no runner, so
+// no address is being polled at all, which a caller has to be able to tell apart
+// from a subscription that is being polled and has nothing to say yet. The two
+// look identical in a table and only one of them is a problem.
+func (a *App) FeedHealth() []feed.Health {
+	a.fmu.Lock()
+	defer a.fmu.Unlock()
+	if a.feeds == nil {
+		return nil
+	}
+	return a.feeds.Health()
+}
+
+// feedTestClient is the client the test button's fetch goes through: one, built
+// once, rather than one per press. Somebody tuning a title filter presses that
+// button a dozen times in a minute, and a client per press is a connection pool
+// per press, each holding its idle connections open for a minute and a half
+// after the answer is on screen.
+//
+// It carries the app's shared outbound policy with nothing added, because that
+// is exactly what a poller's own client is (internal/feed builds
+// httpx.New(httpx.Options{}) for a runner it was handed no client for). The
+// whole worth of the button is that it answers about the request the
+// subscription will really make, so a different user agent or a different
+// ceiling here would make it answer about something else. Shared deliberately
+// and written down here, which is what internal/httpx asks of a caller that
+// shares one: nothing else in the process uses it.
+var feedTestClient = httpx.New(httpx.Options{})
+
+// InspectFeed fetches one feed once and reports what it carries, staging
+// nothing and marking nothing as seen. It is the settings page's test button.
+//
+// It goes nowhere near the live runner, deliberately. Testing an address the
+// runner is already polling must not disturb that subscription, and testing one
+// it has never seen must not create anything: this is a person asking what is at
+// an address, not a subscription being switched on.
+func (a *App) InspectFeed(ctx context.Context, s feed.Subscription) (feed.Preview, error) {
+	return feed.Inspect(ctx, feedTestClient, s)
 }
 
 // onFeedEntry receives one new entry. It runs on that subscription's polling

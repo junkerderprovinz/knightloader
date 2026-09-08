@@ -64,13 +64,20 @@ type ActionGrammar struct {
 	// engine reads and a typo is a compile error over here rather than a control
 	// that quietly does nothing.
 	ID string `json:"id"`
-	// Kind is how it is edited: template, int, bool or reject.
+	// Kind is how it is edited: template, int, bool, category or reject.
+	//
+	// It is the one field here the interface can get wrong without anybody
+	// seeing it, because the renderer switches on this string and has nowhere
+	// to fall but the last branch. See the note at the foot of Describe.
 	Kind string `json:"kind"`
 	// Flavour is which of the two engines honours it: "packagizer", "filter", or
 	// empty for both.
 	Flavour string `json:"flavour,omitempty"`
 	// Min and Max bound an int action, so the form clamps to the same numbers
-	// actionProblems refuses outside of.
+	// actionProblems refuses outside of. Max carries the same duty for a
+	// "category": there it is the longest id that could still address a stored
+	// drawer, so the form and the engine hold one copy of the number rather
+	// than two that drift.
 	Min *int `json:"min,omitempty"`
 	Max *int `json:"max,omitempty"`
 }
@@ -120,6 +127,31 @@ func Describe() Grammar {
 		Actions: []ActionGrammar{
 			{ID: "packageName", Kind: "template", Flavour: "packagizer"},
 			{ID: "downloadDir", Kind: "template", Flavour: "packagizer"},
+			// The drawer, beside the folder because they answer one question and
+			// a rule that sets both is a rule whose drawer will not decide where
+			// the file lands: dirFor takes the task's own folder first, and the
+			// category is only consulted when nothing else named one. The other
+			// things a drawer carries, the priority, the unpacking switch and the
+			// collision rule, still apply. Somebody who picks both should be able
+			// to see both.
+			//
+			// A PICK and never a template, which is the whole reason it can be
+			// offered at all. Every other packagizer string here is expanded, so
+			// <jd:hoster> in this box is the natural thing to try, and it would
+			// hand the far end of the connection its own download folder,
+			// priority and collision rule. It would also put the id out of reach
+			// of the one check that stands between a rule and a drawer that is
+			// not there: settings.ValidateCategories refuses the save, and it
+			// cannot weigh a value that does not exist until a link arrives.
+			// categoryProblem (action_category.go) refuses the placeholder at
+			// compile time so that check keeps its grip.
+			//
+			// Kind is "category" and the picker behind it is settings.Categories,
+			// NOT Grammar.Categories below. Those are the file-type shorthands a
+			// CONDITION offers and they share nothing but the word, so an editor
+			// that reaches for the list already in this same document builds a
+			// menu of "video", "audio" and "archive" that can never name a drawer.
+			{ID: "category", Kind: "category", Flavour: "packagizer", Max: intPtr(MaxCategoryRef)},
 			{ID: "comment", Kind: "template", Flavour: "packagizer"},
 			{ID: "priority", Kind: "int", Flavour: "packagizer",
 				Min: intPtr(PriorityMin), Max: intPtr(PriorityMax)},
@@ -137,6 +169,15 @@ func Describe() Grammar {
 			MaxPattern:  maxPattern,
 		},
 	}
+	// "category" above is the first Kind added since the renderer's fall-through
+	// was written down, and the entry is only half of that action. The other
+	// half is a branch in web/src/components/RuleEditor.tsx, and without it the
+	// Packagizer tab carries an accept/reject switch labelled "Category" that
+	// writes Action.Reject: the failure described below, in the tense it was
+	// still hypothetical in. TestEveryActionKindHasAControl refuses to let the
+	// two halves separate, because what used to hold them together was a note,
+	// and a note is read once.
+	//
 	// "headers" is deliberately absent from Actions too, and for a sharper
 	// reason than Filename's. Action.Headers exists, Apply fills it in and
 	// Compile checks it, but the editor's action renderer switches on Kind and
@@ -157,8 +198,8 @@ func Describe() Grammar {
 	// would let the link decide which credential gets attached to it.
 	//
 	// "filename" is deliberately absent from Actions. Action.Filename exists and
-	// Apply fills it in, but nothing downstream can honour it — the engine is
-	// handed a folder and names the file itself — so a rename offered in the form
+	// Apply fills it in, but nothing downstream can honour it (the engine is
+	// handed a folder and names the file itself), so a rename offered in the form
 	// would be a control that changes the list and not the disk. It stays in the
 	// engine because the wave that widens the download call will want it, and the
 	// dry run still reports it so an imported JDownloader set that renames is

@@ -2067,6 +2067,188 @@ export async function saveHosterPreset(host: string, preset: YtdlpHosterPreset, 
   if (!r.ok) throw new ApiError((await r.text()).trim() || String(r.status));
 }
 
+// ---- yt-dlp sign-in cookie jars (internal/api/routes_ytdlpcookies.go) ------
+//
+// One cookies.txt per site, sealed in the encrypted credential store. The jar
+// travels ONE way only: into the server. Nothing here can read one back, and
+// the list route answers names and nothing else, because a cookies.txt is a
+// live session. The Go side holds itself to that with its own guard test.
+
+/**
+ * The sites that have a stored jar, keyed the way every lookup keys them
+ * (lower-cased, "www." stripped). What comes back can therefore differ from
+ * what was sent, so render the answer rather than the request.
+ */
+export type YtdlpCookieHosts = string[];
+
+export async function fetchYtdlpCookieHosts(base = '/api'): Promise<YtdlpCookieHosts> {
+  return (await json<YtdlpCookieHosts>(await fetch(`${base}/ytdlp/cookies`))) ?? [];
+}
+
+/**
+ * saveYtdlpCookieJar stores or replaces one site's cookies.txt and answers the
+ * list that is now stored - the server's own re-read, not an echo.
+ *
+ * `text` is always sent. An empty string is the deliberate clear; leaving the
+ * field out is refused with a 400 rather than read as "keep the stored one",
+ * because a jar is never sent back to the page and a form re-saved without the
+ * textarea refilled would otherwise delete a working session in silence.
+ *
+ * `host` takes the address the jar was exported from
+ * ("https://www.youtube.com/watch?v=x") or the bare site name ("youtube.com").
+ * Something that is not a host at all throws an ApiError carrying the server's
+ * own sentence, which names the field and says what to send.
+ */
+export async function saveYtdlpCookieJar(
+  host: string,
+  text: string,
+  base = '/api',
+): Promise<YtdlpCookieHosts> {
+  return (await json<YtdlpCookieHosts>(await post(`${base}/ytdlp/cookies`, { host, text }))) ?? [];
+}
+
+/**
+ * removeYtdlpCookieJar deletes one site's jar and answers the remaining list.
+ * A host with nothing stored throws with status 404 rather than succeeding
+ * quietly: removing a jar is removing a logged-in session from this machine,
+ * and a green tick on a typo would leave somebody believing a live session is
+ * gone while it is still sealed under the name they meant to type.
+ */
+export async function removeYtdlpCookieJar(host: string, base = '/api'): Promise<YtdlpCookieHosts> {
+  return (await json<YtdlpCookieHosts>(await post(`${base}/ytdlp/cookies/remove`, { host }))) ?? [];
+}
+
+// ---- header profiles (internal/resolver/hostheaders) -----------------------
+//
+// A user's own request headers for one origin: the cookie from a logged-in
+// browser session, the Referer a forum insists on, the Basic auth a seedbox
+// sits behind. The values are sealed in the credential store and never come
+// back over this API, so a profile is its origin plus the header NAMES it
+// holds. That is why an editing form re-sends REDACTED_HEADER for every line it
+// is not changing: an empty value means "clear this header", here as it does
+// for every other secret in this app, so a form that re-sent what it was given
+// would delete the headers it was opened to edit.
+
+/** One stored header profile - hostheaders.Listing. Names only, never a value. */
+export interface HeaderProfile {
+  /** What the profile is stored under, and the name a Packagizer rule uses to
+   *  send a link through it. Letters, digits and - _ or . only, at most 64
+   *  characters. */
+  id: string;
+  /** scheme://host:port, with the port always spelled out. A different port,
+   *  and http instead of https, are different origins and need their own
+   *  profile: a sub-domain is not covered by its parent's profile either. */
+  origin: string;
+  /** The header names this profile holds, in net/http's capitalisation. */
+  headers: string[];
+}
+
+/** One header line on the way IN. */
+export interface HeaderProfileLine {
+  name: string;
+  /** A new value replaces what is stored, REDACTED_HEADER keeps it, and an
+   *  empty string clears that header. */
+  value: string;
+}
+
+/** The placeholder a stored value is re-sent as - hostheaders.Redacted, the
+ *  same string accounts.Redacted uses. A form rendering a stored profile must
+ *  send this back for every header it did not touch. */
+export const REDACTED_HEADER = '********';
+
+/** fetchHeaderProfiles is every stored profile: origin and header names. */
+export async function fetchHeaderProfiles(): Promise<HeaderProfile[]> {
+  return (await json<HeaderProfile[]>(await fetch('/api/hostheaders'))) ?? [];
+}
+
+/** saveHeaderProfile stores or replaces the profile for one origin and answers
+ *  the whole listing as the store now holds it. Leave id empty to edit the
+ *  profile that origin already has; creating one has to name it. */
+export async function saveHeaderProfile(
+  origin: string,
+  headers: HeaderProfileLine[],
+  id = '',
+): Promise<HeaderProfile[]> {
+  return json<HeaderProfile[]>(await post('/api/hostheaders', { id, origin, headers }));
+}
+
+/** deleteHeaderProfile removes one profile. An unknown name answers 404 rather
+ *  than a cheerful 204, for the same reason removeYtdlpCookieJar does. */
+export async function deleteHeaderProfile(id: string): Promise<void> {
+  await ok(await fetch(`/api/hostheaders/${encodeURIComponent(id)}`, { method: 'DELETE' }));
+}
+
+// --- Feed subscriptions: health and the test fetch --------------------------
+
+/**
+ * FeedStatus is one configured subscription as GET /api/feeds reports it.
+ *
+ * `lastPolledAt` absent is the flag for "nothing to report yet": the health
+ * table lives in the server's memory and a restart blanks it, while the
+ * subscription's memory of what it has already added survives. While it is
+ * absent, `seeded` and `remembered` are not yet known and must not be drawn as
+ * "has not seeded" and "remembers nothing".
+ */
+export interface FeedStatus {
+  url: string;
+  /** Whether this address is actually being polled. False with an `error` is a
+   *  row the server refused; false with no error is the moment at startup
+   *  before the runner has taken the list. */
+  polling: boolean;
+  /** RFC3339. Absent when no poll has run since the server started. */
+  lastPolledAt?: string;
+  /** Why the last poll produced nothing, or why the row is not polled at all. */
+  error?: string;
+  seeded: boolean;
+  remembered: number;
+}
+
+/** One entry of a test fetch, as a subscription would see it. */
+export interface FeedTestEntry {
+  title: string;
+  /** What would actually be staged, which for an entry carrying an enclosure is
+   *  the enclosure and not the article beside it. */
+  link: string;
+  /** Whether the title filter takes it. True for everything when there is none. */
+  matches: boolean;
+}
+
+/**
+ * FeedTest is what POST /api/feeds/test found. `error` set means the address
+ * could not be read; `entries` is then an empty list rather than null, so the
+ * panel has one shape to draw however the attempt ended.
+ */
+export interface FeedTest {
+  title: string;
+  entries: FeedTestEntry[];
+  /** Entries in the whole document; `entries` above is only the first few. */
+  total: number;
+  /** How many of `total` the filter takes. Equals `total` with no filter. */
+  matched: number;
+  error?: string;
+}
+
+/** fetchFeeds is the status table under the subscription rows. */
+export async function fetchFeeds(): Promise<FeedStatus[]> {
+  return (await json<FeedStatus[]>(await ok(await fetch('/api/feeds')))) ?? [];
+}
+
+/**
+ * testFeed fetches one feed once and reports what is in it. Nothing is staged
+ * and nothing is remembered, so it is safe to press on an address that has not
+ * been saved yet - which is the whole point, because a title filter is a
+ * pattern typed against titles nobody has seen.
+ *
+ * It throws with the server's own sentence when the row itself is wrong (an
+ * address that is not http or https, a pattern that will not compile): those
+ * are 400s and the sentence names the field. A feed that simply could not be
+ * read comes back as a normal result with `error` set.
+ */
+export async function testFeed(url: string, titleFilter = ''): Promise<FeedTest> {
+  const r = await ok(await post('/api/feeds/test', { url, titleFilter }));
+  return (await json<FeedTest>(r)) ?? { title: '', entries: [], total: 0, matched: 0 };
+}
+
 // ---- native hoster logins (internal/hosterauth) ----------------------------
 //
 // A per-host login rendered entirely in KL's own UI (see
