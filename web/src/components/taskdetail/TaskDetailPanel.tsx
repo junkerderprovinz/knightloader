@@ -4,6 +4,7 @@ import { useT } from '../../lib/i18n';
 import { reachable as taskFileReachable } from '../FileActions';
 import { FailureCard } from './FailureCard';
 import { LinkCard } from './LinkCard';
+import { LogCard } from './LogCard';
 import { PlayerCard } from './PlayerCard';
 import { RulesCard } from './RulesCard';
 import { TimesCard } from './TimesCard';
@@ -23,11 +24,13 @@ import { TimesCard } from './TimesCard';
  * attempt" or "the file" across eleven links, and a panel that showed the
  * first one's would be quietly wrong rather than visibly empty.
  *
- * FIVE CARDS AND NOT ONE, because a Card carries at most one SectionTitle and
+ * SIX CARDS AND NOT ONE, because a Card carries at most one SectionTitle and
  * because the settings pages already establish one card per file for exactly
  * this shape. Three of them draw nothing when they have nothing: a link in the
- * collector has no failure and no file, and five cards of blank rows read as a
- * page that broke.
+ * collector has no failure and no file, and six cards of blank rows read as a
+ * page that broke. The log card is the exception that stays: "nothing was
+ * logged about this download" is an answer, and one that needs its own sentence
+ * because most of this app's log lines name no download at all.
  *
  * NO KEY ON THIS COMPONENT, deliberately, and the opposite of the properties
  * card's own keying. That one snapshots its boxes at mount and so has to be
@@ -77,6 +80,12 @@ export function TaskDetailPanel({ task, base, hue }: { task: Task; base: string;
       <FailureCard task={task} hue={at(2)} />
       <RulesCard task={task} hue={at(3)} />
       <PlayerCard task={task} base={base} head={head} hue={at(4)} />
+      {/* Last, because it is the only card here that asks the server a question
+          of its own and the only one that is usually empty: the app records
+          which download a line is about at seven of its log call sites and not
+          at the rest, so this answers "what did it say" honestly rather than
+          completely, and says which of the two it is doing. */}
+      <LogCard task={task} base={base} hue={at(5)} />
     </section>
   );
 }

@@ -63,13 +63,58 @@ func (a *App) queueIdleForAction() bool {
 
 // fireIdleAction carries out one action. It is the one place an Action value
 // turns into something happening, so an action added later has exactly one
-// switch to extend - see idleaction.Actions' own doc comment for why that
-// list is only ActionNone and ActionPause today.
+// switch to extend.
+//
+// IT IS A DISPATCHER AND NOTHING ELSE. It runs on the controller's own
+// goroutine, whose doc comment (idleaction.Options.Fire) says it must not
+// block for long, and which idleaction.Controller.Close waits for - and
+// App.Close closes that controller. Every branch below therefore either
+// returns immediately or hands off to app_idle_command.go, which spawns. The
+// one apparent exception is ActionQuit, and it is not one: RequestExit is a
+// non-blocking send on a buffered channel (cmd/knightloader/main.go), so
+// calling it here cannot sit in front of the shutdown it just asked for.
 func (a *App) fireIdleAction(act idleaction.Action) {
 	switch act {
 	case idleaction.ActionPause:
 		log.Printf("idle action: the queue has nothing left to do; pausing")
 		a.SetHalted(true)
+	case idleaction.ActionQuit:
+		// Deliberately the same field POST /api/system/quit calls
+		// (internal/api/routes_lifecycle.go), not a second way out: whatever
+		// drain-and-exit that route triggers is what this triggers, so there
+		// is no path to a shutdown that only the countdown can reach and
+		// only the countdown can get wrong.
+		if a.RequestExit == nil {
+			// Reachable, and not a wiring bug: Actions() is not filtered by
+			// capability on purpose, so a settings.json holding "quit" -
+			// hand-edited, or restored from a backup taken on another
+			// deployment - arrives here on a build that cannot honour it.
+			// Recorded rather than logged and forgotten, because the
+			// operator watched a countdown that promised something.
+			a.recordIdleRun(IdleRun{Action: act, Problem: idleaction.ProblemNotSupported})
+			return
+		}
+		log.Printf("idle action: the queue has nothing left to do; quitting")
+		if !a.RequestExit(false) {
+			// A shutdown was already under way. Not a failure worth a
+			// problem code - the thing the operator asked for is happening,
+			// just not because of this - so it is a clean run.
+			log.Printf("idle action: a shutdown was already in progress")
+		}
+		a.recordIdleRun(IdleRun{Action: act})
+	case idleaction.ActionCommand:
+		a.runIdleCommand(a.Settings.Get().IdleAction.Command)
+	case idleaction.ActionSuspend:
+		if a.RequestSuspend == nil {
+			// The container build, and every test. Same reasoning as the
+			// quit branch above: a stored action this build cannot carry out
+			// is reported, never silently rewritten (see
+			// idleaction.Actions' own comment on why Sanitize must keep it).
+			a.recordIdleRun(IdleRun{Action: act, Problem: idleaction.ProblemNotSupported})
+			return
+		}
+		log.Printf("idle action: the queue has nothing left to do; asking the system to sleep")
+		a.runIdleSuspend()
 	default:
 		// ActionNone never reaches here - Controller only fires when its
 		// configured action is not ActionNone - so anything else landing
@@ -84,9 +129,22 @@ func (a *App) fireIdleAction(act idleaction.Action) {
 // configuration, whether the queue is idle, and - if a countdown is running -
 // the absolute instant it fires, so a reloaded page recomputes "N seconds
 // left" from the same deadline the server is counting down to rather than
-// restarting its own clock.
-func (a *App) IdleActionState() idleaction.State {
-	return a.idleAction.State()
+// restarting its own clock. Plus what the last action actually did, which is
+// the only surface a fired action has once the countdown is over.
+//
+// THE CONFIGURATION IS REDACTED. This is a browser-facing document and the
+// stored command line does not travel in one - see
+// idleaction.CommandSpec.Redacted for the whole argument, and note that the
+// route which DOES answer "what would actually run" (POST
+// /api/idle-action/check) resolves the stored spec on demand instead.
+func (a *App) IdleActionState() IdleState {
+	st := a.idleAction.State()
+	st.Config = st.Config.Redacted()
+	out := IdleState{State: st}
+	if run, ok := a.LastIdleRun(); ok {
+		out.LastRun = &run
+	}
+	return out
 }
 
 // CancelIdleAction calls off a countdown in progress without turning the

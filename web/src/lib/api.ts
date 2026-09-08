@@ -1,8 +1,12 @@
-// The one import in this file, and type-only: the nav-label mode is owned by
-// the store that hands it out (lib/navLabels.ts), not by the wire shape, so
-// the Settings type below names that type rather than restating its four
-// strings and drifting from it.
+// The only imports in this file, and both type-only: the nav-label mode is
+// owned by the store that hands it out (lib/navLabels.ts), not by the wire
+// shape, so the Settings type below names that type rather than restating its
+// four strings and drifting from it.
 import type { NavLabelMode } from './navLabels';
+// Second type-only import, same rule as the first: the event target row is
+// owned by lib/eventtargets.ts, which also holds its fetches and its
+// helpers, and restating its ten fields here is the copy that goes stale.
+import type { EventTargetRow } from './eventtargets';
 
 export type TaskStatus =
   | 'collected'
@@ -25,9 +29,16 @@ export type Availability = '' | 'online' | 'offline' | 'uncheckable';
 
 // Reason is the typed cause of a failure, as opposed to Task.error, which is the
 // sentence beside it. The server sends 'gone' | 'auth' | 'limit' | 'unavailable'
-// | 'network' | 'diskFull' | 'unsupported' | 'captcha' | 'cancelled', or '' when
-// nothing recognised the failure — a value it declines to guess at rather than
-// one it forgot to set.
+// | 'network' | 'diskFull' | 'unsupported' | 'captcha' | 'cancelled' | 'botCheck'
+// | 'membersOnly' | 'geoBlocked' | 'drm' | 'extractorBroken', or '' when nothing
+// recognised the failure — a value it declines to guess at rather than one it
+// forgot to set.
+//
+// The last five are named by the backend that hit them rather than by the shared
+// classifier (core.Update.Reason): only the process that read the whole of
+// yt-dlp's own output can tell "the site thinks we are a bot" from "the site said
+// 403", because by the time a sentence reaches the classifier the distinguishing
+// words have been truncated away.
 //
 // It stays an open string, not a union: the taxonomy grows on the server, and a
 // union here would make every new value a compile error in a build that is
@@ -63,6 +74,32 @@ export interface Task {
   password?: string;
   online?: Availability;
   retries?: number;
+  /**
+   * How many attempts this row is allowed, as the SERVER resolved it.
+   *
+   * It is the denominator and nothing else. `retries` above counts the ones
+   * already spent, so a row is at "retry {retries} of {maxTries}" and never at
+   * "attempt N": the first run is not a retry.
+   *
+   * ZERO IS "NOBODY HAS SAID", NOT "NO ATTEMPTS ALLOWED". Nothing has failed
+   * yet, the failure settled on a branch that decides instead of counting (see
+   * `gaveUp`), or the instance predates this field. All three drop the
+   * denominator; a row rendering "of 0" is inventing one.
+   *
+   * NEVER RECOMPUTED HERE from settings.maxRetries, which is only the last link
+   * of the chain: a host rule picked by the longest dot-boundary match, merged
+   * over the per-reason table, merged over the global count, with "never" OR-ed
+   * rather than fallen back. A second copy of that policy drifts on the first
+   * change to it, and it could not even be fetched for the right box, because
+   * the list routinely shows a PEER instance's tasks while fetchSettings is
+   * hard-wired to this one.
+   *
+   * A SNAPSHOT AND NOT A LIVE READING. Raise the retry count from three to five
+   * and a row that has already failed keeps saying "of 3" until it fails again:
+   * the timer already armed was armed against the old ceiling, so the old
+   * ceiling is the true answer for that row.
+   */
+  maxTries?: number;
   nextTry?: string;
   priority: number;
   position: number;
@@ -177,7 +214,7 @@ export interface Task {
   // reading the Go constants against this union rather than by a test, because
   // an absent member of a string union is not an error anywhere - it just makes
   // the lookup miss and the fallback win.
-  waiting?: 'slot' | 'host' | 'forced' | 'disabled' | 'hold' | 'captcha' | 'account' | 'halted' | 'disk';
+  waiting?: 'slot' | 'host' | 'forced' | 'disabled' | 'hold' | 'captcha' | 'account' | 'halted' | 'disk' | 'volumeCap';
   /**
    * When the bytes STOPPED, not when the standstill was noticed - so the age of
    * a download dead since midnight reads as hours in the morning rather than as
@@ -383,6 +420,13 @@ export interface Category {
    * so a value the server adds must render rather than fail to compile.
    */
   collision?: string;
+  /**
+   * The stored address called when a package filed in this drawer finishes and
+   * its files are in place. Absent or empty means this drawer calls nothing,
+   * which is a decision and not an unset field. An id no stored address matches
+   * is REFUSED by the server on save, unlike every other field on this type.
+   */
+  notify?: string;
 }
 
 export interface Settings {
@@ -443,6 +487,16 @@ export interface Settings {
    * field), but read it through `?? []` anyway: an older server predates it.
    */
   categories: Category[];
+  /**
+   * The stored addresses called once a package has finished and its files have
+   * been moved into place. Mirrors settings.MediaHooks.
+   *
+   * The server always sends the key (no omitempty, deliberately - see the Go
+   * field), but read it through `?? []` anyway: an older server predates it.
+   * Note that the card that edits these does NOT ride the settings draft, so
+   * this array can be one save behind what GET /api/mediahooks answers.
+   */
+  mediaHooks: MediaHook[];
   archivePasswords: string[];
 
   /**
@@ -549,6 +603,33 @@ export interface Settings {
   diskCriticalSpace: number;
 
   /**
+   * How many bytes may finish downloading in one period. 0 is NO CAP: the
+   * counter keeps running and nothing is ever held back. That is also why there
+   * is no master switch for this feature and no "off" among the actions below,
+   * one off state in one field, the way historyMax and the three disk floors
+   * already work. Decimal gigabytes on screen, raw bytes here.
+   */
+  volumeCap: number;
+  /**
+   * Day of the month the counter goes back to zero, 1..31. In a month shorter
+   * than this the server uses that month's last day; it never rolls into the
+   * next month.
+   */
+  volumeCapResetDay: number;
+  /**
+   * What happens once the cap is reached. There is deliberately no "off" value:
+   * the off state is volumeCap === 0, and an action here with no cap set does
+   * nothing at all.
+   */
+  volumeCapAction: VolumeCapAction;
+  /**
+   * Bytes per second while capped, read only for the 'throttle' action. It is a
+   * ceiling BESIDE the other limits and never instead of them: a schedule
+   * window or quiet mode asking for less still wins.
+   */
+  volumeCapThrottle: number;
+
+  /**
    * When two DIFFERENT URLs count as the same file - dedupe.Policy ("off" |
    * "filename-only" | "size-only" | "filename-and-size" | "filename-or-hash" |
    * "hash-only"). A plain string, not a union: the menu comes from
@@ -604,6 +685,32 @@ export interface Settings {
   keepFinishedDays: number;
   /** How many entries the history keeps. 0 keeps every one. */
   historyMax: number;
+  /**
+   * How often the database looks after itself without being asked, in days.
+   * 0 - the shipped value, and what every existing install already has -
+   * means only when somebody presses a button on the diagnostics page.
+   * Offered as 0/30/90/180; the server clamps anything above 365.
+   */
+  maintenanceIntervalDays: number;
+  /**
+   * Whether the scheduled run also rewrites the file, or only reads it and
+   * reports. False, because compacting needs room for a full second copy of
+   * the database on the TEMPORARY volume, which on a container is not the
+   * data volume. The Compact button always compacts, whatever this says.
+   */
+  maintenanceCompactOnSchedule: boolean;
+
+  /**
+   * The optional copy of the server's own log on disk. Off on every install
+   * that upgrades into it: an update must not start writing files nobody asked
+   * for, and on an Unraid box the data folder is usually on the array. maxMb is
+   * clamped to 1..1024 and keep to 0..20 by the server; keep = 0 is a real
+   * answer, meaning "only the file being written", and not a way to switch the
+   * log off. There is deliberately no path: it sits beside the database and
+   * KL_LOG_DIR moves it, because a mistyped path is the one way to stop a log
+   * with nothing on screen to say why.
+   */
+  logFile: { enabled: boolean; maxMb: number; keep: number };
 
   crawl: boolean;
   /**
@@ -637,6 +744,21 @@ export interface Settings {
    *  the off state a fresh install has, the same pairing captchaSolverOrder
    *  already uses. */
   feeds: FeedSubscription[] | null;
+  /**
+   * Where this instance reports to when something happens: one row per
+   * address, with the method, headers, body template and events the
+   * operator chose. See lib/eventtargets.ts for the row itself.
+   *
+   * OPTIONAL as well as nullable, UNLIKE feeds directly above, and the
+   * difference is the whole upgrade story: the Go field is omitempty, so a
+   * settings.json written before this feature existed carries no key at all
+   * and this instance sends nothing. A page reading it does `?? []`.
+   *
+   * Every header value in here arrives as eight stars and is sent back
+   * untouched; the server merges the real one in, and only while the row
+   * still points at the same address.
+   */
+  eventTargets?: EventTargetRow[] | null;
   verifyChecksums: boolean;
   /**
    * Scans a paste or drop for links wherever they sit in it, instead of
@@ -670,6 +792,13 @@ export interface Settings {
    *  on by the desktop build - see internal/settings/settings.go's own doc
    *  comment on the mirrored server field. */
   autoUpdateInstall: boolean;
+
+  /** One request to api.github.com when the Resolvers page loads, and
+   *  nothing beyond it: it never downloads and never replaces anything.
+   *  Off by default. There is deliberately no auto-INSTALL companion for
+   *  yt-dlp - replacing the extractor unattended silently changes what
+   *  every download produces. */
+  ytdlpVersionCheck: boolean;
 
   /**
    * Which automatic captcha solvers to try, and in what order, before a
@@ -896,11 +1025,67 @@ export interface Diagnostics {
   os: string;
   arch: string;
   goroutines: number;
+  /** Which yt-dlp and ffmpeg this instance runs, where each came from and
+   *  what version it reports - the first question every "this video link
+   *  stopped working" report has to answer. */
+  mediaTools: MediaToolsStatus;
   settings: Record<string, unknown>;
   /** How many archive passwords are configured - the values themselves are never in this bundle. */
   archivePasswordCount: number;
   logLines: string[];
   logCapacity: number;
+  /**
+   * Whether those lines are also being kept on disk, and how much of them.
+   * `path` is always EMPTY here: the bundle is a file people attach to public
+   * bug reports and a desktop data directory carries somebody's real name, so
+   * the server strips it (logring.FileState.Redacted). The real path comes from
+   * fetchLogFileState below, which only ever reaches somebody already looking
+   * at their own settings pages.
+   */
+  logFile: LogFileState;
+  /**
+   * How many samples the speed record holds right now, out of 120 (one a
+   * second, two minutes) and 360 (one per ten seconds, an hour). Zero on both
+   * means nothing is recording and the Overview curve will stay flat; a full
+   * record with an old recordingSince means the sampler is fine and the box was
+   * quiet. Held in memory only, so it starts empty after every restart.
+   */
+  speedSamplesRecent: number;
+  speedSamplesHour: number;
+  speedRecordingSince?: string;
+  /** The store file plus any journal beside it. Paths are deliberately NOT in this bundle. */
+  storeBytes: number;
+  /** Space deleted rows left inside the file. A floor: compaction usually gives back more. */
+  storeReclaimableBytes: number;
+  settingsBytes: number;
+  /** False on an install that has never saved a settings page - settings.Load never writes. */
+  settingsPresent: boolean;
+  /**
+   * Who this instance writes files as - the same document GET /api/fileowner
+   * answers. Carried here so a bug report has the uid without anybody being
+   * asked for it.
+   */
+  ownership: FileOwnerIdentity;
+  /**
+   * Every configured folder as a stat saw it. NO PATH, deliberately: this
+   * bundle is attached to public bug reports and the desktop build's default
+   * download folder sits inside the user's own home directory. The role and
+   * the numbers are the whole finding.
+   */
+  ownedFolders: FolderOwnership[];
+  /**
+   * The reading the start checks took once, just after this instance came up.
+   *
+   * NULL WHEN NOTHING EVER STARTED ONE - a test, or a build that does not run
+   * it - which is not the same claim as "everything passed". An empty check
+   * list drawn as a clean bill of health is the worst version of that mistake,
+   * so the two are kept apart on the wire.
+   *
+   * It is the BOOT reading and stays the boot reading: runStartupCheck answers
+   * with a fresh one and deliberately does not replace this, because what was
+   * true at start is what a bug report needs.
+   */
+  startup: StartupReport | null;
 }
 
 /**
@@ -1014,6 +1199,10 @@ export interface ApiOptions {
   /** ytdlp.AudioBitrates() (internal/resolver/ytdlp/options.go) - the
    *  audio row's own --audio-quality menu, "" meaning no opinion. */
   ytdlpAudioBitrates: string[];
+  /** The methods a media library call may be sent with ('GET', 'POST'), from
+   *  the package that sends them. Optional: an older server does not serve it,
+   *  and the method strip stays out rather than guessing. */
+  mediaHookMethods?: string[];
 }
 
 /** A container that was a plain link list: parsed here and staged like any paste. */
@@ -1636,6 +1825,263 @@ export async function fetchOptions(): Promise<ApiOptions> {
   return json<ApiOptions>(await fetch('/api/options'));
 }
 
+// --- Room on the target folders -------------------------------------------
+//
+// GET /api/diskspace, and deliberately with NO `base` parameter: the route is
+// not on the federation forwarder's list and not on the relay allowlist, so
+// asking a peer for it answers 403. A row built from this describes THIS
+// machine's disks whatever list is on screen, which is why the shell strip only
+// draws it while the scope is local, the same rule SpeedLimitField obeys.
+
+/** One target folder as the server measured it. */
+export interface DiskVolume {
+  /** The folder the app would write into. It may not exist yet, and for a path
+   *  template it is the fixed head of that template. */
+  dir: string;
+  /**
+   * The folder the figures actually describe: `dir` itself when it is there,
+   * otherwise the nearest existing folder above it. The two differ harmlessly
+   * for a download folder nobody has written into yet, and they differ
+   * ALARMINGLY when a mount did not come up - this is then the volume root and
+   * the numbers describe a completely different disk. Show it whenever it is
+   * not `dir`; hiding it is how a confident wrong number gets in front of
+   * somebody.
+   */
+  measured: string;
+  /** Whether `dir` itself is a folder today. */
+  exists: boolean;
+  /**
+   * Whether this platform could be asked at all. False is a real third answer
+   * and not a zero: internal/diskspace has no call on some kernels and every
+   * guard then holds nothing back. When this is false, free, used and total are
+   * all 0 and mean NOTHING - draw no figure and no bar, not even an empty one.
+   */
+  known: boolean;
+  /**
+   * Bytes this process may still write here. 0 with `known: true` is a
+   * genuinely exhausted volume and must print as "0 B", never through fmtBytes,
+   * which answers the no-data dash for 0.
+   */
+  free: number;
+  /** Bytes somebody's files occupy. */
+  used: number;
+  /**
+   * The volume's size. `free + used` can be LESS than this, by the root reserve
+   * or by a quota. Draw the bar from used/total and print free on its own;
+   * never derive any one of the three from the other two.
+   */
+  total: number;
+  /**
+   * What the downloads still owed would add here: announced size minus what has
+   * arrived, per task, clamped at zero. A task whose size nobody knows adds
+   * nothing, so this is a floor.
+   *
+   * AND IT IS NEVER SUBTRACTED FROM `free`. A transfer already running has
+   * usually had its room taken out of the volume when it started, so its bytes
+   * are missing from free rather than sitting on top of it. The two figures
+   * stand side by side.
+   */
+  queued: number;
+  /** How many downloads are aimed here, INCLUDING the ones whose size nobody
+   *  knows and which therefore add nothing to `queued`. */
+  tasks: number;
+  /** Why this folder is in the list: 'downloads' | 'category' | 'work' | 'task'.
+   *  A plain string, because the server names the roles and a value it adds
+   *  must render rather than fail to compile. */
+  role: string;
+}
+
+export interface DiskReport {
+  /** Never null: the server sends an empty array. One row per FOLDER and not
+   *  per disk - two folders on one volume repeat that volume's figures and
+   *  nothing here can tell that they do, so never sum `free` across rows. */
+  volumes: DiskVolume[];
+  /** The queue named more destinations outside the configured folders than are
+   *  worth a syscall each on a route every tab polls, and the ones owed least
+   *  were left out. Every configured folder is always present. */
+  truncated: boolean;
+  /** When the reading was taken. Cached for a few seconds on purpose, so this
+   *  is older than "now" and the interface should say so rather than imply a
+   *  live gauge. */
+  sampledAt: string;
+}
+
+export async function fetchDiskSpace(): Promise<DiskReport> {
+  return json<DiskReport>(await fetch('/api/diskspace'));
+}
+
+// --- The detailed health readout -------------------------------------------
+
+/**
+ * What one part of this instance is doing.
+ *
+ * OPEN ON PURPOSE, the same shape FeatureVerdict in pages/settings/features.ts
+ * already uses and for the same reason: the server may learn a state before
+ * this build has a word for it, and every lookup goes through `key in en`
+ * (lib/useHealthReport.ts) so an unknown one renders as its raw id rather than
+ * as a blank cell. Never `as`-cast a server string into a closed union here -
+ * that freezes an assumption a newer server breaks silently.
+ *
+ * "unused" is not set up on this instance and "unknown" cannot be asked on this
+ * build or platform. Neither is a fault, and neither ever makes `status` worse
+ * than ok.
+ */
+export type HealthState = 'ok' | 'degraded' | 'failed' | 'unused' | 'unknown' | (string & {});
+
+export interface HealthSubsystem {
+  /** store, queue, disk, jd, ytdlp, accounts, feeds, relay, captcha. A stable
+   *  id the interface looks a label up by, never a word from the server - which
+   *  has no idea which of the 42 locales is reading. */
+  id: string;
+  state: HealthState;
+  /** The failing service's OWN words, in whatever language it speaks. Draw it
+   *  beside a translated state, never instead of one. */
+  detail?: string;
+  /** A stable id a sentence is looked up from (health.remedy.<id>). Absent for
+   *  a row nothing can be done about. */
+  remedy?: string;
+  /** When this row last CHANGED state, RFC3339. Absent until a state has been
+   *  seen twice: the first reading knows the state and cannot know when it
+   *  started, and stamping "now" would claim a fault began when the page was
+   *  opened. */
+  since?: string;
+}
+
+export interface HealthTaskCounts {
+  running: number;
+  waiting: number;
+  paused: number;
+  extracting: number;
+  collected: number;
+  /** Counted ACROSS the states above rather than instead of them, so the
+   *  buckets still add up to the list on screen. */
+  disabled: number;
+  /**
+   * How many rows are sitting in the list with an error on them RIGHT NOW.
+   *
+   * A GAUGE AND NOT A TALLY. It falls when somebody clears a row and when the
+   * retention sweep trims the list, and it says nothing at all about how often
+   * anything has failed. Do not draw it as a total, and do not chart it as one.
+   */
+  failed: number;
+  /** core.Waiting id -> count and core.Reason id -> count, with zero-valued
+   *  keys left out. Never null: the server always sends an object. The ids are
+   *  the ones task.waiting.* / task.reason.* already label for the download
+   *  list, so a breakdown needs no strings of its own. */
+  waitingBy: Record<string, number>;
+  failedBy: Record<string, number>;
+}
+
+export interface HealthReport {
+  /** The worst row, where "not in use here" and "cannot be checked here" never
+   *  make it worse than ok. */
+  status: HealthState;
+  version: string;
+  deployment: string;
+  startedAt: string;
+  /** Computed on the server against its own clock, so a browser in another
+   *  timezone or with a clock a few minutes out cannot print an uptime that is
+   *  wrong by exactly that much. */
+  uptimeSeconds: number;
+  /** Every part, always all of them, in a fixed order. Never null - a row that
+   *  vanished when it had nothing to say would be a row nobody can find. */
+  subsystems: HealthSubsystem[];
+  tasks: HealthTaskCounts;
+  /** GET /api/diskspace's own rows verbatim, so this page and the Downloads
+   *  page can never disagree about a folder. Never null - and read DiskVolume's
+   *  own `known` before drawing any figure out of it. */
+  volumes: DiskVolume[];
+  halted: boolean;
+  quiet: boolean;
+  /** When the PROBED rows were taken. Shared for half a minute on purpose, so
+   *  this is older than "now" and whatever draws it should say so rather than
+   *  imply a live gauge. */
+  sampledAt: string;
+}
+
+/**
+ * The detailed readout. It is NOT /api/health, which answers two fields and the
+ * literal "ok" for as long as the process is up because a container health
+ * check, the Click'n'Load bridge and the phone app's instance discovery all
+ * read it - see internal/api/routes_health.go.
+ *
+ * No `base`: the route is on neither forwarding allowlist, so a peer answers
+ * 403, and that refusal is the point. This describes THIS machine.
+ */
+export async function fetchHealthReport(): Promise<HealthReport> {
+  return json<HealthReport>(await fetch('/api/health/detail'));
+}
+
+// --- The volume curve and the monthly allowance ----------------------------
+
+export type VolumeCapAction = 'report' | 'pause' | 'throttle';
+
+/**
+ * One bucket of the volume curve.
+ *
+ * `key` is already bucketed BY THE SERVER, in the server's own local calendar:
+ * 'YYYY-MM-DD' for a day, 'YYYY-MM' for a month. Render it as the string it is,
+ * or build a label from its digits. Feeding it to `new Date()` parses it as UTC
+ * midnight, which draws every bar a day early anywhere west of Greenwich, and
+ * the cap goes on being charged against the server's day either way.
+ */
+export interface VolumeBucket {
+  key: string;
+  /** Announced size of everything that finished in this bucket. */
+  bytes: number;
+  /** How many downloads that was. */
+  count: number;
+  /** How many of those had no size at all. They add nothing to `bytes`, so this
+   *  is the one number that says whether the total understates itself. */
+  unsized: number;
+  /**
+   * Bytes per file host, and per backend.
+   *
+   * NULLABLE, and not for tidiness: Go marshals an empty map as JSON `null`
+   * rather than `{}`, so a gap-filled bucket arrives with nothing to index
+   * into. Guard before reading.
+   */
+  byHost: Record<string, number> | null;
+  byResolver: Record<string, number> | null;
+}
+
+/** GET /api/stats/volume */
+export interface VolumeStats {
+  /** Newest last, one entry per day, gaps filled with a zero bucket. */
+  days: VolumeBucket[];
+  /** Newest last, one entry per month, gaps filled with a zero bucket. */
+  months: VolumeBucket[];
+  /** The zone the server bucketed by, so the chart can say whose calendar it is. */
+  timeZone: string;
+  /** The oldest finish time the history still holds. Anything before it is not
+   *  "zero downloaded", it is "no longer recorded". */
+  oldest?: string;
+  /** The history is at settings.historyMax, so the oldest months have been cut. */
+  trimmed: boolean;
+}
+
+/** GET /api/stats/volume/usage, and the payload of the 'volume' websocket kind. */
+export interface VolumeUsage {
+  /** Bytes finished since periodStart. Moves when a download finishes, never
+   *  while one runs. */
+  used: number;
+  /** 0 means no cap is set; `reached` is then always false. */
+  cap: number;
+  action: VolumeCapAction;
+  throttle: number;
+  periodStart: string;
+  periodEnd: string;
+  reached: boolean;
+}
+
+export async function fetchVolumeStats(): Promise<VolumeStats> {
+  return json<VolumeStats>(await fetch('/api/stats/volume'));
+}
+
+export async function fetchVolumeUsage(): Promise<VolumeUsage> {
+  return json<VolumeUsage>(await fetch('/api/stats/volume/usage'));
+}
+
 export async function fetchQueue(base = '/api'): Promise<QueueState> {
   return json<QueueState>(await fetch(`${base}/queue`));
 }
@@ -1873,11 +2319,78 @@ export async function testAccount(service: string, account: string): Promise<Acc
 // alone cannot answer: whether the queue is idle right now, whether a
 // countdown is actually running, and cancelling one.
 
+/**
+ * The one external program the "command" end-of-queue action runs
+ * (internal/idleaction.CommandSpec).
+ *
+ * A PROGRAM AND ARGUMENTS, NEVER A SHELL COMMAND LINE. The server runs it
+ * directly, so a pipe, a redirect or two commands in a row belong in a script
+ * file this points at - the same split reconnect's own Command/Args makes, for
+ * the same reason.
+ *
+ * IT COMES BACK REDACTED. `program` is '********' and every argument is
+ * '********' whenever anything is stored, because GET /api/settings is also
+ * what the diagnostics bundle is built from and that file gets attached to
+ * public bug reports. Send the mask back untouched to keep what is stored
+ * (settings.Store.setLocked merges it back), send a new string to replace it,
+ * send an empty one to clear it. Ask checkIdleCommand what would actually run.
+ */
+export interface IdleCommandSpec {
+  program: string;
+  args?: string[];
+  timeoutSeconds: number;
+}
+
 /** settings.Settings.IdleAction (internal/settings/settings.go) on the wire. */
 export interface IdleActionConfig {
-  /** 'none' | 'pause', and whatever a later build adds - see fetchIdleActions. */
+  /** 'none' | 'pause' | 'quit' | 'command' | 'suspend', and whatever a later
+   *  build adds - open on purpose, see fetchIdleActions. */
   action: string;
   delaySeconds: number;
+  command: IdleCommandSpec;
+}
+
+/**
+ * What POST /api/idle-action/check answers.
+ *
+ * It resolves the STORED command and never runs it, and it answers 200 even
+ * when `problem` is set: a preflight that failed the request could not be read
+ * by the page that asked for it.
+ */
+export interface IdleCommandCheck {
+  problem?: 'empty' | 'notFound' | 'notExecutable' | 'permission' | 'timeout' | 'exit' | 'notSupported';
+  /** What the program name resolves to - the same lookup the run itself does,
+   *  so a bare name that would work resolves here too. */
+  resolvedPath?: string;
+  /** The exact argument vector, resolved program first. */
+  argv?: string[];
+  /** 'container' or 'desktop'. The interface picks between two explanations of
+   *  one problem code with it: "not in this image" reads differently from
+   *  "not on this machine". */
+  deployment: string;
+}
+
+/**
+ * What the last end-of-queue action did (internal/app.IdleRun), and what POST
+ * /api/idle-action/run answers with.
+ *
+ * IT DOES NOT SURVIVE A RESTART, so the only run a 'quit' can ever leave
+ * behind is a failed one: a successful quit takes the record with it.
+ */
+export interface IdleRun {
+  action: string;
+  /** RFC3339. */
+  at: string;
+  ok: boolean;
+  /** Empty exactly when `ok` is true. A code, never a sentence - translate it. */
+  problem?: string;
+  exitCode?: number;
+  /** The program's own output, capped, with the stored command line taken back
+   *  out of it. */
+  output?: string;
+  /** The program as configured, NOT redacted: this document goes to the
+   *  browser and never into the diagnostics bundle. */
+  program?: string;
 }
 
 /**
@@ -1902,6 +2415,10 @@ export interface IdleActionState {
    * and the captcha modal's own ExpiresAt are both instants, not durations.
    */
   fireAt?: string;
+  /** What the last action actually did, absent until one has run since this
+   *  process started. It is the ONLY surface a fired action has once the
+   *  countdown is over. */
+  lastRun?: IdleRun;
 }
 
 export async function fetchIdleAction(): Promise<IdleActionState> {
@@ -1918,6 +2435,21 @@ export async function cancelIdleAction(): Promise<IdleActionState> {
  *  action this build does not implement. */
 export async function fetchIdleActions(): Promise<string[]> {
   return (await json<string[]>(await fetch('/api/idle-action/actions'))) ?? [];
+}
+
+/** checkIdleCommand resolves the stored command and reports what it found. It
+ *  never runs anything, which is exactly what makes it safe to press on an
+ *  action that would otherwise put the machine to sleep. */
+export async function checkIdleCommand(): Promise<IdleCommandCheck> {
+  return json<IdleCommandCheck>(await ok(await post('/api/idle-action/check', {})));
+}
+
+/** runIdleCommand runs the stored command once, now, exactly as the countdown
+ *  would. The server refuses with 409 unless the configured action IS the
+ *  command one: a test button that quits the process or suspends the machine
+ *  because that is what happened to be configured is not a test. */
+export async function runIdleCommand(): Promise<IdleRun> {
+  return json<IdleRun>(await ok(await post('/api/idle-action/run', {})));
 }
 
 /**
@@ -2229,6 +2761,117 @@ export async function saveHeaderProfile(
  *  than a cheerful 204, for the same reason removeYtdlpCookieJar does. */
 export async function deleteHeaderProfile(id: string): Promise<void> {
   await ok(await fetch(`/api/hostheaders/${encodeURIComponent(id)}`, { method: 'DELETE' }));
+}
+
+// --- The media library call, beside the header profiles ---------------------
+//
+// The address a drawer calls once a package has finished AND its files have
+// been moved into place. The rows live in settings.json; the one header value
+// each may carry is sealed in the credential store, so the listing answers
+// whether one is stored and never what it is - which is why an editing form has
+// to send REDACTED_HEADER back for a value it is not changing. Empty means
+// "clear this" here as it does for every other secret in this app, so a form
+// that re-sent what it was given would delete the token it was opened to edit.
+
+/**
+ * One stored address. Mirrors mediahook.Hook plus the five read-only fields the
+ * listing route adds.
+ *
+ * THERE IS NO VALUE FIELD, and that is a property of the type rather than of
+ * whichever component renders it: the value is sealed in the credential store
+ * and the listing route has nothing to send. `hasValue` is the only thing this
+ * side ever learns about it.
+ */
+export interface MediaHook {
+  /** Stable key a drawer points at (Category.notify). Letters, digits and - _
+   *  or . Never changes: renaming it would leave every drawer pointing at an
+   *  address that no longer answers. */
+  id: string;
+  name?: string;
+  /** Absolute http or https address, host and port included. */
+  url: string;
+  /** 'GET' or 'POST'. A plain string, not a union: the menu comes from
+   *  GET /api/options.mediaHookMethods, so a method the server adds renders. */
+  method: string;
+  /** The one header sent with the call. Empty sends no extra header. */
+  headerName?: string;
+  /** Seconds this address is left alone after a package finishes, so a batch
+   *  becomes one call. 0 calls as soon as a package's files are in place, which
+   *  is a real answer and not "unset". */
+  waitSeconds: number;
+  /** Whether a header value is stored. Never the value. */
+  hasValue: boolean;
+  /** host[:port] the call resolves to, for the line that says where it goes. */
+  host: string;
+  /** The target is loopback or on a private range. Answered WITHOUT a DNS
+   *  lookup, so a host name reads as false: the sentence that gets withheld
+   *  wrongly is the one nobody can see. */
+  private: boolean;
+  /** Category ids currently pointing at this address. Never null. Empty means
+   *  it is stored and nothing calls it. */
+  usedBy: string[];
+  /** The last call, test calls included. In memory only, so null after a
+   *  restart even for an address that has worked for a year. */
+  last: MediaHookResult | null;
+}
+
+/** What one call did. `code` keys the sentence that says what to try next. */
+export interface MediaHookResult {
+  at: string;
+  /** The package that armed the call, or the first of several by name. Absent
+   *  for a test call. */
+  package?: string;
+  /** How many packages were folded into this one call. Absent or 1 means one. */
+  packages?: number;
+  test?: boolean;
+  status?: number;
+  durationMs: number;
+  ok: boolean;
+  /** 'dns'|'refused'|'timeout'|'tls'|'auth'|'notFound'|'method'|'redirect'|
+   *  'server'|'proxy'|'unknown'. A plain string: a code this build has no key
+   *  for falls back to settings.mediahook.problem.unknown with `error`. */
+  code?: string;
+  params?: Record<string, string | number>;
+  error?: string;
+}
+
+/** One save. `headerValue` carries the three meanings every secret in this app
+ *  carries: a new value replaces, REDACTED_HEADER keeps, empty clears. */
+export interface MediaHookSave {
+  id: string;
+  name?: string;
+  url: string;
+  method: string;
+  headerName?: string;
+  headerValue: string;
+  waitSeconds: number;
+}
+
+/** fetchMediaHooks is every stored address, in the order they are stored -
+ *  which is the order the picker on the Categories page offers. */
+export async function fetchMediaHooks(): Promise<MediaHook[]> {
+  return (await json<MediaHook[]>(await fetch('/api/mediahooks'))) ?? [];
+}
+
+/** saveMediaHook stores or replaces one address and answers the whole listing
+ *  as the server now holds it. Send REDACTED_HEADER as headerValue to keep the
+ *  stored value, '' to clear it, anything else to replace it. */
+export async function saveMediaHook(h: MediaHookSave): Promise<MediaHook[]> {
+  return json<MediaHook[]>(await post('/api/mediahooks', h));
+}
+
+/** deleteMediaHook removes one address and the header value sealed for it.
+ *  Refused with 409 while a category drawer still points at it. */
+export async function deleteMediaHook(id: string): Promise<void> {
+  await ok(await fetch(`/api/mediahooks/${encodeURIComponent(id)}`, { method: 'DELETE' }));
+}
+
+/** testMediaHook calls one stored address once, with its sealed header, and
+ *  reports what came back. It answers 200 even when the call failed - the
+ *  request was fine, it was the far end that was not - so read `ok` on the
+ *  result rather than catching. */
+export async function testMediaHook(id: string): Promise<MediaHookResult> {
+  return json<MediaHookResult>(await post(`/api/mediahooks/${encodeURIComponent(id)}/test`, {}));
 }
 
 // --- Feed subscriptions: health and the test fetch --------------------------
@@ -2697,6 +3340,89 @@ export async function fetchUpdateCheck(): Promise<UpdateCheck> {
   return json(await fetch('/api/system/update-check'));
 }
 
+/** One external program a media download runs, as it stands on this machine. */
+export interface MediaTool {
+  found: boolean;
+  path?: string;
+  version?: string;
+  /** "managed" | "env" | "path" | "none". yt-dlp only: ffmpeg and ffprobe are
+   *  whatever is on PATH, so a source word on their rows would never vary. */
+  source?: string;
+  /** Why it was not found, or why a recorded copy is unusable. English, and a
+   *  fact about this machine rather than a translated phrase - the same
+   *  convention Feature.reason follows, for the same reason: it names a path,
+   *  an errno or a program's own output, none of which survive translation. */
+  detail?: string;
+}
+
+/** What was fetched, when, and what it turned out to be. */
+export interface YtdlpManagedRecord {
+  tag: string;
+  asset: string;
+  sha256: string;
+  /** What the staged file printed at its smoke test, not what the tag claims. */
+  version: string;
+  fetchedAt: string;
+}
+
+export interface MediaToolsStatus {
+  ytdlp: MediaTool;
+  ffmpeg: MediaTool;
+  ffprobe: MediaTool;
+  managed?: YtdlpManagedRecord;
+  /** Where a fetched copy lives, sent alongside `managed`. Its own field
+   *  because of the one state where ytdlp.path is NOT that file: a recorded
+   *  copy that no longer starts, where ytdlp.path names the fallback that took
+   *  over instead. */
+  managedPath?: string;
+  /** What would run if the fetched copy were removed; absent unless one is in
+   *  force. The "your own copy has fallen behind the system's" warning is built
+   *  from this, and without it this feature makes the long run worse rather
+   *  than better. */
+  shadowed?: MediaTool;
+}
+
+export interface YtdlpLatest {
+  checked: boolean;
+  tag?: string;
+  url?: string;
+  /** "newer" | "same" | "older" | "unknown". Four states and never a bool:
+   *  yt-dlp versions are dates and a same-day rerelease adds a fourth segment,
+   *  so "these two cannot be ordered" has to be sayable. Rendering that as
+   *  "you are current" is the one wrong answer available here. */
+  compare: string;
+  /** GitHub's own refusal, verbatim, when checked is false - "API rate limit
+   *  exceeded" and "Not Found" send somebody to two different places. */
+  detail?: string;
+}
+
+/** Which yt-dlp, ffmpeg and ffprobe this instance runs. Never calls out: it is
+ *  read on every settings-page load and by every diagnostics bundle. */
+export async function fetchMediaTools(): Promise<MediaToolsStatus> {
+  return json(await fetch('/api/mediatools'));
+}
+
+/** The one call in this feature that leaves the box. Downloads nothing and
+ *  replaces nothing. */
+export async function fetchYtdlpLatest(): Promise<YtdlpLatest> {
+  return json(await fetch('/api/mediatools/ytdlp/latest'));
+}
+
+/** Slow: downloads yt-dlp's newest release, verifies it against the release's
+ *  own SHA2-256SUMS, runs the staged file once to prove it starts on this
+ *  machine, and only then swaps it in. Nothing is replaced unless every step
+ *  passed, so a rejection leaves the copy that was working exactly as it was. */
+export async function updateYtdlp(): Promise<{ tag: string; version: string; path: string; asset: string; sha256: string }> {
+  return json(await fetch('/api/mediatools/ytdlp/update', { method: 'POST' }));
+}
+
+/** Deletes the fetched copy and its record, and answers with the status that
+ *  results - so the card can say which yt-dlp is running now without a second
+ *  request drawing a gap in between. */
+export async function revertYtdlp(): Promise<MediaToolsStatus> {
+  return json(await fetch('/api/mediatools/ytdlp/revert', { method: 'POST' }));
+}
+
 /**
  * Downloads and applies the latest release, then relaunches - desktop only
  * (internal/api/routes_lifecycle.go's own POST /api/system/update-install
@@ -2719,6 +3445,565 @@ export async function installUpdate(): Promise<{ status: string }> {
 // point of the bundle).
 export async function fetchDiagnostics(): Promise<Diagnostics> {
   return json<Diagnostics>(await fetch('/api/diagnostics'));
+}
+
+// --- The start report, the log, the file owners and the self-test -----------
+//
+// Four separate readings, landed here together because each of their authors
+// asked for the same anchor: they are all the second half of the sentence the
+// diagnostics bundle above starts. The bundle is a snapshot to attach to a bug
+// report; these are the questions somebody asks while they still have the page
+// open. Kept in four labelled blocks rather than interleaved, so each one still
+// reads as the argument its author wrote.
+
+// ----- The start checks (internal/startupcheck) -----
+
+/**
+ * One thing the start check looked at - startupcheck.Check
+ * (internal/startupcheck). `id`, `role`, `verdict` and `code` are stable server
+ * ids and never prose: the server has no idea which of the forty-two languages
+ * is reading, which is the same reason Feature.ID travels rather than a label.
+ */
+export interface StartupCheck {
+  /** "data" | "java" | "ytdlp" | "ffmpeg" | "ffprobe" | "folder" | "clock" -
+   *  open, so an id this build has never heard of still draws as a row. */
+  id: string;
+  /** Folder rows only: "downloads" | "work" | "category" | "extract" | "extractMove" | "watch". */
+  role?: string;
+  /** "ok" | "warn" | "fail" | "skipped". "skipped" is "not needed on this
+   *  install" and never "switched off". */
+  verdict: string;
+  /**
+   * The concrete thing that was checked: an absolute folder, the binary that
+   * was found, the raw TZ value. The data directory is masked to "<data>"
+   * before it leaves the server, because this document is a file people attach
+   * to public bug reports and a desktop data directory carries somebody's name.
+   */
+  subject?: string;
+  /** The fact worth reading: a version line, the zone abbreviation and its
+   *  offset. Already clamped server-side, because `ffmpeg -version` answers
+   *  with several hundred bytes of banner. */
+  detail?: string;
+  /**
+   * Folder rows: the deepest folder above `subject` that does exist. When it
+   * differs from `subject` the folder is not there, and on a box that mounts a
+   * share that usually means the share is not mounted - the same distinction
+   * DiskReport.Measured draws (internal/app/app_diskreport.go).
+   */
+  measured?: string;
+  /**
+   * Folder rows: a test file really was written into this folder and removed
+   * again.
+   *
+   * FALSE IS THE NORMAL CASE and does not mean a write failed. A pass started
+   * by the boot writes nothing anywhere, so "ok" then means the folder is
+   * there, not that this instance can write in it. See StartupReport.probed.
+   */
+  probed?: boolean;
+  /** WHICH failure, so startupAdvice can offer the one remedy that helps. Open string. */
+  code?: string;
+  /** The system's own message, verbatim and clamped. Shown raw, never
+   *  translated: a translated errno is neither searchable nor quotable. */
+  err?: string;
+}
+
+/** One whole pass of the start checks - startupcheck.Report. */
+export interface StartupReport {
+  /** "running" | "done" | "off". "off" means KL_STARTUP_CHECK=0, and the page
+   *  says so rather than showing an empty list as a clean result. */
+  state: string;
+  startedAt: string;
+  finishedAt?: string;
+  /**
+   * Whether this pass was allowed to write its test file at all: false for
+   * every boot pass, true only for one somebody pressed the button for.
+   *
+   * A property of the PASS and not of a row, so "nothing was written anywhere"
+   * is one sentence at the top of the card instead of a qualifier repeated on
+   * every line. The boot deliberately only looks, because writing into a folder
+   * on an Unraid array wakes the disk that share sits on, and probing every
+   * configured folder would do that at every container restart.
+   */
+  probed: boolean;
+  /** Never null: the server initialises the slice, because a nil slice encodes
+   *  as JSON null and the page walking it would throw. */
+  checks: StartupCheck[];
+}
+
+/**
+ * Runs the start checks again NOW and answers with a fresh report.
+ *
+ * POST AND NOT GET BECAUSE IT WRITES. This is the pass that drops a small test
+ * file into every configured folder that exists and deletes it again, and a GET
+ * that writes is a route any browser prefetch, any speculative navigation and
+ * any link scanner fires on its own.
+ *
+ * The answer does NOT become the bundle's own reading. The server keeps the one
+ * taken at start (Diagnostics.startup), because that is the one a bug report
+ * needs and pressing this is exactly when somebody would destroy it.
+ */
+export async function runStartupCheck(): Promise<StartupReport> {
+  return json<StartupReport>(await fetch('/api/diagnostics/startup', { method: 'POST' }));
+}
+
+// ----- The log: the tail, the optional file on disk, and one download's lines -----
+
+/**
+ * One line as the server read it: the text, which part of the app it came from,
+ * and which download it names, if any.
+ *
+ * SOURCE AND TASKID ARE DECIDED ON THE SERVER, and that is the point. Both are
+ * rules about lines this tree writes - a table of the prefixes they start with,
+ * and the literal word "task" followed by a sixteen-character id - so a second
+ * copy on this side would drift the first time somebody reworded a log call,
+ * and the drift would show up as a filter that quietly matches nothing.
+ */
+export interface LogLine {
+  seq: number;
+  line: string;
+  source?: string;
+  taskId?: string;
+}
+
+export interface LogTail {
+  entries: LogLine[];
+  /**
+   * Lines the server's memory buffer threw away between two polls. Non-zero
+   * means the follow view has a hole in it and must SAY so rather than joining
+   * the two halves silently: a busy instance can log more than the buffer holds
+   * in two seconds, and a log that reads as continuous and is not is the one
+   * failure a diagnostic view may never have.
+   */
+  dropped: number;
+  /** The cursor for the next poll. Resets on restart; the server handles a
+   *  cursor from a process that is gone by starting over. */
+  newest: number;
+  capacity: number;
+  /** The source buckets the server offers, in its own order. Never levels:
+   *  nothing in this tree records one. */
+  sources: string[];
+}
+
+export interface LogGeneration {
+  /** 0 is the file being written; 1 the newest renamed one. */
+  index: number;
+  bytes: number;
+  modifiedAt: string;
+}
+
+export interface LogFileState {
+  /** Whether lines are reaching a file RIGHT NOW - not the settings switch. A
+   *  sink that was armed and then failed is false here with a sentence in
+   *  `problem`, which is the distinction the card is built on. */
+  enabled: boolean;
+  /** Where it is, or would be: the server answers this even with nothing armed,
+   *  because that is exactly when somebody is deciding whether to switch it on.
+   *  Always empty in the diagnostics bundle - see the Diagnostics field above. */
+  path: string;
+  bytes: number;
+  maxBytes: number;
+  keep: number;
+  /** Never null. */
+  generations: LogGeneration[];
+  /** Empty while the file is being written. Non-empty is the sentence the card
+   *  shows, and freeKnown/freeBytes is what turns it into advice. */
+  problem?: string;
+  /** Only measured while `problem` is set. */
+  freeBytes?: number;
+  /** False means the platform could not be asked, which is NOT the same as zero
+   *  bytes free - drawing an empty disk there sends somebody hunting for a
+   *  problem they do not have. */
+  freeKnown: boolean;
+}
+
+export interface TaskLog {
+  lines: LogLine[];
+  /** Where the lines were looked for. 'memory' today, always: the alternative
+   *  is reading up to a gigabyte of rotated files off an array volume every
+   *  time somebody double-clicks a row. */
+  scanned: 'memory' | 'memory+file';
+  /** Always true, and the card says so: seven of this app's log call sites
+   *  record which download they are about and the rest do not. */
+  partial: boolean;
+}
+
+/**
+ * The log lines newer than `since`, plus what fell out of memory in between.
+ * Pass 0 for everything the buffer holds. `limit` takes the OLDEST matching
+ * lines, so a limited answer advances the cursor instead of skipping the
+ * middle.
+ */
+export async function fetchLogTail(since: number, limit?: number): Promise<LogTail> {
+  const q = new URLSearchParams({ since: String(since) });
+  if (limit !== undefined) q.set('limit', String(limit));
+  return json<LogTail>(await fetch(`/api/diagnostics/log?${q.toString()}`));
+}
+
+/** Whether the log is being written to disk, where, how big, and what to try
+ *  when it is not. */
+export async function fetchLogFileState(): Promise<LogFileState> {
+  return json<LogFileState>(await fetch('/api/diagnostics/logfile'));
+}
+
+/**
+ * The log lines that name one download.
+ *
+ * LOCAL ONLY. It sits under /api/diagnostics, which neither the relay nor the
+ * federation proxy forwards - a log line can carry a feed URL with an indexer's
+ * key in its query string, which a task list never does, so the reasoning those
+ * two allowlists rest on does not cover this. Ask isLocalBase first.
+ */
+export async function fetchTaskLog(id: string): Promise<TaskLog> {
+  return json<TaskLog>(await fetch(`/api/diagnostics/task/${encodeURIComponent(id)}`));
+}
+
+/**
+ * The address one log file is downloaded from. A plain href and not a fetch:
+ * the route answers text/plain with a Content-Disposition, so the browser does
+ * the whole job, and a file that can be a gigabyte has no business being read
+ * into a Blob in a tab first.
+ */
+export function logFileHref(gen: number): string {
+  return `/api/diagnostics/logfile/${gen}`;
+}
+
+// ----- Who this instance writes files as (internal/fileowner) -----
+
+/**
+ * Who this instance writes files as, and what the environment asked for.
+ *
+ * `known` false is a real third answer and not a zero: the desktop build on
+ * Windows has no unix file owners at all, and every number below then means
+ * NOTHING - not uid 0, not root. Same rule as VolumeReport.known, and whatever
+ * draws this has to say so in words rather than print zeroes.
+ */
+export interface FileOwnerIdentity {
+  known: boolean;
+  /** "container" | "desktop" (internal/buildinfo.Deployment). The two need
+   *  different sentences: PUID is a container idea, and the desktop app runs as
+   *  the person sitting in front of it. */
+  deployment: string;
+  /** The EFFECTIVE ids, which is what the kernel stamps on a file at creation. */
+  uid: number;
+  gid: number;
+  /** "" when the id has no passwd or group entry, which is normal under
+   *  --user 99:100 and not an error - the number alone is a usable answer. */
+  user: string;
+  group: string;
+  /** Four octal digits, "0022". Empty when umaskKnown is false. */
+  umask: string;
+  /** False on a kernel with no Umask: line in /proc/self/status (it arrived in
+   *  Linux 4.7 and exists nowhere else). There is no portable read-only
+   *  umask(2), and the read-then-restore trick is a race in a process that
+   *  creates files on a dozen goroutines, so it is not attempted. */
+  umaskKnown: boolean;
+  /** What the operator set, verbatim. "" means unset, which is NOT 0: unset
+   *  PUID means the image's own uid 1000, unset UMASK means the runtime's mask. */
+  env: { puid: string; pgid: string; umask: string };
+  /**
+   * Whether anything in this build ACTS on those three. It is false today, and
+   * that is the finding rather than an omission: the image declares USER
+   * knight, so the process starts as uid 1000 and an unprivileged process
+   * cannot become another uid. A page that showed only the effective uid would
+   * leave an operator staring at a PUID they set, that is plainly there in
+   * `docker inspect`, and that did nothing - with no way to tell that from
+   * having typed it wrong. Never render this as "PUID would work if you set it".
+   */
+  envRead: boolean;
+}
+
+/** One folder as the probe MEASURED it: a real file and a real sub-folder were
+ *  created inside it, stat-ed, and removed again. Nothing here is computed from
+ *  the process uid and the umask, because that answer is wrong on a set-group-id
+ *  folder, on an NFS export with root squash, and on any mount carrying its own
+ *  umask option - which is three of the situations this exists for. */
+export interface FolderOwnerProbe {
+  dir: string;
+  /** "downloads" | "work" | "category" | "watch" - a stable id, looked up
+   *  locally. The server has no idea which of the 42 locales is reading. */
+  role: string;
+  exists: boolean;
+  /** False where files have no owner. Every number below then means nothing. */
+  known: boolean;
+  dirUid: number;
+  dirGid: number;
+  dirUser: string;
+  dirGroup: string;
+  /** Four octal digits, so a set-group-id folder reads "2775". */
+  dirMode: string;
+  /** The probe file, which is what a finished download will look like. */
+  fileUid: number;
+  fileGid: number;
+  fileUser: string;
+  fileGroup: string;
+  fileMode: string;
+  /** What a new per-package folder comes out as. The field a file-only probe
+   *  would not have: with a tight umask the files can be fine while the folder
+   *  containing them cannot be entered, and every download lands in one. */
+  subdirMode: string;
+  /** A stable id, never prose:
+   *  ok | ownerMismatch | groupUnreadable | dirUnreadable | notWritable | missing | unknown */
+  verdict: string;
+  /** The raw OS error, present only for the verdicts that have one. */
+  detail?: string;
+}
+
+export interface FolderOwnerReport {
+  checkedAt: string;
+  /** Never null - a nil slice would encode as JSON null and the map() throws. */
+  folders: FolderOwnerProbe[];
+}
+
+/** One configured folder as a STAT saw it, as the diagnostics bundle carries it.
+ *  NO PATH and no raw error, deliberately: that bundle is attached to public bug
+ *  reports and the desktop build's default download folder sits inside the
+ *  user's own home directory. The role and the numbers are the whole finding. */
+export interface FolderOwnership {
+  role: string;
+  exists: boolean;
+  known: boolean;
+  uid: number;
+  gid: number;
+  user: string;
+  group: string;
+  mode: string;
+}
+
+/** Who this instance writes files as. Reads only - it stats nothing and creates
+ *  nothing, so a page may hold it and refresh it freely. */
+export async function fetchFileOwner(): Promise<FileOwnerIdentity> {
+  return json<FileOwnerIdentity>(await fetch('/api/fileowner'));
+}
+
+/**
+ * Measure what a file written into each configured folder actually comes out as.
+ *
+ * A POST because it WRITES: one probe file and one probe sub-folder per folder,
+ * both removed again. It must not be reachable by a link, a prefetch or a page
+ * refresh. `dirs` narrows the run to some of the folders and must name folders
+ * this instance already writes into - anything else is refused with a 400 that
+ * names it, rather than skipped, because a report that measured three of the
+ * four folders it was asked about looks complete and is not.
+ */
+export async function checkFolderOwners(dirs?: string[]): Promise<FolderOwnerReport> {
+  return json<FolderOwnerReport>(await post('/api/fileowner/check', dirs ? { dirs } : {}));
+}
+
+// ----- The instance's own self-test, and the reverse-proxy echo -----
+
+/**
+ * internal/selftest.Status. Five values, and the last two are the point:
+ * `skipped` means there is nothing configured here to check, `unknown` means it
+ * IS configured and this build cannot find out. Collapsing them is the easiest
+ * mistake in this feature - the same distinction internal/diskspace's second
+ * return value exists to keep. Neither is ever the word "off".
+ */
+export type SelfTestStatus = 'pass' | 'warn' | 'fail' | 'skipped' | 'unknown';
+
+/** One check, mirroring internal/selftest.Result field for field. */
+export interface SelfTestResult {
+  /** "jd" | "ytdlp" | "folders" | "accounts" | "relay" | "clock" | "torrentPort",
+   *  or - inside `rows` - the folder path or account key that row describes. */
+  id: string;
+  status: SelfTestStatus;
+  /** The stable name of the sentence to render, e.g. "ytdlp.old". Never English
+   *  prose from the server: the same call routes_features.go's Feature.ID and
+   *  reconnect.ConfigProblem.Code already make, because the server has no idea
+   *  which of the forty-two locales is in front of the reader. */
+  code: string;
+  /** That sentence's substitutions: version, days, dir, measured, free, mark,
+   *  port, label, hosts, zone, time. Byte counts arrive as decimal strings of
+   *  BYTES and are formatted by fmtBytes here - a server that wrote "4,2 GB"
+   *  would have picked the reader's language and decimal separator for them. */
+  params?: Record<string, string>;
+  /** The OTHER side's own words: a Go error, a provider's refusal, a router's
+   *  fault string. English and untranslated on purpose, exactly as
+   *  portmap.Result.Detail is - they did not come from this app. */
+  detail?: string;
+  /** One level only: one row per debrid account, one per folder. */
+  rows?: SelfTestResult[];
+  /** RFC3339. */
+  at: string;
+}
+
+export interface SelfTestRun {
+  /** Empty on an instance that has never been swept, which is what the page
+   *  draws its "not run yet" line from. */
+  id: string;
+  startedAt: string;
+  /** Absent while the sweep is still going - the page polls until it appears. */
+  finishedAt?: string;
+  /** Every check id this sweep will report, in order, so the page draws all
+   *  seven rows as waiting before the first result lands. */
+  planned: string[];
+  results: SelfTestResult[];
+}
+
+/**
+ * What this instance saw of the very request that asked - the server half of
+ * the reverse-proxy card. The browser half is window.location plus a probe
+ * WebSocket, and the check IS the comparison of the two: a probe run on the
+ * server would dial its own listener on loopback, never touch the proxy, and
+ * report four rows that are always green.
+ */
+export interface SelfTestRequestView {
+  /** r.Host, as this instance received it. internal/api's sameOrigin compares
+   *  the browser's Origin against exactly this and 403s a mismatch. */
+  host: string;
+  /** X-Forwarded-Host, "" when absent. */
+  forwardedHost: string;
+  /** X-Forwarded-Proto, lowercased, "" when absent. */
+  forwardedProto: string;
+  /** Whether the connection into THIS process was TLS (r.TLS != nil), which is
+   *  a different fact from whether the browser is on https. */
+  tls: boolean;
+  /** r.URL.Path, as evidence that nothing rewrote the path on the way in. */
+  path: string;
+  /** X-Forwarded-Prefix with any trailing slash removed, "" when it names no
+   *  prefix at all. The only signature of a stripped path prefix that survives
+   *  the stripping: an UNstripped one never reaches this route in the first
+   *  place, and a stripped one is otherwise invisible by construction. */
+  forwardedPrefix: string;
+  /** How many hops X-Forwarded-For names. The addresses are deliberately not
+   *  sent: the chain is a map of somebody's internal network, and the count
+   *  answers the only question the card asks of it. */
+  forwardedForHops: number;
+  /** This instance's clock when it answered, RFC3339 with its offset. Note the
+   *  local time before and after the call and take the midpoint, so half of a
+   *  slow round trip is not read as clock drift - see lib/selftest.ts. */
+  now: string;
+  /** time.Local's name ("UTC", "Europe/Berlin") and its offset right now. */
+  zone: string;
+  zoneOffsetSeconds: number;
+  /** False only when $TZ names a zone the database could not supply, in which
+   *  case every time in that process has silently fallen back to UTC. */
+  zoneReadable: boolean;
+  /** buildinfo.Deployment, so the page can hide the proxy rows on desktop. */
+  deployment: string;
+}
+
+/**
+ * Starts one sweep and returns at once - the route answers 202 and the work
+ * outlives the request, because seven checks including up to seven provider
+ * logins outlive any reverse proxy's read timeout (this repo has hit that once
+ * already, on POST /api/links). Poll fetchSelfTest until finishedAt appears.
+ *
+ * A second call while a sweep is in flight JOINS it and answers with that
+ * sweep's id rather than starting a second one: seven providers asked twice
+ * over is a rate-limit refusal that then reads like a dead key.
+ */
+export async function startSelfTest(): Promise<SelfTestRun> {
+  return json<SelfTestRun>(await fetch('/api/selftest', { method: 'POST' }));
+}
+
+/** The current or last sweep. An instance that has never been swept answers a
+ *  run with an empty id rather than a 404, so the ordinary first load of the
+ *  page needs no special case. */
+export async function fetchSelfTest(): Promise<SelfTestRun> {
+  return json<SelfTestRun>(await fetch('/api/selftest'));
+}
+
+/** Timed by the caller: the round trip is what the clock comparison discounts.
+ *  no-store because a cached answer would hand back a timestamp minutes old and
+ *  have it reported as drift. */
+export async function fetchRequestView(): Promise<SelfTestRequestView> {
+  return json<SelfTestRequestView>(await fetch('/api/selftest/request', { cache: 'no-store' }));
+}
+
+/**
+ * What the two files this instance keeps are costing, and where a compaction's
+ * scratch copy would go (internal/app's StorageInfo).
+ *
+ * THE PATHS ARE HERE AND DELIBERATELY NOT IN THE DIAGNOSTICS BUNDLE. That
+ * bundle is a file people attach to public bug reports, and a desktop data
+ * directory is C:\Users\<their real name>\AppData\...; this document only ever
+ * reaches somebody already looking at their own settings pages, where the path
+ * is the single most useful thing on screen the moment a check comes back
+ * damaged.
+ */
+export interface StorageInfo {
+  storePath: string;
+  /** The .db plus any -journal/-wal/-shm beside it. */
+  storeBytes: number;
+  /** freelist_count * page_size. A FLOOR: compacting repacks half-filled pages too, so it usually gives back more. */
+  storeReclaimableBytes: number;
+  settingsPath: string;
+  settingsBytes: number;
+  /** False on an install that has never saved a settings page - the server reads settings.json and never writes it. */
+  settingsPresent: boolean;
+  /**
+   * Where SQLite writes the full second copy a compaction needs, which is
+   * almost never where anybody looks: the container image sets no TMPDIR, so
+   * the scratch copy of a 6 GB store lands in the container's own writable
+   * layer rather than on the mounted data volume. Without this the failure
+   * reads "database or disk is full" and names the wrong disk.
+   */
+  tempDir: string;
+  /** 0 when this build cannot ask the platform, which is not the same as 0 bytes free. Render it with tempDir, never alone. */
+  tempFreeBytes: number;
+}
+
+/** One completed maintenance pass, exactly as the server recorded it. */
+export interface MaintenanceRun {
+  kind: 'check' | 'compact' | 'analyze';
+  at: string;
+  durationMs: number;
+  /** A check that found damage is not ok; neither is one that could not run at all, and `error` tells the two apart. */
+  ok: boolean;
+  /** integrity_check's findings, one per entry, never null and never containing the bare word "ok". */
+  problems: string[];
+  /** The file's size either side of a compaction, and 0 for the two kinds that do not change it. */
+  bytesBefore: number;
+  bytesAfter: number;
+  error: string;
+  /** '' on a pass that ran; 'downloads-running' on a SCHEDULED one that stood down. */
+  skipped: string;
+}
+
+/**
+ * The whole answer to GET /api/system/maintenance.
+ *
+ * `last` and `nextRunAt` are NULLABLE on purpose. "Nothing has ever run here"
+ * and "something ran and found nothing wrong" are different answers, and a
+ * zero-valued object would render the second when the truth is the first -
+ * which on this page is a clean bill of health nobody earned. Same reasoning
+ * core.Task.AutoExtract already carries on the Go side.
+ */
+export interface MaintenanceState {
+  storage: StorageInfo;
+  /** '' when idle. The page polls while this is non-empty and stops when it clears. */
+  running: '' | 'check' | 'compact' | 'analyze';
+  intervalDays: number;
+  compactOnSchedule: boolean;
+  nextRunAt: string | null;
+  last: MaintenanceRun | null;
+}
+
+export async function fetchMaintenance(): Promise<MaintenanceState> {
+  return json<MaintenanceState>(await fetch('/api/system/maintenance'));
+}
+
+/**
+ * Starts one pass and returns at once - the route answers 202 and the work
+ * outlives the request, because a compaction on a multi-gigabyte store outlives
+ * any browser timeout and any reverse proxy's. Poll fetchMaintenance while
+ * `running` is non-empty.
+ *
+ * Throws an ApiError with `status === 409` when a pass is already going. That
+ * refusal is the feature and not an accident: two rewrites queued on the
+ * store's one connection is one rewrite followed by a second, pointless one,
+ * with every write in the process frozen for the sum of both. The 409's body is
+ * the state document rather than an error envelope, so `message` is JSON - read
+ * the status, not the sentence, and show settings.dbmaint.busy.
+ */
+export async function startMaintenance(action: 'check' | 'compact' | 'analyze'): Promise<MaintenanceState> {
+  return json<MaintenanceState>(
+    await fetch('/api/system/maintenance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action }),
+    }),
+  );
 }
 
 /** What internal/api/routes_lifecycle.go's DeploymentInfo answers - which build this is and what quit/restart actually do here. */
@@ -2759,6 +4044,99 @@ export async function uploadRestore(file: File): Promise<RestoreResult> {
   const body = new FormData();
   body.append('file', file);
   return json(await fetch('/api/system/restore', { method: 'POST', body }));
+}
+
+/**
+ * A settings-only export, as internal/settings.PortableDoc writes it.
+ *
+ * NOT a backup, and the distinction is the whole point of the pair sitting
+ * here together. The archive above moves an INSTALL - the database, the task
+ * history, this box's own identity - and applies at the next start-up,
+ * wholesale, over whatever was there. This is settings.json alone, minus the
+ * two identity keys (instanceId, knownDomains), taken back in key by key and
+ * applied live with no restart.
+ */
+export interface SettingsExportDoc {
+  kind: 'knightloader-settings';
+  version: string;
+  deployment: string;
+  createdAt: string;
+  /** What the file CLAIMS about itself. Judge a document by what it holds and
+   *  never by this: it is a string in a file anybody can edit, which is why
+   *  both settings.Secretless (Go) and secretlessKeys (settingsTransfer.ts)
+   *  read the settings themselves instead. */
+  secrets: 'included' | 'omitted';
+  /** settings.json's own top-level keys, raw. Deliberately not typed as
+   *  Settings: a file written by an older build carries keys this one no
+   *  longer has and misses keys it has gained, and the import has to be able
+   *  to list both rather than let either vanish. */
+  settings: Record<string, unknown>;
+}
+
+/**
+ * Where a settings export streams from - opened directly (window.location or
+ * an <a href>), never fetched through this client, exactly like
+ * BACKUP_DOWNLOAD_URL above: the browser owns the save dialog.
+ *
+ * includeSecrets is false at every call site (jdp, 2026-09-08). The server
+ * treats anything but the literal "include" as "omit", so a caller that gets
+ * this wrong leaks nothing.
+ */
+export const settingsExportURL = (includeSecrets: boolean) =>
+  `/api/settings/export?secrets=${includeSecrets ? 'include' : 'omit'}`;
+
+/**
+ * What POST /api/settings/import did, key by key. "ok" is not an answer here:
+ * three of these five fields describe things that save cleanly and then fail
+ * silently hours later.
+ */
+export interface SettingsImportResult {
+  /** The keys that reached the store. */
+  applied: string[];
+  /** Asked for and refused: the identity keys, and keys the file does not
+   *  actually carry. */
+  skipped: string[];
+  /** In the file, absent from this build's Settings struct. Reported because
+   *  encoding/json would otherwise drop them without a word, and because
+   *  migrate() runs only inside settings.Load against settings.json's own
+   *  bytes - never against a patch body - so a renamed key cannot be mapped. */
+  unknown: string[];
+  /** Codes, not sentences: "reconnect.password", "connections.password",
+   *  "archivePasswords". The interface picks the words - the server has no
+   *  idea which of forty-two languages the reader is looking at. */
+  incomplete: string[];
+  /** How many imported rules this build cannot compile. They save and never
+   *  fire (sanitizeRules changes nothing on purpose), so a non-zero count has
+   *  to reach the screen. */
+  ruleProblems: number;
+  /** The whole document as it now stands, for folding back into the settings
+   *  shell's two copies - see SettingsDraft.reseed. */
+  settings: Settings;
+}
+
+/**
+ * importSettings takes over exactly the named keys and nothing else.
+ *
+ * The document travels with the selection because the selection was made
+ * against THAT document, in a preview the browser built from it; re-uploading
+ * the file and remembering the ticks separately would be two round trips that
+ * can disagree about what was on screen.
+ *
+ * On a refusal it throws an ApiError carrying the server's own sentence, and
+ * for the one refusal that is an instruction rather than a diagnosis - a file
+ * written by a newer build - also the code "transfer.tooNew" with
+ * { version, running }.
+ */
+export async function importSettings(
+  document: SettingsExportDoc,
+  keys: string[],
+): Promise<SettingsImportResult> {
+  const r = await fetch('/api/settings/import', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ document, keys }),
+  });
+  return json<SettingsImportResult>(r);
 }
 
 export async function fetchInstances(): Promise<Instance[]> {

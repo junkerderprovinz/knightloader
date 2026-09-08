@@ -19,10 +19,13 @@ import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { IconCheck, IconChevronDown, IconRetry, PriorityGlyph } from '../lib/icons';
 import { hostOf } from '../lib/searchQuery';
+import { adviceFor } from '../lib/failureAdvice';
+import { FailureAdvice } from './FailureAdvice';
 import { ContextMenu, anchorBelow, useContextMenu } from './ContextMenu';
 import { HosterIcon } from './HosterIcon';
 import { ProgressBar } from './ProgressBar';
 import { ResolverBadge, StatusPill } from './StatusPill';
+import { RetryNote } from './RetryCountdown';
 import { useTooltip } from './ui';
 
 
@@ -273,6 +276,14 @@ export const reasonKey: Record<string, TranslationKey> = {
   unsupported: 'task.reason.unsupported',
   captcha: 'task.reason.captcha',
   cancelled: 'task.reason.cancelled',
+  // Named by the backend that hit them rather than by the shared classifier:
+  // only the process that read the whole of yt-dlp's output can tell "the site
+  // thinks we are a bot" from "the site said 403".
+  botCheck: 'task.reason.botCheck',
+  membersOnly: 'task.reason.membersOnly',
+  geoBlocked: 'task.reason.geoBlocked',
+  drm: 'task.reason.drm',
+  extractorBroken: 'task.reason.extractorBroken',
 };
 
 // The availability chip, one entry per verdict the server can send.
@@ -529,6 +540,7 @@ function RowTooltipContent({ task, t, base }: { task: Task; t: Translate; base: 
         )}
         {retryAt && (
           <TooltipField label={t('task.retryPending')} ltr>
+            <RetryNote task={task} form="full" />
             {retryAt}
           </TooltipField>
         )}
@@ -634,6 +646,8 @@ function NameCell({ task, t, base }: { task: Task; t: Translate; base: string })
   // stops people restarting something that is already about to restart.
   const retrying = task.status === 'error' && !!task.nextTry;
   const reason = task.reason ? reasonKey[task.reason] : undefined;
+  const advice = adviceFor(task.reason);
+  const [whyOpen, setWhyOpen] = useState(false);
   // The row's own rich tooltip lives on this cell rather than a plain
   // `title`: it is the one cell that truncates first (see TREE_INDENT
   // above), and the one hover that can afford to say more than the string
@@ -659,6 +673,9 @@ function NameCell({ task, t, base }: { task: Task; t: Translate; base: string })
         </div>
       </div>
       {tip.node}
+      {whyOpen && reason && (
+        <FailureAdvice task={task} base={base} reasonLabel={reason} onClose={() => setWhyOpen(false)} />
+      )}
       {task.error && (
         <div className="mt-0.5 flex items-center gap-1.5 text-[11px]">
           {/* The typed cause leads the line, as a tag rather than a second
@@ -673,11 +690,24 @@ function NameCell({ task, t, base }: { task: Task; t: Translate; base: string })
               a tag free to run the width of the cell would squeeze the sentence
               to nothing in a narrow column. At 45% the sentence always keeps the
               larger half, and the tag truncates with its own tooltip. */}
-          {reason && (
-            <span title={t(reason)} className="glim-eyebrow max-w-[45%] shrink-0 truncate">
-              {t(reason)}
-            </span>
-          )}
+          {reason &&
+            (advice ? (
+              // No stopPropagation: TaskList's CONTROL selector already begins
+              // with `button`, so the row's own click-to-select, its
+              // double-click-to-open and its dragstart all skip this for free.
+              <button
+                type="button"
+                title={t('failure.open')}
+                className="glim-eyebrow max-w-[45%] shrink-0 truncate underline-offset-2 hover:text-carbon-textSub hover:underline"
+                onClick={() => setWhyOpen(true)}
+              >
+                {t(reason)}
+              </button>
+            ) : (
+              <span title={t(reason)} className="glim-eyebrow max-w-[45%] shrink-0 truncate">
+                {t(reason)}
+              </span>
+            ))}
           {/* The sentence wins the room, and `flex-1 min-w-0` is what gives it
               to it. The pending-retry note used to sit here as `shrink-0` prose,
               and prose that cannot shrink beside text that can is a race the
@@ -690,8 +720,11 @@ function NameCell({ task, t, base }: { task: Task; t: Translate; base: string })
               thing on the line that may shrink, so it takes the whole shortfall
               and the glyph stays beside the sentence it belongs to instead of
               being pushed to the far edge of a wide column. */}
+          {/* The tool's own line stays as the title, so it is one hover away
+              and never lost - the plain-language sentence is a translation of
+              the failure, not a replacement for the evidence. */}
           <span title={task.error} className="min-w-0 truncate text-statusFail">
-            {task.error}
+            {advice ? t(advice.line) : task.error}
           </span>
           {/* So the note is a glyph now: fixed width, never competing, and it
               still carries the whole sentence for the pointer and the screen
@@ -819,6 +852,11 @@ const waitingKey: Partial<Record<NonNullable<Task['waiting']>, TranslationKey>> 
   // got controls, which is exactly when the wrong word would have been the
   // first thing anybody saw.
   disk: 'task.waiting.disk',
+  // The volume allowance for this period being used up. Same lesson as the
+  // disk reason directly above: a reason with no entry here reads as "all
+  // slots busy", which sends somebody to raise the concurrency limit against a
+  // queue that is not short of slots at all.
+  volumeCap: 'task.waiting.volumeCap',
 };
 
 function StatusCell({ task, t }: { task: Task; t: Translate }) {
@@ -879,6 +917,13 @@ function StatusCell({ task, t }: { task: Task; t: Translate }) {
           {t(waitingKey[task.waiting] ?? 'task.waiting.slot')}
         </span>
       )}
+      {/* What the row is waiting for after a failure, in the same slot and the
+          same grey as the note above it. A queued row's waiting reason and a
+          failed row's countdown can never both be on screen, so they do not
+          compete for the line. Compact here because this column is 148px by
+          default and 90px at its floor; the whole sentence is one hover away in
+          the row tooltip. */}
+      {!task.note && <RetryNote task={task} form="compact" />}
       {/* Only a real verdict is shown. An unverified download stays unmarked,
           because a tick that also means "not checked" is worse than none. */}
       {task.checksum === 'ok' && (

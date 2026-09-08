@@ -9,8 +9,8 @@ per row, and the decision is recorded in the Verdict column as we go.
 | Status | Count | Meaning |
 |---|---|---|
 | have | 79 | present and working here |
-| partial | 213 | some of it exists, the table says which part is missing |
-| missing | 636 | not built |
+| partial | 214 | some of it exists, the table says which part is missing |
+| missing | 635 | not built |
 
 Effort is judged for *this* architecture: S is under a day, M a day or two,
 L several days, XL a project. The Blocker column is empty unless something
@@ -27,7 +27,7 @@ survey nobody re-added.
 
 1. [Extensions and add-ons](#1-extensions-and-add-ons) — 69 features: 6 have, 22 partial, 41 missing
 2. [Downloads tab](#2-downloads-tab) — 104 features: 18 have, 30 partial, 56 missing
-3. [Toolbar, main menus and global controls](#3-toolbar-main-menus-and-global-controls) — 79 features: 14 have, 20 partial, 45 missing
+3. [Toolbar, main menus and global controls](#3-toolbar-main-menus-and-global-controls) — 79 features: 14 have, 21 partial, 44 missing
 4. [Reconnect, proxies and network](#4-reconnect-proxies-and-network) — 102 features: 3 have, 5 partial, 94 missing
 5. [Settings (complete settings tree)](#5-settings-complete-settings-tree) — 134 features: 11 have, 24 partial, 99 missing
 6. [LinkGrabber tab](#6-linkgrabber-tab) — 106 features: 11 have, 36 partial, 59 missing
@@ -236,7 +236,7 @@ Everything below is verified against the JD2 source (github.com/mirror/jdownload
 
 Grounded in JD2 source: MenuManagerMainToolbar.java and MenuManagerMainmenu.java literally encode the shipped default layouts, StatusBarImpl.java the status bar, MenuManagerTrayIcon.java the tray menu, and GuiTranslation.java the English/German labels. Structurally, every bar in JD is the same thing: a ContextMenuManager whose default tree is a list of Action classes, so toolbar, main menu, tray menu, both bottom bars and both table context menus are all user-rebuildable through one Menu Customizer dialog and all serialize to .jdToolbar/.jdmenu/.jdtray files. Items marked hidden-by-default live in an invisible "More Actions..." (OptionalContainer) branch: they exist and are wired up, but only appear once a user drags them in.
 
-79 features — 14 have, 20 partial, 45 missing.
+79 features — 14 have, 21 partial, 44 missing.
 
 | Feature | What it does | Where in JD | Weight | Status | Effort | Blocker | Verdict |
 |---|---|---|---|---|---|---|---|
@@ -264,7 +264,7 @@ Grounded in JD2 source: MenuManagerMainToolbar.java and MenuManagerMainmenu.java
 | **Add a Premium Account...** | Shortcut button in the premium bar for adding an account. | Status bar premium bar; toggled by isStatusBarAddPremiumButtonVisible (default true, requires restart) | common | partial | S | none — reachable only by navigating to the Accounts page; no persistent shortcut |  |
 | **Auto Reconnect / Auto-Reconnect** | Toggles automatic reconnects when hosters impose an IP-based wait. | Main toolbar (AutoReconnectToggleAction) | common | missing | L | privileged host/router access — needs router/modem login scripts to force a new dynamic IP, which a container-hosted web app has no path to |  |
 | **Backup > Backup all settings / Restore settings** | Writes or restores a full archive of JD's configuration and lists. | File menu, Backup submenu (BackupMenuContainer, BackupCreateAction, BackupRestoreAction) | common | missing | S | none — state is already plain files in the data dir (settings.json, accounts.json, .keyring); a zip export/import endpoint is straightforward |  |
-| **Create a Log** | Collects logs and uploads them, returning a log ID for support requests. | Help menu (LogSendAction) | common | missing | M | none — logging is bare log.Printf to stdout (e.g. internal/app/app.go:1376); nothing is collected, retained or uploadable |  |
+| **Create a Log** | Collects logs and uploads them, returning a log ID for support requests. | Help menu (LogSendAction) | common | partial | M | none for the rest — the last 500 lines are kept in memory and go into the downloadable diagnostics bundle (internal/logring, internal/api/routes_diagnostics.go), an optional capped and rotating file on disk keeps them across restarts (internal/logring/file.go, off by default), and the Diagnostics page searches, filters by source and follows them. NOT uploaded anywhere: there is no service to upload to and no plan to run one, so the bundle is a file the user attaches themselves. Filtering is by SOURCE and not by severity because this tree records no levels at all (156 bare log.Printf call sites); levels are their own item |  |
 | **Delete submenu** | Ready-made bulk-delete buttons: delete all / disabled / failed / finished / offline entries. | Toolbar More Actions pool, hidden DeleteMenuContainer (GenericDeleteFromTableToolbarAction with presets) | common | partial | S | none — two hard-coded bulk deletes; no delete-all/disabled preset and no configurable scope |  |
 | **Expand/Collapse all Packages** | Expands or collapses every package in the active table. | Toolbar More Actions pool (CollapseExpandAllAction) | common | missing | S | none — package groups render permanently expanded (web/src/components/TaskList.tsx:276), no collapse state exists |  |
 | **Find Updates** | Runs an update check on demand. | Help menu (CheckForUpdatesAction) | common | missing | M | none — same as toolbar.update; container updates are handled by Unraid/CA by convention |  |

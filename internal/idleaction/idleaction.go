@@ -30,36 +30,124 @@ const (
 	// again - a schedule window ending, a watch folder dropping a new job, a
 	// link pasted from another browser tab.
 	ActionPause Action = "pause"
+
+	// ActionQuit drains whatever is still in flight and stops the process,
+	// through the one path that already exists for it: internal/app.App's
+	// RequestExit, the very field POST /api/system/quit calls
+	// (internal/api/routes_lifecycle.go). It needs that field to be wired,
+	// which is why Capabilities.CanQuit exists - and note which deployment
+	// that leaves it on. RequestExit is set by cmd/knightloader and left nil
+	// by the desktop build on purpose (see its own doc comment on App), so
+	// quit is offered in the CONTAINER and not on the desktop, which reads
+	// backwards until you know that desktop's window and tray already own a
+	// graceful path of their own and quit/restart answer 501 there today.
+	//
+	// READ Controller.tick's everBusy gate before touching anything near
+	// this one. That gate is the only reason a container started with
+	// `restart: unless-stopped` - the Unraid template's own default - does
+	// not quit, come back, find an idle queue, quit again, forever. While
+	// the only action was ActionPause the worst that gate prevented was a
+	// paused queue; it now stands between this build and a restart loop, and
+	// TestDoesNotArmOnAnIdleBootWithAPersistedConfig is what pins it.
+	ActionQuit Action = "quit"
+
+	// ActionCommand runs one external program - see CommandSpec, and
+	// internal/app/app_idle_command.go for the run itself. Always offered:
+	// every deployment can exec, and what it can usefully exec is a question
+	// only the operator can answer, so refusing it anywhere would be this
+	// package guessing about somebody else's image (Preflight is what
+	// answers that question honestly, without running anything).
+	//
+	// It is deliberately a program plus arguments and NOT a shell command
+	// line, the same split internal/reconnect/config.go's Command/Args made
+	// and for the same stated reason. A pipe, a redirect or two commands in
+	// a row belong in a script file this points at.
+	ActionCommand Action = "command"
+
+	// ActionSuspend asks the operating system to put THIS machine to sleep,
+	// through internal/app.App.RequestSuspend - nil everywhere except the
+	// desktop build, which is the only place anything signed up to carry it
+	// out (desktop/power.go). A container's process cannot do this and must
+	// never claim it can: it is PID 1 in its own namespace and the host's
+	// power state is not reachable from inside, which is exactly the
+	// "wiring a shutdown call to a container's PID 1" this package spent its
+	// first two waves refusing. The honest container answer is ActionCommand
+	// pointed at something that reaches the host.
+	ActionSuspend Action = "suspend"
 )
 
-// Actions lists every action this build can offer, in menu order. A function
-// rather than a package variable for the same reason internal/app.Priorities
-// is: a caller must not be able to reorder the menu for everybody else by
-// mutating a shared slice.
+// Actions is every action this codebase knows, in menu order, NEVER filtered
+// by what the running build can carry out. A function rather than a package
+// variable for the same reason internal/app.Priorities is: a caller must not
+// be able to reorder the vocabulary for everybody else by mutating a shared
+// slice.
 //
-// OS-level actions - shut down, sleep, exit the app - belong on this list
-// once something in the process can honestly promise to carry one out, and
-// nothing can yet. internal/app's process is a container's PID 1 as often as
-// not, and a shutdown call wired to that is a bug people would trip over
-// hourly, not a feature (build-plan.md's Wave 10B brief). Checked again while
-// this was written, now that Wave 10H's desktop build has landed alongside
-// this one: it adds buildinfo.Deployment ("container"/"desktop") and
-// App.RequestExit, and neither closes the gap by itself.
-// buildinfo.Deployment says which binary is running, not that anything
-// signed up to carry out a shutdown, sleep or hibernate of the HOST machine -
-// 10H's own scope is tray and window chrome, not power state, and building
-// that here, unreviewed and unasked for, is exactly the "wiring a shutdown
-// call" this package exists to refuse. App.RequestExit is the opposite
-// mismatch: it exists so a HEADLESS deployment can be told to quit over the
-// API, and its own doc comment says the desktop build deliberately leaves it
-// nil because its window chrome already has a graceful path of its own -
-// using it here for "exit the app" would fire on exactly the deployment
-// (container, behind a supervisor) where that same doc comment explains quit
-// and restart are indistinguishable from outside, which is precisely the
-// confusion an unattended idle action must not cause. Extending this list is
-// a follow-up wired to a real power-state primitive, not a guess made now.
+// THE FILTERED LIST IS Offered, AND THE SPLIT BETWEEN THE TWO IS LOAD-BEARING.
+// This one is the VALIDATION VOCABULARY: validAction reads it, Sanitize reads
+// validAction, and settings.sanitize runs Sanitize on every single settings
+// save (internal/settings/settings.go's sanitize chain). Filter this list by
+// deployment or by capability - the obvious, tidy-looking change - and a
+// container whose settings.json holds "suspend" has that value rewritten to
+// "none" by the very next unrelated save: somebody changes the download
+// folder and their end-of-queue action is gone, with no message anywhere. It
+// breaks across builds too, since a backup taken on a desktop and restored
+// into a container carries settings.json with it (internal/api/routes_backup.go).
+// A stored action this build cannot perform is reported as a failed run when
+// it fires (see internal/app.App.fireIdleAction) - loudly, once - which is a
+// far better outcome than silently rewriting what the operator chose.
+//
+// The list used to hold only ActionNone and ActionPause, with a long comment
+// refusing OS-level actions until "something in the process can honestly
+// promise to carry one out". That condition is now met rather than waived:
+// ActionQuit goes through App.RequestExit, the same field the quit route
+// already calls, and ActionSuspend goes through App.RequestSuspend, which the
+// desktop build wires to a real per-OS power call (desktop/power_*.go) and
+// every other build leaves nil. Neither is guessed at from
+// buildinfo.Deployment, which was the specific mistake that comment was
+// written to prevent: what decides whether an action is offered is whether a
+// FUNCTION is wired, not which binary is running. See Capabilities.
 func Actions() []Action {
-	return []Action{ActionNone, ActionPause}
+	return []Action{ActionNone, ActionPause, ActionQuit, ActionCommand, ActionSuspend}
+}
+
+// Capabilities is what the host process can actually carry out, asked of the
+// host rather than derived from buildinfo.Deployment - see Actions' own
+// comment for why that difference is the whole point. internal/app.App
+// answers it (App.IdleCapabilities) by reading whether the matching function
+// field is nil, the same "nil means not supported here" convention
+// App.RequestExit established and routes_lifecycle.go already reads.
+type Capabilities struct {
+	CanQuit    bool
+	CanCommand bool
+	CanSuspend bool
+}
+
+// Offered is the MENU: the actions a build with these capabilities can
+// honestly show. Nothing else may filter, and this must never be used to
+// validate a stored value.
+//
+// ActionNone and ActionPause are unconditional - one is the no-opinion value
+// and the other needs nothing but the process already running.
+func Offered(c Capabilities) []Action {
+	out := make([]Action, 0, len(Actions()))
+	for _, a := range Actions() {
+		switch a {
+		case ActionQuit:
+			if !c.CanQuit {
+				continue
+			}
+		case ActionCommand:
+			if !c.CanCommand {
+				continue
+			}
+		case ActionSuspend:
+			if !c.CanSuspend {
+				continue
+			}
+		}
+		out = append(out, a)
+	}
+	return out
 }
 
 func validAction(a Action) bool {
@@ -99,12 +187,28 @@ type Config struct {
 	// action nobody had time to notice, let alone cancel, defeats the one
 	// thing a countdown is for.
 	DelaySeconds int `json:"delaySeconds"`
+	// Command is what ActionCommand runs. Kept here rather than in a
+	// separate top-level settings field so that one save writes one object:
+	// the action and the thing the action does cannot drift apart into two
+	// documents where one of them is stale. It is filled in whether or not
+	// Action is ActionCommand, and switching the action away and back must
+	// not cost the operator what they typed - which is also why nothing in
+	// Sanitize clears it when the action is something else.
+	Command CommandSpec `json:"command"`
 }
 
 // Defaults is what a fresh install has: armed at nothing, so this row is
 // something to opt into rather than a surprise waiting in the defaults.
+// The command's own numbers are filled in too, even though there is no
+// command: a settings form that opens on a zero timeout would show a number
+// that sanitize rewrites the first time anything at all is saved, which is a
+// control that lies about what saving it did.
 func Defaults() Config {
-	return Config{Action: ActionNone, DelaySeconds: DefaultDelaySeconds}
+	return Config{
+		Action:       ActionNone,
+		DelaySeconds: DefaultDelaySeconds,
+		Command:      CommandSpec{TimeoutSeconds: DefaultCommandTimeout},
+	}
 }
 
 // Sanitize repairs what a caller should never be refused over: reading a
@@ -123,5 +227,25 @@ func (c Config) Sanitize() Config {
 	if c.DelaySeconds > maxDelaySeconds {
 		c.DelaySeconds = maxDelaySeconds
 	}
+	c.Command = c.Command.Sanitize()
+	return c
+}
+
+// Redacted returns a copy safe to hand to a browser or to write into a file
+// somebody attaches to a public bug report - see CommandSpec.Redacted for
+// what is hidden and why the whole command line goes rather than a guess at
+// which part of it is the secret.
+func (c Config) Redacted() Config {
+	c.Command = c.Command.Redacted()
+	return c
+}
+
+// WithSecretsFrom puts back what Redacted removed, so a settings form that
+// was shown a redacted config and sent it straight back does not wipe the
+// stored command. The mirror image of reconnect.Config.WithSecretsFrom, and
+// called from the same place: settings.Store.setLocked, under the lock that
+// read prev.
+func (c Config) WithSecretsFrom(prev Config) Config {
+	c.Command = c.Command.WithSecretsFrom(prev.Command)
 	return c
 }

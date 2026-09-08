@@ -3,12 +3,15 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/logring"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
@@ -141,6 +144,93 @@ func TestDiagnosticsRedactsArchivePasswords(t *testing.T) {
 	if !bytes.Contains(raw, []byte(`"archivePasswordCount":2`)) {
 		t.Errorf("archivePasswordCount missing or wrong: %s", raw)
 	}
+}
+
+// TestDiagnosticsCarriesTheDatabaseSizes is the half of the maintenance
+// feature that belongs in a bug report. "The list takes a second to sort" and
+// "the database is 6 GB, 4 of which is space deleted rows left behind" are the
+// same report, and without these four fields nobody reading it could tell.
+func TestDiagnosticsCarriesTheDatabaseSizes(t *testing.T) {
+	srv, a := testServer(t)
+	defer srv.Close()
+
+	// Something in the database, so the size is a measurement rather than the
+	// size of an empty schema - and so a zero here means a bug rather than an
+	// empty install.
+	for i := 0; i < 8; i++ {
+		if err := a.Store.Save(&core.Task{
+			ID:        fmt.Sprintf("diag-%d", i),
+			URL:       "https://host.example/diag.bin",
+			Name:      "diag.bin",
+			Comment:   strings.Repeat("d", 16<<10),
+			Status:    core.StatusPaused,
+			CreatedAt: time.Now(),
+		}); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	_, d, raw := getDiagnostics(t, srv.URL)
+	if d.StoreBytes <= 0 {
+		t.Errorf("storeBytes = %d in a bundle from an instance with rows in its database", d.StoreBytes)
+	}
+	if !bytes.Contains(raw, []byte(`"storeReclaimableBytes"`)) {
+		t.Errorf("storeReclaimableBytes is missing from the bundle: %s", raw)
+	}
+	// settings.json is written the first time a settings page is saved and not
+	// before, so the flag has to say which of the two states this is - "0 bytes"
+	// for a file that does not exist is a different claim, and the wrong one.
+	if d.SettingsPresent {
+		t.Error("settingsPresent is true on an instance that has never saved a settings page")
+	}
+	if code, _, msg := putSettings(t, srv.URL, settingsWith(func(s *settings.Settings) {})); code != http.StatusOK {
+		t.Fatalf("PUT /api/settings answered %d: %s", code, msg)
+	}
+	_, saved, _ := getDiagnostics(t, srv.URL)
+	if !saved.SettingsPresent || saved.SettingsBytes <= 0 {
+		t.Errorf("after a save the bundle says present=%v bytes=%d", saved.SettingsPresent, saved.SettingsBytes)
+	}
+}
+
+// TestDiagnosticsShipsNoPaths is the same argument the redaction tests above
+// make, for a different kind of secret. This bundle is a file people attach to
+// PUBLIC bug reports; a desktop data directory is
+// C:\Users\<their real name>\AppData\..., and the database's file name is one
+// grep away from telling somebody exactly what to look for. The sizes go in the
+// bundle, the paths go on the session-guarded maintenance route and nowhere
+// else.
+func TestDiagnosticsShipsNoPaths(t *testing.T) {
+	srv, a := testServer(t)
+	defer srv.Close()
+
+	_, _, raw := getDiagnostics(t, srv.URL)
+	for _, secret := range []string{a.DataDir, "knightloader.db"} {
+		for _, spelling := range spellingsInJSON(t, secret) {
+			if bytes.Contains(raw, []byte(spelling)) {
+				t.Errorf("GET /api/diagnostics shipped %q in the bundle (as %q)", secret, spelling)
+			}
+		}
+	}
+}
+
+// spellingsInJSON is every way one path could appear in the response body, and
+// it exists because the first draft of the test above found the database's file
+// name and missed the directory it sits in - on Windows a path is
+// C:\Users\...\Temp\..., and json.Marshal doubles every one of those
+// backslashes, so a search for the literal string finds nothing while the path
+// is sitting in the document in plain sight. The forward-slash spelling is here
+// for the same class of miss on the platforms that use it.
+func spellingsInJSON(t *testing.T, path string) []string {
+	t.Helper()
+	encoded, err := json.Marshal(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	out := []string{path, strings.Trim(string(encoded), `"`)}
+	if slashed := strings.ReplaceAll(path, `\`, "/"); slashed != path {
+		out = append(out, slashed)
+	}
+	return out
 }
 
 // TestDiagnosticsIncludesRecentLogLines is the point of tapping the standard

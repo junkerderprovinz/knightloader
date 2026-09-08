@@ -98,3 +98,18 @@ curl -s -o /dev/null -w '%{http_code}
 
 `GET /api/health` returns `{"status":"ok","version":"…"}`; the image's
 HEALTHCHECK uses it, so `docker ps` shows `healthy` once the server is up.
+
+It says nothing about whether anything INSIDE the instance is working, and it is
+not allowed to: a 503 there marks the container unhealthy, which is what an
+auto-restart policy acts on, so a dead JD sidecar would restart KnightLoader in
+a loop for a fault in a different container. Ask the detail route instead, which
+is guarded like everything else under `/api/`:
+
+```sh
+curl -s http://<host>:8749/api/health/detail   # every part with a state of its own
+```
+
+`GET /api/metrics` answers the same reading as Prometheus exposition text. It
+does not exist until the switch on the Health settings page is turned on, and
+answers 404 until then; on a password-locked instance a collector authenticates
+with one of the instance's own API tokens as a Bearer header.

@@ -8,6 +8,7 @@ import { asNavLabelMode, setNavLabels, useNavLabels, type NavLabelMode } from '.
 import { useT } from '../lib/i18n';
 import { fetchAuth, fetchSettings, logout } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
+import { EventBell } from './EventBell';
 import {
   IconDashboard,
   IconCollector,
@@ -117,10 +118,17 @@ function useDrawAndStrike(): {
   };
 }
 
-const navBase =
+// navBase/navInactive/NavLabel are exported rather than copied, and that is not
+// tidiness: a rail row that lives in another file (EventBell.tsx, the one row
+// here that opens a panel instead of navigating) needs the identical class
+// strings, and a duplicated Tailwind string is the drift that stops matching
+// the rail the first time somebody edits one of the two copies. The import
+// EventBell makes back into this file is a cycle on paper only - it reads these
+// during render, long after both modules have finished evaluating.
+export const navBase =
   'relative flex items-center rounded-[var(--radius-control)] px-3 py-2.5 text-[15px] font-medium transition duration-150 select-none';
 const navActive = 'glim-active bg-accent text-accentContrast';
-const navInactive = 'text-[var(--sidebar-text)] hover:bg-carbon-hover hover:text-carbon-text';
+export const navInactive = 'text-[var(--sidebar-text)] hover:bg-carbon-hover hover:text-carbon-text';
 
 // In rainbow mode the icon carries the item's own hue, so the rail and the
 // glyph agree and the nav reads as a set rather than as one gold item and five
@@ -148,7 +156,7 @@ const navHued = 'glim-hue glim-hue-icon';
  * Logical `ps`, not `pl` - the app has right-to-left locales, and in those the
  * glyph slides the other way.
  */
-function NavLabel({ label, mode }: { label: string; mode: NavLabelMode }) {
+export function NavLabel({ label, mode }: { label: string; mode: NavLabelMode }) {
   if (mode === 'glyph') return null;
   if (mode !== 'hover') return <span className="flex-1">{label}</span>;
   return (
@@ -341,6 +349,13 @@ export function Sidebar() {
           sidebar immer noch vorhanden"). Both still live on the Aussehen
           tab (pages/settings/Look.tsx). */}
       <div className={`flex flex-col gap-1 ${narrow ? 'p-2' : 'p-3'}`}>
+        {/* The bell sits in the bottom cluster rather than in the nav rail
+            above, because it is not a place: the five rows above are routes,
+            and a sixth that opens a panel over them would read as a page that
+            never loads. Above sign-out and settings, which are the two things
+            somebody reaches for when they have finished looking rather than
+            when they are looking. */}
+        <EventBell />
         {/* Sign out sits ABOVE Settings (jdp, 2026-09-07: "in der sidebar soll
             der abmeldebutton über dem einstellungs button sein"). It is also
             the only sign-out left in the app now - the copy on the password

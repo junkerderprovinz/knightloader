@@ -10,6 +10,7 @@
 // Command.group.
 import {
   IconAccounts,
+  IconBell,
   IconCollector,
   IconDashboard,
   IconDownloads,
@@ -19,6 +20,7 @@ import {
   IconSettings,
 } from '../icons';
 import { setCommandPaletteOpen } from '../commandPaletteOpen';
+import { setEventsPanelOpen } from '../eventLog';
 import { toggleTheme } from '../theme';
 import type { Command, CommandSurface } from './types';
 
@@ -52,6 +54,23 @@ export const GLOBAL_COMMANDS: Command[] = [
     // harmless rather than closing what the first listener just opened -
     // "always open" is idempotent under two listeners, "toggle" is not.
     run: () => setCommandPaletteOpen(true),
+  },
+  {
+    id: 'app.events.open',
+    labelKey: 'commands.openEvents',
+    icon: IconBell,
+    group: 'commands.group.general',
+    surfaces: ['global'],
+    // mod+shift+e is free: mod+k, mod+a, mod+f and mod+u are taken, as are
+    // mod+shift+ m/p/r/z/f/o/a/u/h/g/enter and 1-6, and alt+home/up/down/end.
+    defaultShortcut: 'mod+shift+e',
+    enabled: () => true,
+    visible: () => true,
+    // Sets the flag rather than toggling it, the same reasoning the palette's
+    // own entry above gives: "always open" stays correct if a second listener
+    // ever matches the same keystroke, and "toggle" closes what the first one
+    // just opened.
+    run: () => setEventsPanelOpen(true),
   },
   {
     id: 'theme.toggle',

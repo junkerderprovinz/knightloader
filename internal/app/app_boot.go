@@ -180,6 +180,16 @@ func (a *App) sweep() {
 	// see refreshHostListsIfDue (app_accounts.go) for why this rides upkeep's
 	// existing ticker instead of starting a second goroutine for it.
 	a.refreshHostListsIfDue()
+	// The database's own housekeeping, riding this same ticker for the same
+	// reason as the line above and with the same shape: one settings read on an
+	// ordinary tick, and even when a pass IS due it only starts one - the work
+	// itself never happens on this goroutine. That last part is not a style
+	// choice. Close waits for upkeep before it closes the store, so a
+	// compaction run inline here would make a `docker stop` wait out the whole
+	// rewrite, reach the runtime's ten-second SIGKILL, and kill the process in
+	// the middle of writing the database. See runDBMaintenanceIfDue
+	// (app_dbmaint.go).
+	a.runDBMaintenanceIfDue()
 }
 
 // reconcileFinishTimes copies the store's answer for "when did this finish"

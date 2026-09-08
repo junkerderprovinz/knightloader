@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import { cancelIdleAction, connectWS, fetchIdleAction, type IdleActionState } from '../lib/api';
 import { Button } from './ui';
-import { IconClock, IconPause } from '../lib/icons';
+import { IconClock, IconCode, IconMoon, IconPause, IconPower, IconWarning } from '../lib/icons';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 
@@ -24,12 +25,86 @@ import { useToast } from '../lib/toast';
 // follow, so this is never a permanent fixture with "no countdown" written on
 // it somewhere on screen.
 //
+// IT ALSO REPORTS A FAILED RUN, which is new and is the reason this file is
+// not only a countdown any more. An end-of-queue action used to be a pause: it
+// either happened or it did not, and either way the queue in front of the
+// person said which. A command that could not start, or a machine that refused
+// to sleep, says nothing anywhere - fireIdleAction only ever called log.Printf
+// - so the one surface an action has would have gone on rendering nothing at
+// exactly the moment there was something to say. See IdleRun in lib/api.ts.
+//
 // actionKey mirrors columns.tsx's own reasonKey: only the actions this build
 // knows get a proper label; the server's `action` is an open string (a newer
 // backend can arm one this build has never heard of), and that falls back to
 // idleAction.actionFallback rather than a raw, untranslated token.
 const actionKey: Record<string, TranslationKey> = {
   pause: 'idleAction.action.pause',
+  quit: 'idleAction.action.quit',
+  command: 'idleAction.action.command',
+  suspend: 'idleAction.action.suspend',
+};
+
+/**
+ * How a problem code becomes a sentence, shared with the settings card so
+ * that one failure reads the same on both surfaces.
+ *
+ * The server sends a CODE and never a sentence, for the reason
+ * reconnect.ConfigProblem's own comment sets out: translating on the server
+ * would need the reader's language on every request and would write the log in
+ * whichever language the last reader happened to prefer. So the code crosses
+ * the wire and the words are picked here.
+ *
+ * Two codes get a second variant chosen from the deployment, because the same
+ * fact needs a different second half: "that program is not here" inside a
+ * container has to name what the image actually ships (yt-dlp, ffmpeg and a
+ * JRE - no systemctl, no curl, no ssh, no sudo, no bash), and a refused sleep
+ * is nearly always the policy manager rather than a broken call.
+ */
+const problemKey: Record<string, TranslationKey> = {
+  empty: 'idleAction.problem.empty',
+  notFound: 'idleAction.problem.notFound',
+  notExecutable: 'idleAction.problem.notExecutable',
+  permission: 'idleAction.problem.permission',
+  timeout: 'idleAction.problem.timeout',
+  exit: 'idleAction.problem.exit',
+  notSupported: 'idleAction.problem.notSupported',
+};
+
+export interface IdleProblemVars {
+  program?: string;
+  deployment?: string;
+  action?: string;
+  code?: number;
+  output?: string;
+  seconds?: number;
+}
+
+export function idleProblemText(
+  t: (k: TranslationKey, vars?: Record<string, string | number>) => string,
+  problem: string | undefined,
+  vars: IdleProblemVars,
+): string {
+  if (!problem) return '';
+  if (problem === 'permission' && vars.action === 'suspend') return t('idleAction.problem.suspendRefused');
+  if (problem === 'notFound' && vars.deployment === 'container') {
+    return t('idleAction.problem.notFoundContainer', { program: vars.program ?? '' });
+  }
+  const key = problemKey[problem];
+  if (!key) return t('idleAction.runFailed');
+  return t(key, {
+    program: vars.program ?? '',
+    path: vars.program ?? '',
+    code: vars.code ?? 0,
+    output: vars.output ?? '',
+    seconds: vars.seconds ?? 0,
+  });
+}
+
+const actionIcon: Record<string, ReactNode> = {
+  pause: <IconPause width={15} height={15} />,
+  quit: <IconPower width={15} height={15} />,
+  command: <IconCode width={15} height={15} />,
+  suspend: <IconMoon width={15} height={15} />,
 };
 
 function fmtCountdown(totalSeconds: number): string {
@@ -61,6 +136,13 @@ export function IdleActionBanner() {
   const [state, setState] = useState<IdleActionState | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [cancelling, setCancelling] = useState(false);
+  // Which failure this viewer has already read, by its own instant. Held per
+  // tab rather than on the server: a failed run is one fact and two people
+  // looking at it have two separate "I have seen that" answers, and a shared
+  // dismissal would take the notice off the other person's screen. A LATER
+  // failure has a later instant and therefore appears again, which is the
+  // whole reason this is the timestamp and not a boolean.
+  const [dismissed, setDismissed] = useState<string | null>(null);
 
   // Initial snapshot, then live over the hub - the same load()-then-connectWS
   // shape every other always-mounted piece in this app uses (CaptchaModal,
@@ -103,7 +185,46 @@ export function IdleActionBanner() {
     return () => clearInterval(id);
   }, [state?.armed, state?.fireAt]);
 
-  if (!state?.armed) return null;
+  const failed = state?.lastRun && !state.lastRun.ok ? state.lastRun : null;
+
+  // Nothing armed: the countdown is over or was never started, and the only
+  // thing left worth a corner of the screen is a failure nobody has read yet.
+  if (!state?.armed) {
+    if (!failed || dismissed === failed.at) return null;
+    return (
+      <div className="fixed bottom-5 left-5 z-40 max-w-sm">
+        <div role="status" aria-live="polite" className="glim-card glim-fade flex items-start gap-3 px-4 py-3 text-xs">
+          <span className="text-statusWarn" aria-hidden="true">
+            <IconWarning width={15} height={15} />
+          </span>
+          <span className="flex flex-col gap-1">
+            <span className="text-carbon-text">{t('idleAction.failedTitle')}</span>
+            {/* No deployment is passed, on purpose: this banner is mounted on
+                every page and fetching GET /api/system/deployment for a notice
+                that is usually not shown would be a request on every load for
+                nothing. The consequence is that a container gets the short
+                "that program is not here" rather than the longer one naming
+                what the image ships - and the link right below leads to the
+                card that does have it. */}
+            <span className="text-carbon-textSub">
+              {idleProblemText(t, failed.problem, {
+                program: failed.program,
+                action: failed.action,
+                code: failed.exitCode,
+                output: failed.output,
+              })}
+            </span>
+            <Link to="/settings/downloads" className="text-accent hover:underline">
+              {t('idleAction.openSettings')}
+            </Link>
+          </span>
+          <Button kind="secondary" onClick={() => setDismissed(failed.at)} className="px-2.5 text-xs">
+            {t('idleAction.dismiss')}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const fireAt = fireAtMs(state.fireAt);
   const remaining = fireAt === null ? null : Math.max(0, Math.round((fireAt - now) / 1000));
@@ -132,8 +253,11 @@ export function IdleActionBanner() {
         aria-live="polite"
         className="glim-card glim-fade flex items-center gap-3 px-4 py-3 text-xs"
       >
+        {/* One glyph per action, each of them one this app already draws for
+            the same idea, and the clock for an action this build has no icon
+            for - the same fallback the label above it makes. */}
         <span className="text-carbon-textMuted" aria-hidden="true">
-          {state.action === 'pause' ? <IconPause width={15} height={15} /> : <IconClock width={15} height={15} />}
+          {actionIcon[state.action ?? ''] ?? <IconClock width={15} height={15} />}
         </span>
         <span className="flex flex-col gap-0.5">
           <span className="text-carbon-text">{t('idleAction.title')}</span>

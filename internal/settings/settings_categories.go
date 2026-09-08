@@ -81,6 +81,7 @@ import (
 	"unicode"
 
 	"github.com/junkerderprovinz/knightloader/internal/collide"
+	"github.com/junkerderprovinz/knightloader/internal/mediahook"
 	"github.com/junkerderprovinz/knightloader/internal/pathvars"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 )
@@ -160,6 +161,32 @@ type Category struct {
 	// (see options() in routes_settings.go); a category is the second door into
 	// the same field and would otherwise be the way round the first.
 	Collision string `json:"collision,omitempty"`
+	// Notify is the stored address called once a package filed in this drawer
+	// has finished AND its files have been moved into place - a media library
+	// told to rescan, in practice. Empty means this drawer calls nothing, which
+	// is what every drawer does until somebody changes it.
+	//
+	// It is the id of a mediahook.Hook (see settings_mediahooks.go), so it is a
+	// REFERENCE and not a copy, exactly like every other field on this struct: an
+	// address edited on the Downloads page reaches every drawer pointing at it
+	// with nothing to migrate. Unlike the other fields, a dangling one is REFUSED
+	// rather than read as "no opinion" - see ValidateMediaHooks for why this
+	// reference is treated the way a Packagizer rule's category reference is and
+	// not the way a task's own dead category id is.
+	//
+	// THE HOOK HANGS HERE AND NOT ON A PACKAGIZER RULE OR A FOLDER PREFIX. A
+	// drawer is the one anchor in this build that already has a stable identity,
+	// a picker and a settings home; a rule's identity is its name, which falls
+	// back to its POSITION when it has none (rules.ruleName), so a hook keyed on
+	// one would re-aim itself the first time somebody reordered their rules. A
+	// resolved folder prefix is not an identity at all - it is the output of a
+	// template.
+	//
+	// A package whose links sit in two drawers calls both, once each. That is not
+	// an edge case to be tidied away: mixed packages are normal here and this
+	// file argues for them at length above (the sample beside the film, the
+	// subtitle beside the episode).
+	Notify string `json:"notify,omitempty"`
 }
 
 // CategoryFor is the category an ID names, or the zero Category when it names
@@ -344,6 +371,13 @@ func sanitizeCategories(n Settings) Settings {
 			c.SpeedLimit = 0
 		}
 		c.Collision = normalizeCategoryCollision(c.Collision)
+		// Folded, never cleared. HookID answers "" for a spelling no address
+		// could ever be stored under, and that empty is the honest reading of it
+		// - but an id that folds to something usable is KEPT even when no address
+		// is stored under it today, because clearing it here would silently undo
+		// a drawer's setting the moment somebody hand-edited their hooks list.
+		// ValidateMediaHooks is what refuses that state at the door.
+		c.Notify = mediahook.HookID(c.Notify)
 		out = append(out, c)
 		if len(out) == MaxCategories {
 			break

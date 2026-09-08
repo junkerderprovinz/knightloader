@@ -1,14 +1,13 @@
 import {
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
   type CSSProperties,
   type DragEvent,
+  type KeyboardEvent,
   type PointerEvent,
-  type RefObject,
 } from 'react';
 import { createPortal } from 'react-dom';
 import {
@@ -70,7 +69,10 @@ import {
   type ResolvedLayout,
   type SortState,
 } from './columns';
+import { RetrySkipBadge } from './RetryCountdown';
 import { TaskDetailPanel } from './taskdetail/TaskDetailPanel';
+import { useListKeyboard } from './listKeyboard';
+import { rowKey, useRowWindow, type ListRow, type RowDragKey } from './listRows';
 import {
   IconPause,
   IconPlay,
@@ -201,6 +203,11 @@ function TaskRow({
   dnd,
   onSelect,
   onOpenProperties,
+  current,
+  onKeyDown,
+  level,
+  posinset,
+  setsize,
 }: {
   task: Task;
   base: string;
@@ -226,6 +233,15 @@ function TaskRow({
    *  click already ran onSelect above by the time this fires - no
    *  modifier keys to read here, only "show it now". */
   onOpenProperties?: () => void;
+  /** True for the one row that owns the list's tab stop. Everything focusable
+   *  inside a row reads it too, or Tab would still walk four hundred badges. */
+  current: boolean;
+  onKeyDown: (e: KeyboardEvent<HTMLElement>) => void;
+  /** The tree's own sibling-set numbers, off the model and never off the
+   *  window - see ListRow. */
+  level: number;
+  posinset: number;
+  setsize: number;
 }) {
   const { t } = useT();
   const collected = task.status === 'collected';
@@ -253,6 +269,14 @@ function TaskRow({
       // see useRowWindow's own measureRows.
       data-row-key={rowKey({ kind: 'task', id: task.id })}
       data-row-kind="task"
+      role="treeitem"
+      // Roving tabindex: one row is the tab stop, not five thousand.
+      tabIndex={current ? 0 : -1}
+      aria-selected={selection ? selection.ids.has(task.id) : undefined}
+      aria-level={level}
+      aria-posinset={posinset}
+      aria-setsize={setsize}
+      onKeyDown={onKeyDown}
       // The live drag preview moves this row by SLIDING it (a transform), not by
       // rendering it somewhere else in the list - see TaskListCard's own
       // previewOffsets. While a drag is in flight this carries a translateY and a
@@ -388,13 +412,23 @@ function TaskRow({
           to its now-hued, at-rest-neutral siblings was read as the actual
           inconsistency, not the fix. */}
       <div
+        // :has() and not :focus-within, which matches the element ITSELF: with
+        // focus-within the strip popped open on the focused row and covered its
+        // own size, speed and status cells, so a keyboard user walking the list
+        // had them permanently hidden behind it on whichever row they stood on.
+        // :has() never matches the element itself, so the strip still appears
+        // when a badge inside it takes focus and stays out of the way when the
+        // row does.
         className="absolute inset-y-px end-2 z-10 flex items-center gap-1 rounded-[var(--radius-control)]
           bg-carbon-surface px-1 opacity-0 shadow-[var(--elevation)] transition-opacity
-          group-hover:opacity-100 focus-within:opacity-100"
+          group-hover:opacity-100 [&:has(:focus-visible)]:opacity-100"
       >
         {collected && (
           <IconBadge
             hue={0}
+            // Roving tabindex reaches inside the row too: without it Tab walks
+            // every badge of every drawn row and the one-stop list is decorative.
+            tabIndex={current ? 0 : -1}
             icon={<IconPlay width={16} height={16} />}
             title={t('task.start')}
             aria-label={t('task.start')}
@@ -404,6 +438,7 @@ function TaskRow({
         {task.status === 'running' && (
           <IconBadge
             hue={0}
+            tabIndex={current ? 0 : -1}
             icon={<IconPause width={16} height={16} />}
             title={t('task.pause')}
             aria-label={t('task.pause')}
@@ -413,6 +448,7 @@ function TaskRow({
         {task.status === 'paused' && (
           <IconBadge
             hue={0}
+            tabIndex={current ? 0 : -1}
             icon={<IconPlay width={16} height={16} />}
             title={t('task.resume')}
             aria-label={t('task.resume')}
@@ -425,6 +461,7 @@ function TaskRow({
           {collected && (
             <IconBadge
               hue={1}
+              tabIndex={current ? 0 : -1}
               icon={<IconSearch width={16} height={16} />}
               title={t('task.recheck')}
               aria-label={t('task.recheck')}
@@ -437,9 +474,18 @@ function TaskRow({
               badges here DO something to this link, while that one only opened
               a form about it. The dialog itself is unchanged and still reached
               from the row menu (taskMenuGroups' own onOptions). */}
+          {/* Before Restart and never instead of it. This one appears only
+              while a wait is actually running, and it spends the retry that was
+              already scheduled rather than granting a new one. Restart beside it
+              stays the plain "run this again" for a row that is finished or done
+              waiting. No guard needed at the call site: RetrySkipBadge draws
+              nothing unless a retry is genuinely pending, which is narrower than
+              `settled` and keeps the badge off every finished download. */}
+          <RetrySkipBadge task={task} base={base} focusable={current} />
           {settled && (
             <IconBadge
               hue={3}
+              tabIndex={current ? 0 : -1}
               icon={<IconRetry width={16} height={16} />}
               title={t('task.restart')}
               aria-label={t('task.restart')}
@@ -448,6 +494,7 @@ function TaskRow({
           )}
           <IconBadge
             hue={4}
+            tabIndex={current ? 0 : -1}
             icon={<IconTrash width={16} height={16} />}
             title={t('task.remove')}
             aria-label={t('task.remove')}
@@ -474,11 +521,16 @@ function PackageName({
   items,
   collapsed,
   onToggle,
+  focusable,
 }: {
   name: string;
   items: Task[];
   collapsed: boolean;
   onToggle: () => void;
+  /** Whether this row currently owns the list's tab stop - see TaskRow's own
+   *  `current`. The twisty is a real button and would otherwise be its own
+   *  tab stop on every drawn package. */
+  focusable: boolean;
 }) {
   const { t } = useT();
   const priorityNames = usePriorityNames();
@@ -500,6 +552,7 @@ function PackageName({
       <button
         type="button"
         onClick={onToggle}
+        tabIndex={focusable ? 0 : -1}
         aria-expanded={!collapsed}
         aria-label={label}
         title={label}
@@ -560,7 +613,7 @@ function PackageName({
  * the same site, so a package with more than one host shows the badge for
  * whichever host its own "Variante" rows actually share.
  */
-function HosterPresetButton({ host, base }: { host: string; base: string }) {
+function HosterPresetButton({ host, base, focusable }: { host: string; base: string; focusable: boolean }) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
   const label = `${t('collector.hosterPreset')} · ${host}`;
@@ -568,6 +621,7 @@ function HosterPresetButton({ host, base }: { host: string; base: string }) {
     <>
       <IconBadge
         hue={0}
+        tabIndex={focusable ? 0 : -1}
         icon={<IconSettings width={16} height={16} />}
         title={label}
         aria-label={label}
@@ -731,6 +785,11 @@ function PackageRow({
   dnd,
   onSelect,
   onOpenProperties,
+  current,
+  onKeyDown,
+  level,
+  posinset,
+  setsize,
 }: {
   name: string;
   items: Task[];
@@ -755,6 +814,12 @@ function PackageRow({
   /** TaskRow's own onOpenProperties, for a double-click on the package
    *  header itself. */
   onOpenProperties?: () => void;
+  /** See TaskRow's own identical prop. */
+  current: boolean;
+  onKeyDown: (e: KeyboardEvent<HTMLElement>) => void;
+  level: number;
+  posinset: number;
+  setsize: number;
 }) {
   const allSelected = selection && items.every((x) => selection.ids.has(x.id));
   const dragging = dnd.draggingPackage === name;
@@ -769,6 +834,14 @@ function PackageRow({
       // See TaskRow's own pair: what useRowWindow measures this row by.
       data-row-key={rowKey({ kind: 'package', name })}
       data-row-kind="package"
+      role="treeitem"
+      tabIndex={current ? 0 : -1}
+      aria-selected={selection ? !!allSelected : undefined}
+      aria-expanded={!collapsed}
+      aria-level={level}
+      aria-posinset={posinset}
+      aria-setsize={setsize}
+      onKeyDown={onKeyDown}
       // Slid out of the way by a drag in flight exactly like a link row - see
       // TaskRow's own identical style above, and previewOffsets for the
       // arithmetic. This is the half jdp was missing (2026-09-03: "die ordner
@@ -828,7 +901,13 @@ function PackageRow({
           } ${col.numeric ? 'glim-num' : ''}`}
         >
           {col.id === 'name' ? (
-            <PackageName name={name} items={items} collapsed={collapsed} onToggle={onToggleCollapsed} />
+            <PackageName
+              name={name}
+              items={items}
+              collapsed={collapsed}
+              onToggle={onToggleCollapsed}
+              focusable={current}
+            />
           ) : (
             col.aggregate?.(items, ctx)
           )}
@@ -851,292 +930,11 @@ function PackageRow({
           className="absolute inset-y-px end-2 z-10 flex items-center rounded-[var(--radius-control)]
             bg-carbon-surface px-1 shadow-[var(--elevation)]"
         >
-          <HosterPresetButton host={ytdlpHost} base={base} />
+          <HosterPresetButton host={ytdlpHost} base={base} focusable={current} />
         </div>
       )}
     </div>
   );
-}
-
-/**
- * One line of the table: a folder header, or a link under one.
- *
- * The rows are a flat run and not a tree of sections, and that is the whole of
- * what makes windowing possible - a window is a slice, and there is nothing to
- * slice while the rows are buried one level down inside their packages. Built
- * once per render from the same `view` and the same folded set the table draws
- * from, so this list IS the on-screen order rather than a second opinion about
- * it: the Shift-range walks it, the drag preview stacks it, and the window
- * measures it.
- */
-type ListRow =
-  | { kind: 'package'; key: string; name: string; items: Task[]; collapsed: boolean; divider: boolean }
-  | {
-      kind: 'task';
-      key: string;
-      task: Task;
-      /** Position among the drawn LINK rows, which is the rainbow palette
-       *  position. A folded package contributes none, exactly as before: the
-       *  colour walks what is on screen, not what the list holds. */
-      index: number;
-    };
-
-// --- Windowing -------------------------------------------------------------
-//
-// Below this many rows the table is drawn whole, spacers and all arithmetic
-// skipped. Measured, on a production build at 1600x1000 (web/bench.html, since
-// deleted): 200 rows redraw in 11ms and 500 in 26ms, so a list this size is
-// already inside a frame's budget for the two things that happen constantly - a
-// websocket task update and a click on a row - and windowing it would buy
-// nothing but a second code path through the drag preview.
-//
-// Above it, the same measurement is why this exists at all: 1000 rows cost 62ms
-// per websocket tick, 2000 cost 126ms and 5000 cost 357ms, and 99% of that is
-// React re-rendering every row (the same change with no changed VALUE costs the
-// same 355ms, and a plain selection click, which writes one class, costs 345ms -
-// so it is neither the DOM write nor the layout). One running download emits a
-// progress update roughly every second; on a five-thousand-link list that was a
-// third of a second of frozen interface, every second.
-const VIRTUALIZE_ABOVE = 150;
-
-// How many rows above and below the viewport are drawn anyway.
-//
-// Not only a scroll buffer. It is what keeps Tab working: the browser picks the
-// next focusable element out of the DOM as it is at the moment the key is
-// pressed, and only scrolls it into view afterwards - so the row after the last
-// visible one has to already exist, or focus leaves the table instead of walking
-// into it. Twelve rows is several presses' worth of head start in either
-// direction, and the scroll each of those presses causes has moved the window on
-// again long before the buffer runs out.
-const OVERSCAN = 12;
-
-// What a row is worth before anything has measured one. Only ever used for rows
-// that have not been on screen yet; every row that has is remembered at its own
-// measured height (see useRowWindow), so the scrollbar describes the real list
-// rather than an average of it.
-const ROW_ESTIMATE = { package: 45, task: 37 };
-
-/** The first index whose row ENDS after y, i.e. the first row still on screen. */
-function firstAfter(offsets: Float64Array, y: number): number {
-  let lo = 0;
-  let hi = offsets.length - 1;
-  while (lo < hi) {
-    const mid = (lo + hi) >> 1;
-    if (offsets[mid + 1] <= y) lo = mid + 1;
-    else hi = mid;
-  }
-  return lo;
-}
-
-interface RowWindow {
-  /** The slice to render: [start, end). */
-  start: number;
-  end: number;
-  /** The height of everything before and after it, as two empty boxes. */
-  padTop: number;
-  padBottom: number;
-}
-
-/**
- * Which slice of the table is worth putting in the DOM.
- *
- * The list card has no scroll box of its own (Downloads.tsx renders it in the
- * page's own flow and Collector.tsx wraps it in an `overflow-y-auto` of its
- * own), so the window is read off the VIEWPORT rather than off a container this
- * component owns: `getBoundingClientRect` on the row strip says where the strip
- * sits relative to the screen, whichever ancestor happens to be doing the
- * scrolling, and a scroll listener in the capture phase hears that ancestor
- * without having to know which one it is. Using the whole viewport height where
- * a caller's own box is shorter only ever draws MORE rows than strictly needed,
- * which is the safe direction to be wrong in.
- *
- * Heights are measured and remembered per row, not assumed: a package header is
- * taller than a link row, and a link row that failed carries a second line with
- * the reason on it. An average would leave the scrollbar promising a length the
- * list does not have: off by a couple of pixels per row is off by thousands over
- * a few thousand rows. So every row that has been drawn once keeps its own
- * height, and only a row nobody has scrolled past yet uses the estimate.
- */
-function useRowWindow(rows: ListRow[], stripRef: RefObject<HTMLDivElement | null>): RowWindow {
-  const heights = useRef(new Map<string, number>());
-  const estimate = useRef({ ...ROW_ESTIMATE });
-  // Bumped only when a measurement actually moved, which is what keeps the
-  // measure-then-render loop from running forever.
-  const [measured, setMeasured] = useState(0);
-  // Seeded rather than left at zero, and that is worth a paragraph: the layout
-  // effect below cannot run until AFTER a render, so a window that waits for it
-  // draws the whole table once and throws it away on the very next pass. Measured
-  // at 5000 rows, that one wasted pass cost 3.4s against 0.6s for a window that
-  // was right the first time - it built all 188k nodes, then tore them down.
-  //
-  // The list starts at the top of its own strip, which is where it is when a page
-  // has just been opened; anything else (a browser restoring a scroll position, a
-  // list re-mounted further down a scrolled page) is corrected by the effect
-  // before the frame is painted.
-  const [viewport, setViewport] = useState(() => ({
-    top: 0,
-    height: typeof window === 'undefined' ? 0 : window.innerHeight,
-  }));
-
-  const on = rows.length > VIRTUALIZE_ABOVE;
-
-  // Where every row starts, as a running total. Recomputed when the rows change
-  // or when a measurement corrects one of them, and deliberately NOT on scroll:
-  // scrolling only moves the window, it does not change what the rows are.
-  const offsets = useMemo(() => {
-    const known = heights.current;
-    // The cache is keyed by row, and rows come and go for as long as the app
-    // stays open - a clean-up removes a few hundred, a crawl adds a few
-    // thousand. Rebuilt from the rows that actually exist once it has grown to
-    // several times the list's own length, so an instance somebody leaves open
-    // for a week is not carrying the heights of every link it has ever shown.
-    if (known.size > rows.length * 4 + 64) {
-      const kept = new Map<string, number>();
-      for (const row of rows) {
-        const h = known.get(row.key);
-        if (h !== undefined) kept.set(row.key, h);
-      }
-      heights.current = kept;
-    }
-    const out = new Float64Array(rows.length + 1);
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i];
-      const h = heights.current.get(row.key) ?? estimate.current[row.kind];
-      out[i + 1] = out[i] + h;
-    }
-    return out;
-    // heights and estimate are refs read at the moment this runs; `measured` is
-    // the signal that either of them has changed.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows, measured]);
-
-  // Re-read after every commit, not only when something in here changed: the
-  // strip moves down the page when the toolbar above it grows a row, and it is
-  // this read - not a scroll - that notices.
-  useLayoutEffect(() => {
-    // Nothing here is worth a forced reflow on a list that is drawn whole: with
-    // no window there is no slice to place and no spacer to size, so a short
-    // list pays none of this.
-    if (!on) return;
-    const el = stripRef.current;
-    if (!el) return;
-    if (measureRows(el, heights.current, estimate.current)) setMeasured((n) => n + 1);
-    const r = el.getBoundingClientRect();
-    const top = Math.max(0, -r.top);
-    const height = window.innerHeight;
-    setViewport((p) => (Math.abs(p.top - top) < 1 && p.height === height ? p : { top, height }));
-  });
-
-  useEffect(() => {
-    let frame = 0;
-    const read = () => {
-      frame = 0;
-      const el = stripRef.current;
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      const top = Math.max(0, -r.top);
-      const height = window.innerHeight;
-      setViewport((p) => (Math.abs(p.top - top) < 1 && p.height === height ? p : { top, height }));
-    };
-    // One read per frame at most: a scroll fires far more often than the screen
-    // is repainted, and a window recomputed per event would re-render the table
-    // several times for one flick of a wheel.
-    const schedule = () => {
-      if (!frame) frame = requestAnimationFrame(read);
-    };
-    // Capture, because a scroll event does not bubble: the ancestor actually
-    // doing the scrolling is the page's own <main> for the downloads list and a
-    // wrapper of its own for the collector, and neither is reachable from here.
-    window.addEventListener('scroll', schedule, true);
-    window.addEventListener('resize', schedule);
-    return () => {
-      if (frame) cancelAnimationFrame(frame);
-      window.removeEventListener('scroll', schedule, true);
-      window.removeEventListener('resize', schedule);
-    };
-  }, [stripRef]);
-
-  if (!on || viewport.height === 0) return { start: 0, end: rows.length, padTop: 0, padBottom: 0 };
-  const start = Math.max(0, firstAfter(offsets, viewport.top) - OVERSCAN);
-  const end = Math.min(rows.length, firstAfter(offsets, viewport.top + viewport.height) + 1 + OVERSCAN);
-  return { start, end, padTop: offsets[start], padBottom: offsets[rows.length] - offsets[end] };
-}
-
-/**
- * Reads back what the rows that are currently drawn actually measure, and says
- * whether anything moved.
- *
- * getBoundingClientRect and not offsetHeight: offsetHeight is rounded to whole
- * pixels, and half a pixel per row is a couple of thousand pixels of scrollbar
- * over a list this long. A row mid-drag is translated rather than scaled, so its
- * measured height is the same either way.
- */
-function measureRows(
-  strip: HTMLElement,
-  heights: Map<string, number>,
-  estimate: { package: number; task: number },
-): boolean {
-  let changed = false;
-  let pkgSum = 0;
-  let pkgCount = 0;
-  let taskSum = 0;
-  let taskCount = 0;
-  strip.querySelectorAll<HTMLElement>('[data-row-key]').forEach((el) => {
-    const key = el.dataset.rowKey ?? '';
-    const h = el.getBoundingClientRect().height;
-    if (h <= 0) return;
-    if (el.dataset.rowKind === 'package') {
-      pkgSum += h;
-      pkgCount++;
-    } else {
-      taskSum += h;
-      taskCount++;
-    }
-    const known = heights.get(key);
-    if (known === undefined || Math.abs(known - h) >= 0.5) {
-      heights.set(key, h);
-      changed = true;
-    }
-  });
-  // The estimate follows what this list's own rows actually measure, so the
-  // rows nobody has scrolled to yet are guessed at from siblings rather than
-  // from a constant written months ago against a different font size.
-  if (pkgCount > 0) {
-    const avg = pkgSum / pkgCount;
-    if (Math.abs(estimate.package - avg) >= 0.5) {
-      estimate.package = avg;
-      changed = true;
-    }
-  }
-  if (taskCount > 0) {
-    const avg = taskSum / taskCount;
-    if (Math.abs(estimate.task - avg) >= 0.5) {
-      estimate.task = avg;
-      changed = true;
-    }
-  }
-  return changed;
-}
-
-/**
- * What one row drag is carrying — a single link, or a whole package moved as
- * one block. See TaskListCard's own "Row drag-to-reorder" section, the only
- * place this is built; TaskRow and PackageGroup only read it.
- */
-type RowDragKey = { kind: 'task'; id: string } | { kind: 'package'; name: string };
-
-/**
- * The one string a row is known by across the whole drag: the geometry snapshot,
- * the previewed arrangement and the per-row offset all key on this.
- *
- * A package name and a task id live in the same map, so the kind has to be part
- * of the key - a folder called after one of its own links would otherwise share
- * a slot with it. `pkg:` for the unnamed package is a real key, not a missing
- * one, which is the same reason data-package-row is present-and-empty rather
- * than absent.
- */
-function rowKey(u: RowDragKey): string {
-  return u.kind === 'task' ? `task:${u.id}` : `pkg:${u.name}`;
 }
 
 /** The bundle TaskRow and PackageGroup share, built once per render in TaskListCard. */
@@ -1378,7 +1176,21 @@ function agree<T>(tasks: Task[], pick: (t: Task) => T): T | null {
  * panel show a value as agreed when it is not, and since nothing is written
  * unless it was edited, that costs a placeholder and never a value.
  */
-export function TaskProperties({ ids, tasks, base }: { ids: string[]; tasks: Task[]; base: string }) {
+export function TaskProperties({
+  ids,
+  tasks,
+  base,
+  autoFocus = false,
+}: {
+  ids: string[];
+  tasks: Task[];
+  base: string;
+  /** Set only where the KEYBOARD opened this panel. It renders below the list
+   *  card, which on a five-thousand-row list is thousands of pixels down the
+   *  page: Enter would otherwise open a panel nobody can see. A double-click
+   *  never sets it - a mouse user's focus is theirs. */
+  autoFocus?: boolean;
+}) {
   const { t } = useT();
   const { toast } = useToast();
   const priorities = usePriorities();
@@ -1403,6 +1215,13 @@ export function TaskProperties({ ids, tasks, base }: { ids: string[]; tasks: Tas
   const [touched, setTouched] = useState<Set<PropField>>(() => new Set());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+
+  const panelRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!autoFocus) return;
+    panelRef.current?.focus({ preventScroll: true });
+    panelRef.current?.scrollIntoView({ block: 'nearest' });
+  }, [autoFocus]);
 
   function edit<T>(field: PropField, set: (v: T) => void): (v: T) => void {
     return (v) => {
@@ -1450,7 +1269,12 @@ export function TaskProperties({ ids, tasks, base }: { ids: string[]; tasks: Tas
     // The right-click belongs to the browser in here. The page above this puts a
     // context menu on the whole list area and calls preventDefault on every
     // reading of it, which inside a text box means no paste entry.
-    <section aria-label={t('props.title')} onContextMenu={(e) => e.stopPropagation()}>
+    <section
+      ref={panelRef}
+      tabIndex={-1}
+      aria-label={t('props.title')}
+      onContextMenu={(e) => e.stopPropagation()}
+    >
       <Card className="flex flex-col gap-4">
         <SectionTitle
           right={
@@ -1587,6 +1411,7 @@ export function TaskListCard({
   profile = 'downloads',
   title,
   hue,
+  revealKey,
 }: {
   groups: [string, Task[]][];
   base: string;
@@ -1609,6 +1434,13 @@ export function TaskListCard({
    *  and Downloads.tsx's own call sites for why each picks a different
    *  number. */
   hue?: number;
+  /**
+   * "Scroll to this row, once." A row key plus a nonce ("task:abc#7"), never a
+   * bare id: the guard below handles each distinct value exactly once, so
+   * without the nonce revealing the same row twice running is a no-op the
+   * second time. See lib/reveal.ts.
+   */
+  revealKey?: string;
 }) {
   const { t } = useT();
   // Only the row reorder reports through this so far (see dropRow): the queue
@@ -1621,7 +1453,7 @@ export function TaskListCard({
 
   const [stored, setStored] = useUIState<ColumnLayout | null>(`list.columns.${profile}`, null);
   const [storedSort, setSort] = useUIState<SortState | null>(`list.sort.${profile}`, null);
-  const { collapsed, toggle } = useCollapsedPackages(profile);
+  const { collapsed, collapse, expand, toggle } = useCollapsedPackages(profile);
   const [menuAt, setMenuAt] = useState<{ x: number; y: number } | null>(null);
   // The properties panel's own visibility (jdp, 2026-08-26: "wenn man
   // einmal auf einen link oder einen ordner klickt kommt sofort die
@@ -1634,6 +1466,12 @@ export function TaskListCard({
   // takes a fresh double-click to reopen it for whatever is selected now,
   // the same way it takes a fresh one to open it the first time.
   const [propertiesOpen, setPropertiesOpen] = useState(false);
+  // Whether the panel about to appear should take the focus. True only on the
+  // Enter path: on a five-thousand-row list the panel renders thousands of
+  // pixels below the row that opened it, so "Enter opens the properties" is
+  // otherwise true and completely invisible to whoever pressed it. Never on the
+  // double-click path - a mouse user has not asked for their focus to be moved.
+  const [propertiesAutoFocus, setPropertiesAutoFocus] = useState(false);
 
   const tableRef = useRef<HTMLDivElement>(null);
   // The rows themselves, without the header row above them or the spacer below:
@@ -1661,6 +1499,12 @@ export function TaskListCard({
   const rows = useMemo<ListRow[]>(() => {
     const out: ListRow[] = [];
     let hue = 0;
+    // The sibling-set numbers a screen reader reads out, counted here where the
+    // grouping is still in hand: a folder is one of the folders, a link is one
+    // of ITS OWN folder's links. Counted off the window instead they would say
+    // "3 of 40" on a list of five thousand, which is a worse answer than none.
+    const packages = view.length;
+    let pkgAt = 0;
     for (const [name, items] of view) {
       const folded = collapsed.has(name);
       out.push({
@@ -1670,9 +1514,22 @@ export function TaskListCard({
         items,
         collapsed: folded,
         divider: out.length > 0,
+        level: 1,
+        posinset: ++pkgAt,
+        setsize: packages,
       });
       if (!folded) {
-        for (const x of items) out.push({ kind: 'task', key: rowKey({ kind: 'task', id: x.id }), task: x, index: hue++ });
+        items.forEach((x, i) =>
+          out.push({
+            kind: 'task',
+            key: rowKey({ kind: 'task', id: x.id }),
+            task: x,
+            index: hue++,
+            level: 2,
+            posinset: i + 1,
+            setsize: items.length,
+          }),
+        );
       }
     }
     return out;
@@ -2424,6 +2281,93 @@ export function TaskListCard({
   // it (see VIRTUALIZE_ABOVE).
   const win = useRowWindow(rows, stripRef);
 
+  // The list from the keyboard - see listKeyboard.ts for why a WINDOWED list
+  // needs a file of its own for it. selectUnit goes in whole rather than being
+  // reimplemented: Shift with an arrow has to extend from the same anchor a
+  // Shift-click uses, or the two gestures disagree about what is selected.
+  const keys = useListKeyboard({
+    rows,
+    win,
+    stripRef,
+    selectUnit,
+    collapsed,
+    collapse,
+    expand,
+    openProperties: () => {
+      setPropertiesAutoFocus(true);
+      setPropertiesOpen(true);
+    },
+    enabled: rows.length > 0,
+  });
+
+  // Scroll a named row into view, exactly once per request.
+  //
+  // TRAP, and it decides how this is written: `win` is a fresh object on every
+  // scroll (useRowWindow's own listener sets viewport state per animation
+  // frame). An effect that DEPENDED on it would scroll, which moves the
+  // viewport, which makes a new `win`, which scrolls again - an unbreakable
+  // loop on any list with a running download. So `win` is read through a ref
+  // and is not a dependency at all, and a second ref holds the last revealKey
+  // actually handled.
+  //
+  // That second ref is set only once the row has been FOUND. A revealKey can
+  // arrive one commit before the task does (the page may have just dropped a
+  // peer scope, and useTasks refills from a fresh socket snapshot), and marking
+  // it handled on the way past would swallow the request for good.
+  const winRef = useRef(win);
+  winRef.current = win;
+  const revealed = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!revealKey || revealed.current === revealKey) return;
+    const strip = stripRef.current;
+    if (!strip) return;
+    const key = revealKey.split('#')[0];
+    const index = rows.findIndex((r) => r.key === key);
+    if (index < 0) return;
+    revealed.current = revealKey;
+
+    // Walked rather than matched with a selector: a package name is whatever
+    // somebody typed, and quoting it into an attribute selector is a class of
+    // bug nobody needs. At most a windowful of nodes is drawn.
+    const find = () =>
+      [...strip.querySelectorAll<HTMLElement>('[data-row-key]')].find(
+        (el) => el.getAttribute('data-row-key') === key,
+      ) ?? null;
+
+    const here = find();
+    if (here) {
+      here.scrollIntoView({ block: 'center', inline: 'nearest' });
+      return;
+    }
+
+    // The row is outside the drawn window, so there is no element to scroll to
+    // at all - the two spacers carry no data attributes on purpose. A 1px
+    // marker at the row's own offset stands in for it, and the scroll it causes
+    // is what moves the window over the real row.
+    const mark = document.createElement('div');
+    mark.style.position = 'absolute';
+    mark.style.top = `${winRef.current.topOf(index)}px`;
+    mark.style.height = '1px';
+    mark.style.width = '1px';
+    strip.appendChild(mark);
+    mark.scrollIntoView({ block: 'center', inline: 'nearest' });
+    mark.remove();
+
+    // Then again, precisely. The first pass landed on ROW_ESTIMATE for every
+    // row nobody has ever drawn - measureRows only ever measures what is in the
+    // window - and on a five-thousand-row list that is hundreds of pixels out.
+    // Two frames: one for the render the scroll caused, one for the measuring
+    // pass that follows it.
+    let second = 0;
+    const first = requestAnimationFrame(() => {
+      second = requestAnimationFrame(() => find()?.scrollIntoView({ block: 'center', inline: 'nearest' }));
+    });
+    return () => {
+      cancelAnimationFrame(first);
+      cancelAnimationFrame(second);
+    };
+  }, [revealKey, rows]);
+
   return (
     // Two surfaces side by side and never one inside the other: the panel is a
     // card of its own under the list, because a card inside a card is the one
@@ -2474,7 +2418,7 @@ export function TaskListCard({
         className={`glim-card ${hue !== undefined ? 'glim-hue ' : ''}flex-1`}
         style={hue !== undefined ? (hueVars(rainbowAt(hue)) as CSSProperties) : undefined}
       >
-        <div className="px-4 pt-4">
+        <div className="flex items-center gap-2 px-4 pt-4">
           {/* The bubble on this badge is the HEADER's, not the list's own
               "what this is" text. That one is gone (jdp, 2026-09-06: "die i
               infobubble im kartentitel entfernen. auch in der linklisten
@@ -2485,6 +2429,11 @@ export function TaskListCard({
               where that one should live: "die können wir ja in den
               cardtitelbadge machen"). */}
           <SectionTitle hint={t('columns.headerHint')}>{title}</SectionTitle>
+          {/* A second bubble beside the badge, not a second SectionTitle and not
+              a line of text under the table: the header's own explanation is
+              about sorting and the column menu, and this one is about the keys.
+              One explanation per thing being explained. */}
+          <InfoBubble tip={t('list.keysHint')} />
         </div>
         <div className="overflow-hidden rounded-b-[var(--radius-card)]">
           {/* Sorting is a view of the queue and not the queue. Saying so where the
@@ -2538,7 +2487,41 @@ export function TaskListCard({
                   attributes on purpose: the drag snapshot, the right-click and
                   the selection all look rows up by those, and a spacer is not a
                   row that any of them may find. */}
-              <div ref={stripRef}>
+              {/* role="tree" and not "treegrid": nothing here navigates to a
+                  cell - left and right are close and open - so cell roles would
+                  describe an interaction this list does not have, and a treegrid
+                  would force roles onto the header row, onto the h-10 tail
+                  spacer below and onto the absolutely-positioned action strip
+                  that owns no grid track at all. If per-cell navigation is ever
+                  added, this comment is where to say so.
+
+                  `relative` is for the two probes, the keyboard's and the event
+                  list's. A jump to a row the window has not drawn has nothing to
+                  focus, so a one-pixel box is placed at that row's own offset
+                  and scrolled into view; the commit after the scroll finds the
+                  real row (listKeyboard.ts, and the revealKey effect above).
+                  Neither probe carries data attributes, for exactly the reason
+                  the two spacers do not: measureRows averages every
+                  [data-row-key] it finds into the height estimate, and a 1px row
+                  in that average drags the scrollbar for the whole list toward
+                  zero. Both row roots are already `relative`, so nothing else
+                  re-anchors. */}
+              <div
+                ref={stripRef}
+                className="relative"
+                role="tree"
+                aria-multiselectable="true"
+                aria-label={title}
+                tabIndex={keys.stripTabIndex}
+                onFocus={keys.onStripFocus}
+              >
+                {keys.probeTop !== null && (
+                  <div
+                    ref={keys.probeRef}
+                    aria-hidden
+                    style={{ position: 'absolute', top: keys.probeTop, height: 1, width: 1 }}
+                  />
+                )}
                 {win.padTop > 0 && <div aria-hidden style={{ height: win.padTop }} />}
                 {rows.slice(win.start, win.end).map((row) =>
                   row.kind === 'package' ? (
@@ -2554,8 +2537,21 @@ export function TaskListCard({
                       divider={row.divider}
                       onToggleCollapsed={() => toggle(row.name)}
                       dnd={dnd}
-                      onSelect={(e) => selectUnit('package', row.name, row.items.map((x) => x.id), e)}
-                      onOpenProperties={() => setPropertiesOpen(true)}
+                      level={row.level}
+                      posinset={row.posinset}
+                      setsize={row.setsize}
+                      current={keys.currentKey === row.key}
+                      onKeyDown={(e) => keys.onRowKeyDown(e, row.key)}
+                      onSelect={(e) => {
+                        // The cursor follows the pointer, so a later Tab into
+                        // the list resumes from the row the mouse last touched.
+                        keys.setCurrent(row.key);
+                        selectUnit('package', row.name, row.items.map((x) => x.id), e);
+                      }}
+                      onOpenProperties={() => {
+                        setPropertiesAutoFocus(false);
+                        setPropertiesOpen(true);
+                      }}
                     />
                   ) : (
                     <TaskRow
@@ -2567,8 +2563,19 @@ export function TaskListCard({
                       columns={layout.visible}
                       selection={selection}
                       dnd={dnd}
-                      onSelect={(e) => selectUnit('task', row.task.id, [row.task.id], e)}
-                      onOpenProperties={() => setPropertiesOpen(true)}
+                      level={row.level}
+                      posinset={row.posinset}
+                      setsize={row.setsize}
+                      current={keys.currentKey === row.key}
+                      onKeyDown={(e) => keys.onRowKeyDown(e, row.key)}
+                      onSelect={(e) => {
+                        keys.setCurrent(row.key);
+                        selectUnit('task', row.task.id, [row.task.id], e);
+                      }}
+                      onOpenProperties={() => {
+                        setPropertiesAutoFocus(false);
+                        setPropertiesOpen(true);
+                      }}
                     />
                   ),
                 )}
@@ -2608,7 +2615,13 @@ export function TaskListCard({
           comment): selecting something is no longer enough on its own, a
           double-click is what actually opens it. */}
       {propertiesOpen && chosenIds && chosen.length > 0 && (
-        <TaskProperties key={[...chosenIds].join(',')} ids={[...chosenIds]} tasks={chosen} base={base} />
+        <TaskProperties
+          key={[...chosenIds].join(',')}
+          ids={[...chosenIds]}
+          tasks={chosen}
+          base={base}
+          autoFocus={propertiesAutoFocus}
+        />
       )}
       {/* The read-only detail, below the properties card and below the strip.
           BELOW is load-bearing: useRowWindow measures stripRef after every

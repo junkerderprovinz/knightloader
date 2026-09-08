@@ -36,6 +36,9 @@ import {
   type QuickFilterId,
 } from '../components/ListToolbar';
 import { matchesSearch, SearchField } from '../components/SearchField';
+import { claimReveal, useRevealRequest } from '../lib/reveal';
+import { selectionReach, useDrawnRows } from '../lib/selectionReach';
+import { SelectionReach } from '../components/SelectionReach';
 import { SavedViewChips } from '../components/SavedViewChips';
 import { useListNarrowing } from '../lib/listNarrowing';
 import { ErrorCauses } from '../components/ErrorCauses';
@@ -90,6 +93,10 @@ export function Downloads() {
   // sammlertb nach unten aufploppen").
   const searchRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  // What TaskListCard is currently being asked to scroll to. Carries the
+  // request's nonce, so jumping to the same row twice running is two distinct
+  // values and not one the card's guard has already seen.
+  const [revealRow, setRevealRow] = useState<string | undefined>(undefined);
   const { toast } = useToast();
   const menu = useContextMenu();
   // A second anchor of its own: the clean-up menu opens under a badge, while
@@ -179,6 +186,38 @@ export function Downloads() {
     });
   }, [list]);
 
+  // "Show me that row", from the event list behind the sidebar's bell.
+  //
+  // Depends on `tasks` and not only on the request, and that is the point:
+  // Layout keys its page div on the SECTION alone, so arriving here from a peer
+  // scope does not remount this page - useTasks resets to {} and refills from
+  // the socket, and the row this is looking for turns up a beat after the
+  // press. lib/reveal.ts holds the deadline for the case where it never does.
+  const reveal = useRevealRequest();
+  useEffect(() => {
+    if (!reveal) return;
+    const task = tasks[reveal.id];
+    if (!task || task.status === 'collected') return;
+    // Claimed FIRST, so the deadline is off before this effect starts changing
+    // the state it itself depends on.
+    claimReveal(reveal.nonce);
+    // Cleared only where they would actually hide THIS row. Wiping a search
+    // somebody is in the middle of, for a jump that would have worked anyway,
+    // is its own bug. The category survives the clear: it is a setting, the
+    // text is the query.
+    if (!matchesQuickFilters(task, filters)) narrowing.clearFilters();
+    if (!matchesSearch(task, search)) narrowing.setSearch({ text: '', category: search.category });
+    // '' is the ungrouped bucket's real name, not a missing one. A folded
+    // package contributes no rows at all, so the row would have no key, no
+    // offset and no element for the card to find.
+    folds.expand([task.package || '']);
+    setSelected(new Set([reveal.id]));
+    // Selecting the row IS the mark - .glim-row-selected already paints the
+    // accent wash and the inline-start edge, so a jump needs no highlight of
+    // its own.
+    setRevealRow(`task:${reveal.id}#${reveal.nonce}`);
+  }, [reveal, tasks, filters, search, folds, narrowing]);
+
   // Closes the search popover on an outside click or Escape, the same handler
   // the collector's own popover uses.
   useEffect(() => {
@@ -196,7 +235,25 @@ export function Downloads() {
   }, [searchOpen]);
 
   const clearSelection = useCallback(() => setSelected(new Set()), []);
-  const removal = useRemoval({ all, selected, base, onDone: clearSelection });
+
+  // What the list is actually DRAWING, which is narrower than `filtered` by
+  // every folded package. See lib/selectionReach.ts for why that difference is
+  // the whole point and why this cannot come from lib/listview.ts's `visible`.
+  const drawn = useDrawnRows(groups, folds.collapsed);
+  const reach = useMemo(() => selectionReach(selected, drawn), [selected, drawn]);
+  // Drops the rows nobody can see out of the selection, and offers the whole
+  // selection back. Twelve rows Ctrl-clicked one at a time are real work, and
+  // once the narrowing has moved on there is no reconstructing which they were.
+  const reduceToShown = useCallback(() => {
+    const before = new Set(selected);
+    setSelected(new Set(reach.shown));
+    toast(t('select.reduced').replace('{n}', String(reach.hidden.length)), 'info', 'action-done', {
+      label: t('remove.undo'),
+      run: () => setSelected(before),
+    });
+  }, [selected, reach, toast, t]);
+
+  const removal = useRemoval({ all, selected, base, drawn, onDone: clearSelection });
   // The clean-up flow's own instance for this page's command surface (a
   // third caller of useCleanup, the same as ListActionBar and ListMenu below
   // already are — see that hook's own doc comment). Loaded proactively, the
@@ -398,9 +455,12 @@ export function Downloads() {
 
           {selected.size > 0 && (
             <>
-              <span className="glim-num text-sm text-carbon-textSub">
-                {selected.size} {t('select.count')}
-              </span>
+              <SelectionReach
+                mode="select"
+                total={selected.size}
+                hidden={reach.hidden.length}
+                onReduce={reduceToShown}
+              />
               <IconBadge
                 labelled
                 hue={1}
@@ -607,6 +667,7 @@ export function Downloads() {
             groups={groups}
             base={base}
             selection={selection}
+            revealKey={revealRow}
             title={t('downloads.listTitle')}
             // No hint bubble on the badge (jdp, 2026-09-06: "die i infobubble
             // im kartentitel entfernen. auch in der linklisten card"). It used

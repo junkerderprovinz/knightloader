@@ -5,14 +5,14 @@ import { useEffect, useState } from 'react';
 import { Card, Field, FieldGroup, NumberInput, SectionTitle, TextArea, TextInput, ToggleRow } from '../../components/ui';
 import { PathInput } from '../../components/FolderPicker';
 import { Tabs } from '../../components/Tabs';
-import { fetchIdleActions, fetchOptions } from '../../lib/api';
+import { fetchOptions } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft } from './context';
-// Seven cards that each own one subject, in their own files under ./downloads.
+// Eight cards that each own one subject, in their own files under ./downloads.
 // They live beside this page rather than inside it because this file was the
-// natural home for all seven and would have been the wrong one: a page that
-// answers eleven questions in one 1500-line component is a file nobody can edit
-// two things in at once. Six of them read and write the same shared draft
+// natural home for all eight and would have been the wrong one: a page that
+// answers twelve questions in one 1500-line component is a file nobody can edit
+// two things in at once. Seven of them read and write the same shared draft
 // through useDraft, so splitting them costs nothing at runtime, and each takes
 // its hue as a prop because the ORDER of the cards is this page's decision and
 // a jumbled badge sequence reads as a bug.
@@ -27,24 +27,12 @@ import { CollectorCard } from './downloads/Collector';
 import { DiskSpaceCard } from './downloads/DiskSpace';
 import { FeedsCard } from './downloads/Feeds';
 import { HeaderProfilesCard } from './downloads/HeaderProfiles';
+import { FolderCheckCard } from './downloads/FolderCheck';
+import { IdleActionCard } from './downloads/IdleAction';
 import { HostRulesCard } from './downloads/HostRules';
+import { MediaHooksCard } from './downloads/MediaHooks';
 import { StallCard } from './downloads/Stall';
-
-// The end-of-queue action's menu labels - internal/idleaction.Actions() is the
-// source of truth for WHICH ids exist (fetched below), this is only what each
-// one reads as.
-//
-// These were hardcoded English until now, on the reasoning that the keys did
-// not exist in en.ts. That reasoning kept a whole card in English on 41 of the
-// 42 languages, which is a worse outcome than the work it saved: the keys are
-// in every catalogue now. Only the two ids this build knows get a translated
-// label; anything else (a newer backend's action) still renders as its raw id
-// rather than as a blank tab, which is the same fallback IdleActionBanner
-// makes for the same reason.
-const IDLE_ACTION_KEYS: Record<string, TranslationKey> = {
-  none: 'settings.downloads.idleActionNone',
-  pause: 'settings.downloads.idleActionPause',
-};
+import { VolumeCapCard } from './downloads/VolumeCap';
 
 // Named DownloadsSettings and not Downloads: there is already a pages/Downloads
 // page, and two components with one name in the same import graph is a mistake
@@ -67,33 +55,6 @@ export function DownloadsSettings() {
       },
       () => {
         /* the strip stays out rather than offering a guess at the modes */
-      },
-    );
-    return () => {
-      live = false;
-    };
-  }, []);
-
-  // An id this build has a key for reads in the user's language; anything else
-  // reads as itself, which is still better than an empty tab.
-  const idleActionLabel = (id: string) => {
-    const key = IDLE_ACTION_KEYS[id];
-    return key ? t(key) : id;
-  };
-
-  // Same shape, same reason, for the end-of-queue action's own menu - built
-  // from the server's list (internal/idleaction.Actions) rather than
-  // hardcoded here, so an id this build cannot carry out never appears as a
-  // tab that does nothing when pressed.
-  const [idleActions, setIdleActions] = useState<string[]>([]);
-  useEffect(() => {
-    let live = true;
-    void fetchIdleActions().then(
-      (a) => {
-        if (live) setIdleActions(a);
-      },
-      () => {
-        /* the row stays out rather than offering a guess at the actions */
       },
     );
     return () => {
@@ -262,15 +223,23 @@ export function DownloadsSettings() {
       <StallCard hue={5} />
       <DiskSpaceCard hue={6} />
 
+      {/* Beside the disk floors and for the reason they are a card of their own:
+          both are guards that decide whether a download STARTS, measured against
+          something outside the queue. The disk answers "is there room for this
+          file", the cap answers "is there allowance left this period". The two
+          are in DIFFERENT units on purpose, binary GiB up there and decimal GB
+          down here, and each card says so. */}
+      <VolumeCapCard hue={7} />
+
       {/* What happens to links on the way IN, before any of the above applies. */}
-      <CollectorCard hue={7} />
+      <CollectorCard hue={8} />
 
       {/* The crawl, on its own, because it is the one thing on this page that
           sends requests to a server nobody here runs. Everything below the
           master switch is dimmed while it is off - a control that vanished
           would teach nobody what the mode can do, and one that disagrees with
           its own disabled siblings does. */}
-      <Card hue={8} className="flex flex-col gap-5">
+      <Card hue={9} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.crawl.title')}</SectionTitle>
         <ToggleRow hue={0} checked={cfg.crawl} onChange={(v) => patch({ crawl: v })} label={t('settings.crawl')} />
 
@@ -341,40 +310,36 @@ export function DownloadsSettings() {
       {/* The other way links arrive without anybody pasting them, and the
           server itself points people here for it: setFeature's refusal says
           "add a feed on the Downloads page". */}
-      <FeedsCard hue={9} />
+      <FeedsCard hue={10} />
 
-      {idleActions.length > 0 && (
-          <Card hue={10} className="flex flex-col gap-5">
-          <SectionTitle>{t('settings.downloads.idleTitle')}</SectionTitle>
-          <FieldGroup
-            layout="row"
-            label={t('settings.downloads.idleAction')}
-            hint={t('settings.downloads.idleActionHint')}
-          >
-            <Tabs
-              variant="well"
-              label={t('settings.downloads.idleAction')}
-              active={cfg.idleAction.action}
-              onSelect={(id) => patch({ idleAction: { ...cfg.idleAction, action: id } })}
-              items={idleActions.map((id) => ({ id, label: idleActionLabel(id) }))}
-            />
-          </FieldGroup>
+      {/* Last, because it is the only card here about what happens once
+          everything above has finished. It moved into a file of its own the
+          moment it grew a command to run, a preflight for that command and a
+          report on the last one - see ./downloads/IdleAction.tsx, which owns
+          its own fetches (the action menu and the deployment both come from
+          the server, so the menu can never offer an action this build cannot
+          carry out) and renders nothing at all until they answer. */}
+      <IdleActionCard hue={11} />
 
-          {cfg.idleAction.action !== 'none' && (
-            <Field
-              label={t('settings.downloads.idleCountdown')}
-              hint={t('settings.downloads.idleCountdownHint')}
-            >
-              <NumberInput
-                value={cfg.idleAction.delaySeconds}
-                min={5}
-                max={86400}
-                onValue={(v) => patch({ idleAction: { ...cfg.idleAction, delaySeconds: v } })}
-              />
-            </Field>
-          )}
-          </Card>
-      )}
+      {/* APPENDED AT THE END ON PURPOSE, and it does not belong here yet.
+          Its subject is the folder fields near the top of this page - it
+          measures what a file written into each of them actually comes out
+          as - so its place is beside the Speicherort card. Inserting it there
+          renumbers eight hues in the one file several waves are editing at
+          once, and a badge sequence that jumps reads as a bug in every one of
+          those diffs. So: appended now with the next free hue, moved up later
+          in a commit that touches nothing else. Do not do both halves at
+          once. */}
+      <FolderCheckCard hue={12} />
+
+      {/* Appended for the same reason as the card above it, and its own place
+          is a different one again: what happens once a package is FINISHED
+          belongs beside the end-of-queue action, not below a folder check.
+          Inserting it there renumbers the hues of every card after it in the
+          one file several waves are editing at once, and a badge sequence that
+          jumps reads as a bug in each of those diffs. Next free hue now, moved
+          into place later in a commit that touches nothing else. */}
+      <MediaHooksCard hue={13} />
     </div>
   );
 }

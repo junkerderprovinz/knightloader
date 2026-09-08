@@ -627,6 +627,25 @@ body {
   pointer-events: none;
 }
 
+/* The list row the keyboard is standing on, and the strip that holds its place
+   while that row is scrolled out of the DOM (components/listKeyboard.ts).
+
+   The only thing changed here is WHICH SIDE of the row's own edge the ring is
+   drawn on. The global rule further down puts every focus ring 2px OUTSIDE its
+   element, which is right nearly everywhere and wrong for a full-width row: the
+   rows sit inside the card's own `overflow-hidden rounded-b` and inside the
+   table's `overflow-x-auto`, so a ring drawn outside the row is cut off at the
+   left and right edges on every row, and at the top and bottom on the first and
+   last drawn ones. A person walking the list with the arrow keys would be
+   looking for a mark that is only ever half there. Negative offset draws it
+   inside the row's own box, where nothing can clip it - and it still reads
+   against the selected row's accent fill and against the rainbow wash, which is
+   an inset shadow underneath it rather than an outline competing with it. */
+[role='treeitem']:focus-visible,
+[role='tree']:focus-visible {
+  outline-offset: -2px;
+}
+
 /* .glim-tint-hover: the same rest-quiet/hover-reveals behaviour as reactive
    mode above, but as a per-element choice, independent of the user's own
    on/reactive setting — a row of equal-weight action buttons (not a

@@ -95,9 +95,30 @@ func NewBackend(bin, dir string, onUpdate func(taskID string, u core.Update)) *B
 	}
 }
 
+// availableTimeout bounds the one spawn Available makes.
+//
+// It is not a tuning number, it is a bound on a specific failure. A binary that
+// is half-written, quarantined mid-scan by a virus scanner, or sitting on a
+// network mount that has gone away does not fail to start - it HANGS. Available
+// had no context at all until 2026-09-08, and it is called from
+// app.rewireBackends, which runs on every account save and on every sweep tick
+// via refreshHostListsIfDue. One hanging yt-dlp therefore wedged the account
+// routes and the upkeep goroutine together, with nothing in the logs to say
+// which of the two dozen things rewireBackends does was the one stuck.
+//
+// Ten seconds is far longer than `--version` needs even from a cold PyInstaller
+// bundle unpacking itself to a temp directory, and far shorter than "for ever".
+//
+// A var rather than a const only so the test can shrink it, the same reason
+// internal/provision's stopGrace is one: a test that proves the ceiling works
+// must otherwise sit out the whole ceiling to do it.
+var availableTimeout = 10 * time.Second
+
 // Available reports whether the yt-dlp binary runs.
 func (b *Backend) Available() bool {
-	return exec.Command(b.bin, "--version").Run() == nil
+	ctx, cancel := context.WithTimeout(context.Background(), availableTimeout)
+	defer cancel()
+	return exec.CommandContext(ctx, b.bin, "--version").Run() == nil
 }
 
 func (b *Backend) Download(taskID, url string, _ map[string]string, _ int) {

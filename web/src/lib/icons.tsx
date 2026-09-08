@@ -330,6 +330,22 @@ export const IconClock = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+/**
+ * Events: a bell, for the sidebar's own notification log.
+ *
+ * Filled, like every glyph in this file, and not the hollow outline a bell is
+ * usually drawn as - see this file's own opening note on why a line-drawn icon
+ * sits at the wrong weight beside the filled badges around it. The clapper is a
+ * separate shape rather than a notch carved out of the body: it reads as the
+ * part that moves, which is what makes a bell a bell at 22px.
+ */
+export const IconBell = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M10 2a1 1 0 0 1 1 1v.6a4.9 4.9 0 0 1 3.9 4.8v2.4l1.1 2a.75.75 0 0 1-.65 1.1H4.65A.75.75 0 0 1 4 12.8l1.1-2V8.4A4.9 4.9 0 0 1 9 3.6V3a1 1 0 0 1 1-1Z" />
+    <path d="M8.15 15.05h3.7a1.85 1.85 0 0 1-3.7 0Z" />
+  </svg>
+);
+
 /** Look: a drop of colour. */
 export const IconLook = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>

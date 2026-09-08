@@ -95,6 +95,24 @@ func FixedPrefix(dir string) string { return fixedPrefix(dir) }
 //
 // Passing it in rather than hardcoding a label per call site is what makes the
 // fix stick: a sixth caller cannot compile without answering the question.
+
+// WriteProbeName is the throwaway file this package drops into a folder to
+// find out whether it can be written to, and removes again immediately.
+//
+// EXPORTED SO THAT THE SECOND PLACE THAT NEEDS ONE REUSES THIS NAME RATHER
+// THAN INVENTING A SECOND. internal/app's self-test asks the same question
+// about the download and working folders (app_selftest.go), and a probe file
+// under a different name would be a second thing every scanner in the tree has
+// to be taught to ignore - internal/watch's poller skips dotfiles, which is
+// precisely what makes THIS name safe from the folder watcher, and a new one
+// would inherit that only by accident.
+//
+// The leading dot is therefore load-bearing rather than cosmetic. So is the
+// fact that both callers remove the file straight away: it exists for one
+// syscall's worth of time, and a probe left behind in somebody's download
+// folder is litter this app has no business creating.
+const WriteProbeName = ".knightloader-write-test"
+
 func Validate(what, dir string) error {
 	if dir == "" {
 		return nil // the built-in default is always usable
@@ -110,7 +128,7 @@ func Validate(what, dir string) error {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("cannot create %s: %w", dir, err)
 	}
-	probe := filepath.Join(dir, ".knightloader-write-test")
+	probe := filepath.Join(dir, WriteProbeName)
 	if err := os.WriteFile(probe, []byte("ok"), 0o644); err != nil {
 		return fmt.Errorf("cannot write to %s: %w", dir, err)
 	}

@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
+	"github.com/junkerderprovinz/knightloader/internal/mediatools"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
@@ -275,11 +276,18 @@ func (a *App) rewireBackends() {
 
 	// Optional yt-dlp media backend: when the yt-dlp binary is present, media
 	// pages (non-hoster, non-file links) route through it.
+	//
+	// WHICH yt-dlp is no longer this file's decision. It used to be the two
+	// lines `os.Getenv("KL_YTDLP")` and a `"yt-dlp"` fallback, which had no
+	// third option; internal/mediatools adds one - a copy KnightLoader fetched
+	// and verified itself - and owns the whole precedence question, including
+	// the part that cannot be expressed here at all: a recorded copy that no
+	// longer starts has to lose to KL_YTDLP rather than leaving a dead path in
+	// the resolver table. See ResolveYtdlp's own doc comment for why the
+	// fetched copy outranks an explicitly set KL_YTDLP, which is not the
+	// obvious answer and was decided rather than assumed.
 	var newYtdlp backend
-	ytbin := os.Getenv("KL_YTDLP")
-	if ytbin == "" {
-		ytbin = "yt-dlp"
-	}
+	ytbin, ytsource, ytdetail := mediatools.ResolveYtdlp(a.DataDir)
 	if yb := ytdlp.NewBackend(ytbin, a.dlDir, a.onUpdate); yb.Available() {
 		// The limit in force rather than the one in the settings file. yt-dlp meters
 		// itself because its bytes never pass through our loopback proxy, and the
@@ -318,7 +326,18 @@ func (a *App) rewireBackends() {
 		yb.Cookies = ytdlp.NewCookieStore(a.Accounts).Text
 		newYtdlp = yb
 		a.Registry.Register(ytdlp.Resolver{ExcludeHosts: ytdlpExclude})
-		log.Printf("yt-dlp backend enabled: %s", ytbin)
+		// The source, not only the path. "yt-dlp backend enabled:
+		// /data/tools/yt-dlp" says nothing about why THAT one and not the
+		// /usr/bin/yt-dlp the image installed, and that is the exact question
+		// somebody reading this line in a bug report is trying to answer.
+		log.Printf("yt-dlp backend enabled: %s (%s)", ytbin, ytsource)
+		if ytdetail != "" {
+			// Only when a higher-precedence copy was passed over, which is
+			// never the ordinary case: a fetched copy that no longer starts is
+			// something the operator needs told, and the settings page they
+			// would read it on may not be open for weeks.
+			log.Printf("yt-dlp: %s", ytdetail)
+		}
 	}
 
 	// The same set, handed to the JD resolver as its own answer to "is this a

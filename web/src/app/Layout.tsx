@@ -45,8 +45,22 @@ function useCompletionToasts() {
           prev.current[data.id] = data.status;
           if (before && before !== data.status) {
             const name = data.name || t('nav.downloads');
-            if (data.status === 'done') toast(t('downloads.finished', { name }), 'ok', 'download-done');
-            else if (data.status === 'error') toast(t('downloads.failed', { name }), 'fail', 'download-failed');
+            // The fifth argument is the row this notification is ABOUT, and
+            // these two are the only call sites in the app that hold a task id
+            // at the moment they toast. It is what puts a "show me the row"
+            // press on the matching line in the event log (lib/eventLog.ts);
+            // every other logged event has no row to point at and simply
+            // carries no jump, which is the honest state rather than a gap to
+            // paper over.
+            //
+            // Always a LOCAL id: this watcher subscribes with no base, so the
+            // stream is this machine's own however the page is scoped. See
+            // EventBell's jump, which navigates without the ?instance= for
+            // exactly that reason.
+            if (data.status === 'done')
+              toast(t('downloads.finished', { name }), 'ok', 'download-done', undefined, { kind: 'task', id: data.id });
+            else if (data.status === 'error')
+              toast(t('downloads.failed', { name }), 'fail', 'download-failed', undefined, { kind: 'task', id: data.id });
           }
         } else if (type === 'removed') {
           delete prev.current[data.id];

@@ -1127,12 +1127,17 @@ func (a *App) verifyTask(id, path string) {
 	ok, err := checksum.Verify(path, sum)
 	verdict := "ok"
 	if err != nil {
-		log.Printf("checksum %s: %v", name, err)
+		// The download named at the end, so that the per-download log card can
+		// find this line. It is one of the two the operator most wants there
+		// and it did not carry an id until now, although verifyTask has had one
+		// in scope since it was written - see taskTag for why it goes at the
+		// end rather than at the front.
+		log.Printf("checksum %s: %v%s", name, err, taskTag(id))
 		return
 	}
 	if !ok {
 		verdict = "failed"
-		log.Printf("checksum mismatch for %s", name)
+		log.Printf("checksum mismatch for %s%s", name, taskTag(id))
 	}
 
 	a.mu.Lock()

@@ -44,10 +44,12 @@ const SETTINGS_PAGES: { id: string; labelKey: Command['labelKey'] }[] = [
   { id: 'torrents', labelKey: 'settings.nav.torrents' },
   { id: 'captcha', labelKey: 'settings.nav.captcha' },
   { id: 'schedule', labelKey: 'settings.nav.schedule' },
+  { id: 'health', labelKey: 'settings.nav.health' },
   { id: 'diagnostics', labelKey: 'settings.nav.diagnostics' },
   { id: 'help', labelKey: 'settings.nav.help' },
   { id: 'browsertools', labelKey: 'settings.nav.browsertools' },
   { id: 'scripts', labelKey: 'settings.nav.scripts' },
+  { id: 'eventtargets', labelKey: 'settings.nav.eventtargets' },
   { id: 'shortcuts', labelKey: 'settings.nav.shortcuts' },
 ];
 

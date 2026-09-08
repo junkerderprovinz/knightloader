@@ -2,6 +2,7 @@
 package store
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -12,7 +13,21 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-type Store struct{ db *sql.DB }
+// Store is the one handle on the database. path is kept because the file
+// itself, and not only the rows in it, is something the app has to be able to
+// answer questions about: how big it has grown, whether a maintenance pass
+// gave any of that back, and - the one that matters at three in the morning -
+// where to copy it to by hand when an integrity check has just said it is
+// damaged. See Path.
+//
+// Kept rather than re-derived, because the alternative is a THIRD literal
+// spelling of "knightloader.db" in the tree (internal/app/app.go's New and
+// internal/backup/backup.go's dbEntry already have one each), and a filename
+// spelled in three places is a filename that will one day be spelled two ways.
+type Store struct {
+	db   *sql.DB
+	path string
+}
 
 // migrations run in order, exactly once each. The database records how far it
 // has come in PRAGMA user_version, so an existing install keeps its tasks when
@@ -182,7 +197,45 @@ func Open(path string) (*Store, error) {
 		db.Close()
 		return nil, err
 	}
-	return &Store{db: db}, nil
+	return &Store{db: db, path: path}, nil
+}
+
+// Path is the file this store was opened on, verbatim as Open was given it.
+//
+// It is NOT for building a second connection to the same database - see Open's
+// own comment on why a second connection is the one thing this package cannot
+// survive. It is for the two callers that have to talk about the file rather
+// than the rows: the size readout (maintenance.go), and the message that tells
+// somebody which file to put somewhere safe when the integrity check has just
+// failed.
+func (s *Store) Path() string { return s.path }
+
+// Ping asks the database one trivial question and reports whether it answered.
+//
+// WHY NOT sql.DB.PingContext, which is the obvious call. database/sql's own
+// Ping only proves that a connection can be obtained, and this package opens
+// with SetMaxOpenConns(1) on a file that is already open - so it can succeed
+// against a database whose FILE has been unmounted, deleted or turned
+// read-only underneath the process, which is precisely the failure a health
+// readout exists to catch. `SELECT 1` goes through the same statement path
+// every Save and All uses, so what it reports is what those would get.
+//
+// WHY IT TAKES A CONTEXT AND MUST BE GIVEN A DEADLINE. The single connection
+// is shared with every other reader and writer, and Vacuum holds it for the
+// whole of a rewrite (see maintenance.go). A caller with no deadline would sit
+// behind a compaction of a six-gigabyte database and turn a status page into a
+// ten-minute hang; with one, a busy database reports as unanswered-for-now,
+// which is the honest reading and the one that keeps the page moving.
+//
+// It deliberately reads nothing real. A count over the task table would be a
+// figure that grows with somebody's queue, on a call whose whole point is to
+// cost the same on every install.
+func (s *Store) Ping(ctx context.Context) error {
+	var one int
+	if err := s.db.QueryRowContext(ctx, `SELECT 1`).Scan(&one); err != nil {
+		return fmt.Errorf("store: ping: %w", err)
+	}
+	return nil
 }
 
 func migrate(db *sql.DB) error {

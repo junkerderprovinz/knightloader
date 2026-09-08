@@ -1,5 +1,7 @@
+import { DiskVolumeRow } from '../../../components/DiskSpaceTile';
 import { Card, Field, NumberInput, SectionTitle } from '../../../components/ui';
 import { useT } from '../../../lib/i18n';
+import { downloadsVolume, spaceHint, useDiskSpace } from '../../../lib/useDiskSpace';
 import { useDraft } from '../context';
 
 /**
@@ -10,15 +12,26 @@ import { useDraft } from '../context';
  * against one thing the rest of that page never touches: free space on the
  * volume the download folder sits on. Everything else up there is a count.
  *
- * NO FREE-SPACE READOUT, AND THAT IS DELIBERATE. Nothing on the server can tell
- * this page how much room the volume has, or even whether this build can ask:
- * internal/diskspace answers (0, false) on any platform it has no call for, and
- * every caller then fails open, so the guard simply never holds anything back
- * there. That answer is unexported and reaches no route, and no endpoint serves
- * the free bytes of the download folder either. So the card cannot grey itself
- * out on such a system and cannot print "your volume has X free" beside the
- * boxes. The honest substitute is the sentence in the title's own bubble, which
- * says exactly that. Do not invent a readout here; invent the route first.
+ * THE READOUT ABOVE THE BOXES IS THE ROUTE'S, NOT THIS CARD'S. A paragraph
+ * stood here saying no endpoint served the free bytes of the download folder,
+ * and it ended "Do not invent a readout here; invent the route first." The
+ * route was invented: GET /api/diskspace reports free, used and total per
+ * target folder from the same call this guard is checked against, plus what
+ * the queue still owes each one. So the row is a real reading, and the three
+ * numbers below are unchanged - still floors on FREE bytes, still zero-means-
+ * off, still saved settings rather than anything the row derives.
+ *
+ * WHAT THE ROW STILL CANNOT DO IS GREY THESE BOXES OUT. A platform this build
+ * has no call for answers `known: false`, and the row then says so in words
+ * instead of printing zeros; the floors stay editable anyway, because they
+ * travel with the instance and the next machine to read them may well be one
+ * that can answer. A disabled control here would be this card claiming a
+ * setting is pointless on the strength of one machine's kernel.
+ *
+ * It is also a reading a few seconds old, not a gauge, and it is one FOLDER's
+ * volume rather than the machine's - see DiskSpaceTile.tsx, which owns the row
+ * and the reasons. No `base` anywhere: settings are this machine's, and so are
+ * the disks the row describes.
  *
  * NO MASTER TOGGLE. 0 is the off state of each of the three, the way historyMax,
  * keepFinishedDays and speedLimit already work on this page. A switch above them
@@ -66,9 +79,31 @@ export function DiskSpaceCard({ hue }: { hue: number }) {
   // throwing away the bytes of every non-resumable one each time round.
   const lowFloorGiB = toGiB(cfg.diskCriticalSpace);
 
+  // The download folder only. The other folders on the report - categories, the
+  // working folder, a path set on one download - belong on the Overview tile,
+  // which is about where things are landing; this card is about three numbers,
+  // and the one volume worth putting beside them is the one they are read
+  // against by default.
+  const report = useDiskSpace();
+  const here = downloadsVolume(report);
+
   return (
     <Card hue={hue} className="flex flex-col gap-5">
       <SectionTitle hint={t('settings.downloads.diskHint')}>{t('settings.downloads.diskTitle')}</SectionTitle>
+
+      {/* The DRAFT is handed to the row, not the saved document, so the two
+          marks on the track move with the spinners as they are turned. A mark
+          that only jumped once the auto-save came back would make a floor look
+          like it had not taken.
+
+          The hint is passed here and not on the Overview tile: there the card
+          title carries it once for every row, and this card's own title is
+          already explaining three settings that are not this reading. */}
+      {here && (
+        <div className="glim-well p-0">
+          <DiskVolumeRow v={here} cfg={cfg} hint={spaceHint(t, report)} />
+        </div>
+      )}
 
       {/* The reserve is per file and per dispatch pass: what is free, minus what
           this pass has already promised to other downloads, has to cover this

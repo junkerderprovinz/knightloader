@@ -7,7 +7,9 @@ import { fmtBytes, fmtSpeed, pct } from '../lib/format';
 import { useT } from '../lib/i18n';
 import { Card, PageHeader, SectionTitle, EmptyState } from '../components/ui';
 import { SpeedGraph } from '../components/SpeedGraph';
+import { VolumeCard } from '../components/VolumeCard';
 import { Counters } from '../components/Counters';
+import { DiskSpaceTile } from '../components/DiskSpaceTile';
 import { ProgressBar } from '../components/ProgressBar';
 import { StatusPill } from '../components/StatusPill';
 import { InstanceRow } from '../components/InstanceCard';
@@ -129,7 +131,19 @@ export function Dashboard() {
             ))}
           </div>
         </Card>
+
+        {/* Full width under the two summaries and at supporting weight: this
+            page's one hero is the live speed curve at the top, and a record you
+            go and read is not a second one. */}
+        <div className="lg:col-span-2">
+          <VolumeCard />
+        </div>
       </div>
+
+      {/* Full width and under the two columns, because a row per target folder
+          is a table and not a tile: it grows with the number of folders and
+          would push the column beside it out of shape. */}
+      <DiskSpaceTile settings={settings} />
     </div>
   );
 }

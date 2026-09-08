@@ -614,15 +614,36 @@ func (a *App) publishExtractProgress(jobID string, p extract.Progress) {
 // reaching into a folder the archive was never in; before, because the row the
 // user ends up looking at has to say where the files are rather than where they
 // were unpacked.
+// extractionTaskID is the download an extraction job belongs to, or "" for a
+// job that is already gone. Its own tiny accessor rather than a second read of
+// unpackLocked inline, because settleExtraction needs the answer BEFORE it
+// takes a.mu for the rest of the job and a lock taken twice in one function
+// reads as an accident.
+func (a *App) extractionTaskID(jobID string) string {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if j := a.unpackLocked().jobs[jobID]; j != nil {
+		return j.TaskID
+	}
+	return ""
+}
+
 func (a *App) settleExtraction(jobID string, opts extract.Options, siblings []string, out *extract.Outcome, err error) {
 	cancelled := errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded)
+	// The download this job belongs to, read HERE and not with the rest of the
+	// job further down. The two disposal failures below are logged before that
+	// point, and a line naming no download is a line the per-download log card
+	// can never show - which for "your archive is still sitting there" is
+	// exactly the line somebody goes looking for. It costs one extra turn of
+	// a.mu on a path that runs once per finished extraction.
+	taskID := a.extractionTaskID(jobID)
 	var moved delivery
 	if err == nil && out != nil {
 		if derr := opts.Dispose(a.disposable(out.Volumes)); derr != nil {
-			log.Printf("extraction finished but the archive could not be disposed of: %v", derr)
+			log.Printf("extraction finished but the archive could not be disposed of: %v%s", derr, taskTag(taskID))
 		}
 		if derr := opts.Dispose(a.disposable(opts.InfoFilesIn(siblings))); derr != nil {
-			log.Printf("extraction finished but the info files could not be disposed of: %v", derr)
+			log.Printf("extraction finished but the info files could not be disposed of: %v%s", derr, taskTag(taskID))
 		}
 		moved = a.deliverExtraction(jobID, out)
 	}

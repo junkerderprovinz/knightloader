@@ -37,6 +37,23 @@ export interface SettingsDraft {
    * unsaved edit sitting on a DIFFERENT page's fields survives untouched.
    */
   patchNow: (fields: Partial<Settings>) => Promise<void>;
+  /**
+   * Folds an already-applied document back into BOTH `saved` and `draft` for
+   * exactly the named keys, without sending anything.
+   *
+   * It exists for the settings import, which writes through its own route
+   * (POST /api/settings/import) rather than through the save bar. Without this
+   * the shell's two copies still hold the PRE-import values, and the autosave
+   * that fires 600ms after the reader's next unrelated edit sends the difference
+   * between them - which is every imported key, put straight back, silently,
+   * with a green toast. patchNow above already solves exactly this for its own
+   * writes; this is the same fold minus the request.
+   *
+   * Only the named keys are folded, for the same reason patchNow only folds the
+   * fields it sent: an unsaved edit sitting on a different settings page must
+   * not be replaced by whatever this tab happens to have just learned.
+   */
+  reseed: (applied: Settings, keys: string[]) => void;
 }
 
 export interface FeatureAccess {

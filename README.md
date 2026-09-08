@@ -207,7 +207,7 @@ Everything is optional and has a working default.
 |---|---|---|
 | `KL_ADDR` | `:8749` | listen address |
 | `KL_DATA` | user config dir | data directory (database, settings, accounts, session key) |
-| `KL_YTDLP` | `yt-dlp` (PATH) | path to the yt-dlp binary; media links route through it when present |
+| `KL_YTDLP` | `yt-dlp` (PATH) | path to the yt-dlp binary; media links route through it when present. A copy fetched by the Resolvers settings page ("keeping yt-dlp current") is started ahead of this one, and that page says so and offers to remove it again |
 | `KL_TORBOX` | | TorBox API key. The Accounts page is the better place: it stores the key encrypted and applies it without a restart |
 | `KL_ALLDEBRID` | | AllDebrid API key, as above |
 | `KL_REALDEBRID` | | Real-Debrid API token, as above |
@@ -318,6 +318,13 @@ meaning — capture group N — is `<jd:match:FIELD:N>`, which reads a group fro
 field the rule matched on, not only the source. A rule naming a group on a field
 it has no `matches` condition for is refused when you save it, rather than
 quietly producing the wrong folder.
+
+Once the last file of a package has arrived **and been moved into its folder**,
+one stored address can be called: a media library told to rescan. It is set up
+on the Downloads page (an address, GET or POST, and one header whose value is
+sealed in the same encrypted store as your account logins) and switched on per
+category, so only the drawers you pick call anything. Nothing is called until
+you do both.
 
 <br>
 

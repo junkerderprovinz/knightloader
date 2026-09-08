@@ -2,6 +2,7 @@ import type { ComponentType, ReactNode, SVGProps } from 'react';
 import {
   IconAccounts,
   IconArchive,
+  IconBolt,
   IconBrowser,
   IconCaptcha,
   IconClipboard,
@@ -9,6 +10,7 @@ import {
   IconCode,
   IconDiagnostics,
   IconDownloads,
+  IconExternalLink,
   IconFilter,
   IconFolder,
   IconGlobe,
@@ -34,6 +36,8 @@ import { Connections } from './Connections';
 import { Diagnostics } from './Diagnostics';
 import { DownloadsSettings } from './DownloadsSettings';
 import { EmptyPage } from './Empty';
+import { EventTargets } from './EventTargets';
+import { Health } from './Health';
 import { Help } from './Help';
 import { InstancesTab } from './Instances';
 import { Look } from './Look';
@@ -102,6 +106,11 @@ const PAGES: Record<string, () => ReactNode> = {
   // settings tab and the sidebar's "Instanzen" nav item render one page, and
   // this file adds only the toggle that hides the nav item.
   instances: () => <InstancesTab />,
+  // The live state of this instance, beside the diagnostics bundle because the
+  // two are the operator's pair and are read in that order: this one answers
+  // "is it working right now", that one hands over a file for a bug report
+  // about why it was not. See Health.tsx's own doc comment.
+  health: () => <Health />,
   diagnostics: () => <Diagnostics />,
   help: () => <Help />,
   // The bookmarklet, the extension download and the PWA install step
@@ -110,6 +119,11 @@ const PAGES: Record<string, () => ReactNode> = {
   // The script editor (build-plan.md's 11B) — see Scripts.tsx's own doc
   // comment.
   scripts: () => <Scripts />,
+  // Where this instance reports to when something happens: operator-defined
+  // HTTP targets riding the same event bus the script host listens on. See
+  // EventTargets.tsx's own doc comment, especially for why it is not the
+  // browser-side notifications card and must not be named like it.
+  eventtargets: () => <EventTargets />,
   // Every command with a default keyboard shortcut, rebindable - build-plan.md's
   // Wave 12. See Shortcuts.tsx's own doc comment.
   shortcuts: () => <Shortcuts />,
@@ -166,9 +180,21 @@ const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   appearance: IconLook,
   access: IconLock,
   advanced: IconSliders,
+  // A bolt for the tab that says whether the thing is alive, and the one glyph
+  // in the set no tab had claimed. Deliberately not the diagnostics glyph next
+  // to it: that one is a bundle you send somebody, this one is a pulse, and two
+  // neighbouring tabs wearing one drawing is the lie this map's own doc comment
+  // warns about.
+  health: IconBolt,
   diagnostics: IconDiagnostics,
   help: IconHelp,
   scripts: IconCode,
+  // A message leaving this machine for a server somebody else runs, which is
+  // the one fact that separates this page from the browser-side
+  // notifications card. Deliberately NOT the bell: that glyph belongs to
+  // look/Notifications.tsx, and wearing it here would say the two are the
+  // same thing, which is exactly the confusion this feature must not create.
+  eventtargets: IconExternalLink,
   shortcuts: IconKeyboard,
   browsertools: IconBrowser,
 };

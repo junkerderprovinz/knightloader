@@ -7,6 +7,7 @@ import { allCommands } from '../../lib/commands/allCommands';
 import { formatShortcut } from '../../lib/commands/shortcuts';
 import { effectiveShortcut, findConflict, useShortcutOverrides, type ShortcutOverrides } from '../../lib/commands/overrides';
 import type { Command } from '../../lib/commands/types';
+import { ListKeysCard } from './shortcuts/ListKeys';
 
 /**
  * The Shortcuts settings tab: every command that ships with a default
@@ -134,6 +135,14 @@ export function Shortcuts() {
           </Card>
         </div>
       ))}
+
+      {/* Last, and outside the groups above, because it is not one of them:
+          nothing in it is a command and nothing in it can be rebound. It still
+          belongs on this page - a key somebody cannot find is a key that does
+          not exist to them, and this is the page they come to looking. Its hue
+          carries on from the last group so the badge colours keep counting
+          instead of restarting. */}
+      <ListKeysCard hue={groups.length + 1} />
 
       {captureFor && (
         <CaptureModal

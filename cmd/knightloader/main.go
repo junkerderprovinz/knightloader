@@ -24,6 +24,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/bridge"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/cnl"
+	"github.com/junkerderprovinz/knightloader/internal/fileowner"
+	"github.com/junkerderprovinz/knightloader/internal/logring"
 	"github.com/junkerderprovinz/knightloader/internal/provision"
 )
 
@@ -56,6 +58,28 @@ func main() {
 	}
 
 	dataDir := env("KL_DATA", defaultDataDir())
+
+	// A data directory this process cannot write into is the commonest way a
+	// container install fails to start at all, and until now it failed
+	// anonymously: MkdirAll below succeeds on a directory that is already there,
+	// app.New then opens SQLite inside it, and main reports `start: permission
+	// denied` with no path, no owner and no uid. The fix is nearly always one
+	// chown on the host, and there is nothing in that sentence to guess it from.
+	//
+	// So the folder is asked about BEFORE anything opens a file in it, and the
+	// answer is one line naming the folder's owner, this process's own identity
+	// and the exact command to run. It does not repair anything and it is
+	// deliberately not fatal: the existing failure still happens, in the same
+	// place, with the same error. It simply stops being unattributable.
+	//
+	// Nothing is repaired here on purpose. A boot that quietly chowned a mounted
+	// share would be rewriting the ownership of somebody's library as a side
+	// effect of a restart, which is a far worse outcome than the failure it
+	// would be papering over.
+	if line, ok := fileowner.Advise(dataDir); ok {
+		log.Print(line)
+	}
+
 	if err := os.MkdirAll(dataDir, 0o755); err != nil {
 		log.Fatalf("data dir: %v", err)
 	}
@@ -111,6 +135,17 @@ func main() {
 		log.Fatalf("start: %v", err)
 	}
 	defer a.Close()
+	// The optional log file, if the settings asked for one, was armed inside
+	// app.New. Nothing here arms it and nothing here may: the tap on the
+	// standard logger is installed by internal/logring's own init so that a bad
+	// boot is captured, and a second log.SetOutput from main would take it off
+	// again.
+	//
+	// Closing is tidiness rather than durability - every record is written
+	// unbuffered, so a process that dies without reaching this loses nothing -
+	// but it releases the handle, which on Windows is what lets the next thing
+	// that wants the file have it.
+	defer func() { _ = logring.CloseFile() }()
 
 	// Native hoster logins (internal/hosterauth): reconciles what is stored
 	// in KL's own encrypted store into the headless-JD sidecar's account
@@ -256,6 +291,35 @@ func main() {
 		}
 		serveErr <- nil
 	}()
+
+	// The start report (internal/startupcheck): Java, yt-dlp, ffmpeg and
+	// ffprobe with their versions, the data directory, every folder a download
+	// can land in, and which clock a schedule window is actually read against.
+	// It lands in the container log and in the diagnostics bundle, so the
+	// answer to "why did nothing download" is already in the file somebody
+	// attaches instead of being three rounds of questions away.
+	//
+	// AFTER THE LISTENER AND NOT BEFORE IT, and that is the whole reason this
+	// line is here rather than up beside the provisioning block. A folder on a
+	// mount that has gone away takes as long to stat as that mount takes to
+	// time out, so a synchronous pass in front of net.Listen turns one dead NFS
+	// server into a start hang - and the Dockerfile's HEALTHCHECK, with its ten
+	// second start period, then restarts the container into a loop. It runs on
+	// a.spawn, so Close still waits for it.
+	//
+	// Not in app.New for the reason StartHosterAuth and StartAccountHealthNow
+	// give just above: an optional bit of startup that belongs to the server
+	// binary, not to the constructor several hundred tests call.
+	//
+	// KL_STARTUP_CHECK=0 switches it off, and the off state is RECORDED rather
+	// than left blank: "nothing was looked at" and "nothing was wrong" are
+	// different sentences, and an empty report drawn as a clean bill of health
+	// is the worse of the two lies.
+	if envInt("KL_STARTUP_CHECK", 1) == 1 {
+		a.StartStartupCheck()
+	} else {
+		a.MarkStartupCheckOff()
+	}
 
 	// SIGINT and SIGTERM are the two a container orchestrator or a plain
 	// Ctrl+C ever sends — the CnL bridge path above (runBridge) already

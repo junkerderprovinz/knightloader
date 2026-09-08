@@ -44,10 +44,20 @@ func registerAll(reg *Registry, a *app.App) {
 	registerLinks(reg, a)
 	registerContainers(reg, a)
 	registerSettings(reg, a)
+	// Beside the settings routes, because it is the same document by another
+	// door: settings.json alone, out to one file and back in key by key, with
+	// no restart at all - a partial save runs every live effect a full one
+	// does (app.afterSettingsChange). The full archive further down moves an
+	// INSTALL; this moves a CONFIGURATION.
+	registerSettingsTransfer(reg, a)
 	registerAccounts(reg, a)
 	registerHosterAuth(reg, a)
 	registerHosterIcons(reg, a)
 	registerResolvers(reg, a)
+	// Beside the resolver options, because it is the layer underneath them:
+	// those routes configure what yt-dlp is asked to do, these say which yt-dlp
+	// (and which ffmpeg) is doing it at all.
+	registerMediaTools(reg, a)
 	registerSchedule(reg, a)
 	registerReconnect(reg, a)
 	registerPortmap(reg, a)
@@ -58,6 +68,12 @@ func registerAll(reg *Registry, a *app.App) {
 	// host, resolver and a finish time on every completed download, and nothing
 	// able to add them up.
 	registerStats(reg, a)
+	// The live speed record beside the finished-volume curves: the same subject
+	// at the other end of the time scale, and the only stats route that answers
+	// out of memory rather than out of the history table. Deliberately on
+	// neither forwarding allowlist - a peer's ring describes the peer's traffic,
+	// the argument routes.go already makes for disk space just below.
+	registerSpeedHistory(reg, a)
 	registerFederation(reg, a)
 	registerRelay(reg, a)
 	registerConnect(reg, a)
@@ -77,6 +93,35 @@ func registerAll(reg *Registry, a *app.App) {
 	registerCaptchaSkip(reg, a)
 	registerCaptchaWidget(reg, a)
 	registerDiagnostics(reg, a)
+	// Beside the diagnostics bundle, because it answers the other half of the
+	// same question: that one reports how big the database has grown, this one
+	// does something about it. Deliberately NOT relay-forwardable and not on the
+	// federation forwarder - a peer must not be able to freeze this box's writes
+	// for ten minutes, and its own paths are not a sibling's business.
+	registerDBMaintenance(reg, a)
+	// The log on disk, its cursor, and the lines that name one download. All
+	// under /api/diagnostics, which neither the relay nor the federation
+	// forwarder carries: a log line can hold a feed URL with an indexer's key
+	// in it, which a task list never does, so the reasoning the relay
+	// allowlist rests on does not cover these.
+	registerDiagnosticsLog(reg, a)
+	// The boot report and the seven instance checks behind one button.
+	// Deliberately NOT relay-forwardable and not on the federation forwarder,
+	// the argument disk space already makes and with more force: a peer's
+	// answer describes the wrong machine's disks, the wrong machine's clock
+	// and somebody else's proxy.
+	registerSelfTest(reg, a)
+	// Who the files land as, and under which mask. Not forwardable for a
+	// stronger version of the disk report's reason: a peer's answer names THAT
+	// box's uids and THAT box's folders, and drawn under this box's name it
+	// would send somebody to chown a path on the wrong machine.
+	registerFileOwner(reg, a)
+	// The detailed health readout, behind the same authentication as
+	// everything else and behind a settings switch that ships off (jdp,
+	// 2026-09-08: the open-route list is pinned in a test with a written
+	// justification per entry, and this is not going on it). /api/health
+	// itself is untouched.
+	registerHealth(reg, a)
 	registerFiles(reg, a)
 	registerLifecycle(reg, a)
 	registerBackup(reg, a)
@@ -102,6 +147,17 @@ func registerAll(reg *Registry, a *app.App) {
 	// dead address therefore looked exactly like one that works and has nothing
 	// new, which is the one distinction the settings card most needs to draw.
 	registerFeeds(reg, a)
+	// The outbound half of the same idea: the event bus had one subscriber and
+	// no way for an operator to add a second. These are the status table, the
+	// placeholder vocabulary and the test button; the rows themselves are
+	// settings, written by PATCH /api/settings.
+	registerEventTargets(reg, a)
+	// The second reader that bus was built for, and the one its own doc
+	// comment named in advance: a media library told to rescan. The address
+	// and the wait are settings rows; the one header value each may carry is
+	// sealed in the credential store, so these routes list names and never
+	// values, exactly as the host headers above them do.
+	registerMediaHooks(reg, a)
 }
 
 // AnyMethod is the method of a route that answers whatever it is sent, because
