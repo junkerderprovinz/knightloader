@@ -75,6 +75,7 @@ export function Archives() {
   // empty box for it rather than throw on a .trim() and take the whole settings
   // shell down with it.
   const extractTo = cfg.extractTo ?? '';
+  const extractMoveTo = cfg.extractMoveTo ?? '';
   const disposal = cfg.archiveDisposal ?? 'keep';
 
   // Off is not a reason to hide any of this - see the block below - but it is a
@@ -140,6 +141,45 @@ export function Archives() {
             hint={t('settings.archives.subfolderHint')}
             disabled={!collecting}
           />
+
+          {/* The move, and not a second destination. It belongs directly under
+              "Unpack to" because the two only make sense read together: that
+              one is where the extractor WRITES, so a half-unpacked release
+              sits there for as long as it runs, and this one is where the
+              finished files go afterwards. The files, not the release folder -
+              nothing arrives wrapped in a "Show.S01.COMPLETE.WEB" that no
+              library asked for.
+
+              Two things the bubble cannot carry on its own. A template is
+              allowed here, but the value is measured by its FIXED head
+              (fixedPrefix, internal/settings/settings_staging.go), so
+              "/serien/<jd:packagename>" counts as absolute while
+              "<jd:packagename>/unpacked" has no fixed part at all, counts as
+              relative and is silently cleared on save - the box simply comes
+              back empty, with no error to explain it. And unlike the download
+              folder this path is never probed when it is saved, so a target
+              that cannot be written keeps quiet until a finished extraction
+              tries to move into it.
+
+              Not disabled by `collecting`, unlike the subfolder switch above:
+              the move happens wherever the unpacking landed, so it means
+              something with the destination empty too. A Packagizer rule that
+              named a folder for a single link still beats it.
+
+              The shared chooser again, for the reason the destination gives
+              above - and here the surviving tail is the point, not a detail. */}
+          <Field
+            layout="row"
+            label={t('settings.archives.moveTo')}
+            hint={`${t('settings.archives.moveToHint')} ${t('settings.pathVars')}`}
+          >
+            <PathInput
+              value={extractMoveTo}
+              placeholder={t('settings.archives.besideArchive')}
+              title={t('settings.archives.moveTo')}
+              onValue={(extractMoveTo) => patch({ extractMoveTo })}
+            />
+          </Field>
 
           {/* FieldGroup and not Field: a Field is a `<label>`, and a label
               around a tab strip hands a click on the caption to the first tab -

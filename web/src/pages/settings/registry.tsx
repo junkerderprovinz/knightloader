@@ -10,6 +10,7 @@ import {
   IconDiagnostics,
   IconDownloads,
   IconFilter,
+  IconFolder,
   IconGlobe,
   IconHelp,
   IconInstances,
@@ -28,6 +29,7 @@ import { Appearance } from './Appearance';
 import { Archives } from './Archives';
 import { BrowserTools } from './BrowserTools';
 import { Captcha } from './Captcha';
+import { Categories } from './Categories';
 import { Connections } from './Connections';
 import { Diagnostics } from './Diagnostics';
 import { DownloadsSettings } from './DownloadsSettings';
@@ -65,6 +67,11 @@ const PAGES: Record<string, () => ReactNode> = {
   access: () => <Access />,
   advanced: () => <Advanced />,
   rules: () => <Rules />,
+  // The named drawers. Registered in the same commit as the server's own
+  // featurePages() entry, which is the whole point of this map being one line
+  // long: the connection manager once shipped as a finished 700-line page that
+  // rendered "not built yet" because this line was missing.
+  categories: () => <Categories />,
   // The connection manager shipped with the settings shell and never got its
   // line here, so a finished 700-line page rendered "not built yet" at an
   // address the modules list was already pointing people at. That is exactly
@@ -127,6 +134,12 @@ const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   downloads: IconDownloads,
   archives: IconArchive,
   rules: IconFilter,
+  // A drawer is a folder with a name on it, and the folder glyph was not yet
+  // claimed by any tab. The filter beside it is deliberately a different
+  // drawing: a rule decides by looking at a link, a category is a label
+  // somebody put on a whole batch, and the rail should not suggest they are
+  // the same kind of thing.
+  categories: IconFolder,
   connections: IconGlobe,
   reconnect: IconRetry,
   accounts: IconAccounts,

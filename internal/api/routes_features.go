@@ -489,6 +489,16 @@ func featurePages() []FeaturePage {
 		{ID: "downloads", Modules: []string{"watch", "feeds", "crawler", "checksums"}},
 		{ID: "archives", Modules: []string{"extraction"}},
 		{ID: "rules", Modules: []string{"packagizer", "linkfilter"}},
+		// Directly after Rules, because the two point at each other: a
+		// Packagizer rule files links into a category, and ValidateCategories
+		// refuses a rule naming one that does not exist. Somebody who has just
+		// been told a rule names a missing category should find the table in
+		// the next rail entry, not three pages away.
+		//
+		// No Modules of its own. A category table is switched off by being
+		// empty, and a module row would put a second, disagreeable answer
+		// beside that - the same reasoning appearance and shortcuts carry.
+		{ID: "categories"},
 		{ID: "connections", Modules: []string{"connections"}},
 		{ID: "reconnect", Modules: []string{"reconnect"}},
 		{ID: "accounts", Modules: []string{"jd"}},

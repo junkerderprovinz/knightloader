@@ -36,6 +36,7 @@ const SETTINGS_PAGES: { id: string; labelKey: Command['labelKey'] }[] = [
   { id: 'access', labelKey: 'settings.nav.access' },
   { id: 'advanced', labelKey: 'settings.nav.advanced' },
   { id: 'rules', labelKey: 'settings.nav.rules' },
+  { id: 'categories', labelKey: 'settings.nav.categories' },
   { id: 'connections', labelKey: 'settings.nav.connections' },
   { id: 'reconnect', labelKey: 'settings.nav.reconnect' },
   { id: 'resolvers', labelKey: 'settings.nav.resolvers' },

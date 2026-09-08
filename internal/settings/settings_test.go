@@ -14,7 +14,7 @@ func TestValidateDoesNotCreatePlaceholderFolders(t *testing.T) {
 	base := t.TempDir()
 	tmpl := filepath.Join(base, "downloads", "<jd:date>", "<jd:packagename>")
 
-	if err := Validate(tmpl); err != nil {
+	if err := Validate("the download folder", tmpl); err != nil {
 		t.Fatalf("a folder template was refused: %v", err)
 	}
 	// The fixed part is created, because that is what has to be writable.
@@ -52,11 +52,33 @@ func TestFixedPrefix(t *testing.T) {
 // accepted: it would resolve against whatever the working directory happens to
 // be, which for a container is not something a user can reason about.
 func TestValidateRefusesARelativeFolder(t *testing.T) {
-	if err := Validate(filepath.Join("relative", "downloads")); err == nil {
+	if err := Validate("the working folder", filepath.Join("relative", "downloads")); err == nil {
 		t.Error("a relative folder was accepted")
 	}
-	if err := Validate(""); err != nil {
+	if err := Validate("the download folder", ""); err != nil {
 		t.Errorf("the built-in default was refused: %v", err)
+	}
+}
+
+// TestValidateNamesTheFieldThatFailed is the guard on the parameter Validate
+// grew: five fields are checked by this one function, and before it existed
+// every one of them reported "the download folder must be an absolute path".
+// A person who typed a relative path into the working folder was told to go and
+// fix a download folder that was fine.
+//
+// Asserting the message rather than only the error is the whole point. The old
+// code returned an error here too, so a test that checked err != nil was green
+// against exactly the bug this describes.
+func TestValidateNamesTheFieldThatFailed(t *testing.T) {
+	err := Validate("the working folder", filepath.Join("relative", "work"))
+	if err == nil {
+		t.Fatal("a relative folder was accepted")
+	}
+	if !strings.Contains(err.Error(), "the working folder") {
+		t.Errorf("the message does not name the field that failed: %q", err)
+	}
+	if strings.Contains(err.Error(), "download") {
+		t.Errorf("the working folder's failure blamed the download folder: %q", err)
 	}
 }
 

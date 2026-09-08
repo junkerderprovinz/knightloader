@@ -59,7 +59,7 @@ func getFolders(t *testing.T, srv *httptest.Server, path string) folderListing {
 func TestTheSplitMatchesTheFolderThatGetsCreated(t *testing.T) {
 	base := t.TempDir()
 	tpl := filepath.Join(base, "downloads", "<jd:date>", "<jd:hoster>")
-	if err := settings.Validate(tpl); err != nil {
+	if err := settings.Validate("the download folder", tpl); err != nil {
 		t.Fatal(err)
 	}
 

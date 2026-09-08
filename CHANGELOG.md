@@ -43,6 +43,34 @@ submission and for a fixed download.
 
 ### Added
 
+- **Twelve features that were finished but unreachable now have controls.** Each
+  of them worked, was tested and shipped, and could only be set by editing
+  `settings.json` by hand or by calling the API, which is a feature nobody has.
+  They are: the **working folder** (where bytes are written while a download is
+  still arriving, so an Unraid mover or a library scanner never meets a half
+  file), the **move-after-unpacking target**, the **three free-space floors**
+  (a per-download reserve, a "start nothing below this" line and a "stop
+  everything below this" line), **standing-still detection** with its timeout,
+  automatic restart and restart cap, **per-hoster exceptions** to the connection
+  counts and the retry backoff, **RSS and Atom subscriptions**, **categories** as
+  a page of their own, the **name-conflict rule** for downloads and how many
+  numbered names it may try, the **collector's** countdown and what it does with
+  a link you already have or one already known dead, **when two addresses count
+  as the same file** plus keeping and switching to the copy, **how much a file
+  found on the disk has to prove** before it counts as the download, and the
+  whole of **yt-dlp's** remaining configuration: audio format, bitrate and
+  spoken language, what gets written into the file (metadata, thumbnail,
+  chapters, subtitles, a Kodi NFO), the ffprobe pass over the finished file,
+  livestream limits, the cookie switch, and per-hoster defaults.
+- **A Kategorien page.** A category is a folder, a queue position, an unpacking
+  switch, a speed limit and a collision rule under one name you pick once,
+  instead of five answers given again for every batch. Every field left empty
+  means the category has no opinion about it and the level above applies, so a
+  half-filled category only changes what you filled in. Be aware of what is not
+  built yet, and the page says so rather than implying otherwise: only the
+  FOLDER is read by this build, and nothing but a Packagizer rule can put a
+  download into a category, because the rule editor has no category action yet.
+
 - **A playlist arrives as one row per video** instead of a single task. The
   entries are read from the playlist page alone, without touching any of the
   videos, so a fifty-video list costs one request rather than fifty; every video
@@ -265,6 +293,20 @@ submission and for a fixed download.
 
 ### Fixed
 
+- **A refused folder named the wrong field.** One validator checks five
+  different folders (the download folder, the working folder, a category's, a
+  batch's and a single download's) and every one of them reported "the download
+  folder must be an absolute path". So the field that failed was the one field
+  the message did not name, and typing a relative path into the new working
+  folder sent people off to fix a download folder that was fine.
+- **A queue held back by the free-space floors said "all slots busy".** The disk
+  guard's own reason was the only one of the nine with no word for it, so the
+  list showed a different and wrong explanation, and the obvious thing to do
+  about it, raising the concurrency limit, would have changed nothing.
+- **A category you added and had not named yet vanished on save**, with the
+  refusal shown in English on a German page. An unnamed row now waits on the
+  page instead of being sent, and joins the list the moment it has a name, which
+  is the moment the server would accept it.
 - A link switched off in the collector is no longer started by "start
   everything"; it stays where it is and the toast says how many were passed over.
 - Progress bars no longer animate while the queue is stopped. The looping bar

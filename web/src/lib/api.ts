@@ -170,7 +170,14 @@ export interface Task {
    * send a value this build has never heard of, and a row that prints a raw
    * enum is worse than one that falls back.
    */
-  waiting?: 'slot' | 'host' | 'forced' | 'disabled' | 'hold' | 'captcha' | 'account' | 'halted';
+  // 'disk' was missing here while core.WaitingDisk was already being sent, so
+  // the one reason the new disk guard produces was a value this side did not
+  // believe in: the status cell fell through to "all slots busy", which is a
+  // different and wrong explanation for a queue that is not moving. Found by
+  // reading the Go constants against this union rather than by a test, because
+  // an absent member of a string union is not an error anywhere - it just makes
+  // the lookup miss and the fallback win.
+  waiting?: 'slot' | 'host' | 'forced' | 'disabled' | 'hold' | 'captcha' | 'account' | 'halted' | 'disk';
   /**
    * When the bytes STOPPED, not when the standstill was noticed - so the age of
    * a download dead since midnight reads as hours in the morning rather than as
@@ -249,6 +256,135 @@ export interface TorrentFile {
   selected: boolean;
 }
 
+/**
+ * One RSS or Atom subscription. Mirrors feed.Subscription
+ * (internal/feed/subscription.go) field for field.
+ */
+export interface FeedSubscription {
+  /**
+   * The feed document's address, http or https only. It is ALSO the
+   * subscription's identity: the poller is keyed on it and so is the memory of
+   * which entries have already been added, so a changed address is a different
+   * subscription that starts over.
+   */
+  url: string;
+  /**
+   * Minutes between two fetches. 0 is "no opinion" and means the server's own
+   * 15 (feed.DefaultIntervalMinutes); any other value is pulled into 1..10080
+   * by feed.Sanitize rather than refused.
+   */
+  intervalMinutes: number;
+  /**
+   * A Go (RE2) regular expression an entry's title has to match before it is
+   * staged. Absent or empty takes everything. It decides what is DOWNLOADED and
+   * never what is remembered, so widening it later does not dump the feed's
+   * current window into the collector. A pattern that will not compile is
+   * REFUSED at save, never dropped.
+   */
+  titleFilter?: string;
+  /** Where this subscription's downloads land, absent for the app's own
+   *  download folder. May be a pathvars template, so a folder chooser has to
+   *  keep the tail the way the download folder's does. */
+  dir?: string;
+  /**
+   * One of the seven queue priorities (-3..3), absent when the subscription
+   * named none. Absent and 0 are DIFFERENT: 0 is a real priority, which is why
+   * the Go side holds a *int. Clamped into range by feed.Sanitize.
+   */
+  priority?: number;
+}
+
+/**
+ * One level of the retry chain - mirrors settings.RetryRule
+ * (internal/settings/settings_hostrules.go). Every number is SECONDS or a
+ * count, never a Duration: this is what settings.json holds.
+ *
+ * ZERO IS "NO OPINION", not "none", on every field here. It hands the question
+ * down to the next level (host rule, then the reason table, then the
+ * instance-wide backoff, then the built-in 15s/10min pair), field by field, so
+ * a row that sets only `delay` changes only the delay.
+ */
+export interface RetryRule {
+  /** Wait before the first retry, in seconds. 0 takes the level below. */
+  delay?: number;
+  /** Where the doubling stops, in seconds. 0 takes the level below. */
+  max?: number;
+  /** How many attempts this gets at all. 0 takes the global maxRetries. */
+  tries?: number;
+  /**
+   * Settles the task without arming any retry - its own end state, not "failed
+   * after N attempts". Merged with OR rather than as a fallback, so `false`
+   * here never clears a `true` set by the reason table.
+   */
+  never?: boolean;
+}
+
+/**
+ * The backoff itself: the instance-wide delay and ceiling, plus the per-failure
+ * table layered over them. Both halves may be absent on a document written by
+ * an older server, so every read goes through `?.`.
+ */
+export interface RetryPolicy {
+  /** Instance-wide backoff in seconds. 0 on either keeps the built-in
+   *  fifteen-seconds-to-ten-minutes pair. */
+  delay: number;
+  max: number;
+  /** Keyed by the server's own failure reason ("limit", "network", "gone",
+   *  ...). May arrive as null: Go writes an empty map as JSON null. */
+  byReason: Record<string, RetryRule> | null;
+}
+
+/**
+ * What one host pattern may differ in - mirrors settings.HostRule
+ * (internal/settings/settings_hostrules.go). One table and not three, because
+ * connections, chunk count and backoff are all answers to "what does THIS
+ * hoster tolerate".
+ */
+export interface HostRule {
+  /** This host's own simultaneous-download ceiling. 0 takes global maxPerHost. */
+  maxPerHost?: number;
+  /**
+   * Connections ONE download from this host opens. 0 takes global chunks.
+   * An OVERRIDE and not a ceiling: it may be higher than the global number,
+   * unlike a limit a resolver reports about the host, which can only lower.
+   */
+  chunks?: number;
+  /** This host's own backoff, layered over the per-reason table. `omitzero` on
+   *  the Go side, so it is absent rather than `{}` when nothing is set. */
+  retry?: RetryRule;
+}
+
+/**
+ * One named drawer, mirroring settings.Category. Every field except id and name
+ * is an override of something that already has an answer a level up, and every
+ * ABSENT value means "no opinion, use the level above" - which is why priority
+ * and extract are optional rather than 0 and false: 0 is the middle priority
+ * and false is a drawer that deliberately does not unpack.
+ */
+export interface Category {
+  /**
+   * The stable key Task.category points at. Send it empty on a row the client
+   * has just created: the server derives it from the name once, on save, and
+   * never re-derives it afterwards. Never change it to rename a category.
+   */
+  id: string;
+  name?: string;
+  /** Absolute, and may be a pathvars template. Empty = the global download folder. */
+  dir?: string;
+  /** -3..3. Absent is "no opinion" and is NOT the same as 0, the middle position. */
+  priority?: number;
+  /** Absent is "no opinion"; false is a drawer that deliberately keeps archives packed. */
+  extract?: boolean;
+  /** Bytes per second, 0 = no opinion. Stored and resolved; nothing enforces it yet. */
+  speedLimit?: number;
+  /**
+   * 'rename' | 'skip' | 'overwrite', empty = the instance's own policy. A plain
+   * string, not a union: the menu comes from GET /api/options.collisionPolicies,
+   * so a value the server adds must render rather than fail to compile.
+   */
+  collision?: string;
+}
+
 export interface Settings {
   maxConcurrent: number;
   maxPerHost: number;
@@ -271,25 +407,42 @@ export interface Settings {
    */
   autoConfirm: boolean;
   /** Seconds the collector waits before an unconfirmed batch auto-confirms on
-   *  its own - 0 disables the countdown. No UI control yet; server default
-   *  applies. */
+   *  its own - 0 disables the countdown. */
   autoConfirmDelay: number;
   /** What a CONFIRMED batch does next: start immediately (true, the default -
    *  preserves this app's behaviour from before autoConfirm/autoStart were
    *  split apart) or wait on Hold for a person to start it by hand. */
   autoStart: boolean;
   /** confirm.Policy value ("include"|"exclude"|"exclude-and-remove"|"ask") for
-   *  a link that duplicates one already in the list at confirm time. No UI
-   *  control yet; server default (exclude) applies. */
+   *  a link that duplicates one already in the list at confirm time. */
   onDupes: string;
-  /** Same shape as onDupes, for a link already known offline at confirm time.
-   *  No UI control yet; server default (exclude) applies. */
+  /** Same shape as onDupes, for a link already known offline at confirm time. */
   onOffline: string;
   /** A newly-confirmed batch is placed at the front of the queue rather than
-   *  the back. No UI control yet; server default (false) applies. */
+   *  the back. */
   addAtTop: boolean;
   downloadDir: string;
   subfolderByPackage: boolean;
+  /**
+   * Where a download's bytes are written while it is still arriving. The
+   * finished file is moved into downloadDir once nothing is owed on it any
+   * more, after the checksum and after any extraction. '' writes straight to
+   * the destination, which is what every install had before this field existed
+   * and the only safe default. Always an absolute path and never a pathvars
+   * template: several downloads heading for one destination share this one
+   * folder, so a template would split a multi-volume archive's parts across
+   * four of them - see sanitizeStaging (internal/settings/settings_staging.go).
+   */
+  workDir: string;
+  /**
+   * The named drawers: a folder, a queue position, an unpacking switch, a speed
+   * limit and a collision rule under one word, referred to by Task.category.
+   * Mirrors settings.Settings.Categories (internal/settings/settings_categories.go).
+   *
+   * The server always sends the key (no omitempty, deliberately - see the Go
+   * field), but read it through `?? []` anyway: an older server predates it.
+   */
+  categories: Category[];
   archivePasswords: string[];
 
   /**
@@ -300,6 +453,16 @@ export interface Settings {
   extractTo: string;
   /** Each package in its own folder below extractTo. Does nothing without one. */
   extractSubfolder: boolean;
+  /**
+   * Where the CONTENT of a finished extraction is moved once it has finished
+   * unpacking. '' leaves it where it unpacked. Not a second extractTo:
+   * extractTo is where the unpacking WRITES, this moves the finished files
+   * afterwards, and it moves the files rather than the release folder. May be a
+   * pathvars template, so the folder chooser has to keep the tail - see
+   * FolderPicker. A Packagizer rule that named a folder for the link wins over
+   * it (app.extractMoveTarget).
+   */
+  extractMoveTo: string;
   /** What an extraction does when its destination folder is already there. */
   extractCollision: string;
   /**
@@ -321,6 +484,94 @@ export interface Settings {
   maxRetries: number;
 
   /**
+   * Per-host exceptions to maxPerHost, chunks and the retry backoff, keyed by
+   * host pattern - mirrors settings.Settings.HostRules. A pattern matches the
+   * host and any subdomain of it on a dot boundary, longest match wins.
+   *
+   * `null` and `{}` mean the same thing (no rows, every host keeps the global
+   * numbers) and BOTH occur on the wire: the Go field has no `omitempty`, so a
+   * nil map encodes as `null` on any install whose settings.json predates the
+   * key, while Defaults() writes `{}`. Same pairing rainbowPalette already uses
+   * - read it as `cfg.hostRules ?? {}` everywhere.
+   */
+  hostRules: Record<string, HostRule> | null;
+  /** The instance-wide backoff and its per-failure table - the level a host
+   *  row's own retry values fall through to. */
+  retry: RetryPolicy;
+
+  /**
+   * How long a RUNNING download may move no bytes before it is marked as
+   * standing still, in seconds. 0 (the default) never marks anything, which is
+   * how this app behaved before the mark existed.
+   *
+   * Never send 1..59. sanitizeStall raises anything in that range to
+   * MinStallTimeout (60) - see internal/settings/settings_stall.go for why a
+   * shorter timeout would mark healthy downloads rather than find dead ones -
+   * so a spinner that offers 30 is a control that lies about what saving it
+   * did. 86400 (one day) is the server's ceiling.
+   */
+  stallTimeout: number;
+  /**
+   * Hands a marked download back to the wait queue and starts it from the top.
+   * Off by default and deliberately a switch of its own: the mark costs
+   * nothing, while the restart throws away the bytes the stalled attempt had
+   * already fetched. Torrents are exempt server-side whatever this says
+   * (app.stallRestartDueLocked).
+   */
+  stallRestart: boolean;
+  /**
+   * How many of those automatic restarts one download gets. 0 means
+   * DefaultStallRestarts (3), NOT unlimited, and the server caps at 20.
+   */
+  stallMaxRestarts: number;
+
+  /**
+   * Bytes kept free BEYOND what a download still has to fetch, measured against
+   * that download's own remaining bytes (app_diskguard.go's admit). The only
+   * one of the three that ships on: 536870912 (0.5 GiB,
+   * settings.DefaultDiskReserve). 0 is off. Negative saves as 0 and anything
+   * over 1 PiB clamps to 1 PiB - see sanitizeDiskSpace, which never refuses.
+   */
+  diskReserve: number;
+  /**
+   * Free bytes under which NO new download starts, whatever its size and even
+   * when its size is unknown. 0 is off, which is the default. Raised to
+   * diskCriticalSpace on save whenever that one is higher - the repair goes
+   * this way round on purpose, see settings_diskspace.go.
+   */
+  diskLowSpace: number;
+  /**
+   * Free bytes under which everything already RUNNING is stopped and put back
+   * in the wait queue, checked every 15 seconds. 0 is off, which is the
+   * default. Costs more than diskLowSpace: a non-resumable transfer loses the
+   * bytes it had fetched.
+   */
+  diskCriticalSpace: number;
+
+  /**
+   * When two DIFFERENT URLs count as the same file - dedupe.Policy ("off" |
+   * "filename-only" | "size-only" | "filename-and-size" | "filename-or-hash" |
+   * "hash-only"). A plain string, not a union: the menu comes from
+   * GET /api/options.mirrorPolicies, so a policy the server adds must render
+   * rather than fail to compile. The same URL twice is a fact and is refused
+   * whatever this says.
+   */
+  mirrorPolicy: string;
+  /** Keeps a folded-away copy as a parked sibling row instead of dropping it.
+   *  On its own it starts nothing. */
+  keepMirrors: boolean;
+  /** Releases that parked sibling when the download it copies has finished
+   *  failing. Does nothing without keepMirrors. */
+  mirrorFailover: boolean;
+  /**
+   * How much the "already on the disk" pass may believe about a file it did not
+   * watch arrive: "checksum" | "record" | "size". A plain string for the same
+   * reason as mirrorPolicy above - the menu comes from
+   * GET /api/options.reclaimTrustModes.
+   */
+  reclaimTrust: string;
+
+  /**
    * What a restart does with the downloads that were in flight: 'never' |
    * 'running' | 'all'. A plain string, not a union - the menu comes from
    * GET /api/options, so a mode the server adds must render rather than fail to
@@ -331,6 +582,24 @@ export interface Settings {
    * beginning, and the partial already on disk meets the collision policy.
    */
   resumeOnStart: string;
+  /**
+   * What a download does when the destination name is already taken: 'rename' |
+   * 'skip' | 'overwrite'. A plain string and not a union, matching
+   * archiveDisposal and resumeOnStart: the menu comes from
+   * ApiOptions.collisionPolicies, so a value the server adds must render rather
+   * than fail to compile. Only the built-in engine can be told a name, so a
+   * link handed to JDownloader, TorBox or yt-dlp honours skip and nothing else
+   * (app.HonoursCollisionPolicy).
+   */
+  collisionPolicy: string;
+  /**
+   * How many counted names "rename" tries before it gives up. 0 means the
+   * package's own cap of 1000 and never "unlimited". Marked omitempty on the Go
+   * side, so it is simply absent from the JSON whenever it is 0 - read it as
+   * `cfg.collisionMaxAttempts ?? 0` and do not trust the non-optional type
+   * here, the same way Archives.tsx reads trashRetentionDays.
+   */
+  collisionMaxAttempts: number;
   /** Days a finished download stays in the LIST. 0 keeps it forever. */
   keepFinishedDays: number;
   /** How many entries the history keeps. 0 keeps every one. */
@@ -363,6 +632,11 @@ export interface Settings {
   crawlInclude: string[];
   crawlExclude: string[];
   watchDir: string;
+  /** The RSS and Atom subscriptions this instance follows. `null` and never an
+   *  empty array on the wire (feed.Sanitize returns nil for an empty list) is
+   *  the off state a fresh install has, the same pairing captchaSolverOrder
+   *  already uses. */
+  feeds: FeedSubscription[] | null;
   verifyChecksums: boolean;
   /**
    * Scans a paste or drop for links wherever they sit in it, instead of
@@ -428,6 +702,11 @@ export interface Settings {
    * nothing about how this backend downloads.
    */
   ytdlp: YtdlpOptions;
+  /** Per-host "Variante" defaults - mirrors settings.Settings.YtdlpPresets
+   *  (internal/settings/settings.go). Keyed by the lower-cased, www-stripped
+   *  host a task carries. A host with no entry gets all five variants on, best
+   *  quality, best audio. YtdlpHosterPreset is already declared below. */
+  ytdlpPresets: Record<string, YtdlpHosterPreset>;
 
   /**
    * This instance's own identity - mirrors settings.Settings.InstanceName /
@@ -684,6 +963,21 @@ export interface SkippedLink {
 export interface ApiOptions {
   mirrorPolicies: string[];
   collisionPolicies: string[];
+  /**
+   * confirm.Policy values that are valid as an INSTANCE default: include,
+   * exclude, exclude-and-remove, ask. confirm.UseGlobal is withheld by the
+   * server (routes_settings.go's confirmPoliciesForAGlobalDefault) because a
+   * global default cannot defer to itself. Served since the confirm split
+   * landed; this type simply never declared it.
+   */
+  confirmPolicies: string[];
+  /** reclaim.Trust tiers, strictest first: "checksum" | "record" | "size". */
+  reclaimTrustModes: string[];
+  /** The ceiling on the category table (settings.MaxCategories). A number and
+   *  not a list: the table's own limit belongs with the menus, because a 64
+   *  hardcoded in the browser is a second copy of a Go constant and the copy is
+   *  the one that goes stale silently. */
+  maxCategories: number;
   /**
    * The archive page's own three lists, and deliberately not the download ones
    * above. An extraction honours a different set of collision policies from a
@@ -1693,6 +1987,54 @@ export interface YtdlpOptions {
    *  "%(title)s.%(ext)s". Server-sanitized against path traversal on save -
    *  see ytdlp.sanitizeTemplate's own doc comment. */
   outputTemplate: string;
+  /** yt-dlp's own --audio-quality target in kbit/s ("192"), or "" for no
+   *  opinion. Read only on an audio row, and only meaningful once audioFormat
+   *  names a real transcode target. */
+  audioBitrate: string;
+  /** One spoken language, applied as a [language^=xx] filter inside the audio
+   *  row's -f selector. "" passes no filter. */
+  audioLang: string;
+  /** Fail a subtitle row that wrote no file instead of settling it green. */
+  subtitleStrict: boolean;
+  /** Allow a stored cookies.txt to be handed to yt-dlp. The jar itself is never
+   *  part of this document. */
+  cookies: boolean;
+  /** Tag and sort an audio row as music. */
+  music: boolean;
+  embed: YtdlpEmbed;
+  measure: YtdlpMeasure;
+  live: YtdlpLive;
+}
+
+/** Mirrors ytdlp.Embed (internal/resolver/ytdlp/options.go): what gets written
+ *  INTO the finished file rather than beside it. */
+export interface YtdlpEmbed {
+  metadata: boolean;
+  thumbnail: boolean;
+  chapters: boolean;
+  /** Video rows only. */
+  subs: boolean;
+  splitChapters: boolean;
+  /** Not a yt-dlp flag: KnightLoader writes the NFO itself. */
+  nfo: boolean;
+}
+
+/** Mirrors ytdlp.Measure: the ffprobe pass over a finished media file. */
+export interface YtdlpMeasure {
+  enabled: boolean;
+  /** 1..100. Anything outside that, 0 included, is stored as 90. */
+  shortPercent: number;
+  failOnShort: boolean;
+}
+
+/** Mirrors ytdlp.Live: what a stream that has no end is allowed to do. */
+export interface YtdlpLive {
+  enabled: boolean;
+  fromStart: boolean;
+  /** Minutes of recording, 0 for no limit. */
+  maxMinutes: number;
+  /** MiB, 0 for no limit. */
+  maxMB: number;
 }
 
 /** Every "Variante" row kind a yt-dlp-routed link stages, in the fixed
