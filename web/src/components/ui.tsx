@@ -697,7 +697,7 @@ export const segOn = 'bg-accent text-accentContrast';
 // BombVault's own current source carries the fix. jdp, on KnightLoader
 // specifically: "auch im nicht ausgewählten zustand sollen sie als badges
 // erkennbar sein, siehe BV."
-export const segOff = 'bg-carbon-surface2 text-carbon-textMuted hover:bg-carbon-hover hover:text-carbon-text';
+export const segOff = 'bg-carbon-surface2 text-carbon-textMuted hover:bg-carbon-surface3 hover:text-carbon-text';
 
 /**
  * hueStyle is how anything that is one member of a set claims a palette
