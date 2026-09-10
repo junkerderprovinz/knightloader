@@ -1279,7 +1279,7 @@ export const bg: Dict = {
   'settings.about.coffeeButton': 'Почерпи ме с кафе',
   'settings.about.crypto': 'Крипто',
   'settings.about.cryptoTitle': 'Дарение с крипто',
-  'settings.about.cryptoIntro': 'Избери верига, после сканирай кода или копирай адреса.',
+  'settings.about.cryptoIntro': 'Избери валута и мрежа, после сканирай кода или копирай адреса.',
   'settings.about.cryptoNetworks': 'Мрежи',
   'settings.about.cryptoNoTag': 'Не са нужни destination tag или memo.',
   'common.copy': 'Копирай',

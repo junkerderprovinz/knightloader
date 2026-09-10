@@ -1494,7 +1494,7 @@ export const en = {
   'settings.about.coffeeButton': 'Buy me a coffee',
   'settings.about.crypto': 'Crypto',
   'settings.about.cryptoTitle': 'Donate with crypto',
-  'settings.about.cryptoIntro': 'Pick a chain, then scan the code or copy the address.',
+  'settings.about.cryptoIntro': 'Pick a coin and a network, then scan the code or copy the address.',
   'settings.about.cryptoNetworks': 'Networks',
   'settings.about.cryptoNoTag': 'No destination tag and no memo needed.',
   'common.copy': 'Copy',

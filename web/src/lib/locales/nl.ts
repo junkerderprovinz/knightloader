@@ -1271,7 +1271,7 @@ export const nl: Dict = {
   'settings.about.coffeeButton': 'Trakteer op koffie',
   'settings.about.crypto': 'Crypto',
   'settings.about.cryptoTitle': 'Doneren met crypto',
-  'settings.about.cryptoIntro': 'Kies een keten en scan dan de code of kopieer het adres.',
+  'settings.about.cryptoIntro': 'Kies een munt en een netwerk en scan dan de code of kopieer het adres.',
   'settings.about.cryptoNetworks': 'Netwerken',
   'settings.about.cryptoNoTag': 'Een destination tag of memo is niet nodig.',
   'common.copy': 'Kopiëren',

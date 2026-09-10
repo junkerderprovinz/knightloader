@@ -1279,7 +1279,7 @@ export const id: Dict = {
   'settings.about.coffeeButton': 'Traktir saya kopi',
   'settings.about.crypto': 'Kripto',
   'settings.about.cryptoTitle': 'Donasi dengan kripto',
-  'settings.about.cryptoIntro': 'Pilih rantai, lalu pindai kode atau salin alamatnya.',
+  'settings.about.cryptoIntro': 'Pilih koin dan jaringan, lalu pindai kode atau salin alamatnya.',
   'settings.about.cryptoNetworks': 'Jaringan',
   'settings.about.cryptoNoTag': 'Tidak perlu destination tag maupun memo.',
   'common.copy': 'Salin',

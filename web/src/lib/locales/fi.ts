@@ -1279,7 +1279,7 @@ export const fi: Dict = {
   'settings.about.coffeeButton': 'Tarjoa kahvi',
   'settings.about.crypto': 'Krypto',
   'settings.about.cryptoTitle': 'Lahjoita kryptolla',
-  'settings.about.cryptoIntro': 'Valitse ketju ja skannaa sitten koodi tai kopioi osoite.',
+  'settings.about.cryptoIntro': 'Valitse kolikko ja verkko, skannaa sitten koodi tai kopioi osoite.',
   'settings.about.cryptoNetworks': 'Verkot',
   'settings.about.cryptoNoTag': 'Destination tagia tai memoa ei tarvita.',
   'common.copy': 'Kopioi',

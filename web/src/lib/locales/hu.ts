@@ -1279,7 +1279,7 @@ export const hu: Dict = {
   'settings.about.coffeeButton': 'Hívj meg egy kávéra',
   'settings.about.crypto': 'Kripto',
   'settings.about.cryptoTitle': 'Támogatás kriptóval',
-  'settings.about.cryptoIntro': 'Válassz láncot, majd olvasd be a kódot vagy másold ki a címet.',
+  'settings.about.cryptoIntro': 'Válassz érmét és hálózatot, majd olvasd be a kódot vagy másold ki a címet.',
   'settings.about.cryptoNetworks': 'Hálózatok',
   'settings.about.cryptoNoTag': 'Nem kell sem destination tag, sem memo.',
   'common.copy': 'Másolás',

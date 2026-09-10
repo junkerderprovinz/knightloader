@@ -1279,7 +1279,7 @@ export const lt: Dict = {
   'settings.about.coffeeButton': 'Pavaišinti kava',
   'settings.about.crypto': 'Kripto',
   'settings.about.cryptoTitle': 'Paremti kriptovaliuta',
-  'settings.about.cryptoIntro': 'Pasirink grandinę, tada nuskaityk kodą arba nukopijuok adresą.',
+  'settings.about.cryptoIntro': 'Pasirink monetą ir tinklą, tada nuskaityk kodą arba nukopijuok adresą.',
   'settings.about.cryptoNetworks': 'Tinklai',
   'settings.about.cryptoNoTag': 'Destination tag ir memo nereikia.',
   'common.copy': 'Kopijuoti',

@@ -1280,7 +1280,7 @@ export const ro: Dict = {
   'settings.about.coffeeButton': 'Fă-mi cinste cu o cafea',
   'settings.about.crypto': 'Cripto',
   'settings.about.cryptoTitle': 'Donează în cripto',
-  'settings.about.cryptoIntro': 'Alege un lanț, apoi scanează codul sau copiază adresa.',
+  'settings.about.cryptoIntro': 'Alege o monedă și o rețea, apoi scanează codul sau copiază adresa.',
   'settings.about.cryptoNetworks': 'Rețele',
   'settings.about.cryptoNoTag': 'Nu sunt necesare destination tag sau memo.',
   'common.copy': 'Copiază',

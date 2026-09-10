@@ -1279,7 +1279,7 @@ export const ms: Dict = {
   'settings.about.coffeeButton': 'Belanja saya kopi',
   'settings.about.crypto': 'Kripto',
   'settings.about.cryptoTitle': 'Derma dengan kripto',
-  'settings.about.cryptoIntro': 'Pilih rantaian, kemudian imbas kod atau salin alamat.',
+  'settings.about.cryptoIntro': 'Pilih syiling dan rangkaian, kemudian imbas kod atau salin alamat.',
   'settings.about.cryptoNetworks': 'Rangkaian',
   'settings.about.cryptoNoTag': 'Destination tag dan memo tidak diperlukan.',
   'common.copy': 'Salin',

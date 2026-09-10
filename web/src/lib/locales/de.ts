@@ -1290,7 +1290,7 @@ export const de: Dict = {
   'settings.about.coffeeButton': 'Kaffee spendieren',
   'settings.about.crypto': 'Krypto',
   'settings.about.cryptoTitle': 'Mit Krypto spenden',
-  'settings.about.cryptoIntro': 'Wähle eine Kette, dann scanne den Code oder kopiere die Adresse.',
+  'settings.about.cryptoIntro': 'Wähle eine Währung und ein Netzwerk, dann scanne den Code oder kopiere die Adresse.',
   'settings.about.cryptoNetworks': 'Netzwerke',
   'settings.about.cryptoNoTag': 'Kein Destination Tag und kein Memo nötig.',
   'common.copy': 'Kopieren',

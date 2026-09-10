@@ -1279,7 +1279,7 @@ export const gl: Dict = {
   'settings.about.coffeeButton': 'Convídame a un café',
   'settings.about.crypto': 'Cripto',
   'settings.about.cryptoTitle': 'Doar con cripto',
-  'settings.about.cryptoIntro': 'Escolle unha cadea e despois escanea o código ou copia o enderezo.',
+  'settings.about.cryptoIntro': 'Escolle unha moeda e unha rede, despois escanea o código ou copia o enderezo.',
   'settings.about.cryptoNetworks': 'Redes',
   'settings.about.cryptoNoTag': 'Non fan falta destination tag nin memo.',
   'common.copy': 'Copiar',

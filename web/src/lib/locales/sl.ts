@@ -1279,7 +1279,7 @@ export const sl: Dict = {
   'settings.about.coffeeButton': 'Časti kavo',
   'settings.about.crypto': 'Kripto',
   'settings.about.cryptoTitle': 'Podpri s kripto',
-  'settings.about.cryptoIntro': 'Izberi verigo, nato skeniraj kodo ali kopiraj naslov.',
+  'settings.about.cryptoIntro': 'Izberi kovanec in omrežje, nato skeniraj kodo ali kopiraj naslov.',
   'settings.about.cryptoNetworks': 'Omrežja',
   'settings.about.cryptoNoTag': 'Destination tag in memo nista potrebna.',
   'common.copy': 'Kopiraj',

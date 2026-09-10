@@ -1279,7 +1279,7 @@ export const eu: Dict = {
   'settings.about.coffeeButton': 'Erosi kafe bat',
   'settings.about.crypto': 'Kripto',
   'settings.about.cryptoTitle': 'Eman kriptoarekin',
-  'settings.about.cryptoIntro': 'Aukeratu kate bat, gero eskaneatu kodea edo kopiatu helbidea.',
+  'settings.about.cryptoIntro': 'Aukeratu txanpon bat eta sare bat, gero eskaneatu kodea edo kopiatu helbidea.',
   'settings.about.cryptoNetworks': 'Sareak',
   'settings.about.cryptoNoTag': 'Ez da destination tag-ik ez memorik behar.',
   'common.copy': 'Kopiatu',

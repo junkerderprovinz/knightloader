@@ -1271,7 +1271,7 @@ export const ru: Dict = {
   'settings.about.coffeeButton': 'Угостить кофе',
   'settings.about.crypto': 'Крипто',
   'settings.about.cryptoTitle': 'Поддержать криптовалютой',
-  'settings.about.cryptoIntro': 'Выбери сеть, затем отсканируй код или скопируй адрес.',
+  'settings.about.cryptoIntro': 'Выбери монету и сеть, затем отсканируй код или скопируй адрес.',
   'settings.about.cryptoNetworks': 'Сети',
   'settings.about.cryptoNoTag': 'Ни destination tag, ни memo не нужны.',
   'common.copy': 'Копировать',

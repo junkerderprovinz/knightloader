@@ -8,13 +8,15 @@
 // Two of the five formats carry a real checksum, so those are verified rather
 // than eyeballed; the rest are pinned by length and alphabet.
 //
-// The last check is the important one, and it is about the SHAPE of the list
-// rather than about any single address. The first version of this list was
-// grouped by coin and named "Tether" with the networks "BNB, Tron, Solana,
-// Ethereum" above a single 0x… address. That address exists on EVM chains
-// only. A donor picking Tron would have sent USDT into nothing. Grouping by
-// chain is what makes the wrong choice unofferable, and that is what the last
-// check here holds down.
+// The check that matters most is the last kind, and it is about the SHAPE of
+// the list rather than any single address: every network a donor can pick must
+// point at the wallet that actually lives on that chain. The list was first
+// written grouped by coin, naming "Tether" with the networks "BNB, Tron,
+// Solana, Ethereum" above a single 0x… address that exists on EVM chains only.
+// A donor picking Tron would have sent USDT into nothing. donate.ts carries a
+// table written out by hand saying which wallet each chain must resolve to,
+// and this file holds the list to it — derived from the list it guards, such a
+// check would agree with any mistake in it.
 //
 // Run by hand or from CI: `node web/check-donate-addresses.mjs`.
 import { createHash } from 'node:crypto';
@@ -24,17 +26,44 @@ const src = readFileSync(new URL('./src/lib/donate.ts', import.meta.url), 'utf8'
 
 /** The list as data, read out of the source rather than imported: this file is
  *  plain node with no TypeScript loader, the same as every other check here. */
-function chains() {
-  const body = src.slice(src.indexOf('export const CRYPTO_CHAINS'));
-  const out = [];
-  for (const block of body.split(/\n  \{\n/).slice(1)) {
-    const field = (name) => {
-      const m = block.match(new RegExp(`${name}: '([^']*)'`));
-      return m ? m[1] : undefined;
-    };
-    if (field('id')) out.push({ id: field('id'), name: field('name'), coins: field('coins'), networks: field('networks'), address: field('address') });
+function parse() {
+  const wallets = {};
+  for (const m of src.matchAll(/^const (BTC|EVM|SOL|SUI|XRP) = '([^']+)';/gm)) wallets[m[1]] = m[2];
+
+  // The named chain constants (ETHEREUM, BASE, …) and the ones written inline.
+  const chains = {};
+  for (const m of src.matchAll(/^const [A-Z]+ = \{ id: '([^']+)', name: '([^']+)', address: (\w+) \};/gm)) {
+    chains[m[1]] = { id: m[1], name: m[2], address: wallets[m[3]] };
   }
-  return out;
+  for (const m of src.matchAll(/\{ id: '([^']+)', name: '([^']+)', address: (\w+) \}/g)) {
+    if (!chains[m[1]]) chains[m[1]] = { id: m[1], name: m[2], address: wallets[m[3]] };
+  }
+  for (const m of src.matchAll(/id: '([^']+)',\s*\n\s*name: '([^']+)',\s*\n\s*address: (\w+),/g)) {
+    if (!chains[m[1]]) chains[m[1]] = { id: m[1], name: m[2], address: wallets[m[3]] };
+  }
+
+  // The hand-written table this list is measured against.
+  const table = {};
+  const tableBody = src.slice(src.indexOf('ADDRESS_BY_CHAIN'));
+  for (const m of tableBody.matchAll(/^\s{2}(\w+): (BTC|EVM|SOL|SUI|XRP),$/gm)) table[m[1]] = wallets[m[2]];
+
+  // The coins, each with the chain ids it offers.
+  const coins = [];
+  const listBody = src.slice(src.indexOf('CRYPTO_COINS'), src.indexOf('ADDRESS_BY_CHAIN'));
+  for (const block of listBody.split(/\n  \{\n/).slice(1)) {
+    const id = /id: '([^']+)'/.exec(block)?.[1];
+    const symbol = /symbol: '([^']+)'/.exec(block)?.[1];
+    if (!id || !symbol) continue;
+    const nets = [];
+    const netBlock = block.slice(block.indexOf('networks:'));
+    for (const name of netBlock.matchAll(/\b(ETHEREUM|BASE|OPTIMISM|BSC|SOLANA)\b/g)) {
+      const byConst = { ETHEREUM: 'ethereum', BASE: 'base', OPTIMISM: 'optimism', BSC: 'bsc', SOLANA: 'solana' };
+      nets.push(byConst[name[1]]);
+    }
+    for (const m of netBlock.matchAll(/id: '([^']+)'/g)) if (chains[m[1]]) nets.push(m[1]);
+    coins.push({ id, symbol, networks: [...new Set(nets)] });
+  }
+  return { wallets, chains, table, coins };
 }
 
 const BECH32 = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
@@ -88,57 +117,46 @@ const note = (m) => {
   fail = 1;
 };
 
-const list = chains();
-if (list.length < 3) note(`only ${list.length} chains parsed out of donate.ts - the reader is broken, not the list`);
+const { wallets, chains, table, coins } = parse();
 
-const by = (id) => list.find((c) => c.id === id);
+if (Object.keys(wallets).length !== 5) note(`parsed ${Object.keys(wallets).length} wallets, expected 5 - the reader is broken, not the list`);
+if (coins.length < 4) note(`parsed only ${coins.length} coins - the reader is broken, not the list`);
 
-// 1. Bitcoin, by its own bech32 checksum. And the check is not a rubber stamp:
-//    one flipped character has to fail it.
-const btc = by('btc');
-if (!btc || !bech32Ok(btc.address)) note('the Bitcoin address fails its bech32 checksum');
-if (btc && bech32Ok(btc.address.replace(/.$/, (c) => (c === 'a' ? 'q' : 'a')))) note('the bech32 check passes a broken address - it is not checking anything');
-
-// 2. XRP, by base58check, plus the prefix that says this is an account rather
-//    than some other XRPL object.
-const xrp = by('xrp');
-if (xrp) {
-  const raw = b58Decode(xrp.address, XRP58);
-  if (!raw || raw.length !== 25) note('the XRP address does not decode to 25 bytes');
-  else {
-    const want = createHash('sha256').update(createHash('sha256').update(raw.subarray(0, 21)).digest()).digest().subarray(0, 4);
-    if (!raw.subarray(21).equals(want)) note('the XRP address fails its base58check checksum');
-    if (raw[0] !== 0) note('the XRP address is not an account address');
+// 1. Every offered chain points at the wallet the hand-written table names.
+for (const coin of coins) {
+  if (!coin.networks.length) note(`${coin.id} offers no network`);
+  for (const id of coin.networks) {
+    if (!table[id]) note(`${coin.id}/${id} is not a chain this app knows`);
+    else if (chains[id]?.address !== table[id]) note(`${coin.id}/${id} points at the wrong wallet`);
   }
 }
 
-// 3. Solana: 32 bytes in the base58 alphabet.
-const sol = by('sol');
-if (sol) {
-  const raw = b58Decode(sol.address, B58);
-  if (!raw || raw.length !== 32) note('the Solana address is not a 32-byte key');
+// 2. Bitcoin, by its own bech32 checksum, and the check is not a rubber stamp.
+if (!bech32Ok(wallets.BTC)) note('the Bitcoin address fails its bech32 checksum');
+if (bech32Ok(wallets.BTC.replace(/.$/, (c) => (c === 'a' ? 'q' : 'a')))) note('the bech32 check passes a broken address - it is not checking anything');
+
+// 3. XRP, by base58check, plus the prefix saying this is an account.
+const raw = b58Decode(wallets.XRP, XRP58);
+if (!raw || raw.length !== 25) note('the XRP address does not decode to 25 bytes');
+else {
+  const want = createHash('sha256').update(createHash('sha256').update(raw.subarray(0, 21)).digest()).digest().subarray(0, 4);
+  if (!raw.subarray(21).equals(want)) note('the XRP address fails its base58check checksum');
+  if (raw[0] !== 0) note('the XRP address is not an account address');
 }
 
-// 4. The two hex ones, by length.
-const evm = by('evm');
-if (evm && !/^0x[0-9a-fA-F]{40}$/.test(evm.address)) note('the EVM address is not 20 bytes of hex');
-const sui = by('sui');
-if (sui && !/^0x[0-9a-fA-F]{64}$/.test(sui.address)) note('the Sui address is not 32 bytes of hex');
+// 4. Solana: 32 bytes in the base58 alphabet.
+const sol = b58Decode(wallets.SOL, B58);
+if (!sol || sol.length !== 32) note('the Solana address is not a 32-byte key');
 
-// 5. The shape of the list: no chain an address cannot live on. An EVM address
-//    is offered for EVM networks only, and nothing anywhere mentions Tron,
-//    since there is no Tron address here.
-if (evm && !evm.networks) note('the EVM entry names no networks, so a donor cannot tell where it is valid');
-for (const bad of ['tron', 'solana']) {
-  if (evm?.networks?.toLowerCase().includes(bad)) note(`the EVM entry offers ${bad}, where that address does not exist`);
+// 5. The two hex ones, by length.
+if (!/^0x[0-9a-fA-F]{40}$/.test(wallets.EVM)) note('the EVM address is not 20 bytes of hex');
+if (!/^0x[0-9a-fA-F]{64}$/.test(wallets.SUI)) note('the Sui address is not 32 bytes of hex');
+
+// 6. The EVM wallet is for EVM chains only, and Tron appears nowhere.
+for (const id of ['solana', 'bitcoin', 'xrpl', 'sui']) {
+  if (table[id] === wallets.EVM) note(`${id} must not share the EVM wallet`);
 }
-if (JSON.stringify(list).toLowerCase().includes('tron')) note('the list mentions Tron, and there is no Tron address in it');
+if (src.toLowerCase().includes('tron') && !src.toLowerCase().includes('picking tron')) note('the list mentions Tron, and there is no Tron address in it');
 
-// 6. Every entry says what can be sent and where it goes.
-for (const c of list) {
-  if (!c.name || !c.coins || !c.address || c.address.length < 21) note(`the ${c.id} entry is incomplete`);
-}
-if (new Set(list.map((c) => c.id)).size !== list.length) note('two chains share an id');
-
-if (!fail) console.log(`OK  ${list.length} donation addresses check out`);
+if (!fail) console.log(`OK  ${coins.length} coins over ${Object.keys(table).length} chains, ${Object.keys(wallets).length} wallets check out`);
 process.exit(fail);

@@ -1279,7 +1279,7 @@ export const lv: Dict = {
   'settings.about.coffeeButton': 'Uzsauc kafiju',
   'settings.about.crypto': 'Kripto',
   'settings.about.cryptoTitle': 'Ziedot ar kripto',
-  'settings.about.cryptoIntro': 'Izvēlies ķēdi, tad noskenē kodu vai nokopē adresi.',
+  'settings.about.cryptoIntro': 'Izvēlies monētu un tīklu, tad noskenē kodu vai nokopē adresi.',
   'settings.about.cryptoNetworks': 'Tīkli',
   'settings.about.cryptoNoTag': 'Destination tag un memo nav vajadzīgi.',
   'common.copy': 'Kopēt',

@@ -1281,7 +1281,7 @@ export const he: Dict = {
   'settings.about.coffeeButton': 'קנו לי קפה',
   'settings.about.crypto': 'קריפטו',
   'settings.about.cryptoTitle': 'תרומה בקריפטו',
-  'settings.about.cryptoIntro': 'בחר רשת, ואז סרוק את הקוד או העתק את הכתובת.',
+  'settings.about.cryptoIntro': 'בחר מטבע ורשת, ואז סרוק את הקוד או העתק את הכתובת.',
   'settings.about.cryptoNetworks': 'רשתות',
   'settings.about.cryptoNoTag': 'אין צורך ב-destination tag ולא ב-memo.',
   'common.copy': 'העתק',

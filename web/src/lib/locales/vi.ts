@@ -1279,7 +1279,7 @@ export const vi: Dict = {
   'settings.about.coffeeButton': 'Mời tôi ly cà phê',
   'settings.about.crypto': 'Tiền mã hoá',
   'settings.about.cryptoTitle': 'Ủng hộ bằng tiền mã hoá',
-  'settings.about.cryptoIntro': 'Chọn một chuỗi, rồi quét mã hoặc sao chép địa chỉ.',
+  'settings.about.cryptoIntro': 'Chọn một đồng tiền và một mạng, rồi quét mã hoặc sao chép địa chỉ.',
   'settings.about.cryptoNetworks': 'Mạng',
   'settings.about.cryptoNoTag': 'Không cần destination tag hay memo.',
   'common.copy': 'Sao chép',
