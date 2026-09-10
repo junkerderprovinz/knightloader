@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { useT } from '../../lib/i18n';
 import { Card, SectionTitle } from '../../components/ui';
 import { fetchHealth } from '../../lib/api';
-import { IconCoffee, IconGithub, IconMail } from '../../lib/icons';
+import { IconCoffee, IconGithub, IconMail, IconWallet } from '../../lib/icons';
+import { CryptoDonateDialog } from '../../components/CryptoDonateDialog';
 
 /**
  * The help page: what this build actually does, organised by the question a
@@ -258,6 +259,7 @@ const GLIMSTONE_VERSION = '1.6.0';
 export function About({ hue }: { hue: number }) {
   const { t } = useT();
   const [version, setVersion] = useState('');
+  const [cryptoOpen, setCryptoOpen] = useState(false);
   useEffect(() => {
     fetchHealth()
       .then((h) => setVersion(h.version))
@@ -273,6 +275,13 @@ export function About({ hue }: { hue: number }) {
           it reads as one offer; three sentences stacked over one row of buttons
           reads as a form. */}
       <p className="text-sm text-carbon-textSub">{t('settings.about.coffee')}</p>
+      {/* Two ways to give, and they are two because they reach different
+          people: the coffee takes a card, the crypto window takes what
+          somebody already holds in a wallet and shows no name at either end.
+          Both stay in THIS row rather than getting a row of their own further
+          down, which is the card's own rule - a sentence sits directly above
+          the thing it asks for, and a second row reads as a second, unrelated
+          offer. */}
       <div className="flex flex-wrap gap-2">
         <a
           href={COFFEE_URL}
@@ -283,7 +292,16 @@ export function About({ hue }: { hue: number }) {
           <IconCoffee width={15} height={15} />
           {t('settings.about.coffeeButton')}
         </a>
+        {/* A real button rather than an anchor dressed as one, unlike its two
+            neighbours: this one opens a window in the app instead of going
+            somewhere, so there is no link for the browser's middle click,
+            copy-link or open-in-new-tab to act on. */}
+        <button type="button" className={ABOUT_BTN} onClick={() => setCryptoOpen(true)}>
+          <IconWallet width={15} height={15} />
+          {t('settings.about.crypto')}
+        </button>
       </div>
+      {cryptoOpen && <CryptoDonateDialog onClose={() => setCryptoOpen(false)} />}
       {/* One extra step of space above this line, and only above this one
           (jdp, 2026-09-06). The card holds two offers, and without the break
           the coffee button sits as close to the next sentence as to the one it
