@@ -1492,6 +1492,13 @@ export const en = {
   'settings.about.title': 'About KnightLoader',
   'settings.about.body': 'A one-knight crusade: free, open-source tools that did not exist in this shape. No accounts, no telemetry, and nothing readable ever leaves your own walls. Forged on evenings and weekends with a lot of heart, because waiting was not an option.',
   'settings.about.coffeeButton': 'Buy me a coffee',
+  'settings.about.crypto': 'Crypto',
+  'settings.about.cryptoTitle': 'Donate with crypto',
+  'settings.about.cryptoIntro': 'Pick a chain, then scan the code or copy the address.',
+  'settings.about.cryptoNetworks': 'Networks',
+  'settings.about.cryptoNoTag': 'No destination tag and no memo needed.',
+  'common.copy': 'Copy',
+  'common.copied': 'Copied',
   'settings.about.coffee': 'KnightLoader is free and stays free. A donation keeps the project alive and covers what it costs: the domain, the server, and the evenings that go into it.',
   'settings.about.report': 'Problems, wishes or suggestions? Open an issue on GitHub, or send an email.',
   'settings.about.version': 'Version',
@@ -2982,6 +2989,7 @@ export const en = {
   'settings.resolvers.toolsAutoCheck': 'Ask GitHub for the yt-dlp version when this page opens',
   'settings.resolvers.toolsAutoCheckHint': 'One request to api.github.com each time this page loads, and nothing beyond it: nothing is downloaded and nothing is replaced without you pressing the button. Off by default, because a machine you run yourself should not call out on its own until you have said it may.',
   'settings.diagnostics.toolsMissing': 'not found',
+  'settings.eventTargets.problem.redirect': 'The address answers with a redirect and this instance does not follow it. Every header value on this row is treated as a secret, and a redirect to another host would hand it to whoever owns that host. Open the address in a browser, see where it lands, and type that address here instead.',
 } as const;
 
 export type TranslationKey = keyof typeof en;
