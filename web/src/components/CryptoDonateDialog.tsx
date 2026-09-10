@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 
 import { Button, Modal } from './ui';
 import { CoinMark } from './donateMarks';
 import { QRCode } from './QRCode';
+import { hueVars, rainbowAt } from '../lib/appearance';
 import { qrMatrix } from '../lib/qrmatrix';
 import { CRYPTO_COINS, type CryptoCoin, type CryptoNetwork } from '../lib/donate';
 import { useT } from '../lib/i18n';
+import { useNavLabels } from '../lib/navLabels';
 
 // ---------------------------------------------------------------------------
 // The crypto window: the second way to give (GlimStone 1.8.3).
@@ -42,6 +44,17 @@ export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
   const [network, setNetwork] = useState<CryptoNetwork>(CRYPTO_COINS[0]!.networks[0]!);
   const [copied, setCopied] = useState(false);
   const matrix = useMemo(() => qrMatrix(network.address), [network.address]);
+
+  // The label engine, under this repo's own name for it. `hover` deliberately
+  // resolves to the same thing as `both` HERE and nowhere else: hover means the
+  // words appear under the pointer, which is right for a strip of verbs
+  // somebody already knows and wrong for a grid of eight coins somebody is
+  // SEARCHING - it would turn "find USDT" into hovering every tile in turn. A
+  // picker is the one surface where hiding the labels until asked defeats the
+  // surface.
+  const labels = useNavLabels();
+  const showMark = labels !== 'text';
+  const showTicker = labels !== 'glyph';
 
   // The label flips for a moment and goes back, the same answer every other
   // copy control in this app gives.
@@ -84,7 +97,11 @@ export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
           role="listbox"
           aria-label={t('settings.about.cryptoNetworks')}
         >
-          {coin.networks.map((n) => (
+          {/* A chain name is DATA and has no symbol, so the label engine has
+              nothing to hide here and these stay words in every mode. The
+              colour engine still applies: each chain owns a position, so the
+              chosen one fills in its own hue. */}
+          {coin.networks.map((n, i) => (
             <button
               key={n.id}
               type="button"
@@ -94,7 +111,8 @@ export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
                 setNetwork(n);
                 setCopied(false);
               }}
-              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+              style={hueVars(rainbowAt(i)) as CSSProperties}
+              className={`glim-hue rounded-full px-3 py-1 text-xs font-medium transition-colors ${
                 n.id === network.id
                   ? 'bg-accent text-accentContrast'
                   : 'bg-carbon-surface3 text-carbon-textSub hover:bg-carbon-hoverRaised hover:text-carbon-text'
@@ -123,28 +141,39 @@ export function CryptoDonateDialog({ onClose }: { onClose: () => void }) {
 
       {/* The picker, under the answer it changes. Tiles rather than a list,
           because a coin is recognised by its mark faster than its name is
-          read. */}
+          read.
+
+          Each tile owns a palette position, so rainbow mode makes eight coins
+          scannable by colour the way it makes any other list scannable.
+          `.glim-hue-icon` tints the mark itself while the ticker sits beside
+          it, and is dropped in glyph mode: there the mark IS the tile's whole
+          content, and the house rule for an icon-only badge is that only the
+          fill carries colour. */}
       <div
         className="grid grid-cols-4 gap-2"
         role="listbox"
         aria-label={t('settings.about.cryptoTitle')}
       >
-        {CRYPTO_COINS.map((c) => (
+        {CRYPTO_COINS.map((c, i) => (
           <button
             key={c.id}
             type="button"
             role="option"
             aria-selected={c.id === coin.id}
             aria-label={`${c.name} (${c.symbol})`}
+            title={c.name}
             onClick={() => pickCoin(c)}
+            style={hueVars(rainbowAt(i)) as CSSProperties}
             className={`flex flex-col items-center gap-1 rounded-[var(--radius-control)] px-2 py-3 transition-colors ${
+              showTicker ? 'glim-hue glim-hue-icon' : 'glim-hue'
+            } ${
               c.id === coin.id
-                ? 'bg-accent text-accentContrast'
+                ? 'glim-active bg-accent text-accentContrast'
                 : 'bg-carbon-surface2 text-carbon-textSub hover:bg-carbon-surface3 hover:text-carbon-text'
             }`}
           >
-            <CoinMark coin={c.id} size={22} />
-            <span className="text-xs font-medium">{c.symbol}</span>
+            {showMark && <CoinMark coin={c.id} size={22} />}
+            {showTicker && <span className="text-xs font-medium">{c.symbol}</span>}
           </button>
         ))}
       </div>
