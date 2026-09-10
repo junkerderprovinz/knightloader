@@ -1279,7 +1279,7 @@ export const sr: Dict = {
   'settings.about.coffeeButton': 'Части ме кафом',
   'settings.about.crypto': 'Крипто',
   'settings.about.cryptoTitle': 'Донирај криптом',
-  'settings.about.cryptoIntro': 'Изабери ланац, па скенирај код или копирај адресу.',
+  'settings.about.cryptoIntro': 'Изабери новчић и мрежу, па скенирај код или копирај адресу.',
   'settings.about.cryptoNetworks': 'Мреже',
   'settings.about.cryptoNoTag': 'Ни destination tag ни memo нису потребни.',
   'common.copy': 'Копирај',

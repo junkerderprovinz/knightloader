@@ -1279,7 +1279,7 @@ export const th: Dict = {
   'settings.about.coffeeButton': 'เลี้ยงกาแฟ',
   'settings.about.crypto': 'คริปโท',
   'settings.about.cryptoTitle': 'บริจาคด้วยคริปโท',
-  'settings.about.cryptoIntro': 'เลือกเชน แล้วสแกนโค้ดหรือคัดลอกที่อยู่',
+  'settings.about.cryptoIntro': 'เลือกเหรียญและเครือข่าย แล้วสแกนโค้ดหรือคัดลอกที่อยู่',
   'settings.about.cryptoNetworks': 'เครือข่าย',
   'settings.about.cryptoNoTag': 'ไม่ต้องใช้ destination tag และไม่ต้องใช้ memo',
   'common.copy': 'คัดลอก',

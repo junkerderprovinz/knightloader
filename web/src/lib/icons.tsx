@@ -526,29 +526,6 @@ export const IconBrowser = (p: SVGProps<SVGSVGElement>) => (
 );
 
 /** A coffee cup with a handle and a saucer: the About card's thank-you. */
-/**
- * The second way to give: a wallet.
- *
- * A WALLET rather than a coin and never a currency's own mark. The window
- * behind that button offers five chains, so a Bitcoin symbol would name one of
- * them and mislead about the other four. It also has to differ from the
- * coffee cup, since the two buttons stand in one row under one sentence and
- * two offers wearing one symbol read as one offer drawn twice.
- *
- * The clasp is carved with fillRule="evenodd" rather than layered on top in a
- * background colour, which is this file's own rule: a layered shape only looks
- * right on the one background it was tuned against.
- */
-export const IconWallet = (p: SVGProps<SVGSVGElement>) => (
-  <svg {...base(p)}>
-    <path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M4.5 4.5h11a2.5 2.5 0 0 1 2.5 2.5v6a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 2 13V7a2.5 2.5 0 0 1 2.5-2.5Zm8.7 3.9h5v3.2h-5a1.6 1.6 0 0 1 0-3.2Zm2.85 1.6a.85.85 0 1 1-1.7 0 .85.85 0 0 1 1.7 0Z"
-    />
-  </svg>
-);
-
 export const IconCoffee = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <path d="M3 4h10.3v6.6a4.5 4.5 0 0 1-4.5 4.5H7.5A4.5 4.5 0 0 1 3 10.6V4Z" />

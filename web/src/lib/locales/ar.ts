@@ -1281,7 +1281,7 @@ export const ar: Dict = {
   'settings.about.coffeeButton': 'اشترِ لي قهوة',
   'settings.about.crypto': 'العملات المشفّرة',
   'settings.about.cryptoTitle': 'التبرّع بالعملات المشفّرة',
-  'settings.about.cryptoIntro': 'اختر الشبكة، ثم امسح الرمز أو انسخ العنوان.',
+  'settings.about.cryptoIntro': 'اختر العملة والشبكة، ثم امسح الرمز أو انسخ العنوان.',
   'settings.about.cryptoNetworks': 'الشبكات',
   'settings.about.cryptoNoTag': 'لا حاجة إلى Destination Tag ولا إلى Memo.',
   'common.copy': 'نسخ',

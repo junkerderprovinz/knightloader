@@ -1279,7 +1279,7 @@ export const da: Dict = {
   'settings.about.coffeeButton': 'Køb mig en kaffe',
   'settings.about.crypto': 'Krypto',
   'settings.about.cryptoTitle': 'Doner med krypto',
-  'settings.about.cryptoIntro': 'Vælg en kæde, og scan så koden eller kopiér adressen.',
+  'settings.about.cryptoIntro': 'Vælg en mønt og et netværk, og scan så koden eller kopiér adressen.',
   'settings.about.cryptoNetworks': 'Netværk',
   'settings.about.cryptoNoTag': 'Hverken destination tag eller memo er nødvendigt.',
   'common.copy': 'Kopier',

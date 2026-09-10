@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { useT } from '../../lib/i18n';
 import { Card, SectionTitle } from '../../components/ui';
 import { fetchHealth } from '../../lib/api';
-import { IconCoffee, IconGithub, IconMail, IconWallet } from '../../lib/icons';
+import { IconGithub, IconMail } from '../../lib/icons';
+import { IconBitcoin, IconBuyMeACoffee } from '../../components/donateMarks';
 import { CryptoDonateDialog } from '../../components/CryptoDonateDialog';
 
 /**
@@ -289,7 +290,7 @@ export function About({ hue }: { hue: number }) {
           rel="noreferrer noopener"
           className={ABOUT_BTN}
         >
-          <IconCoffee width={15} height={15} />
+          <IconBuyMeACoffee size={15} />
           {t('settings.about.coffeeButton')}
         </a>
         {/* A real button rather than an anchor dressed as one, unlike its two
@@ -297,7 +298,7 @@ export function About({ hue }: { hue: number }) {
             somewhere, so there is no link for the browser's middle click,
             copy-link or open-in-new-tab to act on. */}
         <button type="button" className={ABOUT_BTN} onClick={() => setCryptoOpen(true)}>
-          <IconWallet width={15} height={15} />
+          <IconBitcoin size={15} />
           {t('settings.about.crypto')}
         </button>
       </div>

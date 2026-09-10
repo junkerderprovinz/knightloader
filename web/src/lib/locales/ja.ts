@@ -1279,7 +1279,7 @@ export const ja: Dict = {
   'settings.about.coffeeButton': 'コーヒーをおごる',
   'settings.about.crypto': '暗号資産',
   'settings.about.cryptoTitle': '暗号資産で寄付',
-  'settings.about.cryptoIntro': 'チェーンを選び、コードを読み取るかアドレスをコピーしてください。',
+  'settings.about.cryptoIntro': '通貨とネットワークを選び、コードを読み取るかアドレスをコピーしてください。',
   'settings.about.cryptoNetworks': 'ネットワーク',
   'settings.about.cryptoNoTag': 'destination tag も memo も不要です。',
   'common.copy': 'コピー',

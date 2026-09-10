@@ -1279,7 +1279,7 @@ export const sv: Dict = {
   'settings.about.coffeeButton': 'Bjud på en kaffe',
   'settings.about.crypto': 'Krypto',
   'settings.about.cryptoTitle': 'Donera med krypto',
-  'settings.about.cryptoIntro': 'Välj en kedja och skanna sedan koden eller kopiera adressen.',
+  'settings.about.cryptoIntro': 'Välj ett mynt och ett nätverk och skanna sedan koden eller kopiera adressen.',
   'settings.about.cryptoNetworks': 'Nätverk',
   'settings.about.cryptoNoTag': 'Varken destination tag eller memo behövs.',
   'common.copy': 'Kopiera',

@@ -1278,7 +1278,7 @@ export const zh: Dict = {
   'settings.about.coffeeButton': '请我喝杯咖啡',
   'settings.about.crypto': '加密货币',
   'settings.about.cryptoTitle': '用加密货币捐赠',
-  'settings.about.cryptoIntro': '先选择一条链，然后扫码或复制地址。',
+  'settings.about.cryptoIntro': '先选择币种和网络，然后扫码或复制地址。',
   'settings.about.cryptoNetworks': '网络',
   'settings.about.cryptoNoTag': '无需 destination tag，也无需 memo。',
   'common.copy': '复制',

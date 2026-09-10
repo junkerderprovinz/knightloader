@@ -1279,7 +1279,7 @@ export const el: Dict = {
   'settings.about.coffeeButton': 'Κέρασέ με έναν καφέ',
   'settings.about.crypto': 'Κρύπτο',
   'settings.about.cryptoTitle': 'Δωρεά με κρύπτο',
-  'settings.about.cryptoIntro': 'Διάλεξε αλυσίδα και μετά σάρωσε τον κωδικό ή αντίγραψε τη διεύθυνση.',
+  'settings.about.cryptoIntro': 'Διάλεξε νόμισμα και δίκτυο, μετά σάρωσε τον κωδικό ή αντίγραψε τη διεύθυνση.',
   'settings.about.cryptoNetworks': 'Δίκτυα',
   'settings.about.cryptoNoTag': 'Δεν χρειάζεται destination tag ούτε memo.',
   'common.copy': 'Αντιγραφή',

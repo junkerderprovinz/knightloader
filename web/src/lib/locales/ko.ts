@@ -1279,7 +1279,7 @@ export const ko: Dict = {
   'settings.about.coffeeButton': '커피 사주기',
   'settings.about.crypto': '암호화폐',
   'settings.about.cryptoTitle': '암호화폐로 후원',
-  'settings.about.cryptoIntro': '체인을 고른 다음 코드를 스캔하거나 주소를 복사하세요.',
+  'settings.about.cryptoIntro': '코인과 네트워크를 고른 다음 코드를 스캔하거나 주소를 복사하세요.',
   'settings.about.cryptoNetworks': '네트워크',
   'settings.about.cryptoNoTag': 'destination tag와 memo는 필요 없습니다.',
   'common.copy': '복사',

@@ -1279,7 +1279,7 @@ export const hi: Dict = {
   'settings.about.coffeeButton': 'मुझे कॉफ़ी पिलाएँ',
   'settings.about.crypto': 'क्रिप्टो',
   'settings.about.cryptoTitle': 'क्रिप्टो से दान करें',
-  'settings.about.cryptoIntro': 'एक चेन चुनें, फिर कोड स्कैन करें या पता कॉपी करें।',
+  'settings.about.cryptoIntro': 'एक कॉइन और नेटवर्क चुनें, फिर कोड स्कैन करें या पता कॉपी करें।',
   'settings.about.cryptoNetworks': 'नेटवर्क',
   'settings.about.cryptoNoTag': 'destination tag या memo की ज़रूरत नहीं है।',
   'common.copy': 'कॉपी करें',

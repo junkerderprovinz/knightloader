@@ -1279,7 +1279,7 @@ export const cs: Dict = {
   'settings.about.coffeeButton': 'Kup mi kávu',
   'settings.about.crypto': 'Krypto',
   'settings.about.cryptoTitle': 'Přispět kryptem',
-  'settings.about.cryptoIntro': 'Vyber řetězec, pak naskenuj kód nebo zkopíruj adresu.',
+  'settings.about.cryptoIntro': 'Vyber minci a síť, pak naskenuj kód nebo zkopíruj adresu.',
   'settings.about.cryptoNetworks': 'Sítě',
   'settings.about.cryptoNoTag': 'Destination tag ani memo nejsou potřeba.',
   'common.copy': 'Kopírovat',

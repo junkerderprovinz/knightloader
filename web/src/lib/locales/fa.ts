@@ -1279,7 +1279,7 @@ export const fa: Dict = {
   'settings.about.coffeeButton': 'یک قهوه مهمانم کن',
   'settings.about.crypto': 'رمزارز',
   'settings.about.cryptoTitle': 'کمک با رمزارز',
-  'settings.about.cryptoIntro': 'یک شبکه را انتخاب کن، سپس کد را اسکن کن یا نشانی را کپی کن.',
+  'settings.about.cryptoIntro': 'یک ارز و یک شبکه انتخاب کن، سپس کد را اسکن کن یا نشانی را کپی کن.',
   'settings.about.cryptoNetworks': 'شبکه‌ها',
   'settings.about.cryptoNoTag': 'به Destination Tag یا Memo نیازی نیست.',
   'common.copy': 'کپی',

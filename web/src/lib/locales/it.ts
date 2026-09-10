@@ -1271,7 +1271,7 @@ export const it: Dict = {
   'settings.about.coffeeButton': 'Offrimi un caffè',
   'settings.about.crypto': 'Cripto',
   'settings.about.cryptoTitle': 'Donare in cripto',
-  'settings.about.cryptoIntro': 'Scegli una catena, poi scansiona il codice o copia l\'indirizzo.',
+  'settings.about.cryptoIntro': 'Scegli una moneta e una rete, poi scansiona il codice o copia l\'indirizzo.',
   'settings.about.cryptoNetworks': 'Reti',
   'settings.about.cryptoNoTag': 'Non servono destination tag né memo.',
   'common.copy': 'Copia',

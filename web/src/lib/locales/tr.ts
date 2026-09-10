@@ -1279,7 +1279,7 @@ export const tr: Dict = {
   'settings.about.coffeeButton': 'Bana bir kahve ısmarla',
   'settings.about.crypto': 'Kripto',
   'settings.about.cryptoTitle': 'Kripto ile bağış',
-  'settings.about.cryptoIntro': 'Bir zincir seç, sonra kodu tara veya adresi kopyala.',
+  'settings.about.cryptoIntro': 'Bir kripto para ve ağ seç, sonra kodu tara veya adresi kopyala.',
   'settings.about.cryptoNetworks': 'Ağlar',
   'settings.about.cryptoNoTag': 'Destination tag da memo da gerekmiyor.',
   'common.copy': 'Kopyala',

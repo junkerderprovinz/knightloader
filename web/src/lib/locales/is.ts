@@ -1279,7 +1279,7 @@ export const is: Dict = {
   'settings.about.coffeeButton': 'Bjóddu mér kaffi',
   'settings.about.crypto': 'Rafmynt',
   'settings.about.cryptoTitle': 'Styrkja með rafmynt',
-  'settings.about.cryptoIntro': 'Veldu keðju og skannaðu svo kóðann eða afritaðu vistfangið.',
+  'settings.about.cryptoIntro': 'Veldu mynt og netkerfi, skannaðu svo kóðann eða afritaðu vistfangið.',
   'settings.about.cryptoNetworks': 'Netkerfi',
   'settings.about.cryptoNoTag': 'Hvorki destination tag né memo er nauðsynlegt.',
   'common.copy': 'Afrita',

@@ -1279,7 +1279,7 @@ export const et: Dict = {
   'settings.about.coffeeButton': 'Osta mulle kohv',
   'settings.about.crypto': 'Krüpto',
   'settings.about.cryptoTitle': 'Anneta krüptoga',
-  'settings.about.cryptoIntro': 'Vali ahel ja seejärel skanni kood või kopeeri aadress.',
+  'settings.about.cryptoIntro': 'Vali münt ja võrk, seejärel skanni kood või kopeeri aadress.',
   'settings.about.cryptoNetworks': 'Võrgud',
   'settings.about.cryptoNoTag': 'Destination tag\'i ega memo pole vaja.',
   'common.copy': 'Kopeeri',

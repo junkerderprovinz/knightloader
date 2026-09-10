@@ -1279,7 +1279,7 @@ export const hr: Dict = {
   'settings.about.coffeeButton': 'Počasti me kavom',
   'settings.about.crypto': 'Kripto',
   'settings.about.cryptoTitle': 'Doniraj kriptom',
-  'settings.about.cryptoIntro': 'Odaberi lanac, zatim skeniraj kod ili kopiraj adresu.',
+  'settings.about.cryptoIntro': 'Odaberi novčić i mrežu, zatim skeniraj kod ili kopiraj adresu.',
   'settings.about.cryptoNetworks': 'Mreže',
   'settings.about.cryptoNoTag': 'Destination tag ni memo nisu potrebni.',
   'common.copy': 'Kopiraj',

@@ -1279,7 +1279,7 @@ export const ca: Dict = {
   'settings.about.coffeeButton': 'Convida’m a un cafè',
   'settings.about.crypto': 'Cripto',
   'settings.about.cryptoTitle': 'Donar amb cripto',
-  'settings.about.cryptoIntro': 'Tria una cadena i després escaneja el codi o copia l\'adreça.',
+  'settings.about.cryptoIntro': 'Tria una moneda i una xarxa, després escaneja el codi o copia l\'adreça.',
   'settings.about.cryptoNetworks': 'Xarxes',
   'settings.about.cryptoNoTag': 'No calen destination tag ni memo.',
   'common.copy': 'Copia',

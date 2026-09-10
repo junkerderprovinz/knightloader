@@ -1272,7 +1272,7 @@ export const fr: Dict = {
   'settings.about.coffeeButton': 'Offrir un café',
   'settings.about.crypto': 'Crypto',
   'settings.about.cryptoTitle': 'Faire un don en crypto',
-  'settings.about.cryptoIntro': 'Choisissez une chaîne, puis scannez le code ou copiez l\'adresse.',
+  'settings.about.cryptoIntro': 'Choisissez une monnaie et un réseau, puis scannez le code ou copiez l\'adresse.',
   'settings.about.cryptoNetworks': 'Réseaux',
   'settings.about.cryptoNoTag': 'Ni destination tag ni memo ne sont nécessaires.',
   'common.copy': 'Copier',

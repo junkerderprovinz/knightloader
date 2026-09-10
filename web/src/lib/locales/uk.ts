@@ -1279,7 +1279,7 @@ export const uk: Dict = {
   'settings.about.coffeeButton': 'Пригостити кавою',
   'settings.about.crypto': 'Крипто',
   'settings.about.cryptoTitle': 'Підтримати криптовалютою',
-  'settings.about.cryptoIntro': 'Обери мережу, потім скануй код або скопіюй адресу.',
+  'settings.about.cryptoIntro': 'Обери монету та мережу, потім скануй код або скопіюй адресу.',
   'settings.about.cryptoNetworks': 'Мережі',
   'settings.about.cryptoNoTag': 'Ані destination tag, ані memo не потрібні.',
   'common.copy': 'Копіювати',
