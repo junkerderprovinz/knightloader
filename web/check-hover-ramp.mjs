@@ -6,7 +6,10 @@
 // makes that element four units darker under the pointer. It dims at the one
 // moment somebody is looking straight at it, which reads as no hover at all.
 // Anything already filled with surface2 hovers to `--carbon-surface3`
-// (#525252), which is the step this repo's own secondary button takes.
+// (#525252), which is the step this repo's own secondary button takes, and
+// anything filled with surface3 to `--carbon-hover-raised` (#6f6f6f), which was
+// added for exactly that: the ramp used to stop at surface3, so the controls
+// sitting ON it reached back down to `--carbon-hover` - a 29-unit drop.
 //
 // A script rather than a note, because the note existed: GlimStone's token
 // table has said "hover on surface2" beside `--carbon-surface3` since the
@@ -35,8 +38,15 @@ import { fileURLToPath } from 'node:url';
 
 const src = join(dirname(fileURLToPath(import.meta.url)), 'src');
 
-const FILLED = 'bg-carbon-surface2';
-const WRONG = 'hover:bg-carbon-hover';
+/** Each resting fill, and the hover it is allowed to take (rule 21). */
+const RAMP = [
+  { filled: 'bg-carbon-surface2', hover: 'hover:bg-carbon-surface3' },
+  { filled: 'bg-carbon-surface3', hover: 'hover:bg-carbon-hoverRaised' },
+];
+// Anchored, because `hover:bg-carbon-hoverRaised` CONTAINS
+// `hover:bg-carbon-hover`: a plain substring test reports every correctly
+// written surface3 control as the very mistake it avoids.
+const WRONG = /hover:bg-carbon-hover(?![A-Za-z-])/;
 
 function sources(dir) {
   const found = [];
@@ -79,16 +89,18 @@ const problems = [];
 for (const path of files) {
   const text = readFileSync(path, 'utf8');
   for (const [piece, at] of classLists(text)) {
-    if (!piece.includes(WRONG) || !piece.includes(FILLED)) continue;
+    if (!WRONG.test(piece)) continue;
+    const tier = RAMP.find((t) => piece.includes(t.filled));
+    if (!tier) continue;
     const line = text.slice(0, at).split('\n').length;
-    problems.push(`${path.slice(src.length + 1)}:${line}`);
+    problems.push(`${path.slice(src.length + 1)}:${line} -> ${tier.hover}`);
   }
 }
 problems.sort();
 
 if (problems.length) {
   console.error(`check-hover-ramp: ${problems.length} filled element(s) hovering to the tone BELOW their own.`);
-  console.error('Use hover:bg-carbon-surface3 at:');
+  console.error("Each line names the class it should carry instead:");
   for (const p of problems) console.error(`  ${p}`);
   process.exit(1);
 }
