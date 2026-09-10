@@ -1278,6 +1278,7 @@ export const ko: Dict = {
   'settings.about.body': '기사 한 사람의 원정. 이런 모습으로는 없던 자유롭고 오픈 소스인 도구입니다. 계정도 없고 텔레메트리도 없으며, 읽을 수 있는 것은 결코 당신의 성벽 밖으로 나가지 않습니다. 기다리는 것은 선택지가 아니었기에 저녁과 주말에 마음을 담아 벼렸습니다.',
   'settings.about.coffeeButton': '커피 사주기',
   'settings.about.crypto': '암호화폐',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': '암호화폐로 후원',
   'settings.about.cryptoIntro': '코인과 네트워크를 고른 다음 코드를 스캔하거나 주소를 복사하세요.',
   'settings.about.cryptoNetworks': '네트워크',

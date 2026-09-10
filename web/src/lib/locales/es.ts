@@ -1270,6 +1270,7 @@ export const es: Dict = {
   'settings.about.body': 'Un solo caballero, una cruzada: herramientas libres y de código abierto que no existían así. Sin cuentas, sin telemetría, y nada legible sale nunca de tus propios muros. Forjado en tardes y fines de semana con mucho corazón, porque esperar no era una opción.',
   'settings.about.coffeeButton': 'Invítame a un café',
   'settings.about.crypto': 'Cripto',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Donar con cripto',
   'settings.about.cryptoIntro': 'Elige una moneda y una red, luego escanea el código o copia la dirección.',
   'settings.about.cryptoNetworks': 'Redes',

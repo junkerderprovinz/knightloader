@@ -1278,6 +1278,7 @@ export const sr: Dict = {
   'settings.about.body': 'Један витез, један поход: слободни алати отвореног кода каквих није било. Никаквих налога, никакве телеметрије и ништа читљиво никада не напушта твоје зидине. Ковано вечерима и викендом са срцем, јер чекање није било опција.',
   'settings.about.coffeeButton': 'Части ме кафом',
   'settings.about.crypto': 'Крипто',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Донирај криптом',
   'settings.about.cryptoIntro': 'Изабери новчић и мрежу, па скенирај код или копирај адресу.',
   'settings.about.cryptoNetworks': 'Мреже',

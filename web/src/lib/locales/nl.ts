@@ -1270,6 +1270,7 @@ export const nl: Dict = {
   'settings.about.body': 'Eén ridder, één kruistocht: vrije, opensource gereedschappen die zo niet bestonden. Geen accounts, geen telemetrie, en niets leesbaars verlaat ooit je eigen muren. In avonden en weekenden gesmeed met veel hart, omdat wachten geen optie was.',
   'settings.about.coffeeButton': 'Trakteer op koffie',
   'settings.about.crypto': 'Crypto',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Doneren met crypto',
   'settings.about.cryptoIntro': 'Kies een munt en een netwerk en scan dan de code of kopieer het adres.',
   'settings.about.cryptoNetworks': 'Netwerken',

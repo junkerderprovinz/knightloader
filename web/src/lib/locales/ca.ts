@@ -1278,6 +1278,7 @@ export const ca: Dict = {
   'settings.about.body': 'Un sol cavaller, una croada: eines lliures i de codi obert que no existien així. Sense comptes, sense telemetria, i res llegible no surt mai de les teves pròpies muralles. Forjat als vespres i els caps de setmana amb molt de cor, perquè esperar no era una opció.',
   'settings.about.coffeeButton': 'Convida’m a un cafè',
   'settings.about.crypto': 'Cripto',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Donar amb cripto',
   'settings.about.cryptoIntro': 'Tria una moneda i una xarxa, després escaneja el codi o copia l\'adreça.',
   'settings.about.cryptoNetworks': 'Xarxes',

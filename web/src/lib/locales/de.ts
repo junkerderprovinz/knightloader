@@ -1289,6 +1289,7 @@ export const de: Dict = {
   'settings.about.body': 'Ein einzelner Ritter, ein Feldzug: freie, quelloffene Werkzeuge, die es so nicht gab. Keine Konten, keine Telemetrie, und nichts Lesbares verlässt deine eigenen Mauern. An Abenden und Wochenenden mit viel Herzblut geschmiedet, weil Warten keine Option war.',
   'settings.about.coffeeButton': 'Kaffee spendieren',
   'settings.about.crypto': 'Krypto',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Mit Krypto spenden',
   'settings.about.cryptoIntro': 'Wähle eine Währung und ein Netzwerk, dann scanne den Code oder kopiere die Adresse.',
   'settings.about.cryptoNetworks': 'Netzwerke',

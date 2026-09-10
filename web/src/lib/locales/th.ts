@@ -1278,6 +1278,7 @@ export const th: Dict = {
   'settings.about.body': 'อัศวินคนเดียว การเดินทัพครั้งเดียว เครื่องมือเสรีโอเพนซอร์สที่ไม่เคยมีในแบบนี้ ไม่มีบัญชี ไม่มีการเก็บข้อมูลการใช้งาน และไม่มีสิ่งใดที่อ่านได้ออกไปพ้นกำแพงของคุณ ตีขึ้นในยามเย็นและวันหยุดสุดสัปดาห์ด้วยใจ เพราะการรอไม่ใช่ทางเลือก',
   'settings.about.coffeeButton': 'เลี้ยงกาแฟ',
   'settings.about.crypto': 'คริปโท',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'บริจาคด้วยคริปโท',
   'settings.about.cryptoIntro': 'เลือกเหรียญและเครือข่าย แล้วสแกนโค้ดหรือคัดลอกที่อยู่',
   'settings.about.cryptoNetworks': 'เครือข่าย',

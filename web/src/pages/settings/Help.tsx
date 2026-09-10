@@ -4,7 +4,7 @@ import { useT } from '../../lib/i18n';
 import { Card, SectionTitle } from '../../components/ui';
 import { fetchHealth } from '../../lib/api';
 import { IconGithub, IconMail } from '../../lib/icons';
-import { IconBitcoin, IconBuyMeACoffee } from '../../components/donateMarks';
+import { IconBitcoin, IconBuyMeACoffee, IconPayPal } from '../../components/donateMarks';
 import { CryptoDonateDialog } from '../../components/CryptoDonateDialog';
 
 /**
@@ -209,6 +209,19 @@ export function Help() {
 const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
 const CONTACT_MAIL = 'hello@halleluja.design';
 const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
+/**
+ * The PayPal.Me page, and it is EMPTY until that page exists.
+ *
+ * The card's own rule, applied to a route rather than to a sentence: never
+ * offer a control that reaches nowhere. A PayPal.Me link is created once and
+ * cannot be renamed afterwards without asking their support, so the name has
+ * to be chosen deliberately rather than guessed at here. Fill this in and the
+ * button appears; leave it empty and the card offers coffee and crypto alone.
+ *
+ * Typed as `string` rather than inferred, so the emptiness is a value this
+ * file expects to change and not a constant the compiler folds away.
+ */
+const PAYPAL: string = '';
 // The handle from .github/FUNDING.yml, so one place knows it.
 const COFFEE_URL = 'https://buymeacoffee.com/junkerderprovinz';
 
@@ -301,6 +314,12 @@ export function About({ hue }: { hue: number }) {
           <IconBitcoin size={15} />
           {t('settings.about.crypto')}
         </button>
+        {PAYPAL !== '' && (
+          <a href={PAYPAL} target="_blank" rel="noreferrer noopener" className={ABOUT_BTN}>
+            <IconPayPal size={15} />
+            {t('settings.about.paypal')}
+          </a>
+        )}
       </div>
       {cryptoOpen && <CryptoDonateDialog onClose={() => setCryptoOpen(false)} />}
       {/* One extra step of space above this line, and only above this one

@@ -1280,6 +1280,7 @@ export const ar: Dict = {
   'settings.about.body': 'فارس واحد وحملة واحدة: أدوات حرة مفتوحة المصدر لم تكن موجودة هكذا. لا حسابات، ولا قياس عن بُعد، ولا شيء مقروء يغادر أسوارك أبدًا. طُرقت في الأمسيات وعطلات نهاية الأسبوع بشغف، لأن الانتظار لم يكن خيارًا.',
   'settings.about.coffeeButton': 'اشترِ لي قهوة',
   'settings.about.crypto': 'العملات المشفّرة',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'التبرّع بالعملات المشفّرة',
   'settings.about.cryptoIntro': 'اختر العملة والشبكة، ثم امسح الرمز أو انسخ العنوان.',
   'settings.about.cryptoNetworks': 'الشبكات',

@@ -1278,6 +1278,7 @@ export const fi: Dict = {
   'settings.about.body': 'Yksi ritari, yksi ristiretki: vapaita, avoimen lähdekoodin työkaluja, joita ei tällaisina ollut. Ei tilejä, ei telemetriaa, eikä mikään luettava poistu koskaan omien muuriesi sisältä. Taottu iltaisin ja viikonloppuisin sydämellä, koska odottaminen ei ollut vaihtoehto.',
   'settings.about.coffeeButton': 'Tarjoa kahvi',
   'settings.about.crypto': 'Krypto',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Lahjoita kryptolla',
   'settings.about.cryptoIntro': 'Valitse kolikko ja verkko, skannaa sitten koodi tai kopioi osoite.',
   'settings.about.cryptoNetworks': 'Verkot',

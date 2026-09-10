@@ -1271,6 +1271,7 @@ export const fr: Dict = {
   'settings.about.body': 'Un seul chevalier, une croisade : des outils libres et open source qui n\'existaient pas sous cette forme. Pas de comptes, pas de télémétrie, et rien de lisible ne quitte jamais vos propres murs. Forgé le soir et le week-end avec beaucoup de cœur, parce qu\'attendre n\'était pas une option.',
   'settings.about.coffeeButton': 'Offrir un café',
   'settings.about.crypto': 'Crypto',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Faire un don en crypto',
   'settings.about.cryptoIntro': 'Choisissez une monnaie et un réseau, puis scannez le code ou copiez l\'adresse.',
   'settings.about.cryptoNetworks': 'Réseaux',

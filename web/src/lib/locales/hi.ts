@@ -1278,6 +1278,7 @@ export const hi: Dict = {
   'settings.about.body': 'एक अकेला शूरवीर, एक अभियान: मुक्त, ओपन-सोर्स औज़ार जो इस रूप में मौजूद नहीं थे। कोई खाता नहीं, कोई टेलीमेट्री नहीं, और पढ़ने लायक कुछ भी कभी आपकी दीवारों से बाहर नहीं जाता। शामों और सप्ताहांतों में दिल से गढ़ा गया, क्योंकि इंतज़ार कोई विकल्प नहीं था।',
   'settings.about.coffeeButton': 'मुझे कॉफ़ी पिलाएँ',
   'settings.about.crypto': 'क्रिप्टो',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'क्रिप्टो से दान करें',
   'settings.about.cryptoIntro': 'एक कॉइन और नेटवर्क चुनें, फिर कोड स्कैन करें या पता कॉपी करें।',
   'settings.about.cryptoNetworks': 'नेटवर्क',

@@ -1278,6 +1278,7 @@ export const hu: Dict = {
   'settings.about.body': 'Egy lovag, egy hadjárat: szabad, nyílt forráskódú eszközök, amelyek így nem léteztek. Semmi fiók, semmi telemetria, és semmi olvasható nem hagyja el a saját falaidat. Estéken és hétvégéken kovácsolva, sok szívvel, mert a várakozás nem volt opció.',
   'settings.about.coffeeButton': 'Hívj meg egy kávéra',
   'settings.about.crypto': 'Kripto',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Támogatás kriptóval',
   'settings.about.cryptoIntro': 'Válassz érmét és hálózatot, majd olvasd be a kódot vagy másold ki a címet.',
   'settings.about.cryptoNetworks': 'Hálózatok',

@@ -1278,6 +1278,7 @@ export const sv: Dict = {
   'settings.about.body': 'En enda riddare, ett korståg: fria verktyg med öppen källkod som inte fanns i den här formen. Inga konton, ingen telemetri, och inget läsbart lämnar någonsin dina egna murar. Smitt på kvällar och helger med mycket hjärta, för att vänta var inget alternativ.',
   'settings.about.coffeeButton': 'Bjud på en kaffe',
   'settings.about.crypto': 'Krypto',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Donera med krypto',
   'settings.about.cryptoIntro': 'Välj ett mynt och ett nätverk och skanna sedan koden eller kopiera adressen.',
   'settings.about.cryptoNetworks': 'Nätverk',

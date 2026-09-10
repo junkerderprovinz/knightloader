@@ -1493,6 +1493,7 @@ export const en = {
   'settings.about.body': 'A one-knight crusade: free, open-source tools that did not exist in this shape. No accounts, no telemetry, and nothing readable ever leaves your own walls. Forged on evenings and weekends with a lot of heart, because waiting was not an option.',
   'settings.about.coffeeButton': 'Buy me a coffee',
   'settings.about.crypto': 'Crypto',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Donate with crypto',
   'settings.about.cryptoIntro': 'Pick a coin and a network, then scan the code or copy the address.',
   'settings.about.cryptoNetworks': 'Networks',

@@ -1278,6 +1278,7 @@ export const et: Dict = {
   'settings.about.body': 'Üks rüütel, üks sõjaretk: vabad, avatud lähtekoodiga tööriistad, mida sellisel kujul polnud. Ei ühtki kontot, ei mingit telemeetriat ja miski loetav ei lahku kunagi sinu enda müüride vahelt. Sepistatud õhtuti ja nädalavahetustel südamega, sest ootamine polnud valik.',
   'settings.about.coffeeButton': 'Osta mulle kohv',
   'settings.about.crypto': 'Krüpto',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Anneta krüptoga',
   'settings.about.cryptoIntro': 'Vali münt ja võrk, seejärel skanni kood või kopeeri aadress.',
   'settings.about.cryptoNetworks': 'Võrgud',

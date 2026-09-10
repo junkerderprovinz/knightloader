@@ -1278,6 +1278,7 @@ export const gl: Dict = {
   'settings.about.body': 'Un só cabaleiro, unha cruzada: ferramentas libres e de código aberto que non existían así. Sen contas, sen telemetría, e nada lexible sae nunca dos teus propios muros. Forxado polas noites e as fins de semana con moito corazón, porque agardar non era unha opción.',
   'settings.about.coffeeButton': 'Convídame a un café',
   'settings.about.crypto': 'Cripto',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Doar con cripto',
   'settings.about.cryptoIntro': 'Escolle unha moeda e unha rede, despois escanea o código ou copia o enderezo.',
   'settings.about.cryptoNetworks': 'Redes',

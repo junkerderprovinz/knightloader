@@ -1278,6 +1278,7 @@ export const vi: Dict = {
   'settings.about.body': 'Một hiệp sĩ, một cuộc chinh phạt: những công cụ tự do, mã nguồn mở mà trước đó chưa từng có. Không tài khoản, không đo từ xa, và không có gì đọc được rời khỏi những bức tường của bạn. Được rèn vào buổi tối và cuối tuần bằng cả trái tim, vì chờ đợi không phải là một lựa chọn.',
   'settings.about.coffeeButton': 'Mời tôi ly cà phê',
   'settings.about.crypto': 'Tiền mã hoá',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Ủng hộ bằng tiền mã hoá',
   'settings.about.cryptoIntro': 'Chọn một đồng tiền và một mạng, rồi quét mã hoặc sao chép địa chỉ.',
   'settings.about.cryptoNetworks': 'Mạng',

@@ -1270,6 +1270,7 @@ export const pl: Dict = {
   'settings.about.body': 'Jeden rycerz, jedna wyprawa: wolne, otwartoźródłowe narzędzia, których w tej postaci nie było. Żadnych kont, żadnej telemetrii i nic czytelnego nigdy nie opuszcza twoich murów. Kute wieczorami i w weekendy z sercem, bo czekanie nie wchodziło w grę.',
   'settings.about.coffeeButton': 'Postaw mi kawę',
   'settings.about.crypto': 'Krypto',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Wesprzyj kryptowalutą',
   'settings.about.cryptoIntro': 'Wybierz monetę i sieć, a potem zeskanuj kod albo skopiuj adres.',
   'settings.about.cryptoNetworks': 'Sieci',

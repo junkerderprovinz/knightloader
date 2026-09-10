@@ -1278,6 +1278,7 @@ export const is: Dict = {
   'settings.about.body': 'Einn riddari, ein krossferð: frjáls verkfæri með opnum kóða sem voru ekki til svona. Engir reikningar, engin fjarmæling og ekkert læsilegt fer nokkurn tíma út fyrir þína eigin múra. Smíðað á kvöldin og um helgar af heilum hug, því að bíða var ekki valkostur.',
   'settings.about.coffeeButton': 'Bjóddu mér kaffi',
   'settings.about.crypto': 'Rafmynt',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Styrkja með rafmynt',
   'settings.about.cryptoIntro': 'Veldu mynt og netkerfi, skannaðu svo kóðann eða afritaðu vistfangið.',
   'settings.about.cryptoNetworks': 'Netkerfi',
