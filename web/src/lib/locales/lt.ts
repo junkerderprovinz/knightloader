@@ -1278,6 +1278,7 @@ export const lt: Dict = {
   'settings.about.body': 'Vienas riteris, vienas žygis: laisvi, atvirojo kodo įrankiai, kokių tokių nebuvo. Jokių paskyrų, jokios telemetrijos, ir niekas skaitomo niekada nepalieka tavo paties sienų. Kalta vakarais ir savaitgaliais iš širdies, nes laukti nebuvo išeitis.',
   'settings.about.coffeeButton': 'Pavaišinti kava',
   'settings.about.crypto': 'Kripto',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Paremti kriptovaliuta',
   'settings.about.cryptoIntro': 'Pasirink monetą ir tinklą, tada nuskaityk kodą arba nukopijuok adresą.',
   'settings.about.cryptoNetworks': 'Tinklai',

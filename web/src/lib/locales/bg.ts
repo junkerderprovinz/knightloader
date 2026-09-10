@@ -1278,6 +1278,7 @@ export const bg: Dict = {
   'settings.about.body': 'Един рицар, един поход: свободни инструменти с отворен код, каквито ги нямаше. Никакви акаунти, никаква телеметрия и нищо четимо никога не напуска собствените ти стени. Изковано вечер и през почивните дни със сърце, защото чакането не беше вариант.',
   'settings.about.coffeeButton': 'Почерпи ме с кафе',
   'settings.about.crypto': 'Крипто',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Дарение с крипто',
   'settings.about.cryptoIntro': 'Избери валута и мрежа, после сканирай кода или копирай адреса.',
   'settings.about.cryptoNetworks': 'Мрежи',

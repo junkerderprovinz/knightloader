@@ -1278,6 +1278,7 @@ export const sl: Dict = {
   'settings.about.body': 'En vitez, en pohod: prosta odprtokodna orodja, kakršnih ni bilo. Nobenih računov, nobene telemetrije in nič berljivega nikoli ne zapusti tvojih zidov. Kovano ob večerih in koncih tedna s srcem, ker čakanje ni bilo možnost.',
   'settings.about.coffeeButton': 'Časti kavo',
   'settings.about.crypto': 'Kripto',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Podpri s kripto',
   'settings.about.cryptoIntro': 'Izberi kovanec in omrežje, nato skeniraj kodo ali kopiraj naslov.',
   'settings.about.cryptoNetworks': 'Omrežja',

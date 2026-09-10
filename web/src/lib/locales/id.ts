@@ -1278,6 +1278,7 @@ export const id: Dict = {
   'settings.about.body': 'Satu ksatria, satu kampanye: perkakas bebas dan sumber terbuka yang belum pernah ada seperti ini. Tanpa akun, tanpa telemetri, dan tidak ada yang terbaca pernah meninggalkan tembokmu sendiri. Ditempa pada malam hari dan akhir pekan dengan sepenuh hati, karena menunggu bukan pilihan.',
   'settings.about.coffeeButton': 'Traktir saya kopi',
   'settings.about.crypto': 'Kripto',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Donasi dengan kripto',
   'settings.about.cryptoIntro': 'Pilih koin dan jaringan, lalu pindai kode atau salin alamatnya.',
   'settings.about.cryptoNetworks': 'Jaringan',

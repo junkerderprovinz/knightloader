@@ -1278,6 +1278,7 @@ export const fa: Dict = {
   'settings.about.body': 'یک شوالیه، یک لشکرکشی: ابزارهای آزاد و متن‌باز که این‌گونه وجود نداشتند. نه حسابی، نه سنجش از راه دور، و هیچ چیز خوانایی هرگز از دیوارهای خودت بیرون نمی‌رود. در شب‌ها و آخر هفته‌ها با دل ساخته شده، چون انتظار گزینه‌ای نبود.',
   'settings.about.coffeeButton': 'یک قهوه مهمانم کن',
   'settings.about.crypto': 'رمزارز',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'کمک با رمزارز',
   'settings.about.cryptoIntro': 'یک ارز و یک شبکه انتخاب کن، سپس کد را اسکن کن یا نشانی را کپی کن.',
   'settings.about.cryptoNetworks': 'شبکه‌ها',

@@ -1278,6 +1278,7 @@ export const hr: Dict = {
   'settings.about.body': 'Jedan vitez, jedan pohod: slobodni alati otvorenog koda kakvih nije bilo. Nikakvih računa, nikakve telemetrije i ništa čitljivo nikada ne napušta tvoje zidine. Kovano večerima i vikendima sa srcem, jer čekanje nije bilo opcija.',
   'settings.about.coffeeButton': 'Počasti me kavom',
   'settings.about.crypto': 'Kripto',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Doniraj kriptom',
   'settings.about.cryptoIntro': 'Odaberi novčić i mrežu, zatim skeniraj kod ili kopiraj adresu.',
   'settings.about.cryptoNetworks': 'Mreže',

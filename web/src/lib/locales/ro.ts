@@ -1279,6 +1279,7 @@ export const ro: Dict = {
   'settings.about.body': 'Un singur cavaler, o cruciadă: unelte libere, open source, care nu existau așa. Fără conturi, fără telemetrie și nimic lizibil nu îți părăsește vreodată zidurile. Făurit seara și în weekend cu multă inimă, pentru că așteptarea nu era o opțiune.',
   'settings.about.coffeeButton': 'Fă-mi cinste cu o cafea',
   'settings.about.crypto': 'Cripto',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Donează în cripto',
   'settings.about.cryptoIntro': 'Alege o monedă și o rețea, apoi scanează codul sau copiază adresa.',
   'settings.about.cryptoNetworks': 'Rețele',

@@ -1278,6 +1278,7 @@ export const ja: Dict = {
   'settings.about.body': '騎士ひとりの遠征。こんな形では存在しなかった、自由でオープンソースな道具です。アカウントもテレメトリもなく、読めるものが自分の城壁の外へ出ることはありません。待つという選択肢がなかったので、夜と週末に心を込めて鍛えました。',
   'settings.about.coffeeButton': 'コーヒーをおごる',
   'settings.about.crypto': '暗号資産',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': '暗号資産で寄付',
   'settings.about.cryptoIntro': '通貨とネットワークを選び、コードを読み取るかアドレスをコピーしてください。',
   'settings.about.cryptoNetworks': 'ネットワーク',

@@ -1270,6 +1270,7 @@ export const ru: Dict = {
   'settings.about.body': 'Один рыцарь, один поход: свободные инструменты с открытым кодом, которых в таком виде не было. Никаких аккаунтов, никакой телеметрии, и ничего читаемого никогда не покидает твои стены. Выковано вечерами и по выходным от души, потому что ждать было нельзя.',
   'settings.about.coffeeButton': 'Угостить кофе',
   'settings.about.crypto': 'Крипто',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Поддержать криптовалютой',
   'settings.about.cryptoIntro': 'Выбери монету и сеть, затем отсканируй код или скопируй адрес.',
   'settings.about.cryptoNetworks': 'Сети',

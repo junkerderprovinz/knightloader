@@ -1278,6 +1278,7 @@ export const eu: Dict = {
   'settings.about.body': 'Zaldun bakar bat, kanpaina bat: horrela existitzen ez ziren tresna libre eta kode irekikoak. Konturik ez, telemetriarik ez, eta irakur daitekeen ezerk ez ditu inoiz zure harresiak uzten. Arratsaldeetan eta asteburuetan bihotzez forjatua, itxarotea aukera ez zelako.',
   'settings.about.coffeeButton': 'Erosi kafe bat',
   'settings.about.crypto': 'Kripto',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Eman kriptoarekin',
   'settings.about.cryptoIntro': 'Aukeratu txanpon bat eta sare bat, gero eskaneatu kodea edo kopiatu helbidea.',
   'settings.about.cryptoNetworks': 'Sareak',

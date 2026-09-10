@@ -1278,6 +1278,7 @@ export const da: Dict = {
   'settings.about.body': 'Én ridder, ét korstog: frie open source-værktøjer, der ikke fandtes på den måde. Ingen konti, ingen telemetri, og intet læsbart forlader nogensinde dine egne mure. Smedet om aftenen og i weekenden med masser af hjerte, fordi det ikke var en mulighed at vente.',
   'settings.about.coffeeButton': 'Køb mig en kaffe',
   'settings.about.crypto': 'Krypto',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Doner med krypto',
   'settings.about.cryptoIntro': 'Vælg en mønt og et netværk, og scan så koden eller kopiér adressen.',
   'settings.about.cryptoNetworks': 'Netværk',

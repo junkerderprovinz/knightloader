@@ -1278,6 +1278,7 @@ export const ms: Dict = {
   'settings.about.body': 'Seorang kesateria, satu kempen: alat bebas sumber terbuka yang tidak pernah wujud begini. Tiada akaun, tiada telemetri, dan tiada apa pun yang boleh dibaca meninggalkan tembokmu sendiri. Ditempa pada waktu malam dan hujung minggu dengan sepenuh hati, kerana menunggu bukan pilihan.',
   'settings.about.coffeeButton': 'Belanja saya kopi',
   'settings.about.crypto': 'Kripto',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Derma dengan kripto',
   'settings.about.cryptoIntro': 'Pilih syiling dan rangkaian, kemudian imbas kod atau salin alamat.',
   'settings.about.cryptoNetworks': 'Rangkaian',

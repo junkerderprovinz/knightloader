@@ -1277,6 +1277,7 @@ export const zh: Dict = {
   'settings.about.body': '一位骑士的远征：这样的自由开源工具此前并不存在。没有账户，没有遥测，任何可读的东西都不会离开你自己的城墙。在夜晚和周末用心锻造，因为等待不是选项。',
   'settings.about.coffeeButton': '请我喝杯咖啡',
   'settings.about.crypto': '加密货币',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': '用加密货币捐赠',
   'settings.about.cryptoIntro': '先选择币种和网络，然后扫码或复制地址。',
   'settings.about.cryptoNetworks': '网络',

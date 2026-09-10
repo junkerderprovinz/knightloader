@@ -1278,6 +1278,7 @@ export const uk: Dict = {
   'settings.about.body': 'Один лицар, один похід: вільні інструменти з відкритим кодом, яких у такому вигляді не було. Жодних облікових записів, жодної телеметрії, і нічого читабельного ніколи не залишає твоїх мурів. Викувано вечорами та у вихідні від душі, бо чекати було годі.',
   'settings.about.coffeeButton': 'Пригостити кавою',
   'settings.about.crypto': 'Крипто',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Підтримати криптовалютою',
   'settings.about.cryptoIntro': 'Обери монету та мережу, потім скануй код або скопіюй адресу.',
   'settings.about.cryptoNetworks': 'Мережі',

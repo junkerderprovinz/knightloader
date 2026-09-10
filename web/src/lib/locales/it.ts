@@ -1270,6 +1270,7 @@ export const it: Dict = {
   'settings.about.body': 'Un solo cavaliere, una crociata: strumenti liberi e open source che così non esistevano. Nessun account, nessuna telemetria, e niente di leggibile lascia mai le tue mura. Forgiato di sera e nei fine settimana con molto cuore, perché aspettare non era un\'opzione.',
   'settings.about.coffeeButton': 'Offrimi un caffè',
   'settings.about.crypto': 'Cripto',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Donare in cripto',
   'settings.about.cryptoIntro': 'Scegli una moneta e una rete, poi scansiona il codice o copia l\'indirizzo.',
   'settings.about.cryptoNetworks': 'Reti',

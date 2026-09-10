@@ -1280,6 +1280,7 @@ export const he: Dict = {
   'settings.about.body': 'אביר אחד, מסע אחד: כלים חופשיים בקוד פתוח שלא היו קיימים כך. בלי חשבונות, בלי טלמטריה, ושום דבר קריא לא יוצא לעולם מהחומות שלך. נחשל בערבים ובסופי שבוע בהרבה לב, כי לחכות לא היה אופציה.',
   'settings.about.coffeeButton': 'קנו לי קפה',
   'settings.about.crypto': 'קריפטו',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'תרומה בקריפטו',
   'settings.about.cryptoIntro': 'בחר מטבע ורשת, ואז סרוק את הקוד או העתק את הכתובת.',
   'settings.about.cryptoNetworks': 'רשתות',

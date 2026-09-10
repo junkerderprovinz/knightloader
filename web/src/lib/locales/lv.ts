@@ -1278,6 +1278,7 @@ export const lv: Dict = {
   'settings.about.body': 'Viens bruņinieks, viens karagājiens: brīvi, atvērtā pirmkoda rīki, kādu tādā veidā nebija. Nekādu kontu, nekādas telemetrijas, un nekas lasāms nekad nepamet tavus paša mūrus. Kalts vakaros un nedēļas nogalēs ar sirdi, jo gaidīt nebija variants.',
   'settings.about.coffeeButton': 'Uzsauc kafiju',
   'settings.about.crypto': 'Kripto',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Ziedot ar kripto',
   'settings.about.cryptoIntro': 'Izvēlies monētu un tīklu, tad noskenē kodu vai nokopē adresi.',
   'settings.about.cryptoNetworks': 'Tīkli',

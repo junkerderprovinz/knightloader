@@ -1278,6 +1278,7 @@ export const sk: Dict = {
   'settings.about.body': 'Jeden rytier, jedno ťaženie: slobodné nástroje s otvoreným kódom, ktoré takto neexistovali. Žiadne účty, žiadna telemetria a nič čitateľné nikdy neopustí tvoje vlastné hradby. Kované po večeroch a cez víkendy so srdcom, pretože čakať sa nedalo.',
   'settings.about.coffeeButton': 'Kúp mi kávu',
   'settings.about.crypto': 'Krypto',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Prispieť kryptom',
   'settings.about.cryptoIntro': 'Vyber mincu a sieť, potom naskenuj kód alebo skopíruj adresu.',
   'settings.about.cryptoNetworks': 'Siete',

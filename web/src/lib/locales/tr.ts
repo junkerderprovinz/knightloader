@@ -1278,6 +1278,7 @@ export const tr: Dict = {
   'settings.about.body': 'Tek bir şövalye, tek bir sefer: böylesi olmayan özgür, açık kaynaklı araçlar. Hesap yok, telemetri yok ve okunabilir hiçbir şey kendi surlarının dışına çıkmıyor. Akşamları ve hafta sonları gönülden dövüldü, çünkü beklemek bir seçenek değildi.',
   'settings.about.coffeeButton': 'Bana bir kahve ısmarla',
   'settings.about.crypto': 'Kripto',
+  'settings.about.paypal': 'PayPal',
   'settings.about.cryptoTitle': 'Kripto ile bağış',
   'settings.about.cryptoIntro': 'Bir kripto para ve ağ seç, sonra kodu tara veya adresi kopyala.',
   'settings.about.cryptoNetworks': 'Ağlar',
