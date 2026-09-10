@@ -237,6 +237,16 @@ jobs:
       - name: Ranking and folding
         run: node check-rank.mjs
 
+      # GlimStone rule 21: something already filled with surface2 hovers to
+      # surface3, never to carbon-hover, which sits BELOW it on the dark ramp
+      # and therefore DIMS a filled element under the pointer. The rule was in
+      # the design language's token table from the beginning and thirteen
+      # places across three apps still had it backwards, one of them here. It
+      # is the sort of mistake nobody reports as a bug: hover simply looks like
+      # it does nothing.
+      - name: Hover ramp
+        run: node check-hover-ramp.mjs
+
       # The search box's own rule - an unrecognised prefix, a stray colon or a
       # quote halfway through being typed stays ordinary text - has no compiler
       # and no test runner behind it, and its failure mode is a list that simply
@@ -253,6 +263,15 @@ jobs:
       # together in both directions.
       - name: Untranslated ledger
         run: node check-untranslated.mjs
+
+      # The extension's 120 keys have been guarded this way since it was written
+      # and the web UI's 2500 had nothing at all. A dropped {n} is invisible to
+      # tsc, whose type is only `string`, and shows up one language deep as a
+      # sentence with no number in it. Nobody reports that as a missing
+      # placeholder. The em dash rule rides along, because it is enforced
+      # nowhere else in the catalogues either.
+      - name: Locale placeholders
+        run: node check-locale-placeholders.mjs
 
       - name: Build UI
         run: npm run build
