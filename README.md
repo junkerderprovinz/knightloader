@@ -185,7 +185,7 @@ and attaches the three archives to that release. **There is no release yet** —
 the first tag is still to come, so for now the app is built from source:
 
 ```sh
-go install github.com/wailsapp/wails/v2/cmd/wails@v2.13.0
+go install github.com/wailsapp/wails/v2/cmd/wails@v2.15.0
 cd desktop && wails build
 ```
 
