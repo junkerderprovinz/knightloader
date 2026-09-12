@@ -22,6 +22,10 @@
 A self-hosted, cross-platform download manager: a clean-UI alternative to JDownloader that grabs files from everywhere and hauls them into one keep. One Go binary with the download engine, the API and the web UI inside it, shipped as a container and as native desktop apps.
 </p>
 
+<p align="center">
+One knight's job: I build it, keep it running, work through the issues and add what people ask for, until nothing is missing. No accounts, no telemetry, no ads. No trial, no tier, no asterisk. Nothing readable ever leaves your own walls.
+</p>
+
 <br>
 
 <div align="center">
@@ -398,7 +402,7 @@ Built on [Gopeed](https://github.com/GopeedLab/gopeed) (download engine),
 
 ## 10. Support this project
 
-If this saves you time or a debug night, a little support genuinely helps. Three ways, whichever suits you:
+If it has earned a place on your computer or server, a donation covers what it costs: the domain, the server, and the evenings that go into it. It also makes this knight's heart beat a little faster. Three ways below, whichever suits you.
 
 <p align="center">
   <a href="https://buymeacoffee.com/junkerderprovinz"><img src="https://raw.githubusercontent.com/junkerderprovinz/junkerderprovinz/main/donate/buttons/button-buy-me-a-coffee-live.svg" alt="Buy me a coffee" width="160"></a>
@@ -407,3 +411,5 @@ If this saves you time or a debug night, a little support genuinely helps. Three
   &nbsp;
   <a href="https://junkerderprovinz.github.io/junkerderprovinz/"><img src="https://raw.githubusercontent.com/junkerderprovinz/junkerderprovinz/main/donate/buttons/button-crypto-live.svg" alt="Donate with crypto" width="160"></a>
 </p>
+
+Problems, wishes or suggestions? Don't hesitate to open an [issue](https://github.com/junkerderprovinz/knightloader/issues).
