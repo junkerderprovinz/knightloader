@@ -411,6 +411,16 @@ function TaskRow({
           cells it covers do not read through it, and the context menu on the
           same row offers every one of these verbs for anybody not using a
           pointer.
+          THE GROUND IS THE ROW'S, and it used not to be. This strip carried
+          --carbon-surface with an elevation shadow while the row under it
+          hovers to --carbon-surface2, so it sat DARKER than what it lay on and
+          read as a frame drawn around the buttons rather than as the row
+          continuing (jdp, twice: "der loeschen button hat nach wie vor einen
+          dunklen rahmen"). It was invisible as a fault while the badges
+          themselves were filled tiles - the strip was just the darker gap
+          between them. The moment the tiles went quiet, the plate was all
+          there was left to see. Shadow gone with it: a shadow is what makes a
+          surface float, and this one is not floating, it is the row.
           IconBadge, not a plain ghost icon (jdp, on the same pattern in
           Rules.tsx: "die icons ... sind nicht im Glimstone. das sollen
           farbige quadratischen badges mit icon sein") - this is the
@@ -444,7 +454,7 @@ function TaskRow({
         // when a badge inside it takes focus and stays out of the way when the
         // row does.
         className="absolute inset-y-px end-2 z-10 flex items-center gap-1 rounded-[var(--radius-control)]
-          bg-carbon-surface px-1 opacity-0 shadow-[var(--elevation)] transition-opacity
+          bg-carbon-surface2 px-1 opacity-0 transition-opacity
           group-hover:opacity-100 [&:has(:focus-visible)]:opacity-100"
       >
         {collected && (
@@ -943,7 +953,13 @@ function PackageRow({
       // two background-color utilities on one element race in Tailwind's
       // generated stylesheet order (not class-string order), and the quiet
       // one was silently winning, making a selected package invisible.
-      className={`relative grid cursor-pointer select-none items-center ${
+      // `group` IST DER SCHALTER FUER DEN STREIFEN AM ZEILENENDE, und sein
+      // Fehlen hat den Loeschknopf dieser Zeile gebaut und unsichtbar gemacht:
+      // der Streifen steht auf opacity-0 und kommt ueber group-hover, und ohne
+      // diese Klasse gibt es keinen Vorfahren, auf den sich das beziehen kann.
+      // Die Linkzeile hatte sie von Anfang an, diese nie, weil sie bis dahin
+      // nichts zu zeigen hatte.
+      className={`group relative grid cursor-pointer select-none items-center ${
         allSelected ? 'glim-row-selected' : 'bg-carbon-surface2/80'
       } ${divider ? 'border-t border-carbon-border/60' : ''} px-3 py-2.5 transition-colors
         hover:bg-carbon-surface2 ${dragging ? 'opacity-50' : ''}`}
@@ -988,7 +1004,7 @@ function PackageRow({
       {(ytdlpHost && ctx.profile === 'collector') || ctx.onRemovePackage ? (
         <div
           className={`absolute inset-y-px end-2 z-10 flex items-center gap-1 rounded-[var(--radius-control)]
-            bg-carbon-surface px-1 shadow-[var(--elevation)] transition-opacity
+            bg-carbon-surface2 px-1 transition-opacity
             ${ytdlpHost && ctx.profile === 'collector' ? '' : 'opacity-0 group-hover:opacity-100 [&:has(:focus-visible)]:opacity-100'}`}
         >
           {ytdlpHost && ctx.profile === 'collector' && (

@@ -400,16 +400,28 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       body: ['settings.look.updatesAutoInstallContainerHint'],
     },
     { title: 'settings.system.lifecycleTitle', hint: 'settings.system.unavailable', rows: [] },
-    { title: 'settings.system.backupRestoreTitle', hint: 'settings.system.backupRestoreHint', rows: [] },
+    // ONE card where there were two (jdp, 2026-09-13: "Fuer was brauchen wir
+    // diese card und die sicherung card? das ist redundant"). The archive and
+    // "settings only" are two rows of it now, so the two former card titles are
+    // `also` entries rather than titles of their own - and a search for the word
+    // backup has to keep landing somewhere, which is exactly what this line is
+    // for.
     {
-      title: 'settings.transfer.title',
-      hint: 'settings.transfer.hint',
+      title: 'settings.transfer.cardTitle',
+      hint: 'settings.transfer.cardHint',
       rows: [{ key: 'settings.transfer.withSecrets', hint: 'settings.transfer.withSecretsHint' }],
-      // Names this card carries that are not rows: two Buttons and the caption
-      // beside the third InfoBubble. None of them emits a data-glim-label, so
-      // none of them has an anchor to scroll to, and the hit lands on the card.
-      also: ['settings.transfer.export', 'settings.transfer.import', 'settings.transfer.notTravellingLabel'],
-      body: ['settings.transfer.exportHint', 'settings.transfer.importHint', 'settings.transfer.notTravelling'],
+      // Names this card carries that are not rows: the two row headings and the
+      // four Buttons. None of them emits a data-glim-label, so none of them has
+      // an anchor to scroll to, and the hit lands on the card.
+      also: [
+        'settings.transfer.archiveLabel',
+        'settings.transfer.settingsLabel',
+        'settings.system.backupButton',
+        'settings.system.restoreButton',
+        'settings.transfer.export',
+        'settings.transfer.import',
+      ],
+      body: ['settings.transfer.archiveText', 'settings.transfer.settingsText'],
       // The import preview's own forty-odd strings are deliberately not here,
       // and they need no EXCLUDED entry either: SettingsImportPreview.tsx hands
       // them to the catalogue through InfoBubble tips, plain children and a

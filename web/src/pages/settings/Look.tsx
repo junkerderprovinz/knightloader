@@ -6,16 +6,14 @@ import { openColorPickerPopover } from '../../lib/colorPicker';
 import { LanguagePicker } from '../../components/LanguagePicker';
 import {
   type DeploymentInfo,
-  BACKUP_DOWNLOAD_URL,
   fetchDeploymentInfo,
   fetchUpdateCheck,
   installUpdate,
   requestQuit,
   requestRestart,
-  uploadRestore,
   type UpdateCheck as UpdateCheckT,
 } from '../../lib/api';
-import { IconDownloads, IconMoon, IconRetry, IconSignOut, IconSun, IconUpload } from '../../lib/icons';
+import { IconMoon, IconRetry, IconSignOut, IconSun } from '../../lib/icons';
 import { QuietModeToggle, useToast } from '../../lib/toast';
 import { MUTABLE_DIALOGS, useDialogMute } from '../../lib/dialogmute';
 import { getTheme, onThemeChange, setTheme } from '../../lib/theme';
@@ -862,13 +860,6 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
       {general && <MutedDialogsCard />}
       {general && <UpdateCard />}
       {general && <SystemCards />}
-      {/* Directly under Backup & Restore (the last card SystemCards draws) and
-          not on a page of its own: the two answer neighbouring questions, and
-          the way somebody finds out that "settings only" exists is by coming
-          here looking for the archive. hue 13 wraps to palette position 5, so it
-          sits between its neighbours' 7 and About's 10 without repeating either.
-          See the card's own doc comment for what each of the two files carries. */}
-      {general && <SettingsTransfer hue={13} />}
       {/* Last on the General tab (jdp, 2026-09-07: "die Über-card soll in den
           allgemein-tab ganz nach unten"). It is the one card nobody comes here
           FOR, and the one everybody eventually looks for: a version and a way
@@ -1070,41 +1061,60 @@ function MutedDialogsCard() {
 }
 
 /**
- * Overview, quit/restart, backup and restore, formerly their own "System"
- * tab (build-plan.md's Wave 10/10D), merged in here (jdp, 2026-08-24: "Alles
- * was im Systemtab ist in den Allgemein-Tab mergen") since none of the four
- * needed a dedicated tab of their own any more than Updates above already
- * didn't. Self-contained and independently loading, same as UpdateCard: a
- * slow or failed /api/deployment fetch delays or drops only this section,
- * never the appearance controls above it.
+ * Quit/restart and the transfer card, formerly their own "System" tab
+ * (build-plan.md's Wave 10/10D), merged in here (jdp, 2026-08-24: "Alles was im
+ * Systemtab ist in den Allgemein-Tab mergen") since neither needed a dedicated
+ * tab of their own any more than Updates above already didn't.
+ *
+ * TWO COMPONENTS RATHER THAN ONE, and the split is not cosmetic. The archive
+ * buttons used to live in the same function as the deployment fetch, so a slow
+ * or failed /api/deployment took them down with the quit/restart controls they
+ * have nothing to do with - the fetch answers "can this box quit itself", which
+ * is not a question a backup download has ever asked. LifecycleCard keeps the
+ * fetch and disappears alone; the transfer card draws either way.
+ *
+ * What the two still share is `shuttingDown`, because a restore the server
+ * answers with a restart is a shutdown exactly like the one the restart button
+ * asks for, and the sentence about it belongs on the card that owns the
+ * lifecycle rather than on the one that happened to trigger it.
  */
 function SystemCards() {
+  const [shuttingDown, setShuttingDown] = useState(false);
+  return (
+    <>
+      <LifecycleCard shuttingDown={shuttingDown} onShutdown={() => setShuttingDown(true)} />
+      {/* hue 7, the position the archive card already had, and About below
+          keeps its 10. See the card's own doc comment for why the archive and
+          "settings only" are one card now and what each of the two files
+          carries. */}
+      <SettingsTransfer hue={7} onShutdown={() => setShuttingDown(true)} />
+    </>
+  );
+}
+
+/** Quit and restart, and the one card that says what they do on THIS
+ *  deployment. Self-contained and independently loading, same as UpdateCard: a
+ *  slow or failed /api/deployment delays or drops only this card, never the
+ *  controls around it. */
+function LifecycleCard({ shuttingDown, onShutdown }: { shuttingDown: boolean; onShutdown: () => void }) {
   const { t } = useT();
   const { toast } = useToast();
   const { data, failed, loading, reload } = useResource<DeploymentInfo>(fetchDeploymentInfo);
 
   const [confirmAction, setConfirmAction] = useState<'quit' | 'restart' | null>(null);
   const [acting, setActing] = useState(false);
-  const [shuttingDown, setShuttingDown] = useState(false);
 
-  const fileInput = useRef<HTMLInputElement>(null);
-  const [pendingFile, setPendingFile] = useState<File | null>(null);
-  const [restoring, setRestoring] = useState(false);
-  const [restoreStatus, setRestoreStatus] = useState('');
-
-  // One counter per confirm button, never one shared between the two: a
-  // failure of the button that was NOT pressed would otherwise shake the wrong
-  // one. Each keys its own button, so a second identical refusal builds a
-  // fresh DOM node and the animation replays instead of playing once ever.
+  // Keyed onto the confirm button rather than counted somewhere shared, so a
+  // second identical refusal builds a fresh DOM node and the animation replays
+  // instead of playing once ever.
   const [actShake, setActShake] = useState(0);
-  const [restoreShake, setRestoreShake] = useState(0);
 
   async function confirmLifecycle() {
     if (!confirmAction) return;
     setActing(true);
     try {
       const res = confirmAction === 'quit' ? await requestQuit() : await requestRestart();
-      setShuttingDown(true);
+      onShutdown();
       setConfirmAction(null);
       void res;
     } catch (e) {
@@ -1118,24 +1128,6 @@ function SystemCards() {
       setActShake((n) => n + 1);
     } finally {
       setActing(false);
-    }
-  }
-
-  async function confirmRestore() {
-    if (!pendingFile) return;
-    setRestoring(true);
-    try {
-      const res = await uploadRestore(pendingFile);
-      setRestoreStatus(res.status);
-      if (res.restarting) setShuttingDown(true);
-      setPendingFile(null);
-    } catch (e) {
-      // Same shape as confirmLifecycle above, and the same reason for keeping
-      // the window standing rather than closing it on the way out.
-      toast(t('settings.system.restoreFailed', { error: String(e).replace(/^Error:\s*/, '') }), 'fail');
-      setRestoreShake((n) => n + 1);
-    } finally {
-      setRestoring(false);
     }
   }
 
@@ -1209,56 +1201,6 @@ function SystemCards() {
         </div>
       </Card>
 
-      {/* Backup and Restore, one card (jdp, 2026-08-24: "Sicherung und
-          wiederherstellungscard in eine zusammenfassen") - two former
-          standalone Cards (hue 7 and hue 8) merged into hue 7 alone; nothing
-          after this needed hue 8 any more than the Motion card above needed a
-          fresh one of its own. */}
-      <Card hue={7} className="flex flex-col gap-3">
-        <SectionTitle hint={t('settings.system.backupRestoreHint')}>
-          {t('settings.system.backupRestoreTitle')}
-        </SectionTitle>
-        <input
-          ref={fileInput}
-          type="file"
-          accept="application/zip,.zip"
-          className="hidden"
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            // Cleared straight away, or picking the same file twice in a row
-            // raises no change event and a second restore attempt after a
-            // failed one silently does nothing - the same reason Rules.tsx's
-            // import input already does this.
-            e.target.value = '';
-            if (f) setPendingFile(f);
-          }}
-        />
-        <div className="flex flex-wrap items-center gap-3">
-          <Button
-            hue={7}
-            kind="secondary"
-            icon={<IconDownloads width={16} height={16} />}
-            onClick={() => {
-              window.location.href = BACKUP_DOWNLOAD_URL;
-            }}
-          >
-            {t('settings.system.backupButton')}
-          </Button>
-          <Button
-            hue={7}
-            kind="secondary"
-            icon={<IconUpload width={16} height={16} />}
-            onClick={() => fileInput.current?.click()}
-            disabled={restoring}
-          >
-            {t('settings.system.restoreButton')}
-          </Button>
-        </div>
-        {restoreStatus && (
-          <span className="text-sm text-statusOk">{t('settings.system.restoreStaged', { status: restoreStatus })}</span>
-        )}
-      </Card>
-
       {confirmAction && (
         <Modal
           title={t(confirmAction === 'quit' ? 'settings.system.quitConfirmTitle' : 'settings.system.restartConfirmTitle')}
@@ -1282,32 +1224,6 @@ function SystemCards() {
           }
         >
           <p className="text-sm text-carbon-text">{t('settings.system.quitConfirmBody', { note: data.note })}</p>
-        </Modal>
-      )}
-
-      {pendingFile && (
-        <Modal
-          title={t('settings.system.restoreConfirmTitle')}
-          onClose={() => (restoring ? undefined : setPendingFile(null))}
-          footer={
-            <>
-              <span className="flex-1" />
-              <Button kind="ghost" onClick={() => setPendingFile(null)} disabled={restoring}>
-                {t('settings.system.confirmCancel')}
-              </Button>
-              <Button
-                key={restoreShake}
-                className={restoreShake > 0 ? 'glim-shake' : ''}
-                kind="ghost"
-                onClick={() => void confirmRestore()}
-                disabled={restoring}
-              >
-                {restoring ? t('settings.system.restoring') : t('settings.system.confirmProceed')}
-              </Button>
-            </>
-          }
-        >
-          <p className="text-sm text-carbon-text">{t('settings.system.restoreConfirmBody', { name: pendingFile.name })}</p>
         </Modal>
       )}
     </>
